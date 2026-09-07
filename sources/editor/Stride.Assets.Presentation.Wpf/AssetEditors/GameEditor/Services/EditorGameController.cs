@@ -229,6 +229,15 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
             return serviceRegistry.Get<T>();
         }
 
+        public IReadOnlyList<T> GetServices<T>() where T : IEditorGameViewModelService
+        {
+            EnsureNotDestroyed();
+            EnsureAssetAccess();
+            if (IsDestroying || serviceRegistry == null)
+                return [];
+            return serviceRegistry.Services.OfType<T>().ToList();
+        }
+
         /// <inheritdoc/>
         public async Task<bool> StartGame()
         {

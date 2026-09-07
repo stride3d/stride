@@ -56,6 +56,13 @@ namespace Stride.Assets.Presentation.SceneEditor
         public double ComponentGizmoSize = 1.0;
         public bool FixedSizeGizmos = false;
         public List<string> HiddenGizmos = new List<string>();
+        /// <summary>
+        /// The keys of the overlays (navigation meshes, debug shapes, ...) shown in this scene.
+        /// </summary>
+        public List<string> VisibleOverlays = new List<string>();
+        /// <summary>
+        /// Read from scenes saved before <see cref="VisibleOverlays"/> existed, never written.
+        /// </summary>
         public List<Guid> VisibleNavigationGroups = new List<Guid>();
         public bool LightProbeWireframe = false;
         public int LightProbeBounces = 1;
