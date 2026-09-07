@@ -3,9 +3,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Sentry;
 
@@ -93,9 +96,14 @@ public static class CrashReportSender
         // "GameStudio" -> gamestudio@version). No "Stride" prefix: every report already lands in a Stride project.
         var package = applicationName.Replace(" ", "").ToLowerInvariant();
 
+        // The SDK never surfaces an upload failure: CaptureEvent queues, FlushAsync waits or times out, and a
+        // transport error is only logged. The callers delete the report once "sent", so a silent failure (offline,
+        // a proxy, a rejected envelope) would lose it. Watch the HTTP outcomes and throw below when nothing landed.
+        var upload = new UploadOutcome();
         using var sdk = SentrySdk.Init(options =>
         {
             options.Dsn = dsn;
+            options.CreateHttpMessageHandler = () => upload;
             options.Release = $"{package}@{version}";
             options.Environment = environment;
             options.IsGlobalModeEnabled = true;
@@ -161,6 +169,44 @@ public static class CrashReportSender
         }
 
         await SentrySdk.FlushAsync(TimeSpan.FromSeconds(15));
+        upload.ThrowIfNothingLanded();
+    }
+
+    // The outcome of the SDK's HTTP requests during one send: a failure (an exception, or a non-success status) or
+    // no completed request at all (the flush timed out with the envelope still queued) means the report did not
+    // reach Sentry, and the caller must keep it.
+    private sealed class UploadOutcome : DelegatingHandler
+    {
+        private int succeeded;
+        private string failure;
+
+        public UploadOutcome() : base(new HttpClientHandler()) { }
+
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var response = await base.SendAsync(request, cancellationToken);
+                if (response.IsSuccessStatusCode)
+                    Interlocked.Increment(ref succeeded);
+                else
+                    failure ??= $"HTTP {(int)response.StatusCode} {response.ReasonPhrase}";
+                return response;
+            }
+            catch (Exception exception)
+            {
+                failure ??= exception.Message;
+                throw;
+            }
+        }
+
+        public void ThrowIfNothingLanded()
+        {
+            if (failure != null)
+                throw new IOException("Crash report upload failed: " + failure);
+            if (succeeded == 0)
+                throw new IOException("Crash report upload timed out.");
+        }
     }
 
     /// <summary>

@@ -13,6 +13,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- The sender test runs the core's Sentry code; Sentry is PrivateAssets=all in the core, so bring its runtime here
+         like every sender does (no generator/build assets: nothing should inject a startup initializer). -->
+    <PackageReference Include="Sentry" ExcludeAssets="analyzers;build" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
     <ProjectReference Include="..\Stride.CrashReport\Stride.CrashReport.csproj" />
     <!-- The probe exe the tests spawn and crash; referenced so it builds and lands beside the tests. -->
