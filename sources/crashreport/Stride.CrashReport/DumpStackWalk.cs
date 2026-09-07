@@ -116,15 +116,14 @@ public static class DumpStackWalk
                 var faultSite = frames.Count > 0 ? frames[0].Function : null;
                 if (!string.IsNullOrEmpty(faultingFrame))
                     frames.Insert(0, new StoredFrame { Function = faultingFrame });
-                var message = string.IsNullOrEmpty(faultSite)
-                    ? NativeCrashReporting.NativeCrashMessage(faultingFrame)
-                    : $"Native access violation in {faultSite}.";
+                // The exception's message is Sentry's subtitle: the native location, the one thing the managed
+                // stack (whose top frame Sentry shows as the culprit) can't tell. The report line says it all.
                 crash.Exceptions = new List<StoredException>
                 {
-                    new() { Type = "NativeCrash", Message = message, Frames = frames },
+                    new() { Type = "NativeCrash", Message = NativeCrashReporting.NativeCrashValue(faultingFrame), Frames = frames },
                 };
                 crash.CrashedThreadId = (int)thread.OSThreadId;
-                SetReportException(crash, message); // so the reporter window title and report.txt name the fault site too
+                SetReportException(crash, NativeCrashReporting.NativeCrashMessage(faultingFrame, crash.AffectedAssets.FirstOrDefault(), faultSite));
             }
             else
             {
@@ -183,7 +182,7 @@ public static class DumpStackWalk
                 continue;
             frames.Add(new StoredFrame
             {
-                Function = method.Type is not null ? method.Type.Name + "." + method.Name : method.Name,
+                Function = FrameNames.Qualified(method.Type?.Name, method.Name),
                 // ClrModule.Name is the module's full on-disk path; keep only the assembly name (its file name),
                 // both because that is what Sentry expects and to avoid shipping a local, user-identifying path.
                 Module = ModuleName(method.Type?.Module),

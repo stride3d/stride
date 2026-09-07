@@ -99,14 +99,14 @@ namespace Stride.AssetCompiler
 
         /// <summary>
         /// What the native-fault recorder notes beside the dump for the command a native crash happened in:
-        /// "&lt;asset label&gt;\t&lt;definition path&gt;" (the path is empty when unknown, the label falls back to
-        /// the command title). Null when nothing is running. The adopt step turns it back into the report's
-        /// affected asset and attachable definition, the same fields a managed command crash carries.
+        /// "&lt;asset label&gt;\t&lt;asset type&gt;\t&lt;definition path&gt;" (type and path empty when unknown,
+        /// the label falls back to the command title). Null when nothing is running. The adopt step turns it back
+        /// into the report's asset fields and attachable definition, the same a managed command crash carries.
         /// </summary>
         public static string Breadcrumb(Command command, AssetItem asset)
         {
             var label = AssetLabel(asset) ?? command?.Title;
-            return label == null ? null : label + "\t" + (asset?.FullPath?.ToOSPath() ?? string.Empty);
+            return label == null ? null : $"{label}\t{asset?.Asset?.GetType().Name}\t{asset?.FullPath?.ToOSPath()}";
         }
 
         /// <summary>The breadcrumb for the step running on the current async flow (the master's case).</summary>
@@ -168,13 +168,16 @@ namespace Stride.AssetCompiler
                     // The recorder also notes what the faulting thread was building (Windows only, see Breadcrumb).
                     var (recordedFrame, breadcrumb) = ReadRecordedFaultingFrame(dumpPath);
                     var faultingFrame = NativeCrashReporting.FaultingFrameFromDump(dumpPath) ?? recordedFrame;
-                    var assetLabel = breadcrumb?.Split('\t', 2)[0];
-                    var assetDefinitionPath = breadcrumb?.Split('\t', 2).ElementAtOrDefault(1);
+                    var crumbs = breadcrumb?.Split('\t') ?? Array.Empty<string>();
+                    var assetLabel = crumbs.ElementAtOrDefault(0);
+                    var assetType = crumbs.ElementAtOrDefault(1);
+                    var assetDefinitionPath = crumbs.ElementAtOrDefault(2);
 
                     var data = new CrashReportData
                     {
                         ["Application"] = ApplicationName,
-                        ["Exception"] = NativeCrashReporting.NativeCrashMessage(faultingFrame),
+                        ["Exception"] = NativeCrashReporting.NativeCrashMessage(faultingFrame, assetLabel),
+                        ["AssetType"] = string.IsNullOrEmpty(assetType) ? null : assetType,
                         ["Asset"] = assetLabel,
                         ["Platform"] = platform,
                         ["GraphicsApi"] = graphicsApi,

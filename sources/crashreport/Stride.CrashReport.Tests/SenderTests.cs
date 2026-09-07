@@ -8,6 +8,26 @@ namespace Stride.CrashReport.Tests;
 
 public class SenderTests
 {
+    [Theory]
+    [InlineData("GameStudio", null, new[] { "System.InvalidOperationException" }, "[GameStudio] InvalidOperationException")]
+    [InlineData("AssetCompiler", "ModelAsset", new[] { "System.NotSupportedException" }, "[AssetCompiler] NotSupportedException (ModelAsset)")]
+    [InlineData("AssetCompiler", "ModelAsset", new[] { "NativeCrash" }, "[AssetCompiler] NativeCrash (ModelAsset)")]
+    // Wrappers are unwrapped for the title only; the chain is listed innermost-first.
+    [InlineData("GameStudio", null, new[] { "System.NullReferenceException", "System.Reflection.TargetInvocationException" }, "[GameStudio] NullReferenceException")]
+    [InlineData("GameStudio", null, new[] { "System.IO.IOException", "System.AggregateException" }, "[GameStudio] IOException")]
+    [InlineData("GameStudio", null, new[] { "System.NullReferenceException", "Stride.Core.Assets.AssetException" }, "[GameStudio] AssetException")]
+    [InlineData("Launcher", null, new[] { "System.Collections.Generic.KeyNotFoundException`1" }, "[Launcher] KeyNotFoundException")]
+    public void TitleNamesAppKindAndAssetType(string application, string? assetType, string[] chainInnermostFirst, string expected)
+        => Assert.Equal(expected, CrashReportSender.Title(application, CrashReportSender.TitleKind(chainInnermostFirst), assetType));
+
+    [Theory]
+    [InlineData("Stride.Core.BuildEngine.CommandBuildStep+<StartCommand>d__30", "MoveNext", "Stride.Core.BuildEngine.CommandBuildStep.StartCommand")]
+    [InlineData("Stride.Core.BuildEngine.CommandBuildStep", "Execute", "Stride.Core.BuildEngine.CommandBuildStep.Execute")]
+    [InlineData("Stride.Core.BuildEngine.Builder+<>c__DisplayClass81_2", "<ScheduleBuildStep>b__0", "Stride.Core.BuildEngine.Builder+<>c__DisplayClass81_2.<ScheduleBuildStep>b__0")]
+    [InlineData(null, "Main", "Main")]
+    public void FrameNamesFoldAsyncStateMachines(string? type, string method, string expected)
+        => Assert.Equal(expected, FrameNames.Qualified(type, method));
+
     [Fact]
     public async Task SendToUnreachableDsnThrowsSoTheReportIsKept()
     {

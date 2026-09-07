@@ -115,7 +115,8 @@ public static class CrashReportSender
             // No user identity beyond the SDK's random installation id; a contact email only travels
             // through the feedback when the user typed one
             options.SendDefaultPii = false;
-            options.SetBeforeSend((sentryEvent, _) => Anonymize(sentryEvent));
+            // BeforeSend runs after the SDK's processors filled in the exception chain of a live exception.
+            options.SetBeforeSend((sentryEvent, _) => Anonymize(Retitle(sentryEvent, applicationName, report["AssetType"])));
         });
 
         SentrySdk.ConfigureScope(scope =>
@@ -141,7 +142,9 @@ public static class CrashReportSender
         else if (structuredExceptions is { Count: > 0 })
             sentryEvent = BuildEventFromStored(structuredExceptions);       // handoff managed crash: rebuild the frames
         else
-            sentryEvent = new SentryEvent { Message = new SentryMessage { Formatted = report["Exception"] ?? "Unknown crash" } }; // native / no frames
+            // A native crash whose dump could not be walked: no frames, but still an exception (not a bare message)
+            // so its title has the same shape as every other crash.
+            sentryEvent = new SentryEvent { SentryExceptions = [new Sentry.Protocol.SentryException { Type = "NativeCrash", Value = report["Exception"] ?? "Unknown crash" }] };
         sentryEvent.Level = SentryLevel.Fatal;
         // Group by the crash's signature, not the reporter's stack or message.
         if (!string.IsNullOrEmpty(fingerprint))
@@ -364,6 +367,45 @@ public static class CrashReportSender
     /// The Sentry event carries its own copy of messages and stack frames, so it needs the same scrubbing
     /// as the report text.
     /// </summary>
+    // Sentry titles an issue by its outermost exception's type. Ours reads "[App] Kind (AssetType)": the app, because
+    // the list shows no tags and one bug seen from two apps is two issues anyway (the signature has the step kind);
+    // the asset type for compiler crashes, because it is what the crash is about; never the version, which is a tag
+    // and would split a title per release. Inner exceptions keep their real type, so the chain reads as usual.
+    internal static SentryEvent Retitle(SentryEvent sentryEvent, string applicationName, string assetType)
+    {
+        var chain = sentryEvent.SentryExceptions?.ToList();
+        if (chain is not { Count: > 0 })
+            return sentryEvent;
+        chain[^1].Type = Title(applicationName, TitleKind(chain.Select(e => e.Type).ToList()), assetType);
+        sentryEvent.SentryExceptions = chain;
+        return sentryEvent;
+    }
+
+    /// <summary>The issue title for a crash: "[App] Kind (AssetType)", the asset type only when known.</summary>
+    public static string Title(string applicationName, string kind, string assetType)
+        => $"[{applicationName}] {kind}" + (string.IsNullOrEmpty(assetType) ? "" : $" ({assetType})");
+
+    // The kind named in the title: the outermost type, short, unless it is a pure wrapper (reflection, a type
+    // initializer, a task) around the inner one, which is then the crash worth naming.
+    public static string TitleKind(IReadOnlyList<string> chainInnermostFirst)
+    {
+        var outer = ShortTypeName(chainInnermostFirst[^1]);
+        if (chainInnermostFirst.Count > 1
+            && outer is "TargetInvocationException" or "TypeInitializationException" or "AggregateException")
+            return ShortTypeName(chainInnermostFirst[^2]);
+        return outer;
+    }
+
+    private static string ShortTypeName(string fullName)
+    {
+        if (string.IsNullOrEmpty(fullName))
+            return "Exception";
+        var generic = fullName.IndexOf('`');
+        if (generic >= 0)
+            fullName = fullName[..generic];
+        return fullName[(fullName.LastIndexOf('.') + 1)..];
+    }
+
     private static SentryEvent Anonymize(SentryEvent sentryEvent)
     {
         // Keep only the install id, no location. A concrete non-routable IP is used rather than null so

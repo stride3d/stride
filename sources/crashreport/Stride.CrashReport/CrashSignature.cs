@@ -31,6 +31,6 @@ public static class CrashSignature
         var method = frames[0].GetMethod();
         if (method == null)
             return "?";
-        return $"{method.DeclaringType?.FullName ?? "?"}.{method.Name}";
+        return FrameNames.Qualified(method.DeclaringType?.FullName ?? "?", method.Name);
     }
 }

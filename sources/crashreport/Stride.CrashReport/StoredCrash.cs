@@ -130,8 +130,7 @@ public sealed class StoredException
                 var method = frame.GetMethod();
                 stored.Frames.Add(new StoredFrame
                 {
-                    Function = method is null ? null
-                        : method.DeclaringType is null ? method.Name : method.DeclaringType.FullName + "." + method.Name,
+                    Function = method is null ? null : FrameNames.Qualified(method.DeclaringType?.FullName, method.Name),
                     Module = method?.DeclaringType?.Assembly.GetName().Name,
                     File = frame.GetFileName(),
                     Line = frame.GetFileLineNumber(),

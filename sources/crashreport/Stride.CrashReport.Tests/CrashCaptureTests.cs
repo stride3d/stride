@@ -146,7 +146,7 @@ public class CrashCaptureTests
             var lines = File.ReadAllLines(Path.Combine(dir, "probe.dmp.frame"));
             Assert.Equal(2, lines.Length);
             Assert.Contains("+0x", lines[0]);
-            Assert.Equal("probe.sdm3d (ModelAsset)\t" + Path.Combine(dir, "probe.sdm3d"), lines[1]);
+            Assert.Equal("probe.sdm3d (ModelAsset)\tModelAsset\t" + Path.Combine(dir, "probe.sdm3d"), lines[1]);
         }
         finally
         {

@@ -27,7 +27,7 @@ if (mode == "record")
     // The dialog is suppressed here so a dev box or CI runner can't hang on it.
     Trigger.SuppressCrashDialog();
     Stride.NativeCrashHandler.InstallFaultingFrameRecorder(Path.Combine(dir, "probe.dmp.frame"),
-        () => "probe.sdm3d (ModelAsset)\t" + Path.Combine(dir, "probe.sdm3d"));
+        () => "probe.sdm3d (ModelAsset)\tModelAsset\t" + Path.Combine(dir, "probe.sdm3d"));
     Trigger.NativeAccessViolation();
     Console.Error.WriteLine("probe: survived the AV (unexpected)");
     return 3;

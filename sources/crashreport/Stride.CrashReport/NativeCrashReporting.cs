@@ -85,14 +85,28 @@ namespace Stride.CrashReport
         public static string FaultingFrameFromDump(string dumpPath) => MinidumpReader.FaultingFrame(dumpPath);
 
         /// <summary>
-        /// The crash-report exception line for a native access violation, naming the faulting frame when known. The
-        /// frame travels in the message so Sentry — which has no stack trace for these — groups them by fault location
-        /// instead of collapsing every native crash into one issue.
+        /// The crash-report exception line for a native access violation: the faulting frame when known, the asset
+        /// being compiled and the managed fault site when the dump walk found them. This is what the report text and
+        /// the reporter window show; Sentry's title comes from <see cref="NativeCrashValue"/> instead.
         /// </summary>
-        public static string NativeCrashMessage(string faultingFrame)
-            => string.IsNullOrEmpty(faultingFrame)
-                ? "Native crash (access violation). See the attached minidump for the faulting thread and loaded modules."
-                : $"Native crash (access violation) in {faultingFrame}. See the attached minidump for the faulting thread and loaded modules.";
+        public static string NativeCrashMessage(string faultingFrame, string assetLabel = null, string managedFaultSite = null)
+        {
+            var message = $"Native crash (access violation) in {NativeLocation(faultingFrame)}";
+            if (!string.IsNullOrEmpty(assetLabel))
+                message += $" while compiling {assetLabel}";
+            if (!string.IsNullOrEmpty(managedFaultSite))
+                message += $"; managed fault site {managedFaultSite}";
+            return message + ". See the attached minidump for the faulting thread and loaded modules.";
+        }
+
+        /// <summary>
+        /// The one-line value of a native crash's synthetic exception, Sentry's subtitle under the issue title: the
+        /// native location only. The managed stack travels as frames, and its top frame is the culprit line Sentry
+        /// shows already, so repeating it here would hide the one detail the stack can't give.
+        /// </summary>
+        public static string NativeCrashValue(string faultingFrame) => $"Access violation in {NativeLocation(faultingFrame)}";
+
+        private static string NativeLocation(string faultingFrame) => string.IsNullOrEmpty(faultingFrame) ? "native code" : faultingFrame;
 
         /// <summary>
         /// Launches the out-of-process reporter for a crash run, returning false when the reporter can't be
