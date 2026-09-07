@@ -21,9 +21,14 @@ namespace Stride.Particles.Components
     [DefaultEntityComponentRenderer(typeof(ParticleSystemRenderProcessor))]
     [ComponentOrder(10200)]
     [ComponentCategory("Particles")]
-    public sealed class ParticleSystemComponent : ActivableEntityComponent
+    public sealed class ParticleSystemComponent : ActivableEntityComponent, IEntityComponentBounds
     {        
         private ParticleSystem particleSystem;
+
+        /// <inheritdoc />
+        [DataMemberIgnore]
+        public BoundingBox LocalBounds => ParticleSystem?.BoundingShape?.GetAABB(Vector3.Zero, Quaternion.Identity, 1.0f)
+            ?? new BoundingBox(new Vector3(-2.0f), new Vector3(2.0f));
 
         /// <summary>
         /// The particle system associated with this component

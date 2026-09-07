@@ -6,8 +6,6 @@ using System.Linq;
 using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Engine;
-using Stride.Navigation;
-using Stride.Particles.Components;
 using Stride.Rendering;
 using Stride.SpriteStudio.Runtime;
 
@@ -192,20 +190,15 @@ namespace Stride.Editor.Engine
                 }
             }
 
-            var particleComponent = entity.Get<ParticleSystemComponent>();
-            if (particleComponent != null)
+            // Components that declare their own volume (a navigation bounding box, a particle system, ...)
+            foreach (var component in entity.Components)
             {
-                var center = worldMatrix.TranslationVector;
-                var sphere = particleComponent.ParticleSystem?.BoundingShape != null ? BoundingSphere.FromBox(particleComponent.ParticleSystem.BoundingShape.GetAABB(center, Quaternion.Identity, 1.0f)) : new BoundingSphere(center, 2.0f);
-                boundingSphere = BoundingSphere.Merge(boundingSphere, sphere);
-            }
+                if (component is not IEntityComponentBounds { LocalBounds: var localBounds } || localBounds == BoundingBox.Empty)
+                    continue;
 
-            var boundingBoxComponent = entity.Get<NavigationBoundingBoxComponent>();
-            if (boundingBoxComponent != null)
-            {
-                var center = worldMatrix.TranslationVector;
-                var scales = new Vector3(worldMatrix.Row1.Length(), worldMatrix.Row2.Length(), worldMatrix.Row3.Length()) * boundingBoxComponent.Size;
-                boundingSphere = BoundingSphere.FromBox(new BoundingBox(-scales + center, scales + center));
+                var worldBounds = new BoundingBoxExt(localBounds);
+                worldBounds.Transform(worldMatrix);
+                boundingSphere = BoundingSphere.Merge(boundingSphere, BoundingSphere.FromBox((BoundingBox)worldBounds));
             }
 
             // Extend the bounding sphere to include the children
