@@ -176,7 +176,7 @@ internal static class NewCommand
         DotNetNewTemplateRegistry? registry;
         try
         {
-            registry = await manager.OpenTemplateRegistry(version, packages);
+            registry = await manager.OpenTemplateRegistry(version, packages, cancellationToken);
         }
         catch (Exception exception)
         {
