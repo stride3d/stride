@@ -360,15 +360,7 @@ namespace Stride.Games
                 if (!string.IsNullOrEmpty(preferredParameters.RequiredAdapterUid) && adapterUid != preferredParameters.RequiredAdapterUid)
                     continue;
 
-                // Skip software rasterizers (WARP, the Basic Render Driver) unless they were asked
-                // for by uid or by STRIDE_GRAPHICS_SOFTWARE_RENDERING. They used to be skipped for
-                // having no display output, which also disqualified every discrete GPU of a hybrid
-                // laptop - on those, all displays are wired to the integrated GPU, so the fastest
-                // adapter in the machine never had an output to show. A hardware adapter with no
-                // output is a perfectly good renderer for a window (Windows composes across
-                // adapters routinely); only exclusive full screen actually needs one, and the
-                // fullscreen path below already requires PreferredFullScreenOutputIndex to name a
-                // real output, so an output-less adapter yields no candidate there on its own.
+                // Skip software rasterizers (WARP, Basic Render Driver) unless explicitly requested.
                 if (graphicsAdapter.IsSoftwareAdapter
                     && string.IsNullOrEmpty(preferredParameters.RequiredAdapterUid)
                     && Environment.GetEnvironmentVariable("STRIDE_GRAPHICS_SOFTWARE_RENDERING") != "1")

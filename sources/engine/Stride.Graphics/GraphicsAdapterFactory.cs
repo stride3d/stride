@@ -21,17 +21,13 @@ namespace Stride.Graphics
         private static GpuPreference gpuPreference = GpuPreference.HighPerformance;
 
         /// <summary>
-        ///   Gets or sets which GPU the enumeration puts first on machines that have several -
-        ///   and with it, which one <see cref="DefaultAdapter"/> names and the engine picks when
-        ///   nothing else (such as <c>GameGraphicsParameters.RequiredAdapterUid</c>) chooses one.
+        ///   Gets or sets which GPU is enumerated first on machines that have several, and therefore
+        ///   which one <see cref="DefaultAdapter"/> is.
         /// </summary>
         /// <remarks>
-        ///   Set it before the first use of <see cref="Adapters"/> or <see cref="DefaultAdapter"/>
-        ///   (in practice: before creating the game); to change it afterwards, call
-        ///   <see cref="Reset"/> - an already created device stays on its adapter either way.
-        ///   The <c>STRIDE_GPU_PREFERENCE</c> environment variable
-        ///   (<c>high-performance</c>, <c>minimum-power</c> or <c>unspecified</c>) overrides this
-        ///   property, so a machine can steer a game that never sets it.
+        ///   Set it before the first use of <see cref="Adapters"/> or <see cref="DefaultAdapter"/>, or call
+        ///   <see cref="Reset"/> afterwards. The <c>STRIDE_GPU_PREFERENCE</c> environment variable
+        ///   (<c>high-performance</c>, <c>minimum-power</c> or <c>unspecified</c>) overrides this property.
         /// </remarks>
         public static GpuPreference GpuPreference
         {

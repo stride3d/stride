@@ -60,11 +60,6 @@ namespace Stride.Graphics
 
             var useWarp = Environment.GetEnvironmentVariable("STRIDE_GRAPHICS_SOFTWARE_RENDERING") == "1";
 
-            // Which GPU comes first on multi-GPU machines: GraphicsAdapterFactory.GpuPreference,
-            // unless the STRIDE_GPU_PREFERENCE environment variable overrides it - the machine's
-            // word over the game's, for steering a title that never exposes the choice. The first
-            // adapter of the list is what the engine picks by default; per-game,
-            // GameGraphicsParameters.RequiredAdapterUid picks one exactly.
             var preference = Environment.GetEnvironmentVariable("STRIDE_GPU_PREFERENCE")?.ToLowerInvariant() switch
             {
                 "high-performance" or "highperformance" => Graphics.GpuPreference.HighPerformance,
@@ -191,12 +186,12 @@ namespace Stride.Graphics
             //
             // Enumerates all the Graphics Adapters in the system, using GPU preference (DXGI 1.6+).
             //
-            static List<GraphicsAdapter> EnumerateAdaptersPrefer(GpuPreference preference)
+            static List<GraphicsAdapter> EnumerateAdaptersPrefer(GpuPreference gpuPreference)
             {
                 Debug.Assert(dxgiFactoryVersion >= 6);
                 var dxgiFactory6 = (IDXGIFactory6*) dxgiFactory;
 
-                var dxgiPreference = preference == GpuPreference.MinimumPower
+                var dxgiPreference = gpuPreference == GpuPreference.MinimumPower
                     ? Silk.NET.DXGI.GpuPreference.MinimumPower
                     : Silk.NET.DXGI.GpuPreference.HighPerformance;
 

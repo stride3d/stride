@@ -95,6 +95,8 @@ namespace Stride.Graphics
         /// </summary>
         public bool IsSoftwareAdapter { get; }
 
+        private const uint MicrosoftVendorId = 0x1414;
+
 
         /// <summary>
         ///   Gets the amount of memory, in bytes, on the graphics card (GPU) that is
@@ -159,9 +161,8 @@ namespace Stride.Graphics
             AdapterUid = dxgiAdapterDesc.AdapterLuid.BitCast<Luid, long>();
 
             VendorId = (int) dxgiAdapterDesc.VendorId;
-            // DXGI_ADAPTER_FLAG_SOFTWARE (2) marks WARP; the Basic Render Driver predates the
-            // flag on some Windows builds, so its Microsoft vendor id is the fallback test.
-            IsSoftwareAdapter = (dxgiAdapterDesc.Flags & 0x2) != 0 || dxgiAdapterDesc.VendorId == 0x1414;
+            // The software flag marks WARP; the Basic Render Driver is not always flagged, hence the Microsoft vendor id.
+            IsSoftwareAdapter = (dxgiAdapterDesc.Flags & (uint) AdapterFlag.Software) != 0 || dxgiAdapterDesc.VendorId == MicrosoftVendorId;
             DedicatedVideoMemory = dxgiAdapterDesc.DedicatedVideoMemory;
             SharedSystemMemory = dxgiAdapterDesc.SharedSystemMemory;
             DedicatedSystemMemory = dxgiAdapterDesc.DedicatedSystemMemory;
