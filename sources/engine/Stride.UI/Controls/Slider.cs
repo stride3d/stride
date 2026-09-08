@@ -459,6 +459,7 @@ namespace Stride.UI.Controls
         private void CoerceMaximum(float newValue)
         {
             maximum = MathUtil.Clamp(newValue, minimum, float.MaxValue);
+            Value = Value;
         }
 
         private void InvalidateMeasure(object sender, EventArgs eventArgs)

@@ -115,6 +115,53 @@ namespace Stride.UI.Tests.Layering
             slider.Value = 10;
             Assert.Equal(1.0f, slider.Value);
         }
+
+        [Fact]
+        public void TestMinimumMaximumChangesCoerceValue()
+        {
+            var slider = new Slider { Maximum = 10, Value = 8 };
+            var valueChangedCount = 0;
+            slider.ValueChanged += (s, e) => valueChangedCount++;
+
+            slider.Maximum = 4;
+
+            Assert.Equal(4, slider.Maximum);
+            Assert.Equal(4, slider.Value);
+            Assert.Equal(1, valueChangedCount);
+
+            slider.Minimum = 5;
+
+            Assert.Equal(5, slider.Minimum);
+            Assert.Equal(5, slider.Maximum);
+            Assert.Equal(5, slider.Value);
+            Assert.Equal(2, valueChangedCount);
+
+            slider.Minimum = 5;
+
+            Assert.Equal(2, valueChangedCount);
+        }
+
+        [Fact]
+        public void TestMinimumMaximumChangesCoerceValueWithSnapping()
+        {
+            var slider = new Slider
+            {
+                Maximum = 10,
+                Value = 8,
+                TickFrequency = 5,
+                ShouldSnapToTicks = true,
+            };
+
+            slider.Maximum = 4;
+
+            Assert.Equal(4, slider.Value);
+
+            slider.Minimum = 5;
+
+            Assert.Equal(5, slider.Minimum);
+            Assert.Equal(5, slider.Maximum);
+            Assert.Equal(5, slider.Value);
+        }
         
         /// <summary>
         /// Test the <see cref="Slider.ValueChanged"/> event.
