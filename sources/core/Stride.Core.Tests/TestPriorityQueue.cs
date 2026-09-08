@@ -85,4 +85,28 @@ public class TestPriorityQueue
             lastItem = value;
         }
     }
+
+    [Fact]
+    public void TestRemovalSingleItem()
+    {
+        var queue = new PriorityQueue<int>();
+        foreach (var value in new[] { 0, 1, 4, 2, 5, 6, 7, 3 })
+            queue.Enqueue(value);
+
+        queue.Remove(5);
+
+        CheckPriorityQueue(queue);
+    }
+
+    [Fact]
+    public void TestRemovalSingleItemAtTheEnd()
+    {
+        var queue = new PriorityQueue<int>();
+        foreach (var value in new[] { 0, 1, 4, 2, 5, 6, 7, 3 })
+            queue.Enqueue(value);
+
+        queue.Remove(7);
+
+        CheckPriorityQueue(queue);
+    }
 }
