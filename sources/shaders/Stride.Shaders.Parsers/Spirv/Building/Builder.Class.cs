@@ -845,10 +845,6 @@ public partial class SpirvBuilder
             var genericArguments = BuildGenericArguments(genericResolver);
             var classNameWithGenerics = BuildGenericClassName(className, genericArguments);
             var cache = genericResolver.Cache ?? shaderLoader.Cache;
-            // Validated like a plain class: an instantiation read back from the disk cache carries
-            // the template's hash and its dependencies', and a change to any of them must miss.
-            // Served unvalidated, as this was, an edit to a generic or to one of its bases was
-            // never seen again until the cache was deleted by hand.
             if (cache.TryLoadFromCache(className, genericArguments, macros, out var cachedShaderBuffers, out var cachedHash) && shaderLoader.IsCachedBufferCurrent(cachedShaderBuffers))
             {
                 shaderBuffers = cachedShaderBuffers;

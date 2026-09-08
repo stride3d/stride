@@ -135,9 +135,7 @@ public interface IExternalShaderLoader
     public bool LoadExternalBuffer(string name, string? filename, string code, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out ShaderBuffers bytecode, out ObjectId hash, out bool isFromCache);
 
     /// <summary>
-    /// Whether a buffer taken from the cache still matches the sources it was built from: its own
-    /// file and every dependency it recorded. False means it must be rebuilt. Not defaulted: a
-    /// decorator that forgot to forward it would quietly serve every instantiation stale.
+    /// Whether a cached buffer still matches the sources it was built from (its own file and its dependencies).
     /// </summary>
     public bool IsCachedBufferCurrent(ShaderBuffers buffer);
 
