@@ -184,8 +184,8 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
             {
                 if (serviceRegistry != null)
                     await serviceRegistry.DisposeAsync();
+                // The game disposes its own window, after the loop's last present.
                 Game.Exit();
-                GameForm?.Dispose();
             }, int.MaxValue)
             // Ensure the properties are correctly set, even in case of a failure (default continuation)
             .ContinueWith(t =>
