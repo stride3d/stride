@@ -19,8 +19,6 @@ namespace Stride.Graphics
     {
         private const int VertexBufferCount = 2;
 
-        private const int IndexStride = sizeof(int);
-
         private Buffer[] vertexBuffers;
         private int activeVertexBufferIndex;
         private VertexBufferBinding[] vertexBuffersBinding;
@@ -54,25 +52,10 @@ namespace Stride.Graphics
 
         protected override void Destroy()
         {
-            for (int i = 0; i < VertexBufferCount; i++)
-                vertexBuffers[i].Dispose();
+            ReleaseResources();
 
             activeVertexBufferIndex = -1;
-
-            if (indexBuffer != null)
-            {
-                indexBuffer.Dispose();
-                indexBuffer = null;
-            }
-
-            indexBufferBinding = null;
             pipelineState = null;
-
-            if (simpleEffect != null)
-            {
-                simpleEffect.Dispose();
-                simpleEffect = null;
-            }
 
             for (int i = 0; i < VertexBufferCount; i++)
                 inputElementDescriptions[i] = null;
@@ -80,6 +63,25 @@ namespace Stride.Graphics
             charsToRenderCount = -1;
 
             base.Destroy();
+        }
+
+        /// <summary>
+        /// Releases the graphics resources created by <see cref="Initialize"/>.
+        /// </summary>
+        private void ReleaseResources()
+        {
+            for (int i = 0; i < VertexBufferCount; i++)
+                vertexBuffers[i].Dispose();
+
+            vertexBuffers = null;
+            vertexBuffersBinding = null;
+
+            indexBuffer?.Dispose();
+            indexBuffer = null;
+            indexBufferBinding = null;
+
+            simpleEffect?.Dispose();
+            simpleEffect = null;
         }
 
         /// <summary>
@@ -174,6 +176,7 @@ namespace Stride.Graphics
             if (charsToRenderCount > maxCharacterCount)
             {
                 maxCharacterCount = (int)(1.5f * charsToRenderCount);
+                ReleaseResources();
                 Initialize(graphicsContext, maxCharacterCount);
             }
 
