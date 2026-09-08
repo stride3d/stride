@@ -310,6 +310,9 @@ namespace Stride.UI.Controls
         /// <returns>The value adjusted to the closest tick</returns>
         protected float CalculateClosestTick(float rawValue)
         {
+            if (Maximum == Minimum)
+                return Minimum;
+
             var absoluteValue = rawValue - Minimum;
             var step = (Maximum - Minimum) / TickFrequency;
             var times = MathF.Round(absoluteValue / step);
