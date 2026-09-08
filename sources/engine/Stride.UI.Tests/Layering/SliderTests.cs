@@ -226,6 +226,19 @@ namespace Stride.UI.Tests.Layering
             Utilities.AssertAreNearlyEqual(0.4f, slider.Value);
         }
 
+        [Fact]
+        public void TestTickSnappingWithCollapsedRange()
+        {
+            foreach (var bound in new[] { 0f, 5f, -5f })
+            {
+                var slider = new Slider { Minimum = bound, Maximum = bound, Value = bound };
+
+                slider.ShouldSnapToTicks = true;
+
+                Assert.Equal(bound, slider.Value);
+            }
+        }
+
         /// <summary>
         /// Test the <see cref="Slider.MeasureOverride"/> method.
         /// </summary>
