@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics;
 using System.Globalization;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
@@ -228,6 +229,7 @@ public class Builder : IDisposable
         Cancelled = false;
         IsRunning = true;
         DisableCompressionIds.Clear();
+        var runClock = Stopwatch.StartNew();
 
         // Reseting result map
         var inputHashes = FileVersionTracker.GetDefault();
@@ -268,17 +270,21 @@ public class Builder : IDisposable
                 Logger.Error("Build cancelled.");
                 result = BuildResultCode.Cancelled;
             }
-            else if (stepCounter.Get(ResultStatus.Failed) > 0 || stepCounter.Get(ResultStatus.NotTriggeredPrerequisiteFailed) > 0)
-            {
-                Logger.Error($"Build finished in {stepCounter.Total} steps. Command results: {stepCounter.Get(ResultStatus.Successful)} succeeded, {stepCounter.Get(ResultStatus.NotTriggeredWasSuccessful)} up-to-date, {stepCounter.Get(ResultStatus.Failed)} failed, {stepCounter.Get(ResultStatus.NotTriggeredPrerequisiteFailed)} not triggered due to previous failure.");
-                Logger.Error("Build failed.");
-                result = BuildResultCode.BuildError;
-            }
             else
             {
-                Logger.Info($"Build finished in {stepCounter.Total} steps. Command results: {stepCounter.Get(ResultStatus.Successful)} succeeded, {stepCounter.Get(ResultStatus.NotTriggeredWasSuccessful)} up-to-date, {stepCounter.Get(ResultStatus.Failed)} failed, {stepCounter.Get(ResultStatus.NotTriggeredPrerequisiteFailed)} not triggered due to previous failure.");
-                Logger.Info("Build is successful.");
-                result = BuildResultCode.Successful;
+                var summary = $"Build finished in {stepCounter.Total} steps ({runClock.Elapsed.TotalSeconds:0.0}s). Command results: {stepCounter.Get(ResultStatus.Successful)} succeeded, {stepCounter.Get(ResultStatus.NotTriggeredWasSuccessful)} up-to-date, {stepCounter.Get(ResultStatus.Failed)} failed, {stepCounter.Get(ResultStatus.NotTriggeredPrerequisiteFailed)} not triggered due to previous failure.";
+                if (stepCounter.Get(ResultStatus.Failed) > 0 || stepCounter.Get(ResultStatus.NotTriggeredPrerequisiteFailed) > 0)
+                {
+                    Logger.Error(summary);
+                    Logger.Error("Build failed.");
+                    result = BuildResultCode.BuildError;
+                }
+                else
+                {
+                    Logger.Info(summary);
+                    Logger.Info("Build is successful.");
+                    result = BuildResultCode.Successful;
+                }
             }
         }
         else
