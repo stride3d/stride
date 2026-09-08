@@ -147,6 +147,9 @@ public static class Program
             EditorSettings.GraphicsApi.SetValue(EditorSettings.GraphicsApiDefault);
             EditorSettings.Save();
         }
+        // Source levels of the global loggers, before anything creates them.
+        foreach (var (module, level) in EditorSettings.GetModuleLevels(EditorSettings.SourceModuleLevels))
+            GlobalLogger.SetModuleLevel(module, level);
         Thread.CurrentThread.Name = "Main thread";
 
         try
@@ -209,20 +212,12 @@ public static class Program
 
             //listen to logger for crash report
             GlobalLogger.GlobalMessageLogged += GlobalLoggerOnGlobalMessageLogged;
-            // Route GlobalLogger output to VS Debug pane (no-op in Release).
-            // Warning+ only — Info/Verbose volume slows the debugger noticeably during
-            // asset compile / NuGet restore.
-            // The graphics modules pass in full: that is where the backends report validation layer
-            // status and messages, and they are quiet without a debug device.
-            var debugPaneListener = new DebugLogListener
-            {
-                MinimumLevel = LogMessageType.Warning,
-                ModuleLevels =
-                {
-                    [GraphicsDevice.DebugLogModule] = LogMessageType.Debug,
-                    [nameof(GraphicsDevice)] = LogMessageType.Debug,
-                },
-            };
+            // Route GlobalLogger output to the debugger's output pane (no-op in Release), as configured
+            // by the Logging editor settings: Warning+ by default, since Info/Verbose volume slows the
+            // debugger noticeably, with the graphics modules in full for validation layer messages.
+            var debugPaneListener = new DebugLogListener { MinimumLevel = EditorSettings.DebugOutputLevel.GetValue() };
+            foreach (var (module, level) in EditorSettings.GetModuleLevels(EditorSettings.DebugOutputModuleLevels))
+                debugPaneListener.ModuleLevels[module] = level;
             GlobalLogger.GlobalMessageLogged += debugPaneListener;
 
             mainDispatcher = Dispatcher.CurrentDispatcher;

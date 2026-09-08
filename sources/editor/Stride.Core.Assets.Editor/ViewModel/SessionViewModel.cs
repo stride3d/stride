@@ -581,9 +581,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             AssetViewProperties = new SessionObjectPropertiesViewModel(this);
 
             assetNodesDebugPage = EditorDebugTools.CreateAssetNodesDebugPage(this, "Asset nodes visualizer");
-            var quantumLogger = GlobalLogger.GetLogger(GraphViewModel.DefaultLoggerName);
-            quantumLogger.ActivateLog(LogMessageType.Debug);
-            quantumDebugPage = EditorDebugTools.CreateLogDebugPage(quantumLogger, "Quantum log");
+            quantumDebugPage = EditorDebugTools.CreateLogDebugPage(GlobalLogger.GetLogger(GraphViewModel.DefaultLoggerName), "Quantum log");
             ActiveProperties = AssetViewProperties;
 
             // Initialize the asset collection view model of the main asset view
