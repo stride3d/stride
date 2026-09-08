@@ -1,14 +1,7 @@
 // PSMain(ExpectedResult=#00000000)
 
-// A typed buffer handed to another method.
-//
-// RWBuffer<uint> is an OpTypeImage, so it is an opaque resource: it must live in UniformConstant
-// storage and be passed as the caller's pointer. Both rules existed for textures and samplers and
-// had forgotten typed buffers, so the argument was copied into a Function-storage temporary -
-// an OpStore to an image, which SPIR-V forbids (VUID-StandaloneSpirv-OpTypeImage-06924) - and the
-// call's argument storage class no longer matched the parameter's.
-//
-// Stride.Voxels passes RWBuffer<uint> through its whole write path (VoxelBufferWriter and friends).
+// A typed buffer handed to another method. RWBuffer<uint> is an OpTypeImage, so it is an opaque
+// resource: it must live in UniformConstant storage and be passed as the caller's pointer.
 
 namespace Stride.Shaders.Tests;
 

@@ -1,15 +1,8 @@
 // PSMain(ExpectedResult=#00000000)
 
-// Atomics on a typed buffer.
-//
-// `RWBuffer<uint>` is a storage image, not memory the shader can point into: `Output[i]` compiles
-// to an image read, so an atomic has no pointer to work on. The ref-argument path asks for an
-// OpImageTexelPointer instead, which in turn only exists on an image declaring a concrete format.
-//
-// Like CSByteAddressBuffer, the buffer is never bound - what this covers is that the shader
-// compiles, that the SPIR-V validates (OpImageTexelPointer is rejected outright on an Unknown
-// format), that SPIRV-Cross turns it back into InterlockedMax/InterlockedAdd on an RWBuffer for
-// D3D11, and that the result runs.
+// Atomics on a typed buffer: `Output[i]` must compile to an OpImageTexelPointer on an image with
+// a concrete format. Like CSByteAddressBuffer, the buffer is never bound; this covers compilation,
+// SPIR-V validation and the SPIRV-Cross round trip to InterlockedMax/InterlockedAdd.
 
 namespace Stride.Shaders.Tests;
 

@@ -60,9 +60,8 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
         /// through their composition variable and so can never be the shader's entry point.
         /// </summary>
         /// <remarks>
-        /// A composition that inherits the same base as the shader it is composed into inherits
-        /// that base's entry point too, and lands in the same method group; picking the group's
-        /// last member would pick the composition's copy, whose body is the base's empty one.
+        /// A composition inheriting the same base as its host inherits the base's entry point too and
+        /// lands in the same method group, so it must be excluded when picking the entry point.
         /// </remarks>
         static HashSet<int> CollectCompositionFunctions(SpirvBuffer buffer)
         {
@@ -349,18 +348,13 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
         /// matching argument from every call to them.
         /// </summary>
         /// <remarks>
-        /// A <c>TriangleStream&lt;Output&gt;</c> parameter carries no data - appending goes through
-        /// OpEmitVertexSDSL and the stage's output variables - but it cannot be dropped earlier:
-        /// the entry point wrapper reads the output topology off it. So it survives until here,
-        /// where the entry point has already been stripped of it and everything else still has
-        /// to be.
+        /// The parameter carries no data (appending goes through OpEmitVertexSDSL) but must survive
+        /// until EntryPointWrapperGenerator has read the output topology off it.
         /// </remarks>
         private static void RemoveGeometryStreamParameters(SpirvBuffer buffer, SpirvContext context)
         {
-            // The function type is rewritten through GetOrRegister rather than in place: a method
-            // and the entry point calling it share one OpTypeFunction when their signatures match,
-            // and mutating it for one silently rewrites the other - which is how the entry point's
-            // own removal left such a method with more parameters than its type declared.
+            // Function types are rewritten through GetOrRegister, not in place: functions with the same
+            // signature share one OpTypeFunction, and mutating it for one would rewrite the others.
             // Which parameter index each function loses.
             var removedParameters = new Dictionary<int, int>();
 

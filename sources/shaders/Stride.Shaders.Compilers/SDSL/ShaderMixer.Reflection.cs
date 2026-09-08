@@ -222,11 +222,8 @@ public partial class ShaderMixer
     /// <returns>The register index of the first UAV slot.</returns>
     private static int GetFirstUnorderedAccessSlot(SpirvContext context)
     {
-        // Direct3D 11 puts UAVs and render targets in one register space, so a pixel shader's
-        // UAVs have to start past its render targets - FXC otherwise rejects the shader with
-        // X4509. The engine already assumes this: CommandList.OMSetSingleUnorderedAccessView
-        // binds with UAVStartSlot = currentRenderTargetViewsActiveCount and indexes
-        // slot - currentRenderTargetViewsActiveCount, which goes negative if a UAV took u0.
+        // Direct3D 11 shares one register space between UAVs and render targets, so a pixel shader's
+        // UAVs start past its render targets; CommandList binds them with the same offset.
         var outputVariables = new HashSet<int>();
         var locations = new Dictionary<int, int>();
         var fragmentInterface = new HashSet<int>();

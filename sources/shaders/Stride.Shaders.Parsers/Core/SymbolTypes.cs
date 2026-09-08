@@ -82,17 +82,9 @@ public abstract record SymbolType()
             };
         }
 
-        // An image - texture or typed buffer alike - is declared with a 32-bit sampled type. The
-        // SPIR-V the compiler emits is Stride's own dialect, cross-compiled to every backend, and
-        // OpTypeImage's sampled type must be a 32-bit int, 64-bit int or 32-bit float
-        // (VUID-StandaloneSpirv-OpTypeImage-04656) for the SPIR-V to be valid at all.
-        //
-        // This is also what FXC did: from shader model 4 on, `half` is an alias of `float` in
-        // HLSL, kept for language compatibility only, so `Texture3D<half4>` declared a 32-bit
-        // register there too. The 16 bits live in the resource's pixel format, not in the shader's
-        // declaration - the texture unit decodes the stored halfs and delivers floats to the
-        // registers. Code that wants native 16-bit arithmetic uses min16float and converts after
-        // the read, as it had to before.
+        // Vulkan requires an image's sampled type to be 32-bit int, 64-bit int or 32-bit float
+        // (VUID-StandaloneSpirv-OpTypeImage-04656). The 16 bits live in the pixel format, so
+        // widening the element type loses nothing.
         static SymbolType WidenImageElementType(SymbolType elementType) => elementType switch
         {
             ScalarType { Type: Scalar.Half } => ScalarType.Float,
@@ -837,13 +829,11 @@ public sealed partial record ExternalType(string Name, ShaderExpressionList? Gen
 public static class SymbolTypeExtensions
 {
     /// <summary>
-    /// Determines whether a type is an opaque resource: an image, which covers textures and typed
-    /// buffers alike, or a sampler.
+    /// Whether the type is an opaque resource (texture, typed buffer or sampler).
     /// </summary>
     /// <remarks>
-    /// SPIR-V forbids an OpStore to an opaque resource (VUID-StandaloneSpirv-OpTypeImage-06924),
-    /// so it lives in UniformConstant storage and is handed to a method as the caller's pointer
-    /// rather than copied into a Function-storage temporary.
+    /// SPIR-V forbids OpStore to these (VUID-StandaloneSpirv-OpTypeImage-06924): they live in
+    /// UniformConstant storage and are passed to methods as the caller's pointer.
     /// </remarks>
     /// <returns>True for textures, typed buffers and samplers.</returns>
     public static bool IsOpaqueResource(this SymbolType type)

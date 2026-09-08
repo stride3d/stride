@@ -248,8 +248,7 @@ namespace Stride.Rendering.Voxels
 
 
         /// <summary>
-        /// Computes the thread group counts for clearing <paramref name="elementCount"/> buffer
-        /// elements, spread over two dispatch dimensions.
+        /// Computes the thread group counts for clearing <paramref name="elementCount"/> buffer elements, spread over two dispatch dimensions.
         /// </summary>
         /// <param name="elementCount">How many elements the clear covers.</param>
         /// <param name="rowLength">How many elements one row of groups covers, for the shader to recompose a linear index.</param>

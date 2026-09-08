@@ -1,14 +1,7 @@
 // PSMain(ExpectedResult=#00000000)
 
-// A texture declared with a 16-bit element type.
-//
-// An image cannot deliver 16-bit values: SPIR-V requires its sampled type to be a 32-bit int,
-// 64-bit int or 32-bit float (VUID-StandaloneSpirv-OpTypeImage-04656), with no extension lifting
-// it. The declaration used to emit `OpTypeImage %half`, which no optimizer would even load.
-//
-// Nothing is lost by widening it - the 16 bits live in the resource's pixel format, and the
-// texture unit decodes them into 32-bit registers for free. Stride.Voxels stores its clipmaps as
-// R16G16B16A16_Float and reads them through `Texture3D<half4>`, which is what found this.
+// A texture declared with a 16-bit element type. Vulkan requires a 32-bit sampled type
+// (VUID-StandaloneSpirv-OpTypeImage-04656), so the element type is widened to float.
 
 namespace Stride.Shaders.Tests;
 

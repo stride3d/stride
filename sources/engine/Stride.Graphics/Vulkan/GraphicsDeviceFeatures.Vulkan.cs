@@ -42,14 +42,9 @@ namespace Stride.Graphics
 
             HasResourceRenaming = false;
 
-            // Multisample support was never queried here: every format was reported as
-            // MultisampleCount.None, so Texture.New threw "the maximum supported level is None" for
-            // any multisampled render target - MSAA was simply unusable on Vulkan. Stride.Voxels'
-            // dominant-axis voxelization allocates an 8x target and died on it.
-            //
-            // Only the framebuffer masks are read, not per-format image properties: this runs for
-            // all 256 PixelFormat values at device creation, and the framebuffer limits are what
-            // actually bound a render target's sample count.
+            // Only the framebuffer sample count limits are read, not per-format image properties:
+            // this runs for every PixelFormat at device creation, and the framebuffer limits are what
+            // bound a render target's sample count.
             var physicalDevice = deviceRoot.NativePhysicalDevice;
             deviceRoot.NativeInstanceApi.vkGetPhysicalDeviceProperties(physicalDevice, out var physicalDeviceProperties);
             var colorSampleCounts = physicalDeviceProperties.limits.framebufferColorSampleCounts;
@@ -66,11 +61,8 @@ namespace Stride.Graphics
                 return MultisampleCount.None;
             }
 
-            // Reported per format, but computed from the intersection of the colour and depth masks
-            // rather than per format: telling colour and depth formats apart here would need a
-            // predicate Stride does not have on this side, and the two masks are identical on every
-            // driver worth supporting. Erring low only costs a sample count; erring high would hand
-            // out a count the device cannot attach.
+            // Use the intersection of the color and depth masks for every format: there is no
+            // color/depth predicate on PixelFormat here, and erring low only costs a sample count.
             var maximumMultisampleCount = MaximumSampleCount(colorSampleCounts & depthSampleCounts);
 
             for (int i = 0; i < mapFeaturesPerFormat.Length; i++)

@@ -195,11 +195,8 @@ internal static class DeadCodeRemover
         // Remove OpName/OpDecorate
         context.RemoveNameAndDecorations(removedIds);
 
-        // An execution mode belongs to its entry point: [numthreads] on a compute shader, the
-        // input/output topology on a geometry shader. Removing the function without it left the
-        // mode pointing at an id nothing defines, which is invalid SPIR-V - a mixin whose base
-        // declares its own CSMain produces exactly that, the base being dead once the most derived
-        // one is wrapped.
+        // Remove the execution modes ([numthreads], geometry topology) of removed entry points,
+        // otherwise they reference an id nothing defines.
         foreach (var i in context)
         {
             if (i.Op == Op.OpExecutionMode && (OpExecutionMode)i is { } executionMode)

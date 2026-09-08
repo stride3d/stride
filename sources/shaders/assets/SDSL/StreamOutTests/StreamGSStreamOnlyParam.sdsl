@@ -1,11 +1,7 @@
 // GSMain(ExpectedPrimitiveCount=3, stream.EXTRA_COLOR=(0.498 0.498 0.498 0.498))
 
-// A method whose *only* parameter is the geometry stream, so removing it leaves a function with
-// no parameters at all. Unlike StreamGSMethodCall, its signature is not shared with the entry
-// point, so nothing else rewrites its OpTypeFunction on its behalf.
-//
-// Stride.Voxels has exactly this shape in VoxelizationMethod: `void RestartStrip(inout
-// TriangleStream<Output> triangleStream)`.
+// A method whose only parameter is the geometry stream, so removing it leaves a function with
+// no parameters. Unlike StreamGSMethodCall, its signature is not shared with the entry point.
 
 namespace Stride.Shaders.Tests;
 

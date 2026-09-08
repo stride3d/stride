@@ -181,14 +181,8 @@ internal static class StreamAccessPatcher
                 var targetType = context.ReverseTypes[copyLogical.ResultType];
                 if (targetType is StreamsType { Kind: StreamsKindSDSL.Streams })
                 {
-                    // `streams = input[i]` overwrites the members the stage input carries and leaves
-                    // the rest alone, so the ones it does not carry are read back from the current
-                    // streams rather than defaulted. Zeroing them silently discarded whatever the
-                    // shader had just computed: Stride.Voxels' dominant-axis voxelization picks an
-                    // axis into a stream variable before its emit loop, and `streams = input[i]` at
-                    // the top of that loop reset it to 0 on every vertex, so every triangle was
-                    // projected along the same axis - the geometry shader constant-folded down to
-                    // `if (true)`, and only surfaces already facing that axis voxelized.
+                    // `streams = input[i]` overwrites the members the stage input carries; the others
+                    // are read back from the current streams rather than defaulted.
                     var currentStreams = 0;
                     foreach (var stream in streams)
                     {

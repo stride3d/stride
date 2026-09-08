@@ -1,10 +1,6 @@
 // A geometry shader that computes a value into a stream before its emit loop, assigns the stage
 // input over `streams` inside that loop, and then branches on the value it computed.
-//
 // `streams = input[i]` overwrites the members the input carries; the rest have to survive it.
-// Stride.Voxels' dominant-axis voxelization is built on exactly this: VoxelizationMethodDominantAxis
-// picks a projection axis in InitializeFromTriangle, and VoxelStorageClipmapShader's emit loop does
-// `streams = input[i]` before calling Append, which reads the axis back.
 
 namespace Stride.Shaders.Tests;
 

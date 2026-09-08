@@ -124,12 +124,8 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
             }
             else if (declaration is UsingShaderNamespace)
             {
-                // A `using` names a namespace to look in. The loader resolves a shader class by its
-                // name alone - one .sdsl file per class, found by file name, as the previous
-                // compiler's ShaderSourceManager did - so the namespace is already known to be
-                // unique across a project and the directive adds nothing to resolution. It is
-                // accepted and skipped; reporting it as unsupported rejected every shader that has
-                // one.
+                // Ignore: shader classes are resolved by name across every loaded namespace, so a
+                // `using` declaration carries no information the compiler needs.
             }
             else
             {

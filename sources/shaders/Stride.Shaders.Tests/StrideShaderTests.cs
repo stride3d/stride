@@ -761,12 +761,8 @@ new ShaderMacro("class", "shader"),
         }
     }
 
-    // Regression: a composition whose shader derives from the same base as the shader it is
-    // composed into used to contribute that base's empty virtual method, overriding the root's
-    // own override. Stride.Voxels' Voxel2x2x2Mipmap composes a Voxel2x2x2Mipmapper and both
-    // derive from ComputeShaderBase, so Compute() resolved to the empty base: the shader
-    // compiled to a bare `ret`, its textures were dead-code-removed along with the body, and
-    // voxel GI contributed exactly nothing.
+    // A composition whose shader derives from the same base as its host must not contribute that
+    // base's virtual method over the root's own override.
     [Fact]
     public void CompositionSharingABaseDoesNotOverrideTheRootsOverride()
     {
@@ -815,16 +811,9 @@ new ShaderMacro("class", "shader"),
         Assert.True(reflection.ResourceBindings.Any(b => b.RawName.EndsWith("WriteTex")), disassembly);
         Assert.Contains("OpImageWrite", disassembly);
     }
-    // Regression: `streams = input[i]` in a geometry shader assigns the members the stage input
-    // carries and must leave every other stream member as it was. It used to default them to zero,
-    // so anything the shader had computed into a stream before its emit loop was wiped on every
-    // vertex. Stride.Voxels' dominant-axis voxelization chooses a projection axis that way: the
-    // axis reset to 0 each iteration, the geometry shader constant-folded to `if (true)`, and only
-    // surfaces already facing that one axis were voxelized - floors and ceilings vanished and the
-    // rest came out striped.
-    //
-    // Checked after LegalizeForHlsl, which is what EffectCompiler hands to SPIRV-Cross: the branch
-    // on the carried value has to still be a branch there, not a folded constant.
+    // `streams = input[i]` in a geometry shader assigns the members the stage input carries and must
+    // leave every other stream member as it was. Checked after LegalizeForHlsl: the branch on the
+    // carried value must still be a branch there, not a folded constant.
     [Fact]
     public void GeometryStreamsAssignKeepsMembersTheInputDoesNotCarry()
     {

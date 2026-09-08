@@ -1,13 +1,7 @@
 // PSMain(ExpectedResult=#00000000)
 
 // A compute shader whose inherited CSMain is overridden, so the base's function becomes dead.
-//
-// An execution mode belongs to its entry point - [numthreads] here - and the dead code remover
-// removed the function without it, leaving `OpExecutionMode %n LocalSize ...` pointing at an id
-// nothing defines. spirv-opt then refused the whole module, reporting only "InternalError".
-//
-// Stride hits this with ComputeEffectShader: the root's CSMain dies once the composed compute
-// shader's own CSMain is the one wrapped as the entry point.
+// Its [numthreads] execution mode must be removed with it.
 
 namespace Stride.Shaders.Tests;
 
