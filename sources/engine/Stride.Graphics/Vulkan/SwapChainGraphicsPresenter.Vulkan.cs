@@ -403,8 +403,11 @@ namespace Stride.Graphics
                 .Where((properties, index) => (properties.queueFlags & VkQueueFlags.Graphics) != 0 && GraphicsDevice.NativeInstanceApi.vkGetPhysicalDeviceSurfaceSupportKHR(GraphicsDevice.NativePhysicalDevice, (uint)index, surface, out var supported) == VkResult.Success && supported)
                 .Select((properties, index) => index).First();
 
-            // Surface format
-            GraphicsDevice.NativeInstanceApi.vkGetPhysicalDeviceSurfaceFormatsKHR(GraphicsDevice.NativePhysicalDevice, surface, out uint surfaceFormatCount);
+            // Surface format. A failed query reports no format, and the fallback below then reads
+            // the first one, so check it here.
+            GraphicsDevice.CheckResult(
+                GraphicsDevice.NativeInstanceApi.vkGetPhysicalDeviceSurfaceFormatsKHR(GraphicsDevice.NativePhysicalDevice, surface, out uint surfaceFormatCount),
+                "vkGetPhysicalDeviceSurfaceFormatsKHR");
             Span<VkSurfaceFormatKHR> surfaceFormats = stackalloc VkSurfaceFormatKHR[(int)surfaceFormatCount];
             GraphicsDevice.NativeInstanceApi.vkGetPhysicalDeviceSurfaceFormatsKHR(GraphicsDevice.NativePhysicalDevice, surface, surfaceFormats);
             var backBufferFormat = VulkanConvertExtensions.ConvertPixelFormat(Description.BackBufferFormat);
@@ -427,8 +430,12 @@ namespace Stride.Graphics
                 Description.BackBufferFormat = VulkanConvertExtensions.ConvertPixelFormat(backBufferFormat);
             }
 
-            // Create swapchain
-            GraphicsDevice.NativeInstanceApi.vkGetPhysicalDeviceSurfaceCapabilitiesKHR(GraphicsDevice.NativePhysicalDevice, surface, out var surfaceCapabilities);
+            // Create swapchain. A failed query leaves the capabilities zeroed, which silently builds
+            // a 0x0 depth buffer and an invalid preTransform, so report it here rather than let
+            // vkCreateSwapchainKHR fail with a generic error further down.
+            GraphicsDevice.CheckResult(
+                GraphicsDevice.NativeInstanceApi.vkGetPhysicalDeviceSurfaceCapabilitiesKHR(GraphicsDevice.NativePhysicalDevice, surface, out var surfaceCapabilities),
+                "vkGetPhysicalDeviceSurfaceCapabilitiesKHR");
 
             // Match currentTransform so the engine skips the rotation compose pass (saves a vsync
             // on Android tile-based GPUs). Renderer folds the rotation into the projection.
