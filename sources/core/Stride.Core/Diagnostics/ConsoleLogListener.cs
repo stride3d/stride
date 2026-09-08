@@ -176,7 +176,12 @@ public partial class ConsoleLogListener : LogListener
             FreeConsole();
             AllocConsole();
 
-            var outputStream = Console.OpenStandardOutput();
+            // The standard output handle keeps pointing at the redirection target, so open the new console directly.
+            var consoleHandle = CreateFile("CONOUT$", GENERIC_WRITE, FILE_SHARE_WRITE, IntPtr.Zero, OPEN_EXISTING, 0, IntPtr.Zero);
+            if (consoleHandle.IsInvalid)
+                return;
+
+            Stream outputStream = new FileStream(consoleHandle, FileAccess.Write);
             if (originalStream != null)
             {
                 outputStream = new DualStream(originalStream, outputStream);
@@ -255,6 +260,12 @@ public partial class ConsoleLogListener : LogListener
     }
 
     private const int StdOutConsoleHandle = -11;
+    private const uint GENERIC_WRITE = 0x40000000;
+    private const uint FILE_SHARE_WRITE = 0x00000002;
+    private const uint OPEN_EXISTING = 3;
+
+    [LibraryImport("kernel32.dll", EntryPoint = "CreateFileW", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
+    private static partial SafeFileHandle CreateFile(string fileName, uint desiredAccess, uint shareMode, IntPtr securityAttributes, uint creationDisposition, uint flagsAndAttributes, IntPtr templateFile);
 
 #if NET7_0_OR_GREATER
     [LibraryImport("kernel32", SetLastError = true)]
