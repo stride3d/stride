@@ -670,27 +670,27 @@ public class Builder : IDisposable
                     {
                         case ResultStatus.Successful:
                             logType = LogMessageType.Verbose;
-                            logText = "BuildStep {0} was successful.".ToFormat(buildStep.ToString());
+                            logText = "{0} was successful.".ToFormat(buildStep.ToString());
                             break;
 
                         case ResultStatus.Failed:
                             logType = LogMessageType.Error;
-                            logText = "BuildStep {0} failed.".ToFormat(buildStep.ToString());
+                            logText = "{0} failed.".ToFormat(buildStep.ToString());
                             break;
 
                         case ResultStatus.NotTriggeredPrerequisiteFailed:
                             logType = LogMessageType.Error;
-                            logText = "BuildStep {0} failed of previous failed prerequisites.".ToFormat(buildStep.ToString());
+                            logText = "{0} failed of previous failed prerequisites.".ToFormat(buildStep.ToString());
                             break;
 
                         case ResultStatus.Cancelled:
                             logType = LogMessageType.Warning;
-                            logText = "BuildStep {0} cancelled.".ToFormat(buildStep.ToString());
+                            logText = "{0} cancelled.".ToFormat(buildStep.ToString());
                             break;
 
                         case ResultStatus.NotTriggeredWasSuccessful:
                             logType = LogMessageType.Verbose;
-                            logText = "BuildStep {0} is up-to-date and has been skipped".ToFormat(buildStep.ToString());
+                            logText = "{0} is up-to-date and has been skipped".ToFormat(buildStep.ToString());
                             break;
 
                         case ResultStatus.NotProcessed:
@@ -698,7 +698,7 @@ public class Builder : IDisposable
                     }
                     if (logText != null)
                     {
-                        var logMessage = new LogMessage(null, logType, logText);
+                        var logMessage = new LogMessage(executeContext.Logger.Module, logType, logText);
                         executeContext.Logger.Log(logMessage);
                     }
 
