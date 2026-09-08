@@ -69,7 +69,7 @@ namespace Stride.UI.Controls
 
                 this.value = MathUtil.Clamp(value, Minimum, Maximum);
                 if (ShouldSnapToTicks)
-                    this.value = CalculateClosestTick(this.value);
+                    this.value = MathUtil.Clamp(CalculateClosestTick(this.value), Minimum, Maximum);
 
                 if (Math.Abs(oldValue - this.value) > MathUtil.ZeroTolerance)
                     RaiseEvent(new RoutedEventArgs(ValueChangedEvent));
@@ -313,10 +313,10 @@ namespace Stride.UI.Controls
             if (Maximum == Minimum)
                 return Minimum;
 
-            var absoluteValue = rawValue - Minimum;
-            var step = (Maximum - Minimum) / TickFrequency;
-            var times = MathF.Round(absoluteValue / step);
-            return times * step + Minimum;
+            var absoluteValue = (double)rawValue - Minimum;
+            var step = ((double)Maximum - Minimum) / TickFrequency;
+            var times = Math.Round(absoluteValue / step);
+            return (float)(times * step + Minimum);
         }
 
         /// <summary>
@@ -339,7 +339,7 @@ namespace Stride.UI.Controls
 
         private float CalculateIncreamentValue()
         {
-            return shouldSnapToTicks ? Math.Max(Step, (Maximum - Minimum) / TickFrequency) : Step;
+            return shouldSnapToTicks ? Math.Max(Step, (float)(((double)Maximum - Minimum) / TickFrequency)) : Step;
         }
 
         protected override Vector3 MeasureOverride(Vector3 availableSizeWithoutMargins)
