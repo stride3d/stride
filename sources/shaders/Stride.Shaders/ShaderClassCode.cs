@@ -42,19 +42,10 @@ namespace Stride.Shaders
         /// <returns>A class name as a <see cref="System.String" /> that represents this instance.</returns>
         public string ToClassName()
         {
-            if (GenericArguments == null)
+            if (GenericArguments == null || GenericArguments.Length == 0)
                 return ClassName;
 
-            var result = new StringBuilder();
-            result.Append(ClassName);
-            if (GenericArguments != null && GenericArguments.Length > 0)
-            {
-                result.Append('<');
-                result.Append(string.Join(",", GenericArguments));
-                result.Append('>');
-            }
-
-            return result.ToString();
+            return $"{ClassName}<{string.Join(",", GenericArguments)}>";
         }
 
         public override string ToString()

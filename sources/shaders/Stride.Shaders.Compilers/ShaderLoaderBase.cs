@@ -83,11 +83,6 @@ public abstract class ShaderLoaderBase(IShaderCache fileCache) : IExternalShader
             isFromCache = false;
             return true;
         }
-        catch
-        {
-            compilingShaders.TryRemove(key, out _);
-            throw;
-        }
         finally
         {
             compilingShaders.TryRemove(key, out _);
