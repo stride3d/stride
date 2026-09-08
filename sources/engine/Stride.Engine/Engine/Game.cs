@@ -168,14 +168,14 @@ namespace Stride.Engine
             get
             {
                 var consoleLogListener = logListener as ConsoleLogListener;
-                return consoleLogListener != null ? consoleLogListener.LogLevel : default(LogMessageType);
+                return consoleLogListener != null ? consoleLogListener.MinimumLevel : default(LogMessageType);
             }
             set
             {
                 var consoleLogListener = logListener as ConsoleLogListener;
                 if (consoleLogListener != null)
                 {
-                    consoleLogListener.LogLevel = value;
+                    consoleLogListener.MinimumLevel = value;
                 }
             }
         }

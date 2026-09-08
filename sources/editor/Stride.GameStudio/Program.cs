@@ -212,7 +212,18 @@ public static class Program
             // Route GlobalLogger output to VS Debug pane (no-op in Release).
             // Warning+ only — Info/Verbose volume slows the debugger noticeably during
             // asset compile / NuGet restore.
-            GlobalLogger.GlobalMessageLogged += new DebugLogListener { MinimumLevel = LogMessageType.Warning };
+            // The graphics modules pass in full: that is where the backends report validation layer
+            // status and messages, and they are quiet without a debug device.
+            var debugPaneListener = new DebugLogListener
+            {
+                MinimumLevel = LogMessageType.Warning,
+                ModuleLevels =
+                {
+                    [GraphicsDevice.DebugLogModule] = LogMessageType.Debug,
+                    [nameof(GraphicsDevice)] = LogMessageType.Debug,
+                },
+            };
+            GlobalLogger.GlobalMessageLogged += debugPaneListener;
 
             mainDispatcher = Dispatcher.CurrentDispatcher;
             mainDispatcher.InvokeAsync(() =>
