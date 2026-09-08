@@ -198,6 +198,15 @@
       <StrideCompileAssetCommandProxy Condition="'$(StrideBuildEngineLogVerbose)' != ''">$(StrideCompileAssetCommandProxy) --verbose</StrideCompileAssetCommandProxy>
       <StrideCompileAssetCommandProxy Condition="'$(StrideBuildEngineLogDebug)' != ''">$(StrideCompileAssetCommandProxy) --debug</StrideCompileAssetCommandProxy>
 
+      <!-- Importance of the compiler's console output. By default it is a few summary lines,
+           kept High so a default-verbosity build shows them. In verbose/debug mode it is per-step
+           detail: Normal, so a host relaying MSBuild messages into its own log (Game Studio) files it
+           as Verbose instead of Info. Errors and warnings are recognised from their canonical format
+           either way. -->
+      <_StrideCompileAssetOutputDetailed Condition="'$(StrideBuildEngineLogVerbose)' != '' Or '$(StrideBuildEngineLogDebug)' != ''">true</_StrideCompileAssetOutputDetailed>
+      <_StrideCompileAssetOutputImportance>High</_StrideCompileAssetOutputImportance>
+      <_StrideCompileAssetOutputImportance Condition="'$(_StrideCompileAssetOutputDetailed)' == 'true'">Normal</_StrideCompileAssetOutputImportance>
+
       <!-- Native-crash capture via the runtime's own createdump, armed on the compiler and, by process
            inheritance, its slaves. All platforms: the compiler no longer registers an in-process vectored handler
            (a managed one is unsupported, dotnet/runtime#119142). Scoped to this Exec's environment, so a game (a
@@ -242,7 +251,7 @@
          cancelled). ErrorAndContinue (not true=WarnAndContinue) keeps the compiler's echoed error lines as errors,
          not warnings; the <Error> below re-fails the build. EnvironmentVariables carries the crash-capture env
          (createdump + crash-dir routing), empty only when both are unset. -->
-    <Exec WorkingDirectory="$(TargetDir)" Command="$(StrideCompileAssetCommandProxy)" EnvironmentVariables="$(_StrideCompileAssetCrashEnvVars)" ContinueOnError="ErrorAndContinue">
+    <Exec WorkingDirectory="$(TargetDir)" Command="$(StrideCompileAssetCommandProxy)" EnvironmentVariables="$(_StrideCompileAssetCrashEnvVars)" ContinueOnError="ErrorAndContinue" StandardOutputImportance="$(_StrideCompileAssetOutputImportance)">
       <Output TaskParameter="ExitCode" PropertyName="_StrideCompileAssetExitCode" />
     </Exec>
 
@@ -265,6 +274,10 @@
     <Warning Condition="'$(_StrideCompileAssetExitCode)' != '0' And '$(_StrideCompileAssetExitCode)' != '1' And '$(_StrideCompileAssetExitCode)' != '2' And '$(_StrideCompileAssetExitCode)' != '100' And '@(_StrideNativeCrashDump)' == ''"
              Text="The asset compiler crashed (exit code $(_StrideCompileAssetExitCode)). A crash report was saved; review and submit it with 'stride crash send'." />
     <Error Condition="'$(_StrideCompileAssetExitCode)' != '0'" Text="Asset compilation failed (exit code $(_StrideCompileAssetExitCode))." />
+
+    <!-- With detailed output the compiler's own summary went out at Normal; this one High line
+         stands in for it, the way the SDK reports a project's output. -->
+    <Message Condition="'$(_StrideCompileAssetOutputDetailed)' == 'true'" Importance="High" Text="Assets -> $(StrideCompileAssetOutputPath)" />
   </Target>
 
   <!-- Clean assets -->
