@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 namespace Stride.Rendering.Images
@@ -9,14 +9,9 @@ namespace Stride.Rendering.Images
         {
             float3 color = Texture0.Sample(PointSampler, streams.TexCoord).rgb;
 
-            // Neither a negative colour nor an infinite one survives what follows: the square root
-            // below is a NaN for the first, and the division a NaN for the second, and that NaN is
-            // handed to FXAA as the pixel's luma - which then compares it against its neighbours
-            // and spreads it along whatever edge it finds.
-            // A NaN fails every comparison, so this keeps sane values, caps an infinity and floors
-            // a negative one - any of which would otherwise become the NaN that FXAA reads as this
-            // pixel's luma and then spreads along whatever edge it finds.
-            color = color > 0.0 ? min(color, 32000.0) : float3(0, 0, 0);
+            // A negative or infinite color becomes a NaN below (sqrt, division), which FXAA then
+            // reads as this pixel's luma and spreads along edges.
+            color = HalfPrecisionUtils.ClampToSafeRange(color);
 
             // compute luma from HDR value:
             float3 ntsc = float3(0.2126, 0.7152, 0.0722);

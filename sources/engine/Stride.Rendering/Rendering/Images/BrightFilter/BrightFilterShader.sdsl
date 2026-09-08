@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 namespace Stride.Rendering.Images
@@ -18,21 +18,13 @@ namespace Stride.Rendering.Images
         stage float BrightPassSteepness = 2.0f;
         stage float ThresholdOffset = 0.2f;
 
-        // Half a half-float's ceiling: what follows sums and blurs, and there has to be headroom
-        // under 65504 for that to stay finite.
-        static const float MaxBrightPassValue = 32000.0;
-
         stage override float4 Shading()
         {
             float3 color = Texture0.Sample(PointSampler, streams.TexCoord).rgb;
 
-            // What leaves here is downsampled and blurred through a pyramid of half-float targets,
-            // where a value over 65504 becomes an infinity and the first blur weight of zero turns
-            // that into a NaN - which then spreads over the kernel and comes back up as a black
-            // block the size of the mip it happened on. Luma floors negatives; nothing capped the
-            // other end. Written as a comparison rather than isfinite() because a NaN fails every
-            // comparison, so this catches it, an infinity and a merely absurd value alike.
-            color = color > 0.0 ? min(color, MaxBrightPassValue) : float3(0, 0, 0);
+            // The result goes through a pyramid of half-float targets: an infinity or NaN there
+            // becomes a black block the size of the mip it happened on.
+            color = HalfPrecisionUtils.ClampToSafeRange(color);
 
             // Calculate relative luminance
             float luminance = LuminanceUtils.Luma(color);
