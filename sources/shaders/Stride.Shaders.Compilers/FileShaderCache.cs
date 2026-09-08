@@ -120,10 +120,7 @@ public class FileShaderCache(IVirtualFileProvider fileProvider, string basePath 
     private string GetCachePath(string name, string? generics, ReadOnlySpan<ShaderMacro> defines)
     {
         var sanitized = SanitizeName(name);
-        // The generic arguments are part of the key whether or not there are macros: with none,
-        // Foo<1> used to land on the same file as its template Foo, and whichever was written last
-        // was served for both - a template read back as an instantiation still carries its
-        // generic parameters, and fails to instantiate.
+        // Generic arguments are part of the key even without macros, otherwise Foo<1> and Foo share a file.
         var macrosKey = defines.Length == 0 && generics == null ? "default" : ComputeCacheFilename(generics, defines);
         return $"{basePath}/{sanitized}_{macrosKey}.spv";
     }

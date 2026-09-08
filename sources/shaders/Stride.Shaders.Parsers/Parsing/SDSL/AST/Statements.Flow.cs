@@ -11,10 +11,7 @@ public abstract class Flow(TextLocation info) : Statement(info);
 public abstract class Loop(TextLocation info) : Flow(info)
 {
     /// <summary>
-    /// The loop control the shader asked for, carried to SPIR-V so the HLSL emitted from it keeps the
-    /// attribute: <c>[unroll]</c> becomes <c>Unroll</c>, <c>[loop]</c> becomes <c>DontUnroll</c>. Without it
-    /// FXC decides alone, and unrolls every loop whose trip count it can see - a cone march of a few
-    /// hundred steps included, which is minutes of compile time and megabytes of bytecode.
+    /// Maps a <c>[unroll]</c> / <c>[loop]</c> attribute to the SPIR-V loop control, so that the generated HLSL keeps it.
     /// </summary>
     public static Specification.LoopControlMask LoopControlFromAttribute(ShaderAttribute? attribute)
     {

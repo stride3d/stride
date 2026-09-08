@@ -110,11 +110,7 @@ public class GenericInstantiationCacheTests
         }
         """;
 
-    // Regression: an instantiated generic (Foo<1>) was taken from the on-disk cache without the
-    // hash validation every other class goes through, so an edit to the generic or to its base
-    // was never seen again until the cache was deleted by hand. Stride.Voxels' walk is a generic
-    // (VoxelGridTraversalDDA<TSurface>), and a method added to its interface kept resolving to
-    // the interface's empty body in the game while the same sources built correctly elsewhere.
+    // Regression: an instantiated generic (Foo<1>) read from the disk cache must be validated against its sources.
     [Fact]
     public void EditedGenericInstantiationIsNotServedStaleFromTheDiskCache()
     {
@@ -148,8 +144,7 @@ public class GenericInstantiationCacheTests
             var first = Compile();
             Assert.Contains("helper.GenImpl<1>.M", first);
 
-            // A method added to the base and overridden by the generic, then a fresh process over
-            // the same cache: the instantiation must be rebuilt, not served with its old method table.
+            // A method added to the base and the generic: the cached instantiation must be rebuilt.
             Write("GenBase", BaseV2);
             Write("GenImpl", ImplV2);
             Write("GenRoot", RootV2);

@@ -1,6 +1,4 @@
-// A [loop] and an [unroll] on for loops, and a [loop] on a while. The attribute must reach the
-// SPIR-V as the loop control on OpLoopMerge: that is what the HLSL emitted downstream keeps as
-// [loop] / [unroll], and without it FXC unrolls whatever it can see the trip count of.
+// [loop] and [unroll] on for/while loops must reach OpLoopMerge's loop control.
 namespace Stride.Shaders.Tests;
 
 shader LoopControlRoot
