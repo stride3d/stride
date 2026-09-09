@@ -1029,7 +1029,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                         // We currently do not allow calling base stage method from a non-stage method
                         // (if we were to allow them later, we would need to tweak following detection code as ShaderIndex comparison is only valid for items within the same MixinNode)
                         if (foundInStage)
-                            throw new InvalidOperationException($"Method {context.Names[functionId]} was found but a base call can't be performed on a stage method from a non-stage method");
+                            throw new InvalidOperationException($"Method {methodGroupEntry.Name} was found but a base call can't be performed on a stage method from a non-stage method");
 
                         // Is it a base call? if yes, find the direct parent
                         // Let's find the method in same group just before ours
@@ -1045,11 +1045,11 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                         }
 
                         if (!baseMethodFound)
-                            throw new InvalidOperationException($"Can't find a base method for {context.Names[functionId]}");
+                            throw new InvalidOperationException($"Can't find a base method for {methodGroupEntry.Name}");
                     }
 
                     if ((selectedMethod.Flags & FunctionFlagsMask.Abstract) != 0)
-                        throw new InvalidOperationException($"Trying to call an abstract method {selectedMethod.Shader.ShaderName}.{context.Names[functionId]}");
+                        throw new InvalidOperationException($"Trying to call an abstract method {selectedMethod.Shader.ShaderName}.{methodGroupEntry.Name}");
                     functionId = selectedMethod.MethodId;
 
                     memberAccesses.Add(memberAccess.ResultId, functionId);
