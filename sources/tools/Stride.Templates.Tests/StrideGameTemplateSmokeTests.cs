@@ -223,17 +223,20 @@ public class StrideGameTemplateSmokeTests
         Assert.True(File.Exists(windowsCsproj), $"Expected exec csproj at {windowsCsproj}");
 
         // Every project path the solution and the exec project reference must exist on disk.
+        // The templates write MSBuild-style backslash paths; MSBuild accepts them on every OS,
+        // File.Exists does not, so normalize them to the host separator.
+        static string ToHostPath(string msbuildPath) => msbuildPath.Replace('\\', Path.DirectorySeparatorChar);
         var slnx = Path.Combine(instantiated, $"{compactName}.slnx");
         Assert.True(File.Exists(slnx), $"Expected solution at {slnx}");
         foreach (System.Text.RegularExpressions.Match m in System.Text.RegularExpressions.Regex.Matches(File.ReadAllText(slnx), "Path=\"([^\"]+)\""))
         {
-            var referenced = Path.Combine(instantiated, m.Groups[1].Value);
+            var referenced = Path.Combine(instantiated, ToHostPath(m.Groups[1].Value));
             Assert.True(File.Exists(referenced), $"{Path.GetFileName(slnx)} references missing project {referenced}");
         }
         var windowsCsprojText = File.ReadAllText(windowsCsproj);
         foreach (System.Text.RegularExpressions.Match m in System.Text.RegularExpressions.Regex.Matches(windowsCsprojText, "<ProjectReference Include=\"([^\"]+)\""))
         {
-            var referenced = Path.Combine(Path.GetDirectoryName(windowsCsproj)!, m.Groups[1].Value);
+            var referenced = Path.Combine(Path.GetDirectoryName(windowsCsproj)!, ToHostPath(m.Groups[1].Value));
             Assert.True(File.Exists(referenced), $"{Path.GetFileName(windowsCsproj)} references missing project {referenced}");
         }
         Assert.Contains($"<RootNamespace>{compactName}.Windows</RootNamespace>", windowsCsprojText);
