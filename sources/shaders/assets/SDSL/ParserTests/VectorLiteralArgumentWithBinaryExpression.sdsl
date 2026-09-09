@@ -1,0 +1,14 @@
+// Regression test: a vector constructor argument that is itself a binary expression involving
+// another vector constructor (e.g. `float2(1,2) * w`) used to fail to parse. The vector literal
+// parser tried to match a `Vector` literal for each argument before falling back to a full
+// `Expression`, so it greedily consumed `float2(1,2)` and left the trailing `* w` unparsed,
+// producing an "Unexpected token : *" error. See LiteralsParser.Vector in LiteralParsers.cs.
+shader VectorLiteralArgumentWithBinaryExpression
+{
+	float4 Test()
+	{
+		float w = 1;
+		float4 result = float4(1, 2, float2(1,2) * w);
+		return result;
+	}
+};
