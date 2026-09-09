@@ -324,6 +324,20 @@ public class ShaderDiskCacheTests : IDisposable
         }
         """;
 
+    private const string MemberGenV2 = """
+        namespace Stride.Shaders.Tests;
+
+        shader CacheMemberGen<MemberName TGroup>
+        {
+            cbuffer TGroup
+            {
+                float GroupValue;
+            }
+
+            float MemberValue() { return GroupValue + 100; }
+        }
+        """;
+
     private const string MemberRoot = """
         namespace Stride.Shaders.Tests;
 
@@ -362,6 +376,19 @@ public class ShaderDiskCacheTests : IDisposable
     }
 
     [Fact]
+    public void EditedMemberNameGenericIsRecompiled()
+    {
+        WriteMemberNameShaders();
+        var before = Mix(NewLoader(), "CacheMemberRoot");
+
+        Write("CacheMemberGen", MemberGenV2);
+
+        var loader = NewLoader();
+        Assert.NotEqual(before, Mix(loader, "CacheMemberRoot"));
+        Assert.Contains("CacheMemberGen", loader.Compiled);
+    }
+
+    [Fact]
     public void DifferentMemberNameArgumentsDoNotShareACacheEntry()
     {
         WriteMemberNameShaders();
@@ -384,7 +411,21 @@ public class ShaderDiskCacheTests : IDisposable
         }
         """;
 
-    // The reload case: one loader, several edits, every one of them seen.
+    private const string MemberGenV3 = """
+        namespace Stride.Shaders.Tests;
+
+        shader CacheMemberGen<MemberName TGroup>
+        {
+            cbuffer TGroup
+            {
+                float GroupValue;
+            }
+
+            float MemberValue() { return GroupValue + 200; }
+        }
+        """;
+
+    // The reload case for both generic kinds: one loader, several edits, every one of them seen.
     [Fact]
     public void RepeatedEditsToAGenericAreSeenByOneLongLivedLoader()
     {
@@ -399,6 +440,22 @@ public class ShaderDiskCacheTests : IDisposable
 
         Write("CacheGenericImpl", GenericImplV3);
         Assert.NotEqual(second, Mix(loader, 1));
+    }
+
+    [Fact]
+    public void RepeatedEditsToAMemberNameGenericAreSeenByOneLongLivedLoader()
+    {
+        WriteMemberNameShaders();
+        var loader = NewLoader();
+
+        var first = Mix(loader, "CacheMemberRoot");
+
+        Write("CacheMemberGen", MemberGenV2);
+        var second = Mix(loader, "CacheMemberRoot");
+        Assert.NotEqual(first, second);
+
+        Write("CacheMemberGen", MemberGenV3);
+        Assert.NotEqual(second, Mix(loader, "CacheMemberRoot"));
     }
 
     private void WriteMemberNameShaders()
@@ -474,10 +531,10 @@ public class ShaderDiskCacheTests : IDisposable
             return true;
         }
 
-        protected override bool LoadFromCode(string? filename, string code, ObjectId hash, ReadOnlySpan<ShaderMacro> macros, out ShaderBuffers buffer, bool registerInCache = true, bool emitSourceHash = true)
+        protected override bool LoadFromCode(string? filename, string code, ObjectId hash, ReadOnlySpan<ShaderMacro> macros, out ShaderBuffers buffer, bool registerInCache = true)
         {
             compiled.Add(Path.GetFileNameWithoutExtension(filename) ?? "");
-            return base.LoadFromCode(filename, code, hash, macros, out buffer, registerInCache, emitSourceHash);
+            return base.LoadFromCode(filename, code, hash, macros, out buffer, registerInCache);
         }
 
         private string? SourceOf(string name) => searchPaths.Select(p => Path.Combine(p, $"{name}.sdsl")).FirstOrDefault(File.Exists);
