@@ -120,15 +120,17 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         // Process reflection
         ProcessReflection(globalContext, context, temp, options);
 
-        // Ensure each resource group has cbuffer entries first (ordering expected by consumers)
+        // Ensure each resource group has cbuffer entries first (ordering expected by consumers), and each
+        // logical group in a single contiguous run (expected by CreateLogicalGroup). Ordering must be stable,
+        // consumers index a group's resources by declaration order.
         foreach (var group in globalContext.Reflection.ResourceGroups)
         {
-            group.Entries.Sort((a, b) =>
-            {
-                var aIsCb = a.Class == EffectParameterClass.ConstantBuffer ? 0 : 1;
-                var bIsCb = b.Class == EffectParameterClass.ConstantBuffer ? 0 : 1;
-                return aIsCb.CompareTo(bIsCb);
-            });
+            var orderedEntries = group.Entries
+                .OrderBy(x => x.Class == EffectParameterClass.ConstantBuffer ? 0 : 1)
+                .ThenBy(x => x.LogicalGroup ?? string.Empty, StringComparer.Ordinal)
+                .ToList();
+            group.Entries.Clear();
+            group.Entries.AddRange(orderedEntries);
         }
 
         SimplifyNotSupportedConstantsInShader(context, temp);
