@@ -35,11 +35,9 @@ jobs:
           ref: ${{ github.event.repository.default_branch }}
           lfs: true
 
-      # Gold checkout: the baselines as the PR ships them, so a PR that updates a gold is judged against
-      # its own gold instead of failing until merge. Sparse: only the two image folders, no code, and the
-      # images are never executed, so the boundary above holds — a PR can only offer different pictures,
-      # and a changed gold is a binary diff the reviewer sees in the PR. Fails on a head that was pushed
-      # away meanwhile; the gate then falls back to the base golds below.
+      # Golds from the PR itself, so a PR updating a baseline can pass before merge. Data only: sparse
+      # image folders, nothing executed, no token persisted. A changed gold is a binary diff reviewed
+      # with the PR. Falls back to the base golds on failure.
       - name: Check out the PR's gold images
         id: pr-golds
         continue-on-error: true
@@ -49,6 +47,7 @@ jobs:
           ref: ${{ github.event.workflow_run.head_sha }}
           path: pr-golds
           persist-credentials: false
+          allow-unsafe-pr-checkout: true   # images only, nothing from it is executed
           lfs: true
           sparse-checkout: |
             tests/editor/baselines
