@@ -22,6 +22,12 @@ public sealed class EffectBytecode
     ///   A constant value representing the <em>magic header</em> stored in front of an Effect bytecode
     ///   to avoid reading old versions.
     /// </summary>
+    /// <remarks>
+    ///   Only for changes to the serialized layout itself. To invalidate caches because the compiler
+    ///   now produces a different output, bump a <see cref="ShaderCompilerVersion"/> instead.
+    ///   Changing this one also rejects the precompiled bytecodes checked in under
+    ///   Stride.Graphics/Shaders.Bytecodes and Shaders093.Bytecodes, which then have to be regenerated.
+    /// </remarks>
     public const uint MagicHeader = 0xEFFEC009;  // NOTE: If EffectBytecode is changed, this number must be changed manually
 
 
