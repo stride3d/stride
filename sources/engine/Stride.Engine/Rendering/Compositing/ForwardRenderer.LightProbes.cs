@@ -351,6 +351,9 @@ namespace Stride.Rendering.Compositing
                 // context.CommandList.Draw...
             }
 
+            // The tetrahedron ids were just rendered into, and the opaque pass samples them
+            drawContext.CommandList.ResourceBarrierTransition(ibl, BarrierLayout.ShaderResource);
+
             // Set LightProbes resources
         SetGPUResources:
             foreach (var renderFeature in context.RenderSystem.RenderFeatures)
