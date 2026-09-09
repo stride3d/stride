@@ -20,6 +20,10 @@
     <Project Path="../sources/presentation/Stride.Core.Presentation.Avalonia/Stride.Core.Presentation.Avalonia.csproj" />
     <Project Path="../sources/presentation/Stride.Core.Presentation/Stride.Core.Presentation.csproj" />
   </Folder>
+  <Folder Name="/60-Editor/">
+  <Project Path="../sources/crashreport/Stride.CrashReport/Stride.CrashReport.csproj" />
+  <Project Path="../sources/crashreport/Stride.CrashReporter/Stride.CrashReporter.csproj" />
+  </Folder>
   <Folder Name="/90-Tools/">
     <Project Path="../sources/launcher/Stride.VisualStudio.Commands.Interfaces.Client/Stride.VisualStudio.Commands.Interfaces.Client.csproj" />
   </Folder>
