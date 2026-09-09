@@ -352,44 +352,51 @@ public static class VSProjectHelper
             eventSource.ErrorRaised += ErrorRaised;
         }
 
+        /// <summary>
+        /// Prefixes the message with the origin MSBuild reported for it, in the canonical
+        /// <c>file(line,column)</c>, <c>file(line)</c> or <c>file</c> form (line 0 means no position).
+        /// </summary>
+        private static string WithLocation(string? file, int line, int column, string message)
+        {
+            if (string.IsNullOrEmpty(file))
+                return message;
+            if (line <= 0)
+                return $"{file}: {message}";
+            return column > 0 ? $"{file}({line},{column}): {message}" : $"{file}({line}): {message}";
+        }
+
+        /// <summary>
+        /// Prefixes a diagnostic with its code, which the message text alone doesn't carry.
+        /// </summary>
+        private static string WithCode(string? code, string message)
+            => string.IsNullOrEmpty(code) ? message : $"{code}: {message}";
+
         void MessageRaised(object sender, BuildMessageEventArgs e)
         {
-            if (logger is LoggerResult loggerResult)
-            {
-                loggerResult.Module = $"{e.File}({e.LineNumber},{e.ColumnNumber})";
-            }
+            var message = WithLocation(e.File, e.LineNumber, e.ColumnNumber, e.Message);
 
             // Redirect task execution messages to verbose output
             switch (e is TaskCommandLineEventArgs ? MessageImportance.Normal : e.Importance)
             {
                 case MessageImportance.High:
-                    logger.Info(e.Message);
+                    logger.Info(message);
                     break;
                 case MessageImportance.Normal:
-                    logger.Verbose(e.Message);
+                    logger.Verbose(message);
                     break;
                 case MessageImportance.Low:
-                    logger.Debug(e.Message);
+                    logger.Debug(message);
                     break;
             }
         }
 
         void WarningRaised(object sender, BuildWarningEventArgs e)
         {
-            if (logger is LoggerResult loggerResult)
-            {
-                loggerResult.Module = string.Format("{0}({1},{2})", e.File, e.LineNumber, e.ColumnNumber);
-            }
-            logger.Warning(e.Message);
+            logger.Warning(WithLocation(e.File, e.LineNumber, e.ColumnNumber, WithCode(e.Code, e.Message)));
         }
 
         void ErrorRaised(object sender, BuildErrorEventArgs e)
         {
-            if (logger is LoggerResult loggerResult)
-            {
-                loggerResult.Module = $"{e.File}({e.LineNumber},{e.ColumnNumber})";
-            }
-
             if (e.Code == "NETSDK1045")
             {
                 var netVersion = Regex.Match(e.Message, @"\.(NET|net) ?(\d+\.\d+)");
@@ -400,7 +407,7 @@ public static class VSProjectHelper
             }
             else
             {
-                logger.Error(e.Message);
+                logger.Error(WithLocation(e.File, e.LineNumber, e.ColumnNumber, WithCode(e.Code, e.Message)));
             }
         }
     }

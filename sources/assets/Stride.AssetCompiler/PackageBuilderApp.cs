@@ -43,6 +43,9 @@ namespace Stride.AssetCompiler
 
         private static Stopwatch clock;
 
+        // Modules are only meaningful when following the compiler's internals (verbose/debug output).
+        private static bool showModule;
+
         private LogListener globalLoggerOnGlobalMessageLogged;
 
         private PackageBuilder builder;
@@ -239,6 +242,7 @@ namespace Stride.AssetCompiler
 
                 // Activate proper log level
                 buildEngineLogger.ActivateLog(options.LoggerType);
+                showModule = options.LoggerType <= LogMessageType.Verbose;
 
                 // Output logs to the console with colored messages
                 if (options.SlavePipe == null)
@@ -452,7 +456,7 @@ namespace Stride.AssetCompiler
                         GlobalLogger.GlobalMessageLogged += fileLogListener;
                     }
 
-                    options.Logger.Info("BuildEngine arguments: " + string.Join(" ", args));
+                    options.Logger.Info("BuildEngine arguments: " + string.Join(" ", args.Select(QuoteArgument)));
                     options.Logger.Info("Starting builder.");
                 }
                 else
@@ -575,21 +579,54 @@ namespace Stride.AssetCompiler
             logger.Info($"Reconciled {changedCount} asset(s) with their base out of {graphs.Count}.");
         }
 
+        // Re-quotes what the shell stripped, so the printed line can be pasted back: only the value of
+        // an --option=value argument, the whole argument otherwise.
+        private static string QuoteArgument(string argument)
+        {
+            if (!argument.Contains(' '))
+                return argument;
+
+            var separator = argument.IndexOf('=');
+            if (argument.StartsWith("--", StringComparison.Ordinal) && separator > 2 && argument.AsSpan(0, separator).IndexOf(' ') < 0)
+                return $"{argument[..(separator + 1)]}\"{argument[(separator + 1)..]}\"";
+
+            return $"\"{argument}\"";
+        }
+
         private static string FormatLog(ILogMessage message)
         {
-            //$filename($row,$column): $error_type $error_code: $error_message
-            //C:\Code\Stride\sources\assets\Stride.AssetCompiler\PackageBuilder.cs(89,13,89,70): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+            // Warnings and errors use the canonical MSBuild/VS format, so they are picked up and navigable:
+            //   origin(line,col): category code: text
+            // The origin is only known for asset messages carrying a file. Lower severities are
+            // not parsed by anyone and stay compact: type, elapsed time, text.
             var builder = new StringBuilder();
             var assetLogMessage = message as AssetLogMessage;
-            // Location
-            if (assetLogMessage != null)
-                builder.Append($"{assetLogMessage.File}({assetLogMessage.Line + 1},{assetLogMessage.Character + 1}): ");
-            // Message type
-            builder.Append(message.Type.ToString().ToLowerInvariant()).Append(" ");
-            builder.Append((clock.ElapsedMilliseconds * 0.001).ToString("0.000"));
-            builder.Append("s: ");
-            builder.Append($"[{message.Module ?? "AssetCompiler"}] ");
-            builder.Append(message.Text);
+            var text = message.Text;
+            if (message.Type >= LogMessageType.Warning)
+            {
+                if (!string.IsNullOrEmpty(assetLogMessage?.File))
+                {
+                    builder.Append(assetLogMessage.File);
+                    if (assetLogMessage.Line > 0 || assetLogMessage.Character > 0)
+                        builder.Append($"({assetLogMessage.Line + 1},{assetLogMessage.Character + 1})");
+                    builder.Append(": ");
+                    text = assetLogMessage.TextWithoutLocation;
+                }
+
+                builder.Append(message.Type == LogMessageType.Warning ? "warning" : "error");
+                if (assetLogMessage != null)
+                    builder.Append(' ').Append(assetLogMessage.MessageCode);
+                builder.Append(": ");
+            }
+            else
+            {
+                builder.Append(message.Type.ToString().ToLowerInvariant()).Append(": ");
+                builder.Append((clock.ElapsedMilliseconds * 0.001).ToString("0.000")).Append("s ");
+            }
+
+            if (showModule && message.Module != null)
+                builder.Append('[').Append(message.Module).Append("] ");
+            builder.Append(text);
             var exceptionInfo = message.ExceptionInfo;
             if (exceptionInfo != null)
             {

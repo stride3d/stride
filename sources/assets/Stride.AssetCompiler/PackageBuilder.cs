@@ -405,39 +405,30 @@ namespace Stride.AssetCompiler
             var assetItem = (AssetItem)e.Step.Tag;
             var assetRef = assetItem.ToReference();
             var project = assetItem.Package;
+            var assetFile = assetItem.FullPath.ToOSPath();
             var stepLogger = e.Step.Logger;
             // TODO: Big review of the log infrastructure of CompilerApp & BuildEngine!
             if (stepLogger != null)
             {
+                // Attach the asset file so the console can print a navigable origin; a message that already
+                // has one keeps it, along with its position.
                 foreach (var message in stepLogger.Messages.Where(x => x.IsAtLeast(LogMessageType.Warning)))
                 {
-                    builderOptions.Logger.Log(message);
+                    builderOptions.Logger.Log(message is AssetLogMessage { File.Length: > 0 } ? message : AssetLogMessage.From(project, assetRef, message, assetFile));
                 }
             }
-            switch (e.Step.Status)
+            var (type, code) = e.Step.Status switch
             {
                 // This case should never happen
-                case ResultStatus.NotProcessed:
-                    builderOptions.Logger.Log(new AssetLogMessage(project, assetRef, LogMessageType.Fatal, AssetMessageCode.InternalCompilerError, assetRef.Location));
-                    break;
-                case ResultStatus.Successful:
-                    builderOptions.Logger.Log(new AssetLogMessage(project, assetRef, LogMessageType.Verbose, AssetMessageCode.CompilationSucceeded, assetRef.Location));
-                    break;
-                case ResultStatus.Failed:
-                    builderOptions.Logger.Log(new AssetLogMessage(project, assetRef, LogMessageType.Error, AssetMessageCode.CompilationFailed, assetRef.Location));
-                    break;
-                case ResultStatus.Cancelled:
-                    builderOptions.Logger.Log(new AssetLogMessage(project, assetRef, LogMessageType.Verbose, AssetMessageCode.CompilationCancelled, assetRef.Location));
-                    break;
-                case ResultStatus.NotTriggeredWasSuccessful:
-                    builderOptions.Logger.Log(new AssetLogMessage(project, assetRef, LogMessageType.Verbose, AssetMessageCode.AssetUpToDate, assetRef.Location));
-                    break;
-                case ResultStatus.NotTriggeredPrerequisiteFailed:
-                    builderOptions.Logger.Log(new AssetLogMessage(project, assetRef, LogMessageType.Error, AssetMessageCode.PrerequisiteFailed, assetRef.Location));
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+                ResultStatus.NotProcessed => (LogMessageType.Fatal, AssetMessageCode.InternalCompilerError),
+                ResultStatus.Successful => (LogMessageType.Verbose, AssetMessageCode.CompilationSucceeded),
+                ResultStatus.Failed => (LogMessageType.Error, AssetMessageCode.CompilationFailed),
+                ResultStatus.Cancelled => (LogMessageType.Verbose, AssetMessageCode.CompilationCancelled),
+                ResultStatus.NotTriggeredWasSuccessful => (LogMessageType.Verbose, AssetMessageCode.AssetUpToDate),
+                ResultStatus.NotTriggeredPrerequisiteFailed => (LogMessageType.Error, AssetMessageCode.PrerequisiteFailed),
+                _ => throw new ArgumentOutOfRangeException(),
+            };
+            builderOptions.Logger.Log(new AssetLogMessage(project, assetRef, type, code, assetRef.Location) { File = assetFile });
             e.Step.StepProcessed -= BuildStepProcessed;
         }
 

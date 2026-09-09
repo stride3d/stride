@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Collections.Concurrent;
+
 namespace Stride.Core.Diagnostics;
 
 /// <summary>
@@ -37,6 +39,19 @@ public abstract class LogListener : IDisposable
     public Func<ILogMessage, string?> TextFormatter { get; set; }
 
     /// <summary>
+    /// Gets or sets the minimum severity this listener handles; messages below it are dropped.
+    /// Defaults to <see cref="LogMessageType.Debug"/>, which lets everything through.
+    /// </summary>
+    public LogMessageType MinimumLevel { get; set; } = LogMessageType.Debug;
+
+    /// <summary>
+    /// Gets the per-module overrides of <see cref="MinimumLevel"/>, keyed by <see cref="ILogMessage.Module"/>.
+    /// A listener can stay quiet overall while still following a few modules in detail. Safe to
+    /// update while the listener is attached.
+    /// </summary>
+    public ConcurrentDictionary<string, LogMessageType> ModuleLevels { get; } = new();
+
+    /// <summary>
     /// Gets or sets the log count flush limit. Default is on every message.
     /// </summary>
     /// <value>The log count flush limit.</value>
@@ -59,6 +74,22 @@ public abstract class LogListener : IDisposable
     /// </summary>
     /// <param name="logMessage">The log message.</param>
     protected abstract void OnLog(ILogMessage logMessage);
+
+    /// <summary>
+    /// Returns whether a message passes this listener's filter, and so should reach <see cref="OnLog"/>.
+    /// The default compares its severity against <see cref="ModuleLevels"/>, falling back to
+    /// <see cref="MinimumLevel"/>. Override to add conditions of your own.
+    /// </summary>
+    /// <param name="logMessage">The log message.</param>
+    protected virtual bool IsEnabled(ILogMessage logMessage)
+    {
+        var module = logMessage.Module;
+        var minimumLevel = !ModuleLevels.IsEmpty && module is not null && ModuleLevels.TryGetValue(module, out var moduleLevel)
+            ? moduleLevel
+            : MinimumLevel;
+
+        return logMessage.Type >= minimumLevel;
+    }
 
     /// <summary>
     /// Returns a boolean indicating whether the log should be flushed. By default, flushing is occurring if the message has a higher level than <see cref="LogMessageType.Info"/>
@@ -125,6 +156,9 @@ public abstract class LogListener : IDisposable
 
     private void OnLogInternal(ILogMessage logMessage)
     {
+        if (!IsEnabled(logMessage))
+            return;
+
         OnLog(logMessage);
         LogMessageCount++;
         if (ShouldFlush(logMessage))
