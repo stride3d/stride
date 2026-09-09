@@ -733,6 +733,85 @@ new ShaderMacro("class", "shader"),
         TestCore($"MSAADepthResolverShader{samples}", shaderSource, "./assets/Stride/SDSL");
     }
 
+    // Issue #3323: LightProbeShader truncates a float3x4 to a float3x3, and it is the only
+    // engine shader casting a non-square matrix. That cast used to emit invalid SPIR-V, so
+    // any scene with enough light probes to form a tetrahedron failed to render.
+    [Theory]
+    [InlineData(1)]
+    [InlineData(4)]
+    public void LightProbeShaderCompiles(int samples)
+    {
+        // LightProbeRenderer puts LightProbeShader in the environmentLights slot that holds
+        // EnvironmentLight when light probes are off.
+        var shaderSource = EnvironmentLightMixin(samples, new ShaderClassSource("LightProbeShader", 3));
+
+        TestCore($"LightProbeShader{samples}", shaderSource, "./assets/Stride/SDSL");
+    }
+
+    /// <summary>
+    /// Builds the pixel side of a forward shading effect around a single environment light, the
+    /// way ForwardLightingRenderFeature composes one. Only what an environment light needs is
+    /// included: the material streams it reads, and the shading stage it writes into.
+    /// </summary>
+    private static ShaderMixinSource EnvironmentLightMixin(int multisampleCount, ShaderSource environmentLight)
+    {
+        ShaderMixinSource Compose(params ShaderClassCode[] mixins)
+        {
+            var source = new ShaderMixinSource();
+            source.Mixins.AddRange(mixins);
+            source.Macros.AddRange(
+            [
+                new ShaderMacro("STRIDE_RENDER_TARGET_COUNT", "1"),
+                new ShaderMacro("STRIDE_MULTISAMPLE_COUNT", multisampleCount.ToString()),
+                new ShaderMacro("STRIDE_GRAPHICS_API_DIRECT3D", "1"),
+                new ShaderMacro("STRIDE_GRAPHICS_API_DIRECT3D11", "1"),
+                new ShaderMacro("STRIDE_GRAPHICS_PROFILE", "40960"),
+                new ShaderMacro("GRAPHICS_PROFILE_LEVEL_9_1", "37120"),
+                new ShaderMacro("GRAPHICS_PROFILE_LEVEL_9_2", "37376"),
+                new ShaderMacro("GRAPHICS_PROFILE_LEVEL_9_3", "37632"),
+                new ShaderMacro("GRAPHICS_PROFILE_LEVEL_10_0", "40960"),
+                new ShaderMacro("GRAPHICS_PROFILE_LEVEL_10_1", "41216"),
+                new ShaderMacro("GRAPHICS_PROFILE_LEVEL_11_0", "45056"),
+                new ShaderMacro("GRAPHICS_PROFILE_LEVEL_11_1", "45312"),
+                new ShaderMacro("GRAPHICS_PROFILE_LEVEL_11_2", "45568"),
+                new ShaderMacro("class", "shader"),
+            ]);
+            return source;
+        }
+
+        var root = Compose(
+            new ShaderClassSource("ShaderBase"),
+            new ShaderClassSource("ShadingBase"),
+            new ShaderClassSource("TransformationBase"),
+            new ShaderClassSource("NormalStream"),
+            new ShaderClassSource("TransformationWAndVP"),
+            new ShaderClassSource("NormalFromNormalMapping"),
+            new ShaderClassSource("MaterialSurfacePixelStageCompositor"));
+
+        var environmentLights = new ShaderArraySource();
+        environmentLights.Add(environmentLight);
+        root.Compositions.Add("environmentLights", environmentLights);
+
+        var shadingSurfaces = new ShaderArraySource();
+        shadingSurfaces.Add(new ShaderClassSource("MaterialSurfaceShadingDiffuseLambert", "false"));
+        var lightingAndShading = Compose(new ShaderClassSource("MaterialSurfaceLightingAndShading"));
+        lightingAndShading.Compositions.Add("surfaces", shadingSurfaces);
+
+        var materialLayers = new ShaderArraySource();
+        materialLayers.Add(Compose(new ShaderClassSource("MaterialSurfaceDiffuse")));
+        materialLayers.Add(lightingAndShading);
+
+        var materialPixelStage = Compose(new ShaderClassSource("MaterialSurfaceArray"));
+        materialPixelStage.Compositions.Add("layers", materialLayers);
+        root.Compositions.Add("materialPixelStage", materialPixelStage);
+
+        root.Compositions.Add("streamInitializerPixelStage", Compose(
+            new ShaderClassSource("MaterialStream"),
+            new ShaderClassSource("MaterialPixelShadingStream")));
+
+        return root;
+    }
+
     private static void TestCore(string shaderName, ShaderMixinSource shaderSource, params string[] searchPaths)
     {
         var shaderMixer = new ShaderMixer(new ShaderLoader(searchPaths));
