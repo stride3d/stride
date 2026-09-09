@@ -75,3 +75,4 @@ Hierarchy:
                     6e22b633642ca0459f179d5b5257d74e: !BackgroundComponent
                         Id: 33b6226e-2c64-45a0-9f17-9d5b5257d74e
                         Texture: f48790de-bd5a-4f83-a71b-a6a559dcb698:StrideBackground
+                        Is2D: true
