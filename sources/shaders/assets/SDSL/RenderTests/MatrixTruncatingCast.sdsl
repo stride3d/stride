@@ -1,0 +1,35 @@
+// PSMain(ExpectedResult=#0A141E01)
+
+namespace Stride.Shaders.Tests;
+
+// Regression: casting a matrix to a smaller matrix must keep the leading rows and
+// columns. The truncation used to read MatrixType.Rows/Columns the wrong way round
+// (they are stored HLSL-style, so Rows is the SPIR-V column vector size), which
+// produced an OpCompositeExtract with a mismatched result type and skipped the
+// component truncation entirely.
+shader MatrixTruncatingCast
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    void PSMain()
+    {
+        // float3x4: 3 rows of 4 components.
+        float3x4 m34 = float3x4(10, 0, 0, 100,
+                                 0, 20, 0, 200,
+                                 0, 0, 30, 300);
+
+        // Truncate the columns: the fourth column (100/200/300) must be dropped.
+        float3x3 m33 = (float3x3)m34;
+        float3 v = mul(m33, float3(1, 1, 1));
+
+        // Truncate the rows: keep the first two rows of the source.
+        float2x4 m24 = (float2x4)m34;
+        float value = m24[1][3];
+
+        // Broadcasting an int scalar needs an element-wise conversion per row.
+        float2x2 zero = (float2x2)0;
+        v += float3(zero[0][0], zero[0][1], zero[1][1]);
+
+        streams.ColorTarget = float4(v.x, v.y, v.z, value) / float4(255.0, 255.0, 255.0, 200.0 * 255.0);
+    }
+}

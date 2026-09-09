@@ -522,7 +522,14 @@ public partial class SpirvBuilder
             || (valueType is not ScalarType && valueType is not VectorType && valueType is not MatrixType))
             throw new NotImplementedException($"Cast only work between numeral types (cast from {valueType} to {castType})");
 
-        Span<int> values = stackalloc int[castType is MatrixType m ? m.Rows : 1];
+        // One entry per column of the SPIR-V matrix (i.e. per HLSL row), since MatrixType.Columns
+        // is the OpTypeMatrix column count and MatrixType.Rows the size of each column vector.
+        Span<int> values = stackalloc int[castType is MatrixType m ? m.Columns : 1];
+
+        // How many entries of values the truncating step below actually fills; only a matrix
+        // source produces one per column, everything else produces a single value that the
+        // expanding step broadcasts.
+        var valueCount = 1;
 
         // Truncating
         switch (valueType, castType)
@@ -571,18 +578,21 @@ public partial class SpirvBuilder
                 throw new InvalidOperationException($"Can't cast from {m1} to {m2} (larger matrix)");
             case (MatrixType m1, MatrixType m2) when m1.Rows >= m2.Rows && m1.Columns >= m2.Columns:
                 {
-                    Span<int> shuffleIndices = stackalloc int[m2.Columns];
-                    for (int j = 0; j < m2.Columns; ++j)
+                    // Extract each of the m2.Columns leading matrix columns, and shorten it from
+                    // m1.Rows down to m2.Rows components when the column vectors also shrink.
+                    Span<int> shuffleIndices = stackalloc int[m2.Rows];
+                    for (int j = 0; j < m2.Rows; ++j)
                         shuffleIndices[j] = j;
-                    for (int i = 0; i < m2.Rows; ++i)
+                    for (int i = 0; i < m2.Columns; ++i)
                     {
-                        values[i] = Insert(new OpCompositeExtract(context.GetOrRegister(new VectorType(m1.BaseType, m1.Columns)), context.Bound++, valueId, [i])).ResultId;
-                        if (m1.Columns != m2.Columns)
+                        values[i] = Insert(new OpCompositeExtract(context.GetOrRegister(new VectorType(m1.BaseType, m1.Rows)), context.Bound++, valueId, [i])).ResultId;
+                        if (m1.Rows != m2.Rows)
                         {
-                            values[i] = Insert(new OpVectorShuffle(context.GetOrRegister(new VectorType(m1.BaseType, m2.Columns)), context.Bound++, values[i], values[i], new(shuffleIndices))).ResultId;
+                            values[i] = Insert(new OpVectorShuffle(context.GetOrRegister(new VectorType(m1.BaseType, m2.Rows)), context.Bound++, values[i], values[i], new(shuffleIndices))).ResultId;
                         }
                     }
-                    valueType = new VectorType(m1.BaseType, m2.Columns);
+                    valueType = new VectorType(m1.BaseType, m2.Rows);
+                    valueCount = m2.Columns;
                     break;
                 }
         }
@@ -597,7 +607,7 @@ public partial class SpirvBuilder
                 VectorType s => (s.Size, new VectorType(castType.GetElementType(), s.Size)),
                 _ => throw new NotSupportedException($"Unsupported type for element-wise cast: {valueType}"),
             };
-            for (int i = 0; i < values.Length; ++i)
+            for (int i = 0; i < valueCount; ++i)
             {
                 var rowValue = values[i];
                 if (rowValue == 0)
@@ -645,7 +655,7 @@ public partial class SpirvBuilder
                 values[i] = typeCasting.IdResult!.Value;
 
                 // Update type
-                if (i == values.Length - 1)
+                if (i == valueCount - 1)
                     valueType = castTypeSameSize;
             }
         }
