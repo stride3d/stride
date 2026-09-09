@@ -103,6 +103,8 @@ public class StrideGameTemplateSmokeTests
                 }
 
                 InstantiateUpdateOnlyAndValidate(workspace, projectName: "SmokeUpdateOnly");
+                InstantiateSpacedNameAndValidate(workspace, projectName: "Smoke Spaced Game");
+                InstantiateSkipSolutionAndValidate(workspace, projectName: "SmokeSkipSolution");
                 InstantiateAssetPackAndValidate(workspace, gameProjectName: "SmokeBlankGame");
             }
             finally
@@ -178,6 +180,66 @@ public class StrideGameTemplateSmokeTests
         Assert.False(Directory.Exists(Path.Combine(instantiated, $"{projectName}.Game")),
             $"updateOnly must not regenerate the shared game library {projectName}.Game/ (issue #3262)");
         Assert.Empty(Directory.EnumerateFiles(instantiated, "*.slnx", SearchOption.AllDirectories));
+    }
+
+    /// <summary>
+    /// stride-game with <c>skipSolution=true</c> (what GameStudio's New Game flow passes, since the
+    /// session writes its own solution) must emit the projects but no solution file.
+    /// </summary>
+    private void InstantiateSkipSolutionAndValidate(string workspace, string projectName)
+    {
+        var newResult = RunDotnet(workspace, "new", "stride-game", "-n", projectName,
+            "--skipSolution", "true", "--platforms", "windows");
+        Assert.True(newResult.exitCode == 0, $"dotnet new stride-game --skipSolution failed:\n{newResult.output}");
+
+        var instantiated = Path.Combine(workspace, projectName);
+        Assert.True(Directory.Exists(Path.Combine(instantiated, $"{projectName}.Game")),
+            $"skipSolution must still emit the game library {projectName}.Game/ under {instantiated}");
+        Assert.True(Directory.Exists(Path.Combine(instantiated, $"{projectName}.Windows")),
+            $"skipSolution must still emit the exec project {projectName}.Windows/ under {instantiated}");
+        Assert.Empty(Directory.EnumerateFiles(instantiated, "*.slnx", SearchOption.AllDirectories));
+    }
+
+    /// <summary>
+    /// Regression for #3356: a project name with spaces. The template engine used to substitute
+    /// the name in file contents through its safe form (<c>Smoke_Spaced_Game</c>) but rename
+    /// files with the raw value, so the .slnx and the exec project pointed at
+    /// <c>Smoke_Spaced_Game.Game/…csproj</c> while the file on disk was
+    /// <c>Smoke Spaced Game.Game/….csproj</c>. Contents and file names must now both use the
+    /// compact form (<c>SmokeSpacedGame</c>); only the root directory keeps the raw name.
+    /// </summary>
+    private void InstantiateSpacedNameAndValidate(string workspace, string projectName)
+    {
+        var newResult = RunDotnet(workspace, "new", "stride-game", "-n", projectName, "--platforms", "windows");
+        Assert.True(newResult.exitCode == 0, $"dotnet new stride-game -n \"{projectName}\" failed:\n{newResult.output}");
+
+        var instantiated = Path.Combine(workspace, projectName);
+        Assert.True(Directory.Exists(instantiated), $"Root dir must keep the raw name, expected {instantiated}");
+
+        var compactName = projectName.Replace(" ", "");
+        var libraryCsproj = Path.Combine(instantiated, $"{compactName}.Game", $"{compactName}.Game.csproj");
+        Assert.True(File.Exists(libraryCsproj), $"Expected library csproj at {libraryCsproj}");
+        var windowsCsproj = Path.Combine(instantiated, $"{compactName}.Windows", $"{compactName}.Windows.csproj");
+        Assert.True(File.Exists(windowsCsproj), $"Expected exec csproj at {windowsCsproj}");
+
+        // Every project path the solution and the exec project reference must exist on disk.
+        // The templates write MSBuild-style backslash paths; MSBuild accepts them on every OS,
+        // File.Exists does not, so normalize them to the host separator.
+        static string ToHostPath(string msbuildPath) => msbuildPath.Replace('\\', Path.DirectorySeparatorChar);
+        var slnx = Path.Combine(instantiated, $"{compactName}.slnx");
+        Assert.True(File.Exists(slnx), $"Expected solution at {slnx}");
+        foreach (System.Text.RegularExpressions.Match m in System.Text.RegularExpressions.Regex.Matches(File.ReadAllText(slnx), "Path=\"([^\"]+)\""))
+        {
+            var referenced = Path.Combine(instantiated, ToHostPath(m.Groups[1].Value));
+            Assert.True(File.Exists(referenced), $"{Path.GetFileName(slnx)} references missing project {referenced}");
+        }
+        var windowsCsprojText = File.ReadAllText(windowsCsproj);
+        foreach (System.Text.RegularExpressions.Match m in System.Text.RegularExpressions.Regex.Matches(windowsCsprojText, "<ProjectReference Include=\"([^\"]+)\""))
+        {
+            var referenced = Path.Combine(Path.GetDirectoryName(windowsCsproj)!, ToHostPath(m.Groups[1].Value));
+            Assert.True(File.Exists(referenced), $"{Path.GetFileName(windowsCsproj)} references missing project {referenced}");
+        }
+        Assert.Contains($"<RootNamespace>{compactName}.Windows</RootNamespace>", windowsCsprojText);
     }
 
     /// <summary>
