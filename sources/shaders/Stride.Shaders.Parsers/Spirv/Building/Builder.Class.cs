@@ -545,7 +545,7 @@ public partial class SpirvBuilder
         }
     }
 
-    private static void InstantiateMemberNames(ref ShaderBuffers shaderBuffers, string shaderName, GenericResolver genericResolver, IExternalShaderLoader shaderLoader, ReadOnlySpan<ShaderMacro> macros)
+    private static void InstantiateMemberNames(ref ShaderBuffers shaderBuffers, string shaderName, GenericResolver genericResolver, IExternalShaderLoader shaderLoader, ReadOnlySpan<ShaderMacro> macros, ObjectId sourceHash)
     {
         bool hasUnresolvableShader = false;
         for (var index = 0; index < shaderBuffers.Buffer.Count; index++)
@@ -605,9 +605,9 @@ public partial class SpirvBuilder
                     shaderName = cacheKey;
                 }
 
-                // Use original filename for debug info (OpString/OpSource) but skip OpSourceHashSDSL
-                // since the hash would be of the macro-expanded code, not the original file
-                shaderLoader.SuppressSourceHash = true;
+                // Use original filename for debug info (OpString/OpSource), and record the hash of that
+                // file rather than of the macro-expanded code compiled here, so an edit to it is seen.
+                shaderLoader.SourceHashOverride = sourceHash;
                 if (!shaderLoader.LoadExternalBuffer(shaderName, originalFilename, code, macros, out shaderBuffers, out var compiledHash, out _))
                     throw new InvalidOperationException();
 
@@ -862,7 +862,7 @@ public partial class SpirvBuilder
                         return (buf, h);
 
                     var localBuffers = localShaderBuffers;
-                    InstantiateMemberNames(ref localBuffers, className, genericResolver, shaderLoader, macrosArray);
+                    InstantiateMemberNames(ref localBuffers, className, genericResolver, shaderLoader, macrosArray, localHash);
 
                     // Copy buffers (we don't want to edit original non-instantiated code as it might be reloaded through caching)
                     localBuffers.Context = new SpirvContext(CopyBuffer(localBuffers.Context.GetBuffer()))
