@@ -7,22 +7,17 @@ Hierarchy:
         - ref!! c6aca1a5-dba9-46d2-a6f5-c4fc1ab74824
     Parts:
         -   Entity:
-                Id: c6aca1a5-dba9-46d2-a6f5-c4fc1ab74824
-                Name: Table2x2x2
+                Id: 7184a169-58bc-4c2b-aa34-28e2494cd023
+                Name: Legs
                 Components:
-                    fdb3d891ad817d45bc9c9a293736f0e1: !TransformComponent
-                        Id: 91d8b3fd-81ad-457d-bc9c-9a293736f0e1
-                        Position: {X: 1.0, Y: 1.0, Z: 1.0}
+                    433edb2b6e235e55b95a6edaa966e954: !TransformComponent
+                        Id: 87358509-608b-4bfc-9538-fa54d6b2c65f
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
-                    009b60908ca6b44fbfac9f90cb43af2e: !ModelComponent
-                        Id: 90609b00-a68c-4fb4-bfac-9f90cb43af2e
-                        Model: a597a15e-9dec-4895-84be-99240208b6d2:Models/Table2x2x2
-                        Materials:
-                            ecd1b81c86e9114d86fcdf436455648f~0: c1d40f25-8760-420b-8e26-ef8a2b999678:Materials/GridMTArc
-                    e8d6d181aa1dab4fa7353dbc6a807bd7: !StaticColliderComponent
-                        Id: 81d1d6e8-1daa-4fab-a735-3dbc6a807bd7
+                    78d80f631205154b55e2ead92d0c47d7: !StaticColliderComponent
+                        Id: a407c4d3-7b44-46df-9fb3-4d4d7f6f9077
                         CollisionGroup: StaticFilter
                         CanSleep: true
                         Restitution: 0.0
@@ -31,6 +26,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             508db8d1813cc84eb816d5cb50e30987: !BoxColliderShapeDesc
                                 Is2D: false
@@ -52,6 +48,22 @@ Hierarchy:
                                 Size: {X: 0.1, Y: 2.0, Z: 0.1}
                                 LocalOffset: {X: 0.95, Y: 0.0, Z: -0.95}
                                 LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+        -   Entity:
+                Id: c6aca1a5-dba9-46d2-a6f5-c4fc1ab74824
+                Name: Table2x2x2
+                Components:
+                    fdb3d891ad817d45bc9c9a293736f0e1: !TransformComponent
+                        Id: 91d8b3fd-81ad-457d-bc9c-9a293736f0e1
+                        Position: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            92657f69ac863f0ed53fa33899af90cf: ref!! 87358509-608b-4bfc-9538-fa54d6b2c65f
+                    009b60908ca6b44fbfac9f90cb43af2e: !ModelComponent
+                        Id: 90609b00-a68c-4fb4-bfac-9f90cb43af2e
+                        Model: a597a15e-9dec-4895-84be-99240208b6d2:Models/Table2x2x2
+                        Materials:
+                            ecd1b81c86e9114d86fcdf436455648f~0: c1d40f25-8760-420b-8e26-ef8a2b999678:Materials/GridMTArc
                     e4642785d1ecae489aa41d32c993b74d: !StaticColliderComponent
                         Id: 852764e4-ecd1-48ae-9aa4-1d32c993b74d
                         CanSleep: false
@@ -61,6 +73,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             afc542316dc4014cb5fab15314fb77c1: !BoxColliderShapeDesc
                                 Is2D: false
