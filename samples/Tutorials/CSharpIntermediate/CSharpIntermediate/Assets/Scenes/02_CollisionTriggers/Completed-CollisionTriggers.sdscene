@@ -1450,7 +1450,7 @@ Hierarchy:
                         AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             8359b4c0fa7e894ba4582a7bdd8e1ae6: !ColliderShapeAssetDesc
-                                Shape: 26f14582-93fd-4080-9f17-1f4444fe2205:/PrototypingBlocks/CollisionMeshes/Ramp1x1x1
+                                Shape: 26f14582-93fd-4080-9f17-1f4444fe2205:/PrototypingBlocks/CollisionMeshes2/Ramp1x1x1
         -   Folder: null
             Entity:
                 Id: b29fea62-9193-4f58-8936-0e48f3817db2
