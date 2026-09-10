@@ -1,9 +1,9 @@
 {
-  "os": "iOS 26.5.0",
-  "cpu": "Arm64",
-  "gpu": "Apple iOS simulator GPU",
+  "os": "macOS 26.6.2",
+  "cpu": "Apple M1 (Virtual)",
+  "gpu": "Apple Paravirtual device",
   "gpuVendorId": "0x106B",
-  "gpuDeviceId": "0x1A040002",
+  "gpuDeviceId": "0x1A060205",
   "driverId": "Moltenvk",
   "driverName": "MoltenVK",
   "driverInfo": "1.4.2",
