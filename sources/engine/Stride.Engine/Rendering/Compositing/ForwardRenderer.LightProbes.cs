@@ -22,6 +22,7 @@ namespace Stride.Rendering.Compositing
     {
         private DynamicEffectInstance bakeLightProbes;
         private MutablePipelineState bakeLightProbesPipeline;
+        private Vector4[] paddedLightProbeCoefficients;
 
         private unsafe void PrepareLightprobeConstantBuffer(RenderContext context)
         {
@@ -236,11 +237,22 @@ namespace Stride.Rendering.Compositing
                 // Draw shape
                 tetrahedronMatrices = PushScopedResource(Context.Allocator.GetTemporaryBuffer(new BufferDescription(tetraResult.Count * 3 * sizeof(Vector4), BufferFlags.ShaderResource, GraphicsResourceUsage.Default), PixelFormat.R32G32B32A32_Float));
                 tetrahedronProbeIndices = PushScopedResource(Context.Allocator.GetTemporaryBuffer(new BufferDescription(tetraResult.Count * 4 * sizeof(int), BufferFlags.ShaderResource, GraphicsResourceUsage.Default), PixelFormat.R32G32B32A32_UInt));
-                lightprobesCoefficients = PushScopedResource(Context.Allocator.GetTemporaryBuffer(new BufferDescription(lightProbesData.Coefficients.Length * sizeof(Color3), BufferFlags.ShaderResource, GraphicsResourceUsage.Default), PixelFormat.R32G32B32_Float));
+                // Padded to four floats: a three-float texel buffer has no Metal equivalent, and Vulkan only
+                // optionally supports one
+                var coefficientCount = lightProbesData.Coefficients.Length;
+                if (paddedLightProbeCoefficients == null || paddedLightProbeCoefficients.Length < coefficientCount)
+                    paddedLightProbeCoefficients = new Vector4[coefficientCount];
+                for (var i = 0; i < coefficientCount; i++)
+                {
+                    ref var coefficient = ref lightProbesData.Coefficients[i];
+                    paddedLightProbeCoefficients[i] = new Vector4(coefficient.R, coefficient.G, coefficient.B, 0.0f);
+                }
+
+                lightprobesCoefficients = PushScopedResource(Context.Allocator.GetTemporaryBuffer(new BufferDescription(coefficientCount * sizeof(Vector4), BufferFlags.ShaderResource, GraphicsResourceUsage.Default), PixelFormat.R32G32B32A32_Float));
 
                 var tetraInsideIndex = -1;
 
-                fixed (Color3* lightProbeCoefficients = lightProbesData.Coefficients)
+                fixed (Vector4* lightProbeCoefficients = paddedLightProbeCoefficients)
                 fixed (Vector4* matrices = lightProbesData.Matrices)
                 fixed (Int4* probeIndices = lightProbesData.LightProbeIndices)
                 {
