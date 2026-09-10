@@ -30,6 +30,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             7c0427666547c848a3b4892e63c539a5: !ColliderShapeAssetDesc
-                                Shape: 974ee62e-4d36-4005-a27f-da07b6ae36a7:CollisionMeshes/Ramp1x1_2x1
+                                Shape: 974ee62e-4d36-4005-a27f-da07b6ae36a7:CollisionMeshes2/Ramp1x1_2x1
