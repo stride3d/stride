@@ -126,48 +126,36 @@ jobs:
         run: |
           # createdump (DOTNET_DbgMiniDumpName) won't create the parent dir; ensure it exists up front.
           mkdir -p "$GITHUB_WORKSPACE/TestResults"
-          # The GPU solution filter narrowed to the suites this run needs: the `projects` list if given,
-          # else the ones `test-filter` can hit, else the whole filter. See build/tools/Stride.TestSuites.
-          # The Runtime (non-GPU) solution below still builds and runs unless `projects` is given.
+          # The game test solution narrowed to the suites this run needs: the `projects` list if given,
+          # else the ones `test-filter` can hit, else the whole solution. See build/tools/Stride.TestSuites.
           TARGET=$(dotnet run --project build/tools/Stride.TestSuites -- \
                      --projects "${{ github.event.inputs.projects || inputs.projects }}" \
                      --filter "${{ github.event.inputs.test-filter || inputs.test-filter }}" \
-                     --slnf build/Stride.Tests.Game.GPU.slnf)
+                     --slnf build/Stride.Tests.Game.Desktop.slnf)
+          if [ -z "$TARGET" ]; then echo "::error::None of the needed suites is in build/Stride.Tests.Game.Desktop.slnf"; exit 1; fi
           echo "Build/test target: $TARGET"
           echo "STRIDE_TEST_TARGET=$TARGET" >> "$GITHUB_ENV"
           echo "STRIDE_TEST_FILTER=${{ github.event.inputs.test-filter || inputs.test-filter }}" >> "$GITHUB_ENV"
-      - name: Build GPU tests
+      - name: Build
         run: |
           dotnet build "$STRIDE_TEST_TARGET" \
             -p:StrideTestRuntimeIdentifier=linux-x64 \
             -p:StrideSkipAutoPack=true \
             -nr:false \
-            ${{ inputs.upload-binlog && '-bl:build-gpu.binlog' || '' }} \
+            ${{ inputs.upload-binlog && '-bl:build.binlog' || '' }} \
             -v:m -p:WarningLevel=0 \
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} \
             -p:StridePlatforms=Linux \
             -p:StrideGraphicsApis=Vulkan
-      - name: Build non-GPU game tests
-        if: ${{ (github.event.inputs.projects || inputs.projects) == '' }}
-        run: |
-          dotnet build build/Stride.Tests.Game.Runtime.slnf \
-            -p:StrideTestRuntimeIdentifier=linux-x64 \
-            -p:StrideSkipAutoPack=true \
-            -nr:false \
-            ${{ inputs.upload-binlog && '-bl:build-runtime.binlog' || '' }} \
-            -v:m -p:WarningLevel=0 \
-            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} \
-            -p:StridePlatforms=Linux \
-            -p:StrideGraphicsApis=Vulkan
-      - name: Upload build binlogs
+      - name: Upload build binlog
         # failure() so we still get the binlog when Build dies (most useful case)
         if: failure() || inputs.upload-binlog
         uses: actions/upload-artifact@v7
         with:
           name: build-binlog-linux-game
-          path: build-*.binlog
+          path: build.binlog
           if-no-files-found: ignore
-      - name: Test GPU
+      - name: Test
         if: success() || failure()
         continue-on-error: ${{ inputs.tolerate-test-failures == true }}
         run: |
@@ -185,17 +173,6 @@ jobs:
               "${FILTER_ARG[@]}" \
               -- RunConfiguration.MaxCpuCount=1 || { ec=$?; echo "Run $i failed (exit $ec); stopping."; exit $ec; }
           done
-      - name: Test non-GPU
-        if: ${{ !cancelled() && (github.event.inputs.projects || inputs.projects) == '' }}
-        continue-on-error: ${{ inputs.tolerate-test-failures == true }}
-        run: |
-          dotnet test build/Stride.Tests.Game.Runtime.slnf \
-            --no-build \
-            --logger:trx --results-directory TestResults \
-            --blame-hang-timeout 5m --blame-hang-dump-type full \
-            -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} \
-            -p:StrideGraphicsApis=Vulkan \
-            -- RunConfiguration.MaxCpuCount=1
       - name: Publish Test Report
         if: always()
         uses: phoenix-actions/test-reporting@v16

@@ -24,8 +24,9 @@ const string Usage = """
       --projects <list>       explicit suites, as .csproj paths or names (separated by ; , space or newline)
       --filter <expression>   else the vstest filter to resolve (FullyQualifiedName~X|Name=Y, etc.)
       --combined <csproj>     the meta project listing the suites (default: sources/tests/Stride.Tests.Combined)
-      --slnf <file>           write <file>.filtered.slnf keeping only the needed suites and print its path,
-                              or print <file> itself when every suite is needed
+      --slnf <file>           write <file>.filtered.slnf keeping only the needed suites and print its path;
+                              print <file> itself when every suite is needed, nothing when none of the
+                              needed suites is in it
 
     Without --slnf, prints the needed suites' names one per line, and nothing when every suite is needed.
     """;
@@ -162,8 +163,8 @@ static bool Matches(FilterExpressionWrapper expression, TestMethod test)
 }
 
 // A solution filter next to the original with only the needed suites; other projects in it (the
-// runner, helpers) are kept. The original is the answer when every suite is needed, or when none of the
-// needed suites is in this filter, which would otherwise build nothing.
+// runner, helpers) are kept. The original is the answer when every suite is needed. Nothing is the
+// answer when none of the needed suites is in this filter: the run has nothing to build from it.
 static string FilterSolution(string slnf, List<string> needed, string combined)
 {
     if (needed.Count == 0)
@@ -180,8 +181,8 @@ static string FilterSolution(string slnf, List<string> needed, string combined)
         return slnf;
     if (!kept.Any(project => suites.Contains(SuiteName(project))))
     {
-        Console.Error.WriteLine($"None of the needed suites is in {slnf}, keeping it whole.");
-        return slnf;
+        Console.Error.WriteLine($"None of the needed suites is in {slnf}, nothing to build from it.");
+        return "";
     }
 
     root["solution"]!["projects"] = new JsonArray(kept.Select(project => (JsonNode?)JsonValue.Create(project)).ToArray());

@@ -152,6 +152,8 @@ jobs:
       test-filter: ${{ inputs.test-filter }}
       projects: ${{ inputs.projects }}
       upload-binlog: ${{ inputs.upload-binlog }}
+      # Gold for the API-neutral suites lives on Direct3D11 too; the PR gate runs them elsewhere
+      api-neutral-suites: true
       commit-sha: ${{ inputs.commit-sha }}
       # Generating new gold makes tests "fail" (missing/changed reference) — expected; tolerate it so
       # the run stays green and doesn't email. Build failures still fail (the Build step isn't gated).

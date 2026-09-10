@@ -67,6 +67,11 @@ on:
       tolerate-test-failures:
         default: false
         type: boolean
+      # Internal (test-gold-gen): also build and test the API-neutral suites, on Direct3D11 only.
+      # The PR gate runs those through test-windows-game-api-neutral.yml instead.
+      api-neutral-suites:
+        default: false
+        type: boolean
       upload-binlog:
         default: false
         type: boolean
@@ -165,16 +170,22 @@ jobs:
       - name: Resolve build/test target
         shell: pwsh
         run: |
-          # The GPU solution filter narrowed to the suites this run needs: the `projects` list if given,
-          # else the ones `test-filter` can hit, else the whole filter. See build/tools/Stride.TestSuites.
+          # The solution narrowed to the suites this run needs: the `projects` list if given, else the
+          # ones `test-filter` can hit, else the whole solution. See build/tools/Stride.TestSuites.
+          # The API-neutral suites only ever run on Direct3D11: that job takes the whole game test
+          # solution when narrowed or asked for them, the other APIs stay on the GPU solution. A job
+          # whose solution has none of the needed suites gets an empty target and builds nothing.
+          $projects = "${{ github.event.inputs.projects || inputs.projects }}"
+          $filter = "${{ github.event.inputs.test-filter || inputs.test-filter }}"
+          $neutral = '${{ matrix.graphics-api }}' -eq 'Direct3D11' -and ($projects -or $filter -or '${{ inputs.api-neutral-suites }}' -eq 'true')
+          $slnf = if ($neutral) { 'build/Stride.Tests.Game.Desktop.slnf' } else { 'build/Stride.Tests.Game.GPU.slnf' }
           $target = dotnet run --project build/tools/Stride.TestSuites -- `
-            --projects "${{ github.event.inputs.projects || inputs.projects }}" `
-            --filter "${{ github.event.inputs.test-filter || inputs.test-filter }}" `
-            --slnf build/Stride.Tests.Game.GPU.slnf
-          Write-Host "Build/test target: $target"
+            --projects "$projects" --filter "$filter" --slnf $slnf
+          Write-Host "Build/test target: $(if ($target) { $target } else { '(nothing)' })"
           Add-Content $env:GITHUB_ENV "STRIDE_TEST_TARGET=$target"
           Add-Content $env:GITHUB_ENV "STRIDE_TEST_FILTER=${{ github.event.inputs.test-filter || inputs.test-filter }}"
       - name: Build
+        if: env.STRIDE_TEST_TARGET != ''
         run: |
           dotnet build $env:STRIDE_TEST_TARGET `
             -p:StrideTestRuntimeIdentifier=win-x64 `
@@ -195,7 +206,7 @@ jobs:
           path: build.binlog
           if-no-files-found: ignore
       - name: Test
-        if: success() || failure()
+        if: (success() || failure()) && env.STRIDE_TEST_TARGET != ''
         continue-on-error: ${{ inputs.tolerate-test-failures == true }}
         run: |
           $repeat = [int]("${{ github.event.inputs.repeat || inputs.repeat || '1' }}")
@@ -217,7 +228,7 @@ jobs:
             }
           }
       - name: Publish Test Report
-        if: always()
+        if: always() && env.STRIDE_TEST_TARGET != ''
         uses: phoenix-actions/test-reporting@v16
         with:
           name: 'Test Report: Windows Game ${{ matrix.graphics-api }}'
