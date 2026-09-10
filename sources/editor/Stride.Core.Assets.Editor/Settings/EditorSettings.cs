@@ -6,7 +6,9 @@ using System.IO;
 using System.Linq;
 using Stride.Core.Annotations;
 using Stride.Core.CodeEditorSupport;
+using Stride.Core.Diagnostics;
 using Stride.Core.IO;
+using Stride.Core.Presentation.Quantum.ViewModels;
 using Stride.Core.Settings;
 using Stride.Core.Translation;
 
@@ -26,6 +28,7 @@ namespace Stride.Core.Assets.Editor.Settings
         public static readonly string Environment = Tr._p("Settings", "Environment");
         public static readonly string ExternalTools = Tr._p("Settings", "External tools");
         public static readonly string Interface = Tr._p("Settings", "Interface");
+        public static readonly string Logging = Tr._p("Settings", "Logging");
         public static readonly string Tools = Tr._p("Settings", "Tools");
 
         static EditorSettings()
@@ -95,6 +98,44 @@ namespace Stride.Core.Assets.Editor.Settings
                     ? new List<string> { GraphicsApiDefault, "Direct3D11", "Direct3D12", "Vulkan" }
                     : new List<string> { GraphicsApiDefault, "Vulkan" },
             };
+            DebugOutputLevel = new SettingsKey<LogMessageType>("Logging/DebugOutputLevel", SettingsContainer, LogMessageType.Warning)
+            {
+                DisplayName = $"{Logging}/{Tr._p("Settings", "Debugger output level (Game Studio only)")}",
+                Description = Tr._p("Settings", "Minimum level of the messages Game Studio writes to the attached debugger's output"),
+            };
+            // The module maps are edited in the settings file only: a display name without a category keeps them out of the dialog.
+            DebugOutputModuleLevels = new SettingsKey<Dictionary<string, LogMessageType>>("Logging/DebugOutputModuleLevels", SettingsContainer, () => new Dictionary<string, LogMessageType>
+            {
+                // The graphics device and its validation layer (GraphicsDevice.DebugLogModule): quiet without a debug device.
+                ["GraphicsDevice"] = LogMessageType.Debug,
+                ["GraphicsDebug"] = LogMessageType.Debug,
+            })
+            {
+                DisplayName = "DebugOutputModuleLevels",
+            };
+            SourceModuleLevels = new SettingsKey<Dictionary<string, LogMessageType>>("Logging/SourceModuleLevels", SettingsContainer, () => new Dictionary<string, LogMessageType>
+            {
+                // The global loggers shown in the debug pages need their full history.
+                ["AssetBuilderService"] = LogMessageType.Debug,
+                ["EffectCompilerCache"] = LogMessageType.Debug,
+                ["Preview"] = LogMessageType.Debug,
+                [GraphViewModel.DefaultLoggerName] = LogMessageType.Debug,
+            })
+            {
+                DisplayName = "SourceModuleLevels",
+            };
+        }
+
+        /// <summary>
+        /// Merges the configured entries of a module-level key over its defaults, so an entry in the settings file
+        /// overrides one module without having to repeat the others.
+        /// </summary>
+        public static Dictionary<string, LogMessageType> GetModuleLevels(SettingsKey<Dictionary<string, LogMessageType>> key)
+        {
+            var levels = key.DefaultValue;
+            foreach (var (module, level) in key.GetValue() ?? [])
+                levels[module] = level;
+            return levels;
         }
 
         public static SettingsKey<UFile> DefaultTextEditor { get; }
@@ -127,6 +168,28 @@ namespace Stride.Core.Assets.Editor.Settings
         // Graphics API Game Studio itself loads; applied at startup by GraphicsApiSelector, so it needs a restart.
         public static SettingsKey<string> GraphicsApi { get; }
 
+        // The Logging keys are read once at Game Studio startup, so they need a restart.
+
+        /// <summary>
+        /// Minimum level of the messages Game Studio writes to the attached debugger's output (Debug builds only).
+        /// </summary>
+        public static SettingsKey<LogMessageType> DebugOutputLevel { get; }
+
+        /// <summary>
+        /// Per-module overrides of <see cref="DebugOutputLevel"/>, keyed by log module: a module can be followed in
+        /// detail while the rest stays at the general level. Entries merge over the defaults (see <see cref="GetModuleLevels"/>);
+        /// edited in the settings file only.
+        /// </summary>
+        public static SettingsKey<Dictionary<string, LogMessageType>> DebugOutputModuleLevels { get; }
+
+        /// <summary>
+        /// Minimum level at which the global loggers themselves emit, keyed by log module; below it a message is never
+        /// created, whatever listens. Defaults cover the loggers shown in the debug window (Help > Show debug window), so
+        /// its pages get their full history. Entries merge over the defaults (see <see cref="GetModuleLevels"/>); edited in
+        /// the settings file only.
+        /// </summary>
+        public static SettingsKey<Dictionary<string, LogMessageType>> SourceModuleLevels { get; }
+
         public static bool NeedRestart { get; set; }
 
         public static void Initialize()
@@ -138,6 +201,7 @@ namespace Stride.Core.Assets.Editor.Settings
             UseEffectCompilerServer.ChangesValidated += (s, e) => NeedRestart = true;
             Language.ChangesValidated += (s, e) => NeedRestart = true;
             GraphicsApi.ChangesValidated += (s, e) => NeedRestart = true;
+            DebugOutputLevel.ChangesValidated += (s, e) => NeedRestart = true;
 
             Presentation.Themes.ThemesSettings.ThemeName.ChangesValidated += (s, e) => NeedRestart = true;
         }

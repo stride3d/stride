@@ -73,6 +73,8 @@ Hierarchy:
                 Font: 61f4751d-2878-4118-b212-ac554de05399:Font
                 TextSize: 40.0
                 TextColor: {R: 240, G: 240, B: 240, A: 255}
+                OutlineColor: {R: 0, G: 0, B: 0, A: 255}
+                OutlineThickness: 0.0
         -   UIElement: !ImageElement
                 Id: f4ee9520-414f-403f-94c7-e06eb7613445
                 DependencyProperties:

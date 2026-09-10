@@ -2,9 +2,10 @@ name: Screenshot Vision Gate
 
 # Trusted re-judge of frames a keyless screenshot run deferred. Fork PRs get no ANTHROPIC_API_KEY, so
 # the screenshot suite captures + LPIPS-scores there and marks borderline frames "deferred" instead of
-# failing. This workflow runs in base context (has the key) on the BASE checkout (trusted comparator +
-# gold), over the PR's uploaded image artifacts only — so no PR-built code ever runs with the key.
-# It posts a "Screenshot Vision Gate" status on the PR head; mark it required to make deferrals blocking.
+# failing. This workflow runs in base context (has the key) on the BASE checkout (trusted comparator),
+# over the PR's uploaded image artifacts and the PR's own gold images — data only, so no PR-built code
+# ever runs with the key. It posts a "Screenshot Vision Gate" status on the PR head; mark it required
+# to make deferrals blocking.
 
 on:
   workflow_run:
@@ -23,16 +24,34 @@ jobs:
     if: github.event.workflow_run.event == 'pull_request'
     runs-on: ubuntu-24.04
     steps:
-      # Base checkout: trusted comparator source + gold baselines to judge against — pinned EXPLICITLY to
-      # the repo default branch, never the PR. This is the key-exfiltration boundary: the gate runs with
+      # Base checkout: trusted comparator source and vision prompts — pinned EXPLICITLY to the repo
+      # default branch, never the PR. This is the key-exfiltration boundary: the gate runs with
       # ANTHROPIC_API_KEY in scope, so it must execute only trusted (base) code over the PR's uploaded
       # image artifacts (data). Do NOT change this ref to github.event.workflow_run.head_sha/head_branch —
-      # that would run fork-controlled code with the secret, and a fork mustn't be able to swap the gold
-      # or comparator to pass a regression either.
+      # that would run fork-controlled code with the secret, and a fork mustn't be able to swap the
+      # comparator to pass a regression either.
       - uses: actions/checkout@v7
         with:
           ref: ${{ github.event.repository.default_branch }}
           lfs: true
+
+      # Golds from the PR itself, so a PR updating a baseline can pass before merge. Data only: sparse
+      # image folders, nothing executed, no token persisted. A changed gold is a binary diff reviewed
+      # with the PR. Falls back to the base golds on failure.
+      - name: Check out the PR's gold images
+        id: pr-golds
+        continue-on-error: true
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ github.event.workflow_run.head_repository.full_name }}
+          ref: ${{ github.event.workflow_run.head_sha }}
+          path: pr-golds
+          persist-credentials: false
+          allow-unsafe-pr-checkout: true   # images only, nothing from it is executed
+          lfs: true
+          sparse-checkout: |
+            tests/editor/baselines
+            tests/enduser/Stride.Samples.Tests/Fixtures
 
       - name: Download screenshot artifacts from the triggering run
         uses: actions/download-artifact@v8
@@ -53,8 +72,16 @@ jobs:
           shopt -s nullglob
           captured=false
 
+          # Golds from the PR when its checkout succeeded, else the base ones.
+          if [ "${{ steps.pr-golds.outcome }}" = "success" ]; then
+            golds="pr-golds"
+          else
+            echo "::warning::PR gold checkout failed; judging against the base golds"
+            golds="."
+          fi
+
           # Enduser sample captures → committed sample fixtures as gold (gameplay vision prompt).
-          enduser_baseline="tests/enduser/Stride.Samples.Tests/Fixtures"
+          enduser_baseline="$golds/tests/enduser/Stride.Samples.Tests/Fixtures"
           for d in artifacts/*/screenshot-out artifacts/*/screenshot-out-aot; do
             [ -d "$d" ] || continue
             captured=true
@@ -70,7 +97,7 @@ jobs:
             [ -d "$d" ] || continue
             dpi="${d##*ui-test-out-}"   # ui-test-out-dpi100 → dpi100
             # $dpi comes from a fork-controlled artifact dir name and feeds the baseline path below,
-            # so constrain it — a crafted name must not traverse out of tests/editor/baselines.
+            # so constrain it — a crafted name must not traverse out of the baselines folder.
             if [[ ! "$dpi" =~ ^dpi[0-9]+$ ]]; then
               echo "::warning::skipping artifact dir with unexpected DPI token: $d"
               continue
@@ -78,7 +105,7 @@ jobs:
             captured=true
             echo "::group::vision gate over $d (baseline dpi=$dpi)"
             dotnet run --project "$cli" -nr:false -v:m -p:WarningLevel=0 -- \
-              --new "$d" --baseline "tests/editor/baselines/$dpi" --prompt editor || rc=1
+              --new "$d" --baseline "$golds/tests/editor/baselines/$dpi" --prompt editor || rc=1
             echo "::endgroup::"
           done
 

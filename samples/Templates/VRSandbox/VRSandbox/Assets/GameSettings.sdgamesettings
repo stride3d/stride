@@ -18,8 +18,9 @@ Defaults:
         TextureQuality: Fast
     - !Stride.Physics.PhysicsSettings,Stride.Physics
         Flags: None
-        MaxSubSteps: 3
         FixedTimeStep: 0.011111
+        MaxTickDuration: 0.008333334
+        Gravity: {X: 0.0, Y: -10.0, Z: 0.0}
     - !Stride.Audio.AudioEngineSettings,Stride.Audio
         HrtfSupport: false
     - !Stride.Streaming.StreamingSettings,Stride.Rendering

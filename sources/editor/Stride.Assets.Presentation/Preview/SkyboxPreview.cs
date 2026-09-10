@@ -1,11 +1,13 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Threading.Tasks;
+using Stride.Core.Assets.Compiler;
 using Stride.Core.Mathematics;
 using Stride.Assets.Skyboxes;
 using Stride.Editor.Annotations;
 using Stride.Editor.Preview;
 using Stride.Engine;
+using Stride.Graphics;
 using Stride.Rendering.Skyboxes;
 using Stride.Rendering;
 using Stride.Rendering.Lights;
@@ -51,6 +53,23 @@ namespace Stride.Assets.Presentation.Preview
         protected override void SetupLighting(Entity camera)
         {
             // No default lighting
+        }
+
+        protected override AssetCompilerResult Compile()
+        {
+            var result = base.Compile();
+
+            // The preview material is generated at run time, so the specular lookup table it references
+            // is not a dependency of the skybox asset; compile it too so the preview database can serve it
+            foreach (var profile in new[] { GraphicsProfile.Level_9_1, GraphicsProfile.Level_10_0 })
+            {
+                var lutReference = MaterialSpecularMicrofacetEnvironmentGGXLUT.CreateLookupTableReference(profile);
+                var lutItem = AssetItem.Package.Session.FindAssetFromProxyObject(lutReference);
+                if (lutItem != null)
+                    result.BuildSteps.Add(Builder.Compile(lutItem).BuildSteps);
+            }
+
+            return result;
         }
 
         protected override PreviewEntity CreatePreviewEntity()
@@ -123,7 +142,7 @@ namespace Stride.Assets.Presentation.Preview
                     },
                     SpecularModel = new MaterialSpecularMicrofacetModelFeature()
                 }
-            });
+            }, Game.Content);
         }
     }
 }

@@ -93,6 +93,34 @@ public class TestLogger
     }
 
     [Fact]
+    public void TestGlobalLoggerModuleLevel()
+    {
+        var messages = new List<ILogMessage>();
+        GlobalLogger.GlobalMessageLogged += messages.Add;
+        try
+        {
+            // A configured level applies to a logger created later, over the level GetLogger asks for.
+            GlobalLogger.SetModuleLevel("ModuleLevelLater", LogMessageType.Debug);
+            var later = GlobalLogger.GetLogger("ModuleLevelLater", LogMessageType.Warning);
+            later.Debug("#0");
+            Assert.Single(messages);
+
+            // And to a logger that already exists.
+            var existing = GlobalLogger.GetLogger("ModuleLevelExisting", LogMessageType.Warning);
+            existing.Info("#1");
+            Assert.Single(messages);
+            GlobalLogger.SetModuleLevel("ModuleLevelExisting", LogMessageType.Info);
+            existing.Info("#2");
+            Assert.Equal(2, messages.Count);
+            Assert.Equal("#2", messages[1].Text);
+        }
+        finally
+        {
+            GlobalLogger.GlobalMessageLogged -= messages.Add;
+        }
+    }
+
+    [Fact]
     public void TestCallerInfo()
     {
         var log = new LoggerResult();

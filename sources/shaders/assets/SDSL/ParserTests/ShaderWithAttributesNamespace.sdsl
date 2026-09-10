@@ -1,0 +1,8 @@
+namespace Stride.Test
+{
+	[Foo("Foo")]
+	[Bar("Bar")]
+	shader ShaderWithAttributesNamespace
+	{
+	};
+}

@@ -17,8 +17,8 @@ on:
         description: 'vstest --filter expression forwarded to the on-device runner (blank = all tests)'
         type: string
         default: ''
-      project:
-        description: 'Single test .csproj to build/run (blank = all Android suites)'
+      projects:
+        description: 'Test .csproj paths to build/run, separated by ; (blank = detected automatically using test-filter, or all)'
         type: string
         default: ''
       commit-sha:
@@ -45,7 +45,7 @@ on:
       test-filter:
         default: ''
         type: string
-      project:
+      projects:
         default: ''
         type: string
       commit-sha:
@@ -70,7 +70,8 @@ on:
 
 
 concurrency:
-  group: test-android-game-${{ github.event.pull_request.number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
+  # A manual run, direct or through test-gold-gen, never cancels or queues behind another one
+  group: test-android-game-${{ github.event.pull_request.number || (github.event_name == 'workflow_dispatch' && github.run_id) || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
   cancel-in-progress: true
 
 jobs:
@@ -161,19 +162,26 @@ jobs:
 
       - name: Resolve build target / suite
         run: |
-          # `project` set (gold-gen: one suite only) → that .csproj's APK + run-suites.sh.
-          # Unset → use-combined=true (default): Combined.csproj — all suites in one APK,
-          # one install, one process run (faster build/testing).
-          # use-combined=false → slnf build + per-suite APKs + per-suite install/run.
-          PROJ="${{ github.event.inputs.project || inputs.project }}"
+          # The suites this run needs: the `projects` list if given, else the ones `test-filter` can hit,
+          # else all (blank). See build/tools/Stride.TestSuites.
+          SUITES=$(dotnet run --project build/tools/Stride.TestSuites -- \
+                     --projects "${{ github.event.inputs.projects || inputs.projects }}" \
+                     --filter "${{ github.event.inputs.test-filter || inputs.test-filter }}" | tr '\n' ' ')
+          echo "Suites needed: ${SUITES:-all}"
+          echo "STRIDE_TEST_SUITES=$SUITES" >> "$GITHUB_ENV"
+          # use-combined=true (default): Combined.csproj — the needed suites in one APK, one install, one
+          # process run. use-combined=false → slnf build + per-suite APKs + per-suite install/run.
           USE_COMBINED="${{ github.event.inputs.use-combined || inputs.use-combined || 'true' }}"
-          if [ -n "$PROJ" ]; then
-            echo "ANDROID_BUILD_TARGET=$PROJ" >> "$GITHUB_ENV"
-            echo "ANDROID_TEST_SUITES=$(basename "$PROJ" .csproj)" >> "$GITHUB_ENV"
-            echo "ANDROID_RUN_SCRIPT=tests/android/run-suites.sh" >> "$GITHUB_ENV"
-          elif [ "$USE_COMBINED" = "true" ]; then
+          if [ "$USE_COMBINED" = "true" ]; then
             echo "ANDROID_BUILD_TARGET=sources/tests/Stride.Tests.Combined/Stride.Tests.Combined.csproj" >> "$GITHUB_ENV"
             echo "ANDROID_RUN_SCRIPT=tests/android/run-combined.sh" >> "$GITHUB_ENV"
+          elif [ -n "$SUITES" ]; then
+            # The Android solution filter narrowed to the needed suites; per-suite APKs land under
+            # bin/Tests/<Suite>/Android-Vulkan/<Config>/. Run step iterates ANDROID_TEST_SUITES.
+            TARGET=$(dotnet run --project build/tools/Stride.TestSuites -- --projects "$SUITES" --slnf build/Stride.Tests.Game.Android.slnf)
+            echo "ANDROID_BUILD_TARGET=$TARGET" >> "$GITHUB_ENV"
+            echo "ANDROID_RUN_SCRIPT=tests/android/run-suites.sh" >> "$GITHUB_ENV"
+            { echo "ANDROID_TEST_SUITES<<EOF"; echo $SUITES | tr ' ' '\n'; echo "EOF"; } >> "$GITHUB_ENV"
           else
             # slnf path: one build evaluates the graph once; per-suite APKs land under
             # bin/Tests/<Suite>/Android-Vulkan/<Config>/. Run step iterates ANDROID_TEST_SUITES.
@@ -220,6 +228,7 @@ jobs:
           dotnet build "$ANDROID_BUILD_TARGET" \
             -nr:false -v:m -p:WarningLevel=0 \
             -p:StrideSkipAutoPack=true \
+            -p:StrideCombinedSuites="$STRIDE_TEST_SUITES" \
             ${{ inputs.upload-binlog && '-bl:build.binlog' || '' }} \
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} \
             -p:StridePlatforms=Android \

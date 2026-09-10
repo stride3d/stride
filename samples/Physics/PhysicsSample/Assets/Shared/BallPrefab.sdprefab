@@ -13,7 +13,7 @@ Hierarchy:
                     2eb50109e03102489fb2a602898cc11d: !TransformComponent
                         Id: 0901b52e-31e0-4802-9fb2-a602898cc11d
                         Position: {X: 0.0, Y: 0.0, Z: 0.0}
-                        Rotation: {X: 0.0, Y: 0.0, Z: 0.3953296, W: 0.918539345}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.3953296, W: 0.91853935}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     a4c85bb65e797946ac125062f07f8507: !PhysicsSample.AutoResetRigidbody,PhysicsSample.Game

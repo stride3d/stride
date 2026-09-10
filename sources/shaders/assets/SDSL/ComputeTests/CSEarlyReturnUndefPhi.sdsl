@@ -1,0 +1,67 @@
+// CSMain(ExpectedResult=#00000000)
+
+// Repro for FXC "error X4555: cannot use casts on l-values": a helper returning from
+// inside a loop combined with an early return in the entry point. After legalization
+// (inlining + SSA) the helper's result becomes a loop-carried phi seeded with OpUndef,
+// which SPIRV-Cross hoists uninitialized into the outer for-loop continue expression.
+namespace Stride.Shaders.Tests;
+
+shader CSEarlyReturnUndefPhi
+{
+    stage stream uint3 DispatchThreadId : SV_DispatchThreadID;
+
+    stage StructuredBuffer<uint>   Source;
+    stage RWStructuredBuffer<uint> Output;
+
+    stage int   Limit;
+    stage float Isolevel;
+
+    stage float SampleDensity(int x)
+    {
+        return (float)(Source[clamp(x, 0, 63)] & 0xFF) / 255.0;
+    }
+
+    stage uint SampleMaterial(int x)
+    {
+        return (Source[clamp(x, 0, 63)] >> 8) & 0xFF;
+    }
+
+    // A function that returns from inside a loop
+    stage uint ScanEdge(int solidPos)
+    {
+        int prev = solidPos;
+        for (int i = 1; i <= 4; i++)
+        {
+            int cur = solidPos + i;
+            if (SampleDensity(cur) >= Isolevel)
+                return SampleMaterial(prev);
+            prev = cur;
+        }
+        return SampleMaterial(prev);
+    }
+
+    [numthreads(4, 1, 1)]
+    void CSMain()
+    {
+        uint3 id = streams.DispatchThreadId;
+
+        // An early return in the entry point
+        if ((int)id.x >= Limit)
+            return;
+
+        float weights[14] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+        float total = 0;
+
+        for (int e = 0; e < 12; e++)
+        {
+            uint m = ScanEdge((int)id.x + e);
+            if (m < 14)
+            {
+                weights[m] += 1.0;
+                total += 1.0;
+            }
+        }
+
+        Output[id.x] = (uint)(total + weights[1]);
+    }
+};

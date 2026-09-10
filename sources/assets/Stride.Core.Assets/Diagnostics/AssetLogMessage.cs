@@ -14,6 +14,11 @@ namespace Stride.Core.Assets.Diagnostics;
 public class AssetLogMessage : LogMessage
 {
     /// <summary>
+    /// The <see cref="LogMessage.Module"/> of every asset message.
+    /// </summary>
+    public const string LogModule = "Asset";
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="AssetLogMessage" /> class.
     /// </summary>
     /// <param name="package">The package.</param>
@@ -22,7 +27,7 @@ public class AssetLogMessage : LogMessage
     /// <param name="messageCode">The message code.</param>
     /// <exception cref="ArgumentNullException">asset</exception>
     public AssetLogMessage(Package? package, IReference? assetReference, LogMessageType type, AssetMessageCode messageCode)
-        : base(null, type, AssetMessageStrings.ResourceManager.GetString(messageCode.ToString()) ?? messageCode.ToString())
+        : base(LogModule, type, AssetMessageStrings.ResourceManager.GetString(messageCode.ToString()) ?? messageCode.ToString())
     {
         Package = package;
         AssetReference = assetReference;
@@ -40,7 +45,7 @@ public class AssetLogMessage : LogMessage
     /// <param name="arguments">The arguments.</param>
     /// <exception cref="ArgumentNullException">asset</exception>
     public AssetLogMessage(Package? package, IReference? assetReference, LogMessageType type, AssetMessageCode messageCode, params object?[] arguments)
-        : base(null, type, string.Format(AssetMessageStrings.ResourceManager.GetString(messageCode.ToString()) ?? messageCode.ToString(), arguments))
+        : base(LogModule, type, string.Format(AssetMessageStrings.ResourceManager.GetString(messageCode.ToString()) ?? messageCode.ToString(), arguments))
     {
         Package = package;
         AssetReference = assetReference;
@@ -56,10 +61,11 @@ public class AssetLogMessage : LogMessage
     /// <param name="type">The type.</param>
     /// <exception cref="ArgumentNullException">asset</exception>
     public AssetLogMessage(Package? package, IReference? assetReference, LogMessageType type, string text)
-        : base(null, type, text)
+        : base(LogModule, type, text)
     {
         Package = package;
         AssetReference = assetReference;
+        MessageCode = AssetMessageCode.CompilationMessage;
         Related = [];
     }
 
@@ -95,15 +101,25 @@ public class AssetLogMessage : LogMessage
 
     public int Character { get; set; }
 
+    /// <summary>
+    /// Gets the text prefixed with the asset location, and the position in the asset when known.
+    /// </summary>
     public override string Text
     {
         get
         {
-            if (AssetReference?.Location != null)
-                return $"{AssetReference.Location}({Line + 1},{Character + 1}): {base.Text}";
-            return base.Text;
+            if (AssetReference?.Location == null)
+                return base.Text;
+            return Line > 0 || Character > 0
+                ? $"{AssetReference.Location}({Line + 1},{Character + 1}): {base.Text}"
+                : $"{AssetReference.Location}: {base.Text}";
         }
     }
+
+    /// <summary>
+    /// Gets the text without the location prefix of <see cref="Text"/>, for formatters that print their own origin.
+    /// </summary>
+    public string TextWithoutLocation => base.Text;
 
     /// <summary>
     /// Gets or sets the message code.

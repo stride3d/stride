@@ -38,6 +38,7 @@ public record struct ShaderElementParsers : IParser<ShaderElement>
             }
             else if (Method(ref scanner, result, out var method))
             {
+                Parsers.FollowedBy(ref scanner, Tokens.Char(';'), withSpaces: true, advance: true);
                 parsed = method;
                 return true;
             }

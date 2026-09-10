@@ -27,7 +27,7 @@ Hierarchy:
                         Children: {}
                     7c901dfed21c864283aa0639481520b1: !ModelComponent
                         Id: 66c6d1cb-72ef-4590-b972-cb7b58a97f35
-                        Model: ee4e1a2b-82a5-4f40-9c2b-1c239dea039a:Models/GridBase10x10
+                        Model: ee4e1a2b-82a5-4f40-9c2b-1c239dea039a:/PrototypingBlocks/Models/GridBase10x10
                         Materials: {}
                     e892de73aae78041aa74ca19b0b9f867: !StaticColliderComponent
                         Id: 3ea60138-9f9f-44f4-a58f-735a1c0cba7e
@@ -39,6 +39,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             6f9d4e7e5147bf47ad510aa5f27d122b: !BoxColliderShapeDesc
                                 Is2D: false
@@ -58,7 +59,7 @@ Hierarchy:
                         Children: {}
                     7c901dfed21c864283aa0639481520b1: !ModelComponent
                         Id: 1b19a0e1-8eeb-45ae-a0cb-02e87d45e302
-                        Model: ee4e1a2b-82a5-4f40-9c2b-1c239dea039a:Models/GridBase10x10
+                        Model: ee4e1a2b-82a5-4f40-9c2b-1c239dea039a:/PrototypingBlocks/Models/GridBase10x10
                         Materials: {}
                     e892de73aae78041aa74ca19b0b9f867: !StaticColliderComponent
                         Id: 9c88589d-99df-4bc7-bddd-04f873034d34
@@ -70,6 +71,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             6f9d4e7e5147bf47ad510aa5f27d122b: !BoxColliderShapeDesc
                                 Is2D: false
@@ -89,7 +91,7 @@ Hierarchy:
                             81e049a26ff49a468daa04fa529c1955: ref!! dc6897b5-290d-4ef0-8664-c1dfb725d38b
                     92a01d27b6aa2e49b6f4555de61f78e4: !ModelComponent
                         Id: 329885c5-e6f4-4736-91b5-184324cfe5e7
-                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:Models/BoxF
+                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:/SamplesAssetPackage/Models/BoxF
                         Materials: {}
                     9ff39e9a53a90d49bb7faec06f6d32ca: !StaticColliderComponent
                         Id: ef20f52a-9ff4-4542-822f-272802ea6e4e
@@ -101,6 +103,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: true
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             42588de189ce0146b55493835f755fe8: !BoxColliderShapeDesc
                                 Is2D: false
@@ -109,7 +112,7 @@ Hierarchy:
                                 LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                     4e93d2aaca7cd64e9e2cdb87b6dea8c1: !TopDownRPG.Gameplay.CrateScript,TopDownRPG.Game
                         Id: 7b92d83b-3392-4f40-9f3c-490e848124cf
-                        CoinGetEffect: b47b93a7-878c-45ec-9e19-2406e896e8ab:VFXPrefabs/vfx-Dustcloud
+                        CoinGetEffect: b47b93a7-878c-45ec-9e19-2406e896e8ab:/VFXPackage/VFXPrefabs/vfx-Dustcloud
                         CoinSpawnModel: 6064f3e4-a929-424b-abea-688419f05265:LootGoldCoin
                         SoundEffect: e1a8c617-1968-4eec-b523-ff0fd94cfd72:Audio/crate_breaking
                         Trigger: ref!! 78a88dcb-f44c-4849-8276-dd30377406af
@@ -132,7 +135,7 @@ Hierarchy:
                         Children: {}
                     7c901dfed21c864283aa0639481520b1: !ModelComponent
                         Id: 7344b5ff-2e19-4a39-ab7c-f930e1b438ac
-                        Model: ee4e1a2b-82a5-4f40-9c2b-1c239dea039a:Models/GridBase10x10
+                        Model: ee4e1a2b-82a5-4f40-9c2b-1c239dea039a:/PrototypingBlocks/Models/GridBase10x10
                         Materials: {}
                     e892de73aae78041aa74ca19b0b9f867: !StaticColliderComponent
                         Id: 52f50703-99ba-4c3a-94b0-6b43f91d2867
@@ -144,6 +147,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             6f9d4e7e5147bf47ad510aa5f27d122b: !BoxColliderShapeDesc
                                 Is2D: false
@@ -176,7 +180,7 @@ Hierarchy:
                         Children: {}
                     7c901dfed21c864283aa0639481520b1: !ModelComponent
                         Id: c940957d-3724-4f22-9ddf-8a52a704d164
-                        Model: ee4e1a2b-82a5-4f40-9c2b-1c239dea039a:Models/GridBase10x10
+                        Model: ee4e1a2b-82a5-4f40-9c2b-1c239dea039a:/PrototypingBlocks/Models/GridBase10x10
                         Materials: {}
                     e892de73aae78041aa74ca19b0b9f867: !StaticColliderComponent
                         Id: b5b4fa4f-20ea-4ca0-957c-e14795a55e00
@@ -188,6 +192,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             6f9d4e7e5147bf47ad510aa5f27d122b: !BoxColliderShapeDesc
                                 Is2D: false
@@ -213,6 +218,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             d1515cec847a6046ab7daa4368a533f7: !BoxColliderShapeDesc
                                 Is2D: false

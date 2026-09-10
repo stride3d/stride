@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Diagnostics;
 using System.Globalization;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
@@ -77,6 +78,13 @@ public class Builder : IDisposable
     public int ThreadCount { get; set; }
 
     public CommandBuildStep.TryExecuteRemoteDelegate TryExecuteRemote { get; set; }
+
+    /// <summary>
+    /// Optional hook invoked when a command throws an exception that escapes to the top-level catch — a bug,
+    /// not a handled build error. The asset compiler sets it to capture a crash report; the build engine
+    /// itself stays crash-reporting-agnostic.
+    /// </summary>
+    public Action<CommandBuildStep, Exception>? CommandFailed { get; set; }
 
     /// <summary>
     /// Indicate which mode to use with this builder
@@ -221,11 +229,12 @@ public class Builder : IDisposable
         Cancelled = false;
         IsRunning = true;
         DisableCompressionIds.Clear();
+        var runClock = Stopwatch.StartNew();
 
         // Reseting result map
         var inputHashes = FileVersionTracker.GetDefault();
         {
-            var builderContext = new BuilderContext(inputHashes, TryExecuteRemote);
+            var builderContext = new BuilderContext(inputHashes, TryExecuteRemote, CommandFailed);
 
             resultMap = ObjectDatabase;
 
@@ -261,17 +270,21 @@ public class Builder : IDisposable
                 Logger.Error("Build cancelled.");
                 result = BuildResultCode.Cancelled;
             }
-            else if (stepCounter.Get(ResultStatus.Failed) > 0 || stepCounter.Get(ResultStatus.NotTriggeredPrerequisiteFailed) > 0)
-            {
-                Logger.Error($"Build finished in {stepCounter.Total} steps. Command results: {stepCounter.Get(ResultStatus.Successful)} succeeded, {stepCounter.Get(ResultStatus.NotTriggeredWasSuccessful)} up-to-date, {stepCounter.Get(ResultStatus.Failed)} failed, {stepCounter.Get(ResultStatus.NotTriggeredPrerequisiteFailed)} not triggered due to previous failure.");
-                Logger.Error("Build failed.");
-                result = BuildResultCode.BuildError;
-            }
             else
             {
-                Logger.Info($"Build finished in {stepCounter.Total} steps. Command results: {stepCounter.Get(ResultStatus.Successful)} succeeded, {stepCounter.Get(ResultStatus.NotTriggeredWasSuccessful)} up-to-date, {stepCounter.Get(ResultStatus.Failed)} failed, {stepCounter.Get(ResultStatus.NotTriggeredPrerequisiteFailed)} not triggered due to previous failure.");
-                Logger.Info("Build is successful.");
-                result = BuildResultCode.Successful;
+                var summary = $"Build finished in {stepCounter.Total} steps ({runClock.Elapsed.TotalSeconds:0.0}s). Command results: {stepCounter.Get(ResultStatus.Successful)} succeeded, {stepCounter.Get(ResultStatus.NotTriggeredWasSuccessful)} up-to-date, {stepCounter.Get(ResultStatus.Failed)} failed, {stepCounter.Get(ResultStatus.NotTriggeredPrerequisiteFailed)} not triggered due to previous failure.";
+                if (stepCounter.Get(ResultStatus.Failed) > 0 || stepCounter.Get(ResultStatus.NotTriggeredPrerequisiteFailed) > 0)
+                {
+                    Logger.Error(summary);
+                    Logger.Error("Build failed.");
+                    result = BuildResultCode.BuildError;
+                }
+                else
+                {
+                    Logger.Info(summary);
+                    Logger.Info("Build is successful.");
+                    result = BuildResultCode.Successful;
+                }
             }
         }
         else
@@ -663,27 +676,27 @@ public class Builder : IDisposable
                     {
                         case ResultStatus.Successful:
                             logType = LogMessageType.Verbose;
-                            logText = "BuildStep {0} was successful.".ToFormat(buildStep.ToString());
+                            logText = "{0} was successful.".ToFormat(buildStep.ToString());
                             break;
 
                         case ResultStatus.Failed:
                             logType = LogMessageType.Error;
-                            logText = "BuildStep {0} failed.".ToFormat(buildStep.ToString());
+                            logText = "{0} failed.".ToFormat(buildStep.ToString());
                             break;
 
                         case ResultStatus.NotTriggeredPrerequisiteFailed:
                             logType = LogMessageType.Error;
-                            logText = "BuildStep {0} failed of previous failed prerequisites.".ToFormat(buildStep.ToString());
+                            logText = "{0} failed of previous failed prerequisites.".ToFormat(buildStep.ToString());
                             break;
 
                         case ResultStatus.Cancelled:
                             logType = LogMessageType.Warning;
-                            logText = "BuildStep {0} cancelled.".ToFormat(buildStep.ToString());
+                            logText = "{0} cancelled.".ToFormat(buildStep.ToString());
                             break;
 
                         case ResultStatus.NotTriggeredWasSuccessful:
                             logType = LogMessageType.Verbose;
-                            logText = "BuildStep {0} is up-to-date and has been skipped".ToFormat(buildStep.ToString());
+                            logText = "{0} is up-to-date and has been skipped".ToFormat(buildStep.ToString());
                             break;
 
                         case ResultStatus.NotProcessed:
@@ -691,7 +704,7 @@ public class Builder : IDisposable
                     }
                     if (logText != null)
                     {
-                        var logMessage = new LogMessage(null, logType, logText);
+                        var logMessage = new LogMessage(executeContext.Logger.Module, logType, logText);
                         executeContext.Logger.Log(logMessage);
                     }
 

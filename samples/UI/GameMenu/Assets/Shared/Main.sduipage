@@ -50,6 +50,8 @@ Hierarchy:
                 Font: 6a45aa77-17aa-4fde-9acd-9452744e14ca:WesternFont
                 TextSize: 27.0
                 TextColor: {R: 255, G: 255, B: 255, A: 255}
+                OutlineColor: {R: 0, G: 0, B: 0, A: 255}
+                OutlineThickness: 0.0
         -   UIElement: !ImageElement
                 Id: 2453d3da-0cf3-4407-97fd-13bcbbfa3c14
                 DependencyProperties:
@@ -73,6 +75,8 @@ Hierarchy:
                 Font: 6a45aa77-17aa-4fde-9acd-9452744e14ca:WesternFont
                 TextSize: 52.0
                 TextColor: {R: 144, G: 238, B: 144, A: 255}
+                OutlineColor: {R: 0, G: 0, B: 0, A: 255}
+                OutlineThickness: 0.0
         -   UIElement: !ContentDecorator
                 Id: 3230b852-0ba8-4d63-ab58-faa808e2f7dc
                 DependencyProperties: {}
@@ -112,7 +116,6 @@ Hierarchy:
                     1a4051fdbaacf8ac0c6443bc63fdcd00*~GridBase.RowPropertyKey: 1
                 BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
                 DrawLayerNumber: 2
-                CanBeHitByUser: true
                 HorizontalAlignment: Center
                 VerticalAlignment: Center
                 Margin: {}
@@ -129,6 +132,7 @@ Hierarchy:
                 MouseOverImage: !SpriteFromSheet
                     Sheet: dba38b73-6f43-40ba-a4da-8e711695c7e8:MainSceneImages
                     CurrentFrame: 10
+                Color: {R: 255, G: 255, B: 255, A: 255}
             Base:
                 BasePartAsset: 44a9ed4d-847f-4577-8cb1-eabf455799a7:MainLibrary
                 BasePartId: dab3aa68-8d2a-4ca6-98d1-2d105b28679f
@@ -139,7 +143,6 @@ Hierarchy:
                     83073f5a465d48df0401f826d6890f61*~GridBase.ColumnPropertyKey: 1
                 BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
                 DrawLayerNumber: 2
-                CanBeHitByUser: true
                 HorizontalAlignment: Center
                 VerticalAlignment: Center
                 Margin: {}
@@ -156,6 +159,7 @@ Hierarchy:
                 MouseOverImage: !SpriteFromSheet
                     Sheet: dba38b73-6f43-40ba-a4da-8e711695c7e8:MainSceneImages
                     CurrentFrame: 10
+                Color: {R: 255, G: 255, B: 255, A: 255}
             Base:
                 BasePartAsset: 44a9ed4d-847f-4577-8cb1-eabf455799a7:MainLibrary
                 BasePartId: dab3aa68-8d2a-4ca6-98d1-2d105b28679f
@@ -187,6 +191,8 @@ Hierarchy:
                 Font: 6a45aa77-17aa-4fde-9acd-9452744e14ca:WesternFont
                 TextSize: 54.0
                 TextColor: {R: 0, G: 0, B: 0, A: 255}
+                OutlineColor: {R: 0, G: 0, B: 0, A: 255}
+                OutlineThickness: 0.0
             Base:
                 BasePartAsset: 44a9ed4d-847f-4577-8cb1-eabf455799a7:MainLibrary
                 BasePartId: ff603298-54a0-4d64-9efa-3a855e759809
@@ -208,6 +214,7 @@ Hierarchy:
                     d85ad350f0518e47bb95e18913172d32: !ImageElement ref!! 50d35ad8-51f0-478e-bb95-e18913172d32
                     44854d9e58f6094892d0d572b8cf0504: !TextBlock ref!! 9e4d8544-f658-4809-92d0-d572b8cf0504
                 Orientation: Horizontal
+                Gap: 0.0
         -   UIElement: !ImageElement
                 Id: 50d35ad8-51f0-478e-bb95-e18913172d32
                 DependencyProperties: {}
@@ -233,6 +240,8 @@ Hierarchy:
                 Font: 6a45aa77-17aa-4fde-9acd-9452744e14ca:WesternFont
                 TextSize: 32.0
                 TextColor: {R: 255, G: 215, B: 0, A: 255}
+                OutlineColor: {R: 0, G: 0, B: 0, A: 255}
+                OutlineThickness: 0.0
         -   UIElement: !TextBlock
                 Id: 61ef5641-e38f-482c-b925-0a87f986e386
                 DependencyProperties: {}
@@ -245,6 +254,8 @@ Hierarchy:
                 Font: 6a45aa77-17aa-4fde-9acd-9452744e14ca:WesternFont
                 TextSize: 54.0
                 TextColor: {R: 0, G: 0, B: 0, A: 255}
+                OutlineColor: {R: 0, G: 0, B: 0, A: 255}
+                OutlineThickness: 0.0
             Base:
                 BasePartAsset: 44a9ed4d-847f-4577-8cb1-eabf455799a7:MainLibrary
                 BasePartId: ff603298-54a0-4d64-9efa-3a855e759809
@@ -290,11 +301,10 @@ Hierarchy:
                     cebf0d33178f141ac3a3254df2c59be1~GridBase.ColumnPropertyKey: 3
                 BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
                 DrawLayerNumber: 2
-                CanBeHitByUser: true
                 VerticalAlignment: Center
                 Margin: {}
                 Name: currentShipButton
-                Padding: {Left: 45.0, Top: 20.0, Right: 10.0, Bottom: 25.0}
+                Padding: {Left: 45.0, Top: 20.0, Bottom: 25.0}
                 Content: !Grid ref!! fbf628c9-3863-4f63-9b7b-fdb282077ce8
                 PressedImage: !SpriteFromSheet
                     Sheet: dba38b73-6f43-40ba-a4da-8e711695c7e8:MainSceneImages
@@ -305,6 +315,7 @@ Hierarchy:
                 MouseOverImage: !SpriteFromSheet
                     Sheet: dba38b73-6f43-40ba-a4da-8e711695c7e8:MainSceneImages
                     CurrentFrame: 35
+                Color: {R: 255, G: 255, B: 255, A: 255}
         -   UIElement: !UniformGrid
                 Id: 738595eb-2075-4262-a286-307ad6019676
                 DependencyProperties: {}
@@ -341,6 +352,8 @@ Hierarchy:
                 Font: 6a45aa77-17aa-4fde-9acd-9452744e14ca:WesternFont
                 TextSize: 54.0
                 TextColor: {R: 0, G: 0, B: 0, A: 255}
+                OutlineColor: {R: 0, G: 0, B: 0, A: 255}
+                OutlineThickness: 0.0
             Base:
                 BasePartAsset: 44a9ed4d-847f-4577-8cb1-eabf455799a7:MainLibrary
                 BasePartId: ff603298-54a0-4d64-9efa-3a855e759809
@@ -428,6 +441,8 @@ Hierarchy:
                 Font: 6a45aa77-17aa-4fde-9acd-9452744e14ca:WesternFont
                 TextSize: 27.0
                 TextColor: {R: 255, G: 255, B: 255, A: 255}
+                OutlineColor: {R: 0, G: 0, B: 0, A: 255}
+                OutlineThickness: 0.0
         -   UIElement: !ContentDecorator
                 Id: 9f41a3b1-9c77-48bf-a719-3dcd9b7da20e
                 DependencyProperties:
@@ -464,7 +479,6 @@ Hierarchy:
                     cb1475499f0dbc1b28a40c0bbbd73617*~GridBase.ColumnPropertyKey: 1
                 BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
                 DrawLayerNumber: 2
-                CanBeHitByUser: true
                 HorizontalAlignment: Center
                 VerticalAlignment: Center
                 Margin: {}
@@ -481,6 +495,7 @@ Hierarchy:
                 MouseOverImage: !SpriteFromSheet
                     Sheet: dba38b73-6f43-40ba-a4da-8e711695c7e8:MainSceneImages
                     CurrentFrame: 10
+                Color: {R: 255, G: 255, B: 255, A: 255}
             Base:
                 BasePartAsset: 44a9ed4d-847f-4577-8cb1-eabf455799a7:MainLibrary
                 BasePartId: dab3aa68-8d2a-4ca6-98d1-2d105b28679f
@@ -507,6 +522,8 @@ Hierarchy:
                 Text: Quit Sample
                 Font: 6a45aa77-17aa-4fde-9acd-9452744e14ca:WesternFont
                 TextColor: {R: 255, G: 255, B: 255, A: 255}
+                OutlineColor: {R: 0, G: 0, B: 0, A: 255}
+                OutlineThickness: 0.0
         -   UIElement: !ContentDecorator
                 Id: be7dac6e-2cd7-4942-ae90-29d9b0c70d87
                 DependencyProperties:
@@ -597,7 +614,6 @@ Hierarchy:
                     f6cde5f23fd411677b5757983c241ebe~GridBase.RowPropertyKey: 5
                 BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
                 DrawLayerNumber: 2
-                CanBeHitByUser: true
                 HorizontalAlignment: Center
                 VerticalAlignment: Center
                 Margin: {}
@@ -613,6 +629,7 @@ Hierarchy:
                 MouseOverImage: !SpriteFromSheet
                     Sheet: dba38b73-6f43-40ba-a4da-8e711695c7e8:MainSceneImages
                     CurrentFrame: 28
+                Color: {R: 255, G: 255, B: 255, A: 255}
         -   UIElement: !TextBlock
                 Id: f388d14a-fa2b-4015-b18a-feb03845ff9e
                 DependencyProperties: {}
@@ -625,6 +642,8 @@ Hierarchy:
                 Font: cb333065-ba29-41a4-b07c-eeb5d39b5cc6:JapaneseFont
                 TextSize: 28.0
                 TextColor: {R: 255, G: 255, B: 255, A: 255}
+                OutlineColor: {R: 0, G: 0, B: 0, A: 255}
+                OutlineThickness: 0.0
                 WrapText: true
         -   UIElement: !TextBlock
                 Id: fa2c4c58-4a68-4e11-96c0-ebb8febbce24
@@ -638,6 +657,8 @@ Hierarchy:
                 Font: 6a45aa77-17aa-4fde-9acd-9452744e14ca:WesternFont
                 TextSize: 54.0
                 TextColor: {R: 0, G: 0, B: 0, A: 255}
+                OutlineColor: {R: 0, G: 0, B: 0, A: 255}
+                OutlineThickness: 0.0
             Base:
                 BasePartAsset: 44a9ed4d-847f-4577-8cb1-eabf455799a7:MainLibrary
                 BasePartId: ff603298-54a0-4d64-9efa-3a855e759809
@@ -667,7 +688,6 @@ Hierarchy:
                 DependencyProperties: {}
                 BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
                 DrawLayerNumber: 2
-                CanBeHitByUser: true
                 HorizontalAlignment: Center
                 VerticalAlignment: Center
                 Margin: {}
@@ -684,6 +704,7 @@ Hierarchy:
                 MouseOverImage: !SpriteFromSheet
                     Sheet: dba38b73-6f43-40ba-a4da-8e711695c7e8:MainSceneImages
                     CurrentFrame: 10
+                Color: {R: 255, G: 255, B: 255, A: 255}
             Base:
                 BasePartAsset: 44a9ed4d-847f-4577-8cb1-eabf455799a7:MainLibrary
                 BasePartId: dab3aa68-8d2a-4ca6-98d1-2d105b28679f

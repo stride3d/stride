@@ -129,7 +129,7 @@ Hierarchy:
                     364d9fcac80f144f86b6f72c94b54909: !TransformComponent
                         Id: ca9f4d36-0fc8-4f14-86b6-f72c94b54909
                         Position: {X: -3.0, Y: 3.2, Z: 7.7}
-                        Rotation: {X: -0.08583164, Y: -0.1729874, Z: -0.0151344351, W: 0.981060266}
+                        Rotation: {X: -0.08583164, Y: -0.1729874, Z: -0.015134435, W: 0.98106027}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     bd5d8c6d30033a4cb6878f4187b97c9a: !CameraComponent
@@ -159,7 +159,7 @@ Hierarchy:
                 Components:
                     ca805cb35454364591a92a87e53b32d2: !TransformComponent
                         Id: b35c80ca-5454-4536-91a9-2a87e53b32d2
-                        Position: {X: 0.0, Y: -0.225163713, Z: 0.0}
+                        Position: {X: 0.0, Y: -0.22516371, Z: 0.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 10.0, Y: 0.2, Z: 10.0}
                         Children: {}
@@ -270,14 +270,14 @@ Hierarchy:
                     0e84e9b068ce674f951b79b8a045d266: !TransformComponent
                         Id: b0e9840e-ce68-4f67-951b-79b8a045d266
                         Position: {X: 0.0, Y: 2.0, Z: 0.0}
-                        Rotation: {X: -0.813904762, Y: 0.0, Z: 0.0, W: 0.5809985}
+                        Rotation: {X: -0.81390476, Y: 0.0, Z: 0.0, W: 0.5809985}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     9904efc1fa5bfa40a2d422506b6aff11: !LightComponent
                         Id: c1ef0499-5bfa-40fa-a2d4-22506b6aff11
                         Type: !LightDirectional
                             Color: !ColorRgbProvider
-                                Value: {R: 1.0, G: 0.996718764, B: 0.86875}
+                                Value: {R: 1.0, G: 0.99671876, B: 0.86875}
                             Shadow:
                                 Size: Large
                                 DepthRange: {}

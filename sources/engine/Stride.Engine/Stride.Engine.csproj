@@ -29,7 +29,6 @@
     <None Include="..\Stride.Assets.Generators\bin\$(Configuration)\netstandard2.0\Stride.Assets.Generators.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="System.ValueTuple" />
     <ProjectReference Include="..\Stride.Audio\Stride.Audio.csproj" />
     <ProjectReference Include="..\Stride.Rendering\Stride.Rendering.csproj" />
     <ProjectReference Include="..\Stride.VirtualReality\Stride.VirtualReality.csproj" />

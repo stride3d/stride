@@ -39,8 +39,10 @@ namespace Stride.Graphics
         ///   Swaps the Texture's internal data with another Texture.
         /// </summary>
         /// <param name="other">The other Texture.</param>
-        internal partial void SwapInternal(Texture other)
+        internal override void SwapInternal(GraphicsResourceBase other)
         {
+            base.SwapInternal(other);
+
             NullHelper.ToImplement();
         }
 

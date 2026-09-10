@@ -23,7 +23,6 @@ using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Diagnostics;
-using Stride.Core.Extensions;
 using Stride.Core.IO;
 using Stride.Core.MostRecentlyUsedFiles;
 using Stride.Core.Presentation.Interop;
@@ -60,13 +59,33 @@ public static class Program
     private static bool enableThumbnailServices = true;
     private static bool resetGraphicsApiPreference;
 
-    // Startup checkpoints; shared file with the AutoTesting runner.
+    // Startup checkpoints for the AutoTesting runner, which hosts us and collects the file; off otherwise.
+    private static bool diagLogEnabled;
     private static readonly string DiagLogPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "gs-diag.log");
     private static void DiagLog(string message)
     {
+        if (!diagLogEnabled) return;
         try { System.IO.File.AppendAllText(DiagLogPath, $"{DateTime.UtcNow:HH:mm:ss.fff} [tid={Thread.CurrentThread.ManagedThreadId}] GS: {message}\n"); }
         catch { /* best-effort */ }
     }
+
+    // A crash before Run's own handler exists (the module initializers, the NuGet resolver's restore, the JIT of Main),
+    // typically an assembly missing from the install, would otherwise kill the process with nothing on screen.
+    // Ordered before the resolver's initializer; user32 because anything else would need the resolver that just failed.
+    [Stride.Core.ModuleInitializer(int.MinValue)]
+    internal static void ArmStartupFailureDialog()
+    {
+        if (Assembly.GetEntryAssembly() == typeof(Program).Assembly)
+            AppDomain.CurrentDomain.UnhandledException += StartupFailureDialog;
+    }
+
+    private static void StartupFailureDialog(object sender, UnhandledExceptionEventArgs e)
+    {
+        MessageBoxW(IntPtr.Zero, $"Stride Game Studio failed to start.\n\n{e.ExceptionObject}", "Stride", 0x10 /* MB_ICONERROR */);
+    }
+
+    [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+    private static extern int MessageBoxW(IntPtr hWnd, string text, string caption, uint type);
 
     [STAThread]
     public static void Main()
@@ -102,10 +121,16 @@ public static class Program
     /// </summary>
     public static void Run(IList<string> args, Action<Application, Dispatcher>? appHosted = null)
     {
+        diagLogEnabled = appHosted != null;
         DiagLog($"Run entered. args=[{string.Join(", ", args)}]");
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+        AppDomain.CurrentDomain.UnhandledException -= StartupFailureDialog;
+        // The managed handlers above can't see a native access violation (native interop, GPU drivers) — it kills
+        // the process first. Arm the native handler so such a crash is captured and offered to the reporter too.
+        Stride.CrashReport.NativeCrashReporting.Install("GameStudio");
+        // Sweep crash-routing dirs left by previous sessions.
+        CompilerCrashRouting.PruneStaleSessions();
         EditorPath.EditorTitle = StrideGameStudio.EditorName;
-
         if (IntPtr.Size == 4)
         {
             MessageBox.Show("Stride GameStudio requires a 64bit OS to run.", "Stride", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -122,6 +147,9 @@ public static class Program
             EditorSettings.GraphicsApi.SetValue(EditorSettings.GraphicsApiDefault);
             EditorSettings.Save();
         }
+        // Source levels of the global loggers, before anything creates them.
+        foreach (var (module, level) in EditorSettings.GetModuleLevels(EditorSettings.SourceModuleLevels))
+            GlobalLogger.SetModuleLevel(module, level);
         Thread.CurrentThread.Name = "Main thread";
 
         try
@@ -184,10 +212,13 @@ public static class Program
 
             //listen to logger for crash report
             GlobalLogger.GlobalMessageLogged += GlobalLoggerOnGlobalMessageLogged;
-            // Route GlobalLogger output to VS Debug pane (no-op in Release).
-            // Warning+ only — Info/Verbose volume slows the debugger noticeably during
-            // asset compile / NuGet restore.
-            GlobalLogger.GlobalMessageLogged += new DebugLogListener { MinimumLevel = LogMessageType.Warning };
+            // Route GlobalLogger output to the debugger's output pane (no-op in Release), as configured
+            // by the Logging editor settings: Warning+ by default, since Info/Verbose volume slows the
+            // debugger noticeably, with the graphics modules in full for validation layer messages.
+            var debugPaneListener = new DebugLogListener { MinimumLevel = EditorSettings.DebugOutputLevel.GetValue() };
+            foreach (var (module, level) in EditorSettings.GetModuleLevels(EditorSettings.DebugOutputModuleLevels))
+                debugPaneListener.ModuleLevels[module] = level;
+            GlobalLogger.GlobalMessageLogged += debugPaneListener;
 
             mainDispatcher = Dispatcher.CurrentDispatcher;
             mainDispatcher.InvokeAsync(() =>
@@ -230,16 +261,17 @@ public static class Program
 
     private static void GlobalLoggerOnGlobalMessageLogged(ILogMessage logMessage)
     {
-        if (logMessage.Type <= LogMessageType.Warning) return;
+        if (logMessage.Type < LogMessageType.Warning) return;
 
         LogRingbuffer.Enqueue(logMessage.ToString());
-        while (LogRingbuffer.Count > 5)
+        while (LogRingbuffer.Count > 50)
         {
             LogRingbuffer.TryDequeue(out var msg);
         }
     }
 
-    private sealed record CrashReportArgs(int Location, Exception Exception, string[] Log, string ThreadName);
+    private sealed record CrashReportArgs(int Location, Exception Exception, string[] Log, string ThreadName,
+        int ThreadId, System.Collections.Generic.IReadOnlyList<Stride.CrashReport.StoredThread> Threads);
     private static void CrashReport(object data)
     {
         var args = (CrashReportArgs)data;
@@ -247,27 +279,44 @@ public static class Program
         //Stop the game studio rendering thread
         mainDispatcher?.InvokeAsync(() => Thread.CurrentThread.Join());
 
-        CrashReportHelper.SendReport(args.Exception.FormatFull(), args.Location, args.Log, args.ThreadName);
+        CrashReportHelper.SendReport(args.Exception, args.Location, args.Log, args.ThreadName, args.ThreadId, args.Threads);
 
         //Make sure we stop now.. more exceptions might come but we just grab the first one
         Environment.Exit(0);
     }
 
+    // Windows swaps a window that stops pumping messages for a "(Not responding)" ghost whose X offers to kill the
+    // process. Off for the crash freeze only (see HandleException); process-wide and irreversible, so never earlier.
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern void DisableProcessWindowsGhosting();
+
     private static void HandleException(Exception exception, int location)
     {
         if (exception == null) return;
+        if (exception is OperationCanceledException) return; // a cancelled operation isn't a crash
 
         //prevent multiple crash reports
         if (terminating) return;
         terminating = true;
 
+        // The UI thread stops pumping for as long as the crash reporter is up. Without this, the frozen window would
+        // turn into a "(Not responding)" ghost that lets the user kill the process mid-report (and mid-dump).
+        if (OperatingSystem.IsWindows())
+        {
+            try { DisableProcessWindowsGhosting(); } catch { /* cosmetic */ }
+        }
+
         // In case assembly resolve was not done yet, disable it altogether
         NuGetAssemblyResolver.DisableAssemblyResolve();
+
+        // Snapshot the other threads on the faulting thread, before it blocks below (the crashing thread's stack is in the exception).
+        var threads = Stride.CrashReport.ThreadSnapshot.CaptureAtCurrentThread(out var crashedThreadId, out var crashedThreadName);
 
         var englishCulture = new CultureInfo("en-US");
         var crashLogThread = new Thread(CrashReport) { CurrentUICulture = englishCulture, CurrentCulture = englishCulture };
         crashLogThread.SetApartmentState(ApartmentState.STA);
-        crashLogThread.Start(new CrashReportArgs(location, exception, LogRingbuffer.ToArray(), Thread.CurrentThread.Name));
+        crashLogThread.Start(new CrashReportArgs(location, exception, LogRingbuffer.ToArray(), crashedThreadName,
+            crashedThreadId, threads));
         crashLogThread.Join();
     }
 
@@ -319,6 +368,7 @@ public static class Program
                     var mainWindow = new GameStudioWindow(editor);
                     Application.Current.MainWindow = mainWindow;
                     WindowManager.ShowMainWindow(mainWindow);
+                    CompilerCrashRouting.SetOwnerWindow(mainWindow);
                     return;
                 }
             }
@@ -384,6 +434,7 @@ public static class Program
                 var mainWindow = new GameStudioWindow(editor);
                 Application.Current.MainWindow = mainWindow;
                 WindowManager.ShowMainWindow(mainWindow);
+                CompilerCrashRouting.SetOwnerWindow(mainWindow);
             }
             else
             {

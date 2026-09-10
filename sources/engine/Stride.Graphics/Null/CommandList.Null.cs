@@ -81,7 +81,7 @@ namespace Stride.Graphics
         /// <param name="depthStencilBuffer">The depth stencil buffer.</param>
         /// <param name="renderTargets">The render targets.</param>
         /// <exception cref="System.ArgumentNullException">renderTargetViews</exception>
-        private void SetRenderTargetsImpl(Texture depthStencilBuffer, int renderTargetCount, Texture[] renderTargets)
+        private partial void SetRenderTargetsImpl(Texture depthStencilBuffer, ReadOnlySpan<Texture> renderTargets)
         {
             NullHelper.ToImplement();
         }
@@ -90,7 +90,7 @@ namespace Stride.Graphics
         ///   Platform-specific implementation that sets a scissor rectangle to the rasterizer stage.
         /// </summary>
         /// <param name="scissorRectangle">The scissor rectangle to set.</param>
-        private unsafe partial void SetScissorRectangleImpl(ref Rectangle scissorRectangle)
+        private unsafe partial void SetScissorRectangleImpl(ref readonly Rectangle scissorRectangle)
         {
             NullHelper.ToImplement();
         }
@@ -98,9 +98,18 @@ namespace Stride.Graphics
         /// <summary>
         ///   Platform-specific implementation that sets one or more scissor rectangles to the rasterizer stage.
         /// </summary>
-        /// <param name="scissorCount">The number of scissor rectangles to bind.</param>
         /// <param name="scissorRectangles">The set of scissor rectangles to bind.</param>
-        private unsafe partial void SetScissorRectanglesImpl(int scissorCount, Rectangle[] scissorRectangles)
+        private unsafe partial void SetScissorRectanglesImpl(ReadOnlySpan<Rectangle> scissorRectangles)
+        {
+            NullHelper.ToImplement();
+        }
+
+        /// <summary>
+        ///   Writes a GPU timestamp into a query pool.
+        /// </summary>
+        /// <param name="queryPool">The pool that holds the query.</param>
+        /// <param name="index">The index of the query in the pool.</param>
+        public void WriteTimestamp(QueryPool queryPool, int index)
         {
             NullHelper.ToImplement();
         }

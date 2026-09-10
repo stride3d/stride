@@ -51,7 +51,7 @@ Hierarchy:
                     5ff513947d65774288520ff5b1ea7cf8: !TransformComponent
                         Id: 9413f55f-657d-4277-8852-0ff5b1ea7cf8
                         Position: {X: 0.0, Y: 2.0, Z: 0.0}
-                        Rotation: {X: -0.57357645, Y: 0.0, Z: 0.0, W: 0.819152057}
+                        Rotation: {X: -0.57357645, Y: 0.0, Z: 0.0, W: 0.81915206}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     cbd9b7f355d8e8409024a0296ff2c465: !LightComponent
@@ -63,8 +63,8 @@ Hierarchy:
                                 Size: Large
                                 DepthRange: {}
                                 PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
-                                BiasParameters: {}
                                 ComputeTransmittance: false
+                                BiasParameters: {}
         -   Entity:
                 Id: 820d34a8-2971-4381-abfa-2965d94ec672
                 Name: Splash
@@ -198,8 +198,8 @@ Hierarchy:
                 Components:
                     8e725c73bf8cc14aaa3c11a07720791b: !TransformComponent
                         Id: 735c728e-8cbf-4ac1-aa3c-11a07720791b
-                        Position: {X: -0.47021246, Y: 135.641357, Z: -1.57608986}
-                        Rotation: {X: 0.0, Y: 0.707106769, Z: 0.0, W: 0.707106769}
+                        Position: {X: -0.47021246, Y: 135.64136, Z: -1.5760899}
+                        Rotation: {X: 0.0, Y: 0.70710677, Z: 0.0, W: 0.70710677}
                         Scale: {X: 40.0, Y: 40.0, Z: 40.0}
                         Children: {}
                     e3a176d67f28e144bccf44d85bbd6588: !ModelComponent
@@ -239,7 +239,7 @@ Hierarchy:
                 Components:
                     73a8deb2501818499f67a5f9322ae8ef: !TransformComponent
                         Id: b2dea873-1850-4918-9f67-a5f9322ae8ef
-                        Position: {X: 0.0, Y: 86.0750656, Z: 0.0}
+                        Position: {X: 0.0, Y: 86.075066, Z: 0.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 100.0, Y: 100.0, Z: 100.0}
                         Children: {}

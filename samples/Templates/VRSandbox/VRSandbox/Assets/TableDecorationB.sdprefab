@@ -42,5 +42,5 @@ Hierarchy:
                                 LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                     0b7714b049ba044796655d21423c7879: !ModelComponent
                         Id: 60d99005-cc1f-40e8-942d-e87c5d8a5a99
-                        Model: 43497f30-bb62-46d4-8a9c-6dedead0cad8:Models/CoinGold
+                        Model: 43497f30-bb62-46d4-8a9c-6dedead0cad8:/SamplesAssetPackage/Models/CoinGold
                         Materials: {}

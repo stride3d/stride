@@ -12,6 +12,12 @@ namespace Stride.Graphics
         /// </summary>
         /// <implement>To be implemented.</implement>
         private const GraphicsPlatform GraphicPlatform = GraphicsPlatform.Null;
+
+        /// <summary>
+        ///   The number of GPU timestamp ticks per second, which turns a timestamp query into a duration.
+        /// </summary>
+        public long TimestampFrequency { get; private set; }
+
         private string rendererName = "Null";
 
         /// <summary>

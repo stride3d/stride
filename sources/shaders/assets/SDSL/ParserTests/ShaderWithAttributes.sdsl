@@ -1,0 +1,5 @@
+[Foo("Foo")]
+[Bar("Bar")]
+shader ShaderWithAttributes
+{
+};

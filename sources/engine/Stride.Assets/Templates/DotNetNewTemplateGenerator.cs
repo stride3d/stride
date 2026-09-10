@@ -104,7 +104,9 @@ public class DotNetNewTemplateGenerator : SessionTemplateGenerator
 
     public override bool Generate(SessionTemplateGeneratorParameters parameters)
     {
-        var sdpkg = InstantiateFiles(parameters);
+        // The session saves its own solution at Session.SolutionPath, named from the New Project
+        // dialog, so the template's solution (named after the project) is not wanted here.
+        var sdpkg = InstantiateFiles(parameters, skipSolution: true);
         if (sdpkg == null)
             return false;
         InstantiateAssetPacks(parameters, sdpkg);
@@ -176,8 +178,9 @@ public class DotNetNewTemplateGenerator : SessionTemplateGenerator
     /// <summary>
     /// Phase 1 — invokes the dotnet new bootstrapper. Writes the project tree under
     /// <see cref="TemplateGeneratorParameters.OutputDirectory"/> and returns the generated .sdpkg path.
+    /// <paramref name="skipSolution"/> asks the template not to emit its solution file.
     /// </summary>
-    protected virtual string? InstantiateFiles(SessionTemplateGeneratorParameters parameters)
+    protected virtual string? InstantiateFiles(SessionTemplateGeneratorParameters parameters, bool skipSolution = false)
     {
         ArgumentNullException.ThrowIfNull(parameters);
         parameters.Validate();
@@ -198,7 +201,9 @@ public class DotNetNewTemplateGenerator : SessionTemplateGenerator
             return null;
         }
 
-        var values = parameters.TryGetTag(ParameterValuesKey) ?? new Dictionary<string, string>();
+        var values = new Dictionary<string, string>(parameters.TryGetTag(ParameterValuesKey) ?? new Dictionary<string, string>());
+        if (skipSolution)
+            values["skipSolution"] = "true";
 
         // The dotnet new sourceName substitution is fed by the project name; this is the same
         // value the user typed in GameStudio's New-Project name field.

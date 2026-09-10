@@ -94,7 +94,9 @@
   <ItemGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkiOS)'">
     <StrideNativeCPU Include="ios-arm64;iossimulator-arm64" LibraryExtension=".a" />
   </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkmacOS)'">
+  <!-- Only a macOS host builds the osx-arm64 dylib (system clang, CompileNativeClang_macOSOnMac); declaring it on
+       another host would pack a file that never exists. -->
+  <ItemGroup Condition="'$(TargetFramework)' == '$(StrideFrameworkmacOS)' And $([MSBuild]::IsOSPlatform('OSX'))">
     <StrideNativeCPU Include="osx-arm64" LibraryExtension=".dylib" LibraryRuntime="osx" />
   </ItemGroup>
   <!-- Can be deleted -->
@@ -125,8 +127,9 @@
     <UpToDateCheckOutput Include="@(StrideNativeOutput)" />
   </ItemGroup>
   
-  <!-- Update StrideNativeOutput.Link using computed OutputPath and add to StrideNativeLib -->
-  <Target Name="_StrideRegisterNativeOutputs" Condition="'$(TargetFramework)' != ''" BeforeTargets="_StrideRegisterDependenciesOutputs;_StrideGenerateDependencies">
+  <!-- Update StrideNativeOutput.Link and add to StrideNativeLib. Runs before _StrideGenerateDependenciesCore
+       (not just the targets depending on it) so the .ssdeps generator never sees StrideNativeLib empty and deletes it. -->
+  <Target Name="_StrideRegisterNativeOutputs" Condition="'$(TargetFramework)' != ''" BeforeTargets="_StrideGenerateDependenciesCore;_StrideRegisterDependenciesOutputs;_StrideGenerateDependencies">
     <PropertyGroup>
       <OutputObjectPath>$(MSBuildProjectDirectory)\$(IntermediateOutputPath)</OutputObjectPath>
       <StrideNativeOutputPath>$([System.IO.Path]::GetFullPath('$(OutputPath)'))</StrideNativeOutputPath>

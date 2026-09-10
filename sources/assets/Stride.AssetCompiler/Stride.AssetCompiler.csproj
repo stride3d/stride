@@ -24,6 +24,8 @@
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="..\..\shared\LoaderToolLocator\LoaderToolLocator.cs" Link="LoaderToolLocator.cs" />
+    <!-- Native fault handler for capturing access violations in native importers/shader compilers. -->
+    <Compile Include="..\..\shared\NativeCrashHandler.cs" Link="NativeCrashHandler.cs" />
     <None Include="build\**\*.targets" PackagePath="build\" Pack="true" />
     <None Include="build\**\*.targets" PackagePath="buildTransitive\" Pack="true" />
   </ItemGroup>
@@ -32,6 +34,21 @@
     <PackageReference Include="Microsoft.Build.Framework" ExcludeAssets="runtime" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" ExcludeAssets="runtime" PrivateAssets="all" />
     <ProjectReference Include="..\Stride.Core.Assets.Quantum\Stride.Core.Assets.Quantum.csproj" />
+    <!-- Headless crash capture: write crashes to the store and (in CI) send them. UI-agnostic core only —
+         the reporter window is spawned out-of-process, never referenced here. -->
+    <ProjectReference Include="..\..\crashreport\Stride.CrashReport\Stride.CrashReport.csproj" />
+    <!-- Sentry is used by the core's crash sender at send time (CI send mode), but it's PrivateAssets=all in the
+         core (to keep its Roslyn generator out of game builds) so it doesn't flow here. Reference it directly so
+         Sentry.dll is deployed for the send. PrivateAssets=all is load-bearing: the asset compiler flows to games
+         via buildTransitive, and it keeps Sentry (and its generator) from propagating there. The packaged compiler
+         resolves from the store, where a private package isn't: there the send fails (logged) and the run stays on disk. -->
+    <PackageReference Include="Sentry" PrivateAssets="all" />
+    <!-- The out-of-process reporter, resolved from the store at crash time. Private=false emits the nuspec
+         <dependency> (so a standalone compiler install pulls the reporter in) without copying its
+         self-contained closure into our bin. ReferenceOutputAssembly=false would suppress the dependency. -->
+    <ProjectReference Include="..\..\crashreport\Stride.CrashReporter\Stride.CrashReporter.csproj">
+      <Private>false</Private>
+    </ProjectReference>
     <ProjectReference Include="..\..\engine\Stride.Assets.Models\Stride.Assets.Models.csproj" />
     <ProjectReference Include="..\..\engine\Stride.Particles\Stride.Particles.csproj" />
     <ProjectReference Include="..\..\engine\Stride.Physics\Stride.Physics.csproj" />

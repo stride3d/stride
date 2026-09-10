@@ -2,7 +2,7 @@
 Id: 8d329486-e5dc-4222-be4d-93c697dcdae8
 SerializedVersion: {Stride: 3.1.0.1}
 Tags: []
-Archetype: 823a81bf-bac0-4552-9267-aeed499c40df:DefaultGraphicsCompositorLevel10
+Archetype: 823a81bf-bac0-4552-9267-aeed499c40df:/Stride.Engine/DefaultGraphicsCompositorLevel10
 Cameras:
     de2e75c3b2b23e54162686363f3f138e:
         Id: f70c25f8-3ab5-4afd-a6da-3f48277293b7

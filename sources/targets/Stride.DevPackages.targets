@@ -9,57 +9,120 @@
 
   <PropertyGroup Condition="'$(StrideDevPackages)' == 'true'">
     <StrideSkipAutoPack>true</StrideSkipAutoPack>
+    <!-- Projects whose stub the build keeps fresh: packable, actually built (a project whose compilation is
+         disabled, e.g. tests under StrideSkipUnitTests, has no outputs to pack and no NuGet targets), and not a
+         template. Template packages are content built by a preprocessor at pack time (whole sample trees), the
+         kind of work dev-packages mode keeps out of ordinary builds; the generator's full run deploys them
+         as-is, and they rarely change. -->
+    <_StrideDevStubProject Condition="'$(IsPackable)' != 'false' And '$(StrideCompilerTargetsEnable)' != 'false' And !$(MSBuildProjectName.StartsWith('Stride.Templates.'))">true</_StrideDevStubProject>
   </PropertyGroup>
 
-  <!-- Fail the build if stubs are missing or stale. Two signals trip the staleness check:
-       (1) the script itself was updated (logic changed), (2) any engine csproj's mtime is
-       newer than the stamp (catches new projects, PackageReference changes, AssemblyName
-       changes — anything that would change a stub's nuspec or redirect path). Doesn't catch
-       runtimes/<rid>/native/ or contentFiles/ changes — those still require manual re-run.
-       Stamp path is recomputed inside the target so it picks up the worktree-suffixed
-       PackageVersion (StrideAppendWorktreeVersion mutates it BeforeTargets the BeforeCompile
-       chain, but eval-time PropertyGroups would have the un-suffixed value). -->
+  <!-- Visual Studio's fast up-to-date check never runs a target: it compares the timestamps of declared inputs and
+       outputs and skips MSBuild when they line up. So this project's stub is declared as an output (missing, or
+       older than an input, means "build", and the build adopts) and the generator script as an input; the central
+       package versions are an import and the packed build/ assets are items, so they count already. Declared at
+       evaluation, when PackageVersion still lacks the worktree suffix (a target adds it later): the suffix is read
+       from the generated version file instead. -->
+  <PropertyGroup Condition="'$(StrideDevPackages)' == 'true' And Exists('$(StrideRoot)sources\shared\SharedAssemblyInfo.Generated.cs')">
+    <_StrideDevStubSuffix>$([System.Text.RegularExpressions.Regex]::Replace($([System.IO.File]::ReadAllText('$(StrideRoot)sources\shared\SharedAssemblyInfo.Generated.cs')), '(?s).*NuGetVersionSuffix = &quot;([^&quot;]*)&quot;.*', '$1'))</_StrideDevStubSuffix>
+  </PropertyGroup>
+  <!-- Only once the generated version file exists (i.e. after a first build): before that the suffix, hence the
+       output name, is unknown, and a declared output that never appears would keep VS rebuilding the project. -->
+  <ItemGroup Condition="'$(_StrideDevStubProject)' == 'true' And '$(PackageId)' != '' And Exists('$(StrideRoot)sources\shared\SharedAssemblyInfo.Generated.cs')">
+    <UpToDateCheckOutput Include="$(LocalAppData)/stride/nugetdev/$(PackageId).$(PackageVersion)$(_StrideDevStubSuffix).nupkg" />
+    <UpToDateCheckInput Include="$(StrideRoot)build\GenerateDevPackages.cs" />
+  </ItemGroup>
+
+  <UsingTask TaskName="StrideCheckDevPackageInputs" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <Task>
+      <Code Type="Class" Source="$(MSBuildThisFileDirectory)StrideDevPackagesTasks.cs" Language="cs" />
+    </Task>
+  </UsingTask>
+
+  <!-- Is this project's stub fresh? It is stale, and _StrideAdoptDevStub below refreshes it right after Build,
+       when:
+         - its own csproj or packed build/ assets changed since the stubs were generated (content hashes in the
+           .inputs manifest; the mtime is only a prefilter, so a touch, checkout or rebase that leaves the content
+           unchanged changes nothing), or
+         - its stub is missing, or was generated with other fixed inputs: the .stubs file records, per stub, the
+           fingerprint of the script, the central package versions and the solution it was made with. Every stub
+           depends on those, so each project judges its own instead of a shared verdict the first refresh would
+           hide from the others. A fresh checkout (no files at all) is just every stub missing.
+       Another project's change is that project's business, when it builds. Natives and analyzers need nothing:
+       the redirect serves them from the dev tree. contentFiles/ changes still need a manual run. Stamp path is
+       recomputed inside the target so it picks up the worktree-suffixed PackageVersion (StrideAppendWorktreeVersion
+       mutates it BeforeTargets the BeforeCompile chain, but eval-time PropertyGroups would have the un-suffixed
+       value). -->
   <Target Name="_StrideCheckDevPackages"
           BeforeTargets="CoreCompile"
           DependsOnTargets="StrideAppendWorktreeVersion"
-          Condition="'$(StrideDevPackages)' == 'true' And '$(DesignTimeBuild)' != 'true'">
+          Condition="'$(_StrideDevStubProject)' == 'true' And '$(StrideDevPackagesGenerating)' != 'true' And '$(DesignTimeBuild)' != 'true'">
 
     <PropertyGroup>
       <_StrideDevPackagesStamp>$(LocalAppData)/stride/nugetdev/.devpackages-$(PackageVersion)</_StrideDevPackagesStamp>
+      <_StrideOwnStub>$(PackageId).$(PackageVersion).nupkg</_StrideOwnStub>
     </PropertyGroup>
 
-    <Error Text="StrideDevPackages=true but stubs are missing. Run: dotnet run --file build/GenerateDevPackages.cs"
-           Condition="!Exists('$(_StrideDevPackagesStamp)')" />
-
-    <PropertyGroup Condition="Exists('$(_StrideDevPackagesStamp)')">
-      <_StrideStampTicks>$([System.IO.File]::GetLastWriteTime('$(_StrideDevPackagesStamp)').Ticks)</_StrideStampTicks>
-    </PropertyGroup>
-
-    <!-- Read the script's inputs manifest (absolute csproj paths it scanned) so we track
-         exactly the projects that contributed to stub generation — no glob heuristics.
-         Solution-file mtime catches new/removed projects (which only show up in the manifest
-         after the script re-scans). -->
-    <ReadLinesFromFile File="$(_StrideDevPackagesStamp).inputs" Condition="Exists('$(_StrideDevPackagesStamp).inputs')">
-      <Output TaskParameter="Lines" ItemName="_StrideStubManifestCsprojs" />
-    </ReadLinesFromFile>
-
-    <ItemGroup Condition="'$(_StrideStampTicks)' != ''">
-      <_StrideStubInputs Include="$(StrideRoot)build\GenerateDevPackages.cs;$(StrideRoot)sources\Directory.Packages.props;$(StrideRoot)build\Stride.slnx" />
-      <_StrideStubInputs Include="@(_StrideStubManifestCsprojs)" />
-      <_StrideStaleStubInputs Include="@(_StrideStubInputs)"
-                              Condition="$([System.IO.File]::GetLastWriteTime('%(_StrideStubInputs.FullPath)').Ticks) &gt; $(_StrideStampTicks)" />
+    <StrideCheckDevPackageInputs ManifestPath="$(_StrideDevPackagesStamp).inputs" StampPath="$(_StrideDevPackagesStamp)"
+                                 StubsPath="$(_StrideDevPackagesStamp).stubs" OwnStub="$(_StrideOwnStub)"
+                                 FixedInputs="$(StrideRoot)build\GenerateDevPackages.cs;$(StrideRoot)sources\Directory.Packages.props;$(StrideRoot)build\Stride.slnx"
+                                 Condition="Exists('$(_StrideDevPackagesStamp)')">
+      <Output TaskParameter="Changed" ItemName="_StrideStaleStubInputs" />
+      <Output TaskParameter="OwnStubFresh" PropertyName="_StrideOwnStubFresh" />
+    </StrideCheckDevPackageInputs>
+    <ItemGroup>
+      <!-- Case-insensitive: the manifest may carry a lowercase drive letter (paths pass through MSBuild properties). -->
+      <_StrideStaleOwnInputs Include="@(_StrideStaleStubInputs)"
+                             Condition="$([System.String]::Copy('%(_StrideStaleStubInputs.FullPath)').ToUpperInvariant().StartsWith($([System.String]::Copy('$(MSBuildProjectDirectory)\').ToUpperInvariant())))" />
     </ItemGroup>
+    <PropertyGroup>
+      <_StrideStubStale Condition="'@(_StrideStaleOwnInputs)' != '' Or '$(_StrideOwnStubFresh)' != 'true'">true</_StrideStubStale>
+    </PropertyGroup>
 
-    <Error Text="StrideDevPackages stubs are stale (e.g. %(_StrideStaleStubInputs.Filename)%(_StrideStaleStubInputs.Extension) modified since the last script run). Re-run: dotnet run --file build/GenerateDevPackages.cs"
-           Condition="'@(_StrideStaleStubInputs)' != ''" />
+    <!-- Not stale, but an input may be newer than the stub (a touch, checkout or rebase that left the content
+         unchanged): make the stub the newer one again, or Visual Studio's fast up-to-date check would send every
+         build of this project through MSBuild. NuGet validates packages by hash, never by mtime. -->
+    <Touch Files="$(LocalAppData)/stride/nugetdev/$(_StrideOwnStub)"
+           Condition="'$(_StrideStubStale)' != 'true' And Exists('$(LocalAppData)/stride/nugetdev/$(_StrideOwnStub)')" />
+  </Target>
+
+  <!-- A project whose stub is stale or missing refreshes it right after its own Build: Pack runs in this same
+       MSBuild on the outputs just built (NoBuild, so no second build and no second MSBuild process), then the
+       generator's adopt mode takes the nupkg: strip, inject the redirect, deploy, update the stamp and manifest.
+       The repo's own build never consumes the stubs (in-tree projects use ProjectReferences), so this only keeps
+       the feed fresh for out-of-tree consumers. Outer build only for multi-targeting projects (Pack's own gate),
+       which is why the check is a dependency here too (CoreCompile only runs in the inner builds). -->
+  <Target Name="_StrideAdoptDevStub"
+          AfterTargets="Build"
+          DependsOnTargets="_StrideCheckDevPackages"
+          Condition="'$(_StrideDevStubProject)' == 'true' And '$(StrideDevPackagesGenerating)' != 'true' And '$(DesignTimeBuild)' != 'true' And ('$(TargetFrameworks)' == '' Or '$(TargetFramework)' == '')">
+    <PropertyGroup Condition="'$(_StrideStubStale)' == 'true'">
+      <_StrideAdoptPackDir>$(MSBuildProjectDirectory)\$(BaseIntermediateOutputPath)devstub\</_StrideAdoptPackDir>
+    </PropertyGroup>
+    <Message Importance="High" Text="Dev packages: refreshing the stub of $(PackageId)" Condition="'$(_StrideStubStale)' == 'true'" />
+    <!-- Pack in this MSBuild (the project and its references are already evaluated here; a child dotnet pack
+         would evaluate them all again). NuGet's own two lines are the price at minimal verbosity.
+         BuildProjectReferences=false: NoBuild spares this project, not its references; building those again in
+         this instance would rewrite their outputs after this project's, and VS's up-to-date check would then
+         rebuild this project once more. -->
+    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Pack"
+             Properties="NoBuild=true;BuildProjectReferences=false;PackageOutputPath=$(_StrideAdoptPackDir);StridePackAssets=false;StrideSkipAutoPack=true;StrideDevPackagesGenerating=true;Configuration=$(Configuration)"
+             Condition="'$(_StrideStubStale)' == 'true'" />
+    <!-- The script's output is normal importance: nothing more at minimal verbosity, the details from normal on.
+         The root is passed explicitly (the script's fallback is the current directory). -->
+    <Exec Command="dotnet run --file &quot;$(StrideRoot)build\GenerateDevPackages.cs&quot; -- --stride-root &quot;$(StrideRoot.TrimEnd('\'))&quot; --configuration $(Configuration) --adopt &quot;$(_StrideAdoptPackDir)$(_StrideOwnStub)&quot;"
+          WorkingDirectory="$(StrideRoot)" StandardOutputImportance="normal" StandardErrorImportance="high"
+          Condition="'$(_StrideStubStale)' == 'true'" />
   </Target>
 
   <!-- Cleanup: if flag is off but stamp exists, wipe dev packages so real packing resumes.
        Stamp file is a manifest of the nupkg filenames GenerateDevPackages.cs deployed, so we
-       delete exactly those and nothing else. -->
+       delete exactly those and nothing else. Not during the generator's own pack
+       (StrideDevPackagesGenerating): it builds with the flag off too, and wiping there would
+       drop the current stubs before the new set is known to be complete. -->
   <Target Name="_StrideCleanDevPackages"
           BeforeTargets="CoreCompile"
-          Condition="'$(StrideDevPackages)' != 'true' And '$(DesignTimeBuild)' != 'true'">
+          Condition="'$(StrideDevPackages)' != 'true' And '$(StrideDevPackagesGenerating)' != 'true' And '$(DesignTimeBuild)' != 'true'">
 
     <PropertyGroup>
       <_StrideDevPackagesStampCheck>$(LocalAppData)/stride/nugetdev/.devpackages-$(PackageVersion)</_StrideDevPackagesStampCheck>
@@ -80,7 +143,7 @@
     </ItemGroup>
 
     <Delete Files="@(_StrideDevPackagesToDelete)" />
-    <Delete Files="$(_StrideDevPackagesStampCheck)" Condition="'$(_StrideDevPackagesStampExisted)' == 'true'" />
+    <Delete Files="$(_StrideDevPackagesStampCheck);$(_StrideDevPackagesStampCheck).inputs;$(_StrideDevPackagesStampCheck).stubs" Condition="'$(_StrideDevPackagesStampExisted)' == 'true'" />
 
     <Message Importance="High" Text="Cleaned dev-redirect packages. Next build will generate real packages."
              Condition="'$(_StrideDevPackagesStampExisted)' == 'true'" />

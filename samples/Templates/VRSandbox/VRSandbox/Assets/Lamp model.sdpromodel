@@ -6,5 +6,6 @@ Type: !CapsuleProceduralModel
     Scale: {X: 1.0, Y: 1.0, Z: 1.0}
     UvScale: {X: 1.0, Y: 1.0}
     LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+    NumberOfTextureCoordinates: 10
     MaterialInstance:
         Material: 79e97d35-ad06-4677-8e66-815296fab586:Lamp material

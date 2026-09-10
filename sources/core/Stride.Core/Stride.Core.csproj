@@ -17,11 +17,6 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <PackageReference Include="System.ValueTuple" />
-    <PackageReference Include="Microsoft.NETCore.Platforms" />
-  </ItemGroup>
-  
-  <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>

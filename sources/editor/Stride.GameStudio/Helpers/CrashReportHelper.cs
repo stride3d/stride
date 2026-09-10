@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Text.RegularExpressions;
 using Stride.Core.Assets.Editor.Components.Transactions;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Extensions;
@@ -13,9 +12,8 @@ using Stride.Core.Transactions;
 using Stride.Core.Windows;
 using Stride.Assets;
 using Stride.Core.Presentation.Services;
-using Stride.Editor.CrashReport;
+using Stride.CrashReport;
 using Stride.Graphics;
-using DialogResult = System.Windows.Forms.DialogResult;
 using Stride.GameStudio.AssetsEditors;
 using Stride.Core.Assets.Editor.Services;
 
@@ -25,7 +23,8 @@ namespace Stride.GameStudio.Helpers
     {
         private const int DebugVersion = 4;
 
-        public static void SendReport(string exceptionMessage, int crashLocation, string[] logs, string threadName)
+        public static void SendReport(Exception exception, int crashLocation, string[] logs, string threadName,
+            int threadId, System.Collections.Generic.IReadOnlyList<StoredThread> threads)
         {
             var crashReport = new CrashReportData
             {
@@ -129,12 +128,29 @@ namespace Stride.GameStudio.Helpers
             crashReport["CurrentDirectory"] = Environment.CurrentDirectory;
             crashReport["CommandArgs"] = string.Join(" ", AppHelper.GetCommandLineArgs());
             crashReport["OsVersion"] = $"{System.Runtime.InteropServices.RuntimeInformation.OSDescription} {(Environment.Is64BitOperatingSystem ? "x64" : "x86")}";
+            crashReport["Cpu"] = AppHelper.GetCpuName();
             crashReport["ProcessorCount"] = Environment.ProcessorCount.ToString();
-            crashReport["Exception"] = exceptionMessage;
+            crashReport["Exception"] = exception.FormatFull();
+
+            try
+            {
+                crashReport["GraphicsPlatform"] = GraphicsDevice.Platform.ToString();
+                crashReport["GraphicsAdapter"] = GraphicsAdapterFactory.DefaultAdapter?.Description;
+            }
+            catch (Exception e)
+            {
+                e.Ignore();
+            }
+
             var videoConfig = AppHelper.GetVideoConfig();
             foreach (var conf in videoConfig)
             {
                 crashReport.Data.Add((conf.Key, conf.Value));
+            }
+
+            foreach (var info in AppHelper.GetMemoryInfo())
+            {
+                crashReport.Data.Add((info.Key, info.Value));
             }
 
             var nonFatalReport = new StringBuilder();
@@ -146,20 +162,89 @@ namespace Stride.GameStudio.Helpers
 
             crashReport["Log"] = nonFatalReport.ToString();
 
-            // Try to anonymize reports
-            // It also makes it easier to copy and paste paths
-            for (var i = 0; i < crashReport.Data.Count; i++)
+            CrashReportAnonymizer.Scrub(crashReport);
+
+            // Unattended sessions (CI editor tests, remote/service sessions) must not block on a dialog;
+            // STRIDE_CRASH_MODE=save/send/off are explicit overrides. Only the interactive case shows a window.
+            switch (CrashPolicy.ResolveAction())
             {
-                var data = crashReport.Data[i].Item2;
-
-                data = Regex.Replace(data, Regex.Escape(Environment.GetEnvironmentVariable("USERPROFILE")), Regex.Escape("%USERPROFILE%"), RegexOptions.IgnoreCase);
-                data = Regex.Replace(data, $@"\b{Regex.Escape(Environment.GetEnvironmentVariable("USERNAME"))}\b", Regex.Escape("%USERNAME%"), RegexOptions.IgnoreCase);
-
-                crashReport.Data[i] = (crashReport.Data[i].Item1, data);
+                case CrashAction.Ignore:
+                    return;
+                case CrashAction.Save:
+                    SaveToStore(crashReport, exception, threads, threadId, threadName);
+                    return;
+                case CrashAction.Send:
+                    try
+                    {
+                        if (CrashReportSender.IsDisabled)
+                            throw new InvalidOperationException("Crash sending is disabled in this build.");
+                        CrashReportSender.SendAsync(crashReport, "GameStudio", exception, CrashReportSender.ResolveDsn(),
+                            threads: threads, crashedThreadId: threadId, crashedThreadName: threadName).GetAwaiter().GetResult();
+                    }
+                    catch (Exception e)
+                    {
+                        e.Ignore();
+                        SaveToStore(crashReport, exception, threads, threadId, threadName); // a failed send must not lose the report
+                    }
+                    return;
             }
 
-            var reporter = new CrashReportWindow(crashReport, "Stride GameStudio");
-            var result = reporter.ShowDialog();
+            // Attended: the same out-of-process reporter the headless tools use. We are still alive here (the runtime
+            // waits for this handler), so the report and a dump go to the store, the reporter is spawned with our pid,
+            // and we block until it closes -- the freeze an in-process modal dialog gave, and what lets the reporter
+            // write a full memory dump of this live process on demand. No reporter: the run stays for 'stride crash send'.
+            var run = SaveToStore(crashReport, exception, threads, threadId, threadName);
+            if (run == null)
+                return;
+            try
+            {
+                using var reporter = NativeCrashReporting.TrySpawnHostCrashReporter(run.Directory);
+                reporter?.WaitForExit();
+            }
+            catch (Exception e)
+            {
+                e.Ignore();
+            }
+        }
+
+        /// <summary>
+        /// Persists the report to the crash store with the structured exception, the thread snapshot and a dump of
+        /// this process: a scrubbed triage dump (stacks and modules, sendable) or, under STRIDE_CRASH_DUMP=full, a
+        /// full-memory one (unscrubbed, kept local). Returns the run, or null when the store could not be written.
+        /// </summary>
+        private static CrashRun SaveToStore(CrashReportData report, Exception exception,
+            IReadOnlyList<StoredThread> threads, int threadId, string threadName)
+        {
+            try
+            {
+                var crash = StoredCrash.FromReportData(report);
+                crash.Application = "GameStudio";
+                crash.Version = StrideVersion.NuGetVersion;
+                crash.Environment = CrashReportSender.BuildEnvironment ?? "local";
+                crash.TimestampUtc = DateTime.UtcNow.ToString("o");
+                crash.Signature = CrashSignature.Compute(exception, "GameStudio");
+                crash.Exceptions = StoredException.Capture(exception);
+                crash.Threads = threads?.ToList() ?? new List<StoredThread>();
+                crash.CrashedThreadId = threadId;
+                crash.CrashedThreadName = threadName;
+
+                var run = new CrashStore("GameStudio").CreateRun();
+                if (CrashPolicy.FullMemoryDump())
+                {
+                    crash.DumpIsFullMemory = true;
+                    run.Add(crash, path => MinidumpWriter.TryWriteFile(path, fullMemory: true));
+                }
+                else
+                {
+                    run.Add(crash, MinidumpWriter.TryWrite());
+                }
+                return run;
+            }
+            catch (Exception e)
+            {
+                e.Ignore(); // saving the report must never mask the crash handling itself
+                return null;
+            }
         }
 
         private static void ExpandAction(TransactionViewModel actionItem, StringBuilder sb, int increment)

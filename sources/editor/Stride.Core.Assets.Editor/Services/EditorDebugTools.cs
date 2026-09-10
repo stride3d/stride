@@ -46,12 +46,14 @@ namespace Stride.Core.Assets.Editor.Services
             }
         }
 
+        /// <summary>
+        /// Shows a logger in a debug page. The page shows what the logger lets through: a global logger's level
+        /// comes from the <c>Logging/SourceModuleLevels</c> editor setting.
+        /// </summary>
         public static IDebugPage CreateLogDebugPage(Logger logger, string title, bool register = true)
         {
             var dispatcher = SessionViewModel.Instance.ServiceProvider.Get<IDispatcherService>();
             dispatcher.EnsureAccess();
-            // Activate all log levels
-            logger.ActivateLog(LogMessageType.Debug);
             var loggerViewModel = new LoggerViewModel(SessionViewModel.Instance.ServiceProvider, logger);
             var page = new DebugLogUserControl(loggerViewModel) { Title = title };
             if (register)

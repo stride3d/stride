@@ -76,5 +76,5 @@ Hierarchy:
                         Children: {}
                     58b03148957d6725dc07a6fd45db1f02: !ModelComponent
                         Id: a7daf452-c9c7-441a-99a2-7e3710448962
-                        Model: f381ed79-1e17-4ddd-b99b-eb700b626f42:Models/Ladder0x2x0handle
+                        Model: f381ed79-1e17-4ddd-b99b-eb700b626f42:/PrototypingBlocks/Models/Ladder0x2x0handle
                         Materials: {}

@@ -12,6 +12,7 @@ using Stride.Core.Serialization.Contents;
 using Stride.Rendering;
 using Stride.Rendering.ComputeEffect.GGXPrefiltering;
 using Stride.Rendering.ComputeEffect.LambertianPrefiltering;
+using Stride.Rendering.Images;
 using Stride.Rendering.Skyboxes;
 using Stride.Games;
 using Stride.Graphics;
@@ -100,7 +101,8 @@ namespace Stride.Assets.Skyboxes
 
             // load the skybox texture from the asset.
             var reference = AttachedReferenceManager.GetAttachedReference(cubemap);
-            var skyboxTexture = context.Content.Load<Texture>(BuildTextureForSkyboxGenerationLocation(reference.Url), ContentManagerLoaderSettings.StreamingDisabled);
+            var loadedTexture = context.Content.Load<Texture>(BuildTextureForSkyboxGenerationLocation(reference.Url), ContentManagerLoaderSettings.StreamingDisabled);
+            var skyboxTexture = loadedTexture;
             if (skyboxTexture.ViewDimension == TextureDimension.Texture2D)
             {
                 var cubemapSize = (int)Math.Pow(2, Math.Ceiling(Math.Log(skyboxTexture.Width / 4) / Math.Log(2))); // maximum resolution is around horizontal middle line which composes 4 images.
@@ -110,6 +112,17 @@ namespace Stride.Assets.Skyboxes
             {
                 result.Error($"SkyboxGenerator: The texture type ({skyboxTexture.ViewDimension}) used as skybox is not supported. Should be a Cubemap or a 2D texture.");
                 return result;
+            }
+
+            // The prefilters read the radiance through its mipmaps, both to fill the highest level and to
+            // pick a sampling level per roughness, so build the chain when the source comes without one
+            // (e.g. a cubemap generated from a 2D texture above).
+            if (skyboxTexture.MipLevelCount == 1)
+            {
+                var mipless = skyboxTexture;
+                skyboxTexture = GenerateMipmaps(context, mipless);
+                if (mipless != loadedTexture)
+                    mipless.Dispose();
             }
 
             // If we are using the skybox asset for lighting, we can compute it
@@ -165,7 +178,37 @@ namespace Stride.Assets.Skyboxes
             }
             // TODO: cubeTexture is not deallocated
 
+            // Release the intermediate radiance when one was created above; the loaded texture belongs to the content manager.
+            if (skyboxTexture != loadedTexture)
+                skyboxTexture.Dispose();
+
             return result;
+        }
+
+        private static Texture GenerateMipmaps(SkyboxGeneratorContext context, Texture texture)
+        {
+            var format = texture.Format.IsCompressed
+                ? texture.Format.IsHDR ? PixelFormat.R16G16B16A16_Float : texture.Format.IsSRgb ? PixelFormat.R8G8B8A8_UNorm_SRgb : PixelFormat.R8G8B8A8_UNorm
+                : texture.Format;
+            var mipped = Texture.NewCube(context.GraphicsDevice, texture.Width, true, format, TextureFlags.ShaderResource | TextureFlags.RenderTarget);
+
+            using var scaler = new ImageScaler(SamplingPattern.Linear);
+            for (var face = 0; face < 6; face++)
+            {
+                for (var mip = 0; mip < mipped.MipLevelCount; mip++)
+                {
+                    // A single bilinear tap at an exact 2x downscale averages the 2x2 source texels
+                    using var source = mip == 0
+                        ? texture.ToTextureView(ViewType.Single, face, 0)
+                        : mipped.ToTextureView(ViewType.Single, face, mip - 1);
+                    using var target = mipped.ToTextureView(ViewType.Single, face, mip);
+                    scaler.SetInput(0, source);
+                    scaler.SetOutput(target);
+                    scaler.Draw(context.RenderDrawContext);
+                }
+            }
+
+            return mipped;
         }
 
         public static string BuildTextureForSkyboxGenerationLocation(string textureLocation)

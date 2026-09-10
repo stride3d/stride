@@ -22,6 +22,10 @@ set(BUILD_SAMPLE      OFF CACHE BOOL "" FORCE)
 set(BUILD_DX11        OFF CACHE BOOL "" FORCE)
 set(BUILD_DX12        OFF CACHE BOOL "" FORCE)
 
+# OpenMP only backs DirectXTex's TEX_COMPRESS_PARALLEL path, which we never request.
+# Leaving it on would add a load-time dependency on libgomp.so.1 / vcomp140.dll.
+set(BC_USE_OPENMP     OFF CACHE BOOL "" FORCE)
+
 add_subdirectory(${DIRECTXTEX_SRC} directxtex-build EXCLUDE_FROM_ALL)
 
 add_library(stride_directxtex SHARED dxt_wrapper.cpp)

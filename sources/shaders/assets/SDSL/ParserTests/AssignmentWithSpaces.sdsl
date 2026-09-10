@@ -1,0 +1,8 @@
+shader AssignmentWithSpaces
+{
+    void Foo()
+    {
+        float2 p = 1.0f;
+        p.y *= -1.0f ;
+    }
+};

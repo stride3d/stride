@@ -683,7 +683,7 @@ namespace Stride.Games
                         // no-draw ticks avoids re-presenting undefined/stale back-buffer content
                         // (flip-model discards after Present) and, on D3D12, avoids emitting a
                         // barrier-only command list that trips the perf warning.
-                        EndDraw(drawFrame);
+                        EndDraw(drawFrame && !IsExiting);
                     }
                 }
 

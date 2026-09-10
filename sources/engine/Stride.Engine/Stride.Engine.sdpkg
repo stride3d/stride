@@ -9,3 +9,5 @@ RootAssets:
     - c90f3988-0544-4cbe-993f-13af7d9c23c6:/Stride.Engine/StrideDefaultFont
     - d26edb11-10bd-403c-b3c2-9c7fcccf25e5:/Stride.Engine/StrideDefaultSplashScreen
     - FF02239B-3697-4EBB-9F37-FE880659E64B:/Stride.Engine/StrideDebugSpriteFont
+    - a49995f8-2380-4baa-a03e-f8d1da35b79a:/Stride.Engine/StrideEnvironmentLightingDFGLUT16
+    - 87540190-ab97-4b4e-b3c2-d57d2fbb1ff3:/Stride.Engine/StrideEnvironmentLightingDFGLUT8

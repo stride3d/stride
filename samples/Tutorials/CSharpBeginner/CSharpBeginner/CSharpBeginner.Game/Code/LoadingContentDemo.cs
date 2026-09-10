@@ -26,7 +26,7 @@ namespace CSharpBeginner.Code
             // To load any content we use the Load method. First we need to specify the type between the '< >'. The we provide the URL 
             if (Input.IsKeyPressed(Keys.L))
             {
-                loadedMannequinModel = Content.Load<Model>("Models/mannequinModel");
+                loadedMannequinModel = Content.Load<Model>("/mannequinModel/Models/mannequinModel");
             }
 
             // To remove loaded content we use the unload method to remove all existing models from the scene. 

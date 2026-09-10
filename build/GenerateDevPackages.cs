@@ -1,17 +1,23 @@
 // Dev-redirect NuGet stub generator for Stride.
 // Usage: dotnet run build/GenerateDevPackages.cs -- [options]
 //
-// Generates stub .nupkg files that redirect to dev-built DLLs,
+// Generates stub .nupkg files that redirect to dev-built DLLs (and natives, and analyzers),
 // eliminating the ~50s NuGet packing overhead on every incremental build.
 //
-// Steps:
-//   1. Builds + packs fresh nupkgs into a temp dir
-//   2. Injects build/<PkgId>.props/.targets redirects into each engine nupkg (templates deploy as-is)
-//   3. Deploys to NugetDev + mirrors into bin/packages, invalidates NuGet cache
-//   4. Writes a stamp manifest (staleness check / cleanup) and prunes superseded versions
+// Two ways in:
+//   - A full run (by hand, from the repo root): packs the solution (no build; the outputs must exist), then for
+//     each nupkg strips what the redirect makes dead weight, injects build/<PkgId>.props/.targets, deploys to
+//     NugetDev + mirrors into bin/packages, invalidates the NuGet cache, and writes the stamp (what was
+//     deployed), the stubs file (per stub, the fingerprint of the fixed inputs it was made with) and the inputs
+//     manifest (content hashes of the csprojs and build/ assets). Never required: the build refreshes stubs
+//     one by one (below); a full run is just faster for the whole set, e.g. on a fresh checkout.
+//   - --adopt <nupkg> (from Stride.DevPackages.targets, right after a project's Build packed it in-process):
+//     the same processing for that one package, plus its lines in the stamp and manifest. Its output is only
+//     shown by the build from normal verbosity on (the build prints its own one-liner at minimal).
 
 using System.Diagnostics;
 using System.IO.Compression;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
@@ -22,6 +28,7 @@ var configuration = "Debug";
 var solution = "";
 var version = "";
 var disable = false;
+var adopt = ""; // --adopt <nupkg>: a build just packed this one project; stub and deploy only it
 var nugetDevDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "stride", "nugetdev");
 
 for (int i = 0; i < args.Length; i++)
@@ -34,29 +41,15 @@ for (int i = 0; i < args.Length; i++)
         case "--version" when i + 1 < args.Length: version = args[++i]; break;
         case "--nuget-dev" when i + 1 < args.Length: nugetDevDir = args[++i]; break;
         case "--disable": disable = true; break;
+        case "--adopt" when i + 1 < args.Length: adopt = Path.GetFullPath(args[++i]); break;
     }
 }
 
 // --- Resolve defaults ---
+// The build passes --stride-root; by hand, run from the repo root. (A file-based app is compiled into a temp
+// folder, so its own location says nothing about the repo.)
 if (string.IsNullOrEmpty(strideRoot))
-{
-    // Walk up from this script's location to find repo root
-    var dir = AppContext.BaseDirectory;
-    while (dir != null)
-    {
-        if (Directory.Exists(Path.Combine(dir, "sources", "targets")))
-        {
-            strideRoot = dir;
-            break;
-        }
-        dir = Path.GetDirectoryName(dir);
-    }
-    if (string.IsNullOrEmpty(strideRoot))
-    {
-        // Fallback: assume CWD
-        strideRoot = Directory.GetCurrentDirectory();
-    }
-}
+    strideRoot = Directory.GetCurrentDirectory();
 
 if (string.IsNullOrEmpty(solution))
 {
@@ -78,11 +71,14 @@ if (string.IsNullOrEmpty(version))
     version = mmMatch.Groups[1].Value + "." + patchMatch.Groups[1].Value + (suffixMatch.Success ? suffixMatch.Groups[1].Value : "");
 }
 
-Console.WriteLine($"Stride version: {version}");
-Console.WriteLine($"Dev root: {strideRoot}");
-Console.WriteLine($"Configuration: {configuration}");
-Console.WriteLine($"Solution: {solution}");
-Console.WriteLine($"NugetDev: {nugetDevDir}");
+if (adopt.Length == 0) // an adopt runs inside a build: its one line is printed by the build itself
+{
+    Console.WriteLine($"Stride version: {version}");
+    Console.WriteLine($"Dev root: {strideRoot}");
+    Console.WriteLine($"Configuration: {configuration}");
+    Console.WriteLine($"Solution: {solution}");
+    Console.WriteLine($"NugetDev: {nugetDevDir}");
+}
 
 // --- Toggle path (--disable): flip the flag in Stride.Local.props and exit.
 // Stub cleanup runs as a side-effect of the next build (_StrideCleanDevPackages target
@@ -90,18 +86,66 @@ Console.WriteLine($"NugetDev: {nugetDevDir}");
 if (disable)
 {
     var changed = SetDevPackagesFlag(strideRoot, enable: false);
-    Console.WriteLine(changed
-        ? "Disabled StrideDevPackages in build/Stride.Local.props. Next build will clean up the stubs."
-        : "StrideDevPackages was already off (no change).");
+    // Clean up now rather than on the next build: with the flag off nothing declares the stubs as outputs, so
+    // Visual Studio's fast up-to-date check may not run MSBuild (and its cleanup target) for a while. That
+    // target stays as the safety net for a flag flipped by hand.
+    var stamp = Path.Combine(nugetDevDir, $".devpackages-{version}");
+    var removed = 0;
+    if (File.Exists(stamp))
+    {
+        foreach (var name in File.ReadAllLines(stamp).Where(l => !string.IsNullOrWhiteSpace(l)))
+            foreach (var dir in new[] { nugetDevDir, Path.Combine(strideRoot, "bin", "packages") })
+                if (File.Exists(Path.Combine(dir, name))) { File.Delete(Path.Combine(dir, name)); removed++; }
+        foreach (var side in new[] { "", ".inputs", ".stubs" })
+            if (File.Exists(stamp + side)) File.Delete(stamp + side);
+    }
+    Console.WriteLine(changed ? "Disabled StrideDevPackages in build/Stride.Local.props." : "StrideDevPackages was already off.");
+    Console.WriteLine($"Removed {removed} stub package file(s); the next build packs real packages again.");
     return 0;
 }
 
-// --- Step 1: Pack fresh nupkgs ---
-var tempPackDir = Path.Combine(Path.GetTempPath(), "stride-devpackages-pack");
-if (Directory.Exists(tempPackDir)) Directory.Delete(tempPackDir, true);
-Directory.CreateDirectory(tempPackDir);
+// --- Step 0: The project map, the previous stamp, the inputs ---
+// A build that changed a project adopts it by itself (--adopt, run by Stride.DevPackages.targets after that
+// project's Build), so a manual run is always a full run: needed on a fresh checkout and when the script, the
+// central package versions or the solution changed (every stub depends on those).
+var projectMap = BuildProjectMap(solution, strideRoot);
+Console.WriteLine($"Found {projectMap.Count} project mappings");
+var projects = projectMap.Values.Distinct().ToList(); // the map lists a project under its package id and its assembly name
+var stampPath = Path.Combine(nugetDevDir, $".devpackages-{version}");
+var fixedInputs = new[]
+{
+    Path.Combine(strideRoot, "build", "GenerateDevPackages.cs"),
+    Path.Combine(strideRoot, "sources", "Directory.Packages.props"),
+    solution,
+};
+var previousStamp = File.Exists(stampPath) ? File.ReadAllLines(stampPath).Where(l => !string.IsNullOrWhiteSpace(l)).ToList() : new List<string>();
+// Every stub depends on the fixed inputs; each stub records the fingerprint it was generated with (the .stubs
+// file), and a project's build compares its own stub's against the current one (StrideCheckDevPackageInputs).
+var fixedFingerprint = Fingerprint(fixedInputs);
+string StubName(ProjectInfo p) => $"{p.PackageId}.{version}.nupkg";
 
-Console.WriteLine("\nBuilding + packing fresh packages...");
+
+// Stubs of projects that left the solution go (full runs only; an adopt touches one project).
+var removedStubs = adopt.Length > 0 ? new List<string>() : previousStamp
+    .Where(name => !name.StartsWith("Stride.Templates.", StringComparison.OrdinalIgnoreCase)
+                   && !projects.Any(p => string.Equals(StubName(p), name, StringComparison.OrdinalIgnoreCase)))
+    .ToList();
+
+// --- Step 1: Pack fresh nupkgs (a full run; an --adopt was handed its nupkg by the build) ---
+var tempPackDir = Path.Combine(Path.GetTempPath(), "stride-devpackages-pack");
+if (adopt.Length == 0)
+{
+    if (Directory.Exists(tempPackDir)) Directory.Delete(tempPackDir, true);
+    Directory.CreateDirectory(tempPackDir);
+    Console.WriteLine("\nPacking fresh packages...");
+    var packExitCode = PackSolution();
+    if (packExitCode != 0)
+    {
+        Console.Error.WriteLine($"ERROR: dotnet pack failed with exit code {packExitCode}; stubs not regenerated (feeds keep the previous state).");
+        return packExitCode;
+    }
+}
+
 // StrideSkipAutoPack=true: disables Sdk.targets' GeneratePackageOnBuild=true. We're explicitly
 // invoking Pack via dotnet pack, so the on-build auto-pack would create a Pack->_PackAsBuildAfterTarget
 // ->GenerateNuspec->Pack circular dependency and fail every engine project.
@@ -110,9 +154,28 @@ Console.WriteLine("\nBuilding + packing fresh packages...");
 // StridePackAssets=false: skip the asset/.sdpkg packing step. The dev-redirect consumes assets +
 // shader source straight from the checkout (NugetStore.GetRealPath -> StrideDevProjectDirectory),
 // so packed asset content would be dead weight; skipping it also drops the slow per-package copy.
+// StrideDevPackagesGenerating=true: StrideDevPackages=false would otherwise trip the flag-off cleanup target
+// (_StrideCleanDevPackages) inside this very build and wipe the current stubs before we know the pack is
+// complete. With it, the previous stubs stay until step 3 overwrites them, so a failed run leaves a working feed.
 // Output -> tempPackDir (not NugetDev); we deploy stubs there explicitly in step 3.
-// No --no-build: self-bootstraps a fresh checkout in one go.
-var packExitCode = RunProcess("dotnet", $"pack \"{solution}\" -c {configuration} -p:StrideSkipAutoPack=true -p:StrideDevPackages=false -p:StridePackAssets=false -o \"{tempPackDir}\" --verbosity normal", silent: true, onLine: line =>
+// Packed without building first: nothing in a stub depends on an up-to-date binary (the DLL and natives are
+// redirected placeholders, the nuspec is metadata, the build assets are files), only on the output existing. A
+// missing output (fresh clone, new project) fails that pack, so the pack is retried with a build.
+int PackSolution()
+{
+    var packProperties = $"-c {configuration} -p:StrideSkipAutoPack=true -p:StrideDevPackages=false -p:StrideDevPackagesGenerating=true -p:StridePackAssets=false -o \"{tempPackDir}\" --verbosity normal";
+    // --no-build implies no restore, so restore explicitly first.
+    var exitCode = RunProcess("dotnet", $"restore \"{solution}\" -p:StrideSkipAutoPack=true -p:StrideDevPackages=false --verbosity quiet", silent: true);
+    if (exitCode == 0)
+        exitCode = RunProcess("dotnet", $"pack \"{solution}\" --no-build {packProperties}", silent: true, onLine: OnPackLine);
+    if (exitCode == 0)
+        return 0;
+    Console.WriteLine("  Some output is missing or the restore failed; building + packing instead...");
+    Directory.Delete(tempPackDir, true);
+    Directory.CreateDirectory(tempPackDir);
+    return RunProcess("dotnet", $"pack \"{solution}\" {packProperties}", silent: true, onLine: OnPackLine);
+}
+void OnPackLine(string line)
 {
     // "Successfully created package 'X.nupkg'." is emitted once per project at pack completion.
     var packMarker = "Successfully created package '";
@@ -136,19 +199,13 @@ var packExitCode = RunProcess("dotnet", $"pack \"{solution}\" -c {configuration}
         Console.WriteLine("  restore phase...");
     if (line.Contains(": error "))
         Console.WriteLine($"  {line.Trim()}");
-});
-if (packExitCode != 0)
-{
-    Console.Error.WriteLine($"ERROR: dotnet pack failed with exit code {packExitCode}; stubs not regenerated (feeds keep the previous state).");
-    return packExitCode;
 }
-
-var freshPackages = Directory.GetFiles(tempPackDir, $"*.{version}.nupkg");
+var freshPackages = adopt.Length > 0 ? new[] { adopt } : Directory.GetFiles(tempPackDir, $"*.{version}.nupkg");
 
 // First run on a fresh worktree: the -devN suffix doesn't exist until the pack itself assigns
 // it (StrideEnsureWorktreeVersion writes the ledger + overlay), so the up-front derivation can
 // be wrong. The pack output is the truth — read the version off Stride.Core's nupkg.
-if (freshPackages.Length == 0)
+if (adopt.Length == 0 && freshPackages.Length == 0)
 {
     var coreVersion = Directory.GetFiles(tempPackDir, "Stride.Core.*.nupkg")
         .Select(f => Regex.Match(Path.GetFileName(f), @"^Stride\.Core\.(\d.*)\.nupkg$"))
@@ -160,7 +217,8 @@ if (freshPackages.Length == 0)
         freshPackages = Directory.GetFiles(tempPackDir, $"*.{version}.nupkg");
     }
 }
-Console.WriteLine($"Packed {freshPackages.Length} packages");
+if (adopt.Length == 0)
+    Console.WriteLine($"Packed {freshPackages.Length} packages");
 
 if (freshPackages.Length == 0)
 {
@@ -168,15 +226,31 @@ if (freshPackages.Length == 0)
     return 1;
 }
 
-// --- Step 2: Build project map from solution ---
-var projectMap = BuildProjectMap(solution, strideRoot);
-Console.WriteLine($"Found {projectMap.Count} project mappings");
+// --- Step 2: refuse a short pack ---
+// A partial pack (a concurrent build holding files, a project that failed to pack) used to be deployed as if
+// complete: the stamp was rewritten with the few stubs produced, the rest were gone, and every consumer silently
+// fell back to whatever stale package the NuGet cache still held. Every packed project that had a stub before
+// must have produced one now, else stop and leave the feed as it was.
+var fresh = freshPackages.Select(Path.GetFileName).ToHashSet(StringComparer.OrdinalIgnoreCase);
+var missing = (adopt.Length > 0 ? new List<ProjectInfo>() : projects)
+    .Select(StubName)
+    .Where(name => previousStamp.Contains(name, StringComparer.OrdinalIgnoreCase) && !fresh.Contains(name))
+    .ToList();
+if (missing.Count > 0)
+{
+    Console.Error.WriteLine($"ERROR: the pack produced {fresh.Count} package(s) but {missing.Count} previously deployed stub(s) are missing; stubs not regenerated (feeds keep the previous state):");
+    foreach (var name in missing)
+        Console.Error.WriteLine($"  {name}");
+    return 1;
+}
 
 // --- Step 3: Process each package ---
 Directory.CreateDirectory(nugetDevDir);
 var stubCount = 0;
 var skipCount = 0;
+var failures = 0;
 var generatedStubs = new List<string>();
+ProjectInfo? adoptedProject = null; // --adopt: the one project whose manifest lines get refreshed
 var nugetPackagesDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget", "packages");
 
 foreach (var pkgPath in freshPackages)
@@ -199,14 +273,16 @@ foreach (var pkgPath in freshPackages)
 
     try
     {
-        ProcessPackage(pkgPath, pkgId, projInfo, nugetDevDir, nugetPackagesDir, version, strideRoot, configuration);
+        ProcessPackage(pkgPath, pkgId, projInfo, projectMap, nugetDevDir, nugetPackagesDir, version, strideRoot, configuration);
         generatedStubs.Add(pkgFileName);
+        adoptedProject = projInfo;
         stubCount++;
         Console.WriteLine(" OK");
     }
     catch (Exception ex)
     {
         Console.WriteLine($" ERROR: {ex.Message}");
+        failures++;
     }
 }
 
@@ -215,7 +291,10 @@ foreach (var pkgPath in freshPackages)
 // the fresh nupkgs here. Globbed separately: content-versioned ones (Samples, Starters) can carry
 // a different version than the engine. Listed in the manifest so cleanup/pruning covers them;
 // after a flag-off their auto-pack (independent of StrideDevPackages) repopulates the feeds.
-foreach (var tplPath in Directory.GetFiles(tempPackDir, "Stride.Templates.*.nupkg"))
+var freshTemplates = adopt.Length > 0
+    ? freshPackages.Where(p => Path.GetFileName(p).StartsWith("Stride.Templates.", StringComparison.OrdinalIgnoreCase))
+    : Directory.GetFiles(tempPackDir, "Stride.Templates.*.nupkg");
+foreach (var tplPath in freshTemplates)
 {
     var tplName = Path.GetFileName(tplPath);
     var tplMatch = Regex.Match(tplName, @"^(?<id>.+?)\.(?<ver>\d.*)\.nupkg$");
@@ -228,19 +307,59 @@ foreach (var tplPath in Directory.GetFiles(tempPackDir, "Stride.Templates.*.nupk
     Console.WriteLine(" OK (deployed as-is)");
 }
 
-// --- Step 4: Write stamp + inputs manifests.
-// Stamp: newline list of deployed nupkg filenames (stubs + as-is templates); the cleanup
-// target reads it to delete only what we deployed.
-// Inputs: absolute paths of the csprojs we scanned; the staleness target reads it so the
-// check tracks exactly the projects that contributed (no glob false-positives from WPF tmp
-// projects, preprocessor-staged template csprojs, etc.). ---
-var stampPath = Path.Combine(nugetDevDir, $".devpackages-{version}");
-File.WriteAllLines(stampPath, generatedStubs);
-File.WriteAllLines(stampPath + ".inputs", projectMap.Values.Select(p => p.CsprojPath).Distinct());
+// --- Step 4: Write the stamp, the stubs file and the inputs manifest.
+// Stamp: newline list of deployed nupkg filenames (stubs + as-is templates); the cleanup target reads it to
+// delete only what we deployed.
+// Stubs: "<nupkg>\t<fingerprint>" per stub, the fingerprint of the fixed inputs (this script, the central package
+// versions, the solution) it was generated with; a project's build compares its own stub's with the current one.
+// Inputs: the scanned csprojs and each project's build/ & buildTransitive/ *.targets|props (packed into the
+// nupkg). One line per file, "<sha256>\t<path>": the build check uses the file mtime only as a fast prefilter
+// and confirms a newer file by content hash, so a touch, a checkout or a rebase that leaves the content
+// unchanged changes nothing. Line endings are normalized before hashing (autocrlf must not count as a change).
+// A full run rewrites all three from scratch. An adopt adds or replaces its own lines, under a process-wide
+// mutex: several projects of one build may adopt at the same time. ---
+var binPackagesDir = Path.Combine(strideRoot, "bin", "packages");
+string ManifestLine(string path) => ContentHash(path) + "\t" + Path.GetFullPath(path);
+string StubLine(string name) => name + "\t" + fixedFingerprint;
+using (var mutex = new Mutex(false, @"Global\StrideDevPackages"))
+{
+    try { mutex.WaitOne(); } catch (AbandonedMutexException) { /* the holder died; the files are whole lines, so proceed */ }
+    try
+    {
+        if (adopt.Length == 0)
+        {
+            foreach (var name in removedStubs)
+            {
+                foreach (var dir in new[] { nugetDevDir, binPackagesDir })
+                    if (File.Exists(Path.Combine(dir, name)))
+                        File.Delete(Path.Combine(dir, name));
+                Console.WriteLine($"  removed {name} (project no longer in the solution)");
+            }
+            File.WriteAllLines(stampPath, generatedStubs);
+            File.WriteAllLines(stampPath + ".stubs", generatedStubs.Select(StubLine));
+            File.WriteAllLines(stampPath + ".inputs",
+                projects.Select(p => p.CsprojPath).Concat(projects.SelectMany(BuildAssets)).Distinct().Select(ManifestLine));
+        }
+        else
+        {
+            IEnumerable<string> Lines(string path) => File.Exists(path) ? File.ReadAllLines(path).Where(l => !string.IsNullOrWhiteSpace(l)) : Enumerable.Empty<string>();
+            bool Mine(string line) => generatedStubs.Contains(line.Split('\t', 2)[0], StringComparer.OrdinalIgnoreCase);
+            File.WriteAllLines(stampPath, Lines(stampPath).Union(generatedStubs, StringComparer.OrdinalIgnoreCase));
+            File.WriteAllLines(stampPath + ".stubs", Lines(stampPath + ".stubs").Where(l => !Mine(l)).Concat(generatedStubs.Select(StubLine)));
+            if (adoptedProject != null)
+                File.WriteAllLines(stampPath + ".inputs",
+                    Lines(stampPath + ".inputs").Where(l => !l.Contains('\t') || !UnderDir(l.Split('\t', 2)[1], adoptedProject.ProjectDir))
+                        .Concat(new[] { adoptedProject.CsprojPath }.Concat(BuildAssets(adoptedProject)).Select(ManifestLine)));
+        }
+    }
+    finally
+    {
+        mutex.ReleaseMutex();
+    }
+}
 
 // Also mirror the stubs into bin/packages (not refreshed while auto-pack is skipped) so the
 // repo nuget.config's stride-local mapping keeps resolving; the flag-off cleanup removes them.
-var binPackagesDir = Path.Combine(strideRoot, "bin", "packages");
 Directory.CreateDirectory(binPackagesDir);
 foreach (var stubName in generatedStubs)
     File.Copy(Path.Combine(nugetDevDir, stubName), Path.Combine(binPackagesDir, stubName), overwrite: true);
@@ -251,7 +370,7 @@ Console.WriteLine($"Mirrored {generatedStubs.Count} stub package(s) into bin/pac
 // the same suffix belongs to this worktree; its manifest lists exactly what was deployed, so
 // delete those files (and their bin/packages mirrors) plus the stamp. Other suffixes untouched.
 var suffixIdx = version.IndexOf('-');
-if (suffixIdx >= 0)
+if (adopt.Length == 0 && suffixIdx >= 0)
 {
     var suffix = version[suffixIdx..];
     foreach (var oldStamp in Directory.GetFiles(nugetDevDir, ".devpackages-*"))
@@ -271,18 +390,28 @@ if (suffixIdx >= 0)
             }
         }
         File.Delete(oldStamp);
-        if (File.Exists(oldStamp + ".inputs")) File.Delete(oldStamp + ".inputs");
+        foreach (var side in new[] { ".inputs", ".stubs" })
+            if (File.Exists(oldStamp + side)) File.Delete(oldStamp + side);
         Console.WriteLine($"Pruned superseded {oldVersion}: {removed} package file(s)");
     }
 }
 
-// Cleanup temp
-try { Directory.Delete(tempPackDir, true); } catch { }
+// Cleanup temp (an adopt used none)
+if (adopt.Length == 0)
+    try { Directory.Delete(tempPackDir, true); } catch { }
 
 // --- Step 5: Auto-enable StrideDevPackages in build/Stride.Local.props.
 // Bootstraps the file from its template if missing (mirrors _StrideBootstrapLocalProps in
 // the Stride SDK). Subsequent builds will read the flag and skip auto-pack. ---
-var flagChanged = SetDevPackagesFlag(strideRoot, enable: true);
+var flagChanged = adopt.Length == 0 && SetDevPackagesFlag(strideRoot, enable: true);
+
+if (failures > 0)
+{
+    // The stamp was written without the failed ones: an incremental run kept their previous stubs, a full run
+    // left them out, so the build-side "stub missing" check names them on the next build.
+    Console.Error.WriteLine($"ERROR: {failures} stub(s) could not be generated (see above).");
+    return 1;
+}
 
 Console.WriteLine($"\nDone! Generated {stubCount} stubs, skipped {skipCount}.");
 if (flagChanged)
@@ -334,6 +463,41 @@ static bool SetDevPackagesFlag(string strideRoot, bool enable)
     doc.Save(localPropsPath);
     return true;
 }
+
+// Is <path> inside <dir>? Separator-terminated so a sibling whose name merely extends dir's (Stride.Core vs
+// Stride.Core.Design) does not match.
+static bool UnderDir(string path, string dir)
+    => path.StartsWith(dir.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
+
+// The build/ assets a project packs (its *.props/*.targets under build/, buildTransitive/, buildMultiTargeting/):
+// inputs of its stub alongside the csproj.
+static IEnumerable<string> BuildAssets(ProjectInfo project)
+    => new[] { "build", "buildTransitive", "buildMultiTargeting" }
+        .Select(sub => Path.Combine(project.ProjectDir, sub))
+        .Where(Directory.Exists)
+        .SelectMany(dir => Directory.EnumerateFiles(dir, "*.targets", SearchOption.AllDirectories)
+            .Concat(Directory.EnumerateFiles(dir, "*.props", SearchOption.AllDirectories)));
+
+// SHA-256 of a file's content with CRLF folded to LF, lowercase hex. Mirrored by StrideCheckDevPackageInputs
+// (sources/targets/StrideDevPackagesTasks.cs); keep the two in step.
+static string ContentHash(string path)
+{
+    var bytes = File.ReadAllBytes(path);
+    var normalized = new byte[bytes.Length];
+    var length = 0;
+    for (var i = 0; i < bytes.Length; i++)
+    {
+        if (bytes[i] == (byte)'\r' && i + 1 < bytes.Length && bytes[i + 1] == (byte)'\n')
+            continue;
+        normalized[length++] = bytes[i];
+    }
+    return Convert.ToHexString(SHA256.HashData(normalized.AsSpan(0, length))).ToLowerInvariant();
+}
+
+// The fingerprint of the fixed inputs every stub depends on: their content hashes joined by '\n', hashed again.
+// Mirrored by StrideCheckDevPackageInputs; keep the two in step.
+static string Fingerprint(IEnumerable<string> paths)
+    => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(string.Join("\n", paths.Select(p => File.Exists(p) ? ContentHash(p) : "missing"))))).ToLowerInvariant();
 
 static int RunProcess(string fileName, string arguments, bool silent = false, Action<string>? onLine = null)
 {
@@ -402,7 +566,7 @@ static Dictionary<string, ProjectInfo> BuildProjectMap(string solution, string s
 
         var isGraphicsDependent = Regex.IsMatch(content, @"<StrideGraphicsApiDependent\s*>true</StrideGraphicsApiDependent>");
 
-        var info = new ProjectInfo(projDir, asmName, isGraphicsDependent, csprojPath);
+        var info = new ProjectInfo(projDir, asmName, isGraphicsDependent, csprojPath, pkgId);
 
         // Don't overwrite — first match in solution wins
         map.TryAdd(pkgId, info);
@@ -413,23 +577,49 @@ static Dictionary<string, ProjectInfo> BuildProjectMap(string solution, string s
     return map;
 }
 
-static void ProcessPackage(string pkgPath, string pkgId, ProjectInfo projInfo, string nugetDevDir,
-    string nugetPackagesDir, string version, string strideRoot, string configuration)
+static void ProcessPackage(string pkgPath, string pkgId, ProjectInfo projInfo, Dictionary<string, ProjectInfo> projectMap,
+    string nugetDevDir, string nugetPackagesDir, string version, string strideRoot, string configuration)
 {
     using var zip = ZipFile.Open(pkgPath, ZipArchiveMode.Update);
 
-    // Keep lib/<own>.dll intact — NuGet's normal asset resolution (compile/runtime, plus
+    // Keep lib/<own>.dll and runtimes/ intact — NuGet's normal asset resolution (compile/runtime, plus
     // IncludeAssets/PrivateAssets filtering) needs an actual entry to operate on. Stripping
     // it broke composition with consumers that filter via IncludeAssets="build;buildTransitive"
     // (the build/<PkgId>.targets below substitutes the dev DLL only when NuGet would have
     // included our package's compile/runtime asset for the consumer).
+
+    // Dead weight under the redirect goes: assets and shaders are read from the checkout (the
+    // StrideDevProjectDirectory hint in the props), and the assembly processor / asset compiler
+    // from $(StrideRoot) (seeded by the props), so their stride/ content and tools/ closures are
+    // never opened. The .sdpkg stays: it is how a package is recognized as a Stride package.
+    var deadTools = pkgId is "Stride.Core" or "Stride.AssetCompiler";
+    foreach (var entry in zip.Entries.Where(e =>
+                 (e.FullName.StartsWith("stride/", StringComparison.OrdinalIgnoreCase) && !e.FullName.EndsWith(".sdpkg", StringComparison.OrdinalIgnoreCase))
+                 || (deadTools && e.FullName.StartsWith("tools/", StringComparison.OrdinalIgnoreCase))).ToList())
+        entry.Delete();
+
+    // Analyzers the package ships that are built in this checkout (a generator, or a dependency of one
+    // packed beside it): the targets below redirect them like the DLL, so a generator change reaches
+    // consumers on their next build. The dev DLL is looked up in the project's bin/<configuration>/<tfm>
+    // folders (netstandard2.0 for a classic analyzer, net10.0 for Stride's generators and their
+    // dependencies); not built yet, or no matching project, and the package's copy stays.
+    var analyzers = zip.Entries
+        .Where(e => e.FullName.StartsWith("analyzers/", StringComparison.OrdinalIgnoreCase) && e.FullName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
+        .Select(e => Path.GetFileNameWithoutExtension(e.FullName))
+        .Where(name => projectMap.ContainsKey(name))
+        .Select(name => (Name: name,
+                         RelProjDir: Path.GetRelativePath(strideRoot, projectMap[name].ProjectDir).Replace('\\', '/'),
+                         Tfm: BuiltTfm(projectMap[name].ProjectDir, configuration, name)))
+        .Where(a => a.Tfm != null)
+        .Select(a => (a.Name, a.RelProjDir, Tfm: a.Tfm!))
+        .ToList();
 
     // Inject the redirect metadata + targets into both build/ and buildTransitive/ so consumers
     // see them regardless of asset-flow filtering on transitive paths. Merge into any existing
     // <PkgId>.props/.targets the package already shipped (e.g. CompilerApp's StrideCompileAsset
     // chain, Stride.Core/Graphics native-runtime targets) — overwriting would destroy them.
     var propsContent = GenerateRedirectProps(pkgId, projInfo, strideRoot, configuration);
-    var targetsContent = GenerateRedirectTargets(pkgId, projInfo, version, strideRoot, configuration);
+    var targetsContent = GenerateRedirectTargets(pkgId, projInfo, version, strideRoot, configuration, analyzers);
 
     foreach (var (path, content) in new[]
     {
@@ -559,7 +749,8 @@ static string GenerateRedirectProps(string pkgId, ProjectInfo projInfo, string s
 // RuntimeCopyLocalItems/ResolvedCompileFileDefinitions entries for this package aren't there,
 // the targets below find nothing to substitute, and we don't sneak runtime DLLs into the
 // consumer's bin/ behind NuGet's back.
-static string GenerateRedirectTargets(string pkgId, ProjectInfo projInfo, string version, string strideRoot, string configuration)
+static string GenerateRedirectTargets(string pkgId, ProjectInfo projInfo, string version, string strideRoot, string configuration,
+    List<(string Name, string RelProjDir, string Tfm)> analyzers)
 {
     // Packages consumed only via build/buildTransitive (no compile/runtime asset flow — e.g.
     // CompilerApp invoked as a separate exe) have nothing in RuntimeCopyLocalItems for our
@@ -585,7 +776,7 @@ static string GenerateRedirectTargets(string pkgId, ProjectInfo projInfo, string
         <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
           <Target Name="_StrideDevRedirect_{{safeId}}"
                   AfterTargets="ResolvePackageAssets"
-                  BeforeTargets="ResolveLockFileReferences;ResolveLockFileCopyLocalFiles">
+                  BeforeTargets="ResolveLockFileReferences;ResolveLockFileCopyLocalFiles;ResolveLockFileAnalyzers">
 
             <PropertyGroup>
               <_StrideDev_{{safeId}}_DevDll>{{portableDll}}</_StrideDev_{{safeId}}_DevDll>
@@ -626,9 +817,91 @@ static string GenerateRedirectTargets(string pkgId, ProjectInfo projInfo, string
                 <Private>false</Private>
               </ResolvedCompileFileDefinitions>
             </ItemGroup>
+
+            <!-- Natives: each runtimes/<rid>/native/ file the package ships is replaced by the checkout's copy of
+                 the same file, which the native build puts at the same relative path next to the dev DLL. Item by
+                 item and only when that file exists (else the package's copy stays), so a native rebuild reaches
+                 consumers without regenerating stubs, and nothing the package doesn't ship (a dependency's natives
+                 also present in bin/, .lib/.pdb side files) is dragged in. Two consumer shapes: a RID-less build
+                 receives natives as RuntimeTargetsCopyLocalItems (DestinationSubDirectory = runtimes/<rid>/native/),
+                 a RID-specific one as NativeCopyLocalItems (copied flat; PathInPackage keeps the package layout). -->
+            <PropertyGroup Condition="Exists('$(_StrideDev_{{safeId}}_DevDll)')">
+              <_StrideDev_{{safeId}}_DevDir>$([System.IO.Path]::GetDirectoryName('$(_StrideDev_{{safeId}}_DevDll)'))</_StrideDev_{{safeId}}_DevDir>
+            </PropertyGroup>
+            <ItemGroup Condition="'$(_StrideDev_{{safeId}}_DevDir)' != ''">
+              <_StrideDev_{{safeId}}_PkgNatives Include="@(RuntimeTargetsCopyLocalItems)"
+                                                Condition="'%(RuntimeTargetsCopyLocalItems.NuGetPackageId)' == '{{pkgId}}' And '%(RuntimeTargetsCopyLocalItems.AssetType)' == 'native'" />
+              <_StrideDev_{{safeId}}_PkgNativesRid Include="@(NativeCopyLocalItems)"
+                                                   Condition="'%(NativeCopyLocalItems.NuGetPackageId)' == '{{pkgId}}'" />
+            </ItemGroup>
+
+            <ItemGroup Condition="'@(_StrideDev_{{safeId}}_PkgNatives)' != ''">
+              <!-- The transform keeps the package item's metadata (destination, package id, asset type), so the
+                   dev file lands exactly where the package's would have. -->
+              <_StrideDev_{{safeId}}_DevNatives Include="@(_StrideDev_{{safeId}}_PkgNatives->'$(_StrideDev_{{safeId}}_DevDir)/%(DestinationSubDirectory)%(Filename)%(Extension)')"
+                                                Condition="Exists('$(_StrideDev_{{safeId}}_DevDir)/%(DestinationSubDirectory)%(Filename)%(Extension)')">
+                <ExternallyResolved>true</ExternallyResolved>
+              </_StrideDev_{{safeId}}_DevNatives>
+              <RuntimeTargetsCopyLocalItems Remove="@(_StrideDev_{{safeId}}_PkgNatives)"
+                                            Condition="Exists('$(_StrideDev_{{safeId}}_DevDir)/%(DestinationSubDirectory)%(Filename)%(Extension)')" />
+              <RuntimeTargetsCopyLocalItems Include="@(_StrideDev_{{safeId}}_DevNatives)" />
+            </ItemGroup>
+
+            <ItemGroup Condition="'@(_StrideDev_{{safeId}}_PkgNativesRid)' != ''">
+              <_StrideDev_{{safeId}}_DevNativesRid Include="@(_StrideDev_{{safeId}}_PkgNativesRid->'$(_StrideDev_{{safeId}}_DevDir)/%(PathInPackage)')"
+                                                   Condition="Exists('$(_StrideDev_{{safeId}}_DevDir)/%(PathInPackage)')">
+                <ExternallyResolved>true</ExternallyResolved>
+              </_StrideDev_{{safeId}}_DevNativesRid>
+              <NativeCopyLocalItems Remove="@(_StrideDev_{{safeId}}_PkgNativesRid)"
+                                    Condition="Exists('$(_StrideDev_{{safeId}}_DevDir)/%(PathInPackage)')" />
+              <NativeCopyLocalItems Include="@(_StrideDev_{{safeId}}_DevNativesRid)" />
+            </ItemGroup>
+        {{AnalyzerRedirects(pkgId, safeId, version, analyzers)}}
           </Target>
         </Project>
         """;
 }
 
-record ProjectInfo(string ProjectDir, string AssemblyName, bool IsGraphicsDependent, string CsprojPath);
+// The bin/<configuration>/<tfm> folder name where this checkout built <assemblyName>.dll, or null when
+// it isn't built. Concrete, so a TargetFrameworks given as a property reference is no obstacle.
+static string? BuiltTfm(string projectDir, string configuration, string assemblyName)
+{
+    var bin = Path.Combine(projectDir, "bin", configuration);
+    if (!Directory.Exists(bin))
+        return null;
+    return Directory.GetDirectories(bin)
+        .Where(dir => File.Exists(Path.Combine(dir, assemblyName + ".dll")))
+        .Select(Path.GetFileName)
+        .FirstOrDefault();
+}
+
+// One block per analyzer the package ships and this checkout builds: the checkout's DLL replaces
+// the package's in ResolvedAnalyzers when it exists (else the package's copy stays).
+static string AnalyzerRedirects(string pkgId, string safeId, string version, List<(string Name, string RelProjDir, string Tfm)> analyzers)
+{
+    var sb = new StringBuilder();
+    foreach (var (name, relProjDir, tfm) in analyzers)
+    {
+        var devDll = $"$(StrideDevRoot)/{relProjDir}/bin/$(StrideDevConfiguration)/{tfm}/{name}.dll";
+        var safeName = name.Replace('.', '_');
+        sb.Append($$"""
+
+            <!-- Analyzer {{name}}: the checkout's build replaces the package's copy when present. -->
+            <ItemGroup Condition="Exists('{{devDll}}')">
+              <_StrideDev_{{safeId}}_Analyzer_{{safeName}} Include="@(ResolvedAnalyzers)"
+                                                          Condition="'%(ResolvedAnalyzers.NuGetPackageId)' == '{{pkgId}}' And '%(Filename)' == '{{name}}'" />
+            </ItemGroup>
+            <ItemGroup Condition="'@(_StrideDev_{{safeId}}_Analyzer_{{safeName}})' != ''">
+              <ResolvedAnalyzers Remove="@(_StrideDev_{{safeId}}_Analyzer_{{safeName}})" />
+              <ResolvedAnalyzers Include="{{devDll}}">
+                <NuGetPackageId>{{pkgId}}</NuGetPackageId>
+                <NuGetPackageVersion>{{version}}</NuGetPackageVersion>
+                <ExternallyResolved>true</ExternallyResolved>
+              </ResolvedAnalyzers>
+            </ItemGroup>
+        """);
+    }
+    return sb.ToString();
+}
+
+record ProjectInfo(string ProjectDir, string AssemblyName, bool IsGraphicsDependent, string CsprojPath, string PackageId);

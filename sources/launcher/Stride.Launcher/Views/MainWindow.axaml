@@ -5,7 +5,8 @@
         xmlns:l="using:Stride.Launcher.Assets.Localization"
         xmlns:vw="using:Stride.Launcher.Views"
         mc:Ignorable="d" d:DesignWidth="1024" d:DesignHeight="768"
-        Width="1024" Height="768" WindowStartupLocation="CenterScreen"
+        Width="1024" Height="768" MaxWidth="2560" MaxHeight="1440"
+        WindowStartupLocation="CenterScreen"
         x:Class="Stride.Launcher.Views.MainWindow"
         Icon="/Assets/Launcher.ico"
         Title="{x:Static l:Strings.LauncherTitle}">

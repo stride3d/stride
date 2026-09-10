@@ -44,7 +44,6 @@ public partial class SPVGenerator
     public static string GenerateImplicitTuples(in EquatableList<string> parameters, in SpirvGrammar grammar)
     {
         var sb = StringBuilderPool.Get();
-        StringBuilderPool.Return(sb);
         if (parameters.AsList() is List<string> { Count: > 0 } paramsList)
         {
             sb.AppendLine(@$"
@@ -77,7 +76,9 @@ public partial class SPVGenerator
                 }
                 ");
         }
-        return sb.ToString();
+        var result = sb.ToString();
+        StringBuilderPool.Return(sb);
+        return result;
     }
     public static string GenerateImplicitCasting(in OpKind opkind, in SpirvGrammar grammar)
     {
@@ -229,8 +230,9 @@ public partial class SPVGenerator
 
 
         sb.AppendLine("}");
+        var result = sb.ToString();
         StringBuilderPool.Return(sb);
-        return sb.ToString();
+        return result;
     }
 
 

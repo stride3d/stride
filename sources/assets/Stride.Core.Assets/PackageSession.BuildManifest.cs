@@ -327,14 +327,30 @@ partial class PackageSession
                 continue;
 
             var package = Package.LoadRaw(log, sdpkgPath);
-            package.Meta.Name = library.Name;
-            package.Meta.Version = library.Version.ToPackageVersion();
-            var container = new StandalonePackage(package) { IsDependencyPackage = true };
             // The packed sdpkg's declarations (host-loadable, narrowed to asset types) are the
             // complete list; a package declaring none gets no assembly loaded.
             var sdpkgDirectory = Path.GetDirectoryName(sdpkgPath)!;
-            var hostAssetAssemblies = SelectHostAssetAssemblies(package.AssetAssemblies);
-            container.Assemblies.AddRange(hostAssetAssemblies.Select(a => Path.GetFullPath(Path.Combine(sdpkgDirectory, a.Path!.ToOSPath()))));
+            var hostAssetAssemblies = SelectHostAssetAssemblies(package.AssetAssemblies)
+                .Select(a => Path.GetFullPath(Path.Combine(sdpkgDirectory, a.Path!.ToOSPath()))).ToList();
+
+            // A dev-redirect stub (source checkout, StrideDevPackages) ships the packed sdpkg but none of its
+            // assets: those, and the shader sources, are read live from the checkout project, through the
+            // project's own sdpkg, so an edited engine asset or shader reaches a game's build with no
+            // regeneration. The packed sdpkg still names the asset assemblies (resolved above) and the asset
+            // namespace (a build property, absent from the source sdpkg).
+            var devProjectDirectory = NugetStore.TryGetDevRedirectProjectDirectory(libraryPath, library.Name);
+            var sourceSdpkgPath = devProjectDirectory is null ? null : Path.Combine(devProjectDirectory, library.Name + Package.PackageFileExtension);
+            if (sourceSdpkgPath is not null && File.Exists(sourceSdpkgPath))
+            {
+                var packedAssetNamespace = package.AssetNamespace;
+                package = Package.LoadRaw(log, sourceSdpkgPath);
+                package.AssetNamespace ??= packedAssetNamespace;
+            }
+
+            package.Meta.Name = library.Name;
+            package.Meta.Version = library.Version.ToPackageVersion();
+            var container = new StandalonePackage(package) { IsDependencyPackage = true };
+            container.Assemblies.AddRange(hostAssetAssemblies);
             Projects.Add(container);
             package.State = PackageState.DependenciesReady;
             sdpkgPackagesByName.Add(library.Name, container);

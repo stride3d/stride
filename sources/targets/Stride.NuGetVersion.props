@@ -16,6 +16,9 @@
     <_StridePackagePublicVersion>$(_StridePackageMajorMinor).$(_StridePackagePatch)</_StridePackagePublicVersion>
     <StrideNuGetVersionSuffix>$([System.Text.RegularExpressions.Regex]::Match($(_StrideSharedAssemblyInfoLines), `.*NuGetVersionSuffix = \"(.*)\";.*`).Groups[1].Value)</StrideNuGetVersionSuffix>
     <StrideBuildMetadata>$([System.Text.RegularExpressions.Regex]::Match($(_StrideSharedAssemblyInfoLines), `.*BuildMetadata = \"(.*)\";.*`).Groups[1].Value)</StrideBuildMetadata>
-    <StrideNuGetVersion>$(_StridePackagePublicVersion)$(StrideNuGetVersionSuffix)$(StrideBuildMetadata)</StrideNuGetVersion>
+    <!-- WithoutMetadata is the version consumers reference (feeds normalize the +metadata away); the full
+         version (with the git hash on package builds) is only for the produced packages themselves. -->
+    <StrideNuGetVersionWithoutMetadata>$(_StridePackagePublicVersion)$(StrideNuGetVersionSuffix)</StrideNuGetVersionWithoutMetadata>
+    <StrideNuGetVersion>$(StrideNuGetVersionWithoutMetadata)$(StrideBuildMetadata)</StrideNuGetVersion>
   </PropertyGroup>
 </Project>

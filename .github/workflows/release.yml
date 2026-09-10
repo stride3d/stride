@@ -135,6 +135,8 @@ jobs:
             -p:StrideSign=${{ inputs.sign }} `
             -p:StrideVersionSuffix=${{ inputs.version-suffix }} `
             -p:StrideBuildPrerequisitesInstaller=${{ inputs.build-prerequisites-installer }} `
+            -p:StrideSentryDsn=${{ vars.STRIDE_SENTRY_DSN }} `
+            -p:StrideSentryEnvironment=${{ vars.STRIDE_SENTRY_DSN != '' && 'release' || '' }} `
             -p:StrideNativeBuildMode=Clang
         env:
           StrideDisableAssetCompilerExecServerProxy: true
@@ -213,6 +215,7 @@ jobs:
     needs: Package
     permissions:
       contents: write
+      pull-requests: read  # the nested ReleaseNotes job reads PRs
     uses: ./.github/workflows/release-deploy.yml
     with:
       run-id: ${{ github.run_id }}

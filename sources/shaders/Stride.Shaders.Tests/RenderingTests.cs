@@ -98,8 +98,9 @@ public partial class RenderingTests
         FrameRenderer renderer;
         if (backend == RendererBackend.Direct3D11)
         {
-            // Convert to HLSL
-            var translator = new SpirvTranslator(bytecode.ToArray().AsMemory().Cast<byte, uint>());
+            // Convert to HLSL, legalizing first like the runtime path in EffectCompiler
+            var legalized = SpirvTools.LegalizeForHlsl(MemoryMarshal.Cast<byte, uint>(bytecode));
+            var translator = new SpirvTranslator(legalized.AsMemory());
             var entryPoints = translator.GetEntryPoints();
             var codeCS = translator.Translate(Backend.Hlsl, entryPoints.First(x => x.ExecutionModel == ExecutionModel.GLCompute));
 

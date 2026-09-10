@@ -77,7 +77,7 @@
          from PackageVersion: content-versioned packages (Samples/Starters) follow StrideSamplesVersion,
          but their PackageReferences must name engine packages that actually exist. -->
     <PropertyGroup>
-      <_StrideTemplatesEngineVersion>$(StrideNuGetVersion)</_StrideTemplatesEngineVersion>
+      <_StrideTemplatesEngineVersion>$(StrideNuGetVersionWithoutMetadata)</_StrideTemplatesEngineVersion>
       <_StrideTemplatesEngineVersion Condition="'$(StrideWorktreeSuffix)' != '' And !$(_StrideTemplatesEngineVersion.EndsWith('$(StrideWorktreeSuffix)'))">$(_StrideTemplatesEngineVersion)$(StrideWorktreeSuffix)</_StrideTemplatesEngineVersion>
     </PropertyGroup>
   </Target>

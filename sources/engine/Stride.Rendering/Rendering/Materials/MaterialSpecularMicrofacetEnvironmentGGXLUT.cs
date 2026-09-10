@@ -23,12 +23,23 @@ namespace Stride.Rendering.Materials
     {
         public ShaderSource Generate(MaterialGeneratorContext context)
         {
-            var texture = context.GraphicsProfile >= GraphicsProfile.Level_10_0
-                ? AttachedReferenceManager.CreateProxyObject<Texture>(new AssetId("a49995f8-2380-4baa-a03e-f8d1da35b79a"), "/Stride.Engine/StrideEnvironmentLightingDFGLUT16")
-                : AttachedReferenceManager.CreateProxyObject<Texture>(new AssetId("87540190-ab97-4b4e-b3c2-d57d2fbb1ff3"), "/Stride.Engine/StrideEnvironmentLightingDFGLUT8");
-            context.Parameters.Set(MaterialSpecularMicrofacetEnvironmentGGXLUTKeys.EnvironmentLightingDFG_LUT, texture);
+            context.Parameters.Set(MaterialSpecularMicrofacetEnvironmentGGXLUTKeys.EnvironmentLightingDFG_LUT, CreateLookupTableReference(context.GraphicsProfile));
 
             return new ShaderClassSource("MaterialSpecularMicrofacetEnvironmentGGXLUT");
+        }
+
+        /// <summary>
+        /// Creates the reference to the lookup table texture used for the given profile.
+        /// </summary>
+        /// <remarks>
+        /// The returned texture is an empty proxy holding the asset reference; a content load resolves
+        /// it to the real texture (see <see cref="ParameterCollectionExtensions.ResolveAttachedReferences"/>).
+        /// </remarks>
+        public static Texture CreateLookupTableReference(GraphicsProfile profile)
+        {
+            return profile >= GraphicsProfile.Level_10_0
+                ? AttachedReferenceManager.CreateProxyObject<Texture>(new AssetId("a49995f8-2380-4baa-a03e-f8d1da35b79a"), "/Stride.Engine/StrideEnvironmentLightingDFGLUT16")
+                : AttachedReferenceManager.CreateProxyObject<Texture>(new AssetId("87540190-ab97-4b4e-b3c2-d57d2fbb1ff3"), "/Stride.Engine/StrideEnvironmentLightingDFGLUT8");
         }
 
         public override bool Equals(object obj)

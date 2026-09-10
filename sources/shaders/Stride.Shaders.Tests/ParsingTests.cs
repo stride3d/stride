@@ -17,6 +17,11 @@ public class ParsingTests1
         {
             yield return new object[] { file };
         }
+        files = Directory.GetFiles("assets/SDSL", "*.sdsl", SearchOption.AllDirectories);
+        foreach (var file in files)
+        {
+            yield return new object[] { file };
+        }
     }
 
     [Theory]

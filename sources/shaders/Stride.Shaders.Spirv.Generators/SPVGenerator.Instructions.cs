@@ -217,8 +217,9 @@ public partial class SPVGenerator
             ");
         }
         structBuilder.AppendLine("}");
+        var result = structBuilder.ToString();
         StringBuilderPool.Return(structBuilder);
-        return structBuilder.ToString();
+        return result;
 
     }
 
@@ -243,8 +244,9 @@ public partial class SPVGenerator
             }
             else
                 sb.Append(instruction.OpName).Append(", ").Append(string.Join(", ", operands.Select(ToSpreadOperator)));
+            var result = sb.ToString();
             StringBuilderPool.Return(sb);
-            return sb.ToString();
+            return result;
         }
         return instruction.OpName;
     }
@@ -263,8 +265,9 @@ public partial class SPVGenerator
             if (operand.IsParameterized)
                 break;
         }
+        var result = sb.ToString();
         StringBuilderPool.Return(sb);
-        return sb.ToString();
+        return result;
     }
     public static string ToAssignSwitchCase(OperandData operand)
     {
@@ -304,8 +307,9 @@ public partial class SPVGenerator
             sb.AppendLine("}");
         sb.Append("break;");
 
+        var result = sb.ToString();
         StringBuilderPool.Return(sb);
-        return sb.ToString();
+        return result;
     }
     public static string ToFunctionParameters(OperandData operand)
     {

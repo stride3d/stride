@@ -1,0 +1,39 @@
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.props" />
+  <PropertyGroup>
+    <!-- UI-agnostic and cross-platform: shared by the WPF window, the Avalonia launcher, and headless tools -->
+    <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
+    <!-- Builds Native/*.cpp into runtimes/<rid>/native/libstridecrash.<ext>: the native crash trigger.
+         Windows-only in effect; a no-op stub elsewhere. Deleted once .NET 12's SetFatalErrorHandler lands. -->
+    <StrideNativeOutputName>libstridecrash</StrideNativeOutputName>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Sentry is an implementation detail. PrivateAssets=all keeps it entirely private to this project so it
+         never flows to consumers: notably its Roslyn source generator, which otherwise reaches games (via the
+         asset-compiler dependency) and fails there emitting code against a Sentry assembly they don't reference. -->
+    <PackageReference Include="Sentry" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- ClrMD: at a fatal crash, snapshot the process and walk the other threads' managed stacks (the crashing
+         thread's stack comes from the exception). Flows to consumers, which do the capture. No analyzer, so
+         nothing leaks into game compiles; as the asset compiler's runtime dep it stays in its bin, not games' output. -->
+    <PackageReference Include="Microsoft.Diagnostics.Runtime" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Native access-violation handler (vectored exception handler + minidump). Shared with the test
+         harness and the asset compiler; here it backs NativeCrashReporting for the in-process apps. -->
+    <Compile Include="..\..\shared\NativeCrashHandler.cs" Link="NativeCrashHandler.cs" />
+  </ItemGroup>
+  <!-- StrideSentryDsn: a DSN sends crash reports there (official CI sets it, with StrideSentryEnvironment
+       release/nightly; a fork sets its own); 'false' removes crash sending entirely; unset sends to the dev channel -->
+  <ItemGroup Condition="'$(StrideSentryDsn)' != '' and '$(StrideSentryDsn)' != 'false'">
+    <AssemblyMetadata Include="SentryDsn" Value="$(StrideSentryDsn)" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(StrideSentryDsn)' == 'false'">
+    <AssemblyMetadata Include="SentryDisabled" Value="true" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(StrideSentryEnvironment)' != ''">
+    <AssemblyMetadata Include="SentryEnvironment" Value="$(StrideSentryEnvironment)" />
+  </ItemGroup>
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />
+</Project>

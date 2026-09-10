@@ -9,7 +9,7 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>stride</ToolCommandName>
     <PackageId>Stride.Cli</PackageId>
-    <VersionPrefix>1.0.1</VersionPrefix>
+    <VersionPrefix>1.0.2</VersionPrefix>
     <Description>Command-line tool for Stride: install Stride versions and create, build, and manage Stride projects.</Description>
     <PackageTags>stride;gamedev;cli;dotnet-tool</PackageTags>
   </PropertyGroup>
@@ -39,6 +39,15 @@
   <ItemGroup>
     <ProjectReference Include="..\..\assets\Stride.Core.Packages\Stride.Core.Packages.csproj" />
     <ProjectReference Include="..\..\core\Stride.Core.Design\Stride.Core.Design.csproj" />
+    <!-- crash send/list: read the on-disk crash store written by headless tools and submit via the shared sender. -->
+    <ProjectReference Include="..\..\crashreport\Stride.CrashReport\Stride.CrashReport.csproj" />
+    <!-- Sentry is used by the core's crash sender at send time, but it's PrivateAssets=all in the core (to keep
+         its Roslyn generator out of game builds) so it doesn't flow here. Reference it directly so Sentry.dll is
+         bundled in the tool for the send. ExcludeAssets analyzers/build (not PrivateAssets=all): this is a leaf
+         tool so nothing flows onward, and PrivateAssets=all would drop Sentry.dll from the tool payload while the
+         generator still injected a startup initializer that needs it - so every command failed to load Sentry.
+         Dropping the generator/build assets keeps the runtime (Sentry.dll) without that initializer. -->
+    <PackageReference Include="Sentry" ExcludeAssets="analyzers;build" />
   </ItemGroup>
   <!-- Engine-dependency-free template-engine glue, shared by source with Stride.Assets rather than
        referencing the engine assembly. -->

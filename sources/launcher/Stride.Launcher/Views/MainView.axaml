@@ -6,6 +6,7 @@
              xmlns:mv="using:MarkView.Avalonia"
              xmlns:p="using:Stride.Core.Presentation.Avalonia.Services"
              xmlns:l="using:Stride.Launcher.Assets.Localization"
+             xmlns:cvt="using:Stride.Launcher.Converters"
              xmlns:srv="using:Stride.Launcher.Services"
              xmlns:vm="using:Stride.Launcher.ViewModels"
              xmlns:vw="using:Stride.Launcher.Views"
@@ -204,21 +205,21 @@
                   <Grid Height="48">
                     <!-- Launch game studio -->
                     <Button Command="{Binding StartStudioCommand}"
-                            Content="{Binding ActiveVersion.FullName, StringFormat={x:Static l:Strings.StartVersion}}" FontSize="24"
+                            Content="{Binding ActiveVersion?.FullName, StringFormat={x:Static l:Strings.StartVersion}}" FontSize="24"
                             HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                             HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                             Background="{DynamicResource BackgroundEmphasis}"
-                            IsEnabled="{Binding !ActiveVersion.IsProcessing}"
-                            IsVisible="{Binding ActiveVersion.CanStart}" />
+                            IsEnabled="{Binding !ActiveVersion?.IsProcessing}"
+                            IsVisible="{Binding ActiveVersion?.CanStart, TargetNullValue={x:False}}" />
                     <!-- Install specific version -->
-                    <Button Command="{Binding ActiveVersion.DownloadCommand}"
-                            Content="{Binding ActiveVersion.FullName, StringFormat={x:Static l:Strings.InstallVersion}}" FontSize="24"
+                    <Button Command="{Binding ActiveVersion?.DownloadCommand}"
+                            Content="{Binding ActiveVersion?.FullName, StringFormat={x:Static l:Strings.InstallVersion}}" FontSize="24"
                             HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                             HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                             Background="{DynamicResource BackgroundEmphasis}"
-                            IsEnabled="{Binding !ActiveVersion.IsProcessing}"
-                            IsVisible="{sd:MultiBinding {Binding ActiveVersion.DownloadCommand.IsEnabled},
-                                                        {Binding !ActiveVersion.CanStart},
+                            IsEnabled="{Binding !ActiveVersion?.IsProcessing}"
+                            IsVisible="{sd:MultiBinding {Binding ActiveVersion?.DownloadCommand.IsEnabled},
+                                                        {Binding !ActiveVersion?.CanStart},
                                                         Converter={sd:AndMulti}}" />
                     <!-- Install latest version (nothing installed) -->
                     <Button Command="{Binding InstallLatestVersionCommand}"
@@ -231,11 +232,11 @@
                   </Grid>
                   <ComboBox x:Name="FrameworkSelector" Margin="0,4"
                             HorizontalAlignment="Stretch"
-                            ItemsSource="{Binding ActiveVersion.Frameworks}"
-                            SelectedItem="{Binding ActiveVersion.SelectedFramework}"
+                            ItemsSource="{Binding ActiveVersion?.Frameworks}"
+                            SelectedItem="{Binding ActiveVersion?.SelectedFramework}"
                             SelectionChanged="FrameworkChanged"
-                            IsEnabled="{Binding !ActiveVersion.IsProcessing, FallbackValue=False}"
-                            IsVisible="{Binding ActiveVersion.Frameworks.Count, Converter={sd:Chained {sd:IsGreater}, Parameter1={sd:Double 1}}, FallbackValue=False}">
+                            IsEnabled="{Binding !ActiveVersion?.IsProcessing, FallbackValue={x:False}}"
+                            IsVisible="{Binding ActiveVersion?.Frameworks.Count, Converter={sd:Chained {sd:IsGreater}, Parameter1={sd:Double 1}}, FallbackValue={x:False}, TargetNullValue={x:False}}">
                     <ComboBox.ItemTemplate>
                       <DataTemplate>
                         <TextBlock Text="{Binding Converter={vm:FrameworkConverter}}" />
@@ -244,11 +245,11 @@
                   </ComboBox>
                   <ComboBox x:Name="EditorSelector" Margin="0,4"
                             HorizontalAlignment="Stretch"
-                            ItemsSource="{Binding ActiveVersion.AvailableEditors}"
-                            SelectedItem="{Binding ActiveVersion.SelectedEditor}"
+                            ItemsSource="{Binding ActiveVersion?.AvailableEditors}"
+                            SelectedItem="{Binding ActiveVersion?.SelectedEditor}"
                             SelectionChanged="EditorChanged"
-                            IsEnabled="{Binding !ActiveVersion.IsProcessing, FallbackValue=False}"
-                            IsVisible="{Binding ActiveVersion.AvailableEditors.Count, Converter={sd:Chained {sd:IsGreater}, Parameter1={sd:Double 1}}, FallbackValue=False}">
+                            IsEnabled="{Binding !ActiveVersion?.IsProcessing, FallbackValue={x:False}}"
+                            IsVisible="{Binding ActiveVersion?.AvailableEditors.Count, Converter={sd:Chained {sd:IsGreater}, Parameter1={sd:Double 1}}, FallbackValue={x:False}, TargetNullValue={x:False}}">
                     <ComboBox.ItemTemplate>
                       <DataTemplate>
                         <TextBlock Text="{Binding Converter={vm:EditorNameConverter}}" />
@@ -414,7 +415,7 @@
                                        Width="20" Height="20" />
                               </Button>
                               <!-- Alternate versions -->
-                              <ToggleButton x:Name="Toggle" Margin="4,0,0,0" Width="32" Height="32"
+                              <ToggleButton x:Name="AlternateVersionToggle" Margin="4,0,0,0" Width="32" Height="32"
                                             ToolTip.Tip="Install another version">
                                 <Interaction.Behaviors>
                                   <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding Launcher.CurrentToolTip}"
@@ -422,28 +423,31 @@
                                 </Interaction.Behaviors>
                                 <Image Source="/Assets/Images/list.png" Width="20" Height="20" />
                               </ToggleButton>
-                              <Popup x:Name="Popup"
-                                     IsOpen="{Binding #Toggle.IsChecked, Mode=TwoWay}" IsLightDismissEnabled="True">
-                                <Border Margin="0,0,4,4" Background="{DynamicResource SystemChromeMediumLowColor}">
-                                  <Border.Effect>
-                                    <DropShadowEffect BlurRadius="5" Opacity="0.4" />
-                                  </Border.Effect>
+                              <Popup x:Name="AlternateVersionPopup"
+                                     IsOpen="{Binding #AlternateVersionToggle.IsChecked, Mode=TwoWay}" IsLightDismissEnabled="True"
+                                     PlacementTarget="AlternateVersionToggle">
+                                <Border Background="{DynamicResource MenuFlyoutPresenterBackground}"
+                                        BorderBrush="{DynamicResource MenuFlyoutPresenterBorderBrush}"
+                                        BorderThickness="{DynamicResource MenuFlyoutPresenterBorderThemeThickness}"
+                                        CornerRadius="{DynamicResource OverlayCornerRadius}">
                                   <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="256">
-                                    <ItemsControl ItemsSource="{Binding AlternateVersions}">
-                                      <ItemsControl.ItemTemplate>
-                                        <DataTemplate DataType="{x:Type vm:StrideStoreAlternateVersionViewModel}">
-                                          <Button Content="{Binding FullName, StringFormat={x:Static l:Strings.ToolTipSetActiveVersion}}"
-                                                  Command="{Binding SetAsActiveCommand}"
-                                                  HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
-                                            <Interaction.Behaviors>
-                                              <EventTriggerBehavior EventName="Click">
-                                                <ChangePropertyAction TargetObject="{Binding #Popup}" PropertyName="IsOpen" Value="False" />
-                                              </EventTriggerBehavior>
-                                            </Interaction.Behaviors>
-                                          </Button>
+                                    <ListBox x:Name="AlternateVersionListBox"
+                                             Background="Transparent"
+                                             ItemsSource="{Binding AlternateVersions}">
+                                      <Interaction.Behaviors>
+                                        <EventTriggerBehavior EventName="SelectionChanged">
+                                          <InvokeCommandAction Command="{Binding #AlternateVersionListBox.((vm:StrideStoreAlternateVersionViewModel)SelectedItem)?.SetAsActiveCommand}" />
+                                          <ChangePropertyAction TargetObject="{Binding #AlternateVersionPopup}" PropertyName="IsOpen" Value="False" />
+                                          <ChangePropertyAction TargetObject="{Binding #AlternateVersionListBox}" PropertyName="SelectedItem" Value="{x:Null}" />
+                                        </EventTriggerBehavior>
+                                      </Interaction.Behaviors>
+                                      <ListBox.ItemTemplate>
+                                        <DataTemplate DataType="vm:StrideStoreAlternateVersionViewModel">
+                                          <TextBlock Text="{Binding FullName, StringFormat={x:Static l:Strings.ToolTipSetActiveVersion}}"
+                                                     TextTrimming="CharacterEllipsis" />
                                         </DataTemplate>
-                                      </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
+                                      </ListBox.ItemTemplate>
+                                    </ListBox>
                                   </ScrollViewer>
                                 </Border>
                               </Popup>
@@ -505,8 +509,24 @@
           </DockPanel>
 
           <Grid Grid.Column="1"
+                Classes="rn-slide"
+                Classes.visible="{Binding !ActiveReleaseNotes?.IsActive, FallbackValue={x:True}, TargetNullValue={x:True}}"
+                IsHitTestVisible="{Binding !ActiveReleaseNotes?.IsActive, FallbackValue={x:True}, TargetNullValue={x:True}}"
                 ColumnDefinitions="*, *"
-                IsEnabled="{Binding !ActiveReleaseNotes.IsActive, FallbackValue={x:True}}">
+                IsEnabled="{Binding !ActiveReleaseNotes?.IsActive, FallbackValue={x:True}}">
+            <Grid.Styles>
+              <Style Selector="Grid.rn-slide.visible">
+                <Setter Property="Opacity" Value="1.0"/>
+              </Style>
+              <Style Selector="Grid.rn-slide:not(.visible)">
+                <Setter Property="Opacity" Value="0.0"/>
+              </Style>
+            </Grid.Styles>
+            <Grid.Transitions>
+              <Transitions>
+                <DoubleTransition Property="Opacity" Duration="0:0:0.5" Easing="CubicEaseInOut"/>
+              </Transitions>
+            </Grid.Transitions>
             <!-- SECOND COLUMN -->
             <Border Grid.Column="0">
               <!-- Recent projects  -->
@@ -550,7 +570,7 @@
                                 <DockPanel Margin="8,4">
                                   <DockPanel DockPanel.Dock="Bottom">
                                     <!-- Update dropdown -->
-                                    <ToggleButton DockPanel.Dock="Right" x:Name="Toggle"
+                                    <ToggleButton DockPanel.Dock="Right" x:Name="CompatibleVersionToggle"
                                                   Padding="2"
                                                   IsVisible="{Binding CompatibleVersions.Count}"
                                                   ToolTip.Tip="Upgrade to a more recent version">
@@ -560,22 +580,32 @@
                                       </Interaction.Behaviors>
                                       <Image Width="16" Height="16" Source="/Assets/Images/upgrade.png" />
                                     </ToggleButton>
-                                    <Popup IsOpen="{Binding #Toggle.IsChecked, Mode=TwoWay}" IsLightDismissEnabled="True"
-                                           PlacementTarget="{Binding #Toggle}">                                           
-                                      <Border Margin="0,0,4,4" Background="{DynamicResource SystemChromeMediumLowColor}">
-                                        <Border.Effect>
-                                          <DropShadowEffect BlurRadius="5" Opacity="0.4" />
-                                        </Border.Effect>
+                                    <Popup x:Name="CompatibleVersionPopup"
+                                           IsOpen="{Binding #CompatibleVersionToggle.IsChecked, Mode=TwoWay}" IsLightDismissEnabled="True"
+                                           PlacementTarget="{Binding #CompatibleVersionToggle}">
+                                      <Border Background="{DynamicResource MenuFlyoutPresenterBackground}"
+                                              BorderBrush="{DynamicResource MenuFlyoutPresenterBorderBrush}"
+                                              BorderThickness="{DynamicResource MenuFlyoutPresenterBorderThemeThickness}"
+                                              CornerRadius="{DynamicResource OverlayCornerRadius}">
                                         <ScrollViewer VerticalScrollBarVisibility="Auto">
-                                          <ItemsControl ItemsSource="{Binding CompatibleVersions}">
-                                            <ItemsControl.ItemTemplate>
-                                              <DataTemplate DataType="{x:Type vm:StrideVersionViewModel}">
-                                                <Button Content="{Binding DisplayName, StringFormat={x:Static l:Strings.OpenProjectWithVersion}}"
-                                                        Command="{Binding $parent[ScrollViewer].((vm:RecentProjectViewModel)DataContext).OpenWithCommand}"
-                                                        HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" />
+                                          <ListBox x:Name="CompatibleVersionListBox"
+                                                   Background="Transparent"
+                                                   ItemsSource="{Binding CompatibleVersions}">
+                                            <Interaction.Behaviors>
+                                              <EventTriggerBehavior EventName="SelectionChanged">
+                                                <InvokeCommandAction Command="{Binding $parent[ScrollViewer].((vm:RecentProjectViewModel)DataContext).OpenWithCommand}"
+                                                                     CommandParameter="{Binding #CompatibleVersionListBox.SelectedItem}" />
+                                                <ChangePropertyAction TargetObject="{Binding #CompatibleVersionPopup}" PropertyName="IsOpen" Value="False" />
+                                                <ChangePropertyAction TargetObject="{Binding #CompatibleVersionListBox}" PropertyName="SelectedItem" Value="{x:Null}" />
+                                              </EventTriggerBehavior>
+                                            </Interaction.Behaviors>
+                                            <ListBox.ItemTemplate>
+                                              <DataTemplate DataType="vm:StrideVersionViewModel">
+                                                <TextBlock Text="{Binding DisplayName, StringFormat={x:Static l:Strings.OpenProjectWithVersion}}"
+                                                           TextTrimming="CharacterEllipsis" />
                                               </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                          </ItemsControl>
+                                            </ListBox.ItemTemplate>
+                                          </ListBox>
                                         </ScrollViewer>
                                       </Border>
                                     </Popup>
@@ -627,7 +657,7 @@
                 <TabItem Header="{x:Static l:Strings.TabGettingStarted}">
                   <ScrollViewer>
                     <StackPanel>
-                      <Border IsVisible="{Binding !ActiveDocumentationPages.Count, FallbackValue={x:False}}">
+                      <Border IsVisible="{Binding !ActiveDocumentationPages.Count, FallbackValue={x:False}, TargetNullValue={x:False}}">
                         <TextBlock Text="{x:Static l:Strings.NoDocumentation}"
                                    FontSize="16" Margin="20"
                                    TextAlignment="Center" VerticalAlignment="Center" />
@@ -658,7 +688,7 @@
                   <ScrollViewer>
                     <StackPanel>
                       <Border Background="{DynamicResource BackgroundTileAlpha}"
-                              IsVisible="{Binding !NewsPages.Count, FallbackValue={x:False}}">
+                              IsVisible="{Binding !NewsPages?.Count, FallbackValue={x:False}, TargetNullValue={x:False}}">
                         <TextBlock Text="{x:Static l:Strings.NoNews}"
                                    FontSize="16" Margin="20"
                                    TextAlignment="Center" VerticalAlignment="Center" />
@@ -693,20 +723,25 @@
           <!-- Release notes -->
           <Grid Grid.Column="1"
                 Classes="rn-slide"
-                Classes.visible="{Binding ActiveReleaseNotes.IsActive, FallbackValue={x:False}}"
-                IsHitTestVisible="{Binding ActiveReleaseNotes.IsActive, FallbackValue={x:False}}"
-                IsEnabled="{Binding ActiveReleaseNotes.IsActive, FallbackValue={x:False}}">
+                Classes.visible="{Binding ActiveReleaseNotes?.IsActive, FallbackValue={x:False}, TargetNullValue={x:False}}"
+                IsHitTestVisible="{Binding ActiveReleaseNotes?.IsActive, FallbackValue={x:False}, TargetNullValue={x:False}}"
+                IsEnabled="{Binding ActiveReleaseNotes?.IsActive, FallbackValue={x:False}, TargetNullValue={x:False}}">
             <Grid.Styles>
               <Style Selector="Grid.rn-slide.visible">
                 <Setter Property="RenderTransform" Value="translateX(0)"/>
               </Style>
               <Style Selector="Grid.rn-slide:not(.visible)">
-                <Setter Property="RenderTransform" Value="translateX(2000px)"/>
+                <!--
+                  This moves the panel beyond the rightmost side of the window.
+                  The value here is based on the MaxWidth of the Launcher window (2560) - widfth of the first column (400).
+                  It should be in sync with the same animation for the release note panel below.
+                -->
+                <Setter Property="RenderTransform" Value="translateX(2160px)"/>
               </Style>
             </Grid.Styles>
             <Grid.Transitions>
               <Transitions>
-                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:1.0" Easing="CubicEaseOut"/>
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.5" Easing="CubicEaseInOut"/>
               </Transitions>
             </Grid.Transitions>
             <DockPanel Background="{DynamicResource BackgroundTileAlpha}">
@@ -714,22 +749,52 @@
                 <Button DockPanel.Dock="Right"
                         Classes="TransparentButton"
                         Margin="8"
-                        Command="{Binding ActiveReleaseNotes.ToggleCommand}"
+                        Command="{Binding ActiveReleaseNotes?.ToggleCommand}"
                         Content="×" FontSize="20" />
+                <ToggleButton DockPanel.Dock="Left" x:Name="OutlineToggle"
+                              Margin="12 0 0 0">
+                  <Image Source="/Assets/Images/list.png" Width="20" Height="20" />
+                </ToggleButton>
+                <Popup x:Name="OutlinePopup"
+                       IsOpen="{Binding #OutlineToggle.IsChecked, Mode=TwoWay}" IsLightDismissEnabled="True"
+                       PlacementTarget="{Binding #OutlineToggle}"
+                       Placement="BottomEdgeAlignedLeft">
+                  <Border Background="{DynamicResource MenuFlyoutPresenterBackground}"
+                          BorderBrush="{DynamicResource MenuFlyoutPresenterBorderBrush}"
+                          BorderThickness="{DynamicResource MenuFlyoutPresenterBorderThemeThickness}"
+                          CornerRadius="{DynamicResource OverlayCornerRadius}"
+                          Padding="8" Width="360" MaxHeight="420">
+                    <ScrollViewer>
+                      <ListBox x:Name="OutlineList"
+                              Background="Transparent"
+                              SelectionChanged="OnOutlineSelectionChanged"
+                              ItemsSource="{Binding #ReleaseNotesView.TableOfContents, Converter={cvt:OutlineConverter}}">
+                        <ListBox.ItemTemplate>
+                          <DataTemplate DataType="cvt:OutlineRow">
+                            <TextBlock Text="{Binding Entry.Text}" Margin="{Binding Indent}"
+                                       TextTrimming="CharacterEllipsis" />
+                          </DataTemplate>
+                        </ListBox.ItemTemplate>
+                      </ListBox>
+                    </ScrollViewer>
+                  </Border>
+                </Popup>
                 <TextBlock Margin="15,8"
-                           Text="{Binding ActiveReleaseNotes.Version, StringFormat='Release notes of version {0}'}"
+                           Text="{Binding ActiveReleaseNotes?.Version, StringFormat='Release notes of version {0}'}"
                            FontSize="20" FontWeight="Bold" VerticalAlignment="Center" />
               </DockPanel>
-              <Grid Margin="{StaticResource BorderThicknessTile}">
-                <mv:MarkdownViewer Markdown="{Binding ActiveReleaseNotes.MarkdownContent}"
-                                   BaseUri="{Binding ActiveReleaseNotes.BaseUrl}"
-                                   IsVisible="{Binding ActiveReleaseNotes.IsLoaded}" />
+              <Grid Margin="8">
+                <mv:MarkdownViewer x:Name="ReleaseNotesView"
+                                   Markdown="{Binding ActiveReleaseNotes?.MarkdownContent}"
+                                   BaseUri="{Binding ActiveReleaseNotes?.BaseUrl}"
+                                   IsVisible="{Binding ActiveReleaseNotes?.IsLoaded, FallbackValue={x:False}, TargetNullValue={x:False}}"
+                                   ScrollViewer.AllowAutoHide="False" Padding="4" />
                 <TextBlock Text="{x:Static l:Strings.NoReleaseNotes}"
                            TextWrapping="Wrap" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"
-                           IsVisible="{Binding ActiveReleaseNotes.IsUnavailable}" />
+                           IsVisible="{Binding ActiveReleaseNotes?.IsUnavailable, FallbackValue={x:False}, TargetNullValue={x:False}}" />
                 <TextBlock Text="{x:Static l:Strings.DownloadingReleaseNotes}"
                            TextWrapping="Wrap" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"
-                           IsVisible="{Binding ActiveReleaseNotes.IsLoading}" />
+                           IsVisible="{Binding ActiveReleaseNotes?.IsLoading, FallbackValue={x:False}, TargetNullValue={x:False}}" />
               </Grid>
             </DockPanel>
           </Grid>
@@ -739,18 +804,18 @@
     <!-- Announcements -->
     <Border Classes="ann-slide"
             Classes.visible="{Binding Announcement, Converter={sd:ObjectToBool}}"
-            IsHitTestVisible="{Binding Announcement, Converter={sd:ObjectToBool}, FallbackValue={x:False}}">
+            IsHitTestVisible="{Binding Announcement, Converter={sd:ObjectToBool}}">
       <Border.Styles>
         <Style Selector="Border.ann-slide.visible">
           <Setter Property="RenderTransform" Value="translateX(0)"/>
         </Style>
         <Style Selector="Border.ann-slide:not(.visible)">
-          <Setter Property="RenderTransform" Value="translateX(2000px)"/>
+          <Setter Property="RenderTransform" Value="translateX(2160px)"/>
         </Style>
       </Border.Styles>
       <Border.Transitions>
         <Transitions>
-          <TransformOperationsTransition Property="RenderTransform" Duration="0:0:1.0" Easing="CubicEaseOut"/>
+          <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.5" Easing="CubicEaseInOut"/>
         </Transitions>
       </Border.Transitions>
       <vw:Announcement DataContext="{Binding Announcement}" />

@@ -7,7 +7,7 @@ Four NuGet packages ship Stride templates for the `dotnet new` engine:
 | **`Stride.Templates.Games`** | `stride-game` (blank NewGame starter) | Bundled with GameStudio installer |
 | **`Stride.Templates.Games.Starters`** | `stride-fps`, `stride-platformer2d`, `stride-topdownrpg`, `stride-thirdpersonplatformer`, `stride-vrsandbox` | nuget.org (CLI install / future template store) |
 | **`Stride.Templates.Samples`** | 18 feature demos (tutorials, games, graphics, physics, UI, particles, input, audio) | nuget.org (CLI install / future template store) |
-| **`Stride.Templates.AssetPacks`** | 4 asset packs as item templates: `stride-pack-buildingblocks`, `stride-pack-animatedmodels`, `stride-pack-materials`, `stride-pack-particles` | nuget.org (downloaded on demand by GameStudio's New Game dialog / CLI install) |
+| **`Stride.Templates.AssetPacks`** | 4 asset packs as item templates: `stride-pack-buildingblocks`, `stride-pack-animatedmodels`, `stride-pack-materials`, `stride-pack-particles` | nuget.org (downloaded on demand by GameStudio's New Game dialog / the `stride` CLI) |
 
 GameStudio's "New Project" dialog and CLI `dotnet new` consume the same packages — there is one template flow, not two.
 
@@ -45,8 +45,9 @@ cd MyGame/MyGame.Game
 dotnet new stride-pack-buildingblocks   # merges the pack's Assets/ + Resources/ into the project
 ```
 
-The `stride` CLI resolves installed template packages automatically; with the AssetPacks package
-present, `stride new stride-pack-buildingblocks` run inside the game library does the same.
+The `stride` CLI needs neither install: it resolves the template packages of the requested Stride
+version and downloads the asset packs the first time they are needed, so `stride new
+stride-pack-buildingblocks` run inside the game library does the same.
 
 `dotnet new -l` after the installs lists every available stride-* short name.
 
