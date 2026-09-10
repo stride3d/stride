@@ -52,6 +52,8 @@ namespace Stride.Graphics
 
         public void Dispose()
         {
+            Unmap();
+
 #pragma warning disable 162 // Unreachable code detected
             if (UseBufferOffsets)
                 allocator.ReleaseReference(constantBuffer);
@@ -81,17 +83,25 @@ namespace Stride.Graphics
 #pragma warning disable 162
             if (UseBufferOffsets && mappedConstantBuffer.Resource != null)
             {
-                using (new DefaultCommandListLock(commandList))
+                // The device tears its resources down before the allocator owning this pool, so at that
+                // point the buffer is already gone and its mapping went with it. Unmapping it anyway is a
+                // null dereference on Direct3D 12 and a crash on MoltenVK
+                if (mappedConstantBuffer.Resource.LifetimeState == GraphicsResourceLifetimeState.Active)
                 {
-                    commandList.UnmapSubResource(mappedConstantBuffer);
-                    mappedConstantBuffer = new MappedResource();
+                    using (new DefaultCommandListLock(commandList))
+                        commandList.UnmapSubResource(mappedConstantBuffer);
                 }
+
+                mappedConstantBuffer = new MappedResource();
             }
 #pragma warning restore 162
         }
 
         public void Reset()
         {
+            // Pools stay mapped for the whole frame, so this is where the previous frame's mapping ends
+            Unmap();
+
 #pragma warning disable 162
             if (UseBufferOffsets)
             {

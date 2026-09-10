@@ -59,6 +59,8 @@ namespace Stride.Assets.Effect
         {
             writer.Write(DataSerializer.BinaryFormatVersion);
             writer.Write(EffectBytecode.MagicHeader);
+            writer.Write(ShaderCompilerVersion.Shader);
+            writer.Write(ShaderCompilerVersion.Effect);
         }
 
         protected override Task<ResultStatus> DoCommandOverride(ICommandContext commandContext)

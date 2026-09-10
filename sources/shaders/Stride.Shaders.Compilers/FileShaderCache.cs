@@ -28,11 +28,9 @@ public class FileShaderCache(IVirtualFileProvider fileProvider, string basePath 
     private readonly object lockObject = new();
     private readonly ShaderCache memoryCache = new();
 
-    // Cache files are stamped in the SPIR-V header: Generator identifies our shader cache, Schema is the
-    // format version. A mismatch (including old 0/0 headers) is treated as stale and forces a recompile,
-    // which overwrites the file in place. Bump CacheFormatVersion on any incompatible .spv cache change.
+    // Cache files carry this id and ShaderCompilerVersion.Shader in their SPIR-V header; anything else
+    // is stale and gets recompiled in place
     private const int ShaderCacheGeneratorId = 0x5344534C; // 'SDSL'
-    private const int CacheFormatVersion = 1;
 
     public bool Exists(string name)
     {
@@ -156,7 +154,7 @@ public class FileShaderCache(IVirtualFileProvider fileProvider, string basePath 
 
     private static void Serialize(BinaryWriter writer, ShaderBuffers buffers, ObjectId hash)
     {
-        var header = new SpirvHeader("1.4", generator: ShaderCacheGeneratorId, bound: 1, schema: CacheFormatVersion);
+        var header = new SpirvHeader("1.4", generator: ShaderCacheGeneratorId, bound: 1, schema: ShaderCompilerVersion.Shader);
         var bytecode = SpirvBytecode.CreateBytecodeFromBuffers(header, computeBounds: true, buffers.Context.GetBuffer(), buffers.Buffer);
         writer.Write(bytecode);
     }
@@ -179,7 +177,7 @@ public class FileShaderCache(IVirtualFileProvider fileProvider, string basePath 
             return false;
 
         var header = SpirvHeader.Read(span);
-        if (header.Generator != ShaderCacheGeneratorId || header.Schema != CacheFormatVersion)
+        if (header.Generator != ShaderCacheGeneratorId || header.Schema != ShaderCompilerVersion.Shader)
             return false;
 
         result = ShaderBuffers.CreateFromSpan(span);

@@ -25,7 +25,8 @@ public class EffectResourceGroupDescription
     public EffectConstantBufferDescription ConstantBuffer { get; set; }
 
     /// <summary>
-    ///   All resource entries in this group, ordered: ConstantBuffer entry first, then other resources.
+    ///   All resource entries in this group, ordered: ConstantBuffer entry first, then other resources
+    ///   grouped by <see cref="EffectResourceEntry.LogicalGroup"/>, in declaration order.
     /// </summary>
     public List<EffectResourceEntry> Entries { get; set; } = [];
 
