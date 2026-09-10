@@ -136,6 +136,11 @@ namespace Stride.Importer.ThreeD
 
         public unsafe Model Convert(string inputFilename, string outputFilename, bool deduplicateMaterials)
         {
+            return Convert(inputFilename, outputFilename, deduplicateMaterials, out _);
+        }
+
+        public unsafe Model Convert(string inputFilename, string outputFilename, bool deduplicateMaterials, out List<string> materialNames)
+        {
             uint importFlags = 0;
 
             aiPostProcessSteps postProcessFlags = 0;
@@ -145,7 +150,24 @@ namespace Stride.Importer.ThreeD
             }
 
             var scene = Initialize(inputFilename, outputFilename, importFlags, postProcessFlags);
+            materialNames = GetMaterialNames(scene);
             return ConvertAssimpScene(scene);
+        }
+
+        private unsafe List<string> GetMaterialNames(Scene* scene)
+        {
+            var namesByMaterial = new Dictionary<IntPtr, string>();
+            GenerateMaterialNames(scene, namesByMaterial);
+
+            var materialNames = new List<string>((int)scene->MNumMaterials);
+            for (uint i = 0; i < scene->MNumMaterials; ++i)
+            {
+                var material = scene->MMaterials[i];
+                // Keep this normalization in sync with ExtractMaterials().
+                materialNames.Add(namesByMaterial[(IntPtr)material].Replace('/', '_'));
+            }
+
+            return materialNames;
         }
 
         public unsafe AnimationInfo ConvertAnimation(string inputFilename, string outputFilename, int animationIndex)
