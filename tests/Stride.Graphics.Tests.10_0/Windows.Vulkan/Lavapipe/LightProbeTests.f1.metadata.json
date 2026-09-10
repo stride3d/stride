@@ -1,6 +1,6 @@
 {
   "os": "Microsoft Windows 10.0.26100",
-  "cpu": "AMD EPYC 7763 64-Core Processor",
+  "cpu": "AMD EPYC 9V74 80-Core Processor",
   "gpu": "Mesa llvmpipe (LLVM 21.1.0, 256 bits)",
   "gpuVendorId": "0x10005",
   "gpuDeviceId": "0x0000",

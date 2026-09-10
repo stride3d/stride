@@ -8,6 +8,6 @@
   "driverId": "Microsoft",
   "driverName": "Microsoft",
   "driverVersion": "1.0.20.0",
-  "apiName": "Direct3D12",
+  "apiName": "Direct3D11",
   "apiVersion": ""
 }

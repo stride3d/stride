@@ -67,6 +67,11 @@ namespace Stride.Rendering.Skyboxes
                     case CubeMapFace.NegativeY:
                         Camera.ViewMatrix = Matrix.LookAtRH(position, position - Vector3.UnitY, -Vector3.UnitZ);
                         break;
+                    // The Z faces look the other way on purpose. Cubemap space is the right handed world
+                    // with Z negated, so the face called positive Z holds the view along world negative Z,
+                    // the same as in a texture asset. Every shader sampling a cubemap or harmonics from one
+                    // negates Z to match (SkyboxShaderCubemap, LightSkyboxShader, LightProbeShader,
+                    // ComputeSphericalHarmonics). CubemapSceneRendererTests checks this face by face.
                     case CubeMapFace.PositiveZ:
                         Camera.ViewMatrix = Matrix.LookAtRH(position, position - Vector3.UnitZ, Vector3.UnitY);
                         break;
