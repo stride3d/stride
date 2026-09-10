@@ -30,8 +30,8 @@ on:
         description: 'Rerun the filtered test set up to N times, stop on first failure (flake hunting). 1 = single run (default).'
         type: number
         default: 1
-      project:
-        description: 'Single test .csproj path to build/test (blank = whole GPU solution filter)'
+      projects:
+        description: 'Test .csproj paths to build/test, separated by ; (blank = detected automatically using test-filter, or all)'
         type: string
         default: ''
       commit-sha:
@@ -56,7 +56,7 @@ on:
       repeat:
         default: 1
         type: number
-      project:
+      projects:
         default: ''
         type: string
       commit-sha:
@@ -72,7 +72,8 @@ on:
         type: boolean
 
 concurrency:
-  group: test-windows-game-${{ github.event.pull_request.number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}-${{ github.event.inputs.graphics-api || inputs.graphics-api || 'all' }}
+  # A manual run, direct or through test-gold-gen, never cancels or queues behind another one
+  group: test-windows-game-${{ github.event.pull_request.number || (github.event_name == 'workflow_dispatch' && github.run_id) || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}-${{ github.event.inputs.graphics-api || inputs.graphics-api || 'all' }}
   cancel-in-progress: true
 
 jobs:
@@ -164,9 +165,13 @@ jobs:
       - name: Resolve build/test target
         shell: pwsh
         run: |
-          # `project` (a single .csproj) narrows the build+test to one suite; blank = whole GPU solution filter.
-          $proj = "${{ github.event.inputs.project || inputs.project }}"
-          $target = if ($proj) { $proj } else { 'build\Stride.Tests.Game.GPU.slnf' }
+          # The GPU solution filter narrowed to the suites this run needs: the `projects` list if given,
+          # else the ones `test-filter` can hit, else the whole filter. See build/tools/Stride.TestSuites.
+          $target = dotnet run --project build/tools/Stride.TestSuites -- `
+            --projects "${{ github.event.inputs.projects || inputs.projects }}" `
+            --filter "${{ github.event.inputs.test-filter || inputs.test-filter }}" `
+            --slnf build/Stride.Tests.Game.GPU.slnf
+          Write-Host "Build/test target: $target"
           Add-Content $env:GITHUB_ENV "STRIDE_TEST_TARGET=$target"
           Add-Content $env:GITHUB_ENV "STRIDE_TEST_FILTER=${{ github.event.inputs.test-filter || inputs.test-filter }}"
       - name: Build

@@ -2,11 +2,12 @@ name: Test Gold Generation
 
 # Fast, on-demand gold-image generation across platforms. Thin orchestrator: it calls the
 # existing reusable test-*-game.yml workflows (the canonical PR gate) with two extra knobs —
-# `test-filter` (run one test) and `project` (build/test one suite) — then gathers every
+# `test-filter` (run some tests) and `projects` (build/test some suites) — then gathers every
 # platform's rendered output into a single downloadable zip, and optionally promotes it to gold.
 #
 # Why a separate workflow: dispatched directly it skips main.yml's runtime-build gate, and
-# `project`/`test-filter` cut the build+run down to the one suite/test you're adding gold for.
+# a `test-filter` alone cuts the build+run down to the suites that can run it (see
+# build/tools/Stride.TestSuites), and `projects` overrides that choice.
 #
 # Generating brand-new gold makes the platform jobs go RED ("reference image missing") — that's
 # expected. The `gather` job runs regardless: download its `gold-images` artifact (or point
@@ -58,8 +59,8 @@ on:
         description: 'dotnet test --filter / vstest filter (blank = all tests)'
         type: string
         default: ''
-      project:
-        description: 'Single test .csproj to build/test (blank = whole GPU solution)'
+      projects:
+        description: 'Test .csproj paths to build/test, separated by ; (blank = detected automatically using test-filter, or all)'
         type: string
         default: ''
       build-type:
@@ -87,14 +88,20 @@ on:
         description: Also remove redundant existing gold (dedup) before committing
         type: boolean
         default: false
+      upload-binlog:
+        description: Upload each lane's build binlog
+        type: boolean
+        default: false
 
 permissions:
   checks: write
   contents: read
 
 concurrency:
-  group: test-gold-gen-${{ github.ref }}-${{ inputs.build-type }}
-  cancel-in-progress: true
+  # Runs that push gold to the same branch queue behind each other; runs that only test go side by
+  # side. Nothing is cancelled: a promote cut short has already pushed part of its gold.
+  group: test-gold-gen-${{ github.ref }}-${{ inputs.update-gold == 'none' && github.run_id || inputs.update-gold }}
+  cancel-in-progress: false
 
 jobs:
   # Surfaces what happens to this run's gold up-front (no `needs:`, so it shows within seconds of
@@ -143,7 +150,8 @@ jobs:
       build-type: ${{ inputs.build-type }}
       graphics-api: ${{ inputs.graphics-api }}
       test-filter: ${{ inputs.test-filter }}
-      project: ${{ inputs.project }}
+      projects: ${{ inputs.projects }}
+      upload-binlog: ${{ inputs.upload-binlog }}
       commit-sha: ${{ inputs.commit-sha }}
       # Generating new gold makes tests "fail" (missing/changed reference) — expected; tolerate it so
       # the run stays green and doesn't email. Build failures still fail (the Build step isn't gated).
@@ -156,7 +164,8 @@ jobs:
     with:
       build-type: ${{ inputs.build-type }}
       test-filter: ${{ inputs.test-filter }}
-      project: ${{ inputs.project }}
+      projects: ${{ inputs.projects }}
+      upload-binlog: ${{ inputs.upload-binlog }}
       commit-sha: ${{ inputs.commit-sha }}
       # Generating new gold makes tests "fail" (missing/changed reference) — expected; tolerate it so
       # the run stays green and doesn't email. Build failures still fail (the Build step isn't gated).
@@ -169,7 +178,8 @@ jobs:
     with:
       build-type: ${{ inputs.build-type }}
       test-filter: ${{ inputs.test-filter }}
-      project: ${{ inputs.project }}
+      projects: ${{ inputs.projects }}
+      upload-binlog: ${{ inputs.upload-binlog }}
       commit-sha: ${{ inputs.commit-sha }}
       # Generating new gold makes tests "fail" (missing/changed reference) — expected; tolerate it so
       # the run stays green and doesn't email. Build failures still fail (the Build step isn't gated).
@@ -182,7 +192,8 @@ jobs:
     with:
       build-type: ${{ inputs.build-type }}
       test-filter: ${{ inputs.test-filter }}
-      project: ${{ inputs.project }}
+      projects: ${{ inputs.projects }}
+      upload-binlog: ${{ inputs.upload-binlog }}
       commit-sha: ${{ inputs.commit-sha }}
       # Generating new gold makes tests "fail" (missing/changed reference) — expected; tolerate it so
       # the run stays green and doesn't email. Build failures still fail (the Build step isn't gated).
@@ -195,7 +206,8 @@ jobs:
     with:
       build-type: ${{ inputs.build-type }}
       test-filter: ${{ inputs.test-filter }}
-      project: ${{ inputs.project }}
+      projects: ${{ inputs.projects }}
+      upload-binlog: ${{ inputs.upload-binlog }}
       commit-sha: ${{ inputs.commit-sha }}
       # Generating new gold makes tests "fail" (missing/changed reference) — expected; tolerate it so
       # the run stays green and doesn't email. Build failures still fail (the Build step isn't gated).
