@@ -244,6 +244,11 @@ namespace Stride.Shaders.Compiler
                         if (!validationResult.IsValid)
                         {
                             log.Error($"SPIR-V for effect {fullEffectName} (id: {mixinObjectId}) is invalid and cannot be legalized for HLSL: {validationResult.Output}", legalizeException);
+#if STRIDE_PLATFORM_DESKTOP
+                            // Returning here skips the outer catch, so dump the module that failed to legalize.
+                            lock (WriterLock)
+                                WriteSpvDebugFiles(effectDir, mixinObjectId.ToString(), spirvBytecodeForDebug);
+#endif
                             return new EffectBytecodeCompilerResult(null, log);
                         }
                         throw;
