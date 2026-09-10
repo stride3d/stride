@@ -137,6 +137,23 @@ public class StrideShaderTests
             && m.Text.Contains("Vertex"));
     }
 
+    // A hull patch constant function is linked by a PatchConstantFuncSDSL decoration rather than by a
+    // call in the source. Validation runs after InterfaceProcessor generates the hull wrapper, which
+    // calls it for real, so the caller/callee walk reaches it.
+    [Fact]
+    public void ImplicitLodInHullPatchConstantIsReported()
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.False(shaderMixer.MergeSDSL(new ShaderClassSource("HSPatchConstantTextureSample"), new ShaderMixer.Options(true), log, out _, out _, out _, out _));
+
+        Assert.Contains(log.Messages, m => m.Type == Stride.Core.Diagnostics.LogMessageType.Error
+            && m.Text.Contains("HSPatchConstantTextureSample.sdsl(22,") && m.Text.Contains("implicit level of detail")
+            && m.Text.Contains("Hull"));
+    }
+
     [Fact]
     public void TextureSampleInFragmentStageCompiles()
     {
