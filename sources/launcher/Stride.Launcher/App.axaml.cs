@@ -105,7 +105,7 @@ public partial class App : Application
     }
 }
 
-// This app is used for the crash report or for the notification when an instance is already running
+// This app is used for the notification when an instance is already running
 internal sealed class MinimalApp : App
 {
     public override void OnFrameworkInitializationCompleted() { }

@@ -30,7 +30,7 @@ internal static class Launcher
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
         // The managed handler above can't see a native access violation — it kills the process first. Arm the
         // native handler so such a crash is captured and offered to the reporter too.
-        Stride.CrashReport.NativeCrashReporting.Install("Launcher");
+        CrashReport.NativeCrashReporting.Install("Launcher");
         try
         {
             var arguments = ProcessArguments(args);
@@ -202,7 +202,7 @@ internal static class Launcher
         var englishCulture = new CultureInfo("en-US");
         Thread.CurrentThread.CurrentCulture = Thread.CurrentThread.CurrentUICulture = englishCulture;
         // On the faulting thread: snapshot the other threads (the crashing thread's stack comes from the exception).
-        var threads = Stride.CrashReport.ThreadSnapshot.CaptureAtCurrentThread(out var crashedThreadId, out var crashedThreadName);
+        var threads = CrashReport.ThreadSnapshot.CaptureAtCurrentThread(out var crashedThreadId, out var crashedThreadName);
         var reportArgs = new CrashReportArgs
         {
             Exception = exception,
