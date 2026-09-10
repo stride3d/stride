@@ -17,8 +17,8 @@ on:
         description: 'vstest --filter expression forwarded to the on-device runner (blank = all tests)'
         type: string
         default: ''
-      project:
-        description: 'Single test .csproj to build/run (blank = Combined .app aggregating all suites)'
+      projects:
+        description: 'Test .csproj paths to build/run, separated by ; (blank = detected automatically using test-filter, or all)'
         type: string
         default: ''
       commit-sha:
@@ -45,7 +45,7 @@ on:
       test-filter:
         default: ''
         type: string
-      project:
+      projects:
         default: ''
         type: string
       commit-sha:
@@ -71,7 +71,8 @@ on:
     - cron: '43 2 * * *'
 
 concurrency:
-  group: test-ios-game-${{ github.event.pull_request.number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
+  # A manual run, direct or through test-gold-gen, never cancels or queues behind another one
+  group: test-ios-game-${{ github.event.pull_request.number || (github.event_name == 'workflow_dispatch' && github.run_id) || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
   cancel-in-progress: true
 
 jobs:
@@ -146,44 +147,27 @@ jobs:
             xcrun -find "$tool" >/dev/null 2>&1 || echo "::warning::could not resolve $tool"
           done
 
-      - name: Start iOS Simulator (background)
-        # Kick the simulator boot off early so its ~50s first-boot data migration
-        # (PreferencesMigrator etc.) happens in parallel with the build. We block on
-        # readiness in a later step right before tests run.
-        run: |
-          set -e
-          UDID=$(xcrun simctl list devices --json | python3 -c '
-          import json, sys
-          d = json.load(sys.stdin)["devices"]
-          for runtime in sorted((k for k in d if k.startswith("com.apple.CoreSimulator.SimRuntime.iOS-")), reverse=True):
-            for x in d[runtime]:
-              if x.get("isAvailable") and "iPhone" in x["name"]:
-                print(x["udid"]); sys.exit(0)
-          sys.exit(1)
-          ')
-          if [ -z "$UDID" ]; then
-            echo "::error::No available iPhone simulator runtime found"
-            xcrun simctl list devices
-            exit 1
-          fi
-          echo "Booting $UDID"
-          xcrun simctl boot $UDID
-          echo "IOS_SIM_UDID=$UDID" >> $GITHUB_ENV
-
       - name: Resolve build target / suite
         run: |
-          # `project` set (gold-gen: one suite only) → that .csproj's .app (~4 min build).
-          # Unset → use-combined=true (default): Combined.csproj — all suites in one .app,
-          # one install, one process run (faster build/testing).
-          # use-combined=false → slnf build + per-suite .apps + per-suite install/run.
-          PROJ="${{ github.event.inputs.project || inputs.project }}"
+          # The suites this run needs: the `projects` list if given, else the ones `test-filter` can hit,
+          # else all (blank). See build/tools/Stride.TestSuites.
+          SUITES=$(dotnet run --project build/tools/Stride.TestSuites -- \
+                     --projects "${{ github.event.inputs.projects || inputs.projects }}" \
+                     --filter "${{ github.event.inputs.test-filter || inputs.test-filter }}" | tr '\n' ' ')
+          echo "Suites needed: ${SUITES:-all}"
+          echo "STRIDE_TEST_SUITES=$SUITES" >> "$GITHUB_ENV"
+          # use-combined=true (default): Combined.csproj — the needed suites in one .app, one install, one
+          # process run. use-combined=false → slnf build + per-suite .apps + per-suite install/run.
           USE_COMBINED="${{ github.event.inputs.use-combined || inputs.use-combined || 'true' }}"
-          if [ -n "$PROJ" ]; then
-            echo "IOS_BUILD_TARGET=$PROJ" >> "$GITHUB_ENV"
-            echo "IOS_TEST_SUITES=$(basename "$PROJ" .csproj)" >> "$GITHUB_ENV"
-          elif [ "$USE_COMBINED" = "true" ]; then
+          if [ "$USE_COMBINED" = "true" ]; then
             echo "IOS_BUILD_TARGET=sources/tests/Stride.Tests.Combined/Stride.Tests.Combined.csproj" >> "$GITHUB_ENV"
             echo "IOS_TEST_SUITES=Stride.Tests.Combined" >> "$GITHUB_ENV"
+          elif [ -n "$SUITES" ]; then
+            # The iOS solution filter narrowed to the needed suites; per-suite .app bundles land under
+            # bin/Tests/<Suite>/iOS-Vulkan/<Config>/<Suite>.app. Run step iterates IOS_TEST_SUITES.
+            TARGET=$(dotnet run --project build/tools/Stride.TestSuites -- --projects "$SUITES" --slnf build/Stride.Tests.Game.iOS.slnf)
+            echo "IOS_BUILD_TARGET=$TARGET" >> "$GITHUB_ENV"
+            { echo "IOS_TEST_SUITES<<EOF"; echo $SUITES | tr ' ' '\n'; echo "EOF"; } >> "$GITHUB_ENV"
           else
             # slnf path: one build evaluates the graph once; per-suite .app bundles land under
             # bin/Tests/<Suite>/iOS-Vulkan/<Config>/<Suite>.app. Run step iterates IOS_TEST_SUITES.
@@ -205,6 +189,31 @@ jobs:
             } >> "$GITHUB_ENV"
           fi
 
+      - name: Start iOS Simulator (background)
+        # Kick the simulator boot off early so its ~50s first-boot data migration
+        # (PreferencesMigrator etc.) happens in parallel with the build. We block on
+        # readiness in a later step right before tests run. It comes after the resolve step:
+        # a cold boot next to the resolver's restore and build stretched that step to 3 min.
+        run: |
+          set -e
+          UDID=$(xcrun simctl list devices --json | python3 -c '
+          import json, sys
+          d = json.load(sys.stdin)["devices"]
+          for runtime in sorted((k for k in d if k.startswith("com.apple.CoreSimulator.SimRuntime.iOS-")), reverse=True):
+            for x in d[runtime]:
+              if x.get("isAvailable") and "iPhone" in x["name"]:
+                print(x["udid"]); sys.exit(0)
+          sys.exit(1)
+          ')
+          if [ -z "$UDID" ]; then
+            echo "::error::No available iPhone simulator runtime found"
+            xcrun simctl list devices
+            exit 1
+          fi
+          echo "Booting $UDID"
+          xcrun simctl boot $UDID
+          echo "IOS_SIM_UDID=$UDID" >> $GITHUB_ENV
+
       - name: Build iOS test .app bundle
         # No explicit RuntimeIdentifier: passing one as a global property leaks into the host
         # net10.0 build (used to load assemblies into the AssetCompiler) and crashes its
@@ -214,6 +223,7 @@ jobs:
           dotnet build "$IOS_BUILD_TARGET" \
             -nr:false -v:m -p:WarningLevel=0 \
             -p:StrideSkipAutoPack=true \
+            -p:StrideCombinedSuites="$STRIDE_TEST_SUITES" \
             ${{ inputs.upload-binlog && '-bl:build.binlog' || '' }} \
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} \
             -p:StridePlatforms=iOS
@@ -241,7 +251,7 @@ jobs:
           $config = "${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}"
           $filter = "${{ github.event.inputs.test-filter || inputs.test-filter }}"
           $repeat = "${{ github.event.inputs.repeat || inputs.repeat || '1' }}"
-          # IOS_TEST_SUITES is single-line (Combined / project=set) OR multi-line (slnf path).
+          # IOS_TEST_SUITES is single-line (Combined) OR multi-line (slnf path).
           # Loop over them — one suite means one launch (matches the Combined case identically).
           $suites = ($env:IOS_TEST_SUITES -split "`n") | Where-Object { $_ -ne '' }
           $worstExit = 0
