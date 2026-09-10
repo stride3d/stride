@@ -10,12 +10,14 @@ namespace Stride.Shaders.Compilers.SDSL;
 public partial class ShaderMixer
 {
     /// <summary>
-    /// Reports texture sampling that relies on an implicit level of detail from a stage that has no
-    /// screen-space derivatives to compute one. SPIR-V restricts those instructions to
-    /// Fragment/GLCompute/Mesh/Task, and fxc (error X4532) and dxc reject the equivalent HLSL, so this is
-    /// diagnosed here instead of failing later as an opaque optimizer error while legalizing for HLSL.
+    /// Reports operations that need screen-space derivatives from a stage that cannot compute them:
+    /// texture sampling at an implicit level of detail, the derivative instructions behind
+    /// <c>ddx</c>/<c>ddy</c>/<c>fwidth</c>, and <c>CalculateLevelOfDetail</c>. SPIR-V restricts all of
+    /// them to Fragment/GLCompute/Mesh/Task, and fxc (error X4532) and dxc reject the equivalent HLSL, so
+    /// this is diagnosed here instead of failing later as an opaque optimizer error while legalizing for
+    /// HLSL.
     /// </summary>
-    private static bool ValidateImplicitLodSampling(SpirvContext context, SpirvBuffer buffer, List<InterfaceProcessor.EntryPointInfo> entryPoints, ILogger log)
+    private static bool ValidateDerivativeUsage(SpirvContext context, SpirvBuffer buffer, List<InterfaceProcessor.EntryPointInfo> entryPoints, ILogger log)
     {
         var sourceFiles = new Dictionary<int, string>();
         foreach (var i in context)
@@ -28,7 +30,7 @@ public partial class ShaderMixer
         }
 
         var callees = new Dictionary<int, List<int>>();
-        var implicitLodSites = new Dictionary<int, List<string?>>();
+        var derivativeSites = new Dictionary<int, List<(string? Location, Op Op)>>();
         var currentFunction = 0;
         string? currentLocation = null;
 
@@ -58,14 +60,24 @@ public partial class ShaderMixer
                 case Op.OpImageSampleDrefImplicitLod:
                 case Op.OpImageSampleProjImplicitLod:
                 case Op.OpImageSampleProjDrefImplicitLod:
-                    if (!implicitLodSites.TryGetValue(currentFunction, out var sites))
-                        implicitLodSites.Add(currentFunction, sites = []);
-                    sites.Add(currentLocation);
+                case Op.OpImageQueryLod:
+                case Op.OpDPdx:
+                case Op.OpDPdy:
+                case Op.OpFwidth:
+                case Op.OpDPdxFine:
+                case Op.OpDPdyFine:
+                case Op.OpFwidthFine:
+                case Op.OpDPdxCoarse:
+                case Op.OpDPdyCoarse:
+                case Op.OpFwidthCoarse:
+                    if (!derivativeSites.TryGetValue(currentFunction, out var sites))
+                        derivativeSites.Add(currentFunction, sites = []);
+                    sites.Add((currentLocation, i.Op));
                     break;
             }
         }
 
-        if (implicitLodSites.Count == 0)
+        if (derivativeSites.Count == 0)
             return true;
 
         var reported = new HashSet<string>();
@@ -83,12 +95,12 @@ public partial class ShaderMixer
                 if (!visited.Add(functionId))
                     continue;
 
-                if (implicitLodSites.TryGetValue(functionId, out var sites))
+                if (derivativeSites.TryGetValue(functionId, out var sites))
                 {
-                    foreach (var site in sites)
+                    foreach (var (site, op) in sites)
                     {
                         var location = site is null ? string.Empty : $"{site}: ";
-                        reported.Add($"{location}A texture sample with an implicit level of detail needs a pixel or compute shader. A {entryPoint.Stage} shader reaches this code. Use SampleLevel, SampleGrad or SampleCmpLevelZero to give an explicit level of detail.");
+                        reported.Add($"{location}{DescribeDerivativeUse(op)} A {entryPoint.Stage} shader reaches this code.");
                     }
                 }
 
@@ -105,4 +117,14 @@ public partial class ShaderMixer
 
         return reported.Count == 0;
     }
+
+    private static string DescribeDerivativeUse(Op op) => op switch
+    {
+        Op.OpImageQueryLod => "CalculateLevelOfDetail needs a pixel or compute shader, because it derives the level of detail from screen-space derivatives.",
+        Op.OpDPdx or Op.OpDPdy or Op.OpFwidth
+            or Op.OpDPdxFine or Op.OpDPdyFine or Op.OpFwidthFine
+            or Op.OpDPdxCoarse or Op.OpDPdyCoarse or Op.OpFwidthCoarse
+            => "A screen-space derivative (ddx, ddy or fwidth) needs a pixel or compute shader.",
+        _ => "A texture sample with an implicit level of detail needs a pixel or compute shader. Use SampleLevel, SampleGrad or SampleCmpLevelZero to give an explicit level of detail.",
+    };
 }

@@ -121,6 +121,22 @@ public class StrideShaderTests
             && m.Text.Contains("SampleLevel") && m.Text.Contains("Vertex"));
     }
 
+    // ddx/ddy/fwidth need the same derivatives as an implicit-LOD sample, so they carry the same stage
+    // restriction and must be reported rather than left to the legalizer.
+    [Fact]
+    public void DerivativeOutsideFragmentStageIsReported()
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.False(shaderMixer.MergeSDSL(new ShaderClassSource("VSDerivative"), new ShaderMixer.Options(true), log, out _, out _, out _, out _));
+
+        Assert.Contains(log.Messages, m => m.Type == Stride.Core.Diagnostics.LogMessageType.Error
+            && m.Text.Contains("VSDerivative.sdsl(11,") && m.Text.Contains("screen-space derivative")
+            && m.Text.Contains("Vertex"));
+    }
+
     [Fact]
     public void TextureSampleInFragmentStageCompiles()
     {

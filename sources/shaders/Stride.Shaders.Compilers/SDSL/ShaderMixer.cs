@@ -97,7 +97,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         };
         (entryPoints, globalContext.Reflection.InputAttributes) = interfaceProcessor.Process(table, temp, context);
 
-        if (!ValidateImplicitLodSampling(context, temp, entryPoints, log))
+        if (!ValidateDerivativeUsage(context, temp, entryPoints, log))
             return false;
 
         // Process Link (add CompositionPath, generate missing ones, etc.)
