@@ -347,7 +347,7 @@ Hierarchy:
                         AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             d3bac6d7e45a544588ebd5170d5258b4: !ColliderShapeAssetDesc
-                                Shape: ae62d5af-0efc-40e2-af1d-02af859774a1:CollisionMeshes/Ramp1x1_2x2
+                                Shape: ae62d5af-0efc-40e2-af1d-02af859774a1:CollisionMeshes2/Ramp1x1_2x2
             Base:
                 BasePartAsset: 5a32965c-893e-4f1c-acd5-9eeceb4ebddd:BlocksPrefabs/Ramp1x1_2x2
                 BasePartId: ebb1699f-cbad-48c0-8147-9d3d1236b47b
@@ -379,7 +379,7 @@ Hierarchy:
                         AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             8e44f1d38f347d44b8347a504a3f5a48: !ColliderShapeAssetDesc
-                                Shape: 0bbcc6fe-9120-44e5-b6e8-6976bfa64b2c:CollisionMeshes/Stairs1x1x1_50
+                                Shape: 0bbcc6fe-9120-44e5-b6e8-6976bfa64b2c:CollisionMeshes2/Stairs1x1x1_50
             Base:
                 BasePartAsset: bfc3ee21-b310-4b69-90a3-5f83017970b9:BlocksPrefabs/Stairs1x1x1_50
                 BasePartId: f3850a2a-b73a-4459-b5ea-63a5b41c3889
@@ -493,7 +493,7 @@ Hierarchy:
                         AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             ac4e8831eab87b45ac8f9d9e46be95dd: !ColliderShapeAssetDesc
-                                Shape: 99e92203-3bfa-4947-a970-cf3c3b94fb84:CollisionMeshes/Stairs1x1x1_25
+                                Shape: 99e92203-3bfa-4947-a970-cf3c3b94fb84:CollisionMeshes2/Stairs1x1x1_25
             Base:
                 BasePartAsset: 7568f365-1334-469b-b87f-26bab68414bc:BlocksPrefabs/Stairs1x1x1_25
                 BasePartId: 55691071-2afa-4446-a26b-67474badc01c
@@ -581,7 +581,7 @@ Hierarchy:
                         AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             51d3ac8c128122459d4b17b727672d6d: !ColliderShapeAssetDesc
-                                Shape: f1034796-324c-4a40-a626-3d57b1d87fbf:CollisionMeshes/Stairs1x1x1
+                                Shape: f1034796-324c-4a40-a626-3d57b1d87fbf:CollisionMeshes2/Stairs1x1x1
             Base:
                 BasePartAsset: 032d16ca-93a6-469e-b5d0-83554d336dbe:BlocksPrefabs/Stairs1x1x1
                 BasePartId: 3407ac9a-47da-4e2e-a7b3-8a0864509493
@@ -680,7 +680,7 @@ Hierarchy:
                         AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             7c0427666547c848a3b4892e63c539a5: !ColliderShapeAssetDesc
-                                Shape: 974ee62e-4d36-4005-a27f-da07b6ae36a7:CollisionMeshes/Ramp1x1_2x1
+                                Shape: 974ee62e-4d36-4005-a27f-da07b6ae36a7:CollisionMeshes2/Ramp1x1_2x1
             Base:
                 BasePartAsset: 80a8680c-b826-4513-828a-67d3162d1da0:BlocksPrefabs/Ramp1x1_2x1
                 BasePartId: dcbcec6d-0b9a-404a-87ee-0a0f69fc314e
@@ -745,7 +745,7 @@ Hierarchy:
                         AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             e50925e86d99e849bde2b006ac86de09: !ColliderShapeAssetDesc
-                                Shape: 60258ea8-0806-483e-a80d-4ad76595042d:CollisionMeshes/Stairs2x2x4
+                                Shape: 60258ea8-0806-483e-a80d-4ad76595042d:CollisionMeshes2/Stairs2x2x4
             Base:
                 BasePartAsset: 369967e4-2a6b-4715-b53a-232dc9cca2bb:BlocksPrefabs/Stairs2x2x4
                 BasePartId: 1c50115c-c05d-4cb6-ab0e-53e44178a7e6
@@ -777,7 +777,7 @@ Hierarchy:
                         AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             e50925e86d99e849bde2b006ac86de09: !ColliderShapeAssetDesc
-                                Shape: 934024bf-9a3a-4e33-8fb0-fa4e14832f2b:CollisionMeshes/Stairs1x1x2
+                                Shape: 934024bf-9a3a-4e33-8fb0-fa4e14832f2b:CollisionMeshes2/Stairs1x1x2
             Base:
                 BasePartAsset: d74cc744-2324-4e4b-ad1b-577d83087eea:BlocksPrefabs/Stairs1x1x2
                 BasePartId: b7b6a519-2edb-4e90-88ef-1426d0feac16
@@ -1173,7 +1173,7 @@ Hierarchy:
                         AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             8359b4c0fa7e894ba4582a7bdd8e1ae6: !ColliderShapeAssetDesc
-                                Shape: 26f14582-93fd-4080-9f17-1f4444fe2205:CollisionMeshes/Ramp1x1x1
+                                Shape: 26f14582-93fd-4080-9f17-1f4444fe2205:CollisionMeshes2/Ramp1x1x1
             Base:
                 BasePartAsset: ecf8a905-6220-499c-9d8a-47876d7fbee5:BlocksPrefabs/Ramp1x1x1
                 BasePartId: 359739c2-83bd-443b-8749-d2f4ede41a24
@@ -1554,7 +1554,7 @@ Hierarchy:
                         AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             82978a0cef5fd84fba6e9e4734adb4c2: !ColliderShapeAssetDesc
-                                Shape: 815bd728-6629-4b0e-aa73-0dcf3435c715:CollisionMeshes/Ramp2x1_2x1
+                                Shape: 815bd728-6629-4b0e-aa73-0dcf3435c715:CollisionMeshes2/Ramp2x1_2x1
             Base:
                 BasePartAsset: 103189ca-1e66-4b1c-84fc-aed9fe304421:BlocksPrefabs/Ramp2x2_1x1
                 BasePartId: 44b7da69-2103-4350-9aad-0d799a748f93
