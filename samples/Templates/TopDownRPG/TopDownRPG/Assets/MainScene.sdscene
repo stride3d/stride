@@ -768,7 +768,7 @@ Hierarchy:
                         AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             7c0427666547c848a3b4892e63c539a5: !ColliderShapeAssetDesc
-                                Shape: 974ee62e-4d36-4005-a27f-da07b6ae36a7:/PrototypingBlocks/CollisionMeshes/Ramp1x1_2x1
+                                Shape: 974ee62e-4d36-4005-a27f-da07b6ae36a7:/PrototypingBlocks/CollisionMeshes2/Ramp1x1_2x1
             Base:
                 BasePartAsset: 80a8680c-b826-4513-828a-67d3162d1da0:/PrototypingBlocks/BlocksPrefabs/Ramp1x1_2x1
                 BasePartId: dcbcec6d-0b9a-404a-87ee-0a0f69fc314e
@@ -1392,7 +1392,7 @@ Hierarchy:
                         AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             7c0427666547c848a3b4892e63c539a5: !ColliderShapeAssetDesc
-                                Shape: 974ee62e-4d36-4005-a27f-da07b6ae36a7:/PrototypingBlocks/CollisionMeshes/Ramp1x1_2x1
+                                Shape: 974ee62e-4d36-4005-a27f-da07b6ae36a7:/PrototypingBlocks/CollisionMeshes2/Ramp1x1_2x1
             Base:
                 BasePartAsset: 80a8680c-b826-4513-828a-67d3162d1da0:/PrototypingBlocks/BlocksPrefabs/Ramp1x1_2x1
                 BasePartId: dcbcec6d-0b9a-404a-87ee-0a0f69fc314e
@@ -1543,7 +1543,7 @@ Hierarchy:
                         AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             7c0427666547c848a3b4892e63c539a5: !ColliderShapeAssetDesc
-                                Shape: 974ee62e-4d36-4005-a27f-da07b6ae36a7:/PrototypingBlocks/CollisionMeshes/Ramp1x1_2x1
+                                Shape: 974ee62e-4d36-4005-a27f-da07b6ae36a7:/PrototypingBlocks/CollisionMeshes2/Ramp1x1_2x1
             Base:
                 BasePartAsset: 80a8680c-b826-4513-828a-67d3162d1da0:/PrototypingBlocks/BlocksPrefabs/Ramp1x1_2x1
                 BasePartId: dcbcec6d-0b9a-404a-87ee-0a0f69fc314e
@@ -2055,7 +2055,7 @@ Hierarchy:
                         AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             7c0427666547c848a3b4892e63c539a5: !ColliderShapeAssetDesc
-                                Shape: 974ee62e-4d36-4005-a27f-da07b6ae36a7:/PrototypingBlocks/CollisionMeshes/Ramp1x1_2x1
+                                Shape: 974ee62e-4d36-4005-a27f-da07b6ae36a7:/PrototypingBlocks/CollisionMeshes2/Ramp1x1_2x1
             Base:
                 BasePartAsset: 80a8680c-b826-4513-828a-67d3162d1da0:/PrototypingBlocks/BlocksPrefabs/Ramp1x1_2x1
                 BasePartId: dcbcec6d-0b9a-404a-87ee-0a0f69fc314e
@@ -2354,7 +2354,7 @@ Hierarchy:
                         AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             7c0427666547c848a3b4892e63c539a5: !ColliderShapeAssetDesc
-                                Shape: 974ee62e-4d36-4005-a27f-da07b6ae36a7:/PrototypingBlocks/CollisionMeshes/Ramp1x1_2x1
+                                Shape: 974ee62e-4d36-4005-a27f-da07b6ae36a7:/PrototypingBlocks/CollisionMeshes2/Ramp1x1_2x1
             Base:
                 BasePartAsset: 80a8680c-b826-4513-828a-67d3162d1da0:/PrototypingBlocks/BlocksPrefabs/Ramp1x1_2x1
                 BasePartId: dcbcec6d-0b9a-404a-87ee-0a0f69fc314e
@@ -4095,7 +4095,7 @@ Hierarchy:
                         AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             7c0427666547c848a3b4892e63c539a5: !ColliderShapeAssetDesc
-                                Shape: 974ee62e-4d36-4005-a27f-da07b6ae36a7:/PrototypingBlocks/CollisionMeshes/Ramp1x1_2x1
+                                Shape: 974ee62e-4d36-4005-a27f-da07b6ae36a7:/PrototypingBlocks/CollisionMeshes2/Ramp1x1_2x1
             Base:
                 BasePartAsset: 80a8680c-b826-4513-828a-67d3162d1da0:/PrototypingBlocks/BlocksPrefabs/Ramp1x1_2x1
                 BasePartId: dcbcec6d-0b9a-404a-87ee-0a0f69fc314e
@@ -4152,7 +4152,7 @@ Hierarchy:
                         AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             7c0427666547c848a3b4892e63c539a5: !ColliderShapeAssetDesc
-                                Shape: 974ee62e-4d36-4005-a27f-da07b6ae36a7:/PrototypingBlocks/CollisionMeshes/Ramp1x1_2x1
+                                Shape: 974ee62e-4d36-4005-a27f-da07b6ae36a7:/PrototypingBlocks/CollisionMeshes2/Ramp1x1_2x1
             Base:
                 BasePartAsset: 80a8680c-b826-4513-828a-67d3162d1da0:/PrototypingBlocks/BlocksPrefabs/Ramp1x1_2x1
                 BasePartId: dcbcec6d-0b9a-404a-87ee-0a0f69fc314e
@@ -4279,7 +4279,7 @@ Hierarchy:
                         AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             7c0427666547c848a3b4892e63c539a5: !ColliderShapeAssetDesc
-                                Shape: 974ee62e-4d36-4005-a27f-da07b6ae36a7:/PrototypingBlocks/CollisionMeshes/Ramp1x1_2x1
+                                Shape: 974ee62e-4d36-4005-a27f-da07b6ae36a7:/PrototypingBlocks/CollisionMeshes2/Ramp1x1_2x1
             Base:
                 BasePartAsset: 80a8680c-b826-4513-828a-67d3162d1da0:/PrototypingBlocks/BlocksPrefabs/Ramp1x1_2x1
                 BasePartId: dcbcec6d-0b9a-404a-87ee-0a0f69fc314e
@@ -4543,7 +4543,7 @@ Hierarchy:
                         AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             7c0427666547c848a3b4892e63c539a5: !ColliderShapeAssetDesc
-                                Shape: 974ee62e-4d36-4005-a27f-da07b6ae36a7:/PrototypingBlocks/CollisionMeshes/Ramp1x1_2x1
+                                Shape: 974ee62e-4d36-4005-a27f-da07b6ae36a7:/PrototypingBlocks/CollisionMeshes2/Ramp1x1_2x1
             Base:
                 BasePartAsset: 80a8680c-b826-4513-828a-67d3162d1da0:/PrototypingBlocks/BlocksPrefabs/Ramp1x1_2x1
                 BasePartId: dcbcec6d-0b9a-404a-87ee-0a0f69fc314e
@@ -5016,7 +5016,7 @@ Hierarchy:
                         AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             7c0427666547c848a3b4892e63c539a5: !ColliderShapeAssetDesc
-                                Shape: 974ee62e-4d36-4005-a27f-da07b6ae36a7:/PrototypingBlocks/CollisionMeshes/Ramp1x1_2x1
+                                Shape: 974ee62e-4d36-4005-a27f-da07b6ae36a7:/PrototypingBlocks/CollisionMeshes2/Ramp1x1_2x1
             Base:
                 BasePartAsset: 80a8680c-b826-4513-828a-67d3162d1da0:/PrototypingBlocks/BlocksPrefabs/Ramp1x1_2x1
                 BasePartId: dcbcec6d-0b9a-404a-87ee-0a0f69fc314e
@@ -5519,7 +5519,7 @@ Hierarchy:
                         AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             7c0427666547c848a3b4892e63c539a5: !ColliderShapeAssetDesc
-                                Shape: 974ee62e-4d36-4005-a27f-da07b6ae36a7:/PrototypingBlocks/CollisionMeshes/Ramp1x1_2x1
+                                Shape: 974ee62e-4d36-4005-a27f-da07b6ae36a7:/PrototypingBlocks/CollisionMeshes2/Ramp1x1_2x1
             Base:
                 BasePartAsset: 80a8680c-b826-4513-828a-67d3162d1da0:/PrototypingBlocks/BlocksPrefabs/Ramp1x1_2x1
                 BasePartId: dcbcec6d-0b9a-404a-87ee-0a0f69fc314e
@@ -5863,7 +5863,7 @@ Hierarchy:
                         AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             7c0427666547c848a3b4892e63c539a5: !ColliderShapeAssetDesc
-                                Shape: 974ee62e-4d36-4005-a27f-da07b6ae36a7:/PrototypingBlocks/CollisionMeshes/Ramp1x1_2x1
+                                Shape: 974ee62e-4d36-4005-a27f-da07b6ae36a7:/PrototypingBlocks/CollisionMeshes2/Ramp1x1_2x1
             Base:
                 BasePartAsset: 80a8680c-b826-4513-828a-67d3162d1da0:/PrototypingBlocks/BlocksPrefabs/Ramp1x1_2x1
                 BasePartId: dcbcec6d-0b9a-404a-87ee-0a0f69fc314e
@@ -6002,7 +6002,7 @@ Hierarchy:
                         AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             7c0427666547c848a3b4892e63c539a5: !ColliderShapeAssetDesc
-                                Shape: 974ee62e-4d36-4005-a27f-da07b6ae36a7:/PrototypingBlocks/CollisionMeshes/Ramp1x1_2x1
+                                Shape: 974ee62e-4d36-4005-a27f-da07b6ae36a7:/PrototypingBlocks/CollisionMeshes2/Ramp1x1_2x1
             Base:
                 BasePartAsset: 80a8680c-b826-4513-828a-67d3162d1da0:/PrototypingBlocks/BlocksPrefabs/Ramp1x1_2x1
                 BasePartId: dcbcec6d-0b9a-404a-87ee-0a0f69fc314e
@@ -6047,7 +6047,7 @@ Hierarchy:
                         AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             7c0427666547c848a3b4892e63c539a5: !ColliderShapeAssetDesc
-                                Shape: 974ee62e-4d36-4005-a27f-da07b6ae36a7:/PrototypingBlocks/CollisionMeshes/Ramp1x1_2x1
+                                Shape: 974ee62e-4d36-4005-a27f-da07b6ae36a7:/PrototypingBlocks/CollisionMeshes2/Ramp1x1_2x1
             Base:
                 BasePartAsset: 80a8680c-b826-4513-828a-67d3162d1da0:/PrototypingBlocks/BlocksPrefabs/Ramp1x1_2x1
                 BasePartId: dcbcec6d-0b9a-404a-87ee-0a0f69fc314e
@@ -6092,7 +6092,7 @@ Hierarchy:
                         AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             7c0427666547c848a3b4892e63c539a5: !ColliderShapeAssetDesc
-                                Shape: 974ee62e-4d36-4005-a27f-da07b6ae36a7:/PrototypingBlocks/CollisionMeshes/Ramp1x1_2x1
+                                Shape: 974ee62e-4d36-4005-a27f-da07b6ae36a7:/PrototypingBlocks/CollisionMeshes2/Ramp1x1_2x1
             Base:
                 BasePartAsset: 80a8680c-b826-4513-828a-67d3162d1da0:/PrototypingBlocks/BlocksPrefabs/Ramp1x1_2x1
                 BasePartId: dcbcec6d-0b9a-404a-87ee-0a0f69fc314e
@@ -6523,7 +6523,7 @@ Hierarchy:
                         AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             7c0427666547c848a3b4892e63c539a5: !ColliderShapeAssetDesc
-                                Shape: 974ee62e-4d36-4005-a27f-da07b6ae36a7:/PrototypingBlocks/CollisionMeshes/Ramp1x1_2x1
+                                Shape: 974ee62e-4d36-4005-a27f-da07b6ae36a7:/PrototypingBlocks/CollisionMeshes2/Ramp1x1_2x1
             Base:
                 BasePartAsset: 80a8680c-b826-4513-828a-67d3162d1da0:/PrototypingBlocks/BlocksPrefabs/Ramp1x1_2x1
                 BasePartId: dcbcec6d-0b9a-404a-87ee-0a0f69fc314e
