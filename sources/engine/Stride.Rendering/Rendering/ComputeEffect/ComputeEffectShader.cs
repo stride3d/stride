@@ -52,8 +52,7 @@ namespace Stride.Rendering.ComputeEffect
         /// </summary>
         /// <remarks>
         /// This is the shader's <c>[numthreads(x, y, z)]</c>, applied through the <c>ThreadNumberX/Y/Z</c> macros
-        /// on <c>CSMain</c>. It is the supported way to set the thread group size; a literal <c>[numthreads]</c>
-        /// in the shader body is ignored. Keep consistent with <see cref="ThreadGroupCounts"/>.
+        /// on <c>CSMain</c>. Keep consistent with <see cref="ThreadGroupCounts"/>.
         /// </remarks>
         public Int3 ThreadNumbers { get; set; }
 
