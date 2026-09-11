@@ -191,60 +191,6 @@
     </Setter>
   </Style>
 
-  <Style TargetType="{x:Type views:SoundPreviewView}">
-    <Setter Property="Template">
-      <Setter.Value>
-        <ControlTemplate TargetType="{x:Type views:SoundPreviewView}">
-          <DockPanel Background="{StaticResource NormalBrush}" d:DataContext="{d:DesignInstance viewModel:SoundPreviewViewModel}">
-            <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Visibility="{Binding IsAudioValid, Converter={sd:VisibleOrCollapsed}}">
-              <Button Command="{Binding PlayCommand}" Background="Transparent" ToolTip="{sd:Localize Play the sound, Context=ToolTip}">
-                <Image Source="{StaticResource ImagePlay}" RenderOptions.BitmapScalingMode="NearestNeighbor" Width="16" Height="16"/>
-              </Button>
-              <Button Command="{Binding PauseCommand}" Background="Transparent" ToolTip="{sd:Localize Pause the sound, Context=ToolTip}">
-                <Image Source="{StaticResource ImagePause}" RenderOptions.BitmapScalingMode="NearestNeighbor" Width="16" Height="16"/>
-              </Button>
-              <Slider Height="8" Margin="5" Minimum="0" Maximum="1" Value="{Binding MasterVolume}" Width="60" IsMoveToPointEnabled="True"/>
-            </StackPanel>
-            <Border VerticalAlignment="Center">
-              <StackPanel>
-                <Slider Height="20" Margin="15,5" Minimum="0" Maximum="{Binding Duration.TotalSeconds, Mode=OneWay}" Value="{Binding CurrentValue}" IsMoveToPointEnabled="True" Visibility="{Binding IsAudioValid, Converter={sd:VisibleOrCollapsed}}">
-                  <Slider.Template>
-                    <ControlTemplate TargetType="{x:Type Slider}">
-                      <Grid x:Name="GridRoot" Focusable="False" MinHeight="{TemplateBinding MinHeight}">
-                        <Border Margin="0" x:Name="Border" Height="4" CornerRadius="2" Background="{DynamicResource DropdownButtonBackgroundBrush}" BorderBrush="{DynamicResource NormalBorderBrush}" BorderThickness="1,1,1,1" />
-                        <Track x:Name="PART_Track">
-                          <Track.Thumb>
-                            <Thumb Style="{DynamicResource NuclearSliderThumb}" Foreground="{x:Null}" Width="12" Height="{TemplateBinding ActualHeight}"/>
-                          </Track.Thumb>
-                          <Track.IncreaseRepeatButton>
-                            <RepeatButton Style="{DynamicResource NuclearScrollRepeatButtonStyle}" Command="Slider.IncreaseLarge" />
-                          </Track.IncreaseRepeatButton>
-                          <Track.DecreaseRepeatButton>
-                            <RepeatButton Style="{DynamicResource NuclearScrollRepeatButtonStyle}" Command="Slider.DecreaseLarge" />
-                          </Track.DecreaseRepeatButton>
-                        </Track>
-                      </Grid>
-                      <ControlTemplate.Triggers>
-                        <Trigger Property="IsEnabled" Value="false">
-                          <Setter Property="Background" Value="{DynamicResource DisabledBackgroundBrush}" TargetName="Border" />
-                          <Setter Property="BorderBrush" Value="{DynamicResource DisabledBorderBrush}" TargetName="Border" />
-                        </Trigger>
-                      </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                  </Slider.Template>
-                </Slider>
-                <TextBlock HorizontalAlignment="Center" Visibility="{Binding IsAudioValid, Converter={sd:VisibleOrCollapsed}}">
-                  <Run Text="{Binding CurrentTime, StringFormat={}{0:mm\\:ss\\:fff}, Mode=OneWay}"/>/<Run Text="{Binding Duration, StringFormat={}{0:mm\\:ss\\:fff}, Mode=OneWay}"/>
-                </TextBlock>
-                <TextBlock Text="{sd:Localize Building preview sound asset...}" HorizontalAlignment="Center" Visibility="{Binding IsAudioValid, Converter={sd:Chained {sd:InvertBool}, {sd:VisibleOrCollapsed}}}"/>
-              </StackPanel>
-            </Border>
-          </DockPanel>
-        </ControlTemplate>
-      </Setter.Value>
-    </Setter>
-  </Style>
-
   <Style TargetType="{x:Type views:SpriteSheetPreviewView}">
     <Setter Property="Template">
       <Setter.Value>

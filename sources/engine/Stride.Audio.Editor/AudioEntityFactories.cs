@@ -2,10 +2,11 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Threading.Tasks;
 using Stride.Core;
+using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Engine;
 
-namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories
+namespace Stride.Audio.Editor
 {
     [Display(10, "Audio emitter", "Audio")]
     public class AudioEmitterFactory : EntityFactory

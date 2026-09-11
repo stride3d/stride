@@ -18,9 +18,6 @@ TemplateFolders:
         - !file Templates/Assets/Materials/PBRSpecularMaterial.sdtpl
         - !file Templates/Assets/Materials/PBRClearCoatMaterial.sdtpl
         - !file Templates/Assets/Materials/PBRGlassMaterial.sdtpl
-        - !file Templates/Assets/Media/DefaultSound.sdtpl
-        - !file Templates/Assets/Media/SpatializedSound.sdtpl
-        - !file Templates/Assets/Media/MusicSound.sdtpl
         - !file Templates/Assets/Misc/DefaultGameSettings.sdtpl
         - !file Templates/Assets/Misc/DefaultGraphicsCompositorLevel10.sdtpl
         - !file Templates/Assets/Misc/DefaultGraphicsCompositorLevel9.sdtpl

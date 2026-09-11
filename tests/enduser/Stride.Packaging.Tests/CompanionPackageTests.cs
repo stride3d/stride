@@ -354,6 +354,36 @@ public class CompanionPackageTests
     }
 
     [Fact]
+    public void SoundCompilesThroughTheAudioAssetsPackageAndOnlyTheEditorLoadsItsEditorPackage()
+    {
+        // Stride.Audio declares Stride.Audio.Assets (sound asset, compiler, importer,
+        // templates) and Stride.Audio.Editor (gizmos, preview, thumbnail)
+        using var c = new Case(output, "assets-audio");
+        c.PackPlugin();
+        c.ReferencePackage("Stride.Audio");
+        c.AddSoundAsset();
+        // Typed from Stride.Audio's [assembly: AssetFileExtension(".sdsnd", ...)]
+        c.AddTypedConstantCheck("Bip", "Stride.Audio.Sound");
+
+        var result = c.BuildConsumer();
+        Assert.True(result.ExitCode == 0, $"Consumer build should succeed (exit {result.ExitCode}).");
+        c.AssertContentCompiled("/Consumer/Bip");
+
+        var compilerSession = c.LoadConsumerProjectSession();
+        Assert.Contains(compilerSession.Packages, p => p.Meta.Name == "Stride.Audio.Assets");
+        Assert.DoesNotContain(compilerSession.Packages, p => p.Meta.Name == "Stride.Audio.Editor");
+        Assert.Contains(TemplateManager.FindTemplates(TemplateScope.Asset, compilerSession), t => t.Name == "Spatialized sound");
+
+        // Stride.Audio.Editor targets Windows only, as Game Studio does
+        if (!OperatingSystem.IsWindows())
+            return;
+        var editorSession = c.LoadConsumerProjectSession(loadEditorPackages: true);
+        var editorPackage = Assert.Single(editorSession.Packages, p => p.Meta.Name == "Stride.Audio.Editor");
+        Assert.True(((StandalonePackage)editorPackage.Container).IsCompanionPackage);
+        AssertDeclaredEditorPackage(editorSession, "Stride.Audio", editorPackage);
+    }
+
+    [Fact]
     public void VoxelsHasAnEditorPackageOnlyAndShipsItsTemplate()
     {
         // Stride.Voxels ships no asset type, so it declares Stride.Voxels.Editor alone (gizmo, entity factories);
@@ -678,6 +708,22 @@ public class CompanionPackageTests
                 Source: ../Resources/character_template_2head.ssae
                 """);
             AddRootAsset("7595b1d1-3f94-4cc5-bbfc-ec51687b96d6:Character");
+        }
+
+        public void AddSoundAsset()
+        {
+            var resources = Path.Combine(consumerDir, "Consumer.Game", "Resources");
+            Directory.CreateDirectory(resources);
+            File.Copy(Path.Combine(TestEnvironment.WorktreeRoot(), "sources", "data", "tests", "audio", "90-bboc1.wav"), Path.Combine(resources, "bip.wav"));
+            File.WriteAllText(Path.Combine(consumerDir, "Consumer.Game", "Assets", "Bip.sdsnd"), """
+                !Sound
+                Id: 2f3a4b5c-6d7e-4f80-9a1b-2c3d4e5f6a7b
+                SerializedVersion: {Stride: 2.0.0.0}
+                Tags: []
+                Source: ../Resources/bip.wav
+                Spatialized: false
+                """);
+            AddRootAsset("2f3a4b5c-6d7e-4f80-9a1b-2c3d4e5f6a7b:Bip");
         }
 
         public void AddHullAssets()

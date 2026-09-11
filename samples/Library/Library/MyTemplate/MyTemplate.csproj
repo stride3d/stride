@@ -5,6 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Stride.Engine" Version="$EngineVersion$" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Stride.Audio" Version="$EngineVersion$" PrivateAssets="contentfiles;analyzers" />
     <PackageReference Include="Stride.Video" Version="$EngineVersion$" PrivateAssets="contentfiles;analyzers" />
     <PackageReference Include="Stride.Physics" Version="$EngineVersion$" PrivateAssets="contentfiles;analyzers" />
     <PackageReference Include="Stride.Navigation" Version="$EngineVersion$" PrivateAssets="contentfiles;analyzers" />

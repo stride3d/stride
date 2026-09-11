@@ -5,12 +5,12 @@ using System.IO;
 using System.Threading.Tasks;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Services;
-using Stride.Assets.Media;
-using Stride.Audio;
+using Stride.Assets.Presentation.Preview;
+using Stride.Audio.Assets;
 using Stride.Editor.Annotations;
 using Stride.Media;
 
-namespace Stride.Assets.Presentation.Preview
+namespace Stride.Audio.Editor
 {
     [AssetPreview<SoundAsset>]
     public class SoundPreview : BuildAssetPreview<SoundAsset>

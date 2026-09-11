@@ -2,10 +2,10 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using Stride.Core.Assets;
 using Stride.Core.Assets.Compiler;
-using Stride.Assets.Media;
-using Stride.Audio;
+using Stride.Audio.Assets;
+using Stride.Editor.Preview;
 
-namespace Stride.Editor.Preview
+namespace Stride.Audio.Editor
 {
     [AssetCompiler(typeof(SoundAsset), typeof(EditorGameCompilationContext))]
     public class SoundAssetEditorGameCompiler : AssetCompilerBase

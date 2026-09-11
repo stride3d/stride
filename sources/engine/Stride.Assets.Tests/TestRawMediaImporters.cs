@@ -5,7 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Stride.Assets.FFmpeg;
-using Stride.Assets.Media;
+using Stride.Audio.Assets;
 using Stride.Core.Assets;
 using Stride.Core.IO;
 using Stride.Video.Assets;
