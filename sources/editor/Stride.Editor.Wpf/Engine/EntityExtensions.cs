@@ -7,7 +7,6 @@ using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Rendering;
-using Stride.SpriteStudio.Runtime;
 
 namespace Stride.Editor.Engine
 {
@@ -158,39 +157,7 @@ namespace Stride.Editor.Engine
                 boundingSphere = BoundingSphere.Merge(boundingSphere, new BoundingSphere(center, maxScale * spriteDiagonalSize / 2f));
             }
 
-            var spriteStudioComponent = entity.Get<SpriteStudioComponent>();
-            if (spriteStudioComponent != null)
-            {
-                // Make sure nodes are prepared
-                if (!SpriteStudioProcessor.PrepareNodes(spriteStudioComponent)) return new BoundingSphere();
-
-                // Update root nodes
-                foreach (var node in spriteStudioComponent.Nodes)
-                {
-                    node.UpdateTransformation();
-                }
-
-                // Compute bounding sphere for each node
-                foreach (var node in spriteStudioComponent.Nodes.SelectDeep(x => x.ChildrenNodes))
-                {
-                    if (node.Sprite == null || node.Hide != 0) continue;
-
-                    var nodeMatrix = node.ModelTransform * worldMatrix;
-
-                    var spriteSize = node.Sprite.Size;
-                    var spriteDiagonalSize = MathF.Sqrt(spriteSize.X * spriteSize.X + spriteSize.Y * spriteSize.Y);
-
-                    Vector3 pos, scale;
-                    nodeMatrix.Decompose(out scale, out pos);
-
-                    var center = pos;
-                    var maxScale = Math.Max(scale.X, scale.Y); //2d ignore Z
-
-                    boundingSphere = BoundingSphere.Merge(boundingSphere, new BoundingSphere(center, maxScale * (spriteDiagonalSize / 2f)));
-                }
-            }
-
-            // Components that declare their own volume (a navigation bounding box, a particle system, ...)
+            // Components that declare their own volume (a navigation bounding box, a particle system, a SpriteStudio sheet, ...)
             foreach (var component in entity.Components)
             {
                 if (component is not IEntityComponentBounds { LocalBounds: var localBounds } || localBounds == BoundingBox.Empty)
