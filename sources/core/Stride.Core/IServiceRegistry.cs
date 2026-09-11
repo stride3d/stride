@@ -47,6 +47,10 @@ public interface IServiceRegistry
     /// <exception cref="ArgumentException">Thrown when a service of the same type is already registered.</exception>
     void AddService<T>(T service) where T : class;
 
+    /// <summary>Adds a service under a type known at run time.</summary>
+    /// <exception cref="ArgumentException">The service is not of <paramref name="serviceType"/>, or that type is already registered.</exception>
+    void AddService(Type serviceType, object service);
+
     /// <summary>
     /// Gets the service object of the specified type.
     /// </summary>

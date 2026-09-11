@@ -35,5 +35,21 @@ namespace Stride.Audio.Tests.Engine
                 Assert.NotNull(audioInterface);
             }
         }
+
+        /// <summary>
+        /// The audio system is a declared game system (<see cref="Stride.Games.GameSystemAttribute"/>): the game creates it
+        /// and registers its services in its constructor, before Initialize adds it to the game systems.
+        /// </summary>
+        [Fact]
+        public void TestDeclaredSystemCreatedWithTheGame()
+        {
+            using (var game = new Game())
+            {
+                var audio = game.Services.GetService<AudioSystem>();
+                Assert.NotNull(audio);
+                Assert.Same(audio, game.Services.GetService<IAudioEngineProvider>());
+                Assert.DoesNotContain(audio, game.GameSystems);
+            }
+        }
     }
 }
