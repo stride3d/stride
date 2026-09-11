@@ -94,11 +94,9 @@ public sealed class StoredCrash
         return crash;
     }
 
-    public string ToJson() => JsonSerializer.Serialize(this, JsonOptions);
+    public string ToJson() => JsonSerializer.Serialize(this, CrashReportJsonContext.Default.StoredCrash);
 
-    public static StoredCrash FromJson(string json) => JsonSerializer.Deserialize<StoredCrash>(json, JsonOptions);
-
-    private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
+    public static StoredCrash FromJson(string json) => JsonSerializer.Deserialize(json, CrashReportJsonContext.Default.StoredCrash);
 }
 
 /// <summary>One report key/value pair. Kept as an explicit object (not a dictionary) so insertion order survives the round-trip.</summary>

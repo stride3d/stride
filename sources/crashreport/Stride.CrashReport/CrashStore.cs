@@ -170,7 +170,7 @@ public sealed class CrashStore
         if (!set.Add(key))
             return;
         Directory.CreateDirectory(directory);
-        File.WriteAllText(path, JsonSerializer.Serialize(set));
+        File.WriteAllText(path, JsonSerializer.Serialize(set, CrashReportJsonContext.Default.HashSetString));
     }
 
     private static HashSet<string> Load(string path)
@@ -178,7 +178,7 @@ public sealed class CrashStore
         try
         {
             if (File.Exists(path))
-                return JsonSerializer.Deserialize<HashSet<string>>(File.ReadAllText(path)) ?? new();
+                return JsonSerializer.Deserialize(File.ReadAllText(path), CrashReportJsonContext.Default.HashSetString) ?? [];
         }
         catch (Exception)
         {
