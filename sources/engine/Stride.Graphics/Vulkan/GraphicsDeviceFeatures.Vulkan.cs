@@ -42,31 +42,15 @@ namespace Stride.Graphics
 
             HasResourceRenaming = false;
 
-            // Only the framebuffer sample count limits are read, not per-format image properties:
-            // this runs for every PixelFormat at device creation, and the framebuffer limits are what
-            // bound a render target's sample count.
             var physicalDevice = deviceRoot.NativePhysicalDevice;
-            deviceRoot.NativeInstanceApi.vkGetPhysicalDeviceProperties(physicalDevice, out var physicalDeviceProperties);
-            var colorSampleCounts = physicalDeviceProperties.limits.framebufferColorSampleCounts;
-            var depthSampleCounts = physicalDeviceProperties.limits.framebufferDepthSampleCounts;
-
-            static MultisampleCount MaximumSampleCount(VkSampleCountFlags supported)
-            {
-                if ((supported & VkSampleCountFlags.Count8) != 0)
-                    return MultisampleCount.X8;
-                if ((supported & VkSampleCountFlags.Count4) != 0)
-                    return MultisampleCount.X4;
-                if ((supported & VkSampleCountFlags.Count2) != 0)
-                    return MultisampleCount.X2;
-                return MultisampleCount.None;
-            }
-
-            // Use the intersection of the color and depth masks for every format: there is no
-            // color/depth predicate on PixelFormat here, and erring low only costs a sample count.
-            var maximumMultisampleCount = MaximumSampleCount(colorSampleCounts & depthSampleCounts);
+            var instanceApi = deviceRoot.NativeInstanceApi;
 
             for (int i = 0; i < mapFeaturesPerFormat.Length; i++)
-                mapFeaturesPerFormat[i] = new FeaturesPerFormat((PixelFormat) i, maximumMultisampleCount, ComputeShaderFormatSupport.None, FormatSupport.None);
+            {
+                var pixelFormat = (PixelFormat) i;
+                var maximumMultisampleCount = GetMaximumMultisampleCount(instanceApi, physicalDevice, pixelFormat);
+                mapFeaturesPerFormat[i] = new FeaturesPerFormat(pixelFormat, maximumMultisampleCount, ComputeShaderFormatSupport.None, FormatSupport.None);
+            }
             //// Check features for each DXGI.Format
             //foreach (var format in Enum.GetValues(typeof(SharpDX.DXGI.Format)))
             //{
@@ -87,6 +71,29 @@ namespace Stride.Graphics
             //    //mapFeaturesPerFormat[(int)dxgiFormat] = new FeaturesPerFormat((PixelFormat)dxgiFormat, maximumMultisampleCount, computeShaderFormatSupport, formatSupport);
             //    mapFeaturesPerFormat[(int)dxgiFormat] = new FeaturesPerFormat((PixelFormat)dxgiFormat, maximumMultisampleCount, formatSupport);
             //}
+        }
+
+        private static MultisampleCount GetMaximumMultisampleCount(VkInstanceApi instanceApi, VkPhysicalDevice physicalDevice, PixelFormat pixelFormat)
+        {
+            if (!VulkanConvertExtensions.TryConvertPixelFormat(pixelFormat, out var format, out _, out _))
+                return MultisampleCount.None;
+
+            // Same usage as Texture.CreateImage for a render target or depth stencil of that format
+            var usage = VkImageUsageFlags.TransferSrc | VkImageUsageFlags.TransferDst;
+            usage |= Texture.IsDepthFormat(pixelFormat) ? VkImageUsageFlags.DepthStencilAttachment : VkImageUsageFlags.ColorAttachment;
+
+            var result = instanceApi.vkGetPhysicalDeviceImageFormatProperties(physicalDevice, format, VkImageType.Image2D, VkImageTiling.Optimal, usage, VkImageCreateFlags.None, out var imageFormatProperties);
+            if (result != VkResult.Success)
+                return MultisampleCount.None;
+
+            var sampleCounts = imageFormatProperties.sampleCounts;
+            if ((sampleCounts & VkSampleCountFlags.Count8) != 0)
+                return MultisampleCount.X8;
+            if ((sampleCounts & VkSampleCountFlags.Count4) != 0)
+                return MultisampleCount.X4;
+            if ((sampleCounts & VkSampleCountFlags.Count2) != 0)
+                return MultisampleCount.X2;
+            return MultisampleCount.None;
         }
     }
 }
