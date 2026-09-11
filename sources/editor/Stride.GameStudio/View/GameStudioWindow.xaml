@@ -73,9 +73,28 @@
         <!-- Asset -->
         <MenuItem Header="{sd:Localize Asset, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}"/>
         <MenuItem Header="{sd:Localize Edit asset..., Context=Menu}" Command="{Binding Session.EditSelectedContentCommand}" Icon="{sd:Image {StaticResource ImageEditAsset}}" InputGestureText="{x:Static strings:KeyGestures.EditAsset}"/>
-        <MenuItem Header="{Binding Session.SelectionIsRoot, Converter={sd:BoolToParam}, ConverterParameter={sd:Localize Don\'t include in build as root asset, Context=Menu},
-                          FallbackValue={sd:Localize Include in build as root asset, Context=Menu}}" Command="{Binding Session.ToggleIsRootOnSelectedAssetCommand}"
-                          Icon="{sd:Image {StaticResource ImageAssetIsRoot}}"/>
+        <MenuItem Header="{Binding Session.RootAssetToggleHeader}" Command="{Binding Session.ToggleIsRootOnSelectedAssetCommand}"
+                  Icon="{sd:Image {StaticResource ImageAssetIsRoot}}"/>
+        <!-- One toggle per package the selection can be rooted in; the default target (the plain item above) is bold -->
+        <MenuItem Header="{sd:Localize Include in build as root asset in, Context=Menu}" ItemsSource="{Binding Session.RootAssetTargets}" Icon="{sd:Image {StaticResource ImageAssetIsRoot}}"
+                  Visibility="{Binding Session.RootAssetTargets.Count, Converter={sd:Chained {sd:NumericToBool}, {sd:VisibleOrCollapsed}}, FallbackValue={sd:Collapsed}}">
+          <MenuItem.ItemContainerStyle>
+            <Style TargetType="{x:Type MenuItem}" BasedOn="{StaticResource {x:Type MenuItem}}" d:DataContext="{d:DesignInstance sd:RootAssetTargetViewModel}">
+              <Setter Property="Header" Value="{Binding Name}" />
+              <Setter Property="Command" Value="{Binding ToggleCommand}" />
+              <Setter Property="IsChecked" Value="{Binding IsChecked, Mode=OneWay}" />
+              <Style.Triggers>
+                <DataTrigger Binding="{Binding IsDefault}" Value="True">
+                  <Setter Property="FontWeight" Value="Bold" />
+                </DataTrigger>
+                <!-- Some of the selected assets are rooted here (a MenuItem has no indeterminate check state) -->
+                <DataTrigger Binding="{Binding IsPartiallyChecked}" Value="True">
+                  <Setter Property="Icon" Value="{StaticResource ImageAssetIsRootPartial}" />
+                </DataTrigger>
+              </Style.Triggers>
+            </Style>
+          </MenuItem.ItemContainerStyle>
+        </MenuItem>
         <Separator Visibility="{Binding Session.ActiveAssetView.SingleSelectedAsset.AssetCommands.Count, Converter={sd:Chained {sd:NumericToBool}, {sd:VisibleOrCollapsed}}, FallbackValue={sd:Collapsed}}" />
         <!-- IsCheckable=True is a hack to prevent WPF from clearing the selected sub menu item -->
         <MenuItem ItemsSource="{Binding Session.ActiveAssetView.SingleSelectedAsset.AssetCommands}" IsCheckable="True"

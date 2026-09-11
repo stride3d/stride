@@ -116,7 +116,7 @@
                           </StackPanel>
                           <StackPanel Orientation="Horizontal" Visibility="{Binding Dependencies.IsBuiltAsRoot, Converter={sd:VisibleOrCollapsed}, FallbackValue={sd:Collapsed}}">
                             <Image Source="{StaticResource ImageAssetIsRoot}" Width="16" Height="16" Margin="0,2,0,0"/>
-                            <TextBlock Text="{sd:Localize Included in build as root}"/>
+                            <TextBlock Text="{Binding Dependencies.RootInclusionDescription}"/>
                           </StackPanel>
                           <StackPanel Orientation="Horizontal" Visibility="{Binding Dependencies.IsBuiltAsDependency, Converter={sd:VisibleOrCollapsed}, FallbackValue={sd:Collapsed}}">
                             <Image Source="{StaticResource ImageAssetIsIndirectlyIncluded}" Width="16" Height="16" Margin="0,2,0,0"/>

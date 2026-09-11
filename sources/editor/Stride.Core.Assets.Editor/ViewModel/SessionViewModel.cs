@@ -147,6 +147,21 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
         public bool SelectionIsRoot { get => selectionIsRoot; internal set { SetValueUncancellable(ref selectionIsRoot, value); UpdateSessionState(); } }
 
+        /// <summary>
+        /// Gets the package the root-asset toggle targets for the current selection (see <see cref="GetDefaultRootAssetTarget"/>).
+        /// </summary>
+        public PackageViewModel RootAssetDefaultTarget { get => rootAssetDefaultTarget; private set => SetValueUncancellable(ref rootAssetDefaultTarget, value); }
+
+        /// <summary>
+        /// Gets the header of the root-asset toggle menu item, naming its target package.
+        /// </summary>
+        public string RootAssetToggleHeader { get => rootAssetToggleHeader; private set => SetValueUncancellable(ref rootAssetToggleHeader, value); }
+
+        /// <summary>
+        /// Gets the packages the current selection can be rooted in, each with its own toggle.
+        /// </summary>
+        public IReadOnlyObservableList<RootAssetTargetViewModel> RootAssetTargets => rootAssetTargets;
+
         [NotNull]
         public SessionNodeContainer AssetNodeContainer { get; }
 
@@ -243,6 +258,9 @@ namespace Stride.Core.Assets.Editor.ViewModel
         private ICommandBase importEffectLogCommand;
         private int importEffectLogPendingCount;
         private bool selectionIsRoot;
+        private PackageViewModel rootAssetDefaultTarget;
+        private string rootAssetToggleHeader;
+        private readonly ObservableList<RootAssetTargetViewModel> rootAssetTargets = new ObservableList<RootAssetTargetViewModel>();
         private bool isInFixupAssetContext;
 
         public static async Task<SessionViewModel> CreateNewSession(EditorViewModel editor, IViewModelServiceProvider serviceProvider, NewSessionParameters newSessionParameters)
@@ -1254,7 +1272,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
             CurrentProject = project;
             AllAssets.ForEach(x => x.Dependencies.NotifyRootAssetChange(false));
-            SelectionIsRoot = ActiveAssetView.SelectedAssets.All(x => x.Dependencies.IsRoot);
+            RefreshRootAssetSelection();
         }
 
         private void UpdateCurrentProject(ProjectViewModel oldValue, ProjectViewModel newValue)
@@ -1267,13 +1285,14 @@ namespace Stride.Core.Assets.Editor.ViewModel
             {
                 newValue.IsCurrentProject = true;
             }
-            ToggleIsRootOnSelectedAssetCommand.IsEnabled = CurrentProject != null;
+            if (ActiveAssetView != null)
+                RefreshRootAssetSelection();
             UpdateSessionState();
         }
 
         private void SelectedAssetsCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            SelectionIsRoot = ActiveAssetView.SelectedAssets.All(x => x.Dependencies.IsRoot);
+            RefreshRootAssetSelection();
         }
 
         private void LocalPackagesCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
@@ -1289,6 +1308,9 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 packageMap.Where(x => e.NewItems.Cast<PackageViewModel>().Contains(x.Key)).ForEach(x => session.Projects.Add(x.Value));
             }
             e.OldItems?.Cast<PackageViewModel>().Select(x => packageMap[x]).ForEach(x => session.Projects.Remove(x));
+            // The root-asset menu lists the local packages
+            if (ActiveAssetView != null)
+                RefreshRootAssetSelection();
         }
 
         private async Task NewProject()
@@ -1665,7 +1687,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             ActivatePackagePropertiesCommand.IsEnabled = packageSelected || directorySelected;
             EditSelectedContentCommand.IsEnabled = ActiveAssetView.SingleSelectedContent is DirectoryViewModel || asset is { IsEditable: true } && ServiceProvider.Get<IAssetsPluginService>().HasEditorView(this, asset.GetType());
             OpenWithTextEditorCommand.IsEnabled = OpenAssetFileCommand.IsEnabled = OpenSourceFileCommand.IsEnabled = asset != null;
-            ToggleIsRootOnSelectedAssetCommand.IsEnabled = ActiveAssetView.SelectedAssets.Count > 0 && ActiveAssetView.SelectedAssets.All(x => !x.Dependencies.ForcedRoot);
+            ToggleIsRootOnSelectedAssetCommand.IsEnabled = RootAssetDefaultTarget != null && ActiveAssetView.SelectedAssets.Count > 0 && ActiveAssetView.SelectedAssets.All(x => !x.Dependencies.ForcedRoot);
             UpdateSelectionCommands();
 
             NotifySessionStateChanged();
@@ -1926,19 +1948,91 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
         private void ToggleIsRootOnSelectedAsset()
         {
-            if (CurrentProject?.Package == null)
-                return;
+            ToggleRootAsset(ActiveAssetView.SelectedAssets, RootAssetDefaultTarget);
+        }
 
-            var currentValue = ActiveAssetView.SelectedAssets.All(x => x.Dependencies.IsRoot);
+        /// <summary>
+        /// Gets the packages the given assets can be rooted in: editable local packages that have all of them in scope.
+        /// </summary>
+        public IReadOnlyList<PackageViewModel> GetRootAssetTargets(IReadOnlyCollection<AssetViewModel> assets)
+        {
+            if (assets.Count == 0)
+                return Array.Empty<PackageViewModel>();
+            return LocalPackages.Where(package => package.IsEditable && assets.All(package.IsInScope)).ToList();
+        }
+
+        /// <summary>
+        /// Gets the package the root-asset toggle targets by default for the given assets: the package owning them when it is
+        /// a valid target, else the game library the current project builds (the topmost library among its dependencies), else
+        /// the current project. Rooting in the current project (a platform head) is a deliberate per-executable choice.
+        /// </summary>
+        public PackageViewModel GetDefaultRootAssetTarget(IReadOnlyCollection<AssetViewModel> assets)
+        {
+            var targets = GetRootAssetTargets(assets);
+            if (targets.Count == 0)
+                return null;
+
+            var owners = assets.Select(x => x.Directory.Package).Distinct().ToList();
+            if (owners.Count == 1 && targets.Contains(owners[0]))
+                return owners[0];
+
+            if (CurrentProject != null)
+            {
+                var libraries = targets.Where(x => x != CurrentProject && x is not ProjectViewModel { Type: ProjectType.Executable } && CurrentProject.PackageContainer.FlattenedDependencies.Any(d => d.Package == x.Package)).ToList();
+                var topmost = libraries.Where(x => !libraries.Any(other => other != x && other.PackageContainer.FlattenedDependencies.Any(d => d.Package == x.Package))).ToList();
+                if (topmost.Count == 1)
+                    return topmost[0];
+                if (targets.Contains(CurrentProject))
+                    return CurrentProject;
+            }
+            return targets[0];
+        }
+
+        /// <summary>
+        /// Toggles the given assets as root assets of the given package: they all become roots, unless they already all are,
+        /// in which case they all stop being roots of that package.
+        /// </summary>
+        public void ToggleRootAsset(IReadOnlyCollection<AssetViewModel> assets, PackageViewModel target)
+        {
+            if (target == null)
+                return;
+            var toggleable = assets.Where(x => !x.Dependencies.ForcedRoot && target.IsInScope(x)).ToList();
+            if (toggleable.Count == 0)
+                return;
+            var newValue = !toggleable.All(x => target.RootAssets.Contains(x));
             using (var transaction = UndoRedoService.CreateTransaction())
             {
-                foreach (var selectedAsset in ActiveAssetView.SelectedAssets)
+                foreach (var asset in toggleable)
                 {
-                    if (CurrentProject.IsInScope(selectedAsset))
-                        selectedAsset.Dependencies.IsRoot = !currentValue;
+                    if (newValue)
+                        target.RootAssets.Add(asset);
+                    else
+                        target.RootAssets.Remove(asset);
                 }
                 UndoRedoService.SetName(transaction, "Change root assets");
             }
+        }
+
+        /// <summary>
+        /// Recomputes the root-asset state of the current selection: its default target, the toggle header and the per-package targets.
+        /// </summary>
+        internal void RefreshRootAssetSelection()
+        {
+            var selectedAssets = ActiveAssetView.SelectedAssets;
+            var targets = GetRootAssetTargets(selectedAssets);
+            var defaultTarget = GetDefaultRootAssetTarget(selectedAssets);
+            rootAssetTargets.Clear();
+            rootAssetTargets.AddRange(targets.Select(x =>
+            {
+                var rootedCount = selectedAssets.Count(asset => x.RootAssets.Contains(asset));
+                return new RootAssetTargetViewModel(this, x, x == defaultTarget, rootedCount == selectedAssets.Count, rootedCount > 0 && rootedCount < selectedAssets.Count);
+            }));
+            RootAssetDefaultTarget = defaultTarget;
+            var isRoot = defaultTarget != null && selectedAssets.All(x => defaultTarget.RootAssets.Contains(x));
+            RootAssetToggleHeader = defaultTarget == null
+                ? Tr._p("Menu", "Include in build as root asset")
+                : string.Format(isRoot ? Tr._p("Menu", "Don't include in build as root asset (in {0})") : Tr._p("Menu", "Include in build as root asset (in {0})"), defaultTarget.Name);
+            SelectionIsRoot = isRoot;
         }
 
         /// <inheritdoc/>
