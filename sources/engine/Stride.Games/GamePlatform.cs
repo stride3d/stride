@@ -360,10 +360,8 @@ namespace Stride.Games
                 if (!string.IsNullOrEmpty(preferredParameters.RequiredAdapterUid) && adapterUid != preferredParameters.RequiredAdapterUid)
                     continue;
 
-                // Skip adapters that don't have graphics output
-                // but only if no RequiredAdapterUid is provided (OculusVR at init time might be in a device with no outputs)
-                // Software rendering adapters (e.g. WARP) have no outputs either, so allow them through
-                if (graphicsAdapter.Outputs.Length == 0
+                // Skip software rasterizers (WARP, Basic Render Driver) unless explicitly requested.
+                if (graphicsAdapter.IsSoftwareAdapter
                     && string.IsNullOrEmpty(preferredParameters.RequiredAdapterUid)
                     && Environment.GetEnvironmentVariable("STRIDE_GRAPHICS_SOFTWARE_RENDERING") != "1")
                 {

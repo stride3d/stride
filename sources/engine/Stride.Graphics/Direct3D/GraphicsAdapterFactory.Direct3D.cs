@@ -60,10 +60,18 @@ namespace Stride.Graphics
 
             var useWarp = Environment.GetEnvironmentVariable("STRIDE_GRAPHICS_SOFTWARE_RENDERING") == "1";
 
+            var preference = Environment.GetEnvironmentVariable("STRIDE_GPU_PREFERENCE")?.ToLowerInvariant() switch
+            {
+                "high-performance" or "highperformance" => Graphics.GpuPreference.HighPerformance,
+                "minimum-power" or "minimumpower" => Graphics.GpuPreference.MinimumPower,
+                "unspecified" => Graphics.GpuPreference.Unspecified,
+                _ => gpuPreference,
+            };
+
             var adapterList = useWarp && dxgiFactoryVersion >= 4
                 ? EnumerateWarpAdapter()
-                : dxgiFactoryVersion >= 6
-                    ? EnumerateAdaptersPrefer(GpuPreference.HighPerformance)  // TODO: Make GPU preference configurable?
+                : dxgiFactoryVersion >= 6 && preference != Graphics.GpuPreference.Unspecified
+                    ? EnumerateAdaptersPrefer(preference)
                     : EnumerateAdapters();
 
             adapters = adapterList.ToArray();
@@ -183,12 +191,16 @@ namespace Stride.Graphics
                 Debug.Assert(dxgiFactoryVersion >= 6);
                 var dxgiFactory6 = (IDXGIFactory6*) dxgiFactory;
 
+                var dxgiPreference = gpuPreference == GpuPreference.MinimumPower
+                    ? Silk.NET.DXGI.GpuPreference.MinimumPower
+                    : Silk.NET.DXGI.GpuPreference.HighPerformance;
+
                 uint adapterIndex = 0;
                 var adapterList = new List<GraphicsAdapter>();
 
                 do
                 {
-                    HResult result = dxgiFactory6->EnumAdapterByGpuPreference(adapterIndex, gpuPreference, out ComPtr<IDXGIAdapter1> dxgiAdapter);
+                    HResult result = dxgiFactory6->EnumAdapterByGpuPreference(adapterIndex, dxgiPreference, out ComPtr<IDXGIAdapter1> dxgiAdapter);
 
                     bool foundValidAdapter = result.IsSuccess && result.Code != DxgiConstants.ErrorNotFound;
                     if (!foundValidAdapter)

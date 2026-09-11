@@ -18,6 +18,30 @@ namespace Stride.Graphics
         private static bool isInitialized;
         private static GraphicsAdapter[] adapters;
         private static GraphicsAdapter defaultAdapter;
+        private static GpuPreference gpuPreference = GpuPreference.HighPerformance;
+
+        /// <summary>
+        ///   Gets or sets which GPU is enumerated first on machines that have several, and therefore
+        ///   which one <see cref="DefaultAdapter"/> is.
+        /// </summary>
+        /// <remarks>
+        ///   Set it before the first use of <see cref="Adapters"/> or <see cref="DefaultAdapter"/>, or call
+        ///   <see cref="Reset"/> afterwards. The <c>STRIDE_GPU_PREFERENCE</c> environment variable
+        ///   (<c>high-performance</c>, <c>minimum-power</c> or <c>unspecified</c>) overrides this property.
+        /// </remarks>
+        public static GpuPreference GpuPreference
+        {
+            get
+            {
+                lock (StaticLock)
+                    return gpuPreference;
+            }
+            set
+            {
+                lock (StaticLock)
+                    gpuPreference = value;
+            }
+        }
 
         /// <summary>
         ///   Initializes the <see cref="GraphicsAdapterFactory"/>. On Desktop and WinRT, this is done statically.
