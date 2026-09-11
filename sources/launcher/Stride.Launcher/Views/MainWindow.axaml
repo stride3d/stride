@@ -767,7 +767,7 @@
               <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.5" Easing="CubicEaseInOut"/>
             </Transitions>
           </Grid.Transitions>
-          <Border CornerRadius="{StaticResource ControlCornerRadius}"
+          <Border Classes="card" CornerRadius="{StaticResource ControlCornerRadius}"
                   Background="{DynamicResource NeutralBackgroundColor}">
             <DockPanel>
                   <DockPanel DockPanel.Dock="Top">
