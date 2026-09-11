@@ -88,13 +88,12 @@ public class StrideShaderTests
         Assert.Equal(80, data1D.Size);
     }
 
-    // Regression: the MemberName re-instantiation path sets ShaderLoaderBase.SuppressSourceHash and
-    // relies on LoadFromCode to clear it. When the load hits the shader cache instead, LoadFromCode
-    // never runs, so the flag leaks into the next compiled shader and strips its OpSourceHashSDSL.
-    // A cached shader without OpSourceHashSDSL deserializes to a zero hash, which makes
-    // EffectCompilerCache.IsBytecodeObsolete return true on every run (a permanent recompile hang).
+    // Regression: the MemberName re-instantiation path sets ShaderLoaderBase.SourceHashOverride and
+    // relies on the load consuming it. When that load hits the shader cache and returns early, a
+    // surviving override would stamp one shader's source hash onto the next one compiled, which then
+    // never matches its own file and is rebuilt on every run.
     [Fact]
-    public void SuppressSourceHashDoesNotLeakAcrossCacheHits()
+    public void SourceHashOverrideDoesNotLeakAcrossCacheHits()
     {
         var loader = new ShaderLoader("./assets/Stride/SDSL");
 
@@ -102,22 +101,22 @@ public class StrideShaderTests
         Assert.True(loader.LoadExternalBuffer("Texturing", [], out var texturing, out _, out _));
         Assert.True(HasSourceHash(texturing), "sanity: a normally compiled shader carries OpSourceHashSDSL");
 
-        // Reproduce the MemberName path (Builder.Class.InstantiateMemberNames): set the flag, then load
-        // a shader that is already cached. The (name, filename, code) overload returns on the cache hit
-        // before LoadFromCode runs, so the flag is never cleared.
+        // Reproduce the MemberName path (Builder.Class.InstantiateMemberNames): set the override, then
+        // load a shader that is already cached. The (name, filename, code) overload returns on the cache
+        // hit, so the override has to be consumed before that early return.
         Assert.True(loader.LoadExternalFileContent("Texturing", out var filename, out var code, out _));
-        loader.SuppressSourceHash = true;
+        loader.SourceHashOverride = ObjectId.FromBytes("not a shader file"u8.ToArray());
         Assert.True(loader.LoadExternalBuffer("Texturing", filename, code, [], out _, out _, out var isFromCache));
         Assert.True(isFromCache, "precondition: the second load must be a cache hit to exercise the leak");
 
-        Assert.False(loader.SuppressSourceHash,
-            "SuppressSourceHash leaked past a cache hit; the next compiled shader would be cached without " +
-            "OpSourceHashSDSL (zero hash => EffectCompilerCache recompiles every run)");
+        Assert.Null(loader.SourceHashOverride);
 
-        // Downstream symptom: with the flag leaked, the next freshly compiled shader loses its hash.
-        Assert.True(loader.LoadExternalBuffer("ShaderBase", [], out var shaderBase, out _, out _));
-        Assert.True(HasSourceHash(shaderBase),
-            "the next compiled shader is missing OpSourceHashSDSL — its cached hash would deserialize to zero");
+        // Downstream symptom: with the override leaked, the next compiled shader records that hash
+        // instead of its own file's, and never matches its source again.
+        Assert.True(loader.LoadExternalBuffer("ShaderBase", [], out var shaderBase, out var shaderBaseHash, out _));
+        Assert.True(HasSourceHash(shaderBase));
+        Assert.True(loader.LoadExternalFileContent("ShaderBase", out _, out _, out var shaderBaseFileHash));
+        Assert.Equal(shaderBaseFileHash, shaderBaseHash);
     }
 
     private static bool HasSourceHash(ShaderBuffers buffer)
@@ -838,5 +837,41 @@ new ShaderMacro("class", "shader"),
                 Console.WriteLine(hlsl);
             }
         }
+    }
+
+    // A static call (Utils.Method(x)) from a stage method is not a non-stage member access.
+    [Fact]
+    public void StaticCallFromStageMethodDoesNotForceFullImport()
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+        Assert.True(shaderMixer.ShaderLoader.LoadExternalBuffer("StaticCallRoot", [], out var buffer, out _, out _));
+
+        foreach (var i in buffer.Buffer)
+        {
+            if (i.Op == Stride.Shaders.Spirv.Specification.Op.OpFunctionMetadataSDSL && (Stride.Shaders.Spirv.Core.OpFunctionMetadataSDSL)i is { } metadata)
+                Assert.False(metadata.Flags.HasFlag(Stride.Shaders.Spirv.Specification.FunctionFlagsMask.ReferencesNonStage),
+                    "A static call is not an instance access: the stage method must stay stage-only importable.");
+        }
+    }
+
+    // [loop] and [unroll] must reach OpLoopMerge's loop control; SPIRV-Cross turns them back into HLSL attributes.
+    [Fact]
+    public void LoopAttributesReachSpirvLoopControl()
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+        Assert.True(shaderMixer.ShaderLoader.LoadExternalBuffer("LoopControlRoot", [], out var buffer, out _, out _));
+
+        var controls = new List<Stride.Shaders.Spirv.Specification.LoopControlMask>();
+        foreach (var i in buffer.Buffer)
+        {
+            if (i.Op == Stride.Shaders.Spirv.Specification.Op.OpLoopMerge)
+                controls.Add(((Stride.Shaders.Spirv.Core.OpLoopMerge)i).LoopControl);
+        }
+
+        Assert.Equal(
+            [Stride.Shaders.Spirv.Specification.LoopControlMask.DontUnroll, Stride.Shaders.Spirv.Specification.LoopControlMask.Unroll, Stride.Shaders.Spirv.Specification.LoopControlMask.DontUnroll],
+            controls);
     }
 }

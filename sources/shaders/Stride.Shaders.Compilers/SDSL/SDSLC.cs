@@ -19,8 +19,6 @@ public record struct CompileOptions()
 {
     /// <summary>Whether to register the compiled shader in the cache.</summary>
     public bool RegisterInCache { get; init; } = true;
-    /// <summary>Whether to emit OpSourceHashSDSL for cache validation.</summary>
-    public bool EmitSourceHash { get; init; } = true;
     /// <summary>Original source code before preprocessing, used for OpSource debug info. Falls back to preprocessed code if null.</summary>
     public string? OriginalCode { get; init; }
 }
@@ -59,8 +57,7 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
                     var filenameId = compiler.Context.Add(new OpString(compiler.Context.Bound++, filename)).ResultId;
                     // TODO: Add SourceLanguage.SDSL
                     compiler.Context.Add(new OpSource(Spirv.Specification.SourceLanguage.Unknown, 0, filenameId, options.OriginalCode ?? code));
-                    if (options.EmitSourceHash)
-                        compiler.Context.Add(new OpSourceHashSDSL(filenameId, (int)hash.Hash1, (int)hash.Hash2, (int)hash.Hash3, (int)hash.Hash4));
+                    compiler.Context.Add(new OpSourceHashSDSL(filenameId, (int)hash.Hash1, (int)hash.Hash2, (int)hash.Hash3, (int)hash.Hash4));
                     compiler.SourceFileId = filenameId;
                 }
                 // TODO: Do we want to record macros with a custom OpMacroSDSL? (mostly for debug purposes)

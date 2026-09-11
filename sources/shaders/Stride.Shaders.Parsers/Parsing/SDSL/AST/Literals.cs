@@ -443,7 +443,9 @@ public abstract partial class IdentifierBase(string name, TextLocation info) : L
 
         // Track when a stage method accesses a non-stage variable (without composition qualifier).
         // This forces the shader to be fully imported at root level instead of stage-only during mixin.
-        if (symbol.MemberAccessWithImplicitThis != null && !symbol.Id.IsStage && builder.CurrentFunction is { IsStage: true })
+        // A shader name used as qualifier (LuminanceUtils.Luma(x)) reads no instance state and is not tracked.
+        if (symbol.MemberAccessWithImplicitThis != null && !symbol.Id.IsStage && symbol.Id.Kind != SymbolKind.Shader
+            && builder.CurrentFunction is { IsStage: true })
         {
             var varOwner = symbol.OwnerType;
             if (varOwner != null && varOwner != table.CurrentShader)

@@ -134,8 +134,16 @@ public interface IExternalShaderLoader
     public bool LoadExternalBuffer(string name, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out ShaderBuffers bytecode, out ObjectId hash, out bool isFromCache);
     public bool LoadExternalBuffer(string name, string? filename, string code, ReadOnlySpan<ShaderMacro> defines, [MaybeNullWhen(false)] out ShaderBuffers bytecode, out ObjectId hash, out bool isFromCache);
 
-    /// <summary>When set to true, suppresses OpSourceHashSDSL emission for the next compilation (used by MemberName recompilations).</summary>
-    bool SuppressSourceHash { get; set; }
+    /// <summary>
+    /// Whether a cached buffer still matches the sources it was built from (its own file and its dependencies).
+    /// </summary>
+    public bool IsCachedBufferCurrent(ShaderBuffers buffer);
+
+    /// <summary>
+    /// When set, the next compilation records this as its source hash instead of hashing the code it is
+    /// given. A MemberName recompilation is handed macro-expanded source, whose hash matches no file.
+    /// </summary>
+    ObjectId? SourceHashOverride { get; set; }
 }
 
 // Should contain internal data not seen by the client but helpful for the generation like type symbols and other 

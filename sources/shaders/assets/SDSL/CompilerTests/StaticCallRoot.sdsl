@@ -1,0 +1,15 @@
+// A stage method whose only outside reference is a static call must not be flagged as referencing non-stage members.
+namespace Stride.Shaders.Tests;
+
+shader StaticCallRoot
+{
+    stage stream uint3 DispatchThreadId : SV_DispatchThreadID;
+
+    RWTexture3D<float4> WriteTex;
+
+    [numthreads(8, 8, 8)]
+    stage void CSMain()
+    {
+        WriteTex[streams.DispatchThreadId] = float4(StaticCallUtils.Weight(float3(1, 2, 3)), 0, 0, 1);
+    }
+};
