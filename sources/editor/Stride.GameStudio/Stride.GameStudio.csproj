@@ -97,6 +97,12 @@
     <ProjectReference Include="..\..\engine\Stride.Video\Stride.Video.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
+    <ProjectReference Include="..\..\engine\Stride.Voxels\Stride.Voxels.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\engine\Stride.Voxels.Editor\Stride.Voxels.Editor.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
     <ProjectReference Include="..\..\engine\Stride.Video.Assets\Stride.Video.Assets.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>

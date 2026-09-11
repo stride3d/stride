@@ -354,6 +354,31 @@ public class CompanionPackageTests
     }
 
     [Fact]
+    public void VoxelsHasAnEditorPackageOnlyAndShipsItsTemplate()
+    {
+        // Stride.Voxels ships no asset type, so it declares Stride.Voxels.Editor alone (gizmo, entity factories);
+        // its compositor template comes with the runtime package itself
+        using var c = new Case(output, "editor-voxels");
+        c.PackPlugin();
+        c.ReferencePackage("Stride.Voxels");
+
+        var result = c.BuildConsumer();
+        Assert.True(result.ExitCode == 0, $"Consumer build should succeed (exit {result.ExitCode}).");
+
+        var compilerSession = c.LoadConsumerProjectSession();
+        Assert.DoesNotContain(compilerSession.Packages, p => p.Meta.Name == "Stride.Voxels.Editor");
+        Assert.Contains(TemplateManager.FindTemplates(TemplateScope.Asset, compilerSession), t => t.Name == "Graphics compositor (Voxel Cone Tracing)");
+
+        // Stride.Voxels.Editor targets Windows only, as Game Studio does
+        if (!OperatingSystem.IsWindows())
+            return;
+        var editorSession = c.LoadConsumerProjectSession(loadEditorPackages: true);
+        var editorPackage = Assert.Single(editorSession.Packages, p => p.Meta.Name == "Stride.Voxels.Editor");
+        Assert.True(((StandalonePackage)editorPackage.Container).IsCompanionPackage);
+        AssertDeclaredEditorPackage(editorSession, "Stride.Voxels", editorPackage);
+    }
+
+    [Fact]
     public void BepuHullCompilesThroughItsAssetsPackage()
     {
         // The engine's own plugin: Stride.BepuPhysics declares Stride.BepuPhysics.Assets, which carries

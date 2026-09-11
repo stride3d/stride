@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using Stride.Assets.Presentation.AssetEditors.Gizmos;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
@@ -11,7 +12,7 @@ using Stride.Rendering.Lights;
 using Stride.Rendering.Voxels;
 using Buffer = Stride.Graphics.Buffer;
 
-namespace Stride.Assets.Presentation.AssetEditors.Gizmos
+namespace Stride.Voxels.Editor
 {
     /// <summary>
     /// A gizmo to display the bounding boxes for voxel volumes inside the editor as a gizmo. 

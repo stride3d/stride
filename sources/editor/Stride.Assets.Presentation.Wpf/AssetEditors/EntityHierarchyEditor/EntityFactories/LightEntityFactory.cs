@@ -9,8 +9,6 @@ using Stride.Assets.Skyboxes;
 using Stride.Engine;
 using Stride.Rendering.Lights;
 using Stride.Rendering.Skyboxes;
-using Stride.Rendering.Voxels.VoxelGI;
-using Stride.Rendering.Voxels;
 
 namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories
 {
@@ -86,28 +84,6 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFa
             var lightComponent = new LightComponent { Type = new LightSkybox { Skybox = ContentReferenceHelper.CreateReference<Skybox>(skybox) } };
             var skyboxComponent = new BackgroundComponent { Texture = skyboxAsset.CubeMap };
             return await CreateEntityWithComponent(name, lightComponent, skyboxComponent);
-        }
-    }
-
-    [Display(60, "Voxel light", "Light")]
-    public class VoxelLightEntityFactory : EntityFactory
-    {
-        public override Task<Entity> CreateEntity(EntityHierarchyItemViewModel parent)
-        {
-            var name = ComputeNewName(parent, "Voxel light");
-            var component = new LightComponent { Type = new LightVoxel() };
-            return CreateEntityWithComponent(name, component);
-        }
-    }
-
-    [Display(65, "Voxel volume", "Light")]
-    public class VoxelVolumeEntityFactory : EntityFactory
-    {
-        public override Task<Entity> CreateEntity(EntityHierarchyItemViewModel parent)
-        {
-            var name = ComputeNewName(parent, "Voxel volume");
-            var component = new VoxelVolumeComponent { Attributes = { new VoxelAttributeEmissionOpacity() } };
-            return CreateEntityWithComponent(name, component);
         }
     }
 

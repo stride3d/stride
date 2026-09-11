@@ -78,6 +78,12 @@ public class TemplateAssetFactoryDescription : TemplateAssetDescription
     public string? FactoryTypeName { get; set; }
 
     /// <summary>
+    /// The URL of an asset of the session the new asset derives from (its archetype), such as a package's default
+    /// graphics compositor, instead of a fresh asset from the factory.
+    /// </summary>
+    public string? DerivedFrom { get; set; }
+
+    /// <summary>
     /// Values asked from the user and applied to the new asset, in order.
     /// </summary>
     public List<TemplateAssetPrompt> Prompts { get; } = [];
