@@ -8,7 +8,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using Stride.Audio;
 using Stride.Core;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
@@ -96,12 +95,6 @@ namespace Stride.Engine
         /// </summary>
         /// <value>The streaming system.</value>
         public StreamingManager Streaming { get; }
-
-        /// <summary>
-        /// Gets the audio system.
-        /// </summary>
-        /// <value>The audio.</value>
-        public AudioSystem Audio => Services.GetService<AudioSystem>();
 
         /// <summary>
         /// Gets the sprite animation system.

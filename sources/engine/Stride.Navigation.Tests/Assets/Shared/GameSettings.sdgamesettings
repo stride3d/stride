@@ -22,8 +22,6 @@ Defaults:
         Flags: None
         MaxSubSteps: 1
         FixedTimeStep: 0.0166666675
-    - !Stride.Audio.AudioEngineSettings,Stride.Audio
-        HrtfSupport: false
     - !Stride.Navigation.NavigationSettings,Stride.Navigation
         EnableDynamicNavigationMesh: false
         IncludedCollisionGroups: AllFilter

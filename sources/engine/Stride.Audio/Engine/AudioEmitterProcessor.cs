@@ -62,7 +62,7 @@ namespace Stride.Audio
         {
         }
 
-        protected internal override void OnSystemAdd()
+        protected override void OnSystemAdd()
         {
             audioSystem = Services.GetSafeServiceAs<AudioSystem>();
 
@@ -85,7 +85,7 @@ namespace Stride.Audio
                 entity.Transform == associatedData.TransformComponent;
         }
 
-        protected internal override void OnSystemRemove()
+        protected override void OnSystemRemove()
         {
             // Destroy all the SoundInstance created by the processor before closing.
             foreach (var soundInstance in ComponentDatas.Values.SelectMany(x => x.AudioEmitterComponent.SoundToController.Values))
