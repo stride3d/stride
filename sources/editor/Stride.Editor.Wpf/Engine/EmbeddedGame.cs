@@ -25,6 +25,9 @@ namespace Stride.Editor.Engine
         }
 
         /// <inheritdoc />
+        protected override bool IsEditorGame => true;
+
+        /// <inheritdoc />
         protected override void Initialize()
         {
             base.Initialize();
