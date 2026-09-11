@@ -4,7 +4,7 @@ using System.Windows;
 using Stride.Editor.Annotations;
 using Stride.Editor.Preview.View;
 
-namespace Stride.Assets.Presentation.Preview.Views
+namespace Stride.Audio.Editor
 {
     [AssetPreviewView<SoundPreview>]
     public class SoundPreviewView : StridePreviewView

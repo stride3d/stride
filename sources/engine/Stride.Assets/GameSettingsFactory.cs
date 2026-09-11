@@ -5,7 +5,6 @@ using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization;
 using Stride.Assets.Textures;
-using Stride.Audio;
 using Stride.Graphics;
 using Stride.Streaming;
 
@@ -21,7 +20,6 @@ namespace Stride.Assets
             asset.SplashScreenTexture = AttachedReferenceManager.CreateProxyObject<Texture>(new AssetId("d26edb11-10bd-403c-b3c2-9c7fcccf25e5"), "/Stride.Engine/StrideDefaultSplashScreen");
             asset.SplashScreenColor = Color.Black;
 
-            asset.GetOrCreate<AudioEngineSettings>();
             asset.GetOrCreate<EditorSettings>();
             asset.GetOrCreate<RenderingSettings>();
             asset.GetOrCreate<StreamingSettings>();

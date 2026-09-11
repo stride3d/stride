@@ -3,7 +3,7 @@
 
 using Stride.Core.Assets;
 
-namespace Stride.Assets.Media
+namespace Stride.Audio.Assets
 {
     public class MusicSoundFactory : AssetFactory<SoundAsset>
     {

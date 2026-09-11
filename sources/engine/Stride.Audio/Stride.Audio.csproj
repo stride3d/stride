@@ -10,6 +10,11 @@
     <!-- The emitter and listener components are written in scene assets -->
     <StrideContainsAssetTypes>true</StrideContainsAssetTypes>
   </PropertyGroup>
+  <ItemGroup>
+    <!-- Companion packages: the sound asset, compiler, importer and templates in .Assets, editor extensions in .Editor -->
+    <StrideCompanionProject Include="..\Stride.Audio.Assets\Stride.Audio.Assets.csproj" />
+    <StrideCompanionProject Include="..\Stride.Audio.Editor\Stride.Audio.Editor.csproj" />
+  </ItemGroup>
   <PropertyGroup Condition="'$(StrideTargetFramework)' == '$(StrideFrameworkiOS)' Or '$(StrideTargetFramework)' == '$(StrideFrameworkmacOS)'">
     <DefineConstants>STRIDE_VIDEO_AVFOUNDATION;$(DefineConstants)</DefineConstants>
   </PropertyGroup>

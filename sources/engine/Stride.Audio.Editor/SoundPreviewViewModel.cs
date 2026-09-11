@@ -2,12 +2,12 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Assets.Presentation.Preview;
+using Stride.Assets.Presentation.ViewModel.Preview;
 using Stride.Core.Presentation.Commands;
 using Stride.Editor.Annotations;
 using Stride.Editor.Preview;
 
-namespace Stride.Assets.Presentation.ViewModel.Preview
+namespace Stride.Audio.Editor
 {
     [AssetPreviewViewModel<SoundPreview>]
     public class SoundPreviewViewModel : AssetPreviewViewModel
