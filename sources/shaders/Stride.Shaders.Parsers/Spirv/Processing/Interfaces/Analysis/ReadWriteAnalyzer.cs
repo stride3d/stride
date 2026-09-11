@@ -79,6 +79,12 @@ internal static class ReadWriteAnalyzer
                     patchInstructionIds.Add(functionParameter.ResultId, s2.Kind);
                     methodInfo.HasStreamAccess = true;
                 }
+                else if (type is PointerType { BaseType: ArrayType { BaseType: StreamsType s3 } })
+                {
+                    // Geometry shader per-vertex input array (e.g. `Input input[3]`): indexing it yields a StreamsType access chain, same as PatchType.
+                    patchInstructionIds.Add(functionParameter.ResultId, s3.Kind);
+                    methodInfo.HasStreamAccess = true;
+                }
             }
             else if (i.Op is Op.OpLoad && new OpLoad(ref i) is { } load)
             {
@@ -177,12 +183,13 @@ internal static class ReadWriteAnalyzer
             {
                 var currentBase = accessChain.BaseId;
 
-                // In case it's a patch access, i.e. patch[0], mark the access as being a stream
+                // In case it's a patch or geometry-input-array access, i.e. patch[0] or input[0],
+                // mark the access as being a stream
                 if (patchInstructionIds.TryGetValue(currentBase, out var patchStreamKind))
                 {
                     var patchVariableId = accessChain.Indexes.Elements.Span[0];
                     if (accessChain.Indexes.Elements.Length > 1)
-                        throw new InvalidOperationException("OpAccessChain on PatchType can have only 1 element");
+                        throw new InvalidOperationException("OpAccessChain on PatchType/array-of-Streams can have only 1 element");
                     streamsInstructionIds.Add(accessChain.ResultId, patchStreamKind);
                 }
                 else

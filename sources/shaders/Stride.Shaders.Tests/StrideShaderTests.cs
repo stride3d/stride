@@ -64,6 +64,29 @@ public class StrideShaderTests
             string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
     }
 
+    // Regression: a Geometry shader reading a stage-input stream field directly through the input
+    // array element (`input[i].Field`), not just via a whole-struct `streams = input[i]` assignment,
+    // used to crash StreamAccessPatcher with a NullReferenceException. ReadWriteAnalyzer only
+    // recognized `PointerType { BaseType: StreamsType }` as a stream access on OpVariable/
+    // OpFunctionParameter, but a GS per-vertex input parameter (`Input input[3]`) is
+    // `PointerType { BaseType: ArrayType { BaseType: StreamsType } }`, so `input[i].Field` reads were
+    // never marked as "Read" and the field never got an InputStructFieldIndex.
+    [Fact]
+    public void GeometryShaderInputArrayFieldAccessDoesNotCrashCompiler()
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+        shaderMixer.ShaderLoader.LoadExternalBuffer("GSInputArrayFieldAccess", [], out _, out _, out _);
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(new ShaderClassSource("GSInputArrayFieldAccess"), new ShaderMixer.Options(true), log, out var bytecode, out _, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+
+        File.WriteAllBytes("GSInputArrayFieldAccess.spv", bytecode);
+        var validationResult = Spv.ValidateFile("GSInputArrayFieldAccess.spv");
+        Assert.True(validationResult.IsValid, validationResult.Output);
+    }
+
     // Reflection reports a multidimensional cbuffer array as a flat element count
     // (float4 Data2D[2][3] => 6 elements), matching fxc and the runtime parameter layout.
     [Fact]
