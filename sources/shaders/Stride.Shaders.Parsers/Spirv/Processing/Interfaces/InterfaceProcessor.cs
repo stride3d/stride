@@ -355,8 +355,8 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
         {
             // Function types are rewritten through GetOrRegister, not in place: functions with the same
             // signature share one OpTypeFunction, and mutating it for one would rewrite the others.
-            // Which parameter index each function loses.
-            var removedParameters = new Dictionary<int, int>();
+            // Which parameter indices each function loses, in declaration order.
+            var removedParameters = new Dictionary<int, List<int>>();
 
             var currentFunction = 0;
             var currentFunctionIndex = 0;
@@ -375,18 +375,22 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                     if (context.ReverseTypes.TryGetValue(parameter.ResultType, out var parameterType)
                         && parameterType is PointerType { BaseType: GeometryStreamType })
                     {
-                        removedParameters[currentFunction] = parameterIndex;
+                        if (!removedParameters.TryGetValue(currentFunction, out var removedIndices))
+                            removedParameters[currentFunction] = removedIndices = [];
                         SpirvBuilder.SetOpNop(i.Data.Memory.Span);
 
                         // Drop it from the function's own type too, unless a shared type already
                         // lost it when the entry point sharing that signature was rewritten.
+                        // Earlier removals in this function have already shifted the type's parameters.
+                        var typeIndex = parameterIndex - removedIndices.Count;
+                        removedIndices.Add(parameterIndex);
                         var declaringFunction = (OpFunction)buffer[currentFunctionIndex];
                         if (context.ReverseTypes.TryGetValue(declaringFunction.FunctionType, out var declaredType)
                             && declaredType is FunctionType functionType
-                            && parameterIndex < functionType.ParameterTypes.Count)
+                            && typeIndex < functionType.ParameterTypes.Count)
                         {
                             var remainingParameters = new List<FunctionParameter>(functionType.ParameterTypes);
-                            remainingParameters.RemoveAt(parameterIndex);
+                            remainingParameters.RemoveAt(typeIndex);
                             declaringFunction.FunctionType = context.GetOrRegister(functionType with { ParameterTypes = remainingParameters });
                         }
                     }
@@ -404,20 +408,22 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                     continue;
 
                 var call = (OpFunctionCall)buffer[index];
-                if (!removedParameters.TryGetValue(call.Function, out var removedIndex))
+                if (!removedParameters.TryGetValue(call.Function, out var removedIndices))
                     continue;
 
                 var arguments = call.Arguments.Elements.Span;
-                if (removedIndex >= arguments.Length)
+                var remaining = new List<int>(arguments.Length);
+                for (var argumentIndex = 0; argumentIndex < arguments.Length; argumentIndex++)
+                {
+                    if (!removedIndices.Contains(argumentIndex))
+                        remaining.Add(arguments[argumentIndex]);
+                }
+                if (remaining.Count == arguments.Length)
                     continue;
-
-                Span<int> remaining = new int[arguments.Length - 1];
-                arguments[..removedIndex].CopyTo(remaining);
-                arguments[(removedIndex + 1)..].CopyTo(remaining[removedIndex..]);
 
                 var (resultType, resultId, function) = (call.ResultType, call.ResultId, call.Function);
                 buffer.RemoveRange(index, 1);
-                buffer.Insert(index, new OpFunctionCall(resultType, resultId, function, new(remaining)));
+                buffer.Insert(index, new OpFunctionCall(resultType, resultId, function, new(remaining.ToArray())));
             }
         }
 
