@@ -19,11 +19,12 @@ namespace Stride.Core.Assets;
 partial class PackageSession
 {
     /// <summary>
-    /// Loads a session from a build manifest (.sdbuild) chain. Each manifest contributes its authored
-    /// package (folders/metadata), the exact assemblies to load
+    /// Loads a session from a build manifest (.sdbuild) chain. Each manifest contributes its project's
+    /// package (see <see cref="ContributeManifest"/>), the exact assemblies to load
     /// (<see cref="AssetBuildManifest.AssetAssemblies"/>) and its project assets.
     /// </summary>
-    public static void LoadFromBuildManifest(string rootManifestFile, PackageSessionResult sessionResult, PackageLoadParameters? loadParameters = null)
+    /// <returns>The root manifest's package, the one being built.</returns>
+    public static Package LoadFromBuildManifest(string rootManifestFile, PackageSessionResult sessionResult, PackageLoadParameters? loadParameters = null)
     {
         ArgumentNullException.ThrowIfNull(rootManifestFile);
         ArgumentNullException.ThrowIfNull(sessionResult);
@@ -58,27 +59,30 @@ partial class PackageSession
                 var manifest = YamlSerializer.Load<AssetBuildManifest>(file);
                 manifests.Add(file, manifest);
                 session.AssetNamespaceUsings.UnionWith(manifest.AssetNamespaceUsings);
-                var directory = Path.GetDirectoryName(file)!;
                 foreach (var reference in manifest.ReferencedManifests)
-                    queue.Enqueue(Path.GetFullPath(Path.Combine(directory, reference)));
+                    queue.Enqueue(AssetBuildManifest.ResolvePath(file, reference));
             }
             session.LoadedBuildManifests = [.. manifests.Keys];
 
-            // Multiple manifests can share one authored sdpkg (e.g. a platform-head exe and its
-            // game library both point at the game's sdpkg via StrideCurrentPackagePath). Dedup by
-            // authored-package path and merge each project's assemblies/assets into the one package.
-            // Root contributed first so it's first in the package list (PackageBuilder resolves it by
-            // authored-package path, falling back to the first package).
+            // One package per project, keyed by package path so manifests of the same project (a
+            // project's target-TFM manifest and its host-TFM sibling) merge their assemblies/assets
+            // into one package (see ContributeManifest for how the path is chosen). Root contributed
+            // first so its package is first in the list (PackageBuilder resolves the root package by
+            // project/authored path, falling back to the first package).
             var rootManifest = manifests[rootManifestFile];
+            var projectPackagePaths = manifests
+                .Select(x => x.Value.GetProjectPackagePath(x.Key))
+                .OfType<string>()
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
             var packagesByPath = new Dictionary<string, StandalonePackage>(StringComparer.OrdinalIgnoreCase);
             var containersByManifest = new Dictionary<string, StandalonePackage>(StringComparer.OrdinalIgnoreCase);
-            var rootContainer = ContributeManifest(session, packagesByPath, rootManifestFile, rootManifest, sessionResult);
+            var rootContainer = ContributeManifest(session, packagesByPath, projectPackagePaths, rootManifestFile, rootManifest, sessionResult);
             containersByManifest.Add(rootManifestFile, rootContainer);
             foreach (var (file, manifest) in manifests)
             {
                 if (string.Equals(file, rootManifestFile, StringComparison.OrdinalIgnoreCase))
                     continue;
-                containersByManifest.Add(file, ContributeManifest(session, packagesByPath, file, manifest, sessionResult));
+                containersByManifest.Add(file, ContributeManifest(session, packagesByPath, projectPackagePaths, file, manifest, sessionResult));
             }
 
             // NuGet package dependencies that ship a stride/<Id>.sdpkg (engine/plugin packages):
@@ -91,7 +95,7 @@ partial class PackageSession
             {
                 if (manifest.NuGetLockFile is null || manifest.TargetFramework is null)
                     continue;
-                var lockFile = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(file)!, manifest.NuGetLockFile.ToOSPath()));
+                var lockFile = AssetBuildManifest.ResolvePath(file, manifest.NuGetLockFile);
                 if (!File.Exists(lockFile))
                     continue;
                 if (!packagesByLockFile.TryGetValue(lockFile, out var packages))
@@ -104,7 +108,7 @@ partial class PackageSession
             // from the manifest chain) plus its own lock file's sdpkg packages
             var manifestClosures = new Dictionary<string, HashSet<StandalonePackage>>(StringComparer.OrdinalIgnoreCase);
             IEnumerable<string> ReferencedManifestFiles(string file) => manifests.TryGetValue(file, out var manifest)
-                ? manifest.ReferencedManifests.Select(reference => Path.GetFullPath(Path.Combine(Path.GetDirectoryName(file)!, reference)))
+                ? manifest.ReferencedManifests.Select(reference => AssetBuildManifest.ResolvePath(file, reference))
                 : [];
             foreach (var group in containersByManifest.GroupBy(x => x.Value, x => x.Key))
             {
@@ -168,6 +172,7 @@ partial class PackageSession
 
             sessionResult.Session = session;
             session.IsDirty = false;
+            return rootContainer.Package;
         }
         finally
         {
@@ -202,15 +207,25 @@ partial class PackageSession
     }
 
     /// <summary>
-    /// Merges one parsed <c>.sdbuild</c> manifest into the session: looks up or creates the package for its
-    /// authored-package path, then folds in that manifest's identity, asset assemblies, and project assets.
+    /// Merges one parsed <c>.sdbuild</c> manifest into the session: looks up or creates the project's
+    /// package, then folds in that manifest's identity, asset assemblies, and project assets.
     /// </summary>
-    private static StandalonePackage ContributeManifest(PackageSession session, Dictionary<string, StandalonePackage> packagesByPath, string manifestFile, AssetBuildManifest manifest, ILogger log)
+    /// <param name="projectPackagePaths">The sdpkg path next to each project of the manifest chain.</param>
+    private static StandalonePackage ContributeManifest(PackageSession session, Dictionary<string, StandalonePackage> packagesByPath, ISet<string> projectPackagePaths, string manifestFile, AssetBuildManifest manifest, ILogger log)
     {
-        var manifestDirectory = Path.GetDirectoryName(manifestFile)!;
-        string Resolve(UFile path) => Path.GetFullPath(Path.Combine(manifestDirectory, path.ToOSPath()));
+        string Resolve(UFile path) => AssetBuildManifest.ResolvePath(manifestFile, path);
 
-        var packagePath = manifest.PackageFile is not null ? Resolve(manifest.PackageFile) : Path.ChangeExtension(Resolve(manifest.ProjectFile!), Package.PackageFileExtension);
+        // A project's package is the sdpkg next to it, as in the editor, which pairs project and sdpkg
+        // by file name: loaded when the project authors content of its own (a platform head's
+        // "Include in build as root asset" entries, asset folders, replaces), implicit otherwise. An
+        // authored package elsewhere (StrideCurrentPackagePath) is this project's own only when no
+        // project of the chain sits next to it; a head pointing at its game library's sdpkg is a
+        // package of its own, depending on the game's through the manifest chain.
+        var projectPackagePath = manifest.GetProjectPackagePath(manifestFile);
+        var authoredPackagePath = manifest.GetAuthoredPackagePath(manifestFile);
+        var packagePath = authoredPackagePath is not null && (projectPackagePath is null || !projectPackagePaths.Contains(authoredPackagePath))
+            ? authoredPackagePath
+            : projectPackagePath!;
         var projectDirectory = manifest.ProjectFile is not null ? new UDirectory(new UFile(Resolve(manifest.ProjectFile)).GetFullDirectory()) : null;
 
         if (!packagesByPath.TryGetValue(packagePath, out var container))
@@ -236,7 +251,7 @@ partial class PackageSession
         var isOwner = projectDirectory is not null && string.Equals(projectDirectory.ToOSPath().TrimEnd(Path.DirectorySeparatorChar), Path.GetDirectoryName(packagePath), StringComparison.OrdinalIgnoreCase);
         if (isOwner || container.Package.RootNamespace is null)
             container.Package.RootNamespace = manifest.RootNamespace;
-        // The session package name stays csproj-derived (it keys dependency matching); the authored
+        // The package name follows the owning project (PackageName, csproj-derived); the authored
         // sdpkg name only serves as the namespace identity below.
         var authoredName = File.Exists(packagePath) ? container.Package.Meta.Name : null;
         container.Package.AuthoredName ??= authoredName;
