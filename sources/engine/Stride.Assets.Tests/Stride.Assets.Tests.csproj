@@ -16,6 +16,9 @@
     <ProjectReference Include="..\Stride.Physics.Assets\Stride.Physics.Assets.csproj" />
     <ProjectReference Include="..\Stride.SpriteStudio.Assets\Stride.SpriteStudio.Assets.csproj" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
+    <!-- The project upgrade tests load project files: MSBuild itself comes from the locator -->
+    <PackageReference Include="Microsoft.Build" ExcludeAssets="runtime" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Build.Framework" ExcludeAssets="runtime" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\assets\Stride.Core.Assets.Tests\Helpers\GuidGenerator.cs">
@@ -24,6 +27,7 @@
     <Compile Include="TestAssetFileExtensionDeclarations.cs" />
     <Compile Include="TestHeightmapAssetCompatibility.cs" />
     <Compile Include="TestPluginPackageUpgrade.cs" />
+    <Compile Include="TestAudioProjectUpgrade.cs" />
     <Compile Include="TestFFmpegTool.cs" />
     <Compile Include="TestRawMediaImporters.cs" />
     <Compile Include="TestAssetUrlConstantsGenerator.cs" />
