@@ -30,10 +30,14 @@
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
           <SolidColorBrush x:Key="AccentColor" Color="{DynamicResource SystemAccentColorDark1}" />
+          <SolidColorBrush x:Key="AccentColor2" Color="{DynamicResource SystemAccentColorDark2}" />
+          <SolidColorBrush x:Key="AccentColor3" Color="{DynamicResource SystemAccentColorDark3}" />
           <SolidColorBrush x:Key="NeutralBackgroundColor" Color="#0FFFFFFF" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Light">
           <SolidColorBrush x:Key="AccentColor" Color="{DynamicResource SystemAccentColorLight1}" />
+          <SolidColorBrush x:Key="AccentColor2" Color="{DynamicResource SystemAccentColorLight2}" />
+          <SolidColorBrush x:Key="AccentColor3" Color="{DynamicResource SystemAccentColorLight3}" />
           <SolidColorBrush x:Key="NeutralBackgroundColor" Color="#ffffff" />
         </ResourceDictionary>
       </ResourceDictionary.ThemeDictionaries>
@@ -55,6 +59,15 @@
 
     <Style Selector="Button">
       <Setter Property="Background" Value="{DynamicResource NeutralBackgroundColor}" />
+    </Style>
+    <Style Selector="Button.Primary">
+      <Setter Property="Background" Value="{DynamicResource AccentColor}" />
+    </Style>
+    <Style Selector="Button.Primary:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AccentColor2}" />
+    </Style>
+    <Style Selector="Button.Primary:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AccentColor3}" />
     </Style>
     <Style Selector="Border.card">
       <Setter Property="BorderThickness" Value="1" />
