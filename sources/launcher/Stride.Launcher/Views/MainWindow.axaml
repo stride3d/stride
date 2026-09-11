@@ -68,8 +68,7 @@
       <Grid ColumnDefinitions="Auto, *" Margin="10">
         <!-- FIRST COLUMN -->
         <DockPanel Grid.Column="0" Width="400" Margin="0 0 12 0">
-          <Border DockPanel.Dock="Bottom"
-                  BorderBrush="{StaticResource BorderBrushTile}"
+          <Border Classes="card" DockPanel.Dock="Bottom"
                   CornerRadius="{StaticResource ControlCornerRadius}"
                   Background="{DynamicResource NeutralBackgroundColor}">
             <StackPanel Margin="10">
