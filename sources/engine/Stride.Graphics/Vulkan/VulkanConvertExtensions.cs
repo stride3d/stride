@@ -281,7 +281,48 @@ namespace Stride.Graphics
             return format;
         }
 
+        /// <summary>
+        ///   Converts a <see cref="PixelFormat"/> without throwing when it has no Vulkan equivalent.
+        /// </summary>
+        /// <param name="inputFormat">The format to convert.</param>
+        /// <param name="format">The Vulkan format, or <see cref="VkFormat.Undefined"/> when there is none.</param>
+        /// <returns><see langword="true"/> if <paramref name="inputFormat"/> has a Vulkan equivalent.</returns>
+        /// <remarks>
+        ///   ConvertPixelFormat covers only the formats Stride uses, so enumerating every PixelFormat
+        ///   through it would throw. Callers that walk the whole enum want this instead.
+        /// </remarks>
+        public static bool TryConvertPixelFormat(PixelFormat inputFormat, out VkFormat format)
+        {
+            return TryConvertPixelFormat(inputFormat, out format, out _, out _);
+        }
+
+        /// <summary>
+        ///   Converts a <see cref="PixelFormat"/> to the Vulkan format that matches it.
+        /// </summary>
+        /// <param name="inputFormat">The format to convert.</param>
+        /// <param name="format">The Vulkan format.</param>
+        /// <param name="pixelSize">The size in bytes of one pixel, or of one block for a compressed format.</param>
+        /// <param name="compressed"><see langword="true"/> if the format is a block compressed format.</param>
+        /// <exception cref="InvalidOperationException">
+        ///   <paramref name="inputFormat"/> has no Vulkan equivalent. Use
+        ///   <see cref="TryConvertPixelFormat(PixelFormat, out VkFormat, out int, out bool)"/> to ask whether a format
+        ///   converts.
+        /// </exception>
         public static void ConvertPixelFormat(PixelFormat inputFormat, out VkFormat format, out int pixelSize, out bool compressed)
+        {
+            if (!TryConvertPixelFormat(inputFormat, out format, out pixelSize, out compressed))
+                throw new InvalidOperationException("Unsupported texture format: " + inputFormat);
+        }
+
+        /// <summary>
+        ///   Converts a <see cref="PixelFormat"/> without throwing when it has no Vulkan equivalent.
+        /// </summary>
+        /// <param name="inputFormat">The format to convert.</param>
+        /// <param name="format">The Vulkan format, or <see cref="VkFormat.Undefined"/> when there is none.</param>
+        /// <param name="pixelSize">The size in bytes of one pixel, or of one block for a compressed format.</param>
+        /// <param name="compressed"><see langword="true"/> if the format is a block compressed format.</param>
+        /// <returns><see langword="true"/> if <paramref name="inputFormat"/> has a Vulkan equivalent.</returns>
+        public static bool TryConvertPixelFormat(PixelFormat inputFormat, out VkFormat format, out int pixelSize, out bool compressed)
         {
             compressed = false;
 
@@ -672,8 +713,12 @@ namespace Stride.Graphics
                     pixelSize = 2; // 8bpp
                     break;
                 default:
-                    throw new InvalidOperationException("Unsupported texture format: " + inputFormat);
+                    format = VkFormat.Undefined;
+                    pixelSize = 0;
+                    return false;
             }
+
+            return true;
         }
 
         public static unsafe VkColorComponentFlags ConvertColorWriteChannels(ColorWriteChannels colorWriteChannels)

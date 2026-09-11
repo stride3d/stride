@@ -977,7 +977,7 @@ namespace Stride.Graphics
             var needsTypelessDepth = IsDepthStencil || (IsShaderResource && IsDepthFormat(textureDescription.Format));
             if (needsTypelessDepth)
             {
-                if (IsShaderResource && GraphicsDevice.Features.CurrentProfile < GraphicsProfile.Level_10_0)
+                if (IsShaderResource && !GraphicsDevice.Features.HasDepthAsSRV)
                 {
                     throw new NotSupportedException($"Shader Resource Views for Depth-Stencil Textures are not supported for Graphics profile < 10.0 (Current: [{GraphicsDevice.Features.CurrentProfile}])");
                 }
@@ -1113,7 +1113,7 @@ namespace Stride.Graphics
         private static TextureDescription CheckMipLevels(GraphicsDevice device, ref TextureDescription description)
         {
             if (device.Features.CurrentProfile < GraphicsProfile.Level_10_0 &&
-                description.Flags.HasFlag(TextureFlags.DepthStencil) && description.Format.IsCompressed)
+                !description.Flags.HasFlag(TextureFlags.DepthStencil) && description.Format.IsCompressed)
             {
                 description.MipLevelCount = Math.Min(CalculateMipCount(description.Width, description.Height), description.MipLevelCount);
             }

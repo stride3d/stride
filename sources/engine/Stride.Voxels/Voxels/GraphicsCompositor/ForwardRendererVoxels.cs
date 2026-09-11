@@ -39,6 +39,7 @@ namespace Stride.Rendering.Voxels
             ShadowMapRenderer_notPrivate = Context.RenderSystem.RenderFeatures.OfType<MeshRenderFeature>().FirstOrDefault()?.RenderFeatures.OfType<ForwardLightingRenderFeature>().FirstOrDefault()?.ShadowMapRenderer;
             base.InitializeCore();
         }
+
         protected override void CollectCore(RenderContext context)
         {
             VoxelRenderer?.Collect(Context, ShadowMapRenderer_notPrivate);
