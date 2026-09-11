@@ -6,9 +6,7 @@
                     xmlns:engine-ui="clr-namespace:Stride.Engine;assembly=Stride.UI"
                     xmlns:font="clr-namespace:Stride.Graphics.Font;assembly=Stride.Graphics"
                     xmlns:gameEditor="clr-namespace:Stride.Assets.Presentation.AssetEditors.GameEditor"
-                    xmlns:preview="clr-namespace:Stride.Assets.Presentation.Preview"
-                    xmlns:ss="clr-namespace:Stride.Engine;assembly=Stride.SpriteStudio.Runtime"
-                    xmlns:ss-runtime="clr-namespace:Stride.SpriteStudio.Runtime;assembly=Stride.SpriteStudio.Runtime">
+                    xmlns:preview="clr-namespace:Stride.Assets.Presentation.Preview">
 
   <DrawingImage x:Key="ImageUp" >
     <DrawingImage.Drawing>
@@ -1003,26 +1001,6 @@
         <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M0,15L16,15 16,0 0,0z" />
         <GeometryDrawing Brush="#FF424242" Geometry="F1M13,6L12,6 12,7 13,7z M6,5L7,5 7,4 6,4z M9,6L8,6 8,7 9,7z M11,6L10,6 10,7 11,7z M14,2L7,2 7,3 6,3 6,2 2,2 2,6 3,6 3,7 2,7 2,13 6,13 6,12 7,12 7,13 14,13z M15,14L1,14 1,1 15,1z M4,7L5,7 5,6 4,6z M6,7L7,7 7,6 6,6z M6,9L7,9 7,8 6,8z M6,10L7,10 7,11 6,11z" />
         <GeometryDrawing Brush="#FFF0EFF1" Geometry="F1M6,5L6,5 6,4 6,4 7,4 7,4 7,5 7,5z M13,6L13,7 13,7 12,7 12,7 12,6 12,6 13,6z M11,6L11,7 11,7 10,7 10,7 10,6 10,6 11,6z M9,6L9,7 9,7 8,7 8,7 8,6 8,6 9,6z M7,6L7,7 7,7 6,7 6,7 6,6 6,6 7,6z M7,8L7,9 6,9 6,8 6,8 7,8z M7,11L6,11 6,10 7,10z M5,6L5,7 5,7 4,7 4,7 4,6 4,6 5,6z M7,2L7,3 6,3 6,2 2,2 2,6 3,6 3,7 2,7 2,13 6,13 6,12 7,12 7,13 14,13 14,5 14,2z" />
-      </DrawingGroup>
-    </DrawingImage.Drawing>
-  </DrawingImage>
-
-  <DrawingImage x:Key="{x:Type ss:SpriteStudioComponent}" >
-    <DrawingImage.Drawing>
-      <DrawingGroup>
-        <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
-        <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M5,16L5,10.303 4.535,11 1.233,11 5.434,4 6.269,4C6.098,3.706,6,3.364,6,3L6,2C6,0.897,6.897,0,8,0L9,0C10.102,0,11,0.897,11,2L11,3C11,3.364,10.902,3.706,10.731,4L11.566,4 15.767,11 12.465,11 12,10.303 12,16z" />
-        <GeometryDrawing Brush="#FF424242" Geometry="F1M11,5L10,5 8.5,7 7,5 6,5 3,10 4,10 6,7 6,15 8,15 8,11 9,11 9,15 11,15 11,7 13,10 14,10z M7,3L7,2C7,1.448,7.447,1,8,1L9,1C9.553,1,10,1.448,10,2L10,3C10,3.552,9.553,4,9,4L8,4C7.447,4,7,3.552,7,3" />
-      </DrawingGroup>
-    </DrawingImage.Drawing>
-  </DrawingImage>
-
-  <DrawingImage x:Key="{x:Type ss-runtime:SpriteStudioNodeLinkComponent}" >
-    <DrawingImage.Drawing>
-      <DrawingGroup>
-        <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,0L16,16 0,16 0,0z" />
-        <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M16,7.5C16,9.43,14.416,11,12.469,11L3.531,11C1.584,11 0,9.43 0,7.5 0,5.57 1.584,4 3.531,4L12.469,4C14.416,4,16,5.57,16,7.5" />
-        <GeometryDrawing Brush="#FF424242" Geometry="F1M12.4687,5L7.9997,5C6.6027,5,5.5077,6.098,5.5077,7.5L6.5077,7.5C6.5077,6.659,7.1627,6,7.9997,6L12.4687,6C13.3267,6 13.9997,6.659 13.9997,7.5 13.9997,8.341 13.3267,9 12.4687,9L10.9997,9 10.9997,10 12.4687,10C13.8647,10 14.9997,8.878 14.9997,7.5 14.9997,6.121 13.8647,5 12.4687,5 M10.4917,7.484C10.4917,8.895,9.3977,10,7.9997,10L3.5307,10C2.1357,10 0.999700000000001,8.878 0.999700000000001,7.5 0.999700000000001,6.121 2.1357,5 3.5307,5L4.9997,5 4.9997,6 3.5307,6C2.6727,6 1.9997,6.659 1.9997,7.5 1.9997,8.341 2.6727,9 3.5307,9L7.9997,9C8.8367,9,9.4917,8.334,9.4917,7.484z" />
       </DrawingGroup>
     </DrawingImage.Drawing>
   </DrawingImage>

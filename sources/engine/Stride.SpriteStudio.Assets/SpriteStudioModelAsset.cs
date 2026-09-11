@@ -9,7 +9,7 @@ using Stride.Core.IO;
 using Stride.Assets;
 using Stride.SpriteStudio.Runtime;
 
-namespace Stride.SpriteStudio.Offline
+namespace Stride.SpriteStudio.Assets
 {
     [DataContract("SpriteStudioSheetAsset")] // Name of the Asset serialized in YAML
     [AssetContentType(typeof(SpriteStudioSheet))]

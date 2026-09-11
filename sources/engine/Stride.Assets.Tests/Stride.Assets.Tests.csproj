@@ -11,10 +11,10 @@
     <ProjectReference Include="..\Stride.Assets\Stride.Assets.csproj" />
     <ProjectReference Include="..\Stride.Assets.Models\Stride.Assets.Models.csproj" />
     <ProjectReference Include="..\Stride.Assets.Generators\Stride.Assets.Generators.csproj" />
-    <ProjectReference Include="..\Stride.SpriteStudio.Offline\Stride.SpriteStudio.Offline.csproj" />
     <ProjectReference Include="..\Stride.BepuPhysics\Stride.BepuPhysics.Assets\Stride.BepuPhysics.Assets.csproj" />
     <ProjectReference Include="..\Stride.Video.Assets\Stride.Video.Assets.csproj" />
     <ProjectReference Include="..\Stride.Physics.Assets\Stride.Physics.Assets.csproj" />
+    <ProjectReference Include="..\Stride.SpriteStudio.Assets\Stride.SpriteStudio.Assets.csproj" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>

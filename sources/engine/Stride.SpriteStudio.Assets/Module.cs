@@ -4,7 +4,7 @@ using System.Reflection;
 using Stride.Core;
 using Stride.Core.Reflection;
 
-namespace Stride.SpriteStudio.Offline
+namespace Stride.SpriteStudio.Assets
 {
     public static class Module
     {

@@ -45,16 +45,4 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFa
             return CreateEntityWithComponent(name, component);
         }
     }
-
-    [Display(40, "SpriteStudio", "2D")]
-    // FIXME: this view model should be in the SpriteStudio offline assembly! Can't be done now, because of a circular reference in CompilerApp referencing SpriteStudio, and Editor referencing CompilerApp
-    public class SpriteStudioFactory : EntityFactory
-    {
-        public override Task<Entity> CreateEntity(EntityHierarchyItemViewModel parent)
-        {
-            var name = ComputeNewName(parent, "SpriteStudio");
-            var component = new SpriteStudioComponent();
-            return CreateEntityWithComponent(name, component);
-        }
-    }
 }

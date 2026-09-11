@@ -10,7 +10,7 @@ namespace Stride.Assets.Presentation.Preview.Views
     [AssetPreviewView<PrefabPreview>]
     [AssetPreviewView<PrefabModelPreview>]
     [AssetPreviewView<ProceduralModelPreview>]
-    [AssetPreviewView<SpriteStudioSheetPreview>]
+    [AssetPreviewView(typeof(PreviewFromEntity<>))] // the entity previews of packages (a SpriteStudio sheet)
     public class ModelPreviewView : StridePreviewView
     {
         static ModelPreviewView()

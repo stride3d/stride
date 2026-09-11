@@ -3,7 +3,7 @@
 using System.Collections.Generic;
 using Stride.Core.Mathematics;
 
-namespace Stride.SpriteStudio.Offline
+namespace Stride.SpriteStudio.Assets
 {
     public class SpriteStudioAnim
     {
