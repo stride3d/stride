@@ -6,7 +6,7 @@ using Stride.Core.Assets;
 using Stride.Core.IO;
 using Stride.SpriteStudio.Runtime;
 
-namespace Stride.SpriteStudio.Offline
+namespace Stride.SpriteStudio.Assets
 {
     internal class SpriteStudioImporter : AssetImporterBase
     {

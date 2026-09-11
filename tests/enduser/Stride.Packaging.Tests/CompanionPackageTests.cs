@@ -324,6 +324,36 @@ public class CompanionPackageTests
     }
 
     [Fact]
+    public void SpriteStudioSheetCompilesThroughItsAssetsPackageAndOnlyTheEditorLoadsItsEditorPackage()
+    {
+        // Stride.SpriteStudio.Runtime declares companions under other ids: Stride.SpriteStudio.Assets (sheet and
+        // animation assets, compilers, importer, templates) and Stride.SpriteStudio.Editor (preview, thumbnails, ...)
+        using var c = new Case(output, "assets-spritestudio");
+        c.PackPlugin();
+        c.ReferencePackage("Stride.SpriteStudio.Runtime");
+        c.AddSpriteStudioSheetAsset();
+        // Typed from Stride.SpriteStudio.Runtime's [assembly: AssetFileExtension(".sdss4s", ...)]
+        c.AddTypedConstantCheck("Character", "Stride.SpriteStudio.Runtime.SpriteStudioSheet");
+
+        var result = c.BuildConsumer();
+        Assert.True(result.ExitCode == 0, $"Consumer build should succeed (exit {result.ExitCode}).");
+        c.AssertContentCompiled("/Consumer/Character");
+
+        var compilerSession = c.LoadConsumerProjectSession();
+        Assert.Contains(compilerSession.Packages, p => p.Meta.Name == "Stride.SpriteStudio.Assets");
+        Assert.DoesNotContain(compilerSession.Packages, p => p.Meta.Name == "Stride.SpriteStudio.Editor");
+        Assert.Contains(TemplateManager.FindTemplates(TemplateScope.Asset, compilerSession), t => t.Name == "SpriteStudio® sheet");
+
+        // Stride.SpriteStudio.Editor targets Windows only, as Game Studio does
+        if (!OperatingSystem.IsWindows())
+            return;
+        var editorSession = c.LoadConsumerProjectSession(loadEditorPackages: true);
+        var editorPackage = Assert.Single(editorSession.Packages, p => p.Meta.Name == "Stride.SpriteStudio.Editor");
+        Assert.True(((StandalonePackage)editorPackage.Container).IsCompanionPackage);
+        AssertDeclaredEditorPackage(editorSession, "Stride.SpriteStudio.Runtime", editorPackage);
+    }
+
+    [Fact]
     public void BepuHullCompilesThroughItsAssetsPackage()
     {
         // The engine's own plugin: Stride.BepuPhysics declares Stride.BepuPhysics.Assets, which carries
@@ -605,6 +635,24 @@ public class CompanionPackageTests
                         Size: {X: 1.0, Y: 1.0, Z: 1.0}
                 """);
             AddRootAsset("1c2d3e4f-5a6b-4c7d-8e9f-0a1b2c3d4e5f:BoxCollider");
+        }
+
+        public void AddSpriteStudioSheetAsset()
+        {
+            // The sheet's source .ssae names its cell map .ssce, which names the texture
+            var resources = Path.Combine(consumerDir, "Consumer.Game", "Resources");
+            Directory.CreateDirectory(resources);
+            var sampleResources = Path.Combine(TestEnvironment.WorktreeRoot(), "samples", "Graphics", "SpriteStudioDemo", "Resources");
+            foreach (var file in new[] { "character_template_2head.ssae", "character_2head.ssce", "character_2head.png" })
+                File.Copy(Path.Combine(sampleResources, file), Path.Combine(resources, file));
+            File.WriteAllText(Path.Combine(consumerDir, "Consumer.Game", "Assets", "Character.sdss4s"), """
+                !SpriteStudioSheetAsset
+                Id: 7595b1d1-3f94-4cc5-bbfc-ec51687b96d6
+                SerializedVersion: {Stride: 2.0.0.0}
+                Tags: []
+                Source: ../Resources/character_template_2head.ssae
+                """);
+            AddRootAsset("7595b1d1-3f94-4cc5-bbfc-ec51687b96d6:Character");
         }
 
         public void AddHullAssets()

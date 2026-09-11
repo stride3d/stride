@@ -11,9 +11,10 @@ using Stride.Editor.Preview.ViewModel;
 namespace Stride.Editor.Annotations;
 
 /// <summary>
-/// Annotates a type that implements the view model of an asset preview.
+/// Annotates a type that implements the view model of an asset preview. A view model deriving from another one
+/// does not serve its base's previews.
 /// </summary>
-[AttributeUsage(AttributeTargets.Class)]
+[AttributeUsage(AttributeTargets.Class, Inherited = false)]
 [BaseTypeRequired(typeof(IAssetPreviewViewModel))]
 public class AssetPreviewViewModelAttribute : Attribute
 {
@@ -31,6 +32,8 @@ public class AssetPreviewViewModelAttribute : Attribute
 }
 
 /// <inheritdoc />
+// The usage is read from the attribute's own class, not from its base
+[AttributeUsage(AttributeTargets.Class, Inherited = false)]
 public sealed class AssetPreviewViewModelAttribute<TAssetPreview> : AssetPreviewViewModelAttribute
     where TAssetPreview : IAssetPreview
 {

@@ -9,8 +9,6 @@ using Stride.Assets.Models;
 using Stride.Assets.Presentation.NodePresenters.Keys;
 using Stride.Engine;
 using Stride.Rendering;
-using Stride.SpriteStudio.Offline;
-using Stride.SpriteStudio.Runtime;
 
 namespace Stride.Assets.Presentation.NodePresenters.Updaters
 {
@@ -28,22 +26,11 @@ namespace Stride.Assets.Presentation.NodePresenters.Updaters
                 var parent = (IAssetNodePresenter)node.Parent;
                 parent.AttachedProperties.Set(ModelNodeLinkData.Key, GetAvailableNodesForLink(asset, (ModelNodeLinkComponent)parent?.Value));
             }
-
-            if (node.Name == nameof(SpriteStudioNodeLinkComponent.Target) && node.Parent?.Value is SpriteStudioNodeLinkComponent)
-            {
-                var parent = (IAssetNodePresenter)node.Parent;
-                parent.AttachedProperties.Set(ModelNodeLinkData.Key, GetAvailableNodesForLink(asset, (SpriteStudioNodeLinkComponent)parent?.Value));
-            }
         }
 
         private static IEnumerable<NodeInformation> GetAvailableNodesForLink(AssetViewModel viewModel, ModelNodeLinkComponent modelNodeLinkComponent)
         {
             return GetAvailableNodesForLink(viewModel, modelNodeLinkComponent?.Target?.Model ?? modelNodeLinkComponent?.Entity?.Transform.Parent?.Entity?.Get<ModelComponent>()?.Model);
-        }
-
-        private static IEnumerable<NodeInformation> GetAvailableNodesForLink(AssetViewModel viewModel, SpriteStudioNodeLinkComponent spriteStudioNodeLinkComponent)
-        {
-            return GetAvailableNodesForLink(viewModel, spriteStudioNodeLinkComponent?.Target?.Sheet ?? spriteStudioNodeLinkComponent?.Entity?.Transform.Parent?.Entity?.Get<SpriteStudioComponent>()?.Sheet);
         }
 
         /// <summary>
@@ -61,17 +48,6 @@ namespace Stride.Assets.Presentation.NodePresenters.Updaters
                 {
                     return ((SkeletonAsset)skeletonAsset.Asset).Nodes;
                 }
-            }
-            return Enumerable.Empty<NodeInformation>();
-        }
-
-        private static IEnumerable<NodeInformation> GetAvailableNodesForLink(AssetViewModel viewModel, SpriteStudioSheet sheet)
-        {
-            var parentModelAsset = viewModel.AssetItem.Package.Session.FindAssetFromProxyObject(sheet);
-            var modelAsset = parentModelAsset?.Asset as SpriteStudioModelAsset;
-            if (modelAsset != null)
-            {
-                return modelAsset.NodeNames.Select(nodeName => new NodeInformation(nodeName, 0, true));
             }
             return Enumerable.Empty<NodeInformation>();
         }

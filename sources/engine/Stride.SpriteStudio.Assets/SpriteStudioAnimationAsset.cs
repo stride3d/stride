@@ -6,7 +6,7 @@ using Stride.Core;
 using Stride.Animations;
 using Stride.Assets;
 
-namespace Stride.SpriteStudio.Offline
+namespace Stride.SpriteStudio.Assets
 {
     [DataContract("SpriteStudioAnimationAsset")] // Name of the Asset serialized in YAML
     [AssetContentType(typeof(AnimationClip))]

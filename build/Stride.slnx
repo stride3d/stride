@@ -90,6 +90,8 @@
     <Project Path="../sources/engine/Stride.Physics.Editor/Stride.Physics.Editor.csproj" />
     <Project Path="../sources/engine/Stride.Rendering/Stride.Rendering.csproj" />
     <Project Path="../sources/engine/Stride.SpriteStudio.Runtime/Stride.SpriteStudio.Runtime.csproj" />
+    <Project Path="../sources/engine/Stride.SpriteStudio.Assets/Stride.SpriteStudio.Assets.csproj" />
+    <Project Path="../sources/engine/Stride.SpriteStudio.Editor/Stride.SpriteStudio.Editor.csproj" />
     <Project Path="../sources/engine/Stride.UI/Stride.UI.csproj" />
     <Project Path="../sources/engine/Stride.Video/Stride.Video.csproj" />
     <Project Path="../sources/engine/Stride.Video.Assets/Stride.Video.Assets.csproj" />
@@ -201,7 +203,6 @@
     <Project Path="../sources/engine/Stride.Assets/Stride.Assets.csproj" />
     <Project Path="../sources/engine/Stride.Assets.FFmpeg/Stride.Assets.FFmpeg.csproj" />
     <Project Path="../sources/engine/Stride.Assets.VHACD/Stride.Assets.VHACD.csproj" />
-    <Project Path="../sources/engine/Stride.SpriteStudio.Offline/Stride.SpriteStudio.Offline.csproj" />
   </Folder>
   <Folder Name="/71-StrideAssets.Tests/">
     <Project Path="../sources/engine/Stride.Assets.Tests/Stride.Assets.Tests.csproj" />
