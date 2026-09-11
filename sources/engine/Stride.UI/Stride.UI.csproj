@@ -4,6 +4,8 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFrameworks>$(StrideRuntimeTargetFrameworks)</TargetFrameworks>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <!-- The UI component and elements are written in scene and UI assets -->
+    <StrideContainsAssetTypes>true</StrideContainsAssetTypes>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
