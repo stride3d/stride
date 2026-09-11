@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using Stride.Core;
+using Stride.Core.Mathematics;
 using Stride.Engine.Design;
 using Stride.Core.Serialization;
 using Stride.Rendering;
@@ -18,10 +19,37 @@ namespace Stride.Engine
     [DataSerializerGlobal(null, typeof(List<SpriteStudioNodeState>))]
     [ComponentOrder(9900)]
     [ComponentCategory("Sprites")]
-    public sealed class SpriteStudioComponent : ActivableEntityComponent
+    public sealed class SpriteStudioComponent : ActivableEntityComponent, IEntityComponentBounds
     {
         [DataMember(1)]
         public SpriteStudioSheet Sheet { get; set; }
+
+        /// <inheritdoc />
+        /// <remarks>The union of the visible node sprites in their current pose.</remarks>
+        [DataMemberIgnore]
+        public BoundingBox LocalBounds
+        {
+            get
+            {
+                if (!SpriteStudioProcessor.PrepareNodes(this))
+                    return BoundingBox.Empty;
+
+                RootNode.UpdateTransformation();
+
+                var bounds = BoundingBox.Empty;
+                foreach (var node in Nodes)
+                {
+                    if (node.Sprite == null || node.Hide != 0)
+                        continue;
+
+                    var halfSize = new Vector3(node.Sprite.Size.X / 2f, node.Sprite.Size.Y / 2f, 0f);
+                    var nodeBounds = new BoundingBoxExt(-halfSize, halfSize);
+                    nodeBounds.Transform(node.ModelTransform);
+                    bounds = BoundingBox.Merge(bounds, new BoundingBox(nodeBounds.Minimum, nodeBounds.Maximum));
+                }
+                return bounds;
+            }
+        }
 
         /// <summary>
         /// The render group for this component.
