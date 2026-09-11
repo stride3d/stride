@@ -8,6 +8,7 @@ using Stride.Core.Assets;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
+using Stride.Assets.Rendering;
 using Stride.Editor.EditorGame.Game;
 using Stride.Editor.Engine;
 using Stride.Editor.Preview;
@@ -19,7 +20,6 @@ using Stride.Particles.Rendering;
 using Stride.Rendering;
 using Stride.Rendering.Sprites;
 using Stride.Rendering.UI;
-using Stride.SpriteStudio.Runtime;
 
 namespace Stride.Assets.Presentation.Preview
 {
@@ -98,7 +98,7 @@ namespace Stride.Assets.Presentation.Preview
             var opaqueStage = graphicsCompositor.RenderStages.First(x => x.Name.Equals("Opaque"));
             var transparentStage = graphicsCompositor.RenderStages.First(x => x.Name.Equals("Transparent"));
 
-            // Add particles, UI and SpriteStudio renderers
+            // Add particles renderer
             graphicsCompositor.RenderFeatures.Add(
                 new ParticleEmitterRenderFeature()
                 {
@@ -113,18 +113,7 @@ namespace Stride.Assets.Presentation.Preview
                     },
                 });
 
-            graphicsCompositor.RenderFeatures.Add(
-                new SpriteStudioRenderFeature()
-                {
-                    RenderStageSelectors =
-                    {
-                        new SimpleGroupToRenderStageSelector()
-                        {
-                            EffectName = "SpriteStudio",
-                            RenderStage = transparentStage,
-                        }
-                    }
-                });
+            RenderFeatureProviders.AddPackageRenderFeatures(graphicsCompositor, opaqueStage, transparentStage);
 
             return graphicsCompositor;
         }
