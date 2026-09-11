@@ -9,11 +9,22 @@ namespace Stride.Rendering.Shadows
     public class ShadowCasterRenderFeature : SubRenderFeature
     {
         private LogicalGroupReference shadowCasterKey;
+        private LogicalGroupReference shadowMapViewKey;
+        private static readonly ParameterCollection InShadowMapView = ShadowMapViewFlag(1);
+        private static readonly ParameterCollection NotInShadowMapView = ShadowMapViewFlag(0);
+
+        private static ParameterCollection ShadowMapViewFlag(float value)
+        {
+            var parameters = new ParameterCollection();
+            parameters.Set(ShadowMapCasterPassInfoKeys.ShadowMapViewFlag, value);
+            return parameters;
+        }
 
         protected override void InitializeCore()
         {
             base.InitializeCore();
             shadowCasterKey = ((RootEffectRenderFeature)RootRenderFeature).CreateViewLogicalGroup("ShadowCaster");
+            shadowMapViewKey = ((RootEffectRenderFeature)RootRenderFeature).CreateViewLogicalGroup("ShadowMapView");
         }
 
         public override void Prepare(RenderDrawContext context)
@@ -27,6 +38,18 @@ namespace Stride.Rendering.Shadows
                 
                 // Process only shadow views
                 var shadowMapRenderView = view as ShadowMapRenderView;
+
+                // ShadowMapCasterPassInfo flag, written for every view (not only shadow ones) so the group is never left uninitialized.
+                foreach (var viewLayout in viewFeature.Layouts)
+                {
+                    var shadowMapView = viewLayout.GetLogicalGroup(shadowMapViewKey);
+                    if (shadowMapView.Hash == ObjectId.Empty)
+                        continue;
+                    var resourceGroup = viewLayout.Entries[view.Index].Resources;
+                    if (resourceGroup == null || resourceGroup.ConstantBuffer.Data == System.IntPtr.Zero)
+                        continue;
+                    resourceGroup.UpdateLogicalGroup(ref shadowMapView, shadowMapRenderView != null ? InShadowMapView : NotInShadowMapView);
+                }
                 if (shadowMapRenderView != null)
                 {
                     var renderer = shadowMapRenderView.ShadowMapTexture.Renderer;
