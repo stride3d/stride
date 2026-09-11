@@ -16,8 +16,6 @@ Defaults:
         RenderingMode: HDR
     - !Stride.Assets.Textures.TextureSettings,Stride.Assets
         TextureQuality: Fast
-    - !Stride.Audio.AudioEngineSettings,Stride.Audio
-        HrtfSupport: false
     - !Stride.Streaming.StreamingSettings,Stride.Rendering
         ManagerUpdatesInterval: 0:00:00:00.0330000
         ResourceLiveTimeout: 0:00:00:08.0000000

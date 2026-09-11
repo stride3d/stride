@@ -7,6 +7,8 @@
     <TargetFrameworks>$(StrideRuntimeTargetFrameworksMacOS)</TargetFrameworks>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideCodeAnalysis>true</StrideCodeAnalysis>
+    <!-- The emitter and listener components are written in scene assets -->
+    <StrideContainsAssetTypes>true</StrideContainsAssetTypes>
   </PropertyGroup>
   <PropertyGroup Condition="'$(StrideTargetFramework)' == '$(StrideFrameworkiOS)' Or '$(StrideTargetFramework)' == '$(StrideFrameworkmacOS)'">
     <DefineConstants>STRIDE_VIDEO_AVFOUNDATION;$(DefineConstants)</DefineConstants>
@@ -17,6 +19,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Stride.Engine\Stride.Engine.csproj" />
     <ProjectReference Include="..\Stride.Native\Stride.Native.csproj" />
     <ProjectReference Include="..\Stride.Foundation\Stride.Foundation.csproj" />
   </ItemGroup>

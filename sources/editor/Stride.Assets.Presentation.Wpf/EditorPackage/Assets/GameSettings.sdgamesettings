@@ -16,5 +16,3 @@ Defaults:
         RenderingMode: HDR
     - !Stride.Assets.Textures.TextureSettings,Stride.Assets
         TextureQuality: Fast
-    - !Stride.Audio.AudioEngineSettings,Stride.Audio
-        HrtfSupport: false

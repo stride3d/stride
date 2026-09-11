@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Stride.Animations;
-using Stride.Audio;
 using Stride.Core;
 using Stride.Core.Serialization;
 using Stride.Graphics;
@@ -24,7 +23,6 @@ namespace Stride.Engine.Design
     [DataSerializerGlobal(typeof(CloneSerializer<Mesh>), Profile = "Clone")]
     [DataSerializerGlobal(typeof(CloneSerializer<Model>), Profile = "Clone")]
     [DataSerializerGlobal(typeof(CloneSerializer<AnimationClip>), Profile = "Clone")]
-    [DataSerializerGlobal(typeof(CloneSerializer<Sound>), Profile = "Clone")]
     [DataSerializerGlobal(typeof(CloneSerializer<string>), Profile = "Clone")]
     [DataSerializerGlobal(typeof(CloneSerializer<OfflineRasterizedSpriteFont>), Profile = "Clone")]
     [DataSerializerGlobal(typeof(CloneSerializer<RuntimeRasterizedSpriteFont>), Profile = "Clone")]

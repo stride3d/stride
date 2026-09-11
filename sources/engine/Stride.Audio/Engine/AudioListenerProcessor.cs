@@ -35,12 +35,12 @@ namespace Stride.Audio
         {
         }
 
-        protected internal override void OnSystemAdd()
+        protected override void OnSystemAdd()
         {
             audioSystem = Services.GetService<AudioSystem>();
         }
 
-        protected internal override void OnSystemRemove()
+        protected override void OnSystemRemove()
         {
             audioSystem.Listeners.Clear();
         }

@@ -7,7 +7,6 @@ using System.Runtime.CompilerServices;
 
 // Alphabetic sort
 [assembly: InternalsVisibleTo("Stride.Assets.Models" + Stride.PublicKeys.Default)]
-[assembly: InternalsVisibleTo("Stride.Audio" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Core.Assets" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Core.Serialization" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Core.Serializers" + Stride.PublicKeys.Default)]

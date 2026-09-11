@@ -3,6 +3,7 @@
                     xmlns:components="clr-namespace:Stride.Particles.Components;assembly=Stride.Particles"
                     xmlns:core="clr-namespace:Stride.Core;assembly=Stride.Core"
                     xmlns:engine="clr-namespace:Stride.Engine;assembly=Stride.Engine"
+                    xmlns:audio="clr-namespace:Stride.Engine;assembly=Stride.Audio"
                     xmlns:engine-ui="clr-namespace:Stride.Engine;assembly=Stride.UI"
                     xmlns:font="clr-namespace:Stride.Graphics.Font;assembly=Stride.Graphics"
                     xmlns:gameEditor="clr-namespace:Stride.Assets.Presentation.AssetEditors.GameEditor"
@@ -895,7 +896,7 @@
     </DrawingImage.Drawing>
   </DrawingImage>
 
-  <DrawingImage x:Key="{x:Type engine:AudioEmitterComponent}" >
+  <DrawingImage x:Key="{x:Type audio:AudioEmitterComponent}" >
     <DrawingImage.Drawing>
       <DrawingGroup>
         <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -905,7 +906,7 @@
     </DrawingImage.Drawing>
   </DrawingImage>
 
-  <DrawingImage x:Key="{x:Type engine:AudioListenerComponent}" >
+  <DrawingImage x:Key="{x:Type audio:AudioListenerComponent}" >
     <DrawingImage.Drawing>
       <DrawingGroup>
         <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
