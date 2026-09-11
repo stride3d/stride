@@ -26,28 +26,30 @@ namespace Stride
     /// Shared by Stride.Graphics.Regression and Stride.Games.AutoTesting (via <see cref="Install"/> from a
     /// ModuleInitializer) and by the asset compiler (via <see cref="InstallFaultingFrameRecorder"/>).
     /// </remarks>
-    internal static class NativeCrashHandler
+    internal static partial class NativeCrashHandler
     {
-        [DllImport("kernel32.dll")]
-        private static extern uint SetErrorMode(uint uMode);
+        [LibraryImport("kernel32.dll")]
+        private static partial uint SetErrorMode(uint uMode);
 
-        [DllImport("dbghelp.dll", SetLastError = true)]
-        private static extern bool MiniDumpWriteDump(IntPtr hProcess, uint processId, IntPtr hFile,
+        [LibraryImport("dbghelp.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static partial bool MiniDumpWriteDump(IntPtr hProcess, uint processId, IntPtr hFile,
             uint dumpType, IntPtr exceptionParam, IntPtr userStreamParam, IntPtr callbackParam);
 
-        [DllImport("kernel32.dll")]
-        private static extern IntPtr AddVectoredExceptionHandler(uint first, IntPtr handler);
-        [DllImport("kernel32.dll")]
-        private static extern uint RemoveVectoredExceptionHandler(IntPtr handle);
+        [LibraryImport("kernel32.dll")]
+        private static partial IntPtr AddVectoredExceptionHandler(uint first, IntPtr handler);
+        [LibraryImport("kernel32.dll")]
+        private static partial uint RemoveVectoredExceptionHandler(IntPtr handle);
 
-        [DllImport("kernel32.dll", SetLastError = true)]
-        private static extern bool GetModuleHandleExW(uint flags, IntPtr address, out IntPtr module);
+        [LibraryImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static partial bool GetModuleHandleExW(uint flags, IntPtr address, out IntPtr module);
 
-        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        private static extern uint GetModuleFileNameW(IntPtr module, [Out] char[] filename, uint size);
+        [LibraryImport("kernel32.dll", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
+        private static partial uint GetModuleFileNameW(IntPtr module, [Out] char[] filename, uint size);
 
-        [DllImport("kernel32.dll")]
-        private static extern uint GetCurrentThreadId();
+        [LibraryImport("kernel32.dll")]
+        private static partial uint GetCurrentThreadId();
 
         // PVECTORED_EXCEPTION_HANDLER: LONG (*)(PEXCEPTION_POINTERS). Kept in a static field so the reverse
         // P/Invoke thunk isn't collected while registered.

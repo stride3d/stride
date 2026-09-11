@@ -14,7 +14,7 @@ namespace Stride.CrashReporter;
 /// <see cref="StoredCrash"/> the window can show. Capturing from this healthy process — not the corrupt, dying one
 /// — is what makes the dump reliable. Windows-only; a no-op elsewhere.
 /// </summary>
-internal static class NativeCapture
+internal static partial class NativeCapture
 {
     /// <summary>
     /// Runs the out-of-process capture and populates <paramref name="runDirectory"/> with the dump and a
@@ -132,10 +132,14 @@ internal static class NativeCapture
         }
     }
 
-    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-    private static extern IntPtr OpenEventW(uint desiredAccess, bool inheritHandle, string name);
-    [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern bool SetEvent(IntPtr handle);
-    [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern bool CloseHandle(IntPtr handle);
+    [LibraryImport("kernel32.dll", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
+    private static partial IntPtr OpenEventW(uint desiredAccess, [MarshalAs(UnmanagedType.Bool)] bool inheritHandle, string name);
+
+    [LibraryImport("kernel32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool SetEvent(IntPtr handle);
+
+    [LibraryImport("kernel32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool CloseHandle(IntPtr handle);
 }

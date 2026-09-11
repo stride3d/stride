@@ -15,7 +15,7 @@ namespace Stride.CrashReport
     /// RID-specific publishes like GameStudio). This minimal assembly doesn't reference Stride.Core's
     /// NativeLibraryHelper, so it resolves the library from those locations itself.
     /// </remarks>
-    internal static class NativeInvoke
+    internal static partial class NativeInvoke
     {
         internal const string Library = "libstridecrash";
 
@@ -27,8 +27,8 @@ namespace Stride.CrashReport
 
         /// <summary>Registers the native vectored exception handler. Paths must be absolute; the identity strings
         /// (application/version/environment) ride the reporter's command line; timeoutMs bounds the capture wait.</summary>
-        [DllImport(Library, ExactSpelling = true, CharSet = CharSet.Unicode)]
-        internal static extern void stride_crash_install(string reporterPath, string dumpDir, uint timeoutMs,
+        [LibraryImport(Library, StringMarshalling = StringMarshalling.Utf16)]
+        internal static partial void stride_crash_install(string reporterPath, string dumpDir, uint timeoutMs,
             string application, string version, string environment);
 
         private static IntPtr Resolve(string name, Assembly assembly, DllImportSearchPath? paths)
