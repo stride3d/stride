@@ -29,7 +29,7 @@ namespace Stride.Assets.Presentation.Templates
             // Specific asset templates must be registered after AssetFactoryTemplateGenerator
             TemplateManager.Register(ProceduralModelFactoryTemplateGenerator.Default);
             TemplateManager.Register(SkyboxFactoryTemplateGenerator.Default);
-            TemplateManager.Register(GraphicsCompositorTemplateGenerator.Default);
+            TemplateManager.Register(DerivedAssetTemplateGenerator.Default);
             TemplateManager.Register(ScriptTemplateGenerator.Default);
             TemplateManager.Register(SpriteSheetFromFileTemplateGenerator.Default);
             TemplateManager.Register(ModelFromFileTemplateGenerator.Default);

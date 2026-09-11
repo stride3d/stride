@@ -98,6 +98,7 @@
     <Project Path="../sources/engine/Stride.Video.Editor/Stride.Video.Editor.csproj" />
     <Project Path="../sources/engine/Stride.VirtualReality/Stride.VirtualReality.csproj" />
     <Project Path="../sources/engine/Stride.Voxels/Stride.Voxels.csproj" />
+    <Project Path="../sources/engine/Stride.Voxels.Editor/Stride.Voxels.Editor.csproj" />
   </Folder>
   <Folder Name="/20-StrideRuntime/Stride.Bepu/">
     <Project Path="../sources/engine/Stride.BepuPhysics/Stride.BepuPhysics.Debug/Stride.BepuPhysics.Debug.csproj" />
