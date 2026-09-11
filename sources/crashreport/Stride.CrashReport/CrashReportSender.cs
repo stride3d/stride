@@ -140,7 +140,7 @@ public static class CrashReportSender
         sentryEvent.Level = SentryLevel.Fatal;
         // Group by the crash's signature, not the reporter's stack or message.
         if (!string.IsNullOrEmpty(fingerprint))
-            sentryEvent.SetFingerprint(new[] { fingerprint });
+            sentryEvent.SetFingerprint([fingerprint]);
 
         // Link the crashing thread to the exception so Sentry shows its stack there and the snapshot stacks for the rest.
         if (crashedThreadId is int crashedId && sentryEvent.SentryExceptions != null)

@@ -114,10 +114,10 @@ public static class DumpStackWalk
                     frames.Insert(0, new StoredFrame { Function = faultingFrame });
                 // The exception's message is Sentry's subtitle: the native location, the one thing the managed
                 // stack (whose top frame Sentry shows as the culprit) can't tell. The report line says it all.
-                crash.Exceptions = new List<StoredException>
-                {
+                crash.Exceptions =
+                [
                     new() { Type = "NativeCrash", Message = NativeCrashReporting.NativeCrashValue(faultingFrame), Frames = frames },
-                };
+                ];
                 crash.CrashedThreadId = (int)thread.OSThreadId;
                 SetReportException(crash, NativeCrashReporting.NativeCrashMessage(faultingFrame, crash.AffectedAssets.FirstOrDefault(), faultSite));
             }

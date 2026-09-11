@@ -95,5 +95,5 @@ public static class CrashPolicy
     }
 
     private static readonly string[] CiVariables =
-        { "CI", "GITHUB_ACTIONS", "TF_BUILD", "JENKINS_URL", "TEAMCITY_VERSION", "GITLAB_CI", "BUILDKITE" };
+        ["CI", "GITHUB_ACTIONS", "TF_BUILD", "JENKINS_URL", "TEAMCITY_VERSION", "GITLAB_CI", "BUILDKITE"];
 }

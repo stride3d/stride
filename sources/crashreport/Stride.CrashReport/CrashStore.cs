@@ -184,7 +184,7 @@ public sealed class CrashStore
         {
             // A corrupt suppression file just means nothing is suppressed; it is rewritten on the next opt-out.
         }
-        return new HashSet<string>();
+        return [];
     }
 
     private static string SuppressKey(string signature, string version) => $"{version}\n{signature}";
