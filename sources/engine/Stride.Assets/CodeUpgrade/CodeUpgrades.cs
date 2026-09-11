@@ -411,6 +411,64 @@ public static class CodeUpgrades
     }
 
     /// <summary>
+    /// Migrates an instance member that became an extension member in <paramref name="extensionNamespace"/>: bare uses get
+    /// <c>this.</c> and the file gets the <c>using</c>. With <paramref name="throughMember"/>, uses go through that member (<c>x.Game.Audio</c>).
+    /// </summary>
+    public static SymbolRewrite MemberToExtension(string declaringType, string memberName, string extensionNamespace, string throughMember = null)
+    {
+        ArgumentNullException.ThrowIfNull(declaringType);
+        ArgumentNullException.ThrowIfNull(memberName);
+        ArgumentNullException.ThrowIfNull(extensionNamespace);
+        return new SymbolRewrite(
+            compilation => ResolveMembers(compilation, declaringType, memberName),
+            (editor, referenceNode, symbol) =>
+            {
+                if (referenceNode is not SimpleNameSyntax name)
+                    return;
+
+                var member = name.WithoutTrivia();
+                switch (name.Parent)
+                {
+                    // x.Audio, this.Audio, base.Audio: base. becomes this. (base can't reach an extension member)
+                    case MemberAccessExpressionSyntax access when access.Name == name:
+                        if (throughMember is not null)
+                            editor.ReplaceNode(access, Access(Access(access.Expression, SyntaxFactory.IdentifierName(throughMember)), member).WithTriviaFrom(access));
+                        else if (access.Expression is BaseExpressionSyntax)
+                            editor.ReplaceNode(access, Access(SyntaxFactory.ThisExpression(), member).WithTriviaFrom(access));
+                        break;
+
+                    // x?.Audio
+                    case MemberBindingExpressionSyntax binding:
+                        if (throughMember is not null)
+                            editor.ReplaceNode(binding, Access(SyntaxFactory.MemberBindingExpression(SyntaxFactory.IdentifierName(throughMember)), member).WithTriviaFrom(binding));
+                        break;
+
+                    // A name in a type context (cref, qualified name): left alone
+                    case QualifiedNameSyntax qualified when qualified.Right == name:
+                        break;
+
+                    // A bare use in a derived type needs an explicit receiver
+                    default:
+                        ExpressionSyntax receiver = throughMember is null ? SyntaxFactory.ThisExpression() : SyntaxFactory.IdentifierName(throughMember);
+                        editor.ReplaceNode(name, Access(receiver, member).WithTriviaFrom(name));
+                        break;
+                }
+
+                // Import the namespace once per file (the callback sees the root as edited so far)
+                editor.ReplaceNode(editor.OriginalRoot, (root, _) =>
+                {
+                    if (root is not CompilationUnitSyntax unit || unit.Usings.Any(x => x.Name?.ToString() == extensionNamespace))
+                        return root;
+                    var directive = SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(extensionNamespace)).NormalizeWhitespace().WithTrailingTrivia(SyntaxFactory.EndOfLine(Environment.NewLine));
+                    return unit.AddUsings(directive);
+                });
+            });
+    }
+
+    private static MemberAccessExpressionSyntax Access(ExpressionSyntax receiver, SimpleNameSyntax member)
+        => SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, receiver, member);
+
+    /// <summary>
     /// Removes <c>using</c> directives for namespaces that left the Stride dependency closure
     /// (each entry matches itself and its sub-namespaces). Only directives the compiler reports as
     /// unnecessary (CS8019, checked against the old-version closure) are removed: an unused directive is
