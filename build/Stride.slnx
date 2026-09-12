@@ -162,7 +162,7 @@
     <Project Path="../sources/presentation/Stride.Core.Presentation.Wpf.Dialogs/Stride.Core.Presentation.Wpf.Dialogs.csproj" />
     <Project Path="../sources/presentation/Stride.Core.Presentation.Wpf.Graph/Stride.Core.Presentation.Wpf.Graph.csproj" />
     <Project Path="../sources/presentation/Stride.Core.Presentation.Wpf/Stride.Core.Presentation.Wpf.csproj" />
-    <Project Path="../sources/presentation/Stride.Core.Translation.Presentation/Stride.Core.Translation.Presentation.Wpf.csproj" />
+    <Project Path="../sources/presentation/Stride.Core.Translation.Presentation.Wpf/Stride.Core.Translation.Presentation.Wpf.csproj" />
   </Folder>
   <Folder Name="/51-Presentation.Tests/">
     <Project Path="../sources/presentation/Stride.Core.Presentation.Quantum.Tests/Stride.Core.Presentation.Quantum.Tests.csproj" />
