@@ -44,6 +44,42 @@ public class ParsingTests1
         Assert.True(result.Errors.Count > 0, "Expected a parse error for invalid float suffix '1.q' but got none. Errors: " + string.Join("\n", result.Errors.Select(x => x.ToString())));
     }
 
+    // A postfix '.' or '[' with nothing valid after it used to be consumed and silently dropped.
+    [Theory]
+    [InlineData("float i = a.;")]
+    [InlineData("float i = a . ;")]
+    [InlineData("float i = 1..;")]
+    [InlineData("float i = 1.0.;")]
+    [InlineData("float i = a.b.;")]
+    [InlineData("float i = a[;")]
+    [InlineData("float i = a[];")]
+    [InlineData("float i = a[1;")]
+    [InlineData("float i = a[1].;")]
+    public void DanglingPostfixAccessorIsAnError(string statement)
+    {
+        var text = "shader Foo { void Bar() { float a = 0; " + statement + " } };";
+        var result = SDSLParser.Parse(text);
+        Assert.True(result.Errors.Count > 0, "Expected a parse error for '" + statement + "' but got none.");
+    }
+
+    [Theory]
+    [InlineData("float i = a.x;")]
+    [InlineData("float i = a . x;")]
+    [InlineData("float i = a.b.c;")]
+    [InlineData("float i = a[1];")]
+    [InlineData("float i = a[1].x;")]
+    [InlineData("float i = a[1][2];")]
+    [InlineData("float i = a.Foo(1).x;")]
+    [InlineData("float i = a++;")]
+    [InlineData("float i = a[1]++;")]
+    [InlineData("float i = 1.;")]
+    public void PostfixAccessorChainParses(string statement)
+    {
+        var text = "shader Foo { void Bar() { float a = 0; " + statement + " } };";
+        var result = SDSLParser.Parse(text);
+        Assert.True(result.Errors.Count == 0, statement + "\n" + string.Join("\n", result.Errors.Select(x => x.ToString())));
+    }
+
     // [Theory]
     // [MemberData(nameof(GetShaderFilePaths))]
     // public void AnalyseFile(string path)
