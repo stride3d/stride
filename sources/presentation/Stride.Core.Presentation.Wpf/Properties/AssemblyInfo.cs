@@ -8,7 +8,7 @@ using System.Windows.Markup;
 
 [assembly: ThemeInfo(ResourceDictionaryLocation.None, ResourceDictionaryLocation.SourceAssembly)]
 
-[assembly: InternalsVisibleTo("Stride.Core.Presentation.Tests")]
+[assembly: InternalsVisibleTo("Stride.Core.Presentation.Wpf.Tests")]
 
 [assembly: XmlnsPrefix("http://schemas.stride3d.net/xaml/presentation", "sd")]
 [assembly: XmlnsDefinition("http://schemas.stride3d.net/xaml/presentation", "Stride.Core.Presentation")]

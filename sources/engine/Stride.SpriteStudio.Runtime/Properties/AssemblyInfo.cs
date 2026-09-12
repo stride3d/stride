@@ -9,4 +9,4 @@ using System.Runtime.CompilerServices;
 // associated with an assembly.
 [assembly: NeutralResourcesLanguage("en")]
 
-[assembly: InternalsVisibleTo("Stride.Editor")]
+[assembly: InternalsVisibleTo("Stride.Editor.Wpf")]
