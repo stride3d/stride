@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2025-12-01 12:57:52+0100\n"
+"POT-Creation-Date: 2026-09-12 14:32:58+0200\n"
 "PO-Revision-Date: 2019-03-02 14:19+0000\n"
 "Last-Translator: Lucifer <786325481@qq.com>\n"
 "Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
@@ -105,7 +105,7 @@ msgctxt "Credentials"
 msgid "An unknown error occurred."
 msgstr "发生了未知错误。"
 
-#: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml.cs:85
+#: ../editor/Stride.GameStudio/View/GameStudioWindow.xaml.cs:83
 msgctxt "Message"
 msgid ""
 "To reset the layout, Game Studio needs to close and re-open all asset and "
@@ -114,62 +114,62 @@ msgstr ""
 "要重置布局的话，Game Studio 需要关闭并重新打开所有资产和文档编辑器。在此期"
 "间，您不会丢失未保存的更改。"
 
-#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:50
+#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:54
 msgctxt "Title"
 msgid "Output"
 msgstr "输出"
 
-#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:200
+#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:222
 msgctxt "Message"
 msgid ""
 "Some game code files have been modified. Do you want to reload the "
 "assemblies?"
 msgstr "游戏代码文件已被修改。您要重新加载程序集吗?"
 
-#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:202
+#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:224
 msgctxt "Button"
 msgid "Reload"
 msgstr "重新载入"
 
-#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:202
+#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:224
 msgctxt "Button"
 msgid "Don't reload"
 msgstr "不重新载入"
 
 #. Displayed when user tries to run a project that is not on a supported platform (for execution).
-#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:331
-#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:465
-#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:472
+#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:421
+#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:556
+#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:563
 msgctxt "Message"
 msgid "Platform {0} isn't supported for execution."
 msgstr "不支持在平台 {0} 运行。"
 
 #. Displayed when user tries to run Android project without an Android device attached.
-#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:435
+#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:526
 msgctxt "Message"
 msgid "No Android device found for execution."
 msgstr "没有找到可运行的 Android 设备。"
 
-#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:480
-#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:647
+#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:576
+#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:747
 msgctxt "Message"
 msgid "Unable to load and compile project {0}"
 msgstr "无法加载和编译项目 {0}"
 
 #. Log message displayed when the executable can't be found after building the project. {0}: the expected executable path
-#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:501
-#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:548
+#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:600
+#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:648
 msgctxt "Message"
 msgid "Unable to reach to output executable: {0}"
 msgstr "无法输出可执行文件: {0}"
 
-#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:518
+#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:618
 msgctxt "Message"
 msgid "Couldn't find Android package name for {0}."
 msgstr "找不到 {0} 的 Android 包名。"
 
 #. Displayed when Android tools "adb" can't be found
-#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:528
+#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:628
 msgctxt "Message"
 msgid ""
 "Android tool \"\"adb\"\" couldn't found (no running process, in registry or "
@@ -178,38 +178,38 @@ msgstr ""
 "找不到 Android 工具 “adb” (注册表或 PATH 中没有可运行的进程)。请将其添加到 "
 "PATH 中。"
 
-#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:535
+#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:635
 msgctxt "Message"
 msgid "Can't run Android app with adb: {0}"
 msgstr "无法用 adb 运行 Android 应用: {0}"
 
 #. Displayed when starting a game on a platform requiring credentials but none were provided.
-#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:560
+#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:660
 msgctxt "Message"
 msgid "No credentials provided. To allow deployment, add your credentials."
 msgstr "没有提供证书。要允许部署的话，请添加您的证书。"
 
 #. Message displayed when launching fails for some reason.
-#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:569
+#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:669
 msgctxt "Message"
 msgid "Unable to launch project {0}"
 msgstr "无法启动项目 {0}"
 
 #. Message displayed to inform user a deployment was succesful.
-#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:577
+#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:677
 msgctxt "Message"
 msgid "Deployment of {0} successful."
 msgstr "{0} 部署成功。"
 
 #. Log message displayed when an exception occurs while building the project. {0}: The exception message
-#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:583
-#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:656
+#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:683
+#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:756
 msgctxt "Message"
 msgid "An exception occurred while compiling the project: {0}"
 msgstr "编译项目时发生异常: {0}"
 
 #. Message displayed when the user tries to build without having selected a current project
-#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:593
+#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:693
 msgctxt "Message"
 msgid ""
 "To process the build, set an executable project as the current project in "
@@ -217,7 +217,7 @@ msgid ""
 msgstr "要处理此构建，请把会话资源管理器中的当前项目设置为可执行项目。"
 
 #. Message displayed when the user cancels the saving of the current session when trying to build
-#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:601
+#: ../editor/Stride.GameStudio/ViewModels/DebuggingViewModel.cs:701
 msgctxt "Message"
 msgid "To build, save the project first."
 msgstr "要构建的话，请先保存项目。"

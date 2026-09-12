@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2025-12-01 12:57:50+0100\n"
+"POT-Creation-Date: 2026-09-12 14:32:57+0200\n"
 "PO-Revision-Date: 2019-11-23 13:05+0000\n"
 "Last-Translator: hyeonzii <guswl9_9@naver.com>\n"
 "Language-Team: Korean <https://hosted.weblate.org/projects/stride/"
@@ -152,12 +152,11 @@ msgid "Select a source..."
 msgstr "소스 선택..."
 
 #: ../editor/Stride.Assets.Presentation/Templates/AssetFromFileTemplateGenerator.cs:50
-#: ../editor/Stride.Assets.Presentation/Templates/ScriptTemplateGenerator.cs:108
+#: ../editor/Stride.Assets.Presentation/Templates/ScriptTemplateGenerator.cs:115
 #: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml.cs:70
 #: ../editor/Stride.Assets.Presentation/ViewModel/SpriteFontViewModel.cs:64
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityHierarchyEditorViewModel.cs:498
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/ViewModels/UIEditorBaseViewModel.cs:429
-#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:127
 #: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:55
 #: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:28
 #: ../editor/Stride.Assets.Presentation/Templates/ScriptNameWindow.xaml:21
@@ -172,38 +171,27 @@ msgctxt "Message"
 msgid "Do you want to create this {0} without a source file?"
 msgstr "소스 파일 없이 {0} 를 생성하시겠습니까?"
 
-#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml.cs:90
-msgctxt "Message"
-msgid "Select an orientation."
-msgstr "방향을 선택하세요."
-
-#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml.cs:95
-msgctxt "Message"
-msgid "Select at least one platform."
-msgstr "플랫폼을 하나 이상 선택하세요."
-
-#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml.cs:102
-#: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml.cs:76
-msgctxt "Message"
-msgid "Type a valid namespace name. Error with {0}"
-msgstr "올바른 네임스페이스 이름을 입력하세요. {0} 오류"
-
 #: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml.cs:70
 msgctxt "Message"
 msgid "Type a valid library name. Error with {0}"
 msgstr "올바른 라이브러리 이름을 입력하세요. {0} 오류"
+
+#: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml.cs:76
+msgctxt "Message"
+msgid "Type a valid namespace name. Error with {0}"
+msgstr "올바른 네임스페이스 이름을 입력하세요. {0} 오류"
 
 #: ../editor/Stride.Assets.Presentation/Templates/ScriptNameWindow.xaml.cs:78
 msgctxt "Message"
 msgid "The names you entered are invalid or empty."
 msgstr "입력한 이름이 잘못되었거나 비어 있음."
 
-#: ../editor/Stride.Assets.Presentation/Templates/ScriptTemplateGenerator.cs:107
+#: ../editor/Stride.Assets.Presentation/Templates/ScriptTemplateGenerator.cs:114
 msgctxt "Button"
 msgid "Save"
 msgstr "저장"
 
-#: ../editor/Stride.Assets.Presentation/Templates/ScriptTemplateGenerator.cs:110
+#: ../editor/Stride.Assets.Presentation/Templates/ScriptTemplateGenerator.cs:117
 msgctxt "Message"
 msgid "You can't use scripts until you save them. Do you want to save now?"
 msgstr "스크립트를 저장하기 전에는 사용할 수 없습니다. 지금 저장하시겠습니까?"
@@ -223,7 +211,7 @@ msgctxt "Message"
 msgid "Are you sure you want to remove these {0} platform(s) from the package?"
 msgstr "이러한 {0} 플랫폼을 패키지에서 제거하시겠습니까?"
 
-#: ../editor/Stride.Assets.Presentation/ViewModel/CodeViewModel.cs:202
+#: ../editor/Stride.Assets.Presentation/ViewModel/CodeViewModel.cs:241
 msgctxt "Message"
 msgid ""
 "Game Studio can't auto-reload the project file {0} because you have local "
@@ -237,7 +225,7 @@ msgstr ""
 "계속 다시 로드하려면 확인을 클릭하고 현재 버전을 유지하려면 취소를 클릭하십시"
 "오."
 
-#: ../editor/Stride.Assets.Presentation/ViewModel/CodeViewModel.cs:250
+#: ../editor/Stride.Assets.Presentation/ViewModel/CodeViewModel.cs:291
 msgctxt "Message"
 msgid ""
 "The following source files in the {0} project have been deleted externally, "
@@ -251,7 +239,7 @@ msgstr ""
 "\n"
 "{1}"
 
-#: ../editor/Stride.Assets.Presentation/ViewModel/ScriptSourceFileAssetViewModel.cs:359
+#: ../editor/Stride.Assets.Presentation/ViewModel/ScriptSourceFileAssetViewModel.cs:366
 msgctxt "Message"
 msgid ""
 "{0}\r\n"
@@ -326,7 +314,7 @@ msgctxt "Settings"
 msgid "Ask before deleting UI elements"
 msgstr "UI 요소를 삭제하기 전에 묻기"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityFolderViewModel.cs:158
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityFolderViewModel.cs:166
 msgctxt "Message"
 msgid ""
 "Unable to rename the folder '{0}' to '{1}'. A folder with the same name "
@@ -377,50 +365,15 @@ msgctxt "Message"
 msgid "Are you sure you want to delete these {0} UI elements?"
 msgstr "당신은 이러한 {0} UI 요소를 삭제하시겠습니까?"
 
-#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:10
-msgid "Create a game..."
-msgstr "게임 생성..."
-
-#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:21
-#: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:23
-#: ../editor/Stride.Assets.Presentation/Templates/ScriptNameWindow.xaml:31
-msgid "Namespace:"
-msgstr "네임스페이스:"
-
-#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:26
-msgid "Platforms"
-msgstr "플랫폼"
-
-#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:48
-#: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:45
-msgid "This machine doesn't meet the requirements to build for this platform."
-msgstr "이 기계는 이 플랫폼을 빌드하기 위한 요구사항들과 맞지 않습니다."
-
-#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:58
-msgid "Asset packs"
-msgstr "Asset 팩"
-
-#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:78
-msgid "Rendering"
-msgstr "랜더링"
-
-#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:90
-msgctxt "Button"
-msgid "High dynamic range (HDR)"
-msgstr "높은 동적 범위 (HDR)"
-
-#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:92
-msgctxt "Button"
-msgid "Low dynamic range (LDR)"
-msgstr "낮은 동적 범위 (LDR)"
-
-#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:126
-#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:54
-#: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:27
-#: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:54
-msgctxt "Button"
+#: ../editor/Stride.Assets.Presentation/Templates/DotNetNewTemplateParametersWindow.xaml:27
+#, fuzzy
 msgid "OK"
 msgstr "확인"
+
+#: ../editor/Stride.Assets.Presentation/Templates/DotNetNewTemplateParametersWindow.xaml:28
+#, fuzzy
+msgid "Cancel"
+msgstr "취소"
 
 #: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:10
 msgid "Import from model"
@@ -475,6 +428,13 @@ msgctxt "Button"
 msgid "Use another skeleton for this model:"
 msgstr "이 모델에 다른 뼈대 사용하기 :"
 
+#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:54
+#: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:27
+#: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:54
+msgctxt "Button"
+msgid "OK"
+msgstr "확인"
+
 #: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:10
 msgid "New code library"
 msgstr "새로운 코드 라이브러리"
@@ -482,6 +442,11 @@ msgstr "새로운 코드 라이브러리"
 #: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:21
 msgid "Library name:"
 msgstr "라이브러리 이름:"
+
+#: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:23
+#: ../editor/Stride.Assets.Presentation/Templates/ScriptNameWindow.xaml:31
+msgid "Namespace:"
+msgstr "네임스페이스:"
 
 #: ../editor/Stride.Assets.Presentation/Templates/ScriptNameWindow.xaml:9
 msgid "New script"
@@ -507,6 +472,10 @@ msgstr "플랫폼 선택"
 #: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:31
 msgid "(This will remove the project from the package and disk.)"
 msgstr "(이렇게 하면 패키지와 디스크에서 프로젝트가 제거됨)"
+
+#: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:45
+msgid "This machine doesn't meet the requirements to build for this platform."
+msgstr "이 기계는 이 플랫폼을 빌드하기 위한 요구사항들과 맞지 않습니다."
 
 #: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:52
 msgctxt "Button"
@@ -638,14 +607,14 @@ msgstr "취소(Esc)"
 #: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:44
 #: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:84
 #: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:182
-#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:209
+#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:220
 msgctxt "ToolTip"
 msgid "Select an asset"
 msgstr "asset 선택"
 
 #: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:50
 #: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:90
-#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:214
+#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:225
 msgctxt "ToolTip"
 msgid "Clear the reference"
 msgstr "레퍼런스 지우기"
@@ -657,7 +626,7 @@ msgctxt "ToolTip"
 msgid "Select the referenced asset"
 msgstr "레퍼런스된 asset 선택"
 
-#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:205
+#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:216
 msgctxt "ToolTip"
 msgid "Highlight this material in the scene editor"
 msgstr "장면 편집기에서 이 자료 강조"
@@ -1661,3 +1630,31 @@ msgstr "반환 타입..."
 #: ../editor/Stride.Assets.Presentation/AssetEditors/VisualScriptEditor/Views/VisualScriptEditorView.xaml:354
 msgid "Function parameters:"
 msgstr "기능 상수:"
+
+#~ msgctxt "Message"
+#~ msgid "Select an orientation."
+#~ msgstr "방향을 선택하세요."
+
+#~ msgctxt "Message"
+#~ msgid "Select at least one platform."
+#~ msgstr "플랫폼을 하나 이상 선택하세요."
+
+#~ msgid "Create a game..."
+#~ msgstr "게임 생성..."
+
+#~ msgid "Platforms"
+#~ msgstr "플랫폼"
+
+#~ msgid "Asset packs"
+#~ msgstr "Asset 팩"
+
+#~ msgid "Rendering"
+#~ msgstr "랜더링"
+
+#~ msgctxt "Button"
+#~ msgid "High dynamic range (HDR)"
+#~ msgstr "높은 동적 범위 (HDR)"
+
+#~ msgctxt "Button"
+#~ msgid "Low dynamic range (LDR)"
+#~ msgstr "낮은 동적 범위 (LDR)"
