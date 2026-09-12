@@ -266,7 +266,7 @@ public partial class ShaderMixer
 
         // Only in the separate (Direct3D11) register space: a pixel shader's UAVs start past its
         // render targets. Vulkan and D3D12 share one counter and one descriptor set, where the
-        // rule does not exist. See FirstUnorderedAccessSlot.
+        // rule does not exist. See GetFirstUnorderedAccessSlot.
         if (options.ResourcesRegisterSeparate)
             uavSlot = GetFirstUnorderedAccessSlot(context);
 
