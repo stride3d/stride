@@ -49,7 +49,7 @@
   <ItemGroup>
     <Compile Remove="..\..\shared\SharedAssemblyInfo.cs" />
     <Compile Include="..\..\assets\Stride.Core.Assets\PackageSessionHelper.Solution.cs" Link="Packages\PackageSessionHelper.Solution.cs" />
-    <Compile Include="..\..\editor\Stride.Core.Assets.Editor\EditorPath.cs" Link="Editor\EditorPath.cs" />
+    <Compile Include="..\..\editor\Stride.Core.Assets.Editor.Wpf\EditorPath.cs" Link="Editor\EditorPath.cs" />
   </ItemGroup>
 
   <ItemGroup>

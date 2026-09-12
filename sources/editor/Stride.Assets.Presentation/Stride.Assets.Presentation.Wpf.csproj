@@ -64,7 +64,7 @@
     <ProjectReference Include="..\..\presentation\Stride.Core.Translation.Presentation.Wpf\Stride.Core.Translation.Presentation.Wpf.csproj" />
     <ProjectReference Include="..\..\tools\Stride.ConnectionRouter\Stride.ConnectionRouter.csproj" />
     <ProjectReference Include="..\..\tools\Stride.Graphics.RenderDocPlugin\Stride.Graphics.RenderDocPlugin.csproj" />
-    <ProjectReference Include="..\Stride.Core.Assets.Editor\Stride.Core.Assets.Editor.Wpf.csproj" />
+    <ProjectReference Include="..\Stride.Core.Assets.Editor.Wpf\Stride.Core.Assets.Editor.Wpf.csproj" />
     <ProjectReference Include="..\Stride.Editor\Stride.Editor.Wpf.csproj" />
     <!-- Force Stride.Templates.Games (NewGame, the bundled-with-installer set) to build before
          GameStudio links. Without this, a fresh checkout that builds only the editor never
