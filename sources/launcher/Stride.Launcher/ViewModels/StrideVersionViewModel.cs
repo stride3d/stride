@@ -5,6 +5,7 @@ using NuGet.Frameworks;
 using Stride.Core.Packages;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Commands;
+using Stride.Launcher.Services;
 
 namespace Stride.Launcher.ViewModels;
 
@@ -55,26 +56,23 @@ public abstract class StrideVersionViewModel : PackageVersionViewModel, ICompara
             : [$"{GameStudioNames.StrideAvalonia}.dll"];
     }
 
+    /// <summary>The per-framework folders an editor of this version can live in.</summary>
+    protected virtual IEnumerable<string> FrameworkDirectories() => GetAllInstalledPaths().SelectMany(PackageLayout.FrameworkDirectories);
+
     protected void UpdateFrameworks()
     {
         Frameworks.Clear();
         if (LocalPackage is null || InstallPath is null)
             return;
 
-        foreach (var toplevelFolder in new[] { "tools", "lib" })
+        foreach (var frameworkPath in FrameworkDirectories())
         {
-            var libDirectory = Path.Combine(InstallPath, toplevelFolder);
-            if (!Directory.Exists(libDirectory))
-                continue;
-
-            foreach (var frameworkPath in Directory.EnumerateDirectories(libDirectory))
+            foreach (var gameStudioExecutable in GetExecutableNames())
             {
-                foreach (var gameStudioExecutable in GetExecutableNames())
+                var framework = new DirectoryInfo(frameworkPath).Name;
+                if (File.Exists(Path.Combine(frameworkPath, gameStudioExecutable)) && !Frameworks.Contains(framework))
                 {
-                    if (File.Exists(Path.Combine(frameworkPath, gameStudioExecutable)))
-                    {
-                        Frameworks.Add(new DirectoryInfo(frameworkPath).Name);
-                    }
+                    Frameworks.Add(framework);
                 }
             }
         }
@@ -130,31 +128,24 @@ public abstract class StrideVersionViewModel : PackageVersionViewModel, ICompara
         _editorToDir.Clear();
 
         var ext = OperatingSystem.IsWindows() ? ".exe" : ".dll";
-        foreach (var basePath in GetAllInstalledPaths())
+        foreach (var frameworkDir in FrameworkDirectories())
         {
-            foreach (var toplevelFolder in new[] { "tools", "lib" })
+            foreach (var name in AllEditorNames())
             {
-                var topDir = Path.Combine(basePath, toplevelFolder);
-                if (!Directory.Exists(topDir))
-                    continue;
-
-                foreach (var frameworkDir in Directory.EnumerateDirectories(topDir))
+                // First discovery wins: don't overwrite an already-found editor.
+                if (!_editorToDir.ContainsKey(name) &&
+                    File.Exists(Path.Combine(frameworkDir, $"{name}{ext}")))
                 {
-                    foreach (var name in AllEditorNames())
-                    {
-                        // First discovery wins: don't overwrite an already-found editor.
-                        if (!_editorToDir.ContainsKey(name) &&
-                            File.Exists(Path.Combine(frameworkDir, $"{name}{ext}")))
-                        {
-                            AvailableEditors.Add(name);
-                            _editorToDir[name] = frameworkDir;
-                        }
-                    }
+                    AvailableEditors.Add(name);
+                    _editorToDir[name] = frameworkDir;
                 }
             }
         }
 
         UpdateSelectedEditor();
+        // The runtime choices depend on which editor was found.
+        if (Launcher.ActiveVersion == this)
+            Launcher.RefreshRuntimes();
         // On non-Windows the Avalonia editor is the only option. Re-evaluate CanStart now
         // that AvailableEditors is populated (UpdateStatus runs before UpdateAvailableEditors).
         if (!OperatingSystem.IsWindows())

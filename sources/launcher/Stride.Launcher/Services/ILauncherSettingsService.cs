@@ -11,6 +11,7 @@ public interface ILauncherSettingsService
     string ActiveVersion { get; set; }
     string PreferredFramework { get; set; }
     string PreferredEditor { get; set; }
+    string PreferredRuntime { get; set; }
     int CurrentTab { get; set; }
     IReadOnlyCollection<UDirectory> DeveloperVersions { get; }
     bool IsTaskCompleted(string taskName);

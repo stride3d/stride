@@ -256,6 +256,14 @@
                       </DataTemplate>
                     </ComboBox.ItemTemplate>
                   </ComboBox>
+                  <!-- Minimum .NET major Game Studio runs on; hidden when only the default exists. -->
+                  <ComboBox x:Name="RuntimeSelector" Margin="0,4"
+                            HorizontalAlignment="Stretch"
+                            ToolTip.Tip="{x:Static l:Strings.RuntimeSelectorTooltip}"
+                            ItemsSource="{Binding AvailableRuntimes}"
+                            SelectedItem="{Binding SelectedRuntime}"
+                            IsEnabled="{Binding !ActiveVersion?.IsProcessing, FallbackValue={x:False}}"
+                            IsVisible="{Binding AvailableRuntimes.Count, Converter={sd:Chained {sd:IsGreater}, Parameter1={sd:Double 1}}}" />
                   <CheckBox DockPanel.Dock="Bottom" Margin="0,2"
                             IsChecked="{Binding AutoCloseLauncher}"
                             Content="{x:Static l:Strings.AutoCloseLauncher}"/>

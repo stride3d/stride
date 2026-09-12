@@ -195,6 +195,6 @@ public sealed class RecentProjectViewModel : DispatcherViewModel
             return;
         }
         Launcher.ActiveVersion = version;
-        Launcher.StartStudio($"\"{FullPath}\"").Forget();
+        Launcher.StartStudio(FullPath).Forget();
     }
 }
