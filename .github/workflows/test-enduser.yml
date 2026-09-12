@@ -276,6 +276,8 @@ jobs:
             screenshot-out/
             screenshot-out-aot/
             TestResults/
+            !screenshot-out/**/*.dmp
+            !screenshot-out-aot/**/*.dmp
           if-no-files-found: warn
 
       - name: Upload crash dumps (Windows)
@@ -284,6 +286,19 @@ jobs:
         with:
           name: crash-dumps-${{ matrix.platform }}-${{ matrix.graphics-api }}
           path: crash-dumps/
+          if-no-files-found: ignore
+
+      # ScreenshotRunner writes a hang dump next to the sample's output, which is handy locally but
+      # made every screenshots artifact carry it (156 MB against 18 MB for a passing lane). Uploaded
+      # separately so the captures stay cheap to fetch. Not Windows-only: createdump covers the rest.
+      - name: Upload hang dumps
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: hang-dumps-${{ matrix.platform }}-${{ matrix.graphics-api }}
+          path: |
+            screenshot-out/**/*.dmp
+            screenshot-out-aot/**/*.dmp
           if-no-files-found: ignore
 
   # NuGet packaging + consumer suite. Deliberately independent of the screenshot job: it builds the
