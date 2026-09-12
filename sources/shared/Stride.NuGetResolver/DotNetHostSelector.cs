@@ -342,7 +342,7 @@ public static class DotNetHostSelector
     }
 
     /// <summary>Short stable hash of a directory path (case-folded where the file system is), for per-install file and mutex names.</summary>
-    internal static string PathHash(string path)
+    public static string PathHash(string path)
     {
         var normalized = Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
         if (OperatingSystem.IsWindows() || OperatingSystem.IsMacOS())
