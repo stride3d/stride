@@ -159,8 +159,8 @@
     <Project Path="../sources/presentation/Stride.Core.Presentation.Avalonia/Stride.Core.Presentation.Avalonia.csproj" />
   </Folder>
   <Folder Name="/50-Presentation/Wpf/">
-    <Project Path="../sources/presentation/Stride.Core.Presentation.Dialogs/Stride.Core.Presentation.Wpf.Dialogs.csproj" />
     <Project Path="../sources/presentation/Stride.Core.Presentation.Graph/Stride.Core.Presentation.Wpf.Graph.csproj" />
+    <Project Path="../sources/presentation/Stride.Core.Presentation.Wpf.Dialogs/Stride.Core.Presentation.Wpf.Dialogs.csproj" />
     <Project Path="../sources/presentation/Stride.Core.Presentation.Wpf/Stride.Core.Presentation.Wpf.csproj" />
     <Project Path="../sources/presentation/Stride.Core.Translation.Presentation/Stride.Core.Translation.Presentation.Wpf.csproj" />
   </Folder>
