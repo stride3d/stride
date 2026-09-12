@@ -575,30 +575,25 @@ namespace Stride.AssetCompiler
             }
 
             var address = "Stride/CompilerApp/PackageBuilderApp/" + Guid.NewGuid();
-            var arguments = $"build --slave=\"{address}\" --build-path=\"{builderOptions.BuildDirectory}\"";
+            var arguments = new List<string> { "build", $"--slave={address}", $"--build-path={builderOptions.BuildDirectory}" };
 
             // Let the slave capture its own crashes (managed exceptions and native access violations) into our
             // shared run directory, so a crash in an isolated command isn't lost when the slave process dies.
             var crashDir = ensureCrashDirectory?.Invoke();
             if (!string.IsNullOrEmpty(crashDir))
-                arguments += $" --crash-dir=\"{crashDir}\"";
+                arguments.Add($"--crash-dir={crashDir}");
 
             // Start ServiceWire pipe for communication with process
             var processBuilderRemote = new ProcessBuilderRemote(assemblyContainer, commandContext, command);
             var host = new NpHost(address,null,null, new StrideServiceWireSerializer());
             host.AddService<IProcessBuilderRemote>(processBuilderRemote);
 
-            var startInfo = new ProcessStartInfo
-            {
-                // Note: try to get exec server if it exists, otherwise use CompilerApp.exe
-                FileName = LoaderToolLocator.GetExecutable(typeof(PackageBuilder).Assembly.Location),
-                Arguments = arguments,
-                WorkingDirectory = Environment.CurrentDirectory,
-                CreateNoWindow = true,
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-            };
+            // The slave loads what we load, so it runs on our runtime: our apphost, or the muxer we were re-executed through.
+            var startInfo = DotNetHostSelector.SiblingStartInfo(typeof(PackageBuilder).Assembly.Location, arguments);
+            startInfo.WorkingDirectory = Environment.CurrentDirectory;
+            startInfo.CreateNoWindow = true;
+            startInfo.RedirectStandardOutput = true;
+            startInfo.RedirectStandardError = true;
 
             host.Open();
 
