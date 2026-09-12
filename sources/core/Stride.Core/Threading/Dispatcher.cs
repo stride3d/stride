@@ -88,7 +88,7 @@ public static class Dispatcher
 
             // Might as well steal some work instead of just waiting,
             // also helps prevent potential deadlocks from badly threaded code
-            while (Volatile.Read(ref batch.ItemsDone) < batch.Total && !batch.Finished.WaitOne(0))
+            while (Volatile.Read(ref batch.ItemsDone) < batch.Total && Volatile.Read(ref batch.ExceptionThrown) == null)
                 ThreadPool.Instance.TryCooperate();
 
             var ex = Interlocked.Exchange(ref batch.ExceptionThrown, null);
@@ -119,25 +119,24 @@ public static class Dispatcher
     {
         try
         {
-            for (uint start; (start = Interlocked.Add(ref state.Index, state.ItemsPerBatch) - state.ItemsPerBatch) < state.Total;)
+            uint start, end;
+            do
             {
-                uint end = Math.Min(start + state.ItemsPerBatch, state.Total);
+                end = Interlocked.Add(ref state.Index, state.ItemsPerBatch);
+                start = end - state.ItemsPerBatch;
+                if (start >= state.Total)
+                    break;
+
+                end = Math.Min(end, state.Total);
 
                 job.Process((int)start, (int)end);
-
-                if (Interlocked.Add(ref state.ItemsDone, state.ItemsPerBatch) >= state.Total)
-                {
-                    state.Finished.Set();
-                    break;
-                }
-            }
+            } while (Interlocked.Add(ref state.ItemsDone, end - start) < state.Total);
         }
         catch (Exception e)
         {
             Interlocked.Exchange(ref state.ExceptionThrown, e);
             // Unblock the waiter; it rethrows via ExceptionDispatchInfo. Rethrowing here would
             // escape the worker thread's root callback and fail-fast the process.
-            state.Finished.Set();
         }
     }
 
@@ -522,8 +521,6 @@ public static class Dispatcher
 
         private int referenceCount;
 
-        public readonly ManualResetEvent Finished = new(false);
-
         public uint Index, Total, ItemsPerBatch, ItemsDone;
 
         public TJob Job;
@@ -551,7 +548,6 @@ public static class Dispatcher
             if (refCount == 0)
             {
                 Job = default; // Clear any references it may hold onto
-                Finished.Reset();
                 Pool.Push(this);
             }
             Debug.Assert(refCount >= 0);
