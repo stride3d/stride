@@ -65,7 +65,7 @@
     <ProjectReference Include="..\..\tools\Stride.ConnectionRouter\Stride.ConnectionRouter.csproj" />
     <ProjectReference Include="..\..\tools\Stride.Graphics.RenderDocPlugin\Stride.Graphics.RenderDocPlugin.csproj" />
     <ProjectReference Include="..\Stride.Core.Assets.Editor.Wpf\Stride.Core.Assets.Editor.Wpf.csproj" />
-    <ProjectReference Include="..\Stride.Editor\Stride.Editor.Wpf.csproj" />
+    <ProjectReference Include="..\Stride.Editor.Wpf\Stride.Editor.Wpf.csproj" />
     <!-- Force Stride.Templates.Games (NewGame, the bundled-with-installer set) to build before
          GameStudio links. Without this, a fresh checkout that builds only the editor never
          produces the .nupkg the DotNetNewTemplateBridge resolves via PackageStore at runtime.
