@@ -39,6 +39,12 @@
          its Roslyn generator out of game builds) so it doesn't flow here. Reference it directly so Sentry.dll is
          deployed for the send; PrivateAssets=all keeps it from flowing onward. -->
     <PackageReference Include="Sentry" PrivateAssets="all" />
+    <!-- The out-of-process reporter, resolved from the store at crash time. Private=false emits the nuspec
+         <dependency> (so a Stride install pulls the reporter in) without copying its self-contained closure
+         into our bin. ReferenceOutputAssembly=false would suppress the dependency. -->
+    <ProjectReference Include="..\..\crashreport\Stride.CrashReporter\Stride.CrashReporter.csproj">
+      <Private>false</Private>
+    </ProjectReference>
     <ProjectReference Include="..\..\presentation\Stride.Core.Presentation.Avalonia\Stride.Core.Presentation.Avalonia.csproj" />
   </ItemGroup>
 

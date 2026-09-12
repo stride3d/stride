@@ -1,6 +1,6 @@
 # Launcher Views
 
-All XAML lives under [sources/launcher/Stride.Launcher/Views/](../../sources/launcher/Stride.Launcher/Views/) plus the specialized [Crash/](../../sources/launcher/Stride.Launcher/Crash/) folder. Compiled bindings are on by default (`<AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>`) so every `DataContext` is typed.
+All XAML lives under [sources/launcher/Stride.Launcher/Views/](../../sources/launcher/Stride.Launcher/Views/). Compiled bindings are on by default (`<AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>`) so every `DataContext` is typed.
 
 ## Main window
 
@@ -19,13 +19,12 @@ Splitting the `Window` from a `UserControl` lets Avalonia's designer render `Mai
 
 ## Crash report
 
-Under [Crash/](../../sources/launcher/Stride.Launcher/Crash/):
+[Crash/](../../sources/launcher/Stride.Launcher/Crash/) is a plain code folder, with no XAML of its own:
 
-- [CrashReportWindow.axaml](../../sources/launcher/Stride.Launcher/Crash/CrashReportWindow.axaml) — the dialog. Shows the exception summary, a toggleable details pane, and buttons to copy the report or open a new GitHub issue.
-- [CrashReportViewModel.cs](../../sources/launcher/Stride.Launcher/Crash/CrashReportViewModel.cs) — the view model. Formats the `CrashReportData` for display, uses the clipboard delegate passed in by `Launcher.CrashReport` (set to `window.Clipboard.SetTextAsync`), and exposes `CopyReportCommand`, `OpenIssueCommand`, `ViewReportCommand`, `CloseCommand`.
-- [CrashReportData.cs](../../sources/launcher/Stride.Launcher/Crash/CrashReportData.cs) and [CrashReportArgs.cs](../../sources/launcher/Stride.Launcher/Crash/CrashReportArgs.cs) — the serializable shapes passed between the exception handler and the view.
+- [CrashReportArgs.cs](../../sources/launcher/Stride.Launcher/Crash/CrashReportArgs.cs) — `CrashLocation` and the `CrashReportArgs` record passed from `Launcher.HandleException` to `CrashReportHelper.SendReport`.
+- [CrashReportHelper.cs](../../sources/launcher/Stride.Launcher/Crash/CrashReportHelper.cs) — builds and scrubs the `Stride.CrashReport.CrashReportData`, saves it to the shared `CrashStore`, and (when attended) spawns the out-of-process `Stride.CrashReporter` and blocks until it closes — the same pipeline GameStudio uses. See [lifecycle.md](lifecycle.md#crash-reporting) and [crash-reporting.md](../debugging/crash-reporting.md).
 
-The crash report runs under a brand-new `MinimalApp`, because the main `App` is typically in the middle of shutting down.
+The dialog itself lives in `Stride.CrashReporter`, a separate Avalonia app the helper spawns as its own process; the Launcher builds no UI for it.
 
 ## Converters
 
@@ -48,4 +47,4 @@ This is how release notes, announcements, and error dialogs get consistent rende
 
 - **New tab in the main window** → extend `MainView.axaml` with a new `TabItem` and bind its content to a new property on `MainViewModel`.
 - **New modal dialog** → create an Avalonia `Window` with its own view model and show it through `IDialogService` (so tests can stub it).
-- **New crash surface** → do not add more `MinimalApp` spawn sites; reuse `CrashReportWindow` and extend `CrashReportData`/`CrashReportViewModel`.
+- **New crash report field** → do not build launcher-side UI for it; extend the shared `Stride.CrashReport.CrashReportData` built in `CrashReportHelper.SendReport` and, if it needs its own display, the `Stride.CrashReporter` app.
