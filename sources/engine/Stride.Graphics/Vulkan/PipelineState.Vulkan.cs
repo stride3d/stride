@@ -223,7 +223,7 @@ namespace Stride.Graphics
                         colorAttachmentFormats[i] = VulkanConvertExtensions.ConvertPixelFormat(*(renderTargetFormat + i));
 
                     var depthAttachmentFormat = output.DepthStencilFormat != PixelFormat.None
-                        ? Texture.GetFallbackDepthStencilFormat(GraphicsDevice, VulkanConvertExtensions.ConvertPixelFormat(output.DepthStencilFormat))
+                        ? VulkanConvertExtensions.ConvertPixelFormat(GraphicsDevice.GetSupportedDepthStencilFormat(output.DepthStencilFormat))
                         : VkFormat.Undefined;
 
                     var renderingCreateInfo = new VkPipelineRenderingCreateInfo

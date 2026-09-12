@@ -102,6 +102,14 @@ namespace Stride.Graphics
         private bool importedImageHandled;
         partial void TryInitializeImportedImage();
 
+        partial void AdjustDescriptionForDevice(ref TextureDescription description)
+        {
+            // The device may not support the requested depth-stencil format, and CreateImage would substitute
+            // another one, so record the format the image will really have.
+            if ((description.Flags & TextureFlags.DepthStencil) != 0)
+                description.Format = GraphicsDevice.GetSupportedDepthStencilFormat(description.Format);
+        }
+
         private partial void InitializeFromImpl(DataBox[] dataBoxes = null)
         {
             importedImageHandled = false;
@@ -122,12 +130,6 @@ namespace Stride.Graphics
             GetViewSliceBounds(ViewType, ref arraySlice, ref mipLevel, out var arrayOrDepthCount, out var mipCount);
             var arrayCount = Dimension == TextureDimension.Texture3D ? 1 : arrayOrDepthCount;
             NativeResourceRange = new VkImageSubresourceRange(NativeImageAspect, (uint) mipLevel, (uint) mipCount, (uint) arraySlice, (uint) arrayCount);
-
-            // For depth-stencil formats, automatically fall back to a supported one
-            if (IsDepthStencil && HasStencil)
-            {
-                NativeFormat = GetFallbackDepthStencilFormat(GraphicsDevice, NativeFormat);
-            }
 
             if (Usage == GraphicsResourceUsage.Staging)
             {
@@ -713,27 +715,6 @@ namespace Stride.Graphics
         private static int CalculateMipCount(int width, int height, int minimumSizeLastMip = 4)
         {
             return Math.Min(CalculateMipCountFromSize(width, minimumSizeLastMip), CalculateMipCountFromSize(height, minimumSizeLastMip));
-        }
-
-        internal static VkFormat GetFallbackDepthStencilFormat(GraphicsDevice device, VkFormat format)
-        {
-            if (format == VkFormat.D16UnormS8Uint || format == VkFormat.D24UnormS8Uint || format == VkFormat.D32SfloatS8Uint)
-            {
-                var fallbackFormats = new[] { format, VkFormat.D32SfloatS8Uint, VkFormat.D24UnormS8Uint, VkFormat.D16UnormS8Uint };
-
-                foreach (var fallbackFormat in fallbackFormats)
-                {
-                    device.NativeInstanceApi.vkGetPhysicalDeviceFormatProperties(device.NativePhysicalDevice, fallbackFormat, out var formatProperties);
-
-                    if ((formatProperties.optimalTilingFeatures & VkFormatFeatureFlags.DepthStencilAttachment) != 0)
-                    {
-                        format = fallbackFormat;
-                        break;
-                    }
-                }
-            }
-
-            return format;
         }
 
         internal static bool IsDepthFormat(PixelFormat format)
