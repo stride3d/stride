@@ -75,21 +75,19 @@ namespace Stride.Graphics
 
         private static MultisampleCount GetMaximumMultisampleCount(GraphicsDevice deviceRoot, VkInstanceApi instanceApi, VkPhysicalDevice physicalDevice, PixelFormat pixelFormat)
         {
+            var isDepthFormat = Texture.IsDepthFormat(pixelFormat);
+            if (isDepthFormat)
+            {
+                // A texture of this format is created with the one the device supports, so answer for that one
+                pixelFormat = deviceRoot.GetSupportedDepthStencilFormat(pixelFormat);
+            }
+
             if (!VulkanConvertExtensions.TryConvertPixelFormat(pixelFormat, out var format, out _, out _))
                 return MultisampleCount.None;
 
             // Same usage as Texture.CreateImage for a render target or depth stencil of that format
             var usage = VkImageUsageFlags.TransferSrc | VkImageUsageFlags.TransferDst;
-            if (Texture.IsDepthFormat(pixelFormat))
-            {
-                usage |= VkImageUsageFlags.DepthStencilAttachment;
-                // CreateImage substitutes a supported depth-stencil format, so query the one it would really create
-                format = Texture.GetFallbackDepthStencilFormat(deviceRoot, format);
-            }
-            else
-            {
-                usage |= VkImageUsageFlags.ColorAttachment;
-            }
+            usage |= isDepthFormat ? VkImageUsageFlags.DepthStencilAttachment : VkImageUsageFlags.ColorAttachment;
 
             var result = instanceApi.vkGetPhysicalDeviceImageFormatProperties(physicalDevice, format, VkImageType.Image2D, VkImageTiling.Optimal, usage, VkImageCreateFlags.None, out var imageFormatProperties);
             if (result != VkResult.Success)

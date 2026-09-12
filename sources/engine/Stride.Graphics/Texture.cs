@@ -491,10 +491,13 @@ namespace Stride.Graphics
             ParentTexture = parentTexture;
             ParentTexture?.AddReferenceInternal();
 
-            textureDescription = description;
+            var deviceDescription = description;
+            AdjustDescriptionForDevice(ref deviceDescription);
+
+            textureDescription = deviceDescription;
             textureViewDescription = viewDescription;
             RowStride = ComputeRowPitch(0);
-            mipmapDescriptions = Image.CalculateMipMapDescription(description);
+            mipmapDescriptions = Image.CalculateMipMapDescription(deviceDescription);
             SizeInBytes = ArraySize * mipmapDescriptions?.Sum(mip => mip.MipmapSize) ?? 0;
 
             ViewWidth = Math.Max(1, Width >> MipLevel);
@@ -503,11 +506,11 @@ namespace Stride.Graphics
 
             if (ViewFormat == PixelFormat.None)
             {
-                textureViewDescription.Format = description.Format;
+                textureViewDescription.Format = deviceDescription.Format;
             }
             if (ViewFlags == TextureFlags.None)
             {
-                textureViewDescription.Flags = description.Flags;
+                textureViewDescription.Flags = deviceDescription.Flags;
             }
 
             // Check that the Texture View flags are compatible with the parent Texture's flags
@@ -545,6 +548,13 @@ namespace Stride.Graphics
         ///   An array of <see cref="DataBox"/> pointing to the data to initialize the Texture's sub-resources.
         /// </param>
         private partial void InitializeFromImpl(DataBox[] dataBoxes);
+
+        /// <summary>
+        ///   Lets the graphics backend replace a format the device cannot use with the one it will really create,
+        ///   so the description describes the Texture that exists rather than the one that was asked for.
+        /// </summary>
+        /// <param name="description">The description to adjust in place.</param>
+        partial void AdjustDescriptionForDevice(ref TextureDescription description);
 
         /// <summary>
         ///   Releases the Texture data.
