@@ -103,7 +103,7 @@ namespace SpriteStudioDemo
                 if (inputState == InputState.RunLeft || inputState == InputState.RunRight)
                 {
                     // Update Agent's position
-                    var dt = (float)Game.UpdateTime.Elapsed.TotalSeconds;
+                    var dt = (float)Game.UpdateTime.WarpElapsed.TotalSeconds;
 
                     Entity.Transform.Position.X += ((inputState == InputState.RunRight) ? AgentMoveDistance : -AgentMoveDistance) * dt;
 

@@ -59,7 +59,7 @@ public class ##Scriptname## : SyncScript
 
     private void ProcessInput()
     {
-        float deltaTime = (float)Game.UpdateTime.Elapsed.TotalSeconds;
+        float deltaTime = (float)Game.UpdateTime.WarpElapsed.TotalSeconds;
         translation = Vector3.Zero;
         yaw = 0f;
         pitch = 0f;

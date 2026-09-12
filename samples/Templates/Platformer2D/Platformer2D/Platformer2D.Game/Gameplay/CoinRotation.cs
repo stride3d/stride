@@ -19,7 +19,7 @@ public class CoinRotation : SyncScript
 
     public override void Update()
     {
-        animationTimer += (float) Game.UpdateTime.Elapsed.TotalSeconds;
+        animationTimer += (float) Game.UpdateTime.WarpElapsed.TotalSeconds;
         
         if (animationTimer >= animationInterval)
         {

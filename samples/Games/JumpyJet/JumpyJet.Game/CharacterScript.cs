@@ -124,7 +124,7 @@ namespace JumpyJet
                 if (!isRunning)
                     continue;
 
-                var elapsedTime = (float)Game.UpdateTime.Elapsed.TotalSeconds;
+                var elapsedTime = (float)Game.UpdateTime.WarpElapsed.TotalSeconds;
 
                 // apply impulse on the touch/space
                 if (Input.IsKeyPressed(Keys.Space) || UserTappedScreen())

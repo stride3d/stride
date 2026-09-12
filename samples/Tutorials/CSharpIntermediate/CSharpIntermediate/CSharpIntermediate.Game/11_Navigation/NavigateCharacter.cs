@@ -48,7 +48,7 @@ namespace CSharpIntermediate.Code
                 return;
             }
 
-            var deltaTime = (float)Game.UpdateTime.Elapsed.TotalSeconds;
+            var deltaTime = (float)Game.UpdateTime.WarpElapsed.TotalSeconds;
             var curPosition = RegularCharacter.Transform.WorldMatrix.TranslationVector;
             var nextWaypointPosition = waypoints[waypointIndex];
             var distanceToWaypoint = Vector3.Distance(curPosition, nextWaypointPosition);

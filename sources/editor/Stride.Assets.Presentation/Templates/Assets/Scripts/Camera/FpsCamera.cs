@@ -156,7 +156,7 @@ public class ##Scriptname## : AsyncScript
         }
 
         // Compute translation speed according to framerate and modifiers
-        var translationSpeed = MoveSpeed * (float)Game.UpdateTime.Elapsed.TotalSeconds;
+        var translationSpeed = MoveSpeed * (float)Game.UpdateTime.WarpElapsed.TotalSeconds;
 
         var oldPitch = Pitch;
 
@@ -170,7 +170,7 @@ public class ##Scriptname## : AsyncScript
         desiredYaw = Yaw + deltaYaw;
 
         // Perform orientation transition
-        var rotationAdaptation = (float)Game.UpdateTime.Elapsed.TotalSeconds * RotationAdaptationSpeed;
+        var rotationAdaptation = (float)Game.UpdateTime.WarpElapsed.TotalSeconds * RotationAdaptationSpeed;
         Yaw = Math.Abs(deltaYaw) < rotationAdaptation ? desiredYaw : Yaw + rotationAdaptation * Math.Sign(deltaYaw);
         Pitch = Math.Abs(deltaPitch) < rotationAdaptation ? desiredPitch : Pitch + rotationAdaptation * Math.Sign(deltaPitch);
 

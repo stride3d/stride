@@ -124,7 +124,7 @@ namespace CSharpBeginner.Code
         {
             if (startTransform != null && cameraLerpTimer < cameraLerpTime)
             {
-                var deltaTime = (float)Game.UpdateTime.Elapsed.TotalSeconds;
+                var deltaTime = (float)Game.UpdateTime.WarpElapsed.TotalSeconds;
                 cameraLerpTimer += deltaTime;
                 var lerpTime = cameraLerpTimer / cameraLerpTime;
                 Camera.Transform.Position = Vector3.Lerp(startTransform.Position, targetTransform.Position, lerpTime);

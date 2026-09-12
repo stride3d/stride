@@ -30,7 +30,7 @@ namespace CSharpBeginner.Code
                 DebugText.Print("Hold the left mouse button down to rotate the blue teapot", new Int2(400, 600));
                 if (Input.IsMouseButtonDown(MouseButton.Left))
                 {
-                    var deltaTime = (float)Game.UpdateTime.Elapsed.TotalSeconds;
+                    var deltaTime = (float)Game.UpdateTime.WarpElapsed.TotalSeconds;
                     BlueTeapot.Transform.Rotation *= Quaternion.RotationY(0.4f * deltaTime);
                 }
 

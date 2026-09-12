@@ -173,7 +173,7 @@ public class FreeCamera : AsyncScript
         }
 
         // Compute translation speed according to framerate and modifiers
-        float translationSpeed = MoveSpeed * (float)Game.UpdateTime.Elapsed.TotalSeconds;
+        float translationSpeed = MoveSpeed * (float)Game.UpdateTime.WarpElapsed.TotalSeconds;
         if (Input.IsKeyDown(Keys.LeftShift) || Input.IsKeyDown(Keys.RightShift))
             translationSpeed *= 10;
 
@@ -193,7 +193,7 @@ public class FreeCamera : AsyncScript
         var isAdaptingOrientation = !MathUtil.NearEqual(deltaPitch, 0) || !MathUtil.NearEqual(deltaYaw, 0);
 
         // Perform orientation transition
-        var rotationAdaptation = (float)Game.UpdateTime.Elapsed.TotalSeconds * RotationAdaptationSpeed;
+        var rotationAdaptation = (float)Game.UpdateTime.WarpElapsed.TotalSeconds * RotationAdaptationSpeed;
         Yaw = Math.Abs(deltaYaw) < rotationAdaptation ? desiredYaw : Yaw + rotationAdaptation * Math.Sign(deltaYaw);
         Pitch = Math.Abs(deltaPitch) < rotationAdaptation ? desiredPitch : Pitch + rotationAdaptation * Math.Sign(deltaPitch);
 

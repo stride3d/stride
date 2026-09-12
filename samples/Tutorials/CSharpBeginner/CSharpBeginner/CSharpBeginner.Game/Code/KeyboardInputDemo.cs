@@ -27,7 +27,7 @@ namespace CSharpBeginner.Code
                 DebugText.Print("Hold the 1 key down to rotate the blue teapot", new Int2(340, 500));
                 if (Input.IsKeyDown(Keys.D1))
                 {
-                    var deltaTime = (float)Game.UpdateTime.Elapsed.TotalSeconds;
+                    var deltaTime = (float)Game.UpdateTime.WarpElapsed.TotalSeconds;
                     BlueTeapot.Transform.Rotation *= Quaternion.RotationY(0.3f * deltaTime);
                 }
 

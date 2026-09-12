@@ -97,7 +97,7 @@ public class ##Scriptname## : SyncScript
         var rotationDelta = Input.MouseDelta;
 
         // Compute translation speed according to framerate and modifiers
-        var translationSpeed = Speed * (float)Game.UpdateTime.Elapsed.TotalSeconds;
+        var translationSpeed = Speed * (float)Game.UpdateTime.WarpElapsed.TotalSeconds;
 
         // Take shortest path
         var deltaPitch = desiredPitch - pitch;
@@ -109,7 +109,7 @@ public class ##Scriptname## : SyncScript
         desiredYaw = yaw + deltaYaw;
 
         // Perform orientation transition
-        var rotationAdaptation = (float)Game.UpdateTime.Elapsed.TotalSeconds * RotationAdaptationSpeed;
+        var rotationAdaptation = (float)Game.UpdateTime.WarpElapsed.TotalSeconds * RotationAdaptationSpeed;
         yaw = Math.Abs(deltaYaw) < rotationAdaptation ? desiredYaw : yaw + rotationAdaptation * Math.Sign(deltaYaw);
         pitch = Math.Abs(deltaPitch) < rotationAdaptation ? desiredPitch : pitch + rotationAdaptation * Math.Sign(deltaPitch);
 

@@ -121,8 +121,7 @@ namespace TopDownRPG.Player
                 animationClipWalkLerp2 = AnimationRun;
             }
 
-            // Use DrawTime rather than UpdateTime
-            var time = Game.DrawTime;
+            var time = Game.UpdateTime;
             // This update function will account for animation with different durations, keeping a current time relative to the blended maximum duration
             long blendedMaxDuration = 0;
             blendedMaxDuration =
@@ -132,7 +131,7 @@ namespace TopDownRPG.Player
 
             currentTicks = blendedMaxDuration == 0
                 ? TimeSpan.Zero
-                : TimeSpan.FromTicks((currentTicks.Ticks + (long)(time.Elapsed.Ticks * TimeFactor)) %
+                : TimeSpan.FromTicks((currentTicks.Ticks + (long)(time.WarpElapsed.Ticks * TimeFactor)) %
                                      blendedMaxDuration);
 
             currentTime = ((double)currentTicks.Ticks / (double)blendedMaxDuration);
@@ -142,7 +141,7 @@ namespace TopDownRPG.Player
         {
             var speedFactor = 1;
             var currentTicks = TimeSpan.FromTicks((long)(currentTime * AnimationPunch.Duration.Ticks));
-            var updatedTicks = currentTicks.Ticks + (long)(Game.DrawTime.Elapsed.Ticks * TimeFactor * speedFactor);
+            var updatedTicks = currentTicks.Ticks + (long)(Game.UpdateTime.WarpElapsed.Ticks * TimeFactor * speedFactor);
 
             if (updatedTicks < AnimationPunch.Duration.Ticks)
             {

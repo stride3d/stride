@@ -44,7 +44,7 @@ namespace TopDownRPG.Gameplay
 
         public void UpdateAnimation()
         {
-            var dt = (float)Game.UpdateTime.Elapsed.TotalSeconds;
+            var dt = (float)Game.UpdateTime.WarpElapsed.TotalSeconds;
 
             if (!activated)
                 return;

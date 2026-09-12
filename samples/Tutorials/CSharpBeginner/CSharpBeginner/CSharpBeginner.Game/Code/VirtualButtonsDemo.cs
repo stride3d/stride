@@ -49,7 +49,7 @@ namespace CSharpBeginner.Code
             // Note: Gamepad sticks can be a negative value. For this example we only check if the value is higher than 0
             if (forward > 0)
             {
-                var deltaTime = (float)Game.UpdateTime.Elapsed.TotalSeconds;
+                var deltaTime = (float)Game.UpdateTime.WarpElapsed.TotalSeconds;
                 BlueTeapot.Transform.Rotation *= Quaternion.RotationY(0.6f * forward * deltaTime);
             }
             
