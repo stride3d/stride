@@ -639,17 +639,26 @@ namespace Stride.Graphics
         private void ReleaseDevice()
         {
             foreach (var query in disjointQueries)
-            {
                 query.Release();
-            }
             disjointQueries.Clear();
+
+            foreach (var query in currentDisjointQueries)
+                query.Release();
+            currentDisjointQueries.Clear();
+
+            if (IsDebugMode)
+            {
+                // Drain before the flush below, which can stall: queued messages die with the process
+                ProcessInfoQueueMessages();
+            }
 
             nativeDeviceContext->ClearState();
             nativeDeviceContext->Flush();
 
             if (IsDebugMode)
             {
-                // Display D3D11 ref counting info
+                // Display D3D11 ref counting info. ClearState and Flush drop the context's own references
+                // to the resources it had bound, so what this reports is what actually leaked.
                 HResult result = nativeDevice->QueryInterface(out ComPtr<ID3D11Debug> debugDevice);
 
                 if (result.IsSuccess && debugDevice.IsNotNull())
