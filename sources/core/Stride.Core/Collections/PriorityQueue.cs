@@ -52,7 +52,7 @@ public class PriorityQueue<T>
         var parentIndex = index;
         while (true)
         {
-            var childIndex = parentIndex * 2;
+            var childIndex = (parentIndex * 2) + 1;
 
             // Check if there is any child, otherwise we're done
             if (childIndex >= maxCount)
@@ -87,7 +87,7 @@ public class PriorityQueue<T>
         // Bubble elements so that order is respected again
         while (childIndex != 0)
         {
-            var parentIndex = childIndex / 2;
+            var parentIndex = (childIndex - 1) / 2;
 
             // Should we swap with parent?
             if (comparer.Compare(items[childIndex], items[parentIndex]) >= 0)
@@ -133,7 +133,7 @@ public class PriorityQueue<T>
         while (true)
         {
             // Check if there is any child, otherwise we're done
-            var childIndex = parentIndex * 2;
+            var childIndex = (parentIndex * 2) + 1;
             if (childIndex >= maxCount)
                 break;
 
