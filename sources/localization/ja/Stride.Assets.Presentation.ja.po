@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2025-12-01 12:57:50+0100\n"
+"POT-Creation-Date: 2026-09-12 14:32:57+0200\n"
 "PO-Revision-Date: 2019-01-13 02:38+0900\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -148,12 +148,11 @@ msgid "Select a source..."
 msgstr ""
 
 #: ../editor/Stride.Assets.Presentation/Templates/AssetFromFileTemplateGenerator.cs:50
-#: ../editor/Stride.Assets.Presentation/Templates/ScriptTemplateGenerator.cs:108
+#: ../editor/Stride.Assets.Presentation/Templates/ScriptTemplateGenerator.cs:115
 #: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml.cs:70
 #: ../editor/Stride.Assets.Presentation/ViewModel/SpriteFontViewModel.cs:64
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityHierarchyEditorViewModel.cs:498
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/ViewModels/UIEditorBaseViewModel.cs:429
-#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:127
 #: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:55
 #: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:28
 #: ../editor/Stride.Assets.Presentation/Templates/ScriptNameWindow.xaml:21
@@ -168,25 +167,14 @@ msgctxt "Message"
 msgid "Do you want to create this {0} without a source file?"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml.cs:90
-msgctxt "Message"
-msgid "Select an orientation."
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml.cs:95
-msgctxt "Message"
-msgid "Select at least one platform."
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml.cs:102
-#: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml.cs:76
-msgctxt "Message"
-msgid "Type a valid namespace name. Error with {0}"
-msgstr ""
-
 #: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml.cs:70
 msgctxt "Message"
 msgid "Type a valid library name. Error with {0}"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml.cs:76
+msgctxt "Message"
+msgid "Type a valid namespace name. Error with {0}"
 msgstr ""
 
 #: ../editor/Stride.Assets.Presentation/Templates/ScriptNameWindow.xaml.cs:78
@@ -194,12 +182,12 @@ msgctxt "Message"
 msgid "The names you entered are invalid or empty."
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/Templates/ScriptTemplateGenerator.cs:107
+#: ../editor/Stride.Assets.Presentation/Templates/ScriptTemplateGenerator.cs:114
 msgctxt "Button"
 msgid "Save"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/Templates/ScriptTemplateGenerator.cs:110
+#: ../editor/Stride.Assets.Presentation/Templates/ScriptTemplateGenerator.cs:117
 msgctxt "Message"
 msgid "You can't use scripts until you save them. Do you want to save now?"
 msgstr ""
@@ -219,7 +207,7 @@ msgctxt "Message"
 msgid "Are you sure you want to remove these {0} platform(s) from the package?"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/ViewModel/CodeViewModel.cs:202
+#: ../editor/Stride.Assets.Presentation/ViewModel/CodeViewModel.cs:241
 msgctxt "Message"
 msgid ""
 "Game Studio can't auto-reload the project file {0} because you have local "
@@ -228,7 +216,7 @@ msgid ""
 "Click OK to keep reloading or Cancel to keep the current version."
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/ViewModel/CodeViewModel.cs:250
+#: ../editor/Stride.Assets.Presentation/ViewModel/CodeViewModel.cs:291
 msgctxt "Message"
 msgid ""
 "The following source files in the {0} project have been deleted externally, "
@@ -238,7 +226,7 @@ msgid ""
 "{1}"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/ViewModel/ScriptSourceFileAssetViewModel.cs:359
+#: ../editor/Stride.Assets.Presentation/ViewModel/ScriptSourceFileAssetViewModel.cs:366
 msgctxt "Message"
 msgid ""
 "{0}\r\n"
@@ -305,7 +293,7 @@ msgctxt "Settings"
 msgid "Ask before deleting UI elements"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityFolderViewModel.cs:158
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityFolderViewModel.cs:166
 msgctxt "Message"
 msgid ""
 "Unable to rename the folder '{0}' to '{1}'. A folder with the same name "
@@ -354,49 +342,12 @@ msgctxt "Message"
 msgid "Are you sure you want to delete these {0} UI elements?"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:10
-msgid "Create a game..."
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:21
-#: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:23
-#: ../editor/Stride.Assets.Presentation/Templates/ScriptNameWindow.xaml:31
-msgid "Namespace:"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:26
-msgid "Platforms"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:48
-#: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:45
-msgid "This machine doesn't meet the requirements to build for this platform."
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:58
-msgid "Asset packs"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:78
-msgid "Rendering"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:90
-msgctxt "Button"
-msgid "High dynamic range (HDR)"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:92
-msgctxt "Button"
-msgid "Low dynamic range (LDR)"
-msgstr ""
-
-#: ../editor/Stride.Assets.Presentation/Templates/GameTemplateWindow.xaml:126
-#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:54
-#: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:27
-#: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:54
-msgctxt "Button"
+#: ../editor/Stride.Assets.Presentation/Templates/DotNetNewTemplateParametersWindow.xaml:27
 msgid "OK"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Templates/DotNetNewTemplateParametersWindow.xaml:28
+msgid "Cancel"
 msgstr ""
 
 #: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:10
@@ -450,12 +401,24 @@ msgctxt "Button"
 msgid "Use another skeleton for this model:"
 msgstr ""
 
+#: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:54
+#: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:27
+#: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:54
+msgctxt "Button"
+msgid "OK"
+msgstr ""
+
 #: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:10
 msgid "New code library"
 msgstr ""
 
 #: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:21
 msgid "Library name:"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:23
+#: ../editor/Stride.Assets.Presentation/Templates/ScriptNameWindow.xaml:31
+msgid "Namespace:"
 msgstr ""
 
 #: ../editor/Stride.Assets.Presentation/Templates/ScriptNameWindow.xaml:9
@@ -481,6 +444,10 @@ msgstr ""
 
 #: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:31
 msgid "(This will remove the project from the package and disk.)"
+msgstr ""
+
+#: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:45
+msgid "This machine doesn't meet the requirements to build for this platform."
 msgstr ""
 
 #: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:52
@@ -611,14 +578,14 @@ msgstr ""
 #: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:44
 #: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:84
 #: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:182
-#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:209
+#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:220
 msgctxt "ToolTip"
 msgid "Select an asset"
 msgstr ""
 
 #: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:50
 #: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:90
-#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:214
+#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:225
 msgctxt "ToolTip"
 msgid "Clear the reference"
 msgstr ""
@@ -630,7 +597,7 @@ msgctxt "ToolTip"
 msgid "Select the referenced asset"
 msgstr ""
 
-#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:205
+#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:216
 msgctxt "ToolTip"
 msgid "Highlight this material in the scene editor"
 msgstr ""
