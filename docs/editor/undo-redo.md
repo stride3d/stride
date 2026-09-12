@@ -61,7 +61,7 @@ using (var transaction = UndoRedoService.CreateTransaction())
 For operations used in multiple places or that benefit from consecutive-edit merging, subclass `DirtyingOperation`:
 
 ```csharp
-// sources/editor/Stride.Assets.Presentation/YourFeature/%%OperationName%%Operation.cs
+// sources/editor/Stride.Assets.Presentation.Wpf/YourFeature/%%OperationName%%Operation.cs
 using Stride.Core.Presentation.Dirtiables;
 using Stride.Core.Transactions;
 
@@ -136,4 +136,4 @@ Manual `PushOperation` is only required for mutations that bypass the node graph
 | `IUndoRedoService`, `DirtyingOperation`, `AnonymousDirtyingOperation` | `Stride.Core.Presentation` | `sources/presentation/Stride.Core.Presentation/Services/` and `Dirtiables/` |
 | `IDirtiable`, `DirtiableManager` | `Stride.Core.Presentation` | `sources/presentation/Stride.Core.Presentation/Dirtiables/` |
 | `ContentValueChangeOperation` | `Stride.Core.Assets.Editor` | `sources/editor/Stride.Core.Assets.Editor/Quantum/` |
-| Your custom operation | `Stride.Assets.Presentation` | `sources/editor/Stride.Assets.Presentation/YourFeature/` |
+| Your custom operation | `Stride.Assets.Presentation.Wpf` | `sources/editor/Stride.Assets.Presentation.Wpf/YourFeature/` |

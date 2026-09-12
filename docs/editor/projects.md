@@ -31,5 +31,5 @@ Assembly names match project names throughout; the "same" shorthand in the Assem
 
 ## Where to Put New Code
 
-- **New ViewModel code** → `Stride.Assets.Presentation`, under `sources/editor/Stride.Assets.Presentation/AssetEditors/%%EditorName%%/ViewModels/`
+- **New ViewModel code** → `Stride.Assets.Presentation.Wpf`, under `sources/editor/Stride.Assets.Presentation.Wpf/AssetEditors/%%EditorName%%/ViewModels/`
 - **New View / XAML code** → same project, `AssetEditors/%%EditorName%%/Views/`

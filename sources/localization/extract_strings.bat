@@ -12,7 +12,7 @@ rem Stride.Core.Presentation.Wpf.pot
 %TOOL_DIR%\Stride.Core.Translation.Extractor.exe --directory=%SOURCES_DIR%\presentation\Stride.Core.Presentation.Wpf --domain-name=Stride.Core.Presentation.Wpf --recursive --preserve-comments --exclude=*.Designer.cs --verbose *.xaml *.cs
 
 rem Stride.Assets.Presentation.Wpf.pot
-%TOOL_DIR%\Stride.Core.Translation.Extractor.exe --directory=%SOURCES_DIR%\editor\Stride.Assets.Presentation --domain-name=Stride.Assets.Presentation.Wpf --recursive --preserve-comments --exclude=*.Designer.cs --verbose *.xaml *.cs
+%TOOL_DIR%\Stride.Core.Translation.Extractor.exe --directory=%SOURCES_DIR%\editor\Stride.Assets.Presentation.Wpf --domain-name=Stride.Assets.Presentation.Wpf --recursive --preserve-comments --exclude=*.Designer.cs --verbose *.xaml *.cs
 
 rem Stride.Core.Assets.Editor.Wpf.pot
 %TOOL_DIR%\Stride.Core.Translation.Extractor.exe --directory=%SOURCES_DIR%\editor\Stride.Core.Assets.Editor.Wpf --domain-name=Stride.Core.Assets.Editor.Wpf --recursive --preserve-comments --exclude=*.Designer.cs --verbose *.xaml *.cs
