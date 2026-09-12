@@ -6,7 +6,6 @@
         xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:valueConverters1="clr-namespace:Stride.Core.Assets.Editor.View.ValueConverters;assembly=Stride.Core.Assets.Editor"
         xmlns:views="clr-namespace:Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Views"
         mc:Ignorable="d" ShowInTaskbar="False"
         Style="{DynamicResource WindowChromeStyle}"
@@ -32,7 +31,7 @@
       </Button>
     </UniformGrid>
     <TextBlock Margin="15,25" TextWrapping="Wrap" DockPanel.Dock="Top" Visibility="{Binding ComponentType, Converter={sd:Chained {sd:ObjectToBool}, {sd:VisibleOrCollapsed}}}"
-               Text="{Binding ComponentType, Converter={valueConverters1:TypeToDisplayName}, StringFormat=Select an entity that has a {0} component.}"/>
+               Text="{Binding ComponentType, Converter={sd:TypeToDisplayName}, StringFormat=Select an entity that has a {0} component.}"/>
 
     <TextBlock Margin="15,25" TextWrapping="Wrap" DockPanel.Dock="Top" Text="{sd:Localize Select an entity:}"
                Visibility="{Binding ComponentType, Converter={sd:Chained {sd:ObjectToBool}, {sd:InvertBool}, {sd:VisibleOrCollapsed}}}"/>

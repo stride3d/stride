@@ -3,7 +3,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:ui="clr-namespace:Stride.UI;assembly=Stride.UI"
                     xmlns:views="clr-namespace:Stride.Assets.Presentation.AssetEditors.UIEditor.Views"
-                    xmlns:tp="clr-namespace:Stride.Core.Assets.Editor.View.TemplateProviders;assembly=Stride.Core.Assets.Editor"
+                    xmlns:tp="clr-namespace:Stride.Core.Assets.Editor.View.TemplateProviders;assembly=Stride.Core.Assets.Editor.Wpf"
                     xmlns:sd="http://schemas.stride3d.net/xaml/presentation">
   <ResourceDictionary.MergedDictionaries>
     <ResourceDictionary Source="/Stride.Core.Assets.Editor.Wpf;component/View/DefaultPropertyTemplateProviders.xaml"/>

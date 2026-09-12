@@ -3,7 +3,6 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
     xmlns:views="clr-namespace:Stride.Assets.Presentation.Preview.Views"
-    xmlns:valueConverters="clr-namespace:Stride.Core.Assets.Editor.View.ValueConverters;assembly=Stride.Core.Assets.Editor"
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
     xmlns:behaviors="clr-namespace:Stride.Assets.Presentation.View.Behaviors"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -83,7 +82,7 @@
                 <ItemsControl.ItemTemplate>
                   <DataTemplate>
                     <Border Width="20" Height="20" Margin="0,0,1,0">
-                      <Image HorizontalAlignment="Center" VerticalAlignment="Center" Width="16" Height="16" RenderOptions.BitmapScalingMode="NearestNeighbor" Source="{Binding Converter={valueConverters:EnumToResource}}" />
+                      <Image HorizontalAlignment="Center" VerticalAlignment="Center" Width="16" Height="16" RenderOptions.BitmapScalingMode="NearestNeighbor" Source="{Binding Converter={sd:EnumToResource}}" />
                     </Border>
                   </DataTemplate>
                 </ItemsControl.ItemTemplate>

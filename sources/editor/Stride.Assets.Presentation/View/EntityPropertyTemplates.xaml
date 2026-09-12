@@ -3,14 +3,12 @@
                     xmlns:tp="clr-namespace:Stride.Assets.Presentation.TemplateProviders"
                     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
                     xmlns:system="clr-namespace:System;assembly=mscorlib"
-                    xmlns:behaviors="clr-namespace:Stride.Core.Assets.Editor.View.Behaviors;assembly=Stride.Core.Assets.Editor"
-                    xmlns:valueConverters="clr-namespace:Stride.Core.Assets.Editor.View.ValueConverters;assembly=Stride.Core.Assets.Editor"
                     xmlns:composers="clr-namespace:Stride.Rendering.Compositing;assembly=Stride.Engine"
                     xmlns:pvc="clr-namespace:Stride.Assets.Presentation.ValueConverters"
                     xmlns:engine="clr-namespace:Stride.Engine;assembly=Stride.Engine"
                     xmlns:data="clr-namespace:Stride.Data;assembly=Stride.Foundation"
                     xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
-                    xmlns:assetCommands="clr-namespace:Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;assembly=Stride.Core.Assets.Editor"
+                    xmlns:assetCommands="clr-namespace:Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;assembly=Stride.Core.Assets.Editor.Wpf"
                     xmlns:qvm="clr-namespace:Stride.Core.Presentation.Quantum.ViewModels;assembly=Stride.Core.Presentation.Quantum"
                     xmlns:localView="clr-namespace:Stride.Assets.Presentation.View">
 
@@ -62,7 +60,7 @@
                       Text="{Binding NodeValue.Name, Mode=OneWay}"
                       WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}">
           <i:Interaction.Behaviors>
-            <behaviors:ReferenceHostDragDropBehavior UsePreviewEvents="True" DisplayDropAdorner="InternalOnly"/>
+            <sd:ReferenceHostDragDropBehavior UsePreviewEvents="True" DisplayDropAdorner="InternalOnly"/>
           </i:Interaction.Behaviors>
         </sd:TextBox>
       </DockPanel>
@@ -102,7 +100,7 @@
                       Text="{Binding NodeValue.Entity.Name, Mode=OneWay}"
                       WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}">
           <i:Interaction.Behaviors>
-            <behaviors:ReferenceHostDragDropBehavior UsePreviewEvents="True" DisplayDropAdorner="InternalOnly"/>
+            <sd:ReferenceHostDragDropBehavior UsePreviewEvents="True" DisplayDropAdorner="InternalOnly"/>
           </i:Interaction.Behaviors>
         </sd:TextBox>
       </DockPanel>
@@ -147,7 +145,7 @@
         <ComboBox x:Name="SlotComboBox" DockPanel.Dock="Right" ItemsSource="{Binding AbstractNodeMatchingEntries}"
                     Style="{StaticResource SceneCameraSlotComboBox}">
           <i:Interaction.Behaviors>
-            <behaviors:OnComboBoxClosedWithSelectionBehavior Command="{Binding UpdateCameraSlotIndex}"
+            <sd:OnComboBoxClosedWithSelectionBehavior Command="{Binding UpdateCameraSlotIndex}"
                                                              CommandParameter="{Binding SelectedItem.Value, ElementName=SlotComboBox}"/>
           </i:Interaction.Behaviors>
         </ComboBox>
@@ -190,7 +188,7 @@
             </Border>
           </Grid>
           <i:Interaction.Behaviors>
-            <behaviors:ReferenceHostDragDropBehavior DisplayDropAdorner="InternalOnly"/>
+            <sd:ReferenceHostDragDropBehavior DisplayDropAdorner="InternalOnly"/>
           </i:Interaction.Behaviors>
         </Border>
         <DockPanel>
@@ -199,7 +197,7 @@
                           ToolTip="{Binding NodeValue, Converter={sd:ContentReferenceToUrl}}"
                           Margin="2,0,5,5" ContextMenu="{StaticResource ReferenceContextMenu}">
               <i:Interaction.Behaviors>
-                <behaviors:ReferenceHostDragDropBehavior UsePreviewEvents="True" DisplayDropAdorner="InternalOnly"/>
+                <sd:ReferenceHostDragDropBehavior UsePreviewEvents="True" DisplayDropAdorner="InternalOnly"/>
               </i:Interaction.Behaviors>
             </sd:TextBox>
             <!-- Unfocused display: asset name never truncated, location dimmed with visible ellipsis -->
@@ -262,7 +260,7 @@
         <ComboBox x:Name="InstanceTypeSelectionComboBox" Style="{StaticResource AddItemComboBox}"
             ItemsSource="{Binding AbstractNodeMatchingEntries}" Margin="2,0">
           <i:Interaction.Behaviors>
-            <behaviors:OnComboBoxClosedWithSelectionBehavior Command="{Binding AddNewItem}" CommandParameter="{Binding SelectedItem, ElementName=InstanceTypeSelectionComboBox}"/>
+            <sd:OnComboBoxClosedWithSelectionBehavior Command="{Binding AddNewItem}" CommandParameter="{Binding SelectedItem, ElementName=InstanceTypeSelectionComboBox}"/>
           </i:Interaction.Behaviors>
         </ComboBox>
       </StackPanel>
