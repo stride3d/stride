@@ -119,22 +119,22 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 assetCommands.Add(new MenuCommandInfo(ServiceProvider, createDerivedAssetCommand)
                 {
                     DisplayName = "Create derived asset",
-                    Icon = new Image { Source = new BitmapImage(new Uri("/Stride.Core.Assets.Editor;component/Resources/Icons/copy_link-32.png", UriKind.RelativeOrAbsolute)) },
+                    Icon = new Image { Source = new BitmapImage(new Uri("/Stride.Core.Assets.Editor.Wpf;component/Resources/Icons/copy_link-32.png", UriKind.RelativeOrAbsolute)) },
                 });
                 assetCommands.Add(new MenuCommandInfo(ServiceProvider, createReplacingAssetCommand)
                 {
                     DisplayName = "Create replacing asset",
-                    Icon = new Image { Source = new BitmapImage(new Uri("/Stride.Core.Assets.Editor;component/Resources/Icons/copy_link-32.png", UriKind.RelativeOrAbsolute)) },
+                    Icon = new Image { Source = new BitmapImage(new Uri("/Stride.Core.Assets.Editor.Wpf;component/Resources/Icons/copy_link-32.png", UriKind.RelativeOrAbsolute)) },
                 });
                 assetCommands.Add(new MenuCommandInfo(ServiceProvider, clearArchetypeCommand)
                 {
                     DisplayName = "Clear archetype",
-                    Icon = new Image { Source = new BitmapImage(new Uri("/Stride.Core.Assets.Editor;component/Resources/Icons/delete_link-32.png", UriKind.RelativeOrAbsolute)) },
+                    Icon = new Image { Source = new BitmapImage(new Uri("/Stride.Core.Assets.Editor.Wpf;component/Resources/Icons/delete_link-32.png", UriKind.RelativeOrAbsolute)) },
                 });
                 assetCommands.Add(new MenuCommandInfo(ServiceProvider, clearReplacesCommand)
                 {
                     DisplayName = "Clear replaces",
-                    Icon = new Image { Source = new BitmapImage(new Uri("/Stride.Core.Assets.Editor;component/Resources/Icons/delete_link-32.png", UriKind.RelativeOrAbsolute)) },
+                    Icon = new Image { Source = new BitmapImage(new Uri("/Stride.Core.Assets.Editor.Wpf;component/Resources/Icons/delete_link-32.png", UriKind.RelativeOrAbsolute)) },
                 });
             }).Forget();
             NodeContainer = parameters.Container;

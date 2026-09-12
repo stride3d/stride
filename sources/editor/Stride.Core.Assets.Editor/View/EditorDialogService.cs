@@ -235,7 +235,7 @@ namespace Stride.Core.Assets.Editor.View
 
         public void RegisterDefaultTemplateProviders()
         {
-            var dictionary = (ResourceDictionary)Application.LoadComponent(new Uri("/Stride.Core.Assets.Editor;component/View/DefaultPropertyTemplateProviders.xaml", UriKind.RelativeOrAbsolute));
+            var dictionary = (ResourceDictionary)Application.LoadComponent(new Uri("/Stride.Core.Assets.Editor.Wpf;component/View/DefaultPropertyTemplateProviders.xaml", UriKind.RelativeOrAbsolute));
             RegisterResourceDictionary(dictionary);
         }
 

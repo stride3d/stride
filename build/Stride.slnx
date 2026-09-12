@@ -151,28 +151,37 @@
   </Folder>
   <Folder Name="/50-Presentation/">
     <Project Path="../sources/editor/Stride.Core.MostRecentlyUsedFiles/Stride.Core.MostRecentlyUsedFiles.shproj" />
-    <Project Path="../sources/presentation/Stride.Core.Presentation.Dialogs/Stride.Core.Presentation.Dialogs.csproj" />
-    <Project Path="../sources/presentation/Stride.Core.Presentation.Graph/Stride.Core.Presentation.Graph.csproj" />
     <Project Path="../sources/presentation/Stride.Core.Presentation.Quantum/Stride.Core.Presentation.Quantum.csproj" />
-    <Project Path="../sources/presentation/Stride.Core.Presentation.Wpf/Stride.Core.Presentation.Wpf.csproj" />
     <Project Path="../sources/presentation/Stride.Core.Presentation/Stride.Core.Presentation.csproj" />
     <Project Path="../sources/presentation/Stride.Core.Quantum/Stride.Core.Quantum.csproj" />
-    <Project Path="../sources/presentation/Stride.Core.Translation.Presentation/Stride.Core.Translation.Presentation.csproj" />
+  </Folder>
+  <Folder Name="/50-Presentation/Avalonia/">
+    <Project Path="../sources/presentation/Stride.Core.Presentation.Avalonia/Stride.Core.Presentation.Avalonia.csproj" />
+  </Folder>
+  <Folder Name="/50-Presentation/Wpf/">
+    <Project Path="../sources/presentation/Stride.Core.Presentation.Dialogs/Stride.Core.Presentation.Wpf.Dialogs.csproj" />
+    <Project Path="../sources/presentation/Stride.Core.Presentation.Graph/Stride.Core.Presentation.Wpf.Graph.csproj" />
+    <Project Path="../sources/presentation/Stride.Core.Presentation.Wpf/Stride.Core.Presentation.Wpf.csproj" />
+    <Project Path="../sources/presentation/Stride.Core.Translation.Presentation/Stride.Core.Translation.Presentation.Wpf.csproj" />
   </Folder>
   <Folder Name="/51-Presentation.Tests/">
     <Project Path="../sources/presentation/Stride.Core.Presentation.Quantum.Tests/Stride.Core.Presentation.Quantum.Tests.csproj" />
-    <Project Path="../sources/presentation/Stride.Core.Presentation.Tests/Stride.Core.Presentation.Tests.csproj" />
     <Project Path="../sources/presentation/Stride.Core.Quantum.Tests/Stride.Core.Quantum.Tests.csproj" />
   </Folder>
+  <Folder Name="/51-Presentation.Tests/Wpf/">
+    <Project Path="../sources/presentation/Stride.Core.Presentation.Tests/Stride.Core.Presentation.Wpf.Tests.csproj" />
+  </Folder>
   <Folder Name="/60-Editor/">
-    <Project Path="../sources/editor/Stride.Assets.Presentation/Stride.Assets.Presentation.csproj" />
-    <Project Path="../sources/editor/Stride.Core.Assets.Editor/Stride.Core.Assets.Editor.csproj" />
     <Project Path="../sources/crashreport/Stride.CrashReport/Stride.CrashReport.csproj" />
     <Project Path="../sources/crashreport/Stride.CrashReporter/Stride.CrashReporter.csproj" />
     <Project Path="../sources/crashreport/Stride.CrashReport.TestProbe/Stride.CrashReport.TestProbe.csproj" />
-    <Project Path="../sources/editor/Stride.Editor/Stride.Editor.csproj" />
-    <Project Path="../sources/editor/Stride.GameStudio/Stride.GameStudio.csproj" DefaultStartup="true" />
     <Project Path="../sources/engine/Stride.Debugger/Stride.Debugger.csproj" />
+  </Folder>
+  <Folder Name="/60-Editor/Wpf/">
+    <Project Path="../sources/editor/Stride.Assets.Presentation/Stride.Assets.Presentation.Wpf.csproj" />
+    <Project Path="../sources/editor/Stride.Core.Assets.Editor/Stride.Core.Assets.Editor.Wpf.csproj" />
+    <Project Path="../sources/editor/Stride.Editor/Stride.Editor.Wpf.csproj" />
+    <Project Path="../sources/editor/Stride.GameStudio/Stride.GameStudio.csproj" DefaultStartup="true" />
   </Folder>
   <Folder Name="/61-Editor.Tests/">
     <Project Path="../sources/crashreport/Stride.CrashReport.Tests/Stride.CrashReport.Tests.csproj" />

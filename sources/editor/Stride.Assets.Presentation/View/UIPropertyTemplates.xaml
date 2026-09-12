@@ -6,7 +6,7 @@
                     xmlns:tp="clr-namespace:Stride.Core.Assets.Editor.View.TemplateProviders;assembly=Stride.Core.Assets.Editor"
                     xmlns:sd="http://schemas.stride3d.net/xaml/presentation">
   <ResourceDictionary.MergedDictionaries>
-    <ResourceDictionary Source="/Stride.Core.Assets.Editor;component/View/DefaultPropertyTemplateProviders.xaml"/>
+    <ResourceDictionary Source="/Stride.Core.Assets.Editor.Wpf;component/View/DefaultPropertyTemplateProviders.xaml"/>
     <ResourceDictionary Source="ImageDictionary.xaml"/>
   </ResourceDictionary.MergedDictionaries>
 

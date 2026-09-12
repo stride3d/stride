@@ -6,7 +6,7 @@
                     xmlns:templateProviders="clr-namespace:Stride.Assets.Presentation.TemplateProviders">
 
   <ResourceDictionary.MergedDictionaries>
-    <ResourceDictionary Source="/Stride.Core.Assets.Editor;component/View/DefaultPropertyTemplateProviders.xaml"/>
+    <ResourceDictionary Source="/Stride.Core.Assets.Editor.Wpf;component/View/DefaultPropertyTemplateProviders.xaml"/>
   </ResourceDictionary.MergedDictionaries>
 
   <templateProviders:ScriptVariableReferenceTemplateProvider x:Key="ScriptVariableReferenceTemplateProvider" OverrideRule="Most" sd:PropertyViewHelper.TemplateCategory="PropertyEditor">

@@ -5,6 +5,7 @@
     <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
     <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
     <UseWPF>true</UseWPF>
+    <RootNamespace>Stride.Core.Translation.Presentation</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">

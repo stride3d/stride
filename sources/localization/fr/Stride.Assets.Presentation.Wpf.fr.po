@@ -1,90 +1,89 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2026-09-12 14:32:57+0200\n"
-"PO-Revision-Date: 2019-03-09 00:04+0000\n"
-"Last-Translator: Scorp121 <kurkinsn@gmail.com>\n"
-"Language-Team: Russian <https://hosted.weblate.org/projects/stride/"
-"assetspresentation/ru/>\n"
-"Language: ru\n"
+"POT-Creation-Date: 2026-09-12 21:15:06+0200\n"
+"PO-Revision-Date: 2019-10-25 10:42+0000\n"
+"Last-Translator: Nathan <bonnemainsnathan@gmail.com>\n"
+"Language-Team: French <https://hosted.weblate.org/projects/stride/"
+"assetspresentation/fr/>\n"
+"Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
-"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Generator: Weblate 3.5.1-dev\n"
+"Plural-Forms: nplurals=2; plural=n > 1;\n"
+"X-Generator: Weblate 3.9.1-dev\n"
 
 #: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:12
 msgctxt "Settings"
 msgid "Key bindings"
-msgstr "Назначение клавиш"
+msgstr "Raccourcis clavier"
 
 #: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:13
 msgctxt "Settings"
 msgid "Scene editor"
-msgstr "Редактор сцен"
+msgstr "Éditeur de scène"
 
 #: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:14
 msgctxt "Settings"
 msgid "Viewport settings"
-msgstr "Настройки окна просмотра"
+msgstr "Paramètres de la fenêtre"
 
 #: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:21
 msgctxt "Settings"
 msgid "Move camera forward"
-msgstr "Перемещение камеры вперед"
+msgstr "Déplacer la caméra vers l'avant"
 
 #: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:25
 msgctxt "Settings"
 msgid "Move camera backward"
-msgstr "Перемещение камеры назад"
+msgstr "Déplacer la caméra vers l'arrière"
 
 #: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:29
 msgctxt "Settings"
 msgid "Move camera left"
-msgstr "Перемещение камеры влево"
+msgstr "Déplacer la caméra vers la gauche"
 
 #: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:33
 msgctxt "Settings"
 msgid "Move camera right"
-msgstr "Перемещение камеры вправо"
+msgstr "Déplacer la caméra vers la droite"
 
 #: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:37
 msgctxt "Settings"
 msgid "Move camera up"
-msgstr "Перемещение камеры вверх"
+msgstr "Déplacer la caméra vers le haut"
 
 #: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:41
 msgctxt "Settings"
 msgid "Move camera down"
-msgstr "Перемещение камеры вниз"
+msgstr "Déplacer la caméra vers le bas"
 
 #: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:45
 #, fuzzy
 msgctxt "Settings"
 msgid "Increase camera speed"
-msgstr "Сброс камеры"
+msgstr "Réinitialiser la caméra"
 
 #: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:49
 #, fuzzy
 msgctxt "Settings"
 msgid "Decrease camera speed"
-msgstr "Сброс камеры"
+msgstr "Réinitialiser la caméra"
 
 #: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:53
 msgctxt "Settings"
 msgid "Invert mouse panning axis"
-msgstr "Инвертировать ось мышки"
+msgstr "Inverser l'axe panoramique de la souris"
 
 #: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:57
 msgctxt "Settings"
 msgid "Center view on selection"
-msgstr "Вид по центру выделенного элемента"
+msgstr "Centrer la vue sur la sélection"
 
 #: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:61
 msgctxt "Settings"
 msgid "Snap selection to the grid"
-msgstr "Выбор привязки к сетке"
+msgstr "Aligner la sélection sur la grille"
 
 #: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:65
 msgctxt "Settings"
@@ -94,37 +93,37 @@ msgstr ""
 #: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:69
 msgctxt "Settings"
 msgid "Switch to translation mode"
-msgstr "Переключиться в режим перемещения"
+msgstr "Basculer en mode translation"
 
 #: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:73
 msgctxt "Settings"
 msgid "Switch to rotation mode"
-msgstr "Переключиться в режим вращения"
+msgstr "Basculer en mode rotation"
 
 #: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:77
 msgctxt "Settings"
 msgid "Switch to scale mode"
-msgstr "Переключиться в режим масштабирования"
+msgstr "Basculer en mode de mise à l'échelle"
 
 #: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:81
 msgctxt "Settings"
 msgid "Switch to next gizmo mode"
-msgstr "Переключиться в следующий режим"
+msgstr "Passer au prochain mode"
 
 #: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:85
 msgctxt "Settings"
 msgid "Default snap distance for translation"
-msgstr "Шаг перемещений по умолчанию"
+msgstr "Distance de capture par défaut pour la translation"
 
 #: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:89
 msgctxt "Settings"
 msgid "Default snap angle for rotation"
-msgstr "Шаг угла поворота по умолчанию"
+msgstr "Angle de capture par défaut pour la rotation"
 
 #: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:93
 msgctxt "Settings"
 msgid "Default snap factor for scale"
-msgstr "Шаг масштаба по умолчанию"
+msgstr "Facteur de capture par défaut pour la mise à l'échelle"
 
 #: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:97
 msgctxt "Settings"
@@ -135,22 +134,22 @@ msgstr ""
 #, fuzzy
 msgctxt "Settings"
 msgid "Use linear movement for the rotation gizmo"
-msgstr "Вращение"
+msgstr "Utiliser le gadget de rotation"
 
 #: ../editor/Stride.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:105
 msgctxt "Settings"
 msgid "Ask before deleting entities"
-msgstr "Подтверждение для удаления объектов"
+msgstr "Demander avant de supprimer des entités"
 
 #: ../editor/Stride.Assets.Presentation/Templates/AssetFromFileTemplateGenerator.cs:48
 msgctxt "Button"
 msgid "Create"
-msgstr "Создать"
+msgstr "Créer"
 
 #: ../editor/Stride.Assets.Presentation/Templates/AssetFromFileTemplateGenerator.cs:49
 msgctxt "Button"
 msgid "Select a source..."
-msgstr "Выбрать источник..."
+msgstr "Sélectionner une source…"
 
 #: ../editor/Stride.Assets.Presentation/Templates/AssetFromFileTemplateGenerator.cs:50
 #: ../editor/Stride.Assets.Presentation/Templates/ScriptTemplateGenerator.cs:115
@@ -162,56 +161,57 @@ msgstr "Выбрать источник..."
 #: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:28
 #: ../editor/Stride.Assets.Presentation/Templates/ScriptNameWindow.xaml:21
 #: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:55
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityPickerWindow.xaml:28
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityPickerWindow.xaml:27
 msgctxt "Button"
 msgid "Cancel"
-msgstr "Отмена"
+msgstr "Annuler"
 
 #: ../editor/Stride.Assets.Presentation/Templates/AssetFromFileTemplateGenerator.cs:53
 msgctxt "Message"
 msgid "Do you want to create this {0} without a source file?"
-msgstr "Вы хотите создать этот {0} без исходного файла?"
+msgstr "Voulez-vous vraiment créer ce {0} sans fichier source ?"
 
 #: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml.cs:70
 msgctxt "Message"
 msgid "Type a valid library name. Error with {0}"
-msgstr "Введите допустимое имя библиотеки. Ошибка {0}"
+msgstr "Tapez un nom de bibliothèque valide. Erreur avec {0}"
 
 #: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml.cs:76
 msgctxt "Message"
 msgid "Type a valid namespace name. Error with {0}"
-msgstr "Введите допустимое имя из пространства имен. Ошибка {0}"
+msgstr "Tapez un nom de namespace valide. Erreur avec {0}"
 
 #: ../editor/Stride.Assets.Presentation/Templates/ScriptNameWindow.xaml.cs:78
 msgctxt "Message"
 msgid "The names you entered are invalid or empty."
-msgstr "Введенное имя недопустимо или отсутствует."
+msgstr "Les noms que vous avez saisi sont invalides ou vides."
 
 #: ../editor/Stride.Assets.Presentation/Templates/ScriptTemplateGenerator.cs:114
 msgctxt "Button"
 msgid "Save"
-msgstr "Сохранить"
+msgstr "Enregistrer"
 
 #: ../editor/Stride.Assets.Presentation/Templates/ScriptTemplateGenerator.cs:117
 msgctxt "Message"
 msgid "You can't use scripts until you save them. Do you want to save now?"
 msgstr ""
-"Вы не можете использовать сценарии, пока их не сохраните. Сохранить сейчас?"
+"Vous ne pouvez pas utiliser de scripts avant de les avoir enregistrés. "
+"Voulez-vous enregistrer maintenant ?"
 
 #: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml.cs:61
 msgctxt "Message"
 msgid "You must select at least one platform."
-msgstr "Необходимо выбрать хотя бы одну платформу."
+msgstr "Vous devez sélectionner au moins une plateforme."
 
 #: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml.cs:69
 msgctxt "Button"
 msgid "Remove"
-msgstr "Удалить"
+msgstr "Supprimer"
 
 #: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml.cs:72
 msgctxt "Message"
 msgid "Are you sure you want to remove these {0} platform(s) from the package?"
-msgstr "Вы уверены, что хотите удалить эти платформы из пакета?"
+msgstr "Êtes-vous sûr de vouloir supprimer ces {0} plateforme(s) du paquet ?"
 
 #: ../editor/Stride.Assets.Presentation/ViewModel/CodeViewModel.cs:241
 msgctxt "Message"
@@ -221,12 +221,12 @@ msgid ""
 "\r\n"
 "Click OK to keep reloading or Cancel to keep the current version."
 msgstr ""
-"Game Studio не может автоматически перезагрузить файл проекта {0}, так как у "
-"вас есть локальные изменения, такие как новые или удаленные "
-"сценарии(скрипты).\n"
+"Game Studio ne peut pas recharger automatiquement le fichier de projet {0} "
+"car vous avez des modifications en local comme des nouveaux scripts ou des "
+"scripts supprimés.\n"
 "\n"
-"Нажмите OK, чтобы продолжить перезагрузку, или отмена, чтобы сохранить "
-"текущую версию."
+"Cliquez sur OK pour continuer le rechargement ou sur Annuler pour conserver "
+"la version actuelle."
 
 #: ../editor/Stride.Assets.Presentation/ViewModel/CodeViewModel.cs:291
 msgctxt "Message"
@@ -237,8 +237,9 @@ msgid ""
 "\r\n"
 "{1}"
 msgstr ""
-"Следующие исходные файлы в проекте {0} были удалены извне, но имеют "
-"несохраненные изменения в Game Studio. Вы хотите удалить эти файлы?\n"
+"Les fichiers source suivant dans le projet {0} ont été supprimés depuis "
+"l'extérieur, mais vous avez des modifications non sauvegardées dans Game "
+"Studio. Voulez-vous supprimer ces fichiers ?\n"
 "\n"
 "{1}"
 
@@ -253,8 +254,9 @@ msgid ""
 msgstr ""
 "{0}\n"
 "\n"
-"Этот файл был изменен извне и имеет не сохраненные изменения в Редакторе.\n"
-"Вы хотите перезагрузить его и потерять свои изменения?"
+"Ce fichier a été modifié depuis l'extérieur et vous avez des modifications "
+"non sauvegardées dans l'éditeur.\n"
+"Voulez-vous le recharger et perdre vos modifications ?"
 
 #: ../editor/Stride.Assets.Presentation/ViewModel/SpriteFontViewModel.cs:48
 msgctxt "Message"
@@ -263,58 +265,60 @@ msgid ""
 "\r\n"
 "Clear the _Is Dynamic_ property on this font and try again."
 msgstr ""
-"**Только статические шрифты могут быть предварительно скомпилированы.**\n"
+"**Seulement les polices statiques peuvent être pré-compilées.**\n"
 "\n"
-"Очистите _Is Dynamic_property этого шрифта и повторите попытку."
+"Effacez la propriété _Est dynamique_ sur cette police est réessayez."
 
 #: ../editor/Stride.Assets.Presentation/ViewModel/SpriteFontViewModel.cs:65
 msgctxt "Message"
 msgid "Which color space do you want to use?"
-msgstr "Какое цветовое пространство использовать?"
+msgstr "Quel espace de couleur souhaitez-vous utiliser ?"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/GameEditor/Transformation.cs:16
 msgid "Use translation gizmo"
-msgstr "Перемещение"
+msgstr "Utiliser le gadget de translation"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/GameEditor/Transformation.cs:22
 msgid "Use rotation gizmo"
-msgstr "Вращение"
+msgstr "Utiliser le gadget de rotation"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/GameEditor/Transformation.cs:28
 msgid "Use scale gizmo"
-msgstr "Масштаб"
+msgstr "Utiliser le gadget de mise à l'échelle"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/GameEditor/TransformationSpace.cs:16
 msgid "Use world coordinates for transformations"
-msgstr "Использование мировых координат для преобразований"
+msgstr "Utiliser les coordonnées du monde pour les transformations"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/GameEditor/TransformationSpace.cs:22
 msgid "Use local coordinates for transformations"
-msgstr "Использовать локальные координаты для преобразований"
+msgstr "Utiliser les coordonnées locales pour les transformations"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/GameEditor/TransformationSpace.cs:28
 msgid "Use current camera projection coordinates for transformations"
-msgstr "Использовать текущие координаты проекции камеры для преобразований"
+msgstr ""
+"Utiliser les coordonnées de la projection de la caméra pour le "
+"transformations"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/ScriptEditor/ScriptEditorSettings.cs:11
 msgctxt "Settings"
 msgid "Script editor"
-msgstr "Редактор сценариев"
+msgstr "Éditeur de script"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/ScriptEditor/ScriptEditorSettings.cs:18
 msgctxt "Settings"
 msgid "Font size"
-msgstr "Размер шрифта"
+msgstr "Taille de la police"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/UIEditorSettings.cs:11
 msgctxt "Settings"
 msgid "UI editor"
-msgstr "Редактор пользовательского интерфейса"
+msgstr "Éditeur d'interface"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/UIEditorSettings.cs:18
 msgctxt "Settings"
 msgid "Ask before deleting UI elements"
-msgstr "Спрашивать перед удалением элементов пользовательского интерфейса"
+msgstr "Demander avant de supprimer des éléments de l'interface"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityFolderViewModel.cs:166
 msgctxt "Message"
@@ -322,82 +326,79 @@ msgid ""
 "Unable to rename the folder '{0}' to '{1}'. A folder with the same name "
 "already exists."
 msgstr ""
-"Не удается переименовать папку '{0}' в '{1}'. Папка с таким именем уже "
-"существует."
+"Impossible de renommer le dossier « {0} » en « {1} ». Un dossier avec le "
+"même nom existe déjà."
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityHierarchyEditorViewModel.cs:493
 msgctxt "Message"
 msgid "Are you sure you want to delete this entity?"
-msgstr "Вы уверены, что хотите удалить этот объект?"
+msgstr "Êtes-vous sûr de vouloir supprimer cette entité ?"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityHierarchyEditorViewModel.cs:496
 msgctxt "Message"
 msgid "Are you sure you want to delete these {0} entities?"
-msgstr "Вы уверены, что хотите удалить {0} сущность(и/ей)?"
+msgstr "Êtes-vous sûr de vouloir supprimer ces {0} entités ?"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityHierarchyEditorViewModel.cs:498
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/ViewModels/UIEditorBaseViewModel.cs:429
 msgctxt "Button"
 msgid "Delete"
-msgstr "Удалить"
+msgstr "Supprimer"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/ViewModels/SpriteInfoViewModel.cs:162
 #: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/ViewModels/SpriteInfoViewModel.cs:185
 msgctxt "Message"
 msgid "Couldn't find the file"
-msgstr "Файл не найден"
+msgstr "Impossible de trouver le fichier"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/ViewModels/SpriteInfoViewModel.cs:172
 msgctxt "Message"
 msgid "There was a problem while editing the image.{0}"
-msgstr "Возникла проблема при редактировании изображения.{0}"
+msgstr "Il y a eu un problème lors de la modification de l'image. {0}"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/ViewModels/SpriteInfoViewModel.cs:195
 msgctxt "Message"
 msgid "There was a problem opening Explorer.{0}"
-msgstr "Возникла проблема с открытием проводника.{0}"
+msgstr "Il y a eu un problème lors de l'ouverture de l'explorateur. {0}"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/ViewModels/UIEditorBaseViewModel.cs:426
 msgctxt "Message"
 msgid "Are you sure you want to delete this UI element?"
-msgstr ""
-"Вы уверены, что хотите удалить этот элемент пользовательского интерфейса?"
+msgstr "Êtes-vous sûr de vouloir supprimer cet élément de l'interface ?"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/ViewModels/UIEditorBaseViewModel.cs:428
 msgctxt "Message"
 msgid "Are you sure you want to delete these {0} UI elements?"
-msgstr ""
-"Вы уверены, что хотите удалить это кол-во элементов {0} пользовательского "
-"интерфейса?"
+msgstr "Êtes-vous sûr de vouloir supprimer ces {0} éléments de l'interface ?"
 
 #: ../editor/Stride.Assets.Presentation/Templates/DotNetNewTemplateParametersWindow.xaml:27
 #, fuzzy
 msgid "OK"
-msgstr "Ок"
+msgstr "OK"
 
 #: ../editor/Stride.Assets.Presentation/Templates/DotNetNewTemplateParametersWindow.xaml:28
 #, fuzzy
 msgid "Cancel"
-msgstr "Отмена"
+msgstr "Annuler"
 
 #: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:10
 msgid "Import from model"
-msgstr "Импорт из модели"
+msgstr "Importer depuis un modèle"
 
 #: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:22
 msgid "Materials and textures"
-msgstr "Материалы и текстуры"
+msgstr "Matériaux et textures"
 
 #: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:26
 msgctxt "Button"
 msgid "Import materials"
-msgstr "Импортировать материалы"
+msgstr "Importer des matériaux"
 
 #: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:27
 #, fuzzy
 msgctxt "Button"
 msgid "Deduplicate materials"
-msgstr "Импортировать материалы"
+msgstr "Importer des matériaux"
 
 #: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:28
 msgid "Warning: Deduplicate materials is currently not supported for FBX files"
@@ -406,65 +407,65 @@ msgstr ""
 #: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:29
 msgctxt "Button"
 msgid "Import textures"
-msgstr "Импортировать текстуры"
+msgstr "Importer des textures"
 
 #: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:30
 #, fuzzy
 msgctxt "Button"
 msgid "Import Animations"
-msgstr "Импортировать материалы"
+msgstr "Importer des matériaux"
 
 #: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:34
 msgid "Skeleton"
-msgstr "Скелет"
+msgstr "Squelette"
 
 #: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:38
 msgctxt "Button"
 msgid "Import skeleton"
-msgstr "Импортировать скелет"
+msgstr "Importer un squelette"
 
 #: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:39
 msgctxt "Button"
 msgid "No skeleton"
-msgstr "Нет скелета"
+msgstr "Pas de squelette"
 
 #: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:40
 msgctxt "Button"
 msgid "Use another skeleton for this model:"
-msgstr "Использовать другой скелет:"
+msgstr "Utiliser un autre squelette pour ce modèle :"
 
 #: ../editor/Stride.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:54
 #: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:27
 #: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:54
 msgctxt "Button"
 msgid "OK"
-msgstr "Ок"
+msgstr "OK"
 
 #: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:10
 msgid "New code library"
-msgstr "Новая библиотека скриптов"
+msgstr "Nouvelle bibliothèque de code"
 
 #: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:21
 msgid "Library name:"
-msgstr "Имя библиотеки:"
+msgstr "Nom de la bibliothèque :"
 
 #: ../editor/Stride.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:23
 #: ../editor/Stride.Assets.Presentation/Templates/ScriptNameWindow.xaml:31
 msgid "Namespace:"
-msgstr "Пространство имен:"
+msgstr "Namespace :"
 
 #: ../editor/Stride.Assets.Presentation/Templates/ScriptNameWindow.xaml:9
 msgid "New script"
-msgstr "Новый скрипт"
+msgstr "Nouveau script"
 
 #: ../editor/Stride.Assets.Presentation/Templates/ScriptNameWindow.xaml:20
 msgctxt "Button"
 msgid "Create script"
-msgstr "Создать скрипт"
+msgstr "Créer un script"
 
 #: ../editor/Stride.Assets.Presentation/Templates/ScriptNameWindow.xaml:25
 msgid "Class:"
-msgstr "Класс:"
+msgstr "Classe :"
 
 #: ../editor/Stride.Assets.Presentation/Templates/ScriptNameWindow.xaml:28
 msgid "Template:"
@@ -472,107 +473,109 @@ msgstr ""
 
 #: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:9
 msgid "Select platforms"
-msgstr "Выбор платформы"
+msgstr "Sélectionner les plateformes"
 
 #: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:31
 msgid "(This will remove the project from the package and disk.)"
-msgstr "(Это приведет к удалению проекта из пакета и диска.)"
+msgstr "(Cela supprimera le projet du paquet et du disque.)"
 
 #: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:45
 msgid "This machine doesn't meet the requirements to build for this platform."
-msgstr "Эта машина не отвечает требованиям для сборки на этой платформе."
+msgstr ""
+"Cette machine ne répond pas aux exigences pour compiler pour cette "
+"plateforme."
 
 #: ../editor/Stride.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:52
 msgctxt "Button"
 msgid "Force regeneration of all platform projects"
-msgstr "Принудительная регенерация всех проектов для данной платформы"
+msgstr "Forcer la régénération de tous les projets de la plateforme"
 
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:28
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:27
 msgctxt "ToolTip"
 msgid "Play the animation"
-msgstr "Воспроизведение анимации"
+msgstr "Lire l'animation"
 
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:31
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:30
 msgctxt "ToolTip"
 msgid "Pause the animation"
-msgstr "Приостановить анимацию"
+msgstr "Mettre l'animation en pause"
 
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:43
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:42
 msgid "Time scale:"
-msgstr "Шкала времени:"
+msgstr "Échelle de temps :"
 
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:117
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:136
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:116
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:135
 msgctxt "ToolTip"
 msgid "Reset the camera"
-msgstr "Сброс камеры"
+msgstr "Réinitialiser la caméra"
 
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:187
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:186
 msgid ""
 "Scenes can't be previewed. To see the scene, open it in the scene editor."
 msgstr ""
-"Сцены не могут быть просмотрены. Чтобы увидеть сцену, откройте ее в "
-"Редакторе сцен."
+"Les scènes ne peuvent pas être prévisualisées. Pour voir la scène, ouvrez-la "
+"dans l'éditeur de scène."
 
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:201
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:200
 msgctxt "ToolTip"
 msgid "Play the sound"
-msgstr "Воспроизвести звук"
+msgstr "Lire le son"
 
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:204
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:203
 msgctxt "ToolTip"
 msgid "Pause the sound"
-msgstr "Приостановить звук"
+msgstr "Mettre le son en pause"
 
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:240
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:239
 msgid "Building preview sound asset..."
-msgstr "Пред.просмотр собранного звука..."
+msgstr "Construction de la ressource de prévisualisation du son…"
 
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:278
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:277
 msgctxt "ToolTip"
 msgid "Previous sprite"
-msgstr "Предыдущий спрайт"
+msgstr "Sprite précédent"
 
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:280
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:279
 msgid "Sprite:"
-msgstr "Спрайт:"
+msgstr "Sprite :"
 
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:283
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:282
 msgctxt "ToolTip"
 msgid "Next sprite"
-msgstr "Следующий спрайт"
+msgstr "Sprite suivant"
 
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:311
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:310
 msgid "Preview text"
-msgstr "Предварительный просмотр текста"
+msgstr "Prévisualiser le texte"
 
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:353
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:352
 msgctxt "ToolTip"
 msgid "Previous slice"
-msgstr "Предыдущий фрагмент"
+msgstr "Tranche précédente"
 
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:357
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:356
 msgctxt "ToolTip"
 msgid "Next slice"
-msgstr "Следующий фрагмент"
+msgstr "Tranche suivante"
+
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:379
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:444
+msgid "W: {0}"
+msgstr "L : {0}"
 
 #: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:380
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:445
-msgid "W: {0}"
-msgstr "Длина: {0}"
-
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:381
 msgid "H: {0}"
-msgstr "Высота: {0}"
+msgstr "H : {0}"
 
-#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:446
+#: ../editor/Stride.Assets.Presentation/Themes/Generic.xaml:445
 #, fuzzy
 msgid "L: {0}"
-msgstr "Длина: {0}"
+msgstr "L : {0}"
 
 #: ../editor/Stride.Assets.Presentation/View/AddEntityComponentUserControl.xaml:22
 msgid "Add component"
-msgstr "Добавить компонент"
+msgstr "Ajouter un composant"
 
 #: ../editor/Stride.Assets.Presentation/View/AddEntityComponentUserControl.xaml:35
 msgid "Search"
@@ -581,186 +584,186 @@ msgstr ""
 #: ../editor/Stride.Assets.Presentation/View/AnimationPropertyTemplates.xaml:18
 msgctxt "ToolTip"
 msgid "Edit curve"
-msgstr "Изменить кривую"
+msgstr "Modifier la courbe"
 
 #: ../editor/Stride.Assets.Presentation/View/AnimationPropertyTemplates.xaml:70
-#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:71
-#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:111
+#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:69
+#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:109
 #: ../editor/Stride.Assets.Presentation/View/SkeletonPropertyTemplates.xaml:63
 msgid "(Different values)"
-msgstr "(Разные значения)"
+msgstr "(Valeurs différentes)"
 
 #: ../editor/Stride.Assets.Presentation/View/DebugEntityHierarchyEditorUserControl.xaml:13
 msgctxt "Button"
 msgid "Refresh"
-msgstr "Обновить"
+msgstr "Actualiser"
 
 #: ../editor/Stride.Assets.Presentation/View/DebuggerPickerWindow.xaml:11
 msgid "Live scripting debugger"
-msgstr "Отладчик \"живой скрипт\""
+msgstr "Débogueur de script en temps réel"
 
 #: ../editor/Stride.Assets.Presentation/View/DebuggerPickerWindow.xaml:21
 msgctxt "ToolTip"
 msgid "Select these assets"
-msgstr "Выбрать эти активы"
+msgstr "Sélectionner ces ressources"
 
 #: ../editor/Stride.Assets.Presentation/View/DebuggerPickerWindow.xaml:26
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityPickerWindow.xaml:28
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityPickerWindow.xaml:27
 msgctxt "ToolTip"
 msgid "Cancel (Esc)"
-msgstr "Отмена (Esc)"
+msgstr "Annuler (Échap)"
 
-#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:44
-#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:84
-#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:182
-#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:220
+#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:42
+#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:82
+#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:180
+#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:218
 msgctxt "ToolTip"
 msgid "Select an asset"
-msgstr "Выбрать актив"
+msgstr "Sélectionner une ressource"
 
-#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:50
-#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:90
-#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:225
+#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:48
+#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:88
+#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:223
 msgctxt "ToolTip"
 msgid "Clear the reference"
-msgstr "Очистить ссылку"
+msgstr "Effacer la référence"
 
-#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:56
-#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:96
-#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:168
+#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:54
+#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:94
+#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:166
 msgctxt "ToolTip"
 msgid "Select the referenced asset"
-msgstr "Выберите референсный актив"
+msgstr "Sélectionner la ressource référencée"
 
-#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:216
+#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:214
 msgctxt "ToolTip"
 msgid "Highlight this material in the scene editor"
-msgstr "Выделить этот материал в редакторе сцен"
+msgstr "Mettre ce matériau en surbrillance dans l'éditeur de scène"
 
-#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:260
+#: ../editor/Stride.Assets.Presentation/View/EntityPropertyTemplates.xaml:258
 msgid "Add configuration"
 msgstr ""
 
 #: ../editor/Stride.Assets.Presentation/View/MaterialPropertyTemplates.xaml:13
 msgid "Select shader..."
-msgstr "Выберите шейдер..."
+msgstr "Sélectionner le shader…"
 
 #: ../editor/Stride.Assets.Presentation/View/SkeletonPropertyTemplates.xaml:24
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:569
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:624
 msgctxt "Button"
 msgid "All"
-msgstr "Все"
+msgstr "Tout"
 
 #: ../editor/Stride.Assets.Presentation/View/SkeletonPropertyTemplates.xaml:26
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:570
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:625
 msgctxt "Button"
 msgid "None"
-msgstr "Нет"
+msgstr "Aucun"
 
 #: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:42
 msgctxt "ToolTip"
 msgid "Remove the selected curve"
-msgstr "Удалить выбранную кривую"
+msgstr "Supprimer la courbe sélectionner"
 
 #: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:44
 msgid "Curves:"
-msgstr "Кривые:"
+msgstr "Courbes :"
 
 #: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:74
 msgctxt "ToolTip"
 msgid "Show or hide the tracker"
-msgstr "Показать или скрыть шкалу"
+msgstr "Afficher ou masquer la barre de progression"
 
 #: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:80
 msgctxt "ToolTip"
 msgid "Fit view to curve"
-msgstr "Подогнать вид к кривой"
+msgstr "Ajuster la vue à la courbe"
 
 #: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:83
 msgctxt "ToolTip"
 msgid "Fit view to curve height"
-msgstr "Подгонка вида по высоте кривой"
+msgstr "Ajuster la vue à la hauteur de courbe"
 
 #: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:86
 msgctxt "ToolTip"
 msgid "Fit view to curve width"
-msgstr "Подгонка вида по ширине кривой"
+msgstr "Ajuster la vue à la largeur de courbe"
 
 #: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:93
 msgctxt "ToolTip"
 msgid "Delete selected points"
-msgstr "Удалить выбранные точки"
+msgstr "Supprimer les points sélectionnés"
 
 #: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:102
 msgctxt "ToolTip"
 msgid "First key"
-msgstr "Первый ключ"
+msgstr "Première clé"
 
 #: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:105
 msgctxt "ToolTip"
 msgid "Previous key"
-msgstr "Предыдущий ключ"
+msgstr "Clé précédente"
 
 #: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:108
 msgctxt "ToolTip"
 msgid "Next key"
-msgstr "Следующий ключ"
+msgstr "Clé suivante"
 
 #: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:111
 msgctxt "ToolTip"
 msgid "Last key"
-msgstr "Последний ключ"
+msgstr "Dernière clé"
 
 #: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:118
 msgid "Key"
-msgstr "Ключ"
+msgstr "Clé"
 
 #: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:121
 msgid "Value"
-msgstr "Значение"
+msgstr "Valeur"
 
 #: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:168
 msgctxt "Menu"
 msgid "Curve"
-msgstr "Кривая"
+msgstr "Courbe"
 
 #: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:170
 msgctxt "Menu"
 msgid "Add point"
-msgstr "Добавить точку"
+msgstr "Ajouter un point"
 
 #: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:173
 msgctxt "Menu"
 msgid "Delete selected points"
-msgstr "Удалить выбранные точки"
+msgstr "Supprimer les points sélectionnés"
 
 #: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:175
 msgctxt "Menu"
 msgid "Clear whole curve"
-msgstr "Очистить всю кривую"
+msgstr "Effacer toute la courbe"
 
 #: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:178
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:187
 msgctxt "Menu"
 msgid "View"
-msgstr "Вид"
+msgstr "Vue"
 
 #: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:179
 msgctxt "Menu"
 msgid "Fit to curve"
-msgstr "Вписать в кривую"
+msgstr "Ajuster à la courbe"
 
 #: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:181
 msgctxt "Menu"
 msgid "Fit to curve height"
-msgstr "По высоте кривой"
+msgstr "Ajuster à la hauteur de la courbe"
 
 #: ../editor/Stride.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:183
 msgctxt "Menu"
 msgid "Fit to curve width"
-msgstr "Подгонка по ширине кривой"
+msgstr "Ajuster à la largeur de la courbe"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:65
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:109
@@ -769,13 +772,13 @@ msgstr "Подгонка по ширине кривой"
 #: ../editor/Stride.Assets.Presentation/AssetEditors/GraphicsCompositorEditor/Views/GraphicsCompositorEditorView.xaml:33
 msgctxt "Menu"
 msgid "Create"
-msgstr "Создать"
+msgstr "Créer"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:66
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:110
 msgctxt "Menu"
 msgid "Folder"
-msgstr "Папка"
+msgstr "Dossier"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:67
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:111
@@ -783,41 +786,41 @@ msgstr "Папка"
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:817
 msgctxt "Menu"
 msgid "Empty entity"
-msgstr "Пустой объект"
+msgstr "Entité vide"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:93
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:137
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:843
 msgctxt "Menu"
 msgid "Actions"
-msgstr "Действие"
+msgstr "Actions"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:94
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:140
 msgctxt "Menu"
 msgid "Open prefab in editor"
-msgstr "Редактировать префаб"
+msgstr "Ouvrir le prefab dans l'éditeur"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:95
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:141
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:845
 msgctxt "Menu"
 msgid "Select prefab in asset view"
-msgstr "Выберите префаб в окне активов"
+msgstr "Sélectionner le prefab dans la vue des ressources"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:96
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:142
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:846
 msgctxt "Menu"
 msgid "Break link to prefab"
-msgstr "Сделать независимым от префаба"
+msgstr "Rompre le lien vers le prefab"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:97
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:143
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:847
 msgctxt "Menu"
 msgid "Create prefab from selection"
-msgstr "Создать префаб из выбранного"
+msgstr "Créer un prefab à partir de la sélection"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:99
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:145
@@ -825,104 +828,105 @@ msgstr "Создать префаб из выбранного"
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:137
 msgctxt "Menu"
 msgid "Duplicate"
-msgstr "Дублировать"
+msgstr "Dupliquer"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:138
 msgctxt "Menu"
 msgid "Set as active scene"
-msgstr "Установить сцену в качестве активной"
+msgstr "Définir comme scène active"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:151
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:854
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:143
 msgctxt "Menu"
 msgid "Rename"
-msgstr "Переименовать"
+msgstr "Renommer"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:168
 msgid "Loading scene..."
-msgstr "Загрузка сцены..."
+msgstr "Chargement de la scène…"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:169
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:212
 msgid "This might take a few minutes the first time."
-msgstr "В первый раз это может занять несколько минут."
+msgstr "Cela peut prendre quelques minutes la première fois."
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:184
 msgctxt "ToolTip"
 msgid "Create a new entity"
-msgstr "Создать новую сущность(объект)"
+msgstr "Créer une nouvelle entité"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:191
 msgctxt "Menu"
 msgid "New folder"
-msgstr "Новая папка"
+msgstr "Nouveau dossier"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:224
 msgctxt "ToolTip"
 msgid "Filter entities by name"
-msgstr "Фильтровать сущности(объекты) по имени"
+msgstr "Filtrer les entités par nom"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:232
 msgctxt "ToolTip"
 msgid "Expand all entities"
-msgstr "Развернуть все сущности(объекты)"
+msgstr "Étendre toutes les entités"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:236
 msgctxt "ToolTip"
 msgid "Collapse all entities"
-msgstr "Схлопнуть все сущности(объекты)"
+msgstr "Réduire toutes les entités"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:263
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:211
 msgid "Loading..."
-msgstr "Загрузка..."
+msgstr "Chargement…"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:267
 msgid "Unloading..."
-msgstr "Выгрузка..."
+msgstr "Déchargement…"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:336
 msgctxt "ToolTip"
 msgid "Focus on this entity (F)"
-msgstr "Сфокусировать на этой сущности(объекте) (F)"
+msgstr "Focus sur cette entité (F)"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:343
 msgctxt "ToolTip"
 msgid "Lock/unlock this entity"
-msgstr "Заблокировать/разблокировать эту сущность(объект)"
+msgstr "Verrouiller/Déverrouiller cette entité"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:344
 msgctxt "ToolTip"
 msgid "(Hold Ctrl to apply to child entities recursively)"
 msgstr ""
-"(Удерживайте Ctrl для рекурсивного применения к дочерним сущностям(объектам)"
+"(Maintenez Ctrl pour appliquer à toutes les entités filles récursivement)"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:382
 msgctxt "ToolTip"
 msgid "Lock/unlock all entities"
-msgstr "Заблокировать/разблокировать все сущности(объекты)"
+msgstr "Verrouiller/Déverrouiller toutes les entités"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:383
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:392
 msgctxt "ToolTip"
 msgid "(Hold Ctrl to apply to child scenes recursively)"
-msgstr "(Удерживайте Ctrl для рекурсивного применения к дочерним сценам)"
+msgstr ""
+"(Maintenez Ctrl pour appliquer à toutes les scènes filles récursivement)"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:391
 msgctxt "ToolTip"
 msgid "Load/unload all entities"
-msgstr "Загрузка/выгрузка всех сущностей(объектов)"
+msgstr "Charger/Décharger toutes les entités"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:412
 msgid "(Unloaded)"
-msgstr "(Выгружен)"
+msgstr "(Déchargé)"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:479
 #, fuzzy
 msgctxt "ToolTip"
 msgid "Viewport grid settings..."
-msgstr "Настройки окна просмотра"
+msgstr "Paramètres de la fenêtre"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:487
 msgid "Grid axis"
@@ -950,723 +954,726 @@ msgstr ""
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:503
 msgctxt "ToolTip"
 msgid "Light probes and cubemaps..."
-msgstr "Световые зонды и кубические карты..."
+msgstr "Sources de lumière et patrons…"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:513
 msgid "Light probes"
-msgstr "Световые зонды"
+msgstr "Sources de lumière"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:518
 msgid "Bounces:"
-msgstr "Отражения:"
+msgstr "Rebonds :"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:522
 msgctxt "ToolTip"
 msgid "Compute lighting using light probes"
-msgstr "Вычисление освещения с помощью световых зондов"
+msgstr "Calculer l'éclairage à l'aide des sources lumineuses"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:530
 msgctxt "ToolTip"
 msgid "Reset light probes"
-msgstr "Сбросить световые зонды"
+msgstr "Réinitialiser les sources de lumière"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:534
 msgid "Reset"
-msgstr "Сброс"
+msgstr "Réinitialiser"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:540
 msgid "Cubemap"
-msgstr "Кубические карты"
+msgstr "Patron"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:544
 msgctxt "ToolTip"
 msgid "Generate a cubemap from the scene view and save as a texture"
-msgstr "Создание кубической карты из вида сцены и сохранение в виде текстуры"
+msgstr "Génère un patron à partir de la scène et l'enregistre comme texture"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:548
 msgid "Capture"
-msgstr "Захват"
+msgstr "Capture"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:557
 msgctxt "ToolTip"
 msgid "Navigation visibility..."
-msgstr "Визуализировать навигацию..."
+msgstr "Visibilité de la navigation…"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:567
 msgid "Show navigation meshes:"
-msgstr "Показать навигационные сетки:"
+msgstr "Afficher les maillages de navigation :"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:596
 msgctxt "ToolTip"
 msgid "Grid and gizmo options..."
-msgstr "Параметры сетки и указателя осей..."
+msgstr "Grille et options des gadgets…"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:606
 msgid "Transformation gizmo size:"
-msgstr "Размер указателя осей:"
+msgstr "Taille du gadget de transformation :"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:611
 msgid "Component gizmo size:"
-msgstr "Размер компонентных указателей:"
+msgstr "Taille du gadget du composant :"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:612
 msgctxt "Button"
 msgid "Fixed"
-msgstr "Фиксировано"
+msgstr "Fixe"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:618
 msgctxt "Button"
 msgid "Camera preview"
-msgstr "Пред.просмотр камеры"
+msgstr "Aperçu de la caméra"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:619
 msgctxt "Button"
 msgid "Light probe volumes"
-msgstr "Световой зонд"
+msgstr "Volumes de source lumineuse"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:636
 msgctxt "Button"
 msgid "Other entities"
-msgstr "Другие сущности(объекты)"
+msgstr "Autres entités"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:644
 msgctxt "ToolTip"
 msgid "Editor camera options..."
-msgstr "Редактор параметров камеры..."
+msgstr "Options de caméra de l'éditeur…"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:654
 msgid "Projection"
-msgstr "Проекция"
+msgstr "Projection"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:657
 msgctxt "Button"
 msgid "Perspective"
-msgstr "Перспектива"
+msgstr "Perspective"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:658
 msgctxt "Button"
 msgid "Orthographic"
-msgstr "Ортогонально"
+msgstr "Orthographique"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:660
+#, fuzzy
 msgid "Near plane:"
-msgstr "Ближняя плоскость:"
+msgstr "Plan proche :"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:662
+#, fuzzy
 msgid "Far plane:"
-msgstr "Дальняя плоскость:"
+msgstr "Plan éloigné :"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:664
 msgid "Field of view:"
-msgstr "Угол обзора:"
+msgstr "Champ de vision :"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:670
 msgid "Orthographic size:"
-msgstr "Ортогональный размер:"
+msgstr "Taille orthographique :"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:676
 msgid "Movement"
-msgstr "Перемещение"
+msgstr "Mouvement"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:679
 msgid "Speed:"
-msgstr "Скорость:"
+msgstr "Vitesse :"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:685
 msgid "Orientation"
-msgstr "Направление"
+msgstr "Otrientation"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:688
 msgctxt "Button"
 msgid "Front"
-msgstr "Спереди"
+msgstr "Avant"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:690
 msgctxt "Button"
 msgid "Back"
-msgstr "Сзади"
+msgstr "Arrière"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:692
 msgctxt "Button"
 msgid "Top"
-msgstr "Сверху"
+msgstr "Dessus"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:694
 msgctxt "Button"
 msgid "Bottom"
-msgstr "Снизу"
+msgstr "Dessous"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:696
 msgctxt "Button"
 msgid "Left"
-msgstr "Слева"
+msgstr "Gauche"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:698
 msgctxt "Button"
 msgid "Right"
-msgstr "Справа"
+msgstr "Droite"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:729
 msgctxt "ToolTip"
 msgid "Snap translations to this value"
-msgstr "Задать значение для перемещения"
+msgstr "Aligner les translations sur cette valeur"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:738
 msgctxt "ToolTip"
 msgid "Snap rotations to this value"
-msgstr "Задать значение для вращения"
+msgstr "Aligner les rotations sur cette valeur"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:747
 msgctxt "ToolTip"
 msgid "Snap scale to this factor"
-msgstr "Задать значение для масштаба"
+msgstr "Aligner la mise à l'échelle à ce facteur"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:771
 msgctxt "ToolTip"
 msgid ""
 "Toggle material selection (click a selected asset to select its material)"
 msgstr ""
-"Переключить на выбор материала (щелкните выбранный актив, чтобы выбрать его "
-"материал)"
+"Basculer la sélection des matériaux (cliquez sur une ressource sélectionnée "
+"pour sélectionner son matériau)"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:774
 msgctxt "ToolTip"
 msgid "Show or hide selection mask"
-msgstr "Показать или скрыть маску выделения"
+msgstr "Afficher ou masquer le masque de sélection"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:776
 msgid "Loading assets..."
-msgstr "Загрузка активов..."
+msgstr "Chargement des ressources…"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:844
 msgctxt "Menu"
 msgid "Open in prefab editor"
-msgstr "Редактировать префаб"
+msgstr "Ouvrir dans l'éditeur de prefab"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:886
 msgid ""
 "Before you resume, fix the failing asset (likely a graphics compositor or "
 "scene)."
 msgstr ""
-"Перед возобновлением исправьте неисправный ресурс (скорее всего, графический "
-"композитор или сцену)."
+"Avant de continuer, corrigez la ressource défaillante (probablement un "
+"compositeur graphique ou une scène)."
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:888
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:516
 msgctxt "Button"
 msgid "Resume"
-msgstr "Возобновить"
+msgstr "Continuer"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:890
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:518
 msgctxt "Button"
 msgid "Copy error to clipboard"
-msgstr "Скопировать ошибку в буфер обмена"
+msgstr "Copier l'erreur dans le presse-papiers"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityPickerWindow.xaml:13
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityPickerWindow.xaml:12
 msgid "Select an entity"
-msgstr "Выберите сущность(объект)"
+msgstr "Sélectionner une entité"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityPickerWindow.xaml:23
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityPickerWindow.xaml:22
 msgctxt "ToolTip"
 msgid "Select the selected assets"
-msgstr "Выбрать отмеченные активы"
+msgstr "Sélectionner les ressources sélectionnées"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityPickerWindow.xaml:37
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityPickerWindow.xaml:36
 msgid "Select an entity:"
-msgstr "Выберите сущность(объект):"
+msgstr "Sélectionner une entité :"
 
-#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityPickerWindow.xaml:66
+#: ../editor/Stride.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityPickerWindow.xaml:65
 msgid "(Index: {0})"
-msgstr "(Индекс: {0})"
+msgstr "(Index : {0})"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/GraphicsCompositorEditor/Views/GraphicsCompositorEditorView.xaml:49
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:129
 msgctxt "Menu"
 msgid "Action"
-msgstr "Действие"
+msgstr "Action"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/GraphicsCompositorEditor/Views/GraphicsCompositorEditorView.xaml:50
 msgctxt "Menu"
 msgid "Delete selection"
-msgstr "Удалить выбранное"
+msgstr "Supprimer la sélection"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/GraphicsCompositorEditor/Views/GraphicsCompositorEditorView.xaml:202
 msgid "Render stages:"
-msgstr "Этап рендеринга:"
+msgstr "Étapes de rendu :"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/GraphicsCompositorEditor/Views/GraphicsCompositorEditorView.xaml:254
 msgid "Render features:"
-msgstr "Особенности рендеринга:"
+msgstr "Fonctions de rendu :"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/GraphicsCompositorEditor/Views/GraphicsCompositorEditorView.xaml:278
 msgid "Camera slots:"
-msgstr "Слоты камеры:"
+msgstr "Emplacements de caméra :"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/ScriptEditor/Resources/ThemeScriptEditor.xaml:109
 msgctxt "ToolTip"
 msgid "Toggle between find and replace modes"
-msgstr "Переключение между режимами поиска и замены"
+msgstr "Basculer entre le mode rechercher et remplacer"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/ScriptEditor/Resources/ThemeScriptEditor.xaml:169
 msgctxt "ToolTip"
 msgid "Replace next (Alt+R)"
-msgstr "Заменить следующий (Alt+R)"
+msgstr "Remplacer le suivant (Alt + R)"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/ScriptEditor/Resources/ThemeScriptEditor.xaml:179
 msgctxt "ToolTip"
 msgid "Replace all (Alt+A)"
-msgstr "Заменить все (Alt+A)"
+msgstr "Remplacer tout (Alt + A)"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/ScriptEditor/Resources/ThemeScriptEditor.xaml:255
 msgid "No suggestions"
-msgstr "Нет вариантов"
+msgstr "Aucune suggestion"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:53
 msgctxt "Button"
 msgid "Sprite sheet properties"
-msgstr "Свойства спрайт-листа"
+msgstr "Propriétés de la feuille de sprite"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:56
 msgid "Sheet type:"
-msgstr "Тип листа:"
+msgstr "Type de feuille :"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:89
 #: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:301
 msgctxt "Button"
 msgid "Use color key"
-msgstr "Использовать цветовой ключ"
+msgstr "Utiliser la clé de couleur"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:90
 msgctxt "ToolTip"
 msgid "If enabled, the sprite uses the given color as transparency"
 msgstr ""
-"Если этот параметр включен, спрайт использует заданный цвет в качестве "
-"прозрачности"
+"Si activé, le sprite utilise la couleur donnée comme de la transparence"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:118
 msgctxt "ToolTip"
 msgid "To select the color key,  select a pixel color from the image"
-msgstr "Чтобы выбрать ключ цвета,  выберите цвет пикселя на изображении"
+msgstr ""
+"Pour sélectionner la clé de couleur, sélectionnez une couleur de pixel dans "
+"l'image"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:127
 msgctxt "ToolTip"
 msgid "Add a new empty sprite"
-msgstr "Добавить новый пустой спрайт"
+msgstr "Ajouter un nouveau sprite vierge"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:130
 msgctxt "ToolTip"
 msgid "Duplicate selected sprites"
-msgstr "Дублировать выбранный спрайт"
+msgstr "Dupliquer les sprites sélectionnés"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:133
 msgctxt "ToolTip"
 msgid "Delete selected sprites"
-msgstr "Удалить выбранный спрайт"
+msgstr "Supprimer les sprites sélectionnés"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:136
 msgctxt "ToolTip"
 msgid "Move selected sprites up"
-msgstr "Переместить выбранные спрайты вверх"
+msgstr "Déplacer les sprites sélectionnés vers le haut"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:140
 msgctxt "ToolTip"
 msgid "Move selected sprites down"
-msgstr "Переместить выбранные спрайты вниз"
+msgstr "Déplacer les sprites sélectionnés vers le bas"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:143
 msgid "Sprites:"
-msgstr "Спрайты:"
+msgstr "Sprites :"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:165
 msgctxt "Menu"
 msgid "Add new sprite"
-msgstr "Добавить новый спрайт"
+msgstr "Ajouter un nouveau sprite"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:166
 msgctxt "Menu"
 msgid "Duplicate sprite"
-msgstr "Дублировать спрайт"
+msgstr "Dupliquer le sprite"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:167
 msgctxt "Menu"
 msgid "Edit image"
-msgstr "Редактировать изображение"
+msgstr "Modifier l'image"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:168
 msgctxt "Menu"
 msgid "Show image in explorer"
-msgstr "Показать изображение в проводнике"
+msgstr "Afficher l'image dans l'explorateur"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:217
 msgid "Select a single image from the left panel"
-msgstr "Выберите одно изображение на левой панели"
+msgstr "Sélectionnez une seule image depuis le panneau de gauche"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:224
 msgctxt "ToolTip"
 msgid "Select previous sprite"
-msgstr "Выбрать предыдущий спрайт"
+msgstr "Sélectionner le sprite précédent"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:228
 msgctxt "ToolTip"
 msgid "Select next sprite"
-msgstr "Выбрать следующий спрайт"
+msgstr "Sélectionner le sprite suivant"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:233
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:382
 msgctxt "ToolTip"
 msgid "Zoom out"
-msgstr "Уменьшить"
+msgstr "Zoom arrière"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:237
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:386
 msgctxt "ToolTip"
 msgid "Zoom in"
-msgstr "Увеличить"
+msgstr "Zoom avant"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:241
 msgctxt "ToolTip"
 msgid "Scale to real pixel size"
-msgstr "Масштаб до реального размера пикселя"
+msgstr "Mettre à l'échelle à  la taille réelle des pixels"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:245
 msgctxt "ToolTip"
 msgid "Fit image to screen"
-msgstr "Подогнать размер изображения под экран"
+msgstr "Ajuster l'image à l'écran"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:249
 msgctxt "ToolTip"
 msgid "Center view on current sprite region"
-msgstr "Центральный вид текущей области спрайта"
+msgstr "Centrer la vue sur la région du sprite courant"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:255
 msgctxt "ToolTip"
 msgid "Change selection rectangle color"
-msgstr "Изменить цвет прямоугольника выделения"
+msgstr "Modifier la couleur du rectangle de sélection"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:272
 msgctxt "ToolTip"
 msgid "Highlight the current selection"
-msgstr "Подсветить текущее выделение"
+msgstr "Mettre en surbrillance la sélection actuelle"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:275
 msgctxt "ToolTip"
 msgid "Select entire image"
-msgstr "Выбрать всё изображение"
+msgstr "Sélectionner l'image entière"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:283
 msgctxt "ToolTip"
 msgid "Select the sprite region using the magic wand"
-msgstr "Выберите область спрайта с помощью волшебной палочки"
+msgstr "Sélectionner la région du sprite à l'aide de la baguette magique"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:300
 msgctxt "Button"
 msgid "Use transparency"
-msgstr "Использовать прозрачность"
+msgstr "Utiliser la transparence"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:311
 msgctxt "ToolTip"
 msgid "Move the sprite center"
-msgstr "Перемещение центра спрайта"
+msgstr "Déplacer le centre du sprite"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:319
 msgctxt "ToolTip"
 msgid "Resize the sprite borders"
-msgstr "Изменение размера границ спрайта"
+msgstr "Redimensionner les bordures du sprite"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:330
 msgctxt "ToolTip"
 msgid "Unlock the sprite borders"
-msgstr "Разблокировать границы спрайта"
+msgstr "Déverrouiller les bordures du sprite"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:334
 msgctxt "ToolTip"
 msgid "Lock the sprite borders"
-msgstr "Блокировка границ спрайта"
+msgstr "Verrouiller les bordures du sprite"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:37
 msgctxt "Menu"
 msgid "Layout"
-msgstr "Макет"
+msgstr "Disposition"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:38
 msgctxt "Menu"
 msgid "Group into"
-msgstr "Сгруппировать"
+msgstr "Grouper en"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:49
 msgctxt "Menu"
 msgid "Ungroup"
-msgstr "Разгруппировать"
+msgstr "Dégrouper"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:53
 msgctxt "Menu"
 msgid "Change layout type"
-msgstr "Изменить тип макета"
+msgstr "Modifier le type de disposition"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:69
 msgctxt "Menu"
 msgid "Pin origin"
-msgstr "Начало координат"
+msgstr "Épingler l'origine"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:83
 msgctxt "Menu"
 msgid "Top left"
-msgstr "Верхний левый угол"
+msgstr "En haut à gauche"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:84
 msgctxt "Menu"
 msgid "Top"
-msgstr "Вверху"
+msgstr "En haut"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:85
 msgctxt "Menu"
 msgid "Top right"
-msgstr "Вверху справа"
+msgstr "En haut à droite"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:86
 msgctxt "Menu"
 msgid "Left"
-msgstr "Слева"
+msgstr "À gauche"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:87
 msgctxt "Menu"
 msgid "Center"
-msgstr "По центру"
+msgstr "Au centre"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:88
 msgctxt "Menu"
 msgid "Right"
-msgstr "Справа"
+msgstr "À droite"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:89
 msgctxt "Menu"
 msgid "Bottom left"
-msgstr "Слева внизу"
+msgstr "En bas à gauche"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:90
 msgctxt "Menu"
 msgid "Bottom"
-msgstr "Снизу"
+msgstr "En bas"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:91
 msgctxt "Menu"
 msgid "Bottom right"
-msgstr "Справа внизу"
+msgstr "En bas à droite"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:92
 msgctxt "Menu"
 msgid "Front"
-msgstr "Спереди"
+msgstr "À l'avant"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:93
 msgctxt "Menu"
 msgid "Middle"
-msgstr "Посредине"
+msgstr "Au milieu"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:94
 msgctxt "Menu"
 msgid "Back"
-msgstr "Сзади"
+msgstr "À l'arrière"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:101
 msgctxt "Menu"
 msgid "Row"
-msgstr "В ряд"
+msgstr "Ligne"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:103
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:121
 msgctxt "Menu"
 msgid "Move up"
-msgstr "Сместить вверх"
+msgstr "Déplacer vers le haut"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:104
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:124
 msgctxt "Menu"
 msgid "Move down"
-msgstr "Сместить вниз"
+msgstr "Déplacer vers le bas"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:106
 msgctxt "Menu"
 msgid "Column"
-msgstr "Колонка"
+msgstr "Colonne"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:108
 msgctxt "Menu"
 msgid "Move left"
-msgstr "Сместить влево"
+msgstr "Déplacer vers la gauche"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:109
 msgctxt "Menu"
 msgid "Move right"
-msgstr "Сместить вправо"
+msgstr "Déplacer vers la droite"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:111
 msgctxt "Menu"
 msgid "Layer"
-msgstr "Слой"
+msgstr "Couche"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:113
 msgctxt "Menu"
 msgid "Move back"
-msgstr "Сместить назад"
+msgstr "Déplacer vers l'arrière"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:114
 msgctxt "Menu"
 msgid "Move front"
-msgstr "Сместить вперёд"
+msgstr "Déplacer vers l'avant"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:130
 msgctxt "Menu"
 msgid "Open library in editor"
-msgstr "Редактировать библиотеку"
+msgstr "Ouvrir la bibliothèque dans l'éditeur"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:131
 msgctxt "Menu"
 msgid "Select library in asset view"
-msgstr "Выбрать библиотеку в окне активов"
+msgstr "Sélectionner une bibliothèque dans la vue des ressources"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:132
 msgctxt "Menu"
 msgid "Break link to library"
-msgstr "Разорвать связь с библиотекой"
+msgstr "Rompre le lien vers la bibliothèque"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:134
 msgctxt "Menu"
 msgid "Create page from selection"
-msgstr "Создать страницу из выбранного"
+msgstr "Créer une page à partir de la sélection"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:135
 msgctxt "Menu"
 msgid "Create library from selection"
-msgstr "Создать библиотеку из выбранного"
+msgstr "Créer une bibliothèque à partir de la sélection"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:188
 msgctxt "Menu"
 msgid "Zoom in"
-msgstr "Увеличить"
+msgstr "Zoom avant"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:189
 msgctxt "Menu"
 msgid "Zoom out"
-msgstr "Уменьшить"
+msgstr "Zoom arrière"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:190
 msgctxt "Menu"
 msgid "Reset camera"
-msgstr "Сброс камеры"
+msgstr "Réinitialiser la caméra"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:226
 msgctxt "Button"
 msgid "UI properties"
-msgstr "Свойства пользовательского интерфейса"
+msgstr "Propriétés de l'interface"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:237
 msgid "UI library"
-msgstr "Библиотека пользовательского интерфейса"
+msgstr "Bibliothèque de l'interface"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:284
 msgctxt "ToolTip"
 msgid "Expand all elements"
-msgstr "Развернуть все элементы"
+msgstr "Étendre tous les éléments"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:288
 msgctxt "ToolTip"
 msgid "Collapse all elements"
-msgstr "Свернуть все элементы"
+msgstr "Réduire tous les éléments"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:378
 msgctxt "ToolTip"
 msgid "Reset zoom"
-msgstr "Сброс масштаба"
+msgstr "Réinitialiser le niveau de zoom"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:389
 msgctxt "ToolTip"
 msgid "Snaps to this value (0 to disable)"
-msgstr "Привязка к этому значению (0 для отключения)"
+msgstr "Aligner à cette valeur (0 pour désactiver)"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:401
 msgid "Colors"
-msgstr "Цвета"
+msgstr "Couleurs"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:417
 msgid "Guideline"
-msgstr "Директива"
+msgstr "Lignes directrices"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:433
 msgid "Highlight"
-msgstr "Выделить"
+msgstr "Surbrillance"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:449
 msgid "Selection"
-msgstr "Выбор"
+msgstr "Sélection"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:465
 msgid "Sizing"
-msgstr "Калибровка"
+msgstr "Dimensionnement"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:514
 msgid ""
 "Before you resume, fix the failing asset (likely a UI page or UI library)."
 msgstr ""
-"Прежде чем возобновить, нужно исправить сбой активов (скорее всего, страница "
-"пользовательского интерфейса или UI библиотеки)."
+"Avant de continuer, corrigez la ressource défaillante (probablement une page "
+"ou une bibliothèque de l'interface)."
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/VisualScriptEditor/Views/VisualScriptEditorView.xaml:213
 msgctxt "Menu"
 msgid "Get"
-msgstr "Взять"
+msgstr "Obtenir"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/VisualScriptEditor/Views/VisualScriptEditorView.xaml:214
 msgctxt "Menu"
 msgid "Set"
-msgstr "Установить"
+msgstr "Définir"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/VisualScriptEditor/Views/VisualScriptEditorView.xaml:253
 msgid "Variables:"
-msgstr "Переменные:"
+msgstr "Variables :"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/VisualScriptEditor/Views/VisualScriptEditorView.xaml:302
 msgid "Functions:"
-msgstr "Функция:"
+msgstr "Fonctions :"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/VisualScriptEditor/Views/VisualScriptEditorView.xaml:346
 msgctxt "Button"
 msgid "Static method"
-msgstr "Статический метод"
+msgstr "Méthode statique"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/VisualScriptEditor/Views/VisualScriptEditorView.xaml:347
 msgid "Return type..."
-msgstr "Возвращаемый тип..."
+msgstr "Type de retour…"
 
 #: ../editor/Stride.Assets.Presentation/AssetEditors/VisualScriptEditor/Views/VisualScriptEditorView.xaml:354
 msgid "Function parameters:"
-msgstr "Параметр функции:"
+msgstr "Paramètres de la fonction :"
 
 #~ msgctxt "Message"
 #~ msgid "Select an orientation."
-#~ msgstr "Выберите направление."
+#~ msgstr "Sélectionner une orientation."
 
 #~ msgctxt "Message"
 #~ msgid "Select at least one platform."
-#~ msgstr "Выберите хотя бы одну платформу."
+#~ msgstr "Sélectionnez au moins une plateforme."
 
 #~ msgid "Create a game..."
-#~ msgstr "Создать игру..."
+#~ msgstr "Créer un jeu…"
 
 #~ msgid "Platforms"
-#~ msgstr "Платформы"
+#~ msgstr "Plateformes"
 
 #~ msgid "Asset packs"
-#~ msgstr "Пакеты активов"
+#~ msgstr "Packs de ressource"
 
 #~ msgid "Rendering"
-#~ msgstr "Визуализация"
+#~ msgstr "Rendu"
 
 #~ msgctxt "Button"
 #~ msgid "High dynamic range (HDR)"
-#~ msgstr "Графика высоко (HDR)"
+#~ msgstr "High dynamic range (HDR)"
 
 #~ msgctxt "Button"
 #~ msgid "Low dynamic range (LDR)"
-#~ msgstr "Графика низко (LDR)"
+#~ msgstr "Low dynamic range (LDR)"

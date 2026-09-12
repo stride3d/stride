@@ -14,7 +14,7 @@
   <sd:ModalWindow.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
-        <ResourceDictionary Source="/Stride.Core.Assets.Editor;component/View/CommonResources.xaml"/>
+        <ResourceDictionary Source="/Stride.Core.Assets.Editor.Wpf;component/View/CommonResources.xaml"/>
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
   </sd:ModalWindow.Resources>

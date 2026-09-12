@@ -22,8 +22,8 @@
   <UserControl.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
-        <ResourceDictionary Source="/Stride.Core.Assets.Editor;component/View/CommonResources.xaml"/>
-        <ResourceDictionary Source="/Stride.Assets.Presentation;component/View/ImageDictionary.xaml"/>
+        <ResourceDictionary Source="/Stride.Core.Assets.Editor.Wpf;component/View/CommonResources.xaml"/>
+        <ResourceDictionary Source="/Stride.Assets.Presentation.Wpf;component/View/ImageDictionary.xaml"/>
       </ResourceDictionary.MergedDictionaries>
 
       <Style x:Key="EnumListBoxItemContainerStyle" TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
