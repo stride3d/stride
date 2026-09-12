@@ -3,6 +3,8 @@
   <PropertyGroup>
     <!-- UI-agnostic and cross-platform: shared by the WPF window, the Avalonia launcher, and headless tools -->
     <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
     <!-- Builds Native/*.cpp into runtimes/<rid>/native/libstridecrash.<ext>: the native crash trigger.
          Windows-only in effect; a no-op stub elsewhere. Deleted once .NET 12's SetFatalErrorHandler lands. -->
     <StrideNativeOutputName>libstridecrash</StrideNativeOutputName>

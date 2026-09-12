@@ -8,6 +8,7 @@
     <RootNamespace>Stride.CrashReport.TestProbe</RootNamespace>
     <AssemblyName>Stride.CrashReport.TestProbe</AssemblyName>
     <IsPackable>false</IsPackable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Stride.CrashReport\Stride.CrashReport.csproj" />

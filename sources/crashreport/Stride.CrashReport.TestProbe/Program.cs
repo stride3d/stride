@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Stride.CrashReport;
 
@@ -106,17 +107,18 @@ return 3;
 
 internal static partial class Trigger
 {
-    [DllImport("ucrtbase.dll", EntryPoint = "memset", CallingConvention = CallingConvention.Cdecl)]
-    private static extern IntPtr MemsetWindows(IntPtr dest, int c, IntPtr count);
+    [LibraryImport("ucrtbase.dll", EntryPoint = "memset")]
+    [UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
+    private static partial IntPtr MemsetWindows(IntPtr dest, int c, IntPtr count);
 
-    [DllImport("libc", EntryPoint = "memset")]
-    private static extern IntPtr MemsetUnix(IntPtr dest, int c, IntPtr count);
+    [LibraryImport("libc", EntryPoint = "memset")]
+    private static partial IntPtr MemsetUnix(IntPtr dest, int c, IntPtr count);
 
-    [DllImport("kernel32.dll")]
-    private static extern void RaiseException(uint dwExceptionCode, uint dwExceptionFlags, uint nNumberOfArguments, IntPtr lpArguments);
+    [LibraryImport("kernel32.dll")]
+    private static partial void RaiseException(uint dwExceptionCode, uint dwExceptionFlags, uint nNumberOfArguments, IntPtr lpArguments);
 
-    [DllImport("kernel32.dll")]
-    private static extern uint SetErrorMode(uint uMode);
+    [LibraryImport("kernel32.dll")]
+    private static partial uint SetErrorMode(uint uMode);
 
     // SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX | SEM_NOOPENFILEERRORBOX: no crash dialog for the record mode,
     // whose handler (unlike InstallForReporting) leaves the dialog alone.

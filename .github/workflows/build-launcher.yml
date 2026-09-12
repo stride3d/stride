@@ -6,6 +6,7 @@ on:
       - '.github/workflows/build-launcher.yml'
       - 'build/Stride.Launcher.slnx'
       - 'sources/core/**'
+      - 'sources/crashreport/**'
       - 'sources/launcher/**'
       - 'sources/presentation/**'
       - 'sources/shared/**'

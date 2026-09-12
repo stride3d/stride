@@ -1,8 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System;
-
 namespace Stride.CrashReport;
 
 /// <summary>How a headless tool handles crashes, from <c>STRIDE_CRASH_MODE</c>.</summary>
@@ -97,5 +95,5 @@ public static class CrashPolicy
     }
 
     private static readonly string[] CiVariables =
-        { "CI", "GITHUB_ACTIONS", "TF_BUILD", "JENKINS_URL", "TEAMCITY_VERSION", "GITLAB_CI", "BUILDKITE" };
+        ["CI", "GITHUB_ACTIONS", "TF_BUILD", "JENKINS_URL", "TEAMCITY_VERSION", "GITLAB_CI", "BUILDKITE"];
 }

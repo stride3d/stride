@@ -1,10 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Text.Json;
 
 namespace Stride.CrashReport;
@@ -39,7 +36,7 @@ public sealed class StoredCrash
     public int Count { get; set; } = 1;
 
     /// <summary>The report content (the <see cref="CrashReportData"/> key/value pairs), already anonymized.</summary>
-    public List<CrashEntry> Report { get; set; } = new();
+    public List<CrashEntry> Report { get; set; } = [];
 
     /// <summary>Sibling minidump file name in the same run directory, if one was written.</summary>
     public string DumpFileName { get; set; }
@@ -50,16 +47,16 @@ public sealed class StoredCrash
     public bool DumpIsFullMemory { get; set; }
 
     /// <summary>Scrubbed leaf names of the assets that hit this signature, for the "x N assets" display.</summary>
-    public List<string> AffectedAssets { get; set; } = new();
+    public List<string> AffectedAssets { get; set; } = [];
 
     /// <summary>Local-only path of the failing asset's definition file, offered as an opt-in attachment.</summary>
     public string AssetDefinitionPath { get; set; }
 
     /// <summary>Local-only paths of the failing asset's direct source files (FBX, textures), for a future opt-in attachment.</summary>
-    public List<string> AssetSourcePaths { get; set; } = new();
+    public List<string> AssetSourcePaths { get; set; } = [];
 
     /// <summary>Structured exception chain for a managed crash, so the reporter rebuilds a real Sentry stacktrace. Empty for native.</summary>
-    public List<StoredException> Exceptions { get; set; } = new();
+    public List<StoredException> Exceptions { get; set; } = [];
 
     /// <summary>Managed id of the crashing thread, when known; lets the reporter flag it in the thread list.</summary>
     public int? CrashedThreadId { get; set; }
@@ -68,7 +65,7 @@ public sealed class StoredCrash
     public string CrashedThreadName { get; set; }
 
     /// <summary>Other (non-crashing) threads' callstacks captured at a fatal crash. Empty otherwise.</summary>
-    public List<StoredThread> Threads { get; set; } = new();
+    public List<StoredThread> Threads { get; set; } = [];
 
     /// <summary>One-line label: the exception's first line, else the signature.</summary>
     public string Title()
@@ -97,11 +94,9 @@ public sealed class StoredCrash
         return crash;
     }
 
-    public string ToJson() => JsonSerializer.Serialize(this, JsonOptions);
+    public string ToJson() => JsonSerializer.Serialize(this, CrashReportJsonContext.Default.StoredCrash);
 
-    public static StoredCrash FromJson(string json) => JsonSerializer.Deserialize<StoredCrash>(json, JsonOptions);
-
-    private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
+    public static StoredCrash FromJson(string json) => JsonSerializer.Deserialize(json, CrashReportJsonContext.Default.StoredCrash);
 }
 
 /// <summary>One report key/value pair. Kept as an explicit object (not a dictionary) so insertion order survives the round-trip.</summary>
@@ -116,7 +111,7 @@ public sealed class StoredException
 {
     public string Type { get; set; }
     public string Message { get; set; }
-    public List<StoredFrame> Frames { get; set; } = new();
+    public List<StoredFrame> Frames { get; set; } = [];
 
     /// <summary>Captures a live exception + inner chain (with file/line from PDBs) into a serializable model at the crash site.</summary>
     public static List<StoredException> Capture(Exception exception)
@@ -156,5 +151,5 @@ public sealed class StoredThread
 {
     public int Id { get; set; }
     public string Name { get; set; }
-    public List<StoredFrame> Frames { get; set; } = new();
+    public List<StoredFrame> Frames { get; set; } = [];
 }

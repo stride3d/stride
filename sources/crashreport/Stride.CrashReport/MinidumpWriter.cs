@@ -1,9 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System;
 using System.Diagnostics;
-using System.IO;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using Microsoft.Win32.SafeHandles;
@@ -14,7 +12,7 @@ namespace Stride.CrashReport;
 /// Writes a minidump of the current process: thread stacks and module list, not full memory. Windows-only (dbghelp).
 /// </summary>
 [SupportedOSPlatform("windows")]
-public static class MinidumpWriter
+public static partial class MinidumpWriter
 {
     private const int MiniDumpNormal = 0x0;
     private const int MiniDumpWithFullMemory = 0x2;
@@ -231,13 +229,15 @@ public static class MinidumpWriter
         public int ClientPointers; // BOOL
     }
 
-    [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern IntPtr OpenProcess(uint desiredAccess, bool inheritHandle, uint processId);
+    [LibraryImport("kernel32.dll", SetLastError = true)]
+    private static partial IntPtr OpenProcess(uint desiredAccess, [MarshalAs(UnmanagedType.Bool)] bool inheritHandle, uint processId);
 
-    [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern bool CloseHandle(IntPtr handle);
+    [LibraryImport("kernel32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool CloseHandle(IntPtr handle);
 
-    [DllImport("dbghelp.dll", SetLastError = true)]
-    private static extern bool MiniDumpWriteDump(IntPtr hProcess, uint processId, SafeFileHandle hFile, int dumpType,
+    [LibraryImport("dbghelp.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool MiniDumpWriteDump(IntPtr hProcess, uint processId, SafeFileHandle hFile, int dumpType,
         IntPtr exceptionParam, IntPtr userStreamParam, IntPtr callbackParam);
 }
