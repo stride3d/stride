@@ -1,9 +1,15 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="using:Stride.Launcher.Assets.Localization"
              x:Class="Stride.Launcher.App"
-             RequestedThemeVariant="Default">
+             RequestedThemeVariant="Dark">
   <Application.Resources>
     <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="avares://Stride.Core.Presentation.Avalonia/Windows/GeometryResources.axaml"/>
+      </ResourceDictionary.MergedDictionaries>
+
+      <!-- END TODO -->
       <Image x:Key="ImageFacebook"
              Height="24" Width="24"
              Source="/Assets/Images/facebook.png" />
@@ -18,21 +24,26 @@
              Source="/Assets/Images/xtwitter.png" />
       <ResourceDictionary.ThemeDictionaries>
         <ResourceDictionary x:Key="Default">
-          <SolidColorBrush x:Key="BackgroundEmphasis" Color="#900520" />
-          <SolidColorBrush x:Key="BackgroundTileAlpha" Color="#C0434343" />
+          <SolidColorBrush x:Key="AccentColor" Color="#900520" />
+          <SolidColorBrush x:Key="NeutralBackgroundColor" Color="#C0434343" />
           <SolidColorBrush x:Key="BorderBrushTile" Color="Transparent" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
-          <SolidColorBrush x:Key="BackgroundEmphasis" Color="{DynamicResource SystemAccentColorDark1}" />
-          <SolidColorBrush x:Key="BackgroundTileAlpha" Color="#C0434343" />
+          <SolidColorBrush x:Key="AccentColor" Color="{DynamicResource SystemAccentColorDark1}" />
+          <SolidColorBrush x:Key="AccentColor2" Color="{DynamicResource SystemAccentColorDark2}" />
+          <SolidColorBrush x:Key="AccentColor3" Color="{DynamicResource SystemAccentColorDark3}" />
+          <SolidColorBrush x:Key="NeutralBackgroundColor" Color="#0FFFFFFF" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Light">
-          <SolidColorBrush x:Key="BackgroundEmphasis" Color="{DynamicResource SystemAccentColorLight1}" />
-          <SolidColorBrush x:Key="BackgroundTileAlpha" Color="#C0BCBCBC" />
+          <SolidColorBrush x:Key="AccentColor" Color="{DynamicResource SystemAccentColorLight1}" />
+          <SolidColorBrush x:Key="AccentColor2" Color="{DynamicResource SystemAccentColorLight2}" />
+          <SolidColorBrush x:Key="AccentColor3" Color="{DynamicResource SystemAccentColorLight3}" />
+          <SolidColorBrush x:Key="NeutralBackgroundColor" Color="#ffffff" />
         </ResourceDictionary>
       </ResourceDictionary.ThemeDictionaries>
       <Thickness x:Key="BorderThicknessTile">12</Thickness>
       <Thickness x:Key="BorderThicknessTileList">0,0,0,20</Thickness>
+      <CornerRadius x:Key="ControlCornerRadius">4</CornerRadius>
     </ResourceDictionary>
   </Application.Resources>
 
@@ -44,7 +55,40 @@
       </FluentTheme.Palettes>
     </FluentTheme>
     <StyleInclude Source="avares://MarkView.Avalonia/Themes/MarkdownTheme.axaml" />
+    <StyleInclude Source="avares://Stride.Core.Presentation.Avalonia/Windows/TitleBar.axaml"/>
 
+    <Style Selector="Button">
+      <Setter Property="Background" Value="{DynamicResource NeutralBackgroundColor}" />
+    </Style>
+    <Style Selector="Button.Primary">
+      <Setter Property="Background" Value="{DynamicResource AccentColor}" />
+    </Style>
+    <Style Selector="Button.Primary:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AccentColor2}" />
+    </Style>
+    <Style Selector="Button.Primary:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AccentColor3}" />
+    </Style>
+    <Style Selector="Border.card">
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="#17FFFFFF" />
+      <Setter Property="CornerRadius" Value="{StaticResource ControlCornerRadius}" />
+      <Setter Property="BoxShadow" Value="0 1 2 #17FFFFFF" />
+    </Style>
+    <Style Selector="TabItem">
+      <Setter Property="FontSize" Value="14" />
+    </Style>
+    <Style Selector="Path.tab-icon">
+        <Setter Property="Width" Value="16" />
+        <Setter Property="Height" Value="16" />
+        <Setter Property="Stretch" Value="Uniform" />
+        <Setter Property="Fill" Value="{DynamicResource SystemControlForegroundBaseHighBrush}" />
+    </Style>
+    <Style Selector="TextBlock.Subtitle">
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="FontSize" Value="16" />
+      <Setter Property="Padding" Value="0 0 0 8" />
+    </Style>
     <Style Selector="Button.MediaButton">
       <Setter Property="Margin" Value="2" />
       <Setter Property="Padding" Value="0" />

@@ -59,6 +59,15 @@ namespace Stride.Launcher.Assets.Localization {
                 resourceCulture = value;
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar Fetching NuGet packages...
+        /// </summary>
+        public static string Synchronizing {
+            get {
+                return ResourceManager.GetString("Synchronizing", resourceCulture);
+            }
+        }
         
         /// <summary>
         ///   Looks up a localized string similar to It seems you do not have any version of Stride currently installed. Would you like to install the latest version?.
