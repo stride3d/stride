@@ -245,7 +245,10 @@ namespace Stride.Core.Assets
                     ProjectName = Path.GetFileNameWithoutExtension(projectPath),
                     ProjectStyle = ProjectStyle.PackageReference,
                     ProjectUniqueName = projectPath,
-                    OutputPath = Path.Combine(Path.GetTempPath(), $"StrideNugetResolver-{packageName}-{versionRange.MinVersion.ToString()}-{nugetFramework.GetShortFolderName()}-{runtimeIdentifier}"),
+                    // Per-user directory: the restore output (assets file, no-op cache) drives which assemblies get
+                    // loaded, and its name is predictable, so a shared temp dir (/tmp on Linux) would let another
+                    // local user pre-seed it.
+                    OutputPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "stride", "nugetresolver", $"{packageName}-{versionRange.MinVersion.ToString()}-{nugetFramework.GetShortFolderName()}-{runtimeIdentifier}"),
                     OriginalTargetFrameworks = new[] { nugetFramework.GetShortFolderName() },
                     ConfigFilePaths = settings.GetConfigFilePaths(),
                     PackagesPath = SettingsUtility.GetGlobalPackagesFolder(settings),
