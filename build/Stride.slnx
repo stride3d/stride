@@ -169,7 +169,7 @@
     <Project Path="../sources/presentation/Stride.Core.Quantum.Tests/Stride.Core.Quantum.Tests.csproj" />
   </Folder>
   <Folder Name="/51-Presentation.Tests/Wpf/">
-    <Project Path="../sources/presentation/Stride.Core.Presentation.Tests/Stride.Core.Presentation.Wpf.Tests.csproj" />
+    <Project Path="../sources/presentation/Stride.Core.Presentation.Wpf.Tests/Stride.Core.Presentation.Wpf.Tests.csproj" />
   </Folder>
   <Folder Name="/60-Editor/">
     <Project Path="../sources/crashreport/Stride.CrashReport/Stride.CrashReport.csproj" />
