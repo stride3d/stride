@@ -1,0 +1,28 @@
+// PSMain(ExpectedResult=#01010101)
+
+// A pixel shader that writes a UAV while also writing a render target. Direct3D11 puts UAVs and
+// render targets in one register space, so the UAV must not take u0 (FXC error X4509).
+
+namespace Stride.Shaders.Tests;
+
+shader PixelShaderUav
+{
+    stream float4 Position : POSITION;
+    stream float4 ShadingPosition : SV_Position;
+    stream float4 ColorTarget : SV_Target0;
+
+    RWBuffer<uint> Counter;
+
+    void VSMain()
+    {
+        streams.ShadingPosition = streams.Position;
+    }
+
+    void PSMain()
+    {
+        uint previous;
+        InterlockedAdd(Counter[0], 1, previous);
+
+        streams.ColorTarget = float4(1.0, 1.0, 1.0, 1.0) / 255.0;
+    }
+}

@@ -287,14 +287,19 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
 
             if (paramDefinition.Type is PointerType pointerParamType)
             {
-                // For ref params or opaque types (image/sampler), pass the original pointer directly.
-                // - ref: required for atomic intrinsics (InterlockedAdd, etc.) that need
-                //   the actual memory pointer (Workgroup, StorageBuffer, etc.).
-                // - opaque types: Vulkan forbids OpStore to these types (VUID-StandaloneSpirv-OpTypeImage-06924),
-                //   so they cannot be copied into Function-storage variables.
-                if (paramDefinition.Modifiers == ParameterModifiers.Ref
-                    || pointerParamType.BaseType is TextureType or SamplerType)
+                if (IsPassedByPointer(paramDefinition))
                 {
+                    // `InterlockedMax(buffer[i], ...)`: indexing a typed buffer yields the texel's
+                    // value, never a pointer to it, so the atomic has nothing to operate on. Ask
+                    // for the texel pointer instead - the one instruction that produces one.
+                    if (paramDefinition.Modifiers == ParameterModifiers.Ref
+                        && Arguments.Values[i] is AccessorChainExpression accessorChain
+                        && accessorChain.TryCompileAsTexelPointer(table, compiler, out var texelPointer))
+                    {
+                        compiledParams[i] = texelPointer.Id;
+                        continue;
+                    }
+
                     var paramPointer = Arguments.Values[i].Compile(table, compiler);
                     if (context.ReverseTypes[paramPointer.TypeId] is not PointerType)
                         table.AddError(new(Arguments.Values[i].Info,
@@ -364,6 +369,20 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
             throw new InvalidOperationException($"Function {Name} was called with {Arguments.Values.Count} arguments but there was {(defaultParameters > 0 ? $"between {functionType.ParameterTypes.Count - defaultParameters} and {functionType.ParameterTypes.Count}" : functionType.ParameterTypes.Count)} expected (methodDefaultParameters={(methodDefaultParameters == null ? "null" : $"[{string.Join(",", methodDefaultParameters.Value.DefaultValues)}]({methodDefaultParameters.Value.DefaultValues.Length} values)")}, missing={missingParameters})");
     }
 
+    /// <summary>
+    /// Whether an argument is passed as the caller's pointer instead of being copied into a function-local temporary.
+    /// </summary>
+    /// <remarks>
+    /// Applies to <c>ref</c> parameters (atomics need the actual memory pointer), opaque resources
+    /// (SPIR-V forbids OpStore to them) and geometry streams (nothing to copy). Used for both input and output arguments.
+    /// </remarks>
+    /// <returns>True when the argument is passed as a pointer, false when it is copied.</returns>
+    private static bool IsPassedByPointer(FunctionParameter parameter)
+        => parameter.Type is PointerType pointerType
+            && (parameter.Modifiers == ParameterModifiers.Ref
+                || pointerType.BaseType.IsOpaqueResource()
+                || pointerType.BaseType is GeometryStreamType);
+
     protected void ProcessOutputArguments(SymbolTable table, CompilerUnit compiler, FunctionType functionType, Span<int> compiledParams)
     {
         var (builder, context) = compiler;
@@ -371,7 +390,7 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
         for (int i = 0; i < Arguments.Values.Count; i++)
         {
             var paramDefinition = functionType.ParameterTypes[i];
-            if (paramDefinition.Modifiers.HasFlag(ParameterModifiers.Out))
+            if (paramDefinition.Modifiers.HasFlag(ParameterModifiers.Out) && !IsPassedByPointer(paramDefinition))
             {
                 var paramDefinitionType = (PointerType)paramDefinition.Type;
                 var paramVariable = compiledParams[i];
@@ -669,6 +688,49 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
     public List<Expression> Accessors { get; set; } = [];
 
     private SpirvValue[]? intermediateValues;
+
+    /// <summary>
+    /// Compiles a trailing <c>buffer[i]</c> into an <c>OpImageTexelPointer</c> for use by atomics.
+    /// </summary>
+    /// <remarks>
+    /// A typed buffer is a storage image, so normal indexing produces an image read/write; atomics
+    /// need a pointer, and OpImageTexelPointer results may only be consumed by atomics, hence this
+    /// is only used on the <c>ref</c> argument path. Returns false when the chain is not a buffer index.
+    /// </remarks>
+    public bool TryCompileAsTexelPointer(SymbolTable table, CompilerUnit compiler, out SpirvValue texelPointer)
+    {
+        texelPointer = default;
+
+        if (Accessors.Count == 0 || Accessors[^1] is not IndexerExpression indexer)
+            return false;
+
+        var lastIndex = Accessors.Count - 1;
+        var baseType = lastIndex > 0 ? Accessors[lastIndex - 1].Type : Source.Type;
+        if (baseType is not PointerType { BaseType: BufferType bufferType })
+            return false;
+
+        // Image atomics are only defined on 32-bit integer texels, which is also the only case
+        // where the image declares a format - see SpirvContext.GetStorageImageFormat.
+        if (bufferType.BaseType is not ScalarType { Type: Scalar.UInt or Scalar.Int })
+            return false;
+
+        var (builder, context) = compiler;
+
+        // Fills intermediateValues, and is cached, so this is the walk the caller would have done.
+        CompileHelper(table, compiler);
+
+        // The image operand stays a pointer to the image; it must not be loaded into a value.
+        var image = intermediateValues![lastIndex];
+        var coordinate = builder.Convert(context, indexer.Index.CompileAsValue(table, compiler), ScalarType.Int);
+        var pointerType = new PointerType(bufferType.BaseType, Specification.StorageClass.Image);
+
+        var instruction = builder.Insert(new OpImageTexelPointer(
+            context.GetOrRegister(pointerType), context.Bound++,
+            image.Id, coordinate.Id, context.CompileConstant((int)0).Id));
+
+        texelPointer = new SpirvValue(instruction.ResultId, instruction.ResultType);
+        return true;
+    }
 
     public override void SetValue(SymbolTable table, CompilerUnit compiler, SpirvValue rvalue)
     {
@@ -1281,9 +1343,25 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                         }
                     }
                     break;
-                // Array indexer for shader compositions
-                case (PointerType { BaseType: ArrayType { BaseType: ShaderSymbol } }, IndexerExpression { Index: IntegerLiteral { Value: var compositionIndex } }):
-                    throw new NotImplementedException();
+                // Array indexer for shader compositions: emit an OpAccessChain with a constant index,
+                // which ShaderMixer.ProcessMemberAccessAndForeach resolves to compositions[index] at
+                // mix time. A dynamic index has no composition to resolve to, hence the IntegerLiteral guard.
+                case (PointerType { BaseType: ArrayType { BaseType: ShaderSymbol compositionType } } p, IndexerExpression { Index: IntegerLiteral } indexer):
+                    {
+                        if (compiler == null)
+                        {
+                            indexer.Index.ProcessSymbol(table);
+                            accessor.Type = new PointerType(compositionType, p.StorageClass);
+                            break;
+                        }
+
+                        var indexerValue = indexer.Index.CompileAsValue(table, compiler);
+                        PushAccessChainId(accessChainIds, indexerValue.Id);
+                        break;
+                    }
+                case (PointerType { BaseType: ArrayType { BaseType: ShaderSymbol } }, IndexerExpression indexer2):
+                    throw new NotImplementedException(
+                        $"Shader compositions can only be indexed with a constant: '{indexer2.Index}' is resolved at mix time, not at runtime.");
                 // Array indexer for arrays
                 case (PointerType { BaseType: ArrayType { BaseType: var t } } p, IndexerExpression indexer):
                     {

@@ -194,5 +194,21 @@ internal static class DeadCodeRemover
 
         // Remove OpName/OpDecorate
         context.RemoveNameAndDecorations(removedIds);
+
+        // Remove the execution modes ([numthreads], geometry topology) of removed entry points,
+        // otherwise they reference an id nothing defines.
+        foreach (var i in context)
+        {
+            if (i.Op == Op.OpExecutionMode && (OpExecutionMode)i is { } executionMode)
+            {
+                if (removedIds.Contains(executionMode.EntryPoint))
+                    SpirvBuilder.SetOpNop(i.Data.Memory.Span);
+            }
+            else if (i.Op == Op.OpEntryPoint && (OpEntryPoint)i is { } entryPoint)
+            {
+                if (removedIds.Contains(entryPoint.EntryPoint))
+                    SpirvBuilder.SetOpNop(i.Data.Memory.Span);
+            }
+        }
     }
 }

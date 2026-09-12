@@ -1,0 +1,27 @@
+// PSMain(ExpectedResult=#00000000)
+
+// Atomics on a typed buffer: `Output[i]` must compile to an OpImageTexelPointer on an image with
+// a concrete format. Like CSByteAddressBuffer, the buffer is never bound; this covers compilation,
+// SPIR-V validation and the SPIRV-Cross round trip to InterlockedMax/InterlockedAdd.
+
+namespace Stride.Shaders.Tests;
+
+shader CSBufferAtomics
+{
+    stage stream uint3 DispatchThreadId : SV_DispatchThreadID;
+
+    RWBuffer<uint> Output;
+
+    [numthreads(32, 32, 1)]
+    void CSMain()
+    {
+        uint previous;
+        InterlockedMax(Output[0], streams.DispatchThreadId.x, previous);
+        InterlockedAdd(Output[1], 1);
+
+        // The plain write path (OpImageWrite) has to keep working alongside the atomic one.
+        // One address per thread: FXC rejects an unconditional write to a shared address from
+        // every thread with X3694, and that would be the test's bug, not the compiler's.
+        Output[2 + streams.DispatchThreadId.x] = previous;
+    }
+}

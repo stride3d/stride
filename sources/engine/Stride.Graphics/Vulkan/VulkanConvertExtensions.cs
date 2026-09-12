@@ -283,6 +283,16 @@ namespace Stride.Graphics
 
         public static void ConvertPixelFormat(PixelFormat inputFormat, out VkFormat format, out int pixelSize, out bool compressed)
         {
+            if (!TryConvertPixelFormat(inputFormat, out format, out pixelSize, out compressed))
+                throw new InvalidOperationException("Unsupported texture format: " + inputFormat);
+        }
+
+        /// <summary>
+        /// Converts a <see cref="PixelFormat"/> to its Vulkan equivalent.
+        /// </summary>
+        /// <returns><c>true</c> if the format has a Vulkan equivalent; otherwise <c>false</c> and <paramref name="format"/> is <see cref="VkFormat.Undefined"/>.</returns>
+        public static bool TryConvertPixelFormat(PixelFormat inputFormat, out VkFormat format, out int pixelSize, out bool compressed)
+        {
             compressed = false;
 
             // TODO VULKAN: Complete supported formats
@@ -672,8 +682,12 @@ namespace Stride.Graphics
                     pixelSize = 2; // 8bpp
                     break;
                 default:
-                    throw new InvalidOperationException("Unsupported texture format: " + inputFormat);
+                    format = VkFormat.Undefined;
+                    pixelSize = 0;
+                    return false;
             }
+
+            return true;
         }
 
         public static unsafe VkColorComponentFlags ConvertColorWriteChannels(ColorWriteChannels colorWriteChannels)

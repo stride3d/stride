@@ -122,6 +122,11 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
             {
                 // Ignore (using C# codegen for now)
             }
+            else if (declaration is UsingShaderNamespace)
+            {
+                // Ignore: shader classes are resolved by name across every loaded namespace, so a
+                // `using` declaration carries no information the compiler needs.
+            }
             else
             {
                 log.Error($"Compiling declaration [{declaration.GetType()}] is not implemented");

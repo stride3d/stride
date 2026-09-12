@@ -3,6 +3,8 @@
 
 #if STRIDE_GRAPHICS_API_VULKAN
 
+using Vortice.Vulkan;
+
 namespace Stride.Graphics
 {
     /// <summary>
@@ -40,9 +42,15 @@ namespace Stride.Graphics
 
             HasResourceRenaming = false;
 
-            // TODO D3D12
+            var physicalDevice = deviceRoot.NativePhysicalDevice;
+            var instanceApi = deviceRoot.NativeInstanceApi;
+
             for (int i = 0; i < mapFeaturesPerFormat.Length; i++)
-                mapFeaturesPerFormat[i] = new FeaturesPerFormat((PixelFormat) i, MultisampleCount.None, ComputeShaderFormatSupport.None, FormatSupport.None);
+            {
+                var pixelFormat = (PixelFormat) i;
+                var maximumMultisampleCount = GetMaximumMultisampleCount(deviceRoot, instanceApi, physicalDevice, pixelFormat);
+                mapFeaturesPerFormat[i] = new FeaturesPerFormat(pixelFormat, maximumMultisampleCount, ComputeShaderFormatSupport.None, FormatSupport.None);
+            }
             //// Check features for each DXGI.Format
             //foreach (var format in Enum.GetValues(typeof(SharpDX.DXGI.Format)))
             //{
@@ -63,6 +71,38 @@ namespace Stride.Graphics
             //    //mapFeaturesPerFormat[(int)dxgiFormat] = new FeaturesPerFormat((PixelFormat)dxgiFormat, maximumMultisampleCount, computeShaderFormatSupport, formatSupport);
             //    mapFeaturesPerFormat[(int)dxgiFormat] = new FeaturesPerFormat((PixelFormat)dxgiFormat, maximumMultisampleCount, formatSupport);
             //}
+        }
+
+        private static MultisampleCount GetMaximumMultisampleCount(GraphicsDevice deviceRoot, VkInstanceApi instanceApi, VkPhysicalDevice physicalDevice, PixelFormat pixelFormat)
+        {
+            if (!VulkanConvertExtensions.TryConvertPixelFormat(pixelFormat, out var format, out _, out _))
+                return MultisampleCount.None;
+
+            // Same usage as Texture.CreateImage for a render target or depth stencil of that format
+            var usage = VkImageUsageFlags.TransferSrc | VkImageUsageFlags.TransferDst;
+            if (Texture.IsDepthFormat(pixelFormat))
+            {
+                usage |= VkImageUsageFlags.DepthStencilAttachment;
+                // CreateImage substitutes a supported depth-stencil format, so query the one it would really create
+                format = Texture.GetFallbackDepthStencilFormat(deviceRoot, format);
+            }
+            else
+            {
+                usage |= VkImageUsageFlags.ColorAttachment;
+            }
+
+            var result = instanceApi.vkGetPhysicalDeviceImageFormatProperties(physicalDevice, format, VkImageType.Image2D, VkImageTiling.Optimal, usage, VkImageCreateFlags.None, out var imageFormatProperties);
+            if (result != VkResult.Success)
+                return MultisampleCount.None;
+
+            var sampleCounts = imageFormatProperties.sampleCounts;
+            if ((sampleCounts & VkSampleCountFlags.Count8) != 0)
+                return MultisampleCount.X8;
+            if ((sampleCounts & VkSampleCountFlags.Count4) != 0)
+                return MultisampleCount.X4;
+            if ((sampleCounts & VkSampleCountFlags.Count2) != 0)
+                return MultisampleCount.X2;
+            return MultisampleCount.None;
         }
     }
 }

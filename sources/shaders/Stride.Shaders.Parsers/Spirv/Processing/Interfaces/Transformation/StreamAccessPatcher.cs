@@ -181,6 +181,19 @@ internal static class StreamAccessPatcher
                 var targetType = context.ReverseTypes[copyLogical.ResultType];
                 if (targetType is StreamsType { Kind: StreamsKindSDSL.Streams })
                 {
+                    // `streams = input[i]` overwrites the members the stage input carries; the others
+                    // are read back from the current streams rather than defaulted.
+                    var currentStreams = 0;
+                    foreach (var stream in streams)
+                    {
+                        if (!stream.Value.Patch && stream.Value.UsedThisStage && !stream.Value.Input)
+                        {
+                            currentStreams = buffer.Insert(index++,
+                                new OpLoad(context.GetOrRegister(streamsStructType), context.Bound++, streamsVariableId, null, [])).ResultId;
+                            break;
+                        }
+                    }
+
                     foreach (var stream in streams)
                     {
                         // Part of streams?
@@ -197,8 +210,12 @@ internal static class StreamAccessPatcher
                             }
                             else
                             {
-                                // Otherwise use default value
-                                tempIdsForStreamCopy[stream.Value.StreamStructFieldIndex] = context.CreateDefaultConstantComposite(stream.Value.Type).Id;
+                                // Not carried by the input: keep what streams already holds
+                                tempIdsForStreamCopy[stream.Value.StreamStructFieldIndex] = buffer.Insert(index++,
+                                    new OpCompositeExtract(context.GetOrRegister(stream.Value.Type),
+                                        context.Bound++,
+                                        currentStreams,
+                                        [stream.Value.StreamStructFieldIndex])).ResultId;
                             }
                         }
                     }

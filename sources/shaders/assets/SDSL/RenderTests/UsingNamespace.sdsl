@@ -1,0 +1,18 @@
+// PSMain(ExpectedResult=#01010101)
+
+// A shader file that opens with a `using` declaration. Shader classes resolve by name across
+// namespaces, so the declaration carries nothing and must be ignored.
+
+using Stride.Shaders.Tests.SomeNamespace;
+
+namespace Stride.Shaders.Tests;
+
+shader UsingNamespace
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    void PSMain()
+    {
+        streams.ColorTarget = float4(1.0, 1.0, 1.0, 1.0) / 255.0;
+    }
+}
