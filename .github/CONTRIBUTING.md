@@ -20,8 +20,8 @@ opt in by adding a label to the PR (collaborator access required):
 - `ci-run-on-draft` — run the normal path-gated CI on a **draft** PR (which otherwise skips CI)
 
 Labels run through the PR's own workflow ([`pr-label-suites.yml`](workflows/pr-label-suites.yml) /
-[`main.yml`](workflows/main.yml)), so they use the PR head's YAML and re-run on every push while
-applied. Removing a label re-runs with that suite skipped.
+[`main.yml`](workflows/main.yml)), so they use the PR head's YAML. Adding a label runs that suite
+right away; every push re-runs all applied suites. Removing a label only stops the re-runs.
 
 ## Earn Money by Contributing
 

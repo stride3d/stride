@@ -2,12 +2,12 @@ name: PR Label Suites
 
 # Opt-in CI suites a collaborator arms by adding a `ci-<suite>` label to a PR.
 #
-# - `labeled` arms it (runs now); `synchronize` reruns armed suites on each push; `unlabeled`
-#   clears a previously-red gate (re-runs with the suite skipped → green).
+# - `labeled` runs the suite of the label just added, and only that one; a push (`synchronize`,
+#   `ready_for_review`, ...) reruns every armed suite. Removing a label only stops the reruns.
 # - Runs through pull_request, so it uses the PR's own workflow YAML; adding a label requires
 #   write access, so the label itself is the authorization.
-# - Each suite is a separate, non-required check; this workflow's own `label-gate` aggregates them.
-#   It never recomputes main.yml's Gate, so a forced run can't override main's required result.
+# - Each suite is its own non-required check. There is no aggregate gate: it could only report on
+#   the suites of its own run, and main.yml's required Gate is never recomputed here.
 #
 # Only list suites here that main.yml does NOT already run on a path filter, OR gate them on the
 # shared `changes` filter (see `ios`/`android`) so a forced run yields to main's run whenever main
@@ -15,14 +15,17 @@ name: PR Label Suites
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, ready_for_review, labeled, unlabeled]
+    types: [opened, reopened, synchronize, ready_for_review, labeled]
 
 permissions:
   contents: read
   pull-requests: read
 
+# One group per label event, so adding several labels in a row starts one run per label instead of
+# cancelling each other (a superseded run leaves stale cancelled checks on the PR). Push events share
+# a group and only supersede the previous push run.
 concurrency:
-  group: pr-label-suites-${{ github.event.pull_request.number }}
+  group: pr-label-suites-${{ github.event.pull_request.number }}-${{ github.event.action == 'labeled' && github.event.label.name || 'push' }}
   cancel-in-progress: true
 
 jobs:
@@ -33,7 +36,9 @@ jobs:
   # End-user packaging/screenshot suite — main.yml never auto-runs it, so no overlap guard needed.
   enduser:
     needs: changes
-    if: contains(github.event.pull_request.labels.*.name, 'ci-enduser')
+    if: >
+      contains(github.event.pull_request.labels.*.name, 'ci-enduser')
+      && (github.event.action != 'labeled' || github.event.label.name == 'ci-enduser')
     uses: ./.github/workflows/test-enduser.yml
     secrets:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -45,7 +50,9 @@ jobs:
   # re-judges with the key.
   editor:
     needs: changes
-    if: contains(github.event.pull_request.labels.*.name, 'ci-editor')
+    if: >
+      contains(github.event.pull_request.labels.*.name, 'ci-editor')
+      && (github.event.action != 'labeled' || github.event.label.name == 'ci-editor')
     uses: ./.github/workflows/test-windows-editor.yml
     secrets:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -59,6 +66,7 @@ jobs:
     needs: changes
     if: >
       contains(github.event.pull_request.labels.*.name, 'ci-ios')
+      && (github.event.action != 'labeled' || github.event.label.name == 'ci-ios')
       && ((github.event.pull_request.draft == true && !contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft'))
           || needs.changes.outputs.ios-tests != 'true')
     uses: ./.github/workflows/test-ios-game.yml
@@ -70,23 +78,9 @@ jobs:
     needs: changes
     if: >
       contains(github.event.pull_request.labels.*.name, 'ci-android')
+      && (github.event.action != 'labeled' || github.event.label.name == 'ci-android')
       && ((github.event.pull_request.draft == true && !contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft'))
           || needs.changes.outputs.android != 'true')
     uses: ./.github/workflows/test-android-game.yml
     with:
       build-type: Debug
-
-  # Aggregate result for the forced suites. always() so a cancellation reports red, not skipped.
-  # Skipped suites (label absent) are fine; only failure/cancellation fails the gate. Mark this
-  # "Label Suites Gate" check required in branch protection to make forced suites blocking.
-  label-gate:
-    needs: [changes, enduser, editor, ios, android]
-    if: always()
-    runs-on: ubuntu-latest
-    steps:
-      - name: Fail if any forced suite failed or was cancelled
-        env:
-          NEEDS: ${{ toJSON(needs) }}
-        run: |
-          echo "$NEEDS" | jq -r 'to_entries[] | "\(.value.result)\t\(.key)"'
-          test "$(echo "$NEEDS" | jq '[.[] | select(.result=="failure" or .result=="cancelled")] | length')" -eq 0
