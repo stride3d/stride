@@ -28,6 +28,7 @@
   <!-- Linked from the shared/old-package sources so we can restore+locate and talk to the released Commands. -->
   <ItemGroup>
     <Compile Include="..\..\shared\Stride.NuGetResolver\GraphicsApiSelector.cs" Link="Legacy\Shared\GraphicsApiSelector.cs" />
+    <Compile Include="..\..\shared\Stride.NuGetResolver\DotNetHostSelector.cs" Link="Legacy\Shared\DotNetHostSelector.cs" />
     <Compile Include="..\..\shared\Stride.NuGetResolver\RestoreHelper.cs" Link="Legacy\Shared\RestoreHelper.cs" />
     <Compile Include="..\..\shared\LoaderToolLocator\LoaderToolLocator.cs" Link="Legacy\Shared\LoaderToolLocator.cs" />
   </ItemGroup>

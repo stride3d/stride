@@ -50,6 +50,8 @@
     <Compile Remove="..\..\shared\SharedAssemblyInfo.cs" />
     <Compile Include="..\..\assets\Stride.Core.Assets\PackageSessionHelper.Solution.cs" Link="Packages\PackageSessionHelper.Solution.cs" />
     <Compile Include="..\..\editor\Stride.Core.Assets.Editor\EditorPath.cs" Link="Editor\EditorPath.cs" />
+    <Compile Include="..\..\shared\Stride.NuGetResolver\DotNetHostSelector.cs" Link="Shared\DotNetHostSelector.cs" />
+    <Compile Include="..\..\shared\Stride.NuGetResolver\HostInstanceMutex.cs" Link="Shared\HostInstanceMutex.cs" />
   </ItemGroup>
 
   <ItemGroup>
