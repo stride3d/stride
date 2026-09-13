@@ -25,5 +25,10 @@ namespace Stride.Rendering.Skyboxes
 
             return CubeMap.SampleLevel(LinearSampler, direction, mipLevel);
         }
+
+        override float4 Compute(float3 direction, float blurriness)
+        {
+            return CubeMap.SampleLevel(LinearSampler, direction, blurriness);
+        }
     };
 }

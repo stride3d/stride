@@ -15,6 +15,7 @@ namespace Stride.Rendering.Lights
         stage stream float lightAttenuation;
         stage stream float3 envLightDiffuseColor;
         stage stream float3 envLightSpecularColor;
+        stage stream float4 envLightDistFog;
 
         // normal dot light
         stage stream float NdotL;
@@ -31,6 +32,7 @@ namespace Stride.Rendering.Lights
             streams.lightAttenuation = 1.0f;
             streams.envLightDiffuseColor = 0;
             streams.envLightSpecularColor = 0;
+            streams.envLightDistFog = 0;
             streams.lightDirectAmbientOcclusion = 1.0f;
             streams.NdotL = 0;
         }
