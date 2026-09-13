@@ -1,0 +1,12 @@
+namespace Stride.Shaders.Tests;
+
+shader ComposeNumThreadsInheritRoot : CSNumThreadsOverrideBase
+{
+    compose ComposeNumThreadsHelper helper;
+
+    override void CSMain()
+    {
+        Output[int2(1, 1)] = helper.Value();
+        base.CSMain();
+    }
+}

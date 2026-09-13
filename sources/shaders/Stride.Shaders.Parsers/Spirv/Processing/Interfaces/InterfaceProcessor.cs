@@ -111,9 +111,10 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
 
         /// <summary>
         /// Function ids of the entry point and the methods it overrides, base first. The method group also
-        /// holds overloads, so the chain keeps only the members with the entry point's signature.
+        /// holds overloads and composition functions, so the chain keeps only the members with the entry
+        /// point's signature that are not inside a composition.
         /// </summary>
-        static List<int> ResolveOverrideChain(SymbolTable table, Symbol entryPoint)
+        List<int> ResolveOverrideChain(SymbolTable table, Symbol entryPoint)
         {
             var chain = new List<int>();
             if (table.TryResolveSymbol(entryPoint.Id.Name, out var group) && group.Type is FunctionGroupType)
@@ -121,7 +122,7 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                 var signature = (FunctionType)entryPoint.Type;
                 foreach (var member in group.GroupMembers)
                 {
-                    if ((FunctionType)member.Type == signature)
+                    if ((FunctionType)member.Type == signature && !compositionFunctions.Contains(member.IdRef))
                         chain.Add(member.IdRef);
                 }
             }

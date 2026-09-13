@@ -231,6 +231,34 @@ public class StrideShaderTests
         Assert.Equal(3u, outputVertices.Parameters[0]);
     }
 
+    [Theory]
+    [InlineData("ComposeNumThreadsRoot", 16u)]
+    [InlineData("ComposeNumThreadsInheritRoot", 8u)]
+    public void CompositionEntryPointDoesNotContributeExecutionModes(string rootName, uint expectedX)
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+        foreach (var name in new[] { "CSNumThreadsOverrideBase", "ComposeNumThreadsHelper", rootName })
+            shaderMixer.ShaderLoader.LoadExternalBuffer(name, [], out _, out _, out _);
+
+        var shaderSource = new ShaderMixinSource
+        {
+            Mixins = { new ShaderClassSource(rootName) },
+            Compositions = { ["helper"] = new ShaderClassSource("ComposeNumThreadsHelper") },
+        };
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(shaderSource, new ShaderMixer.Options(true), log, out var bytecode, out _, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+
+        var validation = Spv.ValidateBinary(bytecode);
+        Assert.True(validation.IsValid, validation.Output);
+
+        var localSize = Assert.Single(ReadExecutionModes(bytecode), m => m.Mode == Stride.Shaders.Spirv.Specification.ExecutionMode.LocalSize);
+        Assert.Equal(expectedX, localSize.Parameters[0]);
+        Assert.Contains(localSize.EntryPoint, ReadEntryPointIds(bytecode));
+    }
+
     private static List<(int EntryPoint, Stride.Shaders.Spirv.Specification.ExecutionMode Mode, uint[] Parameters)> ReadExecutionModes(Span<byte> bytecode)
     {
         var result = new List<(int, Stride.Shaders.Spirv.Specification.ExecutionMode, uint[])>();
