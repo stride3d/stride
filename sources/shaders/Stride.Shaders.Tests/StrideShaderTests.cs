@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -189,6 +189,78 @@ public class StrideShaderTests
 
         var validation = Spv.ValidateBinary(bytecode);
         Assert.True(validation.IsValid, validation.Output);
+    }
+
+    [Theory]
+    [InlineData("CSNumThreadsOverride", 16u)]
+    [InlineData("CSNumThreadsInherit", 8u)]
+    public void OverriddenComputeEntryPointKeepsOneLocalSize(string shaderName, uint expectedX)
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(new ShaderClassSource(shaderName), new ShaderMixer.Options(true), log, out var bytecode, out _, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+
+        var validation = Spv.ValidateBinary(bytecode);
+        Assert.True(validation.IsValid, validation.Output);
+
+        var localSizes = ReadExecutionModes(bytecode).Where(m => m.Mode == Stride.Shaders.Spirv.Specification.ExecutionMode.LocalSize).ToList();
+        var localSize = Assert.Single(localSizes);
+        Assert.Equal(expectedX, localSize.Parameters[0]);
+        Assert.Contains(localSize.EntryPoint, ReadEntryPointIds(bytecode));
+    }
+
+    [Fact]
+    public void OverriddenHullEntryPointInheritsBaseAttributes()
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(new ShaderClassSource("HSOverride"), new ShaderMixer.Options(true), log, out var bytecode, out _, out _, out var entryPoints),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+
+        var validation = Spv.ValidateBinary(bytecode);
+        Assert.True(validation.IsValid, validation.Output);
+
+        var hull = Assert.Single(entryPoints, e => e.Stage == ShaderStage.Hull);
+        var outputVertices = Assert.Single(ReadExecutionModes(bytecode), m => m.Mode == Stride.Shaders.Spirv.Specification.ExecutionMode.OutputVertices);
+        Assert.Equal(hull.Id, outputVertices.EntryPoint);
+        Assert.Equal(3u, outputVertices.Parameters[0]);
+    }
+
+    private static List<(int EntryPoint, Stride.Shaders.Spirv.Specification.ExecutionMode Mode, uint[] Parameters)> ReadExecutionModes(Span<byte> bytecode)
+    {
+        var result = new List<(int, Stride.Shaders.Spirv.Specification.ExecutionMode, uint[])>();
+        var words = System.Runtime.InteropServices.MemoryMarshal.Cast<byte, uint>(bytecode);
+        for (var w = 5; w < words.Length;)
+        {
+            var count = (int)(words[w] >> 16);
+            if (count == 0)
+                break;
+            if ((words[w] & 0xFFFF) == (uint)Stride.Shaders.Spirv.Specification.Op.OpExecutionMode)
+                result.Add(((int)words[w + 1], (Stride.Shaders.Spirv.Specification.ExecutionMode)words[w + 2], words.Slice(w + 3, count - 3).ToArray()));
+            w += count;
+        }
+        return result;
+    }
+
+    private static List<int> ReadEntryPointIds(Span<byte> bytecode)
+    {
+        var result = new List<int>();
+        var words = System.Runtime.InteropServices.MemoryMarshal.Cast<byte, uint>(bytecode);
+        for (var w = 5; w < words.Length;)
+        {
+            var count = (int)(words[w] >> 16);
+            if (count == 0)
+                break;
+            if ((words[w] & 0xFFFF) == (uint)Stride.Shaders.Spirv.Specification.Op.OpEntryPoint)
+                result.Add((int)words[w + 2]);
+            w += count;
+        }
+        return result;
     }
 
     // Regression: the MemberName re-instantiation path sets ShaderLoaderBase.SuppressSourceHash and

@@ -109,6 +109,29 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
             return null;
         }
 
+        /// <summary>
+        /// Function ids of the entry point and the methods it overrides, base first. The method group also
+        /// holds overloads, so the chain keeps only the members with the entry point's signature.
+        /// </summary>
+        static List<int> ResolveOverrideChain(SymbolTable table, Symbol entryPoint)
+        {
+            var chain = new List<int>();
+            if (table.TryResolveSymbol(entryPoint.Id.Name, out var group) && group.Type is FunctionGroupType)
+            {
+                var signature = (FunctionType)entryPoint.Type;
+                foreach (var member in group.GroupMembers)
+                {
+                    if ((FunctionType)member.Type == signature)
+                        chain.Add(member.IdRef);
+                }
+            }
+
+            if (chain.Count == 0)
+                chain.Add(entryPoint.IdRef);
+
+            return chain;
+        }
+
         public Result Process(SymbolTable table, SpirvBuffer buffer, SpirvContext context)
         {
             // OpEntryPoint emission is deferred to allow fixups (e.g. adding dummy DS inputs for HS-internal outputs)
@@ -427,18 +450,21 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
             }
         }
 
-        static int FindOutputPatchSize(SpirvContext context, Symbol entryPoint)
+        static int FindOutputPatchSize(SpirvContext context, Symbol entryPoint, List<int> overrideChain)
         {
-            foreach (var i in context)
+            for (var index = overrideChain.Count - 1; index >= 0; index--)
             {
-                if (i.Op == Op.OpExecutionMode && (OpExecutionMode)i is
-                    {
-                        EntryPoint: var target,
-                        Mode: ExecutionMode.OutputVertices,
-                        ModeParameters: { } m,
-                    } && target == entryPoint.IdRef)
+                foreach (var i in context)
                 {
-                    return m.Span[0];
+                    if (i.Op == Op.OpExecutionMode && (OpExecutionMode)i is
+                        {
+                            EntryPoint: var target,
+                            Mode: ExecutionMode.OutputVertices,
+                            ModeParameters: { } m,
+                        } && target == overrideChain[index])
+                    {
+                        return m.Span[0];
+                    }
                 }
             }
 
@@ -452,6 +478,7 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
             var stage = ExecutionModelToStageId(executionModel);
 
             var entryPointFunctionType = (FunctionType)entryPoint.Type;
+            var overrideChain = ResolveOverrideChain(table, entryPoint);
             // TODO: check all parameters instead of hardcoded 0
             int? arrayInputSize = executionModel switch
             {
@@ -461,7 +488,7 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
             };
             int? arrayOutputSize = executionModel switch
             {
-                ExecutionModel.TessellationControl => FindOutputPatchSize(context, entryPoint),
+                ExecutionModel.TessellationControl => FindOutputPatchSize(context, entryPoint, overrideChain),
                 _ => null,
             };
 
@@ -495,13 +522,19 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                 }
             }
 
-            // Move OpExecutionMode on new wrapper
-            foreach (var i in context)
+            // Move OpExecutionMode on new wrapper. The most derived declaration of each mode wins.
+            var movedModes = new HashSet<ExecutionMode>();
+            for (var index = overrideChain.Count - 1; index >= 0; index--)
             {
-                if (i.Op == Op.OpExecutionMode && (OpExecutionMode)i is { } executionMode)
+                foreach (var i in context)
                 {
-                    if (executionMode.EntryPoint == entryPoint.IdRef)
-                        executionMode.EntryPoint = entryPointInfo.Id;
+                    if (i.Op == Op.OpExecutionMode && (OpExecutionMode)i is { } executionMode && executionMode.EntryPoint == overrideChain[index])
+                    {
+                        if (movedModes.Add(executionMode.Mode))
+                            executionMode.EntryPoint = entryPointInfo.Id;
+                        else
+                            SpirvBuilder.SetOpNop(i.Data.Memory.Span);
+                    }
                 }
             }
 
@@ -684,17 +717,21 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
         {
             // Check if there's a patch constant function and call it when gl_InvocationID == 0
             string? patchConstantFuncName = null;
-            foreach (var i in context)
+            var overrideChain = ResolveOverrideChain(table, entryPoint);
+            for (var index = overrideChain.Count - 1; index >= 0 && patchConstantFuncName == null; index--)
             {
-                if (i.Op == Op.OpDecorateString && (OpDecorateString)i is
-                    {
-                        Target: int target,
-                        Decoration: Decoration.PatchConstantFuncSDSL,
-                        Value: string funcName
-                    } && target == entryPoint.IdRef)
+                foreach (var i in context)
                 {
-                    patchConstantFuncName = funcName;
-                    break;
+                    if (i.Op == Op.OpDecorateString && (OpDecorateString)i is
+                        {
+                            Target: int target,
+                            Decoration: Decoration.PatchConstantFuncSDSL,
+                            Value: string funcName
+                        } && target == overrideChain[index])
+                    {
+                        patchConstantFuncName = funcName;
+                        break;
+                    }
                 }
             }
 
