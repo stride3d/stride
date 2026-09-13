@@ -58,4 +58,34 @@
   </ItemGroup>
   <Import Project="..\..\shared\Stride.NuGetResolver.Targets\Stride.NuGetResolver.Targets.projitems" Label="Shared" />
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />
+
+  <!-- Template for running the compiler on a newer .NET major than its own (see build/Stride.AssetCompiler.targets):
+       the SDK's own runtimeconfig writer, with every framework at {MAJOR}.0.0 and LatestMinor. -->
+  <Target Name="_StrideGenerateHostRuntimeConfigTemplate" AfterTargets="GenerateBuildRuntimeConfigurationFiles" Condition="'$(GenerateRuntimeConfigurationFiles)' == 'true'">
+    <PropertyGroup>
+      <_StrideHostRuntimeConfigTemplate>$([System.IO.Path]::ChangeExtension('$(ProjectRuntimeConfigFilePath)', '.template.json'))</_StrideHostRuntimeConfigTemplate>
+    </PropertyGroup>
+    <ItemGroup>
+      <_StrideTemplateRuntimeFramework Include="@(RuntimeFramework)" Version="{MAJOR}.0.0" />
+    </ItemGroup>
+    <GenerateRuntimeConfigurationFiles AssetsFilePath="$(ProjectAssetsFile)"
+                                       TargetFramework="$(TargetFramework)"
+                                       TargetFrameworkMoniker="$(TargetFrameworkMoniker)"
+                                       RuntimeConfigPath="$(_StrideHostRuntimeConfigTemplate)"
+                                       RuntimeIdentifier="$(RuntimeIdentifier)"
+                                       PlatformLibraryName="$(MicrosoftNETPlatformLibrary)"
+                                       RuntimeFrameworks="@(_StrideTemplateRuntimeFramework)"
+                                       RollForward="LatestMinor"
+                                       UserRuntimeConfig="$(UserRuntimeConfig)"
+                                       HostConfigurationOptions="@(RuntimeHostConfigurationOption)"
+                                       AdditionalProbingPaths="@(AdditionalProbingPath)"
+                                       IsSelfContained="$(SelfContained)"
+                                       GenerateRuntimeConfigDevFile="false"
+                                       AlwaysIncludeCoreFramework="$(AlwaysIncludeCoreFrameworkInRuntimeConfig)" />
+    <Error Condition="!$([System.IO.File]::ReadAllText('$(_StrideHostRuntimeConfigTemplate)').Contains('{MAJOR}.0.0'))"
+           Text="The runtime config template $(_StrideHostRuntimeConfigTemplate) has no {MAJOR} placeholder; the SDK's runtimeconfig writer changed." />
+    <ItemGroup>
+      <FileWrites Include="$(_StrideHostRuntimeConfigTemplate)" />
+    </ItemGroup>
+  </Target>
 </Project>

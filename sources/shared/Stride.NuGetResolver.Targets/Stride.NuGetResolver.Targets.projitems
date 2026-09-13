@@ -69,6 +69,7 @@
       <_StrideToolFile Include="@(_StrideNuGetResolverFile)" />
       <_StrideToolFile Include="$(OutputPath)$(AssemblyName).dll" />
       <_StrideToolFile Condition="Exists('$(OutputPath)$(AssemblyName).runtimeconfig.json')" Include="$(OutputPath)$(AssemblyName).runtimeconfig.json" />
+      <_StrideToolFile Condition="Exists('$(OutputPath)$(AssemblyName).runtimeconfig.template.json')" Include="$(OutputPath)$(AssemblyName).runtimeconfig.template.json" />
       <_StrideToolFile Condition="Exists('$(OutputPath)$(AssemblyName).dll.config')" Include="$(OutputPath)$(AssemblyName).dll.config" />
       <TfmSpecificPackageFile Include="@(_StrideToolFile)">
         <PackagePath>tools/$(_StrideToolsTfm)/%(Filename)%(Extension)</PackagePath>

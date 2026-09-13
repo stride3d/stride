@@ -160,8 +160,9 @@
     <Error Condition="!Exists('$(StrideCompileAssetCommand)')" Text="Stride AssetCompiler could not be found (Command: &quot;$(StrideCompileAssetCommand)&quot;)"/>
 
     <!-- Host for the compiler process. The compiler loads the project's assemblies, so a project on a newer .NET
-         major than the compiler's own gets a generated runtimeconfig that runs the compiler on that major (newest
-         installed minor). Per project under obj/, so parallel builds never share a file. -->
+         major than the compiler's own runs the compiler on that major (newest installed minor, previews included):
+         the compiler ships a runtimeconfig template with {MAJOR} in place of the version, filled in here, per
+         project under obj/ so parallel builds never share a file. -->
     <PropertyGroup>
       <_StrideAssetCompilerMajor>$([System.Text.RegularExpressions.Regex]::Match('$(StrideCompileAssetCommand)', '[\\/]net(\d+)\.\d+').Groups[1].Value)</_StrideAssetCompilerMajor>
       <!-- The outer build of a multi-targeting project has no TargetFramework; the editor loads the first one, so do we. -->
@@ -171,12 +172,16 @@
       <StrideAssetCompilerHost Condition="'$(StrideAssetCompilerHost)' == ''">dotnet</StrideAssetCompilerHost>
     </PropertyGroup>
     <PropertyGroup Condition="'$(_StrideProjectNetMajor)' != '' And '$(_StrideAssetCompilerMajor)' != '' And '$(_StrideProjectNetMajor)' &gt; '$(_StrideAssetCompilerMajor)'">
+      <_StrideAssetCompilerRuntimeConfigTemplate>$([System.IO.Path]::ChangeExtension('$(StrideCompileAssetCommand)', '.runtimeconfig.template.json'))</_StrideAssetCompilerRuntimeConfigTemplate>
       <_StrideAssetCompilerRuntimeConfig>$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)', '$(IntermediateOutputPath)', 'stride', 'Stride.AssetCompiler.net$(_StrideProjectNetMajor).runtimeconfig.json'))</_StrideAssetCompilerRuntimeConfig>
-      <_StrideAssetCompilerRuntimeConfigContent>$([System.IO.File]::ReadAllText('$([System.IO.Path]::ChangeExtension('$(StrideCompileAssetCommand)', '.runtimeconfig.json'))'))</_StrideAssetCompilerRuntimeConfigContent>
-      <_StrideAssetCompilerRuntimeConfigContent>$([System.Text.RegularExpressions.Regex]::Replace($(_StrideAssetCompilerRuntimeConfigContent), '"version":\s*"\d+\.\d+\.\d+[^"]*"', '"version": "$(_StrideProjectNetMajor).0.0"'))</_StrideAssetCompilerRuntimeConfigContent>
-      <_StrideAssetCompilerRuntimeConfigContent>$([System.Text.RegularExpressions.Regex]::Replace($(_StrideAssetCompilerRuntimeConfigContent), '"rollForward":\s*"[^"]*",?\s*', ''))</_StrideAssetCompilerRuntimeConfigContent>
-      <_StrideAssetCompilerRuntimeConfigContent>$([System.Text.RegularExpressions.Regex]::Replace($(_StrideAssetCompilerRuntimeConfigContent), '"runtimeOptions":\s*\{', '"runtimeOptions": { "rollForward": "LatestMinor",'))</_StrideAssetCompilerRuntimeConfigContent>
       <StrideAssetCompilerHost>dotnet exec --runtimeconfig &quot;$(_StrideAssetCompilerRuntimeConfig)&quot;</StrideAssetCompilerHost>
+      <!-- A release version request skips prerelease runtimes by default. -->
+      <_StrideAssetCompilerHostEnv>DOTNET_ROLL_FORWARD_TO_PRERELEASE=1</_StrideAssetCompilerHostEnv>
+    </PropertyGroup>
+    <Error Condition="'$(_StrideAssetCompilerRuntimeConfig)' != '' And !Exists('$(_StrideAssetCompilerRuntimeConfigTemplate)')"
+           Text="This project targets .NET $(_StrideProjectNetMajor), but the Stride asset compiler has no runtime config template to run on it (expected $(_StrideAssetCompilerRuntimeConfigTemplate))." />
+    <PropertyGroup Condition="'$(_StrideAssetCompilerRuntimeConfig)' != ''">
+      <_StrideAssetCompilerRuntimeConfigContent>$([System.IO.File]::ReadAllText('$(_StrideAssetCompilerRuntimeConfigTemplate)').Replace('{MAJOR}', '$(_StrideProjectNetMajor)'))</_StrideAssetCompilerRuntimeConfigContent>
     </PropertyGroup>
     <WriteLinesToFile Condition="'$(_StrideAssetCompilerRuntimeConfig)' != ''" File="$(_StrideAssetCompilerRuntimeConfig)" Lines="$([MSBuild]::Escape($(_StrideAssetCompilerRuntimeConfigContent)))" Overwrite="true" WriteOnlyWhenDifferent="true" />
   </Target>
@@ -272,7 +277,7 @@
          cancelled). ErrorAndContinue (not true=WarnAndContinue) keeps the compiler's echoed error lines as errors,
          not warnings; the <Error> below re-fails the build. EnvironmentVariables carries the crash-capture env
          (createdump + crash-dir routing), empty only when both are unset. -->
-    <Exec WorkingDirectory="$(TargetDir)" Command="$(StrideCompileAssetCommandProxy)" EnvironmentVariables="$(_StrideCompileAssetCrashEnvVars)" ContinueOnError="ErrorAndContinue" StandardOutputImportance="$(_StrideCompileAssetOutputImportance)">
+    <Exec WorkingDirectory="$(TargetDir)" Command="$(StrideCompileAssetCommandProxy)" EnvironmentVariables="$(_StrideCompileAssetCrashEnvVars);$(_StrideAssetCompilerHostEnv)" ContinueOnError="ErrorAndContinue" StandardOutputImportance="$(_StrideCompileAssetOutputImportance)">
       <Output TaskParameter="ExitCode" PropertyName="_StrideCompileAssetExitCode" />
     </Exec>
 
@@ -286,7 +291,7 @@
          quote to Windows' parser, so the path would swallow the rest of the args and adopt would bail. -->
     <Exec Condition="'@(_StrideNativeCrashDump)' != ''"
           WorkingDirectory="$(TargetDir)"
-          EnvironmentVariables="$(_StrideCompileAssetAdoptEnvVars)"
+          EnvironmentVariables="$(_StrideCompileAssetAdoptEnvVars);$(_StrideAssetCompilerHostEnv)"
           Command="$(StrideAssetCompilerHost) &quot;$(StrideCompileAssetCommand)&quot; crash-adopt --dump-dir=&quot;$([System.IO.Path]::TrimEndingDirectorySeparator('$(_StrideCompileAssetNativeDumpDir)'))&quot; --platform=$(StridePlatform) --project-configuration=&quot;$(Configuration)&quot; --compile-property:StrideGraphicsApi=$(StrideHostGraphicsApi)"
           ContinueOnError="true" />
 
@@ -429,7 +434,7 @@
     </PropertyGroup>
     <Error Condition="'$(StrideContainsAssetTypes)' == 'true' And '@(_StrideHostAssetAssembly)' == ''"
            Text="StrideContainsAssetTypes=true but none of the target framework(s) '$(TargetFrameworks)$(TargetFramework)' is host-compatible: the asset compiler needs a base netX.0 or net*-windows* build to load. A mobile-only asset package can't ship a host-loadable assembly." />
-    <Exec Command="$(StrideAssetCompilerHost) &quot;$(StrideCompileAssetCommand)&quot; pack &quot;$(MSBuildProjectFullPath)&quot; --build-path=&quot;$([MSBuild]::NormalizePath('$(ProjectDir)', '$(BaseIntermediateOutputPath)', 'stride\pack'))&quot;$(_StridePackAssetAssembliesArg)$(_StridePackAssetNamespaceArg)" ConsoleToMsBuild="true">
+    <Exec Command="$(StrideAssetCompilerHost) &quot;$(StrideCompileAssetCommand)&quot; pack &quot;$(MSBuildProjectFullPath)&quot; --build-path=&quot;$([MSBuild]::NormalizePath('$(ProjectDir)', '$(BaseIntermediateOutputPath)', 'stride\pack'))&quot;$(_StridePackAssetAssembliesArg)$(_StridePackAssetNamespaceArg)" EnvironmentVariables="$(_StrideAssetCompilerHostEnv)" ConsoleToMsBuild="true">
       <Output TaskParameter="ConsoleOutput" ItemName="PackAssetsLine" />
     </Exec>
     <ItemGroup>
@@ -445,13 +450,13 @@
   </Target>
 
   <Target Name="StrideAssetUpdateGeneratedFiles" DependsOnTargets="_StridePrepareAssetCompiler" Condition="'$(StrideCompilerSkipBuild)' != 'true'">
-    <Exec Command="$(StrideAssetCompilerHost) &quot;$(StrideCompileAssetCommand)&quot; generate-code &quot;$(MSBuildProjectFullPath)&quot;"/>
+    <Exec Command="$(StrideAssetCompilerHost) &quot;$(StrideCompileAssetCommand)&quot; generate-code &quot;$(MSBuildProjectFullPath)&quot;" EnvironmentVariables="$(_StrideAssetCompilerHostEnv)"/>
   </Target>
 
   <!-- Upgrade assets in place to the current SerializedVersion. User invokes manually:
        dotnet build -t:StrideUpgradeAssets
        No-op when assets are already current (PackageSession.Save short-circuits on unmodified packages). -->
   <Target Name="StrideUpgradeAssets" DependsOnTargets="_StridePrepareAssetCompiler" Condition="'$(StrideCompilerSkipBuild)' != 'true'">
-    <Exec Command="$(StrideAssetCompilerHost) &quot;$(StrideCompileAssetCommand)&quot; upgrade &quot;$(MSBuildProjectFullPath)&quot;"/>
+    <Exec Command="$(StrideAssetCompilerHost) &quot;$(StrideCompileAssetCommand)&quot; upgrade &quot;$(MSBuildProjectFullPath)&quot;" EnvironmentVariables="$(_StrideAssetCompilerHostEnv)"/>
   </Target>
 </Project>
