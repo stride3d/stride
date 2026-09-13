@@ -9,22 +9,25 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
-      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    <Compile Include="../../shared/SharedAssemblyInfo.cs">
+      <Link>Properties/SharedAssemblyInfo.cs</Link>
     </Compile>
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Avalonia" />
-    <!--Condition below is needed to remove AvaloniaUI.DiagnosticsSupport package from build output in Release configuration.-->
-    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="AvaloniaUI.DiagnosticsSupport" />
+    <!-- Conditions below are needed to remove AvaloniaUI.DiagnosticsSupport package from build output in Release configuration. -->
+    <PackageReference Include="AvaloniaUI.DiagnosticsSupport">
+      <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
+      <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="MarkView.Avalonia" />
     <PackageReference Include="Xaml.Behaviors.Interactions" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\core\Stride.Core.Translation\Stride.Core.Translation.csproj" />
-    <ProjectReference Include="..\..\presentation\Stride.Core.Presentation\Stride.Core.Presentation.csproj" />
+    <ProjectReference Include="../../core/Stride.Core.Translation/Stride.Core.Translation.csproj" />
+    <ProjectReference Include="../../presentation/Stride.Core.Presentation/Stride.Core.Presentation.csproj" />
   </ItemGroup>
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />
 </Project>
