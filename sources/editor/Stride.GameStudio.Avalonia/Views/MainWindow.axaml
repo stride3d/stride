@@ -1,0 +1,14 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:gsvm="using:Stride.GameStudio.Avalonia.ViewModels"
+        xmlns:gsvw="using:Stride.GameStudio.Avalonia.Views"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="Stride.GameStudio.Avalonia.Views.MainWindow"
+        x:DataType="gsvm:MainViewModel"
+        Icon="/Assets/GameStudio.ico"
+        Title="{Binding Title}"
+        Width="1280" Height="900">
+  <gsvw:MainView />
+</Window>
