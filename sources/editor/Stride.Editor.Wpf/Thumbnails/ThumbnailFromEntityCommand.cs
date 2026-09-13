@@ -11,7 +11,6 @@ using Stride.Assets.Rendering;
 using Stride.Editor.Engine;
 using Stride.Engine;
 using Stride.Graphics;
-using Stride.Particles.Rendering;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
 using Stride.Rendering.Lights;
@@ -50,21 +49,6 @@ namespace Stride.Editor.Thumbnails
 
             var opaqueStage = result.RenderStages.First(x => x.Name.Equals("Opaque"));
             var transparentStage = result.RenderStages.First(x => x.Name.Equals("Transparent"));
-
-            // Add particles renderer
-            result.RenderFeatures.Add(
-                new ParticleEmitterRenderFeature
-                {
-                    RenderStageSelectors =
-                    {
-                        new ParticleEmitterTransparentRenderStageSelector
-                        {
-                            EffectName = "Particles",
-                            OpaqueRenderStage = opaqueStage,
-                            TransparentRenderStage = transparentStage,
-                        }
-                    },
-                });
 
             RenderFeatureProviders.AddPackageRenderFeatures(result, opaqueStage, transparentStage);
 

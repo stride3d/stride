@@ -218,9 +218,9 @@ namespace Stride.Assets.Presentation
             // Extra packages to display in "add reference" dialog
             session.SuggestedPackages.Add(new PackageName(typeof(Stride.Engine.EntityComponent).Assembly.GetName().Name, new PackageVersion(StrideVersion.NuGetVersion)));
             session.SuggestedPackages.Add(new PackageName(typeof(Stride.UI.UIElement).Assembly.GetName().Name, new PackageVersion(StrideVersion.NuGetVersion)));
-            session.SuggestedPackages.Add(new PackageName(typeof(Stride.Particles.Components.ParticleSystemComponent).Assembly.GetName().Name, new PackageVersion(StrideVersion.NuGetVersion)));
             // Plugins are not referenced by the editor, so their ids are strings
             session.SuggestedPackages.Add(new PackageName("Stride.Audio", new PackageVersion(StrideVersion.NuGetVersion)));
+            session.SuggestedPackages.Add(new PackageName("Stride.Particles", new PackageVersion(StrideVersion.NuGetVersion)));
             session.SuggestedPackages.Add(new PackageName("Stride.Navigation", new PackageVersion(StrideVersion.NuGetVersion)));
             session.SuggestedPackages.Add(new PackageName("Stride.Physics", new PackageVersion(StrideVersion.NuGetVersion)));
             session.SuggestedPackages.Add(new PackageName("Stride.BepuPhysics", new PackageVersion(StrideVersion.NuGetVersion)));

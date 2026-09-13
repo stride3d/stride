@@ -88,6 +88,7 @@
     <Project Path="../sources/engine/Stride.Native/Stride.Native.csproj" />
     <Project Path="../sources/engine/Stride.Navigation/Stride.Navigation.csproj" />
     <Project Path="../sources/engine/Stride.Particles/Stride.Particles.csproj" />
+    <Project Path="../sources/engine/Stride.Particles.Editor/Stride.Particles.Editor.csproj" />
     <Project Path="../sources/engine/Stride.Physics/Stride.Physics.csproj" />
     <Project Path="../sources/engine/Stride.Physics.Assets/Stride.Physics.Assets.csproj" />
     <Project Path="../sources/engine/Stride.Physics.Editor/Stride.Physics.Editor.csproj" />

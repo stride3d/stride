@@ -1,35 +1,30 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System.Collections.Generic;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters;
 using Stride.Core.Extensions;
-using Stride.Core.Presentation.Quantum.Presenters;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Engine;
-using Stride.Particles;
 using Stride.Particles.Initializers;
 using Stride.Particles.Modules;
-using Stride.Core.Presentation.ViewModels;
 
-namespace Stride.Assets.Presentation.ViewModel
+namespace Stride.Particles.Editor
 {
-    public class ParticleSystemComponentViewModel : DispatcherViewModel
+    /// <summary>
+    /// In the property grid of a particle transform (an initializer or an updater), the Display* toggles hide
+    /// themselves and show or hide the position, rotation and scale members they stand for.
+    /// </summary>
+    public class ParticleSystemNodeUpdater : AssetNodePresenterUpdaterBase
     {
-        private readonly EntityViewModel entity;
-
-        public ParticleSystemComponentViewModel(IViewModelServiceProvider serviceProvider, EntityViewModel entity) : base(serviceProvider)
+        protected override void FinalizeTree(IAssetNodePresenter root)
         {
-            this.entity = entity;
-        }
+            // Particle systems are entity components
+            if (root.Value is not Entity)
+                return;
 
-        public void FinalizeNodePresenterTree(IAssetNodePresenter root)
-        {
             foreach (var node in root.Children.BreadthFirst(x => x.Children))
             {
                 if ((node.Parent?.Type == typeof(ParticleInitializer) || node.Parent?.Type == typeof(ParticleUpdater)) && node.Parent?.Value is ParticleTransform)
                 {
-                    // Swap visibility for some particle attributes
                     if (node.Name == nameof(ParticleTransform.DisplayParticlePosition))
                     {
                         node.IsVisible = false;
