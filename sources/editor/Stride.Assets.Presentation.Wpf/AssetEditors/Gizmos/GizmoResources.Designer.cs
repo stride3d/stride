@@ -113,16 +113,6 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
-        internal static byte[] ParticleGizmo {
-            get {
-                object obj = ResourceManager.GetObject("ParticleGizmo", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
         internal static byte[] PointLightGizmo {
             get {
                 object obj = ResourceManager.GetObject("PointLightGizmo", resourceCulture);

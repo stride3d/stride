@@ -2,13 +2,14 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using Stride.Core.Mathematics;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
+using Stride.Assets.Presentation.AssetEditors.Gizmos;
 using Stride.Assets.Presentation.DebugShapes;
 using Stride.Engine;
 using Stride.Engine.Gizmos;
 using Stride.Particles.Components;
 using Stride.Particles.DebugDraw;
 
-namespace Stride.Assets.Presentation.AssetEditors.Gizmos
+namespace Stride.Particles.Editor
 {
     [GizmoComponent(typeof(ParticleSystemComponent), false)]
     public class ParticleSystemGizmo : BillboardingGizmo<ParticleSystemComponent>
@@ -16,7 +17,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         private DebugShapeRenderer shapeRenderer;
 
         public ParticleSystemGizmo(EntityComponent component)
-            : base(component, "ParticleSystem", GizmoResources.ParticleGizmo)
+            : base(component, "ParticleSystem", ParticlesEditorPlugin.LoadResource("ParticleGizmo.png"))
         {
         }
 

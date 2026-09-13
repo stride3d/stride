@@ -6,8 +6,13 @@
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--parameter-key --auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
     <StridePackAssets>true</StridePackAssets>
+    <!-- The particle system component and its emitters are written in scene and prefab assets -->
     <StrideContainsAssetTypes>true</StrideContainsAssetTypes>
   </PropertyGroup>
+  <ItemGroup>
+    <!-- Companion package: the gizmo, entity factories, property grid and preview pieces in .Editor (no asset types, so no .Assets) -->
+    <StrideCompanionProject Include="..\Stride.Particles.Editor\Stride.Particles.Editor.csproj" />
+  </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>

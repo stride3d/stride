@@ -15,7 +15,6 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Stride.Foundation" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Games" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Graphics" + Stride.PublicKeys.Default)]
-[assembly: InternalsVisibleTo("Stride.Particles" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Rendering" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Shaders" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.TextureConverter" + Stride.PublicKeys.Default)]
