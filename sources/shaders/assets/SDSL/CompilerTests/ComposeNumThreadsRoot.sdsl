@@ -1,0 +1,13 @@
+namespace Stride.Shaders.Tests;
+
+shader ComposeNumThreadsRoot : CSNumThreadsOverrideBase
+{
+    compose ComposeNumThreadsHelper helper;
+
+    [numthreads(16, 16, 1)]
+    override void CSMain()
+    {
+        Output[int2(1, 1)] = helper.Value();
+        base.CSMain();
+    }
+}

@@ -1,0 +1,19 @@
+namespace Stride.Shaders.Tests;
+
+shader CSNumThreadsOverrideBase
+{
+    stage stream uint3 DispatchThreadId : SV_DispatchThreadID;
+
+    RWTexture2D<float4> Output;
+
+    [numthreads(8, 8, 1)]
+    void CSMain()
+    {
+        Compute();
+    }
+
+    void Compute()
+    {
+        Output[int2(0, 0)] = float4(1, 0, 0, 1);
+    }
+}

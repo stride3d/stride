@@ -1,0 +1,10 @@
+namespace Stride.Shaders.Tests;
+
+shader CSNumThreadsInherit : CSNumThreadsOverrideBase
+{
+    override void CSMain()
+    {
+        Output[int2(1, 1)] = float4(0, 1, 0, 1);
+        base.CSMain();
+    }
+}
