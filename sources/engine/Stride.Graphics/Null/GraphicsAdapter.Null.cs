@@ -51,6 +51,18 @@ namespace Stride.Graphics
         }
 
         /// <summary>
+        /// Gets a value indicating whether this adapter is a software rasterizer.
+        /// </summary>
+        public bool IsSoftwareAdapter
+        {
+            get
+            {
+                NullHelper.ToImplement();
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Tests to see if the adapter supports the requested profile.
         /// </summary>
         /// <param name="graphicsProfile">The graphics profile.</param>

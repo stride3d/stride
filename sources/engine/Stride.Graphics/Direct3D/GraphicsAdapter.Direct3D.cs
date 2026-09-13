@@ -89,6 +89,14 @@ namespace Stride.Graphics
         /// </summary>
         public int VendorId  { get; }
 
+        /// <summary>
+        ///   Gets a value indicating whether this adapter is a software rasterizer (WARP, the
+        ///   Microsoft Basic Render Driver) rather than a physical GPU.
+        /// </summary>
+        public bool IsSoftwareAdapter { get; }
+
+        private const uint MicrosoftVendorId = 0x1414;
+
 
         /// <summary>
         ///   Gets the amount of memory, in bytes, on the graphics card (GPU) that is
@@ -153,6 +161,8 @@ namespace Stride.Graphics
             AdapterUid = dxgiAdapterDesc.AdapterLuid.BitCast<Luid, long>();
 
             VendorId = (int) dxgiAdapterDesc.VendorId;
+            // The software flag marks WARP; the Basic Render Driver is not always flagged, hence the Microsoft vendor id.
+            IsSoftwareAdapter = (dxgiAdapterDesc.Flags & (uint) AdapterFlag.Software) != 0 || dxgiAdapterDesc.VendorId == MicrosoftVendorId;
             DedicatedVideoMemory = dxgiAdapterDesc.DedicatedVideoMemory;
             SharedSystemMemory = dxgiAdapterDesc.SharedSystemMemory;
             DedicatedSystemMemory = dxgiAdapterDesc.DedicatedSystemMemory;
