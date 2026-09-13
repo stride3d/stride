@@ -197,6 +197,6 @@ root[sizeCategory][nameof(TextureAsset.Height)]
 | Type | Assembly | Location |
 |---|---|---|
 | `INodePresenter`, `INodePresenterUpdater` interfaces | `Stride.Core.Presentation.Quantum` | `sources/presentation/Stride.Core.Presentation.Quantum/Presenters/` |
-| `IAssetNodePresenter`, `AssetNodePresenterUpdaterBase` | `Stride.Core.Assets.Editor` | `sources/editor/Stride.Core.Assets.Editor/Quantum/NodePresenters/` |
-| Attached property key classes (`NumericData`, `DisplayData`, `CategoryData`) | `Stride.Core.Assets.Editor` | `sources/editor/Stride.Core.Assets.Editor/Quantum/NodePresenters/Keys/` |
+| `IAssetNodePresenter`, `AssetNodePresenterUpdaterBase` | `Stride.Core.Assets.Editor.Wpf` | `sources/editor/Stride.Core.Assets.Editor.Wpf/Quantum/NodePresenters/` |
+| Attached property key classes (`NumericData`, `DisplayData`, `CategoryData`) | `Stride.Core.Assets.Editor.Wpf` | `sources/editor/Stride.Core.Assets.Editor.Wpf/Quantum/NodePresenters/Keys/` |
 | Your `%%AssetName%%AssetNodeUpdater` | `Stride.Assets.Presentation.Wpf` | `sources/editor/Stride.Assets.Presentation.Wpf/NodePresenters/Updaters/` |
