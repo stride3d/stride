@@ -13,7 +13,7 @@ Two layers sit between a mutation and the undo/redo stack:
 | Transaction core | `Stride.Core.Design`<br/>`sources/core/Stride.Core.Design/Transactions/` | `ITransactionStack`, `Transaction`, `Operation`, `IMergeableOperation` | Generic bounded stack and reversible operation primitives |
 | Presentation service | `Stride.Core.Presentation`<br/>`sources/presentation/Stride.Core.Presentation/` | `IUndoRedoService`, `DirtyingOperation`, `AnonymousDirtyingOperation`, `IDirtiable`, `DirtiableManager` | Service wrapper with human-readable names, dirty-flag integration, and save snapshots |
 
-Editor-specific operations (`ContentValueChangeOperation`) live in `Stride.Core.Assets.Editor` (`sources/editor/Stride.Core.Assets.Editor/Quantum/`) and extend the base model with Quantum node references.
+Editor-specific operations (`ContentValueChangeOperation`) live in `Stride.Core.Assets.Editor.Wpf` (`sources/editor/Stride.Core.Assets.Editor.Wpf/Quantum/`) and extend the base model with Quantum node references.
 
 ## `IUndoRedoService`
 
@@ -61,7 +61,7 @@ using (var transaction = UndoRedoService.CreateTransaction())
 For operations used in multiple places or that benefit from consecutive-edit merging, subclass `DirtyingOperation`:
 
 ```csharp
-// sources/editor/Stride.Assets.Presentation/YourFeature/%%OperationName%%Operation.cs
+// sources/editor/Stride.Assets.Presentation.Wpf/YourFeature/%%OperationName%%Operation.cs
 using Stride.Core.Presentation.Dirtiables;
 using Stride.Core.Transactions;
 
@@ -108,7 +108,7 @@ internal sealed class %%OperationName%%Operation : DirtyingOperation, IMergeable
 
 `DirtyingOperation` declares `protected abstract void Undo()` and `protected abstract void Redo()` — implement only those two. The `Dirtiables` constructor parameter is forwarded to the base class and used by `DirtiableManager`.
 
-`IMergeableOperation` is optional. For the canonical implementation, see `ContentValueChangeOperation` at `sources/editor/Stride.Core.Assets.Editor/Quantum/ContentValueChangeOperation.cs` — it merges consecutive value edits on the same Quantum node index.
+`IMergeableOperation` is optional. For the canonical implementation, see `ContentValueChangeOperation` at `sources/editor/Stride.Core.Assets.Editor.Wpf/Quantum/ContentValueChangeOperation.cs` — it merges consecutive value edits on the same Quantum node index.
 
 ## `IDirtiable` and Dirty Flags
 
@@ -135,5 +135,5 @@ Manual `PushOperation` is only required for mutations that bypass the node graph
 | `ITransactionStack`, `Transaction`, `Operation`, `IMergeableOperation` | `Stride.Core.Design` | `sources/core/Stride.Core.Design/Transactions/` |
 | `IUndoRedoService`, `DirtyingOperation`, `AnonymousDirtyingOperation` | `Stride.Core.Presentation` | `sources/presentation/Stride.Core.Presentation/Services/` and `Dirtiables/` |
 | `IDirtiable`, `DirtiableManager` | `Stride.Core.Presentation` | `sources/presentation/Stride.Core.Presentation/Dirtiables/` |
-| `ContentValueChangeOperation` | `Stride.Core.Assets.Editor` | `sources/editor/Stride.Core.Assets.Editor/Quantum/` |
-| Your custom operation | `Stride.Assets.Presentation` | `sources/editor/Stride.Assets.Presentation/YourFeature/` |
+| `ContentValueChangeOperation` | `Stride.Core.Assets.Editor.Wpf` | `sources/editor/Stride.Core.Assets.Editor.Wpf/Quantum/` |
+| Your custom operation | `Stride.Assets.Presentation.Wpf` | `sources/editor/Stride.Assets.Presentation.Wpf/YourFeature/` |

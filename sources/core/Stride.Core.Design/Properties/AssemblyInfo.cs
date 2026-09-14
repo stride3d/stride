@@ -8,4 +8,4 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Stride.Engine.Step1")]
 [assembly: InternalsVisibleTo("Stride.Core.Tests")]
 [assembly: InternalsVisibleTo("Stride.Core.Design.Tests")]
-[assembly: InternalsVisibleTo("Stride.Core.Presentation.Tests")]
+[assembly: InternalsVisibleTo("Stride.Core.Presentation.Wpf.Tests")]

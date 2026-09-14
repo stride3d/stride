@@ -28,7 +28,7 @@ public static class StrideDefaultTemplates
         // Only TemplateFolders are needed here (loaded regardless of this flag); skip the package's
         // assets — they're unused for template registration and slow to load.
         var loadParams = new PackageLoadParameters { LoadAssemblyReferences = loadAssemblyReferences, AutoLoadTemporaryAssets = false };
-        foreach (var packageInfo in new[] { new { Name = "Stride.Assets.Presentation", Version = StrideVersion.NuGetVersion }, new { Name = "Stride.SpriteStudio.Offline", Version = StrideVersion.NuGetVersion } })
+        foreach (var packageInfo in new[] { new { Name = "Stride.Assets.Presentation.Wpf", Version = StrideVersion.NuGetVersion }, new { Name = "Stride.SpriteStudio.Offline", Version = StrideVersion.NuGetVersion } })
         {
             var logger = new LoggerResult();
             var packageFile = PackageStore.Instance.GetPackageFileName(packageInfo.Name, new PackageVersionRange(new PackageVersion(packageInfo.Version)));

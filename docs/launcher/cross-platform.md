@@ -46,7 +46,7 @@ Both paths are implemented:
 
 ## Settings paths
 
-All config paths go through `EditorPath` (linked file from `Stride.Core.Assets.Editor`). `EditorPath.UserDataPath` resolves to:
+All config paths go through `EditorPath` (linked file from `Stride.Core.Assets.Editor.Wpf`). `EditorPath.UserDataPath` resolves to:
 
 - `%LocalAppData%\Stride\` on Windows
 - `$XDG_DATA_HOME/Stride/` (or `~/.local/share/Stride/`) on Linux

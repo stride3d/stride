@@ -77,7 +77,7 @@
     <ProjectReference Include="..\..\engine\Stride.BepuPhysics\Stride.BepuPhysics\Stride.BepuPhysics.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\Stride.Assets.Presentation\Stride.Assets.Presentation.csproj" />
+    <ProjectReference Include="..\Stride.Assets.Presentation.Wpf\Stride.Assets.Presentation.Wpf.csproj" />
     <ProjectReference Include="..\..\tools\Stride.EffectCompilerServer\Stride.EffectCompilerServer.csproj" IncludeAssets="Build" />
     <ProjectReference Include="..\..\crashreport\Stride.CrashReport\Stride.CrashReport.csproj" />
     <!-- Sentry is used by the core's crash sender at send time, but it's PrivateAssets=all in the core (to keep
