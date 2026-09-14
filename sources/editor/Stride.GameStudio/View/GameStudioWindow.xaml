@@ -133,8 +133,6 @@
     <KeyBinding Command="{Binding Debugging.StartProjectCommand}" Gesture="{sd:KeyGesture {x:Static strings:KeyGestures.StartProject}}"/>
     <KeyBinding Command="{Binding Debugging.CancelBuildCommand}" Gesture="{sd:KeyGesture {x:Static strings:KeyGestures.CancelBuild}}"/>
     <KeyBinding Command="{Binding OpenDebugWindowCommand, RelativeSource={RelativeSource AncestorType=Window}}" Gesture="{sd:KeyGesture {x:Static strings:KeyGestures.OpenDebugWindow}}"/>
-    <!-- Block Ctrl+Y by binding it to a disabled command (DoNothing) -->
-    <KeyBinding Command="{x:Static cmd:DisabledCommand.Instance}" Gesture="{sd:KeyGesture {x:Static strings:KeyGestures.DoNothing}}"/>
     <!-- Redo keybinding provided from KeyGestures resource -->
     <KeyBinding Command="ApplicationCommands.Redo" Gesture="{sd:KeyGesture {x:Static strings:KeyGestures.Redo}}"/>
   </Window.InputBindings>

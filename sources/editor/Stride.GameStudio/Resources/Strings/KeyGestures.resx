@@ -141,7 +141,4 @@
   <data name="Redo" xml:space="preserve">
     <value>Ctrl+Shift+Z</value>
   </data>
-  <data name="DoNothing" xml:space="preserve">
-    <value>Ctrl+Y</value>
-  </data>
 </root>

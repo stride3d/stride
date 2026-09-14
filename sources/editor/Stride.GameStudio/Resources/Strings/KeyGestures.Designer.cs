@@ -97,15 +97,6 @@ namespace Stride.GameStudio.Resources.Strings {
         }
         
         /// <summary>
-        ///   Busca una cadena traducida similar a Ctrl+Y.
-        /// </summary>
-        public static string DoNothing {
-            get {
-                return ResourceManager.GetString("DoNothing", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Busca una cadena traducida similar a Ctrl+Enter.
         /// </summary>
         public static string EditAsset {
