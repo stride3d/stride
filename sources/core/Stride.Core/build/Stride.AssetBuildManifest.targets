@@ -526,6 +526,8 @@
       <_StrideManifestHostFramework Condition="'$(_StrideManifestHostFramework)' == ''">$(TargetFramework)</_StrideManifestHostFramework>
       <_StrideManifestProjectAssetsFile Condition="Exists('$(ProjectAssetsFile)')">$(ProjectAssetsFile)</_StrideManifestProjectAssetsFile>
       <_StrideManifestIsHostFramework Condition="'$(TargetFramework)' == '$(_StrideManifestHostFramework)'">true</_StrideManifestIsHostFramework>
+      <!-- A Windows-only build (editor packages) is the host build when the project has no base netX.0 build -->
+      <_StrideManifestIsHostFramework Condition="'$(_StrideManifestIsHostFramework)' != 'true' And $(TargetFramework.Contains('-windows')) And !$([System.String]::Copy(';$(TargetFrameworks);').Contains(';$(_StrideManifestHostFramework);'))">true</_StrideManifestIsHostFramework>
       <!-- Package identity: PackageId ?? AssemblyName -->
       <_StrideManifestPackageName>$(PackageId)</_StrideManifestPackageName>
       <_StrideManifestPackageName Condition="'$(_StrideManifestPackageName)' == ''">$(AssemblyName)</_StrideManifestPackageName>
