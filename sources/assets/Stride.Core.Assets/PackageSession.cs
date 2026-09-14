@@ -645,6 +645,12 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
     }
 
     /// <summary>
+    /// Whether loads into this session bring the editor companion packages (<see cref="Package.CompanionPackages"/>).
+    /// A load whose parameters ask for them sets it, so later loads with default parameters get them too.
+    /// </summary>
+    public bool LoadEditorPackages { get; set; }
+
+    /// <summary>
     /// Gets the packages referenced by the current package.
     /// </summary>
     /// <returns>IEnumerable&lt;Package&gt;.</returns>
@@ -1105,7 +1111,8 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
             }
 
             // Companion packages declared by the packages loaded above
-            LoadCompanionPackages(GetRootDirectory(), log);
+            LoadEditorPackages |= loadParameters.LoadEditorPackages;
+            LoadCompanionPackages(GetRootDirectory(), log, LoadEditorPackages);
         }
         finally
         {

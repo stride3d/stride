@@ -419,9 +419,13 @@
          $(TargetFrameworks); single: $(TargetFramework)) and keep only the host-compatible ones the asset
          compiler can load — a base netX.0 (no platform suffix) or a net*-windows* — emitting one entry
          per match (';'-separated; the consumer picks the one matching its runtime). -->
+    <PropertyGroup Condition="'$(StrideContainsAssetTypes)' == 'true'">
+      <_StrideSingleTargetFramework>$(TargetFramework)</_StrideSingleTargetFramework>
+      <_StrideSingleTargetFramework Condition="$(TargetFramework.EndsWith('-windows')) And '$(TargetPlatformVersion)' != ''">$(TargetFramework)$(TargetPlatformVersion)</_StrideSingleTargetFramework>
+    </PropertyGroup>
     <ItemGroup Condition="'$(StrideContainsAssetTypes)' == 'true'">
       <_StrideAssetAssemblyTfm Include="$(TargetFrameworks)" Condition="'$(TargetFrameworks)' != ''" />
-      <_StrideAssetAssemblyTfm Include="$(TargetFramework)" Condition="'$(TargetFrameworks)' == ''" />
+      <_StrideAssetAssemblyTfm Include="$(_StrideSingleTargetFramework)" Condition="'$(TargetFrameworks)' == ''" />
       <_StrideHostAssetAssemblyTfm Include="@(_StrideAssetAssemblyTfm)"
                                    Condition="!$([System.String]::Copy('%(Identity)').Contains('-')) Or $([System.String]::Copy('%(Identity)').Contains('-windows'))" />
       <_StrideHostAssetAssembly Include="lib/%(_StrideHostAssetAssemblyTfm.Identity)/$(AssemblyName).dll" />
