@@ -45,13 +45,13 @@
            the per-crash checkboxes, and last the rarely used links (one Shift+Tab away from the initial focus). -->
       <StackPanel Margin="4,0,4,8" IsVisible="{Binding ShowSendControls}" IsEnabled="{Binding CanSend}">
         <Grid ColumnDefinitions="*,*" Margin="0,0,0,4">
-          <TextBox Grid.Column="0" Margin="0,0,4,0" Watermark="Your name (optional)" TabIndex="2"
+          <TextBox Grid.Column="0" Margin="0,0,4,0" PlaceholderText="Your name (optional)" TabIndex="2"
                    Text="{Binding FeedbackName}" />
-          <TextBox Grid.Column="1" Margin="4,0,0,0" Watermark="Your email (optional, for follow-up)" TabIndex="3"
+          <TextBox Grid.Column="1" Margin="4,0,0,0" PlaceholderText="Your email (optional, for follow-up)" TabIndex="3"
                    Text="{Binding FeedbackEmail}" />
         </Grid>
         <TextBox Height="52" AcceptsReturn="True" TextWrapping="Wrap" VerticalContentAlignment="Top" TabIndex="4"
-                 Watermark="What were you doing when it crashed? (optional)"
+                 PlaceholderText="What were you doing when it crashed? (optional)"
                  Text="{Binding FeedbackMessage}" />
       </StackPanel>
       <TextBlock Margin="4,0,4,8" TextWrapping="WrapWithOverflow"

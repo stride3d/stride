@@ -44,7 +44,7 @@ public partial class App : Application
             Title = "Save full memory dump",
             SuggestedFileName = suggestedName,
             DefaultExtension = "dmp",
-            FileTypeChoices = new[] { new FilePickerFileType("Minidump") { Patterns = new[] { "*.dmp" } } },
+            FileTypeChoices = [new FilePickerFileType("Minidump") { Patterns = ["*.dmp"] }],
         });
         return file?.TryGetLocalPath();
     }
