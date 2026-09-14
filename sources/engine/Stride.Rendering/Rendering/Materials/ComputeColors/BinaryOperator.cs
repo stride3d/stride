@@ -12,9 +12,14 @@ namespace Stride.Rendering.Materials.ComputeColors
     public enum BinaryOperator
     {
         /// <summary>
-        /// Add of the two textures.
+        /// Add '3ds' of the two textures.
         /// </summary>
         Add,
+
+        /// <summary>
+        /// Add of the two textures.
+        /// </summary>
+        AddMath,
 
         /// <summary>
         /// Average of the two textures.
