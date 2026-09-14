@@ -2,8 +2,12 @@ name: PR Label Suites
 
 # Opt-in CI suites a collaborator arms by adding a `ci-<suite>` label to a PR.
 #
-# - `labeled` runs the suite of the label just added, and only that one; a push (`synchronize`,
-#   `ready_for_review`, ...) reruns every armed suite. Removing a label only stops the reruns.
+# - `labeled` runs the suite of the label just added, and only that one, even on a draft: adding the
+#   label is the request. Pushes, `reopened` and `ready_for_review` rerun every armed suite but follow
+#   main.yml's draft rule: skipped on a draft unless it has `ci-run-on-draft`. Removing a label only
+#   stops the reruns.
+# - No `opened` trigger: labels picked when creating a PR arrive as `labeled` events right after it,
+#   and an `opened` run would start the same suites again, cancelling one copy of each.
 # - Runs through pull_request, so it uses the PR's own workflow YAML; adding a label requires
 #   write access, so the label itself is the authorization.
 # - Each suite is its own non-required check. There is no aggregate gate: it could only report on
@@ -15,7 +19,7 @@ name: PR Label Suites
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, ready_for_review, labeled]
+    types: [reopened, synchronize, ready_for_review, labeled]
 
 permissions:
   contents: read
@@ -30,7 +34,9 @@ concurrency:
 
 jobs:
   # Shared path-filter, consulted by suites that overlap main.yml's auto-run set (e.g. ios).
+  # Skipped for non-ci labels, which skips every suite (they all need it).
   changes:
+    if: github.event.action != 'labeled' || startsWith(github.event.label.name, 'ci-')
     uses: ./.github/workflows/changes.yml
 
   # End-user packaging/screenshot suite — main.yml never auto-runs it, so no overlap guard needed.
@@ -38,7 +44,9 @@ jobs:
     needs: changes
     if: >
       contains(github.event.pull_request.labels.*.name, 'ci-enduser')
-      && (github.event.action != 'labeled' || github.event.label.name == 'ci-enduser')
+      && ((github.event.action == 'labeled' && github.event.label.name == 'ci-enduser')
+          || (github.event.action != 'labeled'
+              && (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft'))))
     uses: ./.github/workflows/test-enduser.yml
     secrets:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -52,7 +60,9 @@ jobs:
     needs: changes
     if: >
       contains(github.event.pull_request.labels.*.name, 'ci-editor')
-      && (github.event.action != 'labeled' || github.event.label.name == 'ci-editor')
+      && ((github.event.action == 'labeled' && github.event.label.name == 'ci-editor')
+          || (github.event.action != 'labeled'
+              && (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft'))))
     uses: ./.github/workflows/test-windows-editor.yml
     secrets:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -61,12 +71,14 @@ jobs:
 
   # iOS auto-runs in main.yml on the narrow ios-tests filter. Run it here only when main.yml won't:
   # on a draft that ci-run-on-draft doesn't punch through, or when the path filter didn't match.
-  # Net: ci-ios runs iOS exactly once per push — no gap, no double-run.
+  # On a draft, only the ci-ios label event itself runs it; pushes skip it like main.yml does.
   ios:
     needs: changes
     if: >
       contains(github.event.pull_request.labels.*.name, 'ci-ios')
-      && (github.event.action != 'labeled' || github.event.label.name == 'ci-ios')
+      && ((github.event.action == 'labeled' && github.event.label.name == 'ci-ios')
+          || (github.event.action != 'labeled'
+              && (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft'))))
       && ((github.event.pull_request.draft == true && !contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft'))
           || needs.changes.outputs.ios-tests != 'true')
     uses: ./.github/workflows/test-ios-game.yml
@@ -78,7 +90,9 @@ jobs:
     needs: changes
     if: >
       contains(github.event.pull_request.labels.*.name, 'ci-android')
-      && (github.event.action != 'labeled' || github.event.label.name == 'ci-android')
+      && ((github.event.action == 'labeled' && github.event.label.name == 'ci-android')
+          || (github.event.action != 'labeled'
+              && (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft'))))
       && ((github.event.pull_request.draft == true && !contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft'))
           || needs.changes.outputs.android != 'true')
     uses: ./.github/workflows/test-android-game.yml

@@ -21,7 +21,8 @@ opt in by adding a label to the PR (collaborator access required):
 
 Labels run through the PR's own workflow ([`pr-label-suites.yml`](workflows/pr-label-suites.yml) /
 [`main.yml`](workflows/main.yml)), so they use the PR head's YAML. Adding a label runs that suite
-right away; every push re-runs all applied suites. Removing a label only stops the re-runs.
+right away, even on a draft; every push re-runs all applied suites (on a draft, only with
+`ci-run-on-draft`). Removing a label only stops the re-runs.
 
 ## Earn Money by Contributing
 
