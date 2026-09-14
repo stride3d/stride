@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Threading;
 
 using Silk.NET.Core.Native;
 using Silk.NET.DXGI;
@@ -623,6 +624,47 @@ namespace Stride.Graphics
             // On D3D, default state is Less instead of our LessEqual
             // Let's update default pipeline state so that it correspond to D3D state after a "ClearState()"
             pipelineStateDescription.DepthStencilState.DepthBufferFunction = CompareFunction.Less;
+        }
+
+        partial void WaitForGPUIdle()
+        {
+            // Also runs from Window.Closing so queued Presents finish before the window is destroyed:
+            // WARP on the Basic Render adapter never completes them afterwards. Bounded, as a healthy
+            // queue drains well within this.
+            const int GpuIdleTimeoutMs = 10_000;
+            const int S_FALSE = 1;
+
+            if (nativeDevice is null || nativeDeviceContext is null)
+                return;
+
+            var eventQueryDescription = new QueryDesc(Query.Event);
+            ComPtr<ID3D11Query> query = default;
+
+            HResult result = nativeDevice->CreateQuery(in eventQueryDescription, ref query);
+            if (result.IsFailure)
+                return;
+
+            try
+            {
+                nativeDeviceContext->End(query);
+                nativeDeviceContext->Flush();
+
+                var elapsed = Stopwatch.StartNew();
+                int completed = 0;
+                while (nativeDeviceContext->GetData(query, ref completed, sizeof(int), GetDataFlags: 0) == S_FALSE)
+                {
+                    if (elapsed.ElapsedMilliseconds > GpuIdleTimeoutMs)
+                    {
+                        Log.Error($"[D3D11] GPU queue did not drain within {GpuIdleTimeoutMs / 1000}s; continuing teardown. A pending Present whose window was already destroyed can never complete.");
+                        return;
+                    }
+                    Thread.Sleep(1);
+                }
+            }
+            finally
+            {
+                query.Release();
+            }
         }
 
         /// <summary>
