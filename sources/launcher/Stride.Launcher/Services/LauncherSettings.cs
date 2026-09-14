@@ -13,7 +13,6 @@ public static class LauncherSettings
 
     private static readonly SettingsKey<bool> CloseLauncherAutomaticallyKey = new("Internal/Launcher/CloseLauncherAutomatically", SettingsContainer, false);
     private static readonly SettingsKey<string> ActiveVersionKey = new("Internal/Launcher/ActiveVersion", SettingsContainer, "");
-    private static readonly SettingsKey<string> PreferredFrameworkKey = new("Internal/Launcher/PreferredFramework", SettingsContainer, "net10.0");
     private static readonly SettingsKey<string> PreferredEditorKey = new("Internal/Launcher/PreferredEditor", SettingsContainer, "");
     private static readonly SettingsKey<string> PreferredRuntimeKey = new("Internal/Launcher/PreferredRuntime", SettingsContainer, "");
     private static readonly SettingsKey<int> CurrentTabKey = new("Internal/Launcher/CurrentTabSessions", SettingsContainer, 0);
@@ -29,7 +28,6 @@ public static class LauncherSettings
         SettingsContainer.LoadSettingsProfile(GetLatestLauncherConfigPath(), true);
         CloseLauncherAutomatically = CloseLauncherAutomaticallyKey.GetValue();
         ActiveVersion = ActiveVersionKey.GetValue();
-        PreferredFramework = PreferredFrameworkKey.GetValue();
         PreferredEditor = PreferredEditorKey.GetValue();
         PreferredRuntime = PreferredRuntimeKey.GetValue();
         CurrentTab = CurrentTabKey.GetValue();
@@ -41,7 +39,6 @@ public static class LauncherSettings
     {
         CloseLauncherAutomaticallyKey.SetValue(CloseLauncherAutomatically);
         ActiveVersionKey.SetValue(ActiveVersion);
-        PreferredFrameworkKey.SetValue(PreferredFramework);
         PreferredEditorKey.SetValue(PreferredEditor);
         PreferredRuntimeKey.SetValue(PreferredRuntime);
         CurrentTabKey.SetValue(CurrentTab);
@@ -54,8 +51,6 @@ public static class LauncherSettings
     public static bool CloseLauncherAutomatically { get; set; }
 
     public static string ActiveVersion { get; set; }
-
-    public static string PreferredFramework { get; set; }
 
     public static string PreferredEditor { get; set; }
 

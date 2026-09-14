@@ -51,7 +51,7 @@ Progress is reported via `IPackagesLogger` — `MainViewModel` implements it and
 2. `PackageVersionViewModel.Download(true)` runs: it sets `IsProcessing`, calls `NugetStore.InstallPackage`, and updates progress via `OnDownloadProgress`.
 3. On completion, `UpdateStatus` recomputes `CanBeDownloaded` / `CanDelete` and the UI re-binds.
 4. `MainViewModel.RetrieveLocalStrideVersions` is re-run to refresh the version list and to clean up any newly-unused transitive packages via `RemoveUnusedPackages` (walks `Dependencies` starting from the Stride main packages and uninstalls anything no longer referenced).
-5. `UpdateFrameworks()` re-scans `tools/` and `lib/` for TFM subfolders containing a Game Studio executable (`Stride.GameStudio.Avalonia.Desktop.exe` on Windows, `.dll` on Linux). `SelectedFramework` is restored from `LauncherSettings.PreferredFramework` if present, otherwise the closest match (same `Framework` identifier) is used.
+5. `UpdateAvailableEditors()` re-scans `tools/` and `lib/` for TFM subfolders containing a Game Studio executable (`Stride.GameStudio.Avalonia.Desktop.exe` on Windows, `.dll` on Linux). `SelectedEditor` is restored from `LauncherSettings.PreferredEditor` if present, otherwise the first editor found is used, and the runtime combo is refreshed for the active version.
 
 ## Uninstall flow
 
@@ -66,16 +66,20 @@ Two entry points:
 
 `UninstallHelper` also subscribes to `NugetStore.NugetPackageUninstalling` to close lingering processes before each package is removed — this is why it lives as a disposable member on `MainViewModel` (`uninstallHelper`).
 
-## Framework selection
+## Editor discovery
 
-`StrideVersionViewModel.Frameworks` is an `ObservableList<string>` populated by scanning the package install path. The launcher looks for:
+`StrideVersionViewModel.AvailableEditors` is an `ObservableList<string>` populated by scanning every framework folder of the package install paths (`PackageLayout.FrameworkDirectories`; a dev-redirect version scans `bin/<Configuration>/` of the in-tree project instead). The launcher looks for:
 
 ```
 {InstallPath}/tools/{framework}/Stride.GameStudio.Avalonia.Desktop.{exe|dll}
 {InstallPath}/lib/{framework}/Stride.GameStudio.Avalonia.Desktop.{exe|dll}
 ```
 
-On Windows, `Stride.GameStudio.exe` is also considered as a fallback. See `StrideVersionViewModel.GetExecutableNames` and `LocateMainExecutable`.
+On Windows, `Stride.GameStudio.exe` is also considered. The first folder holding an editor wins; each editor's folder is remembered for `LocateMainExecutable`. Stride 4.0 shipped both a `net472` and a `net5.0-windows` editor, which is why the legacy `lib/net472/Stride.GameStudio.exe` fallback still exists; since 4.1 every version ships one framework folder per editor.
+
+## Runtime choice
+
+`MainViewModel.AvailableRuntimes` lists ".NET N or newer (default)" for the active version's editor's own runtimeconfig major, then ".NET M or newer" for each .NET major above it, restricted to majors with both a runtime and an SDK installed (`DotNetInstall.Detect`). A choice is a minimum: a project that needs a newer major still gets it, and a `global.json` SDK pin wins over the choice. The list is only shown when the editor takes the choice (`DotNetHostSelector.SupportsHostSelection`, a type-reference scan of the editor assembly), so older editors never receive `--framework`. An explicit choice starts the editor through `dotnet exec --runtimeconfig <generated>`; the default entry passes no choice, starts the apphost and lets the editor re-execute itself when the project needs a newer major.
 
 ## VSIX
 

@@ -24,8 +24,8 @@ public sealed class StrideDevVersionViewModel : StrideVersionViewModel
         this.localPackage = localPackage;
         this.isDevRedirect = isDevRedirect;
         DownloadCommand.IsEnabled = false;
-        // Populate the framework list so SelectedFramework is set and the version can be started.
-        UpdateFrameworks();
+        // Find the editors so the version can be started.
+        UpdateAvailableEditors();
         // Update initial status (IsVisible will be set to true)
         UpdateStatus();
     }

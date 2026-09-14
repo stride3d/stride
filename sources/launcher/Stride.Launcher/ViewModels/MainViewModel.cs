@@ -178,19 +178,6 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
 
     public bool AutoCloseLauncher { get { return autoCloseLauncher; } set { SetValue(ref autoCloseLauncher, value, () => _settings.CloseLauncherAutomatically = value); } }
 
-    public string PreferredFramework
-    {
-        get => _settings.PreferredFramework;
-        set
-        {
-            if (_settings.PreferredFramework != value)
-            {
-                _settings.PreferredFramework = value;
-                _settings.Save();
-            }
-        }
-    }
-
     public string PreferredEditor
     {
         get => _settings.PreferredEditor;

@@ -19,12 +19,6 @@ internal sealed class LauncherSettingsService : ILauncherSettingsService
         set => LauncherSettings.ActiveVersion = value;
     }
 
-    public string PreferredFramework
-    {
-        get => LauncherSettings.PreferredFramework;
-        set => LauncherSettings.PreferredFramework = value;
-    }
-
     public string PreferredEditor
     {
         get => LauncherSettings.PreferredEditor;
