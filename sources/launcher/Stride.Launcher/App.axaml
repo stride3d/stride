@@ -7,6 +7,7 @@
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
         <ResourceInclude Source="avares://Stride.Core.Presentation.Avalonia/Windows/GeometryResources.axaml"/>
+        <ResourceInclude Source="avares://Stride.Core.Presentation.Avalonia/Windows/TitleBar.axaml" />
       </ResourceDictionary.MergedDictionaries>
 
       <!-- END TODO -->
@@ -55,7 +56,6 @@
       </FluentTheme.Palettes>
     </FluentTheme>
     <StyleInclude Source="avares://MarkView.Avalonia/Themes/MarkdownTheme.axaml" />
-    <StyleInclude Source="avares://Stride.Core.Presentation.Avalonia/Windows/TitleBar.axaml"/>
 
     <Style Selector="Button">
       <Setter Property="Background" Value="{DynamicResource NeutralBackgroundColor}" />

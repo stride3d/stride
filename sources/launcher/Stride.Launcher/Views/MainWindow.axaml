@@ -9,7 +9,9 @@
         WindowStartupLocation="CenterScreen"
         x:Class="Stride.Launcher.Views.MainWindow"
         Icon="/Assets/Launcher.ico"
-        Title="{x:Static l:Strings.LauncherTitle}">
+        Title="{x:Static l:Strings.LauncherTitle}"
+        WindowDecorations="BorderOnly" ExtendClientAreaToDecorationsHint="True">
+
   <Window.Resources>
     <ResourceDictionary>
       <ResourceDictionary.ThemeDictionaries>
@@ -30,6 +32,6 @@
   </Window.Resources>
   <Window.Background>
     <DynamicResource ResourceKey="ImageBackground"/>
-  </Window.Background>        
-  <vw:MainView />
+  </Window.Background>
+  <vw:MainView Margin="0,32,0,0" />
 </Window>
