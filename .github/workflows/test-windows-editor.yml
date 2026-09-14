@@ -24,7 +24,7 @@ on:
     - cron: '17 5 * * *'
 
 concurrency:
-  group: test-windows-editor-${{ github.event.pull_request.number || github.ref }}
+  group: test-windows-editor-${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: true
 
 jobs:

@@ -38,7 +38,7 @@ on:
         type: number
 
 concurrency:
-  group: test-windows-game-api-neutral-${{ github.event.pull_request.number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
+  group: test-windows-game-api-neutral-${{ github.event.pull_request.number || github.sha }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
   cancel-in-progress: true
 
 jobs:

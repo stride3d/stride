@@ -61,7 +61,7 @@ on:
 
 concurrency:
   # A manual run, direct or through test-gold-gen, never cancels or queues behind another one
-  group: test-linux-game-${{ github.event.pull_request.number || (github.event_name == 'workflow_dispatch' && github.run_id) || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
+  group: test-linux-game-${{ github.event.pull_request.number || (github.event_name == 'workflow_dispatch' && github.run_id) || github.sha }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
   cancel-in-progress: true
 
 jobs:

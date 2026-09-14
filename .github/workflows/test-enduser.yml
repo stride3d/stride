@@ -30,7 +30,7 @@ on:
     - cron: '37 4 * * *'
 
 concurrency:
-  group: test-enduser-${{ github.event.pull_request.number || github.ref }}
+  group: test-enduser-${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: true
 
 jobs:
