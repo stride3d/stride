@@ -38,39 +38,53 @@ public class PriorityQueue<T>
     /// <inheritdoc/>
     public void Remove(T item)
     {
-        // Find index of item to remove.
         var index = items.IndexOf(item);
         if (index == -1)
             return;
 
-        // Remove requested element and place last one instead
         var maxCount = items.Count - 1;
         items[index] = items[maxCount];
         items.RemoveAt(maxCount);
 
-        // Bubble elements so that order is respected again
-        var parentIndex = index;
-        while (true)
+        if (index == maxCount)
+            return;
+
+        // Check if we need to bubble up or down
+        var parent = (index - 1) / 2;
+        if (index > 0 && comparer.Compare(items[index], items[parent]) < 0)
         {
-            var childIndex = (parentIndex * 2) + 1;
+            var child = index;
+            while (child > 0)
+            {
+                parent = (child - 1) / 2;
+                if (comparer.Compare(items[child], items[parent]) >= 0)
+                    break;
 
-            // Check if there is any child, otherwise we're done
-            if (childIndex >= maxCount)
-                break;
+                (items[parent], items[child]) = (items[child], items[parent]);
+                child = parent;
+            }
+        }
+        else
+        {
+            var parentIndex = index;
+            while (true)
+            {
+                var left = parentIndex * 2 + 1;
+                if (left >= items.Count)
+                    break;
 
-            // Check which of the two child we need to swap
-            if (childIndex + 1 < maxCount && comparer.Compare(items[childIndex + 1], items[childIndex]) < 0)
-                childIndex++;
+                var right = left + 1;
+                var childIndex = left;
 
-            // Order might already be OK, if yes we're done
-            if (comparer.Compare(items[parentIndex], items[childIndex]) <= 0)
-                break;
+                if (right < items.Count && comparer.Compare(items[right], items[left]) < 0)
+                    childIndex = right;
 
-            // Need swap
-            (items[parentIndex], items[childIndex]) = (items[childIndex], items[parentIndex]);
+                if (comparer.Compare(items[parentIndex], items[childIndex]) <= 0)
+                    break;
 
-            // Continue with child
-            parentIndex = childIndex;
+                (items[parentIndex], items[childIndex]) = (items[childIndex], items[parentIndex]);
+                parentIndex = childIndex;
+            }
         }
     }
 

@@ -109,4 +109,14 @@ public class TestPriorityQueue
 
         CheckPriorityQueue(queue);
     }
+
+    [Fact]
+    public void TestRemovalOnBubbleDownPreservesOrder()
+    {
+        var queue = new PriorityQueue<int>();
+        foreach (var v in new[] { 26, 38, 33, 54, 69, 64, 21 }) queue.Enqueue(v);
+        queue.Remove(54);
+
+        CheckPriorityQueue(queue);
+    }
 }
