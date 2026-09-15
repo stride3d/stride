@@ -3,9 +3,9 @@
 
 #if STRIDE_GRAPHICS_API_DIRECT3D
 
-using Silk.NET.Core.Native;
+using System;
 
-using Stride.Core.UnsafeExtensions;
+using Silk.NET.Core.Native;
 
 namespace Stride.Graphics;
 
@@ -15,25 +15,49 @@ namespace Stride.Graphics;
 internal static class GraphicsProfileHelper
 {
     /// <summary>
-    ///   Converts an array of <see cref="GraphicsProfile"/>s to an array of corresponding <see cref="D3DFeatureLevel"/>s.
-    /// </summary>
-    /// <param name="profiles">An array of <see cref="GraphicsProfile"/>s to convert.</param>
-    /// <returns>An array of Direct3D <see cref="D3DFeatureLevel"/>s.</returns>
-    public static D3DFeatureLevel[] ToFeatureLevel(this GraphicsProfile[] profiles)
-    {
-        if (profiles is null or [])
-            return null;
-
-        var featureLevels = profiles.AsReadOnlySpan<GraphicsProfile, D3DFeatureLevel>().ToArray();
-        return featureLevels;
-    }
-
-    /// <summary>
     ///   Converts a <see cref="GraphicsProfile"/> to its corresponding <see cref="D3DFeatureLevel"/>.
     /// </summary>
     /// <param name="profile">A <see cref="GraphicsProfile"/> to convert.</param>
     /// <returns>A Direct3D <see cref="D3DFeatureLevel"/>.</returns>
-    public static D3DFeatureLevel ToFeatureLevel(this GraphicsProfile profile) => (D3DFeatureLevel) profile;
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="profile"/> is not a known profile.</exception>
+    /// <remarks>
+    ///   Direct3D has no feature level 11.2, as 11.2 was an API revision running on 11_1 hardware, so
+    ///   <see cref="GraphicsProfile.Level_11_2"/> maps to 11_1, its real capability tier.
+    /// </remarks>
+    public static D3DFeatureLevel ToFeatureLevel(this GraphicsProfile profile) => profile switch
+    {
+        GraphicsProfile.Level_9_1 => D3DFeatureLevel.Level91,
+        GraphicsProfile.Level_9_2 => D3DFeatureLevel.Level92,
+        GraphicsProfile.Level_9_3 => D3DFeatureLevel.Level93,
+        GraphicsProfile.Level_10_0 => D3DFeatureLevel.Level100,
+        GraphicsProfile.Level_10_1 => D3DFeatureLevel.Level101,
+        GraphicsProfile.Level_11_0 => D3DFeatureLevel.Level110,
+        GraphicsProfile.Level_11_1 or GraphicsProfile.Level_11_2 => D3DFeatureLevel.Level111,
+
+        _ => throw new ArgumentOutOfRangeException(nameof(profile), profile, "Unknown graphics profile.")
+    };
+
+    /// <summary>
+    ///   Converts a sequence of <see cref="GraphicsProfile"/>s to the corresponding <see cref="D3DFeatureLevel"/>s.
+    /// </summary>
+    /// <param name="profiles">The <see cref="GraphicsProfile"/>s to convert.</param>
+    /// <returns>An array of Direct3D <see cref="D3DFeatureLevel"/>s, in the same order.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">One of the <paramref name="profiles"/> is not a known profile.</exception>
+    /// <remarks>
+    ///   The profiles are mapped one by one through <see cref="ToFeatureLevel(GraphicsProfile)"/>. The two enums must
+    ///   not be reinterpreted in bulk: not every <see cref="GraphicsProfile"/> has a feature level of the same value.
+    /// </remarks>
+    public static D3DFeatureLevel[] ToFeatureLevels(this ReadOnlySpan<GraphicsProfile> profiles)
+    {
+        if (profiles.IsEmpty)
+            return [];
+
+        var featureLevels = new D3DFeatureLevel[profiles.Length];
+        for (int index = 0; index < profiles.Length; index++)
+            featureLevels[index] = profiles[index].ToFeatureLevel();
+
+        return featureLevels;
+    }
 
     /// <summary>
     ///   Converts a <see cref="D3DFeatureLevel"/> to its corresponding <see cref="GraphicsProfile"/>.
