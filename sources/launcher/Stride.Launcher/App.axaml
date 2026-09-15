@@ -26,12 +26,16 @@
           <SolidColorBrush x:Key="AccentColor2" Color="{DynamicResource SystemAccentColorDark2}" />
           <SolidColorBrush x:Key="AccentColor3" Color="{DynamicResource SystemAccentColorDark3}" />
           <SolidColorBrush x:Key="NeutralBackgroundColor" Color="#0FFFFFFF" />
+          <SolidColorBrush x:Key="CardBorderBrush" Color="#17FFFFFF" />
+          <BoxShadows x:Key="CardShadow">0 1 2 #17FFFFFF</BoxShadows>
         </ResourceDictionary>
         <ResourceDictionary x:Key="Light">
           <SolidColorBrush x:Key="AccentColor" Color="{DynamicResource SystemAccentColorLight1}" />
           <SolidColorBrush x:Key="AccentColor2" Color="{DynamicResource SystemAccentColorLight2}" />
           <SolidColorBrush x:Key="AccentColor3" Color="{DynamicResource SystemAccentColorLight3}" />
           <SolidColorBrush x:Key="NeutralBackgroundColor" Color="#80FFFFFF" />
+          <SolidColorBrush x:Key="CardBorderBrush" Color="#17000000" />
+          <BoxShadows x:Key="CardShadow">0 1 2 #17000000</BoxShadows>
         </ResourceDictionary>
       </ResourceDictionary.ThemeDictionaries>
       <Thickness x:Key="BorderThicknessTile">12</Thickness>
@@ -60,9 +64,9 @@
     </Style>
     <Style Selector="Border.card">
       <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="BorderBrush" Value="#17FFFFFF" />
+      <Setter Property="BorderBrush" Value="{DynamicResource CardBorderBrush}" />
       <Setter Property="CornerRadius" Value="{StaticResource ControlCornerRadius}" />
-      <Setter Property="BoxShadow" Value="0 1 2 #17FFFFFF" />
+      <Setter Property="BoxShadow" Value="{DynamicResource CardShadow}" />
     </Style>
     <Style Selector="TabItem">
       <Setter Property="FontSize" Value="14" />
