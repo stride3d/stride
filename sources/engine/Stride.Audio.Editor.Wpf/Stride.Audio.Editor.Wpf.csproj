@@ -2,14 +2,14 @@
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.props" />
   <PropertyGroup>
     <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
-    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
-    <StrideAssemblyProcessorOptions>--serialization --parameter-key</StrideAssemblyProcessorOptions>
+    <!-- The sound preview view is a WPF control styled by Themes/Generic.xaml -->
+    <UseWPF>true</UseWPF>
     <StridePackageKind>Editor</StridePackageKind>
+    <!-- The views of the WPF Game Studio; Stride.Audio.Editor (toolkit-neutral) declares this package as its companion -->
+    <StrideEditorToolkit>Wpf</StrideEditorToolkit>
+    <!-- Indexes the [AssemblyScan] types (the preview views) the plugin registers -->
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
   </PropertyGroup>
-  <ItemGroup>
-    <!-- The sound preview's WPF view: the WPF Game Studio loads it, another toolkit's editor does not -->
-    <StrideCompanionProject Include="..\Stride.Audio.Editor.Wpf\Stride.Audio.Editor.Wpf.csproj" />
-  </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
@@ -17,12 +17,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\editor\Stride.Assets.Presentation.Wpf\Stride.Assets.Presentation.Wpf.csproj" />
-    <ProjectReference Include="..\Stride.Audio.Assets\Stride.Audio.Assets.csproj" />
-    <ProjectReference Include="..\Stride.Audio\Stride.Audio.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Remove="Resources\*.png" />
-    <EmbeddedResource Include="Resources\*.png" />
+    <ProjectReference Include="..\Stride.Audio.Editor\Stride.Audio.Editor.csproj" />
   </ItemGroup>
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />
 </Project>

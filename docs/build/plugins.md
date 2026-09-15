@@ -46,7 +46,7 @@ or by package, when a companion comes from a feed:
 
 The companion's package id, version and kind are read from the companion project at build and pack time, so the runtime's packed `.sdpkg` records exactly what was packed. The three packages are packed separately (`dotnet pack` each project); a companion's version must equal the one the runtime recorded, so publish all three together.
 
-An `Editor` package that carries views written for one UI toolkit states it with `<StrideEditorToolkit>Wpf</StrideEditorToolkit>`; an editor loads the views of its own toolkit only. Keep such a package separate from the toolkit-neutral `Editor` one (gizmos, previews, thumbnails, icons), which declares it as its own companion. A companion from a feed carries the toolkit as `Toolkit="Wpf"` metadata.
+An `Editor` package that carries views written for one UI toolkit states it with `<StrideEditorToolkit>Wpf</StrideEditorToolkit>`; an editor loads the views of its own toolkit only. Keep such a package separate from the toolkit-neutral `Editor` one (gizmos, previews, thumbnails, icons), which declares it as its own companion: `Stride.Audio.Editor` declares `Stride.Audio.Editor.Wpf`, which holds the sound preview's view. Such a package has its own `StrideAssetsPlugin` subclass, since a plugin registers the views of its own assembly only. A companion from a feed carries the toolkit as `Toolkit="Wpf"` metadata.
 
 `Replaces="a;b"` on either item names companion packages declared elsewhere that this one stands in for. A game can declare its own `StrideCompanionProject` with `Replaces="MyPlugin.Assets"` to substitute a plugin's Assets companion by a project of its own.
 

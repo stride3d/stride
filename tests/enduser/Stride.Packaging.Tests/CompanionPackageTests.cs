@@ -381,6 +381,20 @@ public class CompanionPackageTests
         var editorPackage = Assert.Single(editorSession.Packages, p => p.Meta.Name == "Stride.Audio.Editor");
         Assert.True(((StandalonePackage)editorPackage.Container).IsCompanionPackage);
         AssertDeclaredEditorPackage(editorSession, "Stride.Audio", editorPackage);
+
+        // The sound preview's WPF view is a companion of Stride.Audio.Editor written for the Wpf toolkit: an editor
+        // that names no toolkit leaves it out, the WPF one loads it
+        var viewDeclaration = Assert.Single(editorPackage.CompanionPackages);
+        Assert.Equal("Stride.Audio.Editor.Wpf", viewDeclaration.Name);
+        Assert.Equal(PackageKind.Editor, viewDeclaration.Kind);
+        Assert.Equal("Wpf", viewDeclaration.Toolkit);
+        Assert.DoesNotContain(editorSession.Packages, p => p.Meta.Name == "Stride.Audio.Editor.Wpf");
+
+        var wpfSession = c.LoadConsumerProjectSession(loadEditorPackages: true, editorToolkit: "Wpf");
+        var viewPackage = Assert.Single(wpfSession.Packages, p => p.Meta.Name == "Stride.Audio.Editor.Wpf");
+        Assert.Equal(PackageKind.Editor, viewPackage.Kind);
+        Assert.Equal("Wpf", viewPackage.Toolkit);
+        Assert.True(((StandalonePackage)viewPackage.Container).IsCompanionPackage);
     }
 
     [Fact]
@@ -832,11 +846,11 @@ public class CompanionPackageTests
         /// Headless session over the consumer's project, the editor's path. Assemblies are not loaded: the
         /// manifest session already loaded this plugin's assemblies into the test process.
         /// </summary>
-        public PackageSession LoadConsumerProjectSession(bool loadEditorPackages = false)
+        public PackageSession LoadConsumerProjectSession(bool loadEditorPackages = false, string? editorToolkit = null)
         {
             PackageSessionPublicHelper.FindAndSetMSBuildVersion();
             var result = new PackageSessionResult();
-            PackageSession.Load(GameProject, result, new PackageLoadParameters { AutoCompileProjects = false, LoadAssemblyReferences = false, AutoLoadTemporaryAssets = false, LoadEditorPackages = loadEditorPackages });
+            PackageSession.Load(GameProject, result, new PackageLoadParameters { AutoCompileProjects = false, LoadAssemblyReferences = false, AutoLoadTemporaryAssets = false, LoadEditorPackages = loadEditorPackages, EditorToolkit = editorToolkit });
             return CheckSession(result);
         }
 
