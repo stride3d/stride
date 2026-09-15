@@ -1146,7 +1146,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
         var cancelToken = loadParameters.CancelToken;
         List<AssetLoadingInfo> assetLoadInfos = [];
         // Make a copy of Packages as it can be modified by PreLoadPackageDependencies
-        foreach (var package in packages)
+        foreach (var package in OrderDependenciesFirst([.. packages]))
         {
             // Output the session only if there is no cancellation
             if (cancelToken.HasValue && cancelToken.Value.IsCancellationRequested)
@@ -1387,11 +1387,11 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
     /// Loads the assembly references that were not loaded before.
     /// </summary>
     /// <param name="log">The log.</param>
-    public void UpdateAssemblyReferences(LoggerResult log)
+    public void UpdateAssemblyReferences(LoggerResult log, PackageLoadParameters? loadParameters = null)
     {
         foreach (var package in LocalPackages)
         {
-            package.UpdateAssemblyReferences(log);
+            package.UpdateAssemblyReferences(log, loadParameters);
         }
     }
 
@@ -1622,6 +1622,42 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// The packages with the ones they depend on first (the session's order otherwise): an assembly's initializer
+    /// binds to its dependencies, and those must be the copies their own packages load, not the ones found next to it.
+    /// </summary>
+    public static List<Package> OrderDependenciesFirst(IReadOnlyList<Package> packages)
+    {
+        var byName = new Dictionary<string, List<Package>>(StringComparer.OrdinalIgnoreCase);
+        foreach (var package in packages)
+        {
+            if (!byName.TryGetValue(package.Meta.Name, out var sameName))
+                byName.Add(package.Meta.Name, sameName = []);
+            sameName.Add(package);
+        }
+
+        var ordered = new List<Package>(packages.Count);
+        var visited = new HashSet<Package>();
+        foreach (var package in packages)
+            Visit(package);
+        return ordered;
+
+        void Visit(Package package)
+        {
+            if (!visited.Add(package))
+                return;
+            foreach (var name in package.LoadDependencyNames)
+            {
+                if (byName.TryGetValue(name, out var dependencies))
+                {
+                    foreach (var dependency in dependencies)
+                        Visit(dependency);
+                }
+            }
+            ordered.Add(package);
+        }
     }
 
     private bool TryLoadAssemblies(PackageSession session, ILogger log, Package package, PackageLoadParameters loadParameters, [MaybeNullWhen(false)] out AssetLoadingInfo info)
