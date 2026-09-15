@@ -79,6 +79,7 @@
     <Project Path="../sources/engine/Stride.Audio/Stride.Audio.csproj" />
     <Project Path="../sources/engine/Stride.Audio.Assets/Stride.Audio.Assets.csproj" />
     <Project Path="../sources/engine/Stride.Audio.Editor/Stride.Audio.Editor.csproj" />
+    <Project Path="../sources/engine/Stride.Audio.Editor.Wpf/Stride.Audio.Editor.Wpf.csproj" />
     <Project Path="../sources/engine/Stride.Engine/Stride.Engine.csproj" />
     <Project Path="../sources/engine/Stride.Foundation/Stride.Foundation.csproj" />
     <Project Path="../sources/engine/Stride.Games/Stride.Games.csproj" />

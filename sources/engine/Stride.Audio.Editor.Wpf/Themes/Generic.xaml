@@ -5,6 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:audio="clr-namespace:Stride.Audio.Editor"
+    xmlns:audioEditor="clr-namespace:Stride.Audio.Editor;assembly=Stride.Audio.Editor"
     mc:Ignorable="d">
 
   <ResourceDictionary.MergedDictionaries>
@@ -16,7 +17,7 @@
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="{x:Type audio:SoundPreviewView}">
-          <DockPanel Background="{StaticResource NormalBrush}" d:DataContext="{d:DesignInstance audio:SoundPreviewViewModel}">
+          <DockPanel Background="{StaticResource NormalBrush}" d:DataContext="{d:DesignInstance audioEditor:SoundPreviewViewModel}">
             <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Visibility="{Binding IsAudioValid, Converter={sd:VisibleOrCollapsed}}">
               <Button Command="{Binding PlayCommand}" Background="Transparent" ToolTip="{sd:Localize Play the sound, Context=ToolTip}">
                 <Image Source="{StaticResource ImagePlay}" RenderOptions.BitmapScalingMode="NearestNeighbor" Width="16" Height="16"/>

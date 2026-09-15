@@ -384,6 +384,21 @@ public class CompanionPackageTests
         var editorPackage = Assert.Single(editorSession.Packages, p => p.Meta.Name == "Stride.Audio.Editor");
         Assert.True(((StandalonePackage)editorPackage.Container).IsCompanionPackage);
         AssertDeclaredEditorPackage(editorSession, "Stride.Audio", editorPackage);
+
+        // The sound preview's WPF view is a companion of Stride.Audio.Editor written for the Wpf toolkit: the WPF
+        // editor loads it, an editor of another toolkit leaves both out
+        var viewDeclaration = Assert.Single(editorPackage.CompanionPackages);
+        Assert.Equal("Stride.Audio.Editor.Wpf", viewDeclaration.Name);
+        Assert.Equal(PackageKind.Editor, viewDeclaration.Kind);
+        Assert.Equal("Wpf", viewDeclaration.Toolkit);
+        var viewPackage = Assert.Single(editorSession.Packages, p => p.Meta.Name == "Stride.Audio.Editor.Wpf");
+        Assert.Equal(PackageKind.Editor, viewPackage.Kind);
+        Assert.Equal("Wpf", viewPackage.Toolkit);
+        Assert.True(((StandalonePackage)viewPackage.Container).IsCompanionPackage);
+
+        var otherEditorSession = c.LoadConsumerProjectSession(loadEditorPackages: true, editorToolkit: "Avalonia");
+        Assert.DoesNotContain(otherEditorSession.Packages, p => p.Meta.Name == "Stride.Audio.Editor");
+        Assert.DoesNotContain(otherEditorSession.Packages, p => p.Meta.Name == "Stride.Audio.Editor.Wpf");
     }
 
     [Fact]
