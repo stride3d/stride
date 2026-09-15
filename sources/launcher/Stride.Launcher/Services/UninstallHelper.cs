@@ -18,12 +18,12 @@ internal class UninstallHelper : IDisposable
     internal UninstallHelper(IViewModelServiceProvider serviceProvider, NugetStore store)
     {
         this.store = store;
-        store.NugetPackageUninstalling += PackageUninstalling;
+        store.UninstallGuard = CanUninstallAsync;
     }
 
     public void Dispose()
     {
-        store.NugetPackageUninstalling -= PackageUninstalling;
+        store.UninstallGuard = null;
     }
 
     /// <summary>
@@ -145,14 +145,15 @@ internal class UninstallHelper : IDisposable
         return result;
     }
 
-    private static async Task<bool> DisplayMessageAsync(string message)
-    {
-        var result = await MessageBox.ShowAsync(Launcher.ApplicationName, message, IDialogService.GetButtons(MessageBoxButton.OKCancel));
-        return result != (int)MessageBoxResult.Cancel;
-    }
+    // On the UI thread: the launcher uninstalls from worker threads.
+    private static Task<bool> DisplayMessageAsync(string message)
+        => Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(async () =>
+        {
+            var result = await MessageBox.ShowAsync(Launcher.ApplicationName, message, IDialogService.GetButtons(MessageBoxButton.OKCancel));
+            return result != (int)MessageBoxResult.Cancel;
+        });
 
-    private static async void PackageUninstalling(object? sender, PackageOperationEventArgs e)
-    {
-        await CloseProcessesInPathAsync(DisplayMessageAsync, e.Id, e.InstallPath);
-    }
+    // Awaited by the store before it deletes anything, so Cancel keeps the package.
+    private static Task<bool> CanUninstallAsync(PackageOperationEventArgs e)
+        => CloseProcessesInPathAsync(DisplayMessageAsync, e.Id, e.InstallPath);
 }

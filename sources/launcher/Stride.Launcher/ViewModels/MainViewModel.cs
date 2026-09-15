@@ -365,9 +365,17 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
         {
             await FindReferencedPackages(mainPackage);
         }
-        foreach (var package in previousReferencedPackages.Where(package => !referencedPackages.Contains(package)))
+        foreach (var package in previousReferencedPackages.Where(package => !referencedPackages.Contains(package)).ToList())
         {
-            await store.UninstallPackage(package, null);
+            try
+            {
+                await store.UninstallPackage(package, null);
+            }
+            catch (OperationCanceledException)
+            {
+                // Kept by the user (still in use): it stays installed and is checked again on the next pass.
+                referencedPackages.Add(package);
+            }
         }
     }
 
