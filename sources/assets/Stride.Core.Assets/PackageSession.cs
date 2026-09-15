@@ -380,6 +380,10 @@ public class SolutionProject : PackageContainer
 
     public bool IsImplicitProject { get; set; }
 
+    // The project's last restore reported errors (its project.assets.json): a package it references may be missing
+    // from its flattened dependencies
+    public bool HasRestoreErrors { get; set; }
+
     public bool TrackDirectDependencies { get; set; }
 
     public string Name => VSProject.Name;

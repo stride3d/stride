@@ -66,13 +66,6 @@ RenderFeatures:
             14a071694411235038a102ac3794bb4d: !Stride.Rendering.SimpleGroupToRenderStageSelector,Stride.Engine
                 RenderStage: ref!! 31169f13-1e38-4c68-a1e4-1fd9c6d148c3
                 EffectName: Test
-    9013eab3ea0ef6c98bf133b86c173d45: !Stride.Particles.Rendering.ParticleEmitterRenderFeature,Stride.Particles
-        RenderStageSelectors:
-            af1bd241305893ef8ff7952184e1cb0b: !Stride.Particles.Rendering.ParticleEmitterTransparentRenderStageSelector,Stride.Particles
-                OpaqueRenderStage: ref!! eab72911-5b68-41dd-bfa3-f0ab0e714b4a
-                TransparentRenderStage: ref!! 31169f13-1e38-4c68-a1e4-1fd9c6d148c3
-                EffectName: null
-        PipelineProcessors: {}
 SharedRenderers:
     60459475d3a3adaf2d1ba5d99913ca75: !Stride.Rendering.Compositing.ForwardRenderer,Stride.Engine
         Id: 3e4affe1-a1b8-4e74-ad7d-e038b1407f09
