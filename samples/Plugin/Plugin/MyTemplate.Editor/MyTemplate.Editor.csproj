@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <RootNamespace>MyTemplate.Editor</RootNamespace>
+    <Version>1.0.0</Version>
+    <!-- What this companion carries: Game Studio extensions (icons, gizmos, previews); only the Game Studio loads it -->
+    <StridePackageKind>Editor</StridePackageKind>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Stride.Assets.Presentation.Wpf" Version="$EngineVersion$" />
+    <PackageReference Include="Stride.AssetCompiler" Version="$EngineVersion$" IncludeAssets="build;buildTransitive" />
+    <ProjectReference Include="..\MyTemplate\MyTemplate.csproj" />
+    <ProjectReference Include="..\MyTemplate.Assets\MyTemplate.Assets.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="Resources\*.png" />
+    <EmbeddedResource Include="Resources\*.png" />
+  </ItemGroup>
+</Project>

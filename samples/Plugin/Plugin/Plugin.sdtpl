@@ -1,0 +1,9 @@
+!Template
+Id: 2D5E7F1A-8C3B-4E6A-9F0D-1B2C3D4E5F60
+Name: "Plugin"
+Scope: Session
+Description: Create a plugin (runtime, Assets and Editor projects) and add it to the solution
+FullDescription: |
+   A plugin as three projects: the runtime library (a component and a content type), the Assets companion (an asset, its compiler and its template) and the Editor companion (the component's icon and gizmo). The game references the runtime project only; the asset compiler and the Game Studio load the companions on their own.
+Group: General
+DefaultOutputName: MyPlugin

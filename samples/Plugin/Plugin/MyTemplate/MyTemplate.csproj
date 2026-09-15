@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <RootNamespace>MyTemplate</RootNamespace>
+    <Version>1.0.0</Version>
+    <!-- Lets Game Studio find this plugin on a NuGet feed; tag only the package a game references -->
+    <PackageTags>stride-plugin</PackageTags>
+    <Description>A Stride plugin.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- The companions a host loads on behalf of this package: the asset compiler takes the Assets one, the
+         Game Studio both. A game references this project (or its package) only. -->
+    <StrideCompanionProject Include="..\MyTemplate.Assets\MyTemplate.Assets.csproj" />
+    <StrideCompanionProject Include="..\MyTemplate.Editor\MyTemplate.Editor.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Stride.Engine" Version="$EngineVersion$" />
+    <PackageReference Include="Stride.AssetCompiler" Version="$EngineVersion$" IncludeAssets="build;buildTransitive" />
+  </ItemGroup>
+</Project>
