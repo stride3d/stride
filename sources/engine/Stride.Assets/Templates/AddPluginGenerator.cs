@@ -44,6 +44,8 @@ public sealed class AddPluginGenerator : SessionTemplateGenerator
             && string.Equals(dnn.TemplateShortName, PluginTemplateShortName, StringComparison.Ordinal);
     }
 
+    protected override PackageLoadParameters? AssemblyLoadParameters => loadParameters;
+
     public override async Task<bool> PrepareForRun(SessionTemplateGeneratorParameters parameters)
     {
         ArgumentNullException.ThrowIfNull(parameters);
