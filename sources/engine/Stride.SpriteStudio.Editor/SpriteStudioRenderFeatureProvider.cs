@@ -9,7 +9,7 @@ using Stride.SpriteStudio.Runtime;
 namespace Stride.SpriteStudio.Editor;
 
 /// <summary>
-/// Draws SpriteStudio sheets in the entity previews and thumbnails.
+/// Draws SpriteStudio sheets: in the entity previews and thumbnails, and in a game compositor on request.
 /// </summary>
 public sealed class SpriteStudioRenderFeatureProvider : IRenderFeatureProvider
 {

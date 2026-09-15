@@ -8,9 +8,8 @@ using Stride.Rendering;
 namespace Stride.Assets.Rendering;
 
 /// <summary>
-/// The render features a package brings to a graphics compositor, for the two stages the compositor renders
-/// into. Found by scanning the loaded asset assemblies, created with the parameterless constructor: the editor's
-/// preview and thumbnail compositors take them, so the package's components render there.
+/// The render features a package brings to a <see cref="GraphicsCompositorAsset"/>, rendering into its opaque and transparent stages.
+/// Found by assembly scan and created with the parameterless constructor.
 /// </summary>
 [AssemblyScan]
 public interface IRenderFeatureProvider
