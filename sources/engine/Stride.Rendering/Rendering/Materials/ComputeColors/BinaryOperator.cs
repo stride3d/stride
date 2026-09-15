@@ -12,159 +12,166 @@ namespace Stride.Rendering.Materials.ComputeColors
     public enum BinaryOperator
     {
         /// <summary>
+        /// Add '3ds' of the two textures.
+        /// </summary>
+        Add = 0,
+
+        /// <summary>
         /// Add of the two textures.
         /// </summary>
-        Add,
+        AddMath = 31,
 
         /// <summary>
         /// Average of the two textures.
         /// </summary>
-        Average,
+        Average = 1,
 
         /// <summary>
         /// Color effect from the two textures.
         /// </summary>
-        Color,
+        Color = 2,
 
         /// <summary>
         /// Color burn effect from the two textures.
         /// </summary>
-        ColorBurn,
+        ColorBurn = 3,
 
         /// <summary>
         /// Color dodge effect from the two textures.
         /// </summary>
-        ColorDodge,
+        ColorDodge = 4,
 
         /// <summary>
         /// Darken effect from the two textures.
         /// </summary>
-        Darken,
+        Darken = 5,
 
         /// <summary>
         /// Desaturate effect from the two textures.
         /// </summary>
-        Desaturate,
+        Desaturate = 6,
 
         /// <summary>
         /// Difference of the two textures.
         /// </summary>
-        Difference,
+        Difference = 7,
 
         /// <summary>
         /// Divide first texture with the second one.
         /// </summary>
-        Divide,
+        Divide = 8,
 
         /// <summary>
         /// Exclusion effect from the two textures.
         /// </summary>
-        Exclusion,
+        Exclusion = 9,
 
         /// <summary>
         /// Hard light effect from the two textures.
         /// </summary>
-        HardLight,
+        HardLight = 10,
 
         /// <summary>
         /// hard mix effect from the two textures.
         /// </summary>
-        HardMix,
+        HardMix = 11,
 
         /// <summary>
         /// Hue effect from the two textures.
         /// </summary>
-        Hue,
+        Hue = 12,
 
         /// <summary>
         /// Illuminate effect from the two textures.
         /// </summary>
-        Illuminate,
+        Illuminate = 13,
 
         /// <summary>
         /// In effect from the two textures.
         /// </summary>
-        In,
+        In = 14,
 
         /// <summary>
         /// Lighten effect from the two textures.
         /// </summary>
-        Lighten,
+        Lighten = 15,
 
         /// <summary>
         /// Linear burn effect from the two textures.
         /// </summary>
-        LinearBurn,
+        LinearBurn = 16,
 
         /// <summary>
         /// Linear dodge effect from the two textures.
         /// </summary>
-        LinearDodge,
+        LinearDodge = 17,
 
         /// <summary>
         /// Apply mask from second texture to the first one.
         /// </summary>
-        Mask,
+        Mask = 18,
 
         /// <summary>
         /// Multiply the two textures.
         /// </summary>
-        Multiply,
+        Multiply = 19,
         
         /// <summary>
         /// Out effect from the two textures.
         /// </summary>
-        Out,
+        Out = 20,
 
         /// <summary>
         /// Over effect from the two textures.
         /// </summary>
-        Over,
+        Over = 21,
 
         /// <summary>
         /// Overlay effect from the two textures.
         /// </summary>
-        Overlay,
+        Overlay = 22,
 
         /// <summary>
         /// Pin light effect from the two textures.
         /// </summary>
-        PinLight,
+        PinLight = 23,
 
         /// <summary>
         /// Saturate effect from the two textures.
         /// </summary>
-        Saturate,
+        Saturate = 24,
 
         /// <summary>
         /// Saturation effect from the two textures.
         /// </summary>
-        Saturation,
+        Saturation = 25,
 
         /// <summary>
         /// Screen effect from the two textures.
         /// </summary>
-        Screen,
+        Screen = 26,
 
         /// <summary>
         /// Soft light effect from the two textures.
         /// </summary>
-        SoftLight,
+        SoftLight = 27,
 
         /// <summary>
         /// Subtract the two textures.
         /// </summary>
-        Subtract,
+        Subtract = 28,
 
         /// <summary>
         /// Take color for the first texture but alpha from the second
         /// </summary>
-        SubstituteAlpha,
+        SubstituteAlpha = 29,
 
         /// <summary>
         /// Threshold, resulting in a black-white texture for grayscale against a set threshold
         /// </summary>
-        Threshold,
+        Threshold = 30,
+        
+        // N.B. #31 is allocated to 'AddMath'
 
         //TODO: lerp, clamp ?
     }
