@@ -122,11 +122,19 @@
     </Task>
   </UsingTask>
 
-  <!-- The companion list (_StrideCompanion) for the manifest, at build time. A companion project that is not
-       restored yet has no Stride targets and answers nothing: the manifest then records the project path alone. -->
+  <!-- The companion list (_StrideCompanion) for the manifest and the packed sdpkg: every entry with its id, version
+       and kind. A companion project that was never restored (only a solution restore covers it: it is no project
+       reference of anything) has no Stride targets and answers nothing: it is restored here, then asked again.
+       A restore inside a build needs an evaluation of its own (MSBuildRestoreSessionId), and so does the second
+       question (another _StrideCompanionEvaluation), since the first one is cached without the Stride targets. The
+       first question also gets an evaluation of its own, so the build's evaluation of the companion, when an
+       executable below builds it, is never one cached before the restore. The values are fixed, not unique: every
+       inner build of a multi-target project asks the same, so MSBuild restores and reads each companion once and
+       the other inner builds wait for that result instead of restoring it in parallel. -->
   <Target Name="_StrideResolveCompanionProjects" DependsOnTargets="_StrideCheckCompanionDeclarations" Condition="'@(_StrideCompanionProject)' != '' Or '@(StrideCompanionPackage)' != ''">
     <MSBuild Projects="@(_StrideCompanionProject->Distinct())"
              Targets="GetStridePackageIdentity"
+             Properties="_StrideCompanionEvaluation=identity"
              RemoveProperties="TargetFramework;TargetFrameworks;RuntimeIdentifier"
              SkipNonexistentTargets="true"
              Condition="'@(_StrideCompanionProject)' != ''">
@@ -138,38 +146,138 @@
     <StrideJoinCompanionPackages CompanionProjects="@(_StrideCompanionProject)" CompanionPackages="@(StrideCompanionPackage)" Identities="@(_StrideCompanionIdentity)">
       <Output TaskParameter="Companions" ItemName="_StrideCompanion" />
     </StrideJoinCompanionPackages>
-    <Error Condition="'%(_StrideCompanion.PackageId)' != '' And '%(_StrideCompanion.Kind)' != 'Assets' And '%(_StrideCompanion.Kind)' != 'Editor'"
-           Text="Companion project '%(_StrideCompanion.Project)' must declare StridePackageKind as Assets or Editor." />
-  </Target>
 
-  <!-- Pack time: the packed sdpkg must carry the ids, versions and kinds, so the companion projects are restored
-       first (a restore inside a build needs its own evaluation, MSBuildRestoreSessionId) and must answer. -->
-  <Target Name="_StrideResolveCompanionProjectsForPack" DependsOnTargets="_StrideCheckCompanionDeclarations" Condition="'@(_StrideCompanionProject)' != '' Or '@(StrideCompanionPackage)' != ''">
-    <MSBuild Projects="@(_StrideCompanionProject->Distinct())"
+    <ItemGroup>
+      <_StrideUnrestoredCompanion Include="@(_StrideCompanion)" Condition="'%(_StrideCompanion.Project)' != '' And '%(_StrideCompanion.PackageId)' == ''" />
+    </ItemGroup>
+    <MSBuild Projects="@(_StrideUnrestoredCompanion)"
              Targets="Restore"
-             Properties="MSBuildRestoreSessionId=$([System.Guid]::NewGuid())"
+             Properties="MSBuildRestoreSessionId=StrideCompanionRestore"
              RemoveProperties="TargetFramework;TargetFrameworks;RuntimeIdentifier"
-             Condition="'@(_StrideCompanionProject)' != ''" />
-    <!-- A unique property forces a fresh evaluation: the build's own identity call may have cached the
-         project before the restore, without the Stride targets -->
-    <MSBuild Projects="@(_StrideCompanionProject->Distinct())"
+             Condition="'@(_StrideUnrestoredCompanion)' != ''" />
+    <MSBuild Projects="@(_StrideUnrestoredCompanion)"
              Targets="GetStridePackageIdentity"
-             Properties="_StrideCompanionEvaluation=$([System.Guid]::NewGuid())"
+             Properties="_StrideCompanionEvaluation=restored"
              RemoveProperties="TargetFramework;TargetFrameworks;RuntimeIdentifier"
              SkipNonexistentTargets="true"
-             Condition="'@(_StrideCompanionProject)' != ''">
-      <Output TaskParameter="TargetOutputs" ItemName="_StrideCompanionPackIdentity" />
+             Condition="'@(_StrideUnrestoredCompanion)' != ''">
+      <Output TaskParameter="TargetOutputs" ItemName="_StrideRestoredCompanionIdentity" />
     </MSBuild>
-    <ItemGroup>
-      <_StrideCompanion Remove="@(_StrideCompanion)" />
-    </ItemGroup>
-    <StrideJoinCompanionPackages CompanionProjects="@(_StrideCompanionProject)" CompanionPackages="@(StrideCompanionPackage)" Identities="@(_StrideCompanionPackIdentity)">
-      <Output TaskParameter="Companions" ItemName="_StrideCompanion" />
+    <StrideJoinCompanionPackages CompanionProjects="@(_StrideUnrestoredCompanion)" Identities="@(_StrideRestoredCompanionIdentity)" Condition="'@(_StrideUnrestoredCompanion)' != ''">
+      <Output TaskParameter="Companions" ItemName="_StrideRestoredCompanion" />
     </StrideJoinCompanionPackages>
+    <ItemGroup>
+      <_StrideCompanion Remove="@(_StrideUnrestoredCompanion)" />
+      <_StrideCompanion Include="@(_StrideRestoredCompanion)" />
+    </ItemGroup>
+
     <Error Condition="'%(_StrideCompanion.Project)' != '' And '%(_StrideCompanion.PackageId)' == ''"
            Text="The package id and version of companion project '%(_StrideCompanion.Project)' could not be read; the project must reference Stride packages." />
     <Error Condition="'%(_StrideCompanion.Kind)' != 'Assets' And '%(_StrideCompanion.Kind)' != 'Editor'"
            Text="Companion project '%(_StrideCompanion.Project)' must declare StridePackageKind as Assets or Editor." />
+  </Target>
+
+  <!-- In-solution companions: a game references a plugin's runtime project only, like it references its package.
+       The companions declared by this project and, recursively, by the projects it references (the same project
+       references the manifest chain follows), for an executable to build below. -->
+  <Target Name="GetStrideCompanionProjects" DependsOnTargets="_StrideResolveCompanionProjects;PrepareProjectReferences" Returns="@(_StrideDeclaredCompanion)">
+    <ItemGroup>
+      <_StrideDeclaredCompanion Include="@(_StrideCompanion)" />
+      <_StrideCompanionSourceProjectReference Include="@(_MSBuildProjectReferenceExistent)"
+                                              Condition="'%(_MSBuildProjectReferenceExistent.ReferenceOutputAssembly)' != 'false'" />
+    </ItemGroup>
+    <MSBuild Projects="@(_StrideCompanionSourceProjectReference)"
+             Targets="GetStrideCompanionProjects"
+             BuildInParallel="$(BuildInParallel)"
+             Properties="%(_StrideCompanionSourceProjectReference.SetConfiguration); %(_StrideCompanionSourceProjectReference.SetPlatform); %(_StrideCompanionSourceProjectReference.SetTargetFramework)"
+             RemoveProperties="%(_StrideCompanionSourceProjectReference.GlobalPropertiesToRemove)"
+             SkipNonexistentTargets="true"
+             Condition="'@(_StrideCompanionSourceProjectReference)' != ''">
+      <Output TaskParameter="TargetOutputs" ItemName="_StrideDeclaredCompanion" />
+    </MSBuild>
+  </Target>
+
+  <!-- Picks the companion projects an executable builds out of the declarations: each project once, not one that
+       a declaration replaces (Replaces of any entry), Assets kind only (the asset compiler never loads an Editor
+       companion). -->
+  <UsingTask TaskName="StrideSelectCompanionProjects"
+             TaskFactory="RoslynCodeTaskFactory"
+             AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <Companions ParameterType="Microsoft.Build.Framework.ITaskItem[]" />
+      <Selected ParameterType="Microsoft.Build.Framework.ITaskItem[]" Output="true" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System" />
+      <Using Namespace="System.Collections.Generic" />
+      <Using Namespace="System.IO" />
+      <Using Namespace="System.Linq" />
+      <Code Type="Fragment" Language="cs"><![CDATA[
+        var companions = Companions ?? new Microsoft.Build.Framework.ITaskItem[0];
+        var replaced = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var companion in companions)
+        {
+            foreach (var name in companion.GetMetadata("Replaces").Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
+                replaced.Add(name.Trim());
+        }
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var result = new List<Microsoft.Build.Framework.ITaskItem>();
+        foreach (var companion in companions)
+        {
+            var project = companion.GetMetadata("Project");
+            if (string.IsNullOrWhiteSpace(project))
+                continue;
+            var path = Path.GetFullPath(project);
+            if (!seen.Add(path))
+                continue;
+            if (replaced.Contains(companion.GetMetadata("PackageId")) || !string.Equals(companion.GetMetadata("Kind"), "Assets", StringComparison.OrdinalIgnoreCase))
+                continue;
+            // Only the companion metadata: an item that came back from another project's targets also carries
+            // MSBuildSourceProjectFile, which the answers to the calls below would keep (the join goes by it)
+            var item = new Microsoft.Build.Utilities.TaskItem(path);
+            foreach (var name in new[] { "Project", "PackageId", "PackageVersion", "Kind", "Replaces" })
+                item.SetMetadata(name, companion.GetMetadata(name));
+            result.Add(item);
+        }
+        Selected = result.ToArray();
+      ]]></Code>
+    </Task>
+  </UsingTask>
+
+  <!-- An executable (the project whose build runs the asset compiler; StrideBuildCompanionProjects overrides)
+       builds the Assets companions declared along its project references and lists their manifests in its own,
+       so the asset compiler finds them like referenced projects. A library never does: a companion references
+       its runtime, and a runtime's dependency building the companion would be a project cycle. -->
+  <PropertyGroup>
+    <_StrideCompanionBuildRemoveProperties>TargetFramework;TargetFrameworks;RuntimeIdentifier;RuntimeIdentifiers;SelfContained;OutputType;StrideIsExecutable;PublishDir;_IsPublishing</_StrideCompanionBuildRemoveProperties>
+  </PropertyGroup>
+  <Target Name="_StrideBuildCompanionProjects"
+          DependsOnTargets="GetStrideCompanionProjects"
+          Condition="'$(StrideBuildCompanionProjects)' == 'true' Or ('$(StrideBuildCompanionProjects)' == '' And '$(StrideIsExecutable)' == 'true')">
+    <StrideSelectCompanionProjects Companions="@(_StrideDeclaredCompanion)">
+      <Output TaskParameter="Selected" ItemName="_StrideAssetsCompanionProject" />
+    </StrideSelectCompanionProjects>
+
+    <!-- No project references a companion, so restoring the executable does not restore it. The restore runs with
+         its own global properties, so the build below evaluates the companion after it. -->
+    <MSBuild Projects="@(_StrideAssetsCompanionProject)"
+             Targets="Restore"
+             Properties="MSBuildRestoreSessionId=StrideCompanionBuildRestore"
+             RemoveProperties="$(_StrideCompanionBuildRemoveProperties)"
+             Condition="'@(_StrideAssetsCompanionProject)' != ''" />
+    <MSBuild Projects="@(_StrideAssetsCompanionProject)"
+             Targets="Build"
+             BuildInParallel="$(BuildInParallel)"
+             RemoveProperties="$(_StrideCompanionBuildRemoveProperties)"
+             Condition="'@(_StrideAssetsCompanionProject)' != ''" />
+    <MSBuild Projects="@(_StrideAssetsCompanionProject)"
+             Targets="GetStrideAssetBuildManifestPath"
+             RemoveProperties="$(_StrideCompanionBuildRemoveProperties)"
+             Condition="'@(_StrideAssetsCompanionProject)' != ''">
+      <Output TaskParameter="TargetOutputs" ItemName="_StrideCompanionManifest" />
+    </MSBuild>
+    <Error Condition="'@(_StrideCompanionManifest->Count())' != '@(_StrideAssetsCompanionProject->Count())'"
+           Text="A companion project of @(_StrideAssetsCompanionProject, ', ') wrote no build manifest; a companion project targets a single framework." />
   </Target>
 
   <UsingTask TaskName="StrideWriteAssetBuildManifest"
@@ -193,6 +301,7 @@
       <Extensions />
       <HostAssemblies ParameterType="Microsoft.Build.Framework.ITaskItem[]" />
       <ReferencedManifests ParameterType="Microsoft.Build.Framework.ITaskItem[]" />
+      <CompanionManifests ParameterType="Microsoft.Build.Framework.ITaskItem[]" />
       <CandidateItems ParameterType="Microsoft.Build.Framework.ITaskItem[]" />
     </ParameterGroup>
     <Task>
@@ -311,6 +420,20 @@
                 sb.AppendLine("    - " + q(manifest));
         }
 
+        var companionManifests = new SortedSet<string>(StringComparer.Ordinal);
+        foreach (var item in CompanionManifests ?? new Microsoft.Build.Framework.ITaskItem[0])
+        {
+            var path = item.GetMetadata("FullPath");
+            if (!string.IsNullOrEmpty(path))
+                companionManifests.Add(rel(path));
+        }
+        if (companionManifests.Count > 0)
+        {
+            sb.AppendLine("CompanionManifests:");
+            foreach (var manifest in companionManifests)
+                sb.AppendLine("    - " + q(manifest));
+        }
+
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var entries = new List<KeyValuePair<string, string>>();
         var excludePrefix = string.IsNullOrEmpty(ExcludeDirectory) ? null : Path.GetFullPath(ExcludeDirectory).TrimEnd(sep) + sep;
@@ -359,7 +482,7 @@
 
   <Target Name="StrideWriteAssetBuildManifest"
           AfterTargets="ResolveProjectReferences"
-          DependsOnTargets="_StrideResolveCompanionProjects"
+          DependsOnTargets="$(GetPackageVersionDependsOn);_StrideResolveCompanionProjects;_StrideBuildCompanionProjects"
           Condition="'$(StrideAssetBuildManifest)' == 'true' And '$(DesignTimeBuild)' != 'true' And '$(StrideAssetBuildManifestPath)' != '' And '$(_ComputeFilesToPublishForRuntimeIdentifiers)' != 'true'">
     <ItemGroup>
       <_StrideManifestProjectReference Include="@(_MSBuildProjectReferenceExistent)"
@@ -442,6 +565,7 @@
         Extensions="$(_StrideManifestExtensions)"
         HostAssemblies="@(_StrideAssetBuildManifestAssembly)"
         ReferencedManifests="@(_StrideReferencedManifest)"
+        CompanionManifests="@(_StrideCompanionManifest)"
         CandidateItems="@(_StrideAssetBuildManifestCandidate)" />
   </Target>
 

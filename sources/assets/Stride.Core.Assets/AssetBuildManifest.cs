@@ -78,6 +78,12 @@ public sealed class AssetBuildManifest
     public List<UFile> ReferencedManifests { get; } = [];
 
     /// <summary>
+    /// Manifests of the Assets companion projects an executable built on behalf of the projects it references
+    /// (an in-solution plugin's companions, which the game does not reference).
+    /// </summary>
+    public List<UFile> CompanionManifests { get; } = [];
+
+    /// <summary>
     /// Project-asset files (e.g. .sdsl, .sdfx) declared as project items.
     /// </summary>
     public List<AssetBuildManifestItem> ProjectAssets { get; } = [];

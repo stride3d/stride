@@ -13,11 +13,8 @@ using Xunit.Abstractions;
 namespace Stride.Packaging.Tests;
 
 /// <summary>
-/// A runtime plugin package lists its companion projects (StrideCompanionProject); the Assets one carries its asset
-/// type, compiler and template and states its kind (StridePackageKind). The packed runtime records each companion's
-/// id, version and kind. A consumer game references the runtime package only; the asset compiler and a headless
-/// session load the Assets companion on their own, at the recorded version, and only a session asking for editor
-/// packages loads the Editor one. A game can replace a declared companion with its own (Replaces).
+/// A runtime plugin package records its companion packages (id, version, kind); a game references the runtime only,
+/// and sessions load the companions from that record.
 /// </summary>
 [Collection("Packaging")]
 public class CompanionPackageTests
@@ -154,6 +151,41 @@ public class CompanionPackageTests
         Assert.DoesNotContain("is referenced directly", result.Output);
         Assert.DoesNotContain("Could not restore package", result.Output);
         c.AssertContentCompiled("/Consumer/Spin");
+    }
+
+    [Fact]
+    public void PluginProjectsInSolution()
+    {
+        // The game references the plugin's runtime project only: the executable builds the Assets project, the game does not ship it
+        using var c = new Case(output, "assets-solution");
+        c.DeclareAssetsCompanion();
+        c.ReferenceRuntimeProject();
+        c.WriteSolution();
+        c.AddSpinAsset();
+
+        var result = c.BuildConsumer();
+        Assert.True(result.ExitCode == 0, $"Consumer build should succeed (exit {result.ExitCode}).");
+        Assert.DoesNotContain("was not found", result.Output);
+        Assert.DoesNotContain("Could not restore package", result.Output);
+        Assert.DoesNotContain("is referenced directly", result.Output);
+        c.AssertContentCompiled("/Consumer/Spin");
+        Assert.False(File.Exists(Path.Combine(c.ConsumerBinDir, AssetsPackageId + ".dll")), "The Assets companion must not ship with the game.");
+
+        // The executable's manifest lists the companion's; the companion joins the session at the project's version
+        var session = c.LoadConsumerExecutableSession();
+        var assets = Assert.Single(session.Packages, p => p.Meta.Name == AssetsPackageId);
+        Assert.Equal(PackageKind.Assets, assets.Kind);
+        Assert.False(((StandalonePackage)assets.Container).IsDependencyPackage);
+        Assert.Contains(TemplateManager.FindTemplates(TemplateScope.Asset, session), t => t.Id == SpinTemplateId);
+
+        // The editor's path: the solution's project is the companion, nothing to restore
+        var solutionSession = c.LoadConsumerSolutionSession();
+        var project = Assert.Single(solutionSession.Packages, p => p.Meta.Name == AssetsPackageId);
+        Assert.IsType<SolutionProject>(project.Container);
+        var plugin = Assert.Single(solutionSession.Packages, p => p.Meta.Name == "StrideAssetPlugin");
+        var declaration = Assert.Single(plugin.CompanionPackages);
+        Assert.Equal(AssetsPackageId, declaration.Name);
+        Assert.Equal(PackageKind.Assets, declaration.Kind);
     }
 
     [Fact]
@@ -296,6 +328,28 @@ public class CompanionPackageTests
                 """<ProjectReference Include="..\..\PluginAssets\StrideAssetPlugin.Assets.csproj" />"""));
         }
 
+        /// <summary>The game references the plugin's runtime project alone; the companion is not referenced.</summary>
+        public void ReferenceRuntimeProject()
+        {
+            File.WriteAllText(GameProject, File.ReadAllText(GameProject).Replace(PluginReference,
+                """<ProjectReference Include="..\..\Plugin\StrideAssetPlugin.csproj" />"""));
+        }
+
+        /// <summary>A solution holding the game, its executable and the plugin's projects, as an in-solution plugin's.</summary>
+        public void WriteSolution()
+        {
+            File.WriteAllText(Path.Combine(consumerDir, "Consumer.slnx"), """
+                <Solution>
+                  <Project Path="Consumer.csproj" />
+                  <Project Path="Consumer.Game/Consumer.Game.csproj" />
+                  <Project Path="../Plugin/StrideAssetPlugin.csproj" />
+                  <Project Path="../PluginAssets/StrideAssetPlugin.Assets.csproj" />
+                </Solution>
+                """);
+        }
+
+        public string ConsumerBinDir => Path.Combine(consumerDir, "bin", "Debug", "net10.0");
+
         /// <summary>
         /// A copy of the Assets fixture under another id, taking the plugin from the feed: the game references it
         /// and declares it as replacing the Assets package the plugin declares.
@@ -355,6 +409,28 @@ public class CompanionPackageTests
             var manifest = Path.Combine(consumerDir, "Consumer.Game", "obj", "Debug", "net10.0", "Consumer.Game.sdbuild");
             var result = new PackageSessionResult();
             PackageSession.LoadFromBuildManifest(manifest, result);
+            return CheckSession(result);
+        }
+
+        /// <summary>
+        /// Headless session over the executable's build manifest, the asset compiler's path.
+        /// It loads no assemblies: a second copy of the plugin's in the test process breaks its serializers.
+        /// </summary>
+        public PackageSession LoadConsumerExecutableSession()
+        {
+            PackageSessionPublicHelper.FindAndSetMSBuildVersion();
+            var manifest = Path.Combine(consumerDir, "obj", "Debug", "net10.0", "Consumer.sdbuild");
+            var result = new PackageSessionResult();
+            PackageSession.LoadFromBuildManifest(manifest, result, new PackageLoadParameters { LoadAssemblyReferences = false, AutoLoadTemporaryAssets = false });
+            return CheckSession(result);
+        }
+
+        /// <summary>Headless session over the consumer's solution (see <see cref="WriteSolution"/>), the editor's path.</summary>
+        public PackageSession LoadConsumerSolutionSession()
+        {
+            PackageSessionPublicHelper.FindAndSetMSBuildVersion();
+            var result = new PackageSessionResult();
+            PackageSession.Load(Path.Combine(consumerDir, "Consumer.slnx"), result, new PackageLoadParameters { AutoCompileProjects = false, LoadAssemblyReferences = false, AutoLoadTemporaryAssets = false });
             return CheckSession(result);
         }
 
