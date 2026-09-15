@@ -62,6 +62,11 @@ public sealed class AssetBuildManifest
     public PackageKind? PackageKind { get; set; }
 
     /// <summary>
+    /// The UI toolkit an Editor package's views are written for (StrideEditorToolkit); absent for a neutral one.
+    /// </summary>
+    public string? PackageToolkit { get; set; }
+
+    /// <summary>
     /// Companions the project declares (StrideCompanionProject and StrideCompanionPackage items).
     /// </summary>
     public List<AssetBuildManifestCompanion> CompanionPackages { get; } = [];
@@ -119,6 +124,9 @@ public sealed class AssetBuildManifestCompanion
     public string? Package { get; set; }
 
     public string? Version { get; set; }
+
+    /// <summary>The UI toolkit of an Editor companion's views; absent for a neutral one.</summary>
+    public string? Toolkit { get; set; }
 
     /// <summary>Companion packages declared elsewhere that this one stands in for.</summary>
     public List<string> Replaces { get; } = [];

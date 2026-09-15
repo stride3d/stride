@@ -256,7 +256,7 @@
   <!-- ================================================================ -->
   <!-- When StridePackAssets=true, use Stride.Core.Tasks to copy .sdpkg, assets and templates
        into the NuGet package. This is a lightweight operation that doesn't need CompilerApp. -->
-  <Target Name="_StridePrepareAssetsForPack" BeforeTargets="_GetPackageFiles" DependsOnTargets="_StrideResolveCompanionProjects" Condition="'$(StridePackAssets)' == 'true' Or '$(StrideContainsAssetTypes)' == 'true' Or '$(StridePackageKind)' != '' Or '@(StrideCompanionProject)' != '' Or '@(StrideCompanionPackage)' != ''">
+  <Target Name="_StridePrepareAssetsForPack" BeforeTargets="_GetPackageFiles" DependsOnTargets="_StrideInferEditorToolkit;_StrideResolveCompanionProjects" Condition="'$(StridePackAssets)' == 'true' Or '$(StrideContainsAssetTypes)' == 'true' Or '$(StridePackageKind)' != '' Or '@(StrideCompanionProject)' != '' Or '@(StrideCompanionPackage)' != ''">
     <!-- Host-loadable assembly whose types appear in assets: written into the packed sdpkg's
          HostAssemblies so the host loads the build matching its runtime, one entry per produced
          framework the host can load (a base netX.0 or a net*-windows*). -->
@@ -273,8 +273,9 @@
     </ItemGroup>
     <PropertyGroup>
       <_StridePackHostAssembliesArg Condition="'$(StrideContainsAssetTypes)' == 'true'">@(_StrideHostAssetAssembly->' --pack-host-assembly=&quot;%(Identity)&quot;', '')</_StridePackHostAssembliesArg>
-      <_StridePackCompanionArg>@(_StrideCompanion->' --pack-companion=&quot;%(Kind):%(PackageId):%(PackageVersion):%(Replaces)&quot;', '')</_StridePackCompanionArg>
+      <_StridePackCompanionArg>@(_StrideCompanion->' --pack-companion=&quot;%(Kind):%(PackageId):%(PackageVersion):%(Replaces):%(Toolkit)&quot;', '')</_StridePackCompanionArg>
       <_StridePackKindArg Condition="'$(StridePackageKind)' != ''"> --pack-kind=&quot;$(StridePackageKind)&quot;</_StridePackKindArg>
+      <_StridePackKindArg Condition="'$(StrideEditorToolkit)' != ''">$(_StridePackKindArg) --pack-toolkit=&quot;$(StrideEditorToolkit)&quot;</_StridePackKindArg>
     </PropertyGroup>
     <Exec Command="dotnet &quot;$(StrideRoot)sources/core/Stride.Core.Tasks/bin/$(Configuration)/$(StrideFramework)/Stride.Core.Tasks.dll&quot; pack-assets &quot;$(MSBuildProjectFile)&quot; &quot;$(IntermediateOutputPath)stride&quot;$(_StridePackHostAssembliesArg)$(_StridePackCompanionArg)$(_StridePackKindArg)" ConsoleToMsBuild="true">
       <Output TaskParameter="ConsoleOutput" ItemName="PackAssetsLine" />

@@ -31,6 +31,7 @@ namespace Stride.AssetCompiler
         public string PackAssetNamespace { get; set; }
         public List<string> PackCompanionPackages = new List<string>();
         public string PackPackageKind { get; set; }
+        public string PackPackageToolkit { get; set; }
         public string MSBuildUpToDateCheckFileBase { get; set; }
         public List<string> MonitorPipeNames = new List<string>();
         public bool EnableFileLogging;

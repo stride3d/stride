@@ -370,9 +370,13 @@ public class SolutionProject : PackageContainer
     // Editor/asset-compiler loadability, from the msbuild StrideContainsAssetTypes property (null = use default below).
     public bool? ContainsAssetTypes { get; set; }
 
+    // A companion project of a kind or toolkit this host does not take (an Editor project outside the editor, a view
+    // project of another toolkit): its assembly is not loaded.
+    public bool IsSkippedByThisHost { get; set; }
+
     // Load the built assembly for type resolution (scripts, serialization, inheritable asset types) when
     // explicitly flagged, otherwise only for libraries.
-    public bool ShouldLoadAssemblyInEditor => ContainsAssetTypes ?? (Type == ProjectType.Library);
+    public bool ShouldLoadAssemblyInEditor => !IsSkippedByThisHost && (ContainsAssetTypes ?? (Type == ProjectType.Library));
 
     public bool IsImplicitProject { get; set; }
 
@@ -649,6 +653,12 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
     /// A load whose parameters ask for them sets it, so later loads with default parameters get them too.
     /// </summary>
     public bool LoadEditorPackages { get; set; }
+
+    /// <summary>
+    /// The UI toolkit of the editor this session serves (Wpf): the Editor companions written for another toolkit are
+    /// not loaded. Null for a host with no views (the asset compiler) and for a load that names none.
+    /// </summary>
+    public string? EditorToolkit { get; set; }
 
     /// <summary>
     /// Gets the packages referenced by the current package.
@@ -1112,7 +1122,8 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
 
             // Companion packages declared by the packages loaded above
             LoadEditorPackages |= loadParameters.LoadEditorPackages;
-            LoadCompanionPackages(GetRootDirectory(), log, LoadEditorPackages);
+            EditorToolkit ??= loadParameters.EditorToolkit;
+            LoadCompanionPackages(GetRootDirectory(), log, LoadEditorPackages, EditorToolkit);
         }
         finally
         {

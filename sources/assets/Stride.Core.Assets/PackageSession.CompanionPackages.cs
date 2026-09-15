@@ -16,7 +16,8 @@ partial class PackageSession
     /// Loads the companion packages (<see cref="Package.CompanionPackages"/>) this host takes, including companions of companions.
     /// Each comes from the session, a dev-redirect stub or a NuGet restore, at its declared version.
     /// </summary>
-    internal void LoadCompanionPackages(string? rootDirectory, ILogger log, bool loadEditorPackages)
+    /// <param name="editorToolkit">The editor's UI toolkit (Wpf); Editor companions for another toolkit are skipped.</param>
+    internal void LoadCompanionPackages(string? rootDirectory, ILogger log, bool loadEditorPackages, string? editorToolkit)
     {
         var loadedByName = new Dictionary<string, StandalonePackage>(StringComparer.OrdinalIgnoreCase);
         foreach (var container in Projects.OfType<StandalonePackage>())
@@ -41,19 +42,33 @@ partial class PackageSession
                     replaced.Add(name);
                 if (companion.Name is not null && replaced.Contains(companion.Name))
                     continue;
-                if (IsLoadedByThisHost(companion.Kind, loadEditorPackages))
+                if (IsLoadedByThisHost(companion, loadEditorPackages, editorToolkit))
                     LoadCompanionPackage(package, companion, loadedByName, rootDirectory, log);
+                else
+                    SkipCompanionPackage(package, companion, loadEditorPackages, editorToolkit, log);
             }
         }
     }
 
-    // Which host loads which kind: the asset compiler takes the Assets kind, the editor takes every kind
-    private static bool IsLoadedByThisHost(PackageKind kind, bool loadEditorPackages)
+    // A companion this host does not take can still be a project of the solution: its assembly is not loaded either
+    private void SkipCompanionPackage(Package package, CompanionPackage companion, bool loadEditorPackages, string? editorToolkit, ILogger log)
     {
-        return kind switch
+        if (loadEditorPackages && companion.Kind == PackageKind.Editor)
+            log.Info($"[{companion.Name}], declared by [{package.Meta.Name}], is written for the {companion.Toolkit} editor; this editor ({editorToolkit ?? "no toolkit"}) does not load it.");
+
+        var project = Projects.OfType<SolutionProject>().FirstOrDefault(p => string.Equals(p.Package.Meta.Name, companion.Name, StringComparison.OrdinalIgnoreCase));
+        if (project is not null)
+            project.IsSkippedByThisHost = true;
+    }
+
+    // Which host loads which companion: the asset compiler takes the Assets kind, the editor takes every kind, the
+    // views of its own toolkit only
+    private static bool IsLoadedByThisHost(CompanionPackage companion, bool loadEditorPackages, string? editorToolkit)
+    {
+        return companion.Kind switch
         {
             PackageKind.Assets => true,
-            PackageKind.Editor => loadEditorPackages,
+            PackageKind.Editor => loadEditorPackages && (companion.Toolkit is null || string.Equals(companion.Toolkit, editorToolkit, StringComparison.OrdinalIgnoreCase)),
             _ => false,
         };
     }
@@ -88,9 +103,11 @@ partial class PackageSession
         if (companion is not SolutionProject && companion.Package.Meta.Version != version)
             log.Error($"{kind} package [{companionName}] is version [{companion.Package.Meta.Version}] but [{package.Meta.Name}] declares version [{version}]; both must match.");
 
-        // A packed companion states its kind; an authored sdpkg does not (a solution project answers Runtime)
+        // A packed companion states its kind and toolkit; an authored sdpkg does not (a solution project answers Runtime)
         if (companion.Package.Kind != PackageKind.Runtime && companion.Package.Kind != kind)
             log.Error($"[{companionName}] is an {companion.Package.Kind} package but [{package.Meta.Name}] declares it as its {kind} package.");
+        else if (companion.Package.Kind != PackageKind.Runtime && !string.Equals(companion.Package.Toolkit, declaration.Toolkit, StringComparison.OrdinalIgnoreCase))
+            log.Error($"[{companionName}] is written for the {companion.Package.Toolkit ?? "neutral"} toolkit but [{package.Meta.Name}] declares it for the {declaration.Toolkit ?? "neutral"} one.");
 
         AddCompanionLink(package, companion.Package);
     }

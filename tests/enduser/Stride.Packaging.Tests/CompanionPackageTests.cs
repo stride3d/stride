@@ -29,7 +29,8 @@ public class CompanionPackageTests
 
     /// <summary>
     /// The editor package loads at the version its runtime package declares, which is the runtime's own version
-    /// for the in-repo packages (the dev suffix included), and states the kind the runtime declares.
+    /// for the in-repo packages (the dev suffix included), and states the kind the runtime declares. It references
+    /// the WPF editor assemblies, so both record the Wpf toolkit.
     /// </summary>
     private static void AssertDeclaredEditorPackage(PackageSession session, string runtimeName, Package editorPackage)
     {
@@ -39,6 +40,8 @@ public class CompanionPackageTests
         Assert.Equal(runtime.Meta.Version, declaration.Version);
         Assert.Equal(runtime.Meta.Version, editorPackage.Meta.Version);
         Assert.Equal(PackageKind.Editor, editorPackage.Kind);
+        Assert.Equal("Wpf", declaration.Toolkit);
+        Assert.Equal("Wpf", editorPackage.Toolkit);
     }
 
     [Fact]
@@ -406,6 +409,10 @@ public class CompanionPackageTests
         var editorPackage = Assert.Single(editorSession.Packages, p => p.Meta.Name == "Stride.Voxels.Editor");
         Assert.True(((StandalonePackage)editorPackage.Container).IsCompanionPackage);
         AssertDeclaredEditorPackage(editorSession, "Stride.Voxels", editorPackage);
+
+        // An editor of another toolkit leaves it out
+        var otherEditorSession = c.LoadConsumerProjectSession(loadEditorPackages: true, editorToolkit: "Avalonia");
+        Assert.DoesNotContain(otherEditorSession.Packages, p => p.Meta.Name == "Stride.Voxels.Editor");
     }
 
     [Fact]
@@ -828,13 +835,14 @@ public class CompanionPackageTests
 
         /// <summary>
         /// Headless session over the consumer's project, the editor's path. Assemblies are not loaded: the
-        /// manifest session already loaded this plugin's assemblies into the test process.
+        /// manifest session already loaded this plugin's assemblies into the test process. An editor session is the
+        /// WPF Game Studio's unless told otherwise: the engine's Editor packages are built against the WPF editor.
         /// </summary>
-        public PackageSession LoadConsumerProjectSession(bool loadEditorPackages = false)
+        public PackageSession LoadConsumerProjectSession(bool loadEditorPackages = false, string? editorToolkit = "Wpf")
         {
             PackageSessionPublicHelper.FindAndSetMSBuildVersion();
             var result = new PackageSessionResult();
-            PackageSession.Load(GameProject, result, new PackageLoadParameters { AutoCompileProjects = false, LoadAssemblyReferences = false, AutoLoadTemporaryAssets = false, LoadEditorPackages = loadEditorPackages });
+            PackageSession.Load(GameProject, result, new PackageLoadParameters { AutoCompileProjects = false, LoadAssemblyReferences = false, AutoLoadTemporaryAssets = false, LoadEditorPackages = loadEditorPackages, EditorToolkit = editorToolkit });
             return CheckSession(result);
         }
 

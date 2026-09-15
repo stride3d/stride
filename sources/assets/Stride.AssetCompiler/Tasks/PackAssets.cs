@@ -19,9 +19,10 @@ namespace Stride.AssetCompiler.Tasks
     public static class PackAssetsHelper
     {
         /// <param name="hostAssemblies">Package-relative paths (lib/tfm/name.dll) of the assemblies the hosts load.</param>
-        /// <param name="companionPackages">Companion declarations as <c>Kind:Name:Version[:Replaces]</c>, Replaces being ';'-separated.</param>
+        /// <param name="companionPackages">Companion declarations as <c>Kind:Name:Version[:Replaces[:Toolkit]]</c>, Replaces being ';'-separated.</param>
         /// <param name="packageKind">What the package carries (StridePackageKind); null or empty for a runtime package.</param>
-        public static bool Run(Core.Diagnostics.Logger logger, string projectFile, string intermediatePackagePath, List<(string SourcePath, string PackagePath)> generatedItems, IReadOnlyList<string> hostAssemblies = null, string assetNamespace = null, IReadOnlyList<string> companionPackages = null, string packageKind = null)
+        /// <param name="packageToolkit">The UI toolkit of an Editor package's views (StrideEditorToolkit); null or empty for a neutral one.</param>
+        public static bool Run(Core.Diagnostics.Logger logger, string projectFile, string intermediatePackagePath, List<(string SourcePath, string PackagePath)> generatedItems, IReadOnlyList<string> hostAssemblies = null, string assetNamespace = null, IReadOnlyList<string> companionPackages = null, string packageKind = null, string packageToolkit = null)
         {
             var package = Package.Load(logger, projectFile, new PackageLoadParameters()
             {
@@ -241,16 +242,23 @@ namespace Stride.AssetCompiler.Tasks
                 else
                     logger.Error($"Package kind [{packageKind}] is not one of {string.Join(", ", Enum.GetNames<PackageKind>())}.");
             }
+            if (!string.IsNullOrWhiteSpace(packageToolkit))
+            {
+                if (newPackage.Kind == PackageKind.Editor)
+                    newPackage.Toolkit = packageToolkit.Trim();
+                else
+                    logger.Error($"Package toolkit [{packageToolkit}] needs the Editor kind; this package is {newPackage.Kind}.");
+            }
 
-            // Packed sdpkg stores the companion package names, versions and kinds, read from the companion projects at pack time.
+            // Packed sdpkg stores the companion package names, versions, kinds and toolkits, read from the companion projects at pack time.
             if (companionPackages != null)
             {
                 foreach (var declaration in companionPackages)
                 {
                     var parts = declaration.Split(':');
-                    if (parts.Length is < 3 or > 4 || !Enum.TryParse<PackageKind>(parts[0].Trim(), ignoreCase: true, out var kind) || kind == PackageKind.Runtime || string.IsNullOrWhiteSpace(parts[1]))
+                    if (parts.Length is < 3 or > 5 || !Enum.TryParse<PackageKind>(parts[0].Trim(), ignoreCase: true, out var kind) || kind == PackageKind.Runtime || string.IsNullOrWhiteSpace(parts[1]))
                     {
-                        logger.Error($"Companion package declaration [{declaration}] is not of the form Kind:Name:Version[:Replaces] with Kind Assets or Editor.");
+                        logger.Error($"Companion package declaration [{declaration}] is not of the form Kind:Name:Version[:Replaces[:Toolkit]] with Kind Assets or Editor.");
                         continue;
                     }
                     var companion = new CompanionPackage
@@ -259,10 +267,19 @@ namespace Stride.AssetCompiler.Tasks
                         Name = parts[1].Trim(),
                         Version = !string.IsNullOrWhiteSpace(parts[2]) ? new PackageVersion(parts[2].Trim()) : null,
                     };
-                    if (parts.Length == 4)
+                    if (parts.Length >= 4)
                     {
                         foreach (var replaced in parts[3].Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
                             companion.Replaces.Add(replaced);
+                    }
+                    if (parts.Length == 5 && !string.IsNullOrWhiteSpace(parts[4]))
+                    {
+                        if (kind != PackageKind.Editor)
+                        {
+                            logger.Error($"Companion package declaration [{declaration}] has a toolkit; only an Editor companion can.");
+                            continue;
+                        }
+                        companion.Toolkit = parts[4].Trim();
                     }
                     newPackage.CompanionPackages.Add(companion);
                 }
@@ -291,7 +308,7 @@ namespace Stride.AssetCompiler.Tasks
             }
 
             // Save package if there are resources, assets, or declarations
-            if (generatedItems.Count > 0 || newPackage.HostAssemblies.Count > 0 || newPackage.CompanionPackages.Count > 0 || newPackage.Kind != PackageKind.Runtime)
+            if (generatedItems.Count > 0 || newPackage.HostAssemblies.Count > 0 || newPackage.CompanionPackages.Count > 0 || newPackage.Kind != PackageKind.Runtime || newPackage.Toolkit is not null)
             {
                 // Make sure we have a standalone package
                 var standalonePackage = new StandalonePackage(newPackage);

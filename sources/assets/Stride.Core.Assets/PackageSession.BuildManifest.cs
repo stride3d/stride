@@ -150,7 +150,7 @@ partial class PackageSession
             var rootProjectDirectory = rootManifest.ProjectFile is not null
                 ? Path.GetDirectoryName(Path.GetFullPath(Path.Combine(Path.GetDirectoryName(rootManifestFile)!, rootManifest.ProjectFile.ToOSPath())))
                 : null;
-            session.LoadCompanionPackages(rootProjectDirectory, sessionResult, loadEditorPackages: false);
+            session.LoadCompanionPackages(rootProjectDirectory, sessionResult, loadEditorPackages: false, editorToolkit: null);
 
             // Load + register exactly the declared assemblies, then load assets (folder scan +
             // precomputed project assets); no dependency resolution, no MSBuild
