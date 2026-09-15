@@ -249,6 +249,8 @@
                 <sd:OnComboBoxClosedWithSelectionBehavior Command="{Binding AddNewRenderFeatureCommand}" CommandParameter="{Binding SelectedItem, ElementName=InstanceTypeSelectionComboBox}"/>
               </i:Interaction.Behaviors>
             </ComboBox>
+            <Button Margin="2" Content="{sd:Localize Add package features, Context=Button}" Command="{Binding AddPackageRenderFeaturesCommand}"
+                    ToolTip="{sd:Localize Add the render features of the referenced packages (plugins) this compositor lacks, Context=ToolTip}"/>
             <Button Margin="2" Content="{sd:Image {StaticResource ImageRemove}, 16, 16, NearestNeighbor}" Command="{Binding RemoveSelectedRenderFeaturesCommand}"/>
           </UniformGrid>
           <TextBlock Text="{sd:Localize Render features:}" VerticalAlignment="Center"/>
