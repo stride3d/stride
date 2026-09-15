@@ -22,13 +22,13 @@
           <SolidColorBrush x:Key="BorderBrushTile" Color="Transparent" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
-          <SolidColorBrush x:Key="AccentColor" Color="{DynamicResource SystemAccentColorLight1}" />
+          <SolidColorBrush x:Key="AccentColor" Color="{DynamicResource SystemAccentColor}" />
           <SolidColorBrush x:Key="NeutralBackgroundColor" Color="#0FFFFFFF" />
           <SolidColorBrush x:Key="CardBorderBrush" Color="#17FFFFFF" />
           <BoxShadows x:Key="CardShadow">0 1 2 #17FFFFFF</BoxShadows>
         </ResourceDictionary>
         <ResourceDictionary x:Key="Light">
-          <SolidColorBrush x:Key="AccentColor" Color="{DynamicResource SystemAccentColorLight1}" />
+          <SolidColorBrush x:Key="AccentColor" Color="{DynamicResource SystemAccentColor}" />
           <SolidColorBrush x:Key="NeutralBackgroundColor" Color="#80FFFFFF" />
           <SolidColorBrush x:Key="CardBorderBrush" Color="#17000000" />
           <BoxShadows x:Key="CardShadow">0 1 2 #17000000</BoxShadows>

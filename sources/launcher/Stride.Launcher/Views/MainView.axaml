@@ -21,6 +21,7 @@
               Padding="10,2">
         <Grid ColumnDefinitions="3*, *, Auto">
           <TextBlock Grid.Column="0"
+                    Foreground="White"
                     HorizontalAlignment="Left" VerticalAlignment="Center"
                     Text="{Binding CurrentToolTip}" />
           <!-- Reconnect button -->
@@ -34,6 +35,7 @@
             <TextBlock FontWeight="ExtraBold" Foreground="Gold" Text="Offline" />
           </Button>
           <TextBlock Grid.Column="2"
+                     Foreground="White"
                      Margin="8,4" HorizontalAlignment="Right" VerticalAlignment="Center"
                      Text="{Binding Source={x:Static srv:SelfUpdater.Version}, StringFormat=Launcher v{0}}"/>
         </Grid>
