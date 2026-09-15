@@ -8,21 +8,13 @@
       <ResourceDictionary.MergedDictionaries>
         <ResourceInclude Source="avares://Stride.Core.Presentation.Avalonia/Windows/GeometryResources.axaml"/>
         <ResourceInclude Source="avares://Stride.Core.Presentation.Avalonia/Windows/TitleBar.axaml" />
+        <ResourceInclude Source="Views/Icons.axaml" />
       </ResourceDictionary.MergedDictionaries>
 
       <!-- END TODO -->
-      <Image x:Key="ImageFacebook"
-             Height="24" Width="24"
-             Source="/Assets/Images/facebook.png" />
       <Image x:Key="ImageOpenCollective"
              Height="24" Width="24"
              Source="/Assets/Images/opencollective.png" />
-      <Image x:Key="ImageReddit"
-             Height="24" Width="24"
-             Source="/Assets/Images/reddit.png" />
-      <Image x:Key="ImageTwitter"
-             Height="24" Width="24"
-             Source="/Assets/Images/xtwitter.png" />
       <ResourceDictionary.ThemeDictionaries>
         <ResourceDictionary x:Key="Default">
           <SolidColorBrush x:Key="AccentColor" Color="#900520" />
@@ -77,12 +69,6 @@
     </Style>
     <Style Selector="TabItem">
       <Setter Property="FontSize" Value="14" />
-    </Style>
-    <Style Selector="Path.tab-icon">
-        <Setter Property="Width" Value="16" />
-        <Setter Property="Height" Value="16" />
-        <Setter Property="Stretch" Value="Uniform" />
-        <Setter Property="Fill" Value="{DynamicResource SystemControlForegroundBaseHighBrush}" />
     </Style>
     <Style Selector="TextBlock.Subtitle">
       <Setter Property="FontWeight" Value="SemiBold" />
