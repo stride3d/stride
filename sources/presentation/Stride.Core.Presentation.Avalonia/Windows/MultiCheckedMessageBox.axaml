@@ -7,7 +7,7 @@
         xmlns:local="using:Stride.Core.Presentation.Windows"
         xmlns:windows="using:Stride.Core.Presentation.Avalonia.Windows"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-        MinHeight="120" MinWidth="320" MaxHeight="768"
+        MinHeight="120" MinWidth="320" MaxHeight="768" MaxWidth="1024"
         SizeToContent="WidthAndHeight" CanResize="False"
         WindowStartupLocation="CenterOwner"
         Padding="8,0" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Center"
