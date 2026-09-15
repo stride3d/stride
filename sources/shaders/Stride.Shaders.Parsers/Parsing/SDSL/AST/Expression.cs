@@ -1113,6 +1113,10 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                         var (builder, context) = compiler;
                         var importedVariable = ShaderDefinition.ImportSymbol(table, context, field.ResolvedSymbol!);
 
+                        // Base.Value reads the member on this instance, unlike a composition qualifier
+                        if (i == 0 && Source is Identifier { ResolvedSymbol.Id.Kind: SymbolKind.Shader })
+                            IdentifierBase.TrackNonStageVariableAccess(table, builder, context, importedVariable, field.Info);
+
                         // Emit OpAccessChain with everything so far
                         EmitOpAccessChain(accessChainIds, i - 1);
 
