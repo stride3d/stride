@@ -637,6 +637,8 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
 
     public static PackageContainer LoadProject(ILogger log, string filePath)
     {
+        filePath = FileUtility.GetAbsolutePath(filePath);
+
         if (SupportedProgrammingLanguages.IsProjectExtensionSupported(Path.GetExtension(filePath).ToLowerInvariant()))
         {
             var projectPath = filePath;
@@ -1032,7 +1034,10 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
     {
         ArgumentNullException.ThrowIfNull(log);
         ArgumentNullException.ThrowIfNull(loadParameters);
-        var assemblyContainer = loadParameters.AssemblyContainer ?? AssemblyContainer.Default;
+        // A package of a session loads into the session's container whoever asks (the load, a later
+        // UpdateAssemblyReferences): one container means one copy of each assembly, so a dependent assembly
+        // binds to the copy already loaded rather than to another one next to itself
+        var assemblyContainer = loadParameters.AssemblyContainer ?? Session?.AssemblyContainer ?? AssemblyContainer.Default;
 
         // Load from package
         if (Container is StandalonePackage standalonePackage)
