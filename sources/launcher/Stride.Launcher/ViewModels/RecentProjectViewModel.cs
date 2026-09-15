@@ -19,6 +19,8 @@ public sealed class RecentProjectViewModel : DispatcherViewModel
     private readonly UFile fullPath;
     private string strideVersionName;
     private Version? strideVersion;
+    // The exact version the project references (4.4.0-dev3); an installed version with that name is preferred.
+    private string? stridePackageVersion;
 
     internal RecentProjectViewModel(MainViewModel launcher, UFile path)
         : base(launcher.SafeArgument(nameof(launcher)).ServiceProvider)
@@ -60,6 +62,7 @@ public sealed class RecentProjectViewModel : DispatcherViewModel
         Task.Run(async () =>
         {
             var packageVersion = await PackageSessionHelper.GetPackageVersion(fullPath);
+            stridePackageVersion = packageVersion?.ToString();
             StrideVersion = packageVersion is not null ? new Version(packageVersion.Version.Major, packageVersion.Version.Minor) : null;
             StrideVersionName = StrideVersion?.ToString();
 
@@ -171,7 +174,9 @@ public sealed class RecentProjectViewModel : DispatcherViewModel
     private async Task OpenWith(StrideVersionViewModel? version)
     {
         string message;
-        version ??= Launcher.StrideVersions.FirstOrDefault(x => new Version(x.Major, x.Minor) == StrideVersion);
+        // The exact version when it is installed (a dev build), else the installed one of the same major.minor.
+        version ??= Launcher.StrideVersions.FirstOrDefault(x => x.CanDelete && x.FullName == stridePackageVersion)
+            ?? Launcher.StrideVersions.FirstOrDefault(x => new Version(x.Major, x.Minor) == StrideVersion);
         if (version is null)
         {
             message = string.Format(Strings.ErrorDoNotFindVersion, StrideVersion);
