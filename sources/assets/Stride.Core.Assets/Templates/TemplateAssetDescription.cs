@@ -21,7 +21,16 @@ public class TemplateAssetDescription : TemplateDescription
 
     public Type GetAssetType()
     {
-        return AssetRegistry.GetPublicTypes().First(x => x.Name == AssetTypeName);
+        return FindAssetType() ?? throw new InvalidOperationException($"No registered asset type is named [{AssetTypeName}].");
+    }
+
+    /// <summary>
+    /// The asset type of this template, or null when no registered type has that name: the package declaring the
+    /// template is in the session, but the assembly defining its asset type is not loaded.
+    /// </summary>
+    public Type? FindAssetType()
+    {
+        return Array.Find(AssetRegistry.GetPublicTypes(), x => x.Name == AssetTypeName);
     }
 
     public FileExtensionCollection GetSupportedExtensions()

@@ -238,6 +238,14 @@ namespace Stride.Core.Assets.Editor.ViewModel
         public event EventHandler<ActiveAssetsChangedArgs> ActiveAssetsChanged;
 
         /// <summary>
+        /// Raised when the asset types and templates of the session may have changed (packages or asset assemblies changed).
+        /// </summary>
+        public event EventHandler AssetTypesChanged;
+
+        // Non-zero while a raise is scheduled
+        private int assetTypesChangedPending;
+
+        /// <summary>
         /// Gets whether the session is currently in a special context to fix up assets.
         /// </summary>
         /// <seealso cref="CreateAssetFixupContext"/>
@@ -543,6 +551,8 @@ namespace Stride.Core.Assets.Editor.ViewModel
             // Unregister collection
             ServiceProvider.Get<SelectionService>().UnregisterSelectionScope(ActiveAssetView.SelectedContent);
             ActiveAssetView.SelectedAssets.CollectionChanged -= SelectedAssetsCollectionChanged;
+            Core.Reflection.AssemblyRegistry.AssemblyRegistered -= AssetAssembliesChanged;
+            Core.Reflection.AssemblyRegistry.AssemblyUnregistered -= AssetAssembliesChanged;
 
             base.Destroy();
         }
@@ -642,6 +652,9 @@ namespace Stride.Core.Assets.Editor.ViewModel
             packageCategories.Add(StorePackageCategoryName, new PackageCategoryViewModel(StorePackageCategoryName, this));
             UpdatePackageViewModel = new UpdatePackageTemplateCollectionViewModel(this);
             LocalPackages.CollectionChanged += LocalPackagesCollectionChanged;
+            // Asset assemblies add or remove asset types
+            Core.Reflection.AssemblyRegistry.AssemblyRegistered += AssetAssembliesChanged;
+            Core.Reflection.AssemblyRegistry.AssemblyUnregistered += AssetAssembliesChanged;
 
             // Initialize commands
             SaveSessionCommand = new AnonymousTaskCommand(ServiceProvider, SaveSession);
@@ -1363,6 +1376,32 @@ namespace Stride.Core.Assets.Editor.ViewModel
             // The root-asset menu lists the local packages
             if (ActiveAssetView != null)
                 RefreshRootAssetSelection();
+
+            // A package brings its own asset templates
+            RaiseAssetTypesChanged();
+        }
+
+        /// <summary>
+        /// Raises <see cref="AssetTypesChanged"/> once for a burst of asset assembly changes, such as an assembly reload.
+        /// </summary>
+        private void AssetAssembliesChanged(object sender, Core.Reflection.AssemblyRegisteredEventArgs e)
+        {
+            if (!e.Categories.Contains(Core.Reflection.AssemblyCommonCategories.Assets))
+                return;
+
+            if (Interlocked.Exchange(ref assetTypesChangedPending, 1) != 0)
+                return;
+
+            Dispatcher.InvokeAsync(() =>
+            {
+                Interlocked.Exchange(ref assetTypesChangedPending, 0);
+                RaiseAssetTypesChanged();
+            }).Forget();
+        }
+
+        private void RaiseAssetTypesChanged()
+        {
+            AssetTypesChanged?.Invoke(this, EventArgs.Empty);
         }
 
         private async Task NewProject()
