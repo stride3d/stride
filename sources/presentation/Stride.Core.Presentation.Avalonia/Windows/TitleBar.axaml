@@ -43,13 +43,14 @@
                               Background="Transparent"
                               Margin="16,0"
                               WindowDecorationProperties.ElementRole="TitleBar">
-                    <Image Height="20" Source="{DynamicResource VectorEditorIcon}" Margin="0 0 12 0"/>
+                    <PathIcon Height="20" Margin="0 0 12 0"
+                              Data="{StaticResource GeometryStrideLogo}" />
                     <TextBlock Text="{TemplateBinding Title}" TextTrimming="CharacterEllipsis"
                                VerticalAlignment="Center"/>
                   </StackPanel>
                   <StackPanel Grid.Column="1" Orientation="Horizontal">
                     <Button x:Name="PART_MinimizeButton" Classes="MainWindowButton"
-                      Content="{DynamicResource VectorMinimizeWindow}"/>
+                            Content="{DynamicResource VectorMinimizeWindow}"/>
                     <Button x:Name="PART_MaximizeButton" Classes="MainWindowButton"
                             Content="{DynamicResource VectorMaximizeWindow}"/>
                     <Button x:Name="PART_CloseButton" Classes="MainWindowButton"
