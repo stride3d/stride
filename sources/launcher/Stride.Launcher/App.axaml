@@ -22,17 +22,13 @@
           <SolidColorBrush x:Key="BorderBrushTile" Color="Transparent" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
-          <SolidColorBrush x:Key="AccentColor" Color="{DynamicResource SystemAccentColorDark1}" />
-          <SolidColorBrush x:Key="AccentColor2" Color="{DynamicResource SystemAccentColorDark2}" />
-          <SolidColorBrush x:Key="AccentColor3" Color="{DynamicResource SystemAccentColorDark3}" />
+          <SolidColorBrush x:Key="AccentColor" Color="{DynamicResource SystemAccentColorLight1}" />
           <SolidColorBrush x:Key="NeutralBackgroundColor" Color="#0FFFFFFF" />
           <SolidColorBrush x:Key="CardBorderBrush" Color="#17FFFFFF" />
           <BoxShadows x:Key="CardShadow">0 1 2 #17FFFFFF</BoxShadows>
         </ResourceDictionary>
         <ResourceDictionary x:Key="Light">
           <SolidColorBrush x:Key="AccentColor" Color="{DynamicResource SystemAccentColorLight1}" />
-          <SolidColorBrush x:Key="AccentColor2" Color="{DynamicResource SystemAccentColorLight2}" />
-          <SolidColorBrush x:Key="AccentColor3" Color="{DynamicResource SystemAccentColorLight3}" />
           <SolidColorBrush x:Key="NeutralBackgroundColor" Color="#80FFFFFF" />
           <SolidColorBrush x:Key="CardBorderBrush" Color="#17000000" />
           <BoxShadows x:Key="CardShadow">0 1 2 #17000000</BoxShadows>
@@ -53,15 +49,6 @@
     </FluentTheme>
     <StyleInclude Source="avares://MarkView.Avalonia/Themes/MarkdownTheme.axaml" />
 
-    <Style Selector="Button.Primary">
-      <Setter Property="Background" Value="{DynamicResource AccentColor}" />
-    </Style>
-    <Style Selector="Button.Primary:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-      <Setter Property="Background" Value="{DynamicResource AccentColor2}" />
-    </Style>
-    <Style Selector="Button.Primary:pressed /template/ ContentPresenter#PART_ContentPresenter">
-      <Setter Property="Background" Value="{DynamicResource AccentColor3}" />
-    </Style>
     <Style Selector="Border.card">
       <Setter Property="BorderThickness" Value="1" />
       <Setter Property="BorderBrush" Value="{DynamicResource CardBorderBrush}" />

@@ -246,14 +246,14 @@
               <StackPanel>
                 <Grid Height="48">
                   <!-- Launch game studio -->
-                  <Button Classes="Primary" Command="{Binding StartStudioCommand}"
+                  <Button Classes="accent" Command="{Binding StartStudioCommand}"
                           Content="{Binding ActiveVersion?.FullName, StringFormat={x:Static l:Strings.StartVersion}}" FontSize="24"
                           HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                           HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                           IsEnabled="{Binding !ActiveVersion?.IsProcessing}"
                           IsVisible="{Binding ActiveVersion?.CanStart, TargetNullValue={x:False}}" />
                   <!-- Install specific version -->
-                  <Button Classes="Primary" Command="{Binding ActiveVersion?.DownloadCommand}"
+                  <Button Classes="accent" Command="{Binding ActiveVersion?.DownloadCommand}"
                           Content="{Binding ActiveVersion?.FullName, StringFormat={x:Static l:Strings.InstallVersion}}" FontSize="24"
                           HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                           HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
@@ -262,7 +262,7 @@
                                                       {Binding !ActiveVersion?.CanStart},
                                                       Converter={sd:AndMulti}}" />
                   <!-- Install latest version (nothing installed) -->
-                  <Button Classes="Primary" Command="{Binding InstallLatestVersionCommand}"
+                  <Button Classes="accent" Command="{Binding InstallLatestVersionCommand}"
                           Content="{x:Static l:Strings.InstallLatestVersion}" FontSize="24"
                           HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                           HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
