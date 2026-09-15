@@ -190,6 +190,17 @@ namespace Stride.Core.Assets.Editor.ViewModel
         }
 
         /// <summary>
+        /// Indicates whether building this package includes the given asset as a root, i.e. it is a root asset of this
+        /// package or of one of its dependencies.
+        /// </summary>
+        /// <param name="asset">The asset to check.</param>
+        /// <returns><c>True</c> if the asset is a root of this package's build, <c>False</c> otherwise.</returns>
+        public bool IsRootInBuild(AssetViewModel asset)
+        {
+            return RootAssets.Contains(asset) || Package.Container.FlattenedDependencies.Any(x => x.Package?.RootAssets.ContainsKey(asset.Id) == true);
+        }
+
+        /// <summary>
         /// Creates the view models for each asset, directory, profile, project and reference of this package.
         /// </summary>
         /// <param name="loggerResult">The logger result of the current operation.</param>
@@ -266,13 +277,10 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
         private void FillRootAssetCollection()
         {
+            // Only this package's own entries: changes replicate into Package.RootAssets, so entries
+            // owned by dependencies must not be mirrored here (see IsRootInBuild for the build view)
             RootAssets.Clear();
-            RootAssets.AddRange(Package.RootAssets.Select(x => Session.GetAssetById(x.Id)));
-            foreach (var dependency in PackageContainer.FlattenedDependencies)
-            {
-                if (dependency.Package != null)
-                    RootAssets.AddRange(dependency.Package.RootAssets.Select(x => Session.GetAssetById(x.Id)));
-            }
+            RootAssets.AddRange(Package.RootAssets.Select(x => Session.GetAssetById(x.Id)).NotNull());
             RegisterMemberCollectionForActionStack(nameof(RootAssets), RootAssets);
             RootAssets.CollectionChanged += RootAssetsCollectionChanged;
         }
@@ -314,7 +322,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-            Session.SelectionIsRoot = Session.ActiveAssetView.SelectedAssets.All(x => x.Dependencies.IsRoot);
+            Session.RefreshRootAssetSelection();
         }
 
         public AssetViewModel CreateAsset(DirectoryBaseViewModel directory, AssetItem assetItem, bool canUndoRedoCreation, LoggerResult loggerResult)

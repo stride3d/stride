@@ -119,7 +119,7 @@ jobs:
         with:
           cmdline-tools-version: 12266719
           accept-android-sdk-licenses: true
-          packages: tools platform-tools build-tools;36.0.0 platforms;android-34 system-images;android-34;google_apis;x86_64
+          packages: platform-tools build-tools;36.0.0 platforms;android-34 system-images;android-34;google_apis;x86_64
 
       - name: Install Linux host runtime deps (for asset compilation)
         run: |

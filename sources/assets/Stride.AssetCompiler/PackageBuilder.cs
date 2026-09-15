@@ -18,7 +18,6 @@ using System.Threading.Tasks;
 using Stride.Core.Assets.Analysis;
 using Stride.Core.Reflection;
 using Stride.Core.Serialization.Contents;
-using Stride.Core.Yaml;
 using Stride.Assets;
 using ServiceWire.NamedPipes;
 using System.IO;
@@ -91,22 +90,13 @@ namespace Stride.AssetCompiler
                     builderOptions.Logger.Error("No build manifest provided; the build command requires a .sdbuild manifest as input.");
                     return BuildResultCode.BuildError;
                 }
+                // Root package = the built project's own package (may not exist on disk; FullPath is still set)
                 var projectSessionResult = new PackageSessionResult();
-                PackageSession.LoadFromBuildManifest(builderOptions.PackageManifestFile, projectSessionResult, sessionLoadParameters);
+                var package = PackageSession.LoadFromBuildManifest(builderOptions.PackageManifestFile, projectSessionResult, sessionLoadParameters);
                 projectSessionResult.CopyTo(builderOptions.Logger);
                 if (projectSessionResult.HasErrors)
                     return BuildResultCode.BuildError;
                 projectSession = projectSessionResult.Session;
-                // Root package = the manifest's authored package (may not exist on disk; FullPath is still set)
-                var rootManifest = YamlSerializer.Load<AssetBuildManifest>(builderOptions.PackageManifestFile);
-                var packageFile = rootManifest.PackageFile is not null
-                    ? (UFile)Path.GetFullPath(Path.Combine(Path.GetDirectoryName(Path.GetFullPath(builderOptions.PackageManifestFile)), rootManifest.PackageFile.ToOSPath()))
-                    : null;
-
-                // Find loaded package -- otherwise fallback to first one
-                var package = projectSession.Packages.FirstOrDefault(x => x.FullPath == packageFile || (x.Container is SolutionProject project && project.FullPath == packageFile))
-                    ?? projectSession.LocalPackages.FirstOrDefault()
-                    ?? projectSession.Packages.FirstOrDefault();
 
                 // Setup variables
                 var buildDirectory = builderOptions.BuildDirectory;
@@ -326,9 +316,14 @@ namespace Stride.AssetCompiler
             // List asset folders from projects
             foreach (var package in rootPackage.Session.Packages)
             {
-                // Note: check if file exists (since it could be an "implicit package" from csproj)
+                // An implicit package (from csproj, no sdpkg yet) is tracked through a wildcard: the
+                // targets re-expand wildcards each build and diff the expanded list, so the sdpkg
+                // appearing (e.g. the editor writing a platform head's first root asset) triggers a
+                // rebuild, whereas a missing literal path never would.
                 if (File.Exists(package.FullPath))
                     inputs.Add(package.FullPath.ToOSPath());
+                else if (package.FullPath is not null)
+                    inputs.Add(Path.Combine(package.FullPath.GetFullDirectory().ToOSPath(), "*" + Package.PackageFileExtension));
 
                 // TODO: optimization: for nuget packages, directly use sha512 file rather than individual assets for faster checking
 
