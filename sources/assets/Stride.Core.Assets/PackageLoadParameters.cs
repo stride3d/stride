@@ -64,6 +64,12 @@ public sealed class PackageLoadParameters
     public bool LoadEditorPackages { get; set; }
 
     /// <summary>
+    /// The UI toolkit of the editor loading the session (Wpf), so the Editor companions written for another toolkit
+    /// stay out. Null loads the toolkit-neutral Editor companions only.
+    /// </summary>
+    public string? EditorToolkit { get; set; }
+
+    /// <summary>
     /// Gets or sets a value indicating whether to automatically compile projects that don't have their assembly generated.
     /// </summary>
     /// <value><c>true</c> if [automatic compile projects]; otherwise, <c>false</c>.</value>

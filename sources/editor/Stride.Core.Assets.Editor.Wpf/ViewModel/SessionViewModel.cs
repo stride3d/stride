@@ -43,6 +43,8 @@ namespace Stride.Core.Assets.Editor.ViewModel
         public static string StorePackageCategoryName = Tr._("External packages");
         public static string LocalPackageCategoryName = Tr._("Local packages");
         public const string SolutionExtension = ".slnx";
+        /// <summary>The UI toolkit of this editor; only the Editor companion packages for it are loaded.</summary>
+        public const string EditorToolkitName = "Wpf";
         public const int SaveIrreversibleSourceFileOperationsMessageCount = 5;
 
         private readonly IUndoRedoService undoRedoService;
@@ -266,7 +268,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         public static async Task<SessionViewModel> CreateNewSession(EditorViewModel editor, IViewModelServiceProvider serviceProvider, NewSessionParameters newSessionParameters)
         {
             var loggerResult = new LoggerResult();
-            var session = new PackageSession { LoadEditorPackages = true };
+            var session = new PackageSession { LoadEditorPackages = true, EditorToolkit = EditorToolkitName };
 
             var workProgress = new WorkProgressViewModel(serviceProvider, loggerResult)
             {
@@ -486,6 +488,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 CancelToken = cancellationSource.Token,
                 BackupBeforeUpgrade = true,
                 LoadEditorPackages = true,
+                EditorToolkit = EditorToolkitName,
             };
             var backupChoiceMade = false;
             loadParameters.PackageUpgradeRequested = (package, pendingUpgrades) =>
