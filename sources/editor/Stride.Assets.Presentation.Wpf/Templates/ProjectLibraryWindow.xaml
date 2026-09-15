@@ -20,8 +20,10 @@
   <StackPanel>
     <TextBlock Text="{sd:Localize Library name:}" Margin="20,20,20,0"/>
     <TextBox Name="LibBox" Text="{Binding LibraryName, UpdateSourceTrigger=PropertyChanged}" Margin="20,5,20,20"/>
-    <TextBlock Text="{sd:Localize Namespace:}" Margin="20,20,20,0"/>
-    <TextBox Text="{Binding Namespace}" Margin="20,5,20,20"/>
+    <TextBlock Text="{sd:Localize Namespace:}" Margin="20,20,20,0" Visibility="{Binding ShowNamespace, Converter={sd:VisibleOrCollapsed}}"/>
+    <TextBox Text="{Binding Namespace}" Margin="20,5,20,20" Visibility="{Binding ShowNamespace, Converter={sd:VisibleOrCollapsed}}"/>
+    <TextBlock Text="{sd:Localize Referenced from:}" Margin="20,20,20,0" Visibility="{Binding HasReferencingProjects, Converter={sd:VisibleOrCollapsed}}"/>
+    <ComboBox ItemsSource="{Binding ReferencingProjects}" SelectedItem="{Binding SelectedReferencingProject}" Margin="20,5,20,20" Visibility="{Binding HasReferencingProjects, Converter={sd:VisibleOrCollapsed}}"/>
     <TextBlock Name="WarningLabel" Margin="20,0,10,0" Text="Name already exists" Visibility="{Binding HasError, Converter={sd:VisibleOrHidden}}" HorizontalAlignment="Left" Foreground="Tomato"/>
     <UniformGrid Rows="1" Margin="20">
       <Button Content="{sd:Localize OK, Context=Button}" Margin="0,0,20,0" Padding="8" Click="ButtonOk" IsDefault="True" IsEnabled="{Binding HasError, Converter={sd:InvertBool}}"/>

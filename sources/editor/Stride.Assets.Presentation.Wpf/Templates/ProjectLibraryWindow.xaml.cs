@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
@@ -25,7 +26,10 @@ namespace Stride.Assets.Presentation.Templates
         private readonly IViewModelServiceProvider services;
         private bool hasError;
 
-        public ProjectLibraryWindow(string defaultLibraryName)
+        /// <param name="title">The window title; the code library one when null.</param>
+        /// <param name="referencingProjects">Projects offered as the one to reference the new project from; none hides the choice.</param>
+        /// <param name="showNamespace">Whether the namespace is asked for; otherwise it is the library name.</param>
+        public ProjectLibraryWindow(string defaultLibraryName, string title = null, IReadOnlyList<string> referencingProjects = null, bool showNamespace = true)
         {
             if (defaultLibraryName == null) throw new ArgumentNullException(nameof(defaultLibraryName));
 
@@ -35,8 +39,13 @@ namespace Stride.Assets.Presentation.Templates
 
             LibraryName = defaultLibraryName;
             Namespace = defaultLibraryName;
+            ShowNamespace = showNamespace;
+            ReferencingProjects = referencingProjects ?? Array.Empty<string>();
+            SelectedReferencingProject = ReferencingProjects.Count > 0 ? ReferencingProjects[0] : null;
             InitializeComponent();
             DataContext = this;
+            if (title != null)
+                Title = title;
 
             LibBox.TextChanged += LibBoxTextChanged;
         }
@@ -62,6 +71,14 @@ namespace Stride.Assets.Presentation.Templates
 
         public string Namespace { get; set; }
 
+        public bool ShowNamespace { get; }
+
+        public IReadOnlyList<string> ReferencingProjects { get; }
+
+        public bool HasReferencingProjects => ReferencingProjects.Count > 0;
+
+        public string SelectedReferencingProject { get; set; }
+
         private async void ButtonOk(object sender, RoutedEventArgs e)
         {
             string error;
@@ -71,7 +88,7 @@ namespace Stride.Assets.Presentation.Templates
                 return;
             }
 
-            if (!NamingHelper.IsValidNamespace(Namespace, out error))
+            if (ShowNamespace && !NamingHelper.IsValidNamespace(Namespace, out error))
             {
                 await services.Get<IDialogService>().MessageBoxAsync(string.Format(Tr._p("Message", "Type a valid namespace name. Error with {0}"), error), MessageBoxButton.OK, MessageBoxImage.Information);
                 return;

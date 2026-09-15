@@ -45,14 +45,13 @@ namespace Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels
             SelectedGroup = rootGroup;
         }
 
-        // Library template Id from samples/Library/Library/Library.sdtpl. Hardcoded here until a
-        // TemplateDescription-level "adds a project to existing session" marker replaces the
-        // path-suffix check below (legacy ProjectExecutable.sdtpl still uses the path form).
+        // Ids of samples/Library/Library/Library.sdtpl and samples/Plugin/Plugin/Plugin.sdtpl; ProjectExecutable.sdtpl is matched by path
         private static readonly Guid StrideLibraryTemplateId = new("7B79F1B7-3A55-4C84-AED9-3F4F3EE4B6E5");
+        private static readonly Guid StridePluginTemplateId = new("2D5E7F1A-8C3B-4E6A-9F0D-1B2C3D4E5F60");
 
         private bool IsAssetsOnlyTemplate(TemplateDescription template)
         {
-            if (template.Id == StrideLibraryTemplateId)
+            if (template.Id == StrideLibraryTemplateId || template.Id == StridePluginTemplateId)
                 return true;
             return template.FullPath.FullPath.EndsWith("ProjectExecutable.sdtpl", StringComparison.Ordinal);
         }
