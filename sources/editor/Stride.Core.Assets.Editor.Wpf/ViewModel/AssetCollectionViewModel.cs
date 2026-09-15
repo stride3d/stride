@@ -183,6 +183,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
         private readonly Lazy<AddAssetTemplateCollectionViewModel> addAssetTemplateCollection;
         private readonly List<AssetFilterViewModel> typeFilters = new List<AssetFilterViewModel>();
+        private int typeFiltersVersion = -1;
         private readonly Dictionary<FilterCategory, bool> availableFilterCategories;
         private readonly ObservableList<AssetFilterViewModel> availableAssetFilters = new ObservableList<AssetFilterViewModel>();
         private readonly ObservableSet<AssetFilterViewModel> currentAssetFilters = new ObservableSet<AssetFilterViewModel>();
@@ -208,9 +209,12 @@ namespace Stride.Core.Assets.Editor.ViewModel
             dependencyManager = Session.DependencyManager;
             this.assetProperties = assetProperties;
 
-            addAssetTemplateCollection = new Lazy<AddAssetTemplateCollectionViewModel>(() => new AddAssetTemplateCollectionViewModel(session));
-            typeFilters.AddRange(AssetRegistry.GetPublicTypes().Where(type => type != typeof(Package)).Select(type => new AssetFilterViewModel(this, FilterCategory.AssetType, type.FullName, DisplayAttribute.GetDisplayName(type))));
-            typeFilters.Sort((a, b) => string.Compare(a.DisplayName, b.DisplayName, StringComparison.InvariantCultureIgnoreCase));
+            addAssetTemplateCollection = new Lazy<AddAssetTemplateCollectionViewModel>(() =>
+            {
+                // Only a view showing the Add asset list follows the session (the asset picker's views never build it)
+                session.AssetTypesChanged += AssetTypesChanged;
+                return new AddAssetTemplateCollectionViewModel(session);
+            });
             availableFilterCategories = AllFilterCategories.ToDictionary(f => f, f => false);
             foreach (var cat in filterCategories)
             {
@@ -257,7 +261,24 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
         public IReadOnlyObservableCollection<object> FilteredContent => filteredContent;
 
-        public IReadOnlyCollection<AssetFilterViewModel> TypeFilters => typeFilters;
+        /// <summary>
+        /// One filter per asset type, rebuilt when the session's asset assemblies changed (a plugin added, assemblies
+        /// reloaded or unloaded).
+        /// </summary>
+        public IReadOnlyCollection<AssetFilterViewModel> TypeFilters
+        {
+            get
+            {
+                if (typeFiltersVersion != AssetRegistry.TypesVersion)
+                {
+                    typeFiltersVersion = AssetRegistry.TypesVersion;
+                    typeFilters.Clear();
+                    typeFilters.AddRange(AssetRegistry.GetPublicTypes().Where(type => type != typeof(Package)).Select(type => new AssetFilterViewModel(this, FilterCategory.AssetType, type.FullName, DisplayAttribute.GetDisplayName(type))));
+                    typeFilters.Sort((a, b) => string.Compare(a.DisplayName, b.DisplayName, StringComparison.InvariantCultureIgnoreCase));
+                }
+                return typeFilters;
+            }
+        }
 
         public IReadOnlyObservableCollection<AssetFilterViewModel> AvailableAssetFilters => availableAssetFilters;
 
@@ -476,8 +497,15 @@ namespace Stride.Core.Assets.Editor.ViewModel
         {
             EnsureNotDestroyed(nameof(AssetCollectionViewModel));
 
+            if (addAssetTemplateCollection.IsValueCreated)
+                Session.AssetTypesChanged -= AssetTypesChanged;
             pasteMonitor.Destroy();
             base.Destroy();
+        }
+
+        private void AssetTypesChanged(object sender, EventArgs e)
+        {
+            addAssetTemplateCollection.Value.Refresh();
         }
 
         public async Task<List<AssetViewModel>> RunAssetTemplate(ITemplateDescriptionViewModel template, [CanBeNull] IList<UFile> files, PropertyContainer? customParameters = null)
