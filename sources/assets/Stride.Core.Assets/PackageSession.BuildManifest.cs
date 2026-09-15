@@ -59,7 +59,9 @@ partial class PackageSession
                 var manifest = YamlSerializer.Load<AssetBuildManifest>(file);
                 manifests.Add(file, manifest);
                 session.AssetNamespaceUsings.UnionWith(manifest.AssetNamespaceUsings);
-                foreach (var reference in manifest.ReferencedManifests)
+                // A companion manifest joins the session as a package like a referenced one; it is found by name
+                // when the declaring package's companions load, not part of the reference closure
+                foreach (var reference in manifest.ReferencedManifests.Concat(manifest.CompanionManifests))
                     queue.Enqueue(AssetBuildManifest.ResolvePath(file, reference));
             }
             session.LoadedBuildManifests = [.. manifests.Keys];

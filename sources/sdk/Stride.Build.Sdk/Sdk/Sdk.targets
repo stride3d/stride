@@ -256,7 +256,7 @@
   <!-- ================================================================ -->
   <!-- When StridePackAssets=true, use Stride.Core.Tasks to copy .sdpkg, assets and templates
        into the NuGet package. This is a lightweight operation that doesn't need CompilerApp. -->
-  <Target Name="_StridePrepareAssetsForPack" BeforeTargets="_GetPackageFiles" DependsOnTargets="_StrideResolveCompanionProjectsForPack" Condition="'$(StridePackAssets)' == 'true' Or '$(StrideContainsAssetTypes)' == 'true' Or '$(StridePackageKind)' != '' Or '@(StrideCompanionProject)' != '' Or '@(StrideCompanionPackage)' != ''">
+  <Target Name="_StridePrepareAssetsForPack" BeforeTargets="_GetPackageFiles" DependsOnTargets="_StrideResolveCompanionProjects" Condition="'$(StridePackAssets)' == 'true' Or '$(StrideContainsAssetTypes)' == 'true' Or '$(StridePackageKind)' != '' Or '@(StrideCompanionProject)' != '' Or '@(StrideCompanionPackage)' != ''">
     <!-- Host-loadable assembly whose types appear in assets: written into the packed sdpkg's
          HostAssemblies so the host loads the build matching its runtime, one entry per produced
          framework the host can load (a base netX.0 or a net*-windows*). -->

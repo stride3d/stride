@@ -412,7 +412,7 @@
   </Target>
 
   <!-- Pack target -->
-  <Target Name="_StridePrepareAssetsForPack" BeforeTargets="_GetPackageFiles" DependsOnTargets="_StridePrepareAssetCompiler;_StrideResolveCompanionProjectsForPack">
+  <Target Name="_StridePrepareAssetsForPack" BeforeTargets="_GetPackageFiles" DependsOnTargets="_StridePrepareAssetCompiler;_StrideResolveCompanionProjects">
     <!-- Exec in a separate process so the asset compiler assembly isn't locked during rebuild. -->
     <!-- Declare the host-loadable asset assembly (this package's own dll under lib/<tfm>/) so a consumer
          loads the build matching its asset compiler runtime. Enumerate the produced TFMs (multi-TFM:
@@ -432,7 +432,7 @@
     <PropertyGroup Condition="'$(StrideAssetNamespace)' != ''">
       <_StridePackAssetNamespaceArg> --pack-asset-namespace=&quot;$(StrideAssetNamespace)&quot;</_StridePackAssetNamespaceArg>
     </PropertyGroup>
-    <!-- Companion packages (StrideCompanionProject / StrideCompanionPackage, resolved by _StrideResolveCompanionProjectsForPack):
+    <!-- Companion packages (StrideCompanionProject / StrideCompanionPackage, resolved by _StrideResolveCompanionProjects):
          the packed sdpkg declares their id, version and kind. The asset compiler loads the Assets ones, the editor
          every one; the game never references them. A companion states its own kind (StridePackageKind). -->
     <PropertyGroup>
