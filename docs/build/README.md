@@ -12,10 +12,12 @@ When installing VS 2026, make sure these are selected:
 
 **Desktop development with C++ workload** — defaults are sufficient. Specific components used:
 - **Windows 11 SDK (10.0.22621.0 or later)** *(default)*
-- **MSVC Build Tools for x64/x86 (Latest)** *(default — currently v145.x in VS 2026)*
+- **MSVC Build Tools for x64/x86 (Latest)** *(default — currently v14.5x in VS 2026)*
+
+**In the 'Individual Components' Tab**
+- **MSVC Build Tools for ARM64/ARM64EC (Latest)** *(currently v14.5x in VS 2026)*
 
 **Optional components:**
-- **MSVC Build Tools for ARM64/ARM64EC (Latest)** — only needed if you actively develop or package for Windows ARM64. If missing, the ARM64 native build is **automatically skipped with a warning** (the rest of the build still succeeds).
 - **.NET Multi-platform App UI development** + **Android NDK 20.1+** (via *Tools > Android > Android SDK Manager*) — to target iOS/Android.
 - **Visual Studio extension development** + **.NET Framework 4.7.2 targeting pack** — to build the VSIX package.
 
