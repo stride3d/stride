@@ -506,6 +506,19 @@ namespace Stride.Core.Assets.Editor.ViewModel
             }
         }
 
+        /// <summary>
+        /// Creates the nodes of the direct dependencies added to the model without this view model (a session template
+        /// such as Add plugin).
+        /// </summary>
+        internal void AddMissingDependencyViewModels()
+        {
+            foreach (var dependency in Package.Container.DirectDependencies)
+            {
+                if (!Dependencies.Content.OfType<DirectDependencyReferenceViewModel>().Any(x => x.Dependency == dependency))
+                    new DirectDependencyReferenceViewModel(dependency, this, Dependencies, false);
+            }
+        }
+
         public async Task AddDependency(PickablePackageViewModel pickablePackageViewModel)
         {
             using (var transaction = UndoRedoService.CreateTransaction())

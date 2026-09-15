@@ -22,6 +22,7 @@ namespace Stride.Assets.Presentation.Templates
             // AddLibraryGenerator registered after DotNetNew so it takes precedence for stride-library
             // templates (TemplateManager iterates most-recent-first).
             QuantumTemplateRegistration.Register(new AddLibraryGenerator(new WpfAddLibraryParameterPrompt()));
+            QuantumTemplateRegistration.Register(new AddPluginGenerator(new WpfAddPluginParameterPrompt()));
             TemplateManager.Register(new UpdatePlatformsGenerator(new WpfUpdatePlatformsParameterPrompt()));
             RegisterUpdatePlatformsDescription();
             TemplateManager.Register(AssetFactoryTemplateGenerator.Default);

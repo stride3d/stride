@@ -1408,6 +1408,9 @@ namespace Stride.Core.Assets.Editor.ViewModel
             // This action is uncancellable - In case of errors, we still try to create view models to match what is currently in the PackageSession, but the template has responsibility to clean itself up in case of failure.
             // TODO: check what is created here and try to avoid it
             ProcessAddedProjects(loggerResult, workProgress, true);
+            // A template can also reference a new project from an existing one (Add plugin)
+            foreach (var package in LocalPackages)
+                package.AddMissingDependencyViewModels();
 
             if (CurrentProject == null)
                 AutoSelectCurrentProject();

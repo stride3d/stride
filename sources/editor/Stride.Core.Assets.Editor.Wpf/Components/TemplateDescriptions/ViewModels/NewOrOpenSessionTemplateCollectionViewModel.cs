@@ -18,7 +18,8 @@ namespace Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels
     {
         // Library template Id from samples/Library/Library/Library.sdtpl. Code Library adds a
         // project to an existing session — it can't seed a new solution on its own (no entry point
-        // to run), so we hide it from the startup dialog. Hardcoded until a TemplateDescription-
+        // to run), so we hide it from the startup dialog. The Plugin template stays: a plugin can be
+        // a solution of its own (asset editing, no game). Hardcoded until a TemplateDescription-
         // level "adds a project to existing session" marker lets both this filter and the inverse
         // one in NewProjectTemplateCollectionViewModel collapse to a single check.
         private static readonly Guid StrideLibraryTemplateId = new("7B79F1B7-3A55-4C84-AED9-3F4F3EE4B6E5");
