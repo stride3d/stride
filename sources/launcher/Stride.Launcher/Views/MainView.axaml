@@ -34,14 +34,15 @@
             <TextBlock FontWeight="ExtraBold" Foreground="Gold" Text="Offline" />
           </Button>
           <TextBlock Grid.Column="2"
-                    Margin="8,4" HorizontalAlignment="Right" VerticalAlignment="Center"
-                    Text="{Binding Source={x:Static srv:SelfUpdater.Version}, StringFormat=Launcher v{0}}"/>
+                     Margin="8,4" HorizontalAlignment="Right" VerticalAlignment="Center"
+                     Text="{Binding Source={x:Static srv:SelfUpdater.Version}, StringFormat=Launcher v{0}}"/>
         </Grid>
       </Border>
       <Grid ColumnDefinitions="Auto, *" Margin="10">
         <!-- FIRST COLUMN -->
         <DockPanel Grid.Column="0" Width="400" Margin="0 0 12 0">
           <Border Classes="card" DockPanel.Dock="Bottom"
+                  Margin="0 12 0 0"
                   CornerRadius="{StaticResource ControlCornerRadius}"
                   Background="{DynamicResource NeutralBackgroundColor}">
             <StackPanel Margin="10">
@@ -54,13 +55,13 @@
                         ToolTip.Tip="{Binding CommandParameter, StringFormat={x:Static l:Strings.ToolTipOpenLink}, RelativeSource={RelativeSource Self}}">
                   <Interaction.Behaviors>
                     <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
-                                                          DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
+                                                         DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
                   </Interaction.Behaviors>
                   <StackPanel Orientation="Horizontal">
                     <PathIcon Margin="4" Width="16" Height="16"
                               Data="{StaticResource GeometryIssues}" />
                     <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
-                                Text="{x:Static l:Strings.ButtonIssues}" />
+                               Text="{x:Static l:Strings.ButtonIssues}" />
                   </StackPanel>
                 </Button>
                 <Button Classes="TransparentButton"
@@ -70,13 +71,13 @@
                         ToolTip.Tip="{Binding CommandParameter, StringFormat={x:Static l:Strings.ToolTipOpenLink}, RelativeSource={RelativeSource Self}}">
                   <Interaction.Behaviors>
                     <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
-                                                          DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
+                                                         DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
                   </Interaction.Behaviors>
                   <StackPanel Orientation="Horizontal">
                     <PathIcon Margin="4" Width="16" Height="16"
                               Data="{StaticResource GeometryChatSparkle}"/>
                     <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
-                                Text="{x:Static l:Strings.ButtonForums}" />
+                               Text="{x:Static l:Strings.ButtonForums}" />
                   </StackPanel>
                 </Button>
                 <Button Classes="TransparentButton"
@@ -86,13 +87,13 @@
                         ToolTip.Tip="{Binding CommandParameter, StringFormat={x:Static l:Strings.ToolTipOpenLink}, RelativeSource={RelativeSource Self}}">
                   <Interaction.Behaviors>
                     <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
-                                                          DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
+                                                         DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
                   </Interaction.Behaviors>
                   <StackPanel Orientation="Horizontal">
                     <PathIcon Margin="4" Width="16" Height="16"
                               Data="{StaticResource GeometryDiscord}"/>
                     <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
-                                Text="{x:Static l:Strings.ButtonDiscord}" />
+                               Text="{x:Static l:Strings.ButtonDiscord}" />
                   </StackPanel>
                 </Button>
                 <Button Classes="TransparentButton"
@@ -102,13 +103,13 @@
                         ToolTip.Tip="{Binding CommandParameter, StringFormat={x:Static l:Strings.ToolTipOpenLink}, RelativeSource={RelativeSource Self}}">
                   <Interaction.Behaviors>
                     <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
-                                                          DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
+                                                         DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
                   </Interaction.Behaviors>
                   <StackPanel Orientation="Horizontal">
                     <PathIcon Margin="4" Width="16" Height="16"
                               Data="{StaticResource GeometryGitHubInverted}" />
                     <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
-                                Text="{x:Static l:Strings.ButtonGitHub}" />
+                               Text="{x:Static l:Strings.ButtonGitHub}" />
                   </StackPanel>
                 </Button>
                 <Button Classes="TransparentButton"
@@ -118,7 +119,7 @@
                         ToolTip.Tip="{Binding CommandParameter, StringFormat={x:Static l:Strings.ToolTipOpenLink}, RelativeSource={RelativeSource Self}}">
                   <Interaction.Behaviors>
                     <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
-                                                          DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
+                                                         DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
                   </Interaction.Behaviors>
                   <StackPanel Orientation="Horizontal">
                     <PathIcon Margin="4" Width="16" Height="16"
@@ -141,7 +142,7 @@
                             Data="{StaticResource GeometryXTwitter}" />
                   <Interaction.Behaviors>
                     <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
-                                                          DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
+                                                         DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
                   </Interaction.Behaviors>
                 </Button>
                 <Button Classes="TransparentButton MediaButton"
@@ -152,7 +153,7 @@
                             Data="{StaticResource GeometryFacebook}" />
                   <Interaction.Behaviors>
                     <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
-                                                          DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
+                                                         DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
                   </Interaction.Behaviors>
                 </Button>
                 <Button Classes="TransparentButton MediaButton"
@@ -163,7 +164,7 @@
                             Data="{StaticResource GeometryRedditSquare}" />
                   <Interaction.Behaviors>
                     <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
-                                                          DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
+                                                         DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
                   </Interaction.Behaviors>
                 </Button>
                 <Button Classes="TransparentButton MediaButton"
@@ -174,10 +175,69 @@
                             Data="{StaticResource GeometryOpenCollective}" />
                   <Interaction.Behaviors>
                     <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
-                                                          DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
+                                                         DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
                   </Interaction.Behaviors>
                 </Button>
               </StackPanel>
+            </StackPanel>
+          </Border>
+          <!-- Visual studio extensions -->
+          <Border Classes="card" DockPanel.Dock="Bottom"
+                  CornerRadius="{StaticResource ControlCornerRadius}"
+                  Background="{DynamicResource NeutralBackgroundColor}"
+                  IsVisible="{Binding Source={x:Static p:OperatingSystemHelper.IsWindows}, Mode=OneTime}">
+            <StackPanel Margin="10">
+              <Border BorderBrush="{StaticResource BorderBrushTile}" BorderThickness="12,0,0,0">
+                <DockPanel Height="32" Margin="4,0">
+                  <PathIcon Width="26" Height="26"
+                            Data="{StaticResource GeometryVisualStudio}" />
+                  <TextBlock Text="{x:Static l:Strings.VisualStudioExtension}"
+                             Margin="10,0"
+                             FontSize="24" TextAlignment="Left" VerticalAlignment="Center" />
+                </DockPanel>
+              </Border>
+              <Border BorderBrush="{StaticResource BorderBrushTile}">
+                <DockPanel Margin="4,0">
+                  <Button Classes="TransparentButton"
+                          HorizontalAlignment="Left"
+                          Command="{Binding OpenUrlCommand}"
+                          CommandParameter="{x:Static l:Urls.VisualStudio}"
+                          ToolTip.Tip="{Binding CommandParameter, StringFormat={x:Static l:Strings.ToolTipOpenLink}, RelativeSource={RelativeSource Self}}"
+                          Loaded="VisualStudioDownloadPage_Button_Loaded">
+                    <TextBlock Text="{x:Static l:Strings.VisualStudioDownloadPage}"
+                               FontSize="12" Margin="10,0"
+                               TextAlignment="Left" VerticalAlignment="Center" />
+                  </Button>
+                </DockPanel>
+              </Border>
+              <Border BorderBrush="{StaticResource TileBorderBrush}" BorderThickness="{StaticResource BorderThicknessTile}">
+                <StackPanel>
+                  <StackPanel.DataTemplates>
+                    <DataTemplate DataType="{x:Type vm:VsixVersionViewModel}">
+                      <Grid Height="32">
+                        <ProgressBar Minimum="0" Maximum="100" Value="{Binding CurrentProgress}"
+                                     IsIndeterminate="{Binding CurrentProgress, Converter={vw:ProgressToIndeterminatedConverter}}"
+                                     VerticalAlignment="Stretch"
+                                     IsVisible="{Binding IsProcessing}" />
+                        <TextBlock Text="{Binding CurrentProcessStatus}"
+                                    IsVisible="{Binding IsProcessing}" />
+                        <Button Command="{Binding ExecuteActionCommand}"
+                                Content="{Binding Status}"
+                                HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                                ToolTip.Tip="{Binding Status, StringFormat={x:Static l:Strings.ToolTipVisualStudioExtension}}"
+                                IsVisible="{Binding !IsProcessing}">
+                          <Interaction.Behaviors>
+                            <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding Launcher.CurrentToolTip}"
+                                                                 DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
+                          </Interaction.Behaviors>
+                        </Button>
+                      </Grid>
+                    </DataTemplate>
+                  </StackPanel.DataTemplates>
+                  <ContentControl Margin="2" Content="{Binding VsixPackage2019}"/>
+                  <ContentControl Margin="2" Content="{Binding VsixPackage2022}"/>
+                </StackPanel>
+              </Border>
             </StackPanel>
           </Border>
           <DockPanel>
@@ -190,8 +250,8 @@
                           Content="{Binding ActiveVersion?.FullName, StringFormat={x:Static l:Strings.StartVersion}}" FontSize="24"
                           HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                           HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                            IsEnabled="{Binding !ActiveVersion?.IsProcessing}"
-                            IsVisible="{Binding ActiveVersion?.CanStart, TargetNullValue={x:False}}" />
+                          IsEnabled="{Binding !ActiveVersion?.IsProcessing}"
+                          IsVisible="{Binding ActiveVersion?.CanStart, TargetNullValue={x:False}}" />
                   <!-- Install specific version -->
                   <Button Classes="Primary" Command="{Binding ActiveVersion?.DownloadCommand}"
                           Content="{Binding ActiveVersion?.FullName, StringFormat={x:Static l:Strings.InstallVersion}}" FontSize="24"
@@ -247,66 +307,8 @@
                         Width="26" Height="26"
                         VerticalAlignment="Center" />
                 <TextBlock Text="{x:Static l:Strings.SwitchOrUpdateVersion}"
-                            Margin="10,0"
-                            FontSize="24" TextAlignment="Left" VerticalAlignment="Center" />
-              </DockPanel>
-            </Border>
-            <!-- Visual studio extensions -->
-            <Border DockPanel.Dock="Bottom"
-                    IsVisible="{Binding Source={x:Static p:OperatingSystemHelper.IsWindows}, Mode=OneTime}"
-                    BorderBrush="{StaticResource TileBorderBrush}" BorderThickness="{StaticResource BorderThicknessTile}">
-              <StackPanel>
-                <StackPanel.DataTemplates>
-                  <DataTemplate DataType="{x:Type vm:VsixVersionViewModel}">
-                    <Grid Height="32">
-                      <ProgressBar Minimum="0" Maximum="100" Value="{Binding CurrentProgress}"
-                                    IsIndeterminate="{Binding CurrentProgress, Converter={vw:ProgressToIndeterminatedConverter}}"
-                                    VerticalAlignment="Stretch"
-                                    IsVisible="{Binding IsProcessing}" />
-                      <TextBlock Text="{Binding CurrentProcessStatus}"
-                                  IsVisible="{Binding IsProcessing}" />
-                      <Button Command="{Binding ExecuteActionCommand}"
-                              Content="{Binding Status}"
-                              HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
-                              ToolTip.Tip="{Binding Status, StringFormat={x:Static l:Strings.ToolTipVisualStudioExtension}}"
-                              IsVisible="{Binding !IsProcessing}">
-                        <Interaction.Behaviors>
-                          <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding Launcher.CurrentToolTip}"
-                                                                DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
-                        </Interaction.Behaviors>
-                      </Button>
-                    </Grid>
-                  </DataTemplate>
-                </StackPanel.DataTemplates>
-                <ContentControl Margin="2" Content="{Binding VsixPackage2019}"/>
-                <ContentControl Margin="2" Content="{Binding VsixPackage2022}"/>
-              </StackPanel>
-            </Border>
-            <Border DockPanel.Dock="Bottom"
-                    IsVisible="{Binding Source={x:Static p:OperatingSystemHelper.IsWindows}, Mode=OneTime}"
-                    BorderBrush="{StaticResource BorderBrushTile}">
-              <DockPanel Margin="4,0">
-                <Button Classes="TransparentButton"
-                        HorizontalAlignment="Left"
-                        Command="{Binding OpenUrlCommand}"
-                        CommandParameter="{x:Static l:Urls.VisualStudio}"
-                        ToolTip.Tip="{Binding CommandParameter, StringFormat={x:Static l:Strings.ToolTipOpenLink}, RelativeSource={RelativeSource Self}}"
-                        Loaded="VisualStudioDownloadPage_Button_Loaded">
-                  <TextBlock Text="{x:Static l:Strings.VisualStudioDownloadPage}"
-                              FontSize="12" Margin="10,0"
-                              TextAlignment="Left" VerticalAlignment="Center" />
-                </Button>
-              </DockPanel>
-            </Border>
-            <Border DockPanel.Dock="Bottom"
-                    IsVisible="{Binding Source={x:Static p:OperatingSystemHelper.IsWindows}, Mode=OneTime}"
-                    BorderBrush="{StaticResource BorderBrushTile}" BorderThickness="12,0,0,0">
-              <DockPanel Height="32" Margin="4,0">
-                <PathIcon Width="26" Height="26"
-                          Data="{StaticResource GeometryVisualStudio}" />
-                <TextBlock Text="{x:Static l:Strings.VisualStudioExtension}"
-                            Margin="10,0"
-                            FontSize="24" TextAlignment="Left" VerticalAlignment="Center" />
+                           Margin="10,0"
+                           FontSize="24" TextAlignment="Left" VerticalAlignment="Center" />
               </DockPanel>
             </Border>
             <!-- Stride versions -->
@@ -318,8 +320,8 @@
                     <ItemsControl.DataTemplates>
                       <DataTemplate DataType="{x:Type vm:StrideDevVersionViewModel}">
                         <DockPanel Height="32" Margin="0,2"
-                                    Background="{DynamicResource NeutralBackgroundColor}"
-                                    IsVisible="{Binding IsVisible}">
+                                   Background="{DynamicResource NeutralBackgroundColor}"
+                                   IsVisible="{Binding IsVisible}">
                           <StackPanel DockPanel.Dock="Right"
                                       MinWidth="32" Orientation="Horizontal"
                                       IsEnabled="{Binding !IsProcessing}">
@@ -330,7 +332,7 @@
                                     ToolTip.Tip="{Binding FullName, StringFormat={x:Static l:Strings.ToolTipUninstall}}">
                               <Interaction.Behaviors>
                                 <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding Launcher.CurrentToolTip}"
-                                                                      DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
+                                                                     DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
                               </Interaction.Behaviors>
                               <PathIcon Width="20" Height="20"
                                         Data="{StaticResource GeometryTrash}" />
@@ -342,7 +344,7 @@
                                     ToolTip.Tip="{Binding FullName, StringFormat={x:Static l:Strings.ToolTipSetActiveVersion}}">
                               <Interaction.Behaviors>
                                 <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding Launcher.CurrentToolTip}"
-                                                                      DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
+                                                                     DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
                               </Interaction.Behaviors>
                               <TextBlock Text="{Binding DisplayName, StringFormat={x:Static l:Strings.VersionButton}}" />
                             </Button>
@@ -351,8 +353,8 @@
                       </DataTemplate>
                       <DataTemplate DataType="{x:Type vm:StrideStoreVersionViewModel}">
                         <DockPanel Height="32" Margin="0,2"
-                                    Background="{DynamicResource NeutralBackgroundColor}"
-                                    IsVisible="{Binding IsVisible}">
+                                   Background="{DynamicResource NeutralBackgroundColor}"
+                                   IsVisible="{Binding IsVisible}">
                           <StackPanel DockPanel.Dock="Right"
                                       MinWidth="32" Orientation="Horizontal"
                                       IsEnabled="{Binding !IsProcessing}">
@@ -363,10 +365,10 @@
                                     ToolTip.Tip="{Binding ServerVersionFullName, StringFormat={x:Static l:Strings.ToolTipUpdate}}">
                               <Interaction.Behaviors>
                                 <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding Launcher.CurrentToolTip}"
-                                                                      DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
+                                                                     DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
                               </Interaction.Behaviors>
                               <Image Source="/Assets/Images/update.png"
-                                      Width="20" Height="20" />
+                                     Width="20" Height="20" />
                             </Button>
                             <!-- Download button -->
                             <Button Margin="4,0,0,0" Width="32" Height="32"
@@ -375,7 +377,7 @@
                                     ToolTip.Tip="{Binding FullName, StringFormat={x:Static l:Strings.ToolTipDownload}}">
                               <Interaction.Behaviors>
                                 <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding Launcher.CurrentToolTip}"
-                                                                      DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
+                                                                     DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
                               </Interaction.Behaviors>
                               <PathIcon Width="20" Height="20"
                                         Data="{StaticResource GeometryDownload}"/>
@@ -387,7 +389,7 @@
                                     ToolTip.Tip="{Binding FullName, StringFormat={x:Static l:Strings.ToolTipUninstall}}">
                               <Interaction.Behaviors>
                                 <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding Launcher.CurrentToolTip}"
-                                                                      DefaultValue="{x:Static l:Strings.ToolTipDefault}" />
+                                                                     DefaultValue="{x:Static l:Strings.ToolTipDefault}" />
                               </Interaction.Behaviors>
                               <PathIcon Width="20" Height="20"
                                         Data="{StaticResource GeometryTrash}"/>
@@ -397,22 +399,22 @@
                                           ToolTip.Tip="Install another version">
                               <Interaction.Behaviors>
                                 <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding Launcher.CurrentToolTip}"
-                                                                      DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
+                                                                     DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
                               </Interaction.Behaviors>
                               <PathIcon Width="20" Height="20"
                                         Data="{StaticResource GeometryListUnordered}"/>
                             </ToggleButton>
                             <Popup x:Name="AlternateVersionPopup"
-                                    IsOpen="{Binding #AlternateVersionToggle.IsChecked, Mode=TwoWay}" IsLightDismissEnabled="True"
-                                    PlacementTarget="AlternateVersionToggle">
+                                   IsOpen="{Binding #AlternateVersionToggle.IsChecked, Mode=TwoWay}" IsLightDismissEnabled="True"
+                                   PlacementTarget="AlternateVersionToggle">
                               <Border Background="{DynamicResource MenuFlyoutPresenterBackground}"
                                       BorderBrush="{DynamicResource MenuFlyoutPresenterBorderBrush}"
                                       BorderThickness="{DynamicResource MenuFlyoutPresenterBorderThemeThickness}"
                                       CornerRadius="{DynamicResource OverlayCornerRadius}">
                                 <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="256">
                                   <ListBox x:Name="AlternateVersionListBox"
-                                            Background="Transparent"
-                                            ItemsSource="{Binding AlternateVersions}">
+                                           Background="Transparent"
+                                           ItemsSource="{Binding AlternateVersions}">
                                     <Interaction.Behaviors>
                                       <EventTriggerBehavior EventName="SelectionChanged">
                                         <InvokeCommandAction Command="{Binding #AlternateVersionListBox.((vm:StrideStoreAlternateVersionViewModel)SelectedItem)?.SetAsActiveCommand}" />
@@ -423,7 +425,7 @@
                                     <ListBox.ItemTemplate>
                                       <DataTemplate DataType="vm:StrideStoreAlternateVersionViewModel">
                                         <TextBlock Text="{Binding FullName, StringFormat={x:Static l:Strings.ToolTipSetActiveVersion}}"
-                                                    TextTrimming="CharacterEllipsis" />
+                                                   TextTrimming="CharacterEllipsis" />
                                       </DataTemplate>
                                     </ListBox.ItemTemplate>
                                   </ListBox>
@@ -438,16 +440,16 @@
                                   ToolTip.Tip="Display release notes for this version">
                             <Interaction.Behaviors>
                               <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding Launcher.CurrentToolTip}"
-                                                                    DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
+                                                                   DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
                             </Interaction.Behaviors>
                             <PathIcon Width="20" Height="20"
                                       Data="{StaticResource GeometryNotes}"/>
                           </Button>
                           <Grid>
                             <ProgressBar Minimum="0" Maximum="100" Value="{Binding CurrentProgress}"
-                                          IsIndeterminate="{Binding CurrentProgress, Converter={vw:ProgressToIndeterminatedConverter}}"
-                                          VerticalAlignment="Stretch"
-                                          IsVisible="{Binding IsProcessing}" />
+                                         IsIndeterminate="{Binding CurrentProgress, Converter={vw:ProgressToIndeterminatedConverter}}"
+                                         VerticalAlignment="Stretch"
+                                         IsVisible="{Binding IsProcessing}" />
                             <TextBlock Text="{Binding CurrentProcessStatus}"
                                         HorizontalAlignment="Center" VerticalAlignment="Center"
                                         IsVisible="{Binding IsProcessing}" />
@@ -458,11 +460,11 @@
                                       ToolTip.Tip="{Binding FullName, StringFormat={x:Static l:Strings.ToolTipSetActiveVersion}}">
                                 <Interaction.Behaviors>
                                   <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding Launcher.CurrentToolTip}"
-                                                                        DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
+                                                                       DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
                                 </Interaction.Behaviors>
                               </Button>
                               <TextBlock Margin="16,0" IsHitTestVisible="False"
-                                          HorizontalAlignment="Left" VerticalAlignment="Center">
+                                         HorizontalAlignment="Left" VerticalAlignment="Center">
                                 <Run Text="{Binding DisplayName, Mode=OneWay, StringFormat={x:Static l:Strings.VersionButton}}"/>
                                 <!-- Careful here, there must not be any space or line-break between the next two Run tags! -->
                                 <Run Text="{Binding !CanDelete, Mode=OneWay, Converter={sd:BoolToParam}, ConverterParameter={x:Static l:Strings.VersionButtonUninstalled}
@@ -479,12 +481,12 @@
                   </ItemsControl>
                   <Grid>
                     <ProgressBar IsIndeterminate="True"
-                                  Height="24" Margin="0,2"
-                                  Opacity="0.5"
-                                  IsVisible="{Binding IsSynchronizing}" />
+                                 Height="24" Margin="0,2"
+                                 Opacity="0.5"
+                                 IsVisible="{Binding IsSynchronizing}" />
                     <TextBlock Text="{x:Static l:Strings.Synchronizing}"
-                                HorizontalAlignment="Center" VerticalAlignment="Center"
-                                IsVisible="{Binding IsSynchronizing}" />
+                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                               IsVisible="{Binding IsSynchronizing}" />
                   </Grid>
                 </StackPanel>
               </ScrollViewer>
@@ -518,11 +520,11 @@
               <Border DockPanel.Dock="Top" Margin="0,0,0,30">
                 <DockPanel Height="48" Margin="10,0">
                   <Image Source="/Assets/Images/recent-projects.png"
-                          Width="26" Height="26"
-                          VerticalAlignment="Center" />
+                         Width="26" Height="26"
+                         VerticalAlignment="Center" />
                   <TextBlock Text="{x:Static l:Strings.Projects}"
-                              Margin="10,0"
-                              FontSize="24" TextAlignment="Left" VerticalAlignment="Center" />
+                             Margin="10,0"
+                             FontSize="24" TextAlignment="Left" VerticalAlignment="Center" />
                 </DockPanel>
               </Border>
               <Grid>
@@ -531,8 +533,8 @@
                         IsVisible="{Binding !RecentProjects.Count, FallbackValue={x:False}}"
                         VerticalAlignment="Top">
                   <TextBlock Text="{x:Static l:Strings.NoProjectCreated}"
-                              FontSize="16" Margin="20"
-                              TextAlignment="Center" VerticalAlignment="Center" />
+                             FontSize="16" Margin="20"
+                             TextAlignment="Center" VerticalAlignment="Center" />
                 </Border>
                 <Border BorderBrush="{StaticResource BorderBrushTile}" BorderThickness="{StaticResource BorderThicknessTile}">
                   <ScrollViewer VerticalScrollBarVisibility="Auto">
@@ -565,20 +567,20 @@
                                     <Image Width="16" Height="16" Source="/Assets/Images/upgrade.png" />
                                   </ToggleButton>
                                   <Popup x:Name="CompatibleVersionPopup"
-                                          IsOpen="{Binding #CompatibleVersionToggle.IsChecked, Mode=TwoWay}" IsLightDismissEnabled="True"
-                                          PlacementTarget="{Binding #CompatibleVersionToggle}">
+                                         IsOpen="{Binding #CompatibleVersionToggle.IsChecked, Mode=TwoWay}" IsLightDismissEnabled="True"
+                                         PlacementTarget="{Binding #CompatibleVersionToggle}">
                                     <Border Background="{DynamicResource MenuFlyoutPresenterBackground}"
                                             BorderBrush="{DynamicResource MenuFlyoutPresenterBorderBrush}"
                                             BorderThickness="{DynamicResource MenuFlyoutPresenterBorderThemeThickness}"
                                             CornerRadius="{DynamicResource OverlayCornerRadius}">
                                       <ScrollViewer VerticalScrollBarVisibility="Auto">
                                         <ListBox x:Name="CompatibleVersionListBox"
-                                                  Background="Transparent"
-                                                  ItemsSource="{Binding CompatibleVersions}">
+                                                 Background="Transparent"
+                                                 ItemsSource="{Binding CompatibleVersions}">
                                           <Interaction.Behaviors>
                                             <EventTriggerBehavior EventName="SelectionChanged">
                                               <InvokeCommandAction Command="{Binding $parent[ScrollViewer].((vm:RecentProjectViewModel)DataContext).OpenWithCommand}"
-                                                                    CommandParameter="{Binding #CompatibleVersionListBox.SelectedItem}" />
+                                                                   CommandParameter="{Binding #CompatibleVersionListBox.SelectedItem}" />
                                               <ChangePropertyAction TargetObject="{Binding #CompatibleVersionPopup}" PropertyName="IsOpen" Value="False" />
                                               <ChangePropertyAction TargetObject="{Binding #CompatibleVersionListBox}" PropertyName="SelectedItem" Value="{x:Null}" />
                                             </EventTriggerBehavior>
@@ -586,7 +588,7 @@
                                           <ListBox.ItemTemplate>
                                             <DataTemplate DataType="vm:StrideVersionViewModel">
                                               <TextBlock Text="{Binding DisplayName, StringFormat={x:Static l:Strings.OpenProjectWithVersion}}"
-                                                          TextTrimming="CharacterEllipsis" />
+                                                         TextTrimming="CharacterEllipsis" />
                                             </DataTemplate>
                                           </ListBox.ItemTemplate>
                                         </ListBox>
@@ -594,23 +596,23 @@
                                     </Border>
                                   </Popup>
                                   <TextBlock DockPanel.Dock="Bottom"
-                                              Text="{Binding FullPath}"
-                                              TextTrimming="PathSegmentEllipsis"
-                                              FontStyle="Italic" />
+                                             Text="{Binding FullPath}"
+                                             TextTrimming="PathSegmentEllipsis"
+                                             FontStyle="Italic" />
                                 </DockPanel>
                                 <DockPanel>
                                   <!-- Discovering -->
                                   <TextBlock DockPanel.Dock="Right"
-                                              Text="{Binding StrideVersionName}"
-                                              FontSize="14"
-                                              IsVisible="{Binding StrideVersionName, Converter={sd:ObjectToBool}}" />
+                                             Text="{Binding StrideVersionName}"
+                                             FontSize="14"
+                                             IsVisible="{Binding StrideVersionName, Converter={sd:ObjectToBool}}" />
                                   <!-- Unknown -->
                                   <TextBlock DockPanel.Dock="Right"
-                                              Text="{x:Static l:Strings.UnknownVersion}"
-                                              FontSize="14"
-                                              IsVisible="{Binding StrideVersionName, Converter={sd:Chained {sd:ObjectToBool}, {sd:InvertBool}}}" />
+                                             Text="{x:Static l:Strings.UnknownVersion}"
+                                             FontSize="14"
+                                             IsVisible="{Binding StrideVersionName, Converter={sd:Chained {sd:ObjectToBool}, {sd:InvertBool}}}" />
                                   <TextBlock Text="{Binding Name}"
-                                              FontSize="16" FontWeight="Bold" />
+                                             FontSize="16" FontWeight="Bold" />
                                 </DockPanel>
                               </DockPanel>
                             </Button>
@@ -646,8 +648,8 @@
                     <Border Classes="card" Background="{DynamicResource NeutralBackgroundColor}"
                             IsVisible="{Binding !ActiveDocumentationPages.Count, FallbackValue={x:False}, TargetNullValue={x:False}}">
                       <TextBlock Text="{x:Static l:Strings.NoDocumentation}"
-                                  FontSize="16" Margin="20"
-                                  TextAlignment="Center" VerticalAlignment="Center" />
+                                 FontSize="16" Margin="20"
+                                 TextAlignment="Center" VerticalAlignment="Center" />
                     </Border>
                     <ItemsControl ItemsSource="{Binding ActiveDocumentationPages}">
                       <ItemsControl.ItemTemplate>
@@ -658,8 +660,8 @@
                                     HorizontalContentAlignment="Stretch">
                               <DockPanel Margin="4">
                                 <TextBlock Classes="Subtitle" DockPanel.Dock="Top"
-                                            HorizontalAlignment="Left"
-                                            Text="{Binding Title}" />
+                                           HorizontalAlignment="Left"
+                                           Text="{Binding Title}" />
                                 <TextBlock Text="{Binding Description}" TextWrapping="Wrap" />
                               </DockPanel>
                             </Button>
@@ -684,8 +686,8 @@
                     <Border Classes="card" Background="{DynamicResource NeutralBackgroundColor}"
                             IsVisible="{Binding !NewsPages?.Count, FallbackValue={x:False}, TargetNullValue={x:False}}">
                       <TextBlock Text="{x:Static l:Strings.NoNews}"
-                                  FontSize="16" Margin="20"
-                                  TextAlignment="Center" VerticalAlignment="Center" />
+                                 FontSize="16" Margin="20"
+                                 TextAlignment="Center" VerticalAlignment="Center" />
                     </Border>
                     <ItemsControl ItemsSource="{Binding NewsPages}">
                       <ItemsControl.ItemTemplate>
@@ -695,8 +697,8 @@
                                     HorizontalAlignment="Stretch"
                                     HorizontalContentAlignment="Stretch">
                               <StackPanel Margin="4" Spacing="4">
-                                <TextBlock  Classes="Subtitle" HorizontalAlignment="Left"
-                                            Text="{Binding Title}" TextWrapping="Wrap" />
+                                <TextBlock Classes="Subtitle" HorizontalAlignment="Left"
+                                           Text="{Binding Title}" TextWrapping="Wrap" />
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                   <Path Width="13"
                                         Height="13"
@@ -759,9 +761,9 @@
                                 Data="{StaticResource GeometryListUnordered}"/>
                     </ToggleButton>
                     <Popup x:Name="OutlinePopup"
-                            IsOpen="{Binding #OutlineToggle.IsChecked, Mode=TwoWay}" IsLightDismissEnabled="True"
-                            PlacementTarget="{Binding #OutlineToggle}"
-                            Placement="BottomEdgeAlignedLeft">
+                           IsOpen="{Binding #OutlineToggle.IsChecked, Mode=TwoWay}" IsLightDismissEnabled="True"
+                           PlacementTarget="{Binding #OutlineToggle}"
+                           Placement="BottomEdgeAlignedLeft">
                       <Border Background="{DynamicResource MenuFlyoutPresenterBackground}"
                               BorderBrush="{DynamicResource MenuFlyoutPresenterBorderBrush}"
                               BorderThickness="{DynamicResource MenuFlyoutPresenterBorderThemeThickness}"
@@ -769,13 +771,13 @@
                               Padding="8" Width="360" MaxHeight="420">
                         <ScrollViewer>
                           <ListBox x:Name="OutlineList"
-                                  Background="Transparent"
-                                  SelectionChanged="OnOutlineSelectionChanged"
-                                  ItemsSource="{Binding #ReleaseNotesView.TableOfContents, Converter={cvt:OutlineConverter}}">
+                                   Background="Transparent"
+                                   SelectionChanged="OnOutlineSelectionChanged"
+                                   ItemsSource="{Binding #ReleaseNotesView.TableOfContents, Converter={cvt:OutlineConverter}}">
                             <ListBox.ItemTemplate>
                               <DataTemplate DataType="cvt:OutlineRow">
                                 <TextBlock Text="{Binding Entry.Text}" Margin="{Binding Indent}"
-                                            TextTrimming="CharacterEllipsis" />
+                                           TextTrimming="CharacterEllipsis" />
                               </DataTemplate>
                             </ListBox.ItemTemplate>
                           </ListBox>
@@ -788,16 +790,16 @@
                   </DockPanel>
                   <Grid Margin="8">
                     <mv:MarkdownViewer x:Name="ReleaseNotesView"
-                                        Markdown="{Binding ActiveReleaseNotes?.MarkdownContent}"
-                                        BaseUri="{Binding ActiveReleaseNotes?.BaseUrl}"
-                                        IsVisible="{Binding ActiveReleaseNotes?.IsLoaded, FallbackValue={x:False}, TargetNullValue={x:False}}"
-                                        ScrollViewer.AllowAutoHide="False" Padding="4" />
+                                       Markdown="{Binding ActiveReleaseNotes?.MarkdownContent}"
+                                       BaseUri="{Binding ActiveReleaseNotes?.BaseUrl}"
+                                       IsVisible="{Binding ActiveReleaseNotes?.IsLoaded, FallbackValue={x:False}, TargetNullValue={x:False}}"
+                                       ScrollViewer.AllowAutoHide="False" Padding="4" />
                     <TextBlock Text="{x:Static l:Strings.NoReleaseNotes}"
-                                TextWrapping="Wrap" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                IsVisible="{Binding ActiveReleaseNotes?.IsUnavailable, FallbackValue={x:False}, TargetNullValue={x:False}}" />
+                               TextWrapping="Wrap" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"
+                               IsVisible="{Binding ActiveReleaseNotes?.IsUnavailable, FallbackValue={x:False}, TargetNullValue={x:False}}" />
                     <TextBlock Text="{x:Static l:Strings.DownloadingReleaseNotes}"
-                                TextWrapping="Wrap" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                IsVisible="{Binding ActiveReleaseNotes?.IsLoading, FallbackValue={x:False}, TargetNullValue={x:False}}" />
+                               TextWrapping="Wrap" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"
+                               IsVisible="{Binding ActiveReleaseNotes?.IsLoading, FallbackValue={x:False}, TargetNullValue={x:False}}" />
                   </Grid>
             </DockPanel>
           </Border>

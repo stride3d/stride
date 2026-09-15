@@ -31,7 +31,7 @@
           <SolidColorBrush x:Key="AccentColor" Color="{DynamicResource SystemAccentColorLight1}" />
           <SolidColorBrush x:Key="AccentColor2" Color="{DynamicResource SystemAccentColorLight2}" />
           <SolidColorBrush x:Key="AccentColor3" Color="{DynamicResource SystemAccentColorLight3}" />
-          <SolidColorBrush x:Key="NeutralBackgroundColor" Color="#ffffff" />
+          <SolidColorBrush x:Key="NeutralBackgroundColor" Color="#80FFFFFF" />
         </ResourceDictionary>
       </ResourceDictionary.ThemeDictionaries>
       <Thickness x:Key="BorderThicknessTile">12</Thickness>
@@ -49,9 +49,6 @@
     </FluentTheme>
     <StyleInclude Source="avares://MarkView.Avalonia/Themes/MarkdownTheme.axaml" />
 
-    <Style Selector="Button">
-      <Setter Property="Background" Value="{DynamicResource NeutralBackgroundColor}" />
-    </Style>
     <Style Selector="Button.Primary">
       <Setter Property="Background" Value="{DynamicResource AccentColor}" />
     </Style>
