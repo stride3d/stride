@@ -5,7 +5,7 @@ All XAML lives under [sources/launcher/Stride.Launcher/Views/](../../sources/lau
 ## Main window
 
 - [MainWindow.axaml](../../sources/launcher/Stride.Launcher/Views/MainWindow.axaml) is the `Window` shell. Its code-behind wires the window handle back to `MainViewModel.WindowHandle` so it can be passed to Game Studio via `/LauncherWindowHandle`.
-- [MainView.axaml](../../sources/launcher/Stride.Launcher/Views/MainView.axaml) is the content `UserControl`. It hosts the version list on the left, the tabs (Versions / Recent projects / News / Documentation) on the right, the announcement overlay, and the bottom bar with the Start Studio / Install buttons. `MainView.axaml.cs` has a `FrameworkChanged` handler that saves the user's framework choice to `LauncherSettings.PreferredFramework` immediately.
+- [MainView.axaml](../../sources/launcher/Stride.Launcher/Views/MainView.axaml) is the content `UserControl`. It hosts the version list on the left, the tabs (Versions / Recent projects / News / Documentation) on the right, the announcement overlay, and the bottom bar with the Start Studio / Install buttons. `MainView.axaml.cs` has an `EditorChanged` handler that saves the user's editor choice to `LauncherSettings.PreferredEditor` immediately; the runtime combo binds to `MainViewModel.SelectedRuntime`, which saves on its own.
 
 Splitting the `Window` from a `UserControl` lets Avalonia's designer render `MainView` in a `SingleViewApplicationLifetime` (see `App.OnFrameworkInitializationCompleted`'s second branch).
 
@@ -32,7 +32,7 @@ The crash report runs under a brand-new `MinimalApp`, because the main `App` is 
 Two converters live next to the views instead of in the ViewModels folder because they are UI-only:
 
 - [ProgressToIndeterminatedConverter.cs](../../sources/launcher/Stride.Launcher/Views/ProgressToIndeterminatedConverter.cs) — returns `true` when progress is unknown so the `ProgressBar` flips to indeterminate mode.
-- `FrameworkConverter` (in ViewModels/ but used in XAML) — see [viewmodels.md](viewmodels.md#converter).
+- `EditorNameConverter` (in ViewModels/ but used in XAML) — see [viewmodels.md](viewmodels.md#converter).
 
 ## Markdown rendering
 

@@ -121,4 +121,16 @@
     <value>Strideをより良くするために、オンラインアンケートを実施中です。
 数分で完了しますので、ご協力をお願いします！</value>
   </data>
+  <data name="RuntimeDefault" xml:space="preserve">
+    <value>既定の .NET バージョン</value>
+  </data>
+  <data name="RuntimeDefaultMajor" xml:space="preserve">
+    <value>.NET {0} 以降 (既定)</value>
+  </data>
+  <data name="RuntimeNewerMajor" xml:space="preserve">
+    <value>.NET {0} 以降</value>
+  </data>
+  <data name="RuntimeSelectorTooltip" xml:space="preserve">
+    <value>Game Studio はこの .NET バージョンで実行されます。プロジェクトがより新しいバージョンを必要とする場合は、そのバージョンで実行されます。</value>
+  </data>
 </root>

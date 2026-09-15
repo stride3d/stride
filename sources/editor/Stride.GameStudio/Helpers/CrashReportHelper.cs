@@ -32,6 +32,7 @@ namespace Stride.GameStudio.Helpers
                 ["StrideVersion"] = StrideVersion.NuGetVersion,
                 ["GameStudioVersion"] = DebugVersion.ToString(),
                 ["ThreadName"] = string.IsNullOrEmpty(threadName) ? "" : threadName,
+                ["RuntimeVersion"] = Environment.Version.ToString(),
 #if DEBUG
                 ["CrashLocation"] = crashLocation.ToString(),
                 ["ProcessID"] = Environment.ProcessId.ToString()

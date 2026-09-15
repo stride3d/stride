@@ -89,8 +89,8 @@ AppBuilder.Configure<App>()
 Clicking **Start** invokes `MainViewModel.StartStudio(string argument)`:
 
 1. If `AutoCloseLauncher` is on, the launcher prepends `/LauncherWindowHandle {MainViewModel.WindowHandle} ` to the argument string so Game Studio can message it back.
-2. `ActiveVersion.LocateMainExecutable()` resolves the path — preferring `{SelectedFramework}` under `tools/` or `lib/`, falling back to the legacy path `lib/net472/Stride.GameStudio.exe`.
-3. On `.dll` targets the launcher runs `dotnet <path> <args>`; otherwise it runs the executable directly. `WorkingDirectory` is set to the directory of the executable so `global.json` resolves correctly.
+2. `ActiveVersion.LocateMainExecutable()` resolves the path — the folder remembered for `SelectedEditor` under `tools/` or `lib/`, falling back to the legacy path `lib/net472/Stride.GameStudio.exe`.
+3. With an explicit runtime choice the launcher runs `dotnet exec --runtimeconfig <generated> <dll> <args>` (`DotNetHostSelector.RelaunchStartInfo`); otherwise it runs the apphost, or `dotnet <dll>` where there is none (`NativeStartInfo`). `WorkingDirectory` is set to the directory of the executable so `global.json` resolves correctly.
 4. The command is disabled for five seconds to debounce double-clicks, then re-enabled if the version is still `CanStart`.
 5. The active version is persisted through `LauncherSettings.ActiveVersion`.
 

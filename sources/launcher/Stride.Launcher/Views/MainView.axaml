@@ -230,19 +230,6 @@
                             IsEnabled="{Binding !IsSynchronizing}"
                             IsVisible="{Binding ActiveVersion, Converter={sd:Chained {sd:ObjectToBool}, {sd:InvertBool}}}" />
                   </Grid>
-                  <ComboBox x:Name="FrameworkSelector" Margin="0,4"
-                            HorizontalAlignment="Stretch"
-                            ItemsSource="{Binding ActiveVersion?.Frameworks}"
-                            SelectedItem="{Binding ActiveVersion?.SelectedFramework}"
-                            SelectionChanged="FrameworkChanged"
-                            IsEnabled="{Binding !ActiveVersion?.IsProcessing, FallbackValue={x:False}}"
-                            IsVisible="{Binding ActiveVersion?.Frameworks.Count, Converter={sd:Chained {sd:IsGreater}, Parameter1={sd:Double 1}}, FallbackValue={x:False}, TargetNullValue={x:False}}">
-                    <ComboBox.ItemTemplate>
-                      <DataTemplate>
-                        <TextBlock Text="{Binding Converter={vm:FrameworkConverter}}" />
-                      </DataTemplate>
-                    </ComboBox.ItemTemplate>
-                  </ComboBox>
                   <ComboBox x:Name="EditorSelector" Margin="0,4"
                             HorizontalAlignment="Stretch"
                             ItemsSource="{Binding ActiveVersion?.AvailableEditors}"
@@ -256,6 +243,14 @@
                       </DataTemplate>
                     </ComboBox.ItemTemplate>
                   </ComboBox>
+                  <!-- Minimum .NET major Game Studio runs on; hidden when only the default exists. -->
+                  <ComboBox x:Name="RuntimeSelector" Margin="0,4"
+                            HorizontalAlignment="Stretch"
+                            ToolTip.Tip="{x:Static l:Strings.RuntimeSelectorTooltip}"
+                            ItemsSource="{Binding AvailableRuntimes}"
+                            SelectedItem="{Binding SelectedRuntime}"
+                            IsEnabled="{Binding !ActiveVersion?.IsProcessing, FallbackValue={x:False}}"
+                            IsVisible="{Binding AvailableRuntimes.Count, Converter={sd:Chained {sd:IsGreater}, Parameter1={sd:Double 1}}}" />
                   <CheckBox DockPanel.Dock="Bottom" Margin="0,2"
                             IsChecked="{Binding AutoCloseLauncher}"
                             Content="{x:Static l:Strings.AutoCloseLauncher}"/>
