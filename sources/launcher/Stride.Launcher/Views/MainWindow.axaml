@@ -11,7 +11,6 @@
         Icon="/Assets/Launcher.ico"
         Title="{x:Static l:Strings.LauncherTitle}"
         WindowDecorations="BorderOnly" ExtendClientAreaToDecorationsHint="True">
-
   <Window.Resources>
     <ResourceDictionary>
       <ResourceDictionary.ThemeDictionaries>
@@ -23,9 +22,8 @@
                       Source="/Assets/Images/robot.png" Stretch="UniformToFill"/>
         </ResourceDictionary>
         <ResourceDictionary x:Key="Light">
-          <!-- FIXME xplat-editor find a background image working better with the light variant -->
           <ImageBrush x:Key="ImageBackground"
-                      Source="/Assets/Images/robot.png" Stretch="UniformToFill" Opacity="0.4"/>
+                      Source="/Assets/Images/robot-sunset.png" Stretch="UniformToFill"/>
         </ResourceDictionary>
       </ResourceDictionary.ThemeDictionaries>
     </ResourceDictionary>
