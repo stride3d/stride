@@ -73,6 +73,8 @@ namespace Stride.GameStudio.View
 
             InitializeComponent();
             Application.Current.Activated += (s, e) => editor.ServiceProvider.Get<IEditorDialogService>().ShowDelayedNotifications();
+            // A question raised while a progress window was up waits for that window to close.
+            WindowManager.MainWindowUnblocked += (s, e) => editor.ServiceProvider.Get<IEditorDialogService>().ShowDelayedNotifications();
             Loaded += GameStudioLoaded;
         }
 
