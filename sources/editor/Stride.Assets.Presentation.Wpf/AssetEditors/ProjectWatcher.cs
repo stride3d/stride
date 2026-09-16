@@ -36,6 +36,8 @@ namespace Stride.Assets.Presentation.AssetEditors
         Source,
         /// <summary>The project's editor loadability (StrideContainsAssetTypes) flipped: load or unload its assembly.</summary>
         Loadability,
+        /// <summary>An assembly this one depends on is being reloaded: rebuild and reload it too.</summary>
+        Dependency,
     }
 
     public class AssemblyChangedEvent
@@ -232,6 +234,24 @@ namespace Stride.Assets.Presentation.AssetEditors
         public IEnumerable<Project> GetLoadedProjects() => msbuildWorkspace?.CurrentSolution.Projects ?? Enumerable.Empty<Project>();
 
         public TrackingCollection<TrackedAssembly> TrackedAssemblies => trackedAssemblies;
+
+        /// <summary>
+        /// The changed assemblies plus the loaded assemblies whose package depends on them, dependencies first.
+        /// </summary>
+        public List<TrackedAssembly> GetAssembliesToReload(IEnumerable<PackageLoadedAssembly> changedAssemblies)
+        {
+            var changed = new HashSet<PackageLoadedAssembly>(changedAssemblies);
+            var tracked = SnapshotTrackedAssemblies().Where(x => x.LoadedAssembly != null && x.Package?.Package.Meta.Name != null).ToList();
+            var changedNames = new HashSet<string>(tracked.Where(x => changed.Contains(x.LoadedAssembly)).Select(x => x.Package.Package.Meta.Name), StringComparer.OrdinalIgnoreCase);
+            if (changedNames.Count == 0)
+                return new List<TrackedAssembly>();
+
+            var toReload = tracked.Where(x => changedNames.Contains(x.Package.Package.Meta.Name)
+                                              || x.Package.Package.LoadDependencyNames.Any(changedNames.Contains)).ToList();
+
+            var order = PackageSession.OrderDependenciesFirst(toReload.Select(x => x.Package.Package).Distinct().ToList());
+            return toReload.OrderBy(x => order.IndexOf(x.Package.Package)).ToList();
+        }
 
         /// <summary>Thread-safe snapshot of the tracked assemblies for enumeration off the mutating thread.</summary>
         public List<TrackedAssembly> SnapshotTrackedAssemblies()
