@@ -117,6 +117,20 @@ public class PackageStore
         return package is null ? null : (UDirectory)store.GetRealPath(package);
     }
 
+    /// <summary>The local-install directory of an installed package (see <see cref="GetLocalPackages"/>).</summary>
+    public UDirectory GetPackageDirectory(NugetLocalPackage package)
+    {
+        ArgumentNullException.ThrowIfNull(package);
+        return (UDirectory)store.GetRealPath(package);
+    }
+
+    /// <summary>Every installed copy of <paramref name="packageName"/>, for callers that pick a version themselves.</summary>
+    public IEnumerable<NugetLocalPackage> GetLocalPackages(string packageName)
+    {
+        ArgumentNullException.ThrowIfNull(packageName);
+        return store.GetLocalPackages(packageName);
+    }
+
     /// <summary>
     /// Fetches (if needed) and installs <paramref name="packageName"/> at <paramref name="version"/>
     /// into the local package store, from the configured NuGet sources. Returns the installed

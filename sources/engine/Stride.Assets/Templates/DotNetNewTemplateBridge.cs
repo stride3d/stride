@@ -33,20 +33,18 @@ namespace Stride.Assets.Templates;
 public static class DotNetNewTemplateBridge
 {
     /// <summary>
-    /// Package IDs the bridge tries to resolve via <see cref="PackageStore"/> on startup.
-    /// Only <c>Stride.Templates.Games</c> (NewGame) ships in the GameStudio installer; the
-    /// others are dev-only here (present in <c>%LocalAppData%\stride\nugetdev</c> when the
-    /// solution has been built, absent in installer-only setups). End users reach Starters /
-    /// Samples via the editor's template store (future) or CLI <c>dotnet new install</c>, and
-    /// AssetPacks via the on-demand download in <see cref="GetAssetPackTemplatesAsync"/>; this
-    /// list just controls which packages the bridge proactively probes on startup. Missing
-    /// packages are tolerated (per-package warning, no error).
+    /// Package IDs the bridge resolves on startup. <c>Stride.Templates.Games</c> (NewGame) is engine-versioned and
+    /// installed with Game Studio. The others carry the content version this engine names
+    /// (<see cref="StrideVersion.SamplesVersion"/>, resolved by <see cref="ContentTemplateResolver"/>): Starters and
+    /// Samples are Game Studio dependencies too, AssetPacks is fetched on demand (also by
+    /// <see cref="GetAssetPackTemplatesAsync"/>). A package that is neither installed nor obtainable is tolerated
+    /// (per-package warning, no error).
     /// </summary>
     private static readonly string[] BundledTemplatePackageIds =
     {
         "Stride.Templates.Games",
-        "Stride.Templates.Games.Starters",
-        "Stride.Templates.Samples",
+        ContentTemplateResolver.StartersPackageId,
+        ContentTemplateResolver.SamplesPackageId,
         AssetPacksPackageId,
     };
 
@@ -56,7 +54,7 @@ public static class DotNetNewTemplateBridge
     /// <see cref="GetAssetPackTemplatesAsync"/> when a game template offering packs is
     /// instantiated on a machine that doesn't have it yet.
     /// </summary>
-    public const string AssetPacksPackageId = "Stride.Templates.AssetPacks";
+    public const string AssetPacksPackageId = ContentTemplateResolver.AssetPacksPackageId;
 
     private static DotNetNewTemplateRegistry? registry;
     private static readonly object InitLock = new();
@@ -67,17 +65,22 @@ public static class DotNetNewTemplateBridge
     /// </summary>
     public static DotNetNewTemplateRegistry? Registry => registry;
 
+    /// <summary>Identities of the templates already registered with <see cref="TemplateManager"/> (guarded by <see cref="InitLock"/>).</summary>
+    private static readonly HashSet<string> RegisteredTemplateIdentities = new(StringComparer.Ordinal);
+
     /// <summary>
-    /// Resolves each <see cref="BundledTemplatePackageIds"/> entry via <see cref="PackageStore"/>,
-    /// installs them into the shared registry, and wraps every loaded dotnet new template as a
-    /// <see cref="TemplateDotNetNewDescription"/> registered with <see cref="TemplateManager"/>.
-    /// Tolerates missing packages — dev workflows that haven't built every template project yet
-    /// still load the editor.
+    /// Resolves each <see cref="BundledTemplatePackageIds"/> entry installed on this machine, installs them into the
+    /// shared registry, and wraps every loaded dotnet new template as a <see cref="TemplateDotNetNewDescription"/>
+    /// registered with <see cref="TemplateManager"/>. Never downloads: this runs during editor startup, often on the
+    /// UI thread. Starters and Samples missing locally are downloaded in the background and their templates are
+    /// registered when ready (AssetPacks are fetched on demand by <see cref="GetAssetPackTemplatesAsync"/>).
+    /// Tolerates missing packages — dev workflows that haven't built every template project yet still load the editor.
     /// </summary>
     public static void RegisterProjectTemplates()
     {
         var logger = GlobalLogger.GetLogger("DotNetNewTemplateBridge");
         logger.ActivateLog(LogMessageType.Info);
+        var missingContent = new List<string>();
         lock (InitLock)
         {
             // Stride-owned settings tree ({profileDir}/.templateengine/...), kept out of the user's
@@ -103,85 +106,134 @@ public static class DotNetNewTemplateBridge
             // can be resolved back to absolute on-disk locations at registration time.
             var sdtplsByIdentity = new Dictionary<string, TemplateMetadataSource>();
             foreach (var packageId in BundledTemplatePackageIds)
-                InstallBundledPackage(packageId, sdtplsByIdentity, logger);
-
-            var templatesTask = registry.GetTemplatesAsync();
-            templatesTask.Wait();
-            var templates = templatesTask.Result;
-            logger.Info($"Loaded {templates.Count} dotnet new template(s) total");
-
-            // Synthetic package: holds only the TemplateDescriptions we want TemplateManager to
-            // surface. Never saved to disk, never has a real .sdpkg — the descriptions are the
-            // only thing FindTemplates() reads (it does `packages.SelectMany(p => p.Templates)`).
-            // FullPath needs to be non-null so the DistinctPackagePathComparer (used to de-dup
-            // ExtraPackages in FindTemplates) doesn't NRE in GetHashCode; using a sentinel path
-            // ensures it doesn't collide with any real package.
-            var synthetic = new Package { FullPath = new UFile("Stride.DotNetNewTemplates.synthetic") };
-            foreach (var template in templates)
             {
-                // Item templates (asset packs) are not stand-alone projects — they surface as
-                // checkboxes inside the parameter dialog of templates that offer them, not as
-                // entries in the New-Project list.
-                if (IsItemTemplate(template))
-                    continue;
-
-                // Cross-ref by template.json identity → matches the sdtpl Id (we set
-                // `identity = sdtpl.Id` in the preprocessor) so the dict lookup hits.
-                sdtplsByIdentity.TryGetValue(template.Identity, out var source);
-                var sdtpl = source?.Metadata;
-                var shortName = template.ShortNameList.FirstOrDefault();
-                // Per-template content dir inside the package, e.g. <packageDir>/content/stride-fps/.
-                // Icon/Screenshot relative paths in .sdtpl resolve against this dir at runtime.
-                var templateContentDir = source != null && shortName != null
-                    ? Path.Combine(source.InstallSource, "content", shortName)
-                    : null;
-                var description = new TemplateDotNetNewDescription
+                if (!InstallBundledPackage(packageId, sdtplsByIdentity, logger)
+                    && ContentTemplateResolver.IsContentPackage(packageId) && packageId != AssetPacksPackageId)
                 {
-                    Id = sdtpl?.Id ?? TryParseGuid(template.Identity),
-                    Name = sdtpl?.Name ?? template.Name ?? shortName ?? template.Identity,
-                    Description = sdtpl?.Description ?? template.Description,
-                    FullDescription = sdtpl?.FullDescription,
-                    DefaultOutputName = sdtpl?.DefaultOutputName ?? template.DefaultName ?? "MyGame",
-                    Group = sdtpl?.Group ?? template.GroupIdentity ?? "Stride",
-                    Scope = (sdtpl?.Scope != null && Enum.TryParse<TemplateScope>(sdtpl.Scope, ignoreCase: true, out var parsedScope))
-                        ? parsedScope
-                        : TemplateScope.Session,
-                    TemplateIdentity = template.Identity,
-                    TemplateShortName = shortName ?? string.Empty,
-                    OffersAssetPacks = sdtpl?.HasParameter("assetPacks") == true,
-                    // FullPath must be non-null: TemplateDescriptionViewModel calls
-                    // Template.FullPath.GetFullDirectory() unconditionally when constructing
-                    // image paths. We point it at a synthetic file inside the per-template
-                    // content dir so the directory part is the natural relative-resolution root
-                    // (matches what TemplateDescription.FullPath means for real .sdpkg-backed
-                    // templates). Falls back to a per-identity sentinel if we couldn't resolve
-                    // a content dir (e.g. template not in the aggregated metadata).
-                    FullPath = templateContentDir != null
-                        ? new UFile(Path.Combine(templateContentDir, ".synthetic.sdtpl"))
-                        : new UFile($"{template.Identity}.synthetic"),
-                    Icon = templateContentDir != null ? ResolveTemplateAsset(sdtpl?.Icon, templateContentDir) : null,
-                };
-                if (templateContentDir != null && sdtpl != null)
-                {
-                    foreach (var s in sdtpl.Screenshots)
-                    {
-                        var resolved = ResolveTemplateAsset(s, templateContentDir);
-                        if (resolved != null)
-                            description.Screenshots.Add(resolved);
-                    }
+                    missingContent.Add(packageId);
                 }
-                synthetic.Templates.Add(description);
             }
 
-            TemplateManager.RegisterPackage(synthetic);
+            RegisterNewTemplates(sdtplsByIdentity, "Stride.DotNetNewTemplates.synthetic", logger);
         }
+
+        if (missingContent.Count > 0)
+            _ = Task.Run(() => DownloadMissingContent(missingContent, logger));
+    }
+
+    /// <summary>
+    /// Downloads content packages (<paramref name="packageIds"/>) this machine doesn't have, then installs them into the
+    /// registry and registers their templates, so they show in the New-Project dialog once ready. Best effort.
+    /// </summary>
+    private static void DownloadMissingContent(IReadOnlyList<string> packageIds, Logger logger)
+    {
+        try
+        {
+            var fetched = packageIds.Where(packageId => ResolvePackageDirectory(packageId, logger, allowInstall: true) is not null).ToList();
+            if (fetched.Count == 0)
+                return;
+
+            lock (InitLock)
+            {
+                var sdtplsByIdentity = new Dictionary<string, TemplateMetadataSource>();
+                foreach (var packageId in fetched)
+                    InstallBundledPackage(packageId, sdtplsByIdentity, logger);
+                RegisterNewTemplates(sdtplsByIdentity, "Stride.DotNetNewTemplates.downloaded.synthetic", logger);
+            }
+        }
+        catch (Exception e)
+        {
+            logger.Warning($"Could not download the template content ({string.Join(", ", packageIds)}): {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Wraps every registry template not registered yet as a <see cref="TemplateDotNetNewDescription"/>, in one
+    /// synthetic package registered with <see cref="TemplateManager"/>. Caller holds <see cref="InitLock"/>.
+    /// </summary>
+    private static void RegisterNewTemplates(Dictionary<string, TemplateMetadataSource> sdtplsByIdentity, string syntheticPath, Logger logger)
+    {
+        var templatesTask = registry!.GetTemplatesAsync();
+        templatesTask.Wait();
+        var templates = templatesTask.Result;
+        logger.Info($"Loaded {templates.Count} dotnet new template(s) total");
+
+        // Synthetic package: holds only the TemplateDescriptions we want TemplateManager to
+        // surface. Never saved to disk, never has a real .sdpkg — the descriptions are the
+        // only thing FindTemplates() reads (it does `packages.SelectMany(p => p.Templates)`).
+        // FullPath needs to be non-null so the DistinctPackagePathComparer (used to de-dup
+        // ExtraPackages in FindTemplates) doesn't NRE in GetHashCode; using a sentinel path
+        // ensures it doesn't collide with any real package.
+        var synthetic = new Package { FullPath = new UFile(syntheticPath) };
+        foreach (var template in templates)
+        {
+            // Item templates (asset packs) are not stand-alone projects — they surface as
+            // checkboxes inside the parameter dialog of templates that offer them, not as
+            // entries in the New-Project list.
+            if (IsItemTemplate(template))
+                continue;
+
+            // Registered by an earlier pass (startup, then the background download).
+            if (!RegisteredTemplateIdentities.Add(template.Identity))
+                continue;
+
+            // Cross-ref by template.json identity → matches the sdtpl Id (we set
+            // `identity = sdtpl.Id` in the preprocessor) so the dict lookup hits.
+            sdtplsByIdentity.TryGetValue(template.Identity, out var source);
+            var sdtpl = source?.Metadata;
+            var shortName = template.ShortNameList.FirstOrDefault();
+            // Per-template content dir inside the package, e.g. <packageDir>/content/stride-fps/.
+            // Icon/Screenshot relative paths in .sdtpl resolve against this dir at runtime.
+            var templateContentDir = source != null && shortName != null
+                ? Path.Combine(source.InstallSource, "content", shortName)
+                : null;
+            var description = new TemplateDotNetNewDescription
+            {
+                Id = sdtpl?.Id ?? TryParseGuid(template.Identity),
+                Name = sdtpl?.Name ?? template.Name ?? shortName ?? template.Identity,
+                Description = sdtpl?.Description ?? template.Description,
+                FullDescription = sdtpl?.FullDescription,
+                DefaultOutputName = sdtpl?.DefaultOutputName ?? template.DefaultName ?? "MyGame",
+                Group = sdtpl?.Group ?? template.GroupIdentity ?? "Stride",
+                Scope = (sdtpl?.Scope != null && Enum.TryParse<TemplateScope>(sdtpl.Scope, ignoreCase: true, out var parsedScope))
+                    ? parsedScope
+                    : TemplateScope.Session,
+                TemplateIdentity = template.Identity,
+                TemplateShortName = shortName ?? string.Empty,
+                OffersAssetPacks = sdtpl?.HasParameter("assetPacks") == true,
+                // FullPath must be non-null: TemplateDescriptionViewModel calls
+                // Template.FullPath.GetFullDirectory() unconditionally when constructing
+                // image paths. We point it at a synthetic file inside the per-template
+                // content dir so the directory part is the natural relative-resolution root
+                // (matches what TemplateDescription.FullPath means for real .sdpkg-backed
+                // templates). Falls back to a per-identity sentinel if we couldn't resolve
+                // a content dir (e.g. template not in the aggregated metadata).
+                FullPath = templateContentDir != null
+                    ? new UFile(Path.Combine(templateContentDir, ".synthetic.sdtpl"))
+                    : new UFile($"{template.Identity}.synthetic"),
+                Icon = templateContentDir != null ? ResolveTemplateAsset(sdtpl?.Icon, templateContentDir) : null,
+            };
+            if (templateContentDir != null && sdtpl != null)
+            {
+                foreach (var s in sdtpl.Screenshots)
+                {
+                    var resolved = ResolveTemplateAsset(s, templateContentDir);
+                    if (resolved != null)
+                        description.Screenshots.Add(resolved);
+                }
+            }
+            synthetic.Templates.Add(description);
+        }
+
+        if (synthetic.Templates.Count > 0)
+            TemplateManager.RegisterPackage(synthetic);
     }
 
     /// <summary>
     /// The asset-pack item templates available for the New Game flow, in registry order. When
     /// none are installed and <paramref name="allowDownload"/> is true, resolves the
-    /// <see cref="AssetPacksPackageId"/> package via <see cref="PackageStore"/> — downloading it
-    /// from the configured NuGet sources if this machine doesn't have it — and installs it into
+    /// <see cref="AssetPacksPackageId"/> package at this engine's content version — downloading
+    /// it from the configured NuGet sources if this machine doesn't have it — and installs it into
     /// the registry. Returns an empty list when the package can't be obtained (e.g. offline);
     /// callers degrade by not offering packs.
     /// </summary>
@@ -195,28 +247,22 @@ public static class DotNetNewTemplateBridge
         if (packs.Count > 0 || !allowDownload)
             return packs;
 
-        var version = new PackageVersion(DesiredVersionFor(AssetPacksPackageId));
-        var versionRange = new PackageVersionRange(version, true, version, true);
-        if (PackageStore.Instance.GetPackageDirectory(AssetPacksPackageId, versionRange) is null)
+        var installed = await Task.Run(() =>
         {
-            logger.Info($"{AssetPacksPackageId} {version} not present locally; downloading...");
-            try
-            {
-                await PackageStore.Instance.InstallPackage(AssetPacksPackageId, version).ConfigureAwait(false);
-            }
-            catch (Exception e)
-            {
-                logger.Warning($"Could not download {AssetPacksPackageId} {version}: {e.Message}. Asset packs will be unavailable.");
-                return [];
-            }
-        }
-
-        lock (InitLock)
-        {
-            // Same path as startup probing: resolves the package dir and installs it into the
-            // registry (no TemplateManager registration — item templates stay out of the
+            // Download first (outside the lock), then the same path as startup probing: install the now-local
+            // package into the registry (no TemplateManager registration — item templates stay out of the
             // New-Project list).
-            InstallBundledPackage(AssetPacksPackageId, new Dictionary<string, TemplateMetadataSource>(), logger);
+            if (ResolvePackageDirectory(AssetPacksPackageId, logger, allowInstall: true) is null)
+                return false;
+            lock (InitLock)
+            {
+                return InstallBundledPackage(AssetPacksPackageId, new Dictionary<string, TemplateMetadataSource>(), logger);
+            }
+        }).ConfigureAwait(false);
+        if (!installed)
+        {
+            logger.Warning($"{AssetPacksPackageId} is unavailable; asset packs will not be offered.");
+            return [];
         }
         return FilterAssetPacks(await registry.GetTemplatesAsync().ConfigureAwait(false));
     }
@@ -229,17 +275,49 @@ public static class DotNetNewTemplateBridge
     private static bool IsItemTemplate(ITemplateInfo template)
         => template.TagsCollection.TryGetValue("type", out var type) && string.Equals(type, "item", StringComparison.OrdinalIgnoreCase);
 
+    /// <summary>The content version this engine names (Samples, Starters, AssetPacks).</summary>
+    private static PackageVersion ContentVersion => new(StrideVersion.SamplesVersion);
+
+    /// <summary>This build's own version, the engine the content is resolved for.</summary>
+    private static PackageVersion HostVersion => new(StrideVersion.NuGetVersion);
+
     /// <summary>
-    /// The package version this build expects for <paramref name="packageId"/>: content packages
-    /// (Samples, Starters, AssetPacks) use <see cref="StrideVersion.SamplesVersion"/> + the engine NuGet suffix;
-    /// everything else tracks <see cref="StrideVersion.NuGetVersion"/>.
+    /// The installed directory of <paramref name="packageId"/> for this build, null when it is not available. Content
+    /// packages resolve through <see cref="ContentTemplateResolver"/> (the exact content version, or this checkout's
+    /// own dev pack of it; with <paramref name="allowInstall"/>, the exact version is downloaded when neither is
+    /// present); everything else is the exact <see cref="StrideVersion.NuGetVersion"/>.
     /// </summary>
-    private static string DesiredVersionFor(string packageId)
+    /// <param name="allowInstall">
+    /// Whether a missing content package is downloaded. Blocks for the download, so never on the UI thread (the NuGet
+    /// install resumes on the calling context and would deadlock there).
+    /// </param>
+    private static UDirectory? ResolvePackageDirectory(string packageId, Logger logger, bool allowInstall = false)
     {
-        var contentVersioned = packageId is "Stride.Templates.Samples" or "Stride.Templates.Games.Starters" or AssetPacksPackageId;
-        return contentVersioned
-            ? StrideVersion.SamplesVersion + StrideVersion.NuGetVersionSuffix
-            : StrideVersion.NuGetVersion;
+        if (ContentTemplateResolver.IsContentPackage(packageId))
+        {
+            NugetLocalPackage? package;
+            if (allowInstall)
+            {
+                // Task.Run: the install's continuations must not need the calling thread's context.
+                package = Task.Run(() => ContentTemplateResolver.ResolveAsync(
+                    packageId, ContentVersion, HostVersion,
+                    PackageStore.Instance.GetLocalPackages,
+                    (id, version) => PackageStore.Instance.InstallPackage(id, version),
+                    message => logger.Info(message))).GetAwaiter().GetResult();
+            }
+            else
+            {
+                package = ContentTemplateResolver.Pick(PackageStore.Instance.GetLocalPackages(packageId), ContentVersion, HostVersion);
+                logger.Info(package is null
+                    ? $"{packageId}: content version {ContentVersion} is not installed."
+                    : $"{packageId}: using {package.Version} (content version {ContentVersion}).");
+            }
+            return package is not null ? PackageStore.Instance.GetPackageDirectory(package) : null;
+        }
+
+        // Exact range, so release/prerelease ordering is moot.
+        var exact = new PackageVersionRange(HostVersion, true, HostVersion, true);
+        return PackageStore.Instance.GetPackageDirectory(packageId, exact);
     }
 
     /// <summary>
@@ -291,8 +369,8 @@ public static class DotNetNewTemplateBridge
     }
 
     /// <summary>
-    /// True when <paramref name="mountPointUri"/> exists AND — for packages we manage — its version
-    /// matches <see cref="DesiredVersionFor"/>. Mount points use NuGet's global-folder layout
+    /// True when <paramref name="mountPointUri"/> exists AND — for packages we manage — its version is one this
+    /// build may use (see <see cref="ResolvePackageDirectory"/>). Mount points use NuGet's global-folder layout
     /// (<c>&lt;root&gt;\&lt;id&gt;\&lt;version&gt;</c>), so id/version are the trailing two segments;
     /// unrecognized entries are left untouched.
     /// </summary>
@@ -302,43 +380,36 @@ public static class DotNetNewTemplateBridge
             return false;
 
         var trimmed = mountPointUri.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-        var version = Path.GetFileName(trimmed);
+        var versionText = Path.GetFileName(trimmed);
         var id = Path.GetFileName(Path.GetDirectoryName(trimmed) ?? string.Empty);
 
         var managedId = BundledTemplatePackageIds.FirstOrDefault(p => string.Equals(p, id, StringComparison.OrdinalIgnoreCase));
         if (managedId is null)
             return true;
 
-        try
-        {
-            return new PackageVersion(version).Equals(new PackageVersion(DesiredVersionFor(managedId)));
-        }
-        catch
-        {
-            return string.Equals(version, DesiredVersionFor(managedId), StringComparison.OrdinalIgnoreCase);
-        }
+        if (!PackageVersion.TryParse(versionText, out var version))
+            return false;
+        return ContentTemplateResolver.IsContentPackage(managedId)
+            ? ContentTemplateResolver.IsAcceptable(version, ContentVersion, HostVersion)
+            : version.Equals(HostVersion);
     }
 
     /// <summary>
-    /// Resolves <paramref name="packageId"/> via <see cref="PackageStore"/>, installs it into the
-    /// registry (skipping if unchanged since last session), and merges its <c>templates.sdtpls</c>
-    /// entries into <paramref name="sdtplsByIdentity"/>. Tolerates a missing package by logging.
+    /// Resolves <paramref name="packageId"/> for this build (<see cref="ResolvePackageDirectory"/>), installs it
+    /// into the registry (skipping if unchanged since last session), and merges its <c>templates.sdtpls</c>
+    /// entries into <paramref name="sdtplsByIdentity"/>. Tolerates a missing package by logging; returns whether
+    /// the package is installed in the registry.
     /// </summary>
-    private static void InstallBundledPackage(string packageId, Dictionary<string, TemplateMetadataSource> sdtplsByIdentity, Logger logger)
+    private static bool InstallBundledPackage(string packageId, Dictionary<string, TemplateMetadataSource> sdtplsByIdentity, Logger logger)
     {
-        // Resolve each package at the exact version it's packed at (exact range, so release/prerelease ordering is
-        // moot). Content-versioned (Samples, Starters) = StrideSamplesVersion + engine suffix, matching the pack in
-        // Stride.Templates.Common.targets from the same source; Games is engine-versioned.
-        var version = new PackageVersion(DesiredVersionFor(packageId));
-        var versionRange = new PackageVersionRange(version, true, version, true);
-        var packageDir = PackageStore.Instance.GetPackageDirectory(packageId, versionRange);
+        var packageDir = ResolvePackageDirectory(packageId, logger);
         if (packageDir is null)
         {
-            // Not installed yet (e.g. fresh checkout before first build of that templates
-            // project). Not fatal — the editor still opens; this package's templates just
-            // won't appear in the New-Project dialog until built at least once.
-            logger.Warning($"{packageId} {version} not found via PackageStore; its templates will be unavailable.");
-            return;
+            // Not installed and not obtainable (a fresh checkout before the first build of Stride.Templates.Games,
+            // or content that is not published yet / no package source reachable). Not fatal — the editor still
+            // opens; this package's templates just won't appear in the New-Project dialog.
+            logger.Warning($"{packageId} is not available; its templates will be unavailable.");
+            return false;
         }
         // Install from the extracted package directory rather than the .nupkg file inside it.
         // Reasoning: pointing the bootstrapper at the .nupkg path inside NuGet's global cache
@@ -371,7 +442,7 @@ public static class DotNetNewTemplateBridge
             {
                 foreach (var d in diagnostics)
                     logger.Error($"Template install ({packageId}): {d}");
-                return;
+                return false;
             }
         }
 
@@ -379,6 +450,7 @@ public static class DotNetNewTemplateBridge
         // the installSource it came from so Icon/Screenshot relative paths can be resolved later.
         foreach (var (id, meta) in LoadAggregatedSdtpls(installSource, logger))
             sdtplsByIdentity[id] = new TemplateMetadataSource(meta, installSource);
+        return true;
     }
 
     /// <summary>

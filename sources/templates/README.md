@@ -65,10 +65,17 @@ Common parameters (template-dependent):
 
 ## Developing locally
 
-Building any of the three template projects produces a `.nupkg` in `bin/packages/` and auto-deploys it to `%LocalAppData%\stride\nugetdev` so the GameStudio bridge picks it up on next editor launch:
+Building `Stride.Templates.Games` produces its `.nupkg` in `bin/packages/` and auto-deploys it to `%LocalAppData%\stride\nugetdev` so the GameStudio bridge picks it up on next editor launch:
 
 ```bash
 dotnet build sources/templates/Stride.Templates.Games/Stride.Templates.Games.csproj
+```
+
+The three content packages (Starters, Samples, AssetPacks) are **not packed by a normal build**: GameStudio and the CLI use the published content version the engine names (see [Sample versioning](#sample-versioning)). While editing samples, opt the pack in; it is worktree-suffixed and wins over the published content on this checkout until you clean it up:
+
+```bash
+dotnet build sources/templates/Stride.Templates.Samples -p:StridePackContentTemplates=true   # or set StridePackContentTemplates in build/Stride.Local.props
+dotnet msbuild build/Stride.Samples.build -t:CleanContentTemplates                            # back to the published content
 ```
 
 Opt in to register the freshly-built `.nupkg` with your global `dotnet new` registry on every build — handy when iterating on template content and testing via CLI:
@@ -101,12 +108,14 @@ dotnet pack sources/templates/Stride.Templates.Games -p:StridePackageBuild=true
 
 ## Sample versioning
 
-In-repo samples are committed at a **clean release version**, but locally only the `-devN` dev packages exist — so switch them to the local dev version to build/edit (e.g. in GameStudio), and back before committing. `SamplesToDevVersion` rewrites every `Stride.*` reference in the sample csprojs to this checkout's dev build (real edits); `SamplesToReleaseVersion` rewrites them back to the clean version. `Stride.Templates.Games` is engine-versioned; `Stride.Templates.Samples` + `.Games.Starters` + `.AssetPacks` are content-versioned at `StrideSamplesVersion`. Full details (engine version, `-devN`, release flow, the `StrideSamplesVersion` authority) — including why — are in **[docs/build/versioning.md](../../docs/build/versioning.md)**.
+In-repo samples are committed at a **clean release version**, but locally only the `-devN` dev packages exist — so switch them to the local dev version to build/edit (e.g. in GameStudio), and back before committing. `SamplesToDevVersion` rewrites every `Stride.*` reference in the sample csprojs to this checkout's dev build (real edits); `SamplesToReleaseVersion` rewrites them back to the clean version.
+
+`Stride.Templates.Games` is engine-versioned. `Stride.Templates.Samples` + `.Games.Starters` + `.AssetPacks` are content-versioned: `StrideVersion.SamplesVersion` (`SharedAssemblyInfo.cs`) is the exact published content version the engine uses, bumped by a samples cut (`CutSamples`) and published on its own by `release-samples.yml` before an engine naming it is released. Full details (engine version, `-devN`, the cut, the release order, the resolver) — including why — are in **[docs/build/versioning.md](../../docs/build/versioning.md)**.
 
 ```bash
-dotnet msbuild build/Stride.Samples.build -t:SamplesToDevVersion       # before editing/building (e.g. GameStudio)
-dotnet msbuild build/Stride.Samples.build -t:SamplesToReleaseVersion   # before committing
-dotnet msbuild build/Stride.Samples.build -t:UpgradeSamplesVersion     # full release bump
+dotnet msbuild build/Stride.Samples.build -t:SamplesToDevVersion                          # before editing/building (e.g. GameStudio)
+dotnet msbuild build/Stride.Samples.build -t:SamplesToReleaseVersion                      # before committing
+dotnet msbuild build/Stride.Samples.build -t:CutSamples -p:StrideSamplesVersion=4.4.1     # the samples release: upgrade, bump, pack
 ```
 
 ## Adding a new template sample
@@ -172,7 +181,7 @@ and instantiates each selected pack into the generated game library.
 - **[`sources/tools/Stride.TemplateGenerator/Program.cs`](../tools/Stride.TemplateGenerator/Program.cs)** — `preprocess-template` and `aggregate-sdtpls` subcommand dispatch.
 - **[`sources/templates/Stride.Templates.Common.targets`](Stride.Templates.Common.targets)** — shared MSBuild logic across the three packages (version derivation, content-versioning via `StrideSamplesVersion`, preprocess+aggregate Exec, auto-pack-deploy, CI safeguards, `StrideInstallTemplate` opt-in target).
 - **[`../../build/Stride.Samples.build`](../../build/Stride.Samples.build)** — standalone sample version management: `SamplesToDevVersion` / `SamplesToReleaseVersion` (flip in-repo samples between local-dev and clean) and `UpgradeSamplesVersion` (full release bump: dev → asset migration → clean). Uses [`StrideSamplesVersion.props`](StrideSamplesVersion.props) (the content-version authority) and [`../targets/Stride.GitVersion.targets`](../targets/Stride.GitVersion.targets) (the `StrideGitVersion` task, shared with `Stride.build`).
-- **[`sources/editor/Stride.Assets.Presentation/Templates/DotNetNewTemplateBridge.cs`](../editor/Stride.Assets.Presentation/Templates/DotNetNewTemplateBridge.cs)** — GameStudio side: probes the three packages via `PackageStore` (content-versioned ones resolved by range `<=` engine version), installs into the editor's isolated TemplateEngine profile, registers each template as a `TemplateDotNetNewDescription` with `TemplateManager`.
+- **[`sources/engine/Stride.Assets/Templates/DotNetNewTemplateBridge.cs`](../engine/Stride.Assets/Templates/DotNetNewTemplateBridge.cs)** — GameStudio side: resolves the four packages (Games at the engine version, the content packages through [`ContentTemplateResolver`](../engine/Stride.Assets/Templates/ContentTemplateResolver.cs), shared by source with the CLI), installs into the editor's isolated TemplateEngine profile, registers each template as a `TemplateDotNetNewDescription` with `TemplateManager`.
 - **[`sources/editor/Stride.Assets.Presentation/Templates/DotNetNewTemplateGenerator.cs`](../editor/Stride.Assets.Presentation/Templates/DotNetNewTemplateGenerator.cs)** — GameStudio session integration: dispatches instantiation through the registry, registers per-platform exec projects with the session post-load.
 
 ## Future work

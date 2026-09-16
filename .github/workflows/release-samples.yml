@@ -1,0 +1,274 @@
+name: Release Samples
+
+# Builds, signs, and (optionally) deploys the content template packs (Stride.Templates.Samples,
+# Stride.Templates.Games.Starters, Stride.Templates.AssetPacks) to NuGet.org.
+#
+# Versioned independently of the engine: StrideVersion.SamplesVersion in sources/shared/SharedAssemblyInfo.cs is the
+# content version, set by a samples cut (build/Stride.Samples.build -t:CutSamples, committed with the migrated
+# samples). The engine names that exact version, so publish the cut here BEFORE releasing an engine that names it
+# (release-deploy.yml refuses an engine whose content is not on the feed). The packs are stamped for this branch's
+# engine version plus version-suffix (the same input as release.yml), the engine release they precede.
+# A deploy pushes to NuGet.org, tags samples/<version> at the built commit, and creates a GitHub Release.
+
+on:
+  workflow_dispatch:
+    inputs:
+      sign:
+        description: Code sign the packages
+        default: true
+        type: boolean
+      deploy:
+        description: Deploy to NuGet.org and create a GitHub Release
+        default: false
+        type: boolean
+      version-suffix:
+        description: Prerelease suffix of the engine the content is stamped for, no leading dash (e.g. "beta7"). Empty = stable.
+        default: ''
+        type: string
+
+concurrency:
+  group: release-samples-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  Validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check deploy requires signing
+        if: ${{ inputs.deploy && !inputs.sign }}
+        run: |
+          echo "::error::Cannot deploy unsigned packages. Enable 'sign' to deploy."
+          exit 1
+
+      - name: Check release permissions
+        if: ${{ inputs.sign || inputs.deploy }}
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          ORG=$(echo "${{ github.repository }}" | cut -d/ -f1)
+          TEAM="stride-release-managers"
+          USER="${{ github.actor }}"
+          if ! gh api "orgs/$ORG/teams/$TEAM/memberships/$USER" --silent 2>/dev/null; then
+            echo "::error::User $USER is not a member of $ORG/$TEAM. Sign/deploy requires stride-release-managers team membership."
+            exit 1
+          fi
+
+  Package:
+    name: Package
+    needs: Validate
+    runs-on: windows-2025-vs2026
+    environment: production  # signing secrets live here
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          lfs: true
+          fetch-depth: 0  # full history + tags for the re-publish guard
+          fetch-tags: true
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Pack content templates
+        run: |
+          dotnet build build\Stride.build `
+            -t:PackageSamples `
+            -p:StrideSign=${{ inputs.sign }} `
+            -p:StrideVersionSuffix=${{ inputs.version-suffix }}
+
+      - name: Detect version
+        id: version
+        shell: pwsh
+        run: |
+          $pkg = Get-ChildItem -Path bin/packages -Filter "Stride.Templates.Samples.*.nupkg" | Select-Object -First 1
+          if (-not $pkg) {
+            echo "::error::No Stride.Templates.Samples package found"
+            exit 1
+          }
+          $version = $pkg.Name -replace 'Stride\.Templates\.Samples\.(.*?)\.nupkg','$1'
+          if ($version -notmatch '^\d+\.\d+\.\d+(-(alpha|beta|rc|preview)\d+)?$') {
+            echo "::error::Content version '$version' is not an allowed release version. Use X.Y.Z or X.Y.Z-(alpha|beta|rc|preview)<N> - check SamplesVersion in SharedAssemblyInfo.cs"
+            exit 1
+          }
+          if ("${{ inputs.version-suffix }}" -eq "" -and $version.Contains("-")) {
+            echo "::error::A stable engine must not name prerelease content ($version); cut a stable content number first."
+            exit 1
+          }
+          foreach ($id in 'Stride.Templates.Games.Starters', 'Stride.Templates.AssetPacks') {
+            if (-not (Get-ChildItem -Path bin/packages -Filter "$id.$version.nupkg")) {
+              echo "::error::$id.$version.nupkg was not produced"
+              exit 1
+            }
+          }
+          echo "version=$version" >> $env:GITHUB_OUTPUT
+          echo "::notice::Content version: $version"
+
+      # Forget-to-cut guard: the content version is the committed value, bumped per cut. A version already on the
+      # feed (all three packages) means the samples changed without a cut; fail rather than re-publish stale content.
+      - name: Guard against re-publishing an existing version
+        if: ${{ inputs.deploy }}
+        shell: bash
+        run: |
+          V="${{ steps.version.outputs.version }}"
+          TAG="samples/$V"
+          if git rev-parse "$TAG" >/dev/null 2>&1 && [ -z "$(git tag --points-at HEAD --list "$TAG")" ]; then
+            echo "::error::Content version $V is already released (tag $TAG on another commit). Cut the samples (build/Stride.Samples.build -t:CutSamples)."
+            exit 1
+          fi
+          PUBLISHED=0
+          for id in stride.templates.samples stride.templates.games.starters stride.templates.assetpacks; do
+            if curl -sf "https://api.nuget.org/v3-flatcontainer/$id/index.json" | grep -q "\"$V\""; then
+              PUBLISHED=$((PUBLISHED + 1))
+            fi
+          done
+          if [ "$PUBLISHED" = 3 ]; then
+            echo "::error::Content version $V is already on nuget.org. Cut the samples (build/Stride.Samples.build -t:CutSamples)."
+            exit 1
+          fi
+
+      # The release-shaped packs are exercised by the smoke tests (pack -> dotnet new install -> instantiate) against
+      # this checkout's build, since the stamped engine may not be published yet. The same properties keep the
+      # tests' own pack identical to the one above.
+      - name: Smoke test
+        run: |
+          dotnet test sources\tools\Stride.Templates.Tests `
+            -c Release `
+            -p:StridePackageBuild=true `
+            --logger "trx;LogFileName=templates.trx" --results-directory TestResults
+
+      - name: Sign
+        if: ${{ inputs.sign }}
+        run: |
+          dotnet build build\Stride.build -t:SignPackage -p:StrideSign=true
+        env:
+          StrideSignTenantId: ${{ secrets.STRIDE_SIGN_TENANT_ID }}
+          StrideSignClientId: ${{ secrets.STRIDE_SIGN_CLIENT_ID }}
+          StrideSignClientSecret: ${{ secrets.STRIDE_SIGN_CLIENT_SECRET }}
+          StrideSignKeyVaultCertificate: ${{ secrets.STRIDE_SIGN_KEYVAULT_CERTIFICATE }}
+          StrideSignKeyVaultName: ${{ secrets.STRIDE_SIGN_KEYVAULT_NAME }}
+
+      - name: Upload packages
+        uses: actions/upload-artifact@v7
+        with:
+          name: stride-samples-${{ steps.version.outputs.version }}
+          path: |
+            bin/packages/Stride.Templates.Samples.${{ steps.version.outputs.version }}.nupkg
+            bin/packages/Stride.Templates.Games.Starters.${{ steps.version.outputs.version }}.nupkg
+            bin/packages/Stride.Templates.AssetPacks.${{ steps.version.outputs.version }}.nupkg
+          if-no-files-found: error
+
+  # Surface the version in the run UI even when Deploy is skipped.
+  Version:
+    name: Packaged samples ${{ needs.Package.outputs.version }}
+    needs: Package
+    if: ${{ always() && needs.Package.result == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "::notice title=Packaged samples::${{ needs.Package.outputs.version }}"
+
+  Deploy:
+    name: Deploy ${{ needs.Package.outputs.version }}
+    if: ${{ inputs.deploy && inputs.sign }}
+    needs: Package
+    runs-on: ubuntu-latest  # NuGet push doesn't need Windows
+    environment: production  # requires manual approval in GitHub settings
+    permissions:
+      contents: write
+    steps:
+      - name: Check release permissions
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          ORG=$(echo "${{ github.repository }}" | cut -d/ -f1)
+          TEAM="stride-release-managers"
+          USER="${{ github.actor }}"
+          if ! gh api "orgs/$ORG/teams/$TEAM/memberships/$USER" --silent 2>/dev/null; then
+            echo "::error::User $USER is not a member of $ORG/$TEAM. Deploy requires stride-release-managers team membership."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          token: ${{ secrets.GH_PAT }}  # push the samples/<version> tag
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Download packages
+        uses: actions/download-artifact@v8
+        with:
+          name: stride-samples-${{ needs.Package.outputs.version }}
+          path: bin/packages
+
+      - name: Push to NuGet.org
+        shell: bash
+        run: |
+          # --skip-duplicate: a re-run after a partial push completes the set instead of failing on what went through.
+          for pkg in bin/packages/*.nupkg; do
+            echo "Pushing $(basename "$pkg")..."
+            dotnet nuget push "$pkg" --api-key "$STRIDE_NUGET_API_KEY" --source "https://api.nuget.org/v3/index.json" --timeout 1800 --skip-duplicate
+          done
+        env:
+          STRIDE_NUGET_API_KEY: ${{ secrets.STRIDE_NUGET_API_KEY }}
+
+      - name: Tag release
+        run: |
+          TAG="samples/${{ needs.Package.outputs.version }}"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists, skipping"
+          else
+            git tag "$TAG"
+            git push origin "$TAG"
+          fi
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          TAG="samples/${{ needs.Package.outputs.version }}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists, skipping"
+          else
+            # The samples are released apart from the engine: the changelog is the sample commits since the
+            # previous samples/* tag, so engine commits don't leak into it.
+            PREV=$(git describe --tags --abbrev=0 --match 'samples/*' "$TAG^" 2>/dev/null || true)
+            RANGE="$TAG"
+            [ -n "$PREV" ] && RANGE="$PREV..$TAG"
+            NOTES=$(git log --no-merges --pretty='- %s (%h)' "$RANGE" -- samples ':(exclude)samples/NewGame' ':(exclude)samples/Library')
+            [ -z "$NOTES" ] && NOTES="_No sample changes since the previous samples release._"
+            {
+              echo "## What's changed in the Stride samples"
+              echo ""
+              echo "$NOTES"
+              if [ -n "$PREV" ]; then
+                echo ""
+                echo "**Full samples changelog**: ${{ github.server_url }}/${{ github.repository }}/compare/$PREV...$TAG"
+              fi
+            } > samples-notes.md
+            gh release create "$TAG" \
+              --title "Stride samples ${{ needs.Package.outputs.version }}" \
+              --notes-file samples-notes.md \
+              --latest=false \
+              bin/packages/*.nupkg
+          fi
+
+      - name: Publish summary
+        if: success()
+        shell: bash
+        run: |
+          V="${{ needs.Package.outputs.version }}"
+          {
+            echo "## Published Stride samples $V"
+            echo ""
+            for id in Stride.Templates.Samples Stride.Templates.Games.Starters Stride.Templates.AssetPacks; do
+              echo "- [$id](https://www.nuget.org/packages/$id/$V)"
+            done
+            echo "- [GitHub Release](${{ github.server_url }}/${{ github.repository }}/releases/tag/samples/$V)"
+            echo ""
+            echo "An engine whose SamplesVersion is $V can now be released."
+          } >> "$GITHUB_STEP_SUMMARY"

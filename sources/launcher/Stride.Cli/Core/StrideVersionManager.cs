@@ -304,13 +304,14 @@ public sealed class StrideVersionManager
     // The asset packs are the one template package nothing depends on: Stride.GameStudio deliberately declares no
     // dependency on it, since the packs are optional content nobody should pay for at install time. Installing a
     // Stride version therefore never puts it in the store, which is why discovery alone never finds it.
-    private const string AssetPacksPackageId = "Stride.Templates.AssetPacks";
+    private const string AssetPacksPackageId = ContentTemplateResolver.AssetPacksPackageId;
 
     /// <summary>
     ///   Opens a template registry over the installed template packages compatible with the given version,
     ///   plus any explicitly requested <paramref name="extraPackages"/> (a package id or a local .nupkg path).
-    ///   The asset packs are fetched first when the store has no compatible copy, since nothing installs them.
-    ///   Returns null if none could be installed. The caller owns the returned registry and must dispose it.
+    ///   Content packages (Samples, Starters, AssetPacks) resolve at the content version the engine names, and
+    ///   are fetched when the store has no copy. Returns null if none could be installed. The caller owns the
+    ///   returned registry and must dispose it.
     /// </summary>
     public async Task<DotNetNewTemplateRegistry?> OpenTemplateRegistry(
         PackageVersion version, IEnumerable<string>? extraPackages = null, CancellationToken cancellationToken = default)
@@ -322,11 +323,9 @@ public sealed class StrideVersionManager
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "stride", "cli", "templates", version.ToString());
 
-        await EnsureAssetPacksInstalled(version, cancellationToken);
-
         var registry = new DotNetNewTemplateRegistry(version.ToString(), profileDir);
         var installedAny = false;
-        foreach (var packageDir in ResolveTemplatePackages(version, extraPackages))
+        foreach (var packageDir in await ResolveTemplatePackages(version, extraPackages, cancellationToken))
         {
             var (success, _) = await registry.InstallPackageAsync(packageDir);
             installedAny |= success;
@@ -342,9 +341,41 @@ public sealed class StrideVersionManager
     }
 
     /// <summary>
+    ///   The content version an installed engine names: Stride.GameStudio pins its Stride.Templates.Samples
+    ///   dependency to it, and all content packages share that one number. Null for an engine from before the
+    ///   pinning, whose content packages are then found by their engine marker like any other template package.
+    /// </summary>
+    private PackageVersion? ContentVersionOf(PackageVersion version)
+        => store.GetLocalPackages(MainPackageId)
+            .FirstOrDefault(package => package.Version.Equals(version))
+            ?.GetDependencyFloor(ContentTemplateResolver.ContentVersionDependencyId);
+
+    /// <summary>
+    ///   Resolves the content packages for an engine that names a content version: the exact version (or a
+    ///   local dev pack of it for a dev engine), installed from the sources when missing. Best effort: without a
+    ///   reachable source a missing package is simply left out. Same rule as the Game Studio bridge.
+    /// </summary>
+    private async Task<List<string>> ResolveContentPackages(PackageVersion contentVersion, PackageVersion version)
+    {
+        var paths = new List<string>();
+        foreach (var packageId in ContentTemplateResolver.PackageIds)
+        {
+            var package = await ContentTemplateResolver.ResolveAsync(packageId, contentVersion, version,
+                store.GetLocalPackages,
+                (id, packageVersion) => store.InstallPackage(id, packageVersion, [], progress: null));
+            // Prefer the extracted directory; fall back to the loose .nupkg of a not-yet-mirrored local source.
+            var path = package?.NupkgPath ?? package?.Path;
+            if (!string.IsNullOrEmpty(path))
+                paths.Add(path);
+        }
+        return paths;
+    }
+
+    /// <summary>
     ///   Downloads the asset packs when the store holds no copy compatible with <paramref name="version"/>, so
-    ///   that discovery can find them. Game Studio fetches the same package the same way when its New Game dialog
-    ///   first offers the packs. Best effort: without a reachable source the packs are simply left out.
+    ///   that discovery can find them. Only for an engine that names no content version (see
+    ///   <see cref="ContentVersionOf"/>); a newer engine's packs resolve with the other content packages.
+    ///   Best effort: without a reachable source the packs are simply left out.
     /// </summary>
     private async Task EnsureAssetPacksInstalled(PackageVersion version, CancellationToken cancellationToken)
     {
@@ -385,16 +416,28 @@ public sealed class StrideVersionManager
             .FirstOrDefault(dependency => string.Equals(dependency.Item1, TemplateMarkerDependencyId, StringComparison.OrdinalIgnoreCase))
             ?.Item2.MinVersion;
 
-    // The directories to install into the registry: one per discovered template package, plus any explicit
-    // extra packages.
-    private IEnumerable<string> ResolveTemplatePackages(PackageVersion version, IEnumerable<string>? extraPackages)
+    // The directories to install into the registry: the content packages at the engine's content version, one per
+    // discovered engine-versioned template package, plus any explicit extra packages.
+    private async Task<List<string>> ResolveTemplatePackages(PackageVersion version, IEnumerable<string>? extraPackages, CancellationToken cancellationToken)
     {
-        // Discover template packages by package type + tag, then per id pick the newest version whose
+        var paths = new List<string>();
+
+        // Content packages (Samples, Starters, AssetPacks) are pinned by the engine, never discovered: "newest
+        // compatible" is exactly the drift the content version exists to prevent. An engine from before the
+        // pinning has no content version, so its packs go through discovery like the rest.
+        var contentVersion = ContentVersionOf(version);
+        if (contentVersion is not null)
+            paths.AddRange(await ResolveContentPackages(contentVersion, version));
+        else
+            await EnsureAssetPacksInstalled(version, cancellationToken);
+
+        // Discover the other template packages by package type + tag, then per id pick the newest version whose
         // Stride.Core marker floor is <= the requested version. Unmarked (legacy) packages have unknown
         // engine compatibility, so they are a last resort: any marked match wins over a newer unmarked one
         // (otherwise a co-installed newer dev package without the marker silently hijacks the request).
         var discovered = store.GetAllPackagesInstalled()
             .Where(package => package.IsTemplatePackage && package.HasTag(TemplateTag))
+            .Where(package => contentVersion is null || !ContentTemplateResolver.IsContentPackage(package.Id))
             .GroupBy(package => package.Id, StringComparer.OrdinalIgnoreCase)
             .Select(group =>
                 group.Where(package => IsCompatible(package.GetDependencyFloor(TemplateMarkerDependencyId), version))
@@ -410,7 +453,7 @@ public sealed class StrideVersionManager
             // Prefer the extracted directory; fall back to the loose .nupkg of a not-yet-mirrored local source.
             var path = package.NupkgPath ?? package.Path;
             if (!string.IsNullOrEmpty(path))
-                yield return path;
+                paths.Add(path);
         }
 
         foreach (var extra in extraPackages ?? [])
@@ -419,15 +462,17 @@ public sealed class StrideVersionManager
             // package id and resolved to its newest installed copy.
             if (File.Exists(extra) || Directory.Exists(extra))
             {
-                yield return extra;
+                paths.Add(extra);
                 continue;
             }
 
             var newest = store.GetPackagesInstalled([extra]).FirstOrDefault();
             var resolved = newest is null ? null : store.GetInstalledPath(newest.Id, newest.Version);
             if (!string.IsNullOrEmpty(resolved))
-                yield return resolved;
+                paths.Add(resolved);
         }
+
+        return paths;
     }
 
     /// <summary>Locates the Game Studio executable for the given version, or null if not found.</summary>

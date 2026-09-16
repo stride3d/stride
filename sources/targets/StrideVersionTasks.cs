@@ -108,9 +108,9 @@ public class ResolveStrideWorktreeVersion : Task
             string ledgerPath = !string.IsNullOrWhiteSpace(LedgerPath)
                 ? LedgerPath
                 : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "stride", "worktree-ids.txt");
-            // Stamp = ledger mtime + committed version+suffix, so a manual worktree-ID remap or a committed
-            // version/suffix bump (edit to SharedAssemblyInfo.cs) invalidates the generated overlay.
-            string stamp = LedgerStamp(ledgerPath) + "|" + ReadCommittedVersion();
+            // Stamp = ledger mtime + source file hash, so a manual worktree-ID remap or any edit to
+            // SharedAssemblyInfo.cs invalidates the generated overlay.
+            string stamp = LedgerStamp(ledgerPath) + "|" + SourceVersionFileHash();
             if (string.IsNullOrWhiteSpace(OverrideId) && TryFastPath(stamp))
                 return true;
             Directory.CreateDirectory(Path.GetDirectoryName(ledgerPath));
@@ -233,22 +233,25 @@ public class ResolveStrideWorktreeVersion : Task
         Generated = true;
     }
 
-    // The committed version + suffix from the source file; "" if unreadable. Part of the cache stamp so a committed
-    // version or suffix bump invalidates the generated overlay.
-    private string ReadCommittedVersion()
+    // Hash of the whole source file; "" if unreadable. Part of the cache stamp so any edit to it (version, suffix,
+    // SamplesVersion) invalidates the generated overlay.
+    private string SourceVersionFileHash()
     {
         try
         {
-            string mm, mv, sfx;
-            StrideVersionUtil.ReadInputs(SourceVersionFile, out mm, out mv, out sfx);
-            return mv + sfx;
+            // FNV-1a: a change detector, not a signature. The task is compiled by RoslynCodeTaskFactory, so it can
+            // only use what the MSBuild host ships (no System.IO.Hashing).
+            ulong hash = 14695981039346656037;
+            foreach (var b in File.ReadAllBytes(SourceVersionFile))
+                hash = (hash ^ b) * 1099511628211;
+            return hash.ToString("x16");
         }
         catch { return string.Empty; }
     }
 
     private bool TryFastPath(string stamp)
     {
-        // Reuse the generated file when the stamp (override, ledger mtime, committed version) is unchanged; the file
+        // Reuse the generated file when the stamp (ledger mtime, source file hash) is unchanged; the file
         // marker is "stamp|suffix", so it must start with stamp + "|".
         if (!File.Exists(GeneratedVersionFile))
             return false;

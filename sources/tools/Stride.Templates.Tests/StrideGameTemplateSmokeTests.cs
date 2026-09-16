@@ -64,9 +64,11 @@ public class StrideGameTemplateSmokeTests
             string? nupkg = FindNupkg(enginePackagesDir, packageId);
             if (nupkg == null)
             {
-                output.WriteLine($"No pre-built nupkg for {packageId}; running dotnet pack.");
-                var packResult = RunDotnet(repoRoot, "pack", csproj, "-c", "Debug", "--nologo", "-v", "minimal");
-                Assert.True(packResult.exitCode == 0, $"dotnet pack {packageId} failed:\n{packResult.output}");
+                output.WriteLine($"No pre-built nupkg for {packageId}; building it.");
+                // These projects pack on build ('dotnet pack' would skip building the preprocessor they use). The
+                // content packs (Starters, Samples, AssetPacks) only pack when opted in; Games ignores the flag.
+                var packResult = RunDotnet(repoRoot, "build", csproj, "-c", "Debug", "--nologo", "-v", "minimal", "-p:StridePackContentTemplates=true");
+                Assert.True(packResult.exitCode == 0, $"dotnet build {packageId} failed:\n{packResult.output}");
                 nupkg = FindNupkg(enginePackagesDir, packageId);
             }
             Assert.NotNull(nupkg);

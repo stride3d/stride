@@ -97,15 +97,21 @@
     <!-- NuGet dependencies (and build-ordering triggers) on the three template packages, so a Stride
          install pulls them in. Private=false alone emits a content-only nuspec <dependency> (the templates
          produce no assembly to reference) — same idiom as the Stride.Core marker dep in
-         Stride.Templates.Common.targets. ReferenceOutputAssembly=false would suppress the dependency. -->
+         Stride.Templates.Common.targets. ReferenceOutputAssembly=false would suppress the dependency.
+         Games is engine-versioned and packed with every build. Starters and Samples are content-versioned
+         (StrideVersion.SamplesVersion): a normal build does not pack them and the dependency names the exact
+         published version (pinned below); with StridePackContentTemplates=true it follows the produced -devN
+         pack. A PackageReference would not do: restore would fail before the first publish of a new version. -->
     <ProjectReference Include="..\..\templates\Stride.Templates.Games\Stride.Templates.Games.csproj">
       <Private>false</Private>
     </ProjectReference>
     <ProjectReference Include="..\..\templates\Stride.Templates.Games.Starters\Stride.Templates.Games.Starters.csproj">
       <Private>false</Private>
+      <StrideExactDependency>true</StrideExactDependency>
     </ProjectReference>
     <ProjectReference Include="..\..\templates\Stride.Templates.Samples\Stride.Templates.Samples.csproj">
       <Private>false</Private>
+      <StrideExactDependency>true</StrideExactDependency>
     </ProjectReference>
     <!-- Build-ordering only (no nuspec dependency): asset packs are fetched on demand by the New
          Game dialog, not pulled at install time. The reference just makes a dev GameStudio build
@@ -116,6 +122,22 @@
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
   </ItemGroup>
+  <!-- NuGet records a ProjectReference dependency as ">= version"; the content template packs are pinned to the
+       exact version ("[version]") instead, so an install fails loudly when it is missing from the feed rather than
+       silently resolving to a later content version the engine did not ship with. NuGet's cross-project version
+       query fills _ProjectReferencesWithVersions right before the nuspec is written; the pinned ones are marked
+       StrideExactDependency above. -->
+  <Target Name="StridePinExactTemplateDependencies" AfterTargets="_GetProjectReferenceVersions">
+    <PropertyGroup>
+      <_StrideExactDependencyNames>;@(ProjectReference->WithMetadataValue('StrideExactDependency', 'true')->'%(Filename)');</_StrideExactDependencyNames>
+    </PropertyGroup>
+    <ItemGroup>
+      <_ProjectReferencesWithVersions Condition="$(_StrideExactDependencyNames.Contains(';%(_ProjectReferencesWithVersions.Filename);')) And !$([System.String]::Copy('%(_ProjectReferencesWithVersions.ProjectVersion)').StartsWith('['))">
+        <ProjectVersion>[%(_ProjectReferencesWithVersions.ProjectVersion)]</ProjectVersion>
+      </_ProjectReferencesWithVersions>
+    </ItemGroup>
+    <Message Importance="low" Text="Template dependencies: @(_ProjectReferencesWithVersions->WithMetadataValue('Extension', '.csproj')->'%(Filename) %(ProjectVersion)', ', ')" />
+  </Target>
   <ItemGroup>
     <Content Include="..\..\..\BACKERS.md" Link="BACKERS.md">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

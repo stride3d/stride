@@ -1,7 +1,13 @@
-<!-- Read from StrideVersion.SamplesVersion in SharedAssemblyInfo.cs (single source, shared with the bridge query).
-     The prerelease suffix is appended by Stride.Templates.Common.targets. -->
+<!-- Content template version authority, read from StrideVersion.SamplesVersion in SharedAssemblyInfo.cs (the single
+     source, shared with the Game Studio bridge and the stride CLI). Imported by Stride.Templates.Common.targets (the
+     pack side) and build/Stride.Samples.build (the cut side).
+
+     StrideSamplesVersion is the version a content pack gets (before the -devN worktree suffix). It defaults to the
+     committed value; a -p:StrideSamplesVersion= global property wins (CutSamples packs the new number before it is
+     committed). _StrideCommittedSamplesVersion always carries the committed value. -->
 <Project>
   <PropertyGroup>
-    <StrideSamplesVersion>$([System.Text.RegularExpressions.Regex]::Match($([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)..\shared\SharedAssemblyInfo.cs')), `.*SamplesVersion = \"(.*)\";.*`).Groups[1].Value)</StrideSamplesVersion>
+    <_StrideCommittedSamplesVersion>$([System.Text.RegularExpressions.Regex]::Match($([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)..\shared\SharedAssemblyInfo.cs')), `SamplesVersion = \"([^\"]*)\";`).Groups[1].Value)</_StrideCommittedSamplesVersion>
+    <StrideSamplesVersion Condition="'$(StrideSamplesVersion)' == ''">$(_StrideCommittedSamplesVersion)</StrideSamplesVersion>
   </PropertyGroup>
 </Project>
