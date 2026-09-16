@@ -55,8 +55,8 @@ internal class StrideVersion
     /// The exact published version of the content template packages (Stride.Templates.Samples, .Games.Starters,
     /// .AssetPacks) this engine uses. Independent of the engine version and never composed with
     /// <see cref="NuGetVersionSuffix"/>: the Game Studio bridge and the stride CLI resolve this version (or this
-    /// checkout's -devN pack of it), and Stride.GameStudio depends on it. Bumping it means "the samples were re-cut"
-    /// (CutSamples in build/Stride.Samples.build, same commit as the migrated samples); the patch part is a content
+    /// checkout's -devN pack of it), and Stride.GameStudio depends on it. Bumping it means "a new samples release"
+    /// (PrepareSamplesForRelease in build/Stride.Samples.build, same commit as the migrated samples); the patch part is a content
     /// counter (4.4.0, 4.4.1, ...) and never an engine prerelease label. Keep the line shape (name = "value";) so the
     /// build's regex reads it. Publish it with release-samples.yml before releasing an engine that names it.
     /// 4.4.0-beta7 is the content published with that engine before the content got its own release; the next

@@ -15,6 +15,11 @@
        Imported here (vanilla Microsoft.NET.Sdk, outside the Stride SDK chain). -p:PackageVersion=X pins explicitly. -->
   <Import Project="$(StrideRoot)sources\targets\Stride.NuGetVersion.props" />
 
+  <!-- The developer's local settings (StridePackContentTemplates among them). The Stride SDK imports this file for
+       engine projects; these projects use NoTargets, outside that chain. It only exists once a Stride SDK project
+       has been built in this checkout. -->
+  <Import Project="$(StrideRoot)build\Stride.Local.props" Condition="Exists('$(StrideRoot)build\Stride.Local.props')" />
+
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <IsPackable>true</IsPackable>
@@ -35,7 +40,7 @@
     <PackageVersion Condition="'$(PackageVersion)' == ''">$(StrideNuGetVersion)</PackageVersion>
 
     <!-- Content packs are ~730 MB of rarely changing content, published on their own schedule (release-samples.yml).
-         A normal build never packs them: StridePackContentTemplates=true (build/Stride.Local.props, CutSamples,
+         A normal build never packs them: StridePackContentTemplates=true (build/Stride.Local.props, PrepareSamplesForRelease,
          the CI template lanes, release-samples.yml) turns the pack on. Off, the project still builds (nothing to
          build) and still answers Game Studio's nuspec dependency query with the exact committed version. -->
     <StridePackContentTemplates Condition="'$(StridePackContentTemplates)' == ''">false</StridePackContentTemplates>

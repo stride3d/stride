@@ -128,8 +128,9 @@ jobs:
       # The content template packs (Samples, Starters, AssetPacks) are not part of an engine release: the engine
       # names their exact version (SamplesVersion in SharedAssemblyInfo.cs) and release-samples.yml publishes
       # them, before the engine. Refuse an engine whose content is not on the feed (every New Project would
-      # break), whose samples changed after the number was last set (a forgotten cut), or that is stable while
-      # naming prerelease content.
+      # break) or that is stable while naming prerelease content. Samples changed since the number was set only
+      # warn: the engine ships with the published content, which is right for work not released yet, and the
+      # release manager judges whether a change is one the new engine needs.
       - name: Check the content version
         shell: bash
         run: |
@@ -144,7 +145,7 @@ jobs:
           echo "::notice::Content version named by this engine: $SV"
           case "$VERSION" in
             *-*) ;;
-            *) case "$SV" in *-*) echo "::error::Stable engine $VERSION names prerelease content $SV. Cut a stable content number and publish it first."; exit 1;; esac;;
+            *) case "$SV" in *-*) echo "::error::Stable engine $VERSION names prerelease content $SV. Prepare a samples release with a stable content number and publish it first."; exit 1;; esac;;
           esac
           for id in stride.templates.samples stride.templates.games.starters stride.templates.assetpacks; do
             if ! curl -sf "https://api.nuget.org/v3-flatcontainer/$id/index.json" | grep -q "\"$SV\""; then
@@ -152,14 +153,25 @@ jobs:
               exit 1
             fi
           done
-          CUT=$(git log -1 --format=%H -S"SamplesVersion = \"$SV\";" "$SHA" -- "$FILE")
-          if [ -z "$CUT" ]; then
-            echo "::error::Could not find the commit that set SamplesVersion = $SV"
-            exit 1
+          SET_AT=$(git log -1 --format=%H -S"SamplesVersion = \"$SV\";" "$SHA" -- "$FILE")
+          if [ -z "$SET_AT" ]; then
+            echo "::warning::Could not find the commit that set SamplesVersion = $SV; skipped the check for sample changes since then."
+            exit 0
           fi
-          if ! git diff --quiet "$CUT" "$SHA" -- samples ':(exclude)samples/NewGame' ':(exclude)samples/Library' ':(exclude)*.md'; then
-            echo "::error::The samples changed since content version $SV was cut (${CUT:0:10}), so this engine would ship with stale samples. Cut the samples (build/Stride.Samples.build -t:CutSamples), publish them, then release."
-            exit 1
+          CHANGED=$(git diff --name-only "$SET_AT" "$SHA" -- samples ':(exclude)samples/NewGame' ':(exclude)samples/Library' ':(exclude)*.md')
+          if [ -n "$CHANGED" ]; then
+            COUNT=$(printf '%s\n' "$CHANGED" | wc -l)
+            echo "::warning title=Samples changed::$COUNT sample file(s) changed since content version $SV was set (${SET_AT:0:10}). This engine ships with the published $SV content. If the engine needs those changes, prepare and publish a samples release first (see the run summary)."
+            {
+              echo "## Sample changes not in the published content ($SV)"
+              echo ""
+              echo "This engine ships with the published $SV content. Fine for work not released yet; if the new engine needs these changes, prepare a samples release (build/Stride.Samples.build -t:PrepareSamplesForRelease), publish it with release-samples.yml, then release again."
+              echo ""
+              echo '```'
+              printf '%s\n' "$CHANGED" | sed -n '1,50p'
+              [ "$COUNT" -gt 50 ] && echo "... and $((COUNT - 50)) more"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
           fi
 
       - name: Push NuGet packages
