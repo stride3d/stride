@@ -348,7 +348,7 @@ namespace Stride.Core.Assets.Editor.View
             };
 
             var windows = Application.Current.Windows;
-            if (windows.Count == 0 || windows.OfType<Window>().Any(w => w.IsActive))
+            if (!IsBusy && (windows.Count == 0 || windows.OfType<Window>().Any(w => w.IsActive)))
             {
                 // Execute immediately
                 Dispatcher.Invoke(action);
@@ -361,11 +361,21 @@ namespace Stride.Core.Assets.Editor.View
 
         public void ShowDelayedNotifications()
         {
+            // The questions wait for the window that is up; closing it shows them (MainWindowUnblocked).
+            if (IsBusy)
+                return;
+
             Tuple<SettingsKey, Action> notification;
             while (delayedNotifications.TryDequeue(out notification))
             {
                 Dispatcher.Invoke(notification.Item2);
             }
         }
+
+        /// <summary>
+        /// A blocking or modal window is up: a progress window, a message box. A question asked now would
+        /// land on top of it.
+        /// </summary>
+        private static bool IsBusy => WindowManager.BlockingWindows.Count > 0 || WindowManager.ModalWindows.Count > 0;
     }
 }
