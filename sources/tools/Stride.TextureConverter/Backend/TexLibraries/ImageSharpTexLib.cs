@@ -65,7 +65,7 @@ namespace Stride.TextureConverter.TexLibraries
                     return IsSupportedFile(((ExportRequest)request).FilePath);
 
                 case RequestType.Rescaling:
-                    return ((RescalingRequest)request).Filter != Filter.Rescaling.Nearest;
+                    return ((RescalingRequest)request).Filter != Filter.Rescaling.Nearest && IsSupportedPixelFormat(imageFormat, out _);
 
                 case RequestType.SwitchingChannels:
                 case RequestType.GammaCorrection:

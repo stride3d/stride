@@ -757,6 +757,28 @@ namespace Stride.TextureConverter.Tests
             }
         }
 
+        // Lanczos3 (the asset compiler's filter) only exists in ImageSharp, which handles 8-bit BGRA/RGBA;
+        // other formats must still resize (issue #3441).
+        [Theory]
+        [InlineData(PixelFormat.B8G8R8A8_UNorm)]
+        [InlineData(PixelFormat.R16G16B16A16_Float)]
+        [InlineData(PixelFormat.R16_Float)]
+        [InlineData(PixelFormat.R32G32B32A32_Float)]
+        public void ResizeLanczos3AnyFormatTest(PixelFormat format)
+        {
+            using var image = texTool.Load(Module.PathToInputImages + "BgraSheet.dds");
+            if (image.Format != format)
+                texTool.Convert(image, format);
+            int width = image.Width;
+            int height = image.Height;
+
+            texTool.Resize(image, width / 2, height / 2, Filter.Rescaling.Lanczos3);
+
+            Assert.Equal(width / 2, image.Width);
+            Assert.Equal(height / 2, image.Height);
+            Assert.Equal(format, image.Format);
+        }
+
         private class AlphaLevelTest
         {
             public Rectangle Region;
