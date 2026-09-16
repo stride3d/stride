@@ -8,7 +8,7 @@ Stride's editor is built on a ViewModel layer that sits above Quantum and the as
 flowchart TD
     A["ITransactionStack + Operation<br/>Stride.Core.Design · Stride.Core.Transactions<br/>sources/core/Stride.Core.Design/Transactions/<br/>Shared interface and base type — each consumer creates its own instance"]
     B["IUndoRedoService<br/>Stride.Core.Presentation<br/>sources/presentation/Stride.Core.Presentation/Services/<br/>Wraps stack with naming, dirtiable sync, and save-point tracking"]
-    C["SelectionService<br/>Stride.Core.Assets.Editor<br/>sources/editor/Stride.Core.Assets.Editor/Services/<br/>Separate unbounded stack; records selection snapshots"]
+    C["SelectionService<br/>Stride.Core.Assets.Editor.Wpf<br/>sources/editor/Stride.Core.Assets.Editor.Wpf/Services/<br/>Separate unbounded stack; records selection snapshots"]
 
     A -. "uses" .-> B
     A -. "uses" .-> C

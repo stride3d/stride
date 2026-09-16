@@ -8,10 +8,10 @@
 
 | Type | Assembly | Purpose |
 |---|---|---|
-| `SelectionService` | `Stride.Core.Assets.Editor`<br/>`sources/editor/Stride.Core.Assets.Editor/Services/` | Owns the navigation stack; exposes `NavigateBackward` / `NextSelection`; registers observable collections to track |
+| `SelectionService` | `Stride.Core.Assets.Editor.Wpf`<br/>`sources/editor/Stride.Core.Assets.Editor.Wpf/Services/` | Owns the navigation stack; exposes `NavigateBackward` / `NextSelection`; registers observable collections to track |
 | `SelectionState` | same | Snapshot of all registered collection states at a point in time; `HasValidSelection()` checks whether the referenced objects still exist |
 | `SelectionScope` | same | A group of `INotifyCollectionChanged` collections tracked together as a unit; always obtained from `RegisterSelectionScope()`, never constructed directly |
-| `SelectionOperation` | `sources/editor/Stride.Core.Assets.Editor/Services/SelectionOperation.cs` | `Operation` subclass pairing a previous and next `SelectionState`; `Rollback` restores previous, `Rollforward` restores next |
+| `SelectionOperation` | `sources/editor/Stride.Core.Assets.Editor.Wpf/Services/SelectionOperation.cs` | `Operation` subclass pairing a previous and next `SelectionState`; `Rollback` restores previous, `Rollforward` restores next |
 
 ## How It Works
 
@@ -49,4 +49,4 @@ The two systems share `ITransactionStack` and `Operation` from `Stride.Core.Tran
 
 ## Assembly Placement
 
-`SelectionService`, `SelectionState`, `SelectionScope`, and `SelectionOperation` all live in `Stride.Core.Assets.Editor` at `sources/editor/Stride.Core.Assets.Editor/Services/`.
+`SelectionService`, `SelectionState`, `SelectionScope`, and `SelectionOperation` all live in `Stride.Core.Assets.Editor.Wpf` at `sources/editor/Stride.Core.Assets.Editor.Wpf/Services/`.

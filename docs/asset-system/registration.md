@@ -78,12 +78,12 @@ Field reference:
 - **`AssetTypeName`** — the simple class name of the `Asset` subclass. Namespace is not required and is ignored.
 - **`Scope`** — always `Asset` for standard asset templates.
 - **`Group`** — the menu group in GameStudio's Add Asset dialog. Existing groups (exact strings): `Animation`, `Font`, `Material`, `Media`, `Miscellaneous`, `Model`, `Physics`, `Physics-Bepu`, `Scene`, `Script`, `Sprite`, `Texture`, `UI`. Use an existing group or introduce a new one.
-- **`Order`** — controls sort position within the group. Inspect existing `.sdtpl` files in `sources/editor/Stride.Assets.Presentation/Templates/Assets/` for reference values.
+- **`Order`** — controls sort position within the group. Inspect existing `.sdtpl` files in `sources/editor/Stride.Assets.Presentation.Wpf/Templates/Assets/` for reference values.
 
 Place the `.sdtpl` file in:
 
 ```
-sources/editor/Stride.Assets.Presentation/Templates/Assets/%%Group%%/%%AssetName%%.sdtpl
+sources/editor/Stride.Assets.Presentation.Wpf/Templates/Assets/%%Group%%/%%AssetName%%.sdtpl
 ```
 
 The directory name under `Assets/` does not have to match the `Group` string exactly — the directory is just for organisation. The file is embedded automatically via the wildcard include already present in `Stride.Assets.Presentation.csproj` — no manual `.csproj` edit is needed for engine assets.
