@@ -1167,7 +1167,7 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
                     && CanReuseLoadedAssembly(x));
                 if (loadedProjectAssembly is not null)
                 {
-                    LoadedAssemblies.Add(new PackageLoadedAssembly(projectReference, loadedProjectAssembly.Location) { Assembly = loadedProjectAssembly });
+                    LoadedAssemblies.Add(new PackageLoadedAssembly(projectReference, GetAssemblyPath(loadedProjectAssembly)) { Assembly = loadedProjectAssembly });
                     RegisterContainerAssembly(loadedProjectAssembly);
                     return;
                 }
@@ -1236,6 +1236,14 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
             => System.Runtime.Loader.AssemblyLoadContext.GetLoadContext(candidate) == System.Runtime.Loader.AssemblyLoadContext.Default
                 || assemblyContainer.LoadedAssemblies.Any(x => x.Assembly == candidate);
 
+        // A container loads from bytes (empty Location), so ask the container first.
+        string GetAssemblyPath(System.Reflection.Assembly loaded)
+        {
+            var containerPath = assemblyContainer.LoadedAssemblies.FirstOrDefault(x => x.Assembly == loaded)?.Path;
+            if (!string.IsNullOrEmpty(containerPath))
+                return containerPath;
+            return !string.IsNullOrEmpty(loaded.Location) ? loaded.Location : assemblyPath;
+        }
     }
 
     /// <summary>
