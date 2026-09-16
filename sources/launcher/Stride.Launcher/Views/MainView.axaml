@@ -300,9 +300,8 @@
             <Border DockPanel.Dock="Top"
                     BorderBrush="{StaticResource TileBorderBrush}" BorderThickness="8,4">
               <DockPanel Height="32">
-                <Image Source="/Assets/Images/switch-version.png"
-                        Width="26" Height="26"
-                        VerticalAlignment="Center" />
+                <PathIcon Width="26" Height="26"
+                          Data="{StaticResource GeometrySwitch}"/>
                 <TextBlock Text="{x:Static l:Strings.SwitchOrUpdateVersion}"
                            Margin="10,0"
                            FontSize="24" TextAlignment="Left" VerticalAlignment="Center" />
@@ -364,8 +363,8 @@
                                 <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding Launcher.CurrentToolTip}"
                                                                      DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
                               </Interaction.Behaviors>
-                              <Image Source="/Assets/Images/update.png"
-                                     Width="20" Height="20" />
+                              <PathIcon Width="20" Height="20" 
+                                        Data="{StaticResource GeometryUpdate}"/>
                             </Button>
                             <!-- Download button -->
                             <Button Margin="4,0,0,0" Width="32" Height="32"
@@ -516,9 +515,8 @@
             <DockPanel>
               <Border DockPanel.Dock="Top" Margin="0,0,0,30">
                 <DockPanel Height="48" Margin="10,0">
-                  <Image Source="/Assets/Images/recent-projects.png"
-                         Width="26" Height="26"
-                         VerticalAlignment="Center" />
+                  <PathIcon Width="26" Height="26"
+                            Data="{StaticResource GeometryMolecule}"/>
                   <TextBlock Text="{x:Static l:Strings.Projects}"
                              Margin="10,0"
                              FontSize="24" TextAlignment="Left" VerticalAlignment="Center" />
@@ -559,9 +557,10 @@
                                                 ToolTip.Tip="Upgrade to a more recent version">
                                     <Interaction.Behaviors>
                                       <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding Launcher.CurrentToolTip}"
-                                                                            DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
+                                                                           DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
                                     </Interaction.Behaviors>
-                                    <Image Width="16" Height="16" Source="/Assets/Images/upgrade.png" />
+                                    <PathIcon Width="16" Height="16"
+                                              Data="{StaticResource GeometryUpgrade}" />
                                   </ToggleButton>
                                   <Popup x:Name="CompatibleVersionPopup"
                                          IsOpen="{Binding #CompatibleVersionToggle.IsChecked, Mode=TwoWay}" IsLightDismissEnabled="True"
@@ -780,8 +779,8 @@
                       </Border>
                     </Popup>
                     <TextBlock Margin="15,8"
-                                Text="{Binding ActiveReleaseNotes?.Version, StringFormat='Release notes of version {0}'}"
-                                FontSize="20" FontWeight="Bold" VerticalAlignment="Center" />
+                               Text="{Binding ActiveReleaseNotes?.Version, StringFormat='Release notes of version {0}'}"
+                               FontSize="20" FontWeight="Bold" VerticalAlignment="Center" />
                   </DockPanel>
                   <Grid Margin="8">
                     <mv:MarkdownViewer x:Name="ReleaseNotesView"
