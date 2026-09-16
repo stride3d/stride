@@ -4,7 +4,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using Stride.Core.Assets;
@@ -36,14 +35,12 @@ namespace Stride.Assets.Presentation.AssemblyReloading
     {
         public static void Reload([NotNull] SessionViewModel session, ILogger log, Action postReloadAction, Action undoAction, [NotNull] Dictionary<PackageLoadedAssembly, string> modifiedAssemblies)
         {
-            var loadedAssemblies = modifiedAssemblies.Where(x => File.Exists(x.Key.Path)).ToDictionary(x => x.Key, x => x.Value);
-
             var assemblyContainer = session.AssemblyContainer;
 
             using (session.CreateAssetFixupContext())
             {
-                // TODO: Filter by "modified assemblies", for now we reload everything
-                var loadedAssembliesSet = new HashSet<Assembly>(loadedAssemblies.Select(x => x.Key.Assembly).NotNull());
+                // Every assembly the operation swaps: an object of one left out would keep the types of the unloaded copy
+                var loadedAssembliesSet = new HashSet<Assembly>(modifiedAssemblies.Select(x => x.Key.Assembly).NotNull());
 
                 // Serialize types from unloaded assemblies as Yaml, and unset them
                 var unloadingVisitor = new UnloadingVisitor(log, loadedAssembliesSet);
