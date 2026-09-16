@@ -91,7 +91,8 @@ public partial class RenderingTests
         File.WriteAllText($"{outputName}.spvdis", Spv.Dis(SpirvBytecode.CreateFromSpan(bytecode), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true));
 
         // Validate SPIR-V
-        var validationResult = Spv.ValidateFile($"{outputName}.spv");
+        // Validated the way the effect compiler validates it: against Vulkan's rules only when Vulkan is the target.
+        var validationResult = Spv.ValidateFile($"{outputName}.spv", targetVulkan: backend == RendererBackend.Vulkan);
         Assert.True(validationResult.IsValid, validationResult.Output);
 
         // Execute test
@@ -236,7 +237,8 @@ public partial class RenderingTests
         File.WriteAllText($"{outputName}.spvdis", Spv.Dis(SpirvBytecode.CreateFromSpan(bytecode), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true));
 
         // Validate SPIR-V
-        var validationResult = Spv.ValidateFile($"{outputName}.spv");
+        // Validated the way the effect compiler validates it: against Vulkan's rules only when Vulkan is the target.
+        var validationResult = Spv.ValidateFile($"{outputName}.spv", targetVulkan: backend == RendererBackend.Vulkan);
         Assert.True(validationResult.IsValid, validationResult.Output);
 
         // Execute test

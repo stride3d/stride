@@ -23,7 +23,7 @@ internal sealed class ManagedVersionStore
         if (!File.Exists(filePath))
             return new(StringComparer.OrdinalIgnoreCase);
 
-        return JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(filePath))
+        return JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(filePath), CliJsonContext.Default.DictionaryStringString)
             ?? new(StringComparer.OrdinalIgnoreCase);
     }
 
@@ -33,7 +33,7 @@ internal sealed class ManagedVersionStore
 
         // Write to a temporary file then move it into place so a concurrent reader never sees a partial file.
         var temporaryPath = filePath + ".tmp";
-        File.WriteAllText(temporaryPath, JsonSerializer.Serialize(managedVersions, new JsonSerializerOptions { WriteIndented = true }));
+        File.WriteAllText(temporaryPath, JsonSerializer.Serialize(managedVersions, CliJsonContext.Default.DictionaryStringString));
         File.Move(temporaryPath, filePath, overwrite: true);
     }
 }

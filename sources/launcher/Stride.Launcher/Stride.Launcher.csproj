@@ -3,6 +3,8 @@
     <OutputType>WinExe</OutputType>
     <OutputType Condition="'$(Configuration)' == 'Debug'">Exe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
+    <!-- Starts on the next .NET major when its own is not installed; its own is preferred when present. -->
+    <RollForward>Major</RollForward>
     <DebugType>embedded</DebugType>
     <RuntimeIdentifiers>linux-x64;win-x64</RuntimeIdentifiers>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
@@ -50,6 +52,8 @@
     <Compile Remove="..\..\shared\SharedAssemblyInfo.cs" />
     <Compile Include="..\..\assets\Stride.Core.Assets\PackageSessionHelper.Solution.cs" Link="Packages\PackageSessionHelper.Solution.cs" />
     <Compile Include="..\..\editor\Stride.Core.Assets.Editor.Wpf\EditorPath.cs" Link="Editor\EditorPath.cs" />
+    <Compile Include="..\..\shared\Stride.NuGetResolver\DotNetHostSelector.cs" Link="Shared\DotNetHostSelector.cs" />
+    <Compile Include="..\..\shared\Stride.NuGetResolver\HostInstanceMutex.cs" Link="Shared\HostInstanceMutex.cs" />
   </ItemGroup>
 
   <ItemGroup>

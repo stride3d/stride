@@ -103,7 +103,7 @@ internal sealed class CrashSession
 
     // The failing asset's definition file, read from disk and scrubbed of the user name/path (its YAML can
     // reference a source path under the home folder). Null if missing or over the size cap.
-    private static IReadOnlyList<(string Name, byte[] Bytes)> BuildAssetDefinitionAttachment(StoredCrash crash)
+    private static IReadOnlyList<(string Name, byte[] Bytes)>? BuildAssetDefinitionAttachment(StoredCrash crash)
     {
         var path = crash.AssetDefinitionPath;
         if (string.IsNullOrEmpty(path) || !File.Exists(path))
@@ -113,7 +113,7 @@ internal sealed class CrashSession
             if (new FileInfo(path).Length > MaxAssetAttachmentBytes)
                 return null;
             var scrubbed = CrashReportAnonymizer.Scrub(File.ReadAllText(path));
-            return new[] { (Path.GetFileName(path), Encoding.UTF8.GetBytes(scrubbed)) };
+            return [(Path.GetFileName(path), Encoding.UTF8.GetBytes(scrubbed))];
         }
         catch
         {

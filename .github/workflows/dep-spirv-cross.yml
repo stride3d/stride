@@ -41,9 +41,39 @@ jobs:
           name: spirv-cross-win-x64
           path: spirv-cross-build/Release/spirv-cross-c-shared.dll
 
+  # Windows ARM64 — same host, MSVC ARM64 cross-compile (as in dep-spirv-tools.yml).
+  build-windows-arm64:
+    name: Build SPIRV-Cross (Windows ARM64)
+    runs-on: windows-2025-vs2026
+    steps:
+      - name: Checkout Stride
+        uses: actions/checkout@v7
+
+      - name: Checkout SPIRV-Cross
+        uses: actions/checkout@v7
+        with:
+          repository: stride3d/SPIRV-Cross
+          ref: ${{ github.event.inputs.branch || 'hlsl_tessel_shader' }}
+          path: spirv-cross-src
+
+      - name: Build
+        shell: pwsh
+        run: |
+          cmake -S spirv-cross-src -B spirv-cross-build -A ARM64 -Thost=x64 `
+            -DSPIRV_CROSS_SHARED=ON `
+            -DSPIRV_CROSS_CLI=OFF `
+            -DSPIRV_CROSS_ENABLE_TESTS=OFF
+          cmake --build spirv-cross-build --config Release --target spirv-cross-c-shared
+
+      - name: Upload build output
+        uses: actions/upload-artifact@v7
+        with:
+          name: spirv-cross-win-arm64
+          path: spirv-cross-build/Release/spirv-cross-c-shared.dll
+
   pack:
     name: Pack & Publish NuGet
-    needs: [build-windows]
+    needs: [build-windows, build-windows-arm64]
     runs-on: windows-2025-vs2026
     steps:
       - name: Checkout
@@ -57,19 +87,27 @@ jobs:
           path: spirv-cross-src
           fetch-depth: 1
 
-      - name: Download Windows artifact
+      - name: Download Windows x64 artifact
         uses: actions/download-artifact@v8
         with:
           name: spirv-cross-win-x64
           path: artifacts/win-x64
 
+      - name: Download Windows ARM64 artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: spirv-cross-win-arm64
+          path: artifacts/win-arm64
+
       - name: Prepare package contents
         shell: pwsh
         run: |
           $destDir = "build/deps/spirv-cross"
-          New-Item -Path "$destDir/win-x64" -ItemType Directory -Force | Out-Null
           # Silk.NET expects the DLL named "spirv-cross"
-          Copy-Item artifacts/win-x64/spirv-cross-c-shared.dll "$destDir/win-x64/spirv-cross.dll"
+          foreach ($rid in 'win-x64', 'win-arm64') {
+            New-Item -Path "$destDir/$rid" -ItemType Directory -Force | Out-Null
+            Copy-Item "artifacts/$rid/spirv-cross-c-shared.dll" "$destDir/$rid/spirv-cross.dll"
+          }
 
       - name: Pack NuGet
         shell: pwsh

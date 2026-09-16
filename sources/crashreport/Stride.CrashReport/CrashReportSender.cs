@@ -1,16 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
 using System.Reflection;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using Sentry;
 
 namespace Stride.CrashReport;
 
@@ -148,7 +140,7 @@ public static class CrashReportSender
         sentryEvent.Level = SentryLevel.Fatal;
         // Group by the crash's signature, not the reporter's stack or message.
         if (!string.IsNullOrEmpty(fingerprint))
-            sentryEvent.SetFingerprint(new[] { fingerprint });
+            sentryEvent.SetFingerprint([fingerprint]);
 
         // Link the crashing thread to the exception so Sentry shows its stack there and the snapshot stacks for the rest.
         if (crashedThreadId is int crashedId && sentryEvent.SentryExceptions != null)

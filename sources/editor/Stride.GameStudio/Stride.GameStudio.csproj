@@ -4,6 +4,8 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
+    <!-- Starts on the next .NET major when its own is not installed; its own is preferred when present. -->
+    <RollForward>Major</RollForward>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>

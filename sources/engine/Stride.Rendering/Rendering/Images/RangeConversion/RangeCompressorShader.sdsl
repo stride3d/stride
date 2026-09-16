@@ -9,6 +9,10 @@ namespace Stride.Rendering.Images
         {
             float3 color = Texture0.Sample(PointSampler, streams.TexCoord).rgb;
 
+            // A negative or infinite color becomes a NaN below (sqrt, division), which FXAA then
+            // reads as this pixel's luma and spreads along edges.
+            color = HalfPrecisionUtils.ClampToSafeRange(color);
+
             // compute luma from HDR value:
             float3 ntsc = float3(0.2126, 0.7152, 0.0722);
             float relativeLuminance = dot(ntsc, color);

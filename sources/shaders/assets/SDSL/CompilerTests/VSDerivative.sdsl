@@ -1,0 +1,19 @@
+namespace Stride.Shaders.Tests;
+
+shader VSDerivative
+{
+    stream float4 ColorTarget : SV_Target0;
+    stream float4 Position : POSITION;
+    stream float4 ShadingPosition : SV_Position;
+
+    void VSMain()
+    {
+        float slope = ddx(streams.Position.x);
+        streams.ShadingPosition = float4(streams.Position.x, slope, streams.Position.z, streams.Position.w);
+    }
+
+    stage void PSMain()
+    {
+        streams.ColorTarget = float4(1, 1, 1, 1);
+    }
+}

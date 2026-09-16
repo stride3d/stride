@@ -1,0 +1,13 @@
+// Regression test: the number parser used to reject a trailing-dot float literal (e.g. "1.")
+// when followed directly by an operator, causing expressions like "i+=1./iter" to fail parsing.
+// Per the HLSL grammar, "digit-sequence ." with no following digits is a valid fractional-constant:
+// https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-appendix-grammar#floating-point-numbers
+shader TrailingDotFloatLiteral
+{
+	void Foo()
+	{
+		float iter = 2.0f;
+		float i = 0;
+		i += 1./iter;
+	}
+};

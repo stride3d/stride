@@ -1,0 +1,10 @@
+// Control for ComposeSharedHelper: same composition, but not deriving from the root's base.
+namespace Stride.Shaders.Tests;
+
+shader ComposePlainHelper
+{
+    float4 Value()
+    {
+        return float4(1, 2, 3, 4);
+    }
+};

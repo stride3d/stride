@@ -63,7 +63,7 @@ shader VoxelStorageTextureClipmapShader<float voxelSizeT, float clipCountT, floa
 
         float mipBase = floor(mipmap);
 
-        float4 offsetScale = perMapOffsetScale[mipBase];
+        float4 offsetScale = perMapOffsetScale[(int)mipBase];
         pos = pos * offsetScale.w + offsetScale.xyz;
 
         if (mipBase >= clipCountT)
@@ -114,10 +114,10 @@ shader VoxelStorageTextureClipmapShader<float voxelSizeT, float clipCountT, floa
         float mipBase = floor(mipmap);
 
 
-        float4 offsetScale = perMapOffsetScale[mipBase];
+        float4 offsetScale = perMapOffsetScale[(int)mipBase];
         float3 posFine = pos * offsetScale.w + offsetScale.xyz;
 
-        offsetScale = perMapOffsetScale[mipBase + 1];
+        offsetScale = perMapOffsetScale[(int)mipBase + 1];
         float3 posCoarse = pos * offsetScale.w + offsetScale.xyz;
         if (mipBase >= clipCountT)
         {

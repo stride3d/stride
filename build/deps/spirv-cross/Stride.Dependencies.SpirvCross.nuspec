@@ -10,6 +10,7 @@
   </metadata>
   <files>
     <file src="win-x64/spirv-cross.dll" target="runtimes/win-x64/native/" />
+    <file src="win-arm64/spirv-cross.dll" target="runtimes/win-arm64/native/" />
     <file src="buildTransitive/Stride.Dependencies.SpirvCross.targets" target="buildTransitive/" />
     <!-- Add more platforms as needed:
     <file src="linux-x64/libspirv-cross.so" target="runtimes/linux-x64/native/" />

@@ -9,8 +9,8 @@ public interface ILauncherSettingsService
 {
     bool CloseLauncherAutomatically { get; set; }
     string ActiveVersion { get; set; }
-    string PreferredFramework { get; set; }
     string PreferredEditor { get; set; }
+    string PreferredRuntime { get; set; }
     int CurrentTab { get; set; }
     IReadOnlyCollection<UDirectory> DeveloperVersions { get; }
     bool IsTaskCompleted(string taskName);

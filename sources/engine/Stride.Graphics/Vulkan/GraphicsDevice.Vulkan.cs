@@ -84,6 +84,43 @@ namespace Stride.Graphics
         internal VkInstance NativeInstance => GraphicsAdapterFactory.GetInstance(IsDebugMode).NativeInstance;
         internal VkInstanceApi NativeInstanceApi => GraphicsAdapterFactory.GetInstance(IsDebugMode).NativeInstanceApi;
 
+        private readonly Dictionary<PixelFormat, PixelFormat> supportedDepthStencilFormats = new();
+
+        /// <summary>
+        ///   Gets the depth-stencil format the device will really use for <paramref name="format"/>.
+        /// </summary>
+        /// <remarks>
+        ///   Vulkan guarantees only that one of <c>D24_UNORM_S8_UINT</c> or <c>D32_SFLOAT_S8_UINT</c> is supported as a
+        ///   depth-stencil attachment, so a requested format may be substituted. The answer depends only on the physical
+        ///   device, so it is resolved once and cached. Formats without a stencil are returned unchanged.
+        /// </remarks>
+        internal PixelFormat GetSupportedDepthStencilFormat(PixelFormat format)
+        {
+            lock (supportedDepthStencilFormats)
+            {
+                if (supportedDepthStencilFormats.TryGetValue(format, out var supported))
+                    return supported;
+
+                supported = format;
+                if (format is PixelFormat.D24_UNorm_S8_UInt or PixelFormat.D32_Float_S8X24_UInt)
+                {
+                    // The requested one first, so a device that supports it keeps it
+                    foreach (var candidate in new[] { format, PixelFormat.D32_Float_S8X24_UInt, PixelFormat.D24_UNorm_S8_UInt })
+                    {
+                        NativeInstanceApi.vkGetPhysicalDeviceFormatProperties(NativePhysicalDevice, VulkanConvertExtensions.ConvertPixelFormat(candidate), out var formatProperties);
+                        if ((formatProperties.optimalTilingFeatures & VkFormatFeatureFlags.DepthStencilAttachment) != 0)
+                        {
+                            supported = candidate;
+                            break;
+                        }
+                    }
+                }
+
+                supportedDepthStencilFormats.Add(format, supported);
+                return supported;
+            }
+        }
+
         internal struct BufferInfo
         {
             public long FenceValue;

@@ -4,6 +4,7 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO.Pipes;
+using Stride.Core.Assets;
 using Stride.Core.CodeEditorSupport.VisualStudio;
 using Stride.Core.Extensions;
 using Stride.Core.Packages;
@@ -39,6 +40,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
     private bool lastActiveVersionRestored;
     private AnnouncementViewModel announcement;
     private bool isVisible;
+    private RuntimeChoice? selectedRuntime;
 
     internal ILauncherSettingsService Settings => _settings;
 
@@ -48,6 +50,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
         _settings = serviceProvider.Get<ILauncherSettingsService>();
         autoCloseLauncher = _settings.CloseLauncherAutomatically;
         currentTab = _settings.CurrentTab;
+        UpdateRuntimes();
         DependentProperties.Add("ActiveVersion", ["ActiveDocumentationPages"]);
         store = Launcher.InitializeNugetStore();
         store.Logger = this;
@@ -119,6 +122,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
             if (SetValue(ref activeVersion, value))
             {
                 Dispatcher.InvokeAsync(() => StartStudioCommand.IsEnabled = value?.CanStart ?? false);
+                RefreshRuntimes();
             }
         }
     }
@@ -174,19 +178,6 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
 
     public bool AutoCloseLauncher { get { return autoCloseLauncher; } set { SetValue(ref autoCloseLauncher, value, () => _settings.CloseLauncherAutomatically = value); } }
 
-    public string PreferredFramework
-    {
-        get => _settings.PreferredFramework;
-        set
-        {
-            if (_settings.PreferredFramework != value)
-            {
-                _settings.PreferredFramework = value;
-                _settings.Save();
-            }
-        }
-    }
-
     public string PreferredEditor
     {
         get => _settings.PreferredEditor;
@@ -211,6 +202,67 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
                 _settings.Save();
             }
         }
+    }
+
+    /// <summary>A .NET major Game Studio can be started on; a null major means the one the project needs.</summary>
+    public sealed record RuntimeChoice(int? Major, string Label)
+    {
+        public override string ToString() => Label;
+    }
+
+    /// <summary>The automatic choice, then every installed .NET major the editor could run on.</summary>
+    public ObservableList<RuntimeChoice> AvailableRuntimes { get; } = [];
+
+    public RuntimeChoice? SelectedRuntime
+    {
+        get => selectedRuntime;
+        set
+        {
+            // Null only comes from the binding while the list is rebuilt; the preference stays.
+            if (value is not null && SetValue(ref selectedRuntime, value))
+            {
+                _settings.PreferredRuntime = value.Major?.ToString() ?? "";
+                _settings.Save();
+            }
+        }
+    }
+
+    /// <summary>Recomputes the runtime choices for the active version, on the UI thread.</summary>
+    public void RefreshRuntimes() => Dispatcher.InvokeAsync(UpdateRuntimes);
+
+    // The editor's own .NET major as the default (no explicit choice), then each major above it with both the runtime and
+    // the SDK installed. Every entry is a minimum: the project raises it when it needs a newer major. Only the default for
+    // an editor that doesn't take a runtime choice, which hides the selector.
+    private void UpdateRuntimes()
+    {
+        AvailableRuntimes.Clear();
+        string? appDll = null;
+        try
+        {
+            appDll = ActiveVersion?.LocateMainExecutable() is { } executable ? Path.ChangeExtension(executable, ".dll") : null;
+        }
+        catch (InvalidOperationException)
+        {
+            // No editor found for this version: only the default.
+        }
+        var newer = new List<RuntimeChoice>();
+        var defaultLabel = Strings.RuntimeDefault;
+        if (appDll is not null && File.Exists(appDll) && DotNetHostSelector.SupportsHostSelection(appDll))
+        {
+            var install = DotNetInstall.Detect();
+            var native = DotNetHostSelector.ReadNativeMajor(appDll);
+            if (native > 0)
+                defaultLabel = string.Format(Strings.RuntimeDefaultMajor, native);
+            foreach (var major in install?.Majors().Where(m => m > native && install.HasSdk(m)) ?? [])
+                newer.Add(new RuntimeChoice(major, string.Format(Strings.RuntimeNewerMajor, major)));
+        }
+        AvailableRuntimes.Add(new RuntimeChoice(null, defaultLabel));
+        foreach (var choice in newer)
+            AvailableRuntimes.Add(choice);
+        // The preference is kept as it is when the list can't offer it. The ComboBox lost its selection with the
+        // old items, so the change is raised even when the same choice comes back.
+        selectedRuntime = null;
+        SetValue(ref selectedRuntime, AvailableRuntimes.FirstOrDefault(r => r.Major?.ToString() == _settings.PreferredRuntime) ?? AvailableRuntimes[0], nameof(SelectedRuntime));
     }
 
     /// <summary>
@@ -313,9 +365,17 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
         {
             await FindReferencedPackages(mainPackage);
         }
-        foreach (var package in previousReferencedPackages.Where(package => !referencedPackages.Contains(package)))
+        foreach (var package in previousReferencedPackages.Where(package => !referencedPackages.Contains(package)).ToList())
         {
-            await store.UninstallPackage(package, null);
+            try
+            {
+                await store.UninstallPackage(package, null);
+            }
+            catch (OperationCanceledException)
+            {
+                // Kept by the user (still in use): it stays installed and is checked again on the next pass.
+                referencedPackages.Add(package);
+            }
         }
     }
 
@@ -625,22 +685,23 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
 
     public Task StartStudio()
     {
-        return StartStudio("");
+        return StartStudio(null);
     }
 
-    public async Task StartStudio(string argument)
+    /// <summary>Starts the active version's editor, on <paramref name="sessionPath"/> when given.</summary>
+    public async Task StartStudio(string? sessionPath)
     {
-        ArgumentNullException.ThrowIfNull(argument);
-
         if (ActiveVersion is null)
             return;
+
+        var args = new List<string>();
 
         if (AutoCloseLauncher)
         {
             if (OperatingSystem.IsWindows())
             {
                 // WindowHandle is a Win32 HWND populated by MainWindow.OnOpened on Windows only.
-                argument = $"/LauncherWindowHandle {WindowHandle} {argument}";
+                args.AddRange(["/LauncherWindowHandle", WindowHandle.ToString()]);
             }
             else
             {
@@ -649,7 +710,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
                 // and raises CloseRequested when a connection arrives.
                 var pipeName = $"stride-launcher-{Environment.ProcessId}";
                 _ = WaitForGameStudioPipeSignalAsync(pipeName);
-                argument = $"/LauncherPipe {pipeName} {argument}";
+                args.AddRange(["/LauncherPipe", pipeName]);
             }
         }
 
@@ -658,23 +719,41 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
             Dispatcher.Invoke(() => StartStudioCommand.IsEnabled = false);
             var mainExecutable = ActiveVersion.LocateMainExecutable();
 
-            // We set the WorkingDirectory so that global.json is properly resolved
-            switch (Path.GetExtension(mainExecutable))
-            {
-                case ".dll":
-                    argument = $"{mainExecutable} {argument}";
-                    Process.Start(new ProcessStartInfo("dotnet", argument)
-                    {
-                        WorkingDirectory = Path.GetDirectoryName(mainExecutable)
-                    });
-                    break;
+            var appDll = Path.ChangeExtension(mainExecutable, ".dll");
+            if (sessionPath is not null)
+                args.Add(sessionPath);
 
-                default:
-                    Process.Start(new ProcessStartInfo(mainExecutable, argument)
-                    {
-                        WorkingDirectory = Path.GetDirectoryName(mainExecutable)
-                    });
-                    break;
+            // An explicit .NET major re-executes the editor through the muxer on it (see DotNetHostSelector), for an
+            // editor that understands the option; an older one would take it for a session path.
+            ProcessStartInfo? startInfo;
+            if (SelectedRuntime?.Major is { } runtimeMajor && DotNetHostSelector.SupportsHostSelection(appDll))
+            {
+                args.AddRange([DotNetHostSelector.FrameworkArg, $"net{runtimeMajor}.0"]);
+                var decision = DotNetHostSelector.ResolveFor(appDll, DotNetHostSelector.ReadNativeMajor(appDll), null, args);
+                if (decision.Kind == DotNetHostSelector.DecisionKind.Missing)
+                {
+                    await ServiceProvider.Get<IDialogService>().MessageBoxAsync(decision.Reason!, MessageBoxButton.OK, MessageBoxImage.Error);
+                    startInfo = null;
+                }
+                else
+                {
+                    startInfo = decision.Kind == DotNetHostSelector.DecisionKind.Relaunch
+                        ? DotNetHostSelector.RelaunchStartInfo(appDll, decision.Major, args, decision.Install)
+                        : DotNetHostSelector.NativeStartInfo(appDll, args);
+                }
+            }
+            else
+            {
+                startInfo = DotNetHostSelector.NativeStartInfo(appDll, args);
+            }
+
+            if (startInfo is not null)
+            {
+                // We set the WorkingDirectory so that global.json is properly resolved
+                startInfo.WorkingDirectory = Path.GetDirectoryName(mainExecutable);
+                // dotnet.exe is a console program; started from the launcher it would get a console window of its own.
+                startInfo.CreateNoWindow = true;
+                Process.Start(startInfo);
             }
         }
         catch (Exception e)

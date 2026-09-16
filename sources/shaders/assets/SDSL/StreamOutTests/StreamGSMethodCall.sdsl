@@ -1,0 +1,49 @@
+// GSMain(ExpectedPrimitiveCount=3, stream.EXTRA_COLOR=(0.498 0.498 0.498 0.498))
+
+// Same as StreamGS, but the geometry shader hands its input array and its output stream to
+// another method instead of appending inline. Stride.Voxels' VoxelizeToFragments does this
+// (`Storage.GenerateTriangles(input, triangleStream)`), and StreamGS does not cover it.
+
+namespace Stride.Shaders.Tests;
+
+shader StreamGSMethodCall
+{
+    stream float4 Position : POSITION;
+    stream float4 ShadingPosition : SV_Position;
+    stream float4 ColorTarget : SV_Target0;
+    stream float4 ExtraColor : EXTRA_COLOR;
+    stream float4 ExtraColor2;
+
+    void VSMain()
+    {
+        streams.ShadingPosition = streams.Position;
+        streams.ExtraColor2 = streams.ExtraColor;
+    }
+
+    void Emit(triangle Input input[3], inout PointStream<Output> outStream)
+    {
+        streams = input[0];
+
+        streams.ShadingPosition = 0.5f * streams.ShadingPosition;
+
+        outStream.Append(streams);
+
+        for (int i = 0; i < 2; ++i)
+        {
+            outStream.Append(streams);
+        }
+
+        outStream.RestartStrip();
+    }
+
+    [maxvertexcount(3)]
+    void GSMain(triangle Input input[3], inout PointStream<Output> outStream)
+    {
+        Emit(input, outStream);
+    }
+
+    void PSMain()
+    {
+        streams.ColorTarget = streams.ExtraColor2;
+    }
+}

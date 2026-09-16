@@ -6,9 +6,18 @@ namespace Stride.Rendering.Voxels
     {
         stage RWBuffer<uint> buffer;
         int offset;
+
+        // A dispatch has at most 65535 thread groups per dimension, so the groups are spread over X and Y
+        // and the linear index is recomposed here. rowLength is the elements one row of groups covers;
+        // count bounds the last row, which overshoots.
+        int rowLength;
+        int count;
+
         override void Compute()
         {
-            buffer[streams.DispatchThreadId.x + offset] = 0;
+            uint index = streams.DispatchThreadId.x + streams.DispatchThreadId.y * (uint)rowLength;
+            if (index < (uint)count)
+                buffer[index + offset] = 0;
         }
     };
 }

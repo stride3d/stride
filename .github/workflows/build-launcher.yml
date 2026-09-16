@@ -6,6 +6,7 @@ on:
       - '.github/workflows/build-launcher.yml'
       - 'build/Stride.Launcher.slnx'
       - 'sources/core/**'
+      - 'sources/crashreport/**'
       - 'sources/launcher/**'
       - 'sources/presentation/**'
       - 'sources/shared/**'
@@ -32,7 +33,7 @@ on:
         type: string
 
 concurrency:
-  group: build-launcher-${{ github.event.pull_request.number || github.ref }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
+  group: build-launcher-${{ github.event.pull_request.number || github.sha }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
   cancel-in-progress: true
 
 jobs:

@@ -142,6 +142,7 @@ csharp_new_line_between_query_expression_clauses = true
 
 # Indentation preferences
 csharp_indent_case_contents = true
+csharp_indent_case_contents_when_block = false
 csharp_indent_switch_labels = true
 csharp_indent_labels = flush_left
 

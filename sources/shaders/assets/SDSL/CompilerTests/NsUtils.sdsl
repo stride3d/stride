@@ -1,0 +1,10 @@
+// A class in a namespace of its own, for the using tests.
+namespace Stride.Shaders.Parsers.Tests;
+
+shader NsUtils
+{
+    float One()
+    {
+        return 1;
+    }
+};

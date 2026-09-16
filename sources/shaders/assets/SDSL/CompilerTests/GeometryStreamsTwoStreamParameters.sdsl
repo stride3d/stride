@@ -1,0 +1,42 @@
+// A helper method that takes two geometry stream parameters. Every stream parameter is dropped once
+// the wrappers are generated, so the second one must go too, from the function type and the call.
+
+namespace Stride.Shaders.Tests;
+
+shader GeometryStreamsTwoStreamParameters
+{
+    stream float4 Position : POSITION;
+    stream float4 ShadingPosition : SV_Position;
+    stream float4 ColorTarget : SV_Target0;
+    stream float4 Tint;
+
+    void VSMain()
+    {
+        streams.ShadingPosition = streams.Position;
+    }
+
+    void Emit(inout TriangleStream<Output> a, inout TriangleStream<Output> b)
+    {
+        streams.Tint = float4(1, 0, 0, 1);
+        a.Append(streams);
+        streams.Tint = float4(0, 1, 0, 1);
+        b.Append(streams);
+    }
+
+    [maxvertexcount(6)]
+    void GSMain(triangle Input input[3], inout TriangleStream<Output> outStream)
+    {
+        for (int i = 0; i < 3; ++i)
+        {
+            streams = input[i];
+            Emit(outStream, outStream);
+        }
+
+        outStream.RestartStrip();
+    }
+
+    void PSMain()
+    {
+        streams.ColorTarget = streams.Tint;
+    }
+}

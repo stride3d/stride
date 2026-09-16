@@ -64,6 +64,29 @@ public class StrideShaderTests
             string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
     }
 
+    // Regression: a Geometry shader reading a stage-input stream field directly through the input
+    // array element (`input[i].Field`), not just via a whole-struct `streams = input[i]` assignment,
+    // used to crash StreamAccessPatcher with a NullReferenceException. ReadWriteAnalyzer only
+    // recognized `PointerType { BaseType: StreamsType }` as a stream access on OpVariable/
+    // OpFunctionParameter, but a GS per-vertex input parameter (`Input input[3]`) is
+    // `PointerType { BaseType: ArrayType { BaseType: StreamsType } }`, so `input[i].Field` reads were
+    // never marked as "Read" and the field never got an InputStructFieldIndex.
+    [Fact]
+    public void GeometryShaderInputArrayFieldAccessDoesNotCrashCompiler()
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+        shaderMixer.ShaderLoader.LoadExternalBuffer("GSInputArrayFieldAccess", [], out _, out _, out _);
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(new ShaderClassSource("GSInputArrayFieldAccess"), new ShaderMixer.Options(true), log, out var bytecode, out _, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+
+        File.WriteAllBytes("GSInputArrayFieldAccess.spv", bytecode);
+        var validationResult = Spv.ValidateFile("GSInputArrayFieldAccess.spv");
+        Assert.True(validationResult.IsValid, validationResult.Output);
+    }
+
     // Reflection reports a multidimensional cbuffer array as a flat element count
     // (float4 Data2D[2][3] => 6 elements), matching fxc and the runtime parameter layout.
     [Fact]
@@ -88,13 +111,192 @@ public class StrideShaderTests
         Assert.Equal(80, data1D.Size);
     }
 
-    // Regression: the MemberName re-instantiation path sets ShaderLoaderBase.SuppressSourceHash and
-    // relies on LoadFromCode to clear it. When the load hits the shader cache instead, LoadFromCode
-    // never runs, so the flag leaks into the next compiled shader and strips its OpSourceHashSDSL.
-    // A cached shader without OpSourceHashSDSL deserializes to a zero hash, which makes
-    // EffectCompilerCache.IsBytecodeObsolete return true on every run (a permanent recompile hang).
     [Fact]
-    public void SuppressSourceHashDoesNotLeakAcrossCacheHits()
+    public void NumThreadsOnNonEntryMethodIsIgnoredWithWarning()
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(new ShaderClassSource("CSNumThreadsOnNonEntry"), new ShaderMixer.Options(true), log, out var bytecode, out _, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+
+        var validation = Spv.ValidateBinary(bytecode);
+        Assert.True(validation.IsValid, validation.Output);
+
+        Assert.Contains(log.Messages, m => m.Type == Stride.Core.Diagnostics.LogMessageType.Warning
+            && m.Text.Contains("[numthreads]") && m.Text.Contains("Compute"));
+    }
+
+    // fxc rejects the same shader with X4532, so this reports rather than emitting a module that only
+    // fails later, deep inside the HLSL legalizer.
+    [Fact]
+    public void TextureSampleOutsideFragmentStageIsReported()
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.False(shaderMixer.MergeSDSL(new ShaderClassSource("VSTextureSample"), new ShaderMixer.Options(true), log, out _, out _, out _, out _));
+
+        Assert.Contains(log.Messages, m => m.Type == Stride.Core.Diagnostics.LogMessageType.Error
+            && m.Text.Contains("VSTextureSample.sdsl(14,") && m.Text.Contains("implicit level of detail")
+            && m.Text.Contains("SampleLevel") && m.Text.Contains("Vertex"));
+    }
+
+    // ddx/ddy/fwidth need the same derivatives as an implicit-LOD sample, so they carry the same stage
+    // restriction and must be reported rather than left to the legalizer.
+    [Fact]
+    public void DerivativeOutsideFragmentStageIsReported()
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.False(shaderMixer.MergeSDSL(new ShaderClassSource("VSDerivative"), new ShaderMixer.Options(true), log, out _, out _, out _, out _));
+
+        Assert.Contains(log.Messages, m => m.Type == Stride.Core.Diagnostics.LogMessageType.Error
+            && m.Text.Contains("VSDerivative.sdsl(11,") && m.Text.Contains("screen-space derivative")
+            && m.Text.Contains("Vertex"));
+    }
+
+    // A hull patch constant function is linked by a PatchConstantFuncSDSL decoration rather than by a
+    // call in the source. Validation runs after InterfaceProcessor generates the hull wrapper, which
+    // calls it for real, so the caller/callee walk reaches it.
+    [Fact]
+    public void ImplicitLodInHullPatchConstantIsReported()
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.False(shaderMixer.MergeSDSL(new ShaderClassSource("HSPatchConstantTextureSample"), new ShaderMixer.Options(true), log, out _, out _, out _, out _));
+
+        Assert.Contains(log.Messages, m => m.Type == Stride.Core.Diagnostics.LogMessageType.Error
+            && m.Text.Contains("HSPatchConstantTextureSample.sdsl(22,") && m.Text.Contains("implicit level of detail")
+            && m.Text.Contains("Hull"));
+    }
+
+    [Fact]
+    public void TextureSampleInFragmentStageCompiles()
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(new ShaderClassSource("PSTextureSample"), new ShaderMixer.Options(true), log, out var bytecode, out _, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+
+        var validation = Spv.ValidateBinary(bytecode);
+        Assert.True(validation.IsValid, validation.Output);
+    }
+
+    [Theory]
+    [InlineData("CSNumThreadsOverride", 16u)]
+    [InlineData("CSNumThreadsInherit", 8u)]
+    public void OverriddenComputeEntryPointKeepsOneLocalSize(string shaderName, uint expectedX)
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(new ShaderClassSource(shaderName), new ShaderMixer.Options(true), log, out var bytecode, out _, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+
+        var validation = Spv.ValidateBinary(bytecode);
+        Assert.True(validation.IsValid, validation.Output);
+
+        var localSizes = ReadExecutionModes(bytecode).Where(m => m.Mode == Stride.Shaders.Spirv.Specification.ExecutionMode.LocalSize).ToList();
+        var localSize = Assert.Single(localSizes);
+        Assert.Equal(expectedX, localSize.Parameters[0]);
+        Assert.Contains(localSize.EntryPoint, ReadEntryPointIds(bytecode));
+    }
+
+    [Fact]
+    public void OverriddenHullEntryPointInheritsBaseAttributes()
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(new ShaderClassSource("HSOverride"), new ShaderMixer.Options(true), log, out var bytecode, out _, out _, out var entryPoints),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+
+        var validation = Spv.ValidateBinary(bytecode);
+        Assert.True(validation.IsValid, validation.Output);
+
+        var hull = Assert.Single(entryPoints, e => e.Stage == ShaderStage.Hull);
+        var outputVertices = Assert.Single(ReadExecutionModes(bytecode), m => m.Mode == Stride.Shaders.Spirv.Specification.ExecutionMode.OutputVertices);
+        Assert.Equal(hull.Id, outputVertices.EntryPoint);
+        Assert.Equal(3u, outputVertices.Parameters[0]);
+    }
+
+    [Theory]
+    [InlineData("ComposeNumThreadsRoot", 16u)]
+    [InlineData("ComposeNumThreadsInheritRoot", 8u)]
+    public void CompositionEntryPointDoesNotContributeExecutionModes(string rootName, uint expectedX)
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+        foreach (var name in new[] { "CSNumThreadsOverrideBase", "ComposeNumThreadsHelper", rootName })
+            shaderMixer.ShaderLoader.LoadExternalBuffer(name, [], out _, out _, out _);
+
+        var shaderSource = new ShaderMixinSource
+        {
+            Mixins = { new ShaderClassSource(rootName) },
+            Compositions = { ["helper"] = new ShaderClassSource("ComposeNumThreadsHelper") },
+        };
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(shaderSource, new ShaderMixer.Options(true), log, out var bytecode, out _, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+
+        var validation = Spv.ValidateBinary(bytecode);
+        Assert.True(validation.IsValid, validation.Output);
+
+        var localSize = Assert.Single(ReadExecutionModes(bytecode), m => m.Mode == Stride.Shaders.Spirv.Specification.ExecutionMode.LocalSize);
+        Assert.Equal(expectedX, localSize.Parameters[0]);
+        Assert.Contains(localSize.EntryPoint, ReadEntryPointIds(bytecode));
+    }
+
+    private static List<(int EntryPoint, Stride.Shaders.Spirv.Specification.ExecutionMode Mode, uint[] Parameters)> ReadExecutionModes(Span<byte> bytecode)
+    {
+        var result = new List<(int, Stride.Shaders.Spirv.Specification.ExecutionMode, uint[])>();
+        var words = System.Runtime.InteropServices.MemoryMarshal.Cast<byte, uint>(bytecode);
+        for (var w = 5; w < words.Length;)
+        {
+            var count = (int)(words[w] >> 16);
+            if (count == 0)
+                break;
+            if ((words[w] & 0xFFFF) == (uint)Stride.Shaders.Spirv.Specification.Op.OpExecutionMode)
+                result.Add(((int)words[w + 1], (Stride.Shaders.Spirv.Specification.ExecutionMode)words[w + 2], words.Slice(w + 3, count - 3).ToArray()));
+            w += count;
+        }
+        return result;
+    }
+
+    private static List<int> ReadEntryPointIds(Span<byte> bytecode)
+    {
+        var result = new List<int>();
+        var words = System.Runtime.InteropServices.MemoryMarshal.Cast<byte, uint>(bytecode);
+        for (var w = 5; w < words.Length;)
+        {
+            var count = (int)(words[w] >> 16);
+            if (count == 0)
+                break;
+            if ((words[w] & 0xFFFF) == (uint)Stride.Shaders.Spirv.Specification.Op.OpEntryPoint)
+                result.Add((int)words[w + 2]);
+            w += count;
+        }
+        return result;
+    }
+
+    // Regression: the MemberName re-instantiation path sets ShaderLoaderBase.SourceHashOverride and
+    // relies on the load consuming it. When that load hits the shader cache and returns early, a
+    // surviving override would stamp one shader's source hash onto the next one compiled, which then
+    // never matches its own file and is rebuilt on every run.
+    [Fact]
+    public void SourceHashOverrideDoesNotLeakAcrossCacheHits()
     {
         var loader = new ShaderLoader("./assets/Stride/SDSL");
 
@@ -102,22 +304,22 @@ public class StrideShaderTests
         Assert.True(loader.LoadExternalBuffer("Texturing", [], out var texturing, out _, out _));
         Assert.True(HasSourceHash(texturing), "sanity: a normally compiled shader carries OpSourceHashSDSL");
 
-        // Reproduce the MemberName path (Builder.Class.InstantiateMemberNames): set the flag, then load
-        // a shader that is already cached. The (name, filename, code) overload returns on the cache hit
-        // before LoadFromCode runs, so the flag is never cleared.
+        // Reproduce the MemberName path (Builder.Class.InstantiateMemberNames): set the override, then
+        // load a shader that is already cached. The (name, filename, code) overload returns on the cache
+        // hit, so the override has to be consumed before that early return.
         Assert.True(loader.LoadExternalFileContent("Texturing", out var filename, out var code, out _));
-        loader.SuppressSourceHash = true;
+        loader.SourceHashOverride = ObjectId.FromBytes("not a shader file"u8.ToArray());
         Assert.True(loader.LoadExternalBuffer("Texturing", filename, code, [], out _, out _, out var isFromCache));
         Assert.True(isFromCache, "precondition: the second load must be a cache hit to exercise the leak");
 
-        Assert.False(loader.SuppressSourceHash,
-            "SuppressSourceHash leaked past a cache hit; the next compiled shader would be cached without " +
-            "OpSourceHashSDSL (zero hash => EffectCompilerCache recompiles every run)");
+        Assert.Null(loader.SourceHashOverride);
 
-        // Downstream symptom: with the flag leaked, the next freshly compiled shader loses its hash.
-        Assert.True(loader.LoadExternalBuffer("ShaderBase", [], out var shaderBase, out _, out _));
-        Assert.True(HasSourceHash(shaderBase),
-            "the next compiled shader is missing OpSourceHashSDSL — its cached hash would deserialize to zero");
+        // Downstream symptom: with the override leaked, the next compiled shader records that hash
+        // instead of its own file's, and never matches its source again.
+        Assert.True(loader.LoadExternalBuffer("ShaderBase", [], out var shaderBase, out var shaderBaseHash, out _));
+        Assert.True(HasSourceHash(shaderBase));
+        Assert.True(loader.LoadExternalFileContent("ShaderBase", out _, out _, out var shaderBaseFileHash));
+        Assert.Equal(shaderBaseFileHash, shaderBaseHash);
     }
 
     private static bool HasSourceHash(ShaderBuffers buffer)
@@ -838,5 +1040,158 @@ new ShaderMacro("class", "shader"),
                 Console.WriteLine(hlsl);
             }
         }
+    }
+
+    // A composition whose shader derives from the same base as its host must not contribute that
+    // base's virtual method over the root's own override.
+    [Fact]
+    public void CompositionSharingABaseDoesNotOverrideTheRootsOverride()
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+        foreach (var name in new[] { "ComposeSharedBase", "ComposeSharedHelper", "ComposeSharedRoot" })
+            shaderMixer.ShaderLoader.LoadExternalBuffer(name, [], out _, out _, out _);
+
+        var shaderSource = new ShaderMixinSource
+        {
+            Mixins = { new ShaderClassSource("ComposeSharedRoot") },
+            Compositions = { ["helper"] = new ShaderClassSource("ComposeSharedHelper") },
+        };
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(shaderSource, new ShaderMixer.Options(true), log, out var bytecode, out var reflection, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+
+        // The body survived, so its texture is still live and reflected.
+        var disassembly = Spv.Dis(SpirvBytecode.CreateFromSpan(bytecode), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
+        Assert.True(reflection.ResourceBindings.Any(b => b.RawName.EndsWith("WriteTex")), disassembly);
+        Assert.Contains("OpImageWrite", disassembly);
+    }
+
+    // Control for the above: the very same shader, composing a helper that does not derive from
+    // ComposeSharedBase. This one has always worked, and pins the difference to the shared base.
+    [Fact]
+    public void CompositionWithoutASharedBaseKeepsTheRootsOverride()
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+        foreach (var name in new[] { "ComposeSharedBase", "ComposePlainHelper", "ComposePlainRoot" })
+            shaderMixer.ShaderLoader.LoadExternalBuffer(name, [], out _, out _, out _);
+
+        var shaderSource = new ShaderMixinSource
+        {
+            Mixins = { new ShaderClassSource("ComposePlainRoot") },
+            Compositions = { ["helper"] = new ShaderClassSource("ComposePlainHelper") },
+        };
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(shaderSource, new ShaderMixer.Options(true), log, out var bytecode, out var reflection, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+
+        var disassembly = Spv.Dis(SpirvBytecode.CreateFromSpan(bytecode), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true);
+        Assert.True(reflection.ResourceBindings.Any(b => b.RawName.EndsWith("WriteTex")), disassembly);
+        Assert.Contains("OpImageWrite", disassembly);
+    }
+    // `streams = input[i]` in a geometry shader assigns the members the stage input carries and must
+    // leave every other stream member as it was. Checked after LegalizeForHlsl: the branch on the
+    // carried value must still be a branch there, not a folded constant.
+    [Fact]
+    public void GeometryStreamsAssignKeepsMembersTheInputDoesNotCarry()
+    {
+        SpirvCrossSupport.SkipUnlessAvailable();
+
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+        shaderMixer.ShaderLoader.LoadExternalBuffer("GeometryStreamsAssignKeepsOthers", [], out _, out _, out _);
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(new ShaderClassSource("GeometryStreamsAssignKeepsOthers"), new ShaderMixer.Options(true), log, out var bytecode, out _, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+
+        var legalized = SpirvTools.LegalizeForHlsl(System.Runtime.InteropServices.MemoryMarshal.Cast<byte, uint>(bytecode.ToArray()));
+        var translator = new SpirvTranslator(legalized.AsMemory());
+        var geometry = translator.GetEntryPoints().First(x => x.ExecutionModel == ExecutionModel.Geometry);
+        var hlsl = translator.Translate(Backend.Hlsl, geometry);
+
+        Assert.DoesNotContain("if (true)", hlsl);
+        Assert.DoesNotContain("if (false)", hlsl);
+    }
+
+    // A method with two geometry stream parameters loses both, and its call both arguments.
+    [Fact]
+    public void GeometryStreamsMethodWithTwoStreamParameters()
+    {
+        SpirvCrossSupport.SkipUnlessAvailable();
+
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+        shaderMixer.ShaderLoader.LoadExternalBuffer("GeometryStreamsTwoStreamParameters", [], out _, out _, out _);
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(new ShaderClassSource("GeometryStreamsTwoStreamParameters"), new ShaderMixer.Options(true), log, out var bytecode, out _, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+
+        var legalized = SpirvTools.LegalizeForHlsl(System.Runtime.InteropServices.MemoryMarshal.Cast<byte, uint>(bytecode.ToArray()));
+        var translator = new SpirvTranslator(legalized.AsMemory());
+        var geometry = translator.GetEntryPoints().First(x => x.ExecutionModel == ExecutionModel.Geometry);
+        var hlsl = translator.Translate(Backend.Hlsl, geometry);
+
+        Assert.Contains("Append", hlsl);
+    }
+
+    // A static call (Utils.Method(x)) from a stage method is not a non-stage member access.
+    [Fact]
+    public void StaticCallFromStageMethodDoesNotForceFullImport()
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+        Assert.True(shaderMixer.ShaderLoader.LoadExternalBuffer("StaticCallRoot", [], out var buffer, out _, out _));
+
+        foreach (var i in buffer.Buffer)
+        {
+            if (i.Op == Stride.Shaders.Spirv.Specification.Op.OpFunctionMetadataSDSL && (Stride.Shaders.Spirv.Core.OpFunctionMetadataSDSL)i is { } metadata)
+                Assert.False(metadata.Flags.HasFlag(Stride.Shaders.Spirv.Specification.FunctionFlagsMask.ReferencesNonStage),
+                    "A static call is not an instance access: the stage method must stay stage-only importable.");
+        }
+    }
+
+    // A non-stage variable read through its shader name (Base.Value) from a stage method is an instance access.
+    [Fact]
+    public void QualifiedNonStageReadFromStageMethodForcesFullImport()
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+        Assert.True(shaderMixer.ShaderLoader.LoadExternalBuffer("QualifiedNonStageRoot", [], out var buffer, out _, out _));
+
+        var needsFullImport = false;
+        foreach (var i in buffer.Context)
+        {
+            if (i.Op == Stride.Shaders.Spirv.Specification.Op.OpMixinInheritSDSL && (Stride.Shaders.Spirv.Core.OpMixinInheritSDSL)i is { } inherit
+                && inherit.Flags.HasFlag(Stride.Shaders.Spirv.Specification.MixinInheritFlagsMask.NeedsFullImport)
+                && buffer.Context.ReverseTypes.TryGetValue(inherit.Shader, out var inheritType) && inheritType is Stride.Shaders.Core.ShaderSymbol { Name: "QualifiedNonStageBase" })
+                needsFullImport = true;
+        }
+
+        Assert.True(needsFullImport, "QualifiedNonStageBase.Value is read from a stage method: the base must be fully imported.");
+    }
+
+    // [loop] and [unroll] must reach OpLoopMerge's loop control; SPIRV-Cross turns them back into HLSL attributes.
+    [Fact]
+    public void LoopAttributesReachSpirvLoopControl()
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+        Assert.True(shaderMixer.ShaderLoader.LoadExternalBuffer("LoopControlRoot", [], out var buffer, out _, out _));
+
+        var controls = new List<Stride.Shaders.Spirv.Specification.LoopControlMask>();
+        foreach (var i in buffer.Buffer)
+        {
+            if (i.Op == Stride.Shaders.Spirv.Specification.Op.OpLoopMerge)
+                controls.Add(((Stride.Shaders.Spirv.Core.OpLoopMerge)i).LoopControl);
+        }
+
+        Assert.Equal(
+            [Stride.Shaders.Spirv.Specification.LoopControlMask.DontUnroll, Stride.Shaders.Spirv.Specification.LoopControlMask.Unroll, Stride.Shaders.Spirv.Specification.LoopControlMask.DontUnroll],
+            controls);
     }
 }

@@ -1,0 +1,15 @@
+// Names NsClashed, of which there are two, with a using for the namespace of the first: which
+// one this gets is what the test documents.
+using Stride.Shaders.Parsers.Tests;
+
+namespace Stride.Shaders.Tests;
+
+shader NsClashRoot : ComposeSharedBase, NsClashed
+{
+    RWBuffer<float> Out;
+
+    override void Compute()
+    {
+        Out[0] = Which();
+    }
+};

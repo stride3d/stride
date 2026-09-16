@@ -1,0 +1,43 @@
+// Compiler regression: a Geometry shader that reads a stage-input stream field directly
+// through the input array element (`input[i].Field`), not just via a whole-struct
+// `streams = input[i]` assignment.
+//
+// ReadWriteAnalyzer only recognized a stream-typed OpVariable/OpFunctionParameter when its type
+// was `PointerType { BaseType: StreamsType }` directly, but a GS per-vertex input parameter
+// (`Input input[3]`) is actually `PointerType { BaseType: ArrayType { BaseType: StreamsType } }`.
+// Because of that, `input[i].Field` reads were never marked as "Read" on the underlying stream,
+// so the field never made it into the generated GS_INPUT struct (no InputStructFieldIndex), and
+// StreamAccessPatcher later crashed with a NullReferenceException on
+// `streamInfo.InputStructFieldIndex!.Value`.
+namespace Stride.Shaders.Tests;
+
+shader GSInputArrayFieldAccess
+{
+	stream float4 Position : POSITION;
+	stream float4 ShadingPosition : SV_Position;
+	stream float3 Normal : NORMAL;
+	stream float4 ColorTarget : SV_Target0;
+
+	void VSMain()
+	{
+		streams.ShadingPosition = streams.Position;
+	}
+
+	[maxvertexcount(3)]
+	void GSMain(triangle Input input[3], inout TriangleStream<Output> triangleStream)
+	{
+		for (int i = 0; i < 3; i++)
+		{
+			streams = input[i];
+			// Direct field access on the input array element (not just a whole-struct copy).
+			streams.Normal = input[i].Normal;
+			triangleStream.Append(streams);
+		}
+		triangleStream.RestartStrip();
+	}
+
+	void PSMain()
+	{
+		streams.ColorTarget = float4(streams.Normal, 1);
+	}
+}

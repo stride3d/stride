@@ -186,9 +186,7 @@ public record struct LiteralsParser : IParser<Literal>
                     while (!scanner.IsEof)
                     {
                         Parsers.Spaces0(ref scanner, result, out _);
-                        if (Vector(ref scanner, result, out var vec))
-                            p.Values.Add(vec);
-                        else if (ExpressionParser.Expression(ref scanner, result, out var exp))
+                        if (ExpressionParser.Expression(ref scanner, result, out var exp))
                             p.Values.Add(exp);
                         else return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0001, scanner[scanner.Position], scanner.Memory));
                         Parsers.Spaces0(ref scanner, result, out _);
@@ -419,9 +417,7 @@ public record struct MatrixParser : IParser<MatrixLiteral>
                 {
                     Parsers.Spaces0(ref scanner, result, out _);
 
-                    if (LiteralsParser.Vector(ref scanner, result, out var vector))
-                        p.Values.Add(vector);
-                    else if (ExpressionParser.Expression(ref scanner, result, out var expression))
+                    if (ExpressionParser.Expression(ref scanner, result, out var expression))
                         p.Values.Add(expression);
                     else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
                     Parsers.Spaces0(ref scanner, result, out _);

@@ -28,7 +28,7 @@ on:
       - '.github/workflows/build-windows-full-msbuild.yml'
 
 concurrency:
-  group: build-windows-full-msbuild-${{ github.event.pull_request.number || github.ref }}
+  group: build-windows-full-msbuild-${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: true
 
 jobs:

@@ -26,7 +26,8 @@ namespace Stride.GameStudio.ViewModels
 {
     public class GameStudioViewModel : EditorViewModel
     {
-        private string restartArguments;
+        private string restartSessionPath;
+        private bool restartNewProject;
         private readonly List<IDEInfo> availableIDEs;
 
         public GameStudioViewModel([NotNull] IViewModelServiceProvider serviceProvider, MostRecentlyUsedFileCollection mru)
@@ -78,7 +79,8 @@ namespace Stride.GameStudio.ViewModels
 
         protected override void RestartAndCreateNewSession()
         {
-            restartArguments = "/NewProject";
+            restartSessionPath = null;
+            restartNewProject = true;
             CloseAndRestart();
         }
 
@@ -98,7 +100,8 @@ namespace Stride.GameStudio.ViewModels
             if (sessionPath == null)
                 return;
 
-            restartArguments = $"\"{sessionPath.ToOSPath()}\"";
+            restartSessionPath = sessionPath.ToOSPath();
+            restartNewProject = false;
             await CloseAndRestart();
         }
 
@@ -127,16 +130,7 @@ namespace Stride.GameStudio.ViewModels
         {
             try
             {
-                var process = new Process
-                {
-                    StartInfo =
-                    {
-                        // Make sure to use .exe rather than .dll (.NET Core)
-                        FileName = LoaderToolLocator.GetExecutable(Assembly.GetExecutingAssembly().Location),
-                        Arguments = restartArguments,
-                    }
-                };
-                process.Start();
+                Program.Restart(restartSessionPath, restartNewProject);
             }
             catch (Exception e)
             {

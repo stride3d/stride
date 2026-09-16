@@ -1,0 +1,47 @@
+namespace Stride.Shaders.Tests;
+
+shader HSOverrideBase
+{
+    stream float4 Position : POSITION;
+    stream float4 ShadingPosition : SV_Position;
+    stream float4 ColorTarget : SV_Target0;
+
+    patchstream float Edges[3] : SV_TessFactor;
+    patchstream float Inside : SV_InsideTessFactor;
+
+    void VSMain()
+    {
+        streams.ShadingPosition = streams.Position;
+    }
+
+    void HSConstantMain(InputPatch<Input, 3> input, const OutputPatch<Input2, 3> output, out Constants constants)
+    {
+        constants.Edges[0] = 1;
+        constants.Edges[1] = 1;
+        constants.Edges[2] = 1;
+        constants.Inside = 1;
+    }
+
+    [domain("tri")]
+    [partitioning("fractional_odd")]
+    [outputtopology("triangle_cw")]
+    [outputcontrolpoints(3)]
+    [patchconstantfunc("HSConstantMain")]
+    void HSMain(InputPatch<Input, 3> input, out Output output, uint uCPID : SV_OutputControlPointID)
+    {
+        streams = input[uCPID];
+        output = streams;
+    }
+
+    [domain("tri")]
+    void DSMain(const OutputPatch<Input, 3> input, out Output output, in Constants constants, float3 f3BarycentricCoords : SV_DomainLocation)
+    {
+        streams = input[0] * f3BarycentricCoords.x + input[1] * f3BarycentricCoords.y + input[2] * f3BarycentricCoords.z;
+        output = streams;
+    }
+
+    void PSMain()
+    {
+        streams.ColorTarget = float4(1, 1, 1, 1);
+    }
+}

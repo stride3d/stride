@@ -1,0 +1,15 @@
+// A composition sharing the root's base class: the root's override of Compute() must win over
+// the composition's inherited empty one.
+namespace Stride.Shaders.Tests;
+
+shader ComposeSharedRoot : ComposeSharedBase
+{
+    RWTexture3D<float4> WriteTex;
+
+    compose ComposeSharedHelper helper;
+
+    override void Compute()
+    {
+        WriteTex[streams.DispatchThreadId] = helper.Value();
+    }
+};

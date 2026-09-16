@@ -1,0 +1,21 @@
+// PSMain(ExpectedResult=#00000000)
+
+// A texture declared with a 16-bit element type. Vulkan requires a 32-bit sampled type
+// (VUID-StandaloneSpirv-OpTypeImage-04656), so the element type is widened to float.
+
+namespace Stride.Shaders.Tests;
+
+shader CSHalfTexture
+{
+    stage stream uint3 DispatchThreadId : SV_DispatchThreadID;
+
+    Texture3D<half4> ReadTex;
+    RWTexture3D<half4> WriteTex;
+
+    [numthreads(8, 8, 8)]
+    void CSMain()
+    {
+        half4 value = ReadTex.Load(int4(streams.DispatchThreadId, 0));
+        WriteTex[streams.DispatchThreadId] = value;
+    }
+}

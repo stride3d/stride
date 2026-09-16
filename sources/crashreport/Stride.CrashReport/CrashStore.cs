@@ -1,11 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -174,7 +170,7 @@ public sealed class CrashStore
         if (!set.Add(key))
             return;
         Directory.CreateDirectory(directory);
-        File.WriteAllText(path, JsonSerializer.Serialize(set));
+        File.WriteAllText(path, JsonSerializer.Serialize(set, CrashReportJsonContext.Default.HashSetString));
     }
 
     private static HashSet<string> Load(string path)
@@ -182,13 +178,13 @@ public sealed class CrashStore
         try
         {
             if (File.Exists(path))
-                return JsonSerializer.Deserialize<HashSet<string>>(File.ReadAllText(path)) ?? new();
+                return JsonSerializer.Deserialize(File.ReadAllText(path), CrashReportJsonContext.Default.HashSetString) ?? [];
         }
         catch (Exception)
         {
             // A corrupt suppression file just means nothing is suppressed; it is rewritten on the next opt-out.
         }
-        return new HashSet<string>();
+        return [];
     }
 
     private static string SuppressKey(string signature, string version) => $"{version}\n{signature}";

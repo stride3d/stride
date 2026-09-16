@@ -67,8 +67,6 @@ public struct NumberParser : IParser<Literal>
             if (Tokens.Char('.', ref scanner))
             {
                 scanner.Advance(1);
-                if (!Tokens.Digit(ref scanner) && !Tokens.FloatSuffix(ref scanner, out _))
-                    return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0001, scanner[scanner.Position], scanner.Memory));
                 while (Tokens.Digit(ref scanner, advance: true)) ;
             }
             else if (Tokens.FloatSuffix(ref scanner, out _) || Tokens.Char('e', ref scanner) || Tokens.Char('E', ref scanner)) { }
@@ -78,8 +76,6 @@ public struct NumberParser : IParser<Literal>
         {
             if (Tokens.Char('.', ref scanner, advance: true))
             {
-                if (!Tokens.Digit(ref scanner) && !Tokens.FloatSuffix(ref scanner, out _))
-                    return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0001, scanner[scanner.Position], scanner.Memory));
                 while (Tokens.Digit(ref scanner, advance: true)) ;
             }
             else return Parsers.Exit(ref scanner, result, out parsed, position);

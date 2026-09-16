@@ -1,0 +1,15 @@
+// A `using` of the namespace NsUtils lives in. Resolution is by class name, so the directive
+// changes nothing, but it must be accepted: shaders in the wild carry one.
+using Stride.Shaders.Parsers.Tests;
+
+namespace Stride.Shaders.Tests;
+
+shader NsUsingRoot : ComposeSharedBase, NsUtils
+{
+    RWBuffer<float> Out;
+
+    override void Compute()
+    {
+        Out[0] = One();
+    }
+};

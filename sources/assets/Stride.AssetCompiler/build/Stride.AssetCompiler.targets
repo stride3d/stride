@@ -158,6 +158,30 @@
     </PropertyGroup>
 
     <Error Condition="!Exists('$(StrideCompileAssetCommand)')" Text="Stride AssetCompiler could not be found (Command: &quot;$(StrideCompileAssetCommand)&quot;)"/>
+
+    <!-- Host for the compiler process. The compiler loads the project's assemblies, so a project on a newer .NET
+         major than the compiler's own runs the compiler on that major (newest installed minor, previews included):
+         the compiler ships a runtimeconfig template with {MAJOR} in place of the version, filled in here, per
+         project under obj/ so parallel builds never share a file. -->
+    <PropertyGroup>
+      <_StrideAssetCompilerMajor>$([System.Text.RegularExpressions.Regex]::Match('$(StrideCompileAssetCommand)', '[\\/]net(\d+)\.\d+').Groups[1].Value)</_StrideAssetCompilerMajor>
+      <!-- The outer build of a multi-targeting project has no TargetFramework; the editor loads the first one, so do we. -->
+      <_StrideProjectTargetFramework>$(TargetFramework)</_StrideProjectTargetFramework>
+      <_StrideProjectTargetFramework Condition="'$(_StrideProjectTargetFramework)' == ''">$([System.String]::Copy('$(TargetFrameworks)').Split(';')[0])</_StrideProjectTargetFramework>
+      <_StrideProjectNetMajor>$([System.Text.RegularExpressions.Regex]::Match('$(_StrideProjectTargetFramework.Trim())', '^net(\d+)\.\d+').Groups[1].Value)</_StrideProjectNetMajor>
+      <StrideAssetCompilerHost Condition="'$(StrideAssetCompilerHost)' == ''">dotnet</StrideAssetCompilerHost>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(_StrideProjectNetMajor)' != '' And '$(_StrideAssetCompilerMajor)' != '' And '$(_StrideProjectNetMajor)' &gt; '$(_StrideAssetCompilerMajor)'">
+      <_StrideAssetCompilerRuntimeConfigTemplate>$([System.IO.Path]::ChangeExtension('$(StrideCompileAssetCommand)', '.runtimeconfig.template.json'))</_StrideAssetCompilerRuntimeConfigTemplate>
+      <_StrideAssetCompilerRuntimeConfig>$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)', '$(IntermediateOutputPath)', 'stride', 'Stride.AssetCompiler.net$(_StrideProjectNetMajor).runtimeconfig.json'))</_StrideAssetCompilerRuntimeConfig>
+      <StrideAssetCompilerHost>dotnet exec --runtimeconfig &quot;$(_StrideAssetCompilerRuntimeConfig)&quot;</StrideAssetCompilerHost>
+    </PropertyGroup>
+    <Error Condition="'$(_StrideAssetCompilerRuntimeConfig)' != '' And !Exists('$(_StrideAssetCompilerRuntimeConfigTemplate)')"
+           Text="This project targets .NET $(_StrideProjectNetMajor), but the Stride asset compiler has no runtime config template to run on it (expected $(_StrideAssetCompilerRuntimeConfigTemplate))." />
+    <PropertyGroup Condition="'$(_StrideAssetCompilerRuntimeConfig)' != ''">
+      <_StrideAssetCompilerRuntimeConfigContent>$([System.IO.File]::ReadAllText('$(_StrideAssetCompilerRuntimeConfigTemplate)').Replace('{MAJOR}', '$(_StrideProjectNetMajor)'))</_StrideAssetCompilerRuntimeConfigContent>
+    </PropertyGroup>
+    <WriteLinesToFile Condition="'$(_StrideAssetCompilerRuntimeConfig)' != ''" File="$(_StrideAssetCompilerRuntimeConfig)" Lines="$([MSBuild]::Escape($(_StrideAssetCompilerRuntimeConfigContent)))" Overwrite="true" WriteOnlyWhenDifferent="true" />
   </Target>
 
   <!-- Auto-attach CompilerApp as a ProjectReference so source-tree consumers build it
@@ -190,7 +214,7 @@
        comment above). The bundle is written straight to OutputPath, so it doesn't need the copy step. -->
   <Target Name="StrideCompileAsset" Condition="'$(StrideIsExecutable)' == 'true' And '$(StrideCompilerSkipBuild)' != 'true'" AfterTargets="CopyFilesToOutputDirectory" DependsOnTargets="_StrideCollectUpToDateCheckInputDesignTime;_StrideCollectUpToDateCheckOutputDesignTime;_StridePrepareAssetCompiler" Inputs="@(StrideAssetInput)" Outputs="@(StrideAssetOutput)">
     <PropertyGroup>
-      <StrideCompileAssetCommandProxy>dotnet &quot;$(StrideCompileAssetCommand)&quot; build</StrideCompileAssetCommandProxy>
+      <StrideCompileAssetCommandProxy>$(StrideAssetCompilerHost) &quot;$(StrideCompileAssetCommand)&quot; build</StrideCompileAssetCommandProxy>
 
       <StrideCompileAssetCommandProxy>$(StrideCompileAssetCommandProxy) $(StrideCompileAssetOptions) --disable-auto-compile --project-configuration &quot;$(Configuration)&quot; --platform=$(StridePlatform) --project-configuration=$(Configuration) --compile-property:StrideGraphicsApi=$(StrideHostGraphicsApi) --output-path=&quot;$(StrideCompileAssetOutputPath)&quot; --build-path=&quot;$(StrideCompileAssetBuildPath)&quot; --msbuild-uptodatecheck-filebase=&quot;$(StrideCompileAssetUpToDateCheckFileBase)&quot;</StrideCompileAssetCommandProxy>
       <!-- Load the session from the .sdbuild manifest chain (positional input). -->
@@ -266,7 +290,7 @@
     <Exec Condition="'@(_StrideNativeCrashDump)' != ''"
           WorkingDirectory="$(TargetDir)"
           EnvironmentVariables="$(_StrideCompileAssetAdoptEnvVars)"
-          Command="dotnet &quot;$(StrideCompileAssetCommand)&quot; crash-adopt --dump-dir=&quot;$([System.IO.Path]::TrimEndingDirectorySeparator('$(_StrideCompileAssetNativeDumpDir)'))&quot; --platform=$(StridePlatform) --project-configuration=&quot;$(Configuration)&quot; --compile-property:StrideGraphicsApi=$(StrideHostGraphicsApi)"
+          Command="$(StrideAssetCompilerHost) &quot;$(StrideCompileAssetCommand)&quot; crash-adopt --dump-dir=&quot;$([System.IO.Path]::TrimEndingDirectorySeparator('$(_StrideCompileAssetNativeDumpDir)'))&quot; --platform=$(StridePlatform) --project-configuration=&quot;$(Configuration)&quot; --compile-property:StrideGraphicsApi=$(StrideHostGraphicsApi)"
           ContinueOnError="true" />
 
     <!-- A native crash that produced a dump is already reported by crash-adopt above; otherwise (a crash with no
@@ -408,7 +432,7 @@
     </PropertyGroup>
     <Error Condition="'$(StrideContainsAssetTypes)' == 'true' And '@(_StrideHostAssetAssembly)' == ''"
            Text="StrideContainsAssetTypes=true but none of the target framework(s) '$(TargetFrameworks)$(TargetFramework)' is host-compatible: the asset compiler needs a base netX.0 or net*-windows* build to load. A mobile-only asset package can't ship a host-loadable assembly." />
-    <Exec Command="dotnet &quot;$(StrideCompileAssetCommand)&quot; pack &quot;$(MSBuildProjectFullPath)&quot; --build-path=&quot;$([MSBuild]::NormalizePath('$(ProjectDir)', '$(BaseIntermediateOutputPath)', 'stride\pack'))&quot;$(_StridePackAssetAssembliesArg)$(_StridePackAssetNamespaceArg)" ConsoleToMsBuild="true">
+    <Exec Command="$(StrideAssetCompilerHost) &quot;$(StrideCompileAssetCommand)&quot; pack &quot;$(MSBuildProjectFullPath)&quot; --build-path=&quot;$([MSBuild]::NormalizePath('$(ProjectDir)', '$(BaseIntermediateOutputPath)', 'stride\pack'))&quot;$(_StridePackAssetAssembliesArg)$(_StridePackAssetNamespaceArg)" ConsoleToMsBuild="true">
       <Output TaskParameter="ConsoleOutput" ItemName="PackAssetsLine" />
     </Exec>
     <ItemGroup>
@@ -423,14 +447,14 @@
     </ItemGroup>
   </Target>
 
-  <Target Name="StrideAssetUpdateGeneratedFiles" Condition="'$(StrideCompilerSkipBuild)' != 'true'">
-    <Exec Command="dotnet &quot;$(StrideCompileAssetCommand)&quot; generate-code &quot;$(MSBuildProjectFullPath)&quot;"/>
+  <Target Name="StrideAssetUpdateGeneratedFiles" DependsOnTargets="_StridePrepareAssetCompiler" Condition="'$(StrideCompilerSkipBuild)' != 'true'">
+    <Exec Command="$(StrideAssetCompilerHost) &quot;$(StrideCompileAssetCommand)&quot; generate-code &quot;$(MSBuildProjectFullPath)&quot;"/>
   </Target>
 
   <!-- Upgrade assets in place to the current SerializedVersion. User invokes manually:
        dotnet build -t:StrideUpgradeAssets
        No-op when assets are already current (PackageSession.Save short-circuits on unmodified packages). -->
   <Target Name="StrideUpgradeAssets" DependsOnTargets="_StridePrepareAssetCompiler" Condition="'$(StrideCompilerSkipBuild)' != 'true'">
-    <Exec Command="dotnet &quot;$(StrideCompileAssetCommand)&quot; upgrade &quot;$(MSBuildProjectFullPath)&quot;"/>
+    <Exec Command="$(StrideAssetCompilerHost) &quot;$(StrideCompileAssetCommand)&quot; upgrade &quot;$(MSBuildProjectFullPath)&quot;"/>
   </Target>
 </Project>

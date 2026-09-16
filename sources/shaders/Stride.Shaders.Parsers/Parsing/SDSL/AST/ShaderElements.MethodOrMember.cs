@@ -491,10 +491,8 @@ public partial class ShaderMethod(
 
     private static PointerType GenerateParameterType(MethodParameter p)
     {
-        // Opaque types (image/sampler) must use UniformConstant storage class —
-        // Vulkan forbids OpStore to these types (VUID-StandaloneSpirv-OpTypeImage-06924),
-        // so they cannot be copied into Function-storage variables.
-        if (p.Type is TextureType or SamplerType)
+        // Opaque resources must use UniformConstant storage: see SymbolTypeExtensions.IsOpaqueResource.
+        if (p.Type!.IsOpaqueResource())
             return new PointerType(p.Type!, Specification.StorageClass.UniformConstant);
 
         return new PointerType(p.Type!, Specification.StorageClass.Function);
@@ -520,17 +518,25 @@ public partial class ShaderMethod(
                 {
                     if (anyAttribute.Name == "numthreads")
                     {
-                        var parameters = attrParamBuffer[..anyAttribute.Parameters.Count];
-                        for (var index = 0; index < anyAttribute.Parameters.Count; index++)
+                        if (EntryPoint != EntryPoint.ComputeShader)
                         {
-                            var compiled = anyAttribute.Parameters[index].CompileConstantValue(table, context);
-                            var expr = ConstantExpression.ParseFromBuffer(compiled.Id, context.GetBuffer(), context);
-                            if (!expr.TryEvaluate(out var value) || value is null)
-                                throw new InvalidOperationException();
-                            parameters[index] = Convert.ToInt32(value);
+                            table.AddWarning(new(anyAttribute.Info,
+                                $"[numthreads] on '{Name}' is ignored: it applies only to the compute shader entry point 'CSMain'. Set the thread group size via ThreadNumberX/Y/Z (e.g. ComputeEffectShader.ThreadNumbers), which drives both [numthreads] and dispatch."));
                         }
+                        else
+                        {
+                            var parameters = attrParamBuffer[..anyAttribute.Parameters.Count];
+                            for (var index = 0; index < anyAttribute.Parameters.Count; index++)
+                            {
+                                var compiled = anyAttribute.Parameters[index].CompileConstantValue(table, context);
+                                var expr = ConstantExpression.ParseFromBuffer(compiled.Id, context.GetBuffer(), context);
+                                if (!expr.TryEvaluate(out var value) || value is null)
+                                    throw new InvalidOperationException();
+                                parameters[index] = Convert.ToInt32(value);
+                            }
 
-                        context.Add(new OpExecutionMode(function.Id, Specification.ExecutionMode.LocalSize, new(parameters)));
+                            context.Add(new OpExecutionMode(function.Id, Specification.ExecutionMode.LocalSize, new(parameters)));
+                        }
                     }
                     else if (anyAttribute.Name == "maxvertexcount")
                     {
