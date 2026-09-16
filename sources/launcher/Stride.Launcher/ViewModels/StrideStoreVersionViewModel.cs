@@ -153,7 +153,7 @@ public sealed class StrideStoreVersionViewModel : StrideVersionViewModel
                 });
             });
         }
-        Dispatcher.Invoke(UpdateFrameworks);
+        Dispatcher.Invoke(UpdateAvailableEditors);
     }
 
     /// <summary>

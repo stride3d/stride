@@ -110,7 +110,7 @@ internal static class UpgradeCommand
                 args.Add("--no-backup");
 
             Console.WriteLine($"Upgrading {Path.GetFileName(input)} to Stride {target}...");
-            return Tools.Run(compiler, $"the Asset Compiler for Stride {target}", args, wait: true);
+            return Tools.Run(compiler, $"the Asset Compiler for Stride {target}", args, wait: true, sessionPath: input, toolReadsHostArgs: false);
         });
 
         return command;

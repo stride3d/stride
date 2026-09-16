@@ -441,16 +441,8 @@ public sealed class StrideVersionManager
     public string? LocateAssetCompiler(PackageVersion version)
     {
         var packageId = version.Version >= new Version(4, 4, 0) ? "Stride.AssetCompiler" : "Stride.Core.Assets.CompilerApp";
-        var assembly = LocateExecutable(packageId, version, packageId + ".dll");
-        // On Windows prefer the native apphost next to it (nicer process identity); elsewhere Tools.Run runs the
-        // .dll via `dotnet` (the packaged .exe is a Windows apphost, unusable off Windows).
-        if (assembly is not null && OperatingSystem.IsWindows())
-        {
-            var apphost = Path.ChangeExtension(assembly, ".exe");
-            if (File.Exists(apphost))
-                return apphost;
-        }
-        return assembly;
+        // Tools.Run starts the apphost next to it when there is one, else the .dll via `dotnet`.
+        return LocateExecutable(packageId, version, packageId + ".dll");
     }
 
     // The csproj files in the current directory, plus those referenced by any .sln/.slnx/.slnf there. Mirrors

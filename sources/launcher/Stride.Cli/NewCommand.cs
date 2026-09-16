@@ -137,7 +137,7 @@ internal static class NewCommand
                     else
                     {
                         Console.WriteLine($"Upgrading the project from Stride {templateVersion} to {version}...");
-                        Tools.Run(compiler, $"the Asset Compiler for Stride {version}", ["upgrade", solutionFile], wait: true);
+                        Tools.Run(compiler, $"the Asset Compiler for Stride {version}", ["upgrade", solutionFile], wait: true, sessionPath: solutionFile, toolReadsHostArgs: false);
                     }
                 }
 

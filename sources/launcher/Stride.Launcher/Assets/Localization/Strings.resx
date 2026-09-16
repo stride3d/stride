@@ -451,4 +451,20 @@ Do you want to close anyway?</value>
     <value>Keep launcher open</value>
     <comment>Button label: cancels the close and keeps the launcher open so the operation can finish.</comment>
   </data>
+  <data name="RuntimeDefault" xml:space="preserve">
+    <value>Default .NET version</value>
+    <comment>Runtime selector entry when the .NET version of Game Studio is unknown.</comment>
+  </data>
+  <data name="RuntimeDefaultMajor" xml:space="preserve">
+    <value>.NET {0} or newer (default)</value>
+    <comment>Runtime selector entry for the .NET version Game Studio is built for. {0}: .NET major version, e.g. 10</comment>
+  </data>
+  <data name="RuntimeNewerMajor" xml:space="preserve">
+    <value>.NET {0} or newer</value>
+    <comment>Runtime selector entry for a newer installed .NET version. {0}: .NET major version, e.g. 11</comment>
+  </data>
+  <data name="RuntimeSelectorTooltip" xml:space="preserve">
+    <value>Game Studio runs on this .NET version, or on a newer one when the project needs it.</value>
+    <comment>Tooltip of the runtime selector.</comment>
+  </data>
 </root>
