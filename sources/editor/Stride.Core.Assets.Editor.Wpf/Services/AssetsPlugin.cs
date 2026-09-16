@@ -20,7 +20,9 @@ namespace Stride.Core.Assets.Editor.Services;
 [AssemblyScan]
 public abstract class AssetsPlugin
 {
-    private static readonly List<AssetsPlugin> registeredPlugins = [];
+    private static readonly object RegisteredPluginsLock = new();
+    // Copy-on-write: plugins register on any thread while the UI thread lists them
+    private static volatile IReadOnlyList<AssetsPlugin> registeredPlugins = [];
     private static bool discovering;
 
     public static IReadOnlyList<AssetsPlugin> RegisteredPlugins => registeredPlugins;
@@ -29,6 +31,11 @@ public abstract class AssetsPlugin
     /// Raised with the plugins that <see cref="DiscoverPlugins"/> registers from an asset assembly.
     /// </summary>
     public static event Action<IReadOnlyList<AssetsPlugin>>? PluginsDiscovered;
+
+    /// <summary>
+    /// Raised with the plugins removed when their asset assembly is unregistered.
+    /// </summary>
+    public static event Action<IReadOnlyList<AssetsPlugin>>? PluginsRemoved;
 
     /// <summary>
     /// Called when the plugin joins the session, before its Register* methods.
@@ -52,12 +59,15 @@ public abstract class AssetsPlugin
         if (!typeof(AssetsPlugin).IsAssignableFrom(type))
             throw new ArgumentException($"The given type does not inherit from {nameof(AssetsPlugin)}.");
 
-        if (RegisteredPlugins.Any(x => x.GetType() == type))
-            throw new InvalidOperationException("The plugin type is already registered.");
+        lock (RegisteredPluginsLock)
+        {
+            if (registeredPlugins.Any(x => x.GetType() == type))
+                throw new InvalidOperationException("The plugin type is already registered.");
 
-        var plugin = (AssetsPlugin)Activator.CreateInstance(type)!;
-        registeredPlugins.Add(plugin);
-        return plugin;
+            var plugin = (AssetsPlugin)Activator.CreateInstance(type)!;
+            registeredPlugins = [.. registeredPlugins, plugin];
+            return plugin;
+        }
     }
 
     /// <summary>
@@ -74,6 +84,11 @@ public abstract class AssetsPlugin
             if (e.Categories.Contains(AssemblyCommonCategories.Assets))
                 Discover(e.Assembly);
         };
+        AssemblyRegistry.AssemblyUnregistered += (_, e) =>
+        {
+            if (e.Categories.Contains(AssemblyCommonCategories.Assets))
+                Undiscover(e.Assembly);
+        };
         foreach (var assembly in AssemblyRegistry.Find(AssemblyCommonCategories.Assets))
             Discover(assembly);
 
@@ -82,6 +97,28 @@ public abstract class AssetsPlugin
             var plugins = RegisterPlugins(assembly);
             if (plugins.Count > 0)
                 PluginsDiscovered?.Invoke(plugins);
+        }
+
+        static void Undiscover(Assembly assembly)
+        {
+            var plugins = UnregisterPlugins(assembly);
+            if (plugins.Count > 0)
+                PluginsRemoved?.Invoke(plugins);
+        }
+    }
+
+    /// <summary>
+    /// Removes the registered plugins of <paramref name="assembly"/>.
+    /// </summary>
+    /// <returns>The removed plugins.</returns>
+    public static IReadOnlyList<AssetsPlugin> UnregisterPlugins(Assembly assembly)
+    {
+        lock (RegisteredPluginsLock)
+        {
+            var plugins = registeredPlugins.Where(x => x.GetType().Assembly == assembly).ToList();
+            if (plugins.Count > 0)
+                registeredPlugins = registeredPlugins.Except(plugins).ToList();
+            return plugins;
         }
     }
 
@@ -92,13 +129,16 @@ public abstract class AssetsPlugin
     public static IReadOnlyList<AssetsPlugin> RegisterPlugins(Assembly assembly)
     {
         var plugins = new List<AssetsPlugin>();
-        foreach (var type in AssemblyRegistry.GetScanTypes(assembly, typeof(AssetsPlugin)))
+        lock (RegisteredPluginsLock)
         {
-            if (type.IsAbstract || type.IsGenericTypeDefinition)
-                continue;
-            if (type.GetConstructor(Type.EmptyTypes) is null || RegisteredPlugins.Any(x => x.GetType() == type))
-                continue;
-            plugins.Add(RegisterPlugin(type));
+            foreach (var type in AssemblyRegistry.GetScanTypes(assembly, typeof(AssetsPlugin)))
+            {
+                if (type.IsAbstract || type.IsGenericTypeDefinition)
+                    continue;
+                if (type.GetConstructor(Type.EmptyTypes) is null || registeredPlugins.Any(x => x.GetType() == type))
+                    continue;
+                plugins.Add(RegisterPlugin(type));
+            }
         }
         return plugins;
     }
