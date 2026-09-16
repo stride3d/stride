@@ -1,7 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-namespace Stride.Crash;
+namespace Stride.Launcher.Crash;
 
 internal enum CrashLocation
 {
@@ -16,5 +16,5 @@ internal record CrashReportArgs
     public string[] Logs { get; set; } = [];
     public string? ThreadName { get; set; }
     public int ThreadId { get; set; }
-    public System.Collections.Generic.IReadOnlyList<Stride.CrashReport.StoredThread>? Threads { get; set; }
+    public IReadOnlyList<CrashReport.StoredThread>? Threads { get; set; }
 }

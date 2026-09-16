@@ -5,7 +5,6 @@ using System.Globalization;
 using System.Reflection;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Input.Platform;
 using Stride.Core.Assets.Editor;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
@@ -13,8 +12,7 @@ using Stride.Core.Packages;
 using Stride.Core.Presentation.Avalonia.Windows;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Windows;
-using Stride.Crash;
-using Stride.Crash.ViewModels;
+using Stride.Launcher.Crash;
 using Stride.Launcher.Services;
 
 namespace Stride.Launcher;
@@ -32,7 +30,7 @@ internal static class Launcher
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
         // The managed handler above can't see a native access violation — it kills the process first. Arm the
         // native handler so such a crash is captured and offered to the reporter too.
-        Stride.CrashReport.NativeCrashReporting.Install("Launcher");
+        CrashReport.NativeCrashReporting.Install("Launcher");
         try
         {
             var arguments = ProcessArguments(args);
@@ -56,27 +54,19 @@ internal static class Launcher
     {
         var result = LauncherErrorCode.UnknownError;
 
-        try
+        // Ensure to create parent of lock directory.
+        Directory.CreateDirectory(EditorPath.DefaultTempPath);
+        using (Mutex = FileLock.TryLock(Path.Combine(EditorPath.DefaultTempPath, "launcher.lock")))
         {
-            // Ensure to create parent of lock directory.
-            Directory.CreateDirectory(EditorPath.DefaultTempPath);
-            using (Mutex = FileLock.TryLock(Path.Combine(EditorPath.DefaultTempPath, "launcher.lock")))
+            if (Mutex is not null)
             {
-                if (Mutex is not null)
-                {
-                    Program.RunNewApp<App>(AppMain);
-                }
-                else
-                {
-                    DisplayError("An instance of Stride Launcher is already running.", MessageBoxImage.Warning);
-                    result = LauncherErrorCode.ServerAlreadyRunning;
-                }
+                Program.RunNewApp<App>(AppMain);
             }
-        }
-        catch (Exception e)
-        {
-            DisplayError($"Cannot start the instance of the Stride Launcher due to the following exception:\n{e.Message}", MessageBoxImage.Error);
-            result = LauncherErrorCode.UnknownError;
+            else
+            {
+                DisplayError("An instance of Stride Launcher is already running.", MessageBoxImage.Warning);
+                result = LauncherErrorCode.ServerAlreadyRunning;
+            }
         }
 
         return result;
@@ -194,25 +184,6 @@ internal static class Launcher
 
     #region Crash
 
-    private static void CrashReport(CrashReportArgs args)
-    {
-        Program.RunNewApp<MinimalApp>(AppMain);
-
-        CancellationToken AppMain(Application app)
-        {
-            var cts = new CancellationTokenSource();
-            var window = new CrashReportWindow { Topmost = true };
-            window.DataContext = new CrashReportViewModel(ApplicationName, args, window.Clipboard!.SetTextAsync, cts);
-            window.Closed += (_, _) => cts.Cancel();
-            if (!window.IsVisible)
-            {
-                window.Show();
-            }
-            ((IClassicDesktopStyleApplicationLifetime?)app?.ApplicationLifetime)?.MainWindow = window;
-            return cts.Token;
-        }
-    }
-
     private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
     {
         if (e.IsTerminating)
@@ -231,7 +202,7 @@ internal static class Launcher
         var englishCulture = new CultureInfo("en-US");
         Thread.CurrentThread.CurrentCulture = Thread.CurrentThread.CurrentUICulture = englishCulture;
         // On the faulting thread: snapshot the other threads (the crashing thread's stack comes from the exception).
-        var threads = Stride.CrashReport.ThreadSnapshot.CaptureAtCurrentThread(out var crashedThreadId, out var crashedThreadName);
+        var threads = CrashReport.ThreadSnapshot.CaptureAtCurrentThread(out var crashedThreadId, out var crashedThreadName);
         var reportArgs = new CrashReportArgs
         {
             Exception = exception,
@@ -240,7 +211,7 @@ internal static class Launcher
             ThreadId = crashedThreadId,
             Threads = threads
         };
-        CrashReport(reportArgs);
+        CrashReportHelper.SendReport(reportArgs);
     }
 
     #endregion // Crash

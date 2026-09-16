@@ -19,7 +19,7 @@ using Stride.Core.Assets.Editor.Services;
 
 namespace Stride.GameStudio.Helpers
 {
-    public static class CrashReportHelper
+    internal static class CrashReportHelper
     {
         private const int DebugVersion = 4;
 

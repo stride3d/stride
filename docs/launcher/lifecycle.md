@@ -82,7 +82,7 @@ AppBuilder.Configure<App>()
 3. Creates the `ViewModelServiceProvider` with a `DispatcherService` and a `DialogService`.
 4. Instantiates `MainViewModel` and wires it as `MainWindow.DataContext`.
 
-`MinimalApp : App` (same file) is a cut-down app used for secondary windows (crash report, "already running" message, self-update progress). It overrides `OnFrameworkInitializationCompleted` to a no-op so nothing is built beyond what the caller schedules.
+`MinimalApp : App` (same file) is a cut-down app used for secondary windows (currently the "already running" message). It overrides `OnFrameworkInitializationCompleted` to a no-op so nothing is built beyond what the caller schedules.
 
 ## Game Studio launch
 
@@ -98,7 +98,9 @@ Clicking **Start** invokes `MainViewModel.StartStudio(string argument)`:
 
 ## Crash reporting
 
-Two entry points feed the same pipeline:
+`Launcher.Main` arms native-crash capture first — `NativeCrashReporting.Install("Launcher")` (see [crash-reporting.md](../debugging/crash-reporting.md)) — so a native access violation is caught by `libstridecrash` independently of everything below.
+
+For managed exceptions, two entry points feed the same pipeline:
 
 - `Launcher.Main`'s `try/catch` (synchronous exceptions during argument parsing / action dispatch).
 - `AppDomain.CurrentDomain.UnhandledException` (asynchronous exceptions).
@@ -107,7 +109,8 @@ Both call `HandleException`, which:
 
 1. Uses `Interlocked.CompareExchange` on `terminating` to make sure we report only once.
 2. Forces `en-US` culture so the report is reproducible.
-3. Builds a `CrashReportArgs` with the exception, the crash location, and the current thread name.
-4. Calls `CrashReport`, which spins up a `MinimalApp`, shows a `CrashReportWindow` bound to a `CrashReportViewModel`, and blocks until it is closed.
+3. Snapshots the other threads with `Stride.CrashReport.ThreadSnapshot.CaptureAtCurrentThread` (the crashing thread's own stack comes from the exception).
+4. Builds a `CrashReportArgs` with the exception, the crash location, and the crashing thread's id/name/snapshot.
+5. Calls `CrashReport`, which forwards to `CrashReportHelper.SendReport` — the same shared pipeline GameStudio uses ([crash-reporting.md](../debugging/crash-reporting.md)): it builds and scrubs a `CrashReportData`, then, per `CrashPolicy.ResolveAction()`, either saves it to the shared `CrashStore` and returns (unattended), sends it headlessly (`STRIDE_CRASH_MODE=send`), or — attended, the default — saves it and spawns `Stride.CrashReporter` with our pid via `NativeCrashReporting.TrySpawnHostCrashReporter`, blocking until it closes.
 
-The UI lives under [Crash/](../../sources/launcher/Stride.Launcher/Crash/) — see [views.md](views.md#crash-report).
+The code lives under [Crash/](../../sources/launcher/Stride.Launcher/Crash/) — see [views.md](views.md#crash-report).

@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Stride.CrashReport;
 
-public class CrashReportData
+public sealed class CrashReportData
 {
     public readonly List<(string, string)> Data = [];
 
