@@ -38,6 +38,15 @@ namespace Stride.Editor.EditorGame.ContentLoader
                 }
             }
 
+            /// <summary>
+            /// The node takes a value of that type. A node and a value from two loads of the same assembly
+            /// have the same type name but not the same type.
+            /// </summary>
+            public bool CanUpdate(object newValue)
+            {
+                return new NodeAccessor(ContentNode, Index).AcceptValue(newValue);
+            }
+
             public Task Clear([NotNull] LoaderReferenceManager manager, AbsoluteId referencerId, AssetId contentId)
             {
                 return manager.ClearContentReference(referencerId, contentId, ContentNode, Index);
@@ -114,13 +123,14 @@ namespace Stride.Editor.EditorGame.ContentLoader
 
                 accessors.Add(accessor);
 
-                if (contents.TryGetValue(contentId, out var value))
+                if (contents.TryGetValue(contentId, out var value) && accessor.CanUpdate(value))
                 {
                     accessor.Update(value);
                 }
                 else
                 {
                     // Build only if not requested yet (otherwise we just need to wait for ReplaceContent() to be called, it will also replace this reference since it was added just before)
+                    // Content the node doesn't take is built again, and the build replaces the content kept here.
                     if (buildPending.Add(contentId))
                         loader.BuildAndReloadAsset(contentId);
                 }
@@ -211,7 +221,8 @@ namespace Stride.Editor.EditorGame.ContentLoader
                         {
                             foreach (var accessor in accessors)
                             {
-                                accessor.Update(newValue);
+                                if (accessor.CanUpdate(newValue))
+                                    accessor.Update(newValue);
                             }
                         }
                     }
