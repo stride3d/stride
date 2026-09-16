@@ -126,11 +126,11 @@ jobs:
           echo '```' >> $env:GITHUB_STEP_SUMMARY
 
       # The content template packs (Samples, Starters, AssetPacks) are not part of an engine release: the engine
-      # names their exact version (SamplesVersion in SharedAssemblyInfo.cs) and release-samples.yml publishes
-      # them, before the engine. Refuse an engine whose content is not on the feed (every New Project would
-      # break) or that is stable while naming prerelease content. Samples changed since the number was set only
-      # warn: the engine ships with the published content, which is right for work not released yet, and the
-      # release manager judges whether a change is one the new engine needs.
+      # names their exact version (SamplesVersion in SharedAssemblyInfo.cs), which release-samples.yml only commits
+      # once it is published. Refuse an engine whose content is not on the feed (every New Project would break) or
+      # that is stable while naming prerelease content. Samples changed since the published content (its
+      # samples/<version> tag) only warn: the engine ships with the published content, which is right for work not
+      # released yet, and the release manager judges whether a change is one the new engine needs.
       - name: Check the content version
         shell: bash
         run: |
@@ -145,7 +145,7 @@ jobs:
           echo "::notice::Content version named by this engine: $SV"
           case "$VERSION" in
             *-*) ;;
-            *) case "$SV" in *-*) echo "::error::Stable engine $VERSION names prerelease content $SV. Prepare a samples release with a stable content number and publish it first."; exit 1;; esac;;
+            *) case "$SV" in *-*) echo "::error::Stable engine $VERSION names prerelease content $SV. Publish the samples with a stable content number first (release-samples.yml)."; exit 1;; esac;;
           esac
           for id in stride.templates.samples stride.templates.games.starters stride.templates.assetpacks; do
             if ! curl -sf "https://api.nuget.org/v3-flatcontainer/$id/index.json" | grep -q "\"$SV\""; then
@@ -153,19 +153,20 @@ jobs:
               exit 1
             fi
           done
-          SET_AT=$(git log -1 --format=%H -S"SamplesVersion = \"$SV\";" "$SHA" -- "$FILE")
-          if [ -z "$SET_AT" ]; then
-            echo "::warning::Could not find the commit that set SamplesVersion = $SV; skipped the check for sample changes since then."
+          # The commit the published content was packed from (content published before release-samples.yml has
+          # no such tag).
+          if ! git rev-parse -q --verify "refs/tags/samples/$SV" >/dev/null; then
+            echo "::warning::No samples/$SV tag; skipped the check for sample changes since the published content."
             exit 0
           fi
-          CHANGED=$(git diff --name-only "$SET_AT" "$SHA" -- samples ':(exclude)samples/NewGame' ':(exclude)samples/Library' ':(exclude)*.md')
+          CHANGED=$(git diff --name-only "samples/$SV" "$SHA" -- samples ':(exclude)samples/NewGame' ':(exclude)samples/Library' ':(exclude)*.md')
           if [ -n "$CHANGED" ]; then
             COUNT=$(printf '%s\n' "$CHANGED" | wc -l)
-            echo "::warning title=Samples changed::$COUNT sample file(s) changed since content version $SV was set (${SET_AT:0:10}). This engine ships with the published $SV content. If the engine needs those changes, prepare and publish a samples release first (see the run summary)."
+            echo "::warning title=Samples changed::$COUNT sample file(s) changed since the published content $SV (tag samples/$SV). This engine ships with the published $SV content. If the engine needs those changes, publish a samples release first (see the run summary)."
             {
               echo "## Sample changes not in the published content ($SV)"
               echo ""
-              echo "This engine ships with the published $SV content. Fine for work not released yet; if the new engine needs these changes, prepare a samples release (build/Stride.Samples.build -t:PrepareSamplesForRelease), publish it with release-samples.yml, then release again."
+              echo "This engine ships with the published $SV content. Fine for work not released yet; if the new engine needs these changes, publish a samples release with release-samples.yml (it updates SamplesVersion), then release again."
               echo ""
               echo '```'
               printf '%s\n' "$CHANGED" | sed -n '1,50p'

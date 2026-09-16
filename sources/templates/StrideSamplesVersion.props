@@ -3,7 +3,7 @@
      pack side) and build/Stride.Samples.build (the samples release side).
 
      StrideSamplesVersion is the version a content pack gets (before the -devN worktree suffix). It defaults to the
-     committed value; a -p:StrideSamplesVersion= global property wins (PrepareSamplesForRelease packs the new number before it is
+     committed value; a -p:StrideSamplesVersion= global property wins (release-samples.yml packs the new number before it is
      committed). _StrideCommittedSamplesVersion always carries the committed value. -->
 <Project>
   <PropertyGroup>

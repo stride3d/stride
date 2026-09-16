@@ -4,21 +4,26 @@ name: Release Samples
 # Stride.Templates.Games.Starters, Stride.Templates.AssetPacks) to NuGet.org.
 #
 # Versioned independently of the engine: StrideVersion.SamplesVersion in sources/shared/SharedAssemblyInfo.cs is the
-# content version, set by PrepareSamplesForRelease (build/Stride.Samples.build, committed with the migrated
-# samples). The engine names that exact version, so publish it here BEFORE releasing an engine that names it
-# (release-deploy.yml refuses an engine whose content is not on the feed). The packs are stamped for this branch's
-# engine version plus version-suffix (the same input as release.yml), the engine release they precede.
-# A deploy pushes to NuGet.org, tags samples/<version> at the built commit, and creates a GitHub Release.
+# published content version the engine uses. This workflow is the only thing that changes it: it packs the samples
+# of the branch under the next content version, publishes them, and only then commits that version to the branch,
+# so the branch never names content that is not on the feed. The packs are stamped for this branch's engine version
+# plus version-suffix (the same input as release.yml), the engine release they precede.
+# A deploy pushes to NuGet.org, tags samples/<version> at the built commit, creates a GitHub Release and commits
+# SamplesVersion to the branch. A run without deploy publishes and commits nothing.
 
 on:
   workflow_dispatch:
     inputs:
+      version:
+        description: Content version to publish (e.g. 4.4.1). Empty = the committed SamplesVersion's next number, or <engine line>.0 for older-line content.
+        default: ''
+        type: string
       sign:
         description: Code sign the packages
         default: true
         type: boolean
       deploy:
-        description: Deploy to NuGet.org and create a GitHub Release
+        description: Deploy to NuGet.org, create a GitHub Release and commit SamplesVersion to the branch
         default: false
         type: boolean
       version-suffix:
@@ -71,50 +76,56 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
-      - name: Pack content templates
-        run: |
-          dotnet build build\Stride.build `
-            -t:PackageSamples `
-            -p:StrideSign=${{ inputs.sign }} `
-            -p:StrideVersionSuffix=${{ inputs.version-suffix }}
-
-      - name: Detect version
+      # The content version: the input, or the committed one's next number (4.4.0 -> 4.4.1, 4.4.0-beta7 -> 4.4.0), or
+      # <engine line>.0 when the committed content is from an older line. Its major.minor is this branch's engine line
+      # (a line's content is released from that line's branch only), its patch part is a free counter.
+      - name: Choose the content version
         id: version
         shell: pwsh
         run: |
-          $pkg = Get-ChildItem -Path bin/packages -Filter "Stride.Templates.Samples.*.nupkg" | Select-Object -First 1
-          if (-not $pkg) {
-            echo "::error::No Stride.Templates.Samples package found"
+          $file = Get-Content sources/shared/SharedAssemblyInfo.cs -Raw
+          $committed = [regex]::Match($file, 'SamplesVersion = "([^"]*)";').Groups[1].Value
+          $engineLine = [regex]::Match($file, 'MajorMinor = "([^"]*)";').Groups[1].Value
+          $version = "${{ inputs.version }}".Trim()
+          $parts = [regex]::Match($committed, '^(\d+\.\d+)\.(\d+)(-.*)?$')
+          if (-not $parts.Success) {
+            echo "::error::Could not read SamplesVersion ('$committed') from SharedAssemblyInfo.cs"
             exit 1
           }
-          $version = $pkg.Name -replace 'Stride\.Templates\.Samples\.(.*?)\.nupkg','$1'
+          $committedLine, $committedPatch = $parts.Groups[1].Value, [int]$parts.Groups[2].Value
+          if ($version -eq '') {
+            if ($committedLine -ne $engineLine) { $version = "$engineLine.0" }
+            elseif ($parts.Groups[3].Success) { $version = "$committedLine.$committedPatch" }
+            else { $version = "$committedLine.$($committedPatch + 1)" }
+          }
           if ($version -notmatch '^\d+\.\d+\.\d+(-(alpha|beta|rc|preview)\d+)?$') {
-            echo "::error::Content version '$version' is not an allowed release version. Use X.Y.Z or X.Y.Z-(alpha|beta|rc|preview)<N> - check SamplesVersion in SharedAssemblyInfo.cs"
+            echo "::error::Content version '$version' is not an allowed release version. Use X.Y.Z or X.Y.Z-(alpha|beta|rc|preview)<N>."
+            exit 1
+          }
+          if (($version -replace '^(\d+\.\d+).*', '$1') -ne $engineLine) {
+            echo "::error::Content version $version is not on this branch's engine line $engineLine. Release $($version -replace '^(\d+\.\d+).*', '$1').x content from the branch of that line."
+            exit 1
+          }
+          if ([System.Management.Automation.SemanticVersion]$version -le [System.Management.Automation.SemanticVersion]$committed) {
+            echo "::error::Content version $version does not come after the committed $committed."
             exit 1
           }
           if ("${{ inputs.version-suffix }}" -eq "" -and $version.Contains("-")) {
-            echo "::error::A stable engine must not name prerelease content ($version); prepare a samples release with a stable content number first."
+            echo "::error::A stable engine must not name prerelease content ($version)."
             exit 1
           }
-          foreach ($id in 'Stride.Templates.Games.Starters', 'Stride.Templates.AssetPacks') {
-            if (-not (Get-ChildItem -Path bin/packages -Filter "$id.$version.nupkg")) {
-              echo "::error::$id.$version.nupkg was not produced"
-              exit 1
-            }
-          }
           echo "version=$version" >> $env:GITHUB_OUTPUT
-          echo "::notice::Content version: $version"
+          echo "::notice::Content version: $committed -> $version"
 
-      # Forget-to-bump guard: the content version is the committed value, bumped per samples release. A version already
-      # on the feed (all three packages) means the samples changed without a new version; fail rather than re-publish stale content.
+      # A version already released means the input is wrong (or the samples were published already); fail rather
+      # than re-publish different content under it. A re-run on the tagged commit is allowed (completes a partial push).
       - name: Guard against re-publishing an existing version
-        if: ${{ inputs.deploy }}
         shell: bash
         run: |
           V="${{ steps.version.outputs.version }}"
           TAG="samples/$V"
           if git rev-parse "$TAG" >/dev/null 2>&1 && [ -z "$(git tag --points-at HEAD --list "$TAG")" ]; then
-            echo "::error::Content version $V is already released (tag $TAG on another commit). Prepare a new samples release (build/Stride.Samples.build -t:PrepareSamplesForRelease)."
+            echo "::error::Content version $V is already released (tag $TAG on another commit). Pick the next number."
             exit 1
           fi
           PUBLISHED=0
@@ -124,9 +135,27 @@ jobs:
             fi
           done
           if [ "$PUBLISHED" = 3 ]; then
-            echo "::error::Content version $V is already on nuget.org. Prepare a new samples release (build/Stride.Samples.build -t:PrepareSamplesForRelease)."
+            echo "::error::Content version $V is already on nuget.org. Pick the next number."
             exit 1
           fi
+
+      - name: Pack content templates
+        run: |
+          dotnet build build\Stride.build `
+            -t:PackageSamples `
+            -p:StrideSamplesVersion=${{ steps.version.outputs.version }} `
+            -p:StrideSign=${{ inputs.sign }} `
+            -p:StrideVersionSuffix=${{ inputs.version-suffix }}
+
+      - name: Check the packages
+        shell: pwsh
+        run: |
+          foreach ($id in 'Stride.Templates.Samples', 'Stride.Templates.Games.Starters', 'Stride.Templates.AssetPacks') {
+            if (-not (Test-Path "bin/packages/$id.${{ steps.version.outputs.version }}.nupkg")) {
+              echo "::error::$id.${{ steps.version.outputs.version }}.nupkg was not produced"
+              exit 1
+            }
+          }
 
       # The release-shaped packs are exercised by the smoke tests (pack -> dotnet new install -> instantiate) against
       # this checkout's build, since the stamped engine may not be published yet. The same properties keep the
@@ -136,6 +165,7 @@ jobs:
           dotnet test sources\tools\Stride.Templates.Tests `
             -c Release `
             -p:StridePackageBuild=true `
+            -p:StrideSamplesVersion=${{ steps.version.outputs.version }} `
             --logger "trx;LogFileName=templates.trx" --results-directory TestResults
 
       - name: Sign
@@ -193,7 +223,7 @@ jobs:
         with:
           fetch-depth: 0
           fetch-tags: true
-          token: ${{ secrets.GH_PAT }}  # push the samples/<version> tag
+          token: ${{ secrets.GH_PAT }}  # push the samples/<version> tag and the SamplesVersion commit
 
       - uses: actions/setup-dotnet@v6
         with:
@@ -222,7 +252,7 @@ jobs:
           if git rev-parse "$TAG" >/dev/null 2>&1; then
             echo "Tag $TAG already exists, skipping"
           else
-            git tag "$TAG"
+            git tag "$TAG" "${{ github.sha }}"   # the commit the packages were built from
             git push origin "$TAG"
           fi
 
@@ -257,6 +287,31 @@ jobs:
               bin/packages/*.nupkg
           fi
 
+      # Last, once the content is on the feed: the branch now names it, so engines built from here on use it. Goes
+      # to the current branch tip (it may have moved since the build). Needs GH_PAT to push past branch protection,
+      # like the engine's version bump in release-deploy.yml.
+      - name: Commit the content version
+        run: |
+          V="${{ needs.Package.outputs.version }}"
+          FILE=sources/shared/SharedAssemblyInfo.cs
+          git checkout "${{ github.ref_name }}"
+          git pull --ff-only origin "${{ github.ref_name }}"
+          sed -i "s/\(public const string SamplesVersion = \)\"[^\"]*\";/\1\"$V\";/" "$FILE"
+          if ! grep -q "public const string SamplesVersion = \"$V\";" "$FILE"; then
+            echo "::error::Could not set SamplesVersion = $V in $FILE. The samples are published; set it by hand."
+            exit 1
+          fi
+          if git diff --quiet -- "$FILE"; then
+            echo "SamplesVersion is already $V, nothing to commit"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Commit only the version file (never -a), so an unexpected working-tree change can't ride along.
+          git commit -m "Samples: content version $V (released samples/$V)" -- "$FILE"
+          git pull --rebase origin "${{ github.ref_name }}"
+          git push origin "HEAD:${{ github.ref_name }}"
+
       - name: Publish summary
         if: success()
         shell: bash
@@ -270,5 +325,5 @@ jobs:
             done
             echo "- [GitHub Release](${{ github.server_url }}/${{ github.repository }}/releases/tag/samples/$V)"
             echo ""
-            echo "An engine whose SamplesVersion is $V can now be released."
+            echo "SamplesVersion is now $V on ${{ github.ref_name }}; engines built from there use this content."
           } >> "$GITHUB_STEP_SUMMARY"

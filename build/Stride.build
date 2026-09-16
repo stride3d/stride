@@ -209,7 +209,7 @@ Example: dotnet build build/Stride.build -t:Package
 
   <!-- In-repo sample version management (SamplesToDevEngine / SamplesToReleaseEngine / PrepareSamplesForRelease /
        CleanContentTemplates) is standalone in build/Stride.Samples.build - run it directly, e.g.
-       dotnet msbuild build/Stride.Samples.build -t:PrepareSamplesForRelease -p:StrideSamplesVersion=4.4.1. See docs/build/versioning.md. -->
+       dotnet msbuild build/Stride.Samples.build -t:PrepareSamplesForRelease. See docs/build/versioning.md. -->
 
   <Target Name="RestoreInternal">
     <MSBuild Targets="Restore" Projects="$(StrideSolution)" Properties="StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll);StrideGraphicsApis=$(StrideGraphicsApis);StridePlatforms=$(StridePlatforms)" />

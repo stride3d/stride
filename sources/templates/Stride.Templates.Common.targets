@@ -39,10 +39,14 @@
     <PackageVersion Condition="'$(PackageVersion)' == '' And '$(StrideTemplateContentVersioned)' == 'true'">$(StrideSamplesVersion)</PackageVersion>
     <PackageVersion Condition="'$(PackageVersion)' == ''">$(StrideNuGetVersion)</PackageVersion>
 
-    <!-- Content packs are ~730 MB of rarely changing content, published on their own schedule (release-samples.yml).
-         A normal build never packs them: StridePackContentTemplates=true (build/Stride.Local.props, PrepareSamplesForRelease,
-         the CI template lanes, release-samples.yml) turns the pack on. Off, the project still builds (nothing to
-         build) and still answers Game Studio's nuspec dependency query with the exact committed version. -->
+    <!-- Content packs are large, rarely changing content, published on their own schedule (release-samples.yml).
+         A local build never packs them unless StridePackContentTemplates=true (build/Stride.Local.props,
+         PrepareSamplesForRelease, release-samples.yml). CI builds do, so the tests that instantiate templates run on
+         the samples of the branch; the engine release (StridePackageBuild) doesn't. It is a plain property, never
+         passed to one project only: a global property on a single reference would build these projects, and
+         everything they reference, a second time. Off, the project still builds (nothing to build) and still answers
+         Game Studio's nuspec dependency query with the exact committed version. -->
+    <StridePackContentTemplates Condition="'$(StridePackContentTemplates)' == '' And '$(StridePackageBuild)' != 'true' And ('$(CI)' == 'true' Or '$(GITHUB_ACTIONS)' == 'true' Or '$(TF_BUILD)' == 'true')">true</StridePackContentTemplates>
     <StridePackContentTemplates Condition="'$(StridePackContentTemplates)' == ''">false</StridePackContentTemplates>
     <_StrideContentPackEnabled Condition="'$(StrideTemplateContentVersioned)' != 'true' Or '$(StridePackContentTemplates)' == 'true'">true</_StrideContentPackEnabled>
     <IsPackable Condition="'$(_StrideContentPackEnabled)' != 'true'">false</IsPackable>

@@ -110,12 +110,12 @@ dotnet pack sources/templates/Stride.Templates.Games -p:StridePackageBuild=true
 
 In-repo samples are committed at a **clean release version**, but locally only the `-devN` dev packages exist — so switch them to the local dev version to build/edit (e.g. in GameStudio), and back before committing. `SamplesToDevEngine` rewrites every `Stride.*` reference in the sample csprojs to this checkout's dev build (real edits); `SamplesToReleaseEngine` rewrites them back to the clean version.
 
-`Stride.Templates.Games` is engine-versioned. `Stride.Templates.Samples` + `.Games.Starters` + `.AssetPacks` are content-versioned: `StrideVersion.SamplesVersion` (`SharedAssemblyInfo.cs`) is the exact published content version the engine uses, bumped by `PrepareSamplesForRelease` and published on its own by `release-samples.yml` before an engine naming it is released. Full details (engine version, `-devN`, the samples release, the release order, the resolver) — including why — are in **[docs/build/versioning.md](../../docs/build/versioning.md)**.
+`Stride.Templates.Games` is engine-versioned. `Stride.Templates.Samples` + `.Games.Starters` + `.AssetPacks` are content-versioned: `StrideVersion.SamplesVersion` (`SharedAssemblyInfo.cs`) is the exact published content version the engine uses. Sample changes are merged like any other change; `release-samples.yml` then publishes them under the next content version and commits that version. Full details (engine version, `-devN`, the samples release, the release order, the resolver) — including why — are in **[docs/build/versioning.md](../../docs/build/versioning.md)**.
 
 ```bash
 dotnet msbuild build/Stride.Samples.build -t:SamplesToDevEngine                          # before editing/building (e.g. GameStudio)
 dotnet msbuild build/Stride.Samples.build -t:SamplesToReleaseEngine                      # before committing
-dotnet msbuild build/Stride.Samples.build -t:PrepareSamplesForRelease -p:StrideSamplesVersion=4.4.1     # the samples release: upgrade, bump, pack
+dotnet msbuild build/Stride.Samples.build -t:PrepareSamplesForRelease                    # upgrade the samples to this engine and pack them
 ```
 
 ## Adding a new template sample
