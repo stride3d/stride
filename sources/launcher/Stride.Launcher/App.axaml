@@ -11,31 +11,24 @@
         <ResourceInclude Source="Views/Icons.axaml" />
       </ResourceDictionary.MergedDictionaries>
 
-      <!-- END TODO -->
-      <Image x:Key="ImageOpenCollective"
-             Height="24" Width="24"
-             Source="/Assets/Images/opencollective.png" />
       <ResourceDictionary.ThemeDictionaries>
         <ResourceDictionary x:Key="Default">
-          <SolidColorBrush x:Key="AccentColor" Color="#900520" />
-          <SolidColorBrush x:Key="NeutralBackgroundColor" Color="#C0434343" />
-          <SolidColorBrush x:Key="BorderBrushTile" Color="Transparent" />
-        </ResourceDictionary>
-        <ResourceDictionary x:Key="Dark">
-          <SolidColorBrush x:Key="AccentColor" Color="{DynamicResource SystemAccentColor}" />
-          <SolidColorBrush x:Key="NeutralBackgroundColor" Color="#0FFFFFFF" />
-          <SolidColorBrush x:Key="CardBorderBrush" Color="#17FFFFFF" />
-          <BoxShadows x:Key="CardShadow">0 1 2 #17FFFFFF</BoxShadows>
-        </ResourceDictionary>
-        <ResourceDictionary x:Key="Light">
-          <SolidColorBrush x:Key="AccentColor" Color="{DynamicResource SystemAccentColor}" />
-          <SolidColorBrush x:Key="NeutralBackgroundColor" Color="#80FFFFFF" />
+          <SolidColorBrush x:Key="AccentBrush" Color="{DynamicResource SystemAccentColor}" />
+          <SolidColorBrush x:Key="TileBorderBrush" Color="Transparent" />
           <SolidColorBrush x:Key="CardBorderBrush" Color="#17000000" />
           <BoxShadows x:Key="CardShadow">0 1 2 #17000000</BoxShadows>
+          <SolidColorBrush x:Key="ChromeWhiteBrush" Color="{StaticResource SystemChromeWhiteColor}" />
+          <SolidColorBrush x:Key="NeutralBackgroundBrush" Color="#80FFFFFF" />
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Dark">
+          <SolidColorBrush x:Key="AccentBrush" Color="{DynamicResource SystemAccentColor}" />
+          <SolidColorBrush x:Key="CardBorderBrush" Color="#17FFFFFF" />
+          <BoxShadows x:Key="CardShadow">0 1 2 #17FFFFFF</BoxShadows>
+          <SolidColorBrush x:Key="ChromeWhiteBrush" Color="{StaticResource SystemChromeWhiteColor}" />
+          <SolidColorBrush x:Key="NeutralBackgroundBrush" Color="#0FFFFFFF" />
         </ResourceDictionary>
       </ResourceDictionary.ThemeDictionaries>
-      <Thickness x:Key="BorderThicknessTile">12</Thickness>
-      <Thickness x:Key="BorderThicknessTileList">0,0,0,20</Thickness>
+      <Thickness x:Key="TileBorderThickness">12</Thickness>
       <CornerRadius x:Key="ControlCornerRadius">4</CornerRadius>
     </ResourceDictionary>
   </Application.Resources>
@@ -58,22 +51,22 @@
     <Style Selector="TabItem">
       <Setter Property="FontSize" Value="14" />
     </Style>
-    <Style Selector="TextBlock.Subtitle">
+    <Style Selector="TextBlock.subtitle">
       <Setter Property="FontWeight" Value="SemiBold" />
       <Setter Property="FontSize" Value="16" />
       <Setter Property="Padding" Value="0 0 0 8" />
     </Style>
-    <Style Selector="Button.MediaButton">
+    <Style Selector="Button.mediaButton">
       <Setter Property="Margin" Value="2" />
       <Setter Property="Padding" Value="0" />
     </Style>
-    <Style Selector="Button.MediaButton:pointerover">
+    <Style Selector="Button.mediaButton:pointerover">
       <Setter Property="Opacity" Value="0.6" />
     </Style>
-    <Style Selector="Button.TransparentButton">
+    <Style Selector="Button.transparentButton">
       <Setter Property="Background" Value="Transparent" />
     </Style>
-    <Style Selector="ToggleButton.TransparentButton">
+    <Style Selector="ToggleButton.transparentButton">
       <Setter Property="Background" Value="Transparent" />
     </Style>
   </Application.Styles>

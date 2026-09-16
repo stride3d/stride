@@ -17,16 +17,16 @@
     <DockPanel>
       <!-- Status -->
       <Border DockPanel.Dock="Bottom"
-              Background="{DynamicResource AccentColor}"
+              Background="{DynamicResource AccentBrush}"
               Padding="10,2">
         <Grid ColumnDefinitions="3*, *, Auto">
           <TextBlock Grid.Column="0"
-                    Foreground="White"
-                    HorizontalAlignment="Left" VerticalAlignment="Center"
-                    Text="{Binding CurrentToolTip}" />
+                     Foreground="{DynamicResource ChromeWhiteBrush}"
+                     HorizontalAlignment="Left" VerticalAlignment="Center"
+                     Text="{Binding CurrentToolTip}" />
           <!-- Reconnect button -->
           <Button Grid.Column="1"
-                  Classes="TransparentButton"
+                  Classes="transparentButton"
                   Margin="8,4" Cursor="Hand"
                   HorizontalAlignment="Center" VerticalAlignment="Center"
                   ToolTip.Tip="Click to reconnect…"
@@ -35,7 +35,7 @@
             <TextBlock FontWeight="ExtraBold" Foreground="Gold" Text="Offline" />
           </Button>
           <TextBlock Grid.Column="2"
-                     Foreground="White"
+                     Foreground="{DynamicResource ChromeWhiteBrush}"
                      Margin="8,4" HorizontalAlignment="Right" VerticalAlignment="Center"
                      Text="{Binding Source={x:Static srv:SelfUpdater.Version}, StringFormat=Launcher v{0}}"/>
         </Grid>
@@ -46,11 +46,11 @@
           <Border Classes="card" DockPanel.Dock="Bottom"
                   Margin="0 12 0 0"
                   CornerRadius="{StaticResource ControlCornerRadius}"
-                  Background="{DynamicResource NeutralBackgroundColor}">
+                  Background="{DynamicResource NeutralBackgroundBrush}">
             <StackPanel Margin="10">
               <!-- Community links -->
               <UniformGrid Columns="2">
-                <Button Classes="TransparentButton"
+                <Button Classes="transparentButton"
                         HorizontalAlignment="Stretch"
                         Command="{Binding OpenUrlCommand}"
                         CommandParameter="{x:Static l:Urls.Issues}"
@@ -66,7 +66,7 @@
                                Text="{x:Static l:Strings.ButtonIssues}" />
                   </StackPanel>
                 </Button>
-                <Button Classes="TransparentButton"
+                <Button Classes="transparentButton"
                         HorizontalAlignment="Stretch"
                         Command="{Binding OpenUrlCommand}"
                         CommandParameter="{x:Static l:Urls.Forums}"
@@ -82,7 +82,7 @@
                                Text="{x:Static l:Strings.ButtonForums}" />
                   </StackPanel>
                 </Button>
-                <Button Classes="TransparentButton"
+                <Button Classes="transparentButton"
                         HorizontalAlignment="Stretch"
                         Command="{Binding OpenUrlCommand}"
                         CommandParameter="{x:Static l:Urls.Discord}"
@@ -98,7 +98,7 @@
                                Text="{x:Static l:Strings.ButtonDiscord}" />
                   </StackPanel>
                 </Button>
-                <Button Classes="TransparentButton"
+                <Button Classes="transparentButton"
                         HorizontalAlignment="Stretch"
                         Command="{Binding OpenUrlCommand}"
                         CommandParameter="{x:Static l:Urls.GitHub}"
@@ -114,7 +114,7 @@
                                Text="{x:Static l:Strings.ButtonGitHub}" />
                   </StackPanel>
                 </Button>
-                <Button Classes="TransparentButton"
+                <Button Classes="transparentButton"
                         HorizontalAlignment="Stretch"
                         Command="{Binding OpenUrlCommand}"
                         CommandParameter="{x:Static l:Urls.Roadmap}"
@@ -136,7 +136,7 @@
               <StackPanel Margin="6"
                           Orientation="Horizontal"
                           HorizontalAlignment="Center">
-                <Button Classes="TransparentButton MediaButton"
+                <Button Classes="transparentButton mediaButton"
                         Command="{Binding OpenUrlCommand}"
                         CommandParameter="{x:Static l:Urls.XTwitter}"
                         ToolTip.Tip="{Binding CommandParameter, StringFormat={x:Static l:Strings.ToolTipOpenLink}, RelativeSource={RelativeSource Self}}">
@@ -147,7 +147,7 @@
                                                          DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
                   </Interaction.Behaviors>
                 </Button>
-                <Button Classes="TransparentButton MediaButton"
+                <Button Classes="transparentButton mediaButton"
                         Command="{Binding OpenUrlCommand}"
                         CommandParameter="{x:Static l:Urls.Facebook}"
                         ToolTip.Tip="{Binding CommandParameter, StringFormat={x:Static l:Strings.ToolTipOpenLink}, RelativeSource={RelativeSource Self}}">
@@ -158,7 +158,7 @@
                                                          DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
                   </Interaction.Behaviors>
                 </Button>
-                <Button Classes="TransparentButton MediaButton"
+                <Button Classes="transparentButton mediaButton"
                         Command="{Binding OpenUrlCommand}"
                         CommandParameter="{x:Static l:Urls.Reddit}"
                         ToolTip.Tip="{Binding CommandParameter, StringFormat={x:Static l:Strings.ToolTipOpenLink}, RelativeSource={RelativeSource Self}}">
@@ -169,7 +169,7 @@
                                                          DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
                   </Interaction.Behaviors>
                 </Button>
-                <Button Classes="TransparentButton MediaButton"
+                <Button Classes="transparentButton mediaButton"
                         Command="{Binding OpenUrlCommand}"
                         CommandParameter="{x:Static l:Urls.OpenCollective}"
                         ToolTip.Tip="{Binding CommandParameter, StringFormat={x:Static l:Strings.ToolTipOpenLink}, RelativeSource={RelativeSource Self}}">
@@ -186,10 +186,10 @@
           <!-- Visual studio extensions -->
           <Border Classes="card" DockPanel.Dock="Bottom"
                   CornerRadius="{StaticResource ControlCornerRadius}"
-                  Background="{DynamicResource NeutralBackgroundColor}"
+                  Background="{DynamicResource NeutralBackgroundBrush}"
                   IsVisible="{Binding Source={x:Static p:OperatingSystemHelper.IsWindows}, Mode=OneTime}">
             <StackPanel Margin="10">
-              <Border BorderBrush="{StaticResource BorderBrushTile}" BorderThickness="12,0,0,0">
+              <Border BorderBrush="{StaticResource TileBorderBrush}" BorderThickness="12,0,0,0">
                 <DockPanel Height="32" Margin="4,0">
                   <PathIcon Width="26" Height="26"
                             Data="{StaticResource GeometryVisualStudio}" />
@@ -198,9 +198,9 @@
                              FontSize="24" TextAlignment="Left" VerticalAlignment="Center" />
                 </DockPanel>
               </Border>
-              <Border BorderBrush="{StaticResource BorderBrushTile}">
+              <Border BorderBrush="{StaticResource TileBorderBrush}">
                 <DockPanel Margin="4,0">
-                  <Button Classes="TransparentButton"
+                  <Button Classes="transparentButton"
                           HorizontalAlignment="Left"
                           Command="{Binding OpenUrlCommand}"
                           CommandParameter="{x:Static l:Urls.VisualStudio}"
@@ -212,7 +212,7 @@
                   </Button>
                 </DockPanel>
               </Border>
-              <Border BorderBrush="{StaticResource TileBorderBrush}" BorderThickness="{StaticResource BorderThicknessTile}">
+              <Border BorderBrush="{StaticResource TileBorderBrush}" BorderThickness="{StaticResource TileBorderThickness}">
                 <StackPanel>
                   <StackPanel.DataTemplates>
                     <DataTemplate DataType="{x:Type vm:VsixVersionViewModel}">
@@ -244,7 +244,7 @@
           </Border>
           <DockPanel>
             <Border DockPanel.Dock="Top"
-                    BorderBrush="{StaticResource BorderBrushTile}" BorderThickness="{StaticResource BorderThicknessTile}">
+                    BorderBrush="{StaticResource TileBorderBrush}" BorderThickness="{StaticResource TileBorderThickness}">
               <StackPanel>
                 <Grid Height="48">
                   <!-- Launch game studio -->
@@ -298,7 +298,7 @@
               </StackPanel>
             </Border>
             <Border DockPanel.Dock="Top"
-                    BorderBrush="{StaticResource BorderBrushTile}" BorderThickness="8,4">
+                    BorderBrush="{StaticResource TileBorderBrush}" BorderThickness="8,4">
               <DockPanel Height="32">
                 <Image Source="/Assets/Images/switch-version.png"
                         Width="26" Height="26"
@@ -309,7 +309,7 @@
               </DockPanel>
             </Border>
             <!-- Stride versions -->
-            <Border BorderBrush="{StaticResource BorderBrushTile}" BorderThickness="{StaticResource BorderThicknessTile}"
+            <Border BorderBrush="{StaticResource TileBorderBrush}" BorderThickness="{StaticResource TileBorderThickness}"
                     Background="Transparent">
               <ScrollViewer VerticalScrollBarVisibility="Auto" VerticalAlignment="Top" AllowAutoHide="False">
                 <StackPanel>
@@ -317,7 +317,7 @@
                     <ItemsControl.DataTemplates>
                       <DataTemplate DataType="{x:Type vm:StrideDevVersionViewModel}">
                         <DockPanel Height="32" Margin="0,2"
-                                   Background="{DynamicResource NeutralBackgroundColor}"
+                                   Background="{DynamicResource NeutralBackgroundBrush}"
                                    IsVisible="{Binding IsVisible}">
                           <StackPanel DockPanel.Dock="Right"
                                       MinWidth="32" Orientation="Horizontal"
@@ -350,7 +350,7 @@
                       </DataTemplate>
                       <DataTemplate DataType="{x:Type vm:StrideStoreVersionViewModel}">
                         <DockPanel Height="32" Margin="0,2"
-                                   Background="{DynamicResource NeutralBackgroundColor}"
+                                   Background="{DynamicResource NeutralBackgroundBrush}"
                                    IsVisible="{Binding IsVisible}">
                           <StackPanel DockPanel.Dock="Right"
                                       MinWidth="32" Orientation="Horizontal"
@@ -526,14 +526,14 @@
               </Border>
               <Grid>
                 <Border Classes="card"
-                        Background="{DynamicResource NeutralBackgroundColor}"
+                        Background="{DynamicResource NeutralBackgroundBrush}"
                         IsVisible="{Binding !RecentProjects.Count, FallbackValue={x:False}}"
                         VerticalAlignment="Top">
                   <TextBlock Text="{x:Static l:Strings.NoProjectCreated}"
                              FontSize="16" Margin="20"
                              TextAlignment="Center" VerticalAlignment="Center" />
                 </Border>
-                <Border BorderBrush="{StaticResource BorderBrushTile}" BorderThickness="{StaticResource BorderThicknessTile}">
+                <Border BorderBrush="{StaticResource TileBorderBrush}" BorderThickness="{StaticResource TileBorderThickness}">
                   <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <ItemsControl ItemsSource="{Binding RecentProjects}">
                       <ItemsControl.ItemTemplate>
@@ -642,7 +642,7 @@
                   </TabItem.Header>
                 <ScrollViewer>
                   <StackPanel>
-                    <Border Classes="card" Background="{DynamicResource NeutralBackgroundColor}"
+                    <Border Classes="card" Background="{DynamicResource NeutralBackgroundBrush}"
                             IsVisible="{Binding !ActiveDocumentationPages.Count, FallbackValue={x:False}, TargetNullValue={x:False}}">
                       <TextBlock Text="{x:Static l:Strings.NoDocumentation}"
                                  FontSize="16" Margin="20"
@@ -656,7 +656,7 @@
                                     HorizontalAlignment="Stretch"
                                     HorizontalContentAlignment="Stretch">
                               <DockPanel Margin="4">
-                                <TextBlock Classes="Subtitle" DockPanel.Dock="Top"
+                                <TextBlock Classes="subtitle" DockPanel.Dock="Top"
                                            HorizontalAlignment="Left"
                                            Text="{Binding Title}" />
                                 <TextBlock Text="{Binding Description}" TextWrapping="Wrap" />
@@ -680,7 +680,7 @@
                   </TabItem.Header>
                 <ScrollViewer>
                   <StackPanel>
-                    <Border Classes="card" Background="{DynamicResource NeutralBackgroundColor}"
+                    <Border Classes="card" Background="{DynamicResource NeutralBackgroundBrush}"
                             IsVisible="{Binding !NewsPages?.Count, FallbackValue={x:False}, TargetNullValue={x:False}}">
                       <TextBlock Text="{x:Static l:Strings.NoNews}"
                                  FontSize="16" Margin="20"
@@ -694,7 +694,7 @@
                                     HorizontalAlignment="Stretch"
                                     HorizontalContentAlignment="Stretch">
                               <StackPanel Margin="4" Spacing="4">
-                                <TextBlock Classes="Subtitle" HorizontalAlignment="Left"
+                                <TextBlock Classes="subtitle" HorizontalAlignment="Left"
                                            Text="{Binding Title}" TextWrapping="Wrap" />
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                   <PathIcon Width="13"
@@ -742,11 +742,11 @@
             </Transitions>
           </Grid.Transitions>
           <Border Classes="card" CornerRadius="{StaticResource ControlCornerRadius}"
-                  Background="{DynamicResource NeutralBackgroundColor}">
+                  Background="{DynamicResource NeutralBackgroundBrush}">
             <DockPanel>
                   <DockPanel DockPanel.Dock="Top">
                     <Button DockPanel.Dock="Right"
-                            Classes="TransparentButton"
+                            Classes="transparentButton"
                             Margin="8"
                             Command="{Binding ActiveReleaseNotes?.ToggleCommand}"
                             Content="×" FontSize="20" />
