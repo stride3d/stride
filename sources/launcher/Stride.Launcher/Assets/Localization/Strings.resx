@@ -326,7 +326,7 @@
     <comment>Title of this category</comment>
   </data>
   <data name="VisualStudioDownloadPage" xml:space="preserve">
-    <value>An installed Visual Studio is required, which can be found here</value>
+    <value>Visual Studio is required, click here to download</value>
     <comment>Subtitle of VisualStudioExtension category</comment>
   </data>
   <data name="VSIXInstallSucessful" xml:space="preserve">

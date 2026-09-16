@@ -201,7 +201,7 @@
               <Border BorderBrush="{StaticResource TileBorderBrush}">
                 <DockPanel Margin="4,0">
                   <Button Classes="transparentButton"
-                          HorizontalAlignment="Left"
+                          HorizontalAlignment="Center"
                           Command="{Binding OpenUrlCommand}"
                           CommandParameter="{x:Static l:Urls.VisualStudio}"
                           ToolTip.Tip="{Binding CommandParameter, StringFormat={x:Static l:Strings.ToolTipOpenLink}, RelativeSource={RelativeSource Self}}"
@@ -222,6 +222,8 @@
                                      VerticalAlignment="Stretch"
                                      IsVisible="{Binding IsProcessing}" />
                         <TextBlock Text="{Binding CurrentProcessStatus}"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
                                     IsVisible="{Binding IsProcessing}" />
                         <Button Command="{Binding ExecuteActionCommand}"
                                 Content="{Binding Status}"
