@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.TemplateEngine.Abstractions;
 using Microsoft.TemplateEngine.Edge.Template;
@@ -110,7 +111,9 @@ public class DotNetNewTemplateGenerator : SessionTemplateGenerator
         if (sdpkg == null)
             return false;
         InstantiateAssetPacks(parameters, sdpkg);
-        if (!UpgradeGeneratedProjects(parameters))
+        // Content packed for an older engine keeps its version here: IntegrateIntoSession runs the package
+        // upgraders on it, which migrate the assets and the code and stamp the version themselves.
+        if (!UpgradeGeneratedProjects(parameters, stampOlderContent: false))
             return false;
         return IntegrateIntoSession(sdpkg, parameters);
     }
@@ -244,14 +247,44 @@ public class DotNetNewTemplateGenerator : SessionTemplateGenerator
     /// them to <see cref="StridePackageUpgrader.CurrentVersion"/>. Runs without a session or
     /// AssemblyContainer — same standalone path the legacy session-load uses internally.
     /// </summary>
-    protected virtual bool UpgradeGeneratedProjects(SessionTemplateGeneratorParameters parameters)
+    /// <param name="stampOlderContent">
+    /// Whether content packed for an older engine is stamped too. False when a session load follows: the package
+    /// upgraders it runs need the version the content came from, and stamping would leave the content looking
+    /// current and never upgraded.
+    /// </param>
+    protected virtual bool UpgradeGeneratedProjects(SessionTemplateGeneratorParameters parameters, bool stampOlderContent = true)
     {
         var log = parameters.Logger;
-        foreach (var csproj in Directory.EnumerateFiles(parameters.OutputDirectory, "*.csproj", SearchOption.AllDirectories))
+        var csprojs = Directory.EnumerateFiles(parameters.OutputDirectory, "*.csproj", SearchOption.AllDirectories).ToList();
+
+        if (!stampOlderContent && GetContentEngineVersion(csprojs) is { } contentVersion
+            && contentVersion.Version < new PackageVersion(StridePackageUpgrader.CurrentVersion).Version)
+        {
+            log.Info($"Template content is written for Stride {contentVersion}; it is upgraded to {StridePackageUpgrader.CurrentVersion} as it is loaded.");
+            return true;
+        }
+
+        foreach (var csproj in csprojs)
         {
             StridePackageUpgrader.UpgradeProjectVersions(csproj, log);
         }
         return true;
+    }
+
+    /// <summary>
+    /// The Stride.Engine version the instantiated content names, null when none of its projects references it
+    /// (a template of assets alone). The prerelease suffix is part of it; upgrades compare the numbers only.
+    /// </summary>
+    private static PackageVersion GetContentEngineVersion(IEnumerable<string> csprojPaths)
+    {
+        foreach (var csprojPath in csprojPaths)
+        {
+            var match = Regex.Match(File.ReadAllText(csprojPath), "Stride\\.Engine\"\\s+Version=\"([^\"]+)\"");
+            if (match.Success && PackageVersion.TryParse(match.Groups[1].Value, out var version))
+                return version;
+        }
+
+        return null;
     }
 
     /// <summary>
