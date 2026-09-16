@@ -283,13 +283,15 @@ namespace Stride.Assets.Presentation.AssemblyReloading
                 operationType = ContentChangeType.ValueChange;
                 memberNode.Update(null);
             }
-            else if (node is IObjectNode objectNode)
+            else if (node is IObjectNode)
             {
+                // The asset itself: it is replaced as a whole, so the change is undone the same way
                 var unloadedAsset = (Asset)UnloadableObjectInstantiator.CreateUnloadableObject(typeof(Asset), itemToReload.ExpectedType.Name, "Test", "Reloading", itemToReload.ParsingEvents);
                 unloadedAsset.Id = asset.Id;
+                var previousAsset = asset.Asset;
                 asset.UpdateAsset(unloadedAsset, new LoggerResult());
-                operationType = ContentChangeType.ValueChange;
-                //objectNode.Update(unloadedAsset, NodeIndex.Empty);
+                PushAssetChange(actionService, asset, previousAsset, unloadedAsset, $"Unload object {oldValue.GetType().Name} in asset {asset.Url}", Enumerable.Empty<IDirtiable>());
+                return;
             }
             else
             {
@@ -324,11 +326,14 @@ namespace Stride.Assets.Presentation.AssemblyReloading
                 operationType = ContentChangeType.ValueChange;
                 memberNode.Update(itemToReload.UpdatedObject);
             }
-            else if (node is IObjectNode objectNode)
+            else if (node is IObjectNode)
             {
-                operationType = ContentChangeType.ValueChange;
-                //objectNode.Update(itemToReload.UpdatedObject, NodeIndex.Empty);
-                asset.UpdateAsset((Asset)itemToReload.UpdatedObject, new LoggerResult());
+                // The asset itself: it is replaced as a whole, so the change is undone the same way
+                var updatedAsset = (Asset)itemToReload.UpdatedObject;
+                var previousAsset = asset.Asset;
+                asset.UpdateAsset(updatedAsset, new LoggerResult());
+                PushAssetChange(actionService, asset, previousAsset, updatedAsset, $"Reload object {updatedAsset.GetType().Name} in asset {asset.Url}", asset.Dirtiables);
+                return;
             }
             else
             {
@@ -340,6 +345,49 @@ namespace Stride.Assets.Presentation.AssemblyReloading
             actionService.PushOperation(operation);
             string operationName = $"Reload object {itemToReload.UpdatedObject.GetType().Name} in asset {asset.Url}";
             actionService.SetName(operation, operationName);
+        }
+
+        private static void PushAssetChange(IUndoRedoService actionService, AssetViewModel asset, Asset previousAsset, Asset newAsset, string operationName, IEnumerable<IDirtiable> dirtiables)
+        {
+            var operation = new AssetChangeOperation(asset, previousAsset, newAsset, dirtiables);
+            actionService.PushOperation(operation);
+            actionService.SetName(operation, operationName);
+        }
+
+        /// <summary>
+        /// The replacement of an asset as a whole, as <see cref="AssetViewModel.UpdateAsset"/> applies it. The asset's
+        /// root node holds no value of its own, so a content change on it cannot be undone.
+        /// </summary>
+        private class AssetChangeOperation : DirtyingOperation
+        {
+            private AssetViewModel asset;
+            private Asset previousAsset;
+            private Asset newAsset;
+
+            public AssetChangeOperation(AssetViewModel asset, Asset previousAsset, Asset newAsset, IEnumerable<IDirtiable> dirtiables)
+                : base(dirtiables)
+            {
+                this.asset = asset;
+                this.previousAsset = previousAsset;
+                this.newAsset = newAsset;
+            }
+
+            protected override void FreezeContent()
+            {
+                asset = null;
+                previousAsset = null;
+                newAsset = null;
+            }
+
+            protected override void Undo()
+            {
+                asset.UpdateAsset(previousAsset, new LoggerResult());
+            }
+
+            protected override void Redo()
+            {
+                asset.UpdateAsset(newAsset, new LoggerResult());
+            }
         }
 
         /// <summary>
