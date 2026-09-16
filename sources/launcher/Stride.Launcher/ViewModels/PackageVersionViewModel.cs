@@ -201,6 +201,14 @@ public abstract class PackageVersionViewModel : DispatcherViewModel
                     await Store.UninstallPackage(LocalPackage, progressReport);
                     CurrentProcessStatus = null;
                 }
+                catch (OperationCanceledException)
+                {
+                    // The user kept the running version: nothing was removed, so nothing is installed over it.
+                    CurrentProcessStatus = null;
+                    await UpdateVersionsFromStore();
+                    IsProcessing = false;
+                    return;
+                }
                 catch (Exception e)
                 {
                     if (displayErrorMessage)
@@ -300,6 +308,11 @@ public abstract class PackageVersionViewModel : DispatcherViewModel
             progressReport.UpdateProgress(ProgressAction.Delete, -1);
             CurrentProcessStatus = string.Format(Strings.ReportDeletingVersion, FullName);
             await Store.UninstallPackage(LocalPackage, progressReport);
+            CurrentProcessStatus = null;
+        }
+        catch (OperationCanceledException)
+        {
+            // The user kept the version: it is still installed.
             CurrentProcessStatus = null;
         }
         catch (Exception e)

@@ -58,6 +58,9 @@ public static class Program
     private static readonly ConcurrentQueue<string> LogRingbuffer = new();
     private static bool enableThumbnailServices = true;
     private static bool resetGraphicsApiPreference;
+    private static bool launcherNotified;
+    private static Mutex instanceMutex;
+    private static readonly string AppDllPath = typeof(Program).Assembly.Location;
 
     // Startup checkpoints for the AutoTesting runner, which hosts us and collects the file; off otherwise.
     private static bool diagLogEnabled;
@@ -130,7 +133,12 @@ public static class Program
         Stride.CrashReport.NativeCrashReporting.Install("GameStudio");
         // Sweep crash-routing dirs left by previous sessions.
         CompilerCrashRouting.PruneStaleSessions();
-        EditorPath.EditorTitle = StrideGameStudio.EditorName;
+        // Lets the launcher see us during uninstall even when we run as a dotnet process (see HostInstanceMutex).
+        instanceMutex = HostInstanceMutex.Hold(AppContext.BaseDirectory);
+        // One taskbar identity per install, whether we run as our apphost or re-executed under dotnet.exe (which the
+        // taskbar would otherwise show as ".NET Host"). Installs stay separate, runtimes of one install merge.
+        if (OperatingSystem.IsWindows())
+            HostedWindowIdentity.Install("Stride.GameStudio." + DotNetHostSelector.PathHash(AppContext.BaseDirectory), $"Stride Game Studio {StrideGameStudio.EditorVersion}", System.IO.Path.ChangeExtension(AppDllPath, ".exe"));
         if (IntPtr.Size == 4)
         {
             MessageBox.Show("Stride GameStudio requires a 64bit OS to run.", "Stride", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -158,56 +166,93 @@ public static class Program
             var lastSessionPath = EditorSettings.ReloadLastSession.GetValue() ? mru.MostRecentlyUsedFiles.FirstOrDefault() : null;
             var initialSessionPath = !UPath.IsNullOrEmpty(startupSessionPath) ? startupSessionPath : lastSessionPath?.FilePath;
 
-            // Handle arguments
+            // Handle arguments. Options are recorded for a restart as they are recognised (see RestartArgs).
             for (var i = 0; i < args.Count; i++)
             {
                 if (args[i] == "/LauncherWindowHandle")
                 {
+                    Forward(args[i], args[i + 1]);
                     windowHandle = new IntPtr(long.Parse(args[++i]));
                 }
                 else if (args[i] == "/NewProject")
                 {
+                    sessionArgs.Add(args[i]);
                     initialSessionPath = null;
                 }
                 else if (args[i] == "/DebugEditorGraphics")
                 {
+                    Forward(args[i]);
                     StrideConfig.GraphicsDebugMode = true;
                 }
                 else if (args[i] == "--graphics-api")
                 {
                     // Consumed at startup by GraphicsApiSelector; skip the following value here.
+                    Forward(args[i], args[i + 1]);
                     i++;
                 }
                 else if (args[i] == "/DisableThumbnails")
                 {
+                    Forward(args[i]);
                     enableThumbnailServices = false;
                 }
                 else if (args[i] == "/DisablePreview")
                 {
+                    Forward(args[i]);
                     GameStudioPreviewService.DisablePreview = true;
                 }
 #if STRIDE_GRAPHICS_API_DIRECT3D12
                 else if (args[i] == "/PixGpuCapturer")
                 {
+                    Forward(args[i]);
                     WinPixNative.LoadPixGpuCapturer();
                 }
 #endif
                 else if (args[i] == "/RenderDoc")
                 {
                     // TODO: RenderDoc is not working here (when not in debug)
+                    Forward(args[i]);
                     GameStudioPreviewService.DisablePreview = true;
                     renderDocManager = new RenderDocManager();
                     renderDocManager.Initialize();
                 }
                 else if (args[i] == "/RecordEffects")
                 {
+                    Forward(args[i], args[i + 1]);
                     GameStudioBuilderService.GlobalEffectLogPath = args[++i];
+                }
+                else if (args[i] == DotNetHostSelector.FrameworkArg && i + 1 < args.Count)
+                {
+                    // Consumed by DotNetHostSelector; skip the following value here.
+                    Forward(args[i], args[i + 1]);
+                    i++;
+                }
+                else if (args[i] == DotNetHostSelector.RelaunchedArg)
+                {
+                    // Consumed by DotNetHostSelector; a restarted editor decides its host again, so not forwarded.
                 }
                 else
                 {
+                    sessionArgs.Add(args[i]);
                     initialSessionPath = args[i];
                 }
             }
+
+            // The session may need a newer .NET major than we run on: re-execute on it before any window.
+            // The AutoTesting host stays put.
+            if (appHosted == null && !UPath.IsNullOrEmpty(initialSessionPath))
+            {
+                var hostDecision = ResolveHost(initialSessionPath.ToOSPath(), args);
+                if (hostDecision.Kind == DotNetHostSelector.DecisionKind.Relaunch)
+                {
+                    StartRelaunched(hostDecision, args);
+                    return;
+                }
+                if (hostDecision.Kind == DotNetHostSelector.DecisionKind.Missing)
+                    initialSessionPath = null;
+            }
+            // Past the host decision: these read the graphics API, i.e. load the staged graphics assembly.
+            EditorPath.EditorTitle = StrideGameStudio.EditorNameWithGraphicsApi;
+            EditorPath.EditorEnvironment = StrideGameStudio.EditorEnvironment;
             RuntimeHelpers.RunModuleConstructor(typeof(Asset).Module.ModuleHandle);
 
             //listen to logger for crash report
@@ -376,35 +421,52 @@ public static class Program
             // No session successfully loaded, open the new/open project window
             bool? completed;
             // The user might cancel after chosing a template to instantiate, in this case we'll reopen the window
-            var startupWindow = new ProjectSelectionWindow
+            while (true)
             {
-                WindowStartupLocation = WindowStartupLocation.CenterScreen,
-                ShowInTaskbar = true,
-            };
-            var viewModel = new NewOrOpenSessionTemplateCollectionViewModel(serviceProvider, startupWindow);
-            startupWindow.Templates = viewModel;
-            startupWindow.ShowDialog();
+                var startupWindow = new ProjectSelectionWindow
+                {
+                    WindowStartupLocation = WindowStartupLocation.CenterScreen,
+                    ShowInTaskbar = true,
+                };
+                var viewModel = new NewOrOpenSessionTemplateCollectionViewModel(serviceProvider, startupWindow);
+                startupWindow.Templates = viewModel;
+                startupWindow.ShowDialog();
 
-            // The user selected a template to instantiate
-            if (startupWindow.NewSessionParameters != null)
-            {
-                // Clean existing entry in the MRU data
-                var directory = startupWindow.NewSessionParameters.OutputDirectory;
-                var name = startupWindow.NewSessionParameters.OutputName;
-                var mruData = new MRUAdditionalDataCollection(InternalSettings.LoadProfileCopy, GameStudioInternalSettings.MostRecentlyUsedSessionsData, InternalSettings.WriteFile);
-                mruData.RemoveFile(UFile.Combine(UDirectory.Combine(directory, name), new UFile(name + SessionViewModel.SolutionExtension)));
+                // The user selected a template to instantiate
+                if (startupWindow.NewSessionParameters != null)
+                {
+                    // Clean existing entry in the MRU data
+                    var directory = startupWindow.NewSessionParameters.OutputDirectory;
+                    var name = startupWindow.NewSessionParameters.OutputName;
+                    var mruData = new MRUAdditionalDataCollection(InternalSettings.LoadProfileCopy, GameStudioInternalSettings.MostRecentlyUsedSessionsData, InternalSettings.WriteFile);
+                    mruData.RemoveFile(UFile.Combine(UDirectory.Combine(directory, name), new UFile(name + SessionViewModel.SolutionExtension)));
 
-                completed = await editor.NewSession(startupWindow.NewSessionParameters);
-            }
-            // The user selected a path to open
-            else if (startupWindow.ExistingSessionPath != null)
-            {
-                completed = await editor.OpenSession(startupWindow.ExistingSessionPath);
-            }
-            // The user cancelled from the new/open project window, so exit the application
-            else
-            {
-                completed = true;
+                    completed = await editor.NewSession(startupWindow.NewSessionParameters);
+                }
+                // The user selected a path to open
+                else if (startupWindow.ExistingSessionPath != null)
+                {
+                    // Same host check as at startup, now that the session is known.
+                    var sessionPath = startupWindow.ExistingSessionPath.ToOSPath();
+                    var restartArgs = RestartArgs(sessionPath, newProject: false);
+                    var hostDecision = ResolveHost(sessionPath, restartArgs);
+                    if (hostDecision.Kind == DotNetHostSelector.DecisionKind.Relaunch)
+                    {
+                        StartRelaunched(hostDecision, restartArgs);
+                        app.Shutdown();
+                        return;
+                    }
+                    // The missing runtime or SDK was reported; nothing was loaded, so back to the window.
+                    if (hostDecision.Kind == DotNetHostSelector.DecisionKind.Missing)
+                        continue;
+                    completed = await editor.OpenSession(startupWindow.ExistingSessionPath);
+                }
+                // The user cancelled from the new/open project window, so exit the application
+                else
+                {
+                    completed = true;
+                }
+                break;
             }
 
             if (completed != true)
@@ -421,9 +483,7 @@ public static class Program
 
                 // When a project has been partially loaded, it might already have initialized some plugin that could conflict with
                 // the next attempt to start something. Better start the application again.
-                var commandLine = string.Join(" ", Environment.GetCommandLineArgs().Skip(1).Select(x => $"\"{x}\""));
-                var process = new Process { StartInfo = new ProcessStartInfo(typeof(Program).Assembly.Location, commandLine) };
-                process.Start();
+                Restart(null);
                 app.Shutdown();
                 return;
             }
@@ -449,16 +509,65 @@ public static class Program
         }
     }
 
-    private static void RestartApplication()
+    /// <summary>
+    /// Starts a new editor for <paramref name="sessionPath"/> (or for the new-project window, or with the current
+    /// session arguments when neither is asked), on the .NET major that session needs. The caller shuts this one down.
+    /// </summary>
+    internal static void Restart(string sessionPath, bool newProject = false)
     {
-        var args = Environment.GetCommandLineArgs();
-        var startInfo = new ProcessStartInfo(Assembly.GetEntryAssembly().Location)
-        {
-            Arguments = string.Join(" ", args.Skip(1)),
-            WorkingDirectory = Environment.CurrentDirectory,
-        };
+        var args = RestartArgs(sessionPath, newProject);
+        // Against our own build's major, not the one we may already have been re-executed on.
+        var decision = DotNetHostSelector.ResolveFor(AppDllPath, DotNetHostSelector.ReadNativeMajor(AppDllPath), sessionPath, args);
+        Start(decision.Kind == DotNetHostSelector.DecisionKind.Relaunch
+            ? DotNetHostSelector.RelaunchStartInfo(AppDllPath, decision.Major, args, decision.Install)
+            : DotNetHostSelector.NativeStartInfo(AppDllPath, args));
+    }
+
+    private static void StartRelaunched(DotNetHostSelector.Decision decision, IEnumerable<string> args)
+        => Start(DotNetHostSelector.RelaunchStartInfo(AppDllPath, decision.Major, args, decision.Install));
+
+    private static void Start(ProcessStartInfo startInfo)
+    {
+        // dotnet.exe is a console program; started from a GUI process it would get a console window of its own.
+        startInfo.CreateNoWindow = true;
         Process.Start(startInfo);
-        Environment.Exit(0);
+    }
+
+    // Host decision for a session; a missing runtime or SDK is reported here, once.
+    private static DotNetHostSelector.Decision ResolveHost(string sessionPath, IEnumerable<string> args)
+    {
+        var decision = DotNetHostSelector.ResolveFor(AppDllPath, Environment.Version.Major, sessionPath, args);
+        if (decision.Kind == DotNetHostSelector.DecisionKind.Missing)
+            MessageBox.Show(decision.Reason, "Stride", MessageBoxButton.OK, MessageBoxImage.Warning);
+        return decision;
+    }
+
+    // The options the argument loop recognised, in order, and apart from them the session tokens (a path, /NewProject).
+    private static readonly List<(string Option, string Value)> forwardedArgs = [];
+    private static readonly List<string> sessionArgs = [];
+
+    private static void Forward(string option, string value = null) => forwardedArgs.Add((option, value));
+
+    // The command line for a new editor process: the recognised options (the launcher handshake dropped once
+    // answered), then the session: the one given, or the current one when neither a path nor a new project is asked.
+    private static List<string> RestartArgs(string sessionPath, bool newProject)
+    {
+        var result = new List<string>();
+        foreach (var (option, value) in forwardedArgs)
+        {
+            if (launcherNotified && option.StartsWith("/Launcher"))
+                continue;
+            result.Add(option);
+            if (value != null)
+                result.Add(value);
+        }
+        if (sessionPath != null)
+            result.Add(sessionPath);
+        else if (newProject)
+            result.Add("/NewProject");
+        else
+            result.AddRange(sessionArgs);
+        return result;
     }
 
     private static IViewModelServiceProvider InitializeServiceProvider()
@@ -499,5 +608,6 @@ public static class Program
         {
             NativeHelper.SendMessage(windowHandle, NativeHelper.WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
         }
+        launcherNotified = true;
     }
 }

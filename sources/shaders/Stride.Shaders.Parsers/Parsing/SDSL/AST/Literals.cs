@@ -441,31 +441,40 @@ public abstract partial class IdentifierBase(string name, TextLocation info) : L
 
         var symbol = ShaderDefinition.ImportSymbol(table, context, ResolvedSymbol);
 
-        // Track when a stage method accesses a non-stage variable (without composition qualifier).
-        // This forces the shader to be fully imported at root level instead of stage-only during mixin.
-        if (symbol.MemberAccessWithImplicitThis != null && !symbol.Id.IsStage && builder.CurrentFunction is { IsStage: true })
-        {
-            var varOwner = symbol.OwnerType;
-            if (varOwner != null && varOwner != table.CurrentShader)
-            {
-                foreach (var inst in context)
-                {
-                    if (inst.Op == Spirv.Specification.Op.OpMixinInheritSDSL && (OpMixinInheritSDSL)inst is { } inherit
-                        && table.ResolveShader(inherit.Shader) is { } lss && lss.Name == varOwner.Name)
-                    {
-                        inherit.Flags |= Spirv.Specification.MixinInheritFlagsMask.NeedsFullImport;
-                        break;
-                    }
-                }
-            }
-            else
-            {
-                builder.CurrentFunction = builder.CurrentFunction.Value with { ReferencesNonStageMembers = true };
-            }
-            table.AddInfo(new(Info, $"Stage method '{table.CurrentShader?.Name}.{builder.CurrentFunction.Value.Name}' references non-stage variable '{varOwner?.Name ?? "?"}.{Name}'. This will cause the shader to be fully imported at root level instead of stage-only when used in a composition."));
-        }
+        // A shader name used as qualifier (LuminanceUtils.Luma(x)) reads no instance state; the member it qualifies is tracked by the accessor.
+        if (symbol.MemberAccessWithImplicitThis != null && symbol.Id.Kind != SymbolKind.Shader)
+            TrackNonStageVariableAccess(table, builder, context, symbol, Info);
 
         return EmitSymbol(builder, context, symbol, constantOnly);
+    }
+
+    /// <summary>
+    ///   Tracks a stage method reading a non-stage variable (without composition qualifier), which forces its shader
+    ///   to be fully imported at root level instead of stage-only during mixin.
+    /// </summary>
+    public static void TrackNonStageVariableAccess(SymbolTable table, SpirvBuilder builder, SpirvContext context, Symbol symbol, TextLocation info)
+    {
+        if (symbol.Id.IsStage || builder.CurrentFunction is not { IsStage: true })
+            return;
+
+        var varOwner = symbol.OwnerType;
+        if (varOwner != null && varOwner != table.CurrentShader)
+        {
+            foreach (var inst in context)
+            {
+                if (inst.Op == Spirv.Specification.Op.OpMixinInheritSDSL && (OpMixinInheritSDSL)inst is { } inherit
+                    && table.ResolveShader(inherit.Shader) is { } lss && lss.Name == varOwner.Name)
+                {
+                    inherit.Flags |= Spirv.Specification.MixinInheritFlagsMask.NeedsFullImport;
+                    break;
+                }
+            }
+        }
+        else
+        {
+            builder.CurrentFunction = builder.CurrentFunction.Value with { ReferencesNonStageMembers = true };
+        }
+        table.AddInfo(new(info, $"Stage method '{table.CurrentShader?.Name}.{builder.CurrentFunction.Value.Name}' references non-stage variable '{varOwner?.Name ?? "?"}.{symbol.Id.Name}'. This will cause the shader to be fully imported at root level instead of stage-only when used in a composition."));
     }
 }
 

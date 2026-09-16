@@ -13,6 +13,8 @@
     <Compile Include="..\Stride.NuGetResolver\RestoreHelper.cs" Link="RestoreHelper.cs" />
     <Compile Include="..\Stride.NuGetResolver\GraphicsApiSelector.cs" Link="GraphicsApiSelector.cs" />
     <Compile Include="..\Stride.NuGetResolver\GraphicsApiHostResolver.cs" Link="GraphicsApiHostResolver.cs" />
+    <Compile Include="..\Stride.NuGetResolver\DotNetHostSelector.cs" Link="DotNetHostSelector.cs" />
+    <Compile Include="..\Stride.NuGetResolver\HostInstanceMutex.cs" Link="HostInstanceMutex.cs" />
   </ItemGroup>
 
   <ItemGroup>

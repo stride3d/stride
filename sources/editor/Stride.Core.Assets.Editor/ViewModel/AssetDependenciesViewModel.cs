@@ -8,6 +8,7 @@ using Stride.Core.Assets.Analysis;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.ViewModels;
+using Stride.Core.Translation;
 
 namespace Stride.Core.Assets.Editor.ViewModel
 {
@@ -24,7 +25,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             : base(asset.SafeArgument(nameof(asset)).ServiceProvider)
         {
             Asset = asset;
-            ToggleIsRootOnSelectedAssetCommand = new AnonymousCommand(ServiceProvider, () => IsRoot = !IsRoot);
+            ToggleIsRootOnSelectedAssetCommand = new AnonymousCommand(ServiceProvider, () => Session.ToggleRootAsset(new[] { Asset }, Session.GetDefaultRootAssetTarget(new[] { Asset })));
             ForcedRoot = forcedRoot;
             DirtyDependencies.Add(asset);
         }
@@ -64,22 +65,22 @@ namespace Stride.Core.Assets.Editor.ViewModel
         public IReadOnlyCollection<AssetViewModel> RecursiveReferencedAssets { get { return recursiveReferencedAssets; } private set { SetValue(ref recursiveReferencedAssets, value); } }
 
         /// <summary>
-        /// Gets whether this asset and all its references will be compiled.
+        /// Gets whether this asset and all its references will be compiled when building the current project: it is a
+        /// root asset of the current project or of one of its dependencies.
         /// </summary>
-        public bool IsRoot
-        {
-            get { return !Asset.IsDeleted && (Session.CurrentProject?.IsInScope(Asset) ?? false) && (ForcedRoot || (Session.CurrentProject?.RootAssets.Contains(Asset) ?? false)); }
-            set
-            {
-                if ((Session.CurrentProject?.IsInScope(Asset) ?? false) && !ForcedRoot)
-                {
-                    if (value)
-                        Session.CurrentProject.RootAssets.Add(Asset);
-                    else
-                        Session.CurrentProject.RootAssets.Remove(Asset);
-                }
-            }
-        }
+        public bool IsRoot => !Asset.IsDeleted && (Session.CurrentProject?.IsInScope(Asset) ?? false) && (ForcedRoot || Session.CurrentProject.IsRootInBuild(Asset));
+
+        /// <summary>
+        /// Gets the packages this asset is a root asset of.
+        /// </summary>
+        public IEnumerable<PackageViewModel> RootPackages => Session.LocalPackages.Where(x => x.RootAssets.Contains(Asset));
+
+        /// <summary>
+        /// Gets the inclusion description shown for a root asset, naming the packages that root it.
+        /// </summary>
+        public string RootInclusionDescription => ForcedRoot
+            ? Tr._p("Message", "Included in build as root (always)")
+            : string.Format(Tr._p("Message", "Included in build as root (in {0})"), string.Join(", ", RootPackages.Select(x => x.Name)));
 
         /// <summary>
         /// Gets whether this asset will be compiled as a dependency of an asset that has <see cref="IsRoot"/> set to <c>true</c>.
@@ -150,6 +151,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         {
             nameof(IsRoot), nameof(IsIndirectlyIncluded), nameof(IsExcluded),
             nameof(IsOverridden), nameof(IsBuiltAsRoot), nameof(IsBuiltAsDependency),
+            nameof(RootPackages), nameof(RootInclusionDescription),
         };
 
         private void NotifyInclusionChanging() => OnPropertyChanging(InclusionPropertyNames);
@@ -175,7 +177,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         }
 
         /// <summary>
-        /// Gets a command that will toggle the <see cref="IsRoot"/> property.
+        /// Gets a command that toggles this asset as a root asset of its default target package (see <see cref="SessionViewModel.GetDefaultRootAssetTarget"/>).
         /// </summary>
         public ICommandBase ToggleIsRootOnSelectedAssetCommand { get; }
 

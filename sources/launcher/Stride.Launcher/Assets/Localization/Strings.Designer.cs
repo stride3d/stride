@@ -546,6 +546,42 @@ namespace Stride.Launcher.Assets.Localization {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Default .NET version.
+        /// </summary>
+        public static string RuntimeDefault {
+            get {
+                return ResourceManager.GetString("RuntimeDefault", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to .NET {0} or newer (default).
+        /// </summary>
+        public static string RuntimeDefaultMajor {
+            get {
+                return ResourceManager.GetString("RuntimeDefaultMajor", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to .NET {0} or newer.
+        /// </summary>
+        public static string RuntimeNewerMajor {
+            get {
+                return ResourceManager.GetString("RuntimeNewerMajor", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Game Studio runs on this .NET version, or on a newer one when the project needs it..
+        /// </summary>
+        public static string RuntimeSelectorTooltip {
+            get {
+                return ResourceManager.GetString("RuntimeSelectorTooltip", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Exit.
         /// </summary>
         public static string SelfUpdateExit {

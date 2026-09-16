@@ -76,7 +76,7 @@ Subclasses must implement `Name` and `FullName`, and override `UpdateStatus` to 
 
 ## Version view models
 
-- [**StrideVersionViewModel**](../../sources/launcher/Stride.Launcher/ViewModels/StrideVersionViewModel.cs) — abstract base. Adds `Major`/`Minor`, `Frameworks` (discovered by scanning `tools/`/`lib/`), `SelectedFramework`, and `LocateMainExecutable()`.
+- [**StrideVersionViewModel**](../../sources/launcher/Stride.Launcher/ViewModels/StrideVersionViewModel.cs) — abstract base. Adds `Major`/`Minor`, `AvailableEditors` (discovered by scanning `tools/`/`lib/`), `SelectedEditor`, and `LocateMainExecutable()`.
 - [**StrideStoreVersionViewModel**](../../sources/launcher/Stride.Launcher/ViewModels/StrideStoreVersionViewModel.cs) — an official release. Holds `ReleaseNotes` and `DocumentationPages`, manages the prerequisites installer (`Bin\Prerequisites\install-prerequisites.exe`), and exposes the VSIX packages.
 - [**StrideStoreAlternateVersionViewModel**](../../sources/launcher/Stride.Launcher/ViewModels/StrideStoreAlternateVersionViewModel.cs) — a sibling patch variant that resolves under the same `StrideStoreVersionViewModel`.
 - [**StrideDevVersionViewModel**](../../sources/launcher/Stride.Launcher/ViewModels/StrideDevVersionViewModel.cs) — a local build registered via `LauncherSettings.DeveloperVersions` or a `DevRedirect` package. Never downloadable. Marked as "compatible with every project" in the recent projects list.
@@ -101,7 +101,7 @@ See [versions.md](versions.md) for the full install/uninstall flow.
 
 ## Converter
 
-[FrameworkConverter.cs](../../sources/launcher/Stride.Launcher/ViewModels/FrameworkConverter.cs) is a one-way value converter that renders a NuGet framework folder name (`net10.0-windows`) as a human-readable label (`.NET 10.0 (Windows)`). It lives in the ViewModels folder rather than Views because it is consumed by bindings alongside `SelectedFramework`.
+[EditorNameConverter.cs](../../sources/launcher/Stride.Launcher/ViewModels/EditorNameConverter.cs) is a one-way value converter that renders an editor package name (`Stride.GameStudio.Avalonia.Desktop`) as a human-readable label. It lives in the ViewModels folder rather than Views because it is consumed by bindings alongside `SelectedEditor`.
 
 ## Threading notes
 

@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Diagnostics;
+using Stride.Core.Assets;
 using Stride.Core.Extensions;
 using Stride.Core.Packages;
 using Stride.Core.Presentation.Avalonia.Windows;
@@ -17,12 +18,12 @@ internal class UninstallHelper : IDisposable
     internal UninstallHelper(IViewModelServiceProvider serviceProvider, NugetStore store)
     {
         this.store = store;
-        store.NugetPackageUninstalling += PackageUninstalling;
+        store.UninstallGuard = CanUninstallAsync;
     }
 
     public void Dispose()
     {
-        store.NugetPackageUninstalling -= PackageUninstalling;
+        store.UninstallGuard = null;
     }
 
     /// <summary>
@@ -39,6 +40,7 @@ internal class UninstallHelper : IDisposable
         // Check processes
         var processesWithWindow = new List<Tuple<string, Process>>();
         List<Process> processes;
+        var editorRunning = false;
         do
         {
             processes = CollectPackageProcesses(path);
@@ -75,7 +77,14 @@ internal class UninstallHelper : IDisposable
                     return false;
                 }
             }
-        } while (processesWithWindow.Count > 0);
+            else
+            {
+                // A Game Studio re-executed on another .NET major is a dotnet process the scan misses; it holds a marker instead.
+                editorRunning = PackageLayout.FrameworkDirectories(path).Any(HostInstanceMutex.IsHeld);
+                if (editorRunning && !await showMessageAsync($"Can't uninstall {uninstallingProgramName} because Game Studio is still running from it.{Environment.NewLine}{Environment.NewLine}Please close it and press OK to try again, or Cancel to stop."))
+                    return false;
+            }
+        } while (processesWithWindow.Count > 0 || editorRunning);
 
         // Kill all other processes (there should be no processes with main window left, so probably services/console apps)
         foreach (var process in processes)
@@ -136,14 +145,15 @@ internal class UninstallHelper : IDisposable
         return result;
     }
 
-    private static async Task<bool> DisplayMessageAsync(string message)
-    {
-        var result = await MessageBox.ShowAsync(Launcher.ApplicationName, message, IDialogService.GetButtons(MessageBoxButton.OKCancel));
-        return result != (int)MessageBoxResult.Cancel;
-    }
+    // On the UI thread: the launcher uninstalls from worker threads.
+    private static Task<bool> DisplayMessageAsync(string message)
+        => Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(async () =>
+        {
+            var result = await MessageBox.ShowAsync(Launcher.ApplicationName, message, IDialogService.GetButtons(MessageBoxButton.OKCancel));
+            return result != (int)MessageBoxResult.Cancel;
+        });
 
-    private static async void PackageUninstalling(object? sender, PackageOperationEventArgs e)
-    {
-        await CloseProcessesInPathAsync(DisplayMessageAsync, e.Id, e.InstallPath);
-    }
+    // Awaited by the store before it deletes anything, so Cancel keeps the package.
+    private static Task<bool> CanUninstallAsync(PackageOperationEventArgs e)
+        => CloseProcessesInPathAsync(DisplayMessageAsync, e.Id, e.InstallPath);
 }

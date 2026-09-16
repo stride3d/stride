@@ -16,16 +16,6 @@ public partial class MainView : UserControl
         InitializeComponent();
     }
 
-    private void FrameworkChanged(object? sender, SelectionChangedEventArgs e)
-    {
-        if (DataContext is MainViewModel vm
-            && FrameworkSelector.SelectedItem is string framework
-            && vm.PreferredFramework != framework)
-        {
-            vm.PreferredFramework = framework;
-        }
-    }
-
     private void EditorChanged(object? sender, SelectionChangedEventArgs e)
     {
         if (DataContext is MainViewModel vm

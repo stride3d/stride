@@ -15,7 +15,8 @@ Both go through the [Stride.Core.Settings](../../sources/core/Stride.Core.Design
 |---|---|---|
 | `Internal/Launcher/CloseLauncherAutomatically` | `false` | User toggles the "Close launcher after starting Game Studio" checkbox |
 | `Internal/Launcher/ActiveVersion` | `""` | `MainViewModel.StartStudio` — the name of the version used to start Game Studio |
-| `Internal/Launcher/PreferredFramework` | `"net10.0"` | User picks a framework in the framework combo — set by `MainView.FrameworkChanged` |
+| `Internal/Launcher/PreferredEditor` | `""` | User picks an editor (Avalonia or WPF) in the editor combo — set by `MainView.EditorChanged` |
+| `Internal/Launcher/PreferredRuntime` | `""` (default entry) | User picks a .NET major in the runtime combo — set by `MainViewModel.SelectedRuntime` |
 | `Internal/Launcher/CurrentTabSessions` | `0` | User changes the active tab |
 | `Internal/Launcher/DeveloperVersions` | `[]` | Dev versions added manually by advanced users (no UI yet) — consumed at startup to add `StrideDevVersionViewModel` entries |
 

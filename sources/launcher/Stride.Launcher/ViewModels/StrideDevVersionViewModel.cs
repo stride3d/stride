@@ -24,8 +24,8 @@ public sealed class StrideDevVersionViewModel : StrideVersionViewModel
         this.localPackage = localPackage;
         this.isDevRedirect = isDevRedirect;
         DownloadCommand.IsEnabled = false;
-        // Populate the framework list so SelectedFramework is set and the version can be started.
-        UpdateFrameworks();
+        // Find the editors so the version can be started.
+        UpdateAvailableEditors();
         // Update initial status (IsVisible will be set to true)
         UpdateStatus();
     }
@@ -48,6 +48,19 @@ public sealed class StrideDevVersionViewModel : StrideVersionViewModel
 
     /// <inheritdoc/>
     public override string InstallPath => path.ToOSPath();
+
+    // A dev-redirect stub stands for the in-tree project, whose editor is in bin/<Configuration>/<tfm>; the
+    // first configuration built is the one used. A dev-versioned package that is a real package keeps its layout.
+    protected override IEnumerable<string> FrameworkDirectories()
+    {
+        var packageDirectories = base.FrameworkDirectories().ToList();
+        if (!isDevRedirect || packageDirectories.Count > 0)
+            return packageDirectories;
+        var configuration = new[] { "Debug", "Release" }
+            .Select(name => Path.Combine(InstallPath, "bin", name))
+            .FirstOrDefault(Directory.Exists);
+        return configuration is null ? [] : Directory.EnumerateDirectories(configuration);
+    }
 
 
     // This property is not used because a dev version cannot be downloaded.

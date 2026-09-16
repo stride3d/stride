@@ -237,6 +237,12 @@ public partial class NugetStore : INugetDownloadProgress
     public event EventHandler<PackageOperationEventArgs>? NugetPackageUninstalling;
 
     /// <summary>
+    /// Awaited before a package's files are deleted; returning false cancels the uninstall with an
+    /// <see cref="OperationCanceledException"/>. Unlike <see cref="NugetPackageUninstalling"/>, it can wait on the user.
+    /// </summary>
+    public Func<PackageOperationEventArgs, Task<bool>>? UninstallGuard { get; set; }
+
+    /// <summary>
     /// Installation path of <paramref name="package"/>
     /// </summary>
     /// <param name="id">Id of package to query.</param>
@@ -659,6 +665,13 @@ public partial class NugetStore : INugetDownloadProgress
         var installedPackages = GetPackagesInstalled([package.Id]);
         Debug.Assert(installedPackages.FirstOrDefault(p => p.Equals(package)) is not null);
 #endif
+        // Before the repository lock: the guard may wait on the user.
+        if (UninstallGuard is { } guard && GetInstalledPath(package.Id, package.Version) is { } guardedPath
+            && !await guard(new PackageOperationEventArgs(new PackageName(package.Id, package.Version), guardedPath)))
+        {
+            throw new OperationCanceledException($"Uninstalling {package.Id} {package.Version} was cancelled.");
+        }
+
         using (GetLocalRepositoryLock())
         {
             currentProgressReport = progress;

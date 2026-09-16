@@ -12,6 +12,9 @@
     <!-- Desktop-only tool: drop non-desktop runtimes/<rid>/ (mobile, ~250 MB) from the no-RID output. -->
     <StrideToolingHost>true</StrideToolingHost>
     <TargetFrameworks>$(StrideXplatEditorTargetFramework)</TargetFrameworks>
+    <!-- Starts on the next .NET major when its own is not installed; its own is preferred when present. The
+         host template below is generated with its own policy and is not affected. -->
+    <RollForward>Major</RollForward>
     <TargetFrameworks Condition="$(StridePlatforms.Contains('Windows'))">$(StrideFrameworkWindows);$(TargetFrameworks)</TargetFrameworks>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
@@ -23,7 +26,6 @@
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="..\..\shared\LoaderToolLocator\LoaderToolLocator.cs" Link="LoaderToolLocator.cs" />
     <!-- Native fault handler for capturing access violations in native importers/shader compilers. -->
     <Compile Include="..\..\shared\NativeCrashHandler.cs" Link="NativeCrashHandler.cs" />
     <None Include="build\**\*.targets" PackagePath="build\" Pack="true" />
@@ -59,4 +61,36 @@
   </ItemGroup>
   <Import Project="..\..\shared\Stride.NuGetResolver.Targets\Stride.NuGetResolver.Targets.projitems" Label="Shared" />
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />
+
+  <!-- Template for running the compiler on a newer .NET major than its own (see build/Stride.AssetCompiler.targets):
+       the SDK's own runtimeconfig writer, with every framework at {MAJOR}.0.0-0 (sorts below any prerelease, so
+       LatestMinor reaches previews of a major as well as its releases). -->
+  <PropertyGroup>
+    <_StrideHostRuntimeConfigTemplate>$([System.IO.Path]::ChangeExtension('$(ProjectRuntimeConfigFilePath)', '.template.json'))</_StrideHostRuntimeConfigTemplate>
+  </PropertyGroup>
+  <Target Name="_StrideGenerateHostRuntimeConfigTemplate" AfterTargets="GenerateBuildRuntimeConfigurationFiles" Condition="'$(GenerateRuntimeConfigurationFiles)' == 'true'"
+          Inputs="$(ProjectAssetsFile);$(ProjectRuntimeConfigFilePath);$(MSBuildAllProjects)" Outputs="$(_StrideHostRuntimeConfigTemplate)">
+    <ItemGroup>
+      <_StrideTemplateRuntimeFramework Include="@(RuntimeFramework)" Version="{MAJOR}.0.0-0" />
+    </ItemGroup>
+    <GenerateRuntimeConfigurationFiles AssetsFilePath="$(ProjectAssetsFile)"
+                                       TargetFramework="$(TargetFramework)"
+                                       TargetFrameworkMoniker="$(TargetFrameworkMoniker)"
+                                       RuntimeConfigPath="$(_StrideHostRuntimeConfigTemplate)"
+                                       RuntimeIdentifier="$(RuntimeIdentifier)"
+                                       PlatformLibraryName="$(MicrosoftNETPlatformLibrary)"
+                                       RuntimeFrameworks="@(_StrideTemplateRuntimeFramework)"
+                                       RollForward="LatestMinor"
+                                       UserRuntimeConfig="$(UserRuntimeConfig)"
+                                       HostConfigurationOptions="@(RuntimeHostConfigurationOption)"
+                                       AdditionalProbingPaths="@(AdditionalProbingPath)"
+                                       IsSelfContained="$(SelfContained)"
+                                       GenerateRuntimeConfigDevFile="false"
+                                       AlwaysIncludeCoreFramework="$(AlwaysIncludeCoreFrameworkInRuntimeConfig)" />
+    <Error Condition="!$([System.IO.File]::ReadAllText('$(_StrideHostRuntimeConfigTemplate)').Contains('{MAJOR}.0.0-0'))"
+           Text="The runtime config template $(_StrideHostRuntimeConfigTemplate) has no {MAJOR} placeholder; the SDK's runtimeconfig writer changed." />
+    <ItemGroup>
+      <FileWrites Include="$(_StrideHostRuntimeConfigTemplate)" />
+    </ItemGroup>
+  </Target>
 </Project>
