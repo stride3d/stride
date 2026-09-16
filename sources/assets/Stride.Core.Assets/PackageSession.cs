@@ -1167,7 +1167,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
             // Asset types come from every package's assemblies (e.g. a companion package loaded after this one), so
             // list the files again now that all of them are loaded; files already listed keep their upgraded content
             var previousFiles = assetInfo.newLoadParameters.AssetFiles?.ToDictionary(f => f.FilePath.FullPath, StringComparer.OrdinalIgnoreCase);
-            var assetFiles = Package.ListAssetFiles(assetInfo.package, true, false);
+            var assetFiles = Package.ListAssetFiles(assetInfo.package, true, false, loadParameters.LoadAssetsOfUnknownType);
             if (previousFiles is not null)
             {
                 for (var i = 0; i < assetFiles.Count; i++)
@@ -1727,7 +1727,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
             package.LoadAssemblies(log, newLoadParameters);
 
             // Load list of assets
-            newLoadParameters.AssetFiles = Package.ListAssetFiles(package, true, false);
+            newLoadParameters.AssetFiles = Package.ListAssetFiles(package, true, false, loadParameters.LoadAssetsOfUnknownType);
             // Sort them by size (to improve concurrency during load)
             newLoadParameters.AssetFiles.Sort(PackageLoadingAssetFile.FileSizeComparer.Default);
 

@@ -100,7 +100,7 @@ public static class AssetFileSerializer
 
         var serializer = FindSerializer(assetFileExtension)
             ?? throw new InvalidOperationException("Unable to find a serializer for [{0}]".ToFormat(assetFileExtension));
-        var asset = (T)serializer.Load(stream, filePath, log, true, out var aliasOccurred, out var yamlMetadata, assetNamespace);
+        var asset = (T)serializer.Load(stream, filePath, log, true, out var aliasOccurred, out var yamlMetadata, assetNamespace, typeof(T));
         return new AssetLoadResult<T>(asset, log, aliasOccurred, yamlMetadata);
     }
 

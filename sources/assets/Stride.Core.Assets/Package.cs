@@ -842,7 +842,7 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
             // Load assets
             if (loadParameters.AutoLoadTemporaryAssets)
             {
-                LoadTemporaryAssets(log, loadParameters.AssetFiles, loadParameters.TemporaryAssetsInMsbuild, loadParameters.TemporaryAssetFilter, loadParameters.CancelToken ?? default);
+                LoadTemporaryAssets(log, loadParameters.AssetFiles, loadParameters.TemporaryAssetsInMsbuild, loadParameters.TemporaryAssetFilter, loadParameters.CancelToken ?? default, loadParameters.LoadAssetsOfUnknownType);
             }
 
             // Convert UPath to absolute
@@ -945,7 +945,7 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
     /// <exception cref="InvalidOperationException">Package RootDirectory is null
     /// or
     /// Package RootDirectory [{0}] does not exist.ToFormat(RootDirectory)</exception>
-    public void LoadTemporaryAssets(ILogger log, List<PackageLoadingAssetFile>? assetFiles = null, bool listAssetsInMsbuild = true, Func<PackageLoadingAssetFile, bool>? filterFunc = null, CancellationToken cancellationToken = default)
+    public void LoadTemporaryAssets(ILogger log, List<PackageLoadingAssetFile>? assetFiles = null, bool listAssetsInMsbuild = true, Func<PackageLoadingAssetFile, bool>? filterFunc = null, CancellationToken cancellationToken = default, bool listAssetsOfUnknownType = false)
     {
         ArgumentNullException.ThrowIfNull(log);
 
@@ -962,7 +962,7 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
         // List all package files on disk
         if (assetFiles is null)
         {
-            assetFiles = ListAssetFiles(this, listAssetsInMsbuild, false);
+            assetFiles = ListAssetFiles(this, listAssetsInMsbuild, false, listAssetsOfUnknownType);
             // Sort them by size (to improve concurrency during load)
             assetFiles.Sort(PackageLoadingAssetFile.FileSizeComparer.Default);
         }
@@ -1325,7 +1325,9 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
         return existingAssetFolders;
     }
 
-    public static List<PackageLoadingAssetFile> ListAssetFiles(Package package, bool listAssetsInMsbuild, bool listUnregisteredAssets)
+    /// <param name="listUnregisteredAssets">Every <c>.sd*</c> file is an asset file, whatever its type (packing).</param>
+    /// <param name="listAssetsOfUnknownType">Also list <c>.sd*</c> files starting with a Yaml type tag whose type is not loaded.</param>
+    public static List<PackageLoadingAssetFile> ListAssetFiles(Package package, bool listAssetsInMsbuild, bool listUnregisteredAssets, bool listAssetsOfUnknownType = false)
     {
         var listFiles = new List<PackageLoadingAssetFile>();
 
@@ -1373,9 +1375,11 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
                     }
 
                     //project source code assets follow the csproj pipeline
+                    var isStrideExtension = ext?.StartsWith(".sd", StringComparison.InvariantCultureIgnoreCase) ?? false;
                     var isAsset = listUnregisteredAssets
-                        ? ext?.StartsWith(".sd", StringComparison.InvariantCultureIgnoreCase) ?? false
-                        : AssetRegistry.IsAssetFileExtension(ext);
+                        ? isStrideExtension
+                        : AssetRegistry.IsAssetFileExtension(ext)
+                          || (listAssetsOfUnknownType && isStrideExtension && StartsWithYamlTag(filePath.FullName));
                     if (!isAsset || AssetRegistry.IsProjectAssetFileExtension(ext))
                     {
                         continue;
@@ -1394,6 +1398,32 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
         }
 
         return listFiles;
+    }
+
+    /// <summary>
+    /// Whether the file starts with a Yaml type tag (<c>!SceneAsset</c>), the first line of every asset file.
+    /// </summary>
+    private static bool StartsWithYamlTag(string filePath)
+    {
+        try
+        {
+            using var reader = new StreamReader(filePath);
+            string? line;
+            while ((line = reader.ReadLine()) is not null)
+            {
+                if (line.Length == 0)
+                    continue;
+                return line[0] == '!';
+            }
+        }
+        catch (IOException)
+        {
+            // Not readable: leave it alone
+        }
+        catch (UnauthorizedAccessException)
+        {
+        }
+        return false;
     }
 
     public static List<(UFile FilePath, UFile? Link)> FindAssetsInProject(string projectFullPath, out string? nameSpace)
