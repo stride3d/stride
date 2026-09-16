@@ -164,6 +164,12 @@ public sealed class PackageLoadParameters
     public bool TemporaryAssetsInMsbuild { get; set; } = true;
 
     /// <summary>
+    /// Load asset files whose asset type is not loaded as unloadable assets that keep their content.
+    /// Only the editor sets this, so a build does not fail on a stray file.
+    /// </summary>
+    public bool LoadAssetsOfUnknownType { get; set; }
+
+    /// <summary>
     /// Clones this instance.
     /// </summary>
     /// <returns>PackageLoadParameters.</returns>

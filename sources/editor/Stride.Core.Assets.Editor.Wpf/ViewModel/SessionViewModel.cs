@@ -497,6 +497,8 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 BackupBeforeUpgrade = true,
                 LoadEditorPackages = true,
                 EditorToolkit = EditorToolkitName,
+                // An asset of a missing plugin stays in the session as an unloadable asset
+                LoadAssetsOfUnknownType = true,
             };
             var backupChoiceMade = false;
             loadParameters.PackageUpgradeRequested = (package, pendingUpgrades) =>
