@@ -21,7 +21,8 @@
                              re-open them on a worktree later.
     SamplesToReleaseEngine - switch the dev version back to the clean release version. Run before committing.
     PackContentTemplates   - pack Stride.Templates.Samples / .Games.Starters / .AssetPacks (a normal build never does).
-    CleanContentTemplates  - remove this checkout's local content packs, so the published ones resolve again.
+    CleanContentTemplates  - remove this checkout's local content packs, so the published ones resolve again
+                             (a build with StridePackContentTemplates off also does it).
 -->
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 

@@ -19,10 +19,11 @@ namespace Stride.Assets.Templates;
 /// <remarks>
 /// The content packages are versioned independently of the engine: an engine names the exact content version it was
 /// released with (<c>StrideVersion.SamplesVersion</c>, recorded as Stride.GameStudio's pinned dependency), and
-/// that is what resolves, wherever it is installed from. The one exception is a developer's own checkout: a build
-/// with the checkout's <c>-devN</c> suffix packs the content under that suffix, and such a pack numbered at or above
-/// the named version wins over the published one (it is what the samples being edited look like). A pack from
-/// another checkout (a different suffix) or a <c>-beta</c> engine never picks a dev pack.
+/// that is what resolves. The one exception is a developer's own checkout: with StridePackContentTemplates, a build
+/// with the checkout's <c>-devN</c> suffix packs the content as exactly that version plus the suffix
+/// (<c>4.4.0-beta7-dev4</c>), and that pack wins over the published one (it is what the samples being edited look
+/// like; the build removes it when the flag is turned off). Only a dev engine looks for it, and only with its own
+/// suffix, and then does not copy a local build of the published version (see <see cref="LocalBuildRange"/>).
 /// </remarks>
 public static class ContentTemplateResolver
 {
@@ -30,7 +31,7 @@ public static class ContentTemplateResolver
     public const string StartersPackageId = "Stride.Templates.Games.Starters";
     public const string AssetPacksPackageId = "Stride.Templates.AssetPacks";
 
-    /// <summary>The content-versioned template packages, all cut and published together at one content version.</summary>
+    /// <summary>The content-versioned template packages, all released together at one content version.</summary>
     public static readonly IReadOnlyList<string> PackageIds = [SamplesPackageId, StartersPackageId, AssetPacksPackageId];
 
     /// <summary>
@@ -39,47 +40,70 @@ public static class ContentTemplateResolver
     /// </summary>
     public const string ContentVersionDependencyId = SamplesPackageId;
 
-    private static readonly Regex DevSuffix = new("^dev[0-9]*$", RegexOptions.CultureInvariant);
+    // The checkout suffix ends the prerelease label: "dev4", or "beta8-dev4" for a dev build of a beta engine.
+    private static readonly Regex DevSuffix = new("(?:^|-)(dev[0-9]*)$", RegexOptions.CultureInvariant);
 
     public static bool IsContentPackage(string packageId)
         => PackageIds.Contains(packageId, StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
-    /// The checkout suffix (<c>dev</c>, <c>dev3</c>, ...) of a development engine build, null for a release or
-    /// prerelease engine. Only a dev host may prefer a dev content pack.
+    /// The checkout suffix (<c>dev</c>, <c>dev3</c>, ...) of a development engine build (<c>4.4.0-dev3</c>,
+    /// <c>4.4.0-beta8-dev3</c>), null for a release or prerelease engine. Only a dev host may use a dev content pack.
     /// </summary>
     public static string? DevSuffixOf(PackageVersion hostVersion)
-        => hostVersion.SpecialVersion is { Length: > 0 } special && DevSuffix.IsMatch(special) ? special : null;
+        => DevSuffix.Match(hostVersion.SpecialVersion ?? string.Empty) is { Success: true } match ? match.Groups[1].Value : null;
 
     /// <summary>
-    /// Whether an installed <paramref name="candidate"/> may serve as content version <paramref name="contentVersion"/>
-    /// for the engine <paramref name="hostVersion"/>: the exact version, or this checkout's own dev pack numbered at
-    /// or above it.
+    /// The version of this checkout's own pack of <paramref name="contentVersion"/> (<c>4.4.0-beta7-dev4</c>), null
+    /// when <paramref name="hostVersion"/> is not a dev build.
     /// </summary>
-    public static bool IsAcceptable(PackageVersion candidate, PackageVersion contentVersion, PackageVersion hostVersion)
+    public static PackageVersion? DevPackVersion(PackageVersion contentVersion, PackageVersion hostVersion)
+        => DevSuffixOf(hostVersion) is { } devSuffix ? new PackageVersion($"{contentVersion}-{devSuffix}") : null;
+
+    /// <summary>
+    /// The content version an installed engine names through its pinned dependency <paramref name="pinned"/>. A dev
+    /// engine built with StridePackContentTemplates pins its own dev pack (<c>4.4.0-beta7-dev4</c>); its content
+    /// version is that without the engine's suffix, as the running engine sees it.
+    /// </summary>
+    public static PackageVersion ContentVersionFromPin(PackageVersion pinned, PackageVersion hostVersion)
     {
-        if (candidate.Equals(contentVersion))
-            return true;
         var devSuffix = DevSuffixOf(hostVersion);
-        return devSuffix is not null
-            && string.Equals(candidate.SpecialVersion, devSuffix, StringComparison.OrdinalIgnoreCase)
-            && candidate.Version >= contentVersion.Version;
+        var text = pinned.ToString();
+        return devSuffix is not null && text.EndsWith($"-{devSuffix}", StringComparison.OrdinalIgnoreCase)
+            ? new PackageVersion(text[..^(devSuffix.Length + 1)])
+            : pinned;
     }
 
     /// <summary>
-    /// The best acceptable package among <paramref name="installed"/>: this checkout's highest-numbered dev pack when
-    /// the host is a dev build, else the exact content version. Null when none is acceptable.
+    /// Whether an installed <paramref name="candidate"/> may serve as content version <paramref name="contentVersion"/>
+    /// for the engine <paramref name="hostVersion"/>: exactly that version, or exactly this checkout's pack of it.
+    /// </summary>
+    public static bool IsAcceptable(PackageVersion candidate, PackageVersion contentVersion, PackageVersion hostVersion)
+        => candidate.Equals(contentVersion) || candidate.Equals(DevPackVersion(contentVersion, hostVersion));
+
+    /// <summary>
+    /// The package among <paramref name="installed"/> to use: this checkout's pack when there is one, else the exact
+    /// content version. Null when neither is installed.
     /// </summary>
     public static NugetLocalPackage? Pick(IEnumerable<NugetLocalPackage> installed, PackageVersion contentVersion, PackageVersion hostVersion)
     {
-        var acceptable = installed.Where(package => IsAcceptable(package.Version, contentVersion, hostVersion)).ToList();
-        var devSuffix = DevSuffixOf(hostVersion);
-        var dev = devSuffix is null
-            ? null
-            : acceptable.Where(package => string.Equals(package.Version.SpecialVersion, devSuffix, StringComparison.OrdinalIgnoreCase))
-                .OrderByDescending(package => package.Version)
-                .FirstOrDefault();
-        return dev ?? acceptable.FirstOrDefault(package => package.Version.Equals(contentVersion));
+        var devPack = DevPackVersion(contentVersion, hostVersion);
+        var candidates = installed.ToList();
+        return candidates.FirstOrDefault(package => package.Version.Equals(devPack))
+            ?? candidates.FirstOrDefault(package => package.Version.Equals(contentVersion));
+    }
+
+    /// <summary>
+    /// The one version a host takes from local package sources (a checkout's <c>bin/packages</c>, the nugetdev feed),
+    /// as an exact range. A dev host takes only this checkout's pack: a local file carrying the published version
+    /// (same number, maybe different content) is not taken over the published one. A host without a checkout suffix
+    /// (a CI build, or a checkout building the clean version) packs the content under the plain version, and takes
+    /// that local build.
+    /// </summary>
+    public static PackageVersionRange LocalBuildRange(PackageVersion contentVersion, PackageVersion hostVersion)
+    {
+        var version = DevPackVersion(contentVersion, hostVersion) ?? contentVersion;
+        return new PackageVersionRange(version, true, version, true);
     }
 
     /// <summary>
@@ -87,16 +111,20 @@ public static class ContentTemplateResolver
     /// acceptable installs the exact content version from the configured sources (once; it then stays in the
     /// store). Returns null when it is neither installed nor obtainable (offline, or not published yet).
     /// </summary>
-    /// <param name="installed">Lists the installed copies of a package id.</param>
-    /// <param name="install">Installs a package at a version from the sources; null when it could not be obtained.</param>
+    /// <param name="installed">
+    /// Lists the installed copies of a package id, first taking the given range from local package sources
+    /// (<see cref="LocalBuildRange"/>).
+    /// </param>
+    /// <param name="install">Installs exactly a version of a package from the sources; null when it could not be obtained.</param>
     /// <param name="log">Receives one line saying which copy won, or why none did.</param>
     public static async Task<NugetLocalPackage?> ResolveAsync(
         string packageId, PackageVersion contentVersion, PackageVersion hostVersion,
-        Func<string, IEnumerable<NugetLocalPackage>> installed,
+        Func<string, PackageVersionRange, IEnumerable<NugetLocalPackage>> installed,
         Func<string, PackageVersion, Task<NugetLocalPackage?>> install,
         Action<string>? log = null)
     {
-        var picked = Pick(installed(packageId), contentVersion, hostVersion);
+        var localBuildRange = LocalBuildRange(contentVersion, hostVersion);
+        var picked = Pick(installed(packageId, localBuildRange), contentVersion, hostVersion);
         if (picked is not null)
         {
             log?.Invoke(picked.Version.Equals(contentVersion)
@@ -117,9 +145,9 @@ public static class ContentTemplateResolver
             return null;
         }
 
-        // Re-pick rather than trust the returned object: the install may report through a different package
-        // instance than the store enumerates, and a failed install returns null.
-        picked = fetched is null ? null : Pick(installed(packageId), contentVersion, hostVersion) ?? fetched;
+        // Re-pick rather than trust the returned object: only the exact version may be used, whatever the install
+        // reports.
+        picked = fetched is null ? null : Pick(installed(packageId, localBuildRange), contentVersion, hostVersion);
         log?.Invoke(picked is null
             ? $"{packageId} {contentVersion} could not be installed (not published, or no package source reachable)."
             : $"{packageId}: installed the content version {contentVersion} this engine names.");

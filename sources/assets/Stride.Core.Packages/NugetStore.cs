@@ -279,16 +279,20 @@ public partial class NugetStore : INugetDownloadProgress
     /// <returns>The list of packages sorted from the most recent to the oldest.</returns>
     public IList<NugetLocalPackage> GetPackagesInstalled(IEnumerable<string> packageIds)
     {
-        return [.. packageIds.SelectMany(GetLocalPackages).OrderByDescending(p => p.Version)];
+        return [.. packageIds.SelectMany(packageId => GetLocalPackages(packageId)).OrderByDescending(p => p.Version)];
     }
 
     /// <summary>
     /// List of all installed packages.
     /// </summary>
     /// <returns>A list of packages.</returns>
-    public IEnumerable<NugetLocalPackage> GetLocalPackages(string packageId)
+    /// <param name="packageId">The package.</param>
+    /// <param name="localBuildRange">
+    /// The versions to take from local-folder sources first (see <see cref="SyncLocalFolderSources"/>), null for all.
+    /// </param>
+    public IEnumerable<NugetLocalPackage> GetLocalPackages(string packageId, PackageVersionRange? localBuildRange = null)
     {
-        SyncLocalFolderSources(packageId);
+        SyncLocalFolderSources(packageId, localBuildRange);
 
         var res = new List<NugetLocalPackage>();
 
@@ -364,21 +368,26 @@ public partial class NugetStore : INugetDownloadProgress
     }
 
     /// <summary>
-    /// Mirrors any .nupkg of <paramref name="packageId"/> from configured local-folder NuGet sources
+    /// Mirrors the .nupkg files of <paramref name="packageId"/> from configured local-folder NuGet sources
     /// (e.g. a worktree's <c>bin/packages</c>) into the global packages folder when the source nupkg
     /// is newer than the extracted form. Lets dev-built packages flow into <see cref="GetLocalPackages"/>
     /// without a separate restore step.
     /// </summary>
-    private void SyncLocalFolderSources(string packageId)
+    /// <param name="versionRange">
+    /// The versions to mirror, null for all: only what the caller's query could use. A lookup for one version does
+    /// not mirror a local copy of another (same id, maybe different content) over the installed one.
+    /// </param>
+    private void SyncLocalFolderSources(string packageId, PackageVersionRange? versionRange = null)
     {
         if (InstallPath == null)
             return;
 
         lock (localFolderSyncLock)
         {
-            // Each id is synced at most once per process
-            if (!syncedPackageIds.Add(packageId))
+            // Each id, for each range asked of it, is synced at most once per process.
+            if (!syncedPackageIds.Add($"{packageId}/{versionRange}"))
                 return;
+            var wanted = versionRange?.ToVersionRange();
 
             if (localFolderResources == null)
             {
@@ -407,19 +416,22 @@ public partial class NugetStore : INugetDownloadProgress
 
                 foreach (var (source, findPackageById) in localFolderResources)
                 {
-                    List<NuGetVersion> versions;
+                    List<NuGetVersion> sourceVersions;
                     try
                     {
                         // Versions come from file names; no nupkg is opened at this point
-                        versions = (await findPackageById.GetAllVersionsAsync(packageId, localFolderCacheContext, NativeLogger, CancellationToken.None).ConfigureAwait(false)).ToList();
+                        sourceVersions = (await findPackageById.GetAllVersionsAsync(packageId, localFolderCacheContext, NativeLogger, CancellationToken.None).ConfigureAwait(false)).ToList();
                     }
                     catch
                     {
                         continue;
                     }
 
-                    foreach (var version in versions)
+                    foreach (var version in sourceVersions)
                     {
+                        // Satisfies, not a float-aware check: the content packs are prereleases (4.4.0-beta7-dev4).
+                        if (wanted is not null && !wanted.Satisfies(version))
+                            continue;
                         var identity = new PackageIdentity(packageId, version);
 
                         // Try the conventional file name first to avoid opening the package
@@ -564,7 +576,8 @@ public partial class NugetStore : INugetDownloadProgress
                                 [
                                     new()
                                     {
-                                        LibraryRange = new LibraryRange(packageId, new VersionRange(version.ToNuGetVersion()), LibraryDependencyTarget.Package),
+                                        // Exactly this version: a bare version is ">=" to NuGet, which would silently take a higher one.
+                                        LibraryRange = new LibraryRange(packageId, new VersionRange(version.ToNuGetVersion(), true, version.ToNuGetVersion(), true), LibraryDependencyTarget.Package),
                                     }
                                 ],
                         });
@@ -794,7 +807,8 @@ public partial class NugetStore : INugetDownloadProgress
             return GetPackagesInstalled([packageId]).FirstOrDefault(p => allowPrereleaseVersions || string.IsNullOrEmpty(p.Version.SpecialVersion));
         }
 
-        var packages = GetLocalPackages(packageId);
+        // The range is the mirror filter too: local-folder sources give up only what this lookup could use.
+        var packages = GetLocalPackages(packageId, constraintProvider is null ? versionRange : null);
 
         if (!allowUnlisted)
         {

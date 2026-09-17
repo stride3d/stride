@@ -123,21 +123,40 @@
     <Error Text="StridePackageBuild=true requires StrideTemplatesPackMode=preprocessed; got '$(StrideTemplatesPackMode)'." />
   </Target>
 
-  <!-- Removes this checkout's local content packs (bin/packages, the nugetdev feed, the extracted copy in the
-       global cache): a -devN pack keeps winning in the bridge and the CLI after StridePackContentTemplates is
-       turned off, until it is gone. build/Stride.Samples.build -t:CleanContentTemplates runs it on all three. -->
+  <!-- The feeds a content pack lands in (auto-pack writes the first, the deploy step the second). One list, read by
+       CleanContentTemplates and by the VS up-to-date hook below; the second form keeps only the packs this checkout
+       produced (an item Condition cannot batch on %(Filename) outside a target, so the suffix is in the glob). -->
+  <PropertyGroup Condition="'$(StrideTemplateContentVersioned)' == 'true'">
+    <_StrideContentPackFeedGlobs>$(StrideRoot)bin\packages\$(PackageId).*.nupkg;$(LocalAppData)\stride\nugetdev\$(PackageId).*.nupkg</_StrideContentPackFeedGlobs>
+  </PropertyGroup>
+
+  <!-- Removes this checkout's local content packs (bin/packages, the nugetdev feed, the extracted copies in the
+       global cache): the bridge and the CLI prefer a -devN pack while it exists. A build with
+       StridePackContentTemplates off runs it (StrideCleanContentTemplatesWhenOff); build/Stride.Samples.build
+       -t:CleanContentTemplates runs it on all three packages by hand. Also warns about a pack in those feeds that
+       carries a published version (no -devN): restores may take it over the published package. -->
   <Target Name="CleanContentTemplates" DependsOnTargets="StrideEnsureWorktreeVersion"
           Condition="'$(StrideTemplateContentVersioned)' == 'true'">
     <ItemGroup>
-      <_StrideLocalContentPack Include="$(StrideRoot)bin\packages\$(PackageId).*.nupkg;$(LocalAppData)\stride\nugetdev\$(PackageId).*.nupkg" />
-      <_StrideLocalContentPack Remove="@(_StrideLocalContentPack)" Condition="'$(StrideWorktreeSuffix)' == '' Or !$([System.String]::Copy('%(Filename)').EndsWith('$(StrideWorktreeSuffix)'))" />
-      <_StrideLocalContentPackVersion Include="@(_StrideLocalContentPack->'%(Filename)'->Replace('$(PackageId).', ''))" />
-      <_StrideLocalContentPackCacheDir Include="$(NuGetPackageRoot)$(PackageId.ToLowerInvariant())\%(_StrideLocalContentPackVersion.Identity)" Condition="'$(NuGetPackageRoot)' != ''" />
+      <_StrideFeedContentPack Include="$(_StrideContentPackFeedGlobs)" />
+      <_StrideLocalContentPack Include="@(_StrideFeedContentPack)" Condition="'$(StrideWorktreeSuffix)' != '' And $([System.String]::Copy('%(Filename)').EndsWith('$(StrideWorktreeSuffix)'))" />
+      <_StridePublishedLikeContentPack Include="@(_StrideFeedContentPack)" Condition="!$([System.Text.RegularExpressions.Regex]::IsMatch('%(Filename)', '-dev[0-9]*$'))" />
+      <_StrideLocalContentPackCacheDir Include="$([System.IO.Directory]::GetDirectories('$(NuGetPackageRoot)$(PackageId.ToLowerInvariant())', '*$(StrideWorktreeSuffix)'))"
+                                       Condition="'$(NuGetPackageRoot)' != '' And '$(StrideWorktreeSuffix)' != '' And Exists('$(NuGetPackageRoot)$(PackageId.ToLowerInvariant())')" />
     </ItemGroup>
-    <Delete Files="@(_StrideLocalContentPack)" />
-    <RemoveDir Directories="@(_StrideLocalContentPackCacheDir)" />
-    <Message Importance="high" Text="CleanContentTemplates [$(PackageId)]: removed @(_StrideLocalContentPack->Count()) local pack(s)@(_StrideLocalContentPackVersion->' %(Identity)', ',')." />
+    <!-- A copy in use (Game Studio open) stays until the next build. -->
+    <Delete Files="@(_StrideLocalContentPack)" ContinueOnError="WarnAndContinue" />
+    <RemoveDir Directories="@(_StrideLocalContentPackCacheDir)" ContinueOnError="WarnAndContinue" />
+    <Message Importance="high" Condition="'@(_StrideLocalContentPack)@(_StrideLocalContentPackCacheDir)' != ''"
+             Text="CleanContentTemplates [$(PackageId)]: removed this checkout's local packs: @(_StrideLocalContentPack->'%(Filename)', ', ') @(_StrideLocalContentPackCacheDir, ', ')" />
+    <Warning Condition="'@(_StridePublishedLikeContentPack)' != ''"
+             Text="[$(PackageId)] Local package feed holds %(_StridePublishedLikeContentPack.FullPath), a pack with a published version number. A restore may use it instead of the published package. Delete it unless you made it on purpose." />
   </Target>
+
+  <!-- With StridePackContentTemplates off, this checkout's dev packs are left over from an earlier build with it on:
+       remove them so the published content is used again. -->
+  <Target Name="StrideCleanContentTemplatesWhenOff" AfterTargets="Build" DependsOnTargets="CleanContentTemplates"
+          Condition="'$(StrideTemplateContentVersioned)' == 'true' And '$(_StrideContentPackEnabled)' != 'true' And '$(DesignTimeBuild)' != 'true' And '$(StridePackageBuild)' != 'true'" />
 
   <!-- Opt-in dev convenience: register the freshly-built .nupkg with the user's `dotnet new`
        so `dotnet new stride-game` Just Works after a build. Off by default because the
@@ -207,6 +226,16 @@
   <ItemGroup Condition="'$(_StrideContentPackEnabled)' == 'true'">
     <UpToDateCheckInput Include="$(StrideTemplatesDll)" />
     <UpToDateCheckBuilt Include="$(StrideRoot)bin\packages\$(PackageId).$(PackageVersion)$(_StrideEvalWorktreeSuffix).nupkg" />
+  </ItemGroup>
+  <!-- Off, while a pack of this checkout is still in a feed: name an output that never exists, so VS builds the
+       project and StrideCleanContentTemplatesWhenOff removes the pack. Same feeds and same suffix match as the
+       cleanup, so what VS triggers on is what the cleanup deletes. -->
+  <PropertyGroup Condition="'$(StrideTemplateContentVersioned)' == 'true' And '$(_StrideEvalWorktreeSuffix)' != ''">
+    <_StrideLocalContentPackGlobs>$(StrideRoot)bin\packages\$(PackageId).*$(_StrideEvalWorktreeSuffix).nupkg;$(LocalAppData)\stride\nugetdev\$(PackageId).*$(_StrideEvalWorktreeSuffix).nupkg</_StrideLocalContentPackGlobs>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(_StrideContentPackEnabled)' != 'true' And '$(_StrideLocalContentPackGlobs)' != ''">
+    <_StrideLeftoverContentPack Include="$(_StrideLocalContentPackGlobs)" />
+    <UpToDateCheckBuilt Include="$(MSBuildProjectDirectory)\obj\content-pack-removed.never" Condition="'@(_StrideLeftoverContentPack)' != ''" />
   </ItemGroup>
 
   <Target Name="StrideGenerateTemplateContent" BeforeTargets="_GetPackageFiles;GenerateNuspec" Condition="'$(IsPackable)' == 'true'">

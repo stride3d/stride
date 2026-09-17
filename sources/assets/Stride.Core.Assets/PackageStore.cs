@@ -125,10 +125,12 @@ public class PackageStore
     }
 
     /// <summary>Every installed copy of <paramref name="packageName"/>, for callers that pick a version themselves.</summary>
-    public IEnumerable<NugetLocalPackage> GetLocalPackages(string packageName)
+    /// <param name="packageName">The package.</param>
+    /// <param name="localBuildRange">The versions to take from local package sources first, null for all.</param>
+    public IEnumerable<NugetLocalPackage> GetLocalPackages(string packageName, PackageVersionRange? localBuildRange = null)
     {
         ArgumentNullException.ThrowIfNull(packageName);
-        return store.GetLocalPackages(packageName);
+        return store.GetLocalPackages(packageName, localBuildRange);
     }
 
     /// <summary>

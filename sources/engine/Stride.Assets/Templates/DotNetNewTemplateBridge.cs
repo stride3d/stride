@@ -298,13 +298,14 @@ public static class DotNetNewTemplateBridge
     /// The installed directory of <paramref name="packageId"/> for this build, null when it is not installed. Never
     /// downloads (<see cref="InstallContentPackageAsync"/> does): this also runs on the UI thread at startup. Content
     /// packages resolve through <see cref="ContentTemplateResolver"/> (this checkout's own pack of the content
-    /// version, or exactly the content version); everything else is the exact <see cref="StrideVersion.NuGetVersion"/>.
+    /// version, or exactly the content version); everything else is exactly <see cref="StrideVersion.NuGetVersion"/>.
     /// </summary>
     private static UDirectory? ResolvePackageDirectory(string packageId, Logger logger)
     {
         if (ContentTemplateResolver.IsContentPackage(packageId))
         {
-            var package = ContentTemplateResolver.Pick(PackageStore.Instance.GetLocalPackages(packageId), ContentVersion, HostVersion);
+            var installed = PackageStore.Instance.GetLocalPackages(packageId, ContentTemplateResolver.LocalBuildRange(ContentVersion, HostVersion));
+            var package = ContentTemplateResolver.Pick(installed, ContentVersion, HostVersion);
             logger.Info(package is null
                 ? $"{packageId}: content version {ContentVersion} is not installed."
                 : $"{packageId}: using {package.Version} (content version {ContentVersion}).");

@@ -23,8 +23,8 @@
     <!-- Content template packs (Stride.Templates.Samples / .Games.Starters / .AssetPacks, ~730 MB of samples)
          are never packed by a normal build: Game Studio and the stride CLI use the published version named by
          StrideVersion.SamplesVersion. Set this to true while editing samples so builds pack this checkout's
-         -devN copy (which then wins locally); run build/Stride.Samples.build -t:CleanContentTemplates after
-         turning it off. See docs/build/versioning.md. -->
+         -devN copy (which then wins locally); the next build after turning it off removes that copy.
+         See docs/build/versioning.md. -->
     <!--<StridePackContentTemplates Condition="'$(StridePackContentTemplates)' == ''">true</StridePackContentTemplates>-->
   </PropertyGroup>
 

@@ -71,11 +71,11 @@ Building `Stride.Templates.Games` produces its `.nupkg` in `bin/packages/` and a
 dotnet build sources/templates/Stride.Templates.Games/Stride.Templates.Games.csproj
 ```
 
-The three content packages (Starters, Samples, AssetPacks) are **not packed by a normal build**: GameStudio and the CLI use the published content version the engine names (see [Sample versioning](#sample-versioning)). While editing samples, opt the pack in; it is worktree-suffixed and wins over the published content on this checkout until you clean it up:
+The three content packages (Starters, Samples, AssetPacks) are **not packed by a normal build**: GameStudio and the CLI use the published content version the engine names (see [Sample versioning](#sample-versioning)). While editing samples, opt the pack in; it is worktree-suffixed (`4.4.0-beta7-dev2`) and wins over the published content on this checkout. A build with the flag off removes it again:
 
 ```bash
 dotnet build sources/templates/Stride.Templates.Samples -p:StridePackContentTemplates=true   # or set StridePackContentTemplates in build/Stride.Local.props
-dotnet msbuild build/Stride.Samples.build -t:CleanContentTemplates                            # back to the published content
+dotnet msbuild build/Stride.Samples.build -t:CleanContentTemplates                            # remove the dev packs without a build
 ```
 
 Opt in to register the freshly-built `.nupkg` with your global `dotnet new` registry on every build — handy when iterating on template content and testing via CLI:

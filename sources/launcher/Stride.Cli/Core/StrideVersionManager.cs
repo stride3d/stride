@@ -306,6 +306,9 @@ public sealed class StrideVersionManager
     // Stride version therefore never puts it in the store, which is why discovery alone never finds it.
     private const string AssetPacksPackageId = ContentTemplateResolver.AssetPacksPackageId;
 
+    // Template packages versioned with the engine, which Stride.GameStudio depends on at its own version.
+    private static readonly string[] EngineTemplatePackageIds = ["Stride.Templates.Games"];
+
     /// <summary>
     ///   Opens a template registry over the installed template packages compatible with the given version,
     ///   plus any explicitly requested <paramref name="extraPackages"/> (a package id or a local .nupkg path).
@@ -345,30 +348,59 @@ public sealed class StrideVersionManager
     ///   dependency to it, and all content packages share that one number. Null for an engine from before the
     ///   pinning, whose content packages are then found by their engine marker like any other template package.
     /// </summary>
-    private PackageVersion? ContentVersionOf(PackageVersion version)
-        => store.GetLocalPackages(MainPackageId)
-            .FirstOrDefault(package => package.Version.Equals(version))
-            ?.GetDependencyFloor(ContentTemplateResolver.ContentVersionDependencyId);
+    private PackageVersion? ContentVersionOf(NugetLocalPackage? gameStudio, PackageVersion version)
+        => gameStudio?.GetDependencyFloor(ContentTemplateResolver.ContentVersionDependencyId) is { } pinned
+            ? ContentTemplateResolver.ContentVersionFromPin(pinned, version)
+            : null;
+
+    /// <summary>
+    ///   The installed engine-versioned template packages (<see cref="EngineTemplatePackageIds"/>) that
+    ///   <paramref name="gameStudio"/> depends on, at exactly the version it names (installed from the sources when
+    ///   missing). Their content names the engine packages, so another version would not match the engine. A
+    ///   package it does not name (an engine from before the dependency) is left to discovery.
+    /// </summary>
+    private async Task<List<NugetLocalPackage>> ResolveEngineTemplatePackages(NugetLocalPackage? gameStudio)
+    {
+        var packages = new List<NugetLocalPackage>();
+        foreach (var packageId in EngineTemplatePackageIds)
+        {
+            if (gameStudio?.GetDependencyFloor(packageId) is not { } named)
+                continue;
+            var package = store.FindLocalPackage(packageId, new PackageVersionRange(named, true, named, true));
+            if (package is null)
+            {
+                try
+                {
+                    package = await store.InstallPackage(packageId, named, [], progress: null);
+                }
+                catch (Exception)
+                {
+                    // Offline or not obtainable: `new` goes on with the templates that are installed.
+                }
+            }
+            if (package is not null && package.Version.Equals(named))
+                packages.Add(package);
+        }
+        return packages;
+    }
 
     /// <summary>
     ///   Resolves the content packages for an engine that names a content version: the exact version (or a
     ///   local dev pack of it for a dev engine), installed from the sources when missing. Best effort: without a
     ///   reachable source a missing package is simply left out. Same rule as the Game Studio bridge.
     /// </summary>
-    private async Task<List<string>> ResolveContentPackages(PackageVersion contentVersion, PackageVersion version)
+    private async Task<List<NugetLocalPackage>> ResolveContentPackages(PackageVersion contentVersion, PackageVersion version)
     {
-        var paths = new List<string>();
+        var packages = new List<NugetLocalPackage>();
         foreach (var packageId in ContentTemplateResolver.PackageIds)
         {
             var package = await ContentTemplateResolver.ResolveAsync(packageId, contentVersion, version,
                 store.GetLocalPackages,
                 (id, packageVersion) => store.InstallPackage(id, packageVersion, [], progress: null));
-            // Prefer the extracted directory; fall back to the loose .nupkg of a not-yet-mirrored local source.
-            var path = package?.NupkgPath ?? package?.Path;
-            if (!string.IsNullOrEmpty(path))
-                paths.Add(path);
+            if (package is not null)
+                packages.Add(package);
         }
-        return paths;
+        return packages;
     }
 
     /// <summary>
@@ -422,14 +454,20 @@ public sealed class StrideVersionManager
     {
         var paths = new List<string>();
 
-        // Content packages (Samples, Starters, AssetPacks) are pinned by the engine, never discovered: "newest
-        // compatible" is exactly the drift the content version exists to prevent. An engine from before the
-        // pinning has no content version, so its packs go through discovery like the rest.
-        var contentVersion = ContentVersionOf(version);
+        // The template packages the engine names are used at exactly that version, never discovered: "newest
+        // compatible" is the drift the pinning exists to prevent. Content packages (Samples, Starters, AssetPacks)
+        // follow the content version, the engine-versioned ones (Games) the version Game Studio depends on. An
+        // engine from before the pinning names none of them, so they go through discovery like the rest.
+        var gameStudio = store.GetLocalPackages(MainPackageId).FirstOrDefault(package => package.Version.Equals(version));
+        var pinned = await ResolveEngineTemplatePackages(gameStudio);
+        var contentVersion = ContentVersionOf(gameStudio, version);
         if (contentVersion is not null)
-            paths.AddRange(await ResolveContentPackages(contentVersion, version));
+            pinned.AddRange(await ResolveContentPackages(contentVersion, version));
         else
             await EnsureAssetPacksInstalled(version, cancellationToken);
+        var pinnedIds = new HashSet<string>(pinned.Select(package => package.Id), StringComparer.OrdinalIgnoreCase);
+        if (contentVersion is not null)
+            pinnedIds.UnionWith(ContentTemplateResolver.PackageIds);
 
         // Discover the other template packages by package type + tag, then per id pick the newest version whose
         // Stride.Core marker floor is <= the requested version. Unmarked (legacy) packages have unknown
@@ -437,7 +475,7 @@ public sealed class StrideVersionManager
         // (otherwise a co-installed newer dev package without the marker silently hijacks the request).
         var discovered = store.GetAllPackagesInstalled()
             .Where(package => package.IsTemplatePackage && package.HasTag(TemplateTag))
-            .Where(package => contentVersion is null || !ContentTemplateResolver.IsContentPackage(package.Id))
+            .Where(package => !pinnedIds.Contains(package.Id))
             .GroupBy(package => package.Id, StringComparer.OrdinalIgnoreCase)
             .Select(group =>
                 group.Where(package => IsCompatible(package.GetDependencyFloor(TemplateMarkerDependencyId), version))
@@ -448,7 +486,7 @@ public sealed class StrideVersionManager
                     .FirstOrDefault())
             .OfType<NugetLocalPackage>();
 
-        foreach (var package in discovered)
+        foreach (var package in pinned.Concat(discovered))
         {
             // Prefer the extracted directory; fall back to the loose .nupkg of a not-yet-mirrored local source.
             var path = package.NupkgPath ?? package.Path;
