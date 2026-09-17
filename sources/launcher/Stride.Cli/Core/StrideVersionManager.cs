@@ -327,8 +327,12 @@ public sealed class StrideVersionManager
             "stride", "cli", "templates", version.ToString());
 
         var registry = new DotNetNewTemplateRegistry(version.ToString(), profileDir);
+        var packageDirs = await ResolveTemplatePackages(version, extraPackages, cancellationToken);
+        // The profile holds exactly this run's packages: a version resolved by an earlier run would offer the same
+        // templates with other content.
+        await registry.RemovePackagesExceptAsync(packageDirs, cancellationToken);
         var installedAny = false;
-        foreach (var packageDir in await ResolveTemplatePackages(version, extraPackages, cancellationToken))
+        foreach (var packageDir in packageDirs)
         {
             var (success, _) = await registry.InstallPackageAsync(packageDir);
             installedAny |= success;
@@ -488,8 +492,10 @@ public sealed class StrideVersionManager
 
         foreach (var package in pinned.Concat(discovered))
         {
-            // Prefer the extracted directory; fall back to the loose .nupkg of a not-yet-mirrored local source.
-            var path = package.NupkgPath ?? package.Path;
+            // Prefer the extracted directory (the registry replaces its entry on reinstall); fall back to the loose
+            // .nupkg of a not-yet-mirrored local source. An extracted package reports the .nupkg inside its folder
+            // too, so tell them apart by NuGet's extraction marker.
+            var path = File.Exists(Path.Combine(package.Path, ".nupkg.metadata")) ? package.Path : package.NupkgPath ?? package.Path;
             if (!string.IsNullOrEmpty(path))
                 paths.Add(path);
         }
