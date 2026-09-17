@@ -826,9 +826,32 @@ public static class AssetRegistry
                 RegisteredAssetFileExtensions.Remove(extensionToRemove);
             }
 
+            lock (AlwaysMarkAsRootAssetTypes)
+            {
+                foreach (var typeToRemove in AlwaysMarkAsRootAssetTypes.Where(type => type.Assembly == assembly).ToList())
+                {
+                    AlwaysMarkAsRootAssetTypes.Remove(typeToRemove);
+                }
+            }
+
+            foreach (var typeToRemove in ContentToAssetTypes.Keys.Where(type => type.Assembly == assembly).ToList())
+            {
+                ContentToAssetTypes.Remove(typeToRemove);
+            }
+
+            foreach (var typeToRemove in AssetToContentTypes.Keys.Where(type => type.Assembly == assembly).ToList())
+            {
+                AssetToContentTypes.Remove(typeToRemove);
+            }
+
             foreach (var upgraderToRemove in RegisteredPackageUpgraders.Where(keyValue => keyValue.Value.GetType().Assembly == assembly).Select(keyValue => keyValue.Key).ToList())
             {
                 RegisteredPackageUpgraders.Remove(upgraderToRemove);
+            }
+
+            foreach (var pair in RegisteredAssetFactories.Where(pair => pair.Value.GetType().Assembly == assembly).ToList())
+            {
+                RegisteredAssetFactories.Remove(pair.Key);
             }
 
             foreach (var instance in RegisteredSerializerFactories.Where(instance => instance.GetType().Assembly == assembly).ToList())
