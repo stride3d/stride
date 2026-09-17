@@ -791,77 +791,67 @@ public static class AssetRegistry
 
             RegisteredAssetAssemblies.Remove(assembly);
 
-            foreach (var typeToRemove in RegisteredDefaultAssetExtension.Keys.Where(type => type.Assembly == assembly).ToList())
+            foreach (var typeToRemove in RegisteredDefaultAssetExtension.Keys.Where(type => type.Assembly == assembly))
             {
                 RegisteredDefaultAssetExtension.Remove(typeToRemove);
             }
 
-            foreach (var typeToRemove in AssetTypes.ToList().Where(type => type.Assembly == assembly))
+            AssetTypes.RemoveWhere(type => type.Assembly == assembly);
+
+            RegisteredPackageSessionAnalysisTypes.RemoveWhere(type => type.Assembly == assembly);
+
+            for (var i = RegisteredImportersInternal.Count - 1; i >= 0; i--)
             {
-                AssetTypes.Remove(typeToRemove);
+                if (RegisteredImportersInternal[i].GetType().Assembly == assembly)
+                    RegisteredImportersInternal.RemoveAt(i);
             }
 
-            foreach (var typeToRemove in RegisteredPackageSessionAnalysisTypes.Where(type => type.Assembly == assembly).ToList())
-            {
-                RegisteredPackageSessionAnalysisTypes.Remove(typeToRemove);
-            }
-
-            foreach (var instance in RegisteredImportersInternal.Where(instance => instance.GetType().Assembly == assembly).ToList())
-            {
-                RegisteredImportersInternal.Remove(instance);
-            }
-
-            foreach (var typeToRemove in RegisteredFormatVersions.Keys.Where(type => type.Assembly == assembly).ToList())
+            foreach (var typeToRemove in RegisteredFormatVersions.Keys.Where(type => type.Assembly == assembly))
             {
                 RegisteredFormatVersions.Remove(typeToRemove);
             }
 
-            foreach (var typeToRemove in RegisteredAssetUpgraders.Keys.Where(type => type.Key.Assembly == assembly).ToList())
+            foreach (var typeToRemove in RegisteredAssetUpgraders.Keys.Where(type => type.Key.Assembly == assembly))
             {
                 RegisteredAssetUpgraders.Remove(typeToRemove);
             }
 
-            foreach (var extensionToRemove in RegisteredAssetFileExtensions.Where(keyValue => keyValue.Value.Assembly == assembly).Select(keyValue => keyValue.Key).ToList())
+            foreach (var extensionToRemove in RegisteredAssetFileExtensions.Where(keyValue => keyValue.Value.Assembly == assembly).Select(keyValue => keyValue.Key))
             {
                 RegisteredAssetFileExtensions.Remove(extensionToRemove);
             }
 
             lock (AlwaysMarkAsRootAssetTypes)
             {
-                foreach (var typeToRemove in AlwaysMarkAsRootAssetTypes.Where(type => type.Assembly == assembly).ToList())
-                {
-                    AlwaysMarkAsRootAssetTypes.Remove(typeToRemove);
-                }
+                AlwaysMarkAsRootAssetTypes.RemoveWhere(type => type.Assembly == assembly);
             }
 
-            foreach (var typeToRemove in ContentToAssetTypes.Keys.Where(type => type.Assembly == assembly).ToList())
+            foreach (var typeToRemove in ContentToAssetTypes.Keys.Where(type => type.Assembly == assembly))
             {
                 ContentToAssetTypes.Remove(typeToRemove);
             }
 
-            foreach (var typeToRemove in AssetToContentTypes.Keys.Where(type => type.Assembly == assembly).ToList())
+            foreach (var typeToRemove in AssetToContentTypes.Keys.Where(type => type.Assembly == assembly))
             {
                 AssetToContentTypes.Remove(typeToRemove);
             }
 
-            foreach (var upgraderToRemove in RegisteredPackageUpgraders.Where(keyValue => keyValue.Value.GetType().Assembly == assembly).Select(keyValue => keyValue.Key).ToList())
+            foreach (var upgraderToRemove in RegisteredPackageUpgraders.Where(keyValue => keyValue.Value.GetType().Assembly == assembly).Select(keyValue => keyValue.Key))
             {
                 RegisteredPackageUpgraders.Remove(upgraderToRemove);
             }
 
-            foreach (var pair in RegisteredAssetFactories.Where(pair => pair.Value.GetType().Assembly == assembly).ToList())
+            foreach (var pair in RegisteredAssetFactories.Where(pair => pair.Value.GetType().Assembly == assembly))
             {
                 RegisteredAssetFactories.Remove(pair.Key);
             }
 
-            foreach (var instance in RegisteredSerializerFactories.Where(instance => instance.GetType().Assembly == assembly).ToList())
-            {
-                RegisteredSerializerFactories.Remove(instance);
-            }
+            RegisteredSerializerFactories.RemoveWhere(instance => instance.GetType().Assembly == assembly);
 
-            foreach (var instance in RegisteredDataVisitNodes.Where(instance => instance.GetType().Assembly == assembly).ToList())
+            for (var i = RegisteredDataVisitNodes.Count - 1; i >= 0; i--)
             {
-                RegisteredDataVisitNodes.Remove(instance);
+                if (RegisteredDataVisitNodes[i].GetType().Assembly == assembly)
+                    RegisteredDataVisitNodes.RemoveAt(i);
             }
         }
     }
