@@ -680,7 +680,7 @@ public partial class NugetStore : INugetDownloadProgress
     /// </summary>
     /// <remarks>It is safe to call it concurrently be cause we operations are done using the FileLock.</remarks>
     /// <param name="package">Package to uninstall.</param>
-    public async Task UninstallPackage(NugetPackage package, ProgressReport progress)
+    public async Task UninstallPackage(NugetPackage package, ProgressReport? progress)
     {
 #if DEBUG
         var installedPackages = GetPackagesInstalled([package.Id]);
@@ -1090,7 +1090,7 @@ public partial class NugetStore : INugetDownloadProgress
         catch { /* best-effort */ }
     }
 
-    private static void RunPackageInstall(string packageInstall, string arguments, ProgressReport progress)
+    private static void RunPackageInstall(string packageInstall, string arguments, ProgressReport? progress)
     {
         // Run packageinstall.exe
         using var process = Process.Start(new ProcessStartInfo(packageInstall, arguments)
