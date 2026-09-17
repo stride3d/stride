@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json.Nodes;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.TemplateEngine.Abstractions;
 using Microsoft.TemplateEngine.Edge.Settings;
@@ -59,6 +60,9 @@ public static class DotNetNewTemplateBridge
     private static DotNetNewTemplateRegistry? registry;
     private static readonly object InitLock = new();
 
+    /// <summary>Serializes content downloads (<see cref="InstallContentPackageAsync"/>).</summary>
+    private static readonly SemaphoreSlim DownloadGate = new(1, 1);
+
     /// <summary>
     /// In-process singleton; null until <see cref="RegisterProjectTemplates"/> has run.
     /// Consumed by <c>DotNetNewTemplateGenerator</c> at instantiation time.
@@ -67,6 +71,15 @@ public static class DotNetNewTemplateBridge
 
     /// <summary>Identities of the templates already registered with <see cref="TemplateManager"/> (guarded by <see cref="InitLock"/>).</summary>
     private static readonly HashSet<string> RegisteredTemplateIdentities = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// The package holding the descriptions handed to <see cref="TemplateManager"/>. Never saved to disk and never
+    /// backed by a real .sdpkg: its <see cref="Package.Templates"/> is the only thing
+    /// <see cref="TemplateManager.FindTemplates"/> reads. A later pass (the background content download) adds to this
+    /// same package, so the descriptions of one host live in one place. FullPath must be non-null for the
+    /// DistinctPackagePathComparer used in FindTemplates; the sentinel path collides with no real package.
+    /// </summary>
+    private static readonly Package SyntheticPackage = new() { FullPath = new UFile("Stride.DotNetNewTemplates.synthetic") };
 
     /// <summary>
     /// Resolves each <see cref="BundledTemplatePackageIds"/> entry installed on this machine, installs them into the
@@ -114,22 +127,27 @@ public static class DotNetNewTemplateBridge
                 }
             }
 
-            RegisterNewTemplates(sdtplsByIdentity, "Stride.DotNetNewTemplates.synthetic", logger);
+            RegisterNewTemplates(sdtplsByIdentity, logger);
         }
 
         if (missingContent.Count > 0)
-            _ = Task.Run(() => DownloadMissingContent(missingContent, logger));
+            _ = Task.Run(() => DownloadMissingContentAsync(missingContent, logger));
     }
 
     /// <summary>
     /// Downloads content packages (<paramref name="packageIds"/>) this machine doesn't have, then installs them into the
     /// registry and registers their templates, so they show in the New-Project dialog once ready. Best effort.
     /// </summary>
-    private static void DownloadMissingContent(IReadOnlyList<string> packageIds, Logger logger)
+    private static async Task DownloadMissingContentAsync(IReadOnlyList<string> packageIds, Logger logger)
     {
         try
         {
-            var fetched = packageIds.Where(packageId => ResolvePackageDirectory(packageId, logger, allowInstall: true) is not null).ToList();
+            var fetched = new List<string>();
+            for (var i = 0; i < packageIds.Count; i++)
+            {
+                if (await InstallContentPackageAsync(packageIds[i], logger, i + 1, packageIds.Count).ConfigureAwait(false) is not null)
+                    fetched.Add(packageIds[i]);
+            }
             if (fetched.Count == 0)
                 return;
 
@@ -138,7 +156,7 @@ public static class DotNetNewTemplateBridge
                 var sdtplsByIdentity = new Dictionary<string, TemplateMetadataSource>();
                 foreach (var packageId in fetched)
                     InstallBundledPackage(packageId, sdtplsByIdentity, logger);
-                RegisterNewTemplates(sdtplsByIdentity, "Stride.DotNetNewTemplates.downloaded.synthetic", logger);
+                RegisterNewTemplates(sdtplsByIdentity, logger);
             }
         }
         catch (Exception e)
@@ -151,20 +169,14 @@ public static class DotNetNewTemplateBridge
     /// Wraps every registry template not registered yet as a <see cref="TemplateDotNetNewDescription"/>, in one
     /// synthetic package registered with <see cref="TemplateManager"/>. Caller holds <see cref="InitLock"/>.
     /// </summary>
-    private static void RegisterNewTemplates(Dictionary<string, TemplateMetadataSource> sdtplsByIdentity, string syntheticPath, Logger logger)
+    private static void RegisterNewTemplates(Dictionary<string, TemplateMetadataSource> sdtplsByIdentity, Logger logger)
     {
         var templatesTask = registry!.GetTemplatesAsync();
         templatesTask.Wait();
         var templates = templatesTask.Result;
         logger.Info($"Loaded {templates.Count} dotnet new template(s) total");
 
-        // Synthetic package: holds only the TemplateDescriptions we want TemplateManager to
-        // surface. Never saved to disk, never has a real .sdpkg — the descriptions are the
-        // only thing FindTemplates() reads (it does `packages.SelectMany(p => p.Templates)`).
-        // FullPath needs to be non-null so the DistinctPackagePathComparer (used to de-dup
-        // ExtraPackages in FindTemplates) doesn't NRE in GetHashCode; using a sentinel path
-        // ensures it doesn't collide with any real package.
-        var synthetic = new Package { FullPath = new UFile(syntheticPath) };
+        var added = 0;
         foreach (var template in templates)
         {
             // Item templates (asset packs) are not stand-alone projects — they surface as
@@ -222,11 +234,13 @@ public static class DotNetNewTemplateBridge
                         description.Screenshots.Add(resolved);
                 }
             }
-            synthetic.Templates.Add(description);
+            SyntheticPackage.Templates.Add(description);
+            added++;
         }
 
-        if (synthetic.Templates.Count > 0)
-            TemplateManager.RegisterPackage(synthetic);
+        // Registering the same package again signals the new descriptions to an open template list.
+        if (added > 0)
+            TemplateManager.RegisterPackage(SyntheticPackage);
     }
 
     /// <summary>
@@ -247,18 +261,17 @@ public static class DotNetNewTemplateBridge
         if (packs.Count > 0 || !allowDownload)
             return packs;
 
-        var installed = await Task.Run(() =>
-        {
-            // Download first (outside the lock), then the same path as startup probing: install the now-local
-            // package into the registry (no TemplateManager registration — item templates stay out of the
-            // New-Project list).
-            if (ResolvePackageDirectory(AssetPacksPackageId, logger, allowInstall: true) is null)
-                return false;
-            lock (InitLock)
+        // Download first, then the same path as startup probing: install the now-local package into the registry
+        // (no TemplateManager registration — item templates stay out of the New-Project list). InstallBundledPackage
+        // is synchronous and reindexes the package, so it goes to the thread pool rather than the UI thread.
+        var installed = await InstallContentPackageAsync(AssetPacksPackageId, logger).ConfigureAwait(false) is not null
+            && await Task.Run(() =>
             {
-                return InstallBundledPackage(AssetPacksPackageId, new Dictionary<string, TemplateMetadataSource>(), logger);
-            }
-        }).ConfigureAwait(false);
+                lock (InitLock)
+                {
+                    return InstallBundledPackage(AssetPacksPackageId, new Dictionary<string, TemplateMetadataSource>(), logger);
+                }
+            }).ConfigureAwait(false);
         if (!installed)
         {
             logger.Warning($"{AssetPacksPackageId} is unavailable; asset packs will not be offered.");
@@ -282,42 +295,73 @@ public static class DotNetNewTemplateBridge
     private static PackageVersion HostVersion => new(StrideVersion.NuGetVersion);
 
     /// <summary>
-    /// The installed directory of <paramref name="packageId"/> for this build, null when it is not available. Content
-    /// packages resolve through <see cref="ContentTemplateResolver"/> (the exact content version, or this checkout's
-    /// own dev pack of it; with <paramref name="allowInstall"/>, the exact version is downloaded when neither is
-    /// present); everything else is the exact <see cref="StrideVersion.NuGetVersion"/>.
+    /// The installed directory of <paramref name="packageId"/> for this build, null when it is not installed. Never
+    /// downloads (<see cref="InstallContentPackageAsync"/> does): this also runs on the UI thread at startup. Content
+    /// packages resolve through <see cref="ContentTemplateResolver"/> (this checkout's own pack of the content
+    /// version, or exactly the content version); everything else is the exact <see cref="StrideVersion.NuGetVersion"/>.
     /// </summary>
-    /// <param name="allowInstall">
-    /// Whether a missing content package is downloaded. Blocks for the download, so never on the UI thread (the NuGet
-    /// install resumes on the calling context and would deadlock there).
-    /// </param>
-    private static UDirectory? ResolvePackageDirectory(string packageId, Logger logger, bool allowInstall = false)
+    private static UDirectory? ResolvePackageDirectory(string packageId, Logger logger)
     {
         if (ContentTemplateResolver.IsContentPackage(packageId))
         {
-            NugetLocalPackage? package;
-            if (allowInstall)
-            {
-                // Task.Run: the install's continuations must not need the calling thread's context.
-                package = Task.Run(() => ContentTemplateResolver.ResolveAsync(
-                    packageId, ContentVersion, HostVersion,
-                    PackageStore.Instance.GetLocalPackages,
-                    (id, version) => PackageStore.Instance.InstallPackage(id, version),
-                    message => logger.Info(message))).GetAwaiter().GetResult();
-            }
-            else
-            {
-                package = ContentTemplateResolver.Pick(PackageStore.Instance.GetLocalPackages(packageId), ContentVersion, HostVersion);
-                logger.Info(package is null
-                    ? $"{packageId}: content version {ContentVersion} is not installed."
-                    : $"{packageId}: using {package.Version} (content version {ContentVersion}).");
-            }
+            var package = ContentTemplateResolver.Pick(PackageStore.Instance.GetLocalPackages(packageId), ContentVersion, HostVersion);
+            logger.Info(package is null
+                ? $"{packageId}: content version {ContentVersion} is not installed."
+                : $"{packageId}: using {package.Version} (content version {ContentVersion}).");
             return package is not null ? PackageStore.Instance.GetPackageDirectory(package) : null;
         }
 
         // Exact range, so release/prerelease ordering is moot.
         var exact = new PackageVersionRange(HostVersion, true, HostVersion, true);
         return PackageStore.Instance.GetPackageDirectory(packageId, exact);
+    }
+
+    /// <summary>
+    /// Resolves content package <paramref name="packageId"/>, downloading it when missing, and reports the download to
+    /// <see cref="TemplateDownloads"/> so the template windows can show it.
+    /// </summary>
+    /// <param name="index">Position of <paramref name="packageId"/> in its batch, from 1 (shown with the progress).</param>
+    /// <param name="count">Number of packages in the batch.</param>
+    private static async Task<NugetLocalPackage?> InstallContentPackageAsync(string packageId, Logger logger, int index = 1, int count = 1)
+    {
+        // One content download at a time: the store reports progress for all of them together.
+        await DownloadGate.WaitAsync().ConfigureAwait(false);
+        try
+        {
+            var downloading = false;
+            // A content install downloads the package and at most its small engine marker dependency, both started
+            // together, so the size of the started downloads is the size to show.
+            void OnProgress(long downloadedBytes)
+                => TemplateDownloads.Report(new TemplateDownload(packageId, downloadedBytes, PackageStore.Instance.StartedDownloadBytes, index, count));
+            Task<NugetLocalPackage?> Install(string id, PackageVersion version)
+            {
+                downloading = true;
+                TemplateDownloads.Report(new TemplateDownload(packageId, 0, 0, index, count));
+                return PackageStore.Instance.InstallPackage(id, version);
+            }
+
+            PackageStore.Instance.DownloadProgress += OnProgress;
+            NugetLocalPackage? package = null;
+            try
+            {
+                package = await ContentTemplateResolver.ResolveAsync(
+                    packageId, ContentVersion, HostVersion,
+                    PackageStore.Instance.GetLocalPackages,
+                    Install,
+                    message => logger.Info(message)).ConfigureAwait(false);
+                return package;
+            }
+            finally
+            {
+                PackageStore.Instance.DownloadProgress -= OnProgress;
+                if (downloading)
+                    TemplateDownloads.Report(package is null ? new TemplateDownload(packageId, 0, 0, index, count, Failed: true) : null);
+            }
+        }
+        finally
+        {
+            DownloadGate.Release();
+        }
     }
 
     /// <summary>

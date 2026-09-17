@@ -39,6 +39,7 @@ public partial class NugetStore : INugetDownloadProgress
 
     // Download byte counter (reset per InstallPackage); fed by DownloadProgressHandlerProvider.
     private long downloadedBytes;
+    private long startedDownloadBytes;
     private long lastReportTicks;
 
     private readonly string? oldRootDirectory;
@@ -218,8 +219,14 @@ public partial class NugetStore : INugetDownloadProgress
     /// </summary>
     public event Action<int>? NugetRestoreInstalling;
 
-    /// <summary>Event raised as packages download, with the total bytes downloaded so far (throttled to ~1s).</summary>
+    /// <summary>Event raised as packages download, with the total bytes downloaded so far (throttled to ~250ms, and once more when a download ends).</summary>
     public event Action<long>? NugetDownloadProgress;
+
+    /// <summary>
+    /// The size of the downloads the current <see cref="InstallPackage"/> has started so far, in bytes. It grows as
+    /// downloads start, so it is the final size only when a single package is being downloaded.
+    /// </summary>
+    public long NugetStartedDownloadBytes => Interlocked.Read(ref startedDownloadBytes);
 
     /// <summary>
     /// Event executed before a package's packageinstall.exe setup step runs.
@@ -494,6 +501,7 @@ public partial class NugetStore : INugetDownloadProgress
         {
             currentProgressReport = progress;
             Interlocked.Exchange(ref downloadedBytes, 0);
+            Interlocked.Exchange(ref startedDownloadBytes, 0);
             Interlocked.Exchange(ref lastReportTicks, 0);
             try
             {
@@ -1024,14 +1032,26 @@ public partial class NugetStore : INugetDownloadProgress
         return package.Version.SpecialVersion?.StartsWith("dev", StringComparison.Ordinal) == true && !package.Version.SpecialVersion.Contains('.');
     }
 
+    void INugetDownloadProgress.DownloadStarted(long length)
+    {
+        Interlocked.Add(ref startedDownloadBytes, length);
+    }
+
     void INugetDownloadProgress.DownloadAdvanced(long bytesRead)
     {
         Interlocked.Add(ref downloadedBytes, bytesRead);
-        // Throttle UI updates to ~1s; chunk reads fire far more often than that.
+        // Throttle UI updates to ~250ms; chunk reads fire far more often than that.
         var now = Environment.TickCount64;
-        if (now - Interlocked.Read(ref lastReportTicks) < 1000)
+        if (now - Interlocked.Read(ref lastReportTicks) < 250)
             return;
         Interlocked.Exchange(ref lastReportTicks, now);
+        NugetDownloadProgress?.Invoke(Interlocked.Read(ref downloadedBytes));
+    }
+
+    void INugetDownloadProgress.DownloadCompleted()
+    {
+        // Not throttled: the final count stays shown while the package is extracted.
+        Interlocked.Exchange(ref lastReportTicks, Environment.TickCount64);
         NugetDownloadProgress?.Invoke(Interlocked.Read(ref downloadedBytes));
     }
 

@@ -4,11 +4,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using TextBox = System.Windows.Controls.TextBox;
 using Microsoft.TemplateEngine.Abstractions;
 using Stride.Assets.Templates;
+using Stride.Core.Assets.Templates;
 using Stride.Core.Presentation.Controls;
 using SDDialogResult = Stride.Core.Presentation.Services.DialogResult;
 using Stride.Core;
@@ -59,7 +61,12 @@ public partial class DotNetNewTemplateParametersWindow : ModalWindow
     public IReadOnlyList<string> SelectedAssetPacks =>
         assetPackChecks.Where(t => t.CheckBox.IsChecked == true).Select(t => t.Identity).ToList();
 
-    public DotNetNewTemplateParametersWindow(ITemplateInfo template, IReadOnlyList<ITemplateInfo>? assetPacks = null)
+    /// <param name="template">The template whose parameters are asked.</param>
+    /// <param name="assetPacks">
+    /// The asset packs to offer, null for none. While it is not complete (the AssetPacks package is downloading),
+    /// the packs row shows the download progress; it is filled in once the task completes.
+    /// </param>
+    public DotNetNewTemplateParametersWindow(ITemplateInfo template, Task<IReadOnlyList<ITemplateInfo>>? assetPacks = null)
     {
         ArgumentNullException.ThrowIfNull(template);
         TemplateName = template.Name ?? template.Identity;
@@ -72,8 +79,71 @@ public partial class DotNetNewTemplateParametersWindow : ModalWindow
             DescriptionTextBlock.Visibility = Visibility.Collapsed;
 
         BuildControls(template);
-        if (assetPacks is { Count: > 0 })
-            ParametersPanel.Children.Add(BuildAssetPacksRow(assetPacks));
+        if (assetPacks is not null)
+            AddAssetPacksRow(assetPacks);
+    }
+
+    private async void AddAssetPacksRow(Task<IReadOnlyList<ITemplateInfo>> assetPacks)
+    {
+        var row = new StackPanel { Margin = new Thickness(0, 6, 0, 6) };
+        row.Children.Add(new TextBlock
+        {
+            Text = "Asset packs — Ready-made asset collections added to your project",
+            Margin = new Thickness(0, 0, 0, 3),
+            TextWrapping = TextWrapping.Wrap,
+        });
+        ParametersPanel.Children.Add(row);
+
+        // Until the packs are ready (the AssetPacks package is downloading), show the download.
+        var status = new TextBlock { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 2, 0, 3) };
+        var progress = new ProgressBar { Height = 6, Minimum = 0, Maximum = 1, IsIndeterminate = true };
+        void Show()
+        {
+            var download = TemplateDownloads.Current;
+            status.Text = download is null ? "Preparing the asset packs..." : TemplateDownloads.Describe(download);
+            // Indeterminate until the download's size is known.
+            progress.IsIndeterminate = download?.Fraction is null;
+            progress.Value = download?.Fraction ?? 0;
+        }
+        void OnChanged() => _ = Dispatcher.InvokeAsync(Show);
+        if (!assetPacks.IsCompleted)
+        {
+            row.Children.Add(status);
+            row.Children.Add(progress);
+            Show();
+            TemplateDownloads.Changed += OnChanged;
+        }
+
+        IReadOnlyList<ITemplateInfo> packs;
+        try
+        {
+            packs = await assetPacks;
+        }
+        catch (OperationCanceledException)
+        {
+            // Same as an empty list: no packs offered. Other failures are already reported as an empty list by
+            // GetAssetPackTemplatesAsync, so anything else escaping is a bug worth a crash report.
+            packs = [];
+        }
+        finally
+        {
+            TemplateDownloads.Changed -= OnChanged;
+            row.Children.Remove(status);
+            row.Children.Remove(progress);
+        }
+
+        if (packs.Count == 0)
+        {
+            row.Children.Add(new TextBlock
+            {
+                Text = "No asset packs are available. The AssetPacks package could not be downloaded.",
+                TextWrapping = TextWrapping.Wrap,
+                Margin = new Thickness(0, 2, 0, 2),
+            });
+            return;
+        }
+        foreach (var check in BuildAssetPackChecks(packs))
+            row.Children.Add(check);
     }
 
     private void BuildControls(ITemplateInfo template)
@@ -240,19 +310,12 @@ public partial class DotNetNewTemplateParametersWindow : ModalWindow
     }
 
     /// <summary>
-    /// Checkbox list for the optional asset packs (Building blocks, Materials, ...), one per
+    /// Checkboxes for the optional asset packs (Building blocks, Materials, ...), one per
     /// item template of the AssetPacks package. All unchecked by default; each selected pack is
     /// instantiated into the generated game library after the main template.
     /// </summary>
-    private UIElement BuildAssetPacksRow(IReadOnlyList<ITemplateInfo> assetPacks)
+    private IEnumerable<CheckBox> BuildAssetPackChecks(IReadOnlyList<ITemplateInfo> assetPacks)
     {
-        var row = new StackPanel { Margin = new Thickness(0, 6, 0, 6) };
-        row.Children.Add(new TextBlock
-        {
-            Text = "Asset packs — Ready-made asset collections added to your project",
-            Margin = new Thickness(0, 0, 0, 3),
-            TextWrapping = TextWrapping.Wrap,
-        });
         foreach (var pack in assetPacks)
         {
             var label = string.IsNullOrEmpty(pack.Description) ? pack.Name : $"{pack.Name} — {pack.Description}";
@@ -262,10 +325,9 @@ public partial class DotNetNewTemplateParametersWindow : ModalWindow
                 IsChecked = false,
                 Margin = new Thickness(0, 2, 0, 2),
             };
-            row.Children.Add(item);
             assetPackChecks.Add((pack.Identity, item));
+            yield return item;
         }
-        return row;
     }
 
     private static bool ParseBool(string? s) => bool.TryParse(s, out var b) && b;

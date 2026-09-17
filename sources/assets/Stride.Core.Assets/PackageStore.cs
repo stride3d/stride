@@ -142,6 +142,19 @@ public class PackageStore
         return store.InstallPackage(packageName, version, [], progress);
     }
 
+    /// <summary>Raised as <see cref="InstallPackage"/> downloads, with the bytes downloaded so far (throttled to ~250ms, and once more when a download ends).</summary>
+    public event Action<long>? DownloadProgress
+    {
+        add => store.NugetDownloadProgress += value;
+        remove => store.NugetDownloadProgress -= value;
+    }
+
+    /// <summary>
+    /// The size of the downloads the current <see cref="InstallPackage"/> has started, in bytes. The final size once
+    /// the downloads have started, so only meaningful for an install of one package (and its small dependencies).
+    /// </summary>
+    public long StartedDownloadBytes => store.NugetStartedDownloadBytes;
+
     /// <summary>
     /// Gets the default package manager.
     /// </summary>

@@ -14,15 +14,24 @@ public class TemplateManager
 
     /// <summary>
     /// Adds a package whose templates <see cref="FindTemplates"/> lists. May be called from any thread (template
-    /// packages downloaded in the background register when ready).
+    /// packages downloaded in the background register when ready). Registering a package already registered, which
+    /// gained templates since, only signals the change.
     /// </summary>
     public static void RegisterPackage(Package package)
     {
         lock (ThisLock)
         {
-            ExtraPackages.Add(package);
+            if (!ExtraPackages.Contains(package))
+                ExtraPackages.Add(package);
         }
+        PackagesChanged?.Invoke();
     }
+
+    /// <summary>
+    /// Raised after <see cref="RegisterPackage"/> added templates, on the calling thread (possibly a background one).
+    /// Lets an open template list show packages that arrive late.
+    /// </summary>
+    public static event Action? PackagesChanged;
 
     /// <summary>
     /// Registers the specified factory.

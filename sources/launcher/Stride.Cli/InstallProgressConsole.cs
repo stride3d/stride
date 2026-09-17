@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Threading;
 using Stride.Cli.Core;
+using Stride.Core.Packages;
 
 // Renders install/update/uninstall progress on a single console line: a spinner with the downloaded size
 // during download, then "installing X/Y (package)" (or "removing X/Y" on uninstall) as packages are processed.
@@ -69,7 +70,7 @@ internal sealed class InstallProgressConsole : IProgress<InstallProgress>, IDisp
                 InstallStage.Installing => $"Stride {current.Version}: installing {current.Completed}/{current.Total} ({current.Package})",
                 InstallStage.SettingUp => $"Stride {current.Version}: setting up {current.Package}",
                 InstallStage.Removing => $"Stride {current.Version}: removing {current.Completed}/{current.Total} ({current.Package})",
-                _ when current.DownloadedBytes > 0 => $"Stride {current.Version}: downloading {Mb(current.DownloadedBytes)} MB",
+                _ when current.DownloadedBytes > 0 => $"Stride {current.Version}: downloading {DownloadSize.Format(current.DownloadedBytes)}",
                 // No bytes flowing (resolving, or restoring from the local cache).
                 _ => $"Stride {current.Version}: restoring",
             };
@@ -78,8 +79,6 @@ internal sealed class InstallProgressConsole : IProgress<InstallProgress>, IDisp
         lastLength = line.Length;
         wrote = true;
     }
-
-    private static string Mb(long bytes) => (bytes / 1048576.0).ToString("0.0");
 
     public void Dispose()
     {
