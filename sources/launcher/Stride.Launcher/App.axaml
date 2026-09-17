@@ -1,38 +1,35 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="using:Stride.Launcher.Assets.Localization"
              x:Class="Stride.Launcher.App"
              RequestedThemeVariant="Default">
   <Application.Resources>
     <ResourceDictionary>
-      <Image x:Key="ImageFacebook"
-             Height="24" Width="24"
-             Source="/Assets/Images/facebook.png" />
-      <Image x:Key="ImageOpenCollective"
-             Height="24" Width="24"
-             Source="/Assets/Images/opencollective.png" />
-      <Image x:Key="ImageReddit"
-             Height="24" Width="24"
-             Source="/Assets/Images/reddit.png" />
-      <Image x:Key="ImageTwitter"
-             Height="24" Width="24"
-             Source="/Assets/Images/xtwitter.png" />
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="avares://Stride.Core.Presentation.Avalonia/Windows/GeometryResources.axaml"/>
+        <ResourceInclude Source="avares://Stride.Core.Presentation.Avalonia/Windows/TitleBar.axaml" />
+        <ResourceInclude Source="Views/Icons.axaml" />
+      </ResourceDictionary.MergedDictionaries>
+
       <ResourceDictionary.ThemeDictionaries>
         <ResourceDictionary x:Key="Default">
-          <SolidColorBrush x:Key="BackgroundEmphasis" Color="#900520" />
-          <SolidColorBrush x:Key="BackgroundTileAlpha" Color="#C0434343" />
-          <SolidColorBrush x:Key="BorderBrushTile" Color="Transparent" />
+          <SolidColorBrush x:Key="AccentBrush" Color="{DynamicResource SystemAccentColor}" />
+          <SolidColorBrush x:Key="TileBorderBrush" Color="Transparent" />
+          <SolidColorBrush x:Key="CardBorderBrush" Color="#17000000" />
+          <BoxShadows x:Key="CardShadow">0 1 2 #17000000</BoxShadows>
+          <SolidColorBrush x:Key="ChromeWhiteBrush" Color="{StaticResource SystemChromeWhiteColor}" />
+          <SolidColorBrush x:Key="NeutralBackgroundBrush" Color="#80FFFFFF" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
-          <SolidColorBrush x:Key="BackgroundEmphasis" Color="{DynamicResource SystemAccentColorDark1}" />
-          <SolidColorBrush x:Key="BackgroundTileAlpha" Color="#C0434343" />
-        </ResourceDictionary>
-        <ResourceDictionary x:Key="Light">
-          <SolidColorBrush x:Key="BackgroundEmphasis" Color="{DynamicResource SystemAccentColorLight1}" />
-          <SolidColorBrush x:Key="BackgroundTileAlpha" Color="#C0BCBCBC" />
+          <SolidColorBrush x:Key="AccentBrush" Color="{DynamicResource SystemAccentColor}" />
+          <SolidColorBrush x:Key="CardBorderBrush" Color="#17FFFFFF" />
+          <BoxShadows x:Key="CardShadow">0 1 2 #17FFFFFF</BoxShadows>
+          <SolidColorBrush x:Key="ChromeWhiteBrush" Color="{StaticResource SystemChromeWhiteColor}" />
+          <SolidColorBrush x:Key="NeutralBackgroundBrush" Color="#0FFFFFFF" />
         </ResourceDictionary>
       </ResourceDictionary.ThemeDictionaries>
-      <Thickness x:Key="BorderThicknessTile">12</Thickness>
-      <Thickness x:Key="BorderThicknessTileList">0,0,0,20</Thickness>
+      <Thickness x:Key="TileBorderThickness">12</Thickness>
+      <CornerRadius x:Key="ControlCornerRadius">4</CornerRadius>
     </ResourceDictionary>
   </Application.Resources>
 
@@ -45,17 +42,31 @@
     </FluentTheme>
     <StyleInclude Source="avares://MarkView.Avalonia/Themes/MarkdownTheme.axaml" />
 
-    <Style Selector="Button.MediaButton">
+    <Style Selector="Border.card">
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource CardBorderBrush}" />
+      <Setter Property="CornerRadius" Value="{StaticResource ControlCornerRadius}" />
+      <Setter Property="BoxShadow" Value="{DynamicResource CardShadow}" />
+    </Style>
+    <Style Selector="TabItem">
+      <Setter Property="FontSize" Value="14" />
+    </Style>
+    <Style Selector="TextBlock.subtitle">
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="FontSize" Value="16" />
+      <Setter Property="Padding" Value="0 0 0 8" />
+    </Style>
+    <Style Selector="Button.mediaButton">
       <Setter Property="Margin" Value="2" />
       <Setter Property="Padding" Value="0" />
     </Style>
-    <Style Selector="Button.MediaButton:pointerover">
+    <Style Selector="Button.mediaButton:pointerover">
       <Setter Property="Opacity" Value="0.6" />
     </Style>
-    <Style Selector="Button.TransparentButton">
+    <Style Selector="Button.transparentButton">
       <Setter Property="Background" Value="Transparent" />
     </Style>
-    <Style Selector="ToggleButton.TransparentButton">
+    <Style Selector="ToggleButton.transparentButton">
       <Setter Property="Background" Value="Transparent" />
     </Style>
   </Application.Styles>
