@@ -8,7 +8,7 @@ namespace Stride.Rendering.Shadows
     /// <remarks>
     /// A material whose surface is computed in the pixel shader (a ray-marched volume, a parallax
     /// search) can settle for a depth good enough for a shadow and skip the rest.
-    /// <see cref="ShadowCasterRenderFeature"/> writes the flag for every view.
+    /// <see cref="Materials.MaterialRenderFeature"/> writes the flag for every view.
     /// </remarks>
     shader ShadowMapCasterPassInfo
     {
