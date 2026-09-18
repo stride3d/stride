@@ -350,18 +350,15 @@ namespace Stride.Games
 
         public virtual List<GraphicsDeviceInformation> FindBestDevices(GameGraphicsParameters preferredParameters)
         {
-            // Software rasterizers (WARP, Basic Render Driver, llvmpipe) only when asked for, or when nothing else is there.
-            var skipSoftwareAdapters = string.IsNullOrEmpty(preferredParameters.RequiredAdapterUid)
-                && Environment.GetEnvironmentVariable("STRIDE_GRAPHICS_SOFTWARE_RENDERING") != "1";
-            var graphicsDeviceInfos = FindBestDevices(preferredParameters, skipSoftwareAdapters);
-            if (graphicsDeviceInfos.Count == 0 && skipSoftwareAdapters)
-                graphicsDeviceInfos = FindBestDevices(preferredParameters, skipSoftwareAdapters: false);
-            return graphicsDeviceInfos;
-        }
-
-        private List<GraphicsDeviceInformation> FindBestDevices(GameGraphicsParameters preferredParameters, bool skipSoftwareAdapters)
-        {
             var graphicsDeviceInfos = new List<GraphicsDeviceInformation>();
+
+            // Software rasterizers (WARP, llvmpipe) only when asked for by uid, or when no hardware adapter exists.
+            var skipSoftwareAdapters = false;
+            if (string.IsNullOrEmpty(preferredParameters.RequiredAdapterUid))
+            {
+                foreach (var graphicsAdapter in GraphicsAdapterFactory.Adapters)
+                    skipSoftwareAdapters |= !graphicsAdapter.IsSoftwareAdapter;
+            }
 
             // Iterate on each adapter
             foreach (var graphicsAdapter in GraphicsAdapterFactory.Adapters)
