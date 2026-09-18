@@ -1194,4 +1194,29 @@ new ShaderMacro("class", "shader"),
             [Stride.Shaders.Spirv.Specification.LoopControlMask.DontUnroll, Stride.Shaders.Spirv.Specification.LoopControlMask.Unroll, Stride.Shaders.Spirv.Specification.LoopControlMask.DontUnroll],
             controls);
     }
+
+    // Writing only part of a stream the stage input does not carry must leave the rest defined.
+    // Checked with fxc, which rejects an undefined read with X4000; the HLSL text alone looks fine.
+    [Fact]
+    public void GeometryStreamsAssignThenPartialWriteCompilesWithFxc()
+    {
+        SpirvCrossSupport.SkipUnlessAvailable();
+        FxcSupport.SkipUnlessAvailable();
+
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+        shaderMixer.ShaderLoader.LoadExternalBuffer("GeometryStreamsAssignPartialWrite", [], out _, out _, out _);
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(new ShaderClassSource("GeometryStreamsAssignPartialWrite"), new ShaderMixer.Options(true), log, out var bytecode, out _, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+
+        var legalized = SpirvTools.LegalizeForHlsl(System.Runtime.InteropServices.MemoryMarshal.Cast<byte, uint>(bytecode.ToArray()));
+        var translator = new SpirvTranslator(legalized.AsMemory());
+        var geometry = translator.GetEntryPoints().First(x => x.ExecutionModel == ExecutionModel.Geometry);
+        var hlsl = translator.Translate(Backend.Hlsl, geometry);
+
+        var errors = FxcSupport.Compile(hlsl, "gs_5_0");
+        Assert.True(errors is null, errors + Environment.NewLine + hlsl);
+    }
 }
