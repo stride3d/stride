@@ -157,6 +157,44 @@ public class StrideShaderTests
             && m.Text.Contains("supplied at the root") && m.Text.Contains("'nested'"));
     }
 
+    // The other side of the rule: the value comes from the root even when only a nested composition
+    // inherits the shader declaring the slot.
+    [Fact]
+    public void StageCompositionDeclaredFromNestedIsSuppliedAtRoot()
+    {
+        AssertStageSamplerTextureIsBoundAtRoot(MergeStageComposePath("StageComposePathRoot", "nested"));
+    }
+
+    // Two nested compositions inheriting the same declarer share the one slot.
+    [Fact]
+    public void StageCompositionDeclaredFromTwoNestedIsSuppliedAtRoot()
+    {
+        AssertStageSamplerTextureIsBoundAtRoot(MergeStageComposePath("StageComposePathRoot2", "nestedA", "nestedB"));
+    }
+
+    private static EffectReflection MergeStageComposePath(string root, params string[] nestedSlots)
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+
+        var shaderSource = new ShaderMixinSource { Mixins = { new ShaderClassSource(root) } };
+        foreach (var nestedSlot in nestedSlots)
+            shaderSource.Compositions[nestedSlot] = new ShaderMixinSource { Mixins = { new ShaderClassSource("StageComposePathSupplier") } };
+        shaderSource.Compositions["Samplers"] = new ShaderArraySource { new ShaderClassSource("StageComposePathImpl") };
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(shaderSource, new ShaderMixer.Options(true), log, out _, out var reflection, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+        return reflection;
+    }
+
+    // The supplied shader's texture gets the key of a root composition: no nested path after the slot
+    private static void AssertStageSamplerTextureIsBoundAtRoot(EffectReflection reflection)
+    {
+        var textureKeys = reflection.ResourceBindings.Select(b => b.KeyInfo.KeyName).Where(k => k.Contains("StageComposePathImpl.Tex")).Distinct().ToList();
+        Assert.Equal(["StageComposePathImpl.Tex.Samplers[0]"], textureKeys);
+    }
+
     // fxc rejects the same shader with X4532, so this reports rather than emitting a module that only
     // fails later, deep inside the HLSL legalizer.
     [Fact]

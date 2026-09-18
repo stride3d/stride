@@ -337,9 +337,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                         throw new InvalidOperationException(
                             $"No composition was supplied for '{variable.Key}', declared as '{variable.Value.Type}' by shader '{shader.ShaderName}', "
                             + $"while merging the mixin node '{currentCompositionPath ?? "<root>"}' (root: {mixinNode.IsRoot}). "
-                            + $"That node only has [{string.Join(", ", mixinSource.Compositions.Keys)}]. "
-                            + $"A `stage compose` is the usual cause: the shader declaring it was promoted to this node, "
-                            + $"but its value was supplied at a nested composition path and nothing carried it up.");
+                            + $"That node only has [{string.Join(", ", mixinSource.Compositions.Keys)}].");
 
                     var isCompositionArray = pointer.BaseType is ArrayType { BaseType: ShaderSymbol };
 
@@ -352,10 +350,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                         var localKey = variable.Key;
                         if (isCompositionArray)
                             localKey += $"[{i}]";
-                        // TODO: Review: it seems like Stride compose variable the opposite way that we expect
-                        //       Let's change it so that it becomes {currentCompositionPath}.{localKey}!
-                        var compositionPath = currentCompositionPath != null ? $"{localKey}.{currentCompositionPath}" : localKey;
-                        compositionResults[i] = MergeMixinNode(globalContext, context, buffer, compositionMixins[i], mixinNode.IsRoot ? mixinNode : mixinNode.Stage, compositionPath);
+                        compositionResults[i] = MergeMixinNode(globalContext, context, buffer, compositionMixins[i], mixinNode.IsRoot ? mixinNode : mixinNode.Stage, ChildCompositionPath(currentCompositionPath, localKey));
                     }
 
                     if (isCompositionArray)
