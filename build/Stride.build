@@ -113,11 +113,8 @@ Example: dotnet build build/Stride.build -t:Package
       <NuGetPackage Include="..\bin\packages\*.nupkg"/>
       <!-- Remove GameStudio (pushed in a second stage) -->
       <NuGetPackage Remove="@(NuGetPackage)" Condition="$([System.String]::Copy('%(Filename)').Contains('Stride.GameStudio'))"/>
-      <!-- Remove Samples.Templates (we use -SkipDuplicate since version is rarely bumped) -->
-      <NuGetPackage Remove="@(NuGetPackage)" Condition="$([System.String]::Copy('%(Filename)').Contains('Stride.Samples.Templates'))"/>
     </ItemGroup>
     <Exec Command='"$(NuGetPath)" push %(NuGetPackage.Identity) -ApiKey $(StrideStoreApiKey) -Source $(StrideStoreUrl) -Timeout 1800 -NoSymbols -SkipDuplicate'/>
-    <Exec Command='"$(NuGetPath)" push ..\bin\packages\Stride.Samples.Templates*.nupkg -ApiKey $(StrideStoreApiKey) -Source $(StrideStoreUrl) -Timeout 1800 -NoSymbols -SkipDuplicate'/>
     <!-- Push GameStudio so that dependencies are already uploaded -->
     <Exec Command='"$(NuGetPath)" push ..\bin\packages\Stride.GameStudio*.nupkg -ApiKey $(StrideStoreApiKey) -Source $(StrideStoreUrl) -Timeout 1800 -NoSymbols'/>
   </Target>
@@ -199,9 +196,20 @@ Example: dotnet build build/Stride.build -t:Package
 
   <Target Name="PackageCli" DependsOnTargets="BuildPackageCli;SignPackageCli" />
 
-  <!-- In-repo sample version management (SamplesToDevVersion / SamplesToReleaseVersion /
-       UpgradeSamplesVersion) is standalone in build/Stride.Samples.build - run it directly, e.g.
-       dotnet msbuild build/Stride.Samples.build -t:UpgradeSamplesVersion. See plans/samples-version-bump.md. -->
+  <!--
+  Content template packs (Stride.Templates.Samples / .Games.Starters / .AssetPacks)
+  Versioned by StrideVersion.SamplesVersion, published on their own schedule by .github/workflows/release-samples.yml;
+  the engine release never packs them. PackageSamples produces the release-shaped (fully preprocessed) packs into
+  bin/packages, stamped for this branch's engine version (+ StrideVersionSuffix); SignPackage then signs them.
+  -->
+  <Target Name="PackageSamples" DependsOnTargets="PreparePackageBuild">
+    <MSBuild Projects="$(StrideRoot)build\Stride.Samples.build" Targets="PackContentTemplates"
+             Properties="Configuration=Release;StridePackageBuild=true" />
+  </Target>
+
+  <!-- In-repo sample version management (SamplesToDevEngine / SamplesToReleaseEngine / PrepareSamplesForRelease /
+       CleanContentTemplates) is standalone in build/Stride.Samples.build - run it directly, e.g.
+       dotnet msbuild build/Stride.Samples.build -t:PrepareSamplesForRelease. See docs/build/versioning.md. -->
 
   <Target Name="RestoreInternal">
     <MSBuild Targets="Restore" Projects="$(StrideSolution)" Properties="StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll);StrideGraphicsApis=$(StrideGraphicsApis);StridePlatforms=$(StridePlatforms)" />

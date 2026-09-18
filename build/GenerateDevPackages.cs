@@ -232,8 +232,11 @@ if (freshPackages.Length == 0)
 // fell back to whatever stale package the NuGet cache still held. Every packed project that had a stub before
 // must have produced one now, else stop and leave the feed as it was.
 var fresh = freshPackages.Select(Path.GetFileName).ToHashSet(StringComparer.OrdinalIgnoreCase);
+// The content template packs (Stride.Templates.Samples / .Games.Starters / .AssetPacks) are only packed on request
+// (StridePackContentTemplates), so a stamp that lists them from such a build says nothing about this pack.
 var missing = (adopt.Length > 0 ? new List<ProjectInfo>() : projects)
     .Select(StubName)
+    .Where(name => !name.StartsWith("Stride.Templates.", StringComparison.OrdinalIgnoreCase))
     .Where(name => previousStamp.Contains(name, StringComparer.OrdinalIgnoreCase) && !fresh.Contains(name))
     .ToList();
 if (missing.Count > 0)

@@ -157,7 +157,7 @@ internal static class Launcher
 
             // Uninstall packages (they might have uninstall actions)
             var store = new NugetStore(path);
-            foreach (var package in store.MainPackageIds.SelectMany(store.GetLocalPackages).FilterStrideMainPackages().ToList())
+            foreach (var package in store.MainPackageIds.SelectMany(packageId => store.GetLocalPackages(packageId)).FilterStrideMainPackages().ToList())
             {
                 await store.UninstallPackage(package, null);
             }

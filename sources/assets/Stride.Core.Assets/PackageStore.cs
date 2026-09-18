@@ -117,6 +117,22 @@ public class PackageStore
         return package is null ? null : (UDirectory)store.GetRealPath(package);
     }
 
+    /// <summary>The local-install directory of an installed package (see <see cref="GetLocalPackages"/>).</summary>
+    public UDirectory GetPackageDirectory(NugetLocalPackage package)
+    {
+        ArgumentNullException.ThrowIfNull(package);
+        return (UDirectory)store.GetRealPath(package);
+    }
+
+    /// <summary>Every installed copy of <paramref name="packageName"/>, for callers that pick a version themselves.</summary>
+    /// <param name="packageName">The package.</param>
+    /// <param name="localBuildRange">The versions to take from local package sources first, null for all.</param>
+    public IEnumerable<NugetLocalPackage> GetLocalPackages(string packageName, PackageVersionRange? localBuildRange = null)
+    {
+        ArgumentNullException.ThrowIfNull(packageName);
+        return store.GetLocalPackages(packageName, localBuildRange);
+    }
+
     /// <summary>
     /// Fetches (if needed) and installs <paramref name="packageName"/> at <paramref name="version"/>
     /// into the local package store, from the configured NuGet sources. Returns the installed
@@ -127,6 +143,19 @@ public class PackageStore
         ArgumentNullException.ThrowIfNull(packageName);
         return store.InstallPackage(packageName, version, [], progress);
     }
+
+    /// <summary>Raised as <see cref="InstallPackage"/> downloads, with the bytes downloaded so far (throttled to ~250ms, and once more when a download ends).</summary>
+    public event Action<long>? DownloadProgress
+    {
+        add => store.NugetDownloadProgress += value;
+        remove => store.NugetDownloadProgress -= value;
+    }
+
+    /// <summary>
+    /// The size of the downloads the current <see cref="InstallPackage"/> has started, in bytes. The final size once
+    /// the downloads have started, so only meaningful for an install of one package (and its small dependencies).
+    /// </summary>
+    public long StartedDownloadBytes => store.NugetStartedDownloadBytes;
 
     /// <summary>
     /// Gets the default package manager.

@@ -20,6 +20,12 @@
          binaries (cuts ~30s/build). Run `dotnet run build/GenerateDevPackages.cs` to set this
          to true and generate the stubs in one step; pass the disable arg to revert. -->
     <!--<StrideDevPackages Condition="'$(StrideDevPackages)' == ''">true</StrideDevPackages>-->
+    <!-- Content template packs (Stride.Templates.Samples / .Games.Starters / .AssetPacks, ~730 MB of samples)
+         are never packed by a normal build: Game Studio and the stride CLI use the published version named by
+         StrideVersion.SamplesVersion. Set this to true while editing samples so builds pack this checkout's
+         -devN copy (which then wins locally); the next build after turning it off removes that copy.
+         See docs/build/versioning.md. -->
+    <!--<StridePackContentTemplates Condition="'$(StridePackContentTemplates)' == ''">true</StridePackContentTemplates>-->
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(StridePlatform)' == 'Windows'">

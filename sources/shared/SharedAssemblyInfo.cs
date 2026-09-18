@@ -52,11 +52,15 @@ internal class StrideVersion
     public const string NuGetVersionSuffix = "";
 
     /// <summary>
-    /// Base version of the content-versioned template packages (Starters, Samples), independent of the engine
-    /// version. The bridge query and Stride.Templates.Common.targets pack both append <see cref="NuGetVersionSuffix"/>
-    /// to it (one source, so they can't drift); StrideSamplesVersion.props reads it for the build.
+    /// The exact published version of the content template packages (Stride.Templates.Samples, .Games.Starters,
+    /// .AssetPacks) this engine uses. Independent of the engine version and never composed with
+    /// <see cref="NuGetVersionSuffix"/>: the Game Studio bridge and the stride CLI resolve this version (or this
+    /// checkout's -devN pack of it), and Stride.GameStudio depends on it. Don't edit it by hand: release-samples.yml
+    /// sets it after publishing a samples release, so it always names content that is on the feed. Its major.minor
+    /// follows the engine line and its patch part is a content counter (4.4.0, 4.4.1, ...), never an engine
+    /// prerelease label. Keep the line shape (name = "value";) so the build and that workflow read and write it.
     /// </summary>
-    public const string SamplesVersion = "4.4.0";
+    public const string SamplesVersion = "4.4.0-beta7";
 
     // ── Derived / overlaid ───────────────────────────────────────────────────────────────────────────────
 

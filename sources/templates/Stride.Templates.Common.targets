@@ -15,6 +15,11 @@
        Imported here (vanilla Microsoft.NET.Sdk, outside the Stride SDK chain). -p:PackageVersion=X pins explicitly. -->
   <Import Project="$(StrideRoot)sources\targets\Stride.NuGetVersion.props" />
 
+  <!-- The developer's local settings (StridePackContentTemplates among them). The Stride SDK imports this file for
+       engine projects; these projects use NoTargets, outside that chain. It only exists once a Stride SDK project
+       has been built in this checkout. -->
+  <Import Project="$(StrideRoot)build\Stride.Local.props" Condition="Exists('$(StrideRoot)build\Stride.Local.props')" />
+
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <IsPackable>true</IsPackable>
@@ -28,10 +33,26 @@
     <RepositoryUrl>https://github.com/stride3d/stride</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
 
-    <!-- Content-versioned packages (Samples, Starters) = StrideSamplesVersion + engine prerelease suffix (matches
-         the bridge query); the rest (Games) follow the engine version. CLI -p:PackageVersion= wins over both. -->
-    <PackageVersion Condition="'$(PackageVersion)' == '' And '$(StrideTemplateContentVersioned)' == 'true'">$(StrideSamplesVersion)$(StrideNuGetVersionSuffix)</PackageVersion>
+    <!-- Content-versioned packages (Samples, Starters, AssetPacks) = StrideSamplesVersion, the exact version the
+         engine names (the bridge and the CLI resolve it as-is; the -devN worktree suffix is appended below on local
+         packs); the rest (Games) follow the engine version. CLI -p:PackageVersion= wins over both. -->
+    <PackageVersion Condition="'$(PackageVersion)' == '' And '$(StrideTemplateContentVersioned)' == 'true'">$(StrideSamplesVersion)</PackageVersion>
     <PackageVersion Condition="'$(PackageVersion)' == ''">$(StrideNuGetVersion)</PackageVersion>
+
+    <!-- Content packs are large, rarely changing content, published on their own schedule (release-samples.yml).
+         A local build never packs them unless StridePackContentTemplates=true (build/Stride.Local.props,
+         PrepareSamplesForRelease, release-samples.yml). CI builds do, so the tests that instantiate templates run on
+         the samples of the branch; the engine release (StridePackageBuild) doesn't. It is a plain property, never
+         passed to one project only: a global property on a single reference would build these projects, and
+         everything they reference, a second time. Off, the project still builds (nothing to build) and still answers
+         Game Studio's nuspec dependency query with the exact committed version. -->
+    <StridePackContentTemplates Condition="'$(StridePackContentTemplates)' == '' And '$(StridePackageBuild)' != 'true' And ('$(CI)' == 'true' Or '$(GITHUB_ACTIONS)' == 'true' Or '$(TF_BUILD)' == 'true')">true</StridePackContentTemplates>
+    <StridePackContentTemplates Condition="'$(StridePackContentTemplates)' == ''">false</StridePackContentTemplates>
+    <_StrideContentPackEnabled Condition="'$(StrideTemplateContentVersioned)' != 'true' Or '$(StridePackContentTemplates)' == 'true'">true</_StrideContentPackEnabled>
+    <IsPackable Condition="'$(_StrideContentPackEnabled)' != 'true'">false</IsPackable>
+    <!-- Also keeps the auto-pack deploy off: its cache purge keys on PackageVersion, which off the flag is the
+         published version whose extracted copy must stay. -->
+    <StrideSkipAutoPack Condition="'$(_StrideContentPackEnabled)' != 'true'">true</StrideSkipAutoPack>
 
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <NoDefaultExcludes>true</NoDefaultExcludes>
@@ -70,7 +91,10 @@
   <Target Name="StrideTemplatesAppendWorktreeVersion"
           DependsOnTargets="StrideEnsureWorktreeVersion"
           BeforeTargets="StrideGenerateTemplateContent;_GetOutputItemsFromPack;GenerateNuspec;_GetProjectVersion">
-    <PropertyGroup Condition="'$(StrideWorktreeSuffix)' != '' And !$(PackageVersion.EndsWith('$(StrideWorktreeSuffix)'))">
+    <!-- A content pack that is not being produced keeps the exact committed version, so Game Studio's nuspec
+         dependency names the published pack; a produced one is always worktree-suffixed (4.4.0-dev2), never a
+         version that could be mistaken for the published one. -->
+    <PropertyGroup Condition="'$(_StrideContentPackEnabled)' == 'true' And '$(StrideWorktreeSuffix)' != '' And !$(PackageVersion.EndsWith('$(StrideWorktreeSuffix)'))">
       <PackageVersion>$(PackageVersion)$(StrideWorktreeSuffix)</PackageVersion>
     </PropertyGroup>
     <!-- The engine version stamped into template content (the engine-version flag below). Distinct
@@ -98,6 +122,41 @@
           Condition="'$(StridePackageBuild)' == 'true' AND '$(StrideTemplatesPackMode)' != 'preprocessed'">
     <Error Text="StridePackageBuild=true requires StrideTemplatesPackMode=preprocessed; got '$(StrideTemplatesPackMode)'." />
   </Target>
+
+  <!-- The feeds a content pack lands in (auto-pack writes the first, the deploy step the second). One list, read by
+       CleanContentTemplates and by the VS up-to-date hook below; the second form keeps only the packs this checkout
+       produced (an item Condition cannot batch on %(Filename) outside a target, so the suffix is in the glob). -->
+  <PropertyGroup Condition="'$(StrideTemplateContentVersioned)' == 'true'">
+    <_StrideContentPackFeedGlobs>$(StrideRoot)bin\packages\$(PackageId).*.nupkg;$(LocalAppData)\stride\nugetdev\$(PackageId).*.nupkg</_StrideContentPackFeedGlobs>
+  </PropertyGroup>
+
+  <!-- Removes this checkout's local content packs (bin/packages, the nugetdev feed, the extracted copies in the
+       global cache): the bridge and the CLI prefer a -devN pack while it exists. A build with
+       StridePackContentTemplates off runs it (StrideCleanContentTemplatesWhenOff); build/Stride.Samples.build
+       -t:CleanContentTemplates runs it on all three packages by hand. Also warns about a pack in those feeds that
+       carries a published version (no -devN): restores may take it over the published package. -->
+  <Target Name="CleanContentTemplates" DependsOnTargets="StrideEnsureWorktreeVersion"
+          Condition="'$(StrideTemplateContentVersioned)' == 'true'">
+    <ItemGroup>
+      <_StrideFeedContentPack Include="$(_StrideContentPackFeedGlobs)" />
+      <_StrideLocalContentPack Include="@(_StrideFeedContentPack)" Condition="'$(StrideWorktreeSuffix)' != '' And $([System.String]::Copy('%(Filename)').EndsWith('$(StrideWorktreeSuffix)'))" />
+      <_StridePublishedLikeContentPack Include="@(_StrideFeedContentPack)" Condition="!$([System.Text.RegularExpressions.Regex]::IsMatch('%(Filename)', '-dev[0-9]*$'))" />
+      <_StrideLocalContentPackCacheDir Include="$([System.IO.Directory]::GetDirectories('$(NuGetPackageRoot)$(PackageId.ToLowerInvariant())', '*$(StrideWorktreeSuffix)'))"
+                                       Condition="'$(NuGetPackageRoot)' != '' And '$(StrideWorktreeSuffix)' != '' And Exists('$(NuGetPackageRoot)$(PackageId.ToLowerInvariant())')" />
+    </ItemGroup>
+    <!-- A copy in use (Game Studio open) stays until the next build. -->
+    <Delete Files="@(_StrideLocalContentPack)" ContinueOnError="WarnAndContinue" />
+    <RemoveDir Directories="@(_StrideLocalContentPackCacheDir)" ContinueOnError="WarnAndContinue" />
+    <Message Importance="high" Condition="'@(_StrideLocalContentPack)@(_StrideLocalContentPackCacheDir)' != ''"
+             Text="CleanContentTemplates [$(PackageId)]: removed this checkout's local packs: @(_StrideLocalContentPack->'%(Filename)', ', ') @(_StrideLocalContentPackCacheDir, ', ')" />
+    <Warning Condition="'@(_StridePublishedLikeContentPack)' != ''"
+             Text="[$(PackageId)] Local package feed holds %(_StridePublishedLikeContentPack.FullPath), a pack with a published version number. A restore may use it instead of the published package. Delete it unless you made it on purpose." />
+  </Target>
+
+  <!-- With StridePackContentTemplates off, this checkout's dev packs are left over from an earlier build with it on:
+       remove them so the published content is used again. -->
+  <Target Name="StrideCleanContentTemplatesWhenOff" AfterTargets="Build" DependsOnTargets="CleanContentTemplates"
+          Condition="'$(StrideTemplateContentVersioned)' == 'true' And '$(_StrideContentPackEnabled)' != 'true' And '$(DesignTimeBuild)' != 'true' And '$(StridePackageBuild)' != 'true'" />
 
   <!-- Opt-in dev convenience: register the freshly-built .nupkg with the user's `dotnet new`
        so `dotnet new stride-game` Just Works after a build. Off by default because the
@@ -162,16 +221,27 @@
 
   <!-- VS fast up-to-date inputs: no .cs files here, so without these VS skips Build → no Pack → stale nupkg.
        Per-sample file inputs are added in each csproj as literal-wildcard UpToDateCheckInput: CPS reads only
-       static pre-expanded inputs, and MSBuild only globs wildcards written literally (can't be batched here). -->
-  <ItemGroup>
+       static pre-expanded inputs, and MSBuild only globs wildcards written literally (can't be batched here).
+       A content pack that is not produced declares no output (nothing to be out of date against). -->
+  <ItemGroup Condition="'$(_StrideContentPackEnabled)' == 'true'">
     <UpToDateCheckInput Include="$(StrideTemplatesDll)" />
     <UpToDateCheckBuilt Include="$(StrideRoot)bin\packages\$(PackageId).$(PackageVersion)$(_StrideEvalWorktreeSuffix).nupkg" />
   </ItemGroup>
+  <!-- Off, while a pack of this checkout is still in a feed: name an output that never exists, so VS builds the
+       project and StrideCleanContentTemplatesWhenOff removes the pack. Same feeds and same suffix match as the
+       cleanup, so what VS triggers on is what the cleanup deletes. -->
+  <PropertyGroup Condition="'$(StrideTemplateContentVersioned)' == 'true' And '$(_StrideEvalWorktreeSuffix)' != ''">
+    <_StrideLocalContentPackGlobs>$(StrideRoot)bin\packages\$(PackageId).*$(_StrideEvalWorktreeSuffix).nupkg;$(LocalAppData)\stride\nugetdev\$(PackageId).*$(_StrideEvalWorktreeSuffix).nupkg</_StrideLocalContentPackGlobs>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(_StrideContentPackEnabled)' != 'true' And '$(_StrideLocalContentPackGlobs)' != ''">
+    <_StrideLeftoverContentPack Include="$(_StrideLocalContentPackGlobs)" />
+    <UpToDateCheckBuilt Include="$(MSBuildProjectDirectory)\obj\content-pack-removed.never" Condition="'@(_StrideLeftoverContentPack)' != ''" />
+  </ItemGroup>
 
-  <Target Name="StrideGenerateTemplateContent" BeforeTargets="_GetPackageFiles;GenerateNuspec">
+  <Target Name="StrideGenerateTemplateContent" BeforeTargets="_GetPackageFiles;GenerateNuspec" Condition="'$(IsPackable)' == 'true'">
     <RemoveDir Directories="$(TemplateContentRoot)" Condition="Exists('$(TemplateContentRoot)')" />
 
-    <Message Text="StrideTemplates [$(PackageId)]: pack mode = $(StrideTemplatesPackMode), templates = @(StrideSampleTemplate->Count())" Importance="high" />
+    <Message Text="StrideTemplates [$(PackageId)]: pack mode = $(StrideTemplatesPackMode), templates = @(StrideSampleTemplate->Count()), version = $(PackageVersion), engine = $(_StrideTemplatesEngineVersion)" Importance="high" />
 
     <!-- Per-template preprocess. MSBuild's per-item Exec batching runs one command per item.
          The engine-version flag stamps the engine version into template content ($EngineVersion$

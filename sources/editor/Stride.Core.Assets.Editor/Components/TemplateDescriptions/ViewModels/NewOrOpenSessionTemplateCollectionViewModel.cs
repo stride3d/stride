@@ -26,6 +26,8 @@ namespace Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels
         private readonly IModalDialog dialog;
         private readonly TemplateDescriptionGroupViewModel recentGroup;
         private readonly TemplateDescriptionGroupViewModel rootGroup;
+        private readonly TemplateDescriptionGroupViewModel defaultGroup;
+        private readonly HashSet<TemplateDescription> listedTemplates = new(ReferenceEqualityComparer.Instance);
         private string solutionName;
         private UDirectory solutionLocation;
         private bool arePropertiesValid;
@@ -37,16 +39,15 @@ namespace Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels
             rootGroup = new TemplateDescriptionGroupViewModel(serviceProvider, "New project");
 
             // Add a default General group
-            var defaultGroup = new TemplateDescriptionGroupViewModel(rootGroup, "General");
+            defaultGroup = new TemplateDescriptionGroupViewModel(rootGroup, "General");
+            AddNewTemplates();
 
-            foreach (TemplateDescription template in TemplateManager.FindTemplates(TemplateScope.Session))
-            {
-                if (template.Id == StrideLibraryTemplateId)
-                    continue;
-                var viewModel = new PackageTemplateViewModel(serviceProvider, template);
-                var group = ProcessGroup(rootGroup, template.Group) ?? defaultGroup;
-                group.Templates.Add(viewModel);
-            }
+            // Template packages still downloading at startup: show their progress, list their templates once ready.
+            TemplateManager.PackagesChanged += OnTemplatePackagesChanged;
+            TemplateDownloads.Changed += OnTemplateDownloadsChanged;
+            UpdateDownloadStatus();
+            DependentProperties.Add(nameof(SelectedGroup), [nameof(ShowDownloadStatus)]);
+            DependentProperties.Add(nameof(DownloadStatus), [nameof(ShowDownloadStatus)]);
 
             recentGroup = new TemplateDescriptionGroupViewModel(serviceProvider, "Recent projects");
             foreach (var file in EditorViewModel.Instance.RecentFiles)
@@ -74,6 +75,80 @@ namespace Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels
         public bool ArePropertiesValid { get { return arePropertiesValid; } set { SetValue(ref arePropertiesValid, value); } }
 
         public ICommandBase BrowseForExistingProjectCommand { get; private set; }
+
+        /// <summary>The template download in progress (or failed), null when there is none.</summary>
+        public string DownloadStatus { get; private set { SetValue(ref field, value); } }
+
+        /// <summary>Whether <see cref="DownloadStatus"/> is shown: only while new project templates are listed, where the downloads add templates.</summary>
+        public bool ShowDownloadStatus
+        {
+            get
+            {
+                if (DownloadStatus is null)
+                    return false;
+                for (var group = SelectedGroup; group is not null; group = group.Parent)
+                {
+                    if (group == rootGroup)
+                        return true;
+                }
+                return false;
+            }
+        }
+
+        /// <summary>Whether a template download is in progress (<see cref="DownloadStatus"/> may also report a failure).</summary>
+        public bool IsDownloading { get; private set { SetValue(ref field, value); } }
+
+        /// <summary>Progress of the download from 0 to 1 (0 while its size is not known).</summary>
+        public double DownloadProgress { get; private set { SetValue(ref field, value); } }
+
+        /// <summary>Whether the size of the download is not known yet (no progress to show).</summary>
+        public bool IsDownloadSizeUnknown { get; private set { SetValue(ref field, value); } } = true;
+
+        /// <inheritdoc />
+        public override void Destroy()
+        {
+            TemplateManager.PackagesChanged -= OnTemplatePackagesChanged;
+            TemplateDownloads.Changed -= OnTemplateDownloadsChanged;
+            base.Destroy();
+        }
+
+        private void AddNewTemplates()
+        {
+            if (IsDestroyed)
+                return;
+            var added = false;
+            foreach (TemplateDescription template in TemplateManager.FindTemplates(TemplateScope.Session))
+            {
+                if (template.Id == StrideLibraryTemplateId || !listedTemplates.Add(template))
+                    continue;
+                var viewModel = new PackageTemplateViewModel(ServiceProvider, template);
+                var group = ProcessGroup(rootGroup, template.Group) ?? defaultGroup;
+                group.Templates.Add(viewModel);
+                added = true;
+            }
+            if (added && SelectedGroup is not null)
+            {
+                // Refreshing the list clears the selection in the view: keep the user's choice.
+                var selected = SelectedTemplate;
+                UpdateTemplateList();
+                SelectedTemplate = selected;
+            }
+        }
+
+        private void OnTemplatePackagesChanged() => Dispatcher.InvokeAsync(AddNewTemplates);
+
+        private void OnTemplateDownloadsChanged() => Dispatcher.InvokeAsync(UpdateDownloadStatus);
+
+        private void UpdateDownloadStatus()
+        {
+            if (IsDestroyed)
+                return;
+            var download = TemplateDownloads.Current;
+            DownloadStatus = download is null ? null : TemplateDownloads.Describe(download);
+            IsDownloading = download is { Failed: false };
+            DownloadProgress = download?.Fraction ?? 0;
+            IsDownloadSizeUnknown = download?.Fraction is null;
+        }
 
         public override bool ValidateProperties(out string error)
         {
