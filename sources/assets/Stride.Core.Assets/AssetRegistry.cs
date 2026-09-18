@@ -826,9 +826,12 @@ public static class AssetRegistry
                 AlwaysMarkAsRootAssetTypes.RemoveWhere(type => type.Assembly == assembly);
             }
 
-            foreach (var typeToRemove in ContentToAssetTypes.Keys.Where(type => type.Assembly == assembly))
+            // An asset type of this assembly can target a content type of another one (an engine type, for example)
+            foreach (var (contentType, assetTypes) in ContentToAssetTypes)
             {
-                ContentToAssetTypes.Remove(typeToRemove);
+                assetTypes.RemoveAll(type => type.Assembly == assembly);
+                if (assetTypes.Count == 0 || contentType.Assembly == assembly)
+                    ContentToAssetTypes.Remove(contentType);
             }
 
             foreach (var typeToRemove in AssetToContentTypes.Keys.Where(type => type.Assembly == assembly))
