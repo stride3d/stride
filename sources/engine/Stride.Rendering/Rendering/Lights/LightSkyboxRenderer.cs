@@ -83,6 +83,11 @@ namespace Stride.Rendering.Lights
             private static readonly ShaderClassSource EmptyComputeEnvironmentColorSource = new ShaderClassSource("IComputeEnvironmentColor");
 
             private ValueParameterKey<float> intensityKey;
+            private ValueParameterKey<float> distanceKey;
+            private ValueParameterKey<float> curveKey;
+            private ValueParameterKey<float> curveMipKey;
+            private ValueParameterKey<float> farMipKey;
+            private ValueParameterKey<float> nearMipKey;
             private ValueParameterKey<Matrix> skyMatrixKey;
             private PermutationParameterKey<ShaderSource> lightDiffuseColorKey;
             private PermutationParameterKey<ShaderSource> lightSpecularColorKey;
@@ -102,6 +107,11 @@ namespace Stride.Rendering.Lights
                 base.UpdateLayout(compositionName);
 
                 intensityKey = LightSkyboxShaderKeys.Intensity.ComposeWith(compositionName);
+                distanceKey = LightSkyboxShaderKeys.Distance.ComposeWith(compositionName);
+                curveKey = LightSkyboxShaderKeys.Curve.ComposeWith(compositionName);
+                curveMipKey = LightSkyboxShaderKeys.CurveMip.ComposeWith(compositionName);
+                farMipKey = LightSkyboxShaderKeys.FarMip.ComposeWith(compositionName);
+                nearMipKey = LightSkyboxShaderKeys.NearMip.ComposeWith(compositionName);
                 skyMatrixKey = LightSkyboxShaderKeys.SkyMatrix.ComposeWith(compositionName);
                 lightDiffuseColorKey = LightSkyboxShaderKeys.LightDiffuseColor.ComposeWith(compositionName);
                 lightSpecularColorKey = LightSkyboxShaderKeys.LightSpecularColor.ComposeWith(compositionName);
@@ -134,6 +144,11 @@ namespace Stride.Rendering.Lights
                 var skybox = lightSkybox.Skybox;
 
                 var intensity = Light.Intensity;
+                var distance = lightSkybox.Distance;
+                var curve = lightSkybox.Curve;
+                var curveMip = lightSkybox.CurveMip;
+                var nearMip = lightSkybox.NearMip;
+                var farMip = lightSkybox.FarMip;
 
                 var skyMatrix = Matrix.Invert(Matrix.RotationQuaternion(lightSkybox.Rotation));
 
@@ -149,6 +164,11 @@ namespace Stride.Rendering.Lights
 
                 // global parameters
                 parameters.Set(intensityKey, intensity);
+                parameters.Set(distanceKey, distance);
+                parameters.Set(curveKey, curve);
+                parameters.Set(curveMipKey, curveMip);
+                parameters.Set(nearMipKey, nearMip);
+                parameters.Set(farMipKey, farMip);
                 parameters.Set(skyMatrixKey, skyMatrix);
 
                 // This need to be working with new system
