@@ -36,7 +36,7 @@ namespace Stride.Rendering.Voxels
             ConeRatio = ratio;
             EditMode = false;
         }
-        public ShaderSource GetMarchingShader(int attrID)
+        public ShaderSource GetMarchingShader(int attrID, ShaderSourceCollection attributeSamplers)
         {
             var mixin = new ShaderMixinSource();
             if (EditMode)
@@ -49,6 +49,8 @@ namespace Stride.Rendering.Voxels
                 mixin.Macros.Add(new ShaderMacro("sampleFunction", Fast ? "SampleNearestMip" : "Sample"));
             }
             mixin.Macros.Add(new ShaderMacro("AttributeID", attrID));
+            foreach (var sampler in attributeSamplers)
+                mixin.AddCompositionToArray("AttributeSamplers", sampler);
 
             return mixin;
         }

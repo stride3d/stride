@@ -1,0 +1,10 @@
+// Base of the `stage compose` slot used by StageComposePathRoot.
+namespace Stride.Shaders.Tests;
+
+shader StageComposePathBase
+{
+    float4 Sample()
+    {
+        return float4(0, 0, 0, 0);
+    }
+};

@@ -60,17 +60,17 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         if (shaderSource is ShaderMixinSource mixinSource)
             PropagateMacrosRecursively(mixinSource, null);
 
-        var shaderSource2 = EvaluateInheritanceAndCompositions(shaderLoader, context, null, shaderSource);
-
         // Root shader
         var globalContext = new MixinGlobalContext(table, log);
-
-        // Process name and types imported by constants due to generics instantiation
-        ShaderClass.ProcessNameAndTypes(context);
 
         MixinNode rootMixin;
         try
         {
+            var shaderSource2 = EvaluateInheritanceAndCompositions(shaderLoader, context, null, shaderSource);
+
+            // Process name and types imported by constants due to generics instantiation
+            ShaderClass.ProcessNameAndTypes(context);
+
             rootMixin = MergeMixinNode(globalContext, context, temp, shaderSource2);
         }
         catch (Exception e)
