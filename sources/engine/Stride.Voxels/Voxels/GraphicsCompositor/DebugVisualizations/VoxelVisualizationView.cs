@@ -31,17 +31,16 @@ namespace Stride.Rendering.Voxels.Debug
             voxelDebugEffectShader.Parameters.Set(VoxelVisualizationViewShaderKeys.viewInv, Matrix.Invert(ViewProjection));
             voxelDebugEffectShader.Parameters.Set(VoxelVisualizationViewShaderKeys.background, (Vector4)Background);
 
-            attr.UpdateSamplingLayout("AttributeSamplers[0]");
+            attr.UpdateSamplingLayout("AttributeSamplers[0].marcher");
             attr.ApplySamplingParameters(viewContext, voxelDebugEffectShader.Parameters);
             MarchMethod.UpdateMarchingLayout("marcher");
             MarchMethod.ApplyMarchingParameters(voxelDebugEffectShader.Parameters);
-            voxelDebugEffectShader.Parameters.Set(VoxelVisualizationViewShaderKeys.marcher, MarchMethod.GetMarchingShader(0));
 
             ShaderSourceCollection collection = new ShaderSourceCollection
             {
                 attr.GetSamplingShader()
             };
-            voxelDebugEffectShader.Parameters.Set(MarchAttributesKeys.AttributeSamplers, collection);
+            voxelDebugEffectShader.Parameters.Set(VoxelVisualizationViewShaderKeys.marcher, MarchMethod.GetMarchingShader(0, collection));
 
             return voxelDebugEffectShader;
         }

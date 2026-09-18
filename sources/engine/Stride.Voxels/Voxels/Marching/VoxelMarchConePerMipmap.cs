@@ -30,11 +30,13 @@ namespace Stride.Rendering.Voxels
             ConeRatio = ratio;
             Steps = steps;
         }
-        public ShaderSource GetMarchingShader(int attrID)
+        public ShaderSource GetMarchingShader(int attrID, ShaderSourceCollection attributeSamplers)
         {
             var mixin = new ShaderMixinSource();
             mixin.Mixins.Add(new ShaderClassSource("VoxelMarchConePerMipmap", Steps));
             mixin.Macros.Add(new ShaderMacro("AttributeID", attrID));
+            foreach (var sampler in attributeSamplers)
+                mixin.AddCompositionToArray("AttributeSamplers", sampler);
             return mixin;
         }
         ValueParameterKey<float> OffsetKey;

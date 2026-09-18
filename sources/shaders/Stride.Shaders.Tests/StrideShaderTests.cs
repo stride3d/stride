@@ -128,6 +128,35 @@ public class StrideShaderTests
             && m.Text.Contains("[numthreads]") && m.Text.Contains("Compute"));
     }
 
+    // A `stage compose` is one slot for the whole effect: its declaring shader is promoted to the root,
+    // so a value supplied at a nested composition would have nothing to attach to.
+    [Fact]
+    public void StageCompositionSuppliedFromNestedIsReported()
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+
+        var shaderSource = new ShaderMixinSource
+        {
+            Mixins = { new ShaderClassSource("StageComposePathRoot") },
+            Compositions =
+            {
+                ["nested"] = new ShaderMixinSource
+                {
+                    Mixins = { new ShaderClassSource("StageComposePathSupplier") },
+                    Compositions = { ["Samplers"] = new ShaderArraySource { new ShaderClassSource("StageComposePathImpl") } },
+                },
+            },
+        };
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.False(shaderMixer.MergeSDSL(shaderSource, new ShaderMixer.Options(true), log, out _, out _, out _, out _));
+
+        Assert.Contains(log.Messages, m => m.Type == Stride.Core.Diagnostics.LogMessageType.Error
+            && m.Text.Contains("'Samplers'") && m.Text.Contains("StageComposePathDeclarer")
+            && m.Text.Contains("supplied at the root") && m.Text.Contains("'nested'"));
+    }
+
     // fxc rejects the same shader with X4532, so this reports rather than emitting a module that only
     // fails later, deep inside the HLSL legalizer.
     [Fact]

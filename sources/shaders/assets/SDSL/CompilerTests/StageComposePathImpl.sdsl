@@ -1,0 +1,12 @@
+// The value supplied for the stage slot.
+namespace Stride.Shaders.Tests;
+
+shader StageComposePathImpl : StageComposePathBase
+{
+    Texture2D Tex;
+
+    override float4 Sample()
+    {
+        return Tex.Load(int3(0, 0, 0));
+    }
+};
