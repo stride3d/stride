@@ -39,10 +39,7 @@ namespace Stride.Rendering.Shadows
                 var shadowMapRenderView = view as ShadowMapRenderView;
                 foreach (var viewLayout in viewFeature.Layouts)
                 {
-                    // A layout the view draws nothing through has no resources prepared for it.
                     var resourceGroup = viewLayout.Entries[view.Index].Resources;
-                    if (resourceGroup == null || resourceGroup.ConstantBuffer.Data == System.IntPtr.Zero)
-                        continue;
 
                     // Written for every view, so a material reading the flag outside a shadow pass gets 0.
                     var shadowMapView = viewLayout.GetLogicalGroup(shadowMapViewKey);
