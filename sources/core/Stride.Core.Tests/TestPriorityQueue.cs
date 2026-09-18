@@ -85,4 +85,38 @@ public class TestPriorityQueue
             lastItem = value;
         }
     }
+
+    [Fact]
+    public void TestRemovalSingleItem()
+    {
+        var queue = new PriorityQueue<int>();
+        foreach (var value in new[] { 0, 1, 4, 2, 5, 6, 7, 3 })
+            queue.Enqueue(value);
+
+        queue.Remove(5);
+
+        CheckPriorityQueue(queue);
+    }
+
+    [Fact]
+    public void TestRemovalSingleItemAtTheEnd()
+    {
+        var queue = new PriorityQueue<int>();
+        foreach (var value in new[] { 0, 1, 4, 2, 5, 6, 7, 3 })
+            queue.Enqueue(value);
+
+        queue.Remove(7);
+
+        CheckPriorityQueue(queue);
+    }
+
+    [Fact]
+    public void TestRemovalOnBubbleDownPreservesOrder()
+    {
+        var queue = new PriorityQueue<int>();
+        foreach (var v in new[] { 26, 38, 33, 54, 69, 64, 21 }) queue.Enqueue(v);
+        queue.Remove(54);
+
+        CheckPriorityQueue(queue);
+    }
 }
