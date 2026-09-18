@@ -41,8 +41,10 @@ namespace Stride.Rendering.Voxels
         }
         ValueParameterKey<float> OffsetKey;
         ValueParameterKey<float> ConeRatioInvKey;
+        string compositionName;
         public void UpdateMarchingLayout(string compositionName)
         {
+            this.compositionName = compositionName;
             OffsetKey = VoxelMarchConePerMipmapKeys.offset.ComposeWith(compositionName);
             ConeRatioInvKey = VoxelMarchConePerMipmapKeys.coneRatioInv.ComposeWith(compositionName);
         }
@@ -50,6 +52,11 @@ namespace Stride.Rendering.Voxels
         {
             parameters.Set(OffsetKey, StartOffset);
             parameters.Set(ConeRatioInvKey, 1.0f/ConeRatio);
+        }
+        public void ApplyAttributeSamplers(VoxelAttribute attribute, int attrID, VoxelViewContext viewContext, ParameterCollection parameters)
+        {
+            attribute.UpdateSamplingLayout($"AttributeSamplers[{attrID}].{compositionName}");
+            attribute.ApplySamplingParameters(viewContext, parameters);
         }
     }
 }

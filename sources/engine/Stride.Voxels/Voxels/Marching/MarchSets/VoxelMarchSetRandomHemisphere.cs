@@ -51,5 +51,9 @@ namespace Stride.Rendering.Voxels
             parameters.Set(CountKey, Count);
             parameters.Set(TimeKey, AnimateNoise ? time : 0f);
         }
+        public void ApplyAttributeSamplers(VoxelAttribute attribute, int attrID, VoxelViewContext viewContext, ParameterCollection parameters)
+        {
+            Marcher.ApplyAttributeSamplers(attribute, attrID, viewContext, parameters);
+        }
     }
 }
