@@ -393,7 +393,7 @@ internal static class EntryPointWrapperGenerator
             foreach (var stream in streamLayout.InputStreams)
             {
                 var streamPointer = buffer.Add(new OpAccessChain(context.GetOrRegister(new PointerType(stream.Info.Type, Specification.StorageClass.Private)), context.Bound++, streamLayout.StreamsVariableId, [context.CompileConstant(stream.Info.StreamStructFieldIndex).Id])).ResultId;
-                var inputResult = buffer.Add(new OpLoad(context.Types[stream.Info.Type], context.Bound++, stream.Id, null, [])).ResultId;
+                var inputResult = buffer.Add(new OpLoad(context.GetOrRegister(stream.InterfaceType), context.Bound++, stream.Id, null, [])).ResultId;
                 inputResult = BuiltinProcessor.ConvertInterfaceVariable(buffer, context, stream.InterfaceType, stream.Info.Type, inputResult);
                 buffer.Add(new OpStore(streamPointer, inputResult, null, []));
             }
