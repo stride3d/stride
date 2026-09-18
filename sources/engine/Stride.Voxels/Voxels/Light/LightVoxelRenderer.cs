@@ -86,9 +86,6 @@ namespace Stride.Rendering.Voxels.VoxelGI
 
             private PermutationParameterKey<ShaderSource> diffuseMarcherKey;
             private PermutationParameterKey<ShaderSource> specularMarcherKey;
-            // The samplers slot lives on each marcher, so the attribute is bound once per marcher path
-            private string diffuseSamplersPath;
-            private string specularSamplersPath;
 
             public RenderLight Light { get; set; }
 
@@ -143,8 +140,6 @@ namespace Stride.Rendering.Voxels.VoxelGI
 
                 diffuseMarcherKey = LightVoxelShaderKeys.diffuseMarcher.ComposeWith(compositionName);
                 specularMarcherKey = LightVoxelShaderKeys.specularMarcher.ComposeWith(compositionName);
-                diffuseSamplersPath = "AttributeSamplers[0].Marcher.diffuseMarcher." + compositionName;
-                specularSamplersPath = "AttributeSamplers[0].specularMarcher." + compositionName;
 
                 if (traceAttribute != null)
                 {
@@ -201,16 +196,8 @@ namespace Stride.Rendering.Voxels.VoxelGI
                 {
                     lightVoxel.DiffuseMarcher?.ApplyMarchingParameters(parameters);
                     lightVoxel.SpecularMarcher?.ApplyMarchingParameters(parameters);
-                    if (lightVoxel.DiffuseMarcher != null)
-                    {
-                        traceAttribute.UpdateSamplingLayout(diffuseSamplersPath);
-                        traceAttribute.ApplySamplingParameters(viewContext, parameters);
-                    }
-                    if (lightVoxel.SpecularMarcher != null)
-                    {
-                        traceAttribute.UpdateSamplingLayout(specularSamplersPath);
-                        traceAttribute.ApplySamplingParameters(viewContext, parameters);
-                    }
+                    lightVoxel.DiffuseMarcher?.ApplyAttributeSamplers(traceAttribute, 0, viewContext, parameters);
+                    lightVoxel.SpecularMarcher?.ApplyAttributeSamplers(traceAttribute, 0, viewContext, parameters);
                 }
             }
         }

@@ -35,11 +35,18 @@ namespace Stride.Rendering.Voxels
             return mixin;
         }
 
+        string compositionName;
         public void UpdateMarchingLayout(string compositionName)
         {
+            this.compositionName = compositionName;
         }
         public void ApplyMarchingParameters(ParameterCollection parameters)
         {
+        }
+        public void ApplyAttributeSamplers(VoxelAttribute attribute, int attrID, VoxelViewContext viewContext, ParameterCollection parameters)
+        {
+            attribute.UpdateSamplingLayout($"AttributeSamplers[{attrID}].{compositionName}");
+            attribute.ApplySamplingParameters(viewContext, parameters);
         }
     }
 }
