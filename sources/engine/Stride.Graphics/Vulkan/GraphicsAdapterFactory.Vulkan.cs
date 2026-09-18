@@ -50,7 +50,7 @@ namespace Stride.Graphics
             Span<VkPhysicalDevice> nativePhysicalDevices = stackalloc VkPhysicalDevice[(int)physicalDevicesCount];
             defaultInstance.NativeInstanceApi.vkEnumeratePhysicalDevices(defaultInstance.NativeInstance, nativePhysicalDevices).CheckResult();
             
-            var physicalDevices = new List<(VkPhysicalDevice Device, VkPhysicalDeviceProperties Properties, VkPhysicalDeviceDriverProperties DriverProperties)>();
+            var physicalDevices = new List<(VkPhysicalDevice Device, VkPhysicalDeviceProperties Properties, VkPhysicalDeviceDriverProperties DriverProperties, int EnumerationIndex)>();
             for (int index = 0; index < nativePhysicalDevices.Length; index++)
             {
                 VkPhysicalDeviceProperties properties;
@@ -62,7 +62,7 @@ namespace Stride.Graphics
                 if (properties.apiVersion >= VkVersion.Version_1_2)
                     defaultInstance.NativeInstanceApi.vkGetPhysicalDeviceProperties2(nativePhysicalDevices[index], &properties2);
 
-                physicalDevices.Add((nativePhysicalDevices[index], properties, driverProps));
+                physicalDevices.Add((nativePhysicalDevices[index], properties, driverProps, index));
             }
 
             // The fastest kind first, as DXGI's high-performance order does on Direct3D: a hybrid laptop enumerates its integrated GPU first.
@@ -71,8 +71,8 @@ namespace Stride.Graphics
             var adapterList = new List<GraphicsAdapter>();
             for (int index = 0; index < physicalDevices.Count; index++)
             {
-                var (device, properties, driverProps) = physicalDevices[index];
-                var adapter = new GraphicsAdapter(device, properties, driverProps, index);
+                var (device, properties, driverProps, enumerationIndex) = physicalDevices[index];
+                var adapter = new GraphicsAdapter(device, properties, driverProps, index, enumerationIndex);
                 staticCollector.Add(adapter);
                 adapterList.Add(adapter);
             }
