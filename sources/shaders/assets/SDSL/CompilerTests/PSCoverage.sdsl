@@ -1,0 +1,20 @@
+namespace Stride.Shaders.Tests;
+
+shader PSCoverage
+{
+    stream float4 ColorTarget : SV_Target0;
+    stream float4 Position : POSITION;
+    stream float4 ShadingPosition : SV_Position;
+    stream uint Coverage : SV_Coverage;
+
+    void VSMain()
+    {
+        streams.ShadingPosition = streams.Position;
+    }
+
+    stage void PSMain()
+    {
+        streams.ColorTarget = float4(countbits(streams.Coverage) / 4.0, 0, 0, 1);
+        streams.Coverage = streams.Coverage & 1;
+    }
+}
