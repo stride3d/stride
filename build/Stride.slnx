@@ -39,6 +39,7 @@
   </Folder>
   <Folder Name="/00-Config/">
     <File Path="../sources/shared/SharedAssemblyInfo.cs" />
+    <File Path="../sources/templates/StrideSamplesVersion.props" />
   </Folder>
   <Folder Name="/00-Localization/">
     <File Path="../sources/localization/Stride.Assets.Presentation.pot" />
@@ -191,6 +192,7 @@
     <Project Path="../sources/engine/Stride.Assets.Tests2/Stride.Assets.Tests2.csproj" />
   </Folder>
   <Folder Name="/72-StrideSamples.Templates/">
+    <File Path="../sources/templates/StrideSamplesVersion.props" />
     <Project Path="../sources/engine/Stride.Games.AutoTesting/Stride.Games.AutoTesting.csproj" />
     <Project Path="../sources/templates/Stride.Templates.AssetPacks/Stride.Templates.AssetPacks.csproj" />
     <Project Path="../sources/templates/Stride.Templates.Games.Starters/Stride.Templates.Games.Starters.csproj" />

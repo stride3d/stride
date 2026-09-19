@@ -3,7 +3,7 @@ name: Release Samples
 # Builds, signs, and (optionally) deploys the content template packs (Stride.Templates.Samples,
 # Stride.Templates.Games.Starters, Stride.Templates.AssetPacks) to NuGet.org.
 #
-# Versioned independently of the engine: StrideVersion.SamplesVersion in sources/shared/SharedAssemblyInfo.cs is the
+# Versioned independently of the engine: StrideSamplesVersion in sources/templates/StrideSamplesVersion.props is the
 # published content version the engine uses. This workflow is the only thing that changes it: it packs the samples
 # of the branch under the next content version, publishes them, and only then commits that version to the branch,
 # so the branch never names content that is not on the feed. The packs are stamped for this branch's committed engine
@@ -81,12 +81,12 @@ jobs:
         shell: pwsh
         run: |
           $file = Get-Content sources/shared/SharedAssemblyInfo.cs -Raw
-          $committed = [regex]::Match($file, 'SamplesVersion = "([^"]*)";').Groups[1].Value
+          $committed = [regex]::Match((Get-Content sources/templates/StrideSamplesVersion.props -Raw), '<_StrideCommittedSamplesVersion>([^<]*)</').Groups[1].Value
           $engineLine = [regex]::Match($file, 'MajorMinor = "([^"]*)";').Groups[1].Value
           $version = "${{ inputs.version }}".Trim()
           $parts = [regex]::Match($committed, '^(\d+\.\d+)\.(\d+)(-.*)?$')
           if (-not $parts.Success) {
-            echo "::error::Could not read SamplesVersion ('$committed') from SharedAssemblyInfo.cs"
+            echo "::error::Could not read the content version ('$committed') from sources/templates/StrideSamplesVersion.props"
             exit 1
           }
           $committedLine, $committedPatch = $parts.Groups[1].Value, [int]$parts.Groups[2].Value
@@ -313,16 +313,16 @@ jobs:
       - name: Commit the content version
         run: |
           V="${{ needs.Package.outputs.version }}"
-          FILE=sources/shared/SharedAssemblyInfo.cs
+          FILE=sources/templates/StrideSamplesVersion.props
           git checkout "${{ github.ref_name }}"
           git pull --ff-only origin "${{ github.ref_name }}"
-          sed -i "s/\(public const string SamplesVersion = \)\"[^\"]*\";/\1\"$V\";/" "$FILE"
-          if ! grep -q "public const string SamplesVersion = \"$V\";" "$FILE"; then
-            echo "::error::Could not set SamplesVersion = $V in $FILE. The samples are published; set it by hand."
+          sed -i "s|<_StrideCommittedSamplesVersion>[^<]*</|<_StrideCommittedSamplesVersion>$V</|" "$FILE"
+          if ! grep -q "<_StrideCommittedSamplesVersion>$V</_StrideCommittedSamplesVersion>" "$FILE"; then
+            echo "::error::Could not set the content version $V in $FILE. The samples are published; set it by hand."
             exit 1
           fi
           if git diff --quiet -- "$FILE"; then
-            echo "SamplesVersion is already $V, nothing to commit"
+            echo "The content version is already $V, nothing to commit"
             exit 0
           fi
           git config user.name "github-actions[bot]"

@@ -92,8 +92,10 @@
           DependsOnTargets="StrideEnsureWorktreeVersion"
           BeforeTargets="StrideGenerateTemplateContent;_GetOutputItemsFromPack;GenerateNuspec;_GetProjectVersion">
     <!-- A content pack that is not being produced keeps the exact committed version, so Game Studio's nuspec
-         dependency names the published pack; a produced one is always worktree-suffixed (4.4.0-dev2), never a
-         version that could be mistaken for the published one. -->
+         dependency names the published pack. A produced one gets the checkout suffix (4.4.0-dev2), so it can't be
+         mistaken for the published one, except in a build with no checkout suffix (CI, or a checkout with the
+         '(empty)' token): that one packs the plain published version, which is safe on CI's empty NuGet cache but
+         can clash locally with a cached published copy. -->
     <PropertyGroup Condition="'$(_StrideContentPackEnabled)' == 'true' And '$(StrideWorktreeSuffix)' != '' And !$(PackageVersion.EndsWith('$(StrideWorktreeSuffix)'))">
       <PackageVersion>$(PackageVersion)$(StrideWorktreeSuffix)</PackageVersion>
     </PropertyGroup>

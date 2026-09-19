@@ -72,7 +72,7 @@ jobs:
               return bool(files)
           print('comment_only=' + str(comment_only()).lower())
           EOF
-      # Users get the samples from the published content template packs (StrideVersion.SamplesVersion), not from
+      # Users get the samples from the published content template packs (StrideSamplesVersion.props), not from
       # the repository, so a sample change only reaches them through a samples release (release-samples.yml).
       # Editing samples is normal work, so this only warns, as a reminder that one is pending. The engine-versioned
       # template sources and prose don't count.

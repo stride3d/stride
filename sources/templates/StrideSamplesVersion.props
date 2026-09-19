@@ -1,13 +1,23 @@
-<!-- Content template version authority, read from StrideVersion.SamplesVersion in SharedAssemblyInfo.cs (the single
-     source, shared with the Game Studio bridge and the stride CLI). Imported by Stride.Templates.Common.targets (the
-     pack side) and build/Stride.Samples.build (the samples release side).
+<!-- Content template version authority. The exact published version of the content template packages
+     (Stride.Templates.Samples, .Games.Starters, .AssetPacks) this engine uses. Independent of the engine version and
+     never composed with its prerelease suffix: the Game Studio bridge and the stride CLI resolve this version (or this
+     checkout's -devN pack of it), and Stride.GameStudio depends on it. Don't edit it by hand: release-samples.yml sets
+     it after publishing a samples release, so it always names content that is on the feed. Its major.minor follows the
+     engine line and its patch part is a content counter (4.4.0, 4.4.1, ...), not an engine prerelease label; a
+     prerelease (4.4.1-beta1) only marks content not ready yet, which a stable engine refuses to name. Keep the
+     _StrideCommittedSamplesVersion line shape: the release workflows read and write it.
+
+     Kept out of SharedAssemblyInfo.cs so a samples release rebuilds only Stride.Assets, not every assembly:
+     Stride.Assets embeds this file as a resource (outside its reference assembly, so its dependents don't rebuild
+     either) and the bridge reads the value from it. Imported by Stride.Templates.Common.targets (the pack side) and
+     build/Stride.Samples.build (the samples release side).
 
      StrideSamplesVersion is the version a content pack gets (before the -devN worktree suffix). It defaults to the
-     committed value; a -p:StrideSamplesVersion= global property wins (release-samples.yml packs the new number before it is
-     committed). _StrideCommittedSamplesVersion always carries the committed value. -->
+     committed value; a -p:StrideSamplesVersion= global property wins (release-samples.yml packs the new number before
+     it is committed). _StrideCommittedSamplesVersion always carries the committed value. -->
 <Project>
   <PropertyGroup>
-    <_StrideCommittedSamplesVersion>$([System.Text.RegularExpressions.Regex]::Match($([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)..\shared\SharedAssemblyInfo.cs')), `SamplesVersion = \"([^\"]*)\";`).Groups[1].Value)</_StrideCommittedSamplesVersion>
+    <_StrideCommittedSamplesVersion>4.4.0-beta7</_StrideCommittedSamplesVersion>
     <StrideSamplesVersion Condition="'$(StrideSamplesVersion)' == ''">$(_StrideCommittedSamplesVersion)</StrideSamplesVersion>
   </PropertyGroup>
 </Project>

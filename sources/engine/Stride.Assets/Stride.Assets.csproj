@@ -10,6 +10,13 @@
   <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFramework)'">
     <DefineConstants>STRIDE_VIDEO_FFMPEG;$(DefineConstants)</DefineConstants>
   </PropertyGroup>
+  <!-- The content version this engine names, read by DotNetNewTemplateBridge: the committed file itself (not a
+       -p:StrideSamplesVersion= override, which only names what a samples release is packing). A resource, not an
+       assembly attribute, so a new version stays out of the reference assembly and dependents don't rebuild. -->
+  <ItemGroup>
+    <EmbeddedResource Include="$(StrideRoot)sources\templates\StrideSamplesVersion.props"
+                      LogicalName="StrideSamplesVersion.props" Link="Templates\StrideSamplesVersion.props" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.StringTools" ExcludeAssets="runtime" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Build.Framework" ExcludeAssets="runtime" PrivateAssets="all" />

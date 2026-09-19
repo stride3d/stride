@@ -18,9 +18,10 @@ namespace Stride.Assets.Templates;
 /// </summary>
 /// <remarks>
 /// The content packages are versioned independently of the engine: an engine names the exact content version it was
-/// released with (<c>StrideVersion.SamplesVersion</c>, recorded as Stride.GameStudio's pinned dependency), and
-/// that is what resolves. The one exception is a developer's own checkout: with StridePackContentTemplates, a build
-/// with the checkout's <c>-devN</c> suffix packs the content as exactly that version plus the suffix
+/// released with (<c>StrideSamplesVersion</c> in sources/templates/StrideSamplesVersion.props, recorded as
+/// Stride.GameStudio's pinned dependency), and that is what resolves. The one exception is a developer's own
+/// checkout: with StridePackContentTemplates, a build with the checkout's <c>-devN</c> suffix packs the content as
+/// exactly that version plus the suffix
 /// (<c>4.4.0-beta7-dev4</c>), and that pack wins over the published one (it is what the samples being edited look
 /// like; the build removes it when the flag is turned off). Only a dev engine looks for it, and only with its own
 /// suffix, and then does not copy a local build of the published version (see <see cref="LocalBuildRange"/>).

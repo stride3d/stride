@@ -99,9 +99,10 @@
          produce no assembly to reference) — same idiom as the Stride.Core marker dep in
          Stride.Templates.Common.targets. ReferenceOutputAssembly=false would suppress the dependency.
          Games is engine-versioned and packed with every build. Starters and Samples are content-versioned
-         (StrideVersion.SamplesVersion): a normal build does not pack them and the dependency names the exact
-         published version (pinned below); with StridePackContentTemplates=true it follows the produced -devN
-         pack. A PackageReference would not do: restore would fail before the first publish of a new version. -->
+         (sources/templates/StrideSamplesVersion.props): a normal build does not pack them and the dependency
+         names the exact published version (pinned below); with StridePackContentTemplates=true it follows the
+         produced -devN pack. A PackageReference would not do: restore would fail before the first publish of a new
+         version. -->
     <ProjectReference Include="..\..\templates\Stride.Templates.Games\Stride.Templates.Games.csproj">
       <Private>false</Private>
     </ProjectReference>

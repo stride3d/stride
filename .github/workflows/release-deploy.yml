@@ -126,7 +126,7 @@ jobs:
           echo '```' >> $env:GITHUB_STEP_SUMMARY
 
       # The content template packs (Samples, Starters, AssetPacks) are not part of an engine release: the engine
-      # names their exact version (SamplesVersion in SharedAssemblyInfo.cs), which release-samples.yml only commits
+      # names their exact version (sources/templates/StrideSamplesVersion.props), which release-samples.yml only commits
       # once it is published. Refuse an engine whose content is not on the feed (every New Project would break) or
       # that is stable while naming prerelease content. Samples changed since the published content (its
       # samples/<version> tag) only warn: the engine ships with the published content, which is right for work not
@@ -136,10 +136,10 @@ jobs:
         run: |
           SHA="${{ steps.src.outputs.sha }}"
           VERSION="${{ steps.version.outputs.version }}"
-          FILE=sources/shared/SharedAssemblyInfo.cs
-          SV=$(git show "$SHA:$FILE" | sed -n 's/.*public const string SamplesVersion = "\([^"]*\)".*/\1/p')
+          FILE=sources/templates/StrideSamplesVersion.props
+          SV=$(git show "$SHA:$FILE" | sed -n 's|.*<_StrideCommittedSamplesVersion>\([^<]*\)</.*|\1|p')
           if [ -z "$SV" ]; then
-            echo "::error::Could not read SamplesVersion from $FILE at $SHA"
+            echo "::error::Could not read the content version from $FILE at $SHA"
             exit 1
           fi
           echo "::notice::Content version named by this engine: $SV"

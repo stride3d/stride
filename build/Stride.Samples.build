@@ -7,9 +7,9 @@
     - the ENGINE version the sample csprojs reference (SamplesEngineVersion, the committed release version such as 4.4.0 or
       4.4.0-beta1; locally only the per-checkout dev packages 4.4.0-devN exist, so the targets switch the csprojs between the two by REAL on-disk
       edits, no evaluation-time flip);
-    - the CONTENT version of the template packs made from the samples (StrideVersion.SamplesVersion, the exact
-      published version an engine names; StrideSamplesVersion here). Only release-samples.yml changes it, after
-      publishing.
+    - the CONTENT version of the template packs made from the samples (StrideSamplesVersion, from
+      sources/templates/StrideSamplesVersion.props: the exact published version an engine names). Only
+      release-samples.yml changes it, after publishing.
 
     PrepareSamplesForRelease - bring the samples up to this engine: SamplesToDevEngine, UpgradeSamples,
                              SamplesToReleaseEngine, pack the content templates as this checkout's -devN, print

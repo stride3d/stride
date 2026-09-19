@@ -198,9 +198,10 @@ Example: dotnet build build/Stride.build -t:Package
 
   <!--
   Content template packs (Stride.Templates.Samples / .Games.Starters / .AssetPacks)
-  Versioned by StrideVersion.SamplesVersion, published on their own schedule by .github/workflows/release-samples.yml;
-  the engine release never packs them. PackageSamples produces the release-shaped (fully preprocessed) packs into
-  bin/packages, stamped for this branch's engine version (the committed one, with its suffix); SignPackage then signs them.
+  Versioned by sources/templates/StrideSamplesVersion.props, published on their own schedule by
+  .github/workflows/release-samples.yml; the engine release never packs them. PackageSamples produces the
+  release-shaped (fully preprocessed) packs into bin/packages, stamped for this branch's engine version (the committed
+  one, with its suffix); SignPackage then signs them.
   -->
   <Target Name="PackageSamples" DependsOnTargets="PreparePackageBuild">
     <MSBuild Projects="$(StrideRoot)build\Stride.Samples.build" Targets="PackContentTemplates"

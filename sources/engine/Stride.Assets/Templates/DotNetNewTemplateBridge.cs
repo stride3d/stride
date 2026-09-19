@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.TemplateEngine.Abstractions;
@@ -36,7 +37,7 @@ public static class DotNetNewTemplateBridge
     /// <summary>
     /// Package IDs the bridge resolves on startup. <c>Stride.Templates.Games</c> (NewGame) is engine-versioned and
     /// installed with Game Studio. The others carry the content version this engine names
-    /// (<see cref="StrideVersion.SamplesVersion"/>, resolved by <see cref="ContentTemplateResolver"/>): Starters and
+    /// (<see cref="ContentVersion"/>, resolved by <see cref="ContentTemplateResolver"/>): Starters and
     /// Samples are Game Studio dependencies too, AssetPacks is fetched on demand (also by
     /// <see cref="GetAssetPackTemplatesAsync"/>). A package that is neither installed nor obtainable is tolerated
     /// (per-package warning, no error).
@@ -288,8 +289,23 @@ public static class DotNetNewTemplateBridge
     private static bool IsItemTemplate(ITemplateInfo template)
         => template.TagsCollection.TryGetValue("type", out var type) && string.Equals(type, "item", StringComparison.OrdinalIgnoreCase);
 
-    /// <summary>The content version this engine names (Samples, Starters, AssetPacks).</summary>
-    private static PackageVersion ContentVersion => new(StrideVersion.SamplesVersion);
+    /// <summary>
+    /// The content version this engine names (Samples, Starters, AssetPacks): the committed value of
+    /// sources/templates/StrideSamplesVersion.props, embedded as a resource.
+    /// </summary>
+    private static PackageVersion ContentVersion => LazyContentVersion.Value;
+
+    private static readonly Lazy<PackageVersion> LazyContentVersion = new(() =>
+    {
+        using var stream = typeof(DotNetNewTemplateBridge).Assembly
+            .GetManifestResourceStream("StrideSamplesVersion.props")
+            ?? throw new InvalidOperationException("StrideSamplesVersion.props is not embedded in Stride.Assets.");
+        using var reader = new StreamReader(stream);
+        var match = Regex.Match(reader.ReadToEnd(), "<_StrideCommittedSamplesVersion>([^<]+)</");
+        return match.Success
+            ? new PackageVersion(match.Groups[1].Value)
+            : throw new InvalidOperationException("No content version in the embedded StrideSamplesVersion.props.");
+    });
 
     /// <summary>This build's own version, the engine the content is resolved for.</summary>
     private static PackageVersion HostVersion => new(StrideVersion.NuGetVersion);

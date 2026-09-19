@@ -233,8 +233,8 @@ public class ResolveStrideWorktreeVersion : Task
         Generated = true;
     }
 
-    // Hash of the whole source file; "" if unreadable. Part of the cache stamp so any edit to it (version, suffix,
-    // SamplesVersion) invalidates the generated overlay.
+    // Hash of the whole source file; "" if unreadable. Part of the cache stamp so any edit to it (version, suffix)
+    // invalidates the generated overlay.
     private string SourceVersionFileHash()
     {
         try

@@ -70,7 +70,7 @@
          produces the .nupkg the DotNetNewTemplateBridge resolves via PackageStore at runtime.
          The content packages (Stride.Templates.Games.Starters, .Samples, .AssetPacks) are not
          packed by a normal build: the bridge resolves the published content version the engine
-         names (StrideVersion.SamplesVersion), or this checkout's opted-in dev pack of it.
+         names (sources/templates/StrideSamplesVersion.props), or this checkout's opted-in dev pack of it.
          The templates csproj uses TreatAsLocalProperty="StrideSkipAutoPack" so the auto-pack
          still runs even when an outer build context sets the property — no strip needed here. -->
     <ProjectReference Include="..\..\templates\Stride.Templates.Games\Stride.Templates.Games.csproj">
