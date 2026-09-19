@@ -127,7 +127,7 @@ internal static class EntryPointWrapperGenerator
                 for (var inputIndex = 0; inputIndex < streamLayout.InputStreams.Count; inputIndex++)
                 {
                     var stream = streamLayout.InputStreams[inputIndex];
-                    var loadedValue = buffer.Add(new OpLoad(context.GetOrRegister(new ArrayType(stream.Info.Type, streamLayout.ArrayInputSize.Value)), context.Bound++, stream.Id, null, []));
+                    var loadedValue = buffer.Add(new OpLoad(context.GetOrRegister(new ArrayType(stream.InterfaceType, streamLayout.ArrayInputSize.Value)), context.Bound++, stream.Id, null, []));
                     inputLoadValues[inputIndex] = loadedValue.ResultId;
                 }
 
@@ -138,7 +138,7 @@ internal static class EntryPointWrapperGenerator
                     for (var inputIndex = 0; inputIndex < streamLayout.InputStreams.Count; inputIndex++)
                     {
                         var stream = streamLayout.InputStreams[inputIndex];
-                        inputFieldValues[inputIndex] = buffer.Add(new OpCompositeExtract(context.Types[stream.Info.Type], context.Bound++, inputLoadValues[inputIndex], [arrayIndex])).ResultId;
+                        inputFieldValues[inputIndex] = buffer.Add(new OpCompositeExtract(context.GetOrRegister(stream.InterfaceType), context.Bound++, inputLoadValues[inputIndex], [arrayIndex])).ResultId;
                         inputFieldValues[inputIndex] = BuiltinProcessor.ConvertInterfaceVariable(buffer, context, stream.InterfaceType, stream.Info.Type, inputFieldValues[inputIndex]);
                     }
 
@@ -221,7 +221,7 @@ internal static class EntryPointWrapperGenerator
                                     foreach (var stream in streamLayout.PatchInputStreams)
                                     {
                                         var inputPtr = buffer.Add(new OpAccessChain(context.GetOrRegister(new PointerType(stream.Info.Type, Specification.StorageClass.Function)), context.Bound++, constantVariable, [context.CompileConstant(stream.Info.StreamStructFieldIndex).Id])).ResultId;
-                                        var inputResult = buffer.Add(new OpLoad(context.GetOrRegister(stream.Info.Type), context.Bound++, stream.Id, null, [])).ResultId;
+                                        var inputResult = buffer.Add(new OpLoad(context.GetOrRegister(stream.InterfaceType), context.Bound++, stream.Id, null, [])).ResultId;
                                         inputResult = BuiltinProcessor.ConvertInterfaceVariable(buffer, context, stream.InterfaceType, stream.Info.Type, inputResult);
                                         buffer.Add(new OpStore(inputPtr, inputResult, null, []));
                                     }
