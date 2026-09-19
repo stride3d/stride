@@ -153,7 +153,7 @@ Example: dotnet build build/Stride.build -t:Package
     </StrideGitVersion>
 
     <Message Text="Done preparing build for version $(StridePackageVersion)"/>
-    <Exec Command="echo **Version:** $(StridePackageVersion) &gt;&gt; $(GITHUB_STEP_SUMMARY)" Condition="'$(GITHUB_STEP_SUMMARY)' != ''" IgnoreExitCode="true" />
+    <Exec Command="echo **Engine version:** $(StridePackageVersion) &gt;&gt; $(GITHUB_STEP_SUMMARY)" Condition="'$(GITHUB_STEP_SUMMARY)' != ''" IgnoreExitCode="true" />
   </Target>
   <PropertyGroup>
     <_StridePackageTargetPrerequisitesInstaller Condition="'$(StrideBuildPrerequisitesInstaller)' == 'true'">PrerequisitesInstaller</_StridePackageTargetPrerequisitesInstaller>
