@@ -123,7 +123,7 @@ namespace TopDownRPG.Player
 
         private void Attack()
         {
-            var dt = (float) Game.UpdateTime.Elapsed.TotalSeconds;
+            var dt = (float) Game.UpdateTime.WarpElapsed.TotalSeconds;
             attackCooldown = (attackCooldown > 0) ? attackCooldown - dt : 0f;
 
             PunchCollision.Enabled = (attackCooldown > 0);

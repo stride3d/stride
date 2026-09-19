@@ -59,7 +59,7 @@ public class ##Scriptname## : SyncScript
 
     private void ProcessInput()
     {
-        float deltaTime = (float)Game.UpdateTime.Elapsed.TotalSeconds;
+        float deltaTime = (float)Game.UpdateTime.WarpElapsed.TotalSeconds;
         translation = Vector3.Zero;
         yaw = 0f;
         pitch = 0f;
@@ -207,6 +207,8 @@ public class ##Scriptname## : SyncScript
             //    the amount of frames occuring within that time frame, each frame will receive the right amount of delta:
             //    a quarter of a second -> 10 units, half a second -> 20 units, one second -> your 40 units.
 
+            float speed = (float)Game.UpdateTime.Factor
+
             if (Input.HasMouse)
             {
                 // Rotate with mouse
@@ -215,8 +217,8 @@ public class ##Scriptname## : SyncScript
                     Input.LockMousePosition();
                     Game.IsMouseVisible = false;
 
-                    yaw -= Input.MouseDelta.X * MouseRotationSpeed.X;
-                    pitch -= Input.MouseDelta.Y * MouseRotationSpeed.Y;
+                    yaw -= Input.MouseDelta.X * MouseRotationSpeed.X * speed;
+                    pitch -= Input.MouseDelta.Y * MouseRotationSpeed.Y * speed;
                 }
                 else
                 {
@@ -234,16 +236,16 @@ public class ##Scriptname## : SyncScript
                     case GestureType.Drag:
                         var drag = (GestureEventDrag)gestureEvent;
                         var dragDistance = drag.DeltaTranslation;
-                        yaw = -dragDistance.X * TouchRotationSpeed.X;
-                        pitch = -dragDistance.Y * TouchRotationSpeed.Y;
+                        yaw = -dragDistance.X * TouchRotationSpeed.X * speed;
+                        pitch = -dragDistance.Y * TouchRotationSpeed.Y * speed;
                         break;
 
                     // Move along z-axis by scaling and in xy-plane by multi-touch dragging
                     case GestureType.Composite:
                         var composite = (GestureEventComposite)gestureEvent;
-                        translation.X = -composite.DeltaTranslation.X * TouchMovementSpeed.X;
-                        translation.Y = -composite.DeltaTranslation.Y * TouchMovementSpeed.Y;
-                        translation.Z = MathF.Log(composite.DeltaScale + 1) * TouchMovementSpeed.Z;
+                        translation.X = -composite.DeltaTranslation.X * TouchMovementSpeed.X * speed;
+                        translation.Y = -composite.DeltaTranslation.Y * TouchMovementSpeed.Y * speed;
+                        translation.Z = MathF.Log(composite.DeltaScale + 1) * TouchMovementSpeed.Z * speed;
                         break;
                 }
             }

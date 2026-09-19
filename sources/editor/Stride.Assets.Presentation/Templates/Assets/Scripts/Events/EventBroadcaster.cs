@@ -44,7 +44,7 @@ public class ##Scriptname## : SyncScript
         // Condition 2 - the trigger can be a time interval
         if (TimeInterval > 0)
         {
-            timeIntervalCountdown -= (float)Game.UpdateTime.Elapsed.TotalSeconds;
+            timeIntervalCountdown -= (float)Game.UpdateTime.WarpElapsed.TotalSeconds;
             if (timeIntervalCountdown <= 0f)
             {
                 timeIntervalCountdown = TimeInterval;

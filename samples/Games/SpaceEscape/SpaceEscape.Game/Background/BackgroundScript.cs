@@ -78,7 +78,7 @@ namespace SpaceEscape.Background
             if (!isScrolling)
                 return;
 
-            var elapsedTime = (float)Game.UpdateTime.Elapsed.TotalSeconds;
+            var elapsedTime = (float)Game.UpdateTime.WarpElapsed.TotalSeconds;
 
             // Check if needed to remove the first block
             var firstBlock = levelBlocks[0];

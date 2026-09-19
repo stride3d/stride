@@ -16,7 +16,7 @@ public class FindAndAttachCameraComponent : SyncScript
 
     public override void Update()
     {
-        var deltaTime = (float)Game.UpdateTime.Elapsed.TotalSeconds;
+        var deltaTime = (float)Game.UpdateTime.WarpElapsed.TotalSeconds;
         var currentPosition = CameraComponent.Entity.Transform.Position;
         var currentRotation = CameraComponent.Entity.Transform.Rotation;
 
