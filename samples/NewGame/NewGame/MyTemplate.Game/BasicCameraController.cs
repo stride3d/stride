@@ -59,7 +59,7 @@ public class BasicCameraController : SyncScript
 
     private void ProcessInput()
     {
-        float deltaTime = (float)Game.UpdateTime.Elapsed.TotalSeconds;
+        float deltaTime = (float)Game.UpdateTime.WarpElapsed.TotalSeconds;
         translation = Vector3.Zero;
         yaw = 0f;
         pitch = 0f;
@@ -173,6 +173,8 @@ public class BasicCameraController : SyncScript
 
         // Mouse movement and gestures
         {
+            float speed = (float)Game.UpdateTime.Factor
+
             if (Input.HasMouse)
             {
                 if (Input.IsMouseButtonDown(MouseButton.Right))
@@ -180,8 +182,8 @@ public class BasicCameraController : SyncScript
                     Input.LockMousePosition();
                     Game.IsMouseVisible = false;
 
-                    yaw -= Input.MouseDelta.X * MouseRotationSpeed.X;
-                    pitch -= Input.MouseDelta.Y * MouseRotationSpeed.Y;
+                    yaw -= Input.MouseDelta.X * MouseRotationSpeed.X * speed;
+                    pitch -= Input.MouseDelta.Y * MouseRotationSpeed.Y * speed;
                 }
                 else
                 {
@@ -197,15 +199,15 @@ public class BasicCameraController : SyncScript
                     case GestureType.Drag:
                         var drag = (GestureEventDrag)gestureEvent;
                         var dragDistance = drag.DeltaTranslation;
-                        yaw = -dragDistance.X * TouchRotationSpeed.X;
-                        pitch = -dragDistance.Y * TouchRotationSpeed.Y;
+                        yaw = -dragDistance.X * TouchRotationSpeed.X * speed;
+                        pitch = -dragDistance.Y * TouchRotationSpeed.Y * speed;
                         break;
 
                     case GestureType.Composite:
                         var composite = (GestureEventComposite)gestureEvent;
-                        translation.X = -composite.DeltaTranslation.X * TouchMovementSpeed.X;
-                        translation.Y = -composite.DeltaTranslation.Y * TouchMovementSpeed.Y;
-                        translation.Z = MathF.Log(composite.DeltaScale + 1) * TouchMovementSpeed.Z;
+                        translation.X = -composite.DeltaTranslation.X * TouchMovementSpeed.X * speed;
+                        translation.Y = -composite.DeltaTranslation.Y * TouchMovementSpeed.Y * speed;
+                        translation.Z = MathF.Log(composite.DeltaScale + 1) * TouchMovementSpeed.Z * speed;
                         break;
                 }
             }
