@@ -157,6 +157,14 @@ namespace Stride.Graphics
         // We use GraphicsDevice (similar to OpenGL)
         private static readonly Logger Log = GlobalLogger.GetLogger(nameof(GraphicsDevice));
 
+        /// <summary>
+        ///   Creates the Vulkan instance and, when requested, its validation layer and debug messenger.
+        /// </summary>
+        /// <param name="enableValidation">Enable the Khronos validation layer.</param>
+        /// <remarks>
+        ///   <c>STRIDE_VULKAN_SYNC_VALIDATION=1</c> adds synchronization validation. The validation layer
+        ///   provides its extension, so the ICD's instance extension list does not include it.
+        /// </remarks>
         public unsafe GraphicsAdapterFactoryInstance(bool enableValidation)
         {
             var pEngineName = new VkUtf8ReadOnlyString("Stride"u8);
@@ -207,9 +215,10 @@ namespace Stride.Graphics
                 VK_KHR_XCB_SURFACE_EXTENSION_NAME,
                 VK_EXT_METAL_SURFACE_EXTENSION_NAME,
                 VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME,
-                VK_EXT_DEBUG_UTILS_EXTENSION_NAME
+                VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
+                VK_EXT_VALIDATION_FEATURES_EXTENSION_NAME
             };
-            var supportedExtensions = new Span<VkUtf8String>(supportedExtensionNames, 8);
+            var supportedExtensions = new Span<VkUtf8String>(supportedExtensionNames, 9);
             var availableExtensionNames = GetAvailableExtensionNames(supportedExtensions);
             // Surface extensions are optional at instance creation (not available with headless ICDs).
             // They are validated later when a swapchain is actually created.
@@ -236,6 +245,11 @@ namespace Stride.Graphics
                 desiredExtensionNames.Add(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
             HasDebugUtilsSupport = enableDebugUtils;
 
+            bool enableSyncValidation = enableValidation
+                && Environment.GetEnvironmentVariable("STRIDE_VULKAN_SYNC_VALIDATION") == "1";
+            if (enableSyncValidation)
+                desiredExtensionNames.Add(VK_EXT_VALIDATION_FEATURES_EXTENSION_NAME);
+
             using VkStringArray ppEnabledLayerNames = new(enabledLayerNames);
             using VkStringArray ppEnabledExtensionNames = new(desiredExtensionNames);
 
@@ -249,6 +263,16 @@ namespace Stride.Graphics
                 enabledExtensionCount = ppEnabledExtensionNames.Length,
                 ppEnabledExtensionNames = ppEnabledExtensionNames,
             };
+
+            var syncValidationFeature = VkValidationFeatureEnableEXT.SynchronizationValidation;
+            var validationFeatures = new VkValidationFeaturesEXT
+            {
+                sType = VkStructureType.ValidationFeaturesEXT,
+                enabledValidationFeatureCount = 1,
+                pEnabledValidationFeatures = &syncValidationFeature,
+            };
+            if (enableSyncValidation)
+                instanceCreateInfo.pNext = &validationFeatures;
 
             // Silence MoltenVK's per-instance info dump (153-line extension list, device banner).
             // Set via env var instead of VkLayerSettingsCreateInfoEXT — the layer-settings struct
@@ -270,6 +294,7 @@ namespace Stride.Graphics
                 var layerSettings = new VkLayerSettingsCreateInfoEXT
                 {
                     sType = VkStructureType.LayerSettingsCreateInfoEXT,
+                    pNext = instanceCreateInfo.pNext,
                     settingCount = 1,
                     pSettings = &mvkLogLevelSetting,
                 };
