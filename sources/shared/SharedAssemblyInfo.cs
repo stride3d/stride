@@ -59,8 +59,9 @@ internal class StrideVersion
     /// <see cref="NuGetVersionSuffix"/>: the Game Studio bridge and the stride CLI resolve this version (or this
     /// checkout's -devN pack of it), and Stride.GameStudio depends on it. Don't edit it by hand: release-samples.yml
     /// sets it after publishing a samples release, so it always names content that is on the feed. Its major.minor
-    /// follows the engine line and its patch part is a content counter (4.4.0, 4.4.1, ...), never an engine
-    /// prerelease label. Keep the line shape (name = "value";) so the build and that workflow read and write it.
+    /// follows the engine line and its patch part is a content counter (4.4.0, 4.4.1, ...), not an engine
+    /// prerelease label; a prerelease (4.4.1-beta1) only marks content not ready yet, which a stable engine refuses
+    /// to name. Keep the line shape (name = "value";) so the build and that workflow read and write it.
     /// </summary>
     public const string SamplesVersion = "4.4.0-beta7";
 

@@ -15,7 +15,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Content version to publish (e.g. 4.4.1). Empty = the committed SamplesVersion's next number, or <engine line>.0 for older-line content.
+        description: Content version to publish (e.g. 4.4.1, or 4.4.1-beta1 for content not ready yet). Empty = the committed SamplesVersion's next stable number, or <engine line>.0 for older-line content.
         default: ''
         type: string
       sign:
@@ -95,6 +95,9 @@ jobs:
             elseif ($parts.Groups[3].Success) { $version = "$committedLine.$committedPatch" }
             else { $version = "$committedLine.$($committedPatch + 1)" }
           }
+          # Usually stable, so an engine going from beta to stable keeps the same content (New Project rewrites the
+          # Stride.* references to the running engine). A prerelease (typed, never the default) is for content not
+          # ready yet: release-deploy.yml refuses a stable engine that names it.
           if ($version -notmatch '^\d+\.\d+\.\d+(-(alpha|beta|rc|preview)\d+)?$') {
             echo "::error::Content version '$version' is not an allowed release version. Use X.Y.Z or X.Y.Z-(alpha|beta|rc|preview)<N>."
             exit 1
@@ -105,11 +108,6 @@ jobs:
           }
           if ([System.Management.Automation.SemanticVersion]$version -le [System.Management.Automation.SemanticVersion]$committed) {
             echo "::error::Content version $version does not come after the committed $committed."
-            exit 1
-          }
-          $engineSuffix = [regex]::Match($file, 'NuGetVersionSuffix = "([^"]*)";').Groups[1].Value
-          if ($engineSuffix -eq "" -and $version.Contains("-")) {
-            echo "::error::A stable engine must not name prerelease content ($version)."
             exit 1
           }
           echo "version=$version" >> $env:GITHUB_OUTPUT
