@@ -86,7 +86,6 @@ namespace Stride.Rendering.Voxels.VoxelGI
 
             private PermutationParameterKey<ShaderSource> diffuseMarcherKey;
             private PermutationParameterKey<ShaderSource> specularMarcherKey;
-            private PermutationParameterKey<ShaderSourceCollection> attributeSamplersKey;
 
             public RenderLight Light { get; set; }
 
@@ -141,7 +140,6 @@ namespace Stride.Rendering.Voxels.VoxelGI
 
                 diffuseMarcherKey = LightVoxelShaderKeys.diffuseMarcher.ComposeWith(compositionName);
                 specularMarcherKey = LightVoxelShaderKeys.specularMarcher.ComposeWith(compositionName);
-                attributeSamplersKey = MarchAttributesKeys.AttributeSamplers.ComposeWith(compositionName);
 
                 if (traceAttribute != null)
                 {
@@ -149,7 +147,6 @@ namespace Stride.Rendering.Voxels.VoxelGI
                         ((LightVoxel)Light.Type).DiffuseMarcher.UpdateMarchingLayout("diffuseMarcher." + compositionName);
                     if (((LightVoxel)Light.Type).SpecularMarcher != null)
                         ((LightVoxel)Light.Type).SpecularMarcher.UpdateMarchingLayout("specularMarcher." + compositionName);
-                    traceAttribute.UpdateSamplingLayout("AttributeSamplers[0]." + compositionName);
                 }
             }
 
@@ -161,12 +158,11 @@ namespace Stride.Rendering.Voxels.VoxelGI
                     {
                         traceAttribute.GetSamplingShader()
                     };
-                    renderEffect.EffectValidator.ValidateParameter(attributeSamplersKey, collection);
 
                     if (((LightVoxel)Light.Type).DiffuseMarcher != null)
-                        renderEffect.EffectValidator.ValidateParameter(diffuseMarcherKey, ((LightVoxel)Light.Type).DiffuseMarcher.GetMarchingShader(0));
+                        renderEffect.EffectValidator.ValidateParameter(diffuseMarcherKey, ((LightVoxel)Light.Type).DiffuseMarcher.GetMarchingShader(0, collection));
                     if (((LightVoxel)Light.Type).SpecularMarcher != null)
-                        renderEffect.EffectValidator.ValidateParameter(specularMarcherKey, ((LightVoxel)Light.Type).SpecularMarcher.GetMarchingShader(0));
+                        renderEffect.EffectValidator.ValidateParameter(specularMarcherKey, ((LightVoxel)Light.Type).SpecularMarcher.GetMarchingShader(0, collection));
                 }
             }
 
@@ -200,7 +196,8 @@ namespace Stride.Rendering.Voxels.VoxelGI
                 {
                     lightVoxel.DiffuseMarcher?.ApplyMarchingParameters(parameters);
                     lightVoxel.SpecularMarcher?.ApplyMarchingParameters(parameters);
-                    traceAttribute.ApplySamplingParameters(viewContext, parameters);
+                    lightVoxel.DiffuseMarcher?.ApplyAttributeSamplers(traceAttribute, 0, viewContext, parameters);
+                    lightVoxel.SpecularMarcher?.ApplyAttributeSamplers(traceAttribute, 0, viewContext, parameters);
                 }
             }
         }
