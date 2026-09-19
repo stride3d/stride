@@ -51,7 +51,7 @@ internal class StrideVersion
     /// release-samples.yml read it from here. Only package builds apply it; dev and CI builds stay at
     /// MajorMinor.Patch (+ -devN), so the prereleases of one version share one dev version.
     /// </summary>
-    public const string NuGetVersionSuffix = "";
+    public const string NuGetVersionSuffix = "-beta8";
 
     /// <summary>
     /// The exact published version of the content template packages (Stride.Templates.Samples, .Games.Starters,
