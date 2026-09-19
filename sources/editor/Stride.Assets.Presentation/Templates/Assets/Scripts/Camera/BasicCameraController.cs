@@ -207,7 +207,7 @@ public class ##Scriptname## : SyncScript
             //    the amount of frames occuring within that time frame, each frame will receive the right amount of delta:
             //    a quarter of a second -> 10 units, half a second -> 20 units, one second -> your 40 units.
 
-            float speed = (float)Game.UpdateTime.Factor
+            float speed = (float)Game.UpdateTime.Factor;
 
             if (Input.HasMouse)
             {

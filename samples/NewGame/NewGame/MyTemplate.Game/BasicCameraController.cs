@@ -173,7 +173,7 @@ public class BasicCameraController : SyncScript
 
         // Mouse movement and gestures
         {
-            float speed = (float)Game.UpdateTime.Factor
+            float speed = (float)Game.UpdateTime.Factor;
 
             if (Input.HasMouse)
             {
