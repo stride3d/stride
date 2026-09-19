@@ -352,6 +352,14 @@ namespace Stride.Games
         {
             var graphicsDeviceInfos = new List<GraphicsDeviceInformation>();
 
+            // Software rasterizers (WARP, llvmpipe) only when asked for by uid, or when no hardware adapter exists.
+            var skipSoftwareAdapters = false;
+            if (string.IsNullOrEmpty(preferredParameters.RequiredAdapterUid))
+            {
+                foreach (var graphicsAdapter in GraphicsAdapterFactory.Adapters)
+                    skipSoftwareAdapters |= !graphicsAdapter.IsSoftwareAdapter;
+            }
+
             // Iterate on each adapter
             foreach (var graphicsAdapter in GraphicsAdapterFactory.Adapters)
             {
@@ -360,15 +368,8 @@ namespace Stride.Games
                 if (!string.IsNullOrEmpty(preferredParameters.RequiredAdapterUid) && adapterUid != preferredParameters.RequiredAdapterUid)
                     continue;
 
-                // Skip adapters that don't have graphics output
-                // but only if no RequiredAdapterUid is provided (OculusVR at init time might be in a device with no outputs)
-                // Software rendering adapters (e.g. WARP) have no outputs either, so allow them through
-                if (graphicsAdapter.Outputs.Length == 0
-                    && string.IsNullOrEmpty(preferredParameters.RequiredAdapterUid)
-                    && Environment.GetEnvironmentVariable("STRIDE_GRAPHICS_SOFTWARE_RENDERING") != "1")
-                {
+                if (skipSoftwareAdapters && graphicsAdapter.IsSoftwareAdapter)
                     continue;
-                }
 
                 var preferredGraphicsProfiles = preferredParameters.PreferredGraphicsProfile;
 
