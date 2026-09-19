@@ -10,7 +10,7 @@ The source of truth is [`sources/shared/SharedAssemblyInfo.cs`](../../sources/sh
 |---|---|---|
 | `PublicVersion` | `4.4.0` | 3-part `major.minor.patch` display/package version. Committed and bumped per release (see below). |
 | `AssemblyVersion` | `4.4.0.0` | Assembly binding identity, pinned per `major.minor` so the git height never churns it. Bump together with `PublicVersion`'s `major.minor`. |
-| `NuGetVersionSuffix` | `` / `-beta` / `-dev2` | Prerelease tag. Empty for a stable release; set by the worktree system (`-devN`) or a release prerelease (`-beta`). |
+| `NuGetVersionSuffix` | `` / `-beta1` / `-dev2` | Prerelease tag. Committed: empty for a stable release, `-betaN` before a prerelease (only package builds apply it). Dev builds replace it with the worktree suffix (`-devN`). |
 | `BuildMetadata` | `+g<sha>` | Set during package builds. |
 
 `NuGetVersion = PublicVersion + NuGetVersionSuffix`; `StrideVersion.NuGetVersion` (the compiled const) is what the package upgrader stamps into consumer projects.
@@ -25,6 +25,7 @@ Two rules:
 
 - **Bump per release.** The release pipeline refuses to publish a version whose `releases/<version>` tag already exists on another commit (see [Release flow](#release-flow)), so a forgotten bump fails the deploy rather than silently re-publishing.
 - **A format change ⇒ a numeric (`Patch`) bump.** Asset upgraders gate on the *numeric* version and ignore the prerelease suffix (`-beta1`, `-dev3`, custom), so a format change must advance the number (e.g. `4.4.0` → `4.4.1`) for the gate to fire. Successive prereleases without a format change can stay at the same number (`4.4.0-beta1`, `4.4.0-beta2`).
+- **A prerelease is a committed suffix.** Commit `NuGetVersionSuffix = "-beta2"` before running the release, like a `Patch` bump, and `""` before the stable release. The release workflows have no suffix input. Only package builds apply the committed suffix: dev and CI builds stay at `MajorMinor.Patch` (+ `-devN`), so all the betas of one version share one dev version (and one NuGet cache slot per checkout).
 
 ## Per-checkout dev versions (`-devN`)
 
@@ -62,7 +63,7 @@ Install: `dotnet tool install -g Stride.Cli`.
 
 ## Samples & template package versions
 
-The in-repo samples are committed referencing a **clean release version** (e.g. `4.4.0`) — which is typically still *unreleased* at commit time, since the bump rides the release that publishes it (the matching packages only appear on nuget.org once `release.yml` deploys). Locally, only the `-devN` packages exist. So to build/run/edit a sample in your checkout (including opening it in GameStudio) you switch it to the local dev version, and switch back before committing — standalone targets in [`build/Stride.Samples.build`](../../build/Stride.Samples.build):
+The in-repo samples are committed referencing the **release version**, the committed one with its suffix (e.g. `4.4.0` or `4.4.0-beta2`) — which is typically still *unreleased* at commit time, since the bump rides the release that publishes it (the matching packages only appear on nuget.org once `release.yml` deploys). Locally, only the `-devN` packages exist. So to build/run/edit a sample in your checkout (including opening it in GameStudio) you switch it to the local dev version, and switch back before committing — standalone targets in [`build/Stride.Samples.build`](../../build/Stride.Samples.build):
 
 ```bash
 dotnet msbuild build/Stride.Samples.build -t:SamplesToDevEngine       # before editing/building locally
@@ -93,7 +94,7 @@ dotnet msbuild build/Stride.Samples.build -t:CleanContentTemplates              
 `SamplesVersion` is never edited by hand. Sample changes are merged like any other change, and the branch keeps naming the content already on the feed, so nothing breaks in between. [`release-samples.yml`](../../.github/workflows/release-samples.yml) publishes them under a new number and only then commits that number. A samples release, start to finish:
 
 1. **Bring the samples up to the engine** when the engine changed under them: run `PrepareSamplesForRelease` (below), open the samples in GameStudio and fix what the upgraders left, run `SamplesToReleaseEngine`, and merge the result with a normal PR. Its CI packs the content and runs the template, editor and sample tests on it. Plain sample edits skip this step.
-2. **Dispatch `release-samples.yml`** on the branch (`stride-release-managers` only) with `sign` and `deploy`, the `version` to publish, and the `version-suffix` of the engine release the content precedes (empty for a stable engine). An empty `version` takes the committed one's next number (`4.4.0` → `4.4.1`, `4.4.0-beta7` → `4.4.0`), or `<engine line>.0` when the committed content is from an older line (`4.4.2` on a 4.5 branch → `4.5.0`). The major.minor must be the branch's engine line: `4.4.x` content is released from the 4.4 branch only. A newer engine may keep naming older-line content (it is upgraded on New Project) until its own first samples release. The patch part is a counter with no relation to the engine's patch (engine `4.4.0` can use samples `4.4.1`).
+2. **Dispatch `release-samples.yml`** on the branch (`stride-release-managers` only) with `sign` and `deploy` and the `version` to publish. The packs are stamped for the branch's committed engine version (suffix included), the engine release they precede, so commit the next engine suffix first if it changes. An empty `version` takes the committed one's next number (`4.4.0` → `4.4.1`, `4.4.0-beta7` → `4.4.0`), or `<engine line>.0` when the committed content is from an older line (`4.4.2` on a 4.5 branch → `4.5.0`). The major.minor must be the branch's engine line: `4.4.x` content is released from the 4.4 branch only. A newer engine may keep naming older-line content (it is upgraded on New Project) until its own first samples release. The patch part is a counter with no relation to the engine's patch (engine `4.4.0` can use samples `4.4.1`).
 3. **The workflow** checks the number (valid, after the committed one, not already released, not prerelease for a stable engine), packs the three packages release-shaped (`PackageSamples` in `build/Stride.build`), runs the template smoke tests against the repo build, and signs. With `deploy`, it pushes them, tags `samples/<version>` on the built commit, creates a GitHub Release, and last commits `SamplesVersion = <version>` to the branch. Without `deploy`, nothing is published or committed.
 4. **Release the engine** as usual. Engines built from then on use the new content.
 

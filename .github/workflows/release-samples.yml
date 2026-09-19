@@ -6,8 +6,8 @@ name: Release Samples
 # Versioned independently of the engine: StrideVersion.SamplesVersion in sources/shared/SharedAssemblyInfo.cs is the
 # published content version the engine uses. This workflow is the only thing that changes it: it packs the samples
 # of the branch under the next content version, publishes them, and only then commits that version to the branch,
-# so the branch never names content that is not on the feed. The packs are stamped for this branch's engine version
-# plus version-suffix (the same input as release.yml), the engine release they precede.
+# so the branch never names content that is not on the feed. The packs are stamped for this branch's committed engine
+# version (MajorMinor.Patch + NuGetVersionSuffix), the engine release they precede.
 # A deploy pushes to NuGet.org, tags samples/<version> at the built commit, creates a GitHub Release and commits
 # SamplesVersion to the branch. A run without deploy publishes and commits nothing.
 
@@ -26,10 +26,6 @@ on:
         description: Deploy to NuGet.org, create a GitHub Release and commit SamplesVersion to the branch
         default: false
         type: boolean
-      version-suffix:
-        description: Prerelease suffix of the engine the content is stamped for, no leading dash (e.g. "beta7"). Empty = stable.
-        default: ''
-        type: string
 
 concurrency:
   group: release-samples-${{ github.ref }}
@@ -110,7 +106,8 @@ jobs:
             echo "::error::Content version $version does not come after the committed $committed."
             exit 1
           }
-          if ("${{ inputs.version-suffix }}" -eq "" -and $version.Contains("-")) {
+          $engineSuffix = [regex]::Match($file, 'NuGetVersionSuffix = "([^"]*)";').Groups[1].Value
+          if ($engineSuffix -eq "" -and $version.Contains("-")) {
             echo "::error::A stable engine must not name prerelease content ($version)."
             exit 1
           }
@@ -144,8 +141,7 @@ jobs:
           dotnet build build\Stride.build `
             -t:PackageSamples `
             -p:StrideSamplesVersion=${{ steps.version.outputs.version }} `
-            -p:StrideSign=${{ inputs.sign }} `
-            -p:StrideVersionSuffix=${{ inputs.version-suffix }}
+            -p:StrideSign=${{ inputs.sign }}
 
       - name: Check the packages
         shell: pwsh

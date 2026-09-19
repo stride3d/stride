@@ -148,7 +148,7 @@ Example: dotnet build build/Stride.build -t:Package
 
     <!-- Create SharedAssemblyInfo.Generated.cs with the committed version + git metadata (the Stride SDK swaps
          it in for SharedAssemblyInfo.cs when building the packages). -->
-    <StrideGitVersion RootDirectory="$(StrideRoot)" VersionFile="sources\shared\SharedAssemblyInfo.cs" GeneratedVersionFile="sources\shared\SharedAssemblyInfo.Generated.cs" SuffixOverride="$(StrideVersionSuffix)">
+    <StrideGitVersion RootDirectory="$(StrideRoot)" VersionFile="sources\shared\SharedAssemblyInfo.cs" GeneratedVersionFile="sources\shared\SharedAssemblyInfo.Generated.cs">
       <Output TaskParameter="NuGetVersion" PropertyName="StridePackageVersion"/>
     </StrideGitVersion>
 
@@ -200,7 +200,7 @@ Example: dotnet build build/Stride.build -t:Package
   Content template packs (Stride.Templates.Samples / .Games.Starters / .AssetPacks)
   Versioned by StrideVersion.SamplesVersion, published on their own schedule by .github/workflows/release-samples.yml;
   the engine release never packs them. PackageSamples produces the release-shaped (fully preprocessed) packs into
-  bin/packages, stamped for this branch's engine version (+ StrideVersionSuffix); SignPackage then signs them.
+  bin/packages, stamped for this branch's engine version (the committed one, with its suffix); SignPackage then signs them.
   -->
   <Target Name="PackageSamples" DependsOnTargets="PreparePackageBuild">
     <MSBuild Projects="$(StrideRoot)build\Stride.Samples.build" Targets="PackContentTemplates"

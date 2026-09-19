@@ -59,14 +59,14 @@ if (string.IsNullOrEmpty(solution))
 
 if (string.IsNullOrEmpty(version))
 {
-    // Package versions use the committed MajorMinor.Patch (see StrideVersionTasks.cs). The -devN suffix comes from
-    // the generated overlay when present.
+    // Dev package versions are the committed MajorMinor.Patch without its prerelease suffix (see StrideVersionTasks.cs),
+    // plus the -devN suffix from the generated overlay when present.
     var generatedFile = Path.Combine(strideRoot, "sources", "shared", "SharedAssemblyInfo.Generated.cs");
     var plainFile = Path.Combine(strideRoot, "sources", "shared", "SharedAssemblyInfo.cs");
     var plainText = File.ReadAllText(plainFile);
     var mmMatch = Regex.Match(plainText, @"MajorMinor\s*=\s*""([^""]+)""");
     var patchMatch = Regex.Match(plainText, @"\bPatch\s*=\s*""([^""]+)""");
-    var suffixMatch = Regex.Match(File.ReadAllText(File.Exists(generatedFile) ? generatedFile : plainFile), @"NuGetVersionSuffix\s*=\s*""([^""]*)""");
+    var suffixMatch = File.Exists(generatedFile) ? Regex.Match(File.ReadAllText(generatedFile), @"NuGetVersionSuffix\s*=\s*""([^""]*)""") : Match.Empty;
     if (!mmMatch.Success || !patchMatch.Success) throw new Exception("Could not determine version from SharedAssemblyInfo");
     version = mmMatch.Groups[1].Value + "." + patchMatch.Groups[1].Value + (suffixMatch.Success ? suffixMatch.Groups[1].Value : "");
 }

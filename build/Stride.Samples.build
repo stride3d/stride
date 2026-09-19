@@ -4,8 +4,8 @@
   dotnet msbuild build/Stride.Samples.build -t:PrepareSamplesForRelease. See docs/build/versioning.md.
 
   Two versions meet here:
-    - the ENGINE version the sample csprojs reference (SamplesEngineVersion, the clean release version; locally only the
-      per-checkout dev packages 4.4.0-devN exist, so the targets switch the csprojs between the two by REAL on-disk
+    - the ENGINE version the sample csprojs reference (SamplesEngineVersion, the committed release version such as 4.4.0 or
+      4.4.0-beta1; locally only the per-checkout dev packages 4.4.0-devN exist, so the targets switch the csprojs between the two by REAL on-disk
       edits, no evaluation-time flip);
     - the CONTENT version of the template packs made from the samples (StrideVersion.SamplesVersion, the exact
       published version an engine names; StrideSamplesVersion here). Only release-samples.yml changes it, after
@@ -81,8 +81,8 @@
     </Task>
   </UsingTask>
 
-  <!-- Resolves SamplesEngineVersion (clean release, suffix off) + SamplesDevEngineVersion (clean + worktree
-       suffix = the locally-published dev version) + the concrete sample csproj set (all under
+  <!-- Resolves SamplesEngineVersion (the committed release version) + SamplesDevEngineVersion (MajorMinor.Patch +
+       worktree suffix = the locally-published dev version, which never carries the committed -betaN) + the concrete sample csproj set (all under
        samples/ minus the $EngineVersion$ template sources NewGame/Library, the set release-deploy.yml
        checks for changes since the content version was set). -->
   <Target Name="_ResolveSamplesEngineVersions" DependsOnTargets="StrideEnsureWorktreeVersion">
@@ -98,7 +98,7 @@
     </StrideGitVersion>
     <Error Condition="'$(SamplesEngineVersion)' == ''" Text="Could not resolve a sample version. Pass -p:SamplesEngineVersion=." />
     <PropertyGroup>
-      <SamplesDevEngineVersion>$(SamplesEngineVersion)$(StrideWorktreeSuffix)</SamplesDevEngineVersion>
+      <SamplesDevEngineVersion>$([System.Text.RegularExpressions.Regex]::Replace('$(SamplesEngineVersion)', '-.*$', ''))$(StrideWorktreeSuffix)</SamplesDevEngineVersion>
     </PropertyGroup>
     <ItemGroup>
       <_StrideSampleCsproj Include="$(StrideRoot)samples\**\*.csproj" />
@@ -125,7 +125,7 @@
        version to this checkout's dev build - migrate assets, rewrite references to 4.4.0-devN, restore from
        the local dev feed. The csprojs are left at the dev version so they open in GameStudio; run
        SamplesToReleaseEngine to finalize at the clean version before committing. SamplesEngineVersion defaults to
-       the clean next-release number; -p:SamplesEngineVersion= overrides (e.g. a -beta). -p:SamplePackages= limits
+       the committed release version, suffix included; -p:SamplesEngineVersion= overrides. -p:SamplePackages= limits
        the migrated .sdpkg set. Part of PrepareSamplesForRelease; on its own it does not touch the content version. -->
   <Target Name="UpgradeSamples" DependsOnTargets="_ResolveSamplesEngineVersions">
     <Message Importance="high" Text="UpgradeSamples: migrate -&gt; dev=$(SamplesDevEngineVersion) ($(Configuration)); run SamplesToReleaseEngine to finalize at $(SamplesEngineVersion)" />

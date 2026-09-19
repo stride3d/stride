@@ -7,8 +7,9 @@
 // The version is the committed value in SharedAssemblyInfo.cs (MajorMinor.Patch + NuGetVersionSuffix); it is
 // bumped per release rather than derived from git tags. Both generators
 // overlay that value into a generated copy; they differ only in their wrapper concerns:
-//   ResolveStrideWorktreeVersion - dev builds: per-checkout ledger -> -devN suffix, cached, no metadata.
-//   StrideGitVersion             - release/package builds: release suffix + "+g<sha>" build metadata, no ledger.
+//   ResolveStrideWorktreeVersion - dev and CI builds: MajorMinor.Patch without the committed suffix (so the betas of
+//                                  one version share one dev version), per-checkout ledger -> -devN, cached, no metadata.
+//   StrideGitVersion             - release/package builds: committed suffix + "+g<sha>" build metadata, no ledger.
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -217,15 +218,14 @@ public class ResolveStrideWorktreeVersion : Task
 
     private void WriteGeneratedFile(string suffix, string stamp)
     {
-        string majorMinor, version, baseSuffix;
-        StrideVersionUtil.ReadInputs(SourceVersionFile, out majorMinor, out version, out baseSuffix);
+        string majorMinor, version;
+        StrideVersionUtil.ReadInputs(SourceVersionFile, out majorMinor, out version, out _);
 
-        // Compose the committed suffix with the worktree suffix so the const matches the package: the consumer
-        // overlay replaces the whole NuGetVersionSuffix, so it must carry both (e.g. "-beta1" + "-dev3"), whereas the
-        // producer reads the committed "-beta1" from the file and appends only the worktree "-dev3" (WorktreeSuffix
-        // output stays worktree-only for that append). Always emit the overlay (even when it equals the committed
-        // version): the base file's PublicVersion is a sentinel, so leaving the base to compile would ship it.
-        string patched = StrideVersionUtil.Overlay(File.ReadAllText(SourceVersionFile), majorMinor, version, baseSuffix + suffix, null);
+        // The committed suffix (-beta1) is for release builds only: here the suffix is the worktree one alone, as on
+        // the producer side (Stride.NuGetVersion.props), so the const matches the package. Always emit the overlay
+        // (even when it equals the committed version): the base file's PublicVersion is a sentinel, so leaving the
+        // base to compile would ship it.
+        string patched = StrideVersionUtil.Overlay(File.ReadAllText(SourceVersionFile), majorMinor, version, suffix, null);
         // Cache key = stamp + resolved worktree suffix; TryFastPath reuses the file while the stamp matches.
         patched += "\n// version-stamp: " + stamp + "|" + suffix + "\n";
         if (!File.Exists(GeneratedVersionFile) || File.ReadAllText(GeneratedVersionFile) != patched)
@@ -322,7 +322,6 @@ public class StrideGitVersion : Task
     [Required] public string RootDirectory { get; set; }
     [Required] public string VersionFile { get; set; }
     [Required] public string GeneratedVersionFile { get; set; }
-    public string SuffixOverride { get; set; }
 
     [Output] public string NuGetVersion { get; set; }
 
@@ -336,9 +335,6 @@ public class StrideGitVersion : Task
 
             string majorMinor, version, suffix;
             StrideVersionUtil.ReadInputs(sourcePath, out majorMinor, out version, out suffix);
-            // SuffixOverride (from -p:StrideVersionSuffix) overrides the committed suffix; it's the bare word.
-            if (!string.IsNullOrEmpty(SuffixOverride))
-                suffix = "-" + SuffixOverride.TrimStart('-');
 
             string sha = StrideVersionUtil.Git(RootDirectory, "rev-parse HEAD").Substring(0, 8);
 
