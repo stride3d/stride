@@ -147,7 +147,11 @@ public class StrideShaderTests
         var translator = new SpirvTranslator(bytecode.ToArray().AsMemory().Cast<byte, uint>());
         var fragment = translator.GetEntryPoints().First(x => x.ExecutionModel == ExecutionModel.Fragment);
         var hlsl = translator.Translate(Backend.Hlsl, fragment);
-        Assert.Contains("SV_Coverage", hlsl);
+        // Read as an input and, since the shader writes it, declared as an output too
+        Assert.Contains("gl_SampleMaskIn : SV_Coverage", hlsl);
+        Assert.Contains("gl_SampleMask : SV_Coverage", hlsl);
+        var errors = FxcSupport.Compile(hlsl, "ps_5_0");
+        Assert.True(errors is null, errors + Environment.NewLine + hlsl);
     }
 
     // fxc rejects the same shader with X4532, so this reports rather than emitting a module that only
