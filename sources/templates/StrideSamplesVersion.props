@@ -17,7 +17,7 @@
      it is committed). _StrideCommittedSamplesVersion always carries the committed value. -->
 <Project>
   <PropertyGroup>
-    <_StrideCommittedSamplesVersion>4.4.0-beta7</_StrideCommittedSamplesVersion>
+    <_StrideCommittedSamplesVersion>4.4.0</_StrideCommittedSamplesVersion>
     <StrideSamplesVersion Condition="'$(StrideSamplesVersion)' == ''">$(_StrideCommittedSamplesVersion)</StrideSamplesVersion>
   </PropertyGroup>
 </Project>
