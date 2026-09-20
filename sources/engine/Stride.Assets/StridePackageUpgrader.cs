@@ -104,6 +104,21 @@ namespace Stride.Assets
                 Rewrite(
                     ParameterRename("Stride.Graphics.IndexBufferBinding", ".ctor", "count", "indexCount")),
 
+                // 4.4: the memory helpers of Stride.Core.Utilities moved to Stride.Core.MemoryUtilities,
+                // some renamed along with their parameters (#1715).
+                Rewrite(
+                    StaticMemberMove("Stride.Core.Utilities", "CopyWithAlignmentFallback", "Stride.Core.MemoryUtilities"),
+                    StaticMemberMove("Stride.Core.Utilities", "Clear", "Stride.Core.MemoryUtilities"),
+                    StaticMemberMove("Stride.Core.Utilities", "Swap", "Stride.Core.MemoryUtilities"),
+                    StaticMemberMove("Stride.Core.Utilities", "AllocateMemory", "Stride.Core.MemoryUtilities", "Allocate"),
+                    StaticMemberMove("Stride.Core.Utilities", "AllocateClearedMemory", "Stride.Core.MemoryUtilities", "AllocateCleared"),
+                    StaticMemberMove("Stride.Core.Utilities", "FreeMemory", "Stride.Core.MemoryUtilities", "Free"),
+                    StaticMemberMove("Stride.Core.Utilities", "IsMemoryAligned", "Stride.Core.MemoryUtilities", "IsAligned"),
+                    ParameterRename("Stride.Core.Utilities", "AllocateMemory", "align", "alignment"),
+                    ParameterRename("Stride.Core.Utilities", "AllocateClearedMemory", "align", "alignment"),
+                    ParameterRename("Stride.Core.Utilities", "IsMemoryAligned", "align", "alignment"),
+                    ParameterRename("Stride.Core.Utilities", "IsMemoryAligned", "memoryPtr", "memoryAddress")),
+
                 // 4.4: SharpDX and SharpFont were dropped, Vortice no longer flows to game projects,
                 // and Stride.Core.Shaders was retired by the sdsl rewrite; their leftover (unused)
                 // using directives would no longer compile (#3249).
