@@ -206,7 +206,7 @@ namespace Stride.Graphics
                 Log.Info($"Vulkan validation layer {(enableValidation ? "enabled" : "not found")} for debug instance");
             }
 
-            var supportedExtensionNames = stackalloc VkUtf8String[]
+            Span<VkUtf8String> supportedExtensionNames = stackalloc VkUtf8String[]
             {
                 VK_KHR_SURFACE_EXTENSION_NAME,
                 VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
@@ -215,11 +215,9 @@ namespace Stride.Graphics
                 VK_KHR_XCB_SURFACE_EXTENSION_NAME,
                 VK_EXT_METAL_SURFACE_EXTENSION_NAME,
                 VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME,
-                VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
-                VK_EXT_VALIDATION_FEATURES_EXTENSION_NAME
+                VK_EXT_DEBUG_UTILS_EXTENSION_NAME
             };
-            var supportedExtensions = new Span<VkUtf8String>(supportedExtensionNames, 9);
-            var availableExtensionNames = GetAvailableExtensionNames(supportedExtensions);
+            var availableExtensionNames = GetAvailableExtensionNames(supportedExtensionNames);
             // Surface extensions are optional at instance creation (not available with headless ICDs).
             // They are validated later when a swapchain is actually created.
             var desiredExtensionNames = new HashSet<VkUtf8String>();
