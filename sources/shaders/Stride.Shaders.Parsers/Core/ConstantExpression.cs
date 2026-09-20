@@ -199,7 +199,7 @@ public sealed record IntConstExpr(long Value, ScalarType Type) : ConstantExpress
     public override int Emit(SpirvContext context)
     {
         TryEvaluate(out var value);
-        return context.CompileConstant(value!).Id;
+        return context.CompileConstant(Type, value!).Id;
     }
 
     public override bool TryEvaluate(out object? value)
@@ -227,8 +227,7 @@ public sealed record FloatConstExpr(double Value, ScalarType Type) : ConstantExp
     public override int Emit(SpirvContext context)
     {
         TryEvaluate(out var value);
-        // Note: there is no half literal
-        return value is Half half ? context.AddConstant(half) : context.CompileConstant(value!).Id;
+        return context.CompileConstant(Type, value!).Id;
     }
 
     public override bool TryEvaluate(out object? value)
@@ -326,7 +325,7 @@ public sealed record UnaryOpExpr(Op Op, SymbolType ResultType, ConstantExpressio
     {
         // Try constant folding first — avoids OpSpecConstantOp which some backends don't support.
         if (TryEvaluate(out var folded) && folded is not null)
-            return FromValue(folded).Emit(context);
+            return context.CompileConstant(ResultType, folded).Id;
 
         var operandId = Operand.Emit(context);
         var resultId = context.Bound++;
@@ -363,7 +362,7 @@ public sealed record BinaryOpExpr(Op Op, SymbolType ResultType, ConstantExpressi
     {
         // Try constant folding first — avoids OpSpecConstantOp which some backends don't support.
         if (TryEvaluate(out var folded) && folded is not null)
-            return FromValue(folded).Emit(context);
+            return context.CompileConstant(ResultType, folded).Id;
 
         var leftId = Left.Emit(context);
         var rightId = Right.Emit(context);

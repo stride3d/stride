@@ -425,7 +425,7 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
         var float2Type = context.GetOrRegister(new VectorType(ScalarType.Float, 2));
         var floatType = context.GetOrRegister(ScalarType.Float);
         var uintType = context.GetOrRegister(ScalarType.UInt);
-        var zero = context.AddConstant(0.0f);
+        var zero = context.CompileConstant(0.0f).Id;
 
         if (inputType is ScalarType)
         {
