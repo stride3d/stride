@@ -195,6 +195,33 @@ public class StrideShaderTests
         Assert.Equal(["StageComposePathImpl.Tex.Samplers[0]"], textureKeys);
     }
 
+    // SV_Coverage is a uint in HLSL and a one-element array decorated SampleMask in SPIR-V, on both sides.
+    [Fact]
+    public void CoverageIsSampleMaskInFragmentStage()
+    {
+        SpirvCrossSupport.SkipUnlessAvailable();
+        FxcSupport.SkipUnlessAvailable();
+
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(new ShaderClassSource("PSCoverage"), new ShaderMixer.Options(true), log, out var bytecode, out _, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+
+        var validation = Spv.ValidateBinary(bytecode);
+        Assert.True(validation.IsValid, validation.Output);
+
+        var translator = new SpirvTranslator(bytecode.ToArray().AsMemory().Cast<byte, uint>());
+        var fragment = translator.GetEntryPoints().First(x => x.ExecutionModel == ExecutionModel.Fragment);
+        var hlsl = translator.Translate(Backend.Hlsl, fragment);
+        // Read as an input and, since the shader writes it, declared as an output too
+        Assert.Contains("gl_SampleMaskIn : SV_Coverage", hlsl);
+        Assert.Contains("gl_SampleMask : SV_Coverage", hlsl);
+        var errors = FxcSupport.Compile(hlsl, "ps_5_0");
+        Assert.True(errors is null, errors + Environment.NewLine + hlsl);
+    }
+
     // fxc rejects the same shader with X4532, so this reports rather than emitting a module that only
     // fails later, deep inside the HLSL legalizer.
     [Fact]

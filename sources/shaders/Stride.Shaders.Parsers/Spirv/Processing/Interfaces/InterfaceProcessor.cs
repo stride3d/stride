@@ -177,7 +177,8 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                 {
                     if (stream.Value.Semantic is { } semantic)
                     {
-                        if ((semantic.ToUpperInvariant().StartsWith("SV_TARGET") || semantic.ToUpperInvariant() == "SV_DEPTH") && stream.Value.Write)
+                        var upperSemantic = semantic.ToUpperInvariant();
+                        if ((upperSemantic.StartsWith("SV_TARGET") || upperSemantic == "SV_DEPTH" || upperSemantic == "SV_COVERAGE") && stream.Value.Write)
                             stream.Value.Output = true;
                     }
                 }
