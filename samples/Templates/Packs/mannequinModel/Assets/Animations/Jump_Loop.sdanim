@@ -15,5 +15,5 @@ RootMotion: false
 PreviewModel: f68ea240-695a-4de5-9884-60d77544fcd6:Models/mannequinModel
 AnimationTimeMinimum: 0:00:00:00.0000000
 ~SourceHashes:
-    d7064665b69ee02ddb199ae62cc3dc7b~../../Resources/Animation/Jump_Loop.fbx: b578f2ccc51e7deedf81789e5911798d
+    d7064665b69ee02ddb199ae62cc3dc7b~../../Resources/Animation/Jump_Loop.fbx: 44e675addf71cd997cb78a1abdc4a212
 AnimationTimeMaximum: 0:00:00:00.9830000
