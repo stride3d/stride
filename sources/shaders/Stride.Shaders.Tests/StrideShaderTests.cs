@@ -200,6 +200,7 @@ public class StrideShaderTests
     public void CoverageIsSampleMaskInFragmentStage()
     {
         SpirvCrossSupport.SkipUnlessAvailable();
+        FxcSupport.SkipUnlessAvailable();
 
         var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
         var shaderMixer = new ShaderMixer(loader);
