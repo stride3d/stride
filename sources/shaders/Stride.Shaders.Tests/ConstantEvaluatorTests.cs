@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Shaders.Core;
+using Stride.Shaders.Spirv.Building;
 using static Stride.Shaders.Spirv.Specification;
 
 namespace Stride.Shaders.Parsers.Tests;
@@ -89,6 +90,32 @@ public class ConstantEvaluatorTests
     public void OperationWithLiteralOperandsHasNoOperandCount(Op op)
     {
         Assert.Equal(0, ConstantEvaluator.GetEvaluatedOperandCount(op));
+    }
+
+    [Fact]
+    public void EvaluatesVectorsPerComponent()
+    {
+        static ConstantVector Vector(params object[] values) => new() { Values = values };
+        var float3Type = new VectorType(ScalarType.Float, 3);
+
+        Assert.True(ConstantEvaluator.TryEvaluateBinary(Op.OpFMul, Vector(1.0f, 2.0f, 3.0f), Vector(0.5f, 0.5f, 2.0f), out var product));
+        Assert.Equal(new object[] { 0.5f, 1.0f, 6.0f }, Assert.IsType<ConstantVector>(product).Values);
+
+        Assert.True(ConstantEvaluator.TryEvaluateUnary(Op.OpFNegate, Vector(1.0f, -2.0f, 0.5f), float3Type, out var negated));
+        Assert.Equal(new object[] { -1.0f, 2.0f, -0.5f }, Assert.IsType<ConstantVector>(negated).Values);
+
+        // The type of the components changes with the operation
+        Assert.True(ConstantEvaluator.TryEvaluateUnary(Op.OpConvertSToF, Vector(1, 2, 3), float3Type, out var converted));
+        Assert.Equal(new object[] { 1.0f, 2.0f, 3.0f }, Assert.IsType<ConstantVector>(converted).Values);
+        Assert.True(ConstantEvaluator.TryEvaluateBinary(Op.OpSLessThan, Vector(1, 5), Vector(2, 2), out var compared));
+        Assert.Equal(new object[] { true, false }, Assert.IsType<ConstantVector>(compared).Values);
+
+        // Vectors of different sizes, a vector with a scalar, and a result type that is not the vector
+        Assert.False(ConstantEvaluator.TryEvaluateBinary(Op.OpFAdd, Vector(1.0f, 2.0f), Vector(1.0f, 2.0f, 3.0f), out _));
+        Assert.False(ConstantEvaluator.TryEvaluateBinary(Op.OpFAdd, Vector(1.0f, 2.0f), 1.0f, out _));
+        Assert.False(ConstantEvaluator.TryEvaluateUnary(Op.OpFNegate, Vector(1.0f, 2.0f), float3Type, out _));
+        // One component that can't be evaluated
+        Assert.False(ConstantEvaluator.TryEvaluateBinary(Op.OpSDiv, Vector(1, 2), Vector(1, 0), out _));
     }
 
     [Fact]

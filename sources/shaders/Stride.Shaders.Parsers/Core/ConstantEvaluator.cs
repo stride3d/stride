@@ -3,6 +3,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using Stride.Shaders.Spirv.Building;
 using static Stride.Shaders.Spirv.Specification;
 
 namespace Stride.Shaders.Core;
@@ -12,6 +13,7 @@ namespace Stride.Shaders.Core;
 /// </summary>
 /// <remarks>
 /// A value is a boxed CLR scalar matching its SPIR-V type: bool, int, uint, long, ulong, float or double.
+/// A vector is a <see cref="ConstantVector"/> of those, on which an operation applies per component.
 /// An operation that is not supported, or not defined for its operands (e.g. a division by zero), is not evaluated.
 /// Note: the switch expressions cast their first case to object, otherwise the cases are converted to a common type.
 /// </remarks>
@@ -19,6 +21,24 @@ public static class ConstantEvaluator
 {
     public static bool TryEvaluateUnary(Op op, object operand, SymbolType resultType, [NotNullWhen(true)] out object? result)
     {
+        // A vector is evaluated per component
+        if (operand is ConstantVector vector)
+        {
+            result = null;
+            if (resultType is not VectorType vectorResultType || vectorResultType.Size != vector.Values.Length)
+                return false;
+
+            var values = new object[vector.Values.Length];
+            for (var i = 0; i < values.Length; i++)
+            {
+                if (vector.Values[i] is ConstantVector || !TryEvaluateUnary(op, vector.Values[i], vectorResultType.BaseType, out values[i]!))
+                    return false;
+            }
+
+            result = new ConstantVector { Values = values };
+            return true;
+        }
+
         result = (op, operand) switch
         {
             (Op.OpSNegate or Op.OpNot, int v) => EvaluateIntegerUnary(op, v),
@@ -36,6 +56,24 @@ public static class ConstantEvaluator
 
     public static bool TryEvaluateBinary(Op op, object left, object right, [NotNullWhen(true)] out object? result)
     {
+        // Vectors are evaluated per component
+        if (left is ConstantVector leftVector)
+        {
+            result = null;
+            if (right is not ConstantVector rightVector || rightVector.Values.Length != leftVector.Values.Length)
+                return false;
+
+            var values = new object[leftVector.Values.Length];
+            for (var i = 0; i < values.Length; i++)
+            {
+                if (leftVector.Values[i] is ConstantVector || !TryEvaluateBinary(op, leftVector.Values[i], rightVector.Values[i], out values[i]!))
+                    return false;
+            }
+
+            result = new ConstantVector { Values = values };
+            return true;
+        }
+
         if (op is Op.OpShiftLeftLogical or Op.OpShiftRightLogical or Op.OpShiftRightArithmetic)
         {
             // The shift amount does not need to have the type of the shifted value

@@ -1,4 +1,5 @@
 using System.Collections.Frozen;
+using System.Diagnostics.CodeAnalysis;
 using CommunityToolkit.HighPerformance;
 using Stride.Shaders.Core;
 using Stride.Shaders.Parsing.Analysis;
@@ -209,9 +210,9 @@ public static class ExpressionExtensions
         }
         // When all operands are known constant values, fold at compile time to avoid
         // OpSpecConstantOp which some SPIR-V backends (e.g. SPIRV-Cross) don't fully support.
-        else if (TryFoldConstantOp(context, i, out var foldedInstruction))
+        else if (TryFoldConstantOp(context, i, out var foldedValue))
         {
-            context.Add(foldedInstruction);
+            context.AddConstant(resultType, resultId, foldedValue);
         }
         else
         {
@@ -236,20 +237,17 @@ public static class ExpressionExtensions
 
     /// <summary>
     /// Try to fold a unary/binary operation at compile time when all operands are known constant values.
-    /// Returns true and the folded constant instruction if successful.
+    /// Returns true and the value (scalar or vector) if successful.
     /// </summary>
-    private static bool TryFoldConstantOp(SpirvContext context, OpDataIndex instruction, out OpData foldedInstruction)
+    private static bool TryFoldConstantOp(SpirvContext context, OpDataIndex instruction, [NotNullWhen(true)] out object? result)
     {
-        foldedInstruction = default;
+        result = null;
         var span = instruction.Data.Memory.Span;
-        var resultType = span[1];
-        var resultId = span[2];
 
-        if (!context.ReverseTypes.TryGetValue(resultType, out var resultSymbolType))
+        if (!context.ReverseTypes.TryGetValue(span[1], out var resultSymbolType))
             return false;
 
         // Note: the operation decides how many operands are ids, the length of the instruction does not
-        object? result;
         switch (ConstantEvaluator.GetEvaluatedOperandCount(instruction.Op))
         {
             // Unary operation (operand at index 3)
@@ -269,7 +267,6 @@ public static class ExpressionExtensions
                 return false;
         }
 
-        foldedInstruction = SpirvContext.CreateConstantInstruction(resultType, resultId, result);
         return true;
     }
 }

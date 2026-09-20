@@ -165,6 +165,49 @@ public partial class SpirvContext
     }
 
     /// <summary>
+    /// Adds the constant holding a value, scalar or vector, as returned by <see cref="TryGetConstantValue(int, out object, out int)"/>.
+    /// </summary>
+    public void AddConstant(int resultType, int resultId, object value)
+    {
+        foreach (var instruction in CreateConstantInstructions(resultType, resultId, value))
+            Add(instruction);
+    }
+
+    /// <summary>
+    /// Replaces the instruction defining a constant by the value it was computed to. A vector needs the constants of its components,
+    /// which are inserted before it.
+    /// </summary>
+    /// <returns>The number of instructions inserted before the replaced one.</returns>
+    public int ReplaceByConstant(int index, int resultType, int resultId, object value)
+    {
+        var instructions = CreateConstantInstructions(resultType, resultId, value);
+        for (var i = 0; i < instructions.Count - 1; i++)
+            Insert(index + i, instructions[i]);
+        Replace(index + instructions.Count - 1, instructions[^1]);
+        return instructions.Count - 1;
+    }
+
+    // The constant itself comes last: a constant is defined before it is used
+    private List<OpData> CreateConstantInstructions(int resultType, int resultId, object value)
+    {
+        if (value is not ConstantVector vector)
+            return [CreateConstantInstruction(resultType, resultId, value)];
+
+        // Note: the components are not shared with other constants, which could be defined after this one
+        var componentType = GetOrRegister(((VectorType)ReverseTypes[resultType]).BaseType);
+        var instructions = new List<OpData>();
+        Span<int> componentIds = stackalloc int[vector.Values.Length];
+        for (var i = 0; i < componentIds.Length; i++)
+        {
+            componentIds[i] = Bound++;
+            instructions.Add(CreateConstantInstruction(componentType, componentIds[i], vector.Values[i]));
+        }
+
+        instructions.Add(new OpData(new OpConstantComposite(resultType, resultId, new(componentIds)).InstructionMemory));
+        return instructions;
+    }
+
+    /// <summary>
     /// Creates the constant instruction holding a scalar value, as returned by <see cref="TryGetConstantValue(int, out object, out int)"/>.
     /// </summary>
     public static OpData CreateConstantInstruction(int resultType, int resultId, object value)
