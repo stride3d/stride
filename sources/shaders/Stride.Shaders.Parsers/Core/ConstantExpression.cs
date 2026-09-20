@@ -134,6 +134,14 @@ public abstract record ConstantExpression
                 return new StringConstExpr(operand.ToLiteral<string>());
             }
 
+            case Op.OpConstantNull:
+            {
+                var typeId = inst.Data.Memory.Span[1];
+                if (!context.ReverseTypes.TryGetValue(typeId, out var nullType))
+                    throw new InvalidOperationException($"Cannot find type for null constant type id {typeId}");
+                return new NullConstExpr(nullType);
+            }
+
             case Op.OpGenericParameterSDSL:
             case Op.OpGenericReferenceSDSL:
             {
@@ -159,6 +167,21 @@ public abstract record ConstantExpression
                 var op = (Op)inst.Data.Memory.Span[3];
                 if (!context.ReverseTypes.TryGetValue(inst.Data.Memory.Span[1], out var resultType))
                     throw new InvalidOperationException($"Cannot find result type of constant {inst.Data.Memory.Span[2]}");
+                // Operations on composites: their last operands are literal indices
+                var idOperandCount = op switch
+                {
+                    Op.OpCompositeExtract => 1,
+                    Op.OpCompositeInsert or Op.OpVectorShuffle => 2,
+                    _ => 0,
+                };
+                if (idOperandCount > 0)
+                {
+                    var operands = new ConstantExpression[idOperandCount];
+                    for (int i = 0; i < idOperandCount; i++)
+                        operands[i] = ParseFromBuffer(inst.Data.Memory.Span[4 + i], buffer, context);
+                    return CompositeOpExpr.Create(op, resultType, operands, inst.Data.Memory.Span[(4 + idOperandCount)..].ToArray());
+                }
+
                 // Note: the operation decides how many operands are ids, the length of the instruction does not
                 switch (ConstantEvaluator.GetEvaluatedOperandCount(op))
                 {
@@ -485,5 +508,134 @@ public sealed record CompositeConstExpr(SymbolType Type, ConstantExpression[] Co
     }
 
     public override string ToString() => $"composite({Type}, [{string.Join(", ", (object[])Components)}])";
+}
+
+/// <summary>
+/// Null constant (OpConstantNull), e.g. the `(StructType)0` zero-initialization.
+/// </summary>
+public sealed record NullConstExpr(SymbolType Type) : ConstantExpression
+{
+    public override int Emit(SpirvContext context) => context.CreateDefaultConstantComposite(Type).Id;
+
+    public override bool TryEvaluate(out object? value)
+    {
+        value = null;
+        return false;
+    }
+
+    public override string ToString() => $"null({Type})";
+}
+
+/// <summary>
+/// Spec-constant operation on composites, whose last operands are literal indices: OpCompositeExtract (`v.x`),
+/// OpVectorShuffle (`v.xy`) and OpCompositeInsert.
+/// </summary>
+public sealed record CompositeOpExpr : ConstantExpression
+{
+    public Op Op { get; }
+    public SymbolType ResultType { get; }
+    public ConstantExpression[] Operands { get; }
+    public int[] Literals { get; }
+
+    private CompositeOpExpr(Op op, SymbolType resultType, ConstantExpression[] operands, int[] literals)
+    {
+        Op = op;
+        ResultType = resultType;
+        Operands = operands;
+        Literals = literals;
+    }
+
+    /// <summary>
+    /// Creates the operation, or directly the expression it selects when its operands are composites with known components.
+    /// </summary>
+    public static ConstantExpression Create(Op op, SymbolType resultType, ConstantExpression[] operands, int[] literals)
+    {
+        switch (op)
+        {
+            case Specification.Op.OpCompositeExtract:
+            {
+                var current = operands[0];
+                foreach (var index in literals)
+                {
+                    if (!TryGetComponents(current, out var components) || index >= components.Length)
+                        return new CompositeOpExpr(op, resultType, operands, literals);
+                    current = components[index];
+                }
+                return current;
+            }
+            case Specification.Op.OpVectorShuffle when TryGetComponents(operands[0], out var left) && TryGetComponents(operands[1], out var right):
+            {
+                var selected = new ConstantExpression[literals.Length];
+                for (int i = 0; i < literals.Length; i++)
+                {
+                    // Note: 0xFFFFFFFF selects an undefined component
+                    if ((uint)literals[i] >= left.Length + right.Length)
+                        return new CompositeOpExpr(op, resultType, operands, literals);
+                    selected[i] = literals[i] < left.Length ? left[literals[i]] : right[literals[i] - left.Length];
+                }
+                return new CompositeConstExpr(resultType, selected);
+            }
+            default:
+                return new CompositeOpExpr(op, resultType, operands, literals);
+        }
+    }
+
+    // A vector can be constructed from other vectors, in which case its constituents are not its components
+    private static bool TryGetComponents(ConstantExpression expression, out ConstantExpression[] components)
+    {
+        components = expression is CompositeConstExpr composite ? composite.Components : [];
+        return expression is CompositeConstExpr { Type: var type } && (type is not VectorType vectorType || vectorType.Size == components.Length);
+    }
+
+    public override int Emit(SpirvContext context)
+    {
+        Span<int> operandIds = stackalloc int[Operands.Length];
+        for (int i = 0; i < Operands.Length; i++)
+            operandIds[i] = Operands[i].Emit(context);
+
+        var resultId = context.Bound++;
+        Span<int> instruction = [(int)Specification.Op.OpSpecConstantOp, context.GetOrRegister(ResultType), resultId, (int)Op, .. operandIds, .. Literals];
+        instruction[0] |= instruction.Length << 16;
+        context.Add(new OpData(instruction));
+        return resultId;
+    }
+
+    public override bool TryEvaluate(out object? value)
+    {
+        // Note: Create() already returned the selected expression when it could
+        value = null;
+        return false;
+    }
+
+    public override ConstantExpression Substitute(string declaringClass, ConstantExpression[] args)
+    {
+        var newOperands = new ConstantExpression[Operands.Length];
+        bool changed = false;
+        for (int i = 0; i < Operands.Length; i++)
+        {
+            newOperands[i] = Operands[i].Substitute(declaringClass, args);
+            if (!ReferenceEquals(newOperands[i], Operands[i]))
+                changed = true;
+        }
+        return changed ? Create(Op, ResultType, newOperands, Literals) : this;
+    }
+
+    public bool Equals(CompositeOpExpr? other) =>
+        other is not null && Op == other.Op && ResultType == other.ResultType
+        && Operands.AsSpan().SequenceEqual(other.Operands) && Literals.AsSpan().SequenceEqual(other.Literals);
+
+    public override int GetHashCode()
+    {
+        var hash = new HashCode();
+        hash.Add(Op);
+        hash.Add(ResultType);
+        foreach (var operand in Operands)
+            hash.Add(operand);
+        foreach (var literal in Literals)
+            hash.Add(literal);
+        return hash.ToHashCode();
+    }
+
+    public override string ToString() => $"{Op}({string.Join(", ", (object[])Operands)}; {string.Join(", ", Literals)})";
 }
 

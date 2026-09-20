@@ -238,11 +238,14 @@ public class StrideShaderTests
 
     // `static const uint X = 1` converts its int literal. The constant must stay usable, and keep its type,
     // as an array size, once inherited, and when its value comes from a generic of the base shader.
+    // ConstInherited: every constant of a base shader is imported, whatever it is made of (vector, vector
+    // components, null struct...), even when only known once a generic of the base shader is.
     [Theory]
     [InlineData("ConstUIntArraySize")]
     [InlineData("ConstUIntInherited")]
     [InlineData("ConstUIntGeneric")]
-    public void UIntConstantIsUsable(string shaderName)
+    [InlineData("ConstInherited")]
+    public void ConstantIsUsable(string shaderName)
     {
         var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
         var shaderMixer = new ShaderMixer(loader);

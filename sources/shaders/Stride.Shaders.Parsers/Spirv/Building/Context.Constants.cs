@@ -67,6 +67,17 @@ public partial class SpirvContext
             var span = i.Data.Memory.Span;
             var op = (Specification.Op)span[3];
             typeId = span[1];
+
+            // Component of a constant vector (e.g. `v.x`)
+            if (op == Specification.Op.OpCompositeExtract)
+            {
+                if (span.Length != 6 || !TryGetConstantValue(span[4], out var composite, out _)
+                    || composite is not ConstantVector vector || (uint)span[5] >= vector.Values.Length)
+                    return false;
+                value = vector.Values[span[5]];
+                return true;
+            }
+
             // Note: the operation decides how many operands are ids, the length of the instruction does not
             switch (ConstantEvaluator.GetEvaluatedOperandCount(op))
             {
