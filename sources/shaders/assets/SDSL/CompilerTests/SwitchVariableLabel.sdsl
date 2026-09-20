@@ -1,0 +1,24 @@
+namespace Stride.Shaders.Tests;
+
+shader SwitchVariableLabel
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    cbuffer Test
+    {
+        int Selector;
+        int Label;
+    }
+
+    void PSMain()
+    {
+        float v = 0.0;
+        switch (Selector)
+        {
+            case Label:
+                v = 1.0;
+                break;
+        }
+        streams.ColorTarget = float4(v, v, v, v);
+    }
+}

@@ -1,0 +1,39 @@
+namespace Stride.Shaders.Tests;
+
+shader ConstInheritedBase<int TScale>
+{
+    struct ConstInheritedData
+    {
+        float3 Color;
+        float Alpha;
+    };
+
+    static const float3 Vec = float3(1.0, 2.0, 3.0);
+    static const bool Flag = true;
+    static const float Third = 1.0 / 3.0;
+    static const int Negative = -(2 + 3);
+
+    // Components of a constant vector
+    static const float VecX = Vec.x;
+    static const float2 VecZY = Vec.zy;
+
+    // Same, with components that are only known once the generic is
+    static const int3 Scaled = int3(TScale, TScale * 2, 7);
+    static const int ScaledY = Scaled.y;
+
+    static const ConstInheritedData Empty = (ConstInheritedData)0;
+}
+
+shader ConstInherited : ConstInheritedBase<3>
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    void PSMain()
+    {
+        ConstInheritedData data = Empty;
+        float3 v = Vec * Third + float3(VecZY, VecX) + data.Color;
+        int n = Negative + ScaledY + Scaled.z;
+        float x = Flag ? VecX : float(n);
+        streams.ColorTarget = float4(v, x + n);
+    }
+}

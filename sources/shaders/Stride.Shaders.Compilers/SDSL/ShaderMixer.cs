@@ -87,6 +87,10 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             return false;
         }
 
+        // Note: done first, so that the code analysis only has to know about OpSwitch
+        if (!LowerSwitchIds(context, temp, log))
+            return false;
+
         // Process streams and remove unused code/cbuffer/variable/resources
         var interfaceProcessor = new InterfaceProcessor
         {
@@ -136,7 +140,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             group.Entries.AddRange(orderedEntries);
         }
 
-        SimplifyNotSupportedConstantsInShader(context, temp);
+        if (!SimplifyNotSupportedConstantsInShader(context, log))
+            return false;
 
         AddRequiredCapabilities(context, temp);
 
@@ -970,7 +975,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 if (mixinNode.CompositionArrays.TryGetValue(accessChain.BaseId, out var compositions)
                     || (mixinNode.Stage != null && mixinNode.Stage.CompositionArrays.TryGetValue(accessChain.BaseId, out compositions)))
                 {
-                    var compositionIndex = (int)context.GetConstantValue(accessChain.Indexes.Elements.Span[0]);
+                    // Note: the index can be of any integer type (e.g. a uint constant)
+                    var compositionIndex = Convert.ToInt32(context.GetConstantValue(accessChain.Indexes.Elements.Span[0]));
                     compositionArrayAccesses.Add(accessChain.ResultId, compositions[compositionIndex]);
 
                     SetOpNop(i.Data.Memory.Span);
@@ -1137,10 +1143,12 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
     /// value at compile time, and replaces them with plain OpConstant instructions so that
     /// the cross-compiler can consume them.
     /// </summary>
-    private void SimplifyNotSupportedConstantsInShader(SpirvContext context, SpirvBuffer temp)
+    /// <returns>False if such a constant could not be resolved: the module would not be a valid shader.</returns>
+    private bool SimplifyNotSupportedConstantsInShader(SpirvContext context, ILogger log)
     {
         // Collect instructions to simplify first to avoid modifying the buffer during iteration
         var toSimplify = new List<(int Index, object Value, int TypeId, int ResultId)>();
+        var success = true;
         foreach (var i in context)
         {
             if (i.Op == Op.OpSpecConstantOp && (OpSpecConstantOp)i is { } specConstantOp)
@@ -1148,45 +1156,26 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 if (!ExpressionExtensions.ShaderSpecConstantOpSupportedOps.Contains((Op)specConstantOp.Opcode))
                 {
                     var resultType = i.Data.Memory.Span[1];
+                    var resultId = i.Data.IdResult!.Value;
                     if (context.TryGetConstantValue(i, out var value, out _) && value != null)
-                        toSimplify.Add((i.Index, value, resultType, i.Data.IdResult!.Value));
+                    {
+                        toSimplify.Add((i.Index, value, resultType, resultId));
+                    }
+                    else
+                    {
+                        var name = context.Names.TryGetValue(resultId, out var constantName) ? $"'{constantName}'" : $"%{resultId}";
+                        log.Error($"Constant {name} uses {(Op)specConstantOp.Opcode}, which is not allowed in a constant of a shader module, and its value could not be computed");
+                        success = false;
+                    }
                 }
             }
         }
 
-        // Replace each OpSpecConstantOp with a resolved OpConstant
-        var buffer = context.GetBuffer();
+        // Replace each OpSpecConstantOp with a resolved constant
         foreach (var (index, value, typeId, resultId) in toSimplify)
-        {
-            // Build replacement OpConstant instruction manually
-            var wordCount = value is long or ulong or double ? 5 : 4;
-            var mem = CommunityToolkit.HighPerformance.Buffers.MemoryOwner<int>.Allocate(wordCount);
-            mem.Span[0] = (wordCount << 16) | (int)Op.OpConstant;
-            mem.Span[1] = typeId;
-            mem.Span[2] = resultId;
-            switch (value)
-            {
-                case int v: mem.Span[3] = v; break;
-                case uint v: mem.Span[3] = unchecked((int)v); break;
-                case float v: mem.Span[3] = BitConverter.SingleToInt32Bits(v); break;
-                case long v:
-                    mem.Span[3] = (int)(v & 0xFFFFFFFF);
-                    mem.Span[4] = (int)(v >> 32);
-                    break;
-                case ulong v:
-                    mem.Span[3] = (int)(v & 0xFFFFFFFF);
-                    mem.Span[4] = (int)(v >> 32);
-                    break;
-                case double v:
-                    var bits = BitConverter.DoubleToInt64Bits(v);
-                    mem.Span[3] = (int)(bits & 0xFFFFFFFF);
-                    mem.Span[4] = (int)(bits >> 32);
-                    break;
-                default:
-                    throw new NotSupportedException($"Cannot simplify constant of type {value.GetType()}");
-            }
-            buffer.Replace(index, new OpData(mem));
-        }
+            context.Replace(index, SpirvContext.CreateConstantInstruction(typeId, resultId, value));
+
+        return success;
     }
 
     private static void RemoveInstructionWhere(SpirvBuffer buffer, Func<OpDataIndex, bool> match)

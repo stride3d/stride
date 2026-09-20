@@ -1,0 +1,19 @@
+namespace Stride.Shaders.Tests;
+
+shader ConstUIntInherited : ConstUIntBase
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    cbuffer Test
+    {
+        uint Selector;
+    }
+
+    void PSMain()
+    {
+        uint mode = Mode_A;
+        uint total = Count / mode;
+        float v = Selector == total ? 1.0 : 0.0;
+        streams.ColorTarget = float4(v, v, v, v);
+    }
+}
