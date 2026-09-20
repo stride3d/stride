@@ -87,6 +87,10 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             return false;
         }
 
+        // Note: done first, so that the code analysis only has to know about OpSwitch
+        if (!LowerSwitchIds(context, temp, log))
+            return false;
+
         // Process streams and remove unused code/cbuffer/variable/resources
         var interfaceProcessor = new InterfaceProcessor
         {

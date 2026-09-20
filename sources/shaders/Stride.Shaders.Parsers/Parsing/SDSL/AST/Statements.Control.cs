@@ -191,30 +191,39 @@ public partial class SwitchStatement(Expression selector, TextLocation info) : F
         var previousEscapeBlocks = builder.CurrentEscapeBlocks;
         builder.CurrentEscapeBlocks = new SpirvBuilder.EscapeBlocks(mergeBlock, mergeBlock);
 
-        // Build (literal, blockId) pairs and find default block
+        // Build the labels and find default block
         int defaultBlockId = mergeBlock;
-        var casePairs = new List<(int, int)>();
+        var labels = new List<(int ConstantId, int? Value, int BlockId)>();
         for (int i = 0; i < Sections.Count; i++)
         {
             foreach (var label in Sections[i].Labels)
             {
                 if (label is DefaultLabel)
                     defaultBlockId = sectionBlockIds[i];
-                // OpSwitch takes literals, so the value of a label (e.g. a `static const` member) must be known when compiling
-                else if (label is not CaseLabel caseLabel || !caseLabel.Value.TryEvaluateConstantInteger(table, context, out var caseValue))
+                else if (label is not CaseLabel caseLabel || !caseLabel.Value.TryCompileConstantInteger(table, context, out var caseConstant, out var caseValue))
                     table.AddError(new(label.Info, "case label must be a constant integer expression"));
                 // Two constants with different names can have the same value
-                else if (casePairs.Exists(x => x.Item1 == caseValue))
+                else if (caseValue != null && labels.Exists(x => x.Value == caseValue))
                     table.AddError(new(label.Info, $"case label has the same value ({caseValue}) as a previous label of this switch"));
                 else
-                    casePairs.Add((caseValue, sectionBlockIds[i]));
+                    labels.Add((caseConstant.Id, caseValue, sectionBlockIds[i]));
             }
         }
 
         // Emit selection merge + switch
         builder.Insert(new OpSelectionMerge(mergeBlock, Specification.SelectionControlMask.None));
-        Span<(int, int)> pairsSpan = casePairs.ToArray();
-        builder.Insert(new OpSwitch(selectorValue.Id, defaultBlockId, new LiteralArray<(int, int)>(pairsSpan)));
+        // OpSwitch takes the value of its labels. A label that depends on a generic of the shader has none yet:
+        // OpSwitchIdSDSL takes constants, and becomes an OpSwitch once they are all resolved.
+        if (labels.TrueForAll(x => x.Value != null))
+        {
+            Span<(int, int)> targets = labels.ConvertAll(x => (x.Value!.Value, x.BlockId)).ToArray();
+            builder.Insert(new OpSwitch(selectorValue.Id, defaultBlockId, new LiteralArray<(int, int)>(targets)));
+        }
+        else
+        {
+            Span<(int, int)> targets = labels.ConvertAll(x => (x.ConstantId, x.BlockId)).ToArray();
+            builder.Insert(new OpSwitchIdSDSL(selectorValue.Id, defaultBlockId, new LiteralArray<(int, int)>(targets)));
+        }
 
         // Compile each section's block
         for (int i = 0; i < Sections.Count; i++)

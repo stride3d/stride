@@ -290,6 +290,9 @@ public class StrideShaderTests
     [Theory]
     [InlineData("SwitchVariableLabel", "case label must be a constant integer expression")]
     [InlineData("SwitchDuplicateLabel", "case label has the same value (1)")]
+    // Only known once the generic of the base shader is: reported when mixing, with the location of the switch
+    [InlineData("SwitchGenericDuplicateLabel", "SwitchGenericDuplicateLabel.sdsl(8,")]
+    [InlineData("SwitchGenericDuplicateLabel", "two case labels with the same value (3)")]
     public void InvalidSwitchIsReported(string shaderName, string expectedError)
     {
         var loader = new ShaderLoader("./assets/SDSL/CompilerTests");

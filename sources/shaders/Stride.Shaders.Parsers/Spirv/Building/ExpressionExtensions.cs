@@ -79,22 +79,25 @@ public static class ExpressionExtensions
     /// </summary>
     public static bool TryEvaluateConstantInteger(this Expression expression, SymbolTable table, SpirvContext context, out int value)
     {
-        value = 0;
-        if (!expression.TryCompileConstantValue(table, context, out var constant)
-            || !ConstantExpression.ParseFromBuffer(constant.Id, context.GetBuffer(), context).TryEvaluate(out var evaluated))
+        var result = expression.TryCompileConstantInteger(table, context, out _, out var evaluated) && evaluated != null;
+        value = evaluated ?? 0;
+        return result;
+    }
+
+    /// <summary>
+    /// Compiles an int or uint constant expression. Its value is null when it is not known yet, which is when it depends
+    /// on a generic that is not resolved.
+    /// </summary>
+    public static bool TryCompileConstantInteger(this Expression expression, SymbolTable table, SpirvContext context, out SpirvValue constant, out int? value)
+    {
+        value = null;
+        if (!expression.TryCompileConstantValue(table, context, out constant)
+            || context.ReverseTypes[constant.TypeId] is not ScalarType { Type: Scalar.Int or Scalar.UInt })
             return false;
 
-        switch (evaluated)
-        {
-            case int i:
-                value = i;
-                return true;
-            case uint u:
-                value = unchecked((int)u);
-                return true;
-            default:
-                return false;
-        }
+        if (context.TryGetConstantValue(constant.Id, out var evaluated, out _))
+            value = evaluated is uint u ? unchecked((int)u) : (int)evaluated;
+        return true;
     }
 
     /// <summary>
