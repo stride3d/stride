@@ -1,0 +1,31 @@
+// PSMain(ExpectedResult=#7F3F1FFF, cbuffer.Test=(Test1=0))
+// PSMain(ExpectedResult=#7F3F3FFF, cbuffer.Test=(Test1=1))
+
+namespace Stride.Shaders.Tests;
+
+shader ConstVectorMathBase<int TValue>
+{
+    // Only known once the generic is: computed when mixing
+    static const float3 FromGeneric = float3(TValue, 63.0, 63.0) * (1.0 / 255.0);
+}
+
+shader ConstVectorMath : ConstVectorMathBase<127>
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    // Vector with vector, vector with scalar, and a negated vector
+    static const float3 Scaled = float3(127.0, 63.0, 31.0) * float3(1.0, 1.0, 1.0);
+    static const float3 Normalized = Scaled * (1.0 / 255.0);
+    static const float2 Negated = -float2(-1.0, 0.0);
+
+    cbuffer Test
+    {
+        int Test1;
+    }
+
+    void PSMain()
+    {
+        float3 color = Test1 == 0 ? Normalized : FromGeneric;
+        streams.ColorTarget = float4(color, Negated.x);
+    }
+}

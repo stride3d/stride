@@ -1172,8 +1172,12 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         }
 
         // Replace each OpSpecConstantOp with a resolved constant
-        foreach (var (index, value, typeId, resultId) in toSimplify)
-            context.Replace(index, SpirvContext.CreateConstantInstruction(typeId, resultId, value));
+        // Note: from the last one, since a vector inserts the constants of its components before itself
+        for (var i = toSimplify.Count - 1; i >= 0; i--)
+        {
+            var (index, value, typeId, resultId) = toSimplify[i];
+            context.ReplaceByConstant(index, typeId, resultId, value);
+        }
 
         return success;
     }
