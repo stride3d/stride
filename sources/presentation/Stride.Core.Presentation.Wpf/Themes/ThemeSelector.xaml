@@ -352,7 +352,7 @@
                           ItemsSource="{Binding CheckBoxes, RelativeSource={RelativeSource AncestorType=wnd:MultiCheckedMessageBox}}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                  <CheckBox Margin="0,3,0,0" HorizontalContentAlignment="Stretch" IsChecked="{Binding IsChecked, Mode=TwoWay}">
+                  <CheckBox Margin="0,3,0,0" HorizontalContentAlignment="Stretch" IsChecked="{Binding IsChecked, Mode=TwoWay}" IsEnabled="{Binding IsEnabled}">
                     <TextBlock Text="{Binding Content}" TextWrapping="Wrap"/>
                   </CheckBox>
                 </DataTemplate>

@@ -57,6 +57,7 @@
                     <DataTemplate DataType="{x:Type local:DialogCheckBoxInfo}">
                       <CheckBox Content="{Binding Content}"
                                 IsChecked="{Binding IsChecked, Mode=TwoWay}"
+                                IsEnabled="{Binding IsEnabled}"
                                 Margin="0,2" />
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>

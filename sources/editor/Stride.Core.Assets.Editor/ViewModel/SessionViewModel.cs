@@ -479,12 +479,14 @@ namespace Stride.Core.Assets.Editor.ViewModel
         {
             // Snapshot every file the upgrade overwrites into a timestamped backup folder under the solution.
             // Copy-on-write, so it costs nothing unless an upgrade actually runs and modifies files. The dialog
-            // checkbox below can opt out; the callback updates this flag, which the session honors.
+            // checkbox below can opt out; the callback updates this flag, which the session honors. The choice
+            // covers the whole upgrade: only the first dialog can change it, later ones show it greyed out.
             var loadParameters = new PackageLoadParameters
             {
                 CancelToken = cancellationSource.Token,
                 BackupBeforeUpgrade = true,
             };
+            var backupChoiceMade = false;
             loadParameters.PackageUpgradeRequested = (package, pendingUpgrades) =>
             {
                 // Generate message (in markdown, so we need to double line feeds)
@@ -507,10 +509,11 @@ namespace Stride.Core.Assets.Editor.ViewModel
                     new DialogButtonInfo { Content = Tr._p("Button", "Skip"), Result = (int)PackageUpgradeRequestedAnswer.DoNotUpgrade },
                 };
                 var applyToAll = new DialogCheckBoxInfo { Content = Tr._p("Message", "Do this for every package in the solution"), IsChecked = false };
-                var backup = new DialogCheckBoxInfo { Content = Tr._p("Message", "Back up each modified file to a timestamped folder under the solution"), IsChecked = true };
+                var backup = new DialogCheckBoxInfo { Content = Tr._p("Message", "Back up each modified file to a timestamped folder under the solution"), IsChecked = loadParameters.BackupBeforeUpgrade, IsEnabled = !backupChoiceMade };
                 var buttonResult = workProgress.ServiceProvider.Get<IDialogService>().CheckedMessageBoxAsync(message.ToString(), [applyToAll, backup], buttons).Result;
 
                 loadParameters.BackupBeforeUpgrade = backup.IsChecked == true;
+                backupChoiceMade = true;
                 var result = (PackageUpgradeRequestedAnswer)buttonResult;
                 if (applyToAll.IsChecked == true)
                 {
