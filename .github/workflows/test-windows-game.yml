@@ -98,6 +98,7 @@ jobs:
       STRIDE_GRAPHICS_SOFTWARE_RENDERING: "1"
       STRIDE_TESTS_RENDERDOC: "error"
       STRIDE_MAX_PARALLELISM: "8"
+      STRIDE_VULKAN_SYNC_VALIDATION: ${{ matrix.graphics-api == 'Vulkan' && '1' || '' }}
       # Crash dump collection (covers 3 crash types) — all dumps land under TestResults/
       # alongside the .trx logs and the blame-hang dumps from `dotnet test`.
       STRIDE_TESTS_CRASH_DUMPS: "1"                                                   # Type 1: SEHException logging + minidump via FirstChanceException
