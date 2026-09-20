@@ -93,6 +93,21 @@ public static class ConstantEvaluator
         };
     }
 
+    /// <summary>
+    /// Number of leading operands that are ids, for any operation that can be part of a constant: the ones of
+    /// <see cref="GetEvaluatedOperandCount"/>, and the operations on composites, whose other operands are literal indices.
+    /// 0 for any other operation.
+    /// </summary>
+    public static int GetIdOperandCount(Op op)
+    {
+        return op switch
+        {
+            Op.OpCompositeExtract => 1,
+            Op.OpCompositeInsert or Op.OpVectorShuffle => 2,
+            _ => GetEvaluatedOperandCount(op),
+        };
+    }
+
     private static object? EvaluateIntegerUnary<T>(Op op, T value) where T : IBinaryInteger<T>
     {
         return op switch

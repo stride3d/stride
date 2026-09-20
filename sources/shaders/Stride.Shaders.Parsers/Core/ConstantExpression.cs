@@ -168,14 +168,9 @@ public abstract record ConstantExpression
                 if (!context.ReverseTypes.TryGetValue(inst.Data.Memory.Span[1], out var resultType))
                     throw new InvalidOperationException($"Cannot find result type of constant {inst.Data.Memory.Span[2]}");
                 // Operations on composites: their last operands are literal indices
-                var idOperandCount = op switch
+                if (op is Op.OpCompositeExtract or Op.OpCompositeInsert or Op.OpVectorShuffle)
                 {
-                    Op.OpCompositeExtract => 1,
-                    Op.OpCompositeInsert or Op.OpVectorShuffle => 2,
-                    _ => 0,
-                };
-                if (idOperandCount > 0)
-                {
+                    var idOperandCount = ConstantEvaluator.GetIdOperandCount(op);
                     var operands = new ConstantExpression[idOperandCount];
                     for (int i = 0; i < idOperandCount; i++)
                         operands[i] = ParseFromBuffer(inst.Data.Memory.Span[4 + i], buffer, context);

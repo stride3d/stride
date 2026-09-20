@@ -128,6 +128,32 @@ public class StrideShaderTests
             && m.Text.Contains("[numthreads]") && m.Text.Contains("Compute"));
     }
 
+    // A texture offset has to be a constant of the module. It is written inline, so the instructions
+    // computing it (constructors, arithmetic on constants) are turned into constants.
+    [Fact]
+    public void TextureOffsetCanBeAConstantExpression()
+    {
+        SpirvCrossSupport.SkipUnlessAvailable();
+        FxcSupport.SkipUnlessAvailable();
+
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(new ShaderClassSource("TextureConstantOffset"), new ShaderMixer.Options(true), log, out var bytecode, out _, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+
+        var validation = Spv.ValidateBinary(bytecode);
+        Assert.True(validation.IsValid, validation.Output);
+
+        var translator = new SpirvTranslator(bytecode.ToArray().AsMemory().Cast<byte, uint>());
+        var fragment = translator.GetEntryPoints().First(x => x.ExecutionModel == ExecutionModel.Fragment);
+        var hlsl = translator.Translate(Backend.Hlsl, fragment);
+        Assert.Contains("int2(4, 2)", hlsl);
+        var errors = FxcSupport.Compile(hlsl, "ps_5_0");
+        Assert.True(errors is null, errors + Environment.NewLine + hlsl);
+    }
+
     // The thread group size is a literal of the module, so it has to be known when compiling
     [Fact]
     public void NumThreadsVariableParameterIsReported()

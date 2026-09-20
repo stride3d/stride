@@ -113,65 +113,14 @@ public static class ExpressionExtensions
             if (expectedType != null)
                 result = compiler.Builder.Convert(context, result, expectedType);
 
-            // Process each instruction and check if it can be converted to constant version.
-            // When all operands are known OpConstant values, fold at compile time to avoid
-            // OpSpecConstantOp which some SPIR-V backends (e.g. SPIRV-Cross) don't fully support.
+            // Every instruction of the expression becomes a constant of the context
             for (int index = 0; index < buffer.Count; ++index)
             {
                 var i = buffer[index];
-
-                if (i.Op == Op.OpCompositeConstruct)
-                {
-                    // Check if all constituents are plain OpConstant — if so, use OpConstantComposite instead of OpSpecConstantComposite.
-                    var span = i.Data.Memory.Span;
-                    bool allConstant = true;
-                    for (int j = 3; j < span.Length; j++)
-                    {
-                        if (!IsPlainConstant(context, span[j]))
-                        {
-                            allConstant = false;
-                            break;
-                        }
-                    }
-
-                    if (allConstant)
-                    {
-                        i.Data.Memory.Span[0] = (int)Op.OpConstantComposite | (i.Data.Memory.Length << 16);
-                    }
-                    else
-                    {
-                        i.Data.Memory.Span[0] = (int)Op.OpSpecConstantComposite | (i.Data.Memory.Length << 16);
-                    }
-
-                    var instruction = context.Add(new(i.Data.Memory.Span));
-                    result = new(instruction.Data);
-                }
-                // Rewrite using OpSpecConstantOp when possible.
-                // An operation that is not allowed in a shader module (e.g. OpBitcast, OpFMul) is needed for more complex constants:
-                // the mixer simplifies it once it can be resolved, so it has to be one that ConstantEvaluator knows.
-                else if (ShaderSpecConstantOpSupportedOps.Contains(i.Op) || ConstantEvaluator.GetOperandCount(i.Op) != 0)
-                {
-                    var resultType = i.Data.Memory.Span[1];
-                    var resultId = i.Data.Memory.Span[2];
-
-                    // Try to fold: if all operands are known constants, compute the result at compile time.
-                    if (TryFoldConstantOp(context, i, out var foldedInstruction))
-                    {
-                        context.Add(foldedInstruction);
-                        result = new(resultId, resultType);
-                    }
-                    else
-                    {
-                        Span<int> instruction = [(int)Op.OpSpecConstantOp, resultType, resultId, (int)i.Op, .. i.Data.Memory.Span[3..]];
-                        instruction[0] |= instruction.Length << 16;
-                        context.Add(new OpData(instruction));
-                        result = new(resultId, resultType);
-                    }
-                }
-                else
-                {
+                if (GetConstantIdOperandCount(i) < 0)
                     throw new NotConstantExpressionException($"'{expression}' is not a compile-time constant ({i.Op} can't be part of one)");
-                }
+
+                result = AddAsConstant(context, i);
             }
 
             return result;
@@ -180,6 +129,95 @@ public static class ExpressionExtensions
         {
             buffer.Dispose();
         }
+    }
+
+    /// <summary>
+    /// Turns a value computed in a function into a constant of the context, when the instructions computing it can all be
+    /// part of a constant (e.g. the `int2(Step * 2, 1)` of a texture offset). They move out of the function and keep their ids.
+    /// </summary>
+    public static bool TryHoistAsConstant(SpirvContext context, SpirvBuffer buffer, int id)
+    {
+        if (IsConstant(context, id))
+            return true;
+
+        if (!buffer.TryGetInstructionById(id, out var i))
+            return false;
+        var idOperandCount = GetConstantIdOperandCount(i);
+        if (idOperandCount < 0)
+            return false;
+
+        // Operands first: a constant is defined before it is used
+        for (var index = 0; index < idOperandCount; index++)
+        {
+            if (!TryHoistAsConstant(context, buffer, i.Data.Memory.Span[3 + index]))
+                return false;
+        }
+
+        AddAsConstant(context, i);
+        SpirvBuilder.SetOpNop(i.Data.Memory.Span);
+        return true;
+    }
+
+    /// <summary>
+    /// Returns true if the given ID refers to a constant of the context (which might not be resolved yet).
+    /// </summary>
+    public static bool IsConstant(SpirvContext context, int id)
+    {
+        return context.GetBuffer().TryGetInstructionById(id, out var inst)
+            && inst.Op is Op.OpConstant or Op.OpConstantTrue or Op.OpConstantFalse or Op.OpConstantComposite or Op.OpConstantNull
+                or Op.OpSpecConstant or Op.OpSpecConstantTrue or Op.OpSpecConstantFalse or Op.OpSpecConstantComposite or Op.OpSpecConstantOp
+                or Op.OpGenericParameterSDSL or Op.OpGenericReferenceSDSL;
+    }
+
+    /// <summary>
+    /// Number of leading operands of an instruction that are ids (the others are literals), or -1 if it can't be part of a constant.
+    /// </summary>
+    /// <remarks>
+    /// An operation that SPIR-V does not allow in a constant of a shader module (e.g. OpBitcast, OpFMul) is needed for more complex
+    /// constants: the mixer simplifies it once it can be resolved, so it has to be one that ConstantEvaluator knows.
+    /// </remarks>
+    private static int GetConstantIdOperandCount(OpDataIndex i)
+    {
+        return i.Op switch
+        {
+            Op.OpCompositeConstruct => i.Data.Memory.Length - 3,
+            _ when ConstantEvaluator.GetIdOperandCount(i.Op) is > 0 and var count => count,
+            _ => -1,
+        };
+    }
+
+    // Adds the constant form of an instruction to the context, with the same result id
+    private static SpirvValue AddAsConstant(SpirvContext context, OpDataIndex i)
+    {
+        var span = i.Data.Memory.Span;
+        var resultType = span[1];
+        var resultId = span[2];
+
+        if (i.Op == Op.OpCompositeConstruct)
+        {
+            // OpConstantComposite if all constituents are plain constants, OpSpecConstantComposite otherwise
+            var allConstant = true;
+            for (int j = 3; j < span.Length; j++)
+                allConstant &= IsPlainConstant(context, span[j]);
+
+            Span<int> instruction = [.. span];
+            instruction[0] = (int)(allConstant ? Op.OpConstantComposite : Op.OpSpecConstantComposite) | (instruction.Length << 16);
+            context.Add(new OpData(instruction));
+        }
+        // When all operands are known constant values, fold at compile time to avoid
+        // OpSpecConstantOp which some SPIR-V backends (e.g. SPIRV-Cross) don't fully support.
+        else if (TryFoldConstantOp(context, i, out var foldedInstruction))
+        {
+            context.Add(foldedInstruction);
+        }
+        else
+        {
+            Span<int> instruction = [(int)Op.OpSpecConstantOp, resultType, resultId, (int)i.Op, .. span[3..]];
+            instruction[0] |= instruction.Length << 16;
+            context.Add(new OpData(instruction));
+        }
+
+        return new(resultId, resultType);
     }
 
     /// <summary>
