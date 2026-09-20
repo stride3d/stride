@@ -69,7 +69,7 @@ public class ##Scriptname## : AsyncScript
 
         if (TimeInterval > 0)
         {
-            timeIntervalCountdown -= (float)Game.UpdateTime.Elapsed.TotalSeconds;
+            timeIntervalCountdown -= (float)Game.UpdateTime.WarpElapsed.TotalSeconds;
             if (timeIntervalCountdown <= 0f)
             {
                 timeIntervalCountdown = TimeInterval;
@@ -115,7 +115,7 @@ public class ##Scriptname## : AsyncScript
             while (secondsCountdown > 0f)
             {
                 await Script.NextFrame();
-                secondsCountdown -= (float)Game.UpdateTime.Elapsed.TotalSeconds;
+                secondsCountdown -= (float)Game.UpdateTime.WarpElapsed.TotalSeconds;
             }
 
             // Remove
