@@ -54,8 +54,8 @@ internal static class BarrierMapping
     /// </summary>
     internal static VkAccessFlags ToVkAccessFlags(BarrierLayout layout) => layout switch
     {
-        BarrierLayout.RenderTarget => VkAccessFlags.ColorAttachmentWrite,
-        BarrierLayout.DepthStencilWrite => VkAccessFlags.DepthStencilAttachmentWrite,
+        BarrierLayout.RenderTarget => VkAccessFlags.ColorAttachmentWrite | VkAccessFlags.ColorAttachmentRead,
+        BarrierLayout.DepthStencilWrite => VkAccessFlags.DepthStencilAttachmentWrite | VkAccessFlags.DepthStencilAttachmentRead,
         BarrierLayout.DepthStencilRead => VkAccessFlags.DepthStencilAttachmentRead,
         BarrierLayout.ShaderResource => VkAccessFlags.ShaderRead,
         BarrierLayout.UnorderedAccess => VkAccessFlags.ShaderRead | VkAccessFlags.ShaderWrite,
@@ -75,7 +75,7 @@ internal static class BarrierMapping
         BarrierLayout.RenderTarget => VkPipelineStageFlags.ColorAttachmentOutput,
         BarrierLayout.DepthStencilWrite => VkPipelineStageFlags.ColorAttachmentOutput | VkPipelineStageFlags.EarlyFragmentTests | VkPipelineStageFlags.LateFragmentTests,
         BarrierLayout.DepthStencilRead => VkPipelineStageFlags.EarlyFragmentTests | VkPipelineStageFlags.LateFragmentTests,
-        BarrierLayout.ShaderResource => VkPipelineStageFlags.FragmentShader | VkPipelineStageFlags.ComputeShader,
+        BarrierLayout.ShaderResource => VkPipelineStageFlags.VertexShader | VkPipelineStageFlags.FragmentShader | VkPipelineStageFlags.ComputeShader,
         BarrierLayout.UnorderedAccess => VkPipelineStageFlags.ComputeShader,
         BarrierLayout.CopySource => VkPipelineStageFlags.Transfer,
         BarrierLayout.CopyDest => VkPipelineStageFlags.Transfer,

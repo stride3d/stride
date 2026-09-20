@@ -195,6 +195,14 @@ namespace Stride.Graphics
             AcquireNextImage();
         }
 
+        /// <summary>
+        ///   Acquires the next swapchain image and points the back buffer at it.
+        /// </summary>
+        /// <remarks>
+        ///   The tracked layout is reset to <see cref="VkImageLayout.Undefined"/> here rather than seeded to
+        ///   Present at creation. A layout transition is a use of the image, and the specification permits
+        ///   use only between acquisition and presentation.
+        /// </remarks>
         private unsafe void AcquireNextImage()
         {
             // Get next image
@@ -222,6 +230,11 @@ namespace Stride.Graphics
 
             // Flip render targets
             backBuffer.SetNativeHandles(swapchainImages[currentBufferIndex].NativeImage, swapchainImages[currentBufferIndex].NativeColorAttachmentView);
+
+            backBuffer.NativeLayout = VkImageLayout.Undefined;
+            backBuffer.NativeAccessMask = VkAccessFlags.None;
+            backBuffer.NativePipelineStageMask = VkPipelineStageFlags.TopOfPipe;
+            backBuffer.LayoutTracker.Set(uint.MaxValue, BarrierLayout.Undefined);
 
             lock (GraphicsDevice.QueueLock)
             {
@@ -626,25 +639,6 @@ namespace Stride.Graphics
                 viewType = VkImageViewType.Image2D,
             };
 
-            // We initialize swapchain images to PresentSource, since we swap them out while in this layout.
-            backBuffer.NativeAccessMask = VkAccessFlags.MemoryRead;
-            backBuffer.NativeLayout = VkImageLayout.PresentSrcKHR;
-
-            var imageMemoryBarrier = new VkImageMemoryBarrier
-            {
-                sType = VkStructureType.ImageMemoryBarrier,
-                subresourceRange = new VkImageSubresourceRange(VkImageAspectFlags.Color, 0, 1, 0, 1),
-                oldLayout = VkImageLayout.Undefined,
-                newLayout = VkImageLayout.PresentSrcKHR,
-                srcAccessMask = VkAccessFlags.None,
-                dstAccessMask = VkAccessFlags.MemoryRead
-            };
-
-            var commandBuffer = GraphicsDevice.NativeCopyCommandPools.Value.GetObject(0);
-
-            var beginInfo = new VkCommandBufferBeginInfo { sType = VkStructureType.CommandBufferBeginInfo };
-            GraphicsDevice.NativeDeviceApi.vkBeginCommandBuffer(commandBuffer, &beginInfo);
-
             GraphicsDevice.NativeDeviceApi.vkGetSwapchainImagesKHR(GraphicsDevice.NativeDevice, swapChain, out uint swapchainImageCount);
             Span<VkImage> buffers = stackalloc VkImage[(int)swapchainImageCount];
             GraphicsDevice.NativeDeviceApi.vkGetSwapchainImagesKHR(GraphicsDevice.NativeDevice, swapChain, buffers);
@@ -655,29 +649,7 @@ namespace Stride.Graphics
                 // Create image views
                 swapchainImages[index].NativeImage = createInfo.image = buffers[index];
                 GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreateImageView(GraphicsDevice.NativeDevice, &createInfo, null, out swapchainImages[index].NativeColorAttachmentView));
-
-                // Transition to default layout
-                imageMemoryBarrier.image = buffers[index];
-                GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(commandBuffer, VkPipelineStageFlags.AllCommands, VkPipelineStageFlags.AllCommands, VkDependencyFlags.None, 0, null, 0, null, 1, &imageMemoryBarrier);
             }
-
-            // Close and submit
-            GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkEndCommandBuffer(commandBuffer));
-
-            lock (GraphicsDevice.QueueLock)
-            {
-                var commandBufferInfo = GraphicsDevice.CommandBufferSubmit(commandBuffer);
-                var submitInfo = new VkSubmitInfo2
-                {
-                    sType = VkStructureType.SubmitInfo2,
-                    commandBufferInfoCount = 1,
-                    pCommandBufferInfos = &commandBufferInfo,
-                };
-                GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkQueueSubmit2(GraphicsDevice.NativeCommandQueue, 1, &submitInfo, VkFence.Null));
-                GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkQueueWaitIdle(GraphicsDevice.NativeCommandQueue));
-            }
-
-            GraphicsDevice.NativeCopyCommandPools.Value.RecycleObject(0, commandBuffer);
 
             // Create submit semaphores
             submitSemaphores = new VkSemaphore[buffers.Length];
