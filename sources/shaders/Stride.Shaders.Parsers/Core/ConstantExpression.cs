@@ -58,12 +58,13 @@ public abstract record ConstantExpression
     /// </summary>
     public static ConstantExpression FromValue(object value) => value switch
     {
-        int i => new IntConstExpr(i),
-        uint u => new IntConstExpr(u),
-        long l => new IntConstExpr(l),
-        ulong u => new IntConstExpr((long)u),
-        float f => new FloatConstExpr(f),
-        double d => new FloatConstExpr(d),
+        int i => new IntConstExpr(i, ScalarType.Int),
+        uint u => new IntConstExpr(u, ScalarType.UInt),
+        long l => new IntConstExpr(l, ScalarType.Int64),
+        ulong u => new IntConstExpr((long)u, ScalarType.UInt64),
+        Half h => new FloatConstExpr((double)h, ScalarType.Half),
+        float f => new FloatConstExpr(f, ScalarType.Float),
+        double d => new FloatConstExpr(d, ScalarType.Double),
         bool b => new BoolConstExpr(b),
         string s => new StringConstExpr(s),
         _ => throw new NotSupportedException($"Unsupported constant type: {value.GetType()}")
@@ -101,27 +102,25 @@ public abstract record ConstantExpression
                     if (typeInst.Op == Op.OpTypeInt)
                     {
                         var type = (OpTypeInt)typeInst;
-                        long val = type switch
+                        return type switch
                         {
-                            { Width: <= 32, Signedness: 0 } => (long)operand.ToLiteral<uint>(),
-                            { Width: <= 32, Signedness: 1 } => operand.ToLiteral<int>(),
-                            { Width: 64, Signedness: 0 } => (long)operand.ToLiteral<ulong>(),
-                            { Width: 64, Signedness: 1 } => operand.ToLiteral<long>(),
+                            { Width: <= 32, Signedness: 0 } => new IntConstExpr(operand.ToLiteral<uint>(), ScalarType.UInt),
+                            { Width: <= 32, Signedness: 1 } => new IntConstExpr(operand.ToLiteral<int>(), ScalarType.Int),
+                            { Width: 64, Signedness: 0 } => new IntConstExpr((long)operand.ToLiteral<ulong>(), ScalarType.UInt64),
+                            { Width: 64, Signedness: 1 } => new IntConstExpr(operand.ToLiteral<long>(), ScalarType.Int64),
                             _ => throw new NotImplementedException($"Unsupported int width {type.Width}"),
                         };
-                        return new IntConstExpr(val);
                     }
                     else if (typeInst.Op == Op.OpTypeFloat)
                     {
                         var type = new OpTypeFloat(typeInst);
-                        double val = type switch
+                        return type switch
                         {
-                            { Width: 16 } => (double)operand.ToLiteral<Half>(),
-                            { Width: 32 } => operand.ToLiteral<float>(),
-                            { Width: 64 } => operand.ToLiteral<double>(),
+                            { Width: 16 } => new FloatConstExpr((double)operand.ToLiteral<Half>(), ScalarType.Half),
+                            { Width: 32 } => new FloatConstExpr(operand.ToLiteral<float>(), ScalarType.Float),
+                            { Width: 64 } => new FloatConstExpr(operand.ToLiteral<double>(), ScalarType.Double),
                             _ => throw new NotImplementedException($"Unsupported float width {type.Width}"),
                         };
-                        return new FloatConstExpr(val);
                     }
                     else
                         throw new NotImplementedException($"Unsupported constant type {typeInst.Op}");
@@ -158,57 +157,23 @@ public abstract record ConstantExpression
             case Op.OpSpecConstantOp:
             {
                 var op = (Op)inst.Data.Memory.Span[3];
-                switch (op)
+                if (!context.ReverseTypes.TryGetValue(inst.Data.Memory.Span[1], out var resultType))
+                    throw new InvalidOperationException($"Cannot find result type of constant {inst.Data.Memory.Span[2]}");
+                // Note: the operation decides how many operands are ids, the length of the instruction does not
+                switch (ConstantEvaluator.GetEvaluatedOperandCount(op))
                 {
-                    // Conversions (unary)
-                    case Op.OpConvertFToS:
-                    case Op.OpConvertFToU:
-                    case Op.OpConvertSToF:
-                    case Op.OpConvertUToF:
-                    case Op.OpSNegate:
-                    case Op.OpFNegate:
-                    case Op.OpNot:
-                    case Op.OpLogicalNot:
+                    case 1:
                     {
                         var operandExpr = ParseFromBuffer(inst.Data.Memory.Span[4], buffer, context);
-                        return new UnaryOpExpr(op, operandExpr);
+                        return new UnaryOpExpr(op, resultType, operandExpr);
                     }
-                    // Binary operations
-                    case Op.OpIAdd:
-                    case Op.OpISub:
-                    case Op.OpIMul:
-                    case Op.OpUDiv:
-                    case Op.OpSDiv:
-                    case Op.OpFAdd:
-                    case Op.OpFSub:
-                    case Op.OpFMul:
-                    case Op.OpFDiv:
-                    case Op.OpShiftRightLogical:
-                    case Op.OpShiftRightArithmetic:
-                    case Op.OpShiftLeftLogical:
-                    case Op.OpBitwiseOr:
-                    case Op.OpBitwiseXor:
-                    case Op.OpBitwiseAnd:
-                    case Op.OpLogicalOr:
-                    case Op.OpLogicalAnd:
-                    case Op.OpLogicalEqual:
-                    case Op.OpLogicalNotEqual:
-                    case Op.OpIEqual:
-                    case Op.OpINotEqual:
-                    case Op.OpULessThan:
-                    case Op.OpSLessThan:
-                    case Op.OpUGreaterThan:
-                    case Op.OpSGreaterThan:
-                    case Op.OpULessThanEqual:
-                    case Op.OpSLessThanEqual:
-                    case Op.OpUGreaterThanEqual:
-                    case Op.OpSGreaterThanEqual:
+                    case 2:
                     {
                         var left = ParseFromBuffer(inst.Data.Memory.Span[4], buffer, context);
                         var right = ParseFromBuffer(inst.Data.Memory.Span[5], buffer, context);
-                        return new BinaryOpExpr(op, left, right);
+                        return new BinaryOpExpr(op, resultType, left, right);
                     }
-                    case Op.OpSelect:
+                    case 3:
                     {
                         var cond = ParseFromBuffer(inst.Data.Memory.Span[4], buffer, context);
                         var trueVal = ParseFromBuffer(inst.Data.Memory.Span[5], buffer, context);
@@ -227,51 +192,55 @@ public abstract record ConstantExpression
 }
 
 /// <summary>
-/// Integer constant. Covers int, uint, long, ulong — signedness determined at emission by SPIR-V type context.
+/// Integer constant of type int, uint, long or ulong (whose value is stored as its bits).
 /// </summary>
-public sealed record IntConstExpr(long Value) : ConstantExpression
+public sealed record IntConstExpr(long Value, ScalarType Type) : ConstantExpression
 {
     public override int Emit(SpirvContext context)
     {
-        // For values that fit in int, use int (signed) — matches the common case for array sizes
-        if (Value is >= int.MinValue and <= int.MaxValue)
-            return context.CompileConstant((int)Value).Id;
-        return context.CompileConstant(Value).Id;
+        TryEvaluate(out var value);
+        return context.CompileConstant(value!).Id;
     }
 
     public override bool TryEvaluate(out object? value)
     {
-        if (Value is >= int.MinValue and <= int.MaxValue)
-            value = (int)Value;
-        else
-            value = Value;
+        // Note: first cast to object is important, otherwise all the cases are converted to a common type
+        value = Type.Type switch
+        {
+            Scalar.Int => (object)(int)Value,
+            Scalar.UInt => (uint)Value,
+            Scalar.Int64 => Value,
+            Scalar.UInt64 => (ulong)Value,
+            _ => throw new NotSupportedException($"Unsupported integer constant type {Type}"),
+        };
         return true;
     }
 
-    public override string ToString() => Value.ToString();
+    public override string ToString() => Type.Type == Scalar.UInt64 ? ((ulong)Value).ToString() : Value.ToString();
 }
 
 /// <summary>
-/// Float constant. Covers float, double — precision determined at emission.
+/// Float constant of type half, float or double.
 /// </summary>
-public sealed record FloatConstExpr(double Value) : ConstantExpression
+public sealed record FloatConstExpr(double Value, ScalarType Type) : ConstantExpression
 {
     public override int Emit(SpirvContext context)
     {
-        // Use float precision if the value fits without loss
-        var asFloat = (float)Value;
-        if ((double)asFloat == Value)
-            return context.CompileConstant(asFloat).Id;
-        return context.CompileConstant(Value).Id;
+        TryEvaluate(out var value);
+        // Note: there is no half literal
+        return value is Half half ? context.AddConstant(half) : context.CompileConstant(value!).Id;
     }
 
     public override bool TryEvaluate(out object? value)
     {
-        var asFloat = (float)Value;
-        if ((double)asFloat == Value)
-            value = asFloat;
-        else
-            value = Value;
+        // Note: first cast to object is important, otherwise all the cases are converted to a common type
+        value = Type.Type switch
+        {
+            Scalar.Half => (object)(Half)Value,
+            Scalar.Float => (float)Value,
+            Scalar.Double => Value,
+            _ => throw new NotSupportedException($"Unsupported float constant type {Type}"),
+        };
         return true;
     }
 
@@ -351,7 +320,7 @@ public sealed record GenericParamExpr(int Index, string DeclaringClass) : Consta
 /// <summary>
 /// Unary spec-constant operation (SNegate, FNegate, Not, LogicalNot, conversions).
 /// </summary>
-public sealed record UnaryOpExpr(Op Op, ConstantExpression Operand) : ConstantExpression
+public sealed record UnaryOpExpr(Op Op, SymbolType ResultType, ConstantExpression Operand) : ConstantExpression
 {
     public override int Emit(SpirvContext context)
     {
@@ -360,55 +329,25 @@ public sealed record UnaryOpExpr(Op Op, ConstantExpression Operand) : ConstantEx
             return FromValue(folded).Emit(context);
 
         var operandId = Operand.Emit(context);
-        var operandTypeId = GetEmittedTypeId(context, operandId);
-        var resultTypeId = ResolveResultType(context, operandTypeId);
         var resultId = context.Bound++;
-        Span<int> instruction = [(int)Specification.Op.OpSpecConstantOp, resultTypeId, resultId, (int)Op, operandId];
+        Span<int> instruction = [(int)Specification.Op.OpSpecConstantOp, context.GetOrRegister(ResultType), resultId, (int)Op, operandId];
         instruction[0] |= instruction.Length << 16;
         context.Add(new OpData(instruction));
         return resultId;
     }
 
-    private int ResolveResultType(SpirvContext context, int operandTypeId)
-    {
-        return Op switch
-        {
-            // Conversions change the result type
-            Specification.Op.OpConvertFToS => context.GetOrRegister(ScalarType.Int),
-            Specification.Op.OpConvertFToU => context.GetOrRegister(ScalarType.UInt),
-            Specification.Op.OpConvertSToF => context.GetOrRegister(ScalarType.Float),
-            Specification.Op.OpConvertUToF => context.GetOrRegister(ScalarType.Float),
-            // Unary ops keep the same type
-            _ => operandTypeId,
-        };
-    }
-
     public override bool TryEvaluate(out object? value)
     {
         value = null;
-        if (!Operand.TryEvaluate(out var operandValue) || operandValue is null)
-            return false;
-
-        value = Op switch
-        {
-            Specification.Op.OpSNegate => (object)(-(int)operandValue),
-            Specification.Op.OpFNegate => -(float)operandValue,
-            Specification.Op.OpNot when operandValue is int i => ~i,
-            Specification.Op.OpLogicalNot when operandValue is bool b => !b,
-            Specification.Op.OpConvertFToS => (int)(float)operandValue,
-            Specification.Op.OpConvertFToU => (uint)(float)operandValue,
-            Specification.Op.OpConvertSToF => (float)(int)operandValue,
-            Specification.Op.OpConvertUToF => (float)(uint)operandValue,
-            _ => null,
-        };
-        return value is not null;
+        return Operand.TryEvaluate(out var operandValue) && operandValue is not null
+            && ConstantEvaluator.TryEvaluateUnary(Op, operandValue, ResultType, out value);
     }
 
     public override ConstantExpression Substitute(string declaringClass, ConstantExpression[] args)
     {
         var newOperand = Operand.Substitute(declaringClass, args);
         if (ReferenceEquals(newOperand, Operand)) return this;
-        var result = new UnaryOpExpr(Op, newOperand);
+        var result = new UnaryOpExpr(Op, ResultType, newOperand);
         return result.TryEvaluate(out var val) && val is not null ? FromValue(val) : result;
     }
 
@@ -418,7 +357,7 @@ public sealed record UnaryOpExpr(Op Op, ConstantExpression Operand) : ConstantEx
 /// <summary>
 /// Binary spec-constant operation (IAdd, IMul, ISub, etc.)
 /// </summary>
-public sealed record BinaryOpExpr(Op Op, ConstantExpression Left, ConstantExpression Right) : ConstantExpression
+public sealed record BinaryOpExpr(Op Op, SymbolType ResultType, ConstantExpression Left, ConstantExpression Right) : ConstantExpression
 {
     public override int Emit(SpirvContext context)
     {
@@ -428,9 +367,8 @@ public sealed record BinaryOpExpr(Op Op, ConstantExpression Left, ConstantExpres
 
         var leftId = Left.Emit(context);
         var rightId = Right.Emit(context);
-        var resultTypeId = GetEmittedTypeId(context, leftId);
         var resultId = context.Bound++;
-        Span<int> instruction = [(int)Specification.Op.OpSpecConstantOp, resultTypeId, resultId, (int)Op, leftId, rightId];
+        Span<int> instruction = [(int)Specification.Op.OpSpecConstantOp, context.GetOrRegister(ResultType), resultId, (int)Op, leftId, rightId];
         instruction[0] |= instruction.Length << 16;
         context.Add(new OpData(instruction));
         return resultId;
@@ -439,40 +377,9 @@ public sealed record BinaryOpExpr(Op Op, ConstantExpression Left, ConstantExpres
     public override bool TryEvaluate(out object? value)
     {
         value = null;
-        if (!Left.TryEvaluate(out var leftVal) || leftVal is null)
-            return false;
-        if (!Right.TryEvaluate(out var rightVal) || rightVal is null)
-            return false;
-
-        value = Op switch
-        {
-            Specification.Op.OpIAdd when leftVal is int l && rightVal is int r => (object)(l + r),
-            Specification.Op.OpISub when leftVal is int l && rightVal is int r => l - r,
-            Specification.Op.OpIMul when leftVal is int l && rightVal is int r => l * r,
-            Specification.Op.OpSDiv when leftVal is int l && rightVal is int r => l / r,
-            Specification.Op.OpUDiv when leftVal is uint l && rightVal is uint r => l / r,
-            Specification.Op.OpFAdd when leftVal is float l && rightVal is float r => l + r,
-            Specification.Op.OpFSub when leftVal is float l && rightVal is float r => l - r,
-            Specification.Op.OpFMul when leftVal is float l && rightVal is float r => l * r,
-            Specification.Op.OpFDiv when leftVal is float l && rightVal is float r => l / r,
-            Specification.Op.OpBitwiseAnd when leftVal is int l && rightVal is int r => l & r,
-            Specification.Op.OpBitwiseOr when leftVal is int l && rightVal is int r => l | r,
-            Specification.Op.OpBitwiseXor when leftVal is int l && rightVal is int r => l ^ r,
-            Specification.Op.OpShiftLeftLogical when leftVal is int l && rightVal is int r => l << r,
-            Specification.Op.OpShiftRightArithmetic when leftVal is int l && rightVal is int r => l >> r,
-            Specification.Op.OpLogicalAnd when leftVal is bool l && rightVal is bool r => l && r,
-            Specification.Op.OpLogicalOr when leftVal is bool l && rightVal is bool r => l || r,
-            Specification.Op.OpLogicalEqual when leftVal is bool l && rightVal is bool r => l == r,
-            Specification.Op.OpLogicalNotEqual when leftVal is bool l && rightVal is bool r => l != r,
-            Specification.Op.OpIEqual when leftVal is int l && rightVal is int r => l == r,
-            Specification.Op.OpINotEqual when leftVal is int l && rightVal is int r => l != r,
-            Specification.Op.OpSLessThan when leftVal is int l && rightVal is int r => l < r,
-            Specification.Op.OpSGreaterThan when leftVal is int l && rightVal is int r => l > r,
-            Specification.Op.OpSLessThanEqual when leftVal is int l && rightVal is int r => l <= r,
-            Specification.Op.OpSGreaterThanEqual when leftVal is int l && rightVal is int r => l >= r,
-            _ => null,
-        };
-        return value is not null;
+        return Left.TryEvaluate(out var leftValue) && leftValue is not null
+            && Right.TryEvaluate(out var rightValue) && rightValue is not null
+            && ConstantEvaluator.TryEvaluateBinary(Op, leftValue, rightValue, out value);
     }
 
     public override ConstantExpression Substitute(string declaringClass, ConstantExpression[] args)
@@ -480,7 +387,7 @@ public sealed record BinaryOpExpr(Op Op, ConstantExpression Left, ConstantExpres
         var newLeft = Left.Substitute(declaringClass, args);
         var newRight = Right.Substitute(declaringClass, args);
         if (ReferenceEquals(newLeft, Left) && ReferenceEquals(newRight, Right)) return this;
-        var result = new BinaryOpExpr(Op, newLeft, newRight);
+        var result = new BinaryOpExpr(Op, ResultType, newLeft, newRight);
         return result.TryEvaluate(out var val) && val is not null ? FromValue(val) : result;
     }
 

@@ -83,96 +83,26 @@ public partial class SpirvContext
 
         if (i.Op == Specification.Op.OpSpecConstantOp)
         {
-            var resultType = i.Data.Memory.Span[1];
-            var resultId = i.Data.Memory.Span[2];
-            var op = (Specification.Op)i.Data.Memory.Span[3];
-            switch (op)
+            // Layout: [header, resultType, resultId, opcode, operands...]
+            var span = i.Data.Memory.Span;
+            var op = (Specification.Op)span[3];
+            typeId = span[1];
+            // Note: the operation decides how many operands are ids, the length of the instruction does not
+            switch (ConstantEvaluator.GetEvaluatedOperandCount(op))
             {
-                // Conversions
-                case Specification.Op.OpConvertFToS:
-                case Specification.Op.OpConvertFToU:
-                case Specification.Op.OpConvertSToF:
-                case Specification.Op.OpConvertUToF:
-                    if (!TryGetConstantValue(i.Data.Memory.Span[4], out var convertOperand, out var convertOperandTypeId))
-                        return false;
-                    value = op switch
-                    {
-                        // Note: first cast to object is important, otherwise int/float will be cast as float
-                        Specification.Op.OpConvertFToS => (object)(int)(float)convertOperand,
-                        Specification.Op.OpConvertFToU => (uint)(float)convertOperand,
-                        Specification.Op.OpConvertSToF => (float)(int)convertOperand,
-                        Specification.Op.OpConvertUToF => (float)(uint)convertOperand,
-                        _ => throw new NotSupportedException($"Unsupported conversion op: {op}"),
-                    };
-                    break;
-                // Bitcast: reinterpret the operand's bits as the target scalar type.
-                case Specification.Op.OpBitcast:
-                    if (!TryGetConstantValue(i.Data.Memory.Span[4], out var bitcastOperand, out _))
-                        return false;
-                    if (ReverseTypes[resultType] is not ScalarType { Type: var bitcastTargetScalar })
-                        throw new NotSupportedException($"OpBitcast result type {ReverseTypes[resultType]} is not a scalar");
-                    var bitcastBits = bitcastOperand switch
-                    {
-                        int v => (uint)v,
-                        uint v => v,
-                        float v => BitConverter.SingleToUInt32Bits(v),
-                        _ => throw new NotSupportedException($"OpBitcast operand type {bitcastOperand.GetType()} is not supported"),
-                    };
-                    value = bitcastTargetScalar switch
-                    {
-                        Scalar.Int => (object)(int)bitcastBits,
-                        Scalar.UInt => bitcastBits,
-                        Scalar.Float => BitConverter.UInt32BitsToSingle(bitcastBits),
-                        _ => throw new NotSupportedException($"OpBitcast target scalar {bitcastTargetScalar} is not supported"),
-                    };
-                    break;
-                // Unary operations
-                case Specification.Op.OpSNegate:
-                case Specification.Op.OpFNegate:
-                    if (!TryGetConstantValue(i.Data.Memory.Span[4], out var unaryOperand, out var unaryOperandTypeId))
-                        return false;
-                    if (unaryOperandTypeId != resultType)
-                        return false;
-                    value = op switch
-                    {
-                        // Note: first cast to object is important, otherwise int/float will be cast as float
-                        Specification.Op.OpSNegate => (object)(-(int)unaryOperand),
-                        Specification.Op.OpFNegate => -(float)unaryOperand,
-                        _ => throw new NotSupportedException($"Unsupported unary op: {op}"),
-                    };
-                    break;
-                // Binary operations
-                case Specification.Op.OpIAdd:
-                case Specification.Op.OpISub:
-                case Specification.Op.OpIMul:
-                case Specification.Op.OpFAdd:
-                case Specification.Op.OpFSub:
-                case Specification.Op.OpFMul:
-                case Specification.Op.OpFDiv:
-                    if (!TryGetConstantValue(i.Data.Memory.Span[4], out var left, out var leftTypeId))
-                        return false;
-                    if (!TryGetConstantValue(i.Data.Memory.Span[5], out var right, out var rightTypeId))
-                        return false;
-                    if (leftTypeId != resultType || rightTypeId != resultType)
-                        return false;
-                    value = op switch
-                    {
-                        // Note: first cast to object is important, otherwise int/float will be cast as float
-                        Specification.Op.OpIAdd => (object)((int)left + (int)right),
-                        Specification.Op.OpISub => (int)left - (int)right,
-                        Specification.Op.OpIMul => (int)left * (int)right,
-                        Specification.Op.OpFAdd => (float)left + (float)right,
-                        Specification.Op.OpFSub => (float)left - (float)right,
-                        Specification.Op.OpFMul => (float)left * (float)right,
-                        Specification.Op.OpFDiv => (float)left / (float)right,
-                        _ => throw new NotSupportedException($"Unsupported binary op: {op}"),
-                    };
-                    break;
+                case 1:
+                    return TryGetConstantValue(span[4], out var unaryOperand, out _)
+                        && ConstantEvaluator.TryEvaluateUnary(op, unaryOperand, ReverseTypes[typeId], out value);
+                case 2:
+                    return TryGetConstantValue(span[4], out var left, out _)
+                        && TryGetConstantValue(span[5], out var right, out _)
+                        && ConstantEvaluator.TryEvaluateBinary(op, left, right, out value);
+                case 3:
+                    return TryGetConstantValue(span[4], out var condition, out _) && condition is bool conditionValue
+                        && TryGetConstantValue(conditionValue ? span[5] : span[6], out value, out _);
                 default:
-                    throw new NotImplementedException();
+                    return false;
             }
-
-            return true;
         }
 
         if ((i.Op == Specification.Op.OpConstantComposite || i.Op == Specification.Op.OpSpecConstantComposite) &&
@@ -241,6 +171,26 @@ public partial class SpirvContext
         }
 
         throw new Exception("Cannot find type instruction for id " + typeId);
+    }
+
+    /// <summary>
+    /// Creates the constant instruction holding a scalar value, as returned by <see cref="TryGetConstantValue(int, out object, out int)"/>.
+    /// </summary>
+    public static OpData CreateConstantInstruction(int resultType, int resultId, object value)
+    {
+        return value switch
+        {
+            true => new OpData(new OpConstantTrue(resultType, resultId).InstructionMemory),
+            false => new OpData(new OpConstantFalse(resultType, resultId).InstructionMemory),
+            int v => new OpData(new OpConstant<int>(resultType, resultId, v).InstructionMemory),
+            uint v => new OpData(new OpConstant<uint>(resultType, resultId, v).InstructionMemory),
+            long v => new OpData(new OpConstant<long>(resultType, resultId, v).InstructionMemory),
+            ulong v => new OpData(new OpConstant<ulong>(resultType, resultId, v).InstructionMemory),
+            Half v => new OpData(new OpConstant<Half>(resultType, resultId, v).InstructionMemory),
+            float v => new OpData(new OpConstant<float>(resultType, resultId, v).InstructionMemory),
+            double v => new OpData(new OpConstant<double>(resultType, resultId, v).InstructionMemory),
+            _ => throw new NotSupportedException($"Cannot create a constant of type {value.GetType()}"),
+        };
     }
 
     public SpirvValue CreateDefaultConstantComposite(SymbolType type)

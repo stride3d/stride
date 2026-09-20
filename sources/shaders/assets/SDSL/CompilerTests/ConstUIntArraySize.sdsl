@@ -1,0 +1,19 @@
+namespace Stride.Shaders.Tests;
+
+shader ConstUIntArraySize
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    static const uint Count = 4;
+
+    cbuffer Test
+    {
+        float Values[Count];
+    }
+
+    void PSMain()
+    {
+        float v = Values[3];
+        streams.ColorTarget = float4(v, v, v, v);
+    }
+}

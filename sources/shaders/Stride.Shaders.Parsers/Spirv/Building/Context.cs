@@ -303,6 +303,9 @@ public partial class SpirvContext
     public OpData Replace<T>(int index, in T instruction) where T : struct, IMemoryInstruction, allows ref struct
     { ThrowIfFrozen(); return Buffer.Replace(index, instruction); }
 
+    public OpData Replace(int index, OpData data)
+    { ThrowIfFrozen(); return Buffer.Replace(index, data); }
+
     public SpirvContext FluentAdd<T>(in T value, out T result)
         where T : struct, IMemoryInstruction, allows ref struct
     {
