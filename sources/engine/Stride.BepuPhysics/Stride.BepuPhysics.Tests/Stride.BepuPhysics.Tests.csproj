@@ -16,6 +16,7 @@
     <ProjectReference Include="..\..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
     <ProjectReference Include="..\..\Stride.Engine\Stride.Engine.csproj" />
     <ProjectReference Include="..\Stride.BepuPhysics\Stride.BepuPhysics.csproj" />
+    <ProjectReference Include="..\Stride.BepuPhysics.Debug\Stride.BepuPhysics.Debug.csproj" />
     <ProjectReference Include="..\..\Stride.Graphics.Regression\Stride.Graphics.Regression.csproj" />
   </ItemGroup>
   <ItemGroup>

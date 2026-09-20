@@ -8,13 +8,18 @@ using BepuPhysics.Collidables;
 using BepuPhysics.CollisionDetection;
 using Stride.BepuPhysics.Components;
 using Stride.BepuPhysics.Constraints;
+using Stride.BepuPhysics.Debug;
 using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Definitions.Colliders;
 using Stride.BepuPhysics.Definitions.Contacts;
 using Stride.Core.Mathematics;
 using Xunit;
 using Stride.Engine;
+using Stride.Graphics;
 using Stride.Graphics.Regression;
+using Stride.Rendering.Compositing;
+using Stride.Rendering.Lights;
+using Stride.Rendering.ProceduralModels;
 using System.Threading.Tasks;
 using System.Threading;
 
@@ -612,6 +617,47 @@ namespace Stride.BepuPhysics.Tests
             {
                 StoppedTouching?.Invoke(manifold.EventSource, manifold.Other);
             }
+        }
+
+        [Fact]
+        public static void DebugWireframeStaysOutOfShadowMaps()
+        {
+            var game = new GameTest();
+
+            game.GraphicsDeviceManager.PreferredGraphicsProfile = [GraphicsProfile.Level_10_0];
+            game.GraphicsDeviceManager.ShaderProfile = GraphicsProfile.Level_10_0;
+
+            game.Script.AddTask(async () =>
+            {
+                game.ScreenShotAutomationEnabled = false;
+
+                var compositor = GraphicsCompositorHelper.CreateDefault(false, graphicsProfile: GraphicsProfile.Level_10_0);
+                game.SceneSystem.GraphicsCompositor = compositor;
+
+                // DebugRenderComponent present and enabled shadow causes the issue to appear, so we need to enable shadow to test the fix
+                var light = new Entity { new LightComponent { Type = new LightDirectional { Shadow = { Enabled = true } } } };
+
+                var cube = new Entity
+                {
+                    new ModelComponent(new CubeProceduralModel().Generate(game.Services)),
+                    new BodyComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider() } } },
+                    new DebugRenderComponent { Visible = true },
+                };
+                cube.Transform.Position = new Vector3(0f, 0.5f, 0f);
+
+                var scene = game.SceneSystem.SceneInstance.RootScene;
+                var camera = new Entity { new CameraComponent { Slot = compositor.Cameras[0].ToSlotId() } };
+
+                scene.Entities.Add(camera);
+                scene.Entities.Add(light);
+                //scene.Entities.Add(ground);
+                scene.Entities.Add(cube);
+
+                for (var i = 0; i < 10; i++) await game.Script.NextFrame();
+
+                game.Exit();
+            });
+            RunGameTest(game);
         }
     }
 }
