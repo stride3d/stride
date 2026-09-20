@@ -255,6 +255,23 @@ public class StrideShaderTests
         Assert.True(validation.IsValid, validation.Output);
     }
 
+    // OpSwitch takes literal values: a label that cannot be evaluated when compiling, and two labels with
+    // the same value (easy with named constants), are errors.
+    // Constant labels (`static const`) are covered by the SwitchConstLabels render test.
+    [Theory]
+    [InlineData("SwitchVariableLabel", "case label must be a constant integer expression")]
+    [InlineData("SwitchDuplicateLabel", "case label has the same value (1)")]
+    public void InvalidSwitchIsReported(string shaderName, string expectedError)
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.False(shaderMixer.MergeSDSL(new ShaderClassSource(shaderName), new ShaderMixer.Options(true), log, out _, out _, out _, out _));
+
+        Assert.Contains(log.Messages, m => m.Type == Stride.Core.Diagnostics.LogMessageType.Error && m.Text.Contains(expectedError));
+    }
+
     // fxc rejects the same shader with X4532, so this reports rather than emitting a module that only
     // fails later, deep inside the HLSL legalizer.
     [Fact]

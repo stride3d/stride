@@ -176,10 +176,10 @@ public partial class SwitchStatement(Expression selector, TextLocation info) : F
     {
         var (builder, context) = compiler;
 
-        // Compile selector (must be integer scalar)
+        // Compile selector (must be a 32-bit integer scalar: the case labels are written as 32-bit literals)
         var selectorValue = Selector.CompileAsValue(table, compiler);
-        if (Selector.ValueType is not ScalarType st || !st.IsInteger())
-            table.AddError(new(Selector.Info, "switch selector must evaluate to an integer scalar"));
+        if (Selector.ValueType is not ScalarType { Type: Scalar.Int or Scalar.UInt })
+            table.AddError(new(Selector.Info, "switch selector must evaluate to an int or uint scalar"));
 
         // Pre-allocate block IDs: one per section + merge block
         var mergeBlock = context.Bound++;
@@ -200,10 +200,14 @@ public partial class SwitchStatement(Expression selector, TextLocation info) : F
             {
                 if (label is DefaultLabel)
                     defaultBlockId = sectionBlockIds[i];
-                else if (label is CaseLabel caseLabel && caseLabel.Value is IntegerLiteral intLit)
-                    casePairs.Add(((int)intLit.Value, sectionBlockIds[i]));
+                // OpSwitch takes literals, so the value of a label (e.g. a `static const` member) must be known when compiling
+                else if (label is not CaseLabel caseLabel || !caseLabel.Value.TryEvaluateConstantInteger(table, context, out var caseValue))
+                    table.AddError(new(label.Info, "case label must be a constant integer expression"));
+                // Two constants with different names can have the same value
+                else if (casePairs.Exists(x => x.Item1 == caseValue))
+                    table.AddError(new(label.Info, $"case label has the same value ({caseValue}) as a previous label of this switch"));
                 else
-                    table.AddError(new(label.Info, "case label must be an integer literal"));
+                    casePairs.Add((caseValue, sectionBlockIds[i]));
             }
         }
 
