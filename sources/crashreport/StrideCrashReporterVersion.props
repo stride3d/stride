@@ -1,0 +1,17 @@
+<!-- Crash reporter version authority. Stride.CrashReporter is versioned independently of the engine, so an engine
+     release republishes its 26 MB payload (Avalonia and its natives for three RIDs, under tools/) only when the
+     reporter itself changed: an unchanged version is packed, skipped on push as a duplicate, and users keep the copy
+     they already have. Its hosts depend on it as >= this version and NativeCrashReporting takes the highest version in
+     the NuGet store, so this number only ever goes up, and it starts above every engine-versioned copy that shipped.
+
+     Bump it with any change that ships in the package, or the push is skipped and users keep the old reporter;
+     .github/workflows/changes.yml warns on a PR that forgets. Imported by Stride.CrashReporter.csproj.
+
+     StrideCrashReporterVersion is what the package gets, before the -devN worktree suffix. It feeds PackageVersion
+     rather than VersionPrefix because Stride.PackageInfo.targets fills an empty PackageVersion with the engine
+     version. -->
+<Project>
+  <PropertyGroup>
+    <StrideCrashReporterVersion Condition="'$(StrideCrashReporterVersion)' == ''">5.0.0</StrideCrashReporterVersion>
+  </PropertyGroup>
+</Project>

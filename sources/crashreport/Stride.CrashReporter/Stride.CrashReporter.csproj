@@ -1,5 +1,6 @@
 <Project>
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.props" />
+  <Import Project="..\StrideCrashReporterVersion.props" />
   <PropertyGroup>
     <!-- GUI subsystem in every config so the spawned reporter never flashes a console; for console output while
          developing it, run it through the host: dotnet Stride.CrashReporter.dll <args>. -->
@@ -16,6 +17,8 @@
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <!-- No Stride serialization here, and the processor needs a Stride.Core reference this app doesn't carry. -->
     <StrideAssemblyProcessor>false</StrideAssemblyProcessor>
+    <!-- Versioned on its own, not with the engine (see StrideCrashReporterVersion.props). -->
+    <PackageVersion>$(StrideCrashReporterVersion)</PackageVersion>
     <!-- This package is launched, never compiled against: ship the runnable closure under tools/, keep no
          lib/ ref assembly, and declare no dependencies (everything it needs is bundled in tools/, so nothing
          it loads can be the thing that just crashed). -->

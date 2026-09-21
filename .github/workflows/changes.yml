@@ -103,6 +103,34 @@ jobs:
                     'Users only get them with the next samples release: after merging, run release-samples.yml '
                     '(before the next engine release if the engine needs them; see docs/build/versioning.md).')
           EOF
+      # The crash reporter carries its own package version, so an engine release republishes it only when that
+      # version changes. A change shipped without a bump is pushed as a duplicate, skipped, and never reaches users.
+      # Only files that end up in the package count: its tests and the probe don't.
+      - name: Warn on crash reporter changes (version bump needed)
+        if: github.event_name == 'pull_request'
+        run: |
+          python3 - <<'EOF'
+          import json
+          VERSION_FILE = 'sources/crashreport/StrideCrashReporterVersion.props'
+          files = [f for page in json.load(open('/tmp/pr-files.json')) for f in page]
+          def is_shipped(name):
+              return (name.startswith('sources/crashreport/')
+                      and name != VERSION_FILE  # the version itself isn't packaged; a bump is detected below
+                      and not name.startswith(('sources/crashreport/Stride.CrashReport.Tests/',
+                                               'sources/crashreport/Stride.CrashReport.TestProbe/'))
+                      and not name.lower().endswith('.md'))
+          changed = [f['filename'] for f in files if is_shipped(f['filename'])]
+          bumped = any(f['filename'] == VERSION_FILE
+                       and any(line.startswith('+') and '<StrideCrashReporterVersion' in line
+                               for line in (f.get('patch') or '').split('\n'))
+                       for f in files)
+          if changed and not bumped:
+              shown = ', '.join(changed[:5]) + (f' and {len(changed) - 5} more' if len(changed) > 5 else '')
+              print('::warning title=Crash reporter changed::This PR changes the crash reporter (' + shown + ') '
+                    'without bumping its version. It is versioned separately from the engine: raise '
+                    'StrideCrashReporterVersion in ' + VERSION_FILE + ', or the package is pushed as a '
+                    'duplicate, skipped, and users keep the old reporter.')
+          EOF
       - uses: dorny/paths-filter@v4
         if: github.event_name == 'pull_request'
         id: filter
