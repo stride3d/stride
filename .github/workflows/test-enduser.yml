@@ -68,6 +68,8 @@ jobs:
       # Software rendering is the default in the autotesting harness; set STRIDE_TESTS_GPU=1 to opt into the GPU.
       STRIDE_TESTS_RENDERDOC: "error"
       STRIDE_GRAPHICS_SOFTWARE_RENDERING: "1"
+      # A sync hazard is logged as an error, which fails the sample run.
+      STRIDE_VULKAN_SYNC_VALIDATION: ${{ matrix.graphics-api == 'Vulkan' && '1' || '' }}
       # Stride.NuGetResolver re-verifies packages per synthetic project (unlike dotnet
       # restore which trusts cached results), tripping on legacy 4.3.0/4.7.0 BCL packages
       # whose timestamping CAs have expired.
