@@ -59,7 +59,10 @@
           Condition="'$(_StrideDevStubProject)' == 'true' And '$(StrideDevPackagesGenerating)' != 'true' And '$(DesignTimeBuild)' != 'true'">
 
     <PropertyGroup>
-      <_StrideDevPackagesStamp>$(LocalAppData)/stride/nugetdev/.devpackages-$(PackageVersion)</_StrideDevPackagesStamp>
+      <!-- One stamp per engine version, the name the generator writes — not this package's version, which a
+           package versioned on its own (Stride.CrashReporter) would point at a stamp that never exists, leaving
+           its stub stale on every build. The stub file itself does carry the package's own version. -->
+      <_StrideDevPackagesStamp>$(LocalAppData)/stride/nugetdev/.devpackages-$(StrideNuGetVersion)$(StrideWorktreeSuffix)</_StrideDevPackagesStamp>
       <_StrideOwnStub>$(PackageId).$(PackageVersion).nupkg</_StrideOwnStub>
     </PropertyGroup>
 
@@ -122,10 +125,13 @@
        drop the current stubs before the new set is known to be complete. -->
   <Target Name="_StrideCleanDevPackages"
           BeforeTargets="CoreCompile"
+          DependsOnTargets="StrideEnsureWorktreeVersion"
           Condition="'$(StrideDevPackages)' != 'true' And '$(StrideDevPackagesGenerating)' != 'true' And '$(DesignTimeBuild)' != 'true'">
 
     <PropertyGroup>
-      <_StrideDevPackagesStampCheck>$(LocalAppData)/stride/nugetdev/.devpackages-$(PackageVersion)</_StrideDevPackagesStampCheck>
+      <!-- The generator's stamp name: engine version plus worktree suffix. PackageVersion has no suffix yet at this
+           point (StrideAppendWorktreeVersion runs before the pack targets, not before CoreCompile). -->
+      <_StrideDevPackagesStampCheck>$(LocalAppData)/stride/nugetdev/.devpackages-$(StrideNuGetVersion)$(StrideWorktreeSuffix)</_StrideDevPackagesStampCheck>
       <_StrideDevPackagesStampExisted Condition="Exists('$(_StrideDevPackagesStampCheck)')">true</_StrideDevPackagesStampExisted>
     </PropertyGroup>
 
