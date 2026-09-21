@@ -62,7 +62,21 @@ namespace Stride.Editor.Thumbnails
             StartPushNotificationsTask();
         }
 
+        /// <inheritdoc/>
+        public Task StopAsync()
+        {
+            RemoveQueuedBuildUnits();
+            return generator.StopAsync();
+        }
+
         public void Dispose()
+        {
+            RemoveQueuedBuildUnits();
+            generator.Dispose();
+            gameSettingsProviderService.GameSettingsChanged -= GameSettingsChanged;
+        }
+
+        private void RemoveQueuedBuildUnits()
         {
             // Terminate thumbnail control thread
             lock (hashLock)
@@ -74,8 +88,6 @@ namespace Stride.Editor.Thumbnails
                 thumbnailQueueHash.Clear();
             }
             thumbnailThreadShouldTerminate = true;
-            generator.Dispose();
-            gameSettingsProviderService.GameSettingsChanged -= GameSettingsChanged;
         }
 
         private void GameSettingsChanged(object sender, GameSettingsChangedEventArgs e)

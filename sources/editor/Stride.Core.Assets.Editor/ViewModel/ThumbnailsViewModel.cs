@@ -48,6 +48,15 @@ namespace Stride.Core.Assets.Editor.ViewModel
         }
 
         /// <summary>
+        /// Stops the thumbnail processing. Await this before <see cref="Destroy"/>, so that no thumbnail is being compiled when the service is disposed.
+        /// </summary>
+        /// <returns>A task that completes when no thumbnail is being compiled anymore.</returns>
+        public Task StopAsync()
+        {
+            return thumbnailService?.StopAsync() ?? Task.CompletedTask;
+        }
+
+        /// <summary>
         /// Increases the priority of thumbnail processing for the given assets, if they are queued for thumbnail processing.
         /// This methods has no effect for assets that are not currently in the thumbnail processing queue.
         /// </summary>

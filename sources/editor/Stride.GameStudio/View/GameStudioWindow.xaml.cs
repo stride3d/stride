@@ -44,6 +44,7 @@ namespace Stride.GameStudio.View
     {
         private DebugWindow debugWindow;
         private bool forceClose;
+        private bool isSavingAndClosing;
         private readonly DockingLayoutManager dockingLayout;
         private readonly AssetEditorsManager assetEditorsManager;
         private TaskCompletionSource<bool> closingTask;
@@ -146,6 +147,9 @@ namespace Stride.GameStudio.View
             }
             // We need to run async stuff before closing, so let's always cancel the close at first.
             e.Cancel = true;
+            // A second close request can come while the first one still awaits
+            if (isSavingAndClosing)
+                return;
             // This method will shutdown the application if the session has been successfully closed.
             SaveAndClose().Forget();
         }
@@ -240,6 +244,7 @@ namespace Stride.GameStudio.View
 
         private async Task SaveAndClose()
         {
+            isSavingAndClosing = true;
             try
             {
                 // Save MRUs
@@ -258,6 +263,9 @@ namespace Stride.GameStudio.View
                     // Close all windows (except if the user interrupt the flow)
                     // Since all dirty assets must have been saved before, we don't need to ask for any user confirmation
                     assetEditorsManager.CloseAllEditorWindows(false);
+
+                    // Let the running thumbnail command finish, without blocking the UI thread it might need. A stuck command must not prevent closing.
+                    await Task.WhenAny(Editor.Session.Thumbnails.StopAsync(), Task.Delay(TimeSpan.FromSeconds(10)));
 
                     Editor.Session.Destroy();
 
@@ -289,6 +297,7 @@ namespace Stride.GameStudio.View
             finally
             {
                 closingTask = null;
+                isSavingAndClosing = false;
             }
         }
 

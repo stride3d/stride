@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Stride.Core.Assets.Editor.Services
 {
@@ -32,6 +33,12 @@ namespace Stride.Core.Assets.Editor.Services
         /// <remarks>A type has static thumbnails if the thumbnail image does not depend on the asset properties.</remarks>
         /// <returns><c>True</c> if the asset type has static thumbnails, <c>False</c> otherwise.</returns>
         bool HasStaticThumbnail(Type assetType);
+
+        /// <summary>
+        /// Drops the queued thumbnails and refuses new ones.
+        /// </summary>
+        /// <returns>A task that completes when no thumbnail is being compiled anymore.</returns>
+        Task StopAsync();
 
         /// <summary>
         /// Gets the number of thumbnails currently queued for compilation.

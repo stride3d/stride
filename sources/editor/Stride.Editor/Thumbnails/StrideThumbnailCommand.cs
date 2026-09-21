@@ -119,13 +119,24 @@ namespace Stride.Editor.Thumbnails
         /// <inheritdoc/>
         protected sealed override Task<ResultStatus> DoCommandOverride(ICommandContext commandContext)
         {
-            PreloadAsset();
-            var graphicsCompositor = GraphicsDevice.GetOrCreateSharedData(GraphicsCompositorKey, CreateSharedGraphicsCompositor);
-            var scene = CreateScene(graphicsCompositor);
-            var result = Generator.BuildThumbnail(Url, scene, graphicsCompositor, MicrothreadLocalDatabases.DatabaseFileProvider, Parameters.ThumbnailSize, Parameters.ColorSpace, Parameters.RenderingMode, commandContext.Logger, DependencyBuildStatus, CustomizeThumbnail);
-            DestroyScene(scene);
-            UnloadAsset();
-            return Task.FromResult(result);
+            // The session can close while this command runs; the generator's graphics device must outlive it
+            if (!Generator.TryBeginUse())
+                return Task.FromResult(ResultStatus.Cancelled);
+
+            try
+            {
+                PreloadAsset();
+                var graphicsCompositor = GraphicsDevice.GetOrCreateSharedData(GraphicsCompositorKey, CreateSharedGraphicsCompositor);
+                var scene = CreateScene(graphicsCompositor);
+                var result = Generator.BuildThumbnail(Url, scene, graphicsCompositor, MicrothreadLocalDatabases.DatabaseFileProvider, Parameters.ThumbnailSize, Parameters.ColorSpace, Parameters.RenderingMode, commandContext.Logger, DependencyBuildStatus, CustomizeThumbnail);
+                DestroyScene(scene);
+                UnloadAsset();
+                return Task.FromResult(result);
+            }
+            finally
+            {
+                Generator.EndUse();
+            }
         }
 
         /// <summary>
