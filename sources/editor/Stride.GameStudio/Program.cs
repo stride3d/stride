@@ -431,6 +431,7 @@ public static class Program
                 var viewModel = new NewOrOpenSessionTemplateCollectionViewModel(serviceProvider, startupWindow);
                 startupWindow.Templates = viewModel;
                 startupWindow.ShowDialog();
+                viewModel.Destroy();
 
                 // The user selected a template to instantiate
                 if (startupWindow.NewSessionParameters != null)

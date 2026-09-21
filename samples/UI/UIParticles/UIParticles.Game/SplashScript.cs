@@ -211,7 +211,7 @@ namespace UIParticles
                 while (secondsCountdown > 0f)
                 {
                     await Script.NextFrame();
-                    secondsCountdown -= (float)Game.UpdateTime.Elapsed.TotalSeconds;
+                    secondsCountdown -= (float)Game.UpdateTime.WarpElapsed.TotalSeconds;
                 }
 
                 // Remove
@@ -283,7 +283,7 @@ namespace UIParticles
 
         private void DrawFuse()
         {
-            fusePercentage = Math.Min(1f, fusePercentage - (float)Game.UpdateTime.Elapsed.TotalSeconds * 0.04f);
+            fusePercentage = Math.Min(1f, fusePercentage - (float)Game.UpdateTime.WarpElapsed.TotalSeconds * 0.04f);
 
             var gaugeCurrentRegion = lifeBarGaugeImage.Region;
             gaugeCurrentRegion.Width = Math.Max(1, fusePercentage * gaugeBarRegion.Width);
@@ -323,7 +323,7 @@ namespace UIParticles
 
         private void NewGameState()
         {
-            fusePercentage = Math.Min(1f, fusePercentage - (float)Game.UpdateTime.Elapsed.TotalSeconds * 0.03f);
+            fusePercentage = Math.Min(1f, fusePercentage - (float)Game.UpdateTime.WarpElapsed.TotalSeconds * 0.03f);
             DrawFuse();
 
             if (desiredState == GameState.EndGame || fusePercentage <= 0f)

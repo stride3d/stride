@@ -62,6 +62,7 @@ public partial class SpirvBuilder()
             (int)Op.OpBranch,
             (int)Op.OpBranchConditional,
             (int)Op.OpSwitch,
+            (int)Op.OpSwitchIdSDSL,
             (int)Op.OpReturn,
             (int)Op.OpReturnValue,
             (int)Op.OpKill,

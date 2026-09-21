@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.TemplateEngine.Abstractions;
@@ -47,6 +48,7 @@ public sealed class DotNetNewTemplateRegistry : IDisposable
         // IPathInfo directly (only EngineEnvironmentSettings does); redirecting via IEnvironment
         // is the cleanest hook into DefaultPathInfo's path derivation.
         // "dotnetcli" fallback so our host reads each template's dotnetcli.host.json (isVisible etc.).
+        RemoveDuplicateEntries(profileDir);
         var host = new DefaultTemplateEngineHost(HostIdentifier, hostVersion, fallbackHostTemplateConfigNames: new[] { "dotnetcli" });
         var environment = new StrideTemplateEngineEnvironment(profileDir);
         bootstrapper = new Bootstrapper(
@@ -54,6 +56,37 @@ public sealed class DotNetNewTemplateRegistry : IDisposable
             virtualizeConfiguration: false,
             loadDefaultComponents: true,
             environment: environment);
+    }
+
+    /// <summary>
+    /// Keeps one entry per mount point in the persisted <c>packages.json</c> (the last one, the latest install): a
+    /// forced reinstall of a <c>.nupkg</c> adds an entry each time.
+    /// </summary>
+    private static void RemoveDuplicateEntries(string profileDir)
+    {
+        var packagesJson = Path.Combine(profileDir, ".templateengine", "packages.json");
+        try
+        {
+            if (!File.Exists(packagesJson) || JsonNode.Parse(File.ReadAllText(packagesJson))?["Packages"] is not JsonArray packages)
+                return;
+
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var removed = 0;
+            for (var i = packages.Count - 1; i >= 0; i--)
+            {
+                var uri = packages[i]?["MountPointUri"]?.GetValue<string>();
+                if (uri is null || seen.Add(uri))
+                    continue;
+                packages.RemoveAt(i);
+                removed++;
+            }
+            if (removed > 0)
+                File.WriteAllText(packagesJson, packages.Root.ToJsonString());
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException or System.Text.Json.JsonException or InvalidOperationException)
+        {
+            // Best effort: the template engine reads the file as it is.
+        }
     }
 
     /// <summary>
@@ -86,6 +119,24 @@ public sealed class DotNetNewTemplateRegistry : IDisposable
             diagnostics.Add($"{r.InstallRequest.PackageIdentifier}: {r.ErrorMessage ?? r.Error.ToString()}");
         }
         return (success, diagnostics);
+    }
+
+    /// <summary>
+    /// Uninstalls the installed packages that none of <paramref name="sources"/> (as given to
+    /// <see cref="InstallPackageAsync"/>) installed, so templates of a package version no longer resolved do not
+    /// linger next to the current ones. A <c>.nupkg</c> source is matched by file name, since the registry mounts
+    /// its own copy.
+    /// </summary>
+    public async Task RemovePackagesExceptAsync(IReadOnlyCollection<string> sources, CancellationToken cancellationToken = default)
+    {
+        var directories = new HashSet<string>(sources.Where(Directory.Exists).Select(s => Path.GetFullPath(s).TrimEnd('\\', '/')), StringComparer.OrdinalIgnoreCase);
+        var nupkgNames = new HashSet<string>(sources.Where(File.Exists).Select(Path.GetFileName)!, StringComparer.OrdinalIgnoreCase);
+        var stale = (await bootstrapper.GetManagedTemplatePackagesAsync(cancellationToken).ConfigureAwait(false))
+            .Where(package => !directories.Contains(package.MountPointUri.TrimEnd('\\', '/'))
+                && !nupkgNames.Contains(Path.GetFileName(package.MountPointUri)))
+            .ToList();
+        if (stale.Count > 0)
+            await bootstrapper.UninstallTemplatePackagesAsync(stale, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>Enumerates all available templates (across all installed packages).</summary>

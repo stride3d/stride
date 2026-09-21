@@ -21,17 +21,17 @@ namespace Stride;
 /// This file is the source of truth for the version: it is the committed value, bumped per release (not derived
 /// from git tags). The generators (StrideVersionTasks.cs) read <see cref="MajorMinor"/> + <see cref="Patch"/> +
 /// <see cref="NuGetVersionSuffix"/> and overlay them into a single generated copy, SharedAssemblyInfo.Generated.cs,
-/// which the Stride SDK swaps in at build time (adding the -devN worktree suffix on dev builds, +g&lt;sha&gt; on
-/// package builds). Keep the shape of the MajorMinor/Patch/NuGetVersionSuffix/PublicVersion/BuildMetadata lines
-/// (name = "value";) so the regexes match. Its <see cref="PublicVersion"/> is a sentinel (see below).
+/// which the Stride SDK swaps in at build time (the suffix on package builds only, with +g&lt;sha&gt;; dev builds use
+/// the -devN worktree suffix instead). Keep the shape of the MajorMinor/Patch/NuGetVersionSuffix/PublicVersion/
+/// BuildMetadata lines (name = "value";) so the regexes match. Its <see cref="PublicVersion"/> is a sentinel (see below).
 /// </remarks>
 internal class StrideVersion
 {
     // ── Editable inputs ──────────────────────────────────────────────────────────────────────────────────
     // The version is MajorMinor.Patch + NuGetVersionSuffix. Edit these and bump per release — usually that's
     // release.yml bumping Patch automatically after a stable release, but you edit by hand to start a new
-    // major/minor cycle or a beta. (Patch is a string, not an int, only because a const string can't concatenate
-    // an int.) Don't edit the derived consts below.
+    // major/minor cycle, a beta, or the next beta. (Patch is a string, not an int, only because a const string
+    // can't concatenate an int.) Don't edit the derived consts below.
 
     /// <summary>
     /// Release line. The single source for major.minor; pins <see cref="AssemblyVersion"/>. Bump when starting a new
@@ -47,16 +47,14 @@ internal class StrideVersion
 
     /// <summary>
     /// The prerelease suffix (e.g. -beta1), a cosmetic, NuGet-ordered label — asset upgraders ignore it (they gate on
-    /// the numeric version). Empty for a stable release. The generators overlay it with -devN on dev builds.
+    /// the numeric version). Empty for a stable release. Commit it before releasing a prerelease: release.yml and
+    /// release-samples.yml read it from here. Only package builds apply it; dev and CI builds stay at
+    /// MajorMinor.Patch (+ -devN), so the prereleases of one version share one dev version.
     /// </summary>
-    public const string NuGetVersionSuffix = "";
+    public const string NuGetVersionSuffix = "-beta8";
 
-    /// <summary>
-    /// Base version of the content-versioned template packages (Starters, Samples), independent of the engine
-    /// version. The bridge query and Stride.Templates.Common.targets pack both append <see cref="NuGetVersionSuffix"/>
-    /// to it (one source, so they can't drift); StrideSamplesVersion.props reads it for the build.
-    /// </summary>
-    public const string SamplesVersion = "4.4.0";
+    // The content template version (samples) is not here: it lives in sources/templates/StrideSamplesVersion.props,
+    // so a samples release rebuilds only Stride.Assets, not every assembly.
 
     // ── Derived / overlaid ───────────────────────────────────────────────────────────────────────────────
 

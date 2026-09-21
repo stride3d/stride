@@ -484,14 +484,7 @@ public partial class SpirvBuilder
                 {
                     var expr = ConstantExpression.ParseFromBuffer(typeArray.Length, shaderBuffers.Context.GetBuffer(), shaderBuffers.Context);
                     if (expr.TryEvaluate(out var value) && value != null)
-                    {
-                        var resultType = lengthInstruction.Data.IdResultType!.Value;
-                        var resultId = lengthInstruction.Data.IdResult!.Value;
-                        if (value is int or long)
-                            shaderBuffers.Context.Replace(lengthInstruction.Index, new OpConstant<int>(resultType, resultId, System.Convert.ToInt32(value)));
-                        else if (value is float or double)
-                            shaderBuffers.Context.Replace(lengthInstruction.Index, new OpConstant<float>(resultType, resultId, System.Convert.ToSingle(value)));
-                    }
+                        shaderBuffers.Context.Replace(lengthInstruction.Index, SpirvContext.CreateConstantInstruction(lengthInstruction.Data.IdResultType!.Value, lengthInstruction.Data.IdResult!.Value, value));
                 }
             }
         }

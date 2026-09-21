@@ -1,0 +1,74 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ControlTheme x:Key="{x:Type WindowDrawnDecorations}" TargetType="WindowDrawnDecorations">
+      <Setter Property="DefaultTitleBarHeight" Value="32"/>
+      <Setter Property="DefaultFrameThickness" Value="0,0,0,0"/>
+      <Setter Property="DefaultShadowThickness" Value="1"/>
+      <Setter Property="Template">
+        <WindowDrawnDecorationsTemplate>
+          <WindowDrawnDecorationsContent>
+            <WindowDrawnDecorationsContent.Underlay>
+              <Panel x:Name="PART_UnderlayWrapper">
+                <Border x:Name="PART_WindowBorder"
+                        Background="{DynamicResource SystemAccentColorDark1}"
+                        BorderThickness="1"
+                        IsHitTestVisible="False" />
+              </Panel>
+            </WindowDrawnDecorationsContent.Underlay>
+
+            <WindowDrawnDecorationsContent.Overlay>
+              <!-- Positioned over the titlebar area -->
+              <StackPanel x:Name="PART_OverlayWrapper">
+                <Grid x:Name="PART_OverlayPanel" ColumnDefinitions="*,Auto" VerticalAlignment="Top">
+                  <Grid.Styles>
+                    <Style Selector="Button.MainWindowButton PathIcon">
+                      <Setter Property="Height" Value="12"/>
+                      <Setter Property="Width" Value="12"/>
+                    </Style>
+                    <Style Selector="Button.MainWindowButton">
+                      <Setter Property="Background" Value="Transparent"/>
+                      <Setter Property="BorderBrush" Value="Transparent"/>
+                      <Setter Property="BorderThickness" Value="1"/>
+                      <Setter Property="Height" Value="32"/>
+                      <Setter Property="HorizontalAlignment" Value="Center"/>
+                      <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                      <Setter Property="VerticalAlignment" Value="Center"/>
+                      <Setter Property="VerticalContentAlignment" Value="Center"/>
+                      <Setter Property="Width" Value="46"/>
+                      <Setter Property="IsHitTestVisible" Value="True"/>
+                    </Style>
+                  </Grid.Styles>
+                  <StackPanel Grid.Column="0" Orientation="Horizontal"
+                              Background="Transparent"
+                              Margin="16,0"
+                              WindowDecorationProperties.ElementRole="TitleBar">
+                    <PathIcon Height="20" Margin="0 0 12 0"
+                              Data="{StaticResource GeometryStrideLogo}" />
+                    <TextBlock Text="{TemplateBinding Title}" TextTrimming="CharacterEllipsis"
+                               VerticalAlignment="Center"/>
+                  </StackPanel>
+                  <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button x:Name="PART_MinimizeButton" Classes="MainWindowButton"
+                            Content="{DynamicResource VectorMinimizeWindow}"/>
+                    <Button x:Name="PART_MaximizeButton" Classes="MainWindowButton"
+                            Content="{DynamicResource VectorMaximizeWindow}"/>
+                    <Button x:Name="PART_CloseButton" Classes="MainWindowButton"
+                            Content="{DynamicResource VectorCloseWindow}"/>
+                  </StackPanel>
+                </Grid>
+              </StackPanel>
+            </WindowDrawnDecorationsContent.Overlay>
+          </WindowDrawnDecorationsContent>
+        </WindowDrawnDecorationsTemplate>
+      </Setter>
+      <!-- Pseudoclass styling -->
+      <Style Selector="^:maximized /template/ Border">
+        <Setter Property="BorderThickness" Value="0"/>
+      </Style>
+      <Style Selector="^:maximized /template/ Button#PART_MaximizeButton">
+        <Setter Property="Content" Value="{DynamicResource VectorRestoreWindow}" />
+      </Style>
+      
+    </ControlTheme>
+</ResourceDictionary>

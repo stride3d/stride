@@ -21,6 +21,7 @@
     <Compile Include="TestAssetContentTypeMap.cs" />
     <Compile Include="TestAssetUrlConstantsGenerator.cs" />
     <Compile Include="TestCodeUpgrade.cs" />
+    <Compile Include="TestContentTemplateResolver.cs" />
     <Compile Include="TestMemberRequiredComponentChecks.cs" />
     <Compile Include="XunitAttributes.cs" />
     <Compile Include="TestMaterialGenerator.cs" />

@@ -128,6 +128,182 @@ public class StrideShaderTests
             && m.Text.Contains("[numthreads]") && m.Text.Contains("Compute"));
     }
 
+    // A texture offset has to be a constant of the module. It is written inline, so the instructions
+    // computing it (constructors, arithmetic on constants) are turned into constants.
+    [Fact]
+    public void TextureOffsetCanBeAConstantExpression()
+    {
+        SpirvCrossSupport.SkipUnlessAvailable();
+        FxcSupport.SkipUnlessAvailable();
+
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(new ShaderClassSource("TextureConstantOffset"), new ShaderMixer.Options(true), log, out var bytecode, out _, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+
+        var validation = Spv.ValidateBinary(bytecode);
+        Assert.True(validation.IsValid, validation.Output);
+
+        var translator = new SpirvTranslator(bytecode.ToArray().AsMemory().Cast<byte, uint>());
+        var fragment = translator.GetEntryPoints().First(x => x.ExecutionModel == ExecutionModel.Fragment);
+        var hlsl = translator.Translate(Backend.Hlsl, fragment);
+        Assert.Contains("int2(4, 2)", hlsl);
+        var errors = FxcSupport.Compile(hlsl, "ps_5_0");
+        Assert.True(errors is null, errors + Environment.NewLine + hlsl);
+    }
+
+    // The thread group size is a literal of the module, so it has to be known when compiling
+    [Fact]
+    public void NumThreadsVariableParameterIsReported()
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.False(shaderMixer.MergeSDSL(new ShaderClassSource("NumThreadsVariable"), new ShaderMixer.Options(true), log, out _, out _, out _, out _));
+
+        Assert.Contains(log.Messages, m => m.Type == Stride.Core.Diagnostics.LogMessageType.Error
+            && m.Text.Contains("[numthreads] parameter must be a constant integer expression"));
+    }
+
+    // A `stage compose` is one slot for the whole effect: its declaring shader is promoted to the root,
+    // so a value supplied at a nested composition would have nothing to attach to.
+    [Fact]
+    public void StageCompositionSuppliedFromNestedIsReported()
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+
+        var shaderSource = new ShaderMixinSource
+        {
+            Mixins = { new ShaderClassSource("StageComposePathRoot") },
+            Compositions =
+            {
+                ["nested"] = new ShaderMixinSource
+                {
+                    Mixins = { new ShaderClassSource("StageComposePathSupplier") },
+                    Compositions = { ["Samplers"] = new ShaderArraySource { new ShaderClassSource("StageComposePathImpl") } },
+                },
+            },
+        };
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.False(shaderMixer.MergeSDSL(shaderSource, new ShaderMixer.Options(true), log, out _, out _, out _, out _));
+
+        Assert.Contains(log.Messages, m => m.Type == Stride.Core.Diagnostics.LogMessageType.Error
+            && m.Text.Contains("'Samplers'") && m.Text.Contains("StageComposePathDeclarer")
+            && m.Text.Contains("supplied at the root") && m.Text.Contains("'nested'"));
+    }
+
+    // The other side of the rule: the value comes from the root even when only a nested composition
+    // inherits the shader declaring the slot.
+    [Fact]
+    public void StageCompositionDeclaredFromNestedIsSuppliedAtRoot()
+    {
+        AssertStageSamplerTextureIsBoundAtRoot(MergeStageComposePath("StageComposePathRoot", "nested"));
+    }
+
+    // Two nested compositions inheriting the same declarer share the one slot.
+    [Fact]
+    public void StageCompositionDeclaredFromTwoNestedIsSuppliedAtRoot()
+    {
+        AssertStageSamplerTextureIsBoundAtRoot(MergeStageComposePath("StageComposePathRoot2", "nestedA", "nestedB"));
+    }
+
+    private static EffectReflection MergeStageComposePath(string root, params string[] nestedSlots)
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+
+        var shaderSource = new ShaderMixinSource { Mixins = { new ShaderClassSource(root) } };
+        foreach (var nestedSlot in nestedSlots)
+            shaderSource.Compositions[nestedSlot] = new ShaderMixinSource { Mixins = { new ShaderClassSource("StageComposePathSupplier") } };
+        shaderSource.Compositions["Samplers"] = new ShaderArraySource { new ShaderClassSource("StageComposePathImpl") };
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(shaderSource, new ShaderMixer.Options(true), log, out _, out var reflection, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+        return reflection;
+    }
+
+    // The supplied shader's texture gets the key of a root composition: no nested path after the slot
+    private static void AssertStageSamplerTextureIsBoundAtRoot(EffectReflection reflection)
+    {
+        var textureKeys = reflection.ResourceBindings.Select(b => b.KeyInfo.KeyName).Where(k => k.Contains("StageComposePathImpl.Tex")).Distinct().ToList();
+        Assert.Equal(["StageComposePathImpl.Tex.Samplers[0]"], textureKeys);
+    }
+
+    // SV_Coverage is a uint in HLSL and a one-element array decorated SampleMask in SPIR-V, on both sides.
+    [Fact]
+    public void CoverageIsSampleMaskInFragmentStage()
+    {
+        SpirvCrossSupport.SkipUnlessAvailable();
+        FxcSupport.SkipUnlessAvailable();
+
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(new ShaderClassSource("PSCoverage"), new ShaderMixer.Options(true), log, out var bytecode, out _, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+
+        var validation = Spv.ValidateBinary(bytecode);
+        Assert.True(validation.IsValid, validation.Output);
+
+        var translator = new SpirvTranslator(bytecode.ToArray().AsMemory().Cast<byte, uint>());
+        var fragment = translator.GetEntryPoints().First(x => x.ExecutionModel == ExecutionModel.Fragment);
+        var hlsl = translator.Translate(Backend.Hlsl, fragment);
+        // Read as an input and, since the shader writes it, declared as an output too
+        Assert.Contains("gl_SampleMaskIn : SV_Coverage", hlsl);
+        Assert.Contains("gl_SampleMask : SV_Coverage", hlsl);
+        var errors = FxcSupport.Compile(hlsl, "ps_5_0");
+        Assert.True(errors is null, errors + Environment.NewLine + hlsl);
+    }
+
+    // `static const uint X = 1` converts its int literal. The constant must stay usable, and keep its type,
+    // as an array size, once inherited, and when its value comes from a generic of the base shader.
+    // ConstInherited: every constant of a base shader is imported, whatever it is made of (vector, vector
+    // components, null struct...), even when only known once a generic of the base shader is.
+    [Theory]
+    [InlineData("ConstUIntArraySize")]
+    [InlineData("ConstUIntInherited")]
+    [InlineData("ConstUIntGeneric")]
+    [InlineData("ConstInherited")]
+    public void ConstantIsUsable(string shaderName)
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(new ShaderClassSource(shaderName), new ShaderMixer.Options(true), log, out var bytecode, out _, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+
+        var validation = Spv.ValidateBinary(bytecode);
+        Assert.True(validation.IsValid, validation.Output);
+    }
+
+    // OpSwitch takes literal values: a label that cannot be evaluated when compiling, and two labels with
+    // the same value (easy with named constants), are errors.
+    // Constant labels (`static const`) are covered by the SwitchConstLabels render test.
+    [Theory]
+    [InlineData("SwitchVariableLabel", "case label must be a constant integer expression")]
+    [InlineData("SwitchDuplicateLabel", "case label has the same value (1)")]
+    // Only known once the generic of the base shader is: reported when mixing, with the location of the switch
+    [InlineData("SwitchGenericDuplicateLabel", "SwitchGenericDuplicateLabel.sdsl(8,")]
+    [InlineData("SwitchGenericDuplicateLabel", "two case labels with the same value (3)")]
+    public void InvalidSwitchIsReported(string shaderName, string expectedError)
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.False(shaderMixer.MergeSDSL(new ShaderClassSource(shaderName), new ShaderMixer.Options(true), log, out _, out _, out _, out _));
+
+        Assert.Contains(log.Messages, m => m.Type == Stride.Core.Diagnostics.LogMessageType.Error && m.Text.Contains(expectedError));
+    }
+
     // fxc rejects the same shader with X4532, so this reports rather than emitting a module that only
     // fails later, deep inside the HLSL legalizer.
     [Fact]
@@ -1193,5 +1369,30 @@ new ShaderMacro("class", "shader"),
         Assert.Equal(
             [Stride.Shaders.Spirv.Specification.LoopControlMask.DontUnroll, Stride.Shaders.Spirv.Specification.LoopControlMask.Unroll, Stride.Shaders.Spirv.Specification.LoopControlMask.DontUnroll],
             controls);
+    }
+
+    // Writing only part of a stream the stage input does not carry must leave the rest defined.
+    // Checked with fxc, which rejects an undefined read with X4000; the HLSL text alone looks fine.
+    [Fact]
+    public void GeometryStreamsAssignThenPartialWriteCompilesWithFxc()
+    {
+        SpirvCrossSupport.SkipUnlessAvailable();
+        FxcSupport.SkipUnlessAvailable();
+
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+        shaderMixer.ShaderLoader.LoadExternalBuffer("GeometryStreamsAssignPartialWrite", [], out _, out _, out _);
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(new ShaderClassSource("GeometryStreamsAssignPartialWrite"), new ShaderMixer.Options(true), log, out var bytecode, out _, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+
+        var legalized = SpirvTools.LegalizeForHlsl(System.Runtime.InteropServices.MemoryMarshal.Cast<byte, uint>(bytecode.ToArray()));
+        var translator = new SpirvTranslator(legalized.AsMemory());
+        var geometry = translator.GetEntryPoints().First(x => x.ExecutionModel == ExecutionModel.Geometry);
+        var hlsl = translator.Translate(Backend.Hlsl, geometry);
+
+        var errors = FxcSupport.Compile(hlsl, "gs_5_0");
+        Assert.True(errors is null, errors + Environment.NewLine + hlsl);
     }
 }

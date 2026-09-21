@@ -69,8 +69,9 @@
     <!-- Force Stride.Templates.Games (NewGame, the bundled-with-installer set) to build before
          GameStudio links. Without this, a fresh checkout that builds only the editor never
          produces the .nupkg the DotNetNewTemplateBridge resolves via PackageStore at runtime.
-         Sibling packages (Stride.Templates.Games.Starters, Stride.Templates.Samples) build
-         standalone and reach users via the future editor template store / CLI dotnet new install.
+         The content packages (Stride.Templates.Games.Starters, .Samples, .AssetPacks) are not
+         packed by a normal build: the bridge resolves the published content version the engine
+         names (sources/templates/StrideSamplesVersion.props), or this checkout's opted-in dev pack of it.
          The templates csproj uses TreatAsLocalProperty="StrideSkipAutoPack" so the auto-pack
          still runs even when an outer build context sets the property — no strip needed here. -->
     <ProjectReference Include="..\..\templates\Stride.Templates.Games\Stride.Templates.Games.csproj">

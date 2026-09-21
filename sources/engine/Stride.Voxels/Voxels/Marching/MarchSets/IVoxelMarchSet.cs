@@ -9,8 +9,12 @@ namespace Stride.Rendering.Voxels
 {
     public interface IVoxelMarchSet
     {
-        ShaderSource GetMarchingShader(int attrID);
+        ShaderSource GetMarchingShader(int attrID, ShaderSourceCollection attributeSamplers);
         void UpdateMarchingLayout(string compositionName);
         void ApplyMarchingParameters(ParameterCollection parameters);
+        /// <summary>
+        /// Binds <paramref name="attribute"/> as the <c>AttributeSamplers[attrID]</c> of the marcher this set runs, at the path given to <see cref="UpdateMarchingLayout"/>.
+        /// </summary>
+        void ApplyAttributeSamplers(VoxelAttribute attribute, int attrID, VoxelViewContext viewContext, ParameterCollection parameters);
     }
 }

@@ -78,7 +78,7 @@ namespace Stride.Assets.Presentation.AssemblyReloading
                 {
                     // If first time, load assembly
                     if (firstTime)
-                        loadedAssembly.NewAssembly = assemblyContainer.LoadAssemblyFromPath(loadedAssembly.PackageLoadedAssembly.Path);
+                        loadedAssembly.NewAssembly = assemblyContainer.LoadAssemblyFromPath(loadedAssembly.PackageLoadedAssembly.Path, log);
 
                     // Load assembly
                     assembly = newVersion

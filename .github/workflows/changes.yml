@@ -72,6 +72,37 @@ jobs:
               return bool(files)
           print('comment_only=' + str(comment_only()).lower())
           EOF
+      # Users get the samples from the published content template packs (StrideSamplesVersion.props), not from
+      # the repository, so a sample change only reaches them through a samples release (release-samples.yml).
+      # Editing samples is normal work, so this only warns, as a reminder that one is pending. The engine-versioned
+      # template sources and prose don't count.
+      - name: Warn on sample changes (samples release needed)
+        if: github.event_name == 'pull_request'
+        run: |
+          python3 - <<'EOF'
+          import json, re
+          files = [f for page in json.load(open('/tmp/pr-files.json')) for f in page]
+          def is_content(name):
+              return (name.startswith('samples/')
+                      and not name.startswith(('samples/NewGame/', 'samples/Library/'))
+                      and not name.lower().endswith('.md'))
+          changed = [f for f in files if is_content(f['filename']) or is_content(f.get('previous_filename') or '')]
+          if changed:
+              names = [f['filename'] for f in changed]
+              shown = ', '.join(names[:5]) + (f' and {len(names) - 5} more' if len(names) > 5 else '')
+              # The PR diff shows an annotation only on a file of the new version, on a line inside the diff: the
+              # first changed sample file that still exists and has a text diff, at the start of its first changed
+              # block. Deleted and binary-only changes leave the warning on the run summary only.
+              where = ''
+              for f in changed:
+                  hunk = re.search(r'^@@ -\d+(?:,\d+)? \+(\d+)', f.get('patch') or '', re.M)
+                  if f['status'] != 'removed' and hunk and int(hunk.group(1)) > 0:
+                      where = f"file={f['filename']},line={hunk.group(1)},"
+                      break
+              print('::warning ' + where + 'title=Samples changed::This PR changes the samples (' + shown + '). '
+                    'Users only get them with the next samples release: after merging, run release-samples.yml '
+                    '(before the next engine release if the engine needs them; see docs/build/versioning.md).')
+          EOF
       - uses: dorny/paths-filter@v4
         if: github.event_name == 'pull_request'
         id: filter

@@ -137,7 +137,12 @@ internal static class NewCommand
                     else
                     {
                         Console.WriteLine($"Upgrading the project from Stride {templateVersion} to {version}...");
-                        Tools.Run(compiler, $"the Asset Compiler for Stride {version}", ["upgrade", solutionFile], wait: true, sessionPath: solutionFile, toolReadsHostArgs: false);
+                        var exitCode = Tools.Run(compiler, $"the Asset Compiler for Stride {version}", ["upgrade", solutionFile], wait: true, sessionPath: solutionFile, toolReadsHostArgs: false);
+                        if (exitCode != 0)
+                        {
+                            Console.Error.WriteLine($"The upgrade to Stride {version} failed (exit code {exitCode}). The project was created, but it may still be on Stride {templateVersion}.");
+                            return 1;
+                        }
                     }
                 }
 

@@ -363,4 +363,110 @@ public class TestCodeUpgrade
 
         Assert.Contains("v.IsSRgb(2)", result);
     }
+
+    // The #1715 shape: memory helpers left Utilities for MemoryUtilities (same namespace), some renamed.
+    private const string MovedMembersSource = """
+        namespace TestNs
+        {
+            static class Old
+            {
+                public static nint AllocateMemory(int sizeInBytes, int align = 16) => 0;
+                public static void FreeMemory(nint buffer) { }
+                public static void Swap<T>(ref T left, ref T right) { }
+                public static void Dispose(object o) { }
+            }
+            static class Other
+            {
+                public static void FreeMemory(nint buffer) { }
+            }
+        }
+        """;
+
+    private static readonly CodeUpgrade MoveUpgrade = Rewrite(
+        StaticMemberMove("TestNs.Old", "AllocateMemory", "TestNs.New", "Allocate"),
+        StaticMemberMove("TestNs.Old", "FreeMemory", "TestNs.New", "Free"),
+        StaticMemberMove("TestNs.Old", "Swap", "TestNs.New"),
+        ParameterRename("TestNs.Old", "AllocateMemory", "align", "alignment"));
+
+    [Fact]
+    public async Task StaticMemberMoveRetargetsOnlyTheMatchingSymbol()
+    {
+        var source = MovedMembersSource + """
+
+            namespace TestNs
+            {
+                class Usage
+                {
+                    void A(nint p) => Old.FreeMemory(p);
+                    void B(nint p) => Other.FreeMemory(p);
+                    void C(object o) => Old.Dispose(o);
+                    void D(nint p) => TestNs.Old.FreeMemory(p);
+                    void E(nint p) => global::TestNs.Old.FreeMemory(p);
+                    System.Action<nint> F() => Old.FreeMemory;
+                    string G() => nameof(Old.FreeMemory);
+                    void H(ref int a, ref int b) => Old.Swap<int>(ref a, ref b);
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(source, MoveUpgrade);
+
+        Assert.Contains("=> New.Free(p);", result);
+        // The qualified receiver keeps its shape.
+        Assert.Contains("=> TestNs.New.Free(p);", result);
+        Assert.Contains("=> global::TestNs.New.Free(p);", result);
+        // Method groups, nameof and generic names are references too.
+        Assert.Contains("=> New.Free;", result);
+        Assert.Contains("nameof(New.Free)", result);
+        Assert.Contains("New.Swap<int>(ref a, ref b)", result);
+        // The unrelated same-named member and the members that stayed are untouched.
+        Assert.Contains("Other.FreeMemory(p)", result);
+        Assert.Contains("Old.Dispose(o)", result);
+    }
+
+    [Fact]
+    public async Task StaticMemberMoveComposesWithParameterRename()
+    {
+        // Both rewrites hit the same reference (the method name) but edit disjoint nodes.
+        var source = MovedMembersSource + """
+
+            namespace TestNs
+            {
+                class Usage
+                {
+                    nint A() => Old.AllocateMemory(64, align: 32);
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(source, MoveUpgrade);
+
+        Assert.Contains("New.Allocate(64, alignment: 32)", result);
+    }
+
+    [Fact]
+    public async Task StaticMemberMoveQualifiesAliasAndUsingStaticReferences()
+    {
+        // Neither form names the old type at the call site, so the new type can't be assumed in scope.
+        var source = """
+            using static TestNs.Old;
+            using Alias = TestNs.Old;
+
+            """ + MovedMembersSource + """
+
+            namespace UserNs
+            {
+                class Usage
+                {
+                    void A(nint p) => FreeMemory(p);
+                    void B(nint p) => Alias.FreeMemory(p);
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(source, MoveUpgrade);
+
+        Assert.Contains("void A(nint p) => TestNs.New.Free(p);", result);
+        Assert.Contains("void B(nint p) => TestNs.New.Free(p);", result);
+    }
 }

@@ -125,24 +125,62 @@ jobs:
           }
           echo '```' >> $env:GITHUB_STEP_SUMMARY
 
+      # The content template packs (Samples, Starters, AssetPacks) are not part of an engine release: the engine
+      # names their exact version (sources/templates/StrideSamplesVersion.props), which release-samples.yml only commits
+      # once it is published. Refuse an engine whose content is not on the feed (every New Project would break) or
+      # that is stable while naming prerelease content. Samples changed since the published content (its
+      # samples/<version> tag) only warn: the engine ships with the published content, which is right for work not
+      # released yet, and the release manager judges whether a change is one the new engine needs.
+      - name: Check the content version
+        shell: bash
+        run: |
+          SHA="${{ steps.src.outputs.sha }}"
+          VERSION="${{ steps.version.outputs.version }}"
+          FILE=sources/templates/StrideSamplesVersion.props
+          SV=$(git show "$SHA:$FILE" | sed -n 's|.*<_StrideCommittedSamplesVersion>\([^<]*\)</.*|\1|p')
+          if [ -z "$SV" ]; then
+            echo "::error::Could not read the content version from $FILE at $SHA"
+            exit 1
+          fi
+          echo "::notice::Content version named by this engine: $SV"
+          case "$VERSION" in
+            *-*) ;;
+            *) case "$SV" in *-*) echo "::error::Stable engine $VERSION names prerelease content $SV. Publish the samples with a stable content number first (release-samples.yml)."; exit 1;; esac;;
+          esac
+          for id in stride.templates.samples stride.templates.games.starters stride.templates.assetpacks; do
+            if ! curl -sf "https://api.nuget.org/v3-flatcontainer/$id/index.json" | grep -q "\"$SV\""; then
+              echo "::error::$id $SV is not on nuget.org. Publish the samples first (release-samples.yml), then release the engine."
+              exit 1
+            fi
+          done
+          # The commit the published content was packed from (content published before release-samples.yml has
+          # no such tag).
+          if ! git rev-parse -q --verify "refs/tags/samples/$SV" >/dev/null; then
+            echo "::warning::No samples/$SV tag; skipped the check for sample changes since the published content."
+            exit 0
+          fi
+          CHANGED=$(git diff --name-only "samples/$SV" "$SHA" -- samples ':(exclude)samples/NewGame' ':(exclude)samples/Library' ':(exclude)*.md')
+          if [ -n "$CHANGED" ]; then
+            COUNT=$(printf '%s\n' "$CHANGED" | wc -l)
+            echo "::warning title=Samples changed::$COUNT sample file(s) changed since the published content $SV (tag samples/$SV). This engine ships with the published $SV content. If the engine needs those changes, publish a samples release first (see the run summary)."
+            {
+              echo "## Sample changes not in the published content ($SV)"
+              echo ""
+              echo "This engine ships with the published $SV content. Fine for work not released yet; if the new engine needs these changes, publish a samples release with release-samples.yml (it updates SamplesVersion), then release again."
+              echo ""
+              echo '```'
+              printf '%s\n' "$CHANGED" | sed -n '1,50p'
+              [ "$COUNT" -gt 50 ] && echo "... and $((COUNT - 50)) more"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Push NuGet packages
         shell: pwsh
         run: |
-          # Content-versioned template packages (Samples, Starters) follow StrideSamplesVersion and
-          # only change when the samples are bumped (see plans/samples-version-bump.md). Skip the
-          # upload when that version is already on nuget.org - re-publishing the same version is a
-          # no-op and these packages are large, so this avoids a wasted upload every release.
-          function Test-NuGetPublished([string]$id, [string]$version) {
-            $url = "https://api.nuget.org/v3-flatcontainer/$($id.ToLowerInvariant())/index.json"
-            try { return ((Invoke-RestMethod -Uri $url -TimeoutSec 60 -ErrorAction Stop).versions -contains $version) }
-            catch { return $false }  # 404 (never published) or transient: fall through to push (--skip-duplicate stays safe)
-          }
-
           $packages = Get-ChildItem -Path bin/packages -Filter "*.nupkg"
-          $contentVersionedIds = @('Stride.Templates.Samples', 'Stride.Templates.Games.Starters', 'Stride.Templates.AssetPacks')
-          $contentVersioned = $packages | Where-Object { $_.Name -match 'Stride\.Templates\.(Samples|Games\.Starters|AssetPacks)\.' }
           $gameStudio = $packages | Where-Object { $_.Name -match 'GameStudio' }
-          $main = $packages | Where-Object { $_.Name -notmatch 'GameStudio' -and $_.Name -notmatch 'Stride\.Templates\.(Samples|Games\.Starters|AssetPacks)\.' }
+          $main = $packages | Where-Object { $_.Name -notmatch 'GameStudio' }
 
           echo "::group::Pushing main packages ($($main.Count))"
           foreach ($pkg in $main) {
@@ -150,20 +188,6 @@ jobs:
             dotnet nuget push $pkg.FullName --api-key $env:STRIDE_NUGET_API_KEY --source "https://api.nuget.org/v3/index.json" --timeout 1800 --skip-duplicate
           }
           echo "::endgroup::"
-
-          if ($contentVersioned) {
-            echo "::group::Pushing content-versioned template packages (Samples, Starters, AssetPacks)"
-            foreach ($pkg in $contentVersioned) {
-              $id = $contentVersionedIds | Where-Object { $pkg.Name.StartsWith($_ + '.') } | Select-Object -First 1
-              if ($id -and (Test-NuGetPublished $id $pkg.BaseName.Substring($id.Length + 1))) {
-                echo "Skipping $($pkg.Name) (already published; samples unchanged since last release)."
-                continue
-              }
-              echo "Pushing $($pkg.Name)..."
-              dotnet nuget push $pkg.FullName --api-key $env:STRIDE_NUGET_API_KEY --source "https://api.nuget.org/v3/index.json" --timeout 1800 --skip-duplicate
-            }
-            echo "::endgroup::"
-          }
 
           if ($gameStudio) {
             echo "::group::Pushing GameStudio (last, so dependencies are already available)"

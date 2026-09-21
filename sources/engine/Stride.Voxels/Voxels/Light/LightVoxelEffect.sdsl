@@ -11,7 +11,6 @@ namespace Stride.Rendering.Voxels.VoxelGI
     effect LightVoxelEffect
     {
         using params LightVoxelShaderKeys;
-        using params MarchAttributesKeys;
 
         mixin LightVoxelShader;
 
@@ -22,13 +21,6 @@ namespace Stride.Rendering.Voxels.VoxelGI
         if (LightVoxelShaderKeys.specularMarcher != null)
         {
             mixin compose specularMarcher = LightVoxelShaderKeys.specularMarcher;
-        }
-        if (MarchAttributesKeys.AttributeSamplers!=null)
-        {
-            foreach (var attr in MarchAttributesKeys.AttributeSamplers)
-            {
-                mixin compose AttributeSamplers += (attr);
-            }
         }
    };
 }

@@ -1,0 +1,15 @@
+// Two nested compositions inherit the same stage slot declarer, so the root supplies it once for both.
+namespace Stride.Shaders.Tests;
+
+shader StageComposePathRoot2
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    compose StageComposePathSupplier nestedA;
+    compose StageComposePathSupplier nestedB;
+
+    void PSMain()
+    {
+        streams.ColorTarget = nestedA.Get() + nestedB.Get();
+    }
+};

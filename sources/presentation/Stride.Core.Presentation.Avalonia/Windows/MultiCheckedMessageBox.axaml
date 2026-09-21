@@ -7,21 +7,23 @@
         xmlns:local="using:Stride.Core.Presentation.Windows"
         xmlns:windows="using:Stride.Core.Presentation.Avalonia.Windows"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-        MinHeight="120" MinWidth="320" MaxHeight="768"
+        MinHeight="120" MinWidth="320" MaxHeight="768" MaxWidth="1024"
         SizeToContent="WidthAndHeight" CanResize="False"
         WindowStartupLocation="CenterOwner"
         Padding="8,0" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Center"
-        x:Class="Stride.Core.Presentation.Avalonia.Windows.MultiCheckedMessageBox">
+        x:Class="Stride.Core.Presentation.Avalonia.Windows.MultiCheckedMessageBox"
+        WindowDecorations="BorderOnly" ExtendClientAreaToDecorationsHint="True">
   <Window.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
         <ResourceInclude Source="avares://Stride.Core.Presentation.Avalonia/Windows/GeometryResources.axaml"/>
+        <ResourceInclude Source="avares://Stride.Core.Presentation.Avalonia/Windows/TitleBar.axaml" />
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
   </Window.Resources>
   <Window.ContentTemplate>
     <DataTemplate>
-      <DockPanel LastChildFill="True" Margin="8">
+      <DockPanel LastChildFill="True" Margin="8,32,8,8">
         <!--  buttons -->
         <ItemsControl DockPanel.Dock="Bottom"
                       HorizontalAlignment="Right"
@@ -55,6 +57,7 @@
                     <DataTemplate DataType="{x:Type local:DialogCheckBoxInfo}">
                       <CheckBox Content="{Binding Content}"
                                 IsChecked="{Binding IsChecked, Mode=TwoWay}"
+                                IsEnabled="{Binding IsEnabled}"
                                 Margin="0,2" />
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>

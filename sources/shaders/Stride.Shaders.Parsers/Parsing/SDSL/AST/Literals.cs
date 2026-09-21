@@ -377,7 +377,7 @@ public abstract partial class IdentifierBase(string name, TextLocation info) : L
         if (symbol.Id.Kind == SymbolKind.Shader)
         {
             if (constantOnly)
-                throw new NotImplementedException();
+                throw new NotConstantExpressionException($"'{symbol.Id.Name}' is not a compile-time constant");
 
             if (instance == null)
                 instance = builder.Insert(new OpThisSDSL(context.Bound++)).ResultId;
@@ -392,7 +392,7 @@ public abstract partial class IdentifierBase(string name, TextLocation info) : L
         else if (symbol.MemberAccessWithImplicitThis is { } thisType)
         {
             if (constantOnly)
-                throw new NotImplementedException();
+                throw new NotConstantExpressionException($"'{symbol.Id.Name}' is not a compile-time constant");
 
             instance ??= builder.Insert(new OpThisSDSL(context.Bound++)).ResultId;
             result.Id = builder.Insert(new OpMemberAccessSDSL(context.GetOrRegister(thisType), context.Bound++, instance.Value, result.Id));
@@ -400,7 +400,7 @@ public abstract partial class IdentifierBase(string name, TextLocation info) : L
         if (symbol.AccessChain is int accessChainIndex)
         {
             if (constantOnly)
-                throw new NotImplementedException();
+                throw new NotConstantExpressionException($"'{symbol.Id.Name}' is not a compile-time constant");
 
             var index = context.CompileConstant(accessChainIndex).Id;
             result.Id = builder.Insert(new OpAccessChain(resultType, context.Bound++, result.Id, [index]));
@@ -806,9 +806,6 @@ public partial class TypeName(string name, TextLocation info) : Literal(info)
             else
             {
                 var arrayComputedSize = -1;
-                if (arraySize is IntegerLiteral i)
-                    arrayComputedSize = (int)i.Value;
-
                 var constantArraySize = arraySize.CompileConstantValue(table, context);
                 var sizeExpr = ConstantExpression.ParseFromBuffer(constantArraySize.Id, context.GetBuffer(), context);
                 if (sizeExpr.TryEvaluate(out var value) && value is IConvertible)

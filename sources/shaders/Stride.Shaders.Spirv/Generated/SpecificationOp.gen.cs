@@ -792,6 +792,7 @@ public static partial class Specification
         OpEmitVertexSDSL = 8029,
         OpBinaryOperationSDSL = 8030,
         OpSourceHashSDSL = 8031,
+        OpSwitchIdSDSL = 8032,
         OpEffectSDFX = 9000,
         OpParamsUseSDFX = 9001,
         OpParamsSDFX = 9002,

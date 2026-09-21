@@ -509,6 +509,15 @@ public partial class ShaderMethod(
     {
         var (builder, context) = compiler;
 
+        // Note: these values end up as literals of OpExecutionMode
+        int EvaluateAttributeParameter(AnyShaderAttribute attribute, int index)
+        {
+            var parameter = attribute.Parameters[index];
+            if (!parameter.TryEvaluateConstantInteger(table, context, out var value))
+                table.AddError(new(parameter.Info, $"[{attribute.Name}] parameter must be a constant integer expression"));
+            return value;
+        }
+
         if (Attributes != null)
         {
             Span<int> attrParamBuffer = stackalloc int[8]; // max attribute parameters
@@ -527,32 +536,18 @@ public partial class ShaderMethod(
                         {
                             var parameters = attrParamBuffer[..anyAttribute.Parameters.Count];
                             for (var index = 0; index < anyAttribute.Parameters.Count; index++)
-                            {
-                                var compiled = anyAttribute.Parameters[index].CompileConstantValue(table, context);
-                                var expr = ConstantExpression.ParseFromBuffer(compiled.Id, context.GetBuffer(), context);
-                                if (!expr.TryEvaluate(out var value) || value is null)
-                                    throw new InvalidOperationException();
-                                parameters[index] = Convert.ToInt32(value);
-                            }
+                                parameters[index] = EvaluateAttributeParameter(anyAttribute, index);
 
                             context.Add(new OpExecutionMode(function.Id, Specification.ExecutionMode.LocalSize, new(parameters)));
                         }
                     }
                     else if (anyAttribute.Name == "maxvertexcount")
                     {
-                        var compiled = anyAttribute.Parameters[0].CompileConstantValue(table, context);
-                        var expr = ConstantExpression.ParseFromBuffer(compiled.Id, context.GetBuffer(), context);
-                        if (!expr.TryEvaluate(out var value) || value is null)
-                            throw new InvalidOperationException();
-                        context.Add(new OpExecutionMode(function.Id, Specification.ExecutionMode.OutputVertices, new(Convert.ToInt32(value))));
+                        context.Add(new OpExecutionMode(function.Id, Specification.ExecutionMode.OutputVertices, new(EvaluateAttributeParameter(anyAttribute, 0))));
                     }
                     else if (anyAttribute.Name == "outputcontrolpoints")
                     {
-                        var compiled = anyAttribute.Parameters[0].CompileConstantValue(table, context);
-                        var expr = ConstantExpression.ParseFromBuffer(compiled.Id, context.GetBuffer(), context);
-                        if (!expr.TryEvaluate(out var value) || value is null)
-                            throw new InvalidOperationException();
-                        context.Add(new OpExecutionMode(function.Id, Specification.ExecutionMode.OutputVertices, new(Convert.ToInt32(value))));
+                        context.Add(new OpExecutionMode(function.Id, Specification.ExecutionMode.OutputVertices, new(EvaluateAttributeParameter(anyAttribute, 0))));
                     }
                     else if (anyAttribute.Name == "patchconstantfunc")
                     {

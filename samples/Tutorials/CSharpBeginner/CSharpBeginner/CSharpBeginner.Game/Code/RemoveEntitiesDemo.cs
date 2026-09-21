@@ -49,7 +49,7 @@ namespace CSharpBeginner.Code
         public override void Update()
         {
             // We use a simple timer
-            timer += (float)Game.UpdateTime.Elapsed.TotalSeconds;
+            timer += (float)Game.UpdateTime.WarpElapsed.TotalSeconds;
             if (timer > currentTimer)
             {
                 // If the entities exist, we remove them from the scene

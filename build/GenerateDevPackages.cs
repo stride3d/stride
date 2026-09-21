@@ -59,14 +59,14 @@ if (string.IsNullOrEmpty(solution))
 
 if (string.IsNullOrEmpty(version))
 {
-    // Package versions use the committed MajorMinor.Patch (see StrideVersionTasks.cs). The -devN suffix comes from
-    // the generated overlay when present.
+    // Dev package versions are the committed MajorMinor.Patch without its prerelease suffix (see StrideVersionTasks.cs),
+    // plus the -devN suffix from the generated overlay when present.
     var generatedFile = Path.Combine(strideRoot, "sources", "shared", "SharedAssemblyInfo.Generated.cs");
     var plainFile = Path.Combine(strideRoot, "sources", "shared", "SharedAssemblyInfo.cs");
     var plainText = File.ReadAllText(plainFile);
     var mmMatch = Regex.Match(plainText, @"MajorMinor\s*=\s*""([^""]+)""");
     var patchMatch = Regex.Match(plainText, @"\bPatch\s*=\s*""([^""]+)""");
-    var suffixMatch = Regex.Match(File.ReadAllText(File.Exists(generatedFile) ? generatedFile : plainFile), @"NuGetVersionSuffix\s*=\s*""([^""]*)""");
+    var suffixMatch = File.Exists(generatedFile) ? Regex.Match(File.ReadAllText(generatedFile), @"NuGetVersionSuffix\s*=\s*""([^""]*)""") : Match.Empty;
     if (!mmMatch.Success || !patchMatch.Success) throw new Exception("Could not determine version from SharedAssemblyInfo");
     version = mmMatch.Groups[1].Value + "." + patchMatch.Groups[1].Value + (suffixMatch.Success ? suffixMatch.Groups[1].Value : "");
 }
@@ -232,8 +232,11 @@ if (freshPackages.Length == 0)
 // fell back to whatever stale package the NuGet cache still held. Every packed project that had a stub before
 // must have produced one now, else stop and leave the feed as it was.
 var fresh = freshPackages.Select(Path.GetFileName).ToHashSet(StringComparer.OrdinalIgnoreCase);
+// The content template packs (Stride.Templates.Samples / .Games.Starters / .AssetPacks) are only packed on request
+// (StridePackContentTemplates), so a stamp that lists them from such a build says nothing about this pack.
 var missing = (adopt.Length > 0 ? new List<ProjectInfo>() : projects)
     .Select(StubName)
+    .Where(name => !name.StartsWith("Stride.Templates.", StringComparison.OrdinalIgnoreCase))
     .Where(name => previousStamp.Contains(name, StringComparer.OrdinalIgnoreCase) && !fresh.Contains(name))
     .ToList();
 if (missing.Count > 0)

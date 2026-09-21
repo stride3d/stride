@@ -1,0 +1,18 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Graphics.Tests
+{
+    /// <summary>
+    /// Writes a value derived from each thread's dispatch index into a structured buffer.
+    /// </summary>
+    internal shader BufferBarrierTestShader : ComputeShaderBase
+    {
+        stage RWStructuredBuffer<uint> Output;
+
+        override void Compute()
+        {
+            Output[streams.DispatchThreadId.x] = streams.DispatchThreadId.x * 3;
+        }
+    };
+}

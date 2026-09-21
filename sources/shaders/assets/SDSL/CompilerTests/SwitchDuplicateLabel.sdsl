@@ -1,0 +1,29 @@
+namespace Stride.Shaders.Tests;
+
+shader SwitchDuplicateLabel
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    static const int Mode_A = 1;
+    static const int Mode_B = 1;
+
+    cbuffer Test
+    {
+        int Selector;
+    }
+
+    void PSMain()
+    {
+        float v = 0.0;
+        switch (Selector)
+        {
+            case Mode_A:
+                v = 1.0;
+                break;
+            case Mode_B:
+                v = 0.5;
+                break;
+        }
+        streams.ColorTarget = float4(v, v, v, v);
+    }
+}

@@ -12,10 +12,26 @@ public class TemplateManager
     private static readonly List<ITemplateGenerator> Generators = [];
     private static readonly PackageCollection ExtraPackages = [];
 
+    /// <summary>
+    /// Adds a package whose templates <see cref="FindTemplates"/> lists. May be called from any thread (template
+    /// packages downloaded in the background register when ready). Registering a package already registered, which
+    /// gained templates since, only signals the change.
+    /// </summary>
     public static void RegisterPackage(Package package)
     {
-        ExtraPackages.Add(package);
+        lock (ThisLock)
+        {
+            if (!ExtraPackages.Contains(package))
+                ExtraPackages.Add(package);
+        }
+        PackagesChanged?.Invoke();
     }
+
+    /// <summary>
+    /// Raised after <see cref="RegisterPackage"/> added templates, on the calling thread (possibly a background one).
+    /// Lets an open template list show packages that arrive late.
+    /// </summary>
+    public static event Action? PackagesChanged;
 
     /// <summary>
     /// Registers the specified factory.
@@ -56,7 +72,12 @@ public class TemplateManager
     /// <returns>A sequence containing all registered template descriptions.</returns>
     public static IEnumerable<TemplateDescription> FindTemplates(PackageSession? session = null)
     {
-        var packages = session?.Packages.Concat(ExtraPackages).Distinct(DistinctPackagePathComparer.Default) ?? ExtraPackages;
+        List<Package> extraPackages;
+        lock (ThisLock)
+        {
+            extraPackages = [.. ExtraPackages];
+        }
+        var packages = session?.Packages.Concat(extraPackages).Distinct(DistinctPackagePathComparer.Default) ?? extraPackages;
         // TODO this will not work if the same package has different versions
         return [.. packages.SelectMany(package => package.Templates).OrderBy(tpl => tpl.Order).ThenBy(tpl => tpl.Name)];
     }

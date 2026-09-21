@@ -383,6 +383,16 @@
       ]
     },
     {
+      "opname": "OpSwitchIdSDSL",
+      "opcode": 8032,
+      "class": "Control-Flow",
+      "operands": [
+        { "kind" : "IdRef",          "name" : "'Selector'" },
+        { "kind" : "IdRef",          "name" : "'Default'" },
+        { "kind" : "PairIdRefIdRef", "quantifier" : "*", "name" : "'Target'" }
+      ]
+    },
+    {
       "opname": "OpEffectSDFX",
       "opcode": 9000,
       "class": "Miscellaneous",

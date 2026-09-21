@@ -177,7 +177,8 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                 {
                     if (stream.Value.Semantic is { } semantic)
                     {
-                        if ((semantic.ToUpperInvariant().StartsWith("SV_TARGET") || semantic.ToUpperInvariant() == "SV_DEPTH") && stream.Value.Write)
+                        var upperSemantic = semantic.ToUpperInvariant();
+                        if ((upperSemantic.StartsWith("SV_TARGET") || upperSemantic == "SV_DEPTH" || upperSemantic == "SV_COVERAGE") && stream.Value.Write)
                             stream.Value.Output = true;
                     }
                 }
@@ -499,8 +500,10 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
             // Generate streams struct types (i.e. VS_STREAMS VS_INPUT and VS_OUTPUT)
             GenerateStreamStructTypes(context, executionModel, streams, inputStreams, outputStreams, out var inputType, out var outputType, out var streamsType, out var constantsType);
 
-            // Create a static global streams variable
-            var streamsVariable = context.Add(new OpVariable(context.GetOrRegister(new PointerType(streamsType, Specification.StorageClass.Private)), context.Bound++, Specification.StorageClass.Private, null));
+            // Create a static global streams variable, zero-initialized so that reading a member
+            // before it is written is defined
+            var streamsInitializer = context.CreateDefaultConstantComposite(streamsType).Id;
+            var streamsVariable = context.Add(new OpVariable(context.GetOrRegister(new PointerType(streamsType, Specification.StorageClass.Private)), context.Bound++, Specification.StorageClass.Private, streamsInitializer));
             context.AddName(streamsVariable.ResultId, $"streams{stage}");
 
             var streamLayout = new StageStreamLayout(inputStreams, outputStreams, patchInputStreams, patchOutputStreams, inputType, outputType, streamsType, constantsType, arrayInputSize, arrayOutputSize, streamsVariable.ResultId);

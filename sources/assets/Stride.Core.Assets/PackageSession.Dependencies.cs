@@ -80,8 +80,9 @@ partial class PackageSession
     /// Cheap scan for projects with a pending package upgrade that may carry source-code migrations.
     /// Reuses the cached MSBuild project (no restore) and the same upgrade-needed checks as
     /// <see cref="PreLoadPackageDependencies"/>: a direct <c>PackageReference</c> whose declared version
-    /// is below the upgrader's target. Returns one entry per (project, upgrader); the runner does the
-    /// version-gate and only opens a workspace when source rules actually apply.
+    /// is below the upgrader's target. Returns one entry per (project, upgrader) for the projects whose
+    /// upgrade was confirmed; the runner does the version-gate and only opens a workspace when source
+    /// rules actually apply.
     /// </summary>
     private List<PendingCodeUpgrade> DetectPendingCodeUpgrades(ILogger log, PackageLoadParameters loadParameters)
     {
@@ -105,6 +106,8 @@ partial class PackageSession
                 continue;
             }
 
+            var projectCodeUpgrades = new List<PendingCodeUpgrade>();
+            var pendingPackageUpgrades = new List<PendingPackageUpgrade>();
             var seen = new HashSet<PackageUpgrader>();
             foreach (var packageReference in msProject.GetItems("PackageReference"))
             {
@@ -123,8 +126,13 @@ partial class PackageSession
                 if (!seen.Add(upgrader))
                     continue;
 
-                result.Add(new PendingCodeUpgrade(upgrader, project.FullPath, range.MinVersion));
+                projectCodeUpgrades.Add(new PendingCodeUpgrade(upgrader, project.FullPath, range.MinVersion));
+                pendingPackageUpgrades.Add(new PendingPackageUpgrade(upgrader, new PackageDependency(packageReference.EvaluatedInclude, range), null));
             }
+
+            // The source migration writes user files, so it needs the same confirmation as the package upgrade.
+            if (projectCodeUpgrades.Count > 0 && PackageLoadParameters.ShouldUpgrade(RequestPackageUpgrade(project.Package, pendingPackageUpgrades, loadParameters)))
+                result.AddRange(projectCodeUpgrades);
         }
         return result;
     }
@@ -275,17 +283,8 @@ partial class PackageSession
 
             if (pendingPackageUpgrades.Count > 0)
             {
-                var upgradeAllowed = packageUpgradeAllowed != false ? PackageUpgradeRequestedAnswer.Upgrade : PackageUpgradeRequestedAnswer.DoNotUpgrade;
-
                 // Need upgrades, let's ask user confirmation
-                if (loadParameters.PackageUpgradeRequested != null && !packageUpgradeAllowed.HasValue)
-                {
-                    upgradeAllowed = loadParameters.PackageUpgradeRequested(package, pendingPackageUpgrades);
-                    if (upgradeAllowed == PackageUpgradeRequestedAnswer.UpgradeAll)
-                        packageUpgradeAllowed = true;
-                    if (upgradeAllowed == PackageUpgradeRequestedAnswer.DoNotUpgradeAny)
-                        packageUpgradeAllowed = false;
-                }
+                var upgradeAllowed = RequestPackageUpgrade(package, pendingPackageUpgrades, loadParameters);
 
                 if (!PackageLoadParameters.ShouldUpgrade(upgradeAllowed))
                 {

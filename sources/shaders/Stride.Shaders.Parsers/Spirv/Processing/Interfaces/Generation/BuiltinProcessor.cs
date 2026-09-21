@@ -100,6 +100,8 @@ internal static class BuiltinProcessor
             (ExecutionModel.TessellationControl, StreamVariableType.Output, "SV_INSIDETESSFACTOR") => new ArrayType(ScalarType.Float, 2),
             // DX might use float2 or float3 but Vulkan expects float3 in all cases
             (ExecutionModel.TessellationControl, StreamVariableType.Output, "SV_DOMAINLOCATION") => new VectorType(ScalarType.Float, 3),
+            // DX uses a uint but Vulkan expects an array, one element per 32 samples
+            (ExecutionModel.Fragment, _, "SV_COVERAGE") => new ArrayType(symbolType, 1),
             _ => symbolType,
         };
 
@@ -122,6 +124,7 @@ internal static class BuiltinProcessor
             ( >= ExecutionModel.Vertex, _, "SV_INSTANCEID" or "SV_VERTEXID") => false, // forward from VS to the next stages
             // Pixel shader inputs (SV_IsFrontFace)
             (ExecutionModel.Fragment, StreamVariableType.Input, "SV_ISFRONTFACE") => AddBuiltin(context, variable, BuiltIn.FrontFacing),
+            (ExecutionModel.Fragment, _, "SV_COVERAGE") => AddBuiltin(context, variable, BuiltIn.SampleMask),
             // SV_PrimitiveID
             (ExecutionModel.Geometry, StreamVariableType.Output, "SV_PRIMITIVEID") => AddBuiltin(context, variable, BuiltIn.PrimitiveId),
             (not ExecutionModel.Vertex, StreamVariableType.Input, "SV_PRIMITIVEID") => AddBuiltin(context, variable, BuiltIn.PrimitiveId),

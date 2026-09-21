@@ -160,6 +160,69 @@ public static class CodeUpgrades
     }
 
     /// <summary>
+    /// Migrates a static member that moved to another (non-nested) type, optionally renamed:
+    /// <c>Utilities.FreeMemory(p)</c> → <c>MemoryUtilities.Free(p)</c>. Alias and <c>using static</c>
+    /// references become fully qualified, since the new type can't be assumed in scope.
+    /// </summary>
+    public static SymbolRewrite StaticMemberMove(string declaringType, string memberName, string newDeclaringType, string newMemberName = null)
+    {
+        ArgumentNullException.ThrowIfNull(declaringType);
+        ArgumentNullException.ThrowIfNull(memberName);
+        ArgumentNullException.ThrowIfNull(newDeclaringType);
+        newMemberName ??= memberName;
+
+        var oldTypeName = declaringType[(declaringType.LastIndexOf('.') + 1)..];
+        var newTypeName = newDeclaringType[(newDeclaringType.LastIndexOf('.') + 1)..];
+        var sameNamespace = declaringType[..^oldTypeName.Length] == newDeclaringType[..^newTypeName.Length];
+
+        return new SymbolRewrite(
+            compilation => ResolveMembers(compilation, declaringType, memberName),
+            (editor, referenceNode, symbol) =>
+            {
+                // Anything that isn't the member-name identifier (e.g. a reference inside a doc comment,
+                // which the engine doesn't descend into) is left alone.
+                if (referenceNode is not SimpleNameSyntax name || name.Identifier.ValueText != memberName)
+                    return;
+
+                // WithIdentifier keeps the type argument list of a generic name (Swap<T>).
+                var newName = name.WithIdentifier(SyntaxFactory.Identifier(name.Identifier.LeadingTrivia, newMemberName, name.Identifier.TrailingTrivia));
+
+                if (name.Parent is MemberAccessExpressionSyntax memberAccess && memberAccess.Name == name)
+                {
+                    var receiver = memberAccess.Expression;
+                    var newReceiver = receiver;
+                    if (editor.SemanticModel.GetSymbolInfo(receiver).Symbol is ITypeSymbol)
+                    {
+                        var receiverTypeName = receiver switch
+                        {
+                            MemberAccessExpressionSyntax qualified => qualified.Name,
+                            AliasQualifiedNameSyntax aliasQualified => aliasQualified.Name,
+                            _ => receiver as SimpleNameSyntax,
+                        };
+                        newReceiver = sameNamespace && receiverTypeName is not null && receiverTypeName.Identifier.ValueText == oldTypeName
+                            ? receiver.ReplaceNode(receiverTypeName, SyntaxFactory.IdentifierName(newTypeName).WithTriviaFrom(receiverTypeName))
+                            : SyntaxFactory.ParseExpression(newDeclaringType).WithTriviaFrom(receiver);
+                    }
+                    editor.ReplaceNode(memberAccess, memberAccess.WithExpression(newReceiver).WithName(newName));
+                }
+                else if (name.Parent is not MemberBindingExpressionSyntax)
+                {
+                    // Bare reference through `using static OldType;`, which doesn't bring the new type
+                    // (or even its namespace) in scope.
+                    var qualified = SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        SyntaxFactory.ParseExpression(newDeclaringType),
+                        newName.WithoutTrivia());
+                    editor.ReplaceNode(name, qualified.WithTriviaFrom(name));
+                }
+                else
+                {
+                    editor.ReplaceNode(name, newName);
+                }
+            });
+    }
+
+    /// <summary>
     /// Finds the argument list the referenced member is called with, and yields the
     /// <see cref="NameColonSyntax"/> of each named argument in it. Reference forms without an argument
     /// list (method groups, <c>nameof</c>, cref) yield nothing.

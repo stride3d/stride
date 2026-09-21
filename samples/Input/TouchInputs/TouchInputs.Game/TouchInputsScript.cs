@@ -81,7 +81,7 @@ namespace TouchInputs
 
         public override void Update()
         {
-            var currentTime = Game.DrawTime.Total;
+            var currentTime = Game.UpdateTime.Total;
 
             keyDown = "";
             keyEvents = "";
@@ -248,7 +248,7 @@ namespace TouchInputs
         {
             var screenSize = spriteBatch.VirtualResolution.Value;
             var position = tuple.Item1;
-            var duration = Game.DrawTime.Total - tuple.Item2;
+            var duration = Game.UpdateTime.Total - tuple.Item2;
 
             var scale = (float)(0.2f * (1f - duration.TotalSeconds / displayPointerDuration.TotalSeconds));
             var pointerScreenPosition = new Vector2(position.X * screenSize.X, position.Y * screenSize.Y);

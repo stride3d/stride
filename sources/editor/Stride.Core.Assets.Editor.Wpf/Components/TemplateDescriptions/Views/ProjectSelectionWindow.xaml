@@ -40,6 +40,15 @@
             </UniformGrid>
           </StackPanel>
         </DockPanel>
+        <!-- Template packages downloading in the background (their templates are added to the list once ready). -->
+        <StackPanel DockPanel.Dock="Bottom" Margin="20,10,20,0"
+                    Visibility="{Binding ShowDownloadStatus, Converter={sd:VisibleOrCollapsed}}">
+          <TextBlock Text="{Binding DownloadStatus}" TextWrapping="Wrap"/>
+          <!-- Indeterminate until the download's size is known. -->
+          <ProgressBar Height="6" Margin="0,4,0,0" Minimum="0" Maximum="1"
+                       Value="{Binding DownloadProgress, Mode=OneWay}" IsIndeterminate="{Binding IsDownloadSizeUnknown}"
+                       Visibility="{Binding IsDownloading, Converter={sd:VisibleOrCollapsed}}"/>
+        </StackPanel>
         <Grid IsEnabled="{Binding SelectedTemplate, Converter={sd:MatchType}, ConverterParameter={x:Type viewModels:TemplateDescriptionViewModel}}">
           <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto"/>

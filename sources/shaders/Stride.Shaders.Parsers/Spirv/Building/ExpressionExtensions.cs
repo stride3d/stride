@@ -1,3 +1,5 @@
+using System.Collections.Frozen;
+using System.Diagnostics.CodeAnalysis;
 using CommunityToolkit.HighPerformance;
 using Stride.Shaders.Core;
 using Stride.Shaders.Parsing.Analysis;
@@ -10,7 +12,10 @@ namespace Stride.Shaders.Spirv.Building;
 
 public static class ExpressionExtensions
 {
-    public static HashSet<Op> ShaderSpecConstantOpSupportedOps = new()
+    /// <summary>
+    /// Operations that OpSpecConstantOp accepts in a shader module (SPIR-V accepts more with the Kernel capability).
+    /// </summary>
+    public static readonly FrozenSet<Op> ShaderSpecConstantOpSupportedOps = new HashSet<Op>
     {
         Op.OpSConvert,
         Op.OpUConvert,
@@ -50,109 +55,173 @@ public static class ExpressionExtensions
         Op.OpSLessThanEqual,
         Op.OpUGreaterThanEqual,
         Op.OpSGreaterThanEqual,
-    };
+    }.ToFrozenSet();
 
-    public static HashSet<Op> KernelSpecConstantOpSupportedOps = new()
+    /// <summary>
+    /// Same as <see cref="CompileConstantValue"/>, for an expression that the shader code does not guarantee to be a constant.
+    /// </summary>
+    public static bool TryCompileConstantValue(this Expression expression, SymbolTable table, SpirvContext context, out SpirvValue result, SymbolType? expectedType = null)
     {
-        // Note: those are not supported in shaders
-        // but we'll make sure to simplify them once they can be resolved.
-        // They are needed for more complex constants.
-        Op.OpConvertFToS,
-        Op.OpConvertFToU,
-        Op.OpConvertSToF,
-        Op.OpConvertUToF,
-        Op.OpUConvert,
-        Op.OpConvertPtrToU,
-        Op.OpConvertUToPtr,
-        Op.OpGenericCastToPtr,
-        Op.OpPtrCastToGeneric,
-        Op.OpBitcast,
-        Op.OpFNegate,
-        Op.OpFAdd,
-        Op.OpFSub,
-        Op.OpFMul,
-        Op.OpFDiv,
-        Op.OpFRem,
-        Op.OpFMod,
-        Op.OpAccessChain,
-        Op.OpInBoundsAccessChain,
-        Op.OpPtrAccessChain,
-        Op.OpInBoundsPtrAccessChain,
-    };
+        try
+        {
+            result = expression.CompileConstantValue(table, context, expectedType);
+            return true;
+        }
+        catch (NotConstantExpressionException)
+        {
+            result = default;
+            return false;
+        }
+    }
 
+    /// <summary>
+    /// Evaluates an int or uint expression whose value must be known when compiling, because it ends up as a literal
+    /// (e.g. a switch case label or a [numthreads] parameter). It can't depend on a generic that is not resolved yet.
+    /// </summary>
+    public static bool TryEvaluateConstantInteger(this Expression expression, SymbolTable table, SpirvContext context, out int value)
+    {
+        var result = expression.TryCompileConstantInteger(table, context, out _, out var evaluated) && evaluated != null;
+        value = evaluated ?? 0;
+        return result;
+    }
+
+    /// <summary>
+    /// Compiles an int or uint constant expression. Its value is null when it is not known yet, which is when it depends
+    /// on a generic that is not resolved.
+    /// </summary>
+    public static bool TryCompileConstantInteger(this Expression expression, SymbolTable table, SpirvContext context, out SpirvValue constant, out int? value)
+    {
+        value = null;
+        if (!expression.TryCompileConstantValue(table, context, out constant)
+            || context.ReverseTypes[constant.TypeId] is not ScalarType { Type: Scalar.Int or Scalar.UInt })
+            return false;
+
+        if (context.TryGetConstantValue(constant.Id, out var evaluated, out _))
+            value = evaluated is uint u ? unchecked((int)u) : (int)evaluated;
+        return true;
+    }
+
+    /// <summary>
+    /// Compiles an expression as a constant of the context.
+    /// </summary>
+    /// <exception cref="NotConstantExpressionException">The expression is not a compile-time constant.</exception>
     public static SpirvValue CompileConstantValue(this Expression expression, SymbolTable table, SpirvContext context, SymbolType? expectedType = null)
     {
         var compiler = new CompilerUnit(context, new());
-        expression.ProcessSymbol(table, expectedType);
-        var result = expression.CompileAsValue(table, compiler, expectedType);
-
-        if (expectedType != null)
-            compiler.Builder.Convert(context, result, expectedType);
-
         var buffer = compiler.Builder.GetBuffer();
-
-        // Process each instruction and check if it can be converted to constant version.
-        // When all operands are known OpConstant values, fold at compile time to avoid
-        // OpSpecConstantOp which some SPIR-V backends (e.g. SPIRV-Cross) don't fully support.
-        for (int index = 0; index < buffer.Count; ++index)
+        try
         {
-            var i = buffer[index];
+            expression.ProcessSymbol(table, expectedType);
+            var result = expression.CompileAsValue(table, compiler, expectedType);
 
-            if (i.Op == Op.OpCompositeConstruct)
+            if (expectedType != null)
+                result = compiler.Builder.Convert(context, result, expectedType);
+
+            // Every instruction of the expression becomes a constant of the context
+            for (int index = 0; index < buffer.Count; ++index)
             {
-                // Check if all constituents are plain OpConstant — if so, use OpConstantComposite instead of OpSpecConstantComposite.
-                var span = i.Data.Memory.Span;
-                bool allConstant = true;
-                for (int j = 3; j < span.Length; j++)
-                {
-                    if (!IsPlainConstant(context, span[j]))
-                    {
-                        allConstant = false;
-                        break;
-                    }
-                }
+                var i = buffer[index];
+                if (GetConstantIdOperandCount(i) < 0)
+                    throw new NotConstantExpressionException($"'{expression}' is not a compile-time constant ({i.Op} can't be part of one)");
 
-                if (allConstant)
-                {
-                    i.Data.Memory.Span[0] = (int)Op.OpConstantComposite | (i.Data.Memory.Length << 16);
-                }
-                else
-                {
-                    i.Data.Memory.Span[0] = (int)Op.OpSpecConstantComposite | (i.Data.Memory.Length << 16);
-                }
+                result = AddAsConstant(context, i);
+            }
 
-                var instruction = context.Add(new(i.Data.Memory.Span));
-                result = new(instruction.Data);
-            }
-            // Rewrite using OpSpecConstantOp when possible
-            else if (ShaderSpecConstantOpSupportedOps.Contains(i.Op) || KernelSpecConstantOpSupportedOps.Contains(i.Op))
-            {
-                var resultType = i.Data.Memory.Span[1];
-                var resultId = i.Data.Memory.Span[2];
+            return result;
+        }
+        finally
+        {
+            buffer.Dispose();
+        }
+    }
 
-                // Try to fold: if all operands are known constants, compute the result at compile time.
-                if (TryFoldConstantOp(context, i, out var foldedInstruction))
-                {
-                    context.Add(foldedInstruction);
-                    result = new(resultId, resultType);
-                }
-                else
-                {
-                    Span<int> instruction = [(int)Op.OpSpecConstantOp, resultType, resultId, (int)i.Op, .. i.Data.Memory.Span[3..]];
-                    instruction[0] |= instruction.Length << 16;
-                    context.Add(new OpData(instruction));
-                    result = new(resultId, resultType);
-                }
-            }
-            else
-            {
-                throw new InvalidOperationException($"OpCode {i.Op} not supported when compiling constant {expression}");
-            }
+    /// <summary>
+    /// Turns a value computed in a function into a constant of the context, when the instructions computing it can all be
+    /// part of a constant (e.g. the `int2(Step * 2, 1)` of a texture offset). They move out of the function and keep their ids.
+    /// </summary>
+    public static bool TryHoistAsConstant(SpirvContext context, SpirvBuffer buffer, int id)
+    {
+        if (IsConstant(context, id))
+            return true;
+
+        if (!buffer.TryGetInstructionById(id, out var i))
+            return false;
+        var idOperandCount = GetConstantIdOperandCount(i);
+        if (idOperandCount < 0)
+            return false;
+
+        // Operands first: a constant is defined before it is used
+        for (var index = 0; index < idOperandCount; index++)
+        {
+            if (!TryHoistAsConstant(context, buffer, i.Data.Memory.Span[3 + index]))
+                return false;
         }
 
-        buffer.Dispose();
+        AddAsConstant(context, i);
+        SpirvBuilder.SetOpNop(i.Data.Memory.Span);
+        return true;
+    }
 
-        return result;
+    /// <summary>
+    /// Returns true if the given ID refers to a constant of the context (which might not be resolved yet).
+    /// </summary>
+    public static bool IsConstant(SpirvContext context, int id)
+    {
+        return context.GetBuffer().TryGetInstructionById(id, out var inst)
+            && inst.Op is Op.OpConstant or Op.OpConstantTrue or Op.OpConstantFalse or Op.OpConstantComposite or Op.OpConstantNull
+                or Op.OpSpecConstant or Op.OpSpecConstantTrue or Op.OpSpecConstantFalse or Op.OpSpecConstantComposite or Op.OpSpecConstantOp
+                or Op.OpGenericParameterSDSL or Op.OpGenericReferenceSDSL;
+    }
+
+    /// <summary>
+    /// Number of leading operands of an instruction that are ids (the others are literals), or -1 if it can't be part of a constant.
+    /// </summary>
+    /// <remarks>
+    /// An operation that SPIR-V does not allow in a constant of a shader module (e.g. OpBitcast, OpFMul) is needed for more complex
+    /// constants: the mixer simplifies it once it can be resolved, so it has to be one that ConstantEvaluator knows.
+    /// </remarks>
+    private static int GetConstantIdOperandCount(OpDataIndex i)
+    {
+        return i.Op switch
+        {
+            Op.OpCompositeConstruct => i.Data.Memory.Length - 3,
+            _ when ConstantEvaluator.GetIdOperandCount(i.Op) is > 0 and var count => count,
+            _ => -1,
+        };
+    }
+
+    // Adds the constant form of an instruction to the context, with the same result id
+    private static SpirvValue AddAsConstant(SpirvContext context, OpDataIndex i)
+    {
+        var span = i.Data.Memory.Span;
+        var resultType = span[1];
+        var resultId = span[2];
+
+        if (i.Op == Op.OpCompositeConstruct)
+        {
+            // OpConstantComposite if all constituents are plain constants, OpSpecConstantComposite otherwise
+            var allConstant = true;
+            for (int j = 3; j < span.Length; j++)
+                allConstant &= IsPlainConstant(context, span[j]);
+
+            Span<int> instruction = [.. span];
+            instruction[0] = (int)(allConstant ? Op.OpConstantComposite : Op.OpSpecConstantComposite) | (instruction.Length << 16);
+            context.Add(new OpData(instruction));
+        }
+        // When all operands are known constant values, fold at compile time to avoid
+        // OpSpecConstantOp which some SPIR-V backends (e.g. SPIRV-Cross) don't fully support.
+        else if (TryFoldConstantOp(context, i, out var foldedValue))
+        {
+            context.AddConstant(resultType, resultId, foldedValue);
+        }
+        else
+        {
+            Span<int> instruction = [(int)Op.OpSpecConstantOp, resultType, resultId, (int)i.Op, .. span[3..]];
+            instruction[0] |= instruction.Length << 16;
+            context.Add(new OpData(instruction));
+        }
+
+        return new(resultId, resultType);
     }
 
     /// <summary>
@@ -167,85 +236,37 @@ public static class ExpressionExtensions
     }
 
     /// <summary>
-    /// Try to fold a binary/unary operation at compile time when all operands are known OpConstant values.
-    /// Returns true and the folded OpConstant instruction if successful.
+    /// Try to fold a unary/binary operation at compile time when all operands are known constant values.
+    /// Returns true and the value (scalar or vector) if successful.
     /// </summary>
-    private static bool TryFoldConstantOp(SpirvContext context, OpDataIndex instruction, out OpData foldedInstruction)
+    private static bool TryFoldConstantOp(SpirvContext context, OpDataIndex instruction, [NotNullWhen(true)] out object? result)
     {
-        foldedInstruction = default;
+        result = null;
         var span = instruction.Data.Memory.Span;
-        var resultType = span[1];
-        var resultId = span[2];
-        var op = instruction.Op;
 
-        // Get the type info for the result
-        if (!context.GetBuffer().TryGetInstructionById(resultType, out var typeInst))
+        if (!context.ReverseTypes.TryGetValue(span[1], out var resultSymbolType))
             return false;
 
-        // Handle unary operations (operand at index 3)
-        if (span.Length == 4)
+        // Note: the operation decides how many operands are ids, the length of the instruction does not
+        switch (ConstantEvaluator.GetEvaluatedOperandCount(instruction.Op))
         {
-            if (!context.TryGetConstantValue(span[3], out var operandVal, out _) || operandVal is null)
+            // Unary operation (operand at index 3)
+            case 1:
+                if (!context.TryGetConstantValue(span[3], out var operandVal, out _)
+                    || !ConstantEvaluator.TryEvaluateUnary(instruction.Op, operandVal, resultSymbolType, out result))
+                    return false;
+                break;
+            // Binary operation (operands at index 3, 4)
+            case 2:
+                if (!context.TryGetConstantValue(span[3], out var leftVal, out _)
+                    || !context.TryGetConstantValue(span[4], out var rightVal, out _)
+                    || !ConstantEvaluator.TryEvaluateBinary(instruction.Op, leftVal, rightVal, out result))
+                    return false;
+                break;
+            default:
                 return false;
-
-            object? result = op switch
-            {
-                Op.OpSNegate when operandVal is int v => (object)(-(int)v),
-                Op.OpFNegate when operandVal is float v => -v,
-                Op.OpConvertFToS when operandVal is float v => (int)v,
-                Op.OpConvertFToU when operandVal is float v => (uint)v,
-                Op.OpConvertSToF when operandVal is int v => (float)v,
-                Op.OpConvertUToF when operandVal is uint v => (float)v,
-                _ => null,
-            };
-            if (result is null) return false;
-            foldedInstruction = EmitFoldedConstant(resultType, resultId, result, typeInst);
-            return true;
         }
 
-        // Handle binary operations (operands at index 3, 4)
-        if (span.Length == 5)
-        {
-            if (!context.TryGetConstantValue(span[3], out var leftVal, out _) || leftVal is null)
-                return false;
-            if (!context.TryGetConstantValue(span[4], out var rightVal, out _) || rightVal is null)
-                return false;
-
-            object? result = op switch
-            {
-                Op.OpIAdd when leftVal is int l && rightVal is int r => (object)(l + r),
-                Op.OpISub when leftVal is int l && rightVal is int r => l - r,
-                Op.OpIMul when leftVal is int l && rightVal is int r => l * r,
-                Op.OpSDiv when leftVal is int l && rightVal is int r => l / r,
-                Op.OpFAdd when leftVal is float l && rightVal is float r => l + r,
-                Op.OpFSub when leftVal is float l && rightVal is float r => l - r,
-                Op.OpFMul when leftVal is float l && rightVal is float r => l * r,
-                Op.OpFDiv when leftVal is float l && rightVal is float r => l / r,
-                Op.OpIAdd when leftVal is uint l && rightVal is uint r => l + r,
-                Op.OpISub when leftVal is uint l && rightVal is uint r => l - r,
-                Op.OpIMul when leftVal is uint l && rightVal is uint r => l * r,
-                Op.OpUDiv when leftVal is uint l && rightVal is uint r => l / r,
-                _ => null,
-            };
-            if (result is null) return false;
-            foldedInstruction = EmitFoldedConstant(resultType, resultId, result, typeInst);
-            return true;
-        }
-
-        return false;
-    }
-
-    private static OpData EmitFoldedConstant(int resultType, int resultId, object value, OpDataIndex typeInst)
-    {
-        return value switch
-        {
-            int v => new OpData(new OpConstant<int>(resultType, resultId, v).InstructionMemory),
-            uint v => new OpData(new OpConstant<uint>(resultType, resultId, v).InstructionMemory),
-            float v => new OpData(new OpConstant<float>(resultType, resultId, v).InstructionMemory),
-            double v => new OpData(new OpConstant<double>(resultType, resultId, v).InstructionMemory),
-            long v => new OpData(new OpConstant<long>(resultType, resultId, v).InstructionMemory),
-            ulong v => new OpData(new OpConstant<ulong>(resultType, resultId, v).InstructionMemory),
-            _ => throw new NotSupportedException($"Cannot fold constant of type {value.GetType()}"),
-        };
+        return true;
     }
 }

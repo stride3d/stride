@@ -1458,6 +1458,13 @@ namespace Stride.TextureConverter
 
                     image.CurrentLibrary = library;
                 }
+                else if (request is RescalingRequest rescaling && rescaling.Filter != Filter.Rescaling.Bicubic)
+                {
+                    // Only ImageSharp implements this filter, and it handles 8-bit BGRA/RGBA only.
+                    // DxtTexLib rescales every uncompressed format, so retry with the best filter it offers.
+                    Log.Warning($"No library can rescale a {image.Format} image with the {rescaling.Filter} filter, falling back to {Filter.Rescaling.Bicubic}.");
+                    ExecuteRequest(image, new FixedRescalingRequest(rescaling.ComputeWidth(image), rescaling.ComputeHeight(image), Filter.Rescaling.Bicubic));
+                }
                 else // If no library could be found, an exception is thrown
                 {
                     // No library was found, attempt to execute the request using a 2-step cast

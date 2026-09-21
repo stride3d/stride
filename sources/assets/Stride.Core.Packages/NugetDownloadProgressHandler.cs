@@ -51,6 +51,7 @@ internal sealed class DownloadProgressMessageHandler : DelegatingHandler
             && response.Content is { } content
             && content.Headers.ContentLength is > 0)
         {
+            progress.DownloadStarted(content.Headers.ContentLength.Value);
             response.Content = new ProgressHttpContent(content, content.Headers.ContentLength.Value, progress);
         }
         return response;
@@ -86,6 +87,7 @@ internal sealed class ProgressHttpContent : HttpContent
             await stream.WriteAsync(buffer.AsMemory(0, read));
             progress.DownloadAdvanced(read);
         }
+        progress.DownloadCompleted();
     }
 
     protected override bool TryComputeLength(out long length)
@@ -107,6 +109,7 @@ internal sealed class ProgressReadStream : Stream
     private readonly Stream inner;
     private readonly long length;
     private readonly INugetDownloadProgress progress;
+    private bool completed;
 
     public ProgressReadStream(Stream inner, long length, INugetDownloadProgress progress)
     {
@@ -118,17 +121,27 @@ internal sealed class ProgressReadStream : Stream
     public override int Read(byte[] buffer, int offset, int count)
     {
         var read = inner.Read(buffer, offset, count);
-        if (read > 0)
-            progress.DownloadAdvanced(read);
+        Advance(read, count);
         return read;
     }
 
     public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
     {
         var read = await inner.ReadAsync(buffer, cancellationToken);
+        Advance(read, buffer.Length);
+        return read;
+    }
+
+    // Reports the bytes read, and the end of the download once (a read of 0 bytes for a non-empty buffer).
+    private void Advance(int read, int requested)
+    {
         if (read > 0)
             progress.DownloadAdvanced(read);
-        return read;
+        else if (requested > 0 && !completed)
+        {
+            completed = true;
+            progress.DownloadCompleted();
+        }
     }
 
     public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)

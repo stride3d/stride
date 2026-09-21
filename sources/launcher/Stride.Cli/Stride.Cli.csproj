@@ -55,6 +55,7 @@
   <!-- Engine-dependency-free template-engine glue, shared by source with Stride.Assets rather than
        referencing the engine assembly. -->
   <ItemGroup>
+    <Compile Include="..\..\engine\Stride.Assets\Templates\ContentTemplateResolver.cs" Link="Core\Templates\ContentTemplateResolver.cs" />
     <Compile Include="..\..\engine\Stride.Assets\Templates\DotNetNewTemplateRegistry.cs" Link="Core\Templates\DotNetNewTemplateRegistry.cs" />
     <Compile Include="..\..\engine\Stride.Assets\Templates\StrideTemplateEngineEnvironment.cs" Link="Core\Templates\StrideTemplateEngineEnvironment.cs" />
   </ItemGroup>
