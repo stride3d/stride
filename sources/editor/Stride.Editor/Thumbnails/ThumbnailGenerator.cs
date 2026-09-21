@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.BuildEngine;
 using Stride.Core;
@@ -44,6 +45,13 @@ namespace Stride.Editor.Thumbnails
         /// The preview game system collection.
         /// </summary>
         private readonly GameSystemCollection gameSystems;
+
+        // Build threads keep running while the session closes, so the resources are destroyed only once no command uses them.
+        private readonly object useLock = new object();
+        private int useCount;
+        private bool isStopped;
+        private bool isDisposed;
+        private TaskCompletionSource idleSource;
 
         /// <summary>
         /// The asset manager to use when building thumbnails.
@@ -271,7 +279,76 @@ namespace Stride.Editor.Thumbnails
             return ProcessThumbnailRequests(new ThumbnailBuildRequest(thumbnailUrl, scene, graphicsCompositor, provider, thumbnailSize, colorSpace, renderingMode, logger, logLevel) { PostProcessThumbnail = postProcessThumbnail });
         }
 
+        /// <summary>
+        /// Marks the start of a command that uses the generator. The command must call <see cref="EndUse"/> when it is done.
+        /// </summary>
+        /// <returns><c>false</c> if the generator is stopped; the command must not use it then.</returns>
+        public bool TryBeginUse()
+        {
+            lock (useLock)
+            {
+                if (isStopped)
+                    return false;
+                useCount++;
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// Marks the end of a command started with <see cref="TryBeginUse"/>.
+        /// </summary>
+        public void EndUse()
+        {
+            TaskCompletionSource idle;
+            bool destroy;
+            lock (useLock)
+            {
+                if (--useCount > 0)
+                    return;
+                idle = idleSource;
+                destroy = isDisposed;
+            }
+
+            if (destroy)
+                DestroyResources();
+            idle?.TrySetResult();
+        }
+
+        /// <summary>
+        /// Refuses new commands.
+        /// </summary>
+        /// <returns>A task that completes when no command uses the generator anymore.</returns>
+        public Task StopAsync()
+        {
+            lock (useLock)
+            {
+                isStopped = true;
+                if (useCount == 0)
+                    return Task.CompletedTask;
+                idleSource ??= new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+                return idleSource.Task;
+            }
+        }
+
+        /// <summary>
+        /// Never blocks: if a command still runs, the resources are destroyed when it ends.
+        /// </summary>
         public void Dispose()
+        {
+            lock (useLock)
+            {
+                if (isDisposed)
+                    return;
+                isDisposed = true;
+                isStopped = true;
+                if (useCount > 0)
+                    return;
+            }
+
+            DestroyResources();
+        }
+
+        private void DestroyResources()
         {
             // destroy all game systems
             thumbnailGraphicsCompositors.ForEach(x => x.Dispose());
