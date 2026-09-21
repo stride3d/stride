@@ -80,6 +80,221 @@ namespace Stride.BepuPhysics.Tests
         }
 
         [Fact]
+        public static void Body2DConstructorSetsInterpolatedMode()
+        {
+            var body = new Body2DComponent
+            {
+                Collider = new CompoundCollider { Colliders = { new BoxCollider() } },
+            };
+
+            Assert.Equal(InterpolationMode.Interpolated, body.InterpolationMode);
+        }
+
+        [Fact]
+        public static void Body2DZToleranceRejectsInvalidValues()
+        {
+            var body = new Body2DComponent
+            {
+                Collider = new CompoundCollider { Colliders = { new BoxCollider() } },
+            };
+
+            Assert.Equal(0.001f, body.ZTolerance);
+
+            body.ZTolerance = 0.25f;
+            Assert.Equal(0.25f, body.ZTolerance);
+
+            body.ZTolerance = 0f;
+            Assert.Equal(0.001f, body.ZTolerance);
+
+            body.ZTolerance = -1f;
+            Assert.Equal(0.001f, body.ZTolerance);
+
+            body.ZTolerance = float.NaN;
+            Assert.Equal(0.001f, body.ZTolerance);
+
+            body.ZTolerance = float.PositiveInfinity;
+            Assert.Equal(0.001f, body.ZTolerance);
+        }
+
+        [Fact]
+        public static void Body2DSimulationUpdateConstrainsPlaneMotion()
+        {
+            var game = new GameTest();
+            game.Script.AddTask(async () =>
+            {
+                try
+                {
+                    game.ScreenShotAutomationEnabled = false;
+
+                    var entity = new Entity();
+                    var body = new Body2DComponent
+                    {
+                        Collider = new CompoundCollider { Colliders = { new BoxCollider() } },
+                    };
+
+                    entity.Transform.Position = new Vector3(0, 0, 2f);
+                    entity.Add(body);
+                    game.SceneSystem.SceneInstance.RootScene.Entities.Add(entity);
+
+                    await body.Simulation!.AfterUpdate();
+
+                    body.AngularVelocity = new Vector3(2f, -3f, 4f);
+                    body.LinearVelocity = new Vector3(0f, 0f, 5f);
+
+                    await body.Simulation.AfterUpdate();
+
+                    Assert.InRange(body.LinearVelocity.Z, -1.01f, -0.98f);
+                    Assert.InRange(body.AngularVelocity.X, -0.001f, 0.001f);
+                    Assert.InRange(body.AngularVelocity.Y, -0.001f, 0.001f);
+                    Assert.InRange(body.AngularVelocity.Z, 3.99f, 4.01f);
+                }
+                finally
+                {
+                    game.Exit();
+                }
+            });
+            RunGameTest(game);
+        }
+
+        [Fact]
+        public static void Body2DSimulationUpdateConvergesToPlane()
+        {
+            var game = new GameTest();
+            game.Script.AddTask(async () =>
+            {
+                try
+                {
+                    game.ScreenShotAutomationEnabled = false;
+
+                    var entity = new Entity();
+                    var body = new Body2DComponent
+                    {
+                        Collider = new CompoundCollider { Colliders = { new BoxCollider() } },
+                        // A wider band than the default, so the body converges in about a second of
+                        // simulated time rather than the six the default would need from this offset
+                        ZTolerance = 0.01f,
+                    };
+
+                    entity.Transform.Position = new Vector3(0, 0, 0.05f);
+                    entity.Add(body);
+                    game.SceneSystem.SceneInstance.RootScene.Entities.Add(entity);
+
+                    var simulation = body.Simulation!;
+
+                    // The correction pulls the body back at a velocity equal to the error, so the
+                    // offset decays exponentially rather than snapping - this proves it converges
+                    while (MathF.Abs(body.Position.Z) > body.ZTolerance)
+                    {
+                        await simulation.AfterUpdate();
+
+                        Assert.True(game.UpdateTime.Total.TotalSeconds < 10d, "The body never returned to the Z = 0 plane.");
+                    }
+
+                    Assert.InRange(body.Position.Z, -body.ZTolerance, body.ZTolerance);
+                }
+                finally
+                {
+                    game.Exit();
+                }
+            });
+            RunGameTest(game);
+        }
+
+        [Fact]
+        public static void Body2DFallsAsleepOnceSettled()
+        {
+            var game = new GameTest();
+            game.Script.AddTask(async () =>
+            {
+                try
+                {
+                    game.ScreenShotAutomationEnabled = false;
+
+                    var floor = new Entity { new StaticComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider { Size = new(10, 1, 10) } } } } };
+                    var entity = new Entity();
+                    var body = new Body2DComponent
+                    {
+                        Collider = new CompoundCollider { Colliders = { new BoxCollider() } },
+                    };
+
+                    floor.Transform.Position = new Vector3(0, -2, 0);
+                    // Started on the plane, so the positional correction has nothing to do and cannot
+                    // be what keeps the body awake
+                    entity.Transform.Position = new Vector3(0, 0, 0);
+                    entity.Add(body);
+                    game.SceneSystem.SceneInstance.RootScene.Entities.AddRange(new[] { floor, entity });
+
+                    var simulation = body.Simulation!;
+
+                    // Sleeping is what makes large 2D scenes cheap: a component that writes velocity
+                    // every step would hold bodies awake forever and this would never terminate
+                    while (body.Awake)
+                    {
+                        await simulation.AfterUpdate();
+
+                        Assert.True(game.UpdateTime.Total.TotalSeconds < 15d, "The body never fell asleep, so something is writing to it every step.");
+                    }
+
+                    Assert.False(body.Awake);
+                }
+                finally
+                {
+                    game.Exit();
+                }
+            });
+            RunGameTest(game);
+        }
+
+        [Fact]
+        public static void Body2DKeepsRotationLockAfterKinematicToggle()
+        {
+            var game = new GameTest();
+            game.Script.AddTask(async () =>
+            {
+                try
+                {
+                    game.ScreenShotAutomationEnabled = false;
+
+                    var entity = new Entity();
+                    var body = new Body2DComponent
+                    {
+                        Collider = new CompoundCollider { Colliders = { new BoxCollider() } },
+                    };
+
+                    entity.Add(body);
+                    game.SceneSystem.SceneInstance.RootScene.Entities.Add(entity);
+
+                    var simulation = body.Simulation!;
+
+                    await simulation.AfterUpdate();
+
+                    // Going kinematic and back restores the body's full shape inertia, which silently
+                    // undoes the lock applied at attach time unless it is reapplied
+                    body.Kinematic = true;
+
+                    await simulation.AfterUpdate();
+
+                    body.Kinematic = false;
+
+                    await simulation.AfterUpdate();
+
+                    var inverseInertia = body.BodyInertia.InverseInertiaTensor;
+
+                    Assert.Equal(0f, inverseInertia.XX);
+                    Assert.Equal(0f, inverseInertia.YY);
+
+                    // Only X and Y are locked - the body must still be able to roll in the plane
+                    Assert.True(inverseInertia.ZZ > 0f, "Rotation about Z was locked too, so the body can no longer roll.");
+                }
+                finally
+                {
+                    game.Exit();
+                }
+            });
+            RunGameTest(game);
+        }
+
+        [Fact]
         public static void ConstraintsTest()
         {
             var game = new GameTest();
