@@ -1786,7 +1786,8 @@ namespace Stride.Graphics
                 imageView = depthStencilBuffer?.NativeDepthStencilView ?? VkImageView.Null,
                 imageLayout = depthReadOnly ? VkImageLayout.DepthStencilReadOnlyOptimal : VkImageLayout.DepthStencilAttachmentOptimal,
                 loadOp = VkAttachmentLoadOp.Load,
-                storeOp = VkAttachmentStoreOp.Store,
+                // A read-only depth is never written, so storing it would count as a write access
+                storeOp = depthReadOnly ? VkAttachmentStoreOp.None : VkAttachmentStoreOp.Store,
             };
 
             bool hasStencil = depthStencilBuffer != null && (depthStencilBuffer.NativeImageAspect & VkImageAspectFlags.Stencil) != 0;
