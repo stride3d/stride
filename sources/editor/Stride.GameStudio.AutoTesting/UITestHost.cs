@@ -988,14 +988,22 @@ internal sealed class UITestHost
 
         public void ShutdownInternal()
         {
-            host.dispatcher.BeginInvoke(() =>
+            host.dispatcher.BeginInvoke(async () =>
             {
                 Environment.ExitCode = host.ExitCode;
                 var app = Application.Current;
                 if (app is null) return;
                 foreach (var win in app.Windows.Cast<Window>().ToList())
                 {
-                    try { win.Close(); } catch { /* best-effort */ }
+                    try
+                    {
+                        // Game Studio finishes its close asynchronously; give it time before Shutdown cuts it short
+                        if (win is Stride.Core.Presentation.Windows.IAsyncClosableWindow closable)
+                            await Task.WhenAny(closable.TryClose(), Task.Delay(TimeSpan.FromSeconds(30)));
+                        else
+                            win.Close();
+                    }
+                    catch { /* best-effort */ }
                 }
                 app.Shutdown(host.ExitCode);
             });
