@@ -39,6 +39,32 @@ public class ReporterStoreTests
     }
 
     [Fact]
+    public void StoreFolderComesFromTheHostRestoreFirst()
+    {
+        // Stride.NuGetResolver sets STRIDE_NUGET_PACKAGES to the folder the host's own restore used (NuGet config
+        // honoured); NUGET_PACKAGES is NuGet's own override; the default is the user's cache.
+        var strideVar = Environment.GetEnvironmentVariable("STRIDE_NUGET_PACKAGES");
+        var nugetVar = Environment.GetEnvironmentVariable("NUGET_PACKAGES");
+        try
+        {
+            Environment.SetEnvironmentVariable("STRIDE_NUGET_PACKAGES", @"C:\from-resolver");
+            Environment.SetEnvironmentVariable("NUGET_PACKAGES", @"C:\from-nuget");
+            Assert.Equal(@"C:\from-resolver", NativeCrashReporting.GlobalPackagesFolder());
+
+            Environment.SetEnvironmentVariable("STRIDE_NUGET_PACKAGES", null);
+            Assert.Equal(@"C:\from-nuget", NativeCrashReporting.GlobalPackagesFolder());
+
+            Environment.SetEnvironmentVariable("NUGET_PACKAGES", null);
+            Assert.EndsWith(Path.Combine(".nuget", "packages"), NativeCrashReporting.GlobalPackagesFolder());
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("STRIDE_NUGET_PACKAGES", strideVar);
+            Environment.SetEnvironmentVariable("NUGET_PACKAGES", nugetVar);
+        }
+    }
+
+    [Fact]
     public void LibraryCarriesTheVersionItWasBuiltFor()
     {
         // Baked by the csproj from StrideCrashReporterVersion.props, with the worktree suffix a dev build gives the

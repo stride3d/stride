@@ -279,21 +279,33 @@ namespace Stride.CrashReport
         {
             try
             {
-                var globalPackages = Environment.GetEnvironmentVariable("NUGET_PACKAGES");
-                if (string.IsNullOrEmpty(globalPackages))
-                {
-                    var home = Environment.GetEnvironmentVariable("USERPROFILE") ?? Environment.GetEnvironmentVariable("HOME");
-                    if (string.IsNullOrEmpty(home))
-                        return null;
-                    globalPackages = Path.Combine(home, ".nuget", "packages");
-                }
-                return FindReporterInStore(globalPackages, ReporterVersion);
+                var globalPackages = GlobalPackagesFolder();
+                return globalPackages != null ? FindReporterInStore(globalPackages, ReporterVersion) : null;
             }
             catch
             {
                 // Best effort: an unreadable store just means the reporter isn't auto-launched.
             }
             return null;
+        }
+
+        /// <summary>
+        /// The NuGet global packages folder: the one the host's own restore used when Stride.NuGetResolver set
+        /// STRIDE_NUGET_PACKAGES at startup (NuGet config honoured), else NUGET_PACKAGES, else NuGet's default.
+        /// </summary>
+        public static string GlobalPackagesFolder()
+        {
+            var folder = Environment.GetEnvironmentVariable("STRIDE_NUGET_PACKAGES");
+            if (string.IsNullOrEmpty(folder))
+                folder = Environment.GetEnvironmentVariable("NUGET_PACKAGES");
+            if (string.IsNullOrEmpty(folder))
+            {
+                var home = Environment.GetEnvironmentVariable("USERPROFILE") ?? Environment.GetEnvironmentVariable("HOME");
+                if (string.IsNullOrEmpty(home))
+                    return null;
+                folder = Path.Combine(home, ".nuget", "packages");
+            }
+            return folder;
         }
 
         /// <summary>
