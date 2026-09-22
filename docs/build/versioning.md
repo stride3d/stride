@@ -61,6 +61,14 @@ The `stride` command-line tool ([`sources/launcher/Stride.Cli`](../../sources/la
 
 Install: `dotnet tool install -g Stride.Cli`.
 
+## Crash reporter package version
+
+`Stride.CrashReporter` (the out-of-process crash dialog, [`sources/crashreport/Stride.CrashReporter`](../../sources/crashreport/Stride.CrashReporter)) carries **its own version**, in [`StrideCrashReporterVersion.props`](../../sources/crashreport/StrideCrashReporterVersion.props), so an engine release republishes it only when it changed. It is 26 MB per copy (Avalonia and its natives for three RIDs under `tools/`), which every engine release used to republish; now an unchanged version is packed, skipped on push (`--skip-duplicate`), and users keep the copy already in their NuGet cache.
+
+Unlike the CLI it needs no workflow of its own: it is a project of the Stride SDK, so the engine release packs it (`-devN` in a checkout, plain in a package build, never the engine's prerelease suffix) and pushes it alongside. Bump the number with any change that ships in the package, or the change never reaches users — `changes.yml` warns on a PR that forgets. Never reuse a number.
+
+The hosts resolve it by that exact version: Game Studio and the asset compiler depend on it (`>= <version>`, which NuGet restores as exactly that), and `Stride.CrashReport` bakes the same value in (`CrashReporterVersion` assembly metadata, with the worktree suffix in a dev checkout), so `NativeCrashReporting` launches only the reporter the host was built for, never another one found in the store. The Launcher and the CLI declare no dependency and so capture native crashes only when an engine install left that exact version; otherwise they report managed crashes only.
+
 ## Samples & template package versions
 
 The in-repo samples are committed referencing the **release version**, the committed one with its suffix (e.g. `4.4.0` or `4.4.0-beta2`) — which is typically still *unreleased* at commit time, since the bump rides the release that publishes it (the matching packages only appear on nuget.org once `release.yml` deploys). Locally, only the `-devN` packages exist. So to build/run/edit a sample in your checkout (including opening it in GameStudio) you switch it to the local dev version, and switch back before committing — standalone targets in [`build/Stride.Samples.build`](../../build/Stride.Samples.build):

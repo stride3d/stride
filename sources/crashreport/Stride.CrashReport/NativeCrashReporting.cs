@@ -270,9 +270,11 @@ namespace Stride.CrashReport
             return dll;
         }
 
-        // In a real install the reporter is delivered as the Stride.CrashReporter package, its publish tree under
-        // tools/. Probe the NuGet global store directly (no NuGet assemblies pulled into this minimal library) and
-        // take the newest installed version. Best-effort: any failure just means "no reporter", handled by callers.
+        // In a real install the reporter is the Stride.CrashReporter package in the NuGet global store, its publish
+        // tree under tools/. Only the version this library was built for (CrashReporterVersion, baked by the csproj)
+        // is launched: Game Studio and the asset compiler depend on exactly that one; a host without the dependency
+        // (Launcher, CLI) captures natively only if some engine install left it there. Probes the store directly, no
+        // NuGet assemblies in this minimal library. Best-effort: any failure just means "no reporter".
         private static string FindReporterInStore()
         {
             try
@@ -285,18 +287,7 @@ namespace Stride.CrashReport
                         return null;
                     globalPackages = Path.Combine(home, ".nuget", "packages");
                 }
-
-                var packageRoot = Path.Combine(globalPackages, "stride.crashreporter");
-                if (!Directory.Exists(packageRoot))
-                    return null;
-
-                foreach (var versionDirectory in Directory.GetDirectories(packageRoot).OrderByDescending(ParseVersion))
-                {
-                    var tools = Path.Combine(versionDirectory, "tools");
-                    var reporter = Directory.Exists(tools) ? FindReporterIn(tools) : null;
-                    if (reporter != null)
-                        return reporter;
-                }
+                return FindReporterInStore(globalPackages, ReporterVersion);
             }
             catch
             {
@@ -305,11 +296,24 @@ namespace Stride.CrashReport
             return null;
         }
 
-        private static Version ParseVersion(string versionDirectory)
+        /// <summary>
+        /// The reporter of exactly <paramref name="version"/> in the NuGet global store at <paramref name="globalPackages"/>, or null.
+        /// </summary>
+        public static string FindReporterInStore(string globalPackages, string version)
         {
-            var name = Path.GetFileName(versionDirectory);
-            var release = name.Split('-', '+')[0]; // drop the prerelease/build suffix; a coarse ordering is enough
-            return Version.TryParse(release, out var version) ? version : new Version(0, 0);
+            if (string.IsNullOrEmpty(version))
+                return null;
+            // NuGet lower-cases the id and the version in the store paths.
+            var tools = Path.Combine(globalPackages, "stride.crashreporter", version.ToLowerInvariant(), "tools");
+            return Directory.Exists(tools) ? FindReporterIn(tools) : null;
         }
+
+        /// <summary>
+        /// The Stride.CrashReporter package version this library was built for (empty when built outside the
+        /// Stride SDK, where nothing bakes it).
+        /// </summary>
+        public static string ReporterVersion
+            => typeof(NativeCrashReporting).Assembly.GetCustomAttributes<AssemblyMetadataAttribute>()
+                .FirstOrDefault(x => x.Key == "CrashReporterVersion")?.Value;
     }
 }
