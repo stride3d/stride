@@ -124,10 +124,22 @@ var previousStamp = File.Exists(stampPath) ? File.ReadAllLines(stampPath).Where(
 var fixedFingerprint = Fingerprint(fixedInputs);
 string StubName(ProjectInfo p) => $"{p.PackageId}.{version}.nupkg";
 
+// The id and the version of a packed file come from its name: a package can carry a version of its own
+// (Stride.CrashReporter, the content template packs) instead of the engine's.
+static (string Id, string Version)? SplitPackageFile(string nupkgFileName)
+{
+    // The version starts at the first major.minor.patch: an id segment may start with a digit (Stride.Importer.3D).
+    var m = Regex.Match(nupkgFileName, @"^(?<id>.+?)\.(?<ver>\d+\.\d+\.\d+([.+-].*)?)\.nupkg$", RegexOptions.IgnoreCase);
+    return m.Success ? (m.Groups["id"].Value, m.Groups["ver"].Value) : null;
+}
 
-// Stubs of projects that left the solution go (full runs only; an adopt touches one project).
+
+// Stubs of projects that left the solution go (full runs only; an adopt touches one project). A deployed file
+// whose name doesn't carry the engine version comes from a package versioned on its own, which no stub name
+// predicts: left to the version prune.
 var removedStubs = adopt.Length > 0 ? new List<string>() : previousStamp
     .Where(name => !name.StartsWith("Stride.Templates.", StringComparison.OrdinalIgnoreCase)
+                   && name.EndsWith($".{version}.nupkg", StringComparison.OrdinalIgnoreCase)
                    && !projects.Any(p => string.Equals(StubName(p), name, StringComparison.OrdinalIgnoreCase)))
     .ToList();
 
@@ -200,12 +212,15 @@ void OnPackLine(string line)
     if (line.Contains(": error "))
         Console.WriteLine($"  {line.Trim()}");
 }
-var freshPackages = adopt.Length > 0 ? new[] { adopt } : Directory.GetFiles(tempPackDir, $"*.{version}.nupkg");
+// Every nupkg the pack produced, whatever version each carries: Stride.CrashReporter and the content template
+// packs have their own.
+var freshPackages = adopt.Length > 0 ? new[] { adopt } : Directory.GetFiles(tempPackDir, "*.nupkg");
 
 // First run on a fresh worktree: the -devN suffix doesn't exist until the pack itself assigns
 // it (StrideEnsureWorktreeVersion writes the ledger + overlay), so the up-front derivation can
-// be wrong. The pack output is the truth — read the version off Stride.Core's nupkg.
-if (adopt.Length == 0 && freshPackages.Length == 0)
+// be wrong. The pack output is the truth — read the version off Stride.Core's nupkg. It names the
+// stamp and marks this worktree's files when pruning, so it stays the engine version.
+if (adopt.Length == 0)
 {
     var coreVersion = Directory.GetFiles(tempPackDir, "Stride.Core.*.nupkg")
         .Select(f => Regex.Match(Path.GetFileName(f), @"^Stride\.Core\.(\d.*)\.nupkg$"))
@@ -214,7 +229,6 @@ if (adopt.Length == 0 && freshPackages.Length == 0)
     {
         version = coreVersion;
         Console.WriteLine($"Version resolved from pack output: {version}");
-        freshPackages = Directory.GetFiles(tempPackDir, $"*.{version}.nupkg");
     }
 }
 if (adopt.Length == 0)
@@ -232,12 +246,16 @@ if (freshPackages.Length == 0)
 // fell back to whatever stale package the NuGet cache still held. Every packed project that had a stub before
 // must have produced one now, else stop and leave the feed as it was.
 var fresh = freshPackages.Select(Path.GetFileName).ToHashSet(StringComparer.OrdinalIgnoreCase);
+// A package versioned on its own is in the pack output under a name no stub name predicts, so what was packed
+// is checked by package id.
+var freshIds = freshPackages.Select(p => SplitPackageFile(Path.GetFileName(p))?.Id)
+    .OfType<string>().ToHashSet(StringComparer.OrdinalIgnoreCase);
 // The content template packs (Stride.Templates.Samples / .Games.Starters / .AssetPacks) are only packed on request
 // (StridePackContentTemplates), so a stamp that lists them from such a build says nothing about this pack.
 var missing = (adopt.Length > 0 ? new List<ProjectInfo>() : projects)
+    .Where(p => !p.PackageId.StartsWith("Stride.Templates.", StringComparison.OrdinalIgnoreCase))
+    .Where(p => previousStamp.Contains(StubName(p), StringComparer.OrdinalIgnoreCase) && !freshIds.Contains(p.PackageId))
     .Select(StubName)
-    .Where(name => !name.StartsWith("Stride.Templates.", StringComparison.OrdinalIgnoreCase))
-    .Where(name => previousStamp.Contains(name, StringComparer.OrdinalIgnoreCase) && !fresh.Contains(name))
     .ToList();
 if (missing.Count > 0)
 {
@@ -259,11 +277,17 @@ var nugetPackagesDir = Path.Combine(Environment.GetFolderPath(Environment.Specia
 foreach (var pkgPath in freshPackages)
 {
     var pkgFileName = Path.GetFileName(pkgPath);
-    var pkgId = Regex.Replace(pkgFileName, $@"\.{Regex.Escape(version)}\.nupkg$", "", RegexOptions.IgnoreCase);
-
     // Content-only packages — nothing to redirect; deployed as-is below.
-    if (pkgId.StartsWith("Stride.Templates.", StringComparison.OrdinalIgnoreCase))
+    if (pkgFileName.StartsWith("Stride.Templates.", StringComparison.OrdinalIgnoreCase))
         continue;
+    // Read off the name, never assumed to be the engine version: a package may carry one of its own.
+    if (SplitPackageFile(pkgFileName) is not { } packed)
+    {
+        Console.WriteLine($"  SKIP {pkgFileName} (not <id>.<version>.nupkg)");
+        skipCount++;
+        continue;
+    }
+    var (pkgId, pkgVersion) = packed;
 
     if (!projectMap.TryGetValue(pkgId, out var projInfo))
     {
@@ -276,7 +300,7 @@ foreach (var pkgPath in freshPackages)
 
     try
     {
-        ProcessPackage(pkgPath, pkgId, projInfo, projectMap, nugetDevDir, nugetPackagesDir, version, strideRoot, configuration);
+        ProcessPackage(pkgPath, pkgId, projInfo, projectMap, nugetDevDir, nugetPackagesDir, pkgVersion, strideRoot, configuration);
         generatedStubs.Add(pkgFileName);
         adoptedProject = projInfo;
         stubCount++;
@@ -291,21 +315,17 @@ foreach (var pkgPath in freshPackages)
 
 // Templates are real content packages: no DLLs to redirect, so no stub injection — but our pack
 // ran with StrideSkipAutoPack=true, which also suppressed their own auto-pack-deploy, so deploy
-// the fresh nupkgs here. Globbed separately: content-versioned ones (Samples, Starters) can carry
-// a different version than the engine. Listed in the manifest so cleanup/pruning covers them;
-// after a flag-off their auto-pack (independent of StrideDevPackages) repopulates the feeds.
-var freshTemplates = adopt.Length > 0
-    ? freshPackages.Where(p => Path.GetFileName(p).StartsWith("Stride.Templates.", StringComparison.OrdinalIgnoreCase))
-    : Directory.GetFiles(tempPackDir, "Stride.Templates.*.nupkg");
-foreach (var tplPath in freshTemplates)
+// the fresh nupkgs here. Content-versioned ones (Samples, Starters) can carry a different version
+// than the engine. Listed in the manifest so cleanup/pruning covers them; after a flag-off their
+// auto-pack (independent of StrideDevPackages) repopulates the feeds.
+foreach (var tplPath in freshPackages.Where(p => Path.GetFileName(p).StartsWith("Stride.Templates.", StringComparison.OrdinalIgnoreCase)))
 {
     var tplName = Path.GetFileName(tplPath);
-    var tplMatch = Regex.Match(tplName, @"^(?<id>.+?)\.(?<ver>\d.*)\.nupkg$");
-    if (!tplMatch.Success) continue;
+    if (SplitPackageFile(tplName) is not { } tpl) continue;
 
-    Console.Write($"  {tplMatch.Groups["id"].Value}...");
+    Console.Write($"  {tpl.Id}...");
     File.Copy(tplPath, Path.Combine(nugetDevDir, tplName), overwrite: true);
-    InvalidateNuGetCache(nugetPackagesDir, tplMatch.Groups["id"].Value, tplMatch.Groups["ver"].Value);
+    InvalidateNuGetCache(nugetPackagesDir, tpl.Id, tpl.Version);
     generatedStubs.Add(tplName);
     Console.WriteLine(" OK (deployed as-is)");
 }
