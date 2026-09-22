@@ -1566,12 +1566,9 @@ public partial class BinaryExpression(Expression left, Operator op, Expression r
 
     public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
     {
-        var expectedOperandType = Op switch
-        {
-            Operator.Plus or Operator.Minus or Operator.Mul or Operator.Div or Operator.Mod => expectedType,
-            // TODO: review XOR/OR/Shift etc.
-            _ => null,
-        };
+        // The context's type only reaches an operation of literals, whose value is the same computed in it
+        // (a constant then stays a constant of that type); otherwise the operands' own types decide, as in HLSL.
+        var expectedOperandType = IsLiteralOperation(this) ? expectedType : null;
 
         Left.ProcessSymbol(table, expectedOperandType);
         Right.ProcessSymbol(table, expectedOperandType);
@@ -1588,6 +1585,15 @@ public partial class BinaryExpression(Expression left, Operator op, Expression r
 
         Type = analysisResult?.ResultType;
     }
+
+    private static bool IsLiteralOperation(Expression expression) => expression switch
+    {
+        NumberLiteral => true,
+        ParenthesisExpression parenthesis => IsLiteralOperation(parenthesis.Expression),
+        PrefixExpression { Operator: Operator.Plus or Operator.Minus } prefix and not CastExpression => IsLiteralOperation(prefix.Expression),
+        BinaryExpression { Op: Operator.Plus or Operator.Minus or Operator.Mul } binary => IsLiteralOperation(binary.Left) && IsLiteralOperation(binary.Right),
+        _ => false,
+    };
 
     public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
