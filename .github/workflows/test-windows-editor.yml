@@ -10,6 +10,15 @@ on:
         options:
           - Debug
           - Release
+      graphics-api:
+        description: Only this graphics API (blank = all)
+        default: ''
+        type: choice
+        options:
+          - ''
+          - Direct3D11
+          - Direct3D12
+          - Vulkan
   workflow_call:
     inputs:
       build-type:
@@ -40,9 +49,21 @@ jobs:
     if: >
       github.event_name != 'schedule'
       || vars.STRIDE_ENABLE_SCHEDULED_CI == 'true'
-    name: Windows (Editor, ${{ inputs.build-type || 'Debug' }})
+    name: Windows (Editor, ${{ matrix.graphics-api }}, ${{ inputs.build-type || 'Debug' }})
     runs-on: windows-2025-vs2026
+    strategy:
+      fail-fast: false
+      matrix:
+        # Game Studio runs on each API; the games the fixtures build stay on Direct3D11.
+        graphics-api: ${{ fromJSON(inputs.graphics-api && format('["{0}"]', inputs.graphics-api) || '["Direct3D11", "Direct3D12", "Vulkan"]') }}
     env:
+      # Read by GraphicsApiSelector at Game Studio startup.
+      STRIDE_GRAPHICS_API: ${{ matrix.graphics-api }}
+      # No STRIDE_VULKAN_SYNC_VALIDATION here: on Lavapipe it slows the thumbnails to about one per second, and the
+      # fixtures time out. The game tests and the enduser samples run the same rendering code with it on.
+      # MSBuild property (read from the environment): a fresh checkout only builds Direct3D11, so
+      # stage the requested API next to it.
+      StrideGraphicsApis: ${{ matrix.graphics-api != 'Direct3D11' && format('Direct3D11;{0}', matrix.graphics-api) || '' }}
       DOTNET_DbgEnableMiniDump: "1"
       DOTNET_DbgMiniDumpType: "1"
       DOTNET_DbgMiniDumpName: "${{ github.workspace }}\\crash-dumps\\dotnet_%p.dmp"
@@ -84,6 +105,11 @@ jobs:
         with:
           width: '3840'
           height: '2160'
+
+      # No GPU on the runner: Lavapipe, with the validation layers
+      - name: Set up Vulkan
+        if: matrix.graphics-api == 'Vulkan'
+        uses: ./.github/actions/setup-vulkan-windows
 
       - name: Build Stride.GameStudio.AutoTesting
         run: |
@@ -139,7 +165,7 @@ jobs:
         if: always()
         uses: phoenix-actions/test-reporting@v16
         with:
-          name: 'Editor screenshot regression'
+          name: 'Editor screenshot regression (${{ matrix.graphics-api }})'
           path: TestResults/*.trx
           reporter: dotnet-trx
           output-to: step-summary
@@ -150,7 +176,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: screenshots-editor
+          name: screenshots-editor-${{ matrix.graphics-api }}
           path: ui-test-out-dpi*/
           if-no-files-found: warn
 
@@ -158,7 +184,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: editor-crash-dumps
+          name: editor-crash-dumps-${{ matrix.graphics-api }}
           path: crash-dumps/
           if-no-files-found: ignore
 
@@ -169,7 +195,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: editor-sample-obj
+          name: editor-sample-obj-${{ matrix.graphics-api }}
           path: |
             C:\Users\runneradmin\AppData\Local\Temp\stride-editor-tests\**\obj\project.assets.json
             C:\Users\runneradmin\AppData\Local\Temp\stride-editor-tests\**\*.csproj

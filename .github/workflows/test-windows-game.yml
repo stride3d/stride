@@ -130,44 +130,11 @@ jobs:
           reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /v DumpFolder /t REG_EXPAND_SZ /d $dumpDir /f
           reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /v DumpType /t REG_DWORD /d 2 /f
           reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /v DumpCount /t REG_DWORD /d 10 /f
-      - name: Install Vulkan SDK
+      # The runtime tests get Lavapipe from its module initializer; the asset compiler run before them
+      # (skybox compilation needs a device) and the validation layers need the loader set up
+      - name: Set up Vulkan
         if: matrix.graphics-api == 'Vulkan'
-        uses: jakoch/install-vulkan-sdk-action@v1
-        with:
-          vulkan_version: 1.4.341.1
-          install_runtime: true
-          cache: true
-          stripdown: true
-      - name: Enable Vulkan validation layers
-        if: matrix.graphics-api == 'Vulkan'
-        shell: pwsh
-        run: |
-          # Register via the registry: the loader ignores VK_LAYER_PATH for elevated processes,
-          # same as VK_DRIVER_FILES for drivers (see the Lavapipe step below)
-          $manifest = Join-Path $env:VULKAN_SDK 'Bin\VkLayer_khronos_validation.json'
-          if (-not (Test-Path $manifest)) { throw "Validation layer manifest not found: $manifest" }
-          New-Item -Path "HKLM:\SOFTWARE\Khronos\Vulkan\ExplicitLayers" -Force | Out-Null
-          New-ItemProperty -Path "HKLM:\SOFTWARE\Khronos\Vulkan\ExplicitLayers" -Name $manifest -Value 0 -PropertyType DWord -Force | Out-Null
-      - name: Register Lavapipe ICD
-        if: matrix.graphics-api == 'Vulkan'
-        shell: pwsh
-        run: |
-          # CompilerApp needs a Vulkan device at build time (Skybox asset compilation).
-          # Runtime tests are served by the Lavapipe module initializer; this step is
-          # only for the pre-runtime CompilerApp invocation, so we register an ICD here.
-          # Restore first so the package is in the NuGet cache.
-          dotnet restore build\Stride.Tests.Game.GPU.slnf -p:StrideGraphicsApis=Vulkan -p:StrideGraphicsApi=Vulkan
-          $dll = Get-ChildItem -Recurse -Path "$env:USERPROFILE\.nuget\packages\stride.dependencies.lavapipe" -Filter vulkan_lvp.dll -ErrorAction SilentlyContinue | Where-Object { $_.DirectoryName -match 'win-x64' } | Select-Object -First 1
-          if ($dll) {
-            $icdPath = Join-Path $dll.DirectoryName "lvp_icd.json"
-            $dllPath = $dll.FullName -replace '\\', '\\\\'
-            Set-Content -Path $icdPath -Value "{`"file_format_version`":`"1.0.0`",`"ICD`":{`"library_path`":`"$dllPath`",`"api_version`":`"1.3.0`"}}"
-            New-Item -Path "HKLM:\SOFTWARE\Khronos\Vulkan\Drivers" -Force | Out-Null
-            New-ItemProperty -Path "HKLM:\SOFTWARE\Khronos\Vulkan\Drivers" -Name $icdPath -Value 0 -PropertyType DWord -Force | Out-Null
-            Write-Host "Registered Lavapipe ICD: $icdPath"
-          } else {
-            Write-Warning "Lavapipe DLL not found in NuGet cache"
-          }
+        uses: ./.github/actions/setup-vulkan-windows
       - name: Resolve build/test target
         shell: pwsh
         run: |

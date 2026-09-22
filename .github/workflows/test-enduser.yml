@@ -168,43 +168,10 @@ jobs:
             -p:StrideGraphicsApi=${{ matrix.graphics-api }} \
             -p:StrideGraphicsApis=${{ matrix.graphics-api }}
 
-      # Install Stride.Dependencies.Lavapipe and register its ICD with the Vulkan loader
-      # so the samples' Vulkan path resolves a software driver on the CI runner (no GPU).
-      # On Windows the loader reads HKLM\SOFTWARE\Khronos\Vulkan\Drivers — VK_DRIVER_FILES
-      # env var alone isn't reliable across runner Vulkan SDK versions.
-      # Install the Vulkan SDK for its validation layers so debug-mode samples run validated.
-      - name: Install Vulkan SDK (Windows / Vulkan)
+      # No GPU on the runner: the samples' Vulkan path gets Lavapipe, and the debug-mode samples the validation layers
+      - name: Set up Vulkan (Windows / Vulkan)
         if: runner.os == 'Windows' && matrix.graphics-api == 'Vulkan'
-        uses: jakoch/install-vulkan-sdk-action@v1
-        with:
-          vulkan_version: 1.4.341.1
-          install_runtime: true
-          cache: true
-          stripdown: true
-      - name: Enable Vulkan validation layers (Windows / Vulkan)
-        if: runner.os == 'Windows' && matrix.graphics-api == 'Vulkan'
-        shell: pwsh
-        run: |
-          # Register via the registry: the loader ignores VK_LAYER_PATH for elevated processes,
-          # same as VK_DRIVER_FILES for drivers (see the Lavapipe step below)
-          $manifest = Join-Path $env:VULKAN_SDK 'Bin\VkLayer_khronos_validation.json'
-          if (-not (Test-Path $manifest)) { throw "Validation layer manifest not found: $manifest" }
-          New-Item -Path "HKLM:\SOFTWARE\Khronos\Vulkan\ExplicitLayers" -Force | Out-Null
-          New-ItemProperty -Path "HKLM:\SOFTWARE\Khronos\Vulkan\ExplicitLayers" -Name $manifest -Value 0 -PropertyType DWord -Force | Out-Null
-
-      - name: Install Lavapipe and register its Vulkan ICD (Windows / Vulkan)
-        if: runner.os == 'Windows' && matrix.graphics-api == 'Vulkan'
-        shell: pwsh
-        run: |
-          $tmpDir = "${{ runner.temp }}\lavapipe-fetch"
-          New-Item -ItemType Directory -Path $tmpDir -Force | Out-Null
-          Set-Content -Path "$tmpDir\LavapipeFetch.csproj" -Value '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0</TargetFramework></PropertyGroup></Project>'
-          dotnet add "$tmpDir\LavapipeFetch.csproj" package Stride.Dependencies.Lavapipe
-          $icd = Get-ChildItem -Recurse -Path "$env:USERPROFILE\.nuget\packages\stride.dependencies.lavapipe" -Filter "lvp_icd*.json" -ErrorAction SilentlyContinue | Where-Object { $_.DirectoryName -match 'win-x64' } | Select-Object -First 1
-          if (-not $icd) { throw "Lavapipe ICD not found in NuGet cache after restore." }
-          New-Item -Path "HKLM:\SOFTWARE\Khronos\Vulkan\Drivers" -Force | Out-Null
-          New-ItemProperty -Path "HKLM:\SOFTWARE\Khronos\Vulkan\Drivers" -Name $icd.FullName -Value 0 -PropertyType DWord -Force | Out-Null
-          Write-Host "Registered Lavapipe ICD: $($icd.FullName)"
+        uses: ./.github/actions/setup-vulkan-windows
 
       # On Linux the Vulkan loader honors VK_DRIVER_FILES → point it at the linux-x64
       # Lavapipe .so shipped inside the Stride.Dependencies.Lavapipe nupkg.
