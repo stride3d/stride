@@ -37,6 +37,9 @@ namespace Stride.Graphics
         // the native device, its info queue and its live objects. Counted so that only the last one reports them.
         private static readonly Dictionary<nint, int> nativeDeviceUsers = new();
 
+        // Debug devices whose message callback is registered, see UnregisterDebugMessageCallbacksAtExit
+        private static readonly HashSet<GraphicsDevice> devicesWithCallback = new();
+
         // D3D12 Agility SDK redist shipped app-local under D3D12\ (Microsoft.Direct3D.D3D12 1.619.x).
         private const uint AgilitySDKVersion = 619;
         private static readonly Guid CLSID_D3D12SDKConfiguration = new(0x7cda6aca, 0xa03e, 0x49c8, 0x94, 0x58, 0x03, 0x34, 0xd2, 0x0e, 0x07, 0xce);
@@ -594,6 +597,13 @@ namespace Stride.Graphics
                                 (void*)(IntPtr)debugMessageContext,
                                 ref cookie);
                             debugMessageCallbackCookie = cookie;
+
+                            lock (devicesWithCallback)
+                            {
+                                if (devicesWithCallback.Count == 0)
+                                    AppDomain.CurrentDomain.ProcessExit += UnregisterDebugMessageCallbacksAtExit;
+                                devicesWithCallback.Add(this);
+                            }
                         }
                     }
                     debugDevice.Release();
@@ -945,19 +955,38 @@ namespace Stride.Graphics
                     }
                 }
 
-                if (nativeInfoQueue1 is not null)
-                {
-                    if (debugMessageCallbackCookie != 0)
-                        nativeInfoQueue1->UnregisterMessageCallback(debugMessageCallbackCookie);
-                    debugMessageCallbackCookie = 0;
-                    SafeRelease(ref nativeInfoQueue1);
-                }
+                UnregisterDebugMessageCallback();
                 if (debugMessageContext.IsAllocated)
                     debugMessageContext.Free();
                 SafeRelease(ref nativeInfoQueue);
             }
 
             SafeRelease(ref nativeDevice);
+        }
+
+        private void UnregisterDebugMessageCallback()
+        {
+            lock (devicesWithCallback)
+            {
+                if (nativeInfoQueue1 is null)
+                    return;
+                if (debugMessageCallbackCookie != 0)
+                    nativeInfoQueue1->UnregisterMessageCallback(debugMessageCallbackCookie);
+                debugMessageCallbackCookie = 0;
+                SafeRelease(ref nativeInfoQueue1);
+                devicesWithCallback.Remove(this);
+            }
+        }
+
+        // A device that is never disposed keeps its callback until the process ends, and the debug layer can still
+        // emit a message from its own thread after the runtime shut down: managed code on such a thread is fatal.
+        private static void UnregisterDebugMessageCallbacksAtExit(object sender, EventArgs e)
+        {
+            var devices = new List<GraphicsDevice>();
+            lock (devicesWithCallback)
+                devices.AddRange(devicesWithCallback);
+            foreach (var device in devices)
+                device.UnregisterDebugMessageCallback();
         }
 
         /// <summary>
