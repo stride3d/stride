@@ -72,6 +72,7 @@ namespace Stride.Graphics
         internal readonly ConcurrentPool<List<ComPtr<ID3D12DescriptorHeap>>> DescriptorHeapLists = new(() => []);
 
         private bool simulateReset = false;
+        private bool deviceRemovedLogged;
         private string rendererName;
 
         private ID3D12Device* nativeDevice;
@@ -261,6 +262,10 @@ namespace Stride.Graphics
                     return GraphicsDeviceStatus.Reset;
                 }
 
+                // A failed re-creation after a reset leaves no native device
+                if (nativeDevice is null)
+                    return GraphicsDeviceStatus.Removed;
+
                 var result = (DxgiConstants.DeviceRemoveReason) nativeDevice->GetDeviceRemovedReason();
 
                 var status = result switch
@@ -275,11 +280,16 @@ namespace Stride.Graphics
                     _ => GraphicsDeviceStatus.Normal
                 };
 
-                if (status != GraphicsDeviceStatus.Normal && IsDebugMode)
+                // Logged once: the status is polled every frame
+                if (status != GraphicsDeviceStatus.Normal && !deviceRemovedLogged)
                 {
+                    deviceRemovedLogged = true;
                     Log.Error($"[D3D12] Device removed! Reason: {result} (status: {status})");
-                    FlushDebugMessages();
-                    LogDredData();
+                    if (IsDebugMode)
+                    {
+                        FlushDebugMessages();
+                        LogDredData();
+                    }
                 }
 
                 return status;

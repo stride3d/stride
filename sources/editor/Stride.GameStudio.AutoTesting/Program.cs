@@ -111,6 +111,20 @@ internal static class Program
             finally { inFirstChanceDiag = false; }
         };
         AppDomain.CurrentDomain.ProcessExit += (_, _) => Diag("ProcessExit");
+        // Game Studio only routes its log to the debugger; keep the warnings and errors (graphics validation
+        // among them) in the diag log.
+        Stride.Core.Diagnostics.GlobalLogger.GlobalMessageLogged += message =>
+        {
+            if (message.Type < Stride.Core.Diagnostics.LogMessageType.Warning)
+                return;
+            var line = $"LOG [{message.Module}] {message.Type}: {message.Text}";
+            if (message.ExceptionInfo is { } exception)
+                line += Environment.NewLine + exception;
+            Diag(line);
+            // Also to stderr, which the test shows: the debug layer's live-object report at exit is too long for that
+            if (!message.Text.Contains("Live "))
+                Console.Error.WriteLine(line);
+        };
 
         UITestHost? host = null;
         try
