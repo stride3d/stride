@@ -33,6 +33,10 @@ namespace Stride.Graphics
         private static object debugLayerLock = new();
         private static bool debugLayerLoaded = false;
 
+        // D3D12 devices are singletons per adapter: every GraphicsDevice of the process on the same adapter shares
+        // the native device, its info queue and its live objects. Counted so that only the last one reports them.
+        private static readonly Dictionary<nint, int> nativeDeviceUsers = new();
+
         // D3D12 Agility SDK redist shipped app-local under D3D12\ (Microsoft.Direct3D.D3D12 1.619.x).
         private const uint AgilitySDKVersion = 619;
         private static readonly Guid CLSID_D3D12SDKConfiguration = new(0x7cda6aca, 0xa03e, 0x49c8, 0x94, 0x58, 0x03, 0x34, 0xd2, 0x0e, 0x07, 0xce);
@@ -474,6 +478,9 @@ namespace Stride.Graphics
                 }
 
                 nativeDevice = device;
+                deviceRemovedLogged = false;
+                lock (nativeDeviceUsers)
+                    nativeDeviceUsers[(nint)nativeDevice] = nativeDeviceUsers.GetValueOrDefault((nint)nativeDevice) + 1;
 
                 RequestedProfile = graphicsProfile;
                 CurrentFeatureLevel = featureLevel;
@@ -911,16 +918,31 @@ namespace Stride.Graphics
             DepthStencilViewAllocator.Dispose();
             RenderTargetViewAllocator.Dispose();
 
+            bool lastUser;
+            lock (nativeDeviceUsers)
+            {
+                // Not counted when the device creation itself failed
+                lastUser = nativeDeviceUsers.TryGetValue((nint)nativeDevice, out var users) && --users == 0;
+                if (lastUser)
+                    nativeDeviceUsers.Remove((nint)nativeDevice);
+                else if (users > 0)
+                    nativeDeviceUsers[(nint)nativeDevice] = users;
+            }
+
             if (IsDebugMode)
             {
                 FlushDebugMessages();
 
-                HResult result = nativeDevice->QueryInterface(out ComPtr<ID3D12DebugDevice> debugDevice);
-
-                if (result.IsSuccess && debugDevice.IsNotNull())
+                // The other users of the native device would receive the report through their own callbacks
+                if (lastUser)
                 {
-                    debugDevice.ReportLiveDeviceObjects(RldoFlags.Detail);
-                    debugDevice.Release();
+                    HResult result = nativeDevice->QueryInterface(out ComPtr<ID3D12DebugDevice> debugDevice);
+
+                    if (result.IsSuccess && debugDevice.IsNotNull())
+                    {
+                        debugDevice.ReportLiveDeviceObjects(RldoFlags.Detail);
+                        debugDevice.Release();
+                    }
                 }
 
                 if (nativeInfoQueue1 is not null)
