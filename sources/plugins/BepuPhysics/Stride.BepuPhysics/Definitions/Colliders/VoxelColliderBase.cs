@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using BepuPhysics;
 using BepuPhysics.Collidables;
 using BepuPhysics.Trees;
@@ -11,6 +12,7 @@ using Stride.BepuPhysics.Definitions.Colliders.Voxels;
 using Stride.BepuPhysics.Systems;
 using Stride.Core;
 using Stride.Core.Mathematics;
+using Stride.Graphics.GeometricPrimitives;
 using NRigidPose = BepuPhysics.RigidPose;
 using NVector3 = System.Numerics.Vector3;
 
@@ -168,8 +170,10 @@ public abstract class VoxelColliderBase<TSource> : ICollider
 
         var vertices = new List<VertexPosition3>();
         var indices = new List<int>();
-        if (_cellShape is VoxelCellShape.Box or VoxelCellShape.Sphere)
-            AppendCellSolids(grid, vertices, indices, _cellShape == VoxelCellShape.Sphere);
+        if (_cellShape == VoxelCellShape.Box)
+            AppendCellSolids(grid, shapeCache._boxShapeData, vertices, indices, grid.CellSize);
+        else if (_cellShape == VoxelCellShape.Sphere)
+            AppendCellSolids(grid, s_cellSphere, vertices, indices, new NVector3(grid.SphereRadius * 2f));
         else
             AppendSurface(new VoxelTriangleShape<TSource> { GridData = grid, SurfaceNets = _cellShape == VoxelCellShape.SurfaceNets }, vertices, indices);
         buffer.Add(new BasicMeshBuffers { Vertices = vertices.ToArray(), Indices = indices.ToArray() });
@@ -201,9 +205,19 @@ public abstract class VoxelColliderBase<TSource> : ICollider
         return true;
     }
 
+    /// <summary>Tessellation of the cell spheres, coarser than a sphere collider's so hundreds of them stay readable.</summary>
+    private const int CellSphereTessellation = 4;
 
-    /// <summary>A box, or an icosahedron standing for the sphere, per solid cell with an air neighbour.</summary>
-    private static void AppendCellSolids(in VoxelGridData<TSource> grid, List<VertexPosition3> vertices, List<int> indices, bool sphere)
+    private static readonly BasicMeshBuffers s_cellSphere = CreateCellSphere();
+
+    private static BasicMeshBuffers CreateCellSphere()
+    {
+        var sphere = GeometricPrimitive.Sphere.New(1f, CellSphereTessellation);
+        return new BasicMeshBuffers { Vertices = sphere.Vertices.Select(v => new VertexPosition3(v.Position)).ToArray(), Indices = sphere.Indices };
+    }
+
+    /// <summary>A unit box or sphere per solid cell with an air neighbour.</summary>
+    private static void AppendCellSolids(in VoxelGridData<TSource> grid, BasicMeshBuffers unitShape, List<VertexPosition3> vertices, List<int> indices, NVector3 scale)
     {
         for (int x = 0; x < grid.CellsX; ++x)
         {
@@ -215,26 +229,10 @@ public abstract class VoxelColliderBase<TSource> : ICollider
                         continue;
                     var centre = grid.CellCentre(x, y, z);
                     var first = vertices.Count;
-                    if (sphere)
-                    {
-                        foreach (var corner in s_icosahedronVertices)
-                            vertices.Add(new VertexPosition3((centre + corner * grid.SphereRadius).ToStride()));
-                        foreach (var i in IcosahedronIndices)
-                            indices.Add(first + i);
-                    }
-                    else
-                    {
-                        var half = grid.CellSize * 0.5f;
-                        for (int corner = 0; corner < VoxelCell.CornerCount; ++corner)
-                        {
-                            vertices.Add(new VertexPosition3((centre + new NVector3(
-                                (corner & 1) != 0 ? half.X : -half.X,
-                                (corner & 2) != 0 ? half.Y : -half.Y,
-                                (corner & 4) != 0 ? half.Z : -half.Z)).ToStride()));
-                        }
-                        foreach (var i in BoxIndices)
-                            indices.Add(first + i);
-                    }
+                    foreach (var vertex in unitShape.Vertices)
+                        vertices.Add(new VertexPosition3((centre + vertex.Position.ToNumeric() * scale).ToStride()));
+                    foreach (var i in unitShape.Indices)
+                        indices.Add(first + i);
                 }
             }
         }
@@ -270,40 +268,4 @@ public abstract class VoxelColliderBase<TSource> : ICollider
             }
         }
     }
-
-    /// <summary>Box triangles over the corners numbered by bit: bit 0 is +X, bit 1 +Y, bit 2 +Z.</summary>
-    private static ReadOnlySpan<int> BoxIndices =>
-    [
-        0, 2, 1, 1, 2, 3,
-        4, 5, 6, 5, 7, 6,
-        0, 1, 4, 1, 5, 4,
-        2, 6, 3, 3, 6, 7,
-        0, 4, 2, 2, 4, 6,
-        1, 3, 5, 3, 7, 5,
-    ];
-
-    /// <summary>The unit icosahedron: the cyclic permutations of (0, ±1, ±φ), normalized.</summary>
-    private static readonly NVector3[] s_icosahedronVertices = BuildIcosahedron();
-
-    private static NVector3[] BuildIcosahedron()
-    {
-        var phi = (1f + MathF.Sqrt(5f)) * 0.5f;
-        NVector3[] vertices =
-        [
-            new(-1, phi, 0), new(1, phi, 0), new(-1, -phi, 0), new(1, -phi, 0),
-            new(0, -1, phi), new(0, 1, phi), new(0, -1, -phi), new(0, 1, -phi),
-            new(phi, 0, -1), new(phi, 0, 1), new(-phi, 0, -1), new(-phi, 0, 1),
-        ];
-        for (int i = 0; i < vertices.Length; ++i)
-            vertices[i] = NVector3.Normalize(vertices[i]);
-        return vertices;
-    }
-
-    private static ReadOnlySpan<int> IcosahedronIndices =>
-    [
-        0, 5, 11, 0, 1, 5, 0, 7, 1, 0, 10, 7, 0, 11, 10,
-        1, 9, 5, 5, 4, 11, 11, 2, 10, 10, 6, 7, 7, 8, 1,
-        3, 4, 9, 3, 2, 4, 3, 6, 2, 3, 8, 6, 3, 9, 8,
-        4, 5, 9, 2, 11, 4, 6, 10, 2, 8, 7, 6, 9, 1, 8,
-    ];
 }
