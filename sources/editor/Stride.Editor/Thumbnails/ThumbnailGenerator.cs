@@ -195,6 +195,8 @@ namespace Stride.Editor.Thumbnails
                         var renderTarget = GraphicsContext.Allocator.GetTemporaryTexture2D(request.Size.X, request.Size.Y, request.ColorSpace == ColorSpace.Linear ? PixelFormat.R8G8B8A8_UNorm_SRgb : PixelFormat.R8G8B8A8_UNorm, TextureFlags.ShaderResource | TextureFlags.RenderTarget);
                         var depthStencil = GraphicsContext.Allocator.GetTemporaryTexture2D(request.Size.X, request.Size.Y, PixelFormat.D24_UNorm_S8_UInt, TextureFlags.DepthStencil);
 
+                        // A thumbnail is a frame: without End() the device never releases what a frame leaves behind
+                        GraphicsDevice.Begin();
                         try
                         {
                             // Fake presenter
@@ -245,6 +247,8 @@ namespace Stride.Editor.Thumbnails
 
                             GraphicsContext.Allocator.ReleaseReference(depthStencil);
                             GraphicsContext.Allocator.ReleaseReference(renderTarget);
+
+                            GraphicsDevice.End();
                         }
 
                         MicrothreadLocalDatabases.UnmountDatabase();

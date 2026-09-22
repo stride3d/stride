@@ -15,6 +15,7 @@ namespace Stride.Editor.Thumbnails
     {
         private static readonly object thumbnailLock = new object();
         private static GraphicsDevice staticGraphicsDevice;
+        private static GraphicsContext staticGraphicsContext;
         private static SpriteBatch staticSpriteBatch;
 
         private static Texture staticRenderTarget;
@@ -41,8 +42,6 @@ namespace Stride.Editor.Thumbnails
 
         public void Dispose()
         {
-            GraphicsContext.ResourceGroupAllocator.Dispose();
-
             if (lockWasTaken)
                 Monitor.Exit(thumbnailLock);
         }
@@ -53,11 +52,13 @@ namespace Stride.Editor.Thumbnails
             if (staticGraphicsDevice == null)
             {
                 staticGraphicsDevice = GraphicsDevice.New(StrideConfig.GraphicsDebugMode ? DeviceCreationFlags.Debug : DeviceCreationFlags.None);
+                // Shared like the device: a context owns a command list, which was created per use and never disposed
+                staticGraphicsContext = new GraphicsContext(staticGraphicsDevice);
                 staticSpriteBatch = new SpriteBatch(staticGraphicsDevice);
             }
 
             GraphicsDevice = staticGraphicsDevice;
-            GraphicsContext = new GraphicsContext(staticGraphicsDevice);
+            GraphicsContext = staticGraphicsContext;
             SpriteBatch = staticSpriteBatch;
         }
 
@@ -131,16 +132,27 @@ namespace Stride.Editor.Thumbnails
         {
             InitializeRenderTargets(PixelFormat.R8G8B8A8_UNorm, texture1.Description.Width, texture1.Description.Height);
 
-            // Generate thumbnail with status icon
-            // Clear (transparent)
-            GraphicsContext.CommandList.Clear(RenderTarget, new Color4());
-            GraphicsContext.CommandList.SetRenderTargetAndViewport(null, staticRenderTarget);
+            // A frame: without End() the device never releases what a frame leaves behind
+            GraphicsDevice.Begin();
+            try
+            {
+                GraphicsContext.ResourceGroupAllocator.Reset(GraphicsContext.CommandList);
 
-            // Render thumbnail and status sprite
-            SpriteBatch.Begin(GraphicsContext);
-            SpriteBatch.Draw(texture1, Vector2.Zero);
-            SpriteBatch.Draw(texture2, new Vector2(positionX, positionY));
-            SpriteBatch.End();
+                // Generate thumbnail with status icon
+                // Clear (transparent)
+                GraphicsContext.CommandList.Clear(RenderTarget, new Color4());
+                GraphicsContext.CommandList.SetRenderTargetAndViewport(null, staticRenderTarget);
+
+                // Render thumbnail and status sprite
+                SpriteBatch.Begin(GraphicsContext);
+                SpriteBatch.Draw(texture1, Vector2.Zero);
+                SpriteBatch.Draw(texture2, new Vector2(positionX, positionY));
+                SpriteBatch.End();
+            }
+            finally
+            {
+                GraphicsDevice.End();
+            }
         }
     }
 }
