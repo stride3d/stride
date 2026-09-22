@@ -455,6 +455,12 @@ namespace Stride.Graphics
         {
             HResult result;
 
+#if STRIDE_GRAPHICS_API_DIRECT3D12
+            // ResizeBuffers refuses a back buffer that the GPU still uses, or that a completed frame has not released yet
+            GraphicsDevice.WaitForGpuIdle();
+            GraphicsDevice.ReleaseTemporaryResources();
+#endif
+
             // Manually update the Back-Buffer Texture
             backBuffer.OnDestroyed(immediately: true);
 
