@@ -53,7 +53,7 @@ A few source files are linked (`<Compile Include="..." Link="..." />`) into `Str
 
 | Linked file | Origin | Used for |
 |---|---|---|
-| `Editor/EditorPath.cs` | [sources/editor/Stride.Core.Assets.Editor/EditorPath.cs](../../sources/editor/Stride.Core.Assets.Editor/EditorPath.cs) | Resolves `EditorPath.UserDataPath`, `EditorPath.DefaultTempPath`, etc. for settings and the single-instance lock |
+| `Editor/EditorPath.cs` | [sources/editor/Stride.Core.Assets.Editor.Wpf/EditorPath.cs](../../sources/editor/Stride.Core.Assets.Editor.Wpf/EditorPath.cs) | Resolves `EditorPath.UserDataPath`, `EditorPath.DefaultTempPath`, etc. for settings and the single-instance lock |
 | `Packages/PackageSessionHelper.Solution.cs` | [sources/assets/Stride.Core.Assets/PackageSessionHelper.Solution.cs](../../sources/assets/Stride.Core.Assets/PackageSessionHelper.Solution.cs) | Parses `.sln` files to discover the Stride version used by a recent project |
 | `Stride.Core.MostRecentlyUsedFiles.projitems` (Shared) | [sources/editor/Stride.Core.MostRecentlyUsedFiles](../../sources/editor/Stride.Core.MostRecentlyUsedFiles/) | Reads the Game Studio MRU list to populate the "Recent projects" tab |
 

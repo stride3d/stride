@@ -177,6 +177,6 @@ private async Task DoSomethingAsync()
 
 | File | Path |
 |---|---|
-| `%%AssetName%%EditorViewModel.cs` | `sources/editor/Stride.Assets.Presentation/AssetEditors/%%EditorName%%/ViewModels/` |
-| `%%AssetName%%EditorView.xaml` | `sources/editor/Stride.Assets.Presentation/AssetEditors/%%EditorName%%/Views/` |
-| `%%AssetName%%EditorView.xaml.cs` | `sources/editor/Stride.Assets.Presentation/AssetEditors/%%EditorName%%/Views/` |
+| `%%AssetName%%EditorViewModel.cs` | `sources/editor/Stride.Assets.Presentation.Wpf/AssetEditors/%%EditorName%%/ViewModels/` |
+| `%%AssetName%%EditorView.xaml` | `sources/editor/Stride.Assets.Presentation.Wpf/AssetEditors/%%EditorName%%/Views/` |
+| `%%AssetName%%EditorView.xaml.cs` | `sources/editor/Stride.Assets.Presentation.Wpf/AssetEditors/%%EditorName%%/Views/` |

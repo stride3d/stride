@@ -44,7 +44,7 @@ The MRU list is wrapped in `MostRecentlyUsedFileCollection` from the shared [Str
 
 ## EditorPath
 
-Path resolution goes through [Stride.Core.Assets.Editor.EditorPath](../../sources/editor/Stride.Core.Assets.Editor/EditorPath.cs), linked directly into the launcher project. On Windows this resolves to `%LocalAppData%\Stride\`; on Linux/macOS it follows XDG conventions.
+Path resolution goes through [Stride.Core.Assets.Editor.EditorPath](../../sources/editor/Stride.Core.Assets.Editor.Wpf/EditorPath.cs), linked directly into the launcher project. On Windows this resolves to `%LocalAppData%\Stride\`; on Linux/macOS it follows XDG conventions.
 
 ## First-install tasks
 

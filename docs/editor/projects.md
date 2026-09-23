@@ -22,14 +22,14 @@ Assembly names match project names throughout; the "same" shorthand in the Assem
 | `Stride.Core.Presentation` | same | No | MVVM base classes (`ViewModelBase`, `DispatcherViewModel`), service interfaces (`IDispatcherService`), commands, dirtiables |
 | `Stride.Core.Presentation.Wpf` | same | Yes | WPF controls, converters, behaviors, `WpfDispatcherService` |
 | `Stride.Core.Presentation.Quantum` | same | No | Quantum-to-ViewModel binding — `INodePresenter`, node presenter updater infrastructure; platform-agnostic layer consumed by the WPF property grid |
-| `Stride.Core.Presentation.Graph` | same | Yes | Node-graph visualization controls (used by GraphicsCompositor editor) |
-| `Stride.Core.Presentation.Dialogs` | same | Yes | Dialog services and file picker implementations |
-| `Stride.Core.Assets.Editor` | same | Yes* | Base editor infrastructure: `AssetEditorViewModel`, `IEditorView`, `AssetsEditorPlugin`, `SelectionService`, `IUndoRedoService`, registration attributes; *project targets WPF but ViewModel base classes are platform-agnostic |
-| `Stride.Assets.Presentation` | same | Yes | All concrete asset editors (ViewModels + Views), `StrideDefaultAssetsPlugin`, node presenter updaters |
-| `Stride.Editor` | same | Yes | Core editor wiring and game-editor infrastructure |
+| `Stride.Core.Presentation.Wpf.Graph` | same | Yes | Node-graph visualization controls (used by GraphicsCompositor editor) |
+| `Stride.Core.Presentation.Wpf.Dialogs` | same | Yes | Dialog services and file picker implementations |
+| `Stride.Core.Assets.Editor.Wpf` | same | Yes* | Base editor infrastructure: `AssetEditorViewModel`, `IEditorView`, `AssetsEditorPlugin`, `SelectionService`, `IUndoRedoService`, registration attributes; *project targets WPF but ViewModel base classes are platform-agnostic |
+| `Stride.Assets.Presentation.Wpf` | same | Yes | All concrete asset editors (ViewModels + Views), `StrideDefaultAssetsPlugin`, node presenter updaters |
+| `Stride.Editor.Wpf` | same | Yes | Core editor wiring and game-editor infrastructure |
 | `Stride.GameStudio` | same | Yes | Shell, `AssetEditorsManager`, `PluginService`, main window |
 
 ## Where to Put New Code
 
-- **New ViewModel code** → `Stride.Assets.Presentation`, under `sources/editor/Stride.Assets.Presentation/AssetEditors/%%EditorName%%/ViewModels/`
+- **New ViewModel code** → `Stride.Assets.Presentation.Wpf`, under `sources/editor/Stride.Assets.Presentation.Wpf/AssetEditors/%%EditorName%%/ViewModels/`
 - **New View / XAML code** → same project, `AssetEditors/%%EditorName%%/Views/`
