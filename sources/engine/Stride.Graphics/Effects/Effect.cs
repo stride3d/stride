@@ -367,21 +367,33 @@ namespace Stride.Graphics
 
         private static void UpdateConstantBufferHashes(EffectReflection reflection)
         {
-            // Update Constant buffers description
+            // A deserialized bytecode holds a group's cbuffer and its ConstantBuffers entry as two instances,
+            // and the render features read the hash through the group, so both get hashed.
+            foreach (var group in reflection.ResourceGroups)
+            {
+                if (group.ConstantBuffer != null)
+                    UpdateConstantBufferHash(group.ConstantBuffer);
+            }
+
             foreach (var constantBuffer in reflection.ConstantBuffers)
             {
-                var hashBuilder = new ObjectIdBuilder();
-                hashBuilder.Write(constantBuffer.Name);
-                hashBuilder.Write(constantBuffer.Size);
-
-                for (int i = 0; i < constantBuffer.Members.Length; ++i)
-                {
-                    var member = constantBuffer.Members[i];
-                    HashConstantBufferMember(ref hashBuilder, ref member);
-                }
-
-                constantBuffer.Hash = hashBuilder.ComputeHash();
+                UpdateConstantBufferHash(constantBuffer);
             }
+        }
+
+        private static void UpdateConstantBufferHash(EffectConstantBufferDescription constantBuffer)
+        {
+            var hashBuilder = new ObjectIdBuilder();
+            hashBuilder.Write(constantBuffer.Name);
+            hashBuilder.Write(constantBuffer.Size);
+
+            for (int i = 0; i < constantBuffer.Members.Length; ++i)
+            {
+                var member = constantBuffer.Members[i];
+                HashConstantBufferMember(ref hashBuilder, ref member);
+            }
+
+            constantBuffer.Hash = hashBuilder.ComputeHash();
         }
 
         internal static void HashConstantBufferMember(ref ObjectIdBuilder hashBuilder, ref EffectValueDescription member, int baseOffset = 0)
