@@ -22,6 +22,8 @@
     <!-- Test-only artefact — never auto-pack/deploy this. -->
     <StrideSkipAutoPack>true</StrideSkipAutoPack>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <!-- Same per-API layout as Game Studio, so a test run can pick the API at launch. -->
+    <StrideMultiGraphicsApiHost>true</StrideMultiGraphicsApiHost>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
@@ -46,6 +48,8 @@
          [STAThread] Main, so the runner's bin needs all of GS's deps. Private=true (default) lets
          them propagate. The runner is a test-only artefact, never shipped. -->
     <ProjectReference Include="..\Stride.GameStudio\Stride.GameStudio.csproj" />
+    <!-- For GraphicsApiHostResolver; Game Studio references it privately. -->
+    <ProjectReference Include="..\..\shared\Stride.NuGetResolver.UI\Stride.NuGetResolver.UI.csproj" />
   </ItemGroup>
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />
 </Project>

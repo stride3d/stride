@@ -1,8 +1,9 @@
 !Animation
-Id: 94d6acea-a230-438d-83b3-b99c99a41a53
+Id: 23bf81ef-636c-482a-990d-b7b13e7fb158
 SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
-Source: ../../Resources/Animation/Jump_Loop.fbx
+Source: !file ../../Resources/Animation/Guard_Idle.fbx
+AnimationStack: 0
 ClipDuration:
     Enabled: false
     StartAnimationTime: 0:00:00:00.0000000
@@ -14,6 +15,6 @@ Skeleton: a0d324bd-326a-4fd8-88a9-fc5e4dcc62e5:Models/mannequinModel Skeleton
 RootMotion: false
 PreviewModel: f68ea240-695a-4de5-9884-60d77544fcd6:Models/mannequinModel
 AnimationTimeMinimum: 0:00:00:00.0000000
+AnimationTimeMaximum: 0:00:00:02.6666600
 ~SourceHashes:
-    d7064665b69ee02ddb199ae62cc3dc7b~../../Resources/Animation/Jump_Loop.fbx: 44e675addf71cd997cb78a1abdc4a212
-AnimationTimeMaximum: 0:00:00:00.9830000
+    6f895b7ab12572da37128120c11baae9~../../Resources/Animation/Guard_Idle.fbx: 718cdbcc2378cb4b17a23e98dc227370

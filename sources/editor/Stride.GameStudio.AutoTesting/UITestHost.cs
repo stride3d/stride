@@ -270,12 +270,40 @@ internal sealed class UITestHost
 
         public async Task WaitIdle()
         {
+            // The queues are empty and no editor game runs until the default scene opens, after the window is loaded
+            await WaitForInitialEditors();
             await WaitForAssetBuild();
             await WaitForShaders();
             await WaitForThumbnails();
             await WaitDispatcherIdle();
             await WaitFrames(1);
             await WaitForRendering();
+        }
+
+        /// <summary>
+        /// Waits for <see cref="Stride.GameStudio.View.GameStudioWindow.InitialEditorsOpened"/>, 120 s at most.
+        /// </summary>
+        private async Task WaitForInitialEditors()
+        {
+            var deadline = DateTime.UtcNow.AddSeconds(120);
+            Task? initialEditorsOpened = null;
+            while (initialEditorsOpened is null && DateTime.UtcNow < deadline)
+            {
+                initialEditorsOpened = await host.dispatcher.InvokeAsync(() =>
+                    Application.Current?.Windows.OfType<Stride.GameStudio.View.GameStudioWindow>().FirstOrDefault()?.InitialEditorsOpened).Task.ConfigureAwait(false);
+                if (initialEditorsOpened is null)
+                    await Task.Delay(100).ConfigureAwait(false);
+            }
+            if (initialEditorsOpened is null)
+            {
+                host.Log("WaitForInitialEditors: no loaded GameStudioWindow — skipping");
+                return;
+            }
+            var remaining = deadline - DateTime.UtcNow;
+            if (await Task.WhenAny(initialEditorsOpened, Task.Delay(remaining > TimeSpan.Zero ? remaining : TimeSpan.Zero)).ConfigureAwait(false) != initialEditorsOpened)
+                host.Log("WaitForInitialEditors: timed out after 120s.");
+            else
+                host.Log("WaitForInitialEditors: initial editors open");
         }
 
         public async Task WaitForRendering(int frames = 60, double timeoutSeconds = 30)
@@ -988,14 +1016,22 @@ internal sealed class UITestHost
 
         public void ShutdownInternal()
         {
-            host.dispatcher.BeginInvoke(() =>
+            host.dispatcher.BeginInvoke(async () =>
             {
                 Environment.ExitCode = host.ExitCode;
                 var app = Application.Current;
                 if (app is null) return;
                 foreach (var win in app.Windows.Cast<Window>().ToList())
                 {
-                    try { win.Close(); } catch { /* best-effort */ }
+                    try
+                    {
+                        // Game Studio finishes its close asynchronously; give it time before Shutdown cuts it short
+                        if (win is Stride.Core.Presentation.Windows.IAsyncClosableWindow closable)
+                            await Task.WhenAny(closable.TryClose(), Task.Delay(TimeSpan.FromSeconds(30)));
+                        else
+                            win.Close();
+                    }
+                    catch { /* best-effort */ }
                 }
                 app.Shutdown(host.ExitCode);
             });

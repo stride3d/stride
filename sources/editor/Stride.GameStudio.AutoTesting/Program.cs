@@ -28,6 +28,15 @@ internal static class Program
         // to WARP. Must be set before any Stride code runs.
         Environment.SetEnvironmentVariable("STRIDE_GRAPHICS_SOFTWARE_RENDERING", "1");
 
+        // Graphics assemblies live in per-API subfolders; pick one (--graphics-api or STRIDE_GRAPHICS_API)
+        // before anything loads them. Game Studio's own exe does this through its NuGet resolver startup.
+        Stride.Core.Assets.GraphicsApiHostResolver.Setup(Stride.Core.Assets.GraphicsApiSelector.Resolve());
+        if (Stride.Core.Assets.GraphicsApiSelector.StartupError is { } graphicsApiError)
+        {
+            Console.Error.WriteLine(graphicsApiError);
+            return 2;
+        }
+
         // Clear the "last startup-session load crashed" sticky flag — a previous AutoTesting run
         // that timed out / was killed leaves it on, which makes OpenInitialSession pop a "try
         // again?" MessageBox with no one to click. Always reset before launching GS.
@@ -102,6 +111,20 @@ internal static class Program
             finally { inFirstChanceDiag = false; }
         };
         AppDomain.CurrentDomain.ProcessExit += (_, _) => Diag("ProcessExit");
+        // Game Studio only routes its log to the debugger; keep the warnings and errors (graphics validation
+        // among them) in the diag log.
+        Stride.Core.Diagnostics.GlobalLogger.GlobalMessageLogged += message =>
+        {
+            if (message.Type < Stride.Core.Diagnostics.LogMessageType.Warning)
+                return;
+            var line = $"LOG [{message.Module}] {message.Type}: {message.Text}";
+            if (message.ExceptionInfo is { } exception)
+                line += Environment.NewLine + exception;
+            Diag(line);
+            // Also to stderr, which the test shows: the debug layer's live-object report at exit is too long for that
+            if (!message.Text.Contains("Live "))
+                Console.Error.WriteLine(line);
+        };
 
         UITestHost? host = null;
         try

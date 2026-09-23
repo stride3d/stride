@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Vortice.Vulkan;
 using Stride.Shaders;
 using Stride.Core.Serialization;
@@ -37,9 +38,6 @@ namespace Stride.Graphics
             VkDynamicState.StencilWriteMask,
         };
 
-        // GLSL converter always outputs entry point main()
-        private static readonly byte[] defaultEntryPoint = Encoding.UTF8.GetBytes("main\0");
-
         internal PipelineState(GraphicsDevice graphicsDevice, PipelineStateDescription pipelineStateDescription) : base(graphicsDevice)
         {
             Description = pipelineStateDescription.Clone();
@@ -48,11 +46,9 @@ namespace Stride.Graphics
 
         private unsafe void Recreate()
         {
-            // Note: important to pin this so that stages[x].Name is valid during this whole function
             try
             {
-                fixed (void* defaultEntryPointData = defaultEntryPoint) // null if array is empty or null
-                    RecreateInner();
+                RecreateInner();
             }
             catch (InvalidOperationException ex) when (Description.EffectBytecode?.Stages is { Length: > 0 } stages)
             {
@@ -70,7 +66,20 @@ namespace Stride.Graphics
 
             // Create shader stages
             var stages = CreateShaderStages(Description);
+            try
+            {
+                CreatePipeline(stages);
+            }
+            finally
+            {
+                // Cleanup shader modules (since module is shared between each stage, cleaning first stage is enough)
+                GraphicsDevice.NativeDeviceApi.vkDestroyShaderModule(GraphicsDevice.NativeDevice, stages[0].module, allocator: null);
+                FreeShaderStages(stages);
+            }
+        }
 
+        private unsafe void CreatePipeline(VkPipelineShaderStageCreateInfo[] stages)
+        {
             if (IsCompute)
             {
                 fixed (VkPipelineShaderStageCreateInfo* fStages = stages)
@@ -256,9 +265,6 @@ namespace Stride.Graphics
                         GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreateGraphicsPipelines(GraphicsDevice.NativeDevice, VkPipelineCache.Null, createInfoCount: 1, &createInfo, allocator: null, nativePipelinePtr));
                 }
             }
-
-            // Cleanup shader modules (since module is shared between each stage, cleaning first stage is enough)
-            GraphicsDevice.NativeDeviceApi.vkDestroyShaderModule(GraphicsDevice.NativeDevice, stages[0].module, allocator: null);
         }
 
         /// <inheritdoc/>
@@ -395,20 +401,28 @@ namespace Stride.Graphics
                 if (stage.Stage == ShaderStage.Compute)
                     IsCompute = true;
 
-                fixed (byte* entryPointPointer = &stage.EntryPoint[0])
+                // The name is read at pipeline creation, after this method returns: a pointer into the managed
+                // array would dangle as soon as the GC moves it. Freed by FreeShaderStages.
+                var entryPoint = (byte*)NativeMemory.Alloc((nuint)stage.EntryPoint.Length + 1);
+                stage.EntryPoint.AsSpan().CopyTo(new Span<byte>(entryPoint, stage.EntryPoint.Length));
+                entryPoint[stage.EntryPoint.Length] = 0;
+
+                nativeStages[i] = new VkPipelineShaderStageCreateInfo
                 {
-                    // Create stage
-                    nativeStages[i] = new VkPipelineShaderStageCreateInfo
-                    {
-                        sType = VkStructureType.PipelineShaderStageCreateInfo,
-                        stage = VulkanConvertExtensions.Convert(stages[i].Stage),
-                        pName = entryPointPointer,
-                        module = shaderModule,
-                    };
-                }
+                    sType = VkStructureType.PipelineShaderStageCreateInfo,
+                    stage = VulkanConvertExtensions.Convert(stages[i].Stage),
+                    pName = entryPoint,
+                    module = shaderModule,
+                };
             }
 
             return nativeStages;
+        }
+
+        private static unsafe void FreeShaderStages(VkPipelineShaderStageCreateInfo[] nativeStages)
+        {
+            foreach (var stage in nativeStages)
+                NativeMemory.Free(stage.pName);
         }
 
         /// <summary>

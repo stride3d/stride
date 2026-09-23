@@ -182,19 +182,31 @@ jobs:
           $gameStudio = $packages | Where-Object { $_.Name -match 'GameStudio' }
           $main = $packages | Where-Object { $_.Name -notmatch 'GameStudio' }
 
-          echo "::group::Pushing main packages ($($main.Count))"
-          foreach ($pkg in $main) {
+          # --skip-duplicate keeps a retry of the same run-id working after a partial deploy. The shell only checks
+          # the last command's exit code, so each push is checked here: a real failure stops before GameStudio.
+          $skipped = @()
+          function Push-Package($pkg) {
             echo "Pushing $($pkg.Name)..."
-            dotnet nuget push $pkg.FullName --api-key $env:STRIDE_NUGET_API_KEY --source "https://api.nuget.org/v3/index.json" --timeout 1800 --skip-duplicate
+            dotnet nuget push $pkg.FullName --api-key $env:STRIDE_NUGET_API_KEY --source "https://api.nuget.org/v3/index.json" --timeout 1800 --skip-duplicate | Tee-Object -Variable out
+            if ($LASTEXITCODE -ne 0) {
+              echo "::error::Push failed for $($pkg.Name)"
+              exit 1
+            }
+            if ("$out" -match 'already exists') { $script:skipped += $pkg.Name }
           }
+
+          echo "::group::Pushing main packages ($($main.Count))"
+          foreach ($pkg in $main) { Push-Package $pkg }
           echo "::endgroup::"
 
           if ($gameStudio) {
             echo "::group::Pushing GameStudio (last, so dependencies are already available)"
-            foreach ($pkg in $gameStudio) {
-              dotnet nuget push $pkg.FullName --api-key $env:STRIDE_NUGET_API_KEY --source "https://api.nuget.org/v3/index.json" --timeout 1800
-            }
+            foreach ($pkg in $gameStudio) { Push-Package $pkg }
             echo "::endgroup::"
+          }
+
+          if ($skipped.Count -gt 0) {
+            echo "::warning title=Packages already on the feed::$($skipped.Count) of $($packages.Count) package(s) were already on nuget.org and were skipped. Normal for a retry of the same run-id. If this is a different build, the feed now has mixed packages."
           }
         env:
           STRIDE_NUGET_API_KEY: ${{ secrets.STRIDE_NUGET_API_KEY }}
@@ -229,9 +241,11 @@ jobs:
           # repository's "Latest" release. Stable versions stay eligible for the Latest label.
           PRERELEASE_ARG=()
           case "$VERSION" in *-*) PRERELEASE_ARG=(--prerelease);; esac
+          # No --target: the tag step above already pushed the tag. With a target, GitHub refuses a token without
+          # the workflow permission when the workflow files differ between that commit and the default branch.
           gh release create "releases/$VERSION" \
             --title "Stride $VERSION" \
-            --target "$SHA" \
+            --verify-tag \
             --generate-notes "${START_TAG_ARG[@]}" "${PRERELEASE_ARG[@]}" \
             bin/packages/*.nupkg
 

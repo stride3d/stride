@@ -37,4 +37,14 @@
     <AssemblyMetadata Include="SentryEnvironment" Value="$(StrideSentryEnvironment)" />
   </ItemGroup>
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />
+
+  <!-- The reporter version a host built from this checkout runs: the exact package its nuspec depends on
+       (NativeCrashReporting.FindReporterInStore). Baked in a target, after StrideEnsureWorktreeVersion, so a dev
+       checkout carries the -devN suffix its own reporter package gets; a package build has none on either side. -->
+  <Import Project="..\StrideCrashReporterVersion.props" />
+  <Target Name="_StrideBakeCrashReporterVersion" BeforeTargets="GetAssemblyAttributes" DependsOnTargets="StrideEnsureWorktreeVersion">
+    <ItemGroup>
+      <AssemblyMetadata Include="CrashReporterVersion" Value="$(StrideCrashReporterVersion)$(StrideWorktreeSuffix)" />
+    </ItemGroup>
+  </Target>
 </Project>
