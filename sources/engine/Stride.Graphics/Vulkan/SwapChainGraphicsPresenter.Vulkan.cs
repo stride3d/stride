@@ -115,9 +115,6 @@ namespace Stride.Graphics
 //                    Description.IsFullScreen = true;
 
 //                    OnRecreated();
-
-//                    // Recreate render target
-//                    backBuffer.OnRecreate();
 //                }
 //                else
 //                {

@@ -478,29 +478,6 @@ namespace Stride.Graphics
 
         partial void ReleaseImportedImageResources();
 
-        /// <summary>
-        ///   Perform Vulkan-specific recreation of the Texture.
-        /// </summary>
-        private partial void OnRecreateImpl()
-        {
-            // Dependency: wait for underlying texture to be recreated
-            if (ParentTexture != null && ParentTexture.LifetimeState != GraphicsResourceLifetimeState.Active)
-                return;
-
-            // Render Target / Depth Stencil are considered as "dynamic"
-            if ((Usage == GraphicsResourceUsage.Immutable
-                    || Usage == GraphicsResourceUsage.Default)
-                && !IsRenderTarget && !IsDepthStencil)
-                return;
-
-            if (ParentTexture == null && GraphicsDevice != null)
-            {
-                GraphicsDevice.RegisterTextureMemoryUsage(-SizeInBytes);
-            }
-
-            InitializeFromImpl();
-        }
-
         private unsafe VkImageView GetImageView(ViewType viewType, int arrayOrDepthSlice, int mipIndex)
         {
             if (!IsShaderResource && !IsUnorderedAccess)

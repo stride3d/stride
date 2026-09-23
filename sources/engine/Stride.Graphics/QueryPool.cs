@@ -46,17 +46,8 @@ public partial class QueryPool : GraphicsResourceBase
         Recreate();
     }
 
-    /// <inheritdoc/>
-    protected internal override bool OnRecreate()
-    {
-        base.OnRecreate();
-
-        Recreate();
-        return true;
-    }
-
     /// <summary>
-    ///   Platform-specific implementation that recreates the queries in the pool.
+    ///   Platform-specific implementation that creates the queries in the pool.
     /// </summary>
     private unsafe partial void Recreate();
 }

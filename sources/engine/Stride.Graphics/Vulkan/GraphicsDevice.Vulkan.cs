@@ -379,12 +379,6 @@ namespace Stride.Graphics
         /// <param name="windowHandle">The window handle.</param>
         private unsafe partial void InitializePlatformDevice(GraphicsProfile[] graphicsProfiles, DeviceCreationFlags deviceCreationFlags, object windowHandle)
         {
-            if (nativeDevice != VkDevice.Null)
-            {
-                // Destroy previous device
-                ReleaseDevice();
-            }
-
             rendererName = Adapter.Description;
 
             NativeInstanceApi.vkGetPhysicalDeviceProperties(NativePhysicalDevice, out var physicalDeviceProperties);
@@ -823,10 +817,6 @@ namespace Stride.Graphics
             NativeCopyCommandPools.Dispose();
             NativeCopyCommandPools = null;
             NativeDeviceApi.vkDestroyDevice(nativeDevice, null);
-        }
-
-        internal void OnDestroyed(bool immediately = false)
-        {
         }
 
         internal unsafe ulong ExecuteCommandListInternal(CompiledCommandList commandList)

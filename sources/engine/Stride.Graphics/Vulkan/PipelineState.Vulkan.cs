@@ -267,13 +267,6 @@ namespace Stride.Graphics
             }
         }
 
-        /// <inheritdoc/>
-        protected internal override bool OnRecreate()
-        {
-            Recreate();
-            return true;
-        }
-
         /// <summary>
         ///   Indicates if the given depth-stencil format contains a stencil aspect.
         /// </summary>
