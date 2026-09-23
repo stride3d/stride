@@ -786,7 +786,17 @@ namespace Stride.Graphics
         /// </summary>
         partial void WaitForGPUIdle()
         {
-            CheckResult(NativeDeviceApi.vkDeviceWaitIdle(nativeDevice));
+            WaitIdle();
+        }
+
+        /// <summary>
+        ///   Waits for the device to be idle. A lost device is idle too: the resources are being torn down for the re-creation.
+        /// </summary>
+        internal void WaitIdle()
+        {
+            var result = NativeDeviceApi.vkDeviceWaitIdle(nativeDevice);
+            if (result != VkResult.ErrorDeviceLost)
+                CheckResult(result);
         }
 
         protected partial void DestroyPlatformDevice()
