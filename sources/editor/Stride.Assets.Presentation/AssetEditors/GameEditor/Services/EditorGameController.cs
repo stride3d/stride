@@ -421,8 +421,14 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
 
             // Notify game start
             gameStartedTaskSource.SetResult(true);
-            Game.Run(context);
-            Game.Dispose();
+            try
+            {
+                Game.Run(context);
+            }
+            finally
+            {
+                Game.Dispose();
+            }
         }
 
         partial void RegisterToDragDropEvents();

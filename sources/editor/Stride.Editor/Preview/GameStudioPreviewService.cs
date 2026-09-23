@@ -143,13 +143,18 @@ namespace Stride.Editor.Preview
             // Wait for shaders to be loaded
             AssetBuilderService.WaitForShaders();
 
-            // TODO: For now we stop if there is an exception
-            // Ideally, we should try to recreate the game.
+            // A lost graphics device ends the run; the studio restarts (EditorServiceGame.GraphicsDeviceLost)
             if (!DisablePreview)
             {
                 PreviewGame.GraphicsDeviceManager.DeviceCreated += GraphicsDeviceManagerDeviceCreated;
-                PreviewGame.Run(context);
-                PreviewGame.Dispose();
+                try
+                {
+                    PreviewGame.Run(context);
+                }
+                finally
+                {
+                    PreviewGame.Dispose();
+                }
             }
         }
 
