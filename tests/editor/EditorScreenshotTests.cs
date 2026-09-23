@@ -72,6 +72,8 @@ public class EditorScreenshotTests
             var generated = GenerateSampleFromTemplate(guid, fixtureName);
             args.Add(generated);
         }
+        // Debug graphics devices: the validation layers report to the log (see the test host)
+        args.Add("/DebugEditorGraphics");
 
         // Clean the runner-side output dir so stale files from a previous fixture invocation
         // don't leak into this fixture's capture set.

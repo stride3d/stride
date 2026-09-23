@@ -52,6 +52,8 @@ namespace Stride.Games
         /// </summary>
         public static readonly int DefaultBackBufferHeight = 720;
 
+        private static readonly Logger Log = GlobalLogger.GetLogger(nameof(GraphicsDeviceManager));
+
         private readonly object lockDeviceCreation = new();
 
         private readonly GameBase game;
@@ -473,7 +475,11 @@ namespace Stride.Games
                         {
                             ChangeOrCreateDevice(forceCreate: true);
                         }
-                        catch { return false; } // If we fail to reset the device, we return false
+                        catch (Exception e)
+                        {
+                            Log.Error("Re-creating the graphics device after a reset failed", e);
+                            return false;
+                        }
                         break;
                 }
 
@@ -1229,7 +1235,11 @@ namespace Stride.Games
 
                                 needToCreateNewDevice = false;
                             }
-                            catch { /* Ignore any exception */ }
+                            catch (Exception e)
+                            {
+                                // A full re-creation, with every resource destroyed and recreated, for a resize: worth knowing
+                                Log.Warning("Resizing the presenter failed, the graphics device is recreated", e);
+                            }
                         }
                     }
 

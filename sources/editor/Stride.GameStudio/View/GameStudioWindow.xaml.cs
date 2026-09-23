@@ -123,6 +123,11 @@ namespace Stride.GameStudio.View
 
         public bool IsTestMenuVisible => TestMenuVisible;
 
+        /// <summary>
+        /// Completes once the asset editors of the previous session, or the default scene, are open. Null before the window is loaded.
+        /// </summary>
+        public Task InitialEditorsOpened { get; private set; }
+
         /// <inheritdoc />
         public Task<bool> TryClose()
         {
@@ -223,7 +228,8 @@ namespace Stride.GameStudio.View
                 // Initialize plugins
                 Editor.Session.ServiceProvider.Get<IAssetsPluginService>().Plugins.ForEach(x => x.InitializeSession(Editor.Session));
                 // Open assets that were being edited in the previous session
-                ReopenAssetEditors(dockingLayout.LoadOpenAssets().ToList()).Forget();
+                InitialEditorsOpened = ReopenAssetEditors(dockingLayout.LoadOpenAssets().ToList());
+                InitialEditorsOpened.Forget();
 
                 // Listen to clipboard
                 ClipboardMonitor.RegisterListener(this);
