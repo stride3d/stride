@@ -32,9 +32,12 @@ namespace Stride.Graphics
         //  > typically support up to 32 characters.
         private const int MAX_SEMANTIC_NAME_LENGTH = 32;
 
+        // Kept to recreate the native objects after a device reset
+        private readonly PipelineStateDescription description;
+
         // Effect
-        private readonly RootSignature rootSignature;
-        private readonly EffectBytecode effectBytecode;
+        private RootSignature rootSignature;
+        private EffectBytecode effectBytecode;
         internal ResourceBinder ResourceBinder;
 
         private ID3D11VertexShader* vertexShader;
@@ -45,14 +48,14 @@ namespace Stride.Graphics
         private ID3D11ComputeShader* computeShader;
         private byte[] inputSignature;
 
-        private readonly ID3D11BlendState* blendState;
-        private readonly uint sampleMask;
-        private readonly ID3D11RasterizerState* rasterizerState;
-        private readonly ID3D11DepthStencilState* depthStencilState;
+        private ID3D11BlendState* blendState;
+        private uint sampleMask;
+        private ID3D11RasterizerState* rasterizerState;
+        private ID3D11DepthStencilState* depthStencilState;
 
         private ID3D11InputLayout* inputLayout;
 
-        private readonly D3DPrimitiveTopology primitiveTopology;
+        private D3DPrimitiveTopology primitiveTopology;
 
         // NOTE: No need to store RTV/DSV formats
 
@@ -73,6 +76,21 @@ namespace Stride.Graphics
         internal PipelineState(GraphicsDevice graphicsDevice, PipelineStateDescription pipelineStateDescription)
             : base(graphicsDevice)
         {
+            description = pipelineStateDescription.Clone();
+            Recreate();
+        }
+
+        /// <inheritdoc/>
+        protected internal override bool OnRecreate()
+        {
+            Recreate();
+            return true;
+        }
+
+        private void Recreate()
+        {
+            var pipelineStateDescription = description;
+
             // First time, build caches
             var pipelineStateCache = GetPipelineStateCache();
 
@@ -433,7 +451,6 @@ namespace Stride.Graphics
             /// </param>
             public PipelineStateCache(GraphicsDevice graphicsDevice)
             {
-                var nativeDevice = graphicsDevice.NativeDevice;
 
                 // Shaders
                 var nullClassLinkage = NullComPtr<ID3D11ClassLinkage>();
@@ -468,7 +485,7 @@ namespace Stride.Graphics
 
                     scoped ref readonly byte sourceDataRef = ref source.Data.GetReference();
 
-                    HResult result = nativeDevice.CreateVertexShader(in sourceDataRef, (nuint) source.Data.Length, nullClassLinkage, ref vertexShader);
+                    HResult result = graphicsDevice.NativeDevice.CreateVertexShader(in sourceDataRef, (nuint) source.Data.Length, nullClassLinkage, ref vertexShader);
 
                     if (result.IsFailure)
                         result.Throw();
@@ -485,7 +502,7 @@ namespace Stride.Graphics
 
                     scoped ref readonly byte sourceDataRef = ref source.Data.GetReference();
 
-                    HResult result = nativeDevice.CreateHullShader(in sourceDataRef, (nuint) source.Data.Length, nullClassLinkage, ref hullShader);
+                    HResult result = graphicsDevice.NativeDevice.CreateHullShader(in sourceDataRef, (nuint) source.Data.Length, nullClassLinkage, ref hullShader);
 
                     if (result.IsFailure)
                         result.Throw();
@@ -502,7 +519,7 @@ namespace Stride.Graphics
 
                     scoped ref readonly byte sourceDataRef = ref source.Data.GetReference();
 
-                    HResult result = nativeDevice.CreateDomainShader(in sourceDataRef, (nuint) source.Data.Length, nullClassLinkage, ref domainShader);
+                    HResult result = graphicsDevice.NativeDevice.CreateDomainShader(in sourceDataRef, (nuint) source.Data.Length, nullClassLinkage, ref domainShader);
 
                     if (result.IsFailure)
                         result.Throw();
@@ -519,7 +536,7 @@ namespace Stride.Graphics
 
                     scoped ref readonly byte sourceDataRef = ref source.Data.GetReference();
 
-                    HResult result = nativeDevice.CreatePixelShader(in sourceDataRef, (nuint) source.Data.Length, nullClassLinkage, ref pixelShader);
+                    HResult result = graphicsDevice.NativeDevice.CreatePixelShader(in sourceDataRef, (nuint) source.Data.Length, nullClassLinkage, ref pixelShader);
 
                     if (result.IsFailure)
                         result.Throw();
@@ -536,7 +553,7 @@ namespace Stride.Graphics
 
                     scoped ref readonly byte sourceDataRef = ref source.Data.GetReference();
 
-                    HResult result = nativeDevice.CreateComputeShader(in sourceDataRef, (nuint) source.Data.Length, nullClassLinkage, ref computeShader);
+                    HResult result = graphicsDevice.NativeDevice.CreateComputeShader(in sourceDataRef, (nuint) source.Data.Length, nullClassLinkage, ref computeShader);
 
                     if (result.IsFailure)
                         result.Throw();
@@ -553,7 +570,7 @@ namespace Stride.Graphics
 
                     scoped ref readonly byte sourceDataRef = ref source.Data.GetReference();
 
-                    HResult result = nativeDevice.CreateGeometryShader(in sourceDataRef, (nuint) source.Data.Length, nullClassLinkage, ref geometryShader);
+                    HResult result = graphicsDevice.NativeDevice.CreateGeometryShader(in sourceDataRef, (nuint) source.Data.Length, nullClassLinkage, ref geometryShader);
 
                     if (result.IsFailure)
                         result.Throw();
@@ -591,7 +608,7 @@ namespace Stride.Graphics
 
                     ComPtr<ID3D11BlendState> blendState = default;
 
-                    HResult result = nativeDevice.CreateBlendState(in nativeDescription, ref blendState);
+                    HResult result = graphicsDevice.NativeDevice.CreateBlendState(in nativeDescription, ref blendState);
 
                     if (result.IsFailure)
                         result.Throw();
@@ -620,7 +637,7 @@ namespace Stride.Graphics
 
                     ComPtr<ID3D11RasterizerState> rasterizerState = default;
 
-                    HResult result = nativeDevice.CreateRasterizerState(in nativeDescription, ref rasterizerState);
+                    HResult result = graphicsDevice.NativeDevice.CreateRasterizerState(in nativeDescription, ref rasterizerState);
 
                     if (result.IsFailure)
                         result.Throw();
@@ -661,7 +678,7 @@ namespace Stride.Graphics
 
                     ComPtr<ID3D11DepthStencilState> depthStencilState = default;
 
-                    HResult result = nativeDevice.CreateDepthStencilState(in nativeDescription, ref depthStencilState);
+                    HResult result = graphicsDevice.NativeDevice.CreateDepthStencilState(in nativeDescription, ref depthStencilState);
 
                     if (result.IsFailure)
                         result.Throw();
