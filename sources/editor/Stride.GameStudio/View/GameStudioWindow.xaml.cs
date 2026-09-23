@@ -257,7 +257,7 @@ namespace Stride.GameStudio.View
                 if (Editor.Session != null)
                 {
                     var openedAssets = assetEditorsManager.OpenedAssets.ToList();
-                    if (!await Editor.Session.Close())
+                    if (!await Editor.Session.Close(allowCancel: Editor is not GameStudioViewModel { MustClose: true }))
                     {
                         closingTask?.SetResult(false);
                         return;

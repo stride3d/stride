@@ -1026,6 +1026,34 @@ namespace Stride.Core.Assets.Editor.ViewModel
             return success;
         }
 
+        /// <summary>
+        /// Saves the session without any window (no progress window, no dialog), for when the UI can no longer render.
+        /// The view models are not updated: the caller is about to exit.
+        /// </summary>
+        /// <returns>The log of the save; an error means the session was not (fully) saved.</returns>
+        public LoggerResult SaveSessionWithoutUI()
+        {
+            Dispatcher.EnsureAccess();
+
+            var sessionResult = new LoggerResult();
+            try
+            {
+                CheckConsistency();
+                foreach (var package in LocalPackages)
+                {
+                    package.PreparePackageForSaving();
+                }
+
+                AllAssets.ForEach(x => x.PrepareSave(sessionResult));
+                session.Save(sessionResult, PackageSaveParameters.Default());
+            }
+            catch (Exception e)
+            {
+                sessionResult.Error(string.Format(Tr._p("Log", "There was a problem saving the solution. {0}"), e.Message), e);
+            }
+            return sessionResult;
+        }
+
         public void CheckConsistency()
         {
             AllPackages.ForEach(x => x.CheckConsistency());
@@ -1201,18 +1229,27 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// <summary>
         /// Attempts to close the session. If the session has unsaved changes, ask the user wether to save it or not. If the user cancels
         /// </summary>
-        public async Task<bool> Close()
+        /// <param name="allowCancel">
+        /// Whether the user can cancel the close. A forced close (a lost graphics device) offers only to save or not.
+        /// </param>
+        public async Task<bool> Close(bool allowCancel = true)
         {
             // Check if either view model is dirty, or any LocalPackage.Assets is (since some view models such as scripts don't make package dirty)
             if (HasUnsavedAssets())
             {
-                var buttons = DialogHelper.CreateButtons(new[]
+                var captions = new List<string> { Tr._p("Button", "Save"), Tr._p("Button", "Don't save") };
+                if (allowCancel)
+                    captions.Add(Tr._p("Button", "Cancel"));
+                var buttons = DialogHelper.CreateButtons(captions, 1, allowCancel ? 3 : null);
+
+                int result;
+                do
                 {
-                    Tr._p("Button", "Save"),
-                    Tr._p("Button", "Don't save"),
-                    Tr._p("Button", "Cancel")
-                }, 1, 3);
-                var result = await Dialogs.MessageBoxAsync(Tr._p("Message", "The project has unsaved changes. Do you want to save it?"), buttons, MessageBoxImage.Question);
+                    result = await Dialogs.MessageBoxAsync(Tr._p("Message", "The project has unsaved changes. Do you want to save it?"), buttons, MessageBoxImage.Question);
+                }
+                // A forced close needs an answer: closing the box asks again
+                while (!allowCancel && result == 0);
+
                 switch (result)
                 {
                     case 0:
@@ -1225,6 +1262,12 @@ namespace Stride.Core.Assets.Editor.ViewModel
                         // session saving has been cancelled, aborting
                         if (HasUnsavedAssets())
                         {
+                            if (!allowCancel)
+                            {
+                                ServiceProvider.Get<IEditorDialogService>().BlockingMessageBox(Tr._p("Message", "Some assets couldn't be saved. Their changes are lost."), MessageBoxButton.OK,
+                                    MessageBoxImage.Error);
+                                break;
+                            }
                             ServiceProvider.Get<IEditorDialogService>().BlockingMessageBox(Tr._p("Message", "Some assets couldn't be saved. Check the assets and try again."), MessageBoxButton.OK,
                                 MessageBoxImage.Error);
                             return false;
@@ -1236,7 +1279,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             return true;
         }
 
-        private bool HasUnsavedAssets()
+        public bool HasUnsavedAssets()
         {
             return IsDirty || LocalPackages.Any(package => package.IsDirty || package.Assets.Any(asset => asset.IsDirty));
         }
