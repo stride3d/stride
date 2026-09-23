@@ -107,7 +107,8 @@ namespace Stride.Graphics
                 {
                     // Attach the list of objects that could not be recreated to the exception.
                     var destroyedObjects = graphicsDevice.Resources.Where(x => x.LifetimeState == GraphicsResourceLifetimeState.Destroyed).ToList();
-                    throw new InvalidOperationException("Could not recreate all objects.") { Data = { { "DestroyedObjects", destroyedObjects } } };
+                    var names = string.Join(", ", destroyedObjects.Select(x => string.IsNullOrEmpty(x.Name) ? x.GetType().Name : $"{x.GetType().Name} '{x.Name}'"));
+                    throw new InvalidOperationException($"Could not recreate all objects: {names}") { Data = { { "DestroyedObjects", destroyedObjects } } };
                 }
             }
         }
