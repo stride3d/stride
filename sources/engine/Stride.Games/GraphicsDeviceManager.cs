@@ -465,11 +465,12 @@ namespace Stride.Games
 
                 switch (GraphicsDevice.GraphicsDeviceStatus)
                 {
-                    case GraphicsDeviceStatus.Removed:
-                        Thread.Sleep(SLEEP_TIME_WHEN_UNAVAILABLE);
-                        return false;
+                    case GraphicsDeviceStatus.Normal:
+                        return true;
 
-                    case GraphicsDeviceStatus.Reset:
+                    // Every kind of loss: the device is re-created, the resources reloaded or recreated.
+                    // A removed adapter makes this fail every frame, which is the best that can be done.
+                    default:
                         Thread.Sleep(SLEEP_TIME_WHEN_UNAVAILABLE);
                         try
                         {
@@ -480,10 +481,8 @@ namespace Stride.Games
                             Log.Error("Re-creating the graphics device after a reset failed", e);
                             return false;
                         }
-                        break;
+                        return true;
                 }
-
-                return true;
             }
         }
 
