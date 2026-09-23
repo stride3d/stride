@@ -33,15 +33,6 @@ namespace Stride.Graphics.Font
             // create the cache textures
             var newTexture = Texture.New2D(system.GraphicsDevice, textureDefaultSize, textureDefaultSize, PixelFormat.R8_UNorm);
             cacheTextures.Add(newTexture);
-            newTexture.Reload = ReloadCache;
-            ClearCache();
-        }
-
-        private void ReloadCache(GraphicsResourceBase graphicsResourceBase, IServiceRegistry services)
-        {
-            foreach (var cacheTexture in cacheTextures)
-                cacheTexture.Recreate();
-
             ClearCache();
         }
 

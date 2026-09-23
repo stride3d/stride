@@ -29,20 +29,6 @@ namespace Stride.Graphics.Data
 
                     texture.AttachToGraphicsDevice(graphicsDeviceService.GraphicsDevice);
                     texture.InitializeFrom(textureData.Description, new TextureViewDescription(), textureData.ToDataBox());
-
-                    // Setup reload callback (reload from asset manager)
-                    var contentSerializerContext = stream.Context.Get(ContentSerializerContext.ContentSerializerContextProperty);
-                    if (contentSerializerContext != null)
-                    {
-                        texture.Reload = static (graphicsResource, services) =>
-                        {
-                            var assetManager = services.GetService<ContentManager>();
-                            assetManager.TryGetAssetUrl(graphicsResource, out var url);
-                            var textureDataReloaded = assetManager.Load<Image>(url);
-                            ((Texture)graphicsResource).Recreate(textureDataReloaded.ToDataBox());
-                            assetManager.Unload(textureDataReloaded);
-                        };
-                    }
                 }
             }
             else

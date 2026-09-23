@@ -2262,7 +2262,10 @@ namespace Stride.Graphics
                 resource.OnDestroyed();
 
                 // Create new resource
-                resource.OnRecreate();
+                if (resource is Buffer discardedBuffer)
+                    discardedBuffer.Recreate(IntPtr.Zero);
+                else
+                    ((Texture)resource).Recreate();
             }
             else if (mapMode != MapMode.WriteNoOverwrite)   // Write / Read / ReadWrite
             {

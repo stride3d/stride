@@ -44,7 +44,6 @@ namespace Stride.Games
         private readonly GamePlatform gamePlatform;
         private IGraphicsDeviceService graphicsDeviceService;
         protected IGraphicsDeviceManager graphicsDeviceManager;
-        private ResumeManager resumeManager;
         private bool isEndRunRequired;
         private bool suppressDraw;
         private bool beginDrawOk;
@@ -967,12 +966,8 @@ namespace Stride.Games
                 throw new InvalidOperationException("Unable to find a GraphicsDevice instance");
             }
 
-            resumeManager = new ResumeManager(Services);
-
             GraphicsDevice = graphicsDeviceService.GraphicsDevice;
             graphicsDeviceService.DeviceCreated += GraphicsDeviceService_DeviceCreated;
-            graphicsDeviceService.DeviceResetting += GraphicsDeviceService_DeviceResetting;
-            graphicsDeviceService.DeviceReset += GraphicsDeviceService_DeviceReset;
             graphicsDeviceService.DeviceDisposing += GraphicsDeviceService_DeviceDisposing;
         }
 
@@ -981,8 +976,6 @@ namespace Stride.Games
             if (graphicsDeviceService != null)
             {
                 graphicsDeviceService.DeviceCreated -= GraphicsDeviceService_DeviceCreated;
-                graphicsDeviceService.DeviceResetting -= GraphicsDeviceService_DeviceResetting;
-                graphicsDeviceService.DeviceReset -= GraphicsDeviceService_DeviceReset;
                 graphicsDeviceService.DeviceDisposing -= GraphicsDeviceService_DeviceDisposing;
                 GraphicsDevice = null;
             }
@@ -1005,23 +998,7 @@ namespace Stride.Games
                 UnloadContent();
             }
 
-            resumeManager.OnDestroyed();
-
             GraphicsDevice = null;
-        }
-
-        private void GraphicsDeviceService_DeviceReset(object sender, EventArgs e)
-        {
-            if (!IsExiting)
-            {
-                resumeManager.OnReload();
-                resumeManager.OnRecreate();
-            }
-        }
-
-        private void GraphicsDeviceService_DeviceResetting(object sender, EventArgs e)
-        {
-            resumeManager.OnDestroyed();
         }
 
         #endregion

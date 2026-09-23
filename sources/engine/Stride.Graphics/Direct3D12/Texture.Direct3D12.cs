@@ -64,7 +64,7 @@ namespace Stride.Graphics
 
 
         /// <summary>
-        ///   Recreates this Texture explicitly with the provided data. Usually called after the <see cref="GraphicsDevice"/> has been reset.
+        ///   Replaces the native texture with a new one initialized with the provided data, keeping the description.
         /// </summary>
         /// <param name="dataBoxes">
         ///   An array of <see cref="DataBox"/> structures that contain the initial data for the Texture's
@@ -952,36 +952,6 @@ namespace Stride.Graphics
             }
 
             base.OnDestroyed(immediately);
-        }
-
-        /// <summary>
-        ///   Perform Direct3D 12-specific recreation of the Texture.
-        /// </summary>
-        /// <exception cref="ArgumentOutOfRangeException">Invalid Texture share options (<see cref="TextureOptions"/>) specified.</exception>
-        /// <exception cref="NotSupportedException">Multi-sampling is only supported for 2D Textures.</exception>
-        /// <exception cref="NotSupportedException">A Texture Cube must have an array size greater than 1.</exception>
-        /// <exception cref="NotSupportedException">Texture Arrays are not supported for 3D Textures.</exception>
-        /// <exception cref="NotSupportedException"><see cref="ViewType.MipBand"/> is not supported for Render Targets.</exception>
-        /// <exception cref="NotSupportedException">Multi-sampling is not supported for Unordered Access Views.</exception>
-        /// <exception cref="NotSupportedException">The Depth-Stencil format specified is not supported.</exception>
-        /// <exception cref="NotSupportedException">Cannot create a read-only Depth-Stencil View because the device does not support it.</exception>
-        private partial void OnRecreateImpl()
-        {
-            // Dependency: Wait for underlying texture to be recreated
-            if (ParentTexture is not null && ParentTexture.LifetimeState != GraphicsResourceLifetimeState.Active)
-                return;
-
-            // Render Target / Depth Stencil are considered as "dynamic"
-            if (Usage is GraphicsResourceUsage.Immutable or GraphicsResourceUsage.Default &&
-                !IsRenderTarget && !IsDepthStencil)
-                return;
-
-            if (ParentTexture is null)
-            {
-                GraphicsDevice?.RegisterTextureMemoryUsage(-SizeInBytes);
-            }
-
-            InitializeFromImpl();
         }
 
         /// <summary>

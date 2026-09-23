@@ -97,7 +97,7 @@ namespace Stride.Graphics
 #pragma warning restore 162
         }
 
-        // The mapping goes with the buffer's memory: after a device reset or teardown there is nothing to unmap
+        // The mapping goes with the buffer's memory: once the buffer is destroyed there is nothing to unmap
         // (and trying is a null dereference on Direct3D 12, a crash on MoltenVK)
         private void OnBufferDestroyed(object sender, EventArgs e)
         {

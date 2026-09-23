@@ -42,16 +42,6 @@ public interface IGraphicsDeviceService
     event EventHandler<EventArgs> DeviceDisposing;
 
     /// <summary>
-    ///   Occurs when a device has been reset.
-    /// </summary>
-    event EventHandler<EventArgs> DeviceReset;
-
-    /// <summary>
-    ///   Occurs when a device is going to be reset.
-    /// </summary>
-    event EventHandler<EventArgs> DeviceResetting;
-
-    /// <summary>
     ///   Gets the current Graphcs Device.
     /// </summary>
     GraphicsDevice GraphicsDevice { get; }

@@ -143,13 +143,6 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             var gridTexture = Texture.New(GraphicsDevice, gridImage);
             gridImage.Dispose();
 
-            gridTexture.Reload += (@base, services) =>
-            {
-                var newImage = imageBuilder();
-                gridTexture.Recreate(newImage.ToDataBox());
-                newImage.Dispose();
-            };
-
             return gridTexture;
         }
 

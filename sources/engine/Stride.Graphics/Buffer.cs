@@ -906,32 +906,7 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Sets the <see cref="Buffer"/> to be recreated with the specified data whenever the <see cref="GraphicsDevice"/> it depends on is reset.
-        /// </summary>
-        /// <typeparam name="T">The type of the elements the Buffer will contain.</typeparam>
-        /// <param name="data">The data to use to recreate the Buffer with.</param>
-        /// <returns>This instance.</returns>
-        public Buffer RecreateWith<T>(T[] data) where T : unmanaged
-        {
-            Reload = (graphicsResource, _) => ((Buffer) graphicsResource).Recreate(data);
-
-            return this;
-        }
-
-        /// <summary>
-        ///   Sets the <see cref="Buffer"/> to be recreated with the specified data whenever the <see cref="GraphicsDevice"/> it depends on is reset.
-        /// </summary>
-        /// <param name="dataPointer">The data pointer to the data to use to recreate the Buffer with.</param>
-        /// <returns>This instance.</returns>
-        public Buffer RecreateWith(IntPtr dataPointer)
-        {
-            Reload = (graphicsResource, _) => ((Buffer) graphicsResource).Recreate(dataPointer);
-
-            return this;
-        }
-
-        /// <summary>
-        ///   Recreates the Buffer explicitly with the provided data. Usually called after the <see cref="GraphicsDevice"/> has been reset.
+        ///   Replaces the native buffer with a new one initialized with the provided data, keeping the description.
         /// </summary>
         /// <typeparam name="T">The type of the elements the Buffer will contain.</typeparam>
         /// <param name="data">The data to use to recreate the Buffer with.</param>

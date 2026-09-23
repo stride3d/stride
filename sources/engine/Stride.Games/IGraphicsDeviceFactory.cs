@@ -55,16 +55,12 @@ public interface IGraphicsDeviceFactory
     List<GraphicsDeviceInformation> FindBestDevices(GameGraphicsParameters graphicsParameters);
 
     /// <summary>
-    ///   Changes an existing Graphics Device or creates a new one with the specified configuration.
+    ///   Creates a Graphics Device with the specified configuration.
     /// </summary>
-    /// <param name="currentDevice">
-    ///   An optional <see cref="GraphicsDevice"/> instance to reconfigure.
-    ///   Specify <see langword="null"/> to create a new device.
-    /// </param>
     /// <param name="deviceInformation">
     ///   The <see cref="GraphicsDeviceInformation"/> containing the Graphics Adapter, Graphics Profile, and
     ///   other relevant flags and parameters required to configure the Graphics Device.
     /// </param>
-    /// <returns>The created (or changed) Graphics Device.</returns>
-    GraphicsDevice ChangeOrCreateDevice(GraphicsDevice? currentDevice, GraphicsDeviceInformation deviceInformation);
+    /// <returns>The created Graphics Device.</returns>
+    GraphicsDevice CreateDevice(GraphicsDeviceInformation deviceInformation);
 }

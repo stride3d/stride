@@ -425,12 +425,6 @@ namespace Stride.Graphics
         {
             Debug.Assert(graphicsProfiles is not null && graphicsProfiles.Length > 0, "Graphics profiles must be provided and cannot be empty.");
 
-            if (nativeDevice is not null)
-            {
-                // Destroy previous device
-                ReleaseDevice();
-            }
-
             rendererName = Adapter.Description;
 
             // Profiling is supported through PIX markers
@@ -987,18 +981,6 @@ namespace Stride.Graphics
                 devices.AddRange(devicesWithCallback);
             foreach (var device in devices)
                 device.UnregisterDebugMessageCallback();
-        }
-
-        /// <summary>
-        ///   Called when the Graphics Device is being destroyed.
-        /// </summary>
-        /// <param name="immediately">
-        ///   A value indicating whether the resources used by the Graphics Device should be released
-        ///   immediately (<see langword="true"/>), or queued for release once the GPU is done with it
-        ///   (<see langword="false"/>).
-        /// </param>
-        internal void OnDestroyed(bool immediately = false)
-        {
         }
 
         // Backend implementation of the partial method declared in GraphicsDevice.DebugScope.cs;

@@ -129,39 +129,6 @@ namespace Stride.Graphics
         /// <exception cref="ArgumentNullException"><paramref name="graphicsProfiles"/> is <see langword="null"/>.</exception>
         protected GraphicsDevice(GraphicsAdapter adapter, GraphicsProfile[] graphicsProfiles, DeviceCreationFlags creationFlags, WindowHandle windowHandle)
         {
-            Recreate(adapter, graphicsProfiles, creationFlags, windowHandle);
-
-            // Helpers
-            PrimitiveQuad = new PrimitiveQuad(this);
-        }
-
-
-        /// <summary>
-        ///   Tries to create or reinitialize the Graphics Device.
-        /// </summary>
-        /// <param name="adapter">The physical Graphics Adapter for which to recreate the Graphics Device.</param>
-        /// <param name="graphicsProfiles">
-        ///   <para>
-        ///     A list of the graphics profiles to try, in order of preference. This parameter cannot be <see langword="null"/>,
-        ///     but if an empty array is passed, the default fallback profiles will be used.
-        ///   </para>
-        ///   <para>
-        ///     The default fallback profiles are: <see cref="GraphicsProfile.Level_11_0"/>, <see cref="GraphicsProfile.Level_10_1"/>,
-        ///     <see cref="GraphicsProfile.Level_10_0"/>, <see cref="GraphicsProfile.Level_9_3"/>, <see cref="GraphicsProfile.Level_9_2"/>, and
-        ///     <see cref="GraphicsProfile.Level_9_1"/>.
-        ///   </para>
-        /// </param>
-        /// <param name="creationFlags">
-        ///   A combination of <see cref="DeviceCreationFlags"/> flags that determines how the Graphics Device will be created.
-        /// </param>
-        /// <param name="windowHandle">
-        ///   The <see cref="WindowHandle"/> specifying the window the Graphics Device will present to,
-        ///   or <see langword="null"/> if the device should not depend on a window.
-        /// </param>
-        /// <exception cref="ArgumentNullException"><paramref name="adapter"/> is <see langword="null"/>.</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="graphicsProfiles"/> is <see langword="null"/>.</exception>
-        public void Recreate(GraphicsAdapter adapter, GraphicsProfile[] graphicsProfiles, DeviceCreationFlags creationFlags, WindowHandle windowHandle)
-        {
             ArgumentNullException.ThrowIfNull(adapter);
             ArgumentNullException.ThrowIfNull(graphicsProfiles); // TODO: Why different from Array.Empty?
 
@@ -187,6 +154,9 @@ namespace Stride.Graphics
             DefaultPipelineState = PipelineState.New(this, defaultPipelineStateDescription);
 
             InitializePostFeatures();
+
+            // Helpers
+            PrimitiveQuad = new PrimitiveQuad(this);
         }
 
         /// <summary>
@@ -225,15 +195,12 @@ namespace Stride.Graphics
             {
                 foreach (var resource in Resources)
                 {
-                    // Destroy leftover resources (NOTE: Thus should not happen if ResumeManager.OnDestroyed has properly been called)
+                    // Resources still alive go with the device
                     if (resource.LifetimeState != GraphicsResourceLifetimeState.Destroyed)
                     {
                         resource.OnDestroyed();
                         resource.LifetimeState = GraphicsResourceLifetimeState.Destroyed;
                     }
-
-                    // Remove Reload code in case it was preventing objects from being GC
-                    resource.Reload = null;
                 }
                 Resources.Clear();
             }

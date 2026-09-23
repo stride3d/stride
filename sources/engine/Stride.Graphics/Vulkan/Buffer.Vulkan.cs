@@ -63,25 +63,10 @@ namespace Stride.Graphics
             base.OnDestroyed(immediately);
         }
 
-        /// <inheritdoc/>
-        protected internal override bool OnRecreate()
-        {
-            base.OnRecreate();
-
-            if (Description.Usage == GraphicsResourceUsage.Immutable
-                || Description.Usage == GraphicsResourceUsage.Default)
-                return false;
-
-            Recreate(IntPtr.Zero);
-
-            return true;
-        }
-
         /// <summary>
-        /// Explicitly recreate buffer with given data. Usually called after a <see cref="GraphicsDevice"/> reset.
+        /// Replaces the native buffer with a new one initialized with the provided data, keeping the description.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="dataPointer"></param>
+        /// <param name="dataPointer">The data to initialize the buffer with, or <see cref="IntPtr.Zero"/> for none.</param>
         public unsafe void Recreate(IntPtr dataPointer)
         {
             var createInfo = new VkBufferCreateInfo

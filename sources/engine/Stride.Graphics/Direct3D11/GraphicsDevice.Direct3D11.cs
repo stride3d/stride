@@ -279,12 +279,6 @@ namespace Stride.Graphics
         /// <param name="windowHandle">The window handle.</param>
         private unsafe partial void InitializePlatformDevice(GraphicsProfile[] graphicsProfiles, DeviceCreationFlags deviceCreationFlags, object windowHandle)
         {
-            if (nativeDevice is not null)
-            {
-                // Destroy previous device
-                ReleaseDevice();
-            }
-
             rendererName = Adapter.Description;
 
             // Profiling is supported through PIX markers
@@ -718,17 +712,6 @@ namespace Stride.Graphics
             }
 
             SafeRelease(ref nativeDevice);
-        }
-
-        /// <summary>
-        ///   Called when the Graphics Device is being destroyed.
-        /// </summary>
-        /// <param name="immediately">
-        ///   A value indicating whether the resources used by the Graphics Device should be destroyed immediately
-        ///   (<see langword="true"/>), or if it can be deferred until it's safe to do so (<see langword="false"/>).
-        /// </param>
-        internal void OnDestroyed(bool immediately = false)
-        {
         }
 
 

@@ -38,16 +38,6 @@ namespace Stride.Graphics
         {
             NullHelper.ToImplement();
         }
-
-        /// <summary>
-        /// Called when graphics device has been recreated.
-        /// </summary>
-        /// <returns>True if item transitioned to a <see cref="GraphicsResourceLifetimeState.Active"/> state.</returns>
-        protected internal virtual bool OnRecreate()
-        {
-            NullHelper.ToImplement();
-            return false;
-        }
     }
 }
 #endif

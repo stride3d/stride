@@ -91,24 +91,10 @@ public static class TextureExtensions
     /// <returns>The created Texture.</returns>
     public static Texture FromFileData(GraphicsDevice graphicsDevice, byte[] data)
     {
-        Texture result;
-
         var loadAsSRgb = graphicsDevice.ColorSpace == ColorSpace.Linear;
 
-        using (var imageStream = new MemoryStream(data))
-        {
-            using var image = Image.Load(imageStream, loadAsSRgb);
-            result = Texture.New(graphicsDevice, image);
-        }
-
-        result.Reload = (graphicsResource, services) =>
-        {
-            using var imageStream = new MemoryStream(data);
-            using var image = Image.Load(imageStream, loadAsSRgb);
-
-            ((Texture)graphicsResource).Recreate(image.ToDataBox());
-        };
-
-        return result;
+        using var imageStream = new MemoryStream(data);
+        using var image = Image.Load(imageStream, loadAsSRgb);
+        return Texture.New(graphicsDevice, image);
     }
 }

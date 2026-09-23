@@ -1696,13 +1696,6 @@ namespace Stride.Graphics
         }
 
         /// <inheritdoc/>
-        protected internal override bool OnRecreate()
-        {
-            Recreate();
-            return true;
-        }
-
-        /// <inheritdoc/>
         protected internal override void OnDestroyed(bool immediately = false)
         {
             GraphicsDevice.WaitIdle();

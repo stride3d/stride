@@ -157,7 +157,7 @@ namespace Stride.Rendering.ProceduralModels
                 {
                     indicesShort[i] = (ushort)indices[i];
                 }
-                meshDraw.IndexBuffer = new IndexBufferBinding(Buffer.Index.New(graphicsDevice, indicesShort).RecreateWith(indicesShort), false, indices.Length);
+                meshDraw.IndexBuffer = new IndexBufferBinding(Buffer.Index.New(graphicsDevice, indicesShort), false, indices.Length);
                 if (needsTempDevice)
                 {
                     var indexData = BufferData.New(BufferFlags.IndexBuffer, indicesShort);
@@ -171,7 +171,7 @@ namespace Stride.Rendering.ProceduralModels
                     throw new InvalidOperationException("Cannot generate more than 65535 indices on feature level HW <= 9.3");
                 }
 
-                meshDraw.IndexBuffer = new IndexBufferBinding(Buffer.Index.New(graphicsDevice, indices).RecreateWith(indices), true, indices.Length);
+                meshDraw.IndexBuffer = new IndexBufferBinding(Buffer.Index.New(graphicsDevice, indices), true, indices.Length);
                 if (needsTempDevice)
                 {
                     var indexData = BufferData.New(BufferFlags.IndexBuffer, indices);
@@ -180,7 +180,7 @@ namespace Stride.Rendering.ProceduralModels
             }
 
             var vertexBuffer = Buffer.New(graphicsDevice, vertexBufferData, BufferFlags.VertexBuffer, GraphicsResourceUsage.Default);
-            meshDraw.VertexBuffers = [ new VertexBufferBinding(vertexBuffer.RecreateWith(vertexBufferData), layout, data.Vertices.Length) ];
+            meshDraw.VertexBuffers = [ new VertexBufferBinding(vertexBuffer, layout, data.Vertices.Length) ];
             if (needsTempDevice)
             {
                 var vertexData = BufferData.New(BufferFlags.VertexBuffer, vertexBufferData);

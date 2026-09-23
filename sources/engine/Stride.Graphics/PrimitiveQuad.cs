@@ -205,9 +205,6 @@ namespace Stride.Graphics
                     ? $"{SharedDataKey} ({vertexBuffer.Name})"
                     : SharedDataKey;
 
-                // Register reload
-                vertexBuffer.Reload = (graphicsResource, services) => ((Buffer) graphicsResource).Recreate(TriangleVertices);
-
                 VertexBuffer = new VertexBufferBinding(vertexBuffer, VertexDeclaration, TriangleVertices.Length, VertexPositionNormalTexture.Size);
             }
         }

@@ -459,28 +459,6 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Perform Direct3D-specific recreation of the Texture.
-        /// </summary>
-        private partial void OnRecreateImpl()
-        {
-            // Dependency: Wait for the underlying Texture to be recreated
-            if (ParentTexture is { LifetimeState: not GraphicsResourceLifetimeState.Active })
-                return;
-
-            // Render Target / Depth Stencil are considered as "dynamic", i.e. nothing to reinitialize
-            if (Usage is GraphicsResourceUsage.Immutable or GraphicsResourceUsage.Default &&
-                !IsRenderTarget && !IsDepthStencil)
-                return;
-
-            if (ParentTexture is null)
-            {
-                GraphicsDevice?.RegisterTextureMemoryUsage(-SizeInBytes);
-            }
-
-            InitializeFromImpl();
-        }
-
-        /// <summary>
         ///   Gets a specific <see cref="ID3D11ShaderResourceView"/> from the Texture.
         /// </summary>
         /// <param name="viewType">The desired View type of the Shader Resource View.</param>
