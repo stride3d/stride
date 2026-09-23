@@ -57,6 +57,13 @@ public class TestCodeUpgrade
         return text.ToString();
     }
 
+    private static void AssertCompiles(string source)
+    {
+        var syntaxTree = CSharpSyntaxTree.ParseText(source, new CSharpParseOptions(LanguageVersion.Preview));
+        var compilation = CSharpCompilation.Create("Check", [syntaxTree], FrameworkReferences(), new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+        Assert.Empty(compilation.GetDiagnostics().Where(x => x.Severity == DiagnosticSeverity.Error));
+    }
+
     [Fact]
     public async Task PropertyToMethodWrapsOnlyTheMatchingSymbol()
     {
@@ -468,5 +475,113 @@ public class TestCodeUpgrade
 
         Assert.Contains("void A(nint p) => TestNs.New.Free(p);", result);
         Assert.Contains("void B(nint p) => TestNs.New.Free(p);", result);
+    }
+
+    [Fact]
+    public async Task FluentCallRemoveKeepsTheReceiver()
+    {
+        // The 4.4 shape: Buffer.RecreateWith returned its receiver and went away with the device reset recovery.
+        var source = """
+            namespace TestNs
+            {
+                class Target
+                {
+                    public static Target New() => new();
+                    public static Target Make() => new();
+                    public Target RecreateWith(int[] data) => this;
+                }
+                class Other
+                {
+                    public Other RecreateWith(int[] data) => this;
+                }
+                class Usage
+                {
+                    Target A(int[] d) => Target.New().RecreateWith(d);
+                    Target B(Target t, int[] d) => t?.RecreateWith(d);
+                    Other C(Other o, int[] d) => o.RecreateWith(d);
+                    void D(Target t, int[] d)
+                    {
+                        t.RecreateWith(d);
+                        t?.RecreateWith(d);
+                        Target.Make().RecreateWith(d);
+                        if (t != null) t.RecreateWith(d);
+                        for (t.RecreateWith(d); d.Length > 0; t.RecreateWith(d)) { }
+                    }
+                    void E(Target t, int[] d) => t.RecreateWith(d);
+                    Target F(Target t, int[] d) => t.RecreateWith(d);
+                    System.Action G(Target t, int[] d) => () => t.RecreateWith(d);
+                    System.Func<Target> H(Target t, int[] d) => () => t.RecreateWith(d);
+                    async System.Threading.Tasks.Task I(Target t, int[] d) => t.RecreateWith(d);
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(source, Rewrite(FluentCallRemove("TestNs.Target", "RecreateWith")));
+
+        Assert.Contains("=> Target.New();", result);
+        Assert.Contains("=> t;", result);
+        // As a statement, a bare receiver goes with the call, and a call receiver stays.
+        Assert.DoesNotContain("t.RecreateWith", result);
+        Assert.DoesNotContain("t?.RecreateWith", result);
+        Assert.Contains("Target.Make();", result);
+        Assert.Contains("if (t != null)", result);
+        // Where the value is used, the receiver stays; where it is discarded, the call goes.
+        Assert.Contains("Target F(Target t, int[] d) => t;", result);
+        Assert.Contains("System.Func<Target> H(Target t, int[] d) => () => t;", result);
+        // The unrelated same-named method is untouched.
+        Assert.Contains("o.RecreateWith(d)", result);
+        AssertCompiles(result);
+    }
+
+    [Fact]
+    public async Task AssignmentRemoveDropsAssignmentsAndSubscriptions()
+    {
+        // The 4.4 shape: GraphicsResourceBase.Reload and the DeviceReset events are gone; user code only ever
+        // assigned or subscribed to them.
+        var source = """
+            namespace TestNs
+            {
+                class Target
+                {
+                    public System.Action Reload;
+                    public event System.EventHandler DeviceReset;
+                }
+                class Other
+                {
+                    public System.Action Reload;
+                }
+                class Usage
+                {
+                    void A(Target t)
+                    {
+                        t.Reload = () => { };
+                        t.DeviceReset += (s, e) => { };
+                        t.DeviceReset -= (s, e) => { };
+                        if (t.Reload != null) t.Reload();
+                        if (t != null) t.DeviceReset += (s, e) => { };
+                        else t.Reload = null;
+                    }
+                    void B(Other o)
+                    {
+                        o.Reload = () => { };
+                    }
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(source, Rewrite(
+            AssignmentRemove("TestNs.Target", "Reload"),
+            AssignmentRemove("TestNs.Target", "DeviceReset")));
+
+        Assert.DoesNotContain("t.Reload = ", result);
+        Assert.DoesNotContain("t.DeviceReset +=", result);
+        Assert.DoesNotContain("t.DeviceReset -=", result);
+        // A read is left for the user to port, and the unrelated same-named member is untouched.
+        Assert.Contains("if (t.Reload != null) t.Reload();", result);
+        Assert.Contains("o.Reload = ", result);
+        // The body of an if or else without braces cannot be removed: it becomes an empty block.
+        Assert.Contains("if (t != null)", result);
+        Assert.Contains("else", result);
+        AssertCompiles(result);
     }
 }
