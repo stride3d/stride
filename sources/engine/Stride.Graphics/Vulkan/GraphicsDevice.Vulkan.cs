@@ -152,11 +152,9 @@ namespace Stride.Graphics
         {
             get
             {
+                // A simulated loss stays, like a real one
                 if (simulateReset)
-                {
-                    simulateReset = false;
                     return GraphicsDeviceStatus.Reset;
-                }
 
                 return deviceLost ? GraphicsDeviceStatus.Lost : GraphicsDeviceStatus.Normal;
             }
@@ -364,6 +362,9 @@ namespace Stride.Graphics
         }
 
         private partial string GetRendererName() => rendererName;
+
+        // Past VK_ERROR_DEVICE_LOST, only VK_EXT_device_fault would tell more, and it is not used
+        internal partial string GetDeviceLostDetails() => null;
 
         public void SimulateReset()
         {

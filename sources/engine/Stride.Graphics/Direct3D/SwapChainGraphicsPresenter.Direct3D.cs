@@ -377,6 +377,8 @@ namespace Stride.Graphics
                 var deviceStatus = GraphicsDevice.GraphicsDeviceStatus;
 
                 var exception = Marshal.GetExceptionForHR(result);
+                if (deviceStatus != GraphicsDeviceStatus.Normal)
+                    throw GraphicsDeviceException.FromLostDevice(GraphicsDevice, deviceStatus, exception);
                 throw new GraphicsDeviceException($"Unexpected error on Present (device status: {deviceStatus})", exception, deviceStatus);
             }
 

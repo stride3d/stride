@@ -54,4 +54,21 @@ public class GraphicsDeviceException : GraphicsException
     {
         Status = status;
     }
+
+    /// <summary>
+    ///   Creates the exception that reports the loss of a Graphics Device, with what the graphics API kept about it
+    ///   (the removal reason on Direct3D, and the DRED breadcrumbs on Direct3D 12 in debug mode).
+    /// </summary>
+    /// <param name="device">The lost Graphics Device.</param>
+    /// <param name="status">The status read from <paramref name="device"/>.</param>
+    /// <param name="innerException">The exception of the call that noticed the loss, if any.</param>
+    public static GraphicsDeviceException FromLostDevice(GraphicsDevice device, GraphicsDeviceStatus status, Exception innerException = null)
+    {
+        var message = $"The graphics device was lost ({status}).";
+        var details = device.GetDeviceLostDetails();
+        if (details is not null)
+            message += Environment.NewLine + details;
+
+        return new GraphicsDeviceException(message, innerException, status);
+    }
 }

@@ -102,6 +102,12 @@ namespace Stride.Graphics
         /// <inheritdoc cref="RendererName"/>
         private partial string GetRendererName();
 
+        /// <summary>
+        ///   Gets what the graphics API kept about the loss of the device, for the exception that reports it.
+        /// </summary>
+        /// <returns>The details, or <see langword="null"/> if the API kept none.</returns>
+        internal partial string GetDeviceLostDetails();
+
 
         /// <summary>
         ///   Initializes a new instance of the <see cref="GraphicsDevice"/> class.

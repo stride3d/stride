@@ -116,11 +116,13 @@ namespace Stride.Graphics
         {
             get
             {
+                // A simulated loss stays, like a real one
                 if (simulateReset)
-                {
-                    simulateReset = false;
                     return GraphicsDeviceStatus.Reset;
-                }
+
+                // A released device has no native device
+                if (nativeDevice is null)
+                    return GraphicsDeviceStatus.Removed;
 
                 var result = (DeviceRemoveReason) nativeDevice->GetDeviceRemovedReason();
 
@@ -132,7 +134,7 @@ namespace Stride.Graphics
                     DeviceRemoveReason.DriverInternalError => GraphicsDeviceStatus.InternalError,
                     DeviceRemoveReason.InvalidCall => GraphicsDeviceStatus.InvalidCall,
 
-                    < 0 => GraphicsDeviceStatus.Reset,
+                    < 0 => GraphicsDeviceStatus.Lost,
                     _ => GraphicsDeviceStatus.Normal
                 };
             }
@@ -251,7 +253,7 @@ namespace Stride.Graphics
         public void ExecuteCommandLists(int count, CompiledCommandList[] commandLists) => throw new NotImplementedException();
 
         /// <summary>
-        ///   Sets the Graphics Device to simulate a situation in which the device is lost and then reset.
+        ///   Simulates a device loss: from now on, the status says <see cref="GraphicsDeviceStatus.Reset"/>.
         /// </summary>
         public void SimulateReset()
         {
@@ -270,6 +272,16 @@ namespace Stride.Graphics
         }
 
         private partial string GetRendererName() => rendererName;
+
+        internal partial string GetDeviceLostDetails()
+        {
+            if (nativeDevice is null)
+                return null;
+
+            // The raw reason also names the losses the status can only call Lost (out of memory, etc.)
+            int reason = nativeDevice->GetDeviceRemovedReason();
+            return reason < 0 ? $"Removal reason: 0x{reason:X8}." : null;
+        }
 
         /// <summary>
         ///   Initialize the platform-specific implementation of the Graphics Device.

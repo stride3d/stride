@@ -638,6 +638,20 @@ namespace Stride.Games
         /// </param>
         protected void RawTick(TimeSpan elapsedTimePerUpdate, int updateCount = 1, float drawInterpolationFactor = 0, bool drawFrame = true)
         {
+            try
+            {
+                RawTickCore(elapsedTimePerUpdate, updateCount, drawInterpolationFactor, drawFrame);
+            }
+            catch (Exception ex) when (ex is not GraphicsDeviceException && GraphicsDevice is { GraphicsDeviceStatus: not GraphicsDeviceStatus.Normal })
+            {
+                // The first call to notice a lost device can be anything (a failed Map or resource creation, often wrapped
+                // by a content load, or the end of the frame): the run ends with the device status whichever it was
+                throw GraphicsDeviceException.FromLostDevice(GraphicsDevice, GraphicsDevice.GraphicsDeviceStatus, ex);
+            }
+        }
+
+        private void RawTickCore(TimeSpan elapsedTimePerUpdate, int updateCount, float drawInterpolationFactor, bool drawFrame)
+        {
             bool beginDrawSuccessful = false;
             TimeSpan totalElapsedTime = TimeSpan.Zero;
             try
@@ -655,7 +669,8 @@ namespace Stride.Games
                     totalElapsedTime += elapsedTimePerUpdate;
                 }
 
-                if (drawFrame && !IsExiting && GameSystems.IsFirstUpdateDone)
+                // BeginDraw returns false when there is no frame to draw (no device, or a host skipping the frame such as a hidden editor)
+                if (beginDrawSuccessful && drawFrame && !IsExiting && GameSystems.IsFirstUpdateDone)
                 {
                     DrawInterpolationFactor = drawInterpolationFactor;
                     DrawTime.Factor = UpdateTime.Factor;
@@ -675,7 +690,8 @@ namespace Stride.Games
             }
             finally
             {
-                if (beginDrawSuccessful)
+                // A lost device takes no more commands: some drivers crash on them (NVIDIA Vulkan in vkCmdPipelineBarrier)
+                if (beginDrawSuccessful && (GraphicsDevice is null || GraphicsDevice.GraphicsDeviceStatus == GraphicsDeviceStatus.Normal))
                 {
                     using (Profiler.Begin(GameProfilingKeys.GameEndDraw))
                     {

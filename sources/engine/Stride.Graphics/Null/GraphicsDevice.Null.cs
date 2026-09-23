@@ -135,6 +135,8 @@ namespace Stride.Graphics
             return rendererName;
         }
 
+        internal partial string GetDeviceLostDetails() => null;
+
         /// <summary>
         ///   Releases the platform-specific Graphics Device and all its associated resources.
         /// </summary>
