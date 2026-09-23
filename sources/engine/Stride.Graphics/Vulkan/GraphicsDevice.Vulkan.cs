@@ -31,6 +31,8 @@ namespace Stride.Graphics
         internal GraphicsProfile RequestedProfile;
 
         private bool simulateReset = false;
+        // Set by the first VK_ERROR_DEVICE_LOST: Vulkan has no query for it, a lost device only answers that to its calls
+        private bool deviceLost;
         private string rendererName;
 
         // The instance-level VK_EXT_debug_utils messenger doesn't know which device a validation
@@ -156,38 +158,7 @@ namespace Stride.Graphics
                     return GraphicsDeviceStatus.Reset;
                 }
 
-                //var result = NativeDevice.DeviceRemovedReason;
-                //if (result == SharpDX.DXGI.ResultCode.DeviceRemoved)
-                //{
-                //    return GraphicsDeviceStatus.Removed;
-                //}
-
-                //if (result == SharpDX.DXGI.ResultCode.DeviceReset)
-                //{
-                //    return GraphicsDeviceStatus.Reset;
-                //}
-
-                //if (result == SharpDX.DXGI.ResultCode.DeviceHung)
-                //{
-                //    return GraphicsDeviceStatus.Hung;
-                //}
-
-                //if (result == SharpDX.DXGI.ResultCode.DriverInternalError)
-                //{
-                //    return GraphicsDeviceStatus.InternalError;
-                //}
-
-                //if (result == SharpDX.DXGI.ResultCode.InvalidCall)
-                //{
-                //    return GraphicsDeviceStatus.InvalidCall;
-                //}
-
-                //if (result.Code < 0)
-                //{
-                //    return GraphicsDeviceStatus.Reset;
-                //}
-
-                return GraphicsDeviceStatus.Normal;
+                return deviceLost ? GraphicsDeviceStatus.Lost : GraphicsDeviceStatus.Normal;
             }
         }
 
@@ -362,8 +333,16 @@ namespace Stride.Graphics
 
         internal void CheckResult(VkResult vkResult, [CallerArgumentExpression("vkResult")] string call = null)
         {
-            if (vkResult != VkResult.Success)
-                throw new InvalidOperationException($"Vulkan call {call} returned {vkResult}");
+            if (vkResult == VkResult.Success)
+                return;
+
+            if (vkResult == VkResult.ErrorDeviceLost)
+            {
+                deviceLost = true;
+                throw new GraphicsDeviceException($"Vulkan call {call} returned {vkResult}", GraphicsDeviceStatus.Lost);
+            }
+
+            throw new InvalidOperationException($"Vulkan call {call} returned {vkResult}");
         }
 
         /// <summary>
@@ -790,12 +769,14 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Waits for the device to be idle. A lost device is idle too: the resources are being torn down for the re-creation.
+        ///   Waits for the device to be idle. A lost device is idle too: its resources can be torn down.
         /// </summary>
         internal void WaitIdle()
         {
             var result = NativeDeviceApi.vkDeviceWaitIdle(nativeDevice);
-            if (result != VkResult.ErrorDeviceLost)
+            if (result == VkResult.ErrorDeviceLost)
+                deviceLost = true;
+            else
                 CheckResult(result);
         }
 
@@ -984,8 +965,27 @@ namespace Stride.Graphics
             internal ulong GetCompletedValue()
             {
                 ulong result = 0;
-                graphicsDevice.NativeDeviceApi.vkGetSemaphoreCounterValue(graphicsDevice.NativeDevice, Semaphore, &result);
-                return result;
+                var vkResult = graphicsDevice.NativeDeviceApi.vkGetSemaphoreCounterValue(graphicsDevice.NativeDevice, Semaphore, &result);
+                return CheckLost(vkResult, result, "vkGetSemaphoreCounterValue");
+            }
+
+            /// <summary>
+            ///   A lost device fails the call, or reports the counter as <c>UINT64_MAX</c> (NVIDIA). Every submit then looks
+            ///   complete, and its pending command buffers would be reused (the driver crashes on the next submit).
+            /// </summary>
+            /// <returns>The completed value; <c>UINT64_MAX</c> once the loss was reported, so teardown can release everything.</returns>
+            private readonly ulong CheckLost(VkResult vkResult, ulong completedValue, string call)
+            {
+                if (vkResult != VkResult.ErrorDeviceLost && completedValue != ulong.MaxValue)
+                {
+                    graphicsDevice.CheckResult(vkResult, call);
+                    return completedValue;
+                }
+
+                if (graphicsDevice.deviceLost)
+                    return ulong.MaxValue;
+                graphicsDevice.CheckResult(VkResult.ErrorDeviceLost, call);
+                return ulong.MaxValue;
             }
 
             internal bool IsFenceCompleteInternal(ulong fenceValue)
@@ -1014,8 +1014,9 @@ namespace Stride.Graphics
                             pSemaphores = semaphore,
                             pValues = &fenceValue,
                         };
-                        graphicsDevice.NativeDeviceApi.vkWaitSemaphores(graphicsDevice.NativeDevice, &waitInfo, ulong.MaxValue);
-                        LastCompletedFence = fenceValue;
+                        var vkResult = graphicsDevice.NativeDeviceApi.vkWaitSemaphores(graphicsDevice.NativeDevice, &waitInfo, ulong.MaxValue);
+                        // On a lost device the wait returns at once, and only the counter shows the loss
+                        LastCompletedFence = Math.Max(fenceValue, CheckLost(vkResult, GetCompletedValue(), "vkWaitSemaphores"));
                     }
                 }
             }
