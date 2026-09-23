@@ -23,7 +23,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading;
 
 using Stride.Core;
 using Stride.Core.Diagnostics;
@@ -438,8 +437,7 @@ namespace Stride.Games
 
             beginDrawOk = false;
 
-            if (!CheckDeviceState())
-                return false;
+            CheckDeviceState();
 
             GraphicsDevice.Begin();
 
@@ -457,33 +455,14 @@ namespace Stride.Games
             return beginDrawOk = true;
 
             //
-            // Checks the current state of the Graphics Device and handles any necessary actions.
+            // A lost device (TDR, driver update, GPU removed) is not recovered: the game cannot bring every resource
+            // back, so the loss surfaces as an exception for the host to handle (Game Studio restarts its games).
             //
-            bool CheckDeviceState()
+            void CheckDeviceState()
             {
-                const int SLEEP_TIME_WHEN_UNAVAILABLE = 20; // milliseconds
-
-                switch (GraphicsDevice.GraphicsDeviceStatus)
-                {
-                    case GraphicsDeviceStatus.Removed:
-                        Thread.Sleep(SLEEP_TIME_WHEN_UNAVAILABLE);
-                        return false;
-
-                    case GraphicsDeviceStatus.Reset:
-                        Thread.Sleep(SLEEP_TIME_WHEN_UNAVAILABLE);
-                        try
-                        {
-                            ChangeOrCreateDevice(forceCreate: true);
-                        }
-                        catch (Exception e)
-                        {
-                            Log.Error("Re-creating the graphics device after a reset failed", e);
-                            return false;
-                        }
-                        break;
-                }
-
-                return true;
+                var status = GraphicsDevice.GraphicsDeviceStatus;
+                if (status != GraphicsDeviceStatus.Normal)
+                    throw new GraphicsDeviceException($"The graphics device was lost ({status}).", status);
             }
         }
 
@@ -505,9 +484,9 @@ namespace Stride.Games
                     {
                         GraphicsDevice.Presenter.Present();
                     }
-                    catch (GraphicsDeviceException ex) when (ex.Status is not GraphicsDeviceStatus.Removed and not GraphicsDeviceStatus.Reset)
+                    catch (GraphicsDeviceException ex) when (ex.Status is GraphicsDeviceStatus.Removed or GraphicsDeviceStatus.Reset)
                     {
-                        throw;
+                        // A loss during Present is reported by the next BeginDraw, from the device status
                     }
                     finally
                     {

@@ -655,7 +655,8 @@ namespace Stride.Games
                     totalElapsedTime += elapsedTimePerUpdate;
                 }
 
-                if (drawFrame && !IsExiting && GameSystems.IsFirstUpdateDone)
+                // No frame without a ready device: BeginDraw returns false while the device is being changed
+                if (beginDrawSuccessful && drawFrame && !IsExiting && GameSystems.IsFirstUpdateDone)
                 {
                     DrawInterpolationFactor = drawInterpolationFactor;
                     DrawTime.Factor = UpdateTime.Factor;
