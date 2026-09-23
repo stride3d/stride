@@ -352,7 +352,7 @@ namespace Stride.Graphics
             if (swapChain == VkSwapchainKHR.Null)
                 return;
 
-            GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkDeviceWaitIdle(GraphicsDevice.NativeDevice));
+            GraphicsDevice.WaitIdle();
 
             backBuffer.OnDestroyed(true);
 
