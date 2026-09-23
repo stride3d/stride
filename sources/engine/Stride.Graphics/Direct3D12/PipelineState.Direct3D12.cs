@@ -53,7 +53,7 @@ namespace Stride.Graphics
         ///   Gets the Direct3D 12 <see cref="D3DPrimitiveTopology"/> indicating how vertices in the rendered geometry
         ///   are to be interpreted to form primitives.
         /// </summary>
-        internal D3DPrimitiveTopology PrimitiveTopology { get; }
+        internal D3DPrimitiveTopology PrimitiveTopology { get; private set; }
 
         /// <summary>
         ///   Gets a value indicating whether to enables scissor testing.
@@ -63,7 +63,7 @@ namespace Stride.Graphics
         ///   When enabled, only pixels inside the active scissor rectangles configured in the <see cref="CommandList"/> are rendered.
         ///   This is commonly used for UI rendering, partial redraws, or performance optimization.
         /// </remarks>
-        internal bool HasScissorEnabled { get; }
+        internal bool HasScissorEnabled { get; private set; }
 
         /// <summary>
         ///   Gets a value indicating whether the Pipeline State represents the state of the compute pipeline.
@@ -72,11 +72,14 @@ namespace Stride.Graphics
         ///   <see langword="true"/> if the Pipeline State represents the state of the compute pipeline;
         ///   <see langword="false"/> if it represents the state of the graphics pipeline.
         /// </value>
-        internal bool IsCompute { get; }
+        internal bool IsCompute { get; private set; }
 
         // Counts of Root Parameters to bind for each Descriptor Set layout
-        private readonly int[] srvBindCountPerLayout;
-        private readonly int[] samplerBindCountPerLayout;
+        private int[] srvBindCountPerLayout;
+        private int[] samplerBindCountPerLayout;
+
+        // Kept to recreate the native objects after a device reset
+        private readonly PipelineStateDescription description;
 
         /// <summary>
         ///   A map of the number of Root Parameters to bind for each Descriptor Set layout
@@ -121,6 +124,21 @@ namespace Stride.Graphics
             if (pipelineStateDescription.RootSignature is null)
                 return;
 
+            description = pipelineStateDescription.Clone();
+            Recreate();
+        }
+
+        /// <inheritdoc/>
+        protected internal override bool OnRecreate()
+        {
+            if (description is not null)
+                Recreate();
+            return true;
+        }
+
+        private void Recreate()
+        {
+            var pipelineStateDescription = description;
             var tempMemoryAllocations = new List<nint>();
 
             var effectReflection = pipelineStateDescription.EffectBytecode.Reflection;

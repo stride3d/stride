@@ -126,7 +126,17 @@ namespace Stride.Graphics
                 commandList.Release();
             }
 
+            // Reset() starts a new recording only from a blank state
+            currentCommandList = default;
+
             base.OnDestroyed(immediately);
+        }
+
+        /// <inheritdoc/>
+        protected internal override bool OnRecreate()
+        {
+            Reset();
+            return true;
         }
 
 

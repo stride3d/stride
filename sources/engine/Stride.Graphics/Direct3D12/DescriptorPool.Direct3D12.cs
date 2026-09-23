@@ -55,6 +55,21 @@ namespace Stride.Graphics
                     SrvCount += count.Count;
             }
 
+            Recreate();
+        }
+
+        /// <inheritdoc/>
+        protected internal override bool OnRecreate()
+        {
+            Recreate();
+            return true;
+        }
+
+        private void Recreate()
+        {
+            var graphicsDevice = GraphicsDevice;
+            Reset();
+
             if (SrvCount > 0)
             {
                 var descriptorHeapDesc = new DescriptorHeapDesc
