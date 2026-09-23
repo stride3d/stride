@@ -317,6 +317,13 @@
   <Import Project="$(StrideRoot)sources\targets\Stride.AutoPackDeploy.targets" />
 
   <!-- ================================================================ -->
+  <!-- NuGet Documentation File -->
+  <!-- ================================================================ -->
+  <PropertyGroup Condition="'$(GenerateDocumentationFile)' == 'true' And '$(DocumentationFile)' == ''">
+    <DocumentationFile>$(OutputPath)$(AssemblyName).xml</DocumentationFile>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
   <!-- Localization Satellite Assemblies -->
   <!-- ================================================================ -->
   <PropertyGroup>

@@ -9,6 +9,7 @@
 
   <PropertyGroup Condition="'$(StrideDevPackages)' == 'true'">
     <StrideSkipAutoPack>true</StrideSkipAutoPack>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <!-- Projects whose stub the build keeps fresh: packable, actually built (a project whose compilation is
          disabled, e.g. tests under StrideSkipUnitTests, has no outputs to pack and no NuGet targets), and not a
          template. Template packages are content built by a preprocessor at pack time (whole sample trees), the

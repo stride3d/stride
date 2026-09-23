@@ -175,7 +175,7 @@ if (adopt.Length == 0)
 // missing output (fresh clone, new project) fails that pack, so the pack is retried with a build.
 int PackSolution()
 {
-    var packProperties = $"-c {configuration} -p:StrideSkipAutoPack=true -p:StrideDevPackages=false -p:StrideDevPackagesGenerating=true -p:StridePackAssets=false -o \"{tempPackDir}\" --verbosity normal";
+    var packProperties = $"-c {configuration} -p:StrideSkipAutoPack=true -p:StrideDevPackages=false -p:StrideDevPackagesGenerating=true -p:StridePackAssets=false -p:GenerateDocumentationFile=true -o \"{tempPackDir}\" --verbosity normal";
     // --no-build implies no restore, so restore explicitly first.
     var exitCode = RunProcess("dotnet", $"restore \"{solution}\" -p:StrideSkipAutoPack=true -p:StrideDevPackages=false --verbosity quiet", silent: true);
     if (exitCode == 0)
