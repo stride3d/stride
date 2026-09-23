@@ -72,6 +72,8 @@ namespace Stride.Graphics
 
                         resourceGroupBinding.ConstantBufferSlot = resourceIndex;
                         resourceGroupBinding.PreAllocatedConstantBuffer = Buffer.Constant.New(graphicsDevice, constantBuffer.Size, bufferUsage);
+                        // Refilled every frame: after a device reset it comes back empty, like a dynamic buffer
+                        resourceGroupBinding.PreAllocatedConstantBuffer.Reload = static (resource, services) => ((Buffer)resource).Recreate(IntPtr.Zero);
                     }
                 }
 
