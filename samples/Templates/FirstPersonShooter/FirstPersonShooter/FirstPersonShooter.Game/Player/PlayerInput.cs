@@ -15,7 +15,7 @@ namespace FirstPersonShooter.Player
         /// <summary>
         /// Raised every frame with the intended direction of movement from the player.
         /// </summary>
-        public static readonly EventKey<Vector3> MoveDirectionEventKey = new EventKey<Vector3>();       // This can be made non-static and require specific binding to the scripts instead
+        public static readonly EventKey<Vector2> MoveDirectionEventKey = new EventKey<Vector2>();       // This can be made non-static and require specific binding to the scripts instead
 
         public static readonly EventKey<Vector2> CameraDirectionEventKey = new EventKey<Vector2>();     // This can be made non-static and require specific binding to the scripts instead
 
@@ -74,9 +74,16 @@ namespace FirstPersonShooter.Player
                     moveDirection += -Vector2.UnitY;
 
                 // Broadcast the movement vector as a world-space Vector3 to allow characters to be controlled
-                var worldSpeed = (Camera != null)
-                    ? Utils.LogicDirectionToWorldDirection(moveDirection, Camera, Vector3.UnitY)
-                    : new Vector3(moveDirection.X, 0, moveDirection.Y); // If we don't have the correct camera attached we can send the directions anyway, but they probably won't match
+                Vector2 worldSpeed;
+                if (Camera != null)
+                {
+                    var worldDirection = Utils.LogicDirectionToWorldDirection(moveDirection, Camera, Vector3.UnitY);
+                    worldSpeed = new Vector2(worldDirection.X, worldDirection.Z);
+                }
+                else
+                {
+                    worldSpeed = moveDirection;
+                }
 
                 MoveDirectionEventKey.Broadcast(worldSpeed);
             }
