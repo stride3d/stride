@@ -625,7 +625,8 @@
                       </i:Interaction.Behaviors>
                     </sd:AssetViewUserControl>
                     <i:Interaction.Behaviors>
-                      <gl:LayoutAnchorableActivateOnLocationChangedBehavior Collection="{Binding Session.ActiveAssetView.SelectedLocations}" />
+                      <!-- LayoutAnchorable has no DataContext, so the source is explicit. -->
+                      <gl:LayoutAnchorableActivateOnLocationChangedBehavior Collection="{Binding Session.ActiveAssetView.SelectedLocations, Source={x:Static vm:GameStudioViewModel.GameStudio}}" />
                     </i:Interaction.Behaviors>
                   </xcad:LayoutAnchorable>
                 </xcad:LayoutDocumentPane>
