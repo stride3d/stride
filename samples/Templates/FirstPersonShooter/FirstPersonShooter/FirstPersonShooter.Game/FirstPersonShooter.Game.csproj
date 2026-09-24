@@ -4,11 +4,11 @@
     <RootNamespace>FirstPersonShooter</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Stride.BepuPhysics" Version="4.4.0" PrivateAssets="contentfiles;analyzers" />
     <PackageReference Include="Stride.Core" Version="4.4.0" PrivateAssets="contentfiles;analyzers" />
     <PackageReference Include="Stride.AssetCompiler" Version="4.4.0" IncludeAssets="build;buildTransitive" />
     <PackageReference Include="Stride.Engine" Version="4.4.0" PrivateAssets="contentfiles;analyzers" />
     <PackageReference Include="Stride.Particles" Version="4.4.0" PrivateAssets="contentfiles;analyzers" />
-    <PackageReference Include="Stride.Physics" Version="4.4.0" PrivateAssets="contentfiles;analyzers" />
     <PackageReference Include="Stride.UI" Version="4.4.0" PrivateAssets="contentfiles;analyzers" />
     <ProjectReference Include="..\..\..\Packs\VFXPackage\VFXPackage.csproj" />
     <ProjectReference Include="..\..\..\Packs\PrototypingBlocks\PrototypingBlocks.csproj" />
