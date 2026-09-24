@@ -17,7 +17,8 @@
              xmlns:services="clr-namespace:Stride.Core.Assets.Editor.Services"
              mc:Ignorable="d" d:DataContext="{d:DesignInstance viewModel:AssetCollectionViewModel}" Focusable="True"
              d:DesignHeight="300" d:DesignWidth="300" x:Name="AssetView" BorderThickness="1" BorderBrush="{DynamicResource MenuBorderBrush}">
-  <DockPanel x:Name="RootContainer">
+  <!-- DataContext is AssetCollection, set in code-behind -->
+  <DockPanel x:Name="RootContainer" DataContext="{x:Null}">
     <FrameworkElement.Resources>
       <ResourceDictionary>
         <!-- MERGED DICTIONARIES: IMAGE DICTIONARY, PROPERTY GRID VIEWS -->
@@ -47,39 +48,49 @@
                     <ProgressBar Width="32" Height="8"
                                IsIndeterminate="{Binding ThumbnailData, Mode=OneWay, Converter={sd:Chained {sd:ObjectToBool}, {sd:InvertBool}}}"
                                Visibility="{Binding ThumbnailData, Mode=OneWay, Converter={sd:Chained {sd:ObjectToBool}, {sd:InvertBool}, {sd:VisibleOrCollapsed}}, FallbackValue={sd:Collapsed}}"/>
-                    <Border BorderBrush="{StaticResource NormalBorderBrush}" BorderThickness="2" CornerRadius="3" Background="{StaticResource NormalBrush}"
-                          HorizontalAlignment="Right" VerticalAlignment="Top" Visibility="{Binding Sources.NeedUpdateFromSource, Converter={sd:VisibleOrHidden}, FallbackValue={sd:Hidden}}" Margin="0,3,0,0">
-                      <Button Style="{StaticResource ImageButtonStyle}" Command="{Binding Sources.UpdateFromSourceCommand}" Margin="0">
-                        <Image Source="{StaticResource UpdateSelectedAssetsFromSource}" Width="12" Height="12" Margin="5"/>
-                      </Button>
-                    </Border>
-                    <Border BorderBrush="{StaticResource NormalBorderBrush}" BorderThickness="2" CornerRadius="3" Background="{StaticResource NormalBrush}"
-                          HorizontalAlignment="Right" VerticalAlignment="Bottom" Visibility="{Binding IsReplacing, Converter={sd:VisibleOrHidden}, FallbackValue={sd:Hidden}}">
-                      <Image Source="{StaticResource ImageAssetOverride}" Width="12" Height="12" Margin="5" ToolTip="{Binding ReplacesUrl, StringFormat={sd:Localize Replaces {0}}}"/>
-                    </Border>
-                    <Border BorderBrush="{StaticResource NormalBorderBrush}" BorderThickness="2" CornerRadius="3" Background="{StaticResource NormalBrush}"
-                          HorizontalAlignment="Left" VerticalAlignment="Bottom" Visibility="{Binding IsReplaced, Converter={sd:VisibleOrHidden}, FallbackValue={sd:Hidden}}">
-                      <Image Source="{StaticResource ImageAssetOverride}" Width="12" Height="12" Margin="5" ToolTip="{Binding ReplacedByUrl, StringFormat={sd:Localize Replaced by {0}}}"/>
-                    </Border>
-                    <Button HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,3" Command="{Binding Dependencies.ToggleIsRootOnSelectedAssetCommand, FallbackValue={x:Null}}">
-                      <Button.Style>
-                        <Style TargetType="Button">
-                          <Setter Property="Template">
-                            <Setter.Value>
-                              <ControlTemplate TargetType="Button">
-                                <ContentPresenter ContentSource="Content"/>
-                              </ControlTemplate>
-                            </Setter.Value>
-                          </Setter>
-                        </Style>
-                      </Button.Style>
-                      <Grid Background="Transparent">
-                        <Image Source="{StaticResource ImageAssetIsRoot}" Width="12" Height="12" Margin ="5" Visibility="{Binding Dependencies.IsBuiltAsRoot, Converter={sd:VisibleOrHidden}, FallbackValue={sd:Hidden}}"/>
-                        <Image Source="{StaticResource ImageAssetIsIndirectlyIncluded}" Width="12" Height="12" Margin ="5" Visibility="{Binding Dependencies.IsBuiltAsDependency, Converter={sd:VisibleOrHidden}, FallbackValue={sd:Hidden}}"/>
-                        <Image Source="{StaticResource ImageAssetIsOverridden}" Width="12" Height="12" Margin ="5" Visibility="{Binding Dependencies.IsOverridden, Converter={sd:VisibleOrHidden}, FallbackValue={sd:Hidden}}"/>
-                        <Image Source="{StaticResource ImageAssetIsExcluded}" Width="12" Height="12" Margin ="5" Visibility="{Binding Dependencies.IsExcluded, Converter={sd:VisibleOrHidden}, FallbackValue={sd:Hidden}}"/>
-                      </Grid>
-                    </Button>
+                    <!-- Badges: assets only -->
+                    <ContentControl Content="{Binding}" Focusable="False">
+                      <FrameworkElement.Resources>
+                        <DataTemplate DataType="{x:Type viewModel:SessionObjectViewModel}"/>
+                        <DataTemplate DataType="{x:Type viewModel:AssetViewModel}">
+                          <Grid>
+                            <Border BorderBrush="{StaticResource NormalBorderBrush}" BorderThickness="2" CornerRadius="3" Background="{StaticResource NormalBrush}"
+                                  HorizontalAlignment="Right" VerticalAlignment="Top" Visibility="{Binding Sources.NeedUpdateFromSource, Converter={sd:VisibleOrHidden}, FallbackValue={sd:Hidden}}" Margin="0,3,0,0">
+                              <Button Style="{StaticResource ImageButtonStyle}" Command="{Binding Sources.UpdateFromSourceCommand}" Margin="0">
+                                <Image Source="{StaticResource UpdateSelectedAssetsFromSource}" Width="12" Height="12" Margin="5"/>
+                              </Button>
+                            </Border>
+                            <Border BorderBrush="{StaticResource NormalBorderBrush}" BorderThickness="2" CornerRadius="3" Background="{StaticResource NormalBrush}"
+                                  HorizontalAlignment="Right" VerticalAlignment="Bottom" Visibility="{Binding IsReplacing, Converter={sd:VisibleOrHidden}, FallbackValue={sd:Hidden}}">
+                              <Image Source="{StaticResource ImageAssetOverride}" Width="12" Height="12" Margin="5" ToolTip="{Binding ReplacesUrl, StringFormat={sd:Localize Replaces {0}}}"/>
+                            </Border>
+                            <Border BorderBrush="{StaticResource NormalBorderBrush}" BorderThickness="2" CornerRadius="3" Background="{StaticResource NormalBrush}"
+                                  HorizontalAlignment="Left" VerticalAlignment="Bottom" Visibility="{Binding IsReplaced, Converter={sd:VisibleOrHidden}, FallbackValue={sd:Hidden}}">
+                              <Image Source="{StaticResource ImageAssetOverride}" Width="12" Height="12" Margin="5" ToolTip="{Binding ReplacedByUrl, StringFormat={sd:Localize Replaced by {0}}}"/>
+                            </Border>
+                            <Button HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,3" Command="{Binding Dependencies.ToggleIsRootOnSelectedAssetCommand, FallbackValue={x:Null}}">
+                              <Button.Style>
+                                <Style TargetType="Button">
+                                  <Setter Property="Template">
+                                    <Setter.Value>
+                                      <ControlTemplate TargetType="Button">
+                                        <ContentPresenter ContentSource="Content"/>
+                                      </ControlTemplate>
+                                    </Setter.Value>
+                                  </Setter>
+                                </Style>
+                              </Button.Style>
+                              <Grid Background="Transparent">
+                                <Image Source="{StaticResource ImageAssetIsRoot}" Width="12" Height="12" Margin ="5" Visibility="{Binding Dependencies.IsBuiltAsRoot, Converter={sd:VisibleOrHidden}, FallbackValue={sd:Hidden}}"/>
+                                <Image Source="{StaticResource ImageAssetIsIndirectlyIncluded}" Width="12" Height="12" Margin ="5" Visibility="{Binding Dependencies.IsBuiltAsDependency, Converter={sd:VisibleOrHidden}, FallbackValue={sd:Hidden}}"/>
+                                <Image Source="{StaticResource ImageAssetIsOverridden}" Width="12" Height="12" Margin ="5" Visibility="{Binding Dependencies.IsOverridden, Converter={sd:VisibleOrHidden}, FallbackValue={sd:Hidden}}"/>
+                                <Image Source="{StaticResource ImageAssetIsExcluded}" Width="12" Height="12" Margin ="5" Visibility="{Binding Dependencies.IsExcluded, Converter={sd:VisibleOrHidden}, FallbackValue={sd:Hidden}}"/>
+                              </Grid>
+                            </Button>
+                          </Grid>
+                        </DataTemplate>
+                      </FrameworkElement.Resources>
+                    </ContentControl>
                   </Grid>
                 </HeaderedContentControl.Header>
                 <StackPanel Background="Transparent" Width="{Binding TileThumbnailSize, RelativeSource={RelativeSource AncestorType=view:AssetViewUserControl}}" Height="48">
@@ -179,8 +190,8 @@
               </ItemsPanelTemplate>
             </controls:EditableContentListBox.ItemsPanel>
             <controls:EditableContentListBox.ItemContainerStyle>
-              <Style TargetType="controls:EditableContentListBoxItem" BasedOn="{StaticResource {x:Type controls:EditableContentListBoxItem}}" d:DataContext="{d:DesignInstance viewModel:AssetViewModel}">
-                <Setter Property="CanEdit" Value="{Binding IsLocked, Converter={sd:InvertBool}}"/>
+              <Style TargetType="controls:EditableContentListBoxItem" BasedOn="{StaticResource {x:Type controls:EditableContentListBoxItem}}" d:DataContext="{d:DesignInstance viewModel:ISessionObjectViewModel}">
+                <Setter Property="CanEdit" Value="{Binding IsEditable}"/>
                 <Setter Property="Background" Value="{StaticResource BackgroundBrush}"/>
                 <Setter Property="sd:Interaction.Behaviors">
                   <Setter.Value>
