@@ -1,19 +1,16 @@
-﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using Stride.BepuPhysics;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Events;
-using Stride.Physics;
 
 namespace ThirdPersonPlatformer.Player
 {
     public class PlayerController : SyncScript
     {
-        [Display("Run Speed")]
-        public float MaxRunSpeed { get; set; } = 10;
-
         public static readonly EventKey<bool> IsGroundedEventKey = new EventKey<bool>();
 
         public static readonly EventKey<float> RunSpeedEventKey = new EventKey<float>();
@@ -24,7 +21,7 @@ namespace ThirdPersonPlatformer.Player
 
         private float yawOrientation;
 
-        private readonly EventReceiver<Vector3> moveDirectionEvent = new EventReceiver<Vector3>(PlayerInput.MoveDirectionEventKey);
+        private readonly EventReceiver<Vector2> moveDirectionEvent = new EventReceiver<Vector2>(PlayerInput.MoveDirectionEventKey);
 
         private readonly EventReceiver<bool> jumpEvent = new EventReceiver<bool>(PlayerInput.JumpEventKey);
 
@@ -38,7 +35,7 @@ namespace ThirdPersonPlatformer.Player
         private float jumpReactionRemaining;
 
         // Allow some inertia to the movement
-        private Vector3 moveDirection = Vector3.Zero;
+        private Vector2 moveDirection = Vector2.Zero;
 
         /// <summary>
         /// Called when the script is first initialized
@@ -61,7 +58,7 @@ namespace ThirdPersonPlatformer.Player
         /// </summary>
         public override void Update()
         {
-            Move(MaxRunSpeed);
+            Move();
 
             Jump();
         }
@@ -72,7 +69,7 @@ namespace ThirdPersonPlatformer.Player
         /// </summary>
         private void Jump()
         {
-            var dt = this.GetSimulation().FixedTimeStep;
+            var dt = (float)Game.UpdateTime.WarpElapsed.TotalSeconds;
 
             // Check if conditions allow the character to jump
             if (JumpReactionThreshold <= 0)
@@ -113,22 +110,22 @@ namespace ThirdPersonPlatformer.Player
 
             // Jump!!
             jumpReactionRemaining = 0;
-            character.Jump();
+            character.TryJump();
 
             // Broadcast that the character is jumping!
             IsGroundedEventKey.Broadcast(false);
         }
 
-        private void Move(float speed)
+        private void Move()
         {
             // Character speed
-            Vector3 newMoveDirection;
-            moveDirectionEvent.TryReceive(out newMoveDirection);
+            moveDirectionEvent.TryReceive(out var newMoveDirection);
 
             // Allow very simple inertia to the character to make animation transitions more fluid
             moveDirection = moveDirection*0.85f + newMoveDirection *0.15f;
 
-            character.SetVelocity(moveDirection * speed);
+            //character.LinearVelocity = newMoveDirection;
+            character.MoveVector = moveDirection;
 
             // Broadcast speed as per cent of the max speed
             RunSpeedEventKey.Broadcast(moveDirection.Length());
@@ -136,7 +133,7 @@ namespace ThirdPersonPlatformer.Player
             // Character orientation
             if (moveDirection.Length() > 0.001)
             {
-                yawOrientation = MathUtil.RadiansToDegrees((float) Math.Atan2(-moveDirection.Z, moveDirection.X) + MathUtil.PiOverTwo);
+                yawOrientation = MathUtil.RadiansToDegrees((float) Math.Atan2(-moveDirection.Y, moveDirection.X) + MathUtil.PiOverTwo);
             }
             modelChildEntity.Transform.Rotation = Quaternion.RotationYawPitchRoll(MathUtil.DegreesToRadians(yawOrientation), 0, 0);
         }

@@ -21,16 +21,18 @@ Hierarchy:
                         Model: 19b45002-2276-4da1-b346-f0bd841b008e:Models/Stairs2x2x4
                         Materials:
                             dadb77e8b73d8648a9581fe1ceea4fbe~0: 08b6f010-a274-4180-83c4-0f2c0920774b:Materials/GridMTStairs
-                    01635891d64e2c4d98af82259f64e540: !StaticColliderComponent
+                    01635891d64e2c4d98af82259f64e540: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
                         Id: 91586301-4ed6-4d2c-98af-82259f64e540
-                        CanSleep: true
-                        Restitution: 0.0
-                        Friction: 0.5
-                        RollingFriction: 0.0
-                        CcdMotionThreshold: 0.0
-                        CcdSweptSphereRadius: 0.0
-                        IsTrigger: false
-                        AlwaysUpdateNaviMeshCache: false
-                        ColliderShapes:
-                            e50925e86d99e849bde2b006ac86de09: !ColliderShapeAssetDesc
-                                Shape: 60258ea8-0806-483e-a80d-4ad76595042d:CollisionMeshes2/Stairs2x2x4
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                3c39fc5447a986425147e6b19e82d5c3: !Stride.BepuPhysics.Definitions.Colliders.ConvexHullCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Hull: f015ce95-5ee4-4766-9b5d-d9d6635ad8fd:CollisionMeshes/Stairs2x2x4
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        CollisionGroup: {}
+                        ContactEventHandler: null

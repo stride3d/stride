@@ -54,5 +54,23 @@ Defaults:
     - !Stride.Streaming.StreamingSettings,Stride.Rendering
         ManagerUpdatesInterval: 0:00:00:00.0330000
         ResourceLiveTimeout: 0:00:00:08.0000000
+    - !Stride.BepuPhysics.BepuConfiguration,Stride.BepuPhysics
+        BepuSimulations:
+            -   AssociatedScene: null
+                ThreadCount: -1
+                Enabled: true
+                ParallelUpdate: true
+                Deterministic: false
+                FixedTimeStepSeconds: 0.0166666
+                TimeScale: 1.0
+                MaxStepPerFrame: 3
+                UsePerBodyAttributes: true
+                PoseGravity: {X: 0.0, Y: -9.8, Z: 0.0}
+                PoseLinearDamping: 0.05
+                PoseAngularDamping: 0.05
+                SolverIteration: 8
+                SolverSubStep: 1
+                SoftStartDuration: 0:00:00:01.0000000
+                SoftStartSubstepFactor: 4
 SplashScreenTexture: d26edb11-10bd-403c-b3c2-9c7fcccf25e5:/Stride.Engine/StrideDefaultSplashScreen
 SplashScreenColor: {R: 0, G: 0, B: 0, A: 255}

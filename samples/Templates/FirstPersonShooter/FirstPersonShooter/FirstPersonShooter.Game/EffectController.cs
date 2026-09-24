@@ -3,9 +3,9 @@
 using System;
 using System.Threading.Tasks;
 using FirstPersonShooter.Player;
+using Stride.BepuPhysics;
 using Stride.Core.Mathematics;
 using Stride.Engine.Events;
-using Stride.Physics;
 
 namespace FirstPersonShooter
 {
@@ -28,8 +28,7 @@ namespace FirstPersonShooter
                 if (target.DidHit)
                     SpawnEvent("BulletImpact", null, Matrix.RotationQuaternion(Quaternion.BetweenDirections(Vector3.UnitY, target.HitResult.Normal)) * Matrix.Translation(target.HitResult.Point));
 
-                var rigidBody = target.HitResult.Collider as RigidbodyComponent;
-                if (rigidBody != null)
+                if (target.HitResult.Collidable is BodyComponent rigidBody)
                 {
                     var rand = new Random();
                     SpawnEvent("DamagedTrail", rigidBody.Entity, Matrix.Translation(new Vector3((float)rand.NextDouble() - 0.5f, (float)rand.NextDouble() - 0.5f, (float)rand.NextDouble() - 0.5f)));
