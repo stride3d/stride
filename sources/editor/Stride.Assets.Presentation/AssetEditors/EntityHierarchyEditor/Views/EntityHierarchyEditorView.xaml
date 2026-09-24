@@ -169,7 +169,20 @@
       <TextBlock Text="{sd:Localize This might take a few minutes the first time.}" Margin="20" HorizontalAlignment="Center"/>
       <ProgressBar IsIndeterminate="True" Width="200" Height="20" Margin="20" BorderThickness="1"/>
     </StackPanel>
-    <Grid Visibility="{Binding SceneInitialized, Converter={sd:VisibleOrCollapsed}}">
+    <!-- Bound only once the scene is initialized (a collapsed element still binds). -->
+    <Grid>
+      <Grid.Style>
+        <Style TargetType="{x:Type Grid}">
+          <Setter Property="DataContext" Value="{x:Null}"/>
+          <Setter Property="Visibility" Value="Collapsed"/>
+          <Style.Triggers>
+            <DataTrigger Binding="{Binding DataContext.SceneInitialized, RelativeSource={RelativeSource AncestorType={x:Type ehv:EntityHierarchyEditorView}}}" Value="True">
+              <Setter Property="DataContext" Value="{Binding DataContext, RelativeSource={RelativeSource AncestorType={x:Type ehv:EntityHierarchyEditorView}}}"/>
+              <Setter Property="Visibility" Value="Visible"/>
+            </DataTrigger>
+          </Style.Triggers>
+        </Style>
+      </Grid.Style>
       <Grid.ColumnDefinitions>
         <ColumnDefinition Width="*"/>
         <ColumnDefinition Width="5"/>
