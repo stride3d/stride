@@ -58,34 +58,30 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
-                    0f5a078e7c288bdabbfd0c78f0c7f52a: !RigidbodyComponent
-                        Id: 00eee251-501b-4d85-b1b2-cdf1d7608ee4
-                        CollisionGroup: CustomFilter10
-                        CanCollideWith: CharacterFilter
-                        CanSleep: false
-                        Restitution: 0.0
-                        Friction: 0.5
-                        RollingFriction: 0.0
-                        CcdMotionThreshold: 0.0
-                        CcdSweptSphereRadius: 0.0
-                        IsTrigger: true
-                        IsKinematic: true
-                        Mass: 1.0
-                        LinearDamping: 0.0
-                        AngularDamping: 0.0
-                        OverrideGravity: false
-                        Gravity: {X: 0.0, Y: 0.0, Z: 0.0}
-                        NodeName: null
-                        ColliderShapes:
-                            a75542f5626ada7100185d195096639f: !BoxColliderShapeDesc
-                                Is2D: false
-                                Size: {X: 24.0, Y: 3.0, Z: 24.0}
-                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
-                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                     2eac96e8c90a836d8754e3f24fa1a99e: !Gameplay.SceneStreaming,TopDownRPG.Game
                         Id: 5b6e2307-e465-4da0-8d84-b9624682ef9f
                         Url: feaab56f-3f56-48e0-83be-dfe2f38f65a6:EasternChunk
-                        Trigger: !RigidbodyComponent ref!! 00eee251-501b-4d85-b1b2-cdf1d7608ee4
+                    1979fe86551c5eb734518395e704cf07: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
+                        Id: e9a207e8-b917-45d8-97a3-49b2338a09e9
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                cf2efbf481f89106a719a2c394d2ece4: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 24.0, Y: 3.0, Z: 24.0}
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        CollisionGroup: {}
+                        ContactEventHandler: !Gameplay.SceneStreaming,TopDownRPG.Game ref!! 5b6e2307-e465-4da0-8d84-b9624682ef9f
+                        Kinematic: true
+                        Gravity: false
+                        ContinuousDetectionMode: Discrete
+                        InterpolationMode: None
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
         -   Entity:
                 Id: 3113203c-2276-420b-bf0d-fce00d95dc58
                 Name: SouthernChunkLoading
@@ -96,34 +92,30 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
-                    0f5a078e7c288bdabbfd0c78f0c7f52a: !RigidbodyComponent
-                        Id: 52032222-a039-47be-9d21-4a6c3adca582
-                        CollisionGroup: CustomFilter10
-                        CanCollideWith: CharacterFilter
-                        CanSleep: false
-                        Restitution: 0.0
-                        Friction: 0.5
-                        RollingFriction: 0.0
-                        CcdMotionThreshold: 0.0
-                        CcdSweptSphereRadius: 0.0
-                        IsTrigger: true
-                        IsKinematic: true
-                        Mass: 1.0
-                        LinearDamping: 0.0
-                        AngularDamping: 0.0
-                        OverrideGravity: false
-                        Gravity: {X: 0.0, Y: 0.0, Z: 0.0}
-                        NodeName: null
-                        ColliderShapes:
-                            a75542f5626ada7100185d195096639f: !BoxColliderShapeDesc
-                                Is2D: false
-                                Size: {X: 24.0, Y: 3.0, Z: 24.0}
-                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
-                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                     2eac96e8c90a836d8754e3f24fa1a99e: !Gameplay.SceneStreaming,TopDownRPG.Game
                         Id: 276ff6f0-dcc0-4945-b13e-f2dd2664b4e0
                         Url: 7cdb3d4a-151d-4851-a736-fec1bba593d3:SouthernChunk
-                        Trigger: !RigidbodyComponent ref!! 52032222-a039-47be-9d21-4a6c3adca582
+                    6849ec806e1dfb7a49e746169f70b20c: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
+                        Id: a35dae5c-4963-4613-b8d0-6ba37325248e
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                cf2efbf481f89106a719a2c394d2ece4: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 24.0, Y: 3.0, Z: 24.0}
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        CollisionGroup: {}
+                        ContactEventHandler: !Gameplay.SceneStreaming,TopDownRPG.Game ref!! 276ff6f0-dcc0-4945-b13e-f2dd2664b4e0
+                        Kinematic: true
+                        Gravity: false
+                        ContinuousDetectionMode: Discrete
+                        InterpolationMode: None
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
         -   Entity:
                 Id: 36396dfa-6aa4-4489-a7f5-e45f569bb082
                 Name: GameLogic
@@ -157,33 +149,12 @@ Hierarchy:
                         Children:
                             1245d3c0d097e44e8295e28dad432562: ref!! 959fe163-fada-4ebe-a47e-ea68eb6b2979
                             39d4bdb202782a41869f2a6d53da4edf: ref!! c86bda83-ff49-48f5-9ffe-2af8289a30c7
-                    b978a0332590234b9f3a3537f50e75ae: !CharacterComponent
-                        Id: 04b129a8-2c6e-4f86-86e6-751881be7073
-                        CollisionGroup: CharacterFilter
-                        CanCollideWith: DefaultFilter, StaticFilter, KinematicFilter, DebrisFilter, SensorTrigger, CharacterFilter, CustomFilter1, CustomFilter3, CustomFilter4, CustomFilter5, CustomFilter6, CustomFilter7, CustomFilter8, CustomFilter9, CustomFilter10
-                        CanSleep: false
-                        Restitution: 0.0
-                        Friction: 0.5
-                        RollingFriction: 0.0
-                        CcdMotionThreshold: 0.0
-                        CcdSweptSphereRadius: 0.0
-                        FallSpeed: 10.0
-                        MaxSlope: {Radians: 0.7853982}
-                        JumpSpeed: 0.0
-                        Gravity: {X: 0.0, Y: -40.0, Z: 0.0}
-                        ColliderShapes:
-                            56a5239435c0e54188f913fd5d2f5dee: !CapsuleColliderShapeDesc
-                                Length: 1.2
-                                Radius: 0.4
-                                LocalOffset: {X: 0.0, Y: 0.95, Z: 0.0}
-                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                     f722a19496166946a5d26eaf23d2ae03: !TopDownRPG.Player.PlayerController,TopDownRPG.Game
                         Id: b874c24c-dd1f-495a-84f9-5cba7ae3e7ed
                         MaxRunSpeed: 8.5
                         DestinationThreshold: 0.2
                         CornerSlowdown: 0.6
                         DestinationSlowdown: 0.4
-                        PunchCollision: ref!! fe1e1273-322f-4e93-9e58-116364ce45ee
                         AttackDistance: 1.25
                         AttackCooldown: 0.65
                     809bf66aef692646891c293be4ca17b2: !TopDownRPG.Player.PlayerInput,TopDownRPG.Game
@@ -201,6 +172,40 @@ Hierarchy:
                     9de419e9d8df993a86667389e26853fb: !Gameplay.EnableDynamicNavigation,TopDownRPG.Game
                         Id: 7635d00b-9365-4fac-afb7-bfb87a7d0041
                         Priority: 20000
+                    f9f922b10f3e51d1d2ce45937ebe7b30: !Stride.BepuPhysics.CharacterComponent,Stride.BepuPhysics
+                        Id: 91ab4ddc-bd53-4a76-80b9-2b84af982951
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                f45f648e069b526d84f49c49bbffd169: !Stride.BepuPhysics.Definitions.Colliders.CapsuleCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 1.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Radius: 0.4
+                                    Length: 1.2
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        CollisionLayer: Layer1
+                        CollisionGroup: {}
+                        ContactEventHandler: null
+                        Kinematic: false
+                        Gravity: true
+                        ContinuousDetectionMode: Continuous
+                        InterpolationMode: Interpolated
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
+                        Speed: 10.0
+                        MaximumHorizontalForce: 200.0
+                        JumpForce: 10.0
+                        MaximumVerticalForce: 1000.0
+                        SlopeAngle: 50.0
+                        MinimumSupportDepth: 0.005
+                        MinimumSupportContinuationDepth: 0.1
+                        AirControlForceScale: 0.2
+                        AirControlScale: 0.2
+                        LocalUp: {X: 0.0, Y: 1.0, Z: 0.0}
+                        MoveVector: {X: 0.0, Y: 0.0}
         -   Entity:
                 Id: 6c7778b3-439b-4d70-a265-0b61a0c38c99
                 Name: Highlight
@@ -217,43 +222,6 @@ Hierarchy:
                         IsShadowCaster: false
                         Materials:
                             8f46c33571e26d4bb19356e1ee060013~0: 4de4aa42-6f84-472f-8b50-7f4d8229723a:HighlightMaterial
-        -   Entity:
-                Id: 7f250db2-af29-4e4e-b6e2-4906b671660f
-                Name: PunchCollision
-                Components:
-                    651acbbf06fe12468058e1f473b74a32: !TransformComponent
-                        Id: e00f225e-3597-432a-bc45-67f143a89706
-                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
-                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Children: {}
-                    0e97484315c962489b6376c3130914c7: !ModelNodeLinkComponent
-                        Id: d144a934-9148-4cc3-b443-ede9c6c5c3ef
-                        Target: null
-                        NodeName: CATRigRArmPalm
-                    13f15cf5c64fb5429ce1a586368259bd: !RigidbodyComponent
-                        Id: fe1e1273-322f-4e93-9e58-116364ce45ee
-                        CollisionGroup: CharacterFilter
-                        CanCollideWith: CustomFilter2
-                        CanSleep: false
-                        Restitution: 0.0
-                        Friction: 0.5
-                        RollingFriction: 0.0
-                        CcdMotionThreshold: 0.0
-                        CcdSweptSphereRadius: 0.0
-                        IsTrigger: true
-                        IsKinematic: true
-                        Mass: 1.0
-                        LinearDamping: 0.0
-                        AngularDamping: 0.0
-                        OverrideGravity: false
-                        Gravity: {X: 0.0, Y: 0.0, Z: 0.0}
-                        NodeName: null
-                        ColliderShapes:
-                            08c9e89242b2974891270864e1ec3692: !SphereColliderShapeDesc
-                                Is2D: false
-                                Radius: 0.2
-                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
         -   Folder: null
             Entity:
                 Id: 88b61bbb-5855-43b2-959d-b5393a6bfe7f
@@ -265,34 +233,30 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
-                    0f5a078e7c288bdabbfd0c78f0c7f52a: !RigidbodyComponent
-                        Id: 06ed6375-b5de-40e6-88e8-16ba15e8f474
-                        CollisionGroup: CustomFilter10
-                        CanCollideWith: CharacterFilter
-                        CanSleep: false
-                        Restitution: 0.0
-                        Friction: 0.5
-                        RollingFriction: 0.0
-                        CcdMotionThreshold: 0.0
-                        CcdSweptSphereRadius: 0.0
-                        IsTrigger: true
-                        IsKinematic: true
-                        Mass: 1.0
-                        LinearDamping: 0.0
-                        AngularDamping: 0.0
-                        OverrideGravity: false
-                        Gravity: {X: 0.0, Y: 0.0, Z: 0.0}
-                        NodeName: null
-                        ColliderShapes:
-                            a75542f5626ada7100185d195096639f: !BoxColliderShapeDesc
-                                Is2D: false
-                                Size: {X: 24.0, Y: 3.0, Z: 24.0}
-                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
-                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                     2eac96e8c90a836d8754e3f24fa1a99e: !Gameplay.SceneStreaming,TopDownRPG.Game
                         Id: 0d6efc2a-7d05-4295-aa27-1438d51972c0
                         Url: 465718fa-96e7-4d3b-897d-8e7075b1a9ae:WesternChunk
-                        Trigger: !RigidbodyComponent ref!! 06ed6375-b5de-40e6-88e8-16ba15e8f474
+                    c4c67aaba439c095aa9f39056218a7af: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
+                        Id: b0e25683-6cc8-4a77-9907-da6fed6c771c
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                cf2efbf481f89106a719a2c394d2ece4: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 24.0, Y: 3.0, Z: 24.0}
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        CollisionGroup: {}
+                        ContactEventHandler: !Gameplay.SceneStreaming,TopDownRPG.Game ref!! 0d6efc2a-7d05-4295-aa27-1438d51972c0
+                        Kinematic: true
+                        Gravity: false
+                        ContinuousDetectionMode: Discrete
+                        InterpolationMode: None
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
         -   Folder: GlobalLights
             Entity:
                 Id: 9112d7e8-fdb1-477e-acd6-58dd61783773
@@ -322,8 +286,7 @@ Hierarchy:
                         Position: {X: 0.0, Y: 4.7683716E-07, Z: 0.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Children:
-                            651acbbf06fe12468058e1f473b74a32: ref!! e00f225e-3597-432a-bc45-67f143a89706
+                        Children: {}
                     0fa4902c57c2de428808e383912863ea: !ModelComponent
                         Id: 4ab656cb-fceb-42ac-b714-b2df6cc2a11c
                         Model: f68ea240-695a-4de5-9884-60d77544fcd6:/mannequinModel/Models/mannequinModel
@@ -350,34 +313,30 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
-                    0f5a078e7c288bdabbfd0c78f0c7f52a: !RigidbodyComponent
-                        Id: 34034a61-5c72-4401-8c28-f112ab89f36b
-                        CollisionGroup: CustomFilter10
-                        CanCollideWith: CharacterFilter
-                        CanSleep: false
-                        Restitution: 0.0
-                        Friction: 0.5
-                        RollingFriction: 0.0
-                        CcdMotionThreshold: 0.0
-                        CcdSweptSphereRadius: 0.0
-                        IsTrigger: true
-                        IsKinematic: true
-                        Mass: 1.0
-                        LinearDamping: 0.0
-                        AngularDamping: 0.0
-                        OverrideGravity: false
-                        Gravity: {X: 0.0, Y: 0.0, Z: 0.0}
-                        NodeName: null
-                        ColliderShapes:
-                            a75542f5626ada7100185d195096639f: !BoxColliderShapeDesc
-                                Is2D: false
-                                Size: {X: 24.0, Y: 3.0, Z: 24.0}
-                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
-                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                     2eac96e8c90a836d8754e3f24fa1a99e: !Gameplay.SceneStreaming,TopDownRPG.Game
                         Id: 1f7da7c0-2b66-4b6b-b5c2-924baea7652c
                         Url: cd7db7bc-2d8e-45be-a6d9-4b7e9008e949:NorthernChunk
-                        Trigger: !RigidbodyComponent ref!! 34034a61-5c72-4401-8c28-f112ab89f36b
+                    21ecfc1996f0001780dbc5871710a5a1: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
+                        Id: 3a978bee-02ff-40d7-9ae0-bd9d587371fb
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                cf2efbf481f89106a719a2c394d2ece4: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 24.0, Y: 3.0, Z: 24.0}
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        CollisionGroup: {}
+                        ContactEventHandler: !Gameplay.SceneStreaming,TopDownRPG.Game ref!! 1f7da7c0-2b66-4b6b-b5c2-924baea7652c
+                        Kinematic: true
+                        Gravity: false
+                        ContinuousDetectionMode: Discrete
+                        InterpolationMode: None
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
         -   Entity:
                 Id: c3648c46-3fef-42fd-a935-6c2663254381
                 Name: CentralChunkLoading
@@ -388,34 +347,30 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
-                    0f5a078e7c288bdabbfd0c78f0c7f52a: !RigidbodyComponent
-                        Id: 78b1ff69-cfed-4a09-8c1b-eb12cbf817b1
-                        CollisionGroup: CustomFilter10
-                        CanCollideWith: CharacterFilter
-                        CanSleep: false
-                        Restitution: 0.0
-                        Friction: 0.5
-                        RollingFriction: 0.0
-                        CcdMotionThreshold: 0.0
-                        CcdSweptSphereRadius: 0.0
-                        IsTrigger: true
-                        IsKinematic: true
-                        Mass: 1.0
-                        LinearDamping: 0.0
-                        AngularDamping: 0.0
-                        OverrideGravity: false
-                        Gravity: {X: 0.0, Y: 0.0, Z: 0.0}
-                        NodeName: null
-                        ColliderShapes:
-                            a75542f5626ada7100185d195096639f: !BoxColliderShapeDesc
-                                Is2D: false
-                                Size: {X: 24.0, Y: 3.0, Z: 24.0}
-                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
-                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                     2eac96e8c90a836d8754e3f24fa1a99e: !Gameplay.SceneStreaming,TopDownRPG.Game
                         Id: 399f44ea-00ce-44fc-80ff-474e65ec1c9b
                         Url: 805ec36b-feab-40fb-93cd-8f5083937659:CentralChunk
-                        Trigger: !RigidbodyComponent ref!! 78b1ff69-cfed-4a09-8c1b-eb12cbf817b1
+                    42b211f61982f579ba3fcb5e86d823df: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
+                        Id: 47be221f-42ea-4045-b220-8f93d260ef01
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                cf2efbf481f89106a719a2c394d2ece4: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 24.0, Y: 3.0, Z: 24.0}
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        CollisionGroup: {}
+                        ContactEventHandler: !Gameplay.SceneStreaming,TopDownRPG.Game ref!! 399f44ea-00ce-44fc-80ff-474e65ec1c9b
+                        Kinematic: true
+                        Gravity: false
+                        ContinuousDetectionMode: Discrete
+                        InterpolationMode: None
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
         -   Entity:
                 Id: f7e977f3-a569-4ae2-a4e8-89afaf7e0817
                 Name: Camera
