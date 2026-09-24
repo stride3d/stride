@@ -5,7 +5,6 @@ using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Events;
 using Stride.Input;
-using Stride.Physics;
 using Stride.Rendering;
 using TopDownRPG.Core;
 
@@ -39,7 +38,7 @@ namespace TopDownRPG.Player
             if (Input.HasMouse)
             {
                 ClickResult clickResult;
-                Utils.ScreenPositionToWorldPositionRaycast(Input.MousePosition, Camera, this.GetSimulation(), out clickResult);
+                Utils.ScreenPositionToWorldPositionRaycast(Input.MousePosition, Camera, Entity.GetSimulation(), out clickResult);
 
                 var isMoving = (Input.IsMouseButtonDown(MouseButton.Left) && lastClickResult.Type == ClickType.Ground && clickResult.Type == ClickType.Ground);
 
@@ -82,7 +81,7 @@ namespace TopDownRPG.Player
             foreach (var pointerEvent in Input.PointerEvents.Where(x => x.EventType == PointerEventType.Pressed))
             {
                 ClickResult clickResult;
-                if (Utils.ScreenPositionToWorldPositionRaycast(pointerEvent.Position, Camera, this.GetSimulation(),
+                if (Utils.ScreenPositionToWorldPositionRaycast(pointerEvent.Position, Camera, Entity.GetSimulation(),
                     out clickResult))
                 {
                     lastClickResult = clickResult;

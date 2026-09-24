@@ -1,10 +1,10 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using Stride.Core.Mathematics;
+using Stride.BepuPhysics;
 using Stride.Engine;
 using Stride.Graphics;
 using Stride.Input;
-using Stride.Physics;
 
 namespace CSharpIntermediate.Code
 {
@@ -28,10 +28,12 @@ namespace CSharpIntermediate.Code
                 var nearPosition = viewport.Unproject(new Vector3(Input.AbsoluteMousePosition, 0.0f), camera.ProjectionMatrix, camera.ViewMatrix, Matrix.Identity);
                 var farPosition = viewport.Unproject(new Vector3(Input.AbsoluteMousePosition, 1.0f), camera.ProjectionMatrix, camera.ViewMatrix, Matrix.Identity);
 
-                var hitResult = this.GetSimulation().Raycast(nearPosition, farPosition);
+                var rayDirection = farPosition - nearPosition;
+                var rayDistance = rayDirection.Length();
+                rayDirection.Normalize();
 
                 // If there is a hitresult, clone the sphere and place it on that position
-                if (hitResult.Succeeded)
+                if (Entity.GetSimulation().RayCast(nearPosition, rayDirection, rayDistance, out var hitResult))
                 {
                     var sphereClone = sphereToClone.Clone();
                     sphereClone.Transform.Position = hitResult.Point;
