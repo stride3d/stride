@@ -404,7 +404,7 @@ namespace Stride.Shaders.Compiler
                     builder.AppendLine("***************************");
 
 
-                    if (bytecode.Reflection.ConstantBuffers.Count > 0)
+                    if (bytecode.Reflection.ConstantBuffers.Any())
                     {
                         builder.AppendLine("****  ConstantBuffers  ****");
                         builder.AppendLine("***************************");
