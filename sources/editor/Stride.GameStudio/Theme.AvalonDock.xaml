@@ -930,6 +930,7 @@
         <shell:WindowChrome
                 ResizeBorderThickness="10"
                 CaptionHeight="18"
+                CornerRadius="0"
                 GlassFrameThickness="0"
                 ShowSystemMenu="False"/>
       </Setter.Value>
