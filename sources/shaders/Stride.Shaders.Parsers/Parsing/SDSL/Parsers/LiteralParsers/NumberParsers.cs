@@ -46,7 +46,8 @@ public struct NumberParser : IParser<Literal>
         }
         else if (Tokens.Char('0', ref scanner, advance: true) && !Tokens.Digit(ref scanner, ..))
         {
-            parsed = new IntegerLiteral(new(32, false, true), 0, new(scanner.Memory, position..scanner.Position));
+            var zeroSuffix = suffix.Match(ref scanner, null!, out Suffix suf) ? suf : new(32, false, true);
+            parsed = new IntegerLiteral(zeroSuffix, 0, new(scanner.Memory, position..scanner.Position));
             return true;
         }
         else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
@@ -125,7 +126,10 @@ public struct NumberParser : IParser<Literal>
                 var v = Hex2int(scanner.Span[i]);
                 sum += (uint)v;
             }
-            parsed = new HexLiteral(sum, scanner[position..scanner.Position]);
+            if (new IntegerSuffixParser().Match(ref scanner, null!, out Suffix suffix))
+                parsed = new IntegerLiteral(suffix, (long)sum, scanner[position..scanner.Position]);
+            else
+                parsed = new HexLiteral(sum, scanner[position..scanner.Position]);
             return true;
         }
         else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
