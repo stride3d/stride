@@ -539,13 +539,13 @@
                       <ItemsControl.ItemTemplate>
                         <DataTemplate DataType="{x:Type vm:RecentProjectViewModel}">
                           <Border Classes="card" Margin="0 0 0 20">
-							              <Panel>
-															<Panel.ContextMenu>
-																<ContextMenu>
-																	<MenuItem Header="{x:Static l:Strings.ShowInExplorer}" Command="{Binding ExploreCommand}" />
-																	<MenuItem Header="{x:Static l:Strings.RemoveFromList}" Command="{Binding RemoveCommand}" />
-																</ContextMenu>
-															</Panel.ContextMenu>
+                            <Panel>
+                              <Panel.ContextMenu>
+                                <ContextMenu>
+                                  <MenuItem Header="{x:Static l:Strings.ShowInExplorer}" Command="{Binding ExploreCommand}" />
+                                  <MenuItem Header="{x:Static l:Strings.RemoveFromList}" Command="{Binding RemoveCommand}" />
+                                </ContextMenu>
+                              </Panel.ContextMenu>
                               <Button Command="{Binding OpenCommand}"
                                       IsEnabled="{Binding Launcher.StartStudioCommand.IsEnabled}"
                                       HorizontalAlignment="Stretch"
@@ -615,13 +615,13 @@
                                   </DockPanel>
                                 </DockPanel>
                               </Button>
-															<!-- Invisible panel to make the context menu work for disabled items -->
-															<Panel Background="#00ffffff"
-															       HorizontalAlignment="Stretch"
+                              <!-- Invisible panel to make the context menu work for disabled items -->
+                              <Panel Background="#00ffffff"
+                                     HorizontalAlignment="Stretch"
                                      VerticalAlignment="Stretch"
-																		 IsVisible="{Binding !OpenCommand.IsEnabled}">
-															</Panel>
-														</Panel>
+                                     IsVisible="{Binding !OpenCommand.IsEnabled}">
+                              </Panel>
+                            </Panel>
                           </Border>
                         </DataTemplate>
                       </ItemsControl.ItemTemplate>
