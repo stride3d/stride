@@ -1,6 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#pragma warning disable STRIDE2000 // TODO: Remove this suppression
+#pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -494,7 +494,7 @@ namespace Stride.Updater
             object nextObject;
 
             // pinned test (this will need to be on a stack somehow)
-            var currentPtr = UpdateEngineHelper.ObjectToPointer(currentObj);
+            var currentPtr = *(nint*)&currentObj;
 
             if (operations.Length == 0)
                 return;
@@ -520,11 +520,11 @@ namespace Stride.Updater
                         // Compute offset and push to stack
                         stack.Push(new UpdateStackEntry(
                             currentObj,
-                            (int)((byte*)currentPtr - (byte*)UpdateEngineHelper.ObjectToPointer(currentObj))));
+                            (int)((byte*)currentPtr - (byte*)*(nint*)&currentObj)));
 
                         // Get object
                         currentObj = nextObject;
-                        currentPtr = UpdateEngineHelper.ObjectToPointer(currentObj);
+                        currentPtr = *(nint*)&currentObj;
 
                         break;
                     }
@@ -533,7 +533,7 @@ namespace Stride.Updater
                         // Compute offset and push to stack
                         stack.Push(new UpdateStackEntry(
                             currentObj,
-                            (int)((byte*)currentPtr - (byte*)UpdateEngineHelper.ObjectToPointer(currentObj))));
+                            (int)((byte*)currentPtr - (byte*)*(nint*)&currentObj)));
 
                         currentObj = temporaryObjects[operation.DataOffset];
                         currentPtr = ((UpdatablePropertyBase)operation.Member).GetStructAndUnbox(currentPtr, currentObj);
@@ -553,11 +553,11 @@ namespace Stride.Updater
                         // Compute offset and push to stack
                         stack.Push(new UpdateStackEntry(
                             currentObj,
-                            (int)((byte*)currentPtr - (byte*)UpdateEngineHelper.ObjectToPointer(currentObj))));
+                            (int)((byte*)currentPtr - (byte*)*(nint*)&currentObj)));
 
                         // Get object
                         currentObj = nextObject;
-                        currentPtr = UpdateEngineHelper.ObjectToPointer(currentObj);
+                        currentPtr = *(nint*)&currentObj;
                         break;
                     }
                     case UpdateOperationType.EnterObjectCustom:
@@ -573,11 +573,11 @@ namespace Stride.Updater
                         // Compute offset and push to stack
                         stack.Push(new UpdateStackEntry(
                             currentObj,
-                            (int)((byte*)currentPtr - (byte*)UpdateEngineHelper.ObjectToPointer(currentObj))));
+                            (int)((byte*)currentPtr - (byte*)*(nint*)&currentObj)));
 
                         // Get object
                         currentObj = nextObject;
-                        currentPtr = UpdateEngineHelper.ObjectToPointer(currentObj);
+                        currentPtr = *(nint*)&currentObj;
                         break;
                     }
 
@@ -589,7 +589,7 @@ namespace Stride.Updater
                         // Restore currentObj and currentPtr from stack
                         var stackEntry = stack.Pop();
                         currentObj = stackEntry.Object;
-                        currentPtr = UpdateEngineHelper.ObjectToPointer(currentObj) + stackEntry.Offset;
+                        currentPtr = *(nint*)&currentObj + stackEntry.Offset;
 
                         // Use setter to set back struct
                         ((UpdatablePropertyBase)operation.Member).SetBlittable(currentPtr, oldPtr);
@@ -601,7 +601,7 @@ namespace Stride.Updater
                         // Restore currentObj and currentPtr from stack
                         var stackEntry = stack.Pop();
                         currentObj = stackEntry.Object;
-                        currentPtr = UpdateEngineHelper.ObjectToPointer(currentObj) + stackEntry.Offset;
+                        currentPtr = *(nint*)&currentObj + stackEntry.Offset;
                         break;
                     }
                     case UpdateOperationType.ConditionalSetObjectProperty:
