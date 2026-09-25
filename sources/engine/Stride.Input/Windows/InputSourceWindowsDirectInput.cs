@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 #if (STRIDE_UI_WINFORMS || STRIDE_UI_WPF)
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,16 +19,15 @@ namespace Stride.Input
     internal class InputSourceWindowsDirectInput : InputSourceBase
     {
         private readonly HashSet<Guid> devicesToRemove = new HashSet<Guid>();
-        private InputManager inputManager;
-        private DirectInput directInput;
-        private IEnumerable<string> xInputDevices;
-        private Regex xInputDeviceIdRegex;
+        private InputManager? inputManager;
+        private DirectInput? directInput;
+        private IEnumerable<string> xInputDevices = Enumerable.Empty<string>();
+        private readonly Regex xInputDeviceIdRegex = new Regex(@"VID_(\w+)?&PID_(\w+)?");
 
         public override void Initialize(InputManager inputManager)
         {
             this.inputManager = inputManager;
             directInput = new DirectInput();
-            xInputDeviceIdRegex = new Regex(@"VID_(\w+)?&PID_(\w+)?");
 
             Scan();
         }
@@ -45,7 +45,7 @@ namespace Stride.Input
             base.Dispose();
 
             // Dispose DirectInput
-            directInput.Dispose();
+            directInput?.Dispose();
         }
 
         public override void Update()
@@ -88,7 +88,7 @@ namespace Stride.Input
         private const uint RidiDeviceName = 0x20000007;
 
         [DllImport("user32.dll", SetLastError = true)]
-        private static extern uint GetRawInputDeviceList([Out] RawInputDeviceList[] rawInputDeviceList, ref uint numDevices, uint size);
+        private static extern uint GetRawInputDeviceList([Out] RawInputDeviceList[]? rawInputDeviceList, ref uint numDevices, uint size);
 
         [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode, EntryPoint = "GetRawInputDeviceInfoW")]
         private static extern uint GetRawInputDeviceInfo(IntPtr device, uint command, IntPtr data, ref uint dataCharCount);
@@ -136,6 +136,9 @@ namespace Stride.Input
         /// </summary>
         public override void Scan()
         {
+            if (directInput is null)
+                return;
+
             var connectedDevices = directInput.GetDevices(DeviceClass.GameControl, DeviceEnumerationFlags.AttachedOnly);
 
             xInputDevices = GetAllXInputDevices();
