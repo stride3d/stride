@@ -170,7 +170,22 @@ namespace Stride.Assets.Presentation.Preview
         {
             base.OnViewAttached();
 
-            RunOnGameThread(ApplyInitialScale);
+            // The game window is not resized to the preview area yet: fit to the area instead.
+            var viewSize = GetLaidOutViewSize();
+            RunOnGameThread(() => ApplyInitialScale(viewSize));
+        }
+
+        /// <summary>
+        /// Gets the preview area size in pixels, or null if it is not laid out yet.
+        /// </summary>
+        private Vector2? GetLaidOutViewSize()
+        {
+            var view = Builder?.GetStrideView();
+            if (view == null || view.ActualWidth <= 0 || view.ActualHeight <= 0)
+                return null;
+
+            var dpi = System.Windows.Media.VisualTreeHelper.GetDpi(view);
+            return new Vector2((int)(view.ActualWidth * dpi.DpiScaleX), (int)(view.ActualHeight * dpi.DpiScaleY));
         }
 
         private void RunOnGameThread(Action action)
@@ -220,7 +235,7 @@ namespace Stride.Assets.Presentation.Preview
             SpriteScale = Math.Min(WindowSize.X / SpriteSize.X, WindowSize.Y / SpriteSize.Y);
         }
 
-        private void ApplyInitialScale()
+        private void ApplyInitialScale(Vector2? viewSize)
         {
             SpriteOffsets = Vector2.Zero;
             if (SpriteSize == Vector2.Zero)
@@ -230,7 +245,8 @@ namespace Stride.Assets.Presentation.Preview
             }
 
             // Choose the best match between realsize (if it fits) or fit-on-screen
-            var screenScale = Math.Min(WindowSize.X / SpriteSize.X, WindowSize.Y / SpriteSize.Y);
+            var areaSize = viewSize ?? WindowSize;
+            var screenScale = Math.Min(areaSize.X / SpriteSize.X, areaSize.Y / SpriteSize.Y);
             SpriteScale = screenScale < 1 ? screenScale : 1;
         }
 
