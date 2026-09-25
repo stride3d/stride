@@ -1,43 +1,46 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System.Threading.Tasks;
+using System.Collections.Concurrent;
+using Stride.BepuPhysics;
+using Stride.BepuPhysics.Definitions.Contacts;
 using Stride.Engine;
-using Stride.Physics;
 using Stride.Rendering;
 
 namespace CSharpIntermediate.Code
 {
-    public class AsyncCollisionTriggerDemo : AsyncScript
+    public class AsyncCollisionTriggerDemo : StartupScript, IContactHandler
     {
         private Material yellowMaterial;
+        private StaticComponent staticCollider;
+        private readonly ConcurrentDictionary<ModelComponent, Material> originalMaterials = new();
 
-        public override async Task Execute()
+        bool IContactHandler.NoContactResponse => true;
+
+        public override void Start()
         {
             // Store the collider component
-            var staticCollider = Entity.Get<StaticColliderComponent>();
-  
+            staticCollider = Entity.Get<StaticComponent>();
+            staticCollider.ContactEventHandler = this;
+
             //Preload some materials
             yellowMaterial = Content.Load<Material>("Materials/Yellow");
+        }
 
-            while (Game.IsRunning)
+        void IContactHandler.OnStartedTouching<TManifold>(Contacts<TManifold> contacts)
+        {
+            var modelComponent = contacts.Other.Entity.Get<ModelComponent>();
+            if (modelComponent != null && originalMaterials.TryAdd(modelComponent, modelComponent.Materials[0]))
             {
-                // Wait for an entity to collide with the trigger
-                var collision = await staticCollider.NewCollision();
-                var ballCollider = staticCollider == collision.ColliderA ? collision.ColliderB : collision.ColliderA;
-
-                // Store current material
-                var modelComponent = ballCollider.Entity.Get<ModelComponent>();
-                var originalMaterial = modelComponent.Materials[0];
-
                 // Change the material on the entity
                 modelComponent.Materials[0] = yellowMaterial;
+            }
+        }
 
-                // Wait for the entity to exit the trigger
-                await staticCollider.CollisionEnded();
-
-                // Alternative
-                // await collision.Ended(); //This checks for the end of any collision on the actual collision object
-
+        void IContactHandler.OnStoppedTouching<TManifold>(Contacts<TManifold> contacts)
+        {
+            var modelComponent = contacts.Other.Entity.Get<ModelComponent>();
+            if (modelComponent != null && originalMaterials.TryRemove(modelComponent, out var originalMaterial))
+            {
                 // Change the material back to the original one
                 modelComponent.Materials[0] = originalMaterial;
             }
@@ -45,6 +48,10 @@ namespace CSharpIntermediate.Code
 
         public override void Cancel()
         {
+            foreach (var (modelComponent, originalMaterial) in originalMaterials)
+                modelComponent.Materials[0] = originalMaterial;
+
+            originalMaterials.Clear();
             Content.Unload(yellowMaterial);
         }
     }
