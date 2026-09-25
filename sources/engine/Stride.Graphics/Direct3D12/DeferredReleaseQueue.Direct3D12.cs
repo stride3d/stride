@@ -65,6 +65,14 @@ internal struct DeferredReleaseQueue
         {
             comPtr.Release();
         }
+        else if (resource is ComPtr<ID3D12PipelineState> pipelineState)
+        {
+            pipelineState.Release();
+        }
+        else if (resource is ComPtr<ID3D12RootSignature> rootSignature)
+        {
+            rootSignature.Release();
+        }
         else if (resource is GraphicsResourceLink resourceLink)
         {
             resourceLink.ReferenceCount--;

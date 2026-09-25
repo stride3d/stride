@@ -223,6 +223,62 @@ public static class CodeUpgrades
     }
 
     /// <summary>
+    /// Migrates a removed method that returned its receiver, so that the call can simply go:
+    /// <c>Buffer.New(...).RecreateWith(data)</c> → <c>Buffer.New(...)</c>. Matches the method
+    /// <paramref name="methodName"/> on <paramref name="declaringType"/> (its full metadata name) and
+    /// replaces each invocation by its receiver, preserving trivia. Also handles conditional access
+    /// (<c>x?.Foo(a)</c> → <c>x</c>). Other reference forms (method groups, cref) are left untouched.
+    /// </summary>
+    public static SymbolRewrite FluentCallRemove(string declaringType, string methodName)
+    {
+        ArgumentNullException.ThrowIfNull(declaringType);
+        ArgumentNullException.ThrowIfNull(methodName);
+        return new SymbolRewrite(
+            compilation => ResolveMembers(compilation, declaringType, methodName),
+            static (editor, referenceNode, symbol) =>
+            {
+                if (referenceNode.Parent is MemberAccessExpressionSyntax memberAccess && memberAccess.Name == referenceNode
+                    && memberAccess.Parent is InvocationExpressionSyntax invocation && invocation.Expression == memberAccess)
+                {
+                    editor.ReplaceNode(invocation, memberAccess.Expression.WithTriviaFrom(invocation));
+                }
+                else if (referenceNode.Parent is MemberBindingExpressionSyntax memberBinding && memberBinding.Name == referenceNode
+                    && memberBinding.Parent is InvocationExpressionSyntax conditionalInvocation
+                    && conditionalInvocation.Parent is ConditionalAccessExpressionSyntax conditionalAccess && conditionalAccess.WhenNotNull == conditionalInvocation)
+                {
+                    editor.ReplaceNode(conditionalAccess, conditionalAccess.Expression.WithTriviaFrom(conditionalAccess));
+                }
+            });
+    }
+
+    /// <summary>
+    /// Migrates a removed member that user code only assigned or subscribed to: the statements
+    /// <c>x.Reload = ...;</c>, <c>x.DeviceReset += ...;</c> and <c>x.DeviceReset -= ...;</c> are removed.
+    /// Matches the member <paramref name="memberName"/> on <paramref name="declaringType"/> (its full
+    /// metadata name). A read of the member is left untouched: the code around it needs manual porting,
+    /// and the compile error shows where.
+    /// </summary>
+    public static SymbolRewrite AssignmentRemove(string declaringType, string memberName)
+    {
+        ArgumentNullException.ThrowIfNull(declaringType);
+        ArgumentNullException.ThrowIfNull(memberName);
+        return new SymbolRewrite(
+            compilation => ResolveMembers(compilation, declaringType, memberName),
+            static (editor, referenceNode, symbol) =>
+            {
+                var target = referenceNode;
+                if (referenceNode.Parent is MemberAccessExpressionSyntax memberAccess && memberAccess.Name == referenceNode)
+                    target = memberAccess;
+
+                if (target.Parent is AssignmentExpressionSyntax assignment && assignment.Left == target
+                    && assignment.Parent is ExpressionStatementSyntax statement)
+                {
+                    editor.RemoveNode(statement, SyntaxRemoveOptions.KeepNoTrivia);
+                }
+            });
+    }
+
+    /// <summary>
     /// Finds the argument list the referenced member is called with, and yields the
     /// <see cref="NameColonSyntax"/> of each named argument in it. Reference forms without an argument
     /// list (method groups, <c>nameof</c>, cref) yield nothing.

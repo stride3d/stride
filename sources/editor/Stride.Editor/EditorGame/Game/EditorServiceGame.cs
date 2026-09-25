@@ -100,6 +100,14 @@ namespace Stride.Editor.EditorGame.Game
         public event EventHandler<ExceptionThrownEventArgs> ExceptionThrown;
 
         /// <summary>
+        /// Raised once by a game whose graphics device was lost. The loss is adapter-wide (every game and device of the
+        /// process goes with it) and is not recovered: the host restarts Game Studio.
+        /// </summary>
+        public static event EventHandler<GraphicsDeviceException> GraphicsDeviceLost;
+
+        private bool graphicsDeviceLost;
+
+        /// <summary>
         /// Calculates and returns the position of the mouse in the scene.
         /// </summary>
         /// <param name="mousePosition">The position of the mouse.</param>
@@ -179,6 +187,10 @@ namespace Stride.Editor.EditorGame.Game
             {
                 base.Update(gameTime);
             }
+            catch (GraphicsDeviceException ex)
+            {
+                OnGraphicsDeviceLost(ex);
+            }
             catch (Exception ex)
             {
                 if (!OnFault(ex))
@@ -199,7 +211,15 @@ namespace Stride.Editor.EditorGame.Game
                 return false;
             }
             isFirstDrawCall = false;
-            return base.BeginDraw();
+            try
+            {
+                return base.BeginDraw();
+            }
+            catch (GraphicsDeviceException ex)
+            {
+                OnGraphicsDeviceLost(ex);
+                return false;
+            }
         }
 
         /// <inheritdoc />
@@ -213,6 +233,10 @@ namespace Stride.Editor.EditorGame.Game
             {
                 base.Draw(gameTime);
             }
+            catch (GraphicsDeviceException ex)
+            {
+                OnGraphicsDeviceLost(ex);
+            }
             catch (Exception ex)
             {
                 if (!OnFault(ex))
@@ -223,6 +247,20 @@ namespace Stride.Editor.EditorGame.Game
                 // Caught exception, turning game into faulted state
                 Faulted = true;
             }
+        }
+
+        /// <summary>
+        /// Leaves the game loop: the device is gone for good, and every frame would fail the same way.
+        /// </summary>
+        private void OnGraphicsDeviceLost(GraphicsDeviceException exception)
+        {
+            if (graphicsDeviceLost)
+                return;
+            graphicsDeviceLost = true;
+
+            Faulted = true;
+            Exit();
+            GraphicsDeviceLost?.Invoke(this, exception);
         }
 
         /// <summary>

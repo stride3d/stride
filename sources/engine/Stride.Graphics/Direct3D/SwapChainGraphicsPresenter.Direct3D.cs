@@ -147,10 +147,6 @@ namespace Stride.Graphics
             backBuffer.InitializeFromImpl(nativeBackBuffer, Description.BackBufferFormat.IsSRgb);
             nativeBackBuffer.Release();
 
-            // Reload should get Back-Buffer from Swap-Chain as well
-            // TODO: Stale statement/comment?
-            //backBuffer.Reload = graphicsResource => ((Texture)graphicsResource).Recreate(swapChain.GetBackBuffer<SharpDX.Direct3D11.Texture>(0));
-
             //
             // Determines if the Graphics Device supports the flip model and tearing.
             //

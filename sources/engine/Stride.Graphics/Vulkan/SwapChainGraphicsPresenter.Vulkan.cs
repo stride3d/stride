@@ -115,9 +115,6 @@ namespace Stride.Graphics
 //                    Description.IsFullScreen = true;
 
 //                    OnRecreated();
-
-//                    // Recreate render target
-//                    backBuffer.OnRecreate();
 //                }
 //                else
 //                {
@@ -352,7 +349,7 @@ namespace Stride.Graphics
             if (swapChain == VkSwapchainKHR.Null)
                 return;
 
-            GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkDeviceWaitIdle(GraphicsDevice.NativeDevice));
+            GraphicsDevice.WaitIdle();
 
             backBuffer.OnDestroyed(true);
 

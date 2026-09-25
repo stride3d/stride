@@ -37,15 +37,6 @@ namespace Stride.Graphics
             CreateNativeDeviceChild();
         }
 
-        /// <inheritdoc/>
-        protected internal override bool OnRecreate()
-        {
-            base.OnRecreate();
-
-            CreateNativeDeviceChild();
-            return true;
-        }
-
         private void CreateNativeDeviceChild()
         {
             var nativeDescription = new SamplerDesc

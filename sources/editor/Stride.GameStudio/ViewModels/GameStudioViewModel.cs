@@ -18,6 +18,8 @@ using Stride.Core.Translation;
 using Stride.Assets.Effect;
 using Stride.Assets.Presentation.ViewModel;
 using Stride.Core.CodeEditorSupport;
+using Stride.Editor.EditorGame.Game;
+using Stride.Graphics;
 using Stride.GameStudio.Services;
 using Stride.GameStudio.Helpers;
 using Stride.Core.Presentation.ViewModels;
@@ -28,6 +30,7 @@ namespace Stride.GameStudio.ViewModels
     {
         private string restartSessionPath;
         private bool restartNewProject;
+        private bool graphicsDeviceLost;
         private readonly List<IDEInfo> availableIDEs;
 
         public GameStudioViewModel([NotNull] IViewModelServiceProvider serviceProvider, MostRecentlyUsedFileCollection mru)
@@ -40,6 +43,7 @@ namespace Stride.GameStudio.ViewModels
             OpenAboutPageCommand = new AnonymousCommand(serviceProvider, OpenAboutPage);
             OpenSessionCommand = new AnonymousTaskCommand<UFile>(serviceProvider, RestartAndOpenSession);
             ReloadSessionCommand = new AnonymousTaskCommand(serviceProvider, () => RestartAndOpenSession(Session.SessionFilePath));
+            EditorServiceGame.GraphicsDeviceLost += OnGraphicsDeviceLost;
         }
 
         public static GameStudioViewModel GameStudio => (GameStudioViewModel)Instance;
@@ -108,8 +112,29 @@ namespace Stride.GameStudio.ViewModels
         /// <inheritdoc/>
         public override void Destroy()
         {
+            EditorServiceGame.GraphicsDeviceLost -= OnGraphicsDeviceLost;
             Preview?.Destroy();
             base.Destroy();
+        }
+
+        /// <summary>
+        /// Every device of the process went with the adapter: the studio restarts on the same session, after the usual
+        /// save prompt. The open editors and the layout are kept, as for any restart.
+        /// </summary>
+        private void OnGraphicsDeviceLost(object sender, GraphicsDeviceException exception)
+        {
+            ServiceProvider.Get<IDispatcherService>().InvokeTask(async () =>
+            {
+                // One restart: every game reports the same loss
+                if (graphicsDeviceLost)
+                    return;
+                graphicsDeviceLost = true;
+
+                await ServiceProvider.Get<IDialogService>().MessageBoxAsync(
+                    Tr._p("Message", "The graphics device was lost ({0}). Game Studio needs to restart to use it again.").ToFormat(exception.Status),
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                await RestartAndOpenSession(Session.SessionFilePath);
+            }).Forget();
         }
 
         /// <summary>

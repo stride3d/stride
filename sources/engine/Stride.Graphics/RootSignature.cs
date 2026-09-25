@@ -43,11 +43,4 @@ public class RootSignature : GraphicsResourceBase
     {
         EffectDescriptorSetReflection = effectDescriptorSetReflection;
     }
-
-
-    /// <inheritdoc/>
-    protected internal override bool OnRecreate()
-    {
-        return true;
-    }
 }

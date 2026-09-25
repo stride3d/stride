@@ -44,10 +44,6 @@ namespace Stride.Graphics
         public event EventHandler<EventArgs> DeviceCreated { add { } remove { } }
         /// <inheritdoc/>
         public event EventHandler<EventArgs> DeviceDisposing { add { } remove { } }
-        /// <inheritdoc/>
-        public event EventHandler<EventArgs> DeviceReset { add { } remove { } }
-        /// <inheritdoc/>
-        public event EventHandler<EventArgs> DeviceResetting { add { } remove { } }
 
         /// <inheritdoc/>
         public GraphicsDevice GraphicsDevice { get; private set; }

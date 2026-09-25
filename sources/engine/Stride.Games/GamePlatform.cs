@@ -424,13 +424,17 @@ namespace Stride.Games
 
         public virtual GraphicsDevice CreateDevice(GraphicsDeviceInformation deviceInformation)
         {
+#if STRIDE_GRAPHICS_API_DIRECT3D11 && STRIDE_PLATFORM_UWP
+            var isWindowsMixedReality = game.Context is GameContextUWPCoreWindow context && context.IsWindowsMixedReality;
+            if (isWindowsMixedReality)
+                deviceInformation.DeviceCreationFlags |= DeviceCreationFlags.BgraSupport;
+#endif
             var graphicsDevice = GraphicsDevice.New(deviceInformation.Adapter, deviceInformation.DeviceCreationFlags, gameWindow.NativeWindow, deviceInformation.GraphicsProfile);
             graphicsDevice.ColorSpace = deviceInformation.PresentationParameters.ColorSpace;
 
 #if STRIDE_GRAPHICS_API_DIRECT3D11 && STRIDE_PLATFORM_UWP
-            if (game.Context is GameContextUWPCoreWindow context && context.IsWindowsMixedReality)
+            if (isWindowsMixedReality)
             {
-                graphicsDevice.Recreate(deviceInformation.Adapter, new[] { deviceInformation.GraphicsProfile }, deviceInformation.DeviceCreationFlags |= DeviceCreationFlags.BgraSupport, gameWindow.NativeWindow);
                 graphicsDevice.Presenter = new WindowsMixedRealityGraphicsPresenter(graphicsDevice, deviceInformation.PresentationParameters);
             }
             else
@@ -441,35 +445,15 @@ namespace Stride.Games
                     : new SwapChainGraphicsPresenter(graphicsDevice, deviceInformation.PresentationParameters);
             }
 
-            return graphicsDevice;
-        }
+            DeviceChanged(graphicsDevice, deviceInformation);
 
-        public virtual void RecreateDevice(GraphicsDevice currentDevice, GraphicsDeviceInformation deviceInformation)
-        {
-            currentDevice.ColorSpace = deviceInformation.PresentationParameters.ColorSpace;
-            currentDevice.Recreate(deviceInformation.Adapter ?? GraphicsAdapterFactory.DefaultAdapter, new[] { deviceInformation.GraphicsProfile }, deviceInformation.DeviceCreationFlags, gameWindow.NativeWindow);
+            return graphicsDevice;
         }
 
         public virtual void DeviceChanged(GraphicsDevice currentDevice, GraphicsDeviceInformation deviceInformation)
         {
             // Force to resize the gameWindow
             gameWindow.Resize(deviceInformation.PresentationParameters.BackBufferWidth, deviceInformation.PresentationParameters.BackBufferHeight);
-        }
-
-        public virtual GraphicsDevice ChangeOrCreateDevice(GraphicsDevice currentDevice, GraphicsDeviceInformation deviceInformation)
-        {
-            if (currentDevice == null)
-            {
-                currentDevice = CreateDevice(deviceInformation);
-            }
-            else
-            {
-                RecreateDevice(currentDevice, deviceInformation);
-            }
-
-            DeviceChanged(currentDevice, deviceInformation);
-
-            return currentDevice;
         }
 
         protected override void Destroy()

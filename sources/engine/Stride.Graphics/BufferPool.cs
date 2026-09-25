@@ -56,11 +56,17 @@ namespace Stride.Graphics
 
 #pragma warning disable 162 // Unreachable code detected
             if (UseBufferOffsets)
-                allocator.ReleaseReference(constantBuffer);
+                ReleaseBuffer();
 #pragma warning restore 162
             else
                 Marshal.FreeHGlobal(Data);
             Data = IntPtr.Zero;
+        }
+
+        private void ReleaseBuffer()
+        {
+            constantBuffer.Destroyed -= OnBufferDestroyed;
+            allocator.ReleaseReference(constantBuffer);
         }
 
         public void Map(CommandList commandList)
@@ -83,18 +89,19 @@ namespace Stride.Graphics
 #pragma warning disable 162
             if (UseBufferOffsets && mappedConstantBuffer.Resource != null)
             {
-                // The device tears its resources down before the allocator owning this pool, so at that
-                // point the buffer is already gone and its mapping went with it. Unmapping it anyway is a
-                // null dereference on Direct3D 12 and a crash on MoltenVK
-                if (mappedConstantBuffer.Resource.LifetimeState == GraphicsResourceLifetimeState.Active)
-                {
-                    using (new DefaultCommandListLock(commandList))
-                        commandList.UnmapSubResource(mappedConstantBuffer);
-                }
+                using (new DefaultCommandListLock(commandList))
+                    commandList.UnmapSubResource(mappedConstantBuffer);
 
                 mappedConstantBuffer = new MappedResource();
             }
 #pragma warning restore 162
+        }
+
+        // The mapping goes with the buffer's memory: once the buffer is destroyed there is nothing to unmap
+        // (and trying is a null dereference on Direct3D 12, a crash on MoltenVK)
+        private void OnBufferDestroyed(object sender, EventArgs e)
+        {
+            mappedConstantBuffer = new MappedResource();
         }
 
         public void Reset()
@@ -107,9 +114,10 @@ namespace Stride.Graphics
             {
                 // Release previous buffer
                 if (constantBuffer != null)
-                    allocator.ReleaseReference(constantBuffer);
+                    ReleaseBuffer();
 
                 constantBuffer = allocator.GetTemporaryBuffer(new BufferDescription(Size, BufferFlags.ConstantBuffer, GraphicsResourceUsage.Dynamic));
+                constantBuffer.Destroyed += OnBufferDestroyed;
             }
 #pragma warning restore 162
 

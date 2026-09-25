@@ -23,7 +23,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading;
 
 using Stride.Core;
 using Stride.Core.Diagnostics;
@@ -51,8 +50,6 @@ namespace Stride.Games
         ///   Default height for the Back-Buffer.
         /// </summary>
         public static readonly int DefaultBackBufferHeight = 720;
-
-        private static readonly Logger Log = GlobalLogger.GetLogger(nameof(GraphicsDeviceManager));
 
         private readonly object lockDeviceCreation = new();
 
@@ -123,15 +120,6 @@ namespace Stride.Games
         ///   Occurs when the Graphics Device is being disposed.
         /// </summary>
         public event EventHandler<EventArgs> DeviceDisposing;
-
-        /// <summary>
-        ///   Occurs when the Graphics Device is being reset.
-        /// </summary>
-        public event EventHandler<EventArgs> DeviceReset;
-        /// <summary>
-        ///   Occurs when the Graphics Device is being reset, but before it is actually reset.
-        /// </summary>
-        public event EventHandler<EventArgs> DeviceResetting;
 
         /// <summary>
         ///   Occurs when the Graphics Device is being initialized to give a chance to the application at
@@ -413,13 +401,12 @@ namespace Stride.Games
 
 
         /// <summary>
-        ///   Applies the changes in the graphics settings and changes or recreates the <see cref="GraphicsDevice"/>
-        ///   according to the new values.
+        ///   Applies the changes in the graphics settings by resizing the <see cref="GraphicsDevice"/>'s presenter.
         ///   <br/>
         ///   Does not have any effect if the <see cref="GraphicsDevice"/> is <see langword="null"/>.
         /// </summary>
-        /// <exception cref="InvalidOperationException">
-        ///   Thrown if the Graphics Device could not be created or reconfigured.
+        /// <exception cref="NotSupportedException">
+        ///   The new settings need another Graphics Device (for example another graphics profile): a device is never re-created.
         /// </exception>
         public void ApplyChanges()
         {
@@ -438,8 +425,7 @@ namespace Stride.Games
 
             beginDrawOk = false;
 
-            if (!CheckDeviceState())
-                return false;
+            CheckDeviceState();
 
             GraphicsDevice.Begin();
 
@@ -457,33 +443,14 @@ namespace Stride.Games
             return beginDrawOk = true;
 
             //
-            // Checks the current state of the Graphics Device and handles any necessary actions.
+            // A lost device (TDR, driver update, GPU removed) is not recovered: the game cannot bring every resource
+            // back, so the loss surfaces as an exception for the host to handle (Game Studio restarts its games).
             //
-            bool CheckDeviceState()
+            void CheckDeviceState()
             {
-                const int SLEEP_TIME_WHEN_UNAVAILABLE = 20; // milliseconds
-
-                switch (GraphicsDevice.GraphicsDeviceStatus)
-                {
-                    case GraphicsDeviceStatus.Removed:
-                        Thread.Sleep(SLEEP_TIME_WHEN_UNAVAILABLE);
-                        return false;
-
-                    case GraphicsDeviceStatus.Reset:
-                        Thread.Sleep(SLEEP_TIME_WHEN_UNAVAILABLE);
-                        try
-                        {
-                            ChangeOrCreateDevice(forceCreate: true);
-                        }
-                        catch (Exception e)
-                        {
-                            Log.Error("Re-creating the graphics device after a reset failed", e);
-                            return false;
-                        }
-                        break;
-                }
-
-                return true;
+                var status = GraphicsDevice.GraphicsDeviceStatus;
+                if (status != GraphicsDeviceStatus.Normal)
+                    throw new GraphicsDeviceException($"The graphics device was lost ({status}).", status);
             }
         }
 
@@ -505,9 +472,9 @@ namespace Stride.Games
                     {
                         GraphicsDevice.Presenter.Present();
                     }
-                    catch (GraphicsDeviceException ex) when (ex.Status is not GraphicsDeviceStatus.Removed and not GraphicsDeviceStatus.Reset)
+                    catch (GraphicsDeviceException ex) when (ex.Status is GraphicsDeviceStatus.Removed or GraphicsDeviceStatus.Reset)
                     {
-                        throw;
+                        // A loss during Present is reported by the next BeginDraw, from the device status
                     }
                     finally
                     {
@@ -600,10 +567,6 @@ namespace Stride.Games
                     GraphicsDevice.Presenter.Dispose();
                     GraphicsDevice.Presenter = null;
                 }
-
-                //GraphicsDevice.DeviceResetting -= GraphicsDevice_DeviceResetting;
-                //GraphicsDevice.DeviceReset -= GraphicsDevice_DeviceReset;
-                //GraphicsDevice.DeviceLost -= GraphicsDevice_DeviceLost;
 
                 GraphicsDevice.Dispose();
                 GraphicsDevice.Disposing -= GraphicsDevice_Disposing;
@@ -915,24 +878,6 @@ namespace Stride.Games
         }
 
         /// <summary>
-        ///   Method called when the Graphics Device is reset.
-        ///   Invokes the <see cref="DeviceReset"/> event.
-        /// </summary>
-        protected virtual void OnDeviceReset(object sender, EventArgs args)
-        {
-            DeviceReset?.Invoke(sender, args);
-        }
-
-        /// <summary>
-        ///   Method called when the Graphics Device is resetting, but before it is actually reset.
-        ///   Invokes the <see cref="DeviceResetting"/> event.
-        /// </summary>
-        protected virtual void OnDeviceResetting(object sender, EventArgs args)
-        {
-            DeviceResetting?.Invoke(sender, args);
-        }
-
-        /// <summary>
         ///   Method called when the Graphics Device is preparing to be created or reset, so the application can
         ///   examine or modify the device settings before the device is created or reset.
         ///   Invokes the <see cref="PreparingDeviceSettings"/> event.
@@ -1113,30 +1058,6 @@ namespace Stride.Games
         }
 
         /// <summary>
-        ///   Method called when the Graphics Device is being reset, but before it is actually reset.
-        /// </summary>
-        private void GraphicsDevice_DeviceResetting(object sender, EventArgs e)
-        {
-            // TODO: What to do?
-        }
-
-        /// <summary>
-        ///   Method called when the Graphics Device has been reset.
-        /// </summary>
-        private void GraphicsDevice_DeviceReset(object sender, EventArgs e)
-        {
-            // TODO: What to do?
-        }
-
-        /// <summary>
-        ///   Method called when the Graphics Device has been lost, meaning it is currently unavailable
-        /// </summary>
-        private void GraphicsDevice_DeviceLost(object sender, EventArgs e)
-        {
-            // TODO: What to do?
-        }
-
-        /// <summary>
         ///   Method called when the Graphics Device is being disposed.
         /// </summary>
         private void GraphicsDevice_Disposing(object sender, EventArgs e)
@@ -1146,15 +1067,18 @@ namespace Stride.Games
 
 
         /// <summary>
-        ///   Changes or creates the Graphics Device based on the current settings.
+        ///   Creates the Graphics Device, or resizes the existing one, based on the current settings.
         /// </summary>
         /// <param name="forceCreate">
-        ///   A value indicating whether the Graphics Device should be forcibly recreated.
-        ///   If <see langword="true"/>, a new Graphics Device will be created regardless of the current state.
-        ///   If <see langword="false"/>, the method will attempt to reset and reuse the existing device if possible.
+        ///   <see langword="true"/> to require a new Graphics Device: with an existing one the call fails,
+        ///   as a device is never re-created.
+        ///   <see langword="false"/> to resize the existing device if the settings allow it.
         /// </param>
         /// <exception cref="InvalidOperationException">
         ///   Thrown if the Graphics Device could not be created or is unexpectedly <see langword="null"/> after the operation.
+        /// </exception>
+        /// <exception cref="NotSupportedException">
+        ///   The existing Graphics Device cannot be resized to the new settings.
         /// </exception>
         private void ChangeOrCreateDevice(bool forceCreate)
         {
@@ -1209,42 +1133,28 @@ namespace Stride.Games
                     isFullScreen = graphicsDeviceInformation.PresentationParameters.IsFullScreen;
                     game.Window.BeginScreenDeviceChange(graphicsDeviceInformation.PresentationParameters.IsFullScreen);
                     isBeginScreenDeviceChange = true;
-                    bool needToCreateNewDevice = true;
 
-                    // If we are not forced to create a new device and this is already an existing GraphicsDevice
-                    // try to reset and resize it
-                    if (!forceCreate && GraphicsDevice is not null)
+                    // An existing device is resized, not re-created: its resources would not survive a re-creation
+                    if (GraphicsDevice is not null)
                     {
-                        if (CanResetDevice(graphicsDeviceInformation))
-                        {
-                            try
-                            {
-                                GraphicsDevice.ColorSpace = graphicsDeviceInformation.PresentationParameters.ColorSpace;
-                                var newWidth = graphicsDeviceInformation.PresentationParameters.BackBufferWidth;
-                                var newHeight = graphicsDeviceInformation.PresentationParameters.BackBufferHeight;
-                                var newFormat = graphicsDeviceInformation.PresentationParameters.BackBufferFormat;
-                                var newOutputIndex = graphicsDeviceInformation.PresentationParameters.PreferredFullScreenOutputIndex;
+                        if (forceCreate || !CanResetDevice(graphicsDeviceInformation))
+                            throw new NotSupportedException("The graphics device cannot be re-created with different settings: restart the game.");
 
-                                GraphicsDevice.Presenter.Description.PreferredFullScreenOutputIndex = newOutputIndex;
-                                GraphicsDevice.Presenter.Description.RefreshRate = graphicsDeviceInformation.PresentationParameters.RefreshRate;
+                        GraphicsDevice.ColorSpace = graphicsDeviceInformation.PresentationParameters.ColorSpace;
+                        var newWidth = graphicsDeviceInformation.PresentationParameters.BackBufferWidth;
+                        var newHeight = graphicsDeviceInformation.PresentationParameters.BackBufferHeight;
+                        var newFormat = graphicsDeviceInformation.PresentationParameters.BackBufferFormat;
+                        var newOutputIndex = graphicsDeviceInformation.PresentationParameters.PreferredFullScreenOutputIndex;
 
-                                GraphicsDevice.Presenter.Resize(newWidth, newHeight, newFormat);
+                        GraphicsDevice.Presenter.Description.PreferredFullScreenOutputIndex = newOutputIndex;
+                        GraphicsDevice.Presenter.Description.RefreshRate = graphicsDeviceInformation.PresentationParameters.RefreshRate;
 
-                                // Change full screen if needed
-                                GraphicsDevice.Presenter.IsFullScreen = graphicsDeviceInformation.PresentationParameters.IsFullScreen;
+                        GraphicsDevice.Presenter.Resize(newWidth, newHeight, newFormat);
 
-                                needToCreateNewDevice = false;
-                            }
-                            catch (Exception e)
-                            {
-                                // A full re-creation, with every resource destroyed and recreated, for a resize: worth knowing
-                                Log.Warning("Resizing the presenter failed, the graphics device is recreated", e);
-                            }
-                        }
+                        // Change full screen if needed
+                        GraphicsDevice.Presenter.IsFullScreen = graphicsDeviceInformation.PresentationParameters.IsFullScreen;
                     }
-
-                    // If we still need to create a device, then we need to create it
-                    if (needToCreateNewDevice)
+                    else
                     {
                         CreateDevice(graphicsDeviceInformation);
                     }
@@ -1286,30 +1196,13 @@ namespace Stride.Games
 
                 // this.ValidateGraphicsDeviceInformation(newInfo);
 
-                bool recreateDevice = GraphicsDevice is not null;
-
-                // Notify device is resetting (usually this should result in Graphics Resources being destroyed)
-                if (recreateDevice)
-                    OnDeviceResetting(this, EventArgs.Empty);
-
-                // Create (or recreate) the graphics device
-                GraphicsDevice = graphicsDeviceFactory.ChangeOrCreateDevice(GraphicsDevice, newInfo);
-
-                // Notify device is reset (usually this should result in Graphics Resources being recreated / reloaded)
-                if (recreateDevice)
-                    OnDeviceReset(this, EventArgs.Empty);
+                GraphicsDevice = graphicsDeviceFactory.CreateDevice(newInfo);
 
                 // Use the Shader profile returned by the GraphicsDeviceInformation otherwise use the one coming from the GameSettings
                 // TODO: Stale comment?
                 GraphicsDevice.ShaderProfile = ShaderProfile;
 
-                // TODO: HANDLE Device Resetting/Reset/Lost
-                //GraphicsDevice.DeviceResetting += GraphicsDevice_DeviceResetting;
-                //GraphicsDevice.DeviceReset += GraphicsDevice_DeviceReset;
-                //GraphicsDevice.DeviceLost += GraphicsDevice_DeviceLost;
-
-                if (!recreateDevice)
-                    GraphicsDevice.Disposing += GraphicsDevice_Disposing;
+                GraphicsDevice.Disposing += GraphicsDevice_Disposing;
 
                 OnDeviceCreated(this, EventArgs.Empty);
             }

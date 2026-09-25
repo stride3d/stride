@@ -31,6 +31,8 @@ namespace Stride.Graphics
         internal GraphicsProfile RequestedProfile;
 
         private bool simulateReset = false;
+        // Set by the first VK_ERROR_DEVICE_LOST: Vulkan has no query for it, a lost device only answers that to its calls
+        private bool deviceLost;
         private string rendererName;
 
         // The instance-level VK_EXT_debug_utils messenger doesn't know which device a validation
@@ -156,38 +158,7 @@ namespace Stride.Graphics
                     return GraphicsDeviceStatus.Reset;
                 }
 
-                //var result = NativeDevice.DeviceRemovedReason;
-                //if (result == SharpDX.DXGI.ResultCode.DeviceRemoved)
-                //{
-                //    return GraphicsDeviceStatus.Removed;
-                //}
-
-                //if (result == SharpDX.DXGI.ResultCode.DeviceReset)
-                //{
-                //    return GraphicsDeviceStatus.Reset;
-                //}
-
-                //if (result == SharpDX.DXGI.ResultCode.DeviceHung)
-                //{
-                //    return GraphicsDeviceStatus.Hung;
-                //}
-
-                //if (result == SharpDX.DXGI.ResultCode.DriverInternalError)
-                //{
-                //    return GraphicsDeviceStatus.InternalError;
-                //}
-
-                //if (result == SharpDX.DXGI.ResultCode.InvalidCall)
-                //{
-                //    return GraphicsDeviceStatus.InvalidCall;
-                //}
-
-                //if (result.Code < 0)
-                //{
-                //    return GraphicsDeviceStatus.Reset;
-                //}
-
-                return GraphicsDeviceStatus.Normal;
+                return deviceLost ? GraphicsDeviceStatus.Removed : GraphicsDeviceStatus.Normal;
             }
         }
 
@@ -362,8 +333,16 @@ namespace Stride.Graphics
 
         internal void CheckResult(VkResult vkResult, [CallerArgumentExpression("vkResult")] string call = null)
         {
-            if (vkResult != VkResult.Success)
-                throw new InvalidOperationException($"Vulkan call {call} returned {vkResult}");
+            if (vkResult == VkResult.Success)
+                return;
+
+            if (vkResult == VkResult.ErrorDeviceLost)
+            {
+                deviceLost = true;
+                throw new GraphicsDeviceException($"Vulkan call {call} returned {vkResult}", GraphicsDeviceStatus.Removed);
+            }
+
+            throw new InvalidOperationException($"Vulkan call {call} returned {vkResult}");
         }
 
         /// <summary>
@@ -399,12 +378,6 @@ namespace Stride.Graphics
         /// <param name="windowHandle">The window handle.</param>
         private unsafe partial void InitializePlatformDevice(GraphicsProfile[] graphicsProfiles, DeviceCreationFlags deviceCreationFlags, object windowHandle)
         {
-            if (nativeDevice != VkDevice.Null)
-            {
-                // Destroy previous device
-                ReleaseDevice();
-            }
-
             rendererName = Adapter.Description;
 
             NativeInstanceApi.vkGetPhysicalDeviceProperties(NativePhysicalDevice, out var physicalDeviceProperties);
@@ -786,7 +759,19 @@ namespace Stride.Graphics
         /// </summary>
         partial void WaitForGPUIdle()
         {
-            CheckResult(NativeDeviceApi.vkDeviceWaitIdle(nativeDevice));
+            WaitIdle();
+        }
+
+        /// <summary>
+        ///   Waits for the device to be idle. A lost device is idle too: its resources can be torn down.
+        /// </summary>
+        internal void WaitIdle()
+        {
+            var result = NativeDeviceApi.vkDeviceWaitIdle(nativeDevice);
+            if (result == VkResult.ErrorDeviceLost)
+                deviceLost = true;
+            else
+                CheckResult(result);
         }
 
         protected partial void DestroyPlatformDevice()
@@ -831,10 +816,6 @@ namespace Stride.Graphics
             NativeCopyCommandPools.Dispose();
             NativeCopyCommandPools = null;
             NativeDeviceApi.vkDestroyDevice(nativeDevice, null);
-        }
-
-        internal void OnDestroyed(bool immediately = false)
-        {
         }
 
         internal unsafe ulong ExecuteCommandListInternal(CompiledCommandList commandList)

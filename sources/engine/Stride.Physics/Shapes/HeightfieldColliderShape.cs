@@ -295,8 +295,8 @@ public class HeightfieldColliderShape : ColliderShape
 
         private MeshDraw CreateTileMeshDraw(GraphicsDevice device, VertexPositionNormalColor[] vertices, ushort[] indices)
         {
-            var vertexBuffer = Buffer.Vertex.New(device, vertices, GraphicsResourceUsage.Dynamic).RecreateWith(vertices);
-            var indexBuffer = Buffer.Index.New(device, indices).RecreateWith(indices);
+            var vertexBuffer = Buffer.Vertex.New(device, vertices, GraphicsResourceUsage.Dynamic);
+            var indexBuffer = Buffer.Index.New(device, indices);
 
             var meshDraw = new MeshDraw
             {

@@ -1696,16 +1696,9 @@ namespace Stride.Graphics
         }
 
         /// <inheritdoc/>
-        protected internal override bool OnRecreate()
-        {
-            Recreate();
-            return true;
-        }
-
-        /// <inheritdoc/>
         protected internal override void OnDestroyed(bool immediately = false)
         {
-            GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkDeviceWaitIdle(GraphicsDevice.NativeDevice));
+            GraphicsDevice.WaitIdle();
 
             if (descriptorPool != VkDescriptorPool.Null)
             {
