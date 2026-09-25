@@ -11,6 +11,7 @@
         xmlns:vm="clr-namespace:Stride.GameStudio.ViewModels"
         xmlns:xcad="https://github.com/Dirkster99/AvalonDock"
         xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+        xmlns:system="clr-namespace:System;assembly=mscorlib"
         xmlns:cmd="clr-namespace:Stride.Core.Presentation.Commands;assembly=Stride.Core.Presentation"
         xmlns:viewModels="clr-namespace:Stride.Core.Presentation.Quantum.ViewModels;assembly=Stride.Core.Presentation.Quantum"
         xmlns:viewModels1="clr-namespace:Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels;assembly=Stride.Core.Assets.Editor"
@@ -24,21 +25,43 @@
         <ResourceDictionary Source="/Stride.GameStudio;component/Theme.AvalonDock.xaml"/>
         <ResourceDictionary Source="/Stride.Core.Assets.Editor;component/View/CommonResources.xaml" />
       </ResourceDictionary.MergedDictionaries>
+      <!-- Pane titles: the dirty marker is shown only for asset editors. -->
+      <Style x:Key="AvalonDock_GameStudio_TabTextStyle" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource {x:Type TextBlock}}">
+        <Style.Triggers>
+          <DataTrigger Binding="{Binding LayoutItem.IsSelected, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type xcad:LayoutDocumentTabItem}}, Mode=OneWay}" Value="True">
+            <Setter Property="Foreground" Value="{StaticResource SelectedTextBrush}"/>
+          </DataTrigger>
+        </Style.Triggers>
+      </Style>
+      <DataTemplate x:Key="AvalonDock_GameStudio_NoDirtyMarker"/>
+      <DataTemplate x:Key="AvalonDock_GameStudio_DirtyMarker">
+        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Top" Text="*" TextAlignment="Center"
+                   Visibility="{Binding Asset.IsDirty, Converter={sd:VisibleOrCollapsed}, FallbackValue={sd:Collapsed}}"/>
+      </DataTemplate>
+      <DataTemplate x:Key="AvalonDock_GameStudio_TabDirtyMarker">
+        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Top" Text="*" TextAlignment="Center" Style="{StaticResource AvalonDock_GameStudio_TabTextStyle}"
+                   Visibility="{Binding Asset.IsDirty, Converter={sd:VisibleOrCollapsed}, FallbackValue={sd:Collapsed}}"/>
+      </DataTemplate>
+      <sd:DataTypeTemplateSelector x:Key="AvalonDock_GameStudio_DirtyMarkerSelector">
+        <sd:TemplateDefinition DataType="{x:Type sd:AssetEditorViewModel}" DataTemplate="{StaticResource AvalonDock_GameStudio_DirtyMarker}"/>
+        <sd:TemplateDefinition DataType="{x:Type system:Object}" DataTemplate="{StaticResource AvalonDock_GameStudio_NoDirtyMarker}"/>
+      </sd:DataTypeTemplateSelector>
+      <sd:DataTypeTemplateSelector x:Key="AvalonDock_GameStudio_TabDirtyMarkerSelector">
+        <sd:TemplateDefinition DataType="{x:Type sd:AssetEditorViewModel}" DataTemplate="{StaticResource AvalonDock_GameStudio_TabDirtyMarker}"/>
+        <sd:TemplateDefinition DataType="{x:Type system:Object}" DataTemplate="{StaticResource AvalonDock_GameStudio_NoDirtyMarker}"/>
+      </sd:DataTypeTemplateSelector>
+      <!-- Tab in the document pane: highlighted when selected. -->
+      <DataTemplate x:Key="AvalonDock_GameStudio_TabHeaderTemplate">
+        <DockPanel LastChildFill="False">
+          <TextBlock Margin="3 0" Text="{Binding Title}" TextTrimming="CharacterEllipsis" Style="{StaticResource AvalonDock_GameStudio_TabTextStyle}"/>
+          <ContentPresenter DockPanel.Dock="Left" Content="{Binding Content.DataContext}" ContentTemplateSelector="{StaticResource AvalonDock_GameStudio_TabDirtyMarkerSelector}"/>
+        </DockPanel>
+      </DataTemplate>
+      <!-- Title of a floating window or a tool pane. -->
       <DataTemplate x:Key="AvalonDock_GameStudio_TitleTemplate">
         <DockPanel LastChildFill="False">
-          <DockPanel.Resources>
-            <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource {x:Type TextBlock}}">
-              <Style.Triggers>
-                <DataTrigger Binding="{Binding LayoutItem.IsSelected, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type xcad:LayoutDocumentTabItem}}, Mode=OneWay}" Value="True">
-                  <Setter Property="Foreground" Value="{StaticResource SelectedTextBrush}"/>
-                </DataTrigger>
-              </Style.Triggers>
-            </Style>
-          </DockPanel.Resources>
           <TextBlock Margin="3 0" Text="{Binding Title}" TextTrimming="CharacterEllipsis"/>
-          <TextBlock DockPanel.Dock="Left" HorizontalAlignment="Center" VerticalAlignment="Top"
-                     Visibility="{Binding Path=Content.DataContext.Asset.IsDirty, Converter={sd:VisibleOrCollapsed}, FallbackValue={sd:Collapsed}}"
-                     Text="*" TextAlignment="Center"/>
+          <ContentPresenter DockPanel.Dock="Left" Content="{Binding Content.DataContext}" ContentTemplateSelector="{StaticResource AvalonDock_GameStudio_DirtyMarkerSelector}"/>
         </DockPanel>
       </DataTemplate>
 
@@ -447,7 +470,7 @@
       <!-- DOCKING ROW -->
       <xcad:DockingManager x:Name="Docking" Grid.Row="1" Visibility="{Binding Session, Converter={sd:Chained {sd:ObjectToBool}, {sd:VisibleOrCollapsed}}}"
                            AllowMixedOrientation="True"
-                           DocumentHeaderTemplate="{StaticResource AvalonDock_GameStudio_TitleTemplate}" DocumentTitleTemplate="{StaticResource AvalonDock_GameStudio_TitleTemplate}" AnchorableTitleTemplate="{StaticResource AvalonDock_GameStudio_TitleTemplate}">
+                           DocumentHeaderTemplate="{StaticResource AvalonDock_GameStudio_TabHeaderTemplate}" DocumentTitleTemplate="{StaticResource AvalonDock_GameStudio_TitleTemplate}" AnchorableTitleTemplate="{StaticResource AvalonDock_GameStudio_TitleTemplate}">
         <xcad:LayoutRoot>
           <xcad:LayoutPanel Orientation="Horizontal">
             <xcad:LayoutPanel Orientation="Vertical">
@@ -457,7 +480,7 @@
                   <xcad:LayoutAnchorable AutoHideMinWidth="300" ContentId="SolutionExplorer" Title="{Binding Source={sd:Localize Solution explorer, Context=View}}"
                                          gh:AvalonDockHelper.IsVisible="{Binding Panels.SessionExplorerPanelVisible, Mode=TwoWay,
                                          Source={x:Static vm:GameStudioViewModel.GameStudio}, FallbackValue={sd:True}}">
-                    <DockPanel>
+                    <DockPanel DataContext="{x:Static vm:GameStudioViewModel.GameStudio}">
                       <ToolBarTray DockPanel.Dock="Top">
                         <ToolBar>
                           <Button Command="{Binding Session.NewProjectCommand}"
@@ -591,7 +614,7 @@
                   <xcad:LayoutAnchorable AutoHideMinWidth="300" ContentId="AssetView" Title="{Binding Source={sd:Localize Asset view, Context=View}}"
                                            gh:AvalonDockHelper.IsVisible="{Binding Panels.AssetViewPanelVisible, Mode=TwoWay,
                                            Source={x:Static vm:GameStudioViewModel.GameStudio}, FallbackValue={sd:True}}">
-                    <sd:AssetViewUserControl AssetCollection="{Binding Session.ActiveAssetView}" AssetContextMenu="{StaticResource AssetContextMenu}"
+                    <sd:AssetViewUserControl DataContext="{x:Static vm:GameStudioViewModel.GameStudio}" AssetCollection="{Binding Session.ActiveAssetView}" AssetContextMenu="{StaticResource AssetContextMenu}"
                                            AssetDoubleClick="{Binding Session.EditSelectedContentCommand}">
                       <i:Interaction.Behaviors>
                         <sd:CommandBindingBehavior RoutedCommand="ApplicationCommands.Cut" Command="{Binding Session.ActiveAssetView.CutContentCommand, FallbackValue={x:Static cmd:DisabledCommand.Instance}, Mode=OneWay}"/>
@@ -602,7 +625,8 @@
                       </i:Interaction.Behaviors>
                     </sd:AssetViewUserControl>
                     <i:Interaction.Behaviors>
-                      <gl:LayoutAnchorableActivateOnLocationChangedBehavior Collection="{Binding Session.ActiveAssetView.SelectedLocations}" />
+                      <!-- LayoutAnchorable has no DataContext, so the source is explicit. -->
+                      <gl:LayoutAnchorableActivateOnLocationChangedBehavior Collection="{Binding Session.ActiveAssetView.SelectedLocations, Source={x:Static vm:GameStudioViewModel.GameStudio}}" />
                     </i:Interaction.Behaviors>
                   </xcad:LayoutAnchorable>
                 </xcad:LayoutDocumentPane>
@@ -612,7 +636,7 @@
                 <xcad:LayoutAnchorable AutoHideMinHeight="200" ContentId="References" Title="{Binding Source={sd:Localize References, Context=View}}"
                                        gh:AvalonDockHelper.IsVisible="{Binding Panels.ReferencesPanelVisible, Mode=TwoWay,
                                        Source={x:Static vm:GameStudioViewModel.GameStudio}, FallbackValue={sd:True}}">
-                  <DockPanel LastChildFill="True" x:Name="RefViewDockPanel">
+                  <DockPanel LastChildFill="True" x:Name="RefViewDockPanel" DataContext="{x:Static vm:GameStudioViewModel.GameStudio}">
                     <!-- stats -->
                     <Border DockPanel.Dock="Bottom" Padding="10,5">
                       <TextBlock Text="{Binding Session.References.TypeCountersAsText}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap">
@@ -641,13 +665,13 @@
                                        Title="{sd:Localize Asset error ({0}), Plural=Asset errors ({0}), Count={Binding Session.AssetLog.ErrorCount, Source={x:Static vm:GameStudioViewModel.GameStudio}}, IsStringFormat=True, Context=View}"
                                        gh:AvalonDockHelper.IsVisible="{Binding Panels.AssetLogPanelVisible, Mode=TwoWay,
                                        Source={x:Static vm:GameStudioViewModel.GameStudio}, FallbackValue={sd:True}}">
-                  <sd:GridLogViewer LogMessages="{Binding Session.AssetLog.FilteredMessages}" Session="{Binding Session}" ShowDebugMessages="False" ShowVerboseMessages="False" ShowInfoMessages="False"/>
+                  <sd:GridLogViewer DataContext="{x:Static vm:GameStudioViewModel.GameStudio}" LogMessages="{Binding Session.AssetLog.FilteredMessages}" Session="{Binding Session}" ShowDebugMessages="False" ShowVerboseMessages="False" ShowInfoMessages="False"/>
                 </xcad:LayoutAnchorable>
                 <!-- BUILD LOG -->
                 <xcad:LayoutAnchorable AutoHideMinHeight="200" ContentId="BuildLog" Title="{Binding Debugging.OutputTitle, Source={x:Static vm:GameStudioViewModel.GameStudio}}"
                                        gh:AvalonDockHelper.IsVisible="{Binding Panels.BuildLogPanelVisible, Mode=TwoWay,
                                        Source={x:Static vm:GameStudioViewModel.GameStudio}, FallbackValue={sd:True}}">
-                  <TabControl x:Name="LogTabControl">
+                  <TabControl x:Name="LogTabControl" DataContext="{x:Static vm:GameStudioViewModel.GameStudio}">
                     <TabItem DataContext="{Binding Debugging.BuildLog}">
                       <TabItem.Header>
                         <TextBlock FontWeight="{Binding HasNewMessages, Mode=OneWay, Converter={sd:BoolToParam},
@@ -707,7 +731,7 @@
                 <xcad:LayoutAnchorable AutoHideMinWidth="400" ContentId="PropertyGrid" Title="{Binding Source={sd:Localize Property grid, Context=View}}"
                                        gh:AvalonDockHelper.IsVisible="{Binding Panels.PropertyGridPanelVisible, Mode=TwoWay,
                                        Source={x:Static vm:GameStudioViewModel.GameStudio}, FallbackValue={sd:True}}">
-                  <Grid Background="{StaticResource ToolBarBackgroundBrush}">
+                  <Grid Background="{StaticResource ToolBarBackgroundBrush}" DataContext="{x:Static vm:GameStudioViewModel.GameStudio}">
                     <Grid.RowDefinitions>
                       <RowDefinition Height="Auto"/>
                       <RowDefinition Height="Auto"/>
@@ -933,7 +957,7 @@
                   <xcad:LayoutAnchorable AutoHideMinWidth="400" ContentId="AssetPreview" Title="{Binding Source={sd:Localize Asset preview, Context=View}}"
                                          gh:AvalonDockHelper.IsVisible="{Binding Panels.AssetPreviewPanelVisible, Mode=TwoWay,
                                          Source={x:Static vm:GameStudioViewModel.GameStudio}, FallbackValue={sd:True}}">
-                    <DockPanel LastChildFill="True">
+                    <DockPanel LastChildFill="True" DataContext="{x:Static vm:GameStudioViewModel.GameStudio}">
                       <ContentPresenter Content="{Binding Preview.PreviewObject}"/>
                     </DockPanel>
                   </xcad:LayoutAnchorable>
@@ -941,7 +965,7 @@
                   <xcad:LayoutAnchorable AutoHideMinWidth="400" ContentId="ActionHistory" Title="{Binding Source={sd:Localize Edit history, Context=View}}"
                                          gh:AvalonDockHelper.IsVisible="{Binding Panels.ActionHistoryPanelVisible, Mode=TwoWay,
                                          Source={x:Static vm:GameStudioViewModel.GameStudio}, FallbackValue={sd:True}}">
-                    <ListBox ItemsSource="{Binding Session.ActionHistory.Transactions}" HorizontalContentAlignment="Stretch">
+                    <ListBox DataContext="{x:Static vm:GameStudioViewModel.GameStudio}" ItemsSource="{Binding Session.ActionHistory.Transactions}" HorizontalContentAlignment="Stretch">
                       <ListBox.ItemContainerStyle>
                         <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
                           <Setter Property="HorizontalContentAlignment" Value="Stretch"/>

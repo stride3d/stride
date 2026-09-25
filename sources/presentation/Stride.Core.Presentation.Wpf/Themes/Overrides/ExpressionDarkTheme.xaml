@@ -29,6 +29,12 @@
   <Color x:Key="BlackColor">#FF000000</Color>
   <Color x:Key="WhiteColor">#FFFFFFFF</Color>
 
+  <!-- Brushes of the colors above, used by ThemeSelector.xaml so its styles can be frozen. -->
+  <SolidColorBrush x:Key="MainColorBrush" Color="{StaticResource MainColor}" />
+  <SolidColorBrush x:Key="TopGradientSelectBrush" Color="{StaticResource TopGradientSelectColor}" />
+  <SolidColorBrush x:Key="BlackBrush" Color="{StaticResource BlackColor}" />
+  <SolidColorBrush x:Key="WhiteBrush" Color="{StaticResource WhiteColor}" />
+
   <Color x:Key="LoadingAssetMessageFromColor">#FF00FF70</Color>
   <SolidColorBrush x:Key="LoadingAssetMessageFromBrush" Color="{StaticResource LoadingAssetMessageFromColor}" />
   <Color x:Key="LoadingAssetMessageToColor">White</Color>

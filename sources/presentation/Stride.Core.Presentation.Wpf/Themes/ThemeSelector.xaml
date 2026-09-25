@@ -57,11 +57,6 @@
 
   <Geometry x:Key="GeometryDelete">F1 M 25.3333,23.75L 50.6667,23.75C 51.5411,23.75 51.8541,27.3125 51.8541,27.3125L 24.1458,27.3125C 24.1458,27.3125 24.4589,23.75 25.3333,23.75 Z M 35.625,19.7917L 40.375,19.7917C 40.8122,19.7917 41.9583,20.9378 41.9583,21.375C 41.9583,21.8122 40.8122,22.9584 40.375,22.9584L 35.625,22.9584C 35.1878,22.9584 34.0416,21.8122 34.0416,21.375C 34.0416,20.9378 35.1878,19.7917 35.625,19.7917 Z M 27.7083,28.5L 48.2916,28.5C 49.1661,28.5 49.875,29.2089 49.875,30.0834L 48.2916,53.8334C 48.2916,54.7078 47.5828,55.4167 46.7083,55.4167L 29.2917,55.4167C 28.4172,55.4167 27.7083,54.7078 27.7083,53.8334L 26.125,30.0834C 26.125,29.2089 26.8339,28.5 27.7083,28.5 Z M 30.0833,31.6667L 30.4792,52.25L 33.25,52.25L 32.8542,31.6667L 30.0833,31.6667 Z M 36.4167,31.6667L 36.4167,52.25L 39.5833,52.25L 39.5833,31.6667L 36.4167,31.6667 Z M 43.1458,31.6667L 42.75,52.25L 45.5208,52.25L 45.9167,31.6667L 43.1458,31.6667 Z</Geometry>
 
-  <BitmapImage x:Key="ImageCloseWindow" UriSource="pack://application:,,,/Stride.Core.Presentation.Wpf;component/Resources/Images/close_window.png" />
-  <BitmapImage x:Key="ImageMaximizeWindow" UriSource="pack://application:,,,/Stride.Core.Presentation.Wpf;component/Resources/Images/maximize_window.png" />
-  <BitmapImage x:Key="ImageMinimizeWindow" UriSource="pack://application:,,,/Stride.Core.Presentation.Wpf;component/Resources/Images/minimize_window.png" />
-  <BitmapImage x:Key="ImageRestoreWindow" UriSource="pack://application:,,,/Stride.Core.Presentation.Wpf;component/Resources/Images/restore_window.png" />
-
   <BitmapImage x:Key="ImageErrorDialog" UriSource="pack://application:,,,/Stride.Core.Presentation.Wpf;component/Resources/Images/error-32.png" />
   <BitmapImage x:Key="ImageInformationDialog" UriSource="pack://application:,,,/Stride.Core.Presentation.Wpf;component/Resources/Images/info-32.png" />
   <BitmapImage x:Key="ImageQuestionDialog" UriSource="pack://application:,,,/Stride.Core.Presentation.Wpf;component/Resources/Images/question-32.png" />
@@ -138,7 +133,7 @@
     <Setter Property="SnapsToDevicePixels" Value="True"/>
     <Setter Property="WindowChrome.WindowChrome">
       <Setter.Value>
-        <WindowChrome CornerRadius="0" CaptionHeight="29"/>
+        <themes:UnfreezableWindowChrome CornerRadius="0" CaptionHeight="29"/>
       </Setter.Value>
     </Setter>
     <Setter Property="WindowStyle" Value="None"/>
@@ -184,7 +179,7 @@
               <Setter TargetName="RestoreButton" Property="Visibility" Value="Visible"/>
               <Setter Property="WindowChrome.WindowChrome">
                 <Setter.Value>
-                  <WindowChrome ResizeBorderThickness="0" CornerRadius="0" CaptionHeight="32"/>
+                  <themes:UnfreezableWindowChrome ResizeBorderThickness="0" CornerRadius="0" CaptionHeight="32"/>
                 </Setter.Value>
               </Setter>
             </Trigger>
@@ -1335,7 +1330,7 @@
       <Trigger Property="Selector.IsSelected" Value="True">
         <Setter Property="Foreground">
           <Setter.Value>
-            <SolidColorBrush Color="{DynamicResource BlackColor}" />
+            <DynamicResource ResourceKey="BlackBrush" />
           </Setter.Value>
         </Setter>
       </Trigger>
@@ -1956,6 +1951,7 @@
   </Style>
   
   <Color x:Key="TextBoxFocusBrush">#FF374C5C</Color>
+  <SolidColorBrush x:Key="TextBoxFocusBorderBrush" Color="{StaticResource TextBoxFocusBrush}" />
 
   <ControlTemplate x:Key="TextBoxTemplate" TargetType="{x:Type TextBox}">
     <ControlTemplate.Resources>
@@ -1991,7 +1987,7 @@
       <Border x:Name="HoverBorder" IsHitTestVisible="False" Opacity="0" BorderBrush="{DynamicResource HoverTextBorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="3" />
       <Border x:Name="FocusVisualElement" IsHitTestVisible="False" Opacity="0" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="3" >
         <Border.BorderBrush>
-          <SolidColorBrush Color="{DynamicResource TextBoxFocusBrush}"/>
+          <DynamicResource ResourceKey="TextBoxFocusBorderBrush" />
         </Border.BorderBrush>
       </Border>
     </Grid>
@@ -2323,8 +2319,8 @@
 
   <Style TargetType="{x:Type MenuItem}">
     <Setter Property="OverridesDefaultStyle" Value="True" />
-    <Setter Property="HorizontalContentAlignment" Value="{Binding HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}" />
-    <Setter Property="VerticalContentAlignment" Value="{Binding VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}" />
+    <Setter Property="HorizontalContentAlignment" Value="Left" />
+    <Setter Property="VerticalContentAlignment" Value="Top" />
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="MinHeight" Value="18" />
     <Setter Property="BorderThickness" Value="0.5" />
@@ -2514,7 +2510,7 @@
                 </TransformGroup>
               </Border.LayoutTransform>
               <Border.BorderBrush>
-                <SolidColorBrush Color="{DynamicResource BlackColor}"/>
+                <DynamicResource ResourceKey="BlackBrush" />
               </Border.BorderBrush>
             </Border>
           </Grid>
@@ -2734,7 +2730,7 @@
       <Trigger Property="Selector.IsSelected" Value="True">
         <Setter Property="Foreground" >
           <Setter.Value>
-            <SolidColorBrush Color="{DynamicResource BlackColor}"/>
+            <DynamicResource ResourceKey="BlackBrush" />
           </Setter.Value>
         </Setter>
       </Trigger>
@@ -2897,6 +2893,22 @@
       <Path HorizontalAlignment="Center" x:Name="Up_Arrow" VerticalAlignment="Center" Fill="{StaticResource GlyphHeaderBrush}"
                   Data="M 0 6 V 0 l 5 3 z" RenderTransformOrigin="0.5,0.5" Stretch="Uniform" StrokeThickness="0"/>
       <Path Visibility="Collapsed" HorizontalAlignment="Center" x:Name="Down_Arrow" VerticalAlignment="Center" Fill="{StaticResource GlyphHeaderBrush}"
+                  Data="M 0 0 H 6 L 3 6 Z" RenderTransformOrigin="0.5,0.5" Stretch="Uniform" StrokeThickness="0"/>
+    </Grid>
+    <ControlTemplate.Triggers>
+      <Trigger Property="IsChecked" Value="true">
+        <Setter Property="Visibility" Value="Collapsed" TargetName="Up_Arrow" />
+        <Setter Property="Visibility" Value="Visible" TargetName="Down_Arrow" />
+      </Trigger>
+    </ControlTemplate.Triggers>
+  </ControlTemplate>
+
+  <!-- Expander arrow outside a tree view (e.g. property grid) -->
+  <ControlTemplate x:Key="ExpanderToggleButton" TargetType="{x:Type ToggleButton}">
+    <Grid Background="Transparent">
+      <Path HorizontalAlignment="Center" x:Name="Up_Arrow" VerticalAlignment="Center" Fill="{StaticResource GlyphBrush}"
+                  Data="M 0 6 V 0 l 5 3 z" RenderTransformOrigin="0.5,0.5" Stretch="Uniform" StrokeThickness="0"/>
+      <Path Visibility="Collapsed" HorizontalAlignment="Center" x:Name="Down_Arrow" VerticalAlignment="Center" Fill="{StaticResource GlyphBrush}"
                   Data="M 0 0 H 6 L 3 6 Z" RenderTransformOrigin="0.5,0.5" Stretch="Uniform" StrokeThickness="0"/>
     </Grid>
     <ControlTemplate.Triggers>
@@ -3159,7 +3171,7 @@
       <Trigger Property="IsChecked" Value="True">
         <Setter Property="Foreground">
           <Setter.Value>
-            <SolidColorBrush Color="{DynamicResource BlackColor}" />
+            <DynamicResource ResourceKey="BlackBrush" />
           </Setter.Value>
         </Setter>
       </Trigger>
@@ -3197,11 +3209,11 @@
               </Border.OpacityMask>
               <Border BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="3">
                 <Border.BorderBrush>
-                  <SolidColorBrush Color="{DynamicResource MainColor}" />
+                  <DynamicResource ResourceKey="MainColorBrush" />
                 </Border.BorderBrush>
                 <Border BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="2">
                   <Border.BorderBrush>
-                    <SolidColorBrush Color="{DynamicResource MainColor}" />
+                    <DynamicResource ResourceKey="MainColorBrush" />
                   </Border.BorderBrush>
                 </Border>
               </Border>
@@ -3230,7 +3242,7 @@
     </Setter>
     <Setter Property="Foreground">
       <Setter.Value>
-        <SolidColorBrush Color="{DynamicResource WhiteColor}" />
+        <DynamicResource ResourceKey="WhiteBrush" />
       </Setter.Value>
     </Setter>
   </Style>
@@ -3371,7 +3383,7 @@
           <Border Padding="{TemplateBinding Padding}" Background="Transparent" Width="4">
             <Rectangle HorizontalAlignment="Center" Width="0.5">
               <Rectangle.Fill>
-                <SolidColorBrush Color="{DynamicResource WhiteColor}" />
+                <DynamicResource ResourceKey="WhiteBrush" />
               </Rectangle.Fill>
             </Rectangle>
           </Border>
@@ -3398,7 +3410,7 @@
 
               <Border BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}">
                 <Border.BorderBrush>
-                  <SolidColorBrush Color="{DynamicResource WhiteColor}"/>
+                  <DynamicResource ResourceKey="WhiteBrush" />
                 </Border.BorderBrush>
                 <ContentPresenter VerticalAlignment="{TemplateBinding VerticalContentAlignment}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" RecognizesAccessKey="True" Margin="2,2,2,2" />
               </Border>
@@ -3474,7 +3486,7 @@
       <Trigger Property="IsEnabled" Value="False">
         <Setter Property="Foreground">
           <Setter.Value>
-            <SolidColorBrush Color="{DynamicResource TopGradientSelectColor}" />
+            <DynamicResource ResourceKey="TopGradientSelectBrush" />
           </Setter.Value>
         </Setter>
       </Trigger>

@@ -99,10 +99,10 @@ namespace Stride.Assets.Presentation.Preview
                     SpriteOffsets += deltaPosition * WindowSize / SpriteScale;
 
                 if (Game.Input.MouseWheelDelta < 0)
-                    ZoomOut(Game.Input.MousePosition);
+                    ApplyZoomOut(Game.Input.MousePosition);
 
                 if (Game.Input.MouseWheelDelta > 0)
-                    ZoomIn(Game.Input.MousePosition);
+                    ApplyZoomIn(Game.Input.MousePosition);
                 
                 previousMousePosition = Game.Input.MousePosition;
             }
@@ -144,7 +144,66 @@ namespace Stride.Assets.Presentation.Preview
             // Intentionally does nothing
         }
 
+        // Called from the UI thread: the work runs on the game thread.
+
         public void ZoomIn(Vector2? centerPosition)
+        {
+            RunOnGameThread(() => ApplyZoomIn(centerPosition));
+        }
+
+        public void ZoomOut(Vector2? centerPosition)
+        {
+            RunOnGameThread(() => ApplyZoomOut(centerPosition));
+        }
+
+        public virtual void FitOnScreen()
+        {
+            RunOnGameThread(ApplyFitOnScreen);
+        }
+
+        public virtual void ScaleToRealSize()
+        {
+            RunOnGameThread(() => SpriteScale = 1);
+        }
+
+        public override void OnViewAttached()
+        {
+            base.OnViewAttached();
+
+            // The game window is not resized to the preview area yet: fit to the area instead.
+            var viewSize = GetLaidOutViewSize();
+            RunOnGameThread(() => ApplyInitialScale(viewSize));
+        }
+
+        /// <summary>
+        /// Gets the preview area size in pixels, or null if it is not laid out yet.
+        /// </summary>
+        private Vector2? GetLaidOutViewSize()
+        {
+            var view = Builder?.GetStrideView();
+            if (view == null || view.ActualWidth <= 0 || view.ActualHeight <= 0)
+                return null;
+
+            var dpi = System.Windows.Media.VisualTreeHelper.GetDpi(view);
+            return new Vector2((int)(view.ActualWidth * dpi.DpiScaleX), (int)(view.ActualHeight * dpi.DpiScaleY));
+        }
+
+        private void RunOnGameThread(Action action)
+        {
+            if (Game == null)
+                return;
+
+            Game.Script.AddTask(() =>
+            {
+                // The preview may have stopped in the meantime.
+                if (IsRunning)
+                    action();
+
+                return Task.CompletedTask;
+            });
+        }
+
+        private void ApplyZoomIn(Vector2? centerPosition)
         {
             var newValue = (float)Utils.ZoomFactors.FirstOrDefault(x => (float)x > SpriteScale);
             if (newValue < float.Epsilon)
@@ -153,7 +212,7 @@ namespace Stride.Assets.Presentation.Preview
             ChangeScale(newValue, centerPosition);
         }
 
-        public void ZoomOut(Vector2? centerPosition)
+        private void ApplyZoomOut(Vector2? centerPosition)
         {
             var newValue = (float)Utils.ZoomFactors.LastOrDefault(x => (float)x < SpriteScale);
             if (newValue < float.Epsilon)
@@ -162,7 +221,7 @@ namespace Stride.Assets.Presentation.Preview
             ChangeScale(newValue, centerPosition);
         }
 
-        public virtual void FitOnScreen()
+        private void ApplyFitOnScreen()
         {
             SpriteOffsets = Vector2.Zero;
 
@@ -176,15 +235,8 @@ namespace Stride.Assets.Presentation.Preview
             SpriteScale = Math.Min(WindowSize.X / SpriteSize.X, WindowSize.Y / SpriteSize.Y);
         }
 
-        public virtual void ScaleToRealSize()
+        private void ApplyInitialScale(Vector2? viewSize)
         {
-            SpriteScale = 1;
-        }
-
-        public override void OnViewAttached()
-        {
-            base.OnViewAttached();
-
             SpriteOffsets = Vector2.Zero;
             if (SpriteSize == Vector2.Zero)
             {
@@ -193,7 +245,8 @@ namespace Stride.Assets.Presentation.Preview
             }
 
             // Choose the best match between realsize (if it fits) or fit-on-screen
-            var screenScale = Math.Min(WindowSize.X / SpriteSize.X, WindowSize.Y / SpriteSize.Y);
+            var areaSize = viewSize ?? WindowSize;
+            var screenScale = Math.Min(areaSize.X / SpriteSize.X, areaSize.Y / SpriteSize.Y);
             SpriteScale = screenScale < 1 ? screenScale : 1;
         }
 
