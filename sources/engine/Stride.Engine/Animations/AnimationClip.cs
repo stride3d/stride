@@ -74,6 +74,7 @@ namespace Stride.Animations
                 CurveIndex = Curves.Count,
                 ElementType = curve.ElementType,
                 ElementSize = curve.ElementSize,
+                IsElementBlittable = curve.IsElementBlittable,
                 IsUserCustomProperty = isUserCustomProperty,
             });
             Curves.Add(curve);
@@ -143,6 +144,7 @@ namespace Stride.Animations
             public int CurveIndex;
             public Type ElementType;
             public int ElementSize;
+            public bool IsElementBlittable;
             public bool IsUserCustomProperty;
         }
     }
