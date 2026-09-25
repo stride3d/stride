@@ -279,14 +279,19 @@
                   <DataTrigger Binding="{Binding IsLoaded, Mode=OneWay}" Value="{sd:True}">
                     <Setter Property="Text" Value="{sd:Localize Unloading...}"/>
                   </DataTrigger>
-                  <EventTrigger RoutedEvent="TextBlock.Loaded">
-                    <BeginStoryboard>
-                      <Storyboard>
-                        <ColorAnimation From="{StaticResource LoadingAssetMessageFromColor}" To="{StaticResource LoadingAssetMessageToColor}"
-                                        Storyboard.TargetProperty="(TextBlock.Foreground).(SolidColorBrush.Color)" BeginTime="0:0:0.3" Duration="0:0:0.2" AutoReverse="True" RepeatBehavior="Forever"/>
-                      </Storyboard>
-                    </BeginStoryboard>
-                  </EventTrigger>
+                  <Trigger Property="IsVisible" Value="True">
+                    <Trigger.EnterActions>
+                      <BeginStoryboard x:Name="LoadingBlink">
+                        <Storyboard>
+                          <ColorAnimation From="{StaticResource LoadingAssetMessageFromColor}" To="{StaticResource LoadingAssetMessageToColor}"
+                                          Storyboard.TargetProperty="(TextBlock.Foreground).(SolidColorBrush.Color)" BeginTime="0:0:0.3" Duration="0:0:0.6" AutoReverse="True" RepeatBehavior="Forever"/>
+                        </Storyboard>
+                      </BeginStoryboard>
+                    </Trigger.EnterActions>
+                    <Trigger.ExitActions>
+                      <StopStoryboard BeginStoryboardName="LoadingBlink"/>
+                    </Trigger.ExitActions>
+                  </Trigger>
                 </Style.Triggers>
               </Style>
               <!-- Default button style -->
@@ -788,16 +793,25 @@
               <Separator Background="{StaticResource ToggleButtonNormalBackground}"/>
               <TextBlock Text="{sd:Localize Loading assets...}" Visibility="{Binding CompilingAssets, Converter={sd:VisibleOrCollapsed}}"
                          VerticalAlignment="Center" FontWeight="Bold" Foreground="{StaticResource LoadingAssetMessageFromBrush}">
-                <TextBlock.Triggers>
-                  <EventTrigger RoutedEvent="TextBlock.Loaded">
-                    <BeginStoryboard>
-                      <Storyboard>
-                        <ColorAnimation From="{StaticResource LoadingAssetMessageFromColor}" To="{StaticResource LoadingAssetMessageToColor}"
-                                        Storyboard.TargetProperty="(TextBlock.Foreground).(SolidColorBrush.Color)" BeginTime="0:0:0.3" Duration="0:0:0.2" AutoReverse="True" RepeatBehavior="Forever"/>
-                      </Storyboard>
-                    </BeginStoryboard>
-                  </EventTrigger>
-                </TextBlock.Triggers>
+                <TextBlock.Style>
+                  <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource {x:Type TextBlock}}">
+                    <Style.Triggers>
+                      <Trigger Property="IsVisible" Value="True">
+                        <Trigger.EnterActions>
+                          <BeginStoryboard x:Name="LoadingBlink">
+                            <Storyboard>
+                              <ColorAnimation From="{StaticResource LoadingAssetMessageFromColor}" To="{StaticResource LoadingAssetMessageToColor}"
+                                              Storyboard.TargetProperty="(TextBlock.Foreground).(SolidColorBrush.Color)" BeginTime="0:0:0.3" Duration="0:0:0.6" AutoReverse="True" RepeatBehavior="Forever"/>
+                            </Storyboard>
+                          </BeginStoryboard>
+                        </Trigger.EnterActions>
+                        <Trigger.ExitActions>
+                          <StopStoryboard BeginStoryboardName="LoadingBlink"/>
+                        </Trigger.ExitActions>
+                      </Trigger>
+                    </Style.Triggers>
+                  </Style>
+                </TextBlock.Style>
               </TextBlock>
             </WrapPanel>
           </DockPanel>
