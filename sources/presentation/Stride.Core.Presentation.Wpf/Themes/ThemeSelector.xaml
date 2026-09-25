@@ -2319,8 +2319,8 @@
 
   <Style TargetType="{x:Type MenuItem}">
     <Setter Property="OverridesDefaultStyle" Value="True" />
-    <Setter Property="HorizontalContentAlignment" Value="{Binding HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}" />
-    <Setter Property="VerticalContentAlignment" Value="{Binding VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}" />
+    <Setter Property="HorizontalContentAlignment" Value="Left" />
+    <Setter Property="VerticalContentAlignment" Value="Top" />
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="MinHeight" Value="18" />
     <Setter Property="BorderThickness" Value="0.5" />
@@ -2893,6 +2893,22 @@
       <Path HorizontalAlignment="Center" x:Name="Up_Arrow" VerticalAlignment="Center" Fill="{StaticResource GlyphHeaderBrush}"
                   Data="M 0 6 V 0 l 5 3 z" RenderTransformOrigin="0.5,0.5" Stretch="Uniform" StrokeThickness="0"/>
       <Path Visibility="Collapsed" HorizontalAlignment="Center" x:Name="Down_Arrow" VerticalAlignment="Center" Fill="{StaticResource GlyphHeaderBrush}"
+                  Data="M 0 0 H 6 L 3 6 Z" RenderTransformOrigin="0.5,0.5" Stretch="Uniform" StrokeThickness="0"/>
+    </Grid>
+    <ControlTemplate.Triggers>
+      <Trigger Property="IsChecked" Value="true">
+        <Setter Property="Visibility" Value="Collapsed" TargetName="Up_Arrow" />
+        <Setter Property="Visibility" Value="Visible" TargetName="Down_Arrow" />
+      </Trigger>
+    </ControlTemplate.Triggers>
+  </ControlTemplate>
+
+  <!-- Expander arrow outside a tree view (e.g. property grid) -->
+  <ControlTemplate x:Key="ExpanderToggleButton" TargetType="{x:Type ToggleButton}">
+    <Grid Background="Transparent">
+      <Path HorizontalAlignment="Center" x:Name="Up_Arrow" VerticalAlignment="Center" Fill="{StaticResource GlyphBrush}"
+                  Data="M 0 6 V 0 l 5 3 z" RenderTransformOrigin="0.5,0.5" Stretch="Uniform" StrokeThickness="0"/>
+      <Path Visibility="Collapsed" HorizontalAlignment="Center" x:Name="Down_Arrow" VerticalAlignment="Center" Fill="{StaticResource GlyphBrush}"
                   Data="M 0 0 H 6 L 3 6 Z" RenderTransformOrigin="0.5,0.5" Stretch="Uniform" StrokeThickness="0"/>
     </Grid>
     <ControlTemplate.Triggers>
