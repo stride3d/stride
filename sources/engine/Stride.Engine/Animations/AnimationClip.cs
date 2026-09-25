@@ -135,6 +135,24 @@ namespace Stride.Animations
             Frozen = true;
         }
 
+        internal bool IsChannelBlittable(in Channel channel)
+        {
+            if (channel.CurveIndex != -1)
+                return Curves[channel.CurveIndex].IsElementBlittable;
+
+            // Optimized channels are grouped by element type (see Optimize)
+            if (OptimizedAnimationDatas != null)
+            {
+                foreach (var optimizedData in OptimizedAnimationDatas)
+                {
+                    if (optimizedData.ElementType == channel.ElementType)
+                        return optimizedData.IsElementBlittable;
+                }
+            }
+
+            throw new InvalidOperationException($"Channel [{channel.PropertyName}] has no curve and no optimized data");
+        }
+
         [DataContract]
         public struct Channel
         {

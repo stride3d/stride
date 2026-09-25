@@ -41,6 +41,14 @@ namespace Stride.Animations
         /// </value>
         public abstract int ElementSize { get; }
 
+        /// <summary>
+        /// Gets a value indicating whether keyframe values are blittable.
+        /// </summary>
+        /// <value>
+        /// <see langword="true"/> if keyframe values are blittable; otherwise, <see langword="false"/>.
+        /// </value>
+        public abstract bool IsElementBlittable { get; }
+
         [DataMemberIgnore]
         public abstract IReadOnlyList<CompressedTimeSpan> Keys { get; }
 
@@ -97,6 +105,10 @@ namespace Stride.Animations
         /// <inheritdoc/>
         [DataMemberIgnore]
         public override int ElementSize => Unsafe.SizeOf<T>();
+
+        /// <inheritdoc/>
+        [DataMemberIgnore]
+        public override bool IsElementBlittable => !RuntimeHelpers.IsReferenceOrContainsReferences<T>();
 
         /// <inheritdoc/>
         [DataMemberIgnore]

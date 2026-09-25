@@ -74,7 +74,7 @@ namespace Stride.Animations
                         }
                         else
                         {
-                            blendType = BlittableHelper.IsBlittable(elementType) ? BlendType.Blit : BlendType.Object;
+                            blendType = clip.IsChannelBlittable(curve.Value) ? BlendType.Blit : BlendType.Object;
                         }
 
                         // Create channel structure
