@@ -315,6 +315,9 @@ public static class Program
         }
     }
 
+    // Exit code after a crash was reported; 1 is a startup refusal
+    private const int CrashExitCode = 2;
+
     private sealed record CrashReportArgs(int Location, Exception Exception, string[] Log, string ThreadName,
         int ThreadId, System.Collections.Generic.IReadOnlyList<Stride.CrashReport.StoredThread> Threads);
     private static void CrashReport(object data)
@@ -327,7 +330,7 @@ public static class Program
         CrashReportHelper.SendReport(args.Exception, args.Location, args.Log, args.ThreadName, args.ThreadId, args.Threads);
 
         //Make sure we stop now.. more exceptions might come but we just grab the first one
-        Environment.Exit(0);
+        Environment.Exit(CrashExitCode);
     }
 
     // Windows swaps a window that stops pumping messages for a "(Not responding)" ghost whose X offers to kill the

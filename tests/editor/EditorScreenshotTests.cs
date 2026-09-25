@@ -15,6 +15,7 @@ using Stride.Core.Assets;
 using Stride.Core.Assets.Templates;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
+using Stride.CrashReport;
 using Stride.GameStudio.AutoTesting;
 using Stride.Tests.ScreenshotComparator;
 using Xunit;
@@ -89,6 +90,10 @@ public class EditorScreenshotTests
         };
         foreach (var a in args) psi.ArgumentList.Add(a);
 
+        // The runner inherits STRIDE_CRASH_DIR, so its Game Studio crash reports land in this store
+        var crashStore = new CrashStore("GameStudio");
+        var crashRunsBefore = crashStore.ListRuns().Select(r => r.Directory).ToHashSet(StringComparer.OrdinalIgnoreCase);
+
         using var proc = Process.Start(psi)!;
         proc.OutputDataReceived += (_, e) => { if (e.Data != null) output.WriteLine($"[stdout] {e.Data}"); };
         proc.ErrorDataReceived += (_, e) => { if (e.Data != null) output.WriteLine($"[stderr] {e.Data}"); };
@@ -100,15 +105,13 @@ public class EditorScreenshotTests
             try { proc.Kill(); } catch { }
             throw new TimeoutException($"{fixtureName} timed out after {timeoutMin}min");
         }
-        Assert.True(proc.ExitCode == 0, $"{fixtureName} exit={proc.ExitCode}");
-
         // Snapshot per-fixture: the runner writes to <test-dll-dir>/ui-test-out-dpi100/{screenshots,
         // log.txt, done.json}; relocate that into <worktree>/ui-test-out-dpi100/<fixture>/ so the
-        // comparator can find <newDir>/<sample>/screenshots/<frame>.png.
-        if (!Directory.Exists(runnerOut))
-            throw new DirectoryNotFoundException($"Runner output dir not found: {runnerOut}");
+        // comparator can find <newDir>/<sample>/screenshots/<frame>.png. Done before the exit checks
+        // so a failed fixture still has its logs.
         Directory.CreateDirectory(fixtureCapture);
-        CopyAll(runnerOut, fixtureCapture);
+        if (Directory.Exists(runnerOut))
+            CopyAll(runnerOut, fixtureCapture);
 
         // Diag logs live in $TEMP and are overwritten by each fixture's runner — copy them into
         // the per-fixture capture dir before the next [Theory] entry runs.
@@ -121,6 +124,20 @@ public class EditorScreenshotTests
                 try { File.Copy(src, Path.Combine(fixtureCapture, diag), overwrite: true); } catch { }
             }
         }
+
+        // Checked before the exit code: the crash report names the exception
+        var crashes = crashStore.ListRuns()
+            .Where(r => !crashRunsBefore.Contains(r.Directory) && r.Directory.EndsWith($"-{proc.Id}", StringComparison.Ordinal))
+            .SelectMany(r => r.Read())
+            .Select(c => string.Join(" <- ", c.Exceptions.Select(e => $"{e.Type}: {e.Message}")))
+            .ToList();
+        foreach (var crash in crashes)
+            output.WriteLine($"[crash] {crash}");
+        Assert.True(crashes.Count == 0, $"{fixtureName} crashed: {string.Join(" | ", crashes)}");
+
+        Assert.True(proc.ExitCode == 0, $"{fixtureName} exit={proc.ExitCode}");
+        if (!Directory.Exists(runnerOut))
+            throw new DirectoryNotFoundException($"Runner output dir not found: {runnerOut}");
 
         // Compare against baselines. Filter to this fixture so the same captureRoot can host
         // multiple fixtures' captures across test invocations.
@@ -142,9 +159,9 @@ public class EditorScreenshotTests
         if (deferred.Count > 0)
             WriteDeferredManifest(fixtureCapture, fixtureName, deferred);
 
-        // Hard regressions (LPIPS drift with no vision tiebreak, capture/compare errors, missing
-        // baseline) fail regardless of any deferral.
-        var failures = results.Where(r => r.Status is "drift" or "error" or "new").ToList();
+        // Hard regressions (LPIPS drift with no vision tiebreak, capture/compare errors, a capture with
+        // no baseline or a baseline with no capture) fail regardless of any deferral.
+        var failures = results.Where(r => r.Status is "drift" or "error" or "new" or "missing").ToList();
         Assert.Empty(failures);
 
         // Deferred-only (no hard failures): the verdict belongs to the trusted vision gate. xunit's

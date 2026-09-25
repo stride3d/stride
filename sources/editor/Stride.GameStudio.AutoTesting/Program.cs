@@ -77,8 +77,7 @@ internal static class Program
             return 2;
         }
 
-        // GS's CrashReport ends with Environment.Exit(0) which masks the underlying error;
-        // capture every exception (including the swallowed ones) to a diag log.
+        // GS's crash handler only exits with a code; capture every exception (including the swallowed ones) to a diag log.
         var diagPath = Path.Combine(Path.GetTempPath(), "autotest-diag.log");
         try { File.Delete(diagPath); } catch { }
         // GameStudio's own checkpoints (it appends): start this fixture's copy clean too.
