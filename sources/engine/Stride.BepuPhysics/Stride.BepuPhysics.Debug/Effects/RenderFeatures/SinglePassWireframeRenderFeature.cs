@@ -7,6 +7,7 @@ using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.Rendering;
+using Stride.Rendering.Shadows;
 
 namespace Stride.BepuPhysics.Debug.Effects.RenderFeatures;
 
@@ -70,7 +71,7 @@ public class SinglePassWireframeRenderFeature : RootRenderFeature
 
     public override void Draw(RenderDrawContext context, RenderView renderView, RenderViewStage renderViewStage)
     {
-        if (!Enable) return;
+        if (!Enable || renderView is ShadowMapRenderView) return;
 
         _shader.UpdateEffect(context.GraphicsDevice);
         _shader.Parameters.Set(TransformationKeys.WorldScale, new Vector3(1.002f));
