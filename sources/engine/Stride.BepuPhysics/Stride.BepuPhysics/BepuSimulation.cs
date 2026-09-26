@@ -13,6 +13,7 @@ using Stride.BepuPhysics.Definitions.Contacts;
 using Stride.BepuPhysics.Definitions.Raycast;
 using Stride.BepuPhysics.Definitions.SimTests;
 using Stride.BepuPhysics.Definitions;
+using Stride.BepuPhysics.Definitions.Colliders.Voxels;
 using Stride.Core.Mathematics;
 using Stride.Core.Threading;
 using Stride.Core;
@@ -310,6 +311,8 @@ public sealed class BepuSimulation : IDisposable
         var solveDescription = new SolveDescription(8, 1);
 
         Simulation = Simulation.Create(BufferPool, strideNarrowPhaseCallbacks, stridePoseIntegratorCallbacks, solveDescription);
+
+        VoxelCollisionTasks.Track(Simulation);
 
         CollidableMaterials.Initialize(Simulation);
         ContactEvents.Initialize();
