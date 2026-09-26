@@ -5,7 +5,7 @@ namespace Stride.Rendering.Materials
 {
     class MaterialHairLightAttenuationFunctionNone : IMaterialHairLightAttenuationFunction
     {
-        float Compute(void)
+        override float Compute(void)
         {
             return(1.0);
         }

@@ -12,7 +12,7 @@ namespace Stride.Rendering.Materials
         
         // TODO: This does not result in the exact same kind of profiles as the skin profile. But it's close.
         // Improve it using the "Extending Separable Subsurface Scattering to Arbitrary Materials" paper.
-        float3 Compute(float dd)
+        override float3 Compute(float dd)
         {
             float3 sum = 0.0;
 
