@@ -45,15 +45,6 @@ public unsafe partial class SamplerState
     }
 
     /// <inheritdoc/>
-    protected internal override bool OnRecreate()
-    {
-        base.OnRecreate();
-
-        CreateNativeSamplerState();
-        return true;
-    }
-
-    /// <inheritdoc/>
     protected internal override void OnDestroyed(bool immediately = false)
     {
         // As we set the Sampler State as the internal ID3D11DeviceChild,

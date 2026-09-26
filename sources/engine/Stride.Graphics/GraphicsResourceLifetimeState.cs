@@ -14,21 +14,8 @@ namespace Stride.Graphics
         Active = 0,
 
         /// <summary>
-        ///   The resource is in a reduced state (partially or completely destroyed) because application is in the background.
-        ///   Context should still be alive.
+        ///   The native resource has been released, by its own disposal or with the graphics device.
         /// </summary>
-        /// <remarks>
-        ///   This is useful for freeing dynamic resources such as Frame Buffers / Render Targets, that could be easily restored when application is resumed.
-        /// </remarks>
-        Paused = 1,
-
-        /// <summary>
-        ///   The resource has been destroyed due to the graphics device being destroyed.
-        ///   It will need to be recreated or reloaded when rendering resumes.
-        /// </summary>
-        Destroyed = 2,
-
-        // Not sure if this one will be useful yet (in case of async reloading?)
-        // Reloading = 3,
+        Destroyed = 1,
     }
 }

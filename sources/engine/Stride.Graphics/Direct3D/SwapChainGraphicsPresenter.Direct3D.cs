@@ -147,10 +147,6 @@ namespace Stride.Graphics
             backBuffer.InitializeFromImpl(nativeBackBuffer, Description.BackBufferFormat.IsSRgb);
             nativeBackBuffer.Release();
 
-            // Reload should get Back-Buffer from Swap-Chain as well
-            // TODO: Stale statement/comment?
-            //backBuffer.Reload = graphicsResource => ((Texture)graphicsResource).Recreate(swapChain.GetBackBuffer<SharpDX.Direct3D11.Texture>(0));
-
             //
             // Determines if the Graphics Device supports the flip model and tearing.
             //
@@ -377,6 +373,8 @@ namespace Stride.Graphics
                 var deviceStatus = GraphicsDevice.GraphicsDeviceStatus;
 
                 var exception = Marshal.GetExceptionForHR(result);
+                if (deviceStatus != GraphicsDeviceStatus.Normal)
+                    throw GraphicsDeviceException.FromLostDevice(GraphicsDevice, deviceStatus, exception);
                 throw new GraphicsDeviceException($"Unexpected error on Present (device status: {deviceStatus})", exception, deviceStatus);
             }
 

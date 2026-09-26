@@ -32,6 +32,7 @@ using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Presentation.Windows;
 using Stride.Core.Translation;
 using Stride.Core.Translation.Providers;
+using Stride.Editor;
 using Stride.Editor.Build;
 using Stride.Editor.Preview;
 using Stride.GameStudio.Helpers;
@@ -48,7 +49,7 @@ using MessageBoxResult = System.Windows.MessageBoxResult;
 
 namespace Stride.GameStudio;
 
-public static class Program
+public static partial class Program
 {
     private static App app;
     private static IntPtr windowHandle;
@@ -286,6 +287,14 @@ public static class Program
                 app.DispatcherUnhandledException += (sender, eventArgs) =>
                 {
                     eventArgs.Handled = true;
+                    if (TryRestartAfterRenderThreadFailure(eventArgs.Exception))
+                        return;
+                    // The games are gone and the studio restarts: a UI call into a dead game is not a crash
+                    if (GraphicsDeviceLoss.Occurred)
+                    {
+                        GlobalLogger.GetLogger("GameStudio").Warning("Exception ignored after the graphics device loss.", eventArgs.Exception);
+                        return;
+                    }
                     HandleException(eventArgs.Exception, 0);
                 };
 
@@ -334,7 +343,7 @@ public static class Program
     }
 
     // Windows swaps a window that stops pumping messages for a "(Not responding)" ghost whose X offers to kill the
-    // process. Off for the crash freeze only (see HandleException); process-wide and irreversible, so never earlier.
+    // process. Off for the crash freeze and the render thread failure only; process-wide and irreversible, so never earlier.
     [System.Runtime.InteropServices.DllImport("user32.dll")]
     private static extern void DisableProcessWindowsGhosting();
 

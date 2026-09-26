@@ -29,6 +29,9 @@ namespace Stride.Editor.Preview
     {
         public static bool DisablePreview = false;
 
+        // Set when the game loop has ended (a lost device, the exit): nothing can be posted to the game anymore
+        private volatile bool previewGameEnded;
+
         private readonly SessionViewModel session;
 
         private readonly AutoResetEvent initializationSignal = new AutoResetEvent(false);
@@ -143,13 +146,23 @@ namespace Stride.Editor.Preview
             // Wait for shaders to be loaded
             AssetBuilderService.WaitForShaders();
 
-            // TODO: For now we stop if there is an exception
-            // Ideally, we should try to recreate the game.
             if (!DisablePreview)
             {
                 PreviewGame.GraphicsDeviceManager.DeviceCreated += GraphicsDeviceManagerDeviceCreated;
-                PreviewGame.Run(context);
-                PreviewGame.Dispose();
+                try
+                {
+                    PreviewGame.Run(context);
+                }
+                catch (GraphicsDeviceException ex) when (ex.Status != GraphicsDeviceStatus.Normal)
+                {
+                    // The loss ends the run; every device of the process went with it, so the studio restarts
+                    GraphicsDeviceLoss.Report(PreviewGame, ex);
+                }
+                finally
+                {
+                    previewGameEnded = true;
+                    PreviewGame.Dispose();
+                }
             }
         }
 
@@ -170,7 +183,7 @@ namespace Stride.Editor.Preview
             {
                 var allAssets = AssetViewModel.ComputeRecursiveReferencerAssets(e.Assets);
                 allAssets.AddRange(e.Assets);
-                if (currentPreview != null && allAssets.Contains(currentPreview.AssetViewModel))
+                if (currentPreview != null && allAssets.Contains(currentPreview.AssetViewModel) && !previewGameEnded)
                 {
                     PreviewGame.Script.AddTask(UpdatePreviewAsset);
                 }
@@ -191,7 +204,8 @@ namespace Stride.Editor.Preview
             {
                 previewBuildQueue = asset;
             }
-            PreviewGame.Script.AddTask(ChangePreviewAsset);
+            if (!previewGameEnded)
+                PreviewGame.Script.AddTask(ChangePreviewAsset);
         }
 
         public AssetCompilerResult Compile(AssetItem asset)

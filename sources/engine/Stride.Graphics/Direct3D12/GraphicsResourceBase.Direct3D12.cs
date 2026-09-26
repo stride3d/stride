@@ -188,17 +188,6 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Called when the <see cref="GraphicsDevice"/> has been recreated.
-        /// </summary>
-        /// <returns>
-        ///   <see langword="true"/> if resource has transitioned to the <see cref="GraphicsResourceLifetimeState.Active"/> state.
-        /// </returns>
-        protected internal virtual bool OnRecreate()
-        {
-            return false;
-        }
-
-        /// <summary>
         ///   Swaps the Graphics Resource's internal data with another Graphics Resource.
         /// </summary>
         /// <param name="other">The other Graphics Resource.</param>

@@ -119,21 +119,8 @@ namespace Stride.Graphics
             base.OnDestroyed(immediately);
         }
 
-        /// <inheritdoc/>
-        protected internal override bool OnRecreate()
-        {
-            base.OnRecreate();
-
-            if (Description.Usage is GraphicsResourceUsage.Immutable or GraphicsResourceUsage.Default)
-                return false;
-
-            Recreate(dataPointer: IntPtr.Zero);
-
-            return true;
-        }
-
         /// <summary>
-        ///   Recreates this buffer explicitly with the provided data. Usually called after the <see cref="GraphicsDevice"/> has been reset.
+        ///   Replaces the native buffer with a new one initialized with the provided data, keeping the description.
         /// </summary>
         /// <param name="dataPointer">
         ///   The data pointer to the data to use to recreate the buffer with.

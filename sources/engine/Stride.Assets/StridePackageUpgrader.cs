@@ -119,6 +119,17 @@ namespace Stride.Assets
                     ParameterRename("Stride.Core.Utilities", "IsMemoryAligned", "align", "alignment"),
                     ParameterRename("Stride.Core.Utilities", "IsMemoryAligned", "memoryPtr", "memoryAddress")),
 
+                // 4.4: a lost graphics device is no longer recovered, so the reload hooks are gone:
+                // Buffer.RecreateWith returned its receiver, Reload and the DeviceReset events had no
+                // other use than being assigned or subscribed to.
+                Rewrite(
+                    FluentCallRemove("Stride.Graphics.Buffer", "RecreateWith"),
+                    AssignmentRemove("Stride.Graphics.GraphicsResourceBase", "Reload"),
+                    AssignmentRemove("Stride.Graphics.IGraphicsDeviceService", "DeviceReset"),
+                    AssignmentRemove("Stride.Graphics.IGraphicsDeviceService", "DeviceResetting"),
+                    AssignmentRemove("Stride.Games.GraphicsDeviceManager", "DeviceReset"),
+                    AssignmentRemove("Stride.Games.GraphicsDeviceManager", "DeviceResetting")),
+
                 // 4.4: SharpDX and SharpFont were dropped, Vortice no longer flows to game projects,
                 // and Stride.Core.Shaders was retired by the sdsl rewrite; their leftover (unused)
                 // using directives would no longer compile (#3249).

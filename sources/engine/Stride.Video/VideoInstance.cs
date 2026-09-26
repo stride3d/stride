@@ -354,25 +354,6 @@ namespace Stride.Video
             }
         }
 
-        /// <inheritdoc />
-        protected internal override bool OnPause()
-        {
-            if (PlayState == PlayState.Playing)
-            {
-                Pause();
-                return true;
-            }
-            return false;
-        }
-
-        /// <inheritdoc />
-        protected internal override void OnResume()
-        {
-            if (IsDisposed)
-                return;
-            Play();
-        }
-
         public void InitializeFromDataSource()
         {
             ReleaseMedia();

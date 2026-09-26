@@ -355,20 +355,6 @@ namespace Stride.Graphics
             ParentTexture?.ReleaseInternal();
         }
 
-        /// <inheritdoc/>
-        protected internal override bool OnRecreate()
-        {
-            base.OnRecreate();
-
-            OnRecreateImpl();
-            return true;
-        }
-
-        /// <summary>
-        ///   Perform platform-specific recreation of the Texture.
-        /// </summary>
-        private partial void OnRecreateImpl();
-
         /// <summary>
         ///   Initializes the Texture from a <see cref="TextureDescription"/> and, optionally, initial data.
         /// </summary>

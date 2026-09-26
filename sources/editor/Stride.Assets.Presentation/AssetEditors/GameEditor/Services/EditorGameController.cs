@@ -17,6 +17,7 @@ using Stride.Core.Presentation.Controls;
 using Stride.Core.Presentation.Services;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels;
+using Stride.Editor;
 using Stride.Editor.Build;
 using Stride.Editor.EditorGame.ContentLoader;
 using Stride.Editor.EditorGame.Game;
@@ -24,6 +25,7 @@ using Stride.Editor.EditorGame.ViewModels;
 using Stride.Editor.Engine;
 using Stride.Engine.Processors;
 using Stride.Games;
+using Stride.Graphics;
 using Stride.Shaders.Compiler;
 using Point = System.Windows.Point;
 
@@ -421,8 +423,44 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
 
             // Notify game start
             gameStartedTaskSource.SetResult(true);
-            Game.Run(context);
-            Game.Dispose();
+            try
+            {
+                Game.Run(context);
+            }
+            catch (GraphicsDeviceException ex) when (ex.Status != GraphicsDeviceStatus.Normal)
+            {
+                // The loss ends the run; every device of the process went with it, so the studio restarts
+                GraphicsDeviceLoss.Report(Game, ex);
+            }
+            finally
+            {
+                gameEnded = true;
+                gameEndedCancellation.Cancel();
+                Game.Dispose();
+            }
+        }
+
+        private volatile bool gameEnded;
+        private readonly CancellationTokenSource gameEndedCancellation = new();
+
+        /// <summary>
+        /// Work posted to a game whose loop has ended (a lost device, the exit) is cancelled, like while destroying.
+        /// </summary>
+        private Task<T> GameEndedTask<T>()
+        {
+            return Task.FromCanceled<T>(new CancellationToken(true));
+        }
+
+        /// <summary>
+        /// Creates the source of work posted to the game. What is still queued when the game loop ends never runs:
+        /// its source is then cancelled.
+        /// </summary>
+        private TaskCompletionSource<T> CreatePostedTaskSource<T>()
+        {
+            var tcs = new TaskCompletionSource<T>();
+            var registration = gameEndedCancellation.Token.Register(() => tcs.TrySetCanceled());
+            tcs.Task.ContinueWith(_ => registration.Unregister(), TaskContinuationOptions.ExecuteSynchronously);
+            return tcs;
         }
 
         partial void RegisterToDragDropEvents();
@@ -431,15 +469,21 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
 
         private Task PostTask(Func<ScriptSystem, Task> task, int priority)
         {
-            var tcs = new TaskCompletionSource<int>();
-            Game.Script.AddTask(async () => { await task(Game.Script); tcs.SetResult(0); }, priority);
+            if (gameEnded)
+                return GameEndedTask<int>();
+
+            var tcs = CreatePostedTaskSource<int>();
+            Game.Script.AddTask(async () => { await task(Game.Script); tcs.TrySetResult(0); }, priority);
             return tcs.Task;
         }
 
         private Task<T> PostTask<T>(Func<ScriptSystem, Task<T>> task, int priority)
         {
-            var tcs = new TaskCompletionSource<T>();
-            Game.Script.AddTask(async () => { var result = await task(Game.Script); tcs.SetResult(result); }, priority);
+            if (gameEnded)
+                return GameEndedTask<T>();
+
+            var tcs = CreatePostedTaskSource<T>();
+            Game.Script.AddTask(async () => { var result = await task(Game.Script); tcs.TrySetResult(result); }, priority);
             return tcs.Task;
         }
 
@@ -451,8 +495,11 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
                 return Task.CompletedTask;
             }
 
-            var tcs = new TaskCompletionSource<int>();
-            Game.Script.AddTask(() => { action(); tcs.SetResult(0); return tcs.Task; }, priority);
+            if (gameEnded)
+                return GameEndedTask<int>();
+
+            var tcs = CreatePostedTaskSource<int>();
+            Game.Script.AddTask(() => { action(); tcs.TrySetResult(0); return tcs.Task; }, priority);
             return tcs.Task;
         }
 
@@ -464,8 +511,11 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
                 return Task.FromResult(result);
             }
 
-            var tcs = new TaskCompletionSource<T>();
-            Game.Script.AddTask(() => { var result = action(); tcs.SetResult(result); return tcs.Task; }, priority);
+            if (gameEnded)
+                return GameEndedTask<T>();
+
+            var tcs = CreatePostedTaskSource<T>();
+            Game.Script.AddTask(() => { var result = action(); tcs.TrySetResult(result); return tcs.Task; }, priority);
             return tcs.Task;
         }
     }

@@ -31,13 +31,6 @@ namespace Stride.Graphics
         }
 
         /// <inheritdoc/>
-        protected internal override bool OnRecreate()
-        {
-            Recreate();
-            return true;
-        }
-
-        /// <inheritdoc/>
         protected internal override unsafe void OnDestroyed(bool immediately = false)
         {
             GraphicsDevice.NativeDeviceApi.vkDestroyDescriptorSetLayout(GraphicsDevice.NativeDevice, NativeLayout);
