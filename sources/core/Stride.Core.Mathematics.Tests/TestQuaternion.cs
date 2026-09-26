@@ -1051,5 +1051,551 @@ public class TestQuaternion
         Assert.Equal(0.0f, rotated.Z, 3);
     }
 
+    [Fact]
+    public void TestQuaternionNormalizeZeroDoesNotProduceNaN()
+    {
+        var normalized = Quaternion.Normalize(Quaternion.Zero);
+
+        Assert.False(float.IsNaN(normalized.X));
+        Assert.False(float.IsNaN(normalized.Y));
+        Assert.False(float.IsNaN(normalized.Z));
+        Assert.False(float.IsNaN(normalized.W));
+    }
+
+    [Fact]
+    public void TestQuaternionLengthWithNaNComponent()
+    {
+        var q = new Quaternion(float.NaN, 1.0f, 1.0f, 1.0f);
+
+        Assert.True(float.IsNaN(q.Length()));
+    }
+
+    [Fact]
+    public void TestQuaternionDotWithInfinityComponent()
+    {
+        var q1 = new Quaternion(float.PositiveInfinity, 1.0f, 1.0f, 1.0f);
+        var q2 = new Quaternion(2.0f, 1.0f, 1.0f, 1.0f);
+
+        Assert.True(float.IsPositiveInfinity(Quaternion.Dot(q1, q2)));
+    }
+
+    [Fact]
+    public void TestQuaternionToleranceEqualityIsNotBitwiseEquality()
+    {
+        var q1 = new Quaternion(1.0f, 1.0f, 1.0f, 1.0f);
+        var q2 = new Quaternion(1.0f + (MathUtil.ZeroTolerance / 2f), 1.0f, 1.0f, 1.0f);
+
+        Assert.True(q1.Equals(q2));
+        Assert.NotEqual(q1.X, q2.X);
+    }
+
+    #endregion
+
+    #region Additional Public API Coverage Tests
+
+    [Fact]
+    public void TestQuaternionVector2Constructor()
+    {
+        var q = new Quaternion(new Vector2(1, 2), 3, 4);
+        Assert.Equal(1f, q.X);
+        Assert.Equal(2f, q.Y);
+        Assert.Equal(3f, q.Z);
+        Assert.Equal(4f, q.W);
+    }
+
+    [Fact]
+    public void TestQuaternionArrayConstructor()
+    {
+        var q = new Quaternion(new float[] { 1f, 2f, 3f, 4f });
+        Assert.Equal(1f, q.X);
+        Assert.Equal(2f, q.Y);
+        Assert.Equal(3f, q.Z);
+        Assert.Equal(4f, q.W);
+
+        Assert.Throws<ArgumentNullException>(() => new Quaternion((float[])null!));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new Quaternion(new float[] { 1f, 2f, 3f }));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new Quaternion(new float[] { 1f, 2f, 3f, 4f, 5f }));
+    }
+
+    [Fact]
+    public void TestQuaternionToArray()
+    {
+        var q = new Quaternion(1, 2, 3, 4);
+        var arr = q.ToArray();
+        Assert.Equal(new float[] { 1f, 2f, 3f, 4f }, arr);
+    }
+
+    [Fact]
+    public void TestQuaternionIndexer()
+    {
+        var q = new Quaternion(1, 2, 3, 4);
+        Assert.Equal(1f, q[0]);
+        Assert.Equal(2f, q[1]);
+        Assert.Equal(3f, q[2]);
+        Assert.Equal(4f, q[3]);
+
+        q[0] = 10f;
+        q[1] = 20f;
+        q[2] = 30f;
+        q[3] = 40f;
+        Assert.Equal(10f, q.X);
+        Assert.Equal(20f, q.Y);
+        Assert.Equal(30f, q.Z);
+        Assert.Equal(40f, q.W);
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => q[4]);
+        Assert.Throws<ArgumentOutOfRangeException>(() => q[-1]);
+        Assert.Throws<ArgumentOutOfRangeException>(() => q[4] = 1f);
+    }
+
+    [Fact]
+    public void TestQuaternionIsNormalized()
+    {
+        var q = new Quaternion(1, 2, 3, 4);
+        Assert.False(q.IsNormalized);
+
+        q.Normalize();
+        Assert.True(q.IsNormalized);
+    }
+
+    [Fact]
+    public void TestQuaternionAxisAnglePropertiesIdentityEdgeCase()
+    {
+        Assert.Equal(0f, Quaternion.Identity.Angle);
+        Assert.Equal(Vector3.UnitX, Quaternion.Identity.Axis);
+    }
+
+    [Fact]
+    public void TestQuaternionAxisAngleReconstruction()
+    {
+        // Non-axis-aligned axis, non-90-degree angle.
+        var axis = Vector3.Normalize(new Vector3(1f, 2f, 3f));
+        var angle = MathUtil.DegreesToRadians(73f);
+
+        var q = Quaternion.RotationAxis(axis, angle);
+
+        Assert.Equal(angle, q.Angle, 4);
+
+        // The Axis property is not guaranteed to return a unit vector, but its direction
+        // should still match the axis that was used to build the quaternion.
+        var extractedDirection = Vector3.Normalize(q.Axis);
+        Assert.Equal(axis.X, extractedDirection.X, 3);
+        Assert.Equal(axis.Y, extractedDirection.Y, 3);
+        Assert.Equal(axis.Z, extractedDirection.Z, 3);
+
+        // RotationAxis normalizes its axis argument internally, so reconstructing from the
+        // extracted Axis/Angle should produce an equivalent rotation.
+        var reconstructed = Quaternion.RotationAxis(q.Axis, q.Angle);
+        Assert.True(q == reconstructed || q == -reconstructed);
+    }
+
+    [Fact]
+    public void TestQuaternionRotationAxisNonTrivialCrossCheckWithMatrix()
+    {
+        // Non-axis-aligned, non-normalized axis and a non-90-degree angle.
+        var axis = new Vector3(1f, 2f, -3f);
+        var angle = MathUtil.DegreesToRadians(50f);
+
+        var q = Quaternion.RotationAxis(axis, angle);
+
+        // Should still be a unit quaternion even though the input axis was not normalized.
+        Assert.Equal(1f, q.Length(), 5);
+
+        var matrixFromAxisAngle = Matrix.RotationAxis(Vector3.Normalize(axis), angle);
+        var qFromMatrix = Quaternion.RotationMatrix(matrixFromAxisAngle);
+
+        Assert.True(
+            (Math.Abs(q.X - qFromMatrix.X) < 0.001f && Math.Abs(q.W - qFromMatrix.W) < 0.001f) ||
+            (Math.Abs(q.X + qFromMatrix.X) < 0.001f && Math.Abs(q.W + qFromMatrix.W) < 0.001f));
+    }
+
+    [Theory]
+    [InlineData(0f, 0f, 1f)] // M33 dominant diagonal element
+    [InlineData(0f, 1f, 0f)] // M22 dominant diagonal element
+    [InlineData(1f, 0f, 0f)] // M11 dominant diagonal element
+    public void TestQuaternionRotationMatrixAxisAlignedBranches(float axisX, float axisY, float axisZ)
+    {
+        var axis = new Vector3(axisX, axisY, axisZ);
+        var angle = MathUtil.DegreesToRadians(150f); // Large angle so scale = M11+M22+M33 <= 0, forcing a diagonal-dominant branch.
+
+        var matrix = Matrix.RotationAxis(axis, angle);
+        var expected = Quaternion.RotationAxis(axis, angle);
+        var actual = Quaternion.RotationMatrix(matrix);
+
+        Assert.True(expected == actual || expected == -actual);
+    }
+
+    [Fact]
+    public void TestQuaternionRotationMatrixScalePositiveBranch()
+    {
+        // A small rotation keeps M11 + M22 + M33 > 0, exercising the "scale > 0" branch.
+        var q = Quaternion.RotationYawPitchRoll(
+            MathUtil.DegreesToRadians(37f),
+            MathUtil.DegreesToRadians(-22f),
+            MathUtil.DegreesToRadians(64f));
+
+        var matrix = Matrix.RotationQuaternion(q);
+        var roundTripped = Quaternion.RotationMatrix(matrix);
+
+        Assert.True(q == roundTripped || q == -roundTripped);
+    }
+
+    [Theory]
+    [InlineData(37f, -22f, 64f)]
+    [InlineData(-120f, 15f, 170f)]
+    [InlineData(10f, 90f, 20f)] // Gimbal lock: pitch == +90 degrees.
+    [InlineData(10f, -90f, 20f)] // Gimbal lock: pitch == -90 degrees.
+    public void TestQuaternionRotationYawPitchRollRoundTrip(float yawDegrees, float pitchDegrees, float rollDegrees)
+    {
+        var yaw = MathUtil.DegreesToRadians(yawDegrees);
+        var pitch = MathUtil.DegreesToRadians(pitchDegrees);
+        var roll = MathUtil.DegreesToRadians(rollDegrees);
+
+        var q = Quaternion.RotationYawPitchRoll(yaw, pitch, roll);
+        Quaternion.RotationYawPitchRoll(ref q, out var decomposedYaw, out var decomposedPitch, out var decomposedRoll);
+        var requat = Quaternion.RotationYawPitchRoll(decomposedYaw, decomposedPitch, decomposedRoll);
+
+        Assert.True(q == requat || q == -requat);
+    }
+
+    [Fact]
+    public void TestQuaternionMultiplyComposesLeftThenRight()
+    {
+        // The doc comment on Quaternion.Multiply notes that the multiplication order differs
+        // from System.Numerics. Verify explicitly which order Multiply(a, b) applies its
+        // arguments in, by comparing against sequential Rotate calls.
+        var a = Quaternion.RotationX(MathUtil.PiOverTwo);
+        var b = Quaternion.RotationY(MathUtil.PiOverTwo);
+        var v = new Vector3(1f, 2f, 3f);
+
+        var composed = Quaternion.Multiply(a, b);
+
+        var rotateAThenB = v;
+        a.Rotate(ref rotateAThenB);
+        b.Rotate(ref rotateAThenB);
+
+        var rotateBThenA = v;
+        b.Rotate(ref rotateBThenA);
+        a.Rotate(ref rotateBThenA);
+
+        var composedRotated = v;
+        composed.Rotate(ref composedRotated);
+
+        // Multiply(a, b) applies a's rotation first, then b's rotation.
+        Assert.Equal(rotateAThenB.X, composedRotated.X, 4);
+        Assert.Equal(rotateAThenB.Y, composedRotated.Y, 4);
+        Assert.Equal(rotateAThenB.Z, composedRotated.Z, 4);
+
+        // Sanity check: since X and Y rotations don't commute, applying them in the other
+        // order gives a different result.
+        Assert.False(
+            Math.Abs(rotateBThenA.X - composedRotated.X) < 1e-4f &&
+            Math.Abs(rotateBThenA.Y - composedRotated.Y) < 1e-4f &&
+            Math.Abs(rotateBThenA.Z - composedRotated.Z) < 1e-4f);
+    }
+
+    [Fact]
+    public void TestQuaternionBetweenDirectionsNonParallelCase()
+    {
+        var source = Vector3.Normalize(new Vector3(1f, 1f, 0f));
+        var target = Vector3.Normalize(new Vector3(0f, 1f, 1f));
+
+        var q = Quaternion.BetweenDirections(source, target);
+        Assert.Equal(1f, q.Length(), 4);
+
+        var rotated = source;
+        q.Rotate(ref rotated);
+
+        Assert.Equal(target.X, rotated.X, 4);
+        Assert.Equal(target.Y, rotated.Y, 4);
+        Assert.Equal(target.Z, rotated.Z, 4);
+    }
+
+    [Theory]
+    [InlineData(1f, 0f, 0f, -1f, 0f, 0f)] // |source.X| > |source.Z| branch.
+    [InlineData(0f, 0f, 1f, 0f, 0f, -1f)] // |source.X| <= |source.Z| branch.
+    public void TestQuaternionBetweenDirectionsOppositeVectors(float sx, float sy, float sz, float tx, float ty, float tz)
+    {
+        var source = new Vector3(sx, sy, sz);
+        var target = new Vector3(tx, ty, tz);
+
+        var q = Quaternion.BetweenDirections(source, target);
+        Assert.Equal(1f, q.Length(), 4);
+
+        var rotated = source;
+        q.Rotate(ref rotated);
+
+        Assert.Equal(target.X, rotated.X, 4);
+        Assert.Equal(target.Y, rotated.Y, 4);
+        Assert.Equal(target.Z, rotated.Z, 4);
+    }
+
+    [Theory]
+    [InlineData(0.25f)]
+    [InlineData(0.5f)]
+    [InlineData(0.75f)]
+    public void TestQuaternionSlerpIntermediateAmounts(float amount)
+    {
+        var start = Quaternion.RotationAxis(Vector3.Normalize(new Vector3(1f, 1f, 1f)), MathUtil.DegreesToRadians(10f));
+        var end = Quaternion.RotationAxis(Vector3.Normalize(new Vector3(1f, -1f, 0.5f)), MathUtil.DegreesToRadians(140f));
+
+        var result = Quaternion.Slerp(start, end, amount);
+
+        // Slerp should always produce a unit quaternion.
+        Assert.Equal(1f, result.Length(), 4);
+
+        // The angle from start to the interpolated result should grow monotonically with amount,
+        // and be (approximately) amount * totalAngle.
+        var totalAngle = Quaternion.AngleBetween(start, end);
+        var partialAngle = Quaternion.AngleBetween(start, result);
+        Assert.Equal(amount * totalAngle, partialAngle, 3);
+    }
+
+    [Theory]
+    [InlineData(0.25f)]
+    [InlineData(0.5f)]
+    [InlineData(0.75f)]
+    public void TestQuaternionLerpIntermediateAmounts(float amount)
+    {
+        var start = Quaternion.RotationAxis(Vector3.Normalize(new Vector3(1f, 1f, 1f)), MathUtil.DegreesToRadians(10f));
+        var end = Quaternion.RotationAxis(Vector3.Normalize(new Vector3(1f, -1f, 0.5f)), MathUtil.DegreesToRadians(140f));
+
+        var result = Quaternion.Lerp(start, end, amount);
+
+        Assert.Equal(1f, result.Length(), 4);
+        Assert.NotEqual(start, result);
+        Assert.NotEqual(end, result);
+    }
+
+    [Fact]
+    public void TestQuaternionRotateTowardsPartial()
+    {
+        var current = Quaternion.Identity;
+        var target = Quaternion.RotationY(MathUtil.DegreesToRadians(90f));
+
+        var maxAngle = Quaternion.AngleBetween(current, target);
+        var partialAngle = maxAngle * 0.3f;
+
+        var result = Quaternion.RotateTowards(current, target, partialAngle);
+
+        // Should not overshoot: the angle travelled from current should match the requested amount,
+        // and the remaining angle to target should be maxAngle - partialAngle.
+        Assert.Equal(partialAngle, Quaternion.AngleBetween(current, result), 4);
+        Assert.Equal(maxAngle - partialAngle, Quaternion.AngleBetween(result, target), 4);
+    }
+
+    [Fact]
+    public void TestQuaternionRotateTowardsOvershootReturnsTarget()
+    {
+        var current = Quaternion.Identity;
+        var target = Quaternion.RotationY(MathUtil.DegreesToRadians(30f));
+
+        var maxAngle = Quaternion.AngleBetween(current, target);
+        var result = Quaternion.RotateTowards(current, target, maxAngle + MathUtil.DegreesToRadians(50f));
+
+        Assert.Equal(target.X, result.X, 5);
+        Assert.Equal(target.Y, result.Y, 5);
+        Assert.Equal(target.Z, result.Z, 5);
+        Assert.Equal(target.W, result.W, 5);
+    }
+
+    [Fact]
+    public void TestQuaternionRotateTowardsSameQuaternionReturnsTarget()
+    {
+        var current = Quaternion.RotationY(MathUtil.DegreesToRadians(42f));
+        var target = current;
+
+        var result = Quaternion.RotateTowards(current, target, MathUtil.DegreesToRadians(10f));
+
+        Assert.Equal(target, result);
+    }
+
+    [Fact]
+    public void TestQuaternionExponentialLogarithmRoundTrip()
+    {
+        // A small-angle, pure-vector-part quaternion.
+        var value = new Quaternion(0.05f, -0.1f, 0.15f, 0f);
+
+        var exponential = Quaternion.Exponential(value);
+        var roundTripped = Quaternion.Logarithm(exponential);
+
+        Assert.Equal(value.X, roundTripped.X, 4);
+        Assert.Equal(value.Y, roundTripped.Y, 4);
+        Assert.Equal(value.Z, roundTripped.Z, 4);
+        Assert.Equal(value.W, roundTripped.W, 4);
+    }
+
+    [Fact]
+    public void TestQuaternionSquadEndpoints()
+    {
+        var value1 = Quaternion.RotationY(MathUtil.DegreesToRadians(0f));
+        var value2 = Quaternion.RotationY(MathUtil.DegreesToRadians(20f));
+        var value3 = Quaternion.RotationY(MathUtil.DegreesToRadians(70f));
+        var value4 = Quaternion.RotationY(MathUtil.DegreesToRadians(160f));
+
+        var atZero = Quaternion.Squad(value1, value2, value3, value4, 0f);
+        var atOne = Quaternion.Squad(value1, value2, value3, value4, 1f);
+        var atHalf = Quaternion.Squad(value1, value2, value3, value4, 0.5f);
+
+        // From the Squad formula: Slerp(Slerp(v1,v4,t), Slerp(v2,v3,t), 2t(1-t)).
+        // At t=0 and t=1, the blend weight 2t(1-t) is 0, so the result collapses to
+        // Slerp(v1,v4,t) evaluated at t=0 (i.e. v1) and t=1 (i.e. v4).
+        Assert.True(value1 == atZero || value1 == -atZero);
+        Assert.True(value4 == atOne || value4 == -atOne);
+
+        Assert.Equal(1f, atHalf.Length(), 4);
+    }
+
+    [Fact]
+    public void TestQuaternionSquadSetupProducesUnitQuaternions()
+    {
+        var value1 = Quaternion.RotationY(MathUtil.DegreesToRadians(0f));
+        var value2 = Quaternion.RotationY(MathUtil.DegreesToRadians(20f));
+        var value3 = Quaternion.RotationY(MathUtil.DegreesToRadians(70f));
+        var value4 = Quaternion.RotationY(MathUtil.DegreesToRadians(160f));
+
+        var controlPoints = Quaternion.SquadSetup(value1, value2, value3, value4);
+
+        Assert.Equal(3, controlPoints.Length);
+        foreach (var controlPoint in controlPoints)
+        {
+            Assert.Equal(1f, controlPoint.Length(), 3);
+        }
+
+        // The third control point is always value3 as-is (or negated for shortest-path continuity).
+        Assert.True(controlPoints[2] == value3 || controlPoints[2] == -value3);
+    }
+
+    [Fact]
+    public void TestQuaternionLookRotation()
+    {
+        var forward = Vector3.Normalize(new Vector3(1f, 0f, 1f));
+        var up = Vector3.UnitY;
+
+        var q = Quaternion.LookRotation(forward, up);
+        Assert.Equal(1f, q.Length(), 4);
+
+        // Rotating the canonical forward direction (UnitZ, per LookRotation's matrix layout)
+        // should align it with the requested forward vector.
+        var rotatedForward = Vector3.UnitZ;
+        q.Rotate(ref rotatedForward);
+
+        Assert.Equal(forward.X, rotatedForward.X, 4);
+        Assert.Equal(forward.Y, rotatedForward.Y, 4);
+        Assert.Equal(forward.Z, rotatedForward.Z, 4);
+    }
+
+    [Fact]
+    public void TestQuaternionBarycentricNonTrivialAmounts()
+    {
+        var value1 = Quaternion.RotationY(MathUtil.DegreesToRadians(0f));
+        var value2 = Quaternion.RotationY(MathUtil.DegreesToRadians(45f));
+        var value3 = Quaternion.RotationX(MathUtil.DegreesToRadians(45f));
+
+        var result = Quaternion.Barycentric(value1, value2, value3, 0.2f, 0.5f);
+
+        Assert.Equal(1f, result.Length(), 4);
+
+        // At (amount1, amount2) = (1, 0), Barycentric should return value2.
+        var atVertex2 = Quaternion.Barycentric(value1, value2, value3, 1f, 0f);
+        Assert.True(value2 == atVertex2 || value2 == -atVertex2);
+
+        // At (amount1, amount2) = (0, 1), Barycentric should return value3.
+        var atVertex3 = Quaternion.Barycentric(value1, value2, value3, 0f, 1f);
+        Assert.True(value3 == atVertex3 || value3 == -atVertex3);
+    }
+
+    [Fact]
+    public void TestQuaternionRotateAndOperatorConsistency()
+    {
+        var q = Quaternion.RotationAxis(Vector3.Normalize(new Vector3(1f, 2f, 3f)), MathUtil.DegreesToRadians(63f));
+        var v = new Vector3(2f, -1f, 4f);
+
+        var rotatedByMethod = v;
+        q.Rotate(ref rotatedByMethod);
+
+        var rotatedByOperator = q * v;
+
+        Assert.Equal(rotatedByMethod.X, rotatedByOperator.X, 5);
+        Assert.Equal(rotatedByMethod.Y, rotatedByOperator.Y, 5);
+        Assert.Equal(rotatedByMethod.Z, rotatedByOperator.Z, 5);
+
+        // Rotation preserves vector length.
+        Assert.Equal(v.Length(), rotatedByOperator.Length(), 4);
+    }
+
+    [Fact]
+    public void TestQuaternionConjugateInvertNonUnit()
+    {
+        var q = new Quaternion(1f, 2f, 3f, 4f);
+
+        var conjugated = q;
+        conjugated.Conjugate();
+        Assert.Equal(-1f, conjugated.X);
+        Assert.Equal(-2f, conjugated.Y);
+        Assert.Equal(-3f, conjugated.Z);
+        Assert.Equal(4f, conjugated.W);
+
+        var inverted = q;
+        inverted.Invert();
+
+        // q * Invert(q) should be the identity, using this library's multiplication order.
+        var product = Quaternion.Multiply(q, inverted);
+        Assert.Equal(0f, product.X, 4);
+        Assert.Equal(0f, product.Y, 4);
+        Assert.Equal(0f, product.Z, 4);
+        Assert.Equal(1f, product.W, 4);
+    }
+
+    [Fact]
+    public void TestQuaternionEqualsStrict()
+    {
+        var q1 = new Quaternion(1f, 2f, 3f, 4f);
+        var q2 = new Quaternion(1f, 2f, 3f, 4f);
+        var q3 = new Quaternion(1f + (MathUtil.ZeroTolerance / 2f), 2f, 3f, 4f);
+
+        Assert.True(q1.EqualsStrict(q2));
+        // EqualsStrict is bitwise, unlike the tolerance-based Equals.
+        Assert.False(q1.EqualsStrict(q3));
+        Assert.True(q1.Equals(q3));
+    }
+
+    [Fact]
+    public void TestQuaternionEqualsObjectOverload()
+    {
+        var q1 = new Quaternion(1f, 2f, 3f, 4f);
+        object q2 = new Quaternion(1f, 2f, 3f, 4f);
+        object notAQuaternion = "not a quaternion";
+
+        Assert.True(q1.Equals(q2));
+        Assert.False(q1.Equals(notAQuaternion));
+        Assert.False(q1.Equals(null));
+    }
+
+    [Fact]
+    public void TestQuaternionToStringWithFormat()
+    {
+        var q = new Quaternion(1.5f, 2.5f, 3.5f, 4.5f);
+        var str = q.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
+
+        Assert.Contains("1.5", str);
+        Assert.Contains("2.5", str);
+        Assert.Contains("3.5", str);
+        Assert.Contains("4.5", str);
+    }
+
+    [Fact]
+    public void TestQuaternionTryFormat()
+    {
+        var q = new Quaternion(1f, 2f, 3f, 4f);
+        Span<char> destination = stackalloc char[64];
+
+        bool success = ((ISpanFormattable)q).TryFormat(destination, out int charsWritten, default, null);
+
+        Assert.True(success);
+        var result = new string(destination[..charsWritten]);
+        Assert.Equal(q.ToString(), result);
+    }
+
     #endregion
 }

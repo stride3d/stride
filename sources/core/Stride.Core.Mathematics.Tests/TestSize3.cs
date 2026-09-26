@@ -1,19 +1,24 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Globalization;
 using Xunit;
 
 namespace Stride.Core.Mathematics.Tests;
 
 public class TestSize3
 {
-    [Fact]
-    public void TestSize3Construction()
+    [Theory]
+    [InlineData(800, 600, 32)]
+    [InlineData(0, 0, 0)]
+    [InlineData(-4, -9, -2)]
+    [InlineData(1920, 1, 5)]
+    public void TestSize3Construction(int width, int height, int depth)
     {
-        var size = new Size3(800, 600, 32);
-        Assert.Equal(800, size.Width);
-        Assert.Equal(600, size.Height);
-        Assert.Equal(32, size.Depth);
+        var size = new Size3(width, height, depth);
+        Assert.Equal(width, size.Width);
+        Assert.Equal(height, size.Height);
+        Assert.Equal(depth, size.Depth);
     }
 
     [Fact]
@@ -56,6 +61,25 @@ public class TestSize3
         Assert.True(size1 != size3);
         Assert.True(size1.Equals(size2));
         Assert.False(size1.Equals(size3));
+
+        // Negative dimensions.
+        var size4 = new Size3(-3, -17, -5);
+        var size5 = new Size3(-3, -17, -5);
+        Assert.Equal(size4, size5);
+        Assert.True(size4 == size5);
+        Assert.NotEqual(size1, size4);
+    }
+
+    [Fact]
+    public void TestSize3EqualsObject()
+    {
+        var size = new Size3(37, -11, 6);
+
+        Assert.True(size.Equals((object)new Size3(37, -11, 6)));
+        Assert.False(size.Equals((object)new Size3(37, 11, 6)));
+        Assert.False(size.Equals(null));
+        Assert.False(size.Equals("not a size"));
+        Assert.False(size.Equals(37));
     }
 
     [Fact]
@@ -63,7 +87,9 @@ public class TestSize3
     {
         var size1 = new Size3(800, 600, 32);
         var size2 = new Size3(800, 600, 32);
+        var size3 = new Size3(1024, 768, 64);
         Assert.Equal(size1.GetHashCode(), size2.GetHashCode());
+        Assert.NotEqual(size1.GetHashCode(), size3.GetHashCode());
     }
 
     [Fact]
@@ -190,10 +216,29 @@ public class TestSize3
     {
         var size = new Size3(800, 600, 32);
         var str = size.ToString();
-        Assert.NotNull(str);
-        Assert.Contains("800", str);
-        Assert.Contains("600", str);
-        Assert.Contains("32", str);
+        Assert.Equal("(800,600,32)", str);
+    }
+
+    [Fact]
+    public void TestSize3ToStringWithFormat()
+    {
+        var size = new Size3(7, -42, 3);
+        var str = size.ToString("D4", CultureInfo.InvariantCulture);
+
+        Assert.Equal("(0007,-0042,0003)", str);
+    }
+
+    [Fact]
+    public void TestSize3TryFormat()
+    {
+        var size = new Size3(12, -34, 5);
+        ISpanFormattable formattable = size;
+
+        Span<char> buffer = stackalloc char[64];
+        var success = formattable.TryFormat(buffer, out var charsWritten, default, CultureInfo.InvariantCulture);
+
+        Assert.True(success);
+        Assert.Equal("(12,-34,5)", buffer[..charsWritten].ToString());
     }
 
     [Fact]

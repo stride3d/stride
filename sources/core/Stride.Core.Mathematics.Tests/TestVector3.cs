@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Globalization;
 using Xunit;
 
 namespace Stride.Core.Mathematics.Tests;
@@ -147,9 +148,9 @@ public class TestVector3
         var v = new Vector3(2.0f, 2.0f, 1.0f);
         var normalized = Vector3.Normalize(v);
         var length = (float)Math.Sqrt(9.0f); // sqrt(4 + 4 + 1)
-        Assert.Equal(2.0f/length, normalized.X, 3);
-        Assert.Equal(2.0f/length, normalized.Y, 3);
-        Assert.Equal(1.0f/length, normalized.Z, 3);
+        Assert.Equal(2.0f / length, normalized.X, 3);
+        Assert.Equal(2.0f / length, normalized.Y, 3);
+        Assert.Equal(1.0f / length, normalized.Z, 3);
         Assert.Equal(1.0f, normalized.Length(), 3);
 
         v.Normalize();
@@ -785,5 +786,316 @@ public class TestVector3
         Assert.Equal(v, result);
     }
 
+    [Fact]
+    public void TestVector3ArrayConstruction()
+    {
+        var v = new Vector3([1.5f, 2.5f, 3.5f]);
+        Assert.Equal(1.5f, v.X);
+        Assert.Equal(2.5f, v.Y);
+        Assert.Equal(3.5f, v.Z);
 
+        Assert.Throws<ArgumentNullException>(() => new Vector3((float[])null!));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new Vector3([1.0f, 2.0f]));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new Vector3([1.0f, 2.0f, 3.0f, 4.0f]));
+    }
+
+    [Fact]
+    public void TestVector3Indexer()
+    {
+        var v = new Vector3(1.0f, 2.0f, 3.0f);
+        Assert.Equal(1.0f, v[0]);
+        Assert.Equal(2.0f, v[1]);
+        Assert.Equal(3.0f, v[2]);
+
+        v[0] = 10.0f;
+        v[1] = 20.0f;
+        v[2] = 30.0f;
+        Assert.Equal(10.0f, v.X);
+        Assert.Equal(20.0f, v.Y);
+        Assert.Equal(30.0f, v.Z);
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => v[3]);
+        Assert.Throws<ArgumentOutOfRangeException>(() => v[-1]);
+        Assert.Throws<ArgumentOutOfRangeException>(() => v[3] = 1.0f);
+    }
+
+    [Fact]
+    public void TestVector3Pow()
+    {
+        var v = new Vector3(2.0f, 3.0f, 4.0f);
+        v.Pow(2.0f);
+        Assert.Equal(4.0f, v.X, 3);
+        Assert.Equal(9.0f, v.Y, 3);
+        Assert.Equal(16.0f, v.Z, 3);
+    }
+
+    [Fact]
+    public void TestVector3ToArray()
+    {
+        var v = new Vector3(-7.5f, 13.25f, -21.0f);
+        var arr = v.ToArray();
+        Assert.Equal(3, arr.Length);
+        Assert.Equal(-7.5f, arr[0]);
+        Assert.Equal(13.25f, arr[1]);
+        Assert.Equal(-21.0f, arr[2]);
+    }
+
+    [Fact]
+    public void TestVector3SizeInBytes()
+    {
+        Assert.Equal(12, Vector3.SizeInBytes);
+    }
+
+    [Fact]
+    public void TestVector3EqualsStrict()
+    {
+        var v1 = new Vector3(1.0f, 2.0f, 3.0f);
+        var v2 = new Vector3(1.0f, 2.0f, 3.0f);
+        var v3 = new Vector3(float.BitIncrement(1.0f), 2.0f, 3.0f);
+
+        Assert.True(v1.EqualsStrict(v2));
+        // A tiny bitwise difference is within MathUtil.ZeroTolerance for Equals, but not for EqualsStrict.
+        Assert.True(v1.Equals(v3));
+        Assert.False(v1.EqualsStrict(v3));
+    }
+
+    [Fact]
+    public void TestVector3ToString()
+    {
+        var v = new Vector3(1.5f, 2.5f, 3.5f);
+        var s = v.ToString();
+        Assert.Contains("X:", s);
+        Assert.Contains("Y:", s);
+        Assert.Contains("Z:", s);
+
+        var formatted = v.ToString("F2", CultureInfo.InvariantCulture);
+        Assert.Equal("X:1.50 Y:2.50 Z:3.50", formatted);
+    }
+
+    [Fact]
+    public void TestVector3TryFormat()
+    {
+        var v = new Vector3(1.5f, 2.5f, 3.5f);
+        ISpanFormattable formattable = v;
+
+        Span<char> buffer = stackalloc char[64];
+        var success = formattable.TryFormat(buffer, out var charsWritten, "F1", CultureInfo.InvariantCulture);
+
+        Assert.True(success);
+        Assert.Equal("X:1.5 Y:2.5 Z:3.5", buffer[..charsWritten].ToString());
+    }
+
+    [Fact]
+    public void TestVector3CrossProductNonAxisAligned()
+    {
+        var v1 = new Vector3(2.0f, -1.0f, 3.0f);
+        var v2 = new Vector3(-4.0f, 5.0f, 1.0f);
+
+        var cross = Vector3.Cross(v1, v2);
+
+        // right-hand rule: (Y1*Z2 - Z1*Y2, Z1*X2 - X1*Z2, X1*Y2 - Y1*X2)
+        Assert.Equal(-16.0f, cross.X, 3);
+        Assert.Equal(-14.0f, cross.Y, 3);
+        Assert.Equal(6.0f, cross.Z, 3);
+
+        // Verify the ref/out overload matches the value-returning overload.
+        Vector3.Cross(in v1, in v2, out var cross2);
+        Assert.Equal(cross, cross2);
+
+        // Cross is anticommutative: b x a = -(a x b)
+        var crossReversed = Vector3.Cross(v2, v1);
+        Assert.Equal(-cross.X, crossReversed.X, 3);
+        Assert.Equal(-cross.Y, crossReversed.Y, 3);
+        Assert.Equal(-cross.Z, crossReversed.Z, 3);
+    }
+
+    [Fact]
+    public void TestVector3ModNegative()
+    {
+        var v1 = new Vector3(-7.0f, -1.0f, 7.0f);
+        var v2 = new Vector3(3.0f, 5.0f, -3.0f);
+
+        var result = Vector3.Mod(v1, v2);
+
+        // MathUtil.Mod always returns a non-negative result for a positive divisor.
+        Assert.Equal(2.0f, result.X, 3);
+        Assert.Equal(4.0f, result.Y, 3);
+        Assert.Equal(-2.0f, result.Z, 3);
+    }
+
+    [Fact]
+    public void TestVector3ReflectNonAxisAligned()
+    {
+        var vector = new Vector3(1.0f, 2.0f, 3.0f);
+        var normal = Vector3.Normalize(new Vector3(1.0f, 1.0f, 1.0f));
+
+        var reflected = Vector3.Reflect(vector, normal);
+
+        Assert.Equal(-3.0f, reflected.X, 3);
+        Assert.Equal(-2.0f, reflected.Y, 3);
+        Assert.Equal(-1.0f, reflected.Z, 3);
+    }
+
+    [Fact]
+    public void TestVector3HermiteEndpoints()
+    {
+        var value1 = new Vector3(1.0f, -2.0f, 3.0f);
+        var tangent1 = new Vector3(0.5f, 0.5f, 0.5f);
+        var value2 = new Vector3(4.0f, 5.0f, -6.0f);
+        var tangent2 = new Vector3(-0.5f, -0.5f, -0.5f);
+
+        var atStart = Vector3.Hermite(value1, tangent1, value2, tangent2, 0.0f);
+        Assert.Equal(value1.X, atStart.X, 3);
+        Assert.Equal(value1.Y, atStart.Y, 3);
+        Assert.Equal(value1.Z, atStart.Z, 3);
+
+        var atEnd = Vector3.Hermite(value1, tangent1, value2, tangent2, 1.0f);
+        Assert.Equal(value2.X, atEnd.X, 3);
+        Assert.Equal(value2.Y, atEnd.Y, 3);
+        Assert.Equal(value2.Z, atEnd.Z, 3);
+    }
+
+    [Fact]
+    public void TestVector3CatmullRomEndpoints()
+    {
+        var v1 = new Vector3(-3.0f, 1.0f, 2.0f);
+        var v2 = new Vector3(0.0f, 4.0f, -1.0f);
+        var v3 = new Vector3(5.0f, -2.0f, 3.0f);
+        var v4 = new Vector3(8.0f, 6.0f, 0.0f);
+
+        var atStart = Vector3.CatmullRom(v1, v2, v3, v4, 0.0f);
+        Assert.Equal(v2.X, atStart.X, 3);
+        Assert.Equal(v2.Y, atStart.Y, 3);
+        Assert.Equal(v2.Z, atStart.Z, 3);
+
+        var atEnd = Vector3.CatmullRom(v1, v2, v3, v4, 1.0f);
+        Assert.Equal(v3.X, atEnd.X, 3);
+        Assert.Equal(v3.Y, atEnd.Y, 3);
+        Assert.Equal(v3.Z, atEnd.Z, 3);
+    }
+
+    [Fact]
+    public void TestVector3BarycentricEndpoints()
+    {
+        var v1 = new Vector3(-1.0f, 2.0f, 0.0f);
+        var v2 = new Vector3(3.0f, -4.0f, 5.0f);
+        var v3 = new Vector3(6.0f, 1.0f, -2.0f);
+
+        var atV1 = Vector3.Barycentric(v1, v2, v3, 0.0f, 0.0f);
+        Assert.Equal(v1, atV1);
+
+        var atV2 = Vector3.Barycentric(v1, v2, v3, 1.0f, 0.0f);
+        Assert.Equal(v2, atV2);
+
+        var atV3 = Vector3.Barycentric(v1, v2, v3, 0.0f, 1.0f);
+        Assert.Equal(v3, atV3);
+    }
+
+    [Fact]
+    public void TestVector3TransformQuaternionArbitraryAxis()
+    {
+        var axis = Vector3.Normalize(new Vector3(1.0f, 2.0f, -1.0f));
+        var vector = new Vector3(3.0f, -2.0f, 5.0f);
+        const float angle = 0.7f;
+
+        var rotation = Quaternion.RotationAxis(axis, angle);
+        var rotated = Vector3.Transform(vector, rotation);
+
+        // Rotation must preserve length.
+        Assert.Equal(vector.Length(), rotated.Length(), 3);
+
+        // The component of the vector along the rotation axis must be unaffected.
+        Assert.Equal(Vector3.Dot(vector, axis), Vector3.Dot(rotated, axis), 3);
+
+        // The angle between the components perpendicular to the axis must equal the rotation angle.
+        var vectorPerp = vector - Vector3.Dot(vector, axis) * axis;
+        var rotatedPerp = rotated - Vector3.Dot(rotated, axis) * axis;
+        var cosAngle = Vector3.Dot(vectorPerp, rotatedPerp) / (vectorPerp.Length() * rotatedPerp.Length());
+        Assert.Equal(MathF.Cos(angle), cosAngle, 3);
+    }
+
+    [Fact]
+    public void TestVector3TransformMatrixArbitraryAxis()
+    {
+        var axis = Vector3.Normalize(new Vector3(1.0f, 2.0f, -1.0f));
+        var vector = new Vector3(3.0f, -2.0f, 5.0f);
+        const float angle = 0.7f;
+
+        var matrix = Matrix.RotationAxis(axis, angle);
+        Vector4 rotated4 = Vector3.Transform(vector, matrix);
+        var rotated = new Vector3(rotated4.X, rotated4.Y, rotated4.Z);
+
+        // RotationAxis produces an affine matrix (M44 = 1, no projective terms), so W stays 1.
+        Assert.Equal(1.0f, rotated4.W, 3);
+        Assert.Equal(vector.Length(), rotated.Length(), 3);
+        Assert.Equal(Vector3.Dot(vector, axis), Vector3.Dot(rotated, axis), 3);
+    }
+
+    [Fact]
+    public void TestVector3ProjectUnprojectPerspective()
+    {
+        var vector = new Vector3(1.5f, -0.5f, 2.0f);
+        var view = Matrix.RotationY(0.3f) * Matrix.Translation(0.0f, 0.0f, 5.0f);
+        var projection = Matrix.PerspectiveFovRH(MathUtil.PiOverFour, 800.0f / 600.0f, 0.1f, 100.0f);
+        var worldViewProj = view * projection;
+
+        var projected = Vector3.Project(vector, 0, 0, 800, 600, 0, 1, worldViewProj);
+        var unprojected = Vector3.Unproject(projected, 0, 0, 800, 600, 0, 1, worldViewProj);
+
+        Assert.Equal(vector.X, unprojected.X, 2);
+        Assert.Equal(vector.Y, unprojected.Y, 2);
+        Assert.Equal(vector.Z, unprojected.Z, 2);
+    }
+
+    [Fact]
+    public void TestVector3TransformArrayNullAndLengthMismatch()
+    {
+        var rotation = Quaternion.Identity;
+        var matrix = Matrix.Identity;
+        var source = new[] { Vector3.UnitX };
+        var tooSmallVector3 = Array.Empty<Vector3>();
+        var tooSmallVector4 = Array.Empty<Vector4>();
+
+        Assert.Throws<ArgumentNullException>(() => Vector3.Transform(null!, ref rotation, new Vector3[1]));
+        Assert.Throws<ArgumentNullException>(() => Vector3.Transform(source, ref rotation, (Vector3[])null!));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Vector3.Transform(source, ref rotation, tooSmallVector3));
+
+        Assert.Throws<ArgumentNullException>(() => Vector3.Transform(null!, ref matrix, new Vector4[1]));
+        Assert.Throws<ArgumentNullException>(() => Vector3.Transform(source, ref matrix, (Vector4[])null!));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Vector3.Transform(source, ref matrix, tooSmallVector4));
+
+        Assert.Throws<ArgumentNullException>(() => Vector3.TransformCoordinate(null!, ref matrix, new Vector3[1]));
+        Assert.Throws<ArgumentNullException>(() => Vector3.TransformCoordinate(source, ref matrix, (Vector3[])null!));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Vector3.TransformCoordinate(source, ref matrix, tooSmallVector3));
+
+        Assert.Throws<ArgumentNullException>(() => Vector3.TransformNormal(null!, ref matrix, new Vector3[1]));
+        Assert.Throws<ArgumentNullException>(() => Vector3.TransformNormal(source, ref matrix, (Vector3[])null!));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Vector3.TransformNormal(source, ref matrix, tooSmallVector3));
+    }
+
+    [Fact]
+    public void TestVector3OrthogonalizeAndOrthonormalizeExceptions()
+    {
+        var source = new[] { Vector3.UnitX, Vector3.UnitY };
+        var tooSmall = new Vector3[1];
+
+        Assert.Throws<ArgumentNullException>(() => Vector3.Orthogonalize(new Vector3[2], null!));
+        Assert.Throws<ArgumentNullException>(() => Vector3.Orthogonalize(null!, source));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Vector3.Orthogonalize(tooSmall, source));
+
+        Assert.Throws<ArgumentNullException>(() => Vector3.Orthonormalize(new Vector3[2], null!));
+        Assert.Throws<ArgumentNullException>(() => Vector3.Orthonormalize(null!, source));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Vector3.Orthonormalize(tooSmall, source));
+    }
+
+    [Fact]
+    public void TestVector3MoveToZeroDistance()
+    {
+        var from = new Vector3(1.0f, 2.0f, 3.0f);
+        var to = new Vector3(1.0f, 2.0f, 3.0f);
+
+        var result = Vector3.MoveTo(from, to, 5.0f);
+
+        Assert.Equal(to, result);
+    }
 }

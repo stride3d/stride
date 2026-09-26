@@ -238,4 +238,135 @@ public class TestUInt4
         Assert.Equal(5.0f, vec4.Z);
         Assert.Equal(6.0f, vec4.W);
     }
+
+    [Fact]
+    public void TestUInt4SizeInBytes()
+    {
+        Assert.Equal(16, UInt4.SizeInBytes);
+    }
+
+    [Fact]
+    public void TestUInt4ToArray()
+    {
+        var v = new UInt4(7u, 13u, 21u, 4u);
+        var arr = v.ToArray();
+        Assert.Equal(4, arr.Length);
+        Assert.Equal(7u, arr[0]);
+        Assert.Equal(13u, arr[1]);
+        Assert.Equal(21u, arr[2]);
+        Assert.Equal(4u, arr[3]);
+    }
+
+    [Fact]
+    public void TestUInt4AddSubtractStaticValueOverloads()
+    {
+        var v1 = new UInt4(16u, 29u, 20u, 13u);
+        var v2 = new UInt4(4u, 11u, 5u, 7u);
+
+        var sum = UInt4.Add(v1, v2);
+        Assert.Equal(20u, sum.X);
+        Assert.Equal(40u, sum.Y);
+        Assert.Equal(25u, sum.Z);
+        Assert.Equal(20u, sum.W);
+
+        var diff = UInt4.Subtract(v1, v2);
+        Assert.Equal(12u, diff.X);
+        Assert.Equal(18u, diff.Y);
+        Assert.Equal(15u, diff.Z);
+        Assert.Equal(6u, diff.W);
+    }
+
+    [Fact]
+    public void TestUInt4UnaryPlus()
+    {
+        var v = new UInt4(4u, 9u, 1u, 6u);
+        var result = +v;
+        Assert.Equal(v, result);
+    }
+
+    [Fact]
+    public void TestUInt4Modulate()
+    {
+        var v1 = new UInt4(6u, 7u, 3u, 2u);
+        var v2 = new UInt4(3u, 4u, 5u, 6u);
+        var result = UInt4.Modulate(v1, v2);
+        Assert.Equal(18u, result.X);
+        Assert.Equal(28u, result.Y);
+        Assert.Equal(15u, result.Z);
+        Assert.Equal(12u, result.W);
+
+        UInt4.Modulate(ref v1, ref v2, out var result2);
+        Assert.Equal(result, result2);
+    }
+
+    [Fact]
+    public void TestUInt4EqualsObject()
+    {
+        var v1 = new UInt4(3u, 8u, 5u, 9u);
+        object v2 = new UInt4(3u, 8u, 5u, 9u);
+        object v3 = new UInt4(1u, 2u, 3u, 4u);
+        object notUInt4 = "not a UInt4";
+
+        Assert.True(v1.Equals(v2));
+        Assert.False(v1.Equals(v3));
+        Assert.False(v1.Equals(notUInt4));
+        Assert.False(v1.Equals((object?)null));
+    }
+
+    [Fact]
+    public void TestUInt4ExplicitConversions()
+    {
+        var v = new UInt4(6u, 11u, 4u, 9u);
+
+        var vec2 = (Vector2)v;
+        Assert.Equal(6.0f, vec2.X);
+        Assert.Equal(11.0f, vec2.Y);
+
+        var vec3 = (Vector3)v;
+        Assert.Equal(6.0f, vec3.X);
+        Assert.Equal(11.0f, vec3.Y);
+        Assert.Equal(4.0f, vec3.Z);
+    }
+
+    [Fact]
+    public void TestUInt4SystemNumericsVector4Conversion()
+    {
+        var sysVec = new System.Numerics.Vector4(2.9f, 7.4f, 3.6f, 1.2f);
+        var v = (UInt4)sysVec;
+        Assert.Equal(2u, v.X);
+        Assert.Equal(7u, v.Y);
+        Assert.Equal(3u, v.Z);
+        Assert.Equal(1u, v.W);
+
+        var backToSys = (System.Numerics.Vector4)v;
+        Assert.Equal(2.0f, backToSys.X);
+        Assert.Equal(7.0f, backToSys.Y);
+        Assert.Equal(3.0f, backToSys.Z);
+        Assert.Equal(1.0f, backToSys.W);
+    }
+
+    [Fact]
+    public void TestUInt4ImplicitArrayConversions()
+    {
+        uint[] input = [7u, 13u, 21u, 4u];
+        UInt4 v = input;
+        Assert.Equal(7u, v.X);
+        Assert.Equal(13u, v.Y);
+        Assert.Equal(21u, v.Z);
+        Assert.Equal(4u, v.W);
+
+        uint[] output = v;
+        Assert.Equal(input, output);
+    }
+
+    [Fact]
+    public void TestUInt4Deconstruct()
+    {
+        var v = new UInt4(7u, 8u, 9u, 10u);
+        var (x, y, z, w) = v;
+        Assert.Equal(7u, x);
+        Assert.Equal(8u, y);
+        Assert.Equal(9u, z);
+        Assert.Equal(10u, w);
+    }
 }
