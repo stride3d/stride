@@ -47,7 +47,7 @@ namespace Stride.Animations
         /// <value>
         /// <see langword="true"/> if keyframe values are blittable; otherwise, <see langword="false"/>.
         /// </value>
-        public abstract bool IsElementBlittable { get; }
+        internal abstract bool IsElementBlittable { get; }
 
         [DataMemberIgnore]
         public abstract IReadOnlyList<CompressedTimeSpan> Keys { get; }
@@ -108,7 +108,7 @@ namespace Stride.Animations
 
         /// <inheritdoc/>
         [DataMemberIgnore]
-        public override bool IsElementBlittable => !RuntimeHelpers.IsReferenceOrContainsReferences<T>();
+        internal override bool IsElementBlittable => !RuntimeHelpers.IsReferenceOrContainsReferences<T>();
 
         /// <inheritdoc/>
         [DataMemberIgnore]

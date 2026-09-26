@@ -24,7 +24,7 @@ namespace Stride.Animations
         public string[] TargetKeys { get; set; }
 
         public abstract Type ElementType { get; }
-        public abstract bool IsElementBlittable { get; }
+        internal abstract bool IsElementBlittable { get; }
         internal abstract AnimationCurveEvaluatorOptimizedGroup CreateEvaluator();
     }
 
@@ -54,7 +54,7 @@ namespace Stride.Animations
 
         public override Type ElementType => typeof(T);
 
-        public override bool IsElementBlittable => !RuntimeHelpers.IsReferenceOrContainsReferences<T>();
+        internal override bool IsElementBlittable => !RuntimeHelpers.IsReferenceOrContainsReferences<T>();
 
         public static AnimationData<T> FromAnimationChannels(IList<KeyValuePair<string, AnimationCurve<T>>> animationChannelsWithName)
         {
