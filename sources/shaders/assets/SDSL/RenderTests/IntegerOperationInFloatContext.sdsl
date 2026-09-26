@@ -1,0 +1,16 @@
+// PSMain(ExpectedResult=#4000FFFF)
+
+namespace Stride.Shaders.Tests;
+
+// Integer operations keep their operands' types inside a float constructor: 5 / 2 is 2, 1 / 2 is 0,
+// and 5u - 6 wraps to a large uint.
+shader IntegerOperationInFloatContext
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    void PSMain()
+    {
+        uint five = 5;
+        streams.ColorTarget = float4(five / 2, 1 / 2, five - 6, 8) * 32 / 255.0;
+    }
+}
