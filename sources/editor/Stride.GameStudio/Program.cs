@@ -419,6 +419,11 @@ public static class Program
                     CompilerCrashRouting.SetOwnerWindow(mainWindow);
                     return;
                 }
+                // The session asked for did not load (cancelled or failed): exit instead of offering another one,
+                // once the user has closed the windows that report why.
+                await WaitForWindowsClosedAsync();
+                app.Shutdown();
+                return;
             }
 
             // No session successfully loaded, open the new/open project window
@@ -475,15 +480,7 @@ public static class Program
 
             if (completed != true)
             {
-                var windowsClosed = new List<Task>();
-                foreach (var window in Application.Current.Windows.Cast<Window>().Where(x => x.IsLoaded))
-                {
-                    var tcs = new TaskCompletionSource<int>();
-                    window.Unloaded += (s, e) => tcs.SetResult(0);
-                    windowsClosed.Add(tcs.Task);
-                }
-
-                await Task.WhenAll(windowsClosed);
+                await WaitForWindowsClosedAsync();
 
                 // When a project has been partially loaded, it might already have initialized some plugin that could conflict with
                 // the next attempt to start something. Better start the application again.
@@ -511,6 +508,18 @@ public static class Program
             // Don't shut down silently — report the failure so the user sees what went wrong.
             HandleException(ex, 0);
         }
+    }
+
+    private static Task WaitForWindowsClosedAsync()
+    {
+        var windowsClosed = new List<Task>();
+        foreach (var window in Application.Current.Windows.Cast<Window>().Where(x => x.IsLoaded))
+        {
+            var tcs = new TaskCompletionSource<int>();
+            window.Unloaded += (s, e) => tcs.SetResult(0);
+            windowsClosed.Add(tcs.Task);
+        }
+        return Task.WhenAll(windowsClosed);
     }
 
     /// <summary>
