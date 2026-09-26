@@ -3,7 +3,6 @@
 #pragma warning disable SA1402 // File may only contain a single class
 using System;
 using System.Runtime.CompilerServices;
-using Stride.Core;
 using Stride.Core.Collections;
 using Stride.Core.Mathematics;
 using Stride.Updater;
@@ -36,7 +35,7 @@ namespace Stride.Animations
                 return new AnimationCurveEvaluatorOptimizedVector4Group();
 
             // Blittable
-            if (BlittableHelper.IsBlittable(typeof(T)))
+            if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
                 return new AnimationCurveEvaluatorOptimizedBlittableGroup<T>();
 
             // Objects

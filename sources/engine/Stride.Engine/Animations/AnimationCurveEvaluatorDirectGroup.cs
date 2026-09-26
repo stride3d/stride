@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #pragma warning disable SA1402 // File may only contain a single class
 using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Stride.Core.Collections;
 using Stride.Core.Mathematics;
@@ -28,7 +29,7 @@ namespace Stride.Animations
                 return new AnimationCurveEvaluatorDirectVector4Group();
 
             // Blittable
-            if (BlittableHelper.IsBlittable(typeof(T)))
+            if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
                 return new AnimationCurveEvaluatorDirectBlittableGroup<T>();
 
             // Objects
