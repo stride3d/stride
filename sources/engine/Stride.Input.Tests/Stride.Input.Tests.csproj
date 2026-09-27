@@ -26,6 +26,7 @@
     <Compile Include="TestCaptureEdgeTracker.cs" />
     <Compile Include="TestInputCapture.cs" />
     <Compile Include="TestKeyboardCapture.cs" />
+    <Compile Include="TestPointerCapture.cs" />
     <Compile Include="TestQueryMasking.cs" />
     <Compile Include="ThirdPartyDevices.cs" />
     <Compile Include="XunitAttributes.cs" />
