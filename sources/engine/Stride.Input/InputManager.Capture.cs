@@ -46,6 +46,12 @@ namespace Stride.Input
         }
 
         /// <summary>
+        /// Applies the Input section of the game settings. Missing settings keep the defaults.
+        /// </summary>
+        /// <param name="settings">The settings, or <c>null</c>.</param>
+        public void ApplySettings(InputSettings settings) => MaskCapturedInput = settings?.MaskCapturedInput ?? true;
+
+        /// <summary>
         /// Captures a whole device for an owner, so that game-facing reads of the device report no input.
         /// </summary>
         /// <param name="device">The device to capture.</param>

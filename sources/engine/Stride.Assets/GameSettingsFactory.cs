@@ -7,6 +7,7 @@ using Stride.Core.Serialization;
 using Stride.Assets.Textures;
 using Stride.Audio;
 using Stride.Graphics;
+using Stride.Input;
 using Stride.Navigation;
 using Stride.Physics;
 using Stride.Streaming;
@@ -25,6 +26,7 @@ namespace Stride.Assets
 
             asset.GetOrCreate<AudioEngineSettings>();
             asset.GetOrCreate<EditorSettings>();
+            asset.GetOrCreate<InputSettings>();
             asset.GetOrCreate<RenderingSettings>();
             asset.GetOrCreate<StreamingSettings>();
             asset.GetOrCreate<TextureSettings>();
