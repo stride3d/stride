@@ -37,6 +37,9 @@ namespace Stride.Input
 
         public int Priority { get; set; }
 
+        /// <inheritdoc/>
+        public DeviceCaptureState CaptureState { get; } = new DeviceCaptureState();
+
         public abstract IInputSource Source { get; }
 
         public virtual void Update(List<InputEvent> inputEvents)

@@ -791,6 +791,7 @@ namespace Stride.Input
         private void OnInputDeviceAdded(IInputSource source, IInputDevice device)
         {
             devices.Add(device);
+            device.CaptureState.SetMaskingEnabled(maskCapturedInput);
             if (!devicesById.TryAdd(device.Id, device))
                 throw new InvalidOperationException($"Device with Id {device.Id}({device.Name}) already registered to {devicesById[device.Id].Name}");
 
@@ -829,6 +830,7 @@ namespace Stride.Input
                 throw new InvalidOperationException("Input device was not registered");
 
             var source = device.Source;
+            DropCapture(device);
             devices.Remove(device);
             devicesById.Remove(device.Id);
 

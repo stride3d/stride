@@ -35,6 +35,9 @@ namespace Stride.Input
 
         public int Priority { get; set; }
 
+        /// <inheritdoc/>
+        public DeviceCaptureState CaptureState { get; } = new DeviceCaptureState();
+
         public abstract IInputSource Source { get; }
         public abstract IReadOnlyList<GameControllerButtonInfo> ButtonInfos { get; }
         public abstract IReadOnlyList<GameControllerAxisInfo> AxisInfos { get; }

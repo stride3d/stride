@@ -21,6 +21,9 @@ namespace Stride.Input
         public bool CanChangeIndex { get; protected set; } = true;
         public int Priority { get; set; }
 
+        /// <inheritdoc/>
+        public DeviceCaptureState CaptureState { get; } = new DeviceCaptureState();
+
         public int Index
         {
             get { return index; }
