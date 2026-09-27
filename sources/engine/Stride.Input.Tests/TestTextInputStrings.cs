@@ -81,6 +81,26 @@ public unsafe class TestTextInputStrings
         }
     }
 
+    [Theory]
+    [InlineData("a")]
+    [InlineData("é")]
+    [InlineData("日本")]
+    [InlineData("")]
+    public void DecodesUtf16(string expected)
+    {
+        Assert.Equal(expected, TextInputStrings.FromUtf16(expected.ToCharArray()));
+    }
+
+    [Fact]
+    public void DecodingSingleAsciiUtf16CharacterDoesNotAllocate()
+    {
+        var text = new[] { 'a' };
+
+        var measurement = GCMeasure.Run(() => TextInputStrings.FromUtf16(text));
+
+        Assert.True(measurement.AllocatedBytes == 0, $"Decoding \"a\" allocated. Measured {measurement}.");
+    }
+
     private static byte[] NullTerminatedBuffer(string text)
     {
         var buffer = new byte[SDLTextBufferSize];

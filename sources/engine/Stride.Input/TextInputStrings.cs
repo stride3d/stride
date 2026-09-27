@@ -34,6 +34,18 @@ internal static class TextInputStrings
         return Encoding.UTF8.GetString(bytes);
     }
 
+    /// <summary>
+    ///   Creates a string from UTF-16 text.
+    /// </summary>
+    /// <param name="text">The text, without a terminator.</param>
+    public static string FromUtf16(ReadOnlySpan<char> text)
+    {
+        if (text.Length == 1 && text[0] < AsciiCount)
+            return SingleAsciiCharacters[text[0]];
+
+        return new string(text);
+    }
+
     private static string[] CreateSingleAsciiCharacters()
     {
         var strings = new string[AsciiCount];
