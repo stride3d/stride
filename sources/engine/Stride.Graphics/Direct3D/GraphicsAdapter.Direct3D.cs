@@ -269,7 +269,7 @@ namespace Stride.Graphics
             ID3D11DeviceContext* deviceContext = null;
 
             D3DFeatureLevel matchedFeatureLevel = 0;
-            var featureLevel = (D3DFeatureLevel) graphicsProfile;
+            var featureLevel = graphicsProfile.ToFeatureLevel();
             var featureLevels = stackalloc D3DFeatureLevel[] { featureLevel };
 
             HResult result = d3d11.CreateDevice(pAdapter: null, D3DDriverType.Hardware, Software: IntPtr.Zero,

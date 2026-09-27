@@ -24,7 +24,6 @@
 // THE SOFTWARE.
 
 using System;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -32,8 +31,6 @@ using System.Runtime.InteropServices;
 using Silk.NET.Core.Native;
 using Silk.NET.DXGI;
 using Silk.NET.Direct3D11;
-
-using Stride.Core.UnsafeExtensions;
 
 namespace Stride.Graphics;
 
@@ -92,24 +89,25 @@ public sealed unsafe partial class GraphicsOutput
 
         var d3d11 = D3D11.GetApi(window: null);
 
-        // NOTE: Assume the same underlying integer type
-        Debug.Assert(sizeof(GraphicsProfile) == sizeof(D3DFeatureLevel));
-        var featureLevels = targetProfiles.As<GraphicsProfile, D3DFeatureLevel>();
+        var featureLevels = targetProfiles.ToFeatureLevels();
 
         IDXGIAdapter* nativeAdapter = (IDXGIAdapter*) Adapter.NativeAdapter.Handle;
         ID3D11Device* deviceTemp = null;
         ID3D11DeviceContext* deviceContext = null;
         D3DFeatureLevel createdFeatureLevel = default;
 
-        d3d11.CreateDevice(nativeAdapter, D3DDriverType.Unknown, Software: 0, Flags: 0,
-                           in featureLevels.GetReference(), (uint) featureLevels.Length,
-                           D3D11.SdkVersion,
-                           ref deviceTemp, ref createdFeatureLevel, ref deviceContext);
+        HResult result = d3d11.CreateDevice(nativeAdapter, D3DDriverType.Unknown, Software: 0, Flags: 0,
+                                            in featureLevels[0], (uint) featureLevels.Length,
+                                            D3D11.SdkVersion,
+                                            ref deviceTemp, ref createdFeatureLevel, ref deviceContext);
+
+        if (result.IsFailure)
+            ThrowNoCompatibleProfile(result, Adapter, targetProfiles);
 
         ModeDesc modeDescription = modeToMatch.ToDescription();
 
         Unsafe.SkipInit(out ModeDesc closestDescription);
-        HResult result = dxgiOutput->FindClosestMatchingMode(in modeDescription, ref closestDescription, (IUnknown*) deviceTemp);
+        result = dxgiOutput->FindClosestMatchingMode(in modeDescription, ref closestDescription, (IUnknown*) deviceTemp);
 
         if (result.IsFailure)
             ThrowNoCompatibleProfile(result, Adapter, targetProfiles);
