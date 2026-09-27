@@ -20,6 +20,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AdvancedInputTest.cs" />
+    <Compile Include="GCMeasurement.cs" />
+    <Compile Include="HeadlessInput.cs" />
     <Compile Include="XunitAttributes.cs" />
     <Compile Include="InputTestBase.cs" />
     <Compile Include="SensorGameTest.cs" />
