@@ -52,6 +52,11 @@ internal static class Launcher
 
     private static LauncherErrorCode ProcessAction(LauncherArguments args)
     {
+        // Uninstalling (run by the setup) doesn't take the single-instance lock, so that it can offer to close a running
+        // launcher, and doesn't create the main window, whose view model would look for launcher updates
+        if (args.Actions.Contains(LauncherArguments.ActionType.Uninstall))
+            return Uninstall();
+
         var result = LauncherErrorCode.UnknownError;
 
         try
@@ -81,23 +86,8 @@ internal static class Launcher
 
         CancellationToken AppMain(App app)
         {
-            _ = AppMainAsync(app.cts);
+            result = TryRun(app.cts);
             return app.cts.Token;
-        }
-
-        async Task AppMainAsync(CancellationTokenSource cts)
-        {
-            foreach (var action in args.Actions)
-            {
-                result = action switch
-                {
-                    LauncherArguments.ActionType.Run => TryRun(cts),
-                    LauncherArguments.ActionType.Uninstall => await UninstallAsync(cts),
-                    _ => LauncherErrorCode.UnknownError,// Unknown action
-                };
-                if (result < LauncherErrorCode.Success)
-                    break;
-            }
         }
 
         static void DisplayError(string message, MessageBoxImage image)
@@ -144,7 +134,34 @@ internal static class Launcher
         return LauncherErrorCode.Success;
     }
 
-    private static async Task<LauncherErrorCode> UninstallAsync(CancellationTokenSource cts)
+    private static LauncherErrorCode Uninstall()
+    {
+        var result = LauncherErrorCode.UnknownError;
+        Program.RunNewApp<MinimalApp>(AppMain);
+        return result;
+
+        CancellationToken AppMain(Application app)
+        {
+            var cts = new CancellationTokenSource();
+            _ = RunAsync(cts);
+            return cts.Token;
+        }
+
+        // The result is set before the app stops: its loop wouldn't run what comes after
+        async Task RunAsync(CancellationTokenSource cts)
+        {
+            try
+            {
+                result = await UninstallAsync();
+            }
+            finally
+            {
+                await cts.CancelAsync();
+            }
+        }
+    }
+
+    private static async Task<LauncherErrorCode> UninstallAsync()
     {
         try
         {
@@ -177,10 +194,6 @@ internal static class Launcher
         catch (Exception)
         {
             return LauncherErrorCode.ErrorWhileUninstalling;
-        }
-        finally
-        {
-            await cts.CancelAsync();
         }
 
         static async Task<bool> DisplayMessageAsync(string message)
