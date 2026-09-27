@@ -51,6 +51,7 @@ namespace Stride.Input
         private readonly List<IInputDevice> devices = new List<IInputDevice>();
 
         private readonly List<InputEvent> events = new List<InputEvent>();
+        private readonly MaskedEventList<InputEvent> maskedEvents;
         private readonly List<GestureEvent> currentGestureEvents = new List<GestureEvent>();
 
         private readonly Dictionary<GestureConfig, GestureRecognizer> gestureConfigToRecognizer = new Dictionary<GestureConfig, GestureRecognizer>();
@@ -84,6 +85,10 @@ namespace Stride.Input
         /// <param name="gameContext">The game context.</param>
         public InputManager()
         {
+            maskedEvents = new MaskedEventList<InputEvent>(this, events);
+            maskedKeyEvents = new MaskedEventList<KeyEvent>(this, keyEvents);
+            maskedPointerEvents = new MaskedEventList<PointerEvent>(this, pointerEvents);
+
             Gestures = new TrackingCollection<GestureConfig>();
             Gestures.CollectionChanged += GesturesOnCollectionChanged;
 
@@ -145,7 +150,8 @@ namespace Stride.Input
         /// <summary>
         /// All input events that happened since the last frame
         /// </summary>
-        public IReadOnlyList<InputEvent> Events => events;
+        /// <remarks>Events from captured devices and pointers are left out while <see cref="MaskCapturedInput"/> is enabled.</remarks>
+        public IReadOnlyList<InputEvent> Events => maskedEvents;
 
         /// <summary>
         /// Gets the collection of gesture events since the previous updates.
@@ -419,6 +425,7 @@ namespace Stride.Input
 
         public void Update(GameTime gameTime)
         {
+            FrameIndex++;
             ResetGlobalInputState();
 
             // Recycle input event to reduce garbage generation
@@ -454,6 +461,9 @@ namespace Stride.Input
 
                 router.RouteEvent(evt);
             }
+
+            // Let capture owners decide this frame's captures before game-facing state is built
+            ResolvingCapture?.Invoke(this, EventArgs.Empty);
 
             // Update virtual buttons
             UpdateVirtualButtonStates();
@@ -990,7 +1000,7 @@ namespace Stride.Input
 
             foreach (var gestureRecognizer in gestureConfigToRecognizer.Values)
             {
-                gestureRecognizer.ProcessPointerEvents(elapsedGameTime, pointerEvents, currentGestureEvents);
+                gestureRecognizer.ProcessPointerEvents(elapsedGameTime, GetGesturePointerEvents(), currentGestureEvents);
             }
         }
 

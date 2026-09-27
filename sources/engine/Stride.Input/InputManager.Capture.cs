@@ -2,12 +2,14 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 
 namespace Stride.Input
 {
     public partial class InputManager
     {
         private bool maskCapturedInput = true;
+        private readonly List<PointerEvent> gesturePointerEvents = new List<PointerEvent>();
 
         /// <summary>
         /// Raised when the owner that holds a device, or one pointer of a device, changes.
@@ -15,6 +17,12 @@ namespace Stride.Input
         public event EventHandler<DeviceCaptureChangedEventArgs> CaptureChanged;
 
         internal int CaptureVersion { get; private set; }
+
+        /// <summary>
+        /// Raised during <see cref="Update"/> after input events are routed to listeners and before game-facing state is built.
+        /// Owners decide the captures for the frame here.
+        /// </summary>
+        public event EventHandler ResolvingCapture;
 
         /// <summary>
         /// Gets or sets a value indicating whether game-facing reads hide captured devices and pointers. The default is <c>true</c>.
@@ -144,6 +152,33 @@ namespace Stride.Input
                         ReleasePointer(pointer, pointerId, owner);
                 }
             }
+        }
+
+        internal int FrameIndex { get; private set; }
+
+        /// <summary>
+        /// Determines whether an input event comes from a masked device, or from a masked pointer of a pointer device.
+        /// </summary>
+        internal static bool IsMasked(InputEvent inputEvent)
+        {
+            var state = inputEvent.Device?.CaptureState;
+            if (state == null)
+                return false;
+
+            return inputEvent is PointerEvent pointerEvent ? state.IsPointerMasked(pointerEvent.PointerId) : state.IsMasked;
+        }
+
+        private static bool IsMaskedDevice(IInputDevice device) => device != null && device.CaptureState.IsMasked;
+
+        private List<PointerEvent> GetGesturePointerEvents()
+        {
+            gesturePointerEvents.Clear();
+            foreach (var pointerEvent in pointerEvents)
+            {
+                if (!IsMasked(pointerEvent))
+                    gesturePointerEvents.Add(pointerEvent);
+            }
+            return gesturePointerEvents;
         }
 
         private void OnCaptureChanged(IInputDevice device, int? pointerId, object previousOwner, object newOwner)
