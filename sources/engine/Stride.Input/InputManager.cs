@@ -1048,38 +1048,44 @@ namespace Stride.Input
 
         private class InputEventRouter<TEventType> : IInputEventRouter where TEventType : InputEvent, new()
         {
-            private readonly List<IInputEventListener> listeners = new List<IInputEventListener>();
+            // Replaced rather than mutated, so an event being routed keeps the listeners it started with
+            private IInputEventListener<TEventType>[] listeners = Array.Empty<IInputEventListener<TEventType>>();
 
             public void RouteEvent(InputEvent evt)
             {
-                var snapshot = listeners.ToArray();
-                foreach (var gesture in snapshot)
+                var typedEvent = (TEventType)evt;
+                foreach (var listener in listeners)
                 {
-                    ((IInputEventListener<TEventType>)gesture).ProcessEvent((TEventType)evt);
+                    listener.ProcessEvent(typedEvent);
                 }
             }
 
             public void TryAddListener(IInputEventListener listener)
             {
-                var specific = listener as IInputEventListener<TEventType>;
-                if (specific != null && IndexOf(specific) < 0)
+                if (listener is IInputEventListener<TEventType> specific && IndexOf(specific) < 0)
                 {
-                    listeners.Add(specific);
+                    var newListeners = new IInputEventListener<TEventType>[listeners.Length + 1];
+                    listeners.CopyTo(newListeners, 0);
+                    newListeners[^1] = specific;
+                    listeners = newListeners;
                 }
             }
 
             public void RemoveListener(IInputEventListener listener)
             {
                 var index = IndexOf(listener);
-                if (index >= 0)
-                {
-                    listeners.RemoveAt(index);
-                }
+                if (index < 0)
+                    return;
+
+                var newListeners = new IInputEventListener<TEventType>[listeners.Length - 1];
+                Array.Copy(listeners, 0, newListeners, 0, index);
+                Array.Copy(listeners, index + 1, newListeners, index, listeners.Length - index - 1);
+                listeners = newListeners;
             }
 
             private int IndexOf(IInputEventListener listener)
             {
-                for (int i = 0; i < listeners.Count; i++)
+                for (int i = 0; i < listeners.Length; i++)
                 {
                     if (ReferenceEquals(listeners[i], listener))
                         return i;

@@ -23,6 +23,7 @@
     <Compile Include="GCMeasurement.cs" />
     <Compile Include="HeadlessInput.cs" />
     <Compile Include="TestInputListeners.cs" />
+    <Compile Include="TestInputRoutingAllocation.cs" />
     <Compile Include="XunitAttributes.cs" />
     <Compile Include="InputTestBase.cs" />
     <Compile Include="SensorGameTest.cs" />
