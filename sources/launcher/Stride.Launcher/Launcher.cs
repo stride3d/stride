@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Globalization;
-using System.Reflection;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input.Platform;
@@ -47,8 +46,7 @@ internal static class Launcher
 
     internal static NugetStore InitializeNugetStore()
     {
-        var thisExeDirectory = new UFile(Assembly.GetEntryAssembly()!.Location).GetFullDirectory().ToOSPath();
-        var store = new NugetStore(thisExeDirectory);
+        var store = new NugetStore(Program.GetExecutableDirectory());
         return store;
     }
 
@@ -151,7 +149,7 @@ internal static class Launcher
         try
         {
             // Kill all running processes
-            var path = new UFile(Assembly.GetEntryAssembly()!.Location).GetFullDirectory().ToOSPath();
+            var path = Program.GetExecutableDirectory();
             if (!await UninstallHelper.CloseProcessesInPathAsync(DisplayMessageAsync, "Stride", path))
                 return LauncherErrorCode.UninstallCancelled; // User cancelled
 
