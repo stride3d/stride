@@ -38,6 +38,20 @@ public class TestKeyboardCapture
     }
 
     [Fact]
+    public void KeyPressedInTheFrameACapturePhaseCaptureBeginsIsNeverSeen()
+    {
+        using var headless = new HeadlessInput();
+        var owner = new object();
+        headless.Input.ResolvingCapture += (_, _) => headless.Input.TryCapture(headless.Keyboard, owner);
+
+        headless.Keyboard.SimulateDown(Keys.W);
+        headless.Update();
+
+        Assert.False(headless.Input.IsKeyPressed(Keys.W));
+        Assert.False(headless.Input.IsKeyReleased(Keys.W));
+    }
+
+    [Fact]
     public void KeyRepeatAfterCaptureEndsIsNotANewPress()
     {
         using var headless = new HeadlessInput();

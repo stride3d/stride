@@ -42,6 +42,19 @@ public class TestCaptureEdgeTracker
     }
 
     [Fact]
+    public void CaptureBeginDoesNotReleaseKeysPressedThisFrame()
+    {
+        var (tracker, down, pressed, _, capture) = Create();
+        down.Add(Keys.W);
+        pressed.Add(Keys.W);
+        capture.ChangingBeforeGameReads = true;
+
+        capture.SetOwner(new object(), 0);
+
+        Assert.DoesNotContain(Keys.W, tracker.Released);
+    }
+
+    [Fact]
     public void KeyHeldThroughCaptureEndIsHiddenUntilPressedAgain()
     {
         var (tracker, down, pressed, released, capture) = Create();

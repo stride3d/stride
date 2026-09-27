@@ -9,6 +9,7 @@ namespace Stride.Input
     public partial class InputManager
     {
         private bool maskCapturedInput = true;
+        private bool resolvingCapture;
         private readonly List<PointerEvent> gesturePointerEvents = new List<PointerEvent>();
 
         /// <summary>
@@ -73,7 +74,9 @@ namespace Stride.Input
             if (previous != null && !ReferenceEquals(previous, owner) && priority <= state.Priority)
                 return false;
 
+            state.ChangingBeforeGameReads = resolvingCapture;
             state.SetOwner(owner, priority);
+            state.ChangingBeforeGameReads = false;
             if (!ReferenceEquals(previous, owner))
                 OnCaptureChanged(device, null, previous, owner);
             return true;

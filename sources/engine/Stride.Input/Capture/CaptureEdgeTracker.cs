@@ -12,7 +12,7 @@ namespace Stride.Input;
 /// </summary>
 /// <remarks>
 ///   <para>
-///     While the device is masked, nothing is down or pressed. When masking begins, everything that was down
+///     While the device is masked, nothing is down or pressed. When masking begins, everything that was already down
 ///     is reported as released until the next device update, so the game never sees input stuck down.
 ///   </para>
 ///   <para>
@@ -71,7 +71,8 @@ internal sealed class CaptureEdgeTracker<T>
         {
             foreach (var item in rawDown)
             {
-                if (!suppressed.Contains(item))
+                // Input pressed this frame was never seen by the game, so it gets no release either
+                if (!suppressed.Contains(item) && !(capture.ChangingBeforeGameReads && rawNewPresses.Contains(item)))
                     releasedOnCapture.Add(item);
             }
             suppressed.Clear();

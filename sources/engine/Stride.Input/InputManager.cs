@@ -463,7 +463,15 @@ namespace Stride.Input
             }
 
             // Let capture owners decide this frame's captures before game-facing state is built
-            ResolvingCapture?.Invoke(this, EventArgs.Empty);
+            resolvingCapture = true;
+            try
+            {
+                ResolvingCapture?.Invoke(this, EventArgs.Empty);
+            }
+            finally
+            {
+                resolvingCapture = false;
+            }
 
             // Update virtual buttons
             UpdateVirtualButtonStates();

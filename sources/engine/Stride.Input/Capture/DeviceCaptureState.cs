@@ -53,6 +53,12 @@ public sealed class DeviceCaptureState
     /// </summary>
     internal bool QueriesMustMask => IsMasked && !DeviceMasksOwnState;
 
+    /// <summary>
+    ///   Set by <see cref="InputManager"/> while capture changes happen before game code has read the current frame,
+    ///   during its capture phase. Input pressed in that frame was never seen, so it gets no release edge.
+    /// </summary>
+    internal bool ChangingBeforeGameReads { get; set; }
+
     internal event Action<bool> MaskChanged;
 
     /// <summary>
