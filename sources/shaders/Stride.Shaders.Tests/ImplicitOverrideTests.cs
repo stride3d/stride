@@ -7,12 +7,9 @@ using Stride.Shaders.Compilers.SDSL;
 namespace Stride.Shaders.Parsers.Tests;
 
 /// <summary>
-/// A method that implements an <c>abstract</c> one without the <c>override</c> keyword. The old
-/// mixer let the name and signature stand in for the keyword, so the engine's hair and subsurface
-/// scattering functions were written that way and worked; this mixer keeps the abstract method as
-/// the most derived member of its group and refuses to call it, which is how those two materials
-/// stopped compiling in 4.4. These tests pin both halves down: the keyword makes it work, and its
-/// absence fails with a message that names the abstract method, so a reader can find the missing keyword.
+/// A method with the signature of an inherited one must be marked <c>override</c>. Without it, the method
+/// would start a separate method group and calls through the base would never reach it, so the compiler
+/// reports it on the method itself.
 /// </summary>
 public class ImplicitOverrideTests : IDisposable
 {
@@ -30,15 +27,7 @@ public class ImplicitOverrideTests : IDisposable
         shader OverrideContract
         {
             abstract int Value();
-        }
-        """;
-
-    private const string ImplicitImplementation = """
-        namespace Stride.Shaders.Tests;
-
-        shader OverrideImplementation : OverrideContract
-        {
-            int Value() { return 7; }
+            int Offset() { return 0; }
         }
         """;
 
@@ -48,6 +37,26 @@ public class ImplicitOverrideTests : IDisposable
         shader OverrideImplementation : OverrideContract
         {
             override int Value() { return 7; }
+            override int Offset() { return 1; }
+        }
+        """;
+
+    private const string MissingAbstractOverride = """
+        namespace Stride.Shaders.Tests;
+
+        shader OverrideImplementation : OverrideContract
+        {
+            int Value() { return 7; }
+        }
+        """;
+
+    private const string MissingOverride = """
+        namespace Stride.Shaders.Tests;
+
+        shader OverrideImplementation : OverrideContract
+        {
+            override int Value() { return 7; }
+            int Offset() { return 1; }
         }
         """;
 
@@ -58,41 +67,39 @@ public class ImplicitOverrideTests : IDisposable
         {
             compose OverrideContract contract;
             RWBuffer<int> Out;
-            override void Compute() { Out[0] = contract.Value(); }
+            override void Compute() { Out[0] = contract.Value() + contract.Offset(); }
         }
         """;
 
     [Fact]
-    public void ExplicitOverrideOfAnAbstractMethodIsCalledThroughAComposition()
+    public void ExplicitOverridesAreCalledThroughAComposition()
     {
-        Write("OverrideContract", Contract);
-        Write("OverrideImplementation", ExplicitImplementation);
-        Write("OverrideRoot", Root);
-
-        var (ok, log) = Mix();
+        var (ok, log) = Mix(ExplicitImplementation);
         Assert.True(ok, log);
     }
 
-    // The shape of Stride.Rendering's hair and subsurface-scattering functions before they gained the
-    // keyword. Whether the mixer should accept it as the old one did is a language decision; until it
-    // does, the error must at least say which abstract method was left unimplemented.
     [Fact]
-    public void MissingOverrideOfAnAbstractMethodIsReportedByName()
+    public void MissingOverrideOfAnAbstractMethodIsReportedOnTheImplementation()
     {
-        Write("OverrideContract", Contract);
-        Write("OverrideImplementation", ImplicitImplementation);
-        Write("OverrideRoot", Root);
-
-        var (ok, log) = Mix();
+        var (ok, log) = Mix(MissingAbstractOverride);
         Assert.False(ok);
-        Assert.Contains("OverrideContract.Value", log);
+        Assert.Contains("SDSL0114: OverrideImplementation.Value() at line 5 implements abstract method OverrideContract.Value", log);
     }
 
-    private void Write(string name, string code)
-        => File.WriteAllText(Path.Combine(sourceDir.FullName, $"{name}.sdsl"), code);
-
-    private (bool ok, string log) Mix()
+    [Fact]
+    public void MissingOverrideOfAnInheritedMethodIsReportedOnTheImplementation()
     {
+        var (ok, log) = Mix(MissingOverride);
+        Assert.False(ok);
+        Assert.Contains("SDSL0115: OverrideImplementation.Offset() at line 6 hides inherited method OverrideContract.Offset", log);
+    }
+
+    private (bool ok, string log) Mix(string implementation)
+    {
+        Write("OverrideContract", Contract);
+        Write("OverrideImplementation", implementation);
+        Write("OverrideRoot", Root);
+
         var loader = new ShaderLoader(sourceDir.FullName, "./assets/Stride/SDSL");
         var source = new ShaderMixinSource
         {
@@ -105,4 +112,7 @@ public class ImplicitOverrideTests : IDisposable
 
         return (ok, string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
     }
+
+    private void Write(string name, string code)
+        => File.WriteAllText(Path.Combine(sourceDir.FullName, $"{name}.sdsl"), code);
 }
