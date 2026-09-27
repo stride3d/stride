@@ -13,6 +13,26 @@ namespace Stride.Input.Tests;
 public class TestInputListeners
 {
     [Fact]
+    public void ListenersAreInvokedInRegistrationOrder()
+    {
+        using var headless = new HeadlessInput();
+        var received = new List<string>();
+        var a = new RecordingListener("A", received);
+        var b = new RecordingListener("B", received);
+        var c = new RecordingListener("C", received);
+
+        headless.Input.AddListener(a);
+        headless.Input.AddListener(b);
+        headless.Input.AddListener(c);
+        headless.Input.RemoveListener(b);
+        headless.Input.AddListener(b);
+        headless.Keyboard.SimulateDown(Keys.Space);
+        headless.Update();
+
+        Assert.Equal(["A:Space", "C:Space", "B:Space"], received);
+    }
+
+    [Fact]
     public void AddingTheSameListenerTwiceDeliversEachEventOnce()
     {
         using var headless = new HeadlessInput();

@@ -465,6 +465,10 @@ namespace Stride.Input
         /// Registers an object that listens for certain types of events using the specialized versions of <see cref="IInputEventListener&lt;"/>
         /// </summary>
         /// <param name="listener">The listener to register</param>
+        /// <remarks>
+        /// Listeners receive each event in the order they were registered. Adding a listener that is already registered has no effect.
+        /// A listener added while an event is being routed receives events from the next one onwards.
+        /// </remarks>
         public void AddListener(IInputEventListener listener)
         {
             foreach (var router in eventRouters)
@@ -477,11 +481,14 @@ namespace Stride.Input
         /// Removes a previously registered event listener
         /// </summary>
         /// <param name="listener">The listener to remove</param>
+        /// <remarks>
+        /// A listener removed while an event is being routed still receives that event, but none after it.
+        /// </remarks>
         public void RemoveListener(IInputEventListener listener)
         {
             foreach (var pair in eventRouters)
             {
-                pair.Value.Listeners.Remove(listener);
+                pair.Value.RemoveListener(listener);
             }
         }
 
@@ -1030,23 +1037,23 @@ namespace Stride.Input
 
         private interface IInputEventRouter
         {
-            HashSet<IInputEventListener> Listeners { get; }
-
             void PoolEvent(InputEvent evt);
 
             void RouteEvent(InputEvent evt);
 
             void TryAddListener(IInputEventListener listener);
+
+            void RemoveListener(IInputEventListener listener);
         }
 
         private class InputEventRouter<TEventType> : IInputEventRouter where TEventType : InputEvent, new()
         {
-            public HashSet<IInputEventListener> Listeners { get; } = new HashSet<IInputEventListener>(ReferenceEqualityComparer<IInputEventListener>.Default);
+            private readonly List<IInputEventListener> listeners = new List<IInputEventListener>();
 
             public void RouteEvent(InputEvent evt)
             {
-                var listeners = Listeners.ToArray();
-                foreach (var gesture in listeners)
+                var snapshot = listeners.ToArray();
+                foreach (var gesture in snapshot)
                 {
                     ((IInputEventListener<TEventType>)gesture).ProcessEvent((TEventType)evt);
                 }
@@ -1055,10 +1062,29 @@ namespace Stride.Input
             public void TryAddListener(IInputEventListener listener)
             {
                 var specific = listener as IInputEventListener<TEventType>;
-                if (specific != null)
+                if (specific != null && IndexOf(specific) < 0)
                 {
-                    Listeners.Add(specific);
+                    listeners.Add(specific);
                 }
+            }
+
+            public void RemoveListener(IInputEventListener listener)
+            {
+                var index = IndexOf(listener);
+                if (index >= 0)
+                {
+                    listeners.RemoveAt(index);
+                }
+            }
+
+            private int IndexOf(IInputEventListener listener)
+            {
+                for (int i = 0; i < listeners.Count; i++)
+                {
+                    if (ReferenceEquals(listeners[i], listener))
+                        return i;
+                }
+                return -1;
             }
 
             public void PoolEvent(InputEvent evt)
