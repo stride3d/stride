@@ -67,6 +67,24 @@ namespace Stride.UI.Tests
         }
 
         [Fact]
+        public void ShiftSelectionWorksInAFocusedEditText()
+        {
+            var editText = new EditText { Text = "hello" };
+            editText.Select(5, 0);
+            ui.FocusedElement = editText;
+
+            keyboard.SimulateDown(Keys.LeftShift);
+            input.Update(gameTime);
+            ui.Update(gameTime);
+            keyboard.SimulateDown(Keys.Home);
+            input.Update(gameTime);
+            ui.Update(gameTime);
+
+            Assert.Equal(0, editText.SelectionStart);
+            Assert.Equal(5, editText.SelectionLength);
+        }
+
+        [Fact]
         public void LeavingFocusReturnsTheKeyboardToTheGame()
         {
             ui.FocusedElement = new Button();

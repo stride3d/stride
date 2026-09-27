@@ -70,7 +70,7 @@ namespace Stride.UI.Controls
         {
             if (Composition.Length > 0)
                 return; // Ignore keys if composing text
-            InterpretKey(args.Key, args.Input);
+            InterpretKey(args.Key, args);
         }
 
         internal override void OnTextInput(TextEventArgs args)
@@ -102,7 +102,7 @@ namespace Stride.UI.Controls
             inputManager.TextInput?.DisableTextInput();
         }
 
-        private void InterpretKey(Keys key, InputManager input)
+        private void InterpretKey(Keys key, KeyEventArgs args)
         {
             // delete and back space have same behavior when there is a selection 
             if (SelectionLength > 0 && (key == Keys.Delete || key == Keys.Back))
@@ -128,7 +128,7 @@ namespace Stride.UI.Controls
             }
 
             // select until home
-            if (key == Keys.Home && (input.IsKeyDown(Keys.LeftShift) || input.IsKeyDown(Keys.RightShift)))
+            if (key == Keys.Home && (args.IsKeyDown(Keys.LeftShift) || args.IsKeyDown(Keys.RightShift)))
             {
                 if (caretAtStart)
                     Select(0, selectionStart + SelectionLength, true);
@@ -138,7 +138,7 @@ namespace Stride.UI.Controls
             }
 
             // select until end
-            if (key == Keys.End && (input.IsKeyDown(Keys.LeftShift) || input.IsKeyDown(Keys.RightShift)))
+            if (key == Keys.End && (args.IsKeyDown(Keys.LeftShift) || args.IsKeyDown(Keys.RightShift)))
             {
                 if (caretAtStart)
                     Select(selectionStop, Text.Length- selectionStop, false);
@@ -162,7 +162,7 @@ namespace Stride.UI.Controls
             }
 
             // select backward 
-            if (key == Keys.Left && (input.IsKeyDown(Keys.LeftShift) || input.IsKeyDown(Keys.RightShift)))
+            if (key == Keys.Left && (args.IsKeyDown(Keys.LeftShift) || args.IsKeyDown(Keys.RightShift)))
             {
                 if (caretAtStart || selectionStart == selectionStop)
                 {
@@ -176,7 +176,7 @@ namespace Stride.UI.Controls
             }
 
             // select forward
-            if (key == Keys.Right && (input.IsKeyDown(Keys.LeftShift) || input.IsKeyDown(Keys.RightShift)))
+            if (key == Keys.Right && (args.IsKeyDown(Keys.LeftShift) || args.IsKeyDown(Keys.RightShift)))
             {
                 if (caretAtStart && selectionStart != selectionStop)
                     Select(selectionStart + 1, SelectionLength - 1, true);

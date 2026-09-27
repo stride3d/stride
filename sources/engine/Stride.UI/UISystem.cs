@@ -38,6 +38,7 @@ namespace Stride.UI
         private readonly List<KeyEvent> pendingKeyEvents = new List<KeyEvent>();
         private readonly List<TextInputEvent> pendingTextEvents = new List<TextInputEvent>();
         private readonly HashSet<Keys> downKeys = new HashSet<Keys>();
+        private readonly Core.Collections.IReadOnlySet<Keys> downKeysView;
 
         private UIElement focusedElement;
 
@@ -91,6 +92,7 @@ namespace Stride.UI
         public UISystem(IServiceRegistry registry)
             : base(registry)
         {
+            downKeysView = new Core.Collections.ReadOnlySet<Keys>(downKeys);
             var gameSystems = registry.GetService<IGameSystemCollection>();
             gameSystems?.Add(this);
         }
@@ -258,7 +260,7 @@ namespace Stride.UI
             foreach (var keyEvent in pendingKeyEvents)
             {
                 var key = keyEvent.Key;
-                var evt = new KeyEventArgs { Key = key, Input = input };
+                var evt = new KeyEventArgs { Key = key, Input = input, DownKeys = downKeysView };
                 if (enteredText)
                     continue; // Skip key events if text was entered
                 if (keyEvent.IsDown)
@@ -273,7 +275,7 @@ namespace Stride.UI
 
             foreach (var key in downKeys)
             {
-                FocusedElement?.RaiseKeyDownEvent(new KeyEventArgs { Key = key, Input = input });
+                FocusedElement?.RaiseKeyDownEvent(new KeyEventArgs { Key = key, Input = input, DownKeys = downKeysView });
             }
 
             pendingKeyEvents.Clear();
