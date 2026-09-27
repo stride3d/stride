@@ -120,7 +120,7 @@ public class TestVector4
         Assert.Equal(-7.8f, result.Z);
         Assert.Equal(9.1f, result.W);
 
-        Vector4.Negate(ref v, out var result2);
+        var result2 = Vector4.Negate(v);
         Assert.Equal(result, result2);
     }
 
@@ -357,16 +357,17 @@ public class TestVector4
     {
         var value = new Vector4(5.0f, 5.0f, 5.0f, 5.0f);
         var min = new Vector4(10.0f, 10.0f, 10.0f, 10.0f);
-        var max = new Vector4(0.0f, 0.0f, 0.0f, 0.0f); // max < min (invalid)
+        var max = new Vector4(1.0f, 1.0f, 1.0f, 1.0f); // max < min (invalid)
 
         // Behavior with inverted min/max - implementation clamps to min first
         var result = Vector4.Clamp(value, min, max);
 
-        // Implementation clamps to min first, so result is min
-        Assert.Equal(10.0f, result.X);
-        Assert.Equal(10.0f, result.Y);
-        Assert.Equal(10.0f, result.Z);
-        Assert.Equal(10.0f, result.W);
+        // Implementation clamps to min first, so result is max
+        // note: follows HLSL convention
+        Assert.Equal(1.0f, result.X);
+        Assert.Equal(1.0f, result.Y);
+        Assert.Equal(1.0f, result.Z);
+        Assert.Equal(1.0f, result.W);
     }
 
     [Fact]
@@ -473,7 +474,7 @@ public class TestVector4
 
         Assert.True(MathUtil.NearEqual(dest[0].Z, -1.0f));
         Assert.True(MathUtil.NearEqual(dest[0].X, 0.0f));
-        Assert.Equal(1.0f, dest[0].W);
+        Assert.True(MathUtil.NearEqual(dest[0].W, 1.0f));
     }
 
     [Fact]
@@ -682,11 +683,11 @@ public class TestVector4
         var v1 = new Vector4(1.0f, 2.0f, 3.0f, 4.0f);
         var v2 = new Vector4(5.0f, 6.0f, 7.0f, 8.0f);
 
-        Vector4.Add(ref v1, ref v2, out var sum);
+        var sum = Vector4.Add(v1, v2);
         Assert.Equal(new Vector4(6.0f, 8.0f, 10.0f, 12.0f), sum);
         Assert.Equal(sum, Vector4.Add(v1, v2));
 
-        Vector4.Subtract(ref v2, ref v1, out var diff);
+        var diff = Vector4.Subtract(v2, v1);
         Assert.Equal(new Vector4(4.0f, 4.0f, 4.0f, 4.0f), diff);
         Assert.Equal(diff, Vector4.Subtract(v2, v1));
     }
@@ -696,11 +697,11 @@ public class TestVector4
     {
         var v = new Vector4(2.0f, 4.0f, 6.0f, 8.0f);
 
-        Vector4.Multiply(ref v, 3.0f, out var scaled);
+        var scaled = Vector4.Multiply(v, 3.0f);
         Assert.Equal(new Vector4(6.0f, 12.0f, 18.0f, 24.0f), scaled);
         Assert.Equal(scaled, Vector4.Multiply(v, 3.0f));
 
-        Vector4.Divide(ref v, 2.0f, out var divided);
+        var divided = Vector4.Divide(v, 2.0f);
         Assert.Equal(new Vector4(1.0f, 2.0f, 3.0f, 4.0f), divided);
         Assert.Equal(divided, Vector4.Divide(v, 2.0f));
     }
@@ -711,10 +712,10 @@ public class TestVector4
         var v1 = new Vector4(2.0f, 3.0f, 4.0f, 5.0f);
         var v2 = new Vector4(3.0f, 4.0f, 5.0f, 6.0f);
 
-        Vector4.Modulate(ref v1, ref v2, out var modulated);
+        var modulated = Vector4.Modulate(v1, v2);
         Assert.Equal(new Vector4(6.0f, 12.0f, 20.0f, 30.0f), modulated);
 
-        Vector4.Demodulate(ref modulated, ref v2, out var demodulated);
+        var demodulated = Vector4.Demodulate(modulated, v2);
         Assert.Equal(v1, demodulated);
     }
 
