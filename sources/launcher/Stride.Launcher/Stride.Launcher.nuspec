@@ -8,9 +8,11 @@
     <license type="expression">MIT</license>
     <projectUrl>https://stride3d.net/</projectUrl>
     <copyright>&#169; Stride contributors and Silicon Studio Corp.</copyright>
+    <!-- ForceReinstallMinVersion is set by Stride.Launcher.Release.targets: 6.0.0 for pre-releases, so that launchers before 6.0
+         (which update to pre-releases too) reinstall from the release setup instead -->
     <description>Stride Launcher
 
-force-reinstall: 5.0.1 https://stride3d.net/files/StrideSetup.exe (note: used internally by launcher, please keep this line)
+force-reinstall: $ForceReinstallMinVersion$ https://stride3d.net/files/StrideSetup.exe (note: used internally by launcher, please keep this line)
 </description>
     <tags>internal</tags>
   </metadata>

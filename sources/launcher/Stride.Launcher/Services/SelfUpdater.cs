@@ -49,14 +49,14 @@ public static class SelfUpdater
         Environment.Exit(0);
     }
 
-    internal static Task SelfUpdate(IViewModelServiceProvider services, NugetStore store)
+    internal static Task SelfUpdate(IViewModelServiceProvider services, NugetStore store, bool includePrerelease)
     {
         return Task.Run(async () =>
         {
             var dispatcher = services.Get<IDispatcherService>();
             try
             {
-                await UpdateLauncherFiles(dispatcher, services.Get<IDialogService>(), store, CancellationToken.None);
+                await UpdateLauncherFiles(dispatcher, services.Get<IDialogService>(), store, includePrerelease, CancellationToken.None);
             }
             catch (Exception)
             {
@@ -112,13 +112,30 @@ public static class SelfUpdater
         }
     }
 
-    private static async Task UpdateLauncherFiles(IDispatcherService dispatcher, IDialogService dialogService, NugetStore store, CancellationToken cancellationToken)
+    /// <summary>
+    /// Whether the launcher at <paramref name="current"/> may update itself to <paramref name="candidate"/>: releases and
+    /// required intermediate "-req" versions always; pre-releases of its own version when it is one (6.0.1-beta1 gets
+    /// 6.0.1-beta2, then 6.0.1); other pre-releases only when the user opted in.
+    /// </summary>
+    internal static bool IsUpdateCandidate(PackageVersion candidate, PackageVersion current, bool includePrerelease)
     {
+        if (includePrerelease || IsRelease(candidate))
+            return true;
+        return !IsRelease(current) && candidate.Version == current.Version;
 
+        static bool IsRelease(PackageVersion version) => version.SpecialVersion.Length == 0 || version.SpecialVersion == "req";
+    }
+
+    private static async Task UpdateLauncherFiles(IDispatcherService dispatcher, IDialogService dialogService, NugetStore store, bool includePrerelease, CancellationToken cancellationToken)
+    {
         var version = new PackageVersion(Version);
         var productAttribute = (typeof(SelfUpdater).Assembly).GetCustomAttribute<AssemblyProductAttribute>();
         var packageId = productAttribute!.Product;
-        var packages = (await store.GetUpdates(new(packageId, version), true, true, cancellationToken)).OrderBy(x => x.Version);
+        // Pre-releases are fetched too so that "-req" versions stay visible, then filtered here
+        var packages = (await store.GetUpdates(new(packageId, version), true, true, cancellationToken))
+            .Where(x => IsUpdateCandidate(x.Version, version, includePrerelease))
+            .OrderBy(x => x.Version)
+            .ToList();
 
         // Force-reinstall downloads a Windows installer (StrideSetup.exe) — skip the probe on non-Windows.
         if (OperatingSystem.IsWindows())

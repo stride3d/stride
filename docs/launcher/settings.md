@@ -19,6 +19,7 @@ Both go through the [Stride.Core.Settings](../../sources/core/Stride.Core.Design
 | `Internal/Launcher/PreferredRuntime` | `""` (default entry) | User picks a .NET major in the runtime combo — set by `MainViewModel.SelectedRuntime` |
 | `Internal/Launcher/CurrentTabSessions` | `0` | User changes the active tab |
 | `Internal/Launcher/DeveloperVersions` | `[]` | Dev versions added manually by advanced users (no UI yet) — consumed at startup to add `StrideDevVersionViewModel` entries |
+| `Internal/Launcher/IncludePrereleaseUpdates` | `false` | User ticks "Receive launcher pre-releases", in the launcher settings (gear in the title bar) — see [self-update.md](self-update.md#pre-releases) |
 
 `LauncherSettings.Save()` writes every field back. The class is static because the launcher has a single profile and no concept of user accounts.
 
@@ -44,7 +45,7 @@ The MRU list is wrapped in `MostRecentlyUsedFileCollection` from the shared [Str
 
 ## EditorPath
 
-Path resolution goes through [Stride.Core.Assets.Editor.EditorPath](../../sources/editor/Stride.Core.Assets.Editor/EditorPath.cs), linked directly into the launcher project. On Windows this resolves to `%LocalAppData%\Stride\`; on Linux/macOS it follows XDG conventions.
+Path resolution goes through [Stride.Core.Assets.Editor.EditorPath](../../sources/editor/Stride.Core.Assets.Editor/EditorPath.cs), linked directly into the launcher project. On Windows this resolves to `%APPDATA%\Stride\` (roaming); on Linux/macOS it follows XDG conventions.
 
 ## First-install tasks
 

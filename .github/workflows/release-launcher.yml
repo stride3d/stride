@@ -11,6 +11,10 @@ on:
         description: Deploy to NuGet.org
         default: false
         type: boolean
+      version-suffix:
+        description: Pre-release suffix, no leading dash (e.g. "beta1" -> 6.1.0-beta1), N from 1 to 9. Only launchers that opted in to pre-releases update to it. Empty = release.
+        default: ''
+        type: string
       upload-binlog:
         description: Capture and upload an MSBuild binlog (diagnostics). Ignored on signed builds — a binlog records env vars/task params and would leak signing secrets.
         default: false
@@ -71,6 +75,30 @@ jobs:
 
       - uses: microsoft/setup-msbuild@v3
 
+      # Before the build, for a deploy: a release built again (the NuGet push would skip it silently), or a
+      # pre-release of an already released X.Y.Z (it would sort below that release) means the nuspec wasn't bumped.
+      - name: Check version
+        if: ${{ inputs.deploy }}
+        shell: pwsh
+        run: |
+          $out = msbuild build\Stride.build /t:_StrideSetupVersion /nologo /v:m /p:VersionSuffix=${{ inputs.version-suffix }}
+          if ($LASTEXITCODE -ne 0) { $out; exit 1 }
+          if (-not (($out -join "`n") -match 'StrideSetup (\S+):')) {
+            echo "::error::Could not determine the launcher version"
+            exit 1
+          }
+          $version = $Matches[1]
+          $release = $version -replace '-.*$', ''
+          if (git tag --list "launcher/$version") {
+            echo "::error::launcher/$version already exists. Bump the version in Stride.Launcher.nuspec."
+            exit 1
+          }
+          if ($version -ne $release -and (git tag --list "launcher/$release")) {
+            echo "::error::$release is already released, so $version would sort below it. Bump the version in Stride.Launcher.nuspec."
+            exit 1
+          }
+          echo "Launcher $version"
+
       - name: Install Advanced Installer
         shell: pwsh
         run: |
@@ -88,7 +116,8 @@ jobs:
             ${{ inputs.upload-binlog && !inputs.sign && '/bl' || '' }} /m /nr:false `
             /p:StrideSentryDsn=${{ vars.STRIDE_SENTRY_DSN }} `
             /p:StrideSentryEnvironment=${{ vars.STRIDE_SENTRY_DSN != '' && 'release' || '' }} `
-            /p:StrideSign=${{ inputs.sign }}
+            /p:StrideSign=${{ inputs.sign }} `
+            /p:VersionSuffix=${{ inputs.version-suffix }}
         env:
           StrideSignTenantId: ${{ secrets.STRIDE_SIGN_TENANT_ID }}
           StrideSignClientId: ${{ secrets.STRIDE_SIGN_CLIENT_ID }}
@@ -106,8 +135,9 @@ jobs:
             exit 1
           }
           $version = $Matches[1]
-          if ($version -notmatch '^\d+\.\d+\.\d+(-(alpha|beta|rc|preview)\d+)?$') {
-            echo "::error::Version '$version' is not an allowed release version. Use X.Y.Z or X.Y.Z-(alpha|beta|rc|preview)<N> (e.g. 4.4.0, 4.4.0-beta1)"
+          # N is a single digit: NuGet compares "beta10" before "beta2" (text)
+          if ($version -notmatch '^\d+\.\d+\.\d+(-(alpha|beta|rc|preview)[1-9])?$') {
+            echo "::error::Version '$version' is not an allowed release version. Use X.Y.Z or X.Y.Z-(alpha|beta|rc|preview)<N> with N from 1 to 9 (e.g. 6.0.1, 6.1.0-beta1)"
             exit 1
           }
           echo "version=$version" >> $env:GITHUB_OUTPUT
@@ -169,7 +199,10 @@ jobs:
           # (and the products' changelogs don't interleave, as GitHub's auto notes would do). The
           # launcher/<version> tag is created by the release step below, so pick the previous tag from
           # the existing launcher/* tags rather than relative to it.
-          PREV=$(git tag --list 'launcher/*' --sort=-creatordate | grep -vxF "$TAG" | head -n1 || true)
+          # A release starts from the previous release (not its pre-releases), so the notes include what they shipped.
+          CANDIDATES=$(git tag --list 'launcher/*' --sort=-creatordate | grep -vxF "$TAG" || true)
+          [[ "$TAG" != *-* ]] && CANDIDATES=$(printf '%s\n' "$CANDIDATES" | grep -v -- '-' || true)
+          PREV=$(printf '%s\n' "$CANDIDATES" | head -n1)
           RANGE="HEAD"
           [ -n "$PREV" ] && RANGE="$PREV..HEAD"
           NOTES=$(git log --no-merges --pretty='- %s (%h)' "$RANGE" -- sources/launcher/Stride.Launcher)
@@ -192,6 +225,7 @@ jobs:
           name: Stride Launcher ${{ needs.Package.outputs.version }}
           files: bin/launcher/*.exe
           make_latest: false  # separate product: never the repo's "Latest" release (that's the engine)
+          prerelease: ${{ inputs.version-suffix != '' }}
           body_path: launcher-notes.md
 
   #

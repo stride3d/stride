@@ -18,6 +18,7 @@ public static class LauncherSettings
     private static readonly SettingsKey<int> CurrentTabKey = new("Internal/Launcher/CurrentTabSessions", SettingsContainer, 0);
     private static readonly SettingsKey<List<UDirectory>> DeveloperVersionsKey = new("Internal/Launcher/DeveloperVersions", SettingsContainer, () => new List<UDirectory>());
     private static readonly SettingsKey<List<string>> CompletedTasksKey = new("Internal/Launcher/CompletedTasks", SettingsContainer, () => new List<string>());
+    private static readonly SettingsKey<bool> IncludePrereleaseUpdatesKey = new("Internal/Launcher/IncludePrereleaseUpdates", SettingsContainer, false);
 
     private static readonly string LauncherConfigPath = Path.Combine(EditorPath.UserDataPath, "LauncherSettings.conf");
 
@@ -33,6 +34,7 @@ public static class LauncherSettings
         CurrentTab = CurrentTabKey.GetValue();
         DeveloperVersions = DeveloperVersionsKey.GetValue();
         completedTasks = CompletedTasksKey.GetValue();
+        IncludePrereleaseUpdates = IncludePrereleaseUpdatesKey.GetValue();
     }
 
     public static void Save()
@@ -43,6 +45,7 @@ public static class LauncherSettings
         PreferredRuntimeKey.SetValue(PreferredRuntime);
         CurrentTabKey.SetValue(CurrentTab);
         CompletedTasksKey.SetValue(completedTasks);
+        IncludePrereleaseUpdatesKey.SetValue(IncludePrereleaseUpdates);
         SettingsContainer.SaveSettingsProfile(SettingsContainer.CurrentProfile, LauncherConfigPath);
     }
 
@@ -58,6 +61,9 @@ public static class LauncherSettings
     public static string PreferredRuntime { get; set; }
 
     public static int CurrentTab { get; set; }
+
+    /// <summary>Whether the launcher updates itself to pre-release versions too.</summary>
+    public static bool IncludePrereleaseUpdates { get; set; }
 
     public static IReadOnlyCollection<string> CompletedTasks => completedTasks;
 
