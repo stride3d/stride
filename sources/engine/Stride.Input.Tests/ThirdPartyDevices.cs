@@ -42,3 +42,52 @@ internal sealed class ThirdPartyKeyboard : IKeyboardDevice
     {
     }
 }
+
+/// <summary>
+///   A gamepad that implements <see cref="IGamePadDevice"/> directly, the way a third-party device would.
+/// </summary>
+internal sealed class ThirdPartyGamePad : IGamePadDevice
+{
+    public readonly HashSet<GamePadButton> Down = new();
+    public readonly HashSet<GamePadButton> Pressed = new();
+    public readonly HashSet<GamePadButton> Released = new();
+
+    public ThirdPartyGamePad()
+    {
+        DownButtons = new ReadOnlySet<GamePadButton>(Down);
+        PressedButtons = new ReadOnlySet<GamePadButton>(Pressed);
+        ReleasedButtons = new ReadOnlySet<GamePadButton>(Released);
+    }
+
+    public string Name => "Third-party gamepad";
+
+    public Guid Id { get; } = Guid.NewGuid();
+
+    public Guid ProductId => Id;
+
+    public int Priority { get; set; }
+
+    public IInputSource Source => null;
+
+    public GamePadState State { get; set; }
+
+    public int Index { get; set; }
+
+    public bool CanChangeIndex => true;
+
+    public Core.Collections.IReadOnlySet<GamePadButton> PressedButtons { get; }
+
+    public Core.Collections.IReadOnlySet<GamePadButton> ReleasedButtons { get; }
+
+    public Core.Collections.IReadOnlySet<GamePadButton> DownButtons { get; }
+
+    public event EventHandler<GamePadIndexChangedEventArgs> IndexChanged { add { } remove { } }
+
+    public void SetVibration(float smallLeft, float smallRight, float largeLeft, float largeRight)
+    {
+    }
+
+    public void Update(List<InputEvent> inputEvents)
+    {
+    }
+}

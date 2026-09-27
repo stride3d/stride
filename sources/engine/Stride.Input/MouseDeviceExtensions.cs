@@ -13,7 +13,7 @@ namespace Stride.Input
         /// <returns><c>true</c> if the specified mouse button is pressed since the previous update; otherwise, <c>false</c>.</returns>
         public static bool IsButtonPressed(this IMouseDevice mouseDevice, MouseButton mouseButton)
         {
-            return mouseDevice.PressedButtons.Contains(mouseButton);
+            return !mouseDevice.CaptureState.IsMasked && mouseDevice.PressedButtons.Contains(mouseButton);
         }
 
         /// <summary>
@@ -24,7 +24,7 @@ namespace Stride.Input
         /// <returns><c>true</c> if the specified mouse button is released; otherwise, <c>false</c>.</returns>
         public static bool IsButtonReleased(this IMouseDevice mouseDevice, MouseButton mouseButton)
         {
-            return mouseDevice.ReleasedButtons.Contains(mouseButton);
+            return !mouseDevice.CaptureState.IsMasked && mouseDevice.ReleasedButtons.Contains(mouseButton);
         }
 
         /// <summary>
@@ -35,7 +35,7 @@ namespace Stride.Input
         /// <returns><c>true</c> if the specified button is being pressed down; otherwise, <c>false</c>.</returns>
         public static bool IsButtonDown(this IMouseDevice mouseDevice, MouseButton mouseButton)
         {
-            return mouseDevice.DownButtons.Contains(mouseButton);
+            return !mouseDevice.CaptureState.IsMasked && mouseDevice.DownButtons.Contains(mouseButton);
         }
     }
 }

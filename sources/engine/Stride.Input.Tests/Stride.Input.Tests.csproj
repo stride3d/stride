@@ -24,6 +24,7 @@
     <Compile Include="HeadlessInput.cs" />
     <Compile Include="TestDeviceCaptureState.cs" />
     <Compile Include="TestInputCapture.cs" />
+    <Compile Include="TestQueryMasking.cs" />
     <Compile Include="ThirdPartyDevices.cs" />
     <Compile Include="XunitAttributes.cs" />
     <Compile Include="InputTestBase.cs" />

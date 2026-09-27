@@ -13,7 +13,7 @@ namespace Stride.Input
         /// <returns><c>true</c> if the specified key is pressed; otherwise, <c>false</c>.</returns>
         public static bool IsKeyPressed(this IKeyboardDevice keyboardDevice, Keys key)
         {
-            return keyboardDevice.PressedKeys.Contains(key);
+            return !keyboardDevice.CaptureState.IsMasked && keyboardDevice.PressedKeys.Contains(key);
         }
 
         /// <summary>
@@ -24,7 +24,7 @@ namespace Stride.Input
         /// <returns><c>true</c> if the specified key is released; otherwise, <c>false</c>.</returns>
         public static bool IsKeyReleased(this IKeyboardDevice keyboardDevice, Keys key)
         {
-            return keyboardDevice.ReleasedKeys.Contains(key);
+            return !keyboardDevice.CaptureState.IsMasked && keyboardDevice.ReleasedKeys.Contains(key);
         }
 
         /// <summary>
@@ -35,7 +35,7 @@ namespace Stride.Input
         /// <returns><c>true</c> if the specified key is being pressed down; otherwise, <c>false</c>.</returns>
         public static bool IsKeyDown(this IKeyboardDevice keyboardDevice, Keys key)
         {
-            return keyboardDevice.DownKeys.Contains(key);
+            return !keyboardDevice.CaptureState.IsMasked && keyboardDevice.DownKeys.Contains(key);
         }
     }
 }
