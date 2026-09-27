@@ -85,5 +85,7 @@ Imported by build\Stride.build, which runs these targets, e.g. msbuild build\Str
   <Target Name="BuildLauncher" DependsOnTargets="SignCredentialsCheck">
     <MSBuild Targets="Restore" Projects="$(MSBuildProjectFullPath)" Properties="StridePlatforms=Windows;StrideSolution=$(StrideSolutionLauncher);RuntimeIdentifiers=win-x64"/>
     <MSBuild Projects="$(MSBuildThisFileDirectory)Stride.Launcher\Stride.Launcher.csproj" Targets="Publish" Properties="$(BuildProperties);PublishProfile=FolderProfile;SolutionName=Stride.Launcher" />
+    <!-- StrideSetup takes the exe from here: the nupkg signing only signs the nupkg's own copy -->
+    <Exec Condition="'$(StrideSign)' == 'true'" Command='$(StrideSignTool) "$(MSBuildThisFileDirectory)Stride.Launcher\bin\Release\publish\Stride.Launcher.exe" $(StrideSignArgs)' EchoOff="true" />
   </Target>
 </Project>
