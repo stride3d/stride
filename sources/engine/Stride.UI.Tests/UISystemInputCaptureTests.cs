@@ -80,6 +80,30 @@ namespace Stride.UI.Tests
         }
 
         [Fact]
+        public void FocusRecapturesTheKeyboardAfterAModalReleasesIt()
+        {
+            var modal = new object();
+            ui.FocusedElement = new Button();
+            input.TryCapture(keyboard, modal, InputCapturePriority.Modal);
+
+            input.Release(keyboard, modal);
+            input.Update(gameTime);
+
+            Assert.Same(ui, keyboard.CaptureState.Owner);
+        }
+
+        [Fact]
+        public void PickingTargetsThatAreNoLongerDrawnAreForgotten()
+        {
+            ui.RecordPickingTarget(new UIPickingTarget { RenderObject = new Rendering.UI.RenderUIElement(), Frame = 1 });
+            ui.RecordPickingTarget(new UIPickingTarget { RenderObject = new Rendering.UI.RenderUIElement(), Frame = 2 });
+
+            input.Update(gameTime);
+
+            Assert.Equal(1, ui.PickingTargetCount);
+        }
+
+        [Fact]
         public void DestroyingUISystemReleasesItsCaptures()
         {
             ui.FocusedElement = new Button();

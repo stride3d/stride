@@ -24,6 +24,9 @@ namespace Stride.UI.Tests.Regression
             ClickOutsideUI,
             HoverDuringGameDrag,
             TouchOnUIAndOutside,
+            GameDragReleasedOverUI,
+            DragFromButtonProducesNoGesture,
+            LockedMouseIsNotCapturedByHover,
         }
 
         private static readonly Vector2 OnButton = new Vector2(0.1f, 0.08f);
@@ -77,6 +80,22 @@ namespace Stride.UI.Tests.Regression
                 case Scenario.TouchOnUIAndOutside:
                     FrameGameSystem.Draw(2, TouchOnUIAndOutside);
                     break;
+                case Scenario.GameDragReleasedOverUI:
+                    FrameGameSystem.Draw(2, PressOutsideUI);
+                    FrameGameSystem.Draw(3, DragOntoButton);
+                    FrameGameSystem.Draw(4, ReleaseOverButton);
+                    break;
+                case Scenario.DragFromButtonProducesNoGesture:
+                    FrameGameSystem.Draw(2, PressOnButtonWithDragGesture);
+                    for (int frame = 3; frame <= 10; frame++)
+                    {
+                        var step = frame - 2;
+                        FrameGameSystem.Draw(frame, () => DragAwayFromButton(step));
+                    }
+                    break;
+                case Scenario.LockedMouseIsNotCapturedByHover:
+                    FrameGameSystem.Draw(2, HoverButtonWithLockedMouse);
+                    break;
             }
         }
 
@@ -116,6 +135,42 @@ namespace Stride.UI.Tests.Regression
             Assert.False(Input.Mouse.CaptureState.IsCaptured);
         }
 
+        private void ReleaseOverButton()
+        {
+            MouseSimulated.SimulateMouseUp(MouseButton.Left);
+            Input.Update(new GameTime());
+
+            Assert.True(Input.IsMouseButtonReleased(MouseButton.Left));
+            Assert.Contains(Input.PointerEvents, e => e.EventType == PointerEventType.Released);
+        }
+
+        private void PressOnButtonWithDragGesture()
+        {
+            Input.Gestures.Add(new GestureConfigDrag());
+            MouseSimulated.SetPosition(OnButton);
+            MouseSimulated.SimulateMouseDown(MouseButton.Left);
+            Input.Update(new GameTime());
+
+            Assert.Empty(Input.GestureEvents);
+        }
+
+        private void DragAwayFromButton(int step)
+        {
+            MouseSimulated.SetPosition(OnButton + new Vector2(step * 0.1f, 0f));
+            Input.Update(new GameTime());
+
+            Assert.Empty(Input.GestureEvents);
+        }
+
+        private void HoverButtonWithLockedMouse()
+        {
+            MouseSimulated.SetPosition(OnButton);
+            Input.LockMousePosition();
+            Input.Update(new GameTime());
+
+            Assert.False(Input.Mouse.CaptureState.IsCaptured);
+        }
+
         private void TouchOnUIAndOutside()
         {
             MouseSimulated.SetPosition(OutsideUI);
@@ -133,6 +188,9 @@ namespace Stride.UI.Tests.Regression
         [InlineData(Scenario.ClickOutsideUI)]
         [InlineData(Scenario.HoverDuringGameDrag)]
         [InlineData(Scenario.TouchOnUIAndOutside)]
+        [InlineData(Scenario.GameDragReleasedOverUI)]
+        [InlineData(Scenario.DragFromButtonProducesNoGesture)]
+        [InlineData(Scenario.LockedMouseIsNotCapturedByHover)]
         public void RunInputCaptureTest(Scenario testScenario)
         {
             RunGameTest(new InputCaptureTest(testScenario));

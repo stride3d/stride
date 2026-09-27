@@ -56,6 +56,8 @@ namespace Stride.UI
 
         internal void RecordPickingTarget(in UIPickingTarget target) => pickingTargets[target.RenderObject] = target;
 
+        internal int PickingTargetCount => pickingTargets.Count;
+
         /// <summary>
         /// Represents the UI-element currently under the mouse cursor.
         /// Only elements with CanBeHitByUser == true are taken into account.
@@ -193,6 +195,10 @@ namespace Stride.UI
 
         private void OnResolvingCapture(object sender, EventArgs e)
         {
+            // Take the keyboard back if a higher-priority owner held it while an element kept the focus
+            if (focusedElement != null && input.HasKeyboard)
+                input.TryCapture(input.Keyboard, this, InputCapturePriority.Focus);
+
             UIElement elementUnderMouseCursor;
             using (Profiler.Begin(UIProfilerKeys.TouchEventsUpdate))
             {
@@ -204,10 +210,13 @@ namespace Stride.UI
             if (!input.HasMouse)
                 return;
 
-            // Hover captures the mouse, except while a button pressed outside the UI is held, so a game drag that crosses the UI goes on
+            // Hover captures the mouse, except while a button pressed outside the UI is held or released, so a game drag that
+            // crosses the UI goes on and ends. A locked mouse (mouse-look) is never captured, because its position is not a cursor.
             var mouse = input.Mouse;
-            var gameDragInProgress = !picking.MouseDragOwnedByUi && !ReferenceEquals(mouse.CaptureState.Owner, this) && mouse.DownButtons.Count > 0;
-            if ((elementUnderMouseCursor != null && !gameDragInProgress) || picking.MouseDragOwnedByUi)
+            var gameDragInProgress = !picking.MouseDragOwnedByUi && !ReferenceEquals(mouse.CaptureState.Owner, this)
+                && (mouse.DownButtons.Count > 0 || mouse.ReleasedButtons.Count > 0);
+            var wantsMouse = (elementUnderMouseCursor != null && !gameDragInProgress) || picking.MouseDragOwnedByUi;
+            if (wantsMouse && !mouse.IsPositionLocked)
                 input.TryCapture(mouse, this, InputCapturePriority.Hover);
             else
                 input.Release(mouse, this);

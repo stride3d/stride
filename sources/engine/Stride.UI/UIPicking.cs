@@ -40,6 +40,7 @@ namespace Stride.UI
         private readonly HashSet<UIElement> newlySelectedElementParents = new HashSet<UIElement>();
         private readonly List<PointerEvent> compactedPointerEvents = new List<PointerEvent>();
         private readonly List<(IPointerDevice Device, int PointerId)> pointersToRelease = new List<(IPointerDevice, int)>();
+        private readonly List<RenderUIElement> staleTargets = new List<RenderUIElement>();
         private bool releaseMouseDrag;
 
         public UIPicking(UISystem system, InputManager input)
@@ -68,10 +69,20 @@ namespace Stride.UI
             foreach (var target in targets.Values)
                 latestFrame = Math.Max(latestFrame, target.Frame);
 
+            // Forget UI components that were not drawn in the last frame, so removed components are not kept alive
+            staleTargets.Clear();
+            foreach (var target in targets.Values)
+            {
+                if (target.Frame < latestFrame)
+                    staleTargets.Add(target.RenderObject);
+            }
+            foreach (var renderObject in staleTargets)
+                targets.Remove(renderObject);
+
             UIElement elementUnderMouseCursor = null;
             foreach (var target in targets.Values)
             {
-                if (target.Frame < latestFrame || target.RenderObject.Page?.RootElement == null)
+                if (target.RenderObject.Page?.RootElement == null)
                     continue;
 
                 var inverseZViewProj = target.WorldViewProjection;
