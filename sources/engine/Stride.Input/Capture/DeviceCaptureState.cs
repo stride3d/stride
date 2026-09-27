@@ -56,6 +56,13 @@ public sealed class DeviceCaptureState
     internal event Action<bool> MaskChanged;
 
     /// <summary>
+    ///   Raised by <see cref="InputManager"/> right after the device has updated for a new frame.
+    /// </summary>
+    internal event Action DeviceUpdated;
+
+    internal void RaiseDeviceUpdated() => DeviceUpdated?.Invoke();
+
+    /// <summary>
     ///   Gets the owner that holds a pointer of this device, or <c>null</c> when the pointer is not captured.
     /// </summary>
     /// <param name="pointerId">The pointer identifier.</param>

@@ -439,6 +439,7 @@ namespace Stride.Input
             foreach (var inputDevice in devices)
             {
                 inputDevice.Update(events);
+                inputDevice.CaptureState.RaiseDeviceUpdated();
             }
 
             // Notify PreUpdateInput

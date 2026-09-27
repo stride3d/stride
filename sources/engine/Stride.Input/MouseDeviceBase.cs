@@ -22,6 +22,7 @@ namespace Stride.Input
 
             buttonTracker = new CaptureEdgeTracker<MouseButton>(CaptureState, MouseState.DownButtons, MouseState.PressedButtons, MouseState.ReleasedButtons);
             CaptureState.MaskChanged += buttonTracker.OnMaskChanged;
+            CaptureState.DeviceUpdated += buttonTracker.AfterDeviceUpdate;
             CaptureState.DeviceMasksOwnState = true;
         }
 
@@ -38,7 +39,6 @@ namespace Stride.Input
         {
             base.Update(inputEvents);
             MouseState.Update(inputEvents);
-            buttonTracker.AfterDeviceUpdate();
         }
         
         public abstract void SetPosition(Vector2 normalizedPosition);

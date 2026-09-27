@@ -22,6 +22,7 @@
     <Compile Include="AdvancedInputTest.cs" />
     <Compile Include="GCMeasurement.cs" />
     <Compile Include="HeadlessInput.cs" />
+    <Compile Include="TestGamePadCapture.cs" />
     <Compile Include="TestDeviceCaptureState.cs" />
     <Compile Include="TestCaptureEdgeTracker.cs" />
     <Compile Include="TestInputCapture.cs" />

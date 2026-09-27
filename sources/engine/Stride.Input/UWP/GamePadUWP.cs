@@ -51,7 +51,7 @@ namespace Stride.Input
 
         public override IInputSource Source { get; }
 
-        public override GamePadState State => state;
+        protected override GamePadState RawState => state;
 
         public override void Update(List<InputEvent> inputEvents)
         {

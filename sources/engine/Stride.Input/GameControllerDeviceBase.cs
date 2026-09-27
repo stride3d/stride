@@ -17,6 +17,7 @@ namespace Stride.Input
         private readonly HashSet<int> downButtons = new HashSet<int>();
 
         private readonly List<InputEvent> events = new List<InputEvent>();
+        private readonly CaptureEdgeTracker<int> buttonTracker;
 
         protected bool[] ButtonStates;
         protected float[] AxisStates;
@@ -24,9 +25,14 @@ namespace Stride.Input
 
         protected GameControllerDeviceBase()
         {
-            PressedButtons = new ReadOnlySet<int>(pressedButtons);
-            ReleasedButtons = new ReadOnlySet<int>(releasedButtons);
-            DownButtons = new ReadOnlySet<int>(downButtons);
+            buttonTracker = new CaptureEdgeTracker<int>(CaptureState, new ReadOnlySet<int>(downButtons), new ReadOnlySet<int>(pressedButtons), new ReadOnlySet<int>(releasedButtons));
+            CaptureState.MaskChanged += buttonTracker.OnMaskChanged;
+            CaptureState.DeviceUpdated += buttonTracker.AfterDeviceUpdate;
+            CaptureState.DeviceMasksOwnState = true;
+
+            PressedButtons = buttonTracker.Pressed;
+            ReleasedButtons = buttonTracker.Released;
+            DownButtons = buttonTracker.Down;
         }
 
         public abstract string Name { get; }
@@ -59,6 +65,9 @@ namespace Stride.Input
         
         public virtual float GetAxis(int index)
         {
+            if (CaptureState.IsMasked)
+                return 0.0f;
+
             if (index < 0 || index > AxisStates.Length)
                 return 0.0f;
 
@@ -67,6 +76,9 @@ namespace Stride.Input
         
         public virtual Direction GetDirection(int index)
         {
+            if (CaptureState.IsMasked)
+                return Direction.None;
+
             return DirectionStates[index];
         }
 
