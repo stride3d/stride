@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System;
+using System.Runtime.InteropServices;
 using System.Text;
 using Xunit;
 
@@ -36,6 +38,28 @@ public unsafe class TestTextInputStrings
         fixed (byte* text = buffer)
         {
             Assert.Equal("abc", TextInputStrings.FromNullTerminatedUtf8(text, 3));
+        }
+    }
+
+    [Fact]
+    public void DecodingNonAsciiAllocatesOnlyTheResultString()
+    {
+        const string text = "日本";
+        var buffer = (byte*)NativeMemory.AllocZeroed(SDLTextBufferSize);
+        try
+        {
+            Encoding.UTF8.GetBytes(text, new Span<byte>(buffer, SDLTextBufferSize));
+
+            var decoding = GCMeasure.Run(() => TextInputStrings.FromNullTerminatedUtf8(buffer, SDLTextBufferSize));
+            var oneString = GCMeasure.Run(() => new string('x', text.Length));
+
+            Assert.True(
+                decoding.AllocatedBytes == oneString.AllocatedBytes,
+                $"Decoding \"{text}\" should allocate only the result string ({oneString}). Measured {decoding}.");
+        }
+        finally
+        {
+            NativeMemory.Free(buffer);
         }
     }
 
