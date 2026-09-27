@@ -217,21 +217,25 @@ jobs:
             fi
           } > launcher-notes.md
 
+      # gh rather than a release action: stride3d/stride only allows selected third-party actions (as release-cli.yml)
       - name: Create GitHub Release
         if: ${{ needs.Package.outputs.version != '' }}
-        uses: softprops/action-gh-release@v3
-        with:
-          tag_name: launcher/${{ needs.Package.outputs.version }}
-          name: Stride Launcher ${{ needs.Package.outputs.version }}
-          files: bin/launcher/*.exe
-          make_latest: false  # separate product: never the repo's "Latest" release (that's the engine)
-          prerelease: ${{ inputs.version-suffix != '' }}
-          body_path: launcher-notes.md
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          # --latest=false: a separate product, never the repo's "Latest" release (that's the engine)
+          gh release create "launcher/${{ needs.Package.outputs.version }}" \
+            --target "$GITHUB_SHA" \
+            --title "Stride Launcher ${{ needs.Package.outputs.version }}" \
+            --notes-file launcher-notes.md \
+            --latest=false \
+            ${{ inputs.version-suffix != '' && '--prerelease' || '' }} \
+            bin/launcher/*.exe
 
   #
   # AI release notes, off the Deploy critical path (see release-notes-apply.yml). Runs after
   # the release exists; replaces the scoped git-log body with the AI bullet list. The separate
-  # job fetches the tag softprops pushed, so no local-tag mirror step is needed.
+  # job fetches the tag gh release create pushed, so no local-tag mirror step is needed.
   #
   ReleaseNotes:
     name: Release notes launcher/${{ needs.Package.outputs.version }}
