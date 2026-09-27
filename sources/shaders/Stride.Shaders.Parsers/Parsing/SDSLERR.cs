@@ -68,4 +68,6 @@ public static class SDSLErrorMessages
     public const string SDSL0111 = "SDSL0111: Unimplemented: {0}";
     public const string SDSL0112 = "SDSL0112: Could not resolve member {0} in expression {1} of type {2}";
     public const string SDSL0113 = "SDSL0113: Could not resolve member {0} in structure of type {1}";
+    public const string SDSL0114 = "SDSL0114: {0}.{1}({2}) at line {3} implements abstract method {4}.{1} but is not marked 'override'. Add the 'override' keyword.";
+    public const string SDSL0115 = "SDSL0115: {0}.{1}({2}) at line {3} hides inherited method {4}.{1} but is not marked 'override'. Add the 'override' keyword, or rename the method.";
 }
