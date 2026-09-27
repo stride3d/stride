@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="XunitAttributes.cs" />
+    <Compile Include="UISystemInputCaptureTests.cs" />
     <Compile Include="Events\EventManagerTests.cs" />
     <Compile Include="Events\MyTestRoutedEventArgs.cs" />
     <Compile Include="Events\MyTestRoutedEventHandler.cs" />

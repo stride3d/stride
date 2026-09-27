@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Stride.Core;
 using Stride.Core.Diagnostics;
 using Stride.Games;
@@ -17,7 +16,7 @@ namespace Stride.UI
     /// <summary>
     /// Interface of the UI system.
     /// </summary>
-    public class UISystem : GameSystemBase, IService, IInputEventListener<PointerEvent>
+    public class UISystem : GameSystemBase, IService, IInputEventListener<PointerEvent>, IInputEventListener<KeyEvent>, IInputEventListener<TextInputEvent>
     {
         internal UIBatch Batch { get; private set; }
 
@@ -35,7 +34,25 @@ namespace Stride.UI
         private readonly List<PointerEvent> pendingPointerEvents = new List<PointerEvent>();
         private readonly Dictionary<RenderUIElement, UIPickingTarget> pickingTargets = new Dictionary<RenderUIElement, UIPickingTarget>();
 
+        // Keys and text are read through the listener, because the game-facing keyboard state is masked while the UI holds the keyboard
+        private readonly List<KeyEvent> pendingKeyEvents = new List<KeyEvent>();
+        private readonly List<TextInputEvent> pendingTextEvents = new List<TextInputEvent>();
+        private readonly HashSet<Keys> downKeys = new HashSet<Keys>();
+
+        private UIElement focusedElement;
+
         void IInputEventListener<PointerEvent>.ProcessEvent(PointerEvent inputEvent) => pendingPointerEvents.Add(inputEvent);
+
+        void IInputEventListener<KeyEvent>.ProcessEvent(KeyEvent inputEvent)
+        {
+            pendingKeyEvents.Add(inputEvent);
+            if (inputEvent.IsDown)
+                downKeys.Add(inputEvent.Key);
+            else
+                downKeys.Remove(inputEvent.Key);
+        }
+
+        void IInputEventListener<TextInputEvent>.ProcessEvent(TextInputEvent inputEvent) => pendingTextEvents.Add(inputEvent);
 
         internal void RecordPickingTarget(in UIPickingTarget target) => pickingTargets[target.RenderObject] = target;
 
@@ -49,7 +66,25 @@ namespace Stride.UI
         /// <summary>
         /// The <see cref="UIElement"/> that currently has the focus.
         /// </summary>
-        public UIElement FocusedElement { get; internal set; }
+        /// <remarks>
+        /// While an element has the focus, the UI captures the keyboard, so game code does not see what is typed.
+        /// </remarks>
+        public UIElement FocusedElement
+        {
+            get => focusedElement;
+            internal set
+            {
+                focusedElement = value;
+
+                if (input == null || !input.HasKeyboard)
+                    return;
+
+                if (value != null)
+                    input.TryCapture(input.Keyboard, this, InputCapturePriority.Focus);
+                else
+                    input.Release(input.Keyboard, this);
+            }
+        }
 
         public UISystem(IServiceRegistry registry)
             : base(registry)
@@ -191,12 +226,15 @@ namespace Stride.UI
                 return;
 
             if (FocusedElement == null || !FocusedElement.IsHierarchyEnabled)
+            {
+                pendingKeyEvents.Clear();
+                pendingTextEvents.Clear();
                 return;
+            }
 
             // Raise text input events
-            var textEvents = input.Events.OfType<TextInputEvent>();
             bool enteredText = false;
-            foreach (var textEvent in textEvents)
+            foreach (var textEvent in pendingTextEvents)
             {
                 enteredText = true;
                 FocusedElement?.RaiseTextInputEvent(new TextEventArgs
@@ -208,7 +246,7 @@ namespace Stride.UI
                 });
             }
 
-            foreach (var keyEvent in input.KeyEvents)
+            foreach (var keyEvent in pendingKeyEvents)
             {
                 var key = keyEvent.Key;
                 var evt = new KeyEventArgs { Key = key, Input = input };
@@ -224,10 +262,13 @@ namespace Stride.UI
                 }
             }
 
-            foreach (var key in input.DownKeys)
+            foreach (var key in downKeys)
             {
                 FocusedElement?.RaiseKeyDownEvent(new KeyEventArgs { Key = key, Input = input });
             }
+
+            pendingKeyEvents.Clear();
+            pendingTextEvents.Clear();
         }
 
         public static IService NewInstance(IServiceRegistry services) => new UISystem(services);
