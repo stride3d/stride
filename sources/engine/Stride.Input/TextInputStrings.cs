@@ -11,6 +11,11 @@ namespace Stride.Input;
 /// </summary>
 internal static class TextInputStrings
 {
+    private const int AsciiCount = 128;
+
+    // Typing mostly produces one ASCII character per event, so those strings are shared instead of allocated per event
+    private static readonly string[] SingleAsciiCharacters = CreateSingleAsciiCharacters();
+
     /// <summary>
     ///   Decodes null-terminated UTF-8 text from a fixed-size buffer.
     /// </summary>
@@ -23,6 +28,17 @@ internal static class TextInputStrings
         if (length >= 0)
             bytes = bytes[..length];
 
+        if (bytes.Length == 1 && bytes[0] < AsciiCount)
+            return SingleAsciiCharacters[bytes[0]];
+
         return Encoding.UTF8.GetString(bytes);
+    }
+
+    private static string[] CreateSingleAsciiCharacters()
+    {
+        var strings = new string[AsciiCount];
+        for (int i = 0; i < AsciiCount; i++)
+            strings[i] = ((char)i).ToString();
+        return strings;
     }
 }

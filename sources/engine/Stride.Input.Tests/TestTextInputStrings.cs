@@ -42,6 +42,24 @@ public unsafe class TestTextInputStrings
     }
 
     [Fact]
+    public void DecodingSingleAsciiCharacterDoesNotAllocate()
+    {
+        var buffer = (byte*)NativeMemory.AllocZeroed(SDLTextBufferSize);
+        try
+        {
+            buffer[0] = (byte)'a';
+
+            var measurement = GCMeasure.Run(() => TextInputStrings.FromNullTerminatedUtf8(buffer, SDLTextBufferSize));
+
+            Assert.True(measurement.AllocatedBytes == 0, $"Decoding \"a\" allocated. Measured {measurement}.");
+        }
+        finally
+        {
+            NativeMemory.Free(buffer);
+        }
+    }
+
+    [Fact]
     public void DecodingNonAsciiAllocatesOnlyTheResultString()
     {
         const string text = "日本";
