@@ -52,6 +52,22 @@ public class TestKeyboardCapture
     }
 
     [Fact]
+    public void ReleaseInTheCapturePhaseKeepsAPressFromThatFrame()
+    {
+        using var headless = new HeadlessInput();
+        var owner = new object();
+        headless.Input.TryCapture(headless.Keyboard, owner);
+        headless.Update();
+        headless.Input.ResolvingCapture += (_, _) => headless.Input.Release(headless.Keyboard, owner);
+
+        headless.Keyboard.SimulateDown(Keys.W);
+        headless.Update();
+
+        Assert.True(headless.Input.IsKeyPressed(Keys.W));
+        Assert.True(headless.Input.IsKeyDown(Keys.W));
+    }
+
+    [Fact]
     public void KeyRepeatAfterCaptureEndsIsNotANewPress()
     {
         using var headless = new HeadlessInput();
@@ -65,6 +81,7 @@ public class TestKeyboardCapture
         headless.Update();
 
         Assert.False(headless.Input.IsKeyDown(Keys.W));
+        Assert.False(headless.Input.IsKeyPressed(Keys.W));
     }
 
     [Fact]

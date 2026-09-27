@@ -55,6 +55,52 @@ public class TestCaptureEdgeTracker
     }
 
     [Fact]
+    public void CaptureBeginReportsKeysReleasedThisFrame()
+    {
+        var (tracker, _, _, released, capture) = Create();
+        released.Add(Keys.W);
+
+        capture.SetOwner(new object(), 0);
+
+        Assert.Contains(Keys.W, tracker.Released);
+    }
+
+    [Fact]
+    public void RepeatOfASuppressedKeyIsNotPressed()
+    {
+        var down = new HashSet<Keys>();
+        var pressed = new HashSet<Keys>();
+        var newPresses = new HashSet<Keys>();
+        var capture = DeviceCaptureStates.GetOrCreate(new ThirdPartyKeyboard());
+        var tracker = new CaptureEdgeTracker<Keys>(capture, new ReadOnlySet<Keys>(down), new ReadOnlySet<Keys>(pressed), new ReadOnlySet<Keys>(new HashSet<Keys>()), new ReadOnlySet<Keys>(newPresses));
+        capture.MaskChanged += tracker.OnMaskChanged;
+        capture.SetOwner(new object(), 0);
+        down.Add(Keys.W);
+        capture.SetOwner(null, 0);
+
+        pressed.Add(Keys.W); // a repeat: pressed, but not a new press
+        tracker.AfterDeviceUpdate();
+
+        Assert.DoesNotContain(Keys.W, tracker.Pressed);
+        Assert.Empty(tracker.Pressed);
+    }
+
+    [Fact]
+    public void CaptureEndInTheCapturePhaseKeepsAPressFromThatFrame()
+    {
+        var (tracker, down, pressed, _, capture) = Create();
+        capture.SetOwner(new object(), 0);
+        down.Add(Keys.W);
+        pressed.Add(Keys.W);
+
+        capture.ChangingBeforeGameReads = true;
+        capture.SetOwner(null, 0);
+
+        Assert.Contains(Keys.W, tracker.Down);
+        Assert.Contains(Keys.W, tracker.Pressed);
+    }
+
+    [Fact]
     public void KeyHeldThroughCaptureEndIsHiddenUntilPressedAgain()
     {
         var (tracker, down, pressed, released, capture) = Create();

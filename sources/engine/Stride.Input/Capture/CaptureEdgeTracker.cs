@@ -62,26 +62,39 @@ internal sealed class CaptureEdgeTracker<T>
     /// <summary>
     ///   Gets the input that was held when masking ended and has not been pressed again since.
     /// </summary>
-    public IReadOnlyCollection<T> Suppressed => suppressed;
+    public HashSet<T> Suppressed => suppressed;
 
     public void OnMaskChanged(bool masked)
     {
+        // During the capture phase, game code has not read the frame yet, so input newly pressed in it was never seen
+        var unseenNewPresses = capture.ChangingBeforeGameReads;
+
         releasedOnCapture.Clear();
         if (masked)
         {
             foreach (var item in rawDown)
             {
-                // Input pressed this frame was never seen by the game, so it gets no release either
-                if (!suppressed.Contains(item) && !(capture.ChangingBeforeGameReads && rawNewPresses.Contains(item)))
+                if (!suppressed.Contains(item) && !(unseenNewPresses && rawNewPresses.Contains(item)))
                     releasedOnCapture.Add(item);
             }
+
+            // Input released this frame keeps its release, unless the game never saw it down
+            foreach (var item in rawReleased)
+            {
+                if (!releasedWhileSuppressed.Contains(item) && !(unseenNewPresses && rawNewPresses.Contains(item)))
+                    releasedOnCapture.Add(item);
+            }
+
             suppressed.Clear();
         }
         else
         {
             suppressed.Clear();
             foreach (var item in rawDown)
-                suppressed.Add(item);
+            {
+                if (!(unseenNewPresses && rawNewPresses.Contains(item)))
+                    suppressed.Add(item);
+            }
         }
     }
 
@@ -115,9 +128,27 @@ internal sealed class CaptureEdgeTracker<T>
     private bool Contains(ViewKind kind, T item) => kind switch
     {
         ViewKind.Down => !capture.IsMasked && rawDown.Contains(item) && !suppressed.Contains(item),
-        ViewKind.Pressed => !capture.IsMasked && rawPressed.Contains(item),
+        ViewKind.Pressed => !capture.IsMasked && rawPressed.Contains(item) && !suppressed.Contains(item),
         _ => capture.IsMasked ? releasedOnCapture.Contains(item) : rawReleased.Contains(item) && !releasedWhileSuppressed.Contains(item),
     };
+
+    private int Count(ViewKind kind) => kind switch
+    {
+        ViewKind.Down => capture.IsMasked ? 0 : rawDown.Count - CountContained(suppressed, rawDown),
+        ViewKind.Pressed => capture.IsMasked ? 0 : rawPressed.Count - CountContained(suppressed, rawPressed),
+        _ => capture.IsMasked ? releasedOnCapture.Count : rawReleased.Count - CountContained(releasedWhileSuppressed, rawReleased),
+    };
+
+    private static int CountContained(HashSet<T> items, Core.Collections.IReadOnlySet<T> set)
+    {
+        int count = 0;
+        foreach (var item in items)
+        {
+            if (set.Contains(item))
+                count++;
+        }
+        return count;
+    }
 
     private IEnumerable<T> Source(ViewKind kind) => kind switch
     {
@@ -135,19 +166,7 @@ internal sealed class CaptureEdgeTracker<T>
 
     private sealed class View(CaptureEdgeTracker<T> tracker, ViewKind kind) : Core.Collections.IReadOnlySet<T>
     {
-        public int Count
-        {
-            get
-            {
-                int count = 0;
-                foreach (var item in tracker.Source(kind))
-                {
-                    if (tracker.Contains(kind, item))
-                        count++;
-                }
-                return count;
-            }
-        }
+        public int Count => tracker.Count(kind);
 
         public bool Contains(T item) => tracker.Contains(kind, item);
 

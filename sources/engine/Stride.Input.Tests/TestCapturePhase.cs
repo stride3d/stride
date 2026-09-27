@@ -79,6 +79,33 @@ public class TestCapturePhase
             $"Capturing added allocations. Without capture: {withoutCapture}. With capture: {withCapture}.");
     }
 
+    [Fact]
+    public void ReadingMaskedStateDoesNotAllocate()
+    {
+        using var headless = new HeadlessInput();
+        var source = new InputSourceSimulated();
+        headless.Input.Sources.Add(source);
+        var gamePad = source.AddGamePad();
+        var owner = new object();
+        headless.Input.TryCapture(gamePad, owner);
+        gamePad.SetButton(GamePadButton.A, true);
+        headless.Keyboard.SimulateDown(Keys.W);
+        headless.Mouse.SimulateMouseDown(MouseButton.Left);
+        headless.Update();
+        headless.Input.Release(gamePad, owner); // A is now held through the end of a capture
+
+        var measurement = GCMeasure.Run(() =>
+        {
+            _ = gamePad.State;
+            _ = gamePad.DownButtons.Count;
+            _ = headless.Keyboard.DownKeys.Count;
+            _ = headless.Mouse.DownButtons.Count;
+            _ = headless.Mouse.ReleasedButtons.Count;
+        });
+
+        Assert.True(measurement.AllocatedBytes == 0, $"Reading masked state allocated. Measured {measurement}.");
+    }
+
     private static GCMeasurement MeasureFrames(bool captureMouse)
     {
         using var headless = new HeadlessInput();

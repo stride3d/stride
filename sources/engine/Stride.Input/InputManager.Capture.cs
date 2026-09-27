@@ -95,7 +95,9 @@ namespace Stride.Input
             if (owner == null || !ReferenceEquals(state.Owner, owner))
                 return;
 
+            state.ChangingBeforeGameReads = resolvingCapture;
             state.SetOwner(null, 0);
+            state.ChangingBeforeGameReads = false;
             OnCaptureChanged(device, null, owner, null);
         }
 
