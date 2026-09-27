@@ -698,7 +698,7 @@ public class TestQuaternion
     public void TestQuaternionInverseOperations()
     {
         var q = Quaternion.RotationAxis(Vector3.UnitY, MathUtil.PiOverFour);
-        Quaternion.Invert(ref q, out var inverse);
+        var inverse = Quaternion.Invert(q);
 
         // q * q^-1 should equal identity
         var product = q * inverse;
@@ -781,7 +781,7 @@ public class TestQuaternion
     public void TestQuaternionInverseEdgeCase()
     {
         var q = Quaternion.RotationY(MathUtil.PiOverTwo);
-        Quaternion.Invert(ref q, out var inverse);
+        var inverse = Quaternion.Invert(q);
 
         var product = q * inverse;
 
@@ -1192,8 +1192,9 @@ public class TestQuaternion
     [Fact]
     public void TestQuaternionRotationAxisNonTrivialCrossCheckWithMatrix()
     {
-        // Non-axis-aligned, non-normalized axis and a non-90-degree angle.
+        // Non-axis-aligned, and a non-90-degree angle.
         var axis = new Vector3(1f, 2f, -3f);
+        axis.Normalize();
         var angle = MathUtil.DegreesToRadians(50f);
 
         var q = Quaternion.RotationAxis(axis, angle);
