@@ -37,7 +37,7 @@
           <TextBlock Grid.Column="2"
                      Foreground="{DynamicResource ChromeWhiteBrush}"
                      Margin="8,4" HorizontalAlignment="Right" VerticalAlignment="Center"
-                     Text="{Binding Source={x:Static srv:SelfUpdater.Version}, StringFormat=Launcher v{0}}"/>
+                     Text="{Binding Source={x:Static srv:SelfUpdater.DisplayVersion}, StringFormat=Launcher v{0}}"/>
         </Grid>
       </Border>
       <Grid ColumnDefinitions="Auto, *" Margin="10">

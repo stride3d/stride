@@ -19,6 +19,11 @@ public static class SelfUpdater
 {
     public static readonly string? Version;
 
+    /// <summary>
+    /// <see cref="Version"/> without its build metadata (the commit after the '+'), for display.
+    /// </summary>
+    public static readonly string? DisplayVersion;
+
     private static readonly HttpClient httpClient = new();
     private static SelfUpdateWindow? selfUpdateWindow;
 
@@ -27,6 +32,7 @@ public static class SelfUpdater
         var assembly = Assembly.GetEntryAssembly();
         var assemblyInformationalVersion = assembly?.GetCustomAttribute<AssemblyInformationalVersionAttribute>();
         Version = assemblyInformationalVersion?.InformationalVersion;
+        DisplayVersion = Version?.Split('+')[0];
     }
 
     public static void RestartApplication()
