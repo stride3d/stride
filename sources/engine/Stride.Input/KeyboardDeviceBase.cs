@@ -15,16 +15,23 @@ namespace Stride.Input
         private readonly HashSet<Keys> pressedKeys = new HashSet<Keys>();
         private readonly HashSet<Keys> releasedKeys = new HashSet<Keys>();
         private readonly HashSet<Keys> downKeys = new HashSet<Keys>();
+        private readonly HashSet<Keys> newlyPressedKeys = new HashSet<Keys>();
 
         protected readonly List<KeyEvent> Events = new List<KeyEvent>();
 
         public readonly Dictionary<Keys, int> KeyRepeats = new Dictionary<Keys, int>();
 
+        private readonly CaptureEdgeTracker<Keys> keyTracker;
+
         protected KeyboardDeviceBase()
         {
-            PressedKeys = new ReadOnlySet<Keys>(pressedKeys);
-            ReleasedKeys = new ReadOnlySet<Keys>(releasedKeys);
-            DownKeys = new ReadOnlySet<Keys>(downKeys);
+            keyTracker = new CaptureEdgeTracker<Keys>(CaptureState, new ReadOnlySet<Keys>(downKeys), new ReadOnlySet<Keys>(pressedKeys), new ReadOnlySet<Keys>(releasedKeys), new ReadOnlySet<Keys>(newlyPressedKeys));
+            CaptureState.MaskChanged += keyTracker.OnMaskChanged;
+            CaptureState.DeviceMasksOwnState = true;
+
+            PressedKeys = keyTracker.Pressed;
+            ReleasedKeys = keyTracker.Released;
+            DownKeys = keyTracker.Down;
         }
 
         public Core.Collections.IReadOnlySet<Keys> PressedKeys { get; }
@@ -46,6 +53,7 @@ namespace Stride.Input
         {
             pressedKeys.Clear();
             releasedKeys.Clear();
+            newlyPressedKeys.Clear();
             
             // Fire events
             foreach (var keyEvent in Events)
@@ -57,6 +65,8 @@ namespace Stride.Input
                     if (keyEvent.IsDown)
                     {
                         pressedKeys.Add(keyEvent.Key);
+                        if (keyEvent.RepeatCount == 0)
+                            newlyPressedKeys.Add(keyEvent.Key);
                     }
                     else
                     {
@@ -65,6 +75,8 @@ namespace Stride.Input
                 }
             }
             Events.Clear();
+
+            keyTracker.AfterDeviceUpdate();
         }
         
         public void HandleKeyDown(Keys key)

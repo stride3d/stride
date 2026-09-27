@@ -27,17 +27,27 @@ internal sealed class CaptureEdgeTracker<T>
     private readonly Core.Collections.IReadOnlySet<T> rawDown;
     private readonly Core.Collections.IReadOnlySet<T> rawPressed;
     private readonly Core.Collections.IReadOnlySet<T> rawReleased;
+    private readonly Core.Collections.IReadOnlySet<T> rawNewPresses;
     private readonly HashSet<T> releasedOnCapture = new();
     private readonly HashSet<T> suppressed = new();
     private readonly HashSet<T> releasedWhileSuppressed = new();
     private readonly List<T> scratch = new();
 
-    public CaptureEdgeTracker(DeviceCaptureState capture, Core.Collections.IReadOnlySet<T> rawDown, Core.Collections.IReadOnlySet<T> rawPressed, Core.Collections.IReadOnlySet<T> rawReleased)
+    /// <param name="capture">The capture state of the device.</param>
+    /// <param name="rawDown">The input that is down.</param>
+    /// <param name="rawPressed">The input pressed this frame.</param>
+    /// <param name="rawReleased">The input released this frame.</param>
+    /// <param name="rawNewPresses">
+    ///   The input newly pressed this frame, excluding repeats. Defaults to <paramref name="rawPressed"/> for devices
+    ///   that do not repeat.
+    /// </param>
+    public CaptureEdgeTracker(DeviceCaptureState capture, Core.Collections.IReadOnlySet<T> rawDown, Core.Collections.IReadOnlySet<T> rawPressed, Core.Collections.IReadOnlySet<T> rawReleased, Core.Collections.IReadOnlySet<T> rawNewPresses = null)
     {
         this.capture = capture;
         this.rawDown = rawDown;
         this.rawPressed = rawPressed;
         this.rawReleased = rawReleased;
+        this.rawNewPresses = rawNewPresses ?? rawPressed;
         Down = new View(this, ViewKind.Down);
         Pressed = new View(this, ViewKind.Pressed);
         Released = new View(this, ViewKind.Released);
@@ -85,7 +95,7 @@ internal sealed class CaptureEdgeTracker<T>
         scratch.Clear();
         foreach (var item in suppressed)
         {
-            if (rawPressed.Contains(item))
+            if (rawNewPresses.Contains(item))
             {
                 scratch.Add(item);
             }

@@ -42,6 +42,17 @@ public sealed class DeviceCaptureState
 
     internal int PointerSlotCount => pointerOwners.Length;
 
+    /// <summary>
+    ///   Set by engine device bases whose own state already reflects masking, including capture edges. The shared
+    ///   query methods then read that state as it is instead of hiding it.
+    /// </summary>
+    internal bool DeviceMasksOwnState { get; set; }
+
+    /// <summary>
+    ///   Gets a value indicating whether the shared query methods must hide the device's state themselves.
+    /// </summary>
+    internal bool QueriesMustMask => IsMasked && !DeviceMasksOwnState;
+
     internal event Action<bool> MaskChanged;
 
     /// <summary>
