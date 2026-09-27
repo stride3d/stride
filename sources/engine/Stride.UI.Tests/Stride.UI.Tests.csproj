@@ -57,6 +57,7 @@
     <Compile Include="Regression\BillboardModeTests.cs" />
     <Compile Include="Regression\BorderImageTest.cs" />
     <Compile Include="Regression\BorderTest.cs" />
+    <Compile Include="Regression\InputCaptureTest.cs" />
     <Compile Include="Regression\ButtonTest.cs" />
     <Compile Include="Regression\CanvasGridTest.cs" />
     <Compile Include="Regression\ChildrenMeasurementTest.cs" />

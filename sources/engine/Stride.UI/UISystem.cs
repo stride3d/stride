@@ -5,9 +5,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Stride.Core;
+using Stride.Core.Diagnostics;
 using Stride.Games;
 using Stride.Graphics;
 using Stride.Input;
+using Stride.Rendering.UI;
 using Stride.UI.Controls;
 
 namespace Stride.UI
@@ -26,14 +28,16 @@ namespace Stride.UI
         internal DepthStencilStateDescription DecreaseStencilValueState { get; private set; }
 
         private InputManager input;
+        private UIPicking picking;
+        private readonly GameTime idleTime = new GameTime();
 
-        // UI picking runs in Draw but events are routed in Update; with IsFixedTimeStep+slow Draw,
-        // the next Update can clear InputManager.PointerEvents before Draw consumes them. Buffer
-        // pointer events here so they survive across catch-up Updates and are drained per-Draw.
+        // Pointer events routed this frame, picked against the UI in the capture phase of the same InputManager.Update
         private readonly List<PointerEvent> pendingPointerEvents = new List<PointerEvent>();
-        internal IReadOnlyList<PointerEvent> PendingPointerEvents => pendingPointerEvents;
-        internal void ClearPendingPointerEvents() => pendingPointerEvents.Clear();
+        private readonly Dictionary<RenderUIElement, UIPickingTarget> pickingTargets = new Dictionary<RenderUIElement, UIPickingTarget>();
+
         void IInputEventListener<PointerEvent>.ProcessEvent(PointerEvent inputEvent) => pendingPointerEvents.Add(inputEvent);
+
+        internal void RecordPickingTarget(in UIPickingTarget target) => pickingTargets[target.RenderObject] = target;
 
         /// <summary>
         /// Represents the UI-element currently under the mouse cursor.
@@ -59,7 +63,12 @@ namespace Stride.UI
             base.Initialize();
 
             input = Services.GetService<InputManager>();
-            input?.AddListener(this);
+            if (input != null)
+            {
+                picking = new UIPicking(this, input);
+                input.AddListener(this);
+                input.ResolvingCapture += OnResolvingCapture;
+            }
 
             Enabled = true;
             Visible = false;
@@ -73,7 +82,12 @@ namespace Stride.UI
 
         protected override void Destroy()
         {
-            input?.RemoveListener(this);
+            if (input != null)
+            {
+                input.ResolvingCapture -= OnResolvingCapture;
+                input.RemoveListener(this);
+                input.ReleaseAll(this);
+            }
 
             if (Game != null) // thumbnail system has no game
             {
@@ -140,6 +154,28 @@ namespace Stride.UI
         private void OnApplicationResumed(object sender, EventArgs e)
         {
             // revert the state of the edit text here?
+        }
+
+        private void OnResolvingCapture(object sender, EventArgs e)
+        {
+            UIElement elementUnderMouseCursor;
+            using (Profiler.Begin(UIProfilerKeys.TouchEventsUpdate))
+            {
+                elementUnderMouseCursor = picking.Run(pendingPointerEvents, pickingTargets, Game?.UpdateTime ?? idleTime);
+            }
+            pendingPointerEvents.Clear();
+            UIElementUnderMouseCursor = elementUnderMouseCursor;
+
+            if (!input.HasMouse)
+                return;
+
+            // Hover captures the mouse, except while a button pressed outside the UI is held, so a game drag that crosses the UI goes on
+            var mouse = input.Mouse;
+            var gameDragInProgress = !picking.MouseDragOwnedByUi && !ReferenceEquals(mouse.CaptureState.Owner, this) && mouse.DownButtons.Count > 0;
+            if ((elementUnderMouseCursor != null && !gameDragInProgress) || picking.MouseDragOwnedByUi)
+                input.TryCapture(mouse, this, InputCapturePriority.Hover);
+            else
+                input.Release(mouse, this);
         }
 
         public override void Update(GameTime gameTime)
