@@ -58,7 +58,7 @@ The `<description>` element is special: `SelfUpdater` scans it for a `force-rein
 - A Start menu shortcut with `Launcher.ico`.
 - The Add/Remove Programs entry. Uninstalling runs `Stride.Launcher.exe /uninstall` first, which uninstalls the Stride versions.
 
-The build names the setup `StrideSetup-<version>.exe` (e.g. `StrideSetup-6.0.1.exe`), which goes to the GitHub release. The website serves its own copy, `files/StrideSetup.exe` in the [stride-website](https://github.com/stride3d/stride-website) repository: this is the URL of the download button and of the `force-reinstall:` line. Updating it is a manual step of a release (not a pre-release), and the file is renamed to `StrideSetup.exe` then.
+The build names the setup `StrideSetup-<version>.exe` (e.g. `StrideSetup-6.0.1.exe`), which goes to the GitHub release (`launcher/<version>`). The download button of the website is `stride-download-url` in `_data/site.json` of the [stride-website](https://github.com/stride3d/stride-website) repository: on a release (not a pre-release), `release-launcher.yml` points it to the new setup and pushes to stride-website with `GH_PAT`.
 
 ## Building
 

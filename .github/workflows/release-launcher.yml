@@ -233,6 +233,29 @@ jobs:
             ${{ inputs.version-suffix != '' && '--prerelease' || '' }} \
             bin/launcher/*.exe
 
+      # The download button of stride3d.net points to the setup of the release
+      - name: Update the website download
+        if: ${{ needs.Package.outputs.version != '' && inputs.version-suffix == '' }}
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          VERSION="${{ needs.Package.outputs.version }}"
+          gh auth setup-git
+          git clone --depth 1 https://github.com/stride3d/stride-website.git website
+          cd website
+          URL="https://github.com/stride3d/stride/releases/download/launcher/$VERSION/StrideSetup-$VERSION.exe"
+          # Setting a key the site doesn't have (renamed) would add one that nothing reads
+          if ! jq -e 'has("stride-download-url")' _data/site.json > /dev/null; then
+            echo "::error::No stride-download-url in _data/site.json of stride-website"
+            exit 1
+          fi
+          jq --arg url "$URL" '."stride-download-url" = $url' _data/site.json > site.json.tmp
+          mv site.json.tmp _data/site.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "Download the Stride Launcher $VERSION setup"
+          git push
+
   #
   # AI release notes, off the Deploy critical path (see release-notes-apply.yml). Runs after
   # the release exists; replaces the scoped git-log body with the AI bullet list. The separate
