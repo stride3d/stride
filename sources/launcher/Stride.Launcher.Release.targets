@@ -6,11 +6,17 @@ Imported by build\Stride.build, which runs these targets, e.g. msbuild build\Str
   <Import Project="Stride.Launcher\Stride.Launcher.Version.props" />
 
   <PropertyGroup>
-    <!-- Launchers before 6.0 update to pre-releases too: a pre-release sends them to the release setup instead -->
-    <StrideLauncherForceReinstallMinVersion>5.0.1</StrideLauncherForceReinstallMinVersion>
-    <StrideLauncherForceReinstallMinVersion Condition="'$(VersionSuffix)' != ''">6.0.0</StrideLauncherForceReinstallMinVersion>
-    <!-- The website serves its own copy, renamed to StrideSetup.exe when it's updated -->
     <StrideSetupFileName>StrideSetup-$(StrideLauncherVersion).exe</StrideSetupFileName>
+    <StrideLauncherSetupUrl>https://github.com/stride3d/stride/releases/download/launcher/$(StrideLauncherVersion)/$(StrideSetupFileName)</StrideLauncherSetupUrl>
+
+    <!-- The "update:" line of the package, read by launchers from 6.0.1 (see docs/launcher/self-update.md) -->
+    <!-- Launchers below this version install the setup instead of swapping their files: set it when a release can't be
+         reached by swapping, and keep it for the next ones -->
+    <StrideLauncherReinstallBelow></StrideLauncherReinstallBelow>
+    <StrideLauncherUpdateRules>setup=$(StrideLauncherSetupUrl)</StrideLauncherUpdateRules>
+    <StrideLauncherUpdateRules Condition="'$(StrideLauncherReinstallBelow)' != ''">reinstall-below=$(StrideLauncherReinstallBelow) $(StrideLauncherUpdateRules)</StrideLauncherUpdateRules>
+    <!-- -p:StrideLauncherUpdateCheckpoint=true: every older launcher updates to this version before any newer one -->
+    <StrideLauncherUpdateRules Condition="'$(StrideLauncherUpdateCheckpoint)' == 'true'">checkpoint $(StrideLauncherUpdateRules)</StrideLauncherUpdateRules>
   </PropertyGroup>
 
   <UsingTask TaskName="GetStrideSetupVersion" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
@@ -25,6 +31,7 @@ Imported by build\Stride.build, which runs these targets, e.g. msbuild build\Str
       <Output TaskParameter="ProductCode" PropertyName="StrideSetupProductCode" />
     </GetStrideSetupVersion>
     <Message Importance="high" Text="StrideSetup $(StrideLauncherVersion): MSI version $(StrideSetupMsiVersion), ProductCode $(StrideSetupProductCode), $(StrideSetupFileName)" />
+    <Message Importance="high" Text="update: $(StrideLauncherUpdateRules)" />
   </Target>
 
   <!--
@@ -41,7 +48,16 @@ Imported by build\Stride.build, which runs these targets, e.g. msbuild build\Str
     <Delete Files="@(FilesToDeleteLauncher)"/>
 
     <!-- Generate the nuget package for the launcher application -->
-    <Exec Command='"$(NuGetPath)" pack "$(MSBuildThisFileDirectory)Stride.Launcher\Stride.Launcher.nuspec" -Version $(StrideLauncherVersion) -Properties ForceReinstallMinVersion=$(StrideLauncherForceReinstallMinVersion) -BasePath "$(MSBuildThisFileDirectory)Stride.Launcher\bin\Release\publish" -OutputDirectory "$(StrideRoot)bin\launcher"' />
+    <PropertyGroup>
+      <_StrideLauncherPackArgs>-Properties "SetupUrl=$(StrideLauncherSetupUrl);UpdateRules=$(StrideLauncherUpdateRules)" -BasePath "$(MSBuildThisFileDirectory)Stride.Launcher\bin\Release\publish" -OutputDirectory "$(StrideRoot)bin\launcher"</_StrideLauncherPackArgs>
+    </PropertyGroup>
+    <Exec Command='"$(NuGetPath)" pack "$(MSBuildThisFileDirectory)Stride.Launcher\Stride.Launcher.nuspec" -Version $(StrideLauncherVersion) $(_StrideLauncherPackArgs)' />
+
+    <!-- -p:StrideLauncherLegacyReq=true (6.0.1 only): the same exe as X.Y.Z-req too. Launchers before 6.0.1 read no update
+         line and have no pre-release filter, but update to the first "-req" version above them before any other one. The exe
+         still says X.Y.Z, so they don't update again to X.Y.Z. -->
+    <Error Condition="'$(StrideLauncherLegacyReq)' == 'true' and '$(VersionSuffix)' != ''" Text="StrideLauncherLegacyReq is for a release, not a pre-release." />
+    <Exec Condition="'$(StrideLauncherLegacyReq)' == 'true'" Command='"$(NuGetPath)" pack "$(MSBuildThisFileDirectory)Stride.Launcher\Stride.Launcher.nuspec" -Version $(StrideLauncherVersion)-req $(_StrideLauncherPackArgs)' />
 
     <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="_SignFiles"
              Properties="StrideSign=$(StrideSign);StrideSignDir=$(StrideRoot)bin\launcher" />

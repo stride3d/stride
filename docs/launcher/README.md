@@ -91,7 +91,7 @@ See [projects.md](projects.md) for the full layout and each file's role.
 | [viewmodels.md](viewmodels.md) | `MainViewModel`, version view models, recent projects, news/docs/announcement view models |
 | [views.md](views.md) | XAML views, windows, converters, markdown viewer integration |
 | [versions.md](versions.md) | Version discovery, install/uninstall flow through `NugetStore`, framework selection, beta filter, dev redirects |
-| [self-update.md](self-update.md) | Launcher self-update: NuGet update probe, force-reinstall, file swap, restart |
+| [self-update.md](self-update.md) | Launcher self-update: NuGet update probe, update rules, reinstall, file swap, restart |
 | [settings.md](settings.md) | `LauncherSettings`, `GameStudioSettings`, config file locations |
 | [localization.md](localization.md) | `Strings.resx` / `Urls.resx`, designer classes, adding a new language |
 | [packaging.md](packaging.md) | `Stride.Launcher.nuspec`, Advanced Installer projects, `StrideSetup.exe`, versioning |
