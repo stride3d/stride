@@ -59,6 +59,7 @@ public static class SelfUpdater
     {
         return Task.Run(async () =>
         {
+            DeleteOldFiles();
             var dispatcher = services.Get<IDispatcherService>();
             try
             {
@@ -70,6 +71,28 @@ public static class SelfUpdater
                 throw;
             }
         });
+    }
+
+    /// <summary>
+    /// Deletes the files the previous update renamed to ".old": that launcher was running from its exe, so it couldn't.
+    /// </summary>
+    private static void DeleteOldFiles()
+    {
+        if (Program.GetExecutablePath() is not string exeLocation)
+            return;
+
+        foreach (var oldFile in new[] { exeLocation + ".old", exeLocation + ".config.old" })
+        {
+            try
+            {
+                File.Delete(oldFile);
+            }
+            catch (Exception e)
+            {
+                // Still in use while the previous launcher exits: the next start deletes it
+                e.Ignore();
+            }
+        }
     }
 
     private static async Task DownloadAndInstallNewVersion(IDispatcherService dispatcher, IDialogService dialogService, string strideInstallerUrl)
