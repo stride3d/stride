@@ -593,10 +593,11 @@
                                         </ScrollViewer>
                                       </Border>
                                     </Popup>
+                                    <!-- Greyed: the project name above is what identifies it -->
                                     <TextBlock DockPanel.Dock="Bottom"
                                                 Text="{Binding FullPath}"
                                                 TextTrimming="PathSegmentEllipsis"
-                                                FontStyle="Italic" />
+                                                FontStyle="Italic" Opacity="0.6" />
                                   </DockPanel>
                                   <DockPanel>
                                     <!-- Discovering -->
