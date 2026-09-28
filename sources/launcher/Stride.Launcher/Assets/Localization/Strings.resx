@@ -298,8 +298,12 @@
     <comment>{0}: long version name</comment>
   </data>
   <data name="ToolTipVisualStudioExtension" xml:space="preserve">
-    <value>{0} Visual Studio extension</value>
-    <comment>The tooltip of the Visual Studio Plugin button. {0}: A verb describing the action to do (Install, Reinstall, Update...)</comment>
+    <value>{0} the Visual Studio {1} extension</value>
+    <comment>The tooltip of the Visual Studio Plugin button. {0}: A verb describing the action to do (Install, Reinstall, Update...). {1}: the Visual Studio version (2019, 2022+)</comment>
+  </data>
+  <data name="ToolTipVisualStudioNotInstalled" xml:space="preserve">
+    <value>Visual Studio {0} isn't installed</value>
+    <comment>The tooltip of the disabled Visual Studio Plugin button. {0}: the Visual Studio version (2019)</comment>
   </data>
   <data name="UnknownVersion" xml:space="preserve">
     <value>Unknown version</value>

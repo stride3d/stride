@@ -789,14 +789,23 @@ namespace Stride.Launcher.Assets.Localization {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {0} Visual Studio extension.
+        ///   Looks up a localized string similar to {0} the Visual Studio {1} extension.
         /// </summary>
         public static string ToolTipVisualStudioExtension {
             get {
                 return ResourceManager.GetString("ToolTipVisualStudioExtension", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Visual Studio {0} isn&apos;t installed.
+        /// </summary>
+        public static string ToolTipVisualStudioNotInstalled {
+            get {
+                return ResourceManager.GetString("ToolTipVisualStudioNotInstalled", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Unknown version.
         /// </summary>
