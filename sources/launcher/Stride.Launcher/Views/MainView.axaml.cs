@@ -40,8 +40,9 @@ public partial class MainView : UserControl
 
     private void VisualStudioDownloadPage_Button_Loaded(object? sender, RoutedEventArgs e)
     {
+        // Visual Studio 2019 (16) or newer: 2022 is 17, 2026 is 18
         if (sender is Button button && VisualStudioVersions.AvailableInstances
-            .Any(ide => ide.InstallationVersion?.Major == 16 || ide.InstallationVersion?.Major == 17))
+            .Any(ide => ide.InstallationVersion?.Major >= 16))
         {
             button.IsVisible = false;
         }
