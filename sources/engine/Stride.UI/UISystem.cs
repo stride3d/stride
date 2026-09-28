@@ -197,6 +197,14 @@ namespace Stride.UI
 
         private void OnResolvingCapture(object sender, EventArgs e)
         {
+            // An element that was hidden or disabled while focused, such as a text box in a closed popup, loses the focus
+            if (focusedElement != null && !CanKeepFocus(focusedElement))
+            {
+                if (focusedElement is EditText editText)
+                    editText.IsSelectionActive = false;
+                FocusedElement = null;
+            }
+
             // Take the keyboard back if a higher-priority owner held it while an element kept the focus
             if (focusedElement != null && input.HasKeyboard)
                 input.TryCapture(input.Keyboard, this, InputCapturePriority.Focus);
@@ -222,6 +230,16 @@ namespace Stride.UI
                 input.TryCapture(mouse, this, InputCapturePriority.Hover);
             else
                 input.Release(mouse, this);
+        }
+
+        private static bool CanKeepFocus(UIElement element)
+        {
+            for (var current = element; current != null; current = current.VisualParent)
+            {
+                if (!current.IsVisible || !current.IsEnabled)
+                    return false;
+            }
+            return true;
         }
 
         public override void Update(GameTime gameTime)

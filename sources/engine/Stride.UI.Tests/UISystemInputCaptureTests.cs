@@ -7,6 +7,7 @@ using Stride.Core;
 using Stride.Games;
 using Stride.Input;
 using Stride.UI.Controls;
+using Stride.UI.Panels;
 using Xunit;
 
 namespace Stride.UI.Tests
@@ -82,6 +83,34 @@ namespace Stride.UI.Tests
 
             Assert.Equal(0, editText.SelectionStart);
             Assert.Equal(5, editText.SelectionLength);
+        }
+
+        [Fact]
+        public void HidingTheFocusedElementReturnsTheKeyboardToTheGame()
+        {
+            var editText = new EditText();
+            var popup = new StackPanel { Children = { editText } };
+            ui.FocusedElement = editText;
+
+            popup.Visibility = Visibility.Collapsed;
+            input.Update(gameTime);
+
+            Assert.Null(ui.FocusedElement);
+            Assert.False(keyboard.CaptureState.IsCaptured);
+        }
+
+        [Fact]
+        public void DisablingTheFocusedElementReturnsTheKeyboardToTheGame()
+        {
+            var editText = new EditText();
+            var popup = new StackPanel { Children = { editText } };
+            ui.FocusedElement = editText;
+
+            popup.IsEnabled = false;
+            input.Update(gameTime);
+
+            Assert.Null(ui.FocusedElement);
+            Assert.False(keyboard.CaptureState.IsCaptured);
         }
 
         [Fact]
