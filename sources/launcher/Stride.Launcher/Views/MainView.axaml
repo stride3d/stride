@@ -85,22 +85,6 @@
                 <Button Classes="transparentButton"
                         HorizontalAlignment="Stretch"
                         Command="{Binding OpenUrlCommand}"
-                        CommandParameter="{x:Static l:Urls.Discord}"
-                        ToolTip.Tip="{Binding CommandParameter, StringFormat={x:Static l:Strings.ToolTipOpenLink}, RelativeSource={RelativeSource Self}}">
-                  <Interaction.Behaviors>
-                    <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
-                                                         DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
-                  </Interaction.Behaviors>
-                  <StackPanel Orientation="Horizontal">
-                    <PathIcon Margin="4" Width="16" Height="16"
-                              Data="{StaticResource GeometryDiscord}"/>
-                    <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
-                               Text="{x:Static l:Strings.ButtonDiscord}" />
-                  </StackPanel>
-                </Button>
-                <Button Classes="transparentButton"
-                        HorizontalAlignment="Stretch"
-                        Command="{Binding OpenUrlCommand}"
                         CommandParameter="{x:Static l:Urls.GitHub}"
                         ToolTip.Tip="{Binding CommandParameter, StringFormat={x:Static l:Strings.ToolTipOpenLink}, RelativeSource={RelativeSource Self}}">
                   <Interaction.Behaviors>
@@ -136,6 +120,18 @@
               <StackPanel Margin="6"
                           Orientation="Horizontal"
                           HorizontalAlignment="Center">
+                <Button Classes="transparentButton mediaButton"
+                        HorizontalAlignment="Stretch"
+                        Command="{Binding OpenUrlCommand}"
+                        CommandParameter="{x:Static l:Urls.Discord}"
+                        ToolTip.Tip="{Binding CommandParameter, StringFormat={x:Static l:Strings.ToolTipOpenLink}, RelativeSource={RelativeSource Self}}">
+                <PathIcon Width="24" Height="24"
+                        Data="{StaticResource GeometryDiscord}"/>
+                <Interaction.Behaviors>
+                    <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
+                                                        DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
+                </Interaction.Behaviors>
+                </Button>
                 <Button Classes="transparentButton mediaButton"
                         Command="{Binding OpenUrlCommand}"
                         CommandParameter="{x:Static l:Urls.XTwitter}"
@@ -187,7 +183,7 @@
           <Border Classes="card" DockPanel.Dock="Bottom"
                   CornerRadius="{StaticResource ControlCornerRadius}"
                   Background="{DynamicResource NeutralBackgroundBrush}"
-                  IsVisible="{Binding Source={x:Static p:OperatingSystemHelper.IsWindows}, Mode=OneTime}">
+                  IsVisible="True">
             <StackPanel Margin="10">
               <Border BorderBrush="{StaticResource TileBorderBrush}" BorderThickness="12,0,0,0">
                 <DockPanel Height="32" Margin="4,0">
@@ -365,7 +361,7 @@
                                 <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding Launcher.CurrentToolTip}"
                                                                      DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
                               </Interaction.Behaviors>
-                              <PathIcon Width="20" Height="20" 
+                              <PathIcon Width="20" Height="20"
                                         Data="{StaticResource GeometryUpdate}"/>
                             </Button>
                             <!-- Download button -->
