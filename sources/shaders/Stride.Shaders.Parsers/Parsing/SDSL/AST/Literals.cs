@@ -79,8 +79,57 @@ public abstract class NumberLiteral<T>(Suffix suffix, T value, TextLocation info
 
 }
 
-public partial class IntegerLiteral(Suffix suffix, long value, TextLocation info) : NumberLiteral<long>(suffix, value, info)
+public partial class IntegerLiteral(Suffix suffix, long value, TextLocation info) : NumberLiteral<long>(suffix, Wrap(suffix, value), info)
 {
+    /// <summary>
+    /// Whether the literal was written without a suffix: its type then depends on its value, and negating it keeps it signed.
+    /// </summary>
+    public bool Unsuffixed { get; init; }
+
+    // An unsigned 64-bit value above long.MaxValue is stored as the same bits
+    public override double DoubleValue => Suffix is { Size: 64, Signed: false } ? ULongValue : Value;
+    public override ulong ULongValue => unchecked((ulong)Value);
+    public override uint UIntValue => unchecked((uint)Value);
+    public override int IntValue => unchecked((int)Value);
+
+    // The value wraps to the range of its type, as in C
+    static long Wrap(Suffix suffix, long value) => suffix switch
+    {
+        { Size: 32, Signed: true } => unchecked((int)value),
+        { Size: 32, Signed: false } => unchecked((uint)value),
+        _ => value,
+    };
+
+    /// <summary>
+    /// Creates a literal written without a suffix, typed as the first of int, uint, long and ulong that holds its value.
+    /// </summary>
+    public static IntegerLiteral FromUnsuffixed(Int128 value, TextLocation info)
+    {
+        Suffix suffix;
+        if (value >= int.MinValue && value <= int.MaxValue)
+            suffix = new(32, false, true);
+        else if (value >= 0 && value <= uint.MaxValue)
+            suffix = new(32, false, false);
+        else if (value >= long.MinValue && value <= long.MaxValue)
+            suffix = new(64, false, true);
+        else if (value >= 0 && value <= ulong.MaxValue)
+            suffix = new(64, false, false);
+        else
+            suffix = new(64, false, true);
+        return new(suffix, unchecked((long)value), info) { Unsuffixed = true };
+    }
+
+    /// <summary>
+    /// Negates the literal: a suffixed one keeps its type and wraps (-1u is 0xFFFFFFFF), an unsuffixed one stays signed (-2147483648 is an int).
+    /// </summary>
+    public virtual IntegerLiteral Negate(TextLocation info)
+        => Unsuffixed
+            ? FromUnsuffixed(-(Suffix.Signed ? (Int128)Value : ULongValue), info)
+            : new(Suffix, unchecked(-Value), info);
+
+    public override string ToString()
+        => string.Create(CultureInfo.InvariantCulture, $"{(Suffix.Signed ? Value : (object)ULongValue)}{Suffix}");
+
     public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
     {
         Type = expectedType is ScalarType { Type: Scalar.Float }
@@ -94,7 +143,7 @@ public partial class IntegerLiteral(Suffix suffix, long value, TextLocation info
         // If expectedType is float, handle it:
         if (Type is ScalarType { Type: Scalar.Float })
         {
-            return compiler.Context.CompileConstantLiteral(new FloatLiteral(new(32, true, true), Value, Info));
+            return compiler.Context.CompileConstantLiteral(new FloatLiteral(new(32, true, true), DoubleValue, Info));
         }
 
         return compiler.Context.CompileConstantLiteral(this);
@@ -116,9 +165,11 @@ public sealed partial class FloatLiteral(Suffix suffix, double value, TextLocati
     }
 }
 
-public sealed partial class HexLiteral(ulong value, TextLocation info) : IntegerLiteral(new(value > uint.MaxValue ? 64 : 32, false, false), (long)value, info)
+public sealed partial class HexLiteral(ulong value, TextLocation info) : IntegerLiteral(new(value > uint.MaxValue ? 64 : 32, false, false), unchecked((long)value), info)
 {
     public override SymbolType? Type => Suffix.Size > 32 ? ScalarType.UInt64 : ScalarType.UInt;
+
+    public override IntegerLiteral Negate(TextLocation info) => FromUnsuffixed(-(Int128)ULongValue, info);
 }
 
 
