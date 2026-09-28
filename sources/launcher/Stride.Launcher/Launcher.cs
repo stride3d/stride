@@ -198,8 +198,8 @@ internal static class Launcher
 
         static async Task<bool> DisplayMessageAsync(string message)
         {
-            var result = await MessageBox.ShowAsync(ApplicationName, message, IDialogService.GetButtons(MessageBoxButton.YesNo), MessageBoxImage.Information);
-            return result == (int)MessageBoxResult.Yes;
+            var result = await MessageBox.ShowAsync(ApplicationName, message, IDialogService.GetButtons(MessageBoxButton.OKCancel), MessageBoxImage.Information);
+            return result == (int)MessageBoxResult.OK;
         }
     }
 
