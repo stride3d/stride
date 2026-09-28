@@ -164,6 +164,7 @@ jobs:
     if: ${{ inputs.deploy && inputs.sign }}
     needs: Package
     runs-on: ubuntu-latest
+    environment: production  # STRIDE_NUGET_API_KEY lives here; requires manual approval in GitHub settings
     steps:
       - uses: actions/checkout@v7  # full history + tags for the launcher-scoped changelog
         with:
