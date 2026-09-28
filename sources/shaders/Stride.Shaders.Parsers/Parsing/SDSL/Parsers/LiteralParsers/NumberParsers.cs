@@ -120,7 +120,7 @@ public struct NumberParser : IParser<Literal>
         if (Tokens.FloatSuffix(ref scanner, out var suffix, advance: true) && suffix is not null)
             parsed = new FloatLiteral(suffix.Value, value, scanner[position..scanner.Position]);
         else
-            parsed = new FloatLiteral(new(32, true, true), value, scanner[position..scanner.Position]);
+            parsed = new FloatLiteral(new(32, true, true), value, scanner[position..scanner.Position]) { Unsuffixed = true };
         return true;
     }
     public static bool Hex<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Literal parsed, in ParseError? orError = null)

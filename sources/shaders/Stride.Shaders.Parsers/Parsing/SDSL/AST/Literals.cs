@@ -154,6 +154,11 @@ public sealed partial class FloatLiteral(Suffix suffix, double value, TextLocati
 {
     public static implicit operator FloatLiteral(double v) => new(new(), v, new());
 
+    /// <summary>
+    /// Whether the literal was written without a suffix: an operation of such literals is then folded in double precision.
+    /// </summary>
+    public bool Unsuffixed { get; init; }
+
     public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
     {
         Type = SpirvContext.ComputeLiteralType(this);
