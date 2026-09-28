@@ -151,6 +151,18 @@ namespace Stride.UI.Tests
         }
 
         [Fact]
+        public void PickingTargetsAreKeptForEachViewThatDrawsAComponent()
+        {
+            var component = new Rendering.UI.RenderUIElement();
+            ui.RecordPickingTarget(new UIPickingTarget { RenderObject = component, View = new Rendering.RenderView(), Frame = 1 });
+            ui.RecordPickingTarget(new UIPickingTarget { RenderObject = component, View = new Rendering.RenderView(), Frame = 1 });
+
+            input.Update(gameTime);
+
+            Assert.Equal(2, ui.PickingTargetCount);
+        }
+
+        [Fact]
         public void DestroyingUISystemReleasesItsCaptures()
         {
             ui.FocusedElement = new Button();

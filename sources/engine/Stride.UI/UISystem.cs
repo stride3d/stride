@@ -8,6 +8,7 @@ using Stride.Core.Diagnostics;
 using Stride.Games;
 using Stride.Graphics;
 using Stride.Input;
+using Stride.Rendering;
 using Stride.Rendering.UI;
 using Stride.UI.Controls;
 
@@ -32,7 +33,8 @@ namespace Stride.UI
 
         // Pointer events routed this frame, picked against the UI in the capture phase of the same InputManager.Update
         private readonly List<PointerEvent> pendingPointerEvents = new List<PointerEvent>();
-        private readonly Dictionary<RenderUIElement, UIPickingTarget> pickingTargets = new Dictionary<RenderUIElement, UIPickingTarget>();
+        // One target for each view that drew a UI component, so a component drawn by several cameras is picked in each of them
+        private readonly Dictionary<(RenderUIElement, RenderView), UIPickingTarget> pickingTargets = new Dictionary<(RenderUIElement, RenderView), UIPickingTarget>();
 
         // Keys and text are read through the listener, because the game-facing keyboard state is masked while the UI holds the keyboard
         private readonly List<KeyEvent> pendingKeyEvents = new List<KeyEvent>();
@@ -55,7 +57,7 @@ namespace Stride.UI
 
         void IInputEventListener<TextInputEvent>.ProcessEvent(TextInputEvent inputEvent) => pendingTextEvents.Add(inputEvent);
 
-        internal void RecordPickingTarget(in UIPickingTarget target) => pickingTargets[target.RenderObject] = target;
+        internal void RecordPickingTarget(in UIPickingTarget target) => pickingTargets[(target.RenderObject, target.View)] = target;
 
         internal int PickingTargetCount => pickingTargets.Count;
 

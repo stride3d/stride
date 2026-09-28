@@ -7,6 +7,7 @@ using Stride.Core.Mathematics;
 using Stride.Games;
 using Stride.Graphics;
 using Stride.Input;
+using Stride.Rendering;
 using Stride.Rendering.UI;
 
 namespace Stride.UI
@@ -17,6 +18,7 @@ namespace Stride.UI
     internal struct UIPickingTarget
     {
         public RenderUIElement RenderObject;
+        public RenderView View;
         public Matrix WorldViewProjection;
         public Vector3 VirtualResolution;
         public Viewport Viewport;
@@ -40,7 +42,7 @@ namespace Stride.UI
         private readonly HashSet<UIElement> newlySelectedElementParents = new HashSet<UIElement>();
         private readonly List<PointerEvent> compactedPointerEvents = new List<PointerEvent>();
         private readonly List<(IPointerDevice Device, int PointerId)> pointersToRelease = new List<(IPointerDevice, int)>();
-        private readonly List<RenderUIElement> staleTargets = new List<RenderUIElement>();
+        private readonly List<(RenderUIElement, RenderView)> staleTargets = new List<(RenderUIElement, RenderView)>();
         private bool releaseMouseDrag;
 
         public UIPicking(UISystem system, InputManager input)
@@ -58,7 +60,7 @@ namespace Stride.UI
         /// Processes this frame's pointer events against the UI components drawn last.
         /// </summary>
         /// <returns>The element under the mouse cursor, or <c>null</c>.</returns>
-        public UIElement Run(List<PointerEvent> events, Dictionary<RenderUIElement, UIPickingTarget> targets, GameTime time)
+        public UIElement Run(List<PointerEvent> events, Dictionary<(RenderUIElement, RenderView), UIPickingTarget> targets, GameTime time)
         {
             ApplyDeferredReleases();
 
@@ -74,10 +76,10 @@ namespace Stride.UI
             foreach (var target in targets.Values)
             {
                 if (target.Frame < latestFrame)
-                    staleTargets.Add(target.RenderObject);
+                    staleTargets.Add((target.RenderObject, target.View));
             }
-            foreach (var renderObject in staleTargets)
-                targets.Remove(renderObject);
+            foreach (var key in staleTargets)
+                targets.Remove(key);
 
             UIElement elementUnderMouseCursor = null;
             foreach (var target in targets.Values)

@@ -154,6 +154,7 @@ namespace Stride.Rendering.UI
                 uiSystem.RecordPickingTarget(new UIPickingTarget
                 {
                     RenderObject = renderObject,
+                    View = renderView,
                     WorldViewProjection = uiElementState.WorldViewProjectionMatrix,
                     VirtualResolution = virtualResolution,
                     Viewport = context.CommandList.Viewport,
