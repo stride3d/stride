@@ -335,7 +335,8 @@
                           <Grid>
                             <Button Command="{Binding SetAsActiveCommand}"
                                     IsVisible="{Binding !IsProcessing}"
-                                    ToolTip.Tip="{Binding FullName, StringFormat={x:Static l:Strings.ToolTipSetActiveVersion}}">
+                                    ToolTip.Tip="{Binding FullName, StringFormat={x:Static l:Strings.ToolTipSetActiveVersion}}"
+                                    HorizontalAlignment="Stretch">
                               <Interaction.Behaviors>
                                 <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding Launcher.CurrentToolTip}"
                                                                      DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
