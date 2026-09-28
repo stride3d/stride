@@ -1,4 +1,6 @@
 name: Release Launcher
+# The run list shows the options of each run (the version comes from the nuspec: see the run summary)
+run-name: Launcher ${{ inputs.version-suffix || 'release' }}${{ inputs.sign && ' · sign' || '' }}${{ inputs.deploy && ' · deploy' || '' }}${{ inputs.checkpoint && ' · checkpoint' || '' }}${{ inputs.legacy-req && ' · legacy-req' || '' }}
 
 on:
   workflow_dispatch:
@@ -146,6 +148,34 @@ jobs:
           StrideSignClientSecret: ${{ secrets.STRIDE_SIGN_CLIENT_SECRET }}
           StrideSignKeyVaultCertificate: ${{ secrets.STRIDE_SIGN_KEYVAULT_CERTIFICATE }}
           StrideSignKeyVaultName: ${{ secrets.STRIDE_SIGN_KEYVAULT_NAME }}
+
+      # What this run built, with the update lines read back from the packages
+      - name: Summary
+        shell: pwsh
+        run: |
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $yesNo = { param($value) if ($value -eq 'true') { 'yes' } else { 'no' } }
+          $summary = @(
+            "## Stride Launcher ${{ steps.version.outputs.version }}"
+            ""
+            "- Deploy: $(& $yesNo '${{ inputs.deploy }}') · Signed: $(& $yesNo '${{ inputs.sign }}') · Pre-release: $(& $yesNo '${{ inputs.version-suffix != '' }}')"
+            "- Checkpoint: $(& $yesNo '${{ inputs.checkpoint }}') · legacy-req: $(& $yesNo '${{ inputs.legacy-req }}')"
+          )
+          foreach ($nupkg in Get-ChildItem -Path bin/launcher -Filter "*.nupkg") {
+            $zip = [System.IO.Compression.ZipFile]::OpenRead($nupkg.FullName)
+            try {
+              $reader = [System.IO.StreamReader]::new(($zip.Entries | Where-Object Name -eq 'Stride.Launcher.nuspec').Open())
+              $description = ([xml]$reader.ReadToEnd()).package.metadata.description
+              $reader.Dispose()
+            } finally {
+              $zip.Dispose()
+            }
+            $summary += "", "### $($nupkg.Name)", '```'
+            $summary += $description -split '\r?\n' | Where-Object { $_ -match '^(update|force-reinstall):' }
+            $summary += '```'
+          }
+          $summary | Out-File -Append -Encoding utf8 $env:GITHUB_STEP_SUMMARY
+          $summary
 
       - name: Upload launcher artifacts
         uses: actions/upload-artifact@v7
