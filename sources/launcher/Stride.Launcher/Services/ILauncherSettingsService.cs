@@ -13,6 +13,7 @@ public interface ILauncherSettingsService
     string PreferredRuntime { get; set; }
     int CurrentTab { get; set; }
     bool IncludePrereleaseUpdates { get; set; }
+    string? ThemeVariant { get; set; }
     IReadOnlyCollection<UDirectory> DeveloperVersions { get; }
     bool IsTaskCompleted(string taskName);
     /// <summary>Marks the task as completed and persists immediately (same contract as <see cref="LauncherSettings.MarkTaskCompleted"/>).</summary>

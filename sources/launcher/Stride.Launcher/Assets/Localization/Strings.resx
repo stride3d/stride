@@ -383,6 +383,21 @@
     <value>Launcher settings</value>
     <comment>Tooltip of the gear button in the title bar</comment>
   </data>
+  <data name="ThemeVariant" xml:space="preserve">
+    <value>Theme</value>
+    <comment>Label of the theme variant choice (dark, light...), in the launcher settings</comment>
+  </data>
+  <data name="ThemeVariantDark" xml:space="preserve">
+    <value>Dark</value>
+  </data>
+  <data name="ThemeVariantLight" xml:space="preserve">
+    <value>Light (preview)</value>
+    <comment>The light variant isn't finished yet</comment>
+  </data>
+  <data name="ThemeVariantSystem" xml:space="preserve">
+    <value>Follow system</value>
+    <comment>The variant follows the light or dark mode of the operating system</comment>
+  </data>
   <data name="ButtonRoadmap" xml:space="preserve">
     <value>Check the roadmap</value>
     <comment>/!\ Text must be short</comment>

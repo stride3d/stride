@@ -185,6 +185,16 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
         set => SetValue(_settings.IncludePrereleaseUpdates != value, () => { _settings.IncludePrereleaseUpdates = value; _settings.Save(); });
     }
 
+    public IReadOnlyList<ThemeVariantChoice> ThemeVariantChoices { get; } =
+        [new("Dark", Strings.ThemeVariantDark), new("Light", Strings.ThemeVariantLight), new("System", Strings.ThemeVariantSystem)];
+
+    // Applies right away, through App directly: no service for this one call (in tests, there's no App and it does nothing)
+    public ThemeVariantChoice SelectedThemeVariant
+    {
+        get => ThemeVariantChoices.FirstOrDefault(x => string.Equals(x.Value, _settings.ThemeVariant, StringComparison.OrdinalIgnoreCase)) ?? ThemeVariantChoices[0];
+        set => SetValue(value is not null && value != SelectedThemeVariant, () => { _settings.ThemeVariant = value.Value; _settings.Save(); App.ApplyThemeVariant(value.Value); });
+    }
+
     public string PreferredEditor
     {
         get => _settings.PreferredEditor;

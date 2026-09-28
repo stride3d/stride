@@ -65,6 +65,17 @@
             <!-- A check box rather than a menu item: its box shows when it's off too -->
             <CheckBox Content="{x:Static l:Strings.IncludePrereleaseUpdates}"
                       IsChecked="{Binding IncludePrereleaseUpdates, Mode=TwoWay}"/>
+            <DockPanel>
+              <TextBlock Text="{x:Static l:Strings.ThemeVariant}" Margin="0,0,12,0" VerticalAlignment="Center"/>
+              <ComboBox ItemsSource="{Binding ThemeVariantChoices}" SelectedItem="{Binding SelectedThemeVariant, Mode=TwoWay}"
+                        HorizontalAlignment="Stretch">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate x:DataType="vm:ThemeVariantChoice">
+                    <TextBlock Text="{Binding Name}"/>
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+            </DockPanel>
           </StackPanel>
         </Flyout>
       </FlyoutBase.AttachedFlyout>

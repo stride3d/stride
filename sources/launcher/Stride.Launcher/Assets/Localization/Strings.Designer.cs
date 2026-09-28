@@ -344,6 +344,42 @@ namespace Stride.Launcher.Assets.Localization {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Theme.
+        /// </summary>
+        public static string ThemeVariant {
+            get {
+                return ResourceManager.GetString("ThemeVariant", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Dark.
+        /// </summary>
+        public static string ThemeVariantDark {
+            get {
+                return ResourceManager.GetString("ThemeVariantDark", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Light (preview).
+        /// </summary>
+        public static string ThemeVariantLight {
+            get {
+                return ResourceManager.GetString("ThemeVariantLight", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Follow system.
+        /// </summary>
+        public static string ThemeVariantSystem {
+            get {
+                return ResourceManager.GetString("ThemeVariantSystem", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The installation of this version is already in progress. Please wait a moment..
         /// </summary>
         public static string InstallAlreadyInProgress {
