@@ -516,8 +516,19 @@ public abstract class UnaryExpression(Expression expression, Operator op, TextLo
 
 public partial class PrefixExpression(Operator op, Expression expression, TextLocation info) : UnaryExpression(expression, op, info)
 {
+    private object? foldedValue;
+
     public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
     {
+        // -(1 / 2) is folded as a whole, like the operation it applies to
+        if (LiteralFolding.TryFold(this, out var folded))
+        {
+            (var foldedType, foldedValue) = LiteralFolding.ToConstant(folded, expectedType);
+            Type = foldedType;
+            return;
+        }
+        foldedValue = null;
+
         switch (Operator)
         {
             case Operator.Inc:
@@ -537,6 +548,9 @@ public partial class PrefixExpression(Operator op, Expression expression, TextLo
 
     public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
+        if (foldedValue != null)
+            return compiler.Context.CompileConstant(Type!, foldedValue);
+
         var (builder, context) = compiler;
         var expression = Expression.Compile(table, compiler);
         var type = Expression.Type;
@@ -1563,15 +1577,21 @@ public partial class BinaryExpression(Expression left, Operator op, Expression r
     public Expression Right { get; set; } = right;
 
     private SymbolType? expectedOperandType;
+    private object? foldedValue;
 
     public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
     {
-        // The context's type only reaches an operation of literals, whose value is the same computed in it
-        // (a constant then stays a constant of that type); otherwise the operands' own types decide, as in HLSL.
-        var expectedOperandType = IsLiteralOperation(this) ? expectedType : null;
+        // Unsuffixed literals are folded as in HLSL, then take the context's type; otherwise the operands' own types decide
+        if (LiteralFolding.TryFold(this, out var folded))
+        {
+            (var foldedType, foldedValue) = LiteralFolding.ToConstant(folded, expectedType);
+            Type = foldedType;
+            return;
+        }
+        foldedValue = null;
 
-        Left.ProcessSymbol(table, expectedOperandType);
-        Right.ProcessSymbol(table, expectedOperandType);
+        Left.ProcessSymbol(table);
+        Right.ProcessSymbol(table);
 
         var analysisResult = SpirvBuilder.AnalyzeBinaryOperation(table, Left.ValueType!, Op, Right.ValueType!, Info);
 
@@ -1586,17 +1606,11 @@ public partial class BinaryExpression(Expression left, Operator op, Expression r
         Type = analysisResult?.ResultType;
     }
 
-    private static bool IsLiteralOperation(Expression expression) => expression switch
-    {
-        NumberLiteral => true,
-        ParenthesisExpression parenthesis => IsLiteralOperation(parenthesis.Expression),
-        PrefixExpression { Operator: Operator.Plus or Operator.Minus } prefix and not CastExpression => IsLiteralOperation(prefix.Expression),
-        BinaryExpression { Op: Operator.Plus or Operator.Minus or Operator.Mul } binary => IsLiteralOperation(binary.Left) && IsLiteralOperation(binary.Right),
-        _ => false,
-    };
-
     public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
+        if (foldedValue != null)
+            return compiler.Context.CompileConstant(Type!, foldedValue);
+
         var left = Left.CompileAsValue(table, compiler, expectedOperandType);
         var right = Right.CompileAsValue(table, compiler, expectedOperandType);
 
