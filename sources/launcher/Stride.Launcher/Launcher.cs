@@ -28,10 +28,9 @@ internal static class Launcher
     [STAThread]
     public static LauncherErrorCode Main(string[] args)
     {
+        // Managed crashes only, reported in process. No native crash capture (NativeCrashReporting.Install): the
+        // launcher ships neither libstridecrash nor the reporter.
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
-        // The managed handler above can't see a native access violation — it kills the process first. Arm the
-        // native handler so such a crash is captured and offered to the reporter too.
-        Stride.CrashReport.NativeCrashReporting.Install("Launcher");
         try
         {
             var arguments = ProcessArguments(args);
