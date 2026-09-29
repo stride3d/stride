@@ -282,7 +282,7 @@ public record struct Suffix(int Size, bool IsFloatingPoint, bool Signed)
             // More specific suffixes
             (true, _, 16) => "h",
             (true, _, 32) => "f",
-            (true, _, 64) => "l",
+            (true, _, 64) => "d",
             (false, false, 32) => "u",
             (false, true, 32) => "",
             (false, false, 64) => "ull",
