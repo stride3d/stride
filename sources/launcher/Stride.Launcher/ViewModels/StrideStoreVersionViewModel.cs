@@ -284,9 +284,9 @@ public sealed class StrideStoreVersionViewModel : StrideVersionViewModel
     protected override string UninstallErrorMessage => string.Format(Strings.ErrorUninstallingVersion, FullName);
 
     /// <inheritdoc/>
-    protected override Task UpdateVersionsFromStore()
+    protected override Task UpdateVersionsFromStore(Action<int, int>? unusedPackagesProgress = null)
     {
-        return Launcher.RetrieveAllStrideVersions();
+        return Launcher.RetrieveAllStrideVersions(unusedPackagesProgress);
     }
 
     /// <inheritdoc/>
@@ -322,7 +322,7 @@ public sealed class StrideStoreVersionViewModel : StrideVersionViewModel
     /// expected state once only one editor flavour is published — the failure is swallowed
     /// and the install continues normally.
     /// </remarks>
-    protected override async Task TryInstallCompanionsAsync(PackageVersion version)
+    protected override async Task TryInstallCompanionsAsync(PackageVersion version, ProgressReport progress)
     {
         var companionIds = new[] { GameStudioNames.StrideAvalonia, GameStudioNames.Stride }
             .Where(id => id != ServerPackage?.Id)
@@ -337,7 +337,7 @@ public sealed class StrideStoreVersionViewModel : StrideVersionViewModel
 
             try
             {
-                await Store.InstallPackage(companionId, version, [], null);
+                await Store.InstallPackage(companionId, version, [], progress);
             }
             catch
             {

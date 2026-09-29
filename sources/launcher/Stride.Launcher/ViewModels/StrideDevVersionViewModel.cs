@@ -193,9 +193,9 @@ public sealed class StrideDevVersionViewModel : StrideVersionViewModel
     protected override string UninstallErrorMessage => string.Empty;
 
     /// <inheritdoc/>
-    protected override Task UpdateVersionsFromStore()
+    protected override Task UpdateVersionsFromStore(Action<int, int>? unusedPackagesProgress = null)
     {
-        return Launcher.RetrieveLocalStrideVersions();
+        return Launcher.RetrieveLocalStrideVersions(unusedPackagesProgress);
     }
 
     /// <inheritdoc/>

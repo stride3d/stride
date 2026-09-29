@@ -535,7 +535,34 @@ namespace Stride.Launcher.Assets.Localization {
                 return ResourceManager.GetString("ReportDeletingVersion", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Downloading ({0})….
+        /// </summary>
+        public static string ReportDownloadingSize {
+            get {
+                return ResourceManager.GetString("ReportDownloadingSize", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Installing ({0} / {1})….
+        /// </summary>
+        public static string ReportInstallingPackages {
+            get {
+                return ResourceManager.GetString("ReportInstallingPackages", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Cleaning up ({0} / {1})….
+        /// </summary>
+        public static string ReportRemovingUnusedPackages {
+            get {
+                return ResourceManager.GetString("ReportRemovingUnusedPackages", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Discovering….
         /// </summary>

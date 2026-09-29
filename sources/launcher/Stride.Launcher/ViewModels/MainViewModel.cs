@@ -27,6 +27,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
     private readonly SortedObservableCollection<StrideVersionViewModel> strideVersions = [];
     private readonly UninstallHelper uninstallHelper;
     private readonly object objectLock = new();
+    private readonly object unusedPackagesLock = new();
     private ObservableList<NewsPageViewModel> newsPages;
     private ReleaseNotesViewModel activeReleaseNotes;
     private StrideVersionViewModel? activeVersion;
@@ -304,7 +305,10 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
         IsSynchronizing = true;
         await Task.Run(async () =>
         {
-            await RetrieveLocalStrideVersions();
+            await ListLocalStrideVersions();
+            // Only records which packages the installed versions use (nothing is unused yet), for the cleanup after a
+            // later uninstall or update. It reads every installed package: in the background, the list is shown already.
+            var usedPackagesTask = Task.Run(() => CleanUpUnusedPackages(null));
             await RunLockTask(async () =>
             {
                 try
@@ -337,6 +341,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
             await VsixPackage2022.UpdateFromStore();
             await CheckForFirstInstall();
 
+            await usedPackagesTask;
             await newsTask;
         });
         IsSynchronizing = false;
@@ -354,10 +359,11 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
         }
     }
 
-    public async Task RetrieveAllStrideVersions()
+    /// <param name="unusedPackagesProgress">Called before each unused package is removed, with the count removed so far and the total.</param>
+    public async Task RetrieveAllStrideVersions(Action<int, int>? unusedPackagesProgress = null)
     {
         Dispatcher.Invoke(() => IsSynchronizing = true);
-        await RetrieveLocalStrideVersions();
+        await RetrieveLocalStrideVersions(unusedPackagesProgress);
         await RetrieveServerStrideVersions();
         Dispatcher.Invoke(() => IsSynchronizing = false);
     }
@@ -377,29 +383,34 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
 
     private HashSet<NugetLocalPackage> referencedPackages = new(ReferencedPackageEqualityComparer.Instance);
 
-    private async Task RemoveUnusedPackages(IEnumerable<NugetLocalPackage> mainPackages)
+    private async Task RemoveUnusedPackages(IEnumerable<NugetLocalPackage> mainPackages, Action<int, int>? progress)
     {
         var previousReferencedPackages = referencedPackages;
         referencedPackages = new(ReferencedPackageEqualityComparer.Instance);
+        var lookups = new Dictionary<string, NugetLocalPackage?>();
         foreach (var mainPackage in mainPackages)
         {
-            await FindReferencedPackages(mainPackage);
+            await FindReferencedPackages(mainPackage, lookups);
         }
-        foreach (var package in previousReferencedPackages.Where(package => !referencedPackages.Contains(package)).ToList())
+        var unusedPackages = previousReferencedPackages.Where(package => !referencedPackages.Contains(package)).ToList();
+        if (unusedPackages.Count == 0)
+            return;
+
+        try
         {
-            try
-            {
-                await store.UninstallPackage(package, null);
-            }
-            catch (OperationCanceledException)
-            {
-                // Kept by the user (still in use): it stays installed and is checked again on the next pass.
-                referencedPackages.Add(package);
-            }
+            // Together: the running processes are checked once for all of them
+            await store.UninstallPackages(unusedPackages, progress);
+        }
+        catch (OperationCanceledException)
+        {
+            // Kept by the user (still in use): nothing was removed, they are checked again on the next pass.
+            referencedPackages.UnionWith(unusedPackages);
         }
     }
 
-    private async Task FindReferencedPackages(NugetLocalPackage package)
+    // lookups: the packages found per dependency (id and version range). The installed versions share most of them,
+    // and each store lookup reads every installed version of the id.
+    private async Task FindReferencedPackages(NugetLocalPackage package, Dictionary<string, NugetLocalPackage?> lookups)
     {
         foreach (var dependency in package.Dependencies)
         {
@@ -408,17 +419,62 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
             {
                 continue;
             }
-            NugetLocalPackage dependencyPackage = store.FindLocalPackage(dependency.Item1, dependency.Item2);
+            var key = $"{dependency.Item1}/{dependency.Item2}";
+            if (!lookups.TryGetValue(key, out var dependencyPackage))
+                lookups[key] = dependencyPackage = store.FindLocalPackage(dependency.Item1, dependency.Item2);
             if (dependencyPackage is null || !referencedPackages.Add(dependencyPackage))
             {
                 continue;
             }
 
-            await FindReferencedPackages(dependencyPackage);
+            await FindReferencedPackages(dependencyPackage, lookups);
         }
     }
 
-    public async Task RetrieveLocalStrideVersions()
+    /// <summary>
+    /// Updates the list with the installed versions, then removes the packages no installed version uses anymore.
+    /// </summary>
+    /// <param name="unusedPackagesProgress">Called before each unused package is removed, with the count removed so far and the total.</param>
+    public async Task RetrieveLocalStrideVersions(Action<int, int>? unusedPackagesProgress = null)
+    {
+        await ListLocalStrideVersions();
+        await CleanUpUnusedPackages(unusedPackagesProgress);
+    }
+
+    // Removes the Stride packages that the installed versions used at the previous call and don't use anymore: after
+    // an uninstall or an update. The first call only records which ones they use.
+    private async Task CleanUpUnusedPackages(Action<int, int>? progress)
+    {
+        try
+        {
+            // Its own lock: a cleanup runs one at a time, without holding up the list updates for its seconds of reading.
+            // The installed versions are read in it: read before, a version uninstalled meanwhile would still count as installed.
+            await Task.Run(() =>
+            {
+                lock (unusedPackagesLock)
+                {
+                    List<NugetLocalPackage> localPackages;
+                    lock (objectLock)
+                    {
+                        localPackages = store.GetPackagesInstalled(store.MainPackageIds).FilterStrideMainPackages().ToList();
+                    }
+                    Task.WaitAll(RemoveUnusedPackages(localPackages, progress));
+                }
+            });
+        }
+        catch (Exception e)
+        {
+            var message = $@"**Failed to remove unused NuGet package(s).**
+
+### Exception
+```
+{e.FormatSummary(false).TrimEnd(Environment.NewLine.ToCharArray())}
+```";
+            await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+    }
+
+    private async Task ListLocalStrideVersions()
     {
         List<RecentProjectViewModel> currentRecentProjects;
         lock (RecentProjects)
@@ -430,22 +486,6 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
             var localPackages = await RunLockTask(() => store.GetPackagesInstalled(store.MainPackageIds).FilterStrideMainPackages().OrderByDescending(p => p.Version).ToList());
             lock (objectLock)
             {
-                // Try to remove unused Stride packages after uninstall or update
-                try
-                {
-                    Task.WaitAll(RemoveUnusedPackages(localPackages));
-                }
-                catch (Exception e)
-                {
-                    var message = $@"**Failed to remove unused NuGet package(s).**
-
-### Exception
-```
-{e.FormatSummary(false).TrimEnd(Environment.NewLine.ToCharArray())}
-```";
-                    Task.WaitAll(ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Warning));
-                }
-
                 // Retrieve all local packages
                 var packages = localPackages.Where(p => !store.IsDevRedirectPackage(p)).GroupBy(p => $"{p.Version.Version.Major}.{p.Version.Version.Minor}", p => p);
                 var updatedLocalPackages = new HashSet<StrideStoreVersionViewModel>();

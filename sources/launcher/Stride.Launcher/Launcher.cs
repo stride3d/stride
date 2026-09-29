@@ -167,7 +167,7 @@ internal static class Launcher
         {
             // Kill all running processes
             var path = Program.GetExecutableDirectory();
-            if (!await UninstallHelper.CloseProcessesInPathAsync(DisplayMessageAsync, "Stride", path))
+            if (!await UninstallHelper.CloseProcessesInPathsAsync(DisplayMessageAsync, "Stride", [path]))
                 return LauncherErrorCode.UninstallCancelled; // User cancelled
 
             // Uninstall packages (they might have uninstall actions)
