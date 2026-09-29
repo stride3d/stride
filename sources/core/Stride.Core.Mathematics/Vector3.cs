@@ -39,7 +39,7 @@ namespace Stride.Core.Mathematics;
 /// </summary>
 [DataContract("float3")]
 [DataStyle(DataStyle.Compact)]
-[StructLayout(LayoutKind.Sequential, Pack = 4)]
+[StructLayout(LayoutKind.Explicit, Pack = 4)]
 public struct Vector3 : IEquatable<Vector3>, ISpanFormattable
 {
     /// <summary>
@@ -72,22 +72,28 @@ public struct Vector3 : IEquatable<Vector3>, ISpanFormattable
     /// </summary>
     public static readonly Vector3 One = new(1.0f, 1.0f, 1.0f);
 
+    [FieldOffset(0)]
+    private System.Numerics.Vector3 _vector = System.Numerics.Vector3.Zero;
+
     /// <summary>
     /// The X component of the vector.
     /// </summary>
     [DataMember(0)]
+    [FieldOffset(0)]
     public float X;
 
     /// <summary>
     /// The Y component of the vector.
     /// </summary>
     [DataMember(1)]
+    [FieldOffset(4)]
     public float Y;
 
     /// <summary>
     /// The Z component of the vector.
     /// </summary>
     [DataMember(2)]
+    [FieldOffset(8)]
     public float Z;
 
     /// <summary>
@@ -96,7 +102,7 @@ public struct Vector3 : IEquatable<Vector3>, ISpanFormattable
     /// <param name="value">The value that will be assigned to all components.</param>
     public Vector3(float value)
     {
-        this = System.Numerics.Vector3.Create(value);
+        _vector = System.Numerics.Vector3.Create(value);
     }
 
     /// <summary>
@@ -107,7 +113,7 @@ public struct Vector3 : IEquatable<Vector3>, ISpanFormattable
     /// <param name="z">Initial value for the Z component of the vector.</param>
     public Vector3(float x, float y, float z)
     {
-        this = System.Numerics.Vector3.Create(x, y, z);
+        _vector = System.Numerics.Vector3.Create(x, y, z);
     }
 
     /// <summary>
@@ -117,7 +123,7 @@ public struct Vector3 : IEquatable<Vector3>, ISpanFormattable
     /// <param name="z">Initial value for the Z component of the vector.</param>
     public Vector3(Vector2 value, float z)
     {
-        this = System.Numerics.Vector3.Create(value, z);
+        _vector = System.Numerics.Vector3.Create(value, z);
     }
 
     /// <summary>
@@ -132,7 +138,7 @@ public struct Vector3 : IEquatable<Vector3>, ISpanFormattable
         if (values.Length != 3)
             throw new ArgumentOutOfRangeException(nameof(values), "There must be three and only three input values for Vector3.");
 
-        this = System.Numerics.Vector3.Create(values);
+        _vector = System.Numerics.Vector3.Create(values);
     }
 
     /// <summary>
@@ -179,13 +185,18 @@ public struct Vector3 : IEquatable<Vector3>, ISpanFormattable
     /// Casts from System.Numerics to Stride.Maths vectors
     /// </summary>
     /// <param name="v">Value to cast</param>
-    public static implicit operator Vector3(System.Numerics.Vector3 v) => Unsafe.BitCast<System.Numerics.Vector3, Vector3>(v);
+    public static implicit operator Vector3(System.Numerics.Vector3 v)
+    {
+        Unsafe.SkipInit(out Vector3 result);
+        result._vector = v;
+        return result;
+    }
 
     /// <summary>
     /// Casts from Stride.Maths to System.Numerics vectors
     /// </summary>
     /// <param name="v">Value to cast</param>
-    public static implicit operator System.Numerics.Vector3(Vector3 v) => Unsafe.BitCast<Vector3, System.Numerics.Vector3>(v);
+    public static implicit operator System.Numerics.Vector3(Vector3 v) => v._vector;
 
     /// <summary>
     /// Calculates the length of the vector.
@@ -196,7 +207,7 @@ public struct Vector3 : IEquatable<Vector3>, ISpanFormattable
     /// and speed is of the essence.
     /// </remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public readonly float Length() => ((System.Numerics.Vector3)this).Length();
+    public readonly float Length() => _vector.Length();
 
     /// <summary>
     /// Calculates the squared length of the vector.
@@ -207,7 +218,7 @@ public struct Vector3 : IEquatable<Vector3>, ISpanFormattable
     /// and speed is of the essence.
     /// </remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public readonly float LengthSquared() => ((System.Numerics.Vector3)this).LengthSquared();
+    public readonly float LengthSquared() => _vector.LengthSquared();
 
     /// <summary>
     /// Converts the vector into a unit vector.

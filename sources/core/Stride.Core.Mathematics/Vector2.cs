@@ -38,7 +38,7 @@ namespace Stride.Core.Mathematics;
 /// </summary>
 [DataContract("float2")]
 [DataStyle(DataStyle.Compact)]
-[StructLayout(LayoutKind.Sequential, Pack = 4)]
+[StructLayout(LayoutKind.Explicit, Pack = 4)]
 public struct Vector2 : IEquatable<Vector2>, ISpanFormattable
 {
     /// <summary>
@@ -66,16 +66,21 @@ public struct Vector2 : IEquatable<Vector2>, ISpanFormattable
     /// </summary>
     public static readonly Vector2 One = new(1.0f, 1.0f);
 
+    [FieldOffset(0)]
+    private System.Numerics.Vector2 _vector;
+
     /// <summary>
     /// The X component of the vector.
     /// </summary>
     [DataMember(0)]
+    [FieldOffset(0)]
     public float X;
 
     /// <summary>
     /// The Y component of the vector.
     /// </summary>
     [DataMember(1)]
+    [FieldOffset(4)]
     public float Y;
 
     /// <summary>
@@ -84,7 +89,7 @@ public struct Vector2 : IEquatable<Vector2>, ISpanFormattable
     /// <param name="value">The value that will be assigned to all components.</param>
     public Vector2(float value)
     {
-        this = System.Numerics.Vector2.Create(value);
+        _vector = System.Numerics.Vector2.Create(value);
     }
 
     /// <summary>
@@ -94,7 +99,7 @@ public struct Vector2 : IEquatable<Vector2>, ISpanFormattable
     /// <param name="y">Initial value for the Y component of the vector.</param>
     public Vector2(float x, float y)
     {
-        this = System.Numerics.Vector2.Create(x, y);
+        _vector = System.Numerics.Vector2.Create(x, y);
     }
 
     /// <summary>
@@ -109,7 +114,7 @@ public struct Vector2 : IEquatable<Vector2>, ISpanFormattable
         if (values.Length != 2)
             throw new ArgumentOutOfRangeException(nameof(values), "There must be two and only two input values for Vector2.");
 
-        this = System.Numerics.Vector2.Create(values);
+        _vector = System.Numerics.Vector2.Create(values);
     }
 
     /// <summary>
@@ -154,13 +159,18 @@ public struct Vector2 : IEquatable<Vector2>, ISpanFormattable
     /// Casts from System.Numerics to Stride.Maths vectors
     /// </summary>
     /// <param name="v">Value to cast</param>
-    public static implicit operator Vector2(System.Numerics.Vector2 v) => Unsafe.BitCast<System.Numerics.Vector2, Vector2>(v);
+    public static implicit operator Vector2(System.Numerics.Vector2 v)
+    {
+        Unsafe.SkipInit(out Vector2 result);
+        result._vector = v;
+        return result;
+    }
 
     /// <summary>
     /// Casts from Stride.Maths to System.Numerics vectors
     /// </summary>
     /// <param name="v">Value to cast</param>
-    public static implicit operator System.Numerics.Vector2(Vector2 v) => Unsafe.BitCast<Vector2, System.Numerics.Vector2>(v);
+    public static implicit operator System.Numerics.Vector2(Vector2 v) => v._vector;
 
     /// <summary>
     /// Calculates the length of the vector.
@@ -171,7 +181,7 @@ public struct Vector2 : IEquatable<Vector2>, ISpanFormattable
     /// and speed is of the essence.
     /// </remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public readonly float Length() => ((System.Numerics.Vector2)this).Length();
+    public readonly float Length() => _vector.Length();
 
     /// <summary>
     /// Calculates the squared length of the vector.
@@ -182,7 +192,7 @@ public struct Vector2 : IEquatable<Vector2>, ISpanFormattable
     /// and speed is of the essence.
     /// </remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public readonly float LengthSquared() => ((System.Numerics.Vector2)this).LengthSquared();
+    public readonly float LengthSquared() => _vector.LengthSquared();
 
     /// <summary>
     /// Converts the vector into a unit vector.
