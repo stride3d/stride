@@ -98,9 +98,8 @@ jobs:
         with:
           workloads: macos
       - name: Select newest Xcode
-        # The .NET macOS SDK pack enforces a minimum Xcode version that advances with the workload
-        # set (the latest set now requires 26.6). Select the newest installed Xcode so the check
-        # passes, instead of pinning a version the pack later outgrows.
+        # The .NET macOS SDK pack enforces a minimum Xcode version, given by the workload set pinned
+        # in stride-workload. Select the newest installed Xcode so the check passes.
         run: |
           ls -d /Applications/Xcode_*.app
           latest=$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)
