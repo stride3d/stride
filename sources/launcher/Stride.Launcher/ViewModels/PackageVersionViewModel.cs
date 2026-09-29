@@ -62,6 +62,11 @@ public abstract class PackageVersionViewModel : DispatcherViewModel
     public virtual string? InstallPath => LocalPackage?.Path;
 
     /// <summary>
+    /// Gets the installed version of this package, or <c>null</c> if it is not installed.
+    /// </summary>
+    public PackageVersion? InstalledVersion => LocalPackage?.Version;
+
+    /// <summary>
     /// Gets whether a download is available for this version, being an update or a first install.
     /// </summary>
     public virtual bool CanBeDownloaded { get { return canBeDownloaded; } private set { SetValue(ref canBeDownloaded, value); } }
