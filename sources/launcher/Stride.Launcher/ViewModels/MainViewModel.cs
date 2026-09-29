@@ -119,8 +119,11 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
         get { return activeVersion; }
         set
         {
+            var previous = activeVersion;
             if (SetValue(ref activeVersion, value))
             {
+                previous?.IsActive = false;
+                value?.IsActive = true;
                 Dispatcher.InvokeAsync(() => StartStudioCommand.IsEnabled = value?.CanStart ?? false);
                 RefreshRuntimes();
             }

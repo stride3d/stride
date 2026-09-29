@@ -20,6 +20,7 @@ public sealed class StrideDevVersionViewModel : StrideVersionViewModel
     private static int devMinorCounter = int.MaxValue;
     private readonly NugetLocalPackage localPackage;
     private readonly bool isDevRedirect;
+    private readonly string? checkoutDirectory;
 
     internal StrideDevVersionViewModel(MainViewModel launcher, NugetStore store, [CanBeNull] NugetLocalPackage localPackage, UDirectory path, bool isDevRedirect)
         : base(launcher, store, localPackage, localPackage.Id, int.MaxValue, devMinorCounter--)
@@ -28,7 +29,8 @@ public sealed class StrideDevVersionViewModel : StrideVersionViewModel
         this.localPackage = localPackage;
         this.isDevRedirect = isDevRedirect;
         DownloadCommand.IsEnabled = false;
-        OpenCheckoutCommand = new AnonymousCommand(ServiceProvider, () => ShellOpen(CheckoutDirectory)) { IsEnabled = Directory.Exists(CheckoutDirectory) };
+        checkoutDirectory = FindCheckout();
+        OpenCheckoutCommand = new AnonymousCommand(ServiceProvider, () => ShellOpen(checkoutDirectory ?? InstallPath)) { IsEnabled = Directory.Exists(checkoutDirectory ?? InstallPath) };
         OpenSolutionCommand = new AnonymousCommand(ServiceProvider, () => ShellOpen(SolutionPath)) { IsEnabled = File.Exists(SolutionPath) };
         // Find the editors so the version can be started.
         UpdateAvailableEditors();
@@ -37,31 +39,75 @@ public sealed class StrideDevVersionViewModel : StrideVersionViewModel
     }
 
     /// <summary>
-    /// Gets the command that opens the checkout this version is built from, in the file manager.
+    /// Gets the command that opens the checkout this version is built from in the file manager, or its folder when the checkout isn't known.
     /// </summary>
     public ICommandBase OpenCheckoutCommand { get; }
+
+    /// <summary>
+    /// Gets the tooltip of <see cref="OpenCheckoutCommand"/>.
+    /// </summary>
+    public string OpenCheckoutToolTip => string.Format(checkoutDirectory is not null ? Strings.ToolTipOpenCheckout : Strings.ToolTipOpenFolder, FullName);
 
     /// <summary>
     /// Gets the command that opens the Stride solution of the checkout, with the default application (Visual Studio).
     /// </summary>
     public ICommandBase OpenSolutionCommand { get; }
 
-    // The root of the checkout: the first folder up with a .git (a folder, or a file in a worktree). The path of the
-    // version itself is a project folder deep inside it.
-    private string CheckoutDirectory
+    private string SolutionPath => checkoutDirectory is not null ? Path.Combine(checkoutDirectory, "build", "Stride.slnx") : "";
+
+    // The checkout this version is built from, or null:
+    // - the ledger of the checkouts built on this machine (as the version tasks write it) maps its -devN suffix, for a
+    //   dev-redirect stub as for a full package;
+    // - else the first folder up from the version's project folder with a .git (a folder, or a file in a worktree).
+    private string? FindCheckout()
     {
-        get
+        if (localPackage?.Version.SpecialVersion is { } label)
         {
-            for (var directory = InstallPath; !string.IsNullOrEmpty(directory); directory = Path.GetDirectoryName(directory))
+            var ledger = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "stride", "worktree-ids.txt");
+            try
             {
-                if (Directory.Exists(Path.Combine(directory, ".git")) || File.Exists(Path.Combine(directory, ".git")))
-                    return directory;
+                if (File.Exists(ledger) && FindCheckoutInLedger(File.ReadLines(ledger), label) is { } checkout)
+                    return checkout;
             }
-            return InstallPath;
+            catch (Exception e)
+            {
+                // An unreadable ledger: try the folders
+                e.Ignore();
+            }
         }
+
+        for (var directory = InstallPath; !string.IsNullOrEmpty(directory); directory = Path.GetDirectoryName(directory))
+        {
+            if (Directory.Exists(Path.Combine(directory, ".git")) || File.Exists(Path.Combine(directory, ".git")))
+                return directory;
+        }
+        return null;
     }
 
-    private string SolutionPath => Path.Combine(CheckoutDirectory, "build", "Stride.slnx");
+    /// <summary>
+    /// Finds in the lines of the ledger the existing checkout of the -devN suffix of a version label (as "beta8-dev3"), or null.
+    /// </summary>
+    internal static string? FindCheckoutInLedger(IEnumerable<string> lines, string versionLabel)
+    {
+        if (versionLabel.Split('-').LastOrDefault(x => x.StartsWith("dev", StringComparison.OrdinalIgnoreCase)) is not { } suffix)
+            return null;
+
+        // Lines of "dev3 = C:\dev\stride3"
+        foreach (var line in lines)
+        {
+            var separator = line.IndexOf('=');
+            if (separator <= 0 || line.StartsWith('#'))
+                continue;
+            var token = line[..separator].Trim();
+            // Older ledgers name the first checkout "(primary)": its builds are -dev
+            if (token == "(primary)")
+                token = "dev";
+            if (string.Equals(token, suffix, StringComparison.OrdinalIgnoreCase)
+                && line[(separator + 1)..].Trim() is var directory && Directory.Exists(directory))
+                return directory;
+        }
+        return null;
+    }
 
     // Checked again when clicked: the checkout can move or change after the list was made
     private static void ShellOpen(string path)

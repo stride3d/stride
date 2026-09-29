@@ -444,6 +444,21 @@ Its checkout is kept: building it again brings the version back. Until then, pro
     <value>Open the Stride solution of {0}</value>
     <comment>Tooltip of the Visual Studio button of a locally built version. {0}: long version name</comment>
   </data>
+  <data name="ToolTipOpenFolder" xml:space="preserve">
+    <value>Open the folder of {0}</value>
+    <comment>Tooltip of the folder button of a locally built version whose checkout isn't known. {0}: long version name</comment>
+  </data>
+  <data name="ToolTipInstallAnotherVersion" xml:space="preserve">
+    <value>Install another version</value>
+    <comment>Tooltip of the button of a version that lists its other releases</comment>
+  </data>
+  <data name="ToolTipReleaseNotes" xml:space="preserve">
+    <value>Display release notes for this version</value>
+  </data>
+  <data name="ToolTipReconnect" xml:space="preserve">
+    <value>Click to reconnect…</value>
+    <comment>Tooltip of the Offline indicator</comment>
+  </data>
   <data name="ToolTipUninstall" xml:space="preserve">
     <value>Uninstall version {0}</value>
     <comment>{0}: long version name</comment>

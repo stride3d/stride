@@ -15,6 +15,7 @@ public abstract class StrideVersionViewModel : PackageVersionViewModel, ICompara
 {
     private bool isVisible;
     private bool canStart;
+    private bool isActive;
     private string? selectedEditor;
     // Maps each discovered editor name to its fully-resolved directory (including TFM subfolder).
     // e.g. "Stride.GameStudio.Avalonia.Desktop" → ".../lib/net10.0"
@@ -145,6 +146,11 @@ public abstract class StrideVersionViewModel : PackageVersionViewModel, ICompara
     /// Gets whether this version can be started.
     /// </summary>
     public bool CanStart { get { return canStart; } private set { SetValue(ref canStart, value); } }
+
+    /// <summary>
+    /// Gets whether this version is the active one, the one the Start button starts. Set by <see cref="MainViewModel.ActiveVersion"/>.
+    /// </summary>
+    public bool IsActive { get { return isActive; } internal set { SetValue(ref isActive, value); } }
 
     /// <summary>
     /// Gets the editors available for this version.

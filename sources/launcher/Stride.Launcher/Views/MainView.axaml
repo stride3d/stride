@@ -29,7 +29,7 @@
                   Classes="transparentButton"
                   Margin="8,4" Cursor="Hand"
                   HorizontalAlignment="Center" VerticalAlignment="Center"
-                  ToolTip.Tip="Click to reconnect…"
+                  ToolTip.Tip="{x:Static l:Strings.ToolTipReconnect}"
                   IsVisible="{Binding IsOffline}"
                   Command="{Binding ReconnectCommand}">
             <TextBlock FontWeight="ExtraBold" Foreground="Gold" Text="Offline" />
@@ -350,7 +350,7 @@
                           <Button DockPanel.Dock="Left"
                                   Margin="0,0,4,0" Width="32" Height="32"
                                   Command="{Binding OpenCheckoutCommand}"
-                                  ToolTip.Tip="{Binding FullName, StringFormat={x:Static l:Strings.ToolTipOpenCheckout}}">
+                                  ToolTip.Tip="{Binding OpenCheckoutToolTip}">
                             <Interaction.Behaviors>
                               <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding Launcher.CurrentToolTip}"
                                                                    DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
@@ -380,6 +380,9 @@
                                          HorizontalAlignment="Left" VerticalAlignment="Center"
                                          TextTrimming="CharacterEllipsis"
                                          Text="{Binding DisplayName, StringFormat={x:Static l:Strings.VersionButton}}"/>
+                              <!-- The active version, the one Start starts -->
+                              <Border Width="3" HorizontalAlignment="Left" IsHitTestVisible="False"
+                                      Background="{DynamicResource AccentBrush}" IsVisible="{Binding IsActive}"/>
                             </Grid>
                           </Grid>
                         </DockPanel>
@@ -429,7 +432,7 @@
                             </Button>
                             <!-- Alternate versions -->
                             <ToggleButton x:Name="AlternateVersionToggle" Margin="4,0,0,0" Width="32" Height="32"
-                                          ToolTip.Tip="Install another version">
+                                          ToolTip.Tip="{x:Static l:Strings.ToolTipInstallAnotherVersion}">
                               <Interaction.Behaviors>
                                 <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding Launcher.CurrentToolTip}"
                                                                      DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
@@ -470,7 +473,7 @@
                           <Button DockPanel.Dock="Left"
                                   Margin="0,0,4,0" Width="32" Height="32"
                                   Command="{Binding ReleaseNotes.ToggleCommand}"
-                                  ToolTip.Tip="Display release notes for this version">
+                                  ToolTip.Tip="{x:Static l:Strings.ToolTipReleaseNotes}">
                             <Interaction.Behaviors>
                               <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding Launcher.CurrentToolTip}"
                                                                    DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
@@ -501,6 +504,9 @@
                                          HorizontalAlignment="Left" VerticalAlignment="Center"
                                          TextTrimming="CharacterEllipsis"
                                          Text="{Binding Label}"/>
+                              <!-- The active version, the one Start starts -->
+                              <Border Width="3" HorizontalAlignment="Left" IsHitTestVisible="False"
+                                      Background="{DynamicResource AccentBrush}" IsVisible="{Binding IsActive}"/>
                             </Grid>
                           </Grid>
                         </DockPanel>

@@ -807,6 +807,42 @@ namespace Stride.Launcher.Assets.Localization {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Open the folder of {0}.
+        /// </summary>
+        public static string ToolTipOpenFolder {
+            get {
+                return ResourceManager.GetString("ToolTipOpenFolder", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Install another version.
+        /// </summary>
+        public static string ToolTipInstallAnotherVersion {
+            get {
+                return ResourceManager.GetString("ToolTipInstallAnotherVersion", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Display release notes for this version.
+        /// </summary>
+        public static string ToolTipReleaseNotes {
+            get {
+                return ResourceManager.GetString("ToolTipReleaseNotes", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Click to reconnect….
+        /// </summary>
+        public static string ToolTipReconnect {
+            get {
+                return ResourceManager.GetString("ToolTipReconnect", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Uninstall version {0}.
         /// </summary>
         public static string ToolTipUninstall {
