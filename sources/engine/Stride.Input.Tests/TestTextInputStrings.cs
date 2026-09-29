@@ -71,8 +71,10 @@ public unsafe class TestTextInputStrings
             var decoding = GCMeasure.Run(() => TextInputStrings.FromNullTerminatedUtf8(buffer, SDLTextBufferSize));
             var oneString = GCMeasure.Run(() => new string('x', text.Length));
 
+            // The runtime can add a little to either measurement (Mono on iOS does), so a scratch buffer shows up as
+            // decoding costing more than creating the string on its own, not as the two differing at all
             Assert.True(
-                decoding.AllocatedBytes == oneString.AllocatedBytes,
+                decoding.AllocatedBytes <= oneString.AllocatedBytes,
                 $"Decoding \"{text}\" should allocate only the result string ({oneString}). Measured {decoding}.");
         }
         finally

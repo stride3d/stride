@@ -12,6 +12,8 @@ namespace Stride.Input.Tests;
 /// <remarks>
 ///   Every input event is routed to every listener of its type, every frame. Anything routing
 ///   allocates is allocated again for each event, so the cost grows with how much input arrives.
+///   The measurement compares a frame with input against the same frame without any, so a cost the
+///   runtime adds to every frame regardless of input (Mono on Android and iOS adds some) cancels out.
 /// </remarks>
 public class TestInputRoutingAllocation
 {
@@ -21,26 +23,36 @@ public class TestInputRoutingAllocation
     [Fact]
     public void RoutingInputEventsDoesNotAllocate()
     {
+        var withoutInput = MeasureFrames(withInput: false);
+        var withInput = MeasureFrames(withInput: true);
+
+        Assert.True(
+            withInput.AllocatedBytes == withoutInput.AllocatedBytes,
+            $"Routing {KeysPerFrame * 2} key events and {MouseMovesPerFrame} mouse moves per frame allocated. " +
+            $"Without input: {withoutInput}. With input: {withInput}.");
+    }
+
+    private static GCMeasurement MeasureFrames(bool withInput)
+    {
         using var headless = new HeadlessInput();
         headless.Input.AddListener(new NullListener());
 
-        var measurement = GCMeasure.Run(() => RunOneFrameOfInput(headless), warmupIterations: 16, measuredIterations: 64);
-
-        Assert.True(
-            measurement.AllocatedBytes == 0,
-            $"Routing {KeysPerFrame * 2} key events and {MouseMovesPerFrame} mouse moves per frame allocated. Measured {measurement}.");
+        return GCMeasure.Run(() => RunOneFrame(headless, withInput), warmupIterations: 16, measuredIterations: 64);
     }
 
-    private static void RunOneFrameOfInput(HeadlessInput headless)
+    private static void RunOneFrame(HeadlessInput headless, bool withInput)
     {
-        for (int i = 0; i < KeysPerFrame; i++)
+        if (withInput)
         {
-            headless.Keyboard.SimulateDown(Keys.A + i);
-            headless.Keyboard.SimulateUp(Keys.A + i);
-        }
+            for (int i = 0; i < KeysPerFrame; i++)
+            {
+                headless.Keyboard.SimulateDown(Keys.A + i);
+                headless.Keyboard.SimulateUp(Keys.A + i);
+            }
 
-        for (int i = 0; i < MouseMovesPerFrame; i++)
-            headless.Mouse.SetPosition(new Vector2(i / (float)MouseMovesPerFrame, 0.5f));
+            for (int i = 0; i < MouseMovesPerFrame; i++)
+                headless.Mouse.SetPosition(new Vector2(i / (float)MouseMovesPerFrame, 0.5f));
+        }
 
         headless.Update();
     }
