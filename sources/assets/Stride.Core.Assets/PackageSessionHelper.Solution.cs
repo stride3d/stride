@@ -27,25 +27,19 @@ internal partial class PackageSessionHelper
                 if (project.TypeGuid == KnownProjectTypeGuid.CSharp || project.TypeGuid == KnownProjectTypeGuid.CSharpLegacy)
                 {
                     var projectPath = project.FullPath;
-                    var projectAssetsJsonPath = Path.Combine(Path.GetDirectoryName(projectPath), "obj", LockFileFormat.AssetsFileName);
 #if !STRIDE_LAUNCHER && !STRIDE_VSPACKAGE
+                    var projectAssetsJsonPath = Path.Combine(Path.GetDirectoryName(projectPath), "obj", LockFileFormat.AssetsFileName);
                     if (!File.Exists(projectAssetsJsonPath))
                     {
                         var log = new Stride.Core.Diagnostics.LoggerResult();
                         await VSProjectHelper.RestoreNugetPackages(log, projectPath);
                     }
 #endif
-                    if (File.Exists(projectAssetsJsonPath))
+                    // The restored version, or the one written in the project when edited since its restore
+                    if (ProjectVersionReader.ReadVersion(projectPath, "Stride.Engine", "Xenko.Engine") is { } version
+                        && PackageVersion.TryParse(version, out var packageVersion))
                     {
-                        var format = new LockFileFormat();
-                        var projectAssets = format.Read(projectAssetsJsonPath);
-                        foreach (var library in projectAssets.Libraries)
-                        {
-                            if ((library.Type == "package" || library.Type == "project") && (library.Name == "Stride.Engine" || library.Name == "Xenko.Engine"))
-                            {
-                                return new PackageVersion(library.Version.ToString());
-                            }
-                        }
+                        return packageVersion;
                     }
                 }
             }

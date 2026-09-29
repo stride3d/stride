@@ -17,6 +17,9 @@
     <Compile Include="..\..\assets\Stride.Core.Assets\PackageSessionHelper.Solution.cs">
       <Link>Packages\PackageSessionHelper.Solution.cs</Link>
     </Compile>
+    <Compile Include="..\..\shared\Stride.NuGetResolver\ProjectVersionReader.cs">
+      <Link>Packages\ProjectVersionReader.cs</Link>
+    </Compile>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
