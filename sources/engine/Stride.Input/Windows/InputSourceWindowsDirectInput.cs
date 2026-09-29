@@ -16,13 +16,15 @@ namespace Stride.Input
     /// <summary>
     /// Provides support for various game controllers on windows
     /// </summary>
-    internal class InputSourceWindowsDirectInput : InputSourceBase
+    internal partial class InputSourceWindowsDirectInput : InputSourceBase
     {
         private readonly HashSet<Guid> devicesToRemove = new HashSet<Guid>();
         private InputManager? inputManager;
         private DirectInput? directInput;
         private IEnumerable<string> xInputDevices = Enumerable.Empty<string>();
-        private readonly Regex xInputDeviceIdRegex = new Regex(@"VID_(\w+)?&PID_(\w+)?");
+
+        [GeneratedRegex(@"VID_(\w+)?&PID_(\w+)?")]
+        private static partial Regex xInputDeviceIdRegex { get; }
 
         public override void Initialize(InputManager inputManager)
         {
@@ -46,6 +48,7 @@ namespace Stride.Input
 
             // Dispose DirectInput
             directInput?.Dispose();
+            directInput = null;
         }
 
         public override void Update()
