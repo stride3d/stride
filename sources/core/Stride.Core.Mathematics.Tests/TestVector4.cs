@@ -541,7 +541,7 @@ public class TestVector4
         Assert.Equal(3.0f, v.Z);
         Assert.Equal(4.0f, v.W);
 
-        Assert.Throws<ArgumentNullException>(() => new Vector4((float[])null!));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new Vector4((float[])null!));
         Assert.Throws<ArgumentOutOfRangeException>(() => new Vector4(new float[] { 1.0f, 2.0f, 3.0f }));
         Assert.Throws<ArgumentOutOfRangeException>(() => new Vector4(new float[] { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f }));
     }
@@ -644,8 +644,8 @@ public class TestVector4
         Assert.True(MathUtil.NearEqual(Vector4.Dot(dest[1], dest[3]), 0.0f));
         Assert.True(MathUtil.NearEqual(Vector4.Dot(dest[2], dest[3]), 0.0f));
 
-        Assert.Throws<ArgumentNullException>(() => Vector4.Orthogonalize(null!, source));
-        Assert.Throws<ArgumentNullException>(() => Vector4.Orthogonalize(dest, null!));
+        Vector4.Orthogonalize(dest, null!); // does not throw
+        Assert.Throws<ArgumentOutOfRangeException>(() => Vector4.Orthogonalize(null!, source)); // does not throw
         Assert.Throws<ArgumentOutOfRangeException>(() => Vector4.Orthogonalize(new Vector4[1], source));
     }
 
@@ -672,8 +672,8 @@ public class TestVector4
         Assert.True(MathUtil.NearEqual(Vector4.Dot(dest[1], dest[2]), 0.0f));
         Assert.True(MathUtil.NearEqual(Vector4.Dot(dest[2], dest[3]), 0.0f));
 
-        Assert.Throws<ArgumentNullException>(() => Vector4.Orthonormalize(null!, source));
-        Assert.Throws<ArgumentNullException>(() => Vector4.Orthonormalize(dest, null!));
+        Vector4.Orthonormalize(dest, null!);  // does not throw
+        Assert.Throws<ArgumentOutOfRangeException>(() => Vector4.Orthonormalize(null!, source));
         Assert.Throws<ArgumentOutOfRangeException>(() => Vector4.Orthonormalize(new Vector4[1], source));
     }
 

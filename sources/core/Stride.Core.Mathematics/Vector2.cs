@@ -108,9 +108,8 @@ public struct Vector2 : IEquatable<Vector2>, ISpanFormattable
     /// <param name="values">The values to assign to the X and Y components of the vector. This must be an array with two elements.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="values"/> is <c>null</c>.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="values"/> contains more or less than two elements.</exception>
-    public Vector2(float[] values)
+    public Vector2(ReadOnlySpan<float> values)
     {
-        ArgumentNullException.ThrowIfNull(values);
         if (values.Length != 2)
             throw new ArgumentOutOfRangeException(nameof(values), "There must be two and only two input values for Vector2.");
 
@@ -724,7 +723,7 @@ public struct Vector2 : IEquatable<Vector2>, ISpanFormattable
     /// </remarks>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> or <paramref name="destination"/> is <c>null</c>.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="destination"/> is shorter in length than <paramref name="source"/>.</exception>
-    public static void Orthogonalize(Vector2[] destination, params Vector2[] source)
+    public static void Orthogonalize(Span<Vector2> destination, params ReadOnlySpan<Vector2> source)
     {
         //Uses the modified Gram-Schmidt process.
         //q1 = m1
@@ -733,8 +732,6 @@ public struct Vector2 : IEquatable<Vector2>, ISpanFormattable
         //q4 = m4 - ((q1 ⋅ m4) / (q1 ⋅ q1)) * q1 - ((q2 ⋅ m4) / (q2 ⋅ q2)) * q2 - ((q3 ⋅ m4) / (q3 ⋅ q3)) * q3
         //q5 = ...
 
-        ArgumentNullException.ThrowIfNull(source);
-        ArgumentNullException.ThrowIfNull(destination);
         if (destination.Length < source.Length)
             throw new ArgumentOutOfRangeException(nameof(destination), "The destination array must be of same length or larger length than the source array.");
 
@@ -767,7 +764,7 @@ public struct Vector2 : IEquatable<Vector2>, ISpanFormattable
     /// </remarks>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> or <paramref name="destination"/> is <c>null</c>.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="destination"/> is shorter in length than <paramref name="source"/>.</exception>
-    public static void Orthonormalize(Vector2[] destination, params Vector2[] source)
+    public static void Orthonormalize(Span<Vector2> destination, params ReadOnlySpan<Vector2> source)
     {
         //Uses the modified Gram-Schmidt process.
         //Because we are making unit vectors, we can optimize the math for orthogonalization
@@ -778,8 +775,6 @@ public struct Vector2 : IEquatable<Vector2>, ISpanFormattable
         //q4 = (m4 - (q1 ⋅ m4) * q1 - (q2 ⋅ m4) * q2 - (q3 ⋅ m4) * q3) / |m4 - (q1 ⋅ m4) * q1 - (q2 ⋅ m4) * q2 - (q3 ⋅ m4) * q3|
         //q5 = ...
 
-        ArgumentNullException.ThrowIfNull(source);
-        ArgumentNullException.ThrowIfNull(destination);
         if (destination.Length < source.Length)
             throw new ArgumentOutOfRangeException(nameof(destination), "The destination array must be of same length or larger length than the source array.");
 
@@ -826,10 +821,8 @@ public struct Vector2 : IEquatable<Vector2>, ISpanFormattable
     /// This array may be the same array as <paramref name="source"/>.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> or <paramref name="destination"/> is <c>null</c>.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="destination"/> is shorter in length than <paramref name="source"/>.</exception>
-    public static void Transform(Vector2[] source, ref readonly Quaternion rotation, Vector2[] destination)
+    public static void Transform(ReadOnlySpan<Vector2> source, ref readonly Quaternion rotation, Span<Vector2> destination)
     {
-        ArgumentNullException.ThrowIfNull(source);
-        ArgumentNullException.ThrowIfNull(destination);
         if (destination.Length < source.Length)
             throw new ArgumentOutOfRangeException(nameof(destination), "The destination array must be of same length or larger length than the source array.");
 
@@ -865,16 +858,14 @@ public struct Vector2 : IEquatable<Vector2>, ISpanFormattable
     /// <param name="destination">The array for which the transformed vectors are stored.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> or <paramref name="destination"/> is <c>null</c>.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="destination"/> is shorter in length than <paramref name="source"/>.</exception>
-    public static void Transform(Vector2[] source, ref readonly Matrix transform, Vector4[] destination)
+    public static void Transform(ReadOnlySpan<Vector2> source, ref readonly Matrix transform, Span<Vector4> destination)
     {
-        ArgumentNullException.ThrowIfNull(source);
-        ArgumentNullException.ThrowIfNull(destination);
         if (destination.Length < source.Length)
             throw new ArgumentOutOfRangeException(nameof(destination), "The destination array must be of same length or larger length than the source array.");
 
         for (int i = 0; i < source.Length; ++i)
         {
-            Transform(ref source[i], in transform, out destination[i]);
+            Transform(in source[i], in transform, out destination[i]);
         }
     }
 
@@ -939,16 +930,14 @@ public struct Vector2 : IEquatable<Vector2>, ISpanFormattable
     /// therefore makes the vector homogeneous. The homogeneous vector is often preferred when working
     /// with coordinates as the w component can safely be ignored.
     /// </remarks>
-    public static void TransformCoordinate(Vector2[] source, ref readonly Matrix transform, Vector2[] destination)
+    public static void TransformCoordinate(ReadOnlySpan<Vector2> source, ref readonly Matrix transform, Span<Vector2> destination)
     {
-        ArgumentNullException.ThrowIfNull(source);
-        ArgumentNullException.ThrowIfNull(destination);
         if (destination.Length < source.Length)
             throw new ArgumentOutOfRangeException(nameof(destination), "The destination array must be of same length or larger length than the source array.");
 
         for (int i = 0; i < source.Length; ++i)
         {
-            TransformCoordinate(ref source[i], in transform, out destination[i]);
+            TransformCoordinate(in source[i], in transform, out destination[i]);
         }
     }
 
@@ -1000,16 +989,14 @@ public struct Vector2 : IEquatable<Vector2>, ISpanFormattable
     /// apply. This is often preferred for normal vectors as normals purely represent direction
     /// rather than location because normal vectors should not be translated.
     /// </remarks>
-    public static void TransformNormal(Vector2[] source, ref readonly Matrix transform, Vector2[] destination)
+    public static void TransformNormal(ReadOnlySpan<Vector2> source, ref readonly Matrix transform, Span<Vector2> destination)
     {
-        ArgumentNullException.ThrowIfNull(source);
-        ArgumentNullException.ThrowIfNull(destination);
         if (destination.Length < source.Length)
             throw new ArgumentOutOfRangeException(nameof(destination), "The destination array must be of same length or larger length than the source array.");
 
         for (int i = 0; i < source.Length; ++i)
         {
-            TransformNormal(ref source[i], in transform, out destination[i]);
+            TransformNormal(in source[i], in transform, out destination[i]);
         }
     }
 

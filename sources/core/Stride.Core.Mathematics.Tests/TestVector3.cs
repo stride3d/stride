@@ -794,7 +794,7 @@ public class TestVector3
         Assert.Equal(2.5f, v.Y);
         Assert.Equal(3.5f, v.Z);
 
-        Assert.Throws<ArgumentNullException>(() => new Vector3((float[])null!));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new Vector3((float[])null!));
         Assert.Throws<ArgumentOutOfRangeException>(() => new Vector3([1.0f, 2.0f]));
         Assert.Throws<ArgumentOutOfRangeException>(() => new Vector3([1.0f, 2.0f, 3.0f, 4.0f]));
     }
@@ -1056,20 +1056,20 @@ public class TestVector3
         var tooSmallVector3 = Array.Empty<Vector3>();
         var tooSmallVector4 = Array.Empty<Vector4>();
 
-        Assert.Throws<ArgumentNullException>(() => Vector3.Transform(null!, ref rotation, new Vector3[1]));
-        Assert.Throws<ArgumentNullException>(() => Vector3.Transform(source, ref rotation, (Vector3[])null!));
+        Vector3.Transform(null!, ref rotation, new Vector3[1]); // does not throw
+        Assert.Throws<ArgumentOutOfRangeException>(() => Vector3.Transform(source, ref rotation, (Vector3[])null!));
         Assert.Throws<ArgumentOutOfRangeException>(() => Vector3.Transform(source, ref rotation, tooSmallVector3));
 
-        Assert.Throws<ArgumentNullException>(() => Vector3.Transform(null!, ref matrix, new Vector4[1]));
-        Assert.Throws<ArgumentNullException>(() => Vector3.Transform(source, ref matrix, (Vector4[])null!));
+        Vector3.Transform(null!, ref matrix, new Vector4[1]); // does not throw
+        Assert.Throws<ArgumentOutOfRangeException>(() => Vector3.Transform(source, ref matrix, (Vector4[])null!));
         Assert.Throws<ArgumentOutOfRangeException>(() => Vector3.Transform(source, ref matrix, tooSmallVector4));
 
-        Assert.Throws<ArgumentNullException>(() => Vector3.TransformCoordinate(null!, ref matrix, new Vector3[1]));
-        Assert.Throws<ArgumentNullException>(() => Vector3.TransformCoordinate(source, ref matrix, (Vector3[])null!));
+        Vector3.TransformCoordinate(null!, ref matrix, new Vector3[1]); // does not throw
+        Assert.Throws<ArgumentOutOfRangeException>(() => Vector3.TransformCoordinate(source, ref matrix, (Vector3[])null!));
         Assert.Throws<ArgumentOutOfRangeException>(() => Vector3.TransformCoordinate(source, ref matrix, tooSmallVector3));
 
-        Assert.Throws<ArgumentNullException>(() => Vector3.TransformNormal(null!, ref matrix, new Vector3[1]));
-        Assert.Throws<ArgumentNullException>(() => Vector3.TransformNormal(source, ref matrix, (Vector3[])null!));
+        Vector3.TransformNormal(null!, ref matrix, new Vector3[1]); // does not throw
+        Assert.Throws<ArgumentOutOfRangeException>(() => Vector3.TransformNormal(source, ref matrix, (Vector3[])null!));
         Assert.Throws<ArgumentOutOfRangeException>(() => Vector3.TransformNormal(source, ref matrix, tooSmallVector3));
     }
 
@@ -1079,12 +1079,12 @@ public class TestVector3
         var source = new[] { Vector3.UnitX, Vector3.UnitY };
         var tooSmall = new Vector3[1];
 
-        Assert.Throws<ArgumentNullException>(() => Vector3.Orthogonalize(new Vector3[2], null!));
-        Assert.Throws<ArgumentNullException>(() => Vector3.Orthogonalize(null!, source));
+        Vector3.Orthogonalize(new Vector3[2], null!); // does not throw
+        Assert.Throws<ArgumentOutOfRangeException>(() => Vector3.Orthogonalize(null!, source));
         Assert.Throws<ArgumentOutOfRangeException>(() => Vector3.Orthogonalize(tooSmall, source));
 
-        Assert.Throws<ArgumentNullException>(() => Vector3.Orthonormalize(new Vector3[2], null!));
-        Assert.Throws<ArgumentNullException>(() => Vector3.Orthonormalize(null!, source));
+        Vector3.Orthonormalize(new Vector3[2], null!); // does not throw
+        Assert.Throws<ArgumentOutOfRangeException>(() => Vector3.Orthonormalize(null!, source));
         Assert.Throws<ArgumentOutOfRangeException>(() => Vector3.Orthonormalize(tooSmall, source));
     }
 

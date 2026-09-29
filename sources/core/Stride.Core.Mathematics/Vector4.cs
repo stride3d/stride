@@ -155,9 +155,8 @@ public struct Vector4 : IEquatable<Vector4>, ISpanFormattable
     /// <param name="values">The values to assign to the X, Y, Z, and W components of the vector. This must be an array with four elements.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="values"/> is <c>null</c>.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="values"/> contains more or less than four elements.</exception>
-    public Vector4(float[] values)
+    public Vector4(ReadOnlySpan<float> values)
     {
-        ArgumentNullException.ThrowIfNull(values);
         if (values.Length != 4)
             throw new ArgumentOutOfRangeException(nameof(values), "There must be four and only four input values for Vector4.");
 
@@ -785,10 +784,8 @@ public struct Vector4 : IEquatable<Vector4>, ISpanFormattable
     /// </remarks>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> or <paramref name="destination"/> is <c>null</c>.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="destination"/> is shorter in length than <paramref name="source"/>.</exception>
-    public static void Orthogonalize(Vector4[] destination, params Vector4[] source)
+    public static void Orthogonalize(Span<Vector4> destination, params ReadOnlySpan<Vector4> source)
     {
-        ArgumentNullException.ThrowIfNull(source);
-        ArgumentNullException.ThrowIfNull(destination);
         if (destination.Length < source.Length)
             throw new ArgumentOutOfRangeException(nameof(destination), "The destination array must be of same length or larger length than the source array.");
 
@@ -828,10 +825,8 @@ public struct Vector4 : IEquatable<Vector4>, ISpanFormattable
     /// </remarks>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> or <paramref name="destination"/> is <c>null</c>.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="destination"/> is shorter in length than <paramref name="source"/>.</exception>
-    public static void Orthonormalize(Vector4[] destination, params Vector4[] source)
+    public static void Orthonormalize(Span<Vector4> destination, params ReadOnlySpan<Vector4> source)
     {
-        ArgumentNullException.ThrowIfNull(source);
-        ArgumentNullException.ThrowIfNull(destination);
         if (destination.Length < source.Length)
             throw new ArgumentOutOfRangeException(nameof(destination), "The destination array must be of same length or larger length than the source array.");
 
@@ -887,10 +882,8 @@ public struct Vector4 : IEquatable<Vector4>, ISpanFormattable
     /// This array may be the same array as <paramref name="source"/>.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> or <paramref name="destination"/> is <c>null</c>.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="destination"/> is shorter in length than <paramref name="source"/>.</exception>
-    public static void Transform(Vector4[] source, ref readonly Quaternion rotation, Vector4[] destination)
+    public static void Transform(ReadOnlySpan<Vector4> source, ref readonly Quaternion rotation, Span<Vector4> destination)
     {
-        ArgumentNullException.ThrowIfNull(source);
-        ArgumentNullException.ThrowIfNull(destination);
         if (destination.Length < source.Length)
             throw new ArgumentOutOfRangeException(nameof(destination), "The destination array must be of same length or larger length than the source array.");
 
@@ -927,10 +920,8 @@ public struct Vector4 : IEquatable<Vector4>, ISpanFormattable
     /// This array may be the same array as <paramref name="source"/>.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> or <paramref name="destination"/> is <c>null</c>.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="destination"/> is shorter in length than <paramref name="source"/>.</exception>
-    public static void Transform(Vector4[] source, ref readonly Matrix transform, Vector4[] destination)
+    public static void Transform(ReadOnlySpan<Vector4> source, ref readonly Matrix transform, Span<Vector4> destination)
     {
-        ArgumentNullException.ThrowIfNull(source);
-        ArgumentNullException.ThrowIfNull(destination);
         if (destination.Length < source.Length)
             throw new ArgumentOutOfRangeException(nameof(destination), "The destination array must be of same length or larger length than the source array.");
 

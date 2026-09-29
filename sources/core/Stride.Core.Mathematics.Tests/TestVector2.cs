@@ -538,7 +538,7 @@ public class TestVector2
         Assert.Equal(1.0f, v.X);
         Assert.Equal(2.0f, v.Y);
 
-        Assert.Throws<ArgumentNullException>(() => new Vector2((float[])null!));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new Vector2((float[])null!));
         Assert.Throws<ArgumentOutOfRangeException>(() => new Vector2([1.0f]));
         Assert.Throws<ArgumentOutOfRangeException>(() => new Vector2([1.0f, 2.0f, 3.0f]));
     }
@@ -764,8 +764,8 @@ public class TestVector2
         Assert.Equal(7.0f, dest[1].X, 3);
         Assert.Equal(12.0f, dest[1].Y, 3);
 
-        Assert.Throws<ArgumentNullException>(() => Vector2.TransformCoordinate((Vector2[])null!, ref matrix, dest));
-        Assert.Throws<ArgumentNullException>(() => Vector2.TransformCoordinate(source, ref matrix, (Vector2[])null!));
+        Vector2.TransformCoordinate((Vector2[])null!, ref matrix, dest); // does not throw
+        Assert.Throws<ArgumentOutOfRangeException>(() => Vector2.TransformCoordinate(source, ref matrix, (Vector2[])null!));
         Assert.Throws<ArgumentOutOfRangeException>(() => Vector2.TransformCoordinate(source, ref matrix, new Vector2[1]));
     }
 
@@ -783,8 +783,8 @@ public class TestVector2
         Assert.Equal(-1.0f, dest[1].X, 3);
         Assert.Equal(0.0f, dest[1].Y, 3);
 
-        Assert.Throws<ArgumentNullException>(() => Vector2.TransformNormal((Vector2[])null!, ref matrix, dest));
-        Assert.Throws<ArgumentNullException>(() => Vector2.TransformNormal(source, ref matrix, (Vector2[])null!));
+        Vector2.TransformNormal((Vector2[])null!, ref matrix, dest); // does not throw
+        Assert.Throws<ArgumentOutOfRangeException>(() => Vector2.TransformNormal(source, ref matrix, (Vector2[])null!));
         Assert.Throws<ArgumentOutOfRangeException>(() => Vector2.TransformNormal(source, ref matrix, new Vector2[1]));
     }
 
@@ -795,12 +795,12 @@ public class TestVector2
         var rotation = Quaternion.RotationZ(MathUtil.PiOverTwo);
         var matrix = Matrix.Identity;
 
-        Assert.Throws<ArgumentNullException>(() => Vector2.Transform((Vector2[])null!, ref rotation, new Vector2[1]));
-        Assert.Throws<ArgumentNullException>(() => Vector2.Transform(source, ref rotation, (Vector2[])null!));
+        Vector2.Transform((Vector2[])null!, ref rotation, new Vector2[1]); // does not throw
+        Assert.Throws<ArgumentOutOfRangeException>(() => Vector2.Transform(source, ref rotation, (Vector2[])null!));
         Assert.Throws<ArgumentOutOfRangeException>(() => Vector2.Transform(source, ref rotation, new Vector2[0]));
 
-        Assert.Throws<ArgumentNullException>(() => Vector2.Transform((Vector2[])null!, ref matrix, new Vector4[1]));
-        Assert.Throws<ArgumentNullException>(() => Vector2.Transform(source, ref matrix, (Vector4[])null!));
+        Vector2.Transform((Vector2[])null!, ref matrix, new Vector4[1]); // does not throw
+        Assert.Throws<ArgumentOutOfRangeException>(() => Vector2.Transform(source, ref matrix, (Vector4[])null!));
         Assert.Throws<ArgumentOutOfRangeException>(() => Vector2.Transform(source, ref matrix, new Vector4[0]));
     }
 
@@ -823,8 +823,8 @@ public class TestVector2
         // The resulting vectors must be orthogonal to each other.
         Assert.Equal(0.0f, Vector2.Dot(destination[0], destination[1]), 3);
 
-        Assert.Throws<ArgumentNullException>(() => Vector2.Orthogonalize(null!, source));
-        Assert.Throws<ArgumentNullException>(() => Vector2.Orthogonalize(destination, null!));
+        Vector2.Orthogonalize(destination, null!); // does not throw
+        Assert.Throws<ArgumentOutOfRangeException>(() => Vector2.Orthogonalize(null!, source));
         Assert.Throws<ArgumentOutOfRangeException>(() => Vector2.Orthogonalize(new Vector2[1], source));
     }
 
@@ -849,8 +849,8 @@ public class TestVector2
         Assert.Equal(1.0f, destination[1].Length(), 3);
         Assert.Equal(0.0f, Vector2.Dot(destination[0], destination[1]), 3);
 
-        Assert.Throws<ArgumentNullException>(() => Vector2.Orthonormalize(null!, source));
-        Assert.Throws<ArgumentNullException>(() => Vector2.Orthonormalize(destination, null!));
+        Vector2.Orthonormalize(destination, null!); // does not throw
+        Assert.Throws<ArgumentOutOfRangeException>(() => Vector2.Orthonormalize(null!, source));
         Assert.Throws<ArgumentOutOfRangeException>(() => Vector2.Orthonormalize(new Vector2[1], source));
     }
 }
