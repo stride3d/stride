@@ -426,6 +426,24 @@
     <value>Install the latest available version of Stride</value>
     <comment>The tooltip of the button that will install the latest available version</comment>
   </data>
+  <data name="ToolTipRemoveDevVersion" xml:space="preserve">
+    <value>Remove {0} from the list (its checkout is kept)</value>
+    <comment>Tooltip of the remove button of a locally built version. {0}: long version name</comment>
+  </data>
+  <data name="ConfirmRemoveDevVersion" xml:space="preserve">
+    <value>Remove {0} from the list?
+
+Its checkout is kept: building it again brings the version back. Until then, projects on this version can't restore its packages.</value>
+    <comment>Displayed when the user removes a locally built version. {0}: long version name</comment>
+  </data>
+  <data name="ToolTipOpenCheckout" xml:space="preserve">
+    <value>Open the checkout of {0}</value>
+    <comment>Tooltip of the folder button of a locally built version. {0}: long version name</comment>
+  </data>
+  <data name="ToolTipOpenSolution" xml:space="preserve">
+    <value>Open the Stride solution of {0}</value>
+    <comment>Tooltip of the Visual Studio button of a locally built version. {0}: long version name</comment>
+  </data>
   <data name="ToolTipUninstall" xml:space="preserve">
     <value>Uninstall version {0}</value>
     <comment>{0}: long version name</comment>

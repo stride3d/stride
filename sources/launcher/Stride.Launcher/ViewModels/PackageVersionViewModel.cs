@@ -282,12 +282,25 @@ public abstract class PackageVersionViewModel : DispatcherViewModel
         });
     }
 
+    /// <summary>
+    /// Gets the question asked before <see cref="DeleteCommand"/> deletes this version.
+    /// </summary>
+    protected virtual string DeleteConfirmationMessage => string.Format(Strings.ConfirmUninstall, FullName);
+
+    /// <summary>
+    /// Executes some actions once <see cref="DeleteCommand"/> uninstalled the package of this version.
+    /// </summary>
+    protected virtual void AfterUninstall()
+    {
+        // Intentionally does nothing.
+    }
+
     protected async Task Delete(bool displayErrorMessage, bool askConfirmation)
     {
         bool proceed = !askConfirmation;
         if (askConfirmation)
         {
-            var message = string.Format(Strings.ConfirmUninstall, FullName);
+            var message = DeleteConfirmationMessage;
             var confirmResult = await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, MessageBoxButton.YesNo);
             proceed = confirmResult == MessageBoxResult.Yes;
         }
@@ -309,6 +322,7 @@ public abstract class PackageVersionViewModel : DispatcherViewModel
             CurrentProcessStatus = string.Format(Strings.ReportDeletingVersion, FullName);
             await Store.UninstallPackage(LocalPackage, progressReport);
             CurrentProcessStatus = null;
+            AfterUninstall();
         }
         catch (OperationCanceledException)
         {

@@ -771,6 +771,42 @@ namespace Stride.Launcher.Assets.Localization {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remove {0} from the list (its checkout is kept).
+        /// </summary>
+        public static string ToolTipRemoveDevVersion {
+            get {
+                return ResourceManager.GetString("ToolTipRemoveDevVersion", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Remove {0} from the list?....
+        /// </summary>
+        public static string ConfirmRemoveDevVersion {
+            get {
+                return ResourceManager.GetString("ConfirmRemoveDevVersion", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Open the checkout of {0}.
+        /// </summary>
+        public static string ToolTipOpenCheckout {
+            get {
+                return ResourceManager.GetString("ToolTipOpenCheckout", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Open the Stride solution of {0}.
+        /// </summary>
+        public static string ToolTipOpenSolution {
+            get {
+                return ResourceManager.GetString("ToolTipOpenSolution", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Uninstall version {0}.
         /// </summary>
         public static string ToolTipUninstall {
