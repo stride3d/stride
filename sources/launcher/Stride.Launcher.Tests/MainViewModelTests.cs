@@ -42,6 +42,18 @@ public sealed class MainViewModelTests
     }
 
     [Fact]
+    public void IncludePrereleaseUpdates_Setter_PersistsValueAndSaves()
+    {
+        var (vm, settings, _) = TestViewModelFactory.CreateMainViewModel();
+        var savesBefore = settings.SaveCallCount;
+
+        vm.IncludePrereleaseUpdates = true;
+
+        Assert.True(settings.IncludePrereleaseUpdates);
+        Assert.Equal(savesBefore + 1, settings.SaveCallCount);
+    }
+
+    [Fact]
     public void CurrentTab_Setter_DoesNotSave_WhenValueUnchanged()
     {
         var (vm, settings, _) = TestViewModelFactory.CreateMainViewModel();

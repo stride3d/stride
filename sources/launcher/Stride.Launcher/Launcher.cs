@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Globalization;
-using System.Reflection;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input.Platform;
@@ -47,13 +46,17 @@ internal static class Launcher
 
     internal static NugetStore InitializeNugetStore()
     {
-        var thisExeDirectory = new UFile(Assembly.GetEntryAssembly()!.Location).GetFullDirectory().ToOSPath();
-        var store = new NugetStore(thisExeDirectory);
+        var store = new NugetStore(Program.GetExecutableDirectory());
         return store;
     }
 
     private static LauncherErrorCode ProcessAction(LauncherArguments args)
     {
+        // Uninstalling (run by the setup) doesn't take the single-instance lock, so that it can offer to close a running
+        // launcher, and doesn't create the main window, whose view model would look for launcher updates
+        if (args.Actions.Contains(LauncherArguments.ActionType.Uninstall))
+            return Uninstall();
+
         var result = LauncherErrorCode.UnknownError;
 
         try
@@ -83,23 +86,8 @@ internal static class Launcher
 
         CancellationToken AppMain(App app)
         {
-            _ = AppMainAsync(app.cts);
+            result = TryRun(app.cts);
             return app.cts.Token;
-        }
-
-        async Task AppMainAsync(CancellationTokenSource cts)
-        {
-            foreach (var action in args.Actions)
-            {
-                result = action switch
-                {
-                    LauncherArguments.ActionType.Run => TryRun(cts),
-                    LauncherArguments.ActionType.Uninstall => await UninstallAsync(cts),
-                    _ => LauncherErrorCode.UnknownError,// Unknown action
-                };
-                if (result < LauncherErrorCode.Success)
-                    break;
-            }
         }
 
         static void DisplayError(string message, MessageBoxImage image)
@@ -146,12 +134,39 @@ internal static class Launcher
         return LauncherErrorCode.Success;
     }
 
-    private static async Task<LauncherErrorCode> UninstallAsync(CancellationTokenSource cts)
+    private static LauncherErrorCode Uninstall()
+    {
+        var result = LauncherErrorCode.UnknownError;
+        Program.RunNewApp<MinimalApp>(AppMain);
+        return result;
+
+        CancellationToken AppMain(Application app)
+        {
+            var cts = new CancellationTokenSource();
+            _ = RunAsync(cts);
+            return cts.Token;
+        }
+
+        // The result is set before the app stops: its loop wouldn't run what comes after
+        async Task RunAsync(CancellationTokenSource cts)
+        {
+            try
+            {
+                result = await UninstallAsync();
+            }
+            finally
+            {
+                await cts.CancelAsync();
+            }
+        }
+    }
+
+    private static async Task<LauncherErrorCode> UninstallAsync()
     {
         try
         {
             // Kill all running processes
-            var path = new UFile(Assembly.GetEntryAssembly()!.Location).GetFullDirectory().ToOSPath();
+            var path = Program.GetExecutableDirectory();
             if (!await UninstallHelper.CloseProcessesInPathAsync(DisplayMessageAsync, "Stride", path))
                 return LauncherErrorCode.UninstallCancelled; // User cancelled
 
@@ -180,15 +195,11 @@ internal static class Launcher
         {
             return LauncherErrorCode.ErrorWhileUninstalling;
         }
-        finally
-        {
-            await cts.CancelAsync();
-        }
 
         static async Task<bool> DisplayMessageAsync(string message)
         {
-            var result = await MessageBox.ShowAsync(ApplicationName, message, IDialogService.GetButtons(MessageBoxButton.YesNo), MessageBoxImage.Information);
-            return result == (int)MessageBoxResult.Yes;
+            var result = await MessageBox.ShowAsync(ApplicationName, message, IDialogService.GetButtons(MessageBoxButton.OKCancel), MessageBoxImage.Information);
+            return result == (int)MessageBoxResult.OK;
         }
     }
 

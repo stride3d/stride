@@ -1,5 +1,6 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:w="using:Stride.Core.Presentation.Avalonia.Windows">
 
     <ControlTheme x:Key="{x:Type WindowDrawnDecorations}" TargetType="WindowDrawnDecorations">
       <Setter Property="DefaultTitleBarHeight" Value="32"/>
@@ -49,6 +50,9 @@
                                VerticalAlignment="Center"/>
                   </StackPanel>
                   <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <!-- Optional content of the window (WindowTitleBar.Content), which receives clicks like the buttons -->
+                    <ContentPresenter Content="{Binding $parent[Window].(w:WindowTitleBar.Content)}"
+                                      WindowDecorationProperties.ElementRole="User" />
                     <Button x:Name="PART_MinimizeButton" Classes="MainWindowButton"
                             Content="{DynamicResource VectorMinimizeWindow}"/>
                     <Button x:Name="PART_MaximizeButton" Classes="MainWindowButton"

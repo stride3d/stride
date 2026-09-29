@@ -1,0 +1,8 @@
+<!-- The launcher version, read by Stride.Launcher.csproj and by the release build (Stride.Launcher.Release.targets):
+     the nuspec <version>, so that there's only one place to bump, plus the optional -p:VersionSuffix=beta1 of a pre-release -->
+<Project>
+  <PropertyGroup>
+    <StrideLauncherVersion>$([System.Text.RegularExpressions.Regex]::Match($([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)Stride.Launcher.nuspec')), `<version>(.*)</version>`).Groups[1].Value)</StrideLauncherVersion>
+    <StrideLauncherVersion Condition="'$(VersionSuffix)' != ''">$(StrideLauncherVersion)-$(VersionSuffix)</StrideLauncherVersion>
+  </PropertyGroup>
+</Project>

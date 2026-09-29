@@ -1,4 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="Stride.Launcher.Version.props" />
+
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <OutputType Condition="'$(Configuration)' == 'Debug'">Exe</OutputType>
@@ -14,9 +16,8 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <StartupObject>Stride.Launcher.Program</StartupObject>
     <DefineConstants>$(DefineConstants);STRIDE_LAUNCHER</DefineConstants>
-    <!-- Get version directly from nuspec file, so that there's only one place to bump -->
-    <_StrideLauncherNuSpecLines>$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)Stride.Launcher.nuspec'))</_StrideLauncherNuSpecLines>
-    <Version>$([System.Text.RegularExpressions.Regex]::Match($(_StrideLauncherNuSpecLines), `<version>(.*)</version>`).Groups[1].Value)</Version>
+    <!-- The nuspec version, with the pre-release suffix (the SDK only appends VersionSuffix when Version is not set) -->
+    <Version>$(StrideLauncherVersion)</Version>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>

@@ -324,7 +324,25 @@ namespace Stride.Launcher.Assets.Localization {
                 return ResourceManager.GetString("ErrorVersionNotInstalled", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Receive launcher pre-releases.
+        /// </summary>
+        public static string IncludePrereleaseUpdates {
+            get {
+                return ResourceManager.GetString("IncludePrereleaseUpdates", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Launcher settings.
+        /// </summary>
+        public static string LauncherSettings {
+            get {
+                return ResourceManager.GetString("LauncherSettings", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to The installation of this version is already in progress. Please wait a moment..
         /// </summary>
