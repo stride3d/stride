@@ -27,6 +27,8 @@
 * THE SOFTWARE.
 */
 
+using System.Runtime.CompilerServices;
+
 namespace Stride.Core.Mathematics;
 
 /*
@@ -1095,8 +1097,8 @@ public static class CollisionHelper
         //Source: Real-Time Collision Detection by Christer Ericson
         //Reference: Page 161
 
-        Vector3 min;
-        Vector3 max;
+        Unsafe.SkipInit(out Vector3 min);
+        Unsafe.SkipInit(out Vector3 max);
 
         max.X = (plane.Normal.X >= 0.0f) ? box.Minimum.X : box.Maximum.X;
         max.Y = (plane.Normal.Y >= 0.0f) ? box.Minimum.Y : box.Maximum.Y;
@@ -1377,7 +1379,7 @@ public static class CollisionHelper
     /// <returns>The type of containment the two objects have.</returns>
     public static ContainmentType SphereContainsBox(ref readonly BoundingSphere sphere, ref readonly BoundingBox box)
     {
-        Vector3 vector;
+        Unsafe.SkipInit(out Vector3 vector);
 
         if (!BoxIntersectsSphere(in box, in sphere))
             return ContainmentType.Disjoint;

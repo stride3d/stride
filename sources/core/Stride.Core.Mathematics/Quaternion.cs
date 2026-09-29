@@ -228,7 +228,7 @@ public struct Quaternion : IEquatable<Quaternion>, ISpanFormattable
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            Vector3 yawPitchRoll;
+            Unsafe.SkipInit(out Vector3 yawPitchRoll);
             RotationYawPitchRoll(in this, out yawPitchRoll.X, out yawPitchRoll.Y, out yawPitchRoll.Z);
             return yawPitchRoll;
         }

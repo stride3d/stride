@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using BepuPhysics.Collidables;
 using Stride.BepuPhysics.Definitions;
@@ -268,8 +269,8 @@ internal class ShapeCacheSystem : IDisposable, IService
     {
         float d1 = Vector3.Dot((Vector3)matrix.Row1, (Vector3)matrix.Row2);
         float d2 = Vector3.Dot((Vector3)matrix.Row2, (Vector3)matrix.Row3);
-        float d3 = Vector3.Dot((Vector3)matrix.Row1, (Vector3)matrix.Row3);
-        Vector3 o;
+        float d3 = Vector3.Dot((Vector3)matrix.Row1, (Vector3)matrix.Row3);        
+        Unsafe.SkipInit(out Vector3 o);
         if (MathF.Abs(d1) > float.Epsilon || MathF.Abs(d2) > float.Epsilon || MathF.Abs(d3) > float.Epsilon) // Matrix is skewed, scale has to be axis aligned for physics
         {
             Span<Vector3> basisIn = stackalloc Vector3[]

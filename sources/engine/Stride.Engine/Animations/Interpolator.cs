@@ -24,9 +24,7 @@ namespace Stride.Animations
                 float factor2 = -3.0f * t3 + 4.0f * t2 + t;
                 float factor3 = t3 - t2;
 
-                // TODO: Use Vector3(ref,out) functions
-                result.X = 0.5f * (value1.X * factor0 + value2.X * factor1 + value3.X * factor2 + value4.X * factor3);
-                result.Y = 0.5f * (value1.Y * factor0 + value2.Y * factor1 + value3.Y * factor2 + value4.Y * factor3);
+                result = 0.5f * (value1 * factor0 + value2 * factor1 + value3 * factor2 + value4 * factor3);
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -48,10 +46,7 @@ namespace Stride.Animations
                 float factor2 = -3.0f * t3 + 4.0f * t2 + t;
                 float factor3 = t3 - t2;
 
-                // TODO: Use Vector3(ref,out) functions
-                result.X = 0.5f * (value1.X * factor0 + value2.X * factor1 + value3.X * factor2 + value4.X * factor3);
-                result.Y = 0.5f * (value1.Y * factor0 + value2.Y * factor1 + value3.Y * factor2 + value4.Y * factor3);
-                result.Z = 0.5f * (value1.Z * factor0 + value2.Z * factor1 + value3.Z * factor2 + value4.Z * factor3);
+                result = 0.5f * (value1 * factor0 + value2 * factor1 + value3 * factor2 + value4 * factor3);
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]

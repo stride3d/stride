@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Linq;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Xunit;
 using Stride.Core.Mathematics;
 using Stride.Engine;
@@ -18,7 +19,7 @@ namespace Stride.Physics.Tests
         {
             var invViewProj = Matrix.Invert(camera.ViewProjectionMatrix);
 
-            Vector3 sPos;
+            Unsafe.SkipInit(out Vector3 sPos);
             sPos.X = screenPos.X * 2f - 1f;
             sPos.Y = 1f - screenPos.Y * 2f;
 
