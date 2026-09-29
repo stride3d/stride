@@ -43,6 +43,9 @@ public class LiteralFoldingTests
         { "1 + 2", "double", 3.0 },
         { "1.5 + 1", "float", 2.5f },
         { "3000000000 + 1", "uint", 3000000001u },
+        { "65536 * 65536", "ulong", 4294967296UL },
+        { "1 << 40", "long", 1099511627776L },
+        { "0 - 1", "ulong", ulong.MaxValue },
         { "-2147483648 - 1", "float", -2147483649.0f },
         // A float stays a float in an integer context: the consumer converts it like any float
         { "1.5 + 1", "int", 2.5f },
@@ -67,6 +70,8 @@ public class LiteralFoldingTests
         {
             Scalar.Int => typeof(int),
             Scalar.UInt => typeof(uint),
+            Scalar.Int64 => typeof(long),
+            Scalar.UInt64 => typeof(ulong),
             Scalar.Float => typeof(float),
             Scalar.Double => typeof(double),
             _ => null,

@@ -124,6 +124,8 @@ public static class LiteralFolding
         return target?.Type switch
         {
             Scalar.UInt => (ScalarType.UInt, (object)unchecked((uint)value.Int)),
+            Scalar.Int64 => (ScalarType.Int64, (object)value.Int),
+            Scalar.UInt64 => (ScalarType.UInt64, (object)unchecked((ulong)value.Int)),
             Scalar.Float => (ScalarType.Float, (object)(float)value.Int),
             Scalar.Double => (ScalarType.Double, (object)(double)value.Int),
             _ => (ScalarType.Int, (object)unchecked((int)value.Int)),
