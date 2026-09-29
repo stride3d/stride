@@ -39,7 +39,7 @@ namespace Stride.Core.Mathematics;
 /// </summary>
 [DataContract("quaternion")]
 [DataStyle(DataStyle.Compact)]
-[StructLayout(LayoutKind.Sequential, Pack = 4)]
+[StructLayout(LayoutKind.Explicit, Pack = 4)]
 public struct Quaternion : IEquatable<Quaternion>, ISpanFormattable
 {
     /// <summary>
@@ -62,24 +62,31 @@ public struct Quaternion : IEquatable<Quaternion>, ISpanFormattable
     /// </summary>
     public static readonly Quaternion Identity = new(0.0f, 0.0f, 0.0f, 1.0f);
 
+    [FieldOffset(0)]
+    private System.Numerics.Quaternion _vector;
+
     /// <summary>
     /// The X component of the quaternion.
     /// </summary>
+    [FieldOffset(0)]
     public float X;
 
     /// <summary>
     /// The Y component of the quaternion.
     /// </summary>
+    [FieldOffset(4)]
     public float Y;
 
     /// <summary>
     /// The Z component of the quaternion.
     /// </summary>
+    [FieldOffset(8)]
     public float Z;
 
     /// <summary>
     /// The W component of the quaternion.
     /// </summary>
+    [FieldOffset(12)]
     public float W;
 
     /// <summary>
@@ -88,10 +95,7 @@ public struct Quaternion : IEquatable<Quaternion>, ISpanFormattable
     /// <param name="value">The value that will be assigned to all components.</param>
     public Quaternion(float value)
     {
-        X = value;
-        Y = value;
-        Z = value;
-        W = value;
+        _vector = System.Numerics.Quaternion.Create(value, value, value, value);
     }
 
     /// <summary>
@@ -100,10 +104,7 @@ public struct Quaternion : IEquatable<Quaternion>, ISpanFormattable
     /// <param name="value">A vector containing the values with which to initialize the components.</param>
     public Quaternion(Vector4 value)
     {
-        X = value.X;
-        Y = value.Y;
-        Z = value.Z;
-        W = value.W;
+        _vector = ((System.Numerics.Vector4)value).AsQuaternion();
     }
 
     /// <summary>
@@ -113,10 +114,7 @@ public struct Quaternion : IEquatable<Quaternion>, ISpanFormattable
     /// <param name="w">Initial value for the W component of the quaternion.</param>
     public Quaternion(Vector3 value, float w)
     {
-        X = value.X;
-        Y = value.Y;
-        Z = value.Z;
-        W = w;
+        _vector = System.Numerics.Quaternion.Create(value, w);
     }
 
     /// <summary>
@@ -127,10 +125,7 @@ public struct Quaternion : IEquatable<Quaternion>, ISpanFormattable
     /// <param name="w">Initial value for the W component of the quaternion.</param>
     public Quaternion(Vector2 value, float z, float w)
     {
-        X = value.X;
-        Y = value.Y;
-        Z = z;
-        W = w;
+        _vector = System.Numerics.Quaternion.Create(value.X, value.Y, z, w);
     }
 
     /// <summary>
@@ -142,10 +137,7 @@ public struct Quaternion : IEquatable<Quaternion>, ISpanFormattable
     /// <param name="w">Initial value for the W component of the quaternion.</param>
     public Quaternion(float x, float y, float z, float w)
     {
-        X = x;
-        Y = y;
-        Z = z;
-        W = w;
+        _vector = System.Numerics.Quaternion.Create(x, y, z, w);
     }
 
     /// <summary>
@@ -160,10 +152,7 @@ public struct Quaternion : IEquatable<Quaternion>, ISpanFormattable
         if (values.Length != 4)
             throw new ArgumentOutOfRangeException(nameof(values), "There must be four and only four input values for Quaternion.");
 
-        X = values[0];
-        Y = values[1];
-        Z = values[2];
-        W = values[3];
+        _vector = System.Numerics.Quaternion.Create(values[0], values[1], values[2], values[3]);
     }
 
     /// <summary>
@@ -271,13 +260,18 @@ public struct Quaternion : IEquatable<Quaternion>, ISpanFormattable
     /// Casts from System.Numerics to Stride.Maths vectors
     /// </summary>
     /// <param name="v">Value to cast</param>
-    public static implicit operator Quaternion(System.Numerics.Quaternion v) => Unsafe.BitCast<System.Numerics.Quaternion, Quaternion>(v);
+    public static implicit operator Quaternion(System.Numerics.Quaternion v)
+    {
+        Unsafe.SkipInit(out Quaternion result);
+        result._vector = v;
+        return result;
+    }
 
     /// <summary>
     /// Casts from Stride.Maths to System.Numerics vectors
     /// </summary>
     /// <param name="v">Value to cast</param>
-    public static implicit operator System.Numerics.Quaternion(Quaternion v) => Unsafe.BitCast<Quaternion, System.Numerics.Quaternion>(v);
+    public static implicit operator System.Numerics.Quaternion(Quaternion v) => v._vector;
 
     /// <summary>
     /// Conjugates the quaternion.
@@ -300,7 +294,7 @@ public struct Quaternion : IEquatable<Quaternion>, ISpanFormattable
     /// and speed is of the essence.
     /// </remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public readonly float Length() => ((System.Numerics.Quaternion)this).Length();
+    public readonly float Length() => _vector.Length();
 
     /// <summary>
     /// Calculates the squared length of the quaternion.
@@ -311,7 +305,7 @@ public struct Quaternion : IEquatable<Quaternion>, ISpanFormattable
     /// and speed is of the essence.
     /// </remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public readonly float LengthSquared() => ((System.Numerics.Quaternion)this).LengthSquared();
+    public readonly float LengthSquared() => _vector.LengthSquared();
 
     /// <summary>
     /// Converts the quaternion into a unit quaternion.
@@ -680,6 +674,7 @@ public struct Quaternion : IEquatable<Quaternion>, ISpanFormattable
         float half;
         float scale = matrix.M11 + matrix.M22 + matrix.M33;
 
+        Unsafe.SkipInit(out result);
         if (scale > 0.0f)
         {
             sqrt = MathF.Sqrt(scale + 1.0f);

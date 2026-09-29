@@ -38,7 +38,7 @@ namespace Stride.Core.Mathematics;
 /// </summary>
 [DataContract("float4")]
 [DataStyle(DataStyle.Compact)]
-[StructLayout(LayoutKind.Sequential, Pack = 4)]
+[StructLayout(LayoutKind.Explicit, Pack = 4)]
 public struct Vector4 : IEquatable<Vector4>, ISpanFormattable
 {
     /// <summary>
@@ -76,28 +76,35 @@ public struct Vector4 : IEquatable<Vector4>, ISpanFormattable
     /// </summary>
     public static readonly Vector4 One = new(1.0f, 1.0f, 1.0f, 1.0f);
 
+    [FieldOffset(0)]
+    private System.Numerics.Vector4 _vector;
+
     /// <summary>
     /// The X component of the vector.
     /// </summary>
     [DataMember(0)]
+    [FieldOffset(0)]
     public float X;
 
     /// <summary>
     /// The Y component of the vector.
     /// </summary>
     [DataMember(1)]
+    [FieldOffset(4)]
     public float Y;
 
     /// <summary>
     /// The Z component of the vector.
     /// </summary>
     [DataMember(2)]
+    [FieldOffset(8)]
     public float Z;
 
     /// <summary>
     /// The W component of the vector.
     /// </summary>
     [DataMember(3)]
+    [FieldOffset(12)]
     public float W;
 
     /// <summary>
@@ -106,10 +113,7 @@ public struct Vector4 : IEquatable<Vector4>, ISpanFormattable
     /// <param name="value">The value that will be assigned to all components.</param>
     public Vector4(float value)
     {
-        X = value;
-        Y = value;
-        Z = value;
-        W = value;
+        _vector = System.Numerics.Vector4.Create(value);
     }
 
     /// <summary>
@@ -121,10 +125,7 @@ public struct Vector4 : IEquatable<Vector4>, ISpanFormattable
     /// <param name="w">Initial value for the W component of the vector.</param>
     public Vector4(float x, float y, float z, float w)
     {
-        X = x;
-        Y = y;
-        Z = z;
-        W = w;
+        _vector = System.Numerics.Vector4.Create(x, y, z, w);
     }
 
     /// <summary>
@@ -134,10 +135,7 @@ public struct Vector4 : IEquatable<Vector4>, ISpanFormattable
     /// <param name="w">Initial value for the W component of the vector.</param>
     public Vector4(Vector3 value, float w)
     {
-        X = value.X;
-        Y = value.Y;
-        Z = value.Z;
-        W = w;
+        _vector = System.Numerics.Vector4.Create(value, w);
     }
 
     /// <summary>
@@ -148,10 +146,7 @@ public struct Vector4 : IEquatable<Vector4>, ISpanFormattable
     /// <param name="w">Initial value for the W component of the vector.</param>
     public Vector4(Vector2 value, float z, float w)
     {
-        X = value.X;
-        Y = value.Y;
-        Z = z;
-        W = w;
+        _vector = System.Numerics.Vector4.Create(value, z, w);
     }
 
     /// <summary>
@@ -166,10 +161,7 @@ public struct Vector4 : IEquatable<Vector4>, ISpanFormattable
         if (values.Length != 4)
             throw new ArgumentOutOfRangeException(nameof(values), "There must be four and only four input values for Vector4.");
 
-        X = values[0];
-        Y = values[1];
-        Z = values[2];
-        W = values[3];
+        _vector = System.Numerics.Vector4.Create(values);
     }
 
     /// <summary>
@@ -218,13 +210,18 @@ public struct Vector4 : IEquatable<Vector4>, ISpanFormattable
     /// Casts from System.Numerics to Stride.Maths vectors
     /// </summary>
     /// <param name="v">Value to cast</param>
-    public static implicit operator Vector4(System.Numerics.Vector4 v) => Unsafe.BitCast<System.Numerics.Vector4, Vector4>(v);
+    public static implicit operator Vector4(System.Numerics.Vector4 v)
+    {
+        Unsafe.SkipInit(out Vector4 result);
+        result._vector = v;
+        return result;
+    }
 
     /// <summary>
     /// Casts from Stride.Maths to System.Numerics vectors
     /// </summary>
     /// <param name="v">Value to cast</param>
-    public static implicit operator System.Numerics.Vector4(Vector4 v) => Unsafe.BitCast<Vector4, System.Numerics.Vector4>(v);
+    public static implicit operator System.Numerics.Vector4(Vector4 v) => v._vector;
 
     /// <summary>
     /// Calculates the length of the vector.
@@ -235,7 +232,7 @@ public struct Vector4 : IEquatable<Vector4>, ISpanFormattable
     /// and speed is of the essence.
     /// </remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public readonly float Length() => ((System.Numerics.Vector4)this).Length();
+    public readonly float Length() => _vector.Length();
 
     /// <summary>
     /// Calculates the squared length of the vector.
@@ -246,7 +243,7 @@ public struct Vector4 : IEquatable<Vector4>, ISpanFormattable
     /// and speed is of the essence.
     /// </remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public readonly float LengthSquared() => ((System.Numerics.Vector4)this).LengthSquared();
+    public readonly float LengthSquared() => _vector.LengthSquared();
 
     /// <summary>
     /// Converts the vector into a unit vector.

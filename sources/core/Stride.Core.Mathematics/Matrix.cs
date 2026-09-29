@@ -1885,6 +1885,7 @@ public struct Matrix : IEquatable<Matrix>, ISpanFormattable
         result.M43 = matrix[3, 2];
         result.M44 = matrix[3, 3];
 
+        Unsafe.SkipInit(out augmentResult);
         augmentResult.X = matrix[0, 4];
         augmentResult.Y = matrix[1, 4];
         augmentResult.Z = matrix[2, 4];
