@@ -546,7 +546,8 @@
                                   <MenuItem Header="{x:Static l:Strings.RemoveFromList}" Command="{Binding RemoveCommand}" />
                                 </ContextMenu>
                               </Panel.ContextMenu>
-                              <Button Command="{Binding OpenCommand}"
+                              <Button x:Name="OpenButton"
+                                      Command="{Binding OpenCommand}"
                                       IsEnabled="{Binding Launcher.StartStudioCommand.IsEnabled}"
                                       HorizontalAlignment="Stretch"
                                       VerticalAlignment="Stretch"
@@ -616,10 +617,10 @@
                                 </DockPanel>
                               </Button>
                               <!-- Invisible panel to make the context menu work for disabled items -->
-                              <Panel Background="#00ffffff"
+                              <Panel Background="Transparent"
                                      HorizontalAlignment="Stretch"
                                      VerticalAlignment="Stretch"
-                                     IsVisible="{Binding !OpenCommand.IsEnabled}">
+                                     IsVisible="{Binding !#OpenButton.IsEffectivelyEnabled}">
                               </Panel>
                             </Panel>
                           </Border>
