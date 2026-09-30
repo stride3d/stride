@@ -444,8 +444,22 @@ namespace Stride.Input
             // Notify PreUpdateInput
             PreUpdateInput?.Invoke(this, new InputPreUpdateEventArgs { GameTime = gameTime });
             
-            // Send events to input listeners
-            foreach (var evt in events)
+            RouteEvents(events);
+
+            // Update virtual buttons
+            UpdateVirtualButtonStates();
+
+            // Update gestures
+            UpdateGestureEvents(gameTime.Elapsed);
+        }
+
+        /// <summary>
+        /// Sends each event to the listeners registered for its type, in order.
+        /// </summary>
+        /// <param name="inputEvents">The events to route</param>
+        internal void RouteEvents(List<InputEvent> inputEvents)
+        {
+            foreach (var evt in inputEvents)
             {
                 IInputEventRouter router;
                 if (!eventRouters.TryGetValue(evt.GetType(), out router))
@@ -453,12 +467,6 @@ namespace Stride.Input
 
                 router.RouteEvent(evt);
             }
-
-            // Update virtual buttons
-            UpdateVirtualButtonStates();
-
-            // Update gestures
-            UpdateGestureEvents(gameTime.Elapsed);
         }
 
         /// <summary>

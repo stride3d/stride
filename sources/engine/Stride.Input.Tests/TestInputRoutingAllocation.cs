@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Collections.Generic;
 using Stride.Core.Mathematics;
 using Xunit;
 
@@ -12,53 +13,58 @@ namespace Stride.Input.Tests;
 /// <remarks>
 ///   Every input event is routed to every listener of its type, every frame. Anything routing
 ///   allocates is allocated again for each event, so the cost grows with how much input arrives.
-///   The measurement compares a frame with input against the same frame without any, so a cost the
-///   runtime adds to every frame regardless of input cancels out. On Mono (Android and iOS) the input
-///   path keeps allocating for its first few dozen frames before it settles, so the warm-up runs well
-///   past that.
+///   The measurement routes a fixed batch of events and nothing else, so what devices and the rest
+///   of the input frame allocate, which differs between runtimes, stays out of it. Each iteration
+///   resets the input manager's per-frame state first, as a frame does, since the input manager
+///   listens to the events it routes and keeps them until the next frame.
 /// </remarks>
 public class TestInputRoutingAllocation
 {
-    private const int KeysPerFrame = 16;
-    private const int MouseMovesPerFrame = 8;
-    private const int WarmupFrames = 256;
-    private const int MeasuredFrames = 256;
+    private const int KeysPerBatch = 16;
+    private const int MouseMovesPerBatch = 8;
+    private const int Listeners = 4;
 
     [Fact]
     public void RoutingInputEventsDoesNotAllocate()
     {
-        var withoutInput = MeasureFrames(withInput: false);
-        var withInput = MeasureFrames(withInput: true);
+        using var headless = new HeadlessInput();
+        for (int i = 0; i < Listeners; i++)
+            headless.Input.AddListener(new NullListener());
+
+        var events = CreateEvents(headless);
+
+        var measurement = GCMeasure.Run(() =>
+        {
+            headless.Input.ResetGlobalInputState();
+            headless.Input.RouteEvents(events);
+        });
 
         Assert.True(
-            withInput.AllocatedBytes == withoutInput.AllocatedBytes,
-            $"Routing {KeysPerFrame * 2} key events and {MouseMovesPerFrame} mouse moves per frame allocated. " +
-            $"Without input: {withoutInput}. With input: {withInput}.");
+            measurement.AllocatedBytes == 0,
+            $"Routing {events.Count} events to {Listeners} listeners allocated. Measured {measurement}.");
     }
 
-    private static GCMeasurement MeasureFrames(bool withInput)
+    private static List<InputEvent> CreateEvents(HeadlessInput headless)
     {
-        using var headless = new HeadlessInput();
-        headless.Input.AddListener(new NullListener());
+        var events = new List<InputEvent>();
 
-        return GCMeasure.Run(() => RunOneFrame(headless, withInput), WarmupFrames, MeasuredFrames);
-    }
-
-    private static void RunOneFrame(HeadlessInput headless, bool withInput)
-    {
-        if (withInput)
+        for (int i = 0; i < KeysPerBatch; i++)
         {
-            for (int i = 0; i < KeysPerFrame; i++)
-            {
-                headless.Keyboard.SimulateDown(Keys.A + i);
-                headless.Keyboard.SimulateUp(Keys.A + i);
-            }
-
-            for (int i = 0; i < MouseMovesPerFrame; i++)
-                headless.Mouse.SetPosition(new Vector2(i / (float)MouseMovesPerFrame, 0.5f));
+            events.Add(new KeyEvent { Device = headless.Keyboard, Key = Keys.A + i, IsDown = true });
+            events.Add(new KeyEvent { Device = headless.Keyboard, Key = Keys.A + i, IsDown = false });
         }
 
-        headless.Update();
+        for (int i = 0; i < MouseMovesPerBatch; i++)
+        {
+            events.Add(new PointerEvent
+            {
+                Device = headless.Mouse,
+                EventType = PointerEventType.Moved,
+                Position = new Vector2(i / (float)MouseMovesPerBatch, 0.5f),
+            });
+        }
+
+        return events;
     }
 
     private sealed class NullListener : IInputEventListener<KeyEvent>, IInputEventListener<PointerEvent>
