@@ -2,23 +2,22 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Collections.Generic;
 using Stride.Core.Mathematics;
+using Stride.BepuPhysics;
 using Stride.Engine;
-using Stride.Physics;
 
 namespace CSharpIntermediate.Code
 {
     public class RaycastPenetratingDemo : SyncScript
     {
-        public CollisionFilterGroupFlags CollideWithGroup;
-        public bool CollideWithTriggers = false;
+        public CollisionMask CollideWithGroup = CollisionMask.Everything;
 
         private Entity laser;
-        private const float maxDistance = 3.0f;
-        private Simulation simulation;
+        private const float maxDistance = 3.5f;
+        private BepuSimulation simulation;
 
         public override void Start()
         {
-            simulation = this.GetSimulation();
+            simulation = Entity.GetSimulation();
             laser = Entity.FindChild("Laser");
         }
 
@@ -34,8 +33,8 @@ namespace CSharpIntermediate.Code
             var distance = Vector3.Distance(raycastStart, raycastEnd);
             laser.Transform.Scale.Z = distance;
 
-            var hitResults = new List<HitResult>();
-            simulation.RaycastPenetrating(raycastStart, raycastEnd, hitResults, CollisionFilterGroups.DefaultFilter, CollideWithGroup, CollideWithTriggers);
+            var hitResults = new List<HitInfo>();
+            simulation.RayCastPenetrating(raycastStart, -Vector3.UnitZ, maxDistance, hitResults, CollideWithGroup);
 
             drawY += 40;
             if (hitResults.Count > 0)
@@ -45,7 +44,7 @@ namespace CSharpIntermediate.Code
                 foreach (var hitResult in hitResults)
                 {
                     drawY += 20;
-                    DebugText.Print($"- Raycast has hit: {hitResult.Collider.Entity.Name}", new Int2(drawX, drawY));
+                    DebugText.Print($"- Raycast has hit: {hitResult.Collidable.Entity.Name}", new Int2(drawX, drawY));
                 }
             }
             else

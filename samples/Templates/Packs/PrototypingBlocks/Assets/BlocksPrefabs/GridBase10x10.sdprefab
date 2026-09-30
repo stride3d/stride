@@ -20,18 +20,19 @@ Hierarchy:
                         Id: fe1d907c-1cd2-4286-83aa-0639481520b1
                         Model: ee4e1a2b-82a5-4f40-9c2b-1c239dea039a:Models/GridBase10x10
                         Materials: {}
-                    e892de73aae78041aa74ca19b0b9f867: !StaticColliderComponent
+                    e892de73aae78041aa74ca19b0b9f867: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
                         Id: 73de92e8-e7aa-4180-aa74-ca19b0b9f867
-                        CanSleep: true
-                        Restitution: 0.0
-                        Friction: 0.5
-                        RollingFriction: 0.0
-                        CcdMotionThreshold: 0.0
-                        CcdSweptSphereRadius: 0.0
-                        IsTrigger: false
-                        ColliderShapes:
-                            6f9d4e7e5147bf47ad510aa5f27d122b: !BoxColliderShapeDesc
-                                Is2D: false
-                                Size: {X: 10.0, Y: 0.3, Z: 10.0}
-                                LocalOffset: {X: 0.0, Y: -0.15, Z: 0.0}
-                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                6f9d4e7e5147bf47ad510aa5f27d122b: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: -0.15, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 10.0, Y: 0.3, Z: 10.0}
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        CollisionLayer: Layer2
+                        CollisionGroup: {}
+                        ContactEventHandler: null

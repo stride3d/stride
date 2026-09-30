@@ -1,12 +1,14 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using Stride.BepuPhysics;
 using System.Collections.Generic;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Events;
-using Stride.Physics;
 using ThirdPersonPlatformer.Player;
+using BepuPhysics.Collidables;
+using Stride.BepuPhysics.Definitions;
 
 namespace ThirdPersonPlatformer.Camera
 {
@@ -23,9 +25,9 @@ namespace ThirdPersonPlatformer.Camera
         public float MinimumDistance { get; set; } = 0.4f;
 
         /// <summary>
-        /// Cone radius for the collision cone used to hold the camera
+        /// Sphere radius for the collision sphere used to hold the camera
         /// </summary>
-        public float ConeRadius { get; set; } = 1.25f;
+        public float SphereRadius { get; set; } = 0.5f;
 
         /// <summary>
         /// Check to invert the horizontal camera movement
@@ -60,8 +62,7 @@ namespace ThirdPersonPlatformer.Camera
         private Vector3 cameraRotationXYZ = new Vector3(-20, 45, 0);
         private Vector3 targetRotationXYZ = new Vector3(-20, 45, 0);
         private readonly EventReceiver<Vector2> cameraDirectionEvent = new EventReceiver<Vector2>(PlayerInput.CameraDirectionEventKey);
-        private List<HitResult> resultsOutput;
-        private ConeColliderShape coneShape;
+        private readonly List<HitInfo> resultsOutput = [];
 
         /// <summary>
         /// Raycast between the camera and its target. The script assumes the camera is a child entity of its target.
@@ -69,44 +70,54 @@ namespace ThirdPersonPlatformer.Camera
         private void UpdateCameraRaycast()
         {
             var maxLength = DefaultDistance;
-            var cameraVector = new Vector3(0, 0, DefaultDistance);
-            Entity.GetParent().Transform.Rotation.Rotate(ref cameraVector);
-
-            if (ConeRadius <= 0)
+            var cameraVector = Vector3.UnitZ;
             {
-                // If the cone radius
+                var current = Entity.GetParent();
+                while (current != null)
+                {
+                    current.Transform.Rotation.Rotate(ref cameraVector);
+                    current = current.GetParent();
+                }
+            }
+
+            // The samples use the following collision layers:
+            // Layer 0: default
+            // Layer 1: player
+            // Layer 2: ground
+            // Layer 3: wall
+            // Layer 4: pillar
+            // layer 5: custom
+
+            // Intentionally ignoring CollisionMask.Layer4; to avoid collision with poles
+            var collisionMask = ~(CollisionMask.Layer1 | CollisionMask.Layer4);
+            if (SphereRadius <= 0)
+            {
+                // If the sphere radius is non-positive we will just raycast and see where it collides
                 var raycastStart = Entity.GetParent().Transform.WorldMatrix.TranslationVector;
-                var hitResult = this.GetSimulation().Raycast(raycastStart, raycastStart + cameraVector);
-                if (hitResult.Succeeded)
+                if (Entity.GetSimulation().RayCast(raycastStart, cameraVector, DefaultDistance, out var hitResult, collisionMask))
                 {
                     maxLength = Math.Min(DefaultDistance, (raycastStart - hitResult.Point).Length());
                 }
             }
             else
             {
-                // If the cone radius is > 0 we will sweep an actual cone and see where it collides
-                var fromMatrix = Matrix.Translation(0, 0, -DefaultDistance * 0.5f) *
-                                 Entity.GetParent().Transform.WorldMatrix;
-                var toMatrix   = Matrix.Translation(0, 0, DefaultDistance * 0.5f) *
-                                 Entity.GetParent().Transform.WorldMatrix;
+                // If the sphere radius is > 0 we will sweep an actual sphere and see where it collides
+                var sweepcastStart = Entity.GetParent().Transform.WorldMatrix.TranslationVector;
+
+                var pose = new RigidPose(sweepcastStart, Quaternion.Identity);
+                var velocity = new BodyVelocity { Linear = cameraVector };
 
                 resultsOutput.Clear();
-                var cfg = CollisionFilterGroups.DefaultFilter;
-                var cfgf = CollisionFilterGroupFlags.DefaultFilter; // Intentionally ignoring the CollisionFilterGroupFlags.StaticFilter; to avoid collision with poles
 
-                this.GetSimulation().ShapeSweepPenetrating(coneShape, fromMatrix, toMatrix, resultsOutput, cfg, cfgf);
+                Entity.GetSimulation().SweepCastPenetrating(new Sphere(SphereRadius), pose, velocity, DefaultDistance, resultsOutput, collisionMask);
 
                 foreach (var result in resultsOutput)
                 {
-                    if (result.Succeeded)
-                    {
-                        var signedVector = result.Point - Entity.GetParent().Transform.WorldMatrix.TranslationVector;
-                        var signedDistance = Vector3.Dot(cameraVector, signedVector);
+                    var signedVector = result.Point - sweepcastStart;
+                    var signedDistance = Vector3.Dot(cameraVector, signedVector);
 
-                        var currentLength = DefaultDistance * result.HitFraction;
-                        if (signedDistance > 0 && currentLength < maxLength)
-                            maxLength = currentLength;
-                    }
+                    if (signedDistance > 0 && result.Distance < maxLength)
+                        maxLength = result.Distance;
                 }
             }
 
@@ -148,9 +159,6 @@ namespace ThirdPersonPlatformer.Camera
         public override void Start()
         {
             base.Start();
-
-            coneShape = new ConeColliderShape(DefaultDistance, ConeRadius, ShapeOrientation.UpZ);
-            resultsOutput = new List<HitResult>();
 
             if (Entity.GetParent() == null) throw new ArgumentException("ThirdPersonCamera should be placed as a child entity of its target entity!");
         }

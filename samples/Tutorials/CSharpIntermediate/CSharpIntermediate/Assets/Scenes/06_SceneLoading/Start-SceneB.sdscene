@@ -7,13 +7,24 @@ Offset: {X: 0.0, Y: -0.0, Z: 0.0}
 Hierarchy:
     RootParts:
         - ref!! 44451884-d457-4c08-9f94-5a25c4e2619a
-        - ref!! e9d90cad-7863-4bc7-bd2b-08c90ec53350
+        - ref!! 2227654e-f435-462d-bf40-897a2be7429e
         - ref!! 50b43e0f-0b2e-4f43-8453-98a73c13eceb
         - ref!! 6b6710f8-43b0-45a8-ae56-9cf48c4bfbf1
         - ref!! c3429ab7-99f4-409f-9ed1-63d282648003
         - ref!! 4b8c26bd-6703-4d3c-9e18-7b31aac0757e
         - ref!! 5dda4d97-3871-457e-8ef5-beada55da9ad
     Parts:
+        -   Entity:
+                Id: 2227654e-f435-462d-bf40-897a2be7429e
+                Name: Gate1x2x1
+                Components:
+                    b72a0d73ce28869c43495575b17b02f7: !TransformComponent
+                        Id: 4bd3015a-5196-4ee4-bd80-cffcc52ab13e
+                        Position: {X: -0.5, Y: 0.0, Z: 1.2}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            e87536b13867c8a9f3f9f77cd7932d34: ref!! fb12191e-506d-459a-bdae-af94da37b151
         -   Entity:
                 Id: 44451884-d457-4c08-9f94-5a25c4e2619a
                 Name: Gate2x3x1
@@ -28,6 +39,26 @@ Hierarchy:
                         Id: 371fecb8-90d8-4fa3-abfa-1d9399d12a82
                         Model: 924c9ca7-d8b3-4966-bc05-086bb500ff85:/PrototypingBlocks/Models/Gate2x3x1
                         Materials: {}
+                    11c19b47cd6b61d9e48cc9ced9d949ac: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
+                        Id: b47f5459-c0c2-4f71-a968-eb17a7af7140
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                5d48c35f7ffbf568e73a9953372ca4e2: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 1.65, Y: -0.5, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 0.15, Y: 2.0, Z: 2.0}
+                                0f93a15c99f35dd5ef165ee83e77407a: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: -1.65, Y: -0.5, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 0.15, Y: 2.0, Z: 2.0}
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        CollisionGroup: {}
+                        ContactEventHandler: null
         -   Entity:
                 Id: 4b8c26bd-6703-4d3c-9e18-7b31aac0757e
                 Name: StrideBall
@@ -43,26 +74,27 @@ Hierarchy:
                         Model: 8079536f-f105-498f-bf18-f1927d033d7e:Models/StrideBall
                         Materials:
                             cc8fb97c59b5fcb2d37d3c023baa11e8~0: adf8fc52-f54b-48d8-b883-e4b78e774d99:/SamplesAssetPackage/Materials/MaterialA
-                    31cb0bc3eeacb34c557a84b0d3e2c116: !RigidbodyComponent
-                        Id: 717dac2b-976b-4a4b-872f-6eaab2e7420b
-                        CanSleep: false
-                        Restitution: 0.0
-                        Friction: 0.5
-                        RollingFriction: 0.0
-                        CcdMotionThreshold: 0.0
-                        CcdSweptSphereRadius: 0.0
-                        IsTrigger: false
-                        IsKinematic: false
-                        Mass: 1.0
-                        LinearDamping: 0.0
-                        AngularDamping: 0.0
-                        OverrideGravity: false
-                        Gravity: {X: 0.0, Y: 0.0, Z: 0.0}
-                        NodeName: null
-                        ColliderShapes:
-                            9d5537d8117939048352618f349b2b9c: !SphereColliderShapeDesc
-                                Is2D: false
-                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                    7254787ab899fc329c0b03b625ee5857: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
+                        Id: afee97e4-d06b-4406-9e6b-185e202e29f6
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                777fa93b749058603f3efa94c2c7a755: !Stride.BepuPhysics.Definitions.Colliders.SphereCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Radius: 0.25
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        CollisionGroup: {}
+                        ContactEventHandler: null
+                        Kinematic: false
+                        Gravity: true
+                        ContinuousDetectionMode: Discrete
+                        InterpolationMode: None
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
         -   Entity:
                 Id: 50b43e0f-0b2e-4f43-8453-98a73c13eceb
                 Name: Point light
@@ -99,26 +131,27 @@ Hierarchy:
                         Model: 8079536f-f105-498f-bf18-f1927d033d7e:Models/StrideBall
                         Materials:
                             d203dc1596e8e297325b925bd457c9fe~0: b5937f37-8fa5-4c0c-9a21-9d563ee1bffc:/SamplesAssetPackage/Materials/RedCoating
-                    31cb0bc3eeacb34c557a84b0d3e2c116: !RigidbodyComponent
-                        Id: da4196dc-01e4-4b7a-a395-8a822bb55dc3
-                        CanSleep: false
-                        Restitution: 0.0
-                        Friction: 0.5
-                        RollingFriction: 0.0
-                        CcdMotionThreshold: 0.0
-                        CcdSweptSphereRadius: 0.0
-                        IsTrigger: false
-                        IsKinematic: false
-                        Mass: 1.0
-                        LinearDamping: 0.0
-                        AngularDamping: 0.0
-                        OverrideGravity: false
-                        Gravity: {X: 0.0, Y: 0.0, Z: 0.0}
-                        NodeName: null
-                        ColliderShapes:
-                            9d5537d8117939048352618f349b2b9c: !SphereColliderShapeDesc
-                                Is2D: false
-                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                    31cb0bc3eeacb34c557a84b0d3e2c116: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
+                        Id: dd0833d6-793a-4cd2-a957-34f5bb984000
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                777fa93b749058603f3efa94c2c7a755: !Stride.BepuPhysics.Definitions.Colliders.SphereCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Radius: 0.25
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        CollisionGroup: {}
+                        ContactEventHandler: null
+                        Kinematic: false
+                        Gravity: true
+                        ContinuousDetectionMode: Discrete
+                        InterpolationMode: None
+                        SleepThreshold: 0.01
+                        MinimumTimestepCountUnderThreshold: 32
         -   Entity:
                 Id: 6b6710f8-43b0-45a8-ae56-9cf48c4bfbf1
                 Name: Camera
@@ -135,6 +168,50 @@ Hierarchy:
                         Projection: Perspective
                         Slot: 41f9c2cc-ee60-452f-8f6d-44e30148d556
         -   Entity:
+                Id: b759f93d-8553-49c7-a174-a52150290278
+                Name: Gate1x2x1
+                Components:
+                    b26400b92086774ea0d1243b9d099112: !TransformComponent
+                        Id: fb12191e-506d-459a-bdae-af94da37b151
+                        Position: {X: 0.5, Y: 1.0, Z: 0.5}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    9dc5dbf6d3c6c147a377ea11fd11b1b2: !ModelComponent
+                        Id: 4b59c4a2-8931-47c4-84e8-c6a488e1c359
+                        Model: 01019ffb-11d0-42cb-a5c1-ce55f20e5042:/PrototypingBlocks/Models/Gate1x2x1
+                        Materials:
+                            ecd1b81c86e9114d86fcdf436455648f~0: c1d40f25-8760-420b-8e26-ef8a2b999678:/PrototypingBlocks/Materials/GridMTArc
+                    c0e71cc466335b44b7cda9387da726a1: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
+                        Id: c3b4fec9-3267-4626-9513-c302ee9aa927
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                6789a1372377624a80df8c1d66d47bd0: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.45, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 0.1, Y: 2.0, Z: 1.0}
+                                f063361a0c7e204b9c14f31922bd5703: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: -0.45, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 0.1, Y: 2.0, Z: 1.0}
+                                708151cc1c65c646a1074de23e62c6d9: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.9, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 1.0, Y: 0.2, Z: 1.0}
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        CollisionGroup: {}
+                        ContactEventHandler: null
+            Base:
+                BasePartAsset: db12c212-61b8-4647-836d-a76e0adf1cb9:/PrototypingBlocks/BlocksPrefabs/Gate1x2x1
+                BasePartId: f0bb0b32-100e-4c8e-87a2-1c58bc6085d0
+                InstanceId: caf12c01-d67d-4835-8e23-7077f6f68e67
+        -   Entity:
                 Id: c3429ab7-99f4-409f-9ed1-63d282648003
                 Name: Floor1x0x1
                 Components:
@@ -148,31 +225,18 @@ Hierarchy:
                         Id: de347e17-411c-4474-9aec-769d73f5429f
                         Model: 2cb2f455-2bc0-40c0-bd1c-ed5f5ec5a851:/PrototypingBlocks/Models/Floor1x0x1
                         Materials: {}
-                    3d9089128ef4e0f58b1b8f581c8aebbd: !StaticColliderComponent
-                        Id: d8b5ffe5-ffe2-4adb-acf9-e9ee33ab570a
-                        CanSleep: false
-                        Restitution: 0.0
-                        Friction: 0.5
-                        RollingFriction: 0.0
-                        CcdMotionThreshold: 0.0
-                        CcdSweptSphereRadius: 0.0
-                        IsTrigger: false
-                        AlwaysUpdateNaviMeshCache: false
-                        ColliderShapes:
-                            e9c6096b990cfbbc40db0f2c482aca1c: !StaticPlaneColliderShapeDesc
-                                Normal: {X: 0.0, Y: 1.0, Z: 0.0}
-                                Offset: 0.0
-        -   Entity:
-                Id: e9d90cad-7863-4bc7-bd2b-08c90ec53350
-                Name: Gate1x2x1
-                Components:
-                    946fdb493250236af06bebe5fc445350: !TransformComponent
-                        Id: fde3e241-4497-4e4b-a0c3-a82c79ad1728
-                        Position: {X: 0.0, Y: 1.0281458, Z: 1.5723286}
-                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                        Children: {}
-                    86223eb74f0c59e6b32b187e8ea1e3a2: !ModelComponent
-                        Id: db0ce13a-cd08-456a-94e1-d69781ac2835
-                        Model: 01019ffb-11d0-42cb-a5c1-ce55f20e5042:/PrototypingBlocks/Models/Gate1x2x1
-                        Materials: {}
+                    b6e8f68a9b641e72fd6c531ebdbd4718: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
+                        Id: b0c4293f-4eeb-4133-95aa-048e4bc74338
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                a0982f71d1e5b65cba54b17f34fabc69: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: -0.5, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 10.0, Y: 1.0, Z: 10.0}
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        CollisionGroup: {}
+                        ContactEventHandler: null
