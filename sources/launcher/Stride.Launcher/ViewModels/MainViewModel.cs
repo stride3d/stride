@@ -571,32 +571,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
             await Dispatcher.InvokeAsync(() =>
             {
                 foreach (var project in currentRecentProjects)
-                {
-                    // Manually discarding the possibility to upgrade from 1.0
-                    if (project.StrideVersionName == "1.0")
-                        continue;
-
-                    project.CompatibleVersions.Clear();
-                    foreach (var version in StrideVersions)
-                    {
-                        // We suppose all dev versions are compatible with any project.
-                        if (version is StrideDevVersionViewModel)
-                            project.CompatibleVersions.Add(version);
-
-                        if (version is StrideStoreVersionViewModel { CanDelete: true } storeVersion)
-                        {
-                            // Discard the version that matches the recent project version
-                            if (project.StrideVersion == new Version(storeVersion.Version.Version.Major, storeVersion.Version.Version.Minor))
-                                continue;
-
-                            // Discard the versions that are anterior to the recent project version
-                            if (project.StrideVersion > storeVersion.Version.Version)
-                                continue;
-
-                            project.CompatibleVersions.Add(version);
-                        }
-                    }
-                }
+                    project.UpdateOpenOptions(StrideVersions);
             });
         }
     }

@@ -35,6 +35,9 @@
     <PackageReference Include="NuGet.ProjectModel" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\shared\Stride.NuGetResolver\ProjectVersionReader.cs" Link="Shared\ProjectVersionReader.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <!-- Build-order only (this net8 package never references the net10 CLI assembly): pulls Stride.Cli into the
          same MSBuild invocation so its shared Stride.Core (net10) is built once and deduped against the rest of
          the solution, instead of the BundleStrideCli publish racing a concurrent build over Stride.Core's obj. -->

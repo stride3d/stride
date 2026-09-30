@@ -460,6 +460,10 @@ Its checkout is kept: building it again brings the version back. Until then, pro
     <value>Open the folder of {0}</value>
     <comment>Tooltip of the folder button of a locally built version whose checkout isn't known. {0}: long version name</comment>
   </data>
+  <data name="ToolTipOpenWithAnotherVersion" xml:space="preserve">
+    <value>Open with another version</value>
+    <comment>Tooltip of the button of a recent project that lists the other installed versions it can be opened with</comment>
+  </data>
   <data name="ToolTipInstallAnotherVersion" xml:space="preserve">
     <value>Install another version</value>
     <comment>Tooltip of the button of a version that lists its other releases</comment>
@@ -470,6 +474,34 @@ Its checkout is kept: building it again brings the version back. Until then, pro
   <data name="ToolTipReconnect" xml:space="preserve">
     <value>Click to reconnect…</value>
     <comment>Tooltip of the Offline indicator</comment>
+  </data>
+  <data name="ErrorVersionTooOld" xml:space="preserve">
+    <value>This project uses Stride {0}, newer than the installed {1}. Update it first, from the list of versions.</value>
+    <comment>Displayed when a recent project is opened with an older version of its major.minor. {0}: the project's version, {1}: the installed version</comment>
+  </data>
+  <data name="OpenProjectWithVersionUpgrade" xml:space="preserve">
+    <value>Open with {0} (upgrade)</value>
+    <comment>Item of the Open with list of a recent project, for a version that upgrades it. {0}: version name</comment>
+  </data>
+  <data name="ToolTipOpenUpgrades" xml:space="preserve">
+    <value>Stride {0} isn't installed: opening upgrades this project to {1}</value>
+    <comment>Tooltip of the warning icon of a recent project whose version isn't installed. {0}: the project's version, {1}: the version it's opened with</comment>
+  </data>
+  <data name="ToolTipProjectVersion" xml:space="preserve">
+    <value>Uses Stride {0}</value>
+    <comment>Line of the tooltip of a recent project. {0}: the project's full version</comment>
+  </data>
+  <data name="ToolTipProjectOpensWith" xml:space="preserve">
+    <value>Opens with Stride {0}</value>
+    <comment>Line of the tooltip of a recent project, when a click opens it with another version than its own. {0}: that version</comment>
+  </data>
+  <data name="ToolTipProjectOpensWithUpgrade" xml:space="preserve">
+    <value>Opens with Stride {0} (upgrade)</value>
+    <comment>Line of the tooltip of a recent project, when a click upgrades it. {0}: the version it's upgraded to</comment>
+  </data>
+  <data name="ToolTipOpenWithUpgrade" xml:space="preserve">
+    <value>A newer version is installed: open with it to upgrade</value>
+    <comment>Tooltip of the button of a recent project that lists the other installed versions it can be opened with, when one of them upgrades it</comment>
   </data>
   <data name="ToolTipUninstall" xml:space="preserve">
     <value>Uninstall version {0}</value>
@@ -487,9 +519,25 @@ Its checkout is kept: building it again brings the version back. Until then, pro
     <value>An error occurred while trying to process a developer version: {0}</value>
     <comment>MessageBox text indicating that a dev version could not be processed</comment>
   </data>
+  <data name="OpenProject" xml:space="preserve">
+    <value>Open</value>
+    <comment>Menu item of a recent project: opens it as a click does</comment>
+  </data>
   <data name="ShowInExplorer" xml:space="preserve">
     <value>Show in Explorer</value>
     <comment>Menu item of recent files list</comment>
+  </data>
+  <data name="CopySolutionPath" xml:space="preserve">
+    <value>Copy solution path</value>
+    <comment>Menu item of a recent project: copies the path of its solution file</comment>
+  </data>
+  <data name="CopyFolderPath" xml:space="preserve">
+    <value>Copy folder path</value>
+    <comment>Menu item of a recent project: copies the path of its folder</comment>
+  </data>
+  <data name="OpenInIDE" xml:space="preserve">
+    <value>Open in IDE</value>
+    <comment>Menu item of a recent project: opens its solution with the default application (Visual Studio, Rider...)</comment>
   </data>
   <data name="RemoveFromList" xml:space="preserve">
     <value>Remove From List</value>

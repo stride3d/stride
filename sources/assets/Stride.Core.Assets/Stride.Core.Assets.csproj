@@ -18,6 +18,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\core\Stride.Core.AssemblyProcessor\Utilities.cs" Link="Utilities.cs" />
+    <Compile Include="..\..\shared\Stride.NuGetResolver\ProjectVersionReader.cs" Link="ProjectVersionReader.cs" />
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>

@@ -30,9 +30,11 @@ public static class GameStudioSettings
 
     private static bool updating;
 
+    private static Timer? reloadTimer;
+
     static GameStudioSettings()
     {
-        MRU = new MostRecentlyUsedFileCollection(() => InternalSettingsContainer.LoadSettingsProfile(GetLatestInternalConfigPath(), false, null, false), MostRecentlyUsedSessionsKey, () => InternalSettingsContainer.SaveSettingsProfile(InternalSettingsContainer.CurrentProfile, GetLatestInternalConfigPath()));
+        MRU = new MostRecentlyUsedFileCollection(LoadLatestInternalProfile, MostRecentlyUsedSessionsKey, () => InternalSettingsContainer.SaveSettingsProfile(InternalSettingsContainer.CurrentProfile, GetLatestInternalConfigPath()));
         MostRecentlyUsedSessionsKey.FallbackDeserializers.Add(LegacyMRUDeserializer);
         InternalSettingsContainer.LoadSettingsProfile(GetLatestInternalConfigPath(), true);
         InternalSettingsContainer.CurrentProfile.MonitorFileModification = true;
@@ -90,7 +92,26 @@ public static class GameStudioSettings
 
     private static void GameStudioSettingsFileChanged(object? sender, FileModifiedEventArgs e)
     {
-        e.ReloadFile = true;
+        // A change is seen as Game Studio starts writing the file (locked until it's done), and a save raises several:
+        // reload once when they stop
+        lock (LockObject)
+        {
+            reloadTimer ??= new Timer(_ => ReloadChangedFile());
+            reloadTimer.Change(200, Timeout.Infinite);
+        }
+    }
+
+    private static void ReloadChangedFile()
+    {
+        try
+        {
+            InternalSettingsContainer.ReloadSettingsProfile(InternalSettingsContainer.CurrentProfile);
+        }
+        catch (Exception e)
+        {
+            // The file was deleted: the recent projects are read from the defaults
+            e.Ignore();
+        }
         UpdateMostRecentlyUsed();
     }
 
@@ -116,6 +137,21 @@ public static class GameStudioSettings
             mostRecentlyUsed = MRU.MostRecentlyUsedFiles.Select(x => x.FilePath).ToList();
         }
         RecentProjectsUpdated?.Invoke(null, EventArgs.Empty);
+    }
+
+    // The profile loaded last when the file still can't be read
+    private static SettingsProfile LoadLatestInternalProfile()
+    {
+        // Game Studio locks the file while it writes it: a failed read would empty the recent projects until the next
+        // change, so retry for a moment
+        for (var attempt = 0; ; ++attempt)
+        {
+            var path = GetLatestInternalConfigPath();
+            var profile = InternalSettingsContainer.LoadSettingsProfile(path, false, null, false);
+            if (profile is not null || attempt == 10 || !File.Exists(path))
+                return profile ?? InternalSettingsContainer.CurrentProfile;
+            Thread.Sleep(50);
+        }
     }
 
     private static string GetLatestInternalConfigPath()
