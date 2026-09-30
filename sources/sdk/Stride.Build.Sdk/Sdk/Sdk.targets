@@ -319,6 +319,12 @@
   <!-- ================================================================ -->
   <!-- NuGet Documentation File -->
   <!-- ================================================================ -->
+  <PropertyGroup Condition="'$(StridePackageBuild)' == 'true'">
+    <!-- Enable XML documentation for published NuGet packages.
+         Developers can add <GenerateDocumentationFile>true</GenerateDocumentationFile> in
+         Stride.Local.props file if they wish to enable documentation in other scenarios. -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(GenerateDocumentationFile)' == 'true' And '$(DocumentationFile)' == ''">
     <DocumentationFile>$(OutputPath)$(AssemblyName).xml</DocumentationFile>
   </PropertyGroup>
