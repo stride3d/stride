@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 #if (STRIDE_UI_WINFORMS || STRIDE_UI_WPF)
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,19 +16,20 @@ namespace Stride.Input
     /// <summary>
     /// Provides support for various game controllers on windows
     /// </summary>
-    internal class InputSourceWindowsDirectInput : InputSourceBase
+    internal partial class InputSourceWindowsDirectInput : InputSourceBase
     {
         private readonly HashSet<Guid> devicesToRemove = new HashSet<Guid>();
-        private InputManager inputManager;
-        private DirectInput directInput;
-        private IEnumerable<string> xInputDevices;
-        private Regex xInputDeviceIdRegex;
+        private InputManager? inputManager;
+        private DirectInput? directInput;
+        private IEnumerable<string> xInputDevices = Enumerable.Empty<string>();
+
+        [GeneratedRegex(@"VID_(\w+)?&PID_(\w+)?")]
+        private static partial Regex XInputDeviceIdRegex { get; }
 
         public override void Initialize(InputManager inputManager)
         {
             this.inputManager = inputManager;
             directInput = new DirectInput();
-            xInputDeviceIdRegex = new Regex(@"VID_(\w+)?&PID_(\w+)?");
 
             Scan();
         }
@@ -45,7 +47,8 @@ namespace Stride.Input
             base.Dispose();
 
             // Dispose DirectInput
-            directInput.Dispose();
+            directInput?.Dispose();
+            directInput = null;
         }
 
         public override void Update()
@@ -71,7 +74,7 @@ namespace Stride.Input
             // (user32) rather than WMI/Microsoft.Management.Infrastructure, which isn't AOT/trim-safe.
             return GetRawInputDeviceNames()
                 .Where(name => name.Contains("&IG_", StringComparison.OrdinalIgnoreCase))
-                .Select(name => xInputDeviceIdRegex.Match(name))
+                .Select(name => XInputDeviceIdRegex.Match(name))
                 .Where(match => match.Success)
                 .Select(match => (match.Groups[2].Value + match.Groups[1].Value).ToLowerInvariant())
                 .Distinct()
@@ -88,7 +91,7 @@ namespace Stride.Input
         private const uint RidiDeviceName = 0x20000007;
 
         [DllImport("user32.dll", SetLastError = true)]
-        private static extern uint GetRawInputDeviceList([Out] RawInputDeviceList[] rawInputDeviceList, ref uint numDevices, uint size);
+        private static extern uint GetRawInputDeviceList([Out] RawInputDeviceList[]? rawInputDeviceList, ref uint numDevices, uint size);
 
         [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode, EntryPoint = "GetRawInputDeviceInfoW")]
         private static extern uint GetRawInputDeviceInfo(IntPtr device, uint command, IntPtr data, ref uint dataCharCount);
@@ -136,6 +139,9 @@ namespace Stride.Input
         /// </summary>
         public override void Scan()
         {
+            if (directInput is null)
+                return;
+
             var connectedDevices = directInput.GetDevices(DeviceClass.GameControl, DeviceEnumerationFlags.AttachedOnly);
 
             xInputDevices = GetAllXInputDevices();
