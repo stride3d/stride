@@ -289,11 +289,16 @@ public partial class NugetStore : INugetDownloadProgress
     /// <returns>A list of packages.</returns>
     /// <param name="packageId">The package.</param>
     /// <param name="localBuildRange">
-    /// The versions to take from local-folder sources first (see <see cref="SyncLocalFolderSources"/>), null for all.
+    /// The versions to take from local-folder sources first (see <see cref="SyncLocalFolderSources"/>), null for all of
+    /// their local builds.
     /// </param>
     public IEnumerable<NugetLocalPackage> GetLocalPackages(string packageId, PackageVersionRange? localBuildRange = null)
     {
-        SyncLocalFolderSources(packageId, localBuildRange);
+        // Copies packages from the local-folder sources (e.g. nugetdev) into the global packages folder:
+        // - without a range: only the local builds (-dev). The other versions there are installed like from any feed.
+        // - with a range: the versions in that range, even without -dev, because CI builds have no -dev suffix.
+        // TODO: give CI builds a local-build suffix too, then the range case can also copy only the local builds.
+        SyncLocalFolderSources(packageId, localBuildRange, localBuildsOnly: localBuildRange is null);
 
         var res = new List<NugetLocalPackage>();
 
@@ -378,7 +383,8 @@ public partial class NugetStore : INugetDownloadProgress
     /// The versions to mirror, null for all: only what the caller's query could use. A lookup for one version does
     /// not mirror a local copy of another (same id, maybe different content) over the installed one.
     /// </param>
-    private void SyncLocalFolderSources(string packageId, PackageVersionRange? versionRange = null)
+    /// <param name="localBuildsOnly">Whether to mirror only the local builds (-dev).</param>
+    private void SyncLocalFolderSources(string packageId, PackageVersionRange? versionRange, bool localBuildsOnly)
     {
         if (InstallPath == null)
             return;
@@ -430,6 +436,8 @@ public partial class NugetStore : INugetDownloadProgress
 
                     foreach (var version in sourceVersions)
                     {
+                        if (localBuildsOnly && !version.ToPackageVersion().IsLocalBuild)
+                            continue;
                         // Satisfies, not a float-aware check: the content packs are prereleases (4.4.0-beta7-dev4).
                         if (wanted is not null && !wanted.Satisfies(version))
                             continue;
@@ -839,18 +847,19 @@ public partial class NugetStore : INugetDownloadProgress
             return GetPackagesInstalled([packageId]).FirstOrDefault(p => allowPrereleaseVersions || string.IsNullOrEmpty(p.Version.SpecialVersion));
         }
 
+        if (constraintProvider != null)
+        {
+            versionRange = constraintProvider.GetConstraint(packageId) ?? versionRange;
+        }
+
         // The range is the mirror filter too: local-folder sources give up only what this lookup could use.
-        var packages = GetLocalPackages(packageId, constraintProvider is null ? versionRange : null);
+        var packages = GetLocalPackages(packageId, versionRange);
 
         if (!allowUnlisted)
         {
             packages = packages.Where(p => p.Listed);
         }
 
-        if (constraintProvider != null)
-        {
-            versionRange = constraintProvider.GetConstraint(packageId) ?? versionRange;
-        }
         if (versionRange != null)
         {
             packages = packages.Where(p => versionRange.Contains(p.Version));
