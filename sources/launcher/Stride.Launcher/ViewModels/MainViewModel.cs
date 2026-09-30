@@ -534,21 +534,32 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
                 }
             }
 
-            var devPackages = localPackages.Where(store.IsDevRedirectPackage);
-            Dispatcher.Invoke(() => strideVersions.RemoveWhere(x => x is StrideDevVersionViewModel));
-            foreach (var package in devPackages)
+            // Updated in place: the local builds are the top rows, and removing them all to add them back scrolled the
+            // list to the top. A new one is made here, off the UI thread: it reads the disk.
+            var existingDevVersions = await Dispatcher.InvokeAsync(() => strideVersions.OfType<StrideDevVersionViewModel>().ToList());
+            var keptDevVersions = new HashSet<StrideDevVersionViewModel>();
+            var newDevVersions = new List<StrideDevVersionViewModel>();
+            foreach (var package in localPackages.Where(store.IsDevRedirectPackage))
             {
                 try
                 {
                     var realPath = store.GetRealPath(package);
-                    var version = new StrideDevVersionViewModel(this, store, package, realPath, true);
-                    await Dispatcher.InvokeAsync(() => strideVersions.Add(version));
+                    if (existingDevVersions.FirstOrDefault(x => x.Matches(package, realPath)) is { } existing)
+                        keptDevVersions.Add(existing);
+                    else
+                        newDevVersions.Add(new StrideDevVersionViewModel(this, store, package, realPath, true));
                 }
                 catch (Exception e)
                 {
                     await ServiceProvider.Get<IDialogService>().MessageBoxAsync(string.Format(Strings.ErrorDevRedirect, e), MessageBoxButton.OK, MessageBoxImage.Information);
                 }
             }
+            await Dispatcher.InvokeAsync(() =>
+            {
+                strideVersions.RemoveWhere(x => x is StrideDevVersionViewModel devVersion && !keptDevVersions.Contains(devVersion));
+                foreach (var devVersion in newDevVersions)
+                    strideVersions.Add(devVersion);
+            });
         }
         catch (Exception e)
         {
