@@ -503,9 +503,15 @@ public partial class NugetStore : INugetDownloadProgress
     /// Lock to ensure atomicity of updates to the local repository.
     /// </summary>
     /// <returns>A Lock.</returns>
+    /// <remarks>
+    /// In Stride's own per-user folder, next to nugetdev: the processes that share the repository (the launcher, the
+    /// CLI) don't share their current directory, which may not even be writable.
+    /// </remarks>
     private static FileLock? GetLocalRepositoryLock()
     {
-        return FileLock.Wait("nuget.lock");
+        var directory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "stride");
+        Directory.CreateDirectory(directory);
+        return FileLock.Wait(Path.Combine(directory, "nuget.lock"));
     }
 
     #region Manager
