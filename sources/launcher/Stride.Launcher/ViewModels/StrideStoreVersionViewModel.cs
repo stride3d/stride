@@ -216,9 +216,13 @@ public sealed class StrideStoreVersionViewModel : StrideVersionViewModel
             StrideStoreAlternateVersionViewModel alternateVersionViewModel;
             if (index < 0)
             {
-                // If not, add it
+                // If not, add it: newest first, as in the list of versions
                 alternateVersionViewModel = new(this);
-                AlternateVersions.Add(alternateVersionViewModel);
+                var insertAt = AlternateVersions.IndexOf(x => x.Version < alternateVersion.Version);
+                if (insertAt < 0)
+                    AlternateVersions.Add(alternateVersionViewModel);
+                else
+                    AlternateVersions.Insert(insertAt, alternateVersionViewModel);
             }
             else
             {
