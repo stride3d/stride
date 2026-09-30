@@ -28,6 +28,7 @@
 */
 
 using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -451,6 +452,33 @@ public struct Vector3 : IEquatable<Vector3>, ISpanFormattable
     }
 
     /// <summary>
+    /// Rounds each component of this vector down to its preceding whole value
+    /// </summary>
+    /// <example> <code>Floor({1.9, -1.60, 0.0}) -> {1.0, -2.0, 0.0}</code> </example>
+    public static Vector3 Floor(Vector3 value)
+    {
+        return new Vector3(MathF.Floor(value.X), MathF.Floor(value.Y), MathF.Floor(value.Z));
+    }
+
+    /// <summary>
+    /// Rounds each component of this vector up to its following whole value
+    /// </summary>
+    /// <example> <code>Ceiling({1.9, -1.60, 0.0}) -> {2.0, -1.0, 0.0}</code> </example>
+    public static Vector3 Ceiling(Vector3 value)
+    {
+        return new Vector3(MathF.Ceiling(value.X), MathF.Ceiling(value.Y), MathF.Ceiling(value.Z));
+    }
+
+    /// <summary>
+    /// Rounds each component of this vector to its nearest whole value
+    /// </summary>
+    /// <example> <code>Round({1.9, -1.60, 0.0}) -> {2.0, -2.0, 0.0}</code> </example>
+    public static Vector3 Round(Vector3 value)
+    {
+        return new Vector3(MathF.Round(value.X), MathF.Round(value.Y), MathF.Round(value.Z));
+    }
+
+    /// <summary>
     /// Returns a <see cref="Stride.Core.Mathematics.Vector3"/> containing the 3D Cartesian coordinates of a point specified in Barycentric coordinates relative to a 3D triangle.
     /// </summary>
     /// <param name="value1">A <see cref="Stride.Core.Mathematics.Vector3"/> containing the 3D Cartesian coordinates of vertex 1 of the triangle.</param>
@@ -480,6 +508,89 @@ public struct Vector3 : IEquatable<Vector3>, ISpanFormattable
     {
         Barycentric(ref value1, ref value2, ref value3, amount1, amount2, out var result);
         return result;
+    }
+
+    /// <summary>
+    /// Sample the height points around <see cref="coord"/> in <paramref name="texture"/> and returns the weighted average based on the proximity of <paramref name="coord"/> from those cells
+    /// </summary>
+    public static unsafe T BilinearSample<T>(Vector3 coord, Int3 textureSize, Span<T> texture) where T : unmanaged, IMultiplyOperators<T, float, T>, IAdditionOperators<T, T, T>
+    {
+        fixed (T* ptr = texture)
+            return BilinearSample(coord, textureSize, ptr);
+    }
+
+    /// <summary>
+    /// Sample the height points around <see cref="coord"/> in <paramref name="texture"/> and returns the weighted average based on the proximity of <paramref name="coord"/> from those cells
+    /// </summary>
+    public static unsafe T BilinearSample<T>(Vector3 coord, Int3 textureSize, T* texture) where T : unmanaged, IMultiplyOperators<T, float, T>, IAdditionOperators<T, T, T>
+    {
+        var texSizeXY = textureSize.X * textureSize.Y;
+        
+        var min = Floor(coord);
+        var cellFrac = coord - min;
+        var cellInvFrac = new Vector3(1) - cellFrac;
+
+        int x0 = MathUtil.Mod((int)min.X, textureSize.X);
+        int y0 = MathUtil.Mod((int)min.Y, textureSize.Y) * textureSize.X;
+        int z0 = MathUtil.Mod((int)min.Z, textureSize.Z) * texSizeXY;
+        
+        int x1 = x0 + 1 == textureSize.X ? 0 : x0 + 1;
+        int y1 = y0 + textureSize.X == texSizeXY ? 0 : y0 + textureSize.X;
+        int z1 = z0 + texSizeXY == texSizeXY * textureSize.Z ? 0 : z0 + texSizeXY;
+
+        var weightXY = new System.Numerics.Vector4(cellInvFrac.X, cellInvFrac.X, cellFrac.X, cellFrac.X)
+                       * new System.Numerics.Vector4(cellInvFrac.Y, cellFrac.Y, cellInvFrac.Y, cellFrac.Y);
+        var weight0 = weightXY * cellInvFrac.Z;
+        var weight1 = weightXY * cellFrac.Z;
+        
+        return 
+            texture[x0 + y0 + z0] * weight0.X
+            + texture[x0 + y1 + z0] * weight0.Y
+            + texture[x1 + y0 + z0] * weight0.Z
+            + texture[x1 + y1 + z0] * weight0.W
+            
+            + texture[x0 + y0 + z1] * weight1.X
+            + texture[x0 + y1 + z1] * weight1.Y
+            + texture[x1 + y0 + z1] * weight1.Z
+            + texture[x1 + y1 + z1] * weight1.W;
+    }
+
+    /// <summary>
+    /// Sample the height points around <see cref="coord"/> in <paramref name="texture"/> and returns the weighted average based on the proximity of <paramref name="coord"/> from those cells
+    /// </summary>
+    public static unsafe float BilinearSample(Vector3 coord, Int3 textureSize, Span<float> texture)
+    {
+        fixed (float* ptr = texture)
+            return BilinearSample(coord, textureSize, ptr);
+    }
+
+    /// <summary>
+    /// Sample the height points around <see cref="coord"/> in <paramref name="texture"/> and returns the weighted average based on the proximity of <paramref name="coord"/> from those cells
+    /// </summary>
+    public static unsafe float BilinearSample(Vector3 coord, Int3 textureSize, float* texture)
+    {
+        var texSizeXY = textureSize.X * textureSize.Y;
+        
+        var min = Floor(coord);
+        var cellFrac = coord - min;
+        var cellInvFrac = new Vector3(1) - cellFrac;
+
+        int x0 = MathUtil.Mod((int)min.X, textureSize.X);
+        int y0 = MathUtil.Mod((int)min.Y, textureSize.Y) * textureSize.X;
+        int z0 = MathUtil.Mod((int)min.Z, textureSize.Z) * texSizeXY;
+
+        // Still a fair amount of perf left on the table
+        int x1 = x0 + 1 == textureSize.X ? 0 : x0 + 1;
+        int y1 = y0 + textureSize.X == texSizeXY ? 0 : y0 + textureSize.X;
+        int z1 = z0 + texSizeXY == texSizeXY * textureSize.Z ? 0 : z0 + texSizeXY;
+
+        var weightXY = new System.Numerics.Vector4(cellInvFrac.X, cellInvFrac.X, cellFrac.X, cellFrac.X)
+                       * new System.Numerics.Vector4(cellInvFrac.Y, cellFrac.Y, cellInvFrac.Y, cellFrac.Y);
+
+        var sz0 = new System.Numerics.Vector4(texture[x0 + y0 + z0], texture[x0 + y1 + z0], texture[x1 + y0 + z0], texture[x1 + y1 + z0]);
+        var sz1 = new System.Numerics.Vector4(texture[x0 + y0 + z1], texture[x0 + y1 + z1], texture[x1 + y0 + z1], texture[x1 + y1 + z1]);
+        var weighted2D = (cellInvFrac.Z * sz0 + cellFrac.Z * sz1) * weightXY;
+        return System.Numerics.Vector4.Sum(weighted2D);
     }
 
     /// <summary>

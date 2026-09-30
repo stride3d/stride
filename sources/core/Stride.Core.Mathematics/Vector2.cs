@@ -28,6 +28,7 @@
 */
 
 using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -410,6 +411,33 @@ public struct Vector2 : IEquatable<Vector2>, ISpanFormattable
     }
 
     /// <summary>
+    /// Rounds each component of this vector down to its previous whole value
+    /// </summary>
+    /// <example> <code>Floor({1.9, -1.60}) -> {1.0, -2.0}</code> </example>
+    public static Vector2 Floor(Vector2 value)
+    {
+        return new Vector2(MathF.Floor(value.X), MathF.Floor(value.Y));
+    }
+
+    /// <summary>
+    /// Rounds each component of this vector up to its next whole value
+    /// </summary>
+    /// <example> <code>Floor({1.9, -1.60}) -> {2.0, -1.0}</code> </example>
+    public static Vector2 Ceiling(Vector2 value)
+    {
+        return new Vector2(MathF.Ceiling(value.X), MathF.Ceiling(value.Y));
+    }
+
+    /// <summary>
+    /// Rounds each component of this vector to the nearest whole value
+    /// </summary>
+    /// <example> <code>Floor({1.9, -1.60}) -> {2.0, -2.0}</code> </example>
+    public static Vector2 Round(Vector2 value)
+    {
+        return new Vector2(MathF.Round(value.X), MathF.Round(value.Y));
+    }
+
+    /// <summary>
     /// Returns a <see cref="Stride.Core.Mathematics.Vector2"/> containing the 2D Cartesian coordinates of a point specified in Barycentric coordinates relative to a 2D triangle.
     /// </summary>
     /// <param name="value1">A <see cref="Stride.Core.Mathematics.Vector2"/> containing the 2D Cartesian coordinates of vertex 1 of the triangle.</param>
@@ -438,6 +466,71 @@ public struct Vector2 : IEquatable<Vector2>, ISpanFormattable
     {
         Barycentric(ref value1, ref value2, ref value3, amount1, amount2, out var result);
         return result;
+    }
+
+    /// <summary>
+    /// Sample the four points around <see cref="coord"/> in <paramref name="texture"/> and returns the weighted average based on the proximity of <paramref name="coord"/> from those cells
+    /// </summary>
+    public static unsafe T BilinearSample<T>(Vector2 coord, Int2 textureSize, Span<T> texture) where T : unmanaged, IMultiplyOperators<T, float, T>, IAdditionOperators<T, T, T>
+    {
+        fixed (T* ptr = texture)
+            return BilinearSample(coord, textureSize, ptr);
+    }
+
+    /// <summary>
+    /// Sample the four points around <see cref="coord"/> in <paramref name="texture"/> and returns the weighted average based on the proximity of <paramref name="coord"/> from those cells
+    /// </summary>
+    public static unsafe T BilinearSample<T>(Vector2 coord, Int2 textureSize, T* texture) where T : unmanaged, IMultiplyOperators<T, float, T>, IAdditionOperators<T, T, T>
+    {
+        var min = Floor(coord);
+        var cellFrac = coord - min;
+        var cellInvFrac = new Vector2(1) - cellFrac;
+
+        int x0 = MathUtil.Mod((int)min.X, textureSize.X);
+        int y0 = MathUtil.Mod((int)min.Y, textureSize.Y) * textureSize.X;
+        int x1 = x0 + 1 == textureSize.X ? 0 : x0 + 1;
+        int y1 = y0 + textureSize.X == textureSize.X * textureSize.Y ? 0 : y0 + textureSize.X;
+
+        return 
+            texture[x0 + y0] * (cellInvFrac.X * cellInvFrac.Y)
+            + texture[x0 + y1] * (cellInvFrac.X * cellFrac.Y)
+            + texture[x1 + y0] * (cellFrac.X * cellInvFrac.Y)
+            + texture[x1 + y1] * (cellFrac.X * cellFrac.Y);
+    }
+
+    /// <summary>
+    /// Sample the four points around <see cref="coord"/> in <paramref name="texture"/> and returns the weighted average based on the proximity of <paramref name="coord"/> from those cells
+    /// </summary>
+    public static unsafe float BilinearSample(Vector2 coord, Int2 textureSize, Span<float> texture)
+    {
+        fixed (float* ptr = texture)
+            return BilinearSample(coord, textureSize, ptr);
+    }
+
+    /// <summary>
+    /// Sample the four points around <see cref="coord"/> in <paramref name="texture"/> and returns the weighted average based on the proximity of <paramref name="coord"/> from those cells
+    /// </summary>
+    public static unsafe float BilinearSample(Vector2 coord, Int2 textureSize, float* texture)
+    {
+        var min = Floor(coord);
+        var cellFrac = coord - min;
+        var cellInvFrac = new Vector2(1) - cellFrac;
+
+        int x0 = MathUtil.Mod((int)min.X, textureSize.X);
+        int y0 = MathUtil.Mod((int)min.Y, textureSize.Y) * textureSize.X;
+        int x1 = x0 + 1 == textureSize.X ? 0 : x0 + 1;
+        int y1 = y0 + textureSize.X == textureSize.X * textureSize.Y ? 0 : y0 + textureSize.X;
+
+        /* Could be faster, poor codegen as of net10
+        var v4 = new System.Numerics.Vector4(cellInvFrac.X, cellInvFrac.X, cellFrac.X, cellFrac.X)
+                 * new System.Numerics.Vector4(cellInvFrac.Y, cellFrac.Y, cellInvFrac.Y, cellFrac.Y)
+                 * new System.Numerics.Vector4(texture[x0 + y0], texture[x0 + y1], texture[x1 + y0], texture[x1 + y1]);
+
+        return System.Numerics.Vector4.Sum(v4);*/
+
+        var w0 = float.MultiplyAddEstimate(texture[x0 + y0], cellInvFrac.Y, texture[x0 + y1] * cellFrac.Y);
+        var w1 = float.MultiplyAddEstimate(texture[x1 + y0], cellInvFrac.Y, texture[x1 + y1] * cellFrac.Y);
+        return float.MultiplyAddEstimate(w0, cellInvFrac.X, w1 * cellFrac.X);
     }
 
     /// <summary>
