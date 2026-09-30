@@ -2,15 +2,22 @@ name: Stride workload install
 description: >-
   dotnet workload install. On Windows it pins to the image manifests (--skip-manifest-update,
   else the set update re-downloads every VS-preinstalled workload, ~4min -> ~2min). macOS/Linux
-  have no preinstalled workloads and install in seconds, so they take the latest set plain —
-  also required on macOS, where the latest set's packs must match the Xcode version the
-  workflows select. No pack caching: --download-to-cache/--from-cache is unreliable with the
-  MSI-based installer (packs reported downloaded are then not found by --from-cache).
+  have no preinstalled workloads and install in seconds. Linux takes the latest set. macOS pins
+  the set: its iOS/macOS packs require a minimum Xcode, and the latest set can ask for an Xcode
+  the runner image doesn't have (Xcode 27 is on its own image, xcode-27). No pack caching:
+  --download-to-cache/--from-cache is unreliable with the MSI-based installer (packs reported
+  downloaded are then not found by --from-cache).
 
 inputs:
   workloads:
     description: Space-separated workload ids (e.g. "ios macos")
     required: true
+  macos-workload-set:
+    description: >-
+      Workload set installed on macOS. It must be in the feature band of the runner's .NET SDK
+      (10.0.4xx), and its iOS/macOS packs must accept the newest Xcode of the runner image.
+      10.0.401 has the 26.5 packs (Xcode 26.x); 10.0.401.1 moved to the 27.0 packs (Xcode 27).
+    default: 10.0.401
 
 runs:
   using: composite
@@ -21,6 +28,11 @@ runs:
       run: dotnet workload install ${{ inputs.workloads }} --skip-manifest-update
 
     - name: Install workloads
-      if: runner.os != 'Windows'
+      if: runner.os == 'macOS'
+      shell: bash
+      run: dotnet workload install ${{ inputs.workloads }} --version ${{ inputs.macos-workload-set }}
+
+    - name: Install workloads
+      if: runner.os == 'Linux'
       shell: bash
       run: dotnet workload install ${{ inputs.workloads }}

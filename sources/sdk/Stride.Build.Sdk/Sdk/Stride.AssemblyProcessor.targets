@@ -109,7 +109,6 @@
                 System.Threading.Thread.Sleep(50);
             }
         }
-        return true;
       ]]></Code>
     </Task>
   </UsingTask>

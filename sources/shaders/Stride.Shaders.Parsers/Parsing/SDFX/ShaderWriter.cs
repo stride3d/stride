@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using Stride.Shaders.Parsing;
 using Stride.Shaders.Parsing.SDFX.AST;
@@ -263,12 +264,15 @@ public class ShaderWriter : NodeWalker
 
     public override void VisitIntegerLiteral(IntegerLiteral integerLiteral)
     {
-        Write(integerLiteral.Value.ToString());
+        // An unsigned 64-bit value above long.MaxValue is stored as the same bits
+        Write(integerLiteral.Suffix.Signed
+            ? integerLiteral.Value.ToString(CultureInfo.InvariantCulture)
+            : integerLiteral.ULongValue.ToString(CultureInfo.InvariantCulture));
     }
 
     public override void VisitFloatLiteral(FloatLiteral floatLiteral)
     {
-        Write(floatLiteral.Value.ToString());
+        Write(floatLiteral.Value.ToString(CultureInfo.InvariantCulture));
     }
 
     public override void VisitBoolLiteral(BoolLiteral boolLiteral)

@@ -178,6 +178,13 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
 
     public bool AutoCloseLauncher { get { return autoCloseLauncher; } set { SetValue(ref autoCloseLauncher, value, () => _settings.CloseLauncherAutomatically = value); } }
 
+    // Applies from the next start: an update check now could run alongside the one from startup
+    public bool IncludePrereleaseUpdates
+    {
+        get => _settings.IncludePrereleaseUpdates;
+        set => SetValue(_settings.IncludePrereleaseUpdates != value, () => { _settings.IncludePrereleaseUpdates = value; _settings.Save(); });
+    }
+
     public string PreferredEditor
     {
         get => _settings.PreferredEditor;
@@ -289,7 +296,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
             {
                 try
                 {
-                    await SelfUpdater.SelfUpdate(ServiceProvider, store);
+                    await SelfUpdater.SelfUpdate(ServiceProvider, store, _settings.IncludePrereleaseUpdates);
                 }
                 catch (Exception e)
                 {

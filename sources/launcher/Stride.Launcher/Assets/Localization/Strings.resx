@@ -376,6 +376,13 @@
   <data name="AutoCloseLauncher" xml:space="preserve">
     <value>Close the launcher after starting Stride</value>
   </data>
+  <data name="IncludePrereleaseUpdates" xml:space="preserve">
+    <value>Receive launcher pre-releases</value>
+  </data>
+  <data name="LauncherSettings" xml:space="preserve">
+    <value>Launcher settings</value>
+    <comment>Tooltip of the gear button in the title bar</comment>
+  </data>
   <data name="ButtonRoadmap" xml:space="preserve">
     <value>Check the roadmap</value>
     <comment>/!\ Text must be short</comment>

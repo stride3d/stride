@@ -20,6 +20,9 @@ internal static class Win32
     [DllImport("kernel32", CharSet = CharSet.Unicode, SetLastError = true)]
     public static extern IntPtr GetModuleHandle(string lpModuleName);
 
+    [DllImport("kernel32", ExactSpelling = true)]
+    public static extern BOOL CloseHandle(IntPtr hObject);
+
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     public struct DISPLAY_DEVICEW

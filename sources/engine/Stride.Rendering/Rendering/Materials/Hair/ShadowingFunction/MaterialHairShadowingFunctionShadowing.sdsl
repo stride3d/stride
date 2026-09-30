@@ -5,7 +5,7 @@ namespace Stride.Rendering.Materials
 {
     class MaterialHairShadowingFunctionShadowing : IMaterialHairShadowingFunction, ShadowStream
     {
-        float3 Compute()
+        override float3 Compute()
         {
             return streams.shadowColor;
         }

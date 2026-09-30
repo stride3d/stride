@@ -425,7 +425,6 @@
             // Another parallel build won; clean up our temp.
             try { System.IO.File.Delete(tmp); } catch { }
         }
-        return true;
         ]]>
       </Code>
     </Task>

@@ -5,7 +5,7 @@ namespace Stride.Rendering.Materials
 {
     class MaterialHairDirectionFunctionBitangent : IMaterialHairDirectionFunction
     {
-        float3 Compute(float3 normalOS, float4 tangentOS, float3x3 worldInverseTranspose)
+        override float3 Compute(float3 normalOS, float4 tangentOS, float3x3 worldInverseTranspose)
         {
             normalOS = normalize(normalOS);   // TODO: PERFORMANCE: Normalization required?
 

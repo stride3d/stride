@@ -19,6 +19,11 @@ public static class SelfUpdater
 {
     public static readonly string? Version;
 
+    /// <summary>
+    /// <see cref="Version"/> without its build metadata (the commit after the '+'), for display.
+    /// </summary>
+    public static readonly string? DisplayVersion;
+
     private static readonly HttpClient httpClient = new();
     private static SelfUpdateWindow? selfUpdateWindow;
 
@@ -27,6 +32,7 @@ public static class SelfUpdater
         var assembly = Assembly.GetEntryAssembly();
         var assemblyInformationalVersion = assembly?.GetCustomAttribute<AssemblyInformationalVersionAttribute>();
         Version = assemblyInformationalVersion?.InformationalVersion;
+        DisplayVersion = Version?.Split('+')[0];
     }
 
     public static void RestartApplication()
@@ -49,14 +55,15 @@ public static class SelfUpdater
         Environment.Exit(0);
     }
 
-    internal static Task SelfUpdate(IViewModelServiceProvider services, NugetStore store)
+    internal static Task SelfUpdate(IViewModelServiceProvider services, NugetStore store, bool includePrerelease)
     {
         return Task.Run(async () =>
         {
+            DeleteOldFiles();
             var dispatcher = services.Get<IDispatcherService>();
             try
             {
-                await UpdateLauncherFiles(dispatcher, services.Get<IDialogService>(), store, CancellationToken.None);
+                await UpdateLauncherFiles(dispatcher, services.Get<IDialogService>(), store, includePrerelease, CancellationToken.None);
             }
             catch (Exception)
             {
@@ -64,6 +71,28 @@ public static class SelfUpdater
                 throw;
             }
         });
+    }
+
+    /// <summary>
+    /// Deletes the files the previous update renamed to ".old": that launcher was running from its exe, so it couldn't.
+    /// </summary>
+    private static void DeleteOldFiles()
+    {
+        if (Program.GetExecutablePath() is not string exeLocation)
+            return;
+
+        foreach (var oldFile in new[] { exeLocation + ".old", exeLocation + ".config.old" })
+        {
+            try
+            {
+                File.Delete(oldFile);
+            }
+            catch (Exception e)
+            {
+                // Still in use while the previous launcher exits: the next start deletes it
+                e.Ignore();
+            }
+        }
     }
 
     private static async Task DownloadAndInstallNewVersion(IDispatcherService dispatcher, IDialogService dialogService, string strideInstallerUrl)
@@ -112,46 +141,91 @@ public static class SelfUpdater
         }
     }
 
-    private static async Task UpdateLauncherFiles(IDispatcherService dispatcher, IDialogService dialogService, NugetStore store, CancellationToken cancellationToken)
+    /// <summary>
+    /// Whether the launcher at <paramref name="current"/> may update itself to <paramref name="candidate"/>: releases always;
+    /// pre-releases of its own version when it is one (6.0.1-beta1 gets 6.0.1-beta2, then 6.0.1); other pre-releases only
+    /// when the user opted in.
+    /// </summary>
+    internal static bool IsUpdateCandidate(PackageVersion candidate, PackageVersion current, bool includePrerelease)
     {
+        if (includePrerelease || IsRelease(candidate))
+            return true;
+        return !IsRelease(current) && candidate.Version == current.Version;
 
+        static bool IsRelease(PackageVersion version) => version.SpecialVersion.Length == 0;
+    }
+
+    /// <summary>
+    /// The update rules of a package, from the <c>update:</c> line of its description:
+    /// <c>update: [checkpoint] [reinstall-below=&lt;version&gt;] [setup=&lt;url&gt;]</c>.
+    /// </summary>
+    /// <param name="Checkpoint">Every older launcher updates to this package before any newer one.</param>
+    /// <param name="ReinstallBelow">Launchers below this version install <paramref name="Setup"/> instead of swapping their files.</param>
+    /// <param name="Setup">The setup of this package.</param>
+    internal sealed record UpdateRules(bool Checkpoint, PackageVersion? ReinstallBelow, string? Setup)
+    {
+        public static UpdateRules Parse(string? description)
+        {
+            var match = Regex.Match(description ?? "", @"^update:(.*)$", RegexOptions.Multiline);
+            var (checkpoint, reinstallBelow, setup) = (false, default(PackageVersion), default(string));
+            // Unknown words are skipped, so that a later launcher version can add rules
+            foreach (var word in match.Groups[1].Value.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries))
+            {
+                if (word == "checkpoint")
+                    checkpoint = true;
+                else if (word.StartsWith("reinstall-below=", StringComparison.Ordinal) && PackageVersion.TryParse(word["reinstall-below=".Length..], out var version))
+                    reinstallBelow = version;
+                else if (word.StartsWith("setup=", StringComparison.Ordinal))
+                    setup = word["setup=".Length..];
+            }
+            return new(checkpoint, reinstallBelow, setup);
+        }
+    }
+
+    /// <summary>
+    /// Chooses the update among <paramref name="candidates"/> (the rules of the update candidates, oldest first): the
+    /// first checkpoint, otherwise the newest. It is reached by installing its setup when its rules say that
+    /// <paramref name="current"/> can't swap to it, otherwise by swapping the launcher files.
+    /// </summary>
+    /// <returns>The index of the chosen candidate and whether to install its setup, or null when there is none.</returns>
+    internal static (int Index, bool Reinstall)? ChooseUpdate(IReadOnlyList<UpdateRules> candidates, PackageVersion current)
+    {
+        if (candidates.Count == 0)
+            return null;
+
+        var index = candidates.Count - 1;
+        for (var i = 0; i < candidates.Count; i++)
+        {
+            if (candidates[i].Checkpoint)
+            {
+                index = i;
+                break;
+            }
+        }
+        var reinstallBelow = candidates[index].ReinstallBelow;
+        return (index, reinstallBelow is not null && current < reinstallBelow);
+    }
+
+    private static async Task UpdateLauncherFiles(IDispatcherService dispatcher, IDialogService dialogService, NugetStore store, bool includePrerelease, CancellationToken cancellationToken)
+    {
         var version = new PackageVersion(Version);
         var productAttribute = (typeof(SelfUpdater).Assembly).GetCustomAttribute<AssemblyProductAttribute>();
         var packageId = productAttribute!.Product;
-        var packages = (await store.GetUpdates(new(packageId, version), true, true, cancellationToken)).OrderBy(x => x.Version);
+        var packages = (await store.GetUpdates(new(packageId, version), true, true, cancellationToken))
+            .Where(x => x.Version > version && IsUpdateCandidate(x.Version, version, includePrerelease))
+            .OrderBy(x => x.Version)
+            .ToList();
 
-        // Force-reinstall downloads a Windows installer (StrideSetup.exe) — skip the probe on non-Windows.
-        if (OperatingSystem.IsWindows())
+        var rules = packages.Select(x => UpdateRules.Parse(x.Description)).ToList();
+        if (ChooseUpdate(rules, version) is not { } update)
+            return;
+
+        var package = packages[update.Index];
+        if (update.Reinstall)
         {
-            try
-            {
-                // First, check if there is a package forcing us to download new installer
-                const string reinstallUrlPattern = @"force-reinstall:\s*(\S+)\s*(\S+)";
-                var reinstallPackage = packages.LastOrDefault(x => x.Version > version && Regex.IsMatch(x.Description, reinstallUrlPattern));
-                if (reinstallPackage is not null)
-                {
-                    var regexMatch = Regex.Match(reinstallPackage.Description, reinstallUrlPattern);
-                    var minimumVersion = PackageVersion.Parse(regexMatch.Groups[1].Value);
-                    if (version < minimumVersion)
-                    {
-                        var installerDownloadUrl = regexMatch.Groups[2].Value;
-                        await DownloadAndInstallNewVersion(dispatcher, dialogService, installerDownloadUrl);
-                        return;
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                await dialogService.MessageBoxAsync(string.Format(Strings.NewVersionDownloadError, e.Message), MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-        // If there is a mandatory intermediate upgrade, take it, otherwise update straight to latest version
-        var package = (packages.FirstOrDefault(x => x.Version > version && x.Version.SpecialVersion == "req") ?? packages.LastOrDefault());
-
-        // Check to see if an update is needed
-        if (package is null || version >= new PackageVersion(package.Version.Version, package.Version.SpecialVersion))
-        {
+            // Swapping the files isn't enough to reach this package: install its setup instead (a Windows installer)
+            if (OperatingSystem.IsWindows() && rules[update.Index].Setup is { } setup)
+                await DownloadAndInstallNewVersion(dispatcher, dialogService, setup);
             return;
         }
 

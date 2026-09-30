@@ -64,6 +64,11 @@ public class NumberLiteralParsingTests
         // digit-sequence floating-suffix (no dot, no exponent)
         yield return ["1f", 1.0];
         yield return ["1h", 1.0];
+        // leading zeros
+        yield return ["0f", 0.0];
+        yield return ["00.5", 0.5];
+        yield return ["0123.5", 123.5];
+        yield return ["0e1", 0.0];
     }
 
     [Theory]
