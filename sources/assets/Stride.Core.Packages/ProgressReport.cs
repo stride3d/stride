@@ -24,6 +24,16 @@ public class ProgressReport : IDisposable
 
     public event Action<ProgressAction, int> ProgressChanged;
 
+    /// <summary>Raised as the packages download, with the total bytes downloaded so far (throttled like <see cref="NugetStore.NugetDownloadProgress"/>).</summary>
+    public event Action<long>? DownloadProgressChanged;
+
+    /// <summary>Raised as the packages are installed, with the count installed so far and the total.</summary>
+    public event Action<int, int>? InstallProgressChanged;
+
+    internal void ReportDownloaded(long downloadedBytes) => DownloadProgressChanged?.Invoke(downloadedBytes);
+
+    internal void ReportInstalled(int installed, int total) => InstallProgressChanged?.Invoke(installed, total);
+
     public void UpdateProgress(ProgressAction action, int progress)
     {
         if (this.action != action || this.progress != progress)

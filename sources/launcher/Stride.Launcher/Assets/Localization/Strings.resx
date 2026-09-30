@@ -237,6 +237,18 @@
     <value>Deleting {0}…</value>
     <comment>Displayed when a version is being deleted. {0}: long version name</comment>
   </data>
+  <data name="ReportDownloadingSize" xml:space="preserve">
+    <value>Downloading ({0})…</value>
+    <comment>Displayed in the row of a version while it downloads. Short: the version row is narrow. {0}: size downloaded so far (e.g. "120 MB")</comment>
+  </data>
+  <data name="ReportInstallingPackages" xml:space="preserve">
+    <value>Installing ({0} / {1})…</value>
+    <comment>Displayed in the row of a version while its downloaded packages are installed. Short: the version row is narrow. {0}: packages installed so far, {1}: total</comment>
+  </data>
+  <data name="ReportRemovingUnusedPackages" xml:space="preserve">
+    <value>Cleaning up ({0} / {1})…</value>
+    <comment>Displayed after a version is deleted or updated, while the packages no version uses anymore are removed. Short: the version row is narrow. {0}: packages removed so far, {1}: total</comment>
+  </data>
   <data name="ReportDiscovering" xml:space="preserve">
     <value>Discovering…</value>
     <comment>Displayed when the version of a recent project is being discovered.</comment>

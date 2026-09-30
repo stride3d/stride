@@ -122,7 +122,7 @@ public sealed class VsixVersionViewModel : PackageVersionViewModel
     }
 
     /// <inheritdoc/>
-    protected override async Task UpdateVersionsFromStore()
+    protected override async Task UpdateVersionsFromStore(Action<int, int>? unusedPackagesProgress = null)
     {
         var versionRange = Store.VsixVersionToStrideRelease[vsixSupportedVsVersion];
         var minVersion = versionRange.MinVersion;

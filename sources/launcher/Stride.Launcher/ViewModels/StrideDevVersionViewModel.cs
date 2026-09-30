@@ -151,6 +151,12 @@ public sealed class StrideDevVersionViewModel : StrideVersionViewModel
         }
     }
 
+    /// <summary>
+    /// Gets whether this version is the one of <paramref name="package"/>, built at <paramref name="realPath"/>.
+    /// </summary>
+    internal bool Matches(NugetLocalPackage package, UDirectory realPath)
+        => localPackage?.Id == package.Id && localPackage.Version == package.Version && path == realPath;
+
     /// <inheritdoc/>
     public override string Name => "Local " + path.MakeRelative(path.GetParent());
 
@@ -193,9 +199,9 @@ public sealed class StrideDevVersionViewModel : StrideVersionViewModel
     protected override string UninstallErrorMessage => string.Empty;
 
     /// <inheritdoc/>
-    protected override Task UpdateVersionsFromStore()
+    protected override Task UpdateVersionsFromStore(Action<int, int>? unusedPackagesProgress = null)
     {
-        return Launcher.RetrieveLocalStrideVersions();
+        return Launcher.RetrieveLocalStrideVersions(unusedPackagesProgress);
     }
 
     /// <inheritdoc/>
