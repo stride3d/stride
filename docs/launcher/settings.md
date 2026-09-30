@@ -22,6 +22,7 @@ As in Game Studio, the path says what a key is: `Launcher/` for a preference the
 | `Launcher/PreferredRuntime` | `""` (default entry) | User picks a .NET major in the runtime combo — set by `MainViewModel.SelectedRuntime` |
 | `Launcher/DeveloperVersions` | `[]` | Dev versions added manually by advanced users (no UI yet) — consumed at startup to add `StrideDevVersionViewModel` entries |
 | `Launcher/IncludePrereleaseUpdates` | `false` | User ticks "Receive launcher pre-releases", in the launcher settings (gear in the title bar) — see [self-update.md](self-update.md#pre-releases) |
+| `Launcher/ThemeVariant` | not saved (`Dark`) | Saved only once the user picks a theme variant ("Theme") in the launcher settings (gear in the title bar), so a later change of the default reaches the others: `Dark`, `Light` (shown as a preview: not tuned yet), or `System` (follows the light or dark mode of the system). Applied right away, and read at startup |
 
 **State**
 

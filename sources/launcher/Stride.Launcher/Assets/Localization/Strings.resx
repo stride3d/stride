@@ -298,8 +298,12 @@
     <comment>{0}: long version name</comment>
   </data>
   <data name="ToolTipVisualStudioExtension" xml:space="preserve">
-    <value>{0} Visual Studio extension</value>
-    <comment>The tooltip of the Visual Studio Plugin button. {0}: A verb describing the action to do (Install, Reinstall, Update...)</comment>
+    <value>{0} the Visual Studio {1} extension</value>
+    <comment>The tooltip of the Visual Studio Plugin button. {0}: A verb describing the action to do (Install, Reinstall, Update...). {1}: the Visual Studio version (2019, 2022+)</comment>
+  </data>
+  <data name="ToolTipVisualStudioNotInstalled" xml:space="preserve">
+    <value>Visual Studio {0} isn't installed</value>
+    <comment>The tooltip of the disabled Visual Studio Plugin button. {0}: the Visual Studio version (2019)</comment>
   </data>
   <data name="UnknownVersion" xml:space="preserve">
     <value>Unknown version</value>
@@ -383,6 +387,21 @@
     <value>Launcher settings</value>
     <comment>Tooltip of the gear button in the title bar</comment>
   </data>
+  <data name="ThemeVariant" xml:space="preserve">
+    <value>Theme</value>
+    <comment>Label of the theme variant choice (dark, light...), in the launcher settings</comment>
+  </data>
+  <data name="ThemeVariantDark" xml:space="preserve">
+    <value>Dark</value>
+  </data>
+  <data name="ThemeVariantLight" xml:space="preserve">
+    <value>Light (preview)</value>
+    <comment>The light variant isn't finished yet</comment>
+  </data>
+  <data name="ThemeVariantSystem" xml:space="preserve">
+    <value>Follow system</value>
+    <comment>The variant follows the light or dark mode of the operating system</comment>
+  </data>
   <data name="ButtonRoadmap" xml:space="preserve">
     <value>Check the roadmap</value>
     <comment>/!\ Text must be short</comment>
@@ -406,6 +425,39 @@
   <data name="ToolTipInstallLatestVersion" xml:space="preserve">
     <value>Install the latest available version of Stride</value>
     <comment>The tooltip of the button that will install the latest available version</comment>
+  </data>
+  <data name="ToolTipRemoveDevVersion" xml:space="preserve">
+    <value>Remove {0} from the list (its checkout is kept)</value>
+    <comment>Tooltip of the remove button of a locally built version. {0}: long version name</comment>
+  </data>
+  <data name="ConfirmRemoveDevVersion" xml:space="preserve">
+    <value>Remove {0} from the list?
+
+Its checkout is kept: building it again brings the version back. Until then, projects on this version can't restore its packages.</value>
+    <comment>Displayed when the user removes a locally built version. {0}: long version name</comment>
+  </data>
+  <data name="ToolTipOpenCheckout" xml:space="preserve">
+    <value>Open the checkout of {0}</value>
+    <comment>Tooltip of the folder button of a locally built version. {0}: long version name</comment>
+  </data>
+  <data name="ToolTipOpenSolution" xml:space="preserve">
+    <value>Open the Stride solution of {0}</value>
+    <comment>Tooltip of the Visual Studio button of a locally built version. {0}: long version name</comment>
+  </data>
+  <data name="ToolTipOpenFolder" xml:space="preserve">
+    <value>Open the folder of {0}</value>
+    <comment>Tooltip of the folder button of a locally built version whose checkout isn't known. {0}: long version name</comment>
+  </data>
+  <data name="ToolTipInstallAnotherVersion" xml:space="preserve">
+    <value>Install another version</value>
+    <comment>Tooltip of the button of a version that lists its other releases</comment>
+  </data>
+  <data name="ToolTipReleaseNotes" xml:space="preserve">
+    <value>Display release notes for this version</value>
+  </data>
+  <data name="ToolTipReconnect" xml:space="preserve">
+    <value>Click to reconnect…</value>
+    <comment>Tooltip of the Offline indicator</comment>
   </data>
   <data name="ToolTipUninstall" xml:space="preserve">
     <value>Uninstall version {0}</value>

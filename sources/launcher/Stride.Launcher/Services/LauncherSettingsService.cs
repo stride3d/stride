@@ -43,6 +43,12 @@ internal sealed class LauncherSettingsService : ILauncherSettingsService
         set => LauncherSettings.IncludePrereleaseUpdates = value;
     }
 
+    public string? ThemeVariant
+    {
+        get => LauncherSettings.ThemeVariant;
+        set => LauncherSettings.ThemeVariant = value;
+    }
+
     public IReadOnlyCollection<UDirectory> DeveloperVersions => LauncherSettings.DeveloperVersions;
 
     public bool IsTaskCompleted(string taskName) => LauncherSettings.IsTaskCompleted(taskName);

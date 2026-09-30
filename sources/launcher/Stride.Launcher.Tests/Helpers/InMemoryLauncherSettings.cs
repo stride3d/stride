@@ -13,6 +13,7 @@ internal sealed class InMemoryLauncherSettings : ILauncherSettingsService
     public string PreferredRuntime { get; set; } = "";
     public int CurrentTab { get; set; }
     public bool IncludePrereleaseUpdates { get; set; }
+    public string? ThemeVariant { get; set; }
     public IReadOnlyCollection<UDirectory> DeveloperVersions { get; init; } = [];
 
     public int SaveCallCount { get; private set; }

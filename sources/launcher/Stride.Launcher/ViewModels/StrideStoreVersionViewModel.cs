@@ -78,6 +78,24 @@ public sealed class StrideStoreVersionViewModel : StrideVersionViewModel
     /// </summary>
     public string ServerVersionFullName => ServerPackage?.Version?.ToString() ?? "";
 
+    /// <summary>
+    /// Gets the text of this version in the list: its name, and whether it isn't installed or has an update.
+    /// </summary>
+    public string Label
+    {
+        get
+        {
+            var name = string.Format(Strings.VersionButton, DisplayName);
+            if (!CanDelete)
+                return $"{name} {Strings.VersionButtonUninstalled}";
+            if (CanBeDownloaded && IsLatestPackageRemote)
+                return $"{name} {Strings.VersionButtonUpdateAvailable}";
+            if (CanBeDownloaded && IsLatestPackageLocal)
+                return $"{name} {Strings.VersionButtonLocalUpdateAvailable}";
+            return name;
+        }
+    }
+
     public ObservableList<StrideStoreAlternateVersionViewModel> AlternateVersions { get; } = [];
 
     // All local install paths for this major.minor slot across every package ID (WPF, Avalonia, …).
@@ -198,9 +216,13 @@ public sealed class StrideStoreVersionViewModel : StrideVersionViewModel
             StrideStoreAlternateVersionViewModel alternateVersionViewModel;
             if (index < 0)
             {
-                // If not, add it
+                // If not, add it: newest first, as in the list of versions
                 alternateVersionViewModel = new(this);
-                AlternateVersions.Add(alternateVersionViewModel);
+                var insertAt = AlternateVersions.IndexOf(x => x.Version < alternateVersion.Version);
+                if (insertAt < 0)
+                    AlternateVersions.Add(alternateVersionViewModel);
+                else
+                    AlternateVersions.Insert(insertAt, alternateVersionViewModel);
             }
             else
             {
@@ -271,8 +293,8 @@ public sealed class StrideStoreVersionViewModel : StrideVersionViewModel
     protected override void UpdateStatus()
     {
         base.UpdateStatus();
-        OnPropertyChanging(nameof(ServerVersionFullName));
-        OnPropertyChanged(nameof(ServerVersionFullName));
+        OnPropertyChanging(nameof(ServerVersionFullName), nameof(Label));
+        OnPropertyChanged(nameof(ServerVersionFullName), nameof(Label));
     }
 
     /// <inheritdoc/>

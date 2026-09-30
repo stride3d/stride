@@ -29,7 +29,7 @@
                   Classes="transparentButton"
                   Margin="8,4" Cursor="Hand"
                   HorizontalAlignment="Center" VerticalAlignment="Center"
-                  ToolTip.Tip="Click to reconnect…"
+                  ToolTip.Tip="{x:Static l:Strings.ToolTipReconnect}"
                   IsVisible="{Binding IsOffline}"
                   Command="{Binding ReconnectCommand}">
             <TextBlock FontWeight="ExtraBold" Foreground="Gold" Text="Offline" />
@@ -209,8 +209,9 @@
                 </DockPanel>
               </Border>
               <Border BorderBrush="{StaticResource TileBorderBrush}" BorderThickness="{StaticResource TileBorderThickness}">
-                <StackPanel>
-                  <StackPanel.DataTemplates>
+                <!-- Side by side: one row, which leaves more room to the list of Stride versions -->
+                <UniformGrid Columns="2">
+                  <UniformGrid.DataTemplates>
                     <DataTemplate DataType="{x:Type vm:VsixVersionViewModel}">
                       <Grid Height="32">
                         <ProgressBar Minimum="0" Maximum="100" Value="{Binding CurrentProgress}"
@@ -224,7 +225,7 @@
                         <Button Command="{Binding ExecuteActionCommand}"
                                 Content="{Binding Status}"
                                 HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
-                                ToolTip.Tip="{Binding Status, StringFormat={x:Static l:Strings.ToolTipVisualStudioExtension}}"
+                                ToolTip.Tip="{Binding ToolTip}" ToolTip.ShowOnDisabled="True"
                                 IsVisible="{Binding !IsProcessing}">
                           <Interaction.Behaviors>
                             <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding Launcher.CurrentToolTip}"
@@ -233,10 +234,10 @@
                         </Button>
                       </Grid>
                     </DataTemplate>
-                  </StackPanel.DataTemplates>
+                  </UniformGrid.DataTemplates>
                   <ContentControl Margin="2" Content="{Binding VsixPackage2019}"/>
                   <ContentControl Margin="2" Content="{Binding VsixPackage2022}"/>
-                </StackPanel>
+                </UniformGrid>
               </Border>
             </StackPanel>
           </Border>
@@ -308,7 +309,8 @@
             <!-- Stride versions -->
             <Border BorderBrush="{StaticResource TileBorderBrush}" BorderThickness="{StaticResource TileBorderThickness}"
                     Background="Transparent">
-              <ScrollViewer VerticalScrollBarVisibility="Auto" VerticalAlignment="Top" AllowAutoHide="False">
+              <!-- The scrollbar takes its own width rather than going over the rows, whose buttons it would cover; never horizontal -->
+              <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" VerticalAlignment="Top" AllowAutoHide="False">
                 <StackPanel>
                   <ItemsControl ItemsSource="{Binding StrideVersions}">
                     <ItemsControl.DataTemplates>
@@ -316,14 +318,15 @@
                         <DockPanel Height="32" Margin="0,2"
                                    Background="{DynamicResource NeutralBackgroundBrush}"
                                    IsVisible="{Binding IsVisible}">
+                          <!-- The same slots as a store version, so that the rows line up -->
                           <StackPanel DockPanel.Dock="Right"
                                       MinWidth="32" Orientation="Horizontal"
                                       IsEnabled="{Binding !IsProcessing}">
-                            <!-- Delete button -->
-                            <Button Margin="4,0" Width="32" Height="32"
+                            <!-- Remove button: disabled rather than hidden, to keep the slot -->
+                            <Button Margin="4,0,0,0" Width="32" Height="32"
                                     Command="{Binding DeleteCommand}"
-                                    IsVisible="{Binding CanDelete}"
-                                    ToolTip.Tip="{Binding FullName, StringFormat={x:Static l:Strings.ToolTipUninstall}}">
+                                    IsEnabled="{Binding CanDelete}"
+                                    ToolTip.Tip="{Binding FullName, StringFormat={x:Static l:Strings.ToolTipRemoveDevVersion}}">
                               <Interaction.Behaviors>
                                 <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding Launcher.CurrentToolTip}"
                                                                      DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
@@ -331,18 +334,56 @@
                               <PathIcon Width="20" Height="20"
                                         Data="{StaticResource GeometryTrash}" />
                             </Button>
-                          </StackPanel>
-                          <Grid>
-                            <Button Command="{Binding SetAsActiveCommand}"
-                                    IsVisible="{Binding !IsProcessing}"
-                                    ToolTip.Tip="{Binding FullName, StringFormat={x:Static l:Strings.ToolTipSetActiveVersion}}"
-                                    HorizontalAlignment="Stretch">
+                            <!-- Open the solution, in place of the alternate versions -->
+                            <Button Margin="4,0,0,0" Width="32" Height="32"
+                                    Command="{Binding OpenSolutionCommand}"
+                                    ToolTip.Tip="{Binding FullName, StringFormat={x:Static l:Strings.ToolTipOpenSolution}}">
                               <Interaction.Behaviors>
                                 <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding Launcher.CurrentToolTip}"
                                                                      DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
                               </Interaction.Behaviors>
-                              <TextBlock Text="{Binding DisplayName, StringFormat={x:Static l:Strings.VersionButton}}" />
+                              <PathIcon Width="20" Height="20"
+                                        Data="{StaticResource GeometryVisualStudio}" />
                             </Button>
+                          </StackPanel>
+                          <!-- Open the checkout, in place of the release notes -->
+                          <Button DockPanel.Dock="Left"
+                                  Margin="0,0,4,0" Width="32" Height="32"
+                                  Command="{Binding OpenCheckoutCommand}"
+                                  ToolTip.Tip="{Binding OpenCheckoutToolTip}">
+                            <Interaction.Behaviors>
+                              <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding Launcher.CurrentToolTip}"
+                                                                   DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
+                            </Interaction.Behaviors>
+                            <PathIcon Width="20" Height="20"
+                                      Data="{StaticResource GeometryFolder}"/>
+                          </Button>
+                          <Grid>
+                            <ProgressBar Minimum="0" Maximum="100" Value="{Binding CurrentProgress}"
+                                         IsIndeterminate="{Binding CurrentProgress, Converter={vw:ProgressToIndeterminatedConverter}}"
+                                         VerticalAlignment="Stretch"
+                                         IsVisible="{Binding IsProcessing}" />
+                            <TextBlock Text="{Binding CurrentProcessStatus}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       IsVisible="{Binding IsProcessing}" />
+                            <Grid IsVisible="{Binding !IsProcessing}">
+                              <Button Command="{Binding SetAsActiveCommand}"
+                                      ToolTip.Tip="{Binding FullName, StringFormat={x:Static l:Strings.ToolTipSetActiveVersion}}"
+                                      HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                                <Interaction.Behaviors>
+                                  <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding Launcher.CurrentToolTip}"
+                                                                       DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
+                                </Interaction.Behaviors>
+                              </Button>
+                              <!-- Placed like the label of a store version -->
+                              <TextBlock Margin="12,0,4,0" IsHitTestVisible="False"
+                                         HorizontalAlignment="Left" VerticalAlignment="Center"
+                                         TextTrimming="CharacterEllipsis"
+                                         Text="{Binding DisplayName, StringFormat={x:Static l:Strings.VersionButton}}"/>
+                              <!-- The active version, the one Start starts -->
+                              <Border Width="3" HorizontalAlignment="Left" IsHitTestVisible="False"
+                                      Background="{DynamicResource AccentBrush}" IsVisible="{Binding IsActive}"/>
+                            </Grid>
                           </Grid>
                         </DockPanel>
                       </DataTemplate>
@@ -391,7 +432,7 @@
                             </Button>
                             <!-- Alternate versions -->
                             <ToggleButton x:Name="AlternateVersionToggle" Margin="4,0,0,0" Width="32" Height="32"
-                                          ToolTip.Tip="Install another version">
+                                          ToolTip.Tip="{x:Static l:Strings.ToolTipInstallAnotherVersion}">
                               <Interaction.Behaviors>
                                 <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding Launcher.CurrentToolTip}"
                                                                      DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
@@ -432,7 +473,7 @@
                           <Button DockPanel.Dock="Left"
                                   Margin="0,0,4,0" Width="32" Height="32"
                                   Command="{Binding ReleaseNotes.ToggleCommand}"
-                                  ToolTip.Tip="Display release notes for this version">
+                                  ToolTip.Tip="{x:Static l:Strings.ToolTipReleaseNotes}">
                             <Interaction.Behaviors>
                               <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding Launcher.CurrentToolTip}"
                                                                    DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
@@ -458,16 +499,14 @@
                                                                        DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
                                 </Interaction.Behaviors>
                               </Button>
-                              <TextBlock Margin="16,0" IsHitTestVisible="False"
-                                         HorizontalAlignment="Left" VerticalAlignment="Center">
-                                <Run Text="{Binding DisplayName, Mode=OneWay, StringFormat={x:Static l:Strings.VersionButton}}"/>
-                                <!-- Careful here, there must not be any space or line-break between the next two Run tags! -->
-                                <Run Text="{Binding !CanDelete, Mode=OneWay, Converter={sd:BoolToParam}, ConverterParameter={x:Static l:Strings.VersionButtonUninstalled}
-                                      }"/><Run Text="{sd:MultiBinding {Binding CanDelete}, {Binding CanBeDownloaded}, {Binding IsLatestPackageRemote}, Converter={sd:MultiChained
-                                      {sd:AndMulti}, {sd:BoolToParam}, Parameter1={x:Static l:Strings.VersionButtonUpdateAvailable}}}"/><Run Text="{sd:MultiBinding
-                                      {Binding CanDelete}, {Binding CanBeDownloaded}, {Binding IsLatestPackageLocal}, Converter={sd:MultiChained {sd:AndMulti}, {sd:BoolToParam},
-                                      Parameter1={x:Static l:Strings.VersionButtonLocalUpdateAvailable}}}"/>
-                              </TextBlock>
+                              <!-- One text rather than bound runs: those could stay empty once the row was busy (Avalonia 12.1) -->
+                              <TextBlock Margin="12,0,4,0" IsHitTestVisible="False"
+                                         HorizontalAlignment="Left" VerticalAlignment="Center"
+                                         TextTrimming="CharacterEllipsis"
+                                         Text="{Binding Label}"/>
+                              <!-- The active version, the one Start starts -->
+                              <Border Width="3" HorizontalAlignment="Left" IsHitTestVisible="False"
+                                      Background="{DynamicResource AccentBrush}" IsVisible="{Binding IsActive}"/>
                             </Grid>
                           </Grid>
                         </DockPanel>
@@ -592,10 +631,11 @@
                                         </ScrollViewer>
                                       </Border>
                                     </Popup>
+                                    <!-- Greyed: the project name above is what identifies it -->
                                     <TextBlock DockPanel.Dock="Bottom"
                                                 Text="{Binding FullPath}"
                                                 TextTrimming="PathSegmentEllipsis"
-                                                FontStyle="Italic" />
+                                                FontStyle="Italic" Opacity="0.6" />
                                   </DockPanel>
                                   <DockPanel>
                                     <!-- Discovering -->

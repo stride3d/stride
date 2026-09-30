@@ -344,6 +344,42 @@ namespace Stride.Launcher.Assets.Localization {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Theme.
+        /// </summary>
+        public static string ThemeVariant {
+            get {
+                return ResourceManager.GetString("ThemeVariant", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Dark.
+        /// </summary>
+        public static string ThemeVariantDark {
+            get {
+                return ResourceManager.GetString("ThemeVariantDark", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Light (preview).
+        /// </summary>
+        public static string ThemeVariantLight {
+            get {
+                return ResourceManager.GetString("ThemeVariantLight", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Follow system.
+        /// </summary>
+        public static string ThemeVariantSystem {
+            get {
+                return ResourceManager.GetString("ThemeVariantSystem", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The installation of this version is already in progress. Please wait a moment..
         /// </summary>
         public static string InstallAlreadyInProgress {
@@ -735,6 +771,78 @@ namespace Stride.Launcher.Assets.Localization {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remove {0} from the list (its checkout is kept).
+        /// </summary>
+        public static string ToolTipRemoveDevVersion {
+            get {
+                return ResourceManager.GetString("ToolTipRemoveDevVersion", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Remove {0} from the list?....
+        /// </summary>
+        public static string ConfirmRemoveDevVersion {
+            get {
+                return ResourceManager.GetString("ConfirmRemoveDevVersion", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Open the checkout of {0}.
+        /// </summary>
+        public static string ToolTipOpenCheckout {
+            get {
+                return ResourceManager.GetString("ToolTipOpenCheckout", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Open the Stride solution of {0}.
+        /// </summary>
+        public static string ToolTipOpenSolution {
+            get {
+                return ResourceManager.GetString("ToolTipOpenSolution", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Open the folder of {0}.
+        /// </summary>
+        public static string ToolTipOpenFolder {
+            get {
+                return ResourceManager.GetString("ToolTipOpenFolder", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Install another version.
+        /// </summary>
+        public static string ToolTipInstallAnotherVersion {
+            get {
+                return ResourceManager.GetString("ToolTipInstallAnotherVersion", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Display release notes for this version.
+        /// </summary>
+        public static string ToolTipReleaseNotes {
+            get {
+                return ResourceManager.GetString("ToolTipReleaseNotes", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Click to reconnect….
+        /// </summary>
+        public static string ToolTipReconnect {
+            get {
+                return ResourceManager.GetString("ToolTipReconnect", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Uninstall version {0}.
         /// </summary>
         public static string ToolTipUninstall {
@@ -753,14 +861,23 @@ namespace Stride.Launcher.Assets.Localization {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {0} Visual Studio extension.
+        ///   Looks up a localized string similar to {0} the Visual Studio {1} extension.
         /// </summary>
         public static string ToolTipVisualStudioExtension {
             get {
                 return ResourceManager.GetString("ToolTipVisualStudioExtension", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Visual Studio {0} isn&apos;t installed.
+        /// </summary>
+        public static string ToolTipVisualStudioNotInstalled {
+            get {
+                return ResourceManager.GetString("ToolTipVisualStudioNotInstalled", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Unknown version.
         /// </summary>

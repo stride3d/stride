@@ -10,9 +10,6 @@
         Title="Report your crash"
         MinWidth="640" MinHeight="480" Width="800" Height="600"
         WindowStartupLocation="CenterScreen">
-  <Window.Styles>
-    <FluentTheme />
-  </Window.Styles>
   <DockPanel Margin="16">
     <StackPanel DockPanel.Dock="Top">
       <DockPanel>
