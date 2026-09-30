@@ -13,12 +13,16 @@ namespace Stride.Input.Tests;
 ///   Every input event is routed to every listener of its type, every frame. Anything routing
 ///   allocates is allocated again for each event, so the cost grows with how much input arrives.
 ///   The measurement compares a frame with input against the same frame without any, so a cost the
-///   runtime adds to every frame regardless of input (Mono on Android and iOS adds some) cancels out.
+///   runtime adds to every frame regardless of input cancels out. On Mono (Android and iOS) the input
+///   path keeps allocating for its first few dozen frames before it settles, so the warm-up runs well
+///   past that.
 /// </remarks>
 public class TestInputRoutingAllocation
 {
     private const int KeysPerFrame = 16;
     private const int MouseMovesPerFrame = 8;
+    private const int WarmupFrames = 256;
+    private const int MeasuredFrames = 256;
 
     [Fact]
     public void RoutingInputEventsDoesNotAllocate()
@@ -37,7 +41,7 @@ public class TestInputRoutingAllocation
         using var headless = new HeadlessInput();
         headless.Input.AddListener(new NullListener());
 
-        return GCMeasure.Run(() => RunOneFrame(headless, withInput), warmupIterations: 16, measuredIterations: 64);
+        return GCMeasure.Run(() => RunOneFrame(headless, withInput), WarmupFrames, MeasuredFrames);
     }
 
     private static void RunOneFrame(HeadlessInput headless, bool withInput)
