@@ -24,7 +24,7 @@ namespace Stride.Input
         private IEnumerable<string> xInputDevices = Enumerable.Empty<string>();
 
         [GeneratedRegex(@"VID_(\w+)?&PID_(\w+)?")]
-        private static partial Regex xInputDeviceIdRegex { get; }
+        private static partial Regex XInputDeviceIdRegex { get; }
 
         public override void Initialize(InputManager inputManager)
         {
@@ -74,7 +74,7 @@ namespace Stride.Input
             // (user32) rather than WMI/Microsoft.Management.Infrastructure, which isn't AOT/trim-safe.
             return GetRawInputDeviceNames()
                 .Where(name => name.Contains("&IG_", StringComparison.OrdinalIgnoreCase))
-                .Select(name => xInputDeviceIdRegex.Match(name))
+                .Select(name => XInputDeviceIdRegex.Match(name))
                 .Where(match => match.Success)
                 .Select(match => (match.Groups[2].Value + match.Groups[1].Value).ToLowerInvariant())
                 .Distinct()
