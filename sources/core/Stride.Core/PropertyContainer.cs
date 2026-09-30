@@ -499,10 +499,18 @@ public struct PropertyContainer : IDictionary<PropertyKey, object>, IReadOnlyDic
         {
             var previousValue = GetNonRecursive(propertyKey);
 
+            // Use upsert behavior when tryToAdd is requested to avoid duplicate-key exceptions.
             if (tryToAdd)
-                properties.Add(propertyKey, valueToSet);
+            {
+                if (!properties.ContainsKey(propertyKey))
+                    properties.Add(propertyKey, valueToSet);
+                else
+                    properties[propertyKey] = valueToSet;
+            }
             else
+            {
                 properties[propertyKey] = valueToSet;
+            }
 
             if (!ArePropertyValuesEqual(propertyKey, tagValue, previousValue))
             {
@@ -512,10 +520,18 @@ public struct PropertyContainer : IDictionary<PropertyKey, object>, IReadOnlyDic
         }
         else
         {
+            // Use upsert behavior when tryToAdd is requested to avoid duplicate-key exceptions.
             if (tryToAdd)
-                properties.Add(propertyKey, valueToSet);
+            {
+                if (!properties.ContainsKey(propertyKey))
+                    properties.Add(propertyKey, valueToSet);
+                else
+                    properties[propertyKey] = valueToSet;
+            }
             else
+            {
                 properties[propertyKey] = valueToSet;
+            }
         }
 
         propertyKey.ObjectInvalidationMetadata?.Invalidate(Owner, propertyKey, oldValue);
