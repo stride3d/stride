@@ -478,7 +478,7 @@ partial class PackageSession
     // editor isn't below the project's major.minor.
     internal static bool IsLocalBuildSwitch(PackageVersion projectVersion, PackageVersion editorVersion)
     {
-        if (!PackageSessionHelper.IsLocalBuild(projectVersion) && !PackageSessionHelper.IsLocalBuild(editorVersion))
+        if (!projectVersion.IsLocalBuild && !editorVersion.IsLocalBuild)
             return false;
         return (editorVersion.Version.Major, editorVersion.Version.Minor).CompareTo((projectVersion.Version.Major, projectVersion.Version.Minor)) >= 0;
     }

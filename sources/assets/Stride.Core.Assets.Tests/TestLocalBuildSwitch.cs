@@ -41,6 +41,6 @@ public class TestLocalBuildSwitch
     [InlineData("4.4.0", false)]
     public void IsLocalBuild(string version, bool expected)
     {
-        Assert.Equal(expected, PackageSessionHelper.IsLocalBuild(new PackageVersion(version)));
+        Assert.Equal(expected, new PackageVersion(version).IsLocalBuild);
     }
 }

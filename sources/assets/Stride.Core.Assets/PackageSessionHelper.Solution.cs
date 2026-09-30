@@ -78,14 +78,6 @@ internal partial class PackageSessionHelper
         return false;
     }
 
-    /// <summary>
-    /// Gets whether <paramref name="version"/> is a local build: -devN from the checkout ledger (4.4.0-dev3), or appended
-    /// to a release one (4.4.0-beta7-dev4).
-    /// </summary>
-    internal static bool IsLocalBuild(PackageVersion version)
-        => version.SpecialVersion is { } label
-           && (label.StartsWith("dev", StringComparison.OrdinalIgnoreCase) || label.Contains("-dev", StringComparison.OrdinalIgnoreCase));
-
     internal static void RemovePackageSections(Project project)
     {
         if (project.IsSolutionFolder)

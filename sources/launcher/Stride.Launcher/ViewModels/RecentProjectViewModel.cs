@@ -13,7 +13,6 @@ using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Launcher.Assets.Localization;
 using Stride.Launcher.Services;
-using static Stride.Core.Assets.PackageSessionHelper;
 
 namespace Stride.Launcher.ViewModels;
 
@@ -62,7 +61,7 @@ public sealed class RecentProjectViewModel : DispatcherViewModel
     /// Gets the version shown for the project, as the list of versions names it: its major.minor (4.4), or the full
     /// version of a local build (4.4.0-dev3).
     /// </summary>
-    public string? StrideVersionDisplayName => projectVersion is not null && IsLocalBuild(projectVersion) ? stridePackageVersion : StrideVersionName;
+    public string? StrideVersionDisplayName => projectVersion is { IsLocalBuild: true } ? stridePackageVersion : StrideVersionName;
 
     public Version? StrideVersion { get { return strideVersion; } private set { SetValue(ref strideVersion, value); } }
 
@@ -311,7 +310,7 @@ public sealed class RecentProjectViewModel : DispatcherViewModel
             return;
         }
         // Game Studio doesn't open a project on an older version, unless one of them is a local build
-        if (option!.Build is null && version is StrideStoreVersionViewModel && projectVersion is not null && !IsLocalBuild(projectVersion)
+        if (option!.Build is null && version is StrideStoreVersionViewModel && projectVersion is { IsLocalBuild: false }
             && version.InstalledVersion < projectVersion)
         {
             message = string.Format(Strings.ErrorVersionTooOld, projectVersion, version.InstalledVersion);
@@ -345,7 +344,7 @@ public sealed class RecentProjectViewModel : DispatcherViewModel
         // Every installed version but the one a click opens the project with, and none that Game Studio doesn't
         // open it with: below its major.minor, or an older build of it (unless one of them is a local build).
         // The builds of the project's major.minor are listed one by one, as they are the ones it's on
-        var olderRefused = projectVersion is not null && !IsLocalBuild(projectVersion);
+        var olderRefused = projectVersion is { IsLocalBuild: false };
         foreach (var version in versions)
         {
             if (version is StrideStoreVersionViewModel storeVersion && new Version(version.Major, version.Minor) == StrideVersion)
@@ -354,7 +353,7 @@ public sealed class RecentProjectViewModel : DispatcherViewModel
                 {
                     if (defaultOption?.Version == version && defaultOption.TargetVersion == build.Version)
                         continue;
-                    if (olderRefused && build.Version < projectVersion && !IsLocalBuild(build.Version))
+                    if (olderRefused && build.Version < projectVersion && !build.Version.IsLocalBuild)
                         continue;
                     CompatibleVersions.Add(new(version, build, projectVersion));
                 }
@@ -392,7 +391,7 @@ public sealed class RecentProjectViewModel : DispatcherViewModel
 
         var builds = sameMinor.AlternateVersions.Where(x => x.LocalPackage is not null).ToList();
         var build = builds.FirstOrDefault(x => x.Version == projectVersion)
-            ?? builds.Where(x => projectVersion is null || IsLocalBuild(projectVersion) || x.Version >= projectVersion).MaxBy(x => x.Version);
+            ?? builds.Where(x => projectVersion is null || projectVersion.IsLocalBuild || x.Version >= projectVersion).MaxBy(x => x.Version);
         return new(sameMinor, build, projectVersion);
     }
 
@@ -405,7 +404,7 @@ public sealed class RecentProjectViewModel : DispatcherViewModel
     {
         if (projectVersion is null || targetVersion is null || targetVersion <= projectVersion)
             return false;
-        var switchesBack = (IsLocalBuild(projectVersion) || IsLocalBuild(targetVersion))
+        var switchesBack = (projectVersion.IsLocalBuild || targetVersion.IsLocalBuild)
             && new Version(projectVersion.Version.Major, projectVersion.Version.Minor) >= new Version(targetVersion.Version.Major, targetVersion.Version.Minor);
         return !switchesBack;
     }
@@ -414,5 +413,5 @@ public sealed class RecentProjectViewModel : DispatcherViewModel
     /// Gets whether <paramref name="option"/> is an upgrade to suggest: to a release, as a local build is for its developer.
     /// </summary>
     private static bool IsSuggestedUpgrade(OpenWithOption option)
-        => option.IsUpgrade && !IsLocalBuild(option.TargetVersion!);
+        => option.IsUpgrade && !option.TargetVersion!.IsLocalBuild;
 }
