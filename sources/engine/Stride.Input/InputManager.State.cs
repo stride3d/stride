@@ -318,7 +318,7 @@ namespace Stride.Input
         /// <summary>
         /// Resets the state before updating
         /// </summary>
-        private void ResetGlobalInputState()
+        internal void ResetGlobalInputState()
         {
             keyEvents.Clear();
             pointerEvents.Clear();
