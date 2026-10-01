@@ -9,7 +9,7 @@ namespace Stride.BepuPhysics
 
         override void Compute()
         {
-            float uvCellSize = PlaneCellSize / FieldSize;
+            float uvCellSize = PlaneCellSize / HeightfieldSize;
 
             float2 offset = EyeMS.xz;
             // Plane's 0,0,0 is at the lower left corner, we want to center the plane around the eye
@@ -22,13 +22,13 @@ namespace Stride.BepuPhysics
             offset = floor(offset / PlaneCellSize) * PlaneCellSize;
 
             // Clamp within the field's bounds
-            offset = clamp(offset, 0, FieldSize - PlaneSize);
+            offset = clamp(offset, 0, HeightfieldSize - PlaneSize);
 
             streams.TPosition.xyz *= PlaneSize;
             streams.TPosition.xz += offset;
 
-            streams.TexCoord *= PlaneSize / FieldSize;
-            streams.TexCoord += offset / FieldSize;
+            streams.TexCoord *= PlaneSize / HeightfieldSize;
+            streams.TexCoord += offset / HeightfieldSize;
 
             // Prepare UV to sample texture centroid
             streams.TexCoord += uvCellSize * 0.5;

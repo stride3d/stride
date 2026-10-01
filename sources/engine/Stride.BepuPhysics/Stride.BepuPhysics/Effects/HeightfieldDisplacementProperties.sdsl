@@ -7,7 +7,7 @@ namespace Stride.BepuPhysics
     {
         cbuffer PerMaterial
         {
-            stage float FieldSize;
+            stage float HeightfieldSize;
             stage float PlaneSize;
             stage float PlaneCellSize;
         }

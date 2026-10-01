@@ -80,9 +80,9 @@ public class Heightfield : IHeightfieldSource
         coarseBlocks = CoarseBlocks;
     }
 
-    /// <inheritdoc cref="IHeightfieldSource.BuildGPUSideSampler" />
-    public IComputeScalar BuildGPUSideSampler(MaterialGeneratorContext context)
+    /// <inheritdoc cref="IHeightfieldSource.BuildGpuSideSampler" />
+    public IComputeScalar BuildGpuSideSampler(MaterialGeneratorContext context)
     {
-        return TopmostLayer.BuildGPUSideSampler(context);
+        return TopmostLayer.BuildGpuSideSampler(context);
     }
 }

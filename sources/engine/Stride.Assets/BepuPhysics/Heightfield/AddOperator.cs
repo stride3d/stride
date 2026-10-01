@@ -18,7 +18,8 @@ namespace Stride.BepuPhysics.Definitions.Heightfield.Assets;
 /// Concat multiple heightfields together additively 
 /// </summary>
 [DataContract]
-public class Add : IHeightfieldLayerBuilder
+[Display("Add")]
+public class AddOperator : IHeightfieldLayerBuilder
 {
     /// <summary>
     /// Each heightfield listed contributes additively to the final height 
@@ -55,7 +56,7 @@ public class Add : IHeightfieldLayerBuilder
     }
 
     /// <summary>
-    /// Post-compilation representation of a <see cref="Add"/>  
+    /// Post-compilation representation of a <see cref="AddOperator"/>  
     /// </summary>
     [DataContract]
     public record RuntimeLayer : IHeightfieldRuntimeLayer
@@ -79,12 +80,12 @@ public class Add : IHeightfieldLayerBuilder
         }
 
         /// <inheritdoc/>
-        public IComputeScalar BuildGPUSideSampler(MaterialGeneratorContext context)
+        public IComputeScalar BuildGpuSideSampler(MaterialGeneratorContext context)
         {
             IComputeScalar? prev = null;
             foreach (var layer in Layers)
             {
-                var newSampler = layer.BuildGPUSideSampler(context);
+                var newSampler = layer.BuildGpuSideSampler(context);
                 if (prev is null)
                     prev = newSampler;
                 else
