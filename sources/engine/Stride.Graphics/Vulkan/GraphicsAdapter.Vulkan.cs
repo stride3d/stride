@@ -24,6 +24,8 @@ namespace Stride.Graphics
         private VkPhysicalDevice debugPhysicalDevice;
 
         private readonly int adapterOrdinal;
+        // Index in vkEnumeratePhysicalDevices order; the ordinal is the sorted position.
+        private readonly int enumerationIndex;
         private readonly VkPhysicalDeviceProperties properties;
 
         /// <summary>
@@ -47,9 +49,11 @@ namespace Stride.Graphics
         /// </summary>
         /// <param name="physicalDevice">The default factory.</param>
         /// <param name="adapterOrdinal">The adapter ordinal.</param>
-        internal unsafe GraphicsAdapter(VkPhysicalDevice defaultPhysicalDevice, VkPhysicalDeviceProperties properties, VkPhysicalDeviceDriverProperties driverProperties, int adapterOrdinal)
+        /// <param name="enumerationIndex">The index of the physical device in the instance's enumeration order.</param>
+        internal unsafe GraphicsAdapter(VkPhysicalDevice defaultPhysicalDevice, VkPhysicalDeviceProperties properties, VkPhysicalDeviceDriverProperties driverProperties, int adapterOrdinal, int enumerationIndex)
         {
             this.adapterOrdinal = adapterOrdinal;
+            this.enumerationIndex = enumerationIndex;
             this.defaultPhysicalDevice = defaultPhysicalDevice;
             this.properties = properties;
 
@@ -130,6 +134,12 @@ namespace Stride.Graphics
             }
         }
 
+        /// <summary>
+        ///   Gets a value indicating whether this adapter is a software rasterizer (llvmpipe,
+        ///   SwiftShader) rather than a physical GPU.
+        /// </summary>
+        public bool IsSoftwareAdapter => properties.deviceType == VkPhysicalDeviceType.Cpu;
+
         internal unsafe VkPhysicalDevice GetPhysicalDevice(bool enableValidation)
         {
             if (enableValidation)
@@ -143,7 +153,7 @@ namespace Stride.Graphics
                     Span<VkPhysicalDevice> nativePhysicalDevices = stackalloc VkPhysicalDevice[(int)physicalDevicesCount];
                     defaultInstance.NativeInstanceApi.vkEnumeratePhysicalDevices(defaultInstance.NativeInstance, nativePhysicalDevices).CheckResult();
 
-                    debugPhysicalDevice = nativePhysicalDevices[adapterOrdinal];
+                    debugPhysicalDevice = nativePhysicalDevices[enumerationIndex];
                 }
 
                 return debugPhysicalDevice;
