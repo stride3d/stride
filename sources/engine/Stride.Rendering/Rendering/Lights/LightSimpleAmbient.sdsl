@@ -20,6 +20,7 @@ namespace Stride.Rendering.Lights
             float3 lightColor = AmbientLight * streams.matAmbientOcclusion;
             streams.envLightDiffuseColor = lightColor;
             streams.envLightSpecularColor = lightColor;
+            streams.envLightDistFog = 0;
         }
     };
 }
