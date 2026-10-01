@@ -11,6 +11,7 @@ using Stride.Core.Assets.Compiler;
 using Stride.Core.BuildEngine;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization.Contents;
+using Stride.Core.Threading;
 
 namespace Stride.BepuPhysics.Definitions.Heightfield.Assets;
 
@@ -32,9 +33,6 @@ internal sealed class HeightfieldAssetCompiler : AssetCompilerBase
         return asset.Layer?.GetInputFiles() ?? [];
     }
 
-    /// <summary>
-    /// An <see cref="AssetCommand"/> that converts design time asset into runtime asset.
-    /// </summary>
     public class HeightfieldAssetCommand(string url, HeightfieldAsset parameters, IAssetFinder assetFinder)
         : AssetCommand<HeightfieldAsset>(url, parameters, assetFinder)
     {
@@ -43,10 +41,10 @@ internal sealed class HeightfieldAssetCompiler : AssetCompilerBase
             return parameters.Layer?.GetInputFiles() ?? [];
         }
 
-        protected override Task<ResultStatus> DoCommandOverride(ICommandContext commandContext)
+        protected override async Task<ResultStatus> DoCommandOverride(ICommandContext commandContext)
         {
             if (Parameters.Layer is null)
-                return Task.FromResult(ResultStatus.Failed);
+                return ResultStatus.Failed;
             
             Parameters.Layer.BuildRuntimeRepresentation(Parameters.Size, Parameters.Subdivision, commandContext, AssetFinder, out var runtime, out float minHeight, out float maxHeight);
 
@@ -57,28 +55,42 @@ internal sealed class HeightfieldAssetCompiler : AssetCompilerBase
             var coarseBlocks = new HeightRange[coarseBlocksSubdivision * coarseBlocksSubdivision];
             coarseBlocks.AsSpan().Fill(new HeightRange(float.PositiveInfinity, float.NegativeInfinity));
 
-            var samples = new Sample[1];
-            for (int cellZ = 0; cellZ < Parameters.Subdivision; cellZ++)
-            {
-                for (int cellX = 0; cellX < Parameters.Subdivision; cellX++)
-                {
-                    samples[0].SampleCoord = new Int2(cellX, cellZ);
-                    heightfieldFunction.FillSamples(samples);
+            var cancellationToken = commandContext.CurrentCommand.CancellationToken;
 
-                    // Samples on block edges should be considered for all touching blocks
-                    // Naive approach
-                    for (int cZ = cellZ > 0 ? cellZ - 1 : cellZ; cZ <= cellZ; cZ++)
+            await DispatcherLowPriority.ForBatchedAsync(coarseBlocks.Length, (blockStart, blockEnd) =>
+            {
+                var samples = new Sample[1];
+                for (int block = blockStart; block < blockEnd; block++)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    ref var range = ref coarseBlocks[block];
+                    Int2 block2D = new Int2(block % coarseBlocksSubdivision, block / coarseBlocksSubdivision);
+                    Int2 sampleCorner = block2D * coarseBlockInterval;
+                    Int2 sampleEnd = sampleCorner + new Int2(coarseBlockInterval);
+
+                    // We're defining block ranges as operating on N amount of samples, although the physics shape uses
+                    // them when evaluating triangles, those lay between samples.
+                    // If we specify three samples of coverage, e.g.: block0{s0, s1, s2}, block1{s3, s4, s5}
+                    // The triangle laying between s2 and s3 would not be covered by either blocks.
+                    // s2 would be the coordinate used when a position between s2 and s3 is tested,
+                    // which in turn means that block0 would be the block retrieved for evaluation.
+                    // We will have each end of the blocks extend to the next sample over to ensure we capture those triangles
+                    Int2 sampleCornerEndInclusive = Int2.Min(sampleEnd, new Int2(Parameters.Subdivision - 1));
+                    for (int sampleY = sampleCorner.Y; sampleY <= sampleCornerEndInclusive.Y; sampleY++)
                     {
-                        for (int cX = cellX > 0 ? cellX - 1 : cellX; cX <= cellX; cX++)
+                        for (int sampleX = sampleCorner.X; sampleX <= sampleCornerEndInclusive.X; sampleX++)
                         {
-                            int i = cZ / coarseBlockInterval * coarseBlocksSubdivision + cX / coarseBlockInterval;
-                            ref var range = ref coarseBlocks[i];
+                            samples[0].SampleCoord = new Int2(sampleX, sampleY);
+                            heightfieldFunction.FillSamples(samples);
                             range.MinHeight = Math.Min(range.MinHeight, samples[0].Height);
                             range.MaxHeight = Math.Max(range.MaxHeight, samples[0].Height);
                         }
                     }
                 }
-            }
+            });
+
+            cancellationToken.ThrowIfCancellationRequested();
 
             var runtimeObject = new Heightfield
             {
@@ -94,7 +106,7 @@ internal sealed class HeightfieldAssetCompiler : AssetCompilerBase
             var assetManager = new ContentManager(MicrothreadLocalDatabases.ProviderService);
             assetManager.Save(Url, runtimeObject);
 
-            return Task.FromResult(ResultStatus.Successful);
+            return ResultStatus.Successful;
         }
     }
 }

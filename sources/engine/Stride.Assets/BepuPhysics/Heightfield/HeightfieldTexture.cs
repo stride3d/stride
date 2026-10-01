@@ -123,14 +123,12 @@ public record HeightfieldTexture : HeightfieldTextureSharedData, IHeightfieldLay
                     {
                         case PixelFormat.R32_Float:
                             var floats = pixelBuffer.GetPixels<float>();
-                            foreach (var v in floats)
-                            {
-                                minHeight = MathF.Min(minHeight, v);
-                                maxHeight = MathF.Max(maxHeight, v);
-                            }
+                            MathUtil.FindMinMax(floats, out minHeight, out maxHeight);
 
+                            // See RuntimeLayer.Heights
                             foreach (ref var f in floats.AsSpan())
                                 f *= HeightMultiplier;
+
                             heights = MemoryMarshal.Cast<float, byte>(floats.AsSpan());
                             break;
 
@@ -142,41 +140,40 @@ public record HeightfieldTexture : HeightfieldTextureSharedData, IHeightfieldLay
                                 maxHeight = MathF.Max(maxHeight, (float)v);
                             }
 
+                            // See RuntimeLayer.Heights
                             foreach (ref var f in halfs.AsSpan())
                                 f = (Half)((float)f * HeightMultiplier);
+
                             heights = MemoryMarshal.Cast<Half, byte>(halfs.AsSpan());
                             break;
 
                         case PixelFormat.R16_SNorm:
                             var shorts = pixelBuffer.GetPixels<short>();
-                            foreach (var v in shorts)
-                            {
-                                minHeight = MathF.Min(minHeight, v);
-                                maxHeight = MathF.Max(maxHeight, v);
-                            }
+                            MathUtil.FindMinMax(shorts, out var minShort, out var maxShort);
+                            minHeight = minShort;
+                            maxHeight = maxShort;
 
                             heights = MemoryMarshal.Cast<short, byte>(shorts);
                             break;
 
                         case PixelFormat.R16_UNorm:
                             var ushorts = pixelBuffer.GetPixels<ushort>();
-                            foreach (var v in ushorts)
-                            {
-                                minHeight = MathF.Min(minHeight, v);
-                                maxHeight = MathF.Max(maxHeight, v);
-                            }
+                            MathUtil.FindMinMax(ushorts, out var minUShort, out var maxUShort);
+                            minHeight = minUShort;
+                            maxHeight = maxUShort;
+
                             heights = MemoryMarshal.Cast<ushort, byte>(ushorts);
                             break;
 
                         case PixelFormat.R8_UNorm:
                             var bytes = pixelBuffer.GetPixels<byte>();
-                            foreach (var v in bytes)
-                            {
-                                minHeight = MathF.Min(minHeight, v);
-                                maxHeight = MathF.Max(maxHeight, v);
-                            }
+                            MathUtil.FindMinMax(bytes, out var minByte, out var maxByte);
+                            minHeight = minByte;
+                            maxHeight = maxByte;
+
                             heights = bytes;
                             break;
+
                         default:
                             throw new InvalidOperationException();
                     }
@@ -185,7 +182,6 @@ public record HeightfieldTexture : HeightfieldTextureSharedData, IHeightfieldLay
 
                     var description = image.Description;
 
-                    // N.B.: heights is pre-scaled by HeightMultiplier only for halfs and floats
                     runtimeLayer = new RuntimeLayer
                     {
                         BufferResolution = new Int2(description.Width, description.Height),
@@ -219,6 +215,10 @@ public record HeightfieldTexture : HeightfieldTextureSharedData, IHeightfieldLay
         /// <summary>
         /// Heights laid out in [x + y * <see cref="BufferResolution"/>.X]
         /// </summary>
+        /// <remarks>
+        /// For scalar types; halfs and floats, we assume these values to already be scaled by HeightMultiplier,
+        /// others will be scaled on sample instead to retain precision
+        /// </remarks>
         public required byte[] Heights { get; init; }
 
         /// <summary>
