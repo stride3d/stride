@@ -276,5 +276,143 @@ public class TestInt2
         Assert.Equal(7, x);
         Assert.Equal(8, y);
     }
+
+    [Fact]
+    public void TestInt2SizeInBytes()
+    {
+        Assert.Equal(8, Int2.SizeInBytes);
+    }
+
+    [Fact]
+    public void TestInt2ConstructorFromVector2()
+    {
+        var v = new Int2(new Vector2(-3.7f, 12.2f));
+        Assert.Equal(-3, v.X);
+        Assert.Equal(12, v.Y);
+    }
+
+    [Fact]
+    public void TestInt2ToArray()
+    {
+        var v = new Int2(-7, 13);
+        var arr = v.ToArray();
+        Assert.Equal(2, arr.Length);
+        Assert.Equal(-7, arr[0]);
+        Assert.Equal(13, arr[1]);
+    }
+
+    [Fact]
+    public void TestInt2AddSubtractStaticValueOverloads()
+    {
+        var v1 = new Int2(-6, 9);
+        var v2 = new Int2(4, -11);
+
+        var sum = Int2.Add(v1, v2);
+        Assert.Equal(-2, sum.X);
+        Assert.Equal(-2, sum.Y);
+
+        var diff = Int2.Subtract(v1, v2);
+        Assert.Equal(-10, diff.X);
+        Assert.Equal(20, diff.Y);
+    }
+
+    [Fact]
+    public void TestInt2UnaryPlus()
+    {
+        var v = new Int2(-4, 9);
+        var result = +v;
+        Assert.Equal(v, result);
+    }
+
+    [Fact]
+    public void TestInt2NegateStaticValueOverload()
+    {
+        var v = new Int2(-13, 21);
+        var result = Int2.Negate(v);
+        Assert.Equal(13, result.X);
+        Assert.Equal(-21, result.Y);
+    }
+
+    [Fact]
+    public void TestInt2ModulateRef()
+    {
+        var v1 = new Int2(-6, 7);
+        var v2 = new Int2(3, -4);
+        var result = Int2.Modulate(v1, v2);
+        Assert.Equal(-18, result.X);
+        Assert.Equal(-28, result.Y);
+
+        Int2.Modulate(ref v1, ref v2, out var result2);
+        Assert.Equal(result, result2);
+    }
+
+    [Fact]
+    public void TestInt2LerpRefAndNonHalfAmount()
+    {
+        var start = new Int2(-10, 4);
+        var end = new Int2(30, -16);
+
+        var result = Int2.Lerp(start, end, 0.25f);
+        Assert.Equal(0, result.X);
+        Assert.Equal(-1, result.Y);
+
+        Int2.Lerp(ref start, ref end, 0.25f, out var result2);
+        Assert.Equal(result, result2);
+    }
+
+    [Fact]
+    public void TestInt2SmoothStepRefAndClampedAmount()
+    {
+        var start = new Int2(-10, 4);
+        var end = new Int2(30, -16);
+
+        // Amount outside [0, 1] should be clamped.
+        var below = Int2.SmoothStep(start, end, -1f);
+        Assert.Equal(start, below);
+
+        var above = Int2.SmoothStep(start, end, 2f);
+        Assert.Equal(end, above);
+
+        Int2.SmoothStep(ref start, ref end, 0.25f, out var resultRef);
+        Assert.Equal(Int2.SmoothStep(start, end, 0.25f), resultRef);
+    }
+
+    [Fact]
+    public void TestInt2EqualsObject()
+    {
+        var v1 = new Int2(-3, 8);
+        object v2 = new Int2(-3, 8);
+        object v3 = new Int2(1, 2);
+        object notInt2 = "not an Int2";
+
+        Assert.True(v1.Equals(v2));
+        Assert.False(v1.Equals(v3));
+        Assert.False(v1.Equals(notInt2));
+        Assert.False(v1.Equals(null));
+    }
+
+    [Fact]
+    public void TestInt2ExplicitVector4Conversion()
+    {
+        var v = new Int2(-6, 11);
+        var vec4 = (Vector4)v;
+        Assert.Equal(-6.0f, vec4.X);
+        Assert.Equal(11.0f, vec4.Y);
+        Assert.Equal(0.0f, vec4.Z);
+        Assert.Equal(0.0f, vec4.W);
+    }
+
+    [Fact]
+    public void TestInt2SystemNumericsVector2Conversion()
+    {
+        var sysVec = new System.Numerics.Vector2(-2.9f, 7.4f);
+        var v = (Int2)sysVec;
+        Assert.Equal(-2, v.X);
+        Assert.Equal(7, v.Y);
+
+        var backToSys = (System.Numerics.Vector2)v;
+        Assert.Equal(-2.0f, backToSys.X);
+        Assert.Equal(7.0f, backToSys.Y);
+    }
 }
 

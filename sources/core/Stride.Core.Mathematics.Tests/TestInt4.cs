@@ -258,4 +258,146 @@ public class TestInt4
         Assert.Equal(5.0f, vec4.Z);
         Assert.Equal(6.0f, vec4.W);
     }
+
+    [Fact]
+    public void TestInt4SizeInBytes()
+    {
+        Assert.Equal(16, Int4.SizeInBytes);
+    }
+
+    [Fact]
+    public void TestInt4ToArray()
+    {
+        var v = new Int4(-7, 13, -21, 4);
+        var arr = v.ToArray();
+        Assert.Equal(4, arr.Length);
+        Assert.Equal(-7, arr[0]);
+        Assert.Equal(13, arr[1]);
+        Assert.Equal(-21, arr[2]);
+        Assert.Equal(4, arr[3]);
+    }
+
+    [Fact]
+    public void TestInt4AddSubtractStaticValueOverloads()
+    {
+        var v1 = new Int4(-6, 9, 2, -3);
+        var v2 = new Int4(4, -11, 5, 7);
+
+        var sum = Int4.Add(v1, v2);
+        Assert.Equal(-2, sum.X);
+        Assert.Equal(-2, sum.Y);
+        Assert.Equal(7, sum.Z);
+        Assert.Equal(4, sum.W);
+
+        var diff = Int4.Subtract(v1, v2);
+        Assert.Equal(-10, diff.X);
+        Assert.Equal(20, diff.Y);
+        Assert.Equal(-3, diff.Z);
+        Assert.Equal(-10, diff.W);
+    }
+
+    [Fact]
+    public void TestInt4UnaryPlus()
+    {
+        var v = new Int4(-4, 9, -1, 6);
+        var result = +v;
+        Assert.Equal(v, result);
+    }
+
+    [Fact]
+    public void TestInt4NegateStaticValueOverload()
+    {
+        var v = new Int4(-13, 21, 0, -8);
+        var result = Int4.Negate(v);
+        Assert.Equal(13, result.X);
+        Assert.Equal(-21, result.Y);
+        Assert.Equal(0, result.Z);
+        Assert.Equal(8, result.W);
+    }
+
+    [Fact]
+    public void TestInt4Modulate()
+    {
+        var v1 = new Int4(-6, 7, 3, -2);
+        var v2 = new Int4(3, -4, -5, -6);
+        var result = Int4.Modulate(v1, v2);
+        Assert.Equal(-18, result.X);
+        Assert.Equal(-28, result.Y);
+        Assert.Equal(-15, result.Z);
+        Assert.Equal(12, result.W);
+
+        Int4.Modulate(ref v1, ref v2, out var result2);
+        Assert.Equal(result, result2);
+    }
+
+    [Fact]
+    public void TestInt4EqualsObject()
+    {
+        var v1 = new Int4(-3, 8, 5, -9);
+        object v2 = new Int4(-3, 8, 5, -9);
+        object v3 = new Int4(1, 2, 3, 4);
+        object notInt4 = "not an Int4";
+
+        Assert.True(v1.Equals(v2));
+        Assert.False(v1.Equals(v3));
+        Assert.False(v1.Equals(notInt4));
+        Assert.False(v1.Equals((object?)null));
+    }
+
+    [Fact]
+    public void TestInt4ExplicitConversions()
+    {
+        var v = new Int4(-6, 11, 4, -9);
+
+        var vec2 = (Vector2)v;
+        Assert.Equal(-6.0f, vec2.X);
+        Assert.Equal(11.0f, vec2.Y);
+
+        var vec3 = (Vector3)v;
+        Assert.Equal(-6.0f, vec3.X);
+        Assert.Equal(11.0f, vec3.Y);
+        Assert.Equal(4.0f, vec3.Z);
+    }
+
+    [Fact]
+    public void TestInt4SystemNumericsVector4Conversion()
+    {
+        var sysVec = new System.Numerics.Vector4(-2.9f, 7.4f, 3.6f, -1.2f);
+        var v = (Int4)sysVec;
+        Assert.Equal(-2, v.X);
+        Assert.Equal(7, v.Y);
+        Assert.Equal(3, v.Z);
+        Assert.Equal(-1, v.W);
+
+        var backToSys = (System.Numerics.Vector4)v;
+        Assert.Equal(-2.0f, backToSys.X);
+        Assert.Equal(7.0f, backToSys.Y);
+        Assert.Equal(3.0f, backToSys.Z);
+        Assert.Equal(-1.0f, backToSys.W);
+    }
+
+    [Fact]
+    public void TestInt4ImplicitArrayConversions()
+    {
+        int[] input = [-7, 13, -21, 4];
+        Int4 v = input;
+        Assert.Equal(-7, v.X);
+        Assert.Equal(13, v.Y);
+        Assert.Equal(-21, v.Z);
+        Assert.Equal(4, v.W);
+
+        int[] output = v;
+        Assert.Equal(input, output);
+    }
+
+    [Fact]
+    public void TestInt4Deconstruct()
+    {
+        var v = new Int4(7, -8, 9, -10);
+        var (x, y, z, w) = v;
+        Assert.Equal(7, x);
+        Assert.Equal(-8, y);
+        Assert.Equal(9, z);
+        Assert.Equal(-10, w);
+    }
 }

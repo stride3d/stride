@@ -3,6 +3,7 @@
 
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using BepuPhysics;
 using BepuPhysics.Collidables;
 using BepuPhysics.Trees;
@@ -518,7 +519,7 @@ public abstract class CollidableComponent : EntityComponent
         }
         else
         {
-            Vector3 scale;
+            Unsafe.SkipInit(out Vector3 scale);
             scale.X = entityTransform.LocalMatrix.Right.Length();
             scale.Y = entityTransform.LocalMatrix.Up.Length();
             scale.Z = entityTransform.LocalMatrix.Backward.Length();

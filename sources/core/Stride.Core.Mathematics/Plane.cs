@@ -43,7 +43,7 @@ public struct Plane : IEquatable<Plane>, ISpanFormattable, IIntersectableWithRay
     /// <summary>
     /// The normal vector of the plane.
     /// </summary>
-    public Vector3 Normal;
+    public Vector3 Normal = System.Numerics.Vector3.Zero;
 
     /// <summary>
     /// The distance of the plane along its normal from the origin.
@@ -315,6 +315,7 @@ public struct Plane : IEquatable<Plane>, ISpanFormattable, IIntersectableWithRay
     /// <param name="result">When the method completes, contains the scaled plane.</param>
     public static void Multiply(ref readonly Plane value, float scale, out Plane result)
     {
+        Unsafe.SkipInit(out result);
         result.Normal.X = value.Normal.X * scale;
         result.Normal.Y = value.Normal.Y * scale;
         result.Normal.Z = value.Normal.Z * scale;
@@ -437,6 +438,7 @@ public struct Plane : IEquatable<Plane>, ISpanFormattable, IIntersectableWithRay
     {
         float magnitude = 1.0f / MathF.Sqrt((normalX * normalX) + (normalY * normalY) + (normalZ * normalZ));
 
+        result = default;
         result.Normal.X = normalX * magnitude;
         result.Normal.Y = normalY * magnitude;
         result.Normal.Z = normalZ * magnitude;
@@ -452,6 +454,7 @@ public struct Plane : IEquatable<Plane>, ISpanFormattable, IIntersectableWithRay
     {
         float magnitude = 1.0f / MathF.Sqrt((plane.Normal.X * plane.Normal.X) + (plane.Normal.Y * plane.Normal.Y) + (plane.Normal.Z * plane.Normal.Z));
 
+        result = default;
         result.Normal.X = plane.Normal.X * magnitude;
         result.Normal.Y = plane.Normal.Y * magnitude;
         result.Normal.Z = plane.Normal.Z * magnitude;
@@ -476,6 +479,7 @@ public struct Plane : IEquatable<Plane>, ISpanFormattable, IIntersectableWithRay
     /// <param name="result">When the method completes, contains the flipped plane.</param>
     public static void Negate(ref readonly Plane plane, out Plane result)
     {
+        result = default;
         result.Normal.X = -plane.Normal.X;
         result.Normal.Y = -plane.Normal.Y;
         result.Normal.Z = -plane.Normal.Z;
@@ -517,6 +521,7 @@ public struct Plane : IEquatable<Plane>, ISpanFormattable, IIntersectableWithRay
         float y = plane.Normal.Y;
         float z = plane.Normal.Z;
 
+        result = default;
         result.Normal.X = ((x * ((1.0f - yy) - zz)) + (y * (xy - wz))) + (z * (xz + wy));
         result.Normal.Y = ((x * (xy + wz)) + (y * ((1.0f - xx) - zz))) + (z * (yz - wx));
         result.Normal.Z = ((x * (xz - wy)) + (y * (yz + wx))) + (z * ((1.0f - xx) - yy));
@@ -549,6 +554,7 @@ public struct Plane : IEquatable<Plane>, ISpanFormattable, IIntersectableWithRay
         float y = plane.Normal.Y;
         float z = plane.Normal.Z;
 
+        result = default;
         result.Normal.X = ((x * ((1.0f - yy) - zz)) + (y * (xy - wz))) + (z * (xz + wy));
         result.Normal.Y = ((x * (xy + wz)) + (y * ((1.0f - xx) - zz))) + (z * (yz - wx));
         result.Normal.Z = ((x * (xz - wy)) + (y * (yz + wx))) + (z * ((1.0f - xx) - yy));
@@ -612,6 +618,7 @@ public struct Plane : IEquatable<Plane>, ISpanFormattable, IIntersectableWithRay
 
         Matrix.Invert(in transformation, out var inverse);
 
+        result = default;
         result.Normal.X = (((x * inverse.M11) + (y * inverse.M12)) + (z * inverse.M13)) + (d * inverse.M14);
         result.Normal.Y = (((x * inverse.M21) + (y * inverse.M22)) + (z * inverse.M23)) + (d * inverse.M24);
         result.Normal.Z = (((x * inverse.M31) + (y * inverse.M32)) + (z * inverse.M33)) + (d * inverse.M34);
@@ -633,6 +640,7 @@ public struct Plane : IEquatable<Plane>, ISpanFormattable, IIntersectableWithRay
         float d = plane.D;
 
         transformation.Invert();
+        result = default;
         result.Normal.X = (((x * transformation.M11) + (y * transformation.M12)) + (z * transformation.M13)) + (d * transformation.M14);
         result.Normal.Y = (((x * transformation.M21) + (y * transformation.M22)) + (z * transformation.M23)) + (d * transformation.M24);
         result.Normal.Z = (((x * transformation.M31) + (y * transformation.M32)) + (z * transformation.M33)) + (d * transformation.M34);

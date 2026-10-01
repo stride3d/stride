@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Runtime.CompilerServices;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Particles.DebugDraw;
@@ -141,6 +142,7 @@ namespace Stride.Particles.Updaters.FieldShapes
             var distR = Math.Abs(maxDist - fieldRadius);
             var distY = Math.Abs(particlePosition.Y - surfaceY);
 
+            Unsafe.SkipInit(out surfacePoint);
             if (distR <= distY)
             {
                 surfacePoint = roundSurface;

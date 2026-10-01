@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using Stride.Core;
 using Stride.Core.Collections;
 using Stride.Core.Mathematics;
@@ -126,7 +127,7 @@ namespace Stride.Engine
             get
             {
                 var rotation = Rotation;
-                Vector3 rotationEuler;
+                Unsafe.SkipInit(out Vector3 rotationEuler);
 
                 // Equivalent to:
                 //  Matrix rotationMatrix;

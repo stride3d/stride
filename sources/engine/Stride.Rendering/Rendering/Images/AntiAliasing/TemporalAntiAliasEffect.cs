@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
@@ -85,7 +86,7 @@ namespace Stride.Rendering.Images
         {
             base.UpdateParameters();
 
-            Vector2 jitterPixels;
+            Unsafe.SkipInit(out Vector2 jitterPixels);
 
             jitteringFrameCount++;
             jitteringFrameCount %= 16;
