@@ -31,6 +31,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.Intrinsics;
 
 namespace Stride.Core.Mathematics;
 
@@ -525,10 +526,11 @@ public struct Vector3 : IEquatable<Vector3>, ISpanFormattable
     public static unsafe T BilinearSample<T>(Vector3 coord, Int3 textureSize, T* texture) where T : unmanaged, IMultiplyOperators<T, float, T>, IAdditionOperators<T, T, T>
     {
         var texSizeXY = textureSize.X * textureSize.Y;
-        
-        var min = Floor(coord);
-        var cellFrac = coord - min;
-        var cellInvFrac = new Vector3(1) - cellFrac;
+
+        var coordN = (System.Numerics.Vector3)coord;
+        var min = System.Numerics.Vector3.Round(coordN, MidpointRounding.ToNegativeInfinity);
+        var cellFrac = coordN - min;
+        var cellInvFrac = new System.Numerics.Vector3(1) - cellFrac;
 
         int x0 = MathUtil.Mod((int)min.X, textureSize.X);
         int y0 = MathUtil.Mod((int)min.Y, textureSize.Y) * textureSize.X;
@@ -538,8 +540,10 @@ public struct Vector3 : IEquatable<Vector3>, ISpanFormattable
         int y1 = y0 + textureSize.X == texSizeXY ? 0 : y0 + textureSize.X;
         int z1 = z0 + texSizeXY == texSizeXY * textureSize.Z ? 0 : z0 + texSizeXY;
 
-        var weightXY = new System.Numerics.Vector4(cellInvFrac.X, cellInvFrac.X, cellFrac.X, cellFrac.X)
-                       * new System.Numerics.Vector4(cellInvFrac.Y, cellFrac.Y, cellInvFrac.Y, cellFrac.Y);
+        var iFracXYFracXY = cellInvFrac.AsVector128().WithLower(cellFrac.AsVector128().GetUpper()).AsVector4();
+        var weightXY = System.Numerics.Vector4.Shuffle(iFracXYFracXY, 0, 0, 2, 2)
+                       * System.Numerics.Vector4.Shuffle(iFracXYFracXY, 1, 3, 1, 3);
+
         var weight0 = weightXY * cellInvFrac.Z;
         var weight1 = weightXY * cellFrac.Z;
         
@@ -570,10 +574,11 @@ public struct Vector3 : IEquatable<Vector3>, ISpanFormattable
     public static unsafe float BilinearSample(Vector3 coord, Int3 textureSize, float* texture)
     {
         var texSizeXY = textureSize.X * textureSize.Y;
-        
-        var min = Floor(coord);
-        var cellFrac = coord - min;
-        var cellInvFrac = new Vector3(1) - cellFrac;
+
+        var coordN = (System.Numerics.Vector3)coord;
+        var min = System.Numerics.Vector3.Round(coordN, MidpointRounding.ToNegativeInfinity);
+        var cellFrac = coordN - min;
+        var cellInvFrac = new System.Numerics.Vector3(1) - cellFrac;
 
         int x0 = MathUtil.Mod((int)min.X, textureSize.X);
         int y0 = MathUtil.Mod((int)min.Y, textureSize.Y) * textureSize.X;
@@ -584,8 +589,9 @@ public struct Vector3 : IEquatable<Vector3>, ISpanFormattable
         int y1 = y0 + textureSize.X == texSizeXY ? 0 : y0 + textureSize.X;
         int z1 = z0 + texSizeXY == texSizeXY * textureSize.Z ? 0 : z0 + texSizeXY;
 
-        var weightXY = new System.Numerics.Vector4(cellInvFrac.X, cellInvFrac.X, cellFrac.X, cellFrac.X)
-                       * new System.Numerics.Vector4(cellInvFrac.Y, cellFrac.Y, cellInvFrac.Y, cellFrac.Y);
+        var iFracXYFracXY = cellInvFrac.AsVector128().WithLower(cellFrac.AsVector128().GetUpper()).AsVector4();
+        var weightXY = System.Numerics.Vector4.Shuffle(iFracXYFracXY, 0, 0, 2, 2)
+                       * System.Numerics.Vector4.Shuffle(iFracXYFracXY, 1, 3, 1, 3);
 
         var sz0 = new System.Numerics.Vector4(texture[x0 + y0 + z0], texture[x0 + y1 + z0], texture[x1 + y0 + z0], texture[x1 + y1 + z0]);
         var sz1 = new System.Numerics.Vector4(texture[x0 + y0 + z1], texture[x0 + y1 + z1], texture[x1 + y0 + z1], texture[x1 + y1 + z1]);
