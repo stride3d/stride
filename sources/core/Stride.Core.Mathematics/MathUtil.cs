@@ -27,6 +27,7 @@
 * THE SOFTWARE.
 */
 
+using System.Numerics;
 using System.Runtime.CompilerServices;
 
 namespace Stride.Core.Mathematics;
@@ -705,5 +706,144 @@ public static class MathUtil
     public static double ExpDecay(double a, double b, double lambda, double dt)
     {
         return b + ((a - b) * Math.Exp(-lambda * dt));
+    }
+                  
+    /// <summary>
+    /// Returns the minimum value contained in <paramref name="values"/>
+    /// </summary>
+    /// <remarks>
+    /// Maybe simd accelerated if the type and architecture supports it
+    /// </remarks>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="values"/> is empty</exception>
+    public static T FindMin<T>(ReadOnlySpan<T> values) where T : INumber<T>
+    {
+        ArgumentOutOfRangeException.ThrowIfEqual(values.Length, 0);
+
+        if (Vector<T>.IsSupported == false)
+        {
+            T min = values[0];
+            for (int i = 1; i < values.Length; i++)
+                min = T.Min(min, values[i]);
+            return min;
+        }
+        else
+        {
+            int vWidth = Vector<T>.Count;
+
+            var vectorMin = new Vector<T>(values);
+            int i = vWidth;
+
+            for (; i + vWidth <= values.Length; i += vWidth)
+            {
+                var current = new Vector<T>(values[i..]);
+                vectorMin = Vector.Min(vectorMin, current);
+            }
+
+            T min = vectorMin[0];
+
+            for (int dim = 1; dim < vWidth; dim++)
+                min = T.Min(min, vectorMin[dim]);
+
+            for (; i < values.Length; i++)
+                min = T.Min(min, values[i]);
+
+            return min;
+        }
+    }
+    
+    /// <summary>
+    /// Returns the maximum value contained in <paramref name="values"/>
+    /// </summary>
+    /// <remarks>
+    /// Maybe simd accelerated if the type and architecture supports it
+    /// </remarks>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="values"/> is empty</exception>
+    public static T FindMax<T>(ReadOnlySpan<T> values) where T : INumber<T>
+    {
+        ArgumentOutOfRangeException.ThrowIfEqual(values.Length, 0);
+
+        if (Vector<T>.IsSupported == false)
+        {
+            T max = values[0];
+            for (int i = 1; i < values.Length; i++)
+                max = T.Max(max, values[i]);
+            return max;
+        }
+        else
+        {
+            int vWidth = Vector<T>.Count;
+
+            var vectorMax = new Vector<T>(values);
+            int i = vWidth;
+
+            for (; i + vWidth <= values.Length; i += vWidth)
+            {
+                var current = new Vector<T>(values[i..]);
+                vectorMax = Vector.Max(vectorMax, current);
+            }
+
+            T max = vectorMax[0];
+
+            for (int dim = 1; dim < vWidth; dim++)
+                max = T.Max(max, vectorMax[dim]);
+
+            for (; i < values.Length; i++)
+                max = T.Max(max, values[i]);
+
+            return max;
+        }
+    }
+    
+    /// <summary>
+    /// Returns the maximum value contained in <paramref name="values"/>
+    /// </summary>
+    /// <remarks>
+    /// Maybe simd accelerated if the type and architecture supports it
+    /// </remarks>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="values"/> is empty</exception>
+    public static void FindMinMax<T>(ReadOnlySpan<T> values, out T min, out T max) where T : INumber<T>
+    {
+        ArgumentOutOfRangeException.ThrowIfEqual(values.Length, 0);
+
+        if (Vector<T>.IsSupported == false)
+        {
+            min = max = values[0];
+            for (int i = 1; i < values.Length; i++)
+            {
+                min = T.Min(min, values[i]);
+                max = T.Max(max, values[i]);
+            }
+        }
+        else
+        {
+            int vWidth = Vector<T>.Count;
+
+            var vectorMin = new Vector<T>(values);
+            var vectorMax = new Vector<T>(values);
+            int i = vWidth;
+
+            for (; i + vWidth <= values.Length; i += vWidth)
+            {
+                var span = values[i..];
+                var current = new Vector<T>(span);
+                vectorMin = Vector.Min(vectorMin, current);
+                vectorMax = Vector.Max(vectorMax, current);
+            }
+
+            min = vectorMin[0];
+            max = vectorMax[0];
+
+            for (int dim = 1; dim < vWidth; dim++)
+            {
+                min = T.Min(min, vectorMin[dim]);
+                max = T.Max(max, vectorMax[dim]);
+            }
+
+            for (; i < values.Length; i++)
+            {
+                min = T.Min(min, values[i]);
+                max = T.Max(max, values[i]);
+            }
+        }
     }
 }
