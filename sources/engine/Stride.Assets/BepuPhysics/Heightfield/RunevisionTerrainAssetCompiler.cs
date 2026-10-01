@@ -79,16 +79,14 @@ internal class RunevisionTerrainAssetCompiler : AssetCompilerBase
 
             var heightSampler = Parameters.HeightInput.BuildSampler();
 
-            await Task.Run(() =>
-            {
-                var parallelOptions = new ParallelOptions
-                {
-                    MaxDegreeOfParallelism = Environment.ProcessorCount > 1 ? Environment.ProcessorCount / 2 : 1
-                };
+            var cancellationToken = commandContext.CurrentCommand.CancellationToken;
 
-                // Using parallel instead of the dispatcher as this could take a while
-                Parallel.For(0, Parameters.Resolution, parallelOptions, y =>
+            await DispatcherLowPriority.ForBatchedAsync(Parameters.Resolution, (yStart, yEnd) =>
+            {
+                for (int y = yStart; y < yEnd; y++)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     float min = float.PositiveInfinity;
                     float max = float.NegativeInfinity;
                     // Taking span to elide bounds check
@@ -103,36 +101,46 @@ internal class RunevisionTerrainAssetCompiler : AssetCompilerBase
                     }
                     minCollector.Add(min);
                     maxCollector.Add(max);
-                });
+                }
+            });
 
-                minCollector.Close();
-                maxCollector.Close();
-                float min = float.PositiveInfinity;
-                float max = float.NegativeInfinity;
-                foreach (var x in minCollector)
-                    min = MathF.Min(x, min);
-                foreach (var x in maxCollector)
-                    max = MathF.Max(x, max);
+            minCollector.Close();
+            maxCollector.Close();
+            float min = float.PositiveInfinity;
+            float max = float.NegativeInfinity;
+            foreach (var x in minCollector)
+                min = MathF.Min(x, min);
+            foreach (var x in maxCollector)
+                max = MathF.Max(x, max);
 
-                switch (Parameters.Normalization)
-                {
-                    case RunevisionTerrainAsset.NormalizationMethod.None:
-                        break;
-                    case RunevisionTerrainAsset.NormalizationMethod.Root:
-                        Parallel.For(0, Parameters.Resolution, parallelOptions, y =>
+            switch (Parameters.Normalization)
+            {
+                case RunevisionTerrainAsset.NormalizationMethod.None:
+                    break;
+                case RunevisionTerrainAsset.NormalizationMethod.Root:
+                    await DispatcherLowPriority.ForBatchedAsync(Parameters.Resolution, (yStart, yEnd) =>
+                    {
+                        for (int y = yStart; y < yEnd; y++)
                         {
+                            cancellationToken.ThrowIfCancellationRequested();
+
                             var span = samples.AsSpan(y * Parameters.Resolution, Parameters.Resolution);
                             for (int x = 0; x < span.Length; x++)
                             {
                                 ref var v = ref span[x];
                                 v.Height -= min;
                             }
-                        });
-                        break;
-                    case RunevisionTerrainAsset.NormalizationMethod.Normalize:
-                        float range = max - min;
-                        Parallel.For(0, Parameters.Resolution, parallelOptions, y =>
+                        }
+                    });
+                    break;
+                case RunevisionTerrainAsset.NormalizationMethod.Normalize:
+                    float range = max - min;
+                    await DispatcherLowPriority.ForBatchedAsync(Parameters.Resolution, (yStart, yEnd) =>
+                    {
+                        for (int y = yStart; y < yEnd; y++)
                         {
+                            cancellationToken.ThrowIfCancellationRequested();
+
                             var span = samples.AsSpan(y * Parameters.Resolution, Parameters.Resolution);
                             for (int x = 0; x < span.Length; x++)
                             {
@@ -140,28 +148,38 @@ internal class RunevisionTerrainAssetCompiler : AssetCompilerBase
                                 v.Height -= min;
                                 v.Height /= range;
                             }
-                        });
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
+                        }
+                    });
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
 
-                // ReSharper disable once CompareOfFloatsByEqualityOperator
-                if (Parameters.Height != 1)
+            // ReSharper disable once CompareOfFloatsByEqualityOperator
+            if (Parameters.Height != 1)
+            {
+                await DispatcherLowPriority.ForBatchedAsync(Parameters.Resolution, (yStart, yEnd) =>
                 {
-                    Parallel.For(0, Parameters.Resolution, parallelOptions, y =>
+                    for (int y = yStart; y < yEnd; y++)
                     {
+                        cancellationToken.ThrowIfCancellationRequested();
+
                         var span = samples.AsSpan(y * Parameters.Resolution, Parameters.Resolution);
                         for (int x = 0; x < span.Length; x++)
                         {
                             ref var v = ref span[x];
                             v.Height *= Parameters.Height;
                         }
-                    });
-                }
+                    }
+                });
+            }
 
-                Parallel.For(0, Parameters.Resolution, parallelOptions, y =>
+            await DispatcherLowPriority.ForBatchedAsync(Parameters.Resolution, (yStart, yEnd) =>
+            {
+                for (int y = yStart; y < yEnd; y++)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     var spanSamples = samples.AsSpan(y * Parameters.Resolution, Parameters.Resolution);
                     var spanPacked = dataPacked.AsSpan(y * Parameters.Resolution, Parameters.Resolution);
 
@@ -182,8 +200,10 @@ internal class RunevisionTerrainAssetCompiler : AssetCompilerBase
                             };
                         }
                     }
-                });
+                }
             });
+
+            cancellationToken.ThrowIfCancellationRequested();
 
             unsafe
             {
