@@ -510,16 +510,22 @@ public static partial class RunevisionTerrainErosion
     {
         /// <summary>
         /// Control over whether the erosion effect raises or lowers the terrain.
+        /// <list type="bullet">
+        /// <item>
         ///  x: An offset value between -1 and 1, where a value of -1 only lowers, while
         ///     1 only raises. The offset is proportional to the erosion strength
         ///     parameter, so if that parameter is the same for the entire terrain, the
         ///     effect of the height offset will move the entire terrain surface up or
         ///     down by the same emount.
+        /// </item>
+        /// <item>
         ///  y: A value between 0 and 1 which is the degree to which the offset value is
         ///     replaced by the negated erosion fade target value. This has the effect
         ///     of only raising at valleys and only lowering at peaks, which, due to how
         ///     the erosion filter works, has the effect of largely preserving the minima
         ///     and maxima of the terrain.
+        /// </item>
+        /// </list>
         /// </summary>
         public Vector2 TerrainHeightOffset = new Vector2(-0.65f, 0.0f);
 
@@ -569,23 +575,43 @@ public static partial class RunevisionTerrainErosion
 
             /// <summary>
             /// Separate rounding control of ridges and creases.
+            /// <list type="bullet">
+            /// <item>
             ///  x: Rounding of ridges.
+            /// </item>
+            /// <item>
             ///  y: Rounding of creases.
+            /// </item>
+            /// <item>
             ///  z: Multiplier applied to the initial height function.
             ///     E.g. if the height function has noise of 5 times lower frequency
             ///     than the largest gullies, a value of 0.2f can compensate for that.
+            /// </item>
+            /// <item>
             ///  w: Multiplier applied to each subsequent gully octave after the first.
             ///     Setting it to the same value as the erosion lacunarity will produce
             ///     consistent rounding of all octaves.
+            /// </item>
+            /// </list>
             /// </summary>
             public Vector4 Rounding = new Vector4(0.1f, 0.0f, 0.1f, 2.0f);
 
             /// <summary>
             /// Control over how far away from ridges/creases the erosion takes effect.
+            /// <list type="bullet">
+            /// <item>
             ///  x: Onset used on the initial height function.
+            /// </item>
+            /// <item>
             ///  y: Onset used on each gully octave.
+            /// </item>
+            /// <item>
             ///  z: RidgeMap-specific onset used on the initial height function.
+            /// </item>
+            /// <item>
             ///  w: RidgeMap-specific onset used on each gully octave.
+            /// </item>
+            /// </list>
             /// </summary>
             public Vector4 Onset = new Vector4(1.25f, 1.25f, 2.8f, 1.5f);
 
@@ -593,8 +619,14 @@ public static partial class RunevisionTerrainErosion
             /// Control over the assumed slope of the initial height function.
             /// In practise, assuming a slope can work better than using the input slope,
             /// since the final terrain can be shaped quite differently than the input.
+            /// <list type="bullet">
+            /// <item>
             ///  x: An assumed slope value to override the actual slope.
+            /// </item>
+            /// <item>
             ///  y: The amount (from 0 to 1) to override the actual slope.
+            /// </item>
+            /// </list>
             /// </summary>
             public Vector2 AssumedSlope = new Vector2(0.7f, 1.0f);
 

@@ -19,5 +19,5 @@ public interface IHeightfieldRuntimeLayer
     /// <summary>
     /// Returns the material-side displacement matching what <see cref="BuildHeightfieldFunction"/> would output for the physics-side
     /// </summary>
-    IComputeScalar BuildGPUSideSampler(MaterialGeneratorContext context);
+    IComputeScalar BuildGpuSideSampler(MaterialGeneratorContext context);
 }

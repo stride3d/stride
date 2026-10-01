@@ -136,7 +136,7 @@ public class HeightfieldModelComponent : EntityComponent
                 var cellSize = planeSize / heightfieldRendering.Tessellation;
                 mat.Passes[0].Parameters.Set(HeightfieldDisplacementPropertiesKeys.PlaneCellSize, cellSize);
                 mat.Passes[0].Parameters.Set(HeightfieldDisplacementPropertiesKeys.PlaneSize, planeSize);
-                mat.Passes[0].Parameters.Set(HeightfieldDisplacementPropertiesKeys.FieldSize, heightfieldRendering.Source.Size);
+                mat.Passes[0].Parameters.Set(HeightfieldDisplacementPropertiesKeys.HeightfieldSize, heightfieldRendering.Source.Size);
             }
         }
 

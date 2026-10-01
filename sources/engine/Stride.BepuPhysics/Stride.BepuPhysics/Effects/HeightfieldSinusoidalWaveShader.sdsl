@@ -7,7 +7,7 @@ namespace Stride.BepuPhysics
     {
         override float4 Compute()
         {
-            float uvCellSize = PlaneCellSize / FieldSize;
+            float uvCellSize = PlaneCellSize / HeightfieldSize;
             float2 uv = streams.TexCoord;
             uv -= uvCellSize * 0.5; // Undo texture-specific centroid offset setup in HeightfieldDisplacement
             return sin(uv.x * TilingX) * cos(uv.y * TilingY);

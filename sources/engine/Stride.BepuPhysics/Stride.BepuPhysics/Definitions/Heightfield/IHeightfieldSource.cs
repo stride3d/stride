@@ -40,5 +40,5 @@ public interface IHeightfieldSource
     /// <summary>
     /// Returns the material-side displacement matching what <see cref="GetColliderData"/> would provide on the physics-side
     /// </summary>
-    IComputeScalar BuildGPUSideSampler(MaterialGeneratorContext context);
+    IComputeScalar BuildGpuSideSampler(MaterialGeneratorContext context);
 }

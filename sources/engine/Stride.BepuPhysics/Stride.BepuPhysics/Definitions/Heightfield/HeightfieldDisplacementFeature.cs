@@ -61,7 +61,7 @@ public class HeightfieldDisplacementFeature : MaterialFeature, IMaterialDisplace
 
         // Workaround to inform compute colors that sampling is occurring from a vertex shader
         context.IsNotPixelStage = materialStage != MaterialShaderStage.Pixel;
-        var inner = source.BuildGPUSideSampler(context);
+        var inner = source.BuildGpuSideSampler(context);
         var innerShaderSource = inner.GenerateShaderSource(context, new MaterialComputeColorKeys(MaterialKeys.DisplacementMap, MaterialKeys.DisplacementValue));
         context.IsNotPixelStage = false;
 

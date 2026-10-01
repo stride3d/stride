@@ -18,7 +18,8 @@ namespace Stride.BepuPhysics.Definitions.Heightfield.Assets;
 /// Concat multiple heightfields together multiplicatively 
 /// </summary>
 [DataContract]
-public class Multiply : IHeightfieldLayerBuilder
+[Display("Multiply")]
+public class MultiplyOperator : IHeightfieldLayerBuilder
 {
     /// <summary>
     /// Each heightfield listed contributes multiplicatively to the final height 
@@ -55,7 +56,7 @@ public class Multiply : IHeightfieldLayerBuilder
     }
 
     /// <summary>
-    /// Post-compilation representation of a <see cref="Multiply"/>  
+    /// Post-compilation representation of a <see cref="MultiplyOperator"/>  
     /// </summary>
     [DataContract]
     public record RuntimeLayer : IHeightfieldRuntimeLayer
@@ -79,12 +80,12 @@ public class Multiply : IHeightfieldLayerBuilder
         }
 
         /// <inheritdoc/>
-        public IComputeScalar BuildGPUSideSampler(MaterialGeneratorContext context)
+        public IComputeScalar BuildGpuSideSampler(MaterialGeneratorContext context)
         {
             IComputeScalar? prev = null;
             foreach (var layer in Layers)
             {
-                var newSampler = layer.BuildGPUSideSampler(context);
+                var newSampler = layer.BuildGpuSideSampler(context);
                 if (prev is null)
                     prev = newSampler;
                 else

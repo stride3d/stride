@@ -287,7 +287,7 @@ public record HeightfieldTexture : HeightfieldTextureSharedData, IHeightfieldLay
         }
 
         /// <inheritdoc/>
-        public IComputeScalar BuildGPUSideSampler(MaterialGeneratorContext context)
+        public IComputeScalar BuildGpuSideSampler(MaterialGeneratorContext context)
         {
             if (Texture == null! || string.IsNullOrEmpty(Texture.Url))
                 return new ComputeFloat(HeightMultiplier);

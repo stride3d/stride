@@ -60,13 +60,13 @@ public record SinusoidalWave : SinusoidalWaveSharedData, IHeightfieldLayerBuilde
         }
 
         /// <inheritdoc/>
-        public IComputeScalar BuildGPUSideSampler(MaterialGeneratorContext context)
+        public IComputeScalar BuildGpuSideSampler(MaterialGeneratorContext context)
         {
             return new ComputeBinaryScalar(new Shader{ Tiling = Tiling }, new ComputeFloat(HeightMultiplier), BinaryOperator.Multiply);
         }
 
         /// <summary>
-        /// Shader used by <see cref="RuntimeLayer.BuildGPUSideSampler"/> to offset the vertices of the heightfield mesh through the material system.
+        /// Shader used by <see cref="RuntimeLayer.BuildGpuSideSampler"/> to offset the vertices of the heightfield mesh through the material system.
         /// Matches the physics-side representation of the wave.
         /// </summary>
         [DataContract]
