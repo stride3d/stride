@@ -27,7 +27,7 @@ namespace Stride.Input
             GameControllerDevice = controller;
         }
 
-        public override GamePadState State => state;
+        protected override GamePadState RawState => state;
 
         public override void Update(List<InputEvent> inputEvents)
         {

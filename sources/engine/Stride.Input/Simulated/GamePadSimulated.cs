@@ -13,14 +13,15 @@ namespace Stride.Input
             ProductId = new Guid("B540474D-F8CC-4D27-B57E-7E87272FD9E6");
             Id = Guid.NewGuid();
             Source = source;
-            State = new GamePadState();
         }
 
         public override string Name { get; }
         public override Guid Id { get; }
         public override IInputSource Source { get; }
         public override Guid ProductId { get; }
-        public override GamePadState State { get; }
+        protected override GamePadState RawState => state;
+
+        private GamePadState state;
 
         private List<InputEvent> pendingEvents = new List<InputEvent>();
 
@@ -50,7 +51,7 @@ namespace Stride.Input
 
             foreach (var evt in pendingEvents)
             {
-                State.Update(evt);
+                state.Update(evt);
 
                 var buttonEvent = evt as GamePadButtonEvent;
                 if (buttonEvent != null)

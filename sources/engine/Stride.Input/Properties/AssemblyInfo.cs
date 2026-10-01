@@ -20,3 +20,4 @@ using System.Runtime.InteropServices;
 
 [assembly: InternalsVisibleTo("Stride.Engine" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.UI" + Stride.PublicKeys.Default)]
+[assembly: InternalsVisibleTo("Stride.Input.Tests" + Stride.PublicKeys.Default)]
