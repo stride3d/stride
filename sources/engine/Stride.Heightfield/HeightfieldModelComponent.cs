@@ -18,7 +18,7 @@ namespace Stride.Heightfield;
 /// </summary>
 [DataContract("HeightfieldModelComponent")]
 [Display("Heightfield Model Component")]
-[ComponentCategory("Physics - Bepu")]
+[ComponentCategory("Model")]
 [DefaultEntityComponentProcessor(typeof(Processor))]
 public class HeightfieldModelComponent : EntityComponent
 {
