@@ -67,7 +67,9 @@ namespace Stride.Engine.Design
             /// <inheritdoc/>
             public override unsafe void SetBlittable(nint obj, nint data)
             {
-                var parameterCollection = UpdateEngineHelper.PointerToObject<ParameterCollection>(obj);
+#pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
+                var parameterCollection = (ParameterCollection)(*(object*)&obj);
+#pragma warning restore CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
 
                 var value = Unsafe.ReadUnaligned<T>((void*)data);
                 parameterCollection.Set(parameterKey, ref value);
@@ -82,7 +84,9 @@ namespace Stride.Engine.Design
             /// <inheritdoc/>
             public override unsafe nint GetStructAndUnbox(nint obj, object data)
             {
-                var parameterCollection = UpdateEngineHelper.PointerToObject<ParameterCollection>(obj);
+#pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
+                var parameterCollection = (ParameterCollection)(*(object*)&obj);
+#pragma warning restore CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
 
                 ref var valuePtr = ref Unsafe.Unbox<T>(data);
 
@@ -141,16 +145,20 @@ namespace Stride.Engine.Design
             }
 
             /// <inheritdoc/>
-            public override object GetObject(IntPtr obj)
+            public override unsafe object GetObject(IntPtr obj)
             {
-                var parameterCollection = UpdateEngineHelper.PointerToObject<ParameterCollection>(obj);
+#pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
+                var parameterCollection = (ParameterCollection)(*(object*)&obj);
+#pragma warning restore CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
                 return parameterCollection.GetObject(parameterKey);
             }
 
             /// <inheritdoc/>
-            public override void SetObject(IntPtr obj, object data)
+            public override unsafe void SetObject(IntPtr obj, object data)
             {
-                var parameterCollection = UpdateEngineHelper.PointerToObject<ParameterCollection>(obj);
+#pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
+                var parameterCollection = (ParameterCollection)(*(object*)&obj);
+#pragma warning restore CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
                 parameterCollection.SetObject(parameterKey, data);
             }
         }
