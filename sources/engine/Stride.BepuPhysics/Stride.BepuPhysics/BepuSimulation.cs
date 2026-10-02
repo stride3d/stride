@@ -12,7 +12,7 @@ using Stride.BepuPhysics.Components;
 using Stride.BepuPhysics.Definitions.Contacts;
 using Stride.BepuPhysics.Definitions.Raycast;
 using Stride.BepuPhysics.Definitions.SimTests;
-using Stride.BepuPhysics.Definitions.Heightfield;
+using Stride.Heightfield;
 using Stride.BepuPhysics.Definitions;
 using Stride.Core.Mathematics;
 using Stride.Core.Threading;
