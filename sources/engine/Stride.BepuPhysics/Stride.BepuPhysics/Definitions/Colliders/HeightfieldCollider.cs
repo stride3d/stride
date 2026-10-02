@@ -32,7 +32,7 @@ public sealed class HeightfieldCollider : ICollider
     /// </summary>
     [DataMember]
     [MemberRequired(ReportAs = MemberRequiredReportType.Error)]
-    public required IHeightfieldSource Source
+    public required IHeightfieldPhysicsSource Source
     {
         get;
         set
