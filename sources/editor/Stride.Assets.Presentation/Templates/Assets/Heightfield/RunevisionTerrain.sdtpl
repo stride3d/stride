@@ -5,5 +5,5 @@ Name: RunevisionTerrainAsset
 Scope: Asset
 Description: An heightmap with height in R, erosion in G, ridges in B and trees in A
 Group: Texture
-Icon: Icons\TODO.png
+Icon: ..\.sdtpl\Terrain.png
 DefaultOutputName: RunevisionTerrainAsset
