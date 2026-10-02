@@ -35,7 +35,7 @@ public record SinusoidalWave : SinusoidalWaveSharedData, IHeightfieldLayerBuilde
         {
             Tiling = Tiling,
             HeightMultiplier = HeightMultiplier,
-            FieldResolution = subdivision
+            HeightfieldResolution = subdivision
         };
         minHeight = -HeightMultiplier;
         maxHeight = HeightMultiplier;
@@ -50,12 +50,12 @@ public record SinusoidalWave : SinusoidalWaveSharedData, IHeightfieldLayerBuilde
         /// <summary>
         /// Matches the <see cref="IHeightfieldSource.Subdivision"/> this layer runs on
         /// </summary>
-        public required int FieldResolution { get; set; }
+        public required int HeightfieldResolution { get; set; }
 
         /// <inheritdoc/>
         public IHeightfieldFunction BuildHeightfieldFunction()
         {
-            var rezToBuff = (1f / FieldResolution) * Tiling;
+            var rezToBuff = (1f / HeightfieldResolution) * Tiling;
             return new Function(rezToBuff, HeightMultiplier);
         }
 

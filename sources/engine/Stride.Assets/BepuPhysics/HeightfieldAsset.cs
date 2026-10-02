@@ -20,7 +20,7 @@ public sealed class HeightfieldAsset : Asset
     private const string CurrentVersion = "1.0.0.0";
     public const string FileExtension = ".sdhf";
 
-    /// <inheritdoc cref="IHeightfieldSource.Size" />
+    /// <inheritdoc cref="Heightfield.Size" />
     /// <exception cref="ArgumentOutOfRangeException">When value is less than or equal to zero</exception>
     public float Size
     {
@@ -32,7 +32,7 @@ public sealed class HeightfieldAsset : Asset
         }
     } = 1024;
 
-    /// <inheritdoc cref="HeightfieldShape.Subdivision" />
+    /// <inheritdoc cref="Heightfield.Subdivision" />
     /// <exception cref="ArgumentOutOfRangeException">When value is less than or equal to zero</exception>
     public int Subdivision
     {

@@ -18,7 +18,7 @@ namespace Stride.BepuPhysics.Definitions.Heightfield.Assets;
 [ContentSerializer(typeof(DataContentSerializerWithReuse<Heightfield>))]
 [ReferenceSerializer, DataSerializerGlobal(typeof(ReferenceSerializer<Heightfield>), Profile = "Content")]
 [DataSerializerGlobal(typeof(CloneSerializer<Heightfield>), Profile = "Clone")]
-public class Heightfield : IHeightfieldSource
+public class Heightfield : IHeightfieldPhysicsSource, IHeightfieldRenderingSource
 {
     /// <inheritdoc cref="IHeightfieldSource.Size" />
     /// <exception cref="ArgumentOutOfRangeException">When value is less than or equal to zero</exception>
@@ -72,7 +72,7 @@ public class Heightfield : IHeightfieldSource
     [MemberRequired]
     public IHeightfieldRuntimeLayer TopmostLayer { get; set; } = null!;
 
-    /// <inheritdoc cref="IHeightfieldSource.GetColliderData" />
+    /// <inheritdoc cref="IHeightfieldPhysicsSource.GetColliderData" />
     public void GetColliderData(out IHeightfieldSampler sampler, out HeightRange[] coarseBlocks, out int coarseBlocksSubdivision)
     {
         sampler = TopmostLayer.BuildHeightfieldFunction();
@@ -80,7 +80,7 @@ public class Heightfield : IHeightfieldSource
         coarseBlocks = CoarseBlocks;
     }
 
-    /// <inheritdoc cref="IHeightfieldSource.BuildGpuSideSampler" />
+    /// <inheritdoc cref="IHeightfieldRenderingSource.BuildGpuSideSampler" />
     public IComputeScalar BuildGpuSideSampler(MaterialGeneratorContext context)
     {
         return TopmostLayer.BuildGpuSideSampler(context);

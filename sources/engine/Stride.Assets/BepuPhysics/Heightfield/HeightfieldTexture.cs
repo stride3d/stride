@@ -50,7 +50,7 @@ public record HeightfieldTexture : HeightfieldTextureSharedData, IHeightfieldLay
                 HeightMultiplier = HeightMultiplier,
                 Heights = new byte[32 * 32],
                 HeightsFormat = PixelFormat.R8_UNorm,
-                FieldSubdivision = subdivision
+                HeightfieldSubdivision = subdivision
             };
             minHeight = 0;
             maxHeight = 0;
@@ -191,7 +191,7 @@ public record HeightfieldTexture : HeightfieldTextureSharedData, IHeightfieldLay
                         HeightMultiplier = HeightMultiplier,
                         Heights = heights.ToArray(),
                         HeightsFormat = image.Description.Format,
-                        FieldSubdivision = subdivision
+                        HeightfieldSubdivision = subdivision
                     };
                 }
             }
@@ -244,7 +244,7 @@ public record HeightfieldTexture : HeightfieldTextureSharedData, IHeightfieldLay
         /// <summary>
         /// Matches the <see cref="IHeightfieldSource.Subdivision"/> this layer runs on
         /// </summary>
-        public required int FieldSubdivision { get; init; }
+        public required int HeightfieldSubdivision { get; init; }
 
         /// <inheritdoc/>
         public IHeightfieldFunction BuildHeightfieldFunction()
@@ -268,7 +268,7 @@ public record HeightfieldTexture : HeightfieldTextureSharedData, IHeightfieldLay
 
         private IHeightfieldFunction Build<T, TConv, TWrap>() where T : unmanaged where TConv : IFloatConverter<T> where TWrap : IWrapper
         {
-            var rezToBuff = ((Vector2)BufferResolution) / FieldSubdivision * Tiling;
+            var rezToBuff = ((Vector2)BufferResolution) / HeightfieldSubdivision * Tiling;
             var mask = BufferResolution - new Int2(1);
 
             bool oneCellPerPixel = MathUtil.NearEqual(rezToBuff.X, 1f) && MathUtil.NearEqual(rezToBuff.Y, 1f);

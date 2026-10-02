@@ -12,7 +12,8 @@ using AttachedReferenceManager = Stride.Core.Serialization.AttachedReferenceMana
 namespace Stride.BepuPhysics.Definitions.Heightfield;
 
 /// <summary>
-/// A variant of <see cref="MaterialDisplacementMapFeature"/> with a bunch of features dedicated to <see cref="IHeightfieldSource"/> and the <see cref="HeightfieldModelComponent"/>
+/// A variant of <see cref="MaterialDisplacementMapFeature"/> with a bunch of features dedicated to
+/// <see cref="IHeightfieldSource"/> and the <see cref="HeightfieldModelComponent"/>
 /// </summary>
 [DataContract("HeightfieldDisplacementFeature")]
 [Display("Heightfield Displacement Feature")]
@@ -21,7 +22,7 @@ public class HeightfieldDisplacementFeature : MaterialFeature, IMaterialDisplace
     /// <summary>
     /// The source for the heightfield being rendered
     /// </summary>
-    public required IHeightfieldSource HeightfieldSource { get; set; }
+    public required IHeightfieldRenderingSource HeightfieldSource { get; set; }
 
     /// <summary>
     /// Whether to compute the normals per vertex, has a significant performance overhead
@@ -49,7 +50,7 @@ public class HeightfieldDisplacementFeature : MaterialFeature, IMaterialDisplace
         if (context.Content.TryGetAssetUrl(source, out _) == false)
         {
             var url = AttachedReferenceManager.GetUrl(source);
-            source = (IHeightfieldSource)context.Content.Load(source.GetType(), url);
+            source = (IHeightfieldRenderingSource)context.Content.Load(source.GetType(), url);
         }
 
         var materialStage = (MaterialShaderStage)Stage;
