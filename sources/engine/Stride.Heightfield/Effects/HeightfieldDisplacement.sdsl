@@ -1,0 +1,62 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net).
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Heightfield
+{
+    shader HeightfieldDisplacement<MemberName TPosition, bool TComputeNormal, MemberName TNormal> : IMaterialSurface, HeightfieldDisplacementProperties, PositionStream, NormalStream, Transformation, Texturing
+    {
+        compose ComputeColor inner;
+
+        override void Compute()
+        {
+            float uvCellSize = PlaneCellSize / HeightfieldSize;
+
+            float2 offset = EyeMS.xz;
+            // Plane's 0,0,0 is at the lower left corner, we want to center the plane around the eye
+            offset -= PlaneSize * 0.5;
+
+            // Make sure the plane moves in quantized steps of PlaneCellSize.
+            // The grid is subdivided per vertex, when moving the mesh across unconstrained, vertices will gradually move up and down to
+            // match the height function. This is very distracting. Instead, we'll quantize the offset to ensure that it
+            // moves in a way were vertex n would have to move at least 'PlaneCellSize' units, taking the spot of a neighboring vertex
+            offset = floor(offset / PlaneCellSize) * PlaneCellSize;
+
+            // Clamp within the field's bounds
+            offset = clamp(offset, 0, HeightfieldSize - PlaneSize);
+
+            streams.TPosition.xyz *= PlaneSize;
+            streams.TPosition.xz += offset;
+
+            streams.TexCoord *= PlaneSize / HeightfieldSize;
+            streams.TexCoord += offset / HeightfieldSize;
+
+            // Prepare UV to sample texture centroid
+            streams.TexCoord += uvCellSize * 0.5;
+
+            float height = inner.Compute().x;
+
+            streams.TPosition.xyz += height * streams.TNormal.xyz;
+
+            if (TComputeNormal)
+            {
+                float2 s0;
+                float2 s1;
+                streams.TexCoord.x -= uvCellSize; s0.x = inner.Compute().x;
+                streams.TexCoord.x += uvCellSize * 2; s1.x = inner.Compute().x;
+
+                streams.TexCoord.x -= uvCellSize;
+
+                streams.TexCoord.y -= uvCellSize; s0.y = inner.Compute().x;
+                streams.TexCoord.y += uvCellSize * 2; s1.y = inner.Compute().x;
+
+                streams.TexCoord.y -= uvCellSize;
+
+                float3 normalsOut;
+                normalsOut.xz = (s0 - s1) / (2 * PlaneCellSize);
+                normalsOut.y = 1;
+
+                streams.TNormal.xyz = normalize(normalsOut);
+            }
+        }
+    };
+}

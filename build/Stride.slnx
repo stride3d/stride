@@ -81,6 +81,7 @@
     <Project Path="../sources/engine/Stride.Foundation/Stride.Foundation.csproj" />
     <Project Path="../sources/engine/Stride.Games/Stride.Games.csproj" />
     <Project Path="../sources/engine/Stride.Graphics/Stride.Graphics.csproj" />
+    <Project Path="../sources/engine/Stride.Heightfield/Stride.Heightfield.csproj" />
     <Project Path="../sources/engine/Stride.Input/Stride.Input.csproj" />
     <Project Path="../sources/engine/Stride.Native/Stride.Native.csproj" />
     <Project Path="../sources/engine/Stride.Navigation/Stride.Navigation.csproj" />

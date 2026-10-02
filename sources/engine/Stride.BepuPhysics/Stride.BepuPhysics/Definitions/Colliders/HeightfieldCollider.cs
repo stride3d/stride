@@ -7,7 +7,7 @@ using BepuPhysics;
 using BepuPhysics.Collidables;
 using BepuPhysics.Trees;
 using BepuUtilities.Memory;
-using Stride.BepuPhysics.Definitions.Heightfield;
+using Stride.Heightfield;
 using Stride.BepuPhysics.Systems;
 using Stride.Core;
 using Stride.Core.Annotations;

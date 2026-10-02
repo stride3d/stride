@@ -1,0 +1,9 @@
+!TemplateAssetFactory
+Id: 5ab767f1-29d1-4d40-ac7d-33c8fc8c408e
+AssetTypeName: RunevisionTerrainAsset
+Name: RunevisionTerrainAsset
+Scope: Asset
+Description: An heightmap with height in R, erosion in G, ridges in B and trees in A
+Group: Texture
+Icon: Icons\TODO.png
+DefaultOutputName: RunevisionTerrainAsset
