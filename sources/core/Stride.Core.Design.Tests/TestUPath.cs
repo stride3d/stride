@@ -309,16 +309,18 @@ public class TestUPath
         Assert.Equal(new UFile("c:/a/b.ext").GetComponents(), ["c:", "a", "b.ext"]);
     }
 
-    [Fact]
-    public void TestUPathEquals()
+    [Theory]
+    [InlineData("Assets/\u03C3.png", "Assets/\u03C2.png")]
+    public void TestUPathEquals(string leftPath, string rightPath)
     {
-        Assert.Equal(new UFile("Assets/\u03C3.png"), new UFile("Assets/\u03C2.png"));
+        Assert.Equal(new UFile(leftPath), new UFile(rightPath));
     }
 
-    [Fact]
-    public void TestUPathGetHashCode()
+    [Theory]
+    [InlineData("Assets/\u03C3.png", "Assets/\u03C2.png")]
+    public void TestUPathGetHashCode(string leftPath, string rightPath)
     {
-        Assert.Equal(new UFile("Assets/\u03C3.png").GetHashCode(), new UFile("Assets/\u03C2.png").GetHashCode());
+        Assert.Equal(new UFile(leftPath).GetHashCode(), new UFile(rightPath).GetHashCode());
     }
 
     [Fact]
