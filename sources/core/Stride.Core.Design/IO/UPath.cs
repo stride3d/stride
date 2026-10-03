@@ -63,7 +63,7 @@ public abstract class UPath : IEquatable<UPath>, IComparable
         }
 
         FullPath = Decode(filePath, isDirectory, out DriveSpan, out DirectorySpan, out NameSpan, out ExtensionSpan);
-        hashCode = ComputeStringHashCodeCaseInsensitive(FullPath);
+        hashCode = StringComparer.OrdinalIgnoreCase.GetHashCode(FullPath);
     }
 
     protected UPath(string fullPath, StringSpan driveSpan, StringSpan directorySpan)
@@ -74,7 +74,7 @@ public abstract class UPath : IEquatable<UPath>, IComparable
         if (fullPath is null) throw new ArgumentNullException(nameof(fullPath));
 #endif
         FullPath = fullPath;
-        hashCode = ComputeStringHashCodeCaseInsensitive(fullPath);
+        hashCode = StringComparer.OrdinalIgnoreCase.GetHashCode(fullPath);
         DriveSpan = driveSpan;
         DirectorySpan = directorySpan;
     }
@@ -254,11 +254,6 @@ public abstract class UPath : IEquatable<UPath>, IComparable
     public override int GetHashCode()
     {
         return hashCode;
-    }
-
-    private static int ComputeStringHashCodeCaseInsensitive(string text)
-    {
-        return text.Aggregate(0, (current, t) => (current * 397) ^ char.ToLowerInvariant(t));
     }
 
     public int CompareTo(object? obj)

@@ -312,13 +312,13 @@ public class TestUPath
     [Fact]
     public void TestUPathEquals()
     {
-        // TODO
+        Assert.Equal(new UFile("Assets/\u03C3.png"), new UFile("Assets/\u03C2.png"));
     }
 
     [Fact]
     public void TestUPathGetHashCode()
     {
-        // TODO
+        Assert.Equal(new UFile("Assets/\u03C3.png").GetHashCode(), new UFile("Assets/\u03C2.png").GetHashCode());
     }
 
     [Fact]
