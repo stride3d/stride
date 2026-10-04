@@ -289,11 +289,11 @@ jobs:
           cd website
           URL="https://github.com/stride3d/stride/releases/download/launcher/$VERSION/StrideSetup-$VERSION.exe"
           # Setting a key the site doesn't have (renamed) would add one that nothing reads
-          if ! jq -e 'has("stride-download-url")' _data/site.json > /dev/null; then
-            echo "::error::No stride-download-url in _data/site.json of stride-website"
+          if ! jq -e '.links | has("stride-download-url")' _data/site.json > /dev/null; then
+            echo "::error::No links.stride-download-url in _data/site.json of stride-website"
             exit 1
           fi
-          jq --arg url "$URL" '."stride-download-url" = $url' _data/site.json > site.json.tmp
+          jq --arg url "$URL" '.links."stride-download-url" = $url' _data/site.json > site.json.tmp
           mv site.json.tmp _data/site.json
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
