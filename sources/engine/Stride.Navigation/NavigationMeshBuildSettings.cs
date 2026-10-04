@@ -106,6 +106,16 @@ namespace Stride.Navigation
                 return hashCode;
             }
         }
+
+        public static bool operator ==(NavigationMeshBuildSettings left, NavigationMeshBuildSettings right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(NavigationMeshBuildSettings left, NavigationMeshBuildSettings right)
+        {
+            return !(left == right);
+        }
     }
 
     public class NavigationBuildSettingsFactory : IObjectFactory

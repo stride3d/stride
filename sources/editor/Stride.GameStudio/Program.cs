@@ -386,7 +386,7 @@ public static partial class Program
         }
     }
 
-    private static async void Startup(UFile initialSessionPath)
+    private static async Task Startup(UFile initialSessionPath)
     {
         try
         {

@@ -22,7 +22,7 @@ public class IndexingDictionaryTests
         var dict = new IndexingDictionary<string>();
         dict.Add(5, "value5");
 
-        Assert.Equal(1, dict.Count);
+        Assert.Single(dict);
         Assert.Equal("value5", dict[5]);
     }
 
@@ -54,7 +54,7 @@ public class IndexingDictionaryTests
         dict[3] = "new";
 
         Assert.Equal("new", dict[3]);
-        Assert.Equal(1, dict.Count);
+        Assert.Single(dict);
     }
 
     [Fact]
@@ -64,7 +64,7 @@ public class IndexingDictionaryTests
         dict[5] = "value";
 
         Assert.Equal("value", dict[5]);
-        Assert.Equal(1, dict.Count);
+        Assert.Single(dict);
     }
 
     [Fact]
@@ -119,7 +119,7 @@ public class IndexingDictionaryTests
         var removed = dict.Remove(3);
 
         Assert.True(removed);
-        Assert.Equal(1, dict.Count);
+        Assert.Single(dict);
         Assert.False(dict.ContainsKey(3));
     }
 
@@ -132,7 +132,7 @@ public class IndexingDictionaryTests
         var removed = dict.Remove(5);
 
         Assert.False(removed);
-        Assert.Equal(1, dict.Count);
+        Assert.Single(dict);
     }
 
     [Fact]
@@ -212,7 +212,7 @@ public class IndexingDictionaryTests
         var dict = new IndexingDictionary<string>();
         dict.Add(2, "two");
 
-        Assert.True(dict.Contains(new KeyValuePair<int, string>(2, "two")));
+        Assert.Contains(new KeyValuePair<int, string>(2, "two"), dict);
     }
 
     [Fact]
@@ -221,7 +221,7 @@ public class IndexingDictionaryTests
         var dict = new IndexingDictionary<string>();
         dict.Add(2, "two");
 
-        Assert.False(dict.Contains(new KeyValuePair<int, string>(2, "other")));
+        Assert.DoesNotContain(new KeyValuePair<int, string>(2, "other"), dict);
     }
 
     [Fact]

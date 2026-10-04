@@ -64,5 +64,15 @@ namespace Stride.Physics
             hash.Add(AppliedImpulseLateral2);
             return hash.ToHashCode();
         }
+
+        public static bool operator ==(ContactPoint left, ContactPoint right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(ContactPoint left, ContactPoint right)
+        {
+            return !(left == right);
+        }
     }
 }
