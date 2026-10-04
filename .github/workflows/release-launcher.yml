@@ -297,7 +297,9 @@ jobs:
           mv site.json.tmp _data/site.json
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -am "Download the Stride Launcher $VERSION setup"
+          git commit -am "feat: The download button points to the Stride Launcher $VERSION setup (GitHub release)" \
+            -m "https://github.com/stride3d/stride/releases/tag/launcher/$VERSION" \
+            -m "Updated by $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
           git push
 
   #
