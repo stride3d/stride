@@ -6,6 +6,8 @@ using Xunit;
 
 namespace Stride.Core.Tests.Collections;
 
+#pragma warning disable xUnit2013
+
 public class IndexingDictionaryTests
 {
     [Fact]
@@ -22,6 +24,7 @@ public class IndexingDictionaryTests
         var dict = new IndexingDictionary<string>();
         dict.Add(5, "value5");
 
+        Assert.Equal(1, dict.Count);
         Assert.Single(dict);
         Assert.Equal("value5", dict[5]);
     }
@@ -54,6 +57,7 @@ public class IndexingDictionaryTests
         dict[3] = "new";
 
         Assert.Equal("new", dict[3]);
+        Assert.Equal(1, dict.Count);
         Assert.Single(dict);
     }
 
@@ -64,6 +68,7 @@ public class IndexingDictionaryTests
         dict[5] = "value";
 
         Assert.Equal("value", dict[5]);
+        Assert.Equal(1, dict.Count);
         Assert.Single(dict);
     }
 
@@ -119,6 +124,7 @@ public class IndexingDictionaryTests
         var removed = dict.Remove(3);
 
         Assert.True(removed);
+        Assert.Equal(1, dict.Count);
         Assert.Single(dict);
         Assert.False(dict.ContainsKey(3));
     }
@@ -132,6 +138,7 @@ public class IndexingDictionaryTests
         var removed = dict.Remove(5);
 
         Assert.False(removed);
+        Assert.Equal(1, dict.Count);
         Assert.Single(dict);
     }
 
