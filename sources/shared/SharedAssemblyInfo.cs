@@ -51,7 +51,7 @@ internal class StrideVersion
     /// release-samples.yml read it from here. Only package builds apply it; dev and CI builds stay at
     /// MajorMinor.Patch (+ -devN), so the prereleases of one version share one dev version.
     /// </summary>
-    public const string NuGetVersionSuffix = "-beta8";
+    public const string NuGetVersionSuffix = "-beta9";
 
     // The content template version (samples) is not here: it lives in sources/templates/StrideSamplesVersion.props,
     // so a samples release rebuilds only Stride.Assets, not every assembly.
