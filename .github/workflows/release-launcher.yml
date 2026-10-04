@@ -277,7 +277,8 @@ jobs:
         env:
           STRIDE_NUGET_API_KEY: ${{ secrets.STRIDE_NUGET_API_KEY }}
 
-      # The download button of stride3d.net points to the setup of the release
+      # Points the stride3d.net download button to this setup: committed to stride-website
+      # master, live with the next website release (deployed from its release branch)
       - name: Update the website download
         if: ${{ needs.Package.outputs.version != '' && inputs.version-suffix == '' }}
         env:
