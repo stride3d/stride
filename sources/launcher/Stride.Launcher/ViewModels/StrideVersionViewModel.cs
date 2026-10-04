@@ -181,7 +181,9 @@ public abstract class StrideVersionViewModel : PackageVersionViewModel, ICompara
     {
         base.UpdateStatus();
         IsVisible = true;
-        SetAsActiveCommand.IsEnabled = CanDelete;
+        // A version not installed can be selected too, as from its alternate versions: the top button then installs it
+        // (two steps, so that a misclick doesn't start a download)
+        SetAsActiveCommand.IsEnabled = CanDelete || CanBeDownloaded;
         DeleteCommand.IsEnabled = CanDelete;
         // On non-Windows only the Avalonia editor is supported; require it to be present before allowing Start.
         CanStart = CanDelete && (OperatingSystem.IsWindows() || AvailableEditors.Count > 0);

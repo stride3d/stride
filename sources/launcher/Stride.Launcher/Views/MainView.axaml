@@ -491,10 +491,18 @@
                                           HorizontalAlignment="Center" VerticalAlignment="Center"
                                           IsVisible="{Binding IsProcessing}" />
                               <Grid IsVisible="{Binding !IsProcessing}">
+                                <!-- Also for a version not installed: selected, the top button installs it -->
                                 <Button Command="{Binding SetAsActiveCommand}"
                                         HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                                        IsVisible="{Binding CanDelete}"
+                                        IsVisible="{Binding SetAsActiveCommand.IsEnabled}"
+                                        Classes.uninstalled="{Binding !CanDelete}"
                                         ToolTip.Tip="{Binding FullName, StringFormat={x:Static l:Strings.ToolTipSetActiveVersion}}">
+                                  <Button.Styles>
+                                    <!-- Not installed: flat, to tell at a glance what's installed; the hover still shows it's clickable -->
+                                    <Style Selector="Button.uninstalled">
+                                      <Setter Property="Background" Value="Transparent"/>
+                                    </Style>
+                                  </Button.Styles>
                                   <Interaction.Behaviors>
                                     <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding Launcher.CurrentToolTip}"
                                                                          DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
@@ -620,7 +628,7 @@
                               </Panel.ContextMenu>
                               <Button x:Name="OpenButton"
                                       Command="{Binding OpenCommand}"
-                                      IsEnabled="{Binding Launcher.StartStudioCommand.IsEnabled}"
+                                      IsEnabled="{Binding !Launcher.IsStartingStudio}"
                                       HorizontalAlignment="Stretch"
                                       VerticalAlignment="Stretch"
                                       HorizontalContentAlignment="Stretch">

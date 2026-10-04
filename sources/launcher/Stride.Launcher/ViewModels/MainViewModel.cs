@@ -33,6 +33,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
     private StrideVersionViewModel? activeVersion;
     private bool isOffline;
     private bool isSynchronizing = true;
+    private bool isStartingStudio;
     private string currentToolTip;
     private readonly List<(DateTime Time, MessageLevel Level, string Message)> logMessages = [];
     private readonly ILauncherSettingsService _settings;
@@ -164,6 +165,11 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
     public bool IsOffline { get { return isOffline; } set { SetValue(ref isOffline, value); } }
 
     public bool IsSynchronizing { get { return isSynchronizing; } set { SetValue(ref isSynchronizing, value); } }
+
+    /// <summary>
+    /// Gets whether Game Studio is being started (the recent projects can't start another one meanwhile).
+    /// </summary>
+    public bool IsStartingStudio { get { return isStartingStudio; } private set { SetValue(ref isStartingStudio, value); } }
 
     public string CurrentToolTip { get { return currentToolTip; } set { SetValue(ref currentToolTip, value); } }
 
@@ -518,20 +524,6 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
                     foreach (var strideUninstalledVersion in strideVersions.OfType<StrideStoreVersionViewModel>().Where(x => !updatedLocalPackages.Contains(x)))
                         strideUninstalledVersion.UpdateLocalPackage(null, Array.Empty<NugetLocalPackage>());
                 });
-
-                // Update the active version if it is now invalid.
-                if (ActiveVersion is null || !strideVersions.Contains(ActiveVersion) || !ActiveVersion.CanDelete)
-                    ActiveVersion = StrideVersions.FirstOrDefault(x => x.CanDelete);
-
-                if (!lastActiveVersionRestored)
-                {
-                    var restoredVersion = StrideVersions.FirstOrDefault(x => x.CanDelete && x.Name == _settings.ActiveVersion);
-                    if (restoredVersion is not null)
-                    {
-                        ActiveVersion = restoredVersion;
-                        lastActiveVersionRestored = true;
-                    }
-                }
             }
 
             // Updated in place: the local builds are the top rows, and removing them all to add them back scrolled the
@@ -568,11 +560,33 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
         }
         finally
         {
+            UpdateActiveVersion();
             await Dispatcher.InvokeAsync(() =>
             {
                 foreach (var project in currentRecentProjects)
                     project.UpdateOpenOptions(StrideVersions);
             });
+        }
+    }
+
+    // Once the local builds are listed too: they can be the active version, or the only installed ones
+    private void UpdateActiveVersion()
+    {
+        lock (objectLock)
+        {
+            // When it is now invalid: an installed release first, then a local build (the top rows, for their developer)
+            if (ActiveVersion is null || !strideVersions.Contains(ActiveVersion) || !ActiveVersion.CanDelete)
+                ActiveVersion = StrideVersions.OfType<StrideStoreVersionViewModel>().FirstOrDefault(x => x.CanDelete) ?? StrideVersions.FirstOrDefault(x => x.CanDelete);
+
+            if (!lastActiveVersionRestored)
+            {
+                var restoredVersion = StrideVersions.FirstOrDefault(x => x.CanDelete && x.Name == _settings.ActiveVersion);
+                if (restoredVersion is not null)
+                {
+                    ActiveVersion = restoredVersion;
+                    lastActiveVersionRestored = true;
+                }
+            }
         }
     }
 
@@ -648,8 +662,8 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
         {
             await Dispatcher.InvokeAsync(() =>
             {
-                // Allow to install the latest version if any version is found
-                var latestVersion = strideVersions.FirstOrDefault();
+                // Allow to install the latest version if any version is found (a release: the local builds are the top rows)
+                var latestVersion = strideVersions.OfType<StrideStoreVersionViewModel>().FirstOrDefault();
                 if (latestVersion is not null)
                 {
                     // Latest version not installed and can be downloaded
@@ -762,7 +776,11 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
 
         try
         {
-            Dispatcher.Invoke(() => StartStudioCommand.IsEnabled = false);
+            Dispatcher.Invoke(() =>
+            {
+                StartStudioCommand.IsEnabled = false;
+                IsStartingStudio = true;
+            });
             var mainExecutable = ActiveVersion.LocateMainExecutable();
 
             var appDll = Path.ChangeExtension(mainExecutable, ".dll");
@@ -812,6 +830,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
         await Dispatcher.InvokeAsync(() =>
         {
             StartStudioCommand.IsEnabled = ActiveVersion is not null && ActiveVersion.CanStart;
+            IsStartingStudio = false;
             //Save settings because launcher maybe have not been closed
             _settings.ActiveVersion = ActiveVersion is not null ? ActiveVersion.Name : "";
             _settings.Save();
@@ -842,7 +861,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
 
     private async Task InstallLatestVersion()
     {
-        var latestVersion = strideVersions.FirstOrDefault();
+        var latestVersion = strideVersions.OfType<StrideStoreVersionViewModel>().FirstOrDefault();
         // Should never happen
         if (latestVersion is null || !latestVersion.CanBeDownloaded)
             return;
