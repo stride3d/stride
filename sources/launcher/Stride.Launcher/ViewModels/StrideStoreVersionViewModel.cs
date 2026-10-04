@@ -79,15 +79,22 @@ public sealed class StrideStoreVersionViewModel : StrideVersionViewModel
     public string ServerVersionFullName => ServerPackage?.Version?.ToString() ?? "";
 
     /// <summary>
-    /// Gets the text of this version in the list: its name, and whether it isn't installed or has an update.
+    /// Gets the text of this version in the list: its name, and whether it isn't installed or has an update. A build
+    /// chosen in the alternate versions is named in full (4.4.0-beta7), as the row is then about that build.
     /// </summary>
     public string Label
     {
         get
         {
-            var name = string.Format(Strings.VersionButton, DisplayName);
+            // The default build: the newest installed, else the newest on the server
+            var defaultBuild = AlternateVersions.Where(x => x.LocalPackage is not null).MaxBy(x => x.Version)?.Version ?? LatestServerPackage?.Version;
+            var chosenBuild = Version is not null && defaultBuild is not null && !Version.Equals(defaultBuild);
+            var name = string.Format(Strings.VersionButton, chosenBuild ? $"{PackageSimpleName} {Version}" : DisplayName);
             if (!CanDelete)
                 return $"{name} {Strings.VersionButtonUninstalled}";
+            // Chosen on purpose: an update of it isn't news
+            if (chosenBuild)
+                return name;
             if (CanBeDownloaded && IsLatestPackageRemote)
                 return $"{name} {Strings.VersionButtonUpdateAvailable}";
             if (CanBeDownloaded && IsLatestPackageLocal)
@@ -169,6 +176,9 @@ public sealed class StrideStoreVersionViewModel : StrideVersionViewModel
                     else
                         alternateVersionViewModel.UpdateLocalPackage(alternateVersion);
                 });
+                // The label names the default build, which depends on the installed ones
+                OnPropertyChanging(nameof(Label));
+                OnPropertyChanged(nameof(Label));
             });
         }
         Dispatcher.Invoke(UpdateAvailableEditors);
@@ -196,13 +206,17 @@ public sealed class StrideStoreVersionViewModel : StrideVersionViewModel
         if (alternateVersions is not null)
         {
             Dispatcher.Invoke(() =>
+            {
                 UpdateAlternateVersions(alternateVersions, (alternateVersionViewModel, alternateVersion) =>
                 {
                     if (alternateVersion is null && alternateVersionViewModel.LocalPackage is null)
                         AlternateVersions.Remove(alternateVersionViewModel);
                     else
                         alternateVersionViewModel.UpdateServerPackage(alternateVersion);
-                }));
+                });
+                OnPropertyChanging(nameof(Label));
+                OnPropertyChanged(nameof(Label));
+            });
         }
     }
 
