@@ -111,7 +111,7 @@ public static class SelfUpdater
             });
 
             var strideInstaller = Path.Combine(Path.GetTempPath(), $"StrideSetup-{Guid.NewGuid()}.exe");
-            using (var response = await LauncherHttpClient.Instance.GetAsync(strideInstallerUrl))
+            using (var response = await LauncherHttpClient.Instance.GetAsync(strideInstallerUrl, HttpCompletionOption.ResponseHeadersRead))
             {
                 response.EnsureSuccessStatusCode();
 
