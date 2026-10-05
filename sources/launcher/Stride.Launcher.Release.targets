@@ -48,16 +48,7 @@ Imported by build\Stride.build, which runs these targets, e.g. msbuild build\Str
     <Delete Files="@(FilesToDeleteLauncher)"/>
 
     <!-- Generate the nuget package for the launcher application -->
-    <PropertyGroup>
-      <_StrideLauncherPackArgs>-Properties "SetupUrl=$(StrideLauncherSetupUrl);UpdateRules=$(StrideLauncherUpdateRules)" -BasePath "$(MSBuildThisFileDirectory)Stride.Launcher\bin\Release\publish" -OutputDirectory "$(StrideRoot)bin\launcher"</_StrideLauncherPackArgs>
-    </PropertyGroup>
-    <Exec Command='"$(NuGetPath)" pack "$(MSBuildThisFileDirectory)Stride.Launcher\Stride.Launcher.nuspec" -Version $(StrideLauncherVersion) $(_StrideLauncherPackArgs)' />
-
-    <!-- -p:StrideLauncherLegacyReq=true (6.0.1 only): the same exe as X.Y.Z-req too. Launchers before 6.0.1 read no update
-         line and have no pre-release filter, but update to the first "-req" version above them before any other one. The exe
-         still says X.Y.Z, so they don't update again to X.Y.Z. -->
-    <Error Condition="'$(StrideLauncherLegacyReq)' == 'true' and '$(VersionSuffix)' != ''" Text="StrideLauncherLegacyReq is for a release, not a pre-release." />
-    <Exec Condition="'$(StrideLauncherLegacyReq)' == 'true'" Command='"$(NuGetPath)" pack "$(MSBuildThisFileDirectory)Stride.Launcher\Stride.Launcher.nuspec" -Version $(StrideLauncherVersion)-req $(_StrideLauncherPackArgs)' />
+    <Exec Command='"$(NuGetPath)" pack "$(MSBuildThisFileDirectory)Stride.Launcher\Stride.Launcher.nuspec" -Version $(StrideLauncherVersion) -Properties "SetupUrl=$(StrideLauncherSetupUrl);UpdateRules=$(StrideLauncherUpdateRules)" -BasePath "$(MSBuildThisFileDirectory)Stride.Launcher\bin\Release\publish" -OutputDirectory "$(StrideRoot)bin\launcher"' />
 
     <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="_SignFiles"
              Properties="StrideSign=$(StrideSign);StrideSignDir=$(StrideRoot)bin\launcher" />

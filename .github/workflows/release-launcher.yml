@@ -1,6 +1,6 @@
 name: Release Launcher
 # The run list shows the options of each run (the version comes from the nuspec: see the run summary)
-run-name: Launcher ${{ inputs.version-suffix || 'release' }}${{ inputs.sign && ' · sign' || '' }}${{ inputs.deploy && ' · deploy' || '' }}${{ inputs.checkpoint && ' · checkpoint' || '' }}${{ inputs.legacy-req && ' · legacy-req' || '' }}
+run-name: Launcher ${{ inputs.version-suffix || 'release' }}${{ inputs.sign && ' · sign' || '' }}${{ inputs.deploy && ' · deploy' || '' }}${{ inputs.checkpoint && ' · checkpoint' || '' }}
 
 on:
   workflow_dispatch:
@@ -19,10 +19,6 @@ on:
         type: string
       checkpoint:
         description: Every older launcher updates to this version before any newer one (e.g. a version that migrates something the next ones need).
-        default: false
-        type: boolean
-      legacy-req:
-        description: 6.0.1 only - also publish X.Y.Z-req, which launchers before 6.0.1 update to before any newer version (they have no pre-release filter).
         default: false
         type: boolean
       upload-binlog:
@@ -112,14 +108,6 @@ jobs:
             echo "::error::$release is already released, so $version would sort below it. Bump the version in Stride.Launcher.nuspec."
             exit 1
           }
-          # Launchers before 6.0.1 have no pre-release filter: only a 6.x "-req" version (legacy-req) keeps them off it
-          if ($version -ne $release) {
-            $published = (Invoke-RestMethod https://api.nuget.org/v3-flatcontainer/stride.launcher/index.json).versions
-            if (-not ($published -match '^([6-9]|\d{2,})\.\d+\.\d+-req$')) {
-              echo "::error::No 6.x -req launcher on NuGet: launchers before 6.0.1 would update to this pre-release. Release 6.0.1 with legacy-req first."
-              exit 1
-            }
-          }
 
       - name: Install Advanced Installer
         shell: pwsh
@@ -140,8 +128,7 @@ jobs:
             /p:StrideSentryEnvironment=${{ vars.STRIDE_SENTRY_DSN != '' && 'release' || '' }} `
             /p:StrideSign=${{ inputs.sign }} `
             /p:VersionSuffix=${{ inputs.version-suffix }} `
-            /p:StrideLauncherUpdateCheckpoint=${{ inputs.checkpoint }} `
-            /p:StrideLauncherLegacyReq=${{ inputs.legacy-req }}
+            /p:StrideLauncherUpdateCheckpoint=${{ inputs.checkpoint }}
         env:
           StrideSignTenantId: ${{ secrets.STRIDE_SIGN_TENANT_ID }}
           StrideSignClientId: ${{ secrets.STRIDE_SIGN_CLIENT_ID }}
@@ -159,7 +146,7 @@ jobs:
             "## Stride Launcher ${{ steps.version.outputs.version }}"
             ""
             "- Deploy: $(& $yesNo '${{ inputs.deploy }}') · Signed: $(& $yesNo '${{ inputs.sign }}') · Pre-release: $(& $yesNo '${{ inputs.version-suffix != '' }}')"
-            "- Checkpoint: $(& $yesNo '${{ inputs.checkpoint }}') · legacy-req: $(& $yesNo '${{ inputs.legacy-req }}')"
+            "- Checkpoint: $(& $yesNo '${{ inputs.checkpoint }}')"
           )
           foreach ($nupkg in Get-ChildItem -Path bin/launcher -Filter "*.nupkg") {
             $zip = [System.IO.Compression.ZipFile]::OpenRead($nupkg.FullName)

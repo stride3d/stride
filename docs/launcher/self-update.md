@@ -53,7 +53,7 @@ Unknown words are skipped, so that a later launcher can add rules without breaki
 Older launchers don't read the `update:` line. They read two older mechanisms, which the packages keep for them:
 
 - **`force-reinstall: 5.0.1 <setup>`**: the updater takes the newest package that has this line. Launchers below 5.0.1 install its setup. Every package keeps it with `5.0.1`, which rescues the 4.x launchers (the 5.x packages point to a URL that no longer exists).
-- **`-req` versions**: the updater takes the first `-req` version above it before any other one. These launchers have no pre-release filter, so `6.0.1-req` (the same exe as 6.0.1, published with the `legacy-req` input) takes them to 6.0.1 before they see a pre-release. The exe says 6.0.1, so they don't update again to 6.0.1. `release-launcher.yml` refuses to deploy a pre-release until a 6.x `-req` is on NuGet.
+- **`-req` versions**: the updater takes the first `-req` version above it before any other one. These launchers have no pre-release filter, so `6.0.1-req` on NuGet (the same exe as 6.0.1) takes them to 6.0.1 before they see a pre-release. The exe says 6.0.1, so they don't update again to 6.0.1. It must stay listed: newer versions don't publish a `-req`.
 
 ## Pre-releases
 

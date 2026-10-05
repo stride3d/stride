@@ -33,7 +33,7 @@ The version is set in one place: the `<version>` element of [Stride.Launcher.nus
 [Stride.Launcher.Version.props](../../sources/launcher/Stride.Launcher/Stride.Launcher.Version.props) reads it and appends the suffix, into `StrideLauncherVersion`, for both of the following.
 
 - **Launcher exe.** [Stride.Launcher.csproj](../../sources/launcher/Stride.Launcher/Stride.Launcher.csproj) uses it as its `Version`. `SelfUpdater` compares the exe's `AssemblyInformationalVersion` against NuGet.
-- **NuGet package.** [Stride.Launcher.Release.targets](../../sources/launcher/Stride.Launcher.Release.targets) packs with `-Version $(StrideLauncherVersion)`. It also fills the update lines of the description: `$SetupUrl$`, the package's setup on its GitHub release, and `$UpdateRules$` (see [self-update.md](self-update.md#update-rules)). With `-p:StrideLauncherLegacyReq=true` (6.0.1 only), it packs the same exe as `X.Y.Z-req` too, for the launchers before 6.0.1.
+- **NuGet package.** [Stride.Launcher.Release.targets](../../sources/launcher/Stride.Launcher.Release.targets) packs with `-Version $(StrideLauncherVersion)`. It also fills the update lines of the description: `$SetupUrl$`, the package's setup on its GitHub release, and `$UpdateRules$` (see [self-update.md](self-update.md#update-rules)).
 - **StrideSetup.** An MSI version is numbers only, so the `GetStrideSetupVersion` task ([Setup/GetStrideSetupVersion.cs](../../sources/launcher/Setup/GetStrideSetupVersion.cs)) maps the launcher version to `major.minor.(patch * 100 + rank)`. The rank sorts pre-releases before their release: alpha 11-19, beta 31-39, preview 51-59, rc 71-79, release 99. For example, `6.1.0-beta1` is `6.1.31` and `6.1.0` is `6.1.99`. The ProductCode is a name-based UUID of the launcher version: a new one for each version (MSI major upgrade), the same one when a version is built again. The real version (`StrideVersion` property) is what Add/Remove Programs shows.
 
 The version values in the committed `setup.aip` are placeholders: `PackageInstaller` sets them on a copy (`setup-generated.aip`, git-ignored) and builds that.
@@ -58,7 +58,7 @@ The `<description>` element is special: launchers read their update rules from i
 - A Start menu shortcut with `Launcher.ico`.
 - The Add/Remove Programs entry. Uninstalling runs `Stride.Launcher.exe /uninstall` first, which uninstalls the Stride versions.
 
-The build names the setup `StrideSetup-<version>.exe` (e.g. `StrideSetup-6.0.1.exe`), which goes to the GitHub release (`launcher/<version>`). A launcher that must reinstall downloads it from there (`setup=` of the update rules). The download button of the website is `stride-download-url` in `_data/site.json` of the [stride-website](https://github.com/stride3d/stride-website) repository: on a release (not a pre-release), `release-launcher.yml` points it to the new setup and pushes to stride-website with `GH_PAT`.
+The build names the setup `StrideSetup-<version>.exe` (e.g. `StrideSetup-6.0.1.exe`), which goes to the GitHub release (`launcher/<version>`). A launcher that must reinstall downloads it from there (`setup=` of the update rules). The download button of the website is `links.stride-download-url` in `_data/site.json` of the [stride-website](https://github.com/stride3d/stride-website) repository: on a release (not a pre-release), `release-launcher.yml` points it to the new setup and pushes to stride-website master with `GH_PAT`. The site is deployed from its `release` branch, so the button changes with the next website release; to change it before, cherry-pick that commit to `release`.
 
 ## Building
 
@@ -70,7 +70,7 @@ msbuild build\Stride.build /t:FullBuildLauncher /p:StrideSign=false [/p:VersionS
 
 `FullBuildLauncher` publishes the exe (`BuildLauncher`), packs the nupkg (`PackageLauncher`) and builds the setup (`PackageInstaller`), all into `bin\launcher\`. `_StrideSetupVersion` only prints the computed versions, without Advanced Installer.
 
-Releases go through [release-launcher.yml](../../.github/workflows/release-launcher.yml) (manual run, optional `version-suffix`, `checkpoint` and `legacy-req`). It creates a `launcher/<version>` GitHub release with the setup (a pre-release is marked as one), then pushes the nupkg to NuGet.org, whose update lines point to that setup.
+Releases go through [release-launcher.yml](../../.github/workflows/release-launcher.yml) (manual run, optional `version-suffix` and `checkpoint`). It creates a `launcher/<version>` GitHub release with the setup (a pre-release is marked as one), then pushes the nupkg to NuGet.org, whose update lines point to that setup.
 
 If the deploy fails, e.g. on the NuGet push, use "Re-run failed jobs": the deploy runs again with the same build, the existing GitHub release gets the setup again, and NuGet skips the packages it already has. "Re-run all jobs" stops at the version check, as the `launcher/<version>` tag exists.
 
