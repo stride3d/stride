@@ -1328,7 +1328,7 @@ public struct Double3 : IEquatable<Double3>, ISpanFormattable
     /// <returns>The equivation yaw/pitch/roll rotation</returns>
     public static Double3 RotationYawPitchRoll(Quaternion quaternion)
     {
-        Vector3 yawPitchRoll;
+        Unsafe.SkipInit(out Vector3 yawPitchRoll);
         Quaternion.RotationYawPitchRoll(ref quaternion, out yawPitchRoll.X, out yawPitchRoll.Y, out yawPitchRoll.Z);
         return yawPitchRoll;
     }
@@ -1340,7 +1340,7 @@ public struct Double3 : IEquatable<Double3>, ISpanFormattable
     /// <param name="yawPitchRoll">The equivation yaw/pitch/roll rotation</param>
     public static void RotationYawPitchRoll(ref readonly Quaternion quaternion, out Double3 yawPitchRoll)
     {
-        Vector3 yawPitchRollV;
+        Unsafe.SkipInit(out Vector3 yawPitchRollV);
         Quaternion.RotationYawPitchRoll(in quaternion, out yawPitchRollV.X, out yawPitchRollV.Y, out yawPitchRollV.Z);
         yawPitchRoll = yawPitchRollV;
     }
@@ -1594,7 +1594,7 @@ public struct Double3 : IEquatable<Double3>, ISpanFormattable
                 MathUtil.WithinEpsilon((float)left.Y, (float)right.Y, (float)epsilon.Y) &&
                 MathUtil.WithinEpsilon((float)left.Z, (float)right.Z, (float)epsilon.Z);
     }
-    
+
     /// <summary>
     /// Returns a <see cref="string"/> that represents this instance.
     /// </summary>

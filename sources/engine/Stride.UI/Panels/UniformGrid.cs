@@ -4,6 +4,7 @@
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 using Stride.Core;
 using Stride.Core.Annotations;
@@ -178,6 +179,7 @@ namespace Stride.UI.Panels
             var validPosition = Math.Max(0, Math.Min(position, elementCount * modulo));
             var inferiorQuotient = Math.Min(elementCount - 1, MathF.Floor(validPosition / modulo));
 
+            Unsafe.SkipInit(out distances);
             distances.X = (inferiorQuotient+0) * modulo - validPosition;
             distances.Y = (inferiorQuotient+1) * modulo - validPosition;
         }

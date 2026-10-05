@@ -705,6 +705,7 @@ public struct Matrix : IEquatable<Matrix>, ISpanFormattable
         // the common case, and made to handle the +/- 1 cases better due to low precision in floats.
         // The above documentation implies the *extrinsic* rotation order is X-Y-Z,
         // so the *intrinsic* rotation is Z-Y-X which is the formula to use here
+        Unsafe.SkipInit(out rotation);
         if (MathUtil.IsOne(Math.Abs(M13)))
         {
             if (M13 >= 0)
@@ -744,11 +745,13 @@ public struct Matrix : IEquatable<Matrix>, ISpanFormattable
         //References: http://www.gamedev.net/community/forums/topic.asp?topic_id=441695
 
         //Get the translation.
+        Unsafe.SkipInit(out translation);
         translation.X = this.M41;
         translation.Y = this.M42;
         translation.Z = this.M43;
 
         //Scaling is the length of the rows.
+        Unsafe.SkipInit(out scale);
         scale.X = MathF.Sqrt((M11 * M11) + (M12 * M12) + (M13 * M13));
         scale.Y = MathF.Sqrt((M21 * M21) + (M22 * M22) + (M23 * M23));
         scale.Z = MathF.Sqrt((M31 * M31) + (M32 * M32) + (M33 * M33));
@@ -790,11 +793,13 @@ public struct Matrix : IEquatable<Matrix>, ISpanFormattable
         //References: http://www.gamedev.net/community/forums/topic.asp?topic_id=441695
 
         //Get the translation.
+        Unsafe.SkipInit(out translation);
         translation.X = this.M41;
         translation.Y = this.M42;
         translation.Z = this.M43;
 
         //Scaling is the length of the rows.
+        Unsafe.SkipInit(out scale);
         scale.X = MathF.Sqrt((M11 * M11) + (M12 * M12) + (M13 * M13));
         scale.Y = MathF.Sqrt((M21 * M21) + (M22 * M22) + (M23 * M23));
         scale.Z = MathF.Sqrt((M31 * M31) + (M32 * M32) + (M33 * M33));
@@ -1880,6 +1885,7 @@ public struct Matrix : IEquatable<Matrix>, ISpanFormattable
         result.M43 = matrix[3, 2];
         result.M44 = matrix[3, 3];
 
+        Unsafe.SkipInit(out augmentResult);
         augmentResult.X = matrix[0, 4];
         augmentResult.Y = matrix[1, 4];
         augmentResult.Z = matrix[2, 4];

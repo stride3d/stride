@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
@@ -268,13 +269,12 @@ namespace Stride.Rendering.Images
             var scratchTextureB = NewScopedRenderTarget2D(fourthSizeRenderTarget.Description);
             var writeToScratchA = true;
 
-            Vector2 direction;
             Texture currentInput = null, currentOutput = null;
 
-            Vector3 colorAberration;
-            colorAberration.X = (float)MathUtil.Lerp(1.0, ColorAberrationCoefficients.X, ColorAberrationStrength);
-            colorAberration.Y = (float)MathUtil.Lerp(1.0, ColorAberrationCoefficients.Y, ColorAberrationStrength);
-            colorAberration.Z = (float)MathUtil.Lerp(1.0, ColorAberrationCoefficients.Z, ColorAberrationStrength);
+            Vector3 colorAberration = new(
+                (float)MathUtil.Lerp(1.0, ColorAberrationCoefficients.X, ColorAberrationStrength),
+                (float)MathUtil.Lerp(1.0, ColorAberrationCoefficients.Y, ColorAberrationStrength),
+                (float)MathUtil.Lerp(1.0, ColorAberrationCoefficients.Z, ColorAberrationStrength));
 
             lightStreakEffect.Parameters.Set(LightStreakShaderKeys.ColorAberrationCoefficients, ref colorAberration);
 
@@ -284,8 +284,7 @@ namespace Stride.Rendering.Images
 
                 // Direction vector
                 float angle = MathUtil.DegreesToRadians(Phase) + streak * MathUtil.TwoPi / StreakCount;
-                direction.X = MathF.Cos(angle);
-                direction.Y = MathF.Sin(angle);
+                Vector2 direction = new(MathF.Cos(angle), MathF.Sin(angle));
 
                 // Extends the length recursively
                 for (int level = 0; level < IterationCount; level++)

@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
@@ -212,6 +213,7 @@ namespace Stride.Assets.Presentation.CurveEditor.ViewModels
         private static void DecomposeXYZ(in Matrix matrix, out Vector3 rotation)
         {
             var rotY = MathUtil.IsOne(Math.Abs(matrix.M13)) ? Math.Acos(Math.Max(Math.Abs(matrix.M11), Math.Abs(matrix.M33))) : Math.Asin(-matrix.M13);
+            Unsafe.SkipInit(out rotation);
             rotation.Y = (float)(MathF.Sign(-matrix.M13) * rotY);
             var test = Math.Cos(rotY);
             if (test > MathUtil.ZeroTolerance)

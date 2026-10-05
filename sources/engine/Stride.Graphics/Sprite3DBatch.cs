@@ -172,25 +172,9 @@ namespace Stride.Graphics
             }
         }
 
-        private static Vector4 Vector4Add(ref Vector4 v1, ref Vector4 v2)
-        {
-            Vector4 result;
-            result.X = v1.X + v2.X;
-            result.Y = v1.Y + v2.Y;
-            result.Z = v1.Z + v2.Z;
-            result.W = v1.W + v2.W;
-            return result;
-        }
+        private static Vector4 Vector4Add(ref Vector4 v1, ref Vector4 v2) => v1 + v2;
 
-        private static Vector4 Vector4Add(ref Vector4 v1, ref Vector4 v2, ref Vector4 v3)
-        {
-            Vector4 result;
-            result.X = v1.X + v2.X + v3.X;
-            result.Y = v1.Y + v2.Y + v3.Y;
-            result.Z = v1.Z + v2.Z + v3.Z;
-            result.W = v1.W + v2.W + v3.W;
-            return result;
-        }
+        private static Vector4 Vector4Add(ref Vector4 v1, ref Vector4 v2, ref Vector4 v3) => v1 + v2 + v3;
 
         [StructLayout(LayoutKind.Sequential)]
         public struct Sprite3DDrawInfo

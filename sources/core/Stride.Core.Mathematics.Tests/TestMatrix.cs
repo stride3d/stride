@@ -1365,4 +1365,608 @@ public class TestMatrix
     }
 
     #endregion
+
+    #region Additional Coverage Tests
+
+    private static void AssertUnitLength(Vector4 v) => Assert.Equal(1f, v.Length(), 3);
+
+    private static void AssertVector4NearEqual(Vector4 expected, Vector4 actual)
+    {
+        Assert.Equal(expected.X, actual.X, 2);
+        Assert.Equal(expected.Y, actual.Y, 2);
+        Assert.Equal(expected.Z, actual.Z, 2);
+        Assert.Equal(expected.W, actual.W, 2);
+    }
+
+    [Fact]
+    public void TestMatrixRowsAndColumnsGettersSetters()
+    {
+        var m = new Matrix(
+            1, 2, 3, 4,
+            5, 6, 7, 8,
+            9, 10, 11, 12,
+            13, 14, 15, 16);
+
+        Assert.Equal(new Vector4(5, 6, 7, 8), m.Row2);
+        Assert.Equal(new Vector4(9, 10, 11, 12), m.Row3);
+        Assert.Equal(new Vector4(13, 14, 15, 16), m.Row4);
+
+        Assert.Equal(new Vector4(2, 6, 10, 14), m.Column2);
+        Assert.Equal(new Vector4(3, 7, 11, 15), m.Column3);
+        Assert.Equal(new Vector4(4, 8, 12, 16), m.Column4);
+
+        m.Row2 = new Vector4(50, 60, 70, 80);
+        Assert.Equal(50f, m.M21);
+        Assert.Equal(60f, m.M22);
+        Assert.Equal(70f, m.M23);
+        Assert.Equal(80f, m.M24);
+
+        m.Column3 = new Vector4(101, 102, 103, 104);
+        Assert.Equal(101f, m.M13);
+        Assert.Equal(102f, m.M23);
+        Assert.Equal(103f, m.M33);
+        Assert.Equal(104f, m.M43);
+    }
+
+    [Fact]
+    public void TestMatrixDirectionProperties()
+    {
+        var m = Matrix.Identity;
+        m.Right = new Vector3(1, 0, 0);
+        m.Up = new Vector3(0, 1, 0);
+        m.Backward = new Vector3(0, 0, 1);
+
+        Assert.Equal(new Vector3(1, 0, 0), m.Right);
+        Assert.Equal(new Vector3(-1, 0, 0), m.Left);
+        Assert.Equal(new Vector3(0, 1, 0), m.Up);
+        Assert.Equal(new Vector3(0, -1, 0), m.Down);
+        Assert.Equal(new Vector3(0, 0, 1), m.Backward);
+        Assert.Equal(new Vector3(0, 0, -1), m.Forward);
+
+        m.Left = new Vector3(-2, 0, 0);
+        Assert.Equal(new Vector3(2, 0, 0), m.Right);
+
+        m.Down = new Vector3(0, -3, 0);
+        Assert.Equal(new Vector3(0, 3, 0), m.Up);
+
+        m.Forward = new Vector3(0, 0, -4);
+        Assert.Equal(new Vector3(0, 0, 4), m.Backward);
+    }
+
+    [Fact]
+    public void TestMatrixScaleVectorAndTranslationVectorSetters()
+    {
+        var m = Matrix.Identity;
+        m.ScaleVector = new Vector3(2, 3, 4);
+        Assert.Equal(2f, m.M11);
+        Assert.Equal(3f, m.M22);
+        Assert.Equal(4f, m.M33);
+
+        m.TranslationVector = new Vector3(10, 20, 30);
+        Assert.Equal(10f, m.M41);
+        Assert.Equal(20f, m.M42);
+        Assert.Equal(30f, m.M43);
+    }
+
+    [Fact]
+    public void TestMatrixIndexer2D()
+    {
+        var m = new Matrix(
+            1, 2, 3, 4,
+            5, 6, 7, 8,
+            9, 10, 11, 12,
+            13, 14, 15, 16);
+
+        Assert.Equal(1f, m[0, 0]);
+        Assert.Equal(6f, m[1, 1]);
+        Assert.Equal(16f, m[3, 3]);
+
+        m[2, 1] = 100f;
+        Assert.Equal(100f, m.M32);
+        Assert.Equal(100f, m[2, 1]);
+    }
+
+    [Fact]
+    public void TestMatrixIndexerOutOfRange()
+    {
+        var m = Matrix.Identity;
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => m[16]);
+        Assert.Throws<ArgumentOutOfRangeException>(() => m[-1]);
+        Assert.Throws<ArgumentOutOfRangeException>(() => m[16] = 1f);
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => m[4, 0]);
+        Assert.Throws<ArgumentOutOfRangeException>(() => m[0, 4]);
+        Assert.Throws<ArgumentOutOfRangeException>(() => m[-1, 0]);
+        Assert.Throws<ArgumentOutOfRangeException>(() => m[0, 4] = 1f);
+    }
+
+    [Fact]
+    public void TestMatrixExchangeRowsOutOfRange()
+    {
+        var m = Matrix.Identity;
+        Assert.Throws<ArgumentOutOfRangeException>(() => m.ExchangeRows(-1, 0));
+        Assert.Throws<ArgumentOutOfRangeException>(() => m.ExchangeRows(0, 4));
+    }
+
+    [Fact]
+    public void TestMatrixExchangeColumnsOutOfRange()
+    {
+        var m = Matrix.Identity;
+        Assert.Throws<ArgumentOutOfRangeException>(() => m.ExchangeColumns(-1, 0));
+        Assert.Throws<ArgumentOutOfRangeException>(() => m.ExchangeColumns(0, 4));
+    }
+
+    [Fact]
+    public void TestMatrixExchangeRowsSameIndexIsNoOp()
+    {
+        var m = new Matrix(
+            1, 2, 3, 4,
+            5, 6, 7, 8,
+            9, 10, 11, 12,
+            13, 14, 15, 16);
+        var copy = m;
+
+        m.ExchangeRows(2, 2);
+
+        Assert.Equal(copy, m);
+    }
+
+    [Fact]
+    public void TestMatrixDecomposeScaleTranslationOnly()
+    {
+        var m = Matrix.Scaling(2, 3, 4) * Matrix.Translation(5, 6, 7);
+
+        bool success = m.Decompose(out Vector3 scale, out Vector3 translation);
+
+        Assert.True(success);
+        Assert.Equal(2f, scale.X, 3);
+        Assert.Equal(3f, scale.Y, 3);
+        Assert.Equal(4f, scale.Z, 3);
+        Assert.Equal(5f, translation.X, 3);
+        Assert.Equal(6f, translation.Y, 3);
+        Assert.Equal(7f, translation.Z, 3);
+    }
+
+    [Fact]
+    public void TestMatrixDecomposeScaleTranslationFailsWithZeroScale()
+    {
+        var m = Matrix.Scaling(0, 1, 1);
+
+        bool success = m.Decompose(out Vector3 scale, out Vector3 translation);
+
+        Assert.False(success);
+    }
+
+    [Fact]
+    public void TestMatrixDecomposeComposedTransformRoundTrip()
+    {
+        var scale = new Vector3(2, 5, 3);
+        var rotation = Quaternion.RotationYawPitchRoll(
+            MathUtil.DegreesToRadians(25), MathUtil.DegreesToRadians(40), MathUtil.DegreesToRadians(-15));
+        var translation = new Vector3(7, -3, 12);
+
+        var composed = Matrix.Scaling(scale) * Matrix.RotationQuaternion(rotation) * Matrix.Translation(translation);
+        composed.Decompose(out Vector3 outScale, out Quaternion outRotation, out Vector3 outTranslation);
+
+        Assert.Equal(scale.X, outScale.X, 3);
+        Assert.Equal(scale.Y, outScale.Y, 3);
+        Assert.Equal(scale.Z, outScale.Z, 3);
+        Assert.Equal(translation.X, outTranslation.X, 3);
+        Assert.Equal(translation.Y, outTranslation.Y, 3);
+        Assert.Equal(translation.Z, outTranslation.Z, 3);
+        Assert.True(rotation == outRotation || rotation == -outRotation);
+
+        // Rebuilding from the decomposed parts should reproduce the composed matrix.
+        var rebuilt = Matrix.Scaling(outScale) * Matrix.RotationQuaternion(outRotation) * Matrix.Translation(outTranslation);
+        for (int i = 0; i < 16; i++)
+            Assert.Equal(composed[i], rebuilt[i], 2);
+    }
+
+    [Fact]
+    public void TestMatrixDecomposeReflectionNegativeScale()
+    {
+        var scale = new Vector3(-2, 3, 4);
+        var rotation = Quaternion.RotationYawPitchRoll(
+            MathUtil.DegreesToRadians(20), MathUtil.DegreesToRadians(35), MathUtil.DegreesToRadians(50));
+        var translation = new Vector3(1, -2, 3);
+
+        var m = Matrix.Scaling(scale) * Matrix.RotationQuaternion(rotation) * Matrix.Translation(translation);
+
+        bool success = m.Decompose(out Vector3 outScale, out Matrix outRotation, out Vector3 outTranslation);
+
+        Assert.True(success);
+        Assert.Equal(translation.X, outTranslation.X, 3);
+        Assert.Equal(translation.Y, outTranslation.Y, 3);
+        Assert.Equal(translation.Z, outTranslation.Z, 3);
+
+        // The magnitude of each scale component must be preserved, even though the sign may be
+        // redistributed across axes to keep the recovered rotation a proper (non-reflective) rotation.
+        Assert.Equal(Math.Abs(scale.X), Math.Abs(outScale.X), 3);
+        Assert.Equal(Math.Abs(scale.Y), Math.Abs(outScale.Y), 3);
+        Assert.Equal(Math.Abs(scale.Z), Math.Abs(outScale.Z), 3);
+
+        // The recovered rotation matrix must be a proper rotation (determinant ~= +1, no reflection).
+        Assert.Equal(1f, outRotation.Determinant(), 3);
+
+        // Reconstructing scale * rotation * translation from the decomposed parts reproduces the original matrix.
+        var reconstructed = Matrix.Scaling(outScale) * outRotation * Matrix.Translation(outTranslation);
+        for (int i = 0; i < 16; i++)
+            Assert.Equal(m[i], reconstructed[i], 2);
+    }
+
+    [Fact]
+    public void TestMatrixDecomposeQR()
+    {
+        var a = Matrix.RotationYawPitchRoll(0.3f, 0.5f, 0.7f) * Matrix.Scaling(2, 3, 4) * Matrix.Translation(5, -2, 9);
+
+        a.DecomposeQR(out Matrix q, out Matrix r);
+
+        // Q's columns must be orthonormal.
+        AssertUnitLength(q.Column1);
+        AssertUnitLength(q.Column2);
+        AssertUnitLength(q.Column3);
+        AssertUnitLength(q.Column4);
+        Assert.Equal(0f, Vector4.Dot(q.Column1, q.Column2), 3);
+        Assert.Equal(0f, Vector4.Dot(q.Column1, q.Column3), 3);
+        Assert.Equal(0f, Vector4.Dot(q.Column1, q.Column4), 3);
+        Assert.Equal(0f, Vector4.Dot(q.Column2, q.Column3), 3);
+        Assert.Equal(0f, Vector4.Dot(q.Column2, q.Column4), 3);
+        Assert.Equal(0f, Vector4.Dot(q.Column3, q.Column4), 3);
+
+        // R must be (right) upper triangular.
+        Assert.Equal(0f, r.M21, 3);
+        Assert.Equal(0f, r.M31, 3);
+        Assert.Equal(0f, r.M41, 3);
+        Assert.Equal(0f, r.M32, 3);
+        Assert.Equal(0f, r.M42, 3);
+        Assert.Equal(0f, r.M43, 3);
+
+        // Q * R (as a standard column-vector matrix product) must reconstruct the original columns of A.
+        var col1 = q.Column1 * r.M11;
+        var col2 = (q.Column1 * r.M12) + (q.Column2 * r.M22);
+        var col3 = (q.Column1 * r.M13) + (q.Column2 * r.M23) + (q.Column3 * r.M33);
+        var col4 = (q.Column1 * r.M14) + (q.Column2 * r.M24) + (q.Column3 * r.M34) + (q.Column4 * r.M44);
+
+        AssertVector4NearEqual(a.Column1, col1);
+        AssertVector4NearEqual(a.Column2, col2);
+        AssertVector4NearEqual(a.Column3, col3);
+        AssertVector4NearEqual(a.Column4, col4);
+    }
+
+    [Fact]
+    public void TestMatrixDecomposeLQReconstruction()
+    {
+        var a = Matrix.RotationYawPitchRoll(0.2f, 0.6f, 0.9f) * Matrix.Scaling(3, 1, 5) * Matrix.Translation(-3, 4, 2);
+
+        a.DecomposeLQ(out Matrix l, out Matrix q);
+
+        // Q's rows must be orthonormal.
+        AssertUnitLength(q.Row1);
+        AssertUnitLength(q.Row2);
+        AssertUnitLength(q.Row3);
+        AssertUnitLength(q.Row4);
+        Assert.Equal(0f, Vector4.Dot(q.Row1, q.Row2), 3);
+        Assert.Equal(0f, Vector4.Dot(q.Row1, q.Row3), 3);
+        Assert.Equal(0f, Vector4.Dot(q.Row1, q.Row4), 3);
+        Assert.Equal(0f, Vector4.Dot(q.Row2, q.Row3), 3);
+        Assert.Equal(0f, Vector4.Dot(q.Row2, q.Row4), 3);
+        Assert.Equal(0f, Vector4.Dot(q.Row3, q.Row4), 3);
+
+        // L must be lower triangular.
+        Assert.Equal(0f, l.M12, 3);
+        Assert.Equal(0f, l.M13, 3);
+        Assert.Equal(0f, l.M14, 3);
+        Assert.Equal(0f, l.M23, 3);
+        Assert.Equal(0f, l.M24, 3);
+        Assert.Equal(0f, l.M34, 3);
+
+        // L * Q (as a standard row-vector matrix product) must reconstruct the original rows of A.
+        var row1 = l.M11 * q.Row1;
+        var row2 = (l.M21 * q.Row1) + (l.M22 * q.Row2);
+        var row3 = (l.M31 * q.Row1) + (l.M32 * q.Row2) + (l.M33 * q.Row3);
+        var row4 = (l.M41 * q.Row1) + (l.M42 * q.Row2) + (l.M43 * q.Row3) + (l.M44 * q.Row4);
+
+        AssertVector4NearEqual(a.Row1, row1);
+        AssertVector4NearEqual(a.Row2, row2);
+        AssertVector4NearEqual(a.Row3, row3);
+        AssertVector4NearEqual(a.Row4, row4);
+    }
+
+    [Fact]
+    public void TestMatrixUpperTriangularForm()
+    {
+        var m = new Matrix(
+            4, 1, 2, 1,
+            1, 5, 1, 2,
+            2, 1, 6, 1,
+            1, 2, 1, 7);
+
+        Matrix.UpperTriangularForm(ref m, out var result);
+
+        // Entries strictly below the diagonal must be zero.
+        Assert.Equal(0f, result[1, 0], 2);
+        Assert.Equal(0f, result[2, 0], 2);
+        Assert.Equal(0f, result[2, 1], 2);
+        Assert.Equal(0f, result[3, 0], 2);
+        Assert.Equal(0f, result[3, 1], 2);
+        Assert.Equal(0f, result[3, 2], 2);
+    }
+
+    [Fact]
+    public void TestMatrixLowerTriangularForm()
+    {
+        var m = new Matrix(
+            4, 1, 2, 1,
+            1, 5, 1, 2,
+            2, 1, 6, 1,
+            1, 2, 1, 7);
+
+        Matrix.LowerTriangularForm(ref m, out var result);
+
+        // Entries strictly above the diagonal must be zero.
+        Assert.Equal(0f, result[0, 1], 2);
+        Assert.Equal(0f, result[0, 2], 2);
+        Assert.Equal(0f, result[0, 3], 2);
+        Assert.Equal(0f, result[1, 2], 2);
+        Assert.Equal(0f, result[1, 3], 2);
+        Assert.Equal(0f, result[2, 3], 2);
+    }
+
+    [Fact]
+    public void TestMatrixRowEchelonForm()
+    {
+        // Diagonally dominant, so Gaussian elimination proceeds without needing row swaps.
+        var m = new Matrix(
+            4, 1, 2, 1,
+            1, 5, 1, 2,
+            2, 1, 6, 1,
+            1, 2, 1, 7);
+
+        Matrix.RowEchelonForm(ref m, out var result);
+
+        for (int r = 0; r < 4; r++)
+        {
+            Assert.Equal(1f, result[r, r], 2);
+            for (int i = r + 1; i < 4; i++)
+                Assert.Equal(0f, result[i, r], 2);
+        }
+    }
+
+    [Fact]
+    public void TestMatrixReducedRowEchelonForm()
+    {
+        var m = new Matrix(
+            4, 1, 2, 1,
+            1, 5, 1, 2,
+            2, 1, 6, 1,
+            1, 2, 1, 7);
+        var augment = new Vector4(10, 12, 14, 16);
+
+        Matrix.ReducedRowEchelonForm(in m, in augment, out Matrix result, out Vector4 solution);
+
+        // For an invertible 4x4 matrix, the reduced row echelon form is the identity matrix.
+        for (int r = 0; r < 4; r++)
+            for (int c = 0; c < 4; c++)
+                Assert.Equal(r == c ? 1f : 0f, result[r, c], 2);
+
+        // The augmented column now holds the solution x to m * x = augment.
+        Assert.Equal(augment.X, Vector4.Dot(m.Row1, solution), 2);
+        Assert.Equal(augment.Y, Vector4.Dot(m.Row2, solution), 2);
+        Assert.Equal(augment.Z, Vector4.Dot(m.Row3, solution), 2);
+        Assert.Equal(augment.W, Vector4.Dot(m.Row4, solution), 2);
+    }
+
+    [Fact]
+    public void TestMatrixExponentZero()
+    {
+        var m = Matrix.RotationYawPitchRoll(0.3f, 0.4f, 0.5f) * Matrix.Scaling(2, 3, 4);
+
+        var result = Matrix.Exponent(m, 0);
+
+        Assert.Equal(Matrix.Identity, result);
+    }
+
+    [Fact]
+    public void TestMatrixExponentOne()
+    {
+        var m = Matrix.RotationYawPitchRoll(0.3f, 0.4f, 0.5f) * Matrix.Scaling(2, 3, 4);
+
+        var result = Matrix.Exponent(m, 1);
+
+        Assert.Equal(m, result);
+    }
+
+    [Fact]
+    public void TestMatrixExponentThree()
+    {
+        var m = Matrix.RotationX(MathUtil.PiOverFour) * Matrix.Scaling(2, 1, 1);
+        var expected = m * m * m;
+
+        var result = Matrix.Exponent(m, 3);
+
+        for (int i = 0; i < 16; i++)
+            Assert.Equal(expected[i], result[i], 2);
+    }
+
+    [Fact]
+    public void TestMatrixExponentNegativeThrows()
+    {
+        var m = Matrix.Identity;
+        Assert.Throws<ArgumentOutOfRangeException>(() => Matrix.Exponent(m, -1));
+    }
+
+    [Fact]
+    public void TestMatrixMultiplyStaticOverloadsAgreeWithOperator()
+    {
+        var a = Matrix.RotationY(MathUtil.PiOverFour);
+        var b = Matrix.Translation(1, 2, 3);
+
+        var viaOperator = a * b;
+        var viaStaticValue = Matrix.Multiply(a, b);
+        Matrix.Multiply(ref a, ref b, out var viaStaticRef);
+        Matrix.MultiplyIn(in a, in b, out var viaMultiplyIn);
+
+        Assert.Equal(viaOperator, viaStaticValue);
+        Assert.Equal(viaOperator, viaStaticRef);
+        Assert.Equal(viaOperator, viaMultiplyIn);
+    }
+
+    [Fact]
+    public void TestMatrixDivideMatrixByMatrix()
+    {
+        var a = new Matrix(
+            2, 4, 6, 8,
+            10, 12, 14, 16,
+            18, 20, 22, 24,
+            26, 28, 30, 32);
+        var b = new Matrix(2f);
+
+        var result = Matrix.Divide(a, b);
+
+        for (int i = 0; i < 16; i++)
+            Assert.Equal(a[i] / 2f, result[i]);
+    }
+
+    [Fact]
+    public void TestMatrixPerspectiveOffCenterLHDepthRange()
+    {
+        float znear = 2f, zfar = 50f;
+        var m = Matrix.PerspectiveOffCenterLH(-3, 5, -2, 6, znear, zfar);
+
+        var nearPoint = Vector3.TransformCoordinate(new Vector3(0, 0, znear), m);
+        var farPoint = Vector3.TransformCoordinate(new Vector3(0, 0, zfar), m);
+
+        Assert.Equal(0f, nearPoint.Z, 3);
+        Assert.Equal(1f, farPoint.Z, 3);
+    }
+
+    [Fact]
+    public void TestMatrixPerspectiveOffCenterRHDepthRange()
+    {
+        float znear = 2f, zfar = 50f;
+        var m = Matrix.PerspectiveOffCenterRH(-3, 5, -2, 6, znear, zfar);
+
+        var nearPoint = Vector3.TransformCoordinate(new Vector3(0, 0, -znear), m);
+        var farPoint = Vector3.TransformCoordinate(new Vector3(0, 0, -zfar), m);
+
+        Assert.Equal(0f, nearPoint.Z, 3);
+        Assert.Equal(1f, farPoint.Z, 3);
+    }
+
+    [Fact]
+    public void TestMatrixPerspectiveFovLHMatchesOffCenterForSymmetricFrustum()
+    {
+        float fov = MathUtil.PiOverFour;
+        float aspect = 16f / 9f;
+        float znear = 0.5f, zfar = 100f;
+
+        var viaFov = Matrix.PerspectiveFovLH(fov, aspect, znear, zfar);
+
+        float yScale = 1f / MathF.Tan(fov * 0.5f);
+        float xScale = yScale / aspect;
+        float halfHeight = znear / yScale;
+        float halfWidth = znear / xScale;
+        var viaOffCenter = Matrix.PerspectiveOffCenterLH(-halfWidth, halfWidth, -halfHeight, halfHeight, znear, zfar);
+
+        Assert.Equal(viaOffCenter, viaFov);
+    }
+
+    [Fact]
+    public void TestMatrixOrthoOffCenterLHDepthRange()
+    {
+        float znear = 1f, zfar = 20f;
+        var m = Matrix.OrthoOffCenterLH(-4, 4, -3, 3, znear, zfar);
+
+        var nearPoint = Vector3.TransformCoordinate(new Vector3(0, 0, znear), m);
+        var farPoint = Vector3.TransformCoordinate(new Vector3(0, 0, zfar), m);
+
+        Assert.Equal(0f, nearPoint.Z, 3);
+        Assert.Equal(1f, farPoint.Z, 3);
+    }
+
+    [Fact]
+    public void TestMatrixOrthoLHMatchesOffCenterForSymmetricVolume()
+    {
+        float width = 10f, height = 6f, znear = 0.5f, zfar = 100f;
+
+        var viaWidthHeight = Matrix.OrthoLH(width, height, znear, zfar);
+        var viaOffCenter = Matrix.OrthoOffCenterLH(-width / 2, width / 2, -height / 2, height / 2, znear, zfar);
+
+        Assert.Equal(viaOffCenter, viaWidthHeight);
+    }
+
+    [Fact]
+    public void TestMatrixLookAtLHTransformsTargetToPositiveZ()
+    {
+        var eye = new Vector3(0, 0, -10);
+        var target = Vector3.Zero;
+        var up = Vector3.UnitY;
+
+        var view = Matrix.LookAtLH(eye, target, up);
+        var targetInViewSpace = Vector3.TransformCoordinate(target, view);
+
+        // In a LH view space, the look direction points toward +Z.
+        Assert.Equal(0f, targetInViewSpace.X, 3);
+        Assert.Equal(0f, targetInViewSpace.Y, 3);
+        Assert.True(targetInViewSpace.Z > 0f);
+    }
+
+    [Fact]
+    public void TestMatrixLookAtRHTransformsTargetToNegativeZ()
+    {
+        var eye = new Vector3(0, 0, 10);
+        var target = Vector3.Zero;
+        var up = Vector3.UnitY;
+
+        var view = Matrix.LookAtRH(eye, target, up);
+        var targetInViewSpace = Vector3.TransformCoordinate(target, view);
+
+        // In a RH view space, the look direction points toward -Z.
+        Assert.Equal(0f, targetInViewSpace.X, 3);
+        Assert.Equal(0f, targetInViewSpace.Y, 3);
+        Assert.True(targetInViewSpace.Z < 0f);
+    }
+
+    [Fact]
+    public void TestMatrixAffineTransformationFull()
+    {
+        float scaling = 2f;
+        var rotation = Quaternion.RotationY(MathUtil.PiOverTwo);
+        var translation = new Vector3(1, 2, 3);
+
+        var affine = Matrix.AffineTransformation(scaling, rotation, translation);
+        var expected = Matrix.Scaling(scaling) * Matrix.RotationQuaternion(rotation) * Matrix.Translation(translation);
+
+        Assert.Equal(expected, affine);
+    }
+
+    [Fact]
+    public void TestMatrixToStringContainsAllComponents()
+    {
+        var m = new Matrix(
+            1, 2, 3, 4,
+            5, 6, 7, 8,
+            9, 10, 11, 12,
+            13, 14, 15, 16);
+
+        var text = m.ToString();
+
+        Assert.Contains("M11:1", text);
+        Assert.Contains("M44:16", text);
+    }
+
+    [Fact]
+    public void TestMatrixTryFormat()
+    {
+        var m = Matrix.Identity;
+        Span<char> buffer = new char[200];
+
+        bool success = ((ISpanFormattable)m).TryFormat(buffer, out int charsWritten, default, null);
+
+        Assert.True(success);
+        Assert.True(charsWritten > 0);
+    }
+
+    #endregion
 }

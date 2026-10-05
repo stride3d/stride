@@ -311,4 +311,168 @@ public class TestInt3
         Assert.Equal(8, y);
         Assert.Equal(9, z);
     }
+
+    [Fact]
+    public void TestInt3SizeInBytes()
+    {
+        Assert.Equal(12, Int3.SizeInBytes);
+    }
+
+    [Fact]
+    public void TestInt3LengthUntruncated()
+    {
+        var v = new Int3(2, 3, 4);
+        Assert.Equal(MathF.Sqrt(4 + 9 + 16), v.LengthUntruncated());
+    }
+
+    [Fact]
+    public void TestInt3ToArray()
+    {
+        var v = new Int3(-7, 13, -21);
+        var arr = v.ToArray();
+        Assert.Equal(3, arr.Length);
+        Assert.Equal(-7, arr[0]);
+        Assert.Equal(13, arr[1]);
+        Assert.Equal(-21, arr[2]);
+    }
+
+    [Fact]
+    public void TestInt3AddSubtractStaticValueOverloads()
+    {
+        var v1 = new Int3(-6, 9, 2);
+        var v2 = new Int3(4, -11, 5);
+
+        var sum = Int3.Add(v1, v2);
+        Assert.Equal(-2, sum.X);
+        Assert.Equal(-2, sum.Y);
+        Assert.Equal(7, sum.Z);
+
+        var diff = Int3.Subtract(v1, v2);
+        Assert.Equal(-10, diff.X);
+        Assert.Equal(20, diff.Y);
+        Assert.Equal(-3, diff.Z);
+    }
+
+    [Fact]
+    public void TestInt3UnaryPlus()
+    {
+        var v = new Int3(-4, 9, -1);
+        var result = +v;
+        Assert.Equal(v, result);
+    }
+
+    [Fact]
+    public void TestInt3NegateStaticValueOverload()
+    {
+        var v = new Int3(-13, 21, 0);
+        var result = Int3.Negate(v);
+        Assert.Equal(13, result.X);
+        Assert.Equal(-21, result.Y);
+        Assert.Equal(0, result.Z);
+    }
+
+    [Fact]
+    public void TestInt3ModulateRef()
+    {
+        var v1 = new Int3(-6, 7, 3);
+        var v2 = new Int3(3, -4, -5);
+        var result = Int3.Modulate(v1, v2);
+        Assert.Equal(-18, result.X);
+        Assert.Equal(-28, result.Y);
+        Assert.Equal(-15, result.Z);
+
+        Int3.Modulate(ref v1, ref v2, out var result2);
+        Assert.Equal(result, result2);
+    }
+
+    [Fact]
+    public void TestInt3LerpRefAndNonHalfAmount()
+    {
+        var start = new Int3(-10, 4, 8);
+        var end = new Int3(30, -16, -8);
+
+        var result = Int3.Lerp(start, end, 0.25f);
+        Assert.Equal(0, result.X);
+        Assert.Equal(-1, result.Y);
+        Assert.Equal(4, result.Z);
+
+        Int3.Lerp(ref start, ref end, 0.25f, out var result2);
+        Assert.Equal(result, result2);
+    }
+
+    [Fact]
+    public void TestInt3SmoothStepRefAndClampedAmount()
+    {
+        var start = new Int3(-10, 4, 8);
+        var end = new Int3(30, -16, -8);
+
+        // Amount outside [0, 1] should be clamped.
+        var below = Int3.SmoothStep(start, end, -1f);
+        Assert.Equal(start, below);
+
+        var above = Int3.SmoothStep(start, end, 2f);
+        Assert.Equal(end, above);
+
+        Int3.SmoothStep(ref start, ref end, 0.25f, out var resultRef);
+        Assert.Equal(Int3.SmoothStep(start, end, 0.25f), resultRef);
+    }
+
+    [Fact]
+    public void TestInt3RoundFromVector3()
+    {
+        var v = new Vector3(2.5f, -2.5f, 1.4f);
+
+        var result = Int3.Round(v, MidpointRounding.AwayFromZero);
+        Assert.Equal(3, result.X);
+        Assert.Equal(-3, result.Y);
+        Assert.Equal(1, result.Z);
+
+        Int3.Round(in v, out var result2, MidpointRounding.AwayFromZero);
+        Assert.Equal(result, result2);
+    }
+
+    [Fact]
+    public void TestInt3EqualsObject()
+    {
+        var v1 = new Int3(-3, 8, 5);
+        object v2 = new Int3(-3, 8, 5);
+        object v3 = new Int3(1, 2, 3);
+        object notInt3 = "not an Int3";
+
+        Assert.True(v1.Equals(v2));
+        Assert.False(v1.Equals(v3));
+        Assert.False(v1.Equals(notInt3));
+        Assert.False(v1.Equals(null));
+    }
+
+    [Fact]
+    public void TestInt3ExplicitConversions()
+    {
+        var v = new Int3(-6, 11, 4);
+
+        var vec2 = (Vector2)v;
+        Assert.Equal(-6.0f, vec2.X);
+        Assert.Equal(11.0f, vec2.Y);
+
+        var vec4 = (Vector4)v;
+        Assert.Equal(-6.0f, vec4.X);
+        Assert.Equal(11.0f, vec4.Y);
+        Assert.Equal(4.0f, vec4.Z);
+        Assert.Equal(0.0f, vec4.W);
+    }
+
+    [Fact]
+    public void TestInt3SystemNumericsVector3Conversion()
+    {
+        var sysVec = new System.Numerics.Vector3(-2.9f, 7.4f, 3.6f);
+        var v = (Int3)sysVec;
+        Assert.Equal(-2, v.X);
+        Assert.Equal(7, v.Y);
+        Assert.Equal(3, v.Z);
+
+        var backToSys = (System.Numerics.Vector3)v;
+        Assert.Equal(-2.0f, backToSys.X);
+        Assert.Equal(7.0f, backToSys.Y);
+        Assert.Equal(3.0f, backToSys.Z);
+    }
 }
