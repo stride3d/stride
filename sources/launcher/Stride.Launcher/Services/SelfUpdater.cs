@@ -24,7 +24,6 @@ public static class SelfUpdater
     /// </summary>
     public static readonly string? DisplayVersion;
 
-    private static readonly HttpClient httpClient = new();
     private static SelfUpdateWindow? selfUpdateWindow;
 
     static SelfUpdater()
@@ -112,7 +111,7 @@ public static class SelfUpdater
             });
 
             var strideInstaller = Path.Combine(Path.GetTempPath(), $"StrideSetup-{Guid.NewGuid()}.exe");
-            using (var response = await httpClient.GetAsync(strideInstallerUrl))
+            using (var response = await LauncherHttpClient.Instance.GetAsync(strideInstallerUrl))
             {
                 response.EnsureSuccessStatusCode();
 

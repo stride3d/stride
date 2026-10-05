@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.ViewModels;
+using Stride.Launcher.Services;
 
 namespace Stride.Launcher.ViewModels;
 
@@ -13,8 +14,6 @@ namespace Stride.Launcher.ViewModels;
 /// </summary>
 public sealed partial class ReleaseNotesViewModel : DispatcherViewModel
 {
-    private static readonly HttpClient httpClient = new();
-
     private readonly MainViewModel launcher;
     private bool isActive;
     private string? markdownContent;
@@ -76,7 +75,7 @@ public sealed partial class ReleaseNotesViewModel : DispatcherViewModel
 
         try
         {
-            using var response = await httpClient.GetAsync($"{BaseUrl}{releaseNotesFileName}");
+            using var response = await LauncherHttpClient.Instance.GetAsync($"{BaseUrl}{releaseNotesFileName}");
             response.EnsureSuccessStatusCode();
             releaseNotesMarkdown = await response.Content.ReadAsStringAsync();
         }
