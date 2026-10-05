@@ -1,0 +1,9 @@
+!TemplateAssetFactory
+Id: 5ab767f1-29d1-4d46-ac7d-33c8fc8c408e
+AssetTypeName: HeightfieldAsset
+Name: HeightfieldAsset
+Scope: Asset
+Description: An heightfield for collision or rendering purposes 
+Group: Physics-Bepu
+Icon: ..\.sdtpl\Heightfield.png
+DefaultOutputName: Heightfield

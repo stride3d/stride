@@ -168,18 +168,21 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
         Span<ShapeTransform> transforms = stackalloc ShapeTransform[collidable.Collider.Transforms];
         collidable.Collider.GetLocalTransforms(collidable, transforms);
 
-        WireFrameRenderObject[] wireframes = new WireFrameRenderObject[transforms.Length];
+        var wireframes = new List<WireFrameRenderObject>(shapeData.Count);
         for (int i = 0; i < shapeData.Count; i++)
         {
             var data = shapeData[i];
+            // TODO: Simplified CPU-mesh of the heightfield as a gizmo, right now the rendering component is good enough
+            if (data.Vertices.Length == 0)
+                continue;
 
             var wireframe = WireFrameRenderObject.New(_game.GraphicsDevice, data.Indices, data.Vertices);
             wireframe.Color = GetCurrentColor(collidable);
             Matrix.Transformation(ref transforms[i].Scale, ref transforms[i].RotationLocal, ref transforms[i].PositionLocal, out wireframe.CollidableBaseMatrix);
-            wireframes[i] = wireframe;
+            wireframes.Add(wireframe);
             _visibilityGroup.RenderObjects.Add(wireframe);
         }
-        _wireFrameRenderObject.Add(collidable, (wireframes, cache)); // We have to store the cache alongside it to ensure it doesn't get discarded for future calls to GetModelCache with the same model
+        _wireFrameRenderObject.Add(collidable, (wireframes.ToArray(), cache)); // We have to store the cache alongside it to ensure it doesn't get discarded for future calls to GetModelCache with the same model
     }
 
     void CollidableUpdate(CollidableComponent collidable)

@@ -133,7 +133,8 @@ namespace Stride.Editor.EditorGame.ContentLoader
         /// Types that support fast reloading (ie. updating existing object instead of loading a new one and updating references).
         /// </summary>
         // TODO: add an Attribute on Assets to specify if they are fast-reloadable (plugin approach)
-        private static ICollection<Type> FastReloadTypes => new[] { typeof(MaterialAsset), typeof(TextureAsset) };
+        // TODO: Fix this nonsense
+        private static ICollection<Type> FastReloadTypes => new[] { /*typeof(MaterialAsset),*/ typeof(TextureAsset) };
 
         /// <summary>
         /// The <see cref="EditorServiceGame"/> associated with this instance.

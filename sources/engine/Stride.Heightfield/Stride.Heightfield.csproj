@@ -5,18 +5,20 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <StridePackAssets>true</StridePackAssets>
+    <StrideContainsAssetTypes>true</StrideContainsAssetTypes>
     <StrideAssemblyProcessorOptions>--serialization --parameter-key</StrideAssemblyProcessorOptions>
     <StrideCodeAnalysis>true</StrideCodeAnalysis>
   </PropertyGroup>
 
   <ItemGroup>
     <InternalsVisibleTo Include="Stride.Assets" />
+    <InternalsVisibleTo Include="Stride.BepuPhysics" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Stride.Engine\Stride.Engine.csproj" />
-    <ProjectReference Include="..\..\..\core\Stride.Core.MicroThreading\Stride.Core.MicroThreading.csproj" />
-    <ProjectReference Include="..\..\Stride.Heightfield\Stride.Heightfield.csproj" />
+    <ProjectReference Include="..\Stride.Engine\Stride.Engine.csproj" />
+    <ProjectReference Include="..\..\core\Stride.Core.MicroThreading\Stride.Core.MicroThreading.csproj" />
   </ItemGroup>
 
   <ItemGroup>
