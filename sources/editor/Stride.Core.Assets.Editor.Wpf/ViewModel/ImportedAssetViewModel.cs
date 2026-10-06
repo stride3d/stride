@@ -23,6 +23,11 @@ namespace Stride.Core.Assets.Editor.ViewModel
             // Do nothing by default
         }
 
+        protected virtual bool IsMatchingImportedAsset(TAsset importedAsset)
+        {
+            return true;
+        }
+
         protected virtual void UpdateAssetFromSource(TAsset assetToMerge)
         {
             // Do nothing by default
@@ -38,7 +43,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 importParameters.SelectedOutputTypes.Add(AssetType, true);
                 try
                 {
-                    var newAsset = await Task.Run(() => importer.Import(Asset.MainSource, importParameters).SingleOrDefault(x => x.Asset is TAsset));
+                    var newAsset = await Task.Run(() => importer.Import(Asset.MainSource, importParameters).SingleOrDefault(x => x.Asset is TAsset asset && IsMatchingImportedAsset(asset)));
                     if (newAsset != null)
                     {
                         UpdateAssetFromSource((TAsset)newAsset.Asset);
