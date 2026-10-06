@@ -6,7 +6,7 @@ using Xunit;
 
 namespace Stride.Core.Tests.Collections;
 
-#pragma warning disable xUnit2013
+#pragma warning disable xUnit2013, xUnit2017
 
 public class IndexingDictionaryTests
 {
@@ -25,7 +25,7 @@ public class IndexingDictionaryTests
         dict.Add(5, "value5");
 
         Assert.Equal(1, dict.Count);
-        Assert.Single(dict);
+        Assert.Equal(new KeyValuePair<int, string>(5, "value5"), Assert.Single(dict));
         Assert.Equal("value5", dict[5]);
     }
 
@@ -58,7 +58,7 @@ public class IndexingDictionaryTests
 
         Assert.Equal("new", dict[3]);
         Assert.Equal(1, dict.Count);
-        Assert.Single(dict);
+        Assert.Equal(new KeyValuePair<int, string>(3, "new"), Assert.Single(dict));
     }
 
     [Fact]
@@ -69,7 +69,7 @@ public class IndexingDictionaryTests
 
         Assert.Equal("value", dict[5]);
         Assert.Equal(1, dict.Count);
-        Assert.Single(dict);
+        Assert.Equal(new KeyValuePair<int, string>(5, "value"), Assert.Single(dict));
     }
 
     [Fact]
@@ -125,7 +125,7 @@ public class IndexingDictionaryTests
 
         Assert.True(removed);
         Assert.Equal(1, dict.Count);
-        Assert.Single(dict);
+        Assert.Equal(new KeyValuePair<int, string>(4, "four"), Assert.Single(dict));
         Assert.False(dict.ContainsKey(3));
     }
 
@@ -139,7 +139,7 @@ public class IndexingDictionaryTests
 
         Assert.False(removed);
         Assert.Equal(1, dict.Count);
-        Assert.Single(dict);
+        Assert.Equal(new KeyValuePair<int, string>(1, "one"), Assert.Single(dict));
     }
 
     [Fact]
@@ -219,7 +219,7 @@ public class IndexingDictionaryTests
         var dict = new IndexingDictionary<string>();
         dict.Add(2, "two");
 
-        Assert.Contains(new KeyValuePair<int, string>(2, "two"), dict);
+        Assert.True(dict.Contains(new KeyValuePair<int, string>(2, "two")));
     }
 
     [Fact]
@@ -228,7 +228,7 @@ public class IndexingDictionaryTests
         var dict = new IndexingDictionary<string>();
         dict.Add(2, "two");
 
-        Assert.DoesNotContain(new KeyValuePair<int, string>(2, "other"), dict);
+        Assert.False(dict.Contains(new KeyValuePair<int, string>(2, "other")));
     }
 
     [Fact]
