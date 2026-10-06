@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Templates;
+using Stride.Core.Diagnostics;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -297,6 +298,41 @@ public class CompanionPackageTests
     }
 
     [Fact]
+    public void AddedDependencyLoadsItsPackageAndCompanions()
+    {
+        // Add dependency in Game Studio: a plugin reference added to a game whose session is open, then restored
+        using var c = new Case(output, "added-dependency");
+        c.PackPlugin();
+        var result = c.BuildConsumer();
+        Assert.True(result.ExitCode == 0, $"Consumer build should succeed (exit {result.ExitCode}).");
+        var loadEditorPackages = OperatingSystem.IsWindows();
+        var session = c.LoadConsumerProjectSession(loadEditorPackages, executable: true);
+        Assert.DoesNotContain(session.Packages, p => p.Meta.Name == "Stride.Video");
+
+        // Added to the game project; the restore covers the executable referencing it, as the solution's does
+        c.ReferencePackage("Stride.Video");
+        c.RestoreConsumer();
+        var game = Assert.Single(session.Projects.OfType<SolutionProject>(), p => p.Package.Meta.Name == "Consumer.Game");
+        var executable = Assert.Single(session.Projects.OfType<SolutionProject>(), p => p.Package.Meta.Name == "Consumer");
+        var log = new LoggerResult();
+        session.LoadAddedDependencies(log, new PackageLoadParameters { AutoCompileProjects = false, LoadAssemblyReferences = false, AutoLoadTemporaryAssets = false, LoadEditorPackages = loadEditorPackages, EditorToolkit = "Wpf" });
+        foreach (var message in log.Messages)
+            output.WriteLine(message.ToString());
+        Assert.False(log.HasErrors, "Loading the added dependency reported errors.");
+
+        // The plugin and its companions, each once; the packages already there are not loaded again
+        Assert.Single(session.Packages, p => p.Meta.Name == "Stride.Video");
+        Assert.Single(session.Packages, p => p.Meta.Name == "Stride.Video.Assets");
+        if (loadEditorPackages)
+            Assert.Single(session.Packages, p => p.Meta.Name == "Stride.Video.Editor");
+        Assert.Equal(session.Packages.Count, session.Packages.Select(p => p.Meta.Name).Distinct().Count());
+        Assert.DoesNotContain(session.Projects.OfType<SolutionProject>(), p => p.Package.Meta.Name.StartsWith("Stride.", StringComparison.Ordinal));
+        Assert.Contains(game.FlattenedDependencies, d => d.Package?.Meta.Name == "Stride.Video.Assets");
+        // The executable sees the new package too (its build gets the plugin, Add dependency marks it available)
+        Assert.Contains(executable.FlattenedDependencies, d => d.Package?.Meta.Name == "Stride.Video");
+    }
+
+    [Fact]
     public void ColliderShapeCompilesThroughThePhysicsAssetsPackageAndOnlyTheEditorLoadsItsEditorPackage()
     {
         // Bullet physics: Stride.Physics declares Stride.Physics.Assets (collider shape, heightmap and navigation mesh
@@ -399,6 +435,48 @@ public class CompanionPackageTests
         var otherEditorSession = c.LoadConsumerProjectSession(loadEditorPackages: true, editorToolkit: "Avalonia");
         Assert.DoesNotContain(otherEditorSession.Packages, p => p.Meta.Name == "Stride.Audio.Editor");
         Assert.DoesNotContain(otherEditorSession.Packages, p => p.Meta.Name == "Stride.Audio.Editor.Wpf");
+    }
+
+    [Fact]
+    public void UIPageCompilesThroughTheUIAssetsPackageAndOnlyTheEditorLoadsItsEditorPackage()
+    {
+        // Stride.UI declares Stride.UI.Assets (page and library assets, compilers,
+        // templates, the system library) and Stride.UI.Editor (the UI editors), whose views are in Stride.UI.Editor.Wpf
+        using var c = new Case(output, "assets-ui");
+        c.PackPlugin();
+
+        // The consumer game references Stride.UI and holds a UI page, typed from Stride.UI's
+        // [assembly: AssetFileExtension(".sduipage", ...)]
+        c.AddTypedConstantCheck("Page", "Stride.Engine.UIPage");
+        var result = c.BuildConsumer();
+        Assert.True(result.ExitCode == 0, $"Consumer build should succeed (exit {result.ExitCode}).");
+        c.AssertContentCompiled("/Consumer/Page");
+        // The page's button images name the UI design sheet by its id and an old URL: the id finds it in Stride.UI.Assets
+        c.AssertContentCompiled("/Stride.UI.Assets/StrideUIDesigns");
+        // The system library's styles use the engine's default font: Stride.UI.Assets sees Stride.UI's dependencies
+        Assert.DoesNotContain("StrideDefaultFont: Asset", result.Output);
+
+        var compilerSession = c.LoadConsumerProjectSession();
+        var assets = Assert.Single(compilerSession.Packages, p => p.Meta.Name == "Stride.UI.Assets");
+        // The UI editor's system library ships in it (this session loads no assembly, so read the asset folder itself)
+        Assert.Contains(assets.AssetFolders, f => File.Exists(Path.Combine(f.Path.ToOSPath(), "StrideUILibrary.sduilib")));
+        Assert.DoesNotContain(compilerSession.Packages, p => p.Meta.Name == "Stride.UI.Editor");
+        Assert.Contains(TemplateManager.FindTemplates(TemplateScope.Asset, compilerSession), t => t.Name == "UI page");
+
+        // Stride.UI.Editor targets Windows only, as Game Studio does
+        if (!OperatingSystem.IsWindows())
+            return;
+        var editorSession = c.LoadConsumerProjectSession(loadEditorPackages: true);
+        var editorPackage = Assert.Single(editorSession.Packages, p => p.Meta.Name == "Stride.UI.Editor");
+        AssertDeclaredEditorPackage(editorSession, "Stride.UI", editorPackage);
+        var viewDeclaration = Assert.Single(editorPackage.CompanionPackages);
+        Assert.Equal("Stride.UI.Editor.Wpf", viewDeclaration.Name);
+        Assert.Equal("Wpf", viewDeclaration.Toolkit);
+        Assert.Contains(editorSession.Packages, p => p.Meta.Name == "Stride.UI.Editor.Wpf");
+
+        var otherEditorSession = c.LoadConsumerProjectSession(loadEditorPackages: true, editorToolkit: "Avalonia");
+        Assert.DoesNotContain(otherEditorSession.Packages, p => p.Meta.Name == "Stride.UI.Editor");
+        Assert.DoesNotContain(otherEditorSession.Packages, p => p.Meta.Name == "Stride.UI.Editor.Wpf");
     }
 
     [Fact]
@@ -829,6 +907,13 @@ public class CompanionPackageTests
                 $"-p:StrideEngineVersion={version}", $"-p:RestorePackagesPath={nugetCache}");
         }
 
+        /// <summary>Restores the executable and the game project it references, as Game Studio does after Add dependency.</summary>
+        public void RestoreConsumer()
+        {
+            var result = Dotnet.Exec(["restore", Path.Combine(consumerDir, "Consumer.csproj"), "-nr:false", "-v:m", $"-p:StrideEngineVersion={version}", $"-p:RestorePackagesPath={nugetCache}"], consumerDir, output, timeoutMin: 5);
+            Assert.True(result.ExitCode == 0, $"Consumer restore should succeed (exit {result.ExitCode}).");
+        }
+
         /// <summary>The asset is in the compiled index and loads from the deployed database.</summary>
         public void AssertContentCompiled(string url)
         {
@@ -879,11 +964,11 @@ public class CompanionPackageTests
         /// manifest session already loaded this plugin's assemblies into the test process. An editor session is the
         /// WPF Game Studio's unless told otherwise: the engine's Editor packages are built against the WPF editor.
         /// </summary>
-        public PackageSession LoadConsumerProjectSession(bool loadEditorPackages = false, string? editorToolkit = "Wpf")
+        public PackageSession LoadConsumerProjectSession(bool loadEditorPackages = false, string? editorToolkit = "Wpf", bool executable = false)
         {
             PackageSessionPublicHelper.FindAndSetMSBuildVersion();
             var result = new PackageSessionResult();
-            PackageSession.Load(GameProject, result, new PackageLoadParameters { AutoCompileProjects = false, LoadAssemblyReferences = false, AutoLoadTemporaryAssets = false, LoadEditorPackages = loadEditorPackages, EditorToolkit = editorToolkit });
+            PackageSession.Load(executable ? Path.Combine(consumerDir, "Consumer.csproj") : GameProject, result, new PackageLoadParameters { AutoCompileProjects = false, LoadAssemblyReferences = false, AutoLoadTemporaryAssets = false, LoadEditorPackages = loadEditorPackages, EditorToolkit = editorToolkit });
             return CheckSession(result);
         }
 
