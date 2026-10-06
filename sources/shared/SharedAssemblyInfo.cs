@@ -37,7 +37,7 @@ internal class StrideVersion
     /// Release line. The single source for major.minor; pins <see cref="AssemblyVersion"/>. Bump when starting a new
     /// major/minor cycle.
     /// </summary>
-    public const string MajorMinor = "4.4";
+    public const string MajorMinor = "4.5";
 
     /// <summary>
     /// The patch within <see cref="MajorMinor"/>, so the version is MajorMinor.Patch. Bumped per stable release
@@ -51,7 +51,7 @@ internal class StrideVersion
     /// release-samples.yml read it from here. Only package builds apply it; dev and CI builds stay at
     /// MajorMinor.Patch (+ -devN), so the prereleases of one version share one dev version.
     /// </summary>
-    public const string NuGetVersionSuffix = "";
+    public const string NuGetVersionSuffix = "-beta01";
 
     // The content template version (samples) is not here: it lives in sources/templates/StrideSamplesVersion.props,
     // so a samples release rebuilds only Stride.Assets, not every assembly.
