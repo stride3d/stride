@@ -28,7 +28,7 @@ public sealed class EffectBytecode
     ///   Changing this one also rejects the precompiled bytecodes checked in under
     ///   Stride.Graphics/Shaders.Bytecodes and Shaders093.Bytecodes, which then have to be regenerated.
     /// </remarks>
-    public const uint MagicHeader = 0xEFFEC009;  // NOTE: If EffectBytecode is changed, this number must be changed manually
+    public const uint MagicHeader = 0xEFFEC00A;  // NOTE: If EffectBytecode is changed, this number must be changed manually
 
 
     /// <summary>

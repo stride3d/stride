@@ -87,7 +87,7 @@ namespace Stride.Graphics.GeometricPrimitives
                 {
                     indicesShort[i] = (ushort)indices[i];
                 }
-                IndexBuffer = Buffer.Index.New(graphicsDevice, indicesShort).RecreateWith(indicesShort).DisposeBy(this);
+                IndexBuffer = Buffer.Index.New(graphicsDevice, indicesShort).DisposeBy(this);
             }
             else
             {
@@ -96,13 +96,11 @@ namespace Stride.Graphics.GeometricPrimitives
                     throw new InvalidOperationException("Cannot generate more than 65535 indices on feature level HW <= 9.3");
                 }
 
-                IndexBuffer = Buffer.Index.New(graphicsDevice, indices).RecreateWith(indices).DisposeBy(this);
+                IndexBuffer = Buffer.Index.New(graphicsDevice, indices).DisposeBy(this);
                 IsIndex32Bits = true;
             }
 
-            // For now it will keep buffers for recreation.
-            // TODO: A better alternative would be to store recreation parameters so that we can reuse procedural code.
-            VertexBuffer = Buffer.Vertex.New(graphicsDevice, vertices).RecreateWith(vertices).DisposeBy(this);
+            VertexBuffer = Buffer.Vertex.New(graphicsDevice, vertices).DisposeBy(this);
             VertexBufferBinding = new VertexBufferBinding(VertexBuffer, new T().GetLayout(), vertices.Length);
 
             PipelineState.State.SetDefaults();

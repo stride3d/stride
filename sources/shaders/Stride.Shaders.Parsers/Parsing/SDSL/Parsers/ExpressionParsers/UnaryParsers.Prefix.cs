@@ -62,12 +62,12 @@ public record struct PrefixParser : IParser<Expression>
                 // Fold -literal at parse time into a negated literal
                 if (op == Operator.Minus && lit is IntegerLiteral intLit)
                 {
-                    parsed = new IntegerLiteral(intLit.Suffix, -intLit.Value, scanner[position..scanner.Position]);
+                    parsed = intLit.Negate(scanner[position..scanner.Position]);
                     return true;
                 }
                 if (op == Operator.Minus && lit is FloatLiteral floatLit)
                 {
-                    parsed = new FloatLiteral(floatLit.Suffix, -floatLit.DoubleValue, scanner[position..scanner.Position]);
+                    parsed = new FloatLiteral(floatLit.Suffix, -floatLit.DoubleValue, scanner[position..scanner.Position]) { Unsuffixed = floatLit.Unsuffixed };
                     return true;
                 }
 

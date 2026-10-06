@@ -323,9 +323,9 @@ namespace Stride.Games
                 {
                     Presenter.Present();
                 }
-                catch (GraphicsDeviceException ex) when (ex.Status is not GraphicsDeviceStatus.Removed and not GraphicsDeviceStatus.Reset)
+                catch (GraphicsDeviceException ex) when (ex.Status is not GraphicsDeviceStatus.Normal)
                 {
-                    throw;
+                    // A loss during Present is reported by the game's next BeginDraw, from the device status
                 }
 
                 if (savedPresenter != null)

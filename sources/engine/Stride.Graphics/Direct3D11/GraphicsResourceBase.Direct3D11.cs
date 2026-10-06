@@ -165,17 +165,6 @@ public abstract unsafe partial class GraphicsResourceBase
     }
 
     /// <summary>
-    ///   Called when the <see cref="GraphicsDevice"/> has been recreated.
-    /// </summary>
-    /// <returns>
-    ///   <see langword="true"/> if resource has transitioned to the <see cref="GraphicsResourceLifetimeState.Active"/> state.
-    /// </returns>
-    protected internal virtual bool OnRecreate()
-    {
-        return false;
-    }
-
-    /// <summary>
     ///   Gets the CPU access flags from the intended resource usage.
     /// </summary>
     /// <param name="usage">The intended usage for the resource.</param>

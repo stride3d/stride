@@ -50,7 +50,7 @@ namespace Stride.Graphics
     ///   (<see cref="IDXGISwapChain"/>).
     /// </summary>
     /// <inheritdoc path="/remarks"/>
-    public unsafe class SwapChainGraphicsPresenter : GraphicsPresenter
+    public unsafe partial class SwapChainGraphicsPresenter : GraphicsPresenter
     {
         private readonly Texture backBuffer;
 
@@ -136,7 +136,7 @@ namespace Stride.Graphics
             // Gets the native Back-Buffer from the Swap-Chain.
             //   This increments the reference count of the COM object,
             //   so we need to Release() it when discarding or swapping it.
-            var nativeBackBuffer = GetBackBuffer<BackBufferResourceType>();
+            var nativeBackBuffer = AcquireBackBuffer();
 
             backBuffer = GraphicsDevice.IsDebugMode
                 ? new Texture(device, "SwapChain Back-Buffer")
@@ -146,10 +146,6 @@ namespace Stride.Graphics
             // compensate with Release() to return the reference count to its previous value
             backBuffer.InitializeFromImpl(nativeBackBuffer, Description.BackBufferFormat.IsSRgb);
             nativeBackBuffer.Release();
-
-            // Reload should get Back-Buffer from Swap-Chain as well
-            // TODO: Stale statement/comment?
-            //backBuffer.Reload = graphicsResource => ((Texture)graphicsResource).Recreate(swapChain.GetBackBuffer<SharpDX.Direct3D11.Texture>(0));
 
             //
             // Determines if the Graphics Device supports the flip model and tearing.
@@ -222,6 +218,23 @@ namespace Stride.Graphics
 
             swapChain->GetBuffer(index, out ComPtr<TD3DResource> resource);
             return resource;
+        }
+
+        /// <summary>
+        ///   Gets the Back-Buffer the Graphics Device renders to.
+        /// </summary>
+        /// <param name="index">The zero-based index of the Swap-Chain buffer.</param>
+        /// <returns>
+        ///   The Swap-Chain buffer, or a new shared Back-Buffer when a Direct3D 11 Swap-Chain presents the frames.
+        ///   It must be released when swapping or discarding the reference.
+        /// </returns>
+        private ComPtr<BackBufferResourceType> AcquireBackBuffer(uint index = 0)
+        {
+#if STRIDE_GRAPHICS_API_DIRECT3D12
+            if (presentThroughD3D11)
+                return CreateSharedBackBuffer();
+#endif
+            return GetBackBuffer<BackBufferResourceType>(index);
         }
 
         /// <summary>
@@ -370,6 +383,11 @@ namespace Stride.Graphics
                 ? DXGI.PresentAllowTearing
                 : 0;
 
+#if STRIDE_GRAPHICS_API_DIRECT3D12
+            if (presentThroughD3D11)
+                CopyBackBufferToD3D11SwapChain();
+#endif
+
             HResult result = swapChain->Present((uint) presentInterval,  presentFlags);
 
             if (result.IsFailure)
@@ -377,10 +395,16 @@ namespace Stride.Graphics
                 var deviceStatus = GraphicsDevice.GraphicsDeviceStatus;
 
                 var exception = Marshal.GetExceptionForHR(result);
+                if (deviceStatus != GraphicsDeviceStatus.Normal)
+                    throw GraphicsDeviceException.FromLostDevice(GraphicsDevice, deviceStatus, exception);
                 throw new GraphicsDeviceException($"Unexpected error on Present (device status: {deviceStatus})", exception, deviceStatus);
             }
 
 #if STRIDE_GRAPHICS_API_DIRECT3D12
+            // The shared Back-Buffer stays
+            if (presentThroughD3D11)
+                return;
+
             // Manually swap the Back-Buffers
 
             // Gets the native Back-Buffer from the Swap-Chain.
@@ -423,6 +447,9 @@ namespace Stride.Graphics
             backBuffer.LifetimeState = GraphicsResourceLifetimeState.Destroyed;
 
             SafeRelease(ref swapChain);
+#if STRIDE_GRAPHICS_API_DIRECT3D12
+            ReleaseD3D11Presenter();
+#endif
 
             base.OnDestroyed(immediately);
         }
@@ -438,7 +465,7 @@ namespace Stride.Graphics
             // Get the newly created native Texture
             //   This increments the reference count of the COM object,
             //   so we need to Release() it when discarding or swapping it.
-            var backBufferTexture = GetBackBuffer<BackBufferResourceType>();
+            var backBufferTexture = AcquireBackBuffer();
             bufferSwapIndex = 0;
 
             // Put it in our Back-Buffer Texture
@@ -510,7 +537,7 @@ namespace Stride.Graphics
             // Get the newly created native Texture
             //   This increments the reference count of the COM object,
             //   so we need to Release() it when discarding or swapping it.
-            var backBufferTexture = GetBackBuffer<BackBufferResourceType>();
+            var backBufferTexture = AcquireBackBuffer();
             bufferSwapIndex = 0;
 
             // Put it in our Back-Buffer Texture
@@ -763,7 +790,9 @@ namespace Stride.Graphics
 #if STRIDE_GRAPHICS_API_DIRECT3D11
             ComPtr<IUnknown> device = GraphicsDevice.NativeDevice.AsIUnknown();
 #elif STRIDE_GRAPHICS_API_DIRECT3D12
-            ComPtr<IUnknown> device = GraphicsDevice.NativeCommandQueue.AsIUnknown();
+            ComPtr<IUnknown> device = presentThroughD3D11
+                ? GetD3D11PresentDevice()
+                : GraphicsDevice.NativeCommandQueue.AsIUnknown();
 #endif
             ComPtr<IDXGISwapChain1> newSwapChain = default;
 

@@ -14,7 +14,7 @@ namespace Stride.Rendering.Materials
             stage float HairAlphaThreshold;    // Any alpha value above this value is considered opaque.
         }
 
-        void Discard(void)
+        override void Discard(void)
         {
             if(streams.matDiffuse.a >= HairAlphaThreshold)
             {

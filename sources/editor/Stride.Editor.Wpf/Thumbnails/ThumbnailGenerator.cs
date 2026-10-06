@@ -180,6 +180,10 @@ namespace Stride.Editor.Thumbnails
         /// </summary>
         private ResultStatus ProcessThumbnailRequests(ThumbnailBuildRequest request)
         {
+            // Nothing more goes to a lost device (some drivers crash on commands to it): the studio restarts
+            if (GraphicsDeviceLoss.Occurred)
+                return ResultStatus.Failed;
+
             var status = ResultStatus.Successful;
 
             // Global lock so that only one rendering happens at the same time
@@ -228,8 +232,14 @@ namespace Stride.Editor.Thumbnails
 
                             // write the thumbnail to the file
                             using (var thumbnailImage = renderTarget.GetDataAsImage(GraphicsCommandList))
-                            using (var outputImageStream = request.FileProvider.OpenStream(request.Url, VirtualFileMode.Create, VirtualFileAccess.Write))
                             {
+                                // A lost device can read back garbage without failing: such a thumbnail must not reach the build cache
+                                var deviceStatus = GraphicsDevice.GraphicsDeviceStatus;
+                                if (deviceStatus != GraphicsDeviceStatus.Normal)
+                                    throw GraphicsDeviceException.FromLostDevice(GraphicsDevice, deviceStatus);
+
+                                using var outputImageStream = request.FileProvider.OpenStream(request.Url, VirtualFileMode.Create, VirtualFileAccess.Write);
+
                                 request.PostProcessThumbnail?.Invoke(thumbnailImage);
 
                                 ThumbnailBuildHelper.ApplyThumbnailStatus(thumbnailImage, request.DependencyBuildStatus);
@@ -253,6 +263,17 @@ namespace Stride.Editor.Thumbnails
 
                         MicrothreadLocalDatabases.UnmountDatabase();
                     }
+                }
+                // The first call to notice a lost device can throw anything, so the device status decides, not the exception type
+                catch (Exception e) when (e is GraphicsDeviceException { Status: not GraphicsDeviceStatus.Normal } || GraphicsDevice.GraphicsDeviceStatus != GraphicsDeviceStatus.Normal)
+                {
+                    // The thumbnail device may be the only one to see the loss (no editor open): the studio still restarts
+                    status = ResultStatus.Failed;
+                    request.Logger.Error("The graphics device was lost while processing thumbnail request.", e);
+                    var loss = e is GraphicsDeviceException { Status: not GraphicsDeviceStatus.Normal } deviceLoss
+                        ? deviceLoss
+                        : GraphicsDeviceException.FromLostDevice(GraphicsDevice, GraphicsDevice.GraphicsDeviceStatus, e);
+                    GraphicsDeviceLoss.Report(this, loss);
                 }
                 catch (Exception e)
                 {

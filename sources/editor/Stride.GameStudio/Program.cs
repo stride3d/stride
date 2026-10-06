@@ -32,6 +32,7 @@ using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Presentation.Windows;
 using Stride.Core.Translation;
 using Stride.Core.Translation.Providers;
+using Stride.Editor;
 using Stride.Editor.Build;
 using Stride.Editor.Preview;
 using Stride.GameStudio.Helpers;
@@ -48,7 +49,7 @@ using MessageBoxResult = System.Windows.MessageBoxResult;
 
 namespace Stride.GameStudio;
 
-public static class Program
+public static partial class Program
 {
     private static App app;
     private static IntPtr windowHandle;
@@ -286,6 +287,14 @@ public static class Program
                 app.DispatcherUnhandledException += (sender, eventArgs) =>
                 {
                     eventArgs.Handled = true;
+                    if (TryRestartAfterRenderThreadFailure(eventArgs.Exception))
+                        return;
+                    // The games are gone and the studio restarts: a UI call into a dead game is not a crash
+                    if (GraphicsDeviceLoss.Occurred)
+                    {
+                        GlobalLogger.GetLogger("GameStudio").Warning("Exception ignored after the graphics device loss.", eventArgs.Exception);
+                        return;
+                    }
                     HandleException(eventArgs.Exception, 0);
                 };
 
@@ -315,6 +324,9 @@ public static class Program
         }
     }
 
+    // Exit code after a crash was reported; 1 is a startup refusal
+    private const int CrashExitCode = 2;
+
     private sealed record CrashReportArgs(int Location, Exception Exception, string[] Log, string ThreadName,
         int ThreadId, System.Collections.Generic.IReadOnlyList<Stride.CrashReport.StoredThread> Threads);
     private static void CrashReport(object data)
@@ -327,11 +339,11 @@ public static class Program
         CrashReportHelper.SendReport(args.Exception, args.Location, args.Log, args.ThreadName, args.ThreadId, args.Threads);
 
         //Make sure we stop now.. more exceptions might come but we just grab the first one
-        Environment.Exit(0);
+        Environment.Exit(CrashExitCode);
     }
 
     // Windows swaps a window that stops pumping messages for a "(Not responding)" ghost whose X offers to kill the
-    // process. Off for the crash freeze only (see HandleException); process-wide and irreversible, so never earlier.
+    // process. Off for the crash freeze and the render thread failure only; process-wide and irreversible, so never earlier.
     [System.Runtime.InteropServices.DllImport("user32.dll")]
     private static extern void DisableProcessWindowsGhosting();
 
@@ -416,6 +428,11 @@ public static class Program
                     CompilerCrashRouting.SetOwnerWindow(mainWindow);
                     return;
                 }
+                // The session asked for did not load (cancelled or failed): exit instead of offering another one,
+                // once the user has closed the windows that report why.
+                await WaitForWindowsClosedAsync();
+                app.Shutdown();
+                return;
             }
 
             // No session successfully loaded, open the new/open project window
@@ -472,15 +489,7 @@ public static class Program
 
             if (completed != true)
             {
-                var windowsClosed = new List<Task>();
-                foreach (var window in Application.Current.Windows.Cast<Window>().Where(x => x.IsLoaded))
-                {
-                    var tcs = new TaskCompletionSource<int>();
-                    window.Unloaded += (s, e) => tcs.SetResult(0);
-                    windowsClosed.Add(tcs.Task);
-                }
-
-                await Task.WhenAll(windowsClosed);
+                await WaitForWindowsClosedAsync();
 
                 // When a project has been partially loaded, it might already have initialized some plugin that could conflict with
                 // the next attempt to start something. Better start the application again.
@@ -508,6 +517,18 @@ public static class Program
             // Don't shut down silently — report the failure so the user sees what went wrong.
             HandleException(ex, 0);
         }
+    }
+
+    private static Task WaitForWindowsClosedAsync()
+    {
+        var windowsClosed = new List<Task>();
+        foreach (var window in Application.Current.Windows.Cast<Window>().Where(x => x.IsLoaded))
+        {
+            var tcs = new TaskCompletionSource<int>();
+            window.Unloaded += (s, e) => tcs.SetResult(0);
+            windowsClosed.Add(tcs.Task);
+        }
+        return Task.WhenAll(windowsClosed);
     }
 
     /// <summary>

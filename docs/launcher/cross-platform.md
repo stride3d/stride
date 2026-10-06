@@ -72,7 +72,7 @@ All failures are swallowed silently (no dialog, no crash) since they are not act
 
 When exercising changes, run the launcher on both Windows and Linux. Known gaps that will not reproduce on Linux:
 
-- Self-update using the `force-reinstall` path (downloads a `StrideSetup.exe` — Windows only).
+- Self-update through a reinstall (`reinstall-below`: downloads a `StrideSetup.exe`, Windows only).
 - First-install VSIX prompt (no VS instances).
 - Prerequisites installer on first run.
 

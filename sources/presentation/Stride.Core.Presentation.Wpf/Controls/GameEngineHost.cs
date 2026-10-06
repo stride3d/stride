@@ -30,6 +30,7 @@ namespace Stride.Core.Presentation.Controls
         private DpiScale dpiScale;
         private Int4 lastBoundingBox;
         private bool attached;
+        private IntPtr parentHandle;
         private bool isDisposed;
 
         static GameEngineHost()
@@ -135,6 +136,7 @@ namespace Stride.Core.Presentation.Controls
 
             // Update the parent to be the parent of the host
             NativeHelper.SetParent(Handle, hwndParent);
+            parentHandle = hwndParent;
 
             // Register keyboard sink to make shortcuts work
             ((IKeyboardInputSink)this).KeyboardInputSite = ((IKeyboardInputSink)hwndSource).RegisterKeyboardInputSink(this);
@@ -149,6 +151,14 @@ namespace Stride.Core.Presentation.Controls
             // Hide window, clear parent
             NativeHelper.ShowWindow(Handle, NativeHelper.SW_HIDE);
 
+            // A closing window destroys its child windows: keep the game window under the main window while detached.
+            var mainWindowHandle = GetMainWindowHandle();
+            if (mainWindowHandle != IntPtr.Zero && parentHandle != mainWindowHandle)
+            {
+                NativeHelper.SetParent(Handle, mainWindowHandle);
+                parentHandle = mainWindowHandle;
+            }
+
             // Unregister keyboard sink
             var site = ((IKeyboardInputSink)this).KeyboardInputSite;
             ((IKeyboardInputSink)this).KeyboardInputSite = null;
@@ -157,6 +167,12 @@ namespace Stride.Core.Presentation.Controls
             // Make sure we will actually attach next time Attach() is called
             lastBoundingBox = Int4.Zero;
             attached = false;
+        }
+
+        private static IntPtr GetMainWindowHandle()
+        {
+            var mainWindow = Application.Current?.MainWindow;
+            return mainWindow != null ? new WindowInteropHelper(mainWindow).Handle : IntPtr.Zero;
         }
 
         private void UpdateWindowPosition()

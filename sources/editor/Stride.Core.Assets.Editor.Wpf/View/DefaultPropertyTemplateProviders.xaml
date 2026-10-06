@@ -195,7 +195,7 @@
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="Auto"/>
           </Grid.ColumnDefinitions>
-          <ToggleButton Grid.Column="1" Template="{StaticResource TreeExpanderToggleButton}" Width="8" Height="8" HorizontalAlignment="Left"
+          <ToggleButton Grid.Column="1" Template="{StaticResource ExpanderToggleButton}" Width="8" Height="8" HorizontalAlignment="Left"
                                         IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource AncestorType=sd:PropertyViewItem}}"
                                         Visibility="{Binding VisibleChildrenCount, Converter={sd:Chained {sd:NumericToBool}, {sd:VisibleOrCollapsed}}}"/>
           <TextBlock x:Name="PropertyNameBlock" Grid.Column="2" Text="{Binding DisplayName}" HorizontalAlignment="Stretch" VerticalAlignment="Center"

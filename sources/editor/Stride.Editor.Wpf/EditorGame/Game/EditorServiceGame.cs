@@ -179,7 +179,7 @@ namespace Stride.Editor.EditorGame.Game
             {
                 base.Update(gameTime);
             }
-            catch (Exception ex)
+            catch (Exception ex) when (!IsGraphicsDeviceLost(ex))
             {
                 if (!OnFault(ex))
                 {
@@ -213,7 +213,7 @@ namespace Stride.Editor.EditorGame.Game
             {
                 base.Draw(gameTime);
             }
-            catch (Exception ex)
+            catch (Exception ex) when (!IsGraphicsDeviceLost(ex))
             {
                 if (!OnFault(ex))
                 {
@@ -223,6 +223,15 @@ namespace Stride.Editor.EditorGame.Game
                 // Caught exception, turning game into faulted state
                 Faulted = true;
             }
+        }
+
+        /// <summary>
+        /// A lost device is not a game fault: the exception ends the run (GameBase reports the loss) and the studio restarts.
+        /// The first call to notice the loss can throw anything, so the device status decides, not the exception type.
+        /// </summary>
+        private bool IsGraphicsDeviceLost(Exception ex)
+        {
+            return ex is GraphicsDeviceException { Status: not GraphicsDeviceStatus.Normal } || GraphicsDevice is { GraphicsDeviceStatus: not GraphicsDeviceStatus.Normal };
         }
 
         /// <summary>

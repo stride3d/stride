@@ -34,7 +34,7 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Explicitly recreate buffer with given data. Usually called after a <see cref="GraphicsDevice"/> reset.
+        /// Replaces the native buffer with a new one initialized with the provided data, keeping the description.
         /// </summary>
         /// <param name="dataPointer">The data Pointer</param>
         public void Recreate(IntPtr dataPointer)

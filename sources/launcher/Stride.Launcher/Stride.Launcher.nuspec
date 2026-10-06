@@ -2,15 +2,19 @@
 <package>
   <metadata>
     <id>Stride.Launcher</id>
-    <version>6.0.1</version>
+    <version>6.0.2</version>
     <authors>Stride</authors>
     <owners>Stride</owners>
     <license type="expression">MIT</license>
     <projectUrl>https://stride3d.net/</projectUrl>
     <copyright>&#169; Stride contributors and Silicon Studio Corp.</copyright>
+    <!-- Filled by Stride.Launcher.Release.targets, read by the launcher (see docs/launcher/self-update.md):
+         - force-reinstall: launchers before 6.0.1. Those before 5.0.1 install the setup of this package.
+         - update: launchers from 6.0.1. -->
     <description>Stride Launcher
 
-force-reinstall: 5.0.1 https://stride3d.net/files/StrideSetup.exe (note: used internally by launcher, please keep this line)
+force-reinstall: 5.0.1 $SetupUrl$ (note: used internally by launcher, please keep this line)
+update: $UpdateRules$
 </description>
     <tags>internal</tags>
   </metadata>

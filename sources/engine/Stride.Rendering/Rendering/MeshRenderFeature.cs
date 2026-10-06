@@ -129,10 +129,19 @@ namespace Stride.Rendering
             }
         }
 
+        /// <summary>
+        /// A fallback effect (compiling or error) has no hull shader, so it draws the original mesh
+        /// rather than the tessellated patch list set up by the material.
+        /// </summary>
+        private static MeshDraw GetDrawData(RenderMesh renderMesh, RenderEffect renderEffect)
+        {
+            return renderEffect.State == RenderEffectState.Normal ? renderMesh.ActiveMeshDraw : renderMesh.Mesh.Draw;
+        }
+
         protected override void ProcessPipelineState(RenderContext context, RenderNodeReference renderNodeReference, ref RenderNode renderNode, RenderObject renderObject, PipelineStateDescription pipelineState)
         {
             var renderMesh = (RenderMesh)renderObject;
-            var drawData = renderMesh.ActiveMeshDraw;
+            var drawData = GetDrawData(renderMesh, renderNode.RenderEffect);
 
             pipelineState.InputElements = PrepareInputElements(pipelineState, drawData);
             pipelineState.PrimitiveType = drawData.PrimitiveType;
@@ -180,13 +189,14 @@ namespace Stride.Rendering
                 var renderNode = GetRenderNode(renderNodeReference);
 
                 var renderMesh = (RenderMesh)renderNode.RenderObject;
-                var drawData = renderMesh.ActiveMeshDraw;
 
                 // Get effect
                 // TODO: Use real effect slot
                 var renderEffect = renderNode.RenderEffect;
                 if (renderEffect.Effect == null)
                     continue;
+
+                var drawData = GetDrawData(renderMesh, renderEffect);
 
                 // Bind VB
                 if (currentDrawData != drawData)

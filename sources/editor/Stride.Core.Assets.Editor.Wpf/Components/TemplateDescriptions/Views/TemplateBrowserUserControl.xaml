@@ -20,7 +20,8 @@
           <providers:TemplateDefinition DataType="viewModels:ExistingProjectViewModel">
             <providers:TemplateDefinition.DataTemplate>
               <DataTemplate>
-                <DockPanel Width="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={sd:SumNum}, ConverterParameter={sd:Double -10}}" Margin="0,0,-5,0"  Height="56">
+                <!-- Transparent background: the context menu opens anywhere on the row, not only over the text. -->
+                <DockPanel Width="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={sd:SumNum}, ConverterParameter={sd:Double -10}}" Margin="0,0,-5,0"  Height="56" Background="Transparent">
                   <Image Source="{Binding Icon}" DockPanel.Dock="Left" Width="48" Height="48" Margin="2"/>
                   <DockPanel Margin="18,0">
                     <TextBlock DockPanel.Dock="Top" FontSize="16" Text="{Binding Name}"/>
@@ -28,8 +29,18 @@
                   </DockPanel>
                   <DockPanel.ContextMenu>
                     <ContextMenu>
-                      <MenuItem Header="{sd:Localize Show in Explorer, Context=Menu}" Command="{Binding ExploreCommand}" />
-                      <MenuItem Header="{sd:Localize Remove From List, Context=Menu}" Command="{Binding RemoveCommand}" />
+                      <!-- Default action (same as double-click), in bold. EditorIcon is defined by the Game Studio application. -->
+                      <MenuItem Header="{sd:Localize Open, Context=Menu}" Command="{Binding OpenCommand}" FontWeight="Bold">
+                        <MenuItem.Icon>
+                          <Image Source="{DynamicResource EditorIcon}" RenderOptions.BitmapScalingMode="HighQuality" />
+                        </MenuItem.Icon>
+                      </MenuItem>
+                      <Separator/>
+                      <MenuItem Header="{sd:Localize Show in Explorer, Context=Menu}" Command="{Binding ExploreCommand}" Icon="{sd:Image {StaticResource ImageExplore}}" />
+                      <MenuItem Header="{sd:Localize Copy solution path, Context=Menu}" Command="{Binding CopySolutionPathCommand}" Icon="{sd:Image {StaticResource ImageCopy}}" />
+                      <MenuItem Header="{sd:Localize Copy folder path, Context=Menu}" Command="{Binding CopyFolderPathCommand}" Icon="{sd:Image {StaticResource ImageCopy}}" />
+                      <Separator/>
+                      <MenuItem Header="{sd:Localize Remove From List, Context=Menu}" Command="{Binding RemoveCommand}" Icon="{sd:Image {StaticResource ImageRemove}}" />
                     </ContextMenu>
                   </DockPanel.ContextMenu>
                 </DockPanel>

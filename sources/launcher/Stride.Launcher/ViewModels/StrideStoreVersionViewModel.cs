@@ -78,6 +78,31 @@ public sealed class StrideStoreVersionViewModel : StrideVersionViewModel
     /// </summary>
     public string ServerVersionFullName => ServerPackage?.Version?.ToString() ?? "";
 
+    /// <summary>
+    /// Gets the text of this version in the list: its name, and whether it isn't installed or has an update. A build
+    /// chosen in the alternate versions is named in full (4.4.0-beta7), as the row is then about that build.
+    /// </summary>
+    public string Label
+    {
+        get
+        {
+            // The default build: the newest installed, else the newest on the server
+            var defaultBuild = AlternateVersions.Where(x => x.LocalPackage is not null).MaxBy(x => x.Version)?.Version ?? LatestServerPackage?.Version;
+            var chosenBuild = Version is not null && defaultBuild is not null && !Version.Equals(defaultBuild);
+            var name = string.Format(Strings.VersionButton, chosenBuild ? $"{PackageSimpleName} {Version}" : DisplayName);
+            if (!CanDelete)
+                return $"{name} {Strings.VersionButtonUninstalled}";
+            // Chosen on purpose: an update of it isn't news
+            if (chosenBuild)
+                return name;
+            if (CanBeDownloaded && IsLatestPackageRemote)
+                return $"{name} {Strings.VersionButtonUpdateAvailable}";
+            if (CanBeDownloaded && IsLatestPackageLocal)
+                return $"{name} {Strings.VersionButtonLocalUpdateAvailable}";
+            return name;
+        }
+    }
+
     public ObservableList<StrideStoreAlternateVersionViewModel> AlternateVersions { get; } = [];
 
     // All local install paths for this major.minor slot across every package ID (WPF, Avalonia, …).
@@ -151,6 +176,9 @@ public sealed class StrideStoreVersionViewModel : StrideVersionViewModel
                     else
                         alternateVersionViewModel.UpdateLocalPackage(alternateVersion);
                 });
+                // The label names the default build, which depends on the installed ones
+                OnPropertyChanging(nameof(Label));
+                OnPropertyChanged(nameof(Label));
             });
         }
         Dispatcher.Invoke(UpdateAvailableEditors);
@@ -178,13 +206,17 @@ public sealed class StrideStoreVersionViewModel : StrideVersionViewModel
         if (alternateVersions is not null)
         {
             Dispatcher.Invoke(() =>
+            {
                 UpdateAlternateVersions(alternateVersions, (alternateVersionViewModel, alternateVersion) =>
                 {
                     if (alternateVersion is null && alternateVersionViewModel.LocalPackage is null)
                         AlternateVersions.Remove(alternateVersionViewModel);
                     else
                         alternateVersionViewModel.UpdateServerPackage(alternateVersion);
-                }));
+                });
+                OnPropertyChanging(nameof(Label));
+                OnPropertyChanged(nameof(Label));
+            });
         }
     }
 
@@ -198,9 +230,13 @@ public sealed class StrideStoreVersionViewModel : StrideVersionViewModel
             StrideStoreAlternateVersionViewModel alternateVersionViewModel;
             if (index < 0)
             {
-                // If not, add it
+                // If not, add it: newest first, as in the list of versions
                 alternateVersionViewModel = new(this);
-                AlternateVersions.Add(alternateVersionViewModel);
+                var insertAt = AlternateVersions.IndexOf(x => x.Version < alternateVersion.Version);
+                if (insertAt < 0)
+                    AlternateVersions.Add(alternateVersionViewModel);
+                else
+                    AlternateVersions.Insert(insertAt, alternateVersionViewModel);
             }
             else
             {
@@ -262,17 +298,17 @@ public sealed class StrideStoreVersionViewModel : StrideVersionViewModel
     protected override string UninstallErrorMessage => string.Format(Strings.ErrorUninstallingVersion, FullName);
 
     /// <inheritdoc/>
-    protected override Task UpdateVersionsFromStore()
+    protected override Task UpdateVersionsFromStore(Action<int, int>? unusedPackagesProgress = null)
     {
-        return Launcher.RetrieveAllStrideVersions();
+        return Launcher.RetrieveAllStrideVersions(unusedPackagesProgress);
     }
 
     /// <inheritdoc/>
     protected override void UpdateStatus()
     {
         base.UpdateStatus();
-        OnPropertyChanging(nameof(ServerVersionFullName));
-        OnPropertyChanged(nameof(ServerVersionFullName));
+        OnPropertyChanging(nameof(ServerVersionFullName), nameof(Label));
+        OnPropertyChanged(nameof(ServerVersionFullName), nameof(Label));
     }
 
     /// <inheritdoc/>
@@ -300,7 +336,7 @@ public sealed class StrideStoreVersionViewModel : StrideVersionViewModel
     /// expected state once only one editor flavour is published — the failure is swallowed
     /// and the install continues normally.
     /// </remarks>
-    protected override async Task TryInstallCompanionsAsync(PackageVersion version)
+    protected override async Task TryInstallCompanionsAsync(PackageVersion version, ProgressReport progress)
     {
         var companionIds = new[] { GameStudioNames.StrideAvalonia, GameStudioNames.Stride }
             .Where(id => id != ServerPackage?.Id)
@@ -315,7 +351,7 @@ public sealed class StrideStoreVersionViewModel : StrideVersionViewModel
 
             try
             {
-                await Store.InstallPackage(companionId, version, [], null);
+                await Store.InstallPackage(companionId, version, [], progress);
             }
             catch
             {

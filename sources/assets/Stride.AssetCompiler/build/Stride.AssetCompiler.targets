@@ -97,7 +97,6 @@
       <Using Namespace="System.Linq" />
       <Code Type="Fragment" Language="cs"><![CDATA[
         OutputItems = InputItems.OrderBy(x => x.ItemSpec, System.StringComparer.Ordinal).ToArray();
-        return true;
       ]]></Code>
     </Task>
   </UsingTask>

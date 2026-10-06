@@ -961,6 +961,59 @@ Compositions:
             Assert.Equal("/Stride.Engine/StrideEnvironmentLightingDFGLUT16", reference.Url);
         }
 
+        /// <summary>
+        /// Test the blend states of a thin glass material: each transmittance pass multiplies what is behind
+        /// the glass and leaves the alpha alone, and each reflectance pass is additive.
+        /// </summary>
+        /// <param name="cullMode">The material's cull mode. <see cref="CullMode.None"/> doubles the passes: back faces, then front faces.</param>
+        /// <param name="expectedPasses">The number of passes the material must have.</param>
+        [Theory]
+        [InlineData(CullMode.Back, 2)]
+        [InlineData(CullMode.None, 4)]
+        public void TestThinGlassBlendStates(CullMode cullMode, int expectedPasses)
+        {
+            var context = new MaterialGeneratorContextExtended();
+            var materialDesc = new MaterialDescriptor
+            {
+                Attributes =
+                {
+                    Diffuse = new MaterialDiffuseMapFeature(new ComputeColor(Color.White)),
+                    MicroSurface = new MaterialGlossinessMapFeature(new ComputeFloat(0.95f)),
+                    Specular = new MaterialMetalnessMapFeature(new ComputeFloat(0.08f)),
+                    SpecularModel = new MaterialSpecularThinGlassModelFeature(),
+                    CullMode = cullMode,
+                },
+            };
+
+            var result = MaterialGenerator.Generate(materialDesc, context, "thin_glass");
+            Assert.False(result.HasErrors, result.ToText());
+
+            var passes = result.Material.Passes;
+            Assert.Equal(expectedPasses, passes.Count);
+
+            for (var i = 0; i < passes.Count; i++)
+            {
+                Assert.True(passes[i].HasTransparency);
+                Assert.True(passes[i].BlendState.HasValue, $"Pass {i} has no blend state.");
+
+                var blend = passes[i].BlendState.Value.RenderTargets[0];
+
+                if (i % 2 == 1)
+                {
+                    // Reflectance pass
+                    Assert.Equal(BlendStates.Additive, passes[i].BlendState.Value);
+                    continue;
+                }
+
+                // Transmittance pass
+                Assert.True(blend.BlendEnable, $"Pass {i} does not blend.");
+                Assert.Equal(Blend.Zero, blend.ColorSourceBlend);
+                Assert.Equal(Blend.SourceColor, blend.ColorDestinationBlend);
+                Assert.Equal(Blend.One, blend.AlphaSourceBlend);
+                Assert.Equal(Blend.Zero, blend.AlphaDestinationBlend);
+            }
+        }
+
         private class MaterialGeneratorContextExtended : MaterialGeneratorContext
         {
             private readonly Dictionary<object, object> assetMap = new Dictionary<object, object>();

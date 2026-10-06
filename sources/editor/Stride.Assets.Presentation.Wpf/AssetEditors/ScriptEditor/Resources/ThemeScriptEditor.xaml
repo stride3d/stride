@@ -8,7 +8,8 @@
                     xmlns:converters="clr-namespace:Stride.Assets.Presentation.AssetEditors.ScriptEditor.Converters"
                     xmlns:codeActions="clr-namespace:Microsoft.CodeAnalysis.CodeActions;assembly=Microsoft.CodeAnalysis.Workspaces"
                     xmlns:codeAnalysis="clr-namespace:Microsoft.CodeAnalysis;assembly=Microsoft.CodeAnalysis"
-                    xmlns:sd="http://schemas.stride3d.net/xaml/presentation">
+                    xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+                    xmlns:themes="clr-namespace:Stride.Core.Presentation.Themes;assembly=Stride.Core.Presentation.Wpf">
   <!-- Various styles and resources needed for the code editor; some of them are based on templates from AvalonEdit (MIT license) and RoslyPad (Apache license) -->
   <ResourceDictionary.MergedDictionaries>
     <ResourceDictionary Source="/RoslynPad.Editor.Windows;component/Themes/Generic.xaml"/>
@@ -18,7 +19,7 @@
     <Setter Property="Background" Value="{DynamicResource BackgroundBrush}"/>
     <Setter Property="WindowChrome.WindowChrome">
       <Setter.Value>
-        <WindowChrome CornerRadius="0" CaptionHeight="30"/>
+        <themes:UnfreezableWindowChrome CornerRadius="0" CaptionHeight="30"/>
       </Setter.Value>
     </Setter>
     <Setter Property="Template">

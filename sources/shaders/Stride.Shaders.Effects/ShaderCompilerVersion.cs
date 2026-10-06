@@ -37,5 +37,5 @@ public static class ShaderCompilerVersion
     ///   Bump when what is derived from the SPIR-V changes while the SPIR-V does not: reflection, or the
     ///   bytecode compiled from it for each graphics API. Invalidates the Effect caches only.
     /// </summary>
-    public const int Effect = 1;
+    public const int Effect = 2;
 }

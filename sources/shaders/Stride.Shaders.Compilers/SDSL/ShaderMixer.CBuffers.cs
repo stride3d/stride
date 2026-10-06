@@ -489,9 +489,6 @@ namespace Stride.Shaders.Compilers.SDSL
                     Type = ConstantBufferType.ConstantBuffer,
                     Members = memberInfos,
                 };
-                globalContext.Reflection.ConstantBuffers.Add(cbufferDesc);
-
-                // Also attach to the matching resource group
                 var group = globalContext.Reflection.GetOrCreateGroup(cbufferDesc.Name);
                 group.ConstantBuffer = cbufferDesc;
             }

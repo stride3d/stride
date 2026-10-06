@@ -1,7 +1,10 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
+using Avalonia.Interactivity;
 using Stride.Launcher.ViewModels;
 
 namespace Stride.Launcher.Views;
@@ -9,6 +12,7 @@ namespace Stride.Launcher.Views;
 public partial class MainWindow : Window
 {
     private MainViewModel? _subscribedVm;
+    private long settingsClosedTime;
 
     public MainWindow()
     {
@@ -25,6 +29,35 @@ public partial class MainWindow : Window
 
         if (_subscribedVm is not null)
             _subscribedVm.CloseRequested += OnCloseRequested;
+    }
+
+    private void SettingsButton_Click(object? sender, RoutedEventArgs e)
+    {
+        // The gear toggles the settings, and is checked while they're open. A click outside closes them too,
+        // possibly on the press of this very click: then they stay closed.
+        if (FlyoutBase.GetAttachedFlyout(SettingsAnchor) is not { } settings)
+            return;
+        if (settings.IsOpen)
+        {
+            settings.Hide();
+        }
+        else if (Environment.TickCount64 - settingsClosedTime >= 300)
+        {
+            // The anchor goes right under the gear, so that the settings open aligned with its right edge
+            if (SettingsAnchor.Parent is Visual content
+                && SettingsButton.TranslatePoint(new Point(SettingsButton.Bounds.Width, SettingsButton.Bounds.Height), content) is { } corner)
+                SettingsAnchor.Margin = new Thickness(0, corner.Y, content.Bounds.Width - corner.X, 0);
+            settings.Closed -= OnSettingsClosed;
+            settings.Closed += OnSettingsClosed;
+            settings.ShowAt(SettingsAnchor);
+        }
+        SettingsButton.IsChecked = settings.IsOpen;
+    }
+
+    private void OnSettingsClosed(object? sender, EventArgs e)
+    {
+        settingsClosedTime = Environment.TickCount64;
+        SettingsButton.IsChecked = false;
     }
 
     private void OnCloseRequested(object? sender, EventArgs e)

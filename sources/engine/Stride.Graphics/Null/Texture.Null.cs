@@ -59,14 +59,6 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Perform platform-specific recreation of the Texture.
-        /// </summary>
-        private partial void OnRecreateImpl()
-        {
-            NullHelper.ToImplement();
-        }
-
-        /// <summary>
         ///   Indicates if the Texture is flipped vertically, i.e. if the rows are ordered bottom-to-top instead of top-to-bottom.
         /// </summary>
         /// <returns><see langword="true"/> if the Texture is flipped; <see langword="false"/> otherwise.</returns>

@@ -28,6 +28,11 @@ internal static class Program
         // to WARP. Must be set before any Stride code runs.
         Environment.SetEnvironmentVariable("STRIDE_GRAPHICS_SOFTWARE_RENDERING", "1");
 
+        // The pinned WARP (d3d10warp.dll, 1.0.13 or later) makes DWM crash in a loop while a Direct3D 12
+        // Swap-Chain presents on an indirect display (IDD) virtual monitor: present through Direct3D 11.
+        // Remove once the pinned WARP has a fix.
+        Environment.SetEnvironmentVariable("STRIDE_GRAPHICS_PRESENT_THROUGH_D3D11", "1");
+
         // Graphics assemblies live in per-API subfolders; pick one (--graphics-api or STRIDE_GRAPHICS_API)
         // before anything loads them. Game Studio's own exe does this through its NuGet resolver startup.
         Stride.Core.Assets.GraphicsApiHostResolver.Setup(Stride.Core.Assets.GraphicsApiSelector.Resolve());
@@ -77,8 +82,7 @@ internal static class Program
             return 2;
         }
 
-        // GS's CrashReport ends with Environment.Exit(0) which masks the underlying error;
-        // capture every exception (including the swallowed ones) to a diag log.
+        // GS's crash handler only exits with a code; capture every exception (including the swallowed ones) to a diag log.
         var diagPath = Path.Combine(Path.GetTempPath(), "autotest-diag.log");
         try { File.Delete(diagPath); } catch { }
         // GameStudio's own checkpoints (it appends): start this fixture's copy clean too.

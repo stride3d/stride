@@ -27,7 +27,7 @@ namespace Stride.Core.Assets.Editor.View
         /// <summary>
         /// Identifies the <see cref="AssetContextMenu"/> dependency property.
         /// </summary>
-        public static readonly DependencyProperty AssetContextMenuProperty = DependencyProperty.Register(nameof(AssetContextMenu), typeof(Control), typeof(AssetViewUserControl), new PropertyMetadata(null, OnAssetContextMenuChanged));
+        public static readonly DependencyProperty AssetContextMenuProperty = DependencyProperty.Register(nameof(AssetContextMenu), typeof(ContextMenu), typeof(AssetViewUserControl), new PropertyMetadata(null, OnAssetContextMenuChanged));
 
         /// <summary>
         /// Identifies the <see cref="CanEditAssets"/> dependency property.
@@ -133,9 +133,9 @@ namespace Stride.Core.Assets.Editor.View
         public AssetCollectionViewModel AssetCollection { get => (AssetCollectionViewModel)GetValue(AssetCollectionProperty); set => SetValue(AssetCollectionProperty, value); }
 
         /// <summary>
-        /// Gets or sets the control to use as context menu for assets.
+        /// Gets or sets the context menu for assets.
         /// </summary>
-        public Control AssetContextMenu { get => (Control)GetValue(AssetContextMenuProperty); set => SetValue(AssetContextMenuProperty, value); }
+        public ContextMenu AssetContextMenu { get => (ContextMenu)GetValue(AssetContextMenuProperty); set => SetValue(AssetContextMenuProperty, value); }
 
         /// <summary>
         /// Gets the list of items to display in the primary tool bar. The primary tool bar won't be displayed if this list is empty.
@@ -303,9 +303,9 @@ namespace Stride.Core.Assets.Editor.View
             if (AssetCollection.SelectedContent.Count != 1)
                 return false;
 
-            // HACK: might be a better way to check that
-            var asset = AssetCollection.SelectedContent.Last() as AssetViewModel;
-            return !asset?.IsLocked ?? true;
+            // Same rule as the tile view items' CanEdit
+            var item = AssetCollection.SelectedContent.Last() as ISessionObjectViewModel;
+            return item?.IsEditable ?? true;
         }
 
         private static void CanBeginEditCommand(object sender, CanExecuteRoutedEventArgs e)

@@ -22,7 +22,6 @@ namespace Stride.Shaders
         {
             SamplerStates = [];
             ResourceBindings = [];
-            ConstantBuffers = [];
             ShaderStreamOutputDeclarations = [];
             InputAttributes = [];
         }
@@ -46,10 +45,21 @@ namespace Stride.Shaders
         public List<EffectResourceBindingDescription> ResourceBindings { get; set; }
 
         /// <summary>
-        /// Gets the constant buffer descriptions (if any).
+        /// The constant buffers of all <see cref="ResourceGroups"/>. A group owns its constant buffer, so this is a
+        /// view and not a second serialized list.
         /// </summary>
-        /// <value>The constant buffers.</value>
-        public List<EffectConstantBufferDescription> ConstantBuffers { get; set; }
+        [DataMemberIgnore]
+        public IEnumerable<EffectConstantBufferDescription> ConstantBuffers
+        {
+            get
+            {
+                foreach (var group in ResourceGroups)
+                {
+                    if (group.ConstantBuffer != null)
+                        yield return group.ConstantBuffer;
+                }
+            }
+        }
 
         /// <summary>
         /// Gets or sets the stream output declarations.

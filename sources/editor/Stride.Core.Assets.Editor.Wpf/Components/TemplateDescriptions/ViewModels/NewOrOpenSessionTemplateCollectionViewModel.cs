@@ -52,7 +52,7 @@ namespace Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels
             recentGroup = new TemplateDescriptionGroupViewModel(serviceProvider, "Recent projects");
             foreach (var file in EditorViewModel.Instance.RecentFiles)
             {
-                var viewModel = new ExistingProjectViewModel(ServiceProvider, file.FilePath, RemoveExistingProjects);
+                var viewModel = new ExistingProjectViewModel(ServiceProvider, file.FilePath, OpenExistingProject, RemoveExistingProjects);
                 recentGroup.Templates.Add(viewModel);
             }
 
@@ -174,6 +174,12 @@ namespace Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels
             return GenerateUniqueNameAtLocation();
         }
 
+        private void OpenExistingProject(ExistingProjectViewModel item)
+        {
+            SelectedTemplate = item;
+            dialog?.RequestClose(DialogResult.Ok);
+        }
+
         private void RemoveExistingProjects(ExistingProjectViewModel item)
         {
             if (item == null)
@@ -189,8 +195,7 @@ namespace Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels
             var filePath = await EditorDialogHelper.BrowseForExistingProject(ServiceProvider);
             if (filePath != null)
             {
-                SelectedTemplate = new ExistingProjectViewModel(ServiceProvider, filePath, RemoveExistingProjects);
-                dialog?.RequestClose(DialogResult.Ok);
+                OpenExistingProject(new ExistingProjectViewModel(ServiceProvider, filePath, OpenExistingProject, RemoveExistingProjects));
             }
         }
     }

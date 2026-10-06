@@ -27,22 +27,12 @@ namespace Stride.SpriteStudio.Runtime
             sprite3DBatch = new Sprite3DBatch(Context.GraphicsDevice);
 
             var blendDesc = new BlendStateDescription(Blend.SourceAlpha, Blend.One);
-            blendDesc.RenderTargets[0] = new()
-            {
-                BlendEnable = true,
-                ColorBlendFunction = BlendFunction.ReverseSubtract,
-                AlphaBlendFunction = BlendFunction.ReverseSubtract
-            };
+            blendDesc.RenderTargets[0].ColorBlendFunction = BlendFunction.ReverseSubtract;
+            blendDesc.RenderTargets[0].AlphaBlendFunction = BlendFunction.ReverseSubtract;
             SubBlendState = blendDesc;
 
             blendDesc = new BlendStateDescription(Blend.DestinationColor, Blend.InverseSourceAlpha);
-            blendDesc.RenderTargets[0] = new()
-            {
-                BlendEnable = true,
-                ColorBlendFunction = BlendFunction.Add,
-                AlphaSourceBlend = Blend.Zero,
-                AlphaBlendFunction = BlendFunction.Add
-            };
+            blendDesc.RenderTargets[0].AlphaSourceBlend = Blend.Zero;
             MultBlendState = blendDesc;
         }
 

@@ -714,8 +714,21 @@ namespace Stride.Graphics
         /// <inheritdoc/>
         protected internal override void OnDestroyed(bool immediately = false)
         {
-            SafeRelease(ref nativeRootSignature);
-            SafeRelease(ref compiledPipelineState);
+            if (immediately)
+            {
+                SafeRelease(ref nativeRootSignature);
+                SafeRelease(ref compiledPipelineState);
+            }
+            else
+            {
+                // Command lists in flight may still reference them: released once the GPU is done, like the other resources
+                if (nativeRootSignature is not null)
+                    GraphicsDevice.FrameTemporaryResources.Enqueue(GraphicsDevice.FrameFence.NextFenceValue, ToComPtr(nativeRootSignature));
+                if (compiledPipelineState is not null)
+                    GraphicsDevice.FrameTemporaryResources.Enqueue(GraphicsDevice.FrameFence.NextFenceValue, ToComPtr(compiledPipelineState));
+                nativeRootSignature = null;
+                compiledPipelineState = null;
+            }
 
             base.OnDestroyed(immediately);
         }

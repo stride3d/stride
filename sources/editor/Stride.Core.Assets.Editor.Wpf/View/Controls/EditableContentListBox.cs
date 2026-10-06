@@ -154,26 +154,23 @@ namespace Stride.Core.Assets.Editor.View.Controls
         {
             var container = (EditableContentListBoxItem)sender;
 
-            bool check;
-
             if (container.IsEditing)
-                check = ApplyTemplate(container, container.editContentTemplate, container.editContentTemplateSelector);
+                ApplyTemplate(container, container.editContentTemplate, container.editContentTemplateSelector);
             else
             {
-                check = ApplyTemplate(container, container.regularContentTemplate, container.regularContentTemplateSelector);
+                ApplyTemplate(container, container.regularContentTemplate, container.regularContentTemplateSelector);
                 if ((bool)e.OldValue)
                 {
                     container.Focus();
                 }
             }
-            Console.WriteLine(check);
         }
 
-        private static bool ApplyTemplate(ContentControl container, DataTemplate dt, DataTemplateSelector dts)
+        private static void ApplyTemplate(ContentControl container, DataTemplate dt, DataTemplateSelector dts)
         {
             container.ContentTemplate = dt;
             container.ContentTemplateSelector = dts;
-            return container.ApplyTemplate();
+            container.ApplyTemplate();
         }
 
         protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)

@@ -19,14 +19,14 @@ There are two kinds of crash. A **managed** unhandled exception can be caught in
 
 ## What's covered
 
-Native capture uses two supported mechanisms. The **GUI hosts** (GameStudio, Launcher, CLI) arm the native trigger `libstridecrash`, which spawns the reporter to capture out of process — **Windows only** for now. The **asset compiler** arms the runtime's own `createdump` and adopts the minidump after the build — **all platforms**. Managed capture is cross-platform everywhere.
+Native capture uses two supported mechanisms. The **GUI host** GameStudio arms the native trigger `libstridecrash`, which spawns the reporter to capture out of process — **Windows only** for now. The **asset compiler** arms the runtime's own `createdump` and adopts the minidump after the build — **all platforms**. Managed capture is cross-platform everywhere. The Launcher and the CLI capture managed crashes only: they ship neither `libstridecrash` nor the reporter.
 
 | Crash kind | Covered? | How it's handled |
 |---|---|---|
 | Managed unhandled exception | ✅ everywhere | GameStudio gathers its context (session, opened assets, undo history, GPU, breadcrumbs), saves it with a scrubbed triage dump and hands it to the reporter, blocking until it closes (see the reporter row). The Launcher shows its own minimal in-process window. The asset compiler is headless: it stores the crash and, at end of build, sends on CI or points at `stride crash send` — and a build triggered from GameStudio surfaces it in that GameStudio via the reporter (see Routing below). The CLI saves it and prints a `stride crash send` hint. |
 | Native access violation (AV) | ✅ Windows | **GUI hosts:** the native trigger spawns the reporter, which writes the dump from outside the frozen process and — attended — shows it; unattended it saves silently. **Compiler:** `createdump` writes the dump, a post-build `crash-adopt` step folds it into the store, surfaced in the triggering GameStudio or via a `stride crash send` hint for a VS/CLI build. |
 | Slave-process crash (compiler) | ✅ everywhere | Isolated slave build processes inherit the master's `createdump` env and write into the shared dump dir; the master's post-build `crash-adopt` collects them. |
-| Native crash on Linux / macOS | ⚠️ compiler only | The compiler arms `createdump` (master + inherited slaves) and adopts each minidump into the store. GameStudio / Launcher / CLI aren't armed there yet — that gap closes when the runtime lets a user-launched app self-arm `createdump` (see below). |
+| Native crash on Linux / macOS | ⚠️ compiler only | The compiler arms `createdump` (master + inherited slaves) and adopts each minidump into the store. GameStudio isn't armed there yet — that gap closes when the runtime lets a user-launched app self-arm `createdump` (see below). |
 | Stack overflow | ⚠️ compiler only | No stack to run the in-process trigger, so the GUI hosts miss it; the compiler's `createdump` covers it. |
 | Non-AV native fault (div-by-zero, illegal instruction) | ⚠️ compiler only | The trigger filters to access violations; the compiler's `createdump` covers the rest. |
 | NativeAOT native crash | ❌ | Relies on WER / `createdump` (the GUI hosts' trigger is JIT/CoreCLR only). |

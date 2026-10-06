@@ -6,8 +6,10 @@ using System.Diagnostics;
 using System.Linq;
 using System.Windows.Media.Imaging;
 using Stride.Core.Assets.Templates;
+using Stride.Core.Extensions;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Commands;
+using Stride.Core.Presentation.Interop;
 using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels
@@ -16,13 +18,17 @@ namespace Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels
     {
         private Action<ExistingProjectViewModel> RemoveAction;
 
-        public ExistingProjectViewModel(IViewModelServiceProvider serviceProvider, UFile path, Action<ExistingProjectViewModel> removeAction)
+        public ExistingProjectViewModel(IViewModelServiceProvider serviceProvider, UFile path, Action<ExistingProjectViewModel> openAction, Action<ExistingProjectViewModel> removeAction)
             : base(serviceProvider)
         {
+            ArgumentNullException.ThrowIfNull(openAction);
             Path = path;
             Id = Guid.NewGuid();
             RemoveAction = removeAction ?? throw new ArgumentNullException(nameof(removeAction));
+            OpenCommand = new AnonymousCommand(serviceProvider, () => openAction(this));
             ExploreCommand = new AnonymousCommand(serviceProvider, Explore);
+            CopySolutionPathCommand = new AnonymousCommand(serviceProvider, () => CopyToClipboard(Path.ToOSPath()));
+            CopyFolderPathCommand = new AnonymousCommand(serviceProvider, () => CopyToClipboard(Path.GetFullDirectory().ToOSPath()));
             RemoveCommand = new AnonymousCommand(serviceProvider, Remove);
         }
 
@@ -44,7 +50,13 @@ namespace Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels
 
         public IEnumerable<BitmapImage> Screenshots => Enumerable.Empty<BitmapImage>();
 
+        public ICommandBase OpenCommand { get; }
+
         public ICommandBase ExploreCommand { get; }
+
+        public ICommandBase CopySolutionPathCommand { get; }
+
+        public ICommandBase CopyFolderPathCommand { get; }
 
         public ICommandBase RemoveCommand { get; }
 
@@ -55,9 +67,22 @@ namespace Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels
 
         private void Explore()
         {
-            var startInfo = new ProcessStartInfo("explorer.exe", $"/select,{this.Path.ToOSPath()}") { UseShellExecute = true };
+            var startInfo = new ProcessStartInfo("explorer.exe", $"/select,\"{this.Path.ToOSPath()}\"") { UseShellExecute = true };
             var explorer = new Process { StartInfo = startInfo };
             explorer.Start();
+        }
+
+        private static void CopyToClipboard(string text)
+        {
+            try
+            {
+                SafeClipboard.SetText(text);
+            }
+            catch (SystemException e)
+            {
+                // We don't provide feedback when copying fails.
+                e.Ignore();
+            }
         }
 
         private void Remove()

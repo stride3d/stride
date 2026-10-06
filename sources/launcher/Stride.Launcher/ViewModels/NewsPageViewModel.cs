@@ -8,13 +8,12 @@ using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Launcher.Assets.Localization;
+using Stride.Launcher.Services;
 
 namespace Stride.Launcher.ViewModels;
 
 public sealed class NewsPageViewModel : DispatcherViewModel
 {
-    private static readonly HttpClient httpClient = new();
-
     public NewsPageViewModel(IViewModelServiceProvider serviceProvider)
         : base(serviceProvider)
     {
@@ -65,7 +64,7 @@ public sealed class NewsPageViewModel : DispatcherViewModel
         var result = new List<NewsPageViewModel>();
         try
         {
-            using var response = await httpClient.GetAsync(Urls.RssFeed);
+            using var response = await LauncherHttpClient.Instance.GetAsync(Urls.RssFeed);
             response.EnsureSuccessStatusCode();
             var rss = await response.Content.ReadAsStreamAsync();
 

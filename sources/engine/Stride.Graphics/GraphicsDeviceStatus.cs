@@ -60,5 +60,10 @@ public enum GraphicsDeviceStatus
     ///   The application provided invalid parameter data;
     ///   this must be debugged and fixed before the application is released.
     /// </summary>
-    InvalidCall
+    InvalidCall,
+
+    /// <summary>
+    ///   The Graphics Device was lost, and the graphics API does not tell why (Vulkan reports every loss this way).
+    /// </summary>
+    Lost
 }

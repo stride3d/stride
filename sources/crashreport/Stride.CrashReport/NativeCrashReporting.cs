@@ -22,7 +22,8 @@ namespace Stride.CrashReport
         private static bool installed;
 
         /// <summary>
-        /// Arms native-crash capture for <paramref name="applicationName"/> (e.g. "GameStudio", "Launcher", "Cli").
+        /// Arms native-crash capture for <paramref name="applicationName"/> (e.g. "GameStudio"). The host must ship
+        /// libstridecrash and a reporter (the Launcher and the CLI don't, so they don't call it).
         /// Safe to call once at startup; later calls are ignored. Off-Windows, under NativeAOT, or when
         /// STRIDE_CRASH_MODE=off, it does nothing.
         /// </summary>
@@ -272,8 +273,7 @@ namespace Stride.CrashReport
 
         // In a real install the reporter is the Stride.CrashReporter package in the NuGet global store, its publish
         // tree under tools/. Only the version this library was built for (CrashReporterVersion, baked by the csproj)
-        // is launched: Game Studio and the asset compiler depend on exactly that one; a host without the dependency
-        // (Launcher, CLI) captures natively only if some engine install left it there. Probes the store directly, no
+        // is launched: Game Studio and the asset compiler depend on exactly that one. Probes the store directly, no
         // NuGet assemblies in this minimal library. Best-effort: any failure just means "no reporter".
         private static string FindReporterInStore()
         {

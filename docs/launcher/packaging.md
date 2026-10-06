@@ -1,90 +1,77 @@
 # Packaging & Distribution
 
-The launcher is shipped three different ways, each with its own build artifact. This file describes what is produced, where it comes from, and what to update when versions change.
+The launcher ships as a NuGet package (for self-updates) and as a Windows installer (for first installs). This file describes what is produced, where it comes from, and how versions are set.
 
 ## Artifacts
 
 ```mermaid
 flowchart LR
     src["sources/launcher/Stride.Launcher/"]
+    exe["Stride.Launcher.exe<br/>(self-contained single file)"]
     nupkg["Stride.Launcher.nupkg<br/>(NuGet, tools/Stride.Launcher.exe)"]
-    prereq["launcher-prerequisites.exe<br/>(Advanced Installer)"]
-    setup["StrideSetup.exe<br/>(Advanced Installer bundle)"]
+    setup["StrideSetup.exe<br/>(Advanced Installer)"]
 
-    src --> nupkg
-    src --> prereq
-    nupkg --> setup
-    prereq --> setup
+    src --> exe
+    exe --> nupkg
+    exe --> setup
 ```
 
 | Artifact | Source | Consumed by |
 |---|---|---|
-| `Stride.Launcher.exe` | `dotnet build Stride.Launcher.csproj` | `Stride.Launcher.nuspec` and `StrideSetup.exe` |
-| `Stride.Launcher.nupkg` | `Stride.Launcher.nuspec` + `msbuild /t:Pack` | `SelfUpdater` — used to pull in-place updates |
-| `launcher-prerequisites.exe` | `Prerequisites/launcher-prerequisites.aip` | `Stride.Launcher.nuspec` (embedded at `tools/Prerequisites/`) |
-| `StrideSetup.exe` | `Setup/setup.aip` | End users (first-time install) |
+| `Stride.Launcher.exe` | `dotnet publish` with [FolderProfile.pubxml](../../sources/launcher/Stride.Launcher/Properties/PublishProfiles/FolderProfile.pubxml) | `Stride.Launcher.nuspec` and `StrideSetup.exe` |
+| `Stride.Launcher.nupkg` | [Stride.Launcher.nuspec](../../sources/launcher/Stride.Launcher/Stride.Launcher.nuspec), packed by [Stride.Launcher.Release.targets](../../sources/launcher/Stride.Launcher.Release.targets) | `SelfUpdater`, for in-place updates |
+| `StrideSetup.exe` | [Setup/setup.aip](../../sources/launcher/Setup/setup.aip) | End users (first install), and launchers that must reinstall |
 
-## Version source of truth
+The exe is self-contained and single-file: it needs no .NET install and no VC++ runtime. On first start it unpacks its content to `%TEMP%\.net\Stride.Launcher\`. Only PDBs stay outside the exe, so `tools/Stride.Launcher.exe` is the whole package.
 
-The single place to bump the launcher version is [Stride.Launcher.nuspec](../../sources/launcher/Stride.Launcher/Stride.Launcher.nuspec)'s `<version>` element. The csproj reads it at build time:
+The launcher itself has no prerequisites. The ones Game Studio needs are installed per Stride version, by `Bin\Prerequisites\install-prerequisites.exe` inside that version's package.
 
-```xml
-<_StrideLauncherNuSpecLines>$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)Stride.Launcher.nuspec'))</_StrideLauncherNuSpecLines>
-<Version>$([System.Text.RegularExpressions.Regex]::Match($(_StrideLauncherNuSpecLines), `<version>(.*)</version>`).Groups[1].Value)</Version>
-```
+## Versions
 
-So `Stride.Launcher.exe`'s `AssemblyInformationalVersion` — which `SelfUpdater` compares against NuGet — always matches the nuspec.
+The version is set in one place: the `<version>` element of [Stride.Launcher.nuspec](../../sources/launcher/Stride.Launcher/Stride.Launcher.nuspec). A pre-release adds `-p:VersionSuffix=beta1` (alpha, beta, preview or rc, numbered 1 to 9: NuGet compares `beta10` before `beta2`).
 
-The Advanced Installer projects (`.aip`) store their own version independently; remember to bump it when shipping a new setup.
+[Stride.Launcher.Version.props](../../sources/launcher/Stride.Launcher/Stride.Launcher.Version.props) reads it and appends the suffix, into `StrideLauncherVersion`, for both of the following.
+
+- **Launcher exe.** [Stride.Launcher.csproj](../../sources/launcher/Stride.Launcher/Stride.Launcher.csproj) uses it as its `Version`. `SelfUpdater` compares the exe's `AssemblyInformationalVersion` against NuGet.
+- **NuGet package.** [Stride.Launcher.Release.targets](../../sources/launcher/Stride.Launcher.Release.targets) packs with `-Version $(StrideLauncherVersion)`. It also fills the update lines of the description: `$SetupUrl$`, the package's setup on its GitHub release, and `$UpdateRules$` (see [self-update.md](self-update.md#update-rules)).
+- **StrideSetup.** An MSI version is numbers only, so the `GetStrideSetupVersion` task ([Setup/GetStrideSetupVersion.cs](../../sources/launcher/Setup/GetStrideSetupVersion.cs)) maps the launcher version to `major.minor.(patch * 100 + rank)`. The rank sorts pre-releases before their release: alpha 11-19, beta 31-39, preview 51-59, rc 71-79, release 99. For example, `6.1.0-beta1` is `6.1.31` and `6.1.0` is `6.1.99`. The ProductCode is a name-based UUID of the launcher version: a new one for each version (MSI major upgrade), the same one when a version is built again. The real version (`StrideVersion` property) is what Add/Remove Programs shows.
+
+The version values in the committed `setup.aip` are placeholders: `PackageInstaller` sets them on a copy (`setup-generated.aip`, git-ignored) and builds that.
 
 ## Stride.Launcher.nuspec
 
 ```xml
 <files>
     <file src="Stride.Launcher.exe" target="tools" />
-    <file src="..\..\..\..\Prerequisites\launcher-prerequisites.exe" target="tools\Prerequisites" />
 </files>
 ```
 
-Two conventions matter here:
+Everything that must land next to the exe goes under `tools/`: `SelfUpdater.UpdateLauncherFiles` hard-codes `const string directoryRoot = "tools/"` and ignores anything outside it.
 
-- Everything that must land next to the exe goes under `tools/` — `SelfUpdater.UpdateLauncherFiles` hard-codes `const string directoryRoot = "tools/"` and ignores anything outside it.
-- The prerequisites installer sits in `tools/Prerequisites/` because `StrideStoreVersionViewModel.RunPrerequisitesInstaller` probes there to run it on first install.
+The `<description>` element is special: launchers read their update rules from it, the `update:` line from 6.0.1 and the `force-reinstall:` line before. See [self-update.md](self-update.md#update-rules). Launchers already installed read these lines; do not remove them.
 
-The `<description>` element is special: `SelfUpdater` scans it for a `force-reinstall:` line. See [self-update.md](self-update.md#version-probe). The line that currently ships in the nuspec is used internally; do not remove it.
+## Setup/
 
-## Advanced Installer projects
+[Setup/setup.aip](../../sources/launcher/Setup/setup.aip) builds `StrideSetup.exe`. It installs:
 
-### Prerequisites/
-
-[Prerequisites/launcher-prerequisites.aip](../../sources/launcher/Prerequisites/launcher-prerequisites.aip) builds a chainer that installs:
-
-- The .NET Desktop Runtime required by Game Studio.
-- DirectX redistributables (matched to the cab files under [Setup/DirectX11/](../../sources/launcher/Setup/DirectX11/)).
-- Any other runtime shims Stride expects on a fresh Windows machine.
-
-The output `launcher-prerequisites.exe` is bundled **inside** the launcher NuGet package at `tools/Prerequisites/`, so a self-update can ship an updated prerequisites bootstrapper too.
-
-### Setup/
-
-[Setup/setup.aip](../../sources/launcher/Setup/setup.aip) is the user-facing installer that downloads `StrideSetup.exe` from `stride3d.net`. It installs:
-
-- `Stride.Launcher.exe` and its dependencies (unpacked into the installed tools dir).
+- `Stride.Launcher.exe`.
 - A Start menu shortcut with `Launcher.ico`.
-- A registry entry so the self-updater can detect the install.
+- The Add/Remove Programs entry. Uninstalling runs `Stride.Launcher.exe /uninstall` first, which uninstalls the Stride versions.
 
-## Building the installers
+The build names the setup `StrideSetup-<version>.exe` (e.g. `StrideSetup-6.0.1.exe`), which goes to the GitHub release (`launcher/<version>`). A launcher that must reinstall downloads it from there (`setup=` of the update rules). The download button of the website is `links.stride-download-url` in `_data/site.json` of the [stride-website](https://github.com/stride3d/stride-website) repository: on a release (not a pre-release), `release-launcher.yml` points it to the new setup and pushes to stride-website master with `GH_PAT`. The site is deployed from its `release` branch, so the button changes with the next website release; to change it before, cherry-pick that commit to `release`.
 
-The Advanced Installer projects need `AdvancedInstaller.com` on `PATH`; the automated build is driven by `Stride.build` at the repo root. Locally:
+## Building
+
+The targets are in [Stride.Launcher.Release.targets](../../sources/launcher/Stride.Launcher.Release.targets), run through [Stride.build](../../build/Stride.build), which imports it. The setup needs Advanced Installer 22.0:
 
 ```
-msbuild sources\launcher\Stride.build /t:Build;PackageInstaller
+msbuild build\Stride.build /t:FullBuildLauncher /p:StrideSign=false [/p:VersionSuffix=beta1]
 ```
 
-`Build` produces `Stride.Launcher.exe`; `PackageInstaller` runs Advanced Installer against the two `.aip` files.
+`FullBuildLauncher` publishes the exe (`BuildLauncher`), packs the nupkg (`PackageLauncher`) and builds the setup (`PackageInstaller`), all into `bin\launcher\`. `_StrideSetupVersion` only prints the computed versions, without Advanced Installer.
 
-On Linux and macOS there is no installer story — the launcher is run from a `dotnet publish -r linux-x64 --self-contained` output. The Advanced Installer targets silently skip when `AdvancedInstaller.com` is absent.
+Releases go through [release-launcher.yml](../../.github/workflows/release-launcher.yml) (manual run, optional `version-suffix` and `checkpoint`). It creates a `launcher/<version>` GitHub release with the setup (a pre-release is marked as one), then pushes the nupkg to NuGet.org, whose update lines point to that setup.
 
-## CI notes
+If the deploy fails, e.g. on the NuGet push, use "Re-run failed jobs": the deploy runs again with the same build, the existing GitHub release gets the setup again, and NuGet skips the packages it already has. "Re-run all jobs" stops at the version check, as the `launcher/<version>` tag exists.
 
-The launcher CI job is in the main GitHub Actions pipeline. There is a dedicated fix for a parallel-build race — see the commit `ci: fix potential parallel build issue for the launcher job` on this branch. When modifying csproj / nuspec interactions, rerun a full clean build to make sure the regex version probe still picks up the right value.
+On Linux and macOS there is no installer: the launcher is run from a `dotnet publish -r linux-x64 --self-contained` output.

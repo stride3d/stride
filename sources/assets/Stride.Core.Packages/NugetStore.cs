@@ -244,10 +244,11 @@ public partial class NugetStore : INugetDownloadProgress
     public event EventHandler<PackageOperationEventArgs>? NugetPackageUninstalling;
 
     /// <summary>
-    /// Awaited before a package's files are deleted; returning false cancels the uninstall with an
-    /// <see cref="OperationCanceledException"/>. Unlike <see cref="NugetPackageUninstalling"/>, it can wait on the user.
+    /// Awaited before the files of the packages are deleted, once per <see cref="UninstallPackage"/> or <see cref="UninstallPackages"/>
+    /// call; returning false cancels the uninstall with an <see cref="OperationCanceledException"/>, before anything is deleted.
+    /// Unlike <see cref="NugetPackageUninstalling"/>, it can wait on the user.
     /// </summary>
-    public Func<PackageOperationEventArgs, Task<bool>>? UninstallGuard { get; set; }
+    public Func<IReadOnlyList<PackageOperationEventArgs>, Task<bool>>? UninstallGuard { get; set; }
 
     /// <summary>
     /// Installation path of <paramref name="package"/>
@@ -288,11 +289,16 @@ public partial class NugetStore : INugetDownloadProgress
     /// <returns>A list of packages.</returns>
     /// <param name="packageId">The package.</param>
     /// <param name="localBuildRange">
-    /// The versions to take from local-folder sources first (see <see cref="SyncLocalFolderSources"/>), null for all.
+    /// The versions to take from local-folder sources first (see <see cref="SyncLocalFolderSources"/>), null for all of
+    /// their local builds.
     /// </param>
     public IEnumerable<NugetLocalPackage> GetLocalPackages(string packageId, PackageVersionRange? localBuildRange = null)
     {
-        SyncLocalFolderSources(packageId, localBuildRange);
+        // Copies packages from the local-folder sources (e.g. nugetdev) into the global packages folder:
+        // - without a range: only the local builds (-dev). The other versions there are installed like from any feed.
+        // - with a range: the versions in that range, even without -dev, because CI builds have no -dev suffix.
+        // TODO: give CI builds a local-build suffix too, then the range case can also copy only the local builds.
+        SyncLocalFolderSources(packageId, localBuildRange, localBuildsOnly: localBuildRange is null);
 
         var res = new List<NugetLocalPackage>();
 
@@ -377,7 +383,8 @@ public partial class NugetStore : INugetDownloadProgress
     /// The versions to mirror, null for all: only what the caller's query could use. A lookup for one version does
     /// not mirror a local copy of another (same id, maybe different content) over the installed one.
     /// </param>
-    private void SyncLocalFolderSources(string packageId, PackageVersionRange? versionRange = null)
+    /// <param name="localBuildsOnly">Whether to mirror only the local builds (-dev).</param>
+    private void SyncLocalFolderSources(string packageId, PackageVersionRange? versionRange, bool localBuildsOnly)
     {
         if (InstallPath == null)
             return;
@@ -429,6 +436,8 @@ public partial class NugetStore : INugetDownloadProgress
 
                     foreach (var version in sourceVersions)
                     {
+                        if (localBuildsOnly && !version.ToPackageVersion().IsLocalBuild)
+                            continue;
                         // Satisfies, not a float-aware check: the content packs are prereleases (4.4.0-beta7-dev4).
                         if (wanted is not null && !wanted.Satisfies(version))
                             continue;
@@ -494,9 +503,15 @@ public partial class NugetStore : INugetDownloadProgress
     /// Lock to ensure atomicity of updates to the local repository.
     /// </summary>
     /// <returns>A Lock.</returns>
+    /// <remarks>
+    /// In Stride's own per-user folder, next to nugetdev: the processes that share the repository (the launcher, the
+    /// CLI) don't share their current directory, which may not even be writable.
+    /// </remarks>
     private static FileLock? GetLocalRepositoryLock()
     {
-        return FileLock.Wait("nuget.lock");
+        var directory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "stride");
+        Directory.CreateDirectory(directory);
+        return FileLock.Wait(Path.Combine(directory, "nuget.lock"));
     }
 
     #region Manager
@@ -634,6 +649,7 @@ public partial class NugetStore : INugetDownloadProgress
                             }
                             var toInstall = result.RestoreGraphs.Last().Install;
                             NugetRestoreInstalling?.Invoke(toInstall.Count);
+                            var installed = 0;
                             foreach (var install in toInstall)
                             {
                                 var package = result.LockFile.Libraries.FirstOrDefault(x => x.Name == install.Library.Name && x.Version == install.Library.Version);
@@ -642,6 +658,7 @@ public partial class NugetStore : INugetDownloadProgress
                                     var packagePath = Path.Combine(installPath, package.Path);
                                     OnPackageInstalled(this, new PackageOperationEventArgs(new PackageName(install.Library.Name, install.Library.Version.ToPackageVersion()), packagePath));
                                 }
+                                currentProgressReport?.ReportInstalled(++installed, toInstall.Count);
                             }
                         }
                     }
@@ -682,17 +699,46 @@ public partial class NugetStore : INugetDownloadProgress
     /// <param name="package">Package to uninstall.</param>
     public async Task UninstallPackage(NugetPackage package, ProgressReport? progress)
     {
+        await GuardUninstall([package]);
+        await UninstallPackageUnguarded(package, progress);
+    }
+
+    /// <summary>
+    /// Uninstalls <paramref name="packages"/>, like <see cref="UninstallPackage"/>, with a single <see cref="UninstallGuard"/> call for all of them.
+    /// </summary>
+    /// <param name="packages">Packages to uninstall.</param>
+    /// <param name="progress">Called before each package is uninstalled, with the count uninstalled so far and the total.</param>
+    public async Task UninstallPackages(IReadOnlyList<NugetPackage> packages, Action<int, int>? progress)
+    {
+        await GuardUninstall(packages);
+        for (var i = 0; i < packages.Count; i++)
+        {
+            progress?.Invoke(i, packages.Count);
+            await UninstallPackageUnguarded(packages[i], null);
+        }
+    }
+
+    // Before the repository lock: the guard may wait on the user.
+    private async Task GuardUninstall(IReadOnlyList<NugetPackage> packages)
+    {
+        if (UninstallGuard is not { } guard)
+            return;
+
+        var guarded = packages
+            .Select(package => (package, path: GetInstalledPath(package.Id, package.Version)))
+            .Where(x => x.path is not null)
+            .Select(x => new PackageOperationEventArgs(new PackageName(x.package.Id, x.package.Version), x.path!))
+            .ToList();
+        if (guarded.Count > 0 && !await guard(guarded))
+            throw new OperationCanceledException(packages.Count == 1 ? $"Uninstalling {packages[0].Id} {packages[0].Version} was cancelled." : $"Uninstalling {packages.Count} packages was cancelled.");
+    }
+
+    private async Task UninstallPackageUnguarded(NugetPackage package, ProgressReport? progress)
+    {
 #if DEBUG
         var installedPackages = GetPackagesInstalled([package.Id]);
         Debug.Assert(installedPackages.FirstOrDefault(p => p.Equals(package)) is not null);
 #endif
-        // Before the repository lock: the guard may wait on the user.
-        if (UninstallGuard is { } guard && GetInstalledPath(package.Id, package.Version) is { } guardedPath
-            && !await guard(new PackageOperationEventArgs(new PackageName(package.Id, package.Version), guardedPath)))
-        {
-            throw new OperationCanceledException($"Uninstalling {package.Id} {package.Version} was cancelled.");
-        }
-
         using (GetLocalRepositoryLock())
         {
             currentProgressReport = progress;
@@ -807,18 +853,19 @@ public partial class NugetStore : INugetDownloadProgress
             return GetPackagesInstalled([packageId]).FirstOrDefault(p => allowPrereleaseVersions || string.IsNullOrEmpty(p.Version.SpecialVersion));
         }
 
+        if (constraintProvider != null)
+        {
+            versionRange = constraintProvider.GetConstraint(packageId) ?? versionRange;
+        }
+
         // The range is the mirror filter too: local-folder sources give up only what this lookup could use.
-        var packages = GetLocalPackages(packageId, constraintProvider is null ? versionRange : null);
+        var packages = GetLocalPackages(packageId, versionRange);
 
         if (!allowUnlisted)
         {
             packages = packages.Where(p => p.Listed);
         }
 
-        if (constraintProvider != null)
-        {
-            versionRange = constraintProvider.GetConstraint(packageId) ?? versionRange;
-        }
         if (versionRange != null)
         {
             packages = packages.Where(p => versionRange.Contains(p.Version));
@@ -835,12 +882,14 @@ public partial class NugetStore : INugetDownloadProgress
     public async Task<IEnumerable<NugetServerPackage>> FindSourcePackages(IReadOnlyCollection<string> packageIds, CancellationToken cancellationToken)
     {
         var repositories = PackageSources.Select(sourceRepositoryProvider.CreateRepository).ToArray();
-        var res = new List<NugetServerPackage>();
-        foreach (var packageId in packageIds)
+        // All ids at once: each is a round trip to every source, and the launcher's version list waits on them
+        var results = await Task.WhenAll(packageIds.Select(async packageId =>
         {
+            var res = new List<NugetServerPackage>();
             await FindSourcePackagesByIdHelper(packageId, res, repositories, cancellationToken);
-        }
-        return res;
+            return res;
+        }));
+        return results.SelectMany(x => x).ToList();
     }
 
     /// <summary>
@@ -1059,14 +1108,21 @@ public partial class NugetStore : INugetDownloadProgress
         if (now - Interlocked.Read(ref lastReportTicks) < 250)
             return;
         Interlocked.Exchange(ref lastReportTicks, now);
-        NugetDownloadProgress?.Invoke(Interlocked.Read(ref downloadedBytes));
+        ReportDownloadProgress();
     }
 
     void INugetDownloadProgress.DownloadCompleted()
     {
         // Not throttled: the final count stays shown while the package is extracted.
         Interlocked.Exchange(ref lastReportTicks, Environment.TickCount64);
-        NugetDownloadProgress?.Invoke(Interlocked.Read(ref downloadedBytes));
+        ReportDownloadProgress();
+    }
+
+    private void ReportDownloadProgress()
+    {
+        var bytes = Interlocked.Read(ref downloadedBytes);
+        NugetDownloadProgress?.Invoke(bytes);
+        currentProgressReport?.ReportDownloaded(bytes);
     }
 
     /// <summary>

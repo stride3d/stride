@@ -26,14 +26,6 @@ namespace Stride.Graphics
         /// <implement>To be implemented.</implement>
         internal int ConstantBufferDataPlacementAlignment = 256;
 
-        /// <summary>
-        /// Action called when device is destroyed.
-        /// </summary>
-        internal void OnDestroyed(bool immediately = false)
-        {
-            NullHelper.ToImplement();
-        }
-
         //// <summary>
         ///   Tags a Graphics Resource as no having alive references, meaning it should be safe to dispose it
         ///   or discard its contents during the next <see cref="CommandList.MapSubResource"/> or <c>SetData</c> operation.
@@ -134,6 +126,8 @@ namespace Stride.Graphics
             NullHelper.ToImplement();
             return rendererName;
         }
+
+        internal partial string GetDeviceLostDetails() => null;
 
         /// <summary>
         ///   Releases the platform-specific Graphics Device and all its associated resources.
