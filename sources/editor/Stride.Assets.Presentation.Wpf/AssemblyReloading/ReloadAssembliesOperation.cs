@@ -13,6 +13,24 @@ using Stride.Core.Presentation.Dirtiables;
 
 namespace Stride.Assets.Presentation.AssemblyReloading
 {
+    /// <summary>
+    /// What an unloaded assembly is missing to work again: its place in the container it was loaded by, and the
+    /// categories it was registered with.
+    /// </summary>
+    public class UnloadedAssembly
+    {
+        public UnloadedAssembly(LoadedAssembly containerAssembly, IReadOnlyCollection<string> categories)
+        {
+            ContainerAssembly = containerAssembly;
+            Categories = categories;
+        }
+
+        /// <summary>What the container knew about the assembly, null when no container held it.</summary>
+        public LoadedAssembly ContainerAssembly { get; }
+
+        public IReadOnlyCollection<string> Categories { get; }
+    }
+
     public class ReloadAssembliesOperation : DirtyingOperation
     {
         private class ReloadedAssembly
@@ -22,6 +40,9 @@ namespace Stride.Assets.Presentation.AssemblyReloading
             public readonly string NewAssemblyPath;
             public readonly Assembly OriginalAssembly;
             public Assembly NewAssembly;
+            // What was taken away from each version, to give it back to the one being loaded again
+            public UnloadedAssembly OriginalUnloaded;
+            public UnloadedAssembly NewUnloaded;
 
             public ReloadedAssembly(PackageLoadedAssembly packageLoadedAssembly, string newAssemblyPath)
             {
@@ -85,12 +106,24 @@ namespace Stride.Assets.Presentation.AssemblyReloading
                         ? loadedAssembly.NewAssembly
                         : loadedAssembly.OriginalAssembly;
 
+                    var unloaded = newVersion ? loadedAssembly.NewUnloaded : loadedAssembly.OriginalUnloaded;
+
+                    // The container resolves what an assembly references through the assembly that asks, so an
+                    // assembly loaded again belongs to it again
+                    if (!firstTime && unloaded?.ContainerAssembly != null)
+                        assemblyContainer.RestoreAssembly(unloaded.ContainerAssembly);
+
                     log?.Info($"Loading assembly {assembly}");
 
                     loadedAssembly.PackageLoadedAssembly.Assembly = assembly;
 
-                    // Unregisters assemblies that have been registered in Package.Load => Package.LoadAssemblyReferencesForPackage
-                    AssemblyRegistry.Register(assembly, AssemblyCommonCategories.Assets);
+                    // An assembly loaded again takes back the categories it had: its module initializer registered
+                    // some of them (Engine, from the assembly processor) and runs once only. A freshly loaded one
+                    // has just run it, and is an asset assembly of this session on top.
+                    var categories = unloaded != null && unloaded.Categories.Count > 0
+                        ? unloaded.Categories
+                        : (IReadOnlyCollection<string>)new[] { AssemblyCommonCategories.Assets };
+                    AssemblyRegistry.Register(assembly, categories);
 
                     DataSerializerFactory.RegisterSerializationAssembly(assembly);
                 }
@@ -105,31 +138,45 @@ namespace Stride.Assets.Presentation.AssemblyReloading
         {
             for (int index = loadedAssemblies.Count - 1; index >= 0; index--)
             {
-                UnloadAssembly(log, assemblyContainer, loadedAssemblies[index].PackageLoadedAssembly);
+                var loadedAssembly = loadedAssemblies[index];
+                var assembly = loadedAssembly.PackageLoadedAssembly.Assembly;
+                var unloaded = UnloadAssembly(log, assemblyContainer, loadedAssembly.PackageLoadedAssembly);
+                if (unloaded == null)
+                    continue;
+
+                if (assembly == loadedAssembly.OriginalAssembly)
+                    loadedAssembly.OriginalUnloaded = unloaded;
+                else
+                    loadedAssembly.NewUnloaded = unloaded;
             }
         }
 
-        /// <summary>Unloads and unregisters a single loaded assembly (no-op when not loaded).</summary>
-        public static void UnloadAssembly(ILogger log, AssemblyContainer assemblyContainer, PackageLoadedAssembly loadedAssembly)
+        /// <summary>
+        /// Unloads and unregisters a single loaded assembly (no-op when not loaded). Returns what was taken away from
+        /// it, which loading it again gives back.
+        /// </summary>
+        public static UnloadedAssembly UnloadAssembly(ILogger log, AssemblyContainer assemblyContainer, PackageLoadedAssembly loadedAssembly)
         {
             var assembly = loadedAssembly.Assembly;
 
             // Already unloaded or never loaded?
             if (assembly == null)
-                return;
+                return null;
 
             log?.Info($"Unloading assembly {assembly}");
 
             // Unregisters assemblies that have been registered in Package.Load => Package.LoadAssemblyReferencesForPackage
+            var categories = AssemblyRegistry.GetCategories(assembly);
             AssemblyRegistry.Unregister(assembly);
 
             // Unload binary serialization
             DataSerializerFactory.UnregisterSerializationAssembly(assembly);
 
             // Unload assembly
-            assemblyContainer.UnloadAssembly(assembly);
+            var containerAssembly = assemblyContainer.RemoveAssembly(assembly);
 
             loadedAssembly.Assembly = null;
+            return new UnloadedAssembly(containerAssembly, categories);
         }
     }
 }

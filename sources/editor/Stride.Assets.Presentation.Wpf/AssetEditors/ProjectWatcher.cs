@@ -526,10 +526,39 @@ namespace Stride.Assets.Presentation.AssetEditors
             var solution = await EnsureSolutionOpened(forceReload);
             var osPath = projectPath.ToOSPath();
             // Path match is case-insensitive; a multi-targeted project yields one entry per TFM (any works here).
-            var project = solution.Projects.FirstOrDefault(x => string.Equals(x.FilePath, osPath, StringComparison.OrdinalIgnoreCase));
+            var project = solution.Projects.FirstOrDefault(x => string.Equals(x.FilePath, osPath, StringComparison.OrdinalIgnoreCase))
+                ?? await AddProjectToWorkspace(osPath);
             if (project == null)
                 logger.Warning($"[ScriptWorkspace] Could not load project '{osPath}' into the script workspace.");
             return project;
+        }
+
+        /// <summary>
+        /// Adds a project the opened solution does not hold, with the projects it references, and returns it. A
+        /// project added to the session after the solution was opened (Add plugin, Add library) is one of those.
+        /// </summary>
+        private async Task<Project> AddProjectToWorkspace(string osPath)
+        {
+            // Serialize workspace mutations, as EnsureSolutionOpened does
+            await solutionLock.WaitAsync();
+            try
+            {
+                // Another caller may have added it while waiting (a project referenced by one just added)
+                var project = msbuildWorkspace.CurrentSolution.Projects.FirstOrDefault(x => string.Equals(x.FilePath, osPath, StringComparison.OrdinalIgnoreCase));
+                if (project != null)
+                    return project;
+
+                return await msbuildWorkspace.OpenProjectAsync(osPath);
+            }
+            catch (Exception e)
+            {
+                logger.Verbose($"[ScriptWorkspace] Could not add project '{osPath}' to the script workspace: {e.Message}");
+                return null;
+            }
+            finally
+            {
+                solutionLock.Release();
+            }
         }
 
         /// <summary>

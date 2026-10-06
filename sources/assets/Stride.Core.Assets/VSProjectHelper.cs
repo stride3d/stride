@@ -30,6 +30,23 @@ public static class VSProjectHelper
 
     private static readonly BuildManager mainBuildManager = new();
 
+    // A BuildManager runs one build session at a time; builds come from several places (project loading,
+    // the debugging view's build and assembly reload, restores), so they queue here instead of failing
+    private static readonly SemaphoreSlim buildGate = new(1, 1);
+
+    private static BuildResult RunBuild(BuildParameters parameters, BuildRequestData request)
+    {
+        buildGate.Wait();
+        try
+        {
+            return mainBuildManager.Build(parameters, request);
+        }
+        finally
+        {
+            buildGate.Release();
+        }
+    }
+
     public static Guid GetProjectGuid(MicrosoftProject project)
     {
         ArgumentNullException.ThrowIfNull(project);
@@ -140,7 +157,7 @@ public static class VSProjectHelper
                     // Run a MSBuild /t:Restore <projectfile>
                     var request = new BuildRequestData(projectPath, new Dictionary<string, string> { { "RestoreGraphOutputPath", restoreGraphResult.Path }, { "RestoreRecursive", "false" } }, null, ["GenerateRestoreGraphFile"], null, BuildRequestDataFlags.None);
 
-                    mainBuildManager.Build(parameters, request);
+                    RunBuild(parameters, request);
                 }
                 finally
                 {
@@ -191,7 +208,7 @@ public static class VSProjectHelper
                     globalProperties["NoWarn"] = "NU1605";
                 var request = new BuildRequestData(projectPath, globalProperties, null, ["Restore"], null, BuildRequestDataFlags.None);
 
-                mainBuildManager.Build(parameters, request);
+                RunBuild(parameters, request);
             }
             finally
             {
@@ -444,24 +461,38 @@ public static class VSProjectHelper
 
             BuildTask = Task.Run(() =>
             {
-                return mainBuildManager.Build(
-                    new BuildParameters(project.ProjectCollection)
-                    {
-                        Loggers = [logger],
-                        DisableInProcNode = true,
-                    },
-                    new BuildRequestData(projectInstance, targets.Split(';'), null, flags));
+                buildGate.Wait();
+                try
+                {
+                    isRunning = true;
+                    // Canceled while queued: nothing to build
+                    if (IsCanceled)
+                        return new BuildResult();
+
+                    return mainBuildManager.Build(
+                        new BuildParameters(project.ProjectCollection)
+                        {
+                            Loggers = [logger],
+                            DisableInProcNode = true,
+                        },
+                        new BuildRequestData(projectInstance, targets.Split(';'), null, flags));
+                }
+                finally
+                {
+                    isRunning = false;
+                    buildGate.Release();
+                }
             });
         }
 
+        private volatile bool isRunning;
+
         public void Cancel()
         {
-            var localManager = mainBuildManager;
-            if (localManager != null)
-            {
-                localManager.CancelAllSubmissions();
-                IsCanceled = true;
-            }
+            IsCanceled = true;
+            // Builds run one at a time, so the manager's submissions are this build's
+            if (isRunning)
+                mainBuildManager.CancelAllSubmissions();
         }
     }
 }

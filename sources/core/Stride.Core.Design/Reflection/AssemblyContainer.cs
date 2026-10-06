@@ -103,16 +103,44 @@ public class AssemblyContainer
 
     public bool UnloadAssembly(Assembly assembly)
     {
+        return RemoveAssembly(assembly) is not null;
+    }
+
+    /// <summary>
+    /// Removes an assembly from this container and returns what the container knew about it, or null when it holds
+    /// no such assembly. <see cref="RestoreAssembly"/> takes that back.
+    /// </summary>
+    public LoadedAssembly? RemoveAssembly(Assembly assembly)
+    {
         lock (loadedAssemblies)
         {
             var loadedAssembly = loadedAssemblies.FirstOrDefault(x => x.Assembly == assembly);
             if (loadedAssembly == null)
-                return false;
+                return null;
 
             loadedAssemblies.Remove(loadedAssembly);
             loadedAssembliesByName.Remove(loadedAssembly.Path);
             assemblyToContainers.Remove(assembly);
-            return true;
+            return loadedAssembly;
+        }
+    }
+
+    /// <summary>
+    /// Takes back an assembly this container removed, with the path and dependencies it was loaded with. The types of
+    /// an assembly put back are live again, and resolving what they reference goes through this container.
+    /// </summary>
+    public void RestoreAssembly(LoadedAssembly loadedAssembly)
+    {
+        ArgumentNullException.ThrowIfNull(loadedAssembly);
+
+        lock (loadedAssemblies)
+        {
+            if (loadedAssemblies.Any(x => x.Assembly == loadedAssembly.Assembly))
+                return;
+
+            loadedAssemblies.Add(loadedAssembly);
+            loadedAssembliesByName[loadedAssembly.Path] = loadedAssembly;
+            assemblyToContainers.AddOrUpdate(loadedAssembly.Assembly, loadedAssembly);
         }
     }
 
