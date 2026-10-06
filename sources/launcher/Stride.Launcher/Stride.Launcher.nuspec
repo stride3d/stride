@@ -2,7 +2,7 @@
 <package>
   <metadata>
     <id>Stride.Launcher</id>
-    <version>6.0.2</version>
+    <version>6.0.3</version>
     <authors>Stride</authors>
     <owners>Stride</owners>
     <license type="expression">MIT</license>
