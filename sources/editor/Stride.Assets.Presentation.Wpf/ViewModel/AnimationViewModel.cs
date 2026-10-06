@@ -22,6 +22,11 @@ namespace Stride.Assets.Presentation.ViewModel
             return AssetRegistry.FindImporterForFile(Asset.Source).OfType<ModelAssetImporter>().FirstOrDefault();
         }
 
+        protected override bool IsMatchingImportedAsset(AnimationAsset importedAsset)
+        {
+            return importedAsset.AnimationStack == Asset.AnimationStack;
+        }
+
         protected override void UpdateAssetFromSource(AnimationAsset assetToMerge)
         {
             AssetRootNode[nameof(AnimationAsset.AnimationTimeMaximum)].Update(assetToMerge.AnimationTimeMaximum);
