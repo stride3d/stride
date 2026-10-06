@@ -34,6 +34,12 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
             }
         }
 
+        /// <summary>
+        /// Drags <paramref name="items"/> out of the editor game.
+        /// </summary>
+        /// <returns>Whether the items were dropped somewhere.</returns>
+        public bool StartDragDrop(params object[] items) => DoDragDrop(items) != DragDropEffects.None;
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void EnableDrop()
         {

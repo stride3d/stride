@@ -105,7 +105,7 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Game
                 if (Game.Input.IsKeyDown(Keys.LeftAlt) || Game.Input.IsKeyDown(Keys.RightAlt))
                 {
                     e.Handled = true;
-                    Controller.DoDragDrop(resizingAdorners[0].GameSideElement.Id);
+                    Controller.StartDragDrop(resizingAdorners[0].GameSideElement.Id);
                     return;
                 }
             }
