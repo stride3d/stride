@@ -83,6 +83,9 @@ partial class PackageSession
         var kind = declaration.Kind;
 
         var companion = Projects.FirstOrDefault(p => string.Equals(p.Package.Meta.Name, companionName, StringComparison.OrdinalIgnoreCase));
+        // Loading the companions again (a dependency was added) leaves the ones already linked as they are
+        if (companion is not null && companionLinks.Contains((package, companion.Package)))
+            return;
         if (companion is null)
         {
             var loaded = LoadCompanionPackage(companionName, version, loadedByName, rootDirectory, log);

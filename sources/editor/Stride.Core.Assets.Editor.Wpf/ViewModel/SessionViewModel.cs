@@ -1480,6 +1480,44 @@ namespace Stride.Core.Assets.Editor.ViewModel
             return AllPackages.FirstOrDefault(x => x.Package == package);
         }
 
+        /// <summary>
+        /// Loads what a dependency just added (and restored) brings to the projects: its packages, their companions,
+        /// assemblies and assets, as opening the session would have.
+        /// </summary>
+        internal async Task LoadAddedDependencies(LoggerResult loggerResult)
+        {
+            var workProgress = new WorkProgressViewModel(ServiceProvider, loggerResult)
+            {
+                Title = Tr._p("Title", "Adding dependency..."),
+                KeepOpen = KeepOpen.OnWarningsOrErrors,
+                IsIndeterminate = true,
+                IsCancellable = false
+            };
+            workProgress.RegisterProgressStatus(loggerResult, true);
+            var cancellationSource = new CancellationTokenSource();
+
+            ServiceProvider.Get<IEditorDialogService>().ShowProgressWindow(workProgress, 500);
+
+            await Task.Run(() =>
+            {
+                try
+                {
+                    session.LoadAddedDependencies(loggerResult, CreatePackageLoadParameters(workProgress, cancellationSource));
+                }
+                catch (Exception e)
+                {
+                    loggerResult.Error(Tr._p("Log", "There was a problem loading the new dependencies."), e);
+                }
+            }, cancellationSource.Token);
+
+            workProgress.Minimum = 0;
+            workProgress.ProgressValue = 0;
+            workProgress.Maximum = session.Projects.Where(x => !packageMap.ContainsValue(x)).Sum(x => x.Package.Assets.Count);
+            ProcessAddedProjects(loggerResult, workProgress, true);
+
+            await workProgress.NotifyWorkFinished(cancellationSource.IsCancellationRequested, loggerResult.HasErrors);
+        }
+
         internal void ProcessAddedProjects(LoggerResult loggerResult, WorkProgressViewModel workProgress, bool packageAlreadyInSession)
         {
             var newPackages = new List<PackageViewModel>();
@@ -1547,18 +1585,35 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 return;
 
             var packagePicker = Dialogs.CreatePackagePickerDialog(this);
-            // Filter out the selected package, packages that are dependent on the selected package
-            // and packages that are already referenced.
+            // Hide packages already referenced directly, companions, executables, and the selected package and its dependents.
+            // A suggested package available through another dependency stays, marked: a direct reference is what
+            // [GameSystem] needs. Any other package already available (the engine's own) is hidden.
+            var container = selectedPackage.Package.Container;
+            var referencedNames = new HashSet<string>(container.DirectDependencies.Select(d => d.Name), StringComparer.OrdinalIgnoreCase);
+            var availableNames = new HashSet<string>(container.FlattenedDependencies.Select(d => d.Name), StringComparer.OrdinalIgnoreCase);
+            var suggestedNames = new HashSet<string>(SuggestedPackages.Select(p => p.Id), StringComparer.OrdinalIgnoreCase);
+            var companionNames = new HashSet<string>(AllPackages.SelectMany(p => p.Package.CompanionPackages).Select(c => c.Name), StringComparer.OrdinalIgnoreCase);
             packagePicker.Filter = x =>
             {
-                if (!(x is LoadedPickablePackageViewModel loadedPackage))
+                if (referencedNames.Contains(x.Name) || companionNames.Contains(x.Name))
+                    return false;
+                var available = availableNames.Contains(x.Name);
+                if (available && !suggestedNames.Contains(x.Name))
+                    return false;
+                x.Note = available ? Tr._p("Message", "(already available through another dependency)") : null;
+
+                if (x is not LoadedPickablePackageViewModel loadedPackage)
                     return true;
 
-                return !(loadedPackage.Package == selectedPackage || loadedPackage.Package.DependsOn(selectedPackage) ||
-                         selectedPackage.Dependencies.Content.Select(r => r.Target).Contains(loadedPackage.Package));
+                var package = loadedPackage.Package.Package;
+                if (package.Kind != PackageKind.Runtime || package.Container is StandalonePackage { IsCompanionPackage: true } or SolutionProject { Type: ProjectType.Executable })
+                    return false;
+
+                return !(loadedPackage.Package == selectedPackage || loadedPackage.Package.DependsOn(selectedPackage));
             };
 
-            if (AllPackages.All(x => !packagePicker.Filter(new LoadedPickablePackageViewModel(x))))
+            // The same list the picker shows: the loaded packages and the suggested ones not loaded yet
+            if (!(await SuggestPackagesToAdd()).Any(packagePicker.Filter))
             {
                 await Dialogs.MessageBoxAsync(Tr._p("Message", "There are no packages that can be added as dependencies to this package."), MessageBoxButton.OK, MessageBoxImage.Information);
                 return;

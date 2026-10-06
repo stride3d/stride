@@ -394,99 +394,7 @@ partial class PackageSession
             UpdateDependencies(project, true, true);
 
             // 1. Load store package
-            foreach (var projectDependency in project.FlattenedDependencies)
-            {
-                // Make all the assemblies known to the container to ensure that later assembly loads succeed
-                foreach (var assembly in projectDependency.Assemblies)
-                    AssemblyContainer.RegisterDependency(assembly);
-
-                var loadedPackage = packages.Find(projectDependency);
-                if (loadedPackage == null)
-                {
-                    string? file = null;
-                    switch (projectDependency.Type)
-                    {
-                        case DependencyType.Project:
-                            if (SupportedProgrammingLanguages.IsProjectExtensionSupported(Path.GetExtension(projectDependency.MSBuildProject).ToLowerInvariant()))
-                                file = UPath.Combine(project.FullPath.GetFullDirectory(), (UFile)projectDependency.MSBuildProject);
-                            break;
-                        case DependencyType.Package:
-                            file = PackageStore.Instance.GetPackageFileName(projectDependency.Name, new PackageVersionRange(projectDependency.Version), constraintProvider);
-                            break;
-                    }
-
-                    if (file != null && File.Exists(file))
-                    {
-                        PackageContainer loadedProject;
-
-                        // A Package-type dependency whose .sdpkg sits next to a .csproj is a dev-redirect to
-                        // the in-tree source (a real nupkg ships its .sdpkg under stride/ with no sibling
-                        // .csproj). Load it as a read-only external package: its assets/shaders are read live
-                        // from source, but it must NOT become an editable SolutionProject — that would add the
-                        // engine project to the consumer's .sln, force a full MSBuild evaluation per engine
-                        // package on every session load, and wire dependency write-back into the engine source
-                        // csproj. Project assets come from the build manifest (.sdbuild), not MSBuild.
-                        var devRedirectProject = projectDependency.Type == DependencyType.Package
-                            ? Path.ChangeExtension(file, ".csproj")
-                            : null;
-                        var manifestFile = devRedirectProject != null && File.Exists(devRedirectProject)
-                            ? FindDevRedirectManifest(devRedirectProject)
-                            : null;
-
-                        if (manifestFile != null)
-                        {
-                            var devPackage = Package.LoadRaw(log, file);
-                            devPackage.AuthoredName ??= devPackage.Meta.Name;
-                            devPackage.Meta.Name = projectDependency.Name;
-                            devPackage.Meta.Version = projectDependency.Version;
-                            var devManifest = LoadProjectAssetsFromManifest(devPackage, devRedirectProject!, manifestFile);
-                            if (devManifest is not null)
-                                devPackage.SetCompanionDeclarations(devManifest, Path.GetDirectoryName(manifestFile)!);
-
-                            var devContainer = new StandalonePackage(devPackage);
-                            // Same namespace surface as a real nupkg (whose packed sdpkg stores the
-                            // resolved name): the csproj-driven declarations come from the manifest,
-                            // the identity from the authored sdpkg
-                            devContainer.AssetNamespace = PackageContainer.ResolveAssetNamespace(devManifest?.AssetNamespace, devPackage.AuthoredName ?? devPackage.Meta.Name);
-                            devContainer.Assemblies.AddRange(projectDependency.Assemblies);
-                            // The consumer's flattened graph already covers this package's dependencies; mark it
-                            // ready so we don't recurse the whole engine project tree into the session.
-                            devPackage.State = PackageState.DependenciesReady;
-                            loadedProject = devContainer;
-                        }
-                        else
-                        {
-                            // No build manifest (e.g. engine not built in manifest mode): fall back to the
-                            // legacy load so assets still resolve, accepting the .sln/MSBuild cost.
-                            loadedProject = LoadProject(log, file, loadParameters);
-                            loadedProject.Package.Meta.Name = projectDependency.Name;
-                            loadedProject.Package.Meta.Version = projectDependency.Version;
-
-                            if (projectDependency.Type == DependencyType.Package && loadedProject is SolutionProject)
-                                loadedProject.Package.State = PackageState.DependenciesReady;
-
-                            if (loadedProject is StandalonePackage standalonePackage)
-                                standalonePackage.Assemblies.AddRange(projectDependency.Assemblies);
-                        }
-
-                        Projects.Add(loadedProject);
-
-                        loadedPackage = loadedProject.Package;
-                    }
-                    else if (projectDependency.Type == DependencyType.Package)
-                    {
-                        var declared = LoadDevRedirectDeclarations(projectDependency);
-                        if (declared != null)
-                        {
-                            Projects.Add(declared);
-                            loadedPackage = declared.Package;
-                        }
-                    }
-                }
-
-                if (loadedPackage != null)
-                    projectDependency.Package = loadedPackage;
-            }
+            LoadDependencyPackages(log, project, loadParameters);
 
             // 3. Update package state
             if (!packageDependencyErrors)
@@ -498,6 +406,136 @@ partial class PackageSession
         {
             processingProjects.Remove(projectPath);
         }
+    }
+
+    /// <summary>
+    /// Loads the packages of <paramref name="project"/>'s flattened dependencies that the session does not have yet.
+    /// </summary>
+    private void LoadDependencyPackages(ILogger log, SolutionProject project, PackageLoadParameters loadParameters)
+    {
+        foreach (var projectDependency in project.FlattenedDependencies)
+        {
+            // Make all the assemblies known to the container to ensure that later assembly loads succeed
+            foreach (var assembly in projectDependency.Assemblies)
+                AssemblyContainer.RegisterDependency(assembly);
+
+            var loadedPackage = packages.Find(projectDependency);
+            if (loadedPackage == null)
+            {
+                string? file = null;
+                switch (projectDependency.Type)
+                {
+                    case DependencyType.Project:
+                        if (SupportedProgrammingLanguages.IsProjectExtensionSupported(Path.GetExtension(projectDependency.MSBuildProject).ToLowerInvariant()))
+                            file = UPath.Combine(project.FullPath.GetFullDirectory(), (UFile)projectDependency.MSBuildProject);
+                        break;
+                    case DependencyType.Package:
+                        file = PackageStore.Instance.GetPackageFileName(projectDependency.Name, new PackageVersionRange(projectDependency.Version), constraintProvider);
+                        break;
+                }
+
+                if (file != null && File.Exists(file))
+                {
+                    PackageContainer loadedProject;
+
+                    // A Package-type dependency whose .sdpkg sits next to a .csproj is a dev-redirect to
+                    // the in-tree source (a real nupkg ships its .sdpkg under stride/ with no sibling
+                    // .csproj). Load it as a read-only external package: its assets/shaders are read live
+                    // from source, but it must NOT become an editable SolutionProject — that would add the
+                    // engine project to the consumer's .sln, force a full MSBuild evaluation per engine
+                    // package on every session load, and wire dependency write-back into the engine source
+                    // csproj. Project assets come from the build manifest (.sdbuild), not MSBuild.
+                    var devRedirectProject = projectDependency.Type == DependencyType.Package
+                        ? Path.ChangeExtension(file, ".csproj")
+                        : null;
+                    var manifestFile = devRedirectProject != null && File.Exists(devRedirectProject)
+                        ? FindDevRedirectManifest(devRedirectProject)
+                        : null;
+
+                    if (manifestFile != null)
+                    {
+                        var devPackage = Package.LoadRaw(log, file);
+                        devPackage.AuthoredName ??= devPackage.Meta.Name;
+                        devPackage.Meta.Name = projectDependency.Name;
+                        devPackage.Meta.Version = projectDependency.Version;
+                        var devManifest = LoadProjectAssetsFromManifest(devPackage, devRedirectProject!, manifestFile);
+                        if (devManifest is not null)
+                            devPackage.SetCompanionDeclarations(devManifest, Path.GetDirectoryName(manifestFile)!);
+
+                        var devContainer = new StandalonePackage(devPackage);
+                        // Same namespace surface as a real nupkg (whose packed sdpkg stores the
+                        // resolved name): the csproj-driven declarations come from the manifest,
+                        // the identity from the authored sdpkg
+                        devContainer.AssetNamespace = PackageContainer.ResolveAssetNamespace(devManifest?.AssetNamespace, devPackage.AuthoredName ?? devPackage.Meta.Name);
+                        devContainer.Assemblies.AddRange(projectDependency.Assemblies);
+                        // The consumer's flattened graph already covers this package's dependencies; mark it
+                        // ready so we don't recurse the whole engine project tree into the session.
+                        devPackage.State = PackageState.DependenciesReady;
+                        loadedProject = devContainer;
+                    }
+                    else
+                    {
+                        // No build manifest (e.g. engine not built in manifest mode): fall back to the
+                        // legacy load so assets still resolve, accepting the .sln/MSBuild cost.
+                        loadedProject = LoadProject(log, file, loadParameters);
+                        loadedProject.Package.Meta.Name = projectDependency.Name;
+                        loadedProject.Package.Meta.Version = projectDependency.Version;
+
+                        if (projectDependency.Type == DependencyType.Package && loadedProject is SolutionProject)
+                            loadedProject.Package.State = PackageState.DependenciesReady;
+
+                        if (loadedProject is StandalonePackage standalonePackage)
+                            standalonePackage.Assemblies.AddRange(projectDependency.Assemblies);
+                    }
+
+                    Projects.Add(loadedProject);
+
+                    loadedPackage = loadedProject.Package;
+                }
+                else if (projectDependency.Type == DependencyType.Package)
+                {
+                    var declared = LoadDevRedirectDeclarations(projectDependency);
+                    if (declared != null)
+                    {
+                        Projects.Add(declared);
+                        loadedPackage = declared.Package;
+                    }
+                }
+            }
+
+            if (loadedPackage != null)
+                projectDependency.Package = loadedPackage;
+        }
+    }
+
+    /// <summary>
+    /// After a dependency was added and the projects restored: reads every project's dependencies again (a project
+    /// referencing the changed one gets them too) and loads what the session does not have yet, their packages as a
+    /// session load does, the companions they declare, then the assemblies and assets of everything new.
+    /// </summary>
+    public void LoadAddedDependencies(ILogger log, PackageLoadParameters? loadParametersArg = null)
+    {
+        ArgumentNullException.ThrowIfNull(log);
+        var loadParameters = loadParametersArg ?? PackageLoadParameters.Default();
+
+        var loaded = new HashSet<Package>(Packages);
+        try
+        {
+            foreach (var project in Projects.OfType<SolutionProject>().ToList())
+            {
+                UpdateDependencies(project, false, true);
+                LoadDependencyPackages(log, project, loadParameters);
+            }
+            LoadCompanionPackages(GetRootDirectory(), log, LoadEditorPackages, EditorToolkit);
+        }
+        finally
+        {
+            ClearAllCachedProjects();
+        }
+
+        var dependencyLoadParameters = loadParameters.Clone();
+        dependencyLoadParameters.GenerateNewAssetIds = false;
+        LoadMissingAssets(log, Packages.Where(p => !loaded.Contains(p)).ToList(), dependencyLoadParameters);
     }
 
     // Switching a project from a newer version to the editor's: only when one of them is a local (dev) build, and the
