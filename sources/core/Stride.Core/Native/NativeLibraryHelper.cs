@@ -459,6 +459,22 @@ public static partial class NativeLibraryHelper
         }
     }
 
+    /// <summary>
+    ///   Registers every native library shipped for the current platform under <paramref name="directory"/>
+    ///   (its <c>runtimes/&lt;rid&gt;/native</c> folder), so <see cref="PreloadLibrary"/> and <c>[DllImport]</c>
+    ///   find them for assemblies loaded from that directory without a file location of their own.
+    /// </summary>
+    /// <param name="directory">A package root or the directory holding a package assembly.</param>
+    public static void RegisterDependenciesFrom(string directory)
+    {
+        ArgumentNullException.ThrowIfNull(directory);
+        var nativeDirectory = Path.Combine(directory, platformNativeLibsDir);
+        if (!Directory.Exists(nativeDirectory))
+            return;
+        foreach (var file in Directory.EnumerateFiles(nativeDirectory))
+            RegisterDependency(file);
+    }
+
     /// <summary>SONAME version of a native filename (libfoo.so.6 → 6.0, libfoo.6.dylib → 6.0; else 0.0).</summary>
     private static Version GetNativeSonameVersion(string path)
     {
