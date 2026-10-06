@@ -58,11 +58,13 @@ Progress is reported via `IPackagesLogger` — `MainViewModel` implements it and
 Two entry points:
 
 - **Per-version**, from the UI: `PackageVersionViewModel.Delete(removeFromUi: true, confirmPrompt: true)` prompts the user, calls `NugetStore.UninstallPackage`, and updates status.
-- **Full uninstall**, from `Stride.Launcher.exe /Uninstall`: [Launcher.cs](../../sources/launcher/Stride.Launcher/Launcher.cs)'s `UninstallAsync`:
-  1. Calls `UninstallHelper.CloseProcessesInPathAsync` to kill any running Stride/Game Studio process started from the launcher directory. The user is prompted to confirm via `MessageBox`.
-  2. Iterates `store.MainPackageIds` and uninstalls every matching local package.
-  3. Cleans `.lock` and `.old` files left over from previous self-updates.
+- **Launcher uninstall**, from `Stride.Launcher.exe /uninstall`, which the setup runs when the launcher is uninstalled (not on an upgrade). [Launcher.cs](../../sources/launcher/Stride.Launcher/Launcher.cs)'s `UninstallAsync`:
+  1. Calls `UninstallHelper.CloseProcessesInPathsAsync` for the processes started from the launcher directory: the user closes them (OK to try again) or cancels.
+  2. Deletes the `.lock` files and the `.old` files of the last self-update (locked ones are skipped).
+  3. Asks whether to also remove the installed Stride versions, with their size. **Keep** is the default: someone reinstalling the launcher wants them back. **Remove** uninstalls the versions and the Stride packages that only they use (`StridePackageReferences.FindRemovable`, the same walk of `Dependencies` as the cleanup after an uninstall in the UI). Local builds and what they use are never removed. The processes running from those packages (Game Studio) are checked first, through `NugetStore.UninstallGuard`.
   4. Cancels the app's `CancellationTokenSource` so the main loop exits.
+
+  With `/quiet` (the setup passes it in a silent uninstall, `msiexec /x … /qn`), or when the process has no desktop (`Environment.UserInteractive` is false: SYSTEM or session 0, e.g. Intune), nothing is shown, not even an app: only step 2 runs, and the versions are kept. A dialog there would be invisible, or would block the setup. Removing the versions in a script belongs to the CLI (`stride sdk uninstall <version>`).
 
 `UninstallHelper` also subscribes to `NugetStore.NugetPackageUninstalling` to close lingering processes before each package is removed — this is why it lives as a disposable member on `MainViewModel` (`uninstallHelper`).
 

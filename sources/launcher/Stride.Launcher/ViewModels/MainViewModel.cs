@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO.Pipes;
 using Stride.Core.Assets;
 using Stride.Core.CodeEditorSupport.VisualStudio;
@@ -374,30 +373,12 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
         Dispatcher.Invoke(() => IsSynchronizing = false);
     }
 
-    private class ReferencedPackageEqualityComparer : IEqualityComparer<NugetLocalPackage>
-    {
-        public static readonly ReferencedPackageEqualityComparer Instance = new();
-
-        private ReferencedPackageEqualityComparer() { }
-
-        public bool Equals(NugetLocalPackage x, NugetLocalPackage y)
-            => (ReferenceEquals(x, y)) || ((!ReferenceEquals(x, null)) && (!ReferenceEquals(y, null)) && (x.Id == y.Id) && (x.Version.ToString() == y.Version.ToString()));
-
-        public int GetHashCode([DisallowNull] NugetLocalPackage obj)
-            => (obj.Id.GetHashCode() ^ obj.Version.ToString().GetHashCode());
-    }
-
-    private HashSet<NugetLocalPackage> referencedPackages = new(ReferencedPackageEqualityComparer.Instance);
+    private HashSet<NugetLocalPackage> referencedPackages = new(StridePackageReferences.Comparer);
 
     private async Task RemoveUnusedPackages(IEnumerable<NugetLocalPackage> mainPackages, Action<int, int>? progress)
     {
         var previousReferencedPackages = referencedPackages;
-        referencedPackages = new(ReferencedPackageEqualityComparer.Instance);
-        var lookups = new Dictionary<string, NugetLocalPackage?>();
-        foreach (var mainPackage in mainPackages)
-        {
-            await FindReferencedPackages(mainPackage, lookups);
-        }
+        referencedPackages = StridePackageReferences.Find(store, mainPackages);
         var unusedPackages = previousReferencedPackages.Where(package => !referencedPackages.Contains(package)).ToList();
         if (unusedPackages.Count == 0)
             return;
@@ -411,29 +392,6 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
         {
             // Kept by the user (still in use): nothing was removed, they are checked again on the next pass.
             referencedPackages.UnionWith(unusedPackages);
-        }
-    }
-
-    // lookups: the packages found per dependency (id and version range). The installed versions share most of them,
-    // and each store lookup reads every installed version of the id.
-    private async Task FindReferencedPackages(NugetLocalPackage package, Dictionary<string, NugetLocalPackage?> lookups)
-    {
-        foreach (var dependency in package.Dependencies)
-        {
-            string prefix = dependency.Item1.Split('.', 2)[0];
-            if (prefix is not "Stride")
-            {
-                continue;
-            }
-            var key = $"{dependency.Item1}/{dependency.Item2}";
-            if (!lookups.TryGetValue(key, out var dependencyPackage))
-                lookups[key] = dependencyPackage = store.FindLocalPackage(dependency.Item1, dependency.Item2);
-            if (dependencyPackage is null || !referencedPackages.Add(dependencyPackage))
-            {
-                continue;
-            }
-
-            await FindReferencedPackages(dependencyPackage, lookups);
         }
     }
 

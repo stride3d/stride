@@ -300,6 +300,7 @@
     <ROW Action="SET_SHORTCUTDIR" Type="307" Source="SHORTCUTDIR" Target="[ProgramMenuFolder][ProductName]"/>
     <ROW Action="SET_TARGETDIR_TO_APPDIR" Type="51" Source="TARGETDIR" Target="[APPDIR]"/>
     <ROW Action="Stride.exe" Type="82" Source="Stride.exe" Target="/uninstall"/>
+    <ROW Action="Stride.exe_quiet" Type="82" Source="Stride.exe" Target="/uninstall /quiet"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiFeatCompsComponent">
     <ROW Feature_="Stride" Component_="AIShRegAnswer"/>
@@ -330,7 +331,8 @@
     <ROW Action="AI_DEL_EMPTY_SHORTCUTDIR" Condition="NOT (REMOVE=&quot;ALL&quot;)" Sequence="6402"/>
     <ROW Action="AI_DATA_SETTER_1" Condition="NOT (REMOVE=&quot;ALL&quot;)" Sequence="6401"/>
     <ROW Action="AI_AiRemoveFilesRollback" Sequence="3099"/>
-    <ROW Action="Stride.exe" Condition="( Installed AND ( REMOVE = &quot;ALL&quot; OR AI_INSTALL_MODE = &quot;Remove&quot; ) AND NOT UPGRADINGPRODUCTCODE )" Sequence="1201"/>
+    <ROW Action="Stride.exe" Condition="( Installed AND ( REMOVE = &quot;ALL&quot; OR AI_INSTALL_MODE = &quot;Remove&quot; ) AND NOT UPGRADINGPRODUCTCODE AND UILevel &lt;&gt; 2 )" Sequence="1201"/>
+    <ROW Action="Stride.exe_quiet" Condition="( Installed AND ( REMOVE = &quot;ALL&quot; OR AI_INSTALL_MODE = &quot;Remove&quot; ) AND NOT UPGRADINGPRODUCTCODE AND UILevel = 2 )" Sequence="1202"/>
     <ROW Action="AI_GetArpIconPath" Sequence="1401"/>
     <ROW Action="AI_RemoveExternalUIStub" Condition="(REMOVE=&quot;ALL&quot;) AND ((VersionNT &gt; 500) OR((VersionNT = 500) AND (ServicePackLevel &gt;= 4)))" Sequence="1501"/>
     <ROW Action="AI_EnableDebugLog" Sequence="51"/>

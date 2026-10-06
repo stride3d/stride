@@ -39,7 +39,8 @@ flowchart TD
 | Argument | Meaning |
 |---|---|
 | *(none)* | Default action — show the launcher window and manage versions |
-| `/Uninstall` | Clears all other actions and runs `UninstallAsync` |
+| `/Uninstall` | Clears all other actions and runs `UninstallAsync` (see [versions.md](versions.md#uninstall-flow)) |
+| `/Quiet` | With `/Uninstall`: no UI at all, the Stride versions are kept. Passed by the setup in a silent uninstall |
 | `/UpdateTargets` | Appended by `SelfUpdater.RestartApplication` after a self-update (currently not interpreted separately from the default Run) |
 | `/LauncherWindowHandle <hwnd>` | **Outgoing**, not incoming — the launcher passes this to Game Studio when `AutoCloseLauncher` is on, so Game Studio can signal back |
 

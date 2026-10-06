@@ -5,12 +5,14 @@ using System.Globalization;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input.Platform;
+using Stride.Core;
 using Stride.Core.Assets.Editor;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
 using Stride.Core.Packages;
 using Stride.Core.Presentation.Avalonia.Windows;
 using Stride.Core.Presentation.Services;
+using Stride.Core.Presentation.Windows;
 using Stride.Core.Windows;
 using Stride.Crash;
 using Stride.Crash.ViewModels;
@@ -54,7 +56,7 @@ internal static class Launcher
         // Uninstalling (run by the setup) doesn't take the single-instance lock, so that it can offer to close a running
         // launcher, and doesn't create the main window, whose view model would look for launcher updates
         if (args.Actions.Contains(LauncherArguments.ActionType.Uninstall))
-            return Uninstall();
+            return IsQuietUninstall(args.Quiet, Environment.UserInteractive) ? UninstallQuiet() : Uninstall();
 
         var result = LauncherErrorCode.UnknownError;
 
@@ -103,7 +105,7 @@ internal static class Launcher
         }
     }
 
-    private static LauncherArguments ProcessArguments(string[] args)
+    internal static LauncherArguments ProcessArguments(string[] args)
     {
         var result = new LauncherArguments
         {
@@ -120,6 +122,10 @@ internal static class Launcher
                 result.Actions.Clear();
                 result.Actions.Add(LauncherArguments.ActionType.Uninstall);
             }
+            else if (string.Equals(arg, "/Quiet", StringComparison.InvariantCultureIgnoreCase))
+            {
+                result.Quiet = true;
+            }
         }
 
         return result;
@@ -130,6 +136,20 @@ internal static class Launcher
         var mainWindow = ((IClassicDesktopStyleApplicationLifetime)Application.Current!.ApplicationLifetime!).MainWindow!;
         mainWindow.Closed += (_, _) => cts.Cancel();
         mainWindow.Show();
+        return LauncherErrorCode.Success;
+    }
+
+    /// <summary>
+    /// Whether the uninstall shows no UI. Also without <c>/quiet</c> when the process has no desktop (SYSTEM or
+    /// session 0, e.g. Intune): a dialog would be invisible there and block the setup.
+    /// </summary>
+    internal static bool IsQuietUninstall(bool quiet, bool userInteractive) => quiet || !userInteractive;
+
+    // Keeps the installed Stride versions: the processes running from them don't matter, and nothing is shown, not
+    // even a window. Only the launcher's own leftovers are deleted.
+    private static LauncherErrorCode UninstallQuiet()
+    {
+        DeleteLeftoverFiles(Program.GetExecutableDirectory());
         return LauncherErrorCode.Success;
     }
 
@@ -162,36 +182,43 @@ internal static class Launcher
 
     private static async Task<LauncherErrorCode> UninstallAsync()
     {
+        var path = Program.GetExecutableDirectory();
+        NugetStore store;
+        (List<PackageVersion> Versions, List<NugetLocalPackage> Packages, long Size)? removable;
         try
         {
             // Kill all running processes
-            var path = Program.GetExecutableDirectory();
             if (!await UninstallHelper.CloseProcessesInPathsAsync(DisplayMessageAsync, "Stride", [path]))
                 return LauncherErrorCode.UninstallCancelled; // User cancelled
 
-            // Uninstall packages (they might have uninstall actions)
-            var store = new NugetStore(path);
-            foreach (var package in store.MainPackageIds.SelectMany(packageId => store.GetLocalPackages(packageId)).FilterStrideMainPackages().ToList())
-            {
-                await store.UninstallPackage(package, null);
-            }
+            DeleteLeftoverFiles(path);
 
-            foreach (var remainingFiles in Directory.GetFiles(path, "*.lock").Concat(Directory.GetFiles(path, "*.old")))
-            {
-                try
-                {
-                    File.Delete(remainingFiles);
-                }
-                catch (Exception e)
-                {
-                    e.Ignore();
-                }
-            }
-
-            return LauncherErrorCode.Success;
+            store = new NugetStore(path);
+            removable = await Task.Run(() => FindRemovableVersions(store));
         }
         catch (Exception)
         {
+            return LauncherErrorCode.ErrorWhileUninstalling;
+        }
+
+        // The installed versions are kept unless the user asks: someone reinstalling the launcher wants them back
+        if (removable is not { } removal || !await AskRemoveVersionsAsync(removal.Versions, removal.Size))
+            return LauncherErrorCode.Success;
+
+        try
+        {
+            // Game Studio runs from the packages, not from the launcher folder. Packages run their uninstall actions.
+            store.UninstallGuard = packages => UninstallHelper.CloseProcessesInPathsAsync(DisplayMessageAsync, "the Stride versions", [.. packages.Select(x => x.InstallPath)]);
+            await store.UninstallPackages(removal.Packages, null);
+            return LauncherErrorCode.Success;
+        }
+        catch (OperationCanceledException)
+        {
+            return LauncherErrorCode.UninstallCancelled;
+        }
+        catch (Exception e)
+        {
+            await MessageBox.ShowAsync(ApplicationName, $"Some Stride versions could not be removed:{Environment.NewLine}{e.Message}", IDialogService.GetButtons(MessageBoxButton.OK), MessageBoxImage.Warning);
             return LauncherErrorCode.ErrorWhileUninstalling;
         }
 
@@ -199,6 +226,82 @@ internal static class Launcher
         {
             var result = await MessageBox.ShowAsync(ApplicationName, message, IDialogService.GetButtons(MessageBoxButton.OKCancel), MessageBoxImage.Information);
             return result == (int)MessageBoxResult.OK;
+        }
+    }
+
+    // The installed Stride versions that the uninstall offers to remove (local builds are never removed), the packages
+    // to remove with them, and their size on disk. Null when there are none.
+    private static (List<PackageVersion> Versions, List<NugetLocalPackage> Packages, long Size)? FindRemovableVersions(NugetStore store)
+    {
+        var mainPackages = store.GetPackagesInstalled(store.MainPackageIds).FilterStrideMainPackages().ToList();
+        var releases = mainPackages.Where(x => !store.IsDevRedirectPackage(x)).ToList();
+        if (releases.Count == 0)
+            return null;
+
+        var packages = StridePackageReferences.FindRemovable(store, releases, [.. mainPackages.Where(store.IsDevRedirectPackage)]);
+        return ([.. releases.Select(x => x.Version).Distinct().OrderDescending()], packages, packages.Sum(x => GetDirectorySize(x.Path)));
+
+        static long GetDirectorySize(string path)
+        {
+            try
+            {
+                return new DirectoryInfo(path).EnumerateFiles("*", SearchOption.AllDirectories).Sum(x => x.Length);
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                return 0;
+            }
+        }
+    }
+
+    private static async Task<bool> AskRemoveVersionsAsync(IReadOnlyList<PackageVersion> versions, long size)
+    {
+        const int Remove = 1;
+        const int Keep = 2;
+        var nl = Environment.NewLine;
+        var message = $"Also remove the installed Stride versions?{nl}{nl}{string.Join(", ", versions)} ({FormatSize(size)}){nl}{nl}Keep them if you plan to install Stride again.";
+        var buttons = new[]
+        {
+            new DialogButtonInfo
+            {
+                Content = "Remove",
+                Result = Remove,
+            },
+            new DialogButtonInfo
+            {
+                Content = "Keep",
+                IsDefault = true,
+                IsCancel = true,
+                Key = "Escape",
+                Result = Keep,
+            },
+        };
+        return await MessageBox.ShowAsync(ApplicationName, message, buttons, MessageBoxImage.Question) == Remove;
+    }
+
+    internal static string FormatSize(long bytes)
+        => bytes >= 1L << 30 ? $"{bytes / (double)(1L << 30):0.#} GB" : $"{Math.Max(1, bytes >> 20)} MB";
+
+    // The lock files and the files a self-update renamed to .old. Locked ones are skipped.
+    private static void DeleteLeftoverFiles(string path)
+    {
+        try
+        {
+            foreach (var file in Directory.GetFiles(path, "*.lock").Concat(Directory.GetFiles(path, "*.old")))
+            {
+                try
+                {
+                    File.Delete(file);
+                }
+                catch (Exception e)
+                {
+                    e.Ignore();
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            e.Ignore();
         }
     }
 
