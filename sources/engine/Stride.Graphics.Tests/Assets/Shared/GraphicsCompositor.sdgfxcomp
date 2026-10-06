@@ -61,7 +61,7 @@ RenderFeatures:
             11c8b8ccb522e3cd1dd6688016062a6d: !Stride.Rendering.SimpleGroupToRenderStageSelector,Stride.Engine
                 RenderStage: ref!! eab72911-5b68-41dd-bfa3-f0ab0e714b4a
                 EffectName: Test
-    93933ad00d0c357d4915ad462cbfd04c: !Stride.Rendering.UI.UIRenderFeature,Stride.UI
+    93933ad00d0c357d4915ad462cbfd04c*: !Stride.Rendering.UI.UIRenderFeature,Stride.UI
         RenderStageSelectors:
             14a071694411235038a102ac3794bb4d: !Stride.Rendering.SimpleGroupToRenderStageSelector,Stride.Engine
                 RenderStage: ref!! 31169f13-1e38-4c68-a1e4-1fd9c6d148c3

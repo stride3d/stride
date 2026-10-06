@@ -1,6 +1,6 @@
 !GraphicsCompositorAsset
 Id: fe026ff4-fdf9-48b9-87fb-65764cb9153f
-SerializedVersion: {Stride: 3.1.0.2}
+SerializedVersion: {Stride: 3.1.0.3}
 Tags: []
 Archetype: 823a81bf-bac0-4552-9267-aeed499c40df:/Stride.Engine/DefaultGraphicsCompositorLevel10
 Cameras:
@@ -104,7 +104,7 @@ RenderFeatures:
             11c8b8ccb522e3cd1dd6688016062a6d: !Stride.Rendering.SimpleGroupToRenderStageSelector,Stride.Rendering
                 RenderStage: ref!! b5a4db00-52ef-4eb5-afdf-36e0b7222a14
                 EffectName: Test
-    93933ad00d0c357d4915ad462cbfd04c: !Stride.Rendering.UI.UIRenderFeature,Stride.UI
+    93933ad00d0c357d4915ad462cbfd04c*: !Stride.Rendering.UI.UIRenderFeature,Stride.UI
         RenderStageSelectors:
             14a071694411235038a102ac3794bb4d: !Stride.Rendering.SimpleGroupToRenderStageSelector,Stride.Rendering
                 RenderStage: ref!! 2048e4a1-778d-44d7-91a3-10cceefc0034
