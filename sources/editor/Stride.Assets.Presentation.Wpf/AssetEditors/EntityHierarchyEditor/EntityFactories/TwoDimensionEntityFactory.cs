@@ -24,17 +24,6 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFa
         }
     }
 
-    [Display(20, "UI", "2D")]
-    public class UIEntityFactory : EntityFactory
-    {
-        public override Task<Entity> CreateEntity(EntityHierarchyItemViewModel parent)
-        {
-            var name = ComputeNewName(parent, "UI");
-            var component = new UIComponent();
-            return CreateEntityWithComponent(name, component);
-        }
-    }
-
     [Display(30, "Background", "2D")]
     public class BackgroundEntityFactory : EntityFactory
     {

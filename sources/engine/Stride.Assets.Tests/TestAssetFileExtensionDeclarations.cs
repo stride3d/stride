@@ -30,6 +30,7 @@ namespace Stride.Assets.Tests
                 typeof(Video.Assets.VideoAsset).Assembly,
                 typeof(Physics.Assets.ColliderShapeAsset).Assembly,
                 typeof(Audio.Assets.SoundAsset).Assembly,
+                typeof(UI.Assets.UIPageAsset).Assembly,
             };
 
             var expected = new SortedSet<string>(StringComparer.Ordinal);

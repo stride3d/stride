@@ -137,17 +137,4 @@ namespace Stride.Assets
         {
         }
     }
-
-    namespace UI
-    {
-        [Display((int)AssetDisplayPriority.UI, "UI page")]
-        partial class UIPageAsset
-        {
-        }
-
-        [Display((int)AssetDisplayPriority.UI + 50, "UI library")]
-        partial class UILibraryAsset
-        {
-        }
-    }
 }

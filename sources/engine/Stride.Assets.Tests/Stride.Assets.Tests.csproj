@@ -16,6 +16,7 @@
     <ProjectReference Include="..\Stride.Physics.Assets\Stride.Physics.Assets.csproj" />
     <ProjectReference Include="..\Stride.SpriteStudio.Assets\Stride.SpriteStudio.Assets.csproj" />
     <ProjectReference Include="..\Stride.Audio.Assets\Stride.Audio.Assets.csproj" />
+    <ProjectReference Include="..\Stride.UI.Assets\Stride.UI.Assets.csproj" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
     <!-- The project upgrade tests load project files: MSBuild itself comes from the locator -->
     <PackageReference Include="Microsoft.Build" ExcludeAssets="runtime" PrivateAssets="all" />

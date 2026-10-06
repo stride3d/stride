@@ -24,7 +24,6 @@ using Stride.Rendering;
 using Stride.Rendering.Compositing;
 using Stride.Rendering.Fonts;
 using Stride.Shaders.Compiler;
-using Stride.UI;
 
 namespace Stride.Editor.Thumbnails
 {
@@ -124,8 +123,6 @@ namespace Stride.Editor.Thumbnails
 
             gameSystems = new GameSystemCollection(Services) { fontSystem };
             Services.AddService<IGameSystemCollection>(gameSystems);
-
-            Services.GetOrCreate<UISystem>();
 
             // initialize base services
             gameSystems.Initialize();

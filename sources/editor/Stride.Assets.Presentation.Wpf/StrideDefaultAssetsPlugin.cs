@@ -70,7 +70,6 @@ namespace Stride.Assets.Presentation
         private static ResourceDictionary materialPropertyTemplateDictionary;
         private static ResourceDictionary skeletonTemplateDictionary;
         private static ResourceDictionary spriteFontTemplateDictionary;
-        private static ResourceDictionary uiTemplateDictionary;
         private static ResourceDictionary graphicsCompositorTemplateDictionary;
         private static ResourceDictionary visualScriptingTemplateDictionary;
         private static ResourceDictionary visualScriptingGraphTemplatesDictionary;
@@ -117,7 +116,6 @@ namespace Stride.Assets.Presentation
             materialPropertyTemplateDictionary = (ResourceDictionary)Application.LoadComponent(new Uri("/Stride.Assets.Presentation.Wpf;component/View/MaterialPropertyTemplates.xaml", UriKind.RelativeOrAbsolute));
             skeletonTemplateDictionary = (ResourceDictionary)Application.LoadComponent(new Uri("/Stride.Assets.Presentation.Wpf;component/View/SkeletonPropertyTemplates.xaml", UriKind.RelativeOrAbsolute));
             spriteFontTemplateDictionary = (ResourceDictionary)Application.LoadComponent(new Uri("/Stride.Assets.Presentation.Wpf;component/View/SpriteFontPropertyTemplates.xaml", UriKind.RelativeOrAbsolute));
-            uiTemplateDictionary = (ResourceDictionary)Application.LoadComponent(new Uri("/Stride.Assets.Presentation.Wpf;component/View/UIPropertyTemplates.xaml", UriKind.RelativeOrAbsolute));
             graphicsCompositorTemplateDictionary = (ResourceDictionary)Application.LoadComponent(new Uri("/Stride.Assets.Presentation.Wpf;component/View/GraphicsCompositorTemplates.xaml", UriKind.RelativeOrAbsolute));
             visualScriptingTemplateDictionary = (ResourceDictionary)Application.LoadComponent(new Uri("/Stride.Assets.Presentation.Wpf;component/View/VisualScriptingTemplates.xaml", UriKind.RelativeOrAbsolute));
             visualScriptingGraphTemplatesDictionary = (ResourceDictionary)Application.LoadComponent(new Uri("/Stride.Assets.Presentation.Wpf;component/AssetEditors/VisualScriptEditor/Views/GraphTemplates.xaml", UriKind.RelativeOrAbsolute));
@@ -167,7 +165,6 @@ namespace Stride.Assets.Presentation
             RegisterResourceDictionary(materialPropertyTemplateDictionary);
             RegisterResourceDictionary(skeletonTemplateDictionary);
             RegisterResourceDictionary(spriteFontTemplateDictionary);
-            RegisterResourceDictionary(uiTemplateDictionary);
             RegisterResourceDictionary(graphicsCompositorTemplateDictionary);
             RegisterResourceDictionary(visualScriptingTemplateDictionary);
             RegisterResourceDictionary(visualScriptingGraphTemplatesDictionary);
@@ -204,7 +201,6 @@ namespace Stride.Assets.Presentation
             session.AssetViewProperties.RegisterNodePresenterUpdater(new SkeletonAssetNodeUpdater());
             session.AssetViewProperties.RegisterNodePresenterUpdater(new SpriteFontAssetNodeUpdater());
             session.AssetViewProperties.RegisterNodePresenterUpdater(new SpriteSheetAssetNodeUpdater());
-            session.AssetViewProperties.RegisterNodePresenterUpdater(new UIAssetNodeUpdater());
             session.AssetViewProperties.RegisterNodePresenterUpdater(new TextureAssetNodeUpdater());
             session.AssetViewProperties.RegisterNodePresenterUpdater(new UnloadableObjectPropertyNodeUpdater());
             session.AssetViewProperties.RegisterNodePresenterUpdater(new VisualScriptNodeUpdater());
@@ -217,7 +213,6 @@ namespace Stride.Assets.Presentation
 
             // Extra packages to display in "add reference" dialog
             session.SuggestedPackages.Add(new PackageName(typeof(Stride.Engine.EntityComponent).Assembly.GetName().Name, new PackageVersion(StrideVersion.NuGetVersion)));
-            session.SuggestedPackages.Add(new PackageName(typeof(Stride.UI.UIElement).Assembly.GetName().Name, new PackageVersion(StrideVersion.NuGetVersion)));
             // Plugins are not referenced by the editor, so their ids are strings
             session.SuggestedPackages.Add(new PackageName("Stride.Audio", new PackageVersion(StrideVersion.NuGetVersion)));
             session.SuggestedPackages.Add(new PackageName("Stride.Particles", new PackageVersion(StrideVersion.NuGetVersion)));
@@ -227,6 +222,7 @@ namespace Stride.Assets.Presentation
             session.SuggestedPackages.Add(new PackageName("Stride.Video", new PackageVersion(StrideVersion.NuGetVersion)));
             session.SuggestedPackages.Add(new PackageName("Stride.Voxels", new PackageVersion(StrideVersion.NuGetVersion)));
             session.SuggestedPackages.Add(new PackageName("Stride.SpriteStudio.Runtime", new PackageVersion(StrideVersion.NuGetVersion)));
+            session.SuggestedPackages.Add(new PackageName("Stride.UI", new PackageVersion(StrideVersion.NuGetVersion)));
         }
 
         /// <inheritdoc />
@@ -247,7 +243,6 @@ namespace Stride.Assets.Presentation
         {
             pasteProcessors.Add(new EntityComponentPasteProcessor());
             pasteProcessors.Add(new EntityHierarchyPasteProcessor());
-            pasteProcessors.Add(new UIHierarchyPasteProcessor());
         }
 
         /// <inheritdoc />

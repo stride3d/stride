@@ -18,7 +18,6 @@ using Stride.Engine;
 using Stride.Rendering.Compositing;
 using Stride.Rendering;
 using Stride.Rendering.Sprites;
-using Stride.Rendering.UI;
 
 namespace Stride.Assets.Presentation.Preview
 {

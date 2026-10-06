@@ -23,7 +23,6 @@ using Stride.Games;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
 using Stride.Rendering.Lights;
-using Stride.Rendering.UI;
 using Stride.Shaders.Compiler;
 using StrideEffects;
 
@@ -254,21 +253,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             // TODO: Maybe define this scene default graphics compositor as an asset?
             var defaultGraphicsCompositor = GraphicsCompositorHelper.CreateDefault(true, EditorGraphicsCompositorHelper.EditorForwardShadingEffect);
 
-            // Add UI (engine doesn't depend on it)
-            defaultGraphicsCompositor.RenderFeatures.Add(new UIRenderFeature
-            {
-                RenderStageSelectors =
-                {
-                    new SimpleGroupToRenderStageSelector
-                    {
-                        RenderStage = defaultGraphicsCompositor.RenderStages.First(x => x.Name == "Transparent"),
-                        EffectName = "Test",
-                        RenderGroup = GizmoBase.DefaultGroupMask
-                    }
-                }
-            });
-
-            // The render features the loaded packages bring (IRenderFeatureProvider), as in previews and thumbnails
+            // The render features the loaded packages bring (IRenderFeatureProvider, e.g. UI), as in previews and thumbnails
             var opaqueStage = defaultGraphicsCompositor.RenderStages.First(x => x.Name == "Opaque");
             var transparentStage = defaultGraphicsCompositor.RenderStages.First(x => x.Name == "Transparent");
             RenderFeatureProviders.AddPackageRenderFeatures(defaultGraphicsCompositor, opaqueStage, transparentStage);

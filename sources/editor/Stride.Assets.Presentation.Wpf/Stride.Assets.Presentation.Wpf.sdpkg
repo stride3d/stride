@@ -54,5 +54,3 @@ TemplateFolders:
         - !file Templates/Assets/Textures/NormalMapTexture.sdtpl
         - !file Templates/Assets/Textures/GrayscaleTexture.sdtpl
         - !file Templates/Assets/Textures/DefaultRenderTexture.sdtpl
-        - !file Templates/Assets/UI/Library.sdtpl
-        - !file Templates/Assets/UI/Page.sdtpl
