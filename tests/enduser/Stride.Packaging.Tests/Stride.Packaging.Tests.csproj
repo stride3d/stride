@@ -102,6 +102,26 @@
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\sources\engine\Stride.UI\Stride.UI.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <Private>false</Private>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\sources\engine\Stride.UI.Assets\Stride.UI.Assets.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <Private>false</Private>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\sources\engine\Stride.UI.Editor\Stride.UI.Editor.csproj" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <Private>false</Private>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\sources\engine\Stride.UI.Editor.Wpf\Stride.UI.Editor.Wpf.csproj" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <Private>false</Private>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
     <!-- A runtime package and its Assets companion: the companion declaration is not a reference, so both are listed -->
     <ProjectReference Include="..\..\..\sources\engine\Stride.BepuPhysics\Stride.BepuPhysics\Stride.BepuPhysics.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>

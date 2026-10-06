@@ -398,6 +398,45 @@ public class CompanionPackageTests
     }
 
     [Fact]
+    public void UIPageCompilesThroughTheUIAssetsPackageAndOnlyTheEditorLoadsItsEditorPackage()
+    {
+        // Stride.UI declares Stride.UI.Assets (page and library assets, compilers,
+        // templates, the system library) and Stride.UI.Editor (the UI editors), whose views are in Stride.UI.Editor.Wpf
+        using var c = new Case(output, "assets-ui");
+        c.PackPlugin();
+
+        // The consumer game references Stride.UI and holds a UI page, typed from Stride.UI's
+        // [assembly: AssetFileExtension(".sduipage", ...)]
+        c.AddTypedConstantCheck("Page", "Stride.Engine.UIPage");
+        var result = c.BuildConsumer();
+        Assert.True(result.ExitCode == 0, $"Consumer build should succeed (exit {result.ExitCode}).");
+        c.AssertContentCompiled("/Consumer/Page");
+        // The page's button images name the UI design sheet by its id and an old URL: the id finds it in Stride.UI.Assets
+        c.AssertContentCompiled("/Stride.UI.Assets/StrideUIDesigns");
+
+        var compilerSession = c.LoadConsumerProjectSession();
+        var assets = Assert.Single(compilerSession.Packages, p => p.Meta.Name == "Stride.UI.Assets");
+        // The UI editor's system library ships in it (this session loads no assembly, so read the asset folder itself)
+        Assert.Contains(assets.AssetFolders, f => File.Exists(Path.Combine(f.Path.ToOSPath(), "StrideUILibrary.sduilib")));
+        Assert.DoesNotContain(compilerSession.Packages, p => p.Meta.Name == "Stride.UI.Editor");
+        Assert.Contains(TemplateManager.FindTemplates(TemplateScope.Asset, compilerSession), t => t.Name == "UI page");
+
+        // Stride.UI.Editor targets Windows only, as Game Studio does
+        if (!OperatingSystem.IsWindows())
+            return;
+        var editorSession = c.LoadConsumerProjectSession(loadEditorPackages: true);
+        var editorPackage = Assert.Single(editorSession.Packages, p => p.Meta.Name == "Stride.UI.Editor");
+        AssertDeclaredEditorPackage(editorSession, "Stride.UI", editorPackage);
+        var viewDeclaration = Assert.Single(editorPackage.CompanionPackages);
+        Assert.Equal("Stride.UI.Editor.Wpf", viewDeclaration.Name);
+        Assert.Equal("Wpf", viewDeclaration.Toolkit);
+        Assert.DoesNotContain(editorSession.Packages, p => p.Meta.Name == "Stride.UI.Editor.Wpf");
+
+        var wpfSession = c.LoadConsumerProjectSession(loadEditorPackages: true, editorToolkit: "Wpf");
+        Assert.Contains(wpfSession.Packages, p => p.Meta.Name == "Stride.UI.Editor.Wpf");
+    }
+
+    [Fact]
     public void VoxelsHasAnEditorPackageOnlyAndShipsItsTemplate()
     {
         // Stride.Voxels ships no asset type, so it declares Stride.Voxels.Editor alone (gizmo, entity factories);
