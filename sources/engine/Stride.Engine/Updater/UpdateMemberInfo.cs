@@ -7,7 +7,13 @@ namespace Stride.Updater
     /// </summary>
     public struct UpdateMemberInfo
     {
+        /// <summary>
+        /// The member path to update.
+        /// </summary>
         public string Name;
+        /// <summary>
+        /// The offset of this member source as it will be given to <see cref="UpdateEngine.Run"/> (either byte offset if blittable, otherwise object index).
+        /// </summary>
         public int DataOffset;
 
         /// <summary>
