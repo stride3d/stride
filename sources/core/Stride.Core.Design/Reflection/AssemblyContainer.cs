@@ -507,6 +507,19 @@ public class AssemblyContainer
             return container.LoadAssemblyByName(assemblyName, searchDirectory ?? string.Empty);
         }
 
+        // Asked from outside any container (e.g. WPF binding a BAML type's generic arguments): use a container's copy
+        return FindContainerAssembly(new AssemblyName(args.Name));
+    }
+
+    private static Assembly? FindContainerAssembly(AssemblyName assemblyName)
+    {
+        foreach (var (assembly, _) in assemblyToContainers)
+        {
+            var name = assembly.GetName();
+            if (string.Equals(name.Name, assemblyName.Name, StringComparison.OrdinalIgnoreCase)
+                && (assemblyName.Version is null || name.Version >= assemblyName.Version))
+                return assembly;
+        }
         return null;
     }
 
