@@ -2,12 +2,47 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core.Presentation.Quantum.Tests.Helpers;
+using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Core.Quantum;
 
 namespace Stride.Core.Presentation.Quantum.Tests;
 
 public class TestNodePresenterUpdates
 {
+    [Fact]
+    public void TestVirtualDictionaryRowSurvivesAddUpdateRemove()
+    {
+        var instance = new DictionaryOwner();
+        var context = BuildContext(instance);
+        var root = context.Factory.CreateNodeHierarchy(context.RootNode, new GraphNodePath(context.RootNode));
+        var items = context.RootNode[nameof(DictionaryOwner.Items)].Target!;
+        var index = new NodeIndex("Key");
+        using var row = new VirtualNodePresenter((INodePresenterFactoryInternal)context.Factory,
+            context.PropertyProvider, root, "Key", typeof(float), 0,
+            () => instance.Items.TryGetValue("Key", out var value) ? value : 0f, _ => { });
+        row.ChangeParent(root);
+        row.RegisterAssociatedNode(new NodeAccessor(items, index));
+        var changing = 0;
+        var values = new List<float>();
+        row.ValueChanging += (_, _) => changing++;
+        row.ValueChanged += (_, _) => values.Add((float)row.Value);
+
+        items.Add(0.5f, index);
+        items.Add(0.7f, new NodeIndex("Other"));
+        items.Update(-0.25f, index);
+        items.Remove(-0.25f, index);
+        items.Add(0.5f, index);
+
+        Assert.Equal(4, changing);
+        Assert.Equal(new[] { 0.5f, -0.25f, 0f, 0.5f }, values);
+        Assert.Contains(row, root.Children);
+    }
+
+    private sealed class DictionaryOwner
+    {
+        public Dictionary<string, float> Items { get; } = new();
+    }
+
     [Fact]
     public void TestPrimitiveMemberUpdate()
     {
