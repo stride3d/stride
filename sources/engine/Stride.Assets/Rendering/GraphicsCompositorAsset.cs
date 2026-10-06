@@ -37,9 +37,10 @@ namespace Stride.Assets.Rendering
     [AssetFormatVersion(StrideConfig.LogicalPackageName, CurrentVersion, "2.1.0.2")]
     [AssetUpgrader(StrideConfig.LogicalPackageName, "2.1.0.2", "3.1.0.1", typeof(RenderingSplitUpgrader))]
     [AssetUpgrader(StrideConfig.LogicalPackageName, "3.1.0.1", "3.1.0.2", typeof(ParticleFeatureOwnershipUpgrader))]
+    [AssetUpgrader(StrideConfig.LogicalPackageName, "3.1.0.2", "3.1.0.3", typeof(UIFeatureOwnershipUpgrader))]
     public partial class GraphicsCompositorAsset : Asset
     {
-        private const string CurrentVersion = "3.1.0.2";
+        private const string CurrentVersion = "3.1.0.3";
 
         /// <summary>
         /// The default file extension used by the <see cref="GraphicsCompositorAsset"/>.
@@ -148,12 +149,27 @@ namespace Stride.Assets.Rendering
             }
         }
 
-        // In a compositor derived from an engine compositor, the particle render feature becomes an owned item, so
-        // reconciling with the base keeps it; in a project without Stride.Particles, the item is removed.
-        private class ParticleFeatureOwnershipUpgrader : AssetUpgraderBase
+        private sealed class ParticleFeatureOwnershipUpgrader : PluginFeatureOwnershipUpgrader
         {
-            private const string ParticlesPackage = "Stride.Particles";
-            private const string ParticleFeatureTag = "!Stride.Particles.Rendering.ParticleEmitterRenderFeature,Stride.Particles";
+            protected override string PluginPackage => "Stride.Particles";
+
+            protected override string FeatureTag => "!Stride.Particles.Rendering.ParticleEmitterRenderFeature,Stride.Particles";
+        }
+
+        private sealed class UIFeatureOwnershipUpgrader : PluginFeatureOwnershipUpgrader
+        {
+            protected override string PluginPackage => "Stride.UI";
+
+            protected override string FeatureTag => "!Stride.Rendering.UI.UIRenderFeature,Stride.UI";
+        }
+
+        // In a compositor derived from an engine compositor, the plugin's render feature becomes an owned item, so reconciling
+        // with the base keeps it; in a project without the plugin, the item is removed.
+        private abstract class PluginFeatureOwnershipUpgrader : AssetUpgraderBase
+        {
+            protected abstract string PluginPackage { get; }
+
+            protected abstract string FeatureTag { get; }
 
             // DefaultGraphicsCompositorLevel10 and DefaultGraphicsCompositorLevel9 of Stride.Engine,
             // DefaultGraphicsCompositorVoxels of Stride.Voxels
@@ -181,31 +197,31 @@ namespace Stride.Assets.Rendering
                 // surely does when its restore had no errors and it does not declare the plugin either: only then is
                 // the item removed; otherwise it is kept, with a warning
                 var container = context.Package?.Container;
-                var withoutParticles = container is not null and not StandalonePackage { IsDependencyPackage: true }
+                var withoutPlugin = container is not null and not StandalonePackage { IsDependencyPackage: true }
                     && DependsOn(container, "Stride.Engine")
-                    && !string.Equals(container.Package.Meta.Name, ParticlesPackage, StringComparison.OrdinalIgnoreCase)
-                    && !DependsOn(container, ParticlesPackage);
-                var surelyWithoutParticles = withoutParticles
+                    && !string.Equals(container.Package.Meta.Name, PluginPackage, StringComparison.OrdinalIgnoreCase)
+                    && !DependsOn(container, PluginPackage);
+                var surelyWithoutPlugin = withoutPlugin
                     && container is not SolutionProject { HasRestoreErrors: true }
-                    && !container!.DirectDependencies.Any(x => string.Equals(x.Name, ParticlesPackage, StringComparison.OrdinalIgnoreCase));
+                    && !container!.DirectDependencies.Any(x => string.Equals(x.Name, PluginPackage, StringComparison.OrdinalIgnoreCase));
 
                 var items = renderFeatures.Node.Children;
                 foreach (var item in items.ToList())
                 {
-                    if (item.Value.Tag != ParticleFeatureTag || item.Key is not YamlScalarNode { Value: { } key })
+                    if (item.Value.Tag != FeatureTag || item.Key is not YamlScalarNode { Value: { } key })
                         continue;
                     // Already owned
                     if (key.EndsWith(OverrideType.New.ToText(), StringComparison.Ordinal) || key.EndsWith((OverrideType.New | OverrideType.Sealed).ToText(), StringComparison.Ordinal))
                         continue;
 
-                    if (surelyWithoutParticles)
+                    if (surelyWithoutPlugin)
                     {
                         items.RemoveAt(items.IndexOf(item.Key));
-                        context.Log.Warning($"The particle render feature is removed from this compositor: the project does not reference {ParticlesPackage}.");
+                        context.Log.Warning($"The render feature of {PluginPackage} is removed from this compositor: the project does not reference {PluginPackage}.");
                         continue;
                     }
-                    if (withoutParticles)
-                        context.Log.Warning($"The particle render feature is kept in this compositor, though {ParticlesPackage} is not among the project's resolved dependencies (its restore had errors, or it declares the package): restore the project, or remove the feature if the project does not use particles.");
+                    if (withoutPlugin)
+                        context.Log.Warning($"The render feature of {PluginPackage} is kept in this compositor, though {PluginPackage} is not among the project's resolved dependencies (its restore had errors, or it declares the package): restore the project, or remove the feature if the project does not use {PluginPackage}.");
 
                     // A sealed item is owned and stays sealed
                     var sealedText = OverrideType.Sealed.ToText();

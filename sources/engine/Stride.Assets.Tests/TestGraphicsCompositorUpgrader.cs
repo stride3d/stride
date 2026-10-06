@@ -12,14 +12,34 @@ using Stride.Core.Diagnostics;
 namespace Stride.Assets.Tests
 {
     /// <summary>
-    /// Tests the 3.1.0.2 upgrade of the particle render feature in derived compositors.
+    /// Tests the 3.1.0.2 (particle) and 3.1.0.3 (UI) upgrades of the plugin render features in derived compositors.
     /// </summary>
     public class TestGraphicsCompositorUpgrader
     {
         private const string ParticleFeature = "9013eab3ea0ef6c98bf133b86c173d45";
+        private const string UIFeature = "93933ad00d0c357d4915ad462cbfd04c";
         private const string MeshFeature = "5eeae53de8f0e5f60ea7d76afd46b39f";
         private const string Level10 = "823a81bf-bac0-4552-9267-aeed499c40df:DefaultGraphicsCompositorLevel10";
         private const string Level9 = "9af53371-51ba-49fc-b420-ee7874892e75:/Stride.Engine/DefaultGraphicsCompositorLevel9";
+
+        [Fact]
+        public void DerivedCompositorOwnsItsUIFeature()
+        {
+            var upgraded = Upgrade(Compositor(Level10, particleKey: ParticleFeature + "*", version: "3.1.0.2"));
+
+            AssertContains($"{UIFeature}*: !Stride.Rendering.UI.UIRenderFeature,Stride.UI", upgraded);
+            AssertContains($"{MeshFeature}: !Stride.Rendering.MeshRenderFeature,Stride.Rendering", upgraded);
+            AssertContains("SerializedVersion: {Stride: 3.1.0.3}", upgraded);
+        }
+
+        [Fact]
+        public void OlderDerivedCompositorOwnsBothPluginFeatures()
+        {
+            var upgraded = Upgrade(Compositor(Level10, particleKey: ParticleFeature));
+
+            AssertContains($"{ParticleFeature}*: !Stride.Particles", upgraded);
+            AssertContains($"{UIFeature}*: !Stride.Rendering.UI", upgraded);
+        }
 
         [Theory]
         [InlineData(Level10)]
@@ -31,7 +51,7 @@ namespace Stride.Assets.Tests
 
             AssertContains($"{ParticleFeature}*: !Stride.Particles.Rendering.ParticleEmitterRenderFeature,Stride.Particles", upgraded);
             AssertContains($"{MeshFeature}: !Stride.Rendering.MeshRenderFeature,Stride.Rendering", upgraded);
-            AssertContains("SerializedVersion: {Stride: 3.1.0.2}", upgraded);
+            AssertContains("SerializedVersion: {Stride: 3.1.0.3}", upgraded);
         }
 
         [Fact]
@@ -57,24 +77,61 @@ namespace Stride.Assets.Tests
             var upgraded = Upgrade(Compositor(archetype: null, particleKey: ParticleFeature));
 
             AssertContains($"{ParticleFeature}: !Stride.Particles", upgraded);
-            AssertContains("SerializedVersion: {Stride: 3.1.0.2}", upgraded);
+            AssertContains("SerializedVersion: {Stride: 3.1.0.3}", upgraded);
         }
 
         [Fact]
-        public void ProjectWithParticlesOwnsTheFeature()
+        public void ProjectWithThePluginsOwnsTheirFeatures()
         {
-            var upgraded = Upgrade(Compositor(Level10, particleKey: ParticleFeature), dependencies: ["Stride.Engine", "Stride.Particles"]);
+            var upgraded = Upgrade(Compositor(Level10, particleKey: ParticleFeature), dependencies: ["Stride.Engine", "Stride.Particles", "Stride.UI"]);
+
+            AssertContains($"{ParticleFeature}*: !Stride.Particles", upgraded);
+            AssertContains($"{UIFeature}*: !Stride.Rendering.UI", upgraded);
+        }
+
+        [Fact]
+        public void ProjectWithoutAPluginDropsItsFeature()
+        {
+            var logger = new LoggerResult();
+            var upgraded = Upgrade(Compositor(Level10, particleKey: ParticleFeature), dependencies: ["Stride.Engine", "Stride.UI"], logger: logger);
+
+            AssertDoesNotContain("ParticleEmitterRenderFeature", upgraded);
+            AssertContains($"{UIFeature}*: !Stride.Rendering.UI", upgraded);
+            AssertContains($"{MeshFeature}: !Stride.Rendering.MeshRenderFeature,Stride.Rendering", upgraded);
+            AssertContains("SerializedVersion: {Stride: 3.1.0.3}", upgraded);
+            // Never silently
+            Assert.Contains(logger.Messages, m => m.Type == LogMessageType.Warning && m.Text.Contains("removed", StringComparison.Ordinal));
+        }
+
+        [Fact]
+        public void ProjectWithRestoreErrorsKeepsTheFeatures()
+        {
+            // The plugins may be what failed to restore: their features are kept, with a warning
+            var logger = new LoggerResult();
+            var upgraded = Upgrade(Compositor(Level10, particleKey: ParticleFeature), dependencies: ["Stride.Engine"], restoreErrors: true, logger: logger);
+
+            AssertContains($"{ParticleFeature}*: !Stride.Particles", upgraded);
+            AssertContains($"{UIFeature}*: !Stride.Rendering.UI", upgraded);
+            Assert.Contains(logger.Messages, m => m.Type == LogMessageType.Warning && m.Text.Contains("kept", StringComparison.Ordinal));
+        }
+
+        [Fact]
+        public void ProjectDeclaringAPluginKeepsItsFeature()
+        {
+            // Declared but not resolved: the feature is kept
+            var upgraded = Upgrade(Compositor(Level10, particleKey: ParticleFeature), dependencies: ["Stride.Engine", "Stride.UI"], declared: ["Stride.Particles"]);
 
             AssertContains($"{ParticleFeature}*: !Stride.Particles", upgraded);
         }
 
         [Fact]
-        public void ProjectWithUnresolvedDependenciesKeepsTheFeature()
+        public void ProjectWithUnresolvedDependenciesKeepsTheFeatures()
         {
             // A failed restore leaves the dependencies empty
             var upgraded = Upgrade(Compositor(Level10, particleKey: ParticleFeature), dependencies: []);
 
             AssertContains($"{ParticleFeature}*: !Stride.Particles", upgraded);
+            AssertContains($"{UIFeature}*: !Stride.Rendering.UI", upgraded);
         }
 
         [Fact]
@@ -103,35 +160,11 @@ namespace Stride.Assets.Tests
         }
 
         [Fact]
-        public void ProjectWithoutParticlesDropsTheFeature()
+        public void ProjectWithoutUIDropsTheUIFeature()
         {
-            var logger = new LoggerResult();
-            var upgraded = Upgrade(Compositor(Level10, particleKey: ParticleFeature), dependencies: ["Stride.Engine"], logger: logger);
+            var upgraded = Upgrade(Compositor(Level10, particleKey: ParticleFeature), dependencies: ["Stride.Engine", "Stride.Particles"]);
 
-            AssertDoesNotContain("ParticleEmitterRenderFeature", upgraded);
-            AssertContains($"{MeshFeature}: !Stride.Rendering.MeshRenderFeature,Stride.Rendering", upgraded);
-            AssertContains("SerializedVersion: {Stride: 3.1.0.2}", upgraded);
-            // Never silently
-            Assert.Contains(logger.Messages, m => m.Type == LogMessageType.Warning && m.Text.Contains("removed", StringComparison.Ordinal));
-        }
-
-        [Fact]
-        public void ProjectWithRestoreErrorsKeepsTheFeature()
-        {
-            // Stride.Particles may be what failed to restore: the feature is kept, with a warning
-            var logger = new LoggerResult();
-            var upgraded = Upgrade(Compositor(Level10, particleKey: ParticleFeature), dependencies: ["Stride.Engine"], restoreErrors: true, logger: logger);
-
-            AssertContains($"{ParticleFeature}*: !Stride.Particles", upgraded);
-            Assert.Contains(logger.Messages, m => m.Type == LogMessageType.Warning && m.Text.Contains("kept", StringComparison.Ordinal));
-        }
-
-        [Fact]
-        public void ProjectDeclaringParticlesKeepsTheFeature()
-        {
-            // Declared but not resolved: the feature is kept
-            var upgraded = Upgrade(Compositor(Level10, particleKey: ParticleFeature), dependencies: ["Stride.Engine"], declared: ["Stride.Particles"]);
-
+            AssertDoesNotContain("UIRenderFeature", upgraded);
             AssertContains($"{ParticleFeature}*: !Stride.Particles", upgraded);
         }
 
@@ -142,7 +175,7 @@ namespace Stride.Assets.Tests
             var upgraded = Upgrade(Compositor("c73fddfe-01b7-4fe0-ab60-51f001463388:GraphicsCompositor", particleKey: ParticleFeature));
 
             AssertContains($"{ParticleFeature}: !Stride.Particles", upgraded);
-            AssertContains("SerializedVersion: {Stride: 3.1.0.2}", upgraded);
+            AssertContains("SerializedVersion: {Stride: 3.1.0.3}", upgraded);
         }
 
         private static void AssertContains(string expected, string text)
@@ -151,12 +184,12 @@ namespace Stride.Assets.Tests
         private static void AssertDoesNotContain(string unexpected, string text)
             => Assert.False(text.Contains(unexpected, StringComparison.Ordinal), $"Did not expect to find:{Environment.NewLine}{unexpected}{Environment.NewLine}in:{Environment.NewLine}{text}");
 
-        private static string Compositor(string archetype, string particleKey)
+        private static string Compositor(string archetype, string particleKey, string version = "3.1.0.1")
         {
             var builder = new StringBuilder();
             builder.AppendLine("!GraphicsCompositorAsset");
             builder.AppendLine("Id: b346de3e-0e4b-4ee8-ab7a-5d75b37fe309");
-            builder.AppendLine("SerializedVersion: {Stride: 3.1.0.1}");
+            builder.AppendLine($"SerializedVersion: {{Stride: {version}}}");
             builder.AppendLine("Tags: []");
             if (archetype is not null)
                 builder.AppendLine($"Archetype: {archetype}");
@@ -164,6 +197,8 @@ namespace Stride.Assets.Tests
             builder.AppendLine($"    {MeshFeature}: !Stride.Rendering.MeshRenderFeature,Stride.Rendering");
             builder.AppendLine("        RenderStageSelectors: {}");
             builder.AppendLine($"    {particleKey}: !Stride.Particles.Rendering.ParticleEmitterRenderFeature,Stride.Particles");
+            builder.AppendLine("        RenderStageSelectors: {}");
+            builder.AppendLine($"    {UIFeature}: !Stride.Rendering.UI.UIRenderFeature,Stride.UI");
             builder.AppendLine("        RenderStageSelectors: {}");
             return builder.ToString();
         }
