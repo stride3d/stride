@@ -1544,18 +1544,27 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 return;
 
             var packagePicker = Dialogs.CreatePackagePickerDialog(this);
-            // Filter out the selected package, packages that are dependent on the selected package
-            // and packages that are already referenced.
+            // Hide packages already referenced (even indirectly), companions, executables, and the selected package and its dependents
+            var container = selectedPackage.Package.Container;
+            var referencedNames = new HashSet<string>(container.DirectDependencies.Select(d => d.Name).Concat(container.FlattenedDependencies.Select(d => d.Name)), StringComparer.OrdinalIgnoreCase);
+            var companionNames = new HashSet<string>(AllPackages.SelectMany(p => p.Package.CompanionPackages).Select(c => c.Name), StringComparer.OrdinalIgnoreCase);
             packagePicker.Filter = x =>
             {
-                if (!(x is LoadedPickablePackageViewModel loadedPackage))
+                if (referencedNames.Contains(x.Name) || companionNames.Contains(x.Name))
+                    return false;
+
+                if (x is not LoadedPickablePackageViewModel loadedPackage)
                     return true;
 
-                return !(loadedPackage.Package == selectedPackage || loadedPackage.Package.DependsOn(selectedPackage) ||
-                         selectedPackage.Dependencies.Content.Select(r => r.Target).Contains(loadedPackage.Package));
+                var package = loadedPackage.Package.Package;
+                if (package.Kind != PackageKind.Runtime || package.Container is StandalonePackage { IsCompanionPackage: true } or SolutionProject { Type: ProjectType.Executable })
+                    return false;
+
+                return !(loadedPackage.Package == selectedPackage || loadedPackage.Package.DependsOn(selectedPackage));
             };
 
-            if (AllPackages.All(x => !packagePicker.Filter(new LoadedPickablePackageViewModel(x))))
+            // The same list the picker shows: the loaded packages and the suggested ones not loaded yet
+            if (!(await SuggestPackagesToAdd()).Any(packagePicker.Filter))
             {
                 await Dialogs.MessageBoxAsync(Tr._p("Message", "There are no packages that can be added as dependencies to this package."), MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
