@@ -1,7 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System.Windows.Forms;
 using Stride.Core.Mathematics;
+using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Assets.Presentation.AssetEditors.UIEditor.Game;
 using Stride.Assets.Presentation.ViewModel;
 using Stride.UI;
@@ -23,7 +23,7 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Adorners
 
         public ResizingDirection ResizingDirection => ResizingDirection.Center;
 
-        public Cursor GetCursor() => CannotMove() ? Cursors.No : Cursors.SizeAll;
+        public EditorGameCursor GetCursor() => CannotMove() ? EditorGameCursor.No : EditorGameCursor.SizeAll;
 
         public override void Update(Vector3 position)
         {
