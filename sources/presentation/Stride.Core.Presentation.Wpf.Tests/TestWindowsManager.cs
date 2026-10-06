@@ -146,6 +146,43 @@ namespace Stride.Core.Presentation.Tests
             WindowManagerHelper.ShutdownUIThread(dispatcher);
         }
 
+        [Fact]
+        public async Task TestMainWindowHiddenAndShownAgain()
+        {
+            LoggerResult loggerResult;
+            var dispatcher = await WindowManagerHelper.CreateUIThread();
+            using (WindowManagerHelper.InitWindowManager(dispatcher, out loggerResult))
+            {
+                var mainWindow = dispatcher.Invoke(() => new TestWindow("MainWindow"));
+                await RunAndWait(dispatcher, () => WindowManager.ShowMainWindow(mainWindow), WindowManagerHelper.NextWindowShown);
+                await RunAndWait(dispatcher, mainWindow.Hide, WindowManagerHelper.NextWindowHidden);
+                await RunAndWait(dispatcher, mainWindow.Show, WindowManagerHelper.NextWindowShown);
+
+                var blockingWindow = dispatcher.Invoke(() => new TestWindow("BlockingWindow"));
+                await RunAndWait(dispatcher, () => WindowManager.ShowBlockingWindow(blockingWindow), WindowManagerHelper.NextWindowShown);
+
+                dispatcher.Invoke(() =>
+                {
+                    Assert.False(WindowManager.BlockingWindows[0].IsDisabled);
+                    Assert.Empty(WindowManager.ModalWindows);
+                    Assert.Equal(mainWindow, WindowManager.MainWindow?.Window);
+                    Assert.True(WindowManager.MainWindow.IsDisabled);
+                });
+
+                await RunAndWait(dispatcher, blockingWindow.Close, WindowManagerHelper.NextWindowHidden);
+                await RunAndWait(dispatcher, mainWindow.Close, WindowManagerHelper.NextWindowHidden);
+            }
+            WindowManagerHelper.ShutdownUIThread(dispatcher);
+        }
+
+        private static async Task RunAndWait(Dispatcher dispatcher, Action action, Task windowManagerEvent)
+        {
+            dispatcher.InvokeAsync(action).Task.Forget();
+            await WindowManagerHelper.TaskWithTimeout(windowManagerEvent);
+            // Wait one more "frame" to be sure everything has been run.
+            await dispatcher.InvokeAsync(() => { }, DispatcherPriority.Background);
+        }
+
         private void AssertStep(Step step, Window mainWindow, Window modalWindow, Window blockingWindow)
         {
             switch (step)

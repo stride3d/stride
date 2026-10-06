@@ -30,6 +30,7 @@ namespace Stride.Core.Presentation.Windows
         private static Dispatcher dispatcher;
         private static bool initialized;
         private static bool mainWindowBlocked;
+        private static Window mainWindowInstance;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="WindowManager"/> class.
@@ -88,6 +89,7 @@ namespace Stride.Core.Presentation.Windows
             winEventProc = null;
             dispatcher = null;
             MainWindow = null;
+            mainWindowInstance = null;
             AllWindowsList.Clear();
             ModalWindowsList.Clear();
             BlockingWindowsList.Clear();
@@ -115,6 +117,7 @@ namespace Stride.Core.Presentation.Windows
             Logger.Info($"Main window showing. ({window})");
 
             MainWindow = new WindowInfo(window);
+            mainWindowInstance = window;
             AllWindowsList.Add(MainWindow);
 
             window.WindowStartupLocation = WindowStartupLocation.CenterScreen;
@@ -344,6 +347,9 @@ namespace Stride.Core.Presentation.Windows
                 AllWindowsList.Add(windowInfo);
             }
             windowInfo.IsShown = true;
+
+            if (MainWindow == null && mainWindowInstance != null && windowInfo.Window == mainWindowInstance)
+                MainWindow = windowInfo;
 
             if (windowInfo == MainWindow)
             {
