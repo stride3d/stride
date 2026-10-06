@@ -285,13 +285,27 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
             Game.TriggerActiveRenderStageReevaluation();
         }
 
-        public void ChangeCursor(Cursor cursor)
+        public void ChangeCursor(EditorGameCursor cursor)
         {
             EnsureNotDestroyed();
             if (IsDestroying)
                 return;
-            GameForm.Cursor = cursor;
+            GameForm.Cursor = cursor switch
+            {
+                EditorGameCursor.No => Cursors.No,
+                EditorGameCursor.SizeAll => Cursors.SizeAll,
+                EditorGameCursor.SizeNS => Cursors.SizeNS,
+                EditorGameCursor.SizeWE => Cursors.SizeWE,
+                EditorGameCursor.SizeNWSE => Cursors.SizeNWSE,
+                EditorGameCursor.SizeNESW => Cursors.SizeNESW,
+                _ => null,
+            };
         }
+
+        /// <summary>
+        /// The distance, in screen pixels, a pointer moves while pressed before it counts as a drag.
+        /// </summary>
+        public Vector2 MinimumDragDistance => new((float)System.Windows.SystemParameters.MinimumHorizontalDragDistance, (float)System.Windows.SystemParameters.MinimumVerticalDragDistance);
 
         /// <inheritdoc/>
         public Task InvokeAsync(Action callback, CancellationToken token = default)

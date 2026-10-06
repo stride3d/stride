@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
+using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Assets.Presentation.AssetEditors.UIEditor.Adorners;
 using Stride.Assets.Presentation.AssetEditors.UIEditor.Services;
 using Stride.Assets.Presentation.ViewModel;
@@ -135,7 +136,8 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Game
                 {
                     // Start dragging only if a minimum distance is reached (on the real screen, not the virtual screen).
                     var delta = (e.ScreenPosition - originScreenPosition)*new Vector2(Game.GraphicsDevice.Presenter.BackBuffer.Width, Game.GraphicsDevice.Presenter.BackBuffer.Height);
-                    if (Math.Abs(delta.X) > System.Windows.SystemParameters.MinimumHorizontalDragDistance || Math.Abs(delta.Y) > System.Windows.SystemParameters.MinimumVerticalDragDistance)
+                    var dragDistance = Controller.MinimumDragDistance;
+                    if (Math.Abs(delta.X) > dragDistance.X || Math.Abs(delta.Y) > dragDistance.Y)
                     {
                         isDragging = true;
                         Controller.ChangeCursor(dragAdorner.GetCursor());
@@ -189,7 +191,7 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Game
                 return;
 
             isInProgress = false;
-            Controller.ChangeCursor(null);
+            Controller.ChangeCursor(EditorGameCursor.Default);
             e.Handled = true;
 
             // dragging state
@@ -232,7 +234,8 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Game
 
             // Select the corresponding asset-side UIElement, if pointer did not move between down and up events
             var delta = (e.ScreenPosition - originScreenPosition)*new Vector2(Game.GraphicsDevice.Presenter.BackBuffer.Width, Game.GraphicsDevice.Presenter.BackBuffer.Height);
-            if (Math.Abs(delta.X) < System.Windows.SystemParameters.MinimumHorizontalDragDistance && Math.Abs(delta.Y) < System.Windows.SystemParameters.MinimumVerticalDragDistance)
+            var dragDistance = Controller.MinimumDragDistance;
+            if (Math.Abs(delta.X) < dragDistance.X && Math.Abs(delta.Y) < dragDistance.Y)
             {
                 var additiveSelection = Game.Input.IsKeyDown(Keys.LeftCtrl) || Game.Input.IsKeyDown(Keys.RightCtrl);
                 editor.Dispatcher.InvokeAsync(() => editor.Select(elementId, additiveSelection)).Forget();
@@ -249,7 +252,7 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Game
                 return;
 
             isInProgress = false;
-            Controller.ChangeCursor(null);
+            Controller.ChangeCursor(EditorGameCursor.Default);
 
             if (!isDragging)
                 return;
