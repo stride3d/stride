@@ -638,9 +638,9 @@ static void ProcessPackage(string pkgPath, string pkgId, ProjectInfo projInfo, D
         .ToList();
 
     // Inject the redirect metadata + targets into both build/ and buildTransitive/ so consumers
-    // see them regardless of asset-flow filtering on transitive paths. Merge into any existing
-    // <PkgId>.props/.targets the package already shipped (e.g. CompilerApp's StrideCompileAsset
-    // chain, Stride.Core/Graphics native-runtime targets) — overwriting would destroy them.
+    // see them regardless of asset-flow filtering on transitive paths. The <PkgId>.props/.targets the
+    // package ships (e.g. CompilerApp's StrideCompileAsset chain, Stride.Core/Graphics native-runtime
+    // targets) are imported from the checkout file they were packed from, ahead of the redirect.
     var propsContent = GenerateRedirectProps(pkgId, projInfo, strideRoot, configuration);
     var targetsContent = GenerateRedirectTargets(pkgId, projInfo, version, strideRoot, configuration, analyzers);
 
@@ -652,7 +652,7 @@ static void ProcessPackage(string pkgPath, string pkgId, ProjectInfo projInfo, D
         ($"buildTransitive/{pkgId}.targets", targetsContent),
     })
     {
-        MergeIntoZipEntry(zip, path, content);
+        WriteRedirectEntry(zip, path, content, projInfo, strideRoot);
     }
 
     // Close zip before copying
@@ -677,6 +677,69 @@ static void InvalidateNuGetCache(string nugetPackagesDir, string pkgId, string v
         if (File.Exists(sha512)) File.Delete(sha512);
         if (File.Exists(metadata)) File.Delete(metadata);
     }
+}
+
+// Writes a redirect entry whose package content is imported from the checkout instead of copied, so an edit
+// to the project's build files, or one another branch adds or removes, reaches consumers with no stub refresh
+// (a multi-target project refreshes its stub in its outer build only, which building a game or the editor never
+// runs). An entry the package ships is imported from the checkout file it was packed from, found by content
+// among the project's build folders (projects pack build\** to both build/ and buildTransitive/). An entry it
+// does not ship gets a conditional import by convention: the same folder, then build/ for buildTransitive/. An
+// entry matching no checkout file is merged as a copy.
+static void WriteRedirectEntry(ZipArchive zip, string entryPath, string addition, ProjectInfo projInfo, string strideRoot)
+{
+    var existing = zip.GetEntry(entryPath);
+    string? existingText = null;
+    if (existing != null)
+    {
+        using var s = existing.Open();
+        using var r = new StreamReader(s);
+        existingText = r.ReadToEnd();
+    }
+
+    var folder = entryPath[..entryPath.IndexOf('/')];
+    var fileName = entryPath[(entryPath.IndexOf('/') + 1)..];
+    string SourcePath(string sub) => Path.Combine(projInfo.ProjectDir, sub, fileName);
+    string Normalized(string text) => text.Replace("\r\n", "\n").Trim();
+
+    List<string> sources;
+    if (!string.IsNullOrWhiteSpace(existingText))
+    {
+        var match = new[] { folder, "build", "buildTransitive", "buildMultiTargeting" }.Distinct()
+            .Select(SourcePath)
+            .FirstOrDefault(p => File.Exists(p) && Normalized(File.ReadAllText(p)) == Normalized(existingText));
+        if (match == null)
+        {
+            MergeIntoZipEntry(zip, entryPath, addition);
+            return;
+        }
+        sources = [match];
+    }
+    else
+    {
+        sources = (folder == "buildTransitive" ? new[] { "buildTransitive", "build" } : [folder]).Select(SourcePath).ToList();
+    }
+    existing?.Delete();
+
+    XNamespace msbuildNs = "http://schemas.microsoft.com/developer/msbuild/2003";
+    // The imports anchor on $(StrideDevRoot), which the redirect props set after them
+    var root = new XElement(msbuildNs + "Project",
+        new XElement(msbuildNs + "PropertyGroup",
+            new XElement(msbuildNs + "StrideDevRoot", new XAttribute("Condition", "'$(StrideDevRoot)' == ''"), strideRoot)));
+    var previous = new List<string>();
+    foreach (var source in sources)
+    {
+        var project = "$(StrideDevRoot)/" + Path.GetRelativePath(strideRoot, source).Replace('\\', '/');
+        var condition = string.Concat(previous.Select(p => $"!Exists('{p}') And ")) + $"Exists('{project}')";
+        root.Add(new XElement(msbuildNs + "Import", new XAttribute("Project", project), new XAttribute("Condition", condition)));
+        previous.Add(project);
+    }
+    root.Add(XDocument.Parse(addition).Root!.Elements());
+
+    var newEntry = zip.CreateEntry(entryPath);
+    using var stream = newEntry.Open();
+    using var writer = new StreamWriter(stream, Encoding.UTF8);
+    new XDocument(root).Save(writer);
 }
 
 // Merge our generated <Project> content into a zip entry at entryPath, preserving any

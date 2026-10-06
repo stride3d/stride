@@ -190,8 +190,11 @@
        RemoveProperties strip consumer-specific globals that shouldn't leak
        (RID/SelfContained/OutputType/StrideIsExecutable).
        Test-suite globals are stripped by Stride.Build.Sdk.Tests on top of this.
-       Exists() gate skips NuGet-package consumers; name gate prevents self-reference. -->
+       Exists() gate skips NuGet-package consumers; the StrideDevRedirect gate skips dev-package consumers,
+       whose stub imports this file from the checkout (they run the built asset compiler through
+       $(StrideRoot)); name gate prevents self-reference. -->
   <ItemGroup Condition="Exists('$(MSBuildThisFileDirectory)..\Stride.AssetCompiler.csproj')
+                        And '$(StrideDevRedirect)' != 'true'
                         And '$(MSBuildProjectName)' != 'Stride.AssetCompiler'">
     <ProjectReference Include="$(MSBuildThisFileDirectory)..\Stride.AssetCompiler.csproj">
       <Private>false</Private>
