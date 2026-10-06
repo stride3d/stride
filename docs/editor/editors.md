@@ -2,7 +2,7 @@
 
 ## Overview
 
-All concrete asset editors live in `Stride.Assets.Presentation` under `sources/editor/Stride.Assets.Presentation/AssetEditors/`. Most editor folders contain a `ViewModels/` subdirectory and a `Views/` subdirectory; ScriptEditor and VisualScriptEditor are exceptions where files sit flat at the folder root. The table below is the entry point for locating any existing editor.
+All concrete asset editors live in `Stride.Assets.Presentation.Wpf` under `sources/editor/Stride.Assets.Presentation.Wpf/AssetEditors/`. Most editor folders contain a `ViewModels/` subdirectory and a `Views/` subdirectory; ScriptEditor and VisualScriptEditor are exceptions where files sit flat at the folder root. The table below is the entry point for locating any existing editor.
 
 ## Editors
 

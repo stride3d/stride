@@ -1,0 +1,186 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2026-09-12 15:39:36+0200\n"
+"PO-Revision-Date: 2019-09-17 09:24+0000\n"
+"Last-Translator: Andrea Aruta <andrea.aruta41@gmail.com>\n"
+"Language-Team: Italian <https://hosted.weblate.org/projects/stride/"
+"corepresentation/it/>\n"
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 3.9-dev\n"
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Windows/DialogHelper.cs:21
+msgid "Don't ask again"
+msgstr "Non chiedere nuovamente"
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/generic.xaml:404
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:624
+msgctxt "RGBA"
+msgid "R:"
+msgstr "R:"
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/generic.xaml:405
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:624
+msgctxt "ToolTip"
+msgid "Red"
+msgstr "Rosso"
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/generic.xaml:419
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:633
+msgctxt "RGBA"
+msgid "G:"
+msgstr "V:"
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/generic.xaml:420
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:633
+msgctxt "ToolTip"
+msgid "Green"
+msgstr "Verde"
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/generic.xaml:434
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:642
+msgctxt "RGBA"
+msgid "B:"
+msgstr "B:"
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/generic.xaml:435
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:642
+msgctxt "ToolTip"
+msgid "Blue"
+msgstr "Blu"
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/generic.xaml:449
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:651
+msgctxt "RGBA"
+msgid "A:"
+msgstr "A:"
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/generic.xaml:450
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:651
+msgctxt "ToolTip"
+msgid "Alpha"
+msgstr "Alpha"
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/generic.xaml:469
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:664
+msgctxt "HSB"
+msgid "H:"
+msgstr "H:"
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/generic.xaml:470
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:664
+msgctxt "ToolTip"
+msgid "Hue"
+msgstr ""
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/generic.xaml:484
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:673
+msgctxt "HSB"
+msgid "S:"
+msgstr "S:"
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/generic.xaml:485
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:673
+msgctxt "ToolTip"
+msgid "Saturation"
+msgstr "Saturazione"
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/generic.xaml:499
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:682
+#, fuzzy
+msgctxt "HSB"
+msgid "B:"
+msgstr "B:"
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/generic.xaml:500
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:682
+msgctxt "ToolTip"
+msgid "Value"
+msgstr "Valore"
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:1898
+msgctxt "ToolTip"
+msgid "Pick date and time"
+msgstr ""
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:3923
+msgctxt "ToolTip"
+msgid "Toggle editing mode"
+msgstr ""
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:4179
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:4249
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:4328
+msgctxt "ToolTip"
+msgid "Advanced options"
+msgstr "Opzioni avanzate"
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:4188
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:4257
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:4337
+msgid "All components:"
+msgstr "Tutti i componenti:"
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:4621
+msgctxt "ToolTip"
+msgid "Clear Log"
+msgstr ""
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:4626
+msgctxt "ToolTip"
+msgid "Toggle Debug"
+msgstr ""
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:4629
+msgctxt "ToolTip"
+msgid "Toggle Verbose"
+msgstr ""
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:4632
+msgctxt "ToolTip"
+msgid "Toggle Info"
+msgstr ""
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:4635
+msgctxt "ToolTip"
+msgid "Toggle Warning"
+msgstr ""
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:4638
+msgctxt "ToolTip"
+msgid "Toggle Error"
+msgstr ""
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:4641
+msgctxt "ToolTip"
+msgid "Toggle Fatal"
+msgstr ""
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:4644
+msgctxt "ToolTip"
+msgid "Toggle Exception Stack Trace"
+msgstr ""
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:4650
+msgctxt "ToolTip"
+msgid "Go to previous search result"
+msgstr ""
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:4653
+msgctxt "ToolTip"
+msgid "Go to next search result"
+msgstr ""
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:4656
+msgctxt "ToolTip"
+msgid "Match case"
+msgstr ""
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:4659
+msgctxt "ToolTip"
+msgid "Match whole word"
+msgstr ""
