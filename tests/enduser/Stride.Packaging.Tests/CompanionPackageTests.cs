@@ -24,6 +24,7 @@ public class CompanionPackageTests
 
     private const string AssetsPackageId = "StrideAssetPlugin.Assets";
     private const string CustomAssetsPackageId = "StrideAssetPlugin.CustomAssets";
+    private const string ExtAssetsPackageId = "AcmeSpinPlugin.Assets";
     private static readonly Guid SpinTemplateId = new("9C2B6F1E-4D3A-4E5B-8C7D-0A1B2C3D4E5F");
 
     [Fact]
@@ -134,6 +135,31 @@ public class CompanionPackageTests
         Assert.True(result.ExitCode == 0, $"Consumer build should succeed (exit {result.ExitCode}).");
         Assert.Contains($"[{AssetsPackageId}] is referenced directly", result.Output);
         c.AssertContentCompiled("/Consumer/Spin");
+    }
+
+    [Fact]
+    public void AssetsPackageDependsOnAnotherPluginsAssetsPackage()
+    {
+        using var c = new Case(output, "assets-plugin-on-plugin");
+        c.DeclareAssetsCompanion();
+        c.PackPlugin();
+        c.PackAssets();
+        c.PackExtensionPlugin();
+        c.ReferenceExtensionPluginOnly();
+        c.AddDoubleSpinAsset();
+
+        // StrideAssetPlugin.Assets comes as a companion and as a dependency of AcmeSpinPlugin.Assets, which the restore reads first
+        var result = c.BuildConsumer();
+        Assert.True(result.ExitCode == 0, $"Consumer build should succeed (exit {result.ExitCode}).");
+        Assert.DoesNotContain("is referenced directly", result.Output);
+        c.AssertContentCompiled("/Consumer/DoubleSpin");
+
+        var session = c.LoadConsumerProjectSession();
+        foreach (var id in new[] { AssetsPackageId, ExtAssetsPackageId })
+        {
+            var assets = Assert.Single(session.Packages, p => p.Meta.Name == id);
+            Assert.True(((StandalonePackage)assets.Container).IsCompanionPackage, $"{id} should be loaded as a companion.");
+        }
     }
 
     [Fact]
@@ -252,7 +278,7 @@ public class CompanionPackageTests
 
             var globalPackages = Environment.GetEnvironmentVariable("NUGET_PACKAGES")
                 ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget", "packages");
-            foreach (var id in new[] { "strideassetplugin", "strideassetplugin.assets" })
+            foreach (var id in new[] { "strideassetplugin", "strideassetplugin.assets", "acmespinplugin", "acmespinplugin.assets" })
             {
                 var dir = Path.Combine(globalPackages, id);
                 if (Directory.Exists(dir))
@@ -313,6 +339,43 @@ public class CompanionPackageTests
                 Speed: 3.0
                 """);
             AddRootAsset("5d0c1f2e-3a4b-4c5d-8e6f-7a8b9c0d1e2f:Spin");
+        }
+
+        /// <summary>
+        /// Packs AcmeSpinPlugin, a plugin built on this one: its runtime references StrideAssetPlugin, its Assets
+        /// companion references StrideAssetPlugin.Assets (both from the feed). Pack this plugin first.
+        /// </summary>
+        public void PackExtensionPlugin()
+        {
+            var extDir = Path.Combine(caseDir, "PluginExt");
+            var extAssetsDir = Path.Combine(caseDir, "PluginExtAssets");
+            TestEnvironment.CopyDirectory(Path.Combine(TestEnvironment.FixturesDir(), "PluginExt"), extDir);
+            TestEnvironment.CopyDirectory(Path.Combine(TestEnvironment.FixturesDir(), "PluginExtAssets"), extAssetsDir);
+            NuGetConsumerFeed.WriteStrictNuGetConfig(extDir, [new ExtraFeed("plugin-feed", feedDir, "StrideAssetPlugin")]);
+            NuGetConsumerFeed.WriteStrictNuGetConfig(extAssetsDir, [new ExtraFeed("plugin-feed", feedDir, "StrideAssetPlugin", "StrideAssetPlugin.Assets")]);
+
+            var pack = Pack(Path.Combine(extDir, "AcmeSpinPlugin.csproj"), extDir);
+            Assert.True(pack.ExitCode == 0, $"Pack of the extension plugin failed with exit {pack.ExitCode}");
+            pack = Pack(Path.Combine(extAssetsDir, "AcmeSpinPlugin.Assets.csproj"), extAssetsDir);
+            Assert.True(pack.ExitCode == 0, $"Pack of the extension's Assets project failed with exit {pack.ExitCode}");
+        }
+
+        public void ReferenceExtensionPluginOnly()
+        {
+            File.WriteAllText(GameProject, File.ReadAllText(GameProject).Replace(PluginReference,
+                """<PackageReference Include="AcmeSpinPlugin" Version="1.0.0" />"""));
+        }
+
+        public void AddDoubleSpinAsset()
+        {
+            File.WriteAllText(Path.Combine(consumerDir, "Consumer.Game", "Assets", "DoubleSpin.sddspin"), """
+                !DoubleSpinAsset
+                Id: 6e1d2a3f-4b5c-4d6e-9f7a-8b9c0d1e2f3a
+                SerializedVersion: {AcmeSpinPlugin: 1.0.0.0}
+                Tags: []
+                Speed: 6.0
+                """);
+            AddRootAsset("6e1d2a3f-4b5c-4d6e-9f7a-8b9c0d1e2f3a:DoubleSpin");
         }
 
         public void ReferenceAssetsPackageDirectly()
@@ -382,7 +445,7 @@ public class CompanionPackageTests
 
         public ExecResult BuildConsumer()
         {
-            NuGetConsumerFeed.WriteStrictNuGetConfig(consumerDir, [new ExtraFeed("plugin-feed", feedDir, "StrideAssetPlugin", "StrideAssetPlugin.Assets")]);
+            NuGetConsumerFeed.WriteStrictNuGetConfig(consumerDir, [new ExtraFeed("plugin-feed", feedDir, "StrideAssetPlugin", "StrideAssetPlugin.Assets", "AcmeSpinPlugin", "AcmeSpinPlugin.Assets")]);
             return ConsumerBuild.Run(Path.Combine(consumerDir, "Consumer.csproj"), consumerDir, output, timeoutMin: 10,
                 $"-p:StrideEngineVersion={version}", $"-p:RestorePackagesPath={nugetCache}");
         }
