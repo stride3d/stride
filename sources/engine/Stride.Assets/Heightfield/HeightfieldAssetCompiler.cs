@@ -59,34 +59,12 @@ internal sealed class HeightfieldAssetCompiler : AssetCompilerBase
 
             await DispatcherLowPriority.ForBatchedAsync(coarseBlocks.Length, (blockStart, blockEnd) =>
             {
-                var samples = new Sample[1];
-                for (int block = blockStart; block < blockEnd; block++)
+                int blockIndex = blockStart;
+                foreach (ref var range in coarseBlocks.AsSpan()[blockStart..blockEnd])
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-
-                    ref var range = ref coarseBlocks[block];
-                    Int2 block2D = new Int2(block % coarseBlocksSubdivision, block / coarseBlocksSubdivision);
-                    Int2 sampleCorner = block2D * coarseBlockInterval;
-                    Int2 sampleEnd = sampleCorner + new Int2(coarseBlockInterval);
-
-                    // We're defining block ranges as operating on N amount of samples, although the physics shape uses
-                    // them when evaluating triangles, those lay between samples.
-                    // If we specify three samples of coverage, e.g.: block0{s0, s1, s2}, block1{s3, s4, s5}
-                    // The triangle laying between s2 and s3 would not be covered by either blocks.
-                    // s2 would be the coordinate used when a position between s2 and s3 is tested,
-                    // which in turn means that block0 would be the block retrieved for evaluation.
-                    // We will have each end of the blocks extend to the next sample over to ensure we capture those triangles
-                    Int2 sampleCornerEndInclusive = Int2.Min(sampleEnd, new Int2(Parameters.Subdivision - 1));
-                    for (int sampleY = sampleCorner.Y; sampleY <= sampleCornerEndInclusive.Y; sampleY++)
-                    {
-                        for (int sampleX = sampleCorner.X; sampleX <= sampleCornerEndInclusive.X; sampleX++)
-                        {
-                            samples[0].SampleCoord = new Int2(sampleX, sampleY);
-                            heightfieldFunction.FillSamples(samples);
-                            range.MinHeight = Math.Min(range.MinHeight, samples[0].Height);
-                            range.MaxHeight = Math.Max(range.MaxHeight, samples[0].Height);
-                        }
-                    }
+                    range = HeightRange.ExtractRange(blockIndex, coarseBlocksSubdivision, coarseBlockInterval, Parameters.Subdivision, heightfieldFunction);
+                    blockIndex++;
                 }
             });
 
