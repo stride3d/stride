@@ -130,8 +130,12 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
         /// This method must be called only once.
         /// </remarks>
         /// <seealso cref="EnsureContentScene"/>
-        internal void InitializeContentScene()
+        /// <exception cref="InvalidOperationException">The content scene is already initialized.</exception>
+        public void InitializeContentScene()
         {
+            if (ContentScene != null)
+                throw new InvalidOperationException($"The {nameof(ContentScene)} is already initialized.");
+
             var contentScene = new Scene();
             ContentScene = contentScene;
             // Setup the scene for the game
