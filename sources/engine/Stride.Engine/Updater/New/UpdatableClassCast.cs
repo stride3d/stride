@@ -1,35 +1,25 @@
-using System;
-
 namespace Stride.Updater.New;
 
-internal sealed class UpdatableClassCast<TFrom, TTo>(UpdatableMember<TFrom> parent, UpdatableType<TTo> type) : UpdatableMember<TTo>
+internal sealed class UpdatableClassCast<TFrom, TTo>(UpdatableType<TTo> type) : UpdatableMember<TFrom, TTo>
     where TFrom : class
     where TTo : class, TFrom
 {
-    public override bool SupportsByReference => false;
+    protected override bool SupportsByReference => false;
 
-    public override TTo GetValue(object instance)
+    public override string Name { get; } = $"({typeof(TTo).FullName})";
+
+    protected override TTo GetValue(TFrom instance)
     {
-        return parent.GetValue(instance) as TTo;
+        return instance as TTo;
     }
 
-    public override ref TTo GetReference(object instance)
+    public override UpdatableMember<TTo> CreateProperty(string name)
     {
-        throw new NotSupportedException();
+        return type.CreateProperty(name);
     }
 
-    public override void SetValue(object instance, TTo value)
+    public override UpdatableMember<TTo> CreateIndexer(string name)
     {
-        parent.SetValue(instance, value);
-    }
-
-    public override UpdatableMember ResolveIndexer(ReadOnlySpan<char> name)
-    {
-        return type.ResolveIndexer(name, this);
-    }
-
-    public override UpdatableMember ResolveProperty(ReadOnlySpan<char> name)
-    {
-        return type.ResolveProperty(name, this);
+        return type.CreateIndexer(name);
     }
 }

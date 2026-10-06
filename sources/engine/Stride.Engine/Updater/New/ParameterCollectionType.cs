@@ -14,15 +14,15 @@ public sealed class ParameterCollectionType : UpdatableType<ParameterCollection>
         UpdateEngine.RegisterType(typeof(ParameterCollection), Instance);
     }
 
-    public override UpdatableMember ResolveProperty(ReadOnlySpan<char> name, UpdatableMember<ParameterCollection> parent)
+    public override UpdatableMember<ParameterCollection> CreateProperty(string name)
     {
         throw new NotSupportedException("ParameterCollection does not have properties.");
     }
 
-    public override UpdatableMember ResolveIndexer(ReadOnlySpan<char> name, UpdatableMember<ParameterCollection> parent)
+    public override UpdatableMember<ParameterCollection> CreateIndexer(string name)
     {
         var key = ParameterKeys.FindByName(name.ToString()) ?? throw new InvalidOperationException($"Property Key path parse error: could not parse indexer value '{name}'");
 
-        return UpdateEngine.CreateParameterKeyAccessor(key, parent);
+        return UpdateEngine.CreateParameterKeyAccessor(key);
     }
 }

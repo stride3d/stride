@@ -1,22 +1,23 @@
-using System;
-
 namespace Stride.Updater.New;
 
-internal sealed class RootMember<T>(UpdatableType<T> type) : UpdatableMember<T>
+internal sealed class RootMember<T>(UpdatableType<T> type) : UpdatableMember<object, T>
 {
-    public sealed override T GetValue(object instance)
+    protected override bool SupportsByReference => false;
+
+    public override string Name => "Root";
+
+    public override UpdatableMember<T> CreateProperty(string name)
     {
-        return (T)instance;
+        return type.CreateProperty(name);
     }
-    public sealed override ref T GetReference(object instance)
+
+    public override UpdatableMember<T> CreateIndexer(string name)
     {
-        throw new NotSupportedException("Getting the reference to a root member is not supported.");
+        return type.CreateIndexer(name);
     }
-    public sealed override void SetValue(object instance, T value)
+
+    protected override T GetValue(object parent)
     {
-        throw new NotSupportedException("Setting the value of a root member is not supported.");
+        return (T)parent;
     }
-    public sealed override bool SupportsByReference => false;
-    public override UpdatableMember ResolveProperty(ReadOnlySpan<char> name) => type.ResolveProperty(name, this);
-    public override UpdatableMember ResolveIndexer(ReadOnlySpan<char> name) => type.ResolveIndexer(name, this);
 }

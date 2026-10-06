@@ -1,34 +1,22 @@
-using System;
-
 namespace Stride.Updater.New;
 
-public sealed unsafe class ClassUpdatableProperty<TParent, TProperty>(UpdatableMember<TParent> parent, delegate* managed<TParent, TProperty> getter, delegate* managed<TParent, TProperty, void> setter, UpdatableType<TProperty> propertyType) : UpdatableMember<TProperty>
+public sealed unsafe class ClassUpdatableProperty<TParent, TProperty>(string name, delegate* managed<TParent, TProperty> getter, delegate* managed<TParent, TProperty, void> setter, UpdatableType<TProperty> propertyType) : UpdatableMember<TParent, TProperty>
     where TParent : class
 {
-    public override bool SupportsByReference => false;
-    public override UpdatableMember ResolveProperty(ReadOnlySpan<char> name)
+    public override string Name => name;
+
+    protected override bool SupportsByReference => false;
+
+    public override UpdatableMember<TProperty> CreateProperty(string name)
     {
-        return propertyType.ResolveProperty(name, this);
+        return propertyType.CreateProperty(name);
     }
-    public override UpdatableMember ResolveIndexer(ReadOnlySpan<char> name)
+
+    public override UpdatableMember<TProperty> CreateIndexer(string name)
     {
-        return propertyType.ResolveIndexer(name, this);
+        return propertyType.CreateIndexer(name);
     }
-    public override TProperty GetValue(object instance)
-    {
-        var parentValue = parent.GetValue(instance);
-        return parentValue is null ? default : getter(parentValue);
-    }
-    public override ref TProperty GetReference(object instance)
-    {
-        throw new NotSupportedException("Properties do not support by-reference access.");
-    }
-    public override void SetValue(object instance, TProperty value)
-    {
-        var parentValue = parent.GetValue(instance);
-        if (parentValue is not null)
-        {
-            setter(parentValue, value);
-        }
-    }
+
+    protected override TProperty GetValue(TParent parent) => getter(parent);
+    protected override void SetValue(TParent parent, TProperty value) => setter(parent, value);
 }

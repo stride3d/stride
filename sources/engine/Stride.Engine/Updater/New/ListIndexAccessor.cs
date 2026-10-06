@@ -1,29 +1,29 @@
-using System;
 using System.Collections.Generic;
 
 namespace Stride.Updater.New;
 
-public sealed class ListIndexAccessor<TList, TValue>(UpdatableMember<TList> parent, int index, UpdatableType<TValue> elementType) : UpdatableMember<TValue>
+internal sealed class ListIndexAccessor<TList, TValue>(string name, int index, UpdatableType<TValue> elementType) : UpdatableMember<TList, TValue>
     where TList : IList<TValue>
 {
-    public override bool SupportsByReference => false;
+    protected override bool SupportsByReference => false;
 
-    public override UpdatableMember ResolveProperty(ReadOnlySpan<char> name)
+    public override string Name => name;
+
+    public override UpdatableMember<TValue> CreateProperty(string name)
     {
-        return elementType.ResolveProperty(name, this);
+        return elementType.CreateProperty(name);
     }
 
-    public override UpdatableMember ResolveIndexer(ReadOnlySpan<char> name)
+    public override UpdatableMember<TValue> CreateIndexer(string name)
     {
-        return elementType.ResolveIndexer(name, this);
+        return elementType.CreateIndexer(name);
     }
 
-    public override TValue GetValue(object instance)
+    protected override TValue GetValue(TList parent)
     {
-        var parentValue = parent.GetValue(instance);
-        if (parentValue is not null && parentValue.Count > index)
+        if (parent.Count > index)
         {
-            return parentValue[index];
+            return parent[index];
         }
         else
         {
@@ -31,17 +31,11 @@ public sealed class ListIndexAccessor<TList, TValue>(UpdatableMember<TList> pare
         }
     }
 
-    public override ref TValue GetReference(object instance)
+    protected override void SetValue(TList parent, TValue value)
     {
-        throw new NotSupportedException("List elements do not support by-reference access.");
-    }
-
-    public override void SetValue(object instance, TValue value)
-    {
-        var parentValue = parent.GetValue(instance);
-        if (parentValue is not null && parentValue.Count > index)
+        if (parent.Count > index)
         {
-            parentValue[index] = value;
+            parent[index] = value;
         }
     }
 }

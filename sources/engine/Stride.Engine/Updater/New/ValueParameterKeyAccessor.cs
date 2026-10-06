@@ -3,32 +3,29 @@ using Stride.Rendering;
 
 namespace Stride.Updater.New;
 
-internal sealed class ValueParameterKeyAccessor<T>(ValueParameterKey<T> parameterKey, UpdatableMember<ParameterCollection> parent, UpdatableType<T> type) : UpdatableMember<T> where T : struct
+internal sealed class ValueParameterKeyAccessor<T>(ValueParameterKey<T> parameterKey, UpdatableType<T> type) : UpdatableMember<ParameterCollection, T> where T : struct
 {
-    public override bool SupportsByReference => false;
+    protected override bool SupportsByReference => false;
 
-    public override T GetValue(object instance)
+    public override string Name => parameterKey.Name;
+
+    public override UpdatableMember<T> CreateProperty(string name)
     {
-        return parent.GetValue(instance)?.Get(parameterKey) ?? default;
+        return type.CreateProperty(name);
     }
 
-    public override ref T GetReference(object instance)
+    public override UpdatableMember<T> CreateIndexer(string name)
     {
-        throw new NotSupportedException();
+        return type.CreateIndexer(name);
     }
 
-    public override void SetValue(object instance, T value)
+    protected override T GetValue(ParameterCollection parent)
     {
-        parent.GetValue(instance)?.Set(parameterKey, value);
+        return parent.Get(parameterKey);
     }
 
-    public override UpdatableMember ResolveIndexer(ReadOnlySpan<char> name)
+    protected override void SetValue(ParameterCollection parent, T value)
     {
-        return type.ResolveIndexer(name, this);
-    }
-
-    public override UpdatableMember ResolveProperty(ReadOnlySpan<char> name)
-    {
-        return type.ResolveProperty(name, this);
+        parent.Set(parameterKey, value);
     }
 }

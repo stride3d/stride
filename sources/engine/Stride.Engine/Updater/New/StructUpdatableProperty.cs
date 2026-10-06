@@ -1,52 +1,29 @@
-using System;
-using System.Runtime.CompilerServices;
-
 namespace Stride.Updater.New;
 
-public sealed unsafe class StructUpdatableProperty<TParent, TProperty>(UpdatableMember<TParent> parent, delegate*<ref TParent, TProperty> getter, delegate*<ref TParent, TProperty, void> setter, UpdatableType<TProperty> propertyType) : UpdatableMember<TProperty>
+public sealed unsafe class StructUpdatableProperty<TParent, TProperty>(string name, delegate*<ref TParent, TProperty> getter, delegate*<ref TParent, TProperty, void> setter, UpdatableType<TProperty> propertyType) : UpdatableMember<TParent, TProperty>
     where TParent : struct
 {
-    public override bool SupportsByReference => false;
-    public override UpdatableMember ResolveProperty(ReadOnlySpan<char> name)
+    public override string Name => name;
+
+    protected override bool SupportsByReference => false;
+
+    public override UpdatableMember<TProperty> CreateIndexer(string name)
     {
-        return propertyType.ResolveProperty(name, this);
+        return propertyType.CreateIndexer(name);
     }
-    public override UpdatableMember ResolveIndexer(ReadOnlySpan<char> name)
+
+    public override UpdatableMember<TProperty> CreateProperty(string name)
     {
-        return propertyType.ResolveIndexer(name, this);
+        return propertyType.CreateProperty(name);
     }
-    public override TProperty GetValue(object instance)
+
+    protected override TProperty GetValue(ref TParent parent)
     {
-        if (parent.SupportsByReference)
-        {
-            ref TParent reference = ref parent.GetReference(instance);
-            return Unsafe.IsNullRef(ref reference) ? default : getter(ref reference);
-        }
-        else
-        {
-            var temp = parent.GetValue(instance);
-            return getter(ref temp);
-        }
+        return getter(ref parent);
     }
-    public override ref TProperty GetReference(object instance)
+
+    protected override void SetValue(ref TParent parent, TProperty value)
     {
-        throw new NotSupportedException("Properties do not support by-reference access.");
-    }
-    public override void SetValue(object instance, TProperty value)
-    {
-        if (parent.SupportsByReference)
-        {
-            ref TParent reference = ref parent.GetReference(instance);
-            if (!Unsafe.IsNullRef(ref reference))
-            {
-                setter(ref reference, value);
-            }
-        }
-        else
-        {
-            var temp = parent.GetValue(instance);
-            setter(ref temp, value);
-            parent.SetValue(instance, temp);
-        }
+        setter(ref parent, value);
     }
 }

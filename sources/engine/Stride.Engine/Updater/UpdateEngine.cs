@@ -29,19 +29,19 @@ namespace Stride.Updater
         private static readonly ConcurrentDictionary<UpdateKey, UpdatableMember> UpdateKeys = new ConcurrentDictionary<UpdateKey, UpdatableMember>();
         private static readonly ConcurrentDictionary<Type, UpdateMemberResolver> MemberResolvers = new ConcurrentDictionary<Type, UpdateMemberResolver>();
 
-        private static readonly ConcurrentDictionary<(Type, Type), Func<New.UpdatableMember, New.UpdatableType, New.UpdatableMember>> CastClasses = new();
-        private static readonly ConcurrentDictionary<Type, Func<ParameterKey, New.UpdatableMember<ParameterCollection>, New.UpdatableMember>> ParameterKeys = new();
+        private static readonly ConcurrentDictionary<(Type, Type), Func<New.UpdatableType, New.UpdatableMember>> CastClasses = new();
+        private static readonly ConcurrentDictionary<Type, Func<ParameterKey, New.UpdatableMember<ParameterCollection>>> ParameterKeys = new();
         private static readonly ConcurrentDictionary<Type, New.UpdatableType> Types = new();
-        private static readonly ConcurrentDictionary<Type, Func<New.UpdatableMember<Entity>, New.UpdatableMember>> EntityComponentAccessors = new();
+        private static readonly ConcurrentDictionary<Type, Func<New.UpdatableMember<Entity>>> EntityComponentAccessors = new();
 
-        internal static New.UpdatableMember CreateParameterKeyAccessor(ParameterKey key, New.UpdatableMember<ParameterCollection> parent)
+        internal static New.UpdatableMember<ParameterCollection> CreateParameterKeyAccessor(ParameterKey key)
         {
-            return ParameterKeys[key.PropertyType](key, parent);
+            return ParameterKeys[key.PropertyType](key);
         }
 
-        internal static New.UpdatableMember CreateEntityComponentAccessor(Type componentType, New.UpdatableMember<Entity> parent)
+        internal static New.UpdatableMember<Entity> CreateEntityComponentAccessor(Type componentType)
         {
-            return EntityComponentAccessors[componentType](parent);
+            return EntityComponentAccessors[componentType]();
         }
 
         public static void RegisterType(Type type, New.UpdatableType updatableType)
@@ -52,27 +52,27 @@ namespace Stride.Updater
         public static void RegisterComponentType<T>(New.UpdatableType<T> updatableType) where T : EntityComponent
         {
             RegisterType(typeof(T), updatableType);
-            EntityComponentAccessors[typeof(T)] = (parent) => new New.EntityComponentAccessor<T>(parent, updatableType);
+            EntityComponentAccessors[typeof(T)] = () => new New.EntityComponentAccessor<T>(updatableType);
         }
 
         public static void RegisterCastClass<TFrom, TTo>() where TFrom : class where TTo : class, TFrom
         {
-            CastClasses[(typeof(TFrom), typeof(TTo))] = (parent, type) => new New.UpdatableClassCast<TFrom, TTo>((New.UpdatableMember<TFrom>)parent, (New.UpdatableType<TTo>)type);
+            CastClasses[(typeof(TFrom), typeof(TTo))] = (type) => new New.UpdatableClassCast<TFrom, TTo>((New.UpdatableType<TTo>)type);
         }
 
         public static void RegisterValueParameterKey<T>() where T : struct
         {
-            ParameterKeys[typeof(T)] = (key, parent) =>
+            ParameterKeys[typeof(T)] = (key) =>
             {
-                return new New.ValueParameterKeyAccessor<T>((ValueParameterKey<T>)key, parent, (New.UpdatableType<T>)Types[typeof(T)]);
+                return new New.ValueParameterKeyAccessor<T>((ValueParameterKey<T>)key, (New.UpdatableType<T>)Types[typeof(T)]);
             };
         }
 
         public static void RegisterObjectParameterKey<T>() where T : class
         {
-            ParameterKeys[typeof(T)] = (key, parent) =>
+            ParameterKeys[typeof(T)] = (key) =>
             {
-                return new New.ObjectParameterKeyAccessor<T>((ObjectParameterKey<T>)key, parent, (New.UpdatableType<T>)Types[typeof(T)]);
+                return new New.ObjectParameterKeyAccessor<T>((ObjectParameterKey<T>)key, (New.UpdatableType<T>)Types[typeof(T)]);
             };
         }
 
@@ -176,10 +176,8 @@ namespace Stride.Updater
             public UpdatableMember LastChildMember;
         }
 
-        public static (New.UpdatableMember, int)[] Compile2(Type rootObjectType, List<UpdateMemberInfo> animationPaths)
+        public static New.UpdatableMember<object> Compile2(Type rootObjectType, List<UpdateMemberInfo> animationPaths)
         {
-            var result = new (New.UpdatableMember, int)[animationPaths.Count];
-
             var rootMember = Types[rootObjectType].CreateRootMember();
 
             for (var i = 0; i < animationPaths.Count; i++)
@@ -188,7 +186,7 @@ namespace Stride.Updater
                 var pathString = animationPath.Name;
                 var dataOffset = animationPath.DataOffset;
 
-                var currentMember = rootMember;
+                New.UpdatableMember currentMember = rootMember;
                 var position = 0;
                 while (position < pathString.Length)
                 {
@@ -201,36 +199,36 @@ namespace Stride.Updater
                             var endIndex = pathString.IndexOf(PathIndexerClose, position);
                             if (endIndex == -1)
                                 throw new InvalidOperationException("Property path parse error: could not find indexer end ']'");
-                            var indexerSpan = pathString.AsSpan(position + 1, endIndex - position - 1);
-                            currentMember = currentMember.ResolveIndexer(indexerSpan);
+                            var indexerName = pathString.Substring(position + 1, endIndex - position - 1);
+                            currentMember = currentMember.GetOrCreateIndexer(indexerName);
                             position = endIndex + 1;
                             break;
                         case PathCastOpen:
                             var castEndIndex = pathString.IndexOf(PathCastClose, position);
                             if (castEndIndex == -1)
                                 throw new InvalidOperationException("Property path parse error: could not find cast operation ending ')'");
-                            var typeName = pathString.Substring(position + 1, castEndIndex - position - 1); // TODO: Avoid substring by adding span overload to GetTypeFromAlias and GetType
+                            var typeName = pathString.Substring(position + 1, castEndIndex - position - 1);
                             var type = DataSerializerFactory.GetTypeFromAlias(typeName) ?? AssemblyRegistry.GetType(typeName, false);
                             if (type == null)
                                 throw new InvalidOperationException($"Could not resolve type {typeName}");
-                            currentMember = CastClasses[(currentMember.MemberType, type)](currentMember, Types[type]);
+                            currentMember = CastClasses[(currentMember.MemberType, type)](Types[type]);
                             position = castEndIndex + 1;
                             break;
                         default:
                             var nextDelimiter = pathString.IndexOfAny(PathGroupDelimiters, position);
                             if (nextDelimiter == -1)
                                 nextDelimiter = pathString.Length;
-                            var propertyName = pathString.AsSpan(position, nextDelimiter - position);
-                            currentMember = currentMember.ResolveProperty(propertyName);
+                            var propertyName = pathString.Substring(position, nextDelimiter - position);
+                            currentMember = currentMember.GetOrCreateProperty(propertyName);
                             position = nextDelimiter;
                             break;
                     }
                 }
 
-                result[i] = (currentMember, dataOffset);
+                currentMember.MakeLeaf(dataOffset);
             }
 
-            return result;
+            return rootMember;
         }
 
         /// <summary>
@@ -581,27 +579,9 @@ namespace Stride.Updater
             }
         }
 
-        public static void Run2(object target, (New.UpdatableMember, int)[] compiledUpdate, IntPtr updateData, UpdateObjectData[] updateObjects)
+        public static void Run2(object target, New.UpdatableMember<object> compiledUpdate, IntPtr updateData, UpdateObjectData[] updateObjects)
         {
-            foreach (var (member, dataOffset) in compiledUpdate)
-            {
-                if (member.IsBlittable)
-                {
-                    var conditionPtr = (int*)((byte*)updateData + dataOffset);
-                    if (*conditionPtr != 0)
-                    {
-                        member.SetBlittable(target, (byte*)conditionPtr + sizeof(int));
-                    }
-                }
-                else
-                {
-                    var updateObject = updateObjects[dataOffset];
-                    if (updateObject.Condition != 0)
-                    {
-                        member.SetObject(target, updateObject.Value);
-                    }
-                }
-            }
+            compiledUpdate.Update(target, (byte*)updateData, updateObjects);
         }
 
         /// <summary>

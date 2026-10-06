@@ -3,43 +3,31 @@ using Stride.Engine;
 
 namespace Stride.Updater.New;
 
-internal sealed class EntityComponentAccessor<T>(UpdatableMember<Entity> parent, UpdatableType<T> type) : UpdatableMember<T> where T : EntityComponent
+internal sealed class EntityComponentAccessor<T>(UpdatableType<T> type) : UpdatableMember<Entity, T> where T : EntityComponent
 {
-    public override bool SupportsByReference => false;
+    protected override bool SupportsByReference => false;
 
-    public override UpdatableMember ResolveProperty(ReadOnlySpan<char> name)
-    {
-        return type.ResolveProperty(name, this);
-    }
-    public override UpdatableMember ResolveIndexer(ReadOnlySpan<char> name)
-    {
-        return type.ResolveIndexer(name, this);
-    }
+    public override string Name => typeof(T).FullName;
 
-    public override T GetValue(object instance)
+    public override UpdatableMember<T> CreateProperty(string name) => type.CreateProperty(name);
+
+    public override UpdatableMember<T> CreateIndexer(string name) => type.CreateIndexer(name);
+
+    protected override T GetValue(Entity entity)
     {
-        var entity = parent.GetValue(instance);
-        if (entity != null)
+        var components = entity.Components;
+        for (int i = 0; i < components.Count; i++)
         {
-            var components = entity.Components;
-            for (int i = 0; i < components.Count; i++)
+            if (components[i] is T component)
             {
-                if (components[i] is T component)
-                {
-                    return component;
-                }
+                return component;
             }
         }
         return null;
     }
 
-    public override ref T GetReference(object instance)
+    protected override void SetValue(Entity entity, T value)
     {
-        throw new NotSupportedException();
-    }
-
-    public override void SetValue(object instance, T value)
-    {
-        throw new NotSupportedException();
+        throw new NotSupportedException("Entity components cannot be replaced through an update accessor.");
     }
 }

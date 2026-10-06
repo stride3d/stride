@@ -1,33 +1,34 @@
-using System;
-using System.Runtime.CompilerServices;
-
 namespace Stride.Updater.New;
 
-public sealed unsafe class ClassUpdatableField<TParent, TField>(UpdatableMember<TParent> parent, delegate* managed<TParent, ref TField> fieldAccessor, UpdatableType<TField> fieldType) : UpdatableMember<TField>
+public sealed unsafe class ClassUpdatableField<TParent, TField>(string name, delegate* managed<TParent, ref TField> fieldAccessor, UpdatableType<TField> fieldType) : UpdatableMember<TParent, TField>
     where TParent : class
 {
-    public override bool SupportsByReference => true;
+    protected override bool SupportsByReference => true;
 
-    public override UpdatableMember ResolveProperty(ReadOnlySpan<char> name)
+    public override string Name => name;
+
+    public override UpdatableMember<TField> CreateProperty(string name)
     {
-        return fieldType.ResolveProperty(name, this);
+        return fieldType.CreateProperty(name);
     }
 
-    public override UpdatableMember ResolveIndexer(ReadOnlySpan<char> name)
+    public override UpdatableMember<TField> CreateIndexer(string name)
     {
-        return fieldType.ResolveIndexer(name, this);
+        return fieldType.CreateIndexer(name);
     }
 
-    public override ref TField GetReference(object instance)
+    protected override TField GetValue(TParent parent)
     {
-        var parentValue = parent.GetValue(instance);
-        if (parentValue is null)
-        {
-            return ref Unsafe.NullRef<TField>();
-        }
-        else
-        {
-            return ref fieldAccessor(parentValue);
-        }
+        return fieldAccessor(parent);
+    }
+
+    protected override ref TField GetReference(TParent parent)
+    {
+        return ref fieldAccessor(parent);
+    }
+
+    protected override void SetValue(TParent parent, TField value)
+    {
+        fieldAccessor(parent) = value;
     }
 }

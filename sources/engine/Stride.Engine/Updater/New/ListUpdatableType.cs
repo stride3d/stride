@@ -7,16 +7,16 @@ namespace Stride.Updater.New;
 public sealed class ListUpdatableType<TList, TElement>(UpdatableType<TElement> elementType) : UpdatableType<TList>
     where TList : IList<TElement>
 {
-    public override UpdatableMember ResolveProperty(ReadOnlySpan<char> name, UpdatableMember<TList> parent)
+    public override UpdatableMember<TList> CreateProperty(string name)
     {
         throw new NotSupportedException("Lists do not have properties.");
     }
 
-    public override UpdatableMember ResolveIndexer(ReadOnlySpan<char> name, UpdatableMember<TList> parent)
+    public override UpdatableMember<TList> CreateIndexer(string name)
     {
-        if (int.TryParse(name, NumberStyles.Any, CultureInfo.InvariantCulture, out int index))
+        if (int.TryParse(name, NumberStyles.Any, CultureInfo.InvariantCulture, out int index) && index >= 0)
         {
-            return new ListIndexAccessor<TList, TElement>(parent, index, elementType);
+            return new ListIndexAccessor<TList, TElement>(name, index, elementType);
         }
         throw new NotSupportedException($"List index '{name}' is not valid.");
     }

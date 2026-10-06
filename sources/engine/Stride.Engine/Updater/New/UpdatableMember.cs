@@ -1,48 +1,213 @@
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace Stride.Updater.New;
 
 public abstract class UpdatableMember
 {
-    internal abstract void SetObject(object instance, object value);
-    internal abstract unsafe void SetBlittable(object instance, byte* value);
-    public abstract UpdatableMember ResolveProperty(ReadOnlySpan<char> name);
-    public abstract UpdatableMember ResolveIndexer(ReadOnlySpan<char> name);
-    public abstract bool IsBlittable { get; }
-    public abstract bool SupportsByReference { get; }
-    public abstract Type MemberType { get; }
+    public abstract UpdatableMember GetOrCreateProperty(string name);
+    public abstract UpdatableMember GetOrCreateIndexer(string name);
+    internal void MakeLeaf(int dataOffset)
+    {
+        DataOffset = dataOffset;
+    }
+
+    internal int DataOffset { get; private set; } = -1;
+    internal bool IsLeaf => DataOffset >= 0;
+    internal abstract Type MemberType { get; }
+    public abstract string Name { get; }
 }
-public abstract class UpdatableMember<T> : UpdatableMember
+public abstract class UpdatableMember<TParent> : UpdatableMember
 {
-    internal sealed override void SetObject(object instance, object value)
+    public abstract unsafe void Update(TParent parent, byte* data, UpdateObjectData[] updateObjects);
+    public abstract unsafe void Update(ref TParent parent, byte* data, UpdateObjectData[] updateObjects);
+}
+public abstract class UpdatableMember<TParent, TThis> : UpdatableMember<TParent>
+{
+    private readonly List<UpdatableMember<TThis>> properties = [];
+    private readonly List<UpdatableMember<TThis>> indexers = [];
+    internal sealed override Type MemberType => typeof(TThis);
+    public override unsafe void Update(TParent parent, byte* data, UpdateObjectData[] updateObjects)
     {
-        SetValue(instance, (T)value);
-    }
-
-    internal sealed override unsafe void SetBlittable(object instance, byte* value)
-    {
-        SetValue(instance, Unsafe.AsRef<T>(value));
-    }
-
-    public virtual T GetValue(object instance)
-    {
-        ref T reference = ref GetReference(instance);
-        return Unsafe.IsNullRef(ref reference) ? default : reference;
-    }
-
-    public abstract ref T GetReference(object instance);
-
-    public virtual void SetValue(object instance, T value)
-    {
-        ref T reference = ref GetReference(instance);
-        if (!Unsafe.IsNullRef(ref reference))
+        Debug.Assert(!RuntimeHelpers.IsReferenceOrContainsReferences<TParent>(), "Value types should call the other Update overload.");
+        if (IsLeaf)
         {
-            reference = value;
+            // Leaf node, update the value directly
+            if (RuntimeHelpers.IsReferenceOrContainsReferences<TThis>())
+            {
+                UpdateObjectData updateObject = updateObjects[DataOffset];
+                if (updateObject.Condition != 0)
+                {
+                    SetValue(parent, (TThis)updateObject.Value);
+                }
+            }
+            else
+            {
+                int* conditionPtr = (int*)(data + DataOffset);
+                if (*conditionPtr != 0)
+                {
+                    SetValue(parent, Unsafe.AsRef<TThis>(data + DataOffset + sizeof(int)));
+                }
+            }
+        }
+        else
+        {
+            // Not a leaf node, update the children
+            if (!typeof(TThis).IsValueType)
+            {
+                TThis propertyValue = GetValue(parent);
+                if (propertyValue is null)
+                {
+                    return;
+                }
+                for (var i = 0; i < properties.Count; i++)
+                {
+                    properties[i].Update(propertyValue, data, updateObjects);
+                }
+                for (var i = 0; i < indexers.Count; i++)
+                {
+                    indexers[i].Update(propertyValue, data, updateObjects);
+                }
+            }
+            else if (SupportsByReference)
+            {
+                ref TThis propertyValue = ref GetReference(parent);
+                if (Unsafe.IsNullRef(ref propertyValue))
+                {
+                    return;
+                }
+                for (var i = 0; i < properties.Count; i++)
+                {
+                    properties[i].Update(ref propertyValue, data, updateObjects);
+                }
+                for (var i = 0; i < indexers.Count; i++)
+                {
+                    indexers[i].Update(ref propertyValue, data, updateObjects);
+                }
+            }
+            else
+            {
+                TThis propertyValue = GetValue(parent);
+                for (var i = 0; i < properties.Count; i++)
+                {
+                    properties[i].Update(ref propertyValue, data, updateObjects);
+                }
+                for (var i = 0; i < indexers.Count; i++)
+                {
+                    indexers[i].Update(ref propertyValue, data, updateObjects);
+                }
+                SetValue(parent, propertyValue);
+            }
         }
     }
-
-    public sealed override bool IsBlittable => !RuntimeHelpers.IsReferenceOrContainsReferences<T>();
-
-    public sealed override Type MemberType => typeof(T);
+    public override unsafe void Update(ref TParent parent, byte* data, UpdateObjectData[] updateObjects)
+    {
+        Debug.Assert(RuntimeHelpers.IsReferenceOrContainsReferences<TParent>(), "Reference types should call the other Update overload.");
+        if (IsLeaf)
+        {
+            // Leaf node, update the value directly
+            if (RuntimeHelpers.IsReferenceOrContainsReferences<TThis>())
+            {
+                UpdateObjectData updateObject = updateObjects[DataOffset];
+                if (updateObject.Condition != 0)
+                {
+                    SetValue(ref parent, (TThis)updateObject.Value);
+                }
+            }
+            else
+            {
+                int* conditionPtr = (int*)(data + DataOffset);
+                if (*conditionPtr != 0)
+                {
+                    SetValue(ref parent, Unsafe.AsRef<TThis>(data + DataOffset + sizeof(int)));
+                }
+            }
+        }
+        else
+        {
+            // Not a leaf node, update the children
+            if (!typeof(TThis).IsValueType)
+            {
+                TThis propertyValue = GetValue(ref parent);
+                if (propertyValue is null)
+                {
+                    return;
+                }
+                for (var i = 0; i < properties.Count; i++)
+                {
+                    properties[i].Update(propertyValue, data, updateObjects);
+                }
+                for (var i = 0; i < indexers.Count; i++)
+                {
+                    indexers[i].Update(propertyValue, data, updateObjects);
+                }
+            }
+            else if (SupportsByReference)
+            {
+                ref TThis propertyValue = ref GetReference(ref parent);
+                if (Unsafe.IsNullRef(ref propertyValue))
+                {
+                    return;
+                }
+                for (var i = 0; i < properties.Count; i++)
+                {
+                    properties[i].Update(ref propertyValue, data, updateObjects);
+                }
+                for (var i = 0; i < indexers.Count; i++)
+                {
+                    indexers[i].Update(ref propertyValue, data, updateObjects);
+                }
+            }
+            else
+            {
+                TThis propertyValue = GetValue(ref parent);
+                for (var i = 0; i < properties.Count; i++)
+                {
+                    properties[i].Update(ref propertyValue, data, updateObjects);
+                }
+                for (var i = 0; i < indexers.Count; i++)
+                {
+                    indexers[i].Update(ref propertyValue, data, updateObjects);
+                }
+                SetValue(ref parent, propertyValue);
+            }
+        }
+    }
+    protected abstract bool SupportsByReference { get; }
+    protected virtual TThis GetValue(TParent parent) => throw new NotSupportedException();
+    protected virtual TThis GetValue(ref TParent parent) => throw new NotSupportedException();
+    protected virtual ref TThis GetReference(TParent parent) => throw new NotSupportedException();
+    protected virtual ref TThis GetReference(ref TParent parent) => throw new NotSupportedException();
+    protected virtual void SetValue(TParent parent, TThis value) => throw new NotSupportedException();
+    protected virtual void SetValue(ref TParent parent, TThis value) => throw new NotSupportedException();
+    public sealed override UpdatableMember<TThis> GetOrCreateProperty(string name)
+    {
+        foreach (var child in properties)
+        {
+            if (child.Name == name)
+            {
+                return child;
+            }
+        }
+        var newChild = CreateProperty(name);
+        properties.Add(newChild);
+        return newChild;
+    }
+    public override UpdatableMember<TThis> GetOrCreateIndexer(string name)
+    {
+        foreach (var child in indexers)
+        {
+            if (child.Name == name)
+            {
+                return child;
+            }
+        }
+        var newChild = CreateIndexer(name);
+        indexers.Add(newChild);
+        return newChild;
+    }
+    public abstract UpdatableMember<TThis> CreateProperty(string name);
+    public abstract UpdatableMember<TThis> CreateIndexer(string name);
 }

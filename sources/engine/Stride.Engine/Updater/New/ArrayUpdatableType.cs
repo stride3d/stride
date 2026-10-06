@@ -5,16 +5,16 @@ namespace Stride.Updater.New;
 
 public sealed class ArrayUpdatableType<T>(UpdatableType<T> elementType) : UpdatableType<T[]>
 {
-    public override UpdatableMember ResolveProperty(ReadOnlySpan<char> name, UpdatableMember<T[]> parent)
+    public override UpdatableMember<T[]> CreateProperty(string name)
     {
         throw new NotSupportedException("Arrays do not have properties.");
     }
 
-    public override UpdatableMember ResolveIndexer(ReadOnlySpan<char> name, UpdatableMember<T[]> parent)
+    public override UpdatableMember<T[]> CreateIndexer(string name)
     {
-        if (int.TryParse(name, NumberStyles.Any, CultureInfo.InvariantCulture, out int index))
+        if (int.TryParse(name, NumberStyles.Any, CultureInfo.InvariantCulture, out int index) && index >= 0)
         {
-            return new ArrayIndexAccessor<T>(parent, index, elementType);
+            return new ArrayIndexAccessor<T>(name, index, elementType);
         }
         throw new NotSupportedException($"Array index '{name}' is not valid.");
     }

@@ -1,49 +1,52 @@
-using System;
 using System.Runtime.CompilerServices;
 
 namespace Stride.Updater.New;
 
-public sealed class ArrayIndexAccessor<T>(UpdatableMember<T[]> parent, int index, UpdatableType<T> elementType) : UpdatableMember<T>
+internal sealed class ArrayIndexAccessor<T>(string name, int index, UpdatableType<T> elementType) : UpdatableMember<T[], T>
 {
-    public override bool SupportsByReference => true;
-    public override UpdatableMember ResolveProperty(ReadOnlySpan<char> name)
+    protected override bool SupportsByReference => true;
+
+    public override string Name => name;
+
+    public override UpdatableMember<T> CreateProperty(string name)
     {
-        return elementType.ResolveProperty(name, this);
+        return elementType.CreateProperty(name);
     }
-    public override UpdatableMember ResolveIndexer(ReadOnlySpan<char> name)
+
+    public override UpdatableMember<T> CreateIndexer(string name)
     {
-        return elementType.ResolveIndexer(name, this);
+        return elementType.CreateIndexer(name);
     }
-    public override T GetValue(object instance)
+
+    protected override T GetValue(T[] parent)
     {
-        var parentValue = parent.GetValue(instance);
-        if (parentValue is not null && parentValue.Length > index)
+        if (parent.Length > index)
         {
-            return parentValue[index];
+            return parent[index];
         }
         else
         {
             return default;
         }
     }
-    public override ref T GetReference(object instance)
+
+    protected override ref T GetReference(T[] parent)
     {
-        var parentValue = parent.GetValue(instance);
-        if (parentValue is not null && parentValue.Length > index)
+        if (parent.Length > index)
         {
-            return ref parentValue[index];
+            return ref parent[index];
         }
         else
         {
             return ref Unsafe.NullRef<T>();
         }
     }
-    public override void SetValue(object instance, T value)
+
+    protected override void SetValue(T[] parent, T value)
     {
-        var parentValue = parent.GetValue(instance);
-        if (parentValue is not null && parentValue.Length > index)
+        if (parent.Length > index)
         {
-            parentValue[index] = value;
+            parent[index] = value;
         }
     }
 }

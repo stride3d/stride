@@ -1,58 +1,34 @@
-using System;
-using System.Runtime.CompilerServices;
-
 namespace Stride.Updater.New;
 
-public sealed unsafe class StructUpdatableField<TParent, TField>(UpdatableMember<TParent> parent, delegate*<ref TParent, ref TField> fieldAccessor, UpdatableType<TField> fieldType) : UpdatableMember<TField>
+public sealed unsafe class StructUpdatableField<TParent, TField>(string name, delegate*<ref TParent, ref TField> fieldAccessor, UpdatableType<TField> fieldType) : UpdatableMember<TParent, TField>
     where TParent : struct
 {
-    public override bool SupportsByReference => parent.SupportsByReference;
+    protected override bool SupportsByReference => true;
 
-    public override UpdatableMember ResolveProperty(ReadOnlySpan<char> name)
+    public override string Name => name;
+
+    public override UpdatableMember<TField> CreateProperty(string name)
     {
-        return fieldType.ResolveProperty(name, this);
+        return fieldType.CreateProperty(name);
     }
 
-    public override UpdatableMember ResolveIndexer(ReadOnlySpan<char> name)
+    public override UpdatableMember<TField> CreateIndexer(string name)
     {
-        return fieldType.ResolveIndexer(name, this);
+        return fieldType.CreateIndexer(name);
     }
 
-    public override TField GetValue(object instance)
+    protected override TField GetValue(ref TParent parent)
     {
-        if (SupportsByReference)
-        {
-            ref TParent reference = ref parent.GetReference(instance);
-            return Unsafe.IsNullRef(ref reference) ? default : fieldAccessor(ref reference);
-        }
-        else
-        {
-            var temp = parent.GetValue(instance);
-            return fieldAccessor(ref temp);
-        }
+        return fieldAccessor(ref parent);
     }
 
-    public override ref TField GetReference(object instance)
+    protected override ref TField GetReference(ref TParent parent)
     {
-        ref TParent reference = ref parent.GetReference(instance);
-        return ref Unsafe.IsNullRef(ref reference) ? ref Unsafe.NullRef<TField>() : ref fieldAccessor(ref reference);
+        return ref fieldAccessor(ref parent);
     }
 
-    public override void SetValue(object instance, TField value)
+    protected override void SetValue(ref TParent parent, TField value)
     {
-        if (SupportsByReference)
-        {
-            ref TParent reference = ref parent.GetReference(instance);
-            if (!Unsafe.IsNullRef(ref reference))
-            {
-                fieldAccessor(ref reference) = value;
-            }
-        }
-        else
-        {
-            var temp = parent.GetValue(instance);
-            fieldAccessor(ref temp) = value;
-            parent.SetValue(instance, temp);
-        }
+        fieldAccessor(ref parent) = value;
     }
 }
