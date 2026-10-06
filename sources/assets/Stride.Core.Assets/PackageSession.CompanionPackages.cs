@@ -116,7 +116,16 @@ partial class PackageSession
         // closure like any other package dependency
         if (TryLoadDevRedirectPackage(name, version, log) is { } installedDevRedirect)
             return installedDevRedirect;
+        var loadedBefore = new HashSet<string>(loadedByName.Keys, StringComparer.OrdinalIgnoreCase);
         LoadPackageDependenciesFromLockFile(lockFile, NuGetFramework.Parse(hostFramework), loadedByName, log);
+
+        // A companion can depend on another plugin's companion (an asset type deriving from that plugin's): it comes
+        // with this closure, so it is a companion too, not a package the game references directly
+        foreach (var (loadedName, container) in loadedByName)
+        {
+            if (!loadedBefore.Contains(loadedName) && container.Package.Kind != PackageKind.Runtime)
+                container.IsCompanionPackage = true;
+        }
         return loadedByName.GetValueOrDefault(name);
     }
 

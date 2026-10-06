@@ -266,7 +266,8 @@ public class StandalonePackage : PackageContainer
     public bool IsDependencyPackage { get; set; }
 
     /// <summary>
-    /// True for a package loaded because another package declared it as a companion.
+    /// True for a package loaded because another package declared it as a companion, or a companion that another
+    /// companion depends on.
     /// </summary>
     public bool IsCompanionPackage { get; set; }
 
