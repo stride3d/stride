@@ -21,6 +21,14 @@ public sealed class WeldConstraintComponent : TwoBodyConstraintComponent<Weld>, 
         SpringSettings = new SpringSettings(30, 5)
     };
 
+    internal override void CenterOfMassShifted(BodyComponent body, Vector3 shift)
+    {
+        if (ReferenceEquals(body, A))
+            LocalOffset -= shift;
+        if (ReferenceEquals(body, B))
+            LocalOffset += LocalOrientation * shift;
+    }
+
     /// <summary>
     /// Offset from body A to body B in the local space of A
     /// </summary>

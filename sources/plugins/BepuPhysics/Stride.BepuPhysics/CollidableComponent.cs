@@ -272,13 +272,43 @@ public abstract class CollidableComponent : EntityComponent
 
     internal void TryUpdateFeatures()
     {
-        #warning Norbo: Some of the callsites for this method may not require a full reconstruction of the body ? Something we should validate
         if (Simulation is not null)
-            ReAttach(Simulation);
+        {
+            if (CanReshape)
+                Reshape(Simulation);
+            else
+                ReAttach(Simulation);
+        }
         else if (Processor is not null) // We may have to fall back to this when 'Collider.TryAttach' failed previously; when this collidable didn't have any collider before
             ReAttach(SimulationSelector.Pick(Processor.BepuConfiguration, Entity));
 
         OnFeaturesUpdated?.Invoke(this);
+    }
+
+    private void Reshape(BepuSimulation simulation)
+    {
+        Debug.Assert(Processor is not null);
+
+        Versioning = Interlocked.Increment(ref VersioningCounter);
+
+        var previousCenterOfMass = CenterOfMass;
+
+        if (ShapeIndex.Exists)
+        {
+            Collider.Detach(simulation.Simulation.Shapes, simulation.BufferPool, ShapeIndex);
+            ShapeIndex = default;
+        }
+
+        if (false == Collider.TryAttach(simulation.Simulation.Shapes, simulation.BufferPool, Processor.ShapeCache, ShouldCalculateInertia, out var index, out var centerOfMass, out var shapeInertia))
+        {
+            Detach();
+            return;
+        }
+
+        ShapeIndex = index;
+        CenterOfMass = centerOfMass;
+
+        ReshapeInner(index, shapeInertia, centerOfMass - previousCenterOfMass);
     }
 
     internal void ReAttach(BepuSimulation onSimulation)
@@ -384,6 +414,19 @@ public abstract class CollidableComponent : EntityComponent
     /// May occur right before <see cref="AttachInner"/> when certain larger changes are made to the object, <see cref="Simulation"/> is the one this object was on prior to detaching
     /// </remarks>
     protected abstract void DetachInner();
+
+    /// <summary>
+    /// Whether this object can take a new shape while it stays in the simulation, see <see cref="ReshapeInner"/>
+    /// </summary>
+    protected virtual bool CanReshape => false;
+
+    /// <summary>
+    /// Called instead of <see cref="DetachInner"/> and <see cref="AttachInner"/> when the collider of this object changed while it is in the simulation and <see cref="CanReshape"/> is true
+    /// </summary>
+    /// <remarks>
+    /// <paramref name="centerOfMassShift"/> is the move of <see cref="CenterOfMass"/> in local space, <see cref="Pose"/> has to follow it for the object to stay in place
+    /// </remarks>
+    protected virtual void ReshapeInner(TypedIndex shapeIndex, BodyInertia shapeInertia, Vector3 centerOfMassShift) { }
 
 
     protected void RegisterContactHandler()
