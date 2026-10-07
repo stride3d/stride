@@ -16,6 +16,7 @@ namespace Stride.Assets.Navigation
     [AssetContentType(typeof(NavigationMesh))]
     [AssetFormatVersion(StrideConfig.LogicalPackageName, CurrentVersion, "2.0.0.0")]
     [GameSettingsDependency(typeof(NavigationSettings))]
+    [ExcludedFromPreviews]
     public partial class NavigationMeshAsset : Asset
     {
         private const string CurrentVersion = "2.0.0.0";
