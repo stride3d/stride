@@ -64,7 +64,7 @@ namespace Stride.BepuPhysics.Tests
 
                 // Test at an angle
                 var random = new Random(1010);
-                for (int i = 0; i < 128; i++)
+                for (int i = 0; i < 256; i++)
                 {
                     Vector2 posNorm = new Vector2(random.NextSingle(), random.NextSingle()) * 2f - new Vector2(1f);
 
@@ -106,7 +106,6 @@ namespace Stride.BepuPhysics.Tests
             private HeightRange[] _coarseBlocks = Array.Empty<HeightRange>();
             private bool _initialized = false;
 
-            #warning change these
             public float Size => 193;
 
             public int Subdivision => 27;

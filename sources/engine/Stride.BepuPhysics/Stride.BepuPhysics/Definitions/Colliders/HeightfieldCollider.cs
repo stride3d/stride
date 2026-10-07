@@ -72,7 +72,8 @@ public sealed class HeightfieldCollider : ICollider
 
         ArgumentOutOfRangeException.ThrowIfLessThan(subdivision, 0);
         ArgumentOutOfRangeException.ThrowIfLessThan(size, 0);
-        float cellSize = size / subdivision;
+        float sampleInterval = size / subdivision;
+        float subdivisionsPerUnit = subdivision / size;
 
         Source.GetColliderData(out var sampler, out var coarseBlocks, out var coarseBlocksSubdivision);
 
@@ -92,7 +93,8 @@ public sealed class HeightfieldCollider : ICollider
 
         HeightfieldShape shape;
         shape.Sampler = sourceHandle;
-        shape.SampleInterval = cellSize;
+        shape.SampleInterval = sampleInterval;
+        shape.SampleIntervalReciprocal = new System.Numerics.Vector3(subdivisionsPerUnit, 1, subdivisionsPerUnit);
         shape.Subdivision = subdivision;
         shape.MinHeight = minHeight;
         shape.MaxHeight = maxHeight;
