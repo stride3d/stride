@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
+using System.Threading;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 
@@ -29,7 +30,26 @@ public class StrideCheckDevPackageInputs : Task
     [Output] public ITaskItem[] Changed { get; set; }
     [Output] public bool OwnStubFresh { get; set; }
 
+    // The generator rewrites the stamp files under this mutex (a full run, or another project's adopt running in
+    // parallel with this check), so they are read under it too
     public override bool Execute()
+    {
+        using (var mutex = new Mutex(false, @"Global\StrideDevPackages"))
+        {
+            try { mutex.WaitOne(); } catch (AbandonedMutexException) { /* the holder died; the files are whole lines, so proceed */ }
+            try
+            {
+                Check();
+            }
+            finally
+            {
+                mutex.ReleaseMutex();
+            }
+        }
+        return true;
+    }
+
+    private void Check()
     {
         var changed = new List<ITaskItem>();
         var stampTime = File.GetLastWriteTimeUtc(StampPath);
@@ -65,7 +85,6 @@ public class StrideCheckDevPackageInputs : Task
                     OwnStubFresh = string.Equals(rawLine.Substring(tab + 1).Trim(), fingerprint, StringComparison.OrdinalIgnoreCase);
             }
         }
-        return true;
     }
 
     // Same as the generator's Fingerprint: the content hashes of the fixed inputs, joined by '\n', hashed again.
