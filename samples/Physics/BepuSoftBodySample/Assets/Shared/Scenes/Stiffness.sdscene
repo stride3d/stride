@@ -1,0 +1,404 @@
+!SceneAsset
+Id: c206ad10-37b6-3935-9106-5e8ed0824ac7
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+ChildrenIds: []
+Offset: {X: 0.0, Y: 0.0, Z: 0.0}
+Hierarchy:
+    RootParts:
+        - ref!! 7b3b8d87-a1c2-84f7-ff19-cd7f49aaa25f
+        - ref!! 3c5deda0-3bbf-4b17-51bc-ca79ef458bc0
+        - ref!! 5be0aca3-b742-b0e1-1fb3-f8efa34e9419
+        - ref!! a7f519cb-19a1-58cb-031b-2aa3fe227430
+        - ref!! f0fa2b86-7a86-864b-a53b-f6e30cc8c2f6
+        - ref!! 6c852e49-7c81-4c68-c2d4-adb58401eadd
+        - ref!! f1113532-8f26-08bb-72ea-428a0ad088c7
+        - ref!! 4550cfc5-cd9f-49ec-c101-70c46a6f447a
+        - ref!! 9a438a4b-edae-e6d8-fab2-2cb758e93ab5
+        - ref!! d79e72d4-a9cc-6942-39e2-d74174f90852
+        - ref!! 24ee7fcc-83d1-fc1e-ca10-79ad01a3b015
+        - ref!! 2580335a-2a93-479e-f647-0a7f11029032
+        - ref!! 78cd723e-4679-0b89-2dad-a8c080e57ea2
+        - ref!! 725e0bed-f50e-cbaa-4c47-2233256940e8
+        - ref!! 938a4ca3-246b-92cd-775f-224628e11abd
+    Parts:
+        -   Entity:
+                Id: 7b3b8d87-a1c2-84f7-ff19-cd7f49aaa25f
+                Name: Camera
+                Components:
+                    7d2d725955e70559bcac9be7fe23c594: !TransformComponent
+                        Id: 43769082-bc4d-dcda-9ea2-34f04732c8ed
+                        Position: {X: 0.0, Y: 3.0, Z: 9.0}
+                        Rotation: {X: -0.119585, Y: 0.0, Z: 0.0, W: 0.992824}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    8199dd0785e1d2d24ac4d91cbf2853b2: !BepuSoftBodySample.Game.Components.Camera.BasicCameraControllerComponent,BepuSoftBodySample.Game
+                        Id: e3078fe1-d7de-705e-16f7-d05be68746e0
+                        Gamepad: false
+                        KeyboardMovementSpeed: {X: 5.0, Y: 5.0, Z: 5.0}
+                        SpeedFactor: 4.0
+                    d4edf5e29dae928d48388e17b061d320: !BepuSoftBodySample.Game.Components.Camera.FindAndAttachCameraComponent,BepuSoftBodySample.Game
+                        Id: b485a07b-9add-ee5e-93c4-fcd2c9a4b4f5
+                        CameraComponent: null
+        -   Entity:
+                Id: 3c5deda0-3bbf-4b17-51bc-ca79ef458bc0
+                Name: Skybox
+                Components:
+                    9f683d95a536f5e09ae30f2645f2bfb4: !TransformComponent
+                        Id: ef6a8a3b-5194-ee69-990c-fdfd632f66fb
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    f647ba6ad25a871cc3d71613e09c5b87: !BackgroundComponent
+                        Id: efeaa749-b858-dc9d-481e-0dd709dbae21
+                        Texture: 329a39e7-4963-475c-a2c0-bdfc73b5f0d4:Skybox texture
+                        Intensity: 1.0
+                    ed5981190c0ec3c75977881b49d99533: !LightComponent
+                        Id: b3e2aeb0-4031-39b3-6fc4-57353fe00e1f
+                        Type: !LightSkybox
+                            Skybox: c7a3f3cb-e399-4779-bbbb-a4a2a1e50aa1:Skybox
+                        Intensity: 0.5
+        -   Entity:
+                Id: 5be0aca3-b742-b0e1-1fb3-f8efa34e9419
+                Name: Sun
+                Components:
+                    7115f9f72ed6833a0fe4a0c1b95ee45d: !TransformComponent
+                        Id: 76301ae3-c98a-f985-0ad8-06f0c1cc8285
+                        Position: {X: 0.0, Y: 5.0, Z: 0.0}
+                        Rotation: {X: -0.397327, Y: 0.209735, Z: 0.093796, W: 0.888451}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    8306c3c36949e8125d973cea9659f1e2: !LightComponent
+                        Id: 0723aacd-d0c5-eb28-6546-71ef186944e8
+                        Type: !LightDirectional
+                            Color: !ColorRgbProvider
+                                Value: {R: 1.0, G: 0.956, B: 0.886}
+                            Shadow:
+                                Enabled: true
+                                Filter: !LightShadowMapFilterTypePcf
+                                    FilterSize: Filter7x7
+                                Size: XLarge
+                                DepthRange: {}
+                                PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
+                                ComputeTransmittance: false
+                                BiasParameters:
+                                    NormalOffsetScale: 20.0
+                        Intensity: 3.0
+        -   Entity:
+                Id: a7f519cb-19a1-58cb-031b-2aa3fe227430
+                Name: Floor
+                Components:
+                    f54850e113bac1f3772c3455f0040444: !TransformComponent
+                        Id: bb11ae3f-f15d-a56a-a1ce-ef2b97bf6e44
+                        Position: {X: 0.0, Y: -0.5, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 200.0, Y: 1.0, Z: 200.0}
+                        Children: {}
+                    f6664da233e4c845e92cf1276c7808c1: !ModelComponent
+                        Id: ab0e693f-2492-e22a-fc64-e85678005943
+                        Model: b4d30d41-5492-cf4e-0dae-6c5e5f9387fa:Models/Cube
+                        Materials:
+                            fd6843891b68c34ee37a9b1cadee42b4~0: 6c520bad-a549-71d1-4f29-ec019f3a1fdf:Materials/Floor
+                    d52f320f46e7122f7ae80f214bc33d73: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
+                        Id: 5c981b65-74e5-a502-f009-c8f2d35e1ea5
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                e6c850940f8e1eb269bab3cb348186ba: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 200.0, Y: 1.0, Z: 200.0}
+                        FrictionCoefficient: 1.0
+        -   Entity:
+                Id: f0fa2b86-7a86-864b-a53b-f6e30cc8c2f6
+                Name: Scripts
+                Components:
+                    6000ab8e241463a9c24292bfda8de57e: !TransformComponent
+                        Id: 148677bb-8e46-1d16-37e7-37f64d5798c9
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    8ccda459a2f40c78bd3ef9eccb1c652d: !BepuSoftBodySample.Game.Components.SceneDescriptionComponent,BepuSoftBodySample.Game
+                        Id: 9fffd611-0e90-be06-2e0b-d9b015fbbdeb
+                        Description: 'The same crate lands on cubes from 3 Hz on the left to 50 Hz on the right.'
+                    06dcce20c6370629f05ef6408b5788d7: !BepuSoftBodySample.Game.Components.SoftGravityGunComponent,BepuSoftBodySample.Game
+                        Id: 60db1a9e-deb2-ae2b-6050-2f3628434a0a
+                        CameraEntity: ref!! 7b3b8d87-a1c2-84f7-ff19-cd7f49aaa25f
+                        MarkerPrefab: 3075790f-ed9d-6dac-f16a-f38a848b055c:Prefabs/Marker
+                        BallPrefab: 93d5a3da-f3a6-2397-f88c-146ee67bac7a:Prefabs/Ball
+                    b446ec7813c3b662c3283cdd5f3333ef: !BepuSoftBodySample.Game.Components.ParticleViewComponent,BepuSoftBodySample.Game
+                        Id: 0160560b-c1c7-96e4-dda1-e3b5a1ec742e
+                        ParticleMaterial: 3e38fbde-13b9-e3b0-e472-cb12e55512a4:Materials/Particle
+                        PinnedMaterial: 12f5ec95-8de0-100e-ddc7-10bcd7660756:Materials/PinnedParticle
+        -   Entity:
+                Id: 6c852e49-7c81-4c68-c2d4-adb58401eadd
+                Name: Cube 3 Hz
+                Components:
+                    58911fe9b8915737a861e9ae6f6e944e: !TransformComponent
+                        Id: 4c439401-bc48-58fa-00b7-90a57a2db1be
+                        Position: {X: -3.6, Y: 0.62, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.2, Z: 1.0}
+                        Children: {}
+                    00281a6f68b5f577764d063407ab8e2f: !ModelComponent
+                        Id: 1fcc46b7-ab94-148e-5c88-4386cae2bfbd
+                        Model: b54720aa-7056-3232-c868-e8e3add8cde4:Models/RoundedCube
+                        Materials:
+                            ce76ab3f30bf4e9d2ce9bdcc9fdb1af5~0: a0d98ab3-bb3c-8e29-140a-471a886409b1:Materials/Strawberry
+                    4f213793b5590104f168c3e954cfc2fa: !Stride.BepuPhysics.Soft.VolumetricSoftBodyComponent,Stride.BepuPhysics.Soft
+                        Id: a3780f23-a18a-2f0c-b4f7-2c59fd183643
+                        Collider: !Stride.BepuPhysics.Soft.Colliders.ParticleCollider,Stride.BepuPhysics.Soft {}
+                        Mass: 1.0
+                        Resolution: 6
+                        Stiffness: 3.0
+                        ShearStiffness: 3.0
+                        VolumeStiffness: 3.0
+        -   Entity:
+                Id: f1113532-8f26-08bb-72ea-428a0ad088c7
+                Name: Crate 0
+                Components:
+                    413e42139c27a32836acac7cf0c8c07c: !TransformComponent
+                        Id: e8fdd082-13f0-c6db-0393-76e95cbecef5
+                        Position: {X: -3.6, Y: 2.6, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.8, Y: 0.3, Z: 0.8}
+                        Children: {}
+                    c88cf58839dafa3a4afec41583983fd3: !ModelComponent
+                        Id: dea5a847-fab3-fb92-0951-4e2bda12d6fe
+                        Model: b4d30d41-5492-cf4e-0dae-6c5e5f9387fa:Models/Cube
+                        Materials:
+                            d77b44993faeacaece833997c956ebd2~0: 307f36ed-8afc-7888-7a56-a43ac56affe7:Materials/Steel
+                    1110aa6aa2fa188d471250a0e0513217: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
+                        Id: d6cb9a54-01ea-2d3d-c052-c038a15359a3
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                a5635332e8569f8bfdbafd8e8b78498f: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 6.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 0.8, Y: 0.3, Z: 0.8}
+                        Kinematic: false
+                        Gravity: true
+                    c8f04c89a9e0ab0662fcb9464fcc2473: !BepuSoftBodySample.Game.Components.LaunchComponent,BepuSoftBodySample.Game
+                        Id: 0153e8ff-e95f-2c58-fd4e-0c40ad735d45
+                        Delay: 0.6
+                        Velocity: {X: 0.0, Y: 0.0, Z: 0.0}
+                        HoldUntilLaunch: true
+        -   Entity:
+                Id: 4550cfc5-cd9f-49ec-c101-70c46a6f447a
+                Name: Cube 6 Hz
+                Components:
+                    718dec858857bc9d6f850ed26610294a: !TransformComponent
+                        Id: 5c1cf0fd-5d9d-804c-1621-329e56774747
+                        Position: {X: -1.8, Y: 0.62, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.2, Z: 1.0}
+                        Children: {}
+                    06f04f4f03088b00551b86c94091bb5b: !ModelComponent
+                        Id: 21b5432e-36c4-f432-056b-a416779b4c55
+                        Model: b54720aa-7056-3232-c868-e8e3add8cde4:Models/RoundedCube
+                        Materials:
+                            11a00cc7d332f1e4ad283f3513d0d031~0: ef84157c-df9e-8802-e426-06e1ef9a01e3:Materials/Lime
+                    f456ee4923c6ff6a0945646bd8f46506: !Stride.BepuPhysics.Soft.VolumetricSoftBodyComponent,Stride.BepuPhysics.Soft
+                        Id: 8960607c-93d2-e6ca-1a93-9350cfff60ff
+                        Collider: !Stride.BepuPhysics.Soft.Colliders.ParticleCollider,Stride.BepuPhysics.Soft {}
+                        Mass: 1.0
+                        Resolution: 6
+                        Stiffness: 6.0
+                        ShearStiffness: 6.0
+                        VolumeStiffness: 6.0
+        -   Entity:
+                Id: 9a438a4b-edae-e6d8-fab2-2cb758e93ab5
+                Name: Crate 1
+                Components:
+                    4be1e2a3d0f017f198ccb8484e8d04cb: !TransformComponent
+                        Id: fe7a17ad-975f-0221-bf39-b082e26761c5
+                        Position: {X: -1.8, Y: 2.6, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.8, Y: 0.3, Z: 0.8}
+                        Children: {}
+                    9cc41f586140f7b74b42e59ac3f59341: !ModelComponent
+                        Id: 8c39ff6c-f6bd-2129-84d5-0320d9046e8b
+                        Model: b4d30d41-5492-cf4e-0dae-6c5e5f9387fa:Models/Cube
+                        Materials:
+                            de66b9fef3714ea25e347e2fcfdf0ee3~0: 307f36ed-8afc-7888-7a56-a43ac56affe7:Materials/Steel
+                    f161727bdce7aa8173a8fb7217b15ab7: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
+                        Id: 2cea9796-5a18-7061-af1d-3b49fb3529d8
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                85bf40ca9a87f572507914f1db571cf1: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 6.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 0.8, Y: 0.3, Z: 0.8}
+                        Kinematic: false
+                        Gravity: true
+                    c009fe7419bdfce0b8b3b9b4fe9056bb: !BepuSoftBodySample.Game.Components.LaunchComponent,BepuSoftBodySample.Game
+                        Id: 1bee1f16-5d80-5355-5bc9-d6fdde98e879
+                        Delay: 0.6
+                        Velocity: {X: 0.0, Y: 0.0, Z: 0.0}
+                        HoldUntilLaunch: true
+        -   Entity:
+                Id: d79e72d4-a9cc-6942-39e2-d74174f90852
+                Name: Cube 12 Hz
+                Components:
+                    32303baffc62ea4c7c98f01a7853c207: !TransformComponent
+                        Id: d86235ac-bf88-e325-166a-41e4cfba1021
+                        Position: {X: 0.0, Y: 0.62, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.2, Z: 1.0}
+                        Children: {}
+                    307436908a163de5cb878fed281a734e: !ModelComponent
+                        Id: 94b70348-2e82-2daa-a30f-d21d6444e2a7
+                        Model: b54720aa-7056-3232-c868-e8e3add8cde4:Models/RoundedCube
+                        Materials:
+                            c584d0a2433813dc196e7658f6d9df3f~0: a6ac4738-3401-9edf-d11e-4fad889b46bd:Materials/Orange
+                    408aedb3c4313e29ed40f546aaf101c8: !Stride.BepuPhysics.Soft.VolumetricSoftBodyComponent,Stride.BepuPhysics.Soft
+                        Id: 40f27397-137f-4017-bc8d-7e9de65a9a8a
+                        Collider: !Stride.BepuPhysics.Soft.Colliders.ParticleCollider,Stride.BepuPhysics.Soft {}
+                        Mass: 1.0
+                        Resolution: 6
+                        Stiffness: 12.0
+                        ShearStiffness: 12.0
+                        VolumeStiffness: 12.0
+        -   Entity:
+                Id: 24ee7fcc-83d1-fc1e-ca10-79ad01a3b015
+                Name: Crate 2
+                Components:
+                    cbeef66927eec2cdd42ae10d1f222b2c: !TransformComponent
+                        Id: 094462a4-2ef2-22e9-309d-74d8e364b8bb
+                        Position: {X: 0.0, Y: 2.6, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.8, Y: 0.3, Z: 0.8}
+                        Children: {}
+                    51cb3289019a9147d37e4a7c75cc9021: !ModelComponent
+                        Id: 6a090f98-8700-233c-f893-cd359a460076
+                        Model: b4d30d41-5492-cf4e-0dae-6c5e5f9387fa:Models/Cube
+                        Materials:
+                            f73db976ee93ca123f608754593ca7f9~0: 307f36ed-8afc-7888-7a56-a43ac56affe7:Materials/Steel
+                    185fde86389514dc11a04c28482d4319: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
+                        Id: 4d3b0343-361d-48f1-d779-00cfeb678dac
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                35153941943440f1201aeb0f6cc3d20b: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 6.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 0.8, Y: 0.3, Z: 0.8}
+                        Kinematic: false
+                        Gravity: true
+                    16a8cbae27858717f21bcd0dc83ecb39: !BepuSoftBodySample.Game.Components.LaunchComponent,BepuSoftBodySample.Game
+                        Id: 6e992580-5d0f-77f9-d379-b560bf789282
+                        Delay: 0.6
+                        Velocity: {X: 0.0, Y: 0.0, Z: 0.0}
+                        HoldUntilLaunch: true
+        -   Entity:
+                Id: 2580335a-2a93-479e-f647-0a7f11029032
+                Name: Cube 25 Hz
+                Components:
+                    1a3e2e638c826540442b038856c459f3: !TransformComponent
+                        Id: 99ca0858-4c9d-c0eb-8eef-b31a1153361f
+                        Position: {X: 1.8, Y: 0.62, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.2, Z: 1.0}
+                        Children: {}
+                    c53108f5c0a6ea9c0558128807b65a89: !ModelComponent
+                        Id: 4b314d78-b99d-eae4-33f7-a3351fb61eff
+                        Model: b54720aa-7056-3232-c868-e8e3add8cde4:Models/RoundedCube
+                        Materials:
+                            eba5e451081429a573319e3b67ff4007~0: f45d72b9-de30-aad1-56a6-55433d7cd194:Materials/Blueberry
+                    9601bc3f904931a68645540e9e1ac1f8: !Stride.BepuPhysics.Soft.VolumetricSoftBodyComponent,Stride.BepuPhysics.Soft
+                        Id: 7cfda697-a7dc-2079-6628-c36fae652883
+                        Collider: !Stride.BepuPhysics.Soft.Colliders.ParticleCollider,Stride.BepuPhysics.Soft {}
+                        Mass: 1.0
+                        Resolution: 6
+                        Stiffness: 25.0
+                        ShearStiffness: 25.0
+                        VolumeStiffness: 25.0
+        -   Entity:
+                Id: 78cd723e-4679-0b89-2dad-a8c080e57ea2
+                Name: Crate 3
+                Components:
+                    01fdd4a39e4ffc41a40cb511f17a6bb2: !TransformComponent
+                        Id: 40956e89-237b-7215-a9db-eef6872c65a5
+                        Position: {X: 1.8, Y: 2.6, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.8, Y: 0.3, Z: 0.8}
+                        Children: {}
+                    71796beb4856d20665946b79c7182901: !ModelComponent
+                        Id: 4d1e690c-ec75-38e7-d3a0-af81560423fa
+                        Model: b4d30d41-5492-cf4e-0dae-6c5e5f9387fa:Models/Cube
+                        Materials:
+                            8955a0f0168843f2b915669e9c3d80ac~0: 307f36ed-8afc-7888-7a56-a43ac56affe7:Materials/Steel
+                    33c20fc5d8d7f1f59d18fa0f7c01b4d9: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
+                        Id: 9772b314-e6a4-d0f2-83fa-8004e3bdba7d
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                898d85000fd8f8175c420c200ca2653b: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 6.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 0.8, Y: 0.3, Z: 0.8}
+                        Kinematic: false
+                        Gravity: true
+                    ce512e25fe6c5a49af5c5a8ccd55b478: !BepuSoftBodySample.Game.Components.LaunchComponent,BepuSoftBodySample.Game
+                        Id: 6944d176-832b-79aa-9875-9c446f0782dc
+                        Delay: 0.6
+                        Velocity: {X: 0.0, Y: 0.0, Z: 0.0}
+                        HoldUntilLaunch: true
+        -   Entity:
+                Id: 725e0bed-f50e-cbaa-4c47-2233256940e8
+                Name: Cube 50 Hz
+                Components:
+                    1eb92fa3e978abc8f828319715c17306: !TransformComponent
+                        Id: 64933036-8577-7324-31d9-aea8492db010
+                        Position: {X: 3.6, Y: 0.62, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.2, Z: 1.0}
+                        Children: {}
+                    61b668f464a04b2393c8f2a8fa178aaa: !ModelComponent
+                        Id: 1627d1d0-93b0-54b0-953a-fe4cfee90c82
+                        Model: b54720aa-7056-3232-c868-e8e3add8cde4:Models/RoundedCube
+                        Materials:
+                            52e7cfd85f79695eaa909bf3ad495900~0: 1edb4d5d-f782-54da-8766-dda3e45abfee:Materials/Grape
+                    ca8a9ce75f8e01b623a89d7179e82138: !Stride.BepuPhysics.Soft.VolumetricSoftBodyComponent,Stride.BepuPhysics.Soft
+                        Id: 30497e91-87ad-f354-db77-0486731cacf5
+                        Collider: !Stride.BepuPhysics.Soft.Colliders.ParticleCollider,Stride.BepuPhysics.Soft {}
+                        Mass: 1.0
+                        Resolution: 6
+                        Stiffness: 50.0
+                        ShearStiffness: 50.0
+                        VolumeStiffness: 50.0
+        -   Entity:
+                Id: 938a4ca3-246b-92cd-775f-224628e11abd
+                Name: Crate 4
+                Components:
+                    c9e7329999318bd6048a28e6988b50e5: !TransformComponent
+                        Id: 600e6342-541e-2687-573e-c64a1d4a7354
+                        Position: {X: 3.6, Y: 2.6, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.8, Y: 0.3, Z: 0.8}
+                        Children: {}
+                    558c9eb039367fe649802a6e5b6e058d: !ModelComponent
+                        Id: 19b39102-d6cd-37d4-dce4-8df130edbc0c
+                        Model: b4d30d41-5492-cf4e-0dae-6c5e5f9387fa:Models/Cube
+                        Materials:
+                            bcf1e6f7d344ce715674971ac2c47605~0: 307f36ed-8afc-7888-7a56-a43ac56affe7:Materials/Steel
+                    af357e723e935958db57dab075235eb4: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
+                        Id: 7d7a58a2-5e20-6b8b-50b1-e99e0559925a
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                97770c2cf1332b5ebca6ae6a667285a6: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 6.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 0.8, Y: 0.3, Z: 0.8}
+                        Kinematic: false
+                        Gravity: true
+                    4424f3a9a3d0bb3eb941b7aca5e54d06: !BepuSoftBodySample.Game.Components.LaunchComponent,BepuSoftBodySample.Game
+                        Id: b92bb2b9-0a2a-8bd3-d0a4-3496cf7afcec
+                        Delay: 0.6
+                        Velocity: {X: 0.0, Y: 0.0, Z: 0.0}
+                        HoldUntilLaunch: true

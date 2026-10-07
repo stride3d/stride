@@ -1,0 +1,24 @@
+!PrefabAsset
+Id: 3075790f-ed9d-6dac-f16a-f38a848b055c
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+Hierarchy:
+    RootParts:
+        - ref!! 0d8e10dc-2282-d029-0fbc-660946a96acb
+    Parts:
+        -   Entity:
+                Id: 0d8e10dc-2282-d029-0fbc-660946a96acb
+                Name: Marker
+                Components:
+                    9b222d56683fbe4fad348e0e8a95df64: !TransformComponent
+                        Id: 3de4dc38-4214-fd5c-e94c-17daa92a8eca
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.14, Y: 0.14, Z: 0.14}
+                        Children: {}
+                    9a2ac0c2561dc0b0ae05e085d8b6e10c: !ModelComponent
+                        Id: 9c1ef711-4479-e711-caf6-92dbec0a6bd2
+                        Model: c6674fcb-5db8-4d43-7a05-79f8b56c51ec:Models/Sphere
+                        Materials:
+                            85810eaf4de557be9a9f01c565baab0c~0: c835af51-3776-897b-9041-03a6bac045ff:Materials/Glow
+                        IsShadowCaster: false

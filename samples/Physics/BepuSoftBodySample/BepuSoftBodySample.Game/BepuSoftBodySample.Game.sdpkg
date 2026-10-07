@@ -1,0 +1,25 @@
+!Package
+SerializedVersion: {Assets: 3.1.0.0}
+Meta:
+    Name: BepuSoftBodySample.Game
+    Version: 1.0.0
+    Authors: []
+    Owners: []
+    Dependencies: null
+AssetFolders:
+    -   Path: !dir ../Assets/Shared
+    -   Path: !dir Effects
+ResourceFolders:
+    - !dir ../Resources
+RootAssets:
+    - 42768715-911d-119e-181c-a015d67c3445:Scenes/MainScene
+    - 9c19d93e-a6ed-d766-89e0-5c4d06474947:Scenes/Jelly Cubes
+    - a5f6072e-fd02-babb-b507-2e95a70d8d83:Scenes/Squish
+    - ace04d1c-864d-af6d-ecdd-eead0b988ce7:Scenes/Teapot
+    - c206ad10-37b6-3935-9106-5e8ed0824ac7:Scenes/Stiffness
+    - 32c12218-b01d-ab3b-0c1a-f90ff68e50fd:Scenes/Pile
+    - 82e9a35a-a8d8-abcb-cef5-bfd992aea8e7:Scenes/Torture
+    - f3aeb795-2a02-6086-d58b-73f176316194:Scenes/Flag
+    - dc62d24b-9e2f-33fa-4237-539b001dc34a:Scenes/Drape
+    - 5090329d-9d00-f585-5a29-71cf6a6bb3b2:Scenes/Curtain
+    - b45bd398-2402-2057-720d-d10db4223b8f:Scenes/Trampoline

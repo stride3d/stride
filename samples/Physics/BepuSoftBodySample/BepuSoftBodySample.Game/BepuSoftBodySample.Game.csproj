@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Stride.Assets" PrivateAssets="contentfiles;analyzers" Version="4.4.0" />
+    <PackageReference Include="Stride.BepuPhysics" PrivateAssets="contentfiles;analyzers" Version="4.4.0" />
+    <PackageReference Include="Stride.BepuPhysics.Soft" PrivateAssets="contentfiles;analyzers" Version="4.4.0" />
+    <PackageReference Include="Stride.Core.Assets" PrivateAssets="contentfiles;analyzers" Version="4.4.0" />
+    <PackageReference Include="Stride.Engine" PrivateAssets="contentfiles;analyzers" Version="4.4.0" />
+    <PackageReference Include="Stride.Particles" PrivateAssets="contentfiles;analyzers" Version="4.4.0" />
+    <PackageReference Include="Stride.UI" PrivateAssets="contentfiles;analyzers" Version="4.4.0" />
+    <PackageReference Include="Stride.AssetCompiler" Version="4.4.0" IncludeAssets="build;buildTransitive" />
+  </ItemGroup>
+</Project>

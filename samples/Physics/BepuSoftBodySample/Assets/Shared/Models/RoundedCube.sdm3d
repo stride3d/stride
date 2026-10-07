@@ -1,0 +1,14 @@
+!Model
+Id: b54720aa-7056-3232-c868-e8e3add8cde4
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: !file ../../../Resources/Models/RoundedCube.obj
+Skeleton: null
+PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
+Materials:
+    f9ae7a8f4937993cea56fc86701206a5:
+        Name: DefaultMaterial
+        MaterialInstance:
+            Material: null
+DeduplicateMaterials: false
+Modifiers: {}

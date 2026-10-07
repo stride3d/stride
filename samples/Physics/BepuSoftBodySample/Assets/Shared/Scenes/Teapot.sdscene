@@ -1,0 +1,365 @@
+!SceneAsset
+Id: ace04d1c-864d-af6d-ecdd-eead0b988ce7
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+ChildrenIds: []
+Offset: {X: 0.0, Y: 0.0, Z: 0.0}
+Hierarchy:
+    RootParts:
+        - ref!! 48b8fd72-20e7-2692-66da-94b1847a6446
+        - ref!! a3383072-0874-cbb1-c9c9-83431b6ff3ae
+        - ref!! 6a240ab6-d0ef-f65a-f91c-38d904b47713
+        - ref!! a51c3d73-ac69-c058-6b00-fa229f520f5a
+        - ref!! 510ebc7c-2149-fbe1-8392-ae1fb2725c3e
+        - ref!! 7d018402-e40a-18e1-7609-8e6c43375a36
+        - ref!! c816df61-e902-8763-a59a-ac90be592ca8
+        - ref!! 698bdc35-5023-da1a-6c52-db39f15ff95e
+        - ref!! 56444535-e191-3a72-d012-4d2b0a444c62
+        - ref!! 8700cbb4-ec3d-8b86-ea98-7a02d9a6ea21
+        - ref!! c78dc2db-06c4-8920-abc1-a59aa31d07dd
+        - ref!! b3ca98ce-8a00-fb3d-01c1-a74f0d594c5b
+        - ref!! f0038c04-2f2e-4835-33e3-8d3ff75cfdda
+        - ref!! be59f03e-6ed0-4653-afde-5af6a7510b38
+    Parts:
+        -   Entity:
+                Id: 48b8fd72-20e7-2692-66da-94b1847a6446
+                Name: Camera
+                Components:
+                    f8e4998e521961757c03525d2b7056f2: !TransformComponent
+                        Id: bb20e8ab-3e84-7a1d-1f34-83e58e38c6c6
+                        Position: {X: 0.0, Y: 3.0, Z: 6.0}
+                        Rotation: {X: -0.106482, Y: 0.0, Z: 0.0, W: 0.994315}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    c14db8a112f986074ea3b0dd8269da71: !BepuSoftBodySample.Game.Components.Camera.BasicCameraControllerComponent,BepuSoftBodySample.Game
+                        Id: 7531be83-1bc5-e97c-239b-0c55d0c6c41e
+                        Gamepad: false
+                        KeyboardMovementSpeed: {X: 5.0, Y: 5.0, Z: 5.0}
+                        SpeedFactor: 4.0
+                    44eedda150dcddfaa463006f3e1ab7b0: !BepuSoftBodySample.Game.Components.Camera.FindAndAttachCameraComponent,BepuSoftBodySample.Game
+                        Id: fc557cef-51fb-c8ec-73e5-17be8c5f52ae
+                        CameraComponent: null
+        -   Entity:
+                Id: a3383072-0874-cbb1-c9c9-83431b6ff3ae
+                Name: Skybox
+                Components:
+                    b6e79a6e212487734674293be5d8cd27: !TransformComponent
+                        Id: f258b1b5-2ae2-6441-a1df-6e32f071f57a
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    c3fe4085888330cf8c71e271d97d2781: !BackgroundComponent
+                        Id: dde973b6-249b-cb35-6976-7157a2574252
+                        Texture: 329a39e7-4963-475c-a2c0-bdfc73b5f0d4:Skybox texture
+                        Intensity: 1.0
+                    9a6ac859620a200cc9fadabcfcf95580: !LightComponent
+                        Id: e0645993-1297-d93e-a14f-28bde443daab
+                        Type: !LightSkybox
+                            Skybox: c7a3f3cb-e399-4779-bbbb-a4a2a1e50aa1:Skybox
+                        Intensity: 0.5
+        -   Entity:
+                Id: 6a240ab6-d0ef-f65a-f91c-38d904b47713
+                Name: Sun
+                Components:
+                    72aa2c628b6081db8e6914996193a7f9: !TransformComponent
+                        Id: 557ac5f1-e6c4-2283-cd76-3851ded907f2
+                        Position: {X: 0.0, Y: 5.0, Z: 0.0}
+                        Rotation: {X: -0.397327, Y: 0.209735, Z: 0.093796, W: 0.888451}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    81758fc3394ec46d8551388dc40051c5: !LightComponent
+                        Id: bbc2129b-e03d-114c-95d2-d96938078bb1
+                        Type: !LightDirectional
+                            Color: !ColorRgbProvider
+                                Value: {R: 1.0, G: 0.956, B: 0.886}
+                            Shadow:
+                                Enabled: true
+                                Filter: !LightShadowMapFilterTypePcf
+                                    FilterSize: Filter7x7
+                                Size: XLarge
+                                DepthRange: {}
+                                PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
+                                ComputeTransmittance: false
+                                BiasParameters:
+                                    NormalOffsetScale: 20.0
+                        Intensity: 3.0
+        -   Entity:
+                Id: a51c3d73-ac69-c058-6b00-fa229f520f5a
+                Name: Floor
+                Components:
+                    6163057495cdca511ea46145f9bc8600: !TransformComponent
+                        Id: de3dc646-eaa9-822d-a042-eaac35d9b0e7
+                        Position: {X: 0.0, Y: -0.5, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 200.0, Y: 1.0, Z: 200.0}
+                        Children: {}
+                    5005d853ef851dc3a8c76eaf66fcf12b: !ModelComponent
+                        Id: 4bf294f3-d34a-da0b-991d-70ab3e10318e
+                        Model: b4d30d41-5492-cf4e-0dae-6c5e5f9387fa:Models/Cube
+                        Materials:
+                            fd6843891b68c34ee37a9b1cadee42b4~0: 6c520bad-a549-71d1-4f29-ec019f3a1fdf:Materials/Floor
+                    93a03d35989e041ea6bc40785bf882b9: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
+                        Id: f2a2e9cc-ec44-1e5f-24a9-25309801dcbe
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                e6c850940f8e1eb269bab3cb348186ba: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 200.0, Y: 1.0, Z: 200.0}
+                        FrictionCoefficient: 1.0
+        -   Entity:
+                Id: 510ebc7c-2149-fbe1-8392-ae1fb2725c3e
+                Name: Scripts
+                Components:
+                    2501b9846d3c796b9fb2b1e5a971f6e0: !TransformComponent
+                        Id: e9d3783d-ff54-394f-148e-d49bda9ed558
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    59527511c1b705bf9341ea25a26b76fa: !BepuSoftBodySample.Game.Components.SceneDescriptionComponent,BepuSoftBodySample.Game
+                        Id: 1a3831c0-1a20-7e15-8060-650fcf5af90e
+                        Description: 'Any closed model can be filled: a jelly teapot squeezes between pegs, its spout and handle bending on the way.'
+                    09bcf279767ef3d847ee820e1803cde2: !BepuSoftBodySample.Game.Components.SoftGravityGunComponent,BepuSoftBodySample.Game
+                        Id: 3a223da9-7f86-d8bf-a33a-f20ae8180c36
+                        CameraEntity: ref!! 48b8fd72-20e7-2692-66da-94b1847a6446
+                        MarkerPrefab: 3075790f-ed9d-6dac-f16a-f38a848b055c:Prefabs/Marker
+                        BallPrefab: 93d5a3da-f3a6-2397-f88c-146ee67bac7a:Prefabs/Ball
+                    aec71b4fb62388079a6e83eac4164fa2: !BepuSoftBodySample.Game.Components.ParticleViewComponent,BepuSoftBodySample.Game
+                        Id: 8fda25fe-3619-67c1-0d48-7d3ecc01c704
+                        ParticleMaterial: 3e38fbde-13b9-e3b0-e472-cb12e55512a4:Materials/Particle
+                        PinnedMaterial: 12f5ec95-8de0-100e-ddc7-10bcd7660756:Materials/PinnedParticle
+        -   Entity:
+                Id: 7d018402-e40a-18e1-7609-8e6c43375a36
+                Name: Peg 0 0
+                Components:
+                    8bc4c746ca80fc9d03adc166c4211dc5: !TransformComponent
+                        Id: 9bc48765-3a1b-0703-5d10-178760fd7073
+                        Position: {X: -1.8, Y: 3.0, Z: 0.0}
+                        Rotation: {X: 0.707107, Y: 0.0, Z: 0.0, W: 0.707107}
+                        Scale: {X: 0.2, Y: 2.5, Z: 0.2}
+                        Children: {}
+                    5a5fd860484528a11a130a67e5ffe863: !ModelComponent
+                        Id: 3bf48b5c-097f-d79d-e954-f69273930d83
+                        Model: 3bd803b1-7ef6-3815-690d-d74a5f69606a:Models/Cylinder
+                        Materials:
+                            5ebd8a6a3b86e40beede5a2681303a74~0: 307f36ed-8afc-7888-7a56-a43ac56affe7:Materials/Steel
+                    fab667b9ede66af5f62ebd9fa6dcaa94: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
+                        Id: ff557f40-3ea1-402f-e60c-08a6bb222b67
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                c02645e176f6276c3d1344c78066057c: !Stride.BepuPhysics.Definitions.Colliders.CylinderCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Radius: 0.1
+                                    Length: 2.5
+                        FrictionCoefficient: 1.0
+        -   Entity:
+                Id: c816df61-e902-8763-a59a-ac90be592ca8
+                Name: Peg 0 1
+                Components:
+                    2098b85674ec9f5a6b0c551b9b98f1b5: !TransformComponent
+                        Id: c57b36d4-623a-82b6-4a5c-3f1adfd05de6
+                        Position: {X: 0.0, Y: 3.0, Z: 0.0}
+                        Rotation: {X: 0.707107, Y: 0.0, Z: 0.0, W: 0.707107}
+                        Scale: {X: 0.2, Y: 2.5, Z: 0.2}
+                        Children: {}
+                    53fbc8759dcd4ff60187ef18aa4bd713: !ModelComponent
+                        Id: 0b6d8d09-3714-c13d-10d2-75e20895eb1b
+                        Model: 3bd803b1-7ef6-3815-690d-d74a5f69606a:Models/Cylinder
+                        Materials:
+                            9c5f51771cc4d3747b35055f249562c6~0: 307f36ed-8afc-7888-7a56-a43ac56affe7:Materials/Steel
+                    a3068aec5d069ecb83dffdd10389ab8e: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
+                        Id: b59735b0-d416-cd40-d047-5145e614b9be
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                4463390ea9f10ffd39558fce0654967a: !Stride.BepuPhysics.Definitions.Colliders.CylinderCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Radius: 0.1
+                                    Length: 2.5
+                        FrictionCoefficient: 1.0
+        -   Entity:
+                Id: 698bdc35-5023-da1a-6c52-db39f15ff95e
+                Name: Peg 0 2
+                Components:
+                    104c1f5999ba71bfbe5b4fc26dc6b628: !TransformComponent
+                        Id: 1ac9638d-db29-4426-d0da-d8331153ad6c
+                        Position: {X: 1.8, Y: 3.0, Z: 0.0}
+                        Rotation: {X: 0.707107, Y: 0.0, Z: 0.0, W: 0.707107}
+                        Scale: {X: 0.2, Y: 2.5, Z: 0.2}
+                        Children: {}
+                    445648e6866574dc7c4271da07cdd8e3: !ModelComponent
+                        Id: cc9b41ec-7a77-ec9d-066e-e37dde66734c
+                        Model: 3bd803b1-7ef6-3815-690d-d74a5f69606a:Models/Cylinder
+                        Materials:
+                            43f568e81776d416e9acbeae331bb296~0: 307f36ed-8afc-7888-7a56-a43ac56affe7:Materials/Steel
+                    f4fab678823175640565cc1b7989e20a: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
+                        Id: 6e2338ad-7f01-07e1-1f9d-f0535297d827
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                5899e1fe4d92741678c38b8c2f909ff5: !Stride.BepuPhysics.Definitions.Colliders.CylinderCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Radius: 0.1
+                                    Length: 2.5
+                        FrictionCoefficient: 1.0
+        -   Entity:
+                Id: 56444535-e191-3a72-d012-4d2b0a444c62
+                Name: Peg 1 0
+                Components:
+                    ebb7c003694b862bb5af46906cfad286: !TransformComponent
+                        Id: 35cb75b9-6d39-5c02-377e-91e6d8da0538
+                        Position: {X: -0.9, Y: 2.1, Z: 0.0}
+                        Rotation: {X: 0.707107, Y: 0.0, Z: 0.0, W: 0.707107}
+                        Scale: {X: 0.2, Y: 2.5, Z: 0.2}
+                        Children: {}
+                    f5995374fefada936a2cd4b19742e494: !ModelComponent
+                        Id: d319b0e7-d5b5-4e96-c7ac-6912aac0c4f4
+                        Model: 3bd803b1-7ef6-3815-690d-d74a5f69606a:Models/Cylinder
+                        Materials:
+                            c001b7787a3f6aac1b521f60b8cd43c2~0: 307f36ed-8afc-7888-7a56-a43ac56affe7:Materials/Steel
+                    94ea9eb515654852bce83c9c4b192a81: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
+                        Id: 089297de-e2fa-a5cd-fd14-7832a6e3dfed
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                9f629768fbd9a21437581c14e45335b9: !Stride.BepuPhysics.Definitions.Colliders.CylinderCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Radius: 0.1
+                                    Length: 2.5
+                        FrictionCoefficient: 1.0
+        -   Entity:
+                Id: 8700cbb4-ec3d-8b86-ea98-7a02d9a6ea21
+                Name: Peg 1 1
+                Components:
+                    c8d1909a0b270ea70c800f05db886eca: !TransformComponent
+                        Id: 6f514535-3c6f-d08a-91ca-95e75ed2e840
+                        Position: {X: 0.9, Y: 2.1, Z: 0.0}
+                        Rotation: {X: 0.707107, Y: 0.0, Z: 0.0, W: 0.707107}
+                        Scale: {X: 0.2, Y: 2.5, Z: 0.2}
+                        Children: {}
+                    8c9b7353e47c781ef4e7eaef73f3acd9: !ModelComponent
+                        Id: f031ea76-1744-efd4-f6d9-a4d3ed564ff6
+                        Model: 3bd803b1-7ef6-3815-690d-d74a5f69606a:Models/Cylinder
+                        Materials:
+                            2b07b74d3c2acc5f2a2084198926484e~0: 307f36ed-8afc-7888-7a56-a43ac56affe7:Materials/Steel
+                    418ff49fb72a5b61640d32bdf6ff0a32: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
+                        Id: dab64be6-25cb-a411-053b-e65eb560b449
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                b34a312eac8f14747fd4418f0bdebe52: !Stride.BepuPhysics.Definitions.Colliders.CylinderCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Radius: 0.1
+                                    Length: 2.5
+                        FrictionCoefficient: 1.0
+        -   Entity:
+                Id: c78dc2db-06c4-8920-abc1-a59aa31d07dd
+                Name: Peg 2 0
+                Components:
+                    f68d73074a7f7c077b2a8d0b3deb3458: !TransformComponent
+                        Id: 87251a4e-a279-3b46-00d9-00799896bae9
+                        Position: {X: -1.8, Y: 1.2, Z: 0.0}
+                        Rotation: {X: 0.707107, Y: 0.0, Z: 0.0, W: 0.707107}
+                        Scale: {X: 0.2, Y: 2.5, Z: 0.2}
+                        Children: {}
+                    956100b4c082b8a3b787a7085e839d4d: !ModelComponent
+                        Id: 4fd6980a-08b2-627f-3003-c04d8f1b9658
+                        Model: 3bd803b1-7ef6-3815-690d-d74a5f69606a:Models/Cylinder
+                        Materials:
+                            3187521ed9214654c9c008e51b26a7ad~0: 307f36ed-8afc-7888-7a56-a43ac56affe7:Materials/Steel
+                    7ffa4c6e717575c1b4068ef52a0b21d6: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
+                        Id: cae8a52e-6996-ffc0-c837-f69bcfe8396e
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                959418a3d3e444172e8a2f825f185e4e: !Stride.BepuPhysics.Definitions.Colliders.CylinderCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Radius: 0.1
+                                    Length: 2.5
+                        FrictionCoefficient: 1.0
+        -   Entity:
+                Id: b3ca98ce-8a00-fb3d-01c1-a74f0d594c5b
+                Name: Peg 2 1
+                Components:
+                    8e743ed825f51ba43be38af8f7260291: !TransformComponent
+                        Id: 33b9021c-97c4-8e57-5172-9b0891a1800e
+                        Position: {X: 0.0, Y: 1.2, Z: 0.0}
+                        Rotation: {X: 0.707107, Y: 0.0, Z: 0.0, W: 0.707107}
+                        Scale: {X: 0.2, Y: 2.5, Z: 0.2}
+                        Children: {}
+                    bcc1f2e04ee654502a93dddb5a47beb4: !ModelComponent
+                        Id: 90892ba0-2ae1-57a8-ddfa-ba9067faffaf
+                        Model: 3bd803b1-7ef6-3815-690d-d74a5f69606a:Models/Cylinder
+                        Materials:
+                            587697100730904e2e6e6143ae83ea51~0: 307f36ed-8afc-7888-7a56-a43ac56affe7:Materials/Steel
+                    21df035aabc960070a6da478d605d449: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
+                        Id: c96f1368-13c3-d25d-9a1f-48fc58288a76
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                fe1700374625d23ec4ffe319d404cd08: !Stride.BepuPhysics.Definitions.Colliders.CylinderCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Radius: 0.1
+                                    Length: 2.5
+                        FrictionCoefficient: 1.0
+        -   Entity:
+                Id: f0038c04-2f2e-4835-33e3-8d3ff75cfdda
+                Name: Peg 2 2
+                Components:
+                    eb8388aa4b4eafad4abc66fa460e4e42: !TransformComponent
+                        Id: ad317fef-9cb1-2077-4e68-bddcaaae9722
+                        Position: {X: 1.8, Y: 1.2, Z: 0.0}
+                        Rotation: {X: 0.707107, Y: 0.0, Z: 0.0, W: 0.707107}
+                        Scale: {X: 0.2, Y: 2.5, Z: 0.2}
+                        Children: {}
+                    7c2ff4de660402a43a1c3bc31051aa73: !ModelComponent
+                        Id: f669d0c3-f960-ac94-b30a-dc85efa1561e
+                        Model: 3bd803b1-7ef6-3815-690d-d74a5f69606a:Models/Cylinder
+                        Materials:
+                            d1daa773db42c1ea38d45c9b7c0636ee~0: 307f36ed-8afc-7888-7a56-a43ac56affe7:Materials/Steel
+                    6193423cc786953d6e6b0e0dc3f586ff: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
+                        Id: fb63e47c-88a3-06af-7b17-4996bc3587cb
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                5d03c9b17b41ae6e8eaa02b8de348357: !Stride.BepuPhysics.Definitions.Colliders.CylinderCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Radius: 0.1
+                                    Length: 2.5
+                        FrictionCoefficient: 1.0
+        -   Entity:
+                Id: be59f03e-6ed0-4653-afde-5af6a7510b38
+                Name: Teapot
+                Components:
+                    6fef213fab915c6eb09214bff94af4e5: !TransformComponent
+                        Id: 9c2d025c-c450-e7cd-cfd4-e0d617ab2b9b
+                        Position: {X: 0.25, Y: 4.4, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.29552, Z: 0.0, W: 0.955336}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    61e7822af78536b40b6df47345af9344: !ModelComponent
+                        Id: 15e4a268-9401-bfae-f8d0-b7421b3b7a59
+                        Model: 3d0d0746-30aa-6ff2-2fba-ba089dd09c7c:Models/Teapot
+                        Materials:
+                            c678a5455eec63155977c8a2c0413cbc~0: f45d72b9-de30-aad1-56a6-55433d7cd194:Materials/Blueberry
+                    fb62296d9d362a6743b60d58edee7b11: !Stride.BepuPhysics.Soft.VolumetricSoftBodyComponent,Stride.BepuPhysics.Soft
+                        Id: 4bf7588c-e1be-f03f-e3a9-678741f28f7f
+                        Collider: !Stride.BepuPhysics.Soft.Colliders.ParticleCollider,Stride.BepuPhysics.Soft {}
+                        Mass: 2.0
+                        FrictionCoefficient: 0.3
+                        Resolution: 10
+                        Stiffness: 8.0
+                        ShearStiffness: 8.0
+                        VolumeStiffness: 15.0
