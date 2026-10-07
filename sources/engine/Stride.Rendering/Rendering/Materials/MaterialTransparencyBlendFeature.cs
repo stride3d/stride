@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+using System;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
@@ -17,6 +18,9 @@ namespace Stride.Rendering.Materials
     public class MaterialTransparencyBlendFeature : MaterialFeature, IMaterialTransparencyFeature
     {
         public const int ShadingColorAlphaFinalCallbackOrder = MaterialGeneratorContext.DefaultFinalCallbackOrder;
+
+        // Alpha a volume is clamped to, so a fully opaque one still has a finite absorption
+        private const float MaxVolumeAlpha = 0.999f;
 
         private static readonly MaterialStreamDescriptor AlphaBlendStream = new MaterialStreamDescriptor("DiffuseSpecularAlphaBlend", "matDiffuseSpecularAlphaBlend", MaterialKeys.DiffuseSpecularAlphaBlendValue.PropertyType);
 
@@ -58,6 +62,29 @@ namespace Stride.Rendering.Materials
         [DataMember(30)]
         public bool DitheredShadows { get; set; } = true;
 
+        /// <summary>
+        /// Gets or sets the thickness, in world units, that is as opaque as <see cref="Alpha"/>; 0 keeps the same opacity whatever the thickness.
+        /// </summary>
+        /// <remarks>Needs a <c>VolumeThicknessRenderStage</c> on the forward renderer; without one the material blends with its alpha as usual.</remarks>
+        /// <userdoc>How thick the material is when it is as opaque as its alpha. Thicker parts get more opaque, thinner parts clearer. 0 turns it off.</userdoc>
+        [DataMember(40)]
+        [DataMemberRange(0.0, 3)]
+        public float OpacityThickness { get; set; }
+
+        /// <summary>
+        /// Gets or sets how the material's body affects what is seen through it when <see cref="OpacityThickness"/> is set.
+        /// </summary>
+        /// <userdoc>Absorbing filters what is behind through the tint, like tinted glass. Scattering fades it to the material's lit colour, like water or fog.</userdoc>
+        [DataMember(50)]
+        public MaterialVolumeMedium Medium { get; set; }
+
+        /// <summary>
+        /// Gets or sets whether the mesh is an open surface, such as a water plane, rather than a closed volume.
+        /// </summary>
+        /// <userdoc>For a surface with nothing under it, such as a water plane: the volume ends at the scene behind it.</userdoc>
+        [DataMember(60)]
+        public bool OpenSurface { get; set; }
+
         public override void GenerateShader(MaterialGeneratorContext context)
         {
             var alpha = Alpha ?? new ComputeFloat(1f);
@@ -76,6 +103,21 @@ namespace Stride.Rendering.Materials
 
             context.SetStream(AlphaBlendStream.Stream, alpha, MaterialKeys.DiffuseSpecularAlphaBlendMap, MaterialKeys.DiffuseSpecularAlphaBlendValue, Color.White);
             context.SetStream(AlphaBlendColorStream.Stream, tint, MaterialKeys.AlphaBlendColorMap, MaterialKeys.AlphaBlendColorValue, Color.White);
+
+            if (OpacityThickness > 0)
+            {
+                // The alpha is the opacity of OpacityThickness units: absorption = -ln(1 - alpha) / thickness
+                var alphaValue = alpha is ComputeFloat constantAlpha ? MathUtil.Clamp(constantAlpha.Value, 0f, MaxVolumeAlpha) : 0.5f;
+                var tintValue = tint is ComputeColor constantTint ? (Color3)constantTint.Value.ToColorSpace(context.ColorSpace) : new Color3(1f);
+                context.MaterialPass.Parameters.Set(MaterialVolumeKeys.Absorption, -MathF.Log(1f - alphaValue) / OpacityThickness);
+                context.MaterialPass.Parameters.Set(MaterialVolumeKeys.Tint, tintValue);
+                context.MaterialPass.Parameters.Set(MaterialVolumeKeys.Scattering, Medium == MaterialVolumeMedium.Scattering ? 1f : 0f);
+                context.MaterialPass.Parameters.Set(MaterialVolumeKeys.OpenSurface, OpenSurface ? 1f : 0f);
+                // A scattering body is seen from inside through its back faces
+                if (Medium == MaterialVolumeMedium.Scattering)
+                    context.MaterialPass.CullMode ??= CullMode.None;
+                context.AddShaderSource(MaterialShaderStage.Pixel, new ShaderClassSource("MaterialSurfaceVolumeAlpha"));
+            }
 
             context.MaterialPass.Parameters.Set(MaterialKeys.UsePixelShaderWithDepthPass, true);
             if (DitheredShadows)

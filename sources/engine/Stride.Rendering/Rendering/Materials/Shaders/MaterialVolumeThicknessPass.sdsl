@@ -1,0 +1,56 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+namespace Stride.Rendering.Materials
+{
+    /// <summary>
+    /// Adds a see-through mesh's optical depth along each pixel's ray: back faces add their depth, front faces take theirs
+    /// away, each times the material's absorption, so additive blending sums every segment of every volume on the ray.
+    /// </summary>
+    /// <remarks>
+    /// Faces behind the opaque scene are dropped, so a volume ends at it. A camera inside a volume has lost the front face
+    /// to the near plane, which counts as a depth of zero. An open surface counts from itself to the opaque scene behind.
+    /// Absorbing media go to the first target as tint times optical depth, and optical depth. Scattering ones go to the second
+    /// as the number of their front faces on the pixel, and optical depth.
+    /// </remarks>
+    shader MaterialVolumeThicknessPass : ShaderBase, Transformation, PositionStream4, DepthBase
+    {
+        cbuffer PerMaterial
+        {
+            [Link("MaterialVolume.Absorption")]
+            stage float VolumeAbsorption;
+
+            [Link("MaterialVolume.Tint")]
+            stage float3 VolumeTint;
+
+            [Link("MaterialVolume.Scattering")]
+            stage float VolumeScattering;
+
+            [Link("MaterialVolume.OpenSurface")]
+            stage float VolumeOpenSurface;
+        }
+
+        // Smallest view depth a ray is divided by
+        static const float MinDepth = 1e-4;
+        // Relative depth a face may lie behind the opaque scene and still count: a face resting on it, such as a block's bottom
+        static const float CoplanarTolerance = 1e-3;
+
+        stage override void PSMain()
+        {
+            int2 pixel = (int2)streams.ShadingPosition.xy;
+            float depth = ComputeDepthFromZProj(streams.ShadingPosition.z);
+            float scene = ComputeDepthFromScreenPosition(pixel);
+            clip(scene * (1 + CoplanarTolerance) - depth);
+
+            // View depth to distance along the pixel's ray, the same for every face on it
+            float rayPerDepth = length(streams.PositionWS.xyz - Eye.xyz) / max(depth, MinDepth);
+
+            bool front = streams.IsFrontFace;
+            float closed = front ? -depth : depth;
+            float open = front ? scene - depth : depth;
+            float opticalDepth = VolumeAbsorption * lerp(closed, open, VolumeOpenSurface) * rayPerDepth;
+
+            streams.ColorTarget = float4(VolumeTint * opticalDepth, opticalDepth) * (1 - VolumeScattering);
+            streams.ColorTarget1 = float4(front ? 1 : 0, 0, 0, opticalDepth) * VolumeScattering;
+        }
+    };
+}

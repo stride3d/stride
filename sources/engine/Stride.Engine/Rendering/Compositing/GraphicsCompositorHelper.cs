@@ -28,6 +28,7 @@ namespace Stride.Rendering.Compositing
             var shadowCasterRenderStage = new RenderStage("ShadowMapCaster", "ShadowMapCaster") { SortMode = new FrontToBackSortMode() };
             var shadowCasterCubeMapRenderStage = new RenderStage("ShadowMapCasterCubeMap", "ShadowMapCasterCubeMap") { SortMode = new FrontToBackSortMode() };
             var shadowCasterParaboloidRenderStage = new RenderStage("ShadowMapCasterParaboloid", "ShadowMapCasterParaboloid") { SortMode = new FrontToBackSortMode() };
+            var volumeThicknessRenderStage = new RenderStage("VolumeThickness", "VolumeThickness");
 
             var postProcessingEffects = enablePostEffects
                 ? new PostProcessingEffects
@@ -53,6 +54,7 @@ namespace Stride.Rendering.Compositing
                 Clear = { Color = clearColor ?? Color.CornflowerBlue },
                 OpaqueRenderStage = opaqueRenderStage,
                 TransparentRenderStage = transparentRenderStage,
+                VolumeThicknessRenderStage = volumeThicknessRenderStage,
                 ShadowMapRenderStages = { shadowCasterRenderStage, shadowCasterParaboloidRenderStage, shadowCasterCubeMapRenderStage },
                 PostEffects = postProcessingEffects,
             };
@@ -121,6 +123,7 @@ namespace Stride.Rendering.Compositing
                     shadowCasterRenderStage,
                     shadowCasterParaboloidRenderStage,
                     shadowCasterCubeMapRenderStage,
+                    volumeThicknessRenderStage,
                 },
                 RenderFeatures =
                 {
@@ -161,6 +164,12 @@ namespace Stride.Rendering.Compositing
                                 ShadowMapRenderStage = shadowCasterCubeMapRenderStage,
                                 RenderGroup = groupMask,
                             },
+                            new MeshVolumeThicknessRenderStageSelector
+                            {
+                                EffectName = modelEffectName + ".VolumeThickness",
+                                VolumeThicknessRenderStage = volumeThicknessRenderStage,
+                                RenderGroup = groupMask,
+                            },
                         },
                         PipelineProcessors =
                         {
@@ -168,6 +177,7 @@ namespace Stride.Rendering.Compositing
                             new ShadowMeshPipelineProcessor { ShadowMapRenderStage = shadowCasterRenderStage },
                             new ShadowMeshPipelineProcessor { ShadowMapRenderStage = shadowCasterParaboloidRenderStage, DepthClipping = true },
                             new ShadowMeshPipelineProcessor { ShadowMapRenderStage = shadowCasterCubeMapRenderStage, DepthClipping = true },
+                            new VolumeThicknessPipelineProcessor { VolumeThicknessRenderStage = volumeThicknessRenderStage },
                         },
                     },
                     new SpriteRenderFeature
