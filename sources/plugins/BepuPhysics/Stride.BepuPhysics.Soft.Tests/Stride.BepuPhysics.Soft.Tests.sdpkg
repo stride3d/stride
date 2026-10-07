@@ -1,0 +1,7 @@
+!Package
+Id: ea86a6a9-e9aa-458d-9aa6-22f3ffc34b42
+SerializedVersion: {Assets: 3.1.0.0}
+AssetFolders:
+    -   Path: !dir GameAssets
+RootAssets:
+    - b15e32e9-1be0-4898-9ab0-984738e9ef5f:GraphicsCompositor
