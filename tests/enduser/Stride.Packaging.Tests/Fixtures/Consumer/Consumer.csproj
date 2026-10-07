@@ -10,5 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="Consumer.Game\Consumer.Game.csproj" />
+    <!-- The .Game project's sources are its own (a real game keeps the two projects in separate folders) -->
+    <Compile Remove="Consumer.Game\**" />
   </ItemGroup>
 </Project>

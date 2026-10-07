@@ -24,6 +24,7 @@ public class AssetUrlConstantsGenerator : IIncrementalGenerator
     private const string AssetContentTypeAttributeFullName = "Stride.Core.Assets.AssetContentTypeAttribute";
     private const string AssetDescriptionAttributeFullName = "Stride.Core.Assets.AssetDescriptionAttribute";
     private const string StrideCoreAssetsAssemblyName = "Stride.Core.Assets";
+    private const string AssetFileExtensionAttributeFullName = "Stride.Core.Serialization.AssetFileExtensionAttribute";
 
     private static readonly DiagnosticDescriptor IdentifierCollision = new(
         "STRDIAG012",
@@ -104,18 +105,21 @@ public class AssetUrlConstantsGenerator : IIncrementalGenerator
             (string.IsNullOrEmpty(constantsNamespace) ? rootNamespace : constantsNamespace) ?? "");
     }
 
-    // Resolves each asset file extension to its runtime type (map files first, compilation symbols
-    // override), sorted so equal resolutions produce an equal array.
+    // Maps each asset extension to its runtime type (later sources win): map files, declared extensions, visible asset types.
+    // A map extension whose type is not visible gets an empty type name. Sorted so the array compares equal.
     private static ImmutableArray<ExtensionType> ResolveExtensionTypes(Compilation compilation, ImmutableArray<MapEntry> mapEntries, CancellationToken cancellationToken)
     {
         var extensionTypes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         foreach (var mapEntry in mapEntries.OrderBy(entry => entry.Extension, StringComparer.Ordinal).ThenBy(entry => entry.TypeName, StringComparer.Ordinal))
         {
-            if (extensionTypes.ContainsKey(mapEntry.Extension))
+            if (extensionTypes.TryGetValue(mapEntry.Extension, out var resolved) && resolved.Length > 0)
                 continue;
-            if (compilation.GetTypeByMetadataName(mapEntry.TypeName) is { TypeKind: TypeKind.Class, DeclaredAccessibility: Accessibility.Public } type)
-                extensionTypes[mapEntry.Extension] = type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            extensionTypes[mapEntry.Extension] = compilation.GetTypeByMetadataName(mapEntry.TypeName) is { TypeKind: TypeKind.Class, DeclaredAccessibility: Accessibility.Public } type
+                ? type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
+                : "";
         }
+        foreach (var pair in ReadDeclaredExtensions(compilation))
+            extensionTypes[pair.Key] = pair.Value;
         foreach (var pair in ScanCompilationForAssetTypes(compilation, cancellationToken))
             extensionTypes[pair.Key] = pair.Value;
         return extensionTypes
@@ -208,7 +212,13 @@ public class AssetUrlConstantsGenerator : IIncrementalGenerator
 
     private static void Emit(SourceProductionContext context, ImmutableArray<AssetEntry> assets, ImmutableArray<ExtensionType> typeTable, Config config, ConflictInfo conflict)
     {
+        // Extension -> runtime type (empty = untyped); a file with an unknown extension gets no constant
+        var extensionTypes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var entry in typeTable)
+            extensionTypes[entry.Extension] = entry.TypeName;
+
         var entries = assets
+            .Where(entry => extensionTypes.ContainsKey(entry.Extension))
             .OrderBy(entry => entry.RelativePath, StringComparer.Ordinal)
             .ToList();
         if (entries.Count == 0)
@@ -219,11 +229,6 @@ public class AssetUrlConstantsGenerator : IIncrementalGenerator
             context.ReportDiagnostic(Diagnostic.Create(ClassNameConflict, Location.None, conflict.Namespace, conflict.ClassName, conflict.Suggestion));
             return;
         }
-
-        // Extension -> emitted runtime type text (resolved from compilation symbols and map files); else untyped
-        var extensionTypes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var entry in typeTable)
-            extensionTypes[entry.Extension] = entry.TypeName;
 
         var root = new Node();
         foreach (var entry in entries)
@@ -270,6 +275,27 @@ public class AssetUrlConstantsGenerator : IIncrementalGenerator
             return false;
         suggestion = SanitizeIdentifier(compilation.AssemblyName?.Replace(".", "") + config.ClassName);
         return true;
+    }
+
+    /// <summary>
+    /// The [assembly: AssetFileExtension] declarations of the compilation and its references.
+    /// A runtime package declares the extensions of its Assets package, which the game does not reference.
+    /// </summary>
+    private static IEnumerable<KeyValuePair<string, string>> ReadDeclaredExtensions(Compilation compilation)
+    {
+        if (compilation.GetTypeByMetadataName(AssetFileExtensionAttributeFullName) is not { } attributeType)
+            yield break;
+        foreach (var assembly in new[] { compilation.Assembly }.Concat(compilation.SourceModule.ReferencedAssemblySymbols))
+        {
+            foreach (var attribute in assembly.GetAttributes())
+            {
+                if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, attributeType)
+                    && attribute.ConstructorArguments.Length == 2
+                    && attribute.ConstructorArguments[0].Value is string extension
+                    && attribute.ConstructorArguments[1].Value is INamedTypeSymbol type)
+                    yield return new KeyValuePair<string, string>(extension, type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
+            }
+        }
     }
 
     /// <summary>
@@ -361,7 +387,7 @@ public class AssetUrlConstantsGenerator : IIncrementalGenerator
         {
             var identifier = TakeIdentifier(context, usedNames, name, entry.RelativePath);
             var url = config.UrlNamespace.Length > 0 ? $"/{config.UrlNamespace}/{entry.RelativePath}" : entry.RelativePath;
-            var type = extensionTypes.TryGetValue(entry.Extension, out var contentType) ? $"{UrlReferenceTypeName}<{contentType}>" : UrlReferenceTypeName;
+            var type = extensionTypes.TryGetValue(entry.Extension, out var contentType) && contentType.Length > 0 ? $"{UrlReferenceTypeName}<{contentType}>" : UrlReferenceTypeName;
             builder.Append(pad).Append("    public static readonly ").Append(type).Append(' ').Append(identifier)
                 .Append(" = new ").Append(type).Append("(\"").Append(url.Replace("\\", "\\\\").Replace("\"", "\\\"")).AppendLine("\");");
         }
