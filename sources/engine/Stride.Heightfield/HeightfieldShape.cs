@@ -28,6 +28,9 @@ public unsafe struct HeightfieldShape : IShape
     /// <summary>Distance between individual samples, Size / <see cref="Subdivision"/></summary>
     public float SampleInterval;
 
+    /// <summary>How many subdivisions (samples) there is per unit distance, <see cref="Subdivision"/> / Size in XZ, 1 in Y</summary>
+    public Vector3 SampleIntervalReciprocal;
+
     /// <summary>
     /// How many individual height samples the heightfield is made up of on one axis,
     /// amount of samples in total would be <see cref="Subdivision"/>^2.
@@ -73,27 +76,26 @@ public unsafe struct HeightfieldShape : IShape
     /// </summary>
     public int CoarseBlockInterval;
 
+    [SkipLocalsInit]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private readonly ref HeightRange BlockOf(int cellX, int cellZ)
+    private readonly void GetCellCornersInDiscreteSpace(Int2 cell, out Sample4 samples)
     {
-        return ref CoarseBlocksAddress[cellZ / CoarseBlockInterval * CoarseBlocksSubdivision + cellX / CoarseBlockInterval];
+        Unsafe.SkipInit(out samples); // They're all assigned, not sure why I have to do this nonsense
+        samples[0] = new(cell, 0);
+        samples[1] = new(cell + new Int2(1, 0), 0);
+        samples[2] = new(cell + new Int2(0, 1), 0);
+        samples[3] = new(cell + new Int2(1, 1), 0);
+
+        ((IHeightfieldSampler)Sampler.Target!).FillSamples(samples);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public readonly void GetCellCorners(Int2 cell, out Vector3 p00, out Vector3 p10, out Vector3 p01, out Vector3 p11)
+    private readonly void GetCellCornersInContinuousSpace(Int2 cellInSubdivSpace, out Vector3 p00, out Vector3 p10, out Vector3 p01, out Vector3 p11)
     {
-        Span<Sample> samples = stackalloc Sample[4]
-        {
-            new(cell, 0),
-            new(cell + new Int2(1, 0), 0),
-            new(cell + new Int2(0, 1), 0),
-            new(cell + new Int2(1, 1), 0),
-        };
+        GetCellCornersInDiscreteSpace(cellInSubdivSpace, out var samples);
 
-        ((IHeightfieldSampler)Sampler.Target!).FillSamples(samples);
-
-        float x0 = cell.X * SampleInterval;
-        float z0 = cell.Y * SampleInterval;
+        float x0 = cellInSubdivSpace.X * SampleInterval;
+        float z0 = cellInSubdivSpace.Y * SampleInterval;
         float x1 = x0 + SampleInterval;
         float z1 = z0 + SampleInterval;
 
@@ -105,8 +107,27 @@ public unsafe struct HeightfieldShape : IShape
 
     public readonly void GetLocalChild(Int2 cell, out Triangle tri0, out Triangle tri1)
     {
+        GetTrianglesInContinuousSpace(cell, out tri0, out tri1);
+    }
+
+    private readonly void GetTrianglesInContinuousSpace(Int2 cell, out Triangle tri0, out Triangle tri1)
+    {
         // TODO: Perf
-        GetCellCorners(cell, out var p00, out var p10, out var p01, out var p11);
+        GetCellCornersInContinuousSpace(cell, out var p00, out var p10, out var p01, out var p11);
+
+        (tri0.A, tri0.B, tri0.C) = (p00, p10, p01);
+        (tri1.A, tri1.B, tri1.C) = (p01, p10, p11);
+    }
+
+    private readonly void GetTrianglesInDiscreteSpace(Int2 cell, out Triangle tri0, out Triangle tri1)
+    {
+        // TODO: Perf
+        GetCellCornersInDiscreteSpace(cell, out var sample4);
+
+        var p00 = new Vector3(sample4[0].SampleCoord.X, sample4[0].Height, sample4[0].SampleCoord.Y);
+        var p10 = new Vector3(sample4[1].SampleCoord.X, sample4[1].Height, sample4[1].SampleCoord.Y);
+        var p01 = new Vector3(sample4[2].SampleCoord.X, sample4[2].Height, sample4[2].SampleCoord.Y);
+        var p11 = new Vector3(sample4[3].SampleCoord.X, sample4[3].Height, sample4[3].SampleCoord.Y);
         (tri0.A, tri0.B, tri0.C) = (p00, p10, p01);
         (tri1.A, tri1.B, tri1.C) = (p01, p10, p11);
     }
@@ -168,11 +189,10 @@ public unsafe struct HeightfieldShape : IShape
         if (xx < nx || zz < nz)
             return false;
 
-        float invCell = 1f / SampleInterval;
-        sX0 = Math.Clamp((int)MathF.Floor(nx * invCell), 0, Subdivision - 1);
-        sX1 = Math.Clamp((int)MathF.Floor(xx * invCell), 0, Subdivision - 1);
-        sZ0 = Math.Clamp((int)MathF.Floor(nz * invCell), 0, Subdivision - 1);
-        sZ1 = Math.Clamp((int)MathF.Floor(zz * invCell), 0, Subdivision - 1);
+        sX0 = Math.Clamp((int)MathF.Floor(nx * SampleIntervalReciprocal.X), 0, Subdivision - 1);
+        sX1 = Math.Clamp((int)MathF.Floor(xx * SampleIntervalReciprocal.X), 0, Subdivision - 1);
+        sZ0 = Math.Clamp((int)MathF.Floor(nz * SampleIntervalReciprocal.X), 0, Subdivision - 1);
+        sZ1 = Math.Clamp((int)MathF.Floor(zz * SampleIntervalReciprocal.X), 0, Subdivision - 1);
         return true;
     }
 
@@ -306,137 +326,183 @@ public unsafe struct HeightfieldShape : IShape
     private readonly void MarchRay<TRayHitHandler>(in RayData ray, in NRigidPose pose, Matrix3x3 orientation, ref float maximumT, ref TRayHitHandler hitHandler)
         where TRayHitHandler : struct, IShapeRayHitHandler
     {
-        // We're doing DDA obviously
-
-        // TODO: Perf
+        // We're doing DDA
+        // Note that we're skipping some bookkeeping, the ray is already guaranteed
+        // to be in bounds by a check higher up the stack
 
         Matrix3x3.TransformTranspose(ray.Origin - pose.Position, orientation, out var localOrigin);
         Matrix3x3.TransformTranspose(ray.Direction, orientation, out var localDir);
 
-        float invDirX = localDir.X != 0 ? 1f / localDir.X : 0f;
-        float invDirZ = localDir.Z != 0 ? 1f / localDir.Z : 0f;
-        float exMinX = 0, exMaxX = Subdivision * SampleInterval;
-        float exMinZ = 0, exMaxZ = Subdivision * SampleInterval;
+        // We're operating in subdiv-space, squash vectors accordingly
+        localOrigin *= SampleIntervalReciprocal;
+        localDir *= SampleIntervalReciprocal;
+        
+        TreeRay.CreateFrom(localOrigin, localDir, maximumT, out var treeRay);
 
-        if (localDir.X == 0 && (localOrigin.X < exMinX || localOrigin.X > exMaxX))
-            return; // Parallel and outside in X
-        if (localDir.Z == 0 && (localOrigin.Z < exMinZ || localOrigin.Z > exMaxZ))
-            return; // Parallel and outside in Z
+        // Note that henceforth X&Z is referred as X&Y
+        var localOrigin2D = new Vector2(localOrigin.X, localOrigin.Z);
+        var localDir2D = new Vector2(localDir.X, localDir.Z);
+        Vector2 invDir;
+        invDir.X = treeRay.InverseDirection.X; 
+        invDir.Y = treeRay.InverseDirection.Z;
 
-        float tx1 = localDir.X != 0 ? (exMinX - localOrigin.X) * invDirX : float.NegativeInfinity;
-        float tx2 = localDir.X != 0 ? (exMaxX - localOrigin.X) * invDirX : float.PositiveInfinity;
-        float tz1 = localDir.Z != 0 ? (exMinZ - localOrigin.Z) * invDirZ : float.NegativeInfinity;
-        float tz2 = localDir.Z != 0 ? (exMaxZ - localOrigin.Z) * invDirZ : float.PositiveInfinity;
-        float tEnter = MathF.Max(MathF.Min(tx1, tx2), MathF.Min(tz1, tz2));
-        float tExit = MathF.Min(MathF.Max(tx1, tx2), MathF.Max(tz1, tz2));
-        if (tEnter > tExit || tExit < 0)
-            return;
-
-        float tCur = MathF.Max(tEnter, 0f);
-        if (tCur >= maximumT)
-            return; // Already starts past the limits of this ray
-
-        float yAtEntry = localOrigin.Y + localDir.Y * tCur;
-        if ((localDir.Y >= 0 && yAtEntry > MaxHeight) || (localDir.Y <= 0 && yAtEntry < MinHeight))
-            return; // Looking from outside and away vertically
-
-        float inBoundsX = localOrigin.X + localDir.X * tCur;
-        float inBoundsZ = localOrigin.Z + localDir.Z * tCur;
-        int coordX = Math.Clamp((int)MathF.Floor(inBoundsX / SampleInterval), 0, Subdivision - 1);
-        int coordZ = Math.Clamp((int)MathF.Floor(inBoundsZ / SampleInterval), 0, Subdivision - 1);
-        int stepX = MathF.Sign(localDir.X);
-        int stepZ = MathF.Sign(localDir.Z);
-
-        float tMaxX, tMaxZ, tDeltaX, tDeltaZ;
-        if (stepX > 0)
+        float tEnter, tExit;
         {
-            tMaxX = ((coordX + 1) * SampleInterval - localOrigin.X) * invDirX;
-            tDeltaX = SampleInterval * invDirX;
-        }
-        else if (stepX < 0)
-        {
-            tMaxX = (coordX * SampleInterval - localOrigin.X) * invDirX;
-            tDeltaX = -SampleInterval * invDirX;
-        }
-        else
-        {
-            tMaxX = float.MaxValue;
-            tDeltaX = 0f;
-        }
-
-        if (stepZ > 0)
-        {
-            tMaxZ = ((coordZ + 1) * SampleInterval - localOrigin.Z) * invDirZ;
-            tDeltaZ = SampleInterval * invDirZ;
-        }
-        else if (stepZ < 0)
-        {
-            tMaxZ = (coordZ * SampleInterval - localOrigin.Z) * invDirZ;
-            tDeltaZ = -SampleInterval * invDirZ;
-        }
-        else
-        {
-            tMaxZ = float.MaxValue;
-            tDeltaZ = 0f;
-        }
-
-        float tCellEnter = tCur;
-        while (coordX >= 0 && coordX < Subdivision && coordZ >= 0 && coordZ < Subdivision)
-        {
-            float tCellExit = MathF.Min(MathF.Min(tMaxX, tMaxZ), MathF.Min(tExit, maximumT));
-            if (tCellEnter > tCellExit)
-                break;
-
-            if (SegmentIntersectsBlock(coordX, coordZ, localOrigin.Y, localDir.Y, tCellEnter, tCellExit))
-                TestCell(new Int2(coordX, coordZ), localOrigin, localDir, ray, orientation, ref maximumT, ref hitHandler);
-
-            if (tMaxX < tMaxZ)
+            (float min, float max) xBounds, yBounds;
+            if (localDir2D.X != 0)
             {
-                coordX += stepX;
-                tCellEnter = tMaxX;
-                tMaxX += tDeltaX;
+                var tx1 = (0 - localOrigin2D.X) * invDir.X;
+                var tx2 = (Subdivision - localOrigin2D.X) * invDir.X;
+                xBounds = tx1 < tx2 ? (tx1, tx2) : (tx2, tx1);
             }
             else
             {
-                coordZ += stepZ;
-                tCellEnter = tMaxZ;
-                tMaxZ += tDeltaZ;
+                xBounds = (float.NegativeInfinity, float.PositiveInfinity);
             }
 
-            if (tCellEnter > tExit || tCellEnter >= maximumT)
-                break;
+            if (localDir2D.Y != 0)
+            {
+                var ty1 = (0 - localOrigin2D.Y) * invDir.Y;
+                var ty2 = (Subdivision - localOrigin2D.Y) * invDir.Y;
+                yBounds = ty1 < ty2 ? (ty1, ty2) : (ty2, ty1);
+            }
+            else
+            {
+                yBounds = (float.NegativeInfinity, float.PositiveInfinity);
+            }
+
+            tEnter = MathF.Max(xBounds.min, yBounds.min);
+            tExit = MathF.Min(xBounds.max, yBounds.max);
         }
+
+        float tCellEnter = MathF.Max(tEnter, 0f);
+
+        Int2 coord;
+        Int2 step;
+        {
+            var inBounds = Vector2.Round(localOrigin2D + localDir2D * tCellEnter, MidpointRounding.ToNegativeInfinity);
+            coord.X = Math.Clamp((int)inBounds.X, 0, Subdivision - 1);
+            coord.Y = Math.Clamp((int)inBounds.Y, 0, Subdivision - 1);
+            step.X = MathF.Sign(localDir2D.X);
+            step.Y = MathF.Sign(localDir2D.Y);
+        }
+
+        Vector2 tMax, tDelta;
+        {
+            if (step.X > 0)
+                tMax.X = coord.X + 1;
+            else if (step.X < 0)
+                tMax.X = coord.X;
+            else
+                tMax.X = float.PositiveInfinity;
+
+            if (step.Y > 0)
+                tMax.Y = coord.Y + 1;
+            else if (step.Y < 0)
+                tMax.Y = coord.Y;
+            else
+                tMax.Y = float.PositiveInfinity;
+
+            tMax = (tMax - localOrigin2D) * invDir;
+            tDelta.X = invDir.X * step.X;
+            tDelta.Y = invDir.Y * step.Y;
+        }
+
+        tExit = MathF.Min(tExit, maximumT);
+        
+        var blockCoord = coord / CoarseBlockInterval;
+
+        // Note that this is signed, positive when going in negative dir, negative when going in positive dir
+        var cellsToNextBlock = coord - blockCoord * CoarseBlockInterval;
+        cellsToNextBlock.X = step.X > 0 ? -(CoarseBlockInterval - cellsToNextBlock.X) : cellsToNextBlock.X + 1;
+        cellsToNextBlock.Y = step.Y > 0 ? -(CoarseBlockInterval - cellsToNextBlock.Y) : cellsToNextBlock.Y + 1;
+
+        bool insideBlock = IsInBlock(blockCoord, &treeRay);
+        // Perf: Could fast-forward to next cell in bounds when out of bounds
+        do
+        {
+            float tCellExit = MathF.Min(MathF.Min(tMax.X, tMax.Y), tExit);
+            if (tCellEnter > tCellExit)
+                break;
+
+            if (insideBlock)
+            {
+                if (RayTestCell(coord, localOrigin, localDir, ray, orientation, ref maximumT, ref hitHandler))
+                {
+                    tExit = MathF.Min(tExit, maximumT);
+                }
+            }
+
+            if (tMax.X < tMax.Y)
+            {
+                coord.X += step.X;
+                if (coord.X < 0 || coord.X >= Subdivision)
+                    break;
+
+                tCellEnter = tMax.X;
+                tMax.X += tDelta.X;
+                cellsToNextBlock.X += step.X;
+                if (cellsToNextBlock.X == 0)
+                {
+                    blockCoord.X += step.X;
+                    cellsToNextBlock.X = -step.X * CoarseBlockInterval;
+                    insideBlock = IsInBlock(blockCoord, &treeRay);
+                    // Perf: Could fast-forward to next cell in bounds when out of bounds
+                }
+            }
+            else
+            {
+                coord.Y += step.Y;
+                if (coord.Y < 0 || coord.Y >= Subdivision)
+                    break;
+
+                tCellEnter = tMax.Y;
+                tMax.Y += tDelta.Y;
+                cellsToNextBlock.Y += step.Y;
+                if (cellsToNextBlock.Y == 0)
+                {
+                    blockCoord.Y += step.Y;
+                    cellsToNextBlock.Y = -step.Y * CoarseBlockInterval;
+                    insideBlock = IsInBlock(blockCoord, &treeRay);
+                    // Perf: Could fast-forward to next cell in bounds when out of bounds
+                }
+            }
+        } while (tCellEnter < tExit);
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private readonly bool SegmentIntersectsBlock(int sampleCoordX, int sampleCoordZ, float originY, float dirY, float t0, float t1)
+    private readonly bool IsInBlock(Int2 blockCoord, TreeRay* treeRay)
     {
-        ref var range = ref BlockOf(sampleCoordX, sampleCoordZ);
-        float y0 = originY + dirY * t0;
-        // edge case to handle infinite t1
-        float y1 = dirY == 0 ? y0 : originY + dirY * t1;
-        float segMin = MathF.Min(y0, y1);
-        float segMax = MathF.Max(y0, y1);
-        return segMax >= range.MinHeight && segMin <= range.MaxHeight;
+        var blockIndex = blockCoord.Y * CoarseBlocksSubdivision + blockCoord.X;
+        ref var range = ref CoarseBlocksAddress[blockIndex];
+        var min = new Vector3(blockCoord.X, 0, blockCoord.Y) * CoarseBlockInterval;
+        var max = min + new Vector3(CoarseBlockInterval);
+        min.Y = range.MinHeight;
+        max.Y = range.MaxHeight;
+        return Tree.Intersects(min, max, treeRay, out _);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private readonly void TestCell<TRayHitHandler>(Int2 cornerCoord, Vector3 origin, Vector3 dir, in RayData ray, Matrix3x3 orientation, ref float maximumT, ref TRayHitHandler hitHandler)
+    private readonly bool RayTestCell<TRayHitHandler>(Int2 cornerCoord, Vector3 origin, Vector3 dir, in RayData ray, in Matrix3x3 orientation, ref float maximumT, ref TRayHitHandler hitHandler)
         where TRayHitHandler : struct, IShapeRayHitHandler
     {
-        GetLocalChild(cornerCoord, out var tri0, out var tri1);
+        bool hit = false;
+        GetTrianglesInDiscreteSpace(cornerCoord, out var tri0, out var tri1);
         if (Triangle.RayTest(tri0.A, tri0.B, tri0.C, origin, dir, out float t0, out var normal0) && t0 <= maximumT)
         {
             Matrix3x3.Transform(normal0, orientation, out normal0);
             normal0 = Vector3.Normalize(normal0);
             hitHandler.OnRayHit(ray, ref maximumT, t0, normal0, 0);
+            hit = true;
         }
         if (Triangle.RayTest(tri1.A, tri1.B, tri1.C, origin, dir, out float t1, out var normal1) && t1 <= maximumT)
         {
             Matrix3x3.Transform(normal1, orientation, out normal1);
             normal1 = Vector3.Normalize(normal1);
             hitHandler.OnRayHit(ray, ref maximumT, t1, normal1, 0);
+            hit = true;
         }
+
+        return hit;
     }
 
     public static ShapeBatch CreateShapeBatch(BufferPool pool, int initialCapacity, Shapes shapeBatches)
@@ -521,6 +587,7 @@ public unsafe struct HeightfieldShape : IShape
         {
             this[shapeIndex].ComputeBounds(orientation, out min, out max);
         }
+
         public override void RayTest<TRayHitHandler>(int shapeIndex, in NRigidPose pose, in RayData ray, ref float maximumT, BufferPool pool, ref TRayHitHandler hitHandler)
         {
             this[shapeIndex].RayTest(pose, ray, ref maximumT, pool, ref hitHandler);
@@ -543,5 +610,11 @@ public unsafe struct HeightfieldShape : IShape
             Overlaps.Allocate(Pool) = i;
             return true;
         }
+    }
+
+    [InlineArray(4)]
+    private struct Sample4
+    {
+        private Sample _item0;
     }
 }
