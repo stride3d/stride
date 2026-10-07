@@ -1,0 +1,32 @@
+!PrefabAsset
+Id: 1fd1d4a5-70b9-3e7e-b2c3-8a113aa36e62
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+Hierarchy:
+    RootParts:
+        - ref!! 76071151-1e25-2a49-144f-c51a80c731df
+    Parts:
+        -   Entity:
+                Id: 76071151-1e25-2a49-144f-c51a80c731df
+                Name: JellyBall
+                Components:
+                    7c416848204ff3dea3ca162af89ebbcf: !TransformComponent
+                        Id: 2bf0656a-21b1-0680-ad8d-9671a6ef0a83
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.8, Y: 0.8, Z: 0.8}
+                        Children: {}
+                    b46ddde35ebee23837542c55d4ab89f5: !ModelComponent
+                        Id: 08073c4f-6d1d-6b0c-57d2-cc677a3d954c
+                        Model: c6674fcb-5db8-4d43-7a05-79f8b56c51ec:Models/Sphere
+                        Materials:
+                            068be8c49103dd47b2ee8c5f1c6ea94e~0: a0d98ab3-bb3c-8e29-140a-471a886409b1:Materials/Strawberry
+                    fda2f621afc8a0133f6fd1d1cdcf5bc0: !Stride.BepuPhysics.Soft.VolumetricSoftBodyComponent,Stride.BepuPhysics.Soft
+                        Id: f66fd1fa-2d01-e544-adf2-9047500b7c5c
+                        Collider: !Stride.BepuPhysics.Soft.Colliders.ParticleCollider,Stride.BepuPhysics.Soft {}
+                        Mass: 0.5
+                        FrictionCoefficient: 0.3
+                        Resolution: 3
+                        Stiffness: 4.0
+                        ShearStiffness: 3.0
+                        VolumeStiffness: 8.0
