@@ -501,9 +501,7 @@ public class BodyComponent : CollidableComponent
             BodyReference = Simulation.Simulation.Bodies[bHandle];
             BodyReference.Value.Collidable.Continuity = ContinuousDetection;
 
-            while (Simulation.Bodies.Count <= bHandle.Value) // There may be more than one add if soft physics inserted a couple of bodies
-                Simulation.Bodies.Add(null);
-            Simulation.Bodies[bHandle.Value] = this;
+            Simulation.SetBodyOwner(bHandle, this);
 
             Simulation.CollidableMaterials.Allocate(bHandle) = new();
         }
@@ -537,7 +535,7 @@ public class BodyComponent : CollidableComponent
         }
 
         Simulation.Simulation.Bodies.Remove(BodyReference.Value.Handle);
-        Simulation.Bodies[BodyReference.Value.Handle.Value] = null;
+        Simulation.SetBodyOwner(BodyReference.Value.Handle, null);
         if (InterpolationMode != InterpolationMode.None)
             Simulation.UnregisterInterpolated(this);
 

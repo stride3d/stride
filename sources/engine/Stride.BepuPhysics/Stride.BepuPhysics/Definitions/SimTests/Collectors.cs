@@ -58,9 +58,23 @@ internal unsafe struct SpanCollidableCollector(CollidableStack* Ptr, int Length,
             if (manifold.GetDepth(i) < 0)
                 continue;
 
-            Ptr[Head++] = new(reference, BepuSimulation.GetComponent(reference).Versioning);
+            var component = BepuSimulation.GetComponent(reference);
+            if (component.CollidableCount > 1 && AlreadyCollected(component))
+                break; // A collidable spanning multiple bodies is reported once, whichever of its bodies overlap
+
+            Ptr[Head++] = new(reference, component.Versioning);
             break;
         }
+    }
+
+    private bool AlreadyCollected(CollidableComponent component)
+    {
+        for (int i = 0; i < Head; i++)
+        {
+            if (ReferenceEquals(BepuSimulation.GetComponent(Ptr[i].Reference), component))
+                return true;
+        }
+        return false;
     }
 }
 
