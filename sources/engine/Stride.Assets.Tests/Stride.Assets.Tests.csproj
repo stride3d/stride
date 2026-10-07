@@ -18,7 +18,7 @@
     <Compile Include="..\..\assets\Stride.Core.Assets.Tests\Helpers\GuidGenerator.cs">
       <Link>GuidGenerator.cs</Link>
     </Compile>
-    <Compile Include="TestAssetContentTypeMap.cs" />
+    <Compile Include="TestAssetFileExtensionDeclarations.cs" />
     <Compile Include="TestFFmpegTool.cs" />
     <Compile Include="TestRawMediaImporters.cs" />
     <Compile Include="TestAssetUrlConstantsGenerator.cs" />
@@ -62,10 +62,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="materials\testTextureGeneric.sdmat">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="..\Stride.Engine\buildTransitive\Stride.AssetContentTypeMap.txt">
-      <Link>Stride.AssetContentTypeMap.txt</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="readme.md" />

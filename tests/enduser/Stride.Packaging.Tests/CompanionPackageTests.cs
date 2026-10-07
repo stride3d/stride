@@ -35,6 +35,7 @@ public class CompanionPackageTests
         c.PackPlugin();
         c.PackAssets();
         c.AddSpinAsset();
+        c.AddTypedSpinConstantCheck();
 
         var result = c.BuildConsumer();
         Assert.True(result.ExitCode == 0, $"Consumer build should succeed (exit {result.ExitCode}).");
@@ -188,6 +189,7 @@ public class CompanionPackageTests
         c.ReferenceRuntimeProject();
         c.WriteSolution();
         c.AddSpinAsset();
+        c.AddTypedSpinConstantCheck();
 
         var result = c.BuildConsumer();
         Assert.True(result.ExitCode == 0, $"Consumer build should succeed (exit {result.ExitCode}).");
@@ -327,6 +329,22 @@ public class CompanionPackageTests
             if (extraArg is not null)
                 args.Add(extraArg);
             return Dotnet.Exec(args, workingDir, output, timeoutMin: 10);
+        }
+
+        /// <summary>
+        /// Game code that compiles only when the asset URL constant of Spin is typed, from the plugin runtime's
+        /// [assembly: AssetFileExtension]: the game does not reference the Assets package declaring SpinAsset.
+        /// </summary>
+        public void AddTypedSpinConstantCheck()
+        {
+            File.WriteAllText(Path.Combine(consumerDir, "Consumer.Game", "TypedConstantCheck.cs"), """
+                namespace Consumer;
+
+                internal static class TypedConstantCheck
+                {
+                    internal static readonly Stride.Core.Serialization.UrlReference<StrideAssetPlugin.SpinData> Spin = Assets.Spin;
+                }
+                """);
         }
 
         public void AddSpinAsset()
