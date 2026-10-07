@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -26,6 +28,12 @@ namespace Stride.Assets;
 public sealed record SymbolRewrite(
     Func<Compilation, IEnumerable<ISymbol>> ResolveSymbols,
     Action<DocumentEditor, SyntaxNode, ISymbol> RewriteReference);
+
+/// <summary>
+/// Public types that moved to another namespace, keeping their names.
+/// </summary>
+/// <param name="TypeNames">Metadata names (<c>Foo`1</c> for a generic type).</param>
+public sealed record TypeMove(string OldNamespace, string NewNamespace, params string[] TypeNames);
 
 /// <summary>
 /// Factory helpers for declaring code migrations. Import with
@@ -452,6 +460,221 @@ public static class CodeUpgrades
             }
             return solution;
         };
+    }
+
+    /// <summary>
+    /// Migrates code using types that moved to another namespace: qualified names and using directives take the new
+    /// namespace, and old directives nothing else uses are removed. Usage is read against the old-version closure.
+    /// </summary>
+    public static CodeUpgrade MoveTypes(params TypeMove[] moves)
+    {
+        ArgumentNullException.ThrowIfNull(moves);
+        var rewrites = moves.SelectMany(move => move.TypeNames.Select(typeName => QualifiedTypeMove(move, typeName))).ToArray();
+        var newNamespaces = moves.SelectMany(move => move.TypeNames.Select(typeName => (Type: (move.OldNamespace, TypeName: typeName), move.NewNamespace)))
+            .ToDictionary(x => x.Type, x => x.NewNamespace);
+        var oldNamespaces = moves.Select(move => move.OldNamespace).ToHashSet(StringComparer.Ordinal);
+        // A document needs no change unless it contains the name of a moved type or of an old namespace
+        var keywords = moves.SelectMany(move => move.TypeNames.Select(typeName => typeName.Split('`')[0])).Concat(oldNamespaces).Distinct().ToArray();
+
+        return async (solution, targets, cancellationToken) =>
+        {
+            var originalSolution = solution;
+            solution = await SymbolRewriteEngine.ApplyAsync(solution, targets, rewrites, cancellationToken);
+
+            foreach (var projectId in targets)
+            {
+                var project = originalSolution.GetProject(projectId);
+                var compilation = project is not null ? await project.GetCompilationAsync(cancellationToken) : null;
+                if (compilation is null || !newNamespaces.Keys.Any(type => compilation.GetTypeByMetadataName($"{type.OldNamespace}.{type.TypeName}") is not null))
+                    continue;
+                var emptiedNamespaces = oldNamespaces.Where(x => IsEmptied(compilation, x, newNamespaces)).ToHashSet(StringComparer.Ordinal);
+
+                foreach (var originalDocument in project.Documents)
+                {
+                    if (!SymbolRewriteEngine.IsUpgradableSource(originalDocument))
+                        continue;
+                    var content = (await originalDocument.GetTextAsync(cancellationToken)).ToString();
+                    if (!keywords.Any(keyword => content.Contains(keyword, StringComparison.Ordinal)))
+                        continue;
+
+                    var (imports, usedForMovedTypes, stillUsed) = await FindNamespaceUsageAsync(originalDocument, newNamespaces, oldNamespaces, cancellationToken);
+                    if (await solution.GetDocument(originalDocument.Id).GetSyntaxRootAsync(cancellationToken) is not CompilationUnitSyntax root)
+                        continue;
+                    var removable = oldNamespaces
+                        .Where(x => !stillUsed.Contains(x) && (usedForMovedTypes.Contains(x) || emptiedNamespaces.Contains(x)))
+                        .ToHashSet(StringComparer.Ordinal);
+                    var newRoot = UpdateUsings(root, moves, imports, removable, content.Contains("\r\n", StringComparison.Ordinal) ? "\r\n" : "\n");
+                    if (newRoot != root)
+                        solution = solution.WithDocumentSyntaxRoot(originalDocument.Id, newRoot);
+                }
+            }
+            return solution;
+        };
+    }
+
+    // A reference qualified by the old namespace takes the new one; the other references are left to the using directives
+    private static SymbolRewrite QualifiedTypeMove(TypeMove move, string typeName)
+    {
+        return new SymbolRewrite(
+            compilation => compilation.GetTypeByMetadataName($"{move.OldNamespace}.{typeName}") is { } type ? [type] : Array.Empty<ISymbol>(),
+            (editor, referenceNode, symbol) =>
+            {
+                if (referenceNode is not SimpleNameSyntax name)
+                    return;
+                var (qualified, qualifier) = name.Parent switch
+                {
+                    QualifiedNameSyntax qualifiedName when qualifiedName.Right == name => ((ExpressionSyntax)qualifiedName, (ExpressionSyntax)qualifiedName.Left),
+                    MemberAccessExpressionSyntax memberAccess when memberAccess.Name == name => (memberAccess, memberAccess.Expression),
+                    _ => (null, null),
+                };
+                if (qualified is null || editor.SemanticModel.GetSymbolInfo(qualifier).Symbol is not INamespaceSymbol)
+                    return;
+
+                var global = qualifier.DescendantNodesAndSelf().OfType<AliasQualifiedNameSyntax>().Any(x => x.Alias.Identifier.IsKind(SyntaxKind.GlobalKeyword)) ? "global::" : "";
+                var newName = SyntaxFactory.ParseName($"{global}{move.NewNamespace}.{name.WithoutTrivia()}");
+                editor.ReplaceNode(qualified, newName.WithTriviaFrom(qualified));
+            });
+    }
+
+    // True when every type of the namespace the code can use moved
+    private static bool IsEmptied(Compilation compilation, string namespaceName, Dictionary<(string OldNamespace, string TypeName), string> newNamespaces)
+    {
+        var namespaceSymbol = compilation.GlobalNamespace;
+        foreach (var part in namespaceName.Split('.'))
+        {
+            namespaceSymbol = namespaceSymbol.GetNamespaceMembers().FirstOrDefault(x => x.Name == part);
+            if (namespaceSymbol is null)
+                return false;
+        }
+        return !namespaceSymbol.GetNamespaceMembers().Any()
+            && namespaceSymbol.GetTypeMembers().All(type => newNamespaces.ContainsKey((namespaceName, type.MetadataName))
+                || type.DeclaredAccessibility != Accessibility.Public && !type.Locations.Any(x => x.IsInSource));
+    }
+
+    // New namespaces to import, old namespaces used for moved types, and old namespaces still used for other types
+    private static async Task<(SortedSet<string> Imports, HashSet<string> UsedForMovedTypes, HashSet<string> StillUsed)> FindNamespaceUsageAsync(Document document,
+        Dictionary<(string OldNamespace, string TypeName), string> newNamespaces, HashSet<string> oldNamespaces, CancellationToken cancellationToken)
+    {
+        var imports = new SortedSet<string>(StringComparer.Ordinal);
+        var usedForMovedTypes = new HashSet<string>(StringComparer.Ordinal);
+        var stillUsed = new HashSet<string>(StringComparer.Ordinal);
+        var root = await document.GetSyntaxRootAsync(cancellationToken);
+        var semanticModel = await document.GetSemanticModelAsync(cancellationToken);
+        if (root is null || semanticModel is null)
+            return (imports, usedForMovedTypes, stillUsed);
+
+        foreach (var name in root.DescendantNodes(descendIntoTrivia: true).OfType<SimpleNameSyntax>())
+        {
+            if (name.Ancestors().Any(x => x is UsingDirectiveSyntax))
+                continue;
+
+            var symbolInfo = semanticModel.GetSymbolInfo(name, cancellationToken);
+            var symbol = symbolInfo.Symbol ?? symbolInfo.CandidateSymbols.FirstOrDefault();
+            if (symbol is IMethodSymbol { MethodKind: MethodKind.Constructor } constructor)
+                symbol = constructor.ContainingType;
+            else if (symbol is IMethodSymbol { ReducedFrom: { } extensionMethod })
+                symbol = extensionMethod;
+
+            // The type that brings the name in scope: the type itself, or the type declaring the member
+            var type = symbol as INamedTypeSymbol ?? symbol?.ContainingType;
+            while (type?.ContainingType is { } containingType)
+                type = containingType;
+            if (type?.ContainingNamespace is not { IsGlobalNamespace: false } typeNamespace)
+                continue;
+            var namespaceName = typeNamespace.ToDisplayString();
+            if (!oldNamespaces.Contains(namespaceName))
+                continue;
+
+            if (!newNamespaces.TryGetValue((namespaceName, type.OriginalDefinition.MetadataName), out var newNamespace))
+                stillUsed.Add(namespaceName);
+            else if (symbol is INamedTypeSymbol && !IsQualified(name) && semanticModel.GetAliasInfo(name, cancellationToken) is null
+                || symbol is IMethodSymbol { IsExtensionMethod: true })
+            {
+                imports.Add(newNamespace);
+                usedForMovedTypes.Add(namespaceName);
+            }
+        }
+        return (imports, usedForMovedTypes, stillUsed);
+
+        static bool IsQualified(SimpleNameSyntax name) => name.Parent switch
+        {
+            QualifiedNameSyntax qualifiedName => qualifiedName.Right == name,
+            AliasQualifiedNameSyntax aliasQualifiedName => aliasQualifiedName.Name == name,
+            MemberAccessExpressionSyntax memberAccess => memberAccess.Name == name,
+            MemberBindingExpressionSyntax => true,
+            _ => false,
+        };
+    }
+
+    // Replaces each removable old directive by the needed new ones; the other needed directives go after the existing ones
+    private static CompilationUnitSyntax UpdateUsings(CompilationUnitSyntax root, TypeMove[] moves, SortedSet<string> imports, HashSet<string> removable, string endOfLine)
+    {
+        var directives = root.DescendantNodes().OfType<UsingDirectiveSyntax>().Where(x => x.Alias is null && x.StaticKeyword.IsKind(SyntaxKind.None)).ToList();
+        var pending = new SortedSet<string>(imports.Except(directives.Select(GetNamespace)), StringComparer.Ordinal);
+
+        var replacements = new Dictionary<UsingDirectiveSyntax, List<UsingDirectiveSyntax>>();
+        foreach (var directive in directives)
+        {
+            var oldNamespace = GetNamespace(directive);
+            if (!directive.GlobalKeyword.IsKind(SyntaxKind.None) || !removable.Contains(oldNamespace))
+                continue;
+
+            var newDirectives = new List<UsingDirectiveSyntax>();
+            foreach (var newNamespace in moves.Where(x => x.OldNamespace == oldNamespace).Select(x => x.NewNamespace).Distinct().Order(StringComparer.Ordinal))
+            {
+                if (!pending.Remove(newNamespace))
+                    continue;
+                var newDirective = directive.WithName(SyntaxFactory.ParseName(newNamespace).WithTriviaFrom(directive.Name));
+                // Only the first one keeps the comments above the old directive
+                if (newDirectives.Count > 0)
+                    newDirective = newDirective.WithLeadingTrivia(directive.GetLeadingTrivia().Where(x => x.IsKind(SyntaxKind.WhitespaceTrivia)));
+                newDirectives.Add(newDirective);
+            }
+            replacements.Add(directive, newDirectives);
+        }
+
+        var result = root.TrackNodes(replacements.Keys);
+        foreach (var (directive, newDirectives) in replacements)
+        {
+            var current = result.GetCurrentNode(directive);
+            if (newDirectives.Count > 0)
+            {
+                result = result.ReplaceNode(current, newDirectives);
+                continue;
+            }
+
+            // The comments above a removed directive (such as the file header) go to the next line
+            var leadingTrivia = current.GetLeadingTrivia();
+            if (leadingTrivia.Any(x => !x.IsKind(SyntaxKind.WhitespaceTrivia) && !x.IsKind(SyntaxKind.EndOfLineTrivia)))
+            {
+                var nextToken = current.GetLastToken().GetNextToken();
+                var kept = leadingTrivia.Reverse().SkipWhile(x => x.IsKind(SyntaxKind.WhitespaceTrivia)).Reverse();
+                result = result.ReplaceToken(nextToken, nextToken.WithLeadingTrivia(kept.Concat(nextToken.LeadingTrivia)));
+                current = result.GetCurrentNode(directive);
+            }
+            result = result.RemoveNode(current, SyntaxRemoveOptions.KeepNoTrivia);
+        }
+
+        if (pending.Count > 0)
+        {
+            var newDirectives = pending.Select(x => SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(x).WithLeadingTrivia(SyntaxFactory.Space))
+                .WithTrailingTrivia(SyntaxFactory.EndOfLine(endOfLine))).ToArray();
+            if (result.Usings.Count == 0 && result.Externs.Count == 0)
+            {
+                // The comments at the top of the file stay above the directives
+                var firstToken = result.GetFirstToken(includeZeroWidth: true);
+                newDirectives[0] = newDirectives[0].WithLeadingTrivia(firstToken.LeadingTrivia);
+                result = result.ReplaceToken(firstToken, firstToken.WithLeadingTrivia(SyntaxFactory.EndOfLine(endOfLine)));
+            }
+            result = result.AddUsings(newDirectives);
+        }
+        return result;
+
+        static string GetNamespace(UsingDirectiveSyntax directive)
+        {
+            var name = directive.Name?.WithoutTrivia().ToString() ?? "";
+            return name.StartsWith("global::", StringComparison.Ordinal) ? name["global::".Length..] : name;
+        }
     }
 
     /// <summary>
