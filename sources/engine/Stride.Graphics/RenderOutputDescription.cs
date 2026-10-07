@@ -185,7 +185,7 @@ namespace Stride.Graphics
                 throw new ArgumentOutOfRangeException(nameof(renderTargetFormats), "Cannot specify the format for more than 8 Render Targets.");
 
             int lastSetRenderTarget = -1;
-            for (int i = 0; i < MaximumRenderTargetCount; i++)
+            for (int i = 0; i < renderTargetFormats.Length; i++)
                 if (renderTargetFormats[i] != PixelFormat.None)
                     lastSetRenderTarget = i;
 
