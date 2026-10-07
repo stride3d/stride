@@ -29,6 +29,11 @@ internal sealed class Program
     /// <returns></returns>
     internal static string? GetExecutablePath() => Environment.ProcessPath;
 
+    /// <summary>
+    /// Returns the folder the launcher is installed in (single-file: not the one its content is extracted to).
+    /// </summary>
+    internal static string GetExecutableDirectory() => Path.GetDirectoryName(Environment.ProcessPath) ?? AppContext.BaseDirectory;
+
     internal static void RunNewApp<TApp>(Func<TApp, CancellationToken> appMain, string[]? args = null)
         where TApp : Application, new()
     {

@@ -3,11 +3,14 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:l="using:Stride.Launcher.Assets.Localization"
+        xmlns:vm="using:Stride.Launcher.ViewModels"
         xmlns:vw="using:Stride.Launcher.Views"
+        xmlns:w="using:Stride.Core.Presentation.Avalonia.Windows"
         mc:Ignorable="d" d:DesignWidth="1024" d:DesignHeight="768"
         Width="1024" Height="768" MaxWidth="2560" MaxHeight="1440"
         WindowStartupLocation="CenterScreen"
         x:Class="Stride.Launcher.Views.MainWindow"
+        x:DataType="vm:MainViewModel"
         Icon="/Assets/Launcher.ico"
         Title="{x:Static l:Strings.LauncherTitle}"
         WindowDecorations="BorderOnly" ExtendClientAreaToDecorationsHint="True">
@@ -31,5 +34,51 @@
   <Window.Background>
     <DynamicResource ResourceKey="ImageBackground"/>
   </Window.Background>
-  <vw:MainView Margin="0,32,0,0" />
+  <Window.Styles>
+    <!-- The gear stays grey while the settings are open, like when hovered, rather than the accent color -->
+    <Style Selector="ToggleButton#SettingsButton:checked /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource ButtonBackgroundPointerOver}"/>
+      <Setter Property="BorderBrush" Value="Transparent"/>
+      <Setter Property="Foreground" Value="{DynamicResource ButtonForeground}"/>
+    </Style>
+  </Window.Styles>
+  <!-- Launcher settings: a gear in the title bar, left of the window buttons -->
+  <w:WindowTitleBar.Content>
+    <ToggleButton x:Name="SettingsButton" Classes="transparentButton"
+                  Width="46" Height="32" Padding="0"
+                  HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                  ToolTip.Tip="{x:Static l:Strings.LauncherSettings}"
+                  Click="SettingsButton_Click">
+      <PathIcon Width="16" Height="16" Data="{StaticResource GeometrySettingsGear}" />
+    </ToggleButton>
+  </w:WindowTitleBar.Content>
+  <Grid>
+    <vw:MainView Margin="0,32,0,0" />
+    <!-- Where the settings open: a flyout can't open from the title bar layer, so it opens from this anchor of the
+         content, which the click on the gear places right under it -->
+    <Border x:Name="SettingsAnchor"
+            HorizontalAlignment="Right" VerticalAlignment="Top"
+            Width="1" Height="0">
+      <FlyoutBase.AttachedFlyout>
+        <Flyout Placement="BottomEdgeAlignedRight">
+          <StackPanel Spacing="8">
+            <!-- A check box rather than a menu item: its box shows when it's off too -->
+            <CheckBox Content="{x:Static l:Strings.IncludePrereleaseUpdates}"
+                      IsChecked="{Binding IncludePrereleaseUpdates, Mode=TwoWay}"/>
+            <DockPanel>
+              <TextBlock Text="{x:Static l:Strings.ThemeVariant}" Margin="0,0,12,0" VerticalAlignment="Center"/>
+              <ComboBox ItemsSource="{Binding ThemeVariantChoices}" SelectedItem="{Binding SelectedThemeVariant, Mode=TwoWay}"
+                        HorizontalAlignment="Stretch">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate x:DataType="vm:ThemeVariantChoice">
+                    <TextBlock Text="{Binding Name}"/>
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+            </DockPanel>
+          </StackPanel>
+        </Flyout>
+      </FlyoutBase.AttachedFlyout>
+    </Border>
+  </Grid>
 </Window>

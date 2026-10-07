@@ -462,7 +462,8 @@ public sealed class StrideVersionManager
         // compatible" is the drift the pinning exists to prevent. Content packages (Samples, Starters, AssetPacks)
         // follow the content version, the engine-versioned ones (Games) the version Game Studio depends on. An
         // engine from before the pinning names none of them, so they go through discovery like the rest.
-        var gameStudio = store.GetLocalPackages(MainPackageId).FirstOrDefault(package => package.Version.Equals(version));
+        // By version: without a range, only the local builds are taken from the local-folder sources, and a CI build has a plain version
+        var gameStudio = store.GetLocalPackages(MainPackageId, new PackageVersionRange(version)).FirstOrDefault(package => package.Version.Equals(version));
         var pinned = await ResolveEngineTemplatePackages(gameStudio);
         var contentVersion = ContentVersionOf(gameStudio, version);
         if (contentVersion is not null)

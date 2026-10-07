@@ -42,6 +42,50 @@ public sealed class MainViewModelTests
     }
 
     [Fact]
+    public void IncludePrereleaseUpdates_Setter_PersistsValueAndSaves()
+    {
+        var (vm, settings, _) = TestViewModelFactory.CreateMainViewModel();
+        var savesBefore = settings.SaveCallCount;
+
+        vm.IncludePrereleaseUpdates = true;
+
+        Assert.True(settings.IncludePrereleaseUpdates);
+        Assert.Equal(savesBefore + 1, settings.SaveCallCount);
+    }
+
+    [Fact]
+    public void SelectedThemeVariant_Setter_PersistsValueAndSaves()
+    {
+        var (vm, settings, _) = TestViewModelFactory.CreateMainViewModel();
+        var savesBefore = settings.SaveCallCount;
+
+        vm.SelectedThemeVariant = vm.ThemeVariantChoices.Single(x => x.Value == "Light");
+
+        Assert.Equal("Light", settings.ThemeVariant);
+        Assert.Equal("Light", vm.SelectedThemeVariant.Value);
+        Assert.Equal(savesBefore + 1, settings.SaveCallCount);
+    }
+
+    [Fact]
+    public void SelectedThemeVariant_NeverChosen_IsDarkAndNotSaved()
+    {
+        var (vm, settings, _) = TestViewModelFactory.CreateMainViewModel();
+
+        Assert.Equal("Dark", vm.SelectedThemeVariant.Value);
+        Assert.Null(settings.ThemeVariant);
+    }
+
+    [Fact]
+    public void SelectedThemeVariant_UnknownSavedValue_IsDark()
+    {
+        var (vm, settings, _) = TestViewModelFactory.CreateMainViewModel();
+
+        settings.ThemeVariant = "Blue";
+
+        Assert.Equal("Dark", vm.SelectedThemeVariant.Value);
+    }
+
+    [Fact]
     public void CurrentTab_Setter_DoesNotSave_WhenValueUnchanged()
     {
         var (vm, settings, _) = TestViewModelFactory.CreateMainViewModel();

@@ -136,12 +136,14 @@ runs:
 
         # Pull the "What's Changed" list (title + @handle + PR link per line) as the ground
         # truth for bullet attribution.
-        WHATS_CHANGED=$(printf '%s\n' "$GN_BODY" | awk '
+        # Here-strings, not pipes: awk/grep stop reading early, and a body larger than the pipe
+        # buffer (long ranges) would then fail the printf, which pipefail turns into an exit.
+        WHATS_CHANGED=$(awk '
             /^## What.s Changed/ { c=1; next }
             c && /^\*\*Full Changelog/ { exit }
             c && /^## / { exit }
-            c { print }')
-        if printf '%s\n' "$WHATS_CHANGED" | grep -q '^\* '; then
+            c { print }' <<< "$GN_BODY")
+        if grep -q '^\* ' <<< "$WHATS_CHANGED"; then
           # generate-notes is repo-wide. For a scoped product it is only an attribution
           # lookup (the scoped git log stays the inclusion list); unscoped, it is the
           # authoritative source of what shipped and its attribution.
@@ -342,11 +344,11 @@ runs:
         # New Contributors block (repo-wide; from the changelog fetched above).
         CONTRIB=""
         if [ "$ADD_CONTRIBUTORS" = "true" ]; then
-          CONTRIB=$(printf '%s\n' "$GN_BODY" | awk '
+          CONTRIB=$(awk '
                 /^## New Contributors/ { c=1 }
                 c && /^\*\*Full Changelog/ { exit }
                 c && /^## / && !/^## New Contributors/ { exit }
-                c { print }')
+                c { print }' <<< "$GN_BODY")
           [ -n "$CONTRIB" ] && echo "::notice::Appended New Contributors section." || echo "::notice::No New Contributors section to append."
         fi
 

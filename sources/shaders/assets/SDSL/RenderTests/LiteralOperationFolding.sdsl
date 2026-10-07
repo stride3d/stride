@@ -1,0 +1,36 @@
+// PSMain(ExpectedResult=#00FF00FF)
+
+namespace Stride.Shaders.Tests;
+
+// Unsuffixed literals fold in 64 bits then take the context's type, as in HLSL; a suffixed literal keeps its own.
+// Red holds one bit per failed check, green is set when they all pass. A uint near 2^32 is compared with < since
+// FXC folds float(4294967295u) != 4294967296.0 in double precision.
+shader LiteralOperationFolding
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    static const uint ConstQuotient = 65536 * 65536 / 3;
+
+    void PSMain()
+    {
+        uint five = 5;
+        uint failures = 0;
+
+        if (float4(5u - 6, 0, 0, 0).x < 4000000000.0) failures |= 1;
+        if (float4(65536 * 65536, 0, 0, 0).x != 4294967296.0) failures |= 2;
+        float quotient = 65536 * 65536 / 3;
+        if (quotient != 1431655765.0 || ConstQuotient != 1431655765u) failures |= 4;
+        int shifted = 1 << 31 >> 31;
+        if (shifted != 1) failures |= 8;
+        float halfValue = 1 / 2;
+        float2 halves = 1 / 2;
+        if (halfValue != 0 || halves.y != 0 || 1 / 2.0 != 0.5) failures |= 16;
+        uint wrapped = five - 6;
+        if (wrapped != 4294967295u || five / 2 != 2) failures |= 32;
+        float sum = 2147483647 + 1;
+        if (sum != 2147483648.0 || float(5u - 6 * 2) < 4000000000.0) failures |= 64;
+        if (float(-(1 / 2)) != 0 || 7 % 4 != 3 || (6 & 3 | 8 ^ 1) != 11) failures |= 128;
+
+        streams.ColorTarget = float4(failures / 255.0, failures == 0 ? 1 : 0, 0, 1);
+    }
+}

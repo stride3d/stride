@@ -239,6 +239,21 @@ public static class AssemblyRegistry
     }
 
     /// <summary>
+    /// The categories the assembly is registered with, empty when it is not registered. An assembly registered again
+    /// after being unregistered takes these back: part of them come from its module initializer, which runs once only.
+    /// </summary>
+    /// <param name="assembly">The assembly.</param>
+    public static IReadOnlyCollection<string> GetCategories(Assembly assembly)
+    {
+        ArgumentNullException.ThrowIfNull(assembly);
+
+        lock (Lock)
+        {
+            return MapAssemblyToCategories.TryGetValue(assembly, out var categories) ? [.. categories] : [];
+        }
+    }
+
+    /// <summary>
     /// Unregisters the specified assembly.
     /// </summary>
     /// <param name="assembly">The assembly.</param>

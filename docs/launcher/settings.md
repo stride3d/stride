@@ -11,20 +11,34 @@ Both go through the [Stride.Core.Settings](../../sources/core/Stride.Core.Design
 
 [LauncherSettings.cs](../../sources/launcher/Stride.Launcher/Services/LauncherSettings.cs) owns the launcher's own state. File path: `{EditorPath.UserDataPath}/LauncherSettings.conf`.
 
+As in Game Studio, the path says what a key is: `Launcher/` for a preference the user chooses, `Internal/Launcher/` for state the launcher remembers by itself.
+
+**Preferences**
+
 | Key | Default | Written when |
 |---|---|---|
-| `Internal/Launcher/CloseLauncherAutomatically` | `false` | User toggles the "Close launcher after starting Game Studio" checkbox |
+| `Launcher/CloseLauncherAutomatically` | `false` | User toggles the "Close launcher after starting Game Studio" checkbox. Before 6.0.1 it was `Internal/Launcher/CloseLauncherAutomatically`, still read when the new key isn't saved yet (after an update from 5.x) and removed at the next save |
+| `Launcher/PreferredEditor` | `""` | User picks an editor (Avalonia or WPF) in the editor combo — set by `MainView.EditorChanged` |
+| `Launcher/PreferredRuntime` | `""` (default entry) | User picks a .NET major in the runtime combo — set by `MainViewModel.SelectedRuntime` |
+| `Launcher/DeveloperVersions` | `[]` | Dev versions added manually by advanced users (no UI yet) — consumed at startup to add `StrideDevVersionViewModel` entries |
+| `Launcher/IncludePrereleaseUpdates` | `false` | User ticks "Receive launcher pre-releases", in the launcher settings (gear in the title bar) — see [self-update.md](self-update.md#pre-releases) |
+| `Launcher/ThemeVariant` | not saved (`Dark`) | Saved only once the user picks a theme variant ("Theme") in the launcher settings (gear in the title bar), so a later change of the default reaches the others: `Dark`, `Light` (shown as a preview: not tuned yet), or `System` (follows the light or dark mode of the system). Applied right away, and read at startup |
+
+**State**
+
+| Key | Default | Written when |
+|---|---|---|
 | `Internal/Launcher/ActiveVersion` | `""` | `MainViewModel.StartStudio` — the name of the version used to start Game Studio |
-| `Internal/Launcher/PreferredEditor` | `""` | User picks an editor (Avalonia or WPF) in the editor combo — set by `MainView.EditorChanged` |
-| `Internal/Launcher/PreferredRuntime` | `""` (default entry) | User picks a .NET major in the runtime combo — set by `MainViewModel.SelectedRuntime` |
 | `Internal/Launcher/CurrentTabSessions` | `0` | User changes the active tab |
-| `Internal/Launcher/DeveloperVersions` | `[]` | Dev versions added manually by advanced users (no UI yet) — consumed at startup to add `StrideDevVersionViewModel` entries |
+| `Internal/Launcher/CompletedTasks` | `[]` | A one-off task is done (`LauncherSettings.MarkTaskCompleted`) |
 
 `LauncherSettings.Save()` writes every field back. The class is static because the launcher has a single profile and no concept of user accounts.
 
+A released key is renamed only with a fallback like the one of `CloseLauncherAutomatically`: otherwise users lose its value at the update.
+
 ### Adding a new preference
 
-1. Declare a `SettingsKey<T>` with a unique path (prefix `Internal/Launcher/`).
+1. Declare a `SettingsKey<T>` with a unique path: `Launcher/` for a preference, `Internal/Launcher/` for state.
 2. Add a public static property that mirrors it and is read at static-init time.
 3. Mention it in the `Save()` method so it is persisted when the user acts on it.
 4. If the value must survive mid-session changes, call `LauncherSettings.Save()` from the setter that owns it.
@@ -44,7 +58,7 @@ The MRU list is wrapped in `MostRecentlyUsedFileCollection` from the shared [Str
 
 ## EditorPath
 
-Path resolution goes through [Stride.Core.Assets.Editor.EditorPath](../../sources/editor/Stride.Core.Assets.Editor/EditorPath.cs), linked directly into the launcher project. On Windows this resolves to `%LocalAppData%\Stride\`; on Linux/macOS it follows XDG conventions.
+Path resolution goes through [Stride.Core.Assets.Editor.EditorPath](../../sources/editor/Stride.Core.Assets.Editor.Wpf/EditorPath.cs), linked directly into the launcher project. On Windows this resolves to `%APPDATA%\Stride\` (roaming); on Linux/macOS it follows XDG conventions.
 
 ## First-install tasks
 

@@ -5,6 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
+    <StrideLocalized>true</StrideLocalized>
   </PropertyGroup>
 
   <ItemGroup>

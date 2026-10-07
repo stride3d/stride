@@ -280,54 +280,6 @@ Example: dotnet build build/Stride.build -t:Package
     <MSBuild Targets="Build" Projects="$(StrideRuntimeSolution)" Properties="$(BuildProperties)"/>
   </Target>
 
-  
-  <!--
-  Package Launcher
-  -->
-  <Target Name="PackageLauncher">
-    <ItemGroup>
-      <FilesToDeleteLauncher Include="$(StrideRoot)bin\launcher\*.nupkg"/>
-    </ItemGroup>
-
-    <!-- Note: we avoid building again if BuildWindows was already ran just before -->
-    <Delete Files="@(FilesToDeleteLauncher)"/>
-    
-    <!-- Generate the nuget package for the launcher application -->
-    <Exec Command='"$(NuGetPath)" pack "$(StrideRoot)sources\launcher\Stride.Launcher\Stride.Launcher.nuspec" -BasePath "$(StrideRoot)sources\launcher\Stride.Launcher\bin\Release\publish" -OutputDirectory "$(StrideRoot)bin\launcher"' />
-
-    <MSBuild Projects="$(MSBuildThisFileFullPath)" Targets="_SignFiles"
-             Properties="StrideSign=$(StrideSign);StrideSignDir=$(MSBuildThisFileDirectory)..\bin\launcher" />
-  </Target>
-  
-  <!--
-  Package Installer: StrideSetup.exe
-  -->
-  <Target Name="PackageInstaller" DependsOnTargets="PackageLauncher">
-    <MSBuild Projects="$(MSBuildThisFileFullPath)" Targets="_BuildAdvancedInstaller" Properties="StrideInstallerAip=$(StrideRoot)sources\launcher\Setup\setup.aip" />
-    <Copy SourceFiles="$(StrideRoot)sources\launcher\Setup\setup-SetupFiles\StrideSetup.exe" DestinationFolder="$(StrideRoot)bin\launcher"/>
-  </Target>
-  
-  <!--
-  Perform a full build: Build, Package and PackageInstaller
-  -->
-  <Target Name="FullBuildLauncher">
-    <CallTarget Targets="BuildLauncher"/>
-    <CallTarget Targets="PackageInstaller"/>
-  </Target>
-  
-  <!--
-  Publish Launcher nupkg from this folder to the store
-  -->
-  <Target Name="PublishLauncher">
-    <Error Condition="'$(StrideStoreApiKey)' == ''" Text="Missing env variable StrideStoreApiKey"/>
-    <Exec Command='"$(NuGetPath)" push ..\bin\launcher\*.nupkg -ApiKey $(StrideStoreApiKey) -Source $(StrideStoreUrl) -NoSymbols'/>
-  </Target>
-  
-  <Target Name="BuildLauncher" DependsOnTargets="SignCredentialsCheck">
-    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=Windows;StrideSolution=$(StrideSolutionLauncher);RuntimeIdentifiers=win-x64"/>
-    <MSBuild Projects="..\sources\launcher\Stride.Launcher\Stride.Launcher.csproj" Targets="Publish" Properties="$(BuildProperties);PublishProfile=FolderProfile;SolutionName=Stride.Launcher" />
-  </Target>
-
   <Target Name="SignCredentialsCheck" Condition="'$(StrideSign)' == 'true'">
     <Error Condition="'$(StrideSignTenantId)' == ''" Text="StrideSignTenantId is not set. Please set StrideSign to false if you don't want to sign using code certificates." />
     <Error Condition="'$(StrideSignClientId)' == ''" Text="StrideSignClientId is not set. Please set StrideSign to false if you don't want to sign using code certificates." />
@@ -344,5 +296,8 @@ Example: dotnet build build/Stride.build -t:Package
   <!-- StrideGitVersion task (package version from git release tags); shared with Stride.Samples.build. -->
   <Import Project="$(StrideRoot)sources\targets\Stride.GitVersion.targets"
           Condition="'$(_StrideGitVersionTargetsImported)' != 'true'" />
+
+  <!-- Launcher: BuildLauncher, PackageLauncher, PackageInstaller, FullBuildLauncher, PublishLauncher -->
+  <Import Project="$(StrideRoot)sources\launcher\Stride.Launcher.Release.targets" />
 
 </Project>

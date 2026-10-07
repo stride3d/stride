@@ -8,8 +8,6 @@ namespace Stride.Animations
 {
     public class AnimationClipResult
     {
-        private static readonly byte[] EmptyData = new byte[0];
-
         // Future use, when object will be supported.
         // private object[] objects;
 
@@ -29,7 +27,7 @@ namespace Stride.Animations
         /// <summary>
         /// Stores all animation channel blittable struct at a given time.
         /// </summary>
-        public byte[] Data = EmptyData;
+        public byte[] Data = [];
 
         /// <summary>
         /// Stores all animation channel objects and non-blittable struct at a given time.

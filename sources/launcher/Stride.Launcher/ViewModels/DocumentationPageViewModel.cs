@@ -7,13 +7,13 @@ using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Launcher.Assets.Localization;
+using Stride.Launcher.Services;
 
 namespace Stride.Launcher.ViewModels;
 
 public sealed partial class DocumentationPageViewModel : DispatcherViewModel
 {
     private static readonly Regex ParsingRegex = GetParsingRegex();
-    private static readonly HttpClient httpClient = new();
     private const string DocPageScheme = "page:";
     private const string PageUrlFormatString = "{0}{1}";
 
@@ -72,7 +72,7 @@ public sealed partial class DocumentationPageViewModel : DispatcherViewModel
         string urlData;
         try
         {
-            using var response = await httpClient.GetAsync(string.Format(Urls.GettingStarted, version));
+            using var response = await LauncherHttpClient.Instance.GetAsync(string.Format(Urls.GettingStarted, version));
             response.EnsureSuccessStatusCode();
             urlData = await response.Content.ReadAsStringAsync();
 

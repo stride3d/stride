@@ -637,6 +637,8 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
 
     public static PackageContainer LoadProject(ILogger log, string filePath)
     {
+        filePath = FileUtility.GetAbsolutePath(filePath);
+
         if (SupportedProgrammingLanguages.IsProjectExtensionSupported(Path.GetExtension(filePath).ToLowerInvariant()))
         {
             var projectPath = filePath;
@@ -1032,7 +1034,10 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
     {
         ArgumentNullException.ThrowIfNull(log);
         ArgumentNullException.ThrowIfNull(loadParameters);
-        var assemblyContainer = loadParameters.AssemblyContainer ?? AssemblyContainer.Default;
+        // A package of a session loads into the session's container whoever asks (the load, a later
+        // UpdateAssemblyReferences): one container means one copy of each assembly, so a dependent assembly
+        // binds to the copy already loaded rather than to another one next to itself
+        var assemblyContainer = loadParameters.AssemblyContainer ?? Session?.AssemblyContainer ?? AssemblyContainer.Default;
 
         // Load from package
         if (Container is StandalonePackage standalonePackage)
@@ -1108,6 +1113,10 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
             var assembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(x => string.Equals(x.GetName().Name, Path.GetFileNameWithoutExtension(assemblyPath), StringComparison.InvariantCultureIgnoreCase)
                 && CanReuseLoadedAssembly(x));
 
+            // An assembly the host ships is shared even before anything used it: a second copy loaded from the
+            // package would register its types and serializers twice once a dependent binds to the host's
+            assembly ??= TryLoadHostAssembly(Path.GetFileNameWithoutExtension(assemblyPath));
+
             // Otherwise, load assembly from its file
             if (assembly is null)
             {
@@ -1139,7 +1148,28 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
         bool CanReuseLoadedAssembly(System.Reflection.Assembly candidate)
             => System.Runtime.Loader.AssemblyLoadContext.GetLoadContext(candidate) == System.Runtime.Loader.AssemblyLoadContext.Default
                 || assemblyContainer.LoadedAssemblies.Any(x => x.Assembly == candidate);
+
+        static System.Reflection.Assembly? TryLoadHostAssembly(string assemblyName)
+        {
+            return HostAssemblyNames.Contains(assemblyName)
+                ? System.Runtime.Loader.AssemblyLoadContext.Default.LoadFromAssemblyName(new System.Reflection.AssemblyName(assemblyName))
+                : null;
+        }
     }
+
+    // The assemblies the host resolves on its own (framework and application), by simple name
+    private static readonly Lazy<HashSet<string>> hostAssemblyNames = new(() =>
+    {
+        var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        if (AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") is string trustedAssemblies)
+        {
+            foreach (var path in trustedAssemblies.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries))
+                names.Add(Path.GetFileNameWithoutExtension(path));
+        }
+        return names;
+    });
+
+    private static HashSet<string> HostAssemblyNames => hostAssemblyNames.Value;
 
     /// <summary>
     /// In case <see cref="AssetItem.SourceFolder"/> was null, generates it.

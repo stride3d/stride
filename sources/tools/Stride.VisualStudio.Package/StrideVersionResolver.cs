@@ -2,23 +2,21 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Text.Json;
-using System.Xml.Linq;
 using Microsoft.VisualStudio.SolutionPersistence.Serializer;
-using NuGet.ProjectModel;
 using NuGet.Versioning;
+using Stride.Core.Assets;
 
 namespace Stride.VisualStudio;
 
 /// <summary>
 /// Resolves which Stride SDK version a solution (or project) targets, with zero dependency on the
-/// Stride asset pipeline. It reads the resolved <c>Stride.Engine</c> version from a project's restore
-/// output (<c>obj/project.assets.json</c>), falling back to a <c>PackageReference</c> scan of the
-/// <c>.csproj</c> when the project hasn't been restored yet.
+/// Stride asset pipeline. It reads the <c>Stride.Engine</c> version with <see cref="ProjectVersionReader"/>:
+/// the restored one (<c>obj/project.assets.json</c>), or the one written in the <c>.csproj</c> when it was
+/// edited since its restore or never restored.
 /// </summary>
 /// <remarks>
-/// Built on <c>Microsoft.VisualStudio.SolutionPersistence</c> (parse the solution) and
-/// <c>NuGet.ProjectModel</c> (read the lock file). Both are netstandard2.0, so this resolver is
-/// referenceable from the out-of-process VS extension and the <c>stride</c> CLI alike.
+/// Built on <c>Microsoft.VisualStudio.SolutionPersistence</c> (parse the solution), netstandard2.0, so this
+/// resolver is referenceable from the out-of-process VS extension and the <c>stride</c> CLI alike.
 /// </remarks>
 public static class StrideVersionResolver
 {
@@ -88,53 +86,9 @@ public static class StrideVersionResolver
     }
 
     private static NuGetVersion? ResolveProjectVersion(string projectPath)
-    {
-        var projectDirectory = Path.GetDirectoryName(projectPath);
-        if (projectDirectory == null)
-            return null;
-
-        // Primary: the resolved version from restore output.
-        var assetsPath = Path.Combine(projectDirectory, "obj", LockFileFormat.AssetsFileName);
-        if (File.Exists(assetsPath))
-        {
-            var lockFile = new LockFileFormat().Read(assetsPath);
-            foreach (var library in lockFile.Libraries)
-            {
-                if ((library.Type == "package" || library.Type == "project")
-                    && (library.Name == EnginePackageId || library.Name == LegacyEnginePackageId))
-                {
-                    return library.Version;
-                }
-            }
-        }
-
-        // Fallback: a declared PackageReference, for a project that hasn't been restored yet.
-        return ResolvePackageReferenceVersion(projectPath);
-    }
-
-    private static NuGetVersion? ResolvePackageReferenceVersion(string projectPath)
-    {
-        try
-        {
-            var document = XDocument.Load(projectPath);
-            foreach (var reference in document.Descendants().Where(e => e.Name.LocalName == "PackageReference"))
-            {
-                var include = (string?)reference.Attribute("Include");
-                if (include != EnginePackageId && include != LegacyEnginePackageId)
-                    continue;
-
-                var version = (string?)reference.Attribute("Version") ?? (string?)reference.Element(reference.Name.Namespace + "Version");
-                if (version != null && NuGetVersion.TryParse(version, out var parsed))
-                    return parsed;
-            }
-        }
-        catch
-        {
-            // Unparseable project file: treated as "version unknown".
-        }
-
-        return null;
-    }
+        // The restored version, or the one written in the project when edited since its restore (or never restored)
+        => ProjectVersionReader.ReadVersion(projectPath, EnginePackageId, LegacyEnginePackageId) is { } version
+           && NuGetVersion.TryParse(version, out var parsed) ? parsed : null;
 
     private static string? ResolveSolutionFilterTarget(string filterFile)
     {

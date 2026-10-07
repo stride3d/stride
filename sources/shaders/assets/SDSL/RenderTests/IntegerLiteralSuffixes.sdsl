@@ -1,0 +1,16 @@
+// PSMain(ExpectedResult=#80FFB22A)
+
+namespace Stride.Shaders.Tests;
+
+// Integer literals typed and wrapped as in DXC: 0x80000000L is a uint, 0x100000000u and 5000000000u wrap to 32 bits,
+// -1u is 0xFFFFFFFF, 3000000000 is a uint and 017 is octal.
+shader IntegerLiteralSuffixes
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    void PSMain()
+    {
+        uint4 value = uint4((0x80000000L >> 24) + 0x100000000u, 0xFFFFFFFFl & (-1u >> 24), 3000000000 >> 24, (5000000000u >> 24) + 017 - 15);
+        streams.ColorTarget = value / 255.0;
+    }
+}

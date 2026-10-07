@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO.Pipes;
 using Stride.Core.Assets;
 using Stride.Core.CodeEditorSupport.VisualStudio;
@@ -27,11 +26,13 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
     private readonly SortedObservableCollection<StrideVersionViewModel> strideVersions = [];
     private readonly UninstallHelper uninstallHelper;
     private readonly object objectLock = new();
+    private readonly object unusedPackagesLock = new();
     private ObservableList<NewsPageViewModel> newsPages;
     private ReleaseNotesViewModel activeReleaseNotes;
     private StrideVersionViewModel? activeVersion;
     private bool isOffline;
     private bool isSynchronizing = true;
+    private bool isStartingStudio;
     private string currentToolTip;
     private readonly List<(DateTime Time, MessageLevel Level, string Message)> logMessages = [];
     private readonly ILauncherSettingsService _settings;
@@ -119,8 +120,11 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
         get { return activeVersion; }
         set
         {
+            var previous = activeVersion;
             if (SetValue(ref activeVersion, value))
             {
+                previous?.IsActive = false;
+                value?.IsActive = true;
                 Dispatcher.InvokeAsync(() => StartStudioCommand.IsEnabled = value?.CanStart ?? false);
                 RefreshRuntimes();
             }
@@ -161,6 +165,11 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
 
     public bool IsSynchronizing { get { return isSynchronizing; } set { SetValue(ref isSynchronizing, value); } }
 
+    /// <summary>
+    /// Gets whether Game Studio is being started (the recent projects can't start another one meanwhile).
+    /// </summary>
+    public bool IsStartingStudio { get { return isStartingStudio; } private set { SetValue(ref isStartingStudio, value); } }
+
     public string CurrentToolTip { get { return currentToolTip; } set { SetValue(ref currentToolTip, value); } }
 
     public string LogMessages
@@ -177,6 +186,23 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
     }
 
     public bool AutoCloseLauncher { get { return autoCloseLauncher; } set { SetValue(ref autoCloseLauncher, value, () => _settings.CloseLauncherAutomatically = value); } }
+
+    // Applies from the next start: an update check now could run alongside the one from startup
+    public bool IncludePrereleaseUpdates
+    {
+        get => _settings.IncludePrereleaseUpdates;
+        set => SetValue(_settings.IncludePrereleaseUpdates != value, () => { _settings.IncludePrereleaseUpdates = value; _settings.Save(); });
+    }
+
+    public IReadOnlyList<ThemeVariantChoice> ThemeVariantChoices { get; } =
+        [new("Dark", Strings.ThemeVariantDark), new("Light", Strings.ThemeVariantLight), new("System", Strings.ThemeVariantSystem)];
+
+    // Applies right away, through App directly: no service for this one call (in tests, there's no App and it does nothing)
+    public ThemeVariantChoice SelectedThemeVariant
+    {
+        get => ThemeVariantChoices.FirstOrDefault(x => string.Equals(x.Value, _settings.ThemeVariant, StringComparison.OrdinalIgnoreCase)) ?? ThemeVariantChoices[0];
+        set => SetValue(value is not null && value != SelectedThemeVariant, () => { _settings.ThemeVariant = value.Value; _settings.Save(); App.ApplyThemeVariant(value.Value); });
+    }
 
     public string PreferredEditor
     {
@@ -284,12 +310,15 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
         IsSynchronizing = true;
         await Task.Run(async () =>
         {
-            await RetrieveLocalStrideVersions();
+            await ListLocalStrideVersions();
+            // Only records which packages the installed versions use (nothing is unused yet), for the cleanup after a
+            // later uninstall or update. It reads every installed package: in the background, the list is shown already.
+            var usedPackagesTask = Task.Run(() => CleanUpUnusedPackages(null));
             await RunLockTask(async () =>
             {
                 try
                 {
-                    await SelfUpdater.SelfUpdate(ServiceProvider, store);
+                    await SelfUpdater.SelfUpdate(ServiceProvider, store, _settings.IncludePrereleaseUpdates);
                 }
                 catch (Exception e)
                 {
@@ -317,6 +346,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
             await VsixPackage2022.UpdateFromStore();
             await CheckForFirstInstall();
 
+            await usedPackagesTask;
             await newsTask;
         });
         IsSynchronizing = false;
@@ -334,71 +364,81 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
         }
     }
 
-    public async Task RetrieveAllStrideVersions()
+    /// <param name="unusedPackagesProgress">Called before each unused package is removed, with the count removed so far and the total.</param>
+    public async Task RetrieveAllStrideVersions(Action<int, int>? unusedPackagesProgress = null)
     {
         Dispatcher.Invoke(() => IsSynchronizing = true);
-        await RetrieveLocalStrideVersions();
+        await RetrieveLocalStrideVersions(unusedPackagesProgress);
         await RetrieveServerStrideVersions();
         Dispatcher.Invoke(() => IsSynchronizing = false);
     }
 
-    private class ReferencedPackageEqualityComparer : IEqualityComparer<NugetLocalPackage>
-    {
-        public static readonly ReferencedPackageEqualityComparer Instance = new();
+    private HashSet<NugetLocalPackage> referencedPackages = new(StridePackageReferences.Comparer);
 
-        private ReferencedPackageEqualityComparer() { }
-
-        public bool Equals(NugetLocalPackage x, NugetLocalPackage y)
-            => (ReferenceEquals(x, y)) || ((!ReferenceEquals(x, null)) && (!ReferenceEquals(y, null)) && (x.Id == y.Id) && (x.Version.ToString() == y.Version.ToString()));
-
-        public int GetHashCode([DisallowNull] NugetLocalPackage obj)
-            => (obj.Id.GetHashCode() ^ obj.Version.ToString().GetHashCode());
-    }
-
-    private HashSet<NugetLocalPackage> referencedPackages = new(ReferencedPackageEqualityComparer.Instance);
-
-    private async Task RemoveUnusedPackages(IEnumerable<NugetLocalPackage> mainPackages)
+    private async Task RemoveUnusedPackages(IEnumerable<NugetLocalPackage> mainPackages, Action<int, int>? progress)
     {
         var previousReferencedPackages = referencedPackages;
-        referencedPackages = new(ReferencedPackageEqualityComparer.Instance);
-        foreach (var mainPackage in mainPackages)
+        referencedPackages = StridePackageReferences.Find(store, mainPackages);
+        var unusedPackages = previousReferencedPackages.Where(package => !referencedPackages.Contains(package)).ToList();
+        if (unusedPackages.Count == 0)
+            return;
+
+        try
         {
-            await FindReferencedPackages(mainPackage);
+            // Together: the running processes are checked once for all of them
+            await store.UninstallPackages(unusedPackages, progress);
         }
-        foreach (var package in previousReferencedPackages.Where(package => !referencedPackages.Contains(package)).ToList())
+        catch (OperationCanceledException)
         {
-            try
-            {
-                await store.UninstallPackage(package, null);
-            }
-            catch (OperationCanceledException)
-            {
-                // Kept by the user (still in use): it stays installed and is checked again on the next pass.
-                referencedPackages.Add(package);
-            }
+            // Kept by the user (still in use): nothing was removed, they are checked again on the next pass.
+            referencedPackages.UnionWith(unusedPackages);
         }
     }
 
-    private async Task FindReferencedPackages(NugetLocalPackage package)
+    /// <summary>
+    /// Updates the list with the installed versions, then removes the packages no installed version uses anymore.
+    /// </summary>
+    /// <param name="unusedPackagesProgress">Called before each unused package is removed, with the count removed so far and the total.</param>
+    public async Task RetrieveLocalStrideVersions(Action<int, int>? unusedPackagesProgress = null)
     {
-        foreach (var dependency in package.Dependencies)
-        {
-            string prefix = dependency.Item1.Split('.', 2)[0];
-            if (prefix is not "Stride")
-            {
-                continue;
-            }
-            NugetLocalPackage dependencyPackage = store.FindLocalPackage(dependency.Item1, dependency.Item2);
-            if (dependencyPackage is null || !referencedPackages.Add(dependencyPackage))
-            {
-                continue;
-            }
+        await ListLocalStrideVersions();
+        await CleanUpUnusedPackages(unusedPackagesProgress);
+    }
 
-            await FindReferencedPackages(dependencyPackage);
+    // Removes the Stride packages that the installed versions used at the previous call and don't use anymore: after
+    // an uninstall or an update. The first call only records which ones they use.
+    private async Task CleanUpUnusedPackages(Action<int, int>? progress)
+    {
+        try
+        {
+            // Its own lock: a cleanup runs one at a time, without holding up the list updates for its seconds of reading.
+            // The installed versions are read in it: read before, a version uninstalled meanwhile would still count as installed.
+            await Task.Run(() =>
+            {
+                lock (unusedPackagesLock)
+                {
+                    List<NugetLocalPackage> localPackages;
+                    lock (objectLock)
+                    {
+                        localPackages = store.GetPackagesInstalled(store.MainPackageIds).FilterStrideMainPackages().ToList();
+                    }
+                    Task.WaitAll(RemoveUnusedPackages(localPackages, progress));
+                }
+            });
+        }
+        catch (Exception e)
+        {
+            var message = $@"**Failed to remove unused NuGet package(s).**
+
+### Exception
+```
+{e.FormatSummary(false).TrimEnd(Environment.NewLine.ToCharArray())}
+```";
+            await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }
 
-    public async Task RetrieveLocalStrideVersions()
+    private async Task ListLocalStrideVersions()
     {
         List<RecentProjectViewModel> currentRecentProjects;
         lock (RecentProjects)
@@ -410,22 +450,6 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
             var localPackages = await RunLockTask(() => store.GetPackagesInstalled(store.MainPackageIds).FilterStrideMainPackages().OrderByDescending(p => p.Version).ToList());
             lock (objectLock)
             {
-                // Try to remove unused Stride packages after uninstall or update
-                try
-                {
-                    Task.WaitAll(RemoveUnusedPackages(localPackages));
-                }
-                catch (Exception e)
-                {
-                    var message = $@"**Failed to remove unused NuGet package(s).**
-
-### Exception
-```
-{e.FormatSummary(false).TrimEnd(Environment.NewLine.ToCharArray())}
-```";
-                    Task.WaitAll(ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Warning));
-                }
-
                 // Retrieve all local packages
                 var packages = localPackages.Where(p => !store.IsDevRedirectPackage(p)).GroupBy(p => $"{p.Version.Version.Major}.{p.Version.Version.Minor}", p => p);
                 var updatedLocalPackages = new HashSet<StrideStoreVersionViewModel>();
@@ -458,37 +482,34 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
                     foreach (var strideUninstalledVersion in strideVersions.OfType<StrideStoreVersionViewModel>().Where(x => !updatedLocalPackages.Contains(x)))
                         strideUninstalledVersion.UpdateLocalPackage(null, Array.Empty<NugetLocalPackage>());
                 });
-
-                // Update the active version if it is now invalid.
-                if (ActiveVersion is null || !strideVersions.Contains(ActiveVersion) || !ActiveVersion.CanDelete)
-                    ActiveVersion = StrideVersions.FirstOrDefault(x => x.CanDelete);
-
-                if (!lastActiveVersionRestored)
-                {
-                    var restoredVersion = StrideVersions.FirstOrDefault(x => x.CanDelete && x.Name == _settings.ActiveVersion);
-                    if (restoredVersion is not null)
-                    {
-                        ActiveVersion = restoredVersion;
-                        lastActiveVersionRestored = true;
-                    }
-                }
             }
 
-            var devPackages = localPackages.Where(store.IsDevRedirectPackage);
-            Dispatcher.Invoke(() => strideVersions.RemoveWhere(x => x is StrideDevVersionViewModel));
-            foreach (var package in devPackages)
+            // Updated in place: the local builds are the top rows, and removing them all to add them back scrolled the
+            // list to the top. A new one is made here, off the UI thread: it reads the disk.
+            var existingDevVersions = await Dispatcher.InvokeAsync(() => strideVersions.OfType<StrideDevVersionViewModel>().ToList());
+            var keptDevVersions = new HashSet<StrideDevVersionViewModel>();
+            var newDevVersions = new List<StrideDevVersionViewModel>();
+            foreach (var package in localPackages.Where(store.IsDevRedirectPackage))
             {
                 try
                 {
                     var realPath = store.GetRealPath(package);
-                    var version = new StrideDevVersionViewModel(this, store, package, realPath, true);
-                    await Dispatcher.InvokeAsync(() => strideVersions.Add(version));
+                    if (existingDevVersions.FirstOrDefault(x => x.Matches(package, realPath)) is { } existing)
+                        keptDevVersions.Add(existing);
+                    else
+                        newDevVersions.Add(new StrideDevVersionViewModel(this, store, package, realPath, true));
                 }
                 catch (Exception e)
                 {
                     await ServiceProvider.Get<IDialogService>().MessageBoxAsync(string.Format(Strings.ErrorDevRedirect, e), MessageBoxButton.OK, MessageBoxImage.Information);
                 }
             }
+            await Dispatcher.InvokeAsync(() =>
+            {
+                strideVersions.RemoveWhere(x => x is StrideDevVersionViewModel devVersion && !keptDevVersions.Contains(devVersion));
+                foreach (var devVersion in newDevVersions)
+                    strideVersions.Add(devVersion);
+            });
         }
         catch (Exception e)
         {
@@ -497,36 +518,33 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
         }
         finally
         {
+            UpdateActiveVersion();
             await Dispatcher.InvokeAsync(() =>
             {
                 foreach (var project in currentRecentProjects)
-                {
-                    // Manually discarding the possibility to upgrade from 1.0
-                    if (project.StrideVersionName == "1.0")
-                        continue;
-
-                    project.CompatibleVersions.Clear();
-                    foreach (var version in StrideVersions)
-                    {
-                        // We suppose all dev versions are compatible with any project.
-                        if (version is StrideDevVersionViewModel)
-                            project.CompatibleVersions.Add(version);
-
-                        if (version is StrideStoreVersionViewModel { CanDelete: true } storeVersion)
-                        {
-                            // Discard the version that matches the recent project version
-                            if (project.StrideVersion == new Version(storeVersion.Version.Version.Major, storeVersion.Version.Version.Minor))
-                                continue;
-
-                            // Discard the versions that are anterior to the recent project version
-                            if (project.StrideVersion > storeVersion.Version.Version)
-                                continue;
-
-                            project.CompatibleVersions.Add(version);
-                        }
-                    }
-                }
+                    project.UpdateOpenOptions(StrideVersions);
             });
+        }
+    }
+
+    // Once the local builds are listed too: they can be the active version, or the only installed ones
+    private void UpdateActiveVersion()
+    {
+        lock (objectLock)
+        {
+            // When it is now invalid: an installed release first, then a local build (the top rows, for their developer)
+            if (ActiveVersion is null || !strideVersions.Contains(ActiveVersion) || !ActiveVersion.CanDelete)
+                ActiveVersion = StrideVersions.OfType<StrideStoreVersionViewModel>().FirstOrDefault(x => x.CanDelete) ?? StrideVersions.FirstOrDefault(x => x.CanDelete);
+
+            if (!lastActiveVersionRestored)
+            {
+                var restoredVersion = StrideVersions.FirstOrDefault(x => x.CanDelete && x.Name == _settings.ActiveVersion);
+                if (restoredVersion is not null)
+                {
+                    ActiveVersion = restoredVersion;
+                    lastActiveVersionRestored = true;
+                }
+            }
         }
     }
 
@@ -602,8 +620,8 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
         {
             await Dispatcher.InvokeAsync(() =>
             {
-                // Allow to install the latest version if any version is found
-                var latestVersion = strideVersions.FirstOrDefault();
+                // Allow to install the latest version if any version is found (a release: the local builds are the top rows)
+                var latestVersion = strideVersions.OfType<StrideStoreVersionViewModel>().FirstOrDefault();
                 if (latestVersion is not null)
                 {
                     // Latest version not installed and can be downloaded
@@ -716,7 +734,11 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
 
         try
         {
-            Dispatcher.Invoke(() => StartStudioCommand.IsEnabled = false);
+            Dispatcher.Invoke(() =>
+            {
+                StartStudioCommand.IsEnabled = false;
+                IsStartingStudio = true;
+            });
             var mainExecutable = ActiveVersion.LocateMainExecutable();
 
             var appDll = Path.ChangeExtension(mainExecutable, ".dll");
@@ -766,6 +788,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
         await Dispatcher.InvokeAsync(() =>
         {
             StartStudioCommand.IsEnabled = ActiveVersion is not null && ActiveVersion.CanStart;
+            IsStartingStudio = false;
             //Save settings because launcher maybe have not been closed
             _settings.ActiveVersion = ActiveVersion is not null ? ActiveVersion.Name : "";
             _settings.Save();
@@ -796,7 +819,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
 
     private async Task InstallLatestVersion()
     {
-        var latestVersion = strideVersions.FirstOrDefault();
+        var latestVersion = strideVersions.OfType<StrideStoreVersionViewModel>().FirstOrDefault();
         // Should never happen
         if (latestVersion is null || !latestVersion.CanBeDownloaded)
             return;

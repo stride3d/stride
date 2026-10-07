@@ -64,7 +64,8 @@ namespace Stride.Rendering.Materials
             {
                 // Transmittance pass
                 var blendState = new BlendStateDescription(sourceBlend: Blend.Zero, destinationBlend: Blend.SourceColor);
-                blendState.RenderTargets[0] = new BlendStateRenderTargetDescription { AlphaSourceBlend = Blend.One, AlphaDestinationBlend = Blend.Zero };
+                blendState.RenderTargets[0].AlphaSourceBlend = Blend.One;
+                blendState.RenderTargets[0].AlphaDestinationBlend = Blend.Zero;
 
                 context.MaterialPass.BlendState = blendState;
 

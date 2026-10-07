@@ -3,6 +3,7 @@
 
 using System.Globalization;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace Stride.Core.Translation;
 
@@ -25,16 +26,16 @@ public static class TranslationManager
         /// <inheritdoc />
         public CultureInfo CurrentLanguage
         {
-            get => CultureInfo.CurrentUICulture;
+            get;
             set
             {
-                if (Equals(CultureInfo.CurrentUICulture, value))
+                if (value is null || Equals(field, value))
                     return;
 
-                CultureInfo.CurrentUICulture = CultureInfo.DefaultThreadCurrentUICulture = value;
+                field = CultureInfo.CurrentUICulture = CultureInfo.DefaultThreadCurrentUICulture = value;
                 OnLanguageChanged();
             }
-        }
+        } = CultureInfo.CurrentUICulture;
 
         /// <inheritdoc />
         public event EventHandler? LanguageChanged;
@@ -45,6 +46,7 @@ public static class TranslationManager
         /// <inheritdoc />
         public string GetString(string text)
         {
+            EnsureUICulture();
             return GetString(text, Assembly.GetCallingAssembly());
         }
 
@@ -52,12 +54,14 @@ public static class TranslationManager
         public string GetString(string text, Assembly assembly)
         {
             ArgumentNullException.ThrowIfNull(assembly);
+            EnsureUICulture();
             return GetProvider(assembly)?.GetString(text) ?? text;
         }
 
         /// <inheritdoc />
         public string GetPluralString(string text, string textPlural, long count)
         {
+            EnsureUICulture();
             return GetPluralString(text, textPlural, count, Assembly.GetCallingAssembly());
         }
 
@@ -65,12 +69,14 @@ public static class TranslationManager
         public string GetPluralString(string text, string textPlural, long count, Assembly assembly)
         {
             ArgumentNullException.ThrowIfNull(assembly);
+            EnsureUICulture();
             return GetProvider(assembly)?.GetPluralString(text, textPlural, count) ?? text;
         }
 
         /// <inheritdoc />
         public string GetParticularString(string context, string text)
         {
+            EnsureUICulture();
             return GetParticularString(context, text, Assembly.GetCallingAssembly());
         }
 
@@ -78,12 +84,14 @@ public static class TranslationManager
         public string GetParticularString(string context, string text, Assembly assembly)
         {
             ArgumentNullException.ThrowIfNull(assembly);
+            EnsureUICulture();
             return GetProvider(assembly)?.GetParticularString(context, text) ?? text;
         }
 
         /// <inheritdoc />
         public string GetParticularPluralString(string context, string text, string textPlural, long count)
         {
+            EnsureUICulture();
             return GetParticularPluralString(context, text, textPlural, count, Assembly.GetCallingAssembly());
         }
 
@@ -91,6 +99,7 @@ public static class TranslationManager
         public string GetParticularPluralString(string context, string text, string textPlural, long count, Assembly assembly)
         {
             ArgumentNullException.ThrowIfNull(assembly);
+            EnsureUICulture();
             return GetProvider(assembly)?.GetParticularPluralString(context, text, textPlural, count) ?? text;
         }
 
@@ -105,6 +114,16 @@ public static class TranslationManager
         {
             translationProviders.TryGetValue(assembly.GetName().Name!, out var provider);
             return provider;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void EnsureUICulture()
+        {
+#if DEBUG
+            if (CultureInfo.CurrentUICulture != CurrentLanguage)
+                System.Diagnostics.Debugger.Break();
+#endif // DEBUG
+            CultureInfo.CurrentUICulture = CurrentLanguage;
         }
 
         private void OnLanguageChanged()

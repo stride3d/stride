@@ -39,7 +39,7 @@ namespace Stride.Rendering.Materials
             }
         }
         
-        float Compute(void)
+        override float Compute(void)
         {
             float saturatedNdotL = saturate(CalculateNdotL());
             return pow(saturatedNdotL, HardnessReciprocal);

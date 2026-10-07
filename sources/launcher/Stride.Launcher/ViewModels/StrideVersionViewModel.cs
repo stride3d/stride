@@ -15,6 +15,7 @@ public abstract class StrideVersionViewModel : PackageVersionViewModel, ICompara
 {
     private bool isVisible;
     private bool canStart;
+    private bool isActive;
     private string? selectedEditor;
     // Maps each discovered editor name to its fully-resolved directory (including TFM subfolder).
     // e.g. "Stride.GameStudio.Avalonia.Desktop" → ".../lib/net10.0"
@@ -147,6 +148,11 @@ public abstract class StrideVersionViewModel : PackageVersionViewModel, ICompara
     public bool CanStart { get { return canStart; } private set { SetValue(ref canStart, value); } }
 
     /// <summary>
+    /// Gets whether this version is the active one, the one the Start button starts. Set by <see cref="MainViewModel.ActiveVersion"/>.
+    /// </summary>
+    public bool IsActive { get { return isActive; } internal set { SetValue(ref isActive, value); } }
+
+    /// <summary>
     /// Gets the editors available for this version.
     /// Only populated when the version is installed locally.
     /// </summary>
@@ -175,7 +181,9 @@ public abstract class StrideVersionViewModel : PackageVersionViewModel, ICompara
     {
         base.UpdateStatus();
         IsVisible = true;
-        SetAsActiveCommand.IsEnabled = CanDelete;
+        // A version not installed can be selected too, as from its alternate versions: the top button then installs it
+        // (two steps, so that a misclick doesn't start a download)
+        SetAsActiveCommand.IsEnabled = CanDelete || CanBeDownloaded;
         DeleteCommand.IsEnabled = CanDelete;
         // On non-Windows only the Avalonia editor is supported; require it to be present before allowing Start.
         CanStart = CanDelete && (OperatingSystem.IsWindows() || AvailableEditors.Count > 0);

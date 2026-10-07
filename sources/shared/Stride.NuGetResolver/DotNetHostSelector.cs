@@ -412,11 +412,12 @@ public static class DotNetHostSelector
     // A multi-targeting project counts by its first framework: that is the build the editor loads.
     static int? ProjectMajor(string csproj, string text)
     {
-        // The restored assets file has the evaluated frameworks (properties, imports), unless the csproj was edited after
-        // that restore: then its own TargetFramework(s) is newer, as right after moving a project to a newer .NET.
+        // The restored assets file has the evaluated frameworks (properties, imports), unless the csproj (or a props file
+        // it imports) was edited after that restore: then its own TargetFramework(s) is newer, as right after moving a
+        // project to a newer .NET.
         var assets = Path.Combine(Path.GetDirectoryName(csproj)!, "obj", "project.assets.json");
         var restored = File.Exists(assets);
-        if (restored && File.GetLastWriteTimeUtc(csproj) > File.GetLastWriteTimeUtc(assets) && TextMajor(text) is { } edited)
+        if (restored && ProjectVersionReader.IsRestoreStale(csproj) && TextMajor(text) is { } edited)
             return edited;
         if (restored)
         {
