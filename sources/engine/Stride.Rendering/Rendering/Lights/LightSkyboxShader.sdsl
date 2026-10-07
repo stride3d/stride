@@ -5,12 +5,17 @@ namespace Stride.Rendering.Lights
     /// <summary>
     /// Defines a skybox environment light
     /// </summary>
-    shader LightSkyboxShader : EnvironmentLight, MaterialPixelShadingStream, NormalStream, Transformation
+    shader LightSkyboxShader : EnvironmentLight, MaterialPixelShadingStream, NormalStream, Transformation, PositionStream
     {
         cbuffer PerView.Lighting
         {
             float4x4 SkyMatrix;
             float Intensity;
+            float Distance;
+            float Curve;
+            float CurveMip;
+            float FarMip;
+            float NearMip;
         }
 
         compose IComputeEnvironmentColor lightDiffuseColor;
@@ -44,6 +49,32 @@ namespace Stride.Rendering.Lights
             sampleDirection = float3(sampleDirection.xy, -sampleDirection.z);
 
             streams.envLightSpecularColor = lightSpecularColor.Compute(sampleDirection).rgb * Intensity * ambientAccessibility * streams.matDiffuseSpecularAlphaBlend.y;
+
+            streams.envLightDistFog = Fog();
+        }
+        
+        float4 Fog()
+        {
+            float3 viewVector = streams.PositionWS.xyz - Eye.xyz;
+            viewVector = mul(viewVector, (float3x3)SkyMatrix);
+            viewVector = float3(viewVector.xy, -viewVector.z);
+
+            float dist = length(viewVector);
+            dist = Remap(0, Distance, 0, 1, dist);
+            dist = saturate(dist);
+            
+            float skyboxMip = Remap(0, 1, NearMip, FarMip, pow(dist, CurveMip));
+
+            float4 fog;
+            fog.rgb = lightSpecularColor.Compute(viewVector, skyboxMip).rgb;
+            fog.a = pow(dist, Curve);
+        
+            return fog;
+        }
+
+        float Remap(float origFrom, float origTo, float targetFrom, float targetTo, float value)
+        {
+            return lerp(targetFrom, targetTo, (value - origFrom) / (origTo - origFrom));
         }
     };
 }
