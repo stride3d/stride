@@ -79,6 +79,9 @@ public class SinglePassWireframeRenderFeature : RootRenderFeature
 
         foreach (var myRenderObject in _wireframes)
         {
+            if (!myRenderObject.Enabled)
+                continue;
+
             // set shader parameters
             _shader.Parameters.Set(TransformationKeys.WorldViewProjection, myRenderObject.WorldMatrix * renderView.ViewProjection); // matrix
             _shader.Parameters.Set(SinglePassWireframeShaderKeys.LineColor, (Vector3)myRenderObject.Color);

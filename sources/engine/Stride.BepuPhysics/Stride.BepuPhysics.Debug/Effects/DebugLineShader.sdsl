@@ -1,0 +1,58 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+/// <summary>
+/// Draws world-space line lists as screen-space quads of constant width.
+/// </summary>
+shader DebugLineShader : ShaderBase, Transformation, PositionStream4, ColorBase
+{
+    // Clip-space w under which a vertex is considered behind the camera
+    static const float NearW = 1e-4;
+    // Screen length under which a segment has no usable direction
+    static const float MinScreenLength = 1e-5;
+
+    float2 ViewportSize;
+    float LineWidth;
+
+    stage override void VSMain()
+    {
+        streams.ShadingPosition = mul(streams.Position, WorldViewProjection);
+    }
+
+    [maxvertexcount(4)]
+    void GSMain(line Input input[2], inout TriangleStream<Output> triangleStream)
+    {
+        float4 a = input[0].ShadingPosition;
+        float4 b = input[1].ShadingPosition;
+        if (a.w < NearW && b.w < NearW)
+            return;
+
+        // Clip against the camera plane so the perspective divide stays valid
+        float4 start = a;
+        a = lerp(start, b, max(NearW - start.w, 0) / max(b.w - start.w, NearW));
+        b = lerp(b, start, max(NearW - b.w, 0) / max(start.w - b.w, NearW));
+
+        float2 direction = (b.xy / b.w - a.xy / a.w) * ViewportSize;
+        direction /= max(length(direction), MinScreenLength);
+        float2 offset = float2(-direction.y, direction.x) * LineWidth / ViewportSize;
+
+        streams = input[0];
+        streams.ShadingPosition = a + float4(offset * a.w, 0, 0);
+        triangleStream.Append(streams);
+        streams.ShadingPosition = a - float4(offset * a.w, 0, 0);
+        triangleStream.Append(streams);
+
+        streams = input[1];
+        streams.ShadingPosition = b + float4(offset * b.w, 0, 0);
+        triangleStream.Append(streams);
+        streams.ShadingPosition = b - float4(offset * b.w, 0, 0);
+        triangleStream.Append(streams);
+
+        triangleStream.RestartStrip();
+    }
+
+    stage override void PSMain()
+    {
+        streams.ColorTarget = streams.Color;
+    }
+};
