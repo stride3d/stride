@@ -21,9 +21,7 @@ public class Simulation2DComponent : SyncScript, ISimulationUpdate
         for (int i = 0; i < sim.Simulation.Bodies.ActiveSet.Count; i++)
         {
             var handle = sim.Simulation.Bodies.ActiveSet.IndexToHandle[i];
-            var body = sim.GetComponent(handle);
-
-            if (body is not Body2DComponent)
+            if (sim.Bodies[handle.Value] is not Body2DComponent body)
                 continue;
 
             //if (body.Position.Z > MaxZLiberty || body.Position.Z < -MaxZLiberty)

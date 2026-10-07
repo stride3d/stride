@@ -405,6 +405,45 @@ namespace Stride.BepuPhysics.Tests
             RunGameTest(game);
         }
 
+        [Fact]
+        public void OneGroupPerTouchingChildTest()
+        {
+            var game = new GameTest();
+            game.Script.AddTask(async () =>
+            {
+                game.ScreenShotAutomationEnabled = false;
+
+                var groups = new GroupCounter();
+                var e1 = new Entity { new BodyComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider() } }, ContactEventHandler = groups } };
+                var e2 = new Entity { new StaticComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider { Size = new Vector3(10, 1, 10) } } } } };
+                e1.Transform.Position.Y = 1.2f;
+
+                game.SceneSystem.SceneInstance.RootScene.Entities.AddRange(new[] { e1, e2 });
+                var simulation = e1.GetSimulation();
+                for (int i = 0; i < 60; i++)
+                    await simulation.AfterUpdate();
+
+                // A single box resting on another touches through one pair of children, each step reports it once
+                Assert.NotEmpty(groups.GroupsPerCall);
+                Assert.All(groups.GroupsPerCall, count => Assert.Equal(1, count));
+
+                game.Exit();
+            });
+            RunGameTest(game);
+        }
+
+        private class GroupCounter : IContactHandler
+        {
+            public bool NoContactResponse => false;
+
+            public List<int> GroupsPerCall = new();
+
+            public void OnTouching<TManifold>(Contacts<TManifold> contacts) where TManifold : unmanaged, IContactManifold<TManifold>
+            {
+                GroupsPerCall.Add(contacts.Groups.Length);
+            }
+        }
+
         private class ContactSampleForces : IContactHandler
         {
             public bool NoContactResponse => false;
