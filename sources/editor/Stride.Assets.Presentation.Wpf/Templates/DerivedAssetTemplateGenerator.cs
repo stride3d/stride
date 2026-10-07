@@ -30,11 +30,11 @@ namespace Stride.Assets.Presentation.Templates
                 ? base.CreateAssets(parameters).ToList()
                 : [new AssetItem(GenerateLocation(parameters), archetype.CreateDerivedAsset())];
 
-            // A new compositor gets the render features of the loaded packages
+            // A new compositor gets the render features of its project's packages
             foreach (var assetItem in assetItems)
             {
                 if (assetItem.Asset is GraphicsCompositorAsset compositor)
-                    RenderFeatureProviders.AddPackageRenderFeatures(compositor, assetItem.YamlMetadata);
+                    RenderFeatureProviders.AddPackageRenderFeatures(compositor, assetItem.YamlMetadata, PackageTypeScope.For(parameters.Package));
             }
             return assetItems;
         }

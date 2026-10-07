@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Threading.Tasks;
+using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
@@ -98,8 +99,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewM
         public ICommandBase AddNewRenderFeatureCommand { get; }
 
         /// <summary>
-        /// Adds the render features the loaded packages provide (a plugin's, once the game references it) that
-        /// this compositor lacks.
+        /// Adds the render features that the packages of this compositor's project provide and that it lacks.
         /// </summary>
         public ICommandBase AddPackageRenderFeaturesCommand { get; }
 
@@ -411,10 +411,11 @@ namespace Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewM
             }
 
             // Through the property graph, so the view models, the undo stack and the dirty flag follow
-            var renderFeatures = RenderFeatureProviders.CreateMissingRenderFeatures(asset, opaqueStage, transparentStage).ToList();
+            var scope = PackageTypeScope.For(Asset.AssetItem.Package);
+            var renderFeatures = RenderFeatureProviders.CreateMissingRenderFeatures(asset, opaqueStage, transparentStage, scope).ToList();
             if (renderFeatures.Count == 0)
             {
-                await ServiceProvider.Get<IDialogService>().MessageBoxAsync(Tr._p("Message", "The compositor already has every render feature the loaded packages provide."), MessageBoxButton.OK, MessageBoxImage.Information);
+                await ServiceProvider.Get<IDialogService>().MessageBoxAsync(Tr._p("Message", "The compositor already has every render feature the packages of its project provide."), MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
             using (var transaction = UndoRedoService.CreateTransaction())
