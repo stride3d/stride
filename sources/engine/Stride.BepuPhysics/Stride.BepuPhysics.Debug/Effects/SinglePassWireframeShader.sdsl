@@ -4,12 +4,15 @@
     noperspective stage stream float4 EdgeB;
     stage stream float3 Normal : NORMAL;
     stage stream uint   Case;
+    // Added to the distance to edge A, edge B and edge AB when they are the hidden diagonal of a quad
+    stage stream float3 EdgeExclude;
 
     static const uint infoA[]     = { 0, 0, 0, 0, 1, 1, 2 };
     static const uint infoB[]     = { 1, 1, 2, 0, 2, 1, 2 };
     static const uint infoAd[]    = { 2, 2, 1, 1, 0, 0, 0 };
     static const uint infoBd[]    = { 2, 2, 1, 2, 0, 2, 1 }; 
     static const uint infoEdge0[] = { 0, 2, 0, 0, 0, 0, 2 }; 
+    static const float MinDepthDelta = 1e-6;
 
     float LineWidth;
     float3 LineColor;
@@ -32,6 +35,19 @@
         );
     }
 
+    // Cross product rather than Pythagoras, which loses all precision when the edge's origin is far off-screen
+    float distanceToLine(float2 offset, float2 direction)
+    {
+        return abs(offset.x * direction.y - offset.y * direction.x);
+    }
+
+    // Projects 'to', moved along the edge onto the near plane if it is behind it, so the result stays on the edge's screen line
+    float2 projectTowards(float4 from, float4 to)
+    {
+        float t = saturate(from.z / max(from.z - to.z, MinDepthDelta));
+        return projToWindow(lerp(from, to, t));
+    }
+
     float evalMinDistanceToEdges()
     {
         float dist;
@@ -48,24 +64,17 @@
             // the tricky case, compute the distances and get the min from 2D lines
             // given from the geometry shader
 
-            float2 af = streams.Position.xy - streams.EdgeA.xy;
-            float sqaf = dot(af, af);
-            float afCosA = dot(af, streams.EdgeA.zw);
-            dist = abs(sqaf - afCosA * afCosA);
+            float2 af = streams.ShadingPosition.xy - streams.EdgeA.xy;
+            dist = distanceToLine(af, streams.EdgeA.zw) + streams.EdgeExclude.x;
 
-            float2 bf = streams.Position.xy - streams.EdgeB.xy;
-            float sqbf = dot(bf, bf);
-            float bfCosB = dot(bf, streams.EdgeB.zw);
-            dist = min(dist, abs(sqbf - bfCosB * bfCosB));
+            float2 bf = streams.ShadingPosition.xy - streams.EdgeB.xy;
+            dist = min(dist, distanceToLine(bf, streams.EdgeB.zw) + streams.EdgeExclude.y);
 
             // only need to care about the 3rd edge for some cases
             if (streams.Case == 1 || streams.Case == 2 || streams.Case == 4)
             {
-                float afCosA0 = dot(af, normalize(streams.EdgeB.xy - streams.EdgeA.xy));
-                dist = min(dist, abs(sqaf - afCosA0 * afCosA0));
+                dist = min(dist, distanceToLine(af, normalize(streams.EdgeB.xy - streams.EdgeA.xy)) + streams.EdgeExclude.z);
             }
-
-            dist = sqrt(dist);
         }
 
         return dist;
@@ -193,6 +202,13 @@
         else
         {
             // Else need some tricky computations
+            uint a = infoA[vertexCase];
+            uint b = infoB[vertexCase];
+            float lengthA = length(input[a].Position.xyz - input[infoAd[vertexCase]].Position.xyz);
+            float lengthB = length(input[b].Position.xyz - input[infoBd[vertexCase]].Position.xyz);
+            float lengthAB = length(input[a].Position.xyz - input[b].Position.xyz);
+            float maxLength = max(max(length(input[1].Position.xyz - input[0].Position.xyz), length(input[2].Position.xyz - input[1].Position.xyz)), length(input[0].Position.xyz - input[2].Position.xyz));
+            float3 edgeExclude = float3(lengthA == maxLength, lengthB == maxLength, lengthAB == maxLength) * excludeEdgeLength;
 
             for (int i = 0; i < 3; i++)
             {
@@ -202,11 +218,12 @@
                 streams.EdgeB = float4(0, 0, 0, 0);
 
                 streams.Case = vertexCase;
-                streams.EdgeA.xy = points[infoA[vertexCase]];
-                streams.EdgeB.xy = points[infoB[vertexCase]];
+                streams.EdgeExclude = edgeExclude;
+                streams.EdgeA.xy = points[a];
+                streams.EdgeB.xy = points[b];
 
-                streams.EdgeA.zw = normalize(streams.EdgeA.xy - points[infoAd[vertexCase]]);
-                streams.EdgeB.zw = normalize(streams.EdgeB.xy - points[infoBd[vertexCase]]);
+                streams.EdgeA.zw = normalize(streams.EdgeA.xy - projectTowards(positionWS[a], positionWS[infoAd[vertexCase]]));
+                streams.EdgeB.zw = normalize(streams.EdgeB.xy - projectTowards(positionWS[b], positionWS[infoBd[vertexCase]]));
 
                 triangleStream.Append(streams);
             }
