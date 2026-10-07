@@ -16,12 +16,15 @@ namespace Stride.Assets.Rendering;
 public static class RenderFeatureProviders
 {
     /// <summary>
-    /// The <see cref="IRenderFeatureProvider"/> of every loaded asset assembly.
+    /// The <see cref="IRenderFeatureProvider"/> of every loaded asset assembly, or of those in <paramref name="scope"/>.
     /// </summary>
-    public static IEnumerable<IRenderFeatureProvider> Enumerate()
+    public static IEnumerable<IRenderFeatureProvider> Enumerate(PackageTypeScope scope = null)
     {
         foreach (var assembly in AssetRegistry.AssetAssemblies)
         {
+            if (scope != null && !scope.Contains(assembly))
+                continue;
+
             foreach (var providerType in AssemblyRegistry.GetScanTypes(assembly, typeof(IRenderFeatureProvider)))
             {
                 if (providerType.IsAbstract || providerType.IsGenericTypeDefinition)
@@ -39,15 +42,16 @@ public static class RenderFeatureProviders
         => CreateMissingRenderFeatures(compositor.RenderFeatures, opaqueStage, transparentStage);
 
     /// <summary>
-    /// The render features of every provider, skipping those whose type <paramref name="asset"/> already has.
+    /// The render features of every provider in <paramref name="scope"/> (all when null), skipping those whose type
+    /// <paramref name="asset"/> already has.
     /// </summary>
-    public static IEnumerable<RootRenderFeature> CreateMissingRenderFeatures(GraphicsCompositorAsset asset, RenderStage opaqueStage, RenderStage transparentStage)
-        => CreateMissingRenderFeatures(asset.RenderFeatures, opaqueStage, transparentStage);
+    public static IEnumerable<RootRenderFeature> CreateMissingRenderFeatures(GraphicsCompositorAsset asset, RenderStage opaqueStage, RenderStage transparentStage, PackageTypeScope scope = null)
+        => CreateMissingRenderFeatures(asset.RenderFeatures, opaqueStage, transparentStage, scope);
 
-    private static IEnumerable<RootRenderFeature> CreateMissingRenderFeatures(IEnumerable<RootRenderFeature> existing, RenderStage opaqueStage, RenderStage transparentStage)
+    private static IEnumerable<RootRenderFeature> CreateMissingRenderFeatures(IEnumerable<RootRenderFeature> existing, RenderStage opaqueStage, RenderStage transparentStage, PackageTypeScope scope = null)
     {
         var presentTypes = new HashSet<Type>(existing.Select(x => x.GetType()));
-        foreach (var provider in Enumerate())
+        foreach (var provider in Enumerate(scope))
         {
             foreach (var renderFeature in provider.CreateRenderFeatures(opaqueStage, transparentStage))
             {
@@ -67,17 +71,18 @@ public static class RenderFeatureProviders
     }
 
     /// <summary>
-    /// Adds the missing provider render features to a new compositor. Does nothing without Opaque and Transparent stages.
+    /// Adds the missing render features of the providers in <paramref name="scope"/> to a new compositor. Does nothing
+    /// without Opaque and Transparent stages.
     /// </summary>
     /// <param name="yamlMetadata">Where a derived compositor's added features are marked as its own.</param>
-    public static void AddPackageRenderFeatures(GraphicsCompositorAsset asset, AttachedYamlAssetMetadata yamlMetadata)
+    public static void AddPackageRenderFeatures(GraphicsCompositorAsset asset, AttachedYamlAssetMetadata yamlMetadata, PackageTypeScope scope)
     {
         var opaqueStage = asset.RenderStages.FirstOrDefault(x => x.Name == "Opaque");
         var transparentStage = asset.RenderStages.FirstOrDefault(x => x.Name == "Transparent");
         if (opaqueStage == null || transparentStage == null)
             return;
 
-        AddRenderFeatures(asset, yamlMetadata, CreateMissingRenderFeatures(asset, opaqueStage, transparentStage).ToList());
+        AddRenderFeatures(asset, yamlMetadata, CreateMissingRenderFeatures(asset, opaqueStage, transparentStage, scope).ToList());
     }
 
     // A derived compositor owns the features it adds (overridden items), otherwise reconciling with its base removes them
