@@ -13,7 +13,7 @@ namespace Stride.Assets.Media
     public class RawSoundAssetImporter : RawAssetImporterBase<SoundAsset>
     {
         // Supported file extensions for this importer
-        public const string FileExtensions = ".wav,.mp3,.ogg,.aac,.aiff,.flac,.m4a,.wma,.mpc," + RawVideoAssetImporter.FileExtensions;
+        public const string FileExtensions = ".wav,.mp3,.ogg,.aac,.aiff,.flac,.m4a,.wma,.mpc,.avi,.mkv,.mov,.mp4";
 
         private static readonly Guid Uid = new Guid("634842fa-d1db-45c2-b13d-bc11486dae4d");
 

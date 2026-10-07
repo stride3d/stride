@@ -81,11 +81,6 @@ namespace Stride.Assets
         partial class SoundAsset
         {
         }
-
-        [Display((int)AssetDisplayPriority.Media + 50, "Video")]
-        partial class VideoAsset
-        {
-        }
     }
 
     namespace Navigation

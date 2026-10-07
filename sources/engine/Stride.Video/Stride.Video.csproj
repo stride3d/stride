@@ -11,6 +11,11 @@
     <StridePackAssets>true</StridePackAssets>
     <StrideContainsAssetTypes>true</StrideContainsAssetTypes>
   </PropertyGroup>
+  <ItemGroup>
+    <!-- Companion packages: asset types and compiler in .Assets, editor extensions in .Editor -->
+    <StrideCompanionProject Include="..\Stride.Video.Assets\Stride.Video.Assets.csproj" />
+    <StrideCompanionProject Include="..\Stride.Video.Editor\Stride.Video.Editor.csproj" />
+  </ItemGroup>
   <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFramework)'">
     <DefineConstants>STRIDE_VIDEO_FFMPEG;$(DefineConstants)</DefineConstants>
   </PropertyGroup>

@@ -7,13 +7,13 @@ using System.Linq;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Annotations;
-using Stride.Assets.Media;
+using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Engine;
-using Stride.Video;
+using Stride.Video.Assets;
 
-namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels
+namespace Stride.Video.Editor
 {
-    internal class AddVideoAssetPolicy : CreateComponentPolicyBase<VideoAsset, AssetViewModel<VideoAsset>>
+    public sealed class AddVideoAssetPolicy : CreateComponentPolicyBase<VideoAsset, AssetViewModel<VideoAsset>>
     {
         /// <inheritdoc />
         [NotNull]
@@ -21,7 +21,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
         {
             return new VideoComponent
             {
-                Source = ContentReferenceHelper.CreateReference<Video.Video>(asset)
+                Source = ContentReferenceHelper.CreateReference<global::Stride.Video.Video>(asset)
             };
         }
     }

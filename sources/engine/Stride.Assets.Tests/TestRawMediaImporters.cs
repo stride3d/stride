@@ -8,6 +8,7 @@ using Stride.Assets.FFmpeg;
 using Stride.Assets.Media;
 using Stride.Core.Assets;
 using Stride.Core.IO;
+using Stride.Video.Assets;
 using Xunit;
 
 namespace Stride.Assets.Tests

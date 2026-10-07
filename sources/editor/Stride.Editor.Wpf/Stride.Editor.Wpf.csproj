@@ -33,7 +33,6 @@
     <ProjectReference Include="..\..\engine\Stride.Physics\Stride.Physics.csproj" />
     <ProjectReference Include="..\..\engine\Stride.SpriteStudio.Offline\Stride.SpriteStudio.Offline.csproj" />
     <ProjectReference Include="..\..\engine\Stride.UI\Stride.UI.csproj" />
-    <ProjectReference Include="..\..\engine\Stride.Video\Stride.Video.csproj" />
     <ProjectReference Include="..\..\tools\Stride.TextureConverter\Stride.TextureConverter.csproj" />
     <ProjectReference Include="..\Stride.Core.Assets.Editor.Wpf\Stride.Core.Assets.Editor.Wpf.csproj" />
     <ProjectReference Include="..\..\core\Stride.Core.MicroThreading\Stride.Core.MicroThreading.csproj" />

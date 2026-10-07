@@ -5,7 +5,7 @@ using System;
 using Stride.Core;
 using System.ComponentModel;
 
-namespace Stride.Assets.Media
+namespace Stride.Video.Assets
 {
     /// <summary>
     /// Enable video trimming
