@@ -19,6 +19,7 @@
       <Link>GuidGenerator.cs</Link>
     </Compile>
     <Compile Include="TestAssetFileExtensionDeclarations.cs" />
+    <Compile Include="TestPluginPackageUpgrade.cs" />
     <Compile Include="TestFFmpegTool.cs" />
     <Compile Include="TestRawMediaImporters.cs" />
     <Compile Include="TestAssetUrlConstantsGenerator.cs" />
