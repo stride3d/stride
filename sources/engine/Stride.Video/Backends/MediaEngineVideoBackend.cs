@@ -239,7 +239,7 @@ internal sealed unsafe class MediaEngineVideoBackend : VideoBackend
 
         videoOutputTexture = Texture.New2D(Instance.GraphicsDevice, videoWidth, videoHeight, 1, PixelFormat.B8G8R8A8_UNorm, TextureFlags.ShaderResource | TextureFlags.RenderTarget);
 
-        HResult hr = videoOutputTexture.NativeResource.QueryInterface(out ComPtr<IDXGISurface> outputSurface);
+        HResult hr = GraphicsMarshal.GetNativeResource(videoOutputTexture).QueryInterface(out ComPtr<IDXGISurface> outputSurface);
         if (hr.IsFailure)
             hr.Throw();
         videoOutputSurface = outputSurface;

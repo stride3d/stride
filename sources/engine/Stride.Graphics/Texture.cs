@@ -1799,10 +1799,11 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Swaps the Texture's internal data with another Texture.
+        ///   Swaps the Texture's description and native resources with another Texture.
         /// </summary>
         /// <param name="other">The other Texture.</param>
-        internal void Swap([NotNull] Texture other)
+        /// <exception cref="NotSupportedException">One of the Textures is a view.</exception>
+        public void Swap([NotNull] Texture other)
         {
             if (ParentTexture is not null || other.ParentTexture is not null)
                 throw new NotSupportedException("Cannot swap texture views; only root textures can be swapped.");

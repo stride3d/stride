@@ -21,7 +21,6 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Stride.Shaders" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.TextureConverter" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.UI" + Stride.PublicKeys.Default)]
-[assembly: InternalsVisibleTo("Stride.Video" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.VirtualReality" + Stride.PublicKeys.Default)]
 
 // Test projects
