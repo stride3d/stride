@@ -21,6 +21,12 @@ public sealed class OneBodyLinearServoConstraintComponent : OneBodyConstraintCom
         SpringSettings = new SpringSettings(30, 5)
     };
 
+    internal override void CenterOfMassShifted(BodyComponent body, Vector3 shift)
+    {
+        if (ReferenceEquals(body, A))
+            LocalOffset -= shift;
+    }
+
     public Vector3 LocalOffset
     {
         get

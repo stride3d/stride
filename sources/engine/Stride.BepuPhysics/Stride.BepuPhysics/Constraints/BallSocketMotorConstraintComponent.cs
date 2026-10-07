@@ -20,6 +20,12 @@ public sealed class BallSocketMotorConstraintComponent : TwoBodyConstraintCompon
         Settings = new MotorSettings(1000, 10)
     };
 
+    internal override void CenterOfMassShifted(BodyComponent body, Vector3 shift)
+    {
+        if (ReferenceEquals(body, B))
+            LocalOffsetB -= shift;
+    }
+
     public Vector3 LocalOffsetB
     {
         get

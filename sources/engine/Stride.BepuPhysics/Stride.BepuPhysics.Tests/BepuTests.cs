@@ -178,6 +178,140 @@ namespace Stride.BepuPhysics.Tests
         }
 
         [Fact]
+        public static void ReshapeKeepsPoseVelocityAndAnchorsTest()
+        {
+            var game = new GameTest();
+            game.Script.AddTask(async () =>
+            {
+                game.ScreenShotAutomationEnabled = false;
+
+                var compound = new CompoundCollider
+                {
+                    Colliders =
+                    {
+                        new BoxCollider { PositionLocal = new Vector3(-1, 0, 0) },
+                        new BoxCollider { PositionLocal = new Vector3(0, 0, 0) },
+                        new BoxCollider { PositionLocal = new Vector3(1, 0, 0) },
+                    }
+                };
+                var body = new BodyComponent { Collider = compound };
+                var other = new BodyComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider() } } };
+                var hinge = new HingeConstraintComponent
+                {
+                    A = body, B = other,
+                    LocalOffsetA = new Vector3(0, 1, 0), LocalOffsetB = new Vector3(0, -1, 0),
+                    LocalHingeAxisA = Vector3.UnitX, LocalHingeAxisB = Vector3.UnitX,
+                };
+
+                var otherEntity = new Entity { other };
+                otherEntity.Transform.Position = new Vector3(0, 2, 0);
+                game.SceneSystem.SceneInstance.RootScene.Entities.AddRange(new[] { new Entity { body }, otherEntity, new Entity { hinge } });
+                body.Simulation!.PoseGravity = Vector3.Zero;
+
+                Assert.True(hinge.Attached);
+                Assert.Equal(Vector3.Zero, body.CenterOfMass);
+                var entityPosition = body.Entity.Transform.Position;
+                var anchor = body.Position + body.Orientation * hinge.LocalOffsetA;
+
+                compound.Colliders.RemoveAt(2);
+
+                Assert.True(hinge.Attached);
+                AssertNear(new Vector3(-0.5f, 0, 0), body.CenterOfMass);
+                AssertNear(new Vector3(-0.5f, 0, 0), body.Position);
+                AssertNear(new Vector3(0.5f, 1, 0), hinge.LocalOffsetA);
+                AssertNear(anchor, body.Position + body.Orientation * hinge.LocalOffsetA);
+
+                await body.Simulation.AfterUpdate();
+
+                AssertNear(entityPosition, body.Entity.Transform.Position);
+                AssertNear(anchor, body.Position + body.Orientation * hinge.LocalOffsetA);
+
+                var linear = new Vector3(0, 0, 3);
+                var angular = new Vector3(0, 2, 0);
+                body.LinearVelocity = linear;
+                body.AngularVelocity = angular;
+                anchor = body.Position + body.Orientation * hinge.LocalOffsetA;
+
+                compound.Colliders.RemoveAt(0);
+
+                var shift = body.Orientation * new Vector3(0.5f, 0, 0);
+                Assert.True(hinge.Attached);
+                AssertNear(Vector3.Zero, body.CenterOfMass);
+                AssertNear(angular, body.AngularVelocity);
+                AssertNear(linear + Vector3.Cross(angular, shift), body.LinearVelocity);
+                AssertNear(anchor, body.Position + body.Orientation * hinge.LocalOffsetA);
+
+                compound.Colliders.RemoveAt(0);
+
+                Assert.False(hinge.Attached);
+                Assert.Null(body.Simulation);
+
+                game.Exit();
+            });
+            RunGameTest(game);
+
+            static void AssertNear(Vector3 expected, Vector3 actual)
+            {
+                Assert.True((expected - actual).Length() < 1e-4f, $"expected {expected}, got {actual}");
+            }
+        }
+
+        [Fact]
+        public static void ReshapeKeepsAStaticInPlaceTest()
+        {
+            var game = new GameTest();
+            game.Script.AddTask(async () =>
+            {
+                game.ScreenShotAutomationEnabled = false;
+
+                var compound = new CompoundCollider
+                {
+                    Colliders =
+                    {
+                        new BoxCollider { PositionLocal = new Vector3(-1, 0, 0) },
+                        new BoxCollider { PositionLocal = new Vector3(0, 0, 0) },
+                        new BoxCollider { PositionLocal = new Vector3(1, 0, 0) },
+                    }
+                };
+                var @static = new StaticComponent { Collider = compound };
+                var entity = new Entity { @static };
+                var origin = new Vector3(0, 2, 0);
+                var rotation = Quaternion.RotationY(MathF.PI / 2);
+                entity.Transform.Position = origin;
+                entity.Transform.Rotation = rotation;
+                game.SceneSystem.SceneInstance.RootScene.Entities.Add(entity);
+
+                var simulation = @static.Simulation!;
+                bool Hit(Vector3 localBox, out HitInfo hit) => simulation.RayCast(origin + rotation * localBox + new Vector3(0, 10, 0), -Vector3.UnitY, 20, out hit);
+
+                Assert.True(Hit(new Vector3(1, 0, 0), out _));
+                Assert.True(Hit(Vector3.Zero, out var middleBefore));
+
+                compound.Colliders.RemoveAt(2);
+
+                AssertNear(new Vector3(-0.5f, 0, 0), @static.CenterOfMass);
+                AssertNear(origin, @static.Position - rotation * @static.CenterOfMass);
+                Assert.True(Hit(Vector3.Zero, out var middleAfter));
+                AssertNear(middleBefore.Point, middleAfter.Point);
+                Assert.False(Hit(new Vector3(1, 0, 0), out _));
+
+                await simulation.AfterUpdate();
+
+                Assert.True(Hit(Vector3.Zero, out middleAfter));
+                AssertNear(middleBefore.Point, middleAfter.Point);
+                Assert.False(Hit(new Vector3(1, 0, 0), out _));
+
+                game.Exit();
+            });
+            RunGameTest(game);
+
+            static void AssertNear(Vector3 expected, Vector3 actual)
+            {
+                Assert.True((expected - actual).Length() < 1e-4f, $"expected {expected}, got {actual}");
+            }
+        }
+
+        [Fact]
         public static void ConstraintsForceTest()
         {
             var game = new GameTest();
