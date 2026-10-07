@@ -26,17 +26,17 @@ internal class SettingsEntryValue : SettingsEntry
     }
 
     /// <inheritdoc/>
-    internal override List<ParsingEvent> GetSerializableValue(SettingsKey key)
+    internal override List<ParsingEvent> GetSerializableValue(SettingsKey? key)
     {
         // Value might have been kept as a parsing event list (if key didn't exist)
         if (Value is List<ParsingEvent> parsingEvents)
             return parsingEvents;
 
-        if (key == null)
-            throw new InvalidOperationException();
+        // A value whose key is not registered: its own type
+        var type = key?.Type ?? Value?.GetType() ?? throw new InvalidOperationException();
 
         parsingEvents = [];
-        SettingsYamlSerializer.Default.Serialize(new ParsingEventListEmitter(parsingEvents), Value, key.Type);
+        SettingsYamlSerializer.Default.Serialize(new ParsingEventListEmitter(parsingEvents), Value, type);
 
         return parsingEvents;
     }

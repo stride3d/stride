@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.Internal;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
@@ -14,6 +15,7 @@ using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Core.Presentation.View;
+using Stride.Core.Settings;
 using Stride.Editor.Preview.View;
 using Stride.Editor.Preview.ViewModel;
 using Stride.Editor.Preview;
@@ -41,9 +43,7 @@ public class PluginService : IAssetsPluginService
 
     private readonly HashSet<AssetsPlugin> sessionPlugins = [];
 
-    // What each plugin registered that its unloading takes back by value rather than by its assembly: primitive types and
-    // enum images (keyed by types of other assemblies, such as the runtime's enums), template providers, copy/paste
-    // processors, and the property grid commands and updaters of its session initialization
+    // Registrations to remove one by one when a plugin's assembly is unloaded (they can be keyed by types of other assemblies)
     private readonly Dictionary<AssetsPlugin, List<object>> pluginRegistrations = [];
 
     private sealed record PrimitiveTypeRegistration(Type Type);
@@ -133,6 +133,13 @@ public class PluginService : IAssetsPluginService
         plugin.RegisterPrimitiveTypes(registeredPrimitiveTypes);
         primitiveTypes.AddRange(registeredPrimitiveTypes);
         registrations.AddRange(registeredPrimitiveTypes.Select(x => new PrimitiveTypeRegistration(x)));
+
+        // Editor settings keys; registered again when an undo brings back an assembly whose keys were removed
+        foreach (var settingsKey in EditorSettingsAttribute.GetDeclaredKeys(plugin.GetType().Assembly))
+        {
+            settingsKey.Container.RegisterSettingsKey(settingsKey);
+            registrations.Add(settingsKey);
+        }
 
         if (plugin is AssetsEditorPlugin editorPlugin)
         {
@@ -268,6 +275,9 @@ public class PluginService : IAssetsPluginService
                         break;
                     case ITemplateProvider provider:
                         dialogService.UnregisterAdditionalTemplateProvider(provider);
+                        break;
+                    case SettingsKey settingsKey:
+                        settingsKey.Container.UnregisterSettingsKey(settingsKey);
                         break;
                     case ICopyProcessor processor:
                         copyPasteService?.UnregisterProcessor(processor);
