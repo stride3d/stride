@@ -35,31 +35,6 @@ public partial struct GraphicsDeviceFeatures
     private readonly FeaturesPerFormat[] mapFeaturesPerFormat;
 
     /// <summary>
-    ///   Whether the device provides a capability, ignoring whether this backend can drive it.
-    /// </summary>
-    /// <param name="capability">The capability to ask the device about.</param>
-    public readonly bool Provides(GraphicsCapability capability) => capability.IsProvidedByDevice(this);
-
-    /// <summary>
-    ///   Whether a renderer can use a capability here, and if not, why not.
-    /// </summary>
-    /// <param name="capability">The capability the renderer needs.</param>
-    /// <remarks>
-    ///   The backend is asked first. What the device provides does not matter when the backend cannot
-    ///   drive it, and the two answers have different remedies. Another device fixes one. Only a change
-    ///   to Stride fixes the other.
-    /// </remarks>
-    public readonly GraphicsCapabilitySupport Supports(GraphicsCapability capability)
-    {
-        if (!GraphicsBackend.Implements(capability.Kind))
-            return GraphicsCapabilitySupport.NotImplementedByBackend;
-
-        return Provides(capability)
-            ? GraphicsCapabilitySupport.Available
-            : GraphicsCapabilitySupport.NotProvidedByDevice;
-    }
-
-    /// <summary>
     ///   The requested profile when the <see cref="GraphicsDevice"/> was created.
     /// </summary>
     /// <seealso cref="GraphicsProfile"/>

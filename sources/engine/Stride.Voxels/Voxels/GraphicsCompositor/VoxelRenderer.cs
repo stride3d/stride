@@ -63,8 +63,7 @@ namespace Stride.Rendering.Voxels
             if (renderVoxelVolumes == null || renderVoxelVolumes.Count == 0)
                 return;
 
-            var support = Context.RenderSystem.GraphicsDevice.Features.Supports(GraphicsCapability.ComputeShaders);
-            canVoxelize = support == GraphicsCapabilitySupport.Available;
+            canVoxelize = Context.RenderSystem.GraphicsDevice.Features.HasComputeShaders;
 
             if (!canVoxelize)
             {
@@ -74,9 +73,7 @@ namespace Stride.Rendering.Voxels
                 {
                     reportedUnsupported = true;
 
-                    Log.Warning(support == GraphicsCapabilitySupport.NotImplementedByBackend
-                        ? $"Voxelization is disabled: the {GraphicsDevice.Platform} backend does not implement compute shaders."
-                        : "Voxelization is disabled: this device does not support compute shaders.");
+                    Log.Warning("Voxelization is disabled: this device does not support compute shaders.");
                 }
 
                 return;

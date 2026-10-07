@@ -166,7 +166,7 @@ namespace Stride.Rendering.ProceduralModels
             }
             else
             {
-                if (!graphicsDevice.Features.Provides(GraphicsCapability.Index32Bits))
+                if (!graphicsDevice.Features.HasIndex32Bits)
                 {
                     throw new InvalidOperationException("Cannot generate more than 65535 indices: this device does not support 32-bit index buffers.");
                 }

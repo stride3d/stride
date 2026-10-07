@@ -155,13 +155,8 @@ namespace Stride.Rendering.Compositing
                 // remedies differ: another device fixes some of these and nothing fixes the others.
                 if (actualMultisampleCount != MSAALevel)
                 {
-                    var backendSupport = GraphicsDevice.Features.Supports(
-                        GraphicsCapability.Multisampling(PixelFormat.R16G16B16A16_Float, MSAALevel));
-
                     var because =
-                        backendSupport == GraphicsCapabilitySupport.NotImplementedByBackend
-                            ? $"the {GraphicsDevice.Platform} backend does not implement multisampling"
-                        : isIOS
+                        isIOS
                             ? "multisampling is not implemented on iOS"
                         : !hasMultisampleDepthAsSRV
                             ? "this device cannot read a multisampled depth buffer as a shader resource"

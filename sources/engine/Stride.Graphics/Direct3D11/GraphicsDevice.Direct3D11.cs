@@ -24,7 +24,6 @@ namespace Stride.Graphics
 {
     public unsafe partial class GraphicsDevice
     {
-
         internal readonly int ConstantBufferDataPlacementAlignment = 16;
 
         private const GraphicsPlatform GraphicPlatform = GraphicsPlatform.Direct3D11;
