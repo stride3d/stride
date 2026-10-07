@@ -591,6 +591,21 @@ namespace Stride.BepuPhysics.Tests
             RunGameTest(game);
         }
 
+        [Theory]
+        [InlineData(3, 10, 3)]
+        [InlineData(3, 2, 2)]
+        [InlineData(-1, 10, 10)]
+        public static void MaxStepPerFrameTest(int maxStepPerFrame, int pendingSteps, int expectedSteps)
+        {
+            using var simulation = new BepuSimulation { MaxStepPerFrame = maxStepPerFrame };
+            int steps = 0;
+            simulation.Register(new SimUpdateListener { SimUpdate = () => steps++ });
+
+            simulation.Update(simulation.FixedTimeStep * pendingSteps);
+
+            Assert.Equal(expectedSteps, steps);
+        }
+
         private class SimUpdateListener : ScriptComponent, ISimulationUpdate
         {
             public Action? SimUpdate, AfterSimUpdate;
