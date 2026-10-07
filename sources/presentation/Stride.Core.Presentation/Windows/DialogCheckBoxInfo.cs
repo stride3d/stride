@@ -13,6 +13,7 @@ public sealed class DialogCheckBoxInfo : ViewModelBase
 {
     private object? content;
     private bool? isChecked;
+    private bool isEnabled = true;
 
     /// <summary>
     /// The label shown next to the check box.
@@ -30,5 +31,14 @@ public sealed class DialogCheckBoxInfo : ViewModelBase
     {
         get => isChecked;
         set => SetValue(ref isChecked, value);
+    }
+
+    /// <summary>
+    /// Whether the user can change the check box. When <c>false</c> it is shown greyed out.
+    /// </summary>
+    public bool IsEnabled
+    {
+        get => isEnabled;
+        set => SetValue(ref isEnabled, value);
     }
 }

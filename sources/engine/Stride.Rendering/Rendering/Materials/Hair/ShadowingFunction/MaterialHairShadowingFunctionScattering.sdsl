@@ -11,7 +11,7 @@ namespace Stride.Rendering.Materials
             stage float ExtinctionStrength;
         }
 
-        float3 Compute()
+        override float3 Compute()
         {
             /*
             // As an example, here is the SSSS code:

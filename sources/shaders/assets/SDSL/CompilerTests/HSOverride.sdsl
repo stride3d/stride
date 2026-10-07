@@ -1,0 +1,11 @@
+namespace Stride.Shaders.Tests;
+
+shader HSOverride : HSOverrideBase
+{
+    override void HSMain(InputPatch<Input, 3> input, out Output output, uint uCPID : SV_OutputControlPointID)
+    {
+        base.HSMain(input, output, uCPID);
+        streams.Position.w = 2;
+        output = streams;
+    }
+}

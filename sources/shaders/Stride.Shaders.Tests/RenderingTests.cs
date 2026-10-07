@@ -91,15 +91,17 @@ public partial class RenderingTests
         File.WriteAllText($"{outputName}.spvdis", Spv.Dis(SpirvBytecode.CreateFromSpan(bytecode), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true));
 
         // Validate SPIR-V
-        var validationResult = Spv.ValidateFile($"{outputName}.spv");
+        // Validated the way the effect compiler validates it: against Vulkan's rules only when Vulkan is the target.
+        var validationResult = Spv.ValidateFile($"{outputName}.spv", targetVulkan: backend == RendererBackend.Vulkan);
         Assert.True(validationResult.IsValid, validationResult.Output);
 
         // Execute test
         FrameRenderer renderer;
         if (backend == RendererBackend.Direct3D11)
         {
-            // Convert to HLSL
-            var translator = new SpirvTranslator(bytecode.ToArray().AsMemory().Cast<byte, uint>());
+            // Convert to HLSL, legalizing first like the runtime path in EffectCompiler
+            var legalized = SpirvTools.LegalizeForHlsl(MemoryMarshal.Cast<byte, uint>(bytecode));
+            var translator = new SpirvTranslator(legalized.AsMemory());
             var entryPoints = translator.GetEntryPoints();
             var codeCS = translator.Translate(Backend.Hlsl, entryPoints.First(x => x.ExecutionModel == ExecutionModel.GLCompute));
 
@@ -235,7 +237,8 @@ public partial class RenderingTests
         File.WriteAllText($"{outputName}.spvdis", Spv.Dis(SpirvBytecode.CreateFromSpan(bytecode), DisassemblerFlags.Name | DisassemblerFlags.Id | DisassemblerFlags.InstructionIndex, true));
 
         // Validate SPIR-V
-        var validationResult = Spv.ValidateFile($"{outputName}.spv");
+        // Validated the way the effect compiler validates it: against Vulkan's rules only when Vulkan is the target.
+        var validationResult = Spv.ValidateFile($"{outputName}.spv", targetVulkan: backend == RendererBackend.Vulkan);
         Assert.True(validationResult.IsValid, validationResult.Output);
 
         // Execute test

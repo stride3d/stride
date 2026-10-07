@@ -12,4 +12,4 @@ AssetFolders:
 ResourceFolders:
     - !dir ../Resources
 RootAssets:
-    - ce7c2b81-110c-4150-bf9a-d902b03b3d41:Pipe Set
+    - ce7c2b81-110c-4150-bf9a-d902b03b3d41:/JumpyJet.Game/Pipe Set

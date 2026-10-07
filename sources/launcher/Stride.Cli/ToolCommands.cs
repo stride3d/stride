@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.CommandLine;
 using Stride.Cli.Core;
+using Stride.Core.Assets;
 
 // studio + asset: launch the per-version Stride SDK tools, resolving the version from the current directory's
 // project (or an explicit --version).
@@ -16,10 +17,12 @@ internal static class ToolCommands
             Description = "Solution to open. Defaults to the solution in the current directory.",
         };
         var version = new Option<string?>("--version") { Description = "Open with a specific Stride version instead of the one from a project in the current directory." };
+        var framework = new Option<string?>(DotNetHostSelector.FrameworkArg) { Description = "Run Game Studio on at least this .NET major (e.g. net11.0); a solution that needs a newer one still gets it." };
 
         var command = new Command("studio", "Open Game Studio.");
         command.Arguments.Add(path);
         command.Options.Add(version);
+        command.Options.Add(framework);
         command.TreatUnmatchedTokensAsErrors = false;
         command.SetAction(parseResult =>
         {
@@ -34,8 +37,10 @@ internal static class ToolCommands
             if (solution is not null)
                 args.Add(solution);
             args.AddRange(parseResult.UnmatchedTokens);
+            if (parseResult.GetValue(framework) is { } explicitFramework)
+                args.AddRange([DotNetHostSelector.FrameworkArg, explicitFramework]);
 
-            return Tools.Run(manager.LocateGameStudio(resolved), $"Game Studio for Stride {resolved}", args, wait: false);
+            return Tools.Run(manager.LocateGameStudio(resolved), $"Game Studio for Stride {resolved}", args, wait: false, sessionPath: solution);
         });
 
         return command;
@@ -55,7 +60,7 @@ internal static class ToolCommands
             var resolved = CliVersion.ResolveOrReport(manager, parseResult.GetValue(version));
             return resolved is null
                 ? 1
-                : Tools.Run(manager.LocateAssetCompiler(resolved), $"the Asset Compiler for Stride {resolved}", parseResult.UnmatchedTokens, wait: true);
+                : Tools.Run(manager.LocateAssetCompiler(resolved), $"the Asset Compiler for Stride {resolved}", parseResult.UnmatchedTokens, wait: true, toolReadsHostArgs: false);
         });
 
         return command;

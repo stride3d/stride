@@ -10,7 +10,7 @@ User-facing entry points to a Stride install:
 
 The launcher is the entry point that end users run after installing Stride. It manages the installed Stride versions (download, update, uninstall), exposes recent projects, VSIX extensions for Visual Studio, release notes, news, and documentation, and finally starts the selected version of Game Studio.
 
-It is an [Avalonia](https://avaloniaui.net/) MVVM application, targeting `net10.0` with runtime identifiers `linux-x64` and `win-x64`. It is distributed as a NuGet package (`Stride.Launcher`) and wrapped by an [Advanced Installer](https://www.advancedinstaller.com/) setup on Windows.
+It is an [Avalonia](https://avaloniaui.net/) MVVM application, targeting `net10.0` with runtime identifiers `linux-x64` and `win-x64`. On Windows it ships as a self-contained single-file exe (no .NET install needed), distributed as a NuGet package (`Stride.Launcher`, for its self-updates) and wrapped by an [Advanced Installer](https://www.advancedinstaller.com/) setup (`StrideSetup`, for first installs).
 
 ## Project layout
 
@@ -18,27 +18,22 @@ It is an [Avalonia](https://avaloniaui.net/) MVVM application, targeting `net10.
 sources/launcher/
 ├── Stride.Cli/              Cross-platform `stride` dotnet tool
 ├── Stride.Launcher/         Avalonia MVVM application
-├── Prerequisites/           Advanced Installer project bundling .NET / DirectX prerequisites
-└── Setup/                   Advanced Installer project producing the final StrideSetup.exe
+├── Stride.Launcher.Tests/   Launcher unit tests
+├── Setup/                   Advanced Installer project producing StrideSetup
+└── Stride.Launcher.Release.targets   Release build (exe, NuGet package, StrideSetup), imported by build/Stride.build
 ```
 
 See [docs/launcher/](../../docs/launcher/) for contributor-oriented documentation on the launcher's internals.
 
-## From the command line (Windows)
+## Release build (Windows)
 
-Check out sources in `<StrideDir>\sources\launcher`. You can then run:
+Build the launcher exe, its NuGet package and StrideSetup into `bin\launcher\` (the setup needs Advanced Installer 22.0):
 
 ```
-msbuild Stride.build /t:Build;PackageInstaller
+msbuild build\Stride.build /t:FullBuildLauncher /p:StrideSign=false [/p:VersionSuffix=beta1]
 ```
 
-This builds `Stride.Launcher.exe`, the prerequisites installer, and the final setup bundle. Building the installer targets requires Advanced Installer to be installed on the machine.
-
-Alternatively, build the launcher application and its installer through `Stride.build`:
-
-```bash
-dotnet build build/Stride.build -t:FullBuildLauncher
-```
+Releases go through [release-launcher.yml](../../.github/workflows/release-launcher.yml). See [docs/launcher/packaging.md](../../docs/launcher/packaging.md) for the details.
 
 ## From the .NET CLI (cross-platform)
 
@@ -48,21 +43,21 @@ To build only the launcher application (no installer):
 dotnet build sources/launcher/Stride.Launcher/Stride.Launcher.csproj
 ```
 
-To publish a self-contained Windows build:
+To publish the Windows exe as released (self-contained single file, in `bin\Release\publish\`):
 
 ```
-dotnet publish sources/launcher/Stride.Launcher/Stride.Launcher.csproj -c Release -r win-x64
+dotnet publish sources/launcher/Stride.Launcher/Stride.Launcher.csproj -r win-x64 -p:PublishProfile=FolderProfile
 ```
 
 To publish a self-contained Linux build:
 
 ```
-dotnet publish sources/launcher/Stride.Launcher/Stride.Launcher.csproj -c Release -r linux-x64
+dotnet publish sources/launcher/Stride.Launcher/Stride.Launcher.csproj -c Release -r linux-x64 --self-contained
 ```
 
 ## From Visual Studio / Rider
 
-Open `build/Stride.sln` (or `sources/launcher/Stride.Launcher/Stride.Launcher.csproj`) and build the `Stride.Launcher` project. Set it as the startup project to launch it under the debugger.
+Open `build/Stride.Launcher.slnx` (or `sources/launcher/Stride.Launcher/Stride.Launcher.csproj`) and build the `Stride.Launcher` project. Set it as the startup project to launch it under the debugger.
 
 A convenience launcher script, [PackageLauncher-Debug.bat](Stride.Launcher/PackageLauncher-Debug.bat), packages a Debug build as a NuGet package for local testing.
 
@@ -92,7 +87,7 @@ dotnet build build/Stride.build -t:PackageCli   # -> bin/cli/Stride.Cli.<version
 
 # Versioning
 
-The launcher version is the single source of truth in [Stride.Launcher.nuspec](Stride.Launcher/Stride.Launcher.nuspec). The csproj reads the `<version>` element at build time, so bump the version there to release a new launcher.
+The launcher version is the single source of truth in [Stride.Launcher.nuspec](Stride.Launcher/Stride.Launcher.nuspec). The csproj and the build read the `<version>` element, so bump the version there to release a new launcher; the StrideSetup version and ProductCode are derived from it. A pre-release adds `-p:VersionSuffix=beta1`, and only launchers that opted in update to it. See [docs/launcher/packaging.md](../../docs/launcher/packaging.md#versions).
 
 The CLI is versioned independently of the engine (SemVer in [`Stride.Cli/Stride.Cli.csproj`](Stride.Cli/Stride.Cli.csproj)) and released by [`.github/workflows/release-cli.yml`](../../.github/workflows/release-cli.yml). See [docs/build/versioning.md](../../docs/build/versioning.md#stride-cli).
 

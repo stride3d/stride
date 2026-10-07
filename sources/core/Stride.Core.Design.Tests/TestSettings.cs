@@ -4,6 +4,7 @@
 using System.Globalization;
 
 using Xunit;
+using Stride.Core.Diagnostics;
 using Stride.Core.Settings;
 
 namespace Stride.Core.Design.Tests;
@@ -162,6 +163,29 @@ public class TestSettings
             Test/Simple/IntValue: 45
             Test/Simple/StringValue: 07/25/2004 18:18:00
         """;
+
+    [Fact]
+    public async Task TestSettingsDictionarySaveAndLoad()
+    {
+        // A map with enum values, defaulted from a callback so the default instance is never shared.
+        var key = new SettingsKey<Dictionary<string, LogMessageType>>("Test/Dictionaries/ModuleLevels", SettingsContainer,
+            () => new Dictionary<string, LogMessageType> { ["Default"] = LogMessageType.Info });
+        Assert.Equal(LogMessageType.Info, key.GetValue()["Default"]);
+
+        key.SetValue(new Dictionary<string, LogMessageType> { ["Graphics"] = LogMessageType.Debug, ["Build"] = LogMessageType.Warning });
+        SettingsContainer.SaveSettingsProfile(SettingsContainer.CurrentProfile, TempPath("TestSettingsDictionary.txt"));
+        var text = await File.ReadAllTextAsync(TempPath("TestSettingsDictionary.txt"));
+        Assert.Contains("Graphics: Debug", text);
+
+        SettingsContainer.ClearSettings();
+        SettingsContainer.LoadSettingsProfile(TempPath("TestSettingsDictionary.txt"), true);
+        key = new SettingsKey<Dictionary<string, LogMessageType>>("Test/Dictionaries/ModuleLevels", SettingsContainer,
+            () => new Dictionary<string, LogMessageType> { ["Default"] = LogMessageType.Info });
+        var levels = key.GetValue();
+        Assert.Equal(2, levels.Count);
+        Assert.Equal(LogMessageType.Debug, levels["Graphics"]);
+        Assert.Equal(LogMessageType.Warning, levels["Build"]);
+    }
 
     [Fact]
     public async Task TestSettingsLoad()

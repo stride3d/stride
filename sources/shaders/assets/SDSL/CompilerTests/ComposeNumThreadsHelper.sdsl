@@ -1,0 +1,15 @@
+namespace Stride.Shaders.Tests;
+
+shader ComposeNumThreadsHelper : CSNumThreadsOverrideBase
+{
+    [numthreads(4, 4, 4)]
+    override void CSMain()
+    {
+        base.CSMain();
+    }
+
+    float4 Value()
+    {
+        return float4(1, 2, 3, 4);
+    }
+}

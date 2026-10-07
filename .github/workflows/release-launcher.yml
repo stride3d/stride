@@ -1,4 +1,6 @@
 name: Release Launcher
+# The run list shows the options of each run (the version comes from the nuspec: see the run summary)
+run-name: Launcher ${{ inputs.version-suffix || 'release' }}${{ inputs.sign && ' · sign' || '' }}${{ inputs.deploy && ' · deploy' || '' }}${{ inputs.checkpoint && ' · checkpoint' || '' }}
 
 on:
   workflow_dispatch:
@@ -9,6 +11,14 @@ on:
         type: boolean
       deploy:
         description: Deploy to NuGet.org
+        default: false
+        type: boolean
+      version-suffix:
+        description: Pre-release suffix, no leading dash (e.g. "beta1" -> 6.1.0-beta1), N from 1 to 9. Only launchers that opted in to pre-releases update to it. Empty = release.
+        default: ''
+        type: string
+      checkpoint:
+        description: Every older launcher updates to this version before any newer one (e.g. a version that migrates something the next ones need).
         default: false
         type: boolean
       upload-binlog:
@@ -71,6 +81,34 @@ jobs:
 
       - uses: microsoft/setup-msbuild@v3
 
+      # The version the build will use (the build also rejects one NuGet or MSI can't order). Before a deploy: a release
+      # built again (the NuGet push would skip it silently), or a pre-release of an already released X.Y.Z (it would
+      # sort below that release) means the nuspec wasn't bumped.
+      - name: Version
+        id: version
+        shell: pwsh
+        run: |
+          $out = msbuild build\Stride.build /t:_StrideSetupVersion /nologo /v:m /p:VersionSuffix=${{ inputs.version-suffix }}
+          if ($LASTEXITCODE -ne 0) { $out; exit 1 }
+          if (-not (($out -join "`n") -match 'StrideSetup (\S+):')) {
+            echo "::error::Could not determine the launcher version"
+            exit 1
+          }
+          $version = $Matches[1]
+          echo "Launcher $version"
+          echo "version=$version" >> $env:GITHUB_OUTPUT
+          if ('${{ inputs.deploy }}' -ne 'true') { exit 0 }
+
+          $release = $version -replace '-.*$', ''
+          if (git tag --list "launcher/$version") {
+            echo "::error::launcher/$version already exists. Bump the version in Stride.Launcher.nuspec."
+            exit 1
+          }
+          if ($version -ne $release -and (git tag --list "launcher/$release")) {
+            echo "::error::$release is already released, so $version would sort below it. Bump the version in Stride.Launcher.nuspec."
+            exit 1
+          }
+
       - name: Install Advanced Installer
         shell: pwsh
         run: |
@@ -86,7 +124,11 @@ jobs:
           msbuild build\Stride.build `
             /t:FullBuildLauncher `
             ${{ inputs.upload-binlog && !inputs.sign && '/bl' || '' }} /m /nr:false `
-            /p:StrideSign=${{ inputs.sign }}
+            /p:StrideSentryDsn=${{ vars.STRIDE_SENTRY_DSN }} `
+            /p:StrideSentryEnvironment=${{ vars.STRIDE_SENTRY_DSN != '' && 'release' || '' }} `
+            /p:StrideSign=${{ inputs.sign }} `
+            /p:VersionSuffix=${{ inputs.version-suffix }} `
+            /p:StrideLauncherUpdateCheckpoint=${{ inputs.checkpoint }}
         env:
           StrideSignTenantId: ${{ secrets.STRIDE_SIGN_TENANT_ID }}
           StrideSignClientId: ${{ secrets.STRIDE_SIGN_CLIENT_ID }}
@@ -94,21 +136,33 @@ jobs:
           StrideSignKeyVaultCertificate: ${{ secrets.STRIDE_SIGN_KEYVAULT_CERTIFICATE }}
           StrideSignKeyVaultName: ${{ secrets.STRIDE_SIGN_KEYVAULT_NAME }}
 
-      - name: Get version
-        id: version
+      # What this run built, with the update lines read back from the packages
+      - name: Summary
         shell: pwsh
         run: |
-          $nupkg = Get-ChildItem -Path bin/launcher -Filter "*.nupkg" | Select-Object -First 1
-          if (-not ($nupkg -and $nupkg.BaseName -match '\.(\d+\.\d+\.\d+.*)$')) {
-            echo "::error::Could not determine a version from the launcher nupkg name"
-            exit 1
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $yesNo = { param($value) if ($value -eq 'true') { 'yes' } else { 'no' } }
+          $summary = @(
+            "## Stride Launcher ${{ steps.version.outputs.version }}"
+            ""
+            "- Deploy: $(& $yesNo '${{ inputs.deploy }}') · Signed: $(& $yesNo '${{ inputs.sign }}') · Pre-release: $(& $yesNo '${{ inputs.version-suffix != '' }}')"
+            "- Checkpoint: $(& $yesNo '${{ inputs.checkpoint }}')"
+          )
+          foreach ($nupkg in Get-ChildItem -Path bin/launcher -Filter "*.nupkg") {
+            $zip = [System.IO.Compression.ZipFile]::OpenRead($nupkg.FullName)
+            try {
+              $reader = [System.IO.StreamReader]::new(($zip.Entries | Where-Object Name -eq 'Stride.Launcher.nuspec').Open())
+              $description = ([xml]$reader.ReadToEnd()).package.metadata.description
+              $reader.Dispose()
+            } finally {
+              $zip.Dispose()
+            }
+            $summary += "", "### $($nupkg.Name)", '```'
+            $summary += $description -split '\r?\n' | Where-Object { $_ -match '^(update|force-reinstall):' }
+            $summary += '```'
           }
-          $version = $Matches[1]
-          if ($version -notmatch '^\d+\.\d+\.\d+(-(alpha|beta|rc|preview)\d+)?$') {
-            echo "::error::Version '$version' is not an allowed release version. Use X.Y.Z or X.Y.Z-(alpha|beta|rc|preview)<N> (e.g. 4.4.0, 4.4.0-beta1)"
-            exit 1
-          }
-          echo "version=$version" >> $env:GITHUB_OUTPUT
+          $summary | Out-File -Append -Encoding utf8 $env:GITHUB_STEP_SUMMARY
+          $summary
 
       - name: Upload launcher artifacts
         uses: actions/upload-artifact@v7
@@ -132,6 +186,7 @@ jobs:
     if: ${{ inputs.deploy && inputs.sign }}
     needs: Package
     runs-on: ubuntu-latest
+    environment: production  # STRIDE_NUGET_API_KEY lives here; requires manual approval in GitHub settings
     steps:
       - uses: actions/checkout@v7  # full history + tags for the launcher-scoped changelog
         with:
@@ -148,16 +203,6 @@ jobs:
           name: stride-launcher-${{ needs.Package.outputs.version }}
           path: bin/launcher
 
-      - name: Push to NuGet
-        shell: pwsh
-        run: |
-          Get-ChildItem -Path bin/launcher -Filter "*.nupkg" | ForEach-Object {
-            echo "Pushing $($_.Name)..."
-            dotnet nuget push $_.FullName --api-key $env:STRIDE_NUGET_API_KEY --source "https://api.nuget.org/v3/index.json" --skip-duplicate
-          }
-        env:
-          STRIDE_NUGET_API_KEY: ${{ secrets.STRIDE_NUGET_API_KEY }}
-
       - name: Build release notes
         if: ${{ needs.Package.outputs.version != '' }}
         run: |
@@ -167,7 +212,10 @@ jobs:
           # (and the products' changelogs don't interleave, as GitHub's auto notes would do). The
           # launcher/<version> tag is created by the release step below, so pick the previous tag from
           # the existing launcher/* tags rather than relative to it.
-          PREV=$(git tag --list 'launcher/*' --sort=-creatordate | grep -vxF "$TAG" | head -n1 || true)
+          # A release starts from the previous release (not its pre-releases), so the notes include what they shipped.
+          CANDIDATES=$(git tag --list 'launcher/*' --sort=-creatordate | grep -vxF "$TAG" || true)
+          [[ "$TAG" != *-* ]] && CANDIDATES=$(printf '%s\n' "$CANDIDATES" | grep -v -- '-' || true)
+          PREV=$(printf '%s\n' "$CANDIDATES" | head -n1)
           RANGE="HEAD"
           [ -n "$PREV" ] && RANGE="$PREV..HEAD"
           NOTES=$(git log --no-merges --pretty='- %s (%h)' "$RANGE" -- sources/launcher/Stride.Launcher)
@@ -182,20 +230,70 @@ jobs:
             fi
           } > launcher-notes.md
 
+      # gh rather than a release action: stride3d/stride only allows selected third-party actions (as release-cli.yml)
       - name: Create GitHub Release
         if: ${{ needs.Package.outputs.version != '' }}
-        uses: softprops/action-gh-release@v3
-        with:
-          tag_name: launcher/${{ needs.Package.outputs.version }}
-          name: Stride Launcher ${{ needs.Package.outputs.version }}
-          files: bin/launcher/*.exe
-          make_latest: false  # separate product: never the repo's "Latest" release (that's the engine)
-          body_path: launcher-notes.md
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          TAG="launcher/${{ needs.Package.outputs.version }}"
+          # Already there when this job runs again ("Re-run failed jobs", e.g. after a NuGet failure): upload the setup
+          # again, in case the first run failed during its upload. The same one: the job reuses the build artifacts.
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            gh release upload "$TAG" bin/launcher/*.exe --clobber
+            exit 0
+          fi
+          # --latest=false: a separate product, never the repo's "Latest" release (that's the engine)
+          gh release create "$TAG" \
+            --target "$GITHUB_SHA" \
+            --title "Stride Launcher ${{ needs.Package.outputs.version }}" \
+            --notes-file launcher-notes.md \
+            --latest=false \
+            ${{ inputs.version-suffix != '' && '--prerelease' || '' }} \
+            bin/launcher/*.exe
+
+      # After the GitHub release: the packages point to its setup (launchers that must reinstall download it)
+      - name: Push to NuGet
+        shell: pwsh
+        run: |
+          Get-ChildItem -Path bin/launcher -Filter "*.nupkg" | ForEach-Object {
+            echo "Pushing $($_.Name)..."
+            dotnet nuget push $_.FullName --api-key $env:STRIDE_NUGET_API_KEY --source "https://api.nuget.org/v3/index.json" --skip-duplicate
+            if ($LASTEXITCODE -ne 0) { exit 1 }
+          }
+        env:
+          STRIDE_NUGET_API_KEY: ${{ secrets.STRIDE_NUGET_API_KEY }}
+
+      # Points the stride3d.net download button to this setup: committed to stride-website
+      # master, live with the next website release (deployed from its release branch)
+      - name: Update the website download
+        if: ${{ needs.Package.outputs.version != '' && inputs.version-suffix == '' }}
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          VERSION="${{ needs.Package.outputs.version }}"
+          gh auth setup-git
+          git clone --depth 1 https://github.com/stride3d/stride-website.git website
+          cd website
+          URL="https://github.com/stride3d/stride/releases/download/launcher/$VERSION/StrideSetup-$VERSION.exe"
+          # Setting a key the site doesn't have (renamed) would add one that nothing reads
+          if ! jq -e '.links | has("stride-download-url")' _data/site.json > /dev/null; then
+            echo "::error::No links.stride-download-url in _data/site.json of stride-website"
+            exit 1
+          fi
+          jq --arg url "$URL" '.links."stride-download-url" = $url' _data/site.json > site.json.tmp
+          mv site.json.tmp _data/site.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "feat: The download button points to the Stride Launcher $VERSION setup (GitHub release)" \
+            -m "https://github.com/stride3d/stride/releases/tag/launcher/$VERSION" \
+            -m "Updated by $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          git push
 
   #
   # AI release notes, off the Deploy critical path (see release-notes-apply.yml). Runs after
   # the release exists; replaces the scoped git-log body with the AI bullet list. The separate
-  # job fetches the tag softprops pushed, so no local-tag mirror step is needed.
+  # job fetches the tag gh release create pushed, so no local-tag mirror step is needed.
   #
   ReleaseNotes:
     name: Release notes launcher/${{ needs.Package.outputs.version }}

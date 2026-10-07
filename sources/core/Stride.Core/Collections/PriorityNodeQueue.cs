@@ -5,16 +5,16 @@ namespace Stride.Core.Collections;
 
 /// <summary>
 /// Implements a priority queue of type T.
-/// 
+///
 /// Elements may be added to the queue in any order, but when we pull
 /// elements out of the queue, they will be returned in 'ascending' order.
 /// Adding new elements into the queue may be done at any time, so this is
 /// useful to implement a dynamically growing and shrinking queue. Both adding
-/// an element and removing the first element are log(N) operations. 
-/// 
-/// The queue is implemented using a priority-heap data structure. For more 
+/// an element and removing the first element are log(N) operations.
+///
+/// The queue is implemented using a priority-heap data structure. For more
 /// details on this elegant and simple data structure see "Programming Pearls"
-/// in our library. The tree is implemented atop a list, where 2N and 2N+1 are
+/// in our library. The tree is implemented atop a list, where 2N+1 and 2N+2 are
 /// the child nodes of node N. The tree is balanced and left-aligned so there
 /// are no 'holes' in this list.
 /// </summary>
@@ -40,6 +40,9 @@ public class PriorityNodeQueue<T>
     /// <summary>Clear all the elements from the priority queue</summary>
     public void Clear()
     {
+        foreach (var item in items)
+            item.Index = -1;
+
         items.Clear();
     }
 
@@ -53,48 +56,21 @@ public class PriorityNodeQueue<T>
         if (index == -1)
             return;
 
-        // The element to return is of course the first element in the array, 
-        // or the root of the tree. However, this will leave a 'hole' there. We
-        // fill up this hole with the last element from the array. This will 
-        // break the heap property. So we bubble the element downwards by swapping
-        // it with it's lower child until it reaches it's correct level. The lower
-        // child (one of the orignal elements with index 1 or 2) will now be at the
-        // head of the queue (root of the tree).
-        var nMax = items.Count - 1;
-        var itemMax = items[nMax];
-        itemMax.Index = index;
-        var itemToRemove = items[index];
-        itemToRemove.Index = -1;
-        items[index] = itemMax;
-        items.RemoveAt(nMax);  // Move the last element to the top
-
-        var p = index;
-        while (true)
-        {
-            // c is the child we want to swap with. If there
-            // is no child at all, then the heap is balanced
-            var c = p * 2;
-            if (c >= nMax) break;
-
-            // If the second child is smaller than the first, that's the one
-            // we want to swap with this parent.
-            if (c + 1 < nMax && comparer.Compare(items[c + 1].Value, items[c].Value) < 0) c++;
-            // If the parent is already smaller than this smaller child, then
-            // we are done
-            if (comparer.Compare(items[p].Value, items[c].Value) <= 0)
-                break;
-
-            // Othewise, swap parent and child, and follow down the parent
-            var tmp = items[p];
-            var tmp2 = items[c];
-            tmp.Index = c;
-            tmp2.Index = p;
-            items[p] = tmp2;
-            items[c] = tmp;
-            p = c;
-        }
-
+        // The item leaves a 'hole', which the last item of the list fills up
+        var lastIndex = items.Count - 1;
+        var lastItem = items[lastIndex];
+        items.RemoveAt(lastIndex);
         item.Index = -1;
+
+        if (index == lastIndex)
+            return;
+
+        items[index] = lastItem;
+        lastItem.Index = index;
+
+        // The item taken from the end can be smaller than its new parent, or bigger than its children
+        if (!MoveUp(index))
+            MoveDown(index);
     }
 
     /// <summary>Add an element to the priority queue - O(log(n)) time operation.</summary>
@@ -114,35 +90,11 @@ public class PriorityNodeQueue<T>
         if (item.Index != -1)
             throw new InvalidOperationException("Item belongs to another PriorityNodeQueue.");
 
-        // We add the item to the end of the list (at the bottom of the
-        // tree). Then, the heap-property could be violated between this element
-        // and it's parent. If this is the case, we swap this element with the 
-        // parent (a safe operation to do since the element is known to be less
-        // than it's parent). Now the element move one level up the tree. We repeat
-        // this test with the element and it's new parent. The element, if lesser
-        // than everybody else in the tree will eventually bubble all the way up
-        // to the root of the tree (or the head of the list). It is easy to see 
-        // this will take log(N) time, since we are working with a balanced binary
-        // tree.
-        var n = items.Count;
+        // The item goes at the bottom of the tree, then moves up to its level
+        item.Index = items.Count;
         items.Add(item);
-        item.Index = n;
-        while (n != 0)
-        {
-            var p = n / 2;    // This is the 'parent' of this item
-            if (comparer.Compare(items[n].Value, items[p].Value) >= 0)
-                break;  // Item >= parent
 
-            // Swap item and parent
-            var tmp = items[n];
-            var tmp2 = items[p];
-            tmp2.Index = n;
-            tmp.Index = p;
-            items[n] = tmp2;
-            items[p] = tmp;
-
-            n = p;            // And continue
-        }
+        MoveUp(item.Index);
     }
 
     /// <summary>Returns the number of elements in the queue.</summary>
@@ -164,49 +116,66 @@ public class PriorityNodeQueue<T>
     /// <returns>The first element in the queue, in ascending order.</returns>
     public T Dequeue()
     {
-        // The element to return is of course the first element in the array, 
-        // or the root of the tree. However, this will leave a 'hole' there. We
-        // fill up this hole with the last element from the array. This will 
-        // break the heap property. So we bubble the element downwards by swapping
-        // it with it's lower child until it reaches it's correct level. The lower
-        // child (one of the orignal elements with index 1 or 2) will now be at the
-        // head of the queue (root of the tree).
-        var nMax = items.Count - 1;
-        var itemToRemove = items[0];
-        var itemMax = items[nMax];
-        itemMax.Index = 0;
-        var val = itemToRemove.Value;
-        itemToRemove.Index = -1;
-        items[0] = itemMax;
-        items.RemoveAt(nMax);  // Move the last element to the top
+        var item = items[0];
+        var value = item.Value;
 
-        var p = 0;
-        while (true)
+        Remove(item);
+
+        return value;
+    }
+
+    /// <summary>
+    /// Moves an item towards the head of the queue, while it is smaller than its parent.
+    /// </summary>
+    /// <param name="index">The index of the item to move.</param>
+    /// <returns><c>true</c> if the item moved; otherwise, <c>false</c>.</returns>
+    private bool MoveUp(int index)
+    {
+        var moved = false;
+        while (index > 0)
         {
-            // c is the child we want to swap with. If there
-            // is no child at all, then the heap is balanced
-            var c = p * 2;
-            if (c >= nMax) break;
-
-            // If the second child is smaller than the first, that's the one
-            // we want to swap with this parent.
-            if (c + 1 < nMax && comparer.Compare(items[c + 1].Value, items[c].Value) < 0) c++;
-            // If the parent is already smaller than this smaller child, then
-            // we are done
-            if (comparer.Compare(items[p].Value, items[c].Value) <= 0)
+            var parent = (index - 1) / 2;
+            if (comparer.Compare(items[index].Value, items[parent].Value) >= 0)
                 break;
 
-            // Othewise, swap parent and child, and follow down the parent
-            var tmp = items[p];
-            var tmp2 = items[c];
-            tmp.Index = c;
-            tmp2.Index = p;
-            items[p] = tmp2;
-            items[c] = tmp;
-
-            p = c;
+            Swap(index, parent);
+            index = parent;
+            moved = true;
         }
 
-        return val;
+        return moved;
+    }
+
+    /// <summary>
+    /// Moves an item towards the tail of the queue, while it is bigger than one of its children.
+    /// </summary>
+    /// <param name="index">The index of the item to move.</param>
+    private void MoveDown(int index)
+    {
+        while (true)
+        {
+            // Stop when the item has no child left
+            var child = (index * 2) + 1;
+            if (child >= items.Count)
+                break;
+
+            // Of the two children, the smaller one takes the place of the parent
+            var rightChild = child + 1;
+            if (rightChild < items.Count && comparer.Compare(items[rightChild].Value, items[child].Value) < 0)
+                child = rightChild;
+
+            if (comparer.Compare(items[index].Value, items[child].Value) <= 0)
+                break;
+
+            Swap(index, child);
+            index = child;
+        }
+    }
+
+    private void Swap(int first, int second)
+    {
+        (items[first], items[second]) = (items[second], items[first]);
+        items[first].Index = first;
+        items[second].Index = second;
     }
 }

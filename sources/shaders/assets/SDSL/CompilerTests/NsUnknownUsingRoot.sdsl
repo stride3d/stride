@@ -1,0 +1,16 @@
+// A `using` of a namespace no shader lives in. Since a using takes no part in resolution, it is
+// not an error either. (The key generator copies the directive into C#, so it names a real
+// .NET namespace.)
+using System.Collections.Generic;
+
+namespace Stride.Shaders.Tests;
+
+shader NsUnknownUsingRoot : ComposeSharedBase, NsUtils
+{
+    RWBuffer<float> Out;
+
+    override void Compute()
+    {
+        Out[0] = One();
+    }
+};

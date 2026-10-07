@@ -87,12 +87,13 @@ internal static class SymbolRewriteEngine
                 continue;
 
             var editor = await DocumentEditor.CreateAsync(document, cancellationToken);
-            var appliedSpans = new HashSet<TextSpan>();
+            var appliedSpans = new HashSet<(TextSpan, SymbolRewrite)>();
             foreach (var edit in edits)
             {
                 // A node can be matched by multiple symbols (e.g. extension skeleton + implementation);
-                // apply each span once.
-                if (!appliedSpans.Add(edit.Span))
+                // apply each rewrite once per span. Distinct rewrites may share a span (a moved method
+                // that also had a parameter renamed), as long as they edit disjoint nodes.
+                if (!appliedSpans.Add((edit.Span, edit.Rewrite)))
                     continue;
                 var node = root.FindNode(edit.Span, getInnermostNodeForTie: true);
                 if (node is null)

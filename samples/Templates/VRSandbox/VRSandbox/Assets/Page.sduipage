@@ -17,6 +17,8 @@ Hierarchy:
                 Font: b7a7964b-4203-4bf2-a0ff-9d728a444ece:SpriteFont
                 TextSize: 36.0
                 TextColor: {R: 240, G: 240, B: 240, A: 255}
+                OutlineColor: {R: 0, G: 0, B: 0, A: 255}
+                OutlineThickness: 0.0
                 WrapText: true
         -   UIElement: !Grid
                 Id: c8a83548-ab0a-420d-82bc-ded3b9b36b34

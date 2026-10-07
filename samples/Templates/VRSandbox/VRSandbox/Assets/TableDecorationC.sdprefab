@@ -42,5 +42,5 @@ Hierarchy:
                                 LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                     0b7714b049ba044796655d21423c7879: !ModelComponent
                         Id: f0391fcf-dc44-42f1-a100-3458353bb1d6
-                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:Models/BoxF
+                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:/SamplesAssetPackage/Models/BoxF
                         Materials: {}

@@ -117,7 +117,7 @@ Hierarchy:
                         Id: 38f4b51a-0b1f-41bf-b948-e94896b5af8e
                         Type: !LightAmbient
                             Color: !ColorRgbProvider
-                                Value: {R: 0.768627465, G: 0.843137264, B: 1.0}
+                                Value: {R: 0.76862746, G: 0.84313726, B: 1.0}
                         Intensity: 0.05
         -   Entity:
                 Id: b6047a15-c66a-4a26-a3e1-d00ca3b9531e
@@ -348,7 +348,7 @@ Hierarchy:
                     f16b053573ca5d4db3bd17a572a5020a: !TransformComponent
                         Id: 35056bf1-ca73-4d5d-b3bd-17a572a5020a
                         Position: {X: 0.0, Y: 2.0, Z: 0.0}
-                        Rotation: {X: -0.5540323, Y: 0.212012157, Z: 0.1484525, W: 0.7912401}
+                        Rotation: {X: -0.5540323, Y: 0.21201216, Z: 0.1484525, W: 0.7912401}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     f013ae3c5eb2c249ab48e4cee0edf4bf: !LightComponent
@@ -372,7 +372,7 @@ Hierarchy:
                 Components:
                     c86b295551576a4eaf10342d84e38712: !TransformComponent
                         Id: 55296bc8-5751-4e6a-af10-342d84e38712
-                        Position: {X: 0.0, Y: -4.76837158E-07, Z: 0.0}
+                        Position: {X: 0.0, Y: -4.7683716E-07, Z: 0.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}

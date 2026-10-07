@@ -24,7 +24,7 @@ Hierarchy:
                         Children: {}
                     d39c34acc25c776a05897e9accc31423: !ModelComponent
                         Id: 471a12dc-fa0c-4ede-b211-cdd54bd77bb9
-                        Model: 74b88cdd-45d9-494f-b463-cd0c478df1e8:Models/SwordModel
+                        Model: 74b88cdd-45d9-494f-b463-cd0c478df1e8:/mannequinModel/Models/SwordModel
                         Materials: {}
         -   Entity:
                 Id: 355518a5-d044-4304-806f-3f3a9233ce4e

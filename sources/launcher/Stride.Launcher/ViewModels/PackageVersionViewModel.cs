@@ -62,6 +62,11 @@ public abstract class PackageVersionViewModel : DispatcherViewModel
     public virtual string? InstallPath => LocalPackage?.Path;
 
     /// <summary>
+    /// Gets the installed version of this package, or <c>null</c> if it is not installed.
+    /// </summary>
+    public PackageVersion? InstalledVersion => LocalPackage?.Version;
+
+    /// <summary>
     /// Gets whether a download is available for this version, being an update or a first install.
     /// </summary>
     public virtual bool CanBeDownloaded { get { return canBeDownloaded; } private set { SetValue(ref canBeDownloaded, value); } }
@@ -122,8 +127,9 @@ public abstract class PackageVersionViewModel : DispatcherViewModel
     /// Updates all the versions of this type from the store. This method should update the <see cref="LocalPackage"/> and <see cref="ServerPackage"/>
     /// for each version of the same type, remove versions that do not exist anymore, and add new versions.
     /// </summary>
+    /// <param name="unusedPackagesProgress">Called before each package that no version uses anymore is removed, with the count removed so far and the total.</param>
     /// <returns>A task that completes when the versions are updated.</returns>
-    protected abstract Task UpdateVersionsFromStore();
+    protected abstract Task UpdateVersionsFromStore(Action<int, int>? unusedPackagesProgress = null);
 
     /// <summary>
     /// Updates the status of this version, synchronizing the different properties and command state of the view model with the local and server packages status.
@@ -168,7 +174,8 @@ public abstract class PackageVersionViewModel : DispatcherViewModel
     /// published — do not block the install.
     /// </summary>
     /// <param name="version">The version that was just installed.</param>
-    protected virtual Task TryInstallCompanionsAsync(PackageVersion version) => Task.CompletedTask;
+    /// <param name="progress">The progress report of the install, which the companion installs report to as well.</param>
+    protected virtual Task TryInstallCompanionsAsync(PackageVersion version, ProgressReport progress) => Task.CompletedTask;
 
     /// <summary>
     /// Downloads the latest version of this package. If a version is already in the local store, it will be deleted first.
@@ -201,6 +208,14 @@ public abstract class PackageVersionViewModel : DispatcherViewModel
                     await Store.UninstallPackage(LocalPackage, progressReport);
                     CurrentProcessStatus = null;
                 }
+                catch (OperationCanceledException)
+                {
+                    // The user kept the running version: nothing was removed, so nothing is installed over it.
+                    CurrentProcessStatus = null;
+                    await UpdateVersionsFromStore();
+                    IsProcessing = false;
+                    return;
+                }
                 catch (Exception e)
                 {
                     if (displayErrorMessage)
@@ -224,12 +239,14 @@ public abstract class PackageVersionViewModel : DispatcherViewModel
                 using (var progressReport = new ProgressReport(Store, ServerPackage))
                 {
                     progressReport.ProgressChanged += (action, progress) => { Dispatcher.InvokeAsync(() => { UpdateProgress(action, progress); }).Forget(); };
+                    TrackInstallProgress(progressReport);
                     progressReport.UpdateProgress(ProgressAction.Install, -1);
                     await Store.InstallPackage(ServerPackage.Id, ServerPackage.Version, ServerPackage.TargetFrameworks, progressReport);
                     downloadCompleted = true;
+
+                    await TryInstallCompanionsAsync(ServerPackage.Version, progressReport);
                 }
 
-                await TryInstallCompanionsAsync(ServerPackage.Version);
                 AfterDownload();
             }
             catch (Exception e)
@@ -268,10 +285,23 @@ public abstract class PackageVersionViewModel : DispatcherViewModel
             }
             finally
             {
-                await UpdateVersionsFromStore();
+                await UpdateVersionsFromStore(ReportUnusedPackagesRemoval);
                 IsProcessing = false;
             }
         });
+    }
+
+    /// <summary>
+    /// Gets the question asked before <see cref="DeleteCommand"/> deletes this version.
+    /// </summary>
+    protected virtual string DeleteConfirmationMessage => string.Format(Strings.ConfirmUninstall, FullName);
+
+    /// <summary>
+    /// Executes some actions once <see cref="DeleteCommand"/> uninstalled the package of this version.
+    /// </summary>
+    protected virtual void AfterUninstall()
+    {
+        // Intentionally does nothing.
     }
 
     protected async Task Delete(bool displayErrorMessage, bool askConfirmation)
@@ -279,7 +309,7 @@ public abstract class PackageVersionViewModel : DispatcherViewModel
         bool proceed = !askConfirmation;
         if (askConfirmation)
         {
-            var message = string.Format(Strings.ConfirmUninstall, FullName);
+            var message = DeleteConfirmationMessage;
             var confirmResult = await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, MessageBoxButton.YesNo);
             proceed = confirmResult == MessageBoxResult.Yes;
         }
@@ -300,6 +330,11 @@ public abstract class PackageVersionViewModel : DispatcherViewModel
             progressReport.UpdateProgress(ProgressAction.Delete, -1);
             CurrentProcessStatus = string.Format(Strings.ReportDeletingVersion, FullName);
             await Store.UninstallPackage(LocalPackage, progressReport);
+            AfterUninstall();
+        }
+        catch (OperationCanceledException)
+        {
+            // The user kept the version: it is still installed.
             CurrentProcessStatus = null;
         }
         catch (Exception e)
@@ -314,10 +349,35 @@ public abstract class PackageVersionViewModel : DispatcherViewModel
         }
         finally
         {
-            await UpdateVersionsFromStore();
+            await UpdateVersionsFromStore(ReportUnusedPackagesRemoval);
+            CurrentProcessStatus = null;
             IsProcessing = false;
         }
     }
+
+    // As the CLI shows it: the size downloaded so far (no total: NuGet learns each size only as its download starts),
+    // then the packages installed. Without the version: the row is that version's, and narrow.
+    private void TrackInstallProgress(ProgressReport progressReport)
+    {
+        progressReport.DownloadProgressChanged += downloadedBytes => Dispatcher.InvokeAsync(() =>
+        {
+            CurrentProgress = 0;
+            CurrentProcessStatus = string.Format(Strings.ReportDownloadingSize, DownloadSize.Format(downloadedBytes));
+        }).Forget();
+        progressReport.InstallProgressChanged += (installed, total) => Dispatcher.InvokeAsync(() =>
+        {
+            CurrentProgress = 100 * installed / total;
+            CurrentProcessStatus = string.Format(Strings.ReportInstallingPackages, installed, total);
+        }).Forget();
+    }
+
+    // The packages the removed version used go too, one by one: the row shows how far it is, rather than an empty bar
+    private void ReportUnusedPackagesRemoval(int removed, int total)
+        => Dispatcher.InvokeAsync(() =>
+        {
+            CurrentProgress = 100 * removed / total;
+            CurrentProcessStatus = string.Format(Strings.ReportRemovingUnusedPackages, removed, total);
+        }).Forget();
 
     private void UpdateStatusInternal()
     {

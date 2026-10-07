@@ -19,8 +19,6 @@ namespace Stride.Graphics
     {
         private const int VertexBufferCount = 2;
 
-        private const int IndexStride = sizeof(int);
-
         private Buffer[] vertexBuffers;
         private int activeVertexBufferIndex;
         private VertexBufferBinding[] vertexBuffersBinding;
@@ -54,25 +52,10 @@ namespace Stride.Graphics
 
         protected override void Destroy()
         {
-            for (int i = 0; i < VertexBufferCount; i++)
-                vertexBuffers[i].Dispose();
+            ReleaseResources();
 
             activeVertexBufferIndex = -1;
-
-            if (indexBuffer != null)
-            {
-                indexBuffer.Dispose();
-                indexBuffer = null;
-            }
-
-            indexBufferBinding = null;
             pipelineState = null;
-
-            if (simpleEffect != null)
-            {
-                simpleEffect.Dispose();
-                simpleEffect = null;
-            }
 
             for (int i = 0; i < VertexBufferCount; i++)
                 inputElementDescriptions[i] = null;
@@ -83,36 +66,47 @@ namespace Stride.Graphics
         }
 
         /// <summary>
+        /// Releases the graphics resources created by <see cref="Initialize"/>.
+        /// </summary>
+        private void ReleaseResources()
+        {
+            for (int i = 0; i < VertexBufferCount; i++)
+                vertexBuffers[i].Dispose();
+
+            vertexBuffers = null;
+            vertexBuffersBinding = null;
+
+            indexBuffer?.Dispose();
+            indexBuffer = null;
+            indexBufferBinding = null;
+
+            simpleEffect?.Dispose();
+            simpleEffect = null;
+        }
+
+        /// <summary>
         /// Initializes a FastTextRendering instance (create and build required ressources, ...).
         /// </summary>
         /// <param name="graphicsContext">The current GraphicsContext.</param>
-        private unsafe void Initialize(GraphicsContext graphicsContext, int maxCharacters)
+        private void Initialize(GraphicsContext graphicsContext, int maxCharacters)
         {
             maxCharacterCount = maxCharacters;
-            var indexBufferSize = maxCharacters * 6 * sizeof(int);
-            var indexBufferLength = indexBufferSize / IndexStride;
-
-            // Map and build the indice buffer
-            indexBuffer = graphicsContext.Allocator.GetTemporaryBuffer(new BufferDescription(indexBufferSize, BufferFlags.IndexBuffer, GraphicsResourceUsage.Dynamic));
-
-            var mappedIndices = graphicsContext.CommandList.MapSubResource(indexBuffer, 0, MapMode.WriteNoOverwrite, false, 0, indexBufferSize);
-            var indexPointer = mappedIndices.DataBox.DataPointer;
+            var indices = GC.AllocateUninitializedArray<int>(maxCharacters * 6);
 
             var i = 0;
             for (var c = 0; c < maxCharacters; c++)
             {
-                *(int*)(indexPointer + IndexStride * i++) = c * 4 + 0;
-                *(int*)(indexPointer + IndexStride * i++) = c * 4 + 1;
-                *(int*)(indexPointer + IndexStride * i++) = c * 4 + 2;
+                indices[i++] = c * 4 + 0;
+                indices[i++] = c * 4 + 1;
+                indices[i++] = c * 4 + 2;
 
-                *(int*)(indexPointer + IndexStride * i++) = c * 4 + 1;
-                *(int*)(indexPointer + IndexStride * i++) = c * 4 + 3;
-                *(int*)(indexPointer + IndexStride * i++) = c * 4 + 2;
+                indices[i++] = c * 4 + 1;
+                indices[i++] = c * 4 + 3;
+                indices[i++] = c * 4 + 2;
             }
 
-            graphicsContext.CommandList.UnmapSubResource(mappedIndices);
-
-            indexBufferBinding = new IndexBufferBinding(Buffer.Index.New(graphicsContext.CommandList.GraphicsDevice, new ReadOnlySpan<byte>((void*)indexPointer, indexBufferSize)), true, indexBufferLength);
+            indexBuffer = Buffer.Index.New(graphicsContext.CommandList.GraphicsDevice, indices);
+            indexBufferBinding = new IndexBufferBinding(indexBuffer, true, indices.Length);
 
             // Create vertex buffers
             vertexBuffers = new Buffer[VertexBufferCount];
@@ -182,6 +176,7 @@ namespace Stride.Graphics
             if (charsToRenderCount > maxCharacterCount)
             {
                 maxCharacterCount = (int)(1.5f * charsToRenderCount);
+                ReleaseResources();
                 Initialize(graphicsContext, maxCharacterCount);
             }
 

@@ -180,3 +180,5 @@ project.lock.json
 # Auto-generated version overlay (Stride.WorktreeVersion.targets / Stride.GitVersion.targets)
 /sources/shared/SharedAssemblyInfo.Generated.cs
 
+# Solution filters narrowed to the suites a run needs (build/tools/Stride.TestSuites)
+*.filtered.slnf

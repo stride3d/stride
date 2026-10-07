@@ -48,12 +48,12 @@ Hierarchy:
                     40bc0789c794df458f3da83107baa90c: !TransformComponent
                         Id: 8907bc40-94c7-45df-8f3d-a83107baa90c
                         Position: {X: 0.0, Y: 0.0, Z: 0.0}
-                        Rotation: {X: 0.707106769, Y: 0.0, Z: 0.0, W: 0.707106769}
+                        Rotation: {X: 0.70710677, Y: 0.0, Z: 0.0, W: 0.70710677}
                         Scale: {X: 10.0, Y: 10.0, Z: 10.0}
                         Children: {}
                     76eeb34856ae80488daf19410ab51cf5: !ModelComponent
                         Id: 48b3ee76-ae56-4880-8daf-19410ab51cf5
-                        Model: 43497f30-bb62-46d4-8a9c-6dedead0cad8:Models/CoinGold
+                        Model: 43497f30-bb62-46d4-8a9c-6dedead0cad8:/SamplesAssetPackage/Models/CoinGold
                         Materials: {}
                     5d7c980f639f67459b68a76d9fcdd82c: !TopDownRPG.Gameplay.Trigger,TopDownRPG.Game
                         Id: 0f987c5d-9f63-4567-9b68-a76d9fcdd82c
@@ -83,6 +83,6 @@ Hierarchy:
                                 LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
                     01ab324bade8aa4c9118f516e330ca39: !TopDownRPG.Gameplay.LootCoinScript,TopDownRPG.Game
                         Id: 4b32ab01-e8ad-4caa-9118-f516e330ca39
-                        CoinGetEffect: 48c406d2-677a-4a3b-90a0-4c0094894935:VFXPrefabs/vfx-GetCoin
+                        CoinGetEffect: 48c406d2-677a-4a3b-90a0-4c0094894935:/VFXPackage/VFXPrefabs/vfx-GetCoin
                         Trigger: ref!! 0f987c5d-9f63-4567-9b68-a76d9fcdd82c
                         SoundEffect: 8f8f4038-b521-4a36-b606-7d33e68f9ddb:Audio/coin_get

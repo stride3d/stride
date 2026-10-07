@@ -13,19 +13,19 @@ AssetFolders:
 ResourceFolders:
     - !dir ../Resources
 RootAssets:
-    - 0a019d87-d943-4543-9b51-a4016200dff9:Scenes/Basics/Properties
-    - 137dcdfa-bfc8-4805-92a3-dd48f2b79061:Scenes/Basics/DeltaTime
-    - 328aea72-1405-48be-bf32-2363a61870f7:Scenes/Basics/Virtual buttons
-    - 52a557d6-1f2c-4983-a0bb-2c12d562d3bf:Scenes/Basics/Cloning entities
-    - 678cb64e-9dcd-44ea-8cdd-947667bbcc5a:Scenes/Basics/Adding a component
-    - 79af0b55-a70f-4c7a-8f5b-967d55661736:StrideUILibrary
-    - 90c8a632-2df9-4335-8f09-24cb13e131b6:Scenes/Basics/Getting the entity
-    - 9e1b53ff-dc0c-410a-8972-14f949f83a01:Scenes/Basics/Child entities
-    - ba8ed57d-74b9-4121-baf0-6a92463b600a:Scenes/Basics/Getting a component
-    - c00aec52-d6b8-4eab-80c2-460ac8109da6:Scenes/Basics/Mouse input
-    - ca777fe9-5471-4137-a42d-fa87b6c20c91:Scenes/Basics/Loading content
-    - d625592d-d7c2-4151-bd8e-09ff90120d9e:Scenes/Basics/Linear Interpolation
-    - d8597439-175b-42b3-81ca-d6553655e38f:Scenes/Basics/Removing entities
-    - dbb3b809-4ff0-41da-b125-78a5ea1ec89c:Scenes/Basics/TransformPosition
-    - deb8b6f8-1da6-4ad7-8499-ebd34e1d423b:Scenes/Basics/Instantiating prefabs
-    - ee2eb459-7847-42b5-bd69-fc43a6625fd5:Scenes/Basics/Keyboard input
+    - 0a019d87-d943-4543-9b51-a4016200dff9:/CSharpBeginner.Game/Scenes/Basics/Properties
+    - 137dcdfa-bfc8-4805-92a3-dd48f2b79061:/CSharpBeginner.Game/Scenes/Basics/DeltaTime
+    - 328aea72-1405-48be-bf32-2363a61870f7:/CSharpBeginner.Game/Scenes/Basics/Virtual buttons
+    - 52a557d6-1f2c-4983-a0bb-2c12d562d3bf:/CSharpBeginner.Game/Scenes/Basics/Cloning entities
+    - 678cb64e-9dcd-44ea-8cdd-947667bbcc5a:/CSharpBeginner.Game/Scenes/Basics/Adding a component
+    - 79af0b55-a70f-4c7a-8f5b-967d55661736:/Stride.Engine/StrideUILibrary
+    - 90c8a632-2df9-4335-8f09-24cb13e131b6:/CSharpBeginner.Game/Scenes/Basics/Getting the entity
+    - 9e1b53ff-dc0c-410a-8972-14f949f83a01:/CSharpBeginner.Game/Scenes/Basics/Child entities
+    - ba8ed57d-74b9-4121-baf0-6a92463b600a:/CSharpBeginner.Game/Scenes/Basics/Getting a component
+    - c00aec52-d6b8-4eab-80c2-460ac8109da6:/CSharpBeginner.Game/Scenes/Basics/Mouse input
+    - ca777fe9-5471-4137-a42d-fa87b6c20c91:/CSharpBeginner.Game/Scenes/Basics/Loading content
+    - d625592d-d7c2-4151-bd8e-09ff90120d9e:/CSharpBeginner.Game/Scenes/Basics/Linear Interpolation
+    - d8597439-175b-42b3-81ca-d6553655e38f:/CSharpBeginner.Game/Scenes/Basics/Removing entities
+    - dbb3b809-4ff0-41da-b125-78a5ea1ec89c:/CSharpBeginner.Game/Scenes/Basics/TransformPosition
+    - deb8b6f8-1da6-4ad7-8499-ebd34e1d423b:/CSharpBeginner.Game/Scenes/Basics/Instantiating prefabs
+    - ee2eb459-7847-42b5-bd69-fc43a6625fd5:/CSharpBeginner.Game/Scenes/Basics/Keyboard input

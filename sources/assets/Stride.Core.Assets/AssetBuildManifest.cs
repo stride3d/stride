@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.IO;
 using Stride.Core;
 using Stride.Core.IO;
 
@@ -69,6 +70,21 @@ public sealed class AssetBuildManifest
     /// Project-asset files (e.g. .sdsl, .sdfx) declared as project items.
     /// </summary>
     public List<AssetBuildManifestItem> ProjectAssets { get; } = [];
+
+    /// <summary>
+    /// Resolves a manifest-relative path against the manifest's location.
+    /// </summary>
+    public static string ResolvePath(string manifestFile, UFile path) => Path.GetFullPath(Path.Combine(Path.GetDirectoryName(manifestFile)!, path.ToOSPath()));
+
+    /// <summary>
+    /// Gets the sdpkg next to <see cref="ProjectFile"/>, the package the editor pairs the project with.
+    /// </summary>
+    public string? GetProjectPackagePath(string manifestFile) => ProjectFile is not null ? Path.ChangeExtension(ResolvePath(manifestFile, ProjectFile), Package.PackageFileExtension) : null;
+
+    /// <summary>
+    /// Gets <see cref="PackageFile"/> resolved, when declared.
+    /// </summary>
+    public string? GetAuthoredPackagePath(string manifestFile) => PackageFile is not null ? ResolvePath(manifestFile, PackageFile) : null;
 }
 
 /// <summary>

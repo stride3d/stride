@@ -187,4 +187,14 @@ public struct ColorHSV : IEquatable<ColorHSV>, ISpanFormattable
         v = V;
         a = A;
     }
+
+    public static bool operator ==(ColorHSV left, ColorHSV right)
+    {
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(ColorHSV left, ColorHSV right)
+    {
+        return !(left == right);
+    }
 }

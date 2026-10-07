@@ -7,9 +7,7 @@ namespace Stride.Rendering.Cubemap
     /// </summary>
     shader CubemapUtils
     {
-        // TODO: this might change on OpenGL
-
-        // This is for indirect coordinate system cubemap sampling = Direct3D
+        // The standard cubemap face layout, shared by Direct3D, OpenGL and Vulkan
         //  ________ ________ ________ ________ ________ ________
         // |     y  |  y     |   ___x |  z     |  y     |     y  |
         // |     |  |  |     |  |     |  |     |  |     |     |  |

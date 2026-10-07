@@ -81,6 +81,8 @@ jobs:
       build-type: Debug   # Release has a bug and cannot build
 
   ### Runtimes ###
+  # The `ios` filter is narrower than `runtime` on purpose: iOS runners are costly, macOS-Tests-Game
+  # covers the shared engine surface per-PR, and master pushes run this per-commit anyway.
   iOS-Runtime:
     needs: changes
     if: (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft')) && needs.changes.outputs.ios == 'true' && (github.event_name != 'workflow_dispatch' || inputs.ios)

@@ -31,14 +31,6 @@ namespace Stride.Graphics
         }
 
         /// <inheritdoc/>
-        protected internal override bool OnRecreate()
-        {
-            base.OnRecreate();
-            CreateNativeSampler();
-            return true;
-        }
-
-        /// <inheritdoc/>
         protected internal override void OnDestroyed(bool immediately = false)
         {
             GraphicsDevice.Collect(NativeSampler);

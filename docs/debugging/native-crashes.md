@@ -2,35 +2,58 @@
 
 Native access violations — from GPU drivers (including software renderers like WARP and Lavapipe),
 native audio (XAudio2), native interop, or NativeAOT-published apps — are crashes the .NET runtime
-**cannot catch via `try`/`catch`**, and Windows Error Reporting (WER) **doesn't fire for by default**
-because the runtime dispatches the exception internally. Left alone they exit silently (e.g. exit code
-`139`, no dump), which is especially painful for intermittent crashes and CI.
+**cannot catch via `try`/`catch`**. Left alone they exit silently (e.g. exit code `139`, no dump), which
+is especially painful for intermittent crashes and CI — so Stride installs a handler that captures them.
+This page is the local how-to: capture a dump and analyze it. How the shipped tools capture and report
+crashes (the out-of-process reporter, `createdump` adoption, Sentry) is in
+[crash-reporting.md](crash-reporting.md).
 
-## The harness crash handler
+## The test-harness crash handler
 
-Stride's test assemblies (`Stride.Graphics.Regression` and `Stride.Games.AutoTesting`) install a shared
-`NativeCrashHandler` from a `[ModuleInitializer]` (`sources/shared/NativeCrashHandler.cs`). It:
+`sources/shared/NativeCrashHandler.cs` is compile-linked into the test assemblies
+`Stride.Graphics.Regression` and `Stride.Games.AutoTesting`, which call `Install()` from a
+`[ModuleInitializer]`. (The asset compiler links the same file for a record-only handler that notes the
+native fault frame next to the dump `createdump` writes; the GUI hosts use the native trigger
+`libstridecrash` instead. See crash-reporting.md.) In the tests it:
 
 - Calls `SetErrorMode` to hide the Windows crash dialog so a crash can't hang CI.
-- **Gotcha — `SEM_NOGPFAULTERRORBOX` defeats dump capture.** That flag also suppresses WER LocalDumps
-  *and* the runtime minidump (`DOTNET_DbgEnableMiniDump`) for pure-native crashes. So it's **gated**: in
-  capture mode the handler omits it so the crash routes to WER; otherwise it keeps it so a crash can't
-  hang on a dialog.
-- When **`STRIDE_TESTS_CRASH_DUMPS=1`**, registers a `FirstChanceException` handler that writes an SEH
-  minidump, and writes dumps to **`STRIDE_TESTS_CRASH_DUMP_DIR`**.
+- Registers a **Vectored Exception Handler** that catches *pure*-native access violations in-process and
+  writes a minidump at fault time — including native null-pointer dereferences. This is the only thing
+  that observes these at all: a pure-native AV is a corrupted-state exception the runtime fast-fails
+  *without* raising `FirstChanceException`. It is registered **last** (`first=0`) so the runtime still
+  converts managed hardware null-checks to `NullReferenceException` (they stay catchable), and it filters
+  on where the *faulting instruction* lives — a fault inside a native module is real; one in JIT'd managed
+  code (no backing module) below 64 KB is the runtime's own null-check. Under **NativeAOT** that
+  managed-vs-native test doesn't hold (AOT code lives in a module), so the VEH is skipped there.
+- Also registers a `FirstChanceException` handler for the AVs that *do* surface through the managed/SEH
+  layer.
+- **Gotcha — `SEM_NOGPFAULTERRORBOX` defeats WER/createdump.** That flag suppresses WER LocalDumps *and*
+  the runtime minidump (`DOTNET_DbgEnableMiniDump`) for pure-native crashes. In the test path it is
+  **omitted** in capture mode so those still fire as a backstop.
 
 > [!IMPORTANT]
-> Native dumps are only produced when `STRIDE_TESTS_CRASH_DUMPS=1`. CI sets it (plus
+> Test dumps are only produced when `STRIDE_TESTS_CRASH_DUMPS=1`. CI sets it (plus
 > `STRIDE_TESTS_CRASH_DUMP_DIR`) in the screenshot/GPU test jobs; set it locally when reproducing a
 > native crash.
 
-Note that `FirstChanceException` only sees AVs that surface through the managed/SEH layer; *pure*-native
-crashes are caught by WER instead — which is why both are configured.
+### What the in-process VEH does and doesn't cover
+
+The VEH captures the common case — native access violations — with no external setup. It **cannot** cover
+what an in-process handler can't reach, and CI keeps `DOTNET_DbgEnableMiniDump` + WER for those: **stack
+overflow** (no stack left to run the handler), **crashes before the module initializer** arms it,
+**unhandled managed exceptions** (the VEH filters to AVs), and **non-AV native faults** (divide-by-zero,
+illegal instruction). To avoid a duplicate multi-GB dump, the test path skips the VEH when
+`DOTNET_DbgEnableMiniDump=1` (i.e. in CI), leaving that path exactly as before.
 
 ## Capturing a dump locally
 
 1. `set STRIDE_TESTS_CRASH_DUMPS=1` and `set STRIDE_TESTS_CRASH_DUMP_DIR=C:\dumps`.
-2. For pure-native crashes, enable WER LocalDumps once (admin):
+2. Loop the test/exe until the (often intermittent) crash fires; the dump lands in the dump folder. For a
+   native access violation the in-process VEH writes it — **no WER registry or admin step required**.
+3. Only if you need the cases the VEH can't reach (stack overflow, a crash before init, a non-AV native
+   fault): also `set DOTNET_DbgEnableMiniDump=1` (env var, no admin) — the runtime's createdump then
+   covers everything, and the VEH steps aside. WER LocalDumps (admin, below) is a further fallback, mainly
+   for **NativeAOT**-published apps where createdump doesn't apply:
 
    ```powershell
    $wer = "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting"
@@ -38,8 +61,6 @@ crashes are caught by WER instead — which is why both are configured.
    reg add "$wer\LocalDumps" /v DumpFolder /t REG_EXPAND_SZ /d "C:\dumps" /f
    reg add "$wer\LocalDumps" /v DumpType /t REG_DWORD /d 2 /f   # 2 = full memory
    ```
-
-3. Loop the test/exe until the (often intermittent) crash fires; the dump lands in the dump folder.
 
 ## Analyzing a dump
 

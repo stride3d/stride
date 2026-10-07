@@ -18,29 +18,40 @@ namespace Stride.Core.Diagnostics;
 public partial class ConsoleLogListener : LogListener
 {
     /// <summary>
-    /// Gets or sets the minimum log level handled by this listener.
-    /// </summary>
-    /// <value>The minimum log level.</value>
-    public LogMessageType LogLevel { get; set; }
-
-    /// <summary>
     /// Gets or sets the log mode.
     /// </summary>
     /// <value>The log mode.</value>
     public ConsoleLogMode LogMode { get; set; }
 
+    /// <inheritdoc/>
+    protected override bool IsEnabled(ILogMessage logMessage)
+    {
+        // The level applies wherever the message ends up.
+        if (!base.IsEnabled(logMessage))
+            return false;
+
+        // An attached debugger receives every message, whether or not a console would open for it.
+        if (Debugger.IsAttached)
+            return true;
+
+        return LogMode switch
+        {
+            ConsoleLogMode.None => false,
+            ConsoleLogMode.Always => true,
+            _ => Platform.IsRunningDebugAssembly, // Auto: debug builds only, so a shipped game never shows a console
+        };
+    }
+
+    /// <summary>
+    /// Whether this listener opens a console window for its output. <see cref="ConsoleLogMode.Always"/> does
+    /// unconditionally; otherwise not while a debugger already shows the messages.
+    /// </summary>
+    private bool OpensConsole => LogMode == ConsoleLogMode.Always || !Debugger.IsAttached;
+
     protected override void OnLog(ILogMessage logMessage)
     {
-        // filter logs with lower level
-        if (!Debugger.IsAttached && // Always log when debugger is attached
-            (logMessage.Type < LogLevel || LogMode == ConsoleLogMode.None
-            || (!(LogMode == ConsoleLogMode.Auto && Platform.IsRunningDebugAssembly) && LogMode != ConsoleLogMode.Always)))
-        {
-            return;
-        }
-
-        // Make sure the console is opened when the debugger is not attached
-        EnsureConsole();
+        if (OpensConsole)
+            EnsureConsole();
 
 #if STRIDE_PLATFORM_ANDROID
         const string appliName = "Stride";
@@ -165,7 +176,12 @@ public partial class ConsoleLogListener : LogListener
             FreeConsole();
             AllocConsole();
 
-            var outputStream = Console.OpenStandardOutput();
+            // The standard output handle keeps pointing at the redirection target, so open the new console directly.
+            var consoleHandle = CreateFile("CONOUT$", GENERIC_WRITE, FILE_SHARE_WRITE, IntPtr.Zero, OPEN_EXISTING, 0, IntPtr.Zero);
+            if (consoleHandle.IsInvalid)
+                return;
+
+            Stream outputStream = new FileStream(consoleHandle, FileAccess.Write);
             if (originalStream != null)
             {
                 outputStream = new DualStream(originalStream, outputStream);
@@ -244,6 +260,12 @@ public partial class ConsoleLogListener : LogListener
     }
 
     private const int StdOutConsoleHandle = -11;
+    private const uint GENERIC_WRITE = 0x40000000;
+    private const uint FILE_SHARE_WRITE = 0x00000002;
+    private const uint OPEN_EXISTING = 3;
+
+    [LibraryImport("kernel32.dll", EntryPoint = "CreateFileW", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
+    private static partial SafeFileHandle CreateFile(string fileName, uint desiredAccess, uint shareMode, IntPtr securityAttributes, uint creationDisposition, uint flagsAndAttributes, IntPtr templateFile);
 
 #if NET7_0_OR_GREATER
     [LibraryImport("kernel32", SetLastError = true)]

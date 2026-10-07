@@ -97,8 +97,14 @@
     <Message Text="[Stride] Linking libraries: libNativePath.lib $(StrideNativePathLibsWindows)" Importance="high" />
     <Message Text="[Stride] Object files: @(StrideNativeCFile->'$(OutputObjectPath)\win-arm64\%(Filename).obj')" Importance="high" />
     
+    <PropertyGroup>
+      <!-- Take the CRT from the toolchain _StrideResolveWindowsArm64Toolchain checked; an explicit
+           -libpath wins over lld's own discovery. The Windows SDK still comes from lld. -->
+      <_StrideArm64CrtLibPathArg Condition="'$(StrideNativeWindowsArm64LibPath)' != ''">-libpath:&quot;$(StrideNativeWindowsArm64LibPath)&quot;</_StrideArm64CrtLibPathArg>
+    </PropertyGroup>
+
     <!-- Link DLL by invoking LLD directly in COFF mode (-flavor link); see x64 target for rationale. -->
-    <Exec Command="&quot;$(StrideNativeLldCommand)&quot; -flavor link -nologo -dll -machine:arm64 -subsystem:windows -nxcompat -defaultlib:libcmt -defaultlib:oldnames -out:&quot;$(StrideNativeOutputPath)\runtimes\win-arm64\native\$(StrideNativeOutputName).dll&quot; -libpath:&quot;$(MSBuildThisFileDirectory)..\..\deps\NativePath\dotnet\win-arm64&quot; @(StrideNativeCFile->'&quot;$(OutputObjectPath)\win-arm64\%(Filename).obj&quot;', ' ') &quot;$(MSBuildThisFileDirectory)..\..\deps\NativePath\dotnet\win-arm64\libNativePath.lib&quot; &quot;$(StrideNativePathLibsWindowsArm64)&quot; kernel32.lib user32.lib ole32.lib oleaut32.lib uuid.lib advapi32.lib shell32.lib"
+    <Exec Command="&quot;$(StrideNativeLldCommand)&quot; -flavor link -nologo -dll -machine:arm64 -subsystem:windows -nxcompat -defaultlib:libcmt -defaultlib:oldnames $(_StrideArm64CrtLibPathArg) -out:&quot;$(StrideNativeOutputPath)\runtimes\win-arm64\native\$(StrideNativeOutputName).dll&quot; -libpath:&quot;$(MSBuildThisFileDirectory)..\..\deps\NativePath\dotnet\win-arm64&quot; @(StrideNativeCFile->'&quot;$(OutputObjectPath)\win-arm64\%(Filename).obj&quot;', ' ') &quot;$(MSBuildThisFileDirectory)..\..\deps\NativePath\dotnet\win-arm64\libNativePath.lib&quot; &quot;$(StrideNativePathLibsWindowsArm64)&quot; kernel32.lib user32.lib ole32.lib oleaut32.lib uuid.lib advapi32.lib shell32.lib"
           ContinueOnError="false" />
     
     <Message Text="[Stride] Linked $(StrideNativeOutputName).dll for Windows ARM64" Importance="normal" />

@@ -30,7 +30,7 @@ Hierarchy:
                     5ab3300ae74fa14a9efcaa1f506407ce: !TransformComponent
                         Id: 50324630-1cfe-4606-aba2-6bd3dcfb75a5
                         Position: {X: 1.0, Y: 15.0, Z: 0.0}
-                        Rotation: {X: -0.5540323, Y: 0.212012157, Z: 0.1484525, W: 0.7912401}
+                        Rotation: {X: -0.5540323, Y: 0.21201216, Z: 0.1484525, W: 0.7912401}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     209f95c46d53de41a3dfff661934ae6c: !LightComponent
@@ -45,8 +45,8 @@ Hierarchy:
                                 Size: XLarge
                                 DepthRange: {}
                                 PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
-                                BiasParameters: {}
                                 ComputeTransmittance: false
+                                BiasParameters: {}
                         Intensity: 5.0
         -   Entity:
                 Id: 2b57370f-e61c-41c5-b8c4-df6619837e29
@@ -141,7 +141,7 @@ Hierarchy:
                     39d4bdb202782a41869f2a6d53da4edf: !TransformComponent
                         Id: c86bda83-ff49-48f5-9ffe-2af8289a30c7
                         Position: {X: 0.0, Y: 1.65, Z: 0.0}
-                        Rotation: {X: -0.3535534, Y: -0.3535534, Z: -0.14644663, W: 0.853553355}
+                        Rotation: {X: -0.3535534, Y: -0.3535534, Z: -0.14644663, W: 0.85355335}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a116d811cab5bf4da5211050e1d34e10: ref!! 642702f0-8168-421b-85d9-6908a3475213
@@ -193,7 +193,7 @@ Hierarchy:
                         Highlight: ref!! 6c7778b3-439b-4d70-a265-0b61a0c38c99
                         HighlightMaterial: 4de4aa42-6f84-472f-8b50-7f4d8229723a:HighlightMaterial
                         Camera: ref!! b6afcaff-bb62-430d-9e9d-ca2791f43f6c
-                        ClickEffect: 154d2027-e615-463b-a0e4-71b20f452eb1:VFXPrefabs/vfx-ClickEffect
+                        ClickEffect: 154d2027-e615-463b-a0e4-71b20f452eb1:/VFXPackage/VFXPrefabs/vfx-ClickEffect
                     46ae7b6257b0c84e8a26b517d4b95492: !NavigationComponent
                         Id: 96bc18b0-3cef-4327-b945-5919437fe4d3
                         NavigationMesh: null
@@ -319,22 +319,22 @@ Hierarchy:
                 Components:
                     1245d3c0d097e44e8295e28dad432562: !TransformComponent
                         Id: 959fe163-fada-4ebe-a47e-ea68eb6b2979
-                        Position: {X: 0.0, Y: 4.76837158E-07, Z: 0.0}
+                        Position: {X: 0.0, Y: 4.7683716E-07, Z: 0.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             651acbbf06fe12468058e1f473b74a32: ref!! e00f225e-3597-432a-bc45-67f143a89706
                     0fa4902c57c2de428808e383912863ea: !ModelComponent
                         Id: 4ab656cb-fceb-42ac-b714-b2df6cc2a11c
-                        Model: f68ea240-695a-4de5-9884-60d77544fcd6:Models/mannequinModel
+                        Model: f68ea240-695a-4de5-9884-60d77544fcd6:/mannequinModel/Models/mannequinModel
                         Materials: {}
                     978eabfaac453f4d9375495d32bc299f: !TopDownRPG.Player.AnimationController,TopDownRPG.Game
                         Id: 02134ed9-2d03-4e40-adc3-0cc966234728
                         AnimationComponent: ref!! 04aca6c6-5637-4c54-8ea5-1b1da75d2d90
-                        AnimationIdle: 5f286f7e-7d38-44cf-9bc1-3aad7be4f0fa:Animations/Idle
-                        AnimationWalk: 9d61b261-66aa-40ed-88ed-3cc448f890c0:Animations/Walk
-                        AnimationRun: 448ca260-c8b7-4f63-9bf6-e58a5970a830:Animations/Run
-                        AnimationPunch: 141615e7-9144-488a-860d-0abd7a9ace44:Animations/Punch
+                        AnimationIdle: 5f286f7e-7d38-44cf-9bc1-3aad7be4f0fa:/mannequinModel/Animations/Idle
+                        AnimationWalk: 9d61b261-66aa-40ed-88ed-3cc448f890c0:/mannequinModel/Animations/Walk
+                        AnimationRun: 448ca260-c8b7-4f63-9bf6-e58a5970a830:/mannequinModel/Animations/Run
+                        AnimationPunch: 141615e7-9144-488a-860d-0abd7a9ace44:/mannequinModel/Animations/Punch
                         WalkThreshold: 0.25
                         TimeFactor: 1.0
                     5847b2c0adfcf347a100f94d96c5d325: !AnimationComponent

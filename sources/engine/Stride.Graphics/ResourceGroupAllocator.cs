@@ -77,9 +77,15 @@ namespace Stride.Graphics
             currentBufferPoolIndex = -1;
         }
 
+        /// <summary>
+        ///   Makes constant buffer writes visible to the GPU.
+        /// </summary>
+        /// <remarks>
+        ///   Pools stay mapped until <see cref="Reset"/>, so resource group data can still be updated during
+        ///   the draw phase. The memory is host coherent, so there is nothing to do here.
+        /// </remarks>
         public void Flush()
         {
-            currentBufferPool?.Unmap();
         }
 
         public ResourceGroup AllocateResourceGroup()
@@ -125,8 +131,8 @@ namespace Stride.Graphics
 
         private void SetupNextBufferPool()
         {
-            Flush();
-
+            // The pool we are leaving stays mapped: allocations already handed out from it keep a pointer
+            // into it, and they can still be written until the end of the frame
             currentBufferPoolIndex++;
             if (currentBufferPoolIndex >= bufferPools.Count)
             {

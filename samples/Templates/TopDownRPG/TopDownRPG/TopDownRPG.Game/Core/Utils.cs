@@ -77,7 +77,7 @@ namespace TopDownRPG.Core
                 while (secondsCountdown > 0f)
                 {
                     await script.Script.NextFrame();
-                    secondsCountdown -= (float)script.Game.UpdateTime.Elapsed.TotalSeconds;
+                    secondsCountdown -= (float)script.Game.UpdateTime.WarpElapsed.TotalSeconds;
                 }
 
                 // Remove

@@ -11,5 +11,10 @@
     <!-- Stride's own assemblies aren't trimmed/AOT-published by the engine repo build;
          end-user games re-enable the analyzer via Microsoft.NET.Sdk defaults. -->
     <EnableTrimAnalyzer>false</EnableTrimAnalyzer>
+    <!-- Sentry's source generator injects a module initializer into an exe that loads Sentry.dll at startup.
+         The apps resolving their dependencies from the store (GameStudio, the asset compiler) can't satisfy
+         that, and nothing needs it: Sentry is only used at send time. This property is the only switch;
+         ExcludeAssets="analyzers" on the reference doesn't keep the SDK from loading the generator. -->
+    <SentryDisableSourceGenerator>true</SentryDisableSourceGenerator>
   </PropertyGroup>
 </Project>

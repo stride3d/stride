@@ -6,6 +6,7 @@
       "..\\sources\\assets\\Stride.Core.Assets.Tests\\Stride.Core.Assets.Tests.csproj",
       "..\\sources\\buildengine\\Stride.Core.BuildEngine.Tests\\Stride.Core.BuildEngine.Tests.csproj",
       "..\\sources\\core\\Stride.Core.CompilerServices.Tests\\Stride.Core.CompilerServices.Tests.csproj",
+      "..\\sources\\crashreport\\Stride.CrashReport.Tests\\Stride.CrashReport.Tests.csproj",
       "..\\sources\\core\\Stride.Core.Design.Tests\\Stride.Core.Design.Tests.csproj",
       "..\\sources\\core\\Stride.Core.Mathematics.Tests\\Stride.Core.Mathematics.Tests.csproj",
       "..\\sources\\core\\Stride.Core.Tests\\Stride.Core.Tests.csproj",
@@ -13,7 +14,7 @@
       "..\\sources\\editor\\Stride.Core.Assets.Editor.Tests\\Stride.Core.Assets.Editor.Tests.csproj",
       "..\\sources\\editor\\Stride.GameStudio.Tests\\Stride.GameStudio.Tests.csproj",
       "..\\sources\\presentation\\Stride.Core.Presentation.Quantum.Tests\\Stride.Core.Presentation.Quantum.Tests.csproj",
-      "..\\sources\\presentation\\Stride.Core.Presentation.Tests\\Stride.Core.Presentation.Tests.csproj",
+      "..\\sources\\presentation\\Stride.Core.Presentation.Wpf.Tests\\Stride.Core.Presentation.Wpf.Tests.csproj",
       "..\\sources\\presentation\\Stride.Core.Quantum.Tests\\Stride.Core.Quantum.Tests.csproj",
       "..\\sources\\shaders\\Stride.Shaders.Tests\\Stride.Shaders.Tests.csproj",
       "..\\sources\\tools\\Stride.Templates.Tests\\Stride.Templates.Tests.csproj"

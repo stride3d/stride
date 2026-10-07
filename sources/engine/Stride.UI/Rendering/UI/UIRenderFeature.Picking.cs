@@ -22,7 +22,7 @@ namespace Stride.Rendering.UI
 
         
 
-        partial void PickingUpdate(RenderUIElement renderUIElement, Viewport viewport, ref Matrix worldViewProj, GameTime drawTime, ref UIElement elementUnderMouseCursor)
+        partial void PickingUpdate(RenderUIElement renderUIElement, Vector3 virtualResolution, Viewport viewport, ref Matrix worldViewProj, GameTime drawTime, ref UIElement elementUnderMouseCursor)
 
         {
             if (renderUIElement.Page?.RootElement == null)
@@ -31,8 +31,8 @@ namespace Stride.Rendering.UI
             var inverseZViewProj = worldViewProj;
             inverseZViewProj.Row3 = -inverseZViewProj.Row3;
 
-            elementUnderMouseCursor = UpdateMouseOver(ref viewport, ref inverseZViewProj, renderUIElement);
-            UpdateTouchEvents(ref viewport, ref inverseZViewProj, renderUIElement, drawTime);
+            elementUnderMouseCursor = UpdateMouseOver(ref viewport, ref inverseZViewProj, renderUIElement, virtualResolution);
+            UpdateTouchEvents(ref viewport, ref inverseZViewProj, renderUIElement, virtualResolution, drawTime);
         }
 
         partial void PickingClear()
@@ -134,7 +134,7 @@ namespace Stride.Rendering.UI
             return true;
         }
 
-        private void UpdateTouchEvents(ref Viewport viewport, ref Matrix worldViewProj, RenderUIElement state, GameTime gameTime)
+        private void UpdateTouchEvents(ref Viewport viewport, ref Matrix worldViewProj, RenderUIElement state, Vector3 virtualResolution, GameTime gameTime)
         {
             var rootElement = state.Page.RootElement;
             var intersectionPoint = Vector3.Zero;
@@ -157,7 +157,7 @@ namespace Stride.Rendering.UI
                 if (lastTouchPosition != currentTouchPosition)
                 {
                     Ray uiRay;
-                    if (!GetTouchPosition(state.Resolution, ref viewport, ref worldViewProj, currentTouchPosition, out uiRay))
+                    if (!GetTouchPosition(virtualResolution, ref viewport, ref worldViewProj, currentTouchPosition, out uiRay))
                         continue;
 
                     currentTouchedElement = GetElementAtScreenPosition(rootElement, ref uiRay, ref worldViewProj, ref intersectionPoint);
@@ -232,7 +232,7 @@ namespace Stride.Rendering.UI
             }
         }
 
-        private UIElement UpdateMouseOver(ref Viewport viewport, ref Matrix worldViewProj, RenderUIElement state)
+        private UIElement UpdateMouseOver(ref Viewport viewport, ref Matrix worldViewProj, RenderUIElement state, Vector3 virtualResolution)
         {
             if (input == null || !input.HasMouse)
                 return null;
@@ -250,7 +250,7 @@ namespace Stride.Rendering.UI
                 || (lastMouseOverElement?.RequiresMouseOverUpdate ?? false))
             {
                 Ray uiRay;
-                if (!GetTouchPosition(state.Resolution, ref viewport, ref worldViewProj, mousePosition, out uiRay))
+                if (!GetTouchPosition(virtualResolution, ref viewport, ref worldViewProj, mousePosition, out uiRay))
                     return null;
 
                 mouseOverElement = GetElementAtScreenPosition(rootElement, ref uiRay, ref worldViewProj, ref intersectionPoint);

@@ -1,0 +1,25 @@
+namespace Stride.Shaders.Tests;
+
+shader ConstUIntGenericBase<int TCount>
+{
+    static const uint Count = TCount;
+    static const uint CountPlusOne = TCount + 1;
+}
+
+shader ConstUIntGeneric : ConstUIntGenericBase<3>
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    cbuffer Test
+    {
+        uint Selector;
+        float Values[CountPlusOne];
+    }
+
+    void PSMain()
+    {
+        uint count = Count;
+        float v = Selector == count ? Values[3] : 0.0;
+        streams.ColorTarget = float4(v, v, v, v);
+    }
+}

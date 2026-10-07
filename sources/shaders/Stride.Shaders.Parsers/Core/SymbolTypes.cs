@@ -69,18 +69,28 @@ public abstract record SymbolType()
 
         // Preserves the full vector/scalar type (e.g. float2 stays float2). Defaults to float4 when no template given (HLSL default).
         static SymbolType ResolveReturnType(TypeName? templateTypeName)
-            => templateTypeName == null ? new VectorType(ScalarType.Float, 4) : templateTypeName.Type!;
+            => WidenImageElementType(templateTypeName == null ? new VectorType(ScalarType.Float, 4) : templateTypeName.Type!);
 
         // Typed buffers only allow scalar/vector element types.
         static SymbolType ResolveBufferReturnType(TypeName? templateTypeName)
         {
-            var templateType = templateTypeName?.Type ?? new VectorType(ScalarType.Float, 4);
+            var templateType = WidenImageElementType(templateTypeName?.Type ?? new VectorType(ScalarType.Float, 4));
             return templateType switch
             {
                 VectorType or ScalarType => templateType,
                 _ => throw new NotSupportedException($"Unsupported template type {templateType} for Buffer"),
             };
         }
+
+        // Vulkan requires an image's sampled type to be 32-bit int, 64-bit int or 32-bit float
+        // (VUID-StandaloneSpirv-OpTypeImage-04656). The 16 bits live in the pixel format, so
+        // widening the element type loses nothing.
+        static SymbolType WidenImageElementType(SymbolType elementType) => elementType switch
+        {
+            ScalarType { Type: Scalar.Half } => ScalarType.Float,
+            VectorType { BaseType: ScalarType { Type: Scalar.Half }, Size: var size } => new VectorType(ScalarType.Float, size),
+            _ => elementType,
+        };
 
         SymbolType? foundType = name switch
         {
@@ -814,4 +824,18 @@ public sealed partial record ShaderMixinType : SymbolType
 public sealed partial record ExternalType(string Name, ShaderExpressionList? Generics) : SymbolType
 {
     public override string ToString() => Generics != null && Generics.Values.Count > 0 ? $"{Name}<{string.Join(",", Generics.Values)}>" : Name;
+}
+
+public static class SymbolTypeExtensions
+{
+    /// <summary>
+    /// Whether the type is an opaque resource (texture, typed buffer or sampler).
+    /// </summary>
+    /// <remarks>
+    /// SPIR-V forbids OpStore to these (VUID-StandaloneSpirv-OpTypeImage-06924): they live in
+    /// UniformConstant storage and are passed to methods as the caller's pointer.
+    /// </remarks>
+    /// <returns>True for textures, typed buffers and samplers.</returns>
+    public static bool IsOpaqueResource(this SymbolType type)
+        => type is TextureType or SamplerType or BufferType;
 }

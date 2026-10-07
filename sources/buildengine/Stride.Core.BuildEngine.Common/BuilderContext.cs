@@ -13,9 +13,13 @@ public class BuilderContext
 
     public CommandBuildStep.TryExecuteRemoteDelegate TryExecuteRemote { get; }
 
-    public BuilderContext(FileVersionTracker inputHashes, CommandBuildStep.TryExecuteRemoteDelegate tryExecuteRemote)
+    /// <summary>Optional hook invoked when a command throws an exception that escapes the top-level catch (a bug, not a handled build error).</summary>
+    public Action<CommandBuildStep, Exception>? CommandFailed { get; }
+
+    public BuilderContext(FileVersionTracker inputHashes, CommandBuildStep.TryExecuteRemoteDelegate tryExecuteRemote, Action<CommandBuildStep, Exception>? commandFailed = null)
     {
         InputHashes = inputHashes;
         TryExecuteRemote = tryExecuteRemote;
+        CommandFailed = commandFailed;
     }
 }

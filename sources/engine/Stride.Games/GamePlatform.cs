@@ -352,6 +352,14 @@ namespace Stride.Games
         {
             var graphicsDeviceInfos = new List<GraphicsDeviceInformation>();
 
+            // Software rasterizers (WARP, llvmpipe) only when asked for by uid, or when no hardware adapter exists.
+            var skipSoftwareAdapters = false;
+            if (string.IsNullOrEmpty(preferredParameters.RequiredAdapterUid))
+            {
+                foreach (var graphicsAdapter in GraphicsAdapterFactory.Adapters)
+                    skipSoftwareAdapters |= !graphicsAdapter.IsSoftwareAdapter;
+            }
+
             // Iterate on each adapter
             foreach (var graphicsAdapter in GraphicsAdapterFactory.Adapters)
             {
@@ -360,15 +368,8 @@ namespace Stride.Games
                 if (!string.IsNullOrEmpty(preferredParameters.RequiredAdapterUid) && adapterUid != preferredParameters.RequiredAdapterUid)
                     continue;
 
-                // Skip adapters that don't have graphics output
-                // but only if no RequiredAdapterUid is provided (OculusVR at init time might be in a device with no outputs)
-                // Software rendering adapters (e.g. WARP) have no outputs either, so allow them through
-                if (graphicsAdapter.Outputs.Length == 0
-                    && string.IsNullOrEmpty(preferredParameters.RequiredAdapterUid)
-                    && Environment.GetEnvironmentVariable("STRIDE_GRAPHICS_SOFTWARE_RENDERING") != "1")
-                {
+                if (skipSoftwareAdapters && graphicsAdapter.IsSoftwareAdapter)
                     continue;
-                }
 
                 var preferredGraphicsProfiles = preferredParameters.PreferredGraphicsProfile;
 
@@ -424,13 +425,17 @@ namespace Stride.Games
 
         public virtual GraphicsDevice CreateDevice(GraphicsDeviceInformation deviceInformation)
         {
+#if STRIDE_GRAPHICS_API_DIRECT3D11 && STRIDE_PLATFORM_UWP
+            var isWindowsMixedReality = game.Context is GameContextUWPCoreWindow context && context.IsWindowsMixedReality;
+            if (isWindowsMixedReality)
+                deviceInformation.DeviceCreationFlags |= DeviceCreationFlags.BgraSupport;
+#endif
             var graphicsDevice = GraphicsDevice.New(deviceInformation.Adapter, deviceInformation.DeviceCreationFlags, gameWindow.NativeWindow, deviceInformation.GraphicsProfile);
             graphicsDevice.ColorSpace = deviceInformation.PresentationParameters.ColorSpace;
 
 #if STRIDE_GRAPHICS_API_DIRECT3D11 && STRIDE_PLATFORM_UWP
-            if (game.Context is GameContextUWPCoreWindow context && context.IsWindowsMixedReality)
+            if (isWindowsMixedReality)
             {
-                graphicsDevice.Recreate(deviceInformation.Adapter, new[] { deviceInformation.GraphicsProfile }, deviceInformation.DeviceCreationFlags |= DeviceCreationFlags.BgraSupport, gameWindow.NativeWindow);
                 graphicsDevice.Presenter = new WindowsMixedRealityGraphicsPresenter(graphicsDevice, deviceInformation.PresentationParameters);
             }
             else
@@ -441,35 +446,15 @@ namespace Stride.Games
                     : new SwapChainGraphicsPresenter(graphicsDevice, deviceInformation.PresentationParameters);
             }
 
-            return graphicsDevice;
-        }
+            DeviceChanged(graphicsDevice, deviceInformation);
 
-        public virtual void RecreateDevice(GraphicsDevice currentDevice, GraphicsDeviceInformation deviceInformation)
-        {
-            currentDevice.ColorSpace = deviceInformation.PresentationParameters.ColorSpace;
-            currentDevice.Recreate(deviceInformation.Adapter ?? GraphicsAdapterFactory.DefaultAdapter, new[] { deviceInformation.GraphicsProfile }, deviceInformation.DeviceCreationFlags, gameWindow.NativeWindow);
+            return graphicsDevice;
         }
 
         public virtual void DeviceChanged(GraphicsDevice currentDevice, GraphicsDeviceInformation deviceInformation)
         {
             // Force to resize the gameWindow
             gameWindow.Resize(deviceInformation.PresentationParameters.BackBufferWidth, deviceInformation.PresentationParameters.BackBufferHeight);
-        }
-
-        public virtual GraphicsDevice ChangeOrCreateDevice(GraphicsDevice currentDevice, GraphicsDeviceInformation deviceInformation)
-        {
-            if (currentDevice == null)
-            {
-                currentDevice = CreateDevice(deviceInformation);
-            }
-            else
-            {
-                RecreateDevice(currentDevice, deviceInformation);
-            }
-
-            DeviceChanged(currentDevice, deviceInformation);
-
-            return currentDevice;
         }
 
         protected override void Destroy()

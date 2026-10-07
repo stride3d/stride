@@ -1,0 +1,20 @@
+// Compiler regression: a shader field whose name matches an intrinsic method name must not
+// confuse method-call resolution with the field symbol (`float SampleLevel;` vs `Tex.SampleLevel(...)`).
+namespace Stride.Shaders.Tests;
+
+shader FieldNameShadowsIntrinsicMethod
+{
+	float SampleLevel;
+
+	Texture2D Tex;
+	SamplerState TexSampler;
+
+	RWStructuredBuffer<float4> Output;
+
+	[numthreads(1, 1, 1)]
+	void CSMain()
+	{
+		float2 uv = float2(0, 0);
+		Output[0] = Tex.SampleLevel(TexSampler, uv, SampleLevel);
+	}
+}

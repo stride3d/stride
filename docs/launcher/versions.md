@@ -51,31 +51,37 @@ Progress is reported via `IPackagesLogger` — `MainViewModel` implements it and
 2. `PackageVersionViewModel.Download(true)` runs: it sets `IsProcessing`, calls `NugetStore.InstallPackage`, and updates progress via `OnDownloadProgress`.
 3. On completion, `UpdateStatus` recomputes `CanBeDownloaded` / `CanDelete` and the UI re-binds.
 4. `MainViewModel.RetrieveLocalStrideVersions` is re-run to refresh the version list and to clean up any newly-unused transitive packages via `RemoveUnusedPackages` (walks `Dependencies` starting from the Stride main packages and uninstalls anything no longer referenced).
-5. `UpdateFrameworks()` re-scans `tools/` and `lib/` for TFM subfolders containing a Game Studio executable (`Stride.GameStudio.Avalonia.Desktop.exe` on Windows, `.dll` on Linux). `SelectedFramework` is restored from `LauncherSettings.PreferredFramework` if present, otherwise the closest match (same `Framework` identifier) is used.
+5. `UpdateAvailableEditors()` re-scans `tools/` and `lib/` for TFM subfolders containing a Game Studio executable (`Stride.GameStudio.Avalonia.Desktop.exe` on Windows, `.dll` on Linux). `SelectedEditor` is restored from `LauncherSettings.PreferredEditor` if present, otherwise the first editor found is used, and the runtime combo is refreshed for the active version.
 
 ## Uninstall flow
 
 Two entry points:
 
 - **Per-version**, from the UI: `PackageVersionViewModel.Delete(removeFromUi: true, confirmPrompt: true)` prompts the user, calls `NugetStore.UninstallPackage`, and updates status.
-- **Full uninstall**, from `Stride.Launcher.exe /Uninstall`: [Launcher.cs](../../sources/launcher/Stride.Launcher/Launcher.cs)'s `UninstallAsync`:
-  1. Calls `UninstallHelper.CloseProcessesInPathAsync` to kill any running Stride/Game Studio process started from the launcher directory. The user is prompted to confirm via `MessageBox`.
-  2. Iterates `store.MainPackageIds` and uninstalls every matching local package.
-  3. Cleans `.lock` and `.old` files left over from previous self-updates.
+- **Launcher uninstall**, from `Stride.Launcher.exe /uninstall`, which the setup runs when the launcher is uninstalled (not on an upgrade). [Launcher.cs](../../sources/launcher/Stride.Launcher/Launcher.cs)'s `UninstallAsync`:
+  1. Calls `UninstallHelper.CloseProcessesInPathsAsync` for the processes started from the launcher directory: the user closes them (OK to try again) or cancels.
+  2. Deletes the `.lock` files and the `.old` files of the last self-update (locked ones are skipped).
+  3. Asks whether to also remove the installed Stride versions, with their size. **Keep** is the default: someone reinstalling the launcher wants them back. **Remove** uninstalls the versions and the Stride packages that only they use (`StridePackageReferences.FindRemovable`, the same walk of `Dependencies` as the cleanup after an uninstall in the UI). Local builds and what they use are never removed. The processes running from those packages (Game Studio) are checked first, through `NugetStore.UninstallGuard`.
   4. Cancels the app's `CancellationTokenSource` so the main loop exits.
+
+  With `/quiet` (the setup passes it when the MSI shows no dialog: `msiexec /x … /qn`, or `/qr` as in `winget uninstall`), or when the process has no desktop (`Environment.UserInteractive` is false: SYSTEM or session 0, e.g. Intune), nothing is shown, not even an app: only step 2 runs, and the versions are kept. A dialog there would be invisible, or would block the setup. Removing the versions in a script belongs to the CLI (`stride sdk uninstall <version>`).
 
 `UninstallHelper` also subscribes to `NugetStore.NugetPackageUninstalling` to close lingering processes before each package is removed — this is why it lives as a disposable member on `MainViewModel` (`uninstallHelper`).
 
-## Framework selection
+## Editor discovery
 
-`StrideVersionViewModel.Frameworks` is an `ObservableList<string>` populated by scanning the package install path. The launcher looks for:
+`StrideVersionViewModel.AvailableEditors` is an `ObservableList<string>` populated by scanning every framework folder of the package install paths (`PackageLayout.FrameworkDirectories`; a dev-redirect version scans `bin/<Configuration>/` of the in-tree project instead). The launcher looks for:
 
 ```
 {InstallPath}/tools/{framework}/Stride.GameStudio.Avalonia.Desktop.{exe|dll}
 {InstallPath}/lib/{framework}/Stride.GameStudio.Avalonia.Desktop.{exe|dll}
 ```
 
-On Windows, `Stride.GameStudio.exe` is also considered as a fallback. See `StrideVersionViewModel.GetExecutableNames` and `LocateMainExecutable`.
+On Windows, `Stride.GameStudio.exe` is also considered. The first folder holding an editor wins; each editor's folder is remembered for `LocateMainExecutable`. Stride 4.0 shipped both a `net472` and a `net5.0-windows` editor, which is why the legacy `lib/net472/Stride.GameStudio.exe` fallback still exists; since 4.1 every version ships one framework folder per editor.
+
+## Runtime choice
+
+`MainViewModel.AvailableRuntimes` lists ".NET N or newer (default)" for the active version's editor's own runtimeconfig major, then ".NET M or newer" for each .NET major above it, restricted to majors with both a runtime and an SDK installed (`DotNetInstall.Detect`). A choice is a minimum: a project that needs a newer major still gets it, and a `global.json` SDK pin wins over the choice. The list is only shown when the editor takes the choice (`DotNetHostSelector.SupportsHostSelection`, a type-reference scan of the editor assembly), so older editors never receive `--framework`. An explicit choice starts the editor through `dotnet exec --runtimeconfig <generated>`; the default entry passes no choice, starts the apphost and lets the editor re-execute itself when the project needs a newer major.
 
 ## VSIX
 

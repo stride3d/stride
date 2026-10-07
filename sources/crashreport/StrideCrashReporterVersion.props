@@ -1,0 +1,13 @@
+<!-- The Stride.CrashReporter package version, independent of the engine's: its 26 MB payload (Avalonia and natives
+     for three RIDs) is republished only when this number changes, an unchanged one is skipped on push and users keep
+     their copy. Hosts depend on exactly this version and Stride.CrashReport bakes it in, so a host launches the
+     reporter it was built for and no other.
+
+     Bump it with any change that ships in the package, or the change never reaches users (changes.yml warns on a PR
+     that forgets). Never reuse a number. The -devN worktree suffix is added on both sides. PackageVersion rather than
+     VersionPrefix: Stride.PackageInfo.targets fills an empty PackageVersion with the engine version. -->
+<Project>
+  <PropertyGroup>
+    <StrideCrashReporterVersion Condition="'$(StrideCrashReporterVersion)' == ''">5.0.0</StrideCrashReporterVersion>
+  </PropertyGroup>
+</Project>

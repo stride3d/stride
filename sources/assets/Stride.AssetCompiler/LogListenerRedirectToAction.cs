@@ -20,20 +20,8 @@ namespace Stride.AssetCompiler
             this.logger = logger;
         }
 
-        /// <summary>
-        /// Gets or sets the minimum log level handled by this listener.
-        /// </summary>
-        /// <value>The minimum log level.</value>
-        public LogMessageType LogLevel { get; set; }
-
         protected override void OnLog(ILogMessage logMessage)
         {
-            // Always log when debugger is attached
-            if (logMessage.Type < LogLevel)
-            {
-                return;
-            }
-
             var color = ConsoleColor.Gray;
 
             // set the color depending on the message log level

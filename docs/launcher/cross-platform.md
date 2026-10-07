@@ -9,7 +9,7 @@ The launcher is in the middle of a Windows → Avalonia cross-platform port (`xp
 | Windows | `Stride.GameStudio.Avalonia.Desktop.exe` (with fallback to `Stride.GameStudio.exe`) | `Process.Start(exe, args)` |
 | Linux | `Stride.GameStudio.Avalonia.Desktop.dll` | `Process.Start("dotnet", $"{dll} {args}")` |
 
-The choice is in `StrideVersionViewModel.GetExecutableNames` and `MainViewModel.StartStudio`. The switch on `Path.GetExtension(mainExecutable)` decides whether to invoke `dotnet` or the binary directly.
+The choice is in `StrideVersionViewModel.UpdateAvailableEditors` and `DotNetHostSelector.NativeStartInfo`, which invokes `dotnet` when there is no apphost next to the dll.
 
 ## Windows-only code paths
 
@@ -46,7 +46,7 @@ Both paths are implemented:
 
 ## Settings paths
 
-All config paths go through `EditorPath` (linked file from `Stride.Core.Assets.Editor`). `EditorPath.UserDataPath` resolves to:
+All config paths go through `EditorPath` (linked file from `Stride.Core.Assets.Editor.Wpf`). `EditorPath.UserDataPath` resolves to:
 
 - `%LocalAppData%\Stride\` on Windows
 - `$XDG_DATA_HOME/Stride/` (or `~/.local/share/Stride/`) on Linux
@@ -72,7 +72,7 @@ All failures are swallowed silently (no dialog, no crash) since they are not act
 
 When exercising changes, run the launcher on both Windows and Linux. Known gaps that will not reproduce on Linux:
 
-- Self-update using the `force-reinstall` path (downloads a `StrideSetup.exe` — Windows only).
+- Self-update through a reinstall (`reinstall-below`: downloads a `StrideSetup.exe`, Windows only).
 - First-install VSIX prompt (no VS instances).
 - Prerequisites installer on first run.
 

@@ -115,7 +115,168 @@ namespace Stride.UI.Tests.Layering
             slider.Value = 10;
             Assert.Equal(1.0f, slider.Value);
         }
+
+        [Fact]
+        public void TestMinimumMaximumChangesCoerceValue()
+        {
+            var slider = new Slider { Maximum = 10, Value = 8 };
+            var valueChangedCount = 0;
+            slider.ValueChanged += (s, e) => valueChangedCount++;
+
+            slider.Maximum = 4;
+
+            Assert.Equal(4, slider.Maximum);
+            Assert.Equal(4, slider.Value);
+            Assert.Equal(1, valueChangedCount);
+
+            slider.Minimum = 5;
+
+            Assert.Equal(5, slider.Minimum);
+            Assert.Equal(5, slider.Maximum);
+            Assert.Equal(5, slider.Value);
+            Assert.Equal(2, valueChangedCount);
+
+            slider.Minimum = 5;
+
+            Assert.Equal(2, valueChangedCount);
+        }
+
+        [Fact]
+        public void TestMinimumMaximumChangesCoerceValueWithSnapping()
+        {
+            var slider = new Slider
+            {
+                Maximum = 10,
+                Value = 8,
+                TickFrequency = 5,
+                ShouldSnapToTicks = true,
+            };
+
+            slider.Maximum = 4;
+
+            Assert.Equal(4, slider.Value);
+
+            slider.Minimum = 5;
+
+            Assert.Equal(5, slider.Minimum);
+            Assert.Equal(5, slider.Maximum);
+            Assert.Equal(5, slider.Value);
+        }
         
+        [Fact]
+        public void TestMinimumChangeCoercesValueAndRaisesValueChanged()
+        {
+            var slider = new Slider { Maximum = 10, Value = 2 };
+            var valueChangedCount = 0;
+            slider.ValueChanged += (_, _) => valueChangedCount++;
+
+            slider.Minimum = 5;
+
+            Assert.Equal(5, slider.Value);
+            Assert.Equal(1, valueChangedCount);
+        }
+
+        [Fact]
+        public void TestMaximumChangeCoercesValueAndRaisesValueChanged()
+        {
+            var slider = new Slider { Maximum = 10, Value = 8 };
+            var valueChangedCount = 0;
+            slider.ValueChanged += (_, _) => valueChangedCount++;
+
+            slider.Maximum = 4;
+
+            Assert.Equal(4, slider.Value);
+            Assert.Equal(1, valueChangedCount);
+        }
+
+        [Fact]
+        public void TestMinimumChangeCanCollapseRangeAndCoerceValue()
+        {
+            var slider = new Slider { Maximum = 10, Value = 8 };
+            var valueChangedCount = 0;
+            slider.ValueChanged += (_, _) => valueChangedCount++;
+
+            slider.Minimum = 12;
+
+            Assert.Equal(12, slider.Minimum);
+            Assert.Equal(12, slider.Maximum);
+            Assert.Equal(12, slider.Value);
+            Assert.Equal(1, valueChangedCount);
+        }
+
+        [Fact]
+        public void TestInRangeBoundChangesDoNotRaiseValueChanged()
+        {
+            var slider = new Slider { Maximum = 10, Value = 5 };
+            var valueChangedCount = 0;
+            slider.ValueChanged += (_, _) => valueChangedCount++;
+
+            slider.Minimum = 1;
+            slider.Maximum = 9;
+
+            Assert.Equal(5, slider.Value);
+            Assert.Equal(0, valueChangedCount);
+        }
+
+        [Fact]
+        public void TestBoundChangesReapplyTickSnapping()
+        {
+            var slider = new Slider { Maximum = 10, TickFrequency = 5, Value = 3 };
+            slider.ShouldSnapToTicks = true;
+            var valueChangedCount = 0;
+            slider.ValueChanged += (_, _) => valueChangedCount++;
+
+            slider.Maximum = 9;
+
+            Utilities.AssertAreNearlyEqual(3.6f, slider.Value);
+            Assert.Equal(1, valueChangedCount);
+        }
+
+        [Fact]
+        public void TestBoundChangesKeepSnappedValueWithinRange()
+        {
+            var slider = new Slider { Maximum = 10, TickFrequency = 2.6f, Value = 8 };
+            slider.ShouldSnapToTicks = true;
+
+            slider.Maximum = 4;
+
+            Assert.Equal(4, slider.Value);
+        }
+
+        [Fact]
+        public void TestBoundChangesKeepSnappedValueFiniteForSubnormalRange()
+        {
+            var slider = new Slider { Maximum = 1, TickFrequency = 2, Value = 1 };
+            slider.ShouldSnapToTicks = true;
+
+            slider.Maximum = float.Epsilon;
+
+            Assert.Equal(float.Epsilon, slider.Value);
+        }
+
+        [Fact]
+        public void TestBoundChangesKeepSnappedValueFiniteForExtremeRange()
+        {
+            var slider = new Slider { Maximum = 1, TickFrequency = 2, Value = 0 };
+            slider.ShouldSnapToTicks = true;
+
+            slider.Minimum = float.MinValue;
+            slider.Maximum = float.MaxValue;
+
+            Assert.Equal(0, slider.Value);
+        }
+
+        [Fact]
+        public void TestTickIncrementHandlesExtremeRange()
+        {
+            var slider = new Slider { Minimum = float.MinValue, Maximum = float.MaxValue, TickFrequency = 2, Value = float.MinValue };
+            slider.ShouldSnapToTicks = true;
+
+            slider.Increase();
+
+            Assert.Equal(0, slider.Value);
+        }
+
         /// <summary>
         /// Test the <see cref="Slider.ValueChanged"/> event.
         /// </summary>
@@ -224,6 +385,19 @@ namespace Stride.UI.Tests.Layering
             slider.Step = 0.16f;
             slider.Increase();
             Utilities.AssertAreNearlyEqual(0.4f, slider.Value);
+        }
+
+        [Fact]
+        public void TestTickSnappingWithCollapsedRange()
+        {
+            foreach (var bound in new[] { 0f, 5f, -5f })
+            {
+                var slider = new Slider { Minimum = bound, Maximum = bound, Value = bound };
+
+                slider.ShouldSnapToTicks = true;
+
+                Assert.Equal(bound, slider.Value);
+            }
         }
 
         /// <summary>

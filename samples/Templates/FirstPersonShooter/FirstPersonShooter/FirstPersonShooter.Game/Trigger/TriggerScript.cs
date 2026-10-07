@@ -59,7 +59,7 @@ namespace FirstPersonShooter
                 while (secondsCountdown > 0f)
                 {
                     await Script.NextFrame();
-                    secondsCountdown -= (float)Game.UpdateTime.Elapsed.TotalSeconds;
+                    secondsCountdown -= (float)Game.UpdateTime.WarpElapsed.TotalSeconds;
                 }
 
                 // Remove

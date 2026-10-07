@@ -1,0 +1,21 @@
+namespace Stride.Shaders.Tests;
+
+shader TextureConstantOffset
+{
+    stream float4 ColorTarget : SV_Target0;
+    stream float2 TexCoord : TEXCOORD0;
+
+    static const int Step = 2;
+
+    Texture2D Tex;
+    SamplerState Samp;
+
+    void PSMain()
+    {
+        float4 a = Tex.Sample(Samp, streams.TexCoord, int2(-1, 0));
+        float4 b = Tex.Sample(Samp, streams.TexCoord, int2(Step, 0));
+        float4 c = Tex.Sample(Samp, streams.TexCoord, int2(Step * 2, 1 + 1));
+        float4 d = Tex.Sample(Samp, streams.TexCoord, int2(Step, 1) * 2 - int2(1, 1));
+        streams.ColorTarget = a + b + c + d;
+    }
+}

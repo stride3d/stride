@@ -1,0 +1,23 @@
+// The same class name declared in two namespaces, in one file. Resolution is by class name
+// alone, so only one of the two can ever be reached.
+namespace Stride.Shaders.Parsers.Tests
+{
+    shader NsClashed
+    {
+        float Which()
+        {
+            return 1;
+        }
+    };
+}
+
+namespace Stride.Shaders.Parsers.Tests.NsB
+{
+    shader NsClashed
+    {
+        float Which()
+        {
+            return 2;
+        }
+    };
+}

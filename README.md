@@ -106,7 +106,7 @@ The Stride documentation is organized across different locations. Here's how it'
 2. [Stride Docs](https://doc.stride3d.net/) - The official documentation, including:
    - [Manual](https://doc.stride3d.net/latest/en/manual/index.html)
    - [Tutorials](https://doc.stride3d.net/latest/en/tutorials/index.html)
-   - [Release Notes](https://doc.stride3d.net/latest/en/ReleaseNotes/ReleaseNotes.html)
+   - [Release Notes](https://doc.stride3d.net/en/release-notes/index.html)
    - [Ways to contribute](https://doc.stride3d.net/latest/en/contributors/index.html)
    - [API Reference](https://doc.stride3d.net/latest/en/api/index.html)
    - [Community Resources](https://doc.stride3d.net/latest/en/community-resources/index.html) - Demos, articles, shaders, physics examples, and more.

@@ -121,6 +121,14 @@ public sealed partial class PackageVersion : IComparable, IComparable<PackageVer
     /// </summary>
     public string SpecialVersion { get; }
 
+    /// <summary>
+    /// Gets whether this version is a local build: -devN from the checkout ledger (4.4.0-dev3), or appended to a release
+    /// one (4.4.0-beta7-dev4).
+    /// </summary>
+    public bool IsLocalBuild
+        => SpecialVersion is { } label
+           && (label.StartsWith("dev", StringComparison.OrdinalIgnoreCase) || label.Contains("-dev", StringComparison.OrdinalIgnoreCase));
+
     public string[] GetOriginalVersionComponents()
     {
         if (!string.IsNullOrEmpty(originalString))

@@ -37,29 +37,6 @@ namespace Stride.Graphics.Data
 
                         texture.AttachToGraphicsDevice(graphicsDeviceService.GraphicsDevice);
                         texture.InitializeFrom(textureData.Description, new TextureViewDescription(), textureData.ToDataBox());
-
-                        // Setup reload callback (reload from asset manager)
-                        var contentSerializerContext = stream.Context.Get(ContentSerializerContext.ContentSerializerContextProperty);
-                        if (contentSerializerContext != null)
-                        {
-                            texture.Reload = static (graphicsResource, services) =>
-                            {
-                                var assetManager = services.GetService<ContentManager>();
-                                assetManager.TryGetAssetUrl(graphicsResource, out var url);
-                                var textureDataReloaded = assetManager.Load<object>(url);
-
-                                if (textureDataReloaded is Image image)
-                                {
-                                    ((Texture)graphicsResource).Recreate(image.ToDataBox());
-                                    assetManager.Unload(textureDataReloaded);
-                                }
-                                else if (textureDataReloaded is Texture)
-                                {
-                                    ((Texture)graphicsResource).Recreate();
-                                    assetManager.Unload(textureDataReloaded);
-                                }
-                            };
-                        }
                     }
                 }
                 else
@@ -68,7 +45,6 @@ namespace Stride.Graphics.Data
                         texture.OnDestroyed();
 
                     texture.AttachToGraphicsDevice(graphicsDeviceService.GraphicsDevice);
-                    texture.Reload = null;
 
                     // Read image header
                     var imageDescription = new ImageDescription();

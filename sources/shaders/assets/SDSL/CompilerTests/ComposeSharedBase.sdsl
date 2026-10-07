@@ -1,0 +1,18 @@
+// A compute base whose entry point delegates to a virtual Compute(), like Stride's
+// ComputeShaderBase.
+namespace Stride.Shaders.Tests;
+
+shader ComposeSharedBase
+{
+    stage stream uint3 DispatchThreadId : SV_DispatchThreadID;
+
+    [numthreads(8, 8, 8)]
+    void CSMain()
+    {
+        Compute();
+    }
+
+    void Compute()
+    {
+    }
+};

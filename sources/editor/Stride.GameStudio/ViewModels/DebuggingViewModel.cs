@@ -21,6 +21,7 @@ using Stride.Core.Extensions;
 using Stride.Core.IO;
 using Stride.GameStudio.Logs;
 using Stride.GameStudio.Debugging;
+using Stride.GameStudio.Helpers;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModel;
@@ -563,6 +564,11 @@ namespace Stride.GameStudio.ViewModels
                     return (false, null);
                 }
 
+                // Route any asset-compiler crash from this build back to this GameStudio instance so it can
+                // surface the report (the headless compiler no longer pops its own reporter).
+                if (CompilerCrashRouting.CrashDirectory is { } crashDirectory)
+                    extraProperties["StrideCrashDir"] = crashDirectory;
+
                 // Build project
                 currentBuild = VSProjectHelper.CompileProjectAssemblyAsync(projectViewModel.ProjectPath, logger, target, configuration, platformName, extraProperties, BuildRequestDataFlags.ProvideProjectStateAfterBuild);
                 if (currentBuild == null)
@@ -573,6 +579,9 @@ namespace Stride.GameStudio.ViewModels
 
                 var assemblyPath = currentBuild.AssemblyPath;
                 var buildTask = await currentBuild.BuildTask;
+
+                // The compiler runs (and any crash is written) by the time the build task completes; surface it.
+                CompilerCrashRouting.SurfacePendingCrashes(logger);
 
                 // Execute
                 if (startProject && !currentBuild.IsCanceled && !logger.HasErrors && projectViewModel.Platform != PlatformType.Shared)

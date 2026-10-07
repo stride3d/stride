@@ -113,11 +113,8 @@ Example: dotnet build build/Stride.build -t:Package
       <NuGetPackage Include="..\bin\packages\*.nupkg"/>
       <!-- Remove GameStudio (pushed in a second stage) -->
       <NuGetPackage Remove="@(NuGetPackage)" Condition="$([System.String]::Copy('%(Filename)').Contains('Stride.GameStudio'))"/>
-      <!-- Remove Samples.Templates (we use -SkipDuplicate since version is rarely bumped) -->
-      <NuGetPackage Remove="@(NuGetPackage)" Condition="$([System.String]::Copy('%(Filename)').Contains('Stride.Samples.Templates'))"/>
     </ItemGroup>
     <Exec Command='"$(NuGetPath)" push %(NuGetPackage.Identity) -ApiKey $(StrideStoreApiKey) -Source $(StrideStoreUrl) -Timeout 1800 -NoSymbols -SkipDuplicate'/>
-    <Exec Command='"$(NuGetPath)" push ..\bin\packages\Stride.Samples.Templates*.nupkg -ApiKey $(StrideStoreApiKey) -Source $(StrideStoreUrl) -Timeout 1800 -NoSymbols -SkipDuplicate'/>
     <!-- Push GameStudio so that dependencies are already uploaded -->
     <Exec Command='"$(NuGetPath)" push ..\bin\packages\Stride.GameStudio*.nupkg -ApiKey $(StrideStoreApiKey) -Source $(StrideStoreUrl) -Timeout 1800 -NoSymbols'/>
   </Target>
@@ -151,12 +148,12 @@ Example: dotnet build build/Stride.build -t:Package
 
     <!-- Create SharedAssemblyInfo.Generated.cs with the committed version + git metadata (the Stride SDK swaps
          it in for SharedAssemblyInfo.cs when building the packages). -->
-    <StrideGitVersion RootDirectory="$(StrideRoot)" VersionFile="sources\shared\SharedAssemblyInfo.cs" GeneratedVersionFile="sources\shared\SharedAssemblyInfo.Generated.cs" SuffixOverride="$(StrideVersionSuffix)">
+    <StrideGitVersion RootDirectory="$(StrideRoot)" VersionFile="sources\shared\SharedAssemblyInfo.cs" GeneratedVersionFile="sources\shared\SharedAssemblyInfo.Generated.cs">
       <Output TaskParameter="NuGetVersion" PropertyName="StridePackageVersion"/>
     </StrideGitVersion>
 
     <Message Text="Done preparing build for version $(StridePackageVersion)"/>
-    <Exec Command="echo **Version:** $(StridePackageVersion) &gt;&gt; $(GITHUB_STEP_SUMMARY)" Condition="'$(GITHUB_STEP_SUMMARY)' != ''" IgnoreExitCode="true" />
+    <Exec Command="echo **Engine version:** $(StridePackageVersion) &gt;&gt; $(GITHUB_STEP_SUMMARY)" Condition="'$(GITHUB_STEP_SUMMARY)' != ''" IgnoreExitCode="true" />
   </Target>
   <PropertyGroup>
     <_StridePackageTargetPrerequisitesInstaller Condition="'$(StrideBuildPrerequisitesInstaller)' == 'true'">PrerequisitesInstaller</_StridePackageTargetPrerequisitesInstaller>
@@ -199,9 +196,21 @@ Example: dotnet build build/Stride.build -t:Package
 
   <Target Name="PackageCli" DependsOnTargets="BuildPackageCli;SignPackageCli" />
 
-  <!-- In-repo sample version management (SamplesToDevVersion / SamplesToReleaseVersion /
-       UpgradeSamplesVersion) is standalone in build/Stride.Samples.build - run it directly, e.g.
-       dotnet msbuild build/Stride.Samples.build -t:UpgradeSamplesVersion. See plans/samples-version-bump.md. -->
+  <!--
+  Content template packs (Stride.Templates.Samples / .Games.Starters / .AssetPacks)
+  Versioned by sources/templates/StrideSamplesVersion.props, published on their own schedule by
+  .github/workflows/release-samples.yml; the engine release never packs them. PackageSamples produces the
+  release-shaped (fully preprocessed) packs into bin/packages, stamped for this branch's engine version (the committed
+  one, with its suffix); SignPackage then signs them.
+  -->
+  <Target Name="PackageSamples" DependsOnTargets="PreparePackageBuild">
+    <MSBuild Projects="$(StrideRoot)build\Stride.Samples.build" Targets="PackContentTemplates"
+             Properties="Configuration=Release;StridePackageBuild=true" />
+  </Target>
+
+  <!-- In-repo sample version management (SamplesToDevEngine / SamplesToReleaseEngine / PrepareSamplesForRelease /
+       CleanContentTemplates) is standalone in build/Stride.Samples.build - run it directly, e.g.
+       dotnet msbuild build/Stride.Samples.build -t:PrepareSamplesForRelease. See docs/build/versioning.md. -->
 
   <Target Name="RestoreInternal">
     <MSBuild Targets="Restore" Projects="$(StrideSolution)" Properties="StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll);StrideGraphicsApis=$(StrideGraphicsApis);StridePlatforms=$(StridePlatforms)" />
@@ -271,54 +280,6 @@ Example: dotnet build build/Stride.build -t:Package
     <MSBuild Targets="Build" Projects="$(StrideRuntimeSolution)" Properties="$(BuildProperties)"/>
   </Target>
 
-  
-  <!--
-  Package Launcher
-  -->
-  <Target Name="PackageLauncher">
-    <ItemGroup>
-      <FilesToDeleteLauncher Include="$(StrideRoot)bin\launcher\*.nupkg"/>
-    </ItemGroup>
-
-    <!-- Note: we avoid building again if BuildWindows was already ran just before -->
-    <Delete Files="@(FilesToDeleteLauncher)"/>
-    
-    <!-- Generate the nuget package for the launcher application -->
-    <Exec Command='"$(NuGetPath)" pack "$(StrideRoot)sources\launcher\Stride.Launcher\Stride.Launcher.nuspec" -BasePath "$(StrideRoot)sources\launcher\Stride.Launcher\bin\Release\publish" -OutputDirectory "$(StrideRoot)bin\launcher"' />
-
-    <MSBuild Projects="$(MSBuildThisFileFullPath)" Targets="_SignFiles"
-             Properties="StrideSign=$(StrideSign);StrideSignDir=$(MSBuildThisFileDirectory)..\bin\launcher" />
-  </Target>
-  
-  <!--
-  Package Installer: StrideSetup.exe
-  -->
-  <Target Name="PackageInstaller" DependsOnTargets="PackageLauncher">
-    <MSBuild Projects="$(MSBuildThisFileFullPath)" Targets="_BuildAdvancedInstaller" Properties="StrideInstallerAip=$(StrideRoot)sources\launcher\Setup\setup.aip" />
-    <Copy SourceFiles="$(StrideRoot)sources\launcher\Setup\setup-SetupFiles\StrideSetup.exe" DestinationFolder="$(StrideRoot)bin\launcher"/>
-  </Target>
-  
-  <!--
-  Perform a full build: Build, Package and PackageInstaller
-  -->
-  <Target Name="FullBuildLauncher">
-    <CallTarget Targets="BuildLauncher"/>
-    <CallTarget Targets="PackageInstaller"/>
-  </Target>
-  
-  <!--
-  Publish Launcher nupkg from this folder to the store
-  -->
-  <Target Name="PublishLauncher">
-    <Error Condition="'$(StrideStoreApiKey)' == ''" Text="Missing env variable StrideStoreApiKey"/>
-    <Exec Command='"$(NuGetPath)" push ..\bin\launcher\*.nupkg -ApiKey $(StrideStoreApiKey) -Source $(StrideStoreUrl) -NoSymbols'/>
-  </Target>
-  
-  <Target Name="BuildLauncher" DependsOnTargets="SignCredentialsCheck">
-    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=Windows;StrideSolution=$(StrideSolutionLauncher);RuntimeIdentifiers=win-x64"/>
-    <MSBuild Projects="..\sources\launcher\Stride.Launcher\Stride.Launcher.csproj" Targets="Publish" Properties="$(BuildProperties);PublishProfile=FolderProfile;SolutionName=Stride.Launcher" />
-  </Target>
-
   <Target Name="SignCredentialsCheck" Condition="'$(StrideSign)' == 'true'">
     <Error Condition="'$(StrideSignTenantId)' == ''" Text="StrideSignTenantId is not set. Please set StrideSign to false if you don't want to sign using code certificates." />
     <Error Condition="'$(StrideSignClientId)' == ''" Text="StrideSignClientId is not set. Please set StrideSign to false if you don't want to sign using code certificates." />
@@ -335,5 +296,8 @@ Example: dotnet build build/Stride.build -t:Package
   <!-- StrideGitVersion task (package version from git release tags); shared with Stride.Samples.build. -->
   <Import Project="$(StrideRoot)sources\targets\Stride.GitVersion.targets"
           Condition="'$(_StrideGitVersionTargetsImported)' != 'true'" />
+
+  <!-- Launcher: BuildLauncher, PackageLauncher, PackageInstaller, FullBuildLauncher, PublishLauncher -->
+  <Import Project="$(StrideRoot)sources\launcher\Stride.Launcher.Release.targets" />
 
 </Project>

@@ -22,7 +22,7 @@ Hierarchy:
                     6147f16ca5edc245b4706309168b05bb: !TransformComponent
                         Id: 6cf14761-eda5-45c2-b470-6309168b05bb
                         Position: {X: 8.89, Y: 0.0, Z: 0.0}
-                        Rotation: {X: 0.0, Y: 0.0, Z: 0.707106769, W: 0.707106769}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.70710677, W: 0.70710677}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     9f8ec43db3e32f4e8e042cbf497bc08b: !GravitySensor.BounceScript,GravitySensor.Game
@@ -36,6 +36,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             58e953d73078014ca13638812a08806f: !ColliderShapeAssetDesc
                                 Shape: 46edbb45-f107-4e33-a959-8d5de5aef08b:Limit
@@ -86,6 +87,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             68bb98db2f09af41aac125cdbbb67740: !ColliderShapeAssetDesc
                                 Shape: 46edbb45-f107-4e33-a959-8d5de5aef08b:Limit
@@ -96,7 +98,7 @@ Hierarchy:
                     4964fb744f8fdd4280766769686efb58: !TransformComponent
                         Id: 74fb6449-8f4f-42dd-8076-6769686efb58
                         Position: {X: -8.89, Y: 0.0, Z: 0.0}
-                        Rotation: {X: 0.0, Y: 0.0, Z: -0.707106769, W: 0.707106769}
+                        Rotation: {X: 0.0, Y: 0.0, Z: -0.70710677, W: 0.70710677}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
                     7ef13f5e05fb784d92d83374451f2f57: !GravitySensor.BounceScript,GravitySensor.Game
@@ -110,6 +112,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             e3a7af20c0490a48af0f550721f43990: !ColliderShapeAssetDesc
                                 Shape: 46edbb45-f107-4e33-a959-8d5de5aef08b:Limit
@@ -134,6 +137,7 @@ Hierarchy:
                         CcdMotionThreshold: 0.0
                         CcdSweptSphereRadius: 0.0
                         IsTrigger: false
+                        AlwaysUpdateNaviMeshCache: false
                         ColliderShapes:
                             2f1612bed217554997a0eeb56a8fea9b: !ColliderShapeAssetDesc
                                 Shape: 46edbb45-f107-4e33-a959-8d5de5aef08b:Limit

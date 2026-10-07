@@ -53,6 +53,19 @@
                       Properties="$(_StrideSuiteRefProperties)"
                       StrideTestSuiteRef="true" />
   </ItemGroup>
+  <!-- -p:StrideCombinedSuites="<name> <name> ..." keeps only those suites (by project file name), so a
+       run that only needs a few tests builds and bundles a few suites. build/tools/Stride.TestSuites
+       computes the list from a test filter. Blank keeps every suite. Space separated on the command
+       line, since MSBuild splits a -p: value on semicolons and commas; those are accepted here too. -->
+  <ItemGroup Condition="'$(StrideCombinedSuites)' != ''">
+    <_StrideWantedSuite Include="$([MSBuild]::Unescape($(StrideCombinedSuites.Replace(',', ';').Replace(' ', ';'))))" />
+    <!-- Suite refs keyed by project name, each remembering its reference spec, minus the wanted ones -->
+    <_StrideSuiteRef Include="@(ProjectReference->WithMetadataValue('StrideTestSuiteRef', 'true'))">
+      <Spec>%(Identity)</Spec>
+    </_StrideSuiteRef>
+    <_StrideDroppedSuite Include="@(_StrideSuiteRef->'%(Filename)')" Exclude="@(_StrideWantedSuite)" />
+    <ProjectReference Remove="@(_StrideDroppedSuite->'%(Spec)')" />
+  </ItemGroup>
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.MultiPlatform.Tests/Sdk/Sdk.targets" />
 
   <!-- Per-suite asset bundle collection. Every suite emits data/db/bundles/default.bundle

@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Threading;
 
 using Silk.NET.Core.Native;
 using Silk.NET.DXGI;
@@ -114,11 +115,13 @@ namespace Stride.Graphics
         {
             get
             {
+                // A simulated loss stays, like a real one
                 if (simulateReset)
-                {
-                    simulateReset = false;
                     return GraphicsDeviceStatus.Reset;
-                }
+
+                // A released device has no native device
+                if (nativeDevice is null)
+                    return GraphicsDeviceStatus.Removed;
 
                 var result = (DeviceRemoveReason) nativeDevice->GetDeviceRemovedReason();
 
@@ -130,7 +133,7 @@ namespace Stride.Graphics
                     DeviceRemoveReason.DriverInternalError => GraphicsDeviceStatus.InternalError,
                     DeviceRemoveReason.InvalidCall => GraphicsDeviceStatus.InvalidCall,
 
-                    < 0 => GraphicsDeviceStatus.Reset,
+                    < 0 => GraphicsDeviceStatus.Lost,
                     _ => GraphicsDeviceStatus.Normal
                 };
             }
@@ -249,7 +252,7 @@ namespace Stride.Graphics
         public void ExecuteCommandLists(int count, CompiledCommandList[] commandLists) => throw new NotImplementedException();
 
         /// <summary>
-        ///   Sets the Graphics Device to simulate a situation in which the device is lost and then reset.
+        ///   Simulates a device loss: from now on, the status says <see cref="GraphicsDeviceStatus.Reset"/>.
         /// </summary>
         public void SimulateReset()
         {
@@ -269,6 +272,16 @@ namespace Stride.Graphics
 
         private partial string GetRendererName() => rendererName;
 
+        internal partial string GetDeviceLostDetails()
+        {
+            if (nativeDevice is null)
+                return null;
+
+            // The raw reason also names the losses the status can only call Lost (out of memory, etc.)
+            int reason = nativeDevice->GetDeviceRemovedReason();
+            return reason < 0 ? $"Removal reason: 0x{reason:X8}." : null;
+        }
+
         /// <summary>
         ///   Initialize the platform-specific implementation of the Graphics Device.
         /// </summary>
@@ -277,12 +290,6 @@ namespace Stride.Graphics
         /// <param name="windowHandle">The window handle.</param>
         private unsafe partial void InitializePlatformDevice(GraphicsProfile[] graphicsProfiles, DeviceCreationFlags deviceCreationFlags, object windowHandle)
         {
-            if (nativeDevice is not null)
-            {
-                // Destroy previous device
-                ReleaseDevice();
-            }
-
             rendererName = Adapter.Description;
 
             // Profiling is supported through PIX markers
@@ -624,6 +631,47 @@ namespace Stride.Graphics
             pipelineStateDescription.DepthStencilState.DepthBufferFunction = CompareFunction.Less;
         }
 
+        partial void WaitForGPUIdle()
+        {
+            // Also runs from Window.Closing so queued Presents finish before the window is destroyed:
+            // WARP on the Basic Render adapter never completes them afterwards. Bounded, as a healthy
+            // queue drains well within this.
+            const int GpuIdleTimeoutMs = 10_000;
+            const int S_FALSE = 1;
+
+            if (nativeDevice is null || nativeDeviceContext is null)
+                return;
+
+            var eventQueryDescription = new QueryDesc(Query.Event);
+            ComPtr<ID3D11Query> query = default;
+
+            HResult result = nativeDevice->CreateQuery(in eventQueryDescription, ref query);
+            if (result.IsFailure)
+                return;
+
+            try
+            {
+                nativeDeviceContext->End(query);
+                nativeDeviceContext->Flush();
+
+                var elapsed = Stopwatch.StartNew();
+                int completed = 0;
+                while (nativeDeviceContext->GetData(query, ref completed, sizeof(int), GetDataFlags: 0) == S_FALSE)
+                {
+                    if (elapsed.ElapsedMilliseconds > GpuIdleTimeoutMs)
+                    {
+                        Log.Error($"[D3D11] GPU queue did not drain within {GpuIdleTimeoutMs / 1000}s; continuing teardown. A pending Present whose window was already destroyed can never complete.");
+                        return;
+                    }
+                    Thread.Sleep(1);
+                }
+            }
+            finally
+            {
+                query.Release();
+            }
+        }
+
         /// <summary>
         ///   Releases the platform-specific Graphics Device and all its associated resources.
         /// </summary>
@@ -638,17 +686,26 @@ namespace Stride.Graphics
         private void ReleaseDevice()
         {
             foreach (var query in disjointQueries)
-            {
                 query.Release();
-            }
             disjointQueries.Clear();
+
+            foreach (var query in currentDisjointQueries)
+                query.Release();
+            currentDisjointQueries.Clear();
+
+            if (IsDebugMode)
+            {
+                // Drain before the flush below, which can stall: queued messages die with the process
+                ProcessInfoQueueMessages();
+            }
 
             nativeDeviceContext->ClearState();
             nativeDeviceContext->Flush();
 
             if (IsDebugMode)
             {
-                // Display D3D11 ref counting info
+                // Display D3D11 ref counting info. ClearState and Flush drop the context's own references
+                // to the resources it had bound, so what this reports is what actually leaked.
                 HResult result = nativeDevice->QueryInterface(out ComPtr<ID3D11Debug> debugDevice);
 
                 if (result.IsSuccess && debugDevice.IsNotNull())
@@ -666,17 +723,6 @@ namespace Stride.Graphics
             }
 
             SafeRelease(ref nativeDevice);
-        }
-
-        /// <summary>
-        ///   Called when the Graphics Device is being destroyed.
-        /// </summary>
-        /// <param name="immediately">
-        ///   A value indicating whether the resources used by the Graphics Device should be destroyed immediately
-        ///   (<see langword="true"/>), or if it can be deferred until it's safe to do so (<see langword="false"/>).
-        /// </param>
-        internal void OnDestroyed(bool immediately = false)
-        {
         }
 
 

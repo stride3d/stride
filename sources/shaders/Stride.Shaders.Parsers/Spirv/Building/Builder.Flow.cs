@@ -46,6 +46,7 @@ public partial class SpirvBuilder
             case Op.OpBranch:
             case Op.OpBranchConditional:
             case Op.OpSwitch:
+            case Op.OpSwitchIdSDSL:
                 return true;
             default:
                 return false;

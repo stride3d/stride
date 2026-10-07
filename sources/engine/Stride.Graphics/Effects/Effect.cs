@@ -96,19 +96,6 @@ namespace Stride.Graphics
                     return true;
             }
 
-            // Check cbuffer
-            foreach (var constantBuffer in reflection.ConstantBuffers)
-            {
-                var constantBufferMembers = constantBuffer.Members;
-
-                for (int i = 0; i < constantBufferMembers.Length; ++i)
-                {
-                    var key = constantBufferMembers[i].KeyInfo.Key;
-                    if (key == parameterKey)
-                        return true;
-                }
-            }
-
             return false;
         }
 
@@ -146,17 +133,6 @@ namespace Stride.Graphics
                     var members = group.ConstantBuffer.Members;
                     for (int i = 0; i < members.Length; i++)
                         UpdateValueBindingKey(ref members[i]);
-                }
-            }
-
-            foreach (var constantBuffer in reflection.ConstantBuffers)
-            {
-                var constantBufferMembers = constantBuffer.Members;
-
-                for (int i = 0; i < constantBufferMembers.Length; ++i)
-                {
-                    // Update binding key
-                    UpdateValueBindingKey(ref constantBufferMembers[i]);
                 }
             }
 

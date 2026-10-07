@@ -60,17 +60,17 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         if (shaderSource is ShaderMixinSource mixinSource)
             PropagateMacrosRecursively(mixinSource, null);
 
-        var shaderSource2 = EvaluateInheritanceAndCompositions(shaderLoader, context, null, shaderSource);
-
         // Root shader
         var globalContext = new MixinGlobalContext(table, log);
-
-        // Process name and types imported by constants due to generics instantiation
-        ShaderClass.ProcessNameAndTypes(context);
 
         MixinNode rootMixin;
         try
         {
+            var shaderSource2 = EvaluateInheritanceAndCompositions(shaderLoader, context, null, shaderSource);
+
+            // Process name and types imported by constants due to generics instantiation
+            ShaderClass.ProcessNameAndTypes(context);
+
             rootMixin = MergeMixinNode(globalContext, context, temp, shaderSource2);
         }
         catch (Exception e)
@@ -87,12 +87,19 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             return false;
         }
 
+        // Note: done first, so that the code analysis only has to know about OpSwitch
+        if (!LowerSwitchIds(context, temp, log))
+            return false;
+
         // Process streams and remove unused code/cbuffer/variable/resources
         var interfaceProcessor = new InterfaceProcessor
         {
             CodeInserted = (int index, int count) => AdjustIndicesAfterAppendInstructions(rootMixin, index, count)
         };
         (entryPoints, globalContext.Reflection.InputAttributes) = interfaceProcessor.Process(table, temp, context);
+
+        if (!ValidateDerivativeUsage(context, temp, entryPoints, log))
+            return false;
 
         // Process Link (add CompositionPath, generate missing ones, etc.)
         ProcessLinks(context, temp);
@@ -120,18 +127,21 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         // Process reflection
         ProcessReflection(globalContext, context, temp, options);
 
-        // Ensure each resource group has cbuffer entries first (ordering expected by consumers)
+        // Ensure each resource group has cbuffer entries first (ordering expected by consumers), and each
+        // logical group in a single contiguous run (expected by CreateLogicalGroup). Ordering must be stable,
+        // consumers index a group's resources by declaration order.
         foreach (var group in globalContext.Reflection.ResourceGroups)
         {
-            group.Entries.Sort((a, b) =>
-            {
-                var aIsCb = a.Class == EffectParameterClass.ConstantBuffer ? 0 : 1;
-                var bIsCb = b.Class == EffectParameterClass.ConstantBuffer ? 0 : 1;
-                return aIsCb.CompareTo(bIsCb);
-            });
+            var orderedEntries = group.Entries
+                .OrderBy(x => x.Class == EffectParameterClass.ConstantBuffer ? 0 : 1)
+                .ThenBy(x => x.LogicalGroup ?? string.Empty, StringComparer.Ordinal)
+                .ToList();
+            group.Entries.Clear();
+            group.Entries.AddRange(orderedEntries);
         }
 
-        SimplifyNotSupportedConstantsInShader(context, temp);
+        if (!SimplifyNotSupportedConstantsInShader(context, log))
+            return false;
 
         AddRequiredCapabilities(context, temp);
 
@@ -326,7 +336,14 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             {
                 if (variable.Value.Type is PointerType pointer && pointer.BaseType is ShaderSymbol or ArrayType { BaseType: ShaderSymbol })
                 {
-                    var compositionMixins = mixinSource.Compositions[variable.Key];
+                    // Every piece of context needed to act on this is in scope, and the dictionary
+                    // indexer would throw a bare "The given key was not present" instead.
+                    if (!mixinSource.Compositions.TryGetValue(variable.Key, out var compositionMixins))
+                        throw new InvalidOperationException(
+                            $"No composition was supplied for '{variable.Key}', declared as '{variable.Value.Type}' by shader '{shader.ShaderName}', "
+                            + $"while merging the mixin node '{currentCompositionPath ?? "<root>"}' (root: {mixinNode.IsRoot}). "
+                            + $"That node only has [{string.Join(", ", mixinSource.Compositions.Keys)}].");
+
                     var isCompositionArray = pointer.BaseType is ArrayType { BaseType: ShaderSymbol };
 
                     if (!isCompositionArray && compositionMixins.Length != 1)
@@ -338,10 +355,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                         var localKey = variable.Key;
                         if (isCompositionArray)
                             localKey += $"[{i}]";
-                        // TODO: Review: it seems like Stride compose variable the opposite way that we expect
-                        //       Let's change it so that it becomes {currentCompositionPath}.{localKey}!
-                        var compositionPath = currentCompositionPath != null ? $"{localKey}.{currentCompositionPath}" : localKey;
-                        compositionResults[i] = MergeMixinNode(globalContext, context, buffer, compositionMixins[i], mixinNode.IsRoot ? mixinNode : mixinNode.Stage, compositionPath);
+                        compositionResults[i] = MergeMixinNode(globalContext, context, buffer, compositionMixins[i], mixinNode.IsRoot ? mixinNode : mixinNode.Stage, ChildCompositionPath(currentCompositionPath, localKey));
                     }
 
                     if (isCompositionArray)
@@ -961,7 +975,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 if (mixinNode.CompositionArrays.TryGetValue(accessChain.BaseId, out var compositions)
                     || (mixinNode.Stage != null && mixinNode.Stage.CompositionArrays.TryGetValue(accessChain.BaseId, out compositions)))
                 {
-                    var compositionIndex = (int)context.GetConstantValue(accessChain.Indexes.Elements.Span[0]);
+                    // Note: the index can be of any integer type (e.g. a uint constant)
+                    var compositionIndex = Convert.ToInt32(context.GetConstantValue(accessChain.Indexes.Elements.Span[0]));
                     compositionArrayAccesses.Add(accessChain.ResultId, compositions[compositionIndex]);
 
                     SetOpNop(i.Data.Memory.Span);
@@ -1029,7 +1044,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                         // We currently do not allow calling base stage method from a non-stage method
                         // (if we were to allow them later, we would need to tweak following detection code as ShaderIndex comparison is only valid for items within the same MixinNode)
                         if (foundInStage)
-                            throw new InvalidOperationException($"Method {context.Names[functionId]} was found but a base call can't be performed on a stage method from a non-stage method");
+                            throw new InvalidOperationException($"Method {methodGroupEntry.Name} was found but a base call can't be performed on a stage method from a non-stage method");
 
                         // Is it a base call? if yes, find the direct parent
                         // Let's find the method in same group just before ours
@@ -1045,11 +1060,11 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                         }
 
                         if (!baseMethodFound)
-                            throw new InvalidOperationException($"Can't find a base method for {context.Names[functionId]}");
+                            throw new InvalidOperationException($"Can't find a base method for {methodGroupEntry.Name}");
                     }
 
                     if ((selectedMethod.Flags & FunctionFlagsMask.Abstract) != 0)
-                        throw new InvalidOperationException($"Trying to call an abstract method {selectedMethod.Shader.ShaderName}.{context.Names[functionId]}");
+                        throw new InvalidOperationException($"Trying to call an abstract method {selectedMethod.Shader.ShaderName}.{methodGroupEntry.Name}");
                     functionId = selectedMethod.MethodId;
 
                     memberAccesses.Add(memberAccess.ResultId, functionId);
@@ -1128,10 +1143,12 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
     /// value at compile time, and replaces them with plain OpConstant instructions so that
     /// the cross-compiler can consume them.
     /// </summary>
-    private void SimplifyNotSupportedConstantsInShader(SpirvContext context, SpirvBuffer temp)
+    /// <returns>False if such a constant could not be resolved: the module would not be a valid shader.</returns>
+    private bool SimplifyNotSupportedConstantsInShader(SpirvContext context, ILogger log)
     {
         // Collect instructions to simplify first to avoid modifying the buffer during iteration
         var toSimplify = new List<(int Index, object Value, int TypeId, int ResultId)>();
+        var success = true;
         foreach (var i in context)
         {
             if (i.Op == Op.OpSpecConstantOp && (OpSpecConstantOp)i is { } specConstantOp)
@@ -1139,45 +1156,30 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 if (!ExpressionExtensions.ShaderSpecConstantOpSupportedOps.Contains((Op)specConstantOp.Opcode))
                 {
                     var resultType = i.Data.Memory.Span[1];
+                    var resultId = i.Data.IdResult!.Value;
                     if (context.TryGetConstantValue(i, out var value, out _) && value != null)
-                        toSimplify.Add((i.Index, value, resultType, i.Data.IdResult!.Value));
+                    {
+                        toSimplify.Add((i.Index, value, resultType, resultId));
+                    }
+                    else
+                    {
+                        var name = context.Names.TryGetValue(resultId, out var constantName) ? $"'{constantName}'" : $"%{resultId}";
+                        log.Error($"Constant {name} uses {(Op)specConstantOp.Opcode}, which is not allowed in a constant of a shader module, and its value could not be computed");
+                        success = false;
+                    }
                 }
             }
         }
 
-        // Replace each OpSpecConstantOp with a resolved OpConstant
-        var buffer = context.GetBuffer();
-        foreach (var (index, value, typeId, resultId) in toSimplify)
+        // Replace each OpSpecConstantOp with a resolved constant
+        // Note: from the last one, since a vector inserts the constants of its components before itself
+        for (var i = toSimplify.Count - 1; i >= 0; i--)
         {
-            // Build replacement OpConstant instruction manually
-            var wordCount = value is long or ulong or double ? 5 : 4;
-            var mem = CommunityToolkit.HighPerformance.Buffers.MemoryOwner<int>.Allocate(wordCount);
-            mem.Span[0] = (wordCount << 16) | (int)Op.OpConstant;
-            mem.Span[1] = typeId;
-            mem.Span[2] = resultId;
-            switch (value)
-            {
-                case int v: mem.Span[3] = v; break;
-                case uint v: mem.Span[3] = unchecked((int)v); break;
-                case float v: mem.Span[3] = BitConverter.SingleToInt32Bits(v); break;
-                case long v:
-                    mem.Span[3] = (int)(v & 0xFFFFFFFF);
-                    mem.Span[4] = (int)(v >> 32);
-                    break;
-                case ulong v:
-                    mem.Span[3] = (int)(v & 0xFFFFFFFF);
-                    mem.Span[4] = (int)(v >> 32);
-                    break;
-                case double v:
-                    var bits = BitConverter.DoubleToInt64Bits(v);
-                    mem.Span[3] = (int)(bits & 0xFFFFFFFF);
-                    mem.Span[4] = (int)(bits >> 32);
-                    break;
-                default:
-                    throw new NotSupportedException($"Cannot simplify constant of type {value.GetType()}");
-            }
-            buffer.Replace(index, new OpData(mem));
+            var (index, value, typeId, resultId) = toSimplify[i];
+            context.ReplaceByConstant(index, typeId, resultId, value);
         }
+
+        return success;
     }
 
     private static void RemoveInstructionWhere(SpirvBuffer buffer, Func<OpDataIndex, bool> match)
@@ -1360,6 +1362,8 @@ public sealed partial record FunctionTypeWithIds(int ReturnType, int[] Parameter
 
 public class CaptureLoadedShaders(IExternalShaderLoader inner) : IExternalShaderLoader
 {
+    public bool IsCachedBufferCurrent(ShaderBuffers buffer) => inner.IsCachedBufferCurrent(buffer);
+
     /// <summary>
     /// Cache per file.
     /// </summary>
@@ -1389,5 +1393,5 @@ public class CaptureLoadedShaders(IExternalShaderLoader inner) : IExternalShader
     public bool LoadExternalBuffer(string name, string? filename, string code, ReadOnlySpan<ShaderMacro> defines, out ShaderBuffers bytecode, out ObjectId hash, out bool isFromCache)
         => inner.LoadExternalBuffer(name, filename, code, defines, out bytecode, out hash, out isFromCache);
 
-    public bool SuppressSourceHash { get => inner.SuppressSourceHash; set => inner.SuppressSourceHash = value; }
+    public ObjectId? SourceHashOverride { get => inner.SourceHashOverride; set => inner.SourceHashOverride = value; }
 }

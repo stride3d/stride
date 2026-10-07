@@ -174,34 +174,8 @@ namespace Stride.Graphics
             base.OnDestroyed(immediately);
         }
 
-        /// <inheritdoc/>
-        protected internal override bool OnRecreate()
-        {
-            base.OnRecreate();
-
-            if (Description.Usage is GraphicsResourceUsage.Immutable or GraphicsResourceUsage.Default)
-                return false;
-
-            var buffer = NullComPtr<ID3D11Buffer>();
-
-            HResult result = NativeDevice.CreateBuffer(in nativeDescription, pInitialData: null, ref buffer);
-
-            if (result.IsFailure)
-                result.Throw();
-
-            // Store the Buffer as a native device child, taking ownership of it. No need to call AddRef()
-            nativeBuffer = buffer.Handle;
-            SetNativeDeviceChild(buffer.AsDeviceChild());
-
-            // Staging resource don't have any views
-            if (nativeDescription.Usage != Silk.NET.Direct3D11.Usage.Staging)
-                InitializeViews();
-
-            return true;
-        }
-
         /// <summary>
-        ///   Recreates this buffer explicitly with the provided data. Usually called after the <see cref="GraphicsDevice"/> has been reset.
+        ///   Replaces the native buffer with a new one initialized with the provided data, keeping the description.
         /// </summary>
         /// <param name="dataPointer">
         ///   The data pointer to the data to use to recreate the buffer with.

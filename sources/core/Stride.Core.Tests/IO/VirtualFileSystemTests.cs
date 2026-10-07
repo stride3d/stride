@@ -262,7 +262,7 @@ public class VirtualFileSystemTests
             using (var readStream = VirtualFileSystem.OpenStream(tempPath, VirtualFileMode.Open, VirtualFileAccess.Read))
             {
                 var readData = new byte[testData.Length];
-                readStream.Read(readData, 0, readData.Length);
+                readStream.ReadExactly(readData);
 
                 Assert.Equal(testData, readData);
             }

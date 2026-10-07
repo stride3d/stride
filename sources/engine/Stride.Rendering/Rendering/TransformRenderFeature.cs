@@ -205,7 +205,7 @@ namespace Stride.Rendering
                             ((Vector3)renderModelObjectInfo.World.Row2).Length(),
                             ((Vector3)renderModelObjectInfo.World.Row3).Length());
 
-                        perDrawData.EyeMS = new Vector4(perDrawData.WorldInverse.M41, perDrawData.WorldInverse.M42, perDrawData.WorldInverse.M43, 1.0f);
+                        perDrawData.EyeMS = new Vector4(perDrawData.WorldViewInverse.M41, perDrawData.WorldViewInverse.M42, perDrawData.WorldViewInverse.M43, 1.0f);
 
                         *perDraw = perDrawData;
                     }

@@ -24,7 +24,7 @@ namespace ParticlesSample
                     rotationSpeed = 200f * Input.PointerEvents.Sum(x => x.DeltaPosition.X);
 
                 rotationSpeed *= 0.93f;
-                var elapsedTime = (float)Game.UpdateTime.Elapsed.TotalSeconds;
+                var elapsedTime = (float)Game.UpdateTime.WarpElapsed.TotalSeconds;
                 Entity.Transform.Rotation *= Quaternion.RotationY(rotationSpeed * elapsedTime);
             }
         }

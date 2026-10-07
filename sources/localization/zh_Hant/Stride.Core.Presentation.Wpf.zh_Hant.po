@@ -1,0 +1,188 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2026-09-12 15:39:36+0200\n"
+"PO-Revision-Date: 2019-04-07 09:05+0000\n"
+"Last-Translator: Louies <louies0623@gmail.com>\n"
+"Language-Team: Chinese (Traditional) <https://hosted.weblate.org/projects/"
+"stride/corepresentation/zh_Hant/>\n"
+"Language: zh_Hant\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Weblate 3.6-dev\n"
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Windows/DialogHelper.cs:21
+msgid "Don't ask again"
+msgstr "別再問了"
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/generic.xaml:404
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:624
+msgctxt "RGBA"
+msgid "R:"
+msgstr "R："
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/generic.xaml:405
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:624
+msgctxt "ToolTip"
+msgid "Red"
+msgstr "紅色"
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/generic.xaml:419
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:633
+msgctxt "RGBA"
+msgid "G:"
+msgstr "G："
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/generic.xaml:420
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:633
+msgctxt "ToolTip"
+msgid "Green"
+msgstr "綠色"
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/generic.xaml:434
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:642
+msgctxt "RGBA"
+msgid "B:"
+msgstr "B："
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/generic.xaml:435
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:642
+msgctxt "ToolTip"
+msgid "Blue"
+msgstr "藍色"
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/generic.xaml:449
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:651
+msgctxt "RGBA"
+msgid "A:"
+msgstr "A："
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/generic.xaml:450
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:651
+msgctxt "ToolTip"
+msgid "Alpha"
+msgstr "Alpha"
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/generic.xaml:469
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:664
+msgctxt "HSB"
+msgid "H:"
+msgstr "H："
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/generic.xaml:470
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:664
+msgctxt "ToolTip"
+msgid "Hue"
+msgstr "色調"
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/generic.xaml:484
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:673
+msgctxt "HSB"
+msgid "S:"
+msgstr "S："
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/generic.xaml:485
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:673
+msgctxt "ToolTip"
+msgid "Saturation"
+msgstr "飽和度"
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/generic.xaml:499
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:682
+msgctxt "HSB"
+msgid "B:"
+msgstr "B："
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/generic.xaml:500
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:682
+msgctxt "ToolTip"
+msgid "Value"
+msgstr "值"
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:1898
+msgctxt "ToolTip"
+msgid "Pick date and time"
+msgstr ""
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:3923
+msgctxt "ToolTip"
+msgid "Toggle editing mode"
+msgstr "切換編輯模式"
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:4179
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:4249
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:4328
+msgctxt "ToolTip"
+msgid "Advanced options"
+msgstr "進階選項"
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:4188
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:4257
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:4337
+msgid "All components:"
+msgstr "所有組件："
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:4621
+msgctxt "ToolTip"
+msgid "Clear Log"
+msgstr ""
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:4626
+msgctxt "ToolTip"
+msgid "Toggle Debug"
+msgstr ""
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:4629
+#, fuzzy
+msgctxt "ToolTip"
+msgid "Toggle Verbose"
+msgstr "切換編輯模式"
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:4632
+#, fuzzy
+msgctxt "ToolTip"
+msgid "Toggle Info"
+msgstr "切換編輯模式"
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:4635
+#, fuzzy
+msgctxt "ToolTip"
+msgid "Toggle Warning"
+msgstr "切換編輯模式"
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:4638
+msgctxt "ToolTip"
+msgid "Toggle Error"
+msgstr ""
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:4641
+msgctxt "ToolTip"
+msgid "Toggle Fatal"
+msgstr ""
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:4644
+msgctxt "ToolTip"
+msgid "Toggle Exception Stack Trace"
+msgstr ""
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:4650
+msgctxt "ToolTip"
+msgid "Go to previous search result"
+msgstr ""
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:4653
+msgctxt "ToolTip"
+msgid "Go to next search result"
+msgstr ""
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:4656
+msgctxt "ToolTip"
+msgid "Match case"
+msgstr ""
+
+#: ../presentation/Stride.Core.Presentation.Wpf/Themes/ThemeSelector.xaml:4659
+msgctxt "ToolTip"
+msgid "Match whole word"
+msgstr ""

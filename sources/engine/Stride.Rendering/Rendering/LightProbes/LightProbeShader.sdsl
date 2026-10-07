@@ -25,7 +25,7 @@ namespace Stride.Rendering.LightProbes
 #endif
             stage Buffer<uint4> LightProbeTetrahedronProbeIndices; // tetrahaedron ID => 4 probe IDs
             stage Buffer<float4> LightProbeTetrahedronMatrices; // tetrahaedron ID => world to tetrahedron space matrix
-            stage Buffer<float3> LightProbeCoefficients; // probe ID => SH coefficients
+            stage Buffer<float4> LightProbeCoefficients; // probe ID => SH coefficients, padded to float4 (no three-float texel buffers on Metal)
         }
 
         void FetchLightProbe(inout float3 sphericalColors[TOrder * TOrder], uint lightprobeIndex, float weight)

@@ -1,0 +1,20 @@
+namespace Stride.Shaders.Tests;
+
+shader CSNumThreadsOnNonEntry
+{
+    stage stream uint3 DispatchThreadId : SV_DispatchThreadID;
+
+    RWTexture2D<float4> Output;
+
+    [numthreads(8, 8, 1)]
+    void CSMain()
+    {
+        Compute();
+    }
+
+    [numthreads(16, 16, 1)]
+    void Compute()
+    {
+        Output[int2(0, 0)] = float4(1, 0, 0, 1);
+    }
+}

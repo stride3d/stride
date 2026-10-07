@@ -20,5 +20,5 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Stride.Video" + Stride.PublicKeys.Default)]
 
 #if !STRIDE_SIGNED
-[assembly: InternalsVisibleTo("Stride.Assets.Presentation")]
+[assembly: InternalsVisibleTo("Stride.Assets.Presentation.Wpf")]
 #endif

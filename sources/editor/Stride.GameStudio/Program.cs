@@ -23,7 +23,6 @@ using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Diagnostics;
-using Stride.Core.Extensions;
 using Stride.Core.IO;
 using Stride.Core.MostRecentlyUsedFiles;
 using Stride.Core.Presentation.Interop;
@@ -33,6 +32,7 @@ using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Presentation.Windows;
 using Stride.Core.Translation;
 using Stride.Core.Translation.Providers;
+using Stride.Editor;
 using Stride.Editor.Build;
 using Stride.Editor.Preview;
 using Stride.GameStudio.Helpers;
@@ -49,7 +49,7 @@ using MessageBoxResult = System.Windows.MessageBoxResult;
 
 namespace Stride.GameStudio;
 
-public static class Program
+public static partial class Program
 {
     private static App app;
     private static IntPtr windowHandle;
@@ -59,14 +59,37 @@ public static class Program
     private static readonly ConcurrentQueue<string> LogRingbuffer = new();
     private static bool enableThumbnailServices = true;
     private static bool resetGraphicsApiPreference;
+    private static bool launcherNotified;
+    private static Mutex instanceMutex;
+    private static readonly string AppDllPath = typeof(Program).Assembly.Location;
 
-    // Startup checkpoints; shared file with the AutoTesting runner.
+    // Startup checkpoints for the AutoTesting runner, which hosts us and collects the file; off otherwise.
+    private static bool diagLogEnabled;
     private static readonly string DiagLogPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "gs-diag.log");
     private static void DiagLog(string message)
     {
+        if (!diagLogEnabled) return;
         try { System.IO.File.AppendAllText(DiagLogPath, $"{DateTime.UtcNow:HH:mm:ss.fff} [tid={Thread.CurrentThread.ManagedThreadId}] GS: {message}\n"); }
         catch { /* best-effort */ }
     }
+
+    // A crash before Run's own handler exists (the module initializers, the NuGet resolver's restore, the JIT of Main),
+    // typically an assembly missing from the install, would otherwise kill the process with nothing on screen.
+    // Ordered before the resolver's initializer; user32 because anything else would need the resolver that just failed.
+    [Stride.Core.ModuleInitializer(int.MinValue)]
+    internal static void ArmStartupFailureDialog()
+    {
+        if (Assembly.GetEntryAssembly() == typeof(Program).Assembly)
+            AppDomain.CurrentDomain.UnhandledException += StartupFailureDialog;
+    }
+
+    private static void StartupFailureDialog(object sender, UnhandledExceptionEventArgs e)
+    {
+        MessageBoxW(IntPtr.Zero, $"Stride Game Studio failed to start.\n\n{e.ExceptionObject}", "Stride", 0x10 /* MB_ICONERROR */);
+    }
+
+    [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+    private static extern int MessageBoxW(IntPtr hWnd, string text, string caption, uint type);
 
     [STAThread]
     public static void Main()
@@ -102,10 +125,21 @@ public static class Program
     /// </summary>
     public static void Run(IList<string> args, Action<Application, Dispatcher>? appHosted = null)
     {
+        diagLogEnabled = appHosted != null;
         DiagLog($"Run entered. args=[{string.Join(", ", args)}]");
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
-        EditorPath.EditorTitle = StrideGameStudio.EditorName;
-
+        AppDomain.CurrentDomain.UnhandledException -= StartupFailureDialog;
+        // The managed handlers above can't see a native access violation (native interop, GPU drivers) — it kills
+        // the process first. Arm the native handler so such a crash is captured and offered to the reporter too.
+        Stride.CrashReport.NativeCrashReporting.Install("GameStudio");
+        // Sweep crash-routing dirs left by previous sessions.
+        CompilerCrashRouting.PruneStaleSessions();
+        // Lets the launcher see us during uninstall even when we run as a dotnet process (see HostInstanceMutex).
+        instanceMutex = HostInstanceMutex.Hold(AppContext.BaseDirectory);
+        // One taskbar identity per install, whether we run as our apphost or re-executed under dotnet.exe (which the
+        // taskbar would otherwise show as ".NET Host"). Installs stay separate, runtimes of one install merge.
+        if (OperatingSystem.IsWindows())
+            HostedWindowIdentity.Install("Stride.GameStudio." + DotNetHostSelector.PathHash(AppContext.BaseDirectory), $"Stride Game Studio {StrideGameStudio.EditorVersion}", System.IO.Path.ChangeExtension(AppDllPath, ".exe"));
         if (IntPtr.Size == 4)
         {
             MessageBox.Show("Stride GameStudio requires a 64bit OS to run.", "Stride", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -122,6 +156,9 @@ public static class Program
             EditorSettings.GraphicsApi.SetValue(EditorSettings.GraphicsApiDefault);
             EditorSettings.Save();
         }
+        // Source levels of the global loggers, before anything creates them.
+        foreach (var (module, level) in EditorSettings.GetModuleLevels(EditorSettings.SourceModuleLevels))
+            GlobalLogger.SetModuleLevel(module, level);
         Thread.CurrentThread.Name = "Main thread";
 
         try
@@ -130,64 +167,104 @@ public static class Program
             var lastSessionPath = EditorSettings.ReloadLastSession.GetValue() ? mru.MostRecentlyUsedFiles.FirstOrDefault() : null;
             var initialSessionPath = !UPath.IsNullOrEmpty(startupSessionPath) ? startupSessionPath : lastSessionPath?.FilePath;
 
-            // Handle arguments
+            // Handle arguments. Options are recorded for a restart as they are recognised (see RestartArgs).
             for (var i = 0; i < args.Count; i++)
             {
                 if (args[i] == "/LauncherWindowHandle")
                 {
+                    Forward(args[i], args[i + 1]);
                     windowHandle = new IntPtr(long.Parse(args[++i]));
                 }
                 else if (args[i] == "/NewProject")
                 {
+                    sessionArgs.Add(args[i]);
                     initialSessionPath = null;
                 }
                 else if (args[i] == "/DebugEditorGraphics")
                 {
+                    Forward(args[i]);
                     StrideConfig.GraphicsDebugMode = true;
                 }
                 else if (args[i] == "--graphics-api")
                 {
                     // Consumed at startup by GraphicsApiSelector; skip the following value here.
+                    Forward(args[i], args[i + 1]);
                     i++;
                 }
                 else if (args[i] == "/DisableThumbnails")
                 {
+                    Forward(args[i]);
                     enableThumbnailServices = false;
                 }
                 else if (args[i] == "/DisablePreview")
                 {
+                    Forward(args[i]);
                     GameStudioPreviewService.DisablePreview = true;
                 }
 #if STRIDE_GRAPHICS_API_DIRECT3D12
                 else if (args[i] == "/PixGpuCapturer")
                 {
+                    Forward(args[i]);
                     WinPixNative.LoadPixGpuCapturer();
                 }
 #endif
                 else if (args[i] == "/RenderDoc")
                 {
                     // TODO: RenderDoc is not working here (when not in debug)
+                    Forward(args[i]);
                     GameStudioPreviewService.DisablePreview = true;
                     renderDocManager = new RenderDocManager();
                     renderDocManager.Initialize();
                 }
                 else if (args[i] == "/RecordEffects")
                 {
+                    Forward(args[i], args[i + 1]);
                     GameStudioBuilderService.GlobalEffectLogPath = args[++i];
+                }
+                else if (args[i] == DotNetHostSelector.FrameworkArg && i + 1 < args.Count)
+                {
+                    // Consumed by DotNetHostSelector; skip the following value here.
+                    Forward(args[i], args[i + 1]);
+                    i++;
+                }
+                else if (args[i] == DotNetHostSelector.RelaunchedArg)
+                {
+                    // Consumed by DotNetHostSelector; a restarted editor decides its host again, so not forwarded.
                 }
                 else
                 {
+                    sessionArgs.Add(args[i]);
                     initialSessionPath = args[i];
                 }
             }
+
+            // The session may need a newer .NET major than we run on: re-execute on it before any window.
+            // The AutoTesting host stays put.
+            if (appHosted == null && !UPath.IsNullOrEmpty(initialSessionPath))
+            {
+                var hostDecision = ResolveHost(initialSessionPath.ToOSPath(), args);
+                if (hostDecision.Kind == DotNetHostSelector.DecisionKind.Relaunch)
+                {
+                    StartRelaunched(hostDecision, args);
+                    return;
+                }
+                if (hostDecision.Kind == DotNetHostSelector.DecisionKind.Missing)
+                    initialSessionPath = null;
+            }
+            // Past the host decision: these read the graphics API, i.e. load the staged graphics assembly.
+            EditorPath.EditorTitle = StrideGameStudio.EditorNameWithGraphicsApi;
+            EditorPath.EditorEnvironment = StrideGameStudio.EditorEnvironment;
             RuntimeHelpers.RunModuleConstructor(typeof(Asset).Module.ModuleHandle);
 
             //listen to logger for crash report
             GlobalLogger.GlobalMessageLogged += GlobalLoggerOnGlobalMessageLogged;
-            // Route GlobalLogger output to VS Debug pane (no-op in Release).
-            // Warning+ only — Info/Verbose volume slows the debugger noticeably during
-            // asset compile / NuGet restore.
-            GlobalLogger.GlobalMessageLogged += new DebugLogListener { MinimumLevel = LogMessageType.Warning };
+            // Route GlobalLogger output to the debugger's output pane (no-op in Release), as configured
+            // by the Logging editor settings: Warning+ by default, since Info/Verbose volume slows the
+            // debugger noticeably, with the graphics modules in full for validation layer messages.
+            var debugPaneListener = new DebugLogListener { MinimumLevel = EditorSettings.DebugOutputLevel.GetValue() };
+            foreach (var (module, level) in EditorSettings.GetModuleLevels(EditorSettings.DebugOutputModuleLevels))
+                debugPaneListener.ModuleLevels[module] = level;
+            GlobalLogger.GlobalMessageLogged += debugPaneListener;
 
             mainDispatcher = Dispatcher.CurrentDispatcher;
             mainDispatcher.InvokeAsync(() =>
@@ -210,6 +287,14 @@ public static class Program
                 app.DispatcherUnhandledException += (sender, eventArgs) =>
                 {
                     eventArgs.Handled = true;
+                    if (TryRestartAfterRenderThreadFailure(eventArgs.Exception))
+                        return;
+                    // The games are gone and the studio restarts: a UI call into a dead game is not a crash
+                    if (GraphicsDeviceLoss.Occurred)
+                    {
+                        GlobalLogger.GetLogger("GameStudio").Warning("Exception ignored after the graphics device loss.", eventArgs.Exception);
+                        return;
+                    }
                     HandleException(eventArgs.Exception, 0);
                 };
 
@@ -230,16 +315,20 @@ public static class Program
 
     private static void GlobalLoggerOnGlobalMessageLogged(ILogMessage logMessage)
     {
-        if (logMessage.Type <= LogMessageType.Warning) return;
+        if (logMessage.Type < LogMessageType.Warning) return;
 
         LogRingbuffer.Enqueue(logMessage.ToString());
-        while (LogRingbuffer.Count > 5)
+        while (LogRingbuffer.Count > 50)
         {
             LogRingbuffer.TryDequeue(out var msg);
         }
     }
 
-    private sealed record CrashReportArgs(int Location, Exception Exception, string[] Log, string ThreadName);
+    // Exit code after a crash was reported; 1 is a startup refusal
+    private const int CrashExitCode = 2;
+
+    private sealed record CrashReportArgs(int Location, Exception Exception, string[] Log, string ThreadName,
+        int ThreadId, System.Collections.Generic.IReadOnlyList<Stride.CrashReport.StoredThread> Threads);
     private static void CrashReport(object data)
     {
         var args = (CrashReportArgs)data;
@@ -247,27 +336,44 @@ public static class Program
         //Stop the game studio rendering thread
         mainDispatcher?.InvokeAsync(() => Thread.CurrentThread.Join());
 
-        CrashReportHelper.SendReport(args.Exception.FormatFull(), args.Location, args.Log, args.ThreadName);
+        CrashReportHelper.SendReport(args.Exception, args.Location, args.Log, args.ThreadName, args.ThreadId, args.Threads);
 
         //Make sure we stop now.. more exceptions might come but we just grab the first one
-        Environment.Exit(0);
+        Environment.Exit(CrashExitCode);
     }
+
+    // Windows swaps a window that stops pumping messages for a "(Not responding)" ghost whose X offers to kill the
+    // process. Off for the crash freeze and the render thread failure only; process-wide and irreversible, so never earlier.
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern void DisableProcessWindowsGhosting();
 
     private static void HandleException(Exception exception, int location)
     {
         if (exception == null) return;
+        if (exception is OperationCanceledException) return; // a cancelled operation isn't a crash
 
         //prevent multiple crash reports
         if (terminating) return;
         terminating = true;
 
+        // The UI thread stops pumping for as long as the crash reporter is up. Without this, the frozen window would
+        // turn into a "(Not responding)" ghost that lets the user kill the process mid-report (and mid-dump).
+        if (OperatingSystem.IsWindows())
+        {
+            try { DisableProcessWindowsGhosting(); } catch { /* cosmetic */ }
+        }
+
         // In case assembly resolve was not done yet, disable it altogether
         NuGetAssemblyResolver.DisableAssemblyResolve();
+
+        // Snapshot the other threads on the faulting thread, before it blocks below (the crashing thread's stack is in the exception).
+        var threads = Stride.CrashReport.ThreadSnapshot.CaptureAtCurrentThread(out var crashedThreadId, out var crashedThreadName);
 
         var englishCulture = new CultureInfo("en-US");
         var crashLogThread = new Thread(CrashReport) { CurrentUICulture = englishCulture, CurrentCulture = englishCulture };
         crashLogThread.SetApartmentState(ApartmentState.STA);
-        crashLogThread.Start(new CrashReportArgs(location, exception, LogRingbuffer.ToArray(), Thread.CurrentThread.Name));
+        crashLogThread.Start(new CrashReportArgs(location, exception, LogRingbuffer.ToArray(), crashedThreadName,
+            crashedThreadId, threads));
         crashLogThread.Join();
     }
 
@@ -319,61 +425,75 @@ public static class Program
                     var mainWindow = new GameStudioWindow(editor);
                     Application.Current.MainWindow = mainWindow;
                     WindowManager.ShowMainWindow(mainWindow);
+                    CompilerCrashRouting.SetOwnerWindow(mainWindow);
                     return;
                 }
+                // The session asked for did not load (cancelled or failed): exit instead of offering another one,
+                // once the user has closed the windows that report why.
+                await WaitForWindowsClosedAsync();
+                app.Shutdown();
+                return;
             }
 
             // No session successfully loaded, open the new/open project window
             bool? completed;
             // The user might cancel after chosing a template to instantiate, in this case we'll reopen the window
-            var startupWindow = new ProjectSelectionWindow
+            while (true)
             {
-                WindowStartupLocation = WindowStartupLocation.CenterScreen,
-                ShowInTaskbar = true,
-            };
-            var viewModel = new NewOrOpenSessionTemplateCollectionViewModel(serviceProvider, startupWindow);
-            startupWindow.Templates = viewModel;
-            startupWindow.ShowDialog();
+                var startupWindow = new ProjectSelectionWindow
+                {
+                    WindowStartupLocation = WindowStartupLocation.CenterScreen,
+                    ShowInTaskbar = true,
+                };
+                var viewModel = new NewOrOpenSessionTemplateCollectionViewModel(serviceProvider, startupWindow);
+                startupWindow.Templates = viewModel;
+                startupWindow.ShowDialog();
+                viewModel.Destroy();
 
-            // The user selected a template to instantiate
-            if (startupWindow.NewSessionParameters != null)
-            {
-                // Clean existing entry in the MRU data
-                var directory = startupWindow.NewSessionParameters.OutputDirectory;
-                var name = startupWindow.NewSessionParameters.OutputName;
-                var mruData = new MRUAdditionalDataCollection(InternalSettings.LoadProfileCopy, GameStudioInternalSettings.MostRecentlyUsedSessionsData, InternalSettings.WriteFile);
-                mruData.RemoveFile(UFile.Combine(UDirectory.Combine(directory, name), new UFile(name + SessionViewModel.SolutionExtension)));
+                // The user selected a template to instantiate
+                if (startupWindow.NewSessionParameters != null)
+                {
+                    // Clean existing entry in the MRU data
+                    var directory = startupWindow.NewSessionParameters.OutputDirectory;
+                    var name = startupWindow.NewSessionParameters.OutputName;
+                    var mruData = new MRUAdditionalDataCollection(InternalSettings.LoadProfileCopy, GameStudioInternalSettings.MostRecentlyUsedSessionsData, InternalSettings.WriteFile);
+                    mruData.RemoveFile(UFile.Combine(UDirectory.Combine(directory, name), new UFile(name + SessionViewModel.SolutionExtension)));
 
-                completed = await editor.NewSession(startupWindow.NewSessionParameters);
-            }
-            // The user selected a path to open
-            else if (startupWindow.ExistingSessionPath != null)
-            {
-                completed = await editor.OpenSession(startupWindow.ExistingSessionPath);
-            }
-            // The user cancelled from the new/open project window, so exit the application
-            else
-            {
-                completed = true;
+                    completed = await editor.NewSession(startupWindow.NewSessionParameters);
+                }
+                // The user selected a path to open
+                else if (startupWindow.ExistingSessionPath != null)
+                {
+                    // Same host check as at startup, now that the session is known.
+                    var sessionPath = startupWindow.ExistingSessionPath.ToOSPath();
+                    var restartArgs = RestartArgs(sessionPath, newProject: false);
+                    var hostDecision = ResolveHost(sessionPath, restartArgs);
+                    if (hostDecision.Kind == DotNetHostSelector.DecisionKind.Relaunch)
+                    {
+                        StartRelaunched(hostDecision, restartArgs);
+                        app.Shutdown();
+                        return;
+                    }
+                    // The missing runtime or SDK was reported; nothing was loaded, so back to the window.
+                    if (hostDecision.Kind == DotNetHostSelector.DecisionKind.Missing)
+                        continue;
+                    completed = await editor.OpenSession(startupWindow.ExistingSessionPath);
+                }
+                // The user cancelled from the new/open project window, so exit the application
+                else
+                {
+                    completed = true;
+                }
+                break;
             }
 
             if (completed != true)
             {
-                var windowsClosed = new List<Task>();
-                foreach (var window in Application.Current.Windows.Cast<Window>().Where(x => x.IsLoaded))
-                {
-                    var tcs = new TaskCompletionSource<int>();
-                    window.Unloaded += (s, e) => tcs.SetResult(0);
-                    windowsClosed.Add(tcs.Task);
-                }
-
-                await Task.WhenAll(windowsClosed);
+                await WaitForWindowsClosedAsync();
 
                 // When a project has been partially loaded, it might already have initialized some plugin that could conflict with
                 // the next attempt to start something. Better start the application again.
-                var commandLine = string.Join(" ", Environment.GetCommandLineArgs().Skip(1).Select(x => $"\"{x}\""));
-                var process = new Process { StartInfo = new ProcessStartInfo(typeof(Program).Assembly.Location, commandLine) };
-                process.Start();
+                Restart(null);
                 app.Shutdown();
                 return;
             }
@@ -384,6 +504,7 @@ public static class Program
                 var mainWindow = new GameStudioWindow(editor);
                 Application.Current.MainWindow = mainWindow;
                 WindowManager.ShowMainWindow(mainWindow);
+                CompilerCrashRouting.SetOwnerWindow(mainWindow);
             }
             else
             {
@@ -398,16 +519,77 @@ public static class Program
         }
     }
 
-    private static void RestartApplication()
+    private static Task WaitForWindowsClosedAsync()
     {
-        var args = Environment.GetCommandLineArgs();
-        var startInfo = new ProcessStartInfo(Assembly.GetEntryAssembly().Location)
+        var windowsClosed = new List<Task>();
+        foreach (var window in Application.Current.Windows.Cast<Window>().Where(x => x.IsLoaded))
         {
-            Arguments = string.Join(" ", args.Skip(1)),
-            WorkingDirectory = Environment.CurrentDirectory,
-        };
+            var tcs = new TaskCompletionSource<int>();
+            window.Unloaded += (s, e) => tcs.SetResult(0);
+            windowsClosed.Add(tcs.Task);
+        }
+        return Task.WhenAll(windowsClosed);
+    }
+
+    /// <summary>
+    /// Starts a new editor for <paramref name="sessionPath"/> (or for the new-project window, or with the current
+    /// session arguments when neither is asked), on the .NET major that session needs. The caller shuts this one down.
+    /// </summary>
+    internal static void Restart(string sessionPath, bool newProject = false)
+    {
+        var args = RestartArgs(sessionPath, newProject);
+        // Against our own build's major, not the one we may already have been re-executed on.
+        var decision = DotNetHostSelector.ResolveFor(AppDllPath, DotNetHostSelector.ReadNativeMajor(AppDllPath), sessionPath, args);
+        Start(decision.Kind == DotNetHostSelector.DecisionKind.Relaunch
+            ? DotNetHostSelector.RelaunchStartInfo(AppDllPath, decision.Major, args, decision.Install)
+            : DotNetHostSelector.NativeStartInfo(AppDllPath, args));
+    }
+
+    private static void StartRelaunched(DotNetHostSelector.Decision decision, IEnumerable<string> args)
+        => Start(DotNetHostSelector.RelaunchStartInfo(AppDllPath, decision.Major, args, decision.Install));
+
+    private static void Start(ProcessStartInfo startInfo)
+    {
+        // dotnet.exe is a console program; started from a GUI process it would get a console window of its own.
+        startInfo.CreateNoWindow = true;
         Process.Start(startInfo);
-        Environment.Exit(0);
+    }
+
+    // Host decision for a session; a missing runtime or SDK is reported here, once.
+    private static DotNetHostSelector.Decision ResolveHost(string sessionPath, IEnumerable<string> args)
+    {
+        var decision = DotNetHostSelector.ResolveFor(AppDllPath, Environment.Version.Major, sessionPath, args);
+        if (decision.Kind == DotNetHostSelector.DecisionKind.Missing)
+            MessageBox.Show(decision.Reason, "Stride", MessageBoxButton.OK, MessageBoxImage.Warning);
+        return decision;
+    }
+
+    // The options the argument loop recognised, in order, and apart from them the session tokens (a path, /NewProject).
+    private static readonly List<(string Option, string Value)> forwardedArgs = [];
+    private static readonly List<string> sessionArgs = [];
+
+    private static void Forward(string option, string value = null) => forwardedArgs.Add((option, value));
+
+    // The command line for a new editor process: the recognised options (the launcher handshake dropped once
+    // answered), then the session: the one given, or the current one when neither a path nor a new project is asked.
+    private static List<string> RestartArgs(string sessionPath, bool newProject)
+    {
+        var result = new List<string>();
+        foreach (var (option, value) in forwardedArgs)
+        {
+            if (launcherNotified && option.StartsWith("/Launcher"))
+                continue;
+            result.Add(option);
+            if (value != null)
+                result.Add(value);
+        }
+        if (sessionPath != null)
+            result.Add(sessionPath);
+        else if (newProject)
+            result.Add("/NewProject");
+        else
+            result.AddRange(sessionArgs);
+        return result;
     }
 
     private static IViewModelServiceProvider InitializeServiceProvider()
@@ -448,5 +630,6 @@ public static class Program
         {
             NativeHelper.SendMessage(windowHandle, NativeHelper.WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
         }
+        launcherNotified = true;
     }
 }

@@ -50,7 +50,7 @@ namespace Stride.Graphics
             Span<VkPhysicalDevice> nativePhysicalDevices = stackalloc VkPhysicalDevice[(int)physicalDevicesCount];
             defaultInstance.NativeInstanceApi.vkEnumeratePhysicalDevices(defaultInstance.NativeInstance, nativePhysicalDevices).CheckResult();
             
-            var adapterList = new List<GraphicsAdapter>();
+            var physicalDevices = new List<(VkPhysicalDevice Device, VkPhysicalDeviceProperties Properties, VkPhysicalDeviceDriverProperties DriverProperties, int EnumerationIndex)>();
             for (int index = 0; index < nativePhysicalDevices.Length; index++)
             {
                 VkPhysicalDeviceProperties properties;
@@ -62,7 +62,17 @@ namespace Stride.Graphics
                 if (properties.apiVersion >= VkVersion.Version_1_2)
                     defaultInstance.NativeInstanceApi.vkGetPhysicalDeviceProperties2(nativePhysicalDevices[index], &properties2);
 
-                var adapter = new GraphicsAdapter(nativePhysicalDevices[index], properties, driverProps, index);
+                physicalDevices.Add((nativePhysicalDevices[index], properties, driverProps, index));
+            }
+
+            // The fastest kind first, as DXGI's high-performance order does on Direct3D: a hybrid laptop enumerates its integrated GPU first.
+            physicalDevices.Sort((a, b) => PerformanceRank(a.Properties.deviceType).CompareTo(PerformanceRank(b.Properties.deviceType)));
+
+            var adapterList = new List<GraphicsAdapter>();
+            for (int index = 0; index < physicalDevices.Count; index++)
+            {
+                var (device, properties, driverProps, enumerationIndex) = physicalDevices[index];
+                var adapter = new GraphicsAdapter(device, properties, driverProps, index, enumerationIndex);
                 staticCollector.Add(adapter);
                 adapterList.Add(adapter);
             }
@@ -72,6 +82,15 @@ namespace Stride.Graphics
 
             staticCollector.Add(new AnonymousDisposable(Cleanup));
         }
+
+        private static int PerformanceRank(VkPhysicalDeviceType type) => type switch
+        {
+            VkPhysicalDeviceType.DiscreteGpu => 0,
+            VkPhysicalDeviceType.IntegratedGpu => 1,
+            VkPhysicalDeviceType.VirtualGpu => 2,
+            VkPhysicalDeviceType.Cpu => 3,
+            _ => 4,
+        };
 
         // Stride ships MoltenVK bundled but loads it as a flat ICD (libvulkan.1.dylib renamed). That
         // skips the LunarG loader, which means validation layers, layer-injected debug callbacks
@@ -157,6 +176,14 @@ namespace Stride.Graphics
         // We use GraphicsDevice (similar to OpenGL)
         private static readonly Logger Log = GlobalLogger.GetLogger(nameof(GraphicsDevice));
 
+        /// <summary>
+        ///   Creates the Vulkan instance and, when requested, its validation layer and debug messenger.
+        /// </summary>
+        /// <param name="enableValidation">Enable the Khronos validation layer.</param>
+        /// <remarks>
+        ///   <c>STRIDE_VULKAN_SYNC_VALIDATION=1</c> adds synchronization validation. The validation layer
+        ///   provides its extension, so the ICD's instance extension list does not include it.
+        /// </remarks>
         public unsafe GraphicsAdapterFactoryInstance(bool enableValidation)
         {
             var pEngineName = new VkUtf8ReadOnlyString("Stride"u8);
@@ -198,7 +225,7 @@ namespace Stride.Graphics
                 Log.Info($"Vulkan validation layer {(enableValidation ? "enabled" : "not found")} for debug instance");
             }
 
-            var supportedExtensionNames = stackalloc VkUtf8String[]
+            Span<VkUtf8String> supportedExtensionNames = stackalloc VkUtf8String[]
             {
                 VK_KHR_SURFACE_EXTENSION_NAME,
                 VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
@@ -209,8 +236,7 @@ namespace Stride.Graphics
                 VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME,
                 VK_EXT_DEBUG_UTILS_EXTENSION_NAME
             };
-            var supportedExtensions = new Span<VkUtf8String>(supportedExtensionNames, 8);
-            var availableExtensionNames = GetAvailableExtensionNames(supportedExtensions);
+            var availableExtensionNames = GetAvailableExtensionNames(supportedExtensionNames);
             // Surface extensions are optional at instance creation (not available with headless ICDs).
             // They are validated later when a swapchain is actually created.
             var desiredExtensionNames = new HashSet<VkUtf8String>();
@@ -236,6 +262,11 @@ namespace Stride.Graphics
                 desiredExtensionNames.Add(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
             HasDebugUtilsSupport = enableDebugUtils;
 
+            bool enableSyncValidation = enableValidation
+                && Environment.GetEnvironmentVariable("STRIDE_VULKAN_SYNC_VALIDATION") == "1";
+            if (enableSyncValidation)
+                desiredExtensionNames.Add(VK_EXT_VALIDATION_FEATURES_EXTENSION_NAME);
+
             using VkStringArray ppEnabledLayerNames = new(enabledLayerNames);
             using VkStringArray ppEnabledExtensionNames = new(desiredExtensionNames);
 
@@ -249,6 +280,16 @@ namespace Stride.Graphics
                 enabledExtensionCount = ppEnabledExtensionNames.Length,
                 ppEnabledExtensionNames = ppEnabledExtensionNames,
             };
+
+            var syncValidationFeature = VkValidationFeatureEnableEXT.SynchronizationValidation;
+            var validationFeatures = new VkValidationFeaturesEXT
+            {
+                sType = VkStructureType.ValidationFeaturesEXT,
+                enabledValidationFeatureCount = 1,
+                pEnabledValidationFeatures = &syncValidationFeature,
+            };
+            if (enableSyncValidation)
+                instanceCreateInfo.pNext = &validationFeatures;
 
             // Silence MoltenVK's per-instance info dump (153-line extension list, device banner).
             // Set via env var instead of VkLayerSettingsCreateInfoEXT — the layer-settings struct
@@ -270,6 +311,7 @@ namespace Stride.Graphics
                 var layerSettings = new VkLayerSettingsCreateInfoEXT
                 {
                     sType = VkStructureType.LayerSettingsCreateInfoEXT,
+                    pNext = instanceCreateInfo.pNext,
                     settingCount = 1,
                     pSettings = &mvkLogLevelSetting,
                 };

@@ -314,6 +314,24 @@ public static partial class Spv
             return this;
         }
 
+        private readonly DisWriter AppendPairIdRefIdRefs(SpvOperand operand)
+        {
+            var count = operand.Quantifier switch
+            {
+                OperandQuantifier.One => 1,
+                OperandQuantifier.ZeroOrMore => operand.Words.Length / 2,
+                OperandQuantifier.ZeroOrOne => operand.Words.Length == 0 ? 0 : 1,
+                _ => throw new NotSupportedException($"Unsupported operand quantifier: {operand.Quantifier}"),
+            };
+
+            for (int i = 0; i < count; ++i)
+            {
+                AppendIdRef(operand.Words[i * 2]);
+                AppendIdRef(operand.Words[i * 2 + 1]);
+            }
+            return this;
+        }
+
         public readonly void Disassemble()
         {
             DisHeader();
@@ -409,6 +427,7 @@ public static partial class Spv
                         },
                         OperandKind.PairIdRefLiteralInteger => AppendPairIdRefLiteralIntegers(operand),
                         OperandKind.PairLiteralIntegerIdRef => AppendPairLiteralIntegerIdRefs(operand),
+                        OperandKind.PairIdRefIdRef => AppendPairIdRefIdRefs(operand),
                         _ => throw new NotImplementedException("Unsupported operand kind " + operand.Kind),
                     };
                 }

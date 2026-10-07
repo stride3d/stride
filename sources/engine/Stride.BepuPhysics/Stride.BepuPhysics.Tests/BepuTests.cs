@@ -222,7 +222,12 @@ namespace Stride.BepuPhysics.Tests
             {
                 game.ScreenShotAutomationEnabled = false;
 
-                var c1 = new CharacterComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider() } } };
+                var touching = new HashSet<CollidableComponent>();
+                var contacts = new ContactEvents { NoContactResponse = false };
+                contacts.StartedTouching += (_, other) => touching.Add(other);
+                contacts.StoppedTouching += (_, other) => touching.Remove(other);
+
+                var c1 = new CharacterComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider() } }, ContactEventHandler = contacts };
                 var c2 = new StaticComponent { Collider = new CompoundCollider { Colliders = { new BoxCollider() } } };
 
                 var e1 = new Entity { c1 };
@@ -234,13 +239,16 @@ namespace Stride.BepuPhysics.Tests
 
                 var simulation = e1.GetSimulation();
 
-                while (c1.Contacts.Count == 0)
+                while (touching.Count == 0)
+                {
                     await simulation.AfterUpdate(); // Wait for a collision
+                    Assert.True(game.UpdateTime.Total.TotalSeconds < 5d);
+                }
 
-                foreach (var component in c1.Contacts.Select(x => x.Source).ToArray())
+                foreach (var component in touching.ToArray())
                     component.Entity.Scene = null;
 
-                Assert.Empty(c1.Contacts);
+                Assert.Empty(touching);
 
                 game.Exit();
             });

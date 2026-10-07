@@ -1,0 +1,26 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Rendering.Images
+{
+    /// <summary>
+    /// Helpers for values that end up in half-float render targets.
+    /// </summary>
+    shader HalfPrecisionUtils
+    {
+        /// <summary>
+        /// Half the half-float maximum (65504), leaving headroom for the blurs and sums that follow.
+        /// </summary>
+        static const float MaxSafeValue = 32000.0;
+
+        /// <summary>
+        /// Clamps a color to [0, MaxSafeValue]; a NaN becomes 0.
+        /// </summary>
+        static float3 ClampToSafeRange(float3 color)
+        {
+            // A per-component select, not a branch. A NaN fails the comparison, so it lands on 0
+            // without going through min/max, whose result on a NaN is undefined in SPIR-V.
+            return color > 0.0 ? min(color, MaxSafeValue) : 0.0;
+        }
+    };
+}

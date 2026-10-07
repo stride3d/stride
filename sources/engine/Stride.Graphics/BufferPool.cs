@@ -52,13 +52,21 @@ namespace Stride.Graphics
 
         public void Dispose()
         {
+            Unmap();
+
 #pragma warning disable 162 // Unreachable code detected
             if (UseBufferOffsets)
-                allocator.ReleaseReference(constantBuffer);
+                ReleaseBuffer();
 #pragma warning restore 162
             else
                 Marshal.FreeHGlobal(Data);
             Data = IntPtr.Zero;
+        }
+
+        private void ReleaseBuffer()
+        {
+            constantBuffer.Destroyed -= OnBufferDestroyed;
+            allocator.ReleaseReference(constantBuffer);
         }
 
         public void Map(CommandList commandList)
@@ -82,24 +90,34 @@ namespace Stride.Graphics
             if (UseBufferOffsets && mappedConstantBuffer.Resource != null)
             {
                 using (new DefaultCommandListLock(commandList))
-                {
                     commandList.UnmapSubResource(mappedConstantBuffer);
-                    mappedConstantBuffer = new MappedResource();
-                }
+
+                mappedConstantBuffer = new MappedResource();
             }
 #pragma warning restore 162
         }
 
+        // The mapping goes with the buffer's memory: once the buffer is destroyed there is nothing to unmap
+        // (and trying is a null dereference on Direct3D 12, a crash on MoltenVK)
+        private void OnBufferDestroyed(object sender, EventArgs e)
+        {
+            mappedConstantBuffer = new MappedResource();
+        }
+
         public void Reset()
         {
+            // Pools stay mapped for the whole frame, so this is where the previous frame's mapping ends
+            Unmap();
+
 #pragma warning disable 162
             if (UseBufferOffsets)
             {
                 // Release previous buffer
                 if (constantBuffer != null)
-                    allocator.ReleaseReference(constantBuffer);
+                    ReleaseBuffer();
 
                 constantBuffer = allocator.GetTemporaryBuffer(new BufferDescription(Size, BufferFlags.ConstantBuffer, GraphicsResourceUsage.Dynamic));
+                constantBuffer.Destroyed += OnBufferDestroyed;
             }
 #pragma warning restore 162
 

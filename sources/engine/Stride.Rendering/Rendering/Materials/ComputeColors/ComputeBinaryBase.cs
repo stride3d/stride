@@ -112,7 +112,9 @@ namespace Stride.Rendering.Materials.ComputeColors
             switch (binaryOperand)
             {
                 case BinaryOperator.Add:
-                    return "ComputeColorAdd3ds"; //TODO: change this (ComputeColorAdd?)
+                    return "ComputeColorAdd3ds";
+                case BinaryOperator.AddMath:
+                    return "ComputeColorAdd";
                 case BinaryOperator.Average:
                     return "ComputeColorAverage";
                 case BinaryOperator.Color:

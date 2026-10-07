@@ -139,6 +139,11 @@ public static partial class NuGetAssemblyResolver
                                     $"Could not restore NuGet packages for {packageName} {packageVersion} ({targetFramework}).{Environment.NewLine}{diagnostics}");
                             }
 
+                            // The packages folder this restore used, NuGet config included: the crash reporter is one of
+                            // the packages it put there, and Stride.CrashReport finds it through this variable (it reads
+                            // no NuGet config itself, so as not to load NuGet in a crashing process).
+                            Environment.SetEnvironmentVariable("STRIDE_NUGET_PACKAGES", request.PackagesDirectory);
+
                             // Deployed path: pick the selected API's subfolder per package (null -> platform default).
                             var assemblies = RestoreHelper.ListAssemblies(result.LockFile, selectedGraphicsApi);
 

@@ -39,7 +39,7 @@ Hierarchy:
                         Children: {}
                     94452f1c574c3c9ba5878584f7780bdb: !ModelComponent
                         Id: 5cbaf33b-e1ea-438e-ab54-d8dc1dd458b4
-                        Model: 53331527-d518-4022-93a5-dd7794319977:Models/Stand
+                        Model: 53331527-d518-4022-93a5-dd7794319977:/SamplesAssetPackage/Models/Stand
                         Materials: {}
         -   Entity:
                 Id: 71565734-54a1-4c33-a1ea-c4873973d93a
@@ -54,7 +54,7 @@ Hierarchy:
                             f715f4540f4dcd612415012df8092638: ref!! 098644b0-0739-4a4e-a9d5-38246f043263
                     41ca5acd9029abf309c9300492fd6a0a: !ModelComponent
                         Id: 210bc310-d21a-44a9-bccf-173c4926a47d
-                        Model: f68ea240-695a-4de5-9884-60d77544fcd6:Models/mannequinModel
+                        Model: f68ea240-695a-4de5-9884-60d77544fcd6:/mannequinModel/Models/mannequinModel
                         Materials: {}
                     bb167954009b06e13f5033dc75cadf9a: !CSharpBeginner.Code.DeltaTimeDemo,CSharpBeginner.Game
                         Id: ec4745f4-aa61-428b-935a-20ecc241fd7e

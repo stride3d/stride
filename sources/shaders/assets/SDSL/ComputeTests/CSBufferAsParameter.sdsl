@@ -1,0 +1,24 @@
+// PSMain(ExpectedResult=#00000000)
+
+// A typed buffer handed to another method. RWBuffer<uint> is an OpTypeImage, so it is an opaque
+// resource: it must live in UniformConstant storage and be passed as the caller's pointer.
+
+namespace Stride.Shaders.Tests;
+
+shader CSBufferAsParameter
+{
+    stage stream uint3 DispatchThreadId : SV_DispatchThreadID;
+
+    RWBuffer<uint> Output;
+
+    void WriteAt(RWBuffer<uint> target, uint index, uint value)
+    {
+        target[index] = value;
+    }
+
+    [numthreads(32, 32, 1)]
+    void CSMain()
+    {
+        WriteAt(Output, streams.DispatchThreadId.x, 1);
+    }
+}

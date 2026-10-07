@@ -465,18 +465,14 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
         var componentConstant = context.CompileConstant(component);
         var resultTypeId = context.GetOrRegister(functionType.ReturnType);
 
-        // Try to promote all 4 offsets to constants (handles inline int2(x,y) constructors)
-        var co1 = TryPromoteToConstant(context, builder, o1.Id);
-        var co2 = TryPromoteToConstant(context, builder, o2.Id);
-        var co3 = TryPromoteToConstant(context, builder, o3.Id);
-        var co4 = TryPromoteToConstant(context, builder, o4.Id);
-        if (co1 >= 0 && co2 >= 0 && co3 >= 0 && co4 >= 0)
+        // Try to turn all 4 offsets into constants (handles inline constant expressions such as int2(x,y) constructors)
+        if (TryHoistOffsetsAsConstants(context, builder, o1, o2, o3, o4))
         {
             var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
             var int2Type = new VectorType(ScalarType.Int, 2);
             var arrayType = context.GetOrRegister(new ArrayType(int2Type, 4));
             var constOffsetsId = context.Bound++;
-            context.AddData(new OpConstantComposite(arrayType, constOffsetsId, [co1, co2, co3, co4]));
+            context.AddData(new OpConstantComposite(arrayType, constOffsetsId, [o1.Id, o2.Id, o3.Id, o4.Id]));
 
             Span<int> operands = [constOffsetsId];
             var gather = builder.Insert(new OpImageGather(resultTypeId, context.Bound++, sampledImage.ResultId, x.Id, componentConstant.Id, ImageOperandsMask.ConstOffsets, new EnumerantParameters(operands)));
@@ -517,18 +513,14 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
         var typeSampledImage = context.GetOrRegister(new SampledImage(textureType));
         var resultTypeId = context.GetOrRegister(functionType.ReturnType);
 
-        // Try to promote all 4 offsets to constants (handles inline int2(x,y) constructors)
-        var co1 = TryPromoteToConstant(context, builder, o1.Id);
-        var co2 = TryPromoteToConstant(context, builder, o2.Id);
-        var co3 = TryPromoteToConstant(context, builder, o3.Id);
-        var co4 = TryPromoteToConstant(context, builder, o4.Id);
-        if (co1 >= 0 && co2 >= 0 && co3 >= 0 && co4 >= 0)
+        // Try to turn all 4 offsets into constants (handles inline constant expressions such as int2(x,y) constructors)
+        if (TryHoistOffsetsAsConstants(context, builder, o1, o2, o3, o4))
         {
             var sampledImage = builder.Insert(new OpSampledImage(typeSampledImage, context.Bound++, texture.Id, s.Id));
             var int2Type = new VectorType(ScalarType.Int, 2);
             var arrayType = context.GetOrRegister(new ArrayType(int2Type, 4));
             var constOffsetsId = context.Bound++;
-            context.AddData(new OpConstantComposite(arrayType, constOffsetsId, [co1, co2, co3, co4]));
+            context.AddData(new OpConstantComposite(arrayType, constOffsetsId, [o1.Id, o2.Id, o3.Id, o4.Id]));
 
             Span<int> operands = [constOffsetsId];
             var gather = builder.Insert(new OpImageDrefGather(resultTypeId, context.Bound++, sampledImage.ResultId, x.Id, compareValue.Id, ImageOperandsMask.ConstOffsets, new EnumerantParameters(operands)));
@@ -550,55 +542,16 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
         return new(result.ResultId, result.ResultType);
     }
 
-    /// <summary>
-    /// Returns true if the given ID refers to a constant instruction (OpConstant, OpConstantComposite, etc.) in context.
-    /// </summary>
-    private static bool IsConstantInContext(SpirvContext context, int id)
+    // ConstOffsets takes the 4 offsets as one constant, so they all have to be constants
+    private static bool TryHoistOffsetsAsConstants(SpirvContext context, SpirvBuilder builder, params ReadOnlySpan<SpirvValue> offsets)
     {
-        if (!context.GetBuffer().TryGetInstructionById(id, out var inst))
-            return false;
-        return inst.Op is Op.OpConstant or Op.OpConstantTrue or Op.OpConstantFalse
-            or Op.OpConstantComposite or Op.OpConstantNull
-            or Op.OpSpecConstantComposite;
-    }
-
-    /// <summary>
-    /// Tries to promote a value to a constant in context for use as ConstOffset.
-    /// Handles the simple case: OpCompositeConstruct in builder where all constituents are already constants in context.
-    /// Also handles scalar constants already in context.
-    /// Returns the constant ID if successful, or -1 if the value cannot be promoted.
-    /// </summary>
-    private static int TryPromoteToConstant(SpirvContext context, SpirvBuilder builder, int id)
-    {
-        // Already a constant in context
-        if (IsConstantInContext(context, id))
-            return id;
-
-        var buf = builder.GetBuffer();
-        if (!buf.TryGetInstructionById(id, out var inst))
-            return -1;
-
-        // OpCompositeConstruct with all-constant constituents
-        if (inst.Op == Op.OpCompositeConstruct)
+        foreach (var offset in offsets)
         {
-            var cspan = inst.Data.Memory.Span;
-            Span<int> constituents = stackalloc int[cspan.Length - 3];
-            for (int j = 3; j < cspan.Length; j++)
-            {
-                var promoted = TryPromoteToConstant(context, builder, cspan[j]);
-                if (promoted < 0)
-                    return -1;
-                constituents[j - 3] = promoted;
-            }
-
-            // All constituents are constants — emit OpConstantComposite in context
-            var cResultType = cspan[1];
-            var cConstId = context.Bound++;
-            context.AddData(new OpConstantComposite(cResultType, cConstId, new(constituents)));
-            return cConstId;
+            if (!ExpressionExtensions.TryHoistAsConstant(context, builder.GetBuffer(), offset.Id))
+                return false;
         }
 
-        return -1;
+        return true;
     }
 
     private static void StoreQueryComponent(SpirvContext context, SpirvBuilder builder, int uintTypeId, int sizeResultId, int sizeComponents, int componentIndex, SpirvValue outParam)
@@ -660,12 +613,11 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
         }
         if (offset != null)
         {
-            // Try to promote to constant (handles int2(1,3) style inline constructors)
-            var constId = TryPromoteToConstant(context, builder, offset.Value.Id);
-            if (constId >= 0)
+            // Turn it into a constant (handles inline constant expressions such as int2(1, Step * 2))
+            if (ExpressionExtensions.TryHoistAsConstant(context, builder.GetBuffer(), offset.Value.Id))
             {
                 imask |= ImageOperandsMask.ConstOffset;
-                operands[operandCount++] = constId;
+                operands[operandCount++] = offset.Value.Id;
             }
             else
             {

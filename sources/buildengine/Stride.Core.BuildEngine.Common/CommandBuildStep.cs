@@ -22,6 +22,13 @@ public class CommandBuildStep : BuildStep
     public Command Command { get; }
 
     /// <summary>
+    /// The step whose command is running on the current async flow, null outside one. Lets a process-wide
+    /// handler (the asset compiler's native-crash recorder) name what the faulting thread was building.
+    /// </summary>
+    public static CommandBuildStep Current => current.Value;
+    private static readonly AsyncLocal<CommandBuildStep> current = new();
+
+    /// <summary>
     /// Command Result, set only after step completion. Not thread safe, should not be modified
     /// </summary>
     public CommandResultEntry Result { get; private set; }
@@ -305,12 +312,23 @@ public class CommandBuildStep : BuildStep
                         }
                     }
 
-                    status = await Command.DoCommand(commandContext);
+                    current.Value = this;
+                    try
+                    {
+                        status = await Command.DoCommand(commandContext);
+                    }
+                    finally
+                    {
+                        current.Value = null;
+                    }
                 }
                 catch (Exception ex)
                 {
                     executeContext.Logger.Error("Exception in command " + this + ": " + ex);
                     status = ResultStatus.Failed;
+                    // An exception reaching here means the command threw something it did not handle — a bug.
+                    // The asset compiler (when it set this hook) captures it as a crash report.
+                    builderContext.CommandFailed?.Invoke(this, ex);
                 }
 
                 Command.PostCommand(commandContext, status);

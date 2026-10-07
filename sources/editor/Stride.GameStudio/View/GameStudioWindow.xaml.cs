@@ -44,6 +44,7 @@ namespace Stride.GameStudio.View
     {
         private DebugWindow debugWindow;
         private bool forceClose;
+        private bool isSavingAndClosing;
         private readonly DockingLayoutManager dockingLayout;
         private readonly AssetEditorsManager assetEditorsManager;
         private TaskCompletionSource<bool> closingTask;
@@ -72,6 +73,8 @@ namespace Stride.GameStudio.View
 
             InitializeComponent();
             Application.Current.Activated += (s, e) => editor.ServiceProvider.Get<IEditorDialogService>().ShowDelayedNotifications();
+            // A question raised while a progress window was up waits for that window to close.
+            WindowManager.MainWindowUnblocked += (s, e) => editor.ServiceProvider.Get<IEditorDialogService>().ShowDelayedNotifications();
             Loaded += GameStudioLoaded;
         }
 
@@ -122,6 +125,11 @@ namespace Stride.GameStudio.View
 
         public bool IsTestMenuVisible => TestMenuVisible;
 
+        /// <summary>
+        /// Completes once the asset editors of the previous session, or the default scene, are open. Null before the window is loaded.
+        /// </summary>
+        public Task InitialEditorsOpened { get; private set; }
+
         /// <inheritdoc />
         public Task<bool> TryClose()
         {
@@ -146,6 +154,9 @@ namespace Stride.GameStudio.View
             }
             // We need to run async stuff before closing, so let's always cancel the close at first.
             e.Cancel = true;
+            // A second close request can come while the first one still awaits
+            if (isSavingAndClosing)
+                return;
             // This method will shutdown the application if the session has been successfully closed.
             SaveAndClose().Forget();
         }
@@ -219,7 +230,8 @@ namespace Stride.GameStudio.View
                 // Initialize plugins
                 Editor.Session.ServiceProvider.Get<IAssetsPluginService>().Plugins.ForEach(x => x.InitializeSession(Editor.Session));
                 // Open assets that were being edited in the previous session
-                ReopenAssetEditors(dockingLayout.LoadOpenAssets().ToList()).Forget();
+                InitialEditorsOpened = ReopenAssetEditors(dockingLayout.LoadOpenAssets().ToList());
+                InitialEditorsOpened.Forget();
 
                 // Listen to clipboard
                 ClipboardMonitor.RegisterListener(this);
@@ -240,13 +252,14 @@ namespace Stride.GameStudio.View
 
         private async Task SaveAndClose()
         {
+            isSavingAndClosing = true;
             try
             {
                 // Save MRUs
                 if (Editor.Session != null)
                 {
                     var openedAssets = assetEditorsManager.OpenedAssets.ToList();
-                    if (!await Editor.Session.Close())
+                    if (!await Editor.Session.Close(allowCancel: Editor is not GameStudioViewModel { MustClose: true }))
                     {
                         closingTask?.SetResult(false);
                         return;
@@ -258,6 +271,9 @@ namespace Stride.GameStudio.View
                     // Close all windows (except if the user interrupt the flow)
                     // Since all dirty assets must have been saved before, we don't need to ask for any user confirmation
                     assetEditorsManager.CloseAllEditorWindows(false);
+
+                    // Let the running thumbnail command finish, without blocking the UI thread it might need. A stuck command must not prevent closing.
+                    await Task.WhenAny(Editor.Session.Thumbnails.StopAsync(), Task.Delay(TimeSpan.FromSeconds(10)));
 
                     Editor.Session.Destroy();
 
@@ -289,6 +305,7 @@ namespace Stride.GameStudio.View
             finally
             {
                 closingTask = null;
+                isSavingAndClosing = false;
             }
         }
 

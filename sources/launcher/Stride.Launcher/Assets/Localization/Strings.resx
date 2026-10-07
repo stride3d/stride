@@ -117,6 +117,10 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="Synchronizing" xml:space="preserve">
+    <value>Fetching NuGet packages...</value>
+    <comment>/!\ Text must be short</comment>
+  </data>
   <data name="AskInstallVersion" xml:space="preserve">
     <value>It seems you do not have any version of Stride currently installed. Would you like to install the latest version?</value>
     <comment>Displayed when there is no installed version of Stride</comment>
@@ -233,6 +237,18 @@
     <value>Deleting {0}…</value>
     <comment>Displayed when a version is being deleted. {0}: long version name</comment>
   </data>
+  <data name="ReportDownloadingSize" xml:space="preserve">
+    <value>Downloading ({0})…</value>
+    <comment>Displayed in the row of a version while it downloads. Short: the version row is narrow. {0}: size downloaded so far (e.g. "120 MB")</comment>
+  </data>
+  <data name="ReportInstallingPackages" xml:space="preserve">
+    <value>Installing ({0} / {1})…</value>
+    <comment>Displayed in the row of a version while its downloaded packages are installed. Short: the version row is narrow. {0}: packages installed so far, {1}: total</comment>
+  </data>
+  <data name="ReportRemovingUnusedPackages" xml:space="preserve">
+    <value>Cleaning up ({0} / {1})…</value>
+    <comment>Displayed after a version is deleted or updated, while the packages no version uses anymore are removed. Short: the version row is narrow. {0}: packages removed so far, {1}: total</comment>
+  </data>
   <data name="ReportDiscovering" xml:space="preserve">
     <value>Discovering…</value>
     <comment>Displayed when the version of a recent project is being discovered.</comment>
@@ -294,8 +310,12 @@
     <comment>{0}: long version name</comment>
   </data>
   <data name="ToolTipVisualStudioExtension" xml:space="preserve">
-    <value>{0} Visual Studio extension</value>
-    <comment>The tooltip of the Visual Studio Plugin button. {0}: A verb describing the action to do (Install, Reinstall, Update...)</comment>
+    <value>{0} the Visual Studio {1} extension</value>
+    <comment>The tooltip of the Visual Studio Plugin button. {0}: A verb describing the action to do (Install, Reinstall, Update...). {1}: the Visual Studio version (2019, 2022+)</comment>
+  </data>
+  <data name="ToolTipVisualStudioNotInstalled" xml:space="preserve">
+    <value>Visual Studio {0} isn't installed</value>
+    <comment>The tooltip of the disabled Visual Studio Plugin button. {0}: the Visual Studio version (2019)</comment>
   </data>
   <data name="UnknownVersion" xml:space="preserve">
     <value>Unknown version</value>
@@ -322,7 +342,7 @@
     <comment>Title of this category</comment>
   </data>
   <data name="VisualStudioDownloadPage" xml:space="preserve">
-    <value>An installed Visual Studio is required, which can be found here</value>
+    <value>Visual Studio is required, click here to download</value>
     <comment>Subtitle of VisualStudioExtension category</comment>
   </data>
   <data name="VSIXInstallSucessful" xml:space="preserve">
@@ -372,6 +392,28 @@
   <data name="AutoCloseLauncher" xml:space="preserve">
     <value>Close the launcher after starting Stride</value>
   </data>
+  <data name="IncludePrereleaseUpdates" xml:space="preserve">
+    <value>Receive launcher pre-releases</value>
+  </data>
+  <data name="LauncherSettings" xml:space="preserve">
+    <value>Launcher settings</value>
+    <comment>Tooltip of the gear button in the title bar</comment>
+  </data>
+  <data name="ThemeVariant" xml:space="preserve">
+    <value>Theme</value>
+    <comment>Label of the theme variant choice (dark, light...), in the launcher settings</comment>
+  </data>
+  <data name="ThemeVariantDark" xml:space="preserve">
+    <value>Dark</value>
+  </data>
+  <data name="ThemeVariantLight" xml:space="preserve">
+    <value>Light (preview)</value>
+    <comment>The light variant isn't finished yet</comment>
+  </data>
+  <data name="ThemeVariantSystem" xml:space="preserve">
+    <value>Follow system</value>
+    <comment>The variant follows the light or dark mode of the operating system</comment>
+  </data>
   <data name="ButtonRoadmap" xml:space="preserve">
     <value>Check the roadmap</value>
     <comment>/!\ Text must be short</comment>
@@ -396,6 +438,71 @@
     <value>Install the latest available version of Stride</value>
     <comment>The tooltip of the button that will install the latest available version</comment>
   </data>
+  <data name="ToolTipRemoveDevVersion" xml:space="preserve">
+    <value>Remove {0} from the list (its checkout is kept)</value>
+    <comment>Tooltip of the remove button of a locally built version. {0}: long version name</comment>
+  </data>
+  <data name="ConfirmRemoveDevVersion" xml:space="preserve">
+    <value>Remove {0} from the list?
+
+Its checkout is kept: building it again brings the version back. Until then, projects on this version can't restore its packages.</value>
+    <comment>Displayed when the user removes a locally built version. {0}: long version name</comment>
+  </data>
+  <data name="ToolTipOpenCheckout" xml:space="preserve">
+    <value>Open the checkout of {0}</value>
+    <comment>Tooltip of the folder button of a locally built version. {0}: long version name</comment>
+  </data>
+  <data name="ToolTipOpenSolution" xml:space="preserve">
+    <value>Open the Stride solution of {0}</value>
+    <comment>Tooltip of the Visual Studio button of a locally built version. {0}: long version name</comment>
+  </data>
+  <data name="ToolTipOpenFolder" xml:space="preserve">
+    <value>Open the folder of {0}</value>
+    <comment>Tooltip of the folder button of a locally built version whose checkout isn't known. {0}: long version name</comment>
+  </data>
+  <data name="ToolTipOpenWithAnotherVersion" xml:space="preserve">
+    <value>Open with another version</value>
+    <comment>Tooltip of the button of a recent project that lists the other installed versions it can be opened with</comment>
+  </data>
+  <data name="ToolTipInstallAnotherVersion" xml:space="preserve">
+    <value>Install another version</value>
+    <comment>Tooltip of the button of a version that lists its other releases</comment>
+  </data>
+  <data name="ToolTipReleaseNotes" xml:space="preserve">
+    <value>Display release notes for this version</value>
+  </data>
+  <data name="ToolTipReconnect" xml:space="preserve">
+    <value>Click to reconnect…</value>
+    <comment>Tooltip of the Offline indicator</comment>
+  </data>
+  <data name="ErrorVersionTooOld" xml:space="preserve">
+    <value>This project uses Stride {0}, newer than the installed {1}. Update it first, from the list of versions.</value>
+    <comment>Displayed when a recent project is opened with an older version of its major.minor. {0}: the project's version, {1}: the installed version</comment>
+  </data>
+  <data name="OpenProjectWithVersionUpgrade" xml:space="preserve">
+    <value>Open with {0} (upgrade)</value>
+    <comment>Item of the Open with list of a recent project, for a version that upgrades it. {0}: version name</comment>
+  </data>
+  <data name="ToolTipOpenUpgrades" xml:space="preserve">
+    <value>Stride {0} isn't installed: opening upgrades this project to {1}</value>
+    <comment>Tooltip of the warning icon of a recent project whose version isn't installed. {0}: the project's version, {1}: the version it's opened with</comment>
+  </data>
+  <data name="ToolTipProjectVersion" xml:space="preserve">
+    <value>Uses Stride {0}</value>
+    <comment>Line of the tooltip of a recent project. {0}: the project's full version</comment>
+  </data>
+  <data name="ToolTipProjectOpensWith" xml:space="preserve">
+    <value>Opens with Stride {0}</value>
+    <comment>Line of the tooltip of a recent project, when a click opens it with another version than its own. {0}: that version</comment>
+  </data>
+  <data name="ToolTipProjectOpensWithUpgrade" xml:space="preserve">
+    <value>Opens with Stride {0} (upgrade)</value>
+    <comment>Line of the tooltip of a recent project, when a click upgrades it. {0}: the version it's upgraded to</comment>
+  </data>
+  <data name="ToolTipOpenWithUpgrade" xml:space="preserve">
+    <value>A newer version is installed: open with it to upgrade</value>
+    <comment>Tooltip of the button of a recent project that lists the other installed versions it can be opened with, when one of them upgrades it</comment>
+  </data>
   <data name="ToolTipUninstall" xml:space="preserve">
     <value>Uninstall version {0}</value>
     <comment>{0}: long version name</comment>
@@ -412,9 +519,25 @@
     <value>An error occurred while trying to process a developer version: {0}</value>
     <comment>MessageBox text indicating that a dev version could not be processed</comment>
   </data>
+  <data name="OpenProject" xml:space="preserve">
+    <value>Open</value>
+    <comment>Menu item of a recent project: opens it as a click does</comment>
+  </data>
   <data name="ShowInExplorer" xml:space="preserve">
     <value>Show in Explorer</value>
     <comment>Menu item of recent files list</comment>
+  </data>
+  <data name="CopySolutionPath" xml:space="preserve">
+    <value>Copy solution path</value>
+    <comment>Menu item of a recent project: copies the path of its solution file</comment>
+  </data>
+  <data name="CopyFolderPath" xml:space="preserve">
+    <value>Copy folder path</value>
+    <comment>Menu item of a recent project: copies the path of its folder</comment>
+  </data>
+  <data name="OpenInIDE" xml:space="preserve">
+    <value>Open in IDE</value>
+    <comment>Menu item of a recent project: opens its solution with the default application (Visual Studio, Rider...)</comment>
   </data>
   <data name="RemoveFromList" xml:space="preserve">
     <value>Remove From List</value>
@@ -450,5 +573,21 @@ Do you want to close anyway?</value>
   <data name="KeepLauncherOpen" xml:space="preserve">
     <value>Keep launcher open</value>
     <comment>Button label: cancels the close and keeps the launcher open so the operation can finish.</comment>
+  </data>
+  <data name="RuntimeDefault" xml:space="preserve">
+    <value>Default .NET version</value>
+    <comment>Runtime selector entry when the .NET version of Game Studio is unknown.</comment>
+  </data>
+  <data name="RuntimeDefaultMajor" xml:space="preserve">
+    <value>.NET {0} or newer (default)</value>
+    <comment>Runtime selector entry for the .NET version Game Studio is built for. {0}: .NET major version, e.g. 10</comment>
+  </data>
+  <data name="RuntimeNewerMajor" xml:space="preserve">
+    <value>.NET {0} or newer</value>
+    <comment>Runtime selector entry for a newer installed .NET version. {0}: .NET major version, e.g. 11</comment>
+  </data>
+  <data name="RuntimeSelectorTooltip" xml:space="preserve">
+    <value>Game Studio runs on this .NET version, or on a newer one when the project needs it.</value>
+    <comment>Tooltip of the runtime selector.</comment>
   </data>
 </root>

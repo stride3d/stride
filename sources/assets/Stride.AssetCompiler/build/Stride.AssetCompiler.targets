@@ -97,7 +97,6 @@
       <Using Namespace="System.Linq" />
       <Code Type="Fragment" Language="cs"><![CDATA[
         OutputItems = InputItems.OrderBy(x => x.ItemSpec, System.StringComparer.Ordinal).ToArray();
-        return true;
       ]]></Code>
     </Task>
   </UsingTask>
@@ -158,6 +157,30 @@
     </PropertyGroup>
 
     <Error Condition="!Exists('$(StrideCompileAssetCommand)')" Text="Stride AssetCompiler could not be found (Command: &quot;$(StrideCompileAssetCommand)&quot;)"/>
+
+    <!-- Host for the compiler process. The compiler loads the project's assemblies, so a project on a newer .NET
+         major than the compiler's own runs the compiler on that major (newest installed minor, previews included):
+         the compiler ships a runtimeconfig template with {MAJOR} in place of the version, filled in here, per
+         project under obj/ so parallel builds never share a file. -->
+    <PropertyGroup>
+      <_StrideAssetCompilerMajor>$([System.Text.RegularExpressions.Regex]::Match('$(StrideCompileAssetCommand)', '[\\/]net(\d+)\.\d+').Groups[1].Value)</_StrideAssetCompilerMajor>
+      <!-- The outer build of a multi-targeting project has no TargetFramework; the editor loads the first one, so do we. -->
+      <_StrideProjectTargetFramework>$(TargetFramework)</_StrideProjectTargetFramework>
+      <_StrideProjectTargetFramework Condition="'$(_StrideProjectTargetFramework)' == ''">$([System.String]::Copy('$(TargetFrameworks)').Split(';')[0])</_StrideProjectTargetFramework>
+      <_StrideProjectNetMajor>$([System.Text.RegularExpressions.Regex]::Match('$(_StrideProjectTargetFramework.Trim())', '^net(\d+)\.\d+').Groups[1].Value)</_StrideProjectNetMajor>
+      <StrideAssetCompilerHost Condition="'$(StrideAssetCompilerHost)' == ''">dotnet</StrideAssetCompilerHost>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(_StrideProjectNetMajor)' != '' And '$(_StrideAssetCompilerMajor)' != '' And '$(_StrideProjectNetMajor)' &gt; '$(_StrideAssetCompilerMajor)'">
+      <_StrideAssetCompilerRuntimeConfigTemplate>$([System.IO.Path]::ChangeExtension('$(StrideCompileAssetCommand)', '.runtimeconfig.template.json'))</_StrideAssetCompilerRuntimeConfigTemplate>
+      <_StrideAssetCompilerRuntimeConfig>$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)', '$(IntermediateOutputPath)', 'stride', 'Stride.AssetCompiler.net$(_StrideProjectNetMajor).runtimeconfig.json'))</_StrideAssetCompilerRuntimeConfig>
+      <StrideAssetCompilerHost>dotnet exec --runtimeconfig &quot;$(_StrideAssetCompilerRuntimeConfig)&quot;</StrideAssetCompilerHost>
+    </PropertyGroup>
+    <Error Condition="'$(_StrideAssetCompilerRuntimeConfig)' != '' And !Exists('$(_StrideAssetCompilerRuntimeConfigTemplate)')"
+           Text="This project targets .NET $(_StrideProjectNetMajor), but the Stride asset compiler has no runtime config template to run on it (expected $(_StrideAssetCompilerRuntimeConfigTemplate))." />
+    <PropertyGroup Condition="'$(_StrideAssetCompilerRuntimeConfig)' != ''">
+      <_StrideAssetCompilerRuntimeConfigContent>$([System.IO.File]::ReadAllText('$(_StrideAssetCompilerRuntimeConfigTemplate)').Replace('{MAJOR}', '$(_StrideProjectNetMajor)'))</_StrideAssetCompilerRuntimeConfigContent>
+    </PropertyGroup>
+    <WriteLinesToFile Condition="'$(_StrideAssetCompilerRuntimeConfig)' != ''" File="$(_StrideAssetCompilerRuntimeConfig)" Lines="$([MSBuild]::Escape($(_StrideAssetCompilerRuntimeConfigContent)))" Overwrite="true" WriteOnlyWhenDifferent="true" />
   </Target>
 
   <!-- Auto-attach CompilerApp as a ProjectReference so source-tree consumers build it
@@ -167,8 +190,11 @@
        RemoveProperties strip consumer-specific globals that shouldn't leak
        (RID/SelfContained/OutputType/StrideIsExecutable).
        Test-suite globals are stripped by Stride.Build.Sdk.Tests on top of this.
-       Exists() gate skips NuGet-package consumers; name gate prevents self-reference. -->
+       Exists() gate skips NuGet-package consumers; the StrideDevRedirect gate skips dev-package consumers,
+       whose stub imports this file from the checkout (they run the built asset compiler through
+       $(StrideRoot)); name gate prevents self-reference. -->
   <ItemGroup Condition="Exists('$(MSBuildThisFileDirectory)..\Stride.AssetCompiler.csproj')
+                        And '$(StrideDevRedirect)' != 'true'
                         And '$(MSBuildProjectName)' != 'Stride.AssetCompiler'">
     <ProjectReference Include="$(MSBuildThisFileDirectory)..\Stride.AssetCompiler.csproj">
       <Private>false</Private>
@@ -190,13 +216,51 @@
        comment above). The bundle is written straight to OutputPath, so it doesn't need the copy step. -->
   <Target Name="StrideCompileAsset" Condition="'$(StrideIsExecutable)' == 'true' And '$(StrideCompilerSkipBuild)' != 'true'" AfterTargets="CopyFilesToOutputDirectory" DependsOnTargets="_StrideCollectUpToDateCheckInputDesignTime;_StrideCollectUpToDateCheckOutputDesignTime;_StridePrepareAssetCompiler" Inputs="@(StrideAssetInput)" Outputs="@(StrideAssetOutput)">
     <PropertyGroup>
-      <StrideCompileAssetCommandProxy>dotnet &quot;$(StrideCompileAssetCommand)&quot; build</StrideCompileAssetCommandProxy>
+      <StrideCompileAssetCommandProxy>$(StrideAssetCompilerHost) &quot;$(StrideCompileAssetCommand)&quot; build</StrideCompileAssetCommandProxy>
 
       <StrideCompileAssetCommandProxy>$(StrideCompileAssetCommandProxy) $(StrideCompileAssetOptions) --disable-auto-compile --project-configuration &quot;$(Configuration)&quot; --platform=$(StridePlatform) --project-configuration=$(Configuration) --compile-property:StrideGraphicsApi=$(StrideHostGraphicsApi) --output-path=&quot;$(StrideCompileAssetOutputPath)&quot; --build-path=&quot;$(StrideCompileAssetBuildPath)&quot; --msbuild-uptodatecheck-filebase=&quot;$(StrideCompileAssetUpToDateCheckFileBase)&quot;</StrideCompileAssetCommandProxy>
       <!-- Load the session from the .sdbuild manifest chain (positional input). -->
       <StrideCompileAssetCommandProxy>$(StrideCompileAssetCommandProxy) &quot;$(StrideAssetBuildManifestPath)&quot;</StrideCompileAssetCommandProxy>
       <StrideCompileAssetCommandProxy Condition="'$(StrideBuildEngineLogVerbose)' != ''">$(StrideCompileAssetCommandProxy) --verbose</StrideCompileAssetCommandProxy>
       <StrideCompileAssetCommandProxy Condition="'$(StrideBuildEngineLogDebug)' != ''">$(StrideCompileAssetCommandProxy) --debug</StrideCompileAssetCommandProxy>
+
+      <!-- Importance of the compiler's console output. By default it is a few summary lines,
+           kept High so a default-verbosity build shows them. In verbose/debug mode it is per-step
+           detail: Normal, so a host relaying MSBuild messages into its own log (Game Studio) files it
+           as Verbose instead of Info. Errors and warnings are recognised from their canonical format
+           either way. -->
+      <_StrideCompileAssetOutputDetailed Condition="'$(StrideBuildEngineLogVerbose)' != '' Or '$(StrideBuildEngineLogDebug)' != ''">true</_StrideCompileAssetOutputDetailed>
+      <_StrideCompileAssetOutputImportance>High</_StrideCompileAssetOutputImportance>
+      <_StrideCompileAssetOutputImportance Condition="'$(_StrideCompileAssetOutputDetailed)' == 'true'">Normal</_StrideCompileAssetOutputImportance>
+
+      <!-- Native-crash capture via the runtime's own createdump, armed on the compiler and, by process
+           inheritance, its slaves. All platforms: the compiler no longer registers an in-process vectored handler
+           (a managed one is unsupported, dotnet/runtime#119142). Scoped to this Exec's environment, so a game (a
+           separate Exec/run) never inherits it. Off only when crash reporting is disabled. The dumps are adopted
+           into the crash store after the build. Passed via Exec's EnvironmentVariables (set on the child process
+           directly, so it is shell-agnostic and cross-platform); %p is createdump's own pid placeholder, left
+           literal. On Windows the dump has no exception stream until dotnet/runtime#133065 ships, so its
+           faulting-frame signature is a per-dump fallback there for now. -->
+      <_StrideCompileAssetNativeCrash Condition="'$(STRIDE_CRASH_MODE)' != 'off'">true</_StrideCompileAssetNativeCrash>
+      <_StrideCompileAssetNativeDumpDir Condition="'$(_StrideCompileAssetNativeCrash)' == 'true'">$([MSBuild]::NormalizeDirectory('$(StrideCompileAssetBuildPath)', 'crash-native'))</_StrideCompileAssetNativeDumpDir>
+      <!-- createdump dump type: 1 = Mini (thread stacks plus the managed memory needed to walk them, the default);
+           4 = Full (the whole address space) for deep local debugging, opt-in via STRIDE_CRASH_DUMP=full. A full dump
+           is large and unscrubbed, so it is never sent (adopt flags it) - kept locally only if the user keeps it. -->
+      <_StrideCompileAssetNativeDumpType>1</_StrideCompileAssetNativeDumpType>
+      <_StrideCompileAssetNativeDumpType Condition="'$(STRIDE_CRASH_DUMP)' == 'full'">4</_StrideCompileAssetNativeDumpType>
+
+      <!-- Route this build's compiler crashes to the caller's crash dir (e.g. the GameStudio instance that
+           triggered the build) so it can surface them, scoped to the compiler process only. The caller passes
+           StrideCrashDir as a global property; here it becomes STRIDE_CRASH_DIR on the compiler's environment. -->
+      <_StrideCompileAssetCrashEnvVars Condition="'$(StrideCrashDir)' != ''">STRIDE_CRASH_DIR=$(StrideCrashDir)</_StrideCompileAssetCrashEnvVars>
+      <!-- Append the createdump vars, joined without an empty entry (which Exec would reject). -->
+      <_StrideCompileAssetCrashEnvVars Condition="'$(_StrideCompileAssetNativeCrash)' == 'true' And '$(_StrideCompileAssetCrashEnvVars)' != ''">$(_StrideCompileAssetCrashEnvVars);DOTNET_DbgEnableMiniDump=1;DOTNET_DbgMiniDumpType=$(_StrideCompileAssetNativeDumpType);DOTNET_DbgMiniDumpName=&quot;$(_StrideCompileAssetNativeDumpDir)stride-native-%p.dmp&quot;</_StrideCompileAssetCrashEnvVars>
+      <_StrideCompileAssetCrashEnvVars Condition="'$(_StrideCompileAssetNativeCrash)' == 'true' And '$(_StrideCompileAssetCrashEnvVars)' == ''">DOTNET_DbgEnableMiniDump=1;DOTNET_DbgMiniDumpType=$(_StrideCompileAssetNativeDumpType);DOTNET_DbgMiniDumpName=&quot;$(_StrideCompileAssetNativeDumpDir)stride-native-%p.dmp&quot;</_StrideCompileAssetCrashEnvVars>
+
+      <!-- The adopt step below writes the recovered StoredCrash to the store; route it to the caller's crash dir
+           too (only STRIDE_CRASH_DIR is needed, not the createdump vars) so a GameStudio-triggered build's native
+           crash surfaces in that GameStudio like a managed one, instead of only the default store. -->
+      <_StrideCompileAssetAdoptEnvVars Condition="'$(StrideCrashDir)' != ''">STRIDE_CRASH_DIR=$(StrideCrashDir)</_StrideCompileAssetAdoptEnvVars>
     </PropertyGroup>
 
     <Error Condition="!Exists('$(StrideAssetBuildManifestPath)')"
@@ -204,9 +268,42 @@
 
     <!-- Ensure the output directory exists -->
     <MakeDir Directories="$(TargetDir)"/>
+    <MakeDir Condition="'$(_StrideCompileAssetNativeCrash)' == 'true'" Directories="$(_StrideCompileAssetNativeDumpDir)"/>
 
-    <!-- Compile assets -->
-    <Exec WorkingDirectory="$(TargetDir)" Command="$(StrideCompileAssetCommandProxy)" />
+    <!-- Compile assets. ContinueOnError so a crash can be surfaced with a hint before the build is failed: the
+         asset compiler is headless and never pops a crash-reporter GUI, so a plain build (VS / CLI) learns here
+         that a crash report was saved. A crash (native access violation or an unhandled exception) exits with an
+         abnormal code, unlike a clean asset error (BuildResultCode: 1 build error, 2 command-line error, 100
+         cancelled). ErrorAndContinue (not true=WarnAndContinue) keeps the compiler's echoed error lines as errors,
+         not warnings; the <Error> below re-fails the build. EnvironmentVariables carries the crash-capture env
+         (createdump + crash-dir routing), empty only when both are unset. -->
+    <Exec WorkingDirectory="$(TargetDir)" Command="$(StrideCompileAssetCommandProxy)" EnvironmentVariables="$(_StrideCompileAssetCrashEnvVars)" ContinueOnError="ErrorAndContinue" StandardOutputImportance="$(_StrideCompileAssetOutputImportance)">
+      <Output TaskParameter="ExitCode" PropertyName="_StrideCompileAssetExitCode" />
+    </Exec>
+
+    <!-- Adopt any minidump createdump wrote (the master's or an inherited slave's) into the crash store, signing
+         and deduping it, then send on CI or leave it for 'stride crash send'. Runs regardless of the exit code —
+         a slave can crash while the master exits cleanly — but only when a dump actually exists. -->
+    <ItemGroup Condition="'$(_StrideCompileAssetNativeCrash)' == 'true'">
+      <_StrideNativeCrashDump Include="$(_StrideCompileAssetNativeDumpDir)*.dmp" />
+    </ItemGroup>
+    <!-- TrimEndingDirectorySeparator on the dump dir: a trailing '\' before the closing quote is an escaped
+         quote to Windows' parser, so the path would swallow the rest of the args and adopt would bail. -->
+    <Exec Condition="'@(_StrideNativeCrashDump)' != ''"
+          WorkingDirectory="$(TargetDir)"
+          EnvironmentVariables="$(_StrideCompileAssetAdoptEnvVars)"
+          Command="$(StrideAssetCompilerHost) &quot;$(StrideCompileAssetCommand)&quot; crash-adopt --dump-dir=&quot;$([System.IO.Path]::TrimEndingDirectorySeparator('$(_StrideCompileAssetNativeDumpDir)'))&quot; --platform=$(StridePlatform) --project-configuration=&quot;$(Configuration)&quot; --compile-property:StrideGraphicsApi=$(StrideHostGraphicsApi)"
+          ContinueOnError="true" />
+
+    <!-- A native crash that produced a dump is already reported by crash-adopt above; otherwise (a crash with no
+         dump, e.g. a stack overflow) surface the hint here. -->
+    <Warning Condition="'$(_StrideCompileAssetExitCode)' != '0' And '$(_StrideCompileAssetExitCode)' != '1' And '$(_StrideCompileAssetExitCode)' != '2' And '$(_StrideCompileAssetExitCode)' != '100' And '@(_StrideNativeCrashDump)' == ''"
+             Text="The asset compiler crashed (exit code $(_StrideCompileAssetExitCode)). A crash report was saved; review and submit it with 'stride crash send'." />
+    <Error Condition="'$(_StrideCompileAssetExitCode)' != '0'" Text="Asset compilation failed (exit code $(_StrideCompileAssetExitCode))." />
+
+    <!-- With detailed output the compiler's own summary went out at Normal; this one High line
+         stands in for it, the way the SDK reports a project's output. -->
+    <Message Condition="'$(_StrideCompileAssetOutputDetailed)' == 'true'" Importance="High" Text="Assets -> $(StrideCompileAssetOutputPath)" />
   </Target>
 
   <!-- Clean assets -->
@@ -337,7 +434,7 @@
     </PropertyGroup>
     <Error Condition="'$(StrideContainsAssetTypes)' == 'true' And '@(_StrideHostAssetAssembly)' == ''"
            Text="StrideContainsAssetTypes=true but none of the target framework(s) '$(TargetFrameworks)$(TargetFramework)' is host-compatible: the asset compiler needs a base netX.0 or net*-windows* build to load. A mobile-only asset package can't ship a host-loadable assembly." />
-    <Exec Command="dotnet &quot;$(StrideCompileAssetCommand)&quot; pack &quot;$(MSBuildProjectFullPath)&quot; --build-path=&quot;$([MSBuild]::NormalizePath('$(ProjectDir)', '$(BaseIntermediateOutputPath)', 'stride\pack'))&quot;$(_StridePackAssetAssembliesArg)$(_StridePackAssetNamespaceArg)" ConsoleToMsBuild="true">
+    <Exec Command="$(StrideAssetCompilerHost) &quot;$(StrideCompileAssetCommand)&quot; pack &quot;$(MSBuildProjectFullPath)&quot; --build-path=&quot;$([MSBuild]::NormalizePath('$(ProjectDir)', '$(BaseIntermediateOutputPath)', 'stride\pack'))&quot;$(_StridePackAssetAssembliesArg)$(_StridePackAssetNamespaceArg)" ConsoleToMsBuild="true">
       <Output TaskParameter="ConsoleOutput" ItemName="PackAssetsLine" />
     </Exec>
     <ItemGroup>
@@ -352,14 +449,14 @@
     </ItemGroup>
   </Target>
 
-  <Target Name="StrideAssetUpdateGeneratedFiles" Condition="'$(StrideCompilerSkipBuild)' != 'true'">
-    <Exec Command="dotnet &quot;$(StrideCompileAssetCommand)&quot; generate-code &quot;$(MSBuildProjectFullPath)&quot;"/>
+  <Target Name="StrideAssetUpdateGeneratedFiles" DependsOnTargets="_StridePrepareAssetCompiler" Condition="'$(StrideCompilerSkipBuild)' != 'true'">
+    <Exec Command="$(StrideAssetCompilerHost) &quot;$(StrideCompileAssetCommand)&quot; generate-code &quot;$(MSBuildProjectFullPath)&quot;"/>
   </Target>
 
   <!-- Upgrade assets in place to the current SerializedVersion. User invokes manually:
        dotnet build -t:StrideUpgradeAssets
        No-op when assets are already current (PackageSession.Save short-circuits on unmodified packages). -->
   <Target Name="StrideUpgradeAssets" DependsOnTargets="_StridePrepareAssetCompiler" Condition="'$(StrideCompilerSkipBuild)' != 'true'">
-    <Exec Command="dotnet &quot;$(StrideCompileAssetCommand)&quot; upgrade &quot;$(MSBuildProjectFullPath)&quot;"/>
+    <Exec Command="$(StrideAssetCompilerHost) &quot;$(StrideCompileAssetCommand)&quot; upgrade &quot;$(MSBuildProjectFullPath)&quot;"/>
   </Target>
 </Project>

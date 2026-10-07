@@ -32,6 +32,13 @@ namespace Stride.Graphics
         private static object debugLayerLock = new();
         private static bool debugLayerLoaded = false;
 
+        // D3D12 devices are singletons per adapter: every GraphicsDevice of the process on the same adapter shares
+        // the native device, its info queue and its live objects. Counted so that only the last one reports them.
+        private static readonly Dictionary<nint, int> nativeDeviceUsers = new();
+
+        // Debug devices whose message callback is registered, see UnregisterDebugMessageCallbacksAtExit
+        private static readonly HashSet<GraphicsDevice> devicesWithCallback = new();
+
         // D3D12 Agility SDK redist shipped app-local under D3D12\ (Microsoft.Direct3D.D3D12 1.619.x).
         private const uint AgilitySDKVersion = 619;
         private static readonly Guid CLSID_D3D12SDKConfiguration = new(0x7cda6aca, 0xa03e, 0x49c8, 0x94, 0x58, 0x03, 0x34, 0xd2, 0x0e, 0x07, 0xce);
@@ -71,6 +78,7 @@ namespace Stride.Graphics
         internal readonly ConcurrentPool<List<ComPtr<ID3D12DescriptorHeap>>> DescriptorHeapLists = new(() => []);
 
         private bool simulateReset = false;
+        private bool deviceRemovedLogged;
         private string rendererName;
 
         private ID3D12Device* nativeDevice;
@@ -254,11 +262,13 @@ namespace Stride.Graphics
         {
             get
             {
+                // A simulated loss stays, like a real one
                 if (simulateReset)
-                {
-                    simulateReset = false;
                     return GraphicsDeviceStatus.Reset;
-                }
+
+                // A released device has no native device
+                if (nativeDevice is null)
+                    return GraphicsDeviceStatus.Removed;
 
                 var result = (DxgiConstants.DeviceRemoveReason) nativeDevice->GetDeviceRemovedReason();
 
@@ -270,15 +280,21 @@ namespace Stride.Graphics
                     DxgiConstants.DeviceRemoveReason.DriverInternalError => GraphicsDeviceStatus.InternalError,
                     DxgiConstants.DeviceRemoveReason.InvalidCall => GraphicsDeviceStatus.InvalidCall,
 
-                    < 0 => GraphicsDeviceStatus.Reset,
+                    < 0 => GraphicsDeviceStatus.Lost,
                     _ => GraphicsDeviceStatus.Normal
                 };
 
-                if (status != GraphicsDeviceStatus.Normal && IsDebugMode)
+                // Logged once: the status is polled every frame
+                if (status != GraphicsDeviceStatus.Normal && !deviceRemovedLogged)
                 {
+                    deviceRemovedLogged = true;
                     Log.Error($"[D3D12] Device removed! Reason: {result} (status: {status})");
-                    FlushDebugMessages();
-                    LogDredData();
+                    if (IsDebugMode)
+                    {
+                        FlushDebugMessages();
+                        if (GetDredReport() is { } dredReport)
+                            Log.Error(dredReport);
+                    }
                 }
 
                 return status;
@@ -383,7 +399,7 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Sets the Graphics Device to simulate a situation in which the device is lost and then reset.
+        ///   Simulates a device loss: from now on, the status says <see cref="GraphicsDeviceStatus.Reset"/>.
         /// </summary>
         public void SimulateReset()
         {
@@ -397,6 +413,21 @@ namespace Stride.Graphics
 
         private partial string GetRendererName() => rendererName;
 
+        internal partial string GetDeviceLostDetails()
+        {
+            if (nativeDevice is null)
+                return null;
+
+            // The raw reason also names the losses the status can only call Lost (out of memory, etc.)
+            int reason = nativeDevice->GetDeviceRemovedReason();
+            if (reason >= 0)
+                return null;
+
+            var details = $"Removal reason: 0x{reason:X8}.";
+            // DRED is only enabled with the debug layer
+            return IsDebugMode && GetDredReport() is { } dredReport ? details + Environment.NewLine + dredReport : details;
+        }
+
         /// <summary>
         ///   Initialize the platform-specific implementation of the Graphics Device.
         /// </summary>
@@ -406,12 +437,6 @@ namespace Stride.Graphics
         private unsafe partial void InitializePlatformDevice(GraphicsProfile[] graphicsProfiles, DeviceCreationFlags deviceCreationFlags, object windowHandle)
         {
             Debug.Assert(graphicsProfiles is not null && graphicsProfiles.Length > 0, "Graphics profiles must be provided and cannot be empty.");
-
-            if (nativeDevice is not null)
-            {
-                // Destroy previous device
-                ReleaseDevice();
-            }
 
             rendererName = Adapter.Description;
 
@@ -463,6 +488,9 @@ namespace Stride.Graphics
                 }
 
                 nativeDevice = device;
+                deviceRemovedLogged = false;
+                lock (nativeDeviceUsers)
+                    nativeDeviceUsers[(nint)nativeDevice] = nativeDeviceUsers.GetValueOrDefault((nint)nativeDevice) + 1;
 
                 RequestedProfile = graphicsProfile;
                 CurrentFeatureLevel = featureLevel;
@@ -576,6 +604,13 @@ namespace Stride.Graphics
                                 (void*)(IntPtr)debugMessageContext,
                                 ref cookie);
                             debugMessageCallbackCookie = cookie;
+
+                            lock (devicesWithCallback)
+                            {
+                                if (devicesWithCallback.Count == 0)
+                                    AppDomain.CurrentDomain.ProcessExit += UnregisterDebugMessageCallbacksAtExit;
+                                devicesWithCallback.Add(this);
+                            }
                         }
                     }
                     debugDevice.Release();
@@ -857,6 +892,10 @@ namespace Stride.Graphics
             // healthy queue drains well within this (hardware TDR caps command lists at ~2s).
             const int GpuIdleTimeoutMs = 10_000;
 
+            // A removed device completes no work and refuses the signal: there is nothing left to drain
+            if (nativeDevice is null || nativeDevice->GetDeviceRemovedReason() < 0)
+                return;
+
             FrameFence.Signal(NativeCommandQueue, FrameFence.NextFenceValue);
             if (!FrameFence.WaitForFenceCPUInternal(FrameFence.NextFenceValue, GpuIdleTimeoutMs))
                 Log.Error($"[D3D12] GPU queue did not drain within {GpuIdleTimeoutMs / 1000}s; continuing teardown. A pending Present whose window was already destroyed can never complete.");
@@ -900,25 +939,34 @@ namespace Stride.Graphics
             DepthStencilViewAllocator.Dispose();
             RenderTargetViewAllocator.Dispose();
 
+            bool lastUser;
+            lock (nativeDeviceUsers)
+            {
+                // Not counted when the device creation itself failed
+                lastUser = nativeDeviceUsers.TryGetValue((nint)nativeDevice, out var users) && --users == 0;
+                if (lastUser)
+                    nativeDeviceUsers.Remove((nint)nativeDevice);
+                else if (users > 0)
+                    nativeDeviceUsers[(nint)nativeDevice] = users;
+            }
+
             if (IsDebugMode)
             {
                 FlushDebugMessages();
 
-                HResult result = nativeDevice->QueryInterface(out ComPtr<ID3D12DebugDevice> debugDevice);
-
-                if (result.IsSuccess && debugDevice.IsNotNull())
+                // The other users of the native device would receive the report through their own callbacks
+                if (lastUser)
                 {
-                    debugDevice.ReportLiveDeviceObjects(RldoFlags.Detail);
-                    debugDevice.Release();
+                    HResult result = nativeDevice->QueryInterface(out ComPtr<ID3D12DebugDevice> debugDevice);
+
+                    if (result.IsSuccess && debugDevice.IsNotNull())
+                    {
+                        debugDevice.ReportLiveDeviceObjects(RldoFlags.Detail);
+                        debugDevice.Release();
+                    }
                 }
 
-                if (nativeInfoQueue1 is not null)
-                {
-                    if (debugMessageCallbackCookie != 0)
-                        nativeInfoQueue1->UnregisterMessageCallback(debugMessageCallbackCookie);
-                    debugMessageCallbackCookie = 0;
-                    SafeRelease(ref nativeInfoQueue1);
-                }
+                UnregisterDebugMessageCallback();
                 if (debugMessageContext.IsAllocated)
                     debugMessageContext.Free();
                 SafeRelease(ref nativeInfoQueue);
@@ -927,16 +975,29 @@ namespace Stride.Graphics
             SafeRelease(ref nativeDevice);
         }
 
-        /// <summary>
-        ///   Called when the Graphics Device is being destroyed.
-        /// </summary>
-        /// <param name="immediately">
-        ///   A value indicating whether the resources used by the Graphics Device should be released
-        ///   immediately (<see langword="true"/>), or queued for release once the GPU is done with it
-        ///   (<see langword="false"/>).
-        /// </param>
-        internal void OnDestroyed(bool immediately = false)
+        private void UnregisterDebugMessageCallback()
         {
+            lock (devicesWithCallback)
+            {
+                if (nativeInfoQueue1 is null)
+                    return;
+                if (debugMessageCallbackCookie != 0)
+                    nativeInfoQueue1->UnregisterMessageCallback(debugMessageCallbackCookie);
+                debugMessageCallbackCookie = 0;
+                SafeRelease(ref nativeInfoQueue1);
+                devicesWithCallback.Remove(this);
+            }
+        }
+
+        // A device that is never disposed keeps its callback until the process ends, and the debug layer can still
+        // emit a message from its own thread after the runtime shut down: managed code on such a thread is fatal.
+        private static void UnregisterDebugMessageCallbacksAtExit(object sender, EventArgs e)
+        {
+            var devices = new List<GraphicsDevice>();
+            lock (devicesWithCallback)
+                devices.AddRange(devicesWithCallback);
+            foreach (var device in devices)
+                device.UnregisterDebugMessageCallback();
         }
 
         // Backend implementation of the partial method declared in GraphicsDevice.DebugScope.cs;
@@ -1081,49 +1142,56 @@ namespace Stride.Graphics
 
 
         /// <summary>
-        ///   Logs DRED (Device Removed Extended Data) information after a device removal event.
+        ///   Describes the DRED (Device Removed Extended Data) of a removed device: the command lists the GPU did not
+        ///   finish, with the operations around the one it stopped at, and the page fault address if any.
         /// </summary>
-        internal void LogDredData()
+        /// <returns>The report, or <see langword="null"/> if DRED has nothing (not enabled, or the device is not removed).</returns>
+        internal string GetDredReport()
         {
+            // Operations shown on each side of the one the GPU stopped at
+            const uint OperationContext = 4;
+
             if (nativeDevice is null)
-                return;
+                return null;
 
             HResult result = nativeDevice->QueryInterface(out ComPtr<ID3D12DeviceRemovedExtendedData> dred);
             if (result.IsFailure || dred.IsNull())
-                return;
+                return null;
+
+            var report = new StringBuilder();
 
             DredAutoBreadcrumbsOutput breadcrumbsOutput = default;
             result = dred.GetAutoBreadcrumbsOutput(ref breadcrumbsOutput);
-            if (result.IsSuccess && breadcrumbsOutput.PHeadAutoBreadcrumbNode is not null)
+            if (result.IsSuccess)
             {
-                Log.Error("[DRED] Auto-breadcrumbs:");
-                var node = breadcrumbsOutput.PHeadAutoBreadcrumbNode;
-                while (node is not null)
+                for (var node = breadcrumbsOutput.PHeadAutoBreadcrumbNode; node is not null; node = node->PNext)
                 {
+                    var completed = node->PLastBreadcrumbValue is not null ? *node->PLastBreadcrumbValue : 0;
+                    if (completed >= node->BreadcrumbCount)
+                        continue;
+
                     var cmdListName = Marshal.PtrToStringUni((nint) node->PCommandListDebugNameW) ?? "(unnamed)";
                     var cmdQueueName = Marshal.PtrToStringUni((nint) node->PCommandQueueDebugNameW) ?? "(unnamed)";
-                    Log.Error($"[DRED]   CmdList={cmdListName}, CmdQueue={cmdQueueName}, BreadcrumbCount={node->BreadcrumbCount}, LastCompleted={*node->PLastBreadcrumbValue}");
+                    report.AppendLine($"[DRED] Unfinished command list {cmdListName} on queue {cmdQueueName}: {completed} of {node->BreadcrumbCount} operations done");
 
-                    // Log the breadcrumb operations
-                    for (uint i = 0; i < node->BreadcrumbCount && i < 64; i++)
+                    var first = completed > OperationContext ? completed - OperationContext : 0;
+                    var last = Math.Min(node->BreadcrumbCount, completed + OperationContext + 1);
+                    for (var i = first; i < last; i++)
                     {
-                        var op = node->PCommandHistory[i];
-                        var marker = i < *node->PLastBreadcrumbValue ? "DONE" : (i == *node->PLastBreadcrumbValue ? ">>LAST>>" : "pending");
-                        Log.Error($"[DRED]     [{marker}] {i}: {op}");
+                        var marker = i < completed ? "done" : i == completed ? "STOPPED HERE" : "pending";
+                        report.AppendLine($"[DRED]   {i}: {node->PCommandHistory[i]} ({marker})");
                     }
-
-                    node = node->PNext;
                 }
             }
 
             DredPageFaultOutput pageFaultOutput = default;
             result = dred.GetPageFaultAllocationOutput(ref pageFaultOutput);
-            if (result.IsSuccess)
-            {
-                Log.Error($"[DRED] Page fault at VA: 0x{pageFaultOutput.PageFaultVA:X16}");
-            }
+            if (result.IsSuccess && pageFaultOutput.PageFaultVA != 0)
+                report.AppendLine($"[DRED] Page fault at VA: 0x{pageFaultOutput.PageFaultVA:X16}");
 
             dred.Release();
+
+            return report.Length > 0 ? report.ToString().TrimEnd() : null;
         }
 
 

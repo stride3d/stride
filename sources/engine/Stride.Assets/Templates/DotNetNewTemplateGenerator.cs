@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.TemplateEngine.Abstractions;
 using Microsoft.TemplateEngine.Edge.Template;
@@ -104,11 +105,15 @@ public class DotNetNewTemplateGenerator : SessionTemplateGenerator
 
     public override bool Generate(SessionTemplateGeneratorParameters parameters)
     {
-        var sdpkg = InstantiateFiles(parameters);
+        // The session saves its own solution at Session.SolutionPath, named from the New Project
+        // dialog, so the template's solution (named after the project) is not wanted here.
+        var sdpkg = InstantiateFiles(parameters, skipSolution: true);
         if (sdpkg == null)
             return false;
         InstantiateAssetPacks(parameters, sdpkg);
-        if (!UpgradeGeneratedProjects(parameters))
+        // Content packed for an older engine keeps its version here: IntegrateIntoSession runs the package
+        // upgraders on it, which migrate the assets and the code and stamp the version themselves.
+        if (!UpgradeGeneratedProjects(parameters, stampOlderContent: false))
             return false;
         return IntegrateIntoSession(sdpkg, parameters);
     }
@@ -176,8 +181,9 @@ public class DotNetNewTemplateGenerator : SessionTemplateGenerator
     /// <summary>
     /// Phase 1 — invokes the dotnet new bootstrapper. Writes the project tree under
     /// <see cref="TemplateGeneratorParameters.OutputDirectory"/> and returns the generated .sdpkg path.
+    /// <paramref name="skipSolution"/> asks the template not to emit its solution file.
     /// </summary>
-    protected virtual string? InstantiateFiles(SessionTemplateGeneratorParameters parameters)
+    protected virtual string? InstantiateFiles(SessionTemplateGeneratorParameters parameters, bool skipSolution = false)
     {
         ArgumentNullException.ThrowIfNull(parameters);
         parameters.Validate();
@@ -198,7 +204,9 @@ public class DotNetNewTemplateGenerator : SessionTemplateGenerator
             return null;
         }
 
-        var values = parameters.TryGetTag(ParameterValuesKey) ?? new Dictionary<string, string>();
+        var values = new Dictionary<string, string>(parameters.TryGetTag(ParameterValuesKey) ?? new Dictionary<string, string>());
+        if (skipSolution)
+            values["skipSolution"] = "true";
 
         // The dotnet new sourceName substitution is fed by the project name; this is the same
         // value the user typed in GameStudio's New-Project name field.
@@ -239,14 +247,44 @@ public class DotNetNewTemplateGenerator : SessionTemplateGenerator
     /// them to <see cref="StridePackageUpgrader.CurrentVersion"/>. Runs without a session or
     /// AssemblyContainer — same standalone path the legacy session-load uses internally.
     /// </summary>
-    protected virtual bool UpgradeGeneratedProjects(SessionTemplateGeneratorParameters parameters)
+    /// <param name="stampOlderContent">
+    /// Whether content packed for an older engine is stamped too. False when a session load follows: the package
+    /// upgraders it runs need the version the content came from, and stamping would leave the content looking
+    /// current and never upgraded.
+    /// </param>
+    protected virtual bool UpgradeGeneratedProjects(SessionTemplateGeneratorParameters parameters, bool stampOlderContent = true)
     {
         var log = parameters.Logger;
-        foreach (var csproj in Directory.EnumerateFiles(parameters.OutputDirectory, "*.csproj", SearchOption.AllDirectories))
+        var csprojs = Directory.EnumerateFiles(parameters.OutputDirectory, "*.csproj", SearchOption.AllDirectories).ToList();
+
+        if (!stampOlderContent && GetContentEngineVersion(csprojs) is { } contentVersion
+            && contentVersion.Version < new PackageVersion(StridePackageUpgrader.CurrentVersion).Version)
+        {
+            log.Info($"Template content is written for Stride {contentVersion}; it is upgraded to {StridePackageUpgrader.CurrentVersion} as it is loaded.");
+            return true;
+        }
+
+        foreach (var csproj in csprojs)
         {
             StridePackageUpgrader.UpgradeProjectVersions(csproj, log);
         }
         return true;
+    }
+
+    /// <summary>
+    /// The Stride.Engine version the instantiated content names, null when none of its projects references it
+    /// (a template of assets alone). The prerelease suffix is part of it; upgrades compare the numbers only.
+    /// </summary>
+    private static PackageVersion GetContentEngineVersion(IEnumerable<string> csprojPaths)
+    {
+        foreach (var csprojPath in csprojPaths)
+        {
+            var match = Regex.Match(File.ReadAllText(csprojPath), "Stride\\.Engine\"\\s+Version=\"([^\"]+)\"");
+            if (match.Success && PackageVersion.TryParse(match.Groups[1].Value, out var version))
+                return version;
+        }
+
+        return null;
     }
 
     /// <summary>

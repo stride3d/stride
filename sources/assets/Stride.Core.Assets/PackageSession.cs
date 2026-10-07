@@ -484,6 +484,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
     private AssetDependencyManager dependencies;
     private AssetSourceTracker sourceTracker;
     private bool? packageUpgradeAllowed;
+    private readonly Dictionary<Package, PackageUpgradeRequestedAnswer> packageUpgradeAnswers = [];
     public event DirtyFlagChangedDelegate<AssetItem> AssetDirtyChanged;
     private TaskCompletionSource<int> saveCompletion;
 
@@ -996,6 +997,31 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
     /// </summary>
     public void DisarmUpgradeBackup() => UpgradeBackup = null;
 
+    // Asks the front-end at most once per package whether to upgrade it. Every upgrade step (source migration,
+    // project references, assets) goes through here, so nothing is written before the user has answered.
+    private PackageUpgradeRequestedAnswer RequestPackageUpgrade(Package package, IList<PendingPackageUpgrade> pendingPackageUpgrades, PackageLoadParameters loadParameters)
+    {
+        if (packageUpgradeAllowed is { } allowed)
+            return allowed ? PackageUpgradeRequestedAnswer.Upgrade : PackageUpgradeRequestedAnswer.DoNotUpgrade;
+        if (loadParameters.PackageUpgradeRequested is null)
+            return PackageUpgradeRequestedAnswer.Upgrade;
+        if (packageUpgradeAnswers.TryGetValue(package, out var answer))
+            return answer;
+
+        answer = loadParameters.PackageUpgradeRequested(package, pendingPackageUpgrades);
+        packageUpgradeAnswers[package] = answer;
+        if (answer == PackageUpgradeRequestedAnswer.UpgradeAll)
+            packageUpgradeAllowed = true;
+        if (answer == PackageUpgradeRequestedAnswer.DoNotUpgradeAny)
+            packageUpgradeAllowed = false;
+
+        // The callback may have opted out of the backup (e.g. the GameStudio dialog's checkbox).
+        if (!loadParameters.BackupBeforeUpgrade)
+            DisarmUpgradeBackup();
+
+        return answer;
+    }
+
     /// <summary>
     /// Make sure packages have their dependencies loaded.
     /// </summary>
@@ -1498,6 +1524,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
         packagesCopy.Remove(package);
 
         pendingPackageUpgradesPerPackage.Remove(package);
+        packageUpgradeAnswers.Remove(package);
 
         IsDirty = true;
     }
@@ -1596,22 +1623,8 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
 
             if (pendingPackageUpgrades.Count > 0)
             {
-                var upgradeAllowed = packageUpgradeAllowed != false ? PackageUpgradeRequestedAnswer.Upgrade : PackageUpgradeRequestedAnswer.DoNotUpgrade;
-
                 // Need upgrades, let's ask user confirmation
-                if (loadParameters.PackageUpgradeRequested is not null && !packageUpgradeAllowed.HasValue)
-                {
-                    upgradeAllowed = loadParameters.PackageUpgradeRequested(package, pendingPackageUpgrades);
-                    if (upgradeAllowed == PackageUpgradeRequestedAnswer.UpgradeAll)
-                        packageUpgradeAllowed = true;
-                    if (upgradeAllowed == PackageUpgradeRequestedAnswer.DoNotUpgradeAny)
-                        packageUpgradeAllowed = false;
-
-                    // The confirmation callback may have opted out of the backup (e.g. the GameStudio dialog's
-                    // checkbox); disarm so the upgrade writes that follow this point don't snapshot.
-                    if (!loadParameters.BackupBeforeUpgrade)
-                        DisarmUpgradeBackup();
-                }
+                var upgradeAllowed = RequestPackageUpgrade(package, pendingPackageUpgrades, loadParameters);
 
                 if (!PackageLoadParameters.ShouldUpgrade(upgradeAllowed))
                 {

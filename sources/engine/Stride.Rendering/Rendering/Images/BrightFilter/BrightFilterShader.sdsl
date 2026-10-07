@@ -22,6 +22,10 @@ namespace Stride.Rendering.Images
         {
             float3 color = Texture0.Sample(PointSampler, streams.TexCoord).rgb;
 
+            // The result goes through a pyramid of half-float targets: an infinity or NaN there
+            // becomes a black block the size of the mip it happened on.
+            color = HalfPrecisionUtils.ClampToSafeRange(color);
+
             // Calculate relative luminance
             float luminance = LuminanceUtils.Luma(color);
 

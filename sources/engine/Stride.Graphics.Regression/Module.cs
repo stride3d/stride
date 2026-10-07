@@ -14,6 +14,11 @@ internal static class Module
         // Crash-dialog suppression + (opt-in) SEH minidump capture. Shared with Stride.Games.AutoTesting.
         NativeCrashHandler.Install();
 
+        // Crash-report popups must never interrupt a test run: unless the caller chose a mode, tools
+        // spawned by tests (asset compiler etc.) capture silently. Inherited by child processes.
+        if (Environment.GetEnvironmentVariable("STRIDE_CRASH_MODE") == null)
+            Environment.SetEnvironmentVariable("STRIDE_CRASH_MODE", "save");
+
         // Default to software rendering unless STRIDE_TESTS_GPU=1 is set.
         // This ensures Test Explorer and dotnet test match the gold images out of the box.
         // macOS defaults to GPU (MoltenVK) since that's the real-world Apple renderer;

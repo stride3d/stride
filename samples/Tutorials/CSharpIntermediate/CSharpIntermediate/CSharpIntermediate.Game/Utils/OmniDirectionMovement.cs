@@ -55,7 +55,7 @@ namespace CSharpIntermediate.Code
                 movement.X -= 1;
             }
 
-            var delta = (float)Game.UpdateTime.Elapsed.TotalSeconds;
+            var delta = (float)Game.UpdateTime.WarpElapsed.TotalSeconds;
             Entity.Transform.Position += movement * delta * MoveSpeed;
         }
     }

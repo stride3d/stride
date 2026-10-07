@@ -1,0 +1,14 @@
+// Regression test: a matrix constructor argument that is itself a binary expression involving
+// a vector constructor (e.g. `float2(1,2) * w`) used to fail to parse. The matrix literal
+// parser tried to match a `Vector` literal for each argument before falling back to a full
+// `Expression`, so it greedily consumed `float2(1,2)` and left the trailing `* w` unparsed,
+// producing an "Unexpected token : *" error. See MatrixParser.Match in LiteralParsers.cs.
+shader MatrixLiteralArgumentWithBinaryExpression
+{
+	float2x2 Test()
+	{
+		float w = 1;
+		float2x2 result = float2x2(float2(1,2), float2(1,2) * w);
+		return result;
+	}
+};

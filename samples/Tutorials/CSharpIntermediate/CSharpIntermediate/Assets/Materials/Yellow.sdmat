@@ -27,7 +27,7 @@ Attributes:
             LeftChild: !ComputeFloat
                 Value: 0.5
             RightChild: !ComputeTextureScalar
-                Texture: 7e2761d1-ef86-420a-b7a7-a0ed1c16f9bb:StrideClearCoatMetalFlakesNM
+                Texture: 7e2761d1-ef86-420a-b7a7-a0ed1c16f9bb:/Stride.Engine/StrideClearCoatMetalFlakesNM
                 FallbackValue:
                     Value: 1.0
                 Scale: {X: 128.0, Y: 128.0}
@@ -40,7 +40,7 @@ Attributes:
             LeftChild: !ComputeFloat
                 Value: 1.0
             RightChild: !ComputeTextureScalar
-                Texture: 7e2761d1-ef86-420a-b7a7-a0ed1c16f9bb:StrideClearCoatMetalFlakesNM
+                Texture: 7e2761d1-ef86-420a-b7a7-a0ed1c16f9bb:/Stride.Engine/StrideClearCoatMetalFlakesNM
                 FallbackValue:
                     Value: 1.0
                 Scale: {X: 128.0, Y: 128.0}
@@ -49,7 +49,7 @@ Attributes:
         MetalFlakesMetalnessMap: !ComputeFloat
             Value: 1.0
         MetalFlakesNormalMap: !ComputeTextureColor
-            Texture: 7e2761d1-ef86-420a-b7a7-a0ed1c16f9bb:StrideClearCoatMetalFlakesNM
+            Texture: 7e2761d1-ef86-420a-b7a7-a0ed1c16f9bb:/Stride.Engine/StrideClearCoatMetalFlakesNM
             FallbackValue:
                 Value: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
             Scale: {X: 128.0, Y: 128.0}
@@ -61,7 +61,7 @@ Attributes:
         ClearCoatMetalnessMap: !ComputeFloat
             Value: 0.5
         OrangePeelNormalMap: !ComputeTextureColor
-            Texture: 2f76bcba-ae9f-4954-b98d-f94c2102ff86:StrideClearCoatOrangePeelNM
+            Texture: 2f76bcba-ae9f-4954-b98d-f94c2102ff86:/Stride.Engine/StrideClearCoatOrangePeelNM
             FallbackValue:
                 Value: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
             Scale: {X: 8.0, Y: 8.0}

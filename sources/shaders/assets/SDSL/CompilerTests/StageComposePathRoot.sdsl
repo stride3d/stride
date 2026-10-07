@@ -1,0 +1,13 @@
+namespace Stride.Shaders.Tests;
+
+shader StageComposePathRoot
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    compose StageComposePathSupplier nested;
+
+    void PSMain()
+    {
+        streams.ColorTarget = nested.Get();
+    }
+};

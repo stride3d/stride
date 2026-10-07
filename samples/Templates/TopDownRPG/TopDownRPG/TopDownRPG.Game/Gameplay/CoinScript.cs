@@ -43,7 +43,7 @@ namespace TopDownRPG.Gameplay
 
         public void UpdateAnimation()
         {
-            var dt = (float) Game.UpdateTime.Elapsed.TotalSeconds;
+            var dt = (float) Game.UpdateTime.WarpElapsed.TotalSeconds;
             Entity.Transform.Rotation *= Quaternion.RotationMatrix(Matrix.RotationY(spinSpeed * (float)(dt * Math.PI)));
 
             if (!activated)

@@ -19,22 +19,34 @@ internal sealed class LauncherSettingsService : ILauncherSettingsService
         set => LauncherSettings.ActiveVersion = value;
     }
 
-    public string PreferredFramework
-    {
-        get => LauncherSettings.PreferredFramework;
-        set => LauncherSettings.PreferredFramework = value;
-    }
-
     public string PreferredEditor
     {
         get => LauncherSettings.PreferredEditor;
         set => LauncherSettings.PreferredEditor = value;
     }
 
+    public string PreferredRuntime
+    {
+        get => LauncherSettings.PreferredRuntime;
+        set => LauncherSettings.PreferredRuntime = value;
+    }
+
     public int CurrentTab
     {
         get => LauncherSettings.CurrentTab;
         set => LauncherSettings.CurrentTab = value;
+    }
+
+    public bool IncludePrereleaseUpdates
+    {
+        get => LauncherSettings.IncludePrereleaseUpdates;
+        set => LauncherSettings.IncludePrereleaseUpdates = value;
+    }
+
+    public string? ThemeVariant
+    {
+        get => LauncherSettings.ThemeVariant;
+        set => LauncherSettings.ThemeVariant = value;
     }
 
     public IReadOnlyCollection<UDirectory> DeveloperVersions => LauncherSettings.DeveloperVersions;

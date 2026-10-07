@@ -16,7 +16,10 @@ shader CSByteAddressBuffer
     void CSMain()
     {
         uint val = Input.Load(0);
-        Output.Store(0, val);
+        // Store from a single thread: legalization folds the load into the store argument,
+        // and FXC rejects an unconditional uniform-address store in that form (error X3694).
+        if (streams.GroupIndex == 0)
+            Output.Store(0, val);
         Output.InterlockedAdd(0, 1);
     }
 }

@@ -1,0 +1,19 @@
+namespace Stride.Shaders.Tests;
+
+shader NumThreadsVariable
+{
+    stage stream uint3 DispatchThreadId : SV_DispatchThreadID;
+
+    RWBuffer<uint> Output;
+
+    cbuffer Test
+    {
+        int ThreadCount;
+    }
+
+    [numthreads(ThreadCount, 1, 1)]
+    void CSMain()
+    {
+        Output[streams.DispatchThreadId.x] = 1;
+    }
+}

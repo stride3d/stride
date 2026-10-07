@@ -46,25 +46,15 @@ namespace Stride.Graphics
 
             HasResourceRenaming = false;
 
-            // Ask the device about each format. MultisampleCountMax deliberately stays None below:
-            // this backend does not implement multisampling, GraphicsBackend.Vulkan says so, and
-            // ForwardRenderer and Texture.InitializeFrom read that field raw rather than through
-            // Supports, so an honest value there would let them create images this backend cannot make.
+            var physicalDevice = deviceRoot.NativePhysicalDevice;
+            var instanceApi = deviceRoot.NativeInstanceApi;
+
             for (int i = 0; i < mapFeaturesPerFormat.Length; i++)
             {
                 var pixelFormat = (PixelFormat) i;
-                var formatSupport = FormatSupport.None;
-
-                if (VulkanConvertExtensions.TryConvertPixelFormat(pixelFormat, out var vulkanFormat) &&
-                    vulkanFormat != VkFormat.Undefined)
-                {
-                    deviceRoot.NativeInstanceApi.vkGetPhysicalDeviceFormatProperties(
-                        deviceRoot.NativePhysicalDevice, vulkanFormat, out var formatProperties);
-
-                    formatSupport = ConvertFormatSupport(formatProperties);
-                }
-
-                mapFeaturesPerFormat[i] = new FeaturesPerFormat(pixelFormat, MultisampleCount.None, ComputeShaderFormatSupport.None, formatSupport);
+                var maximumMultisampleCount = GetMaximumMultisampleCount(deviceRoot, instanceApi, physicalDevice, pixelFormat);
+                var formatSupport = GetFormatSupport(instanceApi, physicalDevice, pixelFormat);
+                mapFeaturesPerFormat[i] = new FeaturesPerFormat(pixelFormat, maximumMultisampleCount, ComputeShaderFormatSupport.None, formatSupport);
             }
             //// Check features for each DXGI.Format
             //foreach (var format in Enum.GetValues(typeof(SharpDX.DXGI.Format)))
@@ -86,6 +76,15 @@ namespace Stride.Graphics
             //    //mapFeaturesPerFormat[(int)dxgiFormat] = new FeaturesPerFormat((PixelFormat)dxgiFormat, maximumMultisampleCount, computeShaderFormatSupport, formatSupport);
             //    mapFeaturesPerFormat[(int)dxgiFormat] = new FeaturesPerFormat((PixelFormat)dxgiFormat, maximumMultisampleCount, formatSupport);
             //}
+        }
+
+        private static FormatSupport GetFormatSupport(VkInstanceApi instanceApi, VkPhysicalDevice physicalDevice, PixelFormat pixelFormat)
+        {
+            if (!VulkanConvertExtensions.TryConvertPixelFormat(pixelFormat, out var format, out _, out _))
+                return FormatSupport.None;
+
+            instanceApi.vkGetPhysicalDeviceFormatProperties(physicalDevice, format, out var formatProperties);
+            return ConvertFormatSupport(formatProperties);
         }
 
         /// <summary>
@@ -135,6 +134,36 @@ namespace Stride.Graphics
                 formatSupport |= FormatSupport.Buffer;
 
             return formatSupport;
+        }
+
+        private static MultisampleCount GetMaximumMultisampleCount(GraphicsDevice deviceRoot, VkInstanceApi instanceApi, VkPhysicalDevice physicalDevice, PixelFormat pixelFormat)
+        {
+            var isDepthFormat = Texture.IsDepthFormat(pixelFormat);
+            if (isDepthFormat)
+            {
+                // A texture of this format is created with the one the device supports, so answer for that one
+                pixelFormat = deviceRoot.GetSupportedDepthStencilFormat(pixelFormat);
+            }
+
+            if (!VulkanConvertExtensions.TryConvertPixelFormat(pixelFormat, out var format, out _, out _))
+                return MultisampleCount.None;
+
+            // Same usage as Texture.CreateImage for a render target or depth stencil of that format
+            var usage = VkImageUsageFlags.TransferSrc | VkImageUsageFlags.TransferDst;
+            usage |= isDepthFormat ? VkImageUsageFlags.DepthStencilAttachment : VkImageUsageFlags.ColorAttachment;
+
+            var result = instanceApi.vkGetPhysicalDeviceImageFormatProperties(physicalDevice, format, VkImageType.Image2D, VkImageTiling.Optimal, usage, VkImageCreateFlags.None, out var imageFormatProperties);
+            if (result != VkResult.Success)
+                return MultisampleCount.None;
+
+            var sampleCounts = imageFormatProperties.sampleCounts;
+            if ((sampleCounts & VkSampleCountFlags.Count8) != 0)
+                return MultisampleCount.X8;
+            if ((sampleCounts & VkSampleCountFlags.Count4) != 0)
+                return MultisampleCount.X4;
+            if ((sampleCounts & VkSampleCountFlags.Count2) != 0)
+                return MultisampleCount.X2;
+            return MultisampleCount.None;
         }
     }
 }

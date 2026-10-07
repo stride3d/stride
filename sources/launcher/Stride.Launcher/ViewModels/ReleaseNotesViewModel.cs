@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.ViewModels;
+using Stride.Launcher.Services;
 
 namespace Stride.Launcher.ViewModels;
 
@@ -13,8 +14,6 @@ namespace Stride.Launcher.ViewModels;
 /// </summary>
 public sealed partial class ReleaseNotesViewModel : DispatcherViewModel
 {
-    private static readonly HttpClient httpClient = new();
-
     private readonly MainViewModel launcher;
     private bool isActive;
     private string? markdownContent;
@@ -25,6 +24,7 @@ public sealed partial class ReleaseNotesViewModel : DispatcherViewModel
     private const string RootUrl = "https://doc.stride3d.net";
     private const string ReleaseNotesFileName = "ReleaseNotes.md";
     private readonly string baseUrl;
+    private readonly string releaseNotesFileName;
 
     internal ReleaseNotesViewModel(MainViewModel launcher, string version)
         : base(launcher.SafeArgument(nameof(launcher)).ServiceProvider)
@@ -34,7 +34,9 @@ public sealed partial class ReleaseNotesViewModel : DispatcherViewModel
 
         this.launcher = launcher;
         Version = version;
-        baseUrl = $"{RootUrl}/{Version}/ReleaseNotes/";
+        // The release notes of every version (betas included) are in one place
+        baseUrl = $"{RootUrl}/en/release-notes/";
+        releaseNotesFileName = $"{Version}.md";
 #if DEBUG
         if (Environment.CommandLine.ToLowerInvariant().Contains("/previewreleasenotes"))
         {
@@ -43,6 +45,7 @@ public sealed partial class ReleaseNotesViewModel : DispatcherViewModel
             if (File.Exists($"{mdPath}{ReleaseNotesFileName}"))
             {
                 baseUrl = $"file:///{mdPath.Replace("\\", "/")}";
+                releaseNotesFileName = ReleaseNotesFileName;
             }
         }
 #endif
@@ -72,7 +75,7 @@ public sealed partial class ReleaseNotesViewModel : DispatcherViewModel
 
         try
         {
-            using var response = await httpClient.GetAsync($"{BaseUrl}{ReleaseNotesFileName}");
+            using var response = await LauncherHttpClient.Instance.GetAsync($"{BaseUrl}{releaseNotesFileName}");
             response.EnsureSuccessStatusCode();
             releaseNotesMarkdown = await response.Content.ReadAsStringAsync();
         }

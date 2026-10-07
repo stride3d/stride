@@ -61,7 +61,6 @@ namespace ThirdPersonPlatformer.Player
         /// </summary>
         public override void Update()
         {
-            // var dt = Game.UpdateTime.Elapsed.Milliseconds * 0.001;
             Move(MaxRunSpeed);
 
             Jump();

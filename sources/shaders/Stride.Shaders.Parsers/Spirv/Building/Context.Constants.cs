@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
-using System.Numerics;
 using Stride.Shaders.Core;
 using Stride.Shaders.Parsing;
 using Stride.Shaders.Parsing.SDSL.AST;
@@ -12,25 +11,6 @@ namespace Stride.Shaders.Spirv.Building;
 public partial class SpirvContext
 {
     public Dictionary<(SymbolType Type, object Value), SpirvValue> LiteralConstants { get; } = [];
-
-    public int AddConstant<TScalar>(TScalar value)
-        where TScalar : INumber<TScalar>
-    {
-        var data = value switch
-        {
-            uint v => Buffer.AddData(new OpConstant<uint>(GetOrRegister(ScalarType.UInt), Bound++, v)),
-            int v => Buffer.AddData(new OpConstant<int>(GetOrRegister(ScalarType.Int), Bound++, v)),
-            ulong v => Buffer.AddData(new OpConstant<ulong>(GetOrRegister(ScalarType.UInt64), Bound++, v)),
-            long v => Buffer.AddData(new OpConstant<long>(GetOrRegister(ScalarType.Int64), Bound++, v)),
-            Half v => Buffer.AddData(new OpConstant<Half>(GetOrRegister(ScalarType.Half), Bound++, v)),
-            float v => Buffer.AddData(new OpConstant<float>(GetOrRegister(ScalarType.Float), Bound++, v)),
-            double v => Buffer.AddData(new OpConstant<double>(GetOrRegister(ScalarType.Double), Bound++, v)),
-            _ => throw new NotImplementedException()
-        };
-        if (InstructionInfo.GetInfo(data).GetResultIndex(out var index))
-            return data.Memory.Span[index + 1];
-        throw new Exception("Constant has no result id");
-    }
 
     public object GetConstantValue(int constantId)
     {
@@ -83,96 +63,37 @@ public partial class SpirvContext
 
         if (i.Op == Specification.Op.OpSpecConstantOp)
         {
-            var resultType = i.Data.Memory.Span[1];
-            var resultId = i.Data.Memory.Span[2];
-            var op = (Specification.Op)i.Data.Memory.Span[3];
-            switch (op)
+            // Layout: [header, resultType, resultId, opcode, operands...]
+            var span = i.Data.Memory.Span;
+            var op = (Specification.Op)span[3];
+            typeId = span[1];
+
+            // Component of a constant vector (e.g. `v.x`)
+            if (op == Specification.Op.OpCompositeExtract)
             {
-                // Conversions
-                case Specification.Op.OpConvertFToS:
-                case Specification.Op.OpConvertFToU:
-                case Specification.Op.OpConvertSToF:
-                case Specification.Op.OpConvertUToF:
-                    if (!TryGetConstantValue(i.Data.Memory.Span[4], out var convertOperand, out var convertOperandTypeId))
-                        return false;
-                    value = op switch
-                    {
-                        // Note: first cast to object is important, otherwise int/float will be cast as float
-                        Specification.Op.OpConvertFToS => (object)(int)(float)convertOperand,
-                        Specification.Op.OpConvertFToU => (uint)(float)convertOperand,
-                        Specification.Op.OpConvertSToF => (float)(int)convertOperand,
-                        Specification.Op.OpConvertUToF => (float)(uint)convertOperand,
-                        _ => throw new NotSupportedException($"Unsupported conversion op: {op}"),
-                    };
-                    break;
-                // Bitcast: reinterpret the operand's bits as the target scalar type.
-                case Specification.Op.OpBitcast:
-                    if (!TryGetConstantValue(i.Data.Memory.Span[4], out var bitcastOperand, out _))
-                        return false;
-                    if (ReverseTypes[resultType] is not ScalarType { Type: var bitcastTargetScalar })
-                        throw new NotSupportedException($"OpBitcast result type {ReverseTypes[resultType]} is not a scalar");
-                    var bitcastBits = bitcastOperand switch
-                    {
-                        int v => (uint)v,
-                        uint v => v,
-                        float v => BitConverter.SingleToUInt32Bits(v),
-                        _ => throw new NotSupportedException($"OpBitcast operand type {bitcastOperand.GetType()} is not supported"),
-                    };
-                    value = bitcastTargetScalar switch
-                    {
-                        Scalar.Int => (object)(int)bitcastBits,
-                        Scalar.UInt => bitcastBits,
-                        Scalar.Float => BitConverter.UInt32BitsToSingle(bitcastBits),
-                        _ => throw new NotSupportedException($"OpBitcast target scalar {bitcastTargetScalar} is not supported"),
-                    };
-                    break;
-                // Unary operations
-                case Specification.Op.OpSNegate:
-                case Specification.Op.OpFNegate:
-                    if (!TryGetConstantValue(i.Data.Memory.Span[4], out var unaryOperand, out var unaryOperandTypeId))
-                        return false;
-                    if (unaryOperandTypeId != resultType)
-                        return false;
-                    value = op switch
-                    {
-                        // Note: first cast to object is important, otherwise int/float will be cast as float
-                        Specification.Op.OpSNegate => (object)(-(int)unaryOperand),
-                        Specification.Op.OpFNegate => -(float)unaryOperand,
-                        _ => throw new NotSupportedException($"Unsupported unary op: {op}"),
-                    };
-                    break;
-                // Binary operations
-                case Specification.Op.OpIAdd:
-                case Specification.Op.OpISub:
-                case Specification.Op.OpIMul:
-                case Specification.Op.OpFAdd:
-                case Specification.Op.OpFSub:
-                case Specification.Op.OpFMul:
-                case Specification.Op.OpFDiv:
-                    if (!TryGetConstantValue(i.Data.Memory.Span[4], out var left, out var leftTypeId))
-                        return false;
-                    if (!TryGetConstantValue(i.Data.Memory.Span[5], out var right, out var rightTypeId))
-                        return false;
-                    if (leftTypeId != resultType || rightTypeId != resultType)
-                        return false;
-                    value = op switch
-                    {
-                        // Note: first cast to object is important, otherwise int/float will be cast as float
-                        Specification.Op.OpIAdd => (object)((int)left + (int)right),
-                        Specification.Op.OpISub => (int)left - (int)right,
-                        Specification.Op.OpIMul => (int)left * (int)right,
-                        Specification.Op.OpFAdd => (float)left + (float)right,
-                        Specification.Op.OpFSub => (float)left - (float)right,
-                        Specification.Op.OpFMul => (float)left * (float)right,
-                        Specification.Op.OpFDiv => (float)left / (float)right,
-                        _ => throw new NotSupportedException($"Unsupported binary op: {op}"),
-                    };
-                    break;
-                default:
-                    throw new NotImplementedException();
+                if (span.Length != 6 || !TryGetConstantValue(span[4], out var composite, out _)
+                    || composite is not ConstantVector vector || (uint)span[5] >= vector.Values.Length)
+                    return false;
+                value = vector.Values[span[5]];
+                return true;
             }
 
-            return true;
+            // Note: the operation decides how many operands are ids, the length of the instruction does not
+            switch (ConstantEvaluator.GetEvaluatedOperandCount(op))
+            {
+                case 1:
+                    return TryGetConstantValue(span[4], out var unaryOperand, out _)
+                        && ConstantEvaluator.TryEvaluateUnary(op, unaryOperand, ReverseTypes[typeId], out value);
+                case 2:
+                    return TryGetConstantValue(span[4], out var left, out _)
+                        && TryGetConstantValue(span[5], out var right, out _)
+                        && ConstantEvaluator.TryEvaluateBinary(op, left, right, out value);
+                case 3:
+                    return TryGetConstantValue(span[4], out var condition, out _) && condition is bool conditionValue
+                        && TryGetConstantValue(conditionValue ? span[5] : span[6], out value, out _);
+                default:
+                    return false;
+            }
         }
 
         if ((i.Op == Specification.Op.OpConstantComposite || i.Op == Specification.Op.OpSpecConstantComposite) &&
@@ -243,6 +164,69 @@ public partial class SpirvContext
         throw new Exception("Cannot find type instruction for id " + typeId);
     }
 
+    /// <summary>
+    /// Adds the constant holding a value, scalar or vector, as returned by <see cref="TryGetConstantValue(int, out object, out int)"/>.
+    /// </summary>
+    public void AddConstant(int resultType, int resultId, object value)
+    {
+        foreach (var instruction in CreateConstantInstructions(resultType, resultId, value))
+            Add(instruction);
+    }
+
+    /// <summary>
+    /// Replaces the instruction defining a constant by the value it was computed to. A vector needs the constants of its components,
+    /// which are inserted before it.
+    /// </summary>
+    /// <returns>The number of instructions inserted before the replaced one.</returns>
+    public int ReplaceByConstant(int index, int resultType, int resultId, object value)
+    {
+        var instructions = CreateConstantInstructions(resultType, resultId, value);
+        for (var i = 0; i < instructions.Count - 1; i++)
+            Insert(index + i, instructions[i]);
+        Replace(index + instructions.Count - 1, instructions[^1]);
+        return instructions.Count - 1;
+    }
+
+    // The constant itself comes last: a constant is defined before it is used
+    private List<OpData> CreateConstantInstructions(int resultType, int resultId, object value)
+    {
+        if (value is not ConstantVector vector)
+            return [CreateConstantInstruction(resultType, resultId, value)];
+
+        // Note: the components are not shared with other constants, which could be defined after this one
+        var componentType = GetOrRegister(((VectorType)ReverseTypes[resultType]).BaseType);
+        var instructions = new List<OpData>();
+        Span<int> componentIds = stackalloc int[vector.Values.Length];
+        for (var i = 0; i < componentIds.Length; i++)
+        {
+            componentIds[i] = Bound++;
+            instructions.Add(CreateConstantInstruction(componentType, componentIds[i], vector.Values[i]));
+        }
+
+        instructions.Add(new OpData(new OpConstantComposite(resultType, resultId, new(componentIds)).InstructionMemory));
+        return instructions;
+    }
+
+    /// <summary>
+    /// Creates the constant instruction holding a scalar value, as returned by <see cref="TryGetConstantValue(int, out object, out int)"/>.
+    /// </summary>
+    public static OpData CreateConstantInstruction(int resultType, int resultId, object value)
+    {
+        return value switch
+        {
+            true => new OpData(new OpConstantTrue(resultType, resultId).InstructionMemory),
+            false => new OpData(new OpConstantFalse(resultType, resultId).InstructionMemory),
+            int v => new OpData(new OpConstant<int>(resultType, resultId, v).InstructionMemory),
+            uint v => new OpData(new OpConstant<uint>(resultType, resultId, v).InstructionMemory),
+            long v => new OpData(new OpConstant<long>(resultType, resultId, v).InstructionMemory),
+            ulong v => new OpData(new OpConstant<ulong>(resultType, resultId, v).InstructionMemory),
+            Half v => new OpData(new OpConstant<Half>(resultType, resultId, v).InstructionMemory),
+            float v => new OpData(new OpConstant<float>(resultType, resultId, v).InstructionMemory),
+            double v => new OpData(new OpConstant<double>(resultType, resultId, v).InstructionMemory),
+            _ => throw new NotSupportedException($"Cannot create a constant of type {value.GetType()}"),
+        };
+    }
+
     public SpirvValue CreateDefaultConstantComposite(SymbolType type)
     {
         // TODO: cache results (either here or even more generally for any composite constant even if non-zero)
@@ -268,45 +252,42 @@ public partial class SpirvContext
         return new(Buffer.AddData(new OpConstantComposite(GetOrRegister(type), Bound++, new(values))));
     }
 
-    public Literal CreateLiteral(object value, TextLocation location = default)
+    /// <summary>
+    /// Gets the constant of a scalar value (bool, int, uint, long, ulong, half, float or double), which has the type of the value.
+    /// </summary>
+    public SpirvValue CompileConstant(object value)
     {
-        return value switch
+        var type = value switch
         {
-            bool i => new BoolLiteral(i, location),
-            sbyte i => new IntegerLiteral(new(8, false, true), i, location),
-            byte i => new IntegerLiteral(new(8, false, false), i, location),
-            short i => new IntegerLiteral(new(16, false, true), i, location),
-            ushort i => new IntegerLiteral(new(16, false, false), i, location),
-            int i => new IntegerLiteral(new(32, false, true), i, location),
-            uint i => new IntegerLiteral(new(32, false, false), i, location),
-            long i => new IntegerLiteral(new(64, false, true), i, location),
-            ulong i => new IntegerLiteral(new(64, false, false), (long)i, location),
-            float i => new FloatLiteral(new(32, true, true), i, location),
-            double i => new FloatLiteral(new(64, true, true), i, location),
-            _ => throw new NotSupportedException($"Unsupported literal type: {value.GetType()}"),
+            bool => ScalarType.Boolean,
+            int => ScalarType.Int,
+            uint => ScalarType.UInt,
+            long => ScalarType.Int64,
+            ulong => ScalarType.UInt64,
+            Half => ScalarType.Half,
+            float => ScalarType.Float,
+            double => ScalarType.Double,
+            _ => throw new NotSupportedException($"Unsupported constant type: {value.GetType()}"),
         };
-    }
-
-    public SpirvValue CompileConstant(object value, TextLocation location = default)
-    {
-        return CompileConstantLiteral(CreateLiteral(value, location));
+        return CompileConstant(type, value);
     }
 
     public SpirvValue CompileConstantLiteral(Literal literal)
     {
+        // Note: first cast to object is important, otherwise all the cases are converted to a common type (a float to a double)
         object literalValue = literal switch
         {
             BoolLiteral lit => lit.Value,
             IntegerLiteral lit => lit.Suffix switch
             {
-                { Size: > 32, Signed: false } => lit.ULongValue,
+                { Size: > 32, Signed: false } => (object)lit.ULongValue,
                 { Size: > 32, Signed: true } => lit.LongValue,
                 { Signed: false } => lit.UIntValue,
                 _ => lit.IntValue,
             },
             FloatLiteral lit => lit.Suffix.Size switch
             {
-                > 32 => lit.DoubleValue,
+                > 32 => (object)lit.DoubleValue,
                 _ => (float)lit.DoubleValue,
             },
             _ => throw new NotImplementedException()
@@ -314,42 +295,20 @@ public partial class SpirvContext
 
         literal.Type ??= ComputeLiteralType(literal);
 
-        if (LiteralConstants.TryGetValue((literal.Type, literalValue), out var result))
+        return CompileConstant(literal.Type, literalValue);
+    }
+
+    /// <summary>
+    /// Gets the constant of a scalar value with a given type, shared by all the uses of this value with this type.
+    /// </summary>
+    public SpirvValue CompileConstant(SymbolType type, object value)
+    {
+        if (LiteralConstants.TryGetValue((type, value), out var result))
             return result;
 
-        var instruction = literal switch
-        {
-            BoolLiteral { Value: true } lit => Buffer.AddData(new OpConstantTrue(GetOrRegister(lit.Type), Bound++)),
-            BoolLiteral { Value: false } lit => Buffer.AddData(new OpConstantFalse(GetOrRegister(lit.Type), Bound++)),
-            IntegerLiteral lit => lit.Suffix switch
-            {
-                { Size: <= 8, Signed: false } => Buffer.AddData(new OpConstant<byte>(GetOrRegister(lit.Type), Bound++, (byte)lit.IntValue)),
-                { Size: <= 8, Signed: true } => Buffer.AddData(new OpConstant<sbyte>(GetOrRegister(lit.Type), Bound++, (sbyte)lit.IntValue)),
-                { Size: <= 16, Signed: false } => Buffer.AddData(new OpConstant<ushort>(GetOrRegister(lit.Type), Bound++, (ushort)lit.IntValue)),
-                { Size: <= 16, Signed: true } => Buffer.AddData(new OpConstant<short>(GetOrRegister(lit.Type), Bound++, (short)lit.IntValue)),
-                { Size: <= 32, Signed: false } => Buffer.AddData(new OpConstant<uint>(GetOrRegister(lit.Type), Bound++, lit.UIntValue)),
-                { Size: <= 32, Signed: true } => Buffer.AddData(new OpConstant<int>(GetOrRegister(lit.Type), Bound++, lit.IntValue)),
-                { Size: <= 64, Signed: false } => Buffer.AddData(new OpConstant<ulong>(GetOrRegister(lit.Type), Bound++, lit.ULongValue)),
-                { Size: <= 64, Signed: true } => Buffer.AddData(new OpConstant<long>(GetOrRegister(lit.Type), Bound++, lit.LongValue)),
-                _ => throw new NotImplementedException()
-            },
-            FloatLiteral lit => lit.Suffix.Size switch
-            {
-                > 32 => Buffer.AddData(new OpConstant<double>(GetOrRegister(lit.Type), Bound++, lit.DoubleValue)),
-                _ => Buffer.AddData(new OpConstant<float>(GetOrRegister(lit.Type), Bound++, (float)lit.DoubleValue)),
-            },
-            _ => throw new NotImplementedException()
-        };
-
-        result = new(instruction);
-        LiteralConstants.Add((literal.Type, literalValue), result);
-        AddName(result.Id, literal switch
-        {
-            BoolLiteral lit => $"{lit.Type}_{lit.Value}",
-            IntegerLiteral lit => $"{lit.Type}_{lit.Value}",
-            FloatLiteral lit => $"{lit.Type}_{lit.Value.ToString(CultureInfo.InvariantCulture)}",
-            _ => throw new NotImplementedException()
-        });
+        result = new(Buffer.Add(CreateConstantInstruction(GetOrRegister(type), Bound++, value)).Data);
+        LiteralConstants.Add((type, value), result);
+        AddName(result.Id, $"{type}_{Convert.ToString(value, CultureInfo.InvariantCulture)}");
         return result;
     }
 

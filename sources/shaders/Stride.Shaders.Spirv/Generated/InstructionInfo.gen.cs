@@ -3313,6 +3313,9 @@ public partial class InstructionInfo
         Instance.Register(Op.OpSourceHashSDSL, OperandKind.LiteralInteger, OperandQuantifier.One, "hash2", "Miscellaneous", []);
         Instance.Register(Op.OpSourceHashSDSL, OperandKind.LiteralInteger, OperandQuantifier.One, "hash3", "Miscellaneous", []);
         Instance.Register(Op.OpSourceHashSDSL, OperandKind.LiteralInteger, OperandQuantifier.One, "hash4", "Miscellaneous", []);
+        Instance.Register(Op.OpSwitchIdSDSL, OperandKind.IdRef, OperandQuantifier.One, "selector", "Control-Flow", []);
+        Instance.Register(Op.OpSwitchIdSDSL, OperandKind.IdRef, OperandQuantifier.One, "defaultId", "Control-Flow", []);
+        Instance.Register(Op.OpSwitchIdSDSL, OperandKind.PairIdRefIdRef, OperandQuantifier.ZeroOrMore, "targets", "Control-Flow", []);
         Instance.Register(Op.OpEffectSDFX, OperandKind.LiteralString, OperandQuantifier.One, "effectName", "Miscellaneous", []);
         Instance.Register(Op.OpParamsUseSDFX, OperandKind.IdRef, OperandQuantifier.One, "paramsName", "Miscellaneous", []);
         Instance.Register(Op.OpParamsSDFX, OperandKind.LiteralString, OperandQuantifier.One, "name", "Miscellaneous", []);

@@ -186,9 +186,7 @@ public record struct LiteralsParser : IParser<Literal>
                     while (!scanner.IsEof)
                     {
                         Parsers.Spaces0(ref scanner, result, out _);
-                        if (Vector(ref scanner, result, out var vec))
-                            p.Values.Add(vec);
-                        else if (ExpressionParser.Expression(ref scanner, result, out var exp))
+                        if (ExpressionParser.Expression(ref scanner, result, out var exp))
                             p.Values.Add(exp);
                         else return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0001, scanner[scanner.Position], scanner.Memory));
                         Parsers.Spaces0(ref scanner, result, out _);
@@ -284,11 +282,11 @@ public record struct Suffix(int Size, bool IsFloatingPoint, bool Signed)
             // More specific suffixes
             (true, _, 16) => "h",
             (true, _, 32) => "f",
-            (true, _, 64) => "l",
+            (true, _, 64) => "d",
             (false, false, 32) => "u",
             (false, true, 32) => "",
-            (false, false, 64) => "ul",
-            (false, true, 64) => "l",
+            (false, false, 64) => "ull",
+            (false, true, 64) => "ll",
 
             (true, _, _) => $"f{Size}",
             (false, false, _) => $"u{Size}",
@@ -346,26 +344,22 @@ public readonly record struct IntegerSuffixParser() : ILiteralParser<Suffix>
     public readonly bool Match<TScanner>(ref TScanner scanner, ParseResult result, out Suffix suffix, in ParseError? orError = null)
         where TScanner : struct, IScanner
     {
-        suffix = new(32, false, false);
-        if (Tokens.AnyOf(["u8", "u16", "u32", "u64", "i8", "i16", "i32", "i64", "u", "U", "l", "L"], ref scanner, out var matched, advance: true))
+        // The whole run of letters and digits must be a suffix, so that 1u16 is not read as 1u followed by 16
+        var position = scanner.Position;
+        while (Tokens.LetterOrDigit(ref scanner, advance: true) || Tokens.Char('_', ref scanner, advance: true)) ;
+        Suffix? matched = scanner.Span[position..scanner.Position] switch
         {
-            suffix = matched switch
-            {
-                "u8" => new(8, false, false),
-                "u16" => new(16, false, false),
-                "u32" => new(32, false, false),
-                "u64" => new(64, false, false),
-                "i8" => new(8, false, true),
-                "i16" => new(16, false, true),
-                "i32" => new(32, false, true),
-                "i64" => new(64, false, true),
-                "u" or "U" => new(32, false, false),
-                "l" or "L" => new(32, false, true),
-                _ => throw new NotImplementedException()
-            };
-            return true;
-        }
-        else return false;
+            // HLSL's long is 32 bits: l and ul are int and uint, ll and ull are 64 bits
+            "u" or "U" or "ul" or "uL" or "Ul" or "UL" or "lu" or "lU" or "Lu" or "LU" or "u32" => new Suffix(32, false, false),
+            "l" or "L" or "i32" => new Suffix(32, false, true),
+            "ll" or "LL" or "i64" => new Suffix(64, false, true),
+            "ull" or "uLL" or "Ull" or "ULL" or "llu" or "llU" or "LLu" or "LLU" or "u64" => new Suffix(64, false, false),
+            _ => null,
+        };
+        suffix = matched ?? default;
+        if (matched is null)
+            scanner.Position = position;
+        return matched is not null;
     }
 }
 
@@ -419,9 +413,7 @@ public record struct MatrixParser : IParser<MatrixLiteral>
                 {
                     Parsers.Spaces0(ref scanner, result, out _);
 
-                    if (LiteralsParser.Vector(ref scanner, result, out var vector))
-                        p.Values.Add(vector);
-                    else if (ExpressionParser.Expression(ref scanner, result, out var expression))
+                    if (ExpressionParser.Expression(ref scanner, result, out var expression))
                         p.Values.Add(expression);
                     else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
                     Parsers.Spaces0(ref scanner, result, out _);

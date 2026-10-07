@@ -75,6 +75,8 @@ namespace Stride.Shaders
             // Write to memory stream
             memStream.Position = 0;
             writer.Write(EffectBytecode.MagicHeader); // Write the effect bytecode magic header
+            writer.Write(ShaderCompilerVersion.Shader);
+            writer.Write(ShaderCompilerVersion.Effect);
             writer.Write(mixin);
 
             writer.Write(effectCompilerParameters.Platform);
@@ -94,6 +96,8 @@ namespace Stride.Shaders
             // Write to memory stream
             memStream.Position = 0;
             writer.Write(EffectBytecode.MagicHeader); // Write the effect bytecode magic header
+            writer.Write(ShaderCompilerVersion.Shader);
+            writer.Write(ShaderCompilerVersion.Effect);
             writer.Write(effectName);
 
             writer.Write(compilerParameters.EffectParameters.Platform);

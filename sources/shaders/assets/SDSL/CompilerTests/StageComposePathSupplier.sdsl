@@ -1,0 +1,10 @@
+// Sits one level below the root, and is where the stage slot's value is supplied.
+namespace Stride.Shaders.Tests;
+
+shader StageComposePathSupplier : StageComposePathDeclarer
+{
+    float4 Get()
+    {
+        return ConsumeIndexed();
+    }
+};

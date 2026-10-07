@@ -661,8 +661,7 @@ namespace Stride.Graphics.Regression
         }
 
         // Help text appended to gold comparison failures: a CompareGold pointer plus a ready
-        // `gh workflow run test-gold-gen` command pre-filtered to the failing test class, with the
-        // broader whole-suite / everything scopes shown too.
+        // `gh workflow run test-gold-gen` command pre-filtered to the failing test class.
         private static string GoldHelp(Type testType, bool suggestPromote)
         {
             var (repo, branch) = RepoAndBranch.Value;
@@ -673,17 +672,10 @@ namespace Stride.Graphics.Regression
                     + $" --ref {(string.IsNullOrEmpty(branch) ? "<branch>" : branch)}";
             var promote = suggestPromote ? " -f update-gold=auto" : "";
 
-            // Build only this suite's project (not the whole solution). The csproj is named by the
-            // assembly (unlike the namespace-based test filter); emitted only when it actually exists.
-            var assembly = testType.Assembly.GetName().Name;
-            var projectRel = $"sources/engine/{assembly}/{assembly}.csproj";
-            var project = "";
-            try { if (File.Exists(Path.Combine(GetTestsRootDirectory(), projectRel))) project = $" -f project={projectRel}"; }
-            catch { /* root not resolvable (e.g. Android) — omit, builds all */ }
-
+            // The filter alone is enough: the workflow builds only the suites it can hit.
             return $"Regenerate gold on CI (or review/promote locally with CompareGold -- tests/compare-gold.cmd):{Environment.NewLine}"
-                 + $"  gh workflow run test-gold-gen.yml{ctx}{project} -f test-filter='FullyQualifiedName~{testType.FullName}'{promote}{Environment.NewLine}"
-                 + $"  (widen: trim -f test-filter to a namespace; remove -f project to span all assemblies)";
+                 + $"  gh workflow run test-gold-gen.yml{ctx} -f test-filter='FullyQualifiedName~{testType.FullName}'{promote}{Environment.NewLine}"
+                 + $"  (widen: trim -f test-filter to a namespace, or join tests with |)";
         }
 
         // Resolved once per process: repo/branch don't change within a run, and the lookup shells

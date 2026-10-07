@@ -17,6 +17,11 @@ public sealed class GlobalLogger : Logger
     /// </summary>
     private static readonly Dictionary<string, Logger> MapModuleNameToLogger = [];
 
+    /// <summary>
+    /// Minimum levels configured per module, applied to the module's logger whenever it is created.
+    /// </summary>
+    private static readonly Dictionary<string, LogMessageType> ModuleMinimumLevels = [];
+
     #endregion
 
     private GlobalLogger(string module)
@@ -117,6 +122,25 @@ public sealed class GlobalLogger : Logger
     }
 
     /// <summary>
+    /// Sets the minimum level of a module's logger, whether it already exists or is created later.
+    /// Unlike <see cref="ActivateLog(Action{Logger})"/>, this is remembered for loggers not yet created.
+    /// </summary>
+    /// <param name="module">The module name.</param>
+    /// <param name="minimumLevel">The minimum level.</param>
+    /// <exception cref="ArgumentNullException">If module name is null</exception>
+    public static void SetModuleLevel(string module, LogMessageType minimumLevel)
+    {
+        ArgumentNullException.ThrowIfNull(module);
+
+        lock (MapModuleNameToLogger)
+        {
+            ModuleMinimumLevels[module] = minimumLevel;
+            if (MapModuleNameToLogger.TryGetValue(module, out var logger))
+                logger.ActivateLog(minimumLevel);
+        }
+    }
+
+    /// <summary>
     /// Gets the <see cref="GlobalLogger"/> associated to the specified module.
     /// </summary>
     /// <param name="module">The module name.</param>
@@ -131,7 +155,7 @@ public sealed class GlobalLogger : Logger
     /// Gets the <see cref="GlobalLogger"/> associated to the specified module.
     /// </summary>
     /// <param name="module">The module name.</param>
-    /// <param name="minimumLevel">Minimum log level (only applied if new logger instance is created)</param>
+    /// <param name="minimumLevel">Minimum log level (only applied if new logger instance is created, and unless <see cref="SetModuleLevel"/> configured one)</param>
     /// <exception cref="ArgumentNullException">If module name is null</exception>
     /// <returns>An instance of a <see cref="Logger"/></returns>
     public static Logger GetLogger(string module, LogMessageType minimumLevel)
@@ -148,7 +172,7 @@ public sealed class GlobalLogger : Logger
             if (!MapModuleNameToLogger.TryGetValue(module, out logger))
             {
                 logger = new GlobalLogger(module);
-                logger.ActivateLog(minimumLevel);
+                logger.ActivateLog(ModuleMinimumLevels.TryGetValue(module, out var configuredLevel) ? configuredLevel : minimumLevel);
                 MapModuleNameToLogger.Add(module, logger);
             }
         }

@@ -5,6 +5,7 @@ using System.Diagnostics;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Avalonia.Styling;
 using MarkView.Avalonia;
 using MarkView.Avalonia.Rendering;
 using Stride.Core.Presentation.Avalonia.Services;
@@ -24,6 +25,7 @@ public partial class App : Application
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
+        RequestedThemeVariant = GetSavedThemeVariant();
 
 #if DEBUG
         this.AttachDeveloperTools();
@@ -48,6 +50,38 @@ public partial class App : Application
             {
                 DataContext = InitializeMainViewModel()
             };
+        }
+    }
+
+    /// <summary>
+    /// Applies a <see cref="LauncherSettings.ThemeVariant"/> value to the running launcher.
+    /// </summary>
+    internal static void ApplyThemeVariant(string themeVariant)
+    {
+        if (Current is { } app)
+            app.RequestedThemeVariant = ToThemeVariant(themeVariant);
+    }
+
+    /// <summary>
+    /// Dark unless the variant is Light or System: the light variant isn't tuned yet.
+    /// </summary>
+    private static ThemeVariant ToThemeVariant(string? themeVariant) => themeVariant?.ToLowerInvariant() switch
+    {
+        "light" => ThemeVariant.Light,
+        "system" => ThemeVariant.Default,
+        _ => ThemeVariant.Dark,
+    };
+
+    private static ThemeVariant GetSavedThemeVariant()
+    {
+        try
+        {
+            return ToThemeVariant(LauncherSettings.ThemeVariant);
+        }
+        catch (Exception)
+        {
+            // Also used by the crash report: unreadable settings mustn't stop it
+            return ThemeVariant.Dark;
         }
     }
 

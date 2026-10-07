@@ -93,7 +93,7 @@ public class PlayerController : SyncScript
     
     private void HandleAnimation(bool isMoving)
     {
-        animationTimer += (float) Game.UpdateTime.Elapsed.TotalSeconds;
+        animationTimer += (float) Game.UpdateTime.WarpElapsed.TotalSeconds;
         
         if (CharacterComponent.IsGrounded && !isMoving)
         {

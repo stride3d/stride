@@ -1,0 +1,48 @@
+// PSMain(ExpectedResult=#FFFFFFFF, cbuffer.Test=(Test1=3))
+// PSMain(ExpectedResult=#7F7F7F7F, cbuffer.Test=(Test1=4))
+// PSMain(ExpectedResult=#3F3F3F3F, cbuffer.Test=(Test1=7))
+// PSMain(ExpectedResult=#00000000, cbuffer.Test=(Test1=99))
+
+namespace Stride.Shaders.Tests;
+
+shader SwitchGenericLabelsBase<int TMode>
+{
+    static const int NextMode = TMode + 1;
+
+    float Pick(int selector)
+    {
+        float v = 0.0;
+        switch (selector)
+        {
+            case TMode:
+                v = 1.0;
+                break;
+            case NextMode:
+                v = 127.0 / 255.0;
+                break;
+            case 7:
+                v = 63.0 / 255.0;
+                break;
+            default:
+                v = 0.0;
+                break;
+        }
+        return v;
+    }
+}
+
+shader SwitchGenericLabels : SwitchGenericLabelsBase<3>
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    cbuffer Test
+    {
+        int Test1;
+    }
+
+    void PSMain()
+    {
+        float v = Pick(Test1);
+        streams.ColorTarget = float4(v, v, v, v);
+    }
+}

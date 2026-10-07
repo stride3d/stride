@@ -1,0 +1,44 @@
+name: Set up Vulkan on a Windows runner
+description: >-
+  Install the Vulkan SDK, register its validation layer, and install Lavapipe (the software driver of
+  Stride.Dependencies.Lavapipe) as the Vulkan ICD. Registry, not environment variables: the loader ignores
+  VK_LAYER_PATH and VK_DRIVER_FILES for elevated processes.
+
+inputs:
+  vulkan-sdk-version:
+    description: Vulkan SDK version to install (its validation layer version matters for what gets reported)
+    required: false
+    default: '1.4.341.1'
+
+runs:
+  using: composite
+  steps:
+    - name: Install Vulkan SDK
+      uses: jakoch/install-vulkan-sdk-action@v1
+      with:
+        vulkan_version: ${{ inputs.vulkan-sdk-version }}
+        install_runtime: true
+        cache: true
+        stripdown: true
+
+    - name: Enable Vulkan validation layers
+      shell: pwsh
+      run: |
+        $manifest = Join-Path $env:VULKAN_SDK 'Bin\VkLayer_khronos_validation.json'
+        if (-not (Test-Path $manifest)) { throw "Validation layer manifest not found: $manifest" }
+        New-Item -Path "HKLM:\SOFTWARE\Khronos\Vulkan\ExplicitLayers" -Force | Out-Null
+        New-ItemProperty -Path "HKLM:\SOFTWARE\Khronos\Vulkan\ExplicitLayers" -Name $manifest -Value 0 -PropertyType DWord -Force | Out-Null
+
+    - name: Install Lavapipe and register its Vulkan ICD
+      shell: pwsh
+      run: |
+        # A throwaway project restore puts the package in the NuGet cache
+        $tmpDir = "${{ runner.temp }}\lavapipe-fetch"
+        New-Item -ItemType Directory -Path $tmpDir -Force | Out-Null
+        Set-Content -Path "$tmpDir\LavapipeFetch.csproj" -Value '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0</TargetFramework></PropertyGroup></Project>'
+        dotnet add "$tmpDir\LavapipeFetch.csproj" package Stride.Dependencies.Lavapipe
+        $icd = Get-ChildItem -Recurse -Path "$env:USERPROFILE\.nuget\packages\stride.dependencies.lavapipe" -Filter "lvp_icd*.json" -ErrorAction SilentlyContinue | Where-Object { $_.DirectoryName -match 'win-x64' } | Select-Object -First 1
+        if (-not $icd) { throw "Lavapipe ICD not found in NuGet cache after restore." }
+        New-Item -Path "HKLM:\SOFTWARE\Khronos\Vulkan\Drivers" -Force | Out-Null
+        New-ItemProperty -Path "HKLM:\SOFTWARE\Khronos\Vulkan\Drivers" -Name $icd.FullName -Value 0 -PropertyType DWord -Force | Out-Null
+        Write-Host "Registered Lavapipe ICD: $($icd.FullName)"

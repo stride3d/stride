@@ -2,7 +2,8 @@
 Id: 82360e61-196c-4c07-9fae-af7ee4f265a1
 SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
-Source: ../../Resources/model/BG/scene/bg_b00.FBX
+Source: !file ../../Resources/model/BG/scene/bg_b00.FBX
+Skeleton: null
 PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
 Materials:
     d2781b7a5fc65143a10b2e1ebffde87d:
@@ -17,6 +18,6 @@ Materials:
         Name: bg_wall02
         MaterialInstance:
             Material: ef070a60-83e2-4bd7-a95f-6599de22a8fa:BG_wall02_1
-Skeleton: null
+Modifiers: {}
 ~SourceHashes:
     8a0b49be6234897e3ecd4bd3fea5645b~../../Resources/model/BG/scene/bg_b00.FBX: aa0861ee6855d86bd5397e72cdae8d89

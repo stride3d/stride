@@ -79,8 +79,57 @@ public abstract class NumberLiteral<T>(Suffix suffix, T value, TextLocation info
 
 }
 
-public partial class IntegerLiteral(Suffix suffix, long value, TextLocation info) : NumberLiteral<long>(suffix, value, info)
+public partial class IntegerLiteral(Suffix suffix, long value, TextLocation info) : NumberLiteral<long>(suffix, Wrap(suffix, value), info)
 {
+    /// <summary>
+    /// Whether the literal was written without a suffix: its type then depends on its value, and negating it keeps it signed.
+    /// </summary>
+    public bool Unsuffixed { get; init; }
+
+    // An unsigned 64-bit value above long.MaxValue is stored as the same bits
+    public override double DoubleValue => Suffix is { Size: 64, Signed: false } ? ULongValue : Value;
+    public override ulong ULongValue => unchecked((ulong)Value);
+    public override uint UIntValue => unchecked((uint)Value);
+    public override int IntValue => unchecked((int)Value);
+
+    // The value wraps to the range of its type, as in C
+    static long Wrap(Suffix suffix, long value) => suffix switch
+    {
+        { Size: 32, Signed: true } => unchecked((int)value),
+        { Size: 32, Signed: false } => unchecked((uint)value),
+        _ => value,
+    };
+
+    /// <summary>
+    /// Creates a literal written without a suffix, typed as the first of int, uint, long and ulong that holds its value.
+    /// </summary>
+    public static IntegerLiteral FromUnsuffixed(Int128 value, TextLocation info)
+    {
+        Suffix suffix;
+        if (value >= int.MinValue && value <= int.MaxValue)
+            suffix = new(32, false, true);
+        else if (value >= 0 && value <= uint.MaxValue)
+            suffix = new(32, false, false);
+        else if (value >= long.MinValue && value <= long.MaxValue)
+            suffix = new(64, false, true);
+        else if (value >= 0 && value <= ulong.MaxValue)
+            suffix = new(64, false, false);
+        else
+            suffix = new(64, false, true);
+        return new(suffix, unchecked((long)value), info) { Unsuffixed = true };
+    }
+
+    /// <summary>
+    /// Negates the literal: a suffixed one keeps its type and wraps (-1u is 0xFFFFFFFF), an unsuffixed one stays signed (-2147483648 is an int).
+    /// </summary>
+    public virtual IntegerLiteral Negate(TextLocation info)
+        => Unsuffixed
+            ? FromUnsuffixed(-(Suffix.Signed ? (Int128)Value : ULongValue), info)
+            : new(Suffix, unchecked(-Value), info);
+
+    public override string ToString()
+        => string.Create(CultureInfo.InvariantCulture, $"{(Suffix.Signed ? Value : (object)ULongValue)}{Suffix}");
+
     public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
     {
         Type = expectedType is ScalarType { Type: Scalar.Float }
@@ -94,7 +143,7 @@ public partial class IntegerLiteral(Suffix suffix, long value, TextLocation info
         // If expectedType is float, handle it:
         if (Type is ScalarType { Type: Scalar.Float })
         {
-            return compiler.Context.CompileConstantLiteral(new FloatLiteral(new(32, true, true), Value, Info));
+            return compiler.Context.CompileConstantLiteral(new FloatLiteral(new(32, true, true), DoubleValue, Info));
         }
 
         return compiler.Context.CompileConstantLiteral(this);
@@ -104,6 +153,11 @@ public partial class IntegerLiteral(Suffix suffix, long value, TextLocation info
 public sealed partial class FloatLiteral(Suffix suffix, double value, TextLocation info) : NumberLiteral<double>(suffix, value, info)
 {
     public static implicit operator FloatLiteral(double v) => new(new(), v, new());
+
+    /// <summary>
+    /// Whether the literal was written without a suffix: an operation of such literals is then folded in double precision.
+    /// </summary>
+    public bool Unsuffixed { get; init; }
 
     public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
     {
@@ -116,9 +170,11 @@ public sealed partial class FloatLiteral(Suffix suffix, double value, TextLocati
     }
 }
 
-public sealed partial class HexLiteral(ulong value, TextLocation info) : IntegerLiteral(new(value > uint.MaxValue ? 64 : 32, false, false), (long)value, info)
+public sealed partial class HexLiteral(ulong value, TextLocation info) : IntegerLiteral(new(value > uint.MaxValue ? 64 : 32, false, false), unchecked((long)value), info)
 {
     public override SymbolType? Type => Suffix.Size > 32 ? ScalarType.UInt64 : ScalarType.UInt;
+
+    public override IntegerLiteral Negate(TextLocation info) => FromUnsuffixed(-(Int128)ULongValue, info);
 }
 
 
@@ -377,7 +433,7 @@ public abstract partial class IdentifierBase(string name, TextLocation info) : L
         if (symbol.Id.Kind == SymbolKind.Shader)
         {
             if (constantOnly)
-                throw new NotImplementedException();
+                throw new NotConstantExpressionException($"'{symbol.Id.Name}' is not a compile-time constant");
 
             if (instance == null)
                 instance = builder.Insert(new OpThisSDSL(context.Bound++)).ResultId;
@@ -392,7 +448,7 @@ public abstract partial class IdentifierBase(string name, TextLocation info) : L
         else if (symbol.MemberAccessWithImplicitThis is { } thisType)
         {
             if (constantOnly)
-                throw new NotImplementedException();
+                throw new NotConstantExpressionException($"'{symbol.Id.Name}' is not a compile-time constant");
 
             instance ??= builder.Insert(new OpThisSDSL(context.Bound++)).ResultId;
             result.Id = builder.Insert(new OpMemberAccessSDSL(context.GetOrRegister(thisType), context.Bound++, instance.Value, result.Id));
@@ -400,7 +456,7 @@ public abstract partial class IdentifierBase(string name, TextLocation info) : L
         if (symbol.AccessChain is int accessChainIndex)
         {
             if (constantOnly)
-                throw new NotImplementedException();
+                throw new NotConstantExpressionException($"'{symbol.Id.Name}' is not a compile-time constant");
 
             var index = context.CompileConstant(accessChainIndex).Id;
             result.Id = builder.Insert(new OpAccessChain(resultType, context.Bound++, result.Id, [index]));
@@ -441,31 +497,40 @@ public abstract partial class IdentifierBase(string name, TextLocation info) : L
 
         var symbol = ShaderDefinition.ImportSymbol(table, context, ResolvedSymbol);
 
-        // Track when a stage method accesses a non-stage variable (without composition qualifier).
-        // This forces the shader to be fully imported at root level instead of stage-only during mixin.
-        if (symbol.MemberAccessWithImplicitThis != null && !symbol.Id.IsStage && builder.CurrentFunction is { IsStage: true })
-        {
-            var varOwner = symbol.OwnerType;
-            if (varOwner != null && varOwner != table.CurrentShader)
-            {
-                foreach (var inst in context)
-                {
-                    if (inst.Op == Spirv.Specification.Op.OpMixinInheritSDSL && (OpMixinInheritSDSL)inst is { } inherit
-                        && table.ResolveShader(inherit.Shader) is { } lss && lss.Name == varOwner.Name)
-                    {
-                        inherit.Flags |= Spirv.Specification.MixinInheritFlagsMask.NeedsFullImport;
-                        break;
-                    }
-                }
-            }
-            else
-            {
-                builder.CurrentFunction = builder.CurrentFunction.Value with { ReferencesNonStageMembers = true };
-            }
-            table.AddInfo(new(Info, $"Stage method '{table.CurrentShader?.Name}.{builder.CurrentFunction.Value.Name}' references non-stage variable '{varOwner?.Name ?? "?"}.{Name}'. This will cause the shader to be fully imported at root level instead of stage-only when used in a composition."));
-        }
+        // A shader name used as qualifier (LuminanceUtils.Luma(x)) reads no instance state; the member it qualifies is tracked by the accessor.
+        if (symbol.MemberAccessWithImplicitThis != null && symbol.Id.Kind != SymbolKind.Shader)
+            TrackNonStageVariableAccess(table, builder, context, symbol, Info);
 
         return EmitSymbol(builder, context, symbol, constantOnly);
+    }
+
+    /// <summary>
+    ///   Tracks a stage method reading a non-stage variable (without composition qualifier), which forces its shader
+    ///   to be fully imported at root level instead of stage-only during mixin.
+    /// </summary>
+    public static void TrackNonStageVariableAccess(SymbolTable table, SpirvBuilder builder, SpirvContext context, Symbol symbol, TextLocation info)
+    {
+        if (symbol.Id.IsStage || builder.CurrentFunction is not { IsStage: true })
+            return;
+
+        var varOwner = symbol.OwnerType;
+        if (varOwner != null && varOwner != table.CurrentShader)
+        {
+            foreach (var inst in context)
+            {
+                if (inst.Op == Spirv.Specification.Op.OpMixinInheritSDSL && (OpMixinInheritSDSL)inst is { } inherit
+                    && table.ResolveShader(inherit.Shader) is { } lss && lss.Name == varOwner.Name)
+                {
+                    inherit.Flags |= Spirv.Specification.MixinInheritFlagsMask.NeedsFullImport;
+                    break;
+                }
+            }
+        }
+        else
+        {
+            builder.CurrentFunction = builder.CurrentFunction.Value with { ReferencesNonStageMembers = true };
+        }
+        table.AddInfo(new(info, $"Stage method '{table.CurrentShader?.Name}.{builder.CurrentFunction.Value.Name}' references non-stage variable '{varOwner?.Name ?? "?"}.{symbol.Id.Name}'. This will cause the shader to be fully imported at root level instead of stage-only when used in a composition."));
     }
 }
 
@@ -797,9 +862,6 @@ public partial class TypeName(string name, TextLocation info) : Literal(info)
             else
             {
                 var arrayComputedSize = -1;
-                if (arraySize is IntegerLiteral i)
-                    arrayComputedSize = (int)i.Value;
-
                 var constantArraySize = arraySize.CompileConstantValue(table, context);
                 var sizeExpr = ConstantExpression.ParseFromBuffer(constantArraySize.Id, context.GetBuffer(), context);
                 if (sizeExpr.TryEvaluate(out var value) && value is IConvertible)

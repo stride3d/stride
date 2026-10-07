@@ -180,7 +180,7 @@ public partial class SpirvContext
                 t.Depth, t.Arrayed ? 1 : 0, t.Multisampled ? 1 : 0, t.Sampled, t.Format, null)).IdResult,
             SamplerType st => Buffer.AddData(new OpTypeSampler(id)).IdResult,
             BufferType b => Buffer.AddData(new OpTypeImage(id, GetOrRegister(b.BaseType), Specification.Dim.Buffer,
-                2, 0, 0, b.WriteAllowed ? 2 : 1, Specification.ImageFormat.Unknown, null)).IdResult,
+                2, 0, 0, b.WriteAllowed ? 2 : 1, GetStorageImageFormat(b), null)).IdResult,
             AppendStructuredBufferType ab => RegisterAppendOrConsumeStructuredBufferType("Append", ab.BaseType),
             ConsumeStructuredBufferType cb => RegisterAppendOrConsumeStructuredBufferType("Consume", cb.BaseType),
             StructuredBufferType b => RegisterStructuredBufferType(b),
@@ -223,6 +223,24 @@ public partial class SpirvContext
 
         return bufferType;
     }
+
+    /// <summary>
+    /// Retrieves the image format an <c>RWBuffer&lt;T&gt;</c> declares.
+    /// </summary>
+    /// <remarks>
+    /// A concrete format is only needed for <c>OpImageTexelPointer</c> (atomics), which is only
+    /// defined on 32-bit integer texels; every other buffer keeps Unknown.
+    /// </remarks>
+    /// <returns>A concrete format for a writable 32-bit integer buffer, Unknown otherwise.</returns>
+    private static Specification.ImageFormat GetStorageImageFormat(BufferType bufferType)
+        => bufferType.WriteAllowed
+            ? bufferType.BaseType switch
+            {
+                ScalarType { Type: Scalar.UInt } => Specification.ImageFormat.R32ui,
+                ScalarType { Type: Scalar.Int } => Specification.ImageFormat.R32i,
+                _ => Specification.ImageFormat.Unknown,
+            }
+            : Specification.ImageFormat.Unknown;
 
     private int RegisterByteAddressBufferType(ByteAddressBufferType byteAddressBufferType)
     {

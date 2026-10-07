@@ -123,7 +123,7 @@ namespace FirstPersonShooter.Player
 
             // Update current animation
             var currentTicks = TimeSpan.FromTicks((long)(currentTime * currentClip.Duration.Ticks));
-            var updatedTicks = currentTicks.Ticks + (long)(Game.DrawTime.Elapsed.Ticks * TimeFactor);
+            var updatedTicks = currentTicks.Ticks + (long)(Game.UpdateTime.WarpElapsed.Ticks * TimeFactor);
 
             var currentClipFinished = (updatedTicks >= currentClip.Duration.Ticks);
 

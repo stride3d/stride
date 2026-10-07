@@ -1,0 +1,15 @@
+// A stage method reading a non-stage variable through its shader name must force the parent's full import.
+namespace Stride.Shaders.Tests;
+
+shader QualifiedNonStageRoot : QualifiedNonStageBase
+{
+    stage stream uint3 DispatchThreadId : SV_DispatchThreadID;
+
+    RWTexture3D<float4> WriteTex;
+
+    [numthreads(8, 8, 8)]
+    stage void CSMain()
+    {
+        WriteTex[streams.DispatchThreadId] = float4(QualifiedNonStageBase.Value, 0, 0, 1);
+    }
+};

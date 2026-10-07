@@ -21,29 +21,25 @@ public record struct PostfixParser : IParser<Expression>
                 parsed = new AccessorChainExpression(parsed, parsed.Info);
                 while (!scanner.IsEof && Parsers.FollowedByAny(ref scanner, ["[", ".", "++", "--"], out var matched, withSpaces: true, advance: true))
                 {
-                    if (
-                        matched == "["
-                        && Parsers.FollowedByDel(ref scanner, result, ExpressionParser.Expression, out Expression? indexer, withSpaces: true, advance: true)
-                        && Parsers.FollowedBy(ref scanner, Tokens.Char(']'), withSpaces: true, advance: true)
-                    )
+                    if (matched == "[")
                     {
+                        if (!Parsers.FollowedByDel(ref scanner, result, ExpressionParser.Expression, out Expression? indexer, withSpaces: true, advance: true))
+                            return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0015, scanner[scanner.Position], scanner.Memory));
+                        if (!Parsers.FollowedBy(ref scanner, Tokens.Char(']'), withSpaces: true, advance: true))
+                            return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0019, scanner[scanner.Position], scanner.Memory));
                         ((AccessorChainExpression)parsed).Accessors.Add(new IndexerExpression(indexer!, indexer!.Info));
                     }
-                    else if (
-                        matched == "."
-                        && Parsers.FollowedByDel(ref scanner, result, PrimaryParsers.Method, out Expression? call, withSpaces: true, advance: true)
-                    )
+                    else if (matched == ".")
                     {
-                        ((AccessorChainExpression)parsed).Accessors.Add(call!);
+                        if (Parsers.FollowedByDel(ref scanner, result, PrimaryParsers.Method, out Expression? call, withSpaces: true, advance: true))
+                            ((AccessorChainExpression)parsed).Accessors.Add(call!);
+                        else if (Parsers.FollowedByDel(ref scanner, result, LiteralsParser.IdentifierBase, out IdentifierBase? accessor, withSpaces: true, advance: true))
+                            ((AccessorChainExpression)parsed).Accessors.Add(accessor!);
+                        else
+                            // A '.' with nothing valid after it must not be silently dropped (e.g. `a.;` or `1..`)
+                            return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0021, scanner[scanner.Position], scanner.Memory));
                     }
-                    else if (
-                        matched == "."
-                        && Parsers.FollowedByDel(ref scanner, result, LiteralsParser.IdentifierBase, out IdentifierBase? accessor, withSpaces: true, advance: true)
-                    )
-                    {
-                        ((AccessorChainExpression)parsed).Accessors.Add(accessor!);
-                    }
-                    else if (matched == "++" || matched == "--")
+                    else
                     {
                         ((AccessorChainExpression)parsed).Accessors.Add(new PostfixIncrement(matched.ToOperator(), scanner[(scanner.Position - 2)..scanner.Position]));
                         break;

@@ -39,7 +39,7 @@ Hierarchy:
                             8bf989676d4925ed6ff4a211147844bd: ref!! 70f8147c-a33e-4c1d-afb9-42b00bc9c5e4
                     dba5ae73c46fcc7913610ecc8e1fce70: !ModelComponent
                         Id: a8aa52c4-7ba5-4865-8a57-67db2eb3859b
-                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:Models/BoxF
+                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:/SamplesAssetPackage/Models/BoxF
                         Materials: {}
             Base:
                 BasePartAsset: 48c608e4-7e9c-4ced-824a-64698151274e:Prefabs/Pile of boxes
@@ -87,7 +87,7 @@ Hierarchy:
                         Children: {}
                     dba5ae73c46fcc7913610ecc8e1fce70: !ModelComponent
                         Id: 06fe7f8c-0b9e-4e21-8181-d440ca41e1ac
-                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:Models/BoxF
+                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:/SamplesAssetPackage/Models/BoxF
                         Materials: {}
             Base:
                 BasePartAsset: 48c608e4-7e9c-4ced-824a-64698151274e:Prefabs/Pile of boxes
@@ -105,7 +105,7 @@ Hierarchy:
                         Children: {}
                     dba5ae73c46fcc7913610ecc8e1fce70: !ModelComponent
                         Id: cde4d508-d90a-4c06-99a1-62354641ca91
-                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:Models/BoxF
+                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:/SamplesAssetPackage/Models/BoxF
                         Materials: {}
             Base:
                 BasePartAsset: 48c608e4-7e9c-4ced-824a-64698151274e:Prefabs/Pile of boxes
@@ -124,7 +124,7 @@ Hierarchy:
                         Children: {}
                     dba5ae73c46fcc7913610ecc8e1fce70: !ModelComponent
                         Id: 5373e0a6-99b6-48af-8e4a-4aa98b6a7258
-                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:Models/BoxF
+                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:/SamplesAssetPackage/Models/BoxF
                         Materials: {}
             Base:
                 BasePartAsset: 48c608e4-7e9c-4ced-824a-64698151274e:Prefabs/Pile of boxes
@@ -142,7 +142,7 @@ Hierarchy:
                         Children: {}
                     dba5ae73c46fcc7913610ecc8e1fce70: !ModelComponent
                         Id: 42f68c27-7d45-4958-b02e-868985f52191
-                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:Models/BoxF
+                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:/SamplesAssetPackage/Models/BoxF
                         Materials: {}
             Base:
                 BasePartAsset: 48c608e4-7e9c-4ced-824a-64698151274e:Prefabs/Pile of boxes
@@ -160,7 +160,7 @@ Hierarchy:
                         Children: {}
                     dba5ae73c46fcc7913610ecc8e1fce70: !ModelComponent
                         Id: 1b26ed53-2315-4515-abbf-90d95b375473
-                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:Models/BoxF
+                        Model: e288f24b-258b-4875-85bb-a696a7445a7c:/SamplesAssetPackage/Models/BoxF
                         Materials: {}
             Base:
                 BasePartAsset: 48c608e4-7e9c-4ced-824a-64698151274e:Prefabs/Pile of boxes

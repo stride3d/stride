@@ -1,0 +1,45 @@
+// PSMain(ExpectedResult=#FFFFFFFF, cbuffer.Test=(Test1=1))
+// PSMain(ExpectedResult=#7F7F7F7F, cbuffer.Test=(Test1=2))
+// PSMain(ExpectedResult=#3F3F3F3F, cbuffer.Test=(Test1=3))
+// PSMain(ExpectedResult=#1F1F1F1F, cbuffer.Test=(Test1=4))
+// PSMain(ExpectedResult=#00000000, cbuffer.Test=(Test1=99))
+
+namespace Stride.Shaders.Tests;
+
+shader SwitchConstLabels
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    static const uint Mode_Full = 1;
+    static const uint Mode_Half = 2;
+    static const int Mode_Quarter = 3;
+
+    cbuffer Test
+    {
+        uint Test1;
+    }
+
+    void PSMain()
+    {
+        float v = 0.0;
+        switch (Test1)
+        {
+            case Mode_Full:
+                v = 1.0;
+                break;
+            case Mode_Half:
+                v = 127.0 / 255.0;
+                break;
+            case Mode_Quarter:
+                v = 63.0 / 255.0;
+                break;
+            case Mode_Half + 2:
+                v = 31.0 / 255.0;
+                break;
+            default:
+                v = 0.0;
+                break;
+        }
+        streams.ColorTarget = float4(v, v, v, v);
+    }
+}

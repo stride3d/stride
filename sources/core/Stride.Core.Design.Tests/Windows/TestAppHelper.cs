@@ -102,11 +102,12 @@ public class TestAppHelper
         AppHelper.WriteVideoConfig(builder);
         var result = builder.ToString();
 
-        // Should either contain GPU info or error message
+        // Should either contain GPU info, the error message, or the not-on-this-platform note
         Assert.True(
             result.Contains("GPU ") ||
-            result.Contains("An error occurred while trying to retrieve video configuration."),
-            "Expected GPU info or error message");
+            result.Contains("An error occurred while trying to retrieve video configuration.") ||
+            result.Contains("only available on Windows"),
+            "Expected GPU info, error message or platform note");
     }
 
     [Fact]
@@ -169,8 +170,8 @@ public class TestAppHelper
         AppHelper.WriteVideoConfig(builder);
         var result = builder.ToString();
 
-        // Should contain numbered GPU entries or error message
-        if (!result.Contains("An error occurred"))
+        // Should contain numbered GPU entries, unless there was an error or no video configuration on this platform
+        if (!result.Contains("An error occurred") && !result.Contains("only available on Windows"))
         {
             Assert.Matches(@"GPU \d+", result);
         }

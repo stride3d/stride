@@ -18,11 +18,26 @@ namespace Stride.GameStudio.Helpers
         public static string CopyrightText2 => "© 2011-2018 Silicon Studio Corp.";
 
         [NotNull]
-        public static string EditorName => $"Stride Game Studio {EditorVersion} ({RuntimeInformation.FrameworkDescription})";
+        public static string EditorName => $"Stride Game Studio {EditorVersion} ({RuntimeLabel})";
 
         // EditorName plus the active graphics API in the environment group; for the main window title.
         [NotNull]
-        public static string EditorNameWithGraphicsApi => $"Stride Game Studio {EditorVersion} ({RuntimeInformation.FrameworkDescription}, {GraphicsDevice.Platform})";
+        public static string EditorNameWithGraphicsApi => $"Stride Game Studio {EditorVersion} ({EditorEnvironment})";
+
+        /// <summary>Runtime and graphics API of this process, e.g. ".NET 11.0.0-rc.1, Vulkan".</summary>
+        [NotNull]
+        public static string EditorEnvironment => $"{RuntimeLabel}, {GraphicsDevice.Platform}";
+
+        // ".NET 11.0.0-rc.1.26425.128" -> ".NET 11.0.0-rc.1": the build number is too long for a title.
+        [NotNull]
+        public static string RuntimeLabel
+        {
+            get
+            {
+                var match = System.Text.RegularExpressions.Regex.Match(RuntimeInformation.FrameworkDescription, @"^\.NET \d+\.\d+\.\d+(-[a-z]+\.\d+)?");
+                return match.Success ? match.Value : RuntimeInformation.FrameworkDescription;
+            }
+        }
 
         [NotNull]
         public static string EditorVersion => StrideVersion.NuGetVersion;

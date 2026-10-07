@@ -15,7 +15,7 @@ public partial class ShaderMixer
     /// <summary>
     /// Expands inheritance (including implicit and transitive ones) and composition (including shaders that should be merged at stage level).
     /// </summary>
-    private ShaderMixinInstantiation EvaluateInheritanceAndCompositions(IExternalShaderLoader shaderLoader, SpirvContext context, ShaderMixinSource? parent, ShaderSource shaderSource, Action<ShaderClassInstantiation>? promoteToParent = null, HashSet<string>? needsFullImport = null)
+    private ShaderMixinInstantiation EvaluateInheritanceAndCompositions(IExternalShaderLoader shaderLoader, SpirvContext context, ShaderMixinSource? parent, ShaderSource shaderSource, Action<ShaderClassInstantiation>? promoteToParent = null, HashSet<string>? needsFullImport = null, string? compositionPath = null, ShaderMixinSource? rootMixinSource = null, Dictionary<string, ShaderMixinInstantiation[]>? rootCompositions = null)
     {
         var mixinList = new List<ShaderClassInstantiation>();
 
@@ -36,6 +36,10 @@ public partial class ShaderMixer
         var compositions = new Dictionary<string, ShaderMixinInstantiation[]>();
         var result = new ShaderMixinInstantiation(new(), compositions);
 
+        // Stage compositions are resolved against the root, whichever node declares them
+        rootMixinSource ??= shaderMixinSource;
+        rootCompositions ??= compositions;
+
         foreach (var mixinToMerge in shaderMixinSource.Mixins)
         {
             var shaderBuffer = SpirvBuilder.GetOrLoadShader(shaderLoader, mixinToMerge.ClassName, mixinToMerge.GenericArguments, macros);
@@ -55,7 +59,7 @@ public partial class ShaderMixer
             SpirvBuilder.BuildInheritanceListIncludingSelf(shaderLoader, context, mixinToMerge2, macros, mixinList, ResolveStep.Mix);
         }
 
-        ProcessClasses(shaderLoader, context, mixinList, shaderMixinSource, result, compositions, promoteToParent, needsFullImport);
+        ProcessClasses(shaderLoader, context, mixinList, shaderMixinSource, result, compositions, promoteToParent, needsFullImport, compositionPath, rootMixinSource, rootCompositions);
 
         return result;
     }
@@ -74,7 +78,7 @@ public partial class ShaderMixer
     ///   4. Post-processing (root only): upgrade any stage-only imports to full imports if compositions
     ///      discovered during step 3 that their non-stage members are needed.
     /// </summary>
-    private void ProcessClasses(IExternalShaderLoader shaderLoader, SpirvContext context, List<ShaderClassInstantiation> mixinList, ShaderMixinSource shaderMixinSource, ShaderMixinInstantiation result, Dictionary<string, ShaderMixinInstantiation[]> compositions, Action<ShaderClassInstantiation>? promoteToParent = null, HashSet<string>? needsFullImport = null)
+    private void ProcessClasses(IExternalShaderLoader shaderLoader, SpirvContext context, List<ShaderClassInstantiation> mixinList, ShaderMixinSource shaderMixinSource, ShaderMixinInstantiation result, Dictionary<string, ShaderMixinInstantiation[]> compositions, Action<ShaderClassInstantiation>? promoteToParent, HashSet<string>? needsFullImport, string? compositionPath, ShaderMixinSource rootMixinSource, Dictionary<string, ShaderMixinInstantiation[]> rootCompositions)
     {
         // --- Step 1: Pre-scan for shaders needing full import ---
         // Two sources:
@@ -152,7 +156,7 @@ public partial class ShaderMixer
             bool hasStage = HasStageMembersOrCompositions(shaderBuffers);
 
             // Discover and recursively process compositions
-            ProcessCompositions(shaderLoader, context, shaderBuffers, shaderMixinSource, compositions, promoteToParentForCompositions, needsFullImport);
+            ProcessCompositions(shaderLoader, context, shaderBuffers, shaderName.ClassName, shaderMixinSource, compositions, promoteToParentForCompositions, needsFullImport, compositionPath, rootMixinSource, rootCompositions);
 
             // Promote to parent level if this shader has stage members or needs full import
             if (hasStage || needsFullImport.Contains(shaderName.ClassName))
@@ -239,7 +243,7 @@ public partial class ShaderMixer
     /// <summary>
     /// Discovers composition variables in a shader buffer and recursively evaluates them.
     /// </summary>
-    private void ProcessCompositions(IExternalShaderLoader shaderLoader, SpirvContext context, ShaderBuffers shader, ShaderMixinSource shaderMixinSource, Dictionary<string, ShaderMixinInstantiation[]> compositions, Action<ShaderClassInstantiation> promoteToParent, HashSet<string> needsFullImport)
+    private void ProcessCompositions(IExternalShaderLoader shaderLoader, SpirvContext context, ShaderBuffers shader, string shaderClassName, ShaderMixinSource shaderMixinSource, Dictionary<string, ShaderMixinInstantiation[]> compositions, Action<ShaderClassInstantiation> promoteToParent, HashSet<string> needsFullImport, string? compositionPath, ShaderMixinSource rootMixinSource, Dictionary<string, ShaderMixinInstantiation[]> rootCompositions)
     {
         foreach (var i in shader.Buffer)
         {
@@ -256,8 +260,22 @@ public partial class ShaderMixer
 
             var variableName = shader.Context.Names[variable.ResultId];
 
+            // A stage composition is one slot for the whole effect: its declaring shader is promoted to the root,
+            // so its value comes from the root source and lands in the root compositions, whichever node declares it
+            var isStage = (variable.Flags & VariableFlagsMask.Stage) != 0;
+            if (isStage && compositionPath != null && shaderMixinSource.Compositions.ContainsKey(variableName))
+                throw new InvalidOperationException($"'{variableName}' is a `stage compose` declared by '{shaderClassName}', so it is one slot for the whole effect and must be supplied at the root. It was supplied at '{compositionPath}'.");
+
+            var valueSource = isStage ? rootMixinSource : shaderMixinSource;
+            var valueCompositions = isStage ? rootCompositions : compositions;
+            var valuePath = isStage ? null : compositionPath;
+
+            // Already evaluated, at the root or through another shader inheriting the same declarer
+            if (isStage && valueCompositions.ContainsKey(variableName))
+                continue;
+
             // Use the composition from ShaderMixinSource if specified, otherwise use the default type
-            if (!shaderMixinSource.Compositions.TryGetValue(variableName, out var compositionMixin))
+            if (!valueSource.Compositions.TryGetValue(variableName, out var compositionMixin))
             {
                 if (pointer.BaseType is ShaderSymbol shaderSymbol)
                     compositionMixin = new ShaderMixinSource { Mixins = { new ShaderClassSource(shaderSymbol.Name) } };
@@ -270,17 +288,22 @@ public partial class ShaderMixer
             if (compositionMixin is ShaderArraySource shaderArraySource)
             {
                 var variableCompositions = new List<ShaderMixinInstantiation>();
-                foreach (var value in shaderArraySource.Values)
-                    variableCompositions.Add(EvaluateInheritanceAndCompositions(shaderLoader, context, shaderMixinSource, value, promoteToParent, needsFullImport));
-                compositions[variableName] = [.. variableCompositions];
+                for (int index = 0; index < shaderArraySource.Values.Count; index++)
+                    variableCompositions.Add(EvaluateInheritanceAndCompositions(shaderLoader, context, valueSource, shaderArraySource.Values[index], promoteToParent, needsFullImport, ChildCompositionPath(valuePath, $"{variableName}[{index}]"), rootMixinSource, rootCompositions));
+                valueCompositions[variableName] = [.. variableCompositions];
             }
             else
             {
-                var variableComposition = EvaluateInheritanceAndCompositions(shaderLoader, context, shaderMixinSource, compositionMixin, promoteToParent, needsFullImport);
-                compositions[variableName] = [variableComposition];
+                var variableComposition = EvaluateInheritanceAndCompositions(shaderLoader, context, valueSource, compositionMixin, promoteToParent, needsFullImport, ChildCompositionPath(valuePath, variableName), rootMixinSource, rootCompositions);
+                valueCompositions[variableName] = [variableComposition];
             }
         }
     }
+
+    // The child key comes first, e.g. "Marcher.diffuseMarcher.environmentLights[0]"
+    // TODO: Review: it seems like Stride compose variable the opposite way that we expect
+    //       Let's change it so that it becomes {parentPath}.{key}!
+    private static string ChildCompositionPath(string? parentPath, string key) => parentPath != null ? $"{key}.{parentPath}" : key;
 
     private void PropagateMacrosRecursively(ShaderSource child, ShaderMixinSource? parent = null)
     {

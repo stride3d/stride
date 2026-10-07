@@ -132742,6 +132742,146 @@ public ref partial struct OpSourceHashSDSL : IMemoryInstruction
     public static implicit operator OpSourceHashSDSL(OpDataIndex odi) => new(odi);
 }
 
+public ref partial struct OpSwitchIdSDSL : IMemoryInstruction
+{
+    private ref OpData opData;
+    public ref OpData OpData => ref opData;
+
+    public MemoryOwner<int> InstructionMemory
+    {
+        get
+        {
+            if (!Unsafe.IsNullRef(ref OpData))
+                return OpData.Memory;
+            else
+                return field;
+        }
+
+        private set
+        {
+            if (!Unsafe.IsNullRef(ref OpData))
+            {
+                OpData.Memory.Dispose();
+                OpData.Memory = value;
+            }
+            else
+                field = value;
+        }
+    }
+
+    public OpSwitchIdSDSL()
+    {
+        InstructionMemory = MemoryOwner<int>.Allocate(1);
+        InstructionMemory.Span[0] = (int)Op.OpSwitchIdSDSL | (1 << 16);
+    }
+
+    public OpSwitchIdSDSL(OpDataIndex index)
+    {
+        InitializeProperties(ref index.Data);
+        opData = ref index.Data;
+    }
+
+    public OpSwitchIdSDSL(ref OpData data)
+    {
+        InitializeProperties(ref data);
+        opData = ref data;
+    }
+
+    public int Selector
+    {
+        get;
+        set
+        {
+            field = value;
+            if (InstructionMemory is not null)
+                UpdateInstructionMemory();
+        }
+    }
+
+    public int DefaultId
+    {
+        get;
+        set
+        {
+            field = value;
+            if (InstructionMemory is not null)
+                UpdateInstructionMemory();
+        }
+    }
+
+    public LiteralArray<(int, int)> Targets
+    {
+        get;
+        set
+        {
+            field.Assign(value);
+            if (InstructionMemory is not null)
+                UpdateInstructionMemory();
+        }
+    }
+
+    public OpSwitchIdSDSL(int selector, int defaultId, LiteralArray<(int, int)> targets)
+    {
+        Selector = selector;
+        DefaultId = defaultId;
+        Targets = targets;
+        UpdateInstructionMemory();
+        opData = ref Unsafe.NullRef<OpData>();
+    }
+
+    public void Attach(OpDataIndex index)
+    {
+        opData = ref index.Data;
+    }
+
+    public void UpdateInstructionMemory()
+    {
+        InstructionMemory ??= MemoryOwner<int>.Empty;
+        Span<int> instruction = [(int)Op.OpSwitchIdSDSL, Selector, DefaultId, ..Targets.Words];
+        instruction[0] |= instruction.Length << 16;
+        if (instruction.Length == InstructionMemory.Length)
+            instruction.CopyTo(InstructionMemory.Span);
+        else
+        {
+            var tmp = MemoryOwner<int>.Allocate(instruction.Length);
+            instruction.CopyTo(tmp.Span);
+            InstructionMemory?.Dispose();
+            InstructionMemory = tmp;
+        }
+    }
+
+    private void InitializeProperties(ref OpData data)
+    {
+        foreach (var o in data)
+        {
+            switch (o.Name)
+            {
+                case "selector":
+                    Selector = o.ToLiteral<int>();
+                    break;
+                case "defaultId":
+                    DefaultId = o.ToLiteral<int>();
+                    break;
+                case "targets":
+                    Targets = o.ToLiteralArray<(int, int)>();
+                    break;
+                // We ignore unrecognized operands
+                default:
+                    break;
+            }
+        }
+
+        if (Targets.WordCount == -1)
+            Targets = new();
+    }
+
+    public static implicit operator OpSwitchIdSDSL(OpDataIndex odi) => new(odi);
+    public void Dispose()
+    {
+        Targets.Dispose();
+    }
+}
+
 public ref partial struct OpEffectSDFX : IMemoryInstruction
 {
     private ref OpData opData;

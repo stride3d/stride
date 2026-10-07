@@ -32,6 +32,8 @@ Hierarchy:
                 Font: 6a45aa77-17aa-4fde-9acd-9452744e14ca:WesternFont
                 TextSize: 60.0
                 TextColor: {R: 255, G: 255, B: 255, A: 255}
+                OutlineColor: {R: 0, G: 0, B: 0, A: 255}
+                OutlineThickness: 0.0
         -   UIElement: !TextBlock
                 Id: 3d15fe1b-2814-43de-95b4-67dc1d49ceef
                 DependencyProperties: {}
@@ -42,6 +44,8 @@ Hierarchy:
                 Font: 6a45aa77-17aa-4fde-9acd-9452744e14ca:WesternFont
                 TextSize: 42.0
                 TextColor: {R: 255, G: 255, B: 255, A: 255}
+                OutlineColor: {R: 0, G: 0, B: 0, A: 255}
+                OutlineThickness: 0.0
         -   UIElement: !Grid
                 Id: 46a89767-4ec1-41c7-b7c0-a12cd0fac7a1
                 DependencyProperties: {}
@@ -134,6 +138,8 @@ Hierarchy:
                 Font: 6a45aa77-17aa-4fde-9acd-9452744e14ca:WesternFont
                 TextSize: 60.0
                 TextColor: {R: 255, G: 255, B: 255, A: 255}
+                OutlineColor: {R: 0, G: 0, B: 0, A: 255}
+                OutlineThickness: 0.0
         -   UIElement: !ContentDecorator
                 Id: d7b366d4-7efc-44bc-8df9-a0e938b7febc
                 DependencyProperties:

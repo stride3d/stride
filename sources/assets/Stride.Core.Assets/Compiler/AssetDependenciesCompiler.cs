@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core.Assets.Analysis;
+using Stride.Core.Assets.Diagnostics;
 using Stride.Core.BuildEngine;
 using Stride.Core.Diagnostics;
 
@@ -139,8 +140,10 @@ public class AssetDependenciesCompiler
 
         public override Task<ResultStatus> Execute(IExecuteContext executeContext, BuilderContext builderContext)
         {
+            var assetItem = AssetItem;
+            var assetFullPath = assetItem.FullPath.ToOSPath();
             foreach (var message in messages)
-                executeContext.Logger.Log(message);
+                executeContext.Logger.Log(AssetLogMessage.From(assetItem.Package, assetItem.ToReference(), message, assetFullPath));
             return Task.FromResult(ResultStatus.Failed);
         }
     }

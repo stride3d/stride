@@ -11,10 +11,13 @@ public class BuildStepLogger : Logger
     private readonly ILogger mainLogger;
     public readonly TimestampLocalLogger StepLogger;
 
+    public const string LogModule = "BuildStep";
+
     public BuildStepLogger(BuildStep buildStep, ILogger mainLogger, DateTime startTime)
     {
         this.buildStep = buildStep;
         this.mainLogger = mainLogger;
+        Module = LogModule;
         StepLogger = new TimestampLocalLogger(startTime);
         // Let's receive all level messages, each logger will filter them itself
         ActivateLog(LogMessageType.Debug);

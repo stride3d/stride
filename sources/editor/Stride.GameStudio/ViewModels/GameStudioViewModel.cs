@@ -18,6 +18,8 @@ using Stride.Core.Translation;
 using Stride.Assets.Effect;
 using Stride.Assets.Presentation.ViewModel;
 using Stride.Core.CodeEditorSupport;
+using Stride.Editor;
+using Stride.Graphics;
 using Stride.GameStudio.Services;
 using Stride.GameStudio.Helpers;
 using Stride.Core.Presentation.ViewModels;
@@ -26,7 +28,9 @@ namespace Stride.GameStudio.ViewModels
 {
     public class GameStudioViewModel : EditorViewModel
     {
-        private string restartArguments;
+        private string restartSessionPath;
+        private bool restartNewProject;
+        private bool graphicsDeviceLost;
         private readonly List<IDEInfo> availableIDEs;
 
         public GameStudioViewModel([NotNull] IViewModelServiceProvider serviceProvider, MostRecentlyUsedFileCollection mru)
@@ -39,6 +43,7 @@ namespace Stride.GameStudio.ViewModels
             OpenAboutPageCommand = new AnonymousCommand(serviceProvider, OpenAboutPage);
             OpenSessionCommand = new AnonymousTaskCommand<UFile>(serviceProvider, RestartAndOpenSession);
             ReloadSessionCommand = new AnonymousTaskCommand(serviceProvider, () => RestartAndOpenSession(Session.SessionFilePath));
+            GraphicsDeviceLoss.Lost += OnGraphicsDeviceLost;
         }
 
         public static GameStudioViewModel GameStudio => (GameStudioViewModel)Instance;
@@ -49,6 +54,11 @@ namespace Stride.GameStudio.ViewModels
         public StrideAssetsViewModel StrideAssets => StrideAssetsViewModel.Instance;
 
         public PreviewViewModel Preview { get; set => SetValue(ref field, value); }
+
+        /// <summary>
+        /// Whether the studio must close: the graphics device was lost, and the scenes, previews and thumbnails with it.
+        /// </summary>
+        internal bool MustClose => graphicsDeviceLost;
 
         public DebuggingViewModel Debugging { get; set => SetValue(ref field, value); }
 
@@ -78,7 +88,8 @@ namespace Stride.GameStudio.ViewModels
 
         protected override void RestartAndCreateNewSession()
         {
-            restartArguments = "/NewProject";
+            restartSessionPath = null;
+            restartNewProject = true;
             CloseAndRestart();
         }
 
@@ -98,15 +109,41 @@ namespace Stride.GameStudio.ViewModels
             if (sessionPath == null)
                 return;
 
-            restartArguments = $"\"{sessionPath.ToOSPath()}\"";
+            restartSessionPath = sessionPath.ToOSPath();
+            restartNewProject = false;
             await CloseAndRestart();
         }
 
         /// <inheritdoc/>
         public override void Destroy()
         {
+            GraphicsDeviceLoss.Lost -= OnGraphicsDeviceLost;
             Preview?.Destroy();
             base.Destroy();
+        }
+
+        /// <summary>
+        /// Every device of the process went with the adapter: the studio restarts on the same session, after the usual
+        /// save prompt. The open editors and the layout are kept, as for any restart.
+        /// </summary>
+        /// <remarks>
+        /// A lighter option, if losses turn out to be frequent: re-create the device owners in place (editor games,
+        /// preview game, thumbnail generator) instead of the whole studio. Not a resource recovery: each owner restarts.
+        /// </remarks>
+        private void OnGraphicsDeviceLost(object sender, GraphicsDeviceException exception)
+        {
+            ServiceProvider.Get<IDispatcherService>().InvokeTask(async () =>
+            {
+                // One restart: every game reports the same loss
+                if (graphicsDeviceLost)
+                    return;
+                graphicsDeviceLost = true;
+
+                await ServiceProvider.Get<IDialogService>().MessageBoxAsync(
+                    Tr._p("Message", "The graphics device was lost ({0}). Game Studio needs to restart to use it again.").ToFormat(exception.Status),
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                await RestartAndOpenSession(Session.SessionFilePath);
+            }).Forget();
         }
 
         /// <summary>
@@ -127,16 +164,7 @@ namespace Stride.GameStudio.ViewModels
         {
             try
             {
-                var process = new Process
-                {
-                    StartInfo =
-                    {
-                        // Make sure to use .exe rather than .dll (.NET Core)
-                        FileName = LoaderToolLocator.GetExecutable(Assembly.GetExecutingAssembly().Location),
-                        Arguments = restartArguments,
-                    }
-                };
-                process.Start();
+                Program.Restart(restartSessionPath, restartNewProject);
             }
             catch (Exception e)
             {

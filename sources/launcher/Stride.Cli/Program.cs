@@ -6,6 +6,9 @@ using System.Diagnostics;
 using System.Reflection;
 using Stride.Cli.Core;
 
+// No native crash capture (NativeCrashReporting.Install): the CLI ships neither libstridecrash nor the reporter.
+// Managed crashes go through CliCrashHandler.
+
 var manager = new StrideVersionManager();
 
 // Version resolution restores the project first (so a stale project.assets.json can't report an out-of-date
@@ -47,6 +50,7 @@ root.Subcommands.Add(NewCommand.Create(manager));
 root.Subcommands.Add(UpgradeCommand.Create(manager));
 root.Subcommands.Add(ToolCommands.CreateStudio(manager));
 root.Subcommands.Add(ToolCommands.CreateAsset(manager));
+root.Subcommands.Add(CrashCommand.Create());
 var legacyCommands = new List<Command> { Stride.Cli.Legacy.LegacyCommands.CreateGenerateLegacyShaderCode(manager) };
 foreach (var legacyCommand in legacyCommands)
     root.Subcommands.Add(legacyCommand);
@@ -59,4 +63,17 @@ foreach (var option in root.Options)
     if (option is HelpOption helpOption)
         helpOption.Action = new RevealHiddenHelpAction();
 
-return await root.Parse(args).InvokeAsync();
+// Unexpected exceptions become crash reports (with consent on a TTY). System.CommandLine's default
+// exception handler would swallow them before our catch sees them, so it is disabled.
+try
+{
+    return await root.Parse(args).InvokeAsync(new InvocationConfiguration { EnableDefaultExceptionHandler = false });
+}
+catch (OperationCanceledException)
+{
+    return 130; // interrupted (Ctrl+C): not a crash
+}
+catch (Exception exception)
+{
+    return await CliCrashHandler.ReportAsync(exception);
+}

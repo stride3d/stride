@@ -26,6 +26,7 @@ using Stride.Rendering.ProceduralModels;
 using Stride.SpriteStudio.Offline;
 using Stride.AssetCompiler.Tasks;
 using Stride.Core.IO;
+using Stride.CrashReport;
 
 namespace Stride.AssetCompiler
 {
@@ -37,9 +38,13 @@ namespace Stride.AssetCompiler
             Pack,
             UpdateGeneratedFiles,
             UpgradeAssets,
+            AdoptCrashes,
         }
 
         private static Stopwatch clock;
+
+        // Modules are only meaningful when following the compiler's internals (verbose/debug output).
+        private static bool showModule;
 
         private LogListener globalLoggerOnGlobalMessageLogged;
 
@@ -73,6 +78,16 @@ namespace Stride.AssetCompiler
             var mode = BuilderMode.Build;
             var buildEngineLogger = GlobalLogger.GetLogger("BuildEngine");
             var options = new PackageBuilderOptions(new ForwardingLoggerResult(buildEngineLogger));
+
+            // The top-level catch only sees the main thread; capture other-thread crashes (which never reach it) here.
+            AppDomain.CurrentDomain.UnhandledException += (_, e) =>
+            {
+                if (e.ExceptionObject is Exception unhandled)
+                {
+                    var snapshot = ThreadSnapshot.CaptureAtCurrentThread(out var id, out var name);
+                    CompilerCrashCapture.CaptureTopLevel(options, unhandled, snapshot, id, name);
+                }
+            };
 
             var p = new OptionSet
             {
@@ -113,6 +128,8 @@ namespace Stride.AssetCompiler
                         options.MonitorPipeNames.Add(v);
                 } },
                 { "slave=", "Slave pipe", v => options.SlavePipe = v }, // Benlitz: I don't think this should be documented
+                { "crash-dir=", "Slave only: shared crash run directory the master collects crashes from", v => options.CrashRunDirectory = v },
+                { "dump-dir=", "crash-adopt only: directory of createdump minidumps to adopt into the crash store", v => options.NativeDumpDirectory = v },
                 { "server=", "This Compiler is launched as a server", v => { } },
                 { "graphics-api=", "Graphics API to load (Direct3D11|Direct3D12|Vulkan). Applied at startup by GraphicsApiSelector.", v => { } },
                 { "pack-asset-assembly=", "Host-loadable asset assembly (package-relative path) to declare in the packed sdpkg; repeat for each", v => options.PackAssetAssemblies.Add(v) },
@@ -178,6 +195,8 @@ namespace Stride.AssetCompiler
                         case "pack": mode = BuilderMode.Pack; break;
                         case "upgrade": mode = BuilderMode.UpgradeAssets; break;
                         case "generate-code": mode = BuilderMode.UpdateGeneratedFiles; break;
+                        // Internal: the MSBuild targets run this after a build to adopt any createdump minidumps.
+                        case "crash-adopt": mode = BuilderMode.AdoptCrashes; break;
                         case "help": showHelp = true; break;
                         default:
                             Console.Error.WriteLine($"Unknown command '{args[0]}'. Expected: build, pack, upgrade, generate-code.");
@@ -223,6 +242,7 @@ namespace Stride.AssetCompiler
 
                 // Activate proper log level
                 buildEngineLogger.ActivateLog(options.LoggerType);
+                showModule = options.LoggerType <= LogMessageType.Verbose;
 
                 // Output logs to the console with colored messages
                 if (options.SlavePipe == null)
@@ -230,6 +250,13 @@ namespace Stride.AssetCompiler
                     globalLoggerOnGlobalMessageLogged = new ConsoleLogListener { LogMode = ConsoleLogMode.Always };
                     globalLoggerOnGlobalMessageLogged.TextFormatter = FormatLog;
                     GlobalLogger.GlobalMessageLogged += globalLoggerOnGlobalMessageLogged;
+                }
+
+                if (mode == BuilderMode.AdoptCrashes)
+                {
+                    // Post-build native-crash adoption (Linux/macOS): read createdump's minidumps, sign and store
+                    // them, then send on CI or leave for 'stride crash send'. No session/builder needed.
+                    return CompilerCrashCapture.AdoptNativeDumps(options);
                 }
 
                 if (mode == BuilderMode.UpdateGeneratedFiles)
@@ -429,7 +456,7 @@ namespace Stride.AssetCompiler
                         GlobalLogger.GlobalMessageLogged += fileLogListener;
                     }
 
-                    options.Logger.Info("BuildEngine arguments: " + string.Join(" ", args));
+                    options.Logger.Info("BuildEngine arguments: " + string.Join(" ", args.Select(QuoteArgument)));
                     options.Logger.Info("Starting builder.");
                 }
                 else
@@ -458,9 +485,11 @@ namespace Stride.AssetCompiler
                 options.Logger.Error($"Command option '{e.OptionName}': {e.Message}");
                 exitCode = BuildResultCode.CommandLineError;
             }
-            catch (Exception e)
+            catch (Exception e) when (CaptureCrashThreads(out var crashThreads, out var crashedThreadId, out var crashedThreadName))
             {
                 options.Logger.Error($"Unhandled exception", e);
+                // A crash that escaped the whole build (not a single command); the filter snapshotted the other threads.
+                CompilerCrashCapture.CaptureTopLevel(options, e, crashThreads, crashedThreadId, crashedThreadName);
                 exitCode = BuildResultCode.BuildError;
             }
             finally
@@ -485,6 +514,15 @@ namespace Stride.AssetCompiler
                 YamlSerializer.Default.ResetCache();
             }
             return (int)exitCode;
+        }
+
+        // Exception filter: runs pre-unwind, so it snapshots the other threads at the crash moment. Returns true to take the catch.
+        private static bool CaptureCrashThreads(out List<StoredThread> threads, out int? crashedThreadId, out string crashedThreadName)
+        {
+            threads = ThreadSnapshot.CaptureAtCurrentThread(out var id, out var name);
+            crashedThreadId = id;
+            crashedThreadName = name;
+            return true;
         }
 
         private void OnConsoleOnCancelKeyPress(object _, ConsoleCancelEventArgs e)
@@ -541,21 +579,54 @@ namespace Stride.AssetCompiler
             logger.Info($"Reconciled {changedCount} asset(s) with their base out of {graphs.Count}.");
         }
 
+        // Re-quotes what the shell stripped, so the printed line can be pasted back: only the value of
+        // an --option=value argument, the whole argument otherwise.
+        private static string QuoteArgument(string argument)
+        {
+            if (!argument.Contains(' '))
+                return argument;
+
+            var separator = argument.IndexOf('=');
+            if (argument.StartsWith("--", StringComparison.Ordinal) && separator > 2 && argument.AsSpan(0, separator).IndexOf(' ') < 0)
+                return $"{argument[..(separator + 1)]}\"{argument[(separator + 1)..]}\"";
+
+            return $"\"{argument}\"";
+        }
+
         private static string FormatLog(ILogMessage message)
         {
-            //$filename($row,$column): $error_type $error_code: $error_message
-            //C:\Code\Stride\sources\assets\Stride.AssetCompiler\PackageBuilder.cs(89,13,89,70): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+            // Warnings and errors use the canonical MSBuild/VS format, so they are picked up and navigable:
+            //   origin(line,col): category code: text
+            // The origin is only known for asset messages carrying a file. Lower severities are
+            // not parsed by anyone and stay compact: type, elapsed time, text.
             var builder = new StringBuilder();
             var assetLogMessage = message as AssetLogMessage;
-            // Location
-            if (assetLogMessage != null)
-                builder.Append($"{assetLogMessage.File}({assetLogMessage.Line + 1},{assetLogMessage.Character + 1}): ");
-            // Message type
-            builder.Append(message.Type.ToString().ToLowerInvariant()).Append(" ");
-            builder.Append((clock.ElapsedMilliseconds * 0.001).ToString("0.000"));
-            builder.Append("s: ");
-            builder.Append($"[{message.Module ?? "AssetCompiler"}] ");
-            builder.Append(message.Text);
+            var text = message.Text;
+            if (message.Type >= LogMessageType.Warning)
+            {
+                if (!string.IsNullOrEmpty(assetLogMessage?.File))
+                {
+                    builder.Append(assetLogMessage.File);
+                    if (assetLogMessage.Line > 0 || assetLogMessage.Character > 0)
+                        builder.Append($"({assetLogMessage.Line + 1},{assetLogMessage.Character + 1})");
+                    builder.Append(": ");
+                    text = assetLogMessage.TextWithoutLocation;
+                }
+
+                builder.Append(message.Type == LogMessageType.Warning ? "warning" : "error");
+                if (assetLogMessage != null)
+                    builder.Append(' ').Append(assetLogMessage.MessageCode);
+                builder.Append(": ");
+            }
+            else
+            {
+                builder.Append(message.Type.ToString().ToLowerInvariant()).Append(": ");
+                builder.Append((clock.ElapsedMilliseconds * 0.001).ToString("0.000")).Append("s ");
+            }
+
+            if (showModule && message.Module != null)
+                builder.Append('[').Append(message.Module).Append("] ");
+            builder.Append(text);
             var exceptionInfo = message.ExceptionInfo;
             if (exceptionInfo != null)
             {

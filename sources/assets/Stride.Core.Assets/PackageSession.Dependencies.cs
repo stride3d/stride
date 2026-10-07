@@ -80,8 +80,9 @@ partial class PackageSession
     /// Cheap scan for projects with a pending package upgrade that may carry source-code migrations.
     /// Reuses the cached MSBuild project (no restore) and the same upgrade-needed checks as
     /// <see cref="PreLoadPackageDependencies"/>: a direct <c>PackageReference</c> whose declared version
-    /// is below the upgrader's target. Returns one entry per (project, upgrader); the runner does the
-    /// version-gate and only opens a workspace when source rules actually apply.
+    /// is below the upgrader's target. Returns one entry per (project, upgrader) for the projects whose
+    /// upgrade was confirmed; the runner does the version-gate and only opens a workspace when source
+    /// rules actually apply.
     /// </summary>
     private List<PendingCodeUpgrade> DetectPendingCodeUpgrades(ILogger log, PackageLoadParameters loadParameters)
     {
@@ -105,6 +106,8 @@ partial class PackageSession
                 continue;
             }
 
+            var projectCodeUpgrades = new List<PendingCodeUpgrade>();
+            var pendingPackageUpgrades = new List<PendingPackageUpgrade>();
             var seen = new HashSet<PackageUpgrader>();
             foreach (var packageReference in msProject.GetItems("PackageReference"))
             {
@@ -123,8 +126,13 @@ partial class PackageSession
                 if (!seen.Add(upgrader))
                     continue;
 
-                result.Add(new PendingCodeUpgrade(upgrader, project.FullPath, range.MinVersion));
+                projectCodeUpgrades.Add(new PendingCodeUpgrade(upgrader, project.FullPath, range.MinVersion));
+                pendingPackageUpgrades.Add(new PendingPackageUpgrade(upgrader, new PackageDependency(packageReference.EvaluatedInclude, range), null));
             }
+
+            // The source migration writes user files, so it needs the same confirmation as the package upgrade.
+            if (projectCodeUpgrades.Count > 0 && PackageLoadParameters.ShouldUpgrade(RequestPackageUpgrade(project.Package, pendingPackageUpgrades, loadParameters)))
+                result.AddRange(projectCodeUpgrades);
         }
         return result;
     }
@@ -136,8 +144,8 @@ partial class PackageSession
         ArgumentNullException.ThrowIfNull(loadParameters);
 
         bool packageDependencyErrors = false;
-        // Tracks whether an upgrade rewrote this project's references, requiring a fresh restore even
-        // when the up-front solution restore already ran.
+        // Tracks whether an upgrade rewrote this project's references, or those of a project it references,
+        // requiring a fresh restore even when the up-front solution restore already ran.
         bool referencesUpgraded = false;
 
         var package = project.Package;
@@ -223,6 +231,12 @@ partial class PackageSession
                             // Get package upgrader from dependency
                             if (pendingPackageUpgradesPerPackage.TryGetValue(referencedProject.Package, out var dependencyPackageUpgraders))
                             {
+                                // The referenced project is upgraded, so restore this project too: its restore output also
+                                // lists the packages of the referenced project. Without a new restore, it keeps their old
+                                // versions, and the session uses those when they are newer (e.g. switching to an older local build).
+                                if (dependencyPackageUpgraders.Count > 0)
+                                    referencesUpgraded = true;
+
                                 foreach (var dependencyPackageUpgrader in dependencyPackageUpgraders)
                                 {
                                     // Make sure this upgrader is not already added
@@ -255,9 +269,20 @@ partial class PackageSession
                         continue;
 
                     // Check if upgrade is necessary
-                    if (dependencyVersion.MinVersion >= packageUpgrader.Attribute.UpdatedVersionRange.MinVersion)
+                    var editorVersion = packageUpgrader.Attribute.UpdatedVersionRange.MinVersion;
+                    if (dependencyVersion.MinVersion == editorVersion)
                     {
                         continue;
+                    }
+                    if (dependencyVersion.MinVersion > editorVersion)
+                    {
+                        // A project on a newer version: never downgraded, unless a local build is on either side, which
+                        // can be swapped for another build of the same major.minor or newer (4.4.0-dev3 <-> 4.4.0-beta8)
+                        if (!IsLocalBuildSwitch(dependencyVersion.MinVersion, editorVersion))
+                        {
+                            log.Error($"Project [{project.Name}] uses [{dependencyName}] version [{dependencyVersion.MinVersion}], newer than this editor's [{editorVersion}]: open it with version [{dependencyVersion.MinVersion}] or newer");
+                            return;
+                        }
                     }
 
                     // Check if upgrade is allowed
@@ -275,17 +300,8 @@ partial class PackageSession
 
             if (pendingPackageUpgrades.Count > 0)
             {
-                var upgradeAllowed = packageUpgradeAllowed != false ? PackageUpgradeRequestedAnswer.Upgrade : PackageUpgradeRequestedAnswer.DoNotUpgrade;
-
                 // Need upgrades, let's ask user confirmation
-                if (loadParameters.PackageUpgradeRequested != null && !packageUpgradeAllowed.HasValue)
-                {
-                    upgradeAllowed = loadParameters.PackageUpgradeRequested(package, pendingPackageUpgrades);
-                    if (upgradeAllowed == PackageUpgradeRequestedAnswer.UpgradeAll)
-                        packageUpgradeAllowed = true;
-                    if (upgradeAllowed == PackageUpgradeRequestedAnswer.DoNotUpgradeAny)
-                        packageUpgradeAllowed = false;
-                }
+                var upgradeAllowed = RequestPackageUpgrade(package, pendingPackageUpgrades, loadParameters);
 
                 if (!PackageLoadParameters.ShouldUpgrade(upgradeAllowed))
                 {
@@ -456,6 +472,15 @@ partial class PackageSession
         {
             processingProjects.Remove(projectPath);
         }
+    }
+
+    // Switching a project from a newer version to the editor's: only when one of them is a local (dev) build, and the
+    // editor isn't below the project's major.minor.
+    internal static bool IsLocalBuildSwitch(PackageVersion projectVersion, PackageVersion editorVersion)
+    {
+        if (!projectVersion.IsLocalBuild && !editorVersion.IsLocalBuild)
+            return false;
+        return (editorVersion.Version.Major, editorVersion.Version.Minor).CompareTo((projectVersion.Version.Major, projectVersion.Version.Minor)) >= 0;
     }
 
     private Microsoft.Build.Evaluation.Project LoadOrGetCachedProject(string projectPath, PackageLoadParameters loadParameters)

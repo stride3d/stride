@@ -136,7 +136,8 @@ namespace Stride.Graphics.Tests
 
             cubemapSpriteEffect.Parameters.Set(CubemapSpriteKeys.ViewIndex, 5);
             spriteBatch.Begin(GraphicsContext, SpriteSortMode.Texture, cubemapSpriteEffect);
-            spriteBatch.Draw(displayedCubemap, new RectangleF(size.X, 3f * size.Y, size.X, size.Y), null, Color.White, 0f, Vector2.Zero, SpriteEffects.FlipVertically);
+            // The bottom of a vertical cross is the -Z face turned 180 degrees, so that it meets -Y edge to edge
+            spriteBatch.Draw(displayedCubemap, new RectangleF(size.X, 3f * size.Y, size.X, size.Y), null, Color.White, 0f, Vector2.Zero, SpriteEffects.FlipBoth);
             spriteBatch.End();
 
             cubemapSpriteEffect.Parameters.Set(CubemapSpriteKeys.ViewIndex, 0);

@@ -65,6 +65,18 @@ namespace Stride.Shaders.Compiler
                 base.ResetCache(modifiedShaders);
                 RemoveObsoleteStoredResults(modifiedShaders);
             }
+
+            // A compiled result is memoized per effect input hash, which doesn't change when a shader
+            // file does. Left in place, the first reload would be the only one ever to take effect.
+            lock (compilingShaders)
+            {
+                foreach (var key in compiledShaders
+                    .Where(x => x.Value.Bytecode != null && IsBytecodeObsolete(x.Value.Bytecode, modifiedShaders))
+                    .Select(x => x.Key).ToList())
+                {
+                    compiledShaders.Remove(key);
+                }
+            }
         }
 
         public override TaskOrResult<EffectBytecodeCompilerResult> Compile(ShaderMixinSource mixin, EffectCompilerParameters effectParameters, CompilerParameters compilerParameters, ObjectId effectInputHash)

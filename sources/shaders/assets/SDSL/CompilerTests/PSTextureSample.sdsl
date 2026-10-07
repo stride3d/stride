@@ -1,0 +1,21 @@
+namespace Stride.Shaders.Tests;
+
+shader PSTextureSample
+{
+    stream float4 ColorTarget : SV_Target0;
+    stream float4 Position : POSITION;
+    stream float4 ShadingPosition : SV_Position;
+
+    stage Texture2D Texture0;
+    stage SamplerState Sampler0;
+
+    void VSMain()
+    {
+        streams.ShadingPosition = streams.Position;
+    }
+
+    stage void PSMain()
+    {
+        streams.ColorTarget = Texture0.Sample(Sampler0, float2(0.5, 0.5));
+    }
+}

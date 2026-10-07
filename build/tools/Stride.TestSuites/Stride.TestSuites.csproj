@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <!-- Opt out of Stride SDK -->
+    <StrideAssemblyProcessor>false</StrideAssemblyProcessor>
+    <StrideCodeAnalysis>false</StrideCodeAnalysis>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Syntax-only parsing of the test sources, no compilation. -->
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" />
+    <!-- The very filter engine vstest applies the test filter with, so the tool and the run agree. -->
+    <PackageReference Include="Microsoft.TestPlatform.TestHost" Version="18.0.1" />
+  </ItemGroup>
+</Project>

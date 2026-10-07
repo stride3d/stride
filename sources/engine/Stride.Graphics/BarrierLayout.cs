@@ -20,17 +20,20 @@ public enum BarrierLayout
     Common,
 
     /// <summary>
-    ///   The resource is used as a render target.
+    ///   The resource is used as a render target. Covers reads as well as writes, because blending
+    ///   and a load operation that preserves the existing contents both read the attachment.
     /// </summary>
     RenderTarget,
 
     /// <summary>
-    ///   The resource is used as a writable depth-stencil buffer.
+    ///   The resource is used as a writable depth-stencil buffer. Covers reads as well as writes,
+    ///   because the depth and stencil tests read the attachment.
     /// </summary>
     DepthStencilWrite,
 
     /// <summary>
-    ///   The resource is used as a read-only depth-stencil buffer.
+    ///   The resource is used as a read-only depth-stencil buffer. Covers reading it as a shader
+    ///   resource at the same time.
     /// </summary>
     DepthStencilRead,
 

@@ -71,6 +71,8 @@ public sealed partial class ThreadPool
         [StructLayout(LayoutKind.Sequential)]
         private struct Internals
         {
+            private static readonly bool SingleCore = Environment.ProcessorCount < 2;
+
             public uint SignalCount => _counts.SignalCount;
 
             private readonly PaddingFalseSharing _pad1;

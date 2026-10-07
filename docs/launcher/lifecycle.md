@@ -39,7 +39,8 @@ flowchart TD
 | Argument | Meaning |
 |---|---|
 | *(none)* | Default action — show the launcher window and manage versions |
-| `/Uninstall` | Clears all other actions and runs `UninstallAsync` |
+| `/Uninstall` | Clears all other actions and runs `UninstallAsync` (see [versions.md](versions.md#uninstall-flow)) |
+| `/Quiet` | With `/Uninstall`: no UI at all, the Stride versions are kept. Passed by the setup in a silent uninstall |
 | `/UpdateTargets` | Appended by `SelfUpdater.RestartApplication` after a self-update (currently not interpreted separately from the default Run) |
 | `/LauncherWindowHandle <hwnd>` | **Outgoing**, not incoming — the launcher passes this to Game Studio when `AutoCloseLauncher` is on, so Game Studio can signal back |
 
@@ -89,8 +90,8 @@ AppBuilder.Configure<App>()
 Clicking **Start** invokes `MainViewModel.StartStudio(string argument)`:
 
 1. If `AutoCloseLauncher` is on, the launcher prepends `/LauncherWindowHandle {MainViewModel.WindowHandle} ` to the argument string so Game Studio can message it back.
-2. `ActiveVersion.LocateMainExecutable()` resolves the path — preferring `{SelectedFramework}` under `tools/` or `lib/`, falling back to the legacy path `lib/net472/Stride.GameStudio.exe`.
-3. On `.dll` targets the launcher runs `dotnet <path> <args>`; otherwise it runs the executable directly. `WorkingDirectory` is set to the directory of the executable so `global.json` resolves correctly.
+2. `ActiveVersion.LocateMainExecutable()` resolves the path — the folder remembered for `SelectedEditor` under `tools/` or `lib/`, falling back to the legacy path `lib/net472/Stride.GameStudio.exe`.
+3. With an explicit runtime choice the launcher runs `dotnet exec --runtimeconfig <generated> <dll> <args>` (`DotNetHostSelector.RelaunchStartInfo`); otherwise it runs the apphost, or `dotnet <dll>` where there is none (`NativeStartInfo`). `WorkingDirectory` is set to the directory of the executable so `global.json` resolves correctly.
 4. The command is disabled for five seconds to debounce double-clicks, then re-enabled if the version is still `CanStart`.
 5. The active version is persisted through `LauncherSettings.ActiveVersion`.
 

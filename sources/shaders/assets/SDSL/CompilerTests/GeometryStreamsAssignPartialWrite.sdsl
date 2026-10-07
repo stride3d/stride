@@ -1,0 +1,41 @@
+// A geometry shader that assigns the stage input over `streams` and then writes only EdgeA.xyz,
+// never EdgeA.w - the shape of Stride.BepuPhysics.Debug's SinglePassWireframeShader.
+
+namespace Stride.Shaders.Tests;
+
+shader GeometryStreamsAssignPartialWrite
+{
+    stream float4 Position : POSITION;
+    stream float4 ShadingPosition : SV_Position;
+    stream float4 ColorTarget : SV_Target0;
+
+    // Written in the geometry stage only, so the stage input does not carry it.
+    stream float4 EdgeA;
+
+    void VSMain()
+    {
+        streams.ShadingPosition = streams.Position;
+    }
+
+    [maxvertexcount(3)]
+    void GSMain(triangle Input input[3], inout TriangleStream<Output> outStream)
+    {
+        for (int i = 0; i < 3; ++i)
+        {
+            streams = input[i];
+
+            streams.EdgeA[0] = input[i].ShadingPosition.x;
+            streams.EdgeA[1] = input[i].ShadingPosition.y;
+            streams.EdgeA[2] = input[i].ShadingPosition.z;
+
+            outStream.Append(streams);
+        }
+
+        outStream.RestartStrip();
+    }
+
+    void PSMain()
+    {
+        streams.ColorTarget = float4(streams.EdgeA.xyz, 1);
+    }
+}

@@ -255,6 +255,13 @@ namespace Stride.Shaders.Compilers.SDSL
             foreach (var cbuffersEntry in cbuffersByNames)
             {
                 var cbuffers = cbuffersEntry.ToList();
+
+                // CreateLogicalGroup expects each logical group to be a single contiguous run of members,
+                // and a group can be declared by several shaders. OrderBy is stable, so declaration order
+                // is kept inside a group.
+                if (cbuffers.Count > 1)
+                    cbuffers = [.. cbuffers.OrderBy(x => x.LogicalGroup ?? string.Empty, StringComparer.Ordinal)];
+
                 var cbuffersSpan = CollectionsMarshal.AsSpan(cbuffers);
 
                 // In all cases, we update name to one without .0 .1 suffix
@@ -482,9 +489,6 @@ namespace Stride.Shaders.Compilers.SDSL
                     Type = ConstantBufferType.ConstantBuffer,
                     Members = memberInfos,
                 };
-                globalContext.Reflection.ConstantBuffers.Add(cbufferDesc);
-
-                // Also attach to the matching resource group
                 var group = globalContext.Reflection.GetOrCreateGroup(cbufferDesc.Name);
                 group.ConstantBuffer = cbufferDesc;
             }

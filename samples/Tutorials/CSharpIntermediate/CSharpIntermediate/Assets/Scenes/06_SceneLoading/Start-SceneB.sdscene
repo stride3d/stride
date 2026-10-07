@@ -26,7 +26,7 @@ Hierarchy:
                         Children: {}
                     8dc69fe56b5a11457c2ef515685bf8e4: !ModelComponent
                         Id: 371fecb8-90d8-4fa3-abfa-1d9399d12a82
-                        Model: 924c9ca7-d8b3-4966-bc05-086bb500ff85:Models/Gate2x3x1
+                        Model: 924c9ca7-d8b3-4966-bc05-086bb500ff85:/PrototypingBlocks/Models/Gate2x3x1
                         Materials: {}
         -   Entity:
                 Id: 4b8c26bd-6703-4d3c-9e18-7b31aac0757e
@@ -42,7 +42,7 @@ Hierarchy:
                         Id: d5e7447e-1696-4fd2-affe-631fe07c88f3
                         Model: 8079536f-f105-498f-bf18-f1927d033d7e:Models/StrideBall
                         Materials:
-                            cc8fb97c59b5fcb2d37d3c023baa11e8~0: adf8fc52-f54b-48d8-b883-e4b78e774d99:Materials/MaterialA
+                            cc8fb97c59b5fcb2d37d3c023baa11e8~0: adf8fc52-f54b-48d8-b883-e4b78e774d99:/SamplesAssetPackage/Materials/MaterialA
                     31cb0bc3eeacb34c557a84b0d3e2c116: !RigidbodyComponent
                         Id: 717dac2b-976b-4a4b-872f-6eaab2e7420b
                         CanSleep: false
@@ -98,7 +98,7 @@ Hierarchy:
                         Id: 6ff901ae-992d-40d0-9952-4b7d48f560f8
                         Model: 8079536f-f105-498f-bf18-f1927d033d7e:Models/StrideBall
                         Materials:
-                            d203dc1596e8e297325b925bd457c9fe~0: b5937f37-8fa5-4c0c-9a21-9d563ee1bffc:Materials/RedCoating
+                            d203dc1596e8e297325b925bd457c9fe~0: b5937f37-8fa5-4c0c-9a21-9d563ee1bffc:/SamplesAssetPackage/Materials/RedCoating
                     31cb0bc3eeacb34c557a84b0d3e2c116: !RigidbodyComponent
                         Id: da4196dc-01e4-4b7a-a395-8a822bb55dc3
                         CanSleep: false
@@ -146,7 +146,7 @@ Hierarchy:
                         Children: {}
                     a7a03764cc135dc6a9d69c2252a5fef2: !ModelComponent
                         Id: de347e17-411c-4474-9aec-769d73f5429f
-                        Model: 2cb2f455-2bc0-40c0-bd1c-ed5f5ec5a851:Models/Floor1x0x1
+                        Model: 2cb2f455-2bc0-40c0-bd1c-ed5f5ec5a851:/PrototypingBlocks/Models/Floor1x0x1
                         Materials: {}
                     3d9089128ef4e0f58b1b8f581c8aebbd: !StaticColliderComponent
                         Id: d8b5ffe5-ffe2-4adb-acf9-e9ee33ab570a
@@ -174,5 +174,5 @@ Hierarchy:
                         Children: {}
                     86223eb74f0c59e6b32b187e8ea1e3a2: !ModelComponent
                         Id: db0ce13a-cd08-456a-94e1-d69781ac2835
-                        Model: 01019ffb-11d0-42cb-a5c1-ce55f20e5042:Models/Gate1x2x1
+                        Model: 01019ffb-11d0-42cb-a5c1-ce55f20e5042:/PrototypingBlocks/Models/Gate1x2x1
                         Materials: {}

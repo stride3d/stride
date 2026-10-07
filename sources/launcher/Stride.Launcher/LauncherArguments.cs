@@ -23,5 +23,11 @@ internal struct LauncherArguments
     /// </summary>
     public List<ActionType> Actions;
 
+    /// <summary>
+    /// No UI at all (<c>/quiet</c>): the setup passes it to <c>/uninstall</c> in a silent uninstall (<c>msiexec /qn</c>, or <c>/qr</c> as in <c>winget uninstall</c>),
+    /// which a dialog would block.
+    /// </summary>
+    public bool Quiet;
+
     public string[] Args;
 }

@@ -20,7 +20,11 @@ namespace Stride.Graphics;
 /// </summary>
 public partial class GraphicsDevice
 {
-    internal const string DebugLogModule = "GraphicsDebug";
+    /// <summary>
+    ///   Log module of the backend validation/debug-layer messages (see <see cref="DebugLog"/>).
+    ///   General device messages use <c>nameof(GraphicsDevice)</c>.
+    /// </summary>
+    public const string DebugLogModule = "GraphicsDebug";
     internal static readonly Logger DebugLog = GlobalLogger.GetLogger(DebugLogModule);
 
     // Active scope stack (Tier 1: always on, including release — used for log annotation).
