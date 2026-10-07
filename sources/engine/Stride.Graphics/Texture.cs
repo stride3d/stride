@@ -1799,11 +1799,21 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Swaps the Texture's internal data with another Texture.
+        ///   Swaps the Texture's description and native resources with another Texture.
         /// </summary>
+        /// <remarks>
+        ///   Only the native resources move: views created on either Texture keep the resources they were created on.
+        ///   A streamed Texture must not be swapped while the streaming system manages it.
+        /// </remarks>
         /// <param name="other">The other Texture.</param>
-        internal void Swap([NotNull] Texture other)
+        /// <exception cref="ArgumentNullException"><paramref name="other"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentException">The Textures belong to different Graphics Devices.</exception>
+        /// <exception cref="NotSupportedException">One of the Textures is a view.</exception>
+        public void Swap([NotNull] Texture other)
         {
+            ArgumentNullException.ThrowIfNull(other);
+            if (other.GraphicsDevice != GraphicsDevice)
+                throw new ArgumentException("Cannot swap textures of different graphics devices.", nameof(other));
             if (ParentTexture is not null || other.ParentTexture is not null)
                 throw new NotSupportedException("Cannot swap texture views; only root textures can be swapped.");
 
