@@ -20,7 +20,7 @@ using Stride.Assets.FFmpeg;
 using Stride.Video.FFmpeg;
 using FFmpeg.AutoGen;
 
-namespace Stride.Assets.Media
+namespace Stride.Video.Assets
 {
     /// <summary>
     /// Asset compiler for <see cref="VideoAsset"/>.
@@ -28,12 +28,6 @@ namespace Stride.Assets.Media
     [AssetCompiler(typeof(VideoAsset), typeof(AssetCompilationContext))]
     public class VideoAssetCompiler : AssetCompilerBase
     {
-        /// <inheritdoc />
-        public override IEnumerable<BuildDependencyInfo> GetInputTypes(AssetItem assetItem)
-        {
-            yield return new BuildDependencyInfo(typeof(SoundAsset), typeof(AssetCompilationContext), BuildDependencyType.Runtime);
-        }
-
         /// <inheritdoc />
         protected override void Prepare(AssetCompilerContext context, AssetItem assetItem, string targetUrlInStorage, AssetCompilerResult result)
         {
@@ -217,7 +211,7 @@ namespace Stride.Assets.Media
                         }
 
                         var dataUrl = Url + "_Data";
-                        var video = new Video.Video
+                        var video = new global::Stride.Video.Video
                         {
                             CompressedDataUrl = dataUrl,
                         };

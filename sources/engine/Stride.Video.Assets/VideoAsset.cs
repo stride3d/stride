@@ -7,18 +7,19 @@ using Stride.Core.Assets;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.IO;
-using Stride.Audio;
 
-namespace Stride.Assets.Media
+namespace Stride.Video.Assets
 {
+    // 1150 and "Stride" are AssetDisplayPriority.Media + 50 and StrideConfig.LogicalPackageName, in Stride.Assets, which this package does not reference
     [DataContract("Video")]
     [AssetDescription(FileExtension)]
-    [AssetContentType(typeof(Video.Video))]
+    [AssetContentType(typeof(global::Stride.Video.Video))]
     [CategoryOrder(10, "Size")]
     [CategoryOrder(15, "Trimming")]
     [CategoryOrder(20, "Audio")]
-    [AssetFormatVersion(StrideConfig.LogicalPackageName, CurrentVersion, "2.1.0.0")]
-    public partial class VideoAsset : Asset, IAssetWithSource
+    [AssetFormatVersion("Stride", CurrentVersion, "2.1.0.0")]
+    [Display(1150, "Video")]
+    public class VideoAsset : Asset, IAssetWithSource
     {
         public VideoAsset()
         {

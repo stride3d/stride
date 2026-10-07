@@ -206,7 +206,6 @@ namespace Stride.Assets.Presentation
             session.AssetViewProperties.RegisterNodePresenterUpdater(new SpriteSheetAssetNodeUpdater());
             session.AssetViewProperties.RegisterNodePresenterUpdater(new UIAssetNodeUpdater());
             session.AssetViewProperties.RegisterNodePresenterUpdater(new TextureAssetNodeUpdater());
-            session.AssetViewProperties.RegisterNodePresenterUpdater(new VideoAssetNodeUpdater());
             session.AssetViewProperties.RegisterNodePresenterUpdater(new UnloadableObjectPropertyNodeUpdater());
             session.AssetViewProperties.RegisterNodePresenterUpdater(new VisualScriptNodeUpdater());
             session.AssetViewProperties.RegisterNodePresenterUpdater(new NavigationNodeUpdater(session));
@@ -225,7 +224,7 @@ namespace Stride.Assets.Presentation
             session.SuggestedPackages.Add(new PackageName(typeof(Stride.Physics.StaticColliderComponent).Assembly.GetName().Name, new PackageVersion(StrideVersion.NuGetVersion)));
             // Plugins are not referenced by the editor, so their ids are strings
             session.SuggestedPackages.Add(new PackageName("Stride.BepuPhysics", new PackageVersion(StrideVersion.NuGetVersion)));
-            session.SuggestedPackages.Add(new PackageName(typeof(Stride.Video.VideoComponent).Assembly.GetName().Name, new PackageVersion(StrideVersion.NuGetVersion)));
+            session.SuggestedPackages.Add(new PackageName("Stride.Video", new PackageVersion(StrideVersion.NuGetVersion)));
             session.SuggestedPackages.Add(new PackageName(typeof(Stride.Voxels.Module).Assembly.GetName().Name, new PackageVersion(StrideVersion.NuGetVersion)));
             session.SuggestedPackages.Add(new PackageName(typeof(Stride.SpriteStudio.Runtime.SpriteStudioNodeLinkComponent).Assembly.GetName().Name, new PackageVersion(StrideVersion.NuGetVersion)));
         }

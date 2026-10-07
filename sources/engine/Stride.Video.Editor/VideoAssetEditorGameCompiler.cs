@@ -2,16 +2,17 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using Stride.Core.Assets;
 using Stride.Core.Assets.Compiler;
-using Stride.Assets.Media;
+using Stride.Editor.Preview;
+using Stride.Video.Assets;
 
-namespace Stride.Editor.Preview
+namespace Stride.Video.Editor
 {
     [AssetCompiler(typeof(VideoAsset), typeof(EditorGameCompilationContext))]
     public class VideoAssetEditorGameCompiler : AssetCompilerBase
     {
         protected override void Prepare(AssetCompilerContext context, AssetItem assetItem, string targetUrlInStorage, AssetCompilerResult result)
         {
-            result.BuildSteps.Add(new DummyAssetCommand<VideoAsset, Video.Video>(assetItem));
+            result.BuildSteps.Add(new DummyAssetCommand<VideoAsset, global::Stride.Video.Video>(assetItem));
         }
     }
 }
