@@ -590,7 +590,7 @@
                     <ItemsControl ItemsSource="{Binding RecentProjects}">
                       <ItemsControl.ItemTemplate>
                         <DataTemplate DataType="{x:Type vm:RecentProjectViewModel}">
-                          <Border Classes="card" Margin="0 0 0 20">
+                          <Border Classes="card" Margin="0 0 0 12">
                             <!-- The tooltip is on the whole card, so it shows when disabled too (over the overlay below) -->
                             <Panel ToolTip.Tip="{Binding ToolTip}">
                               <Panel.ContextMenu>
@@ -631,7 +631,8 @@
                                       IsEnabled="{Binding !Launcher.IsStartingStudio}"
                                       HorizontalAlignment="Stretch"
                                       VerticalAlignment="Stretch"
-                                      HorizontalContentAlignment="Stretch">
+                                      HorizontalContentAlignment="Stretch"
+                                      Background="{DynamicResource NeutralBackgroundBrush}">
                                 <DockPanel Margin="8,4">
                                   <DockPanel DockPanel.Dock="Bottom" Margin="0,4,0,0">
                                     <!-- Open with another version: a newer one, a dev build, or the release a dev project was on -->
@@ -770,10 +771,11 @@
                     <ItemsControl ItemsSource="{Binding ActiveDocumentationPages}">
                       <ItemsControl.ItemTemplate>
                         <DataTemplate DataType="{x:Type vm:DocumentationPageViewModel}">
-                          <Border Classes="card" Margin="0 0 0 20">
+                          <Border Classes="card" Margin="0 0 0 12">
                             <Button Command="{Binding OpenUrlCommand}"
                                     HorizontalAlignment="Stretch"
-                                    HorizontalContentAlignment="Stretch">
+                                    HorizontalContentAlignment="Stretch"
+                                    Background="{DynamicResource NeutralBackgroundBrush}">
                               <DockPanel Margin="4">
                                 <TextBlock Classes="subtitle" DockPanel.Dock="Top"
                                            HorizontalAlignment="Left"
@@ -808,10 +810,11 @@
                     <ItemsControl ItemsSource="{Binding NewsPages}">
                       <ItemsControl.ItemTemplate>
                         <DataTemplate DataType="{x:Type vm:NewsPageViewModel}">
-                          <Border Classes="card" Margin="0 0 0 20">
+                          <Border Classes="card" Margin="0 0 0 12">
                             <Button Command="{Binding OpenUrlCommand}"
                                     HorizontalAlignment="Stretch"
-                                    HorizontalContentAlignment="Stretch">
+                                    HorizontalContentAlignment="Stretch"
+                                    Background="{DynamicResource NeutralBackgroundBrush}">
                               <StackPanel Margin="4" Spacing="4">
                                 <TextBlock Classes="subtitle" HorizontalAlignment="Left"
                                            Text="{Binding Title}" TextWrapping="Wrap" />
