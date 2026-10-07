@@ -731,7 +731,7 @@ public sealed class BepuSimulation : IDisposable
         // TimeSpan multiplication is lossy, skipping mult when we can
         _remainingUpdateTime += TimeScale == 1f ? elapsed : elapsed * TimeScale;
 
-        for (int stepCount = 0; _remainingUpdateTime >= FixedTimeStep && (stepCount < MaxStepPerFrame || MaxStepPerFrame != -1); stepCount++, _remainingUpdateTime -= FixedTimeStep)
+        for (int stepCount = 0; _remainingUpdateTime >= FixedTimeStep && (MaxStepPerFrame == -1 || stepCount < MaxStepPerFrame); stepCount++, _remainingUpdateTime -= FixedTimeStep)
         {
             if (_softStartScheduled)
             {
