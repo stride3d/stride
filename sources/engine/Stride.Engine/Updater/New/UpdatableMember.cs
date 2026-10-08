@@ -19,6 +19,10 @@ public abstract class UpdatableMember
     internal virtual bool IsIndexer => false;
     internal abstract Type MemberType { get; }
     public abstract string Name { get; }
+    public override string ToString()
+    {
+        return Name;
+    }
 }
 public abstract class UpdatableMember<TParent> : UpdatableMember
 {
