@@ -2,9 +2,20 @@ using System.Runtime.CompilerServices;
 
 namespace Stride.Updater.New;
 
-internal sealed class ArrayOffsetAccessor<TElement, TData>(int index, int offset, UpdatableType<TData> dataType) : UpdatableMember<TElement[], TData>
+internal sealed class ArrayOffsetAccessor<TElement, TData> : UpdatableMember<TElement[], TData>, IUpdatableMember<ArrayOffsetAccessor<TElement, TData>, TElement[], TData>
 {
-    protected override bool SupportsByReference => true;
+    private readonly int index;
+    private readonly int offset;
+    private readonly UpdatableType<TData> dataType;
+
+    public ArrayOffsetAccessor(int index, int offset, UpdatableType<TData> dataType)
+    {
+        this.index = index;
+        this.offset = offset;
+        this.dataType = dataType;
+    }
+
+    public static bool SupportsByReference => true;
 
     internal override bool IsIndexer => true;
 
@@ -20,11 +31,11 @@ internal sealed class ArrayOffsetAccessor<TElement, TData>(int index, int offset
         return dataType.CreateIndexer(name);
     }
 
-    protected override TData GetValue(TElement[] parent)
+    public static TData GetValue(ArrayOffsetAccessor<TElement, TData> @this, TElement[] parent)
     {
-        if (parent.Length > index)
+        if (parent.Length > @this.index)
         {
-            return GetReferenceInternal(parent);
+            return GetReferenceInternal(parent, @this.index, @this.offset);
         }
         else
         {
@@ -32,11 +43,11 @@ internal sealed class ArrayOffsetAccessor<TElement, TData>(int index, int offset
         }
     }
 
-    protected override ref TData GetReference(TElement[] parent)
+    public static ref TData GetReference(ArrayOffsetAccessor<TElement, TData> @this, TElement[] parent)
     {
-        if (parent.Length > index)
+        if (parent.Length > @this.index)
         {
-            return ref GetReferenceInternal(parent);
+            return ref GetReferenceInternal(parent, @this.index, @this.offset);
         }
         else
         {
@@ -44,19 +55,23 @@ internal sealed class ArrayOffsetAccessor<TElement, TData>(int index, int offset
         }
     }
 
-    protected override void SetValue(TElement[] parent, TData value)
+    public static void SetValue(ArrayOffsetAccessor<TElement, TData> @this, TElement[] parent, TData value)
     {
-        if (parent.Length > index)
+        if (parent.Length > @this.index)
         {
-            GetReferenceInternal(parent) = value;
+            GetReferenceInternal(parent, @this.index, @this.offset) = value;
         }
     }
 
-    private ref TData GetReferenceInternal(TElement[] parent)
+    private static ref TData GetReferenceInternal(TElement[] parent, int index, int offset)
     {
         ref TElement elementRef = ref parent[index];
         return ref Unsafe.As<byte, TData>(ref Unsafe.AddByteOffset(ref Unsafe.As<TElement, byte>(ref elementRef), offset));
     }
+
+    public override unsafe void Update(TElement[] parent, byte* data, UpdateObjectData[] updateObjects) => Update(this, parent, data, updateObjects);
+
+    public override unsafe void Update(ref TElement[] parent, byte* data, UpdateObjectData[] updateObjects) => Update(this, ref parent, data, updateObjects);
 
     internal override bool TryReduce(out UpdatableMember<TElement[]> reducedMember)
     {

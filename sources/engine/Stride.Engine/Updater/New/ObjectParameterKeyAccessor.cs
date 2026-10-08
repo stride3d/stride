@@ -2,23 +2,28 @@ using Stride.Rendering;
 
 namespace Stride.Updater.New;
 
-internal sealed class ObjectParameterKeyAccessor<T>(string name, ObjectParameterKey<T> parameterKey, UpdatableType<T> type) : UpdatableMember<ParameterCollection, T> where T : class
+internal sealed class ObjectParameterKeyAccessor<T> : UpdatableMember<ParameterCollection, T>, IUpdatableMember<ObjectParameterKeyAccessor<T>, ParameterCollection, T> where T : class
 {
-    protected override bool SupportsByReference => false;
+    private readonly string name;
+    private readonly ObjectParameterKey<T> parameterKey;
+    private readonly UpdatableType<T> type;
+
+    public ObjectParameterKeyAccessor(string name, ObjectParameterKey<T> parameterKey, UpdatableType<T> type)
+    {
+        this.name = name;
+        this.parameterKey = parameterKey;
+        this.type = type;
+    }
+
+    public static bool SupportsByReference => false;
 
     public override string Name => name;
 
     internal override bool IsIndexer => true;
 
-    protected override T GetValue(ParameterCollection parent)
-    {
-        return parent.Get(parameterKey);
-    }
+    public static T GetValue(ObjectParameterKeyAccessor<T> @this, ParameterCollection parent) => parent.Get(@this.parameterKey);
 
-    protected override void SetValue(ParameterCollection parent, T value)
-    {
-        parent.Set(parameterKey, value);
-    }
+    public static void SetValue(ObjectParameterKeyAccessor<T> @this, ParameterCollection parent, T value) => parent.Set(@this.parameterKey, value);
 
     public override UpdatableMember<T> CreateIndexer(string name)
     {
@@ -29,4 +34,8 @@ internal sealed class ObjectParameterKeyAccessor<T>(string name, ObjectParameter
     {
         return type.CreateProperty(name);
     }
+
+    public override unsafe void Update(ParameterCollection parent, byte* data, UpdateObjectData[] updateObjects) => Update(this, parent, data, updateObjects);
+
+    public override unsafe void Update(ref ParameterCollection parent, byte* data, UpdateObjectData[] updateObjects) => Update(this, ref parent, data, updateObjects);
 }

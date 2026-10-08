@@ -71,26 +71,26 @@ public abstract class UpdatableMember<TParent, TThis> : UpdatableMember<TParent>
         Children.Add(newChild);
         return newChild;
     }
-    public override unsafe void Update(TParent parent, byte* data, UpdateObjectData[] updateObjects)
+    protected static unsafe void Update<T>(T @this, TParent parent, byte* data, UpdateObjectData[] updateObjects) where T : UpdatableMember<TParent, TThis>, IUpdatableMember<T, TParent, TThis>
     {
         Debug.Assert(!typeof(TParent).IsValueType, "Value types should call the other Update overload.");
-        if (IsLeaf)
+        if (@this.IsLeaf)
         {
             // Leaf node, update the value directly
             if (RuntimeHelpers.IsReferenceOrContainsReferences<TThis>())
             {
-                UpdateObjectData updateObject = updateObjects[DataOffset];
+                UpdateObjectData updateObject = updateObjects[@this.DataOffset];
                 if (updateObject.Condition != 0)
                 {
-                    SetValue(parent, (TThis)updateObject.Value);
+                    T.SetValue(@this, parent, (TThis)updateObject.Value);
                 }
             }
             else
             {
-                int* conditionPtr = (int*)(data + DataOffset);
+                int* conditionPtr = (int*)(data + @this.DataOffset);
                 if (*conditionPtr != 0)
                 {
-                    SetValue(parent, Unsafe.AsRef<TThis>(data + DataOffset + sizeof(int)));
+                    T.SetValue(@this, parent, Unsafe.AsRef<TThis>(data + @this.DataOffset + sizeof(int)));
                 }
             }
         }
@@ -99,59 +99,59 @@ public abstract class UpdatableMember<TParent, TThis> : UpdatableMember<TParent>
             // Not a leaf node, update the children
             if (!typeof(TThis).IsValueType)
             {
-                TThis propertyValue = GetValue(parent);
+                TThis propertyValue = T.GetValue(@this, parent);
                 if (propertyValue is null)
                 {
                     return;
                 }
-                for (var i = 0; i < Children.Count; i++)
+                for (var i = 0; i < @this.Children.Count; i++)
                 {
-                    Children[i].Update(propertyValue, data, updateObjects);
+                    @this.Children[i].Update(propertyValue, data, updateObjects);
                 }
             }
-            else if (SupportsByReference)
+            else if (T.SupportsByReference)
             {
-                ref TThis propertyValue = ref GetReference(parent);
+                ref TThis propertyValue = ref T.GetReference(@this, parent);
                 if (Unsafe.IsNullRef(ref propertyValue))
                 {
                     return;
                 }
-                for (var i = 0; i < Children.Count; i++)
+                for (var i = 0; i < @this.Children.Count; i++)
                 {
-                    Children[i].Update(ref propertyValue, data, updateObjects);
+                    @this.Children[i].Update(ref propertyValue, data, updateObjects);
                 }
             }
             else
             {
-                TThis propertyValue = GetValue(parent);
-                for (var i = 0; i < Children.Count; i++)
+                TThis propertyValue = T.GetValue(@this, parent);
+                for (var i = 0; i < @this.Children.Count; i++)
                 {
-                    Children[i].Update(ref propertyValue, data, updateObjects);
+                    @this.Children[i].Update(ref propertyValue, data, updateObjects);
                 }
-                SetValue(parent, propertyValue);
+                T.SetValue(@this, parent, propertyValue);
             }
         }
     }
-    public override unsafe void Update(ref TParent parent, byte* data, UpdateObjectData[] updateObjects)
+    protected static unsafe void Update<T>(T @this, ref TParent parent, byte* data, UpdateObjectData[] updateObjects) where T : UpdatableMember<TParent, TThis>, IUpdatableMember<T, TParent, TThis>
     {
         Debug.Assert(typeof(TParent).IsValueType, "Reference types should call the other Update overload.");
-        if (IsLeaf)
+        if (@this.IsLeaf)
         {
             // Leaf node, update the value directly
             if (RuntimeHelpers.IsReferenceOrContainsReferences<TThis>())
             {
-                UpdateObjectData updateObject = updateObjects[DataOffset];
+                UpdateObjectData updateObject = updateObjects[@this.DataOffset];
                 if (updateObject.Condition != 0)
                 {
-                    SetValue(ref parent, (TThis)updateObject.Value);
+                    T.SetValue(@this, ref parent, (TThis)updateObject.Value);
                 }
             }
             else
             {
-                int* conditionPtr = (int*)(data + DataOffset);
+                int* conditionPtr = (int*)(data + @this.DataOffset);
                 if (*conditionPtr != 0)
                 {
-                    SetValue(ref parent, Unsafe.AsRef<TThis>(data + DataOffset + sizeof(int)));
+                    T.SetValue(@this, ref parent, Unsafe.AsRef<TThis>(data + @this.DataOffset + sizeof(int)));
                 }
             }
         }
@@ -160,46 +160,39 @@ public abstract class UpdatableMember<TParent, TThis> : UpdatableMember<TParent>
             // Not a leaf node, update the children
             if (!typeof(TThis).IsValueType)
             {
-                TThis propertyValue = GetValue(ref parent);
+                TThis propertyValue = T.GetValue(@this, ref parent);
                 if (propertyValue is null)
                 {
                     return;
                 }
-                for (var i = 0; i < Children.Count; i++)
+                for (var i = 0; i < @this.Children.Count; i++)
                 {
-                    Children[i].Update(propertyValue, data, updateObjects);
+                    @this.Children[i].Update(propertyValue, data, updateObjects);
                 }
             }
-            else if (SupportsByReference)
+            else if (T.SupportsByReference)
             {
-                ref TThis propertyValue = ref GetReference(ref parent);
+                ref TThis propertyValue = ref T.GetReference(@this, ref parent);
                 if (Unsafe.IsNullRef(ref propertyValue))
                 {
                     return;
                 }
-                for (var i = 0; i < Children.Count; i++)
+                for (var i = 0; i < @this.Children.Count; i++)
                 {
-                    Children[i].Update(ref propertyValue, data, updateObjects);
+                    @this.Children[i].Update(ref propertyValue, data, updateObjects);
                 }
             }
             else
             {
-                TThis propertyValue = GetValue(ref parent);
-                for (var i = 0; i < Children.Count; i++)
+                TThis propertyValue = T.GetValue(@this, ref parent);
+                for (var i = 0; i < @this.Children.Count; i++)
                 {
-                    Children[i].Update(ref propertyValue, data, updateObjects);
+                    @this.Children[i].Update(ref propertyValue, data, updateObjects);
                 }
-                SetValue(ref parent, propertyValue);
+                T.SetValue(@this, ref parent, propertyValue);
             }
         }
     }
-    protected abstract bool SupportsByReference { get; }
-    protected virtual TThis GetValue(TParent parent) => throw new NotSupportedException();
-    protected virtual TThis GetValue(ref TParent parent) => throw new NotSupportedException();
-    protected virtual ref TThis GetReference(TParent parent) => throw new NotSupportedException();
-    protected virtual ref TThis GetReference(ref TParent parent) => throw new NotSupportedException();
-    protected virtual void SetValue(TParent parent, TThis value) => throw new NotSupportedException();
-    protected virtual void SetValue(ref TParent parent, TThis value) => throw new NotSupportedException();
     public sealed override UpdatableMember<TThis> GetOrCreateProperty(string name)
     {
         foreach (var child in Children)
@@ -263,9 +256,10 @@ public abstract class UpdatableMember<TParent, TThis> : UpdatableMember<TParent>
             }
         }
 
-        if (member.TryReduce(out var reducedMember))
+        // Disabled because the Blittable* classes seem to be slower than the normal classes now that things have been more optimized with static virtual methods.
+        //if (member.TryReduce(out var reducedMember))
         {
-            member = reducedMember;
+            //member = reducedMember;
         }
 
         return new(member, (IReadOnlyList<UpdatableMember<TParent>>)promotedMembers ?? []);

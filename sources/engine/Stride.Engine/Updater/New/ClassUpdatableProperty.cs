@@ -2,7 +2,7 @@ using System.Diagnostics;
 
 namespace Stride.Updater.New;
 
-public sealed unsafe class ClassUpdatableProperty<TParent, TProperty> : UpdatableMember<TParent, TProperty>
+public sealed unsafe class ClassUpdatableProperty<TParent, TProperty> : UpdatableMember<TParent, TProperty>, IUpdatableMember<ClassUpdatableProperty<TParent, TProperty>, TParent, TProperty>
     where TParent : class
 {
     private readonly string name;
@@ -22,7 +22,7 @@ public sealed unsafe class ClassUpdatableProperty<TParent, TProperty> : Updatabl
 
     public override string Name => name;
 
-    protected override bool SupportsByReference => false;
+    public static bool SupportsByReference => false;
 
     public override UpdatableMember<TProperty> CreateProperty(string name)
     {
@@ -34,6 +34,10 @@ public sealed unsafe class ClassUpdatableProperty<TParent, TProperty> : Updatabl
         return propertyType.CreateIndexer(name);
     }
 
-    protected override TProperty GetValue(TParent parent) => getter(parent);
-    protected override void SetValue(TParent parent, TProperty value) => setter(parent, value);
+    public static TProperty GetValue(ClassUpdatableProperty<TParent, TProperty> @this, TParent parent) => @this.getter(parent);
+    public static void SetValue(ClassUpdatableProperty<TParent, TProperty> @this, TParent parent, TProperty value) => @this.setter(parent, value);
+
+    public override void Update(TParent parent, byte* data, UpdateObjectData[] updateObjects) => Update(this, parent, data, updateObjects);
+
+    public override void Update(ref TParent parent, byte* data, UpdateObjectData[] updateObjects) => Update(this, ref parent, data, updateObjects);
 }

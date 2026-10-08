@@ -2,7 +2,7 @@ using System.Diagnostics;
 
 namespace Stride.Updater.New;
 
-public sealed unsafe class ClassUpdatableField<TParent, TField> : UpdatableMember<TParent, TField>
+public sealed unsafe class ClassUpdatableField<TParent, TField> : UpdatableMember<TParent, TField>, IUpdatableMember<ClassUpdatableField<TParent, TField>, TParent, TField>
     where TParent : class
 {
     private readonly string name;
@@ -17,7 +17,7 @@ public sealed unsafe class ClassUpdatableField<TParent, TField> : UpdatableMembe
         this.fieldType = fieldType;
     }
 
-    protected override bool SupportsByReference => true;
+    public static bool SupportsByReference => true;
 
     public override string Name => name;
 
@@ -31,18 +31,22 @@ public sealed unsafe class ClassUpdatableField<TParent, TField> : UpdatableMembe
         return fieldType.CreateIndexer(name);
     }
 
-    protected override TField GetValue(TParent parent)
+    public static TField GetValue(ClassUpdatableField<TParent, TField> @this, TParent parent)
     {
-        return fieldAccessor(parent);
+        return @this.fieldAccessor(parent);
     }
 
-    protected override ref TField GetReference(TParent parent)
+    public static ref TField GetReference(ClassUpdatableField<TParent, TField> @this, TParent parent)
     {
-        return ref fieldAccessor(parent);
+        return ref @this.fieldAccessor(parent);
     }
 
-    protected override void SetValue(TParent parent, TField value)
+    public static void SetValue(ClassUpdatableField<TParent, TField> @this, TParent parent, TField value)
     {
-        fieldAccessor(parent) = value;
+        @this.fieldAccessor(parent) = value;
     }
+
+    public override void Update(TParent parent, byte* data, UpdateObjectData[] updateObjects) => Update(this, parent, data, updateObjects);
+
+    public override void Update(ref TParent parent, byte* data, UpdateObjectData[] updateObjects) => Update(this, ref parent, data, updateObjects);
 }

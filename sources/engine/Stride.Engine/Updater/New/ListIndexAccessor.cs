@@ -2,12 +2,14 @@ using System.Collections.Generic;
 
 namespace Stride.Updater.New;
 
-internal sealed class ListIndexAccessor<TList, TValue>(string name, int index, UpdatableType<TValue> elementType) : UpdatableMember<TList, TValue>
+internal sealed class ListIndexAccessor<TList, TValue>(string name, int index, UpdatableType<TValue> elementType) : UpdatableMember<TList, TValue>, IUpdatableMember<ListIndexAccessor<TList, TValue>, TList, TValue>
     where TList : IList<TValue>
 {
-    protected override bool SupportsByReference => false;
+    public static bool SupportsByReference => false;
 
     public override string Name => name;
+
+    internal int Index => index;
 
     internal override bool IsIndexer => true;
 
@@ -21,11 +23,11 @@ internal sealed class ListIndexAccessor<TList, TValue>(string name, int index, U
         return elementType.CreateIndexer(name);
     }
 
-    protected override TValue GetValue(TList parent)
+    public static TValue GetValue(ListIndexAccessor<TList, TValue> @this, TList parent)
     {
-        if (parent.Count > index)
+        if (parent.Count > @this.Index)
         {
-            return parent[index];
+            return parent[@this.Index];
         }
         else
         {
@@ -33,11 +35,15 @@ internal sealed class ListIndexAccessor<TList, TValue>(string name, int index, U
         }
     }
 
-    protected override void SetValue(TList parent, TValue value)
+    public static void SetValue(ListIndexAccessor<TList, TValue> @this, TList parent, TValue value)
     {
-        if (parent.Count > index)
+        if (parent.Count > @this.Index)
         {
-            parent[index] = value;
+            parent[@this.Index] = value;
         }
     }
+
+    public override unsafe void Update(TList parent, byte* data, UpdateObjectData[] updateObjects) => Update(this, parent, data, updateObjects);
+
+    public override unsafe void Update(ref TList parent, byte* data, UpdateObjectData[] updateObjects) => Update(this, ref parent, data, updateObjects);
 }

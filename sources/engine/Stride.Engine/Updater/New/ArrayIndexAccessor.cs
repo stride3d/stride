@@ -2,9 +2,9 @@ using System.Runtime.CompilerServices;
 
 namespace Stride.Updater.New;
 
-internal sealed class ArrayIndexAccessor<T>(string name, int index, UpdatableType<T> elementType) : UpdatableMember<T[], T>
+internal sealed class ArrayIndexAccessor<T>(string name, int index, UpdatableType<T> elementType) : UpdatableMember<T[], T>, IUpdatableMember<ArrayIndexAccessor<T>, T[], T>
 {
-    protected override bool SupportsByReference => true;
+    public static bool SupportsByReference => true;
 
     internal override bool IsIndexer => true;
 
@@ -22,11 +22,11 @@ internal sealed class ArrayIndexAccessor<T>(string name, int index, UpdatableTyp
         return elementType.CreateIndexer(name);
     }
 
-    protected override T GetValue(T[] parent)
+    public static T GetValue(ArrayIndexAccessor<T> @this, T[] parent)
     {
-        if (parent.Length > index)
+        if (parent.Length > @this.Index)
         {
-            return parent[index];
+            return parent[@this.Index];
         }
         else
         {
@@ -34,11 +34,11 @@ internal sealed class ArrayIndexAccessor<T>(string name, int index, UpdatableTyp
         }
     }
 
-    protected override ref T GetReference(T[] parent)
+    public static ref T GetReference(ArrayIndexAccessor<T> @this, T[] parent)
     {
-        if (parent.Length > index)
+        if (parent.Length > @this.Index)
         {
-            return ref parent[index];
+            return ref parent[@this.Index];
         }
         else
         {
@@ -46,13 +46,17 @@ internal sealed class ArrayIndexAccessor<T>(string name, int index, UpdatableTyp
         }
     }
 
-    protected override void SetValue(T[] parent, T value)
+    public static void SetValue(ArrayIndexAccessor<T> @this, T[] parent, T value)
     {
-        if (parent.Length > index)
+        if (parent.Length > @this.Index)
         {
-            parent[index] = value;
+            parent[@this.Index] = value;
         }
     }
+
+    public override unsafe void Update(T[] parent, byte* data, UpdateObjectData[] updateObjects) => Update(this, parent, data, updateObjects);
+
+    public override unsafe void Update(ref T[] parent, byte* data, UpdateObjectData[] updateObjects) => Update(this, ref parent, data, updateObjects);
 
     internal override bool TryReduce(out UpdatableMember<T[]> reducedMember)
     {

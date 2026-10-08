@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 namespace Stride.Updater.New;
 
-public sealed unsafe class StructUpdatableField<TParent, TField> : UpdatableMember<TParent, TField>
+public sealed unsafe class StructUpdatableField<TParent, TField> : UpdatableMember<TParent, TField>, IUpdatableMember<StructUpdatableField<TParent, TField>, TParent, TField>
 {
     private readonly string name;
     private readonly UpdatableType<TField> fieldType;
@@ -28,7 +28,7 @@ public sealed unsafe class StructUpdatableField<TParent, TField> : UpdatableMemb
         FieldOffset = fieldOffset;
     }
 
-    protected override bool SupportsByReference => true;
+    public static bool SupportsByReference => true;
 
     public override string Name => name;
 
@@ -46,19 +46,19 @@ public sealed unsafe class StructUpdatableField<TParent, TField> : UpdatableMemb
         return fieldType.CreateIndexer(name);
     }
 
-    protected override TField GetValue(ref TParent parent)
+    public static TField GetValue(StructUpdatableField<TParent, TField> @this, ref TParent parent)
     {
-        return GetReference(ref parent);
+        return GetReference(@this, ref parent);
     }
 
-    protected override ref TField GetReference(ref TParent parent)
+    public static ref TField GetReference(StructUpdatableField<TParent, TField> @this, ref TParent parent)
     {
-        return ref Unsafe.As<byte, TField>(ref Unsafe.AddByteOffset(ref Unsafe.As<TParent, byte>(ref parent), FieldOffset));
+        return ref Unsafe.As<byte, TField>(ref Unsafe.AddByteOffset(ref Unsafe.As<TParent, byte>(ref parent), @this.FieldOffset));
     }
 
-    protected override void SetValue(ref TParent parent, TField value)
+    public static void SetValue(StructUpdatableField<TParent, TField> @this, ref TParent parent, TField value)
     {
-        GetReference(ref parent) = value;
+        GetReference(@this, ref parent) = value;
     }
 
     internal override bool TryReduce(out UpdatableMember<TParent> reducedMember)
@@ -105,4 +105,8 @@ public sealed unsafe class StructUpdatableField<TParent, TField> : UpdatableMemb
         }
         return base.TryMergeWithParent(parent, out merged);
     }
+
+    public override void Update(TParent parent, byte* data, UpdateObjectData[] updateObjects) => Update(this, parent, data, updateObjects);
+
+    public override void Update(ref TParent parent, byte* data, UpdateObjectData[] updateObjects) => Update(this, ref parent, data, updateObjects);
 }

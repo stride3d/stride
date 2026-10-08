@@ -3,9 +3,9 @@ using Stride.Engine;
 
 namespace Stride.Updater.New;
 
-internal sealed class EntityComponentAccessor<T>(string name, UpdatableType<T> type) : UpdatableMember<Entity, T> where T : EntityComponent
+internal sealed class EntityComponentAccessor<T>(string name, UpdatableType<T> type) : UpdatableMember<Entity, T>, IUpdatableMember<EntityComponentAccessor<T>, Entity, T> where T : EntityComponent
 {
-    protected override bool SupportsByReference => false;
+    public static bool SupportsByReference => false;
 
     public override string Name => name;
 
@@ -15,7 +15,7 @@ internal sealed class EntityComponentAccessor<T>(string name, UpdatableType<T> t
 
     public override UpdatableMember<T> CreateIndexer(string name) => type.CreateIndexer(name);
 
-    protected override T GetValue(Entity entity)
+    public static T GetValue(EntityComponentAccessor<T> @this, Entity entity)
     {
         var components = entity.Components;
         for (int i = 0; i < components.Count; i++)
@@ -28,8 +28,12 @@ internal sealed class EntityComponentAccessor<T>(string name, UpdatableType<T> t
         return null;
     }
 
-    protected override void SetValue(Entity entity, T value)
+    public static void SetValue(EntityComponentAccessor<T> @this, Entity entity, T value)
     {
         throw new NotSupportedException("Entity components cannot be replaced through an update accessor.");
     }
+
+    public override unsafe void Update(Entity parent, byte* data, UpdateObjectData[] updateObjects) => Update(this, parent, data, updateObjects);
+
+    public override unsafe void Update(ref Entity parent, byte* data, UpdateObjectData[] updateObjects) => Update(this, ref parent, data, updateObjects);
 }
