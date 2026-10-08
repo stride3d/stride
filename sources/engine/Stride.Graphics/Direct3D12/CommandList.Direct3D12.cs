@@ -554,9 +554,14 @@ namespace Stride.Graphics
 
             RecordDebugCounter(DebugCounterKind.Barrier);
 
-            // Texture views share the native resource of their parent; barrier the parent instead
+            // Texture views share the native resource of their parent; barrier the parent instead, and only the
+            // subresource a single-element view covers: a mip chain reads one mip while it writes the next
             if (resource is Texture { ParentTexture: not null } textureView)
+            {
+                if (subresource == uint.MaxValue && textureView.ViewType == ViewType.Single)
+                    subresource = (uint) textureView.ParentTexture.GetSubResourceIndex(textureView.ArraySlice, textureView.MipLevel);
                 resource = textureView.ParentTexture;
+            }
 
             // Seed CL-local tracker from shared on first touch; Clone to avoid aliasing its
             // perSubresource array.
