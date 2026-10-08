@@ -83,14 +83,45 @@ partial class PackageSession
         if (companion.Package.Kind != PackageKind.Runtime && companion.Package.Kind != kind)
             log.Error($"[{companionName}] is an {companion.Package.Kind} package but [{package.Meta.Name}] declares it as its {kind} package.");
 
-        // Visible wherever the declaring package is
+        AddCompanionLink(package, companion.Package);
+    }
+
+    // Each loaded companion with the package declaring it
+    private readonly List<(Package Declaring, Package Companion)> companionLinks = [];
+
+    /// <summary>
+    /// Makes <paramref name="companion"/> visible wherever <paramref name="declaring"/> is: in the flattened dependencies
+    /// of every project of the session that has it.
+    /// </summary>
+    internal void AddCompanionLink(Package declaring, Package companion)
+    {
+        companionLinks.Add((declaring, companion));
         foreach (var container in Projects)
+            AddCompanionDependencies(container);
+    }
+
+    /// <summary>
+    /// Adds to <paramref name="container"/>'s flattened dependencies the loaded companions of the packages it has,
+    /// companions of companions included; for a list rebuilt from the project's lock file.
+    /// </summary>
+    internal void AddCompanionDependencies(PackageContainer container)
+    {
+        bool added;
+        do
         {
-            if (container == companion || container.FlattenedDependencies.Any(d => d.Package == companion.Package))
-                continue;
-            if (container.Package == package || container.FlattenedDependencies.Any(d => d.Package == package))
-                container.FlattenedDependencies.Add(new Dependency(companion.Package));
+            added = false;
+            foreach (var (declaring, companion) in companionLinks)
+            {
+                if (container.Package == companion || container.FlattenedDependencies.Any(d => d.Package == companion) || !Projects.Any(p => p.Package == companion))
+                    continue;
+                if (container.Package == declaring || container.FlattenedDependencies.Any(d => d.Package == declaring))
+                {
+                    container.FlattenedDependencies.Add(new Dependency(companion));
+                    added = true;
+                }
+            }
         }
+        while (added);
     }
 
     private StandalonePackage? LoadCompanionPackage(string name, PackageVersion version, Dictionary<string, StandalonePackage> loadedByName, string? rootDirectory, ILogger log)

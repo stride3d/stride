@@ -617,6 +617,9 @@ partial class PackageSession
                     // Try to resolve package if already loaded
                     projectDependency.Package = project.Session.Packages.Find(projectDependency);
                 }
+
+                // The lock file does not list companions
+                project.Session.AddCompanionDependencies(project);
             }
 
             if (directDependencies)
