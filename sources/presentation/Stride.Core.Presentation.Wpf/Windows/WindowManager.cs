@@ -30,7 +30,6 @@ namespace Stride.Core.Presentation.Windows
         private static Dispatcher dispatcher;
         private static bool initialized;
         private static bool mainWindowBlocked;
-        private static Window mainWindowInstance;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="WindowManager"/> class.
@@ -89,7 +88,6 @@ namespace Stride.Core.Presentation.Windows
             winEventProc = null;
             dispatcher = null;
             MainWindow = null;
-            mainWindowInstance = null;
             AllWindowsList.Clear();
             ModalWindowsList.Clear();
             BlockingWindowsList.Clear();
@@ -117,7 +115,6 @@ namespace Stride.Core.Presentation.Windows
             Logger.Info($"Main window showing. ({window})");
 
             MainWindow = new WindowInfo(window);
-            mainWindowInstance = window;
             AllWindowsList.Add(MainWindow);
 
             window.WindowStartupLocation = WindowStartupLocation.CenterScreen;
@@ -190,7 +187,7 @@ namespace Stride.Core.Presentation.Windows
 
         private static void ActivateMainWindow()
         {
-            if (MainWindow != null && MainWindow.Hwnd != IntPtr.Zero)
+            if (MainWindow != null && MainWindow.IsShown && MainWindow.Hwnd != IntPtr.Zero)
                 NativeHelper.SetActiveWindow(MainWindow.Hwnd);
         }
 
@@ -348,9 +345,6 @@ namespace Stride.Core.Presentation.Windows
             }
             windowInfo.IsShown = true;
 
-            if (MainWindow == null && mainWindowInstance != null && windowInfo.Window == mainWindowInstance)
-                MainWindow = windowInfo;
-
             if (windowInfo == MainWindow)
             {
                 Logger.Info($"Main window ({hwnd}) shown.");
@@ -386,6 +380,14 @@ namespace Stride.Core.Presentation.Windows
             }
 
             windowInfo.IsShown = false;
+
+            // A hidden main window is not closed: keep it registered until its window is destroyed.
+            if (windowInfo == MainWindow && NativeHelper.IsWindow(hwnd))
+            {
+                Logger.Info($"Main window ({hwnd}) hidden.");
+                return;
+            }
+
             AllWindowsList.Remove(windowInfo);
 
             if (MainWindow != null && MainWindow.Equals(windowInfo))
