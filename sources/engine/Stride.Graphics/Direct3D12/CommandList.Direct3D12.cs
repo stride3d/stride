@@ -1744,8 +1744,8 @@ namespace Stride.Graphics
             ResourceBarrierTransition(destinationTexture, BarrierLayout.ResolveDest);
             FlushResourceBarriers();
 
-            currentCommandList.NativeCommandList.ResolveSubresource(sourceMultiSampledTexture.NativeResource, (uint) sourceSubResourceIndex,
-                                                                    destinationTexture.NativeResource, (uint) destinationSubResourceIndex,
+            currentCommandList.NativeCommandList.ResolveSubresource(destinationTexture.NativeResource, (uint) destinationSubResourceIndex,
+                                                                    sourceMultiSampledTexture.NativeResource, (uint) sourceSubResourceIndex,
                                                                     (Format)(format == PixelFormat.None ? destinationTexture.Format : format));
         }
 
