@@ -228,6 +228,8 @@ namespace Stride.Updater
                 currentMember.MakeLeaf(dataOffset);
             }
 
+            rootMember.Optimize();
+
             return rootMember;
         }
 

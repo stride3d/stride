@@ -16,6 +16,7 @@ public abstract class UpdatableMember
 
     internal int DataOffset { get; private set; } = -1;
     internal bool IsLeaf => DataOffset >= 0;
+    internal abstract bool IsBlittable { get; }
     internal virtual bool IsIndexer => false;
     internal abstract Type MemberType { get; }
     public abstract string Name { get; }
@@ -23,16 +24,35 @@ public abstract class UpdatableMember
     {
         return Name;
     }
+    internal virtual void Optimize()
+    {
+    }
+    internal virtual bool TryMergeWithParent<TGrandParent>(UpdatableMember<TGrandParent> parent, out UpdatableMember<TGrandParent> merged)
+    {
+        merged = null;
+        return false;
+    }
 }
 public abstract class UpdatableMember<TParent> : UpdatableMember
 {
     public abstract unsafe void Update(TParent parent, byte* data, UpdateObjectData[] updateObjects);
     public abstract unsafe void Update(ref TParent parent, byte* data, UpdateObjectData[] updateObjects);
+    internal virtual bool TryReduce(out UpdatableMember<TParent> reducedMember)
+    {
+        reducedMember = null;
+        return false;
+    }
+    internal virtual UpdatableMemberRewrite<TParent> OptimizeAndRewrite()
+    {
+        Optimize();
+        return new(this, []);
+    }
 }
 public abstract class UpdatableMember<TParent, TThis> : UpdatableMember<TParent>
 {
     protected List<UpdatableMember<TThis>> Children { get; } = [];
     internal sealed override Type MemberType => typeof(TThis);
+    internal sealed override bool IsBlittable => !RuntimeHelpers.IsReferenceOrContainsReferences<TThis>();
     public override unsafe void Update(TParent parent, byte* data, UpdateObjectData[] updateObjects)
     {
         Debug.Assert(!typeof(TParent).IsValueType, "Value types should call the other Update overload.");
@@ -190,4 +210,76 @@ public abstract class UpdatableMember<TParent, TThis> : UpdatableMember<TParent>
     }
     public abstract UpdatableMember<TThis> CreateProperty(string name);
     public abstract UpdatableMember<TThis> CreateIndexer(string name);
+    internal override void Optimize()
+    {
+        for (var i = 0; i < Children.Count; i++)
+        {
+            var rewrite = Children[i].OptimizeAndRewrite();
+            Children[i] = rewrite.Member;
+            Children.AddRange(rewrite.PromotedMembers);
+        }
+
+        // Sorting improves the performance of data access
+        Children.Sort(ChildComparer.Instance);
+    }
+    internal override UpdatableMemberRewrite<TParent> OptimizeAndRewrite()
+    {
+        Optimize();
+
+        UpdatableMember<TParent> member = this;
+        List<UpdatableMember<TParent>> promotedMembers = null;
+        for (var i = Children.Count - 1; i >= 0; i--)
+        {
+            if (Children[i].TryMergeWithParent(this, out var mergedChild))
+            {
+                var replaceMember = Children.Count == 1;
+                Children.RemoveAt(i);
+                if (replaceMember)
+                {
+                    member = mergedChild;
+                    break;
+                }
+
+                promotedMembers ??= [];
+                promotedMembers.Add(mergedChild);
+            }
+        }
+
+        if (member.TryReduce(out var reducedMember))
+        {
+            member = reducedMember;
+        }
+
+        return new(member, (IReadOnlyList<UpdatableMember<TParent>>)promotedMembers ?? []);
+    }
+
+    private sealed class ChildComparer : IComparer<UpdatableMember<TThis>>
+    {
+        public static readonly ChildComparer Instance = new();
+        public int Compare(UpdatableMember<TThis> x, UpdatableMember<TThis> y)
+        {
+            // Leaf nodes should come before non-leaf nodes
+            if (!x.IsLeaf)
+            {
+                return y.IsLeaf ? 1 : 0;
+            }
+            if (!y.IsLeaf)
+            {
+                return -1;
+            }
+
+            // Blittable nodes should come before non-blittable nodes
+            if (!x.IsBlittable && y.IsBlittable)
+            {
+                return 1;
+            }
+            if (x.IsBlittable && !y.IsBlittable)
+            {
+                return -1;
+            }
+
+            // Both are leaf nodes with the same blittable status, compare by data offset
+            return x.DataOffset.CompareTo(y.DataOffset);
+        }
+    }
 }

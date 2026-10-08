@@ -6,9 +6,11 @@ internal sealed class ArrayIndexAccessor<T>(string name, int index, UpdatableTyp
 {
     protected override bool SupportsByReference => true;
 
+    internal override bool IsIndexer => true;
+
     public override string Name => name;
 
-    internal override bool IsIndexer => true;
+    public int Index => index;
 
     public override UpdatableMember<T> CreateProperty(string name)
     {
@@ -50,5 +52,15 @@ internal sealed class ArrayIndexAccessor<T>(string name, int index, UpdatableTyp
         {
             parent[index] = value;
         }
+    }
+
+    internal override bool TryReduce(out UpdatableMember<T[]> reducedMember)
+    {
+        if (IsBlittable && IsLeaf)
+        {
+            reducedMember = new BlittableArrayData<T>(index, 0, (uint)Unsafe.SizeOf<T>());
+            return true;
+        }
+        return base.TryReduce(out reducedMember);
     }
 }
