@@ -8,6 +8,8 @@ internal sealed class ObjectParameterKeyAccessor<T>(ObjectParameterKey<T> parame
 
     public override string Name => parameterKey.Name;
 
+    internal override bool IsIndexer => true;
+
     protected override T GetValue(ParameterCollection parent)
     {
         return parent.Get(parameterKey);

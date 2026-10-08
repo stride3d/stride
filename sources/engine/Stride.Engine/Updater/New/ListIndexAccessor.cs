@@ -9,6 +9,8 @@ internal sealed class ListIndexAccessor<TList, TValue>(string name, int index, U
 
     public override string Name => name;
 
+    internal override bool IsIndexer => true;
+
     public override UpdatableMember<TValue> CreateProperty(string name)
     {
         return elementType.CreateProperty(name);

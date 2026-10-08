@@ -9,6 +9,8 @@ internal sealed class EntityComponentAccessor<T>(UpdatableType<T> type) : Updata
 
     public override string Name => typeof(T).FullName;
 
+    internal override bool IsIndexer => true;
+
     public override UpdatableMember<T> CreateProperty(string name) => type.CreateProperty(name);
 
     public override UpdatableMember<T> CreateIndexer(string name) => type.CreateIndexer(name);

@@ -16,6 +16,7 @@ public abstract class UpdatableMember
 
     internal int DataOffset { get; private set; } = -1;
     internal bool IsLeaf => DataOffset >= 0;
+    internal virtual bool IsIndexer => false;
     internal abstract Type MemberType { get; }
     public abstract string Name { get; }
 }
@@ -26,8 +27,7 @@ public abstract class UpdatableMember<TParent> : UpdatableMember
 }
 public abstract class UpdatableMember<TParent, TThis> : UpdatableMember<TParent>
 {
-    private readonly List<UpdatableMember<TThis>> properties = [];
-    private readonly List<UpdatableMember<TThis>> indexers = [];
+    protected List<UpdatableMember<TThis>> Children { get; } = [];
     internal sealed override Type MemberType => typeof(TThis);
     public override unsafe void Update(TParent parent, byte* data, UpdateObjectData[] updateObjects)
     {
@@ -62,13 +62,9 @@ public abstract class UpdatableMember<TParent, TThis> : UpdatableMember<TParent>
                 {
                     return;
                 }
-                for (var i = 0; i < properties.Count; i++)
+                for (var i = 0; i < Children.Count; i++)
                 {
-                    properties[i].Update(propertyValue, data, updateObjects);
-                }
-                for (var i = 0; i < indexers.Count; i++)
-                {
-                    indexers[i].Update(propertyValue, data, updateObjects);
+                    Children[i].Update(propertyValue, data, updateObjects);
                 }
             }
             else if (SupportsByReference)
@@ -78,25 +74,17 @@ public abstract class UpdatableMember<TParent, TThis> : UpdatableMember<TParent>
                 {
                     return;
                 }
-                for (var i = 0; i < properties.Count; i++)
+                for (var i = 0; i < Children.Count; i++)
                 {
-                    properties[i].Update(ref propertyValue, data, updateObjects);
-                }
-                for (var i = 0; i < indexers.Count; i++)
-                {
-                    indexers[i].Update(ref propertyValue, data, updateObjects);
+                    Children[i].Update(ref propertyValue, data, updateObjects);
                 }
             }
             else
             {
                 TThis propertyValue = GetValue(parent);
-                for (var i = 0; i < properties.Count; i++)
+                for (var i = 0; i < Children.Count; i++)
                 {
-                    properties[i].Update(ref propertyValue, data, updateObjects);
-                }
-                for (var i = 0; i < indexers.Count; i++)
-                {
-                    indexers[i].Update(ref propertyValue, data, updateObjects);
+                    Children[i].Update(ref propertyValue, data, updateObjects);
                 }
                 SetValue(parent, propertyValue);
             }
@@ -135,13 +123,9 @@ public abstract class UpdatableMember<TParent, TThis> : UpdatableMember<TParent>
                 {
                     return;
                 }
-                for (var i = 0; i < properties.Count; i++)
+                for (var i = 0; i < Children.Count; i++)
                 {
-                    properties[i].Update(propertyValue, data, updateObjects);
-                }
-                for (var i = 0; i < indexers.Count; i++)
-                {
-                    indexers[i].Update(propertyValue, data, updateObjects);
+                    Children[i].Update(propertyValue, data, updateObjects);
                 }
             }
             else if (SupportsByReference)
@@ -151,25 +135,17 @@ public abstract class UpdatableMember<TParent, TThis> : UpdatableMember<TParent>
                 {
                     return;
                 }
-                for (var i = 0; i < properties.Count; i++)
+                for (var i = 0; i < Children.Count; i++)
                 {
-                    properties[i].Update(ref propertyValue, data, updateObjects);
-                }
-                for (var i = 0; i < indexers.Count; i++)
-                {
-                    indexers[i].Update(ref propertyValue, data, updateObjects);
+                    Children[i].Update(ref propertyValue, data, updateObjects);
                 }
             }
             else
             {
                 TThis propertyValue = GetValue(ref parent);
-                for (var i = 0; i < properties.Count; i++)
+                for (var i = 0; i < Children.Count; i++)
                 {
-                    properties[i].Update(ref propertyValue, data, updateObjects);
-                }
-                for (var i = 0; i < indexers.Count; i++)
-                {
-                    indexers[i].Update(ref propertyValue, data, updateObjects);
+                    Children[i].Update(ref propertyValue, data, updateObjects);
                 }
                 SetValue(ref parent, propertyValue);
             }
@@ -184,28 +160,28 @@ public abstract class UpdatableMember<TParent, TThis> : UpdatableMember<TParent>
     protected virtual void SetValue(ref TParent parent, TThis value) => throw new NotSupportedException();
     public sealed override UpdatableMember<TThis> GetOrCreateProperty(string name)
     {
-        foreach (var child in properties)
+        foreach (var child in Children)
         {
-            if (child.Name == name)
+            if (child.Name == name && !child.IsIndexer)
             {
                 return child;
             }
         }
         var newChild = CreateProperty(name);
-        properties.Add(newChild);
+        Children.Add(newChild);
         return newChild;
     }
     public override UpdatableMember<TThis> GetOrCreateIndexer(string name)
     {
-        foreach (var child in indexers)
+        foreach (var child in Children)
         {
-            if (child.Name == name)
+            if (child.Name == name && child.IsIndexer)
             {
                 return child;
             }
         }
         var newChild = CreateIndexer(name);
-        indexers.Add(newChild);
+        Children.Add(newChild);
         return newChild;
     }
     public abstract UpdatableMember<TThis> CreateProperty(string name);

@@ -8,6 +8,8 @@ internal sealed class ArrayIndexAccessor<T>(string name, int index, UpdatableTyp
 
     public override string Name => name;
 
+    internal override bool IsIndexer => true;
+
     public override UpdatableMember<T> CreateProperty(string name)
     {
         return elementType.CreateProperty(name);

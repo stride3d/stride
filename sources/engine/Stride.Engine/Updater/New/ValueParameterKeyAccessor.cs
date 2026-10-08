@@ -9,6 +9,8 @@ internal sealed class ValueParameterKeyAccessor<T>(ValueParameterKey<T> paramete
 
     public override string Name => parameterKey.Name;
 
+    internal override bool IsIndexer => true;
+
     public override UpdatableMember<T> CreateProperty(string name)
     {
         return type.CreateProperty(name);
