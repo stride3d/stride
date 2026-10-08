@@ -560,9 +560,16 @@ namespace Stride.Graphics
 
             RecordDebugCounter(DebugCounterKind.Barrier);
 
-            // Texture views share the native resource of their parent; barrier the parent instead
+            // Texture views share the native resource of their parent; barrier the parent instead, and only the
+            // subresource a single-element view covers: a mip chain reads one mip while it writes the next.
+            // Depth-stencil textures keep the whole-resource barrier: their stencil plane has its own subresources,
+            // which the tracker does not know
             if (resource is Texture texture)
+            {
+                if (subresource == uint.MaxValue && texture.ParentTexture is { } parent && texture.ViewType == ViewType.Single && !parent.IsDepthStencil)
+                    subresource = (uint) parent.GetSubResourceIndex(texture.ArraySlice, texture.MipLevel);
                 resource = texture.RootTexture;
+            }
 
             // Seed CL-local tracker from shared on first touch; Clone to avoid aliasing its
             // perSubresource array.
