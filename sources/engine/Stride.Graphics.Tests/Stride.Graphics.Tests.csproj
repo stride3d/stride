@@ -15,6 +15,12 @@
     <Compile Remove="Compiler\CubemapEffect.sdfx.cs" />
   </ItemGroup>
   <ItemGroup>
+    <!-- Stride.Graphics references Silk.NET with PrivateAssets="compile", so D3DFeatureLevel does not
+         flow to consumers; TestGraphicsProfileHelper needs its own reference to name it. Desktop-only,
+         matching the Direct3D references in Stride.Graphics.csproj. -->
+    <PackageReference Include="Silk.NET.Direct3D11" Condition="'$(StrideTargetFramework)' == '$(StrideFramework)' Or '$(StrideTargetFramework)' == '$(StrideFrameworkWindows)'" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
     <ProjectReference Include="..\Stride.Engine\Stride.Engine.csproj" />
     <ProjectReference Include="..\Stride.Graphics.Regression\Stride.Graphics.Regression.csproj" />
