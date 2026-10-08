@@ -9,6 +9,10 @@ public abstract class UpdatableMember
 {
     public abstract UpdatableMember GetOrCreateProperty(string name);
     public abstract UpdatableMember GetOrCreateIndexer(string name);
+    internal virtual UpdatableMember GetOrCreateCast<TCast>(string name, UpdatableType<TCast> type) where TCast : class
+    {
+        throw new NotSupportedException();
+    }
     internal void MakeLeaf(int dataOffset)
     {
         DataOffset = dataOffset;
@@ -18,6 +22,7 @@ public abstract class UpdatableMember
     internal bool IsLeaf => DataOffset >= 0;
     internal abstract bool IsBlittable { get; }
     internal virtual bool IsIndexer => false;
+    internal virtual bool IsCast => false;
     internal abstract Type MemberType { get; }
     public abstract string Name { get; }
     public override string ToString()
@@ -53,6 +58,19 @@ public abstract class UpdatableMember<TParent, TThis> : UpdatableMember<TParent>
     protected List<UpdatableMember<TThis>> Children { get; } = [];
     internal sealed override Type MemberType => typeof(TThis);
     internal sealed override bool IsBlittable => !RuntimeHelpers.IsReferenceOrContainsReferences<TThis>();
+    internal sealed override UpdatableMember GetOrCreateCast<TCast>(string name, UpdatableType<TCast> type) where TCast : class
+    {
+        foreach (var child in Children)
+        {
+            if (child.Name == name && child is UpdatableClassCast<TThis, TCast>)
+            {
+                return child;
+            }
+        }
+        var newChild = new UpdatableClassCast<TThis, TCast>(name, type);
+        Children.Add(newChild);
+        return newChild;
+    }
     public override unsafe void Update(TParent parent, byte* data, UpdateObjectData[] updateObjects)
     {
         Debug.Assert(!typeof(TParent).IsValueType, "Value types should call the other Update overload.");
@@ -186,7 +204,7 @@ public abstract class UpdatableMember<TParent, TThis> : UpdatableMember<TParent>
     {
         foreach (var child in Children)
         {
-            if (child.Name == name && !child.IsIndexer)
+            if (child.Name == name && !child.IsIndexer && !child.IsCast)
             {
                 return child;
             }

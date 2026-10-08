@@ -1,12 +1,12 @@
 namespace Stride.Updater.New;
 
-internal sealed class UpdatableClassCast<TFrom, TTo>(UpdatableType<TTo> type) : UpdatableMember<TFrom, TTo>
-    where TFrom : class
-    where TTo : class, TFrom
+internal sealed class UpdatableClassCast<TFrom, TTo>(string name, UpdatableType<TTo> type) : UpdatableMember<TFrom, TTo>
+    where TTo : class
 {
     protected override bool SupportsByReference => false;
+    internal override bool IsCast => true;
 
-    public override string Name { get; } = $"({typeof(TTo).FullName})";
+    public override string Name { get; } = name;
 
     protected override TTo GetValue(TFrom instance)
     {

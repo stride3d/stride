@@ -29,7 +29,7 @@ namespace Stride.Updater
         private static readonly ConcurrentDictionary<UpdateKey, UpdatableMember> UpdateKeys = new ConcurrentDictionary<UpdateKey, UpdatableMember>();
         private static readonly ConcurrentDictionary<Type, UpdateMemberResolver> MemberResolvers = new ConcurrentDictionary<Type, UpdateMemberResolver>();
 
-        private static readonly ConcurrentDictionary<(Type, Type), Func<New.UpdatableType, New.UpdatableMember>> CastClasses = new();
+        private static readonly ConcurrentDictionary<(Type, Type), Func<New.UpdatableMember, string, New.UpdatableType, New.UpdatableMember>> CastClasses = new();
         private static readonly ConcurrentDictionary<Type, Func<string, ParameterKey, New.UpdatableMember<ParameterCollection>>> ParameterKeys = new();
         private static readonly ConcurrentDictionary<Type, New.UpdatableType> Types = new();
         private static readonly ConcurrentDictionary<Type, Func<string, New.UpdatableMember<Entity>>> EntityComponentAccessors = new();
@@ -57,7 +57,7 @@ namespace Stride.Updater
 
         public static void RegisterCastClass<TFrom, TTo>() where TFrom : class where TTo : class, TFrom
         {
-            CastClasses[(typeof(TFrom), typeof(TTo))] = (type) => new New.UpdatableClassCast<TFrom, TTo>((New.UpdatableType<TTo>)type);
+            CastClasses[(typeof(TFrom), typeof(TTo))] = (parent, name, type) => parent.GetOrCreateCast(name, (New.UpdatableType<TTo>)type);
         }
 
         public static void RegisterValueParameterKey<T>() where T : struct
@@ -211,7 +211,7 @@ namespace Stride.Updater
                             var type = DataSerializerFactory.GetTypeFromAlias(typeName) ?? AssemblyRegistry.GetType(typeName, false);
                             if (type == null)
                                 throw new InvalidOperationException($"Could not resolve type {typeName}");
-                            currentMember = CastClasses[(currentMember.MemberType, type)](Types[type]);
+                            currentMember = CastClasses[(currentMember.MemberType, type)](currentMember, typeName, Types[type]);
                             position = castEndIndex + 1;
                             break;
                         default:
