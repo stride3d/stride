@@ -161,7 +161,7 @@ namespace Stride.Graphics
         ///   Initializes a new instance of the <see cref="RenderOutputDescription"/> structure.
         /// </summary>
         /// <param name="renderTargetFormats">
-        ///   The pixel formats for up to 8 Render Targets.
+        ///   The pixel formats for up to <see cref="MaximumRenderTargetCount"/> Render Targets.
         ///   If a Render Target is set to <see cref="PixelFormat.None"/>, it is considered disabled.
         ///   Specify an empty span or all set to <see cref="PixelFormat.None"/> to disable the Render Targets.
         /// </param>
@@ -174,15 +174,15 @@ namespace Stride.Graphics
         ///   Specify <see cref="MultisampleCount.None"/> to disable multi-sampling.
         /// </param>
         /// <exception cref="ArgumentOutOfRangeException">
-        ///   Cannot specify the format for more than 8 Render Targets in <paramref name="renderTargetFormats"/>.
+        ///   Cannot specify the format for more than <see cref="MaximumRenderTargetCount"/> Render Targets in <paramref name="renderTargetFormats"/>.
         /// </exception>
         public RenderOutputDescription(ReadOnlySpan<PixelFormat> renderTargetFormats,
                                        PixelFormat depthStencilFormat = PixelFormat.None,
                                        MultisampleCount multisampleCount = MultisampleCount.None)
             : this()
         {
-            if (renderTargetFormats.Length > 8)
-                throw new ArgumentOutOfRangeException(nameof(renderTargetFormats), "Cannot specify the format for more than 8 Render Targets.");
+            if (renderTargetFormats.Length > MaximumRenderTargetCount)
+                throw new ArgumentOutOfRangeException(nameof(renderTargetFormats), $"Cannot specify the format for more than {MaximumRenderTargetCount} Render Targets.");
 
             int lastSetRenderTarget = -1;
             for (int i = 0; i < renderTargetFormats.Length; i++)

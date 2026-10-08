@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System;
 using Xunit;
 
 namespace Stride.Graphics.Tests
@@ -33,6 +34,14 @@ namespace Stride.Graphics.Tests
             var output = new RenderOutputDescription([PixelFormat.R8G8B8A8_UNorm, PixelFormat.None, PixelFormat.R16_Float, PixelFormat.None]);
 
             Assert.Equal(3, output.RenderTargetCount);
+        }
+
+        [Fact]
+        public void SpanLongerThanMaximumThrows()
+        {
+            var formats = new PixelFormat[RenderOutputDescription.MaximumRenderTargetCount + 1];
+
+            Assert.Throws<ArgumentOutOfRangeException>(() => new RenderOutputDescription(formats));
         }
     }
 }
