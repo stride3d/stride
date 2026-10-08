@@ -10,13 +10,13 @@ using Stride.Rendering;
 namespace Stride.BepuPhysics.Debug.Effects.RenderFeatures;
 
 /// <summary>
-/// Draws <see cref="LineRenderObject"/>s as screen-space lines of constant width.
+/// Draws <see cref="LineRenderObject"/>s as screen-space lines of constant width, on top of the scene.
 /// </summary>
+/// <remarks> Lines are only drawn in the render stages picked by <see cref="RootRenderFeature.RenderStageSelectors"/>. </remarks>
 public class LineRenderFeature : RootRenderFeature
 {
     private DynamicEffectInstance _shader = null!;
     private MutablePipelineState _pipelineState = null!;
-    private readonly List<LineRenderObject> _lines = new();
 
     /// <summary>
     /// The width of the lines, in pixels.
@@ -45,23 +45,13 @@ public class LineRenderFeature : RootRenderFeature
         _pipelineState.State.InputElements = LineRenderObject.LineVertex.Layout.CreateInputElements();
         _pipelineState.State.PrimitiveType = PrimitiveType.LineList;
         _pipelineState.State.RasterizerState.CullMode = CullMode.None;
+        // A debug overlay: normals start inside body A and markers sit on surfaces, depth testing would hide them
+        _pipelineState.State.DepthStencilState = DepthStencilStates.None;
     }
 
-    protected override void OnAddRenderObject(RenderObject renderObject)
+    public override void Draw(RenderDrawContext context, RenderView renderView, RenderViewStage renderViewStage, int startIndex, int endIndex)
     {
-        base.OnAddRenderObject(renderObject);
-        _lines.Add((LineRenderObject)renderObject);
-    }
-
-    protected override void OnRemoveRenderObject(RenderObject renderObject)
-    {
-        base.OnRemoveRenderObject(renderObject);
-        _lines.Remove((LineRenderObject)renderObject);
-    }
-
-    public override void Draw(RenderDrawContext context, RenderView renderView, RenderViewStage renderViewStage)
-    {
-        if (!HasLines())
+        if (!HasLines(renderViewStage, startIndex, endIndex))
             return;
 
         _shader.UpdateEffect(context.GraphicsDevice);
@@ -69,8 +59,9 @@ public class LineRenderFeature : RootRenderFeature
         _shader.Parameters.Set(DebugLineShaderKeys.ViewportSize, renderView.ViewSize);
         _shader.Parameters.Set(DebugLineShaderKeys.LineWidth, LineWidth);
 
-        foreach (var lines in _lines)
+        for (int index = startIndex; index < endIndex; index++)
         {
+            var lines = GetLines(renderViewStage, index);
             if (!lines.Enabled || lines.VertexCount == 0)
                 continue;
 
@@ -88,10 +79,14 @@ public class LineRenderFeature : RootRenderFeature
         }
     }
 
-    private bool HasLines()
+    private LineRenderObject GetLines(RenderViewStage renderViewStage, int index)
+        => (LineRenderObject)GetRenderNode(renderViewStage.SortedRenderNodes[index].RenderNode).RenderObject;
+
+    private bool HasLines(RenderViewStage renderViewStage, int startIndex, int endIndex)
     {
-        foreach (var lines in _lines)
+        for (int index = startIndex; index < endIndex; index++)
         {
+            var lines = GetLines(renderViewStage, index);
             if (lines.Enabled && lines.VertexCount > 0)
                 return true;
         }

@@ -144,14 +144,18 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
                 return;
 
             _visibilityGroup = _sceneSystem.SceneInstance.VisibilityGroups.First();
-            if (_sceneSystem.GraphicsCompositor.RenderFeatures.OfType<SinglePassWireframeRenderFeature>().FirstOrDefault() is null)
+            if (_sceneSystem.GraphicsCompositor.RenderFeatures.OfType<SinglePassWireframeRenderFeature>().FirstOrDefault() is not { } wireframeFeature)
             {
-                _sceneSystem.GraphicsCompositor.RenderFeatures.Add(new SinglePassWireframeRenderFeature());
+                wireframeFeature = new SinglePassWireframeRenderFeature();
+                _sceneSystem.GraphicsCompositor.RenderFeatures.Add(wireframeFeature);
             }
-            if (_sceneSystem.GraphicsCompositor.RenderFeatures.OfType<LineRenderFeature>().FirstOrDefault() is null)
+            AddOverlayStageSelector(wireframeFeature, "StrideSinglePassWireframeShader");
+            if (_sceneSystem.GraphicsCompositor.RenderFeatures.OfType<LineRenderFeature>().FirstOrDefault() is not { } lineFeature)
             {
-                _sceneSystem.GraphicsCompositor.RenderFeatures.Add(new LineRenderFeature());
+                lineFeature = new LineRenderFeature();
+                _sceneSystem.GraphicsCompositor.RenderFeatures.Add(lineFeature);
             }
+            AddOverlayStageSelector(lineFeature, "StrideDebugLineShader");
         }
 
         if (_latent)
@@ -220,6 +224,17 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
         {
             StopRecordingContacts();
         }
+    }
+
+    /// <summary> Draws the feature in the main view's transparent stage, or its opaque one; never in a shadow map or G-buffer stage </summary>
+    private void AddOverlayStageSelector(RootRenderFeature feature, string effectName)
+    {
+        if (feature.RenderStageSelectors.Count > 0)
+            return;
+
+        var mainStages = _sceneSystem.GraphicsCompositor.RenderStages.Where(s => s.EffectSlotName == "Main").ToList();
+        if ((mainStages.FirstOrDefault(s => s.Name == "Transparent") ?? mainStages.FirstOrDefault()) is { } stage)
+            feature.RenderStageSelectors.Add(new SimpleGroupToRenderStageSelector { RenderStage = stage, EffectName = effectName });
     }
 
     private void StopRecordingContacts()
