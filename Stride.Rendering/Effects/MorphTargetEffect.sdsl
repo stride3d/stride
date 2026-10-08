@@ -1,0 +1,38 @@
+shader MorphTargetEffect : EffectBase, MorphTargetBase
+{
+    // Estrutura para passar os pesos via Constant Buffer
+    struct MorphWeights
+    {
+        float Weights[8]; // Limite inicial de 8 morph targets por draw call
+    };
+
+    cbuffer MorphWeightsBuffer : register(b2)
+    {
+        MorphWeights MorphWeights;
+    };
+
+    // Buffer de offsets (Texture2D ou Buffer de Structured)
+    Texture2D<float3> MorphOffsets : register(t5);
+
+    override void VSMain()
+    {
+        float3 position = Input.Position;
+        
+        // Interpolação linear dos Morph Targets
+        for (int i = 0; i < 8; i++)
+        {
+            float weight = MorphWeights.Weights[i];
+            if (weight > 0.001f)
+            {
+                // Busca o offset para o vértice atual no target 'i'
+                // Nota: Implementação simplificada para demonstração de lógica
+                float3 offset = MorphOffsets.Load(int3(Input.VertexID, i, 0));
+                position += offset * weight;
+            }
+        }
+
+        // Segue com a transformação padrão de matriz
+        float4 worldPosition = mul(float4(position, 1.0), World);
+        // ... restante do pipeline de VS
+    }
+};
