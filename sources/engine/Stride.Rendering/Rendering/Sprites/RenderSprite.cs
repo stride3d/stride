@@ -51,6 +51,7 @@ namespace Stride.Rendering.Sprites
         private Matrix lastWorldMatrix;
         private Vector2 lastHalfSpriteSize;
         private SpriteType lastSpriteType;
+        private Vector2 lastSpriteCenter;
 
         public Matrix WorldMatrix;
         public float RotationEulerZ;
@@ -71,7 +72,10 @@ namespace Stride.Rendering.Sprites
             var halfSpriteSize = Sprite?.Size / 2 ?? Vector2.Zero;
 
             // Only calculate if we've changed...
-            if (lastWorldMatrix != WorldMatrix || lastHalfSpriteSize != halfSpriteSize || lastSpriteType != SpriteType)
+            if (lastWorldMatrix != WorldMatrix || lastHalfSpriteSize != halfSpriteSize 
+            || lastSpriteType != SpriteType
++           || lastSpriteCenter != (Sprite?.Center ?? Vector2.Zero))
+
             {
                 Vector3 halfBoxSize;
                 var boxWorldPosition = WorldMatrix.TranslationVector;
@@ -91,6 +95,28 @@ namespace Stride.Rendering.Sprites
                         Math.Abs(WorldMatrix.M13 * halfSpriteSize.X) + Math.Abs(WorldMatrix.M23 * halfSpriteSize.Y));
                 }
 
+                // Account for Sprite.Center (pivot offset) — same logic as SpriteRenderFeature.Draw()
+                if (Sprite != null)
+                {
+                    var sourceRegion = Sprite.Region;
+                    var normalizedCenter = new Vector2(
+                        Sprite.Center.X / sourceRegion.Width - 0.5f,
+                        0.5f - Sprite.Center.Y / sourceRegion.Height);
+
+                    if (Sprite.Orientation == ImageOrientation.Rotated90)
+                    {
+                        var oldCenterX = normalizedCenter.X;
+                        normalizedCenter.X = -normalizedCenter.Y;
+                        normalizedCenter.Y = oldCenterX;
+                    }
+
+                    var centerOffset = Vector2.Modulate(normalizedCenter, Sprite.SizeInternal);
+                    boxWorldPosition -= new Vector3(
+                        centerOffset.X * WorldMatrix.M11 + centerOffset.Y * WorldMatrix.M21,
+                        centerOffset.X * WorldMatrix.M12 + centerOffset.Y * WorldMatrix.M22,
+                        centerOffset.X * WorldMatrix.M13 + centerOffset.Y * WorldMatrix.M23);
+                }
+
                 // Update bounding box
                 BoundingBox = new BoundingBoxExt(boxWorldPosition - halfBoxSize, boxWorldPosition + halfBoxSize);
 
@@ -98,6 +124,7 @@ namespace Stride.Rendering.Sprites
                 lastWorldMatrix = WorldMatrix;
                 lastHalfSpriteSize = halfSpriteSize;
                 lastSpriteType = SpriteType;
+                lastSpriteCenter = Sprite?.Center ?? Vector2.Zero;
             }
         }
     }
