@@ -120,7 +120,12 @@ namespace Stride.Graphics
         /// <param name="value">The Descriptor to set.</param>
         public void SetValue(int slot, object value)
         {
-            if (value is GraphicsResource srv)
+            // A slot the shader writes to (RWBuffer, RWTexture) takes the resource's UAV
+            if (value is GraphicsResource resource && IsValid && Description!.UnorderedAccessSlots[slot])
+            {
+                SetUnorderedAccessView(slot, resource);
+            }
+            else if (value is GraphicsResource srv)
             {
                 SetShaderResourceView(slot, srv);
             }

@@ -16,6 +16,12 @@ public partial class DescriptorSetLayout
     internal const int IMMUTABLE_SAMPLER_BINDING_OFFSET = -1;
 
     private readonly int[] bindingOffsets;
+    private readonly bool[] unorderedAccessSlots;
+
+    /// <summary>
+    ///   Gets whether each binding slot holds an Unordered Access View (UAV) rather than a Shader Resource View (SRV).
+    /// </summary>
+    internal ReadOnlySpan<bool> UnorderedAccessSlots => unorderedAccessSlots;
 
     /// <summary>
     ///   Gets the number of Shader Resource Views (SRVs) and Unordered Access Views (UAVs) in the Descriptor Set layout.
@@ -58,6 +64,7 @@ public partial class DescriptorSetLayout
     private DescriptorSetLayout(GraphicsDevice device, DescriptorSetLayoutBuilder builder)
     {
         bindingOffsets = new int[builder.ElementCount];
+        unorderedAccessSlots = new bool[builder.ElementCount];
 
         int currentBindingOffset = 0;
         foreach (var entry in builder.Entries)
@@ -73,7 +80,10 @@ public partial class DescriptorSetLayout
             else // SRV or UAV
             {
                 for (int i = 0; i < entry.ArraySize; ++i)
+                {
+                    unorderedAccessSlots[currentBindingOffset] = entry.Class == EffectParameterClass.UnorderedAccessView;
                     bindingOffsets[currentBindingOffset++] = SrvCount++ * device.SrvHandleIncrementSize;
+                }
             }
         }
     }
