@@ -3,11 +3,11 @@ using Stride.Engine;
 
 namespace Stride.Updater.New;
 
-internal sealed class EntityComponentAccessor<T>(UpdatableType<T> type) : UpdatableMember<Entity, T> where T : EntityComponent
+internal sealed class EntityComponentAccessor<T>(string name, UpdatableType<T> type) : UpdatableMember<Entity, T> where T : EntityComponent
 {
     protected override bool SupportsByReference => false;
 
-    public override string Name => typeof(T).FullName;
+    public override string Name => name;
 
     internal override bool IsIndexer => true;
 

@@ -32,6 +32,6 @@ public sealed class EntityType : UpdatableType<Entity>
         if (type == null)
             throw new InvalidOperationException($"Can't find a type with alias {typeName}; did you properly set a DataContractAttribute with this alias?");
 
-        return UpdateEngine.CreateEntityComponentAccessor(type);
+        return UpdateEngine.CreateEntityComponentAccessor(name, type);
     }
 }

@@ -30,18 +30,18 @@ namespace Stride.Updater
         private static readonly ConcurrentDictionary<Type, UpdateMemberResolver> MemberResolvers = new ConcurrentDictionary<Type, UpdateMemberResolver>();
 
         private static readonly ConcurrentDictionary<(Type, Type), Func<New.UpdatableType, New.UpdatableMember>> CastClasses = new();
-        private static readonly ConcurrentDictionary<Type, Func<ParameterKey, New.UpdatableMember<ParameterCollection>>> ParameterKeys = new();
+        private static readonly ConcurrentDictionary<Type, Func<string, ParameterKey, New.UpdatableMember<ParameterCollection>>> ParameterKeys = new();
         private static readonly ConcurrentDictionary<Type, New.UpdatableType> Types = new();
-        private static readonly ConcurrentDictionary<Type, Func<New.UpdatableMember<Entity>>> EntityComponentAccessors = new();
+        private static readonly ConcurrentDictionary<Type, Func<string, New.UpdatableMember<Entity>>> EntityComponentAccessors = new();
 
-        internal static New.UpdatableMember<ParameterCollection> CreateParameterKeyAccessor(ParameterKey key)
+        internal static New.UpdatableMember<ParameterCollection> CreateParameterKeyAccessor(string name, ParameterKey key)
         {
-            return ParameterKeys[key.PropertyType](key);
+            return ParameterKeys[key.PropertyType](name, key);
         }
 
-        internal static New.UpdatableMember<Entity> CreateEntityComponentAccessor(Type componentType)
+        internal static New.UpdatableMember<Entity> CreateEntityComponentAccessor(string name, Type componentType)
         {
-            return EntityComponentAccessors[componentType]();
+            return EntityComponentAccessors[componentType](name);
         }
 
         public static void RegisterType(Type type, New.UpdatableType updatableType)
@@ -52,7 +52,7 @@ namespace Stride.Updater
         public static void RegisterComponentType<T>(New.UpdatableType<T> updatableType) where T : EntityComponent
         {
             RegisterType(typeof(T), updatableType);
-            EntityComponentAccessors[typeof(T)] = () => new New.EntityComponentAccessor<T>(updatableType);
+            EntityComponentAccessors[typeof(T)] = (name) => new New.EntityComponentAccessor<T>(name, updatableType);
         }
 
         public static void RegisterCastClass<TFrom, TTo>() where TFrom : class where TTo : class, TFrom
@@ -62,17 +62,17 @@ namespace Stride.Updater
 
         public static void RegisterValueParameterKey<T>() where T : struct
         {
-            ParameterKeys[typeof(T)] = (key) =>
+            ParameterKeys[typeof(T)] = (name, key) =>
             {
-                return new New.ValueParameterKeyAccessor<T>((ValueParameterKey<T>)key, (New.UpdatableType<T>)Types[typeof(T)]);
+                return new New.ValueParameterKeyAccessor<T>(name, (ValueParameterKey<T>)key, (New.UpdatableType<T>)Types[typeof(T)]);
             };
         }
 
         public static void RegisterObjectParameterKey<T>() where T : class
         {
-            ParameterKeys[typeof(T)] = (key) =>
+            ParameterKeys[typeof(T)] = (name, key) =>
             {
-                return new New.ObjectParameterKeyAccessor<T>((ObjectParameterKey<T>)key, (New.UpdatableType<T>)Types[typeof(T)]);
+                return new New.ObjectParameterKeyAccessor<T>(name, (ObjectParameterKey<T>)key, (New.UpdatableType<T>)Types[typeof(T)]);
             };
         }
 

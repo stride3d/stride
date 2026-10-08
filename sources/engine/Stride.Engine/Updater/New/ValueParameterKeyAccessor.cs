@@ -1,13 +1,12 @@
-using System;
 using Stride.Rendering;
 
 namespace Stride.Updater.New;
 
-internal sealed class ValueParameterKeyAccessor<T>(ValueParameterKey<T> parameterKey, UpdatableType<T> type) : UpdatableMember<ParameterCollection, T> where T : struct
+internal sealed class ValueParameterKeyAccessor<T>(string name, ValueParameterKey<T> parameterKey, UpdatableType<T> type) : UpdatableMember<ParameterCollection, T> where T : struct
 {
     protected override bool SupportsByReference => false;
 
-    public override string Name => parameterKey.Name;
+    public override string Name => name;
 
     internal override bool IsIndexer => true;
 

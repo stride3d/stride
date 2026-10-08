@@ -2,11 +2,11 @@ using Stride.Rendering;
 
 namespace Stride.Updater.New;
 
-internal sealed class ObjectParameterKeyAccessor<T>(ObjectParameterKey<T> parameterKey, UpdatableType<T> type) : UpdatableMember<ParameterCollection, T> where T : class
+internal sealed class ObjectParameterKeyAccessor<T>(string name, ObjectParameterKey<T> parameterKey, UpdatableType<T> type) : UpdatableMember<ParameterCollection, T> where T : class
 {
     protected override bool SupportsByReference => false;
 
-    public override string Name => parameterKey.Name;
+    public override string Name => name;
 
     internal override bool IsIndexer => true;
 

@@ -21,8 +21,8 @@ public sealed class ParameterCollectionType : UpdatableType<ParameterCollection>
 
     public override UpdatableMember<ParameterCollection> CreateIndexer(string name)
     {
-        var key = ParameterKeys.FindByName(name.ToString()) ?? throw new InvalidOperationException($"Property Key path parse error: could not parse indexer value '{name}'");
+        var key = ParameterKeys.FindByName(name) ?? throw new InvalidOperationException($"Property Key path parse error: could not parse indexer value '{name}'");
 
-        return UpdateEngine.CreateParameterKeyAccessor(key);
+        return UpdateEngine.CreateParameterKeyAccessor(name, key);
     }
 }
