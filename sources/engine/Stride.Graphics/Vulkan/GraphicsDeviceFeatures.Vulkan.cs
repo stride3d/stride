@@ -43,6 +43,10 @@ namespace Stride.Graphics
             // VK_INDEX_TYPE_UINT32 is core Vulkan.
             HasIndex32Bits = true;
 
+            // Enabled at device creation only where the physical device offers them; MoltenVK has no geometry shaders.
+            HasGeometryShaders = deviceRoot.EnabledFeatures.geometryShader;
+            HasPixelShaderUnorderedAccess = deviceRoot.EnabledFeatures.fragmentStoresAndAtomics;
+
             HasResourceRenaming = false;
 
             var physicalDevice = deviceRoot.NativePhysicalDevice;

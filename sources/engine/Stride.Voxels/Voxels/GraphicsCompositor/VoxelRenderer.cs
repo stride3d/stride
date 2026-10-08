@@ -35,6 +35,12 @@ namespace Stride.Rendering.Voxels
         [DataMemberIgnore]
         private bool reportedUnsupported;
 
+        /// <summary>
+        /// The volumes already reported as skipped because their voxelization method needs geometry shaders.
+        /// </summary>
+        [DataMemberIgnore]
+        private readonly HashSet<VoxelVolumeComponent> reportedNeedGeometryShaders = new();
+
         [DataMemberIgnore]
         public static readonly PropertyKey<Dictionary<VoxelVolumeComponent, DataVoxelVolume>> CurrentRenderVoxelVolumes = new PropertyKey<Dictionary<VoxelVolumeComponent, DataVoxelVolume>>("VoxelRenderer.CurrentRenderVoxelVolumes", typeof(VoxelRenderer));
         [DataMemberIgnore]
@@ -62,7 +68,8 @@ namespace Stride.Rendering.Voxels
             if (renderVoxelVolumes == null || renderVoxelVolumes.Count == 0)
                 return;
 
-            canVoxelize = Context.RenderSystem.GraphicsDevice.Features.HasComputeShaders;
+            var features = Context.RenderSystem.GraphicsDevice.Features;
+            canVoxelize = features.HasComputeShaders && features.HasPixelShaderUnorderedAccess;
 
             if (!canVoxelize)
             {
@@ -72,7 +79,9 @@ namespace Stride.Rendering.Voxels
                 {
                     reportedUnsupported = true;
 
-                    Log.Warning("Voxelization is disabled: this device does not support compute shaders.");
+                    Log.Warning(!features.HasComputeShaders
+                        ? "Voxelization is disabled: this device does not support compute shaders."
+                        : "Voxelization is disabled: this device does not support unordered access from pixel shaders.");
                 }
 
                 return;
@@ -162,6 +171,23 @@ namespace Stride.Rendering.Voxels
 
                 //Create list of voxelization passes that need to be done
                 dataVolume.Storage.CollectVoxelizationPasses(processedVolume, storageContext);
+
+                if (!features.HasGeometryShaders)
+                {
+                    var geometryShaderPass = processedVolume.passList.passes.FirstOrDefault(pass => pass.method.RequireGeometryShader());
+                    if (geometryShaderPass != null)
+                    {
+                        if (reportedNeedGeometryShaders.Add(pair.Key))
+                        {
+                            Log.Warning($"Voxel volume on entity '{pair.Key.Entity?.Name}' is skipped: {geometryShaderPass.method.GetType().Name} " +
+                                        "needs geometry shaders, which this device does not support. TriAxis and SingleAxis do not need them.");
+                        }
+
+                        processedVolume.Voxelize = false;
+                        processedVolume.passList.Clear();
+                        continue;
+                    }
+                }
 
                 //Group voxelization passes where the RenderStage can be shared
                 //TODO: Group identical attributes

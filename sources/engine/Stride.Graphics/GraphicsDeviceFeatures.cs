@@ -167,6 +167,16 @@ public partial struct GraphicsDeviceFeatures
     /// <seealso cref="Buffer.Index"/>
     public readonly bool HasIndex32Bits;
 
+    /// <summary>
+    ///   A value indicating if the <see cref="GraphicsDevice"/> can run geometry shaders.
+    /// </summary>
+    public readonly bool HasGeometryShaders;
+
+    /// <summary>
+    ///   A value indicating if pixel shaders can write to unordered access views and use atomic operations on them.
+    /// </summary>
+    public readonly bool HasPixelShaderUnorderedAccess;
+
 
     /// <summary>
     ///   Queries the features the <see cref="GraphicsDevice"/> supports for the specified <see cref="PixelFormat"/>.
@@ -235,6 +245,7 @@ public partial struct GraphicsDeviceFeatures
                $"HasDriverCommandLists: {HasDriverCommandLists}, HasSRgb: {HasSRgb}, " +
                $"HasDepthAsSRV: {HasDepthAsSRV}, HasDepthAsReadOnlyRT: {HasDepthAsReadOnlyRT}, " +
                $"HasMultiSampleDepthAsSRV: {HasMultiSampleDepthAsSRV}, HasResourceRenaming: {HasResourceRenaming}, " +
-               $"HasIndex32Bits: {HasIndex32Bits}";
+               $"HasIndex32Bits: {HasIndex32Bits}, HasGeometryShaders: {HasGeometryShaders}, " +
+               $"HasPixelShaderUnorderedAccess: {HasPixelShaderUnorderedAccess}";
     }
 }

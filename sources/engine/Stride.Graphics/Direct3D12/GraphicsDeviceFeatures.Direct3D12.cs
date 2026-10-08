@@ -76,6 +76,8 @@ public unsafe partial struct GraphicsDeviceFeatures
 
         // Feature level is clamped to 11_0 at device creation.
         HasIndex32Bits = true;
+        HasGeometryShaders = true;
+        HasPixelShaderUnorderedAccess = true;
 
         HasResourceRenaming = false;
 
