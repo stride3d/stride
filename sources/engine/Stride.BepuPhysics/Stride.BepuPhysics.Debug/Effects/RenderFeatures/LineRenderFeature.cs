@@ -61,6 +61,9 @@ public class LineRenderFeature : RootRenderFeature
 
     public override void Draw(RenderDrawContext context, RenderView renderView, RenderViewStage renderViewStage)
     {
+        if (!HasLines())
+            return;
+
         _shader.UpdateEffect(context.GraphicsDevice);
         _shader.Parameters.Set(TransformationKeys.WorldViewProjection, renderView.ViewProjection);
         _shader.Parameters.Set(DebugLineShaderKeys.ViewportSize, renderView.ViewSize);
@@ -83,5 +86,15 @@ public class LineRenderFeature : RootRenderFeature
             _shader.Apply(context.GraphicsContext);
             context.CommandList.Draw(lines.VertexCount);
         }
+    }
+
+    private bool HasLines()
+    {
+        foreach (var lines in _lines)
+        {
+            if (lines.Enabled && lines.VertexCount > 0)
+                return true;
+        }
+        return false;
     }
 }

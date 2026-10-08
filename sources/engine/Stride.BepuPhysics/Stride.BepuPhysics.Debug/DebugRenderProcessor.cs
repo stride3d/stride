@@ -18,34 +18,17 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
 {
     public SynchronizationMode Mode { get; set; } = SynchronizationMode.Physics; // Setting it to Physics by default to show when there is a large discrepancy between the entity and physics
 
-    /// <summary>
-    /// Whether to draw the wireframe of each collider.
-    /// </summary>
-    public bool ShowShapes { get; set; } = true;
-
-    /// <summary>
-    /// Whether to draw a marker at each contact point the solver is currently resolving.
-    /// </summary>
-    public bool ShowContactPoints { get; set; }
-
-    /// <summary>
-    /// Whether to draw the normal of each contact the solver is currently resolving.
-    /// </summary>
-    public bool ShowContactNormals { get; set; }
-
-    /// <summary>
-    /// The length of the contact normals, in world units; the point markers are scaled from it.
-    /// </summary>
-    public float ContactSize { get; set; } = 0.25f;
-
     private bool _latent;
     private bool _visible;
+    private bool _trackingShapes;
+    private DebugRenderComponent? _component;
     private IGame _game = null!;
     private SceneSystem _sceneSystem = null!;
     private ShapeCacheSystem _shapeCacheSystem = null!;
     private VisibilityGroup _visibilityGroup = null!;
-    private BepuConfiguration _bepuConfiguration = null!;
+    private BepuConfiguration? _bepuConfiguration;
     private readonly LineRenderObject _contactLines = new();
+    private readonly Dictionary<BepuSimulation, ContactRecorder> _contactRecorders = new();
     private readonly Dictionary<CollidableComponent, (WireFrameRenderObject[] Wireframes, object? cache)> _wireFrameRenderObject = new();
 
     public DebugRenderProcessor()
@@ -65,24 +48,41 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
 
                 _visible = value;
                 if (_visible)
-                {
-                    proc.OnPostAdd += StartTrackingCollidable;
-                    proc.OnPreRemove += ClearTrackingForCollidable;
-                    StartTracking(proc);
                     _visibilityGroup.RenderObjects.Add(_contactLines);
-                }
                 else
-                {
-                    proc.OnPostAdd -= StartTrackingCollidable;
-                    proc.OnPreRemove -= ClearTrackingForCollidable;
                     Clear();
-                }
+                UpdateShapeTracking(proc);
             }
             else
             {
                 _visible = false;
+                _trackingShapes = false; // No processor left to unsubscribe from
                 Clear();
             }
+        }
+    }
+
+    private bool ShowShapes => _component?.ShowShapes ?? true;
+
+    /// <summary> Wireframes are only built and updated while they are shown </summary>
+    private void UpdateShapeTracking(CollidableProcessor proc)
+    {
+        var track = _visible && ShowShapes;
+        if (track == _trackingShapes)
+            return;
+
+        _trackingShapes = track;
+        if (track)
+        {
+            proc.OnPostAdd += StartTrackingCollidable;
+            proc.OnPreRemove += ClearTrackingForCollidable;
+            StartTracking(proc);
+        }
+        else
+        {
+            proc.OnPostAdd -= StartTrackingCollidable;
+            proc.OnPreRemove -= ClearTrackingForCollidable;
+            ClearShapes();
         }
     }
 
@@ -94,11 +94,33 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
         else if (component.Visible)
             _latent = true;
 
-        ShowShapes = component.ShowShapes;
-        ShowContactPoints = component.ShowContactPoints;
-        ShowContactNormals = component.ShowContactNormals;
-        ContactSize = component.ContactSize;
+        _component = component;
         component._processor = this;
+    }
+
+    protected override void OnEntityComponentRemoved(Entity entity, DebugRenderComponent component, DebugRenderComponent data)
+    {
+        base.OnEntityComponentRemoved(entity, component, data);
+        component._processor = null;
+        if (_component != component)
+            return;
+
+        // Another component takes over, with none left nothing could toggle the debug render off anymore
+        _component = null;
+        foreach (var other in ComponentDatas.Keys)
+        {
+            if (other != component)
+            {
+                _component = other;
+                break;
+            }
+        }
+
+        if (_component is null)
+        {
+            _latent = false;
+            Visible = false;
+        }
     }
 
     protected override void OnSystemAdd()
@@ -106,7 +128,6 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
         _shapeCacheSystem = Services.GetOrCreate<ShapeCacheSystem>();
         _game = Services.GetSafeServiceAs<IGame>();
         _sceneSystem = Services.GetSafeServiceAs<SceneSystem>();
-        _bepuConfiguration = Services.GetOrCreate<BepuConfiguration>();
     }
 
     protected override void OnSystemRemove()
@@ -142,6 +163,9 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
 
         base.Draw(context);
 
+        if (_visible && _sceneSystem.SceneInstance.GetProcessor<CollidableProcessor>() is { } collidables)
+            UpdateShapeTracking(collidables);
+
         foreach (var (collidable, (wireframes, cache)) in _wireFrameRenderObject)
         {
             Matrix matrix;
@@ -175,18 +199,34 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
             {
                 wireframe.WorldMatrix = wireframe.CollidableBaseMatrix * matrix;
                 wireframe.Color = GetCurrentColor(collidable);
-                wireframe.Enabled = ShowShapes;
             }
         }
 
         _contactLines.Clear();
-        if (_visible && (ShowContactPoints || ShowContactNormals))
+        // GetService, not GetOrCreate: showing contacts must not add a Bepu configuration to the game settings
+        _bepuConfiguration ??= Services.GetService<BepuConfiguration>();
+        if (_visible && _component is { } options && (options.ShowContactPoints || options.ShowContactNormals) && _bepuConfiguration is not null)
         {
-            var pointColor = ShowContactPoints ? Color.Red : (Color?)null;
-            var normalColor = ShowContactNormals ? Color.Yellow : (Color?)null;
+            var pointColor = options.ShowContactPoints ? Color.Red : (Color?)null;
+            var normalColor = options.ShowContactNormals ? Color.Yellow : (Color?)null;
             foreach (var simulation in _bepuConfiguration.BepuSimulations)
-                new ContactLineCollector(simulation.Simulation, _contactLines, ContactSize, pointColor, normalColor).CollectAll();
+            {
+                if (!_contactRecorders.TryGetValue(simulation, out var recorder))
+                    _contactRecorders.Add(simulation, recorder = new ContactRecorder(simulation.Simulation));
+                recorder.AddLines(_contactLines, options.ContactSize, pointColor, normalColor);
+            }
         }
+        else
+        {
+            StopRecordingContacts();
+        }
+    }
+
+    private void StopRecordingContacts()
+    {
+        foreach (var recorder in _contactRecorders.Values)
+            recorder.Dispose();
+        _contactRecorders.Clear();
     }
 
     private void StartTracking(CollidableProcessor proc)
@@ -247,6 +287,14 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
 
     private void Clear()
     {
+        ClearShapes();
+        StopRecordingContacts();
+        _contactLines.Clear();
+        _visibilityGroup?.RenderObjects.Remove(_contactLines);
+    }
+
+    private void ClearShapes()
+    {
         foreach (var (collidable, (wireframes, _)) in _wireFrameRenderObject)
         {
             collidable.OnFeaturesUpdated -= CollidableUpdate;
@@ -257,8 +305,6 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
             }
         }
         _wireFrameRenderObject.Clear();
-        _contactLines.Clear();
-        _visibilityGroup?.RenderObjects.Remove(_contactLines);
     }
 
     private Color GetCurrentColor(CollidableComponent collidable)

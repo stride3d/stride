@@ -8,6 +8,10 @@ using Stride.Input;
 
 namespace Stride.BepuPhysics.Debug;
 
+/// <summary>
+/// Draws the colliders and the solver contacts of the Bepu simulations, toggled at runtime with <see cref="Key"/>.
+/// </summary>
+/// <remarks> Wireframes and contact lines are expanded by geometry shaders, so this needs <see cref="Stride.Graphics.GraphicsProfile.Level_10_0"/> or higher. </remarks>
 [DataContract]
 [DefaultEntityComponentProcessor(typeof(DebugRenderProcessor), ExecutionMode = ExecutionMode.Runtime)]
 [ComponentCategory("Bepu - Debug")]
@@ -15,10 +19,6 @@ public class DebugRenderComponent : SyncScript
 {
     internal DebugRenderProcessor? _processor;
     bool _state = true;
-    bool _showShapes = true;
-    bool _showContactPoints;
-    bool _showContactNormals;
-    float _contactSize = 0.25f;
 
     public Keys Key { get; set; } = Keys.F11;
 
@@ -38,61 +38,25 @@ public class DebugRenderComponent : SyncScript
     /// Whether to draw the wireframe of each collider.
     /// </summary>
     [DataMember]
-    public bool ShowShapes
-    {
-        get => _processor?.ShowShapes ?? _showShapes;
-        set
-        {
-            _showShapes = value;
-            if (_processor is not null)
-                _processor.ShowShapes = value;
-        }
-    }
+    public bool ShowShapes { get; set; } = true;
 
     /// <summary>
     /// Whether to draw a marker at each contact point the solver is currently resolving.
     /// </summary>
     [DataMember]
-    public bool ShowContactPoints
-    {
-        get => _processor?.ShowContactPoints ?? _showContactPoints;
-        set
-        {
-            _showContactPoints = value;
-            if (_processor is not null)
-                _processor.ShowContactPoints = value;
-        }
-    }
+    public bool ShowContactPoints { get; set; }
 
     /// <summary>
     /// Whether to draw the normal of each contact the solver is currently resolving.
     /// </summary>
     [DataMember]
-    public bool ShowContactNormals
-    {
-        get => _processor?.ShowContactNormals ?? _showContactNormals;
-        set
-        {
-            _showContactNormals = value;
-            if (_processor is not null)
-                _processor.ShowContactNormals = value;
-        }
-    }
+    public bool ShowContactNormals { get; set; }
 
     /// <summary>
     /// The length of the contact normals, in world units; the point markers are scaled from it.
     /// </summary>
     [DataMember]
-    public float ContactSize
-    {
-        get => _processor?.ContactSize ?? _contactSize;
-        set
-        {
-            _contactSize = value;
-            if (_processor is not null)
-                _processor.ContactSize = value;
-        }
-    }
+    public float ContactSize { get; set; } = 0.25f;
 
     public override void Update()
     {
