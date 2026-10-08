@@ -1,8 +1,22 @@
+using System.Diagnostics;
+
 namespace Stride.Updater.New;
 
-public sealed unsafe class StructUpdatableField<TParent, TField>(string name, delegate*<ref TParent, ref TField> fieldAccessor, UpdatableType<TField> fieldType) : UpdatableMember<TParent, TField>
+public sealed unsafe class StructUpdatableField<TParent, TField> : UpdatableMember<TParent, TField>
     where TParent : struct
 {
+    private readonly string name;
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private readonly delegate*<ref TParent, ref TField> fieldAccessor;
+    private readonly UpdatableType<TField> fieldType;
+
+    public StructUpdatableField(string name, delegate*<ref TParent, ref TField> fieldAccessor, UpdatableType<TField> fieldType)
+    {
+        this.name = name;
+        this.fieldAccessor = fieldAccessor;
+        this.fieldType = fieldType;
+    }
+
     protected override bool SupportsByReference => true;
 
     public override string Name => name;
