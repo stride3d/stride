@@ -29,7 +29,7 @@ public class SinglePassWireframeRenderFeature : RootRenderFeature
 
     public SinglePassWireframeRenderFeature()
     {
-        SortKey = 255;
+        SortKey = 254; // Below LineRenderFeature, so contacts are drawn over the wireframes
     }
 
     protected override void InitializeCore()
