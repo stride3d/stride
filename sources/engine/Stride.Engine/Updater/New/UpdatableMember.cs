@@ -31,7 +31,7 @@ public abstract class UpdatableMember<TParent, TThis> : UpdatableMember<TParent>
     internal sealed override Type MemberType => typeof(TThis);
     public override unsafe void Update(TParent parent, byte* data, UpdateObjectData[] updateObjects)
     {
-        Debug.Assert(!RuntimeHelpers.IsReferenceOrContainsReferences<TParent>(), "Value types should call the other Update overload.");
+        Debug.Assert(!typeof(TParent).IsValueType, "Value types should call the other Update overload.");
         if (IsLeaf)
         {
             // Leaf node, update the value directly
@@ -92,7 +92,7 @@ public abstract class UpdatableMember<TParent, TThis> : UpdatableMember<TParent>
     }
     public override unsafe void Update(ref TParent parent, byte* data, UpdateObjectData[] updateObjects)
     {
-        Debug.Assert(RuntimeHelpers.IsReferenceOrContainsReferences<TParent>(), "Reference types should call the other Update overload.");
+        Debug.Assert(typeof(TParent).IsValueType, "Reference types should call the other Update overload.");
         if (IsLeaf)
         {
             // Leaf node, update the value directly
