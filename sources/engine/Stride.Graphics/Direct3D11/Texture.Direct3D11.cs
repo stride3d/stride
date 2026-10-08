@@ -957,7 +957,7 @@ namespace Stride.Graphics
             {
                 if (IsShaderResource && !GraphicsDevice.Features.HasDepthAsSRV)
                 {
-                    throw new NotSupportedException($"Shader Resource Views for Depth-Stencil Textures are not supported for Graphics profile < 10.0 (Current: [{GraphicsDevice.Features.CurrentProfile}])");
+                    throw new NotSupportedException($"This device does not support Depth-Stencil Textures as Shader Resource Views (Current profile: [{GraphicsDevice.Features.CurrentProfile}])");
                 }
                 else
                 {

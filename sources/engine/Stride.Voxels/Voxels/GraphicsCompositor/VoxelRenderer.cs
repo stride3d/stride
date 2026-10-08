@@ -35,7 +35,6 @@ namespace Stride.Rendering.Voxels
         [DataMemberIgnore]
         private bool reportedUnsupported;
 
-
         [DataMemberIgnore]
         public static readonly PropertyKey<Dictionary<VoxelVolumeComponent, DataVoxelVolume>> CurrentRenderVoxelVolumes = new PropertyKey<Dictionary<VoxelVolumeComponent, DataVoxelVolume>>("VoxelRenderer.CurrentRenderVoxelVolumes", typeof(VoxelRenderer));
         [DataMemberIgnore]

@@ -28,7 +28,14 @@ namespace Stride.Graphics;
 ///   supported features specific to a particular pixel format or data format.
 /// </summary>
 /// <remarks>
-///   To obtain information about the supported features for a particular format, use the <see cref="this[PixelFormat]">indexer</see>.
+///   <para>
+///     To obtain information about the supported features for a particular format, use the <see cref="this[PixelFormat]">indexer</see>.
+///   </para>
+///   <para>
+///     Each field says what Stride can use on this device with this graphics backend. When the backend does not
+///     implement something, it reports <see langword="false"/> or <see cref="MultisampleCount.None"/>, even if the
+///     GPU supports it.
+///   </para>
 /// </remarks>
 public partial struct GraphicsDeviceFeatures
 {
@@ -191,6 +198,10 @@ public partial struct GraphicsDeviceFeatures
         /// <summary>
         ///   The maximum sample count when multisampling for a particular <see cref="Format"/>.
         /// </summary>
+        /// <remarks>
+        ///   <see cref="MultisampleCount.None"/> when the graphics backend does not implement multisampling, even if
+        ///   the GPU supports it for this format.
+        /// </remarks>
         public readonly MultisampleCount MultisampleCountMax;
 
         /// <summary>

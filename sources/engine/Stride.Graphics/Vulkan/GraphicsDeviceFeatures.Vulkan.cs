@@ -24,7 +24,6 @@ namespace Stride.Graphics
 
             HasSRgb = true;
 
-
             mapFeaturesPerFormat = new FeaturesPerFormat[256];
 
             // Set back the real GraphicsProfile that is used

@@ -146,19 +146,10 @@ namespace Stride.Rendering.Compositing
                 if (!hasMultisampleDepthAsSRV)
                     actualMultisampleCount = MultisampleCount.None;
 
-                // MSAA is not supported on iOS currently because OpenTK doesn't expose "GL.BlitFramebuffer()" on iOS for some reason.
-                var isIOS = Platform.Type == PlatformType.iOS;
-                if (isIOS)
-                    actualMultisampleCount = MultisampleCount.None;
-
-                // Every clamp above has run, so the reason named here is the one that actually bit. The
-                // remedies differ: another device fixes some of these and nothing fixes the others.
                 if (actualMultisampleCount != MSAALevel)
                 {
                     var because =
-                        isIOS
-                            ? "multisampling is not implemented on iOS"
-                        : !hasMultisampleDepthAsSRV
+                        !hasMultisampleDepthAsSRV
                             ? "this device cannot read a multisampled depth buffer as a shader resource"
                         : depthMax < MSAALevel
                             ? $"this device supports at most {(int) depthMax} samples for {DepthBufferFormat}"
@@ -229,7 +220,6 @@ namespace Stride.Rendering.Compositing
                 }
             }
         }
-
 
         protected virtual void CollectStages(RenderContext context)
         {
