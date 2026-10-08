@@ -74,7 +74,9 @@ public class SinglePassWireframeRenderFeature : RootRenderFeature
 
         _shader.UpdateEffect(context.GraphicsDevice);
         _shader.Parameters.Set(TransformationKeys.WorldScale, new Vector3(1.002f));
-        _shader.Parameters.Set(SinglePassWireframeShaderKeys.Viewport, new Vector4(context.RenderContext.RenderView.ViewSize, 0, 0));
+        // The bound viewport rather than the view size, so edges line up with SV_Position when the view is offset (VR eye, letterboxing)
+        var viewport = context.CommandList.Viewport;
+        _shader.Parameters.Set(SinglePassWireframeShaderKeys.Viewport, new Vector4(viewport.Width, viewport.Height, viewport.X, viewport.Y));
         _shader.Parameters.Set(SinglePassWireframeShaderKeys.LineWidth, LineWidth);
 
         foreach (var myRenderObject in _wireframes)
