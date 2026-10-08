@@ -4,6 +4,7 @@
 using NuGet.Frameworks;
 using NuGet.ProjectModel;
 using Stride.Core.Diagnostics;
+using Stride.Core.Extensions;
 using Stride.Core.IO;
 using Stride.Core.Yaml;
 
@@ -83,14 +84,57 @@ partial class PackageSession
         if (companion.Package.Kind != PackageKind.Runtime && companion.Package.Kind != kind)
             log.Error($"[{companionName}] is an {companion.Package.Kind} package but [{package.Meta.Name}] declares it as its {kind} package.");
 
-        // Visible wherever the declaring package is
+        AddCompanionLink(package, companion.Package);
+    }
+
+    // Each loaded companion with the package declaring it
+    private readonly List<(Package Declaring, Package Companion)> companionLinks = [];
+
+    /// <summary>
+    /// Makes <paramref name="companion"/> visible wherever <paramref name="declaring"/> is: in the flattened dependencies
+    /// of every project of the session that has it.
+    /// </summary>
+    internal void AddCompanionLink(Package declaring, Package companion)
+    {
+        companionLinks.Add((declaring, companion));
         foreach (var container in Projects)
+            AddCompanionDependencies(container);
+    }
+
+    /// <summary>
+    /// Adds to <paramref name="container"/>'s flattened dependencies the loaded companions of the packages it has,
+    /// companions of companions included; for a list rebuilt from the project's lock file.
+    /// </summary>
+    internal void AddCompanionDependencies(PackageContainer container)
+    {
+        // A companion sees what its declaring package sees (Stride.UI.Assets' system library uses the engine's default font)
+        foreach (var (declaring, companion) in companionLinks)
         {
-            if (container == companion || container.FlattenedDependencies.Any(d => d.Package == companion.Package))
+            if (container.Package != companion || Projects.FirstOrDefault(p => p.Package == declaring) is not { } declaringContainer)
                 continue;
-            if (container.Package == package || container.FlattenedDependencies.Any(d => d.Package == package))
-                container.FlattenedDependencies.Add(new Dependency(companion.Package));
+            foreach (var dependency in declaringContainer.FlattenedDependencies.Select(d => d.Package).Prepend(declaring).NotNull())
+            {
+                if (dependency != companion && !container.FlattenedDependencies.Any(d => d.Package == dependency))
+                    container.FlattenedDependencies.Add(new Dependency(dependency));
+            }
         }
+
+        bool added;
+        do
+        {
+            added = false;
+            foreach (var (declaring, companion) in companionLinks)
+            {
+                if (container.Package == companion || container.FlattenedDependencies.Any(d => d.Package == companion) || !Projects.Any(p => p.Package == companion))
+                    continue;
+                if (container.Package == declaring || container.FlattenedDependencies.Any(d => d.Package == declaring))
+                {
+                    container.FlattenedDependencies.Add(new Dependency(companion));
+                    added = true;
+                }
+            }
+        }
+        while (added);
     }
 
     private StandalonePackage? LoadCompanionPackage(string name, PackageVersion version, Dictionary<string, StandalonePackage> loadedByName, string? rootDirectory, ILogger log)
