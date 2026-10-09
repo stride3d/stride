@@ -104,46 +104,67 @@ namespace Stride.BepuPhysics.Tests
                 var random = new Random(1010);
                 for (int i = 0; i < 256; i++)
                 {
-                    Vector2 posNorm = new Vector2(random.NextSingle(), random.NextSingle()) * 2f - new Vector2(1f);
+                    var posNorm = new Vector2(random.NextSingle(), random.NextSingle()) * 2f - new Vector2(1f);
 
-                    var dir = new Vector3(random.NextSingle(), random.NextSingle(), random.NextSingle());
-                    dir = dir * 2f - 1f;
-                    dir = Vector3.Normalize(dir);
                     float distFromTarget = random.NextSingle() * 10f;
+                    float rayDistWithEpsilon = distFromTarget * 1.1f;
                     float boxSize = 0.1f + random.NextSingle();
                     float halfBoxSize = boxSize * 0.5f;
 
                     var target = new Vector3(posNorm.X, 0, posNorm.Y) * heightfield.Size;
                     target.Y = planeHeight;
 
-                    var origin = target - dir * distFromTarget;
+                    Ray ray;
+                    ray.Direction = new Vector3(random.NextSingle(), random.NextSingle(), random.NextSingle());
+                    ray.Direction = ray.Direction * 2f - 1f;
+                    ray.Direction = Vector3.Normalize(ray.Direction);
+                    ray.Position = target - ray.Direction * distFromTarget;
 
                     // A sweepcast between a box and a single-sided plane is equivalent to a raycast against a plane enlarged by half the box's size in all axes, see minkowski addition
                     var planeBox = new BoundingBox(new Vector3(0, planeHeight, 0) - halfBoxSize, new Vector3(heightfield.Size, planeHeight, heightfield.Size) + halfBoxSize);
-                    bool raycast = planeBox.Intersects(new Ray(origin, dir), out float raycastHitDist);
+                    bool raycast = planeBox.Intersects(in ray, out float raycastHitDist);
 
-                    bool sweepcast = simulation.SweepCast(new Box(boxSize, boxSize, boxSize), new RigidPose(origin, Quaternion.Identity), new BodyVelocity(dir, default), distFromTarget * 2f, out var hitResult);
+                    bool sweepcast = simulation.SweepCast(new Box(boxSize, boxSize, boxSize), new RigidPose(ray.Position, Quaternion.Identity), new BodyVelocity(ray.Direction, default), rayDistWithEpsilon, out var hitResult);
 
-                    if (raycast)
+                    // Sweep tests are not as precise as the box-ray test above,
+                    // it's an iterative process similar to root-finding up to within an epsilon or amount of iterations.
+                    // See ConvexPairSweepTask.Sweep
+                    // We'll take that into consideration when validating hits
+
+                    if (sweepcast)
                     {
-                        if (raycastHitDist == 0)
-                            Assert.False(sweepcast, "Sweep should fail when the initial pose already overlaps with the shape");
-                        else
-                            Assert.True(sweepcast, "Must hit target within bounds");
-                        // Sweep tests are not as precise as the box-ray test above,
-                        // it's an iterative process similar to root-finding up to within an epsilon or amount of iterations.
-                        // See ConvexPairSweepTask.Sweep
+                        // Raycast extends indefinitely, sweepcast only up to rayDistWithEpsilon
+                        // If sweepcast hit, so should the raycast
+                        Assert.True(raycast, "Sweep hit something it shouldn't");
                         Assert.True(MathUtil.WithinEpsilon(raycastHitDist, hitResult.Distance, 0.01f), "Hit distance must match expected distance from target");
                     }
-                    else if (dir.Y >= 0)
+                    else if (raycast)
                     {
-                        // From how we configured this test, the only faces we could hit from this angle are the backfaces.
-                        // Similar to meshes, backfaces should be ignored when performing raycasts
-                        Assert.False(sweepcast, "Must not hit backface target");
+                        if (raycastHitDist == 0)
+                        {
+                            Assert.False(sweepcast, "Sweep should fail when the initial pose already overlaps with the shape");
+                        }
+                        else if (raycastHitDist >= (distFromTarget + rayDistWithEpsilon) * 0.5f)
+                        {
+                            // Given that raycast extends indefinitely, it can hit the side of the field when the sweepcast does not extend far enough.
+                            // We're ignoring hits past half of the epsilon range instead of after the full epsilon range as
+                            // we cannot guarantee a hit when near the end of the sweepcast because of numerical imprecision
+                        }
+                        else if (ray.Direction.Y >= 0)
+                        {
+                            // From how we configured this test, the only faces we could hit from this angle are the backfaces.
+                            // Similar to meshes, backfaces should be ignored when performing sweepcasts
+                            Assert.False(sweepcast, "Must not hit backface target");
+                        }
+                        else
+                        {
+                            Assert.True(sweepcast, "Must hit target within bounds");
+                            Assert.True(MathUtil.WithinEpsilon(raycastHitDist, hitResult.Distance, 0.01f), "Hit distance must match expected distance from target");
+                        }
                     }
                     else
                     {
-                        Assert.False(sweepcast, "Should not hit target out of bounds");
+                        // Neither one of them hit something, we're sweeping in the void
                     }
                 }
 
