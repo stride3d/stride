@@ -5,11 +5,16 @@ namespace Stride.Rendering.Materials
     /// <summary>
     /// Sets how much of a see-through volume blends over the scene behind: a scattering body by the opacity of its optical depth,
     /// an absorbing one not at all, as its transmittance pass already filtered the scene and only its surface blends here.
+    /// A scattering body is lit as a medium, the same on all its faces: its normal is the world up (flipped back for back faces).
     /// </summary>
     shader MaterialSurfaceVolumeAlpha : IMaterialSurfacePixel, MaterialVolumeOpticalDepth
     {
+        // The normal a scattering body is lit with
+        static const float3 MediumNormal = float3(0, 1, 0);
+
         override void Compute()
         {
+            streams.normalWS = lerp(streams.normalWS, streams.IsFrontFace ? MediumNormal : -MediumNormal, VolumeMediumScattering);
             streams.matDiffuseSpecularAlphaBlend.r = VolumeMediumScattering * (1 - exp(-ComputeVolumeOpticalDepth()));
         }
     };
