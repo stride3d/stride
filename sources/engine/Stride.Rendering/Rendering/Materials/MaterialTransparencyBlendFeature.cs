@@ -26,7 +26,8 @@ namespace Stride.Rendering.Materials
 
         private static readonly MaterialStreamDescriptor AlphaBlendColorStream = new MaterialStreamDescriptor("DiffuseSpecularAlphaBlend - Color", "matAlphaBlendColor", MaterialKeys.AlphaBlendColorValue.PropertyType);
 
-        private static readonly PropertyKey<bool> HasFinalCallback = new PropertyKey<bool>("MaterialTransparencyAdditiveFeature.HasFinalCallback", typeof(MaterialTransparencyAdditiveFeature));
+        // The pass the final callback was added to: tags outlive passes, and each pass needs its own
+        private static readonly PropertyKey<MaterialPass> FinalCallbackPass = new PropertyKey<MaterialPass>("MaterialTransparencyBlendFeature.FinalCallbackPass", typeof(MaterialTransparencyBlendFeature));
     
         /// <summary>
         /// Initializes a new instance of the <see cref="MaterialTransparencyBlendFeature"/> class.
@@ -125,9 +126,9 @@ namespace Stride.Rendering.Materials
                 context.MaterialPass.Parameters.Set(MaterialKeys.UseDitheredShadows, true);
             }
             
-            if (!context.Tags.Get(HasFinalCallback))
+            if (context.Tags.Get(FinalCallbackPass) != context.MaterialPass)
             {
-                context.Tags.Set(HasFinalCallback, true);
+                context.Tags.Set(FinalCallbackPass, context.MaterialPass);
                 context.AddFinalCallback(MaterialShaderStage.Pixel, AddDiffuseSpecularAlphaBlendColor, ShadingColorAlphaFinalCallbackOrder);
             }
         }
