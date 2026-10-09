@@ -445,18 +445,21 @@ runs:
 
         # A stable X.Y.0 opens with master's written X.Y notes, above the detailed list. Only
         # master: a draft in a PR is never published. Its relative links become absolute: manual
-        # and API pages to the X.Y docs, the rest unversioned, images to the LFS media URL (it
-        # serves them before the docs site is deployed). Its title goes (the release has one), and
-        # so do its contributor sections (the bullets credit every contributor, and GitHub's New
-        # Contributors list is appended below) and its changelog section (a link to this release).
+        # and API pages to the X.Y docs, the rest unversioned, images to the LFS media URL at the
+        # docs commit read here (it serves them before the docs site is deployed, and a later docs
+        # change that moves or replaces an image leaves this release as it is). Its title goes (the
+        # release has one), and so do its contributor sections (the bullets credit every
+        # contributor, and GitHub's New Contributors list is appended below) and its changelog
+        # section (a link to this release).
         WRITTEN=""
         if [ -n "$DOCS_DIR" ] && [[ "${TO##*/}" =~ ^([0-9]+\.[0-9]+)\.0$ ]] \
             && [ -s "$DOCS_DIR/master/en/release-notes/${BASH_REMATCH[1]}.md" ]; then
           MAJOR_MINOR="${BASH_REMATCH[1]}"
+          DOCS_SHA=$(git -C "$DOCS_DIR/master" rev-parse HEAD)
           WRITTEN=$(tr -d '\r' < "$DOCS_DIR/master/en/release-notes/$MAJOR_MINOR.md" \
             | awk 'NR == 1 && /^# / { title = 1; next } title && !/^$/ { title = 0 } !title' \
             | perl -pe '
-                s{\]\(media/}{](https://media.githubusercontent.com/media/'"$DOCS_REPO"'/master/en/release-notes/media/}g;
+                s{\]\(media/}{](https://media.githubusercontent.com/media/'"$DOCS_REPO/$DOCS_SHA"'/en/release-notes/media/}g;
                 s{\]\(\.\./(manual|api)/([^)#]*)\.md(#[^)]*)?\)}{](https://doc.stride3d.net/'"$MAJOR_MINOR"'/en/$1/$2.html$3)}g;
                 s{\]\(\.\./([^)#:]*)\.md(#[^)]*)?\)}{](https://doc.stride3d.net/en/$1.html$2)}g;
                 s{\]\(([\w.-]+)\.md(#[^)]*)?\)}{](https://doc.stride3d.net/en/release-notes/$1.html$2)}g' \
