@@ -1,0 +1,26 @@
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.props" />
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <StrideAssemblyProcessorOptions>--parameter-key --auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\engine\Stride.Assets\Stride.Assets.csproj" />
+    <ProjectReference Include="..\..\plugins\Particles\Stride.Particles\Stride.Particles.csproj" />
+    <ProjectReference Include="..\..\plugins\SpriteStudio\Stride.SpriteStudio.Runtime\Stride.SpriteStudio.Runtime.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Effects and keys that only exist in the editor package and in sample games: the shader generator turns them
+         into the C# that ShaderMixinManager evaluates (the engine assemblies above carry their own). -->
+    <StrideShaderFiles Include="..\..\editor\Stride.Assets.Presentation.Wpf\Shaders\*.sdfx" LinkBase="Shaders\Editor" />
+    <StrideShaderFiles Include="..\..\..\samples\**\*.Game\Effects\*.sdfx;..\..\..\samples\**\*.Game\Effects\*.sdsl" LinkBase="Shaders\Samples" />
+    <!-- Hand-written keys used by a sample effect -->
+    <Compile Include="..\..\..\samples\Particles\ParticlesSample\ParticlesSample.Game\Materials\ParticleCustomShaderKeys.cs" Link="Shaders\Samples\ParticleCustomShaderKeys.cs" />
+  </ItemGroup>
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />
+</Project>

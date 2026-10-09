@@ -279,6 +279,7 @@
     <Project Path="sources/tools/Stride.Core.Translation.Extractor/Stride.Core.Translation.Extractor.csproj" />
     <Project Path="sources/tools/Stride.EffectCompilerServer/Stride.EffectCompilerServer.csproj" />
     <Project Path="sources/tools/Stride.PackageInstall/Stride.PackageInstall.csproj" />
+    <Project Path="sources/tools/Stride.Shaders.CorpusCapture/Stride.Shaders.CorpusCapture.csproj" />
     <Project Path="sources/tools/Stride.TestRunner/Stride.TestRunner.csproj" />
   </Folder>
   <Folder Name="/90-Tools/3D-Importers/">
