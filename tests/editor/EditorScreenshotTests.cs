@@ -169,7 +169,7 @@ public class EditorScreenshotTests
         // and logs; the manifest above plus the required, fail-closed gate keep it honest.
         if (deferred.Count > 0)
             output.WriteLine($"[compare] DEFERRED {deferred.Count} frame(s) to the vision gate " +
-                             $"(no ANTHROPIC_API_KEY in this run): {string.Join(", ", deferred.Select(r => r.Frame))}");
+                             $"(no Anthropic API key in this run): {string.Join(", ", deferred.Select(r => r.Frame))}");
     }
 
     /// <summary>

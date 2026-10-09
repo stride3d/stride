@@ -162,7 +162,7 @@ namespace Stride.Samples.Tests
             if (deferred.Count > 0)
             {
                 output.WriteLine($"[compare] DEFERRED {deferred.Count} frame(s) to the vision gate " +
-                                 $"(no ANTHROPIC_API_KEY in this run): {string.Join(", ", deferred.Select(r => r.Frame))}");
+                                 $"(no Anthropic API key in this run): {string.Join(", ", deferred.Select(r => r.Frame))}");
                 return; // leave the regenerated sample dir in place for post-mortem / the gate
             }
 

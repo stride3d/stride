@@ -4,7 +4,7 @@
 using System.Text.Json;
 using Stride.Tests.ScreenshotComparator;
 
-// Vision gate runner. A keyless run (e.g. a fork PR, where ANTHROPIC_API_KEY isn't exposed) captures
+// Vision gate runner. A keyless run (e.g. a fork PR, where the API key isn't exposed) captures
 // screenshots and marks borderline frames "deferred" in <sample>/vision-deferred.json. This tool — run
 // from a trusted base/master checkout, WITH the key — re-judges those frames and fails closed if any
 // deferred frame can't be conclusively resolved. It reads only the PR's image artifacts (data), so no

@@ -17,7 +17,7 @@ namespace Stride.Tests.ScreenshotComparator;
 /// Calls Claude Haiku 4.5 vision with the baseline(s) + capture and asks "is this the same scene?".
 /// Used as a second-opinion fallback when LPIPS is over threshold but the test opted into
 /// <c>claudeFallback</c>. When more than one baseline is provided they're framed as the
-/// acceptable variance range for the frame. ANTHROPIC_API_KEY env var is required; if missing,
+/// acceptable variance range for the frame. An API key (see <see cref="ApiKey"/>) is required; if missing,
 /// the fallback fails closed (returns Pass=false) so the regression sticks.
 /// </summary>
 public static class ClaudeVisionFallback
@@ -30,15 +30,32 @@ public static class ClaudeVisionFallback
 
     public readonly record struct Verdict(bool Pass, string Reason);
 
+    /// <summary>The environment variables <see cref="ApiKey"/> reads, for messages.</summary>
+    public const string ApiKeyVariables = "STRIDE_ANTHROPIC_API_KEY or ANTHROPIC_API_KEY";
+
+    /// <summary>
+    /// The API key: STRIDE_ANTHROPIC_API_KEY, else ANTHROPIC_API_KEY. The Stride-specific name lets a
+    /// developer keep the key out of ANTHROPIC_API_KEY, which other tools (Claude Code among them) pick
+    /// up and bill; CI sets the standard name.
+    /// </summary>
+    public static string? ApiKey
+    {
+        get
+        {
+            var key = Environment.GetEnvironmentVariable("STRIDE_ANTHROPIC_API_KEY");
+            return string.IsNullOrEmpty(key) ? Environment.GetEnvironmentVariable("ANTHROPIC_API_KEY") : key;
+        }
+    }
+
     /// <summary>Single-baseline overload — back-compat shim around the multi-baseline form.</summary>
     public static Verdict Compare(string baselinePath, string capturePath, ComparisonPrompt prompt)
         => Compare(new[] { baselinePath }, capturePath, prompt);
 
     public static Verdict Compare(IReadOnlyList<string> baselinePaths, string capturePath, ComparisonPrompt prompt)
     {
-        var apiKey = Environment.GetEnvironmentVariable("ANTHROPIC_API_KEY");
+        var apiKey = ApiKey;
         if (string.IsNullOrEmpty(apiKey))
-            return new Verdict(false, "ANTHROPIC_API_KEY not set");
+            return new Verdict(false, $"{ApiKeyVariables} not set");
         if (baselinePaths.Count == 0)
             return new Verdict(false, "no baselines provided");
 
