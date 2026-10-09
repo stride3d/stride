@@ -40,7 +40,7 @@ inputs:
   model:
     description: Claude model id.
     required: false
-    default: claude-sonnet-5
+    default: claude-opus-5-5
   prompt-file:
     description: Prompt template path. Defaults to release-notes-prompt.md beside this action.
     required: false
