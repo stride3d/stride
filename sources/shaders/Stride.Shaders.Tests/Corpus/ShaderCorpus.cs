@@ -21,10 +21,18 @@ namespace Stride.Shaders.Parsers.Tests.Corpus;
 static class ShaderCorpus
 {
     /// <summary>
-    /// Every corpus entry is compiled for this platform: the effect logs were recorded on it, and the shaders have
-    /// <c>#if</c> on the graphics API.
+    /// Every corpus entry is compiled for each of these: shaders have <c>#if</c> on the graphics API, and the mixer binds
+    /// resources per register bank for Direct3D11 but with one unified scheme for Vulkan (and Direct3D12, Android, iOS).
     /// </summary>
-    public const GraphicsPlatform Platform = GraphicsPlatform.Direct3D11;
+    public static readonly GraphicsPlatform[] Platforms = [GraphicsPlatform.Direct3D11, GraphicsPlatform.Vulkan];
+
+    /// <summary>
+    /// The platforms of this run: all of them, or those listed in STRIDE_SHADER_CORPUS_PLATFORMS (comma-separated; the CI
+    /// lanes check one each).
+    /// </summary>
+    public static GraphicsPlatform[] SelectedPlatforms { get; } = Environment.GetEnvironmentVariable("STRIDE_SHADER_CORPUS_PLATFORMS") is { Length: > 0 } platforms
+        ? platforms.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Select(Enum.Parse<GraphicsPlatform>).ToArray()
+        : Platforms;
 
     // Folders searched for the .sdsl files of the captured corpus (recursively, bin/obj excluded); the first one wins on a name clash.
     static readonly string[] ShaderRoots =
@@ -97,7 +105,7 @@ static class ShaderCorpus
     /// </summary>
     public static ShaderLoaderBase CreateLoader() => new IndexShaderLoader(ShaderIndex.Value);
 
-    public static CorpusResult Compile(CorpusItem item, ShaderLoaderBase sharedLoader)
+    public static CorpusResult Compile(CorpusItem item, GraphicsPlatform platform, ShaderLoaderBase sharedLoader)
     {
         // RenderTests files hold several shaders and reuse names across files: each one gets its own loader
         var loader = item.SourceFile != null ? new IndexShaderLoader(ShaderIndex.Value, item.SourceFile) : sharedLoader;
@@ -115,13 +123,13 @@ static class ShaderCorpus
             mixin.Name = item.EffectName;
             // RenderTests are compiled without macros, like RenderingTests does
             if (item.SourceFile == null)
-                EffectCompiler.AddPlatformMacros(mixin, new EffectCompilerParameters { Platform = Platform, Profile = item.Profile });
+                EffectCompiler.AddPlatformMacros(mixin, new EffectCompilerParameters { Platform = platform, Profile = item.Profile });
 
             // Registers every shader of the file, under the macros the mixer looks them up with
             if (item.SourceFile != null)
                 loader.LoadExternalBuffer(item.EffectName, mixin.Macros.ToArray(), out _, out _, out _);
 
-            success = mixer.MergeSDSL(mixin, EffectCompiler.GetMixerOptions(Platform), log, out bytecode, out reflection, out _, out _);
+            success = mixer.MergeSDSL(mixin, EffectCompiler.GetMixerOptions(platform), log, out bytecode, out reflection, out _, out _);
         }
         catch (Exception e)
         {
@@ -135,7 +143,7 @@ static class ShaderCorpus
             var error = errors.Count > 0 ? string.Join(Environment.NewLine, errors.Select(m => m.Text)) : "MergeSDSL failed without an error message";
             // The stack trace goes in the file only: line numbers would change the hash on unrelated edits
             var detail = string.Join(Environment.NewLine, errors.Select(m => m is Stride.Core.Diagnostics.LogMessage { Exception: { } exception } ? $"{m.Text}{Environment.NewLine}{exception}" : m.Text));
-            return new CorpusResult(item, error, detail.Length > 0 ? detail : error, null, null, null, null, null, null);
+            return new CorpusResult(item, error, detail.Length > 0 ? detail : error, null, null, null, null, null, null) { Platform = platform };
         }
 
         var mixTime = stopwatch.Elapsed;
@@ -160,6 +168,7 @@ static class ShaderCorpus
             Reflection: ReflectionText(reflection!),
             Explain: mixer.Explanation ?? "")
         {
+            Platform = platform,
             MixTime = mixTime,
             LegalizeTime = legalizeTime,
             NormalizeTime = stopwatch.Elapsed - mixTime - legalizeTime,
@@ -238,10 +247,17 @@ static class ShaderCorpus
 sealed record CorpusItem(string Id, string EffectName, GraphicsProfile Profile, string? SourceFile, Func<ShaderMixinSource> CreateMixin);
 
 /// <summary>
-/// Normalized output of one corpus entry; <see cref="Error"/> is set instead when it doesn't compile.
+/// Normalized output of one corpus entry for one platform; <see cref="Error"/> is set instead when it doesn't compile.
 /// </summary>
 sealed record CorpusResult(CorpusItem Item, string? Error, string? ErrorDetail, string? Strict, string? StrictNamed, string? Legalized, string? LegalizedNamed, string? Reflection, string? Explain)
 {
+    public GraphicsPlatform Platform { get; init; }
+
+    /// <summary>
+    /// Snapshot key and output path: <c>Vulkan/StrideForwardShadingEffect.98f4d62b70</c>.
+    /// </summary>
+    public string Key => $"{Platform}/{Item.Id}";
+
     public TimeSpan MixTime { get; init; }
     public TimeSpan LegalizeTime { get; init; }
     public TimeSpan NormalizeTime { get; init; }

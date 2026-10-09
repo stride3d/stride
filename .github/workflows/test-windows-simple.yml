@@ -57,6 +57,9 @@ jobs:
             -p:StridePlatforms=Windows `
             -p:StrideGraphicsApis=Direct3D11
       - name: Test
+        env:
+          # Shader corpus snapshot: this lane checks the Direct3D11 output, the Linux lane the Vulkan one
+          STRIDE_SHADER_CORPUS_PLATFORMS: Direct3D11
         run: |
           $filter = "${{ github.event.inputs.test-filter || inputs.test-filter }}"
           $repeat = [int]("${{ github.event.inputs.repeat || inputs.repeat || '1' }}")

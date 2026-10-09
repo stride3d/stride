@@ -9,7 +9,8 @@ output did not change. A compiler PR either shows "unchanged" or lists exactly w
   platform macros), its effect name, graphics profile, and where it was seen (a permutation seen in several effect logs
   is stored once). Written by `Stride.Shaders.CorpusCapture`. Over 512 KB, so it is listed in
   `.github/repo-file-guard/oversized-blob-allow.txt`; as text it compresses well, and git stores small changes as deltas.
-- `snapshot.txt`: one line per permutation, with a hash of each part of its output:
+- `snapshot.txt`: one line per permutation and platform (`Direct3D11/<id>`, `Vulkan/<id>`), with a hash of each part
+  of its output:
   - `strict`: SPIR-V from the mixer, normalized (debug info and names removed, IDs renumbered by first use, types and
     constants named after their content),
   - `legal`: the same after `SpirvTools.LegalizeForHlsl` (inlining, dead code removal, SSA). When only `strict` changed,
@@ -21,10 +22,14 @@ output did not change. A compiler PR either shows "unchanged" or lists exactly w
 
 RenderTests shaders (`sources/shaders/assets/SDSL/RenderTests`) are added as extra entries.
 
-Every run writes the readable files (`.spvasm` with names, `.legal.spvasm`, `.reflection.txt`, `.explain.txt`,
-`.error.txt`) to `ShaderCorpus/` next to the test assembly.
+Every entry is compiled for Direct3D11 and for Vulkan: the shaders have `#if` on the graphics API, and the mixer binds
+resources per register bank for Direct3D11 but with one unified scheme for Vulkan (also used by Direct3D12, Android,
+iOS). Every run writes the readable files (`.spvasm` with names, `.legal.spvasm`, `.reflection.txt`, `.explain.txt`,
+`.error.txt`) to `ShaderCorpus/<platform>/` next to the test assembly.
 
-All entries are compiled for Direct3D11.
+Locally, both platforms are checked. `STRIDE_SHADER_CORPUS_PLATFORMS=Vulkan` (comma-separated list) checks only some
+of them, which is faster while iterating. CI checks one per lane: the Windows Simple lane Direct3D11, the Linux one
+Vulkan.
 
 ## Tests
 
@@ -49,7 +54,8 @@ dotnet test sources/shaders/Stride.Shaders.Tests --filter "FullyQualifiedName~Sh
 Read `ShaderCorpus/report.txt` and `ShaderCorpus/diff.txt`. If the changes are expected, run `UpdateSnapshot` and
 commit `snapshot.txt`; say in the PR which permutations changed and why.
 
-`STRIDE_SHADER_CORPUS_FILTER=<text>` limits a run to the ids containing that text (not for `UpdateSnapshot`).
+`STRIDE_SHADER_CORPUS_FILTER=<text>` limits a run to the ids containing that text. `UpdateSnapshot` refuses to run
+with it or with `STRIDE_SHADER_CORPUS_PLATFORMS`, so the snapshot always covers everything.
 
 A permutation that failed in the snapshot and still fails is "stale" (old effect log data, e.g. a shader that gained a
 generic parameter since): reported, not a failure. A permutation that compiled before and fails now is a failure.

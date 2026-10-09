@@ -78,8 +78,8 @@ public class ShaderCorpusTests
     public void UpdateSnapshot()
     {
         var current = Run(OutputDirectory, out var filter);
-        if (!string.IsNullOrEmpty(filter))
-            Assert.Fail("Updating the snapshot needs the whole corpus, unset STRIDE_SHADER_CORPUS_FILTER");
+        if (!string.IsNullOrEmpty(filter) || ShaderCorpus.SelectedPlatforms.Length != ShaderCorpus.Platforms.Length)
+            Assert.Fail("Updating the snapshot needs the whole corpus on every platform, unset STRIDE_SHADER_CORPUS_FILTER and STRIDE_SHADER_CORPUS_PLATFORMS");
         File.WriteAllText(SnapshotFile, Manifest(current));
         Console.WriteLine($"Snapshot updated: {SnapshotFile}");
     }
@@ -111,17 +111,20 @@ public class ShaderCorpusTests
         }
 
         // In parallel: the loader is shared and thread-safe, like in the asset compiler
+        var platforms = ShaderCorpus.SelectedPlatforms;
+        foreach (var platform in platforms)
+            Directory.CreateDirectory(Path.Combine(outputDirectory, platform.ToString()));
         var loader = ShaderCorpus.CreateLoader();
         var total = Stopwatch.StartNew();
-        var results = new (CorpusResult Result, string Line, double Seconds)[items.Count];
-        Parallel.For(0, items.Count, index =>
+        var results = new (CorpusResult Result, string Line, double Seconds)[items.Count * platforms.Length];
+        Parallel.For(0, results.Length, index =>
         {
             var stopwatch = Stopwatch.StartNew();
-            var result = ShaderCorpus.Compile(items[index], loader);
+            var result = ShaderCorpus.Compile(items[index / platforms.Length], platforms[index % platforms.Length], loader);
             var line = new StringBuilder();
             foreach (var (part, suffix, hashed, written) in Parts(result))
             {
-                File.WriteAllText(Path.Combine(outputDirectory, items[index].Id + suffix), written);
+                File.WriteAllText(Path.Combine(outputDirectory, result.Key + suffix), written);
                 line.Append($" {part}={ShaderCorpus.ShortHash(hashed)}");
             }
             results[index] = (result, line.ToString().TrimStart(), stopwatch.Elapsed.TotalSeconds);
@@ -130,14 +133,14 @@ public class ShaderCorpusTests
 
         var current = new SortedDictionary<string, string>(StringComparer.Ordinal);
         foreach (var (result, line, _) in results)
-            current[result.Item.Id] = line;
+            current[result.Key] = line;
         File.WriteAllText(Path.Combine(outputDirectory, "snapshot.txt"), Manifest(current));
 
         var mixTime = TimeSpan.FromTicks(results.Sum(x => x.Result.MixTime.Ticks));
         var legalizeTime = TimeSpan.FromTicks(results.Sum(x => x.Result.LegalizeTime.Ticks));
         var normalizeTime = TimeSpan.FromTicks(results.Sum(x => x.Result.NormalizeTime.Ticks));
         var errorCount = current.Values.Count(x => x.StartsWith("error=", StringComparison.Ordinal));
-        Console.WriteLine($"Shader corpus: {current.Count} permutations ({items.Count(x => x.SourceFile == null)} captured, {items.Count(x => x.SourceFile != null)} RenderTests), {errorCount} don't compile, {total.Elapsed.TotalSeconds:F1} s");
+        Console.WriteLine($"Shader corpus: {items.Count} permutations ({items.Count(x => x.SourceFile == null)} captured, {items.Count(x => x.SourceFile != null)} RenderTests) x {string.Join(" + ", platforms)} = {current.Count} compiles, {errorCount} don't compile, {total.Elapsed.TotalSeconds:F1} s");
         Console.WriteLine($"Time ({Environment.ProcessorCount} threads, summed): mix {mixTime.TotalSeconds:F1} s, legalize {legalizeTime.TotalSeconds:F1} s, normalize {normalizeTime.TotalSeconds:F1} s");
         Console.WriteLine($"Output: {outputDirectory}");
         foreach (var (result, _, seconds) in results.OrderByDescending(x => x.Seconds).Take(5))
@@ -147,15 +150,17 @@ public class ShaderCorpusTests
 
     static string Manifest(SortedDictionary<string, string> entries) => string.Concat(entries.Select(x => $"{x.Key} {x.Value}\n"));
 
+    // Only the lines of the platforms this run compiles: the others are neither checked nor "removed"
     static SortedDictionary<string, string> ReadSnapshot(string path)
     {
+        var platformPrefixes = ShaderCorpus.SelectedPlatforms.Select(x => $"{x}/").ToArray();
         var snapshot = new SortedDictionary<string, string>(StringComparer.Ordinal);
         if (File.Exists(path))
         {
             foreach (var line in File.ReadAllLines(path))
             {
                 var separator = line.IndexOf(' ');
-                if (separator > 0)
+                if (separator > 0 && platformPrefixes.Any(prefix => line.StartsWith(prefix, StringComparison.Ordinal)))
                     snapshot[line[..separator]] = line[(separator + 1)..];
             }
         }
@@ -218,7 +223,7 @@ public class ShaderCorpusTests
         }
 
         var text = new StringBuilder();
-        text.AppendLine($"Shader corpus ({(baseDirectory != null ? "against the saved baseline" : "against Corpus/snapshot.txt")}): {current.Count} permutations, {unchanged} unchanged, {stale} stale (failed to compile before too), {lines.Count} differences");
+        text.AppendLine($"Shader corpus ({(baseDirectory != null ? "against the saved baseline" : "against Corpus/snapshot.txt")}): {current.Count} compiles, {unchanged} unchanged, {stale} stale (failed to compile before too), {lines.Count} differences");
         foreach (var line in lines)
             text.AppendLine(line);
         foreach (var id in namesOnly)
