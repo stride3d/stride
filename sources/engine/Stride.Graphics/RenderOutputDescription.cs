@@ -223,6 +223,7 @@ namespace Stride.Graphics
             return RenderTargetCount == other.RenderTargetCount
                 && RenderTargetFormats.SequenceEqual(other.RenderTargetFormats)
                 && DepthStencilFormat == other.DepthStencilFormat
+                && MultisampleCount == other.MultisampleCount
                 && ScissorTestEnable == other.ScissorTestEnable;
         }
 
@@ -240,6 +241,7 @@ namespace Stride.Graphics
             for (int i = 0; i < MaximumRenderTargetCount; i++)
                 hashCode.Add(RenderTargetFormats[i]);
             hashCode.Add(DepthStencilFormat);
+            hashCode.Add(MultisampleCount);
             hashCode.Add(ScissorTestEnable);
             return hashCode.ToHashCode();
         }

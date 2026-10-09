@@ -144,6 +144,39 @@ namespace Stride.Rendering.Images
             if (delaySetRenderTargets)
                 context.CommandList.ResetTargets();
 
+            // Capture output state manually (since render targets might not be bound if delaySetRenderTargets is set to true).
+            // It can change between draws, e.g. one effect drawn to targets of different formats.
+            var output = pipelineState.State.Output;
+            var renderTargetCount = OutputCount;
+            if (renderTargetCount > 0)
+            {
+                // Special case: texture cube
+                var isTextureCube = GetOutput(0).ViewDimension == TextureDimension.TextureCube;
+                if (isTextureCube)
+                {
+                    renderTargetCount = 6;
+                }
+
+                output.RenderTargetCount = renderTargetCount;
+                for (int i = 0; i < renderTargetCount; ++i)
+                {
+                    output.RenderTargetFormats[i] = GetOutput(isTextureCube ? 0 : i).ViewFormat;
+                }
+                output.MultisampleCount = GetOutput(0).MultisampleCount;
+            }
+
+            if (HasDepthStencilOutput)
+            {
+                output.DepthStencilFormat = DepthStencil.Format;
+                output.MultisampleCount = DepthStencil.MultisampleCount;
+            }
+
+            if (output != pipelineState.State.Output)
+            {
+                pipelineState.State.Output = output;
+                pipelineStateDirty = true;
+            }
+
             if (EffectInstance.UpdateEffect(GraphicsDevice) || pipelineStateDirty || previousBytecode != EffectInstance.Effect.Bytecode)
             {
                 // The EffectInstance might have been updated from outside
@@ -154,28 +187,6 @@ namespace Stride.Rendering.Images
                 pipelineState.State.BlendState = blendState;
                 pipelineState.State.DepthStencilState = depthStencilState;
                 pipelineState.State.RasterizerState = rasterizerState;
-
-                var renderTargetCount = OutputCount;
-                if (renderTargetCount > 0)
-                {
-                    // Special case: texture cube
-                    var isTextureCube = GetOutput(0).ViewDimension == TextureDimension.TextureCube;
-                    if (isTextureCube)
-                    {
-                        renderTargetCount = 6;
-                    }
-
-                    // Capture output state manually (since render targets might not be bound if delaySetRenderTargets is set to true)
-                    pipelineState.State.Output.RenderTargetCount = renderTargetCount;
-                    fixed (PixelFormat* pixelFormatStart = &pipelineState.State.Output.RenderTargetFormat0)
-                    for (int i = 0; i < renderTargetCount; ++i)
-                    {
-                        pixelFormatStart[i] = GetOutput(isTextureCube ? 0 : i).ViewFormat;
-                    }
-                }
-
-                if (HasDepthStencilOutput)
-                    pipelineState.State.Output.DepthStencilFormat = DepthStencil.Format;
 
                 pipelineState.Update();
                 pipelineStateDirty = false;
