@@ -1,0 +1,13 @@
+{
+  "os": "iOS 26.5.0",
+  "cpu": "Arm64",
+  "gpu": "Apple iOS simulator GPU",
+  "gpuVendorId": "0x106B",
+  "gpuDeviceId": "0x1A040002",
+  "driverId": "Moltenvk",
+  "driverName": "MoltenVK",
+  "driverInfo": "1.4.2",
+  "driverVersion": "0.2.2210",
+  "apiName": "Vulkan",
+  "apiVersion": "1.3.350"
+}
