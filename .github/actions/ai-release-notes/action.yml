@@ -447,7 +447,8 @@ runs:
         # master: a draft in a PR is never published. Its relative links become absolute: manual
         # and API pages to the X.Y docs, the rest unversioned, images to the LFS media URL (it
         # serves them before the docs site is deployed). Its title goes (the release has one), and
-        # so does its own "new contributors" list when GitHub's is appended below.
+        # so do its contributor sections (the bullets credit every contributor, and GitHub's New
+        # Contributors list is appended below) and its changelog section (a link to this release).
         WRITTEN=""
         if [ -n "$DOCS_DIR" ] && [[ "${TO##*/}" =~ ^([0-9]+\.[0-9]+)\.0$ ]] \
             && [ -s "$DOCS_DIR/master/en/release-notes/${BASH_REMATCH[1]}.md" ]; then
@@ -459,10 +460,7 @@ runs:
                 s{\]\(\.\./(manual|api)/([^)#]*)\.md(#[^)]*)?\)}{](https://doc.stride3d.net/'"$MAJOR_MINOR"'/en/$1/$2.html$3)}g;
                 s{\]\(\.\./([^)#:]*)\.md(#[^)]*)?\)}{](https://doc.stride3d.net/en/$1.html$2)}g;
                 s{\]\(([\w.-]+)\.md(#[^)]*)?\)}{](https://doc.stride3d.net/en/release-notes/$1.html$2)}g' \
-            | if [ -n "$CONTRIB" ]; then
-                awk '/^We.d also like to welcome new contributors/ { skip = 1; next }
-                     skip && /^And finally/ { skip = 0 } !skip'
-              else cat; fi)
+            | awk '/^## / { skip = (tolower($0) ~ /^## (acknowledgements|contributors|new contributors|changelog)/) } !skip')
           echo "::notice::Release body opens with $DOCS_REPO master:en/release-notes/$MAJOR_MINOR.md."
         fi
 
