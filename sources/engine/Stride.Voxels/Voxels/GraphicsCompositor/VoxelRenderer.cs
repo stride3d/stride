@@ -174,13 +174,16 @@ namespace Stride.Rendering.Voxels
 
                 if (!features.HasGeometryShaders)
                 {
-                    var geometryShaderPass = processedVolume.passList.passes.FirstOrDefault(pass => pass.method.RequireGeometryShader());
+                    // Same condition as the RequireGeometryShader permutation in VoxelRenderFeature.
+                    var geometryShaderPass = processedVolume.passList.passes.FirstOrDefault(pass => pass.method.RequireGeometryShader() || pass.storer.RequireGeometryShader());
                     if (geometryShaderPass != null)
                     {
                         if (reportedNeedGeometryShaders.Add(pair.Key))
                         {
-                            Log.Warning($"Voxel volume on entity '{pair.Key.Entity?.Name}' is skipped: {geometryShaderPass.method.GetType().Name} " +
-                                        "needs geometry shaders, which this device does not support. TriAxis and SingleAxis do not need them.");
+                            var reason = geometryShaderPass.method.RequireGeometryShader()
+                                ? $"{geometryShaderPass.method.GetType().Name} needs geometry shaders, which this device does not support. TriAxis and SingleAxis do not need them."
+                                : "the \"All Clipmaps (Geometry Shader)\" update method needs geometry shaders, which this device does not support. \"Single Clipmap\" and \"All Clipmaps (Multiple Renders)\" do not need them.";
+                            Log.Warning($"Voxel volume on entity '{pair.Key.Entity?.Name}' is skipped: {reason}");
                         }
 
                         processedVolume.Voxelize = false;

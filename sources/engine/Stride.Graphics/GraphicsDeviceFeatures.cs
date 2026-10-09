@@ -177,7 +177,6 @@ public partial struct GraphicsDeviceFeatures
     /// </summary>
     public readonly bool HasPixelShaderUnorderedAccess;
 
-
     /// <summary>
     ///   Queries the features the <see cref="GraphicsDevice"/> supports for the specified <see cref="PixelFormat"/>.
     /// </summary>
