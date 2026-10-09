@@ -654,6 +654,10 @@ namespace Stride.Graphics
             {
                 var desc = pendingBarriers[i];
 
+                // A resource disposed since its transition was requested can no longer be used by this command list
+                if (desc.Resource.NativeResource.Handle is null)
+                    continue;
+
                 var syncBefore = BarrierMapping.ToEnhancedSync(desc.LayoutBefore);
                 var syncAfter = BarrierMapping.ToEnhancedSync(desc.LayoutAfter);
                 var accessBefore = BarrierMapping.ToEnhancedAccess(desc.LayoutBefore);
