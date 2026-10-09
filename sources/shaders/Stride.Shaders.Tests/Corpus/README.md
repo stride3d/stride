@@ -6,7 +6,7 @@ output did not change. A compiler PR either shows "unchanged" or lists exactly w
 ## Files
 
 - `corpus.json`: the permutations, sorted by id. Each entry is the mixin tree given to the shader mixer (before the
-  platform macros), its effect name, graphics profile, and where it was seen (a permutation seen in several effect logs
+  platform macros), its effect name, graphics profile, and where it was seen (a permutation seen in several sources
   is stored once). Written by `Stride.Shaders.CorpusCapture`. Over 512 KB, so it is listed in
   `.github/repo-file-guard/oversized-blob-allow.txt`; as text it compresses well, and git stores small changes as deltas.
 - `snapshot.txt`: one line per permutation and platform (`Direct3D11/<id>`, `Vulkan/<id>`), with a hash of each part
@@ -57,26 +57,47 @@ commit `snapshot.txt`; say in the PR which permutations changed and why.
 `STRIDE_SHADER_CORPUS_FILTER=<text>` limits a run to the ids containing that text. `UpdateSnapshot` refuses to run
 with it or with `STRIDE_SHADER_CORPUS_PLATFORMS`, so the snapshot always covers everything.
 
-A permutation that failed in the snapshot and still fails is "stale" (old effect log data, e.g. a shader that gained a
+A permutation that failed in the snapshot and still fails is "stale" (an old capture, e.g. of a shader that gained a
 generic parameter since): reported, not a failure. A permutation that compiled before and fails now is a failure.
 
 ## Refreshing the corpus
 
-The effect logs (`*.sdeffectlog`) store the effect name and parameters of every permutation a game compiled. To
-rebuild `corpus.json` from them:
+Refresh the corpus after rendering or material changes. A compiler PR should not need a refresh.
+
+The corpus is rebuilt from empty, out of what the current code really compiles, by the **Refresh Shader Corpus**
+workflow (`.github/workflows/refresh-shader-corpus.yml`, manual dispatch: GitHub offers it once the file is on the
+default branch, and it then runs on any branch that has it). It:
+
+- runs with capture on the samples (`test-enduser.yml`, Windows Direct3D11 leg), the editor (`test-windows-editor.yml`,
+  Direct3D11 leg) and the game test suites (`test-windows-game.yml`, Direct3D11 leg, all of
+  `sources/Stride.Tests.Game.Desktop.slnf`), each with its `capture-shader-corpus` input. `Stride.Engine.Tests` has
+  `RenderFeatureTests` for the features no sample uses (MSAA, ambient occlusion, depth of field, local reflections,
+  temporal anti-aliasing, cubemap backgrounds),
+- adds the effects listed in the two `EmbeddedEffects.yaml` of `Stride.Graphics` (the bytecode embedded in
+  `SpriteBatch`, `UIBatch`, `PrimitiveQuad` and the text renderer, which runtime never compiles),
+- writes `corpus.json`, updates `snapshot.txt`, and uploads both as the `shader-corpus-refresh` artifact (or opens a PR
+  with `open-pr`). The run summary lists the permutations per source.
+
+Capture: with `STRIDE_SHADER_CORPUS_CAPTURE=<folder>` set (and optionally `STRIDE_SHADER_CORPUS_TAG=<source name>`;
+otherwise the test suite for a game test, else the entry assembly name, e.g. the game or `Stride.GameStudio`), every
+effect compile writes its mixin tree there (`ShaderCorpusCapture`). Captures are taken on one platform: the tree is
+recorded before the platform macros, and the test compiles it for every platform. The replay of an effect log by an
+asset build is not recorded: effect logs record what games compiled at some point, with the parameter values of that
+time, not what the current code builds. Features no capture run reaches are covered by adding a scenario (a fixture or
+an engine test).
+
+The tool builds `corpus.json` from empty out of the sources it is given. `--corpus` takes an existing `corpus.json`,
+`--embedded` `EmbeddedEffects.yaml` files or folders, `--capture` capture folders (searched recursively). To rebuild
+the corpus locally:
 
 ```
-dotnet run --project sources/tools/Stride.Shaders.CorpusCapture
+dotnet run --project sources/tools/Stride.Shaders.CorpusCapture -- --embedded sources/engine/Stride.Graphics --capture <folder> [--capture <folder>...]
 ```
 
-The effect logs can be old. To capture what a game really compiles today, run it with
-`STRIDE_SHADER_CORPUS_CAPTURE=<folder>` (and optionally `STRIDE_SHADER_CORPUS_TAG=<name>`): every effect compile
-writes one JSON file there (`ShaderCorpusCapture`). An asset build with this variable set captures the permutations it
-compiles too (clean build: cached build steps don't compile again). Then merge the folders:
+To add captures to the committed corpus instead (for example from a new scenario, run locally with capture on):
 
 ```
-dotnet run --project sources/tools/Stride.Shaders.CorpusCapture -- --merge <folder> [--merge <folder>...]
+dotnet run --project sources/tools/Stride.Shaders.CorpusCapture -- --corpus sources/shaders/Stride.Shaders.Tests/Corpus/corpus.json --capture <folder>
 ```
 
-Each run of the tool rebuilds the effect log entries and keeps the captured ones already in `corpus.json`. After a
-corpus change, run `UpdateSnapshot`: new entries show as "added" until then.
+Then run `UpdateSnapshot`, and commit `corpus.json` and `snapshot.txt`.

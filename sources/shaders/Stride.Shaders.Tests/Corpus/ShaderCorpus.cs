@@ -15,8 +15,8 @@ using Stride.Shaders.Spirv.Tools;
 namespace Stride.Shaders.Parsers.Tests.Corpus;
 
 /// <summary>
-/// The permutations the snapshot test compiles: the captured corpus (<c>corpus.json</c>, mixin trees recorded from the
-/// effect logs of samples, templates and the editor) plus one entry per <c>RenderTests</c> shader.
+/// The permutations the snapshot test compiles: the captured corpus (<c>corpus.json</c>, see <c>Corpus/README.md</c>) plus one
+/// entry per <c>RenderTests</c> shader.
 /// </summary>
 static class ShaderCorpus
 {
