@@ -15,6 +15,8 @@ namespace Stride.Rendering.Materials
         // Face counts are stored in 8-bit unsigned normalized channels; a hidden front face counts HiddenFaceWeight
         static const float FaceCountSteps = 255;
         static const float HiddenFaceWeight = 16;
+        // Depth of no face, for the nearest-depth target (the largest half float)
+        static const float NoDepth = 65504;
 
         // An orthographic projection keeps w at 1
         bool IsOrthographic()

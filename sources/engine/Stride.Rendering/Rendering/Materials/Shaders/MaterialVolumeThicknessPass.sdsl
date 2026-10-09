@@ -10,7 +10,8 @@ namespace Stride.Rendering.Materials
     /// A face behind the opaque scene counts at the scene's depth, so a volume ends where it goes into a wall or the ground, and
     /// one wholly behind the scene adds nothing. A camera inside a volume has lost the front face to the near plane, which counts
     /// as a depth of zero. Absorbing and scattering media are summed apart, as they blend differently: the first target gets their
-    /// optical depths, the second counts their faces, so each face blends its share in the transparent stage.
+    /// optical depths, the second counts their faces, the last two keep the nearest and farthest front and back depths of each
+    /// medium, so the faces of two volumes one behind the other each find their own segment.
     /// </remarks>
     shader MaterialVolumeThicknessPass : ShaderBase, PositionStream4, MaterialVolumeDepth
     {
@@ -41,6 +42,13 @@ namespace Stride.Rendering.Materials
             float2 medium = float2(1 - VolumeScattering, VolumeScattering);
             streams.ColorTarget = float4(opticalDepth * medium, 0, 0);
             streams.ColorTarget1 = float4(faces * medium.x, faces * medium.y);
+
+            // Front (visible only) and back depths, blended with min into the third target and max into the fourth
+            bool visibleFront = front && !hidden;
+            float2 nearest = float2(visibleFront ? depth : NoDepth, front ? NoDepth : clamped);
+            float2 farthest = float2(visibleFront ? depth : 0, front ? 0 : clamped);
+            streams.ColorTarget2 = float4(lerp(float2(NoDepth, NoDepth), nearest, medium.x), lerp(float2(NoDepth, NoDepth), nearest, medium.y));
+            streams.ColorTarget3 = float4(farthest * medium.x, farthest * medium.y);
         }
     };
 }

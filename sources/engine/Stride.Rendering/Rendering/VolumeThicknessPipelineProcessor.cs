@@ -14,8 +14,19 @@ namespace Stride.Rendering
     /// <remarks>Those passes test the opaque depth in their shader, so a face resting on the opaque scene is counted and drawn alike.</remarks>
     public class VolumeThicknessPipelineProcessor : PipelineProcessor
     {
-        // Faces add their signed optical depth and their count
-        private static readonly BlendStateDescription Sum = new(Blend.One, Blend.One);
+        // Faces add their signed optical depth and their count; the depth targets keep the nearest and the farthest
+        private static readonly BlendStateDescription Sum = CreateSum();
+
+        private static BlendStateDescription CreateSum()
+        {
+            var blend = new BlendStateDescription(Blend.One, Blend.One) { IndependentBlendEnable = true };
+            blend.RenderTargets[1] = blend.RenderTargets[0];
+            blend.RenderTargets[2] = blend.RenderTargets[0];
+            blend.RenderTargets[2].ColorBlendFunction = blend.RenderTargets[2].AlphaBlendFunction = BlendFunction.Min;
+            blend.RenderTargets[3] = blend.RenderTargets[0];
+            blend.RenderTargets[3].ColorBlendFunction = blend.RenderTargets[3].AlphaBlendFunction = BlendFunction.Max;
+            return blend;
+        }
 
         /// <summary>The stage the thickness of see-through volumes is drawn in.</summary>
         [DefaultValue(null)]

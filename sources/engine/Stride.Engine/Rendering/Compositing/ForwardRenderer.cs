@@ -31,8 +31,13 @@ namespace Stride.Rendering.Compositing
 
         // Optical depth is a difference of large depths, summed: full float precision, absorbing and scattering apart.
         // Face counts, front and back for each, are small integers in steps of 1/255.
+        // Nearest and farthest face depths per medium only tell which volume a face belongs to: half floats.
         private const PixelFormat VolumeOpticalDepthFormat = PixelFormat.R32G32_Float;
         private const PixelFormat VolumeFacesFormat = PixelFormat.R8G8B8A8_UNorm;
+        private const PixelFormat VolumeDepthsFormat = PixelFormat.R16G16B16A16_Float;
+
+        // The largest half float: no face on the pixel for the nearest depths
+        private const float VolumeNoDepth = 65504f;
 
         // TODO: should we use GraphicsDeviceManager.PreferredBackBufferFormat?
         public const PixelFormat DepthBufferFormat = PixelFormat.D24_UNorm_S8_UInt;
@@ -252,7 +257,7 @@ namespace Stride.Rendering.Compositing
 
             if (VolumeThicknessRenderStage != null)
             {
-                VolumeThicknessRenderStage.Output = new RenderOutputDescription(VolumeOpticalDepthFormat) { RenderTargetCount = 2, RenderTargetFormat1 = VolumeFacesFormat };
+                VolumeThicknessRenderStage.Output = new RenderOutputDescription(VolumeOpticalDepthFormat) { RenderTargetCount = 4, RenderTargetFormat1 = VolumeFacesFormat, RenderTargetFormat2 = VolumeDepthsFormat, RenderTargetFormat3 = VolumeDepthsFormat };
             }
         }
 
@@ -577,7 +582,7 @@ namespace Stride.Rendering.Compositing
 
                         var renderTargetSRV = ResolveRenderTargetAsSRV(drawContext);
 
-                        var (volumeOpticalDepth, volumeFaces) = DrawVolumeThickness(drawContext, depthStencilSRV);
+                        var (volumeOpticalDepth, volumeFaces, volumeNearest, volumeFarthest) = DrawVolumeThickness(drawContext, depthStencilSRV);
 
                         SetTransparentStageRenderTargets(drawContext);
 
@@ -586,6 +591,8 @@ namespace Stride.Rendering.Compositing
                         Context.Allocator.ReleaseReference(renderTargetSRV);
                         Context.Allocator.ReleaseReference(volumeOpticalDepth);
                         Context.Allocator.ReleaseReference(volumeFaces);
+                        Context.Allocator.ReleaseReference(volumeNearest);
+                        Context.Allocator.ReleaseReference(volumeFarthest);
                     }
                 }
 
@@ -861,7 +868,7 @@ namespace Stride.Rendering.Compositing
         /// which blend their share in the transparent stage.
         /// </summary>
         /// <returns>The targets, to release once the transparent stage is drawn; null when there was nothing to draw.</returns>
-        private (Texture OpticalDepth, Texture Faces) DrawVolumeThickness(RenderDrawContext drawContext, Texture depthStencilSRV)
+        private (Texture OpticalDepth, Texture Faces, Texture Nearest, Texture Farthest) DrawVolumeThickness(RenderDrawContext drawContext, Texture depthStencilSRV)
         {
             var renderView = drawContext.RenderContext.RenderView;
             if (VolumeThicknessRenderStage == null || depthStencilSRV == null || !HasRenderNodes(renderView, VolumeThicknessRenderStage))
@@ -871,30 +878,40 @@ namespace Stride.Rendering.Compositing
             var colorTarget = commandList.RenderTargets[0];
             var opticalDepth = Context.Allocator.GetTemporaryTexture2D(TextureDescription.New2D(colorTarget.ViewWidth, colorTarget.ViewHeight, VolumeOpticalDepthFormat, TextureFlags.RenderTarget | TextureFlags.ShaderResource));
             var faces = Context.Allocator.GetTemporaryTexture2D(TextureDescription.New2D(colorTarget.ViewWidth, colorTarget.ViewHeight, VolumeFacesFormat, TextureFlags.RenderTarget | TextureFlags.ShaderResource));
+            var nearest = Context.Allocator.GetTemporaryTexture2D(TextureDescription.New2D(colorTarget.ViewWidth, colorTarget.ViewHeight, VolumeDepthsFormat, TextureFlags.RenderTarget | TextureFlags.ShaderResource));
+            var farthest = Context.Allocator.GetTemporaryTexture2D(TextureDescription.New2D(colorTarget.ViewWidth, colorTarget.ViewHeight, VolumeDepthsFormat, TextureFlags.RenderTarget | TextureFlags.ShaderResource));
 
             using (drawContext.QueryManager.BeginProfile(Color.Green, VolumeThicknessProfilingKey))
             using (drawContext.PushRenderTargetsAndRestore())
             {
                 commandList.ResourceBarrierTransition(opticalDepth, BarrierLayout.RenderTarget);
                 commandList.ResourceBarrierTransition(faces, BarrierLayout.RenderTarget);
+                commandList.ResourceBarrierTransition(nearest, BarrierLayout.RenderTarget);
+                commandList.ResourceBarrierTransition(farthest, BarrierLayout.RenderTarget);
                 commandList.Clear(opticalDepth, new Color4(0, 0, 0, 0));
                 commandList.Clear(faces, new Color4(0, 0, 0, 0));
-                commandList.SetRenderTargetsAndViewport(null, opticalDepth, faces);
+                commandList.Clear(nearest, new Color4(VolumeNoDepth));
+                commandList.Clear(farthest, new Color4(0, 0, 0, 0));
+                commandList.SetRenderTargetsAndViewport(null, opticalDepth, faces, nearest, farthest);
                 drawContext.RenderContext.RenderSystem.Draw(drawContext, renderView, VolumeThicknessRenderStage);
             }
 
             commandList.ResourceBarrierTransition(opticalDepth, BarrierLayout.ShaderResource);
             commandList.ResourceBarrierTransition(faces, BarrierLayout.ShaderResource);
+            commandList.ResourceBarrierTransition(nearest, BarrierLayout.ShaderResource);
+            commandList.ResourceBarrierTransition(farthest, BarrierLayout.ShaderResource);
             foreach (var renderFeature in drawContext.RenderContext.RenderSystem.RenderFeatures)
             {
                 if (renderFeature is RootRenderFeature rootRenderFeature)
                 {
                     rootRenderFeature.BindPerViewShaderResource("VolumeOpticalDepth", renderView, opticalDepth);
                     rootRenderFeature.BindPerViewShaderResource("VolumeFaces", renderView, faces);
+                    rootRenderFeature.BindPerViewShaderResource("VolumeNearest", renderView, nearest);
+                    rootRenderFeature.BindPerViewShaderResource("VolumeFarthest", renderView, farthest);
                 }
             }
 
-            return (opticalDepth, faces);
+            return (opticalDepth, faces, nearest, farthest);
         }
 
         private static bool HasRenderNodes(RenderView renderView, RenderStage renderStage)

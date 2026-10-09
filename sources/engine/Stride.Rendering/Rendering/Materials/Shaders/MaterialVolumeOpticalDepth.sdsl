@@ -3,10 +3,10 @@
 namespace Stride.Rendering.Materials
 {
     /// <summary>
-    /// The optical depth a face of a see-through volume blends over the scene behind it: its share of the sum of the thickness
-    /// pass for its medium. The product of the shares is the transmittance of the whole ray, whatever the order the faces draw in.
-    /// Visible front faces apply it; when the camera is inside a volume, every back face does too, hidden ones included, so a
-    /// volume still shows from inside in front of a wall. Without the thickness pass, the material blends with its alpha as usual.
+    /// The optical depth a face of a see-through volume blends over the scene behind it: the summed optical depth of its medium
+    /// when it is alone on the pixel, its own segment when it is one of two one behind the other, and otherwise (or for a camera
+    /// inside a volume) a share of the sum, whose product over the faces is the whole ray's.
+    /// Without the thickness pass, the material blends with its alpha as usual.
     /// </summary>
     shader MaterialVolumeOpticalDepth : MaterialPixelStream, ShaderBaseStream, PositionStream4, MaterialVolumeDepth
     {
@@ -29,6 +29,19 @@ namespace Stride.Rendering.Materials
             stage Texture2D VolumeFaces;
         }
 
+        rgroup PerView.VolumeNearest
+        {
+            stage Texture2D VolumeNearest;
+        }
+
+        rgroup PerView.VolumeFarthest
+        {
+            stage Texture2D VolumeFarthest;
+        }
+
+        // Relative depth under which two faces are taken as the same, as half floats store the nearest and farthest depths
+        static const float SameDepthTolerance = 2e-3;
+
         // Alpha a volume is clamped to, so a fully opaque one still has a finite optical depth
         static const float MaxAlpha = 0.999;
 
@@ -36,7 +49,8 @@ namespace Stride.Rendering.Materials
         {
             int3 pixel = int3((int2)streams.ShadingPosition.xy, 0);
             bool front = streams.IsFrontFace;
-            bool hidden = VolumeLinearDepth(streams.ShadingPosition.z) > VolumeSceneDepth(pixel.xy) * (1 + CoplanarTolerance);
+            float depth = VolumeLinearDepth(streams.ShadingPosition.z);
+            bool hidden = depth > VolumeSceneDepth(pixel.xy) * (1 + CoplanarTolerance);
 
             // This medium's sum and face counts: absorbing in x (xy for the faces), scattering in y (zw)
             float4 allFaces = round(VolumeFaces.Load(pixel) * FaceCountSteps);
@@ -57,7 +71,17 @@ namespace Stride.Rendering.Materials
             bool inside = backs > fronts + 0.5;
             clip((front && !hidden) || (!front && inside) ? 1 : -1);
             float sharing = visibleFronts + (inside ? backs : 0);
-            return max(opticalDepth, 0) / max(sharing, 1);
+            float share = max(opticalDepth, 0) / max(sharing, 1);
+            if (inside || visibleFronts > 2.5)
+                return share;
+
+            // Two volumes of the medium one behind the other: each front pairs with its back, nearest or farthest
+            float2 nearest = lerp(VolumeNearest.Load(pixel).xy, VolumeNearest.Load(pixel).zw, VolumeMediumScattering);
+            float2 farthest = lerp(VolumeFarthest.Load(pixel).xy, VolumeFarthest.Load(pixel).zw, VolumeMediumScattering);
+            if (visibleFronts < 1.5 || nearest.y > farthest.x * (1 + SameDepthTolerance))
+                return share;
+            float back = depth <= nearest.x * (1 + SameDepthTolerance) ? nearest.y : farthest.y;
+            return VolumeAbsorption * max(back - depth, 0) * VolumeRayPerDepth(streams.PositionWS.xyz, depth);
         }
     };
 }
