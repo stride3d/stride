@@ -22,4 +22,5 @@ Test projects that are not the unit tests of one assembly, and the reference ima
 ## See also
 
 - [GPU-TESTING.md](GPU-TESTING.md): graphics APIs, software renderers, and the CompareGold workflow.
+- [../sources/shaders/Stride.Shaders.Tests/Corpus/README.md](../sources/shaders/Stride.Shaders.Tests/Corpus/README.md): the shader corpus snapshot and coverage check, what fails in CI and how to update it.
 - [../docs/debugging/native-crashes.md](../docs/debugging/native-crashes.md): capturing and analyzing native access violations (GPU/audio/AOT) that crash a test silently.

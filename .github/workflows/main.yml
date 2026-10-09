@@ -11,6 +11,8 @@ on:
       - 'sources/**'
       - 'tests/**'
       - 'Stride.slnx'
+      # The shader corpus test compiles the samples' shaders
+      - 'samples/**/*.sdsl'
       - '!**/.all-contributorsrc'
       - '!**/.editorconfig'
       - '!**/.gitignore'

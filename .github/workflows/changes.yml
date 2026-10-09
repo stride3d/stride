@@ -151,6 +151,9 @@ jobs:
               - 'deps/**'
               - 'tests/**'
               - 'sources/Stride.Runtime.slnf'
+              # The shader corpus test (Stride.Shaders.Tests) compiles the shaders of the editor and the samples too
+              - 'sources/editor/**/*.sdsl'
+              - 'samples/**/*.sdsl'
               # The workflows of the jobs it gates, their actions and the auditor the ApiNeutral job runs: an
               # edit runs them
               - '.github/workflows/test-windows-game-api-neutral.yml'

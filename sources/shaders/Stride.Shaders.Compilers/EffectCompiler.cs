@@ -102,26 +102,11 @@ namespace Stride.Shaders.Compiler
             }
         }
 
-        public override TaskOrResult<EffectBytecodeCompilerResult> Compile(ShaderMixinSource mixinTree, EffectCompilerParameters effectParameters, CompilerParameters compilerParameters, ObjectId mixinObjectId)
+        /// <summary>
+        /// Adds the graphics API and profile macros that every effect is compiled with.
+        /// </summary>
+        public static void AddPlatformMacros(ShaderMixinSource shaderMixinSource, EffectCompilerParameters effectParameters)
         {
-            var log = new LoggerResult();
-
-            // Load D3D compiler dll
-            // Note: No lock, it's probably fine if it gets called from multiple threads at the same time.
-            if (Platform.IsWindowsDesktop && !d3dCompilerLoaded)
-            {
-                NativeLibraryHelper.PreloadLibrary("d3dcompiler_47", typeof(EffectCompiler));
-                d3dCompilerLoaded = true;
-            }
-
-            var shaderMixinSource = mixinTree;
-            var fullEffectName = mixinTree.Name;
-
-            // Make a copy of shaderMixinSource. Use deep clone since shaderMixinSource can be altered during compilation (e.g. macros)
-            var shaderMixinSourceCopy = new ShaderMixinSource();
-            shaderMixinSourceCopy.DeepCloneFrom(shaderMixinSource);
-            shaderMixinSource = shaderMixinSourceCopy;
-
             // Generate platform-specific macros
             switch (effectParameters.Platform)
             {
@@ -153,15 +138,45 @@ namespace Stride.Shaders.Compiler
 
             // In .sdsl, class has been renamed to shader to avoid ambiguities with HLSL
             shaderMixinSource.AddMacro("class", "shader");
+        }
+
+        /// <summary>
+        /// The <see cref="ShaderMixer.Options"/> effects are compiled with for <paramref name="platform"/>.
+        /// </summary>
+        /// <param name="platform">The graphics platform the SPIR-V is compiled for.</param>
+        /// <returns>The register scheme and buffer layout that platform's backend needs.</returns>
+        public static ShaderMixer.Options GetMixerOptions(GraphicsPlatform platform) => new(
+            // D3D12 also goes through SPIR-V (then DXIL via mesa), so it needs the unified
+            // binding scheme — only D3D11/FXC consumes the per-class b#/t#/u#/s# bank style.
+            ResourcesRegisterSeparate: platform is GraphicsPlatform.Direct3D11,
+            StripGoogleUserType: platform is GraphicsPlatform.Vulkan,
+            // Vulkan and D3D12 (spirv_to_dxil) read the SPIR-V layout; D3D11 packs the HLSL like Direct3D already
+            Direct3DStructuredBufferLayout: platform is GraphicsPlatform.Vulkan or GraphicsPlatform.Direct3D12);
+
+        public override TaskOrResult<EffectBytecodeCompilerResult> Compile(ShaderMixinSource mixinTree, EffectCompilerParameters effectParameters, CompilerParameters compilerParameters, ObjectId mixinObjectId)
+        {
+            var log = new LoggerResult();
+
+            // Load D3D compiler dll
+            // Note: No lock, it's probably fine if it gets called from multiple threads at the same time.
+            if (Platform.IsWindowsDesktop && !d3dCompilerLoaded)
+            {
+                NativeLibraryHelper.PreloadLibrary("d3dcompiler_47", typeof(EffectCompiler));
+                d3dCompilerLoaded = true;
+            }
+
+            var shaderMixinSource = mixinTree;
+            var fullEffectName = mixinTree.Name;
+
+            // Make a copy of shaderMixinSource. Use deep clone since shaderMixinSource can be altered during compilation (e.g. macros)
+            var shaderMixinSourceCopy = new ShaderMixinSource();
+            shaderMixinSourceCopy.DeepCloneFrom(shaderMixinSource);
+            shaderMixinSource = shaderMixinSourceCopy;
+
+            AddPlatformMacros(shaderMixinSource, effectParameters);
 
             var shaderMixer = new ShaderMixer(GetFileShaderLoader());
-            if (!shaderMixer.MergeSDSL(shaderMixinSource, new ShaderMixer.Options(
-                // D3D12 also goes through SPIR-V (then DXIL via mesa), so it needs the unified
-                // binding scheme — only D3D11/FXC consumes the per-class b#/t#/u#/s# bank style.
-                ResourcesRegisterSeparate: effectParameters.Platform is GraphicsPlatform.Direct3D11,
-                StripGoogleUserType: effectParameters.Platform is GraphicsPlatform.Vulkan,
-                // Vulkan and D3D12 (spirv_to_dxil) read the SPIR-V layout; D3D11 packs the HLSL like Direct3D already
-                Direct3DStructuredBufferLayout: effectParameters.Platform is GraphicsPlatform.Vulkan or GraphicsPlatform.Direct3D12), log, out var spirvBytecode, out var effectReflection, out var usedHashSources, out var entryPoints))
+            if (!shaderMixer.MergeSDSL(shaderMixinSource, GetMixerOptions(effectParameters.Platform), log, out var spirvBytecode, out var effectReflection, out var usedHashSources, out var entryPoints))
                 return new EffectBytecodeCompilerResult(null, log);
 
             // Optional SPIR-V validation (requires spirv-val from Vulkan SDK)
