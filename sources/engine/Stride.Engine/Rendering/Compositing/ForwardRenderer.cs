@@ -96,6 +96,13 @@ namespace Stride.Rendering.Compositing
         public RenderStage VolumeThicknessRenderStage { get; set; }
 
         /// <summary>
+        /// Gets or sets whether the volume thickness stage also keeps the nearest and farthest faces of each medium, so that two volumes
+        /// of a medium one behind the other on a pixel (fog in front of water) each take their own thickness instead of sharing it.
+        /// </summary>
+        /// <remarks>Costs two more render targets, 16 bytes per pixel, while a volume is in view.</remarks>
+        public bool SeparateVolumeSegments { get; set; }
+
+        /// <summary>
         /// The post effects renderer.
         /// </summary>
         public IPostProcessingEffects PostEffects { get; set; }
@@ -257,7 +264,17 @@ namespace Stride.Rendering.Compositing
 
             if (VolumeThicknessRenderStage != null)
             {
-                VolumeThicknessRenderStage.Output = new RenderOutputDescription(VolumeOpticalDepthFormat) { RenderTargetCount = 4, RenderTargetFormat1 = VolumeFacesFormat, RenderTargetFormat2 = VolumeDepthsFormat, RenderTargetFormat3 = VolumeDepthsFormat };
+                // Through the validator, the pass shader knows how many targets it writes (STRIDE_RENDER_TARGET_COUNT)
+                var validator = VolumeThicknessRenderStage.OutputValidator;
+                validator.BeginCustomValidation(PixelFormat.None);
+                validator.Add<VolumeThicknessTargetSemantic>(VolumeOpticalDepthFormat);
+                validator.Add<VolumeThicknessTargetSemantic>(VolumeFacesFormat);
+                if (SeparateVolumeSegments)
+                {
+                    validator.Add<VolumeThicknessTargetSemantic>(VolumeDepthsFormat);
+                    validator.Add<VolumeThicknessTargetSemantic>(VolumeDepthsFormat);
+                }
+                validator.EndCustomValidation();
             }
         }
 
@@ -878,21 +895,34 @@ namespace Stride.Rendering.Compositing
             var colorTarget = commandList.RenderTargets[0];
             var opticalDepth = Context.Allocator.GetTemporaryTexture2D(TextureDescription.New2D(colorTarget.ViewWidth, colorTarget.ViewHeight, VolumeOpticalDepthFormat, TextureFlags.RenderTarget | TextureFlags.ShaderResource));
             var faces = Context.Allocator.GetTemporaryTexture2D(TextureDescription.New2D(colorTarget.ViewWidth, colorTarget.ViewHeight, VolumeFacesFormat, TextureFlags.RenderTarget | TextureFlags.ShaderResource));
-            var nearest = Context.Allocator.GetTemporaryTexture2D(TextureDescription.New2D(colorTarget.ViewWidth, colorTarget.ViewHeight, VolumeDepthsFormat, TextureFlags.RenderTarget | TextureFlags.ShaderResource));
-            var farthest = Context.Allocator.GetTemporaryTexture2D(TextureDescription.New2D(colorTarget.ViewWidth, colorTarget.ViewHeight, VolumeDepthsFormat, TextureFlags.RenderTarget | TextureFlags.ShaderResource));
+            // Without separate segments, 1x1 stand-ins tell the materials to share the sums
+            var depthsWidth = SeparateVolumeSegments ? colorTarget.ViewWidth : 1;
+            var depthsHeight = SeparateVolumeSegments ? colorTarget.ViewHeight : 1;
+            var nearest = Context.Allocator.GetTemporaryTexture2D(TextureDescription.New2D(depthsWidth, depthsHeight, VolumeDepthsFormat, TextureFlags.RenderTarget | TextureFlags.ShaderResource));
+            var farthest = Context.Allocator.GetTemporaryTexture2D(TextureDescription.New2D(depthsWidth, depthsHeight, VolumeDepthsFormat, TextureFlags.RenderTarget | TextureFlags.ShaderResource));
 
             using (drawContext.QueryManager.BeginProfile(Color.Green, VolumeThicknessProfilingKey))
             using (drawContext.PushRenderTargetsAndRestore())
             {
                 commandList.ResourceBarrierTransition(opticalDepth, BarrierLayout.RenderTarget);
                 commandList.ResourceBarrierTransition(faces, BarrierLayout.RenderTarget);
-                commandList.ResourceBarrierTransition(nearest, BarrierLayout.RenderTarget);
-                commandList.ResourceBarrierTransition(farthest, BarrierLayout.RenderTarget);
+                if (SeparateVolumeSegments)
+                {
+                    commandList.ResourceBarrierTransition(nearest, BarrierLayout.RenderTarget);
+                    commandList.ResourceBarrierTransition(farthest, BarrierLayout.RenderTarget);
+                }
                 commandList.Clear(opticalDepth, new Color4(0, 0, 0, 0));
                 commandList.Clear(faces, new Color4(0, 0, 0, 0));
-                commandList.Clear(nearest, new Color4(VolumeNoDepth));
-                commandList.Clear(farthest, new Color4(0, 0, 0, 0));
-                commandList.SetRenderTargetsAndViewport(null, opticalDepth, faces, nearest, farthest);
+                if (SeparateVolumeSegments)
+                {
+                    commandList.Clear(nearest, new Color4(VolumeNoDepth));
+                    commandList.Clear(farthest, new Color4(0, 0, 0, 0));
+                    commandList.SetRenderTargetsAndViewport(null, opticalDepth, faces, nearest, farthest);
+                }
+                else
+                {
+                    commandList.SetRenderTargetsAndViewport(null, opticalDepth, faces);
+                }
                 drawContext.RenderContext.RenderSystem.Draw(drawContext, renderView, VolumeThicknessRenderStage);
             }
 

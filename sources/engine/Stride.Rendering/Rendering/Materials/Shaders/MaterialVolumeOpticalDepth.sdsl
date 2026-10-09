@@ -75,13 +75,16 @@ namespace Stride.Rendering.Materials
             clip((front && !hidden) || (!front && inside) ? 1 : -1);
             float sharing = visibleFronts + (inside ? backs : 0);
             float share = max(opticalDepth, 0) / max(sharing, 1);
-            if (inside || visibleFronts > 2.5)
+            // One volume, or the renderer does not separate segments (1x1 stand-ins): share
+            uint depthsWidth, depthsHeight;
+            VolumeNearest.GetDimensions(depthsWidth, depthsHeight);
+            if (inside || visibleFronts < 1.5 || visibleFronts > 2.5 || depthsWidth < 2)
                 return share;
 
             // Two volumes of the medium one behind the other: each front pairs with its back, nearest or farthest
             float2 nearest = lerp(VolumeNearest.Load(pixel).xy, VolumeNearest.Load(pixel).zw, VolumeMediumScattering);
             float2 farthest = lerp(VolumeFarthest.Load(pixel).xy, VolumeFarthest.Load(pixel).zw, VolumeMediumScattering);
-            if (visibleFronts < 1.5 || nearest.y > farthest.x * (1 + SameDepthTolerance))
+            if (nearest.y > farthest.x * (1 + SameDepthTolerance))
                 return share;
             float back = depth <= nearest.x * (1 + SameDepthTolerance) ? nearest.y : farthest.y;
             return VolumeAbsorption * max(back - depth, 0) * VolumeRayPerDepth(streams.PositionWS.xyz, depth);
