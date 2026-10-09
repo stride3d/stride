@@ -21,6 +21,26 @@ namespace Stride.Rendering.Voxels
     [DataContract(DefaultMemberMode = DataMemberMode.Default)]
     public class VoxelRenderer : IVoxelRenderer
     {
+        private static readonly Logger Log = GlobalLogger.GetLogger(nameof(VoxelRenderer));
+
+        /// <summary>
+        /// Whether voxelization can run here. Collect sets this, and Draw reads it, so the two agree.
+        /// </summary>
+        [DataMemberIgnore]
+        private bool canVoxelize;
+
+        /// <summary>
+        /// Whether the reason voxelization is off has already been reported. Collect runs every frame.
+        /// </summary>
+        [DataMemberIgnore]
+        private bool reportedUnsupported;
+
+        /// <summary>
+        /// The volumes already reported as skipped because their voxelization method needs geometry shaders.
+        /// </summary>
+        [DataMemberIgnore]
+        private readonly HashSet<VoxelVolumeComponent> reportedNeedGeometryShaders = new();
+
         [DataMemberIgnore]
         public static readonly PropertyKey<Dictionary<VoxelVolumeComponent, DataVoxelVolume>> CurrentRenderVoxelVolumes = new PropertyKey<Dictionary<VoxelVolumeComponent, DataVoxelVolume>>("VoxelRenderer.CurrentRenderVoxelVolumes", typeof(VoxelRenderer));
         [DataMemberIgnore]
@@ -48,9 +68,23 @@ namespace Stride.Rendering.Voxels
             if (renderVoxelVolumes == null || renderVoxelVolumes.Count == 0)
                 return;
 
-            if (Context.RenderSystem.GraphicsDevice.Features.CurrentProfile < GraphicsProfile.Level_11_0)
+            var features = Context.RenderSystem.GraphicsDevice.Features;
+            canVoxelize = features.HasComputeShaders && features.HasPixelShaderUnorderedAccess;
+
+            if (!canVoxelize)
             {
-                throw new ArgumentOutOfRangeException("Graphics Profile Level 11 or higher required for Voxelization.");
+                // Collect runs every frame, so say it once. The user asked for voxelization by adding this
+                // renderer and a volume, and silence would leave them with no lighting and no reason.
+                if (!reportedUnsupported)
+                {
+                    reportedUnsupported = true;
+
+                    Log.Warning(!features.HasComputeShaders
+                        ? "Voxelization is disabled: this device does not support compute shaders."
+                        : "Voxelization is disabled: this device does not support unordered access from pixel shaders.");
+                }
+
+                return;
             }
 
             //Setup per volume passes and texture allocations
@@ -138,6 +172,26 @@ namespace Stride.Rendering.Voxels
                 //Create list of voxelization passes that need to be done
                 dataVolume.Storage.CollectVoxelizationPasses(processedVolume, storageContext);
 
+                if (!features.HasGeometryShaders)
+                {
+                    // Same condition as the RequireGeometryShader permutation in VoxelRenderFeature.
+                    var geometryShaderPass = processedVolume.passList.passes.FirstOrDefault(pass => pass.method.RequireGeometryShader() || pass.storer.RequireGeometryShader());
+                    if (geometryShaderPass != null)
+                    {
+                        if (reportedNeedGeometryShaders.Add(pair.Key))
+                        {
+                            var reason = geometryShaderPass.method.RequireGeometryShader()
+                                ? $"{geometryShaderPass.method.GetType().Name} needs geometry shaders, which this device does not support. TriAxis and SingleAxis do not need them."
+                                : "the \"All Clipmaps (Geometry Shader)\" update method needs geometry shaders, which this device does not support. \"Single Clipmap\" and \"All Clipmaps (Multiple Renders)\" do not need them.";
+                            Log.Warning($"Voxel volume on entity '{pair.Key.Entity?.Name}' is skipped: {reason}");
+                        }
+
+                        processedVolume.Voxelize = false;
+                        processedVolume.passList.Clear();
+                        continue;
+                    }
+                }
+
                 //Group voxelization passes where the RenderStage can be shared
                 //TODO: Group identical attributes
                 for (int i = 0; i < processedVolume.passList.passes.Count; i++)
@@ -200,7 +254,7 @@ namespace Stride.Rendering.Voxels
             if (renderVoxelVolumes == null || renderVoxelVolumes.Count == 0)
                 return;
 
-            if (drawContext.GraphicsDevice.Features.CurrentProfile < GraphicsProfile.Level_11_0)
+            if (!canVoxelize)
                 return;
 
             var context = drawContext;

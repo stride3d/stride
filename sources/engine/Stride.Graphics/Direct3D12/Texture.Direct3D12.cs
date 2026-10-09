@@ -90,7 +90,7 @@ namespace Stride.Graphics
         /// </returns>
         public static bool IsDepthStencilReadOnlySupported(GraphicsDevice device)
         {
-            return device.Features.CurrentProfile >= GraphicsProfile.Level_11_0;
+            return device.Features.HasDepthAsReadOnlyRT;
         }
 
         /// <inheritdoc/>
@@ -1034,9 +1034,9 @@ namespace Stride.Graphics
             var needsTypelessDepth = IsDepthStencil || (IsShaderResource && IsDepthFormat(textureDescription.Format));
             if (needsTypelessDepth)
             {
-                if (IsShaderResource && GraphicsDevice.Features.CurrentProfile < GraphicsProfile.Level_10_0)
+                if (IsShaderResource && !GraphicsDevice.Features.HasDepthAsSRV)
                 {
-                    throw new NotSupportedException($"Creating Shader Resource Views for Depth-Stencil Buffers are not supported for Graphics Profiles < 10.0 (Current: [{GraphicsDevice.Features.CurrentProfile}])");
+                    throw new NotSupportedException($"This device does not support Depth-Stencil Buffers as Shader Resource Views (Current profile: [{GraphicsDevice.Features.CurrentProfile}])");
                 }
                 else
                 {
