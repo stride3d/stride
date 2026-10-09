@@ -156,6 +156,13 @@ namespace Stride.Core.Presentation.Tests
                 var mainWindow = dispatcher.Invoke(() => new TestWindow("MainWindow"));
                 await RunAndWait(dispatcher, () => WindowManager.ShowMainWindow(mainWindow), WindowManagerHelper.NextWindowShown);
                 await RunAndWait(dispatcher, mainWindow.Hide, WindowManagerHelper.NextWindowHidden);
+
+                dispatcher.Invoke(() =>
+                {
+                    Assert.Equal(mainWindow, WindowManager.MainWindow?.Window);
+                    Assert.False(WindowManager.MainWindow.IsShown);
+                });
+
                 await RunAndWait(dispatcher, mainWindow.Show, WindowManagerHelper.NextWindowShown);
 
                 var blockingWindow = dispatcher.Invoke(() => new TestWindow("BlockingWindow"));
@@ -171,6 +178,8 @@ namespace Stride.Core.Presentation.Tests
 
                 await RunAndWait(dispatcher, blockingWindow.Close, WindowManagerHelper.NextWindowHidden);
                 await RunAndWait(dispatcher, mainWindow.Close, WindowManagerHelper.NextWindowHidden);
+
+                dispatcher.Invoke(() => Assert.Null(WindowManager.MainWindow));
             }
             WindowManagerHelper.ShutdownUIThread(dispatcher);
         }
