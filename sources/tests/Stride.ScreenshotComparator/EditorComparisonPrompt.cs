@@ -14,6 +14,7 @@ public sealed record EditorComparisonPrompt : ComparisonPrompt
 {
     // Tolerances — sources of false-positive drift in editor captures.
     public bool TolerateBuildLogTimestamps { get; init; }
+    public bool TolerateNuGetAuditWarnings { get; init; }
     public bool TolerateAssetCounts { get; init; }
     public bool TolerateScenePreviewDrift { get; init; }
     public bool TolerateFontRasterization { get; init; }
@@ -37,6 +38,7 @@ public sealed record EditorComparisonPrompt : ComparisonPrompt
     public static readonly EditorComparisonPrompt Default = new()
     {
         TolerateBuildLogTimestamps = true,
+        TolerateNuGetAuditWarnings = true,
         TolerateAssetCounts = true,
         TolerateScenePreviewDrift = true,
         TolerateFontRasterization = true,
@@ -70,6 +72,7 @@ public sealed record EditorComparisonPrompt : ComparisonPrompt
         var sb = new StringBuilder(Intro("Stride GameStudio editor UI", baselineCount));
         sb.Append("YES (not a regression):\n");
         AppendIf(sb, TolerateBuildLogTimestamps, "Timestamps / elapsed-time strings / dates in build or output logs.");
+        AppendIf(sb, TolerateNuGetAuditWarnings, "NuGet package vulnerability warnings (NU1901-NU1904, \"has a known ... severity vulnerability\") in build or output logs: advisories get published after the baseline was captured, they are not caused by the change under test.");
         AppendIf(sb, TolerateAssetCounts, "Asset, file, or item counts differ slightly (template content drift between runs).");
         AppendIf(sb, TolerateScenePreviewDrift, "Embedded 3D scene viewport content differs (camera angle, lighting, frame timing — nondeterministic).");
         AppendIf(sb, TolerateFontRasterization, "Sub-pixel font rasterization differences (ClearType, theme variations).");
@@ -85,7 +88,8 @@ public sealed record EditorComparisonPrompt : ComparisonPrompt
         AppendIf(sb, RegressionOnWrongLabels, "Wrong UI text labels (button captions, panel titles, menu item names — not numeric values).");
         AppendIf(sb, RegressionOnBrokenScenePreview, "Embedded scene preview is BROKEN (pink-checker, all-black, distorted, debug-error overlay) — distinct from normal viewport drift.");
         AppendIf(sb, RegressionOnThemeColorShift, "Whole-window color / theme shift (light vs dark theme, wrong accent color throughout).");
-        AppendIf(sb, RegressionOnBuildLogErrors, "Build/output log shows error or warning lines (color-coded red/yellow vs the normal info-level color) — but timestamps and elapsed-time numbers in those lines are still tolerated.");
+        AppendIf(sb, RegressionOnBuildLogErrors, "Build/output log shows error or warning lines (color-coded red/yellow vs the normal info-level color) — but timestamps and elapsed-time numbers in those lines are still tolerated"
+            + (TolerateNuGetAuditWarnings ? ", and so are NuGet package vulnerability warnings." : "."));
         AppendIf(sb, RegressionOnMissingSyntaxHighlighting, "A code/script editor shows plain monochrome text with no C# syntax highlighting (keywords, types, strings, comments should appear in distinct theme colors).");
         sb.Append(OutroWithHint());
         return sb.ToString();
