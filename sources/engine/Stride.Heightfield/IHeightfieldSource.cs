@@ -11,9 +11,7 @@ namespace Stride.Heightfield;
 /// </example>
 public interface IHeightfieldSource
 {
-    /// <summary>
-    /// How large the heightfield is in units, 10 would occupy an area of 10^2 units
-    /// </summary>
+    /// <inheritdoc cref="HeightfieldShape.Subdivision"/>
     float Size { get; }
 
     /// <inheritdoc cref="HeightfieldShape.Subdivision"/>
