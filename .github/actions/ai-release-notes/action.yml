@@ -583,10 +583,12 @@ runs:
         {
           echo "_Preserved snapshot of this run's auto-generated notes (kept even if the release body is later edited)._"
           echo
-          if [ -n "$HL" ]; then cat "$HL"; else echo "## Highlights"; echo; echo "_(none generated)_"; fi
-          echo
-          echo "---"
-          echo
+          # No highlights section when the written notes replace it: they open the body below.
+          if [ -n "$HL" ]; then
+            cat "$HL"; echo; echo "---"; echo
+          elif [ -z "$WRITTEN" ]; then
+            echo "## Highlights"; echo; echo "_(none generated)_"; echo; echo "---"; echo
+          fi
           cat "$OUT"
           echo
           echo "---"
