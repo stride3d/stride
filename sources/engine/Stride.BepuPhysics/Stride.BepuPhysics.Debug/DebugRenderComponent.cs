@@ -8,6 +8,10 @@ using Stride.Input;
 
 namespace Stride.BepuPhysics.Debug;
 
+/// <summary>
+/// Draws the colliders and the solver contacts of the Bepu simulations, toggled at runtime with <see cref="Key"/>.
+/// </summary>
+/// <remarks> Wireframes and contact lines are expanded by geometry shaders, so this needs <see cref="Stride.Graphics.GraphicsProfile.Level_10_0"/> or higher. </remarks>
 [DataContract]
 [DefaultEntityComponentProcessor(typeof(DebugRenderProcessor), ExecutionMode = ExecutionMode.Runtime)]
 [ComponentCategory("Bepu - Debug")]
@@ -29,6 +33,30 @@ public class DebugRenderComponent : SyncScript
                 _processor.Visible = value;
         }
     }
+
+    /// <summary>
+    /// Whether to draw the wireframe of each collider.
+    /// </summary>
+    [DataMember]
+    public bool ShowShapes { get; set; } = true;
+
+    /// <summary>
+    /// Whether to draw a marker at each contact point the solver is currently resolving.
+    /// </summary>
+    [DataMember]
+    public bool ShowContactPoints { get; set; }
+
+    /// <summary>
+    /// Whether to draw the normal of each contact the solver is currently resolving.
+    /// </summary>
+    [DataMember]
+    public bool ShowContactNormals { get; set; }
+
+    /// <summary>
+    /// The length of the contact normals, in world units; the point markers are scaled from it.
+    /// </summary>
+    [DataMember]
+    public float ContactSize { get; set; } = 0.25f;
 
     public override void Update()
     {

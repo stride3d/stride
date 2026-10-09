@@ -20,10 +20,15 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
 
     private bool _latent;
     private bool _visible;
+    private bool _trackingShapes;
+    private DebugRenderComponent? _component;
     private IGame _game = null!;
     private SceneSystem _sceneSystem = null!;
     private ShapeCacheSystem _shapeCacheSystem = null!;
     private VisibilityGroup _visibilityGroup = null!;
+    private BepuConfiguration? _bepuConfiguration;
+    private readonly LineRenderObject _contactLines = new();
+    private readonly Dictionary<BepuSimulation, ContactRecorder> _contactRecorders = new();
     private readonly Dictionary<CollidableComponent, (WireFrameRenderObject[] Wireframes, object? cache)> _wireFrameRenderObject = new();
 
     public DebugRenderProcessor()
@@ -43,23 +48,41 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
 
                 _visible = value;
                 if (_visible)
-                {
-                    proc.OnPostAdd += StartTrackingCollidable;
-                    proc.OnPreRemove += ClearTrackingForCollidable;
-                    StartTracking(proc);
-                }
+                    _visibilityGroup.RenderObjects.Add(_contactLines);
                 else
-                {
-                    proc.OnPostAdd -= StartTrackingCollidable;
-                    proc.OnPreRemove -= ClearTrackingForCollidable;
                     Clear();
-                }
+                UpdateShapeTracking(proc);
             }
             else
             {
                 _visible = false;
+                _trackingShapes = false; // No processor left to unsubscribe from
                 Clear();
             }
+        }
+    }
+
+    private bool ShowShapes => _component?.ShowShapes ?? true;
+
+    /// <summary> Wireframes are only built and updated while they are shown </summary>
+    private void UpdateShapeTracking(CollidableProcessor proc)
+    {
+        var track = _visible && ShowShapes;
+        if (track == _trackingShapes)
+            return;
+
+        _trackingShapes = track;
+        if (track)
+        {
+            proc.OnPostAdd += StartTrackingCollidable;
+            proc.OnPreRemove += ClearTrackingForCollidable;
+            StartTracking(proc);
+        }
+        else
+        {
+            proc.OnPostAdd -= StartTrackingCollidable;
+            proc.OnPreRemove -= ClearTrackingForCollidable;
+            ClearShapes();
         }
     }
 
@@ -71,7 +94,33 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
         else if (component.Visible)
             _latent = true;
 
+        _component = component;
         component._processor = this;
+    }
+
+    protected override void OnEntityComponentRemoved(Entity entity, DebugRenderComponent component, DebugRenderComponent data)
+    {
+        base.OnEntityComponentRemoved(entity, component, data);
+        component._processor = null;
+        if (_component != component)
+            return;
+
+        // Another component takes over, with none left nothing could toggle the debug render off anymore
+        _component = null;
+        foreach (var other in ComponentDatas.Keys)
+        {
+            if (other != component)
+            {
+                _component = other;
+                break;
+            }
+        }
+
+        if (_component is null)
+        {
+            _latent = false;
+            Visible = false;
+        }
     }
 
     protected override void OnSystemAdd()
@@ -84,6 +133,7 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
     protected override void OnSystemRemove()
     {
         Clear();
+        _contactLines.Dispose();
     }
 
     public override void Draw(RenderContext context)
@@ -94,10 +144,18 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
                 return;
 
             _visibilityGroup = _sceneSystem.SceneInstance.VisibilityGroups.First();
-            if (_sceneSystem.GraphicsCompositor.RenderFeatures.OfType<SinglePassWireframeRenderFeature>().FirstOrDefault() is null)
+            if (_sceneSystem.GraphicsCompositor.RenderFeatures.OfType<SinglePassWireframeRenderFeature>().FirstOrDefault() is not { } wireframeFeature)
             {
-                _sceneSystem.GraphicsCompositor.RenderFeatures.Add(new SinglePassWireframeRenderFeature());
+                wireframeFeature = new SinglePassWireframeRenderFeature();
+                _sceneSystem.GraphicsCompositor.RenderFeatures.Add(wireframeFeature);
             }
+            AddOverlayStageSelector(wireframeFeature, "StrideSinglePassWireframeShader");
+            if (_sceneSystem.GraphicsCompositor.RenderFeatures.OfType<LineRenderFeature>().FirstOrDefault() is not { } lineFeature)
+            {
+                lineFeature = new LineRenderFeature();
+                _sceneSystem.GraphicsCompositor.RenderFeatures.Add(lineFeature);
+            }
+            AddOverlayStageSelector(lineFeature, "StrideDebugLineShader");
         }
 
         if (_latent)
@@ -108,6 +166,9 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
         }
 
         base.Draw(context);
+
+        if (_visible && _sceneSystem.SceneInstance.GetProcessor<CollidableProcessor>() is { } collidables)
+            UpdateShapeTracking(collidables);
 
         foreach (var (collidable, (wireframes, cache)) in _wireFrameRenderObject)
         {
@@ -144,6 +205,43 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
                 wireframe.Color = GetCurrentColor(collidable);
             }
         }
+
+        _contactLines.Clear();
+        // GetService, not GetOrCreate: showing contacts must not add a Bepu configuration to the game settings
+        _bepuConfiguration ??= Services.GetService<BepuConfiguration>();
+        if (_visible && _component is { } options && (options.ShowContactPoints || options.ShowContactNormals) && _bepuConfiguration is not null)
+        {
+            var pointColor = options.ShowContactPoints ? Color.Red : (Color?)null;
+            var normalColor = options.ShowContactNormals ? Color.Yellow : (Color?)null;
+            foreach (var simulation in _bepuConfiguration.BepuSimulations)
+            {
+                if (!_contactRecorders.TryGetValue(simulation, out var recorder))
+                    _contactRecorders.Add(simulation, recorder = new ContactRecorder(simulation.Simulation));
+                recorder.AddLines(_contactLines, options.ContactSize, pointColor, normalColor);
+            }
+        }
+        else
+        {
+            StopRecordingContacts();
+        }
+    }
+
+    /// <summary> Draws the feature in the main view's transparent stage, or its opaque one; never in a shadow map or G-buffer stage </summary>
+    private void AddOverlayStageSelector(RootRenderFeature feature, string effectName)
+    {
+        if (feature.RenderStageSelectors.Count > 0)
+            return;
+
+        var mainStages = _sceneSystem.GraphicsCompositor.RenderStages.Where(s => s.EffectSlotName == "Main").ToList();
+        if ((mainStages.FirstOrDefault(s => s.Name == "Transparent") ?? mainStages.FirstOrDefault()) is { } stage)
+            feature.RenderStageSelectors.Add(new SimpleGroupToRenderStageSelector { RenderStage = stage, EffectName = effectName });
+    }
+
+    private void StopRecordingContacts()
+    {
+        foreach (var recorder in _contactRecorders.Values)
+            recorder.Dispose();
+        _contactRecorders.Clear();
     }
 
     private void StartTracking(CollidableProcessor proc)
@@ -203,6 +301,14 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
     }
 
     private void Clear()
+    {
+        ClearShapes();
+        StopRecordingContacts();
+        _contactLines.Clear();
+        _visibilityGroup?.RenderObjects.Remove(_contactLines);
+    }
+
+    private void ClearShapes()
     {
         foreach (var (collidable, (wireframes, _)) in _wireFrameRenderObject)
         {
