@@ -29,7 +29,8 @@ namespace Stride.Rendering
                 return;
 
             var materialPass = ((RenderMesh)renderObject).MaterialPass;
-            if (materialPass != null && materialPass.Parameters.Get(MaterialVolumeKeys.Absorption) > 0)
+            // A multi-pass material counts once
+            if (materialPass != null && materialPass.PassIndex == 0 && materialPass.Parameters.Get(MaterialVolumeKeys.Absorption) > 0)
                 renderObject.ActiveRenderStages[VolumeThicknessRenderStage.Index] = new ActiveRenderStage(EffectName);
         }
     }

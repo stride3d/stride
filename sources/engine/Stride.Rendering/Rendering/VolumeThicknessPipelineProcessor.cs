@@ -4,24 +4,39 @@
 using System.ComponentModel;
 using Stride.Core;
 using Stride.Graphics;
+using Stride.Rendering.Materials;
 
 namespace Stride.Rendering
 {
     /// <summary>
-    /// Draws the volume thickness stage with both faces, without a depth buffer, and summing into its targets.
+    /// Sets the pipeline states of see-through volumes: both faces and a sum in the thickness stage, no depth test for their back faces in the transparent stage.
     /// </summary>
+    /// <remarks>Those passes test the opaque depth in their shader, so a face resting on the opaque scene is counted and drawn alike.</remarks>
     public class VolumeThicknessPipelineProcessor : PipelineProcessor
     {
-        // A plain sum: the alpha carries optical depth, negative on front faces, not a coverage
+        // Faces add their signed optical depth and their count
         private static readonly BlendStateDescription Sum = new(Blend.One, Blend.One);
 
         /// <summary>The stage the thickness of see-through volumes is drawn in.</summary>
         [DefaultValue(null)]
         public RenderStage VolumeThicknessRenderStage { get; set; }
 
+        /// <summary>The stage see-through materials are drawn in.</summary>
+        [DefaultValue(null)]
+        public RenderStage TransparentRenderStage { get; set; }
+
         /// <inheritdoc/>
         public override void Process(RenderNodeReference renderNodeReference, ref RenderNode renderNode, RenderObject renderObject, PipelineStateDescription pipelineState)
         {
+            if (renderNode.RenderStage == TransparentRenderStage)
+            {
+                // Back faces may stand in for the camera being inside even when hidden: the shader tests the depth itself
+                var materialPass = ((RenderMesh)renderObject).MaterialPass;
+                if (materialPass != null && materialPass.PassIndex == MaterialTransparencyBlendFeature.VolumeBackFacePass && materialPass.Parameters.Get(MaterialVolumeKeys.Absorption) > 0)
+                    pipelineState.DepthStencilState = DepthStencilStates.None;
+                return;
+            }
+
             if (renderNode.RenderStage != VolumeThicknessRenderStage)
                 return;
 

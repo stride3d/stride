@@ -3,54 +3,44 @@
 namespace Stride.Rendering.Materials
 {
     /// <summary>
-    /// Adds a see-through mesh's optical depth along each pixel's ray: back faces add their depth, front faces take theirs
+    /// Adds a see-through volume's optical depth along each pixel's ray: back faces add their depth, front faces take theirs
     /// away, each times the material's absorption, so additive blending sums every segment of every volume on the ray.
     /// </summary>
     /// <remarks>
-    /// Faces behind the opaque scene are dropped, so a volume ends at it. A camera inside a volume has lost the front face
-    /// to the near plane, which counts as a depth of zero. An open surface counts from itself to the opaque scene behind.
-    /// Absorbing media go to the first target as tint times optical depth, and optical depth. Scattering ones go to the second
-    /// as the number of their front faces on the pixel, and optical depth.
+    /// A face behind the opaque scene counts at the scene's depth, so a volume ends where it goes into a wall or the ground, and
+    /// one wholly behind the scene adds nothing. A camera inside a volume has lost the front face to the near plane, which counts
+    /// as a depth of zero. Absorbing and scattering media are summed apart, as they blend differently: the first target gets their
+    /// optical depths, the second counts their faces, so each face blends its share in the transparent stage.
     /// </remarks>
-    shader MaterialVolumeThicknessPass : ShaderBase, Transformation, PositionStream4, DepthBase
+    shader MaterialVolumeThicknessPass : ShaderBase, PositionStream4, MaterialVolumeDepth
     {
         cbuffer PerMaterial
         {
             [Link("MaterialVolume.Absorption")]
             stage float VolumeAbsorption;
 
-            [Link("MaterialVolume.Tint")]
-            stage float3 VolumeTint;
-
             [Link("MaterialVolume.Scattering")]
             stage float VolumeScattering;
-
-            [Link("MaterialVolume.OpenSurface")]
-            stage float VolumeOpenSurface;
         }
-
-        // Smallest view depth a ray is divided by
-        static const float MinDepth = 1e-4;
-        // Relative depth a face may lie behind the opaque scene and still count: a face resting on it, such as a block's bottom
-        static const float CoplanarTolerance = 1e-3;
 
         stage override void PSMain()
         {
             int2 pixel = (int2)streams.ShadingPosition.xy;
-            float depth = ComputeDepthFromZProj(streams.ShadingPosition.z);
-            float scene = ComputeDepthFromScreenPosition(pixel);
-            clip(scene * (1 + CoplanarTolerance) - depth);
-
-            // View depth to distance along the pixel's ray, the same for every face on it
-            float rayPerDepth = length(streams.PositionWS.xyz - Eye.xyz) / max(depth, MinDepth);
+            float depth = VolumeLinearDepth(streams.ShadingPosition.z);
+            float scene = VolumeSceneDepth(pixel);
+            bool hidden = depth > scene * (1 + CoplanarTolerance);
+            float rayPerDepth = VolumeRayPerDepth(streams.PositionWS.xyz, depth);
 
             bool front = streams.IsFrontFace;
-            float closed = front ? -depth : depth;
-            float open = front ? scene - depth : depth;
-            float opticalDepth = VolumeAbsorption * lerp(closed, open, VolumeOpenSurface) * rayPerDepth;
+            float clamped = min(depth, scene);
+            float opticalDepth = VolumeAbsorption * (front ? -clamped : clamped) * rayPerDepth;
+            // Front faces (hidden ones weighted apart), back faces
+            float2 faces = (front ? float2(hidden ? HiddenFaceWeight : 1, 0) : float2(0, 1)) / FaceCountSteps;
 
-            streams.ColorTarget = float4(VolumeTint * opticalDepth, opticalDepth) * (1 - VolumeScattering);
-            streams.ColorTarget1 = float4(front ? 1 : 0, 0, 0, opticalDepth) * VolumeScattering;
+            // Absorbing media go to x (xy for the faces), scattering ones to y (zw)
+            float2 medium = float2(1 - VolumeScattering, VolumeScattering);
+            streams.ColorTarget = float4(opticalDepth * medium, 0, 0);
+            streams.ColorTarget1 = float4(faces * medium.x, faces * medium.y);
         }
     };
 }

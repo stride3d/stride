@@ -17,6 +17,7 @@ RenderStages:
         Name: Transparent
         EffectSlotName: Main
         SortMode: !BackToFrontSortMode {}
+        Filter: !VolumeBackFaceRenderStageFilter {}
     554e52c061404d4684dd7c4c70f70e0e:
         Id: c0524e55-4061-464d-84dd-7c4c70f70e0e
         Name: ShadowMapCaster
@@ -76,6 +77,7 @@ RenderFeatures:
                 DepthClipping: true
             5bb35e5c028847fbaf20a13a30972a5c: !Stride.Rendering.VolumeThicknessPipelineProcessor,Stride.Rendering
                 VolumeThicknessRenderStage: ref!! 9a4e480f-4c33-4b09-b62c-b2a44a3d1583
+                TransparentRenderStage: ref!! 0fa30591-02ee-486d-9347-2b6aee83d035
         RenderFeatures:
             86b959cbdf51a1438d4973177c77c627: !Stride.Rendering.TransformRenderFeature,Stride.Rendering {}
             8e0351fee9883922648a11016224b195: !Stride.Rendering.SkinningRenderFeature,Stride.Rendering {}

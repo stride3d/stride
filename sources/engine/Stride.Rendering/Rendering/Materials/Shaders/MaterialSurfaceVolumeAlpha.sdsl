@@ -3,48 +3,14 @@
 namespace Stride.Rendering.Materials
 {
     /// <summary>
-    /// Sets how much of a see-through material whose opacity grows with thickness blends over the scene behind.
-    /// An absorbing body was already applied to the scene by the forward renderer, so only the surface (reflections) blends.
-    /// A scattering body blends its lit colour by the opacity of the whole ray, shared between the front faces on the pixel;
-    /// a back face blends only when no front face is drawn, as for a camera inside the volume.
-    /// Without the thickness pass the sums are zero and the material blends with its alpha as usual.
+    /// Sets how much of a see-through volume blends over the scene behind: a scattering body by the opacity of its optical depth,
+    /// an absorbing one not at all, as its transmittance pass already filtered the scene and only its surface blends here.
     /// </summary>
-    shader MaterialSurfaceVolumeAlpha : IMaterialSurfacePixel, MaterialPixelStream, ShaderBaseStream
+    shader MaterialSurfaceVolumeAlpha : IMaterialSurfacePixel, MaterialVolumeOpticalDepth
     {
-        cbuffer PerMaterial
-        {
-            [Link("MaterialVolume.Scattering")]
-            stage float VolumeScatteringMedium;
-        }
-
-        rgroup PerView.VolumeAbsorbing
-        {
-            stage Texture2D VolumeAbsorbing;
-        }
-
-        rgroup PerView.VolumeScattering
-        {
-            stage Texture2D VolumeScattering;
-        }
-
         override void Compute()
         {
-            int3 pixel = int3((int2)streams.ShadingPosition.xy, 0);
-            float4 scattering = VolumeScattering.Load(pixel);
-            float frontFaces = scattering.r;
-
-            if (VolumeScatteringMedium > 0)
-            {
-                // Back faces are culled by hand: they only stand in for a front face the camera is behind
-                bool drawn = streams.IsFrontFace || (frontFaces < 0.5 && scattering.a > 0);
-                clip(drawn ? 1 : -1);
-                if (scattering.a > 0)
-                    streams.matDiffuseSpecularAlphaBlend.r = 1 - exp(-scattering.a / max(frontFaces, 1));
-            }
-            else if (VolumeAbsorbing.Load(pixel).a > 0)
-            {
-                streams.matDiffuseSpecularAlphaBlend.r = 0;
-            }
+            streams.matDiffuseSpecularAlphaBlend.r = VolumeMediumScattering * (1 - exp(-ComputeVolumeOpticalDepth()));
         }
     };
 }

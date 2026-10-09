@@ -22,6 +22,12 @@ namespace Stride.Rendering.Materials
         // Alpha a volume is clamped to, so a fully opaque one still has a finite absorption
         private const float MaxVolumeAlpha = 0.999f;
 
+        // The pass that draws a volume's back faces, after its front faces
+        internal const int VolumeBackFacePass = 1;
+
+        // Body passes, front then back faces; an absorbing body's surface comes after
+        private const int VolumeBodyPassCount = 2;
+
         private static readonly MaterialStreamDescriptor AlphaBlendStream = new MaterialStreamDescriptor("DiffuseSpecularAlphaBlend", "matDiffuseSpecularAlphaBlend", MaterialKeys.DiffuseSpecularAlphaBlendValue.PropertyType);
 
         private static readonly MaterialStreamDescriptor AlphaBlendColorStream = new MaterialStreamDescriptor("DiffuseSpecularAlphaBlend - Color", "matAlphaBlendColor", MaterialKeys.AlphaBlendColorValue.PropertyType);
@@ -66,8 +72,11 @@ namespace Stride.Rendering.Materials
         /// <summary>
         /// Gets or sets the thickness, in world units, that is as opaque as <see cref="Alpha"/>; 0 keeps the same opacity whatever the thickness.
         /// </summary>
-        /// <remarks>Needs a <c>VolumeThicknessRenderStage</c> on the forward renderer; without one the material blends with its alpha as usual.</remarks>
-        /// <userdoc>How thick the material is when it is as opaque as its alpha. Thicker parts get more opaque, thinner parts clearer. 0 turns it off.</userdoc>
+        /// <remarks>
+        /// The mesh must be closed; the volume ends where it goes into the opaque scene. Needs a <c>VolumeThicknessRenderStage</c>
+        /// on the forward renderer; without one the material blends with its alpha as usual.
+        /// </remarks>
+        /// <userdoc>How thick the material is when it is as opaque as its alpha. Thicker parts get more opaque, thinner parts clearer. 0 turns it off. The mesh must be closed.</userdoc>
         [DataMember(40)]
         [DataMemberRange(0.0, 3)]
         public float OpacityThickness { get; set; }
@@ -79,12 +88,12 @@ namespace Stride.Rendering.Materials
         [DataMember(50)]
         public MaterialVolumeMedium Medium { get; set; }
 
-        /// <summary>
-        /// Gets or sets whether the mesh is an open surface, such as a water plane, rather than a closed volume.
-        /// </summary>
-        /// <userdoc>For a surface with nothing under it, such as a water plane: the volume ends at the scene behind it.</userdoc>
-        [DataMember(60)]
-        public bool OpenSurface { get; set; }
+        public override void MultipassGeneration(MaterialGeneratorContext context)
+        {
+            // The body's front faces, then its back faces (only drawn with the camera inside), then an absorbing body's surface
+            if (OpacityThickness > 0)
+                context.SetMultiplePasses("Volume", Medium == MaterialVolumeMedium.Absorbing ? 3 : 2);
+        }
 
         public override void GenerateShader(MaterialGeneratorContext context)
         {
@@ -111,13 +120,30 @@ namespace Stride.Rendering.Materials
                 var alphaValue = alpha is ComputeFloat constantAlpha ? MathUtil.Clamp(constantAlpha.Value, 0f, MaxVolumeAlpha) : 0.5f;
                 var tintValue = tint is ComputeColor constantTint ? (Color3)constantTint.Value.ToColorSpace(context.ColorSpace) : new Color3(1f);
                 context.MaterialPass.Parameters.Set(MaterialVolumeKeys.Absorption, -MathF.Log(1f - alphaValue) / OpacityThickness);
-                context.MaterialPass.Parameters.Set(MaterialVolumeKeys.Tint, tintValue);
+                // Each channel lets 1 - alpha (1 - tint) through per OpacityThickness, so thicknesses multiply exactly
+                var greyAbsorption = MathF.Log(1f - alphaValue);
+                var channelAbsorption = alphaValue > 0
+                    ? new Color3(MathF.Log(1f - alphaValue * (1f - tintValue.R)), MathF.Log(1f - alphaValue * (1f - tintValue.G)), MathF.Log(1f - alphaValue * (1f - tintValue.B))) * (1f / greyAbsorption)
+                    : new Color3(1f) - tintValue;
+                context.MaterialPass.Parameters.Set(MaterialVolumeKeys.ChannelAbsorption, channelAbsorption);
                 context.MaterialPass.Parameters.Set(MaterialVolumeKeys.Scattering, Medium == MaterialVolumeMedium.Scattering ? 1f : 0f);
-                context.MaterialPass.Parameters.Set(MaterialVolumeKeys.OpenSurface, OpenSurface ? 1f : 0f);
-                // A scattering body is seen from inside through its back faces
-                if (Medium == MaterialVolumeMedium.Scattering)
-                    context.MaterialPass.CullMode ??= CullMode.None;
-                context.AddShaderSource(MaterialShaderStage.Pixel, new ShaderClassSource("MaterialSurfaceVolumeAlpha"));
+
+                if (context.PassIndex < VolumeBodyPassCount)
+                    context.MaterialPass.CullMode = context.PassIndex == VolumeBackFacePass ? CullMode.Front : CullMode.Back;
+
+                if (Medium == MaterialVolumeMedium.Absorbing && context.PassIndex < VolumeBodyPassCount)
+                {
+                    // The body multiplies what is behind it, unlit
+                    var blendState = new BlendStateDescription(Blend.Zero, Blend.SourceColor);
+                    blendState.RenderTargets[0].AlphaSourceBlend = Blend.Zero;
+                    blendState.RenderTargets[0].AlphaDestinationBlend = Blend.One;
+                    context.MaterialPass.BlendState = blendState;
+                    context.AddFinalCallback(MaterialShaderStage.Pixel, AddVolumeTransmittance, ShadingColorAlphaFinalCallbackOrder + 1);
+                }
+                else
+                {
+                    context.AddShaderSource(MaterialShaderStage.Pixel, new ShaderClassSource("MaterialSurfaceVolumeAlpha"));
+                }
             }
 
             context.MaterialPass.Parameters.Set(MaterialKeys.UsePixelShaderWithDepthPass, true);
@@ -136,6 +162,12 @@ namespace Stride.Rendering.Materials
         private void AddDiffuseSpecularAlphaBlendColor(MaterialShaderStage stage, MaterialGeneratorContext context)
         {
             context.AddShaderSource(MaterialShaderStage.Pixel, new ShaderClassSource("MaterialSurfaceDiffuseSpecularAlphaBlendColor"));
+        }
+
+        private static void AddVolumeTransmittance(MaterialShaderStage stage, MaterialGeneratorContext context)
+        {
+            context.AddShaderSource(stage, new ShaderClassSource("MaterialSurfaceVolumeTransmittance"));
+            context.MaterialPass.IsLightDependent = false;
         }
     }
 }

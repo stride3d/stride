@@ -14,13 +14,10 @@ namespace Stride.Rendering.Materials
         /// <summary>The absorption per world unit; 0 for a material whose opacity does not depend on thickness.</summary>
         public static readonly ValueParameterKey<float> Absorption = ParameterKeys.NewValue<float>();
 
-        /// <summary>The colour of the medium: what it filters to when absorbing, or fades to when scattering.</summary>
-        public static readonly ValueParameterKey<Color3> Tint = ParameterKeys.NewValue<Color3>(new Color3(1f));
+        /// <summary>The absorption of each colour channel of an absorbing medium, as a factor of <see cref="Absorption"/>: 0 lets the channel through.</summary>
+        public static readonly ValueParameterKey<Color3> ChannelAbsorption = ParameterKeys.NewValue<Color3>(new Color3(1f));
 
-        /// <summary>1 when the medium scatters light towards its tint, as water or fog; 0 when it only filters, as tinted glass.</summary>
+        /// <summary>1 when the medium shows its lit colour, as water or fog; 0 when it only filters what is behind, as tinted glass.</summary>
         public static readonly ValueParameterKey<float> Scattering = ParameterKeys.NewValue<float>();
-
-        /// <summary>1 when the mesh is an open surface, such as a water plane, whose volume ends at the opaque scene behind it.</summary>
-        public static readonly ValueParameterKey<float> OpenSurface = ParameterKeys.NewValue<float>();
     }
 }

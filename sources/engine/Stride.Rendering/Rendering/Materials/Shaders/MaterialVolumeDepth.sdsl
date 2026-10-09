@@ -1,0 +1,41 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+namespace Stride.Rendering.Materials
+{
+    /// <summary>
+    /// View depths and ray lengths shared by the thickness pass and the materials whose opacity grows with thickness,
+    /// for perspective and orthographic cameras.
+    /// </summary>
+    shader MaterialVolumeDepth : Transformation, DepthBase
+    {
+        // Smallest view depth a ray is divided by
+        static const float MinDepth = 1e-4;
+        // Relative depth by which a face behind the opaque scene still counts as on it: a face resting on it, such as a block's bottom
+        static const float CoplanarTolerance = 1e-3;
+        // Face counts are stored in 8-bit unsigned normalized channels; a hidden front face counts HiddenFaceWeight
+        static const float FaceCountSteps = 255;
+        static const float HiddenFaceWeight = 16;
+
+        // An orthographic projection keeps w at 1
+        bool IsOrthographic()
+        {
+            return Projection[3][3] > 0.5;
+        }
+
+        float VolumeLinearDepth(float zProj)
+        {
+            return IsOrthographic() ? NearClipPlane + zProj * (FarClipPlane - NearClipPlane) : ComputeDepthFromZProj(zProj);
+        }
+
+        float VolumeSceneDepth(int2 pixel)
+        {
+            return VolumeLinearDepth(GetZProjDepthFromScreenPosition(pixel));
+        }
+
+        // Distance along the pixel's ray per unit of view depth, the same for every face on it
+        float VolumeRayPerDepth(float3 positionWS, float depth)
+        {
+            return IsOrthographic() ? 1 : length(positionWS - Eye.xyz) / max(depth, MinDepth);
+        }
+    };
+}

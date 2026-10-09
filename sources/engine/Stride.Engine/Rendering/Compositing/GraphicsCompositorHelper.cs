@@ -24,7 +24,7 @@ namespace Stride.Rendering.Compositing
         public static GraphicsCompositor CreateDefault(bool enablePostEffects, string modelEffectName = "StrideForwardShadingEffect", CameraComponent camera = null, Color4? clearColor = null, GraphicsProfile graphicsProfile = GraphicsProfile.Level_10_0, RenderGroupMask groupMask = RenderGroupMask.All)
         {
             var opaqueRenderStage = new RenderStage("Opaque", "Main") { SortMode = new StateChangeSortMode() };
-            var transparentRenderStage = new RenderStage("Transparent", "Main") { SortMode = new BackToFrontSortMode() };
+            var transparentRenderStage = new RenderStage("Transparent", "Main") { SortMode = new BackToFrontSortMode(), Filter = new VolumeBackFaceRenderStageFilter() };
             var shadowCasterRenderStage = new RenderStage("ShadowMapCaster", "ShadowMapCaster") { SortMode = new FrontToBackSortMode() };
             var shadowCasterCubeMapRenderStage = new RenderStage("ShadowMapCasterCubeMap", "ShadowMapCasterCubeMap") { SortMode = new FrontToBackSortMode() };
             var shadowCasterParaboloidRenderStage = new RenderStage("ShadowMapCasterParaboloid", "ShadowMapCasterParaboloid") { SortMode = new FrontToBackSortMode() };
@@ -177,7 +177,7 @@ namespace Stride.Rendering.Compositing
                             new ShadowMeshPipelineProcessor { ShadowMapRenderStage = shadowCasterRenderStage },
                             new ShadowMeshPipelineProcessor { ShadowMapRenderStage = shadowCasterParaboloidRenderStage, DepthClipping = true },
                             new ShadowMeshPipelineProcessor { ShadowMapRenderStage = shadowCasterCubeMapRenderStage, DepthClipping = true },
-                            new VolumeThicknessPipelineProcessor { VolumeThicknessRenderStage = volumeThicknessRenderStage },
+                            new VolumeThicknessPipelineProcessor { VolumeThicknessRenderStage = volumeThicknessRenderStage, TransparentRenderStage = transparentRenderStage },
                         },
                     },
                     new SpriteRenderFeature

@@ -1,0 +1,21 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+namespace Stride.Rendering.Materials
+{
+    /// <summary>
+    /// Outputs the transmittance of an absorbing body, per colour channel, for a multiplicative blend over what is behind it.
+    /// </summary>
+    shader MaterialSurfaceVolumeTransmittance : IMaterialSurfacePixel, MaterialPixelShadingStream, MaterialVolumeOpticalDepth
+    {
+        cbuffer PerMaterial
+        {
+            [Link("MaterialVolume.ChannelAbsorption")]
+            stage float3 VolumeChannelAbsorption;
+        }
+
+        override void Compute()
+        {
+            streams.shadingColor = exp(-ComputeVolumeOpticalDepth() * VolumeChannelAbsorption);
+        }
+    };
+}

@@ -14,7 +14,7 @@ namespace Stride.Rendering.Materials
         /// <summary>Filters what is behind through the tint, darker the thicker: tinted glass.</summary>
         Absorbing,
 
-        /// <summary>Fades what is behind to the tint, the thicker the more: water, fog.</summary>
+        /// <summary>Fades what is behind to the material's lit colour, the thicker the more: water, fog.</summary>
         Scattering,
     }
 }

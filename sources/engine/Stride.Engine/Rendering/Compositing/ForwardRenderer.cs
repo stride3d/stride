@@ -29,21 +29,10 @@ namespace Stride.Rendering.Compositing
         private static readonly ProfilingKey DrawCoreKey = new ProfilingKey("ForwardRenderer.DrawCore");
         private static readonly ProfilingKey VolumeThicknessProfilingKey = new ProfilingKey("Compositing.VolumeThickness");
 
-        // Optical depth is a difference of large depths, summed: full float precision
-        private const PixelFormat VolumeThicknessFormat = PixelFormat.R32G32B32A32_Float;
-
-        // The absorbing sum multiplies the scene. Alpha keeps the destination: colour factors are not allowed for alpha.
-        private static readonly BlendStateDescription VolumeAbsorbBlend = CreateVolumeAbsorbBlend();
-
-        private static BlendStateDescription CreateVolumeAbsorbBlend()
-        {
-            var blend = new BlendStateDescription(Blend.Zero, Blend.SourceColor);
-            blend.RenderTargets[0].AlphaSourceBlend = Blend.Zero;
-            blend.RenderTargets[0].AlphaDestinationBlend = Blend.One;
-            return blend;
-        }
-
-        private ImageEffectShader volumeComposite;
+        // Optical depth is a difference of large depths, summed: full float precision, absorbing and scattering apart.
+        // Face counts, front and back for each, are small integers in steps of 1/255.
+        private const PixelFormat VolumeOpticalDepthFormat = PixelFormat.R32G32_Float;
+        private const PixelFormat VolumeFacesFormat = PixelFormat.R8G8B8A8_UNorm;
 
         // TODO: should we use GraphicsDeviceManager.PreferredBackBufferFormat?
         public const PixelFormat DepthBufferFormat = PixelFormat.D24_UNorm_S8_UInt;
@@ -152,8 +141,6 @@ namespace Stride.Rendering.Compositing
         protected override void InitializeCore()
         {
             base.InitializeCore();
-
-            volumeComposite = ToLoadAndUnload(new ImageEffectShader("VolumeAbsorptionCompositeEffect"));
 
             shadowMapRenderer = Context.RenderSystem.RenderFeatures.OfType<MeshRenderFeature>().FirstOrDefault()?.RenderFeatures.OfType<ForwardLightingRenderFeature>().FirstOrDefault()?.ShadowMapRenderer;
 
@@ -265,7 +252,7 @@ namespace Stride.Rendering.Compositing
 
             if (VolumeThicknessRenderStage != null)
             {
-                VolumeThicknessRenderStage.Output = new RenderOutputDescription(VolumeThicknessFormat) { RenderTargetCount = 2, RenderTargetFormat1 = VolumeThicknessFormat };
+                VolumeThicknessRenderStage.Output = new RenderOutputDescription(VolumeOpticalDepthFormat) { RenderTargetCount = 2, RenderTargetFormat1 = VolumeFacesFormat };
             }
         }
 
@@ -590,15 +577,15 @@ namespace Stride.Rendering.Compositing
 
                         var renderTargetSRV = ResolveRenderTargetAsSRV(drawContext);
 
-                        var (volumeAbsorbing, volumeScattering) = DrawVolumeThickness(drawContext, depthStencilSRV);
+                        var (volumeOpticalDepth, volumeFaces) = DrawVolumeThickness(drawContext, depthStencilSRV);
 
                         SetTransparentStageRenderTargets(drawContext);
 
                         renderSystem.Draw(drawContext, context.RenderView, TransparentRenderStage);
 
                         Context.Allocator.ReleaseReference(renderTargetSRV);
-                        Context.Allocator.ReleaseReference(volumeAbsorbing);
-                        Context.Allocator.ReleaseReference(volumeScattering);
+                        Context.Allocator.ReleaseReference(volumeOpticalDepth);
+                        Context.Allocator.ReleaseReference(volumeFaces);
                     }
                 }
 
@@ -870,11 +857,11 @@ namespace Stride.Rendering.Compositing
         }
 
         /// <summary>
-        /// Sums the optical depth of the see-through volumes in view and applies the absorbing one to the opaque scene behind them,
-        /// then binds the sums for their materials: absorbing ones leave their body out of their own blending, scattering ones blend by it.
+        /// Sums the optical depth of the see-through volumes in view and counts their faces, then binds them for their materials,
+        /// which blend their share in the transparent stage.
         /// </summary>
-        /// <returns>The two sums, to release once the transparent stage is drawn; null when there was nothing to draw.</returns>
-        private (Texture Absorbing, Texture Scattering) DrawVolumeThickness(RenderDrawContext drawContext, Texture depthStencilSRV)
+        /// <returns>The targets, to release once the transparent stage is drawn; null when there was nothing to draw.</returns>
+        private (Texture OpticalDepth, Texture Faces) DrawVolumeThickness(RenderDrawContext drawContext, Texture depthStencilSRV)
         {
             var renderView = drawContext.RenderContext.RenderView;
             if (VolumeThicknessRenderStage == null || depthStencilSRV == null || !HasRenderNodes(renderView, VolumeThicknessRenderStage))
@@ -882,38 +869,32 @@ namespace Stride.Rendering.Compositing
 
             var commandList = drawContext.CommandList;
             var colorTarget = commandList.RenderTargets[0];
-            var description = TextureDescription.New2D(colorTarget.ViewWidth, colorTarget.ViewHeight, VolumeThicknessFormat, TextureFlags.RenderTarget | TextureFlags.ShaderResource);
-            var absorbing = Context.Allocator.GetTemporaryTexture2D(description);
-            var scattering = Context.Allocator.GetTemporaryTexture2D(description);
+            var opticalDepth = Context.Allocator.GetTemporaryTexture2D(TextureDescription.New2D(colorTarget.ViewWidth, colorTarget.ViewHeight, VolumeOpticalDepthFormat, TextureFlags.RenderTarget | TextureFlags.ShaderResource));
+            var faces = Context.Allocator.GetTemporaryTexture2D(TextureDescription.New2D(colorTarget.ViewWidth, colorTarget.ViewHeight, VolumeFacesFormat, TextureFlags.RenderTarget | TextureFlags.ShaderResource));
 
             using (drawContext.QueryManager.BeginProfile(Color.Green, VolumeThicknessProfilingKey))
             using (drawContext.PushRenderTargetsAndRestore())
             {
-                commandList.ResourceBarrierTransition(absorbing, BarrierLayout.RenderTarget);
-                commandList.ResourceBarrierTransition(scattering, BarrierLayout.RenderTarget);
-                commandList.Clear(absorbing, new Color4(0, 0, 0, 0));
-                commandList.Clear(scattering, new Color4(0, 0, 0, 0));
-                commandList.SetRenderTargetsAndViewport(null, absorbing, scattering);
+                commandList.ResourceBarrierTransition(opticalDepth, BarrierLayout.RenderTarget);
+                commandList.ResourceBarrierTransition(faces, BarrierLayout.RenderTarget);
+                commandList.Clear(opticalDepth, new Color4(0, 0, 0, 0));
+                commandList.Clear(faces, new Color4(0, 0, 0, 0));
+                commandList.SetRenderTargetsAndViewport(null, opticalDepth, faces);
                 drawContext.RenderContext.RenderSystem.Draw(drawContext, renderView, VolumeThicknessRenderStage);
-
-                volumeComposite.SetInput(0, absorbing);
-                volumeComposite.SetOutput(colorTarget);
-                volumeComposite.BlendState = VolumeAbsorbBlend;
-                volumeComposite.Draw(drawContext, "VolumeAbsorbing");
             }
 
-            commandList.ResourceBarrierTransition(absorbing, BarrierLayout.ShaderResource);
-            commandList.ResourceBarrierTransition(scattering, BarrierLayout.ShaderResource);
+            commandList.ResourceBarrierTransition(opticalDepth, BarrierLayout.ShaderResource);
+            commandList.ResourceBarrierTransition(faces, BarrierLayout.ShaderResource);
             foreach (var renderFeature in drawContext.RenderContext.RenderSystem.RenderFeatures)
             {
                 if (renderFeature is RootRenderFeature rootRenderFeature)
                 {
-                    rootRenderFeature.BindPerViewShaderResource("VolumeAbsorbing", renderView, absorbing);
-                    rootRenderFeature.BindPerViewShaderResource("VolumeScattering", renderView, scattering);
+                    rootRenderFeature.BindPerViewShaderResource("VolumeOpticalDepth", renderView, opticalDepth);
+                    rootRenderFeature.BindPerViewShaderResource("VolumeFaces", renderView, faces);
                 }
             }
 
-            return (absorbing, scattering);
+            return (opticalDepth, faces);
         }
 
         private static bool HasRenderNodes(RenderView renderView, RenderStage renderStage)
@@ -1024,7 +1005,6 @@ namespace Stride.Rendering.Compositing
         {
             PostEffects?.Dispose();
             depthStencilROCached?.Dispose();
-            volumeComposite?.Dispose();
         }
 
         [StructLayout(LayoutKind.Sequential)]
