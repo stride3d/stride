@@ -79,5 +79,10 @@ namespace Stride.Rendering.Voxels
             }
             return true;
         }
+        public RenderOutputDescription GetRenderOutput(GraphicsDevice device)
+        {
+            // The passes are the ones of the three axis methods, which render with the same output
+            return axisX.GetRenderOutput(device);
+        }
     }
 }

@@ -51,6 +51,10 @@ namespace Stride.Rendering.Voxels
         {
             return Equals(obj);
         }
+        public RenderOutputDescription GetRenderOutput(GraphicsDevice device)
+        {
+            return new RenderOutputDescription(PixelFormat.R8G8B8A8_UNorm, PixelFormat.None, VoxelUtils.GetSupportedMultisampleCount(device, PixelFormat.R8G8B8A8_UNorm, MultisampleCount));
+        }
         public override int GetHashCode()
         {
             return MultisampleCount.GetHashCode();
@@ -107,9 +111,10 @@ namespace Stride.Rendering.Voxels
             RenderView voxelizationView = view;
             Int2 ViewSize = VoxelizationViewSizes[view];
 
-            if (VoxelUtils.DisposeTextureBySpecs(MSAARenderTarget, new Vector3(ViewSize.X, ViewSize.Y, 1), PixelFormat.R8G8B8A8_UNorm, MultisampleCount))
+            var multisampleCount = VoxelUtils.GetSupportedMultisampleCount(storageContext.device, PixelFormat.R8G8B8A8_UNorm, MultisampleCount);
+            if (VoxelUtils.DisposeTextureBySpecs(MSAARenderTarget, new Vector3(ViewSize.X, ViewSize.Y, 1), PixelFormat.R8G8B8A8_UNorm, multisampleCount))
             {
-                MSAARenderTarget = Texture.New(storageContext.device, TextureDescription.New2D(ViewSize.X, ViewSize.Y, new MipMapCount(false), PixelFormat.R8G8B8A8_UNorm, TextureFlags.RenderTarget, 1, GraphicsResourceUsage.Default, MultisampleCount), null);
+                MSAARenderTarget = Texture.New(storageContext.device, TextureDescription.New2D(ViewSize.X, ViewSize.Y, new MipMapCount(false), PixelFormat.R8G8B8A8_UNorm, TextureFlags.RenderTarget, 1, GraphicsResourceUsage.Default, multisampleCount), null);
             }
 
             drawContext.CommandList.ResetTargets();
