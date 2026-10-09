@@ -181,6 +181,8 @@ namespace Stride.Rendering.Voxels
                     foreach(var pass in processedVolume.groupedPasses[group])
                     {
                         pass.renderStage = VoxelStages[group];
+                        // The passes of a group share their method's render target (CanShareRenderStage)
+                        pass.renderStage.Output = pass.method.GetRenderOutput(Context.GraphicsDevice);
                         pass.source = pass.storer.GetVoxelizationShader(pass, processedVolume);
                         pass.view.RenderStages.Add(pass.renderStage);
 
@@ -221,7 +223,8 @@ namespace Stride.Rendering.Voxels
                         {
                             RenderView voxelizeRenderView = pass.view;
 
-                            if (pass.requireShadows)
+                            // Like Collect, a compositor without shadow map renderer renders no shadows
+                            if (pass.requireShadows && ShadowMapRenderer != null)
                             {
                                 //Render Shadow Maps
                                 RenderView oldView = drawContext.RenderContext.RenderView;
