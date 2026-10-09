@@ -43,7 +43,7 @@ internal class StrideVersion
     /// The patch within <see cref="MajorMinor"/>, so the version is MajorMinor.Patch. Bumped per stable release
     /// (release.yml). A patch bump is also what gates asset upgraders, so bump it whenever the asset format changes.
     /// </summary>
-    public const string Patch = "0";
+    public const string Patch = "1";
 
     /// <summary>
     /// The prerelease suffix (e.g. -beta1), a cosmetic, NuGet-ordered label — asset upgraders ignore it (they gate on
