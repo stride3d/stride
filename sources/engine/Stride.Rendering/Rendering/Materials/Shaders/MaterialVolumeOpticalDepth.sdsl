@@ -39,6 +39,9 @@ namespace Stride.Rendering.Materials
             stage Texture2D VolumeFarthest;
         }
 
+        // The volume's density averaged over the face's segment, which scales its optical depth
+        stage stream float matVolumeDensity;
+
         // Relative depth under which two faces are taken as the same, as half floats store the nearest and farthest depths
         static const float SameDepthTolerance = 2e-3;
 

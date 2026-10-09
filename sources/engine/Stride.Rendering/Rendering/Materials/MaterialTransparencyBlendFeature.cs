@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using System.ComponentModel;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
@@ -88,6 +89,15 @@ namespace Stride.Rendering.Materials
         [DataMember(50)]
         public MaterialVolumeMedium Medium { get; set; }
 
+        /// <summary>
+        /// Gets or sets the density of the medium at each point of the volume, as a factor of its opacity; uniform when null.
+        /// </summary>
+        /// <remarks>Evaluated with <c>streams.PositionWS</c> at points along each pixel's ray through the volume, for noise, gradients or animated gas.</remarks>
+        /// <userdoc>How dense the medium is at each point of the volume, as a factor of its opacity: a texture, a value or a shader of the world position. Empty means the same density everywhere.</userdoc>
+        [DataMember(55)]
+        [DefaultValue(null)]
+        public IComputeScalar Density { get; set; }
+
         public override void MultipassGeneration(MaterialGeneratorContext context)
         {
             // The body's front faces, then its back faces (only drawn with the camera inside), then an absorbing body's surface
@@ -130,6 +140,19 @@ namespace Stride.Rendering.Materials
 
                 if (context.PassIndex < VolumeBodyPassCount)
                     context.MaterialPass.CullMode = context.PassIndex == VolumeBackFacePass ? CullMode.Front : CullMode.Back;
+
+                // The body passes average the density along their segment; an absorbing body's surface pass needs none
+                if (Density != null && context.PassIndex < VolumeBodyPassCount)
+                {
+                    var density = new ShaderMixinSource();
+                    density.Mixins.Add(new ShaderClassSource("MaterialSurfaceVolumeDensity"));
+                    density.AddComposition("densityMap", Density.GenerateShaderSource(context, new MaterialComputeColorKeys(MaterialVolumeKeys.DensityMap, MaterialVolumeKeys.DensityValue, Color.White)));
+                    context.AddShaderSource(MaterialShaderStage.Pixel, density);
+                }
+                else
+                {
+                    context.AddShaderSource(MaterialShaderStage.Pixel, new ShaderClassSource("MaterialSurfaceVolumeUniformDensity"));
+                }
 
                 if (Medium == MaterialVolumeMedium.Absorbing && context.PassIndex < VolumeBodyPassCount)
                 {

@@ -15,7 +15,7 @@ namespace Stride.Rendering.Materials
 
         override void Compute()
         {
-            streams.shadingColor = exp(-ComputeVolumeOpticalDepth() * VolumeChannelAbsorption);
+            streams.shadingColor = exp(-ComputeVolumeOpticalDepth() * streams.matVolumeDensity * VolumeChannelAbsorption);
         }
     };
 }

@@ -15,7 +15,7 @@ namespace Stride.Rendering.Materials
         override void Compute()
         {
             streams.normalWS = lerp(streams.normalWS, streams.IsFrontFace ? MediumNormal : -MediumNormal, VolumeMediumScattering);
-            streams.matDiffuseSpecularAlphaBlend.r = VolumeMediumScattering * (1 - exp(-ComputeVolumeOpticalDepth()));
+            streams.matDiffuseSpecularAlphaBlend.r = VolumeMediumScattering * (1 - exp(-ComputeVolumeOpticalDepth() * streams.matVolumeDensity));
         }
     };
 }
