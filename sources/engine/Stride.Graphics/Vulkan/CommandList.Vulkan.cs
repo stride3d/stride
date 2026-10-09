@@ -26,13 +26,9 @@ namespace Stride.Graphics
         private PipelineState activePipeline;
         private bool pipelineDirty = true;
 
-        // Per-CB layout state. Stride's per-Texture NativeLayout is a single shared field mutated
-        // by every CB's ResourceBarrierTransition calls in arbitrary order, which disagrees with
-        // Vulkan's per-execution-order layout tracking when CBs record concurrently. This map
-        // remembers what layout THIS CB believes each texture holds for the draws it records.
-        // Cleared on Reset. The first touch of a texture in a CB still falls back to NativeLayout —
-        // that's a known limitation to be addressed by adding a "last-submitted layout" tracker.
-        private readonly Dictionary<Texture, BarrierLayout> currentCbLayouts = new();
+        // Layout of each subresource as this CB sees it, and what it assumed on first touch; handed to the compiled
+        // command list on Close so submission can correct the assumptions (GraphicsDevice.ReconcileImageLayouts).
+        private Dictionary<Texture, CommandBufferImageLayouts> currentCbLayouts = new();
 
         /// <summary>
         ///   The last access this command buffer synchronised each buffer against.
@@ -137,6 +133,8 @@ namespace Stride.Graphics
             activePipeline = null;
 
             var result = currentCommandList;
+            result.ImageLayouts = currentCbLayouts;
+            currentCbLayouts = new();
             currentCommandList = default;
             return result;
         }
@@ -386,7 +384,7 @@ namespace Stride.Graphics
                             // this CB understands it. Use the per-CB map rather than texture.NativeLayout
                             // (which can be mutated by other CBs recording concurrently).
                             var parent = texture?.ParentTexture ?? texture;
-                            var perCb = parent != null && currentCbLayouts.TryGetValue(parent, out var l) ? (BarrierLayout?)l : null;
+                            var perCb = parent != null ? KnownLayout(texture) : null;
                             // Sampling the depth buffer while it is bound as a read-only attachment:
                             // the image rides in DepthStencilReadOnlyOptimal, including on worker
                             // command lists that did not record the transition themselves.
@@ -509,50 +507,65 @@ namespace Stride.Graphics
 
             if (resource is Texture texture)
             {
-                if (texture.ParentTexture != null)
-                    texture = texture.ParentTexture;
-
-                // Resolve "from" layout for THIS CB. If we've already transitioned the texture in
-                // this CB, use that; otherwise assume the last-submitted global state (NativeLayout).
-                // This keeps the barrier's oldLayout accurate even when other CBs have mutated the
-                // global tracker concurrently.
-                VkImageLayout oldLayout;
-                VkAccessFlags oldAccessMask;
-                VkPipelineStageFlags sourceStages;
-                if (currentCbLayouts.TryGetValue(texture, out var fromLayout))
-                {
-                    if (fromLayout == newLayout)
-                        return; // already at target in this CB
-                    oldLayout = BarrierMapping.ToVkImageLayout(fromLayout);
-                    oldAccessMask = BarrierMapping.ToVkAccessFlags(fromLayout);
-                    sourceStages = BarrierMapping.ToVkPipelineStageFlags(fromLayout);
-                }
-                else
-                {
-                    oldLayout = texture.NativeLayout;
-                    oldAccessMask = texture.NativeAccessMask;
-                    sourceStages = texture.NativePipelineStageMask;
-                }
+                var parent = texture.ParentTexture ?? texture;
+                var (firstMip, mipCount, firstLayer, layerCount) = SubresourceRange(texture, subresource);
+                var layouts = ImageLayouts(parent);
 
                 var newVkLayout = BarrierMapping.ToVkImageLayout(newLayout);
                 var newAccessMask = BarrierMapping.ToVkAccessFlags(newLayout);
                 var newStages = BarrierMapping.ToVkPipelineStageFlags(newLayout);
 
-                // Update per-CB map, global state, and subresource tracker together
-                currentCbLayouts[texture] = newLayout;
-                texture.NativeLayout = newVkLayout;
-                texture.NativeAccessMask = newAccessMask;
-                texture.NativePipelineStageMask = newStages;
-                texture.LayoutTracker.Set(uint.MaxValue, newLayout);
+                // One barrier per subresource not yet in the layout; merged into a whole-image barrier when they share a source layout
+                var total = mipCount * layerCount;
+                var barriers = total <= 64 ? stackalloc VkImageMemoryBarrier[total] : new VkImageMemoryBarrier[total];
+                var barrierCount = 0;
+                var sourceStages = VkPipelineStageFlags.None;
+                BarrierLayout? commonFrom = null;
+                var mixed = false;
+                for (int layer = firstLayer; layer < firstLayer + layerCount; layer++)
+                {
+                    for (int mip = firstMip; mip < firstMip + mipCount; mip++)
+                    {
+                        var index = layer * parent.MipLevelCount + mip;
+                        var from = CurrentLayout(parent, layouts, index);
+                        if (from == newLayout)
+                            continue;
 
-                if (oldLayout == VkImageLayout.Undefined || oldLayout == VkImageLayout.PresentSrcKHR)
-                    sourceStages = VkPipelineStageFlags.TopOfPipe;
+                        var oldLayout = BarrierMapping.ToVkImageLayout(from);
+                        sourceStages |= oldLayout == VkImageLayout.Undefined || oldLayout == VkImageLayout.PresentSrcKHR
+                            ? VkPipelineStageFlags.TopOfPipe
+                            : BarrierMapping.ToVkPipelineStageFlags(from);
+                        barriers[barrierCount++] = new VkImageMemoryBarrier(parent.NativeImage,
+                            new VkImageSubresourceRange(parent.NativeImageAspect, (uint)mip, 1, (uint)layer, 1),
+                            BarrierMapping.ToVkAccessFlags(from), newAccessMask, oldLayout, newVkLayout);
+                        mixed |= commonFrom is { } common && common != from;
+                        commonFrom = from;
+                        layouts.Current[index] = newLayout;
+                        parent.LayoutTracker.Set((uint)index, newLayout);
+                    }
+                }
+                if (barrierCount == 0)
+                    return; // already at target in this CB
+
+                if (barrierCount == parent.MipLevelCount * parent.ArraySize && !mixed)
+                {
+                    barriers[0].subresourceRange = new VkImageSubresourceRange(parent.NativeImageAspect, 0, uint.MaxValue, 0, uint.MaxValue);
+                    barrierCount = 1;
+                }
+
+                // The copy paths still read the whole-image layout from these fields
+                if (barrierCount == 1 && firstMip == 0 && mipCount == parent.MipLevelCount && firstLayer == 0 && layerCount == parent.ArraySize)
+                {
+                    parent.NativeLayout = newVkLayout;
+                    parent.NativeAccessMask = newAccessMask;
+                    parent.NativePipelineStageMask = newStages;
+                }
 
                 // End render pass, so barrier affects all commands in the buffer
                 CleanupRenderPass();
 
-                var memoryBarrier = new VkImageMemoryBarrier(texture.NativeImage, new VkImageSubresourceRange(texture.NativeImageAspect, 0, uint.MaxValue, 0, uint.MaxValue), oldAccessMask, newAccessMask, oldLayout, newVkLayout);
-                GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, sourceStages, newStages, VkDependencyFlags.None, 0, null, 0, null, 1, &memoryBarrier);
+                fixed (VkImageMemoryBarrier* barrierPointer = barriers)
+                    GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, sourceStages, newStages, VkDependencyFlags.None, 0, null, 0, null, (uint)barrierCount, barrierPointer);
             }
             else if (resource is Buffer buffer)
             {
@@ -609,7 +622,76 @@ namespace Stride.Graphics
             texture.NativeAccessMask = BarrierMapping.ToVkAccessFlags(transferLayout);
             texture.NativePipelineStageMask = BarrierMapping.ToVkPipelineStageFlags(transferLayout);
             texture.LayoutTracker.Set(uint.MaxValue, transferLayout);
-            currentCbLayouts[texture] = transferLayout;
+            var layouts = ImageLayouts(texture);
+            for (int i = 0; i < layouts.Current.Length; i++)
+            {
+                layouts.Assumed[i] ??= BarrierLayout.Undefined;
+                layouts.Current[i] = transferLayout;
+            }
+        }
+
+        /// <summary>Brings every subresource of an image to one layout, the one the copy paths read from <see cref="Texture.NativeLayout"/>.</summary>
+        private void UnifyImageLayout(Texture texture)
+        {
+            if (texture.Usage == GraphicsResourceUsage.Staging)
+                return;
+
+            var parent = texture.ParentTexture ?? texture;
+            var layouts = ImageLayouts(parent);
+            var layout = CurrentLayout(parent, layouts, 0);
+            for (int index = 1; index < layouts.Current.Length; index++)
+            {
+                if (CurrentLayout(parent, layouts, index) != layout)
+                {
+                    ResourceBarrierTransition(parent, layout);
+                    break;
+                }
+            }
+
+            parent.NativeLayout = BarrierMapping.ToVkImageLayout(layout);
+            parent.NativeAccessMask = BarrierMapping.ToVkAccessFlags(layout);
+            parent.NativePipelineStageMask = BarrierMapping.ToVkPipelineStageFlags(layout);
+        }
+
+        /// <summary>Gets the per-subresource layouts this command buffer tracks for a texture.</summary>
+        private CommandBufferImageLayouts ImageLayouts(Texture parent)
+        {
+            if (!currentCbLayouts.TryGetValue(parent, out var layouts))
+                currentCbLayouts[parent] = layouts = new CommandBufferImageLayouts(parent.MipLevelCount * parent.ArraySize);
+            return layouts;
+        }
+
+        /// <summary>Gets the layout of a subresource in this command buffer; on first touch, assumes the last recorded one and remembers it.</summary>
+        private static BarrierLayout CurrentLayout(Texture parent, CommandBufferImageLayouts layouts, int index)
+        {
+            if (layouts.Current[index] is { } current)
+                return current;
+
+            var assumed = parent.LayoutTracker.Get((uint)index);
+            layouts.Assumed[index] = assumed;
+            layouts.Current[index] = assumed;
+            return assumed;
+        }
+
+        /// <summary>Gets the layout this command buffer gave the first subresource of a texture or view, if it touched it.</summary>
+        private BarrierLayout? KnownLayout(Texture texture)
+        {
+            var parent = texture.ParentTexture ?? texture;
+            if (!currentCbLayouts.TryGetValue(parent, out var layouts))
+                return null;
+            var (firstMip, _, firstLayer, _) = SubresourceRange(texture, uint.MaxValue);
+            return layouts.Current[firstLayer * parent.MipLevelCount + firstMip];
+        }
+
+        /// <summary>Gets the mips and array layers a barrier covers: one subresource, a single-element view, or the whole texture.</summary>
+        private static (int FirstMip, int MipCount, int FirstLayer, int LayerCount) SubresourceRange(Texture texture, uint subresource)
+        {
+            var parent = texture.ParentTexture ?? texture;
+            if (subresource != uint.MaxValue)
+                return ((int)(subresource % (uint)parent.MipLevelCount), 1, (int)(subresource / (uint)parent.MipLevelCount), 1);
+            if (texture.ParentTexture != null && texture.ViewType == ViewType.Single)
+                return (texture.MipLevel, 1, texture.ArraySlice, 1);
+            return (0, parent.MipLevelCount, 0, parent.ArraySize);
         }
 
         [Obsolete("Use BarrierLayout overload instead.")]
@@ -1021,6 +1103,8 @@ namespace Stride.Graphics
                     throw new InvalidOperationException($"{nameof(source)} and {nameof(destination)} textures don't match");
 
                 CleanupRenderPass();
+                UnifyImageLayout(sourceTexture);
+                UnifyImageLayout(destinationTexture);
 
                 var imageBarriers = stackalloc VkImageMemoryBarrier[2];
                 var bufferBarriers = stackalloc VkBufferMemoryBarrier[2];
@@ -1230,6 +1314,8 @@ namespace Stride.Graphics
             if (source is Texture sourceTexture && destination is Texture destinationTexture)
             {
                 CleanupRenderPass();
+                UnifyImageLayout(sourceTexture);
+                UnifyImageLayout(destinationTexture);
 
                 var mipmapDescription = sourceTexture.GetMipMapDescription(sourceSubresource % sourceTexture.MipLevelCount);
 
@@ -1523,6 +1609,7 @@ namespace Stride.Graphics
             var texture = resource as Texture;
             if (texture != null)
             {
+                UnifyImageLayout(texture);
                 lengthInBytes = databox.SlicePitch * (region.Back - region.Front);
                 blockSize = texture.Format.BlockSize;
             }
