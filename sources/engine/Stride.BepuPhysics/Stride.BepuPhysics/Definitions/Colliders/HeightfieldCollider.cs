@@ -96,12 +96,13 @@ public sealed class HeightfieldCollider : ICollider
         shape.SampleInterval = sampleInterval;
         shape.SampleIntervalReciprocal = new System.Numerics.Vector3(subdivisionsPerUnit, 1, subdivisionsPerUnit);
         shape.Subdivision = subdivision;
+        shape.Size = size;
         shape.MinHeight = minHeight;
         shape.MaxHeight = maxHeight;
         shape.CoarseBlocksAddress = coarseBlocksAddress;
-        shape.CoarseBlocksGCHandle = coarseBlocksHandle;
         shape.CoarseBlocksSubdivision = coarseBlocksSubdivision;
         shape.CoarseBlockInterval = coarseBlockWidth;
+        shape.CoarseBlocksGCHandle = coarseBlocksHandle;
 
         _shape = shape;
         index = shapes.Add(_shape);

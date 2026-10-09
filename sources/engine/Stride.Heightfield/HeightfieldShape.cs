@@ -25,10 +25,13 @@ public unsafe struct HeightfieldShape : IShape
     #warning todo, better scheme for this
     public static int TypeId => 32;
 
-    /// <summary>Distance between individual samples, Size / <see cref="Subdivision"/></summary>
+    /// <summary>A GCHandle pointing to a <see cref="IHeightfieldSampler"/></summary>
+    public GCHandle Sampler;
+
+    /// <summary>Distance between individual samples, <see cref="Size"/> / <see cref="Subdivision"/></summary>
     public float SampleInterval;
 
-    /// <summary>How many subdivisions (samples) there is per unit distance, <see cref="Subdivision"/> / Size in XZ, 1 in Y</summary>
+    /// <summary>How many subdivisions (samples) there is per unit distance, <see cref="Subdivision"/> / <see cref="Size"/> in XZ, 1 in Y</summary>
     public Vector3 SampleIntervalReciprocal;
 
     /// <summary>
@@ -41,6 +44,11 @@ public unsafe struct HeightfieldShape : IShape
     public int Subdivision;
 
     /// <summary>
+    /// How large the heightfield is in units, 10 would occupy an area of 10^2 units
+    /// </summary>
+    public float Size;
+
+    /// <summary>
     /// The rock bottom, or lower bounds of this field. Assumed to be constant. May be negative
     /// </summary>
     public float MinHeight;
@@ -49,12 +57,6 @@ public unsafe struct HeightfieldShape : IShape
     /// The apex, or the highest bounds of this field. Assumed to be constant. May be negative
     /// </summary>
     public float MaxHeight;
-
-    /// <summary>A GCHandle pointing to a <see cref="IHeightfieldSampler"/></summary>
-    public GCHandle Sampler;
-
-    /// <summary>The GCHandle of <see cref="CoarseBlocksAddress"/></summary>
-    public GCHandle CoarseBlocksGCHandle;
 
     /// <summary>
     /// <see cref="MinHeight"/> and <see cref="MaxHeight"/> define the bounding box of this heightfield, and these coarse blocks define sub-bounding boxes that encompass <see cref="CoarseBlocksSubdivision"/>^2 heightfield points.
@@ -75,6 +77,9 @@ public unsafe struct HeightfieldShape : IShape
     /// Each block overlaps <see cref="CoarseBlockInterval"/>^2 height samples
     /// </summary>
     public int CoarseBlockInterval;
+
+    /// <summary>The GCHandle of <see cref="CoarseBlocksAddress"/></summary>
+    public GCHandle CoarseBlocksGCHandle;
 
     [SkipLocalsInit]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -112,24 +117,20 @@ public unsafe struct HeightfieldShape : IShape
 
     private readonly void GetTrianglesInContinuousSpace(Int2 cell, out Triangle tri0, out Triangle tri1)
     {
-        // TODO: Perf
-        GetCellCornersInContinuousSpace(cell, out var p00, out var p10, out var p01, out var p11);
+        GetCellCornersInContinuousSpace(cell, out tri0.A, out tri0.B, out tri0.C, out tri1.C);
 
-        (tri0.A, tri0.B, tri0.C) = (p00, p10, p01);
-        (tri1.A, tri1.B, tri1.C) = (p01, p10, p11);
+        (tri1.A, tri1.B) = (tri0.C, tri0.B);
     }
 
     private readonly void GetTrianglesInDiscreteSpace(Int2 cell, out Triangle tri0, out Triangle tri1)
     {
-        // TODO: Perf
         GetCellCornersInDiscreteSpace(cell, out var sample4);
 
-        var p00 = new Vector3(sample4[0].SampleCoord.X, sample4[0].Height, sample4[0].SampleCoord.Y);
-        var p10 = new Vector3(sample4[1].SampleCoord.X, sample4[1].Height, sample4[1].SampleCoord.Y);
-        var p01 = new Vector3(sample4[2].SampleCoord.X, sample4[2].Height, sample4[2].SampleCoord.Y);
-        var p11 = new Vector3(sample4[3].SampleCoord.X, sample4[3].Height, sample4[3].SampleCoord.Y);
-        (tri0.A, tri0.B, tri0.C) = (p00, p10, p01);
-        (tri1.A, tri1.B, tri1.C) = (p01, p10, p11);
+        tri0.A = new Vector3(sample4[0].SampleCoord.X, sample4[0].Height, sample4[0].SampleCoord.Y);
+        tri0.B = new Vector3(sample4[1].SampleCoord.X, sample4[1].Height, sample4[1].SampleCoord.Y);
+        tri0.C = new Vector3(sample4[2].SampleCoord.X, sample4[2].Height, sample4[2].SampleCoord.Y);
+        tri1.C = new Vector3(sample4[3].SampleCoord.X, sample4[3].Height, sample4[3].SampleCoord.Y);
+        (tri1.A, tri1.B) = (tri0.C, tri0.B);
     }
 
     public readonly void GetPosedLocalChild(Int2 cell, out Triangle tri0, out Triangle tri1, out NRigidPose childPoseA, out NRigidPose childPoseB)
@@ -150,10 +151,8 @@ public unsafe struct HeightfieldShape : IShape
 
     public readonly void ComputeBounds(Quaternion orientation, out Vector3 min, out Vector3 max)
     {
-        // TODO: Perf
-
         var localMin = new Vector3(0, MinHeight, 0);
-        var localMax = new Vector3(Subdivision * SampleInterval, MaxHeight, Subdivision * SampleInterval);
+        var localMax = new Vector3(Size, MaxHeight, Size);
         if (orientation == Quaternion.Identity)
         {
             min = localMin;
@@ -179,20 +178,21 @@ public unsafe struct HeightfieldShape : IShape
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly bool Clip(float minX, float maxX, float minZ, float maxZ, out int sX0, out int sX1, out int sZ0, out int sZ1)
     {
-        // TODO: Perf
-
-        sX0 = sX1 = sZ0 = sZ1 = 0;
-        float exMinX = 0, exMaxX = Subdivision * SampleInterval;
-        float exMinZ = 0, exMaxZ = Subdivision * SampleInterval;
-        float nx = MathF.Max(minX, exMinX), xx = MathF.Min(maxX, exMaxX);
-        float nz = MathF.Max(minZ, exMinZ), zz = MathF.Min(maxZ, exMaxZ);
-        if (xx < nx || zz < nz)
+        var v = new Vector4(MathF.Max(minX, 0), MathF.Min(maxX, Size), MathF.Max(minZ, 0), MathF.Min(maxZ, Size));
+        if (v.Y < v.X || v.W < v.Z)
+        {
+            sX0 = sX1 = sZ0 = sZ1 = 0;
             return false;
+        }
 
-        sX0 = Math.Clamp((int)MathF.Floor(nx * SampleIntervalReciprocal.X), 0, Subdivision - 1);
-        sX1 = Math.Clamp((int)MathF.Floor(xx * SampleIntervalReciprocal.X), 0, Subdivision - 1);
-        sZ0 = Math.Clamp((int)MathF.Floor(nz * SampleIntervalReciprocal.X), 0, Subdivision - 1);
-        sZ1 = Math.Clamp((int)MathF.Floor(zz * SampleIntervalReciprocal.X), 0, Subdivision - 1);
+        v *= SampleIntervalReciprocal.X;
+        v = Vector4.Round(v, MidpointRounding.ToNegativeInfinity);
+
+        var subdivisionMinusOne = Subdivision - 1;
+        sX0 = Math.Clamp((int)v.X, 0, subdivisionMinusOne);
+        sX1 = Math.Clamp((int)v.Y, 0, subdivisionMinusOne);
+        sZ0 = Math.Clamp((int)v.Z, 0, subdivisionMinusOne);
+        sZ1 = Math.Clamp((int)v.W, 0, subdivisionMinusOne);
         return true;
     }
 
@@ -239,45 +239,109 @@ public unsafe struct HeightfieldShape : IShape
     private readonly void EnumerateChildrenInAabb<TEnumerator>(Vector3 min, Vector3 max, ref TEnumerator enumerator)
         where TEnumerator : IBreakableForEach<int>, allows ref struct
     {
-        if (Clip(min.X, max.X, min.Z, max.Z, out int sX0, out int sX1, out int sZ0, out int sZ1) == false)
-            return;
-
         if (max.Y < MinHeight || min.Y > MaxHeight)
+            return; // In case the Y axis of the field does not match UnitY, unlikely
+
+        if (Clip(min.X, max.X, min.Z, max.Z, out int xStart, out int xEndInclusive, out int zStart, out int zEndInclusive) == false)
             return;
 
-        for (int cz = sZ0; cz <= sZ1; ++cz)
-        {
-            int blockRowBase = cz / CoarseBlockInterval * CoarseBlocksSubdivision;
+        var cell = new Int2(xStart, zStart);
+        var blockStart = cell / CoarseBlockInterval;
+        var cellsToNextBlockAtStart = cell - blockStart * CoarseBlockInterval;
+        cellsToNextBlockAtStart = new Int2(CoarseBlockInterval) - cellsToNextBlockAtStart;
 
-            // No need to swap block if we're still in its range
-            int currentBlockX = -1;
-            float blockMin = 0f, blockMax = 0f;
-            for (int cx = sX0; cx <= sX1; ++cx)
+        Int2 blockOffset;
+        blockOffset.Y = blockStart.Y * CoarseBlocksSubdivision;
+        Int2 cellsToNextBlock;
+        cellsToNextBlock.Y = cellsToNextBlockAtStart.Y;
+
+        var blockRange = CoarseBlocksAddress[blockOffset.Y + blockStart.X];
+
+        var xRangeOverlapsMultipleBlocks = (xStart / CoarseBlockInterval) != (xEndInclusive / CoarseBlockInterval);
+        do
+        {
+            if (xRangeOverlapsMultipleBlocks == false && (max.Y < blockRange.MinHeight || min.Y > blockRange.MaxHeight))
             {
-                int bx = cx / CoarseBlockInterval;
-                if (bx != currentBlockX)
+                // We're walking vertically within a one block column,
+                // and this block does not intersect with the bounds.
+                // We can do the same as in the X loop, fast-forward to the next block in Y
+                cell.Y += cellsToNextBlock.Y;
+                if (cell.Y > zEndInclusive)
+                    break;
+
+                cellsToNextBlock.Y = CoarseBlockInterval;
+                blockOffset.Y += CoarseBlocksSubdivision;
+                blockRange = CoarseBlocksAddress[blockOffset.Y + blockStart.X];
+                continue;
+            }
+
+            // We're starting a new line, reset to start of the line
+            cellsToNextBlock.X = cellsToNextBlockAtStart.X;
+            blockOffset.X = blockStart.X;
+            do
+            {
+                if (max.Y < blockRange.MinHeight || min.Y > blockRange.MaxHeight)
                 {
-                    ref var range = ref CoarseBlocksAddress[blockRowBase + bx];
-                    blockMin = range.MinHeight;
-                    blockMax = range.MaxHeight;
-                    currentBlockX = bx;
+                    // No X in this block is in range, fast-forward X to next block
+                    cell.X += cellsToNextBlock.X;
+                    if (cell.X > xEndInclusive)
+                        break;
+
+                    cellsToNextBlock.X = CoarseBlockInterval;
+                    blockOffset.X++;
+                    blockRange = CoarseBlocksAddress[blockOffset.Y + blockOffset.X];
+                    continue;
                 }
 
-                // TODO: Perf, skip to next block
-                if (max.Y < blockMin || min.Y > blockMax)
-                    continue;
+                if (!enumerator.LoopBody(cell.X) || !enumerator.LoopBody(cell.Y)) 
+                    return;
 
-                if (!enumerator.LoopBody(cx)) return;
-                if (!enumerator.LoopBody(cz)) return;
+                cell.X++;
+                if (cell.X > xEndInclusive)
+                    break;
+
+                cellsToNextBlock.X--;
+                if (cellsToNextBlock.X == 0)
+                {
+                    blockOffset.X++;
+                    blockRange = CoarseBlocksAddress[blockOffset.Y + blockOffset.X];
+                }
+            } while (true);
+
+            cell.Y++;
+            if (cell.Y > zEndInclusive)
+                break;
+
+            cellsToNextBlock.Y -= 1;
+            if (cellsToNextBlock.Y == 0 || xRangeOverlapsMultipleBlocks)
+            {
+                if (cellsToNextBlock.Y == 0)
+                {
+                    cellsToNextBlock.Y = CoarseBlockInterval;
+                    blockOffset.Y += CoarseBlocksSubdivision;
+                }
+                blockRange = CoarseBlocksAddress[blockOffset.Y + blockStart.X];
             }
-        }
+
+            // Reset some of the run variables
+            cell.X = xStart;
+        } while (true);
     }
 
     internal readonly void FindLocalOverlaps<TOverlaps>(Vector3 min, Vector3 max, Vector3 sweep, float maximumT, BufferPool pool, Shapes shapes, ref TOverlaps overlaps)
         where TOverlaps : ICollisionTaskSubpairOverlaps
     {
-        // TODO: Perf
-
+        // TODO: For sweeps, right now we're naively collecting all overlaps in the AABB of the sweep, see min-max expansion below.
+        // There are a couple of not so rare pathological cases where this performs poorly, for example long diagonal sweeps will collect
+        // tons of cells located outside the path, perpendicular to the sweep.
+        // Two avenues to explore:
+        // - DDA enlarged along the minor axis (X when mostly going in Y, Y when mostly going in X) by the width of the sweep,
+        //   would have to be conservative as depending on whether the origin is more to the left or the right of the starting cell,
+        //   the left/right side should extend a bit further. Worth looking into whether there is any research on efficient DDA with a width property
+        // - DDA on a coarser grid with cells the width of the bounding box
+        //   likely safer, but the cell width used there would have to be set to the next closest multiple of the base cells width
+        //   for accuracy, resulting in a fair amount of false positives given that we're rounding up the bounding box, and 
+        //   operate on blocks of cells
         if (sweep.X < 0)
             min.X += sweep.X * maximumT;
         else
@@ -291,34 +355,18 @@ public unsafe struct HeightfieldShape : IShape
         else
             max.Z += sweep.Z * maximumT;
 
-        if (Clip(min.X, max.X, min.Z, max.Z, out int cx0, out int cx1, out int cz0, out int cz1) == false)
-            return;
+        var breakableOverlaps = new OverlapsAsBreakableForeach<TOverlaps>(ref overlaps, pool);
+        EnumerateChildrenInAabb(min, max, ref breakableOverlaps);
+    }
 
-        if (max.Y < MinHeight || min.Y > MaxHeight)
-            return;
-
-        for (int cz = cz0; cz <= cz1; ++cz)
+    private ref struct OverlapsAsBreakableForeach<TOverlaps>(ref TOverlaps overlaps, BufferPool pool) : IBreakableForEach<int> where TOverlaps : ICollisionTaskSubpairOverlaps
+    {
+        private ref TOverlaps overlaps = ref overlaps;
+        
+        public bool LoopBody(int i)
         {
-            int blockRowBase = cz / CoarseBlockInterval * CoarseBlocksSubdivision;
-            int currentBlockX = -1;
-            float blockMin = 0f, blockMax = 0f;
-            for (int cx = cx0; cx <= cx1; ++cx)
-            {
-                int bx = cx / CoarseBlockInterval;
-                if (bx != currentBlockX)
-                {
-                    ref var range = ref CoarseBlocksAddress[blockRowBase + bx];
-                    blockMin = range.MinHeight;
-                    blockMax = range.MaxHeight;
-                    currentBlockX = bx;
-                }
-                // TODO: Perf, skip to next block
-                if (max.Y < blockMin || min.Y > blockMax)
-                    continue;
-
-                overlaps.Allocate(pool) = cx;
-                overlaps.Allocate(pool) = cz;
-            }
+            overlaps.Allocate(pool) = i;
+            return true;
         }
     }
 
@@ -327,11 +375,19 @@ public unsafe struct HeightfieldShape : IShape
         where TRayHitHandler : struct, IShapeRayHitHandler
     {
         // We're doing DDA
-        // Note that we're skipping some bookkeeping, the ray is already guaranteed
-        // to be in bounds by a check higher up the stack
 
-        Matrix3x3.TransformTranspose(ray.Origin - pose.Position, orientation, out var localOrigin);
-        Matrix3x3.TransformTranspose(ray.Direction, orientation, out var localDir);
+        // When we have no rotation, which is the most common use-case, our bounds matches the AABB the physics engine already
+        // tested higher up the callstack, this makes early exit tests within this scope redundant, we'll skip them
+        bool hasRotation = orientation.X != Matrix3x3.Identity.X 
+                           || orientation.Y != Matrix3x3.Identity.Y
+                           || orientation.Z != Matrix3x3.Identity.Z;
+
+        Vector3 localOrigin = ray.Origin - pose.Position, localDir = ray.Direction;
+        if (hasRotation)
+        {
+            Matrix3x3.TransformTranspose(localOrigin, orientation, out localOrigin);
+            Matrix3x3.TransformTranspose(localDir, orientation, out localDir);
+        }
 
         // We're operating in subdiv-space, squash vectors accordingly
         localOrigin *= SampleIntervalReciprocal;
@@ -376,6 +432,24 @@ public unsafe struct HeightfieldShape : IShape
         }
 
         float tCellEnter = MathF.Max(tEnter, 0f);
+        if (hasRotation)
+        {
+            // Less likely to have any rotation, so we're bundling early exits together
+
+            if (localDir.X == 0 && (localOrigin.X < 0 || localOrigin.X > Size))
+                return; // Parallel to the bounds and outside in X
+            if (localDir.Z == 0 && (localOrigin.Z < 0 || localOrigin.Z > Size))
+                return; // Parallel to the bounds and outside in Z
+
+            if (tCellEnter >= maximumT)
+                return; // First cell is already past the end of the ray
+
+            if (tEnter > tExit || tExit < 0)
+                return; // Ray is outside and looks away from the bounds
+            float yAtEntry = localOrigin.Y + localDir.Y * tCellEnter;
+            if ((localDir.Y >= 0 && yAtEntry > MaxHeight) || (localDir.Y <= 0 && yAtEntry < MinHeight))
+                return; // Ray is outside and away vertically
+        }
 
         Int2 coord;
         Int2 step;
