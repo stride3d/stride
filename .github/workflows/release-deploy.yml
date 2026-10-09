@@ -324,6 +324,7 @@ jobs:
         :(exclude)sources/launcher/Stride.Launcher
       apply: true
       add-contributors: true    # engine release only: New Contributors is repo-wide
+      docs-notes: true          # engine release only: stride-docs has the engine's release notes
     secrets:
       gh-token: ${{ secrets.GH_PAT }}
       anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
