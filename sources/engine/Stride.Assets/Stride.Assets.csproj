@@ -7,9 +7,6 @@
     <StrideAssemblyProcessorOptions>--parameter-key --auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFramework)'">
-    <DefineConstants>STRIDE_VIDEO_FFMPEG;$(DefineConstants)</DefineConstants>
-  </PropertyGroup>
   <!-- The content version this engine names, read by DotNetNewTemplateBridge: the committed file itself (not a
        -p:StrideSamplesVersion= override, which only names what a samples release is packing). A resource, not an
        assembly attribute, so a new version stays out of the reference assembly and dependents don't rebuild. -->
@@ -26,7 +23,6 @@
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" />
     <PackageReference Include="SixLabors.ImageSharp" />
     <PackageReference Include="SSH.NET" PrivateAssets="compile" />
-    <PackageReference Include="FFmpeg.AutoGen" Condition="'$(TargetFramework)' == '$(StrideFramework)'" />
     <PackageReference Include="Microsoft.TemplateEngine.IDE" />
     <PackageReference Include="Microsoft.TemplateEngine.Edge" />
     <PackageReference Include="Microsoft.TemplateEngine.Abstractions" />
@@ -39,7 +35,6 @@
     <ProjectReference Include="..\Stride.Navigation\Stride.Navigation.csproj" />
     <ProjectReference Include="..\Stride.Physics\Stride.Physics.csproj" />
     <ProjectReference Include="..\Stride.UI\Stride.UI.csproj" />
-    <ProjectReference Include="..\Stride.Video\Stride.Video.csproj" />
     <ProjectReference Include="..\Stride.Foundation\Stride.Foundation.csproj" />
     <ProjectReference Include="..\Stride.Assets.VHACD\Stride.Assets.VHACD.csproj" />
     <ProjectReference Include="..\Stride.Assets.FFmpeg\Stride.Assets.FFmpeg.csproj" />

@@ -1,9 +1,9 @@
 using System.Linq;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Keys;
-using Stride.Assets.Media;
+using Stride.Video.Assets;
 
-namespace Stride.Assets.Presentation.NodePresenters.Updaters
+namespace Stride.Video.Editor
 {
     internal sealed class VideoAssetNodeUpdater : AssetNodePresenterUpdaterBase
     {

@@ -90,6 +90,8 @@
     <Project Path="../sources/engine/Stride.SpriteStudio.Runtime/Stride.SpriteStudio.Runtime.csproj" />
     <Project Path="../sources/engine/Stride.UI/Stride.UI.csproj" />
     <Project Path="../sources/engine/Stride.Video/Stride.Video.csproj" />
+    <Project Path="../sources/engine/Stride.Video.Assets/Stride.Video.Assets.csproj" />
+    <Project Path="../sources/engine/Stride.Video.Editor/Stride.Video.Editor.csproj" />
     <Project Path="../sources/engine/Stride.VirtualReality/Stride.VirtualReality.csproj" />
     <Project Path="../sources/engine/Stride.Voxels/Stride.Voxels.csproj" />
   </Folder>
