@@ -53,6 +53,12 @@ public class AssetPluginPackagingTests
         Assert.Contains("PluginPage|/StrideAssetPlugin/PluginPage", aliases);
         Assert.Contains("Page|/Consumer/Page", aliases);
 
+        // Stride.AssetCompiler is build-only: Consumer.Game's plain reference brings its build targets, and
+        // neither the compiler nor a dependency only it has (Mono.Options) reaches the output folder.
+        var binDir = Path.Combine(consumerDir, "bin", "Debug", "net10.0");
+        Assert.False(File.Exists(Path.Combine(binDir, "Stride.AssetCompiler.dll")), "Stride.AssetCompiler.dll was copied to the consumer output.");
+        Assert.False(File.Exists(Path.Combine(binDir, "Mono.Options.dll")), "Mono.Options.dll (an asset compiler dependency) was copied to the consumer output.");
+
         AssertRuntimeContentResolves(consumerDir);
     }
 

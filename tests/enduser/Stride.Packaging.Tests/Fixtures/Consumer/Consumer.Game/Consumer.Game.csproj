@@ -17,6 +17,8 @@
     <PackageReference Include="Stride.Engine" Version="$(StrideEngineVersion)" />
     <PackageReference Include="Stride.UI" Version="$(StrideEngineVersion)" />
     <PackageReference Include="StrideAssetPlugin" Version="1.0.0" />
-    <PackageReference Include="Stride.AssetCompiler" Version="$(StrideEngineVersion)" IncludeAssets="build;buildTransitive" />
+    <!-- Plain reference: the package is build-only by itself (the plugin fixture keeps the
+         IncludeAssets="build;buildTransitive" form, so both stay covered). -->
+    <PackageReference Include="Stride.AssetCompiler" Version="$(StrideEngineVersion)" />
   </ItemGroup>
 </Project>

@@ -13,6 +13,7 @@ using NuGet.Common;
 using NuGet.Configuration;
 using NuGet.Frameworks;
 using NuGet.LibraryModel;
+using NuGet.Packaging;
 using NuGet.ProjectModel;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
@@ -222,6 +223,7 @@ namespace Stride.Core.Assets
             var assemblies = new List<string>();
 
             var projectPath = Path.Combine("StrideNugetResolver.json");
+            var packagesPath = SettingsUtility.GetGlobalPackagesFolder(settings);
             var spec = new PackageSpec()
             {
                 Name = Path.GetFileNameWithoutExtension(projectPath), // make sure this package never collides with a dependency
@@ -235,7 +237,8 @@ namespace Stride.Core.Assets
                             new LibraryDependency
                             {
                                 LibraryRange = new LibraryRange(packageName, versionRange, LibraryDependencyTarget.Package),
-                            }
+                            },
+                            .. GetRuntimeExcludedDependencies(packagesPath, packageName, versionRange, nugetFramework),
                         ],
                     }
                 },
@@ -249,7 +252,7 @@ namespace Stride.Core.Assets
                     OutputPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "stride", "nugetresolver", $"{packageName}-{versionRange.MinVersion.ToString()}-{nugetFramework.GetShortFolderName()}-{runtimeIdentifier}"),
                     OriginalTargetFrameworks = new[] { nugetFramework.GetShortFolderName() },
                     ConfigFilePaths = settings.GetConfigFilePaths(),
-                    PackagesPath = SettingsUtility.GetGlobalPackagesFolder(settings),
+                    PackagesPath = packagesPath,
                     Sources = SettingsUtility.GetEnabledSources(settings).ToList(),
                     FallbackFolders = SettingsUtility.GetFallbackPackageFolders(settings).ToList()
                 },
@@ -321,6 +324,40 @@ namespace Stride.Core.Assets
 
                 throw new InvalidOperationException("Unreachable code");
             }
+        }
+
+        /// <summary>
+        /// The dependencies a build-only package (no lib/, e.g. Stride.AssetCompiler, a tool that runs from its own
+        /// package) keeps out of its consumers' runtime, read from its nuspec in the global packages folder. They are
+        /// the package's own runtime dependencies, so they are restored as direct dependencies to get their runtime
+        /// assets. None for a package with a lib/ folder, one not in the global packages folder yet, or an inexact version.
+        /// </summary>
+        private static IEnumerable<LibraryDependency> GetRuntimeExcludedDependencies(string packagesPath, string packageName, VersionRange versionRange, NuGetFramework nugetFramework)
+        {
+            if (!versionRange.HasLowerAndUpperBounds || versionRange.MinVersion != versionRange.MaxVersion)
+                return [];
+
+            var pathResolver = new VersionFolderPathResolver(packagesPath);
+            var nuspecPath = pathResolver.GetManifestFilePath(packageName, versionRange.MinVersion);
+            if (!File.Exists(nuspecPath) || Directory.Exists(Path.Combine(pathResolver.GetInstallPath(packageName, versionRange.MinVersion), "lib")))
+                return [];
+
+            var dependencyGroup = NuGetFrameworkUtility.GetNearest(new NuspecReader(nuspecPath).GetDependencyGroups(), nugetFramework);
+            if (dependencyGroup == null)
+                return [];
+
+            return dependencyGroup.Packages
+                .Where(dependency =>
+                {
+                    var includeFlags = dependency.Include.Count > 0 ? LibraryIncludeFlagUtils.GetFlags(dependency.Include) : LibraryIncludeFlags.All;
+                    includeFlags &= ~LibraryIncludeFlagUtils.GetFlags(dependency.Exclude);
+                    return (includeFlags & LibraryIncludeFlags.Runtime) == 0;
+                })
+                .Select(dependency => new LibraryDependency
+                {
+                    LibraryRange = new LibraryRange(dependency.Id, dependency.VersionRange, LibraryDependencyTarget.Package),
+                })
+                .ToList();
         }
     }
 }

@@ -23,7 +23,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\assets\Stride.AssetCompiler\Stride.AssetCompiler.csproj" />
+    <!-- Build order only: a Game Studio run from the source tree builds games with the compiler built here.
+         Nothing in the editor loads the compiler in-process, and its package has no lib/ assembly to load. -->
+    <ProjectReference Include="..\..\assets\Stride.AssetCompiler\Stride.AssetCompiler.csproj" ReferenceOutputAssembly="false" Private="false" />
     <ProjectReference Include="..\..\engine\Stride.Voxels\Stride.Voxels.csproj" />
     <ProjectReference Include="..\..\presentation\Stride.Core.Presentation.Quantum\Stride.Core.Presentation.Quantum.csproj" />
     <ProjectReference Include="..\..\engine\Stride.Assets\Stride.Assets.csproj" />
