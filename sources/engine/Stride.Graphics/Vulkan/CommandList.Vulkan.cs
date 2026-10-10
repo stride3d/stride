@@ -816,17 +816,18 @@ namespace Stride.Graphics
             GraphicsDevice.PushDebugScope(name);
             if (GraphicsDevice.IsProfilingSupported)
             {
-                var bytes = System.Text.Encoding.ASCII.GetBytes(name);
+                // pLabelName is a null-terminated string, as in the Direct3D 12 BeginEvent fallback
+                var maxBytes = System.Text.Encoding.ASCII.GetMaxByteCount(name.Length) + 1;
+                var nameBytes = stackalloc byte[maxBytes];
+                int written = System.Text.Encoding.ASCII.GetBytes(name, new Span<byte>(nameBytes, maxBytes));
+                nameBytes[written] = 0;
 
-                fixed (byte* bytesPointer = &bytes[0])
+                var labelInfo = new VkDebugUtilsLabelEXT
                 {
-                    var labelInfo = new VkDebugUtilsLabelEXT
-                    {
-                        sType = VkStructureType.DebugUtilsLabelEXT,
-                        pLabelName = bytesPointer
-                    };
-                    GraphicsDevice.NativeInstanceApi.vkCmdBeginDebugUtilsLabelEXT(currentCommandList.NativeCommandBuffer, &labelInfo);
-                }
+                    sType = VkStructureType.DebugUtilsLabelEXT,
+                    pLabelName = nameBytes
+                };
+                GraphicsDevice.NativeInstanceApi.vkCmdBeginDebugUtilsLabelEXT(currentCommandList.NativeCommandBuffer, &labelInfo);
             }
         }
 
