@@ -88,22 +88,22 @@
     <ProjectReference Include="..\..\engine\Stride.Audio.Assets\Stride.Audio.Assets.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\..\engine\Stride.Audio.Editor\Stride.Audio.Editor.csproj">
+    <ProjectReference Include="..\plugins\Stride.Audio.Editor\Stride.Audio.Editor.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\..\engine\Stride.Audio.Editor.Wpf\Stride.Audio.Editor.Wpf.csproj">
+    <ProjectReference Include="..\plugins\Stride.Audio.Editor.Wpf\Stride.Audio.Editor.Wpf.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="..\..\engine\Stride.Physics.Assets\Stride.Physics.Assets.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\..\engine\Stride.Physics.Editor\Stride.Physics.Editor.csproj">
+    <ProjectReference Include="..\plugins\Stride.Physics.Editor\Stride.Physics.Editor.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="..\..\engine\Stride.SpriteStudio.Assets\Stride.SpriteStudio.Assets.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\..\engine\Stride.SpriteStudio.Editor\Stride.SpriteStudio.Editor.csproj">
+    <ProjectReference Include="..\plugins\Stride.SpriteStudio.Editor\Stride.SpriteStudio.Editor.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="..\..\engine\Stride.Video\Stride.Video.csproj">
@@ -112,19 +112,19 @@
     <ProjectReference Include="..\..\engine\Stride.Voxels\Stride.Voxels.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\..\engine\Stride.Voxels.Editor\Stride.Voxels.Editor.csproj">
+    <ProjectReference Include="..\plugins\Stride.Voxels.Editor\Stride.Voxels.Editor.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="..\..\engine\Stride.Particles\Stride.Particles.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\..\engine\Stride.Particles.Editor\Stride.Particles.Editor.csproj">
+    <ProjectReference Include="..\plugins\Stride.Particles.Editor\Stride.Particles.Editor.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="..\..\engine\Stride.Video.Assets\Stride.Video.Assets.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\..\engine\Stride.Video.Editor\Stride.Video.Editor.csproj">
+    <ProjectReference Include="..\plugins\Stride.Video.Editor\Stride.Video.Editor.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="..\..\engine\Stride.UI\Stride.UI.csproj">
@@ -133,10 +133,10 @@
     <ProjectReference Include="..\..\engine\Stride.UI.Assets\Stride.UI.Assets.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\..\engine\Stride.UI.Editor\Stride.UI.Editor.csproj">
+    <ProjectReference Include="..\plugins\Stride.UI.Editor\Stride.UI.Editor.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\..\engine\Stride.UI.Editor.Wpf\Stride.UI.Editor.Wpf.csproj">
+    <ProjectReference Include="..\plugins\Stride.UI.Editor.Wpf\Stride.UI.Editor.Wpf.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="..\Stride.Assets.Presentation.Wpf\Stride.Assets.Presentation.Wpf.csproj" />

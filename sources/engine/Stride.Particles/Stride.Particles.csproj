@@ -11,7 +11,7 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- Companion package: the gizmo, entity factories, property grid and preview pieces in .Editor (no asset types, so no .Assets) -->
-    <StrideCompanionProject Include="..\Stride.Particles.Editor\Stride.Particles.Editor.csproj" />
+    <StrideCompanionProject Include="..\..\editor\plugins\Stride.Particles.Editor\Stride.Particles.Editor.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
