@@ -8,6 +8,7 @@ using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Graphics;
 using Stride.Rendering;
+using Stride.Rendering.Materials;
 using Stride.Shaders;
 
 namespace Stride.BepuPhysics.Debug.Effects.RenderFeatures;
@@ -24,14 +25,17 @@ public class SinglePassWireframeRenderFeature : RootRenderFeature
 {
     private DynamicEffectInstance _shader = null!;
     private DynamicEffectInstance _idShader = null!;
+    private DynamicEffectInstance _idSkinnedShader = null!;
+    // Size of BoneMatrices in BepuDebugIdSkinnedShader, set as its SkinningMaxBones macro; a mesh with more bones is left out
+    private const int MaxBones = 128;
     // Indexed by (back faces ? 2 : 0) + (through own model ? 1 : 0), updated once per draw of the feature
     private readonly MutablePipelineState[] _linePipelines = new MutablePipelineState[4];
     private MutablePipelineState _idPipelineState = null!;
     private MutablePipelineState _idBackPipelineState = null!;
     private MutablePipelineState[] _idPasses = null!;
     private MutablePipelineState _idPass = null!;
-    private readonly Dictionary<(MutablePipelineState Pass, VertexDeclaration Layout, PrimitiveType Primitive), PipelineState> _idPipelines = new();
-    private EffectBytecode? _idPipelinesBytecode;
+    private readonly Dictionary<(MutablePipelineState Pass, bool Skinned, VertexDeclaration Layout, PrimitiveType Primitive), PipelineState> _idPipelines = new();
+    private (EffectBytecode?, EffectBytecode?) _idPipelinesBytecode;
     private PixelFormat _idPipelinesDepthFormat;
     private Texture _noIds = null!;
     private Texture? _ids;
@@ -75,6 +79,9 @@ public class SinglePassWireframeRenderFeature : RootRenderFeature
         _shader.Initialize(Context.Services);
         _idShader = new DynamicEffectInstance("StrideBepuDebugIdShader");
         _idShader.Initialize(Context.Services);
+        _idSkinnedShader = new DynamicEffectInstance("StrideBepuDebugIdSkinnedShader");
+        _idSkinnedShader.Initialize(Context.Services);
+        _idSkinnedShader.Parameters.Set(MaterialKeys.SkinningMaxBones, MaxBones);
 
         // create the pipeline states and set properties that won't change
         for (int i = 0; i < _linePipelines.Length; i++)
@@ -247,14 +254,18 @@ public class SinglePassWireframeRenderFeature : RootRenderFeature
         commandList.SetViewport(viewport);
 
         _idShader.UpdateEffect(context.GraphicsDevice);
-        if (_idPipelinesBytecode != _idShader.Effect.Bytecode || _idPipelinesDepthFormat != depth.ViewFormat)
+        _idSkinnedShader.UpdateEffect(context.GraphicsDevice);
+        var bytecodes = (_idShader.Effect.Bytecode, _idSkinnedShader.Effect.Bytecode);
+        if (_idPipelinesBytecode != bytecodes || _idPipelinesDepthFormat != depth.ViewFormat)
         {
             _idPipelines.Clear();
-            _idPipelinesBytecode = _idShader.Effect.Bytecode;
+            _idPipelinesBytecode = bytecodes;
             _idPipelinesDepthFormat = depth.ViewFormat;
         }
         _idShader.Parameters.Set(TransformationKeys.View, renderView.View);
         _idShader.Parameters.Set(TransformationKeys.ViewProjection, renderView.ViewProjection);
+        _idSkinnedShader.Parameters.Set(TransformationKeys.View, renderView.View);
+        _idSkinnedShader.Parameters.Set(TransformationKeys.ViewProjection, renderView.ViewProjection);
         _idsWithModel.Clear();
         foreach (var pass in _idPasses)
         {
@@ -266,6 +277,7 @@ public class SinglePassWireframeRenderFeature : RootRenderFeature
                     continue;
 
                 _idShader.Parameters.Set(BepuDebugIdShaderKeys.ObjectId, (float)wireframe.ObjectId);
+                _idSkinnedShader.Parameters.Set(BepuDebugIdShaderKeys.ObjectId, (float)wireframe.ObjectId);
                 if (DrawOwnModels(context, owner, owner))
                     _idsWithModel.Add(wireframe.ObjectId);
             }
@@ -292,10 +304,15 @@ public class SinglePassWireframeRenderFeature : RootRenderFeature
                 continue;
 
             var nodes = modelComponent.Skeleton?.NodeTransformations;
-            foreach (var mesh in model.Meshes)
+            for (int i = 0; i < model.Meshes.Count; i++)
             {
+                var mesh = model.Meshes[i];
                 var world = nodes is not null && mesh.NodeIndex < nodes.Length ? nodes[mesh.NodeIndex].WorldMatrix : entity.Transform.WorldMatrix;
-                drawn |= DrawMeshId(context, mesh, world);
+                // A skinned mesh's vertices are in its bind pose: drawn without its bones, it would stand where the model is not
+                var bones = mesh.Skinning is null ? null : i < modelComponent.MeshInfos.Count ? modelComponent.MeshInfos[i].BlendMatrices : null;
+                if (mesh.Skinning is not null && (bones is null || bones.Length > MaxBones))
+                    continue;
+                drawn |= DrawMeshId(context, mesh, world, bones);
             }
         }
 
@@ -304,20 +321,26 @@ public class SinglePassWireframeRenderFeature : RootRenderFeature
         return drawn;
     }
 
-    private bool DrawMeshId(RenderDrawContext context, Mesh mesh, Matrix world)
+    private bool DrawMeshId(RenderDrawContext context, Mesh mesh, Matrix world, Matrix[]? bones)
     {
         var draw = mesh.Draw;
         // The facet error comes from the normals; a mesh without them is left out, as if the collidable had no model there
-        if (draw?.VertexBuffers is not { Length: > 0 } vertexBuffers || !vertexBuffers.Any(b => b.Declaration.VertexElements.Any(e => e.SemanticName == "NORMAL")))
+        if (draw?.VertexBuffers is not { Length: > 0 } vertexBuffers || !HasSemantic(vertexBuffers, "NORMAL"))
+            return false;
+        if (bones is not null && (!HasSemantic(vertexBuffers, "BLENDINDICES") || !HasSemantic(vertexBuffers, "BLENDWEIGHT")))
             return false;
 
-        _idShader.Parameters.Set(TransformationKeys.World, world);
+        var shader = bones is null ? _idShader : _idSkinnedShader;
+        if (bones is null)
+            shader.Parameters.Set(TransformationKeys.World, world);
+        else
+            shader.Parameters.Set(BepuDebugIdSkinnedShaderKeys.BoneMatrices, bones.Length, ref bones[0]);
         // Meshes of one vertex buffer share their pipeline state by layout; others build theirs each time
-        var key = (_idPass, vertexBuffers[0].Declaration, draw.PrimitiveType);
+        var key = (_idPass, bones is not null, vertexBuffers[0].Declaration, draw.PrimitiveType);
         if (vertexBuffers.Length > 1 || !_idPipelines.TryGetValue(key, out var pipelineState))
         {
-            _idPass.State.RootSignature = _idShader.RootSignature;
-            _idPass.State.EffectBytecode = _idShader.Effect.Bytecode;
+            _idPass.State.RootSignature = shader.RootSignature;
+            _idPass.State.EffectBytecode = shader.Effect.Bytecode;
             _idPass.State.InputElements = vertexBuffers.CreateInputElements();
             _idPass.State.PrimitiveType = draw.PrimitiveType;
             _idPass.State.Output.CaptureState(context.CommandList);
@@ -331,7 +354,7 @@ public class SinglePassWireframeRenderFeature : RootRenderFeature
         for (int i = 0; i < vertexBuffers.Length; i++)
             commandList.SetVertexBuffer(i, vertexBuffers[i].Buffer, vertexBuffers[i].Offset, vertexBuffers[i].Stride);
         commandList.SetPipelineState(pipelineState);
-        _idShader.Apply(context.GraphicsContext);
+        shader.Apply(context.GraphicsContext);
         if (draw.IndexBuffer is { } indexBuffer)
         {
             commandList.SetIndexBuffer(indexBuffer.Buffer, indexBuffer.Offset, indexBuffer.Is32Bit);
@@ -343,6 +366,9 @@ public class SinglePassWireframeRenderFeature : RootRenderFeature
         }
         return true;
     }
+
+    private static bool HasSemantic(VertexBufferBinding[] vertexBuffers, string semantic)
+        => vertexBuffers.Any(b => b.Declaration.VertexElements.Any(e => e.SemanticName == semantic));
 
     /// <summary> The debug mesh's error in world units, with a margin for depth precision </summary>
     private static float Threshold(WireFrameRenderObject wireframe)

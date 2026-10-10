@@ -2,16 +2,21 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Stride.BepuPhysics.Debug;
 using Stride.BepuPhysics.Definitions.Colliders;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Graphics;
+using Stride.Graphics.GeometricPrimitives;
 using Stride.Graphics.Regression;
+using Stride.Rendering;
 using Stride.Rendering.Compositing;
+using Stride.Rendering.Materials;
 using Stride.Rendering.ProceduralModels;
 using Xunit;
+using Buffer = Stride.Graphics.Buffer;
 
 namespace Stride.BepuPhysics.Tests
 {
@@ -44,6 +49,21 @@ namespace Stride.BepuPhysics.Tests
             var sameColored = CountInsideColor(same);
             Assert.True(inside > 500, $"{inside} pixels of a 0.4 collider in a 0.5 model are colored as inside");
             Assert.True(sameColored == 0, $"{sameColored} pixels of a 0.5 collider in its 0.5 model are colored as inside");
+        }
+
+        [Fact]
+        public static void ColliderLinesShowOverTheirOwnSkinnedModel()
+        {
+            // The mesh lies 2 m to the side in its bind pose, its bone brings it back around the collider
+            var (withLines, withoutLines) = Render(game => new Entity
+            {
+                new ModelComponent(SkinnedSphere(game, 0.5f, new Vector3(-2, 0, 0))),
+                new StaticComponent { Collider = new CompoundCollider { Colliders = { new SphereCollider { Radius = 0.5f } } } },
+            }, cameraDistance: 1.5f);
+            int radius = withLines.Height / 4;
+            var changed = CountChanged(withLines, withoutLines, radius);
+            var total = (int)(MathF.PI * radius * radius);
+            Assert.True(changed > total / 40, $"{changed} of {total} pixels of the skinned sphere show a collider line");
         }
 
         [Fact]
@@ -94,6 +114,52 @@ namespace Stride.BepuPhysics.Tests
                 }
             }
             return count;
+        }
+
+        /// <summary> A sphere skinned to the root node: its vertices are stored at <paramref name="bindOffset"/>, its bone brings them back to the origin </summary>
+        private static Model SkinnedSphere(Game game, float radius, Vector3 bindOffset)
+        {
+            var data = GeometricPrimitive.Sphere.New(radius, 16);
+            var vertices = new SkinnedVertex[data.Vertices.Length];
+            for (int i = 0; i < vertices.Length; i++)
+                vertices[i] = new SkinnedVertex { Position = data.Vertices[i].Position + bindOffset, Normal = data.Vertices[i].Normal, Weights = new Vector4(1, 0, 0, 0) };
+
+            var mesh = new Mesh
+            {
+                Draw = new MeshDraw
+                {
+                    PrimitiveType = PrimitiveType.TriangleList,
+                    VertexBuffers = [new VertexBufferBinding(Buffer.Vertex.New(game.GraphicsDevice, vertices), SkinnedVertex.Layout, vertices.Length)],
+                    IndexBuffer = new IndexBufferBinding(Buffer.Index.New(game.GraphicsDevice, data.Indices), true, data.Indices.Length),
+                    DrawCount = data.Indices.Length,
+                },
+                Skinning = new MeshSkinningDefinition { Bones = [new MeshBoneDefinition { NodeIndex = 0, LinkToMeshMatrix = Matrix.Translation(-bindOffset) }] },
+                BoundingBox = new BoundingBox(bindOffset - new Vector3(radius), bindOffset + new Vector3(radius)),
+                BoundingSphere = new BoundingSphere(bindOffset, radius),
+            };
+            mesh.Parameters.Set(MaterialKeys.HasSkinningPosition, true);
+            mesh.Parameters.Set(MaterialKeys.HasSkinningNormal, true);
+            var root = new ModelNodeDefinition { Name = "Root", ParentIndex = -1, Flags = ModelNodeFlags.Default };
+            root.Transform.Scale = Vector3.One;
+            root.Transform.Rotation = Quaternion.Identity;
+            var model = new Model { Skeleton = new Skeleton { Nodes = [root] } };
+            model.Meshes.Add(mesh);
+            return model;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct SkinnedVertex
+        {
+            public static readonly VertexDeclaration Layout = new(
+                VertexElement.Position<Vector3>(),
+                VertexElement.Normal<Vector3>(),
+                new VertexElement("BLENDINDICES", 0, PixelFormat.R16G16B16A16_UInt),
+                new VertexElement("BLENDWEIGHT", 0, PixelFormat.R32G32B32A32_Float));
+
+            public Vector3 Position;
+            public Vector3 Normal;
+            public ushort Bone0, Bone1, Bone2, Bone3;
+            public Vector4 Weights;
         }
 
         private static int CountInsideColor(Frame image)
