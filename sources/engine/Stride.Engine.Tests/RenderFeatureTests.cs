@@ -98,7 +98,11 @@ public class RenderFeatureTests : RenderFeatureTestBase
 
     // The color, normal and specular targets are all multisampled, and resolved one after another
     [SkippableFact]
-    public void Msaa4xLocalReflections() => RunGameTest(new RenderFeatureTests { Msaa = MultisampleCount.X4, PostEffects = x => x.LocalReflections.Enabled = true, TestName = nameof(Msaa4xLocalReflections) });
+    public void Msaa4xLocalReflections()
+    {
+        SkipLocalReflectionsOnAndroid();
+        RunGameTest(new RenderFeatureTests { Msaa = MultisampleCount.X4, PostEffects = x => x.LocalReflections.Enabled = true, TestName = nameof(Msaa4xLocalReflections) });
+    }
 
     [SkippableFact]
     public void TemporalAntiAliasing() => RunGameTest(new RenderFeatureTests { PostEffects = x => x.Antialiasing = new TemporalAntiAliasEffect(), TestName = nameof(TemporalAntiAliasing) });
@@ -130,7 +134,16 @@ public class RenderFeatureTests : RenderFeatureTestBase
     });
 
     [SkippableFact]
-    public void LocalReflections() => RunGameTest(new RenderFeatureTests { PostEffects = x => x.LocalReflections.Enabled = true, TestName = nameof(LocalReflections) });
+    public void LocalReflections()
+    {
+        SkipLocalReflectionsOnAndroid();
+        RunGameTest(new RenderFeatureTests { PostEffects = x => x.LocalReflections.Enabled = true, TestName = nameof(LocalReflections) });
+    }
+
+    // On the Android emulator, local reflections crash the test process on some CI hosts (EPYC 9V45, Xeon 8573C),
+    // and with MSAA their edges change between runs on the others
+    private static void SkipLocalReflectionsOnAndroid() =>
+        Skip.If(OperatingSystem.IsAndroid(), "Local reflections crash or render unstable edges on the Android emulator (under investigation).");
 
     [SkippableFact]
     public void BackgroundCubemap3D() => RunGameTest(new RenderFeatureTests { Background = BackgroundMode.Cubemap3D, TestName = nameof(BackgroundCubemap3D) });
