@@ -60,8 +60,13 @@
       <_StridePackageIdentityKind Condition="'$(_StridePackageIdentityKind)' == ''">Runtime</_StridePackageIdentityKind>
     </PropertyGroup>
     <ItemGroup>
-      <_StridePackageIdentity Include="$(_StridePackageIdentityId)" Version="$(_StridePackageIdentityVersion)" Kind="$(_StridePackageIdentityKind)" />
+      <_StridePackageIdentity Include="$(_StridePackageIdentityId)" Version="$(_StridePackageIdentityVersion)" Kind="$(_StridePackageIdentityKind)" Toolkit="$(StrideEditorToolkit)" />
     </ItemGroup>
+  </Target>
+
+  <!-- A view package (StrideEditorToolkit, e.g. Wpf) is an Editor package: the toolkit says which editor loads its views -->
+  <Target Name="_StrideCheckPackageKind" Condition="'$(StrideEditorToolkit)' != '' And '$(StridePackageKind)' != 'Editor'">
+    <Error Text="StrideEditorToolkit '$(StrideEditorToolkit)' needs StridePackageKind Editor (this package is '$(StridePackageKind)')." />
   </Target>
 
   <ItemGroup>
@@ -73,6 +78,7 @@
     <Error Condition="'@(_StrideCompanionProject)' != '' And !Exists('%(_StrideCompanionProject.Identity)')" Text="StrideCompanionProject '%(_StrideCompanionProject.Identity)' does not exist." />
     <Error Condition="'@(StrideCompanionPackage)' != '' And '%(StrideCompanionPackage.Kind)' != 'Assets' And '%(StrideCompanionPackage.Kind)' != 'Editor'" Text="StrideCompanionPackage '%(StrideCompanionPackage.Identity)' must have a Kind of Assets or Editor." />
     <Error Condition="'@(StrideCompanionPackage)' != '' And '%(StrideCompanionPackage.Version)' == ''" Text="StrideCompanionPackage '%(StrideCompanionPackage.Identity)' must have a Version." />
+    <Error Condition="'@(StrideCompanionPackage)' != '' And '%(StrideCompanionPackage.Toolkit)' != '' And '%(StrideCompanionPackage.Kind)' != 'Editor'" Text="StrideCompanionPackage '%(StrideCompanionPackage.Identity)' has a Toolkit; only an Editor companion can." />
   </Target>
 
   <!-- Joins the companion projects with the identities they answered (by MSBuildSourceProjectFile) and appends the
@@ -104,6 +110,7 @@
             item.SetMetadata("PackageId", identity != null ? identity.ItemSpec : "");
             item.SetMetadata("PackageVersion", identity != null ? identity.GetMetadata("Version") : "");
             item.SetMetadata("Kind", identity != null ? identity.GetMetadata("Kind") : "");
+            item.SetMetadata("Toolkit", identity != null ? identity.GetMetadata("Toolkit") : "");
             item.SetMetadata("Replaces", project.GetMetadata("Replaces"));
             result.Add(item);
         }
@@ -114,6 +121,7 @@
             item.SetMetadata("PackageId", package.ItemSpec);
             item.SetMetadata("PackageVersion", package.GetMetadata("Version"));
             item.SetMetadata("Kind", package.GetMetadata("Kind"));
+            item.SetMetadata("Toolkit", package.GetMetadata("Toolkit"));
             item.SetMetadata("Replaces", package.GetMetadata("Replaces"));
             result.Add(item);
         }
@@ -295,6 +303,7 @@
       <AssetNamespace />
       <AssetNamespaceUsings />
       <PackageKind />
+      <PackageToolkit />
       <CompanionPackages ParameterType="Microsoft.Build.Framework.ITaskItem[]" />
       <ProjectDirectory Required="true" />
       <ExcludeDirectory />
@@ -350,8 +359,10 @@
         }
         if (!string.IsNullOrWhiteSpace(PackageKind))
             sb.AppendLine("PackageKind: " + PackageKind.Trim());
+        if (!string.IsNullOrWhiteSpace(PackageToolkit))
+            sb.AppendLine("PackageToolkit: " + q(PackageToolkit.Trim()));
 
-        // Companions: the project path always for a project, the id, version and kind when known
+        // Companions: the project path always for a project, the id, version, kind and toolkit when known
         var companions = new List<string[]>();
         foreach (var item in CompanionPackages ?? new Microsoft.Build.Framework.ITaskItem[0])
         {
@@ -363,6 +374,7 @@
                 item.GetMetadata("PackageId").Trim(),
                 item.GetMetadata("PackageVersion").Trim(),
                 item.GetMetadata("Replaces"),
+                item.GetMetadata("Toolkit").Trim(),
             });
         }
         companions.Sort((a, b) => string.CompareOrdinal(a[0] + "|" + a[1] + "|" + a[2], b[0] + "|" + b[1] + "|" + b[2]));
@@ -380,6 +392,8 @@
                     lines.Add("Package: " + q(companion[2]));
                 if (companion[3].Length > 0)
                     lines.Add("Version: " + q(companion[3]));
+                if (companion[5].Length > 0)
+                    lines.Add("Toolkit: " + q(companion[5]));
                 var replaces = companion[4].Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries).Select(r => r.Trim()).Where(r => r.Length > 0).ToList();
                 if (replaces.Count > 0)
                 {
@@ -482,7 +496,7 @@
 
   <Target Name="StrideWriteAssetBuildManifest"
           AfterTargets="ResolveProjectReferences"
-          DependsOnTargets="$(GetPackageVersionDependsOn);_StrideResolveCompanionProjects;_StrideBuildCompanionProjects"
+          DependsOnTargets="$(GetPackageVersionDependsOn);_StrideCheckPackageKind;_StrideResolveCompanionProjects;_StrideBuildCompanionProjects"
           Condition="'$(StrideAssetBuildManifest)' == 'true' And '$(DesignTimeBuild)' != 'true' And '$(StrideAssetBuildManifestPath)' != '' And '$(_ComputeFilesToPublishForRuntimeIdentifiers)' != 'true'">
     <ItemGroup>
       <_StrideManifestProjectReference Include="@(_MSBuildProjectReferenceExistent)"
@@ -561,6 +575,7 @@
         AssetNamespace="$(StrideAssetNamespace)"
         AssetNamespaceUsings="@(StrideAssetNamespaceUsing)"
         PackageKind="$(StridePackageKind)"
+        PackageToolkit="$(StrideEditorToolkit)"
         CompanionPackages="@(_StrideCompanion)"
         ProjectDirectory="$(MSBuildProjectDirectory)"
         ExcludeDirectory="$([System.IO.Path]::Combine('$(MSBuildProjectDirectory)', '$(BaseIntermediateOutputPath)'))"

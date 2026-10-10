@@ -202,14 +202,22 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
     public List<CompanionPackage> CompanionPackages { get; } = [];
 
     /// <summary>
-    /// Takes the build-property declarations of a build manifest: this package's kind, and the companions, where
-    /// an entry of the same kind and name (or without a name on either side) is completed and any other is added.
-    /// Project paths are resolved against the manifest's directory.
+    /// The UI toolkit an <see cref="PackageKind.Editor"/> package's views are written for (StrideEditorToolkit, e.g.
+    /// Wpf); null for a toolkit-neutral package. Packed sdpkgs and build manifests carry it; an authored sdpkg does not.
+    /// </summary>
+    [DataMember(108)]
+    [DefaultValue(null)]
+    public string? Toolkit { get; set; }
+
+    /// <summary>
+    /// Applies a build manifest's kind, toolkit and companions; a companion of the same kind and name is completed, others are added.
     /// </summary>
     public void SetCompanionDeclarations(AssetBuildManifest manifest, string manifestDirectory)
     {
         if (manifest.PackageKind is { } kind)
             Kind = kind;
+        if (manifest.PackageToolkit is not null)
+            Toolkit = manifest.PackageToolkit;
 
         foreach (var declared in manifest.CompanionPackages)
         {
@@ -220,6 +228,8 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
                 companion = new CompanionPackage { Kind = declared.Kind };
                 CompanionPackages.Add(companion);
             }
+            if (declared.Toolkit is not null)
+                companion.Toolkit = declared.Toolkit;
             if (declared.Package is not null)
                 companion.Name = declared.Package;
             if (declared.Version is not null)

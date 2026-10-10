@@ -1,0 +1,10 @@
+!Package
+SerializedVersion: {Assets: 3.1.0.0}
+Meta:
+    Name: MyTemplate
+    Version: 1.0.0
+    Authors: []
+    Owners: []
+    Dependencies: null
+AssetFolders:
+    -   Path: !dir Assets

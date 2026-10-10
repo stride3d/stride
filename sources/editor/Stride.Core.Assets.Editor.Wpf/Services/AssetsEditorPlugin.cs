@@ -33,26 +33,35 @@ public abstract class AssetsEditorPlugin : AssetsPlugin
     public void RegisterTypeImages(ILogger logger)
     {
         var assembly = GetType().Assembly;
-        var resourceNames = assembly.GetManifestResourceNames();
         foreach (var attribute in assembly.GetCustomAttributes<TypeImageAttribute>())
         {
-            var resourceName = resourceNames.FirstOrDefault(x => x == attribute.ResourceName)
-                ?? resourceNames.FirstOrDefault(x => x.EndsWith("." + attribute.ResourceName, StringComparison.Ordinal));
-            if (resourceName is null)
-            {
+            if (LoadImageResource(assembly, attribute.ResourceName) is { } image)
+                TypeImages[attribute.Type] = image;
+            else
                 logger.Warning($"The type image [{attribute.ResourceName}] of [{attribute.Type.Name}] is not an embedded resource of [{assembly.GetName().Name}].");
-                continue;
-            }
-
-            using var stream = assembly.GetManifestResourceStream(resourceName)!;
-            var image = new BitmapImage();
-            image.BeginInit();
-            image.StreamSource = stream;
-            image.CacheOption = BitmapCacheOption.OnLoad;
-            image.EndInit();
-            image.Freeze();
-            TypeImages[attribute.Type] = image;
         }
+    }
+
+    /// <summary>
+    /// Reads an image embedded in <paramref name="assembly"/>, named by its full manifest resource name or the
+    /// trailing part of it; null when there is no such resource.
+    /// </summary>
+    protected static BitmapImage? LoadImageResource(Assembly assembly, string resourceName)
+    {
+        var resourceNames = assembly.GetManifestResourceNames();
+        var name = resourceNames.FirstOrDefault(x => x == resourceName)
+            ?? resourceNames.FirstOrDefault(x => x.EndsWith("." + resourceName, StringComparison.Ordinal));
+        if (name is null)
+            return null;
+
+        using var stream = assembly.GetManifestResourceStream(name)!;
+        var image = new BitmapImage();
+        image.BeginInit();
+        image.StreamSource = stream;
+        image.CacheOption = BitmapCacheOption.OnLoad;
+        image.EndInit();
+        image.Freeze();
+        return image;
     }
 
     public virtual void RegisterAssetEditorViewModelTypes(IDictionary<Type, Type> assetEditorViewModelTypes)
@@ -87,8 +96,18 @@ public abstract class AssetsEditorPlugin : AssetsPlugin
     {
     }
 
+    /// <summary>
+    /// Registers the images declared by <see cref="EnumImageAttribute"/> on the plugin assembly, read from its
+    /// embedded resources.
+    /// </summary>
     public virtual void RegisterEnumImages(IDictionary<object, object> enumImages)
     {
+        var assembly = GetType().Assembly;
+        foreach (var attribute in assembly.GetCustomAttributes<EnumImageAttribute>())
+        {
+            if (LoadImageResource(assembly, attribute.ResourceName) is { } image)
+                enumImages[attribute.Value] = image;
+        }
     }
 
     public virtual void RegisterCopyProcessors(ICollection<ICopyProcessor> copyProcessors, SessionViewModel session)

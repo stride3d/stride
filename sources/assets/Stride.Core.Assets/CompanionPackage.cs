@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.ComponentModel;
 using Stride.Core;
 using Stride.Core.IO;
 
@@ -45,11 +46,16 @@ public sealed class CompanionPackage
     [DataMember(3)]
     public List<string> Replaces { get; } = [];
 
+    /// <summary>The UI toolkit of an <see cref="PackageKind.Editor"/> companion's views (Wpf); null for a toolkit-neutral one.</summary>
+    [DataMember(4)]
+    [DefaultValue(null)]
+    public string? Toolkit { get; set; }
+
     /// <summary>The companion's project, known when the declaring package comes from a project or its build manifest.</summary>
     [DataMemberIgnore]
     public UFile? Project { get; set; }
 
     private bool ShouldSerializeReplaces() => Replaces.Count > 0;
 
-    public override string ToString() => $"{Kind} package [{Name}] version [{Version}]";
+    public override string ToString() => $"{Kind}{(Toolkit is not null ? " (" + Toolkit + ")" : "")} package [{Name}] version [{Version}]";
 }

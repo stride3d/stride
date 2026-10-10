@@ -84,8 +84,10 @@ namespace Stride.Editor
         /// <inheritdoc />
         public sealed override void RegisterEnumImages(IDictionary<object, object> enumImages)
         {
+            base.RegisterEnumImages(enumImages);
+            // The resource dictionary's images come on top of the attributes'
             foreach (var pair in enumImagesDictionary)
-                enumImages.Add(pair);
+                enumImages[pair.Key] = pair.Value;
         }
 
         /// <inheritdoc />

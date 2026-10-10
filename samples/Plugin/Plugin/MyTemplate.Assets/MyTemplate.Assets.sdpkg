@@ -1,0 +1,13 @@
+!Package
+SerializedVersion: {Assets: 3.1.0.0}
+Meta:
+    Name: MyTemplate.Assets
+    Version: 1.0.0
+    Authors: []
+    Owners: []
+    Dependencies: null
+TemplateFolders:
+    - Path: !dir Templates/Assets
+      Group: Assets
+      Files:
+        - !file Templates/Assets/MyTemplate.sdtpl

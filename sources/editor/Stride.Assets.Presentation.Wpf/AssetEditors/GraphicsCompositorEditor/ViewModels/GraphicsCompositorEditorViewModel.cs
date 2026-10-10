@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Threading.Tasks;
+using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
@@ -14,8 +15,10 @@ using Stride.Core.Reflection;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Quantum;
+using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Quantum;
+using Stride.Core.Translation;
 using Stride.Assets.Presentation.ViewModel;
 using Stride.Assets.Rendering;
 using Stride.Core.Assets.Editor.Annotations;
@@ -57,6 +60,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewM
             RemoveSelectedRenderStagesCommand = new AnonymousCommand(ServiceProvider, RemoveSelectedRenderStages);
 
             AddNewRenderFeatureCommand = new AnonymousCommand<AbstractNodeType>(ServiceProvider, AddNewRenderFeature);
+            AddPackageRenderFeaturesCommand = new AnonymousTaskCommand(ServiceProvider, AddPackageRenderFeatures);
             RemoveSelectedRenderFeaturesCommand = new AnonymousCommand(ServiceProvider, RemoveSelectedRenderFeatures);
 
             AddNewCameraSlotCommand = new AnonymousCommand(ServiceProvider, AddNewCameraSlot);
@@ -93,6 +97,11 @@ namespace Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewM
         public ICommandBase RemoveSelectedRenderStagesCommand { get; }
 
         public ICommandBase AddNewRenderFeatureCommand { get; }
+
+        /// <summary>
+        /// Adds the render features that the packages of this compositor's project provide and that it lacks.
+        /// </summary>
+        public ICommandBase AddPackageRenderFeaturesCommand { get; }
 
         public ICommandBase RemoveSelectedRenderFeaturesCommand { get; }
 
@@ -387,6 +396,34 @@ namespace Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewM
                 renderFeaturesNode.Add(renderFeature);
 
                 UndoRedoService.SetName(transaction, "Create new render feature");
+            }
+        }
+
+        private async Task AddPackageRenderFeatures()
+        {
+            var asset = (GraphicsCompositorAsset)Asset.Asset;
+            var opaqueStage = asset.RenderStages.FirstOrDefault(x => x.Name == "Opaque");
+            var transparentStage = asset.RenderStages.FirstOrDefault(x => x.Name == "Transparent");
+            if (opaqueStage == null || transparentStage == null)
+            {
+                await ServiceProvider.Get<IDialogService>().MessageBoxAsync(Tr._p("Message", "The package render features need an Opaque and a Transparent render stage to render into."), MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            // Through the property graph, so the view models, the undo stack and the dirty flag follow
+            var scope = PackageTypeScope.For(Asset.AssetItem.Package);
+            var renderFeatures = RenderFeatureProviders.CreateMissingRenderFeatures(asset, opaqueStage, transparentStage, scope).ToList();
+            if (renderFeatures.Count == 0)
+            {
+                await ServiceProvider.Get<IDialogService>().MessageBoxAsync(Tr._p("Message", "The compositor already has every render feature the packages of its project provide."), MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+            using (var transaction = UndoRedoService.CreateTransaction())
+            {
+                foreach (var renderFeature in renderFeatures)
+                    renderFeaturesNode.Add(renderFeature);
+
+                UndoRedoService.SetName(transaction, "Add package render features");
             }
         }
 

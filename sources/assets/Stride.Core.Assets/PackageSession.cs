@@ -651,6 +651,12 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
     public bool LoadEditorPackages { get; set; }
 
     /// <summary>
+    /// The UI toolkit of the editor this session serves (Wpf): the Editor companions written for another toolkit are
+    /// not loaded. Null for a host with no views (the asset compiler) and for a load that names none.
+    /// </summary>
+    public string? EditorToolkit { get; set; }
+
+    /// <summary>
     /// Gets the packages referenced by the current package.
     /// </summary>
     /// <returns>IEnumerable&lt;Package&gt;.</returns>
@@ -1112,7 +1118,8 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
 
             // Companion packages declared by the packages loaded above
             LoadEditorPackages |= loadParameters.LoadEditorPackages;
-            LoadCompanionPackages(GetRootDirectory(), log, LoadEditorPackages);
+            EditorToolkit ??= loadParameters.EditorToolkit;
+            LoadCompanionPackages(GetRootDirectory(), log, LoadEditorPackages, EditorToolkit);
         }
         finally
         {
