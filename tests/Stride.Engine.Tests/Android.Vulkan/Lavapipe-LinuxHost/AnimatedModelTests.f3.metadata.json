@@ -1,0 +1,14 @@
+{
+  "os": "Android (API level 34)",
+  "cpu": "Android virtual processor",
+  "gpu": "Mesa llvmpipe (LLVM 18.1.3, 256 bits) StrideHost=Linux",
+  "gpuVendorId": "0x10005",
+  "gpuDeviceId": "0x0000",
+  "vendorName": "Mesa",
+  "driverId": "MesaLLVMPipe",
+  "driverName": "llvmpipe",
+  "driverInfo": "Mesa 26.2.0-devel (git-154d3b5812) (LLVM 18.1.3)",
+  "driverVersion": "26.1.99",
+  "apiName": "Vulkan",
+  "apiVersion": "1.3.0"
+}
