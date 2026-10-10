@@ -7,22 +7,18 @@
     <StridePackageKind>Editor</StridePackageKind>
   </PropertyGroup>
   <ItemGroup>
-    <!-- The UI editor's WPF views: the WPF Game Studio loads them, another toolkit's editor does not -->
-    <StrideCompanionProject Include="..\Stride.UI.Editor.Wpf\Stride.UI.Editor.Wpf.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
+    <Compile Include="..\..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\editor\Stride.Assets.Presentation.Wpf\Stride.Assets.Presentation.Wpf.csproj" />
-    <ProjectReference Include="..\Stride.UI.Assets\Stride.UI.Assets.csproj" />
-    <ProjectReference Include="..\Stride.UI\Stride.UI.csproj" />
+    <ProjectReference Include="..\..\Stride.Assets.Presentation.Wpf\Stride.Assets.Presentation.Wpf.csproj" />
+    <ProjectReference Include="..\..\..\engine\Stride.SpriteStudio.Assets\Stride.SpriteStudio.Assets.csproj" />
+    <ProjectReference Include="..\..\..\engine\Stride.SpriteStudio.Runtime\Stride.SpriteStudio.Runtime.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <None Remove="Resources\*.png" />
-    <EmbeddedResource Include="Resources\*.png" />
+    <EmbeddedResource Include="Resources\SpriteStudioComponent.png" />
+    <EmbeddedResource Include="Resources\SpriteStudioNodeLinkComponent.png" />
   </ItemGroup>
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />
 </Project>
