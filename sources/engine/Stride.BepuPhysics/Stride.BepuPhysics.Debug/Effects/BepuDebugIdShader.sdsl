@@ -1,0 +1,20 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+// Writes, for each pixel a collidable's visual model shows on, the collidable's id
+shader BepuDebugIdShader : ShaderBase, Transformation, PositionStream4
+{
+    float ObjectId;
+
+    stage override void VSMain()
+    {
+        // The scene's own sequence, so this pass lands on the depths the scene wrote, even on surfaces seen edge-on
+        float4 positionWS = mul(streams.Position, World);
+        streams.ShadingPosition = mul(positionWS, ViewProjection);
+    }
+
+    stage override void PSMain()
+    {
+        streams.ColorTarget = float4(ObjectId, 0, 0, 0);
+    }
+};

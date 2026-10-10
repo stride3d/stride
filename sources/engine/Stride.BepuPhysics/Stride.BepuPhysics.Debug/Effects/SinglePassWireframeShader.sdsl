@@ -17,6 +17,12 @@
     float LineWidth;
     float3 LineColor;
 
+    // Id buffer: the collidable id of the visual model each pixel shows, 0 elsewhere
+    Texture2D ModelIds;
+    float ObjectId;
+    // 1 for the pass that draws, without depth test, the lines over their own model
+    float ThroughOwnModel;
+
     cbuffer PerView
     {
         stage float4 Viewport;
@@ -232,12 +238,15 @@
         }
     }
 
+    float isOwnModel(float4 model)
+    {
+        return step(abs(model.x - ObjectId), 0.5);
+    }
+
     // vertex shader
     stage override void VSMain()
-    { 
+    {
         streams.ShadingPosition = projToWorld(streams.Position);
-        // Our wireframe likely sits on top of the same model so fragments will z-fight, this line reduces flickering by pulling vertices forward slightly
-        streams.ShadingPosition.z -= 0.00005;
     }
 
     // pixel shader
@@ -249,6 +258,12 @@
             // too far from edge
             discard;
         }
+
+        float4 model = ModelIds.Load(int3(streams.ShadingPosition.xy, 0));
+        float own = isOwnModel(model);
+        // Everything over its own model, so a line lying on it is drawn even where the depth test missed it by a hair
+        if (ThroughOwnModel * (1 - own) > 0.5)
+            discard;
 
         streams.ColorTarget = float4(LineColor, 1);
     }
