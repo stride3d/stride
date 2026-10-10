@@ -1,6 +1,6 @@
 {
   "os": "Ubuntu 24.04.5 LTS",
-  "cpu": "AMD EPYC 7763 64-Core Processor",
+  "cpu": "AMD EPYC 9V45 96-Core Processor",
   "gpu": "Mesa llvmpipe (LLVM 18.1.3, 256 bits)",
   "gpuVendorId": "0x10005",
   "gpuDeviceId": "0x0000",
