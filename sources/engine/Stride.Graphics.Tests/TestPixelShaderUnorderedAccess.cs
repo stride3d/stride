@@ -27,8 +27,9 @@ public class TestPixelShaderUnorderedAccess : GraphicTestGameBase
     {
         PerformTest(game =>
         {
-            // Vulkan needs fragmentStoresAndAtomics enabled at device creation
-            Skip.If(GraphicsDevice.Platform == GraphicsPlatform.Vulkan, "Pixel shader UAVs are not enabled on Vulkan yet.");
+            Skip.IfNot(game.GraphicsDevice.Features.HasPixelShaderUnorderedAccess, "The device has no pixel shader UAVs.");
+            // Vulkan's buffer-to-buffer copy runs inside the active render pass, so GetData fails validation
+            Skip.If(GraphicsDevice.Platform == GraphicsPlatform.Vulkan, "Vulkan buffer copies don't end the render pass yet.");
 
             var device = game.GraphicsDevice;
             var commandList = game.GraphicsContext.CommandList;
