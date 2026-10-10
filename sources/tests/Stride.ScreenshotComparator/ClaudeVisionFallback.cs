@@ -8,13 +8,14 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Stride.Tests.ScreenshotComparator;
 
 /// <summary>
-/// Calls Claude Haiku 4.5 vision with the baseline(s) + capture and asks "is this the same scene?".
+/// Calls Claude Sonnet vision with the baseline(s) + capture and asks "is this the same scene?".
 /// Used as a second-opinion fallback when LPIPS is over threshold but the test opted into
 /// <c>claudeFallback</c>. When more than one baseline is provided they're framed as the
 /// acceptable variance range for the frame. An API key (see <see cref="ApiKey"/>) is required; if missing,
@@ -22,11 +23,13 @@ namespace Stride.Tests.ScreenshotComparator;
 /// </summary>
 public static class ClaudeVisionFallback
 {
-    private const string Model = "claude-haiku-4-5";
+    private const string Model = "claude-sonnet-5-5";
     private const string Endpoint = "https://api.anthropic.com/v1/messages";
     private const string ApiVersion = "2023-06-01";
 
     private static readonly HttpClient http = new() { Timeout = TimeSpan.FromSeconds(60) };
+
+    private static readonly Regex VerdictLine = new(@"^(YES|NO)\s*:", RegexOptions.IgnoreCase);
 
     public readonly record struct Verdict(bool Pass, string Reason);
 
@@ -77,8 +80,8 @@ public static class ClaudeVisionFallback
         var body = JsonSerializer.Serialize(new
         {
             model = Model,
-            max_tokens = 80,
-            temperature = 0.0,
+            // Room for the model's thinking (counted here) and a few lines of reasoning before the verdict
+            max_tokens = 4000,
             messages = new[]
             {
                 new { role = "user", content = content.ToArray() },
@@ -107,12 +110,20 @@ public static class ClaudeVisionFallback
                 if (resp.IsSuccessStatusCode)
                 {
                     using var doc = JsonDocument.Parse(respBody);
-                    // Response shape: { content: [{ type: "text", text: "YES: ..." | "NO: ..." }] }
-                    var text = doc.RootElement.GetProperty("content")[0].GetProperty("text").GetString() ?? "";
-                    text = text.Trim();
-                    // Accept "YES" or "NO" prefix (case-insensitive).
-                    var pass = text.StartsWith("YES", StringComparison.OrdinalIgnoreCase);
-                    return new Verdict(pass, text);
+                    // Response shape: { content: [..., { type: "text", text: "<reasoning lines>\nYES: ..." | "...\nNO: ..." }] },
+                    // other block types (e.g. thinking) are skipped
+                    var text = string.Join("\n", doc.RootElement.GetProperty("content").EnumerateArray()
+                        .Where(block => block.GetProperty("type").GetString() == "text")
+                        .Select(block => block.GetProperty("text").GetString()));
+                    // The verdict is the last line starting with "YES:" or "NO:" (markdown emphasis stripped), so a
+                    // reasoning line such as "No change in ..." isn't one; without a verdict, the comparison fails.
+                    var verdict = text.Split('\n')
+                        .Select(line => line.Trim().Replace("**", "").TrimStart('#', ' '))
+                        .LastOrDefault(line => VerdictLine.IsMatch(line));
+                    if (verdict == null)
+                        return new Verdict(false, $"no YES/NO verdict line (stop reason {doc.RootElement.GetProperty("stop_reason")}): {Truncate(text.Trim(), 300)}");
+                    var pass = verdict.StartsWith("YES", StringComparison.OrdinalIgnoreCase);
+                    return new Verdict(pass, verdict);
                 }
 
                 var code = (int)resp.StatusCode;

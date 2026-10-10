@@ -72,7 +72,7 @@ public sealed record EditorComparisonPrompt : ComparisonPrompt
         var sb = new StringBuilder(Intro("Stride GameStudio editor UI", baselineCount));
         sb.Append("YES (not a regression):\n");
         AppendIf(sb, TolerateBuildLogTimestamps, "Timestamps / elapsed-time strings / dates in build or output logs.");
-        AppendIf(sb, TolerateNuGetAuditWarnings, "NuGet package vulnerability warnings (NU1901-NU1904, \"has a known ... severity vulnerability\") in build or output logs: advisories get published after the baseline was captured, they are not caused by the change under test.");
+        AppendIf(sb, TolerateNuGetAuditWarnings, "NuGet package vulnerability warnings (NU1901-NU1904, \"has a known ... severity vulnerability\") in build or output logs: ignore those lines completely and compare the logs as if they were not there. Advisories get published after the baseline was captured, they are not caused by the change under test.");
         AppendIf(sb, TolerateAssetCounts, "Asset, file, or item counts differ slightly (template content drift between runs).");
         AppendIf(sb, TolerateScenePreviewDrift, "Embedded 3D scene viewport content differs (camera angle, lighting, frame timing — nondeterministic).");
         AppendIf(sb, TolerateFontRasterization, "Sub-pixel font rasterization differences (ClearType, theme variations).");

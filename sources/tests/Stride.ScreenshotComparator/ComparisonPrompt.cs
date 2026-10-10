@@ -34,10 +34,12 @@ public abstract record ComparisonPrompt
               "regression only when the capture exhibits a quality / structural problem that NONE of the " +
               "baselines show.\n\n";
 
-    /// <summary>YES/NO format directive plus optional per-frame hint.</summary>
+    /// <summary>Optional per-frame hint, then the format directive: short reasoning, verdict on the last line.</summary>
     protected string OutroWithHint() =>
-        "\nFormat: \"YES: <one-line reason>\" or \"NO: <one-line reason>\"."
-        + (string.IsNullOrEmpty(ExtraHint) ? "" : " Frame context: " + ExtraHint);
+        (string.IsNullOrEmpty(ExtraHint) ? "" : "\nFrame context: " + ExtraHint + "\n")
+        + "\nFirst list the visible differences in a few short lines, each with the rule above that covers it. "
+        + "Then end with a last line \"YES: <one-line reason>\" or \"NO: <one-line reason>\". "
+        + "Answer NO only for a difference that matches a NO rule and that no YES rule covers.";
 
     /// <summary>Appends "- {line}\n" to <paramref name="sb"/> when <paramref name="flag"/> is true.</summary>
     protected static void AppendIf(StringBuilder sb, bool flag, string line)
