@@ -636,7 +636,7 @@ namespace Stride.BepuPhysics.Tests
                 await simulation.AfterUpdate();
 
                 // A sphere has no gyroscopic effect, one step at that velocity lands exactly on the target
-                Assert.True(MathF.Abs(Quaternion.Dot(body.Orientation, target)) > 0.9999f, $"Reached {body.Orientation}, expected {target}");
+                Assert.True(MathUtil.WithinEpsilon(MathF.Abs(Quaternion.Dot(body.Orientation, target)), 1f, 1e-4f),$"Reached {body.Orientation}, expected {target}");
 
                 game.Exit();
             });

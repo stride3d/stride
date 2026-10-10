@@ -439,8 +439,8 @@ public class BodyComponent : CollidableComponent
         // xyz is axis * sin(angle / 2), rescale it to axis * angle
         var axis = new Vector3(quatDelta.X, quatDelta.Y, quatDelta.Z);
         float sinHalfAngle = axis.Length();
-        float scale = sinHalfAngle > 0f ? 2f * MathF.Atan2(sinHalfAngle, quatDelta.W) / sinHalfAngle : 0f;
-        var newVelocity = axis * scale / deltaTime;
+        float scale = sinHalfAngle > 0f ? 2f * MathF.Atan2(sinHalfAngle, quatDelta.W) / (sinHalfAngle * deltaTime) : 0f;
+        var newVelocity = axis * scale;
         if (newVelocity.LengthSquared() > float.Epsilon)
         {
             Awake = true;
