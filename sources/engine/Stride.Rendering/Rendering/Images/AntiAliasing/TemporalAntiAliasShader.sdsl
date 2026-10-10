@@ -38,20 +38,13 @@ shader TemporalAntiAliasShader : ImageEffectShader
         // Find the offset to the position with minimum depth in neighborhood
         // for diolation of foreground velocity map
         //--------------------------------------------------------------------------
-        int2 offsets[] = 
-        {
-            {-OFFSET_LENGTH, -OFFSET_LENGTH},
-            { OFFSET_LENGTH, -OFFSET_LENGTH},
-            {-OFFSET_LENGTH,  OFFSET_LENGTH},
-            { OFFSET_LENGTH,  OFFSET_LENGTH}
-        };
-
-        float4 neighbor4Depths = Texture1.GatherRed(PointSampler,
-                                                       streams.TexCoord,
-                                                       offsets[0],
-                                                       offsets[1],
-                                                       offsets[2],
-                                                       offsets[3]);
+        // Four point samples with constant offsets: a gather with four offsets needs an optional Vulkan feature
+        // (shaderImageGatherExtended), and reads four times anyway
+        float4 neighbor4Depths = float4(
+            Texture1.SampleLevel(PointSampler, streams.TexCoord, 0, int2(-OFFSET_LENGTH, -OFFSET_LENGTH)).r,
+            Texture1.SampleLevel(PointSampler, streams.TexCoord, 0, int2( OFFSET_LENGTH, -OFFSET_LENGTH)).r,
+            Texture1.SampleLevel(PointSampler, streams.TexCoord, 0, int2(-OFFSET_LENGTH,  OFFSET_LENGTH)).r,
+            Texture1.SampleLevel(PointSampler, streams.TexCoord, 0, int2( OFFSET_LENGTH,  OFFSET_LENGTH)).r);
 
         float2 neighborDepthOffset = float2(OFFSET_LENGTH, OFFSET_LENGTH);
         float neighborDepthOffsetX = OFFSET_LENGTH;

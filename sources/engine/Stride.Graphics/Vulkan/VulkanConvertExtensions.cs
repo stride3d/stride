@@ -714,6 +714,8 @@ namespace Stride.Graphics
                         case EffectParameterType.Texture1DArray:
                         case EffectParameterType.Texture2DArray:
                         case EffectParameterType.TextureCubeArray:
+                        case EffectParameterType.Texture2DMultisampled:
+                        case EffectParameterType.Texture2DMultisampledArray:
                         case EffectParameterType.RWTexture1D:
                         case EffectParameterType.RWTexture1DArray:
                         case EffectParameterType.RWTexture2D:

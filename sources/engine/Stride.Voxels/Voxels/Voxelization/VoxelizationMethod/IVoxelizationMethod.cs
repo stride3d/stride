@@ -29,5 +29,10 @@ namespace Stride.Rendering.Voxels
 
         ShaderSource GetVoxelizationShader();
         bool CanShareRenderStage(IVoxelizationMethod method);
+
+        /// <summary>
+        /// The render target the method binds in <see cref="Render"/>, which the pipelines of its render stage are built for.
+        /// </summary>
+        RenderOutputDescription GetRenderOutput(GraphicsDevice device);
     }
 }
