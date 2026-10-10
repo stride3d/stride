@@ -183,7 +183,7 @@
             streams.EdgeA[2] = heights[1];
             streams.EdgeB[0] = edgeOffsets[0] + edgeSigns[0] * lengths[0];
             streams.EdgeB[1] = edgeOffsets[1];
-            streams.EdgeB[2] = edgeOffsets[2] * edgeSigns[2] * cosAngles[2] * lengths[1];
+            streams.EdgeB[2] = edgeOffsets[2] + edgeSigns[2] * cosAngles[2] * lengths[1];
             triangleStream.Append(streams);
 
             // vertex 2
