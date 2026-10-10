@@ -49,9 +49,18 @@ namespace Stride.Rendering.ProceduralModels
         [DefaultValue(8)]
         public int Tessellation { get; set; } = 8;
 
+        /// <summary>
+        /// Gets or sets the number of vertex rings added along the length, between the two hemispheres.
+        /// </summary>
+        /// <remarks>Negative values are treated as 0.</remarks>
+        /// <userdoc>The number of rings added along the straight part of the capsule, so that it can bend when its vertices are deformed.</userdoc>
+        [DataMember(40)]
+        [DefaultValue(0)]
+        public int LengthRings { get; set; } = 0;
+
         protected override GeometricMeshData<VertexPositionNormalTexture> CreatePrimitiveMeshData()
         {
-            return GeometricPrimitive.Capsule.New(Length, Radius, Tessellation, UvScale.X, UvScale.Y);
+            return GeometricPrimitive.Capsule.New(Length, Radius, Tessellation, UvScale.X, UvScale.Y, lengthRings: LengthRings);
         }
     }
 }
