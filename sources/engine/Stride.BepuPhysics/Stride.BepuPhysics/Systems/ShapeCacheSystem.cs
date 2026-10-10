@@ -131,8 +131,23 @@ internal class ShapeCacheSystem : IDisposable, IService
                 for (int i = 0; i < hullClass.Points.Length; i++)
                     outPointsWithAutoCast[vertexWriteHead++] = hullClass.Points[i].ToNumeric();
 
-                for (int i = 0; i < hullClass.Indices.Length; i++)
+                // A hull's triangles may come wound either way; the wireframe tells front from back faces by winding,
+                // so each one is turned to face away from the hull's center, the way the other debug meshes are
+                var center = System.Numerics.Vector3.Zero;
+                for (int i = 0; i < hullClass.Points.Length; i++)
+                    center += hullClass.Points[i].ToNumeric();
+                center /= Math.Max(hullClass.Points.Length, 1);
+
+                for (int i = 0; i + 2 < hullClass.Indices.Length; i += 3)
+                {
+                    var a = hullClass.Points[(int)hullClass.Indices[i]].ToNumeric();
+                    var b = hullClass.Points[(int)hullClass.Indices[i + 1]].ToNumeric();
+                    var c = hullClass.Points[(int)hullClass.Indices[i + 2]].ToNumeric();
+                    var outward = System.Numerics.Vector3.Dot(System.Numerics.Vector3.Cross(b - a, c - a), a - center) > 0;
                     outIndices[indexWriteHead++] = vertMappingStart + (int)hullClass.Indices[i];
+                    outIndices[indexWriteHead++] = vertMappingStart + (int)hullClass.Indices[outward ? i + 1 : i + 2];
+                    outIndices[indexWriteHead++] = vertMappingStart + (int)hullClass.Indices[outward ? i + 2 : i + 1];
+                }
             }
         }
     }
