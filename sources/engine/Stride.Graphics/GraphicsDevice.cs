@@ -33,6 +33,7 @@ namespace Stride.Graphics
         /// </summary>
         public ref readonly GraphicsDeviceFeatures Features => ref features;
         private GraphicsDeviceFeatures features;
+        private GraphicsDeviceFeatures deviceFeatures;
 
         /// <summary>
         ///   The set of Graphics Resources currently managed by the Graphics Device.
@@ -152,11 +153,8 @@ namespace Stride.Graphics
             InitializePlatformDevice(graphicsProfiles, creationFlags, windowHandle);
 
             // Checks the features supported by the new Graphics Device
-            features = new GraphicsDeviceFeatures(this);
-
-            // The only point where features are built, on both the create and the reset path. Anything
-            // that reports them from elsewhere goes stale when a reset rebuilds them.
-            Log.Info($"Graphics device: {Adapter?.Description ?? "unknown adapter"} ({Platform})\n  {features}");
+            deviceFeatures = new GraphicsDeviceFeatures(this);
+            LimitFeaturesToEffectProfile();
 
             // Initialize the internal states of the new Graphics Device
             SamplerStates = new SamplerStateFactory(this);
@@ -318,16 +316,30 @@ namespace Stride.Graphics
         /// <summary>
         ///   Gets the graphics profile the effects are compiled against, when it is set apart from the Graphics Device.
         /// </summary>
-        internal GraphicsProfile? ShaderProfile { get; set; }
+        internal GraphicsProfile? ShaderProfile
+        {
+            get => shaderProfile;
+            set
+            {
+                shaderProfile = value;
+                LimitFeaturesToEffectProfile();
+            }
+        }
+        private GraphicsProfile? shaderProfile;
 
         /// <summary>
-        ///   Gets the graphics profile the effects are compiled against.
+        ///   Gets the graphics profile the effects are compiled against. The Graphics Device can run at a higher level.
         /// </summary>
-        /// <remarks>
-        ///   The Graphics Device can run at a higher level than this profile. A renderer that needs a shader model
-        ///   above this profile cannot run, even when <see cref="Features"/> reports the hardware support.
-        /// </remarks>
-        public GraphicsProfile EffectProfile => ShaderProfile ?? Features.RequestedProfile;
+        internal GraphicsProfile EffectProfile => shaderProfile ?? deviceFeatures.RequestedProfile;
+
+        private void LimitFeaturesToEffectProfile()
+        {
+            features = deviceFeatures.LimitedTo(EffectProfile);
+
+            // Features are built on both the create and the reset path, and again when the effect profile changes.
+            // Anything that reports them from elsewhere goes stale.
+            Log.Info($"Graphics device: {Adapter?.Description ?? "unknown adapter"} ({Platform}), effects compiled for {EffectProfile}\n  {features}");
+        }
 
 
         /// <summary>

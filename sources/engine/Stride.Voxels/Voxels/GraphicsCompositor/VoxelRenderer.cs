@@ -68,9 +68,8 @@ namespace Stride.Rendering.Voxels
             if (renderVoxelVolumes == null || renderVoxelVolumes.Count == 0)
                 return;
 
-            var device = Context.RenderSystem.GraphicsDevice;
-            var features = device.Features;
-            canVoxelize = features.HasComputeShaders && features.HasPixelShaderUnorderedAccess && EffectsHavePixelShaderUnorderedAccess(device);
+            var features = Context.RenderSystem.GraphicsDevice.Features;
+            canVoxelize = features.HasComputeShaders && features.HasPixelShaderUnorderedAccess;
 
             if (!canVoxelize)
             {
@@ -80,9 +79,9 @@ namespace Stride.Rendering.Voxels
                 {
                     reportedUnsupported = true;
 
-                    Log.Warning(!features.HasComputeShaders ? "Voxelization is disabled: this device does not support compute shaders."
-                        : !features.HasPixelShaderUnorderedAccess ? "Voxelization is disabled: this device does not support unordered access from pixel shaders."
-                        : $"Voxelization is disabled: effects are compiled for {device.EffectProfile}, and voxelization needs {GraphicsProfile.Level_11_0} or higher. Raise the graphics profile in the game settings.");
+                    Log.Warning(!features.HasComputeShaders
+                        ? "Voxelization is disabled: compute shaders are not available on this device with the game's graphics profile."
+                        : "Voxelization is disabled: unordered access from pixel shaders is not available on this device with the game's graphics profile.");
                 }
 
                 return;
@@ -249,13 +248,6 @@ namespace Stride.Rendering.Voxels
                     }
                 }
             }
-        }
-
-        // Direct3D compiles effects for the shader model of the effect profile, and pixel-shader UAV needs shader model 5.0
-        private static bool EffectsHavePixelShaderUnorderedAccess(GraphicsDevice device)
-        {
-            return GraphicsDevice.Platform is not (GraphicsPlatform.Direct3D11 or GraphicsPlatform.Direct3D12)
-                || device.EffectProfile >= GraphicsProfile.Level_11_0;
         }
 
         public virtual void Draw(RenderDrawContext drawContext, Shadows.IShadowMapRenderer ShadowMapRenderer)
