@@ -492,7 +492,7 @@ namespace Stride.Graphics
                     nativeDeviceUsers[(nint)nativeDevice] = nativeDeviceUsers.GetValueOrDefault((nint)nativeDevice) + 1;
 
                 RequestedProfile = graphicsProfile;
-                CurrentFeatureLevel = featureLevel;
+                CurrentFeatureLevel = GetMaximumFeatureLevel(featureLevel);
 
                 // Check Enhanced Barriers support (D3D12_FEATURE_D3D12_OPTIONS12 = 41)
                 RequireEnhancedBarriersSupport();
@@ -687,6 +687,20 @@ namespace Stride.Graphics
                     dredSettings.SetPageFaultEnablement(DredEnablement.ForcedOn);
                     dredSettings.Release();
                 }
+            }
+
+            // The device is created with a minimum level and runs at the highest one it supports.
+            // GraphicsProfile has no level above 11_1.
+            D3DFeatureLevel GetMaximumFeatureLevel(D3DFeatureLevel minimumFeatureLevel)
+            {
+                var levels = stackalloc D3DFeatureLevel[] { D3DFeatureLevel.Level110, D3DFeatureLevel.Level111 };
+                var featureLevels = new FeatureDataFeatureLevels { NumFeatureLevels = 2, PFeatureLevelsRequested = levels };
+
+                HResult hr = nativeDevice->CheckFeatureSupport(Silk.NET.Direct3D12.Feature.FeatureLevels, ref featureLevels,
+                                                                (uint) sizeof(FeatureDataFeatureLevels));
+                return hr.IsSuccess && featureLevels.MaxSupportedFeatureLevel > minimumFeatureLevel
+                    ? featureLevels.MaxSupportedFeatureLevel
+                    : minimumFeatureLevel;
             }
 
             //
