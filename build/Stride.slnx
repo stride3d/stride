@@ -95,6 +95,7 @@
   </Folder>
   <Folder Name="/20-StrideRuntime/Stride.Bepu/">
     <Project Path="../sources/engine/Stride.BepuPhysics/Stride.BepuPhysics.Debug/Stride.BepuPhysics.Debug.csproj" />
+    <Project Path="../sources/engine/Stride.BepuPhysics/Stride.BepuPhysics.Assets/Stride.BepuPhysics.Assets.csproj" />
     <Project Path="../sources/engine/Stride.BepuPhysics/Stride.BepuPhysics.Tests/Stride.BepuPhysics.Tests.csproj" />
     <Project Path="../sources/engine/Stride.BepuPhysics/Stride.BepuPhysics/Stride.BepuPhysics.csproj" />
   </Folder>
@@ -195,6 +196,7 @@
     <Project Path="../sources/engine/Stride.Assets.Models/Stride.Assets.Models.csproj" />
     <Project Path="../sources/engine/Stride.Assets/Stride.Assets.csproj" />
     <Project Path="../sources/engine/Stride.Assets.FFmpeg/Stride.Assets.FFmpeg.csproj" />
+    <Project Path="../sources/engine/Stride.Assets.VHACD/Stride.Assets.VHACD.csproj" />
     <Project Path="../sources/engine/Stride.SpriteStudio.Offline/Stride.SpriteStudio.Offline.csproj" />
   </Folder>
   <Folder Name="/71-StrideAssets.Tests/">

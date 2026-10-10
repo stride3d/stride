@@ -38,10 +38,10 @@
     <ProjectReference Include="..\Stride.Engine\Stride.Engine.csproj" />
     <ProjectReference Include="..\Stride.Navigation\Stride.Navigation.csproj" />
     <ProjectReference Include="..\Stride.Physics\Stride.Physics.csproj" />
-    <ProjectReference Include="..\Stride.BepuPhysics\Stride.BepuPhysics\Stride.BepuPhysics.csproj" />
     <ProjectReference Include="..\Stride.UI\Stride.UI.csproj" />
     <ProjectReference Include="..\Stride.Video\Stride.Video.csproj" />
     <ProjectReference Include="..\Stride.Foundation\Stride.Foundation.csproj" />
+    <ProjectReference Include="..\Stride.Assets.VHACD\Stride.Assets.VHACD.csproj" />
     <ProjectReference Include="..\Stride.Assets.FFmpeg\Stride.Assets.FFmpeg.csproj" />
   </ItemGroup>
   <ItemGroup>
@@ -71,9 +71,6 @@
     <None Include="UI\StrideUILibrary.sduilib" />
   </ItemGroup>
   <ItemGroup>
-    <StrideNativeLib Include="..\..\..\deps\VHACD\Release\**\*.dll;..\..\..\deps\VHACD\Release\**\*.so;..\..\..\deps\VHACD\Release\**\*.dylib">
-      <Link>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</Link>
-    </StrideNativeLib>
     <StrideNativeLib Include="..\..\..\deps\msdfgen\Release\**\*.dll;..\..\..\deps\msdfgen\Release\**\*.so;..\..\..\deps\msdfgen\Release\**\*.dylib">
       <Link>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</Link>
     </StrideNativeLib>

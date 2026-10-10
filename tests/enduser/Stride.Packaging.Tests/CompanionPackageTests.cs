@@ -244,6 +244,31 @@ public class CompanionPackageTests
         Assert.Equal(new[] { AssetsPackageId }, declaration.Replaces);
     }
 
+    [Fact]
+    public void BepuHullCompilesThroughItsAssetsPackage()
+    {
+        // The engine's own plugin: Stride.BepuPhysics declares Stride.BepuPhysics.Assets, which carries
+        // the hull asset compiler and its native V-HACD dependency
+        using var c = new Case(output, "assets-bepu");
+        c.PackPlugin();
+        c.ReferenceBepu();
+        c.AddHullAssets();
+        // Typed from Stride.BepuPhysics's [assembly: AssetFileExtension(".sdhull", ...)]
+        c.AddTypedConstantCheck("Hull", "Stride.BepuPhysics.Definitions.DecomposedHulls");
+
+        var result = c.BuildConsumer();
+        Assert.True(result.ExitCode == 0, $"Consumer build should succeed (exit {result.ExitCode}).");
+        Assert.Contains("convex hull", result.Output);
+        c.AssertContentCompiled("/Consumer/Hull");
+        // Saved by an older version: the companion's upgrader brings it to the current format
+        c.AssertContentCompiled("/Consumer/HullV2");
+
+        // The editor's path loads the companion the runtime package declares
+        var session = c.LoadConsumerProjectSession();
+        var companion = Assert.Single(session.Packages, p => p.Meta.Name == "Stride.BepuPhysics.Assets");
+        Assert.Equal(PackageKind.Assets, companion.Kind);
+    }
+
     /// <summary>
     /// One temp tree per case: the plugin packed into a feed and a consumer built against it.
     /// Old copies of the fixed-version packages are deleted from the global packages folder first.
@@ -286,6 +311,10 @@ public class CompanionPackageTests
                 if (Directory.Exists(dir))
                     Directory.Delete(dir, recursive: true);
             }
+            // An engine companion restores there at the engine version: only that version is dropped
+            var engineCompanionDir = Path.Combine(globalPackages, "stride.bepuphysics.assets", version.ToLowerInvariant());
+            if (Directory.Exists(engineCompanionDir))
+                Directory.Delete(engineCompanionDir, recursive: true);
         }
 
         private const string PluginReference = """<PackageReference Include="StrideAssetPlugin" Version="1.0.0" />""";
@@ -331,18 +360,20 @@ public class CompanionPackageTests
             return Dotnet.Exec(args, workingDir, output, timeoutMin: 10);
         }
 
+        public void AddTypedSpinConstantCheck() => AddTypedConstantCheck("Spin", "StrideAssetPlugin.SpinData");
+
         /// <summary>
-        /// Game code that compiles only when the asset URL constant of Spin is typed, from the plugin runtime's
-        /// [assembly: AssetFileExtension]: the game does not reference the Assets package declaring SpinAsset.
+        /// Adds game code that compiles only when the asset URL constant <paramref name="name"/> has type
+        /// <paramref name="contentType"/>, set by the plugin runtime's [assembly: AssetFileExtension].
         /// </summary>
-        public void AddTypedSpinConstantCheck()
+        public void AddTypedConstantCheck(string name, string contentType)
         {
-            File.WriteAllText(Path.Combine(consumerDir, "Consumer.Game", "TypedConstantCheck.cs"), """
+            File.WriteAllText(Path.Combine(consumerDir, "Consumer.Game", $"TypedConstantCheck{name}.cs"), $$"""
                 namespace Consumer;
 
-                internal static class TypedConstantCheck
+                internal static class TypedConstantCheck{{name}}
                 {
-                    internal static readonly Stride.Core.Serialization.UrlReference<StrideAssetPlugin.SpinData> Spin = Assets.Spin;
+                    internal static readonly Stride.Core.Serialization.UrlReference<{{contentType}}> Value = Assets.{{name}};
                 }
                 """);
         }
@@ -454,6 +485,61 @@ public class CompanionPackageTests
                 PluginReference + Indent +
                 """<ProjectReference Include="..\..\PluginCustomAssets\StrideAssetPlugin.CustomAssets.csproj" />""" + Indent +
                 """<StrideCompanionProject Include="..\..\PluginCustomAssets\StrideAssetPlugin.CustomAssets.csproj" Replaces="StrideAssetPlugin.Assets" />"""));
+        }
+
+        public void ReferenceBepu() => ReferencePackage("Stride.BepuPhysics");
+
+        /// <summary>Adds an engine package reference to the game project.</summary>
+        public void ReferencePackage(string id)
+        {
+            const string uiReference = """<PackageReference Include="Stride.UI" Version="$(StrideEngineVersion)" />""";
+            var text = File.ReadAllText(GameProject);
+            Assert.Contains(uiReference, text);
+            File.WriteAllText(GameProject, text.Replace(uiReference,
+                uiReference + Indent + $"""<PackageReference Include="{id}" Version="$(StrideEngineVersion)" />"""));
+        }
+
+        public void AddHullAssets()
+        {
+            var assets = Path.Combine(consumerDir, "Consumer.Game", "Assets");
+            File.WriteAllText(Path.Combine(assets, "Cube.sdpromodel"), """
+                !ProceduralModelAsset
+                Id: 7f0d6c3a-2b1e-4a5c-9d8e-0f1a2b3c4d5e
+                SerializedVersion: {Stride: 2.0.0.0}
+                Tags: []
+                Type: !CubeProceduralModel
+                    Size: {X: 1.0, Y: 1.0, Z: 1.0}
+                """);
+            File.WriteAllText(Path.Combine(assets, "Hull.sdhull"), """
+                !HullAsset
+                Id: 8a1e7d4b-3c2f-4b6d-8e9f-1a2b3c4d5e6f
+                SerializedVersion: {Stride: 3.0.0.0}
+                Tags: []
+                ConvexHulls: null
+                Model: 7f0d6c3a-2b1e-4a5c-9d8e-0f1a2b3c4d5e:Cube
+                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                Scaling: {X: 1.0, Y: 1.0, Z: 1.0}
+                Decomposition:
+                    Enabled: false
+                """);
+            AddRootAsset("8a1e7d4b-3c2f-4b6d-8e9f-1a2b3c4d5e6f:Hull");
+            File.WriteAllText(Path.Combine(assets, "HullV2.sdhull"), """
+                !HullAsset
+                Id: 9b2f8e5c-4d3a-4c7e-9fa0-2b3c4d5e6f70
+                SerializedVersion: {Stride: 2.0.0.0}
+                Tags: []
+                ConvexHulls: null
+                Model: 7f0d6c3a-2b1e-4a5c-9d8e-0f1a2b3c4d5e:Cube
+                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                Scaling: {X: 1.0, Y: 1.0, Z: 1.0}
+                Decomposition:
+                    Enabled: false
+                    Depth: 10
+                    Threshold: 0.01
+                """);
+            AddRootAsset("9b2f8e5c-4d3a-4c7e-9fa0-2b3c4d5e6f70:HullV2");
         }
 
         private void AddRootAsset(string reference)

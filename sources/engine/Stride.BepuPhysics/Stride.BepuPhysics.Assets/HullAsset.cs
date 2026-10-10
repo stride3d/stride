@@ -12,18 +12,18 @@ using Stride.Core.Mathematics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Stride.Assets;
 using Stride.Core.Yaml;
 using Stride.Core.Yaml.Serialization;
 
 namespace Stride.BepuPhysics.Assets
 {
-    [Display((int)AssetDisplayPriority.Physics, "Hull")]
+    // 800 and "Stride" are AssetDisplayPriority.Physics and StrideConfig.LogicalPackageName, in Stride.Assets, which this package does not reference
+    [Display(800, "Hull")]
     [DataContract("HullAsset")]
     [AssetDescription(FileExtension)]
     [AssetContentType(typeof(DecomposedHulls))]
-    [AssetFormatVersion(StrideConfig.LogicalPackageName, CurrentVersion, "2.0.0.0")]
-    [AssetUpgrader(StrideConfig.LogicalPackageName, "2.0.0.0", "3.0.0.0", typeof(VhacdV4Upgrader))]
+    [AssetFormatVersion("Stride", CurrentVersion, "2.0.0.0")]
+    [AssetUpgrader("Stride", "2.0.0.0", "3.0.0.0", typeof(VhacdV4Upgrader))]
     public class HullAsset : Asset
     {
         private const string CurrentVersion = "3.0.0.0";
