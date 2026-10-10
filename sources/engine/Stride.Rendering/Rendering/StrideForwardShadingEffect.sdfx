@@ -71,6 +71,7 @@ namespace Stride.Rendering
         mixin child ShadowMapCasterParaboloid;
         mixin child ShadowMapCasterCubeMap;
         mixin child ZPrepass;
+        mixin child VolumeThickness;
 
         // -----------------------------------------------
         // Add direct and environment light groups

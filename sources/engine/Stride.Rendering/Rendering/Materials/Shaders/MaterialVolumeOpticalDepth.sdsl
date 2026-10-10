@@ -1,0 +1,93 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+namespace Stride.Rendering.Materials
+{
+    /// <summary>
+    /// The optical depth a face of a see-through volume blends over the scene behind it: the summed optical depth of its medium
+    /// when it is alone on the pixel, its own segment when it is one of two one behind the other, and otherwise (or for a camera
+    /// inside a volume) a share of the sum, whose product over the faces is the whole ray's.
+    /// Without the thickness pass, the material blends with its alpha as usual.
+    /// </summary>
+    shader MaterialVolumeOpticalDepth : MaterialPixelStream, ShaderBaseStream, PositionStream4, MaterialVolumeDepth
+    {
+        cbuffer PerMaterial
+        {
+            [Link("MaterialVolume.Absorption")]
+            stage float VolumeAbsorption;
+
+            [Link("MaterialVolume.Scattering")]
+            stage float VolumeMediumScattering;
+        }
+
+        rgroup PerView.VolumeOpticalDepth
+        {
+            stage Texture2D VolumeOpticalDepth;
+        }
+
+        rgroup PerView.VolumeFaces
+        {
+            stage Texture2D VolumeFaces;
+        }
+
+        rgroup PerView.VolumeNearest
+        {
+            stage Texture2D VolumeNearest;
+        }
+
+        rgroup PerView.VolumeFarthest
+        {
+            stage Texture2D VolumeFarthest;
+        }
+
+        // The volume's density averaged over the face's segment, which scales its optical depth
+        stage stream float matVolumeDensity;
+
+        // Relative depth under which two faces are taken as the same, as half floats store the nearest and farthest depths
+        static const float SameDepthTolerance = 2e-3;
+
+        // Alpha a volume is clamped to, so a fully opaque one still has a finite optical depth
+        static const float MaxAlpha = 0.999;
+
+        float ComputeVolumeOpticalDepth()
+        {
+            int3 pixel = int3((int2)streams.ShadingPosition.xy, 0);
+            bool front = streams.IsFrontFace;
+            float depth = VolumeLinearDepth(streams.ShadingPosition.z);
+            bool hidden = depth > VolumeSceneDepth(pixel.xy) * (1 + CoplanarTolerance);
+
+            // This medium's sum and face counts: absorbing in x (xy for the faces), scattering in y (zw)
+            float4 allFaces = round(VolumeFaces.Load(pixel) * FaceCountSteps);
+            float2 faces = lerp(allFaces.xy, allFaces.zw, VolumeMediumScattering);
+            float opticalDepth = lerp(VolumeOpticalDepth.Load(pixel).x, VolumeOpticalDepth.Load(pixel).y, VolumeMediumScattering);
+            float hiddenFronts = floor(faces.x / HiddenFaceWeight);
+            float visibleFronts = faces.x - hiddenFronts * HiddenFaceWeight;
+            float fronts = visibleFronts + hiddenFronts;
+            float backs = faces.y;
+
+            if (fronts + backs < 0.5)
+            {
+                // No thickness pass, as in a shadow map: the front faces blend with the alpha
+                clip(front ? 1 : -1);
+                return -log(1 - min(streams.matDiffuseSpecularAlphaBlend.r, MaxAlpha));
+            }
+
+            bool inside = backs > fronts + 0.5;
+            clip((front && !hidden) || (!front && inside) ? 1 : -1);
+            float sharing = visibleFronts + (inside ? backs : 0);
+            float share = max(opticalDepth, 0) / max(sharing, 1);
+            // One volume, or the renderer does not separate segments (1x1 stand-ins): share
+            uint depthsWidth, depthsHeight;
+            VolumeNearest.GetDimensions(depthsWidth, depthsHeight);
+            if (inside || visibleFronts < 1.5 || visibleFronts > 2.5 || depthsWidth < 2)
+                return share;
+
+            // Two volumes of the medium one behind the other: each front pairs with its back, nearest or farthest
+            float2 nearest = lerp(VolumeNearest.Load(pixel).xy, VolumeNearest.Load(pixel).zw, VolumeMediumScattering);
+            float2 farthest = lerp(VolumeFarthest.Load(pixel).xy, VolumeFarthest.Load(pixel).zw, VolumeMediumScattering);
+            if (nearest.y > farthest.x * (1 + SameDepthTolerance))
+                return share;
+            float back = depth <= nearest.x * (1 + SameDepthTolerance) ? nearest.y : farthest.y;
+            return VolumeAbsorption * max(back - depth, 0) * VolumeRayPerDepth(streams.PositionWS.xyz, depth);
+        }
+    };
+}
