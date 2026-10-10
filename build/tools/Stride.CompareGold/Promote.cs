@@ -299,7 +299,7 @@ internal static class HeadlessPromote
 
     // Recognise a --source that names a CI run rather than a directory: a full Actions URL, "repo:id"
     // (repo = owner or owner/name), or a bare run id. Returns false for plain paths.
-    private static bool TryParseCiSource(string source, out string runId, out string? repo)
+    internal static bool TryParseCiSource(string source, out string runId, out string? repo)
     {
         runId = "";
         repo = null;
@@ -317,11 +317,7 @@ internal static class HeadlessPromote
     private static string? DownloadCiArtifact(string runId, string? repo, out string error)
     {
         error = "";
-        if (!string.IsNullOrEmpty(repo) && !repo.Contains('/'))
-            repo = $"{repo}/stride";
-        if (string.IsNullOrEmpty(repo))
-            // bare id: find the owning remote in this checkout, else fall back to upstream.
-            repo = CiArtifacts.ResolveRepoFromRemotes(runId) ?? CiArtifacts.UpstreamRepo;
+        repo = CiArtifacts.ResolveRepo(runId, repo);
 
         var dir = Path.Combine(Path.GetTempPath(), "stride-compare-gold", "ci", runId);
         try { if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true); } catch { /* best-effort clean */ }

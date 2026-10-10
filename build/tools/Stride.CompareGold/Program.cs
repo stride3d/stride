@@ -19,6 +19,7 @@ if (args is [var first, ..] && first is "--help" or "-h" or "help")
 
           promote [...]   Headless: promote generated images to gold.  See `promote --help`.
           dedup   [...]   Headless: remove redundant existing gold.     See `dedup --help`.
+          stats   [...]   Headless: worst diffs seen per threshold rule. See `stats --help`.
         """);
     return 0;
 }
@@ -26,6 +27,8 @@ if (args is [var first, ..] && first is "--help" or "-h" or "help")
 // Headless gold subcommands (test-gold-gen CI flow) — run and exit without the server.
 if (args.Length > 0 && (args[0] == "promote" || args[0] == "dedup"))
     return HeadlessPromote.Run(args, FindStrideRoot);
+if (args.Length > 0 && args[0] == "stats")
+    return GoldStats.Run(args, FindStrideRoot);
 
 int port = 5505;
 for (int i = 0; i < args.Length; i++)
