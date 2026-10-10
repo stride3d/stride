@@ -253,7 +253,7 @@ namespace Stride.Physics
 
         public override void Draw(RenderContext context)
         {
-            if (Simulation.DisableSimulation) return;
+            if (Simulation.IsDisabled) return;
 
             foreach (var element in boneElements)
             {

@@ -1,0 +1,20 @@
+!Package
+SerializedVersion: {Assets: 3.1.0.0}
+TemplateFolders:
+    - Path: !dir Templates/Assets
+      Group: Assets
+      Files:
+        - !file Templates/Assets/Physics/ColliderShapeBox.sdtpl
+        - !file Templates/Assets/Physics/ColliderShapeCapsule.sdtpl
+        - !file Templates/Assets/Physics/ColliderShapeConvexHull.sdtpl
+        - !file Templates/Assets/Physics/ColliderShapeStatic.sdtpl
+        - !file Templates/Assets/Physics/ColliderShapeCylinder.sdtpl
+        - !file Templates/Assets/Physics/ColliderShapePlane.sdtpl
+        - !file Templates/Assets/Physics/ColliderShapeSphere.sdtpl
+        - !file Templates/Assets/Physics/ColliderShapeCone.sdtpl
+        - !file Templates/Assets/Physics/ColliderShapeHeightfield.sdtpl
+        - !file Templates/Assets/Physics/Heightmap.sdtpl
+        - !file Templates/Assets/Navigation/DefaultNavigationMesh.sdtpl
+        - !file Templates/Assets/Scripts/Physics/PlayerController.sdtpl
+        - !file Templates/Assets/Scripts/Physics/DebugShapesRender.sdtpl
+        - !file Templates/Assets/Scripts/Physics/SceneStreaming.sdtpl

@@ -20,7 +20,6 @@ using Stride.Engine.Design;
 using Stride.Games;
 using Stride.Graphics;
 using Stride.Graphics.Font;
-using Stride.Physics;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
 using Stride.Rendering.Fonts;
@@ -123,14 +122,10 @@ namespace Stride.Editor.Thumbnails
             GraphicsDeviceService = new GraphicsDeviceServiceLocal(Services, GraphicsDevice);
             Services.AddService(GraphicsDeviceService);
 
-            var physicsSystem = new Bullet2PhysicsSystem(Services);
-            Services.AddService<IPhysicsSystem>(physicsSystem);
-
-            gameSystems = new GameSystemCollection(Services) { fontSystem, physicsSystem };
+            gameSystems = new GameSystemCollection(Services) { fontSystem };
             Services.AddService<IGameSystemCollection>(gameSystems);
 
             Services.GetOrCreate<UISystem>();
-            Simulation.DisableSimulation = true; //make sure we do not simulate physics within the editor
 
             // initialize base services
             gameSystems.Initialize();

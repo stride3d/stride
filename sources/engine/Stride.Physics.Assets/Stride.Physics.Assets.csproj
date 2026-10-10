@@ -1,0 +1,27 @@
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.props" />
+  <PropertyGroup>
+    <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <StrideAssemblyProcessorOptions>--serialization</StrideAssemblyProcessorOptions>
+    <StridePackageKind>Assets</StridePackageKind>
+    <StridePackAssets>true</StridePackAssets>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Stride.Assets for the texture asset (heightmap input), the scene asset (navigation mesh input) and the texture tool -->
+    <ProjectReference Include="..\Stride.Assets\Stride.Assets.csproj" />
+    <ProjectReference Include="..\Stride.Assets.VHACD\Stride.Assets.VHACD.csproj" />
+    <ProjectReference Include="..\Stride.Navigation\Stride.Navigation.csproj" />
+    <ProjectReference Include="..\Stride.Physics\Stride.Physics.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Templates\Assets\**" />
+    <None Include="Templates\Assets\**" />
+  </ItemGroup>
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />
+</Project>

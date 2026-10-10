@@ -34,6 +34,11 @@ namespace Stride.Navigation
         [DataMember]
         public IReadOnlyDictionary<Guid, NavigationMeshLayer> Layers => LayersInternal;
 
+        /// <summary>
+        /// Drops the build information kept for incremental building, which the saved navigation mesh does not need.
+        /// </summary>
+        public void ClearBuildCache() => Cache = null;
+
         internal class NavigationMeshSerializer : DataSerializer<NavigationMesh>
         {
             private DictionarySerializer<Guid, NavigationMeshLayer> layersSerializer;

@@ -2,13 +2,14 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Compiler;
 using Stride.Animations;
+using Stride.Assets;
 using Stride.Assets.Entities;
 using Stride.Assets.Materials;
-using Stride.Assets.Navigation;
 using Stride.Assets.Sprite;
 using Stride.Assets.Textures;
 using Stride.Rendering;
@@ -41,7 +42,8 @@ namespace Stride.Editor.Preview
         public override IEnumerable<Type> GetInputTypesToExclude(AssetItem assetItem)
         {
             yield return typeof(SceneAsset);
-            yield return typeof(NavigationMeshAsset);
+            foreach (var assetType in AssetRegistry.GetPublicTypes().Where(x => x.IsDefined(typeof(ExcludedFromPreviewsAttribute), true)))
+                yield return assetType;
         }
     }
 }
