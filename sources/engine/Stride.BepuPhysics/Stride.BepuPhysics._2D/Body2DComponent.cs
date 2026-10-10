@@ -43,5 +43,12 @@ namespace Stride.BepuPhysics
             if (!Kinematic)
                 RotationLock = new Vector3(0, 0, 1);
         }
+
+        protected override void ReshapeInner(TypedIndex shapeIndex, BodyInertia shapeInertia, Vector3 centerOfMassShift)
+        {
+            base.ReshapeInner(shapeIndex, shapeInertia, centerOfMassShift);
+            if (!Kinematic)
+                RotationLock = new Vector3(0, 0, 1);
+        }
     }
 }
