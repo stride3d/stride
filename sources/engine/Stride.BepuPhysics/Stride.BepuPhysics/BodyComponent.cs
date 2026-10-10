@@ -433,7 +433,14 @@ public class BodyComponent : CollidableComponent
         float deltaTime = (float)Simulation.FixedTimeStep.TotalSeconds;
 
         var quatDelta = Quaternion.Invert(Orientation) * targetOrientation;
-        var newVelocity = new Vector3(quatDelta.X, quatDelta.Y, quatDelta.Z) / deltaTime;
+        if (quatDelta.W < 0f)
+            quatDelta = -quatDelta; // q and -q are the same rotation, take the shortest arc
+
+        // xyz is axis * sin(angle / 2), rescale it to axis * angle
+        var axis = new Vector3(quatDelta.X, quatDelta.Y, quatDelta.Z);
+        float sinHalfAngle = axis.Length();
+        float scale = sinHalfAngle > 0f ? 2f * MathF.Atan2(sinHalfAngle, quatDelta.W) / (sinHalfAngle * deltaTime) : 0f;
+        var newVelocity = axis * scale;
         if (newVelocity.LengthSquared() > float.Epsilon)
         {
             Awake = true;
