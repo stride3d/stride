@@ -21,18 +21,19 @@ Hierarchy:
                         Model: 96e9623a-d160-4e9d-b153-dce865e0dcd5:Models/Wall0x2x5
                         Materials:
                             ec9522ed2e91694abd8663b5b8ada228~0: af6015d0-0e5d-4189-b6e0-96810ff58e48:Materials/GridMTWall
-                    74299af04257e746be4dcca2e071c23f: !StaticColliderComponent
+                    74299af04257e746be4dcca2e071c23f: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
                         Id: f09a2974-5742-46e7-be4d-cca2e071c23f
-                        CanSleep: true
-                        Restitution: 0.0
-                        Friction: 0.5
-                        RollingFriction: 0.0
-                        CcdMotionThreshold: 0.0
-                        CcdSweptSphereRadius: 0.0
-                        IsTrigger: false
-                        ColliderShapes:
-                            c43a4bb1930ada42a1651c91b5317898: !BoxColliderShapeDesc
-                                Is2D: false
-                                Size: {X: 0.1, Y: 2.0, Z: 5.0}
-                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
-                                LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                c43a4bb1930ada42a1651c91b5317898: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 0.1, Y: 2.0, Z: 5.0}
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        CollisionLayer: Layer3
+                        CollisionGroup: {}
+                        ContactEventHandler: null
