@@ -287,7 +287,7 @@ namespace Stride.Engine
                     var deviceManager = (GraphicsDeviceManager)graphicsDeviceManager;
                     if (renderingSettings.DefaultGraphicsProfile > 0)
                     {
-                        deviceManager.PreferredGraphicsProfile = new[] { renderingSettings.DefaultGraphicsProfile };
+                        deviceManager.PreferredGraphicsProfile = PreferredProfilesFrom(deviceManager.PreferredGraphicsProfile, renderingSettings.DefaultGraphicsProfile);
                     }
 
                     if (renderingSettings.DefaultBackBufferWidth > 0) deviceManager.PreferredBackBufferWidth = renderingSettings.DefaultBackBufferWidth;
@@ -301,6 +301,16 @@ namespace Stride.Engine
                     SceneSystem.DoubleViewSplashScreen = Settings?.DoubleViewSplashScreen ?? false;
                 }
             }
+        }
+
+        /// <summary>
+        ///   Keeps the preferred profiles at or above the project's profile, so the device is created at the highest level it supports.
+        ///   The project's profile is the minimum because the effects are compiled against it.
+        /// </summary>
+        internal static GraphicsProfile[] PreferredProfilesFrom(GraphicsProfile[] preferred, GraphicsProfile minimum)
+        {
+            var profiles = Array.FindAll(preferred, profile => profile >= minimum);
+            return profiles.Length > 0 ? profiles : [minimum];
         }
 
         public override void ConfirmRenderingSettings(bool gameCreation)

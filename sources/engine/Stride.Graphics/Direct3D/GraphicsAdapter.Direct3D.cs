@@ -56,10 +56,8 @@ namespace Stride.Graphics
 
         private readonly string driverVersionString = "";
 
-#if STRIDE_GRAPHICS_API_DIRECT3D11
         private GraphicsProfile minimumUnsupportedProfile = (GraphicsProfile) int.MaxValue;
         private GraphicsProfile maximumSupportedProfile;
-#endif
 
         /// <summary>
         ///   Gets the native DXGI adapter.
@@ -260,9 +258,6 @@ namespace Stride.Graphics
         /// </returns>
         public bool IsProfileSupported(GraphicsProfile graphicsProfile)
         {
-#if STRIDE_GRAPHICS_API_DIRECT3D12
-            return true;
-#else
             // Did we check for this or a higher profile, and it was supported?
             if (maximumSupportedProfile >= graphicsProfile)
                 return true;
@@ -271,35 +266,42 @@ namespace Stride.Graphics
             if (minimumUnsupportedProfile <= graphicsProfile)
                 return false;
 
-            // Check and min/max cached values
+            var featureLevel = (D3DFeatureLevel) graphicsProfile;
 
+#if STRIDE_GRAPHICS_API_DIRECT3D12
+            // Direct3D 12 creates every device at feature level 11_0 or higher
+            if (featureLevel < D3DFeatureLevel.Level110)
+                featureLevel = D3DFeatureLevel.Level110;
+
+            // Without an output pointer, D3D12CreateDevice only checks that the adapter supports the level
+            var deviceGuid = Silk.NET.Direct3D12.ID3D12Device.Guid;
+            HResult result = Silk.NET.Direct3D12.D3D12.GetApi().CreateDevice((IUnknown*) dxgiAdapter, featureLevel, &deviceGuid, ppDevice: null);
+            var isSupported = result.IsSuccess;
+#else
             var d3d11 = D3D11.GetApi(window: null);
 
             ID3D11Device* device = null;
             ID3D11DeviceContext* deviceContext = null;
 
             D3DFeatureLevel matchedFeatureLevel = 0;
-            var featureLevel = (D3DFeatureLevel) graphicsProfile;
             var featureLevels = stackalloc D3DFeatureLevel[] { featureLevel };
 
-            HResult result = d3d11.CreateDevice(pAdapter: null, D3DDriverType.Hardware, Software: IntPtr.Zero,
+            HResult result = d3d11.CreateDevice((IDXGIAdapter*) dxgiAdapter, D3DDriverType.Unknown, Software: IntPtr.Zero,
                                                 Flags: 0, featureLevels, 1, D3D11.SdkVersion,
                                                 ref device, ref matchedFeatureLevel, ref deviceContext);
 
             ComPtrHelpers.SafeRelease(ref deviceContext);
             ComPtrHelpers.SafeRelease(ref device);
 
-            if (result.IsSuccess && matchedFeatureLevel == featureLevel)
-            {
-                maximumSupportedProfile = graphicsProfile;
-                return true;
-            }
-            else
-            {
-                minimumUnsupportedProfile = graphicsProfile;
-                return false;
-            }
+            var isSupported = result.IsSuccess && matchedFeatureLevel == featureLevel;
 #endif
+
+            if (isSupported)
+                maximumSupportedProfile = graphicsProfile;
+            else
+                minimumUnsupportedProfile = graphicsProfile;
+
+            return isSupported;
         }
     }
 }

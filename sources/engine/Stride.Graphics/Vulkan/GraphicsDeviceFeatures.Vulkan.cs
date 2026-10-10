@@ -28,7 +28,7 @@ namespace Stride.Graphics
 
             // Set back the real GraphicsProfile that is used
             RequestedProfile = deviceRoot.RequestedProfile;
-            CurrentProfile = deviceRoot.RequestedProfile; // GraphicsProfileHelper.FromFeatureLevel(deviceRoot.CurrentFeatureLevel);
+            CurrentProfile = deviceRoot.RequestedProfile;
 
             HasComputeShaders = true;
             HasDoublePrecision = false;
