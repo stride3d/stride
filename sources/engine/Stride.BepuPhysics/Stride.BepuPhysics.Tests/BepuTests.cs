@@ -606,6 +606,43 @@ namespace Stride.BepuPhysics.Tests
             Assert.Equal(expectedSteps, steps);
         }
 
+        [Theory]
+        [InlineData(0f, 1f, 0f, 0.2f)]
+        [InlineData(1f, 1f, 0f, 2.5f)]
+        [InlineData(0f, 0f, 1f, 4f)] // Past pi, the shortest arc goes the other way
+        public static void SetTargetPoseOrientationTest(float axisX, float axisY, float axisZ, float angle)
+        {
+            var game = new GameTest();
+            game.Script.AddTask(async () =>
+            {
+                game.ScreenShotAutomationEnabled = false;
+
+                var body = new BodyComponent { Collider = new CompoundCollider { Colliders = { new SphereCollider() } } };
+                game.SceneSystem.SceneInstance.RootScene.Entities.Add(new Entity { body });
+
+                var simulation = body.Simulation!;
+                simulation.PoseGravity = Vector3.Zero;
+                simulation.PoseAngularDamping = 0f;
+
+                var start = Quaternion.RotationYawPitchRoll(0.3f, 0.2f, 0.1f);
+                var target = start * Quaternion.RotationAxis(Vector3.Normalize(new Vector3(axisX, axisY, axisZ)), angle);
+                body.Teleport(Vector3.Zero, start);
+
+                body.SetTargetPose(target);
+
+                float shortestAngle = 2f * MathF.Acos(MathF.Min(1f, MathF.Abs(Quaternion.Dot(start, target))));
+                Assert.Equal(shortestAngle / (float)simulation.FixedTimeStep.TotalSeconds, body.AngularVelocity.Length(), 2);
+
+                await simulation.AfterUpdate();
+
+                // A sphere has no gyroscopic effect, one step at that velocity lands exactly on the target
+                Assert.True(MathF.Abs(Quaternion.Dot(body.Orientation, target)) > 0.9999f, $"Reached {body.Orientation}, expected {target}");
+
+                game.Exit();
+            });
+            RunGameTest(game);
+        }
+
         private class SimUpdateListener : ScriptComponent, ISimulationUpdate
         {
             public Action? SimUpdate, AfterSimUpdate;
