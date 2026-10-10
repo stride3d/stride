@@ -8,7 +8,7 @@ A Stride plugin extends the engine with runtime types (components, content) and,
 | `MyPlugin.Assets` | `Assets` | asset classes, compilers, importers, asset templates | the asset compiler, Game Studio |
 | `MyPlugin.Editor` | `Editor` | plugin class, icons, gizmos, previews, thumbnails | Game Studio only |
 
-The engine's own optional packages follow the same shape: `Stride.Physics` declares `Stride.Physics.Assets` and `Stride.Physics.Editor`, `Stride.Audio` declares `Stride.Audio.Assets` and `Stride.Audio.Editor`, and so on.
+The engine's own optional packages follow the same shape: `Stride.Physics` declares `Stride.Physics.Assets` and `Stride.Physics.Editor`, `Stride.Audio` declares `Stride.Audio.Assets` and `Stride.Audio.Editor`, and so on. Their runtime and `Assets` projects live in `sources/engine/`, their `Editor` projects in `sources/editor/plugins/`.
 
 ## Declaring the packages
 
