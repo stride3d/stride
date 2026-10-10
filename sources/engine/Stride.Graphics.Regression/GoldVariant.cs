@@ -20,7 +20,8 @@ namespace Stride.Graphics.Regression;
 /// </remarks>
 internal static class GoldVariant
 {
-    private static readonly Regex VariantSuffix = new(@"\.variant(\d+)\.png$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+    // N >= 2 without leading zeros (and fits an int): <name>.png is variant 1.
+    private static readonly Regex VariantSuffix = new(@"\.variant([2-9]|[1-9][0-9]{1,8})\.png$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
     /// <summary>The image name without its variant suffix: <c>X.f5.variant2.png</c> → <c>X.f5.png</c>.</summary>
     public static string BaseName(string fileName)
@@ -41,7 +42,7 @@ internal static class GoldVariant
         index == 1 ? baseName : Path.ChangeExtension(baseName, null) + $".variant{index}.png";
 
     /// <summary>Regex fragment that matches the variant suffix, to put before <c>\.png$</c>.</summary>
-    public const string SuffixPattern = @"(\.variant\d+)?";
+    public const string SuffixPattern = @"(\.variant([2-9]|[1-9][0-9]{1,8}))?";
 
     /// <summary>The golds of <paramref name="baseName"/> in a bucket directory, <c>&lt;name&gt;.png</c> first.</summary>
     public static List<string> InBucket(string bucketDir, string baseName)

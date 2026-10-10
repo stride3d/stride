@@ -96,6 +96,11 @@ internal static class GoldStats
         if (sources.Count == 0)
             sources.Add(Path.Combine(testsDir, "local"));
 
+        // A run named twice (by id and by URL, or by --source and --last) counts once: run ids are unique on GitHub.
+        sources = sources
+            .DistinctBy(s => !Directory.Exists(s) && HeadlessPromote.TryParseCiSource(s, out var runId, out _) ? runId : Path.GetFullPath(s))
+            .ToList();
+
         // Each source becomes a directory tree to scan; CI runs are downloaded first, a few at a time.
         var roots = new (string label, string? dir)[sources.Count];
         Parallel.For(0, sources.Count, new ParallelOptions { MaxDegreeOfParallelism = 4 }, i =>
@@ -113,23 +118,35 @@ internal static class GoldStats
         });
 
         var samples = new List<Sample>();
-        int stale = 0;
+        int stale = 0, unreadable = 0;
         var goldHashes = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
         foreach (var (label, dir) in roots)
         {
             if (dir is null) continue;
             foreach (var file in Directory.EnumerateFiles(dir, "*" + SidecarSuffix, SearchOption.AllDirectories))
             {
-                var sample = ReadSample(label, dir, file, testsDir, goldHashes, out var isStale);
-                if (isStale) stale++;
-                if (sample is not null && (imagePattern is null || WildcardMatches(imagePattern, sample.Name)))
-                    samples.Add(sample);
+                var imageName = Path.GetFileName(file)[..^SidecarSuffix.Length] + ".png";
+                if (imagePattern is not null && !WildcardMatches(imagePattern, imageName))
+                    continue;
+                try
+                {
+                    var sample = ReadSample(label, dir, file, testsDir, goldHashes, out var isStale);
+                    if (isStale) stale++;
+                    else if (sample is null) unreadable++;
+                    else samples.Add(sample);
+                }
+                catch (Exception e) when (e is IOException or UnauthorizedAccessException or JsonException
+                    or KeyNotFoundException or InvalidOperationException or FormatException)
+                {
+                    unreadable++;
+                }
             }
         }
 
         var runCount = roots.Count(r => r.dir is not null);
         Console.WriteLine($"{runCount} source(s), {samples.Count} samples"
-            + (stale > 0 ? $", {stale} skipped (compared against a gold that has changed since)" : "") + ".");
+            + (stale > 0 ? $", {stale} skipped (compared against golds that have changed since)" : "")
+            + (unreadable > 0 ? $", {unreadable} unreadable sidecars skipped" : "") + ".");
         Console.WriteLine();
 
         var rows = BuildRows(samples, testsDir);
@@ -140,32 +157,34 @@ internal static class GoldStats
         return 0;
     }
 
-    // Downloads the run's test-artifacts-* into the stats cache, or reuses the cached copy of a
-    // completed run. Null when the run has none (expired, or no screenshot lane ran).
+    // Downloads the run's test-artifacts-* into the stats cache, or reuses the cached copy of the run's
+    // latest finished attempt. Null when the run has none (expired, or no screenshot lane ran).
     private static string? DownloadRun(string runId, string? repo)
     {
         repo = CiArtifacts.ResolveRepo(runId, repo);
         var dir = Path.Combine(Path.GetTempPath(), "stride-compare-gold", "stats", repo.Replace('/', '_'), runId);
         var completeMarker = Path.Combine(dir, ".complete");
-        if (File.Exists(completeMarker))
+        var attempt = CiArtifacts.CompletedAttempt(runId, repo);
+        if (attempt is not null && File.Exists(completeMarker) && File.ReadAllText(completeMarker) == attempt)
             return dir;
 
         try { if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true); } catch { /* best-effort clean */ }
         Directory.CreateDirectory(dir);
         Console.WriteLine($"Downloading test-artifacts-* from run {runId} ({repo}) ...");
-        var completed = CiArtifacts.IsCompleted(runId, repo);
         if (CiArtifacts.DownloadMatching(runId, repo, "test-artifacts-*", dir) is { } error)
         {
             Console.Error.WriteLine($"stats: run {runId}: {error}");
             return null;
         }
-        if (completed)
-            File.WriteAllText(completeMarker, "");
+        if (attempt is not null)
+            File.WriteAllText(completeMarker, attempt);
         return dir;
     }
 
     // One sidecar → one sample, laid out as .../<Suite>/<Platform.API>/<Device>/<name>.results.json.
-    // The attempt that counts is the gold that matched, else the lane's own gold, else the closest one.
+    // The attempt that counts is the gold that matched, else the closest of the lane's own golds (the image
+    // or a variant), else the closest gold. Stale (skipped) when that gold changed since, or when the lane's
+    // bucket has a gold the run never compared against (a variant added since, say): it would judge it now.
     private static Sample? ReadSample(string run, string root, string file, string testsDir,
         Dictionary<string, string?> goldHashes, out bool stale)
     {
@@ -176,44 +195,49 @@ internal static class GoldStats
         var lane = $"{parts[^3]}/{parts[^2]}";
         var baseName = parts[^1][..^SidecarSuffix.Length];
 
-        JsonDocument doc;
-        try { doc = JsonDocument.Parse(File.ReadAllText(file)); }
-        catch (JsonException) { return null; }
-        using (doc)
+        using var doc = JsonDocument.Parse(File.ReadAllText(file));
+        var sidecar = doc.RootElement;
+        var matched = sidecar.TryGetProperty("matched", out var m) ? m.GetString() : null;
+        if (!sidecar.TryGetProperty("attempts", out var attemptsElement)) return null;
+        var attempts = attemptsElement.EnumerateArray().ToList();
+        if (attempts.Count == 0) return null;
+
+        var atLeast3 = new AllowBucket(3, int.MaxValue, 0);
+        var attempt = attempts.FirstOrDefault(a => matched is not null && a.GetProperty("gold").GetString() == matched);
+        if (attempt.ValueKind == JsonValueKind.Undefined)
         {
-            var sidecar = doc.RootElement;
-            var matched = sidecar.TryGetProperty("matched", out var m) ? m.GetString() : null;
-            if (!sidecar.TryGetProperty("attempts", out var attemptsElement)) return null;
-            var attempts = attemptsElement.EnumerateArray().ToList();
-            if (attempts.Count == 0) return null;
-
-            var attempt = attempts.FirstOrDefault(a => matched is not null && a.GetProperty("gold").GetString() == matched);
-            if (attempt.ValueKind == JsonValueKind.Undefined)
-                attempt = attempts.FirstOrDefault(a => a.GetProperty("kind").GetString() == "reference");
-            if (attempt.ValueKind == JsonValueKind.Undefined)
-                attempt = attempts.MinBy(a => CountIn(ReadHistogram(a), new AllowBucket(3, int.MaxValue, 0)));
-
-            var gold = attempt.GetProperty("gold").GetString()!.Replace('\\', '/').Split('/');
-            var goldLane = gold.Length >= 3 ? $"{gold[^3]}/{gold[^2]}" : lane;
-            if (attempt.TryGetProperty("goldHash", out var hashElement) && hashElement.GetString() is { } goldHash)
-            {
-                var goldPath = Path.Combine(testsDir, suite, goldLane, gold[^1]);
-                if (!goldHashes.TryGetValue(goldPath, out var current))
-                    goldHashes[goldPath] = current = GoldHash(goldPath);
-                if (!string.Equals(current, goldHash, StringComparison.OrdinalIgnoreCase))
-                {
-                    stale = true;
-                    return null;
-                }
-            }
-
-            return new Sample(run, suite, lane, baseName + ".png",
-                Passed: sidecar.GetProperty("outcome").GetString() == "Pass",
-                GoldLane: GoldVariant.Index(gold[^1]) is var variant and > 1 ? $"{goldLane} variant{variant}" : goldLane,
-                MaxDiff: attempt.GetProperty("maxDiff").GetInt32(),
-                Histogram: ReadHistogram(attempt),
-                Cpu: ReadCpu(Path.Combine(Path.GetDirectoryName(file)!, baseName + ".metadata.json")));
+            var references = attempts.Where(a => a.GetProperty("kind").GetString() == "reference").ToList();
+            attempt = (references.Count > 0 ? references : attempts).MinBy(a => CountIn(ReadHistogram(a), atLeast3));
         }
+
+        string? CurrentHash(string path) => goldHashes.TryGetValue(path, out var hash) ? hash : goldHashes[path] = GoldHash(path);
+        var gold = attempt.GetProperty("gold").GetString()!.Replace('\\', '/').Split('/');
+        var goldLane = gold.Length >= 3 ? $"{gold[^3]}/{gold[^2]}" : lane;
+        if (attempt.TryGetProperty("goldHash", out var hashElement) && hashElement.GetString() is { } goldHash
+            && !string.Equals(CurrentHash(Path.Combine(testsDir, suite, goldLane, gold[^1])), goldHash, StringComparison.OrdinalIgnoreCase))
+        {
+            stale = true;
+            return null;
+        }
+        // The runtime tries its bucket's golds in order and stops at the first match: a pass on the lane's own gold
+        // never saw the variants after it, which can't change that pass. Any other result would see every gold.
+        var passed = sidecar.GetProperty("outcome").GetString() == "Pass";
+        var comparedHashes = attempts.Select(a => a.TryGetProperty("goldHash", out var h) ? h.GetString() : null)
+            .OfType<string>().ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var judging = GoldVariant.InBucket(Path.Combine(testsDir, suite, parts[^3], parts[^2]), baseName + ".png")
+            .Where(g => !(passed && goldLane == lane) || GoldVariant.Index(Path.GetFileName(g)) <= GoldVariant.Index(gold[^1]));
+        if (comparedHashes.Count > 0 && judging.Any(g => CurrentHash(g) is { } h && !comparedHashes.Contains(h)))
+        {
+            stale = true;
+            return null;
+        }
+
+        return new Sample(run, suite, lane, baseName + ".png",
+            Passed: passed,
+            GoldLane: GoldVariant.Index(gold[^1]) is var variant and > 1 ? $"{goldLane} variant{variant}" : goldLane,
+            MaxDiff: attempt.GetProperty("maxDiff").GetInt32(),
+            Histogram: ReadHistogram(attempt),
+            Cpu: ReadCpu(Path.Combine(Path.GetDirectoryName(file)!, baseName + ".metadata.json")));
     }
 
     private static Dictionary<string, int> ReadHistogram(JsonElement attempt) =>
@@ -225,11 +249,12 @@ internal static class GoldStats
         {
             using var doc = JsonDocument.Parse(File.ReadAllText(metadataPath));
             if (byCpuFeatures)
-                return doc.RootElement.TryGetProperty("cpuFeatures", out var features) && features.GetString() is { } list ? list : "(not recorded)";
+                return !doc.RootElement.TryGetProperty("cpuFeatures", out var features) || features.GetString() is not { } list ? "(not recorded)"
+                    : list.Length == 0 ? "(none)" : list;
             if (doc.RootElement.TryGetProperty("cpu", out var cpu) && cpu.GetString() is { Length: > 0 } name)
                 return ShortCpu(name);
         }
-        catch (Exception e) when (e is IOException or JsonException) { }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException or JsonException or InvalidOperationException) { }
         return "?";
     }
 

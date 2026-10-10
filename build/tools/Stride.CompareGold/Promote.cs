@@ -77,7 +77,7 @@ internal static class HeadlessPromote
 
         // --source as a CI run reference (a real directory always wins): a bare run id, "repo:id"
         // (repo = owner → owner/stride, or owner/name), or a full Actions run URL. Downloads that
-        // run's gold-images artifact via gh and uses it as the source tree.
+        // run's gold-images artifact (else its test-artifacts-*) via gh and uses it as the source tree.
         if (!string.IsNullOrEmpty(source) && !Directory.Exists(source) && TryParseCiSource(source!, out var runId, out var ciRepo))
         {
             var resolved = DownloadCiArtifact(runId, ciRepo, out var dlErr);
@@ -131,7 +131,7 @@ internal static class HeadlessPromote
         foreach (var png in Directory.EnumerateFiles(source, "*.png", SearchOption.AllDirectories))
         {
             var rel = Path.GetRelativePath(source, png).Replace('\\', '/').Split('/');
-            if (rel.Length is not (4 or 5))
+            if (rel.Length != 4 && !(rel.Length == 5 && rel[0].StartsWith("test-artifacts-", StringComparison.Ordinal)))
             {
                 Console.WriteLine($"  skip (unexpected depth {rel.Length}): {Path.GetRelativePath(source, png)}");
                 continue;
@@ -145,8 +145,9 @@ internal static class HeadlessPromote
         {
             int ra = Rank(a.PlatformApi), rb = Rank(b.PlatformApi);
             if (ra != rb) return ra.CompareTo(rb);
-            return string.CompareOrdinal($"{a.Suite}/{a.PlatformApi}/{a.Device}/{a.Name}",
-                                         $"{b.Suite}/{b.PlatformApi}/{b.Device}/{b.Name}");
+            var byBucket = string.CompareOrdinal($"{a.Suite}/{a.PlatformApi}/{a.Device}/{a.Name}",
+                                                 $"{b.Suite}/{b.PlatformApi}/{b.Device}/{b.Name}");
+            return byBucket != 0 ? byBucket : string.CompareOrdinal(a.SrcPath, b.SrcPath);
         });
 
         // golds[suite|name][<Platform.API>/<Device>] = (priority rank, pixel sources) for the golds that
@@ -207,37 +208,11 @@ internal static class HeadlessPromote
         }
     }
 
-    // With --add-variants, where a render that matches none of its bucket's golds goes: over the variant made on
-    // the same CPU model, else to a new variant (a gold with no CPU recorded counts as another CPU's).
-    private static string VariantTarget(Render r, List<string> bucketGolds)
-    {
-        if (ReadCpu(r.SrcPath) is { } cpu && bucketGolds.FirstOrDefault(g => ReadCpu(g) == cpu) is { } sameCpu)
-            return sameCpu;
-        var next = bucketGolds.Max(g => GoldVariant.Index(Path.GetFileName(g))) + 1;
-        return Path.Combine(Path.GetDirectoryName(bucketGolds[0])!, GoldVariant.FileName(r.Name, next));
-    }
-
-    // CPU model from the .metadata.json next to an image, null when it has none.
-    private static string? ReadCpu(string pngPath)
-    {
-        var meta = Path.ChangeExtension(pngPath, ".metadata.json");
-        try
-        {
-            using var doc = JsonDocument.Parse(File.ReadAllText(meta));
-            return doc.RootElement.TryGetProperty("cpu", out var cpu) ? cpu.GetString() : null;
-        }
-        catch (Exception e) when (e is IOException or JsonException) { return null; }
-    }
+    private static string VariantTarget(Render r, List<string> bucketGolds) => GoldFiles.VariantTarget(r.SrcPath, r.Name, bucketGolds);
 
     private static void RemoveGolds(IEnumerable<string> paths, bool dryRun)
     {
-        if (dryRun) return;
-        foreach (var path in paths)
-        {
-            File.Delete(path);
-            var meta = Path.ChangeExtension(path, ".metadata.json");
-            if (File.Exists(meta)) File.Delete(meta);
-        }
+        if (!dryRun) GoldFiles.Remove(paths);
     }
 
     // Per image, keep the highest-priority bucket and remove any lower-priority bucket whose golds all match
@@ -282,7 +257,7 @@ internal static class HeadlessPromote
         }
     }
 
-    private static AllowBucket[] ResolveThresholds(string testsDir, string suite, string platformApi, string device, string name)
+    internal static AllowBucket[] ResolveThresholds(string testsDir, string suite, string platformApi, string device, string name)
     {
         var rules = ImageThreshold.LoadRules(Path.Combine(testsDir, suite));
         int dot = platformApi.IndexOf('.');
@@ -375,8 +350,9 @@ internal static class HeadlessPromote
         return false;
     }
 
-    // Download a CI run's gold-images artifact (via the shared CiArtifacts helper) and return the
-    // tree root (<Suite>/<Platform.API>/<Device>/<name>.png). A bare repo ("owner") expands to
+    // Download a CI run's gold-images artifact, else its test-artifacts-* (via the shared CiArtifacts helper),
+    // and return the tree root (<Suite>/<Platform.API>/<Device>/<name>.png, one artifact dir deeper for
+    // test-artifacts-*). A bare repo ("owner") expands to
     // "owner/stride"; with no repo, resolve which of the checkout's github remotes owns the run.
     private static string? DownloadCiArtifact(string runId, string? repo, out string error)
     {
@@ -388,10 +364,10 @@ internal static class HeadlessPromote
         Directory.CreateDirectory(dir);
 
         Console.WriteLine($"Downloading gold-images from run {runId}{(string.IsNullOrEmpty(repo) ? "" : $" ({repo})")} ...");
-        if (CiArtifacts.Download(runId, repo, "gold-images", dir) is not null)
+        if (CiArtifacts.Download(runId, repo, "gold-images", dir) is { } goldImagesError)
         {
             // Not a test-gold-gen run: take the renders the run's failed screenshots saved, one subdir per artifact.
-            Console.WriteLine($"No gold-images; downloading test-artifacts-* from run {runId} ...");
+            Console.WriteLine($"No gold-images ({goldImagesError}); downloading test-artifacts-* from run {runId} ...");
             if (CiArtifacts.DownloadMatching(runId, repo, "test-artifacts-*", dir) is { } dlError)
             {
                 error = $"{dlError} — run {runId} has neither gold-images nor test-artifacts-*";

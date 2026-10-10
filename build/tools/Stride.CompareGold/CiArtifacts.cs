@@ -50,11 +50,12 @@ internal static class CiArtifacts
         return stdout.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
     }
 
-    // True once the run finished: its artifacts no longer change, so a download can be cached.
-    public static bool IsCompleted(string runId, string repo)
+    // The attempt number of a finished run, null while it runs. A finished attempt's artifacts no longer change,
+    // so a download can be cached under it; re-running jobs starts a new attempt.
+    public static string? CompletedAttempt(string runId, string repo)
     {
-        var (exit, stdout, _) = Run("gh", ["run", "view", runId, "--repo", repo, "--json", "status", "--jq", ".status"]);
-        return exit == 0 && stdout?.Trim() == "completed";
+        var (exit, stdout, _) = Run("gh", ["run", "view", runId, "--repo", repo, "--json", "status,attempt", "--jq", "select(.status == \"completed\") | .attempt"]);
+        return exit == 0 && stdout?.Trim() is { Length: > 0 } attempt ? attempt : null;
     }
 
     // Probe each github.com remote in the current checkout for <runId>; return the first repo that

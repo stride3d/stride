@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using Stride.Graphics.Regression;
 
 // 5505 instead of 5555: the latter is Android ADB's daemon port, which the Android emulator
 // already binds when running test pulls — they collide otherwise. Override with --port N
@@ -234,8 +235,10 @@ app.MapGet("/api/gold/images", (string suite, string platform) =>
     var parts = platform.Split('/', 2);
     if (parts.Length != 2) return Results.BadRequest("Platform format: Platform/Device");
     var dir = Path.Combine(testsDir, suite, parts[0], parts[1]);
-    var primary = ListPngNames(dir);
-    var primarySet = new HashSet<string>(primary);
+    // Variants (<name>.variantN.png) are listed under their image, not as images of their own.
+    var primary = ListPngNames(dir).GroupBy(GoldVariant.BaseName, StringComparer.OrdinalIgnoreCase)
+        .ToDictionary(g => g.Key, g => g.Where(f => GoldVariant.Index(f) > 1).OrderBy(GoldVariant.Index).ToList(), StringComparer.OrdinalIgnoreCase);
+    var primarySet = new HashSet<string>(primary.Keys, StringComparer.OrdinalIgnoreCase);
 
     // Pick the best fallback gold for display. We mirror Graphics.Regression's
     // any-match semantics for pass/fail on the client — this score only decides
@@ -260,7 +263,7 @@ app.MapGet("/api/gold/images", (string suite, string platform) =>
                 var score = ScoreFallback(pName, device, candidateIsSw, requestedApi, requestedDevice, requestedIsSw);
                 foreach (var f in Directory.GetFiles(dDir, "*.png"))
                 {
-                    var name = Path.GetFileName(f);
+                    var name = GoldVariant.BaseName(Path.GetFileName(f));
                     if (primarySet.Contains(name)) continue;
                     if (!fallbackBest.TryGetValue(name, out var existing) || score > existing.score)
                         fallbackBest[name] = (fallbackPlatform, score);
@@ -272,7 +275,7 @@ app.MapGet("/api/gold/images", (string suite, string platform) =>
 
     return Results.Ok(new
     {
-        Images = primary.Select(n => new { Name = n, FallbackPlatform = (string?)null }),
+        Images = primary.Select(kv => new { Name = kv.Key, FallbackPlatform = (string?)null, Variants = kv.Value }),
         Fallbacks = fallbacks
     });
 });
@@ -284,6 +287,8 @@ app.MapGet("/api/gold/image", (string suite, string platform, string name) =>
     if (parts.Length != 2) return Results.BadRequest("Invalid platform");
     var filePath = Path.Combine(testsDir, suite, parts[0], parts[1], name);
     if (File.Exists(filePath)) return Results.File(filePath, "image/png");
+    // A variant belongs to its bucket: another platform's file of the same name is a different gold.
+    if (GoldVariant.Index(name) > 1) return Results.NotFound();
 
     // Fallback: search all platforms in this suite, preferring closest match
     var suiteDir = Path.Combine(testsDir, suite);
@@ -338,7 +343,8 @@ app.MapGet("/api/thresholds", (string suite) =>
     return Results.Ok(rules);
 });
 
-// Also list all gold platforms that have a given image (for fallback info)
+// Also list all gold platforms that have a given image (for fallback info), one entry per gold: File is the
+// image itself (<name>.png) or one of its variants (<name>.variantN.png).
 app.MapGet("/api/gold/all", (string suite, string name) =>
 {
     var results = new List<object>();
@@ -348,8 +354,8 @@ app.MapGet("/api/gold/all", (string suite, string name) =>
     {
         if (Path.GetFileName(pDir) == "local") continue;
         foreach (var dDir in Directory.GetDirectories(pDir))
-            if (File.Exists(Path.Combine(dDir, name)))
-                results.Add(new { Platform = $"{Path.GetFileName(pDir)}/{Path.GetFileName(dDir)}" });
+            foreach (var gold in GoldVariant.InBucket(dDir, name))
+                results.Add(new { Platform = $"{Path.GetFileName(pDir)}/{Path.GetFileName(dDir)}", File = Path.GetFileName(gold) });
     }
     return Results.Ok(results);
 });
@@ -473,6 +479,8 @@ app.MapGet("/api/identical-platforms", (string suite, string platform) =>
     foreach (var f in Directory.GetFiles(primaryDir, "*.png"))
     {
         var name = Path.GetFileName(f);
+        // Consolidating means deleting this bucket's gold for a twin elsewhere: not when the bucket also has variants.
+        if (GoldVariant.Index(name) > 1 || GoldVariant.InBucket(primaryDir, name).Count > 1) continue;
         if (!goldByName.TryGetValue(name, out var twins)) continue;
         var primaryHash = CachedGoldHash(f);
         var twinPlats = twins.Where(t => t.platform != platform && CachedGoldHash(t.path) == primaryHash).Select(t => t.platform).ToList();
@@ -615,12 +623,27 @@ app.MapPost("/api/promote", async (HttpRequest request) =>
 
     int promoted = 0;
     var details = new List<object>();
+    var asVariant = body.AsVariant && GoldVariant.IsCpuRasterizer(parts[1]);
     foreach (var name in body.Names)
     {
         var srcFile = Path.Combine(srcDir, name);
-        var dstFile = Path.Combine(goldDir, name);
+        // Same rule as the headless promote: replace <name>.png and drop its variants, or add a variant.
+        var bucketGolds = GoldVariant.InBucket(goldDir, name);
+        if (asVariant && File.Exists(srcFile))
+        {
+            var thresholds = HeadlessPromote.ResolveThresholds(testsDir, body.Suite, parts[0], parts[1], name);
+            if (bucketGolds.FirstOrDefault(g => ImageDiff.Matches(srcFile, g, thresholds, out _)) is { } matching)
+            {
+                // Already matches a gold of the bucket: another variant would only duplicate it.
+                details.Add(new { Name = name, Src = srcFile, Dst = matching, Skipped = "already matches this gold" });
+                continue;
+            }
+        }
+        var dstFile = asVariant && bucketGolds.Count > 0 ? GoldFiles.VariantTarget(srcFile, name, bucketGolds) : Path.Combine(goldDir, name);
         if (File.Exists(srcFile))
         {
+            if (!asVariant)
+                GoldFiles.Remove(bucketGolds.Where(g => GoldVariant.Index(Path.GetFileName(g)) > 1));
             File.Copy(srcFile, dstFile, overwrite: true);
             // Carry .metadata.json next to the gold so it records the renderer that baked it.
             var srcMeta = Path.ChangeExtension(srcFile, ".metadata.json");
@@ -651,19 +674,14 @@ app.MapPost("/api/gold/delete", async (HttpRequest request) =>
     int deleted = 0;
     foreach (var name in body.Names)
     {
-        var file = Path.Combine(goldDir, name);
-        if (File.Exists(file))
+        // An image's variants go with it: a bucket left with only variants would keep the runtime from
+        // falling back to other buckets. A variant's own file name deletes just that variant.
+        var files = GoldVariant.Index(name) > 1 ? [Path.Combine(goldDir, name)] : GoldVariant.InBucket(goldDir, name);
+        foreach (var file in files.Where(File.Exists))
         {
-            File.Delete(file);
+            GoldFiles.Remove([file]);
             deleted++;
-            Console.WriteLine($"  Deleted: {file}");
-        }
-        // Reap .metadata.json with the PNG so we don't orphan stale renderer info.
-        var metaFile = Path.ChangeExtension(file, ".metadata.json");
-        if (File.Exists(metaFile))
-        {
-            File.Delete(metaFile);
-            Console.WriteLine($"  Deleted: {metaFile}");
+            Console.WriteLine($"  Deleted: {file} (+ .metadata.json)");
         }
     }
     Console.WriteLine($"Delete gold: {deleted}/{body.Names.Length} from {goldDir}");
@@ -711,9 +729,9 @@ static List<string> ListPngNames(string dir)
 
 // Results sidecar (foo.results.json) lives next to each output PNG (or alone, on a passing
 // test where the PNG is skipped). Union {*.png, *.results.json} by stem so passing tests
-// still appear in the listing. Each item also carries the current SHA256 of its matched +
-// primary gold; the frontend compares against the hashes the sidecar baked in at compare
-// time to detect staleness (gold edited or copied after the test ran).
+// still appear in the listing. Each item also carries the current SHA256 of its matched gold
+// and of every gold of its bucket; the frontend compares against the hashes the sidecar baked
+// in at compare time to detect staleness (gold edited, copied or added after the test ran).
 List<object> ListSourceItems(string dir, string primaryGoldDir)
 {
     if (!Directory.Exists(dir)) return [];
@@ -735,10 +753,10 @@ List<object> ListSourceItems(string dir, string primaryGoldDir)
         {
             var name = kv.Key + ".png";
             var matchedPath = ResolveMatchedGoldLocalPath(kv.Value.sc?.Matched);
-            var primaryPath = Path.Combine(primaryGoldDir, name);
             var matchedGoldHash = matchedPath != null && File.Exists(matchedPath) ? CachedGoldHash(matchedPath) : null;
-            var primaryGoldHash = File.Exists(primaryPath) ? CachedGoldHash(primaryPath) : null;
-            return (object)new { Name = name, HasPng = kv.Value.png, Sidecar = kv.Value.sc, MatchedGoldHash = matchedGoldHash, PrimaryGoldHash = primaryGoldHash };
+            // Every gold of the bucket (the image and its variants): a variant added after the run makes its sidecar stale.
+            var bucketGoldHashes = GoldVariant.InBucket(primaryGoldDir, name).Select(CachedGoldHash).ToList();
+            return (object)new { Name = name, HasPng = kv.Value.png, Sidecar = kv.Value.sc, MatchedGoldHash = matchedGoldHash, BucketGoldHashes = bucketGoldHashes };
         })
         .ToList();
 }
@@ -1111,6 +1129,9 @@ record PromoteRequest
     public string Platform { get; set; } = "";
     [System.Text.Json.Serialization.JsonPropertyName("names")]
     public string[] Names { get; set; } = [];
+    // Keep the bucket's golds and add each render as a variant (CPU rasterizers only, as promote --add-variants).
+    [System.Text.Json.Serialization.JsonPropertyName("asVariant")]
+    public bool AsVariant { get; set; }
 }
 
 record DeleteGoldRequest

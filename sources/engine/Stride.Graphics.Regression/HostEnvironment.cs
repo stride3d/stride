@@ -31,6 +31,8 @@ internal static class HostEnvironment
         Add(System.Runtime.Intrinsics.X86.Fma.IsSupported, "FMA");
         Add(System.Runtime.Intrinsics.X86.AvxVnni.IsSupported, "AVX-VNNI");
         Add(System.Runtime.Intrinsics.X86.Avx512F.IsSupported, "AVX512F");
+        Add(System.Runtime.Intrinsics.X86.Avx512F.VL.IsSupported, "AVX512VL");
+        Add(System.Runtime.Intrinsics.X86.Avx512DQ.IsSupported, "AVX512DQ");
         Add(System.Runtime.Intrinsics.X86.Avx512BW.IsSupported, "AVX512BW");
         Add(System.Runtime.Intrinsics.X86.Avx512Vbmi.IsSupported, "AVX512VBMI");
         Add(System.Runtime.Intrinsics.X86.Avx10v1.IsSupported, "AVX10.1");
