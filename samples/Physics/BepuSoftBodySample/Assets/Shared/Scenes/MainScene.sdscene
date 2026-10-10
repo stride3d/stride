@@ -1,0 +1,69 @@
+!SceneAsset
+Id: 42768715-911d-119e-181c-a015d67c3445
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+ChildrenIds: []
+Offset: {X: 0.0, Y: 0.0, Z: 0.0}
+Hierarchy:
+    RootParts:
+        - ref!! a1e31243-9740-d244-3cac-8fef0ce1b9f7
+        - ref!! b21f1107-e1d1-ac90-d236-bce56be27160
+        - ref!! bf1cadd4-fafd-1a74-20c9-5a52164ac764
+    Parts:
+        -   Entity:
+                Id: a1e31243-9740-d244-3cac-8fef0ce1b9f7
+                Name: Main
+                Components:
+                    861cdbd61328e1d6743547b93e71def7: !TransformComponent
+                        Id: a89177b5-3dc8-95d3-027b-d73e35bf4922
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    d2cbafeaa2bbec23ff57f075180fb4b9: !BepuSoftBodySample.Game.Components.SceneSelectorComponent,BepuSoftBodySample.Game
+                        Id: 528aa942-5971-fc81-9762-c42b703ccc10
+                        MainScene: 42768715-911d-119e-181c-a015d67c3445:Scenes/MainScene
+                        SceneList:
+                            90531c0b741740d38314e28cfc221bd4: 9c19d93e-a6ed-d766-89e0-5c4d06474947:Scenes/Jelly Cubes
+                            f46b3cb9af213f1bf06bda5da5c26f0f: a5f6072e-fd02-babb-b507-2e95a70d8d83:Scenes/Squish
+                            bf1d9634554a746526765dfc44d879e7: ace04d1c-864d-af6d-ecdd-eead0b988ce7:Scenes/Teapot
+                            4c8f76262a61e38574ebb69b09a76376: c206ad10-37b6-3935-9106-5e8ed0824ac7:Scenes/Stiffness
+                            1ba2fb990f170524def022a3e8198d80: 32c12218-b01d-ab3b-0c1a-f90ff68e50fd:Scenes/Pile
+                            74fb3fbaf174aaa5c9aa6fdb8904648d: 82e9a35a-a8d8-abcb-cef5-bfd992aea8e7:Scenes/Torture
+                            fe46655df0d9ffef6d998bd3991c0839: f3aeb795-2a02-6086-d58b-73f176316194:Scenes/Flag
+                            87e3af66017a2f3d91ed6bd66755441e: dc62d24b-9e2f-33fa-4237-539b001dc34a:Scenes/Drape
+                            0f24322bf0f35b3b854e2a9f9a21ed60: 5090329d-9d00-f585-5a29-71cf6a6bb3b2:Scenes/Curtain
+                            0f5f835e84ff9a297c0565baf75f70b6: b45bd398-2402-2057-720d-d10db4223b8f:Scenes/Trampoline
+                        Library: 7f5992a9-3c70-491c-a8f5-08b8e703b204:UILibrary
+                        SelectorUI: ref!! a12ce69a-d656-74ac-8da4-c6b243d33f26
+        -   Entity:
+                Id: b21f1107-e1d1-ac90-d236-bce56be27160
+                Name: SceneSelectPage
+                Components:
+                    c217e9a436a6c0f792143c4db4b0c953: !TransformComponent
+                        Id: d869469f-7125-9424-86a9-9db218f445e9
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    f6f409001ced30667627355e4e42cf29: !UIComponent
+                        Id: a12ce69a-d656-74ac-8da4-c6b243d33f26
+                        Page: eefb526f-3c21-4b2e-8d80-cf13273e5ce2:UI/SceneSelectPage
+                        Resolution: {X: 1280.0, Y: 720.0, Z: 1000.0}
+                        Size: {X: 1.28, Y: 0.72, Z: 1.0}
+                        ResolutionStretch: FixedHeightAdaptableWidth
+        -   Entity:
+                Id: bf1cadd4-fafd-1a74-20c9-5a52164ac764
+                Name: Camera
+                Components:
+                    0ff0c4f1e2b1ad51d05df063070660e0: !TransformComponent
+                        Id: d8c9a99f-8ca9-1796-d789-8c015f26c1b5
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    aaa9a47c2b25f16b7e498a0b748fdb26: !CameraComponent
+                        Id: c901ea41-1fd7-a325-3fb0-1beca42862b8
+                        Name: Main
+                        Projection: Perspective
+                        Slot: be74c9be-5861-4bea-90b0-b175535210f7

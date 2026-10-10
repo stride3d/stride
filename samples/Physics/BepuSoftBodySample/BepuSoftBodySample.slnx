@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="BepuSoftBodySample.Game/BepuSoftBodySample.Game.csproj" />
+  <Project Path="BepuSoftBodySample.Windows/BepuSoftBodySample.Windows.csproj" />
+</Solution>

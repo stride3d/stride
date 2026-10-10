@@ -1,0 +1,304 @@
+!SceneAsset
+Id: 5090329d-9d00-f585-5a29-71cf6a6bb3b2
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+ChildrenIds: []
+Offset: {X: 0.0, Y: 0.0, Z: 0.0}
+Hierarchy:
+    RootParts:
+        - ref!! 92d26a37-e918-c9b6-303e-e825179730b4
+        - ref!! eafb9176-bab6-e246-1456-56874ba55505
+        - ref!! b4a928b6-c6e7-ae21-3084-b78d54139d8e
+        - ref!! 58e951dc-7999-47e5-d62c-9095ed252b71
+        - ref!! a7ec7824-aa31-6baf-9960-6ab2d29e2650
+        - ref!! cbe852f2-eaa1-3325-5397-b07c4deaa349
+        - ref!! 1311d1a3-4909-9a75-cc89-74b830568273
+        - ref!! 4c89bc58-be3b-9af3-4f71-f1f94a9999c6
+        - ref!! c26e6e73-0dab-4986-11cf-98da87bb1063
+        - ref!! 2de31ef6-cfdd-1334-11ad-ec6ccc179399
+        - ref!! 332c3216-f9b6-b267-9e50-29b863a418c2
+    Parts:
+        -   Entity:
+                Id: 92d26a37-e918-c9b6-303e-e825179730b4
+                Name: Camera
+                Components:
+                    66dfc67fe082cd520ebd6366606067fb: !TransformComponent
+                        Id: c07443db-dd77-28f1-cdb5-056e4174e2fb
+                        Position: {X: -3.5, Y: 2.6, Z: 6.0}
+                        Rotation: {X: -0.068954, Y: -0.260313, Z: -0.018642, W: 0.962878}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    4adeeba75239860dae58c30162669b39: !BepuSoftBodySample.Game.Components.Camera.BasicCameraControllerComponent,BepuSoftBodySample.Game
+                        Id: d18f1766-2632-b6c4-e409-0a7e372402ed
+                        Gamepad: false
+                        KeyboardMovementSpeed: {X: 5.0, Y: 5.0, Z: 5.0}
+                        SpeedFactor: 4.0
+                    59c8eb1ab9be3fab1b753381a995532f: !BepuSoftBodySample.Game.Components.Camera.FindAndAttachCameraComponent,BepuSoftBodySample.Game
+                        Id: bfdb4cc0-a41c-f30c-548d-1020f0083aa1
+                        CameraComponent: null
+        -   Entity:
+                Id: eafb9176-bab6-e246-1456-56874ba55505
+                Name: Skybox
+                Components:
+                    57bce819c58e01c4c88d390091126ef8: !TransformComponent
+                        Id: 096a99eb-2ebb-bfd4-b267-942631e468ab
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    11f4dac2d73f1409963201fdbc75fa75: !BackgroundComponent
+                        Id: 769fbcd3-38b5-779a-f589-dd731dba7aac
+                        Texture: 329a39e7-4963-475c-a2c0-bdfc73b5f0d4:Skybox texture
+                        Intensity: 1.0
+                    d6db5e421e1d847337362fc0599358c6: !LightComponent
+                        Id: 4e0ec173-f7a3-92b4-7955-255e2a7e911e
+                        Type: !LightSkybox
+                            Skybox: c7a3f3cb-e399-4779-bbbb-a4a2a1e50aa1:Skybox
+                        Intensity: 0.5
+        -   Entity:
+                Id: b4a928b6-c6e7-ae21-3084-b78d54139d8e
+                Name: Sun
+                Components:
+                    86838de9c2798d768c215609bd682f7f: !TransformComponent
+                        Id: 4519afca-dcfb-b628-f6b4-8eca6f256880
+                        Position: {X: 0.0, Y: 5.0, Z: 0.0}
+                        Rotation: {X: -0.397327, Y: 0.209735, Z: 0.093796, W: 0.888451}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    c20c3450e07992eecb7cab71c1944f8c: !LightComponent
+                        Id: fe37ef4f-a2b3-f573-a759-0c638c361deb
+                        Type: !LightDirectional
+                            Color: !ColorRgbProvider
+                                Value: {R: 1.0, G: 0.956, B: 0.886}
+                            Shadow:
+                                Enabled: true
+                                Filter: !LightShadowMapFilterTypePcf
+                                    FilterSize: Filter7x7
+                                Size: XLarge
+                                DepthRange: {}
+                                PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
+                                ComputeTransmittance: false
+                                BiasParameters:
+                                    NormalOffsetScale: 20.0
+                        Intensity: 3.0
+        -   Entity:
+                Id: 58e951dc-7999-47e5-d62c-9095ed252b71
+                Name: Floor
+                Components:
+                    e13ba73d4f079e1691257e60c4f4f720: !TransformComponent
+                        Id: a2089ea5-f8cb-7d5b-7218-7b21d3f5e94b
+                        Position: {X: 0.0, Y: -0.5, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 200.0, Y: 1.0, Z: 200.0}
+                        Children: {}
+                    4e348a57c4ef7efa7298525b0860741d: !ModelComponent
+                        Id: 497207ca-fe20-c6d8-a6f8-9959228b614c
+                        Model: b4d30d41-5492-cf4e-0dae-6c5e5f9387fa:Models/Cube
+                        Materials:
+                            fd6843891b68c34ee37a9b1cadee42b4~0: 6c520bad-a549-71d1-4f29-ec019f3a1fdf:Materials/Floor
+                    f86eedae8c038ebbb46b4de164c8200c: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
+                        Id: 56a4b4e5-2bb5-0582-79bc-133994b9c823
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                e6c850940f8e1eb269bab3cb348186ba: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 200.0, Y: 1.0, Z: 200.0}
+                        FrictionCoefficient: 1.0
+        -   Entity:
+                Id: a7ec7824-aa31-6baf-9960-6ab2d29e2650
+                Name: Scripts
+                Components:
+                    9b6d91a0135456e742a36a07d6da4b39: !TransformComponent
+                        Id: e4f1759e-f2c3-dfe0-7456-fb787ee23c25
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    a5a7d654e82bfae2773c0831fa0d2fc4: !BepuSoftBodySample.Game.Components.SceneDescriptionComponent,BepuSoftBodySample.Game
+                        Id: 19bc8729-d44d-ec61-b4dd-f0b2bdaac86c
+                        Description: 'A curtain pinned along its top edge catches the balls thrown into it.'
+                    761cd63473e6591be465989f9e140e8c: !BepuSoftBodySample.Game.Components.SoftGravityGunComponent,BepuSoftBodySample.Game
+                        Id: 208cb298-15dd-6c83-618f-0aaec4a7a4d7
+                        CameraEntity: ref!! 92d26a37-e918-c9b6-303e-e825179730b4
+                        MarkerPrefab: 3075790f-ed9d-6dac-f16a-f38a848b055c:Prefabs/Marker
+                        BallPrefab: 93d5a3da-f3a6-2397-f88c-146ee67bac7a:Prefabs/Ball
+                    cb6ba4d32d793c8fca5da4a406a583b5: !BepuSoftBodySample.Game.Components.ParticleViewComponent,BepuSoftBodySample.Game
+                        Id: 6fed2914-992e-bc76-d952-c452e4b07731
+                        ParticleMaterial: 3e38fbde-13b9-e3b0-e472-cb12e55512a4:Materials/Particle
+                        PinnedMaterial: 12f5ec95-8de0-100e-ddc7-10bcd7660756:Materials/PinnedParticle
+        -   Entity:
+                Id: cbe852f2-eaa1-3325-5397-b07c4deaa349
+                Name: Rail
+                Components:
+                    e8f1ddc100eb4ebc3669f894f72fb5ae: !TransformComponent
+                        Id: da40e6f0-e3b3-99b3-a809-6ca451460ab2
+                        Position: {X: 0.0, Y: 3.05, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.707107, W: 0.707107}
+                        Scale: {X: 0.08, Y: 3.4, Z: 0.08}
+                        Children: {}
+                    7e4518457d9278b6ae405fc052cf7e31: !ModelComponent
+                        Id: fdfa04ce-95df-6883-b91f-5aebaede8142
+                        Model: 3bd803b1-7ef6-3815-690d-d74a5f69606a:Models/Cylinder
+                        Materials:
+                            2812f41ab79cf3062b1ef742b32191f9~0: 307f36ed-8afc-7888-7a56-a43ac56affe7:Materials/Steel
+                    d001ed79132f1c99d96ee9bb107a4dbe: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
+                        Id: ea5284b0-1010-338c-0b99-a5f27c102269
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                2199756802efccb8eeb3c4f18cf5a1fa: !Stride.BepuPhysics.Definitions.Colliders.CylinderCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Radius: 0.04
+                                    Length: 3.4
+                        FrictionCoefficient: 1.0
+        -   Entity:
+                Id: 1311d1a3-4909-9a75-cc89-74b830568273
+                Name: Curtain
+                Components:
+                    9647b589b02b3934e1fa3b8d668bf7cf: !TransformComponent
+                        Id: c4d94a46-b7ac-e1b6-e1a5-a852fa563296
+                        Position: {X: 0.0, Y: 1.6, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    944481b9da46fb4f74667d31464797e6: !ModelComponent
+                        Id: 07e98da9-3b0f-1cd5-7ce0-59092dd5521b
+                        Model: 3a69568f-4431-cd57-8927-bed8ebab50dd:Models/Curtain
+                        Materials:
+                            f1ed0f870683815f30195b83c05f5c06~0: 1edb4d5d-f782-54da-8766-dda3e45abfee:Materials/Grape
+                    04d6987564e91ac9b33f3e4eba02f7da: !Stride.BepuPhysics.Soft.ClothComponent,Stride.BepuPhysics.Soft
+                        Id: f4a511b6-b566-f5dd-09e6-1d878431f508
+                        Collider: !Stride.BepuPhysics.Soft.Colliders.ParticleCollider,Stride.BepuPhysics.Soft {}
+                        Mass: 1.0
+                        BendStiffness: 1.0
+                        Pins:
+                            cb8fc338862bf08c131d799d8bd76c72:
+                                Region: {Minimum: {X: -1000.0, Y: 1.39, Z: -1000.0}, Maximum: {X: 1000.0, Y: 1.41, Z: 1000.0}}
+                                Anchor: null
+        -   Entity:
+                Id: 4c89bc58-be3b-9af3-4f71-f1f94a9999c6
+                Name: Thrown ball 0
+                Components:
+                    0379aafc09748da092f2a2d854ed390d: !TransformComponent
+                        Id: dd371a78-07b2-4d08-3fb5-35b9aa663adc
+                        Position: {X: -0.9, Y: 2.0, Z: 4.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.44, Y: 0.44, Z: 0.44}
+                        Children: {}
+                    2986087682f8318aed88a43c23a4e431: !ModelComponent
+                        Id: 13d00b01-e6b3-f095-ed1c-b85f46bda3ac
+                        Model: c6674fcb-5db8-4d43-7a05-79f8b56c51ec:Models/Sphere
+                        Materials:
+                            0770eea7c8dfdffc4e3210e8e8ec7a9d~0: a0d98ab3-bb3c-8e29-140a-471a886409b1:Materials/Strawberry
+                    5491edfc8c3816f6f4ece2f5b866e180: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
+                        Id: 6b1c8847-93fc-7834-62af-a352959034b3
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                e381223f60a29392cd90435b9318a9e6: !Stride.BepuPhysics.Definitions.Colliders.SphereCollider,Stride.BepuPhysics
+                                    Mass: 0.8
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Radius: 0.22
+                        Kinematic: false
+                        Gravity: true
+                    f0524f789b6806fdb53267af29c0390f: !BepuSoftBodySample.Game.Components.LaunchComponent,BepuSoftBodySample.Game
+                        Id: 3a2ca138-fdbd-a041-5b6b-bfec98a3eece
+                        Delay: 1.0
+                        Velocity: {X: 0.0, Y: 1.0, Z: -6.4}
+                        HoldUntilLaunch: true
+        -   Entity:
+                Id: c26e6e73-0dab-4986-11cf-98da87bb1063
+                Name: Thrown ball 1
+                Components:
+                    72b8aba7750cd5aedcefbd604fb412b5: !TransformComponent
+                        Id: e983f38e-202f-38cd-c7b5-4908b7ee4118
+                        Position: {X: -0.3, Y: 2.3, Z: 4.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.44, Y: 0.44, Z: 0.44}
+                        Children: {}
+                    26eda86c4c28de1e01e562699f6c5c11: !ModelComponent
+                        Id: aeabdfd5-6c6d-ee75-5933-2ce1f901edb4
+                        Model: c6674fcb-5db8-4d43-7a05-79f8b56c51ec:Models/Sphere
+                        Materials:
+                            ad50e4e8bbe65d9e5b386463f077407f~0: ef84157c-df9e-8802-e426-06e1ef9a01e3:Materials/Lime
+                    8f20186b2582fd58f498e07af87022a4: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
+                        Id: a7b170b5-432c-4c6b-fae9-f981f91c2fb8
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                50f15b85440a04559be4f70d448ef9ef: !Stride.BepuPhysics.Definitions.Colliders.SphereCollider,Stride.BepuPhysics
+                                    Mass: 0.8
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Radius: 0.22
+                        Kinematic: false
+                        Gravity: true
+                    498f8c78e4f4408a76de68e10fc96c3a: !BepuSoftBodySample.Game.Components.LaunchComponent,BepuSoftBodySample.Game
+                        Id: afaf18a1-38ce-d83b-618d-94ab5f3ba140
+                        Delay: 1.8
+                        Velocity: {X: 0.0, Y: 1.0, Z: -6.4}
+                        HoldUntilLaunch: true
+        -   Entity:
+                Id: 2de31ef6-cfdd-1334-11ad-ec6ccc179399
+                Name: Thrown ball 2
+                Components:
+                    1d34cc1bad8a05457daea9f7fb2c9440: !TransformComponent
+                        Id: f4d879d6-7e30-0a32-e022-2c75adb850fd
+                        Position: {X: 0.3, Y: 2.0, Z: 4.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.44, Y: 0.44, Z: 0.44}
+                        Children: {}
+                    023aaad28ef2f079cc302b4b6ab89b4d: !ModelComponent
+                        Id: 53eb8110-478b-0c99-3bc2-4bfa467a2f97
+                        Model: c6674fcb-5db8-4d43-7a05-79f8b56c51ec:Models/Sphere
+                        Materials:
+                            f8558e0d15b866d44cd5564dffd1fb4c~0: a6ac4738-3401-9edf-d11e-4fad889b46bd:Materials/Orange
+                    472a9f51d6de9a34f66704e1f5ed8771: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
+                        Id: cb20ff74-5a50-2f1d-6fb9-e390e91fe068
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                aa9f9a110e8714a81968c87eaec66a6c: !Stride.BepuPhysics.Definitions.Colliders.SphereCollider,Stride.BepuPhysics
+                                    Mass: 0.8
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Radius: 0.22
+                        Kinematic: false
+                        Gravity: true
+                    ac43e68cf125b9e4cf77efd4f935b969: !BepuSoftBodySample.Game.Components.LaunchComponent,BepuSoftBodySample.Game
+                        Id: 9c13da50-eb37-84d9-5bd4-c2476d98109d
+                        Delay: 2.6
+                        Velocity: {X: 0.0, Y: 1.0, Z: -6.4}
+                        HoldUntilLaunch: true
+        -   Entity:
+                Id: 332c3216-f9b6-b267-9e50-29b863a418c2
+                Name: Thrown ball 3
+                Components:
+                    24f78cdc8fabb8765a8f438bb258d5d8: !TransformComponent
+                        Id: 0eb6a3a0-12b2-a2d5-61dd-36e8381790e5
+                        Position: {X: 0.9, Y: 2.3, Z: 4.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.44, Y: 0.44, Z: 0.44}
+                        Children: {}
+                    10143a842ca12a031edc67d09d79e46a: !ModelComponent
+                        Id: 01941c10-94f0-48eb-c509-711e650d7652
+                        Model: c6674fcb-5db8-4d43-7a05-79f8b56c51ec:Models/Sphere
+                        Materials:
+                            375918903d33f87aa5f74c8e18a29e42~0: f45d72b9-de30-aad1-56a6-55433d7cd194:Materials/Blueberry
+                    af398aae15262c67954638796c7c0fa3: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
+                        Id: 93673c36-7510-59de-d95b-37f99b85e179
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                754ff8962386806f5b65fc244119125a: !Stride.BepuPhysics.Definitions.Colliders.SphereCollider,Stride.BepuPhysics
+                                    Mass: 0.8
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Radius: 0.22
+                        Kinematic: false
+                        Gravity: true
+                    0659729d27d8149ee390e1c394e776c0: !BepuSoftBodySample.Game.Components.LaunchComponent,BepuSoftBodySample.Game
+                        Id: be261280-fd07-fc7b-1b7f-815bb06b67a3
+                        Delay: 3.4
+                        Velocity: {X: 0.0, Y: 1.0, Z: -6.4}
+                        HoldUntilLaunch: true
