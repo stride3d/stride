@@ -22,6 +22,7 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
     private bool _visible;
     private bool _trackingShapes;
     private DebugRenderComponent? _component;
+    private SinglePassWireframeRenderFeature? _wireframeFeature;
     private int _lastObjectId;
     private IGame _game = null!;
     private SceneSystem _sceneSystem = null!;
@@ -151,6 +152,7 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
                 _sceneSystem.GraphicsCompositor.RenderFeatures.Add(wireframeFeature);
             }
             AddOverlayStageSelector(wireframeFeature, "StrideSinglePassWireframeShader");
+            _wireframeFeature = wireframeFeature;
             if (_sceneSystem.GraphicsCompositor.RenderFeatures.OfType<LineRenderFeature>().FirstOrDefault() is not { } lineFeature)
             {
                 lineFeature = new LineRenderFeature();
@@ -167,6 +169,9 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
         }
 
         base.Draw(context);
+
+        if (_wireframeFeature is not null)
+            _wireframeFeature.ShowBackFaces = _component?.ShowBackFaces ?? false;
 
         if (_visible && _sceneSystem.SceneInstance.GetProcessor<CollidableProcessor>() is { } collidables)
             UpdateShapeTracking(collidables);

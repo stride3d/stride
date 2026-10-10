@@ -41,6 +41,7 @@
     float ProjectionScale;
     // 1 for the pass that draws, without depth test, the lines over their own model
     float ThroughOwnModel;
+    float Dotted;
     // 0 for back faces: only the front surface of the own model is known, so they keep their color
     float Classify;
 
@@ -324,6 +325,11 @@
             // too far from edge
             discard;
         }
+
+        // Dashes for the back faces, from a screen-space checker so any line direction crosses them
+        float2 cell = floor(streams.ShadingPosition.xy * 0.25);
+        if (Dotted * frac((cell.x + cell.y) * 0.5) > 0.25)
+            discard;
 
         float4 model = ModelIds.Load(int3(streams.ShadingPosition.xy, 0));
         float own = isOwnModel(model) * CompareToModel;

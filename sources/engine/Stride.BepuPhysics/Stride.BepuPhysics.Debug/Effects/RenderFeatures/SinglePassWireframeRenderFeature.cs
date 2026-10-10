@@ -47,6 +47,10 @@ public class SinglePassWireframeRenderFeature : RootRenderFeature
     [DataMemberRange(0.0f, 10.0f, 0.001f, 0.002f, 4)]
     public float LineWidth = 3f;
 
+    /// <summary> Draws the back faces of the colliders as dashed lines, hidden by other objects but visible through their own model </summary>
+    [DataMember(20)]
+    public bool ShowBackFaces;
+
     /// <summary> Color of the lines that sit inside their own visual model by more than the debug mesh's error </summary>
     [DataMember(30)]
     public Color3 InsideColor = new(0.941f, 0.894f, 0.259f);
@@ -182,11 +186,14 @@ public class SinglePassWireframeRenderFeature : RootRenderFeature
             var hasModel = ids is not null && _idsWithModel.Contains(wireframe.ObjectId);
             _shader.Parameters.Set(SinglePassWireframeShaderKeys.CompareToModel, hasModel ? 1f : 0f);
 
-            // Front faces, classified, then the ones their own model hides; back faces where nothing hides them
+            // Front faces, classified, then the ones their own model hides; back faces where nothing hides them,
+            // and when asked for, dashed and through their own model too
             DrawPass(context, wireframe, throughOwnModel: false, backFaces: false);
             if (hasModel)
                 DrawPass(context, wireframe, throughOwnModel: true, backFaces: false);
             DrawPass(context, wireframe, throughOwnModel: false, backFaces: true);
+            if (ShowBackFaces && hasModel)
+                DrawPass(context, wireframe, throughOwnModel: true, backFaces: true);
         }
 
         if (ids is not null)
@@ -199,6 +206,7 @@ public class SinglePassWireframeRenderFeature : RootRenderFeature
     private void DrawPass(RenderDrawContext context, WireFrameRenderObject wireframe, bool throughOwnModel, bool backFaces)
     {
         _shader.Parameters.Set(SinglePassWireframeShaderKeys.ThroughOwnModel, throughOwnModel ? 1f : 0f);
+        _shader.Parameters.Set(SinglePassWireframeShaderKeys.Dotted, backFaces && ShowBackFaces ? 1f : 0f);
         _shader.Parameters.Set(SinglePassWireframeShaderKeys.Classify, backFaces ? 0f : 1f);
 
         var pipeline = _linePipelines[(backFaces ? 2 : 0) + (throughOwnModel ? 1 : 0)];
