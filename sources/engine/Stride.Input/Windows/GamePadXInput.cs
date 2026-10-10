@@ -53,7 +53,7 @@ namespace Stride.Input
         public override string Name => $"XInput GamePad {Index}";
         public override Guid Id { get; }
         public override Guid ProductId { get; }
-        public override GamePadState State => state;
+        protected override GamePadState RawState => state;
         public override IInputSource Source { get; }
 
         public event EventHandler Disconnected;

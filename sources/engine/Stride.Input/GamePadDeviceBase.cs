@@ -13,13 +13,38 @@ namespace Stride.Input
         private readonly HashSet<GamePadButton> pressedButtons = new HashSet<GamePadButton>();
         private readonly HashSet<GamePadButton> downButtons = new HashSet<GamePadButton>();
         private int index;
+        private readonly CaptureEdgeTracker<GamePadButton> buttonTracker;
 
         public abstract string Name { get; }
         public abstract Guid Id { get; }
         public abstract Guid ProductId { get; }
-        public abstract GamePadState State { get; }
+        /// <summary>
+        /// The state of the gamepad as the game sees it: neutral while the gamepad is captured, and without buttons
+        /// that were held when a capture ended until they are pressed again.
+        /// </summary>
+        public GamePadState State
+        {
+            get
+            {
+                if (CaptureState.IsMasked)
+                    return default;
+
+                var state = RawState;
+                foreach (var button in buttonTracker.Suppressed)
+                    state.Buttons &= ~button;
+                return state;
+            }
+        }
+
+        /// <summary>
+        /// The unmasked state reported by the device.
+        /// </summary>
+        protected abstract GamePadState RawState { get; }
         public bool CanChangeIndex { get; protected set; } = true;
         public int Priority { get; set; }
+
+        /// <inheritdoc/>
+        public DeviceCaptureState CaptureState { get; } = new DeviceCaptureState();
 
         public int Index
         {
@@ -45,9 +70,14 @@ namespace Stride.Input
 
         protected GamePadDeviceBase()
         {
-            PressedButtons = new ReadOnlySet<GamePadButton>(pressedButtons);
-            ReleasedButtons = new ReadOnlySet<GamePadButton>(releasedButtons);
-            DownButtons = new ReadOnlySet<GamePadButton>(downButtons);
+            buttonTracker = new CaptureEdgeTracker<GamePadButton>(CaptureState, new ReadOnlySet<GamePadButton>(downButtons), new ReadOnlySet<GamePadButton>(pressedButtons), new ReadOnlySet<GamePadButton>(releasedButtons));
+            CaptureState.MaskChanged += buttonTracker.OnMaskChanged;
+            CaptureState.DeviceUpdated += buttonTracker.AfterDeviceUpdate;
+            CaptureState.DeviceMasksOwnState = true;
+
+            PressedButtons = buttonTracker.Pressed;
+            ReleasedButtons = buttonTracker.Released;
+            DownButtons = buttonTracker.Down;
         }
 
         protected void SetIndexInternal(int newIndex, bool isDeviceSideChange = true)

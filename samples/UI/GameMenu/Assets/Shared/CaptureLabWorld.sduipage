@@ -1,0 +1,78 @@
+!UIPageAsset
+Id: c6282d60-926e-4153-94b3-b807d7c89be7
+SerializedVersion: {Stride: 2.1.0.1}
+Tags: []
+Design:
+    Resolution: {X: 640.0, Y: 1136.0, Z: 1000.0}
+Hierarchy:
+    RootParts:
+        - !Grid ref!! 291e4112-ddaa-4c4e-b606-923ef3831503
+    Parts:
+        -   UIElement: !TextBlock
+                Id: 018dee54-8295-4da8-b597-afab4f10e6a4
+                DependencyProperties: {}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                Margin: {}
+                MaximumWidth: 3.4028235E+38
+                MaximumHeight: 3.4028235E+38
+                MaximumDepth: 3.4028235E+38
+                Name: worldTargetText
+                Text: World target
+                Font: 6a45aa77-17aa-4fde-9acd-9452744e14ca:WesternFont
+                TextColor: {R: 255, G: 255, B: 255, A: 255}
+                OutlineColor: {R: 0, G: 0, B: 0, A: 255}
+                OutlineThickness: 0.0
+        -   UIElement: !Grid
+                Id: 291e4112-ddaa-4c4e-b606-923ef3831503
+                DependencyProperties: {}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                Margin: {}
+                MaximumWidth: 3.4028235E+38
+                MaximumHeight: 3.4028235E+38
+                MaximumDepth: 3.4028235E+38
+                Children:
+                    a66a22ac0347d642701f1905b65a84c8: !ImageElement ref!! d65707ba-aacb-4249-b6e3-1ab5c435a192
+                    eb80ab5f9fe531c20b91776e14a125df: !Button ref!! b3b648d8-2257-46af-b68d-fd4099eae167
+                RowDefinitions:
+                    ff26927cf020ffd0a3d97bec424e403c: {}
+                ColumnDefinitions:
+                    a06163e1c3e495f6b1d8cc6f4764bd67: {}
+                LayerDefinitions:
+                    c058b83289c01dc1f70fc663259a1bd8: {}
+        -   UIElement: !Button
+                Id: b3b648d8-2257-46af-b68d-fd4099eae167
+                DependencyProperties: {}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                DrawLayerNumber: 2
+                HorizontalAlignment: Center
+                VerticalAlignment: Center
+                Margin: {}
+                MaximumWidth: 3.4028235E+38
+                MaximumHeight: 3.4028235E+38
+                MaximumDepth: 3.4028235E+38
+                Name: worldTargetButton
+                Padding: {Left: 90.0, Top: 30.0, Right: 25.0, Bottom: 35.0}
+                Content: !TextBlock ref!! 018dee54-8295-4da8-b597-afab4f10e6a4
+                PressedImage: !SpriteFromSheet
+                    Sheet: dba38b73-6f43-40ba-a4da-8e711695c7e8:MainSceneImages
+                    CurrentFrame: 28
+                NotPressedImage: !SpriteFromSheet
+                    Sheet: dba38b73-6f43-40ba-a4da-8e711695c7e8:MainSceneImages
+                    CurrentFrame: 28
+                MouseOverImage: !SpriteFromSheet
+                    Sheet: dba38b73-6f43-40ba-a4da-8e711695c7e8:MainSceneImages
+                    CurrentFrame: 28
+                Color: {R: 255, G: 255, B: 255, A: 255}
+        -   UIElement: !ImageElement
+                Id: d65707ba-aacb-4249-b6e3-1ab5c435a192
+                DependencyProperties:
+                    f590246f5dd7f867f8ce83abb8a31ee4~Panel.ZIndexPropertyKey: -1
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                Margin: {}
+                MaximumWidth: 3.4028235E+38
+                MaximumHeight: 3.4028235E+38
+                MaximumDepth: 3.4028235E+38
+                Source: !SpriteFromSheet
+                    Sheet: dba38b73-6f43-40ba-a4da-8e711695c7e8:MainSceneImages
+                    CurrentFrame: 6
+                Color: {R: 255, G: 255, B: 255, A: 255}

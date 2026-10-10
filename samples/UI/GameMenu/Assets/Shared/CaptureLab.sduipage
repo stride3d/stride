@@ -1,0 +1,154 @@
+!UIPageAsset
+Id: 31fd9008-8baa-46ab-a8f2-3d76eab49481
+SerializedVersion: {Stride: 2.1.0.1}
+Tags: []
+Design:
+    Resolution: {X: 640.0, Y: 1136.0, Z: 1000.0}
+Hierarchy:
+    RootParts:
+        - !Grid ref!! b265830f-0f78-438b-89a2-bd7bb28dd061
+    Parts:
+        -   UIElement: !ContentDecorator
+                Id: 0732dadf-9189-4cf7-ade5-f5668db6291c
+                DependencyProperties: {}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                DrawLayerNumber: 2
+                HorizontalAlignment: Left
+                Margin: {Left: 20.0, Top: 20.0, Right: 20.0, Bottom: 20.0}
+                MaximumWidth: 3.4028235E+38
+                MaximumHeight: 3.4028235E+38
+                MaximumDepth: 3.4028235E+38
+                Padding: {}
+                Content: !TextBlock ref!! b6a815b2-3708-4ed4-b0ea-362769e190bf
+                BackgroundImage: !SpriteFromSheet
+                    Sheet: dba38b73-6f43-40ba-a4da-8e711695c7e8:MainSceneImages
+                    CurrentFrame: 20
+        -   UIElement: !Button
+                Id: 080d3119-eb33-45b2-8fc7-c27446fbccb7
+                DependencyProperties:
+                    f6cde5f23fd411677b5757983c241ebe~GridBase.RowPropertyKey: 2
+                    96d4b32fbd3894f0a12b598c3fd7280b~GridBase.ColumnPropertyKey: 1
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                DrawLayerNumber: 2
+                HorizontalAlignment: Center
+                VerticalAlignment: Center
+                Margin: {Top: 30.0, Bottom: 30.0}
+                MaximumWidth: 3.4028235E+38
+                MaximumHeight: 3.4028235E+38
+                MaximumDepth: 3.4028235E+38
+                Name: backButton
+                Padding: {Left: 90.0, Top: 30.0, Right: 25.0, Bottom: 35.0}
+                Content: !TextBlock ref!! 677c96cb-20e4-49ff-af4f-d014a3e61b60
+                PressedImage: !SpriteFromSheet
+                    Sheet: dba38b73-6f43-40ba-a4da-8e711695c7e8:MainSceneImages
+                    CurrentFrame: 28
+                NotPressedImage: !SpriteFromSheet
+                    Sheet: dba38b73-6f43-40ba-a4da-8e711695c7e8:MainSceneImages
+                    CurrentFrame: 28
+                MouseOverImage: !SpriteFromSheet
+                    Sheet: dba38b73-6f43-40ba-a4da-8e711695c7e8:MainSceneImages
+                    CurrentFrame: 28
+                Color: {R: 255, G: 255, B: 255, A: 255}
+        -   UIElement: !Button
+                Id: 3b769053-8f64-4ab3-8581-b21b72370b03
+                DependencyProperties:
+                    f6cde5f23fd411677b5757983c241ebe~GridBase.RowPropertyKey: 0
+                    96d4b32fbd3894f0a12b598c3fd7280b~GridBase.ColumnPropertyKey: 1
+                    16de381b3449c71ae5d6ed83f440dc86~Canvas.RelativePositionPropertyKey: {X: 0.0, Y: 0.5, Z: 0.0}
+                    77b427d8ed5f54d4b958cf09273dfef9~Canvas.PinOriginPropertyKey: {X: 0.5, Y: 0.5, Z: 0.0}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                DrawLayerNumber: 2
+                HorizontalAlignment: Left
+                VerticalAlignment: Top
+                Margin: {Bottom: 30.0}
+                MaximumWidth: 3.4028235E+38
+                MaximumHeight: 3.4028235E+38
+                MaximumDepth: 3.4028235E+38
+                Name: catchMeButton
+                Padding: {Left: 90.0, Top: 30.0, Right: 25.0, Bottom: 35.0}
+                Content: !TextBlock ref!! e4ea5fde-1c5e-45d2-b956-9b52e276872a
+                PressedImage: !SpriteFromSheet
+                    Sheet: dba38b73-6f43-40ba-a4da-8e711695c7e8:MainSceneImages
+                    CurrentFrame: 28
+                NotPressedImage: !SpriteFromSheet
+                    Sheet: dba38b73-6f43-40ba-a4da-8e711695c7e8:MainSceneImages
+                    CurrentFrame: 28
+                MouseOverImage: !SpriteFromSheet
+                    Sheet: dba38b73-6f43-40ba-a4da-8e711695c7e8:MainSceneImages
+                    CurrentFrame: 28
+                Color: {R: 255, G: 255, B: 255, A: 255}
+        -   UIElement: !TextBlock
+                Id: 677c96cb-20e4-49ff-af4f-d014a3e61b60
+                DependencyProperties: {}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                Margin: {}
+                MaximumWidth: 3.4028235E+38
+                MaximumHeight: 3.4028235E+38
+                MaximumDepth: 3.4028235E+38
+                Name: backText
+                Text: Back
+                Font: 6a45aa77-17aa-4fde-9acd-9452744e14ca:WesternFont
+                TextColor: {R: 255, G: 255, B: 255, A: 255}
+                OutlineColor: {R: 0, G: 0, B: 0, A: 255}
+                OutlineThickness: 0.0
+        -   UIElement: !Canvas
+                Id: 6d0dc1b3-2cec-465b-8c36-a56e75062106
+                DependencyProperties:
+                    94abfa61a25a9a1a0faae5bbef8a984e~GridBase.RowPropertyKey: 1
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                VerticalAlignment: Center
+                Margin: {}
+                MaximumWidth: 3.4028235E+38
+                MaximumHeight: 3.4028235E+38
+                MaximumDepth: 3.4028235E+38
+                Children:
+                    f81aa1a8eaa9061b8f39595b7692e004: !Button ref!! 3b769053-8f64-4ab3-8581-b21b72370b03
+        -   UIElement: !Grid
+                Id: b265830f-0f78-438b-89a2-bd7bb28dd061
+                DependencyProperties: {}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                Margin: {}
+                MaximumWidth: 3.4028235E+38
+                MaximumHeight: 3.4028235E+38
+                MaximumDepth: 3.4028235E+38
+                Children:
+                    ff7ef93fd6bd1b219b45a37351b0e9dd: !ContentDecorator ref!! 0732dadf-9189-4cf7-ade5-f5668db6291c
+                    a5ad3cc2c57b30419da0638dce49dd62: !Canvas ref!! 6d0dc1b3-2cec-465b-8c36-a56e75062106
+                    6094aa1b8fcc5c759cff27b1277f8725: !Button ref!! 080d3119-eb33-45b2-8fc7-c27446fbccb7
+                RowDefinitions:
+                    d2bb09793d3e20df6e83792600580cb2:
+                        Type: Auto
+                    324ca8dbecdbd2e264790a8f2850842d: {}
+                    915ab2da9493522242801558387d4652:
+                        Type: Auto
+                ColumnDefinitions: {}
+                LayerDefinitions: {}
+        -   UIElement: !TextBlock
+                Id: b6a815b2-3708-4ed4-b0ea-362769e190bf
+                DependencyProperties: {}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                Margin: {}
+                MaximumWidth: 3.4028235E+38
+                MaximumHeight: 3.4028235E+38
+                MaximumDepth: 3.4028235E+38
+                Name: statsText
+                Text: Stats Text
+                Font: 6a45aa77-17aa-4fde-9acd-9452744e14ca:WesternFont
+                TextSize: 28.0
+                TextColor: {R: 240, G: 240, B: 240, A: 255}
+                OutlineColor: {R: 0, G: 0, B: 0, A: 255}
+                OutlineThickness: 0.0
+        -   UIElement: !TextBlock
+                Id: e4ea5fde-1c5e-45d2-b956-9b52e276872a
+                DependencyProperties: {}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                Margin: {}
+                MaximumWidth: 3.4028235E+38
+                MaximumHeight: 3.4028235E+38
+                MaximumDepth: 3.4028235E+38
+                Name: catchMeText
+                Text: Catch me
+                Font: 6a45aa77-17aa-4fde-9acd-9452744e14ca:WesternFont
+                TextColor: {R: 255, G: 255, B: 255, A: 255}
+                OutlineColor: {R: 0, G: 0, B: 0, A: 255}
+                OutlineThickness: 0.0

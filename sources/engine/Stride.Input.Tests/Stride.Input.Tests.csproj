@@ -20,6 +20,18 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AdvancedInputTest.cs" />
+    <Compile Include="GCMeasurement.cs" />
+    <Compile Include="HeadlessInput.cs" />
+    <Compile Include="TestGamePadCapture.cs" />
+    <Compile Include="TestDeviceCaptureState.cs" />
+    <Compile Include="TestCapturePhase.cs" />
+    <Compile Include="TestCaptureEdgeTracker.cs" />
+    <Compile Include="TestInputCapture.cs" />
+    <Compile Include="TestInputSettings.cs" />
+    <Compile Include="TestKeyboardCapture.cs" />
+    <Compile Include="TestPointerCapture.cs" />
+    <Compile Include="TestQueryMasking.cs" />
+    <Compile Include="ThirdPartyDevices.cs" />
     <Compile Include="XunitAttributes.cs" />
     <Compile Include="InputTestBase.cs" />
     <Compile Include="SensorGameTest.cs" />

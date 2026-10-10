@@ -23,6 +23,9 @@ Hierarchy:
                         Id: 22b8232d-2333-4478-8565-0a003fa813fe
                         MainSceneImages: dba38b73-6f43-40ba-a4da-8e711695c7e8:MainSceneImages
                         UILibrary: 44a9ed4d-847f-4577-8cb1-eabf455799a7:MainLibrary
+                        CaptureLabSceneUrl: e957eef2-bfd5-4f1d-8035-53276e9cf4c5:CaptureLabScene
+                    a4e812377317cf4e82a80fe5e4d185b5: !GameMenu.InputCaptureMonitor,GameMenu.Game
+                        Id: 3712e8a4-1773-4ecf-82a8-0fe5e4d185b5
                     3c24e655038b7a4f8abac6fc8959c49a: !UIComponent
                         Id: 55e6243c-8b03-4f7a-8aba-c6fc8959c49a
                         Page: 709b49cf-aa5f-4647-a3fe-3456c7560736:Main
