@@ -216,7 +216,7 @@ namespace Stride.Engine
     /// <remarks>
     /// Additional precomputed data will be stored alongside the <see cref="Entity" /> to offer faster accesses and iterations.
     /// </remarks>
-    public abstract class EntityProcessor<TComponent, TData> : EntityProcessor where TData : class where TComponent : EntityComponent
+    public abstract class EntityProcessor<TComponent, TData> : EntityProcessor where TComponent : EntityComponent
     {
         protected readonly Dictionary<TComponent, TData> ComponentDatas = [];
         private readonly HashSet<Entity> reentrancyCheck = [];
