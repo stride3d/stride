@@ -10,14 +10,6 @@
 //   allow    - max allowed pixel counts per diff range (e.g. "1-2": 500, "16+": 2)
 [
   {
-    // Knight model edges flicker a few pixels between runs due to sub-pixel
-    // rasterization plus CPU float divergence in skinning; observed across
-    // software renderers (Lavapipe/WARP) and on Apple Silicon. Tolerated on
-    // every platform and every frame of the animation.
-    "image": "AnimatedModelTests*.png",
-    "allow": { "3-5": 10, "6-15": 6, "16+": 3 }
-  },
-  {
     // One pixel on the sprite's anti-aliased edge varies by diff 3 between runs.
     "image": "SpriteRenderer3DTests*.png",
     "allow": { "3-5": 2 }
