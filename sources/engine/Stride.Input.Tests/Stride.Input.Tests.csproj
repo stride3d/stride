@@ -6,6 +6,7 @@
   <PropertyGroup>
     <AssemblyName>Stride.Input.Tests</AssemblyName>
     <RootNamespace>Stride.Input.Tests</RootNamespace>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <EnableDefaultItems>false</EnableDefaultItems>
     <StrideCompileAssets>true</StrideCompileAssets>
     <StrideGraphicsRegression>true</StrideGraphicsRegression>
@@ -20,6 +21,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AdvancedInputTest.cs" />
+    <Compile Include="GCMeasurement.cs" />
+    <Compile Include="HeadlessInput.cs" />
+    <Compile Include="TestInputListeners.cs" />
+    <Compile Include="TestInputRoutingAllocation.cs" />
+    <Compile Include="TestTextInputStrings.cs" />
     <Compile Include="XunitAttributes.cs" />
     <Compile Include="InputTestBase.cs" />
     <Compile Include="SensorGameTest.cs" />
