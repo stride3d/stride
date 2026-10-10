@@ -75,14 +75,6 @@ namespace Stride.Assets
         }
     }
 
-    namespace Media
-    {
-        [Display((int)AssetDisplayPriority.Media, "Sound")]
-        partial class SoundAsset
-        {
-        }
-    }
-
     namespace Rendering
     {
         [Display((int)AssetDisplayPriority.GraphicsCompositor, "Graphics compositor")]

@@ -14,7 +14,7 @@ using Stride.Core.Serialization.Contents;
 using Stride.Assets.FFmpeg;
 using Stride.Audio;
 
-namespace Stride.Assets.Media
+namespace Stride.Audio.Assets
 {
     /// <summary>
     /// Asset compiler for <see cref="SoundAsset"/>.

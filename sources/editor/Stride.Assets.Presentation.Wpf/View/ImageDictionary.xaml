@@ -895,27 +895,6 @@
     </DrawingImage.Drawing>
   </DrawingImage>
 
-  <DrawingImage x:Key="{x:Type engine:AudioEmitterComponent}" >
-    <DrawingImage.Drawing>
-      <DrawingGroup>
-        <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
-        <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M7.5861,-0.000199999999999534L3.5851,4.0008 9.99999999997669E-05,4.0008 9.99999999997669E-05,10.9998 3.5851,10.9998 7.5861,14.9998 10.0001,14.9998 10.0001,9.9998 10.9291,9.9998 13.3011,12.3708 15.3701,10.3008 14.0701,8.9998 16.0001,8.9998 16.0001,5.9998 14.0701,5.9998 15.3701,4.6988 13.3011,2.6298 10.9291,4.9998 10.0001,4.9998 10.0001,-0.000199999999999534z" />
-        <GeometryDrawing Brush="#FF414141" Geometry="F1M13,7C13.032,7.162 13.05,7.329 13.05,7.5 13.05,7.671 13.032,7.838 13,8L15,8 15,7z M11.956,9.611L13.301,10.957 13.956,10.301 12.611,8.957C12.439,9.217,12.217,9.439,11.956,9.611 M12.611,6.043L13.956,4.699 13.301,4.043 11.956,5.388C12.217,5.561,12.439,5.783,12.611,6.043 M9,6L11,6 11,9 9,9 9,14 8,14 4,10 1,10 1,5 4,5 8,1 9,1z" />
-      </DrawingGroup>
-    </DrawingImage.Drawing>
-  </DrawingImage>
-
-  <DrawingImage x:Key="{x:Type engine:AudioListenerComponent}" >
-    <DrawingImage.Drawing>
-      <DrawingGroup>
-        <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
-        <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M15,5L15,8C15,10.085,13.932,11.924,12.313,13L13,13 13,16 4,16 4,13 4.687,13C3.068,11.924,2,10.085,2,8L2,5 4,5 4,4C4,1.794,5.794,0,8,0L9,0C11.206,0,13,1.794,13,4L13,5z" />
-        <GeometryDrawing Brush="#FF424242" Geometry="F1M11,4C11,2.897,10.103,2,9,2L8,2C6.897,2,6,2.897,6,4L6,8C6,9.103,6.897,10,8,10L9,10C10.103,10,11,9.103,11,8z M12,4L12,8C12,9.65,10.65,11,9,11L8,11C6.35,11,5,9.65,5,8L5,4C5,2.35,6.35,1,8,1L9,1C10.65,1,12,2.35,12,4 M14,6L14,8C14,10.757,11.757,13,9,13L9,14 12,14 12,15 5,15 5,14 8,14 8,13C5.243,13,3,10.757,3,8L3,6 4,6 4,8C4,10.206,5.794,12,8,12L9,12C11.206,12,13,10.206,13,8L13,6z" />
-        <GeometryDrawing Brush="#FFF0EFF1" Geometry="F1M11,4L11,8C11,9.103,10.103,10,9,10L8,10C6.897,10,6,9.103,6,8L6,4C6,2.897,6.897,2,8,2L9,2C10.103,2,11,2.897,11,4" />
-      </DrawingGroup>
-    </DrawingImage.Drawing>
-  </DrawingImage>
-
   <DrawingImage x:Key="{x:Type engine:BackgroundComponent}" >
     <DrawingImage.Drawing>
       <DrawingGroup>

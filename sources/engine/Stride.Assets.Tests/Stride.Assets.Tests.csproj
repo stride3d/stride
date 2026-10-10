@@ -15,6 +15,7 @@
     <ProjectReference Include="..\Stride.Video.Assets\Stride.Video.Assets.csproj" />
     <ProjectReference Include="..\Stride.Physics.Assets\Stride.Physics.Assets.csproj" />
     <ProjectReference Include="..\Stride.SpriteStudio.Assets\Stride.SpriteStudio.Assets.csproj" />
+    <ProjectReference Include="..\Stride.Audio.Assets\Stride.Audio.Assets.csproj" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>

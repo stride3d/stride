@@ -110,6 +110,81 @@ public class TestCodeUpgrade
     }
 
     [Fact]
+    public async Task MemberToExtensionQualifiesBareUsesAndImportsTheNamespace()
+    {
+        // A bare use needs `this.` (simple-name lookup skips extension members); a same-named member elsewhere is untouched
+        var source = """
+            namespace TestNs
+            {
+                class AudioSystem { public object Engine; }
+                class Game
+                {
+                    public AudioSystem Audio => null;
+                }
+                class Other
+                {
+                    public AudioSystem Audio => null;
+                }
+                class Script : Game
+                {
+                    object A() => Audio.Engine;
+                    object B() => this.Audio.Engine;
+                    object C(Game g) => g.Audio;
+                    object D(Game g) => g?.Audio;
+                    object E() => base.Audio;
+                    object F(Other o) => o.Audio;
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(source, Rewrite(MemberToExtension("TestNs.Game", "Audio", "Extensions.Audio")));
+
+        Assert.StartsWith("using Extensions.Audio;", result);
+        Assert.Equal(1, result.Split("using Extensions.Audio;").Length - 1);
+        Assert.Contains("object A() => this.Audio.Engine;", result);
+        Assert.Contains("object B() => this.Audio.Engine;", result);
+        Assert.Contains("object C(Game g) => g.Audio;", result);
+        Assert.Contains("object D(Game g) => g?.Audio;", result);
+        Assert.Contains("object E() => this.Audio;", result);
+        Assert.Contains("object F(Other o) => o.Audio;", result);
+    }
+
+    [Fact]
+    public async Task MemberToExtensionRoutesUsesThroughAnotherMember()
+    {
+        // Every use of the old member, bare or qualified, goes through the Game property
+        var source = """
+            namespace TestNs
+            {
+                class AudioSystem { public object Engine; }
+                class Game { }
+                class ScriptComponent
+                {
+                    public Game Game => null;
+                    public AudioSystem Audio => null;
+                }
+                class Script : ScriptComponent
+                {
+                    object A() => Audio.Engine;
+                    object B() => this.Audio.Engine;
+                    object C(ScriptComponent s) => s.Audio;
+                    object D(ScriptComponent s) => s?.Audio.Engine;
+                    object E() => base.Audio;
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(source, Rewrite(MemberToExtension("TestNs.ScriptComponent", "Audio", "Extensions.Audio", throughMember: "Game")));
+
+        Assert.StartsWith("using Extensions.Audio;", result);
+        Assert.Contains("object A() => Game.Audio.Engine;", result);
+        Assert.Contains("object B() => this.Game.Audio.Engine;", result);
+        Assert.Contains("object C(ScriptComponent s) => s.Game.Audio;", result);
+        Assert.Contains("object D(ScriptComponent s) => s?.Game.Audio.Engine;", result);
+        Assert.Contains("object E() => base.Game.Audio;", result);
+    }
+
+    [Fact]
     public async Task PropertyToMethodMigratesCSharp14ExtensionProperty()
     {
         // The actual #3037 case: an extension *property* (C# 14 extension block) turned into a method.

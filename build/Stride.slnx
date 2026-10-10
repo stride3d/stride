@@ -77,6 +77,8 @@
   <Folder Name="/20-StrideRuntime/">
     <Project Path="../sources/engine/Stride.Assets.Generators/Stride.Assets.Generators.csproj" />
     <Project Path="../sources/engine/Stride.Audio/Stride.Audio.csproj" />
+    <Project Path="../sources/engine/Stride.Audio.Assets/Stride.Audio.Assets.csproj" />
+    <Project Path="../sources/engine/Stride.Audio.Editor/Stride.Audio.Editor.csproj" />
     <Project Path="../sources/engine/Stride.Engine/Stride.Engine.csproj" />
     <Project Path="../sources/engine/Stride.Foundation/Stride.Foundation.csproj" />
     <Project Path="../sources/engine/Stride.Games/Stride.Games.csproj" />

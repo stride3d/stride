@@ -7,13 +7,15 @@ using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Audio;
 
-namespace Stride.Assets.Media
+namespace Stride.Audio.Assets
 {
+    // 1100 and "Stride" are AssetDisplayPriority.Media and StrideConfig.LogicalPackageName, in Stride.Assets, which this package does not reference
     [DataContract("Sound")]
     [AssetDescription(FileExtension)]
     [AssetContentType(typeof(Sound))]
-    [AssetFormatVersion(StrideConfig.LogicalPackageName, CurrentVersion, "2.0.0.0")]
-    public partial class SoundAsset : AssetWithSource
+    [Display(1100, "Sound")]
+    [AssetFormatVersion("Stride", CurrentVersion, "2.0.0.0")]
+    public class SoundAsset : AssetWithSource
     {
         private const string CurrentVersion = "2.0.0.0";
 

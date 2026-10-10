@@ -8,7 +8,7 @@ using Stride.Assets.FFmpeg;
 using Stride.Core.Assets;
 using Stride.Core.IO;
 
-namespace Stride.Assets.Media
+namespace Stride.Audio.Assets
 {
     public class RawSoundAssetImporter : RawAssetImporterBase<SoundAsset>
     {

@@ -20,6 +20,7 @@ using Stride.TextureConverter;
 using Stride.Assets.Effect;
 using Stride.Assets.Templates;
 using Stride.Graphics;
+using Microsoft.Build.Construction;
 using Microsoft.Build.Evaluation;
 using Stride.Core.Annotations;
 using static Stride.Assets.CodeUpgrades;
@@ -137,12 +138,22 @@ namespace Stride.Assets
                 RemoveUnusedUsings("SharpDX", "SharpFont", "Vortice", "Stride.Core.Shaders"),
             ]);
 
+            registry.Code("4.5.0.0",
+            [
+                // 4.5: audio left Stride.Engine for the optional Stride.Audio package; Game.Audio is an extension property
+                // there (a bare `Audio` in a game needs `this.` and the using) and a script reaches it as Game.Audio.
+                Rewrite(
+                    MemberToExtension("Stride.Engine.Game", "Audio", "Stride.Audio"),
+                    MemberToExtension("Stride.Engine.ScriptComponent", "Audio", "Stride.Audio", throughMember: "Game")),
+            ]);
+
             // Structural csproj migrations, gated by the version each change landed at. Run against the
             // NEW-version project (after the reference bump) by UpgradeBeforeAssembliesLoaded.
             registry.Project("4.1.0.0", UpgradeProjectTo41);
             registry.Project("4.2.0.0", UpgradeProjectTo42);
             registry.Project("4.3.0.0", UpgradeProjectTo43);
             registry.Project("4.4.0.0", UpgradeProjectTo44);
+            registry.Project("4.5.0.0", UpgradeProjectTo45);
             registry.Project("4.5.0.0", AddPluginPackageReferences);
         }
 
@@ -369,6 +380,28 @@ namespace Stride.Assets
                 log.Info($"Renamed {renamedCount} legacy generated shader file(s) to .bak. The Roslyn source generator now produces these into obj/. Delete the .bak files when you've verified the upgrade.");
         }
 
+        // 4.5: Stride.Engine no longer depends on Stride.Audio (an optional package now): a project that had audio
+        // through the engine keeps it with a reference of its own, shaped like its Stride.Engine one.
+        private static void UpgradeProjectTo45(ProjectUpgradeContext context)
+        {
+            var project = context.Project;
+            var packageReferences = project.Xml.ItemGroups.SelectMany(g => g.Items).Where(x => x.ItemType == "PackageReference").ToArray();
+            var engineReference = packageReferences.FirstOrDefault(x => x.Include == "Stride.Engine");
+            if (engineReference != null && packageReferences.All(x => x.Include != "Stride.Audio"))
+                AddPackageReference(context, engineReference, "Stride.Audio", "audio is no longer part of Stride.Engine");
+        }
+
+        // Adds a package reference after the template one, with the same metadata (version, assets)
+        private static void AddPackageReference(ProjectUpgradeContext context, ProjectItemElement template, string packageId, string reason)
+        {
+            var reference = template.ContainingProject.CreateItemElement("PackageReference", packageId);
+            template.Parent.InsertAfterChild(reference, template);
+            foreach (var metadata in template.Metadata)
+                reference.AddMetadata(metadata.Name, metadata.Value, metadata.ExpressedAsAttribute);
+            context.IsDirty = true;
+            context.Log.Info($"Added the {packageId} package reference: {reason}.");
+        }
+
         // The asset file extensions whose asset types a plugin package's Assets companion holds, with that package:
         // Stride.Assets held them before 4.5, so a project could have such assets without referencing the package.
         private static readonly (string Extension, string PackageId)[] PluginAssetExtensions =
@@ -397,14 +430,7 @@ namespace Stride.Assets
 
             var projectDir = context.ProjectFullPath.GetFullDirectory().ToOSPath();
             foreach (var packageId in FindMissingPluginPackages(projectDir, packageReferences.Select(x => x.Include)))
-            {
-                var reference = engineReference.ContainingProject.CreateItemElement("PackageReference", packageId);
-                engineReference.Parent.InsertAfterChild(reference, engineReference);
-                foreach (var metadata in engineReference.Metadata)
-                    reference.AddMetadata(metadata.Name, metadata.Value, metadata.ExpressedAsAttribute);
-                context.IsDirty = true;
-                context.Log.Info($"Added the {packageId} package reference: the project has assets of its types, which Stride.Assets no longer holds.");
-            }
+                AddPackageReference(context, engineReference, packageId, "the project has assets of its types, which Stride.Assets no longer holds");
         }
 
         /// <summary>
