@@ -293,6 +293,13 @@ namespace Stride.Games
                     windowUserResized = false;
                 }
 
+                // Skip the frame, e.g. while the window is minimized
+                if (!Presenter.CanPresentFrame())
+                {
+                    beginDrawOk = false;
+                    return false;
+                }
+
                 GraphicsDevice.Presenter = Presenter;
 
                 beginDrawOk = true;

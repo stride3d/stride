@@ -27,6 +27,8 @@ namespace Stride.Graphics
         private const int kNumberOfFramesInFlight = 2;
         private int currentFrameIndex = 0;
         private int acquireRecreateDepth;
+        // Out of date while the surface is 0x0 (minimized window)
+        private bool recreationPending;
         private VkSemaphore[] acquireSemaphores;
         private VkFence[] frameFences;
 
@@ -294,6 +296,14 @@ namespace Stride.Graphics
             // For the time being, comment out the not implemented exception.
             // throw new NotImplementedException();
 
+            // A swapchain cannot be 0x0: keep the current one until the window is restored
+            if (IsSurfaceEmpty())
+            {
+                recreationPending = true;
+                return;
+            }
+            recreationPending = false;
+
             base.OnRecreated();
 
             RecreateBackBuffer(backBuffer.Width, backBuffer.Height, backBuffer.Format);
@@ -302,6 +312,29 @@ namespace Stride.Graphics
             if (Description.BackBufferWidth != DepthStencilBuffer.Description.Width
                 || Description.BackBufferHeight != DepthStencilBuffer.Description.Height)
                 ResizeDepthStencilBuffer(Description.BackBufferWidth, Description.BackBufferHeight, DepthStencilBuffer.ViewFormat);
+        }
+
+        /// <inheritdoc/>
+        internal override bool CanPresentFrame()
+        {
+            if (recreationPending)
+            {
+                OnRecreated();
+            }
+
+            return !recreationPending;
+        }
+
+        private unsafe bool IsSurfaceEmpty()
+        {
+            // No surface (after OnDestroyed) or a failed query: left to CreateSwapChain
+            if (surface == VkSurfaceKHR.Null)
+            {
+                return false;
+            }
+            var result = GraphicsDevice.NativeInstanceApi.vkGetPhysicalDeviceSurfaceCapabilitiesKHR(GraphicsDevice.NativePhysicalDevice, surface, out var surfaceCapabilities);
+            return result == VkResult.Success
+                && (surfaceCapabilities.currentExtent.width == 0 || surfaceCapabilities.currentExtent.height == 0);
         }
 
         protected override void ResizeBackBuffer(int width, int height, PixelFormat format)

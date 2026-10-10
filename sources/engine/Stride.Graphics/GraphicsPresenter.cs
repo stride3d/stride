@@ -434,6 +434,11 @@ public abstract class GraphicsPresenter : ComponentBase
     }
 
     /// <summary>
+    ///   Called before drawing each frame; <see langword="false"/> skips the frame (e.g. minimized window).
+    /// </summary>
+    internal virtual bool CanPresentFrame() => true;
+
+    /// <summary>
     ///   Processes and adjusts the Presentation Parameters before initializing the Graphics Presenter.
     /// </summary>
     /// <remarks>

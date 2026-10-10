@@ -427,6 +427,12 @@ namespace Stride.Games
 
             CheckDeviceState();
 
+            // Skip the frame, e.g. while the window is minimized
+            if (GraphicsDevice.Presenter is not null && !GraphicsDevice.Presenter.CanPresentFrame())
+            {
+                return false;
+            }
+
             GraphicsDevice.Begin();
 
             // TODO: GRAPHICS REFACTOR
