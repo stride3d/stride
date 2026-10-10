@@ -57,14 +57,31 @@ public sealed class AssetBuildManifest
     public List<string> AssetNamespaceUsings { get; } = [];
 
     /// <summary>
+    /// What the project's package carries (StridePackageKind); absent for a runtime package.
+    /// </summary>
+    public PackageKind? PackageKind { get; set; }
+
+    /// <summary>
+    /// Companions the project declares (StrideCompanionProject and StrideCompanionPackage items).
+    /// </summary>
+    public List<AssetBuildManifestCompanion> CompanionPackages { get; } = [];
+
+    /// <summary>
     /// Host-loadable assemblies whose types appear in assets; the asset compiler loads exactly these.
     /// </summary>
-    public List<UFile> AssetAssemblies { get; } = [];
+    [DataAlias("AssetAssemblies")]
+    public List<UFile> HostAssemblies { get; } = [];
 
     /// <summary>
     /// Manifests of referenced projects.
     /// </summary>
     public List<UFile> ReferencedManifests { get; } = [];
+
+    /// <summary>
+    /// Manifests of the Assets companion projects an executable built on behalf of the projects it references
+    /// (an in-solution plugin's companions, which the game does not reference).
+    /// </summary>
+    public List<UFile> CompanionManifests { get; } = [];
 
     /// <summary>
     /// Project-asset files (e.g. .sdsl, .sdfx) declared as project items.
@@ -85,6 +102,26 @@ public sealed class AssetBuildManifest
     /// Gets <see cref="PackageFile"/> resolved, when declared.
     /// </summary>
     public string? GetAuthoredPackagePath(string manifestFile) => PackageFile is not null ? ResolvePath(manifestFile, PackageFile) : null;
+}
+
+/// <summary>
+/// A companion entry, declared by project or by package (no <see cref="Project"/>).
+/// A project entry has no id, version or kind when the project was not restored at build time.
+/// </summary>
+[DataContract]
+public sealed class AssetBuildManifestCompanion
+{
+    public PackageKind Kind { get; set; }
+
+    /// <summary>The companion project, relative to the manifest.</summary>
+    public UFile? Project { get; set; }
+
+    public string? Package { get; set; }
+
+    public string? Version { get; set; }
+
+    /// <summary>Companion packages declared elsewhere that this one stands in for.</summary>
+    public List<string> Replaces { get; } = [];
 }
 
 /// <summary>

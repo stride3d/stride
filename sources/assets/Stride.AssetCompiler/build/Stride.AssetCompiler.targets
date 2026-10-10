@@ -412,7 +412,7 @@
   </Target>
 
   <!-- Pack target -->
-  <Target Name="_StridePrepareAssetsForPack" BeforeTargets="_GetPackageFiles" DependsOnTargets="_StridePrepareAssetCompiler">
+  <Target Name="_StridePrepareAssetsForPack" BeforeTargets="_GetPackageFiles" DependsOnTargets="_StridePrepareAssetCompiler;_StrideResolveCompanionProjects">
     <!-- Exec in a separate process so the asset compiler assembly isn't locked during rebuild. -->
     <!-- Declare the host-loadable asset assembly (this package's own dll under lib/<tfm>/) so a consumer
          loads the build matching its asset compiler runtime. Enumerate the produced TFMs (multi-TFM:
@@ -427,14 +427,21 @@
       <_StrideHostAssetAssembly Include="lib/%(_StrideHostAssetAssemblyTfm.Identity)/$(AssemblyName).dll" />
     </ItemGroup>
     <PropertyGroup Condition="'$(StrideContainsAssetTypes)' == 'true'">
-      <_StridePackAssetAssembliesArg>@(_StrideHostAssetAssembly->' --pack-asset-assembly=&quot;%(Identity)&quot;', '')</_StridePackAssetAssembliesArg>
+      <_StridePackHostAssembliesArg>@(_StrideHostAssetAssembly->' --pack-host-assembly=&quot;%(Identity)&quot;', '')</_StridePackHostAssembliesArg>
     </PropertyGroup>
     <PropertyGroup Condition="'$(StrideAssetNamespace)' != ''">
       <_StridePackAssetNamespaceArg> --pack-asset-namespace=&quot;$(StrideAssetNamespace)&quot;</_StridePackAssetNamespaceArg>
     </PropertyGroup>
+    <!-- Companion packages (StrideCompanionProject / StrideCompanionPackage, resolved by _StrideResolveCompanionProjects):
+         the packed sdpkg declares their id, version and kind. The asset compiler loads the Assets ones, the editor
+         every one; the game never references them. A companion states its own kind (StridePackageKind). -->
+    <PropertyGroup>
+      <_StridePackCompanionArg>@(_StrideCompanion->' --pack-companion=&quot;%(Kind):%(PackageId):%(PackageVersion):%(Replaces)&quot;', '')</_StridePackCompanionArg>
+      <_StridePackKindArg Condition="'$(StridePackageKind)' != ''"> --pack-kind=&quot;$(StridePackageKind)&quot;</_StridePackKindArg>
+    </PropertyGroup>
     <Error Condition="'$(StrideContainsAssetTypes)' == 'true' And '@(_StrideHostAssetAssembly)' == ''"
            Text="StrideContainsAssetTypes=true but none of the target framework(s) '$(TargetFrameworks)$(TargetFramework)' is host-compatible: the asset compiler needs a base netX.0 or net*-windows* build to load. A mobile-only asset package can't ship a host-loadable assembly." />
-    <Exec Command="$(StrideAssetCompilerHost) &quot;$(StrideCompileAssetCommand)&quot; pack &quot;$(MSBuildProjectFullPath)&quot; --build-path=&quot;$([MSBuild]::NormalizePath('$(ProjectDir)', '$(BaseIntermediateOutputPath)', 'stride\pack'))&quot;$(_StridePackAssetAssembliesArg)$(_StridePackAssetNamespaceArg)" ConsoleToMsBuild="true">
+    <Exec Command="$(StrideAssetCompilerHost) &quot;$(StrideCompileAssetCommand)&quot; pack &quot;$(MSBuildProjectFullPath)&quot; --build-path=&quot;$([MSBuild]::NormalizePath('$(ProjectDir)', '$(BaseIntermediateOutputPath)', 'stride\pack'))&quot;$(_StridePackHostAssembliesArg)$(_StridePackAssetNamespaceArg)$(_StridePackCompanionArg)$(_StridePackKindArg)" ConsoleToMsBuild="true">
       <Output TaskParameter="ConsoleOutput" ItemName="PackAssetsLine" />
     </Exec>
     <ItemGroup>

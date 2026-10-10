@@ -31,6 +31,33 @@ namespace Stride.Core.Assets.Tests
             Assert.Equal("MyPkgName", package.Meta.Name);
         }
 
+        [Fact]
+        public void ProjectPackageSavesNoBuildDeclarations()
+        {
+            var dirPath = DirectoryTestBase + @"ProjectPackageSavesNoBuildDeclarations";
+            Directory.CreateDirectory(dirPath);
+            CompanionPackage NewCompanion() => new() { Kind = PackageKind.Assets, Name = "MyPlugin.Assets", Version = new PackageVersion("1.0.0") };
+
+            // A project's sdpkg is authored: the kind and companions its build declared are not written back
+            var projectPackage = new Package { Kind = PackageKind.Assets };
+            projectPackage.CompanionPackages.Add(NewCompanion());
+            _ = new SolutionProject(projectPackage, Guid.NewGuid(), Path.Combine(dirPath, "MyPlugin.csproj"));
+            var projectPath = Path.Combine(dirPath, "Project.sdpkg");
+            AssetFileSerializer.Save(projectPath, projectPackage, null);
+            var projectText = File.ReadAllText(projectPath);
+            Assert.DoesNotContain("CompanionPackages", projectText);
+            Assert.DoesNotContain("Kind:", projectText);
+
+            // A packed sdpkg keeps them
+            var packedPackage = new Package { Kind = PackageKind.Assets };
+            packedPackage.CompanionPackages.Add(NewCompanion());
+            var packedPath = Path.Combine(dirPath, "Packed.sdpkg");
+            AssetFileSerializer.Save(packedPath, packedPackage, null);
+            var packedText = File.ReadAllText(packedPath);
+            Assert.Contains("CompanionPackages", packedText);
+            Assert.Contains("Kind: Assets", packedText);
+        }
+
         [Fact(Skip = "Need check: we don't work with package directly anymore, they are considered external")]
         public void TestBasicPackageCreateSaveLoad()
         {

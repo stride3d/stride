@@ -265,6 +265,12 @@ public class StandalonePackage : PackageContainer
     /// </summary>
     public bool IsDependencyPackage { get; set; }
 
+    /// <summary>
+    /// True for a package loaded because another package declared it as a companion, or a companion that another
+    /// companion depends on.
+    /// </summary>
+    public bool IsCompanionPackage { get; set; }
+
     public override string ToString() => $"Package: {Package.Meta.Name}";
 }
 
@@ -1097,6 +1103,9 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
                 else if (project.Package.State < PackageState.DependenciesReady) // not handling standalone packages yet
                     project.Package.State = PackageState.DependenciesReady;
             }
+
+            // Companion packages declared by the packages loaded above
+            LoadCompanionPackages(GetRootDirectory(), log);
         }
         finally
         {
@@ -1139,6 +1148,22 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
                 log.Warning($"Newer version of {assetInfo.package.Meta.Name} is already referenced in another package. Using version {newerPackage.Meta.Version} instead of {assetInfo.package.Meta.Version}");
                 continue;
             }
+
+            // Asset types come from every package's assemblies (e.g. a companion package loaded after this one), so
+            // list the files again now that all of them are loaded; files already listed keep their upgraded content
+            var previousFiles = assetInfo.newLoadParameters.AssetFiles?.ToDictionary(f => f.FilePath.FullPath, StringComparer.OrdinalIgnoreCase);
+            var assetFiles = Package.ListAssetFiles(assetInfo.package, true, false);
+            if (previousFiles is not null)
+            {
+                for (var i = 0; i < assetFiles.Count; i++)
+                {
+                    if (previousFiles.Remove(assetFiles[i].FilePath.FullPath, out var previousFile))
+                        assetFiles[i] = previousFile;
+                }
+                assetFiles.AddRange(previousFiles.Values);
+            }
+            assetFiles.Sort(PackageLoadingAssetFile.FileSizeComparer.Default);
+            assetInfo.newLoadParameters.AssetFiles = assetFiles;
 
             LoadAssets(assetInfo.session, assetInfo.log, assetInfo.package, assetInfo.loadParameters, assetInfo.pendingPackageUpgrades, assetInfo.newLoadParameters);
         }

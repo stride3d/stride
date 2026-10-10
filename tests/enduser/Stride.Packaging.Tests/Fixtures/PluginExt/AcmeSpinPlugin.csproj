@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>AcmeSpinPlugin</RootNamespace>
+    <PackageId>AcmeSpinPlugin</PackageId>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- A plugin built on another plugin: its runtime depends on StrideAssetPlugin's runtime, its Assets companion on
+         StrideAssetPlugin's Assets companion. -->
+    <StrideCompanionProject Include="..\PluginExtAssets\AcmeSpinPlugin.Assets.csproj" />
+    <PackageReference Include="StrideAssetPlugin" Version="1.0.0" />
+    <PackageReference Include="Stride.Engine" Version="$(StrideEngineVersion)" />
+    <PackageReference Include="Stride.AssetCompiler" Version="$(StrideEngineVersion)" IncludeAssets="build;buildTransitive" />
+  </ItemGroup>
+</Project>

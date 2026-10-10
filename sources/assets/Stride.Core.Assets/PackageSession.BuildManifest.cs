@@ -21,7 +21,7 @@ partial class PackageSession
     /// <summary>
     /// Loads a session from a build manifest (.sdbuild) chain. Each manifest contributes its project's
     /// package (see <see cref="ContributeManifest"/>), the exact assemblies to load
-    /// (<see cref="AssetBuildManifest.AssetAssemblies"/>) and its project assets.
+    /// (<see cref="AssetBuildManifest.HostAssemblies"/>) and its project assets.
     /// </summary>
     /// <returns>The root manifest's package, the one being built.</returns>
     public static Package LoadFromBuildManifest(string rootManifestFile, PackageSessionResult sessionResult, PackageLoadParameters? loadParameters = null)
@@ -59,7 +59,9 @@ partial class PackageSession
                 var manifest = YamlSerializer.Load<AssetBuildManifest>(file);
                 manifests.Add(file, manifest);
                 session.AssetNamespaceUsings.UnionWith(manifest.AssetNamespaceUsings);
-                foreach (var reference in manifest.ReferencedManifests)
+                // A companion manifest joins the session as a package like a referenced one; it is found by name
+                // when the declaring package's companions load, not part of the reference closure
+                foreach (var reference in manifest.ReferencedManifests.Concat(manifest.CompanionManifests))
                     queue.Enqueue(AssetBuildManifest.ResolvePath(file, reference));
             }
             session.LoadedBuildManifests = [.. manifests.Keys];
@@ -143,6 +145,12 @@ partial class PackageSession
                 foreach (var dependency in closure)
                     package.FlattenedDependencies.Add(new Dependency(dependency.Package));
             }
+
+            // Companion packages declared by session packages, restored with the root project's NuGet settings
+            var rootProjectDirectory = rootManifest.ProjectFile is not null
+                ? Path.GetDirectoryName(Path.GetFullPath(Path.Combine(Path.GetDirectoryName(rootManifestFile)!, rootManifest.ProjectFile.ToOSPath())))
+                : null;
+            session.LoadCompanionPackages(rootProjectDirectory, sessionResult);
 
             // Load + register exactly the declared assemblies, then load assets (folder scan +
             // precomputed project assets); no dependency resolution, no MSBuild
@@ -261,8 +269,10 @@ partial class PackageSession
             container.Package.Meta.Version = !string.IsNullOrEmpty(manifest.PackageVersion) ? new PackageVersion(manifest.PackageVersion) : new PackageVersion("1.0.0");
         if (isOwner || container.AssetNamespace is null)
             container.AssetNamespace = PackageContainer.ResolveAssetNamespace(manifest.AssetNamespace, container.Package.AuthoredName ?? container.Package.Meta.Name);
+        if (isOwner)
+            container.Package.SetCompanionDeclarations(manifest, Path.GetDirectoryName(manifestFile)!);
 
-        foreach (var assembly in manifest.AssetAssemblies)
+        foreach (var assembly in manifest.HostAssemblies)
             container.Assemblies.Add(Resolve(assembly));
 
         // Project assets resolved at build time
@@ -295,7 +305,11 @@ partial class PackageSession
     /// </summary>
     private List<StandalonePackage> LoadPackageDependenciesFromLockFile(string lockFilePath, NuGetFramework framework, Dictionary<string, StandalonePackage> sdpkgPackagesByName, ILogger log)
     {
-        var lockFile = new LockFileFormat().Read(lockFilePath);
+        return LoadPackageDependenciesFromLockFile(new LockFileFormat().Read(lockFilePath), framework, sdpkgPackagesByName, log);
+    }
+
+    private List<StandalonePackage> LoadPackageDependenciesFromLockFile(LockFile lockFile, NuGetFramework framework, Dictionary<string, StandalonePackage> sdpkgPackagesByName, ILogger log)
+    {
         var target = lockFile.Targets.FirstOrDefault(t => t.RuntimeIdentifier == null && Equals(t.TargetFramework, framework))
             ?? lockFile.Targets.FirstOrDefault(t => t.RuntimeIdentifier == null);
         if (target is null)
@@ -345,21 +359,41 @@ partial class PackageSession
             // The packed sdpkg's declarations (host-loadable, narrowed to asset types) are the
             // complete list; a package declaring none gets no assembly loaded.
             var sdpkgDirectory = Path.GetDirectoryName(sdpkgPath)!;
-            var hostAssetAssemblies = SelectHostAssetAssemblies(package.AssetAssemblies)
+            var hostAssetAssemblies = SelectHostAssetAssemblies(package.HostAssemblies)
                 .Select(a => Path.GetFullPath(Path.Combine(sdpkgDirectory, a.Path!.ToOSPath()))).ToList();
 
             // A dev-redirect stub (source checkout, StrideDevPackages) ships the packed sdpkg but none of its
             // assets: those, and the shader sources, are read live from the checkout project, through the
             // project's own sdpkg, so an edited engine asset or shader reaches a game's build with no
-            // regeneration. The packed sdpkg still names the asset assemblies (resolved above) and the asset
-            // namespace (a build property, absent from the source sdpkg).
+            // regeneration. The packed sdpkg still names the asset assemblies (resolved above). The asset
+            // namespace and companions come from the project's build manifest (the stub can be stale), else the stub.
             var devProjectDirectory = NugetStore.TryGetDevRedirectProjectDirectory(libraryPath, library.Name);
             var sourceSdpkgPath = devProjectDirectory is null ? null : Path.Combine(devProjectDirectory, library.Name + Package.PackageFileExtension);
             if (sourceSdpkgPath is not null && File.Exists(sourceSdpkgPath))
             {
-                var packedAssetNamespace = package.AssetNamespace;
+                var packedPackage = package;
                 package = Package.LoadRaw(log, sourceSdpkgPath);
-                package.AssetNamespace ??= packedAssetNamespace;
+                var manifestFile = FindDevRedirectManifest(Path.Combine(devProjectDirectory!, library.Name + ".csproj"));
+                AssetBuildManifest? manifest = null;
+                try
+                {
+                    manifest = manifestFile is not null ? YamlSerializer.Load<AssetBuildManifest>(manifestFile) : null;
+                }
+                catch (Exception ex)
+                {
+                    log.Warning($"Could not read the build manifest [{manifestFile}] of [{library.Name}]", ex);
+                }
+                if (manifest is not null)
+                {
+                    package.AssetNamespace ??= PackageContainer.ResolveAssetNamespace(manifest.AssetNamespace, package.Meta.Name);
+                    package.SetCompanionDeclarations(manifest, Path.GetDirectoryName(manifestFile)!);
+                }
+                else
+                {
+                    package.AssetNamespace ??= packedPackage.AssetNamespace;
+                    if (package.CompanionPackages.Count == 0)
+                        package.CompanionPackages.AddRange(packedPackage.CompanionPackages);
+                }
             }
 
             package.Meta.Name = library.Name;
