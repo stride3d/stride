@@ -139,7 +139,7 @@ namespace Stride.Assets.Models
         {
             base.ComputeParameterHash(writer);
 
-            writer.Write(1); // increase this integer everytime you modify the ImportModelCommand to regenerate the assets.
+            writer.Write(2); // increase this integer everytime you modify the ImportModelCommand to regenerate the assets.
 
             //this serialized the parameters of the command
             writer.SerializeExtended(this, ArchiveMode.Serialize);
