@@ -1,0 +1,31 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+// The id pass of a skinned mesh: its positions and normals blended by the matrices the scene skinned it with.
+// SkinningMaxBones: macro, set by SinglePassWireframeRenderFeature
+#ifndef SkinningMaxBones
+# define SkinningMaxBones 128
+#endif
+
+shader BepuDebugIdSkinnedShader : BepuDebugIdShader
+{
+    // Mesh space to world space, per bone of the mesh
+    float4x4 BoneMatrices[SkinningMaxBones];
+
+    stage stream float4 BlendWeights : BLENDWEIGHT;
+    stage stream uint4 BlendIndices : BLENDINDICES;
+
+    stage override void VSMain()
+    {
+        float4x4 blend = BoneMatrices[streams.BlendIndices.x] * streams.BlendWeights.x
+                       + BoneMatrices[streams.BlendIndices.y] * streams.BlendWeights.y
+                       + BoneMatrices[streams.BlendIndices.z] * streams.BlendWeights.z
+                       + BoneMatrices[streams.BlendIndices.w] * streams.BlendWeights.w;
+        // The same sequence as TransformationSkinning, so this pass lands on the depths the scene wrote
+        float4 positionWS = mul(float4(streams.Position.xyz, 1), blend);
+        positionWS /= positionWS.w;
+        streams.meshNormal = mul(float4(streams.meshNormal, 0), blend).xyz;
+        streams.SurfaceVS = mul(positionWS, View).xyz;
+        streams.ShadingPosition = mul(positionWS, ViewProjection);
+    }
+};

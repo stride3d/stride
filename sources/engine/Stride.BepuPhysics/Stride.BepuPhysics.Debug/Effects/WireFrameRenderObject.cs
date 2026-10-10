@@ -3,6 +3,7 @@
 
 using Stride.BepuPhysics.Definitions;
 using Stride.Core.Mathematics;
+using Stride.Engine;
 using Stride.Graphics;
 using Stride.Rendering;
 using Buffer = Stride.Graphics.Buffer;
@@ -15,6 +16,15 @@ namespace Stride.BepuPhysics.Debug.Effects
         public Color Color = Color.Red;
         public Matrix WorldMatrix = Matrix.Identity;
         public Matrix CollidableBaseMatrix = Matrix.Identity;
+
+        /// <summary> Largest distance between the mesh and the exact shape it stands for, before <see cref="WorldMatrix"/> </summary>
+        public float MaxDeviation;
+
+        /// <summary> The collidable's entity, whose visual models the lines are compared to </summary>
+        public Entity? Owner;
+
+        /// <summary> Shared by the wireframes of one collidable, never 0 </summary>
+        public int ObjectId;
 
         // Vertex buffer setup
         public readonly int VertexStride;
