@@ -9,11 +9,6 @@
 //   device   - "SwiftShader", "WARP", GPU name (optional, omit = any)
 //   allow    - max allowed pixel counts per diff range (e.g. "1-2": 500, "16+": 2)
 [
-  {
-    // One pixel on the sprite's anti-aliased edge varies by diff 3 between runs.
-    "image": "SpriteRenderer3DTests*.png",
-    "allow": { "3-5": 2 }
-  },
   // Some slight pixel edges/aliasing differences (probably due to CPU floating point divergence)
   // Allow them: it's quite minor if only so few pixels for wireframe
   {
