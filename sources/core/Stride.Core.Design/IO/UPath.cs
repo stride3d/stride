@@ -16,9 +16,11 @@ namespace Stride.Core.IO;
 /// <para>This class can be used to represent uniforms paths both on windows or unix platforms</para>
 /// TODO Provide more documentation on how to use this class
 /// </remarks>
-public abstract class UPath : IEquatable<UPath>, IComparable
+public abstract class UPath : IEquatable<UPath>, IComparable<UPath>, IComparable
 {
     private static readonly HashSet<char> InvalidFileNameChars = new(Path.GetInvalidFileNameChars());
+
+    private static StringComparer Comparer => OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
 
     private readonly int hashCode;
 
@@ -63,7 +65,7 @@ public abstract class UPath : IEquatable<UPath>, IComparable
         }
 
         FullPath = Decode(filePath, isDirectory, out DriveSpan, out DirectorySpan, out NameSpan, out ExtensionSpan);
-        hashCode = ComputeStringHashCodeCaseInsensitive(FullPath);
+        hashCode = Comparer.GetHashCode(FullPath);
     }
 
     protected UPath(string fullPath, StringSpan driveSpan, StringSpan directorySpan)
@@ -74,7 +76,7 @@ public abstract class UPath : IEquatable<UPath>, IComparable
         if (fullPath is null) throw new ArgumentNullException(nameof(fullPath));
 #endif
         FullPath = fullPath;
-        hashCode = ComputeStringHashCodeCaseInsensitive(fullPath);
+        hashCode = Comparer.GetHashCode(fullPath);
         DriveSpan = driveSpan;
         DirectorySpan = directorySpan;
     }
@@ -239,37 +241,43 @@ public abstract class UPath : IEquatable<UPath>, IComparable
         return this as UDirectory ?? new UDirectory(null);
     }
 
+    /// <inheritdoc />
     public bool Equals([NotNullWhen(true)] UPath? other)
     {
         if (ReferenceEquals(null, other)) return false;
-        return string.Equals(FullPath, other.FullPath, StringComparison.OrdinalIgnoreCase);
+        if (ReferenceEquals(this, other)) return true;
+        return Comparer.Equals(FullPath, other.FullPath);
     }
 
+    /// <inheritdoc />
     public override bool Equals([NotNullWhen(true)] object? obj)
     {
-        if (ReferenceEquals(this, obj)) return true;
-        return obj is UPath path && Equals(path);
+        return Equals(obj as UPath);
     }
 
+    /// <inheritdoc />
     public override int GetHashCode()
     {
         return hashCode;
     }
 
-    private static int ComputeStringHashCodeCaseInsensitive(string text)
+    /// <inheritdoc />
+    public int CompareTo(UPath? other)
     {
-        return text.Aggregate(0, (current, t) => (current * 397) ^ char.ToLowerInvariant(t));
+        if (other is null)
+        {
+            return 0;
+        }
+        return Comparer.Compare(FullPath, other.FullPath);
     }
 
+    /// <inheritdoc />
     public int CompareTo(object? obj)
     {
-        if (obj is UPath uPath)
-        {
-            return string.Compare(FullPath, uPath.FullPath, StringComparison.OrdinalIgnoreCase);
-        }
-        return 0;
+        return CompareTo(obj as UPath);
     }
 
+    /// <inheritdoc />
     public override string ToString()
     {
         return FullPath;
