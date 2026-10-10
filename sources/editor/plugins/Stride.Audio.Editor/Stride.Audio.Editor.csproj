@@ -7,18 +7,22 @@
     <StridePackageKind>Editor</StridePackageKind>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
+    <!-- The sound preview's WPF view: the WPF Game Studio loads it, another toolkit's editor does not -->
+    <StrideCompanionProject Include="..\Stride.Audio.Editor.Wpf\Stride.Audio.Editor.Wpf.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\editor\Stride.Assets.Presentation.Wpf\Stride.Assets.Presentation.Wpf.csproj" />
-    <ProjectReference Include="..\Stride.SpriteStudio.Assets\Stride.SpriteStudio.Assets.csproj" />
-    <ProjectReference Include="..\Stride.SpriteStudio.Runtime\Stride.SpriteStudio.Runtime.csproj" />
+    <ProjectReference Include="..\..\Stride.Assets.Presentation.Wpf\Stride.Assets.Presentation.Wpf.csproj" />
+    <ProjectReference Include="..\..\..\engine\Stride.Audio.Assets\Stride.Audio.Assets.csproj" />
+    <ProjectReference Include="..\..\..\engine\Stride.Audio\Stride.Audio.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\SpriteStudioComponent.png" />
-    <EmbeddedResource Include="Resources\SpriteStudioNodeLinkComponent.png" />
+    <None Remove="Resources\*.png" />
+    <EmbeddedResource Include="Resources\*.png" />
   </ItemGroup>
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />
 </Project>
