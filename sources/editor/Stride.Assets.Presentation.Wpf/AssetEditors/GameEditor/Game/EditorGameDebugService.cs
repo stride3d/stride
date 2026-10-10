@@ -12,6 +12,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Game
     /// <summary>
     /// A class that provides access to debug information of an editor game.
     /// </summary>
+    [EditorGameService(typeof(IEditorGameController), Order = 10)]
     public class EditorGameDebugService : EditorGameServiceBase, IEditorGameDebugViewModelService
     {
         private Engine.Game game;

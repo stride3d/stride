@@ -67,22 +67,8 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
             Folders.CollectionChanged += FolderCollectionChanged;
             subEntities.CollectionChanged += SubEntityCollectionChanged;
 
-            // Add policies for adding/inserting assets
-            // TODO: make it work with plugins (discovery, registration, override...)
-            addAssetPolicies = new List<IAddAssetPolicy>
-            {
-                new AddModelAssetPolicy<ModelAsset>(),
-                new AddModelAssetPolicy<PrefabModelAsset>(),
-                new AddModelAssetPolicy<ProceduralModelAsset>(),
-                new AddPrefabAssetPolicy(),
-                new AddSceneAssetPolicy(),
-                new AddEntityComponentFileAssetPolicy(),
-                new AddSpriteSheetAssetPolicy(),
-                new AddSpriteStudioModelAssetPolicy(),
-                new AddTextureAssetPolicy(),
-                new AddVideoAssetPolicy(),
-                new AddUIPageAssetPolicy(),
-            };
+            // Policies for adding/inserting assets, from every asset assembly
+            addAssetPolicies = StrideDefaultAssetsPlugin.AddAssetPolicyTypeList.Select(x => (IAddAssetPolicy)Activator.CreateInstance(x)).ToList();
         }
 
         [NotNull]

@@ -23,6 +23,7 @@ using Stride.Input;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
 using Stride.Rendering.Sprites;
+using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
 
 namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
 {
@@ -30,6 +31,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
     /// A class that manages selection in the entity hierarchy editor. It provides methods to modify the selection from the game thread
     /// and handles changes in the selection that occurs in the view model.
     /// </summary>
+    [EditorGameService(typeof(EntityHierarchyEditorController), Order = 200)]
     public class EditorGameEntitySelectionService : EditorGameMouseServiceBase, IEditorGameEntitySelectionService, IEditorGameSelectionViewModelService
     {
         private Vector2 mouseMoveAccumulator;

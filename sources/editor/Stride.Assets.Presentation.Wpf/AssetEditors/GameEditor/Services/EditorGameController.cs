@@ -2,14 +2,19 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Quantum;
 using Stride.Core;
+using Stride.Core.Reflection;
 using Stride.Core.Annotations;
 using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
@@ -224,6 +229,15 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
             return serviceRegistry.Get<T>();
         }
 
+        public IReadOnlyList<T> GetServices<T>() where T : IEditorGameViewModelService
+        {
+            EnsureNotDestroyed();
+            EnsureAssetAccess();
+            if (IsDestroying || serviceRegistry == null)
+                return [];
+            return serviceRegistry.Services.OfType<T>().ToList();
+        }
+
         /// <inheritdoc/>
         public async Task<bool> StartGame()
         {
@@ -395,10 +409,63 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
             }
         }
 
+        /// <summary>
+        /// Creates the services declared for this controller by <see cref="EditorGameServiceAttribute"/> in every asset
+        /// assembly (from the assembly processor's scan index). Override to fetch the ones the controller keeps a reference to.
+        /// </summary>
         protected virtual void InitializeServices([NotNull] EditorGameServiceRegistry services)
         {
-            services.Add(new EditorGameDebugService());
-            services.Add(RecoveryService = new EditorGameRecoveryService(Editor) { IsActive = true });
+            var serviceTypes = new List<(Type Type, int Order)>();
+            foreach (var serviceType in AssetRegistry.AssetAssemblies.SelectMany(x => AssemblyRegistry.GetScanTypes(x, typeof(EditorGameServiceAttribute))).Distinct())
+            {
+                if (!typeof(IEditorGameService).IsAssignableFrom(serviceType) || serviceType.IsAbstract || serviceType.IsGenericTypeDefinition)
+                    continue;
+
+                var declaration = serviceType.GetCustomAttributes<EditorGameServiceAttribute>().FirstOrDefault(x => x.ControllerType.IsInstanceOfType(this));
+                if (declaration != null)
+                    serviceTypes.Add((serviceType, declaration.Order));
+            }
+
+            foreach (var (serviceType, _) in serviceTypes.OrderBy(x => x.Order).ThenBy(x => x.Type.FullName, StringComparer.Ordinal))
+            {
+                try
+                {
+                    services.Add(CreateService(serviceType));
+                }
+                catch (Exception e)
+                {
+                    Logger.Error($"Unable to create the editor game service [{serviceType.Name}]", e);
+                }
+            }
+
+            RecoveryService = services.Get<EditorGameRecoveryService>();
+            if (RecoveryService != null)
+                RecoveryService.IsActive = true;
+        }
+
+        private IEditorGameService CreateService(Type serviceType)
+        {
+            foreach (var constructor in serviceType.GetConstructors())
+            {
+                var parameters = constructor.GetParameters();
+                var arguments = new object[parameters.Length];
+                var matched = true;
+                for (var i = 0; i < parameters.Length && matched; ++i)
+                {
+                    var parameterType = parameters[i].ParameterType;
+                    if (parameterType.IsInstanceOfType(this))
+                        arguments[i] = this;
+                    else if (parameterType.IsInstanceOfType(Editor))
+                        arguments[i] = Editor;
+                    else
+                        matched = false;
+                }
+
+                if (matched)
+                    return (IEditorGameService)constructor.Invoke(arguments);
+            }
+
+            throw new InvalidOperationException($"[{serviceType.Name}] has no constructor taking only the controller and/or the editor view model.");
         }
 
         private void SceneGameRunThread()

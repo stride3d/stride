@@ -16,6 +16,7 @@ using Stride.Rendering.Compositing;
 
 namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
 {
+    [EditorGameService(typeof(EntityHierarchyEditorController), Order = 120)]
     public class EditorGameRenderModeService : EditorGameServiceBase, IEditorGameRenderModeService, IEditorGameRenderModeViewModelService
     {
         private EntityHierarchyEditorGame game;

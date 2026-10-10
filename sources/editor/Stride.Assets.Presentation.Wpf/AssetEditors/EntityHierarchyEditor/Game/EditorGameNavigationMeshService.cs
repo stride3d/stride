@@ -35,7 +35,8 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
     /// <summary>
     /// Handles rendering of navigation meshes associated with the current scene
     /// </summary>
-    public class EditorGameNavigationMeshService : EditorGameServiceBase, IEditorGameNavigationViewModelService
+    [EditorGameService(typeof(SceneEditorController), Order = 310)]
+    public class EditorGameNavigationMeshService : EditorGameServiceBase, IEditorGameOverlayService
     {
         private const float LayerHeightMultiplier = 0.05f;
 
@@ -62,6 +63,10 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
         private Entity rootDebugEntity;
 
         private bool visibility = true;
+
+        // The overlay toggles: one per navigation group of the game settings, with the visibility the editor last asked for
+        private readonly List<EditorOverlay> overlays = new List<EditorOverlay>();
+        private readonly HashSet<Guid> visibleGroups = new HashSet<Guid>();
 
         private SceneEditorController sceneEditorController;
         private GameSettingsProviderService gameSettingsProviderService;
@@ -107,24 +112,60 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             }
         }
 
-        /// <summary>
-        /// Updates which navigation mesh groups should be displayed and how (color, name, layer height, initial visibility)
-        /// </summary>
-        public void UpdateGroups(IList<EditorNavigationGroupViewModel> groups)
+        /// <inheritdoc />
+        public string DisplayName => "Navigation meshes";
+
+        /// <inheritdoc />
+        public IReadOnlyList<EditorOverlay> Overlays => overlays;
+
+        /// <inheritdoc />
+        public event EventHandler OverlaysChanged;
+
+        /// <inheritdoc />
+        public void SetOverlayVisible(string key, bool visible)
         {
-            // Extract the information from the view model
-            List<NavigationMeshDisplayGroup> newDisplayGroups = new List<NavigationMeshDisplayGroup>();
-            foreach (var group in groups)
+            if (!Guid.TryParse(key, out var groupId))
+                return;
+
+            if (visible)
+                visibleGroups.Add(groupId);
+            else
+                visibleGroups.Remove(groupId);
+
+            UpdateGroupVisibility(groupId, visible);
+        }
+
+        /// <summary>
+        /// Rebuilds the overlays from the navigation groups of the game settings (one toggle per group, colored by
+        /// index) and the display groups drawing them; tells the editor when the list changed.
+        /// </summary>
+        private void UpdateGroups(GameSettingsAsset gameSettings)
+        {
+            var groups = gameSettings?.GetOrDefault<NavigationSettings>().Groups ?? new List<NavigationMeshGroup>();
+            var newOverlays = new List<EditorOverlay>();
+            var newDisplayGroups = new List<NavigationMeshDisplayGroup>();
+            for (var index = 0; index < groups.Count; ++index)
             {
-                var displayGroup = new NavigationMeshDisplayGroup
+                var group = groups[index];
+                if (group == null)
+                    continue;
+
+                var color = new ColorHSV((index * 80.0f + 90.0f) % 360.0f, 0.95f, 0.75f, 1.0f).ToColor();
+                newOverlays.Add(new EditorOverlay(group.Id.ToString(), group.ToString(), color));
+                newDisplayGroups.Add(new NavigationMeshDisplayGroup
                 {
-                    Color = new Color(group.Color.R, group.Color.G, group.Color.B),
+                    Color = new Color(color.R, color.G, color.B),
                     Id = group.Id,
-                    Index = group.Index,
-                    IsVisible = group.IsVisible,
-                };
-                newDisplayGroups.Add(displayGroup);
+                    Index = index,
+                    IsVisible = visibleGroups.Contains(group.Id),
+                });
             }
+
+            var changed = !newOverlays.Select(x => (x.Key, x.DisplayName)).SequenceEqual(overlays.Select(x => (x.Key, x.DisplayName)));
+            overlays.Clear();
+            overlays.AddRange(newOverlays);
+            if (changed)
+                OverlaysChanged?.Invoke(this, EventArgs.Empty);
 
             // Run everything affecting the display groups on the game thread
             sceneEditorController.InvokeAsync(() =>
@@ -148,7 +189,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
         /// <summary>
         /// Updates the visibility of an existing group by Id 
         /// </summary>
-        public void UpdateGroupVisibility(Guid groupId, bool isVisible)
+        private void UpdateGroupVisibility(Guid groupId, bool isVisible)
         {
             // Run everything affecting the display groups on the game thread
             sceneEditorController.InvokeAsync(() =>
@@ -180,6 +221,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             
             gameSettingsProviderService = editor.ServiceProvider.Get<GameSettingsProviderService>();
             gameSettingsProviderService.GameSettingsChanged += GameSettingsProviderServiceOnGameSettingsChanged;
+            UpdateGroups(gameSettingsProviderService.CurrentGameSettings);
             await navigationMeshManager.Initialize();
 
             game.SceneAdded += GameOnSceneAdded;
@@ -407,6 +449,8 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
         
         private void GameSettingsProviderServiceOnGameSettingsChanged(object sender, GameSettingsChangedEventArgs gameSettingsChangedEventArgs)
         {
+            UpdateGroups(gameSettingsChangedEventArgs.GameSettings);
+
             // Send game settings changes to dynamic navigation mesh system
             if (dynamicNavigationMeshSystem != null && gameSettingsChangedEventArgs.GameSettings != null)
             {

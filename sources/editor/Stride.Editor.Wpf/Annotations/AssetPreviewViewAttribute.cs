@@ -13,20 +13,29 @@ namespace Stride.Editor.Annotations;
 /// <summary>
 /// Annotates a type that implements the view of an asset preview.
 /// </summary>
-public abstract class AssetPreviewViewAttribute : Attribute
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+[BaseTypeRequired(typeof(IPreviewView))]
+public class AssetPreviewViewAttribute : Attribute
 {
+    /// <param name="assetPreviewType">The preview type, or an open generic preview base such as
+    /// <c>PreviewFromSpriteBatch&lt;&gt;</c> to serve every preview deriving from it that has no view of its own.</param>
+    public AssetPreviewViewAttribute(Type assetPreviewType)
+    {
+        AssetPreviewType = assetPreviewType;
+    }
+
     /// <summary>
     /// The asset preview type associated with this attribute.
     /// </summary>
-    public abstract Type AssetPreviewType { get; }
+    public Type AssetPreviewType { get; }
 }
 
 /// <inheritdoc />
-[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-[BaseTypeRequired(typeof(IPreviewView))]
 public sealed class AssetPreviewViewAttribute<TAssetPreview> : AssetPreviewViewAttribute
     where TAssetPreview : IAssetPreview
 {
-    /// <inheritdoc />
-    public override Type AssetPreviewType => typeof(TAssetPreview);
+    public AssetPreviewViewAttribute()
+        : base(typeof(TAssetPreview))
+    {
+    }
 }

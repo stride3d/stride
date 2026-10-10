@@ -266,7 +266,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         public static async Task<SessionViewModel> CreateNewSession(EditorViewModel editor, IViewModelServiceProvider serviceProvider, NewSessionParameters newSessionParameters)
         {
             var loggerResult = new LoggerResult();
-            var session = new PackageSession();
+            var session = new PackageSession { LoadEditorPackages = true };
 
             var workProgress = new WorkProgressViewModel(serviceProvider, loggerResult)
             {
@@ -485,6 +485,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             {
                 CancelToken = cancellationSource.Token,
                 BackupBeforeUpgrade = true,
+                LoadEditorPackages = true,
             };
             var backupChoiceMade = false;
             loadParameters.PackageUpgradeRequested = (package, pendingUpgrades) =>

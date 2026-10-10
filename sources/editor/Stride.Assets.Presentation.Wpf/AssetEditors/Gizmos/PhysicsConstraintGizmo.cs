@@ -14,7 +14,7 @@ using Stride.Rendering;
 
 namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 {
-    [GizmoComponent(typeof(PhysicsConstraintComponent), false)]
+    [GizmoComponent(typeof(PhysicsConstraintComponent), false, HiddenByDefault = true)]
     public class PhysicsConstraintGizmo : EntityGizmo<PhysicsConstraintComponent>
     {
         private static readonly Color OrangeUniformColor = new Color(0xFF, 0x98, 0x2B);

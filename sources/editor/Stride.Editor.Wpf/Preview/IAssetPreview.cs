@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+using System;
 using System.Threading.Tasks;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Assets;
@@ -10,12 +11,18 @@ namespace Stride.Editor.Preview
     /// <summary>
     /// This interface represents an object that can manage the preview of an asset.
     /// </summary>
+    [Stride.Core.Reflection.AssemblyScan]
     public interface IAssetPreview
     {
         /// <summary>
         /// Gets the preview view model of the asset previewed. This property can be <c>null</c>.
         /// </summary>
         IAssetPreviewViewModel PreviewViewModel { get; }
+
+        /// <summary>
+        /// Raised once the preview loaded its content, so a view model can read what it loaded.
+        /// </summary>
+        event EventHandler ContentLoaded;
 
         /// <summary>
         /// Gets the view model of the asset previewed.

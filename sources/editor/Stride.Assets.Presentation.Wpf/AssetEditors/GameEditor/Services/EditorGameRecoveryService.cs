@@ -12,6 +12,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
     /// <summary>
     /// React to <see cref="EditorServiceGame"/> exceptions.
     /// </summary>
+    [EditorGameService(typeof(IEditorGameController), Order = 20)]
     public class EditorGameRecoveryService : EditorGameServiceBase, IEditorGameRecoveryViewModelService
     {
         private readonly GameEditorViewModel editor;

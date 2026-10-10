@@ -14,9 +14,11 @@ using Stride.Assets.Presentation.ViewModel;
 using Stride.Editor.Build;
 using Stride.Editor.EditorGame.Game;
 using Stride.Rendering.Compositing;
+using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
 
 namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
 {
+    [EditorGameService(typeof(EntityHierarchyEditorController), Order = 100)]
     public class EditorGameGraphicsCompositorService : EditorGameServiceBase
     {
         private readonly IEditorGameController controller;

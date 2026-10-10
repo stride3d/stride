@@ -85,10 +85,21 @@ namespace Stride.Assets.Presentation.Templates
                     parameters.Name = defaultName;
 
                 var assetImport = base.CreateAssets(parameters).First();
-                ((IAssetWithSource)assetImport.Asset).Source = source;
-                assets.Add(assetImport);
+
+                // The importer for this file and asset type reads what it can from the file
+                var importer = AssetRegistry.FindImporterForFile(source.ToOSPath()).OfType<IRawAssetImporter>()
+                    .FirstOrDefault(x => x.RootAssetTypes.Any(t => t.IsInstanceOfType(assetImport.Asset)));
+                if (importer != null)
+                {
+                    assets.AddRange(importer.Import(source, assetImport.Location, assetImport.Asset));
+                }
+                else
+                {
+                    ((IAssetWithSource)assetImport.Asset).Source = source;
+                    assets.Add(assetImport);
+                }
             }
-            return assets;
+            return MakeUniqueNames(assets);
         }
 
         protected virtual async Task<IEnumerable<UFile>> BrowseForSourceFiles(TemplateAssetDescription description, bool allowMultiSelection)

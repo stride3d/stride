@@ -10,9 +10,11 @@ using Stride.Assets.Presentation.SceneEditor;
 using Stride.Editor.EditorGame.Game;
 using Stride.Engine;
 using Stride.Input;
+using Stride.Assets.Presentation.AssetEditors.UIEditor.Services;
 
 namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Game
 {
+    [EditorGameService(typeof(UIEditorController), Order = 100)]
     internal sealed class UIEditorGameCameraService : EditorGameCameraService
     {
         public new static readonly Vector3 DefaultPosition = new Vector3(0, 0, 500);

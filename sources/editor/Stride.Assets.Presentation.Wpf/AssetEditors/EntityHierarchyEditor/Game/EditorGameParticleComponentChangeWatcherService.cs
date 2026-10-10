@@ -6,9 +6,12 @@ using Stride.Core.Quantum;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Particles.Components;
 using Stride.Particles.Materials;
+using Stride.Editor.EditorGame.Game;
+using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
 
 namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
 {
+    [EditorGameService(typeof(EntityHierarchyEditorController), Order = 250)]
     public class EditorGameParticleComponentChangeWatcherService : EditorGameComponentChangeWatcherService
     {
         public EditorGameParticleComponentChangeWatcherService(IEditorGameController controller)

@@ -24,6 +24,7 @@ using Stride.Engine.Gizmos;
 
 namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
 {
+    [EditorGameService(typeof(EntityHierarchyEditorController), Order = 190)]
     public class EditorGameComponentGizmoService : EditorGameServiceBase, IEditorGameComponentGizmoService, IEditorGameComponentGizmoViewModelService
     {
         internal static readonly Dictionary<GizmoTransformationAxes, int> PlaneToIndex = new Dictionary<GizmoTransformationAxes, int> { { GizmoTransformationAxes.YZ, 0 }, { GizmoTransformationAxes.XZ, 1 }, { GizmoTransformationAxes.XY, 2 } };

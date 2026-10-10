@@ -17,6 +17,7 @@ using Stride.Core.Serialization.Contents;
 using Stride.Core.Presentation.View;
 using Stride.Editor.Annotations;
 using Stride.Editor.Preview;
+using Stride.Editor.Preview.View;
 using Stride.Editor.Preview.ViewModel;
 
 namespace Stride.Editor
@@ -48,7 +49,9 @@ namespace Stride.Editor
             }
         }
 
-        protected abstract void Initialize(ILogger logger);
+        protected virtual void Initialize(ILogger logger)
+        {
+        }
 
         /// <inheritdoc />
         public sealed override void InitializePlugin(ILogger logger)
@@ -86,21 +89,6 @@ namespace Stride.Editor
         }
 
         /// <inheritdoc />
-        public override void RegisterCopyProcessors(ICollection<ICopyProcessor> copyProcessors, SessionViewModel session)
-        {
-        }
-
-        /// <inheritdoc />
-        public override void RegisterPasteProcessors(ICollection<IPasteProcessor> pasteProcessors, SessionViewModel session)
-        {
-        }
-
-        /// <inheritdoc />
-        public override void RegisterPostPasteProcessors(ICollection<IAssetPostPasteProcessor> postPasteProcessors, SessionViewModel session)
-        {
-        }
-
-        /// <inheritdoc />
         public override void RegisterTemplateProviders(ICollection<ITemplateProvider> templateProviders)
         {
             templateProviders.AddRange(templateProviderList);
@@ -109,13 +97,27 @@ namespace Stride.Editor
         /// <inheritdoc />
         public override void RegisterAssetPreviewViewModelTypes(IDictionary<Type, Type> assetPreviewViewModelTypes)
         {
-            var pluginAssembly = GetType().Assembly;
-            foreach (var type in pluginAssembly.GetTypes())
+            foreach (var type in AssemblyRegistry.GetScanTypes(GetType().Assembly, typeof(IAssetPreviewViewModel)))
             {
                 if (typeof(IAssetPreviewViewModel).IsAssignableFrom(type) &&
                     type.GetCustomAttribute<AssetPreviewViewModelAttribute>() is { } attribute)
                 {
                     assetPreviewViewModelTypes.Add(attribute.AssetPreviewType, type);
+                }
+            }
+        }
+
+        /// <inheritdoc />
+        public override void RegisterAssetPreviewViewTypes(IDictionary<Type, Type> assetPreviewViewTypes)
+        {
+            foreach (var type in AssemblyRegistry.GetScanTypes(GetType().Assembly, typeof(IPreviewView)))
+            {
+                if (!typeof(IPreviewView).IsAssignableFrom(type))
+                    continue;
+
+                foreach (var attribute in type.GetCustomAttributes<AssetPreviewViewAttribute>())
+                {
+                    assetPreviewViewTypes.Add(attribute.AssetPreviewType, type);
                 }
             }
         }

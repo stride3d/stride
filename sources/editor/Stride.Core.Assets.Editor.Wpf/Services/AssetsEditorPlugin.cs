@@ -3,10 +3,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
+using Stride.Core.Reflection;
+using System.Windows.Media.Imaging;
 using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.View;
 
 #nullable enable
@@ -22,10 +26,38 @@ public abstract class AssetsEditorPlugin : AssetsPlugin
 
     public static IReadOnlyDictionary<Type, object> TypeImagesDictionary => TypeImages;
 
-    public void RegisterAssetEditorViewModelTypes(IDictionary<Type, Type> assetEditorViewModelTypes)
+    /// <summary>
+    /// Registers the images declared by <see cref="TypeImageAttribute"/> on the plugin assembly, read from its
+    /// embedded resources; a missing resource is reported and skipped.
+    /// </summary>
+    public void RegisterTypeImages(ILogger logger)
     {
-        var pluginAssembly = GetType().Assembly;
-        foreach (var type in pluginAssembly.GetTypes())
+        var assembly = GetType().Assembly;
+        var resourceNames = assembly.GetManifestResourceNames();
+        foreach (var attribute in assembly.GetCustomAttributes<TypeImageAttribute>())
+        {
+            var resourceName = resourceNames.FirstOrDefault(x => x == attribute.ResourceName)
+                ?? resourceNames.FirstOrDefault(x => x.EndsWith("." + attribute.ResourceName, StringComparison.Ordinal));
+            if (resourceName is null)
+            {
+                logger.Warning($"The type image [{attribute.ResourceName}] of [{attribute.Type.Name}] is not an embedded resource of [{assembly.GetName().Name}].");
+                continue;
+            }
+
+            using var stream = assembly.GetManifestResourceStream(resourceName)!;
+            var image = new BitmapImage();
+            image.BeginInit();
+            image.StreamSource = stream;
+            image.CacheOption = BitmapCacheOption.OnLoad;
+            image.EndInit();
+            image.Freeze();
+            TypeImages[attribute.Type] = image;
+        }
+    }
+
+    public virtual void RegisterAssetEditorViewModelTypes(IDictionary<Type, Type> assetEditorViewModelTypes)
+    {
+        foreach (var type in AssemblyRegistry.GetScanTypes(GetType().Assembly, typeof(IAssetEditorViewModel)))
         {
             if (typeof(IAssetEditorViewModel).IsAssignableFrom(type) &&
                 type.GetCustomAttribute<AssetEditorViewModelAttribute>() is { } attribute)
@@ -35,10 +67,9 @@ public abstract class AssetsEditorPlugin : AssetsPlugin
         }
     }
 
-    public void RegisterAssetEditorViewTypes(IDictionary<Type, Type> assetEditorViewTypes)
+    public virtual void RegisterAssetEditorViewTypes(IDictionary<Type, Type> assetEditorViewTypes)
     {
-        var pluginAssembly = GetType().Assembly;
-        foreach (var type in pluginAssembly.GetTypes())
+        foreach (var type in AssemblyRegistry.GetScanTypes(GetType().Assembly, typeof(IEditorView)))
         {
             if (typeof(IEditorView).IsAssignableFrom(type) &&
                 type.GetCustomAttribute<AssetEditorViewAttribute>() is { } attribute)
@@ -48,17 +79,31 @@ public abstract class AssetsEditorPlugin : AssetsPlugin
         }
     }
 
-    public abstract void RegisterAssetPreviewViewModelTypes(IDictionary<Type, Type> assetPreviewViewModelTypes);
+    public virtual void RegisterAssetPreviewViewModelTypes(IDictionary<Type, Type> assetPreviewViewModelTypes)
+    {
+    }
 
-    public abstract void RegisterAssetPreviewViewTypes(IDictionary<Type, Type> assetPreviewViewTypes);
+    public virtual void RegisterAssetPreviewViewTypes(IDictionary<Type, Type> assetPreviewViewTypes)
+    {
+    }
 
-    public abstract void RegisterEnumImages(IDictionary<object, object> enumImages);
+    public virtual void RegisterEnumImages(IDictionary<object, object> enumImages)
+    {
+    }
 
-    public abstract void RegisterCopyProcessors(ICollection<ICopyProcessor> copyProcessors, SessionViewModel session);
+    public virtual void RegisterCopyProcessors(ICollection<ICopyProcessor> copyProcessors, SessionViewModel session)
+    {
+    }
 
-    public abstract void RegisterPasteProcessors(ICollection<IPasteProcessor> pasteProcessors, SessionViewModel session);
+    public virtual void RegisterPasteProcessors(ICollection<IPasteProcessor> pasteProcessors, SessionViewModel session)
+    {
+    }
 
-    public abstract void RegisterPostPasteProcessors(ICollection<IAssetPostPasteProcessor> postePasteProcessors, SessionViewModel session);
+    public virtual void RegisterPostPasteProcessors(ICollection<IAssetPostPasteProcessor> postePasteProcessors, SessionViewModel session)
+    {
+    }
 
-    public abstract void RegisterTemplateProviders(ICollection<ITemplateProvider> templateProviders);
+    public virtual void RegisterTemplateProviders(ICollection<ITemplateProvider> templateProviders)
+    {
+    }
 }

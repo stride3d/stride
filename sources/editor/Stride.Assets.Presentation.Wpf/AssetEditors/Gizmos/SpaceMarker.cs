@@ -154,8 +154,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             });
 
             var editorCompositor = (EditorTopLevelCompositor)game.EditorSceneSystem.GraphicsCompositor.Game;
-            editorCompositor.PostGizmoCompositors.Add(new ClearRenderer { ClearFlags = ClearRendererFlags.DepthOnly });
-            editorCompositor.PostGizmoCompositors.Add(new GizmoViewportRenderer
+            editorCompositor.AddOverlayGizmoCompositor(new GizmoViewportRenderer
             {
                 Name = "Render Spacemarker",
                 ViewportSize = ViewportSize,

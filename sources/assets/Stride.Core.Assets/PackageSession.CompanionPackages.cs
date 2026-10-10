@@ -12,13 +12,10 @@ namespace Stride.Core.Assets;
 partial class PackageSession
 {
     /// <summary>
-    /// Loads the Assets companion packages declared by session packages (<see cref="Package.CompanionPackages"/>),
-    /// each at the version its declaring package was packed with: already in the session, else a dev-redirect from
-    /// the local store, else a restore from the NuGet sources configured for <paramref name="rootDirectory"/>.
-    /// A loaded companion's own companions are loaded in turn. A companion that another declaration replaces
-    /// (<see cref="CompanionPackage.Replaces"/>) is not loaded.
+    /// Loads the companion packages (<see cref="Package.CompanionPackages"/>) this host takes, including companions of companions.
+    /// Each comes from the session, a dev-redirect stub or a NuGet restore, at its declared version.
     /// </summary>
-    internal void LoadCompanionPackages(string? rootDirectory, ILogger log)
+    internal void LoadCompanionPackages(string? rootDirectory, ILogger log, bool loadEditorPackages)
     {
         var loadedByName = new Dictionary<string, StandalonePackage>(StringComparer.OrdinalIgnoreCase);
         foreach (var container in Projects.OfType<StandalonePackage>())
@@ -27,7 +24,7 @@ partial class PackageSession
                 loadedByName.TryAdd(name, container);
         }
 
-        // Every replacement counts, whichever package declares it
+        // Every replacement counts, whichever package declares it and whether or not this host takes the replacing entry
         var replaced = new HashSet<string>(Packages.SelectMany(p => p.CompanionPackages).SelectMany(c => c.Replaces), StringComparer.OrdinalIgnoreCase);
 
         var visited = new HashSet<Package>();
@@ -43,10 +40,21 @@ partial class PackageSession
                     replaced.Add(name);
                 if (companion.Name is not null && replaced.Contains(companion.Name))
                     continue;
-                if (companion.Kind == PackageKind.Assets)
+                if (IsLoadedByThisHost(companion.Kind, loadEditorPackages))
                     LoadCompanionPackage(package, companion, loadedByName, rootDirectory, log);
             }
         }
+    }
+
+    // Which host loads which kind: the asset compiler takes the Assets kind, the editor takes every kind
+    private static bool IsLoadedByThisHost(PackageKind kind, bool loadEditorPackages)
+    {
+        return kind switch
+        {
+            PackageKind.Assets => true,
+            PackageKind.Editor => loadEditorPackages,
+            _ => false,
+        };
     }
 
     private void LoadCompanionPackage(Package package, CompanionPackage declaration, Dictionary<string, StandalonePackage> loadedByName, string? rootDirectory, ILogger log)
@@ -160,11 +168,16 @@ partial class PackageSession
         return loadedByName.GetValueOrDefault(name);
     }
 
-    // Dev-redirect stub in the local store: the package loads from its source tree through its build manifest,
-    // with or without an authored sdpkg
+    // Loads a dev-redirect stub from its source tree. A plain version (4.4.0) also matches this checkout's dev stub (4.4.0-devN).
     private StandalonePackage? TryLoadDevRedirectPackage(string name, PackageVersion version, ILogger log)
     {
         var directory = FindStorePackageDirectory(name, version, out var packageFile);
+        if (directory is null && string.IsNullOrEmpty(version.SpecialVersion))
+        {
+            var devVersion = new PackageVersion(StrideVersion.NuGetVersion);
+            if (devVersion.Version == version.Version && devVersion.SpecialVersion.StartsWith("dev", StringComparison.Ordinal))
+                directory = FindStorePackageDirectory(name, devVersion, out packageFile);
+        }
         if (directory is null)
             return null;
         var projectFile = Path.Combine(directory, name + ".csproj");

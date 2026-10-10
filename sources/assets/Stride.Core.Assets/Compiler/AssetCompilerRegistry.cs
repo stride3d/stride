@@ -198,6 +198,38 @@ public sealed class AssetCompilerRegistry
             }
         }
 
+        // Compilers declared by assembly attributes
+        foreach (var declaration in GetCompilerDeclarations(assembly))
+        {
+            try
+            {
+                if (!typeof(ICompilationContext).IsAssignableFrom(declaration.CompilationContext))
+                {
+                    log.Error($"Invalid compiler context type [{declaration.CompilationContext}], must inherit from ICompilerContext");
+                    continue;
+                }
+
+                RegisterCompiler(declaration.AssetType, declaration.CreateCompiler(assembly), declaration.CompilationContext);
+            }
+            catch (Exception ex)
+            {
+                log.Error($"Unable to instantiate the compiler declared for [{declaration.AssetType}] by [{declaration.GetType()}]", ex);
+            }
+        }
+
+        IEnumerable<IAssetCompilerDeclaration> GetCompilerDeclarations(Assembly assembly)
+        {
+            try
+            {
+                return assembly.GetCustomAttributes().OfType<IAssetCompilerDeclaration>().ToList();
+            }
+            catch (Exception ex)
+            {
+                log.Warning($"Could not read the attributes of assembly {assembly.FullName}", ex);
+                return [];
+            }
+        }
+
         // Taken from https://stackoverflow.com/questions/7889228/how-to-prevent-reflectiontypeloadexception-when-calling-assembly-gettypes
         [DebuggerNonUserCode]
         IEnumerable<Type> GetFullyLoadedTypes(Assembly assembly)

@@ -16,15 +16,7 @@ namespace Stride.Assets.Presentation.Preview
         private Texture heightmapTexture;
         private BlendStateDescription adequateBlendState;
 
-        public int Width => heightmap?.Size.X ?? 0;
-        public int Length => heightmap?.Size.Y ?? 0;
-
-        /// <summary>
-        /// Gets or sets a callback that will be invoked when the texture is loaded.
-        /// </summary>
-        public Action NotifyHeightmapLoaded { get; set; }
-
-        protected override Vector2 SpriteSize
+        public override Vector2 SpriteSize
         {
             get
             {
@@ -55,8 +47,6 @@ namespace Stride.Assets.Presentation.Preview
             heightmapTexture = heightmap?.CreateTexture(Game.GraphicsDevice);
 
             adequateBlendState = BlendStates.Opaque;
-
-            NotifyHeightmapLoaded?.Invoke();
 
             // Always use LDR
             RenderingMode = RenderingMode.LDR;

@@ -40,12 +40,47 @@ public class TemplateAssetDescription : TemplateDescription
     }
 }
 
+/// <summary>
+/// A value asked from the user before an asset is created from a <see cref="TemplateAssetFactoryDescription"/>.
+/// </summary>
+[DataContract("TemplateAssetPrompt")]
+public abstract class TemplateAssetPrompt
+{
+    /// <summary>
+    /// The asset member receiving the value, or a path to it through members and list elements, such as
+    /// <c>ColliderShapes[0].Model</c>.
+    /// </summary>
+    public string Member { get; set; }
+
+    /// <summary>
+    /// Text shown to the user.
+    /// </summary>
+    public string? Message { get; set; }
+}
+
+/// <summary>
+/// Asks the user to pick an asset; the member receives a reference to it.
+/// </summary>
+[DataContract("AssetReferencePrompt")]
+public class AssetReferencePrompt : TemplateAssetPrompt
+{
+    /// <summary>
+    /// Asset types accepted by the picker, by type name.
+    /// </summary>
+    public List<string> AssetTypes { get; } = [];
+}
+
 [DataContract("TemplateAssetFactory")]
 public class TemplateAssetFactoryDescription : TemplateAssetDescription
 {
     private IAssetFactory<Asset>? factory;
 
     public string? FactoryTypeName { get; set; }
+
+    /// <summary>
+    /// Values asked from the user and applied to the new asset, in order.
+    /// </summary>
+    public List<TemplateAssetPrompt> Prompts { get; } = [];
 
     public IAssetFactory<Asset>? GetFactory()
     {

@@ -59,6 +59,11 @@ public sealed class PackageLoadParameters
     public bool LoadAssemblyReferences { get; set; }
 
     /// <summary>
+    /// Load the editor companion packages declared by session packages (<see cref="Package.CompanionPackages"/>). Only the editor sets this.
+    /// </summary>
+    public bool LoadEditorPackages { get; set; }
+
+    /// <summary>
     /// Gets or sets a value indicating whether to automatically compile projects that don't have their assembly generated.
     /// </summary>
     /// <value><c>true</c> if [automatic compile projects]; otherwise, <c>false</c>.</value>

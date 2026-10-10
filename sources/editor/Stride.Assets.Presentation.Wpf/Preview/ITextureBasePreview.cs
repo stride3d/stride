@@ -11,6 +11,8 @@ namespace Stride.Assets.Presentation.Preview
     {
         float SpriteScale { get; set; }
 
+        Vector2 SpriteSize { get; }
+
         event EventHandler SpriteScaleChanged;
 
         IEnumerable<int> GetAvailableMipMaps();
