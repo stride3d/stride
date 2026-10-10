@@ -3,7 +3,7 @@
 using System.Collections.Generic;
 using Stride.Core;
 
-namespace Stride.SpriteStudio.Offline
+namespace Stride.SpriteStudio.Assets
 {
     [DataContract]
     public class NodeAnimationData

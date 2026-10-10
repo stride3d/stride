@@ -65,7 +65,7 @@
       <!-- Cross-targeting ref: SetTargetFramework avoids MSB4057 on GetTargetPath (outer build lacks it). -->
       <SetTargetFramework>TargetFramework=$(StrideFramework)</SetTargetFramework>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\sources\engine\Stride.SpriteStudio.Offline\Stride.SpriteStudio.Offline.csproj">
+    <ProjectReference Include="..\..\..\sources\engine\Stride.SpriteStudio.Assets\Stride.SpriteStudio.Assets.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>

@@ -5,7 +5,14 @@
     <TargetFrameworks>$(StrideRuntimeTargetFrameworks)</TargetFrameworks>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--serialization --parameter-key</StrideAssemblyProcessorOptions>
+    <!-- The SpriteStudio components are written in scene assets -->
+    <StrideContainsAssetTypes>true</StrideContainsAssetTypes>
   </PropertyGroup>
+  <ItemGroup>
+    <!-- Companion packages: sheet and animation assets, compilers, importer and templates in .Assets, editor extensions in .Editor -->
+    <StrideCompanionProject Include="..\Stride.SpriteStudio.Assets\Stride.SpriteStudio.Assets.csproj" />
+    <StrideCompanionProject Include="..\Stride.SpriteStudio.Editor\Stride.SpriteStudio.Editor.csproj" />
+  </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>

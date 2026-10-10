@@ -17,7 +17,7 @@ using Stride.Core.Assets;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization.Contents;
 
-namespace Stride.SpriteStudio.Offline
+namespace Stride.SpriteStudio.Assets
 {
     [AssetCompiler(typeof(SpriteStudioModelAsset), typeof(AssetCompilationContext))]
     internal class SpriteStudioModelAssetCompiler : AssetCompilerBase

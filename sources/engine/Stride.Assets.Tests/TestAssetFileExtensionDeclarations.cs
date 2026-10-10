@@ -25,7 +25,7 @@ namespace Stride.Assets.Tests
             {
                 typeof(Textures.TextureAsset).Assembly,
                 typeof(Models.ModelAsset).Assembly,
-                typeof(SpriteStudio.Offline.SpriteStudioModelAsset).Assembly,
+                typeof(SpriteStudio.Assets.SpriteStudioModelAsset).Assembly,
                 typeof(BepuPhysics.Assets.HullAsset).Assembly,
                 typeof(Video.Assets.VideoAsset).Assembly,
                 typeof(Physics.Assets.ColliderShapeAsset).Assembly,

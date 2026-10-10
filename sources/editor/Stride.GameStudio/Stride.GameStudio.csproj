@@ -88,7 +88,19 @@
     <ProjectReference Include="..\..\engine\Stride.Physics.Editor\Stride.Physics.Editor.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
+    <ProjectReference Include="..\..\engine\Stride.SpriteStudio.Assets\Stride.SpriteStudio.Assets.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\engine\Stride.SpriteStudio.Editor\Stride.SpriteStudio.Editor.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
     <ProjectReference Include="..\..\engine\Stride.Video\Stride.Video.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\engine\Stride.Voxels\Stride.Voxels.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\engine\Stride.Voxels.Editor\Stride.Voxels.Editor.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="..\..\engine\Stride.Video.Assets\Stride.Video.Assets.csproj">

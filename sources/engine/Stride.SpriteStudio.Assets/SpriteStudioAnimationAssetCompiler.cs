@@ -17,7 +17,7 @@ using Stride.Core.Serialization.Contents;
 using Stride.Assets;
 using Stride.Graphics;
 
-namespace Stride.SpriteStudio.Offline
+namespace Stride.SpriteStudio.Assets
 {
     [AssetCompiler(typeof(SpriteStudioAnimationAsset), typeof(AssetCompilationContext))]
     internal class SpriteStudioAnimationAssetCompiler : AssetCompilerBase
