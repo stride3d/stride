@@ -307,9 +307,8 @@ jobs:
           sudo apt-get update
           # Build with x11,wayland Vulkan WSI so swapchains work under Xvfb/WSLg/etc.
           # libxcb/libwayland are dlopen'd lazily — headless callers never pay the cost.
-          # llvm-dev + libpolly-*-dev because llvm-config emits -lPolly -lPollyISL.
           sudo apt-get install -y ninja-build pkg-config bison flex glslang-tools \
-            llvm-dev libpolly-18-dev libelf-dev libdrm-dev \
+            libelf-dev libdrm-dev \
             libx11-xcb-dev libxrandr-dev libxext-dev libxfixes-dev libxxf86vm-dev libxdamage-dev \
             libxcb-randr0-dev libxcb-shm0-dev libxcb-present-dev \
             libxcb-dri3-dev libxcb-dri2-0-dev libxcb-glx0-dev libxcb-sync-dev \
@@ -319,9 +318,53 @@ jobs:
           python3 -m pip install --user --upgrade meson mako packaging pyyaml
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
+      # LLVM is built from source and linked statically, like on Windows. Ubuntu 24.04's LLVM 18
+      # miscompiles half-float code on AVX512-FP16 hosts (Sapphire/Emerald/Granite Rapids):
+      # the Android emulator dies on the first local reflections pipeline there. LLVM 22.1.8 is
+      # reported fixed (it was still broken in 20.1.2).
+      - name: Restore LLVM cache
+        id: restore-llvm
+        uses: actions/cache/restore@v4
+        with:
+          path: llvm-install
+          key: llvm-22.1.8-linux-static-x64-v1
+
+      - name: Build LLVM (cache miss)
+        if: steps.restore-llvm.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 --branch llvmorg-22.1.8 https://github.com/llvm/llvm-project.git
+          cmake -S llvm-project/llvm -B llvm-build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="$PWD/llvm-install" \
+            -DLLVM_BUILD_LLVM_DYLIB=OFF \
+            -DLLVM_LINK_LLVM_DYLIB=OFF \
+            -DLLVM_ENABLE_PROJECTS= \
+            -DLLVM_TARGETS_TO_BUILD=X86 \
+            -DLLVM_ENABLE_ASSERTIONS=OFF \
+            -DLLVM_ENABLE_RTTI=ON \
+            -DLLVM_ENABLE_PIC=ON \
+            -DLLVM_ENABLE_ZLIB=OFF \
+            -DLLVM_ENABLE_ZSTD=OFF \
+            -DLLVM_ENABLE_LIBXML2=OFF \
+            -DLLVM_INCLUDE_TESTS=OFF \
+            -DLLVM_INCLUDE_EXAMPLES=OFF \
+            -DLLVM_INCLUDE_BENCHMARKS=OFF
+          cmake --build llvm-build --target install
+
+      - name: Save LLVM cache
+        if: steps.restore-llvm.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: llvm-install
+          key: llvm-22.1.8-linux-static-x64-v1
+
+      - name: Use built LLVM
+        run: echo "$PWD/llvm-install/bin" >> $GITHUB_PATH
+
       - name: Configure & build
         working-directory: mesa-src
         run: |
+          llvm-config --version
           meson setup _build \
             -Dvulkan-drivers=swrast -Dgallium-drivers=llvmpipe \
             -Dplatforms=x11,wayland \
