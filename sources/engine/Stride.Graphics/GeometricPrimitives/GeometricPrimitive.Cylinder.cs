@@ -110,10 +110,27 @@ namespace Stride.Graphics.GeometricPrimitives
             /// <param name="toLeftHanded">if set to <c>true</c> vertices and indices will be transformed to left handed. Default is false.</param>
             /// <returns>A cylinder primitive.</returns>
             /// <exception cref="System.ArgumentOutOfRangeException">tessellation;tessellation must be &gt;= 3</exception>
-            public static GeometricPrimitive New(GraphicsDevice device, float height = 1.0f, float radius = 0.5f, int tessellation = 32, float uScale = 1.0f, float vScale = 1.0f, bool toLeftHanded = false)
+            public static GeometricPrimitive New(GraphicsDevice device, float height, float radius, int tessellation, float uScale, float vScale, bool toLeftHanded)
+            {
+                return New(device, height, radius, tessellation, uScale, vScale, toLeftHanded, heightRings: 0);
+            }
+
+            /// <summary>
+            /// Creates a cylinder primitive with additional rings along its height.
+            /// </summary>
+            /// <param name="device">The device.</param>
+            /// <param name="height">The height.</param>
+            /// <param name="radius">The radius.</param>
+            /// <param name="tessellation">The tessellation.</param>
+            /// <param name="uScale">Scale U coordinates between 0 and the values of this parameter.</param>
+            /// <param name="vScale">Scale V coordinates 0 and the values of this parameter.</param>
+            /// <param name="toLeftHanded">if set to <c>true</c> vertices and indices will be transformed to left handed. Default is false.</param>
+            /// <param name="heightRings">The number of vertex rings added between the top and bottom edges of the side. Negative values are treated as 0.</param>
+            /// <returns>A cylinder primitive.</returns>
+            public static GeometricPrimitive New(GraphicsDevice device, float height = 1.0f, float radius = 0.5f, int tessellation = 32, float uScale = 1.0f, float vScale = 1.0f, bool toLeftHanded = false, int heightRings = 0)
             {
                 // Create the primitive object.
-                return new GeometricPrimitive(device, New(height, radius, tessellation, uScale, vScale, toLeftHanded));
+                return new GeometricPrimitive(device, New(height, radius, tessellation, uScale, vScale, toLeftHanded, heightRings));
             }
 
             /// <summary>
@@ -127,16 +144,34 @@ namespace Stride.Graphics.GeometricPrimitives
             /// <param name="toLeftHanded">if set to <c>true</c> vertices and indices will be transformed to left handed. Default is false.</param>
             /// <returns>A cylinder primitive.</returns>
             /// <exception cref="System.ArgumentOutOfRangeException">tessellation;tessellation must be &gt;= 3</exception>
-            public static GeometricMeshData<VertexPositionNormalTexture> New(float height = 1.0f, float radius = 0.5f, int tessellation = 32, float uScale = 1.0f, float vScale = 1.0f, bool toLeftHanded = false)
+            public static GeometricMeshData<VertexPositionNormalTexture> New(float height, float radius, int tessellation, float uScale, float vScale, bool toLeftHanded)
+            {
+                return New(height, radius, tessellation, uScale, vScale, toLeftHanded, heightRings: 0);
+            }
+
+            /// <summary>
+            /// Creates a cylinder primitive with additional rings along its height.
+            /// </summary>
+            /// <param name="height">The height.</param>
+            /// <param name="radius">The radius.</param>
+            /// <param name="tessellation">The tessellation.</param>
+            /// <param name="uScale">Scale U coordinates between 0 and the values of this parameter.</param>
+            /// <param name="vScale">Scale V coordinates 0 and the values of this parameter.</param>
+            /// <param name="toLeftHanded">if set to <c>true</c> vertices and indices will be transformed to left handed. Default is false.</param>
+            /// <param name="heightRings">The number of vertex rings added between the top and bottom edges of the side. Negative values are treated as 0.</param>
+            /// <returns>A cylinder primitive.</returns>
+            public static GeometricMeshData<VertexPositionNormalTexture> New(float height = 1.0f, float radius = 0.5f, int tessellation = 32, float uScale = 1.0f, float vScale = 1.0f, bool toLeftHanded = false, int heightRings = 0)
             {
                 if (tessellation < 3) tessellation = 3;
+                if (heightRings < 0) heightRings = 0;
 
                 height /= 2;
                 var stride    = tessellation + 1;
+                var rows      = heightRings + 2;
                 var topOffset = Vector3.UnitY * height;
 
-                var vertices = new VertexPositionNormalTexture [stride * 2 + tessellation       * 4]; // stride * 2 + tessellation * 2
-                var indices  = new int[stride                          * 6 + (tessellation - 2) * 6]; // stride * 6 + （tessellation - 2） * 3
+                var vertices = new VertexPositionNormalTexture [stride * rows + tessellation       * 4]; // stride * rows + tessellation * 2
+                var indices  = new int[stride * (rows - 1)             * 6 + (tessellation - 2) * 6]; // stride * (rows - 1) * 6 + （tessellation - 2） * 3
 
                 var verticesIndexer = 0;
                 var indicesIndexer  = 0;
@@ -149,18 +184,26 @@ namespace Stride.Graphics.GeometricPrimitives
 
                     var sideOffset = normal * radius;
 
-                    var textureCoordinate = new Vector2((float)i / tessellation, 0);
+                    // Column of vertices from top to bottom; consecutive columns are joined by quads.
+                    for (int k = 0; k < rows; k++)
+                    {
+                        var t = (float)k / (rows - 1);
+                        var textureCoordinate = new Vector2((float)i / tessellation, t);
+                        vertices[verticesIndexer++] = new VertexPositionNormalTexture(sideOffset + topOffset * (1 - 2 * t), normal, textureCoordinate * new Vector2(uScale, vScale));
+                    }
 
-                    vertices[verticesIndexer++] = new VertexPositionNormalTexture(sideOffset + topOffset, normal, textureCoordinate                   * new Vector2(uScale, vScale));
-                    vertices[verticesIndexer++] = new VertexPositionNormalTexture(sideOffset - topOffset, normal, (textureCoordinate + Vector2.UnitY) * new Vector2(uScale, vScale));
+                    var column = i * rows;
+                    var nextColumn = (i + 1) % stride * rows;
+                    for (int k = 0; k < rows - 1; k++)
+                    {
+                        indices[indicesIndexer++] = column + k;
+                        indices[indicesIndexer++] = nextColumn + k;
+                        indices[indicesIndexer++] = column + k + 1;
 
-                    indices[indicesIndexer++] = (i           * 2);
-                    indices[indicesIndexer++] = ((i * 2 + 2) % (stride * 2));
-                    indices[indicesIndexer++] = (i * 2 + 1);
-
-                    indices[indicesIndexer++] = (i * 2 + 1);
-                    indices[indicesIndexer++] = ((i * 2 + 2) % (stride * 2));
-                    indices[indicesIndexer++] = ((i * 2 + 3) % (stride * 2));
+                        indices[indicesIndexer++] = column + k + 1;
+                        indices[indicesIndexer++] = nextColumn + k;
+                        indices[indicesIndexer++] = nextColumn + k + 1;
+                    }
                 }
 
                 // Create flat triangle fan caps to seal the top and bottom.
