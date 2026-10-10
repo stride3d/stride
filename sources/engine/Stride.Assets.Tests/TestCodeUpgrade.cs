@@ -33,12 +33,15 @@ public class TestCodeUpgrade
         }
     }
 
-    private static async Task<string> ApplyAsync(string source, params CodeUpgrade[] upgrades)
+    private static Task<string> ApplyAsync(string source, params CodeUpgrade[] upgrades)
+        => ApplyAsync(source, [], upgrades);
+
+    private static async Task<string> ApplyAsync(string source, IEnumerable<MetadataReference> references, params CodeUpgrade[] upgrades)
     {
         using var workspace = new AdhocWorkspace();
         var projectId = ProjectId.CreateNewId();
         var projectInfo = ProjectInfo.Create(projectId, VersionStamp.Create(), "TestProject", "TestProject", LanguageNames.CSharp)
-            .WithMetadataReferences(FrameworkReferences())
+            .WithMetadataReferences(FrameworkReferences().Concat(references))
             .WithCompilationOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
             // C# 14 extension members are the real #3037 shape; parse at the latest language version.
             .WithParseOptions(new CSharpParseOptions(LanguageVersion.Preview));
@@ -57,11 +60,22 @@ public class TestCodeUpgrade
         return text.ToString();
     }
 
-    private static void AssertCompiles(string source)
+    private static void AssertCompiles(string source, params MetadataReference[] references)
     {
         var syntaxTree = CSharpSyntaxTree.ParseText(source, new CSharpParseOptions(LanguageVersion.Preview));
-        var compilation = CSharpCompilation.Create("Check", [syntaxTree], FrameworkReferences(), new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+        var compilation = CSharpCompilation.Create("Check", [syntaxTree], FrameworkReferences().Concat(references), new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
         Assert.Empty(compilation.GetDiagnostics().Where(x => x.Severity == DiagnosticSeverity.Error));
+    }
+
+    // A library compiled from source, standing in for one version of a Stride assembly
+    private static MetadataReference CompileLibrary(string source)
+    {
+        var syntaxTree = CSharpSyntaxTree.ParseText(source, new CSharpParseOptions(LanguageVersion.Preview));
+        var compilation = CSharpCompilation.Create("Library", [syntaxTree], FrameworkReferences(), new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+        using var stream = new MemoryStream();
+        var result = compilation.Emit(stream);
+        Assert.True(result.Success, string.Join(Environment.NewLine, result.Diagnostics));
+        return MetadataReference.CreateFromImage(stream.ToArray());
     }
 
     [Fact]
@@ -583,5 +597,238 @@ public class TestCodeUpgrade
         Assert.Contains("if (t != null)", result);
         Assert.Contains("else", result);
         AssertCompiles(result);
+    }
+
+    // Types moved to new namespaces (as in 4.5): one old namespace is split, one keeps some types
+    private static readonly Lazy<MetadataReference> OldTypesLibrary = new(() => CompileLibrary("""
+        namespace Old.Assets
+        {
+            public class Moved { public static int Count; }
+            public class Moved2 { }
+            public class Stays { }
+            public static class MovedExtensions { public static int Twice(this int value) => value * 2; }
+        }
+        namespace Old.Media
+        {
+            public class Sound { }
+            public class Video { }
+        }
+        """));
+
+    private static readonly Lazy<MetadataReference> NewTypesLibrary = new(() => CompileLibrary("""
+        namespace New.Assets
+        {
+            public class Moved { public static int Count; }
+            public class Moved2 { }
+            public static class MovedExtensions { public static int Twice(this int value) => value * 2; }
+        }
+        namespace Old.Assets
+        {
+            public class Stays { }
+        }
+        namespace New.Audio { public class Sound { } }
+        namespace New.Video { public class Video { } }
+        """));
+
+    private static readonly CodeUpgrade TypeMoveUpgrade = MoveTypes(
+        new TypeMove("Old.Assets", "New.Assets", "Moved", "Moved2", "MovedExtensions"),
+        new TypeMove("Old.Media", "New.Audio", "Sound"),
+        new TypeMove("Old.Media", "New.Video", "Video"));
+
+    [Fact]
+    public async Task MoveTypesReplacesTheUsingAndTheQualifiedNames()
+    {
+        var source = """
+            // Header
+            using System;
+            using Old.Assets;
+
+            namespace User
+            {
+                class Usage
+                {
+                    Moved a = new Moved();
+                    Old.Assets.Moved2 b;
+                    global::Old.Assets.Moved2 c;
+                    int d = Old.Assets.Moved.Count;
+                    int e = 3.Twice();
+                    string f = nameof(Old.Assets.Moved);
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(source, [OldTypesLibrary.Value], TypeMoveUpgrade);
+
+        Assert.Equal("""
+            // Header
+            using System;
+            using New.Assets;
+
+            namespace User
+            {
+                class Usage
+                {
+                    Moved a = new Moved();
+                    New.Assets.Moved2 b;
+                    global::New.Assets.Moved2 c;
+                    int d = New.Assets.Moved.Count;
+                    int e = 3.Twice();
+                    string f = nameof(New.Assets.Moved);
+                }
+            }
+            """, result);
+        AssertCompiles(result, NewTypesLibrary.Value);
+    }
+
+    [Fact]
+    public async Task MoveTypesKeepsTheUsingOfANamespaceStillUsed()
+    {
+        var source = """
+            using Old.Assets;
+
+            namespace User
+            {
+                class Usage
+                {
+                    Moved a;
+                    Stays b;
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(source, [OldTypesLibrary.Value], TypeMoveUpgrade);
+
+        Assert.StartsWith("""
+            using Old.Assets;
+            using New.Assets;
+
+            namespace User
+            """, result);
+        AssertCompiles(result, NewTypesLibrary.Value);
+    }
+
+    [Fact]
+    public async Task MoveTypesSplitsTheUsingOfANamespaceMovedToSeveral()
+    {
+        var source = """
+            using Old.Media;
+
+            namespace User
+            {
+                class Usage
+                {
+                    Sound a;
+                    Video b;
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(source, [OldTypesLibrary.Value], TypeMoveUpgrade);
+
+        Assert.StartsWith("""
+            using New.Audio;
+            using New.Video;
+
+            namespace User
+            """, result);
+        AssertCompiles(result, NewTypesLibrary.Value);
+    }
+
+    [Fact]
+    public async Task MoveTypesRemovesAnUnusedUsingOnlyOfAnEmptiedNamespace()
+    {
+        // Old.Media has no type left, Old.Assets keeps one
+        var source = """
+            // Header
+            using Old.Media;
+            using Old.Assets;
+            using System;
+
+            namespace User
+            {
+                class Usage { }
+            }
+            """;
+
+        var result = await ApplyAsync(source, [OldTypesLibrary.Value], TypeMoveUpgrade);
+
+        Assert.StartsWith("""
+            // Header
+            using Old.Assets;
+            using System;
+
+            namespace User
+            """, result);
+        AssertCompiles(result, NewTypesLibrary.Value);
+    }
+
+    [Fact]
+    public async Task MoveTypesKeepsTheCommentAboveARemovedUsing()
+    {
+        var source = """
+            namespace User
+            {
+                // Media
+                using Old.Media;
+                using System;
+
+                class Usage { }
+            }
+            """;
+
+        var result = await ApplyAsync(source, [OldTypesLibrary.Value], TypeMoveUpgrade);
+
+        Assert.StartsWith("""
+            namespace User
+            {
+                // Media
+                using System;
+
+                class Usage
+            """, result);
+    }
+
+    [Fact]
+    public async Task MoveTypesAddsAUsingBelowTheHeader()
+    {
+        // The moved type is in scope through the enclosing namespace, not a using directive
+        var source = """
+            // Header
+            namespace Old.Assets.Custom
+            {
+                class Usage : Moved { }
+            }
+            """;
+
+        var result = await ApplyAsync(source, [OldTypesLibrary.Value], TypeMoveUpgrade);
+
+        Assert.StartsWith("""
+            // Header
+            using New.Assets;
+
+            namespace Old.Assets.Custom
+            """, result);
+        AssertCompiles(result, NewTypesLibrary.Value);
+    }
+
+    [Fact]
+    public async Task MoveTypesLeavesAnUnrelatedSameNamedTypeAlone()
+    {
+        var source = """
+            using Mine;
+
+            namespace Mine
+            {
+                class Moved { }
+                class Usage
+                {
+                    Moved a;
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(source, [OldTypesLibrary.Value], TypeMoveUpgrade);
+
+        Assert.Equal(source, result);
     }
 }

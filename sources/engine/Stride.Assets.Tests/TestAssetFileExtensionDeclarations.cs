@@ -6,20 +6,20 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using Stride.Core;
 using Stride.Core.Assets;
+using Stride.Core.Serialization;
 using Xunit;
 
 namespace Stride.Assets.Tests
 {
     /// <summary>
-    /// Keeps the checked-in asset tag -> content type map (consumed by the asset URL constants
-    /// generator) in sync with the engine's [AssetContentType] declarations.
+    /// The runtime assemblies declare the extension and content type of every engine asset type
+    /// ([assembly: AssetFileExtension], read by the asset URL constants generator), and declare nothing else.
     /// </summary>
-    public class TestAssetContentTypeMap
+    public class TestAssetFileExtensionDeclarations
     {
         [Fact]
-        public void EngineMapMatchesAssetContentTypeDeclarations()
+        public void RuntimeDeclarationsMatchTheAssetTypes()
         {
             var assetAssemblies = new[]
             {
@@ -44,15 +44,28 @@ namespace Stride.Assets.Tests
                 }
             }
 
-            var mapPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Stride.AssetContentTypeMap.txt");
-            var actual = new SortedSet<string>(
-                File.ReadAllLines(mapPath).Select(line => line.Trim()).Where(line => line.Length > 0 && line[0] != '#'),
-                StringComparer.Ordinal);
+            // Declared by the runtime assemblies the asset assemblies reference, where a game finds them; a reference
+            // that does not load here (a build tool such as Microsoft.Build) declares none
+            var actual = new SortedSet<string>(StringComparer.Ordinal);
+            foreach (var reference in assetAssemblies.SelectMany(x => x.GetReferencedAssemblies()).DistinctBy(x => x.Name))
+            {
+                Assembly assembly;
+                try
+                {
+                    assembly = Assembly.Load(reference);
+                }
+                catch (Exception e) when (e is FileNotFoundException or FileLoadException)
+                {
+                    continue;
+                }
+                foreach (var declaration in assembly.GetCustomAttributes<AssetFileExtensionAttribute>())
+                    actual.Add($"{declaration.Extension}|{declaration.ContentType.FullName}");
+            }
 
             if (!expected.SetEquals(actual))
             {
                 var message = new StringBuilder();
-                message.AppendLine("Stride.AssetContentTypeMap.txt is out of sync with [AssetContentType] declarations.");
+                message.AppendLine("[assembly: AssetFileExtension] declarations are out of sync with the [AssetDescription]/[AssetContentType] asset types.");
                 foreach (var line in expected.Except(actual))
                     message.AppendLine($"  missing: {line}");
                 foreach (var line in actual.Except(expected))

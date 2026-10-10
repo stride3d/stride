@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Stride.Core.Assets;
@@ -142,6 +143,7 @@ namespace Stride.Assets
             registry.Project("4.2.0.0", UpgradeProjectTo42);
             registry.Project("4.3.0.0", UpgradeProjectTo43);
             registry.Project("4.4.0.0", UpgradeProjectTo44);
+            registry.Project("4.5.0.0", AddPluginPackageReferences);
         }
 
         private static bool IsSkippedPackage(string packageName)
@@ -365,6 +367,68 @@ namespace Stride.Assets
 
             if (renamedCount > 0)
                 log.Info($"Renamed {renamedCount} legacy generated shader file(s) to .bak. The Roslyn source generator now produces these into obj/. Delete the .bak files when you've verified the upgrade.");
+        }
+
+        // The asset file extensions whose asset types a plugin package's Assets companion holds, with that package:
+        // Stride.Assets held them before 4.5, so a project could have such assets without referencing the package.
+        private static readonly (string Extension, string PackageId)[] PluginAssetExtensions =
+        [
+            (".sdhull", "Stride.BepuPhysics"),
+            (".sdvid", "Stride.Video"),
+            (".sdphy", "Stride.Physics"),
+            (".sdhmap", "Stride.Physics"),
+            (".sdnavmesh", "Stride.Physics"), // the navigation mesh asset is in Stride.Physics's Assets package
+            (".sdss4s", "Stride.SpriteStudio.Runtime"),
+            (".sdss4a", "Stride.SpriteStudio.Runtime"),
+            (".sdsnd", "Stride.Audio"),
+            (".sduipage", "Stride.UI"),
+            (".sduilib", "Stride.UI"),
+        ];
+
+        // 4.5: a project with assets of a plugin package it does not reference gets that package, shaped like its
+        // Stride.Engine reference, so those assets keep loading and compiling.
+        private static void AddPluginPackageReferences(ProjectUpgradeContext context)
+        {
+            var project = context.Project;
+            var packageReferences = project.Xml.ItemGroups.SelectMany(g => g.Items).Where(x => x.ItemType == "PackageReference").ToArray();
+            var engineReference = packageReferences.FirstOrDefault(x => x.Include == "Stride.Engine");
+            if (engineReference == null)
+                return;
+
+            var projectDir = context.ProjectFullPath.GetFullDirectory().ToOSPath();
+            foreach (var packageId in FindMissingPluginPackages(projectDir, packageReferences.Select(x => x.Include)))
+            {
+                var reference = engineReference.ContainingProject.CreateItemElement("PackageReference", packageId);
+                engineReference.Parent.InsertAfterChild(reference, engineReference);
+                foreach (var metadata in engineReference.Metadata)
+                    reference.AddMetadata(metadata.Name, metadata.Value, metadata.ExpressedAsAttribute);
+                context.IsDirty = true;
+                context.Log.Info($"Added the {packageId} package reference: the project has assets of its types, which Stride.Assets no longer holds.");
+            }
+        }
+
+        /// <summary>
+        /// The plugin packages owning the asset files under <paramref name="projectDir"/> (build output excluded) that
+        /// <paramref name="referencedPackages"/> lacks.
+        /// </summary>
+        internal static IEnumerable<string> FindMissingPluginPackages(string projectDir, IEnumerable<string> referencedPackages)
+        {
+            var assetExtensions = Directory.EnumerateFiles(projectDir, "*.sd*", SearchOption.AllDirectories)
+                .Where(file =>
+                {
+                    var relative = Path.GetRelativePath(projectDir, file).Replace('\\', '/');
+                    return !relative.StartsWith("obj/", StringComparison.OrdinalIgnoreCase) && !relative.StartsWith("bin/", StringComparison.OrdinalIgnoreCase)
+                        && !relative.Contains("/obj/", StringComparison.OrdinalIgnoreCase) && !relative.Contains("/bin/", StringComparison.OrdinalIgnoreCase);
+                })
+                .Select(Path.GetExtension)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+            var referenced = referencedPackages.ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            return PluginAssetExtensions
+                .Where(x => assetExtensions.Contains(x.Extension) && !referenced.Contains(x.PackageId))
+                .Select(x => x.PackageId)
+                .Distinct()
+                .ToList();
         }
     }
 }

@@ -8,6 +8,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
+    <!-- The test asset types are never consumed by a game: no runtime declares their extensions -->
+    <NoWarn>$(NoWarn);STRDIAG014</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <Using Include="Xunit" />
