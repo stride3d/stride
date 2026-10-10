@@ -53,6 +53,10 @@ public partial struct GraphicsDeviceFeatures
     /// <remarks>
     ///   This may differ from <see cref="RequestedProfile"/> if the <see cref="GraphicsDevice"/> could not be created
     ///   with that requested profile. This one represents the closest supported profile.
+    ///   <para>
+    ///     Vulkan has no feature levels. On Vulkan this is the requested profile, and the other fields come from the
+    ///     features of the Vulkan device.
+    ///   </para>
     /// </remarks>
     /// <seealso cref="GraphicsProfile"/>
     public readonly GraphicsProfile CurrentProfile;
