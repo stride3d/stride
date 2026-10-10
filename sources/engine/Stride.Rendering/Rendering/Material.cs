@@ -63,7 +63,7 @@ namespace Stride.Rendering
             // 2) we don't wanna hold on to memory we actually don't need
             var context = new MaterialGeneratorContext(new Material(), device)
             {
-                GraphicsProfile = device.Features.RequestedProfile,
+                GraphicsProfile = device.EffectProfile,
             };
             var result = MaterialGenerator.Generate(descriptor, context, string.Format("{0}:RuntimeMaterial", descriptor.MaterialId));
 

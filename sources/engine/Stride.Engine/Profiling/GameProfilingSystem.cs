@@ -176,7 +176,7 @@ namespace Stride.Profiling
 
             gpuGeneralInfoStringBuilder.Clear();
             //Note: renderTargetSize gets set in Draw(), without synchronization, so might be temporarily incorrect.
-            gpuGeneralInfoStringBuilder.AppendFormat("Device: {0}, Platform: {1}, Profile: {2}, Resolution: {3}", GraphicsDevice.Adapter.Description, GraphicsDevice.Platform, GraphicsDevice.ShaderProfile, renderTargetSize);
+            gpuGeneralInfoStringBuilder.AppendFormat("Device: {0}, Platform: {1}, Profile: {2}, Shaders: {3}, Resolution: {4}", GraphicsDevice.Adapter.Description, GraphicsDevice.Platform, GraphicsDevice.Features.CurrentProfile, GraphicsDevice.EffectProfile, renderTargetSize);
 
             fpsStatStringBuilder.Clear();
             fpsStatStringBuilder.AppendFormat("Displaying: {0}, Frame: {1}, Update: {2:0.00}ms, Draw: {3:0.00}ms, FPS: {4:0.00}", FilteringMode, Game.DrawTime.FrameCount, Game.UpdateTime.TimePerFrame.TotalMilliseconds, Game.DrawTime.TimePerFrame.TotalMilliseconds, Game.DrawTime.FramePerSecond);

@@ -316,9 +316,18 @@ namespace Stride.Graphics
         public SamplerStateFactory SamplerStates { get; private set; }
 
         /// <summary>
-        ///   Gets the graphics profile the Graphics Device is using, which determines the available features.
+        ///   Gets the graphics profile the effects are compiled against, when it is set apart from the Graphics Device.
         /// </summary>
         internal GraphicsProfile? ShaderProfile { get; set; }
+
+        /// <summary>
+        ///   Gets the graphics profile the effects are compiled against.
+        /// </summary>
+        /// <remarks>
+        ///   The Graphics Device can run at a higher level than this profile. A renderer that needs a shader model
+        ///   above this profile cannot run, even when <see cref="Features"/> reports the hardware support.
+        /// </remarks>
+        public GraphicsProfile EffectProfile => ShaderProfile ?? Features.RequestedProfile;
 
 
         /// <summary>
