@@ -79,6 +79,7 @@
     <Project Path="../sources/engine/Stride.Audio/Stride.Audio.csproj" />
     <Project Path="../sources/engine/Stride.Audio.Assets/Stride.Audio.Assets.csproj" />
     <Project Path="../sources/engine/Stride.Audio.Editor/Stride.Audio.Editor.csproj" />
+    <Project Path="../sources/engine/Stride.Audio.Editor.Wpf/Stride.Audio.Editor.Wpf.csproj" />
     <Project Path="../sources/engine/Stride.Engine/Stride.Engine.csproj" />
     <Project Path="../sources/engine/Stride.Foundation/Stride.Foundation.csproj" />
     <Project Path="../sources/engine/Stride.Games/Stride.Games.csproj" />
@@ -87,6 +88,7 @@
     <Project Path="../sources/engine/Stride.Native/Stride.Native.csproj" />
     <Project Path="../sources/engine/Stride.Navigation/Stride.Navigation.csproj" />
     <Project Path="../sources/engine/Stride.Particles/Stride.Particles.csproj" />
+    <Project Path="../sources/engine/Stride.Particles.Editor/Stride.Particles.Editor.csproj" />
     <Project Path="../sources/engine/Stride.Physics/Stride.Physics.csproj" />
     <Project Path="../sources/engine/Stride.Physics.Assets/Stride.Physics.Assets.csproj" />
     <Project Path="../sources/engine/Stride.Physics.Editor/Stride.Physics.Editor.csproj" />

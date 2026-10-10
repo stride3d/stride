@@ -37,6 +37,7 @@
     <Compile Include="AssetImportTests.cs" />
     <Compile Include="TestDependencyResolver.cs" />
     <Compile Include="TestPrefabAsset.cs" />
+    <Compile Include="TestGraphicsCompositorUpgrader.cs" />
     <Compile Include="TestSceneUpgrader.cs" />
     <Compile Include="TestSystemFontProvider.cs" />
     <Compile Include="TestSignedDistanceFieldFont.cs" />

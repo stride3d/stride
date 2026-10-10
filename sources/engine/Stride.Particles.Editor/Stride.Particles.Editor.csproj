@@ -7,18 +7,13 @@
     <StridePackageKind>Editor</StridePackageKind>
   </PropertyGroup>
   <ItemGroup>
-    <!-- The sound preview's WPF view: the WPF Game Studio loads it, another toolkit's editor does not -->
-    <StrideCompanionProject Include="..\Stride.Audio.Editor.Wpf\Stride.Audio.Editor.Wpf.csproj" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\editor\Stride.Assets.Presentation.Wpf\Stride.Assets.Presentation.Wpf.csproj" />
-    <ProjectReference Include="..\Stride.Audio.Assets\Stride.Audio.Assets.csproj" />
-    <ProjectReference Include="..\Stride.Audio\Stride.Audio.csproj" />
+    <ProjectReference Include="..\Stride.Particles\Stride.Particles.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="Resources\*.png" />

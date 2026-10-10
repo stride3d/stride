@@ -1,6 +1,5 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:components="clr-namespace:Stride.Particles.Components;assembly=Stride.Particles"
                     xmlns:core="clr-namespace:Stride.Core;assembly=Stride.Core"
                     xmlns:engine="clr-namespace:Stride.Engine;assembly=Stride.Engine"
                     xmlns:engine-ui="clr-namespace:Stride.Engine;assembly=Stride.UI"
@@ -317,36 +316,6 @@
         <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
         <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M4.7539,14L7.4119,2 11.2459,2 8.5879,14z" />
         <GeometryDrawing Brush="#FF424242" Geometry="F1M7.7852,13L6.0002,13 8.2152,3 10.0002,3z" />
-      </DrawingGroup>
-    </DrawingImage.Drawing>
-  </DrawingImage>
-
-  <DrawingImage x:Key="{x:Static components:StateControl.Play}" >
-    <DrawingImage.Drawing>
-      <DrawingGroup>
-        <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
-        <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M2.9997,-0.000199999999999534L2.9997,15.9998 13.6677,7.9998z" />
-        <GeometryDrawing Brush="#FF388934" Geometry="F1M4,2L4,14 12,8z" />
-      </DrawingGroup>
-    </DrawingImage.Drawing>
-  </DrawingImage>
-
-  <DrawingImage x:Key="{x:Static components:StateControl.Pause}" >
-    <DrawingImage.Drawing>
-      <DrawingGroup>
-        <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
-        <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M13,13L3,13 3,2 13,2z" />
-        <GeometryDrawing Brush="#FF00529C" Geometry="F1M12,3L9,3 9,12 12,12z M7,12L4,12 4,3 7,3z" />
-      </DrawingGroup>
-    </DrawingImage.Drawing>
-  </DrawingImage>
-
-  <DrawingImage x:Key="{x:Static components:StateControl.Stop}" >
-    <DrawingImage.Drawing>
-      <DrawingGroup>
-        <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
-        <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M13,13L3,13 3,3 13,3z" />
-        <GeometryDrawing Brush="#FFA1260D" Geometry="F1M12,12L4,12 4,4 12,4z" />
       </DrawingGroup>
     </DrawingImage.Drawing>
   </DrawingImage>
@@ -927,16 +896,6 @@
         <GeometryDrawing Brush="#FF838383" Geometry="F1M6.549,13L9.549,13 9.549,12.035 6.549,12.035z" />
         <GeometryDrawing Brush="#FF838383" Geometry="F1M7.4785,15.0205L8.6035,15.0205 9.5355,14.0355 6.5335,14.0355z" />
         <GeometryDrawing Brush="#FFEFEFF0" Geometry="F1M9.5781,6.0029L9.1011,8.9999 8.5081,8.9999 8.5081,6.0559 8.5401,5.9999C9.6221,5.9999,9.4831,4.9999,9.4831,4.9999L6.5081,4.9999 6.5081,5.0719C6.5081,5.2949,6.5081,5.9999,7.5081,5.9999L7.5081,8.9999 6.9761,8.9999 6.8201,8.2889 6.4491,6.0029C5.7991,6.0029,5.5081,5.5719,5.5081,5.2739L5.5081,4.8749C5.5081,4.0769,6.4301,3.9999,6.4301,3.9999L9.5391,3.9999C9.5391,3.9999 10.5391,4.1249 10.5391,4.9999 10.5391,4.9999 10.5671,6.0029 9.5781,6.0029" />
-      </DrawingGroup>
-    </DrawingImage.Drawing>
-  </DrawingImage>
-
-  <DrawingImage x:Key="{x:Type components:ParticleSystemComponent}" >
-    <DrawingImage.Drawing>
-      <DrawingGroup>
-        <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
-        <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M13.6611,6.7681C13.7431,7.0121,15.1221,12.5841,10.9661,14.6621L10.1031,14.7671 5.3771,14.7671C3.9621,14.7671 2.9871,13.0721 2.7321,12.4171 2.1981,11.0651 2.1961,9.7121 2.7241,8.2781 2.8561,7.9201 3.0701,7.4661 3.3091,6.9631 3.7951,5.9371 4.5301,4.3881 4.3951,3.6681L3.7811,0.4271 6.0911,2.7821C6.8471,3.5531 7.3191,4.5001 7.6151,5.4281 7.6281,5.0391 7.5651,4.6391 7.4271,4.2271 7.0841,3.1941 6.6691,2.4821 6.6621,2.4751L5.6621,0.7681 7.6621,0.873100000000001C10.9091,2.4971,11.4231,5.4331,11.5031,6.5061L12.6611,4.7681 13.6611,6.7681" />
-        <GeometryDrawing Brush="#BB8849" Geometry="F1M12.6572,7.127C12.6572,8.841 10.9442,10.556 10.9442,10.556 9.2282,12.272 10.9442,13.984 10.9442,13.984 14.3722,12.272 12.6572,7.127 12.6572,7.127 M9.2282,10.557C9.2282,10.557 10.9442,8.842 10.9442,7.128 10.9442,7.128 10.9442,3.699 7.5152,1.985 7.5152,1.985 10.9442,5.415 7.5152,8.841 7.5152,7.097 7.0552,4.978 5.8012,3.698 6.0712,5.125 4.5452,7.6 4.0862,8.841 3.6502,10.023 3.6332,11.123 4.0862,12.272 4.3022,12.82 5.0572,13.984 5.8012,13.984L7.5152,13.984C6.1982,13.982 4.7732,11.589 5.8012,10.556 5.4122,10.947 6.3832,12.019 6.6572,12.272 7.1532,12.724 8.4972,13.984 9.2272,13.984L10.9432,13.984C10.9442,13.984,7.5162,12.272,9.2282,10.557" />
       </DrawingGroup>
     </DrawingImage.Drawing>
   </DrawingImage>

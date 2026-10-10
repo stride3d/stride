@@ -62,7 +62,7 @@ RenderFeatures:
                 RenderStage: ref!! 50671147-a5c1-49d4-b4ad-3625f71439b3
                 EffectName: Test
     93933ad00d0c357d4915ad462cbfd04c: ~(Deleted)
-    9013eab3ea0ef6c98bf133b86c173d45: !Stride.Particles.Rendering.ParticleEmitterRenderFeature,Stride.Particles
+    9013eab3ea0ef6c98bf133b86c173d45*: !Stride.Particles.Rendering.ParticleEmitterRenderFeature,Stride.Particles
         RenderStageSelectors:
             af1bd241305893ef8ff7952184e1cb0b: !Stride.Particles.Rendering.ParticleEmitterTransparentRenderStageSelector,Stride.Particles
                 OpaqueRenderStage: ref!! 50671147-a5c1-49d4-b4ad-3625f71439b3

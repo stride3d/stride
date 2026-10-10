@@ -91,6 +91,9 @@
     <ProjectReference Include="..\..\engine\Stride.Audio.Editor\Stride.Audio.Editor.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
+    <ProjectReference Include="..\..\engine\Stride.Audio.Editor.Wpf\Stride.Audio.Editor.Wpf.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
     <ProjectReference Include="..\..\engine\Stride.Physics.Assets\Stride.Physics.Assets.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
@@ -110,6 +113,12 @@
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="..\..\engine\Stride.Voxels.Editor\Stride.Voxels.Editor.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\engine\Stride.Particles\Stride.Particles.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\engine\Stride.Particles.Editor\Stride.Particles.Editor.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="..\..\engine\Stride.Video.Assets\Stride.Video.Assets.csproj">

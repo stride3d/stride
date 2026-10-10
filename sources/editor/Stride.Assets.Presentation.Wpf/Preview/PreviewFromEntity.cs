@@ -16,7 +16,6 @@ using Stride.Input;
 using Stride.Rendering.Lights;
 using Stride.Engine;
 using Stride.Rendering.Compositing;
-using Stride.Particles.Rendering;
 using Stride.Rendering;
 using Stride.Rendering.Sprites;
 using Stride.Rendering.UI;
@@ -97,21 +96,6 @@ namespace Stride.Assets.Presentation.Preview
 
             var opaqueStage = graphicsCompositor.RenderStages.First(x => x.Name.Equals("Opaque"));
             var transparentStage = graphicsCompositor.RenderStages.First(x => x.Name.Equals("Transparent"));
-
-            // Add particles renderer
-            graphicsCompositor.RenderFeatures.Add(
-                new ParticleEmitterRenderFeature()
-                {
-                    RenderStageSelectors =
-                    {
-                        new ParticleEmitterTransparentRenderStageSelector
-                        {
-                            EffectName = "Particles",
-                            OpaqueRenderStage = opaqueStage,
-                            TransparentRenderStage = transparentStage,
-                        }
-                    },
-                });
 
             RenderFeatureProviders.AddPackageRenderFeatures(graphicsCompositor, opaqueStage, transparentStage);
 

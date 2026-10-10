@@ -22,7 +22,7 @@ namespace Stride.Particles.Components
     [ComponentOrder(10200)]
     [ComponentCategory("Particles")]
     public sealed class ParticleSystemComponent : ActivableEntityComponent, IEntityComponentBounds, IThumbnailComponent
-    {        
+    {
         private ParticleSystem particleSystem;
 
         /// <inheritdoc />

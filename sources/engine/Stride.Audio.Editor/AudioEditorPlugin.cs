@@ -18,8 +18,8 @@ using Stride.Engine;
 namespace Stride.Audio.Editor;
 
 /// <summary>
-/// The editor side of audio: the emitter and listener gizmos and entity factories, the sound preview and its view,
-/// the thumbnail and the editor-game compiler are found by their attributes.
+/// The editor side of audio: the emitter and listener gizmos and entity factories, the sound preview (its view is in
+/// Stride.Audio.Editor.Wpf), the thumbnail and the editor-game compiler are found by their attributes.
 /// </summary>
 public sealed class AudioEditorPlugin : StrideAssetsPlugin
 {
