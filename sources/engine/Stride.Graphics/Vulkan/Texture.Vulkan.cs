@@ -39,6 +39,8 @@ namespace Stride.Graphics
         internal bool HasStencil;
 
         internal VkImageLayout NativeLayout;
+        // Layout each subresource is left in by the command buffers submitted so far (null: untouched); under the queue lock
+        internal BarrierLayout?[] SubmittedLayouts;
         internal VkAccessFlags NativeAccessMask;
         internal VkImageAspectFlags NativeImageAspect;
 
