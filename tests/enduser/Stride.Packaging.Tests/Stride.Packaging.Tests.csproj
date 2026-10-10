@@ -52,7 +52,7 @@
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\sources\engine\Stride.Particles.Editor\Stride.Particles.Editor.csproj" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+    <ProjectReference Include="..\..\..\sources\editor\plugins\Stride.Particles.Editor\Stride.Particles.Editor.csproj" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
@@ -67,12 +67,12 @@
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\sources\engine\Stride.Audio.Editor\Stride.Audio.Editor.csproj" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+    <ProjectReference Include="..\..\..\sources\editor\plugins\Stride.Audio.Editor\Stride.Audio.Editor.csproj" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\sources\engine\Stride.Audio.Editor.Wpf\Stride.Audio.Editor.Wpf.csproj" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+    <ProjectReference Include="..\..\..\sources\editor\plugins\Stride.Audio.Editor.Wpf\Stride.Audio.Editor.Wpf.csproj" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
@@ -87,7 +87,7 @@
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\sources\engine\Stride.SpriteStudio.Editor\Stride.SpriteStudio.Editor.csproj" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+    <ProjectReference Include="..\..\..\sources\editor\plugins\Stride.SpriteStudio.Editor\Stride.SpriteStudio.Editor.csproj" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
@@ -97,7 +97,7 @@
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\sources\engine\Stride.Voxels.Editor\Stride.Voxels.Editor.csproj" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+    <ProjectReference Include="..\..\..\sources\editor\plugins\Stride.Voxels.Editor\Stride.Voxels.Editor.csproj" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
@@ -112,12 +112,12 @@
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\sources\engine\Stride.UI.Editor\Stride.UI.Editor.csproj" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+    <ProjectReference Include="..\..\..\sources\editor\plugins\Stride.UI.Editor\Stride.UI.Editor.csproj" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\sources\engine\Stride.UI.Editor.Wpf\Stride.UI.Editor.Wpf.csproj" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+    <ProjectReference Include="..\..\..\sources\editor\plugins\Stride.UI.Editor.Wpf\Stride.UI.Editor.Wpf.csproj" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
@@ -153,13 +153,13 @@
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\sources\engine\Stride.Physics.Editor\Stride.Physics.Editor.csproj" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+    <ProjectReference Include="..\..\..\sources\editor\plugins\Stride.Physics.Editor\Stride.Physics.Editor.csproj" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
     <!-- An Editor companion targets Windows only, as Game Studio does -->
-    <ProjectReference Include="..\..\..\sources\engine\Stride.Video.Editor\Stride.Video.Editor.csproj" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+    <ProjectReference Include="..\..\..\sources\editor\plugins\Stride.Video.Editor\Stride.Video.Editor.csproj" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>

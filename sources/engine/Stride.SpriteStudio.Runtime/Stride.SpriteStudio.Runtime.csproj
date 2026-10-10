@@ -11,7 +11,7 @@
   <ItemGroup>
     <!-- Companion packages: sheet and animation assets, compilers, importer and templates in .Assets, editor extensions in .Editor -->
     <StrideCompanionProject Include="..\Stride.SpriteStudio.Assets\Stride.SpriteStudio.Assets.csproj" />
-    <StrideCompanionProject Include="..\Stride.SpriteStudio.Editor\Stride.SpriteStudio.Editor.csproj" />
+    <StrideCompanionProject Include="..\..\editor\plugins\Stride.SpriteStudio.Editor\Stride.SpriteStudio.Editor.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">

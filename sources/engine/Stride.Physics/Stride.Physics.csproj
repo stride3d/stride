@@ -14,7 +14,7 @@
   <ItemGroup>
     <!-- Companion packages: asset types, compilers and templates (physics and navigation) in .Assets, editor extensions in .Editor -->
     <StrideCompanionProject Include="..\Stride.Physics.Assets\Stride.Physics.Assets.csproj" />
-    <StrideCompanionProject Include="..\Stride.Physics.Editor\Stride.Physics.Editor.csproj" />
+    <StrideCompanionProject Include="..\..\editor\plugins\Stride.Physics.Editor\Stride.Physics.Editor.csproj" />
   </ItemGroup>
   <ItemGroup>
     <StrideNativeLib Include="..\..\..\deps\BulletPhysics\$(StridePlatformDeps)\**\libbulletc.*">
