@@ -51,8 +51,14 @@ namespace Stride.Graphics
 
             this.graphicsDeviceDefault = device;
             this.bytecode = bytecode;
+            SortKey = (uint)bytecode.ComputeId().GetHashCode();
             Initialize();
         }
+
+        /// <summary>
+        /// A key for sorting draws by effect, from the bytecode content so it is the same in every run.
+        /// </summary>
+        internal uint SortKey { get; private set; }
 
         /// <summary>
         /// Gets the bytecode.

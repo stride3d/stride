@@ -9,6 +9,13 @@ namespace Stride.Rendering
     [DataContract]
     public class MaterialPass
     {
+        private static int nextSortKey;
+
+        /// <summary>
+        /// A key for sorting draws by material, in creation order so it is the same in every run.
+        /// </summary>
+        internal readonly uint SortKey = (uint)System.Threading.Interlocked.Increment(ref nextSortKey);
+
         /// <summary>
         /// Initializes a new instance of the <see cref="MaterialPass"/> class.
         /// </summary>
