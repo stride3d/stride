@@ -12,6 +12,8 @@ using System.Runtime.InteropServices;
 using Stride.Core.Reflection;
 using Stride.Core.Serialization;
 using Stride.Core.Threading;
+using Stride.Engine;
+using Stride.Rendering;
 
 namespace Stride.Updater
 {
@@ -26,6 +28,53 @@ namespace Stride.Updater
         // worker threads). A plain Dictionary corrupts under that concurrent access.
         private static readonly ConcurrentDictionary<UpdateKey, UpdatableMember> UpdateKeys = new ConcurrentDictionary<UpdateKey, UpdatableMember>();
         private static readonly ConcurrentDictionary<Type, UpdateMemberResolver> MemberResolvers = new ConcurrentDictionary<Type, UpdateMemberResolver>();
+
+        private static readonly ConcurrentDictionary<(Type, Type), Func<New.UpdatableMember, string, New.UpdatableType, New.UpdatableMember>> CastClasses = new();
+        private static readonly ConcurrentDictionary<Type, Func<string, ParameterKey, New.UpdatableMember<ParameterCollection>>> ParameterKeys = new();
+        private static readonly ConcurrentDictionary<Type, New.UpdatableType> Types = new();
+        private static readonly ConcurrentDictionary<Type, Func<string, New.UpdatableMember<Entity>>> EntityComponentAccessors = new();
+
+        internal static New.UpdatableMember<ParameterCollection> CreateParameterKeyAccessor(string name, ParameterKey key)
+        {
+            return ParameterKeys[key.PropertyType](name, key);
+        }
+
+        internal static New.UpdatableMember<Entity> CreateEntityComponentAccessor(string name, Type componentType)
+        {
+            return EntityComponentAccessors[componentType](name);
+        }
+
+        public static void RegisterType(Type type, New.UpdatableType updatableType)
+        {
+            Types[type] = updatableType;
+        }
+
+        public static void RegisterComponentType<T>(New.UpdatableType<T> updatableType) where T : EntityComponent
+        {
+            RegisterType(typeof(T), updatableType);
+            EntityComponentAccessors[typeof(T)] = (name) => new New.EntityComponentAccessor<T>(name, updatableType);
+        }
+
+        public static void RegisterCastClass<TFrom, TTo>() where TFrom : class where TTo : class, TFrom
+        {
+            CastClasses[(typeof(TFrom), typeof(TTo))] = (parent, name, type) => parent.GetOrCreateCast(name, (New.UpdatableType<TTo>)type);
+        }
+
+        public static void RegisterValueParameterKey<T>() where T : struct
+        {
+            ParameterKeys[typeof(T)] = (name, key) =>
+            {
+                return new New.ValueParameterKeyAccessor<T>(name, (ValueParameterKey<T>)key, (New.UpdatableType<T>)Types[typeof(T)]);
+            };
+        }
+
+        public static void RegisterObjectParameterKey<T>() where T : class
+        {
+            ParameterKeys[typeof(T)] = (name, key) =>
+            {
+                return new New.ObjectParameterKeyAccessor<T>(name, (ObjectParameterKey<T>)key, (New.UpdatableType<T>)Types[typeof(T)]);
+            };
+        }
 
         /// <summary>
         /// Registers a new member for a given type and name.
@@ -125,6 +174,63 @@ namespace Stride.Updater
             /// Used to call <see cref="UpdatableMember.CreateEnterChecker"/>.
             /// </summary>
             public UpdatableMember LastChildMember;
+        }
+
+        public static New.UpdatableMember<object> Compile2(Type rootObjectType, List<UpdateMemberInfo> animationPaths)
+        {
+            var rootMember = Types[rootObjectType].CreateRootMember();
+
+            for (var i = 0; i < animationPaths.Count; i++)
+            {
+                var animationPath = animationPaths[i];
+                var pathString = animationPath.Name;
+                var dataOffset = animationPath.DataOffset;
+
+                New.UpdatableMember currentMember = rootMember;
+                var position = 0;
+                while (position < pathString.Length)
+                {
+                    switch (pathString[position])
+                    {
+                        case PathDelimiter:
+                            position++;
+                            break;
+                        case PathIndexerOpen:
+                            var endIndex = pathString.IndexOf(PathIndexerClose, position);
+                            if (endIndex == -1)
+                                throw new InvalidOperationException("Property path parse error: could not find indexer end ']'");
+                            var indexerName = pathString.Substring(position + 1, endIndex - position - 1);
+                            currentMember = currentMember.GetOrCreateIndexer(indexerName);
+                            position = endIndex + 1;
+                            break;
+                        case PathCastOpen:
+                            var castEndIndex = pathString.IndexOf(PathCastClose, position);
+                            if (castEndIndex == -1)
+                                throw new InvalidOperationException("Property path parse error: could not find cast operation ending ')'");
+                            var typeName = pathString.Substring(position + 1, castEndIndex - position - 1);
+                            var type = DataSerializerFactory.GetTypeFromAlias(typeName) ?? AssemblyRegistry.GetType(typeName, false);
+                            if (type == null)
+                                throw new InvalidOperationException($"Could not resolve type {typeName}");
+                            currentMember = CastClasses[(currentMember.MemberType, type)](currentMember, typeName, Types[type]);
+                            position = castEndIndex + 1;
+                            break;
+                        default:
+                            var nextDelimiter = pathString.IndexOfAny(PathGroupDelimiters, position);
+                            if (nextDelimiter == -1)
+                                nextDelimiter = pathString.Length;
+                            var propertyName = pathString.Substring(position, nextDelimiter - position);
+                            currentMember = currentMember.GetOrCreateProperty(propertyName);
+                            position = nextDelimiter;
+                            break;
+                    }
+                }
+
+                currentMember.MakeLeaf(dataOffset);
+            }
+
+            rootMember.Optimize();
+
+            return rootMember;
         }
 
         /// <summary>
@@ -473,6 +579,11 @@ namespace Stride.Updater
                     ObjectStartOffset = state.NewOffset,
                 });
             }
+        }
+
+        public static void Run2(object target, New.UpdatableMember<object> compiledUpdate, IntPtr updateData, UpdateObjectData[] updateObjects)
+        {
+            compiledUpdate.Update(target, (byte*)updateData, updateObjects);
         }
 
         /// <summary>
