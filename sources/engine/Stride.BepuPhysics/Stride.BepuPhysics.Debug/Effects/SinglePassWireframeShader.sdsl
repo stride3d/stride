@@ -6,6 +6,9 @@
     stage stream uint   Case;
     // Added to the distance to edge A, edge B and edge AB when they are the hidden diagonal of a quad
     stage stream float3 EdgeExclude;
+    stage stream float3 PositionVS;
+    // Normal of the triangle in view space, its sign does not matter
+    stage stream float3 FaceNormalVS;
 
     static const uint infoA[]     = { 0, 0, 0, 0, 1, 1, 2 };
     static const uint infoB[]     = { 1, 1, 2, 0, 2, 1, 2 };
@@ -13,15 +16,33 @@
     static const uint infoBd[]    = { 2, 2, 1, 2, 0, 2, 1 }; 
     static const uint infoEdge0[] = { 0, 2, 0, 0, 0, 0, 2 }; 
     static const float MinDepthDelta = 1e-6;
+    // Farthest a line pixel looks for its own model on screen
+    static const float MaxSearchRadius = 24;
 
     float LineWidth;
     float3 LineColor;
+    float3 InsideColor;
+    float3 OutsideColor;
 
-    // Id buffer: the collidable id of the visual model each pixel shows, 0 elsewhere
+    // Id buffer: the collidable id, view depth and facet error of the visual model each pixel shows, 0 elsewhere,
+    // and the view depth of the first back face behind it
     Texture2D ModelIds;
+    // View-space normal of the visual model's facet each pixel shows
+    Texture2D ModelNormals;
+    // 1 for an orthographic projection, where view rays are parallel
+    float Orthographic;
+    // 1 when ModelIds holds this frame's ids, so lines are told apart from their own model
+    float CompareToModel;
     float ObjectId;
+    // Farther than this plus the model's own facet error from its own model,
+    // a line is colored as inside or outside it (view units)
+    float Threshold;
+    // Pixels per world unit at a view depth of 1, or anywhere with an orthographic projection
+    float ProjectionScale;
     // 1 for the pass that draws, without depth test, the lines over their own model
     float ThroughOwnModel;
+    // 0 for back faces: only the front surface of the own model is known, so they keep their color
+    float Classify;
 
     cbuffer PerView
     {
@@ -109,6 +130,8 @@
             return;
         }
 
+        float3 faceNormal = normalize(cross(input[1].PositionVS - input[0].PositionVS, input[2].PositionVS - input[0].PositionVS));
+
         float2 points[3];
         points[0] = projToWindow(positionWS[0]);
         points[1] = projToWindow(positionWS[1]);
@@ -173,6 +196,7 @@
             // vertex 0
             streams = input[0];
             streams.Case = vertexCase;
+            streams.FaceNormalVS = faceNormal;
             streams.EdgeA[0] = vertExclude.x * excludeEdgeLength;
             streams.EdgeA[1] = heights[0];
             streams.EdgeA[2] = vertExclude.z * excludeEdgeLength;
@@ -184,6 +208,7 @@
             // vertex 1
             streams = input[1];
             streams.Case = vertexCase;
+            streams.FaceNormalVS = faceNormal;
             streams.EdgeA[0] = vertExclude.x * excludeEdgeLength;
             streams.EdgeA[1] = vertExclude.y * excludeEdgeLength;
             streams.EdgeA[2] = heights[1];
@@ -195,6 +220,7 @@
             // vertex 2
             streams = input[2];
             streams.Case = vertexCase;
+            streams.FaceNormalVS = faceNormal;
             streams.EdgeA[0] = heights[2];
             streams.EdgeA[1] = vertExclude.y * excludeEdgeLength;
             streams.EdgeA[2] = vertExclude.z * excludeEdgeLength;
@@ -224,6 +250,7 @@
                 streams.EdgeB = float4(0, 0, 0, 0);
 
                 streams.Case = vertexCase;
+                streams.FaceNormalVS = faceNormal;
                 streams.EdgeExclude = edgeExclude;
                 streams.EdgeA.xy = points[a];
                 streams.EdgeB.xy = points[b];
@@ -243,10 +270,49 @@
         return step(abs(model.x - ObjectId), 0.5);
     }
 
+    // Whether the own model shows close enough, on screen, to a line pixel drawn over something else:
+    // within the debug mesh's error plus the facet error of the model found there
+    float ownModelNearby(float2 pixel, float depth)
+    {
+        float pixelsPerUnit = ProjectionScale / lerp(max(depth, MinDepthDelta), 1, Orthographic);
+        float found = 0;
+        for (float radius = 1; radius <= MaxSearchRadius && found < 0.5; radius++)
+        {
+            for (int i = 0; i < 16; i++)
+            {
+                float angle = i * 0.392699;
+                float4 model = ModelIds.Load(int3(pixel + float2(cos(angle), sin(angle)) * radius, 0));
+                float reach = (Threshold + model.z) * pixelsPerUnit + 0.5 * LineWidth + 1;
+                found = max(found, isOwnModel(model) * step(radius, reach));
+            }
+        }
+        return found;
+    }
+
+    // The model's surface on this fragment's view ray, from the depth the id buffer holds
+    float3 modelOnRay(float modelDepth)
+    {
+        return lerp(streams.PositionVS * (modelDepth / min(streams.PositionVS.z, -MinDepthDelta)), float3(streams.PositionVS.xy, modelDepth), Orthographic);
+    }
+
+    // Whether the line is farther from the model the pixel shows than the debug mesh's and the model's errors allow.
+    // Along the view ray, a gap seen at a grazing angle looks far larger than it is: measured along the normal of the
+    // line's face and along the normal of the model's facet, it only grows when that face, or that facet, is seen edge-on
+    float isBeyond(int2 pixel)
+    {
+        float4 model = ModelIds.Load(int3(pixel, 0));
+        float3 gap = modelOnRay(model.y) - streams.PositionVS;
+        float3 modelNormal = ModelNormals.Load(int3(pixel, 0)).xyz;
+        // A neighbor showing something else does not vote against
+        return 1 - isOwnModel(model) * step(min(abs(dot(gap, streams.FaceNormalVS)), abs(dot(gap, modelNormal))), Threshold + model.z);
+    }
+
     // vertex shader
     stage override void VSMain()
     {
-        streams.ShadingPosition = projToWorld(streams.Position);
+        float4 positionVS = mul(streams.Position, WorldView);
+        streams.PositionVS = positionVS.xyz;
+        streams.ShadingPosition = mul(positionVS, Projection);
     }
 
     // pixel shader
@@ -260,11 +326,27 @@
         }
 
         float4 model = ModelIds.Load(int3(streams.ShadingPosition.xy, 0));
-        float own = isOwnModel(model);
+        float own = isOwnModel(model) * CompareToModel;
+        float hidden = own * step(-model.y * (1 + 1e-4), -streams.PositionVS.z);
         // Everything over its own model, so a line lying on it is drawn even where the depth test missed it by a hair
         if (ThroughOwnModel * (1 - own) > 0.5)
             discard;
 
-        streams.ColorTarget = float4(LineColor, 1);
+        // Only where their result is used: the outline search alone reads up to 384 texels
+        // The neighbors too, so a pixel on the seam between two facets seen edge-on does not decide alone
+        int2 pixel = int2(streams.ShadingPosition.xy);
+        float beyond = 0;
+        if (Classify * own > 0.5)
+            beyond = isBeyond(pixel) * isBeyond(pixel + int2(1, 0)) * isBeyond(pixel - int2(1, 0)) * isBeyond(pixel + int2(0, 1)) * isBeyond(pixel - int2(0, 1));
+        float outsideBeyondOutline = 0;
+        if (Classify * CompareToModel * (1 - own) > 0.5)
+            outsideBeyondOutline = 1 - ownModelNearby(streams.ShadingPosition.xy, -streams.PositionVS.z);
+        // Behind the back face of the part it shows through, a line is behind that part rather than in it
+        float inFirstPart = step(-streams.PositionVS.z, -model.w + Threshold + model.z);
+        float inside = Classify * hidden * inFirstPart * beyond;
+        float outsideOver = Classify * own * (1 - hidden) * beyond;
+        float3 color = lerp(LineColor, InsideColor, inside);
+        color = lerp(color, OutsideColor, max(outsideOver, outsideBeyondOutline));
+        streams.ColorTarget = float4(color, 1);
     }
 };

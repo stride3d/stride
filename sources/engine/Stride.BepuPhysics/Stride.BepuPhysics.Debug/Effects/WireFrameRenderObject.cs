@@ -17,6 +17,9 @@ namespace Stride.BepuPhysics.Debug.Effects
         public Matrix WorldMatrix = Matrix.Identity;
         public Matrix CollidableBaseMatrix = Matrix.Identity;
 
+        /// <summary> Largest distance between the mesh and the exact shape it stands for, before <see cref="WorldMatrix"/> </summary>
+        public float MaxDeviation;
+
         /// <summary> The collidable's entity, whose visual models the lines are compared to </summary>
         public Entity? Owner;
 

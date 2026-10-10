@@ -34,6 +34,30 @@ namespace Stride.BepuPhysics.Tests
             Assert.True(changed > total / 40, $"{changed} of {total} pixels of the sphere show a collider line");
         }
 
+        [Fact]
+        public static void ColliderInsideItsModelIsColored()
+        {
+            var (smaller, _) = Render(colliderRadius: 0.4f, modelRadius: 0.5f);
+            var (same, _) = Render(colliderRadius: 0.5f, modelRadius: 0.5f);
+
+            var inside = CountInsideColor(smaller);
+            var sameColored = CountInsideColor(same);
+            Assert.True(inside > 500, $"{inside} pixels of a 0.4 collider in a 0.5 model are colored as inside");
+            Assert.True(sameColored == 0, $"{sameColored} pixels of a 0.5 collider in its 0.5 model are colored as inside");
+        }
+
+        private static int CountInsideColor(Frame image)
+        {
+            var count = 0;
+            ForEachSpherePixel(image, (_, _, color) =>
+            {
+                var hsv = ColorHSV.FromColor(color.ToColor4());
+                if (hsv.S > 0.3f && hsv.V > 0.35f && hsv.H is >= 50 and <= 70)
+                    count++;
+            });
+            return count;
+        }
+
         // The pixels inside the sphere's outline, which the camera centers
         private static void ForEachSpherePixel(Frame image, Action<int, int, Color> action)
         {

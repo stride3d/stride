@@ -1,20 +1,52 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-// Writes, for each pixel a collidable's visual model shows on, the collidable's id
-shader BepuDebugIdShader : ShaderBase, Transformation, PositionStream4
+// Writes, for each pixel a collidable's visual model shows on, the collidable's id, the view depth of that surface
+// and how far its facet may lie from the smooth surface its normals describe, then the facet's normal in a second target;
+// with back faces, the depth of the first one behind
+shader BepuDebugIdShader : ShaderBase, Transformation, PositionStream4, NormalStream
 {
     float ObjectId;
+
+    stage stream float3 SurfaceVS;
+    stage stream float FacetError;
+    stage stream float3 FacetNormalVS;
 
     stage override void VSMain()
     {
         // The scene's own sequence, so this pass lands on the depths the scene wrote, even on surfaces seen edge-on
         float4 positionWS = mul(streams.Position, World);
+        streams.SurfaceVS = mul(positionWS, View).xyz;
         streams.ShadingPosition = mul(positionWS, ViewProjection);
+    }
+
+    // An edge of length L whose end normals differ by an angle a is the chord of an arc that bulges by L/2 tan(a/4)
+    [maxvertexcount(3)]
+    void GSMain(triangle Input input[3], inout TriangleStream<Output> triangleStream)
+    {
+        float error = 0;
+        for (int i = 0; i < 3; i++)
+        {
+            int j = (i + 1) % 3;
+            float angle = acos(clamp(dot(normalize(input[i].meshNormal), normalize(input[j].meshNormal)), -1, 1));
+            error = max(error, 0.5 * length(input[j].SurfaceVS - input[i].SurfaceVS) * tan(min(angle, 3) * 0.25));
+        }
+
+        float3 normal = normalize(cross(input[1].SurfaceVS - input[0].SurfaceVS, input[2].SurfaceVS - input[0].SurfaceVS));
+        for (int i = 0; i < 3; i++)
+        {
+            streams = input[i];
+            streams.FacetError = error;
+            streams.FacetNormalVS = normal;
+            triangleStream.Append(streams);
+        }
+        triangleStream.RestartStrip();
     }
 
     stage override void PSMain()
     {
-        streams.ColorTarget = float4(ObjectId, 0, 0, 0);
+        // The front pass keeps rgb, the back face pass alpha
+        streams.ColorTarget = float4(ObjectId, streams.SurfaceVS.z, streams.FacetError, streams.SurfaceVS.z);
+        streams.ColorTarget1 = float4(streams.FacetNormalVS, 0);
     }
 };

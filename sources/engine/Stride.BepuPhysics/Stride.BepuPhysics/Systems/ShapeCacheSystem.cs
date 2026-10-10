@@ -18,6 +18,9 @@ namespace Stride.BepuPhysics.Systems;
 
 internal class ShapeCacheSystem : IDisposable, IService
 {
+    /// <summary> Tessellation of the debug meshes of spheres, cylinders and capsules, read when the system and the capsule meshes are built </summary>
+    internal static int CurvedTessellation { get; set; } = 8;
+
     internal readonly BasicMeshBuffers _boxShapeData;
     internal readonly BasicMeshBuffers _cylinderShapeData;
     internal readonly BasicMeshBuffers _sphereShapeData;
@@ -31,12 +34,37 @@ internal class ShapeCacheSystem : IDisposable, IService
     {
         this.Services = Services;
         var box = GeometricPrimitive.Cube.New(new Vector3(1, 1, 1));
-        var cylinder = GeometricPrimitive.Cylinder.New(1, 1, 8);
-        var sphere = GeometricPrimitive.Sphere.New(1, 8);
+        var cylinder = GeometricPrimitive.Cylinder.New(1, 1, CurvedTessellation);
+        var sphere = GeometricPrimitive.Sphere.New(1, CurvedTessellation);
 
         _boxShapeData = new() { Vertices = box.Vertices.Select(x => new VertexPosition3(x.Position)).ToArray(), Indices = box.Indices };
-        _cylinderShapeData = new() { Vertices = cylinder.Vertices.Select(x => new VertexPosition3(x.Position)).ToArray(), Indices = cylinder.Indices };
-        _sphereShapeData = new() { Vertices = sphere.Vertices.Select(x => new VertexPosition3(x.Position)).ToArray(), Indices = sphere.Indices };
+        _cylinderShapeData = Approximation(cylinder, p => MathF.Min(MathF.Abs(new Vector2(p.X, p.Z).Length() - 1f), MathF.Abs(MathF.Abs(p.Y) - 0.5f)));
+        _sphereShapeData = Approximation(sphere, p => MathF.Abs(p.Length() - 1f));
+    }
+
+    /// <summary> The mesh of a curved shape and its largest distance to the exact surface, measured on each face </summary>
+    private static BasicMeshBuffers Approximation(GeometricMeshData<VertexPositionNormalTexture> mesh, Func<Vector3, float> distanceToSurface)
+    {
+        const int Samples = 8;
+        var vertices = mesh.Vertices.Select(x => new VertexPosition3(x.Position)).ToArray();
+        var indices = mesh.Indices;
+        float deviation = 0f;
+        for (int t = 0; t + 2 < indices.Length; t += 3)
+        {
+            var a = vertices[indices[t]].Position;
+            var b = vertices[indices[t + 1]].Position;
+            var c = vertices[indices[t + 2]].Position;
+            for (int i = 0; i <= Samples; i++)
+            {
+                for (int j = 0; i + j <= Samples; j++)
+                {
+                    var point = a + (b - a) * ((float)i / Samples) + (c - a) * ((float)j / Samples);
+                    deviation = MathF.Max(deviation, distanceToSurface(point));
+                }
+            }
+        }
+
+        return new() { Vertices = vertices, Indices = indices, MaxDeviation = deviation };
     }
 
     public void Dispose()
@@ -76,8 +104,9 @@ internal class ShapeCacheSystem : IDisposable, IService
 
     internal BasicMeshBuffers BuildCapsule(CapsuleCollider cap)
     {
-        var capGeo = GeometricPrimitive.Capsule.New(cap.Length, cap.Radius, 8);
-        return new() { Vertices = capGeo.Vertices.Select(x => new VertexPosition3(x.Position)).ToArray(), Indices = capGeo.Indices };
+        var capGeo = GeometricPrimitive.Capsule.New(cap.Length, cap.Radius, CurvedTessellation);
+        var halfLength = cap.Length / 2f;
+        return Approximation(capGeo, p => MathF.Abs(Vector3.Distance(p, new Vector3(0f, Math.Clamp(p.Y, -halfLength, halfLength), 0f)) - cap.Radius));
     }
     internal BasicMeshBuffers BuildTriangle(TriangleCollider tri)
     {

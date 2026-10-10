@@ -275,6 +275,7 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
 
             var wireframe = WireFrameRenderObject.New(_game.GraphicsDevice, data.Indices, data.Vertices);
             wireframe.Color = GetCurrentColor(collidable);
+            wireframe.MaxDeviation = data.MaxDeviation;
             wireframe.Owner = collidable.Entity;
             wireframe.ObjectId = objectId;
             Matrix.Transformation(ref transforms[i].Scale, ref transforms[i].RotationLocal, ref transforms[i].PositionLocal, out wireframe.CollidableBaseMatrix);
