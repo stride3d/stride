@@ -818,7 +818,8 @@ namespace Stride.Graphics.Regression
 
         /// <summary>
         ///   Compares the test result image against the gold reference and saves a local copy
-        ///   when no match is found (or when <see cref="ForceSaveImageOnSuccess"/> is set).
+        ///   when no match is found, when a threshold rule let it pass against this lane's gold,
+        ///   or when <see cref="ForceSaveImageOnSuccess"/> is set.
         /// </summary>
         /// <param name="image">The Image to compare and save.</param>
         /// <param name="testName">
@@ -844,19 +845,15 @@ namespace Stride.Graphics.Regression
             var testsLocalBaseDir = Path.Combine(testsBaseDir, "local");
             var testLocalFileName = GenerateTestArtifactFileName(testsLocalBaseDir, frameName, platformSpecificDir, ".png");
 
-            var testFileNames = new List<string> { testFileName };
-
-            // First, if exact match doesn't exist, test any other pattern
+            // The golds of this bucket (the image and its variants); without any, the golds of every other bucket
             // TODO: We might want to sort/filter partially (platform, etc...)?
-            var matchingImage = File.Exists(testFileName);
-            if (!matchingImage)
+            var testFileNames = GoldVariant.InBucket(Path.GetDirectoryName(testFileName)!, Path.GetFileName(testFileName));
+            if (testFileNames.Count == 0)
             {
-                testFileNames.Clear();
-
                 var wildcard = "*" + Path.DirectorySeparatorChar + "*";
                 var testFileNamePattern = GenerateTestArtifactFileName(testsBaseDir, frameName, wildcard, ".png");
                 var regexSep = Regex.Escape(Path.DirectorySeparatorChar.ToString());
-                var testFileNameRegex = new Regex("^" + Regex.Escape(testFileNamePattern).Replace(@"\*", "[^" + regexSep + "]*") + "$", RegexOptions.IgnoreCase | RegexOptions.Singleline);
+                var testFileNameRegex = new Regex("^" + Regex.Escape(testFileNamePattern[..^".png".Length]).Replace(@"\*", "[^" + regexSep + "]*") + GoldVariant.SuffixPattern + @"\.png$", RegexOptions.IgnoreCase | RegexOptions.Singleline);
                 var testFileNameRoot = testFileNamePattern[..testFileNamePattern.IndexOf('*')];
 
                 if (Directory.Exists(testFileNameRoot))
@@ -928,13 +925,16 @@ namespace Stride.Graphics.Regression
                         matchedFile = file;
                         break;
                     }
-                    var isExactMatch = file == testFileName;
+                    var isExactMatch = Path.GetDirectoryName(file) == Path.GetDirectoryName(testFileName);
                     pendingFailMessages.Add($"  {file} ({(isExactMatch ? "reference" : "different platform/device")}) — {stats}");
                 }
 
-                // Sidecar always; PNG only on fail (sidecar carries the stats CompareGold
-                // needs to render a passing cell; the pixel data would be redundant with gold
-                // for exact matches and isn't worth the disk for the common case).
+                // Sidecar always; PNG on fail, with ForceSaveImageOnSuccess, and on a pass against this lane's own
+                // gold with pixels at diff 3+ (pixels a threshold rule allowed: CompareGold can then tell the
+                // renders apart and turn them into variants). The sidecar carries the stats CompareGold needs to
+                // render a passing cell; for the other passes the pixel data would be redundant with gold and isn't
+                // worth the disk. A pass against another lane's gold keeps no PNG: it would look like a new gold
+                // for this lane.
                 ImageTester.SaveSidecar(testLocalFileName, new ImageTester.Sidecar
                 {
                     Outcome = anyMatch ? "Pass" : "Fail",
@@ -948,6 +948,11 @@ namespace Stride.Graphics.Regression
                     ImageTester.SaveImage(image, testLocalFileName);
                     comparisonFailedMessages.Add($"* {testLocalFileName} (current)");
                     comparisonFailedMessages.AddRange(pendingFailMessages);
+                }
+                else if (ForceSaveImageOnSuccess
+                    || (lastStats.PixelsAtDiff3Plus > 0 && Path.GetDirectoryName(matchedFile) == Path.GetDirectoryName(testFileName)))
+                {
+                    ImageTester.SaveImage(image, testLocalFileName);
                 }
                 else if (File.Exists(testLocalFileName))
                 {

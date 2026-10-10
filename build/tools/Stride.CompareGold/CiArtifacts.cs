@@ -13,13 +13,49 @@ internal static class CiArtifacts
 
     // gh run download <runId> [--repo <repo>] --name <artifactName> --dir <dir>. Null on success,
     // else a human-readable error. Empty/null repo lets gh infer it from the current checkout.
-    public static string? Download(string runId, string? repo, string artifactName, string dir)
+    public static string? Download(string runId, string? repo, string artifactName, string dir) =>
+        DownloadArtifacts(runId, repo, "--name", artifactName, dir);
+
+    // Same as Download, for every artifact whose name matches a glob (gh puts each in its own subdir).
+    public static string? DownloadMatching(string runId, string? repo, string artifactPattern, string dir) =>
+        DownloadArtifacts(runId, repo, "--pattern", artifactPattern, dir);
+
+    private static string? DownloadArtifacts(string runId, string? repo, string selector, string value, string dir)
     {
-        var args = new List<string> { "run", "download", runId, "--name", artifactName, "--dir", dir };
+        var args = new List<string> { "run", "download", runId, selector, value, "--dir", dir };
         if (!string.IsNullOrEmpty(repo)) { args.Add("--repo"); args.Add(repo); }
         var (exit, _, stderr) = Run("gh", args);
         if (exit is null) return "could not run gh; install the GitHub CLI or download the artifact manually";
-        return exit == 0 ? null : $"gh failed for {artifactName}: {stderr.Trim()}";
+        return exit == 0 ? null : $"gh failed for {value}: {stderr.Trim()}";
+    }
+
+    // Repo that owns <runId>: "owner" expands to "owner/stride"; none probes the checkout's github
+    // remotes, then falls back to upstream.
+    public static string ResolveRepo(string runId, string? repo)
+    {
+        if (!string.IsNullOrEmpty(repo))
+            return repo.Contains('/') ? repo : $"{repo}/stride";
+        return ResolveRepoFromRemotes(runId) ?? UpstreamRepo;
+    }
+
+    // Ids of the last <limit> completed runs of <workflow> (a file name like main.yml), newest first.
+    public static List<string>? ListCompletedRuns(string repo, string workflow, string? branch, int limit, out string error)
+    {
+        var args = new List<string> { "run", "list", "--repo", repo, "--workflow", workflow, "--status", "completed",
+            "--limit", limit.ToString(), "--json", "databaseId", "--jq", ".[].databaseId" };
+        if (!string.IsNullOrEmpty(branch)) { args.Add("--branch"); args.Add(branch); }
+        var (exit, stdout, stderr) = Run("gh", args);
+        error = exit is null ? "could not run gh; install the GitHub CLI" : $"gh run list failed: {stderr.Trim()}";
+        if (exit != 0 || stdout is null) return null;
+        return stdout.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+    }
+
+    // The attempt number of a finished run, null while it runs. A finished attempt's artifacts no longer change,
+    // so a download can be cached under it; re-running jobs starts a new attempt.
+    public static string? CompletedAttempt(string runId, string repo)
+    {
+        var (exit, stdout, _) = Run("gh", ["run", "view", runId, "--repo", repo, "--json", "status,attempt", "--jq", "select(.status == \"completed\") | .attempt"]);
+        return exit == 0 && stdout?.Trim() is { Length: > 0 } attempt ? attempt : null;
     }
 
     // Probe each github.com remote in the current checkout for <runId>; return the first repo that
