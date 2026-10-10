@@ -818,7 +818,8 @@ namespace Stride.Graphics.Regression
 
         /// <summary>
         ///   Compares the test result image against the gold reference and saves a local copy
-        ///   when no match is found (or when <see cref="ForceSaveImageOnSuccess"/> is set).
+        ///   when no match is found, when a threshold rule let it pass against this lane's gold,
+        ///   or when <see cref="ForceSaveImageOnSuccess"/> is set.
         /// </summary>
         /// <param name="image">The Image to compare and save.</param>
         /// <param name="testName">
@@ -928,9 +929,12 @@ namespace Stride.Graphics.Regression
                     pendingFailMessages.Add($"  {file} ({(isExactMatch ? "reference" : "different platform/device")}) — {stats}");
                 }
 
-                // Sidecar always; PNG only on fail (sidecar carries the stats CompareGold
-                // needs to render a passing cell; the pixel data would be redundant with gold
-                // for exact matches and isn't worth the disk for the common case).
+                // Sidecar always; PNG on fail, with ForceSaveImageOnSuccess, and on a pass against this lane's own
+                // gold with pixels at diff 3+ (pixels a threshold rule allowed: CompareGold can then tell the
+                // renders apart and turn them into variants). The sidecar carries the stats CompareGold needs to
+                // render a passing cell; for the other passes the pixel data would be redundant with gold and isn't
+                // worth the disk. A pass against another lane's gold keeps no PNG: it would look like a new gold
+                // for this lane.
                 ImageTester.SaveSidecar(testLocalFileName, new ImageTester.Sidecar
                 {
                     Outcome = anyMatch ? "Pass" : "Fail",
@@ -944,6 +948,11 @@ namespace Stride.Graphics.Regression
                     ImageTester.SaveImage(image, testLocalFileName);
                     comparisonFailedMessages.Add($"* {testLocalFileName} (current)");
                     comparisonFailedMessages.AddRange(pendingFailMessages);
+                }
+                else if (ForceSaveImageOnSuccess
+                    || (lastStats.PixelsAtDiff3Plus > 0 && Path.GetDirectoryName(matchedFile) == Path.GetDirectoryName(testFileName)))
+                {
+                    ImageTester.SaveImage(image, testLocalFileName);
                 }
                 else if (File.Exists(testLocalFileName))
                 {

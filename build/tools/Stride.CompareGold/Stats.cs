@@ -240,8 +240,11 @@ internal static class GoldStats
             Cpu: ReadCpu(Path.Combine(Path.GetDirectoryName(file)!, baseName + ".metadata.json")));
     }
 
+    // Pixels per diff ("0" to "15", then per band "16-31" … "128+"), or the display buckets of older sidecars
+    // ("0", "1-2", "3-5"…).
     private static Dictionary<string, int> ReadHistogram(JsonElement attempt) =>
-        attempt.GetProperty("buckets").EnumerateObject().ToDictionary(p => p.Name, p => p.Value.GetInt32());
+        (attempt.TryGetProperty("diffs", out var diffs) ? diffs : attempt.GetProperty("buckets"))
+            .EnumerateObject().ToDictionary(p => p.Name, p => p.Value.GetInt32());
 
     private static string ReadCpu(string metadataPath)
     {
@@ -281,9 +284,10 @@ internal static class GoldStats
         return Convert.ToHexString(SHA256.HashData(bytes));
     }
 
-    // Pixels of a histogram (keys "0", "1-2", "3-5", "6-15", "16+") inside a rule range. A histogram
-    // bucket that only partly overlaps the range counts whole, so for ranges not aligned to the
-    // histogram (like "3-8") this is an upper bound.
+    // Pixels of a histogram (see ReadHistogram) inside a rule range. A key that only partly overlaps the range
+    // counts whole, so the result is an upper bound when a key straddles a range edge: with per-diff counts only
+    // for a range edge inside a band above 15 (like "20+" against "16-31"), with older sidecars' display buckets
+    // for any range not aligned to them (like "3-8").
     private static int CountIn(Dictionary<string, int> histogram, AllowBucket range)
     {
         int count = 0;

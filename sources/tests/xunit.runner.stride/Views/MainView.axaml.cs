@@ -544,12 +544,17 @@ public partial class MainView : UserControl
     void OnPromoteCurrent(object? sender, RoutedEventArgs e)
     {
         if ((sender as Control)?.Tag is not ImageComparisonViewModel entry) return;
-        if (string.IsNullOrEmpty(entry.CurrentPath) || string.IsNullOrEmpty(entry.ReferencePath)) return;
-        if (!File.Exists(entry.CurrentPath)) return;
+        if (string.IsNullOrEmpty(entry.CurrentPath) || !File.Exists(entry.CurrentPath)) return;
+        // Always this lane's own gold: the reference can be another lane's gold the test fell back to, or a variant.
+        if (OwnGoldPath(entry.CurrentPath) is not { } goldPath) return;
         try
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(entry.ReferencePath)!);
-            File.Copy(entry.CurrentPath, entry.ReferencePath, overwrite: true);
+            Directory.CreateDirectory(Path.GetDirectoryName(goldPath)!);
+            File.Copy(entry.CurrentPath, goldPath, overwrite: true);
+            // The gold's .metadata.json records the renderer that made it.
+            var currentMetadata = Path.ChangeExtension(entry.CurrentPath, ".metadata.json");
+            if (File.Exists(currentMetadata))
+                File.Copy(currentMetadata, Path.ChangeExtension(goldPath, ".metadata.json"), overwrite: true);
             // Force the entry's reference image to reload so the new gold appears immediately.
             entry.ReferenceBitmap = null;
             entry.CurrentBitmap = null;
@@ -560,5 +565,19 @@ public partial class MainView : UserControl
         {
             System.Diagnostics.Debug.WriteLine($"Promote failed: {ex}");
         }
+    }
+
+    // A render is written to tests/local/<Suite>/<Platform.API>/<Device>/<name>.png, and its lane's gold is the same path
+    // without "local": tests/<Suite>/<Platform.API>/<Device>/<name>.png.
+    static string? OwnGoldPath(string currentPath)
+    {
+        foreach (var separator in new[] { '\\', '/' })
+        {
+            var local = $"{separator}tests{separator}local{separator}";
+            var index = currentPath.LastIndexOf(local, System.StringComparison.OrdinalIgnoreCase);
+            if (index >= 0)
+                return string.Concat(currentPath.AsSpan(0, index), $"{separator}tests{separator}", currentPath.AsSpan(index + local.Length));
+        }
+        return null;
     }
 }

@@ -710,8 +710,8 @@ static void CollectPlatforms(string suiteDir, HashSet<string> platforms)
     if (!Directory.Exists(suiteDir)) return;
     foreach (var pDir in Directory.GetDirectories(suiteDir))
         foreach (var dDir in Directory.GetDirectories(pDir))
-            // Only count a 2-deep dir as a platform if it has test outputs: PNG on fail,
-            // *.results.json (sidecar) on pass. Filters out non-test subtrees (e.g.
+            // Only count a 2-deep dir as a platform if it has test outputs: a PNG (on fail, or a
+            // pass a threshold rule allowed), *.results.json (sidecar) always. Filters out non-test subtrees (e.g.
             // baselines/dpi100) without an OS-prefix allowlist, while still surfacing
             // passing-only buckets (e.g. a CI run where every macOS test matched gold).
             if (Directory.EnumerateFiles(dDir, "*.png").Any() ||
@@ -727,8 +727,8 @@ static List<string> ListPngNames(string dir)
         .ToList()!;
 }
 
-// Results sidecar (foo.results.json) lives next to each output PNG (or alone, on a passing
-// test where the PNG is skipped). Union {*.png, *.results.json} by stem so passing tests
+// Results sidecar (foo.results.json) lives next to each output PNG (or alone, on most passing
+// tests, where the PNG is skipped). Union {*.png, *.results.json} by stem so passing tests
 // still appear in the listing. Each item also carries the current SHA256 of its matched gold
 // and of every gold of its bucket; the frontend compares against the hashes the sidecar baked
 // in at compare time to detect staleness (gold edited, copied or added after the test ran).
@@ -754,9 +754,10 @@ List<object> ListSourceItems(string dir, string primaryGoldDir)
             var name = kv.Key + ".png";
             var matchedPath = ResolveMatchedGoldLocalPath(kv.Value.sc?.Matched);
             var matchedGoldHash = matchedPath != null && File.Exists(matchedPath) ? CachedGoldHash(matchedPath) : null;
-            // Every gold of the bucket (the image and its variants): a variant added after the run makes its sidecar stale.
-            var bucketGoldHashes = GoldVariant.InBucket(primaryGoldDir, name).Select(CachedGoldHash).ToList();
-            return (object)new { Name = name, HasPng = kv.Value.png, Sidecar = kv.Value.sc, MatchedGoldHash = matchedGoldHash, BucketGoldHashes = bucketGoldHashes };
+            // Every gold of the bucket (the image and its variants, in the order the runtime tries them): a gold added
+            // after the run can make its sidecar stale.
+            var bucketGolds = GoldVariant.InBucket(primaryGoldDir, name).Select(g => new { File = Path.GetFileName(g), Hash = CachedGoldHash(g) }).ToList();
+            return (object)new { Name = name, HasPng = kv.Value.png, Sidecar = kv.Value.sc, MatchedGoldHash = matchedGoldHash, BucketGolds = bucketGolds };
         })
         .ToList();
 }
@@ -1145,9 +1146,10 @@ record DeleteGoldRequest
 }
 
 // Mirrors Stride.Graphics.Regression.ImageTester.Sidecar so the JSON written by the test
-// runtime can be deserialised here without an inter-project dependency.
+// runtime can be deserialised here without an inter-project dependency. Diffs holds the pixels
+// per diff ("0" to "15", then per band "16-31" … "128+"); older sidecars hold the display Buckets instead.
 record Sidecar(string Outcome, DateTime At, string? Matched, List<SidecarAttempt> Attempts);
-record SidecarAttempt(string Gold, string Kind, bool Passed, int MaxDiff, double PsnrDb, Dictionary<string, int> Buckets, Dictionary<string, int>? Thresholds, string? GoldHash);
+record SidecarAttempt(string Gold, string Kind, bool Passed, int MaxDiff, double PsnrDb, Dictionary<string, int>? Diffs, Dictionary<string, int>? Buckets, Dictionary<string, int>? Thresholds, string? GoldHash);
 
 // === Source Manager ===
 

@@ -90,7 +90,7 @@
           <CheckBox Content="Save image"
                     IsChecked="{Binding IsForceSaveImage, Mode=TwoWay}"
                     VerticalAlignment="Center"
-                    ToolTip.Tip="When enabled, the rendered output is written to tests/local/... on every run — including successful ones (default: only on failure). Use to capture or regenerate gold images." />
+                    ToolTip.Tip="When enabled, the rendered output is written to tests/local/... on every run — including successful ones (default: on failure, and on a pass a threshold rule allowed). Use to capture or regenerate gold images." />
           <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center" IsVisible="{Binding HasRenderDocMode}">
             <TextBlock Text="RenderDoc:" VerticalAlignment="Center" Opacity="0.7" />
             <ComboBox SelectedItem="{Binding RenderDocMode, Mode=TwoWay}"

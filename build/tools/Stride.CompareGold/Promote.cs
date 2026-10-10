@@ -19,7 +19,9 @@ internal static class HeadlessPromote
               your last local run, same as the UI's "Local" source). It can be a gold-images tree
               (<Suite>/<Platform.API>/<Device>/<name>.png), or a CI run to download via gh — given as
               a run id (123), "owner:123" / "owner/repo:123", or a full Actions run URL: a test-gold-gen
-              run's gold-images, else the run's test-artifacts-* (the renders of the failed screenshots).
+              run's gold-images, else the run's test-artifacts-* (the renders the tests saved: failures, and
+              passes a threshold rule allowed; those still match within the rule, so they stay unchanged
+              until the rule is tightened).
               In priority order: if one of its bucket's golds already matches (within thresholds) it's left
               alone; if a higher-priority bucket already matches, the runtime fallback covers it (no new
               gold); otherwise it's written as gold, and replaces the bucket's variants.
@@ -366,7 +368,7 @@ internal static class HeadlessPromote
         Console.WriteLine($"Downloading gold-images from run {runId}{(string.IsNullOrEmpty(repo) ? "" : $" ({repo})")} ...");
         if (CiArtifacts.Download(runId, repo, "gold-images", dir) is { } goldImagesError)
         {
-            // Not a test-gold-gen run: take the renders the run's failed screenshots saved, one subdir per artifact.
+            // Not a test-gold-gen run: take the renders the run's tests saved, one subdir per artifact.
             Console.WriteLine($"No gold-images ({goldImagesError}); downloading test-artifacts-* from run {runId} ...");
             if (CiArtifacts.DownloadMatching(runId, repo, "test-artifacts-*", dir) is { } dlError)
             {
@@ -375,7 +377,7 @@ internal static class HeadlessPromote
             }
             if (!Directory.EnumerateFiles(dir, "*.png", SearchOption.AllDirectories).Any())
             {
-                error = $"run {runId} test-artifacts-* hold no PNGs: every screenshot passed";
+                error = $"run {runId} test-artifacts-* hold no PNGs: every screenshot passed without a threshold rule's help";
                 return null;
             }
             return dir;

@@ -174,6 +174,23 @@ function formatHistogramBrief(buckets, allow) {
   return parts.join(', ');
 }
 
+// Same brief from a sidecar's per-diff counts (keys "0" to "15", then the bands "16-31", "32-63", "64-127",
+// "128+"): exact for any allow range up to 15; a band counts whole when the range covers only part of it.
+function formatDiffsBrief(diffs, allow) {
+  if (!allow || Object.keys(allow).length === 0) return '';
+  const parts = [];
+  for (const [rangeKey, limit] of Object.entries(allow)) {
+    const { min, max } = parseAllowKey(rangeKey);
+    let count = 0;
+    for (const [key, pixels] of Object.entries(diffs)) {
+      const band = parseAllowKey(key);
+      if (band.max >= min && band.min <= max) count += pixels;
+    }
+    parts.push(`[${rangeKey}]: ${count}/${limit}`);
+  }
+  return parts.join(', ');
+}
+
 // Format threshold result as HTML
 function formatThresholdResult(result) {
   if (!result) return '';

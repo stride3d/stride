@@ -67,6 +67,23 @@ async function refreshPlatforms({ autoSelect = false } = {}) {
   sel.value = currentPlatform;
 }
 
+// A sidecar attempt's pixel counts as the 5-element display histogram [0, 1-2, 3-5, 6-15, 16+] that browser
+// recompute also produces, so downstream code is uniform. Sidecars hold `diffs` (pixels per diff "0" to "15",
+// then per band "16-31" … "128+", which all fall in 16+); older ones hold the display buckets themselves
+// (`buckets`).
+function sidecarHistogram(attempt) {
+  if (!attempt.diffs) {
+    const b = attempt.buckets || {};
+    return [b['0']||0, b['1-2']||0, b['3-5']||0, b['6-15']||0, b['16+']||0];
+  }
+  const histogram = [0, 0, 0, 0, 0];
+  for (const [key, count] of Object.entries(attempt.diffs)) {
+    const d = parseInt(key, 10); // a band's lower end: "16-31" parses as 16
+    histogram[d === 0 ? 0 : d <= 2 ? 1 : d <= 5 ? 2 : d <= 15 ? 3 : 4] += count;
+  }
+  return histogram;
+}
+
 function extractMatchedPlatform(path) {
   if (!path) return null;
   const parts = path.split(/[\\/]/);
@@ -118,15 +135,16 @@ async function reload() {
         if (it.hasPng) {
           const matchedAttempt = attempts.find(a => a.gold === sc.matched) || attempts[0];
           if (!matchedAttempt?.goldHash || !it.matchedGoldHash || it.matchedGoldHash !== matchedAttempt.goldHash) continue;
-          // Stale too when the bucket got a gold (a variant, say) the run never compared against.
-          if ((it.bucketGoldHashes || []).some(h => !attempts.some(a => a.goldHash === h))) continue;
+          // Stale too when the bucket has a gold (a variant, say) the run would compare against now. The runtime tries
+          // the bucket's golds in order and stops at the first match: a pass on this lane's gold never saw the later ones.
+          const passedOwn = sc.outcome === 'Pass' && extractMatchedPlatform(sc.matched) === currentPlatform;
+          const matchedIndex = variantIndex((sc.matched || '').split(/[\\/]/).pop());
+          const judging = (it.bucketGolds || []).filter(g => !passedOwn || variantIndex(g.file) <= matchedIndex);
+          if (judging.some(g => !attempts.some(a => a.goldHash === g.hash))) continue;
         }
         const best = attempts.find(a => a.passed) || attempts.find(a => a.kind === 'reference') || attempts[0];
         if (!best) continue;
-        // Buckets is a dict {"0":..., "1-2":..., ...}; flatten to the 5-element histogram
-        // shape that browser recompute also produces, so downstream code is uniform.
-        const b = best.buckets || {};
-        const histogram = [b['0']||0, b['1-2']||0, b['3-5']||0, b['6-15']||0, b['16+']||0];
+        const histogram = sidecarHistogram(best);
         const totalPixels = histogram.reduce((a, b) => a + b, 0);
         const diffPixels = histogram[2] + histogram[3] + histogram[4];
         cellStats[`${src.id}:${suite}:${it.name}`] = {
@@ -135,7 +153,7 @@ async function reload() {
           histogram,
           diffPixels, totalPixels,
           sidecarVerdict: sc.outcome === 'Pass',
-          sidecarBrief: formatHistogramBrief(histogram, best.thresholds),
+          sidecarBrief: best.diffs ? formatDiffsBrief(best.diffs, best.thresholds) : formatHistogramBrief(histogram, best.thresholds),
           sidecarMatched: sc.matched,
           // On Fail outcome `matched` is null; fall back to the best attempt's gold path
           // for the "via X" hint — still the gold the comparison was actually against.
@@ -457,7 +475,7 @@ function buildRowCells(img, key) {
       cellHtml = `<span class="cell pending" data-stats-key="${esc(statsKey)}">…</span>`;
       computeCellStats(src.id, img.suite, img.name);
     }
-    // Passing tests are sidecar-only (no PNG); the cell shows only the verdict text.
+    // Most passing tests are sidecar-only (no PNG); the cell then shows only the verdict text.
     const srcItem = (suiteData[img.suite]?.sourceImages[src.id] || []).find(s => s.name === img.name);
     const hasPng = srcItem?.hasPng !== false;
     if (has && hasPng) {
@@ -531,10 +549,15 @@ function parseGoldRef(ref, name) {
   const bar = body.indexOf('|');
   return bar < 0 ? { plat: body, file: name } : { plat: body.slice(0, bar), file: body.slice(bar + 1) };
 }
+// 1 for <name>.png, N for <name>.variantN.png.
+function variantIndex(file) {
+  const label = variantLabel(file);
+  return label ? parseInt(label.slice('variant'.length), 10) : 1;
+}
 // "variant2" for <name>.variant2.png, '' for <name>.png.
 function variantLabel(file) {
   // Same rule as GoldVariant: N >= 2, no leading zeros.
-  const m = /\.(variant(?:[2-9]|[1-9]\d{1,8}))\.png$/i.exec(file || '');
+  const m = /\.(variant(?:[2-9]|[1-9][0-9]{1,8}))\.png$/i.exec(file || '');
   return m ? m[1] : '';
 }
 
@@ -847,7 +870,7 @@ function resetAltGoldState() {
 function computeCellStats(srcId, suite, name) {
   const key = `${srcId}:${suite}:${name}`;
   if (cellStats[key] || statsQueue.has(key)) return;
-  // Skip when the source has no PNG (sidecar-only passing test); browser-side
+  // Skip when the source has no PNG (a sidecar-only passing test); browser-side
   // recompute would 404 every render and spin forever.
   const item = (suiteData[suite]?.sourceImages[srcId] || []).find(s => s.name === name);
   if (item && item.hasPng === false) return;
