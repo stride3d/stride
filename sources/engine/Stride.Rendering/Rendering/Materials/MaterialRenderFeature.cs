@@ -153,8 +153,8 @@ namespace Stride.Rendering.Materials
                 var materialInfo = renderMesh.MaterialInfo;
 
                 // Material use first 16 bits
-                var materialHashCode = material != null ? ((uint)material.GetHashCode() & 0x0FFF) | ((uint)material.PassIndex << 12) : 0;
-                renderObject.StateSortKey = (renderObject.StateSortKey & 0x0000FFFF) | (materialHashCode << 16);
+                var materialSortKey = material != null ? (material.SortKey & 0x0FFF) | ((uint)material.PassIndex << 12) : 0;
+                renderObject.StateSortKey = (renderObject.StateSortKey & 0x0000FFFF) | (materialSortKey << 16);
 
                 ref var tessellationState = ref tessellationStates[staticObjectNode];
 
