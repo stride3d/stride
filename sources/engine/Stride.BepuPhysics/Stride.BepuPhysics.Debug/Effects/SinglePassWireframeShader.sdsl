@@ -334,8 +334,11 @@
         float4 model = ModelIds.Load(int3(streams.ShadingPosition.xy, 0));
         float own = isOwnModel(model) * CompareToModel;
         float hidden = own * step(-model.y * (1 + 1e-4), -streams.PositionVS.z);
-        // Everything over its own model, so a line lying on it is drawn even where the depth test missed it by a hair
-        if (ThroughOwnModel * (1 - own) > 0.5)
+        // Behind the back face of the part it shows through, a line is behind that part rather than in it
+        float inFirstPart = step(-streams.PositionVS.z, -model.w + Threshold + model.z);
+        // Everything over its own model up to the back of that part, so a line lying on it is drawn even where the depth test
+        // missed it by a hair, while a farther part of a concave model stays hidden by the nearer one
+        if (ThroughOwnModel * (1 - own * inFirstPart) > 0.5)
             discard;
 
         // Only where their result is used: the outline search alone reads up to 384 texels
@@ -347,9 +350,7 @@
         float outsideBeyondOutline = 0;
         if (Classify * CompareToModel * (1 - own) > 0.5)
             outsideBeyondOutline = 1 - ownModelNearby(streams.ShadingPosition.xy, -streams.PositionVS.z);
-        // Behind the back face of the part it shows through, a line is behind that part rather than in it
-        float inFirstPart = step(-streams.PositionVS.z, -model.w + Threshold + model.z);
-        float inside = Classify * hidden * inFirstPart * beyond;
+        float inside =Classify * hidden * inFirstPart * beyond;
         float outsideOver = Classify * own * (1 - hidden) * beyond;
         float3 color = lerp(LineColor, InsideColor, inside);
         color = lerp(color, OutsideColor, max(outsideOver, outsideBeyondOutline));

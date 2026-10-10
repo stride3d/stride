@@ -46,6 +46,56 @@ namespace Stride.BepuPhysics.Tests
             Assert.True(sameColored == 0, $"{sameColored} pixels of a 0.5 collider in its 0.5 model are colored as inside");
         }
 
+        [Fact]
+        public static void ConcaveModelHidesItsFartherLines()
+        {
+            // A small box behind a larger one, both parts of one collidable and of its visual model: the near box hides the far one
+            var (withLines, withoutLines) = Render(game =>
+            {
+                var far = new Entity { new ModelComponent(new CubeProceduralModel { Size = new Vector3(0.3f) }.Generate(game.Services)) };
+                far.Transform.Position = new Vector3(0, 0, -1.5f);
+                var near = new Entity
+                {
+                    new ModelComponent(new CubeProceduralModel { Size = new Vector3(0.6f) }.Generate(game.Services)),
+                    new StaticComponent
+                    {
+                        Collider = new CompoundCollider
+                        {
+                            Colliders =
+                            {
+                                new BoxCollider { Size = new Vector3(0.6f) },
+                                new BoxCollider { Size = new Vector3(0.3f), PositionLocal = new Vector3(0, 0, -1.5f) },
+                            },
+                        },
+                    },
+                };
+                near.AddChild(far);
+                return near;
+            }, cameraDistance: 3f);
+            // The far box's outline falls well inside the near box's front face, away from that face's own edges
+            var changed = CountChanged(withLines, withoutLines, withLines.Height / 12);
+            Assert.True(changed == 0, $"{changed} pixels show lines of the far box through the near one");
+        }
+
+        /// <summary> Pixels within <paramref name="radius"/> of the image center whose color differs between both frames </summary>
+        private static int CountChanged(Frame a, Frame b, int radius)
+        {
+            var count = 0;
+            int cx = a.Width / 2, cy = a.Height / 2;
+            for (int y = cy - radius; y < cy + radius; y++)
+            {
+                for (int x = cx - radius; x < cx + radius; x++)
+                {
+                    if ((x - cx) * (x - cx) + (y - cy) * (y - cy) >= radius * radius)
+                        continue;
+                    Color p = a[x, y], q = b[x, y];
+                    if (Math.Abs(p.R - q.R) + Math.Abs(p.G - q.G) + Math.Abs(p.B - q.B) > 30)
+                        count++;
+                }
+            }
+            return count;
+        }
+
         private static int CountInsideColor(Frame image)
         {
             var count = 0;
@@ -73,7 +123,16 @@ namespace Stride.BepuPhysics.Tests
         }
 
         /// <summary> A sphere model and a sphere collider at the origin, rendered with and without the collider's wireframe </summary>
+        // 0.5 m sphere seen from 1.5 m: it spans about half the image height
         private static (Frame WithLines, Frame WithoutLines) Render(float colliderRadius, float modelRadius)
+            => Render(game => new Entity
+            {
+                new ModelComponent(new SphereProceduralModel { Radius = modelRadius }.Generate(game.Services)),
+                new StaticComponent { Collider = new CompoundCollider { Colliders = { new SphereCollider { Radius = colliderRadius } } } },
+            }, cameraDistance: 1.5f);
+
+        /// <summary> The collidable <paramref name="create"/> makes, at the origin, rendered with and without its wireframe </summary>
+        private static (Frame WithLines, Frame WithoutLines) Render(Func<Game, Entity> create, float cameraDistance)
         {
             Frame? withLines = null, withoutLines = null;
             var game = new GameTest();
@@ -86,19 +145,14 @@ namespace Stride.BepuPhysics.Tests
                 game.SceneSystem.GraphicsCompositor = compositor;
 
                 var debug = new DebugRenderComponent { Visible = true };
-                var sphere = new Entity
-                {
-                    new ModelComponent(new SphereProceduralModel { Radius = modelRadius }.Generate(game.Services)),
-                    new StaticComponent { Collider = new CompoundCollider { Colliders = { new SphereCollider { Radius = colliderRadius } } } },
-                    debug,
-                };
-                // 0.5 m sphere seen from 1.5 m: it spans about half the image height
+                var collidable = create(game);
+                collidable.Add(debug);
                 var camera = new Entity { new CameraComponent { Slot = compositor.Cameras[0].ToSlotId() } };
-                camera.Transform.Position = new Vector3(0, 0, 1.5f);
+                camera.Transform.Position = new Vector3(0, 0, cameraDistance);
 
                 var scene = game.SceneSystem.SceneInstance.RootScene;
                 scene.Entities.Add(camera);
-                scene.Entities.Add(sphere);
+                scene.Entities.Add(collidable);
 
                 for (int i = 0; i < 10; i++) await game.Script.NextFrame();
                 withLines = Capture(game);
