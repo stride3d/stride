@@ -9,11 +9,4 @@
 //   device   - "SwiftShader", "WARP", GPU name (optional, omit = any)
 //   allow    - max allowed pixel counts per diff range (e.g. "1-2": 500, "16+": 2)
 [
-  {
-    // Jittered ray-marching in PostEffectBoundingRay samples a hash of view-space
-    // position; a handful of pixels land near integer hash boundaries and flip
-    // run-to-run, most visibly on Lavapipe.
-    "image": "TestLightShafts.png",
-    "allow": { "3+": 20 }
-  }
 ]
