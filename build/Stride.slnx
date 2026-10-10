@@ -97,6 +97,9 @@
     <Project Path="../sources/engine/Stride.SpriteStudio.Assets/Stride.SpriteStudio.Assets.csproj" />
     <Project Path="../sources/engine/Stride.SpriteStudio.Editor/Stride.SpriteStudio.Editor.csproj" />
     <Project Path="../sources/engine/Stride.UI/Stride.UI.csproj" />
+    <Project Path="../sources/engine/Stride.UI.Assets/Stride.UI.Assets.csproj" />
+    <Project Path="../sources/engine/Stride.UI.Editor/Stride.UI.Editor.csproj" />
+    <Project Path="../sources/engine/Stride.UI.Editor.Wpf/Stride.UI.Editor.Wpf.csproj" />
     <Project Path="../sources/engine/Stride.Video/Stride.Video.csproj" />
     <Project Path="../sources/engine/Stride.Video.Assets/Stride.Video.Assets.csproj" />
     <Project Path="../sources/engine/Stride.Video.Editor/Stride.Video.Editor.csproj" />

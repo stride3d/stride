@@ -159,15 +159,5 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos {
                 return ((byte[])(obj));
             }
         }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] UIGizmo {
-            get {
-                object obj = ResourceManager.GetObject("UIGizmo", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
     }
 }

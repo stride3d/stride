@@ -14,6 +14,8 @@ public static class AssetQuantumRegistry
     private static readonly Dictionary<Type, AssetPropertyGraphDefinition> NodeGraphDefinitions = [];
     private static readonly Dictionary<Type, Type> GenericNodeGraphDefinitionTypes = [];
     private static readonly HashSet<Assembly> RegisteredAssemblies = [];
+    // Assemblies register and unregister while graphs are built on other threads
+    private static readonly object RegistryLock = new();
 
     static AssetQuantumRegistry()
     {
@@ -26,9 +28,46 @@ public static class AssetQuantumRegistry
             if (e.Categories.Contains(AssemblyCommonCategories.Assets))
                 RegisterAssembly(e.Assembly);
         };
+        AssemblyRegistry.AssemblyUnregistered += (_, e) =>
+        {
+            if (e.Categories.Contains(AssemblyCommonCategories.Assets))
+                UnregisterAssembly(e.Assembly);
+        };
+    }
+
+    /// <summary>
+    /// Forgets the graph types and definitions of <paramref name="assembly"/> and those cached for its asset types (an
+    /// unloaded plugin assembly; a reload registers the new types).
+    /// </summary>
+    public static void UnregisterAssembly(Assembly assembly)
+    {
+        lock (RegistryLock)
+        {
+            if (!RegisteredAssemblies.Remove(assembly))
+                return;
+
+            RemoveAll(NodeGraphTypes, x => IsOf(x.Key) || IsOf(x.Value));
+            RemoveAll(NodeGraphDefinitions, x => IsOf(x.Key) || IsOf(x.Value.GetType()));
+            RemoveAll(GenericNodeGraphDefinitionTypes, x => IsOf(x.Key) || IsOf(x.Value));
+        }
+
+        // A generic type built with a type of the assembly counts as one of its types
+        bool IsOf(Type type) => type.Assembly == assembly || (type.IsGenericType && type.GetGenericArguments().Any(IsOf));
+
+        static void RemoveAll<TValue>(Dictionary<Type, TValue> dictionary, Func<KeyValuePair<Type, TValue>, bool> predicate)
+        {
+            foreach (var entry in dictionary.Where(predicate).ToList())
+                dictionary.Remove(entry.Key);
+        }
     }
 
     public static void RegisterAssembly(Assembly assembly)
+    {
+        lock (RegistryLock)
+            RegisterAssemblyLocked(assembly);
+    }
+
+    private static void RegisterAssemblyLocked(Assembly assembly)
     {
         if (!RegisteredAssemblies.Add(assembly))
             return;
@@ -88,17 +127,24 @@ public static class AssetQuantumRegistry
 
     public static AssetPropertyGraph ConstructPropertyGraph(AssetPropertyGraphContainer container, AssetItem assetItem, ILogger? logger)
     {
-        var assetType = assetItem.Asset.GetType();
-        while (assetType is not null)
+        var propertyGraphType = FindPropertyGraphType(assetItem.Asset.GetType())
+            ?? throw new InvalidOperationException("No AssetPropertyGraph type matching the given asset type has been found");
+        return (AssetPropertyGraph)Activator.CreateInstance(propertyGraphType, container, assetItem, logger)!;
+    }
+
+    private static Type? FindPropertyGraphType(Type? assetType)
+    {
+        lock (RegistryLock)
         {
-            var typeToTest = assetType.IsGenericType ? assetType.GetGenericTypeDefinition() : assetType;
-            if (NodeGraphTypes.TryGetValue(typeToTest, out var propertyGraphType))
+            while (assetType is not null)
             {
-                return (AssetPropertyGraph)Activator.CreateInstance(propertyGraphType, container, assetItem, logger)!;
+                var typeToTest = assetType.IsGenericType ? assetType.GetGenericTypeDefinition() : assetType;
+                if (NodeGraphTypes.TryGetValue(typeToTest, out var propertyGraphType))
+                    return propertyGraphType;
+                assetType = assetType.BaseType;
             }
-            assetType = assetType.BaseType;
+            return null;
         }
-        throw new InvalidOperationException("No AssetPropertyGraph type matching the given asset type has been found");
     }
 
     public static AssetPropertyGraphDefinition GetDefinition(Type assetType)
@@ -106,6 +152,12 @@ public static class AssetQuantumRegistry
         if (!typeof(Asset).IsAssignableFrom(assetType))
             throw new ArgumentException($"The type {assetType.Name} is not an asset type");
 
+        lock (RegistryLock)
+            return GetDefinitionLocked(assetType);
+    }
+
+    private static AssetPropertyGraphDefinition GetDefinitionLocked(Type assetType)
+    {
         var currentType = assetType;
         while (currentType is not null && currentType != typeof(Asset))
         {

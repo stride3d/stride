@@ -7,7 +7,6 @@ using Stride.Assets.Materials;
 using Stride.Assets.Scripts;
 using Stride.Assets.Skyboxes;
 using Stride.Assets.Textures;
-using Stride.Assets.UI;
 
 namespace Stride.Assets
 {
@@ -40,10 +39,6 @@ namespace Stride.Assets
     }
 
     public class DefaultRenderTextureFactory : DefaultAssetFactory<RenderTextureAsset>
-    {
-    }
-
-    public class DefaultUILibraryFactory : DefaultAssetFactory<UILibraryAsset>
     {
     }
 
