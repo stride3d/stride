@@ -1,8 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using System.Windows.Forms;
 using Stride.Core.Mathematics;
+using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Assets.Presentation.AssetEditors.UIEditor.Game;
 using Stride.Assets.Presentation.ViewModel;
 using Stride.UI;
@@ -40,33 +40,33 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Adorners
             }
         }
 
-        public Cursor GetCursor()
+        public EditorGameCursor GetCursor()
         {
-            Cursor cursor;
+            EditorGameCursor cursor;
             switch (ResizingDirection)
             {
                 case ResizingDirection.Center:
-                    cursor = Cursors.SizeAll;
+                    cursor = EditorGameCursor.SizeAll;
                     break;
 
                 case ResizingDirection.Left:
                 case ResizingDirection.Right:
-                    cursor = Cursors.SizeWE;
+                    cursor = EditorGameCursor.SizeWE;
                     break;
 
                 case ResizingDirection.Top:
                 case ResizingDirection.Bottom:
-                    cursor = Cursors.SizeNS;
+                    cursor = EditorGameCursor.SizeNS;
                     break;
 
                 case ResizingDirection.TopLeft:
                 case ResizingDirection.BottomRight:
-                    cursor = Cursors.SizeNWSE;
+                    cursor = EditorGameCursor.SizeNWSE;
                     break;
 
                 case ResizingDirection.TopRight:
                 case ResizingDirection.BottomLeft:
-                    cursor = Cursors.SizeNESW;
+                    cursor = EditorGameCursor.SizeNESW;
                     break;
 
                 default:
@@ -152,7 +152,7 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.Adorners
             if (isDragging)
                 return;
 
-            Service.Controller.ChangeCursor(e.NewValue != MouseOverState.MouseOverNone ? GetCursor() : null);
+            Service.Controller.ChangeCursor(e.NewValue != MouseOverState.MouseOverNone ? GetCursor() : EditorGameCursor.Default);
         }
     }
 }

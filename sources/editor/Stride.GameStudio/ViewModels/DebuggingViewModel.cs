@@ -262,6 +262,38 @@ namespace Stride.GameStudio.ViewModels
             public PackageViewModel Package;
         }
 
+        /// <summary>
+        /// The changed assemblies plus the loaded assemblies that depend on them, in dependency order.
+        /// </summary>
+        private List<ModifiedAssembly> ExpandWithDependents(Dictionary<PackageLoadedAssembly, ModifiedAssembly> changedAssemblies)
+        {
+            if (projectWatcher == null)
+                return changedAssemblies.Values.ToList();
+
+            var result = new List<ModifiedAssembly>();
+            var expanded = new HashSet<PackageLoadedAssembly>();
+            foreach (var trackedAssembly in projectWatcher.GetAssembliesToReload(changedAssemblies.Keys))
+            {
+                expanded.Add(trackedAssembly.LoadedAssembly);
+                result.Add(changedAssemblies.TryGetValue(trackedAssembly.LoadedAssembly, out var changedAssembly)
+                    ? changedAssembly
+                    : new ModifiedAssembly
+                    {
+                        LoadedAssembly = trackedAssembly.LoadedAssembly,
+                        ChangeType = AssemblyChangeType.Dependency,
+                        Project = trackedAssembly.Project,
+                    });
+            }
+
+            // An assembly the watcher doesn't track is reloaded on its own, before the others.
+            foreach (var changedAssembly in changedAssemblies)
+            {
+                if (!expanded.Contains(changedAssembly.Key))
+                    result.Insert(0, changedAssembly.Value);
+            }
+            return result;
+        }
+
         private async Task ReloadAssemblies()
         {
             trackAssemblyChanges = false;
@@ -331,22 +363,23 @@ namespace Stride.GameStudio.ViewModels
                 projectWatcher.RefreshLoadedAssembly(package);
             }
 
-            foreach (var modifiedAssembly in modifiedAssembliesCopy)
+            foreach (var modifiedAssembly in ExpandWithDependents(modifiedAssembliesCopy))
             {
+                var loadedAssembly = modifiedAssembly.LoadedAssembly;
                 // If the assembly binary has changed, just reload
-                if (modifiedAssembly.Value.ChangeType == AssemblyChangeType.Binary)
+                if (modifiedAssembly.ChangeType == AssemblyChangeType.Binary)
                 {
-                    assembliesToReload.Add(modifiedAssembly.Value);
+                    assembliesToReload.Add(modifiedAssembly);
                 }
-                else if (modifiedAssembly.Key.ProjectReference != null)
+                else if (loadedAssembly.ProjectReference != null)
                 {
                     // If source code has changed, rebuild. If the build is successfull, reload the assembly.
                     // Otherwise add the assembly back to the list of modified ones.
-                    var result = await BuildProject(modifiedAssembly.Key.ProjectReference.Location);
+                    var result = await BuildProject(loadedAssembly.ProjectReference.Location);
 
                     if (result.IsSuccessful)
                     {
-                        var assemblyToReload = modifiedAssembly.Value;
+                        var assemblyToReload = modifiedAssembly;
                         assemblyToReload.LoadedAssemblyPath = result.AssemblyPath;
                         assembliesToReload.Add(assemblyToReload);
 
@@ -356,7 +389,7 @@ namespace Stride.GameStudio.ViewModels
                     }
                     else
                     {
-                        modifiedAssemblies[modifiedAssembly.Key] = modifiedAssembly.Value;
+                        modifiedAssemblies[loadedAssembly] = modifiedAssembly;
                     }
                 }
             }

@@ -415,6 +415,56 @@ namespace Stride.Core.Assets.Tests
             }
         }
 
+        [Fact]
+        public void TestAssetOfUnknownTypeLoadsAsUnloadable()
+        {
+            PackageSessionPublicHelper.FindAndSetMSBuildVersion();
+
+            var dirPath = Path.Combine(DirectoryTestBase, "TestAssetOfUnknownTypeLoadsAsUnloadable");
+            if (Directory.Exists(dirPath))
+                Directory.Delete(dirPath, true);
+            Directory.CreateDirectory(dirPath);
+
+            var packagePath = Path.Combine(dirPath, "MyPkg.sdpkg");
+            var package = new Package { FullPath = packagePath };
+            package.AssetFolders.Clear();
+            package.AssetFolders.Add(new AssetFolder("."));
+            AssetFileSerializer.Save(packagePath, package, null);
+
+            // An asset of a type no loaded assembly defines (a plugin missing or not built)
+            var assetContent = "!MyPluginAsset,MyPlugin" + Environment.NewLine
+                + "Id: 1b4f1e3a-6a1b-4b6e-9f0d-2c3d4e5f6071" + Environment.NewLine
+                + "Speed: 3.0" + Environment.NewLine;
+            File.WriteAllText(Path.Combine(dirPath, "Thing.sdmyplugin"), assetContent);
+            // Not an asset at all: no Yaml type tag, so it stays out of the session
+            File.WriteAllText(Path.Combine(dirPath, "Junk.sdjunk"), "this is not yaml");
+
+            // The editor keeps it, so the user sees the asset and its content is preserved
+            var editorParameters = PackageLoadParameters.Default();
+            editorParameters.LoadAssetsOfUnknownType = true;
+            var editorResult = new PackageSessionResult();
+            PackageSession.Load(packagePath, editorResult, editorParameters);
+            using (var session = editorResult.Session)
+            {
+                var loadedPackage = Assert.Single(session.Packages);
+                var messages = string.Join(Environment.NewLine, editorResult.Messages.Select(x => x.ToString()));
+                Assert.True(loadedPackage.Assets.Count == 1, $"Expected the unloadable asset, got {loadedPackage.Assets.Count}:{Environment.NewLine}{messages}");
+                var assetItem = loadedPackage.Assets.First();
+                Assert.Equal("Thing", assetItem.Location.GetFileNameWithoutExtension());
+                var unloadable = Assert.IsAssignableFrom<Stride.Core.Yaml.IUnloadable>(assetItem.Asset);
+                Assert.Equal("MyPluginAsset", unloadable.TypeName);
+                Assert.Equal("MyPlugin", unloadable.AssemblyName);
+            }
+
+            // Every other host (the asset compiler) leaves it out
+            var compilerResult = new PackageSessionResult();
+            PackageSession.Load(packagePath, compilerResult, PackageLoadParameters.Default());
+            using (var session = compilerResult.Session)
+            {
+                Assert.Empty(Assert.Single(session.Packages).Assets);
+            }
+        }
+
         private void AssertResult(LoggerResult log)
         {
             foreach (var logMessage in log.Messages)

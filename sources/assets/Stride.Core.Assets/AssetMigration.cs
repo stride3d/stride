@@ -50,6 +50,11 @@ public static class AssetMigration
             var tagTypeRegistry = AssetYamlSerializer.Default.GetSerializerSettings().TagTypeRegistry;
             assetType = tagTypeRegistry.TypeFromTag(mappingStart.Tag, out var typeAliased);
 
+            // The type is not loaded (the package providing it is missing or did not build): it declares no version
+            // and no upgrader, so there is nothing to migrate. The asset loads as an unloadable one, file untouched.
+            if (assetType is null)
+                return false;
+
             var expectedVersions = AssetRegistry.GetCurrentFormatVersions(assetType);
             expectedVersion = expectedVersions?.FirstOrDefault(x => x.Key == dependencyName).Value ?? PackageVersion.Zero;
 

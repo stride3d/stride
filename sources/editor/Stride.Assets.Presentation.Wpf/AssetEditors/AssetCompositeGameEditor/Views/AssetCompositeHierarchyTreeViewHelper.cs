@@ -12,7 +12,7 @@ namespace Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.Views
     using TreeView = Stride.Core.Presentation.Controls.TreeView;
     using TreeViewItem = Stride.Core.Presentation.Controls.TreeViewItem;
 
-    internal static class AssetCompositeHierarchyTreeViewHelper
+    public static class AssetCompositeHierarchyTreeViewHelper
     {
         static AssetCompositeHierarchyTreeViewHelper()
         {

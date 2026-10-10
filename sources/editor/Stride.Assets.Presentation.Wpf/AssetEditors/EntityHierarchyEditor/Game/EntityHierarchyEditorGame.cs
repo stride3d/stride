@@ -14,6 +14,7 @@ using Stride.Core.Yaml;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
 using Stride.Assets.Presentation.AssetEditors.Gizmos;
 using Stride.Assets.Presentation.SceneEditor;
+using Stride.Assets.Rendering;
 using Stride.Editor.EditorGame.Game;
 using Stride.Editor.Extensions;
 using Stride.Engine;
@@ -130,8 +131,12 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
         /// This method must be called only once.
         /// </remarks>
         /// <seealso cref="EnsureContentScene"/>
-        internal void InitializeContentScene()
+        /// <exception cref="InvalidOperationException">The content scene is already initialized.</exception>
+        public void InitializeContentScene()
         {
+            if (ContentScene != null)
+                throw new InvalidOperationException($"The {nameof(ContentScene)} is already initialized.");
+
             var contentScene = new Scene();
             ContentScene = contentScene;
             // Setup the scene for the game
@@ -262,6 +267,11 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                     }
                 }
             });
+
+            // The render features the loaded packages bring (IRenderFeatureProvider), as in previews and thumbnails
+            var opaqueStage = defaultGraphicsCompositor.RenderStages.First(x => x.Name == "Opaque");
+            var transparentStage = defaultGraphicsCompositor.RenderStages.First(x => x.Name == "Transparent");
+            RenderFeatureProviders.AddPackageRenderFeatures(defaultGraphicsCompositor, opaqueStage, transparentStage);
 
             // Make the game switch to this graphics compositor
             UpdateGraphicsCompositor(defaultGraphicsCompositor);

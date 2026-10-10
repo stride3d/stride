@@ -188,6 +188,27 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
     public List<AssetAssembly> HostAssemblies { get; } = [];
 
     /// <summary>
+    /// The names of the packages this one binds to when its assembly loads: its dependencies, without the companions
+    /// a host loads on its behalf, since a companion references this package and not the other way round.
+    /// </summary>
+    public IEnumerable<string> LoadDependencyNames
+    {
+        get
+        {
+            if (Container is not SolutionProject project)
+                yield break;
+
+            foreach (var name in project.FlattenedDependencies.Select(x => x.Name).Concat(project.DirectDependencies.Select(x => x.Name)))
+            {
+                if (CompanionPackages.Any(x => string.Equals(x.Name, name, StringComparison.OrdinalIgnoreCase)))
+                    continue;
+
+                yield return name;
+            }
+        }
+    }
+
+    /// <summary>
     /// Asset URL namespace: unset = the package name (the default), any other value = that custom
     /// prefix. Packed sdpkgs store the resolved name.
     /// </summary>
@@ -821,7 +842,7 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
             // Load assets
             if (loadParameters.AutoLoadTemporaryAssets)
             {
-                LoadTemporaryAssets(log, loadParameters.AssetFiles, loadParameters.TemporaryAssetsInMsbuild, loadParameters.TemporaryAssetFilter, loadParameters.CancelToken ?? default);
+                LoadTemporaryAssets(log, loadParameters.AssetFiles, loadParameters.TemporaryAssetsInMsbuild, loadParameters.TemporaryAssetFilter, loadParameters.CancelToken ?? default, loadParameters.LoadAssetsOfUnknownType);
             }
 
             // Convert UPath to absolute
@@ -924,7 +945,7 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
     /// <exception cref="InvalidOperationException">Package RootDirectory is null
     /// or
     /// Package RootDirectory [{0}] does not exist.ToFormat(RootDirectory)</exception>
-    public void LoadTemporaryAssets(ILogger log, List<PackageLoadingAssetFile>? assetFiles = null, bool listAssetsInMsbuild = true, Func<PackageLoadingAssetFile, bool>? filterFunc = null, CancellationToken cancellationToken = default)
+    public void LoadTemporaryAssets(ILogger log, List<PackageLoadingAssetFile>? assetFiles = null, bool listAssetsInMsbuild = true, Func<PackageLoadingAssetFile, bool>? filterFunc = null, CancellationToken cancellationToken = default, bool listAssetsOfUnknownType = false)
     {
         ArgumentNullException.ThrowIfNull(log);
 
@@ -941,7 +962,7 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
         // List all package files on disk
         if (assetFiles is null)
         {
-            assetFiles = ListAssetFiles(this, listAssetsInMsbuild, false);
+            assetFiles = ListAssetFiles(this, listAssetsInMsbuild, false, listAssetsOfUnknownType);
             // Sort them by size (to improve concurrency during load)
             assetFiles.Sort(PackageLoadingAssetFile.FileSizeComparer.Default);
         }
@@ -1146,7 +1167,8 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
                     && CanReuseLoadedAssembly(x));
                 if (loadedProjectAssembly is not null)
                 {
-                    LoadedAssemblies.Add(new PackageLoadedAssembly(projectReference, loadedProjectAssembly.Location) { Assembly = loadedProjectAssembly });
+                    LoadedAssemblies.Add(new PackageLoadedAssembly(projectReference, GetAssemblyPath(loadedProjectAssembly)) { Assembly = loadedProjectAssembly });
+                    RegisterContainerAssembly(loadedProjectAssembly);
                     return;
                 }
 
@@ -1177,7 +1199,7 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
 
             // An assembly the host ships is shared even before anything used it: a second copy loaded from the
             // package would register its types and serializers twice once a dependent binds to the host's
-            assembly ??= TryLoadHostAssembly(Path.GetFileNameWithoutExtension(assemblyPath));
+            assembly ??= AssemblyContainer.TryLoadHostAssembly(Path.GetFileNameWithoutExtension(assemblyPath));
 
             // Otherwise, load assembly from its file
             if (assembly is null)
@@ -1188,20 +1210,23 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
                 {
                     log.Error($"Unable to load assembly reference [{assemblyPath}]");
                 }
-
-                // Note: we should investigate so that this can also be done for Stride core assemblies (right now they use module initializers)
-                if (assembly is not null)
-                {
-                    // Register assembly in the registry
-                    AssemblyRegistry.Register(assembly, AssemblyCommonCategories.Assets);
-                }
             }
+
+            if (assembly is not null)
+                RegisterContainerAssembly(assembly);
 
             loadedAssembly.Assembly = assembly;
         }
         catch (Exception ex)
         {
             log.Error($"Unexpected error while loading assembly reference [{assemblyPath}]", ex);
+        }
+
+        // Also called when a dependent loaded the assembly first; host assemblies register themselves.
+        void RegisterContainerAssembly(System.Reflection.Assembly assembly)
+        {
+            if (assemblyContainer.LoadedAssemblies.Any(x => x.Assembly == assembly))
+                AssemblyRegistry.Register(assembly, AssemblyCommonCategories.Assets);
         }
 
         // Reuse assemblies from the default load context or still live in this container. Container loads
@@ -1211,27 +1236,15 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
             => System.Runtime.Loader.AssemblyLoadContext.GetLoadContext(candidate) == System.Runtime.Loader.AssemblyLoadContext.Default
                 || assemblyContainer.LoadedAssemblies.Any(x => x.Assembly == candidate);
 
-        static System.Reflection.Assembly? TryLoadHostAssembly(string assemblyName)
+        // A container loads from bytes (empty Location), so ask the container first.
+        string GetAssemblyPath(System.Reflection.Assembly loaded)
         {
-            return HostAssemblyNames.Contains(assemblyName)
-                ? System.Runtime.Loader.AssemblyLoadContext.Default.LoadFromAssemblyName(new System.Reflection.AssemblyName(assemblyName))
-                : null;
+            var containerPath = assemblyContainer.LoadedAssemblies.FirstOrDefault(x => x.Assembly == loaded)?.Path;
+            if (!string.IsNullOrEmpty(containerPath))
+                return containerPath;
+            return !string.IsNullOrEmpty(loaded.Location) ? loaded.Location : assemblyPath;
         }
     }
-
-    // The assemblies the host resolves on its own (framework and application), by simple name
-    private static readonly Lazy<HashSet<string>> hostAssemblyNames = new(() =>
-    {
-        var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        if (AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") is string trustedAssemblies)
-        {
-            foreach (var path in trustedAssemblies.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries))
-                names.Add(Path.GetFileNameWithoutExtension(path));
-        }
-        return names;
-    });
-
-    private static HashSet<string> HostAssemblyNames => hostAssemblyNames.Value;
 
     /// <summary>
     /// In case <see cref="AssetItem.SourceFolder"/> was null, generates it.
@@ -1320,7 +1333,9 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
         return existingAssetFolders;
     }
 
-    public static List<PackageLoadingAssetFile> ListAssetFiles(Package package, bool listAssetsInMsbuild, bool listUnregisteredAssets)
+    /// <param name="listUnregisteredAssets">Every <c>.sd*</c> file is an asset file, whatever its type (packing).</param>
+    /// <param name="listAssetsOfUnknownType">Also list <c>.sd*</c> files starting with a Yaml type tag whose type is not loaded.</param>
+    public static List<PackageLoadingAssetFile> ListAssetFiles(Package package, bool listAssetsInMsbuild, bool listUnregisteredAssets, bool listAssetsOfUnknownType = false)
     {
         var listFiles = new List<PackageLoadingAssetFile>();
 
@@ -1368,9 +1383,11 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
                     }
 
                     //project source code assets follow the csproj pipeline
+                    var isStrideExtension = ext?.StartsWith(".sd", StringComparison.InvariantCultureIgnoreCase) ?? false;
                     var isAsset = listUnregisteredAssets
-                        ? ext?.StartsWith(".sd", StringComparison.InvariantCultureIgnoreCase) ?? false
-                        : AssetRegistry.IsAssetFileExtension(ext);
+                        ? isStrideExtension
+                        : AssetRegistry.IsAssetFileExtension(ext)
+                          || (listAssetsOfUnknownType && isStrideExtension && StartsWithYamlTag(filePath.FullName));
                     if (!isAsset || AssetRegistry.IsProjectAssetFileExtension(ext))
                     {
                         continue;
@@ -1389,6 +1406,32 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
         }
 
         return listFiles;
+    }
+
+    /// <summary>
+    /// Whether the file starts with a Yaml type tag (<c>!SceneAsset</c>), the first line of every asset file.
+    /// </summary>
+    private static bool StartsWithYamlTag(string filePath)
+    {
+        try
+        {
+            using var reader = new StreamReader(filePath);
+            string? line;
+            while ((line = reader.ReadLine()) is not null)
+            {
+                if (line.Length == 0)
+                    continue;
+                return line[0] == '!';
+            }
+        }
+        catch (IOException)
+        {
+            // Not readable: leave it alone
+        }
+        catch (UnauthorizedAccessException)
+        {
+        }
+        return false;
     }
 
     public static List<(UFile FilePath, UFile? Link)> FindAssetsInProject(string projectFullPath, out string? nameSpace)

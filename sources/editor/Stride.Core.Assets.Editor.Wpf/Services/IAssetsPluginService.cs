@@ -32,4 +32,9 @@ public interface IAssetsPluginService
     Type? GetPreviewViewType(Type previewType);
 
     void RegisterSession(SessionViewModel session, ILogger logger);
+
+    /// <summary>
+    /// Initializes the registered plugins for the editor of <paramref name="session"/>.
+    /// </summary>
+    void InitializeSession(SessionViewModel session);
 }

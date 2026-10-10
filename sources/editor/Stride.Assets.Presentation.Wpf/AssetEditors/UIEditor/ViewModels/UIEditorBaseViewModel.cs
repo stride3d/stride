@@ -19,7 +19,6 @@ using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Commands;
-using Stride.Core.Presentation.Interop;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.Windows;
 using Stride.Core.Quantum;
@@ -398,7 +397,7 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.ViewModels
             if (asRoot)
             {
                 return PasteAsRootMonitor.Get(() =>
-                        copyPasteService.CanPaste(SafeClipboard.GetText(), Asset.AssetType, typeof(AssetCompositeHierarchyData<UIElementDesign, UIElement>), typeof(AssetCompositeHierarchyData<UIElementDesign, UIElement>)));
+                        copyPasteService.CanPaste(ClipboardText, Asset.AssetType, typeof(AssetCompositeHierarchyData<UIElementDesign, UIElement>), typeof(AssetCompositeHierarchyData<UIElementDesign, UIElement>)));
             }
 
             var canAddOrInsert = SelectedItems.All(element =>
@@ -413,7 +412,7 @@ namespace Stride.Assets.Presentation.AssetEditors.UIEditor.ViewModels
             if (!canAddOrInsert)
                 return false;
 
-            return PasteMonitor.Get(() => copyPasteService.CanPaste(SafeClipboard.GetText(), Asset.AssetType, typeof(UIElement), typeof(AssetCompositeHierarchyData<UIElementDesign, UIElement>)));
+            return PasteMonitor.Get(() => copyPasteService.CanPaste(ClipboardText, Asset.AssetType, typeof(UIElement), typeof(AssetCompositeHierarchyData<UIElementDesign, UIElement>)));
         }
 
         /// <inheritdoc />

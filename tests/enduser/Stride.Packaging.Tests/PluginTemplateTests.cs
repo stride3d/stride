@@ -106,6 +106,28 @@ public class PluginTemplateTests
         Assert.IsType<SolutionProject>(Assert.Single(reloadedSession.Packages, p => p.Meta.Name == pluginName + ".Editor").Container);
         // The Assets companion's asset template, listed by its .sdpkg, is what Add asset offers
         Assert.Contains(TemplateManager.FindTemplates(TemplateScope.Asset, reloadedSession), t => t.Name == pluginName && t is TemplateAssetDescription);
+
+        // The game loads first and pulls in the plugin's assembly; the plugin package must still register it.
+        // The Editor project is left out: only Game Studio builds and loads it.
+        var solutionText = File.ReadAllText(solutionPath);
+        var projectLines = solutionText.Split('\n').Where(l => l.Contains("<Project ", StringComparison.Ordinal) && !l.Contains(".Editor", StringComparison.Ordinal)).Select(l => l.TrimEnd('\r')).ToList();
+        var gameFirst = projectLines.Where(l => l.Contains(gameName, StringComparison.Ordinal)).Concat(projectLines.Where(l => !l.Contains(gameName, StringComparison.Ordinal)));
+        File.WriteAllText(solutionPath, "<Solution>" + Environment.NewLine + string.Join(Environment.NewLine, gameFirst) + Environment.NewLine + "</Solution>" + Environment.NewLine);
+        var withAssemblies = new PackageSessionResult();
+        var assemblyLoadParameters = PackageLoadParameters.Default();
+        assemblyLoadParameters.AutoCompileProjects = false;
+        assemblyLoadParameters.LoadEditorPackages = false;
+        PackageSession.Load(solutionPath, withAssemblies, assemblyLoadParameters);
+        AssertNoPluginError(withAssemblies);
+        using var assemblySession = withAssemblies.Session;
+        Assert.Contains(Stride.Core.Reflection.AssemblyRegistry.Find(Stride.Core.Reflection.AssemblyCommonCategories.Assets), a => a.GetName().Name == pluginName);
+        Assert.Contains(Stride.Core.Extensions.TypeDescriptorExtensions.GetInheritedInstantiableTypes(typeof(Stride.Engine.EntityComponent)), t => t.FullName == $"{pluginName}.{pluginName}Component");
+
+        // The plugin's data is content: a member of its type references an asset of the plugin
+        var dataType = Stride.Core.Reflection.AssemblyRegistry.Find(Stride.Core.Reflection.AssemblyCommonCategories.Assets).First(a => a.GetName().Name == pluginName).GetType($"{pluginName}.{pluginName}Data", throwOnError: true)!;
+        Assert.True(AssetRegistry.IsExactContentType(dataType));
+        Assert.True(AssetRegistry.CanPropertyHandleAssets(dataType, out var dataAssetTypes));
+        Assert.Contains(dataAssetTypes, t => t.Name == pluginName + "Asset");
     }
 
     /// <summary>

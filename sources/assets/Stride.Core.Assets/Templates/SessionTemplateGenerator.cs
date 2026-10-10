@@ -43,11 +43,14 @@ Cache/
         SaveSession(parameters);
 
         parameters.Logger.Verbose("Compiling game assemblies...");
-        parameters.Session.UpdateAssemblyReferences(parameters.Logger);
+        parameters.Session.UpdateAssemblyReferences(parameters.Logger, AssemblyLoadParameters);
         parameters.Logger.Verbose("Game assemblies compiled...");
 
         return AfterSave(parameters).Result;
     }
+
+    /// <summary>How the generated projects' assemblies load after the save (a headless host may skip them); the defaults when null.</summary>
+    protected virtual PackageLoadParameters? AssemblyLoadParameters => null;
 
     /// <summary>Generates the template; must work unattended.</summary>
     public abstract bool Generate(SessionTemplateGeneratorParameters parameters);
