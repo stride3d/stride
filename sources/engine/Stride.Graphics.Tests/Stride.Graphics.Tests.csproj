@@ -20,5 +20,9 @@
     <ProjectReference Include="..\Stride.Graphics.Regression\Stride.Graphics.Regression.csproj" />
     <ProjectReference Include="..\Stride.UI\Stride.UI.csproj" />
   </ItemGroup>
+  <ItemGroup Condition="'$(StrideGraphicsApi)' == 'Vulkan'">
+    <!-- Native calls in Vulkan-only tests -->
+    <PackageReference Include="Vortice.Vulkan" />
+  </ItemGroup>
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.MultiPlatform.Tests/Sdk/Sdk.targets" />
 </Project>

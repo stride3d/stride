@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if STRIDE_GRAPHICS_API_VULKAN
+using System.Text;
 using Vortice.Vulkan;
 using static Vortice.Vulkan.Vulkan;
 
@@ -45,25 +46,31 @@ namespace Stride.Graphics
         protected override unsafe void OnNameChanged()
         {
             base.OnNameChanged();
-            //if (GraphicsDevice != null && GraphicsDevice.IsProfilingSupported)
-            //{
-            //    if (string.IsNullOrEmpty(Name))
-            //        return;
+            if (GraphicsDevice is not { IsProfilingSupported: true } || string.IsNullOrEmpty(Name))
+                return;
 
-            //    var bytes = System.Text.Encoding.ASCII.GetBytes(Name);
+            // A texture view shares its parent's image: naming it would rename the parent
+            var (objectType, objectHandle) = this switch
+            {
+                Texture { ParentTexture: null } texture when texture.NativeImage != VkImage.Null => (VkObjectType.Image, texture.NativeImage.Handle),
+                Buffer buffer when buffer.NativeBuffer != VkBuffer.Null => (VkObjectType.Buffer, buffer.NativeBuffer.Handle),
+                _ => (VkObjectType.Unknown, 0UL),
+            };
+            if (objectHandle == 0)
+                return;
 
-            //    fixed (byte* bytesPointer = &bytes[0])
-            //    {
-            //        var nameInfo = new DebugMarkerObjectNameInfo
-            //        {
-            //            sType = VkStructureType.DebugMarkerObjectNameInfo,
-            //            Object = ,
-            //            ObjectName = new IntPtr(bytesPointer),
-            //            ObjectType =
-            //        };
-            //        GraphicsDevice.NativeDevice.DebugMarkerSetObjectName(ref nameInfo);
-            //    }
-            //}
+            var name = Encoding.UTF8.GetBytes(Name + "\0");
+            fixed (byte* namePointer = name)
+            {
+                var nameInfo = new VkDebugUtilsObjectNameInfoEXT
+                {
+                    sType = VkStructureType.DebugUtilsObjectNameInfoEXT,
+                    objectType = objectType,
+                    objectHandle = objectHandle,
+                    pObjectName = namePointer,
+                };
+                GraphicsDevice.NativeInstanceApi.vkSetDebugUtilsObjectNameEXT(GraphicsDevice.NativeDevice, &nameInfo);
+            }
         }
 
         protected unsafe void AllocateMemory(VkMemoryPropertyFlags memoryProperties, VkMemoryRequirements memoryRequirements)
