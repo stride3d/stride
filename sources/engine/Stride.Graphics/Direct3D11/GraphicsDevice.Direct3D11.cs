@@ -346,8 +346,8 @@ namespace Stride.Graphics
                 if (Adapter.VendorId == 0x8086)
                 {
                     // TODO: This is relevant still? Newer Intel Arc HW and drivers should have better support for 9.x
-                    if (graphicsProfile < GraphicsProfile.Level_10_0 && (!ShaderProfile.HasValue || ShaderProfile.Value < GraphicsProfile.Level_10_0))
-                        ShaderProfile = GraphicsProfile.Level_10_0;
+                    if (graphicsProfile < GraphicsProfile.Level_10_0 && (!shaderProfile.HasValue || shaderProfile.Value < GraphicsProfile.Level_10_0))
+                        shaderProfile = GraphicsProfile.Level_10_0;
                 }
 
                 RequestedProfile = graphicsProfile;
