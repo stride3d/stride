@@ -4,6 +4,7 @@
 using System.ComponentModel;
 
 using Stride.Core;
+using Stride.Core.Annotations;
 using Stride.Graphics;
 using Stride.Graphics.GeometricPrimitives;
 
@@ -56,6 +57,7 @@ namespace Stride.Rendering.ProceduralModels
         /// <userdoc>The number of rings added along the straight part of the capsule, so that it can bend when its vertices are deformed.</userdoc>
         [DataMember(40)]
         [DefaultValue(0)]
+        [DataMemberRange(0, 0)]
         public int LengthRings { get; set; } = 0;
 
         protected override GeometricMeshData<VertexPositionNormalTexture> CreatePrimitiveMeshData()

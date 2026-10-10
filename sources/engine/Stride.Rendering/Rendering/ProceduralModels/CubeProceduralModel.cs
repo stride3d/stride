@@ -4,6 +4,7 @@
 using System.ComponentModel;
 
 using Stride.Core;
+using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.Graphics.GeometricPrimitives;
@@ -39,6 +40,7 @@ namespace Stride.Rendering.ProceduralModels
         /// <userdoc>The number of cuts added along each edge, splitting every face into a grid, so that the cube can bend when its vertices are deformed.</userdoc>
         [DataMember(20)]
         [DefaultValue(0)]
+        [DataMemberRange(0, 0)]
         public int Subdivisions { get; set; } = 0;
 
         protected override GeometricMeshData<VertexPositionNormalTexture> CreatePrimitiveMeshData()
