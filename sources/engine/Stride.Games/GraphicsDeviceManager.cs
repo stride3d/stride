@@ -1206,9 +1206,9 @@ namespace Stride.Games
 
                 GraphicsDevice = graphicsDeviceFactory.CreateDevice(newInfo);
 
-                // Use the Shader profile returned by the GraphicsDeviceInformation otherwise use the one coming from the GameSettings
-                // TODO: Stale comment?
-                GraphicsDevice.ShaderProfile = ShaderProfile;
+                // Keep the profile the device chose, such as the Intel workaround, when none was set
+                if (ShaderProfile.HasValue)
+                    GraphicsDevice.ShaderProfile = ShaderProfile;
 
                 GraphicsDevice.Disposing += GraphicsDevice_Disposing;
 
