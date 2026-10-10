@@ -104,8 +104,8 @@ namespace Stride.Graphics.Regression
         public sealed class SidecarAttempt
         {
             public required string Gold { get; init; }
-            /// <summary><c>"reference"</c> for the exact-match gold, <c>"alternate"</c> for
-            /// fallback golds tried when the reference was missing.</summary>
+            /// <summary><c>"reference"</c> for a gold of the lane's own bucket (the image or one of its
+            /// variants), <c>"alternate"</c> for fallback golds tried when that bucket has none.</summary>
             public required string Kind { get; init; }
             public required bool Passed { get; init; }
             public required int MaxDiff { get; init; }
@@ -132,6 +132,9 @@ namespace Stride.Graphics.Regression
         {
             public string? Os { get; init; }
             public string? Cpu { get; init; }
+            /// <summary>Vector instruction sets of the CPU (e.g. <c>"AVX2 FMA AVX512F V512"</c>): CPU rasterizers pick
+            /// their code paths from them, so they tell which gold variant a run matches.</summary>
+            public string? CpuFeatures { get; init; }
             public string? Gpu { get; init; }
             /// <summary>PCI vendor ID, 0x-prefixed hex.</summary>
             public string? GpuVendorId { get; init; }
@@ -206,6 +209,7 @@ namespace Stride.Graphics.Regression
             {
                 Os = HostEnvironment.OsDescription,
                 Cpu = HostEnvironment.CpuName,
+                CpuFeatures = HostEnvironment.CpuFeatures,
                 Gpu = info?.GpuName,
                 GpuVendorId = info != null ? $"0x{info.VendorId:X4}" : null,
                 GpuDeviceId = info != null ? $"0x{info.DeviceId:X4}" : null,
@@ -273,7 +277,8 @@ namespace Stride.Graphics.Regression
             return new SidecarAttempt
             {
                 Gold = goldPath,
-                Kind = goldPath == referencePath ? "reference" : "alternate",
+                // A variant of the reference sits in the same bucket and counts as the reference too.
+                Kind = Path.GetDirectoryName(goldPath) == Path.GetDirectoryName(referencePath) ? "reference" : "alternate",
                 Passed = stats.Passed,
                 MaxDiff = stats.MaxDiff,
                 PsnrDb = stats.PSNR,

@@ -15,7 +15,7 @@ internal static class GoldStats
 {
     private const string Usage = """
         Stride.CompareGold stats [--source <dir|run>]... [--last N] [--branch <name>] [--workflow <file>]
-                                 [--repo <owner/name>] [--image <pattern>] [--all] [--tests <dir>] [--out <json>]
+                                 [--repo <owner/name>] [--image <pattern>] [--cpu-features] [--all] [--tests <dir>] [--out <json>]
 
           Shows, per thresholds.jsonc rule, the worst pixel counts seen against each of its limits, per
           lane and CPU model. Input is the <name>.results.json sidecars that tests write next to their
@@ -27,6 +27,9 @@ internal static class GoldStats
           --last N    Add the last N completed runs of --workflow (default main.yml) in --repo (default
                       stride3d/stride), only on --branch if given.
           --image     Only images matching this pattern ('*' and '?' wildcards).
+          --cpu-features
+                      Group by the CPU's vector instruction sets (metadata cpuFeatures) instead of the CPU
+                      model: shows which instruction sets split a CPU rasterizer's output.
           --all       Also list lanes without a rule whose pixels all stayed under 3. By default, lanes
                       without a rule show only when they had pixels at 3+.
           --tests     Gold tests/ dir (default: the enclosing Stride checkout). Its thresholds.jsonc files
@@ -39,10 +42,14 @@ internal static class GoldStats
 
     private const string SidecarSuffix = ".results.json";
 
+    // --cpu-features: the CPU column holds the instruction sets instead of the model.
+    private static bool byCpuFeatures;
+
     private sealed record Sample(string Run, string Suite, string Lane, string Name, bool Passed,
         string GoldLane, int MaxDiff, Dictionary<string, int> Histogram, string Cpu);
 
-    // Gold: "own" when every sample compared against the lane's own gold, else the lanes whose gold it fell back to.
+    // Gold: the golds the samples compared against, "own" for the lane's own bucket, else the lanes it fell back
+    // to; " variantN" when it was <name>.variantN.png.
     private sealed record Row(string Suite, int RuleIndex, string Lane, string Cpu, string Gold, int Samples, int Fails,
         int MaxDiff, Dictionary<string, int> Worst, List<string> Images);
 
@@ -66,6 +73,7 @@ internal static class GoldStats
         }
         var imagePattern = GetArg(args, "--image");
         var showAll = args.Contains("--all");
+        byCpuFeatures = args.Contains("--cpu-features");
         var outPath = GetArg(args, "--out");
 
         if (GetArg(args, "--last") is { } lastArg)
@@ -201,7 +209,7 @@ internal static class GoldStats
 
             return new Sample(run, suite, lane, baseName + ".png",
                 Passed: sidecar.GetProperty("outcome").GetString() == "Pass",
-                GoldLane: goldLane,
+                GoldLane: GoldVariant.Index(gold[^1]) is var variant and > 1 ? $"{goldLane} variant{variant}" : goldLane,
                 MaxDiff: attempt.GetProperty("maxDiff").GetInt32(),
                 Histogram: ReadHistogram(attempt),
                 Cpu: ReadCpu(Path.Combine(Path.GetDirectoryName(file)!, baseName + ".metadata.json")));
@@ -216,6 +224,8 @@ internal static class GoldStats
         try
         {
             using var doc = JsonDocument.Parse(File.ReadAllText(metadataPath));
+            if (byCpuFeatures)
+                return doc.RootElement.TryGetProperty("cpuFeatures", out var features) && features.GetString() is { } list ? list : "(not recorded)";
             if (doc.RootElement.TryGetProperty("cpu", out var cpu) && cpu.GetString() is { Length: > 0 } name)
                 return ShortCpu(name);
         }
@@ -277,7 +287,8 @@ internal static class GoldStats
         foreach (var g in groups)
         {
             var buckets = Buckets(testsDir, g.Key.Suite, g.Key.index);
-            var goldLanes = g.Select(s => s.GoldLane == s.Lane ? "own" : s.GoldLane).Distinct().Order(StringComparer.Ordinal);
+            var goldLanes = g.Select(s => s.GoldLane.StartsWith(s.Lane + " ", StringComparison.Ordinal) || s.GoldLane == s.Lane ? "own" + s.GoldLane[s.Lane.Length..] : s.GoldLane)
+                .Distinct().Order(StringComparer.Ordinal);
             rows.Add(new Row(g.Key.Suite, g.Key.index, g.Key.Lane, g.Key.Cpu, string.Join(", ", goldLanes),
                 Samples: g.Count(),
                 Fails: g.Count(s => !s.Passed),
@@ -319,9 +330,10 @@ internal static class GoldStats
             }
 
             var laneWidth = Math.Max(4, shown.Max(r => r.Lane.Length));
-            var cpuWidth = Math.Max(3, shown.Max(r => r.Cpu.Length));
+            var cpuLabel = byCpuFeatures ? "CPU features" : "CPU";
+            var cpuWidth = Math.Max(cpuLabel.Length, shown.Max(r => r.Cpu.Length));
             var goldWidth = Math.Max(4, shown.Max(r => r.Gold.Length));
-            var header = new StringBuilder($"  {"lane".PadRight(laneWidth)}  {"CPU".PadRight(cpuWidth)}  {"gold".PadRight(goldWidth)}  samples  fails  max diff");
+            var header = new StringBuilder($"  {"lane".PadRight(laneWidth)}  {cpuLabel.PadRight(cpuWidth)}  {"gold".PadRight(goldWidth)}  samples  fails  max diff");
             foreach (var b in buckets) header.Append($"  {ImageThreshold.RangeKey(b),6}");
             Console.WriteLine(header);
             foreach (var r in shown)

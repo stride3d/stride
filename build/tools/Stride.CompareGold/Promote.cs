@@ -14,20 +14,25 @@ internal static class HeadlessPromote
     private const string Usage = """
         Stride.CompareGold gold tooling (headless):
 
-          promote [--source <dir|run>] [--tests <dir>] [--dry-run] [--out <json>]
+          promote [--source <dir|run>] [--tests <dir>] [--dry-run] [--add-variants] [--out <json>]
               Promote generated images to gold. <source> defaults to tests/local (the renders from
               your last local run, same as the UI's "Local" source). It can be a gold-images tree
               (<Suite>/<Platform.API>/<Device>/<name>.png), or a CI run to download via gh — given as
-              a run id (123), "owner:123" / "owner/repo:123", or a full Actions run URL. In priority order:
-              if its bucket's gold already matches (within thresholds) it's left alone; if a
-              higher-priority bucket already matches, the runtime fallback covers it (no new gold);
-              otherwise it's written as gold.
+              a run id (123), "owner:123" / "owner/repo:123", or a full Actions run URL: a test-gold-gen
+              run's gold-images, else the run's test-artifacts-* (the renders of the failed screenshots).
+              In priority order: if one of its bucket's golds already matches (within thresholds) it's left
+              alone; if a higher-priority bucket already matches, the runtime fallback covers it (no new
+              gold); otherwise it's written as gold, and replaces the bucket's variants.
+              --add-variants: on a CPU rasterizer (WARP, Lavapipe, SwiftShader), whose output depends on the
+              CPU, keep the bucket's golds and add the render as a variant (<name>.variantN.png); it only
+              replaces a variant made on the same CPU model. For renders that differ by CPU, not for a
+              rendering change.
 
           dedup [--source <dir|run>] [--tests <dir>] [--dry-run] [--out <json>]
               Remove redundant existing gold: per image keep the highest-priority bucket and delete
-              any lower-priority bucket that matches it (within that bucket's thresholds — the
-              fallback covers it). Repo-wide unless --source (dir or CI run, as for promote) scopes
-              it to those suites.
+              any lower-priority bucket whose golds all match it (within that bucket's thresholds — the
+              fallback covers it), and any variant that matches another gold of its bucket.
+              Repo-wide unless --source (dir or CI run, as for promote) scopes it to those suites.
 
           Priority: Windows.Direct3D12 > Windows.Vulkan > Linux.Vulkan > macOS.Vulkan > Android.Vulkan > iOS.Vulkan > Windows.Direct3D11.
           --tests defaults to the tests/ dir of the enclosing Stride checkout.
@@ -57,6 +62,7 @@ internal static class HeadlessPromote
         string? source = GetArg(args, "--source");
         string? testsArg = GetArg(args, "--tests");
         bool dryRun = args.Contains("--dry-run");
+        bool addVariants = args.Contains("--add-variants");
         string? outPath = GetArg(args, "--out");
 
         var testsDir = testsArg
@@ -100,13 +106,15 @@ internal static class HeadlessPromote
         var summary = new Summary();
 
         if (mode == "promote")
-            RunPromote(testsDir, source!, dryRun, summary);
+            RunPromote(testsDir, source!, dryRun, addVariants, summary);
 
         if (mode == "dedup")
         {
-            // Scope to the suites present in --source if given, else every suite under tests/.
+            // Scope to the suites present in --source if given (at its top or one artifact dir down), else every
+            // suite under tests/.
             var suites = hasSource
-                ? Directory.GetDirectories(source!).Select(d => Path.GetFileName(d)!)
+                ? Directory.GetDirectories(source!).SelectMany(d => Directory.GetDirectories(d).Prepend(d))
+                    .Select(d => Path.GetFileName(d)!).Where(s => Directory.Exists(Path.Combine(testsDir, s)))
                 : EnumerateSuites(testsDir);
             DedupExistingGold(testsDir, suites, dryRun, summary);
         }
@@ -116,19 +124,19 @@ internal static class HeadlessPromote
         return 0;
     }
 
-    private static void RunPromote(string testsDir, string source, bool dryRun, Summary summary)
+    private static void RunPromote(string testsDir, string source, bool dryRun, bool addVariants, Summary summary)
     {
-        // Collect generated renders: <source>/<Suite>/<Platform.API>/<Device>/<name>.png
+        // Collect generated renders: <source>/[<artifact>/]<Suite>/<Platform.API>/<Device>/<name>.png
         var renders = new List<Render>();
         foreach (var png in Directory.EnumerateFiles(source, "*.png", SearchOption.AllDirectories))
         {
             var rel = Path.GetRelativePath(source, png).Replace('\\', '/').Split('/');
-            if (rel.Length != 4)
+            if (rel.Length is not (4 or 5))
             {
                 Console.WriteLine($"  skip (unexpected depth {rel.Length}): {Path.GetRelativePath(source, png)}");
                 continue;
             }
-            renders.Add(new Render(rel[0], rel[1], rel[2], rel[3], png));
+            renders.Add(new Render(rel[^4], rel[^3], rel[^2], rel[^1], png));
         }
 
         // Highest-priority platform/API first so it owns the canonical gold; ties ordered
@@ -141,13 +149,14 @@ internal static class HeadlessPromote
                                          $"{b.Suite}/{b.PlatformApi}/{b.Device}/{b.Name}");
         });
 
-        // golds[suite|name][<Platform.API>/<Device>] = (priority rank, pixel source) for the gold that
-        // currently covers that bucket — seeded from existing gold, updated as we promote. A render is
-        // "covered" (skip) ONLY by a strictly higher-priority bucket: those are processed earlier and so
-        // are final for the rest of the pass, whereas a lower/equal bucket could still be re-promoted to
-        // something else and invalidate the skip. Redundancy against a lower bucket is the dedup pass's
-        // job, not promote's. Source paths (not dest) are stored so a --dry-run matches the real run.
-        var golds = new Dictionary<string, Dictionary<string, (int rank, string src)>>(StringComparer.OrdinalIgnoreCase);
+        // golds[suite|name][<Platform.API>/<Device>] = (priority rank, pixel sources) for the golds that
+        // currently cover that bucket (the image and its variants) — seeded from existing gold, updated as
+        // we promote. A render is "covered" (skip) ONLY by a strictly higher-priority bucket: those are
+        // processed earlier and so are final for the rest of the pass, whereas a lower/equal bucket could
+        // still be re-promoted to something else and invalidate the skip. Redundancy against a lower bucket
+        // is the dedup pass's job, not promote's. Source paths (not dest) are stored so a --dry-run matches
+        // the real run.
+        var golds = new Dictionary<string, Dictionary<string, (int rank, List<string> srcs)>>(StringComparer.OrdinalIgnoreCase);
         foreach (var suite in renders.Select(r => r.Suite).Distinct())
             SeedExistingGold(testsDir, suite, golds);
 
@@ -159,39 +168,82 @@ internal static class HeadlessPromote
             var rank = Rank(r.PlatformApi);
             var thresholds = ResolveThresholds(testsDir, r.Suite, r.PlatformApi, r.Device, r.Name);
             var destDir = Path.Combine(testsDir, r.Suite, r.PlatformApi, r.Device);
-            var destFile = Path.Combine(destDir, r.Name);
             var label = $"{r.Suite}/{r.PlatformApi}/{r.Device}/{r.Name}";
+            var bucketGolds = GoldVariant.InBucket(destDir, r.Name);
 
-            if (File.Exists(destFile))
+            if (bucketGolds.Count > 0)
             {
-                // Exact bucket has gold: keep it if it still matches, else update it.
-                if (ImageDiff.Matches(r.SrcPath, destFile, thresholds, out _))
+                // Exact bucket has gold: keep it if one of its golds still matches, else update it.
+                if (bucketGolds.Any(g => ImageDiff.Matches(r.SrcPath, g, thresholds, out _)))
                 {
                     summary.Unchanged.Add(label);
+                    continue;
                 }
+
+                var asVariant = addVariants && GoldVariant.IsCpuRasterizer(r.Device);
+                var target = asVariant ? VariantTarget(r, bucketGolds) : Path.Combine(destDir, r.Name);
+                if (!asVariant)
+                    RemoveGolds(bucketGolds.Where(g => g != target), dryRun);
+                Promote(r, destDir, target, dryRun);
+                var isNewVariant = !bucketGolds.Contains(target);
+                var srcs = asVariant ? bucketGolds.Where(g => g != target).Append(r.SrcPath).ToList() : new List<string> { r.SrcPath };
+                buckets[bucketKey] = (rank, srcs);
+                if (asVariant && isNewVariant)
+                    summary.AddedVariant.Add($"{label} -> {Path.GetFileName(target)}");
                 else
-                {
-                    Promote(r, destDir, destFile, dryRun);
-                    buckets[bucketKey] = (rank, r.SrcPath);
-                    summary.Changed.Add(label);
-                }
+                    summary.Changed.Add(target == Path.Combine(destDir, r.Name) ? label : $"{label} ({Path.GetFileName(target)})");
             }
-            else if (buckets.Values.Any(c => c.rank < rank && ImageDiff.Matches(r.SrcPath, c.src, thresholds, out var comp) && comp))
+            else if (buckets.Values.Any(c => c.rank < rank && c.srcs.Any(src => ImageDiff.Matches(r.SrcPath, src, thresholds, out var comp) && comp)))
             {
                 // A strictly higher-priority bucket already matches — the runtime fallback covers it.
                 summary.CoveredByFallback.Add(label);
             }
             else
             {
-                Promote(r, destDir, destFile, dryRun);
-                buckets[bucketKey] = (rank, r.SrcPath);
+                Promote(r, destDir, Path.Combine(destDir, r.Name), dryRun);
+                buckets[bucketKey] = (rank, new List<string> { r.SrcPath });
                 summary.Promoted.Add(label);
             }
         }
     }
 
-    // Per image, keep the highest-priority bucket and remove any lower-priority bucket that matches a
-    // kept one (within the removed bucket's thresholds — the runtime fallback then covers it).
+    // With --add-variants, where a render that matches none of its bucket's golds goes: over the variant made on
+    // the same CPU model, else to a new variant (a gold with no CPU recorded counts as another CPU's).
+    private static string VariantTarget(Render r, List<string> bucketGolds)
+    {
+        if (ReadCpu(r.SrcPath) is { } cpu && bucketGolds.FirstOrDefault(g => ReadCpu(g) == cpu) is { } sameCpu)
+            return sameCpu;
+        var next = bucketGolds.Max(g => GoldVariant.Index(Path.GetFileName(g))) + 1;
+        return Path.Combine(Path.GetDirectoryName(bucketGolds[0])!, GoldVariant.FileName(r.Name, next));
+    }
+
+    // CPU model from the .metadata.json next to an image, null when it has none.
+    private static string? ReadCpu(string pngPath)
+    {
+        var meta = Path.ChangeExtension(pngPath, ".metadata.json");
+        try
+        {
+            using var doc = JsonDocument.Parse(File.ReadAllText(meta));
+            return doc.RootElement.TryGetProperty("cpu", out var cpu) ? cpu.GetString() : null;
+        }
+        catch (Exception e) when (e is IOException or JsonException) { return null; }
+    }
+
+    private static void RemoveGolds(IEnumerable<string> paths, bool dryRun)
+    {
+        if (dryRun) return;
+        foreach (var path in paths)
+        {
+            File.Delete(path);
+            var meta = Path.ChangeExtension(path, ".metadata.json");
+            if (File.Exists(meta)) File.Delete(meta);
+        }
+    }
+
+    // Per image, keep the highest-priority bucket and remove any lower-priority bucket whose golds all match
+    // kept ones (within the removed bucket's thresholds — the runtime fallback then covers it). Within a
+    // bucket, a variant that matches an earlier gold of the bucket is removed too. A bucket is removed whole
+    // or kept whole: the runtime only falls back to other buckets when its own has no gold left.
     private static void DedupExistingGold(string testsDir, IEnumerable<string> suites, bool dryRun, Summary summary)
     {
         foreach (var suite in suites.Distinct())
@@ -200,21 +252,31 @@ internal static class HeadlessPromote
             CollectGold(testsDir, suite, byName);
             foreach (var (name, golds) in byName)
             {
-                var kept = new List<(string platApi, string device, string path)>();
-                foreach (var g in golds.OrderBy(g => Rank(g.platApi)).ThenBy(g => g.platApi, StringComparer.Ordinal).ThenBy(g => g.device, StringComparer.Ordinal))
+                var kept = new List<string>();
+                var bucketsInOrder = golds
+                    .GroupBy(g => (g.platApi, g.device))
+                    .OrderBy(g => Rank(g.Key.platApi)).ThenBy(g => g.Key.platApi, StringComparer.Ordinal).ThenBy(g => g.Key.device, StringComparer.Ordinal);
+                foreach (var bucket in bucketsInOrder)
                 {
-                    var thresholds = ResolveThresholds(testsDir, suite, g.platApi, g.device, name);
-                    if (kept.Any(k => ImageDiff.Matches(g.path, k.path, thresholds, out var comp) && comp))
+                    var thresholds = ResolveThresholds(testsDir, suite, bucket.Key.platApi, bucket.Key.device, name);
+                    bool Matches(string a, string b) => ImageDiff.Matches(a, b, thresholds, out var comp) && comp;
+                    void Remove(string path)
                     {
-                        if (!dryRun)
-                        {
-                            File.Delete(g.path);
-                            var meta = Path.ChangeExtension(g.path, ".metadata.json");
-                            if (File.Exists(meta)) File.Delete(meta);
-                        }
-                        summary.RemovedRedundant.Add($"{suite}/{g.platApi}/{g.device}/{name}");
+                        RemoveGolds([path], dryRun);
+                        summary.RemovedRedundant.Add($"{suite}/{bucket.Key.platApi}/{bucket.Key.device}/{Path.GetFileName(path)}");
                     }
-                    else kept.Add(g);
+
+                    var unique = new List<string>();
+                    foreach (var path in bucket.Select(g => g.path).OrderBy(p => GoldVariant.Index(Path.GetFileName(p))))
+                    {
+                        if (unique.Any(u => Matches(path, u))) Remove(path);
+                        else unique.Add(path);
+                    }
+
+                    if (kept.Count > 0 && unique.All(path => kept.Any(k => Matches(path, k))))
+                        unique.ForEach(Remove);
+                    else
+                        kept.AddRange(unique);
                 }
             }
         }
@@ -239,7 +301,7 @@ internal static class HeadlessPromote
             File.Copy(srcMeta, Path.ChangeExtension(destFile, ".metadata.json"), overwrite: true);
     }
 
-    private static void SeedExistingGold(string testsDir, string suite, Dictionary<string, Dictionary<string, (int rank, string src)>> golds)
+    private static void SeedExistingGold(string testsDir, string suite, Dictionary<string, Dictionary<string, (int rank, List<string> srcs)>> golds)
     {
         var byName = new Dictionary<string, List<(string platApi, string device, string path)>>(StringComparer.OrdinalIgnoreCase);
         CollectGold(testsDir, suite, byName);
@@ -247,11 +309,13 @@ internal static class HeadlessPromote
         {
             var key = $"{suite}|{name}";
             if (!golds.TryGetValue(key, out var buckets)) golds[key] = buckets = new(StringComparer.OrdinalIgnoreCase);
-            foreach (var g in existing) buckets[$"{g.platApi}/{g.device}"] = (Rank(g.platApi), g.path);
+            foreach (var g in existing.GroupBy(g => $"{g.platApi}/{g.device}"))
+                buckets[g.Key] = (Rank(g.First().platApi), g.Select(x => x.path).ToList());
         }
     }
 
-    // Existing gold layout: tests/<Suite>/<Platform.API>/<Device>/<name>.png (skip the "local" dir).
+    // Existing gold layout: tests/<Suite>/<Platform.API>/<Device>/<name>.png (skip the "local" dir), keyed by
+    // image name; a bucket's variants (<name>.variantN.png) go under the same name.
     private static void CollectGold(string testsDir, string suite, Dictionary<string, List<(string platApi, string device, string path)>> byName)
     {
         var suiteDir = Path.Combine(testsDir, suite);
@@ -265,7 +329,7 @@ internal static class HeadlessPromote
                 var device = Path.GetFileName(devDir);
                 foreach (var png in Directory.GetFiles(devDir, "*.png"))
                 {
-                    var name = Path.GetFileName(png);
+                    var name = GoldVariant.BaseName(Path.GetFileName(png));
                     if (!byName.TryGetValue(name, out var list)) byName[name] = list = [];
                     list.Add((platApi, device, png));
                 }
@@ -324,11 +388,21 @@ internal static class HeadlessPromote
         Directory.CreateDirectory(dir);
 
         Console.WriteLine($"Downloading gold-images from run {runId}{(string.IsNullOrEmpty(repo) ? "" : $" ({repo})")} ...");
-        var dlError = CiArtifacts.Download(runId, repo, "gold-images", dir);
-        if (dlError is not null)
+        if (CiArtifacts.Download(runId, repo, "gold-images", dir) is not null)
         {
-            error = $"{dlError} — is run {runId} a test-gold-gen run with a gold-images artifact?";
-            return null;
+            // Not a test-gold-gen run: take the renders the run's failed screenshots saved, one subdir per artifact.
+            Console.WriteLine($"No gold-images; downloading test-artifacts-* from run {runId} ...");
+            if (CiArtifacts.DownloadMatching(runId, repo, "test-artifacts-*", dir) is { } dlError)
+            {
+                error = $"{dlError} — run {runId} has neither gold-images nor test-artifacts-*";
+                return null;
+            }
+            if (!Directory.EnumerateFiles(dir, "*.png", SearchOption.AllDirectories).Any())
+            {
+                error = $"run {runId} test-artifacts-* hold no PNGs: every screenshot passed";
+                return null;
+            }
+            return dir;
         }
 
         // gh may nest the contents under <dir>/gold-images/; find where a png sits 4 levels deep and
@@ -352,9 +426,10 @@ internal static class HeadlessPromote
         }
         Section("Promoted (new gold)", s.Promoted);
         Section("Updated (changed gold)", s.Changed);
+        Section("Added variant (render from another CPU)", s.AddedVariant);
         Section("Skipped — covered by fallback", s.CoveredByFallback);
         Section("Removed — redundant existing gold", s.RemovedRedundant);
-        Console.WriteLine($"{prefix}Summary: {s.Promoted.Count} new, {s.Changed.Count} changed, " +
+        Console.WriteLine($"{prefix}Summary: {s.Promoted.Count} new, {s.Changed.Count} changed, {s.AddedVariant.Count} variants added, " +
             $"{s.CoveredByFallback.Count} covered, {s.RemovedRedundant.Count} removed, {s.Unchanged.Count} unchanged.");
     }
 
@@ -368,6 +443,7 @@ internal static class HeadlessPromote
     {
         public List<string> Promoted { get; init; } = [];
         public List<string> Changed { get; init; } = [];
+        public List<string> AddedVariant { get; init; } = [];
         public List<string> CoveredByFallback { get; init; } = [];
         public List<string> RemovedRedundant { get; init; } = [];
         public List<string> Unchanged { get; init; } = [];

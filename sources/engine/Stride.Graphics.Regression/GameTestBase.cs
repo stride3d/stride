@@ -844,19 +844,15 @@ namespace Stride.Graphics.Regression
             var testsLocalBaseDir = Path.Combine(testsBaseDir, "local");
             var testLocalFileName = GenerateTestArtifactFileName(testsLocalBaseDir, frameName, platformSpecificDir, ".png");
 
-            var testFileNames = new List<string> { testFileName };
-
-            // First, if exact match doesn't exist, test any other pattern
+            // The golds of this bucket (the image and its variants); without any, the golds of every other bucket
             // TODO: We might want to sort/filter partially (platform, etc...)?
-            var matchingImage = File.Exists(testFileName);
-            if (!matchingImage)
+            var testFileNames = GoldVariant.InBucket(Path.GetDirectoryName(testFileName)!, Path.GetFileName(testFileName));
+            if (testFileNames.Count == 0)
             {
-                testFileNames.Clear();
-
                 var wildcard = "*" + Path.DirectorySeparatorChar + "*";
                 var testFileNamePattern = GenerateTestArtifactFileName(testsBaseDir, frameName, wildcard, ".png");
                 var regexSep = Regex.Escape(Path.DirectorySeparatorChar.ToString());
-                var testFileNameRegex = new Regex("^" + Regex.Escape(testFileNamePattern).Replace(@"\*", "[^" + regexSep + "]*") + "$", RegexOptions.IgnoreCase | RegexOptions.Singleline);
+                var testFileNameRegex = new Regex("^" + Regex.Escape(testFileNamePattern[..^".png".Length]).Replace(@"\*", "[^" + regexSep + "]*") + GoldVariant.SuffixPattern + @"\.png$", RegexOptions.IgnoreCase | RegexOptions.Singleline);
                 var testFileNameRoot = testFileNamePattern[..testFileNamePattern.IndexOf('*')];
 
                 if (Directory.Exists(testFileNameRoot))
@@ -928,7 +924,7 @@ namespace Stride.Graphics.Regression
                         matchedFile = file;
                         break;
                     }
-                    var isExactMatch = file == testFileName;
+                    var isExactMatch = Path.GetDirectoryName(file) == Path.GetDirectoryName(testFileName);
                     pendingFailMessages.Add($"  {file} ({(isExactMatch ? "reference" : "different platform/device")}) — {stats}");
                 }
 
