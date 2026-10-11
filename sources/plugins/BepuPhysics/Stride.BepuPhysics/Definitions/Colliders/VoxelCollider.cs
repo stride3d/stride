@@ -14,6 +14,10 @@ namespace Stride.BepuPhysics.Definitions.Colliders;
 /// <summary>
 /// A <see cref="VoxelColliderBase{TSource}"/> over a copy of float samples, laid out x-major with z varying fastest.
 /// </summary>
+/// <remarks>
+/// The samples are not serialized, so Game Studio does not offer this collider and cloning an entity does not copy them:
+/// create it from a script, assign it to <see cref="CollidableComponent.Collider"/> and fill it with <see cref="SetData"/>.
+/// </remarks>
 [DataContract]
 [NonInstantiable]
 public sealed unsafe class VoxelCollider : VoxelColliderBase<FloatVoxelSource>, IDisposable
