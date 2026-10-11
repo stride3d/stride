@@ -114,8 +114,10 @@ public abstract class VoxelColliderBase<TSource> : ICollider
     /// <returns>False when there is no field, which leaves the collider detached.</returns>
     protected abstract bool TryGetSource(out TSource source);
 
+    /// <inheritdoc/>
     public int Transforms => 1;
 
+    /// <inheritdoc/>
     public void GetLocalTransforms(CollidableComponent collidable, Span<ShapeTransform> transforms)
     {
         transforms[0].PositionLocal = Vector3.Zero;
