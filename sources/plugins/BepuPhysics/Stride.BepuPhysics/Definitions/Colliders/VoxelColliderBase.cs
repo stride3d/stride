@@ -11,6 +11,7 @@ using BepuUtilities.Memory;
 using Stride.BepuPhysics.Definitions.Colliders.Voxels;
 using Stride.BepuPhysics.Systems;
 using Stride.Core;
+using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Graphics.GeometricPrimitives;
 using NRigidPose = BepuPhysics.RigidPose;
@@ -49,14 +50,12 @@ public abstract class VoxelColliderBase<TSource> : ICollider
     }
 
     /// <summary>Gets or sets the edge length of one cell, before the entity's scale.</summary>
+    /// <remarks>A value that is not positive and finite is ignored, as for <see cref="SphereRadiusScale"/> and <see cref="Mass"/>.</remarks>
+    [DataMemberRange(MinimumPositive, 3)]
     public float CellSize
     {
         get => _cellSize;
-        set
-        {
-            value.ValidateGreaterThanZeroFinite(this);
-            Set(ref _cellSize, value);
-        }
+        set => SetPositive(ref _cellSize, value);
     }
 
     /// <summary>Gets or sets the density at or above which a sample is solid.</summary>
@@ -84,25 +83,19 @@ public abstract class VoxelColliderBase<TSource> : ICollider
 
     /// <summary>Gets or sets the radius of the <see cref="VoxelCellShape.Sphere"/> children, as a multiple of half a cell.</summary>
     /// <remarks>At 1 neighbouring spheres touch and small bodies can slip between them; around 1.4 covers the face diagonals.</remarks>
+    [DataMemberRange(MinimumPositive, 3)]
     public float SphereRadiusScale
     {
         get => _sphereRadiusScale;
-        set
-        {
-            value.ValidateGreaterThanZeroFinite(this);
-            Set(ref _sphereRadiusScale, value);
-        }
+        set => SetPositive(ref _sphereRadiusScale, value);
     }
 
     /// <summary>Gets or sets the mass of a body using this collider, spread over the grid's whole box.</summary>
+    [DataMemberRange(MinimumPositive, 3)]
     public float Mass
     {
         get => _mass;
-        set
-        {
-            value.ValidateGreaterThanZeroFinite(this);
-            Set(ref _mass, value);
-        }
+        set => SetPositive(ref _mass, value);
     }
 
     /// <summary>Rebuilds what is derived from the field outside of the simulation, such as the debug view's wireframe.</summary>
@@ -115,11 +108,14 @@ public abstract class VoxelColliderBase<TSource> : ICollider
     protected abstract bool TryGetSource(out TSource source);
 
     /// <inheritdoc/>
-    public int Transforms => 1;
+    /// <remarks>Zero while there is no field, like <see cref="ICollider.AppendModel"/> then has nothing to draw.</remarks>
+    public int Transforms => TryGetSource(out _) ? 1 : 0;
 
     /// <inheritdoc/>
     public void GetLocalTransforms(CollidableComponent collidable, Span<ShapeTransform> transforms)
     {
+        if (transforms.IsEmpty)
+            return;
         transforms[0].PositionLocal = Vector3.Zero;
         transforms[0].RotationLocal = Quaternion.Identity;
         transforms[0].Scale = MeshCollider.ComputeMeshScale(collidable);
@@ -179,6 +175,16 @@ public abstract class VoxelColliderBase<TSource> : ICollider
         else
             AppendSurface(new VoxelTriangleShape<TSource> { GridData = grid, SurfaceNets = _cellShape == VoxelCellShape.SurfaceNets }, vertices, indices);
         buffer.Add(new BasicMeshBuffers { Vertices = vertices.ToArray(), Indices = indices.ToArray() });
+    }
+
+    /// <summary>The smallest value the property grid accepts for the sizes and the mass.</summary>
+    private const float MinimumPositive = 0.001f;
+
+    /// <summary>Keeps the previous value when <paramref name="value"/> is not positive and finite, rather than throwing from a property the editor sets.</summary>
+    private void SetPositive(ref float field, float value)
+    {
+        if (value > 0f && float.IsFinite(value))
+            Set(ref field, value);
     }
 
     private void Set<T>(ref T field, T value)
