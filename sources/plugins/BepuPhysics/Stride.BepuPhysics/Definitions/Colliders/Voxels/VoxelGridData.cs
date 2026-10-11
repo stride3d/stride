@@ -5,6 +5,7 @@ using System;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using BepuPhysics.Collidables;
+using MathUtil = Stride.Core.Mathematics.MathUtil;
 
 namespace Stride.BepuPhysics.Definitions.Colliders.Voxels;
 
@@ -125,14 +126,14 @@ internal struct VoxelGridData<TSource> where TSource : unmanaged, IVoxelDensityS
     /// <summary>
     /// The eight corner offsets of a cell, three bytes each, in the order <see cref="TriangleTable"/> indexes them.
     /// </summary>
-    private static ReadOnlySpan<byte> CubeCorners =>
+    internal static ReadOnlySpan<byte> CubeCorners =>
     [
         0, 0, 0,  1, 0, 0,  1, 0, 1,  0, 0, 1,
         0, 1, 0,  1, 1, 0,  1, 1, 1,  0, 1, 1,
     ];
 
     /// <summary>The two corners each edge of a cell connects.</summary>
-    private static ReadOnlySpan<byte> EdgeCorners =>
+    internal static ReadOnlySpan<byte> EdgeCorners =>
     [
         0, 1, 1, 2, 2, 3, 3, 0,
         4, 5, 5, 6, 6, 7, 7, 4,
@@ -189,7 +190,8 @@ internal struct VoxelGridData<TSource> where TSource : unmanaged, IVoxelDensityS
         var cornerB = EdgeCorners[edge * 2 + 1];
         var densityA = CornerDensity(cx, cy, cz, cornerA);
         var delta = CornerDensity(cx, cy, cz, cornerB) - densityA;
-        var t = MathF.Abs(delta) > FlatEdgeEpsilon ? Math.Clamp((IsoLevel - densityA) / delta, 0f, 1f) : 0.5f;
+        // A flat edge takes its midpoint
+        var t = MathUtil.IsZero(delta) ? 0.5f : Math.Clamp((IsoLevel - densityA) / delta, 0f, 1f);
         var cell = new Vector3(cx, cy, cz);
         return Origin + (cell + Vector3.Lerp(CornerOffset(cornerA), CornerOffset(cornerB), t)) * CellSize;
     }
@@ -329,7 +331,7 @@ internal struct VoxelGridData<TSource> where TSource : unmanaged, IVoxelDensityS
     /// <summary>
     /// The standard marching cubes table: <see cref="TableStride"/> entries per case, edge indices in threes, ended by -1.
     /// </summary>
-    private static ReadOnlySpan<sbyte> TriangleTable =>
+    internal static ReadOnlySpan<sbyte> TriangleTable =>
     [
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0, 8, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0, 1, 9, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1, 8, 3, 9, 8, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
         1, 2, 10, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0, 8, 3, 1, 2, 10, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 9, 2, 10, 0, 2, 9, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 2, 8, 3, 2, 10, 8, 10, 9, 8, -1, -1, -1, -1, -1, -1, -1,
