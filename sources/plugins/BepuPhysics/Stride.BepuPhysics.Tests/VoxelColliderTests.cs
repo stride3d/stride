@@ -13,6 +13,7 @@ using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Graphics.Regression;
 using Xunit;
+using BitOperations = System.Numerics.BitOperations;
 using NVector3 = System.Numerics.Vector3;
 
 namespace Stride.BepuPhysics.Tests
@@ -135,6 +136,105 @@ namespace Stride.BepuPhysics.Tests
             Assert.Throws<InvalidOperationException>(() => collider.GetVoxel(0, 0, 0));
         }
 
+        [Fact]
+        public static void CornerAndEdgeTablesFollowTheCellLayout()
+        {
+            // Corners go round the bottom face, then round the top one above them
+            var corners = VoxelGridData<FloatVoxelSource>.CubeCorners;
+            Assert.Equal(VoxelCell.CornerCount * 3, corners.Length);
+            for (int corner = 0; corner < VoxelCell.CornerCount; ++corner)
+            {
+                Assert.Equal(((corner + 1) >> 1) & 1, corners[corner * 3]);
+                Assert.Equal(corner >> 2, corners[corner * 3 + 1]);
+                Assert.Equal((corner >> 1) & 1, corners[corner * 3 + 2]);
+            }
+
+            // Edges follow the bottom ring, the top ring, then join each bottom corner to the one above
+            var edges = VoxelGridData<FloatVoxelSource>.EdgeCorners;
+            Assert.Equal(VoxelCell.EdgeCount * 2, edges.Length);
+            for (int i = 0; i < 4; ++i)
+            {
+                Assert.Equal((i, (i + 1) % 4), ((int)edges[i * 2], (int)edges[i * 2 + 1]));
+                Assert.Equal((4 + i, 4 + (i + 1) % 4), ((int)edges[8 + i * 2], (int)edges[8 + i * 2 + 1]));
+                Assert.Equal((i, i + 4), ((int)edges[16 + i * 2], (int)edges[16 + i * 2 + 1]));
+            }
+        }
+
+        [Fact]
+        public static void TriangleTableClosesTheSurfaceOfEveryCase()
+        {
+            const int caseCount = 1 << VoxelCell.CornerCount;
+            const int stride = 16;
+            var corners = VoxelGridData<FloatVoxelSource>.CubeCorners;
+            var edges = VoxelGridData<FloatVoxelSource>.EdgeCorners;
+            var table = VoxelGridData<FloatVoxelSource>.TriangleTable;
+            Assert.Equal(caseCount * stride, table.Length);
+
+            // The two faces of the cell each edge lies on, bit axis * 2 + side
+            var edgeFaces = new int[VoxelCell.EdgeCount];
+            for (int edge = 0; edge < VoxelCell.EdgeCount; ++edge)
+            {
+                for (int axis = 0; axis < 3; ++axis)
+                {
+                    var side = corners[edges[edge * 2] * 3 + axis];
+                    if (corners[edges[edge * 2 + 1] * 3 + axis] == side)
+                        edgeFaces[edge] |= 1 << (axis * 2 + side);
+                }
+            }
+
+            for (int cubeIndex = 0; cubeIndex < caseCount; ++cubeIndex)
+            {
+                var entries = table.Slice(cubeIndex * stride, stride);
+                var count = entries.IndexOf((sbyte)-1);
+                Assert.True(count >= 0 && count % 3 == 0 && count / 3 <= VoxelCell.MaxMarchingCubesTrianglesPerCell, $"Case {cubeIndex} has {count} entries");
+                Assert.True(entries[count..].IndexOfAnyExcept((sbyte)-1) < 0, $"Case {cubeIndex} has entries after its end");
+                Assert.Equal(count / 3, VoxelGridData<FloatVoxelSource>.MarchingCubesTriangleCount(cubeIndex));
+
+                // Vertices sit on exactly the edges whose corners are on opposite sides of the iso level
+                int crossedEdges = 0, usedEdges = 0;
+                for (int edge = 0; edge < VoxelCell.EdgeCount; ++edge)
+                {
+                    if ((((cubeIndex >> edges[edge * 2]) ^ (cubeIndex >> edges[edge * 2 + 1])) & 1) != 0)
+                        crossedEdges |= 1 << edge;
+                }
+                for (int i = 0; i < count; ++i)
+                    usedEdges |= 1 << entries[i];
+                Assert.Equal(crossedEdges, usedEdges);
+
+                // A triangle side is shared by two triangles, or is the one boundary segment through each of its two crossings on a face of the cell
+                var sides = new Dictionary<(int, int), int>();
+                for (int i = 0; i < count; i += 3)
+                {
+                    for (int k = 0; k < 3; ++k)
+                    {
+                        int a = entries[i + k], b = entries[i + (k + 1) % 3];
+                        var side = (Math.Min(a, b), Math.Max(a, b));
+                        sides[side] = sides.GetValueOrDefault(side) + 1;
+                    }
+                }
+                var boundaryEnds = new int[6, VoxelCell.EdgeCount];
+                foreach (var ((a, b), uses) in sides)
+                {
+                    Assert.True(uses <= 2, $"Case {cubeIndex}: side {a}-{b} is shared by {uses} triangles");
+                    if (uses == 2)
+                        continue;
+                    var sharedFaces = edgeFaces[a] & edgeFaces[b];
+                    Assert.True(sharedFaces != 0, $"Case {cubeIndex}: open side {a}-{b} crosses the inside of the cell");
+                    var face = BitOperations.TrailingZeroCount(sharedFaces);
+                    ++boundaryEnds[face, a];
+                    ++boundaryEnds[face, b];
+                }
+                for (int face = 0; face < 6; ++face)
+                {
+                    for (int edge = 0; edge < VoxelCell.EdgeCount; ++edge)
+                    {
+                        var expected = (edgeFaces[edge] & (1 << face)) != 0 && (crossedEdges & (1 << edge)) != 0 ? 1 : 0;
+                        Assert.True(expected == boundaryEnds[face, edge], $"Case {cubeIndex}: edge {edge} ends {boundaryEnds[face, edge]} boundary segments on face {face}, expected {expected}");
+                    }
+                }
+            }
+        }
+
         [Theory]
         [InlineData(VoxelCellShape.Box, 5f)]
         [InlineData(VoxelCellShape.Sphere, 5f)]
@@ -158,7 +258,7 @@ namespace Stride.BepuPhysics.Tests
                 var origin = new Vector3(4.5f, 20f, 4.5f);
                 Assert.True(simulation.RayCast(origin, -Vector3.UnitY, 40f, out var hit));
                 Assert.Equal(surface, hit.Point.Y, Tolerance);
-                Assert.True(hit.Normal.Y > 0.9f);
+                Assert.True(MathUtil.WithinEpsilon(hit.Normal.Y, 1f, 1e-3f), $"Normal {hit.Normal}");
 
                 // Carve a pit two samples deep; the simulation reads the samples directly.
                 for (int x = 3; x <= 6; ++x)
@@ -263,7 +363,7 @@ namespace Stride.BepuPhysics.Tests
 
                 // Sealing empties the grid's edges but leaves the middle of its bottom face solid, from the entity's position up.
                 Assert.Equal(0f, crate.Transform.Position.Y, 0.1f);
-                Assert.True(Quaternion.Dot(crate.Transform.Rotation, Quaternion.Identity) > 0.999f);
+                Assert.True(MathUtil.WithinEpsilon(MathF.Abs(Quaternion.Dot(crate.Transform.Rotation, Quaternion.Identity)), 1f, 1e-3f), $"Rotation {crate.Transform.Rotation}");
 
                 game.Exit();
             });

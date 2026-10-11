@@ -10,6 +10,7 @@ using BepuPhysics.CollisionDetection.CollisionTasks;
 using BepuPhysics.Trees;
 using BepuUtilities;
 using BepuUtilities.Memory;
+using MathUtil = Stride.Core.Mathematics.MathUtil;
 using NRigidPose = BepuPhysics.RigidPose;
 
 namespace Stride.BepuPhysics.Definitions.Colliders.Voxels;
@@ -255,7 +256,7 @@ internal static unsafe class VoxelShapeHelpers
             var o = origin[axis];
             var d = direction[axis];
             var high = max[axis];
-            if (MathF.Abs(d) < ParallelEpsilon)
+            if (MathUtil.WithinEpsilon(d, 0f, ParallelEpsilon))
             {
                 if (o < 0f || o > high)
                     return false;
@@ -276,7 +277,7 @@ internal static unsafe class VoxelShapeHelpers
 
     private static void ComputeAxisStep(float origin, float direction, int cell, float cellSize, float tEnter, out int step, out float tMax, out float tDelta)
     {
-        if (MathF.Abs(direction) < ParallelEpsilon)
+        if (MathUtil.WithinEpsilon(direction, 0f, ParallelEpsilon))
         {
             step = 0;
             tMax = float.MaxValue;
