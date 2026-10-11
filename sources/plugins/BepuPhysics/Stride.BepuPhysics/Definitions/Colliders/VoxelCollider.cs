@@ -6,7 +6,6 @@ using System.Runtime.InteropServices;
 using BepuUtilities.Memory;
 using Stride.BepuPhysics.Definitions.Colliders.Voxels;
 using Stride.Core;
-using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 
 namespace Stride.BepuPhysics.Definitions.Colliders;
@@ -15,11 +14,10 @@ namespace Stride.BepuPhysics.Definitions.Colliders;
 /// A <see cref="VoxelColliderBase{TSource}"/> over a copy of float samples, laid out x-major with z varying fastest.
 /// </summary>
 /// <remarks>
-/// The samples are not serialized, so Game Studio does not offer this collider and cloning an entity does not copy them:
-/// create it from a script, assign it to <see cref="CollidableComponent.Collider"/> and fill it with <see cref="SetData"/>.
+/// Only the settings are serialized: the collider stays out of the simulation until a script fills it with <see cref="SetData"/>,
+/// and cloning an entity does not copy the samples.
 /// </remarks>
 [DataContract]
-[NonInstantiable]
 public sealed unsafe class VoxelCollider : VoxelColliderBase<FloatVoxelSource>, IDisposable
 {
     /// <summary>Fewest samples per axis a grid has: two, which is one cell.</summary>

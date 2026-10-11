@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using BepuPhysics.Collidables;
 using BepuUtilities.Memory;
+using Stride.BepuPhysics.Definitions;
 using Stride.BepuPhysics.Definitions.Colliders;
 using Stride.BepuPhysics.Definitions.Colliders.Voxels;
 using Stride.Core.Mathematics;
@@ -134,6 +135,39 @@ namespace Stride.BepuPhysics.Tests
             Assert.Throws<ArgumentOutOfRangeException>(() => collider.SetData(1, 2, 2, new float[4]));
             Assert.Throws<ArgumentException>(() => collider.SetData(2, 2, 2, new float[7]));
             Assert.Throws<InvalidOperationException>(() => collider.GetVoxel(0, 0, 0));
+        }
+
+        [Fact]
+        public static void InvalidSettingsKeepTheirPreviousValue()
+        {
+            // The property grid sets them as they are typed: nothing may throw
+            using var collider = new VoxelCollider { CellSize = 0.5f, SphereRadiusScale = 1.4f, Mass = 3f };
+            foreach (var invalid in new[] { 0f, -1f, float.NaN, float.PositiveInfinity })
+            {
+                collider.CellSize = invalid;
+                collider.SphereRadiusScale = invalid;
+                collider.Mass = invalid;
+            }
+            Assert.Equal(0.5f, collider.CellSize);
+            Assert.Equal(1.4f, collider.SphereRadiusScale);
+            Assert.Equal(3f, collider.Mass);
+        }
+
+        [Fact]
+        public static void AColliderWithoutFieldHasNothingToDraw()
+        {
+            // Debug views and the editor gizmo expect one model per transform
+            using var collider = new VoxelCollider();
+            ICollider shape = collider;
+            var models = new List<BasicMeshBuffers>();
+            shape.AppendModel(models, null!, out _);
+            Assert.Equal(0, shape.Transforms);
+            Assert.Empty(models);
+
+            collider.SetData(2, 2, 2, [1f, 0f, 1f, 0f, 1f, 0f, 1f, 0f]);
+            shape.AppendModel(models, null!, out _);
+            Assert.Equal(1, shape.Transforms);
+            Assert.Single(models);
         }
 
         [Fact]
