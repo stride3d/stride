@@ -48,10 +48,7 @@ internal struct VoxelGridData<TSource> where TSource : unmanaged, IVoxelDensityS
     private const int AirCase = (1 << CornerCount) - 1;
 
     /// <summary>Entries per case in <see cref="TriangleTable"/>.</summary>
-    private const int TableStride = 16;
-
-    /// <summary>Density difference under which an edge is treated as flat, taking its midpoint.</summary>
-    private const float FlatEdgeEpsilon = 1e-6f;
+    internal const int TableStride = 16;
 
     public TSource Source;
 
