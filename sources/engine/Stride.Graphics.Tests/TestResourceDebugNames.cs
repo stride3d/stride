@@ -32,6 +32,24 @@ public class TestResourceDebugNames : GraphicTestGameBase
         });
     }
 
+    /// <summary>
+    /// Renaming a texture view leaves the name of its parent, whose native resource the view shares.
+    /// </summary>
+    [Fact]
+    public void NameGivenToAViewKeepsTheParentName()
+    {
+        PerformTest(game =>
+        {
+            var texture = Texture.New2D(game.GraphicsDevice, 4, 4, mipCount: 2, PixelFormat.R8G8B8A8_UNorm);
+            texture.Name = "RenamedTexture";
+            var view = texture.ToTextureView(new TextureViewDescription { Type = ViewType.Single, MipLevel = 1, Format = texture.Format, Flags = TextureFlags.ShaderResource });
+
+            view.Name = "RenamedView";
+
+            Assert.Contains("RenamedTexture", GetNativeName(texture));
+        });
+    }
+
     private static unsafe string GetNativeName(GraphicsResource resource)
     {
         var guid = DebugObjectNameW;

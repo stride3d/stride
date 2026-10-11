@@ -116,7 +116,10 @@ namespace Stride.Graphics
         protected override void OnNameChanged()
         {
             base.OnNameChanged();
-            SetDebugName();
+
+            // A texture view shares its parent's resource: naming it would rename the parent
+            if (this is not Texture { ParentTexture: not null })
+                SetDebugName();
         }
 
         /// <summary>
