@@ -198,7 +198,7 @@ namespace Stride.BepuPhysics.Tests
         public static void TriangleTableClosesTheSurfaceOfEveryCase()
         {
             const int caseCount = 1 << VoxelCell.CornerCount;
-            const int stride = 16;
+            const int stride = VoxelGridData<FloatVoxelSource>.TableStride;
             var corners = VoxelGridData<FloatVoxelSource>.CubeCorners;
             var edges = VoxelGridData<FloatVoxelSource>.EdgeCorners;
             var table = VoxelGridData<FloatVoxelSource>.TriangleTable;
