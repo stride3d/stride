@@ -12,5 +12,10 @@ namespace Stride.Rendering.Skyboxes
         {
             return 0;
         }
+
+        float4 Compute(float3 direction, float blurriness)
+        {
+            return 0;
+        }
     };
 }

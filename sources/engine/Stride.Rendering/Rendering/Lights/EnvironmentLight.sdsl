@@ -11,6 +11,12 @@ namespace Stride.Rendering.Lights
         {
             streams.envLightDiffuseColor = 0;
             streams.envLightSpecularColor = 0;
+            streams.envLightDistFog = 0;
+        }
+        
+        float4 GetEnvLightDistFog()
+        {
+            return streams.envLightDistFog;
         }
     };
 }
