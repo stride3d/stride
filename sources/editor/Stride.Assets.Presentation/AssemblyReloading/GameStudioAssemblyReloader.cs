@@ -233,7 +233,11 @@ namespace Stride.Assets.Presentation.AssemblyReloading
                     if (expectedPath.TryGetValue(asset.Key.Asset, out _) == false)
                         continue;
 
-                    var eventReader = new EventReader(new MemoryParser(itemToReload.ParsingEvents));
+                    // The asset as a whole goes through its upgraders first, as when its package loads
+                    var parsingEvents = itemToReload.GraphPath.IsEmpty && itemToReload.GraphPathIndex == NodeIndex.Empty
+                        ? MigrateAsset(asset.Key, itemToReload, log)
+                        : itemToReload.ParsingEvents;
+                    var eventReader = new EventReader(new MemoryParser(parsingEvents));
                     var settings = log != null ? new SerializerContextSettings { Logger = log } : null;
                     PropertyContainer properties;
                     itemToReload.UpdatedObject = AssetYamlSerializer.Default.Deserialize(eventReader, null, itemToReload.ExpectedType, out properties, settings);
@@ -381,6 +385,18 @@ namespace Stride.Assets.Presentation.AssemblyReloading
             actionService.PushOperation(operation);
             string operationName = $"Reload object {itemToReload.UpdatedObject.GetType().Name} in asset {asset.Url}";
             actionService.SetName(operation, operationName);
+        }
+
+        /// <summary>
+        /// Runs the upgraders of an asset that comes back as a whole on the YAML it was kept as. An asset that was
+        /// unloadable kept the YAML read from its file, which its upgraders could not run on without its type; a reloaded
+        /// assembly can also declare a newer format for its assets.
+        /// </summary>
+        private static List<ParsingEvent> MigrateAsset(AssetViewModel asset, ItemToReload itemToReload, ILogger log)
+        {
+            var assetItem = asset.AssetItem;
+            var context = new AssetMigrationContext(assetItem.Package, assetItem.ToReference(), assetItem.FullPath.ToOSPath(), log ?? new LoggerResult());
+            return AssetMigration.MigrateAssetIfNeeded(context, itemToReload.ParsingEvents, assetItem.FullPath, itemToReload.ExpectedType) ?? itemToReload.ParsingEvents;
         }
 
         private static void PushAssetChange(IUndoRedoService actionService, AssetViewModel asset, Asset previousAsset, Asset newAsset, string operationName, IEnumerable<IDirtiable> dirtiables)
