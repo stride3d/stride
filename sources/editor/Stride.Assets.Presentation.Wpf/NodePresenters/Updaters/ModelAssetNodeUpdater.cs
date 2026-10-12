@@ -43,6 +43,12 @@ namespace Stride.Assets.Presentation.NodePresenters.Updaters
 
                 // Add dependency to reevaluate if value changes
                 node.AddDependency(node[nameof(ModelAsset.Skeleton)], false);
+
+                // Morph delta options only apply when morph targets are imported
+                var importMorphTargets = (bool)node[nameof(ModelAsset.ImportMorphTargets)].Value;
+                node[nameof(ModelAsset.MorphNormals)].IsReadOnly = !importMorphTargets;
+                node[nameof(ModelAsset.MorphTangents)].IsReadOnly = !importMorphTargets;
+                node.AddDependency(node[nameof(ModelAsset.ImportMorphTargets)], false);
             }
         }
     }
