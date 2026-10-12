@@ -186,8 +186,21 @@ namespace Stride.Assets.Presentation.AssemblyReloading
         {
             log?.Info("Updating components with newly loaded assemblies");
 
-            // Recreate new objects from Yaml streams
+            // Recreate new objects from Yaml streams, each asset on its own: one that fails to restore is reported, the
+            // others are still restored
             foreach (var asset in assetItemsToReload)
+            {
+                try
+                {
+                    RestoreAsset(asset);
+                }
+                catch (Exception e)
+                {
+                    log?.Error($"Could not restore [{asset.Key.Url}] after the assembly change", e);
+                }
+            }
+
+            void RestoreAsset(KeyValuePair<AssetViewModel, List<ItemToReload>> asset)
             {
                 // Deserialize objects with reloaded types from Yaml
                 var objectReferences = new YamlAssetMetadata<Guid>();
