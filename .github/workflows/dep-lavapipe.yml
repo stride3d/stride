@@ -122,7 +122,11 @@ jobs:
         run: |
           set PYTHONUTF8=1
           set PATH=${{ github.workspace }}\llvm-install\bin;%PATH%
+          rem Meson asks CMake for the newest LLVM first, so a newer one on the runner image
+          rem (C:\Program Files\LLVM, static CRT) would win over ours: remove its CMake package.
+          if exist "C:\Program Files\LLVM\lib\cmake\llvm" rmdir /s /q "C:\Program Files\LLVM\lib\cmake\llvm"
           meson setup _build ^
+            -Dcmake_prefix_path=${{ github.workspace }}\llvm-install ^
             -Dvulkan-drivers=swrast ^
             -Dgallium-drivers=llvmpipe ^
             -Dplatforms=windows ^
@@ -247,7 +251,11 @@ jobs:
         run: |
           set PYTHONUTF8=1
           set PATH=${{ github.workspace }}\llvm-install\bin;%PATH%
+          rem Meson asks CMake for the newest LLVM first, so a newer one on the runner image
+          rem (C:\Program Files\LLVM, static CRT) would win over ours: remove its CMake package.
+          if exist "C:\Program Files\LLVM\lib\cmake\llvm" rmdir /s /q "C:\Program Files\LLVM\lib\cmake\llvm"
           meson setup _build ^
+            -Dcmake_prefix_path=${{ github.workspace }}\llvm-install ^
             -Dvulkan-drivers=swrast ^
             -Dgallium-drivers=llvmpipe ^
             -Dplatforms=windows ^
