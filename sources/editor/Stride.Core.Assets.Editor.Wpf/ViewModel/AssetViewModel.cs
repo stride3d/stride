@@ -26,6 +26,7 @@ using Stride.Core.Presentation.Quantum.ViewModels;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Quantum;
 using Stride.Core.Translation;
+using Stride.Core.Yaml;
 
 namespace Stride.Core.Assets.Editor.ViewModel
 {
@@ -519,7 +520,9 @@ namespace Stride.Core.Assets.Editor.ViewModel
             if (newAsset.Id != AssetItem.Asset.Id)
                 throw new ArgumentException("Assets must have the same Id.");
 
-            if (newAsset.MainSource != AssetItem.Asset.MainSource)
+            // An unloadable asset (its type's assembly is not loaded) keeps its YAML, not its source: swapping it with
+            // the loaded asset, either way, changes the source it reports
+            if (newAsset.MainSource != AssetItem.Asset.MainSource && newAsset is not IUnloadable && AssetItem.Asset is not IUnloadable)
                 throw new ArgumentException("Assets must have the same source.");
 
             var newAssetItem = AssetItem.Clone(newAsset: newAsset);
