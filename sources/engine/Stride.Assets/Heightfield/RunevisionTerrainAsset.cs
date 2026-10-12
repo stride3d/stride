@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using Stride.Assets;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Assets;
@@ -22,11 +23,14 @@ namespace Stride.Heightfield.Assets;
 /// Hosts a terrain heightmap generator for Runevision's Fast and Gorgeous Erosion Filter,
 /// https://blog.runevision.com/2026/03/fast-and-gorgeous-erosion-filter.html
 /// </summary>
-[DataContract]
-[AssetDescription(FileExtension)]
+[Display((int)AssetDisplayPriority.Textures, "Runevision Terrain")]
+[DataContract("RunevisionTerrainAsset")]
+[AssetDescription(FileExtension, AllowArchetype = false)]
 [AssetContentType(typeof(Texture))]
+[AssetFormatVersion(StrideConfig.LogicalPackageName, CurrentVersion, "1.0.0.0")]
 public sealed class RunevisionTerrainAsset : Asset
 {
+    private const string CurrentVersion = "1.0.0.0";
     public const string FileExtension = ".rvtrn";
 
     /// <summary>

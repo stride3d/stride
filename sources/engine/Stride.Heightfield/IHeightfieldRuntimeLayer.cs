@@ -3,7 +3,7 @@
 
 using Stride.Rendering.Materials;
 
-namespace Stride.Heightfield.Assets;
+namespace Stride.Heightfield;
 
 /// <summary>
 /// The runtime representation for the layer of an <see cref="Heightfield"/>,

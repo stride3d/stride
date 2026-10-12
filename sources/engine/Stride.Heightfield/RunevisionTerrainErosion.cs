@@ -9,7 +9,7 @@ using static Stride.Core.Mathematics.MathUtil;
 using static Stride.Core.Mathematics.Vector2;
 using static Stride.Core.Mathematics.Vector3;
 
-namespace Stride.Heightfield.Assets;
+namespace Stride.Heightfield;
 
 /// <summary>
 /// Ported https://blog.runevision.com/2026/03/fast-and-gorgeous-erosion-filter.html as is to c# based on the

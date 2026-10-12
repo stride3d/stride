@@ -11,6 +11,7 @@ using Stride.Core.Assets;
 
 namespace Stride.Heightfield.Assets;
 
+[Display((int)AssetDisplayPriority.Physics, "Heightfield")]
 [DataContract("HeightfieldAsset")]
 [AssetDescription(FileExtension, AllowArchetype = false)]
 [AssetContentType(typeof(Heightfield))]

@@ -9,15 +9,15 @@ using Stride.Core.Serialization.Contents;
 using Stride.Engine.Design;
 using Stride.Rendering.Materials;
 
-namespace Stride.Heightfield.Assets;
+namespace Stride.Heightfield;
 
 /// <summary>
 /// The runtime representation of a compiled <see cref="IHeightfieldSource"/>
 /// </summary>
 [DataContract("Heightfield")]
 [ContentSerializer(typeof(DataContentSerializerWithReuse<Heightfield>))]
-[ReferenceSerializer, DataSerializerGlobal(typeof(ReferenceSerializer<Heightfield>), Profile = "Content")]
 [DataSerializerGlobal(typeof(CloneSerializer<Heightfield>), Profile = "Clone")]
+[ReferenceSerializer, DataSerializerGlobal(typeof(ReferenceSerializer<Heightfield>), Profile = "Content")]
 public class Heightfield : IHeightfieldPhysicsSource, IHeightfieldRenderingSource
 {
     /// <inheritdoc cref="IHeightfieldSource.Size" />

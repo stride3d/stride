@@ -7,3 +7,4 @@ Description: An heightmap with height in R, erosion in G, ridges in B and trees 
 Group: Texture
 Icon: ..\.sdtpl\Terrain.png
 DefaultOutputName: RunevisionTerrainAsset
+FactoryTypeName: RunevisionTerrainAssetFactory

@@ -50,7 +50,7 @@ public class HeightfieldDisplacementFeature : MaterialFeature, IMaterialDisplace
         if (context.Content.TryGetAssetUrl(source, out _) == false)
         {
             var url = AttachedReferenceManager.GetUrl(source);
-            source = (IHeightfieldRenderingSource)context.Content.Load(source.GetType(), url);
+            source = (IHeightfieldRenderingSource)context.Content.Load(source.GetType(), url!);
         }
 
         var materialStage = (MaterialShaderStage)Stage;

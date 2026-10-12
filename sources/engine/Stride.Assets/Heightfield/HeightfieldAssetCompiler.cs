@@ -33,12 +33,16 @@ internal sealed class HeightfieldAssetCompiler : AssetCompilerBase
         return asset.Layer?.GetInputFiles() ?? [];
     }
 
-    public class HeightfieldAssetCommand(string url, HeightfieldAsset parameters, IAssetFinder assetFinder)
-        : AssetCommand<HeightfieldAsset>(url, parameters, assetFinder)
+    public class HeightfieldAssetCommand : AssetCommand<HeightfieldAsset>
     {
+        public HeightfieldAssetCommand(string url, HeightfieldAsset parameters, IAssetFinder assetFinder)
+            : base(url, parameters, assetFinder)
+        {
+        }
+
         public override IEnumerable<ObjectUrl> GetInputFiles()
         {
-            return parameters.Layer?.GetInputFiles() ?? [];
+            return Parameters.Layer?.GetInputFiles() ?? [];
         }
 
         protected override async Task<ResultStatus> DoCommandOverride(ICommandContext commandContext)
