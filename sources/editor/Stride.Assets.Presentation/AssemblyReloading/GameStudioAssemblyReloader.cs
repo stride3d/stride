@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Quantum;
+using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Assets.Quantum.Visitors;
@@ -47,7 +48,7 @@ namespace Stride.Assets.Presentation.AssemblyReloading
                 Dictionary<AssetViewModel, List<ItemToReload>> assetItemsToReload;
                 try
                 {
-                    assetItemsToReload = PrepareAssemblyReloading(session, unloadingVisitor, session.UndoRedoService);
+                    assetItemsToReload = PrepareAssemblyReloading(session, unloadingVisitor, session.UndoRedoService, log);
                 }
                 catch (Exception e)
                 {
@@ -104,7 +105,7 @@ namespace Stride.Assets.Presentation.AssemblyReloading
                 Dictionary<AssetViewModel, List<ItemToReload>> assetItemsToReload;
                 try
                 {
-                    assetItemsToReload = PrepareAssemblyReloading(session, unloadingVisitor, session.UndoRedoService);
+                    assetItemsToReload = PrepareAssemblyReloading(session, unloadingVisitor, session.UndoRedoService, log);
                 }
                 catch (Exception e)
                 {
@@ -141,7 +142,7 @@ namespace Stride.Assets.Presentation.AssemblyReloading
             session.ActiveProperties.RefreshSelectedPropertiesAsync().Forget();
         }
 
-        private static Dictionary<AssetViewModel, List<ItemToReload>> PrepareAssemblyReloading(SessionViewModel session, UnloadingVisitor visitor, IUndoRedoService actionService)
+        private static Dictionary<AssetViewModel, List<ItemToReload>> PrepareAssemblyReloading(SessionViewModel session, UnloadingVisitor visitor, IUndoRedoService actionService, ILogger log)
         {
             var assetItemsToReload = new Dictionary<AssetViewModel, List<ItemToReload>>();
 
@@ -157,29 +158,51 @@ namespace Stride.Assets.Presentation.AssemblyReloading
 
                 // Serialize objects with types to unload to Yaml
                 // Objects that were already IUnloadable will also be included
-                var rootNode = session.AssetNodeContainer.GetNode(asset.Asset);
                 var itemsToReload = visitor.Run(asset.PropertyGraph);
 
+                // Add to list of items to reload for PostAssemblyReloading
                 if (itemsToReload.Count > 0)
-                {
-                    // We apply changes in opposite visit order so that indices remains valid when we remove objects while iterating
-                    for (int index = itemsToReload.Count - 1; index >= 0; index--)
-                    {
-                        var itemToReload = itemsToReload[index];
-
-                        // Transform path to Quantum
-                        itemToReload.GraphPath = GraphNodePath.From(rootNode, itemToReload.Path, out itemToReload.GraphPathIndex);
-
-                        // Remove (collections) or replace nodes with null (members) so that we can unload assemblies
-                        ClearNode(actionService, asset, itemToReload);
-                    }
-
-                    // Add to list of items to reload for PostAssemblyReloading
                     assetItemsToReload.Add(asset, new List<ItemToReload>(itemsToReload));
+            }
+
+            CloseAssetEditors(session, assetItemsToReload.Keys, log);
+
+            foreach (var (asset, itemsToReload) in assetItemsToReload)
+            {
+                var rootNode = session.AssetNodeContainer.GetNode(asset.Asset);
+
+                // We apply changes in opposite visit order so that indices remains valid when we remove objects while iterating
+                for (int index = itemsToReload.Count - 1; index >= 0; index--)
+                {
+                    var itemToReload = itemsToReload[index];
+
+                    // Transform path to Quantum
+                    itemToReload.GraphPath = GraphNodePath.From(rootNode, itemToReload.Path, out itemToReload.GraphPathIndex);
+
+                    // Remove (collections) or replace nodes with null (members) so that we can unload assemblies
+                    ClearNode(actionService, asset, itemToReload);
                 }
             }
 
             return assetItemsToReload;
+        }
+
+        // An open editor holds objects of the types being unloaded (its editor game above all), so it closes before they
+        // go. Its changes are the asset's, which stay in the session.
+        private static void CloseAssetEditors(SessionViewModel session, IEnumerable<AssetViewModel> assets, ILogger log)
+        {
+            var editorsManager = session.ServiceProvider.TryGet<IAssetEditorsManager>();
+            if (editorsManager is null)
+                return;
+
+            var closed = new List<string>();
+            foreach (var asset in assets)
+            {
+                if (editorsManager.TryGetAssetEditor<IAssetEditorViewModel>(asset, out _) && editorsManager.CloseAssetEditorWindow(asset, false))
+                    closed.Add(asset.Url);
+            }
+            if (closed.Count > 0)
+                log?.Warning($"Closed the editors of {string.Join(", ", closed)}: their assets use reloaded types. Their changes are kept; open them again to continue.");
         }
 
         private static void PostAssemblyReloading(IUndoRedoService actionService, SessionNodeContainer nodeContainer, ILogger log, Dictionary<AssetViewModel, List<ItemToReload>> assetItemsToReload)
