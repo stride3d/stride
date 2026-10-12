@@ -8,6 +8,7 @@ using System.Buffers;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 
 namespace Stride.Core;
@@ -32,7 +33,11 @@ public static partial class NativeLibraryHelper
     // Map of loaded libraries to their handles
     private static readonly Dictionary<string, nint> loadedLibraries = new(StringComparer.OrdinalIgnoreCase);
     private static readonly Lock loadedLibrariesLock = new();
+    private static readonly HashSet<string> registeredDirectories = new(StringComparer.OrdinalIgnoreCase);
     private static bool globalResolverRegistered;
+#if STRIDE_PLATFORM_DESKTOP
+    private static readonly HashSet<System.Runtime.Loader.AssemblyLoadContext> resolvedLoadContexts = [];
+#endif
 
     private static readonly Dictionary<string, string> nativeDependenciesWithoutExtensions = new(StringComparer.OrdinalIgnoreCase);
     private static readonly Dictionary<string, string> nativeDependenciesWithExtensions = new(StringComparer.OrdinalIgnoreCase);
@@ -342,6 +347,11 @@ public static partial class NativeLibraryHelper
         //
         string? ProbePath(string path)
         {
+            // A relative path comes from an assembly without a location (loaded from bytes). It resolves against the
+            // current directory, which dlopen does not search: the current directory is probed by its full path instead.
+            if (!Path.IsPathRooted(path))
+                return null;
+
             var libraryFilePath = Path.Combine(path, libraryNameWithExtension);
             if (File.Exists(libraryFilePath))
                 return libraryFilePath;
@@ -461,18 +471,51 @@ public static partial class NativeLibraryHelper
 
     /// <summary>
     ///   Registers every native library shipped for the current platform under <paramref name="directory"/>
-    ///   (its <c>runtimes/&lt;rid&gt;/native</c> folder), so <see cref="PreloadLibrary"/> and <c>[DllImport]</c>
-    ///   find them for assemblies loaded from that directory without a file location of their own.
+    ///   (its <c>runtimes/&lt;rid&gt;/native</c> folder, or the directory itself, where a build for a runtime
+    ///   identifier puts them), so <see cref="PreloadLibrary"/> and <c>[DllImport]</c> find them for assemblies
+    ///   loaded from that directory without a file location of their own.
     /// </summary>
     /// <param name="directory">A package root or the directory holding a package assembly.</param>
     public static void RegisterDependenciesFrom(string directory)
     {
         ArgumentNullException.ThrowIfNull(directory);
+        lock (loadedLibrariesLock)
+        {
+            if (!registeredDirectories.Add(Path.GetFullPath(directory)))
+                return;
+        }
+
         var nativeDirectory = Path.Combine(directory, platformNativeLibsDir);
-        if (!Directory.Exists(nativeDirectory))
-            return;
-        foreach (var file in Directory.EnumerateFiles(nativeDirectory))
-            RegisterDependency(file);
+        if (Directory.Exists(nativeDirectory))
+        {
+            foreach (var file in Directory.EnumerateFiles(nativeDirectory))
+                RegisterDependency(file);
+        }
+
+        if (Directory.Exists(directory))
+        {
+            // libfoo.so.6 on Linux; on Windows, the managed assemblies next to them share the extension
+            var pattern = Platform.Type == PlatformType.Linux ? "*" + libExtension + "*" : "*" + libExtension;
+            foreach (var file in Directory.EnumerateFiles(directory, pattern))
+            {
+                if (Platform.Type != PlatformType.Windows || !IsManagedAssembly(file))
+                    RegisterDependency(file);
+            }
+        }
+
+        static bool IsManagedAssembly(string file)
+        {
+            try
+            {
+                using var stream = File.OpenRead(file);
+                using var peReader = new PEReader(stream);
+                return peReader.HasMetadata;
+            }
+            catch (Exception e) when (e is BadImageFormatException or IOException or UnauthorizedAccessException)
+            {
+                return false;
+            }
+        }
     }
 
     /// <summary>SONAME version of a native filename (libfoo.so.6 → 6.0, libfoo.6.dylib → 6.0; else 0.0).</summary>
@@ -549,6 +592,29 @@ public static partial class NativeLibraryHelper
         }
     }
 #endif
+
+    /// <summary>
+    ///   Makes the <c>[DllImport]</c> calls of <paramref name="assembly"/> find the native libraries known here
+    ///   (preloaded or registered) when it lives outside the default load context, which the global resolver
+    ///   covers: an assembly loaded from bytes gets a load context of its own. On Windows a library already
+    ///   loaded by full path is found again by name anyway; on Linux and macOS it is not.
+    /// </summary>
+    /// <param name="assembly">The assembly whose load context gets the resolver.</param>
+    public static void RegisterResolverFor(Assembly assembly)
+    {
+        ArgumentNullException.ThrowIfNull(assembly);
+#if STRIDE_PLATFORM_DESKTOP
+        var context = System.Runtime.Loader.AssemblyLoadContext.GetLoadContext(assembly);
+        if (context is null || context == System.Runtime.Loader.AssemblyLoadContext.Default)
+            return;
+        lock (loadedLibrariesLock)
+        {
+            if (!resolvedLoadContexts.Add(context))
+                return;
+        }
+        context.ResolvingUnmanagedDll += ResolvePreloadedLibrary;
+#endif
+    }
 
 #if STRIDE_PLATFORM_IOS
     // iOS-only: a single main-binary handle, populated lazily by ResolveIOSMainBinary.
