@@ -376,6 +376,10 @@ public class AssemblyContainer
                     loadedAssemblies.Add(loadedAssembly);
                     loadedAssembliesByName.Add(assemblyFullPath, loadedAssembly);
 
+                    // Loaded from bytes, the assembly has a load context of its own: its [DllImport] calls find the
+                    // native libraries registered above only through a resolver on that context
+                    NativeLibraryHelper.RegisterResolverFor(assembly);
+
                     // Force assembly resolve with proper name (with proper context)
                     var previousSearchDirectory = currentSearchDirectory;
                     var previousContainer = currentContainer;
