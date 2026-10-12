@@ -1,0 +1,14 @@
+!Skeleton
+Id: 16d5596f-af9d-4716-b9f1-dcb5c371d580
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: !file ../../Resources/Donut/donut.gltf
+PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
+Nodes:
+    252b348c6247d821a9cab89087bce836: {Name: DonutRig, Depth: 0}
+    5a04652bf4fb2172af5b591f543c9aaa: {Name: Donut, Depth: 1}
+    964e635299b6230ae35c5cde335ac329: {Name: Root, Depth: 1}
+    ebcbfefd4f6fd2a62474dd0c6ee89a0a: {Name: Left, Depth: 2}
+    2bcb3eb8d36c95d3bbfa8472f343793b: {Name: Right, Depth: 2}
+~SourceHashes:
+    277606e0ee1fd889e1a1563645080f66~../../Resources/Donut/donut.gltf: 5f9268ac801cd65ffe97431813052634

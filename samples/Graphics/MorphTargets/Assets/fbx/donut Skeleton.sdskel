@@ -1,0 +1,15 @@
+!Skeleton
+Id: 70261a03-899b-4c1d-84e6-ecb065338d04
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: !file ../../Resources/Donut/donut.fbx
+PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
+Nodes:
+    cf64ad2a733b78f9557e9e8e596ca002: {Name: RootNode, Depth: 0}
+    4e90bcfa8ac7e6d403a72276f85b6491: {Name: Donut, Depth: 1}
+    24c29f82a27bef06006a7481f5ed06d8: {Name: DonutRig, Depth: 1}
+    516996cd5ffa690f3c303e661d40a0c1: {Name: Root, Depth: 2}
+    b2c64b416f936f8c40c64b3c2f6b8ebf: {Name: Left, Depth: 3}
+    f72a413163dbbd977a6445add1c9473a: {Name: Right, Depth: 3}
+~SourceHashes:
+    110d68979d8cb7b3443d7a5364f46ad3~../../Resources/Donut/donut.fbx: 0b750ad3f4e914bd805e04a018af789f

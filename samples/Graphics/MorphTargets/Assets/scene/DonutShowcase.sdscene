@@ -1,0 +1,160 @@
+!SceneAsset
+Id: 2a1075f6-62a2-46cc-b795-fa37b8928ba3
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+ChildrenIds: []
+Offset: {X: 0.0, Y: 0.0, Z: 0.0}
+Hierarchy:
+    RootParts:
+        - ref!! 3bbb1dcd-ce2c-41e1-aa83-a4a544b52294
+        - ref!! 862f9293-88dd-401a-ac8b-dd815e000ae8
+        - ref!! 53b222da-3f58-4802-9002-959ef2cd6393
+        - ref!! 9755c1bb-a630-4546-9b1b-8cf0542f1f73
+        - ref!! 0f3b8d62-91a4-4c7e-b5d2-6e8a1f4c9b07
+        - ref!! d0e2cfad-27a8-4b9a-86cd-f56712bcdb57
+        - ref!! aa187bd1-dcf1-4cff-8eaa-915afb75b786
+    Parts:
+        -   Entity:
+                Id: 0f3b8d62-91a4-4c7e-b5d2-6e8a1f4c9b07
+                Name: Donut
+                Components:
+                    2bc7f5b3b7774794a808d46c4b59896c: !TransformComponent
+                        Id: 7c4e2a91-5b3d-4f6e-8a1c-2d9e0b7f6a35
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    3d6a9e1f4b2c48d7a5e0f1b2c3d4e5f6: !ModelComponent
+                        Id: 4a8f2c6e-1d3b-4e9a-b7c5-0f2e4d6a8c91
+                        Model: d4d26537-8d4f-4d81-9ae0-9bc18b37ea21:gltf/donut
+                        Materials:
+                            6b1e9d3a7c5f4e2b8a0d1c3e5f7a9b2d~0: a7bdf679-447f-4853-aca5-c33cf455c47a:DonutMaterial
+                        Morphs:
+                            Weights:
+                                8adafad8079f02667c9f1220b7de5935~Bigger: 0.0
+                                6d877108e8e90ace149ab94f64d96984~Thicker: 0.0
+                                1b3bd0d9b4d435fb6e00034893c1e012~Wider: 0.0
+                                33a89ac1c80033743a6a7bafffaedf35~Flatter: 0.0
+                    8e2f4a6c0b1d43e5a7c9f1e3b5d7a9c2: !AnimationComponent
+                        Id: 5c7e9a1b-3d4f-4062-a8c0-e2f4b6d8a0c3
+                        Animations: {}
+        -   Entity:
+                Id: 3bbb1dcd-ce2c-41e1-aa83-a4a544b52294
+                Name: Camera
+                Components:
+                    2bc7f5b3b7774794a808d46c4b59896c: !TransformComponent
+                        Id: 2455fb60-6b4d-4584-ab31-43ab55e5ec3a
+                        Position: {X: 0.0, Y: 3.8, Z: 9.0}
+                        Rotation: {X: -0.2079117, Y: 0.0, Z: 0.0, W: 0.9781476}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    4cabfba45b9c4ca1bc7f441060529a47: !CameraComponent
+                        Id: a8dc9c2c-fed0-4107-b716-fcfb33d00060
+                        Name: null
+                        Projection: Perspective
+                        NearClipPlane: 0.05
+                        Slot: b0a6b286-b649-41a0-ae6a-9feddb93947f
+        -   Entity:
+                Id: 53b222da-3f58-4802-9002-959ef2cd6393
+                Name: Ambient light
+                Components:
+                    2bc7f5b3b7774794a808d46c4b59896c: !TransformComponent
+                        Id: cfb4d838-4fac-4b30-8277-f4c62b1c79c4
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    6e11fa7c0bbc41098cc6ff96a40392c8: !LightComponent
+                        Id: 9dc182ec-1f7e-43db-a609-be54362f34ae
+                        Type: !LightAmbient
+                            Color: !ColorRgbProvider
+                                Value: {R: 1.0, G: 1.0, B: 1.0}
+                        Intensity: 0.3
+        -   Entity:
+                Id: 862f9293-88dd-401a-ac8b-dd815e000ae8
+                Name: Directional light
+                Components:
+                    2bc7f5b3b7774794a808d46c4b59896c: !TransformComponent
+                        Id: 9f14f5d2-2b8f-4701-a318-05f9b11420d5
+                        Position: {X: 0.0, Y: 4.0, Z: 4.0}
+                        Rotation: {X: -0.2867882, Y: 0.2867882, Z: 0.090424, W: 0.909576}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    6e11fa7c0bbc41098cc6ff96a40392c8: !LightComponent
+                        Id: c1b32e65-e539-4a64-86ef-6be23a34cf41
+                        Type: !LightDirectional
+                            Color: !ColorRgbProvider
+                                Value: {R: 1.0, G: 0.96, B: 0.9}
+                            Shadow:
+                                Enabled: true
+                                Size: Large
+                                DepthRange: {}
+                                PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
+                                ComputeTransmittance: false
+                                BiasParameters: {}
+                        Intensity: 1.2
+        -   Entity:
+                Id: 9755c1bb-a630-4546-9b1b-8cf0542f1f73
+                Name: DonutShowcaseController
+                Components:
+                    2bc7f5b3b7774794a808d46c4b59896c: !TransformComponent
+                        Id: 240801c4-cdf3-4e1d-b450-39ff36842765
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    f7ca86bfe67a43dea391d91025ceb99d: !DonutShowcaseController
+                        Id: d9274297-0c8d-4c00-a293-c03e34b8fdca
+                        Donut: ref!! 4a8f2c6e-1d3b-4e9a-b7c5-0f2e4d6a8c91
+                        Cube: ref!! e98965bc-2915-4a0f-9d6c-6fe00f02bc0a
+                        Icosphere: ref!! 36d32fef-8371-489e-b2d4-6b1209e7e4e0
+                        CubeAnimation: adc14a15-a32f-4226-8882-d1a9a33b4196:gltf/cube_Morph
+                        IcosphereAnimation: 1e4468c2-ef89-408c-8b39-4b63e23647ad:gltf/icosphere_Morph
+                        Model: d4d26537-8d4f-4d81-9ae0-9bc18b37ea21:gltf/donut
+                        Animation: 8c17ad8a-9592-46b3-8234-8c7e285be3f3:gltf/donut_Animation
+                        FbxModel: 1c9f7f15-279f-4443-9188-d6370c244af9:fbx/donut
+                        FbxAnimation: 376c9b77-1eeb-44b2-8d53-addfa71d664b:fbx/donut_Scene
+                        Material: a7bdf679-447f-4853-aca5-c33cf455c47a:DonutMaterial
+                        Font: 1b57b80b-b6b7-4996-904e-b667ab44dc0e:Font
+        -   Entity:
+                Id: aa187bd1-dcf1-4cff-8eaa-915afb75b786
+                Name: Icosphere
+                Components:
+                    438221df335246b3b369dc631ffb13b8: !TransformComponent
+                        Id: 93b48c6f-af0f-417a-a820-6f66d6a20388
+                        Position: {X: 3.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    00818e333acb43069b9232abcdebf14f: !ModelComponent
+                        Id: 36d32fef-8371-489e-b2d4-6b1209e7e4e0
+                        Model: 39721c34-2996-4256-98e5-d90220ed8790:gltf/icosphere
+                        Materials:
+                            29295c918112481da5a7a31cbb4af688~0: a7bdf679-447f-4853-aca5-c33cf455c47a:DonutMaterial
+                        Morphs:
+                            Weights:
+                                5b93b3acb3284e59a5b498f5e9bb4e3f~Squashed: 0.0
+                                08df75e13a1341e5911fe6316d1b6594~Stretched: 0.0
+                                e218a41df1604d44a91201dd414b103f~Bumpy: 0.0
+                                719b7e8f83b44647b80c531afa3df30b~Pear: 0.0
+        -   Entity:
+                Id: d0e2cfad-27a8-4b9a-86cd-f56712bcdb57
+                Name: Cube
+                Components:
+                    27cf5fe35e024544a4d7368649f76adf: !TransformComponent
+                        Id: d54b9059-7112-411c-a88d-908e1b1db3ff
+                        Position: {X: -3.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    1c431227301c4515a6b73596b1b7c913: !ModelComponent
+                        Id: e98965bc-2915-4a0f-9d6c-6fe00f02bc0a
+                        Model: c41faf88-3e74-40d5-af0b-7c43925d3eda:gltf/cube
+                        Materials:
+                            225fbd2f4fb0498e8a003e9580d249e6~0: a7bdf679-447f-4853-aca5-c33cf455c47a:DonutMaterial
+                        Morphs:
+                            Weights:
+                                ea78f3be2b0647a398602c970014c7fa~Taller: 0.0
+                                ba7bb6a6d7c1486d83ba809415a01001~Twisted: 0.0
+                                ff74f16d86474ca0a914a25a787933d9~Tapered: 0.0
+                                d256197df415416eaf41de8c63e6bb40~Rounded: 0.0
