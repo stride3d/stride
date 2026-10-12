@@ -1,0 +1,208 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+/// <summary>
+/// Morph blending and skinning of one vertex (x) of one instance slot (y) of a batch, gathering the vertex's sparse entries.
+/// </summary>
+// The vertex buffers are declared here, not in a base shader: the SDSL mixer cannot merge raw buffers declared in a base class.
+shader MorphSkinning : ComputeShaderBase, NormalUtil, Utilities
+{
+    // Bits of an instance record's flags, see ModelDeformationRenderer.
+    static const uint InstanceActive = 1;
+    static const uint InstanceSkinned = 2;
+    // A MeshMorphEntry is three dword pairs: vertex | shape, position.x; position.yz; normal.xy | normal.z, tangent.x; tangent.yz.
+    static const uint EntryPairs = 3;
+    static const uint HalfMask = 0xFFFF;
+    static const uint BytesPerDword = 4;
+    static const uint MaxBoneInfluences = 4;
+    // Matrices are 3x4, stored as three float4 columns of the logical row-vector transform.
+    static const uint RowsPerMatrix = 3;
+    // An instance record: (flags, pose offset), then the inverse mesh world matrix.
+    static const uint RowsPerRecord = 4;
+    static const uint HalfBits = 16;
+    static const uint ByteBits = 8;
+    static const uint ByteMask = 0xFF;
+
+    stage ByteAddressBuffer InputVertices;
+    // Read as dword pairs: a 24-byte entry takes three 8-byte loads instead of six 4-byte ones.
+    stage StructuredBuffer<uint2> PackedEntries;
+    stage StructuredBuffer<uint> VertexOffsets;
+    // Per-frame arenas shared by all dispatches: morph weights, skeleton node world matrices and instance records.
+    stage StructuredBuffer<float> Weights;
+    stage StructuredBuffer<float4> PoseRows;
+    stage StructuredBuffer<float4> InstanceRecords;
+    // Per mesh bone: the inverse bind matrix and the skeleton node it follows.
+    stage StructuredBuffer<float4> BoneBinds;
+    stage StructuredBuffer<uint> BoneNodes;
+    stage RWByteAddressBuffer OutputVertices;
+
+    cbuffer PerDispatch
+    {
+        stage uint VertexCount;
+        stage uint VertexStride;
+        stage uint PositionOffset;
+        stage int NormalOffset;
+        stage int TangentOffset;
+        stage int BlendIndicesOffset;
+        stage int BlendWeightsOffset;
+        stage uint BoneCount;
+        stage uint Index16;
+        stage uint TargetCount;
+        stage uint ActiveCount;
+        stage uint InstanceCount;
+        // First record row (float4) and first morph weight of this batch in the frame arenas.
+        stage uint RecordBase;
+        stage uint WeightBase;
+        // Bytes per instance slot of the compact output: position, normal and tangent of every vertex.
+        stage uint OutputStride;
+        stage uint OutputVertexStride;
+        stage int OutputNormalOffset;
+        stage int OutputTangentOffset;
+        // The tangent is a float4: its w (bitangent handedness) is copied from the input.
+        stage uint TangentW;
+    }
+
+    float3 TransformPoint(float3 position, float4 column0, float4 column1, float4 column2)
+    {
+        float4 homogeneousPosition = float4(position, 1);
+        return float3(dot(homogeneousPosition, column0), dot(homogeneousPosition, column1), dot(homogeneousPosition, column2));
+    }
+
+    float3 TransformVector(float3 direction, float4 column0, float4 column1, float4 column2)
+    {
+        return float3(dot(direction, column0.xyz), dot(direction, column1.xyz), dot(direction, column2.xyz));
+    }
+
+    uint EntryShape(uint entry) { return PackedEntries[entry * EntryPairs].y & HalfMask; }
+
+    void DecodeEntry(uint entry, out float3 positionDelta, out float3 normalDelta, out float3 tangentDelta)
+    {
+        uint firstPair = entry * EntryPairs;
+        uint2 shapeAndPositionPair = PackedEntries[firstPair];
+        uint2 positionAndNormalPair = PackedEntries[firstPair + 1];
+        uint2 normalAndTangentPair = PackedEntries[firstPair + 2];
+        // First pair: vertex, then shape | position.x. Second: position.yz, normal.xy. Third: normal.z | tangent.x, tangent.yz.
+        float4 shapeAndPosition = UnpackHalf4ToFloat4(uint2(shapeAndPositionPair.y, positionAndNormalPair.x));
+        float4 normalZAndTangent = UnpackHalf4ToFloat4(normalAndTangentPair);
+        positionDelta = shapeAndPosition.yzw;
+        normalDelta = float3(UnpackHalf2ToFloat2(positionAndNormalPair.y), normalZAndTangent.x);
+        tangentDelta = normalZAndTangent.yzw;
+    }
+
+    // No early returns or continues: the SPIR-V to HLSL translation turns them into a one-pass loop that FXC warns about.
+    override void Compute()
+    {
+        uint vertex = streams.DispatchThreadId.x;
+        uint instance = streams.DispatchThreadId.y;
+        if (vertex < VertexCount && instance < InstanceCount)
+            Deform(vertex, instance);
+    }
+
+    void Deform(uint vertex, uint instance)
+    {
+        uint record = RecordBase + instance * RowsPerRecord;
+        uint2 header = asuint(InstanceRecords[record].xy);
+        uint flags = header.x;
+        uint poseOffset = header.y;
+        if ((flags & InstanceActive) != 0)
+            DeformActive(vertex, instance, record, flags, poseOffset);
+    }
+
+    void DeformActive(uint vertex, uint instance, uint record, uint flags, uint poseOffset)
+    {
+        uint inputAddress = vertex * VertexStride;
+        float3 position = asfloat(InputVertices.Load3(inputAddress + PositionOffset));
+        float3 normal = NormalOffset >= 0 ? asfloat(InputVertices.Load3(inputAddress + NormalOffset)) : float3(0, 1, 0);
+        float3 tangent = TangentOffset >= 0 ? asfloat(InputVertices.Load3(inputAddress + TangentOffset)) : float3(1, 0, 0);
+        if (ActiveCount != 0)
+            ApplyMorphTargets(vertex, WeightBase + instance * TargetCount, position, normal, tangent);
+        if (BoneCount != 0 && (flags & InstanceSkinned) != 0)
+            ApplySkinning(inputAddress, record, poseOffset, position, normal, tangent);
+        normal = SafeNormalize(normal, float3(0, 1, 0));
+        tangent = SafeNormalize(tangent - normal * dot(normal, tangent), Perpendicular(normal));
+        StoreVertex(instance * OutputStride + vertex * OutputVertexStride, inputAddress, position, normal, tangent);
+    }
+
+    // Adds the weighted deltas of the vertex's entries, skipping targets with a zero weight.
+    void ApplyMorphTargets(uint vertex, uint instanceWeightBase, inout float3 position, inout float3 normal, inout float3 tangent)
+    {
+        float3 positionSum = 0, normalSum = 0, tangentSum = 0;
+        uint endEntry = VertexOffsets[vertex + 1];
+        for (uint entry = VertexOffsets[vertex]; entry < endEntry; entry++)
+        {
+            float weight = Weights[instanceWeightBase + EntryShape(entry)];
+            [branch]
+            if (weight != 0)
+            {
+                float3 positionDelta, normalDelta, tangentDelta;
+                DecodeEntry(entry, positionDelta, normalDelta, tangentDelta);
+                positionSum += positionDelta * weight;
+                normalSum += normalDelta * weight;
+                tangentSum += tangentDelta * weight;
+            }
+        }
+        position += positionSum;
+        normal += normalSum;
+        tangent += tangentSum;
+    }
+
+    uint4 LoadBlendIndices(uint inputAddress)
+    {
+        uint4 indices;
+        if (Index16 != 0)
+        {
+            uint2 packedIndices = InputVertices.Load2(inputAddress + BlendIndicesOffset);
+            indices = uint4(packedIndices.x & HalfMask, packedIndices.x >> HalfBits, packedIndices.y & HalfMask, packedIndices.y >> HalfBits);
+        }
+        else
+        {
+            uint packedIndices = InputVertices.Load(inputAddress + BlendIndicesOffset);
+            indices = uint4(packedIndices & ByteMask, (packedIndices >> ByteBits) & ByteMask, (packedIndices >> 2 * ByteBits) & ByteMask, packedIndices >> 3 * ByteBits);
+        }
+        return indices;
+    }
+
+    // Each influence goes through its inverse bind matrix, then its node's world matrix from the skeleton pose;
+    // the result is brought back to mesh space, since the instance draws with the mesh world transform.
+    void ApplySkinning(uint inputAddress, uint record, uint poseOffset, inout float3 position, inout float3 normal, inout float3 tangent)
+    {
+        uint4 boneIndices = LoadBlendIndices(inputAddress);
+        float4 boneWeights = asfloat(InputVertices.Load4(inputAddress + BlendWeightsOffset));
+        float3 skinnedPosition = 0, skinnedNormal = 0, skinnedTangent = 0;
+        for (uint influence = 0; influence < MaxBoneInfluences; influence++)
+        {
+            uint bone = boneIndices[influence];
+            float boneWeight = boneWeights[influence];
+            if (boneWeight != 0 && bone < BoneCount)
+            {
+                uint bindRow = bone * RowsPerMatrix;
+                float4 bindColumn0 = BoneBinds[bindRow], bindColumn1 = BoneBinds[bindRow + 1], bindColumn2 = BoneBinds[bindRow + 2];
+                uint nodeRow = poseOffset + BoneNodes[bone] * RowsPerMatrix;
+                float4 worldColumn0 = PoseRows[nodeRow], worldColumn1 = PoseRows[nodeRow + 1], worldColumn2 = PoseRows[nodeRow + 2];
+                skinnedPosition += TransformPoint(TransformPoint(position, bindColumn0, bindColumn1, bindColumn2), worldColumn0, worldColumn1, worldColumn2) * boneWeight;
+                skinnedNormal += TransformVector(TransformVector(normal, bindColumn0, bindColumn1, bindColumn2), worldColumn0, worldColumn1, worldColumn2) * boneWeight;
+                skinnedTangent += TransformVector(TransformVector(tangent, bindColumn0, bindColumn1, bindColumn2), worldColumn0, worldColumn1, worldColumn2) * boneWeight;
+            }
+        }
+        float4 inverseWorldColumn0 = InstanceRecords[record + 1];
+        float4 inverseWorldColumn1 = InstanceRecords[record + 2];
+        float4 inverseWorldColumn2 = InstanceRecords[record + 3];
+        position = TransformPoint(skinnedPosition, inverseWorldColumn0, inverseWorldColumn1, inverseWorldColumn2);
+        normal = TransformVector(skinnedNormal, inverseWorldColumn0, inverseWorldColumn1, inverseWorldColumn2);
+        tangent = TransformVector(skinnedTangent, inverseWorldColumn0, inverseWorldColumn1, inverseWorldColumn2);
+    }
+
+    void StoreVertex(uint outputAddress, uint inputAddress, float3 position, float3 normal, float3 tangent)
+    {
+        OutputVertices.Store3(outputAddress, asuint(position));
+        if (OutputNormalOffset >= 0)
+            OutputVertices.Store3(outputAddress + OutputNormalOffset, asuint(normal));
+        if (OutputTangentOffset >= 0)
+        {
+            OutputVertices.Store3(outputAddress + OutputTangentOffset, asuint(tangent));
+            // The tangent handedness (w) is not deformed: copy it from the input vertex.
+            if (TangentW != 0)
+                OutputVertices.Store(outputAddress + OutputTangentOffset + 3 * BytesPerDword, InputVertices.Load(inputAddress + TangentOffset + 3 * BytesPerDword));
+        }
+    }
+};
