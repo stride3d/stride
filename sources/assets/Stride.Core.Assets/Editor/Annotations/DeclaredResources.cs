@@ -6,7 +6,8 @@ using System.Reflection;
 namespace Stride.Core.Assets.Editor.Annotations;
 
 /// <summary>
-/// Reads the embedded resources named by <see cref="TypeImageAttribute"/> and <see cref="StaticThumbnailAttribute"/>.
+/// Reads the embedded resources named by <see cref="TypeImageAttribute"/>, <see cref="EnumImageAttribute"/> and
+/// <see cref="StaticThumbnailAttribute"/>.
 /// </summary>
 public static class DeclaredResources
 {

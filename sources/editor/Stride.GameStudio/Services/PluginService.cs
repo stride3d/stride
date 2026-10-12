@@ -192,7 +192,7 @@ public class PluginService : IAssetsPluginService
 
     public bool HasImagesForEnum(SessionViewModel? session, Type enumType)
     {
-        return session != null && enumTypesWithImages.Contains(enumType);
+        return session != null && (enumTypesWithImages.Contains(enumType) || DeclaredImages.HasEnumImages(enumType));
     }
 
     public object? GetImageForEnum(SessionViewModel? session, object value)
@@ -200,8 +200,8 @@ public class PluginService : IAssetsPluginService
         if (session == null)
             return null;
 
-        enumImages.TryGetValue(value, out var image);
-        return image;
+        // The plugins' own images come before the declared ones
+        return enumImages.TryGetValue(value, out var image) ? image : DeclaredImages.GetEnumImage(value);
     }
 
     public IEnumerable<Type> GetPrimitiveTypes(SessionViewModel session)
