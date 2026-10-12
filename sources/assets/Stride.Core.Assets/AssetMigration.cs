@@ -2,8 +2,10 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Globalization;
+using System.Text;
 using Stride.Core.Assets.Serializers;
 using Stride.Core.Diagnostics;
+using Stride.Core.IO;
 using Stride.Core.Yaml;
 using Stride.Core.Yaml.Events;
 using Stride.Core.Yaml.Serialization;
@@ -239,5 +241,61 @@ public static class AssetMigration
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Migrates an asset held as YAML parsing events (the way an unloadable asset keeps the YAML read from its file) as
+    /// <see cref="MigrateAssetIfNeeded(AssetMigrationContext, PackageLoadingAssetFile)"/> migrates a file, for every
+    /// format key its type declares.
+    /// </summary>
+    /// <param name="filePath">The asset's file, whose extension selects the serializer.</param>
+    /// <param name="assetType">The type the events deserialize to: the asset's root carries no tag when serialized as that type.</param>
+    /// <returns>The migrated events, in the same shape (a whole document or not); null when there was nothing to migrate.</returns>
+    public static List<ParsingEvent>? MigrateAssetIfNeeded(AssetMigrationContext context, IReadOnlyList<ParsingEvent> parsingEvents, UFile filePath, Type assetType)
+    {
+        // The upgraders read and write a document, as read from a file
+        var isDocument = parsingEvents.Count > 0 && parsingEvents[0] is StreamStart;
+        var writer = new StringWriter();
+        var emitter = new Emitter(writer);
+        if (!isDocument)
+        {
+            emitter.Emit(new StreamStart());
+            emitter.Emit(new DocumentStart());
+        }
+        var rootTagged = false;
+        foreach (var parsingEvent in parsingEvents)
+        {
+            // The migration finds the asset's type, its version and upgraders, from the root's tag
+            if (!rootTagged && parsingEvent is MappingStart root)
+            {
+                rootTagged = true;
+                if (string.IsNullOrEmpty(root.Tag))
+                {
+                    var tag = AssetYamlSerializer.Default.GetSerializerSettings().TagTypeRegistry.TagFromType(assetType);
+                    emitter.Emit(new MappingStart(root.Anchor, tag, false, root.Style));
+                    continue;
+                }
+            }
+            emitter.Emit(parsingEvent);
+        }
+        if (!isDocument)
+        {
+            emitter.Emit(new DocumentEnd(true));
+            emitter.Emit(new StreamEnd());
+        }
+
+        var assetFile = new PackageLoadingAssetFile(filePath, filePath.GetFullDirectory()) { AssetContent = Encoding.UTF8.GetBytes(writer.ToString()) };
+        if (!MigrateAssetIfNeeded(context, assetFile))
+            return null;
+
+        using var reader = new StreamReader(new MemoryStream(assetFile.AssetContent));
+        var parser = new Parser(reader);
+        var migrated = new List<ParsingEvent>();
+        while (parser.MoveNext())
+        {
+            if (isDocument || parser.Current is not (StreamStart or DocumentStart or DocumentEnd or StreamEnd))
+                migrated.Add(parser.Current!);
+        }
+        return migrated;
     }
 }

@@ -2,8 +2,10 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core.Diagnostics;
+using Stride.Core.IO;
 using Stride.Core.Mathematics;
 using Stride.Core.Yaml;
+using Stride.Core.Yaml.Events;
 using Stride.Core.Yaml.Serialization;
 
 namespace Stride.Core.Assets.Tests;
@@ -175,6 +177,25 @@ public class TestAssetUpgrade : TestBase
         var loadingFile = new PackageLoadingAssetFile(Path.Combine(DirectoryTestBase, "TestUpgrade", name + ".sdobj"), DirectoryTestBase);
         AssetFileSerializer.Save(loadingFile.FilePath.FullPath, asset, null);
         return loadingFile;
+    }
+
+    [Theory]
+    [InlineData(1, true)]
+    [InlineData(5, false)]
+    public void MigrateParsingEvents(int version, bool needMigration)
+    {
+        // An asset held as YAML events (as an unloadable asset keeps it) migrates as its file would
+        var asset = new MyUpgradedAsset(version) { Vector = new Vector3(12.0f, 15.0f, 17.0f), Test1 = version == 1 ? [32, 64] : null, Test5 = version == 5 ? [32, 64] : null };
+        var parsingEvents = new List<ParsingEvent>();
+        AssetYamlSerializer.Default.Serialize(new ParsingEventListEmitter(parsingEvents), asset, typeof(MyUpgradedAsset));
+        var filePath = new UFile(Path.Combine(DirectoryTestBase, "TestUpgrade", "Asset1.sdobj"));
+        var context = new AssetMigrationContext(null, null, filePath.ToOSPath(), new LoggerResult());
+
+        var migrated = AssetMigration.MigrateAssetIfNeeded(context, parsingEvents, filePath, typeof(MyUpgradedAsset));
+
+        Assert.Equal(needMigration, migrated is not null);
+        var upgradedAsset = (MyUpgradedAsset)AssetYamlSerializer.Default.Deserialize(new EventReader(new MemoryParser(migrated ?? parsingEvents)), null, typeof(MyUpgradedAsset), out _);
+        AssertUpgrade(upgradedAsset);
     }
 
     private static void AssertUpgrade(MyUpgradedAsset asset)
