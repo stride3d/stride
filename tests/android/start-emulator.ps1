@@ -110,6 +110,8 @@ if ($isWin) {
 } else {
     $emuArgs += "-gpu", "host", "-feature", "ForceGpuHost"
 }
+# Linux: no crashpad, so an emulator crash leaves a core dump for emulator-crash-capture.sh.
+if ($IsLinux) { $emuArgs += "-crash-report-mode", "disabled" }
 if (-not $Window) { $emuArgs += "-no-window" }
 
 Write-Host "VK_DRIVER_FILES=$($env:VK_DRIVER_FILES)"

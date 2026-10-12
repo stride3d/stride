@@ -251,9 +251,20 @@ if (-not $activity) { throw "Could not resolve launch activity for $Package" }
 $activity = $activity.Trim()
 Write-Host "Activity: $activity"
 
+# Root adbd so native crash tombstones (/data/tombstones) can be listed and pulled after the run.
+# Only userdebug images (google_apis) allow it; on others $canReadTombstones stays false.
+$canReadTombstones = $false
+$rootOut = Invoke-Adb root 2>&1
+if ($rootOut -notmatch 'cannot run as root') {
+    Invoke-Adb wait-for-device 2>$null | Out-Null
+    $canReadTombstones = ((Invoke-Adb shell id -u 2>$null) -replace '\s', '') -eq '0'
+}
+if ($canReadTombstones) { Invoke-Adb shell "rm -f /data/tombstones/*" 2>$null | Out-Null }
+
 # Clear log + previous TRX (in internal storage via run-as) so a stale file doesn't fool detection
 Invoke-Adb shell "run-as $Package rm -rf files/tests/local" 2>$null | Out-Null
 Invoke-Adb logcat -c 2>$null | Out-Null
+Invoke-Adb logcat -b crash -c 2>$null | Out-Null
 
 # Force-stop the package so a fresh OnCreate runs with our Intent extras (otherwise
 # `am start` may resume an existing instance and skip Intent processing).
@@ -382,6 +393,24 @@ try {
     & $tar x -C $ResultsDir -f $localTar 2>$null
 } finally {
     Remove-Item $localTar -ErrorAction SilentlyContinue
+}
+
+# Native crashes: the crash log buffer has the abort message and the crashing thread's backtrace;
+# tombstones have every thread's backtrace. Both ship with the results.
+$crashLog = (Invoke-Adb logcat -b crash -d -v threadtime 2>$null) -join "`n"
+if ($crashLog.Trim()) {
+    Set-Content -Path (Join-Path $ResultsDir "$Package.crash.logcat.txt") -Value $crashLog
+    Write-Host "Native crash log saved:"
+    $crashLog -split "`n" | Where-Object { $_ -match 'Fatal signal|Abort message' } | ForEach-Object { Write-Host "  $_" }
+}
+if ($canReadTombstones) {
+    $tombstones = (Invoke-Adb shell "ls /data/tombstones" 2>$null) -split "`n" | ForEach-Object { $_.Trim() } | Where-Object { $_ -match '^tombstone_\d+$' }
+    if ($tombstones) {
+        $tombstoneDir = Join-Path $ResultsDir "tombstones"
+        New-Item -ItemType Directory -Force -Path $tombstoneDir | Out-Null
+        foreach ($t in $tombstones) { Invoke-Adb pull "/data/tombstones/$t" (Join-Path $tombstoneDir "$t.txt") 2>$null | Out-Null }
+        Write-Host "Pulled $(@($tombstones).Count) tombstone(s) -> $tombstoneDir"
+    }
 }
 
 # 9. Parse TRX for pass/fail

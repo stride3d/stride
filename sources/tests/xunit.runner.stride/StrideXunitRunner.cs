@@ -57,6 +57,10 @@ public static class StrideXunitRunner
         // Always discover: a single-suite host has just the entry assembly; the Combined host
         // (Stride.Tests.Combined) has 0 [Fact]s of its own and must load every inner suite.
         IReadOnlyList<Assembly> assemblies = DiscoverTestAssemblies();
+#if ANDROID
+        if (Type.GetType("Mono.RuntimeStructs") is not null)
+            PreloadReferencedAssemblies(assemblies);
+#endif
 
         int total = 0, passed = 0, failed = 0, skipped = 0;
         decimal totalTime = 0m;
@@ -120,6 +124,32 @@ public static class StrideXunitRunner
         Console.WriteLine($"Total: {total}, Passed: {passed}, Failed: {failed}, Skipped: {skipped}, Time: {totalTime:F2}s");
         return failed > 0 ? 1 : 0;
     }
+
+#if ANDROID
+    // Mono on Android: two threads loading the same assembly for the first time can crash
+    // (dotnet/android#13065), as the first test's parallel shader compiles do. Delete with Mono:
+    // Android on .NET 11 is CoreCLR only, which loads from the assembly store.
+    private static void PreloadReferencedAssemblies(IEnumerable<Assembly> roots)
+    {
+        var visited = new HashSet<string>(StringComparer.Ordinal);
+        var pending = new Queue<Assembly>();
+        foreach (var root in roots)
+        {
+            if (visited.Add(root.GetName().Name!))
+                pending.Enqueue(root);
+        }
+        while (pending.TryDequeue(out var assembly))
+        {
+            foreach (var reference in assembly.GetReferencedAssemblies())
+            {
+                if (reference.Name is null || !visited.Add(reference.Name))
+                    continue;
+                try { pending.Enqueue(Assembly.Load(reference)); } catch { /* not in the package */ }
+            }
+        }
+        Console.WriteLine($"Preloaded {visited.Count} assemblies (Mono)");
+    }
+#endif
 
     // Discover test assemblies whose name contains ".Tests". Two passes because the Combined host
     // (Stride.Tests.Combined) has no code using inner-suite types, so the C# compiler drops the

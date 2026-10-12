@@ -278,7 +278,9 @@ jobs:
           # Lavapipe. The Linux emulator build has no -use-host-vulkan flag, so this
           # combination is its equivalent.
           # -partition-size 8192 (MB): default userdata is too small for several ~90 MB test APKs (INSUFFICIENT_STORAGE).
-          emulator-options: -no-snapshot-load -no-window -no-boot-anim -gpu host -feature ForceGpuHost -partition-size 8192
+          # -crash-report-mode disabled: no crashpad handler, so an emulator crash leaves a core dump
+          # (tests/android/emulator-crash-capture.sh turns it into backtraces).
+          emulator-options: -no-snapshot-load -no-window -no-boot-anim -gpu host -feature ForceGpuHost -partition-size 8192 -crash-report-mode disabled
           disable-animations: true
           # android-emulator-runner runs each `script:` line as its own `sh -c`, so multi-line
           # shell blocks break with "unexpected end of file". The driver lives in a standalone
