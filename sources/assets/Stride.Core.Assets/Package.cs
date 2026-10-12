@@ -1017,7 +1017,7 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
         // the loop
         try
         {
-            AssetMigration.MigrateAssetIfNeeded(context, assetFile, "Stride");
+            AssetMigration.MigrateAssetIfNeeded(context, assetFile);
 
             // Try to load only if asset is not already in the package or assetRef.Asset is null
             var assetPath = assetFile.AssetLocation;

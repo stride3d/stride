@@ -145,6 +145,38 @@ public class TestAssetUpgrade : TestBase
         AssertUpgrade(upgradedAsset);
     }
 
+    [Fact]
+    public void EveryFormatKeyOfTheTypeMigrates()
+    {
+        // A plugin's asset type declares a key of its own (TestPackage here), migrated with the engine's
+        var loadingFile = SaveForLoading(new MyUpgradedAsset(1) { Vector = new Vector3(12.0f, 15.0f, 17.0f), Test1 = [32, 64] }, nameof(EveryFormatKeyOfTheTypeMigrates));
+        var context = new AssetMigrationContext(null, loadingFile.ToReference(), loadingFile.FilePath.ToOSPath(), new LoggerResult());
+
+        Assert.True(AssetMigration.MigrateAssetIfNeeded(context, loadingFile));
+
+        AssertUpgrade(AssetFileSerializer.Load<MyUpgradedAsset>(new MemoryStream(loadingFile.AssetContent), loadingFile.FilePath).Asset);
+    }
+
+    [Fact]
+    public void AFormatKeyTheFileDoesNotRecordIsSkipped()
+    {
+        // Written before its type declared the key: there is no version to upgrade from
+        var asset = new MyUpgradedAsset { Vector = new Vector3(12.0f, 15.0f, 17.0f), Test1 = [32, 64] };
+        asset.SerializedVersion.Remove("TestPackage");
+        var loadingFile = SaveForLoading(asset, nameof(AFormatKeyTheFileDoesNotRecordIsSkipped));
+        var context = new AssetMigrationContext(null, loadingFile.ToReference(), loadingFile.FilePath.ToOSPath(), new LoggerResult());
+
+        Assert.False(AssetMigration.MigrateAssetIfNeeded(context, loadingFile));
+        Assert.Null(loadingFile.AssetContent);
+    }
+
+    private PackageLoadingAssetFile SaveForLoading(MyUpgradedAsset asset, string name)
+    {
+        var loadingFile = new PackageLoadingAssetFile(Path.Combine(DirectoryTestBase, "TestUpgrade", name + ".sdobj"), DirectoryTestBase);
+        AssetFileSerializer.Save(loadingFile.FilePath.FullPath, asset, null);
+        return loadingFile;
+    }
+
     private static void AssertUpgrade(MyUpgradedAsset asset)
     {
         Assert.Equal(new PackageVersion("0.0.5"), asset.SerializedVersion?["TestPackage"]);

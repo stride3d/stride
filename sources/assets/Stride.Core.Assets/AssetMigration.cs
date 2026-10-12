@@ -15,6 +15,74 @@ namespace Stride.Core.Assets;
 /// </summary>
 public static class AssetMigration
 {
+    // The engine's format key: the one every asset was migrated for before plugins declared their own
+    private const string EngineDependencyName = "Stride";
+
+    /// <summary>
+    /// Migrates the asset for each format key its type declares (<see cref="AssetFormatVersionAttribute"/>): the
+    /// engine's first, then the others, such as a plugin's own. A key other than the engine's that the file records no
+    /// version for is skipped: the asset predates it, and no upgrader starts from nothing.
+    /// </summary>
+    /// <returns>Whether the asset was migrated for any key.</returns>
+    public static bool MigrateAssetIfNeeded(AssetMigrationContext context, PackageLoadingAssetFile loadAsset)
+    {
+        var migrated = MigrateAssetIfNeeded(context, loadAsset, EngineDependencyName);
+
+        if (ReadAssetHeader(loadAsset) is not { } header)
+            return migrated;
+        var formatVersions = AssetRegistry.GetCurrentFormatVersions(header.AssetType);
+        if (formatVersions is null)
+            return migrated;
+
+        foreach (var dependencyName in formatVersions.Keys.Where(x => x != EngineDependencyName).Order(StringComparer.Ordinal))
+        {
+            if (header.SerializedKeys.Contains(dependencyName))
+                migrated |= MigrateAssetIfNeeded(context, loadAsset, dependencyName);
+        }
+        return migrated;
+    }
+
+    // The asset's type (from its tag) and the format keys its SerializedVersion records; null when it is no YAML asset
+    // or its type is not loaded
+    private static (Type AssetType, HashSet<string> SerializedKeys)? ReadAssetHeader(PackageLoadingAssetFile loadAsset)
+    {
+        var extension = Path.GetExtension(loadAsset.FilePath.FullPath)?.ToLowerInvariant();
+        if (extension is null || AssetFileSerializer.FindSerializer(extension) is not YamlAssetSerializer)
+            return null;
+
+        using var assetStream = loadAsset.OpenStream();
+        using var streamReader = new StreamReader(assetStream);
+        var yamlEventReader = new EventReader(new Parser(streamReader));
+        yamlEventReader.Expect<StreamStart>();
+        yamlEventReader.Expect<DocumentStart>();
+        var mappingStart = yamlEventReader.Expect<MappingStart>();
+        var assetType = AssetYamlSerializer.Default.GetSerializerSettings().TagTypeRegistry.TypeFromTag(mappingStart.Tag, out _);
+        if (assetType is null)
+            return null;
+
+        // SerializedVersion comes right after Id
+        var serializedKeys = new HashSet<string>();
+        Scalar? assetKey;
+        while ((assetKey = yamlEventReader.Allow<Scalar>()) != null)
+        {
+            if (assetKey.Value == nameof(Asset.Id))
+            {
+                yamlEventReader.Skip();
+                continue;
+            }
+            if (assetKey.Value == nameof(Asset.SerializedVersion) && yamlEventReader.Allow<MappingStart>() != null)
+            {
+                while (!yamlEventReader.Accept<MappingEnd>())
+                {
+                    serializedKeys.Add(yamlEventReader.Expect<Scalar>().Value);
+                    yamlEventReader.Skip();
+                }
+            }
+            break;
+        }
+        return (assetType, serializedKeys);
+    }
+
     public static bool MigrateAssetIfNeeded(AssetMigrationContext context, PackageLoadingAssetFile loadAsset, string dependencyName, PackageVersion? untilVersion = null)
     {
         var assetFullPath = loadAsset.FilePath.FullPath;
