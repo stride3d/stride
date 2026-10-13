@@ -550,7 +550,9 @@ namespace Stride.Games
                 var singleFrameElapsedTime = elapsedAdjustedTime;
                 var drawLag = 0L;
 
-                if (suppressDraw || Window.IsMinimized && DrawWhileMinimized == false)
+                bool skipWhileMinimized = Window.IsMinimized && !DrawWhileMinimized;
+                bool presenterCannotPresent = GraphicsDevice?.Presenter is { } presenter && !presenter.CanPresentFrame();
+                if (suppressDraw || skipWhileMinimized || presenterCannotPresent)
                 {
                     drawFrame = false;
                     suppressDraw = false;
