@@ -29,7 +29,8 @@ public partial class ShaderMixer
         var shaderMixinSource = shaderSource switch
         {
             ShaderMixinSource mixinSource2 => mixinSource2,
-            ShaderClassSource classSource => new ShaderMixinSource { Mixins = { classSource } },
+            // With the macros it is compiled with, which its default compositions get too
+            ShaderClassSource classSource => new ShaderMixinSource { Mixins = { classSource }, Macros = [.. macros] },
             _ => throw new NotSupportedException($"Unsupported shader source type: {shaderSource.GetType().Name}"),
         };
 
@@ -274,11 +275,12 @@ public partial class ShaderMixer
             if (isStage && valueCompositions.ContainsKey(variableName))
                 continue;
 
-            // Use the composition from ShaderMixinSource if specified, otherwise use the default type
+            // Use the composition from ShaderMixinSource if specified, otherwise use the default type, with the macros of the
+            // node it is in (it is not in the tree, so it didn't get them from PropagateMacrosRecursively)
             if (!valueSource.Compositions.TryGetValue(variableName, out var compositionMixin))
             {
                 if (pointer.BaseType is ShaderSymbol shaderSymbol)
-                    compositionMixin = new ShaderMixinSource { Mixins = { new ShaderClassSource(shaderSymbol.Name) } };
+                    compositionMixin = new ShaderMixinSource { Mixins = { new ShaderClassSource(shaderSymbol.Name) }, Macros = [.. valueSource.Macros] };
                 else if (pointer.BaseType is ArrayType { BaseType: ShaderSymbol })
                     compositionMixin = new ShaderArraySource();
                 else

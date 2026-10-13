@@ -1,0 +1,13 @@
+namespace Stride.Shaders.Tests;
+
+shader DefaultCompositionMacrosValue
+{
+    float4 Compute()
+    {
+#ifdef DEFAULT_COMPOSITION_MACRO
+        return float4(42.0, 42.0, 42.0, 42.0);
+#else
+        return float4(7.0, 7.0, 7.0, 7.0);
+#endif
+    }
+}
