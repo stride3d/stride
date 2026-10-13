@@ -296,17 +296,11 @@ namespace Stride.Graphics
             // For the time being, comment out the not implemented exception.
             // throw new NotImplementedException();
 
-            // A swapchain cannot be 0x0: keep the current one until the window is restored
-            if (IsSurfaceEmpty())
-            {
-                recreationPending = true;
-                return;
-            }
-            recreationPending = false;
-
             base.OnRecreated();
 
             RecreateBackBuffer(backBuffer.Width, backBuffer.Height, backBuffer.Format);
+            if (recreationPending)
+                return;
 
             // Check if backbuffer size changed; if yes, apply to depth buffer
             if (Description.BackBufferWidth != DepthStencilBuffer.Description.Width
@@ -344,6 +338,15 @@ namespace Stride.Graphics
 
         private void RecreateBackBuffer(int width, int height, PixelFormat format)
         {
+            // A swapchain cannot be 0x0: keep the current one until the window is restored;
+            // Description keeps the requested size and format, which CreateSwapChain reads then
+            if (IsSurfaceEmpty())
+            {
+                recreationPending = true;
+                return;
+            }
+            recreationPending = false;
+
             // Manually update all children textures
             var fastList = DestroyChildrenTextures(backBuffer);
 
