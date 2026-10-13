@@ -36,6 +36,7 @@ public class TestAllowGpuValidationError : GraphicTestGameBase
     [AllowGpuValidationError(GraphicsPlatform.Vulkan, AllowedMessage)]
     public void OtherErrorStillFailsThroughPerformTest()
     {
-        Assert.ThrowsAny<XunitException>(() => PerformTest(_ => ReportValidationError("Unexpected validation error raised by the test")));
+        var exception = Assert.ThrowsAny<XunitException>(() => PerformTest(_ => ReportValidationError("Unexpected validation error raised by the test")));
+        Assert.Contains("Unexpected validation error raised by the test", exception.Message);
     }
 }
