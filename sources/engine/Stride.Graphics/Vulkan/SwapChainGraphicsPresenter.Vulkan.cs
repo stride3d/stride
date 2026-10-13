@@ -261,6 +261,10 @@ namespace Stride.Graphics
 
         public override void BeginDraw(CommandList commandList)
         {
+            // The back buffer has no acquired swapchain image until the deferred recreation runs
+            if (recreationPending)
+                return;
+
             base.BeginDraw(commandList);
             backBuffer.IsInitialized = false;
         }
