@@ -269,7 +269,9 @@
        so the asset compiler finds them like referenced projects. A library never does: a companion references
        its runtime, and a runtime's dependency building the companion would be a project cycle. -->
   <PropertyGroup>
-    <_StrideCompanionBuildRemoveProperties>TargetFramework;TargetFrameworks;RuntimeIdentifier;RuntimeIdentifiers;SelfContained;OutputType;StrideIsExecutable;PublishDir;_IsPublishing</_StrideCompanionBuildRemoveProperties>
+    <!-- A companion runs in the host: no graphics API. StrideCompanionBuildRemoveProperties: the build's own globals
+         (the test SDK's) that its project references drop too -->
+    <_StrideCompanionBuildRemoveProperties>TargetFramework;TargetFrameworks;RuntimeIdentifier;RuntimeIdentifiers;SelfContained;OutputType;StrideIsExecutable;StrideGraphicsApi;PublishDir;_IsPublishing;$(StrideCompanionBuildRemoveProperties)</_StrideCompanionBuildRemoveProperties>
   </PropertyGroup>
   <Target Name="_StrideBuildCompanionProjects"
           DependsOnTargets="GetStrideCompanionProjects"

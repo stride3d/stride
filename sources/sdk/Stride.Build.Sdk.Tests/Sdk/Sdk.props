@@ -21,6 +21,9 @@
     <!-- Tests are executables (for asset compilation, native libs, etc.) -->
     <OutputType>WinExe</OutputType>
     <StrideIsExecutable>true</StrideIsExecutable>
+    <!-- The test-only globals a suite can get (Stride.Tests.Combined passes them): its companion builds drop them, as
+         its project references do -->
+    <StrideCompanionBuildRemoveProperties>IncludeXunitLauncher;StrideTestPlatforms;StrideExplicitMacOSRuntime;StrideCompilerSkipBuild</StrideCompanionBuildRemoveProperties>
 
     <!-- Custom output paths for test projects -->
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
