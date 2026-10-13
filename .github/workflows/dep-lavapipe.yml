@@ -540,7 +540,7 @@ jobs:
           path: lavapipe-out/
 
   pack:
-    name: Pack & Publish NuGet
+    name: Pack NuGet
     needs: [build-windows, build-windows-arm64, build-linux, build-macos]
     runs-on: windows-2025-vs2026
     steps:

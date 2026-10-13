@@ -320,7 +320,7 @@ jobs:
   # Pack NuGet from all artifacts.
   # ---------------------------------------------------------------------------
   pack:
-    name: Pack & Publish NuGet
+    name: Pack NuGet
     needs:
       - build-windows-x64
       - build-windows-arm64

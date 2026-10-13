@@ -72,7 +72,7 @@ jobs:
           path: spirv-cross-build/Release/spirv-cross-c-shared.dll
 
   pack:
-    name: Pack & Publish NuGet
+    name: Pack NuGet
     needs: [build-windows, build-windows-arm64]
     runs-on: windows-2025-vs2026
     steps:
