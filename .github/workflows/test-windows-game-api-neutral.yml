@@ -60,6 +60,7 @@ jobs:
       - name: Disable WER dialogs
         run: reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting" /v DontShowUI /t REG_DWORD /d 1 /f
       - name: Build
+        id: build
         run: |
           dotnet build build\Stride.Tests.Game.slnf `
             -p:StrideTestRuntimeIdentifier=win-x64 `
@@ -71,14 +72,6 @@ jobs:
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
             -p:StridePlatforms=Windows `
             -p:StrideGraphicsApis=Direct3D11
-      - name: Upload build binlog
-        # Always captured: a rare build failure (a race) comes with its binlog
-        if: failure() || inputs.upload-binlog
-        uses: actions/upload-artifact@v7
-        with:
-          name: build-binlog-api-neutral
-          path: build.binlog
-          if-no-files-found: ignore
       - name: Test
         run: |
           $filter = "${{ github.event.inputs.test-filter || inputs.test-filter }}"
@@ -119,4 +112,18 @@ jobs:
         with:
           name: test-artifacts-game-api-neutral
           path: tests/local/
+          if-no-files-found: ignore
+      # The test build covers what the parallel-build check of Stride.slnx does not: test projects, asset compiles
+      - name: Audit the build (duplicate builds, AfterTargets hook races)
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: |
+          dotnet build build\tools\ParallelBuildAuditor\ParallelBuildAuditor.csproj -c Release -nologo -v:q
+          dotnet run --project build\tools\ParallelBuildAuditor\ParallelBuildAuditor.csproj -c Release --no-build -- build.binlog
+      - name: Upload build binlog
+        # Always captured: a failed build or audit (a rare race) comes with its binlog
+        if: failure() || inputs.upload-binlog
+        uses: actions/upload-artifact@v7
+        with:
+          name: build-binlog-api-neutral
+          path: build.binlog
           if-no-files-found: ignore
