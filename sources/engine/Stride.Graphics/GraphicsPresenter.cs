@@ -434,6 +434,15 @@ public abstract class GraphicsPresenter : ComponentBase
     }
 
     /// <summary>
+    ///   Checks whether a frame can be presented; when <see langword="false"/>, skip drawing and presenting this frame.
+    /// </summary>
+    /// <remarks>
+    ///   Call it before drawing to this presenter's back buffer: it can recreate the swap chain and the
+    ///   back buffer (on Vulkan, after a minimized window is restored).
+    /// </remarks>
+    internal virtual bool CanPresentFrame() => true;
+
+    /// <summary>
     ///   Processes and adjusts the Presentation Parameters before initializing the Graphics Presenter.
     /// </summary>
     /// <remarks>
