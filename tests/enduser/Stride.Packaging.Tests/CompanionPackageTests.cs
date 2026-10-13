@@ -457,8 +457,6 @@ public class CompanionPackageTests
             var index = File.ReadAllText(Directory.GetFiles(dbDir, "index.Consumer.*").Single(f => !f.EndsWith(".closure")));
             Assert.Matches($@"(?m)^{url} ", index);
 
-            if (!OperatingSystem.IsWindows())
-                return;
             var binDir = Path.Combine(consumerDir, "bin", "Debug", "net10.0");
             var run = Dotnet.Exec(["exec", Path.Combine(binDir, "Consumer.dll"), url], binDir, output, timeoutMin: 2);
             Assert.True(run.ExitCode == 0, $"Consumer runtime content check failed (exit {run.ExitCode}).");

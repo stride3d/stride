@@ -1,0 +1,44 @@
+name: Set up Lavapipe on a Linux runner
+description: >-
+  Install the Vulkan loader, start a virtual display, and register Lavapipe (the software driver of
+  Stride.Dependencies.Lavapipe) as the Vulkan ICD through VK_DRIVER_FILES. Lavapipe's x11 WSI needs a display server
+  to expose VK_KHR_swapchain, which Stride's GraphicsDevice requires even for offscreen rendering. The user NuGet
+  config must list nuget.org: the package is restored from outside the workspace.
+
+runs:
+  using: composite
+  steps:
+    - name: Install the Vulkan loader and Xvfb
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libvulkan1 xvfb
+
+    - name: Start virtual display
+      shell: bash
+      run: |
+        Xvfb :99 -screen 0 1920x1080x24 &
+        echo "DISPLAY=:99" >> $GITHUB_ENV
+
+    - name: Install Lavapipe and register its Vulkan ICD
+      shell: bash
+      run: |
+        # A throwaway project restore puts the package in the NuGet cache
+        tmpDir="${{ runner.temp }}/lavapipe-fetch"
+        mkdir -p "$tmpDir"
+        cat > "$tmpDir/LavapipeFetch.csproj" <<'EOF'
+        <Project Sdk="Microsoft.NET.Sdk">
+          <PropertyGroup><TargetFramework>net10.0</TargetFramework></PropertyGroup>
+        </Project>
+        EOF
+        dotnet add "$tmpDir/LavapipeFetch.csproj" package Stride.Dependencies.Lavapipe
+        LIB=$(find ~/.nuget/packages/stride.dependencies.lavapipe -path "*/runtimes/linux-x64/native/libvulkan_lvp.so" | head -1)
+        if [ -z "$LIB" ]; then
+          echo "::error::Lavapipe libvulkan_lvp.so not found in NuGet cache"
+          exit 1
+        fi
+        LIB_ABS=$(readlink -f "$LIB")
+        ICD_JSON="${{ runner.temp }}/lvp_icd.json"
+        echo "{\"file_format_version\":\"1.0.0\",\"ICD\":{\"library_path\":\"$LIB_ABS\",\"api_version\":\"1.3.0\"}}" > "$ICD_JSON"
+        echo "VK_DRIVER_FILES=$ICD_JSON" >> $GITHUB_ENV
+        echo "Registered Lavapipe ICD: $ICD_JSON -> $LIB_ABS"

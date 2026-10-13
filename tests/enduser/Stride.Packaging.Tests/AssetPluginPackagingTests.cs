@@ -71,11 +71,6 @@ public class AssetPluginPackagingTests : IDisposable
     /// <summary>Run the built consumer: it loads content by rooted and bare (aliased) URLs.</summary>
     private void AssertRuntimeContentResolves(string consumerDir)
     {
-        // On Linux the consumer's engine module initializer fails to resolve Vortice.Vulkan
-        // (consumer-packaging gap, tracked separately), so the runtime check is Windows-only.
-        if (!OperatingSystem.IsWindows())
-            return;
-
         var binDir = Path.Combine(consumerDir, "bin", "Debug", "net10.0");
         var run = Dotnet.Exec(["exec", Path.Combine(binDir, "Consumer.dll")], binDir, output, timeoutMin: 2);
         Assert.True(run.ExitCode == 0, $"Consumer runtime content check failed (exit {run.ExitCode}).");
