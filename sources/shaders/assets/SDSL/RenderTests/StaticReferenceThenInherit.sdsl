@@ -1,0 +1,39 @@
+// PSMain(ExpectedResult=#0C0C0C0C)
+
+namespace Stride.Shaders.Tests;
+
+shader StaticReferenceThenInheritHelper
+{
+    float Twice(float value)
+    {
+        return value * 2.0;
+    }
+}
+
+// Uses the helper through a static reference only
+shader StaticReferenceThenInheritUser
+{
+    float Six()
+    {
+        return StaticReferenceThenInheritHelper.Twice(3.0);
+    }
+}
+
+// Inherits the helper after the user: the helper is one mixin, which the static reference uses too (no second copy)
+shader StaticReferenceThenInherit : StaticReferenceThenInheritUser, StaticReferenceThenInheritHelper
+{
+    stream float4 ColorTarget : SV_Target0;
+    stream float4 Position : POSITION;
+    stream float4 ShadingPosition : SV_Position;
+
+    void VSMain()
+    {
+        streams.ShadingPosition = streams.Position;
+    }
+
+    void PSMain()
+    {
+        float value = Six() + Twice(3.0);
+        streams.ColorTarget = float4(value, value, value, value) / 255.0;
+    }
+}

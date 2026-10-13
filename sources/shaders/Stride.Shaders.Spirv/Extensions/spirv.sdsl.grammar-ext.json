@@ -477,6 +477,10 @@
         {
           "enumerant": "NeedsFullImport",
           "value": "0x0001"
+        },
+        {
+          "enumerant": "Module",
+          "value": "0x0002"
         }
       ]
     },

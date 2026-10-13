@@ -1,0 +1,44 @@
+// PSMain(ExpectedResult=#07070707)
+
+namespace Stride.Shaders.Tests;
+
+shader StaticReferenceToMixinBase
+{
+    float Value()
+    {
+        return 1.0;
+    }
+}
+
+// Has an override: a static reference can't import it as a module, so it mixes it in like an inherited shader (with an
+// info message), and Value() is the override
+shader StaticReferenceToMixinHelper : StaticReferenceToMixinBase
+{
+    override float Value()
+    {
+        return 2.0;
+    }
+
+    float Five()
+    {
+        return 5.0;
+    }
+}
+
+shader StaticReferenceToMixin
+{
+    stream float4 ColorTarget : SV_Target0;
+    stream float4 Position : POSITION;
+    stream float4 ShadingPosition : SV_Position;
+
+    void VSMain()
+    {
+        streams.ShadingPosition = streams.Position;
+    }
+
+    void PSMain()
+    {
+        float value = StaticReferenceToMixinHelper.Five() + StaticReferenceToMixinHelper.Value();
+        streams.ColorTarget = float4(value, value, value, value) / 255.0;
+    }
+}

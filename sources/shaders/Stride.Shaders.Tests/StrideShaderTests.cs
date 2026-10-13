@@ -1456,6 +1456,70 @@ new ShaderMacro("class", "shader"),
         Assert.DoesNotMatch(@"OpConstant %\S+ 7\b", code);
     }
 
+    // Mixes a RenderTests file (its effect, or its shader of the same name) and returns how the mixer linked it
+    static string ExplainRenderTest(string name, Stride.Core.Diagnostics.LoggerResult log)
+    {
+        var loader = new ShaderLoader("./assets/SDSL/RenderTests") { Log = log };
+        var shaderMixer = new ShaderMixer(loader) { CollectExplanation = true };
+        Assert.True(loader.LoadExternalBuffer(name, [], out _, out _, out _));
+        var source = ShaderMixinManager.Contains(name) ? new ShaderMixinGeneratorSource(name) : (ShaderSource)new ShaderClassSource(name);
+        Assert.True(shaderMixer.MergeSDSL(source, new ShaderMixer.Options(true), log, out _, out _, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+        return shaderMixer.Explanation!;
+    }
+
+    static int CountLines(string text, string line) => text.Split('\n').Count(x => x.TrimEnd('\r') == line);
+
+    // A static reference to a shader of functions and constants imports it as a module, not as a mixin
+    [Fact]
+    public void StaticReferenceToPureShaderIsAModule()
+    {
+        var explanation = ExplainRenderTest("StaticReferenceModule", new());
+        Assert.Equal(1, CountLines(explanation, "  module StaticReferenceModuleHelper"));
+        Assert.Equal(0, CountLines(explanation, "  mixin StaticReferenceModuleHelper"));
+    }
+
+    // A shader used through a static reference, then inherited, is one mixin: the static reference links to it
+    [Fact]
+    public void StaticReferenceThenInheritIsOneMixin()
+    {
+        var explanation = ExplainRenderTest("StaticReferenceThenInherit", new());
+        Assert.Equal(1, CountLines(explanation, "  mixin StaticReferenceThenInheritHelper"));
+        Assert.Equal(0, CountLines(explanation, "  module StaticReferenceThenInheritHelper"));
+    }
+
+    // Static references from two compositions import one module at the root, not one copy per composition
+    [Fact]
+    public void StaticReferenceInCompositionIsOneModuleAtTheRoot()
+    {
+        var explanation = ExplainRenderTest("StaticReferenceInComposition", new());
+        var root = explanation[..explanation.IndexOf("\nnode ", StringComparison.Ordinal)];
+        Assert.Equal(1, CountLines(root, "  module StaticReferenceInCompositionHelper"));
+        Assert.Equal(1, CountLines(explanation, "  module StaticReferenceInCompositionHelper"));
+        Assert.Equal(0, CountLines(explanation, "  mixin StaticReferenceInCompositionHelper"));
+    }
+
+    // A shader that overrides a method of a module seen through its parent's static reference mixes that module in
+    [Fact]
+    public void OverriddenModuleIsMixedIn()
+    {
+        var explanation = ExplainRenderTest("StaticReferenceModuleOverridden", new());
+        Assert.Equal(1, CountLines(explanation, "  mixin StaticReferenceModuleOverriddenHelper"));
+        Assert.Equal(0, CountLines(explanation, "  module StaticReferenceModuleOverriddenHelper"));
+    }
+
+    // A shader with an override can't be a module: a static reference mixes it in as before, and says why
+    [Fact]
+    public void StaticReferenceToShaderWithOverrideIsMixedIn()
+    {
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        var explanation = ExplainRenderTest("StaticReferenceToMixin", log);
+        Assert.Equal(1, CountLines(explanation, "  mixin StaticReferenceToMixinHelper"));
+        Assert.Equal(0, CountLines(explanation, "  module StaticReferenceToMixinHelper"));
+        Assert.Contains(log.Messages, m => m.Type == Stride.Core.Diagnostics.LogMessageType.Debug
+            && m.Text.Contains("Static reference to 'StaticReferenceToMixinHelper'") && m.Text.Contains("'StaticReferenceToMixinHelper.Value' is an override"));
+    }
+
     // A non-stage variable read through its shader name (Base.Value) from a stage method is an instance access.
     [Fact]
     public void QualifiedNonStageReadFromStageMethodForcesFullImport()
