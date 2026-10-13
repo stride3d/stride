@@ -551,7 +551,7 @@ namespace Stride.Games
                 var drawLag = 0L;
 
                 bool skipWhileMinimized = Window.IsMinimized && !DrawWhileMinimized;
-                bool presenterCannotPresent = GraphicsDevice?.Presenter is { } presenter && !presenter.CanPresentFrame();
+                bool presenterCannotPresent = GraphicsDevice?.Presenter?.CanPresentFrame() == false;
                 if (suppressDraw || skipWhileMinimized || presenterCannotPresent)
                 {
                     drawFrame = false;
