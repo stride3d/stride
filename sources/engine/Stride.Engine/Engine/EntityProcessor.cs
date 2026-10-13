@@ -319,7 +319,7 @@ namespace Stride.Engine
         /// <returns>True if the change in associated data requires the entity to be readded, false otherwise.</returns>
         protected virtual bool IsAssociatedDataValid([NotNull] Entity entity, [NotNull] TComponent component, [NotNull] TData associatedData)
         {
-            return GenerateComponentData(entity, component).Equals(associatedData);
+            return EqualityComparer<TData>.Default.Equals(GenerateComponentData(entity, component), associatedData);
         }
 
         /// <summary>Run when a matching entity is added to this entity processor.</summary>
