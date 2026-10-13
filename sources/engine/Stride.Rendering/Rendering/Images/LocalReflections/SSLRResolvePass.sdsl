@@ -20,7 +20,7 @@ namespace Stride.Rendering.Images
             float2( 2,  2),
         };
 
-        override stage float4 Shading()
+        override module float4 Shading()
         {
 			// Inputs Mapping:
 			// Texture0 - Scene Color (with blurred mip maps chain or without)

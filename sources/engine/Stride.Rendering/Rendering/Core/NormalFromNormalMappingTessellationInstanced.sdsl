@@ -5,7 +5,7 @@
 /// </summary>
 shader NormalFromNormalMappingTessellationInstanced : NormalFromNormalMappingInstanced, TransformationInstancing
 {
-    override stage void GenerateNormal_VS()
+    override module void GenerateNormal_VS()
     {
         // Perform normal generation at the end in case meshNormal is modified
         streams.meshNormalWS = mul((float3x3)GetInstanceWorldInverse(streams.InstanceID), streams.meshNormal);    // TODO: PERFORMANCE: Normalization required?

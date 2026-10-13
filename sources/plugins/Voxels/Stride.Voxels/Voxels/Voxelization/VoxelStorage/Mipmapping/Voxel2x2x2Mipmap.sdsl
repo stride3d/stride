@@ -4,10 +4,10 @@ namespace Stride.Rendering.Voxels
 {
     shader Voxel2x2x2Mipmap : Math, Texturing, ComputeShaderBase
     {
-        stage float3 ReadOffset;
-        stage float3 WriteOffset;
-        stage Texture3D<half4> ReadTex;
-        stage RWTexture3D<half4> WriteTex;
+        module float3 ReadOffset;
+        module float3 WriteOffset;
+        module Texture3D<half4> ReadTex;
+        module RWTexture3D<half4> WriteTex;
 
         compose Voxel2x2x2Mipmapper mipmapper;
 

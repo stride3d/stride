@@ -6,7 +6,7 @@ shader RgroupBase
 {
     rgroup Group1
     {
-        stage Texture2D<float4> Texture1;
+        module Texture2D<float4> Texture1;
     }
 }
 
@@ -18,8 +18,8 @@ shader Rgroups : RgroupBase
 
     rgroup Group1
     {
-        stage Texture2D<float4> Texture2;
-        stage SamplerState Sampler1;
+        module Texture2D<float4> Texture2;
+        module SamplerState Sampler1;
     }
 
     void PSMain()

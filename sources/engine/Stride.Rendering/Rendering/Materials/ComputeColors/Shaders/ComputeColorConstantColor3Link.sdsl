@@ -12,7 +12,7 @@ shader ComputeColorConstantColor3Link<LinkType LinkName> : ComputeColor
     {
         [Color]
         [Link("LinkName")]
-        stage float3 constantColor3;
+        module float3 constantColor3;
     }
     
     override float4 Compute()

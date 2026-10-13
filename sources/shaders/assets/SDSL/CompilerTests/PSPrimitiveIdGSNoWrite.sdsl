@@ -24,7 +24,7 @@ shader PSPrimitiveIdGSNoWrite
         triangleStream.RestartStrip();
     }
 
-    stage void PSMain()
+    module void PSMain()
     {
         streams.ColorTarget = float4(streams.PrimitiveId & 1, 0, 0, 1);
     }

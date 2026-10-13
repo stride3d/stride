@@ -12,7 +12,7 @@ namespace Stride.Rendering.Images
     internal shader BloomAfterimageCombineShader : ImageEffectShader
     {
 
-        stage override float4 Shading()
+        module override float4 Shading()
         {
 	        float3 currentColor = Texture0.Sample(PointSampler, streams.TexCoord).rgb;
             float3 persistenceColor = Texture1.Sample(PointSampler, streams.TexCoord).rgb;

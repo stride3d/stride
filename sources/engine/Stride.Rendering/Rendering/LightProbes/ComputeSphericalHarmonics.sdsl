@@ -11,7 +11,7 @@ namespace Stride.Rendering.LightProbes
         cbuffer PerMaterial
         {
             [Color]
-            stage float3 SphericalColors[TOrder * TOrder];
+            module float3 SphericalColors[TOrder * TOrder];
         }
 
         override float4 Compute()

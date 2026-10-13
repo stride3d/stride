@@ -4,7 +4,7 @@ namespace Stride.Rendering.Skyboxes
 {
     shader SkyboxStream
     {
-        stage stream float3 skyboxViewDirection;
+        module stream float3 skyboxViewDirection;
     };
 }
 

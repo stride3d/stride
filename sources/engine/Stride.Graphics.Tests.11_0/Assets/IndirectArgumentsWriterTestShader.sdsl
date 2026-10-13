@@ -8,8 +8,8 @@ namespace Stride.Graphics.Tests
     /// </summary>
     internal shader IndirectArgumentsWriterTestShader : ComputeShaderBase
     {
-        stage StructuredBuffer<uint> Source;
-        stage RWBuffer<uint> Arguments;
+        module StructuredBuffer<uint> Source;
+        module RWBuffer<uint> Arguments;
 
         override void Compute()
         {

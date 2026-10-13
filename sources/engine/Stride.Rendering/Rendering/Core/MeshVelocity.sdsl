@@ -10,9 +10,9 @@ shader MeshVelocity : PositionStream4, TransformationBase, ScreenPositionBase, V
     }
 
     // The previous position in screen space
-    stage stream float4 PreviousPosition;
+    module stream float4 PreviousPosition;
 
-    stage override void VSMain()
+    module override void VSMain()
     {
         base.VSMain();
         
@@ -20,7 +20,7 @@ shader MeshVelocity : PositionStream4, TransformationBase, ScreenPositionBase, V
         streams.PreviousPosition = mul(streams.Position, PreviousWorldViewProjection);
     }
     
-    stage override void PSMain()
+    module override void PSMain()
     {
         // Calculate screen space velocity
         float2 position = streams.ScreenPosition.xy / streams.ScreenPosition.w;

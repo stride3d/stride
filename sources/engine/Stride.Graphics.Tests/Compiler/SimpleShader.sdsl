@@ -2,16 +2,16 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 shader SimpleShader : ShaderBase, Texturing
 {
-    stage stream float2 Position : POSITION;
+    module stream float2 Position : POSITION;
 
-    stage float4 TestColor;
+    module float4 TestColor;
 
-    stage override void VSMain() 
+    module override void VSMain() 
     {
         streams.ShadingPosition = float4(streams.Position, 0.0f, 1.0f);
     }
 
-    stage override void PSMain() 
+    module override void PSMain() 
     {
         streams.ColorTarget = TestColor;
     }

@@ -104,17 +104,17 @@ namespace Stride.Rendering.SubsurfaceScattering
         > : ImageEffectShader, Camera, Math
     {
         // Generated values:
-        stage float2 ProjectionSizeOnUnitPlaneInClipSpace;
-        stage float ScatteringWidths[MaxMaterialCount]; // TODO: Use Buffer<float> instead?
-        stage float IterationNumber;
-        stage float4x4 ViewProjectionMatrix;    // This is used for debugging only.
+        module float2 ProjectionSizeOnUnitPlaneInClipSpace;
+        module float ScatteringWidths[MaxMaterialCount]; // TODO: Use Buffer<float> instead?
+        module float IterationNumber;
+        module float4x4 ViewProjectionMatrix;    // This is used for debugging only.
         
         cbuffer PerDraw
         {
             // Filter kernel layout is as follows:
             //   - Weights in the RGB channels.
             //   - Offsets in the A channel.
-            stage Buffer<float4> KernelBuffer;
+            module Buffer<float4> KernelBuffer;
         }
 
         // These values correspond to the ones defined in SubsurfaceScatteringBlur.cs
@@ -406,7 +406,7 @@ namespace Stride.Rendering.SubsurfaceScattering
             return length(SphereToPixelClipSpace / projectedSphereScreenDimensions) < sphereRadiusWorldSpace;
         }
 
-        stage override float4 Shading()
+        module override float4 Shading()
         {
             uint materialIndex = uint(Texture2.Load(int3(streams.ShadingPosition.xy, 0.0)).r + 0.5);    // Version for material ID stored as a float.
 

@@ -15,7 +15,7 @@ namespace Stride.Rendering.Images
         // Current CoC value
         float CoCCurrent;
 
-        stage override float4 Shading()
+        module override float4 Shading()
         {
             float4 color = Texture0.Sample(Sampler, streams.TexCoord).rgba;
 

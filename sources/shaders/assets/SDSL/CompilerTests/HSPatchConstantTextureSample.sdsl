@@ -9,8 +9,8 @@ shader HSPatchConstantTextureSample
     patchstream float Edges[3] : SV_TessFactor;
     patchstream float Inside : SV_InsideTessFactor;
 
-    stage Texture2D Texture0;
-    stage SamplerState Sampler0;
+    module Texture2D Texture0;
+    module SamplerState Sampler0;
 
     void VSMain()
     {

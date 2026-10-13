@@ -5,14 +5,14 @@ shader SignedDistanceFieldFontShader : ShaderBase, SignedDistanceFieldFont
     // -------------------------------------
     // streams
     // -------------------------------------
-    stage stream float4 Position : POSITION;
-    stage stream float4 Color : COLOR;
-    stage stream float Swizzle : BATCH_SWIZZLE;
+    module stream float4 Position : POSITION;
+    module stream float4 Color : COLOR;
+    module stream float Swizzle : BATCH_SWIZZLE;
             
     // -------------------------------------
     // VertexShader
     // -------------------------------------
-    stage override void VSMain()
+    module override void VSMain()
     {
         streams.ShadingPosition = streams.Position;
     }
@@ -20,12 +20,12 @@ shader SignedDistanceFieldFontShader : ShaderBase, SignedDistanceFieldFont
     // -------------------------------------
     // PixelShader
     // -------------------------------------
-    stage override void PSMain()
+    module override void PSMain()
     {
         streams.ColorTarget = Shading();
     }
 
-    stage float4 Shading()
+    module float4 Shading()
     {
         // This should be a 3-channel signed distance field texture
         float4 signedMultiDistance = Texture0.Sample(Sampler, streams.TexCoord);

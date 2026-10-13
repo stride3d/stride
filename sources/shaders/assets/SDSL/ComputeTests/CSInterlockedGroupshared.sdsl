@@ -5,8 +5,8 @@ namespace Stride.Shaders.Tests;
 // Interlocked* on groupshared variables (Workgroup scope), from the 64 threads of a group; group (0, 0) writes the results
 shader CSInterlockedGroupshared
 {
-    stage stream uint3 GroupId : SV_GroupID;
-    stage stream uint GroupIndex : SV_GroupIndex;
+    module stream uint3 GroupId : SV_GroupID;
+    module stream uint GroupIndex : SV_GroupIndex;
 
     groupshared int Count;
     groupshared int Lowest;

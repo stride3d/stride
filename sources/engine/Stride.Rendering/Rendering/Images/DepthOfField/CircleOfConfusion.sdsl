@@ -11,7 +11,7 @@ namespace Stride.Rendering.Images
         // TODO Might want to replace this with a real formula from camera lens parameters, 
         // but for now we'll keep these simple parameters for easy debugging. 
         // [Near Start, Near End, Far Start, Far End]
-        stage float4 depthAreas;
+        module float4 depthAreas;
 
         //Gets the circle of confusion strength for a certain depth. 
         float getCoCFactor(float linearDepth) 

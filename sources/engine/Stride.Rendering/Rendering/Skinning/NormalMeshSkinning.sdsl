@@ -5,7 +5,7 @@
 /// </summary>
 shader NormalMeshSkinning : TransformationSkinning, NormalStream
 {
-    override stage void PreTransformPosition()
+    override module void PreTransformPosition()
     {
         base.PreTransformPosition();
         streams.meshNormal = normalize(mul(streams.meshNormal, (float3x3)streams.skinningBlendMatrix)); // TODO: Does this result in an object or world space normal? If world space, write to meshNormalWS instead!

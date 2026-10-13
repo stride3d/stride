@@ -5,9 +5,9 @@ namespace Stride.Rendering.Skyboxes
 {
     shader SkyboxShaderCubemap : SkyboxShaderBase
     {
-        stage TextureCube CubeMap;
+        module TextureCube CubeMap;
 
-        override stage float4 Shading()
+        override module float4 Shading()
         {
             var samplingDir = normalize(streams.skyboxViewDirection);
             var color = CubeMap.Sample(LinearSampler, float3(samplingDir.x, samplingDir.y, -samplingDir.z)).rgb;

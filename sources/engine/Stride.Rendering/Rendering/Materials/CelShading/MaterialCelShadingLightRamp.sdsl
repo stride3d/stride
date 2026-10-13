@@ -8,7 +8,7 @@ namespace Stride.Rendering.Materials
     {
         rgroup PerMaterial
         {
-			stage Texture2D CelShaderRamp;
+			module Texture2D CelShaderRamp;
         }
 
         override float3 Compute(float lightIn)

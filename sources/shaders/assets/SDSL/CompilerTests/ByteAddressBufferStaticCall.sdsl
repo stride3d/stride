@@ -6,7 +6,7 @@ shader ByteAddressBufferStaticCall
     RWByteAddressBuffer Result;
 
     [numthreads(1, 1, 1)]
-    stage void CSMain()
+    module void CSMain()
     {
         Result.Store(0, ByteAddressBufferUtils.Twice(3));
     }

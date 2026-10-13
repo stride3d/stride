@@ -12,17 +12,17 @@ shader ParticleUtilities
     // Declare the uniforms in the order float4x4 > float4 > float > uint
     cbuffer PerView
     {
-        stage float4x4 ViewMatrix;
-        stage float4x4 ProjectionMatrix;
-        stage float4x4 ViewProjectionMatrix;
+        module float4x4 ViewMatrix;
+        module float4x4 ProjectionMatrix;
+        module float4x4 ViewProjectionMatrix;
 
         // .x - Width, .y - Height, .z - Near, .w - Far
-        stage float4   ViewFrustum;
+        module float4   ViewFrustum;
 
-        stage float4 Viewport;
+        module float4 Viewport;
     }
 
-    stage float GetLinearDepth(float z)
+    module float GetLinearDepth(float z)
     {
     	float fastA = -ProjectionMatrix._33;    // = zFar / (zFar - zNear);
 	    float fastB = ProjectionMatrix._43;     // = (-zFar * zNear) / (zFar - zNear);

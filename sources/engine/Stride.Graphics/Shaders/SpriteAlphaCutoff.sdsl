@@ -6,14 +6,14 @@ shader SpriteAlphaCutoff<bool TSRgb> : SpriteBase
     // -------------------------------------
     // streams
     // -------------------------------------
-    stage stream float4 Color : COLOR;
-    stage stream float4 ColorAdd : COLOR1;
-    stage stream float Swizzle : BATCH_SWIZZLE;
+    module stream float4 Color : COLOR;
+    module stream float4 ColorAdd : COLOR1;
+    module stream float Swizzle : BATCH_SWIZZLE;
 
     // -------------------------------------
     // VertexShader
     // -------------------------------------
-    stage override void VSMain()
+    module override void VSMain()
     {
         base.VSMain();
         if (TSRgb)
@@ -23,7 +23,7 @@ shader SpriteAlphaCutoff<bool TSRgb> : SpriteBase
     }
 
     // Shading of the sprite
-    stage override float4 Shading()
+    module override float4 Shading()
     {
         // Because we use float input values we should allow certain threshold - lets fix it at 0.1
 

@@ -38,7 +38,7 @@ namespace Stride.Rendering.Images
 			return specularColor * AB.x + saturate(50.0 * specularColor.g) * AB.y;
 		}
 		
-		override stage float4 Shading()
+		override module float4 Shading()
 		{
 			// Inputs Mapping:
 			// Texture0 - Scene Color

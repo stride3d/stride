@@ -9,7 +9,7 @@ namespace machin
 
         stream int a;
 
-        stage abstract void DoSomething();
+        module abstract void DoSomething();
 
         void Method()
         {

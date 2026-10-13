@@ -11,6 +11,6 @@ shader DynamicTextureCube<LinkType TTexture, MemberName LocalResourceGroup>
     rgroup LocalResourceGroup
     {
         [Link("TTexture")]
-        stage TextureCube CubeMap;
+        module TextureCube CubeMap;
     }
 };

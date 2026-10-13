@@ -5,7 +5,7 @@
 /// </summary>
 shader NormalBase : NormalUpdate, ShaderBase
 {
-    override stage void VSMain()
+    override module void VSMain()
     {
         base.VSMain();
 
@@ -14,7 +14,7 @@ shader NormalBase : NormalUpdate, ShaderBase
         GenerateNormal_VS();
     }
 	
-    override stage void PSMain()
+    override module void PSMain()
     {
         // Perform normal generation at beginning so that it is accessible during PS.
         // TODO: Another mechanism (compute on first access?)

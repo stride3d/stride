@@ -7,7 +7,7 @@ namespace Stride.Rendering.Deferred
     /// </summary>
     shader GBuffer : ShaderBase, MaterialPixelStream
     {
-        stage override void PSMain()
+        module override void PSMain()
         {
             base.PSMain();
 

@@ -5,7 +5,7 @@ namespace Stride.Graphics.Tests
 {
     shader MultipleRenderTargetsEffectShader: ShadingBase
     {    
-        stage override void PSMain()
+        module override void PSMain()
         {
             base.PSMain();
             streams.ColorTarget = this.Shading();            

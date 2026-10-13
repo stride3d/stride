@@ -46,7 +46,7 @@ public class Texture1DTests : IDisposable
     [InlineData("Storage1D", ExecutionModel.GLCompute, "cs_5_0", """
         shader Storage1D
         {
-            stage stream uint3 DispatchThreadId : SV_DispatchThreadID;
+            module stream uint3 DispatchThreadId : SV_DispatchThreadID;
             RWTexture1D<float4> Line;
             RWTexture1DArray<float> Lines;
             [numthreads(8, 1, 1)]

@@ -6,6 +6,6 @@
 /// </summary>
 shader ShadowStream
 {
-    stage stream float3 shadowColor;
-    stage stream float thicknessWS;
+    module stream float3 shadowColor;
+    module stream float thicknessWS;
 };

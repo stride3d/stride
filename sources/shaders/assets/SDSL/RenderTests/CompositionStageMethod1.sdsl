@@ -4,22 +4,22 @@ namespace Stride.Shaders.Tests;
 
 shader CompositionBase
 {
-	stage float BaseStageMethod1()
+	module float BaseStageMethod1()
 	{
 		return 1.0;
 	}
 
-	stage float BaseStageMethod2()
+	module float BaseStageMethod2()
 	{
 		return 1.0;
 	}
 
-	stage float BaseStageMethod3()
+	module float BaseStageMethod3()
 	{
 		return 1.0;
 	}
 
-	stage float BaseStageMethod4()
+	module float BaseStageMethod4()
 	{
 		return 2.0;
 	}
@@ -27,12 +27,12 @@ shader CompositionBase
  
 shader CompositionShaderA : CompositionBase
 {
-	stage override float BaseStageMethod2()
+	module override float BaseStageMethod2()
 	{
 		return base.BaseStageMethod2() + 1.0;
 	}
 
-	stage override float BaseStageMethod4()
+	module override float BaseStageMethod4()
 	{
 		return base.BaseStageMethod4() + 2.0;
 	}
@@ -40,12 +40,12 @@ shader CompositionShaderA : CompositionBase
  
 shader CompositionShaderB : CompositionBase
 {
-	stage override float BaseStageMethod3()
+	module override float BaseStageMethod3()
 	{
 		return base.BaseStageMethod3() + 3.0;
 	}
 
-	stage override float BaseStageMethod4()
+	module override float BaseStageMethod4()
 	{
 		return base.BaseStageMethod4() + 2.0;
 	}
@@ -58,12 +58,12 @@ shader CompositionTest : CompositionBase
 	compose CompositionBase Comp0;
 	compose CompositionBase Comp1;
 
-	stage override float BaseStageMethod1()
+	module override float BaseStageMethod1()
 	{
 		return base.BaseStageMethod1() + 5.0;
 	}
 
-	stage override float BaseStageMethod4()
+	module override float BaseStageMethod4()
 	{
 		return base.BaseStageMethod4() + 2.0;
 	}

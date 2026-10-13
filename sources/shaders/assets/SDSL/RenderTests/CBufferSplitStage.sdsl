@@ -14,7 +14,7 @@ shader CBufferSplitStage
 
     cbuffer PerView.Atmosphere
     {
-        stage float4 Slices;
+        module float4 Slices;
     }
 
     void PSMain()

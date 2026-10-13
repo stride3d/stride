@@ -4,7 +4,7 @@ namespace Stride.Shaders.Tests;
 
 shader ComposeSharedBase
 {
-    stage stream uint3 DispatchThreadId : SV_DispatchThreadID;
+    module stream uint3 DispatchThreadId : SV_DispatchThreadID;
 
     [numthreads(8, 8, 8)]
     void CSMain()

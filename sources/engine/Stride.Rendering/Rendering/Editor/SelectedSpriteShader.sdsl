@@ -6,7 +6,7 @@ shader SelectedSpriteShader : SpriteBase
     float Blend;
 
     // method computing color
-    stage override float4 Shading()
+    module override float4 Shading()
     {
         float factor = fmod(streams.ShadingPosition.x, 2) * fmod(streams.ShadingPosition.y, 2);
         float4 selectionColor = float4(0.0f, 0.5f, 1, 1);

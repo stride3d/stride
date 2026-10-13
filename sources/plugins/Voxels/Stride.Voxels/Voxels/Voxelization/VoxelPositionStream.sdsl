@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 shader VoxelPositionStream
 {
-    stage stream float3 PositionVXS : POSITIONVXS;
-    stage stream int3 PositionVXPS : POSITIONVXPS;
-    stage stream float3 VoxelVolumeSize : VOXELVOLUMESIZE;
+    module stream float3 PositionVXS : POSITIONVXS;
+    module stream int3 PositionVXPS : POSITIONVXPS;
+    module stream float3 VoxelVolumeSize : VOXELVOLUMESIZE;
 };

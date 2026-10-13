@@ -6,18 +6,18 @@ shader MaterialFrontBackBlendShader<bool TUseNormalBackface> : ShadingBase, Tran
     cbuffer PerDraw
     {
         [Color]
-        stage float3 ColorFront;
+        module float3 ColorFront;
     
-        stage float ColorBlend;
+        module float ColorBlend;
 
         [Color]
-        stage float3 ColorBack;
+        module float3 ColorBack;
     
-        stage float AlphaBlend;
+        module float AlphaBlend;
     }
 
     // method computing color
-    stage override float4 Shading()
+    module override float4 Shading()
     {
         float3 color = ColorFront;
         if (TUseNormalBackface)

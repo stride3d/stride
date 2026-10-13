@@ -1,11 +1,11 @@
 ﻿shader SinglePassWireframeShader : ShaderBase, Transformation, Texturing, PositionStream4
 {
-    noperspective stage stream float4 EdgeA;
-    noperspective stage stream float4 EdgeB;
-    stage stream float3 Normal : NORMAL;
-    stage stream uint   Case;
+    noperspective module stream float4 EdgeA;
+    noperspective module stream float4 EdgeB;
+    module stream float3 Normal : NORMAL;
+    module stream uint   Case;
     // Added to the distance to edge A, edge B and edge AB when they are the hidden diagonal of a quad
-    stage stream float3 EdgeExclude;
+    module stream float3 EdgeExclude;
 
     static const uint infoA[]     = { 0, 0, 0, 0, 1, 1, 2 };
     static const uint infoB[]     = { 1, 1, 2, 0, 2, 1, 2 };
@@ -19,7 +19,7 @@
 
     cbuffer PerView
     {
-        stage float4 Viewport;
+        module float4 Viewport;
     }
 
     float4 projToWorld(in float4 pos)
@@ -233,7 +233,7 @@
     }
 
     // vertex shader
-    stage override void VSMain()
+    module override void VSMain()
     { 
         streams.ShadingPosition = projToWorld(streams.Position);
         // Our wireframe likely sits on top of the same model so fragments will z-fight, this line reduces flickering by pulling vertices forward slightly
@@ -241,7 +241,7 @@
     }
 
     // pixel shader
-    stage override void PSMain()
+    module override void PSMain()
     {
         float dist = evalMinDistanceToEdges();
         if (dist > 0.5 * LineWidth)

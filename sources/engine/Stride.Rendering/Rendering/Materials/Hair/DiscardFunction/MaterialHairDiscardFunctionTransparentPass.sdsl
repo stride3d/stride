@@ -11,7 +11,7 @@ namespace Stride.Rendering.Materials
         cbuffer PerMaterial
         {
             [Link("THairAlphaThreshold")]
-            stage float HairAlphaThreshold;    // Any alpha value above this value is considered opaque.
+            module float HairAlphaThreshold;    // Any alpha value above this value is considered opaque.
         }
 
         override void Discard(void)

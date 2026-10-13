@@ -6,10 +6,10 @@ namespace Stride.Rendering.Materials
     shader MaterialTessellationStream : IStreamInitializer
     {
         // Displacement height attribute
-        stage stream float matSmoothingIntensity;
+        module stream float matSmoothingIntensity;
         
         // The level of details desired
-        stage stream float oppositeEdgeLOD;
+        module stream float oppositeEdgeLOD;
 
         override void ResetStream()
         {

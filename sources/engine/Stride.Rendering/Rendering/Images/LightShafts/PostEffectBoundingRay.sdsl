@@ -31,7 +31,7 @@ shader PostEffectBoundingRay<int TSampleCount> : ImageEffectShader, DepthBase, T
         return float4(lightAcc.xxx, 1.0f);
     }
 
-    stage override void PSMain()
+    module override void PSMain()
     {
         // minmax.x = min
         // minmax.y = max

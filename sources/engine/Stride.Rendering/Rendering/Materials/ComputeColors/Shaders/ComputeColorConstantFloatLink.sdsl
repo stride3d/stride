@@ -11,7 +11,7 @@ shader ComputeColorConstantFloatLink<LinkType LinkName> : ComputeColor
     cbuffer PerMaterial
     {
         [Link("LinkName")]
-        stage float constantFloat;
+        module float constantFloat;
     }
     
     override float4 Compute()

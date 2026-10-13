@@ -9,14 +9,14 @@ namespace Stride.Graphics.Tests
     /// </summary>
     internal shader MeshBufferFetchTestShader : ComputeShaderBase
     {
-        stage ByteAddressBuffer Vertices;
-        stage ByteAddressBuffer Indices;
-        stage RWStructuredBuffer<float4> Output;
+        module ByteAddressBuffer Vertices;
+        module ByteAddressBuffer Indices;
+        module RWStructuredBuffer<float4> Output;
 
-        stage uint IndexByteOffset;
-        stage uint IndexSize;
-        stage uint VertexByteOffset;
-        stage uint VertexStride;
+        module uint IndexByteOffset;
+        module uint IndexSize;
+        module uint VertexByteOffset;
+        module uint VertexStride;
 
         override void Compute()
         {

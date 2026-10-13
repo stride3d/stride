@@ -8,7 +8,7 @@ namespace Stride.Graphics.Tests
     /// </summary>
     internal shader UnorderedAccessOnlyTextureShader : ComputeShaderBase
     {
-        stage RWTexture2D<float4> Output;
+        module RWTexture2D<float4> Output;
 
         override void Compute()
         {

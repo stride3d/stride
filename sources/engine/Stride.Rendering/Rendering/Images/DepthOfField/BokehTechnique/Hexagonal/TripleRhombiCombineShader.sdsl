@@ -13,9 +13,9 @@ namespace Stride.Rendering.Images
     shader TripleRhombiCombineShader : ImageEffectShader
     {
         // Offset to apply when reading a texture coordinate (for each of the 3 rhombis)
-        stage float2 RhombiTapOffsets[3];
+        module float2 RhombiTapOffsets[3];
 
-        stage override float4 Shading()
+        module override float4 Shading()
         {
             float4 tapColor[3]; 
 

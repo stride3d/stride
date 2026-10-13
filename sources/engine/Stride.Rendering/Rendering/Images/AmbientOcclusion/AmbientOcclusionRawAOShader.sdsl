@@ -14,7 +14,7 @@ namespace Stride.Rendering.Images
         float    ParamRadius = 1;
         float    ParamRadiusSquared = 1;
 
-        stage float reconstructCSZ(float depth)
+        module float reconstructCSZ(float depth)
         {
             if (IsOrthographic) //near + z * (far - near)
                 return ZProjection.x + depth * ZProjection.y;
@@ -22,7 +22,7 @@ namespace Stride.Rendering.Images
                 return ZProjection.y / (depth - ZProjection.x);
         }
 
-        stage float3 reconstructCSPosition(float2 S, float z)
+        module float3 reconstructCSPosition(float2 S, float z)
         {
             if (IsOrthographic)
             {
@@ -36,12 +36,12 @@ namespace Stride.Rendering.Images
             }
         }
 
-        stage float3 reconstructCSNormal(float3 position)
+        module float3 reconstructCSNormal(float3 position)
         {
             return normalize(cross(ddy(position), ddx(position)));
         }
 
-        stage float sampleAO(int2 screenPosition, float3 viewPosition, float3 viewNormal, float diskRadius, int i, float randomPatternRotationAngle)
+        module float sampleAO(int2 screenPosition, float3 viewPosition, float3 viewNormal, float diskRadius, int i, float randomPatternRotationAngle)
         {
             //*****************************
             //  Sample Offset
@@ -81,7 +81,7 @@ namespace Stride.Rendering.Images
             return f * f * f * max((vn - ParamBias) / (epsilon + distSq), 0.0);
         }
 
-        stage override float4 Shading()
+        module override float4 Shading()
         {
             //*****************************
             // Reconstruct View space linear depth Z from the depth buffer

@@ -8,15 +8,15 @@ namespace Stride.Rendering.Utils
     shader ModelComponentPickingShader : ShaderBase
     {
         [Color]
-        stage float4 ModelComponentId;
+        module float4 ModelComponentId;
 
         [Color]
-        stage float4 MeshId;
+        module float4 MeshId;
 
         [Color]
-        stage float4 MaterialId;
+        module float4 MaterialId;
 
-        stage override void PSMain()
+        module override void PSMain()
         {
             streams.ColorTarget = ModelComponentId;
             streams.ColorTarget1 = MeshId;

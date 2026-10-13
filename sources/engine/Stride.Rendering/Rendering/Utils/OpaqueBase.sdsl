@@ -11,7 +11,7 @@ shader OpaqueBase : Texturing
     // -------------------------------------
     rgroup PerView.Opaque
     {
-        stage Texture2D OpaqueRenderTarget;
+        module Texture2D OpaqueRenderTarget;
     }
 
     float3 GetOpaqueColor(float2 uv)

@@ -8,8 +8,8 @@ namespace Stride.Graphics.Tests
     /// </summary>
     internal shader ComputeShaderTest<int TNbOfIterations>: ComputeShaderBase
     {    
-        stage Texture2D<float4> input;
-        stage RWTexture2D<float4> output;
+        module Texture2D<float4> input;
+        module RWTexture2D<float4> output;
 
         override void Compute()
         {

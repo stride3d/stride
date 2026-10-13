@@ -7,7 +7,7 @@ namespace Stride.Rendering.Materials
     {
         compose ComputeColor FalloffMap;
         
-        stage stream float3 falloff;
+        module stream float3 falloff;
 
         override void Prepare(void)
         {

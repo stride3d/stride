@@ -4,7 +4,7 @@ namespace Stride.Rendering.Voxels
 {
     shader ClearBuffer : ComputeShaderBase
     {
-        stage RWBuffer<uint> buffer;
+        module RWBuffer<uint> buffer;
         int offset;
 
         // A dispatch has at most 65535 thread groups per dimension, so the groups are spread over X and Y

@@ -7,8 +7,8 @@ using Stride.Shaders.Compilers.SDSL;
 namespace Stride.Shaders.Parsers.Tests;
 
 /// <summary>
-/// A stage method that reads instance state gets a notice: its shader is fully imported in a composition.
-/// Stage cbuffer members and constants are no instance state.
+/// A module method that reads instance state gets a notice: its shader is fully imported in a composition.
+/// Module cbuffer members and constants are no instance state.
 /// </summary>
 public class StageAccessNoticeTests : IDisposable
 {
@@ -26,7 +26,7 @@ public class StageAccessNoticeTests : IDisposable
         File.WriteAllText(Path.Combine(sourceDir.FullName, "NoticeBase.sdsl"), """
             shader NoticeBase
             {
-                cbuffer PerView { stage float4 Tint; };
+                cbuffer PerView { module float4 Tint; };
                 cbuffer PerMaterial { float Gain; };
                 static const float Half = 0.5;
             };
@@ -34,10 +34,10 @@ public class StageAccessNoticeTests : IDisposable
         File.WriteAllText(Path.Combine(sourceDir.FullName, "NoticeChild.sdsl"), """
             shader NoticeChild : NoticeBase
             {
-                cbuffer PerDraw { stage float OwnScale; };
+                cbuffer PerDraw { module float OwnScale; };
                 static const float OwnHalf = 0.5;
-                stage float4 Shade() { return Tint * Half * NoticeBase.Half * OwnScale * OwnHalf; }
-                stage float Boost() { return Gain; }
+                module float4 Shade() { return Tint * Half * NoticeBase.Half * OwnScale * OwnHalf; }
+                module float Boost() { return Gain; }
             };
             """);
         var log = new LoggerResult();
@@ -46,6 +46,6 @@ public class StageAccessNoticeTests : IDisposable
         loader.LoadExternalBuffer("NoticeChild", [], out _, out _, out _);
 
         var notice = Assert.Single(log.Messages).Text;
-        Assert.Contains("Stage method 'NoticeChild.Boost' references non-stage variable 'NoticeBase.Gain'.", notice);
+        Assert.Contains("Module method 'NoticeChild.Boost' references instance variable 'NoticeBase.Gain'.", notice);
     }
 }

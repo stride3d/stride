@@ -7,6 +7,6 @@ namespace Stride.Rendering.Lights
     /// </summary>
     shader EnvironmentLightArray
     {
-        stage compose EnvironmentLight environmentLights[];
+        module compose EnvironmentLight environmentLights[];
     };
 }

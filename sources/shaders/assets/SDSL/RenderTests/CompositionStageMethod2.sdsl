@@ -4,7 +4,7 @@ namespace Stride.Shaders.Tests;
 
 shader CompositionBase
 {
-	stage float BaseStageMethod1()
+	module float BaseStageMethod1()
 	{
 		return 2.0;
 	}
@@ -17,7 +17,7 @@ shader CompositionBase
  
 shader CompositionShaderA : CompositionBase
 {
-	stage override float BaseStageMethod1()
+	module override float BaseStageMethod1()
 	{
 		return base.BaseStageMethod1() + 3.0;
 	}
@@ -30,7 +30,7 @@ shader CompositionShaderA : CompositionBase
  
 shader CompositionShaderB : CompositionBase
 {
-	stage override float BaseStageMethod1()
+	module override float BaseStageMethod1()
 	{
 		return base.BaseStageMethod1() + 4.0;
 	}

@@ -19,10 +19,10 @@ namespace Stride.Rendering.Images
         groupshared float4 PrefilteredSamples[TNbOfSamples];
         
         // The number of mipmap available
-        stage float MipmapCount;
+        module float MipmapCount;
 
         // The roughness of the GGX distribution
-        stage float Roughness;
+        module float Roughness;
 
         // compute the pre-filtered environment map for input (group) direction
         override void Compute()

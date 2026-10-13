@@ -45,7 +45,7 @@ public class SemanticErrorFileTests : IDisposable
     private const string StageCallsNonStage = """
         shader InfoInFile
         {
-            stage float Get() { return Scale(); }
+            module float Get() { return Scale(); }
             float Scale() { return 2; }
         };
         """;
@@ -60,7 +60,7 @@ public class SemanticErrorFileTests : IDisposable
         loader.LoadExternalBuffer("InfoInFile", [], out _, out _, out _);
 
         var info = Assert.Single(log.Messages, m => m.Type == LogMessageType.Debug).Text;
-        Assert.Equal($"{Path.Combine(sourceDir.FullName, "InfoInFile.sdsl")}(3,32): Stage method 'InfoInFile.Get' references non-stage method 'InfoInFile.Scale'. This will cause the shader to be fully imported at root level instead of stage-only when used in a composition. (in `Scale()`)", info);
+        Assert.Equal($"{Path.Combine(sourceDir.FullName, "InfoInFile.sdsl")}(3,33): Module method 'InfoInFile.Get' references instance method 'InfoInFile.Scale'. This will cause the shader to be fully imported at root level instead of only its module members when used in a composition. (in `Scale()`)", info);
     }
 
     // Code without a file, as an effect compiled from memory: the message stays on one line
@@ -73,7 +73,7 @@ public class SemanticErrorFileTests : IDisposable
         Assert.True(new SDSLC(loader).Compile(null, StageCallsNonStage, ObjectId.Empty, [], log, out _, new() { RegisterInCache = false }));
 
         var info = Assert.Single(log.Messages, m => m.Type == LogMessageType.Debug).Text;
-        Assert.StartsWith("(3,32): Stage method 'InfoInFile.Get' references non-stage method 'InfoInFile.Scale'.", info);
+        Assert.StartsWith("(3,33): Module method 'InfoInFile.Get' references instance method 'InfoInFile.Scale'.", info);
         Assert.DoesNotContain('\n', info);
     }
 
@@ -87,7 +87,7 @@ public class SemanticErrorFileTests : IDisposable
         Assert.True(new SDSLC(loader).Compile("/shaders/InfoInFile.sdsl", StageCallsNonStage, ObjectId.Empty, [], log, out _, new() { RegisterInCache = false }));
 
         var info = Assert.Single(log.Messages, m => m.Type == LogMessageType.Debug).Text;
-        Assert.StartsWith("/shaders/InfoInFile.sdsl(3,32): Stage method 'InfoInFile.Get'", info);
+        Assert.StartsWith("/shaders/InfoInFile.sdsl(3,33): Module method 'InfoInFile.Get'", info);
     }
 
     private const string BadStatement = """

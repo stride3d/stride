@@ -8,8 +8,8 @@ namespace Stride.Graphics.Tests
     /// </summary>
     internal shader MipDownsampleTestShader : ComputeShaderBase
     {
-        stage Texture2D<float4> Input;
-        stage RWTexture2D<float4> Output;
+        module Texture2D<float4> Input;
+        module RWTexture2D<float4> Output;
 
         override void Compute()
         {

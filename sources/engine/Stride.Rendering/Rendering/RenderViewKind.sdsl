@@ -20,7 +20,7 @@ namespace Stride.Rendering
 
         cbuffer PerView.ViewKind
         {
-            stage uint ViewKind;
+            module uint ViewKind;
         }
     };
 }

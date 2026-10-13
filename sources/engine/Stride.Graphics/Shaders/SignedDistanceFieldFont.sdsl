@@ -11,7 +11,7 @@ shader SignedDistanceFieldFont : Texturing
     }
 
     // Retrieves the pixel's color sampled from a signed distance field font texture, with font color, border and shadows
-    stage float4 FontColor(float4 sampledColor, float4 textColor, float4 borderColor, float borderThickness)
+    module float4 FontColor(float4 sampledColor, float4 textColor, float4 borderColor, float borderThickness)
     {
         // -0.5 to +0.5 is the maximum distance msdfgen can produce, but it's blurry so cap the border at 0.25
         borderThickness = clamp(borderThickness, 0, 0.2);

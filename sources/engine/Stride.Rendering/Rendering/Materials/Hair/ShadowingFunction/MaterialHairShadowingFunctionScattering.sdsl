@@ -8,7 +8,7 @@ namespace Stride.Rendering.Materials
         cbuffer PerMaterial
         {
             [Link("TExtinctionStrength")]
-            stage float ExtinctionStrength;
+            module float ExtinctionStrength;
         }
 
         override float3 Compute()

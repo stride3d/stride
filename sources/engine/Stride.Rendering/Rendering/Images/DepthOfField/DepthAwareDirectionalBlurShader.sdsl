@@ -11,7 +11,7 @@ namespace Stride.Rendering.Images
     shader DepthAwareDirectionalBlurShader<int TWeightNumber, int TTapNumber> 
         :  DepthAwareDirectionalBlurUtil<TWeightNumber, TTapNumber>, ImageEffectShader
     {
-        stage override float4 Shading()
+        module override float4 Shading()
         {
             return Compute();
         }

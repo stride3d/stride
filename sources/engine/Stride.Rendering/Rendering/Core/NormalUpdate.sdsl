@@ -5,12 +5,12 @@
 /// </summary>
 shader NormalUpdate : NormalStream
 {
-    stage void GenerateNormal_VS()
+    module void GenerateNormal_VS()
     {
         streams.normalWS = 0.0f;
     }
 
-    stage void GenerateNormal_PS()
+    module void GenerateNormal_PS()
     {
     }
 	
@@ -26,7 +26,7 @@ shader NormalUpdate : NormalStream
         return tangentMatrix;
     }
 	
-    stage void UpdateTangentToWorld()
+    module void UpdateTangentToWorld()
     {
         var tangentMatrix = GetTangentMatrix();
         var tangentWorldTransform = GetTangentWorldTransform();
@@ -39,7 +39,7 @@ shader NormalUpdate : NormalStream
     }
 	
     // This method is called by the MaterialSurfaceLightingAndShading to calculate the effective normal
-    stage void UpdateNormalFromTangentSpace(float3 normalInTangentSpace)
+    module void UpdateNormalFromTangentSpace(float3 normalInTangentSpace)
     {
         streams.normalWS = normalize(mul(normalInTangentSpace, streams.tangentToWorld));
     }

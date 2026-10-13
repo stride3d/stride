@@ -9,8 +9,8 @@ namespace Stride.Graphics.Tests
     /// </summary>
     internal shader UnorderedAccessSlowWriteTestShader : ComputeShaderBase
     {
-        stage RWStructuredBuffer<uint> Output;
-        stage uint Iterations;
+        module RWStructuredBuffer<uint> Output;
+        module uint Iterations;
 
         override void Compute()
         {

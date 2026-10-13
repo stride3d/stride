@@ -8,7 +8,7 @@ namespace Stride.Rendering.Images
     /// </summary>
     shader LambertianPrefilteringSHNoComputePass2 : ImageEffectShader, Texturing
     {   
-        stage override float4 Shading()
+        module override float4 Shading()
         {
             float4 result = 0;
 

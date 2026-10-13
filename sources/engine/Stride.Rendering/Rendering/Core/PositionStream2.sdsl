@@ -6,12 +6,12 @@
 shader PositionStream2 : ShaderBase
 {
     // The position attribute
-    stage stream float2 Position2 : POSITION;
+    module stream float2 Position2 : POSITION;
     
     // The position as a float4
-    stage stream float4 Position : ExpandedPosition4;
+    module stream float4 Position : ExpandedPosition4;
     
-    override stage void VSMain()
+    override module void VSMain()
     {
         streams.Position = float4(streams.Position2, 0.0f, 1.0f);
         base.VSMain();

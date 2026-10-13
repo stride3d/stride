@@ -12,7 +12,7 @@ shader PSCoverage
         streams.ShadingPosition = streams.Position;
     }
 
-    stage void PSMain()
+    module void PSMain()
     {
         streams.ColorTarget = float4(countbits(streams.Coverage) / 4.0, 0, 0, 1);
         streams.Coverage = streams.Coverage & 1;

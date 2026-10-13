@@ -8,7 +8,7 @@ namespace Stride.Graphics.Tests
     /// </summary>
     internal shader BufferBarrierTestShader : ComputeShaderBase
     {
-        stage RWStructuredBuffer<uint> Output;
+        module RWStructuredBuffer<uint> Output;
 
         override void Compute()
         {

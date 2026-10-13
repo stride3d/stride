@@ -4,7 +4,7 @@ namespace Stride.Shaders.Tests;
 
 shader StageComposePathDeclarer
 {
-    stage compose StageComposePathBase Samplers[];
+    module compose StageComposePathBase Samplers[];
 
     float4 ConsumeIndexed()
     {

@@ -9,11 +9,11 @@ namespace Stride.Rendering.Materials
     {
         cbuffer PerMaterial
         {
-            stage float RefractiveIndex;
+            module float RefractiveIndex;
         }
 
-        stage stream float3  matTransmittance;
-        stage stream float3  matReflectance;
+        module stream float3  matTransmittance;
+        module stream float3  matReflectance;
 
         override void ResetStream()
         {

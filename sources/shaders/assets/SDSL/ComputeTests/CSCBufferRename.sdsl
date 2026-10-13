@@ -13,18 +13,18 @@ shader CSCBufferRenameBase
 {
     cbuffer Settings
     {
-        stage float4x4 World;
+        module float4x4 World;
     };
 
     cbuffer Settings
     {
-        stage float4 Tint;
+        module float4 Tint;
     };
 };
 
 shader CSCBufferRename : CSCBufferRenameBase
 {
-    stage stream uint3 DispatchThreadId : SV_DispatchThreadID;
+    module stream uint3 DispatchThreadId : SV_DispatchThreadID;
 
     RWStructuredBuffer<float4> Out;
 
