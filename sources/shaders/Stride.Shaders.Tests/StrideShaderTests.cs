@@ -1376,6 +1376,23 @@ new ShaderMacro("class", "shader"),
         }
     }
 
+    // A composition with no value in the mixin tree gets its default shader, compiled with the macros of its node
+    [Fact]
+    public void DefaultCompositionGetsTheMacrosOfItsNode()
+    {
+        var shaderMixer = new ShaderMixer(new ShaderLoader("./assets/SDSL/CompilerTests"));
+        var mixin = new ShaderMixinSource { Mixins = { new ShaderClassSource("DefaultCompositionMacrosRoot") } };
+        mixin.AddMacro("DEFAULT_COMPOSITION_MACRO", 1);
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(mixin, new ShaderMixer.Options(true), log, out var bytecode, out _, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+
+        var code = Spv.Dis(SpirvBytecode.CreateFromSpan(bytecode), DisassemblerFlags.Id, false);
+        Assert.Matches(@"OpConstant %\S+ 42\b", code);
+        Assert.DoesNotMatch(@"OpConstant %\S+ 7\b", code);
+    }
+
     // A non-stage variable read through its shader name (Base.Value) from a stage method is an instance access.
     [Fact]
     public void QualifiedNonStageReadFromStageMethodForcesFullImport()
