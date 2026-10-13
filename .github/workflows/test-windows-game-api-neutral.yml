@@ -11,7 +11,7 @@ on:
           - Debug
           - Release
       upload-binlog:
-        description: Capture and upload build binlog (off by default; adds some I/O overhead)
+        description: Upload the build binlog even when the build succeeds (a failed build always uploads it)
         default: false
         type: boolean
       test-filter:
@@ -66,13 +66,13 @@ jobs:
             -p:StrideNativeBuildMode=Clang `
             -p:StrideSkipAutoPack=true `
             -nr:false `
-            ${{ inputs.upload-binlog && '-bl:build.binlog' || '' }} `
+            -bl:build.binlog `
             -v:m -p:WarningLevel=0 `
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
             -p:StridePlatforms=Windows `
             -p:StrideGraphicsApis=Direct3D11
       - name: Upload build binlog
-        # failure() so we still get the binlog when Build dies (most useful case)
+        # Always captured: a rare build failure (a race) comes with its binlog
         if: failure() || inputs.upload-binlog
         uses: actions/upload-artifact@v7
         with:
