@@ -145,11 +145,14 @@ namespace Stride.Graphics
                     primitiveRestartEnable = VulkanConvertExtensions.ConvertPrimitiveRestart(Description.PrimitiveType)
                 };
 
-                // TODO VULKAN: Multisampling
+                // The sample count of the render targets: MultisampleCount values are the VkSampleCountFlags bits (None = 1)
+                var sampleMask = Description.SampleMask;
                 var multisampleState = new VkPipelineMultisampleStateCreateInfo
                 {
                     sType = VkStructureType.PipelineMultisampleStateCreateInfo,
-                    rasterizationSamples = VkSampleCountFlags.Count1
+                    rasterizationSamples = (VkSampleCountFlags) Math.Max((int) Description.Output.MultisampleCount, 1),
+                    pSampleMask = &sampleMask,
+                    alphaToCoverageEnable = Description.BlendState.AlphaToCoverageEnable,
                 };
 
                 var tessellationState = new VkPipelineTessellationStateCreateInfo
