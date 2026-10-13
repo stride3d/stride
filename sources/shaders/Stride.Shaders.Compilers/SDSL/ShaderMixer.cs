@@ -72,6 +72,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         try
         {
             var shaderSource2 = EvaluateInheritanceAndCompositions(shaderLoader, context, null, shaderSource);
+            CollectModules(shaderSource2);
 
             // Process name and types imported by constants due to generics instantiation
             ShaderClass.ProcessNameAndTypes(context);
@@ -416,6 +417,11 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         // Merge all classes from mixinSource.Mixins in main buffer
         ProcessMixinClasses(globalContext, context, buffer, mixinSource, mixinNode);
 
+        // Composition classes find their module part in the root under their own name, even when another instantiation with the
+        // same module identity provides it
+        foreach (var (name, rootName) in mixinSource.RootAliases)
+            mixinNode.ShadersByName.TryAdd(name, mixinNode.ShadersByName[rootName]);
+
         BuildTypesAndMethodGroups(globalContext, context, buffer, mixinNode);
 
         // Compositions (recursive)
@@ -506,11 +512,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
     private ShaderInfo MergeClassInBuffers(MixinGlobalContext globalContext, SpirvContext context, SpirvBuffer buffer, MixinNode mixinNode, ShaderClassInstantiation shaderClass, TypeMergeIndex typeIndex)
     {
         var isRootMixin = mixinNode.Stage == null;
-        if (shaderClass.ImportStageOnly)
-        {
-            if (!isRootMixin)
-                throw new InvalidOperationException("importing stage-only methods/variables is only possible at the root mixin");
-        }
+        if (shaderClass.IsCompanionModule && !isRootMixin)
+            throw new InvalidOperationException($"The companion module of {shaderClass.ClassName} can only be in the root node");
 
         var shaderBuffers = shaderClass.Buffer ?? throw new InvalidOperationException($"Shader buffers not loaded for {shaderClass.ClassName}");
         var linkInfo = ClassLinkInfo.Get(shaderBuffers);
@@ -522,25 +525,41 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         var contextStart = context.Count;
         var names = linkInfo.Names;
 
-        var forbiddenIds = new HashSet<int>();
+        // Instance members left out of a companion module, which its module code must not use
+        var forbiddenIds = new Dictionary<int, (string Name, bool IsFunction)>();
         var remapIds = new Dictionary<int, int>();
         var removedIds = new HashSet<int>();
 
         bool isContext = true;
+        string? currentFunctionName = null;
 
-        // Note: FunctionType is only required when looking for stage function
+        // Known before copying: a module function can use an instance member declared after it
+        if (shaderClass.IsCompanionModule)
+        {
+            for (var index = 0; index < shaderBuffers.Buffer.Count; index++)
+            {
+                var i = shaderBuffers.Buffer[index];
+                if (i.Op == Op.OpFunction && index + 1 < shaderBuffers.Buffer.Count && shaderBuffers.Buffer[index + 1].Op == Op.OpFunctionMetadataSDSL
+                    && ((OpFunctionMetadataSDSL)shaderBuffers.Buffer[index + 1]).Flags.HasFlag(FunctionFlagsMask.Stage) == false)
+                    forbiddenIds.TryAdd(offset + i.Data.IdResult!.Value, (names.GetValueOrDefault(i.Data.IdResult!.Value, "?"), true));
+                else if (i.Op == Op.OpVariableSDSL && (OpVariableSDSL)i is { } variable && variable.StorageClass != Spirv.Specification.StorageClass.Function
+                    && (variable.Flags & VariableFlagsMask.Stage) == 0)
+                    forbiddenIds.TryAdd(offset + variable.ResultId, (names.GetValueOrDefault(variable.ResultId, "?"), false));
+            }
+        }
+
+        // Note: FunctionType is only required when looking for module function
         bool ProcessStageMemberOrType(int memberId, FunctionType? functionType, bool isStage)
         {
             var include = isStage switch
             {
-                // Import stage members only if at root level
+                // Module members (and struct types) are in the root: the whole class or its companion module
                 true => isRootMixin,
-                // Import non-stage members only if allowed, i.e. not a "stage-only inherit"
-                // ("stage-only inherit" only happen when a class with stage members is inherited in a composition, and the stage-only version is added to the root mixin)
-                false => !shaderClass.ImportStageOnly,
+                // Instance members are in every node, except in a companion module
+                false => !shaderClass.IsCompanionModule,
             };
 
-            // If a stage member is skipped in a composition mixin, we want to remap to the version in the root mixin
+            // A module member skipped in a composition node is the one of the root
             if (isStage && !isRootMixin)
             {
                 var stageShader = mixinNode.Stage!.ShadersByName[shaderClass.ToClassNameWithGenerics()];
@@ -550,11 +569,6 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     : stageShader.FindMember(memberOrTypeName, functionType).Id;
                 remapIds.Add(offset + memberId, stageMemberOrTypeId);
                 removedIds.Add(stageMemberOrTypeId);
-            }
-            // Otherwise, if not included, it means we need to forbid this IDs (which could only happen if referencing non-stage member from a stage method)
-            else if (!include)
-            {
-                forbiddenIds.Add(offset + memberId);
             }
 
             return include;
@@ -617,6 +631,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                                 functionType = (FunctionType)functionType2;
 
                             include = ProcessStageMemberOrType(link.ResultId, functionType, link.IsStage);
+                            if (include)
+                                currentFunctionName = names.GetValueOrDefault(link.ResultId, "?");
                             break;
                         case InstructionLinkKind.Variable:
                         case InstructionLinkKind.Struct:
@@ -679,13 +695,13 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     resourceGroupIdDecorate.DecorationParameters = new(m.Span[0] + resourceGroupOffset);
                 }
 
-                // Almost always empty: only a stage-only import forbids IDs
-                if (forbiddenIds.Count > 0)
+                // Only a companion module forbids IDs: the instance members its module code must not use
+                if (forbiddenIds.Count > 0 && !isContext && i2.Op is not (Op.OpName or Op.OpMemberName or Op.OpDecorate or Op.OpDecorateString or Op.OpMemberDecorate or Op.OpMemberDecorateString))
                 {
                     for (var p = link.IdStart; p < link.IdEnd; p++)
                     {
-                        if (forbiddenIds.Contains(words[idPositions[p]]))
-                            throw new InvalidOperationException($"Stage instruction {shader[index].Data} references a non-stage ID");
+                        if (forbiddenIds.TryGetValue(words[idPositions[p]], out var forbidden))
+                            throw new InvalidOperationException(ModuleCodeUsesInstanceMember(shaderClass, currentFunctionName, forbidden.Name, forbidden.IsFunction));
                     }
                 }
 
@@ -850,12 +866,42 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         foreach (var structType in structTypes)
             shaderInfo.StructTypes.Add(structType.Key, structType.Value);
         shaderInfo.CompositionPath = mixinNode.CompositionPath;
-        shaderInfo.ImportStageOnly = shaderClass.ImportStageOnly;
+        shaderInfo.IsCompanionModule = shaderClass.IsCompanionModule;
+        shaderInfo.ModuleIdentity = shaderClass.ModuleIdentity;
+        shaderInfo.UsedInComposition = shaderClass.CompositionPath;
         shaderInfo.IsModule = shaderClass.IsModule;
         if (mixinNode.Stage != null && mixinNode.Stage.ShadersByName.TryGetValue(shaderClass.ClassName, out var stageShaderInfo))
             shaderInfo.Stage = stageShaderInfo;
 
         return shaderInfo;
+    }
+
+    private static string OverrideOfOtherKind(ShaderInfo shader, MixinNode mixinNode, string functionName, string parentShaderName, bool isModuleMethod)
+    {
+        var className = TypeName.GetTypeNameWithoutGenerics(shader.ShaderName);
+        var parent = TypeName.GetTypeNameWithoutGenerics(parentShaderName);
+        var path = (mixinNode.CompositionPath ?? shader.UsedInComposition) is { } compositionPath ? $" (`{compositionPath}`)" : "";
+        return isModuleMethod
+            ? $"`{className}.{functionName}` is `module` but overrides the instance method `{parent}.{functionName}`. `{className}` is used in a composition{path}, where an instance method has one override chain per instance. Remove `module`, or mark `{parent}.{functionName}` `module`."
+            : $"`{className}.{functionName}` overrides the module method `{parent}.{functionName}` but is not `module`. `{className}` is used in a composition{path}, and a module method has one override chain per effect. Write `override module`.";
+    }
+
+    private static string ModuleCodeCallsInstanceMethod(ShaderInfo shader, string? functionName, string ownerName, string methodName)
+    {
+        var className = TypeName.GetTypeNameWithoutGenerics(shader.ShaderName);
+        var owner = TypeName.GetTypeNameWithoutGenerics(ownerName);
+        var path = shader.UsedInComposition != null ? $" (`{shader.UsedInComposition}`)" : "";
+        return $"Module code `{className}.{functionName ?? "?"}` calls `{owner}.{methodName}`, an instance method. `{className}` is used in a composition{path}, which has an instance per slot. Mark `{owner}.{methodName}` `module`, or mix `{className}` at the root.";
+    }
+
+    private static string ModuleCodeUsesInstanceMember(ShaderClassInstantiation shaderClass, string? functionName, string memberName, bool isFunction)
+    {
+        var className = TypeName.GetTypeNameWithoutGenerics(shaderClass.ClassName);
+        var code = functionName != null ? $"`{className}.{functionName}`" : $"of `{className}`";
+        var path = shaderClass.CompositionPath != null ? $" (`{shaderClass.CompositionPath}`)" : "";
+        return isFunction
+            ? $"Module code {code} calls `{memberName}`, an instance method of `{className}`. `{className}` is used in a composition{path}, which has an instance per slot. Mark `{memberName}` `module`, or mix `{className}` at the root."
+            : $"Module code {code} reads `{memberName}`, an instance member of `{className}`. `{className}` is used in a composition{path}, where each instance has its own `{memberName}`. Mark `{memberName}` `module`, or mix `{className}` at the root.";
     }
 
     private static void BuildTypesAndMethodGroups(MixinGlobalContext globalContext, SpirvContext context, SpirvBuffer temp, MixinNode mixinNode)
@@ -889,13 +935,20 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                         methodMixinGroup = methodMixinGroup.Stage ?? throw new InvalidOperationException("Can't find stage mixin");
 
                     // If OpFunctionMetadataSDSL.Parent is coming from a OpImportFunctionSDSL, find the real ID
+                    // An override must be of the parent's kind: in a composition node, a module method and an instance method are in different nodes
+                    var isModuleMethod = (functionInfo.Flags & FunctionFlagsMask.Stage) != 0;
                     if (functionInfo.Parent != 0)
                     {
                         if (globalContext.ExternalFunctions.TryGetValue(functionInfo.Parent, out var parentFunctionInfo))
                         {
                             var shaderName = globalContext.ExternalShaders[parentFunctionInfo.ShaderId];
                             var parentFunctionType = context.ReverseTypes[parentFunctionInfo.FunctionType];
-                            functionInfo.Parent = mixinNode.ShadersByName[shaderName].Functions[parentFunctionInfo.Name].First(x => x.Type == parentFunctionType).Id;
+                            // Not in this node: the parent has no member of this node's kind
+                            var parentFunctions = mixinNode.ShadersByName.GetValueOrDefault(shaderName)?.Functions.GetValueOrDefault(parentFunctionInfo.Name);
+                            var parentIndex = parentFunctions?.FindIndex(x => x.Type == parentFunctionType) ?? -1;
+                            if (parentIndex == -1)
+                                throw new InvalidOperationException(OverrideOfOtherKind(currentShader, mixinNode, functionName, shaderName, isModuleMethod));
+                            functionInfo.Parent = parentFunctions![parentIndex].Id;
                         }
                     }
 
@@ -1068,6 +1121,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         var compositionArrayAccesses = new Dictionary<int, MixinNode>();
         ShaderInfo? currentShader = null;
         var currentFunction = 0;
+        string? currentFunctionName = null;
         for (var index = mixinNode.StartInstruction; index < mixinNode.EndInstruction; index++)
         {
             var i = temp[index];
@@ -1113,8 +1167,10 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     instanceMixinGroup = mixinNode;
                 else
                 {
+                    // A module composition is in the root node
                     if (!compositionArrayAccesses.TryGetValue(memberAccess.Instance, out instanceMixinGroup!)
-                        && !mixinNode.Compositions.TryGetValue(memberAccess.Instance, out instanceMixinGroup!))
+                        && !mixinNode.Compositions.TryGetValue(memberAccess.Instance, out instanceMixinGroup!)
+                        && (mixinNode.Stage == null || !mixinNode.Stage.Compositions.TryGetValue(memberAccess.Instance, out instanceMixinGroup!)))
                         throw new InvalidOperationException();
                 }
 
@@ -1156,7 +1212,12 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                         // Process member call (composition)
                         if (!instanceMixinGroup.MethodGroupsByName.TryGetValue((function.Name, functionType), out functionId)
                             && (instanceMixinGroup.Stage == null || !instanceMixinGroup.Stage.MethodGroupsByName.TryGetValue((function.Name, functionType), out functionId)))
+                        {
+                            // Module code of a class used in compositions calling an instance method of a parent: that method is only in the composition nodes
+                            if (currentShader.IsCompanionModule && (isThis || isBase))
+                                throw new InvalidOperationException(ModuleCodeCallsInstanceMethod(currentShader, currentFunctionName, globalContext.ExternalShaders[function.ShaderId], function.Name));
                             throw new InvalidOperationException($"Can't find function {function.Name} in current mixin");
+                        }
                     }
 
                     bool foundInStage = false;
@@ -1220,6 +1281,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 currentFunction = function.ResultId;
                 if (temp[index + 1].Op == Op.OpFunctionMetadataSDSL && !mixinNode.MethodGroups.ContainsKey(function.ResultId))
                     throw new InvalidOperationException($"Can't find method group info for {context.Names[function.ResultId]}");
+                currentFunctionName = context.Names[function.ResultId];
             }
             else if (i.Data.Op == Op.OpFunctionEnd)
             {

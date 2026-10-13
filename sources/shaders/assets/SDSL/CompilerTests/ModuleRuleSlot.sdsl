@@ -1,0 +1,9 @@
+namespace Stride.Shaders.Tests;
+
+shader ModuleRuleSlot
+{
+    float4 Compute()
+    {
+        return 0;
+    }
+};

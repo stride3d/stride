@@ -8,7 +8,7 @@ using Stride.Shaders.Compilers.SDSL;
 namespace Stride.Shaders.Parsers.Tests;
 
 /// <summary>
-/// Compile errors, warnings and notices of a shader file start with file(line,col), the form build tools and editors link to.
+/// Compile errors and warnings of a shader file start with file(line,col), the form build tools and editors link to.
 /// </summary>
 public class SemanticErrorFileTests : IDisposable
 {
@@ -42,26 +42,12 @@ public class SemanticErrorFileTests : IDisposable
         Assert.StartsWith($"{file}(3,19): SDSL0220: register(c1) on Scale is ignored", warning);
     }
 
-    private const string StageCallsNonStage = """
-        shader InfoInFile
+    private const string DuplicateCase = """
+        shader ErrorInCode
         {
-            module float Get() { return Scale(); }
-            float Scale() { return 2; }
+            void Pick(int t) { switch (t) { case 1: break; case 1: break; } }
         };
         """;
-
-    [Fact]
-    public void InfosNameTheFile()
-    {
-        File.WriteAllText(Path.Combine(sourceDir.FullName, "InfoInFile.sdsl"), StageCallsNonStage);
-        var log = new LoggerResult();
-        var loader = new ShaderLoader(sourceDir.FullName, "./assets/Stride/SDSL") { Log = log };
-
-        loader.LoadExternalBuffer("InfoInFile", [], out _, out _, out _);
-
-        var info = Assert.Single(log.Messages, m => m.Type == LogMessageType.Debug).Text;
-        Assert.Equal($"{Path.Combine(sourceDir.FullName, "InfoInFile.sdsl")}(3,33): Module method 'InfoInFile.Get' references instance method 'InfoInFile.Scale'. This will cause the shader to be fully imported at root level instead of only its module members when used in a composition. (in `Scale()`)", info);
-    }
 
     // Code without a file, as an effect compiled from memory: the message stays on one line
     [Fact]
@@ -70,11 +56,11 @@ public class SemanticErrorFileTests : IDisposable
         var log = new LoggerResult();
         var loader = new ShaderLoader(sourceDir.FullName, "./assets/Stride/SDSL");
 
-        Assert.True(new SDSLC(loader).Compile(null, StageCallsNonStage, ObjectId.Empty, [], log, out _, new() { RegisterInCache = false }));
+        Assert.False(new SDSLC(loader).Compile(null, DuplicateCase, ObjectId.Empty, [], log, out _, new() { RegisterInCache = false }));
 
-        var info = Assert.Single(log.Messages, m => m.Type == LogMessageType.Debug).Text;
-        Assert.StartsWith("(3,33): Module method 'InfoInFile.Get' references instance method 'InfoInFile.Scale'.", info);
-        Assert.DoesNotContain('\n', info);
+        var error = Assert.Single(log.Messages, m => m.Type == LogMessageType.Error).Text;
+        Assert.StartsWith("(3,52): case label has the same value (1) as a previous label of this switch", error);
+        Assert.DoesNotContain('\n', error);
     }
 
     // A virtual path, as one of the asset database, is not a file on disk: it keeps its separators
@@ -84,10 +70,10 @@ public class SemanticErrorFileTests : IDisposable
         var log = new LoggerResult();
         var loader = new ShaderLoader(sourceDir.FullName, "./assets/Stride/SDSL");
 
-        Assert.True(new SDSLC(loader).Compile("/shaders/InfoInFile.sdsl", StageCallsNonStage, ObjectId.Empty, [], log, out _, new() { RegisterInCache = false }));
+        Assert.False(new SDSLC(loader).Compile("/shaders/ErrorInCode.sdsl", DuplicateCase, ObjectId.Empty, [], log, out _, new() { RegisterInCache = false }));
 
-        var info = Assert.Single(log.Messages, m => m.Type == LogMessageType.Debug).Text;
-        Assert.StartsWith("/shaders/InfoInFile.sdsl(3,33): Module method 'InfoInFile.Get'", info);
+        var error = Assert.Single(log.Messages, m => m.Type == LogMessageType.Error).Text;
+        Assert.StartsWith("/shaders/ErrorInCode.sdsl(3,52): case label", error);
     }
 
     private const string BadStatement = """

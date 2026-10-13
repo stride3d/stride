@@ -1,0 +1,15 @@
+// Used in a composition, with another instantiation of its parent than the one mixed at the root.
+namespace Stride.Shaders.Tests;
+
+shader ModuleRuleGenericChild : ModuleRuleSlot, ModuleRuleGenericParent<2>
+{
+    override module float Factor()
+    {
+        return base.Factor() * 2.0;
+    }
+
+    override float4 Compute()
+    {
+        return Factor() + Value();
+    }
+};

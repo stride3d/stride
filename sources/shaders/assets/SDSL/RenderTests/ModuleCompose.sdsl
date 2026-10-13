@@ -1,0 +1,61 @@
+// PSMain(ExpectedResult=#04040000)
+
+namespace Stride.Shaders.Tests;
+
+// A `module compose` is one slot per effect: two instances of its declaring shader share it, and its value is
+// given at the root.
+
+shader ModuleComposeValue
+{
+    float Compute()
+    {
+        return 0.0;
+    }
+};
+
+shader ModuleComposeValueFour : ModuleComposeValue
+{
+    override float Compute()
+    {
+        return 4.0;
+    }
+};
+
+shader ModuleComposeUserBase
+{
+    float Compute()
+    {
+        return 0.0;
+    }
+};
+
+shader ModuleComposeUser : ModuleComposeUserBase
+{
+    module compose ModuleComposeValue Shared;
+
+    override float Compute()
+    {
+        return Shared.Compute();
+    }
+};
+
+shader ModuleComposeRoot
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    compose ModuleComposeUserBase Comp0;
+    compose ModuleComposeUserBase Comp1;
+
+    void PSMain()
+    {
+        streams.ColorTarget = float4(Comp0.Compute(), Comp1.Compute(), 0.0, 0.0) / 255.0;
+    }
+};
+
+effect ModuleCompose
+{
+    mixin ModuleComposeRoot;
+    mixin compose Comp0 = ModuleComposeUser;
+    mixin compose Comp1 = ModuleComposeUser;
+    mixin compose Shared = ModuleComposeValueFour;
+}

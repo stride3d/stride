@@ -654,47 +654,7 @@ public abstract partial class IdentifierBase(string name, TextLocation info) : L
 
         var symbol = ShaderDefinition.ImportSymbol(table, context, ResolvedSymbol);
 
-        // A shader name used as qualifier (LuminanceUtils.Luma(x)) reads no instance state; the member it qualifies is tracked by the accessor.
-        if (symbol.MemberAccessWithImplicitThis != null && symbol.Id.Kind != SymbolKind.Shader)
-            TrackNonStageVariableAccess(table, builder, context, symbol, Info);
-
         return EmitSymbol(builder, context, symbol, constantOnly);
-    }
-
-    /// <summary>
-    ///   Tracks a stage method reading a non-stage variable (without composition qualifier), which forces its shader
-    ///   to be fully imported at root level instead of stage-only during mixin.
-    /// </summary>
-    public static void TrackNonStageVariableAccess(SymbolTable table, SpirvBuilder builder, SpirvContext context, Symbol symbol, TextLocation info)
-    {
-        if (symbol.Id.IsStage || builder.CurrentFunction is not { IsStage: true })
-            return;
-
-        // A constant holds no instance state, and a stage-only import keeps it
-        if (symbol.Id.Kind == SymbolKind.Constant)
-            return;
-
-        var varOwner = symbol.OwnerType;
-        // A cbuffer member's symbol refers to its cbuffer, which has the flag
-        if (symbol.Id.Kind == SymbolKind.CBuffer && (varOwner ?? table.CurrentShader)?.Variables.Any(v => v.Symbol.IdRef == symbol.IdRef && (v.Flags & Spirv.Specification.VariableFlagsMask.Stage) != 0) == true)
-            return;
-        if (varOwner != null && varOwner != table.CurrentShader)
-        {
-            foreach (var inst in context)
-            {
-                if (inst.Op == Spirv.Specification.Op.OpMixinInheritSDSL && (OpMixinInheritSDSL)inst is { } inherit
-                    && table.ResolveShader(inherit.Shader) is { } lss && lss.Name == varOwner.Name)
-                {
-                    inherit.Flags |= Spirv.Specification.MixinInheritFlagsMask.NeedsFullImport;
-                    break;
-                }
-            }
-        }
-        else
-        {
-            builder.CurrentFunction = builder.CurrentFunction.Value with { ReferencesNonStageMembers = true };
-        }
-        table.AddInfo(new(info, $"Module method '{table.CurrentShader?.Name}.{builder.CurrentFunction.Value.Name}' references instance variable '{varOwner?.Name ?? "?"}.{symbol.Id.Name}'. This will cause the shader to be fully imported at root level instead of only its module members when used in a composition."));
     }
 }
 

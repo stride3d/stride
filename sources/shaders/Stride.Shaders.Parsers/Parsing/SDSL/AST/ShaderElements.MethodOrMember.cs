@@ -727,7 +727,6 @@ public partial class ShaderMethod(
             parentSymbol = ShaderDefinition.ImportSymbol(table, context, parentSymbol);
             if (parentSymbol.OwnerType != null)
                 ShaderClass.MakeModuleAMixin(table, context, parentSymbol.OwnerType);
-
             functionInfo.Parent = parentSymbol.IdRef;
             functionInfo.Flags |= Specification.FunctionFlagsMask.Override;
         }
@@ -759,10 +758,6 @@ public partial class ShaderMethod(
         {
             builder.Insert(new OpUnreachable());
         }
-
-        // After compiling the body, check if this stage function referenced non-stage members
-        if (builder.CurrentFunction is { ReferencesNonStageMembers: true })
-            functionInfo.Flags |= Specification.FunctionFlagsMask.ReferencesNonStage;
 
         if (ftype.ReturnType != ScalarType.Void && !SpirvBuilder.IsBlockTermination(builder.GetLastInstructionType()))
         {

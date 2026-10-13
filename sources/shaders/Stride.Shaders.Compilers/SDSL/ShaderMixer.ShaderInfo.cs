@@ -22,7 +22,7 @@ public partial class ShaderMixer
         public string ShaderName { get; } = shaderName;
 
         /// <summary>
-        /// The <see cref="ShaderInfo"/> for the same shader at the top-level (for all the stage members, if any).
+        /// The <see cref="ShaderInfo"/> for the same shader in the root node (its module members, if any).
         /// </summary>
         public ShaderInfo? Stage { get; set; }
 
@@ -34,9 +34,19 @@ public partial class ShaderMixer
         public string? CompositionPath { get; set; }
 
         /// <summary>
-        /// Only the stage members of this shader were mixed in this node (a shader of a composition promoted to the root).
+        /// The companion module of a shader used in compositions: only its module members and struct types, in the root node.
         /// </summary>
-        public bool ImportStageOnly { get; set; }
+        public bool IsCompanionModule { get; set; }
+
+        /// <summary>
+        /// See <see cref="ShaderClassInstantiation.ModuleIdentity"/>.
+        /// </summary>
+        public string? ModuleIdentity { get; set; }
+
+        /// <summary>
+        /// For a companion module, the composition where its shader was first met.
+        /// </summary>
+        public string? UsedInComposition { get; set; }
 
         /// <summary>
         /// Used only through static references (always in the root node): they call its functions, never an override.

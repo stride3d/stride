@@ -475,10 +475,6 @@
           "value": "0x0000"
         },
         {
-          "enumerant": "NeedsFullImport",
-          "value": "0x0001"
-        },
-        {
           "enumerant": "Module",
           "value": "0x0002"
         }
@@ -507,10 +503,6 @@
         {
           "enumerant": "Override",
           "value": "0x0040"
-        },
-        {
-          "enumerant": "ReferencesNonStage",
-          "value": "0x0080"
         }
       ]
     },

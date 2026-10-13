@@ -1207,7 +1207,6 @@ public static partial class Specification
     public enum MixinInheritFlagsMask
     {
         None = 0,
-        NeedsFullImport = 1,
         Module = 2,
     }
 
@@ -1219,7 +1218,6 @@ public static partial class Specification
         Abstract = 16,
         Virtual = 32,
         Override = 64,
-        ReferencesNonStage = 128,
     }
 
     [Flags]

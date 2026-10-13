@@ -316,32 +316,6 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
                 // Note: we make a copy to not mutate original
                 functionSymbol = functionSymbol with { IdRef = builder.Insert(new OpMemberAccessSDSL(context.GetOrRegister(functionType), context.Bound++, instanceId, functionSymbol.IdRef)).ResultId };
 
-            // Track when a stage method references non-stage members (without composition qualifier).
-            // This forces the shader to be fully imported at root level instead of stage-only during mixin.
-            if (builder.CurrentFunction is { IsStage: true } && !functionSymbol.Id.IsStage && MemberCall == null)
-            {
-                var calleeOwner = functionSymbol.OwnerType;
-                if (calleeOwner != null && calleeOwner != table.CurrentShader)
-                {
-                    // Parent shader: mark its OpMixinInheritSDSL with NeedsFullImport
-                    foreach (var inst in context)
-                    {
-                        if (inst.Op == Spirv.Specification.Op.OpMixinInheritSDSL && (OpMixinInheritSDSL)inst is { } inherit
-                            && table.ResolveShader(inherit.Shader) is { } lss && lss.Name == calleeOwner.Name)
-                        {
-                            inherit.Flags |= Spirv.Specification.MixinInheritFlagsMask.NeedsFullImport;
-                            break;
-                        }
-                    }
-                }
-                else
-                {
-                    // Self: mark current function
-                    builder.CurrentFunction = builder.CurrentFunction.Value with { ReferencesNonStageMembers = true };
-                }
-                table.AddInfo(new(Info, $"Module method '{table.CurrentShader?.Name}.{builder.CurrentFunction.Value.Name}' references instance method '{calleeOwner?.Name ?? "?"}.{Name}'. This will cause the shader to be fully imported at root level instead of only its module members when used in a composition."));
-            }
-
             result = builder.CallFunction(table, context, functionSymbol, [.. compiledParams]);
         }
 
@@ -1363,10 +1337,6 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
 
                         var (builder, context) = compiler;
                         var importedVariable = ShaderDefinition.ImportSymbol(table, context, field.ResolvedSymbol!);
-
-                        // Base.Value reads the member on this instance, unlike a composition qualifier
-                        if (i == 0 && Source is Identifier { ResolvedSymbol.Id.Kind: SymbolKind.Shader })
-                            IdentifierBase.TrackNonStageVariableAccess(table, builder, context, importedVariable, field.Info);
 
                         // Emit OpAccessChain with everything so far
                         EmitOpAccessChain(accessChainIds, i - 1);

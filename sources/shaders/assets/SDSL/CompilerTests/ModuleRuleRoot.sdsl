@@ -1,0 +1,14 @@
+// Root of the module rule tests: the shader under test is supplied in Comp0.
+namespace Stride.Shaders.Tests;
+
+shader ModuleRuleRoot
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    compose ModuleRuleSlot Comp0;
+
+    void PSMain()
+    {
+        streams.ColorTarget = Comp0.Compute();
+    }
+};
