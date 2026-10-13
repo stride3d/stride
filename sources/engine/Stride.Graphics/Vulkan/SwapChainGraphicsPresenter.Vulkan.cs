@@ -299,13 +299,6 @@ namespace Stride.Graphics
             base.OnRecreated();
 
             RecreateBackBuffer(backBuffer.Width, backBuffer.Height, backBuffer.Format);
-            if (recreationPending)
-                return;
-
-            // Check if backbuffer size changed; if yes, apply to depth buffer
-            if (Description.BackBufferWidth != DepthStencilBuffer.Description.Width
-                || Description.BackBufferHeight != DepthStencilBuffer.Description.Height)
-                ResizeDepthStencilBuffer(Description.BackBufferWidth, Description.BackBufferHeight, DepthStencilBuffer.ViewFormat);
         }
 
         /// <inheritdoc/>
