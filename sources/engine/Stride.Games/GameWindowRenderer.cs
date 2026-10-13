@@ -273,7 +273,7 @@ namespace Stride.Games
             {
                 savedPresenter = GraphicsDevice.Presenter;
 
-                if (!CreateOrUpdatePresenter())
+                if (!CreateOrUpdatePresenter() || !Presenter.CanPresentFrame())
                 {
                     beginDrawOk = false;
                     return false;
@@ -291,13 +291,6 @@ namespace Stride.Games
 
                     isBackBufferToResize = false;
                     windowUserResized = false;
-                }
-
-                // Skip the frame, e.g. while the window is minimized
-                if (!Presenter.CanPresentFrame())
-                {
-                    beginDrawOk = false;
-                    return false;
                 }
 
                 GraphicsDevice.Presenter = Presenter;
