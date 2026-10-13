@@ -54,6 +54,12 @@ dotnet test sources/shaders/Stride.Shaders.Tests --filter "FullyQualifiedName~Sh
 Read `ShaderCorpus/report.txt` and `ShaderCorpus/diff.txt`. If the changes are expected, run `UpdateSnapshot` and
 commit `snapshot.txt`; say in the PR which permutations changed and why.
 
+Legalization keeps functions and the order of declarations, so `legal` also changes when a function only moved to another
+mixin node, or when two copies of a function became one. Baseline runs (`SaveBaseline`, `MatchesBaseline`) therefore also
+write `.optimized.spvasm`: the legalized code after `spirv-opt -O --unify-const --canonicalize-ids`. When `legal` changed,
+the report says "same optimized code" if these match (declarations compared as a set), or "optimized code differs too".
+They are not in the snapshot hashes.
+
 `STRIDE_SHADER_CORPUS_FILTER=<text>` limits a run to the ids containing that text. `UpdateSnapshot` refuses to run
 with it or with `STRIDE_SHADER_CORPUS_PLATFORMS`, so the snapshot always covers everything.
 

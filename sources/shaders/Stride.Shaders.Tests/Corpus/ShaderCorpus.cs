@@ -105,7 +105,8 @@ static class ShaderCorpus
     /// </summary>
     public static ShaderLoaderBase CreateLoader() => new IndexShaderLoader(ShaderIndex.Value);
 
-    public static CorpusResult Compile(CorpusItem item, GraphicsPlatform platform, ShaderLoaderBase sharedLoader)
+    /// <param name="optimize">Also fills <see cref="CorpusResult.Optimized"/> (slower; for baseline runs).</param>
+    public static CorpusResult Compile(CorpusItem item, GraphicsPlatform platform, ShaderLoaderBase sharedLoader, bool optimize = false)
     {
         // RenderTests files hold several shaders and reuse names across files: each one gets its own loader
         var loader = item.SourceFile != null ? new IndexShaderLoader(ShaderIndex.Value, item.SourceFile) : sharedLoader;
@@ -160,6 +161,21 @@ static class ShaderCorpus
         }
         var legalizeTime = stopwatch.Elapsed - mixTime;
 
+        string? optimized = null;
+        if (optimize && legalizedWords != null)
+        {
+            try
+            {
+                var words2 = SpirvTools.OptimizeForPerformance(MemoryMarshal.Cast<int, uint>(legalizedWords.AsSpan()));
+                words2 = SpirvTools.Optimize(words2, ["--unify-const", "--canonicalize-ids"]);
+                optimized = SpirvNormalizer.Normalize(MemoryMarshal.Cast<uint, int>(words2.AsSpan()), keepNames: false);
+            }
+            catch (Exception e)
+            {
+                optimized = $"; optimization failed: {e.Message}{Environment.NewLine}";
+            }
+        }
+
         var result = new CorpusResult(item, null, null,
             Strict: SpirvNormalizer.Normalize(words, keepNames: false),
             StrictNamed: SpirvNormalizer.Normalize(words, keepNames: true),
@@ -169,6 +185,7 @@ static class ShaderCorpus
             Explain: mixer.Explanation ?? "")
         {
             Platform = platform,
+            Optimized = optimized,
             MixTime = mixTime,
             LegalizeTime = legalizeTime,
             NormalizeTime = stopwatch.Elapsed - mixTime - legalizeTime,
@@ -257,6 +274,12 @@ sealed record CorpusResult(CorpusItem Item, string? Error, string? ErrorDetail, 
     /// Snapshot key and output path: <c>Vulkan/StrideForwardShadingEffect.98f4d62b70</c>.
     /// </summary>
     public string Key => $"{Platform}/{Item.Id}";
+
+    /// <summary>
+    /// The legalized code after <c>spirv-opt -O --unify-const --canonicalize-ids</c>, normalized: what runs, whatever the
+    /// order of functions and declarations. Not hashed; baseline runs compare it when the legalized code changed.
+    /// </summary>
+    public string? Optimized { get; init; }
 
     public TimeSpan MixTime { get; init; }
     public TimeSpan LegalizeTime { get; init; }

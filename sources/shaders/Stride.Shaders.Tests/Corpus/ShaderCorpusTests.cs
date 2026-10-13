@@ -54,7 +54,7 @@ public class ShaderCorpusTests
     [Fact(Explicit = true)]
     public void SaveBaseline()
     {
-        Run(BaselineDirectory, out _);
+        Run(BaselineDirectory, out _, optimize: true);
         Console.WriteLine($"Baseline saved: {BaselineDirectory}");
     }
 
@@ -67,7 +67,7 @@ public class ShaderCorpusTests
     {
         if (!File.Exists(Path.Combine(BaselineDirectory, "snapshot.txt")))
             Assert.Fail($"No baseline in {BaselineDirectory}: run {nameof(SaveBaseline)} first (before the compiler change)");
-        var current = Run(OutputDirectory, out var filter);
+        var current = Run(OutputDirectory, out var filter, optimize: true);
         Check(Compare(ReadSnapshot(Path.Combine(BaselineDirectory, "snapshot.txt")), current, filter, OutputDirectory, BaselineDirectory));
     }
 
@@ -96,7 +96,8 @@ public class ShaderCorpusTests
     /// Compiles the corpus (STRIDE_SHADER_CORPUS_FILTER keeps the ids containing it) into <paramref name="outputDirectory"/>:
     /// one readable file per part and entry, plus <c>snapshot.txt</c> with their hashes.
     /// </summary>
-    static SortedDictionary<string, string> Run(string outputDirectory, out string? filter)
+    /// <param name="optimize">Also writes the <c>.optimized.spvasm</c> files, see <see cref="CorpusResult.Optimized"/>.</param>
+    static SortedDictionary<string, string> Run(string outputDirectory, out string? filter, bool optimize = false)
     {
         if (Directory.Exists(outputDirectory))
             Directory.Delete(outputDirectory, recursive: true);
@@ -120,13 +121,15 @@ public class ShaderCorpusTests
         Parallel.For(0, results.Length, index =>
         {
             var stopwatch = Stopwatch.StartNew();
-            var result = ShaderCorpus.Compile(items[index / platforms.Length], platforms[index % platforms.Length], loader);
+            var result = ShaderCorpus.Compile(items[index / platforms.Length], platforms[index % platforms.Length], loader, optimize);
             var line = new StringBuilder();
             foreach (var (part, suffix, hashed, written) in Parts(result))
             {
                 File.WriteAllText(Path.Combine(outputDirectory, result.Key + suffix), written);
                 line.Append($" {part}={ShaderCorpus.ShortHash(hashed)}");
             }
+            if (result.Optimized != null)
+                File.WriteAllText(Path.Combine(outputDirectory, result.Key + OptimizedSuffix), result.Optimized);
             results[index] = (result, line.ToString().TrimStart(), stopwatch.Elapsed.TotalSeconds);
         });
         total.Stop();
@@ -169,7 +172,9 @@ public class ShaderCorpusTests
 
     static Dictionary<string, string> ParseParts(string value) => value.Split(' ').Select(x => x.Split('=')).ToDictionary(x => x[0], x => x[1]);
 
-    static readonly string[] DiffSuffixes = [".error.txt", ".explain.txt", ".reflection.txt", ".legal.spvasm", ".spvasm"];
+    const string OptimizedSuffix = ".optimized.spvasm";
+
+    static readonly string[] DiffSuffixes = [".error.txt", ".explain.txt", ".reflection.txt", ".legal.spvasm", ".spvasm", OptimizedSuffix];
 
     static (bool Failed, string Text) Compare(SortedDictionary<string, string> snapshot, SortedDictionary<string, string> current, string? filter, string outputDirectory, string? baseDirectory)
     {
@@ -212,6 +217,10 @@ public class ShaderCorpusTests
                 kind = string.Join("+", differing);
                 if (differing is ["strict"] or ["explain"] or ["strict", "explain"])
                     kind += " (same legalized code)";
+                // Legalization keeps functions and declaration order: a function that moved or lost a duplicate changes it.
+                // Fully optimized with canonical IDs, the code that runs can still be the same.
+                else if (differing.Contains("legal") && baseDirectory != null && File.Exists(Path.Combine(baseDirectory, id + OptimizedSuffix)))
+                    kind += SameOptimizedCode(baseDirectory, outputDirectory, id) ? " (same optimized code)" : " (optimized code differs too)";
             }
             lines.Add($"changed  {id}: {kind}");
             changed.Add(id);
@@ -257,6 +266,22 @@ public class ShaderCorpusTests
         if (File.Exists(before) != File.Exists(after))
             return true;
         return File.Exists(before) && File.ReadAllText(before) != File.ReadAllText(after);
+    }
+
+    // The optimizer keeps the order of the declarations before the functions (types, constants, variables), which follows
+    // the order the mixer merged shaders in. Types and constants are named after their content, so they compare as a set.
+    static bool SameOptimizedCode(string baseDirectory, string outputDirectory, string id)
+    {
+        static string Canonical(string path)
+        {
+            var lines = File.ReadAllLines(path);
+            var firstFunction = Array.FindIndex(lines, x => x.Contains(" = OpFunction ", StringComparison.Ordinal));
+            if (firstFunction == -1)
+                firstFunction = lines.Length;
+            return string.Join('\n', lines[..firstFunction].Order(StringComparer.Ordinal).Concat(lines[firstFunction..]));
+        }
+        var after = Path.Combine(outputDirectory, id + OptimizedSuffix);
+        return File.Exists(after) && Canonical(Path.Combine(baseDirectory, id + OptimizedSuffix)) == Canonical(after);
     }
 
     // Unified diff of the files that changed, through git (always there for a repository checkout)
