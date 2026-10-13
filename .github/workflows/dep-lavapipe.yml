@@ -1,7 +1,5 @@
 name: "Dep: Build & Deploy Lavapipe"
 
-# Skeleton — not yet exercised. Notes on per-OS friction at the bottom.
-#
 # Lavapipe is built from Mesa with:
 #   meson setup _build -Dvulkan-drivers=swrast -Dgallium-drivers=llvmpipe \
 #                      -Dgallium-extra-hud=false -Dvideo-codecs= \
@@ -23,11 +21,14 @@ on:
         required: false
       ref:
         description: Mesa ref (branch, tag, SHA, or refs/merge-requests/<id>/head)
-        default: main
+        default: mesa-26.2.4
         required: false
       version:
         description: NuGet package version (leave empty for date-based)
         required: false
+
+env:
+  MESA_REF: ${{ github.event.inputs.ref || 'mesa-26.2.4' }}
 
 jobs:
   build-windows:
@@ -48,7 +49,7 @@ jobs:
         shell: pwsh
         run: |
           $url = "${{ github.event.inputs.repository || 'https://gitlab.freedesktop.org/mesa/mesa.git' }}"
-          $ref = "${{ github.event.inputs.ref || 'main' }}"
+          $ref = "${{ env.MESA_REF }}"
           git init mesa-src
           git -C mesa-src remote add origin $url
           git -C mesa-src fetch --depth 1 origin $ref
@@ -197,7 +198,7 @@ jobs:
         shell: pwsh
         run: |
           $url = "${{ github.event.inputs.repository || 'https://gitlab.freedesktop.org/mesa/mesa.git' }}"
-          $ref = "${{ github.event.inputs.ref || 'main' }}"
+          $ref = "${{ env.MESA_REF }}"
           git init mesa-src
           git -C mesa-src remote add origin $url
           git -C mesa-src fetch --depth 1 origin $ref
@@ -332,7 +333,7 @@ jobs:
       - name: Clone Mesa
         run: |
           url="${{ github.event.inputs.repository || 'https://gitlab.freedesktop.org/mesa/mesa.git' }}"
-          ref="${{ github.event.inputs.ref || 'main' }}"
+          ref="${{ env.MESA_REF }}"
           git init mesa-src
           git -C mesa-src remote add origin "$url"
           git -C mesa-src fetch --depth 1 origin "$ref"
@@ -484,7 +485,7 @@ jobs:
       - name: Clone Mesa
         run: |
           url="${{ github.event.inputs.repository || 'https://gitlab.freedesktop.org/mesa/mesa.git' }}"
-          ref="${{ github.event.inputs.ref || 'main' }}"
+          ref="${{ env.MESA_REF }}"
           git init mesa-src
           git -C mesa-src remote add origin "$url"
           git -C mesa-src fetch --depth 1 origin "$ref"
@@ -592,7 +593,7 @@ jobs:
         shell: pwsh
         run: |
           $lines = @(
-            "Mesa ${{ needs.build-linux.outputs.mesa-version }} (ref ${{ github.event.inputs.ref || 'main' }})"
+            "Mesa ${{ needs.build-linux.outputs.mesa-version }} (ref ${{ env.MESA_REF }})"
             "Repository: ${{ github.event.inputs.repository || 'https://gitlab.freedesktop.org/mesa/mesa.git' }}"
             ""
             "win-x64:   Mesa ${{ needs.build-windows.outputs.mesa-commit }}, LLVM ${{ needs.build-windows.outputs.llvm-version }}"
