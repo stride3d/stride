@@ -33,6 +33,10 @@ jobs:
   build-windows:
     name: Build Lavapipe (Windows x64)
     runs-on: windows-2025-vs2026
+    outputs:
+      mesa-commit: ${{ steps.info.outputs.mesa-commit }}
+      mesa-version: ${{ steps.info.outputs.mesa-version }}
+      llvm-version: ${{ steps.info.outputs.llvm-version }}
     steps:
       - name: Checkout Stride
         uses: actions/checkout@v7
@@ -108,6 +112,14 @@ jobs:
           path: llvm-install
           key: llvm-21.1.0-msvc2026-static-x64-v1
 
+      - name: Record build info
+        id: info
+        shell: pwsh
+        run: |
+          "mesa-commit=$(git -C mesa-src rev-parse HEAD)" >> $env:GITHUB_OUTPUT
+          "mesa-version=$((Get-Content mesa-src/VERSION -Raw).Trim())" >> $env:GITHUB_OUTPUT
+          "llvm-version=$(& '${{ github.workspace }}\llvm-install\bin\llvm-config.exe' --version)" >> $env:GITHUB_OUTPUT
+
       - name: Configure Mesa (Lavapipe only, static LLVM)
         shell: cmd
         working-directory: mesa-src
@@ -170,6 +182,10 @@ jobs:
     # GitHub-hosted native Windows-on-ARM runner. Switch to a custom runner image
     # if you have one (mirror the x64 job's "windows-2025-vs2026" naming).
     runs-on: windows-11-arm
+    outputs:
+      mesa-commit: ${{ steps.info.outputs.mesa-commit }}
+      mesa-version: ${{ steps.info.outputs.mesa-version }}
+      llvm-version: ${{ steps.info.outputs.llvm-version }}
     steps:
       - name: Checkout Stride
         uses: actions/checkout@v7
@@ -239,6 +255,14 @@ jobs:
           path: llvm-install
           key: llvm-21.1.0-msvc2026-static-arm64-v1
 
+      - name: Record build info
+        id: info
+        shell: pwsh
+        run: |
+          "mesa-commit=$(git -C mesa-src rev-parse HEAD)" >> $env:GITHUB_OUTPUT
+          "mesa-version=$((Get-Content mesa-src/VERSION -Raw).Trim())" >> $env:GITHUB_OUTPUT
+          "llvm-version=$(& '${{ github.workspace }}\llvm-install\bin\llvm-config.exe' --version)" >> $env:GITHUB_OUTPUT
+
       - name: Configure Mesa (Lavapipe only, static LLVM)
         shell: cmd
         working-directory: mesa-src
@@ -294,6 +318,10 @@ jobs:
   build-linux:
     name: Build Lavapipe (Linux x64)
     runs-on: ubuntu-24.04
+    outputs:
+      mesa-commit: ${{ steps.info.outputs.mesa-commit }}
+      mesa-version: ${{ steps.info.outputs.mesa-version }}
+      llvm-version: ${{ steps.info.outputs.llvm-version }}
     steps:
       - name: Checkout Stride
         uses: actions/checkout@v7
@@ -369,6 +397,14 @@ jobs:
       - name: Use built LLVM
         run: echo "$PWD/llvm-install/bin" >> $GITHUB_PATH
 
+      - name: Record build info
+        id: info
+        shell: pwsh
+        run: |
+          "mesa-commit=$(git -C mesa-src rev-parse HEAD)" >> $env:GITHUB_OUTPUT
+          "mesa-version=$((Get-Content mesa-src/VERSION -Raw).Trim())" >> $env:GITHUB_OUTPUT
+          "llvm-version=$(& '${{ github.workspace }}/llvm-install/bin/llvm-config' --version)" >> $env:GITHUB_OUTPUT
+
       - name: Configure & build
         working-directory: mesa-src
         run: |
@@ -434,6 +470,10 @@ jobs:
   build-macos:
     name: Build Lavapipe (macOS ARM64)
     runs-on: macos-15
+    outputs:
+      mesa-commit: ${{ steps.info.outputs.mesa-commit }}
+      mesa-version: ${{ steps.info.outputs.mesa-version }}
+      llvm-version: ${{ steps.info.outputs.llvm-version }}
     steps:
       - name: Checkout Stride
         uses: actions/checkout@v7
@@ -454,6 +494,14 @@ jobs:
         run: |
           brew install meson ninja pkg-config llvm bison flex glslang
           pip3 install --break-system-packages mako packaging pyyaml
+
+      - name: Record build info
+        id: info
+        shell: pwsh
+        run: |
+          "mesa-commit=$(git -C mesa-src rev-parse HEAD)" >> $env:GITHUB_OUTPUT
+          "mesa-version=$((Get-Content mesa-src/VERSION -Raw).Trim())" >> $env:GITHUB_OUTPUT
+          "llvm-version=$(& '/opt/homebrew/opt/llvm/bin/llvm-config' --version)" >> $env:GITHUB_OUTPUT
 
       - name: Configure & build
         working-directory: mesa-src
@@ -498,16 +546,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Clone Mesa (for commit hash)
-        shell: pwsh
-        run: |
-          $url = "${{ github.event.inputs.repository || 'https://gitlab.freedesktop.org/mesa/mesa.git' }}"
-          $ref = "${{ github.event.inputs.ref || 'main' }}"
-          git init mesa-src
-          git -C mesa-src remote add origin $url
-          git -C mesa-src fetch --depth 1 origin $ref
-          git -C mesa-src checkout FETCH_HEAD
-
       - name: Download Windows artifact
         uses: actions/download-artifact@v8
         with: { name: lavapipe-win-x64, path: artifacts/win-x64 }
@@ -550,16 +588,44 @@ jobs:
           New-Item -Path $androidEmu -ItemType Directory -Force | Out-Null
           Copy-Item artifacts/linux-x64-nodmabuf/libvulkan_lvp.so* $androidEmu
 
+      - name: Write VERSION.txt and README.md
+        shell: pwsh
+        run: |
+          $lines = @(
+            "Mesa ${{ needs.build-linux.outputs.mesa-version }} (ref ${{ github.event.inputs.ref || 'main' }})"
+            "Repository: ${{ github.event.inputs.repository || 'https://gitlab.freedesktop.org/mesa/mesa.git' }}"
+            ""
+            "win-x64:   Mesa ${{ needs.build-windows.outputs.mesa-commit }}, LLVM ${{ needs.build-windows.outputs.llvm-version }}"
+            "win-arm64: Mesa ${{ needs.build-windows-arm64.outputs.mesa-commit }}, LLVM ${{ needs.build-windows-arm64.outputs.llvm-version }}"
+            "linux-x64: Mesa ${{ needs.build-linux.outputs.mesa-commit }}, LLVM ${{ needs.build-linux.outputs.llvm-version }} (also linux-x64-nodmabuf)"
+            "osx-arm64: Mesa ${{ needs.build-macos.outputs.mesa-commit }}, LLVM ${{ needs.build-macos.outputs.llvm-version }}"
+            ""
+            "Stride: ${{ github.server_url }}/${{ github.repository }} @ ${{ github.sha }}"
+            "Built: $(Get-Date -AsUTC -Format yyyy-MM-dd)"
+            "Workflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          )
+          New-Item -ItemType Directory -Force build/deps/lavapipe/tools | Out-Null
+          $lines | Set-Content build/deps/lavapipe/tools/VERSION.txt
+          $block = @('```') + $lines + @('```')
+          $block | Add-Content $env:GITHUB_STEP_SUMMARY
+          @(
+            "# Stride.Dependencies.Lavapipe"
+            ""
+            "Lavapipe software Vulkan ICD (Mesa/llvmpipe) for Stride GPU testing. Auto-configures VK_DRIVER_FILES on load."
+            ""
+            "## Build"
+            ""
+          ) + $block | Set-Content build/deps/lavapipe/README.md
+
       - name: Pack NuGet (dotnet pack)
         shell: pwsh
         run: |
-          $commitHash = git -C mesa-src rev-parse --short HEAD
           $version = "${{ github.event.inputs.version }}"
           if (-not $version) { $version = (Get-Date -Format "yyyy.M.d") }
           dotnet pack build/deps/lavapipe/Stride.Dependencies.Lavapipe.csproj `
             -c Release `
             -p:PackageVersion=$version `
-            -p:RepositoryCommit=$commitHash `
+            -p:RepositoryCommit=${{ github.sha }} `
             -o nupkg
           echo "PACKAGE_VERSION=$version" >> $env:GITHUB_ENV
 
