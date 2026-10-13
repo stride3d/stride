@@ -15,6 +15,8 @@ jobs:
   build-windows:
     name: Build SPIRV-Cross (Windows x64)
     runs-on: windows-2025-vs2026
+    outputs:
+      commit: ${{ steps.info.outputs.commit }}
     steps:
       - name: Checkout Stride
         uses: actions/checkout@v7
@@ -25,6 +27,11 @@ jobs:
           repository: stride3d/SPIRV-Cross
           ref: ${{ github.event.inputs.branch || 'hlsl_tessel_shader' }}
           path: spirv-cross-src
+
+      - name: Record build info
+        id: info
+        shell: pwsh
+        run: '"commit=$(git -C spirv-cross-src rev-parse HEAD)" >> $env:GITHUB_OUTPUT'
 
       - name: Build
         shell: pwsh
@@ -45,6 +52,8 @@ jobs:
   build-windows-arm64:
     name: Build SPIRV-Cross (Windows ARM64)
     runs-on: windows-2025-vs2026
+    outputs:
+      commit: ${{ steps.info.outputs.commit }}
     steps:
       - name: Checkout Stride
         uses: actions/checkout@v7
@@ -55,6 +64,11 @@ jobs:
           repository: stride3d/SPIRV-Cross
           ref: ${{ github.event.inputs.branch || 'hlsl_tessel_shader' }}
           path: spirv-cross-src
+
+      - name: Record build info
+        id: info
+        shell: pwsh
+        run: '"commit=$(git -C spirv-cross-src rev-parse HEAD)" >> $env:GITHUB_OUTPUT'
 
       - name: Build
         shell: pwsh
@@ -79,14 +93,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Checkout SPIRV-Cross (for commit hash)
-        uses: actions/checkout@v7
-        with:
-          repository: stride3d/SPIRV-Cross
-          ref: ${{ github.event.inputs.branch || 'hlsl_tessel_shader' }}
-          path: spirv-cross-src
-          fetch-depth: 1
-
       - name: Download Windows x64 artifact
         uses: actions/download-artifact@v8
         with:
@@ -109,15 +115,48 @@ jobs:
             Copy-Item "artifacts/$rid/spirv-cross-c-shared.dll" "$destDir/$rid/spirv-cross.dll"
           }
 
+      - name: Write VERSION.txt and README.md
+        shell: pwsh
+        run: |
+          $commits = [ordered]@{
+            'win-x64'   = '${{ needs.build-windows.outputs.commit }}'
+            'win-arm64' = '${{ needs.build-windows-arm64.outputs.commit }}'
+          }
+          $unique = @($commits.Values | Select-Object -Unique)
+          $lines = @(
+            "SPIRV-Cross (branch ${{ github.event.inputs.branch || 'hlsl_tessel_shader' }})"
+            "Repository: https://github.com/stride3d/SPIRV-Cross"
+          )
+          if ($unique.Count -eq 1) { $lines += "Commit: $($unique[0])" }
+          else { $lines += ""; $lines += $commits.GetEnumerator() | ForEach-Object { "{0}: {1}" -f $_.Key, $_.Value } }
+          $lines += @(
+            ""
+            "Stride: ${{ github.server_url }}/${{ github.repository }} @ ${{ github.sha }}"
+            "Built: $(Get-Date -AsUTC -Format yyyy-MM-dd)"
+            "Workflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          )
+          New-Item -ItemType Directory -Force build/deps/spirv-cross/tools | Out-Null
+          $lines | Set-Content build/deps/spirv-cross/tools/VERSION.txt
+          $block = @('```') + $lines + @('```')
+          $block | Add-Content $env:GITHUB_STEP_SUMMARY
+          @(
+            "# Stride.Dependencies.SpirvCross"
+            ""
+            "SPIRV-Cross shared library for Stride SPIR-V to HLSL/GLSL translation."
+            ""
+            "## Build"
+            ""
+          ) + $block | Set-Content build/deps/spirv-cross/README.md
+
       - name: Pack NuGet
         shell: pwsh
         run: |
-          $commitHash = git -C spirv-cross-src rev-parse --short HEAD
+          $commitHash = '${{ needs.build-windows.outputs.commit }}'.Substring(0, 7)
           $version = "${{ github.event.inputs.version }}"
           if (-not $version) { $version = (Get-Date -Format "yyyy.M.d") }
           nuget pack build/deps/spirv-cross/Stride.Dependencies.SpirvCross.nuspec `
             -Version $version `
-            -Properties "commit=$commitHash" `
+            -Properties "commit=$commitHash;strideCommit=${{ github.sha }}" `
             -OutputDirectory nupkg
           echo "PACKAGE_VERSION=$version" >> $env:GITHUB_ENV
 
