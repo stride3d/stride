@@ -524,6 +524,7 @@ public class CompanionPackageTests
             for (var i = sessions.Count - 1; i >= 0; i--)
                 sessions[i].Dispose();
             sessions.Clear();
+            TestEnvironment.DeleteCaseDirectory(caseDir, output);
         }
     }
 }

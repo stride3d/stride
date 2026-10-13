@@ -25,10 +25,18 @@ namespace Stride.Packaging.Tests;
 /// references through the plugin package's own dependency closure.
 /// </summary>
 [Collection("Packaging")]
-public class AssetPluginPackagingTests
+public class AssetPluginPackagingTests : IDisposable
 {
     private readonly ITestOutputHelper output;
+    private readonly List<string> caseDirs = [];
     public AssetPluginPackagingTests(ITestOutputHelper output) => this.output = output;
+
+    // xUnit creates an instance per test: its case trees go once the test is done with them
+    public void Dispose()
+    {
+        foreach (var caseDir in caseDirs)
+            TestEnvironment.DeleteCaseDirectory(caseDir, output);
+    }
 
     // Warning emitted when a scene references a type whose assembly was not loaded for asset compilation.
     private const string UnresolvedSpinScript = "Unable to resolve tag [!StrideAssetPlugin.SpinScript,StrideAssetPlugin]";
@@ -114,6 +122,7 @@ public class AssetPluginPackagingTests
 
         var caseDir = Path.Combine(Path.GetTempPath(), "stride-packaging-tests",
             $"plugin-{(viaProjectReference ? "proj" : declareAssetAssembly ? "pos" : "neg")}-{Guid.NewGuid():N}");
+        caseDirs.Add(caseDir);
         var pluginDir = Path.Combine(caseDir, "plugin");
         var consumerDir = Path.Combine(caseDir, "consumer");
         var feedDir = Path.Combine(caseDir, "feed");
