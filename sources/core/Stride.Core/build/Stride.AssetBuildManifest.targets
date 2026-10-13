@@ -33,6 +33,8 @@
     <StrideAssetBuildManifestPath>$([System.IO.Path]::Combine('$(MSBuildProjectDirectory)', '$(IntermediateOutputPath)', '$(MSBuildProjectName).sdbuild'))</StrideAssetBuildManifestPath>
   </PropertyGroup>
 
+  <!-- The path only: a caller that reads the manifest requests StrideWriteAssetBuildManifest too (a Build of the
+       project also writes it, before CoreCompile). -->
   <Target Name="GetStrideAssetBuildManifestPath" Returns="$(StrideAssetBuildManifestPath)" />
 
   <!-- This project's declared project-asset extensions, harvested across ProjectReferences below
@@ -296,7 +298,7 @@
              RemoveProperties="$(_StrideCompanionBuildRemoveProperties)"
              Condition="'@(_StrideAssetsCompanionProject)' != ''" />
     <MSBuild Projects="@(_StrideAssetsCompanionProject)"
-             Targets="GetStrideAssetBuildManifestPath"
+             Targets="StrideWriteAssetBuildManifest;GetStrideAssetBuildManifestPath"
              RemoveProperties="$(_StrideCompanionBuildRemoveProperties)"
              Condition="'@(_StrideAssetsCompanionProject)' != ''">
       <Output TaskParameter="TargetOutputs" ItemName="_StrideCompanionManifest" />
@@ -505,9 +507,12 @@
     </Task>
   </UsingTask>
 
+  <!-- Also before CoreCompile: another request's Build of this project finds ResolveProjectReferences completed and
+       does not run its hooks, but it runs or waits for CoreCompile, so it returns once the manifest is written -->
   <Target Name="StrideWriteAssetBuildManifest"
           AfterTargets="ResolveProjectReferences"
-          DependsOnTargets="$(GetPackageVersionDependsOn);_StrideResolveCompanionProjects;_StrideBuildCompanionProjects"
+          BeforeTargets="CoreCompile"
+          DependsOnTargets="ResolveProjectReferences;$(GetPackageVersionDependsOn);_StrideResolveCompanionProjects;_StrideBuildCompanionProjects"
           Condition="'$(StrideAssetBuildManifest)' == 'true' And '$(DesignTimeBuild)' != 'true' And '$(StrideAssetBuildManifestPath)' != '' And '$(_ComputeFilesToPublishForRuntimeIdentifiers)' != 'true'">
     <ItemGroup>
       <_StrideManifestProjectReference Include="@(_MSBuildProjectReferenceExistent)"
@@ -515,7 +520,7 @@
     </ItemGroup>
 
     <MSBuild Projects="@(_StrideManifestProjectReference)"
-             Targets="GetStrideAssetBuildManifestPath"
+             Targets="StrideWriteAssetBuildManifest;GetStrideAssetBuildManifestPath"
              BuildInParallel="$(BuildInParallel)"
              Properties="%(_StrideManifestProjectReference.SetConfiguration); %(_StrideManifestProjectReference.SetPlatform); %(_StrideManifestProjectReference.SetTargetFramework)"
              RemoveProperties="%(_StrideManifestProjectReference.GlobalPropertiesToRemove)"
