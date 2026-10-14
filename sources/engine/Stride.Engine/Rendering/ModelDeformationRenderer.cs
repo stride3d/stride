@@ -280,8 +280,6 @@ internal sealed class ModelDeformationRenderer : IDisposable
         }
         pending.Clear();
         poseOffsets.Clear();
-        // Unbind compute UAVs before vertex fetch. The compositor binds its states next.
-        command.ClearState();
     }
 
     private void Dispatch(Batch batch)

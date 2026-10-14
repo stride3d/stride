@@ -652,16 +652,18 @@ namespace Stride.Graphics
         /// <param name="resource">The Graphics Resource to transition to a different state.</param>
         /// <param name="newState">The new state of <paramref name="resource"/>.</param>
         /// <remarks>
-        ///   The Direct3D 11 implementation does not have synchronization barriers for Graphics Resource transitions.
+        ///   A resource leaving the unordered access state is unbound from its UAV slots, so it can be bound for reading.
         /// </remarks>
         public void ResourceBarrierTransition(GraphicsResource resource, BarrierLayout newLayout, uint subresource = uint.MaxValue)
         {
-            // Nothing to do
+            if (newLayout != BarrierLayout.UnorderedAccess)
+                UnsetUnorderedAccessView(resource);
         }
 
         public void ResourceBarrierTransition(GraphicsResource resource, GraphicsResourceState newState)
         {
-            // Nothing to do
+            if (newState != GraphicsResourceState.UnorderedAccess)
+                UnsetUnorderedAccessView(resource);
         }
 
         /// <summary>
