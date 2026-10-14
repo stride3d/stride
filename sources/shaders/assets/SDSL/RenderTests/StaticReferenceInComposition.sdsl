@@ -2,7 +2,7 @@
 
 namespace Stride.Shaders.Tests;
 
-shader StaticReferenceInCompositionHelper
+module StaticReferenceInCompositionHelper
 {
     float Twice(float value)
     {
@@ -18,7 +18,7 @@ shader StaticReferenceInCompositionBase
     }
 };
 
-// Both compositions use the helper through a static reference: it is one module at the root, not one copy per composition
+// Both compositions use the module through a static reference: it is once at the root, not one copy per composition
 shader StaticReferenceInCompositionA : StaticReferenceInCompositionBase
 {
     override float Compute()

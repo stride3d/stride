@@ -3,8 +3,11 @@
 /// <summary>
 /// Performs skinning on the normals.
 /// </summary>
-shader NormalMeshSkinning : TransformationSkinning, NormalStream
+shader NormalMeshSkinning
 {
+    import TransformationSkinning;
+    import NormalStream;
+
     override module void PreTransformPosition()
     {
         base.PreTransformPosition();

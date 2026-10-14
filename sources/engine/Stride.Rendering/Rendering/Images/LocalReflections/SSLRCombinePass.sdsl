@@ -6,8 +6,12 @@ namespace Stride.Rendering.Images
     /// <summary>
 	/// Screen Space Local Reflections shader for Combine Pass
     /// </summary>
-    shader SSLRCombinePass : ImageEffectShader, SSLRCommon, Utilities
+    shader SSLRCombinePass
     {
+		import ImageEffectShader;
+		import SSLRCommon;
+		import Utilities;
+
 		// Enable/disable blurring SSR during sampling results and mixing with reflections buffer
 		#define SSR_MIX_BLUR 1
 		

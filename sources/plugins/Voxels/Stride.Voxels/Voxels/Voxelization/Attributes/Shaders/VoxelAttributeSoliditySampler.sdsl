@@ -2,8 +2,10 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 namespace Stride.Rendering.Voxels
 {
-    shader VoxelAttributeSoliditySampler : IVoxelSampler, Texturing
+    shader VoxelAttributeSoliditySampler : IVoxelSampler
     {
+        import Texturing;
+
         compose VoxelStorageTextureShader storage;
 
         override float4 ComputeLocal(float3 position)

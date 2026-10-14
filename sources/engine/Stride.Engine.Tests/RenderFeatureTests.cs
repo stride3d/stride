@@ -10,14 +10,20 @@ using Xunit;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.Graphics.Regression;
+using Stride.Rendering;
+using Stride.Rendering.Colors;
 using Stride.Rendering.Compositing;
 using Stride.Rendering.Images;
+using Stride.Rendering.Lights;
+using Stride.Rendering.Materials;
+using Stride.Rendering.Materials.ComputeColors;
+using Stride.Rendering.ProceduralModels;
 
 namespace Stride.Engine.Tests;
 
 /// <summary>
-/// One screenshot per rendering feature no sample uses: MSAA, temporal anti-aliasing, ambient occlusion, depth of field,
-/// local reflections and cubemap backgrounds. Each test turns on its feature only.
+/// One test per rendering feature no sample uses: MSAA, temporal anti-aliasing, ambient occlusion, depth of field, local
+/// reflections, cubemap backgrounds, a spot light projecting a texture and thin glass. Each test turns on its feature only.
 /// </summary>
 public class RenderFeatureTests : RenderFeatureTestBase
 {
@@ -34,6 +40,16 @@ public class RenderFeatureTests : RenderFeatureTestBase
     public Action<PostProcessingEffects> PostEffects { get; init; }
 
     public BackgroundMode Background { get; init; }
+
+    /// <summary>
+    /// Adds a spot light projecting a texture: C# mixes the projection shaders into the light group's composition node.
+    /// </summary>
+    public bool ProjectedTexture { get; init; }
+
+    /// <summary>
+    /// Adds a glass sphere (thin glass specular model): C# mixes the transmittance stream into the material's shading node.
+    /// </summary>
+    public bool ThinGlass { get; init; }
 
     /// <summary>
     /// False for a render that isn't the same on every run (e.g. it depends on GPU readback timing): it then only
@@ -81,6 +97,50 @@ public class RenderFeatureTests : RenderFeatureTestBase
                     Is2D = Background == BackgroundMode.Cubemap2D,
                 },
             });
+        }
+
+        if (ProjectedTexture)
+        {
+            // A 4x4 checker, above the teapot, pointing down
+            const int size = 64;
+            var checker = Enumerable.Range(0, size * size).Select(i => (i % size / (size / 4) + i / size / (size / 4)) % 2 == 0 ? Color.White : Color.Orange).ToArray();
+            var spot = new Entity
+            {
+                new LightComponent
+                {
+                    Type = new LightSpot
+                    {
+                        Color = new ColorRgbProvider(Color.White),
+                        Range = 8,
+                        AngleInner = 30,
+                        AngleOuter = 35,
+                        ProjectiveTexture = Texture.New2D(GraphicsDevice, size, size, PixelFormat.R8G8B8A8_UNorm, checker),
+                    },
+                    Intensity = 20,
+                },
+            };
+            spot.Transform.Position = new Vector3(0, 4, 0);
+            spot.Transform.Rotation = Quaternion.RotationX(-MathUtil.PiOverTwo);
+            Scene.Entities.Add(spot);
+        }
+
+        if (ThinGlass)
+        {
+            // In front of the teapot, slightly tinted
+            var glassMaterial = Material.New(GraphicsDevice, new MaterialDescriptor
+            {
+                Attributes =
+                {
+                    Diffuse = new MaterialDiffuseMapFeature(new ComputeColor(new Color4(0.8f, 0.9f, 1.0f, 1.0f))),
+                    DiffuseModel = new MaterialDiffuseLambertModelFeature(),
+                    MicroSurface = new MaterialGlossinessMapFeature(new ComputeFloat(0.95f)),
+                    Specular = new MaterialMetalnessMapFeature(new ComputeFloat(0.0f)),
+                    SpecularModel = new MaterialSpecularThinGlassModelFeature(),
+                },
+            }, Content);
+            var glass = new Entity { new ModelComponent(new ProceduralModelDescriptor(new SphereProceduralModel { Radius = 0.5f, MaterialInstance = { Material = glassMaterial } }).GenerateModel(Services)) };
+            glass.Transform.Position = new Vector3(0.3f, 0.6f, 1.5f);
+            Scene.Entities.Add(glass);
         }
     }
 
@@ -137,4 +197,10 @@ public class RenderFeatureTests : RenderFeatureTestBase
 
     [SkippableFact]
     public void BackgroundCubemap2D() => RunGameTest(new RenderFeatureTests { Background = BackgroundMode.Cubemap2D, TestName = nameof(BackgroundCubemap2D) });
+
+    [SkippableFact]
+    public void SpotLightProjectedTexture() => RunGameTest(new RenderFeatureTests { ProjectedTexture = true, Screenshot = false, TestName = nameof(SpotLightProjectedTexture) });
+
+    [SkippableFact]
+    public void ThinGlassSpecular() => RunGameTest(new RenderFeatureTests { ThinGlass = true, Screenshot = false, TestName = nameof(ThinGlassSpecular) });
 }

@@ -5,8 +5,11 @@ namespace Stride.Rendering.Lights
     /// <summary>
     /// Defines a skybox environment light
     /// </summary>
-    shader LightSkyboxShader : EnvironmentLight, MaterialPixelShadingStream, NormalStream, Transformation
+    shader LightSkyboxShader : EnvironmentLight, MaterialPixelShadingStream
     {
+        import NormalStream;
+        import Transformation;
+
         cbuffer PerView.Lighting
         {
             float4x4 SkyMatrix;

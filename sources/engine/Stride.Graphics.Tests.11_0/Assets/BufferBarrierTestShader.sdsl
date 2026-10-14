@@ -6,8 +6,10 @@ namespace Stride.Graphics.Tests
     /// <summary>
     /// Writes a value derived from each thread's dispatch index into a structured buffer.
     /// </summary>
-    internal shader BufferBarrierTestShader : ComputeShaderBase
+    internal shader BufferBarrierTestShader
     {
+        import ComputeShaderBase;
+
         module RWStructuredBuffer<uint> Output;
 
         override void Compute()

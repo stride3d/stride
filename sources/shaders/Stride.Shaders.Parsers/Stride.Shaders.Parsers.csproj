@@ -6,6 +6,7 @@
   <ItemGroup>
     <None Remove="gen_intrin_main.txt" />
     <AdditionalFiles Include="gen_intrin_main.txt" />
+    <EmbeddedResource Include="Upgrade\EngineShaders.txt" LogicalName="Stride.Shaders.Parsing.Upgrade.EngineShaders.txt" />
   </ItemGroup>
 
   <ItemGroup>

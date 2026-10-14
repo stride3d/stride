@@ -6,7 +6,7 @@ namespace Stride.Rendering.Materials
     /// <summary>
     /// Renders only the opaque parts for the opaque hair pass.
     /// </summary>
-    class MaterialHairDiscardFunctionOpaquePass<LinkType THairAlphaThreshold> : IMaterialHairDiscardFunction, MaterialPixelStream
+    shader MaterialHairDiscardFunctionOpaquePass<LinkType THairAlphaThreshold> : IMaterialHairDiscardFunction, MaterialPixelStream
     {
         cbuffer PerMaterial
         {

@@ -68,6 +68,11 @@ public class ParseResult<T>
     public List<ParseError> Errors { get; internal set; } = [];
 
     /// <summary>
+    /// In the upgrade mode of <see cref="SDSLParser.Parse"/>, the errors of old spellings that the code was read past as their new form.
+    /// </summary>
+    public List<ParseError> Recovered { get; } = [];
+
+    /// <summary>
     /// The furthest position any parser reached before it gave up: where the code stops making sense.
     /// </summary>
     internal int FurthestFailure { get; set; }

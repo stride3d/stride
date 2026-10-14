@@ -1,0 +1,11 @@
+// A color of a Stride 4.1 game, declared with the old keyword: only that keyword changes, not "class" in this comment or in a name
+class MyOldTint : ComputeColor, MyOldMath
+{
+    float4 TintColor;
+    float classWeight;
+
+    override float4 Compute()
+    {
+        return TintColor * Square(classWeight);
+    }
+};

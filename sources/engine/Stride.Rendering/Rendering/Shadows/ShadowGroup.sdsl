@@ -5,8 +5,10 @@ namespace Stride.Rendering.Shadows
     /// <summary>
     /// Defines the methods to compute shadowing and the sampler used on the shadow map.
     /// </summary>
-    shader ShadowGroup : ShadowStream
+    shader ShadowGroup
     {
+        import ShadowStream;
+
         // Computes the shadow for a given world position and light index
         float3 ComputeShadow(float3 position, int lightIndex)
         {

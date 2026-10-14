@@ -1,0 +1,15 @@
+// A local variable and a parameter named like the class above, and a comment that names it: none of them is a reference to it
+shader MyLocalUser
+{
+    float Scale(float3 MyLocalLight)
+    {
+        // Was MyLocalLight.Color
+        return MyLocalLight.x;
+    }
+
+    float Shade()
+    {
+        float3 MyLocalLight = 1;
+        return Scale(MyLocalLight.xyz);
+    }
+};

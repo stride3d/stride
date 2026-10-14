@@ -1995,8 +1995,9 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
 
             if (pendingPackageUpgrades.Count > 0)
             {
-                // Need upgrades, let's ask user confirmation
-                if (package.Container is SolutionProject project && IsUpgradeStopped(project, log))
+                // Need upgrades, let's ask user confirmation. The dependency phase already changed the package (its references, its
+                // project migrations, its C# code).
+                if (package.Container is SolutionProject project && IsUpgradeStopped(project, log, projectChanged: true))
                     return false;
 
                 var upgradeAllowed = RequestPackageUpgrade(package, pendingPackageUpgrades, loadParameters);
@@ -2014,6 +2015,19 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
                     var packageUpgrader = pendingPackageUpgrade.PackageUpgrader;
                     var dependencyPackage = pendingPackageUpgrade.DependencyPackage;
                     if (!packageUpgrader.UpgradeBeforeAssembliesLoaded(loadParameters, session, log, package, pendingPackageUpgrade.Dependency, dependencyPackage))
+                    {
+                        log.Error($"Error while upgrading package [{package.Meta.Name}] for [{pendingPackageUpgrade.Dependency.Name}] from version [{pendingPackageUpgrade.Dependency.Version}] to [{packageUpgrader.Attribute.UpdatedVersionRange}]. {RestoreFromBackupHint}");
+                        failedUpgrades.Add(package);
+                        return false;
+                    }
+                }
+
+                // The restore of PreLoadPackageDependencies followed the reference changes, and the packages come in reference order
+                foreach (var pendingPackageUpgrade in pendingPackageUpgrades)
+                {
+                    var packageUpgrader = pendingPackageUpgrade.PackageUpgrader;
+                    var dependencyPackage = pendingPackageUpgrade.DependencyPackage;
+                    if (!packageUpgrader.UpgradeAfterRestore(loadParameters, session, log, package, pendingPackageUpgrade.Dependency, dependencyPackage))
                     {
                         log.Error($"Error while upgrading package [{package.Meta.Name}] for [{pendingPackageUpgrade.Dependency.Name}] from version [{pendingPackageUpgrade.Dependency.Version}] to [{packageUpgrader.Attribute.UpdatedVersionRange}]. {RestoreFromBackupHint}");
                         failedUpgrades.Add(package);

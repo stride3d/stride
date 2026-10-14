@@ -3,8 +3,14 @@
 
 namespace Stride.Heightfield
 {
-    shader HeightfieldDisplacement<bool TTessellated, bool TComputeNormal, MemberName TNormal> : IMaterialSurface, HeightfieldDisplacementProperties, PositionStream, NormalStream, Transformation, Texturing
+    shader HeightfieldDisplacement<bool TTessellated, bool TComputeNormal, MemberName TNormal> : IMaterialSurface
     {
+        import HeightfieldDisplacementProperties;
+        import PositionStream;
+        import NormalStream;
+        import Transformation;
+        import Texturing;
+
         compose ComputeColor inner;
 
         override void Compute()

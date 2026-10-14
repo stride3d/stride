@@ -3,8 +3,11 @@
 /// <summary>
 /// Calculates the normal  the normals from a normal map.
 /// </summary>
-shader NormalFromNormalMappingTessellationInstanced : NormalFromNormalMappingInstanced, TransformationInstancing
+shader NormalFromNormalMappingTessellationInstanced
 {
+    import NormalFromNormalMappingInstanced;
+    import TransformationInstancing;
+
     override module void GenerateNormal_VS()
     {
         // Perform normal generation at the end in case meshNormal is modified

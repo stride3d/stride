@@ -1,0 +1,25 @@
+// A material feature that changes the vertex position once per effect, with helpers called from that code
+shader MyWindDisplacement : IMaterialSurface
+{
+    import TransformationBase;
+    import PositionStream4;
+    import Global;
+
+    module float WindStrength;
+
+    module override void TransformPosition()
+    {
+        base.TransformPosition();
+        streams.PositionWS.xyz += WindOffset(streams.PositionWS.xyz);
+    }
+
+    module float3 WindOffset(float3 position)
+    {
+        return float3(sin(Time + position.x), 0, 0) * WindStrength * Gust();
+    }
+
+    module float Gust()
+    {
+        return 1.0;
+    }
+};

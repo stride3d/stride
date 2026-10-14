@@ -3,8 +3,11 @@
 /// <summary>
 /// Transforms the position of the vertex in world space first then in projection space
 /// </summary>
-shader TransformationWAndVP : TransformationBase, PositionStream4, PositionHStream4
+shader TransformationWAndVP : PositionHStream4
 {
+    import TransformationBase;
+    import PositionStream4;
+
     module override void PreTransformPosition()
     {
         base.PreTransformPosition();

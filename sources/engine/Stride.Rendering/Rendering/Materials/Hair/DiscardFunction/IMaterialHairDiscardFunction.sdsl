@@ -6,7 +6,7 @@ namespace Stride.Rendering.Materials
     /// <summary>
     /// Common interface for discarding pixels for the hair shading model.
     /// </summary>
-    class IMaterialHairDiscardFunction
+    shader IMaterialHairDiscardFunction
     {
         // TODO: Can't we move the cbuffer with the HairAlphaThreshold here?
         abstract void Discard(void);

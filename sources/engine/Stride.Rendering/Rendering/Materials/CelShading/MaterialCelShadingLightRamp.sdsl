@@ -3,9 +3,10 @@
 
 namespace Stride.Rendering.Materials
 {
-    class MaterialCelShadingLightRamp
-	 :  IMaterialCelShadingLightFunction, Texturing
+    shader MaterialCelShadingLightRamp : IMaterialCelShadingLightFunction
     {
+        import Texturing;
+
         rgroup PerMaterial
         {
 			module Texture2D CelShaderRamp;

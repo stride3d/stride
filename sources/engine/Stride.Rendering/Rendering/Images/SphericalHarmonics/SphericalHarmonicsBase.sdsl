@@ -6,8 +6,10 @@ namespace Stride.Rendering.Images
     /// <summary>
     /// A shader performing Lambertian pre-filtering.
     /// </summary>
-    internal shader SphericalHarmonicsBase<int TOrder> : Math
+    internal shader SphericalHarmonicsBase<int TOrder>
     {    
+        import Math;
+
         static const int CoefficientsCount = TOrder * TOrder;
 
         // Pi constants

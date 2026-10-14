@@ -5,8 +5,11 @@
 /// Morph blending and skinning of one vertex (x) of one instance slot (y) of a batch, gathering the vertex's sparse entries.
 /// </summary>
 // The vertex buffers are declared here, not in a base shader: the SDSL mixer cannot merge raw buffers declared in a base class.
-shader MorphSkinning : ComputeShaderBase, MorphTargetUtil
+shader MorphSkinning
 {
+    import ComputeShaderBase;
+    import MorphTargetUtil;
+
     // Bits of an instance record's flags, see ModelDeformationRenderer.
     static const uint InstanceActive = 1;
     static const uint InstanceSkinned = 2;

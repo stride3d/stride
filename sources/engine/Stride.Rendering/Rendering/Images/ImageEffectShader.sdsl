@@ -6,7 +6,8 @@ namespace Stride.Rendering.Images
     /// <summary>
     /// Base shader to perform post effects. Draws the input mesh without transformation.
     /// </summary>
-    shader ImageEffectShader : SpriteBase
+    module ImageEffectShader
     {
+        import SpriteBase;
     };
 }

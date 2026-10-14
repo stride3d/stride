@@ -215,7 +215,7 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                     }
                 }
 
-                // SDSL convention: `override stage void PSMain() { }` at the leaf of the mixin chain (with no
+                // SDSL convention: `override module void PSMain() { }` at the leaf of the mixin chain (with no
                 // further override) means "no pixel shader needed" — drop the Fragment entry point entirely.
                 // Detect this by inspecting the resolved PSMain body in SPIR-V: if it contains only structural
                 // instructions, the source body is empty and the convention applies. Anything else (clip/discard

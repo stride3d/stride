@@ -2,7 +2,7 @@
 
 namespace Stride.Shaders.Tests;
 
-shader StaticReferenceToMixinBase
+module StaticReferenceToMixinBase
 {
     float Value()
     {
@@ -10,10 +10,11 @@ shader StaticReferenceToMixinBase
     }
 }
 
-// Has an override: a static reference can't import it as a module, so it mixes it in like an inherited shader (with an
-// info message), and Value() is the override
-shader StaticReferenceToMixinHelper : StaticReferenceToMixinBase
+// Overrides a function of the module it imports: a static call to Value() selects the override
+module StaticReferenceToMixinHelper
 {
+    import StaticReferenceToMixinBase;
+
     override float Value()
     {
         return 2.0;

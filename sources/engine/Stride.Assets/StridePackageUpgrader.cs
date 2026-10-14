@@ -229,9 +229,16 @@ namespace Stride.Assets
             registry.Project("4.2.0.0", UpgradeProjectTo42);
             registry.Project("4.3.0.0", UpgradeProjectTo43);
             registry.Project("4.4.0.0", UpgradeProjectTo44);
-            registry.Project("4.4.2.0", UpgradeEffectShaderKeywords);
             registry.Project("4.5.0.0", UpgradeProjectTo45);
             registry.Project("4.5.0.0", AddPluginPackageReferences);
+
+            // Shader language changes: the shader files of a project go through the steps of each gate it crosses, gate by gate
+            // (ShaderUpgrader, ShaderSourceUpgrade).
+            // 4.4.2: an effect of an .sdfx file declared with `shader` (Stride 4.3 and older) is declared with `effect`.
+            registry.Shader("4.4.2.0", ShaderSourceUpgrade.EffectKeywordsStep);
+            // 4.5.5: modules. What each step changes is said next to it in ShaderUpgrader.Steps.
+            registry.Shader("4.5.5.0",
+                "class-to-shader", "stage-to-module", "module-helpers", "module-units");
         }
 
         private static bool IsSkippedPackage(string packageName)

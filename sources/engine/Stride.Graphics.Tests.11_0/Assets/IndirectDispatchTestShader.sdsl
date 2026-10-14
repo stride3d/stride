@@ -6,8 +6,10 @@ namespace Stride.Graphics.Tests
     /// <summary>
     /// Marks each thread group that runs: element n gets n + 1.
     /// </summary>
-    internal shader IndirectDispatchTestShader : ComputeShaderBase
+    internal shader IndirectDispatchTestShader
     {
+        import ComputeShaderBase;
+
         module RWStructuredBuffer<uint> Output;
 
         override void Compute()

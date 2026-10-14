@@ -8,8 +8,11 @@ namespace Stride.Rendering.Images
     /// Expects as input:
     /// - Texture0: the raw depth-buffer used to render the original scene
     /// </summary>
-    shader CoCLinearDepthShader : ImageEffectShader, Camera, CircleOfConfusion
+    shader CoCLinearDepthShader
     {
+        import ImageEffectShader;
+        import Camera;
+        import CircleOfConfusion;
 
         module override float4 Shading()
         {

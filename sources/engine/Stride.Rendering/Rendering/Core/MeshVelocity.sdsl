@@ -2,8 +2,13 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 // Computes screen space velocity for meshes
-shader MeshVelocity : PositionStream4, TransformationBase, ScreenPositionBase, VelocityStream
+shader MeshVelocity
 {
+    import PositionStream4;
+    import TransformationBase;
+    import ScreenPositionBase;
+    import VelocityStream;
+
     cbuffer PerDraw
     {
         float4x4 PreviousWorldViewProjection;

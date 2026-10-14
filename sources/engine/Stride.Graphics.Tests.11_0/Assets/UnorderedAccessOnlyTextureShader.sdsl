@@ -6,8 +6,10 @@ namespace Stride.Graphics.Tests
     /// <summary>
     /// Writes each thread's dispatch coordinates into an unordered access texture.
     /// </summary>
-    internal shader UnorderedAccessOnlyTextureShader : ComputeShaderBase
+    internal shader UnorderedAccessOnlyTextureShader
     {
+        import ComputeShaderBase;
+
         module RWTexture2D<float4> Output;
 
         override void Compute()

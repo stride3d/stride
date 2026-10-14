@@ -202,6 +202,8 @@ partial class PackageSession
             // Check if there is any package upgrade to do
             var pendingPackageUpgrades = new List<PendingPackageUpgrade>();
             pendingPackageUpgradesPerPackage.Add(package, pendingPackageUpgrades);
+            // The upgrades that a referenced project brought, until this project's own references are read
+            var broughtByReferences = new HashSet<PendingPackageUpgrade>(ReferenceEqualityComparer.Instance);
 
             // Load project information once and cache it
             Microsoft.Build.Evaluation.Project? msProject = null;
@@ -294,7 +296,9 @@ partial class PackageSession
                                     if (!pendingPackageUpgrades.Any(x => x.DependencyPackage == dependencyPackageUpgrader.DependencyPackage))
                                     {
                                         // Note: it's important to clone because once upgraded, each instance will have its Dependency.Version tested/updated
-                                        pendingPackageUpgrades.Add(dependencyPackageUpgrader.Clone());
+                                        var brought = dependencyPackageUpgrader.Clone();
+                                        pendingPackageUpgrades.Add(brought);
+                                        broughtByReferences.Add(brought);
                                     }
                                 }
                             }
@@ -315,9 +319,15 @@ partial class PackageSession
                 var packageUpgrader = AssetRegistry.GetPackageUpgrader(dependencyName);
                 if (packageUpgrader != null)
                 {
-                    // Check if this upgrader has already been added due to another package reference
-                    if (pendingPackageUpgrades.Any(pendingPackageUpgrade => pendingPackageUpgrade.PackageUpgrader == packageUpgrader))
+                    // Check if this upgrader has already been added due to another package reference, or by a referenced project. A project
+                    // upgrades from its own version, which its files were written for, whatever the version of the projects it references
+                    var index = pendingPackageUpgrades.FindIndex(pendingPackageUpgrade => pendingPackageUpgrade.PackageUpgrader == packageUpgrader);
+                    if (index >= 0)
+                    {
+                        if (broughtByReferences.Remove(pendingPackageUpgrades[index]))
+                            pendingPackageUpgrades[index] = new PendingPackageUpgrade(packageUpgrader, new PackageDependency(dependencyName, dependencyVersion), pendingPackageUpgrades[index].DependencyPackage);
                         continue;
+                    }
 
                     // Check if upgrade is necessary
                     var editorVersion = packageUpgrader.Attribute.UpdatedVersionRange.MinVersion;

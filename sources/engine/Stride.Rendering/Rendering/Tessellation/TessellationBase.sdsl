@@ -16,8 +16,14 @@
 # define OutputControlPointCount 3
 #endif
 
-shader TessellationBase : ShaderBase, TransformationBase, MaterialDomainStream, Camera, Transformation, NormalBase
+shader TessellationBase : MaterialDomainStream
 {
+    import ShaderBase;
+    import TransformationBase;
+    import Camera;
+    import Transformation;
+    import NormalBase;
+
     cbuffer PerMaterial
     {
         [Link("Tessellation.DesiredTriangleSize")]

@@ -1,4 +1,4 @@
-// A static call to a shader that declares byte address buffers.
+// A static call to a module that declares byte address buffers.
 namespace Stride.Shaders.Tests;
 
 shader ByteAddressBufferStaticCall

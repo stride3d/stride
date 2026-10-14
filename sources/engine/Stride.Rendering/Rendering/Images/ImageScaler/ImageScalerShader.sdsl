@@ -6,8 +6,10 @@ namespace Stride.Rendering.Images
     /// <summary>
     /// A copier shader
     /// </summary>
-    internal shader ImageScalerShader : ImageEffectShader
+    internal shader ImageScalerShader
     {
+        import ImageEffectShader;
+
         // TODO: Color and IsOnlyChannelRed could be part of a color filter that we can pre-prend automatically
         [Color]
         module float4 Color = float4(1, 1, 1, 1);

@@ -26,7 +26,7 @@ public partial class ShaderMixer
     /// first; in a node, classes in order, a class's own compositions before the class),</item>
     /// <item>but never before one of its parents: after a parent mixed later at the root.</item>
     /// </list>
-    /// Modules (static references only) used in compositions leave their node the same way.
+    /// Modules (<c>module X</c>) used in compositions leave their node the same way.
     /// </summary>
     private static void CollectModules(ShaderMixinInstantiation root)
     {
@@ -156,7 +156,7 @@ public partial class ShaderMixer
     {
         var name = shaderClass.ToClassNameWithGenerics();
         var genericsStart = name.IndexOf('<');
-        if (genericsStart == -1 || shaderClass.IsModule || !name.EndsWith('>'))
+        if (genericsStart == -1 || !name.EndsWith('>'))
             return name;
 
         var className = name[..genericsStart];

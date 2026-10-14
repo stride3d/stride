@@ -6,11 +6,11 @@
 /// <remarks>
 /// TEXTURE_KEY: generic LinkType - the name of the ParameterKey that will link to this texture.
 /// </remarks>
-shader DynamicSampler<LinkType TSampler, MemberName LocalResourceGroup>
+module DynamicSampler<LinkType TSampler, MemberName LocalResourceGroup>
 {
     rgroup LocalResourceGroup
     {
         [Link("TSampler")]
-        module SamplerState Sampler;
+        SamplerState Sampler;
     }
 };

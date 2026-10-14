@@ -5,8 +5,10 @@ namespace Stride.Rendering.Materials
     /// <summary>
     /// Interface for a microfacet Geometric Shadowing function
     /// </summary>
-    shader IMaterialSpecularMicrofacetVisibilityFunction : MaterialPixelShadingStream, BRDFMicrofacet
+    shader IMaterialSpecularMicrofacetVisibilityFunction : MaterialPixelShadingStream
     {
+        import BRDFMicrofacet;
+
         float Compute()
         {
             return VisibilityImplicit(streams.NdotL, streams.NdotV);

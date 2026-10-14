@@ -7,9 +7,9 @@ using Stride.Shaders.Compilers.SDSL;
 namespace Stride.Shaders.Parsers.Tests;
 
 /// <summary>
-/// Errors that give a code and the file, line and column: an unknown type (SDSL0190), a missing parent shader (SDSL0191), an
-/// assignment to a value (SDSL0103), a call that matches no method or intrinsic (SDSL0110, SDSL0109, SDSL0162), and a stream
-/// read before any stage writes it (SDSL0194, found when the effect is mixed).
+/// Errors that give a code and the file, line and column: an unknown type (SDSL0190), a missing parent shader (SDSL0191), a missing
+/// imported module (SDSL0196), an assignment to a value (SDSL0103), a call that matches no method or intrinsic (SDSL0110, SDSL0109,
+/// SDSL0162), and a stream read before any stage writes it (SDSL0194, found when the effect is mixed).
 /// </summary>
 public class CodedErrorTests : IDisposable
 {
@@ -46,6 +46,22 @@ public class CodedErrorTests : IDisposable
             };
             """);
         Assert.Contains("MissingParent.sdsl(1,35): SDSL0191: MissingParent inherits from HappyShape, but shader HappyShape can't be found.", message);
+        Assert.Single(message.Split('\n'), line => line.Contains("SDSL"));
+    }
+
+    [Fact]
+    public void MissingImportedModuleHasCodeAndLocation()
+    {
+        Write("ShapeMath", "module ShapeMath { float Twice(float x) { return x * 2; } };");
+        var message = CompileError("MissingImport", """
+            shader MissingImport
+            {
+                import ShapeMath;
+                import ShapeNoise;
+                float Size() { return Twice(1); }
+            };
+            """);
+        Assert.Contains("MissingImport.sdsl(4,12): SDSL0196: MissingImport imports ShapeNoise, but module ShapeNoise can't be found.", message);
         Assert.Single(message.Split('\n'), line => line.Contains("SDSL"));
     }
 

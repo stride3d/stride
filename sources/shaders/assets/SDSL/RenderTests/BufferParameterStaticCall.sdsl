@@ -3,7 +3,7 @@
 namespace Stride.Shaders.Tests;
 
 // Helpers in another shader, called statically with this shader's buffer (as VL.Fuse calls its buffer helpers)
-shader BufferParameterStaticCallUtils
+module BufferParameterStaticCallUtils
 {
     static void Put(RWStructuredBuffer<float4> target, uint index, float4 value)
     {

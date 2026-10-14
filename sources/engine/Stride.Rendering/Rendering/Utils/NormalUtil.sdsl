@@ -3,7 +3,7 @@
 /// <summary>
 /// Various methods for manipulating normals
 /// </summary>
-shader NormalUtil
+module NormalUtil
 {
     // Shorter vectors fall back instead of amplifying rounding noise.
     static const float MinNormalizeLengthSquared = 1e-20;

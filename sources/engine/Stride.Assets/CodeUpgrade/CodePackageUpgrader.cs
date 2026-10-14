@@ -59,14 +59,15 @@ public abstract class CodePackageUpgrader : PackageUpgrader, ICodeUpgradeProvide
         // Snapshot the original csproj before the passes below rewrite it.
         session.UpgradeBackup?.Snapshot(projectFullPath.ToOSPath());
 
+        var registry = new UpgradeRegistry();
+        DeclareUpgrades(registry);
+
         // Bump the upgrader's own package family to the current version (subclass hook).
         if (!UpgradeProjectReferences(projectFullPath, log))
             return false;
 
         // Version-gated structural csproj migrations declared via the upgrade registry (r.Project):
         // load the project once, run each registration the project is upgrading across, save once.
-        var registry = new UpgradeRegistry();
-        DeclareUpgrades(registry);
         var applicable = registry.ProjectUpgrades
             .Where(registration => UpgradingFromBefore(dependency, registration.GateVersion))
             .ToArray();
@@ -96,6 +97,29 @@ public abstract class CodePackageUpgrader : PackageUpgrader, ICodeUpgradeProvide
             project?.ProjectCollection.Dispose();
         }
 
+        return true;
+    }
+
+    /// <inheritdoc/>
+    public override bool UpgradeAfterRestore(PackageLoadParameters loadParameters, PackageSession session, ILogger log, Package dependentPackage, PackageDependency dependency, Package dependencyPackage)
+    {
+        if ((dependentPackage.Container as SolutionProject)?.FullPath is not { } projectFullPath)
+            return true;
+
+        var registry = new UpgradeRegistry();
+        DeclareUpgrades(registry);
+
+        // Shader language changes (r.Shader): the shader files of the package, gate by gate in the order of their versions
+        var gates = registry.ShaderUpgrades.Where(x => UpgradingFromBefore(dependency, x.GateVersion)).OrderBy(x => x.GateVersion.Version).ToList();
+        if (gates.Count > 0)
+        {
+            var folders = ShaderSourceUpgrade.Folders(projectFullPath, dependentPackage);
+            foreach (var gate in gates)
+            {
+                if (!ShaderSourceUpgrade.Run(folders, gate.Steps, session.UpgradeBackup, log))
+                    return false;
+            }
+        }
         return true;
     }
 }

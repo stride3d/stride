@@ -1,0 +1,6 @@
+// A module inheriting a shader: an error
+namespace Stride.Shaders.Tests;
+
+module ModuleInheritsShader : ModuleShaderTarget
+{
+};

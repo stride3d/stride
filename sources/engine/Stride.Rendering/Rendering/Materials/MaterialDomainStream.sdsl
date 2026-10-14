@@ -6,7 +6,10 @@ namespace Stride.Rendering.Materials
     /// <summary>
     /// Contains all the default streams of the domain shader stage.
     /// </summary>
-    shader MaterialDomainStream : MaterialStream, MaterialDisplacementStream, MaterialTessellationStream, NormalStream, PositionStream, Texturing
+    shader MaterialDomainStream : MaterialStream, MaterialDisplacementStream, MaterialTessellationStream
     {
+        import NormalStream;
+        import PositionStream;
+        import Texturing;
     };
 }

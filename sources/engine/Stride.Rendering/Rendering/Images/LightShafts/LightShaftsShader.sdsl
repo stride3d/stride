@@ -3,8 +3,13 @@
 
 namespace Stride.Rendering.Images
 {
-    shader LightShaftsShader<int SampleCount> : ImageEffectShader, PostEffectBoundingRay<SampleCount>, LightStream, NormalStream
+    shader LightShaftsShader<int SampleCount>
     {
+        import ImageEffectShader;
+        import PostEffectBoundingRay<SampleCount>;
+        import LightStream;
+        import NormalStream;
+
         module compose DirectLightGroup lightGroup;
 
         cbuffer PerFrame

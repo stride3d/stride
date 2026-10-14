@@ -3,15 +3,17 @@
 /// <summary>
 /// Defines streams for object space position when the corresponding attribute is a float2. Sets its value in a float4.
 /// </summary>
-shader PositionStream2 : ShaderBase
+module PositionStream2
 {
+    import ShaderBase;
+
     // The position attribute
-    module stream float2 Position2 : POSITION;
+    stream float2 Position2 : POSITION;
     
     // The position as a float4
-    module stream float4 Position : ExpandedPosition4;
+    stream float4 Position : ExpandedPosition4;
     
-    override module void VSMain()
+    override void VSMain()
     {
         streams.Position = float4(streams.Position2, 0.0f, 1.0f);
         base.VSMain();

@@ -5,12 +5,11 @@ namespace Stride.Rendering.Lights
     /// <summary>
     /// Defines a group of spot lights in clustered shading.
     /// </summary>
-    shader LightClusteredSpotGroup :
-        DirectLightGroup,
-        LightClustered,
-        LightSpot,  // Required for "ProcessLight()".
+    shader LightClusteredSpotGroup : DirectLightGroup, LightSpot, // Required for "ProcessLight()".
         SpotLightDataInternalShader    // Required for "SpotLightDataInternal"
     {
+        import LightClustered;
+
         rgroup PerView.Lighting
         {
             module Buffer<float4> SpotLights;

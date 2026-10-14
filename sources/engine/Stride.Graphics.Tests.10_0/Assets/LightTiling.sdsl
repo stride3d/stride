@@ -3,8 +3,10 @@
 
 namespace Stride.Rendering.Lights
 {
-    shader LightTiling : ComputeShaderBase
+    shader LightTiling
     {
+        import ComputeShaderBase;
+
         struct PointLight
         {
             float3 Position;

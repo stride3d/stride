@@ -49,7 +49,7 @@ public partial class ShaderMixer
         public string? UsedInComposition { get; set; }
 
         /// <summary>
-        /// Used only through static references (always in the root node): they call its functions, never an override.
+        /// Declared <c>module X</c> (always in the root node).
         /// </summary>
         public bool IsModule { get; set; }
 

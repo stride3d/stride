@@ -153,6 +153,16 @@ public static class ShaderVariableInformationExtensions
     }
 }
 
+/// <summary>
+/// <c>import X;</c>: the shader uses the module <c>X</c>, which exists once per effect.
+/// </summary>
+public partial class ShaderImport(IdentifierBase module, TextLocation info) : ShaderElement(info)
+{
+    public IdentifierBase Module { get; set; } = module;
+
+    public override string ToString() => $"import {Module}";
+}
+
 public partial class TypeDef(TypeName type, Identifier name, TextLocation info) : ShaderElement(info)
 {
     public Identifier Name { get; set; } = name;

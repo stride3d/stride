@@ -3,14 +3,17 @@
 
 namespace Stride.Rendering.Skyboxes
 {
-    shader SkyboxShaderBase : SpriteBase, SkyboxStream
+    module SkyboxShaderBase
     {
-        module float Intensity;
-        module float4x4 ProjectionInverse;
-        module float4x4 ViewInverse;
-        module float4x4 SkyMatrix;
+        import SpriteBase;
+        import SkyboxStream;
 
-        override module void VSMain()
+        float Intensity;
+        float4x4 ProjectionInverse;
+        float4x4 ViewInverse;
+        float4x4 SkyMatrix;
+
+        override void VSMain()
         {
             base.VSMain();
             var screenPosition = streams.ShadingPosition / streams.ShadingPosition.w;

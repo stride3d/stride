@@ -10,8 +10,13 @@
 # define MorphTargets 1
 #endif
 
-shader TransformationMorph : TransformationBase, PositionStream4, NormalStream, MorphTargetUtil
+shader TransformationMorph
 {
+    import TransformationBase;
+    import PositionStream4;
+    import NormalStream;
+    import MorphTargetUtil;
+
     // A MeshMorphEntry is six dwords: vertex, shape | position.x, position.yz, normal.xy, normal.z | tangent.x, tangent.yz.
     static const uint EntryDwords = 6;
     static const uint HalfMask = 0xFFFF;

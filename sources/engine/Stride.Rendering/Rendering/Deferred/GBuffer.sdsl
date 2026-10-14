@@ -5,8 +5,10 @@ namespace Stride.Rendering.Deferred
     /// <summary>
     /// An array of light groups
     /// </summary>
-    shader GBuffer : ShaderBase, MaterialPixelStream
+    shader GBuffer : MaterialPixelStream
     {
+        import ShaderBase;
+
         module override void PSMain()
         {
             base.PSMain();

@@ -8,8 +8,11 @@ namespace Stride.Rendering.Images
     /// It reads by direction, so a texel on a face border takes the neighboring face into account instead
     /// of clamping inside its own face.
     /// </summary>
-    shader CubemapFaceResampleShader : Math, ImageEffectShader
+    shader CubemapFaceResampleShader
     {
+        import Math;
+        import ImageEffectShader;
+
         TextureCube RadianceMap;
 
         // The mipmap level to read

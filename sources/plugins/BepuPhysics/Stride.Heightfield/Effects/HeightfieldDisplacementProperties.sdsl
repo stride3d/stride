@@ -3,16 +3,16 @@
 
 namespace Stride.Heightfield
 {
-    shader HeightfieldDisplacementProperties
+    module HeightfieldDisplacementProperties
     {
         cbuffer PerMaterial
         {
-            module float HeightfieldSize;
-            module float HeightfieldMinHeight;
-            module float HeightfieldMaxHeight;
-            module float HeightfieldSubdivision;
-            module float PlaneSize;
-            module float PlaneCellSize;
+            float HeightfieldSize;
+            float HeightfieldMinHeight;
+            float HeightfieldMaxHeight;
+            float HeightfieldSubdivision;
+            float PlaneSize;
+            float PlaneCellSize;
         }
     };
 }

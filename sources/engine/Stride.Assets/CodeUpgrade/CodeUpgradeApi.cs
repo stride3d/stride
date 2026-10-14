@@ -50,6 +50,9 @@ public sealed class UpgradeRegistry
     /// <summary>The declared project (structural) upgrade registrations, in declaration order.</summary>
     internal IReadOnlyList<ProjectUpgradeRegistration> ProjectUpgrades => projectUpgrades;
 
+    /// <summary>The shader gates, in declaration order: the version at which the shader language changed, and the steps it needs.</summary>
+    internal List<ShaderUpgradeRegistration> ShaderUpgrades { get; } = [];
+
     /// <summary>
     /// Declares code migrations that became necessary at <paramref name="version"/> (the version in
     /// which the API changed). They run for any project upgraded from below that version.
@@ -84,6 +87,20 @@ public sealed class UpgradeRegistry
         ArgumentNullException.ThrowIfNull(upgrade);
         projectUpgrades.Add(new ProjectUpgradeRegistration(new PackageVersion(version), upgrade));
     }
+
+    /// <summary>
+    /// Declares that the shader language changed at <paramref name="version"/>: the shader files of a project upgraded from below it go
+    /// through <paramref name="steps"/>, each changing only the old syntax. A project below several gates goes through each of them in
+    /// turn, so the steps of a gate read the files as the gates before it left them.
+    /// </summary>
+    /// <param name="version">The version at which the shader language changed (e.g. <c>"4.5.0.0"</c>).</param>
+    /// <param name="steps">The steps this change needs: steps of the shader source upgrade (<c>ShaderUpgrader.Steps</c>), or of <c>ShaderSourceUpgrade</c> itself.</param>
+    public void Shader(string version, params string[] steps)
+    {
+        ArgumentNullException.ThrowIfNull(version);
+        ArgumentNullException.ThrowIfNull(steps);
+        ShaderUpgrades.Add(new ShaderUpgradeRegistration(new PackageVersion(version), steps));
+    }
 }
 
 /// <summary>
@@ -91,3 +108,8 @@ public sealed class UpgradeRegistry
 /// optional exact version their OLD symbols resolve at (<c>null</c> = the project's from-version).
 /// </summary>
 internal sealed record CodeUpgradeRegistration(PackageVersion GateVersion, IReadOnlyList<CodeUpgrade> Upgrades, PackageVersion ResolveSince = null);
+
+/// <summary>
+/// One <c>Shader</c> registration: the gate version the shader language changed at, and the steps of the upgrade it needs.
+/// </summary>
+internal sealed record ShaderUpgradeRegistration(PackageVersion GateVersion, IReadOnlyList<string> Steps);

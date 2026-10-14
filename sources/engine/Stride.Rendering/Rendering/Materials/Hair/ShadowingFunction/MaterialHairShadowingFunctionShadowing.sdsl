@@ -3,8 +3,10 @@
 
 namespace Stride.Rendering.Materials
 {
-    class MaterialHairShadowingFunctionShadowing : IMaterialHairShadowingFunction, ShadowStream
+    shader MaterialHairShadowingFunctionShadowing : IMaterialHairShadowingFunction
     {
+        import ShadowStream;
+
         override float3 Compute()
         {
             return streams.shadowColor;

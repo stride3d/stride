@@ -6,8 +6,10 @@ namespace Stride.Rendering.Materials.Shaders
 	/// <summary>
     /// Outputs material specular color (RGB) and roughness (A)
     /// </summary>
-    shader GBufferOutputSpecularColorRoughness : ComputeColor, MaterialPixelShadingStream, Utilities
+    shader GBufferOutputSpecularColorRoughness : ComputeColor, MaterialPixelShadingStream
     {
+        import Utilities;
+
         override float4 Compute()
         {
             return float4(streams.matSpecularVisible, sqrt(streams.alphaRoughness)); // alphaRoughness = roughness^2

@@ -3,8 +3,11 @@
 
 namespace Stride.Rendering.Images
 {
-    shader AdditiveLightShader<bool TColor> : ImageEffectShader, Texturing
+    shader AdditiveLightShader<bool TColor>
     {
+        import ImageEffectShader;
+        import Texturing;
+
         cbuffer PerFrame
         {
             [Color]

@@ -3,9 +3,12 @@
 /// <summary>
 /// Defines the methods to get the normal in view space and inserts them in the pipeline.
 /// </summary>
-shader NormalBase : NormalUpdate, ShaderBase
+module NormalBase
 {
-    override module void VSMain()
+    import NormalUpdate;
+    import ShaderBase;
+
+    override void VSMain()
     {
         base.VSMain();
 
@@ -14,7 +17,7 @@ shader NormalBase : NormalUpdate, ShaderBase
         GenerateNormal_VS();
     }
 	
-    override module void PSMain()
+    override void PSMain()
     {
         // Perform normal generation at beginning so that it is accessible during PS.
         // TODO: Another mechanism (compute on first access?)

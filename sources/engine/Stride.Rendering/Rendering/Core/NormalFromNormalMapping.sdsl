@@ -3,9 +3,13 @@
 /// <summary>
 /// Calculates the normal  the normals from a normal map.
 /// </summary>
-shader NormalFromNormalMapping : Transformation, NormalBase, NormalStream
+module NormalFromNormalMapping
 {
-    override module void GenerateNormal_PS()
+    import Transformation;
+    import NormalBase;
+    import NormalStream;
+
+    override void GenerateNormal_PS()
     {
         base.GenerateNormal_PS();
         UpdateTangentToWorld();
@@ -13,7 +17,7 @@ shader NormalFromNormalMapping : Transformation, NormalBase, NormalStream
         streams.meshNormalWS = mul(streams.meshNormal, (float3x3)WorldInverseTranspose);    // TODO: PERFORMANCE: Normalization required?
     }
 
-    override module float3x3 GetTangentWorldTransform()
+    override float3x3 GetTangentWorldTransform()
     {
         return (float3x3)WorldInverseTranspose;
     }

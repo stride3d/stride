@@ -7,8 +7,12 @@ namespace Stride.Rendering.Shadows
     /// Runs the material surface chain to populate shadingColorAlpha but never writes ColorTarget,
     /// so the resulting PS has no SV_Target output (depth-only).
     /// </summary>
-    shader ShadowMapCasterAlphaDiscard : Transformation, ShadingBase, PositionStream, MaterialPixelStream, MaterialPixelShadingStream, NormalUpdate
+    shader ShadowMapCasterAlphaDiscard : ShadingBase, MaterialPixelStream, MaterialPixelShadingStream
     {
+        import Transformation;
+        import PositionStream;
+        import NormalUpdate;
+
         override module void PSMain()
         {
             // Generate the normal/tangent frame first: the material chain in Shading() reads

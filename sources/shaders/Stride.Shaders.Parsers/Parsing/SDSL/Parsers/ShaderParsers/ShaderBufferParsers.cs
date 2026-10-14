@@ -167,8 +167,10 @@ public record struct BufferParsers : IParser<ShaderBuffer>
         StreamKind streamKind = StreamKind.None;
         bool hasAttributes = ShaderAttributeListParser.AttributeList(ref scanner, result, out var attributes, orError);
         var tmp = scanner.Position;
-        if (Tokens.AnyOf(["module", "stage"], ref scanner, out _, advance: true) && Parsers.Spaces1(ref scanner, result, out _))
+        if (Tokens.AnyOf(["module", "stage"], ref scanner, out var modifier, advance: true) && Parsers.Spaces1(ref scanner, result, out _))
         {
+            if (modifier == "stage")
+                Parsers.StageIsNowModule(ref scanner, result, tmp);
             isStage = true;
             tmp = scanner.Position;
         }

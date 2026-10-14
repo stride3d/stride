@@ -47,25 +47,25 @@ public class ParsingTests1
         Assert.Null(members[1].TypeName.ArraySize);
     }
 
-    // `module` marks a member of the shader's per-effect part; `stage` is the old spelling, still accepted
-    [Theory]
-    [InlineData("module")]
-    [InlineData("stage")]
-    public void ModuleModifierMarksEveryKindOfMember(string keyword)
+    const string EveryKindOfMember = """
+        shader S
+        {
+            {{keyword}} float A;
+            {{keyword}} stream float B;
+            {{keyword}} compose ComputeColor C;
+            {{keyword}} SamplerState D { Filter = MIN_MAG_MIP_LINEAR; };
+            cbuffer PerDraw { {{keyword}} float E; };
+            rgroup PerMaterial { {{keyword}} Texture2D F; };
+            {{keyword}} void G() { }
+            float H;
+        };
+        """;
+
+    // `module` marks a member of the shader's per-effect part
+    [Fact]
+    public void ModuleModifierMarksEveryKindOfMember()
     {
-        var text = $$"""
-            shader S
-            {
-                {{keyword}} float A;
-                {{keyword}} stream float B;
-                {{keyword}} compose ComputeColor C;
-                {{keyword}} SamplerState D { Filter = MIN_MAG_MIP_LINEAR; };
-                cbuffer PerDraw { {{keyword}} float E; };
-                rgroup PerMaterial { {{keyword}} Texture2D F; };
-                {{keyword}} void G() { }
-                float H;
-            };
-            """;
+        var text = EveryKindOfMember.Replace("{{keyword}}", "module");
         var result = SDSLParser.Parse(text);
         Assert.True(result.Errors.Count == 0, string.Join("\n", result.Errors.Select(x => x.ToString())));
 
@@ -86,6 +86,51 @@ public class ParsingTests1
             }
         }
         Assert.Equal(new Dictionary<string, bool> { ["A"] = true, ["B"] = true, ["C"] = true, ["D"] = true, ["E"] = true, ["F"] = true, ["G"] = true, ["H"] = false }, staged);
+    }
+
+    // `stage`, the old spelling of `module`, is an error that says the new one, once per place it is written
+    [Fact]
+    public void StageModifierIsAnError()
+    {
+        var result = SDSLParser.Parse(EveryKindOfMember.Replace("{{keyword}}", "stage"));
+        var errors = result.Errors.Where(x => x.Message == SDSLErrorMessages.SDSL0045).ToList();
+        Assert.Equal(7, errors.Count);
+        Assert.Equal(7, errors.Select(x => x.Location.Position).Distinct().Count());
+    }
+
+    // `class`, the old spelling of `shader`, is an error that says the new one, in each form of a class declaration; the upgrade reads it
+    [Theory]
+    [InlineData("class A { };")]
+    [InlineData("[Root]\nclass A { };")]
+    [InlineData("class A<float Scale> : B<Scale> { };")]
+    [InlineData("namespace N\n{\n    class A { };\n}\n")]
+    public void ClassKeywordIsAnError(string text)
+    {
+        var result = SDSLParser.Parse(text);
+        Assert.Single(result.Errors, x => x.Message == SDSLErrorMessages.SDSL0051);
+        Assert.Empty(SDSLParser.Parse(text, upgrade: true).Errors);
+        Assert.Empty(SDSLParser.Parse(text.Replace("class A", "shader A")).Errors);
+    }
+
+    // `module X { }` is a module unit, and `import X;` an element of a class body
+    [Fact]
+    public void ModuleUnitAndImport()
+    {
+        var result = SDSLParser.Parse("""
+            module M : Base<1>
+            {
+                import Other<2, PerMaterial>;
+                float A;
+            };
+            shader S { import M; };
+            """);
+        Assert.True(result.Errors.Count == 0, string.Join("\n", result.Errors.Select(x => x.ToString())));
+        var classes = ((ShaderFile)result.AST!).RootDeclarations.OfType<ShaderClass>().ToList();
+        Assert.True(classes[0].IsModule);
+        Assert.False(classes[1].IsModule);
+        Assert.Equal(["Base<1>"], classes[0].Mixins.Select(x => x.ToString()));
+        Assert.Equal("import Other<2,PerMaterial>", classes[0].Elements.OfType<ShaderImport>().Single().ToString());
+        Assert.Equal("import M", classes[1].Elements.OfType<ShaderImport>().Single().ToString());
     }
 
     // Regression test: a trailing-dot float literal (e.g. "1.") is valid per the HLSL grammar

@@ -6,8 +6,10 @@ namespace Stride.Rendering.Images
     /// <summary>
     /// Makes front-objects transparent for the back out-of-focus area.
     /// </summary>
-    shader ThresholdAlphaCoC: ImageEffectShader
+    shader ThresholdAlphaCoC
     {
+        import ImageEffectShader;
+
         // Previous CoC value (lower level)
         float CoCReference;
 

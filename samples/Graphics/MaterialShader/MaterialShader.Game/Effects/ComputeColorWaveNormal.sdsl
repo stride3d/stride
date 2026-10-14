@@ -1,8 +1,10 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-shader ComputeColorWaveNormal<float Frequency, float Amplitude, float Speed> : ComputeColor, Texturing
+shader ComputeColorWaveNormal<float Frequency, float Amplitude, float Speed> : ComputeColor
 {
+    import Texturing;
+
     override float4 Compute()
     {
         float2 offset = streams.TexCoord - 0.5;

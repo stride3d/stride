@@ -1,0 +1,5 @@
+// A class with instance state, so it stays a shader
+shader MyLocalLight
+{
+    float4 Color;
+};

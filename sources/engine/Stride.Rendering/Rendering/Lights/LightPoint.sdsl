@@ -5,8 +5,12 @@ namespace Stride.Rendering.Lights
     /// <summary>
     /// Defines a point light
     /// </summary>
-    shader LightPoint : LightUtil, LightStream, PositionStream4
+    shader LightPoint
     {
+        import LightUtil;
+        import LightStream;
+        import PositionStream4;
+
         struct PointLightData
         {
             float3 PositionWS;

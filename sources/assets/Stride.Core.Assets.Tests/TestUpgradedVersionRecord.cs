@@ -50,6 +50,15 @@ public class TestUpgradedVersionRecord : IDisposable
             => false;
     }
 
+    // A shader gate: an effect of an .sdfx file declared with `shader` is declared with `effect`, and a shader declared with `class`
+    // is declared with `shader`
+    [PackageUpgrader(["Stride.UpgradeRecord.ShaderGate"], "1.0.0", "2.0.0", Name = "ShaderGate")]
+    public class ShaderGateUpgrader : global::Stride.Assets.CodePackageUpgrader
+    {
+        public override void DeclareUpgrades(global::Stride.Assets.UpgradeRegistry registry)
+            => registry.Shader("2.0.0", "effect-keywords", "class-to-shader");
+    }
+
     // It has source migrations (see CodeRunner), which do nothing
     [PackageUpgrader(["UpgradeRecord.CodeRules"], "1.0.0", "2.0.0")]
     public class CodeRulesUpgrader : SucceedingUpgraderBase;
@@ -238,6 +247,59 @@ public class TestUpgradedVersionRecord : IDisposable
         // The project that references it is not upgraded at all
         Assert.Equal(windowsBefore, ReadFiles(windows));
         AssertError(result, "The upgrade of [Game.Windows] is stopped: the project it references, [Game], could not be upgraded");
+    }
+
+    [Fact]
+    public void AProjectWhoseShaderGatesCompletedRecordsTheVersion()
+    {
+        var game = WriteProject("Game", """<PackageReference Include="Stride.UpgradeRecord.ShaderGate" Version="1.0.0" />""");
+        var effect = Path.Combine(Path.GetDirectoryName(game)!, "Main.sdfx");
+        File.WriteAllText(effect, "namespace Game { shader Main { mixin Base; }; }");
+
+        LoadAndSave(game);
+
+        Assert.Equal("namespace Game { effect Main { mixin Base; }; }", File.ReadAllText(effect));
+        Assert.Equal(new Dictionary<string, string> { ["ShaderGate"] = "2.0.0" }, ReadRecords(game));
+    }
+
+    [Fact]
+    public void AFailedShaderUpgradeRecordsNothing()
+    {
+        var game = WriteProject("Game", """<PackageReference Include="Stride.UpgradeRecord.ShaderGate" Version="1.0.0" />""");
+        var windows = WriteProject("Game.Windows", """<ProjectReference Include="..\Game\Game.csproj" />""");
+        var effect = Path.Combine(Path.GetDirectoryName(game)!, "Main.sdfx");
+        File.WriteAllText(effect, "namespace Game { shader Main { mixin Base; }; }");
+
+        // The effect can't be read, on every OS: .NET enforces FileShare.None on Linux and macOS too
+        PackageSessionResult result;
+        using (new FileStream(effect, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+            result = LoadAndSave(WriteSolution(game, windows));
+
+        Assert.Empty(ReadRecords(game));
+        Assert.Empty(ReadRecords(windows));
+        AssertError(result, "Unable to read the shader [Main.sdfx]");
+        AssertError(result, "Error while upgrading package [Game] for [Stride.UpgradeRecord.ShaderGate]", "Restore the files it changed from the upgrade backup");
+        // Game comes first in the solution, and its references moved before its shader upgrade failed
+        AssertError(result, "The upgrade of [Game.Windows] is stopped: the project it references, [Game], could not be upgraded.", "Restore the files it changed from the upgrade backup");
+    }
+
+    [Fact]
+    public void AShaderThatCantBeReadFailsTheUpgradeBeforeAnyShaderIsWritten()
+    {
+        var game = WriteProject("Game", """<PackageReference Include="Stride.UpgradeRecord.ShaderGate" Version="1.0.0" />""");
+        var effect = Path.Combine(Path.GetDirectoryName(game)!, "Main.sdfx");
+        File.WriteAllText(effect, "namespace Game { shader Main { mixin Base; }; }");
+        var shader = Path.Combine(Path.GetDirectoryName(game)!, "Base.sdsl");
+        File.WriteAllText(shader, "namespace Game { shader Base { }; }");
+
+        PackageSessionResult result;
+        using (new FileStream(shader, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+            result = LoadAndSave(game);
+
+        Assert.Equal("namespace Game { shader Main { mixin Base; }; }", File.ReadAllText(effect));
+        Assert.Empty(ReadRecords(game));
+        AssertError(result, "Unable to read the shader [Base.sdsl]");
+        AssertError(result, "Error while upgrading package [Game] for [Stride.UpgradeRecord.ShaderGate]", "Restore the files it changed from the upgrade backup");
     }
 
     [Theory]

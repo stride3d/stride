@@ -1,0 +1,8 @@
+// No instance state, but MyCookieReceiver overrides its method: a shader, one chain per light group
+shader MyCookieGroup
+{
+    float3 ComputeCookie(float3 positionWS, int lightIndex)
+    {
+        return 1.0f;
+    }
+};

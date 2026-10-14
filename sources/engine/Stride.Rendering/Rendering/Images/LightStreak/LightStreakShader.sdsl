@@ -7,8 +7,10 @@ namespace Stride.Rendering.Images
     /// LightStreak shader. This extends colors along a direction, while applying an attenuation 
     /// factor along the way. 
     /// </summary>
-    internal shader LightStreakShader<int TapCount, int AnamorphicCount> : ImageEffectShader
+    internal shader LightStreakShader<int TapCount, int AnamorphicCount>
     {
+        import ImageEffectShader;
+
         // Offset of the taps and their own weights
         module float2 TapOffsetsWeights[TapCount];
 

@@ -3,7 +3,7 @@
 
 namespace Stride.Rendering.Materials
 {
-    class MaterialSubsurfaceScatteringScatteringProfileSkin : IMaterialSubsurfaceScatteringScatteringProfile
+    shader MaterialSubsurfaceScatteringScatteringProfileSkin : IMaterialSubsurfaceScatteringScatteringProfile
     {
         override float3 Compute(float dd)
         {

@@ -1,0 +1,16 @@
+// Uses a displacement feature in a composition slot, as a material does
+shader MyDisplacementRoot
+{
+    import ShaderBase;
+    import TransformationBase;
+    import PositionStream4;
+
+    compose IMaterialSurface Surface;
+
+    module stream float4 ColorTarget : SV_Target0;
+
+    module override void PSMain()
+    {
+        streams.ColorTarget = streams.PositionWS;
+    }
+};

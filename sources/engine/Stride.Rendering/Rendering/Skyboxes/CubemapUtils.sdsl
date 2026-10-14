@@ -5,7 +5,7 @@ namespace Stride.Rendering.Cubemap
     /// <summary>
     /// Utilities functions for cubemap sampling.
     /// </summary>
-    shader CubemapUtils
+    module CubemapUtils
     {
         // The standard cubemap face layout, shared by Direct3D, OpenGL and Vulkan
         //  ________ ________ ________ ________ ________ ________

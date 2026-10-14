@@ -6,8 +6,10 @@ namespace Stride.Rendering.Images
     /// <summary>
     /// Importance sampling for the GGX function.
     /// </summary>
-    shader ImportanceSamplingGGX : Math
+    module ImportanceSamplingGGX
     {    
+        import Math;
+
         float3 GetSample(float2 xi, float roughness, float3 N)
         {
             float a = roughness * roughness;

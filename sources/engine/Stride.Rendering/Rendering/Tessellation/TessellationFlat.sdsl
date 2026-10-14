@@ -18,7 +18,7 @@ shader TessellationFlat : TessellationBase
         return ComputeClippingGroup3(input[0].PositionWS, input[1].PositionWS, input[2].PositionWS);
     }
 
-    float ComputeClippingGroup3(float4 f3Position1, float4 f3Position2, float4 f3Position3)
+    module float ComputeClippingGroup3(float4 f3Position1, float4 f3Position2, float4 f3Position3)
     {
         float4 clipPos1 = this.ComputeShadingPosition(float4(f3Position1.xyz, 1.0f));
         float4 clipPos2 = this.ComputeShadingPosition(float4(f3Position2.xyz, 1.0f));

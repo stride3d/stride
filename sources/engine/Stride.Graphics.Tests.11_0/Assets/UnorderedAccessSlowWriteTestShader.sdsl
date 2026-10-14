@@ -7,8 +7,10 @@ namespace Stride.Graphics.Tests
     /// Writes index * 3 into a structured buffer after a busy loop, so the dispatch runs long enough for a next
     /// dispatch to overlap it when nothing orders them.
     /// </summary>
-    internal shader UnorderedAccessSlowWriteTestShader : ComputeShaderBase
+    internal shader UnorderedAccessSlowWriteTestShader
     {
+        import ComputeShaderBase;
+
         module RWStructuredBuffer<uint> Output;
         module uint Iterations;
 

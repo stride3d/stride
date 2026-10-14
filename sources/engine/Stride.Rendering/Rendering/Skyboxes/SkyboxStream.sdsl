@@ -2,9 +2,9 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 namespace Stride.Rendering.Skyboxes
 {
-    shader SkyboxStream
+    module SkyboxStream
     {
-        module stream float3 skyboxViewDirection;
+        stream float3 skyboxViewDirection;
     };
 }
 

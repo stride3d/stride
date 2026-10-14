@@ -16,7 +16,7 @@ shader TessellationPN : TessellationFlat
     stream float3 nextPositionVS1;
     stream float3 nextPositionVS2;
 
-    float3 ComputeControlPoint(float3 pA, float3 pB, float3 nA)
+    module float3 ComputeControlPoint(float3 pA, float3 pB, float3 nA)
     {
         return (2.0 * pA + pB - (dot((pB - pA), nA) * nA)) / 3.0f;
     }
@@ -48,7 +48,7 @@ shader TessellationPN : TessellationFlat
         return !all(planeTest != 0.0f) ? 1.0 : 0.0;
     }
 
-    float ComputeClippingGroup8(float3 f3Position1, float3 f3Position2, float3 f3Position3, float3 f3Position4, float3 f3Position5, float3 f3Position6, float3 f3Position7, float3 f3Position8)
+    module float ComputeClippingGroup8(float3 f3Position1, float3 f3Position2, float3 f3Position3, float3 f3Position4, float3 f3Position5, float3 f3Position6, float3 f3Position7, float3 f3Position8)
     {
         float4 clipPos1 = this.ComputeShadingPosition(float4(f3Position1.xyz, 1.0f));
         float4 clipPos2 = this.ComputeShadingPosition(float4(f3Position2.xyz, 1.0f));

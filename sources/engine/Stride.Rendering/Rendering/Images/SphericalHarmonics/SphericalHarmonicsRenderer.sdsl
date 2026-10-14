@@ -6,8 +6,11 @@ namespace Stride.Rendering.Images
     /// <summary>
     /// A shader performing Lambertian pre-filtering.
     /// </summary>
-    internal shader SphericalHarmonicsRenderer<int THarmonicsOrder>: SphericalHarmonicsBase<THarmonicsOrder>, ImageEffectShader, Texturing
+    internal shader SphericalHarmonicsRenderer<int THarmonicsOrder> : SphericalHarmonicsBase<THarmonicsOrder>
     {    
+        import ImageEffectShader;
+        import Texturing;
+
         [Color] module float3 SHCoefficients[CoefficientsCount];
 
         // Shading of the sprite

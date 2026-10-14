@@ -5,8 +5,10 @@ namespace Stride.Rendering.Lights
     /// <summary>
     /// Defines a group of point lights in clustered shading.
     /// </summary>
-    shader LightClusteredPointGroup : DirectLightGroup, LightClustered, LightPoint
+    shader LightClusteredPointGroup : DirectLightGroup, LightPoint
     {
+        import LightClustered;
+
         rgroup PerView.Lighting
         {
             module Buffer<float4> PointLights;

@@ -5,43 +5,48 @@
 # define UsesSoftEdge 0
 #endif
 
-shader ParticleBase : DepthBase, ShaderBase, Texturing, ParticleUtilities
+module ParticleBase
 {
+    import DepthBase;
+    import ShaderBase;
+    import Texturing;
+    import ParticleUtilities;
+
     // -------------------------------------
     // streams
     // -------------------------------------
 
     // Shading position of the vertices/pixels
-    module stream float4 Position : POSITION;
+    stream float4 Position : POSITION;
 
 #if STRIDE_GRAPHICS_PROFILE >= GRAPHICS_PROFILE_LEVEL_10_0
     // No extra streams are required
 #else
-    module stream float4 ScreenPosition : SCREEN_POSITION;
+    stream float4 ScreenPosition : SCREEN_POSITION;
 #endif
 
     // Linear depth of the position in view space in world units, used for soft edges
-    module stream float ZDepth : Z_DEPTH_VALUE;
+    stream float ZDepth : Z_DEPTH_VALUE;
 
     // -------------------------------------
     // conditional streams - may or may not be present depending on existing particle fields
     // -------------------------------------
     //stage stream float4 Color : COLOR;
-    nointerpolation module stream float Lifetime : BATCH_LIFETIME;
-    nointerpolation module stream float RandomSeed : BATCH_RANDOMSEED; // Ideally should be uint. Note! The sdsl doesn't support nointerpolation, so cast the float as int before using it
+    nointerpolation stream float Lifetime : BATCH_LIFETIME;
+    nointerpolation stream float RandomSeed : BATCH_RANDOMSEED; // Ideally should be uint. Note! The sdsl doesn't support nointerpolation, so cast the float as int before using it
 
     cbuffer PerMaterial
     {
-        module float4 ColorScale;
+        float4 ColorScale;
 
         // When the value is 0 there is no occlusion (100% emissive), when it is 1 there is 100% occlusion (still limited by alpha)
-        module float AlphaAdditive;
+        float AlphaAdditive;
 
         // Z offset is how much the depth should be adjusted when rendering
-        module float ZOffset;
+        float ZOffset;
 
         // 0 if disabled, equal to 1/Distance otherwise
-        module float SoftEdgeInverseDistance;
+        float SoftEdgeInverseDistance;
     }
             
     // -------------------------------------
@@ -49,7 +54,7 @@ shader ParticleBase : DepthBase, ShaderBase, Texturing, ParticleUtilities
     // -------------------------------------
 
     // Override Vertex shader main method from the ShaderBase shader
-    module override void VSMain()
+    override void VSMain()
     {
         float4 worldPos = streams.Position;
 
@@ -80,7 +85,7 @@ shader ParticleBase : DepthBase, ShaderBase, Texturing, ParticleUtilities
     // -------------------------------------
 
     // Override Pixel shader main method from the ShaderBase shader
-    module override void PSMain()
+    override void PSMain()
     {
         float4 colorTarget = Shading();
 
@@ -124,7 +129,7 @@ shader ParticleBase : DepthBase, ShaderBase, Texturing, ParticleUtilities
         streams.ColorTarget = colorTarget;
     }
     
-    module float4 Shading()
+    float4 Shading()
     {
         return ColorScale;
     }

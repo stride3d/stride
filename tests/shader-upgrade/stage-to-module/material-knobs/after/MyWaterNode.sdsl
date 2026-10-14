@@ -1,0 +1,23 @@
+// A material node whose knobs are per effect (written with `stage` before Stride 4.5)
+shader MyWaterNode : ComputeColor
+{
+    import Texturing;
+
+    module Texture2D WaterNormalMap;
+    module float WaveSpeed;
+    module stream float2 WaterUV;
+
+    cbuffer PerMaterial
+    {
+        module float Roughness;
+    };
+
+    // Comments and names keep the word: a stage float here is not a modifier
+    float stageCount;
+
+    override float4 Compute()
+    {
+        float stage = WaveSpeed * Global.Time;
+        return WaterNormalMap.Sample(LinearSampler, streams.TexCoord + stage) * Roughness * stageCount;
+    }
+};

@@ -5,8 +5,11 @@
 /// Packed morph entry decoding and basis preparation shared by vertex and compute deformation.
 /// Buffer access and attribute selection belong to each path; these helpers operate only on values.
 /// </summary>
-shader MorphTargetUtil : NormalUtil, Utilities
+module MorphTargetUtil
 {
+    import NormalUtil;
+    import Utilities;
+
     // A MeshMorphEntry stores shape | position.x, position.yz, normal.xy, normal.z | tangent.x, tangent.yz.
     float3 DecodeMorphPosition(uint shapeAndPositionX, uint positionYZ)
     {

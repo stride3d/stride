@@ -1,0 +1,8 @@
+// Calls the cookie of its own node
+shader MyLightGroup : MyCookieGroup
+{
+    float3 Shade(float3 positionWS)
+    {
+        return ComputeCookie(positionWS, 0);
+    }
+};

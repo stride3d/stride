@@ -4,8 +4,13 @@
 /// <remarks>
 /// TSampleCount: generic int - number of iterations.
 /// </remarks>
-shader PostEffectBoundingRay<int TSampleCount> : ImageEffectShader, DepthBase, Transformation, PositionStream4
+module PostEffectBoundingRay<int TSampleCount>
 {
+    import ImageEffectShader;
+    import DepthBase;
+    import Transformation;
+    import PositionStream4;
+
     float3 ComputeColorOut() 
     {
         return 0;
@@ -31,7 +36,7 @@ shader PostEffectBoundingRay<int TSampleCount> : ImageEffectShader, DepthBase, T
         return float4(lightAcc.xxx, 1.0f);
     }
 
-    module override void PSMain()
+    override void PSMain()
     {
         // minmax.x = min
         // minmax.y = max

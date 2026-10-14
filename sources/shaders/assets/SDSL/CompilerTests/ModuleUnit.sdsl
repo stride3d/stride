@@ -1,0 +1,21 @@
+// Every member of a module is a module member, with no modifier
+namespace Stride.Shaders.Tests;
+
+module ModuleUnit
+{
+    float A;
+
+    cbuffer PerDraw
+    {
+        float B;
+    };
+
+    stream float C;
+
+    SamplerState Sampler;
+
+    float Get()
+    {
+        return A + B;
+    }
+};

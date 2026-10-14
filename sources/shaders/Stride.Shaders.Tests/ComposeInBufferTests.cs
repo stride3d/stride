@@ -34,7 +34,7 @@ public class ComposeInBufferTests
     [Fact]
     public void OutsideTheBlockIsFine()
     {
-        var result = SDSLParser.Parse("shader S { rgroup PerMaterial { module Texture2D ShrinkTexture; } stage compose ComputeFloat ShrinkStrength; module stream float2 ObjectUV; };");
+        var result = SDSLParser.Parse("shader S { rgroup PerMaterial { module Texture2D ShrinkTexture; } module compose ComputeFloat ShrinkStrength; module stream float2 ObjectUV; };");
         Assert.True(result.Errors.Count == 0, string.Join("\n", result.Errors.Select(x => x.ToString())));
     }
 }
