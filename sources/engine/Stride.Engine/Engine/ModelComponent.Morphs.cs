@@ -16,7 +16,6 @@ public sealed partial class ModelComponent
     private float[][] meshWeights = Array.Empty<float[]>();
     private int appliedAuthoringVersion = -1;
     private bool meshWeightsDirty = true;
-    private bool morphInitialized;
 
     /// <summary>
     /// The authored morph settings, saved with the component: whether morphs apply, and the weight of each target by name.
@@ -89,8 +88,6 @@ public sealed partial class ModelComponent
     {
         if (Model == null)
         {
-            if (morphModel != null && morphInitialized)
-                Morphs.Weights.Clear();
             morphModel = null;
             morphLayout = null;
             slotWeights = Array.Empty<float>();
@@ -99,8 +96,6 @@ public sealed partial class ModelComponent
         }
         if (ReferenceEquals(Model, morphModel) && morphLayout != null && morphLayout.Matches(Model))
             return;
-        if (morphModel != null && morphInitialized && !ReferenceEquals(Model, morphModel))
-            Morphs.Weights.Clear();
         morphLayout = ModelMorphLayout.Get(Model);
         morphModel = Model;
         slotWeights = new float[morphLayout.SlotNames.Length];
@@ -109,8 +104,6 @@ public sealed partial class ModelComponent
             meshWeights[mesh] = new float[morphLayout.SlotByMeshTarget[mesh].Length];
         appliedAuthoringVersion = -1;
         meshWeightsDirty = true;
-        // An editor asset proxy has no meshes; binding it must not erase serialized settings.
-        morphInitialized |= Model.Meshes.Count != 0;
     }
 
     private void ApplyAuthoredWeights()

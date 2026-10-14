@@ -42,7 +42,7 @@ public class TestModelComponentMorphs
     }
 
     [Fact]
-    public void SerializedControlsSurviveDelayedLoadingAndResetOnReplacement()
+    public void SerializedControlsSurviveDelayedLoadingAndReplacement()
     {
         var component = new ModelComponent();
         Author(component, "Smile", 0.125f);
@@ -57,7 +57,9 @@ public class TestModelComponentMorphs
         Assert.Equal(0.125f, restored.GetMorphWeight(restored.FindMorphTarget("Smile")));
         restored.Model = ModelWithTargets(target: "Blink");
         Assert.Equal(0, restored.GetMorphWeight(restored.FindMorphTarget("Blink")));
-        Assert.Empty(restored.Morphs.Weights);
+        Assert.Equal(0.125f, restored.Morphs.Weights["Smile"]);
+        restored.Model = ModelWithTargets();
+        Assert.Equal(0.125f, restored.GetMorphWeight(restored.FindMorphTarget("Smile")));
     }
 
     [Fact]
