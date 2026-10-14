@@ -471,9 +471,13 @@ namespace Stride.Graphics.Regression
         ///   A value indicating whether to capture a screenshot once the test has finished.
         ///   <see langword="true"/> to take a screenshot; otherwise, <see langword="false"/>.
         /// </param>
+        /// <param name="callerName">
+        ///   The calling test method, whose <see cref="AllowGpuValidationErrorAttribute"/>s apply. Filled in by the compiler.
+        /// </param>
         protected void PerformTest(Action<GameTestBase> testAction,
                                    GraphicsProfile? profileOverride = null,
-                                   bool takeSnapshot = false)
+                                   bool takeSnapshot = false,
+                                   [CallerMemberName] string callerName = null)
         {
             // Create a new test game instance
             var typeGame = GetType();
@@ -489,7 +493,7 @@ namespace Stride.Graphics.Regression
                 game.FrameGameSystem.TakeScreenshot();
 
             // Run the test
-            RunGameTest(game);
+            RunGameTest(game, callerName);
         }
 
         /// <summary>
@@ -512,6 +516,9 @@ namespace Stride.Graphics.Regression
         ///   A value indicating whether to capture a screenshot once the test has finished.
         ///   <see langword="true"/> to take a screenshot; otherwise, <see langword="false"/>.
         /// </param>
+        /// <param name="callerName">
+        ///   The calling test method, whose <see cref="AllowGpuValidationErrorAttribute"/>s apply. Filled in by the compiler.
+        /// </param>
         /// <remarks>
         ///   This method initializes a new test game instance, sets up an empty scene, and configures
         ///   a very simple graphics compositor to use the provided rendering callback.
@@ -519,7 +526,8 @@ namespace Stride.Graphics.Regression
         protected void PerformDrawTest(Action<GameTestBase, RenderDrawContext> drawTestAction,
                                        GraphicsProfile? profileOverride = null,
                                        string? subTestName = null,
-                                       bool takeSnapshot = true)
+                                       bool takeSnapshot = true,
+                                       [CallerMemberName] string callerName = null)
         {
             // Create a new test game instance
             var typeGame = GetType();
@@ -544,7 +552,7 @@ namespace Stride.Graphics.Regression
             };
 
             // Run the test
-            RunGameTest(game);
+            RunGameTest(game, callerName);
         }
 
         /// <summary>
