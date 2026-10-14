@@ -154,6 +154,7 @@ namespace Stride.Graphics
 
             // Checks the features supported by the new Graphics Device
             deviceFeatures = new GraphicsDeviceFeatures(this);
+            Log.Info($"Graphics device: {Adapter?.Description ?? "unknown adapter"} ({Platform})\n  {deviceFeatures}");
             LimitFeaturesToEffectProfile();
 
             // Initialize the internal states of the new Graphics Device
@@ -323,6 +324,7 @@ namespace Stride.Graphics
             {
                 shaderProfile = value;
                 LimitFeaturesToEffectProfile();
+                Log.Info($"Effects compiled for {EffectProfile}");
             }
         }
         private GraphicsProfile? shaderProfile;
@@ -335,10 +337,6 @@ namespace Stride.Graphics
         private void LimitFeaturesToEffectProfile()
         {
             features = deviceFeatures.LimitedTo(EffectProfile);
-
-            // Features are built on both the create and the reset path, and again when the effect profile changes.
-            // Anything that reports them from elsewhere goes stale.
-            Log.Info($"Graphics device: {Adapter?.Description ?? "unknown adapter"} ({Platform}), effects compiled for {EffectProfile}\n  {features}");
         }
 
 
