@@ -489,7 +489,21 @@
                             <Button DockPanel.Dock="Left"
                                     Margin="0,0,4,0" Width="32" Height="32"
                                     Command="{Binding ReleaseNotes.ToggleCommand}"
+                                    IsVisible="{Binding !IsNightly}"
                                     ToolTip.Tip="{x:Static l:Strings.ToolTipReleaseNotes}">
+                              <Interaction.Behaviors>
+                                <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding Launcher.CurrentToolTip}"
+                                                                     DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
+                              </Interaction.Behaviors>
+                              <PathIcon Width="20" Height="20"
+                                        Data="{StaticResource GeometryNotes}"/>
+                            </Button>
+                            <!-- What's new, in place of the release notes of a nightly: its changes on GitHub -->
+                            <Button DockPanel.Dock="Left"
+                                    Margin="0,0,4,0" Width="32" Height="32"
+                                    Command="{Binding WhatsNewCommand}"
+                                    IsVisible="{Binding IsNightly}"
+                                    ToolTip.Tip="{Binding WhatsNewToolTip}">
                               <Interaction.Behaviors>
                                 <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding Launcher.CurrentToolTip}"
                                                                      DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>

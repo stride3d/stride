@@ -275,7 +275,8 @@ public abstract class StrideVersionViewModel : PackageVersionViewModel, ICompara
     public int CompareTo((int Major, int Minor, bool IsNightly) other) => Compare((Major, Minor, IsNightly), other);
 
     /// <summary>
-    /// Orders the rows: newest major.minor first, the nightly row of a major.minor right after its release row.
+    /// Orders the rows, newest first: newest major.minor first, the nightly row of a major.minor right before its release
+    /// row (its nightlies are newer than its releases and prereleases).
     /// </summary>
     internal static int Compare((int Major, int Minor, bool IsNightly) x, (int Major, int Minor, bool IsNightly) y)
     {
@@ -283,6 +284,6 @@ public abstract class StrideVersionViewModel : PackageVersionViewModel, ICompara
         if (r != 0)
             return -r;
         r = x.Minor.CompareTo(y.Minor);
-        return r != 0 ? -r : x.IsNightly.CompareTo(y.IsNightly);
+        return r != 0 ? -r : y.IsNightly.CompareTo(x.IsNightly);
     }
 }

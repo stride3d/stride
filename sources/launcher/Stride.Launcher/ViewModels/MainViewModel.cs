@@ -215,11 +215,28 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
 
     private async Task SetNightlyFeed(bool enabled)
     {
-        await RunLockTask(() =>
+        // Turning them on asks every time: it's rare, and the moment to read what nightlies are
+        if (enabled && await ServiceProvider.Get<IDialogService>().MessageBoxAsync(Strings.AskShowNightlyBuilds, MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
         {
-            store.SetPackageSource(NightlyFeedName, NightlyFeedUrl, enabled);
-            return true;
-        });
+            // The check box shows the feed again
+            OnPropertyChanged(nameof(ShowNightlyBuilds));
+            return;
+        }
+        try
+        {
+            await RunLockTask(() =>
+            {
+                store.SetPackageSource(NightlyFeedName, NightlyFeedUrl, enabled);
+                return true;
+            });
+        }
+        catch (Exception e)
+        {
+            // A NuGet.config that can't be written: the check box shows the feed as it is
+            OnPropertyChanged(nameof(ShowNightlyBuilds));
+            await ServiceProvider.Get<IDialogService>().MessageBoxAsync(string.Format(Strings.ErrorChangingNuGetConfig, e.Message), MessageBoxButton.OK, MessageBoxImage.Error);
+            return;
+        }
         OnPropertyChanged(nameof(ShowNightlyBuilds));
         // The server listing only adds and updates rows: the rows of nightlies that aren't installed go first
         await Dispatcher.InvokeAsync(() => strideVersions.RemoveWhere(x => x is StrideStoreVersionViewModel { IsNightly: true, CanDelete: false }));
@@ -586,8 +603,16 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
             {
                 foreach (var project in currentRecentProjects)
                     project.UpdateOpenOptions(StrideVersions);
+                UpdateWhatsNewToolTips();
             });
         }
+    }
+
+    // The What's new tooltip of a nightly row names the build it starts from, which can be in another row
+    private void UpdateWhatsNewToolTips()
+    {
+        foreach (var version in StrideVersions.OfType<StrideStoreVersionViewModel>().Where(x => x.IsNightly))
+            version.UpdateWhatsNewToolTip();
     }
 
     // Once the local builds are listed too: they can be the active version, or the only installed ones
@@ -695,6 +720,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
 
                 OnPropertyChanging(nameof(ActiveDocumentationPages));
                 OnPropertyChanged(nameof(ActiveDocumentationPages));
+                UpdateWhatsNewToolTips();
             });
         }
     }

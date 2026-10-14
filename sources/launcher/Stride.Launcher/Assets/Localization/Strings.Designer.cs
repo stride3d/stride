@@ -344,7 +344,7 @@ namespace Stride.Launcher.Assets.Localization {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to Lists the nightly builds of the development branches in rows of their own. They are not signed and not tested as much as releases..
+        ///   Looks up a localized string similar to Lists the nightly builds of the development branches in rows of their own.
         /// </summary>
         public static string ToolTipShowNightlyBuilds {
             get {
@@ -367,6 +367,46 @@ namespace Stride.Launcher.Assets.Localization {
         public static string BadgeNightly {
             get {
                 return ResourceManager.GetString("BadgeNightly", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Nightly builds are built every night from the development branches of Stride. They are not signed, and not tested as much as releases.
+        ///
+        ///Project upgrades might not be fully tested: back up your projects before opening them with a nightly build, and use nightly builds at your own risk.
+        ///
+        ///Show the nightly builds?.
+        /// </summary>
+        public static string AskShowNightlyBuilds {
+            get {
+                return ResourceManager.GetString("AskShowNightlyBuilds", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to An error occurred while changing your NuGet.config: {0}.
+        /// </summary>
+        public static string ErrorChangingNuGetConfig {
+            get {
+                return ResourceManager.GetString("ErrorChangingNuGetConfig", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to What's new in {0}, on GitHub.
+        /// </summary>
+        public static string ToolTipWhatsNew {
+            get {
+                return ResourceManager.GetString("ToolTipWhatsNew", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to What's new in {0} since {1}, on GitHub.
+        /// </summary>
+        public static string ToolTipWhatsNewSince {
+            get {
+                return ResourceManager.GetString("ToolTipWhatsNewSince", resourceCulture);
             }
         }
 

@@ -69,7 +69,14 @@ public partial class NugetStore : INugetDownloadProgress
         // Older launchers added the legacy feed (Xenko 3.0 and lower) to the user's NuGet.config
         RemoveLegacyFeedSources(settings);
 
-        settings.SaveToDisk();
+        try
+        {
+            settings.SaveToDisk();
+        }
+        catch (NuGetConfigurationException)
+        {
+            // Best effort: a NuGet.config that can't be written keeps the sources this cleanup would remove
+        }
 
         InstallPath = SettingsUtility.GetGlobalPackagesFolder(settings);
 
@@ -972,6 +979,38 @@ public partial class NugetStore : INugetDownloadProgress
             {
                 // Ignore 404/403 etc... (invalid sources)
             }
+        }
+    }
+
+    private static readonly HttpClient NuspecHttpClient = new(new HttpClientHandler { AutomaticDecompression = System.Net.DecompressionMethods.All });
+
+    /// <summary>
+    /// Gets the commit a package of a feed was built from (<c>&lt;repository commit="..."&gt;</c> of its nuspec), or null when
+    /// the feed or the nuspec doesn't say. Only its nuspec is downloaded, from the package base address of the feed.
+    /// </summary>
+    public async Task<string?> GetRepositoryCommitAsync(NugetServerPackage package, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var repository = sourceRepositoryProvider.CreateRepository(new PackageSource(package.Source));
+            var serviceIndex = await repository.GetResourceAsync<ServiceIndexResourceV3>(cancellationToken);
+            var baseAddress = serviceIndex?.GetServiceEntryUri(ServiceTypes.PackageBaseAddress);
+            if (baseAddress is null)
+                return null;
+
+            var id = package.Id.ToLowerInvariant();
+            var version = package.NuGetVersion.ToNormalizedString().ToLowerInvariant();
+            var nuspecUri = new Uri($"{baseAddress.AbsoluteUri.TrimEnd('/')}/{id}/{version}/{id}.nuspec");
+            using var response = await NuspecHttpClient.GetAsync(nuspecUri, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+                return null;
+            await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+            return new NuspecReader(stream).GetRepositoryMetadata()?.Commit is { Length: > 0 } commit ? commit : null;
+        }
+        // Best effort, whatever goes wrong (a timeout is a TaskCanceledException), unless the caller cancels
+        catch (Exception e) when (e is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
+        {
+            return null;
         }
     }
 

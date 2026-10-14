@@ -9,13 +9,13 @@ namespace Stride.Launcher.Tests;
 public sealed class VersionRowOrderTests
 {
     [Fact]
-    public void NightlyRow_FollowsTheReleaseRowOfItsMajorMinor()
+    public void NightlyRow_PrecedesTheReleaseRowOfItsMajorMinor()
     {
         (int, int, bool)[] rows = [(4, 4, false), (4, 5, true), (4, 3, false), (4, 5, false), (4, 4, true)];
 
         var ordered = rows.Order(Comparer<(int, int, bool)>.Create((x, y) => StrideVersionViewModel.Compare(x, y))).ToArray();
 
-        Assert.Equal([(4, 5, false), (4, 5, true), (4, 4, false), (4, 4, true), (4, 3, false)], ordered);
+        Assert.Equal([(4, 5, true), (4, 5, false), (4, 4, true), (4, 4, false), (4, 3, false)], ordered);
     }
 
     [Fact]
