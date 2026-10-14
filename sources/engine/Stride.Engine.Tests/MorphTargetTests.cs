@@ -3,22 +3,30 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using Xunit;
 using Stride.Animations;
 using Stride.Core;
 using Stride.Core.Mathematics;
+using Stride.Extensions;
 using Stride.Graphics;
+using Stride.Graphics.GeometricPrimitives;
 using Stride.Graphics.Regression;
 using Stride.Rendering;
+using Stride.Rendering.Lights;
+using Stride.Rendering.Materials;
+using Stride.Rendering.Materials.ComputeColors;
+using Stride.Rendering.Shadows;
 
 namespace Stride.Engine.Tests
 {
     /// <summary>
     /// Renders a skinned model with morph targets: the bind pose, morph weights alone, morphs with skinning, and a model
-    /// scaled to zero. Then renders the same frame with each deformation path and checks that they match, and checks that
-    /// a model outside every view is not deformed.
+    /// scaled to zero. Then renders the same frame with each deformation path and checks that they match. Last, checks
+    /// that a model outside every view is not deformed, is deformed in the first frame it is visible again, and is
+    /// deformed when only a shadow view collects it.
     /// </summary>
     public class MorphTargetTests : EngineTestBase
     {
@@ -35,8 +43,9 @@ namespace Stride.Engine.Tests
         private readonly List<Entity> donuts = new();
         private readonly Dictionary<MeshDeformationOverride, Image> capturedFrames = new();
         private MeshDeformationOverride captureNextFrame;
-        private bool countUncollectedModels;
-        private int uncollectedModelCount = -1;
+        // Frames at which to count the models no view collected, and the counts.
+        private readonly List<int> countFrames = new();
+        private readonly Dictionary<int, int> uncollectedModelCounts = new();
 
         public MorphTargetTests()
         {
@@ -53,6 +62,7 @@ namespace Stride.Engine.Tests
         protected override async Task LoadContent()
         {
             await base.LoadContent();
+            EnableDirectionalShadows();
 
             var model = Content.Load<Model>("MorphDonut Model");
             var clip = Content.Load<AnimationClip>("MorphDonut Animation");
@@ -125,22 +135,71 @@ namespace Stride.Engine.Tests
             // A donut behind the camera (at z = 18, looking at the origin) is not collected by any view, so it is not
             // deformed. The other four, the middle one at its normal scale again, are.
             frame += 2;
+            var firstDonutPosition = donuts[0].Transform.Position;
             FrameGameSystem.Draw(frame - 1, () =>
             {
                 donuts[DonutCount / 2].Transform.Scale = Vector3.One;
                 donuts[0].Transform.Position = new Vector3(0, 0, 60.0f);
             });
-            FrameGameSystem.Draw(frame, () => countUncollectedModels = true);
+            countFrames.Add(frame);
+
+            // Back in view: the donut is deformed in the first frame it is visible again, not one frame later.
+            frame += 1;
+            FrameGameSystem.Update(frame, () => donuts[0].Transform.Position = firstDonutPosition).TakeScreenshot(frame);
+
+            // Above the camera's view, under a light pointing down: only a shadow view collects the donut, which must
+            // deform it, so its shadow on the ground is deformed too.
+            frame += 2;
+            FrameGameSystem.Draw(frame - 1, () =>
+            {
+                AddGroundAndShadowLight();
+                donuts[0].Transform.Position = new Vector3(0, 12.0f, -6.0f);
+            }).TakeScreenshot(frame);
+            countFrames.Add(frame);
+        }
+
+        // The shared test compositor renders no shadows; the shadow step needs directional light shadow maps.
+        private void EnableDirectionalShadows()
+        {
+            var compositor = SceneSystem.GraphicsCompositor;
+            var shadowCasterStage = compositor.RenderStages.First(stage => stage.Name == "ShadowMapCaster");
+            var meshFeature = compositor.RenderFeatures.OfType<MeshRenderFeature>().First();
+            var lightingFeature = meshFeature.RenderFeatures.OfType<ForwardLightingRenderFeature>().First();
+            lightingFeature.ShadowMapRenderer = new ShadowMapRenderer
+            {
+                Renderers = { new LightDirectionalShadowMapRenderer { ShadowCasterRenderStage = shadowCasterStage } },
+            };
+        }
+
+        private void AddGroundAndShadowLight()
+        {
+            // A white ground, so the donuts' shadows stand out from the pink donuts.
+            var material = Material.New(GraphicsDevice, new MaterialDescriptor
+            {
+                Attributes =
+                {
+                    Diffuse = new MaterialDiffuseMapFeature(new ComputeColor(Color.DarkGray)),
+                    DiffuseModel = new MaterialDiffuseLambertModelFeature(),
+                },
+            });
+            GeometricPrimitive<VertexPositionNormalTexture> plane = GeometricPrimitive.Plane.New(GraphicsDevice, 60.0f, 60.0f, normalDirection: NormalDirection.UpY);
+            var ground = new Entity { new ModelComponent { Model = new Model { new Mesh { Draw = plane.ToMeshDraw() }, new MaterialInstance(material) } } };
+            ground.Transform.Position = new Vector3(0, -1.5f, 0);
+            Scene.Entities.Add(ground);
+
+            var light = new Entity { new LightComponent { Type = new LightDirectional { Shadow = { Enabled = true } } } };
+            // A directional light points along its forward axis (-Z): turn it to point down (-Y).
+            light.Transform.Rotation = Quaternion.RotationX(-MathUtil.PiOverTwo);
+            Scene.Entities.Add(light);
         }
 
         protected override void Draw(Stride.Games.GameTime gameTime)
         {
             base.Draw(gameTime);
-            if (countUncollectedModels)
+            if (countFrames.Contains(FrameGameSystem.CurrentFrame))
             {
                 var modelProcessor = SceneSystem.SceneInstance.GetProcessor<ModelRenderProcessor>();
-                uncollectedModelCount = modelProcessor.DeformationRenderer.UncollectedModelCount;
-                countUncollectedModels = false;
+                uncollectedModelCounts[FrameGameSystem.CurrentFrame] = modelProcessor.DeformationRenderer.UncollectedModelCount;
             }
             if (captureNextFrame == null)
                 return;
@@ -160,6 +219,15 @@ namespace Stride.Engine.Tests
             var reference = capturedFrames[VertexShaderPath];
             foreach (var path in new[] { ComputeSingleInstancePath, ComputeBatchedPath })
                 AssertImagesMatch(reference, capturedFrames[path], $"{path.Mode} {path.ThreadGroup}");
+        }
+
+        // The donut behind the camera is the only one not deformed; the donut seen only by a shadow view is deformed.
+        private void AssertOnlyHiddenDonutUncollected()
+        {
+            var counts = new List<int>();
+            foreach (var countFrame in countFrames)
+                counts.Add(uncollectedModelCounts.GetValueOrDefault(countFrame, -1));
+            Assert.Equal(new[] { 1, 0 }, counts);
         }
 
         private static unsafe void AssertImagesMatch(Image expected, Image actual, string pathName)
@@ -209,7 +277,7 @@ namespace Stride.Engine.Tests
                     goldFailure = ExceptionDispatchInfo.Capture(exception);
                 }
                 game.AssertDeformationPathsMatch();
-                Assert.Equal(1, game.uncollectedModelCount);
+                game.AssertOnlyHiddenDonutUncollected();
                 goldFailure?.Throw();
             }
             finally
