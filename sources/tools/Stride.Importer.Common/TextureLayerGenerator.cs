@@ -7,53 +7,13 @@ using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization;
 using Stride.Graphics;
-using Stride.Rendering;
 using Stride.Rendering.Materials;
 using Stride.Rendering.Materials.ComputeColors;
-using Stride.Shaders;
 
 namespace Stride.Importer.Common
 {
     public class TextureLayerGenerator
     {
-        public static ShaderClassSource GenerateTextureLayer(
-            string vfsOutputPath,
-            string sourceTextureFile,
-            int textureUVSetIndex,
-            Vector2 textureUVscaling,
-            ref int textureCount,
-            ParameterKey<Texture> surfaceMaterialKey,
-            Mesh meshData,
-            Logger logger
-        )
-        {
-            ParameterKey<Texture> parameterKey;
-
-            if (File.Exists(sourceTextureFile) && logger != null)
-            {
-                logger.Warning($"The texture '{sourceTextureFile}' referenced in the mesh material can not be found on the system. Loading will probably fail at run time.", CallerInfo.Get());
-            }
-
-            parameterKey = ParameterKeys.IndexedKey(surfaceMaterialKey, textureCount++);
-            var uvSetName = "TEXCOORD";
-            if (textureUVSetIndex != 0)
-                uvSetName += textureUVSetIndex;
-
-            var uvScaling = textureUVscaling;
-            var textureName = parameterKey.Name;
-            var needScaling = uvScaling != Vector2.One;
-            var currentComposition = needScaling
-                ? new ShaderClassSource(
-                    "ComputeColorTextureRepeat",
-                    textureName,
-                    uvSetName,
-                    "float2(" + uvScaling.X + ", " + uvScaling.Y + ")"
-                )
-                : new ShaderClassSource("ComputeColorTexture", textureName, uvSetName);
-
-            return currentComposition;
-        }
-
         public static ComputeTextureColor GenerateMaterialTextureNode(
             string vfsOutputPath,
             string sourceTextureFile,

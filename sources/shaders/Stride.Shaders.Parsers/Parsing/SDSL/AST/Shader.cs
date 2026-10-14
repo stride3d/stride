@@ -524,6 +524,10 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
                 openGenerics[i] = new GenericParamExpr(i, Name);
                 var genericParameterType = genericParameter.TypeName.Type;
 
+                // A generic value can't be bound to a resource, so the shader could never be instantiated.
+                if (genericParameterType is TextureType or SamplerType)
+                    table.AddError(new(genericParameter.Name.Info, string.Format(SDSLErrorMessages.SDSL0118, Name, genericParameter.Name, genericParameter.TypeName, genericParameter.Name.Info.Line)));
+
                 if (genericParameterType is GenericParameterType { Kind: GenericParameterKindSDSL.MemberName })
                 {
                     hasUnresolvableGenerics = true;
