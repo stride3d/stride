@@ -10,6 +10,7 @@ using Stride.Core.Storage;
 using Stride.Core.Threading;
 using Stride.Extensions;
 using Stride.Graphics;
+using Stride.Rendering.Shadows;
 using Stride.Shaders;
 using Buffer = Stride.Graphics.Buffer;
 
@@ -24,6 +25,9 @@ namespace Stride.Rendering.Materials
         private StaticObjectPropertyKey<TessellationState> tessellationStateKey;
 
         private EffectDescriptorSetReference perMaterialDescriptorSetSlot;
+        private LogicalGroupReference shadowMapViewKey;
+        private static readonly ParameterCollection InShadowMapView = ShadowMapViewFlag(1);
+        private static readonly ParameterCollection NotInShadowMapView = ShadowMapViewFlag(0);
 
         private ConcurrentCollector<RenderMesh> renderMeshesToGenerateAEN = new ConcurrentCollector<RenderMesh>();
 
@@ -132,6 +136,14 @@ namespace Stride.Rendering.Materials
             tessellationStateKey = RootRenderFeature.RenderData.CreateStaticObjectKey<TessellationState>();
 
             perMaterialDescriptorSetSlot = ((RootEffectRenderFeature)RootRenderFeature).GetOrCreateEffectDescriptorSetSlot("PerMaterial");
+            shadowMapViewKey = ((RootEffectRenderFeature)RootRenderFeature).CreateViewLogicalGroup("ShadowMapView");
+        }
+
+        private static ParameterCollection ShadowMapViewFlag(float value)
+        {
+            var parameters = new ParameterCollection();
+            parameters.Set(ShadowMapCasterPassInfoKeys.ShadowMapViewFlag, value);
+            return parameters;
         }
 
         /// <inheritdoc/>
@@ -312,6 +324,19 @@ namespace Stride.Rendering.Materials
         /// <inheritdoc/>
         public override void Prepare(RenderDrawContext context)
         {
+            // Tell materials mixing ShadowMapCasterPassInfo which views are shadow maps
+            for (int index = 0; index < RenderSystem.Views.Count; index++)
+            {
+                var view = RenderSystem.Views[index];
+                var flag = view is ShadowMapRenderView ? InShadowMapView : NotInShadowMapView;
+                foreach (var viewLayout in view.Features[RootRenderFeature.Index].Layouts)
+                {
+                    var shadowMapView = viewLayout.GetLogicalGroup(shadowMapViewKey);
+                    if (shadowMapView.Hash != ObjectId.Empty)
+                        viewLayout.Entries[view.Index].Resources.UpdateLogicalGroup(ref shadowMapView, flag);
+                }
+            }
+
             // Assign descriptor sets to each render node
             var resourceGroupPool = ((RootEffectRenderFeature)RootRenderFeature).ResourceGroupPool;
 
