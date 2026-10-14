@@ -49,13 +49,15 @@ public abstract class ShaderLoaderBase(IShaderCache fileCache) : IExternalShader
 
     /// <summary>
     /// Reports the warnings found when a shader class compiled (SDSL02xx definition checks and others) as errors, which fail
-    /// the compilation. Off by default; on when the environment variable <c>STRIDE_SHADER_WARNINGS_AS_ERRORS</c> is <c>1</c> or
-    /// <c>true</c> (the MSBuild property <c>StrideShaderWarningsAsErrors</c> sets it for the asset compiler).
+    /// the compilation. Off by default; the MSBuild property <c>StrideShaderWarningsAsErrors</c> turns it on for the asset compiler
+    /// (environment variable <c>STRIDE_SHADER_WARNINGS_AS_ERRORS=1</c>) and for the game at run time (runtime config switch
+    /// <c>Stride.Shaders.WarningsAsErrors</c>). The engine test projects turn it on.
     /// </summary>
-    public bool WarningsAsErrors { get; set; } = WarningsAsErrorsFromEnvironment;
+    public bool WarningsAsErrors { get; set; } = WarningsAsErrorsByDefault;
 
-    private static readonly bool WarningsAsErrorsFromEnvironment = Environment.GetEnvironmentVariable("STRIDE_SHADER_WARNINGS_AS_ERRORS") is { } value
-        && (value == "1" || value.Equals("true", StringComparison.OrdinalIgnoreCase));
+    private static readonly bool WarningsAsErrorsByDefault =
+        (AppContext.TryGetSwitch("Stride.Shaders.WarningsAsErrors", out var enabled) && enabled)
+        || (Environment.GetEnvironmentVariable("STRIDE_SHADER_WARNINGS_AS_ERRORS") is { } value && (value == "1" || value.Equals("true", StringComparison.OrdinalIgnoreCase)));
 
     // Each class warning is reported once per logger (the mixer gives one logger per effect)
     private readonly ConditionalWeakTable<ILogger, HashSet<string>> reportedWarnings = new();

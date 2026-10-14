@@ -126,15 +126,16 @@ static class ShaderCorpus
     });
 
     /// <summary>
-    /// Loader for the captured corpus: shared by all its entries, so each shader class is parsed once.
+    /// Loader for the captured corpus: shared by all its entries, so each shader class is parsed once. Shader class warnings are errors.
     /// </summary>
-    public static ShaderLoaderBase CreateLoader() => new IndexShaderLoader(ShaderIndex.Value);
+    public static ShaderLoaderBase CreateLoader() => new IndexShaderLoader(ShaderIndex.Value) { WarningsAsErrors = true };
 
     /// <param name="optimize">Also fills <see cref="CorpusResult.Optimized"/>.</param>
     public static CorpusResult Compile(CorpusItem item, GraphicsPlatform platform, ShaderLoaderBase sharedLoader, bool optimize = false)
     {
-        // RenderTests files hold several shaders and reuse names across files: each one gets its own loader
-        var loader = item.SourceFile != null ? new IndexShaderLoader(ShaderIndex.Value, item.SourceFile) : sharedLoader;
+        // RenderTests files hold several shaders and reuse names across files: each one gets its own loader. Some test a warning
+        // (SDSL0219, SDSL0236...), so their warnings stay warnings
+        var loader = item.SourceFile != null ? new IndexShaderLoader(ShaderIndex.Value, item.SourceFile) { WarningsAsErrors = false } : sharedLoader;
 
         var log = new Stride.Core.Diagnostics.LoggerResult();
         var mixer = new ShaderMixer(loader) { CollectExplanation = true };

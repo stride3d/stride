@@ -253,6 +253,84 @@ public class ShaderDefinitionCheckTests : IDisposable
         Assert.Contains("Error: CheckOverride.sdsl(5,21): SDSL0200", log);
     }
 
+    // Imported and inherited modules count as inherited classes, so overrides and base calls in the module model don't warn;
+    // a module unit is checked like a shader
+    [Theory]
+    [InlineData("CheckImporter", null)]
+    [InlineData("CheckInheritsModule", null)]
+    [InlineData("CheckModuleOverride", null)]
+    [InlineData("CheckCompanionOverride", null)]
+    [InlineData("CheckBadModule", "SDSL0200: CheckBadModule.Missing() is marked 'override'")]
+    public void ModulesCountAsInheritedClasses(string name, string? expected)
+    {
+        Write("CheckModule", """
+            namespace Stride.Shaders.Tests;
+
+            module CheckModule
+            {
+                float4 Helper() { return 1; }
+            }
+            """);
+        Write("CheckImporter", """
+            namespace Stride.Shaders.Tests;
+
+            shader CheckImporter
+            {
+                import CheckModule;
+                override float4 Helper() { return base.Helper() + 1; }
+            }
+            """);
+        Write("CheckInheritsModule", """
+            namespace Stride.Shaders.Tests;
+
+            shader CheckInheritsModule : CheckModule
+            {
+                override float4 Helper() { return base.Helper() * 2; }
+            }
+            """);
+        Write("CheckModuleOverride", """
+            namespace Stride.Shaders.Tests;
+
+            module CheckModuleOverride
+            {
+                import CheckModule;
+                override float4 Helper() { return base.Helper() * 3; }
+            }
+            """);
+        Write("CheckCompanion", """
+            namespace Stride.Shaders.Tests;
+
+            shader CheckCompanion
+            {
+                module float4 Knob() { return 0; }
+            }
+            """);
+        Write("CheckCompanionOverride", """
+            namespace Stride.Shaders.Tests;
+
+            shader CheckCompanionOverride : CheckCompanion
+            {
+                override module float4 Knob() { return base.Knob() + 1; }
+            }
+            """);
+        Write("CheckBadModule", """
+            namespace Stride.Shaders.Tests;
+
+            module CheckBadModule
+            {
+                import CheckModule;
+                override float4 Missing() { return base.Helper(); }
+            }
+            """);
+
+        var (ok, log) = Compile(name);
+        Assert.True(ok, log);
+        if (expected == null)
+            Assert.DoesNotContain("SDSL02", log);
+        else
+            Assert.Contains(expected, log);
+    }
+
     private static void AssertWarning(string? expected, string code, string log)
     {
         if (expected == null)
