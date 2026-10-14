@@ -22,9 +22,9 @@ namespace Stride.Graphics.Tests
                     var device = game.GraphicsDevice;
                     var commandList = game.GraphicsContext.CommandList;
 
-                    var buffer = Buffer.Vertex.New(device, [0xC0FFEEu]);
-                    var source = Texture.New2D(device, 8, 8, PixelFormat.R8G8B8A8_UNorm, TextureFlags.ShaderResource);
-                    var target = Texture.New2D(device, 8, 8, PixelFormat.R8G8B8A8_UNorm, TextureFlags.RenderTarget);
+                    using var buffer = Buffer.Vertex.New(device, [0xC0FFEEu]);
+                    using var source = Texture.New2D(device, 8, 8, PixelFormat.R8G8B8A8_UNorm, TextureFlags.ShaderResource);
+                    using var target = Texture.New2D(device, 8, 8, PixelFormat.R8G8B8A8_UNorm, TextureFlags.RenderTarget);
 
                     commandList.SetRenderTargetAndViewport(null, target);
                     device.PrimitiveQuad.Draw(game.GraphicsContext, source);
