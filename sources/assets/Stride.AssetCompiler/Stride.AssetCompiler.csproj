@@ -2,10 +2,16 @@
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.props" />
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <!-- Referenced in-process (Stride.Editor) AND run as a tool: pack the runnable app under tools/<tfm>/
-         and keep lib/<tfm>/ to just the reference assembly, so consumers don't inherit the apphost
-         (a duplicate of the managed assembly) or the resolver bootstrap dlls. -->
+    <!-- Build-only package: a game references it (a plain PackageReference or #:package is enough) for its
+         build/ targets, which run the compiler packed under tools/<tfm>/. No lib/, and every dependency is
+         private except buildTransitive (see _StrideBuildOnlyPrivateAssets below), so nothing of the compiler
+         reaches the game's compile references or output folder. The compiler restores those dependencies for
+         itself (Stride.NuGetResolver restores the ones its nuspec keeps out of consumers' runtime). -->
     <StridePackRunnableInTools>true</StridePackRunnableInTools>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <!-- NU5128: dependency groups without a matching lib/ folder, which is the build-only layout above. -->
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
+    <_StrideBuildOnlyPrivateAssets>compile;runtime;native;contentfiles;analyzers;build</_StrideBuildOnlyPrivateAssets>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <!-- Lay graphics-API DLLs into per-API subfolders so the API is chosen at launch. -->
     <StrideMultiGraphicsApiHost>true</StrideMultiGraphicsApiHost>
@@ -20,7 +26,7 @@
     <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Mono.Options" />
+    <PackageReference Include="Mono.Options" PrivateAssets="$(_StrideBuildOnlyPrivateAssets)" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
@@ -35,10 +41,10 @@
     <PackageReference Include="Microsoft.NET.StringTools" ExcludeAssets="runtime" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Build.Framework" ExcludeAssets="runtime" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" ExcludeAssets="runtime" PrivateAssets="all" />
-    <ProjectReference Include="..\Stride.Core.Assets.Quantum\Stride.Core.Assets.Quantum.csproj" />
+    <ProjectReference Include="..\Stride.Core.Assets.Quantum\Stride.Core.Assets.Quantum.csproj" PrivateAssets="$(_StrideBuildOnlyPrivateAssets)" />
     <!-- Headless crash capture: write crashes to the store and (in CI) send them. UI-agnostic core only —
          the reporter window is spawned out-of-process, never referenced here. -->
-    <ProjectReference Include="..\..\crashreport\Stride.CrashReport\Stride.CrashReport.csproj" />
+    <ProjectReference Include="..\..\crashreport\Stride.CrashReport\Stride.CrashReport.csproj" PrivateAssets="$(_StrideBuildOnlyPrivateAssets)" />
     <!-- Sentry is used by the core's crash sender at send time (CI send mode), but it's PrivateAssets=all in the
          core (to keep its Roslyn generator out of game builds) so it doesn't flow here. Reference it directly so
          Sentry.dll is deployed for the send. PrivateAssets=all is load-bearing: the asset compiler flows to games
@@ -48,16 +54,16 @@
     <!-- The out-of-process reporter, resolved from the store at crash time. Private=false emits the nuspec
          <dependency> (so a standalone compiler install pulls the reporter in) without copying its
          self-contained closure into our bin. ReferenceOutputAssembly=false would suppress the dependency. -->
-    <ProjectReference Include="..\..\crashreport\Stride.CrashReporter\Stride.CrashReporter.csproj">
+    <ProjectReference Include="..\..\crashreport\Stride.CrashReporter\Stride.CrashReporter.csproj" PrivateAssets="$(_StrideBuildOnlyPrivateAssets)">
       <Private>false</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\engine\Stride.Assets.Models\Stride.Assets.Models.csproj" />
-    <ProjectReference Include="..\..\engine\Stride.Particles\Stride.Particles.csproj" />
-    <ProjectReference Include="..\..\engine\Stride.Physics\Stride.Physics.csproj" />
-    <ProjectReference Include="..\..\engine\Stride.BepuPhysics\Stride.BepuPhysics\Stride.BepuPhysics.csproj" />
-    <ProjectReference Include="..\..\engine\Stride.SpriteStudio.Offline\Stride.SpriteStudio.Offline.csproj" />
-    <ProjectReference Include="..\..\engine\Stride.UI\Stride.UI.csproj" />
-    <ProjectReference Include="..\..\core\Stride.Core.MicroThreading\Stride.Core.MicroThreading.csproj" />
+    <ProjectReference Include="..\..\engine\Stride.Assets.Models\Stride.Assets.Models.csproj" PrivateAssets="$(_StrideBuildOnlyPrivateAssets)" />
+    <ProjectReference Include="..\..\engine\Stride.Particles\Stride.Particles.csproj" PrivateAssets="$(_StrideBuildOnlyPrivateAssets)" />
+    <ProjectReference Include="..\..\engine\Stride.Physics\Stride.Physics.csproj" PrivateAssets="$(_StrideBuildOnlyPrivateAssets)" />
+    <ProjectReference Include="..\..\engine\Stride.BepuPhysics\Stride.BepuPhysics\Stride.BepuPhysics.csproj" PrivateAssets="$(_StrideBuildOnlyPrivateAssets)" />
+    <ProjectReference Include="..\..\engine\Stride.SpriteStudio.Offline\Stride.SpriteStudio.Offline.csproj" PrivateAssets="$(_StrideBuildOnlyPrivateAssets)" />
+    <ProjectReference Include="..\..\engine\Stride.UI\Stride.UI.csproj" PrivateAssets="$(_StrideBuildOnlyPrivateAssets)" />
+    <ProjectReference Include="..\..\core\Stride.Core.MicroThreading\Stride.Core.MicroThreading.csproj" PrivateAssets="$(_StrideBuildOnlyPrivateAssets)" />
   </ItemGroup>
   <Import Project="..\..\shared\Stride.NuGetResolver.Targets\Stride.NuGetResolver.Targets.projitems" Label="Shared" />
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />
