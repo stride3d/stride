@@ -488,7 +488,7 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
             if (!loadedShaderSymbol.TryResolveSymbol(Name, out functionSymbol))
             {
                 functionSymbol = default;
-                table.AddError(new(Info, string.Format(SDSLErrorMessages.SDSL0109, Name)));
+                table.AddError(new(Info, string.Format(SDSLErrorMessages.SDSL0109, Name, loadedShaderSymbol.Name)));
                 return false;
             }
         }
