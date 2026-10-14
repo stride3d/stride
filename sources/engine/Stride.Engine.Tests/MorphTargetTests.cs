@@ -17,7 +17,8 @@ namespace Stride.Engine.Tests
 {
     /// <summary>
     /// Renders a skinned model with morph targets: the bind pose, morph weights alone, morphs with skinning, and a model
-    /// scaled to zero. Then renders the same frame with each deformation path and checks that they match.
+    /// scaled to zero. Then renders the same frame with each deformation path and checks that they match, and checks that
+    /// a model outside every view is not deformed.
     /// </summary>
     public class MorphTargetTests : EngineTestBase
     {
@@ -34,6 +35,8 @@ namespace Stride.Engine.Tests
         private readonly List<Entity> donuts = new();
         private readonly Dictionary<MeshDeformationOverride, Image> capturedFrames = new();
         private MeshDeformationOverride captureNextFrame;
+        private bool countUncollectedModels;
+        private int uncollectedModelCount = -1;
 
         public MorphTargetTests()
         {
@@ -118,11 +121,27 @@ namespace Stride.Engine.Tests
                 ModelRenderProcessor.DeformationOverride = null;
                 donuts[DonutCount / 2].Transform.Scale = Vector3.Zero;
             }).TakeScreenshot(frame);
+
+            // A donut behind the camera (at z = 18, looking at the origin) is not collected by any view, so it is not
+            // deformed. The other four, the middle one at its normal scale again, are.
+            frame += 2;
+            FrameGameSystem.Draw(frame - 1, () =>
+            {
+                donuts[DonutCount / 2].Transform.Scale = Vector3.One;
+                donuts[0].Transform.Position = new Vector3(0, 0, 60.0f);
+            });
+            FrameGameSystem.Draw(frame, () => countUncollectedModels = true);
         }
 
         protected override void Draw(Stride.Games.GameTime gameTime)
         {
             base.Draw(gameTime);
+            if (countUncollectedModels)
+            {
+                var modelProcessor = SceneSystem.SceneInstance.GetProcessor<ModelRenderProcessor>();
+                uncollectedModelCount = modelProcessor.DeformationRenderer.UncollectedModelCount;
+                countUncollectedModels = false;
+            }
             if (captureNextFrame == null)
                 return;
             capturedFrames[captureNextFrame] = GraphicsDevice.Presenter.BackBuffer.GetDataAsImage(GraphicsContext.CommandList);
@@ -190,6 +209,7 @@ namespace Stride.Engine.Tests
                     goldFailure = ExceptionDispatchInfo.Capture(exception);
                 }
                 game.AssertDeformationPathsMatch();
+                Assert.Equal(1, game.uncollectedModelCount);
                 goldFailure?.Throw();
             }
             finally

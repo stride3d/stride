@@ -26,6 +26,11 @@ namespace Stride.Rendering
         /// </summary>
         internal static MeshDeformationOverride DeformationOverride { get; set; }
 
+        /// <summary>
+        /// The renderer deforming models with morph targets or compute skinning, for tests.
+        /// </summary>
+        internal ModelDeformationRenderer DeformationRenderer => deformationRenderer;
+
         public VisibilityGroup VisibilityGroup { get; set; }
 
         public ModelRenderProcessor() : base(typeof(TransformComponent))
@@ -96,10 +101,11 @@ namespace Stride.Rendering
                 UpdateRenderModel(modelComponent, renderModel);
             });
 
-            // GPU command recording is sequential, after model transforms/materials are prepared.
+            // Schedules the deformation of each model; MeshRenderFeature deforms the ones a view collects.
             var deformationOverride = DeformationOverride;
             bool computeSkinning = deformationOverride?.Mode == MeshDeformationMode.Compute;
             deformationRenderer?.Configure(deformationOverride);
+            deformationRenderer?.BeginFrame();
             foreach (var item in ComponentDatas)
             {
                 bool hasMorphs = item.Key.Morphs.Enabled && item.Key.Model?.Meshes.Exists(mesh => mesh.MorphTargets?.VertexCount > 0) == true;
@@ -107,6 +113,7 @@ namespace Stride.Rendering
                 if (!item.Key.Enabled || item.Key.Model == null || (!hasMorphs && !hasSkinning))
                 {
                     deformationRenderer?.Remove(item.Key);
+                    item.Value.Deformer = null;
                     continue;
                 }
                 if (deformationRenderer == null)
@@ -114,9 +121,8 @@ namespace Stride.Rendering
                     deformationRenderer = new ModelDeformationRenderer(new RenderDrawContext(Services, context, Services.GetSafeServiceAs<GraphicsContext>()));
                     deformationRenderer.Configure(deformationOverride);
                 }
-                deformationRenderer.Draw(item.Key, item.Value);
+                deformationRenderer.Schedule(item.Key, item.Value);
             }
-            deformationRenderer?.Flush();
         }
 
         private void UpdateRenderModel(ModelComponent modelComponent, RenderModel renderModel)

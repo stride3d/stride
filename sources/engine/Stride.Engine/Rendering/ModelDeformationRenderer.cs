@@ -20,7 +20,9 @@ namespace Stride.Rendering;
 // instances of the same mesh share batches of up to MaxBatchSize output slots, so one dispatch deforms every instance
 // in a batch, skinning included. Otherwise each instance only owns its morph weights, and its render meshes apply them
 // in TransformationMorph. Skinning-only meshes keep vertex shader skinning unless an override forces compute.
-internal sealed class ModelDeformationRenderer : IDisposable
+// ModelRenderProcessor schedules every model each frame; MeshRenderFeature then deforms only the models a view
+// collected, after every view is culled and before any is drawn.
+internal sealed class ModelDeformationRenderer : IModelDeformer, IDisposable
 {
     // Direct3D 11 limit on thread groups per dispatch dimension.
     private const int MaxThreadGroupsPerDimension = 65535;
@@ -48,6 +50,8 @@ internal sealed class ModelDeformationRenderer : IDisposable
     private readonly Dictionary<DeformationThreadGroup, ComputeEffectShader> effects = new();
     private readonly HashSet<Batch> pending = new();
     private readonly List<Instance> pendingWeights = new();
+    // Models scheduled this frame and not deformed yet: a view must collect them first.
+    private readonly Dictionary<RenderModel, ModelComponent> scheduled = new();
     private readonly RenderDrawContext context;
     // Per-frame data of every batch, each uploaded once per frame: node world matrices of each skeleton (one pose per
     // skeleton, shared by all its meshes), instance records and morph weights.
@@ -87,6 +91,12 @@ internal sealed class ModelDeformationRenderer : IDisposable
         deformationOverride = value;
     }
 
+    /// <summary>Forgets the models scheduled last frame and not collected by any view.</summary>
+    public void BeginFrame() => scheduled.Clear();
+
+    /// <summary>The models scheduled this frame that no view collected, so they were not deformed.</summary>
+    internal int UncollectedModelCount => scheduled.Count;
+
     public void Remove(ModelComponent component)
     {
         if (!instances.Remove(component, out var owned))
@@ -114,7 +124,11 @@ internal sealed class ModelDeformationRenderer : IDisposable
         }
     }
 
-    public void Draw(ModelComponent model, RenderModel renderModel)
+    /// <summary>
+    /// Updates the instances of <paramref name="model"/>, points its render meshes at their deformed vertices and keeps
+    /// this frame's deformation until a view collects the model.
+    /// </summary>
+    public void Schedule(ModelComponent model, RenderModel renderModel)
     {
         if (!model.Enabled || model.Model == null)
         {
@@ -128,7 +142,6 @@ internal sealed class ModelDeformationRenderer : IDisposable
         var owned = OwnedInstances(model, meshes);
         var forced = deformationOverride?.Mode;
         bool morphCompute = forced == MeshDeformationMode.Compute || (forced == null && ComputeAvailable);
-        int pose = -1;
         for (int meshIndex = 0; meshIndex < meshes.Count; meshIndex++)
         {
             var mesh = meshes[meshIndex];
@@ -150,16 +163,9 @@ internal sealed class ModelDeformationRenderer : IDisposable
                 continue;
             Matrix world = renderModel.Meshes[materialInfo.MeshStartIndex].World;
             var blendMatrices = model.MeshInfos[meshIndex].BlendMatrices;
-            if (deformSkin && pose < 0)
-                pose = Pose(model.Skeleton);
-            instance.Prepare(deformMorph ? model.GetMorphWeights(meshIndex) : instance.ZeroWeights, deformSkin ? blendMatrices : Array.Empty<Matrix>(), world, pose);
+            instance.Schedule(deformMorph ? model.GetMorphWeights(meshIndex) : instance.ZeroWeights, deformSkin ? blendMatrices : Array.Empty<Matrix>(), world);
             if (compute)
-            {
                 instance.Mesh.Skinning = deformSkin ? null : mesh.Skinning;
-                pending.Add(instance.Batch);
-            }
-            else
-                pendingWeights.Add(instance);
             for (int pass = 0; pass < materialInfo.MeshCount; pass++)
             {
                 var rendered = renderModel.Meshes[materialInfo.MeshStartIndex + pass];
@@ -172,6 +178,28 @@ internal sealed class ModelDeformationRenderer : IDisposable
                 else
                     rendered.MorphBuffers = instance.Buffers;
             }
+        }
+        renderModel.Deformer = this;
+        scheduled[renderModel] = model;
+    }
+
+    /// <summary>Writes the scheduled deformation of <paramref name="renderModel"/>; <see cref="Flush"/> uploads and dispatches it.</summary>
+    public void Deform(RenderModel renderModel)
+    {
+        if (!scheduled.Remove(renderModel, out var model) || !instances.TryGetValue(model, out var owned))
+            return;
+        int pose = -1;
+        foreach (var instance in owned)
+        {
+            if (instance is not { IsScheduled: true })
+                continue;
+            if (instance.IsSkinned && pose < 0)
+                pose = Pose(model.Skeleton);
+            instance.Prepare(pose);
+            if (instance.Batch != null)
+                pending.Add(instance.Batch);
+            else
+                pendingWeights.Add(instance);
         }
     }
 
@@ -701,6 +729,11 @@ internal sealed class ModelDeformationRenderer : IDisposable
         public readonly float[] ZeroWeights;
         private readonly int boneCount;
         private float[] weights;
+        private Matrix world;
+
+        public bool IsScheduled { get; private set; }
+
+        public bool IsSkinned { get; private set; }
 
         public Instance(GraphicsDevice device, SharedMesh shared, Batch batch)
         {
@@ -737,26 +770,35 @@ internal sealed class ModelDeformationRenderer : IDisposable
             batch.Bind(Slot, Mesh);
         }
 
-        public void Prepare(float[] values, Matrix[] bones, Matrix world, int pose)
+        // Keeps this frame's deformation until a view collects the model.
+        public void Schedule(float[] values, Matrix[] bones, Matrix world)
         {
+            if (bones.Length > boneCount)
+                throw new InvalidOperationException("Skinning bone layout changed.");
+            weights = values;
+            this.world = world;
+            IsSkinned = bones.Length != 0;
+            IsScheduled = true;
+        }
+
+        // Writes the scheduled deformation into the batch; vertex shader instances upload their weights in Upload.
+        public void Prepare(int pose)
+        {
+            IsScheduled = false;
+            if (Batch == null)
+                return;
             int activeCount = 0;
-            foreach (var value in values)
+            foreach (var value in weights)
             {
                 if (value != 0)
                     activeCount++;
             }
-            if (bones.Length > boneCount)
-                throw new InvalidOperationException("Skinning bone layout changed.");
             var inverseWorld = Matrix.Identity;
-            bool hasBones = bones.Length != 0;
             bool worldIsInvertible = Math.Abs(world.Determinant()) >= MinTransformDeterminant;
-            bool skinned = hasBones && worldIsInvertible;
+            bool skinned = IsSkinned && worldIsInvertible;
             if (skinned)
                 Matrix.Invert(ref world, out inverseWorld);
-            if (Batch != null)
-                Batch.Set(Slot, values, pose, inverseWorld, skinned, activeCount);
-            else
-                weights = values;
+            Batch.Set(Slot, weights, pose, inverseWorld, skinned, activeCount);
         }
 
         public void Upload(CommandList command)
