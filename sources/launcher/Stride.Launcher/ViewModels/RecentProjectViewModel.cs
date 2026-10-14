@@ -260,26 +260,7 @@ public sealed class RecentProjectViewModel : DispatcherViewModel
 
     private void Remove()
     {
-        //Remove files that's was deleted or upgraded by stride versions <= 3.0
-        if (string.IsNullOrEmpty(StrideVersionName) || string.Compare(StrideVersionName, "3.0", StringComparison.Ordinal) <= 0)
-        {
-            //Get all installed versions 
-            var strideInstalledVersions = Launcher.StrideVersions.Where(x => x.CanDelete)
-                .Select(x => $"{x.Major}.{x.Minor}").ToList();
-
-            //If original version of files is not in list get and to add it.
-            if (!string.IsNullOrEmpty(StrideVersionName) && !strideInstalledVersions.Any(x => x.Equals(StrideVersionName)))
-                strideInstalledVersions.Add(StrideVersionName);
-
-            foreach (var item in strideInstalledVersions)
-            {
-                GameStudioSettings.RemoveMostRecentlyUsed(fullPath, item);
-            }
-        }
-        else
-        {
-            GameStudioSettings.RemoveMostRecentlyUsed(fullPath, StrideVersionName);
-        }
+        GameStudioSettings.RemoveMostRecentlyUsed(fullPath);
     }
 
     private async Task OpenWith(OpenWithOption? option)
