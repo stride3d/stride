@@ -26,7 +26,7 @@ shader CompositionShaderB : CompositionBase
 	}
 };
 
-shader CompositionTest
+shader CompositionTest3
 {
     stream float4 ColorTarget : SV_Target0;
 
@@ -49,7 +49,7 @@ shader CompositionTest
 
 effect CompositionArrayForInsideForeach
 {
-	mixin CompositionTest;
+	mixin CompositionTest3;
 	mixin compose Comps += CompositionShaderA;
 	mixin compose Comps += CompositionShaderB;
 }
