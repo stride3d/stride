@@ -95,7 +95,7 @@ Hierarchy:
                         Intensity: 1.2
         -   Entity:
                 Id: 9755c1bb-a630-4546-9b1b-8cf0542f1f73
-                Name: DonutShowcaseController
+                Name: MorphTargetsController
                 Components:
                     2bc7f5b3b7774794a808d46c4b59896c: !TransformComponent
                         Id: 240801c4-cdf3-4e1d-b450-39ff36842765
@@ -103,7 +103,7 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
-                    f7ca86bfe67a43dea391d91025ceb99d: !DonutShowcaseController
+                    f7ca86bfe67a43dea391d91025ceb99d: !MorphTargetsController
                         Id: d9274297-0c8d-4c00-a293-c03e34b8fdca
                         Donut: ref!! 4a8f2c6e-1d3b-4e9a-b7c5-0f2e4d6a8c91
                         Cube: ref!! e98965bc-2915-4a0f-9d6c-6fe00f02bc0a

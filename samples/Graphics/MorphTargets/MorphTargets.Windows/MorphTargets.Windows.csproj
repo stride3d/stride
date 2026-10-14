@@ -1,36 +1,17 @@
-<Project>
-  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net10.0-windows</TargetFramework>
     <OutputType>WinExe</OutputType>
     <RootNamespace>MorphTargets</RootNamespace>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <OutputPath>../Bin/Windows/$(Configuration)/</OutputPath>
+    <OutputPath>..\Bin\Windows\$(Configuration)\</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-    <StrideCurrentPackagePath>$(MSBuildThisFileDirectory)../MorphTargets.Game/MorphTargets.Game.sdpkg</StrideCurrentPackagePath>
+    <DefineConstants>STRIDE_PLATFORM_DESKTOP</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StrideCurrentPackagePath>$(MSBuildThisFileDirectory)..\MorphTargets.sdpkg</StrideCurrentPackagePath>
     <StridePlatform>Windows</StridePlatform>
-    <StrideRoot>$(MSBuildThisFileDirectory)../../../../</StrideRoot>
-    <!-- Copy only the win-x64 native libraries, not those of every platform the engine packages ship. -->
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
-    <SelfContained>false</SelfContained>
-    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
-    <DebugType>none</DebugType>
-    <DebugSymbols>false</DebugSymbols>
-  </PropertyGroup>
-  <!-- Package documentation (.xml) is for the IDE, and Release ships without debug symbols. -->
-  <Target Name="TrimCopiedPackageFiles" BeforeTargets="_CopyFilesMarkedCopyLocal">
-    <ItemGroup>
-      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition="'%(Extension)' == '.xml' Or ('$(Configuration)' == 'Release' And '%(Extension)' == '.pdb')" />
-    </ItemGroup>
-  </Target>
   <ItemGroup>
-    <None Include="$(StrideRoot)deps/BulletPhysics/dotnet/win-x64/libbulletc.dll" Link="runtimes/win-x64/native/libbulletc.dll" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="$(StrideRoot)deps/freetype/dotnet/win-x64/freetype.dll" Link="runtimes/win-x64/native/freetype.dll" CopyToOutputDirectory="PreserveNewest" />
-    <ProjectReference Include="../MorphTargets.Game/MorphTargets.Game.csproj" />
-    <PackageReference Include="Stride.AssetCompiler" Version="4.5.0-dev" IncludeAssets="build;buildTransitive" />
+    <ProjectReference Include="..\MorphTargets.Game\MorphTargets.Game.csproj" />
   </ItemGroup>
-  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 </Project>

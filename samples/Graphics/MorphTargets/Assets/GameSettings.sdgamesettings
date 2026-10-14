@@ -2,7 +2,7 @@
 Id: c36dc7c5-b5a2-4734-bcca-1a999368ccb7
 SerializedVersion: {Stride: 3.1.0.1}
 Tags: []
-DefaultScene: 2a1075f6-62a2-46cc-b795-fa37b8928ba3:scene/DonutShowcase
+DefaultScene: 2a1075f6-62a2-46cc-b795-fa37b8928ba3:scene/MainScene
 GraphicsCompositor: 345b59a2-e7b7-41f6-a49d-3b0f2f7a822d:GraphicsCompositor
 Defaults:
     - !Stride.Audio.AudioEngineSettings,Stride.Audio

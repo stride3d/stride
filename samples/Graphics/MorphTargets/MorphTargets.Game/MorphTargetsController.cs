@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Stride.Animations;
 using Stride.Core;
 using Stride.Core.Mathematics;
@@ -14,8 +17,8 @@ namespace MorphTargets;
 /// Morph weight sliders for the donut (skinned), the cube and the icosphere (morph only), and the donut's clip with a
 /// timeline that keeps its time across the glTF and FBX imports.
 /// </summary>
-[DataContract("DonutShowcaseController")]
-public sealed class DonutShowcaseController : SyncScript
+[DataContract("MorphTargetsController")]
+public sealed class MorphTargetsController : SyncScript
 {
     private const string ClipName = "Clip";
     // Frame rate the donut was authored at, for the frame number next to the time.
@@ -54,8 +57,6 @@ public sealed class DonutShowcaseController : SyncScript
     private SampleUI ui;
     private AnimationComponent animation;
     private AnimationClip clip;
-    private FrameTimings timings;
-    private TextBlock[] stats;
     private Slider[] sliders = Array.Empty<Slider>();
     private TextBlock[] valueLabels = Array.Empty<TextBlock>();
     private TextBlock[] nameLabels = Array.Empty<TextBlock>();
@@ -74,12 +75,9 @@ public sealed class DonutShowcaseController : SyncScript
     public override void Start()
     {
         if (Model == null)
-            throw new InvalidOperationException("Assign Model on the DonutShowcaseController.");
-        // Vsync on; the benchmark scenes turn it off.
-        GraphicsDevice.Presenter.PresentInterval = PresentInterval.One;
-
+            throw new InvalidOperationException("Assign Model on the MorphTargetsController.");
         if (Donut == null)
-            throw new InvalidOperationException("Assign Donut on the DonutShowcaseController.");
+            throw new InvalidOperationException("Assign Donut on the MorphTargetsController.");
         donut = Donut;
         clipByModel[donut] = Animation;
         if (Cube != null)
@@ -96,13 +94,11 @@ public sealed class DonutShowcaseController : SyncScript
         Focus(donut);
         SetSource(Model, Animation);
         CreateUI();
-        timings = new FrameTimings(this);
         TogglePlay();
     }
 
     public override void Update()
     {
-        timings.Report(stats);
         var applied = Applied;
         if (applied == null)
             return;
@@ -123,8 +119,6 @@ public sealed class DonutShowcaseController : SyncScript
         }
         updatingSliders = false;
     }
-
-    public override void Cancel() => timings?.Dispose();
 
     private float Weight(int index) => selected.FindMorphTarget(names[index]) is var slot and >= 0 ? selected.GetMorphWeight(slot) : 0;
 
@@ -340,6 +334,6 @@ public sealed class DonutShowcaseController : SyncScript
         panel.Children.Add(animationControls);
 
         panel.Children.Add(ui.Text("F1 hides the panels", 12, SampleUI.Muted, new Thickness(0, 10, 0, 0)));
-        SampleUI.Show(this, ui.Panel(panel, HorizontalAlignment.Left), ui.TimingsPanel(out stats));
+        SampleUI.Show(this, ui.Panel(panel, HorizontalAlignment.Left));
     }
 }

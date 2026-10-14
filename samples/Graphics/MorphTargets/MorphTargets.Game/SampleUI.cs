@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Graphics;
@@ -41,15 +44,6 @@ sealed class SampleUI
         fill = Band(device, Accent, 6);
         thumb = Solid(device, new Color(225, 228, 235), 8, SliderHeight);
         thumbHover = Solid(device, Color.White, 8, SliderHeight);
-    }
-
-    /// <summary>A separate timings panel for the bottom-right corner; returns the value cells for <see cref="FrameTimings.Report"/>.</summary>
-    public Border TimingsPanel(out TextBlock[] values)
-    {
-        var panel = new StackPanel { Orientation = Orientation.Vertical, Width = 280 };
-        panel.Children.Add(Section("Timings"));
-        values = Table(panel, FrameTimings.Rows);
-        return Panel(panel, HorizontalAlignment.Right, VerticalAlignment.Bottom);
     }
 
     public Border Panel(UIElement content, HorizontalAlignment horizontal, VerticalAlignment vertical = VerticalAlignment.Top) => new()
@@ -156,29 +150,6 @@ sealed class SampleUI
         slider.Step = 1;
         slider.ValueChanged += (_, _) => changed((int)MathF.Round(slider.Value));
         return slider;
-    }
-
-    /// <summary>Two-column table with left-aligned names and right-aligned values; returns the value blocks.</summary>
-    public TextBlock[] Table(StackPanel panel, IReadOnlyList<string> names, float valueWidth = 90)
-    {
-        var grid = new UniformGrid { Columns = 1, Rows = names.Count };
-        var values = new TextBlock[names.Count];
-        for (int i = 0; i < names.Count; i++)
-        {
-            var row = new Grid();
-            row.ColumnDefinitions.Add(new StripDefinition(StripType.Star));
-            row.ColumnDefinitions.Add(new StripDefinition(StripType.Fixed, valueWidth));
-            var name = Text(names[i], 15, names[i].StartsWith(' ') ? Muted : Color.White, Thickness.UniformCuboid(0));
-            var value = values[i] = Text("-", 15, Color.White, Thickness.UniformCuboid(0));
-            value.TextAlignment = TextAlignment.Right;
-            value.DependencyProperties.Set(GridBase.ColumnPropertyKey, 1);
-            row.Children.Add(name);
-            row.Children.Add(value);
-            row.DependencyProperties.Set(GridBase.RowPropertyKey, i);
-            grid.Children.Add(row);
-        }
-        panel.Children.Add(grid);
-        return values;
     }
 
     /// <summary>Shows the panels on one page; each places itself with its own alignment. F1 toggles them.</summary>
