@@ -1169,6 +1169,8 @@ namespace Stride.Graphics
             }
             else if (source is Buffer sourceBuffer && destination is Buffer destinationBuffer)
             {
+                CleanupRenderPass();
+
                 var bufferBarriers = stackalloc VkBufferMemoryBarrier[2];
                 bufferBarriers[0] = new VkBufferMemoryBarrier(sourceBuffer.NativeBuffer, sourceBuffer.NativeAccessMask, VkAccessFlags.TransferRead);
                 bufferBarriers[1] = new VkBufferMemoryBarrier(destinationBuffer.NativeBuffer, destinationBuffer.NativeAccessMask, VkAccessFlags.TransferWrite);
