@@ -264,9 +264,16 @@ public record struct ShaderStructMemberParser : IParser<ShaderStructMember>
             Parsers.FollowedBy(ref scanner, result, LiteralsParser.TypeName, out TypeName? typename, withSpaces: true, advance: true)
             && Parsers.Spaces1(ref scanner, result, out _)
             && Parsers.FollowedBy(ref scanner, result, LiteralsParser.Identifier, out Identifier? identifier, withSpaces: true, advance: true)
-            && Parsers.FollowedBy(ref scanner, Tokens.Char(';'), withSpaces: true)
         )
         {
+            // Array member: `float2 uv[4];`
+            var beforeArraySize = scanner.Position;
+            if (Parsers.FollowedByDelList(ref scanner, result, Parsers.ArraySizes, out List<Expression>? arraySize, withSpaces: true, advance: true))
+                typename!.ArraySize = arraySize;
+            else
+                scanner.Position = beforeArraySize;
+            if (!Parsers.FollowedBy(ref scanner, Tokens.Char(';'), withSpaces: true))
+                return Parsers.Exit(ref scanner, result, out parsed, position, orError);
             parsed = new ShaderStructMember(typename!, identifier!, scanner[position..scanner.Position]);
             if (hasAttributes)
                 parsed.Attributes = attributes!.Attributes;
