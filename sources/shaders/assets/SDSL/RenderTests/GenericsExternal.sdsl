@@ -16,7 +16,7 @@ shader CompositionBase
 };
 
 
-shader CompositionGenerics<int TArraySize>
+shader CompositionGenerics<int TArraySize> : CompositionBase
 {
 	override float4 Compute()
 	{
