@@ -1,0 +1,16 @@
+// A filter base: each filter implements Filter
+module MyFilterBase
+{
+    import ImageEffectShader;
+    import Texturing;
+
+    float Amount;
+
+    abstract float4 Filter(float4 color);
+
+    override float4 Shading()
+    {
+        float4 color = Texture0.Sample(LinearSampler, streams.TexCoord);
+        return lerp(color, Filter(color), Amount);
+    }
+};

@@ -9,7 +9,7 @@ namespace Stride.Rendering.Voxels
     {
         import Math;
         import Transformation;
-        import ShaderBase;
+        import ShaderBaseStream;
         import NormalStream;
         import PositionStream4;
         import VoxelPositionStream;

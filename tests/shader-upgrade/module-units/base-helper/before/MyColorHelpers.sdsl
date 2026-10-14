@@ -1,0 +1,8 @@
+// Helpers only: it becomes a module
+shader MyColorHelpers
+{
+    float3 Brighten(float3 color)
+    {
+        return saturate(color * 2);
+    }
+};

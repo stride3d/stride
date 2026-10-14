@@ -1,0 +1,10 @@
+// A post effect that composes the node
+shader MyBrightRoot : ImageEffectShader
+{
+    compose ComputeColor Color;
+
+    stage override float4 Shading()
+    {
+        return Color.Compute();
+    }
+};

@@ -5,7 +5,7 @@ using System.Text;
 namespace Stride.Shaders.Parsing.Upgrade;
 
 /// <summary>
-/// The engine shader classes as the upgrade of a project needs them: kind (module or shader), compose type, parents. When a
+/// The engine shader classes as the upgrade of a project needs them: kind (module or shader), compose type, <c>[Root]</c>, parents. When a
 /// project is upgraded, the engine shaders on disk are those of its old version, so this list of the current engine is
 /// embedded instead (<c>EngineShaders.txt</c>, checked against the engine sources by a test).
 /// </summary>
@@ -30,7 +30,7 @@ public sealed class EngineShaderClasses
 
     /// <summary>
     /// Reads the format of <see cref="Write"/>: one class per line, <c>name, generic parameter count, module|shader, compose|-,
-    /// parents</c> separated by tabs; <c>#</c> starts a comment line.
+    /// root|-, parents</c> separated by tabs; <c>#</c> starts a comment line.
     /// </summary>
     public static EngineShaderClasses Parse(string text)
     {
@@ -47,7 +47,8 @@ public sealed class EngineShaderClasses
                 GenericParameterCount = int.Parse(columns[1]),
                 IsModule = columns[2] == "module",
                 IsComposeType = columns[3] == "compose",
-                Parents = columns.Length > 4 && columns[4].Length > 0 ? [.. columns[4].Split(',')] : [],
+                IsRoot = columns[4] == "root",
+                Parents = columns.Length > 5 && columns[5].Length > 0 ? [.. columns[5].Split(',')] : [],
             });
         }
         return result;
@@ -64,10 +65,10 @@ public sealed class EngineShaderClasses
             throw new InvalidOperationException($"Engine shaders can't be read:\n{string.Join("\n", notes)}");
 
         var result = new StringBuilder();
-        result.Append("# Engine shader classes for the shader source upgrade (ShaderUpgrader): name, generic parameter count, module|shader, compose|-, parents.\n");
+        result.Append("# Engine shader classes for the shader source upgrade (ShaderUpgrader): name, generic parameter count, module|shader, compose|-, root|- ([Root]), parents.\n");
         result.Append("# Generated from the engine .sdsl files by the explicit test ShaderUpgradeTests.UpdateEngineShaderClasses.\n");
         foreach (var shaderClass in project.ProjectClasses.OrderBy(x => x.Name, StringComparer.Ordinal))
-            result.Append($"{shaderClass.Name}\t{shaderClass.GenericParameterCount}\t{(shaderClass.IsModule ? "module" : "shader")}\t{(project.IsComposeType(shaderClass.Name) ? "compose" : "-")}\t{string.Join(",", shaderClass.Parents)}\n");
+            result.Append($"{shaderClass.Name}\t{shaderClass.GenericParameterCount}\t{(shaderClass.IsModule ? "module" : "shader")}\t{(project.IsComposeType(shaderClass.Name) ? "compose" : "-")}\t{(shaderClass.IsRoot ? "root" : "-")}\t{string.Join(",", shaderClass.Parents)}\n");
         return result.ToString();
     }
 }

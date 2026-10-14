@@ -174,6 +174,36 @@ public class ShaderUpgradeTests
             string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
     }
 
+    // The upgraded node reads the compute thread streams in a composition (ComputeShaderBase is [Root], SDSL0119 there)
+    [Fact]
+    public void UpgradedComputeStreamsMixInComposition()
+    {
+        var loader = new ShaderLoader(Path.Combine(FixturesDirectory, "module-units", "compute-streams", "after"), "./assets/Stride/SDSL");
+        var source = new ShaderMixinSource
+        {
+            Mixins = { new ShaderClassSource("MyComputeRoot") },
+            Compositions = { ["Color"] = new ShaderMixinSource { Mixins = { new ShaderClassSource("MyThreadColor") } } },
+        };
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(new ShaderMixer(loader).MergeSDSL(source, new ShaderMixer.Options(true), log, out _, out _, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+    }
+
+    // The upgraded node calls its parent's helper without `base.` (a base call to a module method fails in a composition, SDSL0208)
+    [Fact]
+    public void UpgradedBaseHelperCallMixesInComposition()
+    {
+        var loader = new ShaderLoader(Path.Combine(FixturesDirectory, "module-units", "base-helper", "after"), "./assets/Stride/SDSL");
+        var source = new ShaderMixinSource
+        {
+            Mixins = { new ShaderClassSource("MyBrightRoot") },
+            Compositions = { ["Color"] = new ShaderMixinSource { Mixins = { new ShaderClassSource("MyBrightColor") } } },
+        };
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(new ShaderMixer(loader).MergeSDSL(source, new ShaderMixer.Options(true), log, out _, out _, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+    }
+
     // Master before the `module` work (A13a): engine shaders still written with `stage`
     const string EngineBeforeModules = "195392b6d9";
 
@@ -185,6 +215,16 @@ public class ShaderUpgradeTests
         [
             ("    /// Selects the shadow map and computes the shadow factor.\n", "    /// Selects the shadow map and computes the shadow factor.\n    /// Mixed into the point light group, whose light positions it reads.\n"),
             ("LightPointGroup<TLightCount>.Lights[lightIndex]", "Lights[lightIndex]"),
+        ],
+        // The thread streams moved to ComputeShaderStreams, which shaders used in compositions import ([Root] is checked there)
+        ["sources/engine/Stride.Rendering/Rendering/ComputeEffect/ComputeShaderBase.sdsl"] =
+        [
+            ("/// ThreadNumberZ: Macro - number of threads on the Z axis.\n", "/// ThreadNumberZ: Macro - number of threads on the Z axis.\n/// A shader used in a composition reads the thread streams by importing <see cref=\"ComputeShaderStreams\"/>.\n"),
+            ("{\n    stream uint3 GroupId : SV_GroupID;\n    stream uint3 DispatchThreadId : SV_DispatchThreadID;\n    stream uint3 GroupThreadId : SV_GroupThreadID;\n"
+                + "    stream uint  GroupIndex : SV_GroupIndex;\n\n    stream uint3 ThreadGroupCount;\n    stream uint  ThreadCountPerGroup;\n"
+                + "    stream uint  ThreadGroupIndex;\n    \n    stream int ThreadCountX;\n    stream int ThreadCountY;\n    stream int ThreadCountZ;\n\n",
+                "{\n    import ComputeShaderStreams;\n\n"),
+            ("    }\n\n    bool IsFirstThreadOfGroup()\n    {\n        return streams.GroupThreadId.x == 0 && streams.GroupThreadId.y == 0 && streams.GroupThreadId.z == 0;\n    }\n};", "    }\n};"),
         ],
     };
 

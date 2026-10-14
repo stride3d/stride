@@ -20,6 +20,9 @@ internal sealed class ShaderUpgradeClass
 
     public bool IsModule { get; init; }
 
+    /// <summary>Declared <c>[Root]</c>.</summary>
+    public bool IsRoot { get; init; }
+
     public List<string> Parents { get; init; } = [];
 
     /// <summary>Engine classes: used as the type of a <c>compose</c> declaration.</summary>
@@ -31,7 +34,8 @@ internal sealed class ShaderUpgradeClass
     /// <summary>Members that have one value per instance: variables, streams, compositions and samplers that are not <c>module</c>.</summary>
     public List<string> InstanceMembers { get; } = [];
 
-    public List<(string Name, bool IsModule, bool IsOverride, string Body)> Methods { get; } = [];
+    /// <summary>Signature = the parameter types, comma-separated, without spaces.</summary>
+    public List<(string Name, bool IsModule, bool IsOverride, bool IsAbstract, string Signature, string Body)> Methods { get; } = [];
 
     /// <summary>Classes named before a <c>.</c> in the code (static references), with the text written for them.</summary>
     public Dictionary<string, string> StaticReferences { get; } = [];
@@ -49,11 +53,17 @@ internal sealed class ShaderUpgradeProject
     private readonly HashSet<string> composeTypes;
     private readonly HashSet<(string Owner, string Method)> overriddenByInstance = [];
     private readonly HashSet<string> imported = [];
+    private readonly Dictionary<string, bool> needsRoot = [];
+    private readonly HashSet<string> rootMarkers;
+    private readonly Dictionary<string, bool> rootOnly = [];
 
     public ShaderUpgradeProject(IReadOnlyDictionary<string, string> files, EngineShaderClasses? engine, List<string> notes)
     {
         foreach (var engineClass in engine?.Classes ?? [])
             Classes[engineClass.Name] = engineClass;
+
+        // The engine's [Root] classes by name, also when the files are the engine itself, written before the markers existed
+        rootMarkers = (engine ?? EngineShaderClasses.Current).Classes.Where(x => x.IsRoot).Select(x => x.Name).ToHashSet();
 
         // A class that two files of the project declare: which one the build uses doesn't depend on its file name, so the upgrade decides
         // nothing for it, and reads it as unknown where it is used
@@ -78,6 +88,8 @@ internal sealed class ShaderUpgradeProject
                     continue;
                 }
                 Classes[shaderClass.Name] = shaderClass;
+                if (shaderClass.IsRoot)
+                    rootMarkers.Add(shaderClass.Name);
             }
         }
         foreach (var (name, paths) in ambiguous)
@@ -144,13 +156,84 @@ internal sealed class ShaderUpgradeProject
         return Regex.Matches(body, @"(?<![\w.])[A-Za-z_]\w*").Select(x => x.Value).Where(members.Contains).Distinct();
     }
 
-    // Entry-point bases: a shader inheriting or importing one is the effect itself, mixed at the root
-    private static readonly HashSet<string> RootOnlyBases = ["ShaderBase", "ShadingBase", "ImageEffectShader", "ComputeShaderBase"];
+    /// <summary>
+    /// Can be mixed only at the root, as the compiler decides it: <c>[Root]</c>, or a shader whose parent or import is root-only;
+    /// a module passes on only its own <c>[Root]</c>. In code written before modules, every parent is a shader.
+    /// </summary>
+    public bool IsRootOnly(string name)
+    {
+        if (rootOnly.TryGetValue(name, out var result))
+            return result;
+        rootOnly[name] = false;
+        result = rootMarkers.Contains(name)
+            || Classes.TryGetValue(name, out var shaderClass) && !shaderClass.IsModule
+                && shaderClass.Parents.Any(parent => StreamsModuleFor(name, parent) == null
+                    && (Classes.TryGetValue(parent, out var parentClass) && parentClass.IsModule ? rootMarkers.Contains(parent) : IsRootOnly(parent)));
+        return rootOnly[name] = result;
+    }
 
     /// <summary>
-    /// Can be mixed only at the root: it is, inherits or imports one of the entry-point bases.
+    /// A shader that was root-only through a parent that becomes a module, and whose code relies on being mixed at the root, gets its
+    /// own <c>[Root]</c>: a module passes on only its own, so without it the shader would be checked as a shader used in compositions
+    /// (SDSL0204-0206). Relies on being root-only = its module code reads instance state of the shader or its shader parents, or calls
+    /// an instance method, or it overrides a module method with a plain override. Shaders used in compositions don't get it.
     /// </summary>
-    public bool IsRootOnly(string name) => RootOnlyBases.Contains(name) || Ancestors(name).Any(RootOnlyBases.Contains);
+    public bool NeedsRootMarker(string name)
+    {
+        if (needsRoot.TryGetValue(name, out var result))
+            return result;
+        needsRoot[name] = false;
+        result = Classes.TryGetValue(name, out var shaderClass) && !shaderClass.IsEngine && !shaderClass.IsModule && !BecomesModule(name)
+            && !IsInstance(name) && IsRootOnly(name) && !IsRootOnlyAfterUpgrade(name) && ReliesOnRoot(shaderClass);
+        return needsRoot[name] = result;
+    }
+
+    // As the compiler decides it once the upgrade is done: module parents are imports, which pass on only their own [Root]
+    private bool IsRootOnlyAfterUpgrade(string name)
+        => rootMarkers.Contains(name)
+            || Classes.TryGetValue(name, out var shaderClass) && !IsModuleAfterUpgrade(name)
+                && shaderClass.Parents.Any(parent => StreamsModuleFor(name, parent) == null
+                    && (IsModuleAfterUpgrade(parent) ? rootMarkers.Contains(parent) : IsRootOnlyAfterUpgrade(parent) || NeedsRootMarker(parent)));
+
+    private bool ReliesOnRoot(ShaderUpgradeClass shaderClass)
+    {
+        var instanceClasses = Ancestors(shaderClass.Name).Append(shaderClass.Name)
+            .Where(x => Classes.TryGetValue(x, out var c) && !c.IsEngine && !IsModuleAfterUpgrade(x))
+            .Select(x => Classes[x]).ToList();
+        var members = instanceClasses.SelectMany(x => x.InstanceMembers).ToHashSet();
+        var methods = instanceClasses.SelectMany(x => x.Methods).Where(x => !x.IsModule && !x.IsOverride).Select(x => x.Name).ToHashSet();
+        foreach (var method in shaderClass.Methods.Where(x => x.IsModule))
+        {
+            foreach (Match word in Regex.Matches(method.Body, @"(?<![\w.])([A-Za-z_]\w*)(\s*\()?"))
+            {
+                if (members.Contains(word.Groups[1].Value) || word.Groups[2].Success && methods.Contains(word.Groups[1].Value))
+                    return true;
+            }
+        }
+        // A plain override of a method that is module code (in a module, or marked module)
+        return shaderClass.Methods.Where(x => x.IsOverride && !x.IsModule).Any(method => Ancestors(shaderClass.Name).Any(ancestor =>
+            Classes.TryGetValue(ancestor, out var owner) && !owner.IsEngine && owner.Methods.Any(x => x.Name == method.Name && !x.IsOverride && (x.IsModule || IsModuleAfterUpgrade(ancestor)))));
+    }
+
+    // [Root] engine modules whose streams are also in a module that isn't [Root]
+    private static readonly Dictionary<string, string> RootStreamModules = new()
+    {
+        ["ShaderBase"] = "ShaderBaseStream",
+        ["ComputeShaderBase"] = "ComputeShaderStreams",
+    };
+
+    private static readonly string[] EntryPoints = ["VSMain", "HSMain", "DSMain", "GSMain", "PSMain", "CSMain"];
+
+    /// <summary>
+    /// The module a project shader used in compositions (it inherits a compose type) imports instead of its parent
+    /// <paramref name="parent"/>, a [Root] engine module it inherited before 4.5 only to see its streams (it overrides no entry
+    /// point); null otherwise. In a composition, the [Root] module is SDSL0119.
+    /// </summary>
+    public string? StreamsModuleFor(string name, string parent)
+        => RootStreamModules.TryGetValue(parent, out var streams)
+            && Classes.TryGetValue(name, out var shaderClass) && !shaderClass.IsEngine && !shaderClass.IsModule
+            && shaderClass.Parents.Contains(parent) && IsInstance(name) && !shaderClass.Methods.Any(x => EntryPoints.Contains(x.Name))
+            ? streams : null;
 
     /// <summary>
     /// A plain method (not <c>module</c>, not an override) of <paramref name="owner"/> that a shader which may be in a composition
@@ -237,6 +320,7 @@ internal sealed class ShaderUpgradeProject
                 Path = path,
                 GenericParameterCount = declaration.Generics?.Parameters.Count ?? 0,
                 IsModule = declaration.IsModule,
+                IsRoot = declaration.FindAttribute("Root") != null,
                 Parents = declaration.Mixins.Select(x => BaseName(x.Name))
                     .Concat(declaration.Elements.OfType<ShaderImport>().Select(x => BaseName(x.Module.Name)))
                     .ToList(),
@@ -263,7 +347,8 @@ internal sealed class ShaderUpgradeProject
                             shaderClass.InstanceMembers.Add(sampler.Name.Name);
                         break;
                     case ShaderMethod method:
-                        shaderClass.Methods.Add((method.Name.Name, method.IsStaged || declaration.IsModule, method.IsOverride, method.Body?.Info.Text.ToString() ?? ""));
+                        var signature = string.Join(",", method.Parameters.Select(x => Regex.Replace(x.TypeName.ToString(), @"\s+", "")));
+                        shaderClass.Methods.Add((method.Name.Name, method.IsStaged || declaration.IsModule, method.IsOverride, method.IsAbstract, signature, method.Body?.Info.Text.ToString() ?? ""));
                         break;
                 }
             }

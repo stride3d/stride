@@ -1,0 +1,28 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+/// <summary>
+/// The thread streams of a compute shader, written by <see cref="ComputeShaderBase"/>'s entry point.
+/// </summary>
+/// <remarks>
+/// Import it to read them in a shader used in a composition: <c>ComputeShaderBase</c> is [Root], it can only be mixed at the root.
+/// </remarks>
+module ComputeShaderStreams
+{
+    stream uint3 GroupId : SV_GroupID;
+    stream uint3 DispatchThreadId : SV_DispatchThreadID;
+    stream uint3 GroupThreadId : SV_GroupThreadID;
+    stream uint  GroupIndex : SV_GroupIndex;
+
+    stream uint3 ThreadGroupCount;
+    stream uint  ThreadCountPerGroup;
+    stream uint  ThreadGroupIndex;
+
+    stream int ThreadCountX;
+    stream int ThreadCountY;
+    stream int ThreadCountZ;
+
+    bool IsFirstThreadOfGroup()
+    {
+        return streams.GroupThreadId.x == 0 && streams.GroupThreadId.y == 0 && streams.GroupThreadId.z == 0;
+    }
+};
