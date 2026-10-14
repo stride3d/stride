@@ -10,7 +10,7 @@ shader GenericsArrayBase2<int TIgnored1, int TIgnored2, int TArraySizeHalf2>
     }
 }
 
-shader GenericsArrayBase<int TArraySizeHalf> : GenericsArrayBase2<1, 2, TArraySizeHalf>
+shader GenericsArrayBase1<int TArraySizeHalf> : GenericsArrayBase2<1, 2, TArraySizeHalf>
 {
     stream float4 ColorTarget : SV_Target0;
 
@@ -22,5 +22,5 @@ shader GenericsArrayBase<int TArraySizeHalf> : GenericsArrayBase2<1, 2, TArraySi
 
 effect GenericsArraySize
 {
-	mixin GenericsArrayBase<2>;
+	mixin GenericsArrayBase1<2>;
 }

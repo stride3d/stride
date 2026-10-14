@@ -31,7 +31,7 @@ shader CompositionTestArray
 	stage compose CompositionBase CompsInheritedStage[];
 }
  
-shader CompositionTest : CompositionTestArray
+shader CompositionTest2 : CompositionTestArray
 {
     stream float4 ColorTarget : SV_Target0;
 
@@ -54,7 +54,7 @@ shader CompositionTest : CompositionTestArray
 
 effect CompositionArrayForeachNested
 {
-	mixin CompositionTest;
+	mixin CompositionTest2;
 	mixin compose Comps += CompositionShaderA;
 	mixin compose Comps += CompositionShaderB;
 	mixin compose CompsInheritedStage += CompositionShaderA;

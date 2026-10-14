@@ -176,11 +176,6 @@ public class AssemblyProcessorApp
                 new AddReferenceProcessor(ReferencesToAdd)
             };
 
-            if (ParameterKey)
-            {
-                processors.Add(new ParameterKeyProcessor());
-            }
-
             if (NewAssemblyName != null)
             {
                 processors.Add(new RenameAssemblyProcessor(NewAssemblyName));
