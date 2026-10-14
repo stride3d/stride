@@ -123,14 +123,26 @@ public unsafe struct DXILSpirvObject
     public void* buffer;
     public nint size;
 }
-#pragma warning disable CS0169 // Field is never used (interop layout fields)
-public unsafe struct Specialization
+// Copy of dxil_spirv_const_value (union, 8 bytes)
+[StructLayout(LayoutKind.Explicit, Size = 8)]
+public struct SpecializationValue
 {
-    ushort id;
-    void* value;
-    bool defined_on_module;
+    [FieldOffset(0)] public bool b;
+    [FieldOffset(0)] public float f32;
+    [FieldOffset(0)] public double f64;
+    [FieldOffset(0)] public int i32;
+    [FieldOffset(0)] public uint u32;
+    [FieldOffset(0)] public long i64;
+    [FieldOffset(0)] public ulong u64;
 }
-#pragma warning restore CS0169
+
+// Copy of dxil_spirv_specialization
+public struct Specialization
+{
+    public uint id;
+    public SpecializationValue value;
+    public bool defined_on_module;
+}
 
 public enum ValidatorVersion
 {
