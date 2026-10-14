@@ -190,7 +190,8 @@ namespace Stride.Assets.Presentation.Preview
 
         private void RunOnGameThread(Action action)
         {
-            if (Game == null)
+            // The preview game may have ended (studio closing, device lost): its script system is gone.
+            if (Game == null || !Game.IsRunning)
                 return;
 
             Game.Script.AddTask(() =>
