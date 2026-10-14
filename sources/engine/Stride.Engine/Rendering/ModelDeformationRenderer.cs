@@ -62,11 +62,25 @@ internal sealed class ModelDeformationRenderer : IDisposable
         this.context = context;
     }
 
+    /// <summary>
+    /// Compute deformation needs compute shaders on the device and a shader profile with a compute stage:
+    /// effects compile for the requested profile, which may be lower than what the device supports.
+    /// </summary>
+    private bool ComputeAvailable
+    {
+        get
+        {
+            var device = context.GraphicsDevice;
+            var shaderProfile = device.ShaderProfile ?? device.Features.RequestedProfile;
+            return device.Features.HasComputeShaders && shaderProfile >= GraphicsProfile.Level_11_0;
+        }
+    }
+
     public void Configure(MeshDeformationOverride value)
     {
         if (value == deformationOverride)
             return;
-        if (value?.Mode == MeshDeformationMode.Compute && !context.GraphicsDevice.Features.HasComputeShaders)
+        if (value?.Mode == MeshDeformationMode.Compute && !ComputeAvailable)
             throw new NotSupportedException("Compute deformation requires compute shader support on this graphics device.");
         foreach (var component in instances.Keys.ToArray())
             Remove(component);
@@ -113,7 +127,7 @@ internal sealed class ModelDeformationRenderer : IDisposable
         var meshes = model.Model.Meshes;
         var owned = OwnedInstances(model, meshes);
         var forced = deformationOverride?.Mode;
-        bool morphCompute = forced == MeshDeformationMode.Compute || (forced == null && context.GraphicsDevice.Features.HasComputeShaders);
+        bool morphCompute = forced == MeshDeformationMode.Compute || (forced == null && ComputeAvailable);
         int pose = -1;
         for (int meshIndex = 0; meshIndex < meshes.Count; meshIndex++)
         {
