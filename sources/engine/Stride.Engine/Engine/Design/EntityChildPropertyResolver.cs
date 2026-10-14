@@ -80,9 +80,11 @@ namespace Stride.Engine.Design
             }
 
             /// <inheritdoc/>
-            public override object GetObject(IntPtr obj)
+            public override unsafe object GetObject(IntPtr obj)
             {
-                var entity = UpdateEngineHelper.PointerToObject<Entity>(obj);
+#pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
+                var entity = (Entity)(*(object*)&obj);
+#pragma warning restore CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
                 foreach (var child in entity.Transform.Children)
                 {
                     var childEntity = child.Entity;
@@ -143,9 +145,11 @@ namespace Stride.Engine.Design
             }
 
             /// <inheritdoc/>
-            public override object GetObject(IntPtr obj)
+            public override unsafe object GetObject(IntPtr obj)
             {
-                var entity = UpdateEngineHelper.PointerToObject<Entity>(obj);
+#pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
+                var entity = (Entity)(*(object*)&obj);
+#pragma warning restore CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
                 var components = entity.Components;
                 for (int i = 0; i < components.Count; i++)
                 {
@@ -159,9 +163,11 @@ namespace Stride.Engine.Design
             }
 
             /// <inheritdoc/>
-            public override void SetObject(IntPtr obj, object data)
+            public override unsafe void SetObject(IntPtr obj, object data)
             {
-                var entity = UpdateEngineHelper.PointerToObject<Entity>(obj);
+#pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
+                var entity = (Entity)(*(object*)&obj);
+#pragma warning restore CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
                 var components = entity.Components;
                 bool notSet = true;
                 for (int i = 0; i < components.Count; i++)
