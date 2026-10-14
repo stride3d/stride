@@ -582,7 +582,24 @@ internal sealed class UITestHost
             return null;
         }
 
-        public Task<bool> SelectTemplate(Guid templateId) =>
+        public async Task<bool> SelectTemplate(Guid templateId, double timeoutSeconds = 30)
+        {
+            // The template list fills asynchronously after the window shows
+            var deadline = DateTime.UtcNow.AddSeconds(timeoutSeconds);
+            while (true)
+            {
+                if (await TrySelectTemplate(templateId).ConfigureAwait(false))
+                    return true;
+                if (DateTime.UtcNow >= deadline)
+                {
+                    host.Log($"SelectTemplate: {templateId} not selected after {timeoutSeconds}s");
+                    return false;
+                }
+                await Task.Delay(500).ConfigureAwait(false);
+            }
+        }
+
+        private Task<bool> TrySelectTemplate(Guid templateId) =>
             host.dispatcher.InvokeAsync(() =>
             {
                 host.Log($"SelectTemplate: {templateId}");
