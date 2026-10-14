@@ -687,12 +687,6 @@ namespace Stride.Games
                 var leftParams = left.PresentationParameters;
                 var rightParams = right.PresentationParameters;
 
-                // Sort by GraphicsProfile
-                if (left.GraphicsProfile != right.GraphicsProfile)
-                {
-                    return left.GraphicsProfile <= right.GraphicsProfile ? 1 : -1;
-                }
-
                 // Sort by full-screen mode
                 if (leftParams.IsFullScreen != rightParams.IsFullScreen)
                 {
