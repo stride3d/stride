@@ -17,6 +17,7 @@
 #ifndef ThreadNumberZ
 # define ThreadNumberZ 1
 #endif
+[Root]
 module ComputeShaderBase
 {
     stream uint3 GroupId : SV_GroupID;

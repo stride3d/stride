@@ -3,6 +3,7 @@
 /// <summary>
 /// Various math functions.
 /// </summary>
+[Pure]
 module Math
 {
     // -------------------------------------

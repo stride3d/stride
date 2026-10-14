@@ -51,6 +51,8 @@ public static class SDSLErrorMessages
     public const string SDSL0043 = "SDSL0043: Unexpected <EOF>";
     [RecoverableInUpgrade]
     public const string SDSL0045 = "SDSL0045: `stage` is now `module`: write `module`. The Stride project upgrade does it. If you changed the project's Stride version by hand, put the old version back, restore, then run the project upgrade (Game Studio or `stride upgrade`). A shader in a package needs a new version of that package.";
+    public const string SDSL0046 = "SDSL0046: `mixin clone` was removed: it has had no effect since Stride 4.4. Delete the line.";
+    public const string SDSL0047 = "SDSL0047: `mixin remove` was removed: it could not be compiled since Stride 4.4. Mix the shader in only where it is needed (for example under an `if`).";
     public const string SDSL0048 = "SDSL0048: '{0}' is a reserved word and can't be a name. Rename it";
     public const string SDSL0049 = "SDSL0049: Code after the end of shader {0}. Only shader, effect and params declarations can follow: remove it, or move it into the shader";
     public const string SDSL0313 = "SDSL0313: An .sdfx file declares an effect with 'effect', not 'shader': write '{0}'";
@@ -79,6 +81,7 @@ public static class SDSLErrorMessages
     public const string SDSL0115 = "SDSL0115: {0}.{1}({2}) at line {3} hides inherited method {4}.{1} but is not marked 'override'. Add the 'override' keyword, or rename the method.";
     public const string SDSL0117 = "SDSL0117: {0} has {1} generic parameter(s) ({2}), but {3} given{4}. Give a value for each parameter; an effect log or a C# mixin tree written for an older version of the shader gives this error too: rebuild it.";
     public const string SDSL0118 = "SDSL0118: {0} declares generic parameter '{1}' of type {2} at line {3}. Texture and sampler generic parameters are not supported. Declare a texture or sampler member instead, or use a ComputeColorTexture...Sampler shader with a texture key.";
+    public const string SDSL0119 = "SDSL0119: {0} can only be mixed at the root of an effect ([Root] on it, or on a class it inherits or imports), but it is in the composition {1}. Mix it at the root, or remove [Root].";
     public const string SDSL0145 = "SDSL0145: Swizzle {0} writes the same element twice. Write each element once.";
     public const string SDSL0160 = "SDSL0160: {0} takes {1}, but the call gives {2}.";
     public const string SDSL0161 = "SDSL0161: Argument {0} of the call to {1} has type {2}, which can't be converted to {3}.";
@@ -134,4 +137,20 @@ public static class SDSLErrorMessages
     public const string SDSL0201 = "SDSL0201: base.{1}() in {0}: no inherited class declares {1}() with this signature, so mixing {0} always fails. Inherit the class that declares it, or call {1}() without 'base'.";
     public const string SDSL0202 = "SDSL0202: {0} has {1} generic parameter(s) ({2}), but {3} given: the extra values are ignored. Remove them.";
     public const string SDSL0203 = "SDSL0203: [Color] on {0}, of type {1}: only float3 and float4 (or arrays of them) can be colors. Remove [Color], or change the type.";
+
+    // Module rules: checked when a shader that is not root-only compiles (in a composition, the mixer reports them as errors)
+
+    public const string SDSL0204 = "SDSL0204: {0}.{1}() is module code and reads {2}, an instance member of {3}. If {0} is used in a composition, each instance has its own {2}. Mark {2} 'module', or mark {0} [Root] if it is only mixed at the root of an effect.";
+    public const string SDSL0205 = "SDSL0205: {0}.{1}() is module code and calls {3}.{2}(), an instance method. If {0} is used in a composition, each instance has its own {2}(). Mark {3}.{2} 'module', or mark {0} [Root] if it is only mixed at the root of an effect.";
+    public const string SDSL0206 = "SDSL0206: {0}.{1}() overrides the module method {2}.{1} but is not 'module'. If {0} is used in a composition, a module method has one override chain per effect. Write 'override module', or mark {0} [Root] if it is only mixed at the root of an effect.";
+    public const string SDSL0207 = "SDSL0207: {0}.{1}() is 'module' but overrides the instance method {2}.{1}. If {0} is used in a composition, an instance method has one override chain per instance. Remove 'module', mark {2}.{1} 'module', or mark {0} [Root] if it is only mixed at the root of an effect.";
+    public const string SDSL0208 = "SDSL0208: base.{1}() in {0}.{2}(): {1} is a module method, called from instance code. If {0} is used in a composition, the call fails. Make {2} 'module' ('override module' if it is an override), or mark {0} [Root] if it is only mixed at the root of an effect.";
+
+    // [Pure] modules and old syntax
+
+    public const string SDSL0209 = "SDSL0209: [Pure] module {0} {1}: a pure module has functions and constants only. Remove [Pure], or move the state to another module.";
+    public const string SDSL0210 = "SDSL0210: [Pure] module {0} uses {1}, which is not a pure module. Mark {1} [Pure] if it can be, or remove [Pure] from {0}.";
+    public const string SDSL0211 = "SDSL0211: [Pure] on shader {0}: only a module can be pure. Remove [Pure], or make {0} a module.";
+    public const string SDSL0212 = "SDSL0212: {0}.{1}(): 'clone' has no effect since Stride 4.4. Remove it.";
+    public const string SDSL0213 = "SDSL0213: [Pure] module {0}: {1} in {2}() works only in a pixel shader, and a pure module can run in any stage. Compute the value in the caller and pass it as a parameter, or remove [Pure] from {0}.";
 }

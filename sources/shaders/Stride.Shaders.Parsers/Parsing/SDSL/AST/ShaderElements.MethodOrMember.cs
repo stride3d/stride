@@ -499,9 +499,11 @@ public partial class ShaderMethod(
             CheckMissingOverride(table, ftype);
         else
         {
-            DefinitionChecks.CheckOverride(table, Name);
+            DefinitionChecks.CheckOverride(table, Name, ftype, IsStaged);
             CheckOverriddenMethod(table, ftype);
         }
+        if (IsClone)
+            table.AddWarning(new(Name.Info, string.Format(SDSLErrorMessages.SDSL0212, table.CurrentShader!.Name, Name.Name)));
 
         var symbol = new Symbol(new(Name, SymbolKind.Method, IsStage: IsStaged), ftype, function.Id, MemberAccessWithImplicitThis: ftype, OwnerType: table.CurrentShader);
 
@@ -600,7 +602,9 @@ public partial class ShaderMethod(
     public void ProcessSymbolBody(SymbolTable table, SpirvContext context)
     {
         table.Push(SymbolFrame!);
+        table.CurrentMethod = this;
         Body?.ProcessSymbol(table);
+        table.CurrentMethod = null;
         table.Pop();
     }
 

@@ -11,6 +11,7 @@
 # define STRIDE_RENDER_TARGET_COUNT 1
 #endif
 
+[Root]
 shader ShadingBase
 {
     import ShaderBase;

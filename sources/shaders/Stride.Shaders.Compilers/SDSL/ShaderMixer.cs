@@ -881,7 +881,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
     {
         var className = TypeName.GetTypeNameWithoutGenerics(shader.ShaderName);
         var parent = TypeName.GetTypeNameWithoutGenerics(parentShaderName);
-        var path = (mixinNode.CompositionPath ?? shader.UsedInComposition) is { } compositionPath ? $" (`{compositionPath}`)" : "";
+        var path = (mixinNode.CompositionPath ?? shader.UsedInComposition) is { } compositionPath ? $" (`{ReadableCompositionPath(compositionPath)}`)" : "";
         return isModuleMethod
             ? $"`{className}.{functionName}` is `module` but overrides the instance method `{parent}.{functionName}`. `{className}` is used in a composition{path}, where an instance method has one override chain per instance. Remove `module`, or mark `{parent}.{functionName}` `module`."
             : $"`{className}.{functionName}` overrides the module method `{parent}.{functionName}` but is not `module`. `{className}` is used in a composition{path}, and a module method has one override chain per effect. Write `override module`.";
@@ -891,7 +891,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
     {
         var className = TypeName.GetTypeNameWithoutGenerics(shader.ShaderName);
         var owner = TypeName.GetTypeNameWithoutGenerics(ownerName);
-        var path = shader.UsedInComposition != null ? $" (`{shader.UsedInComposition}`)" : "";
+        var path = shader.UsedInComposition != null ? $" (`{ReadableCompositionPath(shader.UsedInComposition)}`)" : "";
         return $"Module code `{className}.{functionName ?? "?"}` calls `{owner}.{methodName}`, an instance method. `{className}` is used in a composition{path}, which has an instance per slot. Mark `{owner}.{methodName}` `module`, or mix `{className}` at the root.";
     }
 
@@ -899,7 +899,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
     {
         var className = TypeName.GetTypeNameWithoutGenerics(shaderClass.ClassName);
         var code = functionName != null ? $"`{className}.{functionName}`" : $"of `{className}`";
-        var path = shaderClass.CompositionPath != null ? $" (`{shaderClass.CompositionPath}`)" : "";
+        var path = shaderClass.CompositionPath != null ? $" (`{ReadableCompositionPath(shaderClass.CompositionPath)}`)" : "";
         return isFunction
             ? $"Module code {code} calls `{memberName}`, an instance method of `{className}`. `{className}` is used in a composition{path}, which has an instance per slot. Mark `{memberName}` `module`, or mix `{className}` at the root."
             : $"Module code {code} reads `{memberName}`, an instance member of `{className}`. `{className}` is used in a composition{path}, where each instance has its own `{memberName}`. Mark `{memberName}` `module`, or mix `{className}` at the root.";
@@ -1237,7 +1237,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                         // We currently do not allow calling base stage method from a non-stage method
                         // (if we were to allow them later, we would need to tweak following detection code as ShaderIndex comparison is only valid for items within the same MixinNode)
                         if (foundInStage)
-                            throw new InvalidOperationException($"Method {methodGroupEntry.Name} was found but a base call can't be performed on a module method from an instance method");
+                            throw new InvalidOperationException($"`base.{methodGroupEntry.Name}()` in `{TypeName.GetTypeNameWithoutGenerics(currentShader.ShaderName)}.{currentFunctionName ?? "?"}`: `{methodGroupEntry.Name}` is a module method, called from instance code, and `{TypeName.GetTypeNameWithoutGenerics(currentShader.ShaderName)}` is used in a composition. Make `{currentFunctionName ?? "?"}` `module` (`override module` if it is an override), or mix `{TypeName.GetTypeNameWithoutGenerics(currentShader.ShaderName)}` at the root.");
 
                         // Is it a base call? if yes, find the direct parent
                         // Let's find the method in same group just before ours

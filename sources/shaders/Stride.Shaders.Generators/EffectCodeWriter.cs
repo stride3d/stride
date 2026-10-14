@@ -627,17 +627,6 @@ public class EffectCodeWriter : ShaderWriter
                     }
                     break;
                 }
-            case Specification.MixinKindSDFX.Remove:
-                {
-                    ExtractGenericParameters(mixinStatement.Value, out var mixinName, out var genericParameters);
-
-                    WriteLinkLine(mixinStatement);
-                    Write("context.RemoveMixin(mixin, ");
-                    WriteMixinName(mixinName);
-                    WriteGenericParameters(genericParameters);
-                    WriteLine(");");
-                    break;
-                }
             case Specification.MixinKindSDFX.Macro:
                 {
                     WriteLinkLine(mixinStatement);

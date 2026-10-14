@@ -112,6 +112,40 @@ public class ParsingTests1
         Assert.Empty(SDSLParser.Parse(text.Replace("class A", "shader A")).Errors);
     }
 
+    // `mixin clone` and `mixin remove` in an effect are errors that say what to do, not a parse failure
+    [Theory]
+    [InlineData("clone", SDSLErrorMessages.SDSL0046)]
+    [InlineData("remove", SDSLErrorMessages.SDSL0047)]
+    public void RemovedEffectMixinIsAnError(string keyword, string message)
+    {
+        var result = SDSLParser.Parse($$"""
+            effect E
+            {
+                mixin A;
+                mixin {{keyword}} B;
+                mixin C;
+            }
+            """);
+        Assert.Equal([message], result.Errors.Select(x => x.Message));
+    }
+
+    // A shader name that starts with a mixin keyword is a name
+    [Theory]
+    [InlineData("removeFog")]
+    [InlineData("cloneFog")]
+    [InlineData("composeFog")]
+    public void EffectMixinNameCanStartWithAKeyword(string name)
+    {
+        var result = SDSLParser.Parse($$"""
+            effect E
+            {
+                mixin {{name}};
+            }
+            """);
+        Assert.Empty(result.Errors);
+        Assert.Contains(name, result.AST!.ToString());
+    }
+
     // `module X { }` is a module unit, and `import X;` an element of a class body
     [Fact]
     public void ModuleUnitAndImport()

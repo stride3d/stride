@@ -74,6 +74,17 @@ public record class ShaderClassInstantiation(string ClassName, ConstantExpressio
     public bool IsModule { get; set; }
 
     /// <summary>
+    /// Can be mixed only at the root of an effect: it has <c>[Root]</c>, or (for a shader) a direct parent or import is root-only.
+    /// Set when the class is loaded.
+    /// </summary>
+    public bool IsRootOnly { get; set; }
+
+    /// <summary>
+    /// Declared <c>[Pure] module X</c>: functions and constants only. Set when the class is loaded.
+    /// </summary>
+    public bool IsPure { get; set; }
+
+    /// <summary>
     /// Root entry holding only the module part (<c>module</c> members and struct types) of a class used in compositions:
     /// its companion module, once per effect. The composition copies hold the instance members.
     /// </summary>
@@ -248,7 +259,10 @@ public partial class SpirvBuilder
             index = inheritanceList.IndexOf(classSource);
             if (index == -1)
             {
-                classSource.IsModule = IsModule(classSource.Buffer.Value);
+                var flags = GetShaderFlags(classSource.Buffer.Value);
+                classSource.IsModule = flags.HasFlag(ShaderFlagsMask.Module);
+                classSource.IsRootOnly = flags.HasFlag(ShaderFlagsMask.Root);
+                classSource.IsPure = flags.HasFlag(ShaderFlagsMask.Pure);
                 BuildInheritanceListWithoutSelf(shaderLoader, context, classSource, macros, classSource.Buffer.Value.Context, inheritanceList, resolveStep);
                 inheritanceList.Add(classSource);
                 return classSource;
@@ -261,14 +275,19 @@ public partial class SpirvBuilder
     /// <summary>
     /// Whether a compiled class was declared <c>module X</c>.
     /// </summary>
-    public static bool IsModule(ShaderBuffers shader)
+    public static bool IsModule(ShaderBuffers shader) => GetShaderFlags(shader).HasFlag(ShaderFlagsMask.Module);
+
+    /// <summary>
+    /// The flags of a compiled class: <c>module</c>, root-only, <c>[Pure]</c>.
+    /// </summary>
+    public static ShaderFlagsMask GetShaderFlags(ShaderBuffers shader)
     {
         foreach (var i in shader.Buffer)
         {
             if (i.Op == Op.OpShaderSDSL)
-                return ((OpShaderSDSL)i).Flags.HasFlag(ShaderFlagsMask.Module);
+                return ((OpShaderSDSL)i).Flags;
         }
-        return false;
+        return ShaderFlagsMask.None;
     }
 
     record struct GenericParameter(SymbolType Type, int ResultId, int ResultType, int Index, string Name, bool Resolved, string Value);

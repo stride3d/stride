@@ -13,6 +13,7 @@ shader CallNonStageFromStageMethodInheritedBase
 
 // Module method calls an instance method of an inherited shader.
 // Allowed because the shader is mixed at the root: it is the effect's only instance.
+[Root]
 shader CallNonStageFromStageMethodInherited : CallNonStageFromStageMethodInheritedBase
 {
     stream float4 ColorTarget : SV_Target0;

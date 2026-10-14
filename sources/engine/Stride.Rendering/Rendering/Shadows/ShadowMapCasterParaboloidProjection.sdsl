@@ -3,6 +3,7 @@
 
 namespace Stride.Rendering.Shadows
 {
+    [Root]
     shader ShadowMapCasterParaboloidProjection
     {
         import TransformationBase;

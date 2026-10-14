@@ -5,6 +5,7 @@
 # define UsesSoftEdge 0
 #endif
 
+[Root]
 module ParticleBase
 {
     import DepthBase;

@@ -3,6 +3,7 @@
 namespace Stride.Shaders.Tests;
 
 // Module code of a shader mixed at the root may read its instance members: the root shader is the effect's only instance.
+[Root]
 shader RootModuleCodeReadsInstanceMember
 {
     stream float4 ColorTarget : SV_Target0;

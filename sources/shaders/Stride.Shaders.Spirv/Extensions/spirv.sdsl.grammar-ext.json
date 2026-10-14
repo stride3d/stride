@@ -485,6 +485,14 @@
         {
           "enumerant": "Module",
           "value": "0x0001"
+        },
+        {
+          "enumerant": "Root",
+          "value": "0x0002"
+        },
+        {
+          "enumerant": "Pure",
+          "value": "0x0004"
         }
       ]
     },

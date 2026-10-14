@@ -204,7 +204,9 @@ public class ShaderUpgradeTests
             var text = upgraded[path].ReplaceLineEndings("\n");
             foreach (var (upgradedText, todayText) in ManualEdits.GetValueOrDefault(path) ?? [])
                 text = text.Replace(upgradedText, todayText);
-            if (text != today[path].ReplaceLineEndings("\n"))
+            // [Root] and [Pure] are written by hand (the upgrade takes the engine's [Root] markers from EngineShaders.txt)
+            var expected = System.Text.RegularExpressions.Regex.Replace(today[path].ReplaceLineEndings("\n"), @"^[ \t]*\[(Root|Pure)\]\n", "", System.Text.RegularExpressions.RegexOptions.Multiline);
+            if (text != expected)
                 differences.Add(path);
         }
         Assert.True(differences.Count == 0, $"Upgraded from {EngineBeforeModules}, differs from today: {string.Join(", ", differences)}");

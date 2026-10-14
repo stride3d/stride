@@ -58,7 +58,10 @@ public partial class ShaderMixer
                 }
             }
 
-            SpirvBuilder.BuildInheritanceListIncludingSelf(shaderLoader, context, mixinToMerge2, macros, mixinList, ResolveStep.Mix);
+            var mixin = SpirvBuilder.BuildInheritanceListIncludingSelf(shaderLoader, context, mixinToMerge2, macros, mixinList, ResolveStep.Mix);
+            // A module goes to the root wherever it is listed
+            if (compositionPath != null && mixin.IsRootOnly && !mixin.IsModule)
+                throw new InvalidOperationException(string.Format(Parsing.SDSLErrorMessages.SDSL0119, mixin.ToClassNameWithGenerics(), ReadableCompositionPath(compositionPath)));
         }
 
         var macrosArray = macros.ToArray();
@@ -146,7 +149,7 @@ public partial class ShaderMixer
             // A module composition is one slot for the whole effect: it belongs to its declaring shader's companion module in the root,
             // so its value comes from the root source and lands in the root compositions, whichever node declares it
             if (isModule && compositionPath != null && shaderMixinSource.Compositions.ContainsKey(variableName))
-                throw new InvalidOperationException($"'{variableName}' is a `module compose` declared by '{shaderClassName}', so it is one slot for the whole effect and must be supplied at the root. It was supplied at '{compositionPath}'.");
+                throw new InvalidOperationException($"'{variableName}' is a `module compose` declared by '{shaderClassName}', so it is one slot for the whole effect and must be supplied at the root. It was supplied at '{ReadableCompositionPath(compositionPath)}'.");
 
             var valueSource = isModule ? rootMixinSource : shaderMixinSource;
             var valueCompositions = isModule ? rootCompositions : compositions;
@@ -187,6 +190,9 @@ public partial class ShaderMixer
     // TODO: Review: it seems like Stride compose variable the opposite way that we expect
     //       Let's change it so that it becomes {parentPath}.{key}!
     private static string ChildCompositionPath(string? parentPath, string key) => parentPath != null ? $"{key}.{parentPath}" : key;
+
+    // For messages: the root's slot first, as written in an effect ("environmentLights[0].diffuseMarcher.Marcher" for the path above)
+    private static string ReadableCompositionPath(string compositionPath) => string.Join('.', compositionPath.Split('.').Reverse());
 
     private void PropagateMacrosRecursively(ShaderSource child, ShaderMixinSource? parent = null)
     {
