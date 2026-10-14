@@ -864,9 +864,10 @@ namespace Stride.Graphics
 
         /// <summary>
         ///   Activates an app-local D3D12 Agility SDK (shipped under <c>D3D12\</c>) once per process,
-        ///   before any device or debug interface is created. No-op if the redist isn't present.
+        ///   before any device or debug interface is created, including the adapter's profile check.
+        ///   No-op if the redist isn't present.
         /// </summary>
-        private static void TryActivateAgilitySDK(D3D12 d3d12)
+        internal static void TryActivateAgilitySDK(D3D12 d3d12)
         {
             lock (debugLayerLock)
             {
