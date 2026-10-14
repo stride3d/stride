@@ -1,0 +1,12 @@
+!Skeleton
+Id: e263f830-083c-4315-8560-bb6a0f87d789
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: !file ../../../data/tests/MorphDonut/donut.gltf
+PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
+Nodes:
+    d62875690452d9e358b67ba60e90dab4: {Name: DonutRig, Depth: 0}
+    bb39768a255179ece3ce9674fe4fff85: {Name: Donut, Depth: 1}
+    cf4bfddbffb6891245c51696c259026a: {Name: Root, Depth: 1}
+    0a3405366593fe7c31339d425d81ad0f: {Name: Left, Depth: 2}
+    a1b69318a8c7e7417485207bfb1db5e0: {Name: Right, Depth: 2}
