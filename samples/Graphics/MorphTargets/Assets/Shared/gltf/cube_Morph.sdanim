@@ -1,8 +1,8 @@
 !Animation
-Id: 376c9b77-1eeb-44b2-8d53-addfa71d664b
+Id: adc14a15-a32f-4226-8882-d1a9a33b4196
 SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
-Source: !file ../../Resources/Donut/donut.fbx
+Source: !file ../../../Resources/Cube/cube.gltf
 AnimationStack: 0
 ClipDuration:
     Enabled: false
@@ -11,10 +11,10 @@ ClipDuration:
 PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
 RepeatMode: LoopInfinite
 Type: !StandardAnimationAssetType {}
-Skeleton: 70261a03-899b-4c1d-84e6-ecb065338d04:fbx/donut Skeleton
+Skeleton: null
 RootMotion: false
-PreviewModel: 1c9f7f15-279f-4443-9188-d6370c244af9:fbx/donut
+PreviewModel: c41faf88-3e74-40d5-af0b-7c43925d3eda:gltf/cube
 AnimationTimeMinimum: 0:00:00:00.0000000
 AnimationTimeMaximum: 0:00:00:02.0000000
 ~SourceHashes:
-    f5878a6114f2892084d6efbeb0361b99~../../Resources/Donut/donut.fbx: 0b750ad3f4e914bd805e04a018af789f
+    b0e826a7f4c7917b9f2337228d5508ca~../../../Resources/Cube/cube.gltf: 129e52f5ea3bd165e37ffcb9fd51a994

@@ -2,7 +2,7 @@
 Id: c41faf88-3e74-40d5-af0b-7c43925d3eda
 SerializedVersion: {Stride: 2.1.0.0}
 Tags: []
-Source: !file ../../Resources/Cube/cube.gltf
+Source: !file ../../../Resources/Cube/cube.gltf
 Skeleton: null
 PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
 Materials:
@@ -18,4 +18,4 @@ MorphTargetNames:
     3b1ecd1183b247c984a968b5abae066f: Tapered
     7f2383d2521c4237bc4db4dde0561d21: Rounded
 ~SourceHashes:
-    01160bab265fe489aedc9417ddf87c19~../../Resources/Cube/cube.gltf: 129e52f5ea3bd165e37ffcb9fd51a994
+    01160bab265fe489aedc9417ddf87c19~../../../Resources/Cube/cube.gltf: 129e52f5ea3bd165e37ffcb9fd51a994

@@ -1,8 +1,8 @@
 !Animation
-Id: 8c17ad8a-9592-46b3-8234-8c7e285be3f3
+Id: 1e4468c2-ef89-408c-8b39-4b63e23647ad
 SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
-Source: !file ../../Resources/Donut/donut.gltf
+Source: !file ../../../Resources/Icosphere/icosphere.gltf
 AnimationStack: 0
 ClipDuration:
     Enabled: false
@@ -11,10 +11,10 @@ ClipDuration:
 PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
 RepeatMode: LoopInfinite
 Type: !StandardAnimationAssetType {}
-Skeleton: 16d5596f-af9d-4716-b9f1-dcb5c371d580:gltf/donut Skeleton
+Skeleton: null
 RootMotion: false
-PreviewModel: d4d26537-8d4f-4d81-9ae0-9bc18b37ea21:gltf/donut
+PreviewModel: 39721c34-2996-4256-98e5-d90220ed8790:gltf/icosphere
 AnimationTimeMinimum: 0:00:00:00.0000000
 AnimationTimeMaximum: 0:00:00:02.0000000
 ~SourceHashes:
-    9b699b11450bc67dd4fc4dfaa6ca82c4~../../Resources/Donut/donut.gltf: 5f9268ac801cd65ffe97431813052634
+    43e33c841ecc82fcfcd7042923de9e35~../../../Resources/Icosphere/icosphere.gltf: 2affbdf0f91199297267155c9f1054d4

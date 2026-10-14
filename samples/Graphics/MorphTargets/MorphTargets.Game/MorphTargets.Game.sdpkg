@@ -7,6 +7,6 @@ Meta:
     Owners: []
     Dependencies: null
 AssetFolders:
-    -   Path: !dir ../Assets
+    -   Path: !dir ../Assets/Shared
 ResourceFolders:
     - !dir ../Resources

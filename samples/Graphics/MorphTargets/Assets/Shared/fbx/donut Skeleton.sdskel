@@ -2,7 +2,7 @@
 Id: 70261a03-899b-4c1d-84e6-ecb065338d04
 SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
-Source: !file ../../Resources/Donut/donut.fbx
+Source: !file ../../../Resources/Donut/donut.fbx
 PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
 Nodes:
     cf64ad2a733b78f9557e9e8e596ca002: {Name: RootNode, Depth: 0}
@@ -12,4 +12,4 @@ Nodes:
     b2c64b416f936f8c40c64b3c2f6b8ebf: {Name: Left, Depth: 3}
     f72a413163dbbd977a6445add1c9473a: {Name: Right, Depth: 3}
 ~SourceHashes:
-    110d68979d8cb7b3443d7a5364f46ad3~../../Resources/Donut/donut.fbx: 0b750ad3f4e914bd805e04a018af789f
+    110d68979d8cb7b3443d7a5364f46ad3~../../../Resources/Donut/donut.fbx: 0b750ad3f4e914bd805e04a018af789f

@@ -2,7 +2,7 @@
 Id: 1c9f7f15-279f-4443-9188-d6370c244af9
 SerializedVersion: {Stride: 2.1.0.0}
 Tags: []
-Source: !file ../../Resources/Donut/donut.fbx
+Source: !file ../../../Resources/Donut/donut.fbx
 Skeleton: 70261a03-899b-4c1d-84e6-ecb065338d04:fbx/donut Skeleton
 PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
 Materials:
@@ -18,4 +18,4 @@ MorphTargetNames:
     7d971eb85903e9819d40e6382899a74b: Thicker
     d48217b28894a2720e34f8f76c1158c0: Wider
 ~SourceHashes:
-    e1f852e1afed4d7a963740d46b66d47a~../../Resources/Donut/donut.fbx: 0b750ad3f4e914bd805e04a018af789f
+    e1f852e1afed4d7a963740d46b66d47a~../../../Resources/Donut/donut.fbx: 0b750ad3f4e914bd805e04a018af789f
