@@ -16,12 +16,14 @@ internal static class UpgradeCommand
         };
         var version = new Option<string?>("--version") { Description = "Stride version to upgrade to (4.4.0 or newer). Defaults to the newest installed stable version." };
         var prerelease = new Option<bool>("--prerelease") { Description = "Consider prerelease (beta) versions when choosing the newest version to upgrade to." };
+        var nightly = new Option<bool>("--nightly") { Description = "Consider the installed nightly builds when choosing the newest version to upgrade to (project upgrades might not be fully tested)." };
         var noBackup = new Option<bool>("--no-backup") { Description = "Skip the automatic backup of files the upgrade modifies before editing in place." };
 
         var command = new Command("upgrade", "Upgrade a project to a newer installed Stride version.");
         command.Arguments.Add(path);
         command.Options.Add(version);
         command.Options.Add(prerelease);
+        command.Options.Add(nightly);
         command.Options.Add(noBackup);
         command.SetAction(async (parseResult, cancellationToken) =>
         {
@@ -59,7 +61,7 @@ internal static class UpgradeCommand
             }
             else
             {
-                var newest = manager.GetNewestUpgradeTarget(parseResult.GetValue(prerelease));
+                var newest = manager.GetNewestUpgradeTarget(parseResult.GetValue(prerelease), parseResult.GetValue(nightly));
                 if (newest is null)
                 {
                     Console.Error.WriteLine("No Stride 4.4.0 or newer is installed to upgrade to. Install one with 'stride sdk install', or pass --prerelease / --version.");
@@ -83,10 +85,12 @@ internal static class UpgradeCommand
             {
                 // Auto-install the target version's tooling, then locate its Asset Compiler again.
                 Console.WriteLine($"Stride {target} isn't installed; installing it first...");
+                if (target.IsNightly && !SdkCommand.AddNightlyFeed(manager))
+                    return 1;
                 var progress = new InstallProgressConsole();
                 try
                 {
-                    await manager.Install(target.ToString(), parseResult.GetValue(prerelease), progress, cancellationToken);
+                    await manager.Install(target.ToString(), parseResult.GetValue(prerelease), parseResult.GetValue(nightly), progress, cancellationToken);
                 }
                 catch (Exception exception)
                 {

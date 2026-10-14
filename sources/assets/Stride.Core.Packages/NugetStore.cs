@@ -173,6 +173,24 @@ public partial class NugetStore : INugetDownloadProgress
     }
 
     /// <summary>
+    /// The feed of the nightly builds of Stride (X.Y.Z-nightly.YYYYMMDD.N), and the name it gets in a NuGet.config.
+    /// </summary>
+    public const string NightlyFeedUrl = "https://packages.stride3d.net/nightly/index.json";
+
+    /// <inheritdoc cref="NightlyFeedUrl"/>
+    public const string NightlyFeedName = "Stride Nightly";
+
+    /// <summary>
+    /// Adds a package source for this store only, the NuGet.config left as is (unless a source has that URL already): its
+    /// packages are listed, but not installed, since the restore of an install reads the NuGet.config sources.
+    /// </summary>
+    public void AddSessionPackageSource(string name, string url)
+    {
+        if (!HasPackageSource(url))
+            PackageSources = [.. PackageSources, new PackageSource(url, name)];
+    }
+
+    /// <summary>
     /// Gets whether an enabled package source has the given URL, whatever its name.
     /// </summary>
     public bool HasPackageSource(string url)

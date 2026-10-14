@@ -195,16 +195,13 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
         set => SetValue(_settings.IncludePrereleaseUpdates != value, () => { _settings.IncludePrereleaseUpdates = value; _settings.Save(); });
     }
 
-    internal const string NightlyFeedName = "Stride Nightly";
-    internal const string NightlyFeedUrl = "https://packages.stride3d.net/nightly/index.json";
-
     /// <summary>
     /// Gets or sets whether the nightly builds are listed: whether the user's NuGet.config has the nightly feed, as
     /// <c>dotnet nuget add source</c> would add it. The version list follows right away.
     /// </summary>
     public bool ShowNightlyBuilds
     {
-        get => store?.HasPackageSource(NightlyFeedUrl) ?? false;
+        get => store?.HasPackageSource(NugetStore.NightlyFeedUrl) ?? false;
         set
         {
             if (store is null || value == ShowNightlyBuilds)
@@ -226,7 +223,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
         {
             await RunLockTask(() =>
             {
-                store.SetPackageSource(NightlyFeedName, NightlyFeedUrl, enabled);
+                store.SetPackageSource(NugetStore.NightlyFeedName, NugetStore.NightlyFeedUrl, enabled);
                 return true;
             });
         }

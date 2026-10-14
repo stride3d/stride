@@ -69,13 +69,13 @@ https://packages.stride3d.net/nightly/index.json
 - **Credentials**: the publish job runs in the `nightly` GitHub environment (`master` and the listed `master-x.y` only) and signs in to Azure with the GitHub OIDC token as the `stride-nightly-ci` managed identity, which may only write to the `nightly` container. No secret is stored.
 - **Adding a branch**: the branch needs this workflow and the `StrideNightlyLabel` support (a cherry-pick), it goes into `NIGHTLY_BRANCHES` on `master`, and into the deployment branches of the `nightly` environment.
 
-To use nightlies, tick "Show nightly builds of Stride" in the launcher settings (gear in the title bar): the launcher adds the feed to the user's NuGet.config and lists the nightlies in rows of their own ("Stride 4.5 Nightly"). Without the launcher, add the feed by hand (a launcher before 6.0.6 removes it again at startup):
+To use nightlies, tick "Show nightly builds of Stride" in the launcher settings (gear in the title bar): the launcher adds the feed to the user's NuGet.config and lists the nightlies in rows of their own ("Stride 4.5 Nightly"). With the CLI, `--nightly` includes them: `stride sdk install --nightly` (and `update`, or an install of a nightly by its version) adds the feed to the user's NuGet.config the same way, since Game Studio and the projects on a nightly restore from it later; `stride sdk available --nightly` only lists them, and `stride upgrade --nightly` may pick an installed nightly. Without `--nightly`, the newest version is never a nightly, even with `--prerelease`. Without either, add the feed by hand (a launcher before 6.0.6 removes it again at startup):
 
 ```bash
 dotnet nuget add source https://packages.stride3d.net/nightly/index.json --name "Stride Nightly"
 ```
 
-Each nightly takes space in the NuGet cache (`~/.nuget/packages`); uninstall old ones from the launcher.
+Each nightly takes space in the NuGet cache (`~/.nuget/packages`); uninstall old ones from the launcher or with `stride sdk uninstall`.
 
 ## Stride CLI
 
