@@ -735,11 +735,14 @@ internal sealed class ModelDeformationRenderer : IDisposable
             }
             if (bones.Length > boneCount)
                 throw new InvalidOperationException("Skinning bone layout changed.");
-            Matrix.Invert(ref world, out var inverseWorld);
-            if (Math.Abs(world.Determinant()) < MinTransformDeterminant)
-                throw new InvalidOperationException("Morph skinning requires a nonsingular mesh transform.");
+            var inverseWorld = Matrix.Identity;
+            bool hasBones = bones.Length != 0;
+            bool worldIsInvertible = Math.Abs(world.Determinant()) >= MinTransformDeterminant;
+            bool skinned = hasBones && worldIsInvertible;
+            if (skinned)
+                Matrix.Invert(ref world, out inverseWorld);
             if (Batch != null)
-                Batch.Set(Slot, values, pose, inverseWorld, bones.Length != 0, activeCount);
+                Batch.Set(Slot, values, pose, inverseWorld, skinned, activeCount);
             else
                 weights = values;
         }
