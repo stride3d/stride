@@ -66,6 +66,8 @@ public partial class NugetStore : INugetDownloadProgress
         RemoveDeletedSources(settings, "Xenko Dev");
         // Note the space: we want to keep "Stride Dev" but not "Stride Dev {PATH}\bin\packages" anymore
         RemoveSources(settings, "Stride Dev ");
+        // Older launchers added the legacy feed (Xenko 3.0 and lower) to the user's NuGet.config
+        RemoveLegacyFeedSources(settings);
 
         settings.SaveToDisk();
 
@@ -95,6 +97,24 @@ public partial class NugetStore : INugetDownloadProgress
                 if (packageSource.Key.StartsWith(prefixName, StringComparison.Ordinal))
                 {
                     // Remove entry from packageSources
+                    settings.Remove("packageSources", packageSource);
+                }
+            }
+        }
+    }
+
+    private static void RemoveLegacyFeedSources(ISettings settings)
+    {
+        var packageSources = settings.GetSection("packageSources");
+        if (packageSources != null)
+        {
+            foreach (var packageSource in packageSources.Items.OfType<SourceItem>().ToList())
+            {
+                // Matched by host, whatever the entry's name
+                if (Uri.TryCreate(packageSource.Value, UriKind.Absolute, out var uri)
+                    && (uri.Host.Equals("packages.stride3d.net", StringComparison.OrdinalIgnoreCase)
+                        || uri.Host.Equals("packages.xenko.com", StringComparison.OrdinalIgnoreCase)))
+                {
                     settings.Remove("packageSources", packageSource);
                 }
             }
