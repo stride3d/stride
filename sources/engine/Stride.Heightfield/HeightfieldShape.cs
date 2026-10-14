@@ -28,10 +28,16 @@ public unsafe struct HeightfieldShape : IShape
     /// <summary>A GCHandle pointing to a <see cref="IHeightfieldSampler"/></summary>
     public GCHandle Sampler;
 
-    /// <summary>Distance between individual samples, <see cref="Size"/> / <see cref="Subdivision"/></summary>
+    /// <summary>
+    /// Distance between individual samples.
+    /// </summary>
+    /// <remarks>
+    /// Last sample (<see cref="Subdivision"/>-1) should be at exactly {<see cref="Size"/>, <see cref="Size"/>},
+    /// this value should therefore be equivalent to <see cref="Size"/> / (<see cref="Subdivision"/>-1)
+    /// </remarks>
     public float SampleInterval;
 
-    /// <summary>How many subdivisions (samples) there is per unit distance, <see cref="Subdivision"/> / <see cref="Size"/> in XZ, 1 in Y</summary>
+    /// <summary>How many subdivisions (samples) there is per unit distance, (<see cref="Subdivision"/>-1) / <see cref="Size"/> in XZ, 1 in Y</summary>
     public Vector3 SampleIntervalReciprocal;
 
     /// <summary>
@@ -175,24 +181,29 @@ public unsafe struct HeightfieldShape : IShape
         }
     }
 
+    /// <remarks>
+    /// <paramref name="minInclusive"/> and <paramref name="maxInclusive"/> are invalid when this method return false
+    /// </remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private readonly bool Clip(float minX, float maxX, float minZ, float maxZ, out int sX0, out int sX1, out int sZ0, out int sZ1)
+    private readonly bool ClipCells(float minX, float maxX, float minZ, float maxZ, out Int2 minInclusive, out Int2 maxInclusive)
     {
         var v = new Vector4(MathF.Max(minX, 0), MathF.Min(maxX, Size), MathF.Max(minZ, 0), MathF.Min(maxZ, Size));
         if (v.Y < v.X || v.W < v.Z)
         {
-            sX0 = sX1 = sZ0 = sZ1 = 0;
+            Unsafe.SkipInit(out minInclusive);
+            Unsafe.SkipInit(out maxInclusive);
             return false;
         }
 
         v *= SampleIntervalReciprocal.X;
         v = Vector4.Round(v, MidpointRounding.ToNegativeInfinity);
 
-        var subdivisionMinusOne = Subdivision - 1;
-        sX0 = Math.Clamp((int)v.X, 0, subdivisionMinusOne);
-        sX1 = Math.Clamp((int)v.Y, 0, subdivisionMinusOne);
-        sZ0 = Math.Clamp((int)v.Z, 0, subdivisionMinusOne);
-        sZ1 = Math.Clamp((int)v.W, 0, subdivisionMinusOne);
+        // remember that we have N samples, but N-1 cells; the last cell covers the sample that goes from N-1 to N
+        var subdivisionMinusOne = Subdivision - 2;
+        minInclusive.X = Math.Clamp((int)v.X, 0, subdivisionMinusOne);
+        maxInclusive.X = Math.Clamp((int)v.Y, 0, subdivisionMinusOne);
+        minInclusive.Y = Math.Clamp((int)v.Z, 0, subdivisionMinusOne);
+        maxInclusive.Y = Math.Clamp((int)v.W, 0, subdivisionMinusOne);
         return true;
     }
 
@@ -242,10 +253,10 @@ public unsafe struct HeightfieldShape : IShape
         if (max.Y < MinHeight || min.Y > MaxHeight)
             return; // In case the Y axis of the field does not match UnitY, unlikely
 
-        if (Clip(min.X, max.X, min.Z, max.Z, out int xStart, out int xEndInclusive, out int zStart, out int zEndInclusive) == false)
+        if (ClipCells(min.X, max.X, min.Z, max.Z, out var minInclusive, out var maxInclusive) == false)
             return;
 
-        var cell = new Int2(xStart, zStart);
+        var cell = minInclusive;
         var blockStart = cell / CoarseBlockInterval;
         var cellsToNextBlockAtStart = cell - blockStart * CoarseBlockInterval;
         cellsToNextBlockAtStart = new Int2(CoarseBlockInterval) - cellsToNextBlockAtStart;
@@ -257,7 +268,7 @@ public unsafe struct HeightfieldShape : IShape
 
         var blockRange = CoarseBlocksAddress[blockOffset.Y + blockStart.X];
 
-        var xRangeOverlapsMultipleBlocks = (xStart / CoarseBlockInterval) != (xEndInclusive / CoarseBlockInterval);
+        var xRangeOverlapsMultipleBlocks = (minInclusive.X / CoarseBlockInterval) != (maxInclusive.X / CoarseBlockInterval);
         do
         {
             if (xRangeOverlapsMultipleBlocks == false && (max.Y < blockRange.MinHeight || min.Y > blockRange.MaxHeight))
@@ -266,7 +277,7 @@ public unsafe struct HeightfieldShape : IShape
                 // and this block does not intersect with the bounds.
                 // We can do the same as in the X loop, fast-forward to the next block in Y
                 cell.Y += cellsToNextBlock.Y;
-                if (cell.Y > zEndInclusive)
+                if (cell.Y > maxInclusive.Y)
                     break;
 
                 cellsToNextBlock.Y = CoarseBlockInterval;
@@ -284,7 +295,7 @@ public unsafe struct HeightfieldShape : IShape
                 {
                     // No X in this block is in range, fast-forward X to next block
                     cell.X += cellsToNextBlock.X;
-                    if (cell.X > xEndInclusive)
+                    if (cell.X > maxInclusive.X)
                         break;
 
                     cellsToNextBlock.X = CoarseBlockInterval;
@@ -297,7 +308,7 @@ public unsafe struct HeightfieldShape : IShape
                     return;
 
                 cell.X++;
-                if (cell.X > xEndInclusive)
+                if (cell.X > maxInclusive.X)
                     break;
 
                 cellsToNextBlock.X--;
@@ -309,7 +320,7 @@ public unsafe struct HeightfieldShape : IShape
             } while (true);
 
             cell.Y++;
-            if (cell.Y > zEndInclusive)
+            if (cell.Y > maxInclusive.Y)
                 break;
 
             cellsToNextBlock.Y -= 1;
@@ -324,7 +335,7 @@ public unsafe struct HeightfieldShape : IShape
             }
 
             // Reset some of the run variables
-            cell.X = xStart;
+            cell.X = minInclusive.X;
         } while (true);
     }
 
@@ -395,7 +406,13 @@ public unsafe struct HeightfieldShape : IShape
         
         TreeRay.CreateFrom(localOrigin, localDir, maximumT, out var treeRay);
 
+        // The last sample is N - 1, same idea as an array index 
+        var localMaxInclusive = Subdivision - 1;
+        // Cell goes from [0, Subdivision - 2] inclusive since they join the sample N with N+1 
+        var localCellMaxInclusive = Subdivision - 2;
+
         // Note that henceforth X&Z is referred as X&Y
+
         var localOrigin2D = new Vector2(localOrigin.X, localOrigin.Z);
         var localDir2D = new Vector2(localDir.X, localDir.Z);
         Vector2 invDir;
@@ -408,7 +425,7 @@ public unsafe struct HeightfieldShape : IShape
             if (localDir2D.X != 0)
             {
                 var tx1 = (0 - localOrigin2D.X) * invDir.X;
-                var tx2 = (Subdivision - localOrigin2D.X) * invDir.X;
+                var tx2 = (localMaxInclusive - localOrigin2D.X) * invDir.X;
                 xBounds = tx1 < tx2 ? (tx1, tx2) : (tx2, tx1);
             }
             else
@@ -419,7 +436,7 @@ public unsafe struct HeightfieldShape : IShape
             if (localDir2D.Y != 0)
             {
                 var ty1 = (0 - localOrigin2D.Y) * invDir.Y;
-                var ty2 = (Subdivision - localOrigin2D.Y) * invDir.Y;
+                var ty2 = (localMaxInclusive - localOrigin2D.Y) * invDir.Y;
                 yBounds = ty1 < ty2 ? (ty1, ty2) : (ty2, ty1);
             }
             else
@@ -451,12 +468,12 @@ public unsafe struct HeightfieldShape : IShape
                 return; // Ray is outside and away vertically
         }
 
-        Int2 coord;
+        Int2 cell;
         Int2 step;
         {
             var inBounds = Vector2.Round(localOrigin2D + localDir2D * tCellEnter, MidpointRounding.ToNegativeInfinity);
-            coord.X = Math.Clamp((int)inBounds.X, 0, Subdivision - 1);
-            coord.Y = Math.Clamp((int)inBounds.Y, 0, Subdivision - 1);
+            cell.X = Math.Clamp((int)inBounds.X, 0, localCellMaxInclusive);
+            cell.Y = Math.Clamp((int)inBounds.Y, 0, localCellMaxInclusive);
             step.X = MathF.Sign(localDir2D.X);
             step.Y = MathF.Sign(localDir2D.Y);
         }
@@ -464,16 +481,16 @@ public unsafe struct HeightfieldShape : IShape
         Vector2 tMax, tDelta;
         {
             if (step.X > 0)
-                tMax.X = coord.X + 1;
+                tMax.X = cell.X + 1;
             else if (step.X < 0)
-                tMax.X = coord.X;
+                tMax.X = cell.X;
             else
                 tMax.X = float.PositiveInfinity;
 
             if (step.Y > 0)
-                tMax.Y = coord.Y + 1;
+                tMax.Y = cell.Y + 1;
             else if (step.Y < 0)
-                tMax.Y = coord.Y;
+                tMax.Y = cell.Y;
             else
                 tMax.Y = float.PositiveInfinity;
 
@@ -484,10 +501,10 @@ public unsafe struct HeightfieldShape : IShape
 
         tExit = MathF.Min(tExit, maximumT);
         
-        var blockCoord = coord / CoarseBlockInterval;
+        var blockCoord = cell / CoarseBlockInterval;
 
         // Note that this is signed, positive when going in negative dir, negative when going in positive dir
-        var cellsToNextBlock = coord - blockCoord * CoarseBlockInterval;
+        var cellsToNextBlock = cell - blockCoord * CoarseBlockInterval;
         cellsToNextBlock.X = step.X > 0 ? -(CoarseBlockInterval - cellsToNextBlock.X) : cellsToNextBlock.X + 1;
         cellsToNextBlock.Y = step.Y > 0 ? -(CoarseBlockInterval - cellsToNextBlock.Y) : cellsToNextBlock.Y + 1;
 
@@ -501,7 +518,7 @@ public unsafe struct HeightfieldShape : IShape
 
             if (insideBlock)
             {
-                if (RayTestCell(coord, localOrigin, localDir, ray, orientation, ref maximumT, ref hitHandler))
+                if (RayTestCell(cell, localOrigin, localDir, ray, orientation, ref maximumT, ref hitHandler))
                 {
                     tExit = MathF.Min(tExit, maximumT);
                 }
@@ -509,8 +526,8 @@ public unsafe struct HeightfieldShape : IShape
 
             if (tMax.X < tMax.Y)
             {
-                coord.X += step.X;
-                if (coord.X < 0 || coord.X >= Subdivision)
+                cell.X += step.X;
+                if (cell.X < 0 || cell.X >= localMaxInclusive)
                     break;
 
                 tCellEnter = tMax.X;
@@ -526,8 +543,8 @@ public unsafe struct HeightfieldShape : IShape
             }
             else
             {
-                coord.Y += step.Y;
-                if (coord.Y < 0 || coord.Y >= Subdivision)
+                cell.Y += step.Y;
+                if (cell.Y < 0 || cell.Y >= localMaxInclusive)
                     break;
 
                 tCellEnter = tMax.Y;

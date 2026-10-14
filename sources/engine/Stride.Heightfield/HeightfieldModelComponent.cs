@@ -64,7 +64,7 @@ public class HeightfieldModelComponent : EntityComponent
         get;
         set
         {
-            ArgumentOutOfRangeException.ThrowIfLessThan(value, 1);
+            ArgumentOutOfRangeException.ThrowIfLessThan(value, 2);
             field = value;
             _version++;
         }
@@ -127,15 +127,20 @@ public class HeightfieldModelComponent : EntityComponent
                 if (heightfieldRendering.Source is null)
                     continue;
 
-                var targetCellSize = heightfieldRendering.Source.Size / heightfieldRendering.Source.Subdivision * 2;
-                var virtPlaneSize = targetCellSize * heightfieldRendering.Tessellation;
-                var planeSize = heightfieldRendering.Source.Size;
+                var fieldCellCount = heightfieldRendering.Source.Subdivision - 1;
+                var fieldSize = heightfieldRendering.Source.Size;
+                var fieldCellSize = fieldSize / fieldCellCount * 2;
+
+                var renderedCellCount = (heightfieldRendering.Tessellation - 1);
+                var fieldSizeForRenderedCellSize = fieldCellSize * renderedCellCount;
+
+                var planeSize = fieldSize;
                 if (heightfieldRendering.VirtualPlaneRatio > 0)
-                    planeSize = Math.Min(virtPlaneSize * heightfieldRendering.VirtualPlaneRatio, planeSize);
-                var cellSize = planeSize / heightfieldRendering.Tessellation;
+                    planeSize = Math.Min(fieldSizeForRenderedCellSize * heightfieldRendering.VirtualPlaneRatio, planeSize);
+                var cellSize = planeSize / renderedCellCount;
                 mat.Passes[0].Parameters.Set(HeightfieldDisplacementPropertiesKeys.PlaneCellSize, cellSize);
                 mat.Passes[0].Parameters.Set(HeightfieldDisplacementPropertiesKeys.PlaneSize, planeSize);
-                mat.Passes[0].Parameters.Set(HeightfieldDisplacementPropertiesKeys.HeightfieldSize, heightfieldRendering.Source.Size);
+                mat.Passes[0].Parameters.Set(HeightfieldDisplacementPropertiesKeys.HeightfieldSize, fieldSize);
             }
         }
 
@@ -150,9 +155,10 @@ public class HeightfieldModelComponent : EntityComponent
 
             model = new PlaneProceduralModel
             {
-                Tessellation = new Int2(component.Tessellation),
-                Size = new Vector2(1f),
-                UvScale = new Vector2(1),
+                // Tessellation for plane is the amount of quads, while here it is the amount of vertices
+                Tessellation = new Int2(component.Tessellation - 1),
+                Size = Vector2.One,
+                UvScale = Vector2.One,
                 LocalOffset = new Vector3(0.5f, 0, 0.5f),
                 NumberOfTextureCoordinates = 1
             }.Generate(Services);

@@ -30,9 +30,6 @@ namespace Stride.Heightfield
             streams.TexCoord *= PlaneSize / HeightfieldSize;
             streams.TexCoord += offset / HeightfieldSize;
 
-            // Prepare UV to sample texture centroid
-            streams.TexCoord += uvCellSize * 0.5;
-
             float height = inner.Compute().x;
 
             streams.TPosition.xyz += height * streams.TNormal.xyz;

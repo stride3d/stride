@@ -67,7 +67,7 @@ public class HeightfieldDisplacementFeature : MaterialFeature, IMaterialDisplace
         context.IsNotPixelStage = false;
 
         mixin.AddComposition("inner", innerShaderSource);
-        // N.B: Using 'MaterialDisplacementMapFeature' to test the type specific conditional AddAdjacentEdgeAverageShaders,
+        // Note: Using 'MaterialDisplacementMapFeature' to test the type specific conditional AddAdjacentEdgeAverageShaders,
         // will likely need a custom handler
         context.SetStreamFinalModifier<MaterialDisplacementMapFeature>(materialStage, mixin);
     }

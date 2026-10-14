@@ -72,8 +72,8 @@ public sealed class HeightfieldCollider : ICollider
 
         ArgumentOutOfRangeException.ThrowIfLessThan(subdivision, 0);
         ArgumentOutOfRangeException.ThrowIfLessThan(size, 0);
-        float sampleInterval = size / subdivision;
-        float subdivisionsPerUnit = subdivision / size;
+        float sampleInterval = size / (subdivision - 1);
+        float subdivisionsPerUnit = (subdivision - 1) / size;
 
         Source.GetColliderData(out var sampler, out var coarseBlocks, out var coarseBlocksSubdivision);
 

@@ -13,6 +13,7 @@ using Stride.Core.Mathematics;
 using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
 using Stride.Graphics;
+using Stride.Graphics.Data;
 using Stride.Rendering.Materials;
 using Stride.Rendering.Materials.ComputeColors;
 using Stride.TextureConverter;
@@ -251,11 +252,11 @@ public record HeightfieldTexture : HeightfieldTextureSharedData, IHeightfieldLay
         {
             return (HeightsFormat, Tiling) switch
             {
-                (PixelFormat.R32_Float, 1f) => Build<float, FloatToFloat, AndWrap/*NoWrap*/>(),
-                (PixelFormat.R16_Float, 1f) => Build<Half, HalfToFloat, AndWrap/*NoWrap*/>(),
-                (PixelFormat.R16_SNorm, 1f) => Build<short, ShortToFloat, AndWrap/*NoWrap*/>(),
-                (PixelFormat.R16_UNorm, 1f) => Build<ushort, UShortToFloat, AndWrap/*NoWrap*/>(),
-                (PixelFormat.R8_UNorm, 1f) => Build<byte, ByteToFloat, AndWrap/*NoWrap*/>(),
+                (PixelFormat.R32_Float, 1f) => Build<float, FloatToFloat, NoWrap>(),
+                (PixelFormat.R16_Float, 1f) => Build<Half, HalfToFloat, NoWrap>(),
+                (PixelFormat.R16_SNorm, 1f) => Build<short, ShortToFloat, NoWrap>(),
+                (PixelFormat.R16_UNorm, 1f) => Build<ushort, UShortToFloat, NoWrap>(),
+                (PixelFormat.R8_UNorm, 1f) => Build<byte, ByteToFloat, NoWrap>(),
 
                 (PixelFormat.R32_Float, _) => Build<float, FloatToFloat, AndWrap>(),
                 (PixelFormat.R16_Float, _) => Build<Half, HalfToFloat, AndWrap>(),
@@ -268,7 +269,8 @@ public record HeightfieldTexture : HeightfieldTextureSharedData, IHeightfieldLay
 
         private IHeightfieldFunction Build<T, TConv, TWrap>() where T : unmanaged where TConv : IFloatConverter<T> where TWrap : IWrapper
         {
-            var rezToBuff = ((Vector2)BufferResolution) / HeightfieldSubdivision * Tiling;
+            // Coords are [0,field-1] we want to remap them into [0,rez-1]
+            var rezToBuff = ((Vector2)(BufferResolution - Int2.One)) / (HeightfieldSubdivision - 1) * Tiling;
             var mask = BufferResolution - new Int2(1);
 
             bool oneCellPerPixel = MathUtil.NearEqual(rezToBuff.X, 1f) && MathUtil.NearEqual(rezToBuff.Y, 1f);
@@ -292,17 +294,28 @@ public record HeightfieldTexture : HeightfieldTextureSharedData, IHeightfieldLay
             if (Texture == null! || string.IsNullOrEmpty(Texture.Url))
                 return new ComputeFloat(HeightMultiplier);
 
-            // - We need the texture here to feed the ComputeScalar.
-            // - We can't hold a direct reference to the texture: loading this record through Content.Load<HeightfieldAsset> would require a graphics context
-            //   to load the reference. Which it doesn't have when building a game and setting up the associated material through 'HeightfieldDisplacementFeature'
-            // - Instead we'll create a proxy, like the serializer does, and let the engine bind the texture from its url/id
-            var texture = AttachedReferenceManager.CreateProxyObject<Texture>(Texture.Id, Texture.Url);
+            var proxyObject = context.Content.Load(Texture);
 
-            var textureScalar = new ComputeTextureScalar(texture, TextureCoordinate.Texcoord0, new Stride.Core.Mathematics.Vector2(Tiling), default)
+            var size = new Vector2(proxyObject.Width, proxyObject.Height);
+            if (size.X == 0) // might not be allocated/uploaded yet, in which case we'll fetch the backing image
+            {
+                var img = proxyObject.GetSerializationData().Image;
+                size = new Vector2(img.Description.Width, img.Description.Height);
+            }
+
+            var textureScalar = new ComputeTextureScalar(proxyObject, TextureCoordinate.Texcoord0, default, default)
             {
                 Filtering = BilinearSampling ? TextureFilter.Linear : TextureFilter.Point,
                 AddressModeU = TextureAddressMode.Wrap,
                 AddressModeV = TextureAddressMode.Wrap,
+                // uv{0,0} is right in the middle of px{0,0}, px{0,^1}, px{^1,0} and px{^1,^1};
+                // In other words, px{0,0}'s center is at half a texel from uv{0,0}.
+                // It is more accurate to sample from the center than the middle of two pixels
+                // regardless of the filtering method.
+                Offset = new Vector2(0.5f) / size / Tiling,
+                // Same as above, we want the last pixel to be centered on uv{^1,^1}
+                // Note: Scale happens first, then offset adds to the UV
+                Scale = (size - Vector2.One) / size * Tiling
             };
             return new ComputeBinaryScalar(textureScalar, new ComputeFloat(HeightMultiplier), BinaryOperator.Multiply);
         }
