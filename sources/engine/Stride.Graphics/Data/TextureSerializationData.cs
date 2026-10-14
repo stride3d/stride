@@ -126,5 +126,37 @@ namespace Stride.Graphics.Data
                 Image.Save(stream.UnderlyingStream, ImageFileType.Stride);
             }
         }
+
+        public static TextureSerializationData Read(SerializationStream stream, out ImageDescription fullRezDescription)
+        {
+            bool enableStreaming = stream.Read<bool>();
+            Image image;
+            ContentStorageHeader storageHeader;
+            if (enableStreaming)
+            {
+                // Read image header
+                fullRezDescription = default;
+                ImageHelper.ImageDescriptionSerializer.Serialize(ref fullRezDescription, ArchiveMode.Deserialize, stream);
+
+                // Read storage header
+                ContentStorageHeader.Read(stream, out storageHeader);
+                if (storageHeader.InitialImage)
+                {
+                    image = Image.Load(stream.UnderlyingStream);
+                }
+                else
+                {
+                    image = Image.New(fullRezDescription);
+                }
+            }
+            else
+            {
+                image = Image.Load(stream.UnderlyingStream);
+                fullRezDescription = image.Description;
+                storageHeader = default;
+            }
+
+            return new TextureSerializationData(image, enableStreaming, storageHeader);
+        }
     }
 }

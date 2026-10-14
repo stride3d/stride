@@ -13,6 +13,8 @@ TemplateFolders:
         - !file Templates/Assets/Fonts/OfflineRasterizedSpriteFont.sdtpl
         - !file Templates/Assets/Fonts/RuntimeRasterizedSpriteFont.sdtpl
         - !file Templates/Assets/Fonts/SignedDistanceFieldSpriteFont.sdtpl
+        - !file Templates/Assets/Heightfield/HeightfieldAsset.sdtpl
+        - !file Templates/Assets/Heightfield/RunevisionTerrain.sdtpl
         - !file Templates/Assets/Materials/DefaultMaterial.sdtpl
         - !file Templates/Assets/Materials/DiffuseMaterial.sdtpl
         - !file Templates/Assets/Materials/PBRMetalnessMaterial.sdtpl
