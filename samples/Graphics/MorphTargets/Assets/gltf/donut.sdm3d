@@ -1,6 +1,6 @@
 !Model
 Id: d4d26537-8d4f-4d81-9ae0-9bc18b37ea21
-SerializedVersion: {Stride: 2.0.0.0}
+SerializedVersion: {Stride: 2.1.0.0}
 Tags: []
 Source: !file ../../Resources/Donut/donut.gltf
 Skeleton: 16d5596f-af9d-4716-b9f1-dcb5c371d580:gltf/donut Skeleton

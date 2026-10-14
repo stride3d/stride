@@ -1,6 +1,6 @@
 !Model
 Id: 39721c34-2996-4256-98e5-d90220ed8790
-SerializedVersion: {Stride: 2.0.0.0}
+SerializedVersion: {Stride: 2.1.0.0}
 Tags: []
 Source: !file ../../Resources/Icosphere/icosphere.gltf
 Skeleton: null

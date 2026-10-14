@@ -1,6 +1,6 @@
 !Model
 Id: 1c9f7f15-279f-4443-9188-d6370c244af9
-SerializedVersion: {Stride: 2.0.0.0}
+SerializedVersion: {Stride: 2.1.0.0}
 Tags: []
 Source: !file ../../Resources/Donut/donut.fbx
 Skeleton: 70261a03-899b-4c1d-84e6-ecb065338d04:fbx/donut Skeleton

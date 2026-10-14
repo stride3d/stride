@@ -1,6 +1,6 @@
 !Model
 Id: c41faf88-3e74-40d5-af0b-7c43925d3eda
-SerializedVersion: {Stride: 2.0.0.0}
+SerializedVersion: {Stride: 2.1.0.0}
 Tags: []
 Source: !file ../../Resources/Cube/cube.gltf
 Skeleton: null

@@ -8,6 +8,7 @@ using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.IO;
 using Stride.Core.Mathematics;
+using Stride.Core.Yaml;
 using Stride.Importer.Common;
 using Stride.Rendering;
 
@@ -18,9 +19,10 @@ namespace Stride.Assets.Models
     [AssetContentType(typeof(Model))]
     [Display((int)AssetDisplayPriority.Models + 80, "Model")]
     [AssetFormatVersion(StrideConfig.LogicalPackageName, CurrentVersion, "2.0.0.0")]
+    [AssetUpgrader(StrideConfig.LogicalPackageName, "2.0.0.0", "2.1.0.0", typeof(DisableMorphTargetsUpgrader))]
     public sealed class ModelAsset : Asset, IAssetWithSource, IModelAsset
     {
-        private const string CurrentVersion = "2.0.0.0";
+        private const string CurrentVersion = "2.1.0.0";
 
         /// <summary>
         /// The default file extension used by the <see cref="ModelAsset"/>.
@@ -117,5 +119,16 @@ namespace Stride.Assets.Models
         /// <inheritdoc/>
         [DataMemberIgnore]
         public override UFile MainSource => Source;
+
+        /// <summary>
+        /// Models saved before morph target import keep their previous behavior: merged meshes and no compute deformation.
+        /// </summary>
+        private class DisableMorphTargetsUpgrader : AssetUpgraderBase
+        {
+            protected override void UpgradeAsset(AssetMigrationContext context, PackageVersion currentVersion, PackageVersion targetVersion, dynamic asset, PackageLoadingAssetFile assetFile, OverrideUpgraderHint overrideHint)
+            {
+                asset.ImportMorphTargets = false;
+            }
+        }
     }
 }
