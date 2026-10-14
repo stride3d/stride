@@ -30,8 +30,6 @@ public class NewGameEditor : IUITest
             ctx.Exit(1);
             return;
         }
-        await Task.Delay(TimeSpan.FromSeconds(1)); // let templates panel populate
-
         if (!await ctx.SelectTemplate(new Guid(NewGameTemplateId)))
         {
             ctx.Exit(1);

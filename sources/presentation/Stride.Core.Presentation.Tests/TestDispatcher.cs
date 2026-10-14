@@ -60,8 +60,10 @@ namespace Stride.Core.Presentation.Tests
         {
             var dispatcher = CreateDispatcher();
             int count = 1;
-            var task = dispatcher.InvokeAsync(async () => { await Task.Delay(100); count = count + 1; });
+            var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            var task = dispatcher.InvokeAsync(async () => { await release.Task; count = count + 1; });
             Assert.Equal(1, count);
+            release.SetResult();
             task.Result.Wait();
             Assert.Equal(2, count);
             ShutdownDispatcher(dispatcher);
@@ -85,8 +87,10 @@ namespace Stride.Core.Presentation.Tests
         {
             var dispatcher = CreateDispatcher();
             int count = 1;
-            var task = dispatcher.InvokeAsync(async () => { await Task.Delay(100); count = count + 1; });
+            var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            var task = dispatcher.InvokeAsync(async () => { await release.Task; count = count + 1; });
             Assert.Equal(1, count);
+            release.SetResult();
             await task.Result;
             Assert.Equal(2, count);
             ShutdownDispatcher(dispatcher);
