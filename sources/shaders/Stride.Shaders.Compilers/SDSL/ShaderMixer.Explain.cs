@@ -20,11 +20,12 @@ public partial class ShaderMixer
     /// method the override chain from the first definition to the winner (the one called; <c>base</c> goes one step left).
     /// The <c>module</c> members and struct types of a shader used in a composition are its "companion module", once in the
     /// root node (unused generic arguments shown as <c>*</c>). A shader used only through static references is a "module",
-    /// once in the root node.
+    /// once in the root node. Last, each partial struct of the effect: its fields in order, with the class that declares each,
+    /// and its packed size.
     /// </summary>
     public string? Explanation { get; private set; }
 
-    private static string Explain(MixinNode root)
+    private static string Explain(MixinNode root, MixinGlobalContext globalContext)
     {
         var nodePaths = new Dictionary<ShaderInfo, string>();
         var nodes = new List<MixinNode>();
@@ -85,6 +86,7 @@ public partial class ShaderMixer
                 builder.AppendLine($"  {(isStage ? "module " : "")}method {signature} = {string.Join(" > ", chain)}");
             }
         }
+        ExplainPartialStructs(builder, globalContext);
         return builder.ToString();
 
         void CollectNodes(MixinNode node)

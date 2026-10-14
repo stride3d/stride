@@ -74,8 +74,12 @@ public record struct ShaderClassParser : IParser<ShaderClass>
             @internal = true;
             tmp = scanner.Position;
         }
+        var isPartial = false;
         if (Parsers.FollowedBy(ref scanner, Tokens.Literal("partial"), withSpaces: true, advance: true) && Parsers.Spaces1(ref scanner, result, out _))
+        {
+            isPartial = true;
             tmp = scanner.Position;
+        }
         var isModule = false;
         var isClass = false;
         var keyword = scanner.Position;
@@ -97,6 +101,7 @@ public record struct ShaderClassParser : IParser<ShaderClass>
                 parsed = new ShaderClass(identifier, scanner[..]);
                 parsed.Internal = @internal;
                 parsed.IsModule = isModule;
+                parsed.IsPartial = isPartial;
                 if (hasAttributes)
                     parsed.Attributes = attributes;
                 if (Tokens.Char('<', ref scanner, advance: true))

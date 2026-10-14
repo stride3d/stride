@@ -300,6 +300,9 @@ public partial class SpirvContext
         var structTypes = CollectionsMarshal.AsSpan(shaderSymbol.StructTypes);
         foreach (ref var structType in structTypes)
         {
+            // A partial struct is not imported: the importing class declares its own view of it
+            if (structType.Type is StructType { PartialOwner: not null })
+                continue;
             ImportShaderStruct(id, structType.Type, out structType.ImportedId);
         }
 
@@ -349,7 +352,23 @@ public partial class SpirvContext
 
     private int RegisterStructuredType(string name, StructuredType structSymbol)
     {
+        // A partial struct reached through a compose type or a static reference: this class sees the fields that class sees
+        if (structSymbol is StructType { PartialOwner: not null } partialStruct)
+            return DeclarePartialStructView(partialStruct, Bound++);
         throw new InvalidOperationException();
+    }
+
+    /// <summary>
+    /// Declares the view of a partial struct seen by the class being compiled, with its owner and the class that
+    /// declares each field, so the linker can join the views of the effect.
+    /// </summary>
+    public int DeclarePartialStructView(StructType view, int id)
+    {
+        DeclareStructuredType(view, id);
+        Add(new OpDecorateString(id, Specification.Decoration.PartialStructSDSL, view.PartialOwner!));
+        for (var index = 0; index < view.Members.Count; index++)
+            Add(new OpMemberDecorateString(id, index, Specification.Decoration.PartialFieldSDSL, view.PartialDeclarers![index]));
+        return id;
     }
 
     public int DeclareStructuredType(StructuredType structSymbol, int id)

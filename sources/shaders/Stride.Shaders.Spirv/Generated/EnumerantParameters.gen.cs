@@ -2347,6 +2347,36 @@ public static class DecorationParams
             return parameter;
         }
     }
+
+    public ref struct PartialStructSDSL(string owner) : IEnumerantParameter<PartialStructSDSL>
+    {
+        public string Owner { get; set; } = owner;
+
+        public static PartialStructSDSL Create(Span<int> words)
+        {
+            var reader = new EnumerantParametersReader(words);
+            var parameter = new PartialStructSDSL
+            {
+                Owner = reader.ReadString(),
+            };
+            return parameter;
+        }
+    }
+
+    public ref struct PartialFieldSDSL(string declarer) : IEnumerantParameter<PartialFieldSDSL>
+    {
+        public string Declarer { get; set; } = declarer;
+
+        public static PartialFieldSDSL Create(Span<int> words)
+        {
+            var reader = new EnumerantParametersReader(words);
+            var parameter = new PartialFieldSDSL
+            {
+                Declarer = reader.ReadString(),
+            };
+            return parameter;
+        }
+    }
 }
 
 public static class TensorAddressingOperandsParams
@@ -3728,6 +3758,24 @@ public ref partial struct EnumerantParameters
     public static implicit operator EnumerantParameters(DecorationParams.FunctionParameterDefaultValueSDSL parameter)
     {
         Span<int> span = [parameter.IdRef0];
+        MemoryOwner<int> buffer = MemoryOwner<int>.Allocate(span.Length);
+        span.CopyTo(buffer.Span);
+        var result = new EnumerantParameters(buffer);
+        return result;
+    }
+
+    public static implicit operator EnumerantParameters(DecorationParams.PartialStructSDSL parameter)
+    {
+        Span<int> span = [..parameter.Owner.AsDisposableLiteralValue().Words];
+        MemoryOwner<int> buffer = MemoryOwner<int>.Allocate(span.Length);
+        span.CopyTo(buffer.Span);
+        var result = new EnumerantParameters(buffer);
+        return result;
+    }
+
+    public static implicit operator EnumerantParameters(DecorationParams.PartialFieldSDSL parameter)
+    {
+        Span<int> span = [..parameter.Declarer.AsDisposableLiteralValue().Words];
         MemoryOwner<int> buffer = MemoryOwner<int>.Allocate(span.Length);
         span.CopyTo(buffer.Span);
         var result = new EnumerantParameters(buffer);

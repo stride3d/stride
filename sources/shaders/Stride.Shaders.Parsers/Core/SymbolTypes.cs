@@ -307,16 +307,30 @@ public partial record StructuredType(string Name, List<StructuredTypeMember> Mem
 
 public sealed partial record StructType(string Name, List<StructuredTypeMember> Members) : StructuredType(Name, Members)
 {
+    /// <summary>
+    /// For a partial struct, the class that declares it with <c>partial struct</c>. Each class sees its own view of the
+    /// struct (the fields of the parts it can reach); the linker joins the parts of the effect into one struct.
+    /// </summary>
+    public string? PartialOwner { get; init; }
+
+    /// <summary>
+    /// For a partial struct, the class that declares each member (same order as <see cref="StructuredType.Members"/>).
+    /// </summary>
+    public List<string>? PartialDeclarers { get; init; }
+
     // Value equality by Name + Members (matching the FunctionType pattern).
     // Multiple StructType instances for the same struct can exist when:
     //   - generic shader instantiation copies the SpirvContext (Builder.Class.cs)
     //   - shader cache deserialization creates fresh objects (FileShaderCache)
     // Without this, SpirvContext.Types dictionary lookups fail because
     // the default record equality uses List<> reference equality.
+    // Views of one partial struct are equal whatever fields they see, so signatures match across classes.
     public bool Equals(StructType? other)
     {
         if (other is null) return false;
         if (ReferenceEquals(this, other)) return true;
+        if (PartialOwner != null || other.PartialOwner != null)
+            return Name == other.Name && PartialOwner == other.PartialOwner;
         return Name == other.Name && Members.SequenceEqual(other.Members);
     }
 
@@ -324,6 +338,8 @@ public sealed partial record StructType(string Name, List<StructuredTypeMember> 
     {
         int hash = 17;
         hash = hash * 31 + (Name?.GetHashCode() ?? 0);
+        if (PartialOwner != null)
+            return hash * 31 + PartialOwner.GetHashCode();
         foreach (var member in Members)
             hash = hash * 31 + member.GetHashCode();
         return hash;

@@ -1,0 +1,121 @@
+// PSMain(ExpectedResult=#01020304)
+
+namespace Stride.Shaders.Tests;
+
+// A partial struct with three parts. The effect's struct is a, b, c, d (owner first, then the parts by class name),
+// but each class sees only the parts it imports: the root sees a, b, c, the composition a, c, d, and the modules
+// a + their own field. Each field is written by one class and read by another, so a wrong field index shows in
+// the pixel.
+
+module PartialSurfaceOwner
+{
+    partial struct PartialSurface
+    {
+        float a;
+    };
+};
+
+module PartialSurfaceB
+{
+    import PartialSurfaceOwner;
+
+    extend struct PartialSurface
+    {
+        float b;
+    };
+
+    void SetB(inout PartialSurface s)
+    {
+        s.b = 2.0 / 255.0;
+    }
+};
+
+module PartialSurfaceC
+{
+    import PartialSurfaceOwner;
+
+    extend struct PartialSurface
+    {
+        float c;
+    };
+
+    void SetC(inout PartialSurface s)
+    {
+        s.c = 3.0 / 255.0;
+    }
+
+    float GetC(PartialSurface s)
+    {
+        return s.c;
+    }
+};
+
+module PartialSurfaceD
+{
+    import PartialSurfaceOwner;
+
+    extend struct PartialSurface
+    {
+        float d;
+    };
+};
+
+shader PartialSurfaceLayerBase
+{
+    import PartialSurfaceOwner;
+
+    void Apply(inout PartialSurface s)
+    {
+        s.a = 0.0;
+    }
+
+    float Read(PartialSurface s)
+    {
+        return 0.0;
+    }
+};
+
+shader PartialSurfaceLayer : PartialSurfaceLayerBase
+{
+    import PartialSurfaceD;
+    import PartialSurfaceC;
+
+    override void Apply(inout PartialSurface s)
+    {
+        float a = s.a;
+        base.Apply(s);
+        s.a = a;
+        s.d = 4.0 / 255.0;
+        SetC(s);
+    }
+
+    override float Read(PartialSurface s)
+    {
+        return s.d;
+    }
+};
+
+shader PartialSurfaceRoot
+{
+    import PartialSurfaceB;
+    import PartialSurfaceC;
+
+    stream float4 ColorTarget : SV_Target0;
+
+    compose PartialSurfaceLayerBase Layer;
+
+    void PSMain()
+    {
+        PartialSurface s = (PartialSurface)0;
+        s.a = 1.0 / 255.0;
+        SetB(s);
+        Layer.Apply(s);
+        streams.ColorTarget = float4(s.a, s.b, GetC(s), Layer.Read(s));
+    }
+};
+
+effect PartialStructParts
+{
+    mixin PartialSurfaceRoot;
+    mixin compose Layer = PartialSurfaceLayer;
+}

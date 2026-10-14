@@ -196,6 +196,7 @@ public abstract class ShaderBuffer : ShaderElement
             smem.TypeName.ProcessSymbol(table);
             smem.Type = smem.TypeName.Type!;
             table.DeclaredTypes.TryAdd(smem.Type.ToString(), smem.Type);
+            PartialStructs.CheckFixedLayout(table, smem.Name.Info, $"{Name} member", smem.Name.Name, smem.Type);
 
             fields.Add(new(smem.Name, smem.Type, smem.TypeModifier));
         }
@@ -233,13 +234,26 @@ public partial class ShaderStructMember(TypeName typename, Identifier identifier
     }
 }
 
+public enum ShaderStructKind
+{
+    Plain,
+    /// <summary><c>partial struct X</c>: declares X, other classes can add fields to it.</summary>
+    Partial,
+    /// <summary><c>extend struct X</c>: adds fields to the partial struct X of an inherited or imported class.</summary>
+    Extend,
+}
+
 public partial class ShaderStruct(Identifier typename, TextLocation info) : ShaderElement(info)
 {
     public Identifier TypeName { get; set; } = typename;
     public List<ShaderStructMember> Members { get; set; } = [];
+    public ShaderStructKind Kind { get; set; }
 
     public override void ProcessSymbol(SymbolTable table, SpirvContext context)
     {
+        // The class declares the views of its partial structs before its other structs (PartialStructs.DeclareViews)
+        if (Kind != ShaderStructKind.Plain)
+            return;
         base.ProcessSymbol(table, context);
         var fields = new List<StructuredTypeMember>();
         foreach (var smem in Members)
@@ -266,7 +280,8 @@ public partial class ShaderStruct(Identifier typename, TextLocation info) : Shad
 
     public override string ToString()
     {
-        return $"struct {TypeName} ({string.Join(", ", Members)})";
+        var keyword = Kind switch { ShaderStructKind.Partial => "partial ", ShaderStructKind.Extend => "extend ", _ => "" };
+        return $"{keyword}struct {TypeName} ({string.Join(", ", Members)})";
     }
 }
 
