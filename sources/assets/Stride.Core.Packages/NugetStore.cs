@@ -110,10 +110,12 @@ public partial class NugetStore : INugetDownloadProgress
         {
             foreach (var packageSource in packageSources.Items.OfType<SourceItem>().ToList())
             {
-                // Matched by host, whatever the entry's name
+                // Matched by URL, whatever the entry's name: packages.xenko.com, and /nuget of packages.stride3d.net (which
+                // also hosts the nightly feed under /nightly)
                 if (Uri.TryCreate(packageSource.Value, UriKind.Absolute, out var uri)
-                    && (uri.Host.Equals("packages.stride3d.net", StringComparison.OrdinalIgnoreCase)
-                        || uri.Host.Equals("packages.xenko.com", StringComparison.OrdinalIgnoreCase)))
+                    && (uri.Host.Equals("packages.xenko.com", StringComparison.OrdinalIgnoreCase)
+                        || (uri.Host.Equals("packages.stride3d.net", StringComparison.OrdinalIgnoreCase)
+                            && uri.AbsolutePath.TrimEnd('/').Equals("/nuget", StringComparison.OrdinalIgnoreCase))))
                 {
                     settings.Remove("packageSources", packageSource);
                 }
@@ -161,6 +163,31 @@ public partial class NugetStore : INugetDownloadProgress
     public static void UpdatePackageSource(ISettings settings, string name, string url)
     {
         settings.AddOrUpdate("packageSources", new SourceItem(name, url));
+    }
+
+    /// <summary>
+    /// Gets whether an enabled package source has the given URL, whatever its name.
+    /// </summary>
+    public bool HasPackageSource(string url)
+        => PackageSources.Any(x => string.Equals(x.Source.TrimEnd('/'), url.TrimEnd('/'), StringComparison.OrdinalIgnoreCase));
+
+    /// <summary>
+    /// Adds the package source with the given URL to the user's NuGet.config (as <paramref name="name"/>), or removes every
+    /// source with that URL, and refreshes the sources this store searches.
+    /// </summary>
+    public void SetPackageSource(string name, string url, bool enabled)
+    {
+        var packageSources = settings.GetSection("packageSources");
+        foreach (var packageSource in packageSources?.Items.OfType<SourceItem>().ToList() ?? [])
+        {
+            if (string.Equals(packageSource.Value.TrimEnd('/'), url.TrimEnd('/'), StringComparison.OrdinalIgnoreCase))
+                settings.Remove("packageSources", packageSource);
+        }
+        if (enabled)
+            settings.AddOrUpdate("packageSources", new SourceItem(name, url));
+        settings.SaveToDisk();
+
+        PackageSources = new PackageSourceProvider(settings).LoadPackageSources().Where(source => source.IsEnabled).ToList();
     }
 
     private readonly NugetSourceRepositoryProvider sourceRepositoryProvider;
@@ -222,7 +249,7 @@ public partial class NugetStore : INugetDownloadProgress
 
     private ILogger NativeLogger => new NugetLogger(Logger);
 
-    private IEnumerable<PackageSource> PackageSources { get; }
+    private IEnumerable<PackageSource> PackageSources { get; set; }
 
     /// <summary>
     /// Helper to locate packages.

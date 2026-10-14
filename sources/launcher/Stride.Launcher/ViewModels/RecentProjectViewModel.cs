@@ -366,7 +366,9 @@ public sealed class RecentProjectViewModel : DispatcherViewModel
         if (exact is not null)
             return new(exact, null, projectVersion);
 
-        var sameMinor = versions.OfType<StrideStoreVersionViewModel>().FirstOrDefault(x => new Version(x.Major, x.Minor) == StrideVersion);
+        // The row of the project's kind of build (nightly or not), else the other one of its major.minor
+        var sameMinorRows = versions.OfType<StrideStoreVersionViewModel>().Where(x => new Version(x.Major, x.Minor) == StrideVersion).ToList();
+        var sameMinor = sameMinorRows.FirstOrDefault(x => x.IsNightly == (projectVersion?.IsNightly ?? false)) ?? sameMinorRows.FirstOrDefault();
         if (sameMinor is null)
             return null;
 
@@ -390,9 +392,13 @@ public sealed class RecentProjectViewModel : DispatcherViewModel
         return !switchesBack;
     }
 
+    private bool IsSuggestedUpgrade(OpenWithOption option) => IsSuggestedUpgrade(projectVersion, option.TargetVersion);
+
     /// <summary>
-    /// Gets whether <paramref name="option"/> is an upgrade to suggest: to a release, as a local build is for its developer.
+    /// Gets whether opening a project on <paramref name="projectVersion"/> with <paramref name="targetVersion"/> is an
+    /// upgrade to suggest: to a release, as a local build is for its developer, and to a nightly only from a nightly.
     /// </summary>
-    private static bool IsSuggestedUpgrade(OpenWithOption option)
-        => option.IsUpgrade && !option.TargetVersion!.IsLocalBuild;
+    internal static bool IsSuggestedUpgrade(PackageVersion? projectVersion, PackageVersion? targetVersion)
+        => IsUpgrade(projectVersion, targetVersion) && !targetVersion!.IsLocalBuild
+           && (!targetVersion.IsNightly || projectVersion is { IsNightly: true });
 }

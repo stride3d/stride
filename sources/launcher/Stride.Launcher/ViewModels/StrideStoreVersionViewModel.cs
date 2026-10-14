@@ -29,8 +29,8 @@ public sealed class StrideStoreVersionViewModel : StrideVersionViewModel
     /// <param name="localPackage"></param>
     /// <param name="major"></param>
     /// <param name="minor"></param>
-    internal StrideStoreVersionViewModel(MainViewModel launcher, NugetStore store, NugetLocalPackage? localPackage, string packageId, int major, int minor)
-        : base(launcher, store, localPackage, packageId, major, minor)
+    internal StrideStoreVersionViewModel(MainViewModel launcher, NugetStore store, NugetLocalPackage? localPackage, string packageId, int major, int minor, bool isNightly = false)
+        : base(launcher, store, localPackage, packageId, major, minor, isNightly)
     {
         FetchReleaseNotes();
         FetchDocumentation();
@@ -89,7 +89,7 @@ public sealed class StrideStoreVersionViewModel : StrideVersionViewModel
             // The default build: the newest installed, else the newest on the server
             var defaultBuild = AlternateVersions.Where(x => x.LocalPackage is not null).MaxBy(x => x.Version)?.Version ?? LatestServerPackage?.Version;
             var chosenBuild = Version is not null && defaultBuild is not null && !Version.Equals(defaultBuild);
-            var name = string.Format(Strings.VersionButton, chosenBuild ? $"{PackageSimpleName} {Version}" : DisplayName);
+            var name = string.Format(Strings.VersionButton, chosenBuild ? $"{PackageSimpleName} {Version}" : ListName);
             if (!CanDelete)
                 return $"{name} {Strings.VersionButtonUninstalled}";
             // Chosen on purpose: an update of it isn't news

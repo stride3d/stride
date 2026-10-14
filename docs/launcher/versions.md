@@ -16,17 +16,19 @@ flowchart TD
     SSV --> SSA
 ```
 
-Each entry in `MainViewModel.StrideVersions` corresponds to one `Major.Minor` pair. A `StrideStoreVersionViewModel` holds both the latest `NugetLocalPackage` installed and the latest `NugetServerPackage` from the feed — that's how the UI knows whether a version is installed, outdated, or download-only.
+Each entry in `MainViewModel.StrideVersions` corresponds to one `Major.Minor` pair, and a second one for its nightly builds (`IsNightly`, "Stride 4.5 Nightly", right after the release row of the same `Major.Minor`). A `StrideStoreVersionViewModel` holds both the latest `NugetLocalPackage` installed and the latest `NugetServerPackage` from the feed — that's how the UI knows whether a version is installed, outdated, or download-only.
+
+Nightly builds (`PackageVersion.IsNightly`, `X.Y.Z-nightly.YYYYMMDD.N`, see [versioning.md](../build/versioning.md#nightly-builds)) are kept in their own row so that a release row's default build, "Install latest", the first install and the default active version never move to a nightly. A recent project on a nightly opens with the nightly row, one on a release or prerelease with the release row; the nightlies are listed among its "open with" builds, but the upgrade arrow only suggests them to a project already on a nightly. The rows come from the nightly feed: "Show nightly builds" in the launcher settings adds it to or removes it from the user's NuGet.config (`NugetStore.SetPackageSource`) and refreshes the list (`MainViewModel.ShowNightlyBuilds`); installed nightlies stay listed when it's off.
 
 ## Version discovery
 
 `MainViewModel.FetchOnlineData` orchestrates three phases:
 
-1. **Local.** `RetrieveLocalStrideVersions` calls `NugetStore.GetPackagesInstalled(MainPackageIds)` and filters with `FilterStrideMainPackages()` ([PackageFilterExtensions.cs](../../sources/launcher/Stride.Launcher/PackageFilterExtensions.cs)). Packages are grouped by `{Major}.{Minor}`.
+1. **Local.** `RetrieveLocalStrideVersions` calls `NugetStore.GetPackagesInstalled(MainPackageIds)` and filters with `FilterStrideMainPackages()` ([PackageFilterExtensions.cs](../../sources/launcher/Stride.Launcher/PackageFilterExtensions.cs)). Packages are grouped by `{Major}.{Minor}` and nightly or not.
 2. **Server.** `RetrieveServerStrideVersions` calls `NugetStore.FindSourcePackages(MainPackageIds, …)`. If the call returns nothing, `IsOffline` flips on and the UI shows an error with the accumulated log.
 3. **Dev.** Dev-redirect packages (detected via `NugetStore.IsDevRedirectPackage`) are added as `StrideDevVersionViewModel` with their real on-disk path from `NugetStore.GetRealPath`. Additionally, every entry in `LauncherSettings.DeveloperVersions` is added up front.
 
-The same `Major.Minor` key is looked up with `SortedObservableCollection.BinarySearch(Tuple.Create(major, minor))` to merge local and server state into a single view model.
+The same `(Major, Minor, IsNightly)` key is looked up with `SortedObservableCollection.BinarySearch` to merge local and server state into a single view model. The server listing only adds and updates rows: turning the nightlies off removes the nightly rows that aren't installed first.
 
 ## NuGet store
 

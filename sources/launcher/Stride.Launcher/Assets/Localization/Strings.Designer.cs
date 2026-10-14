@@ -335,6 +335,60 @@ namespace Stride.Launcher.Assets.Localization {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Show nightly builds of Stride.
+        /// </summary>
+        public static string ShowNightlyBuilds {
+            get {
+                return ResourceManager.GetString("ShowNightlyBuilds", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Lists the nightly builds of the development branches in rows of their own. They are not signed and not tested as much as releases..
+        /// </summary>
+        public static string ToolTipShowNightlyBuilds {
+            get {
+                return ResourceManager.GetString("ToolTipShowNightlyBuilds", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} Nightly.
+        /// </summary>
+        public static string VersionNightly {
+            get {
+                return ResourceManager.GetString("VersionNightly", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to NIGHTLY.
+        /// </summary>
+        public static string BadgeNightly {
+            get {
+                return ResourceManager.GetString("BadgeNightly", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Check for new versions.
+        /// </summary>
+        public static string ToolTipRefreshVersions {
+            get {
+                return ResourceManager.GetString("ToolTipRefreshVersions", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to LOCAL.
+        /// </summary>
+        public static string BadgeLocal {
+            get {
+                return ResourceManager.GetString("BadgeLocal", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Launcher settings.
         /// </summary>
         public static string LauncherSettings {

@@ -395,6 +395,28 @@
   <data name="IncludePrereleaseUpdates" xml:space="preserve">
     <value>Receive launcher pre-releases</value>
   </data>
+  <data name="ShowNightlyBuilds" xml:space="preserve">
+    <value>Show nightly builds of Stride</value>
+  </data>
+  <data name="ToolTipShowNightlyBuilds" xml:space="preserve">
+    <value>Lists the nightly builds of the development branches in rows of their own. They are not signed and not tested as much as releases.</value>
+  </data>
+  <data name="VersionNightly" xml:space="preserve">
+    <value>{0} Nightly</value>
+    <comment>Name of the row of the nightly builds of a version. {0}: product name and short version name</comment>
+  </data>
+  <data name="BadgeNightly" xml:space="preserve">
+    <value>NIGHTLY</value>
+    <comment>Badge of the row of nightly builds, in the version list</comment>
+  </data>
+  <data name="ToolTipRefreshVersions" xml:space="preserve">
+    <value>Check for new versions</value>
+    <comment>Tooltip of the icon before "Switch/update version": lists the versions again</comment>
+  </data>
+  <data name="BadgeLocal" xml:space="preserve">
+    <value>LOCAL</value>
+    <comment>Badge of the rows of local builds (from a Stride checkout), in the version list</comment>
+  </data>
   <data name="LauncherSettings" xml:space="preserve">
     <value>Launcher settings</value>
     <comment>Tooltip of the gear button in the title bar</comment>
