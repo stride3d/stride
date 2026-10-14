@@ -324,6 +324,13 @@ namespace Stride.Assets.Presentation.AssetEditors
                 // The .csproj itself changed: reload the MSBuild project and Roslyn workspace.
                 if (string.Equals(trackedAssembly.Project.FilePath, changedFile, StringComparison.OrdinalIgnoreCase))
                 {
+                    // One save raises several events, handled one after the other (each waits for the reload below).
+                    // An empty file is a save in progress: a later event brings its content. The same content as
+                    // the last load has nothing new.
+                    var projectFileContent = TryReadProjectFile(changedFile);
+                    if (projectFileContent == string.Empty || (projectFileContent != null && projectFileContent == trackedAssembly.ProjectFileContent))
+                        return null;
+
                     await UpdateProject(trackedAssembly, forceReload: true);
                     CheckLoadabilityChanged(trackedAssembly);
                     return new AssemblyChangedEvent(trackedAssembly.LoadedAssembly, AssemblyChangeType.Project, trackedAssembly.Project.FilePath, trackedAssembly.Project);
@@ -497,13 +504,33 @@ namespace Stride.Assets.Presentation.AssetEditors
                 }
             }
 
+            var projectFileContent = TryReadProjectFile(location.ToOSPath());
             var project = await OpenProject(location, forceReload);
             if (project == null)
                 return false;
 
             trackedAssembly.Project = project;
+            trackedAssembly.ProjectFileContent = projectFileContent;
             TrackProjectDocuments(project, trackedAssembly.Package.PackagePath.GetFullDirectory());
             return true;
+        }
+
+        private static string TryReadProjectFile(string path)
+        {
+            try
+            {
+                using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+                using var reader = new StreamReader(stream);
+                return reader.ReadToEnd();
+            }
+            catch (IOException)
+            {
+                return null;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return null;
+            }
         }
 
         /// <summary>Tracks the source documents of a project (limited to the package/project folders) for change notifications.</summary>
@@ -620,6 +647,9 @@ namespace Stride.Assets.Presentation.AssetEditors
             public PackageLoadedAssembly LoadedAssembly { get; set; }
 
             public Project Project { get; set; }
+
+            /// <summary>The .csproj text when <see cref="Project"/> was loaded, or null if it could not be read.</summary>
+            public string ProjectFileContent { get; set; }
         }
     }
 }
