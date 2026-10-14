@@ -519,6 +519,45 @@ namespace Stride.Engine.Tests
             Assert.Equal(123, test.IntPropertyAbstract);
         }
 
+        [Fact]
+        public void TestGarbageCollectionDuringRun()
+        {
+            // Getters and setters run a compacting GC: the entered objects must not move while Run holds pointers into them
+            for (int i = 0; i < 10; i++)
+            {
+                AllocateGarbage();
+                var test = new GCTestClass { Child = new GCTestClass() };
+                AllocateGarbage();
+
+                var updateMemberInfo = new List<UpdateMemberInfo>
+                {
+                    new UpdateMemberInfo("CollectingProperty", 0),
+                    new UpdateMemberInfo("IntField", 0),
+                    new UpdateMemberInfo("Child.CollectingProperty", 0),
+                    new UpdateMemberInfo("Child.IntField", 0),
+                    new UpdateMemberInfo("CollectingStructProperty.IntField", 0),
+                    new UpdateMemberInfo("IntProperty", 0),
+                };
+
+                var blittableData = new TestData[] { 123 };
+
+                RunUpdateEngine(test, updateMemberInfo, blittableData, null);
+
+                Assert.Equal(123, test.CollectingProperty);
+                Assert.Equal(123, test.IntField);
+                Assert.Equal(123, test.Child.CollectingProperty);
+                Assert.Equal(123, test.Child.IntField);
+                Assert.Equal(123, test.CollectingStructProperty.IntField);
+                Assert.Equal(123, test.IntProperty);
+            }
+
+            static void AllocateGarbage()
+            {
+                for (int i = 0; i < 1000; i++)
+                    GC.KeepAlive(new byte[64]);
+            }
+        }
+
         internal static unsafe void RunUpdateEngine(object test, List<UpdateMemberInfo> updateMemberInfo, TestData[] blittableData, UpdateObjectData[] objectData, Type typeOverride = null)
         {
             var compiledUpdate = UpdateEngine.Compile(typeOverride ?? test.GetType(), updateMemberInfo);
@@ -553,6 +592,40 @@ namespace Stride.Engine.Tests
     {
         public int IntField;
         public int IntProperty { get; set; }
+    }
+
+    [DataContract]
+    public class GCTestClass
+    {
+        private int collectingProperty;
+        private BlittableStruct collectingStructProperty;
+
+        public int IntField;
+        public int IntProperty { get; set; }
+
+        public GCTestClass Child;
+
+        public int CollectingProperty
+        {
+            get => collectingProperty;
+            set
+            {
+                collectingProperty = value;
+                CompactingCollect();
+            }
+        }
+
+        public BlittableStruct CollectingStructProperty
+        {
+            get
+            {
+                CompactingCollect();
+                return collectingStructProperty;
+            }
+            set => collectingStructProperty = value;
+        }
+
+        private static void CompactingCollect() => GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, blocking: true, compacting: true);
     }
 
     public interface ITestInterface
