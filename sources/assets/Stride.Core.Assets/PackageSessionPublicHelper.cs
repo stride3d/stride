@@ -62,9 +62,9 @@ public static class PackageSessionPublicHelper
 
                 // Fall back to the SDK directory for MSBuild assemblies. Runs after the NuGet resolver
                 // (registered earlier) so Stride's pinned versions win over name-colliding SDK copies.
-                AppDomain.CurrentDomain.AssemblyResolve += (_, resolveArgs) =>
+                // On the default context, so that a session's package assemblies get these before their own files.
+                AssemblyLoadContext.Default.Resolving += (_, assemblyName) =>
                 {
-                    var assemblyName = new System.Reflection.AssemblyName(resolveArgs.Name);
                     string path = Path.Combine(MSBuildInstance.MSBuildPath, assemblyName.Name + ".dll");
                     if (File.Exists(path))
                     {
