@@ -19,11 +19,11 @@ namespace Stride.Rendering.Materials
     [Display("Hair")]
     public class MaterialSpecularHairModelFeature : MaterialFeature, IMaterialSpecularModelFeature, IEquatable<MaterialSpecularHairModelFeature>
     {
-        private static readonly ObjectParameterKey<Texture> PrimarySpecularReflectionNoiseTexture = ParameterKeys.NewObject<Texture>();
-        private static readonly ValueParameterKey<float> PrimarySpecularReflectionNoiseValue = ParameterKeys.NewValue<float>();
+        private static readonly ObjectParameterKey<Texture> PrimarySpecularReflectionNoiseTexture = (ObjectParameterKey<Texture>)ParameterKeys.Merge(ParameterKeys.NewObject<Texture>(), typeof(MaterialSpecularHairModelFeature), "MaterialSpecularHairModelFeature.PrimarySpecularReflectionNoiseTexture");
+        private static readonly ValueParameterKey<float> PrimarySpecularReflectionNoiseValue = (ValueParameterKey<float>)ParameterKeys.Merge(ParameterKeys.NewValue<float>(), typeof(MaterialSpecularHairModelFeature), "MaterialSpecularHairModelFeature.PrimarySpecularReflectionNoiseValue");
 
-        private static readonly ObjectParameterKey<Texture> SecondarySpecularReflectionNoiseTexture = ParameterKeys.NewObject<Texture>();
-        private static readonly ValueParameterKey<float> SecondarySpecularReflectionNoiseValue = ParameterKeys.NewValue<float>();
+        private static readonly ObjectParameterKey<Texture> SecondarySpecularReflectionNoiseTexture = (ObjectParameterKey<Texture>)ParameterKeys.Merge(ParameterKeys.NewObject<Texture>(), typeof(MaterialSpecularHairModelFeature), "MaterialSpecularHairModelFeature.SecondarySpecularReflectionNoiseTexture");
+        private static readonly ValueParameterKey<float> SecondarySpecularReflectionNoiseValue = (ValueParameterKey<float>)ParameterKeys.Merge(ParameterKeys.NewValue<float>(), typeof(MaterialSpecularHairModelFeature), "MaterialSpecularHairModelFeature.SecondarySpecularReflectionNoiseValue");
 
         public bool IsLightDependent
         {
@@ -257,7 +257,7 @@ namespace Stride.Rendering.Materials
         [Display("Environment (DFG)")]
         public IMaterialSpecularMicrofacetEnvironmentFunction Environment { get; set; } = new MaterialSpecularMicrofacetEnvironmentGGXLUT();
 
-        private static readonly ValueParameterKey<float> HairAlphaThresholdKey = ParameterKeys.NewValue<float>();
+        private static readonly ValueParameterKey<float> HairAlphaThresholdKey = (ValueParameterKey<float>)ParameterKeys.Merge(ParameterKeys.NewValue<float>(), typeof(MaterialSpecularHairModelFeature), "MaterialSpecularHairModelFeature.HairAlphaThresholdKey");
 
         public override void MultipassGeneration(MaterialGeneratorContext context)
         {
@@ -364,6 +364,12 @@ namespace Stride.Rendering.Materials
                 hashCode = (hashCode * 397) ^ Environment.GetHashCode();
                 return hashCode;
             }
+        }
+
+        [ModuleInitializer]
+        internal static void __Initialize__()
+        {
+            System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(typeof(MaterialSpecularHairModelFeature).TypeHandle);
         }
     }
 }

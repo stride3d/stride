@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Graphics;
@@ -13,7 +14,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         public const RenderGroup GridGroup = RenderGroup.Group2;
         public const RenderGroupMask GridGroupMask = RenderGroupMask.Group2;
 
-        protected static readonly ValueParameterKey<Color4> GridColorKey = ParameterKeys.NewValue<Color4>();
+        protected static readonly ValueParameterKey<Color4> GridColorKey = (ValueParameterKey<Color4>)ParameterKeys.Merge(ParameterKeys.NewValue<Color4>(), typeof(GridGizmoBase), "GridGizmoBase.GridColorKey");
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GridGizmoBase" /> class.
@@ -50,5 +51,11 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         }
 
         protected abstract void UpdateBase(Color3 gridColor, float alpha, int gridAxisIndex, float sceneUnit);
+
+        [ModuleInitializer]
+        internal static void __Initialize__()
+        {
+            System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(typeof(GridGizmoBase).TypeHandle);
+        }
     }
 }

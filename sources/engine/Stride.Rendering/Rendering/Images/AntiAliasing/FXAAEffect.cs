@@ -15,8 +15,8 @@ namespace Stride.Rendering.Images
     public class FXAAEffect : ImageEffectShader, IScreenSpaceAntiAliasingEffect
     {
         private const int DefaultQuality = 3;
-        internal static readonly PermutationParameterKey<int> GreenAsLumaKey = ParameterKeys.NewPermutation(0);
-        internal static readonly PermutationParameterKey<int> QualityKey = ParameterKeys.NewPermutation(15);
+        internal static readonly PermutationParameterKey<int> GreenAsLumaKey = (PermutationParameterKey<int>)ParameterKeys.Merge(ParameterKeys.NewPermutation(0), typeof(FXAAEffect), "FXAAEffect.GreenAsLumaKey");
+        internal static readonly PermutationParameterKey<int> QualityKey = (PermutationParameterKey<int>)ParameterKeys.Merge(ParameterKeys.NewPermutation(15), typeof(FXAAEffect), "FXAAEffect.QualityKey");
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FXAAEffect"/> class.
@@ -93,6 +93,12 @@ namespace Stride.Rendering.Images
             if (Quality < minQuality || Quality > maxQuality)
                 throw new ArgumentOutOfRangeException(nameof(Quality), $"Quality should be between {minQuality} and {maxQuality} for dither level {Dither}");
             Parameters.Set(QualityKey, (int)Dither + Quality);
+        }
+
+        [ModuleInitializer]
+        internal static void __Initialize__()
+        {
+            System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(typeof(FXAAEffect).TypeHandle);
         }
 
         /// <summary>
