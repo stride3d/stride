@@ -62,7 +62,7 @@ namespace Stride.Rendering.Materials
         };
 
         //stream SurfaceData surfaceData;
-        static SurfaceData surfaceData;    // TODO: How to make the variable not get exposed in the CodeBehind? Sadly making this a streams variable causes a shader compilation error.
+        static SurfaceData surfaceData;
 
         SurfaceData GenerateSurfaceData(void)
         {

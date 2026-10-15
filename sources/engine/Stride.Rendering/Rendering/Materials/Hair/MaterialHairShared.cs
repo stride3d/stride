@@ -1,6 +1,5 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#pragma warning disable SA1402 // File may only contain a single class
 #pragma warning disable SA1649 // File name must match first type name
 
 using System;
@@ -12,10 +11,6 @@ using Stride.Shaders;
 
 namespace Stride.Rendering.Materials
 {
-    public struct SurfaceData // TODO: This structure is just a temporary workaround because the MaterialSurfaceShadingSpecularHair shader keeps generating a variable of this type, which is only defined inside the shader.
-    {
-    }
-
     public class HairShared
     {
         public enum HairShadingModel // These values must correspond to the ones defined in "MaterialHairShared.sdsl".
