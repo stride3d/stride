@@ -99,18 +99,23 @@ namespace Stride.Rendering
 
         public static ParameterKey Merge(ParameterKey key, Type ownerType, string name)
         {
+            ArgumentException.ThrowIfNullOrEmpty(name);
             lock (keyByNames)
             {
-                /*if (keyByNames.TryGetValue(name, out duplicateKey))
+                if (keyByNames.TryGetValue(name, out var duplicateKey))
                 {
                     if (duplicateKey.PropertyType != key.PropertyType)
                     {
                         // TODO: For now, throw an exception, but we should be nicer about it
                         // (log and allow the two keys to co-exist peacefully?)
-                        throw new InvalidOperationException("Two ParameterKey with same name but different types have been initialized.");
+                        throw new InvalidOperationException($"Two ParameterKey with same name '{name}' but different types have been initialized.");
                     }
-                    return key;
-                }*/
+                    if (duplicateKey.OwnerType != key.OwnerType && duplicateKey.OwnerType != ownerType && duplicateKey.OwnerType != null)
+                    {
+                        var otherOwnerType = ownerType ?? key.OwnerType;
+                        throw new InvalidOperationException($"Two ParameterKey with same name '{name}' but different owners have been initialized: '{duplicateKey.OwnerType}' and '{otherOwnerType}'.");
+                    }
+                }
 
                 if (string.IsNullOrEmpty(key.Name))
                     key.SetName(name);
