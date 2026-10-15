@@ -105,7 +105,7 @@ public class TestGraphicsResourceAllocator : GameTestBase
     }
 
     [Fact]
-    public void ReusesBuffersAndQueryPoolsAfterRelease()
+    public void ReusesBuffersAfterFinalRelease()
     {
         PerformTest(game =>
         {
@@ -120,7 +120,21 @@ public class TestGraphicsResourceAllocator : GameTestBase
             Assert.Same(buffer, allocator.GetTemporaryBuffer(description));
             allocator.ReleaseReference(buffer);
             allocator.ReleaseReference(otherBuffer);
+        });
+    }
 
+    [SkippableFact]
+    public void ReusesQueryPoolsImmediatelyOnDirect3D11()
+    {
+        PerformTest(game =>
+        {
+            // Vulkan retains released query pools until GPU completion. Direct3D12's
+            // release hook currently asserts that resources are textures or buffers.
+            // Immediate query-pool reuse is therefore only a Direct3D11 contract.
+            Skip.IfNot(GraphicsDevice.Platform == GraphicsPlatform.Direct3D11,
+                "Immediate query-pool reuse is tested on Direct3D11; other backends have different release behavior.");
+
+            using var allocator = new GraphicsResourceAllocator(game.GraphicsDevice);
             var pool = allocator.GetQueryPool(QueryType.Timestamp, 2);
             var otherPool = allocator.GetQueryPool(QueryType.Timestamp, 2);
             Assert.NotSame(pool, otherPool);
