@@ -15,7 +15,7 @@ namespace Stride.Rendering.Materials
                 // Approximation see: http://research.tri-ace.com/Data/course_note_practical_implementation_at_triace.pdf
                 diffuseColor *= (1 - streams.matSpecularVisible);
             }
-            return diffuseColor / PI * streams.lightColorNdotL * streams.matDiffuseSpecularAlphaBlend.x;
+            return diffuseColor / PI * streams.lightColorNdotL;
         }
 
         override float3 ComputeEnvironmentLightContribution()
