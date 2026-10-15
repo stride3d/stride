@@ -22,6 +22,8 @@ namespace Stride.Graphics
         /// <param name="dataPointer">The data pointer.</param>
         protected partial Buffer InitializeFromImpl(ref readonly BufferDescription description, BufferFlags viewFlags, PixelFormat viewFormat, IntPtr dataPointer)
         {
+            CheckRawBufferSize(description.SizeInBytes, viewFlags);
+
             bufferDescription = description;
             //nativeDescription = ConvertToNativeDescription(Description);
             ViewFlags = viewFlags;

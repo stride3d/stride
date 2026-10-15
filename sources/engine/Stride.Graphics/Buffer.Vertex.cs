@@ -93,10 +93,14 @@ namespace Stride.Graphics
             /// <param name="usage">
             ///   The usage for the Buffer, which determines who can read/write data. By default, it is <see cref="GraphicsResourceUsage.Immutable"/>.
             /// </param>
+            /// <param name="additionalFlags">
+            ///   Additional Buffer flags. For example, <see cref="BufferFlags.ShaderResource"/> | <see cref="BufferFlags.RawBuffer"/>
+            ///   lets shaders read the vertices as a <c>ByteAddressBuffer</c> (the data size must then be a multiple of 4 bytes).
+            /// </param>
             /// <returns>A new instance of <see cref="Buffer"/>.</returns>
-            public static Buffer<T> New<T>(GraphicsDevice device, T[] data, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable) where T : unmanaged
+            public static Buffer<T> New<T>(GraphicsDevice device, T[] data, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable, BufferFlags additionalFlags = BufferFlags.None) where T : unmanaged
             {
-                return Buffer.New(device, (ReadOnlySpan<T>) data, BufferFlags.VertexBuffer, PixelFormat.None, usage);
+                return Buffer.New(device, (ReadOnlySpan<T>) data, BufferFlags.VertexBuffer | additionalFlags, PixelFormat.None, usage);
             }
 
             /// <summary>
