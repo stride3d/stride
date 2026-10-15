@@ -1080,7 +1080,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
             // project needs loading (this is called again after everything is already DependenciesReady).
             solutionDependenciesRestored = false;
             var anyProjectNeedsLoading = Projects.OfType<SolutionProject>().Any(x => x.Package.State < PackageState.DependenciesReady);
-            if (anyProjectNeedsLoading && loadParameters.AutoCompileProjects && SolutionPath != null && File.Exists(SolutionPath.ToOSPath()))
+            if (anyProjectNeedsLoading && loadParameters.AutoCompileProjects && HasSolution && File.Exists(SolutionPath.ToOSPath()))
             {
                 try
                 {
@@ -1096,13 +1096,13 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
 
             // Source-code migration pre-pass: rewrite user .cs against the old closure before refs are bumped.
             // Runs for a restored solution or a standalone project (no .sln); the runner skips if it can't resolve.
-            if ((solutionDependenciesRestored || SolutionPath is null) && CodeUpgradeRunner.Instance is { } codeUpgradeRunner)
+            if ((solutionDependenciesRestored || !HasSolution) && CodeUpgradeRunner.Instance is { } codeUpgradeRunner)
             {
                 try
                 {
                     var pendingCodeUpgrades = DetectPendingCodeUpgrades(log, loadParameters);
                     if (pendingCodeUpgrades.Count > 0)
-                        codeUpgradeRunner.Run(SolutionPath, pendingCodeUpgrades, UpgradeBackup, log);
+                        codeUpgradeRunner.Run(HasSolution ? SolutionPath : null, pendingCodeUpgrades, UpgradeBackup, log);
                 }
                 catch (NotImplementedException)
                 {
