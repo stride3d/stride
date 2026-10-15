@@ -101,15 +101,27 @@ namespace Stride.Core.Assets.Editor.ViewModel.Logs
 
         private void AssetBuilt(object sender, AssetBuiltEventArgs e)
         {
+            SetAssetLog(e.AssetItem.Id, "Build", e.BuildLog);
+        }
+
+        /// <summary>
+        /// Replaces the log of the given name for the given asset.
+        /// </summary>
+        /// <param name="assetId">The id of the asset.</param>
+        /// <param name="name">The name of the log, for example "Build".</param>
+        /// <param name="log">The new log, or null to only remove the previous one.</param>
+        public void SetAssetLog(AssetId assetId, string name, LoggerResult log)
+        {
             Dispatcher.InvokeAsync(() =>
             {
-                AssetViewModel asset = session.GetAssetById(e.AssetItem.Id);
+                AssetViewModel asset = session.GetAssetById(assetId);
                 if (asset != null)
                 {
-                    var key = LogKey.Get(e.AssetItem.Id, "Build");
+                    var key = LogKey.Get(assetId, name);
                     ClearMessages(key);
                     RemoveLogger(key);
-                    AddLogger(key, e.BuildLog);
+                    if (log != null)
+                        AddLogger(key, log);
                 }
             });
         }
