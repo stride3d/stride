@@ -19,17 +19,18 @@ namespace Stride.Rendering
 
         //public static readonly ParameterKey<ShaderSource> ParticleColor = ParameterKeys.New<ShaderSource>();
 
-        public static readonly PermutationParameterKey<ShaderSource> BaseColor = ParameterKeys.NewPermutation<ShaderSource>();
+        public static readonly PermutationParameterKey<ShaderSource> BaseColor = (PermutationParameterKey<ShaderSource>)ParameterKeys.Merge(ParameterKeys.NewPermutation<ShaderSource>(), typeof(ParticleBaseKeys), "ParticleBase.BaseColor");
 
-        public static readonly PermutationParameterKey<uint> UsesSoftEdge = ParameterKeys.NewPermutation<uint>(0);
+        public static readonly PermutationParameterKey<uint> UsesSoftEdge = (PermutationParameterKey<uint>)ParameterKeys.Merge(ParameterKeys.NewPermutation<uint>(0), typeof(ParticleBaseKeys), "ParticleBase.UsesSoftEdge");
 
         //public static readonly ParameterKey<ShaderSource> BaseIntensity = ParameterKeys.New<ShaderSource>();
 
-        public static readonly ObjectParameterKey<Texture> EmissiveMap = ParameterKeys.NewObject<Texture>();
-        public static readonly ValueParameterKey<Color4> EmissiveValue = ParameterKeys.NewValue<Color4>();
+        public static readonly ObjectParameterKey<Texture> EmissiveMap = (ObjectParameterKey<Texture>)ParameterKeys.Merge(ParameterKeys.NewObject<Texture>(), typeof(ParticleBaseKeys), "ParticleBase.EmissiveMap");
+        public static readonly ValueParameterKey<Color4> EmissiveValue = (ValueParameterKey<Color4>)ParameterKeys.Merge(ParameterKeys.NewValue<Color4>(), typeof(ParticleBaseKeys), "ParticleBase.EmissiveValue");
 
         //public static readonly ParameterKey<Texture> IntensityMap = ParameterKeys.New<Texture>();
         //public static readonly ParameterKey<float>   IntensityValue = ParameterKeys.New<float>();
 
+        // __Initialize__ is defined by the generator in another partial class file
     }
 }

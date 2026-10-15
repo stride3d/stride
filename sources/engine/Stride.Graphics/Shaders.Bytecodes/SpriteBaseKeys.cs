@@ -13,6 +13,8 @@ namespace Stride.Rendering
             MatrixTransform = ParameterKeys.NewValue(Matrix.Identity);
         }
 
-        public static readonly PermutationParameterKey<bool> ColorIsSRgb = ParameterKeys.NewPermutation(false);
+        public static readonly PermutationParameterKey<bool> ColorIsSRgb = (PermutationParameterKey<bool>)ParameterKeys.Merge(ParameterKeys.NewPermutation(false), typeof(SpriteBaseKeys), "SpriteBase.ColorIsSRgb");
+
+        // __Initialize__ is defined by the source generator in another partial class.
     }
 }

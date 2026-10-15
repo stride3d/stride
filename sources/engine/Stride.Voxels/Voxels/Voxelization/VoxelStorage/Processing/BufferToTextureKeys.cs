@@ -6,10 +6,12 @@ namespace Stride.Rendering.Voxels
 {
     public partial class BufferToTextureKeys
     {
-        public static readonly PermutationParameterKey<ShaderSourceCollection> AttributesIndirect = ParameterKeys.NewPermutation<ShaderSourceCollection>();
-        public static readonly PermutationParameterKey<ShaderSourceCollection> AttributesTemp = ParameterKeys.NewPermutation<ShaderSourceCollection>();
-        public static readonly PermutationParameterKey<ShaderSourceCollection> AttributeLocalSamples = ParameterKeys.NewPermutation<ShaderSourceCollection>();
-        public static readonly PermutationParameterKey<string> IndirectReadAndStoreMacro = ParameterKeys.NewPermutation<string>();
-        public static readonly PermutationParameterKey<string> IndirectStoreMacro = ParameterKeys.NewPermutation<string>();
+        public static readonly PermutationParameterKey<ShaderSourceCollection> AttributesIndirect = (PermutationParameterKey<ShaderSourceCollection>)ParameterKeys.Merge(ParameterKeys.NewPermutation<ShaderSourceCollection>(), typeof(BufferToTextureKeys), "BufferToTexture.AttributesIndirect");
+        public static readonly PermutationParameterKey<ShaderSourceCollection> AttributesTemp = (PermutationParameterKey<ShaderSourceCollection>)ParameterKeys.Merge(ParameterKeys.NewPermutation<ShaderSourceCollection>(), typeof(BufferToTextureKeys), "BufferToTexture.AttributesTemp");
+        public static readonly PermutationParameterKey<ShaderSourceCollection> AttributeLocalSamples = (PermutationParameterKey<ShaderSourceCollection>)ParameterKeys.Merge(ParameterKeys.NewPermutation<ShaderSourceCollection>(), typeof(BufferToTextureKeys), "BufferToTexture.AttributeLocalSamples");
+        public static readonly PermutationParameterKey<string> IndirectReadAndStoreMacro = (PermutationParameterKey<string>)ParameterKeys.Merge(ParameterKeys.NewPermutation<string>(), typeof(BufferToTextureKeys), "BufferToTexture.IndirectReadAndStoreMacro");
+        public static readonly PermutationParameterKey<string> IndirectStoreMacro = (PermutationParameterKey<string>)ParameterKeys.Merge(ParameterKeys.NewPermutation<string>(), typeof(BufferToTextureKeys), "BufferToTexture.IndirectStoreMacro");
+
+        // __Initialize__ is defined by the source generator in another partial class.
     }
 }

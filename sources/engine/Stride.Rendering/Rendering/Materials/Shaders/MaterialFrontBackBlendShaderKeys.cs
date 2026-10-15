@@ -5,6 +5,8 @@ namespace Stride.Rendering
 {
     public partial class MaterialFrontBackBlendShaderKeys
     {
-        public static readonly PermutationParameterKey<bool> UseNormalBackFace = ParameterKeys.NewPermutation<bool>(true);
+        public static readonly PermutationParameterKey<bool> UseNormalBackFace = (PermutationParameterKey<bool>)ParameterKeys.Merge(ParameterKeys.NewPermutation<bool>(true), typeof(MaterialFrontBackBlendShaderKeys), "MaterialFrontBackBlendShader.UseNormalBackFace");
+
+        // __Initialize__ is defined by the source generator in another partial class.
     }
 }

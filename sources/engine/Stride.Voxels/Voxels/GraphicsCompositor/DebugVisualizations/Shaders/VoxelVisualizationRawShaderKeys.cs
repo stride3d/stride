@@ -7,6 +7,8 @@ namespace Stride.Rendering.Voxels.Debug
 {
     public partial class VoxelVisualizationRawShaderKeys
     {
-        public static readonly PermutationParameterKey<ShaderSource> Attribute = ParameterKeys.NewPermutation<ShaderSource>();
+        public static readonly PermutationParameterKey<ShaderSource> Attribute = (PermutationParameterKey<ShaderSource>)ParameterKeys.Merge(ParameterKeys.NewPermutation<ShaderSource>(), typeof(VoxelVisualizationRawShaderKeys), "VoxelVisualizationRawShader.Attribute");
+
+        // __Initialize__ is defined by the source generator in another partial class.
     }
 }
