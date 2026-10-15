@@ -502,9 +502,8 @@ namespace Stride.Shaders.Compilers.SDSL
                 // HLSL row_major    => SPIR-V ColMajor
                 // HLSL column_major => SPIR-V RowMajor
                 // HLSL nothing      => SPIR-V RowMajor
-                if (memberTypeModifier == TypeModifier.RowMajor)
-                    context.Add(new OpMemberDecorate(structTypeId, index, Decoration.ColMajor, []));
-                else
+                // An explicit layout is already on the type (SpirvContext.DeclareStructuredType)
+                if (memberTypeModifier == TypeModifier.None)
                     context.Add(new OpMemberDecorate(structTypeId, index, Decoration.RowMajor, []));
                 context.Add(new OpMemberDecorate(structTypeId, index, Decoration.MatrixStride, [16]));
             }

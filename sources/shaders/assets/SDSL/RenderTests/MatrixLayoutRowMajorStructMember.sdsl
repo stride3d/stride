@@ -1,0 +1,30 @@
+// PSMain(ExpectedResult=#01020304, cbuffer.Test=(Holder=(Matrix=(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16))))
+
+namespace Stride.Shaders.Tests;
+
+// A row_major member of a struct in a cbuffer: the cbuffer holds 1..16 in memory order, Holder.Matrix[0] is its first row.
+// (The cbuffer is in a parent class: the keys generator writes keys for the class named like the file only, and it can't
+// write a key of a struct type.)
+
+shader MatrixLayoutRowMajorStruct
+{
+    struct MatrixHolderRowMajor
+    {
+        row_major float4x4 Matrix;
+    };
+
+    cbuffer Test
+    {
+        MatrixHolderRowMajor Holder;
+    };
+};
+
+shader MatrixLayoutRowMajorStructMember : MatrixLayoutRowMajorStruct
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    void PSMain()
+    {
+        streams.ColorTarget = Holder.Matrix[0] / 255.0;
+    }
+};

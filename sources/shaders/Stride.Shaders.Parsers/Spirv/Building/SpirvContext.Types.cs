@@ -349,6 +349,10 @@ public partial class SpirvContext
         {
             var member = structSymbol.Members[index];
             AddMemberName(id, index, member.Name);
+            // An explicit matrix layout is kept with the type, so the mixer reads it back (SPIR-V and HLSL have opposite
+            // meanings: HLSL row_major = SPIR-V ColMajor). The default layout is chosen by the mixer.
+            if (member.Type is MatrixType or ArrayType { BaseType: MatrixType } && member.TypeModifier is TypeModifier.RowMajor or TypeModifier.ColumnMajor)
+                Add(new OpMemberDecorate(id, index, member.TypeModifier == TypeModifier.RowMajor ? Specification.Decoration.ColMajor : Specification.Decoration.RowMajor, []));
         }
 
         Types[structSymbol] = id;

@@ -87,6 +87,16 @@ public abstract class FrameRenderer(uint width = 800, uint height = 600)
                         FillData(memberValue, member.Type, offset + member.Offset, cbufferDataPtr);
                 }
                 break;
+            // Values in memory order (rows of a row_major matrix, columns of a column_major one), 16 bytes per row / column
+            case { Class: EffectParameterClass.MatrixRows or EffectParameterClass.MatrixColumns, Type: EffectParameterType.Float }:
+                var vectorSize = type.Class == EffectParameterClass.MatrixRows ? type.ColumnCount : type.RowCount;
+                int matrixIndex = 0;
+                foreach (var comp in TestHeaderParser.SplitArgs(value))
+                {
+                    *((float*)&cbufferDataPtr[offset + matrixIndex / vectorSize * 16 + matrixIndex % vectorSize * sizeof(float)]) = float.Parse(comp, NumberStyles.Float, CultureInfo.InvariantCulture);
+                    matrixIndex++;
+                }
+                break;
             case { Class: EffectParameterClass.Vector }:
                 int compIndex = 0;
                 foreach (var comp in TestHeaderParser.SplitArgs(value))
