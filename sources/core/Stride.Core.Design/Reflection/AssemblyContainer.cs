@@ -420,10 +420,79 @@ public class AssemblyContainer
             NativeLibraryHelper.RegisterDependenciesFrom(Path.GetDirectoryName(libDirectory)!);
     }
 
+    /// <summary>
+    /// Whether code outside this assembly's container (the host's) references it and resolved that reference: that
+    /// binding stays, so the assembly can't be swapped for a new copy without mixing the types of both.
+    /// </summary>
+    public static bool IsBoundByHost(Assembly assembly) => boundByHost.TryGetValue(assembly, out _);
+
+    private static readonly ConditionalWeakTable<Assembly, object> boundByHost = [];
+
+    /// <summary>
+    /// These assemblies and the ones of this container that reference them, directly or through another, dependencies
+    /// first. A reference stays bound to the copy it resolved first, so reloading an assembly reloads those too.
+    /// </summary>
+    public List<Assembly> GetDependentsClosure(IEnumerable<Assembly> assemblies)
+    {
+        List<Assembly> loaded;
+        lock (loadedAssemblies)
+        {
+            loaded = loadedAssemblies.Select(x => x.Assembly).ToList();
+        }
+
+        // One assembly of a name per container
+        var byName = loaded.GroupBy(x => x.GetName().Name!, StringComparer.OrdinalIgnoreCase).ToDictionary(x => x.Key, x => x.First(), StringComparer.OrdinalIgnoreCase);
+        var references = loaded.ToDictionary(x => x, x => x.GetReferencedAssemblies()
+            .Select(reference => reference.Name is { } name ? byName.GetValueOrDefault(name) : null)
+            .OfType<Assembly>()
+            .ToList());
+
+        var closure = new HashSet<Assembly>(assemblies);
+        bool added;
+        do
+        {
+            added = false;
+            foreach (var (assembly, referenced) in references)
+            {
+                if (!closure.Contains(assembly) && referenced.Any(closure.Contains))
+                    added = closure.Add(assembly);
+            }
+        } while (added);
+
+        var ordered = new List<Assembly>();
+        var visited = new HashSet<Assembly>();
+        void Visit(Assembly assembly)
+        {
+            if (!visited.Add(assembly))
+                return;
+            foreach (var referenced in references.GetValueOrDefault(assembly) ?? [])
+            {
+                if (closure.Contains(referenced))
+                    Visit(referenced);
+            }
+            ordered.Add(assembly);
+        }
+        foreach (var assembly in assemblies.Concat(loaded).Where(closure.Contains))
+            Visit(assembly);
+        return ordered;
+    }
+
     // Asked from outside the containers' load contexts (e.g. WPF binding a BAML type's generic arguments, a type name
     // read by host code): a container's current copy. The default context does not keep the answer, so a reload is seen.
     private static Assembly? CurrentDomain_AssemblyResolve(object? sender, ResolveEventArgs args)
-        => FindContainerAssembly(new AssemblyName(args.Name));
+    {
+        var assemblyName = new AssemblyName(args.Name);
+        var assembly = FindContainerAssembly(assemblyName);
+
+        // The requesting assembly is the caller of a lookup by name too: only one that references the assembly binds to it
+        if (assembly is not null && args.RequestingAssembly is { } requesting
+            && !(AssemblyLoadContext.GetLoadContext(requesting) is ContainerLoadContext context && assemblyToContainers.TryGetValue(assembly, out var loadedAssembly) && context.Container == loadedAssembly.Container)
+            && requesting.GetReferencedAssemblies().Any(x => string.Equals(x.Name, assemblyName.Name, StringComparison.OrdinalIgnoreCase)))
+        {
+            boundByHost.AddOrUpdate(assembly, requesting);
+        }
+        return assembly;
+    }
 
     // Only the assemblies currently in a container are mapped: removing one unmaps it
     private static Assembly? FindContainerAssembly(AssemblyName assemblyName)
@@ -537,6 +606,8 @@ public class AssemblyContainer
 
         /// <summary>The assembly this context was created for, or null when its file has no readable name.</summary>
         public AssemblyName? PrimaryName { get; }
+
+        public AssemblyContainer Container => container;
 
         protected override Assembly? Load(AssemblyName assemblyName)
             => IsPrimary(assemblyName) ? null : container.FindLoadedAssembly(assemblyName);
