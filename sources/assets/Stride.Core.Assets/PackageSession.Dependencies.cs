@@ -331,6 +331,7 @@ partial class PackageSession
 
                         if (isProjectDirty)
                         {
+                            UpgradeBackup?.Snapshot(projectPath);
                             msProject.Save();
                             referencesUpgraded = true;
                         }
