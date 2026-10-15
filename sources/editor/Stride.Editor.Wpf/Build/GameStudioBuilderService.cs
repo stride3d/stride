@@ -31,7 +31,7 @@ namespace Stride.Editor.Build
             this.createDebugTools = createDebugTools;
             if (createDebugTools)
             {
-                assetBuilderServiceDebugPage = EditorDebugTools.CreateLogDebugPage(GlobalLogger.GetLogger("AssetBuilderService"), "AssetBuilderService");
+                assetBuilderServiceDebugPage = EditorDebugTools.CreateLogDebugPage(Logger, "AssetBuilderService");
                 effectCompilerServiceDebugPage = EditorDebugTools.CreateLogDebugPage(GlobalLogger.GetLogger("EffectCompilerCache"), "EffectCompilerCache");
             }
 
