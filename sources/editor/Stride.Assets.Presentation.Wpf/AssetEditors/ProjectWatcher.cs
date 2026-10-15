@@ -563,6 +563,8 @@ namespace Stride.Assets.Presentation.AssetEditors
 
         /// <summary>
         /// Opens the solution into the shared <see cref="msbuildWorkspace"/> once (or reloads it on <paramref name="forceReload"/>).
+        /// A session with no solution (opened from a .csproj or a .sdpkg) opens nothing here: <see cref="OpenProject"/>
+        /// adds each project, and a reload reopens the projects already in the workspace.
         /// </summary>
         private async Task<Solution> EnsureSolutionOpened(bool forceReload)
         {
@@ -579,7 +581,10 @@ namespace Stride.Assets.Presentation.AssetEditors
 
                 if (!solutionOpened || forceReload)
                 {
-                    await msbuildWorkspace.OpenSolutionAsync(session.SolutionPath.ToOSPath());
+                    if (!string.IsNullOrEmpty(session.SolutionPath))
+                        await msbuildWorkspace.OpenSolutionAsync(session.SolutionPath.ToOSPath());
+                    else if (solutionOpened)
+                        await ReopenProjects();
                     solutionOpened = true;
 
                     // Surface design-time build issues instead of swallowing them (empty-document symptoms).
@@ -605,6 +610,31 @@ namespace Stride.Assets.Presentation.AssetEditors
             finally
             {
                 solutionLock.Release();
+            }
+        }
+
+        /// <summary>
+        /// Reloads a workspace that has no solution: closes it and opens again the projects it held. The caller holds
+        /// <see cref="solutionLock"/>.
+        /// </summary>
+        private async Task ReopenProjects()
+        {
+            var projectPaths = msbuildWorkspace.CurrentSolution.Projects.Select(x => x.FilePath).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+            msbuildWorkspace.CloseSolution();
+            foreach (var projectPath in projectPaths)
+            {
+                // Already opened as a reference of a project reopened before it
+                if (msbuildWorkspace.CurrentSolution.Projects.Any(x => string.Equals(x.FilePath, projectPath, StringComparison.OrdinalIgnoreCase)))
+                    continue;
+
+                try
+                {
+                    await msbuildWorkspace.OpenProjectAsync(projectPath);
+                }
+                catch (Exception e)
+                {
+                    logger.Warning($"[ScriptWorkspace] Could not reload project '{projectPath}': {e.Message}");
+                }
             }
         }
 
