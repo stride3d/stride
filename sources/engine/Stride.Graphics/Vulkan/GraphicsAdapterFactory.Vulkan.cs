@@ -173,6 +173,15 @@ namespace Stride.Graphics
         internal bool HasSurfaceSupport;
         internal bool HasDebugUtilsSupport;
 
+        /// <summary>
+        ///   Whether synchronization validation also checks the memory accesses shaders make through descriptors.
+        /// </summary>
+        internal bool HasShaderAccessSyncValidation;
+
+        // Validation layers before this version have no syncval_shader_accesses_heuristic setting.
+        // They count a shader's storage writes as reads, so a shader write is never part of a hazard.
+        private static readonly VkVersion ShaderAccessesHeuristicMinimumLayerVersion = new(1, 3, 290);
+
         // We use GraphicsDevice (similar to OpenGL)
         private static readonly Logger Log = GlobalLogger.GetLogger(nameof(GraphicsDevice));
 
@@ -183,6 +192,9 @@ namespace Stride.Graphics
         /// <remarks>
         ///   <c>STRIDE_VULKAN_SYNC_VALIDATION=1</c> adds synchronization validation. The validation layer
         ///   provides its extension, so the ICD's instance extension list does not include it.
+        ///   On layers that have it, the <c>syncval_shader_accesses_heuristic</c> setting is turned on too:
+        ///   without it, synchronization validation ignores every buffer and image a shader reads or
+        ///   writes through a descriptor.
         /// </remarks>
         public unsafe GraphicsAdapterFactoryInstance(bool enableValidation)
         {
@@ -198,6 +210,7 @@ namespace Stride.Graphics
                 VK_LAYER_KHRONOS_VALIDATION_EXTENSION_NAME,
             };
             var enabledLayerNames = new List<VkUtf8String>();
+            var validationLayerVersion = default(VkVersion);
 
             if (enableValidation)
             {
@@ -216,7 +229,10 @@ namespace Stride.Graphics
                         var indexOfLayerName = validationLayerNames.IndexOf(name);
 
                         if (indexOfLayerName >= 0)
+                        {
                             enabledLayerNames.Add(validationLayerNames[indexOfLayerName]);
+                            validationLayerVersion = properties.specVersion;
+                        }
                     }
                 }
 
@@ -295,34 +311,64 @@ namespace Stride.Graphics
             // Set via env var instead of VkLayerSettingsCreateInfoEXT — the layer-settings struct
             // requires VK_EXT_layer_settings to be enabled, and MoltenVK acting as ICD without the
             // LunarG loader doesn't always accept that pNext path.
+            bool setMvkLogLevel = (Platform.Type == PlatformType.macOS || Platform.Type == PlatformType.iOS)
+                && Environment.GetEnvironmentVariable("MVK_CONFIG_LOG_LEVEL") == null;
+            // The validation layer reads its settings from the same struct, whether VK_EXT_layer_settings is enabled or not
+            bool enableShaderAccessesHeuristic = enableSyncValidation && validationLayerVersion >= ShaderAccessesHeuristicMinimumLayerVersion;
             int mvkLogLevel = 2; // 0=off 1=error 2=warning 3=info 4=debug
+            VkBool32 shaderAccessesHeuristic = VkBool32.True;
+            var layerSettingArray = stackalloc VkLayerSettingEXT[2];
+            uint layerSettingCount = 0;
             VkResult result;
             fixed (byte* pMvkLayerName = "MoltenVK"u8)
             fixed (byte* pMvkLogLevelKey = "MVK_CONFIG_LOG_LEVEL"u8)
+            fixed (byte* pValidationLayerName = "VK_LAYER_KHRONOS_validation"u8)
+            fixed (byte* pShaderAccessesHeuristicKey = "syncval_shader_accesses_heuristic"u8)
             {
-                var mvkLogLevelSetting = new VkLayerSettingEXT
+                if (setMvkLogLevel)
                 {
-                    pLayerName = pMvkLayerName,
-                    pSettingName = pMvkLogLevelKey,
-                    type = VkLayerSettingTypeEXT.Int32,
-                    valueCount = 1,
-                    pValues = &mvkLogLevel,
-                };
+                    layerSettingArray[layerSettingCount++] = new VkLayerSettingEXT
+                    {
+                        pLayerName = pMvkLayerName,
+                        pSettingName = pMvkLogLevelKey,
+                        type = VkLayerSettingTypeEXT.Int32,
+                        valueCount = 1,
+                        pValues = &mvkLogLevel,
+                    };
+                }
+                if (enableShaderAccessesHeuristic)
+                {
+                    layerSettingArray[layerSettingCount++] = new VkLayerSettingEXT
+                    {
+                        pLayerName = pValidationLayerName,
+                        pSettingName = pShaderAccessesHeuristicKey,
+                        type = VkLayerSettingTypeEXT.Bool32,
+                        valueCount = 1,
+                        pValues = &shaderAccessesHeuristic,
+                    };
+                }
                 var layerSettings = new VkLayerSettingsCreateInfoEXT
                 {
                     sType = VkStructureType.LayerSettingsCreateInfoEXT,
                     pNext = instanceCreateInfo.pNext,
-                    settingCount = 1,
-                    pSettings = &mvkLogLevelSetting,
+                    settingCount = layerSettingCount,
+                    pSettings = layerSettingArray,
                 };
-                if ((Platform.Type == PlatformType.macOS || Platform.Type == PlatformType.iOS)
-                    && Environment.GetEnvironmentVariable("MVK_CONFIG_LOG_LEVEL") == null)
+                if (layerSettingCount > 0)
                     instanceCreateInfo.pNext = &layerSettings;
 
                 result = vkCreateInstance(&instanceCreateInfo, out NativeInstance);
             }
             if (result != VK_SUCCESS)
                 throw new InvalidOperationException($"Failed to create vulkan instance: {result}");
+
+            HasShaderAccessSyncValidation = enableShaderAccessesHeuristic;
+            if (enableSyncValidation)
+            {
+                Log.Info(enableShaderAccessesHeuristic
+                    ? "Vulkan synchronization validation enabled, shader accesses included"
+                    : $"Vulkan synchronization validation enabled, shader accesses not checked (validation layer {validationLayerVersion} is older than {ShaderAccessesHeuristicMinimumLayerVersion})");
+            }
 
             NativeInstanceApi = GetApi(NativeInstance);
 
