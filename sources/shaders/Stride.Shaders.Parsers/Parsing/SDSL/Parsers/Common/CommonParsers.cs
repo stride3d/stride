@@ -152,8 +152,8 @@ public static class Parsers
                     "uniform",
                     "volatile",
                     "const",
-                    "rowmajor",
-                    "columnmajor"
+                    "row_major",
+                    "column_major"
                 ],
                 ref scanner,
                 out string? match,
@@ -197,9 +197,9 @@ public static class Parsers
                 storageClass = StorageClass.Volatile;
             else if (match == "const")
                 typeModifier = TypeModifier.Const;
-            else if (match == "rowmajor")
+            else if (match == "row_major")
                 typeModifier = TypeModifier.RowMajor;
-            else if (match == "columnmajor")
+            else if (match == "column_major")
                 typeModifier = TypeModifier.ColumnMajor;
             else break;
         }
