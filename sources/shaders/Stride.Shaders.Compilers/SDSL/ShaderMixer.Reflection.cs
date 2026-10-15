@@ -10,7 +10,7 @@ namespace Stride.Shaders.Compilers.SDSL;
 
 public partial class ShaderMixer
 {
-    private record struct VariableMetadata(string? Link = null, string? ResourceGroup = null, string? LogicalGroup = null, bool Color = false);
+    private record struct VariableMetadata(string? Link = null, string? ResourceGroup = null, string? LogicalGroup = null, bool Color = false, TypeModifier MatrixLayout = TypeModifier.None);
     private record struct CBufferMemberMetadata(string? Link = null, string? LogicalGroup = null, bool Color = false, object? DefaultValue = null);
 
     private Dictionary<int, VariableMetadata> variableMetadata = new();
@@ -33,13 +33,20 @@ public partial class ShaderMixer
         foreach (var i in context)
         {
             if (i.Op == Specification.Op.OpDecorate && (OpDecorate)i is
-                { Decoration: Specification.Decoration.ColorSDSL } decorate)
+                { Decoration: Specification.Decoration.ColorSDSL or Specification.Decoration.ColMajor or Specification.Decoration.RowMajor } decorate)
             {
                 ref var metadata = ref CollectionsMarshal.GetValueRefOrAddDefault(variableDecorationMetadata, decorate.Target, out _);
                 switch (decorate.Decoration)
                 {
                     case Specification.Decoration.ColorSDSL:
                         metadata.Color = true;
+                        break;
+                    // A matrix layout on a variable: SPIR-V and HLSL have opposite meanings
+                    case Specification.Decoration.ColMajor:
+                        metadata.MatrixLayout = TypeModifier.RowMajor;
+                        break;
+                    case Specification.Decoration.RowMajor:
+                        metadata.MatrixLayout = TypeModifier.ColumnMajor;
                         break;
                     default:
                         throw new NotImplementedException();

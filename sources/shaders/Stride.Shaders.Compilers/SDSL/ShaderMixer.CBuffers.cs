@@ -35,7 +35,7 @@ namespace Stride.Shaders.Compilers.SDSL
                 {
                     firstVariableIndex = i.Index;
                     variableToMemberIndices.Add(variable.ResultId, members.Count);
-                    members.Add(new(context.Names[variable.ResultId], variableType, TypeModifier.None));
+                    members.Add(new(context.Names[variable.ResultId], variableType, variableMetadata.GetValueOrDefault(variable.ResultId).MatrixLayout));
                     variables.Add(variable.ResultId);
                     methodInitializers.Add(variable.MethodOrConstantInitializer);
                     SetOpNop(i.Data.Memory.Span);
@@ -139,7 +139,10 @@ namespace Stride.Shaders.Compilers.SDSL
             {
                 if (i.Op == Op.OpDecorate && (OpDecorate)i is { } decorate)
                 {
-                    if (variableToMemberIndices.TryGetValue(decorate.Target, out var memberIndex))
+                    // The matrix layout is on the member already (its TypeModifier, written by DeclareCBuffer)
+                    if (variableToMemberIndices.ContainsKey(decorate.Target) && decorate.Decoration is Decoration.RowMajor or Decoration.ColMajor)
+                        SetOpNop(i.Data.Memory.Span);
+                    else if (variableToMemberIndices.TryGetValue(decorate.Target, out var memberIndex))
                         i.Buffer.Replace(i.Index, new OpMemberDecorate(globalCBufferTypeId, memberIndex, decorate.Decoration, decorate.DecorationParameters));
                 }
                 else if (i.Op == Op.OpDecorateString && (OpDecorateString)i is { } decorateString)

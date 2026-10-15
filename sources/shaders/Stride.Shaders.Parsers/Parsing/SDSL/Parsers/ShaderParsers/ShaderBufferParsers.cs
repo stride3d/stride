@@ -150,6 +150,11 @@ public record struct BufferParsers : IParser<ShaderBuffer>
         }
         else
             scanner.Position = tmp;
+        var typeModifier = TypeModifier.None;
+        if (Tokens.AnyOf(["row_major", "column_major"], ref scanner, out var matrixLayout, advance: true) && Parsers.Spaces1(ref scanner, result, out _))
+            typeModifier = matrixLayout == "row_major" ? TypeModifier.RowMajor : TypeModifier.ColumnMajor;
+        else
+            scanner.Position = tmp;
         // A semantic does nothing on a cbuffer member (as with FXC); a register or packoffset gets SDSL0220
         if (
             Parsers.TypeNameIdentifierArraySizeValue(ref scanner, result, out var typeName, out var identifier, out var value, advance: true)
@@ -159,6 +164,7 @@ public record struct BufferParsers : IParser<ShaderBuffer>
         {
             parsed = new ShaderMember(typeName, identifier, value, scanner[position..scanner.Position], isStage, streamKind)
             {
+                TypeModifier = typeModifier,
                 IgnoredRegister = register,
             };
             if (hasAttributes)
