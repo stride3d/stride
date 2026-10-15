@@ -651,6 +651,12 @@ public class EffectCodeWriter : ShaderWriter
         }
     }
 
+    public override void VisitEffectDiscardStatement(EffectDiscardStatement discardStatement)
+    {
+        // Stops the effect here: ShaderMixinManager catches the exception and returns the mixin built so far
+        WriteLine("context.Discard();");
+    }
+
     public override void VisitShaderClass(ShaderClass shaderClass)
     {
         table.Push();
