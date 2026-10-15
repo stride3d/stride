@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 using Stride.Core.Assets.Analysis;
@@ -33,6 +34,7 @@ namespace Stride.Core.Assets.Editor.ViewModel.Logs
         private readonly SessionViewModel session;
         private readonly Dictionary<LogKey, Logger> loggers = new Dictionary<LogKey, Logger>();
         private readonly HashSet<Logger> createdLoggers = new HashSet<Logger>();
+        private readonly ConditionalWeakTable<ILogMessage, AssetEntryMessage> assetEntryMessages = new();
         private bool waiting;
         private int errorCount;
         private AssetLogScope scope;
@@ -156,7 +158,6 @@ namespace Stride.Core.Assets.Editor.ViewModel.Logs
 
             var selectedOnly = Scope == AssetLogScope.SelectedAssets;
             var selection = selectedOnly ? await Dispatcher.InvokeAsync(() => session.ActiveAssetView.SelectedAssets.ToList()) : [];
-            FilteredMessages.Clear();
             var ids = await Task.Run(() =>
             {
                 var result = new HashSet<AssetId>();
@@ -175,6 +176,7 @@ namespace Stride.Core.Assets.Editor.ViewModel.Logs
                 }
                 return result;
             });
+            var messages = new List<ILogMessage>();
             foreach (var (key, logger) in loggers)
             {
                 if (logger is not LoggerResult loggerResult || !IsSourceShown(key))
@@ -186,16 +188,50 @@ namespace Stride.Core.Assets.Editor.ViewModel.Logs
                     {
                         // A build message often does not name its asset: add the asset of the log (asset column, double-click)
                         var assetLocation = session.GetAssetById(key.AssetId)?.AssetItem.Location;
-                        FilteredMessages.AddRange(loggerResult.Messages.Select(x => assetLocation != null && GetAssetId(x) == null ? new AssetEntryMessage(x, key.AssetId, assetLocation) : x));
+                        messages.AddRange(loggerResult.Messages.Select(x => assetLocation != null && GetAssetId(x) == null ? GetAssetEntryMessage(x, key.AssetId, assetLocation) : x));
                     }
                 }
                 else
                 {
                     // A log that is not about one asset (session load, consistency): its messages about no asset or about a selected one
-                    FilteredMessages.AddRange(loggerResult.Messages.Where(x => !selectedOnly || GetAssetId(x) is not { } id || ids.Contains(id)));
+                    messages.AddRange(loggerResult.Messages.Where(x => !selectedOnly || GetAssetId(x) is not { } id || ids.Contains(id)));
                 }
             }
+            UpdateFilteredMessages(messages);
             ErrorCount = FilteredMessages.Count(x => x.IsAtLeast(LogMessageType.Warning));
+        }
+
+        /// <summary>
+        /// Makes <see cref="FilteredMessages"/> equal to the given messages with as few changes as possible: usually messages were only added, or the log of a few assets replaced.
+        /// </summary>
+        private void UpdateFilteredMessages(List<ILogMessage> messages)
+        {
+            var kept = new HashSet<ILogMessage>(messages, ReferenceEqualityComparer.Instance);
+            for (var i = FilteredMessages.Count - 1; i >= 0; --i)
+            {
+                if (!kept.Contains(FilteredMessages[i]))
+                    FilteredMessages.RemoveAt(i);
+            }
+            for (var i = 0; i < messages.Count; ++i)
+            {
+                if (i == FilteredMessages.Count)
+                    FilteredMessages.Add(messages[i]);
+                else if (!ReferenceEquals(FilteredMessages[i], messages[i]))
+                    FilteredMessages.Insert(i, messages[i]);
+            }
+            // Only left when the kept messages changed order
+            FilteredMessages.RemoveRange(messages.Count, FilteredMessages.Count - messages.Count);
+        }
+
+        private AssetEntryMessage GetAssetEntryMessage(ILogMessage message, AssetId assetId, UFile assetUrl)
+        {
+            // The same message keeps the same entry, so the list does not change (and the view keeps its selection)
+            if (!assetEntryMessages.TryGetValue(message, out var entry) || entry.AssetUrl != assetUrl)
+            {
+                entry = new AssetEntryMessage(message, assetId, assetUrl);
+                assetEntryMessages.AddOrUpdate(message, entry);
+            }
+            return entry;
         }
 
         /// <summary>
