@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using Stride.Shaders;
+using Stride.Core;
 
 namespace Stride.Rendering.Images
 {
@@ -12,11 +13,17 @@ namespace Stride.Rendering.Images
         /// <summary>
         /// A boolean indicating wheter a <see cref="ColorTransformBase"/> is active or not.
         /// </summary>
-        public static readonly PermutationParameterKey<bool> Enabled = ParameterKeys.NewPermutation(true);
+        public static readonly PermutationParameterKey<bool> Enabled = (PermutationParameterKey<bool>)ParameterKeys.Merge(ParameterKeys.NewPermutation(true), typeof(ColorTransformKeys), "ColorTransform.Enabled");
 
         /// <summary>
         /// The shader used by <see cref="ColorTransformBase"/>.
         /// </summary>
-        public static readonly PermutationParameterKey<ShaderSource> Shader = ParameterKeys.NewPermutation<ShaderSource>(new ShaderClassSource("ColorTransformShader"));
+        public static readonly PermutationParameterKey<ShaderSource> Shader = (PermutationParameterKey<ShaderSource>)ParameterKeys.Merge(ParameterKeys.NewPermutation<ShaderSource>(new ShaderClassSource("ColorTransformShader")), typeof(ColorTransformKeys), "ColorTransform.Shader");
+
+        [ModuleInitializer]
+        internal static void __Initialize__()
+        {
+            System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(typeof(ColorTransformKeys).TypeHandle);
+        }
     }
 }
