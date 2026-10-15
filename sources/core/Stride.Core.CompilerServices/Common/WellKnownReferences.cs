@@ -3,6 +3,8 @@ internal static class WellKnownReferences
 {
     public const string ModuleInitializerAttributeName = "Stride.Core.ModuleInitializerAttribute";
 
+    public const string AssemblyScanAttributeName = "Stride.Core.Reflection.AssemblyScanAttribute";
+
     public static INamedTypeSymbol? DataMemberAttribute(Compilation compilation)
     {
         return compilation.GetTypeByMetadataName("Stride.Core.DataMemberAttribute");
