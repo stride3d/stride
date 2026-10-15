@@ -603,7 +603,9 @@ namespace Stride.Assets.Presentation.AssetEditors
                 if (msbuildWorkspace == null)
                 {
                     var host = await RoslynHost;
-                    msbuildWorkspace = MSBuildWorkspace.Create(ImmutableDictionary<string, string>.Empty, host.HostServices);
+                    // The restore's own messages (NuGet audit, ...) are logged by the restore and the game build; replayed by each design-time build they read as workspace failures
+                    var properties = ImmutableDictionary<string, string>.Empty.Add("EmitAssetsLogMessages", "false");
+                    msbuildWorkspace = MSBuildWorkspace.Create(properties, host.HostServices);
                 }
 
                 if (!solutionOpened || forceReload)
