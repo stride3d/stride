@@ -10,6 +10,7 @@ using Stride.Core.Assets.Compiler;
 using Stride.Core.Assets.Editor.Components.Status;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModel.Logs;
 using Stride.Core.BuildEngine;
 using Stride.Core.Collections;
 using Stride.Core.Diagnostics;
@@ -254,7 +255,7 @@ namespace Stride.Editor.Thumbnails
 
                 // Show why a thumbnail is broken (e.g. a font that fails to load) in the asset log
                 var hasProblems = e.BuildLog?.Messages.Any(x => x.IsAtLeast(LogMessageType.Warning)) ?? false;
-                session.AssetLog.SetAssetLog(e.AssetId, "Thumbnail", hasProblems ? e.BuildLog : null);
+                session.AssetLog.SetAssetLog(e.AssetId, AssetLogViewModel.ThumbnailLogName, hasProblems ? e.BuildLog : null);
             }
 
             lock (hashLock)
