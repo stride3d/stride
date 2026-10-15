@@ -120,18 +120,93 @@ public class PartialStructTests : IDisposable
     [InlineData("module PsCheck { import PsOwner; import PsOwner2; }", "SDSL0124: PsCheck sees two partial structs named PsData, declared by PsOwner and PsOwner2. Rename one of them.")]
     // SDSL0126: an owner per effect
     [InlineData("module PsCheck<int N> { partial struct PsGeneric { float a; }; }", "SDSL0126: PsCheck declares 'partial struct PsGeneric', but PsCheck is generic.")]
-    // SDSL0127: no struct field in A1a
-    [InlineData("module PsCheck { import PsPlain; partial struct PsWithStruct { PsPlainData inner; }; }", "SDSL0127: field inner of partial struct PsWithStruct in PsCheck has the struct type PsPlainData.")]
-    [InlineData("module PsCheck { struct PsOwn { float a; }; partial struct PsWithStruct { PsOwn inner; }; }", "SDSL0127: field inner of partial struct PsWithStruct in PsCheck has the struct type PsOwn.")]
+    // SDSL0128: a struct that contains itself, directly, through an array, through another partial struct or a plain struct
+    [InlineData("module PsCheck { partial struct PsSelf { float a; PsSelf inner; }; }", "SDSL0128: struct PsSelf contains itself: PsSelf.inner (PsCheck) -> PsSelf. A struct can't contain itself, directly or through an array. Remove one of these fields.")]
+    [InlineData("module PsCheck { partial struct PsSelf { PsSelf items[2]; }; }", "SDSL0128: struct PsSelf contains itself: PsSelf.items (PsCheck) -> PsSelf.")]
+    [InlineData("module PsCheck { partial struct PsP { PsQ q; }; partial struct PsQ { PsP p; }; }", "SDSL0128: struct PsP contains itself: PsP.q (PsCheck) -> PsQ.p (PsCheck) -> PsP.")]
+    [InlineData("module PsCheck { import PsOwner; struct PsHolder { PsData d; }; extend struct PsData { PsHolder h; }; }", "SDSL0128: struct PsHolder contains itself: PsHolder.d (PsCheck) -> PsData.h (PsCheck) -> PsHolder.")]
+    [InlineData("module PsCheck { import PsHolderModule; extend struct PsData { PsHolder h; }; }", "SDSL0128: struct PsData contains itself: PsData.h (PsCheck) -> PsHolder.d (PsHolderModule) -> PsData.")]
+    [InlineData("module PsCheck { struct PsPlainSelf { float a; PsPlainSelf b; }; }", "SDSL0128: struct PsPlainSelf contains itself: PsPlainSelf.b (PsCheck) -> PsPlainSelf.")]
     public void DeclarationErrors(string code, string expected)
     {
         Write("PsPlain", "module PsPlain { struct PsPlainData { float a; }; }");
         Write("PsOwner2", "module PsOwner2 { partial struct PsData { float z; }; }");
+        Write("PsHolderModule", "module PsHolderModule { import PsOwner; struct PsHolder { PsData d; }; }");
         Write("PsCheck", code);
 
         var (ok, log) = Compile("PsCheck");
         Assert.False(ok);
         Assert.Contains(expected, log);
+    }
+
+    // A field of a partial struct can have a struct type: a plain struct of this class or another, an array of one,
+    // another partial struct; a plain struct can hold a partial struct that holds a struct
+    [Theory]
+    [InlineData("module PsCheck { import PsPlain; partial struct PsWithStruct { PsPlainData inner; }; }")]
+    [InlineData("module PsCheck { partial struct PsWithStruct { PsOwn inner; PsOwn items[2]; }; struct PsOwn { float a; }; }")]
+    [InlineData("module PsCheck { import PsOwner; extend struct PsData { PsInner inner; }; partial struct PsInner { float x; }; }")]
+    [InlineData("module PsCheck { import PsOwner; struct PsHolder { PsData d; }; struct PsPair { float2 v; }; extend struct PsData { PsPair pair; }; }")]
+    public void FieldsCanBeStructs(string code)
+    {
+        Write("PsPlain", "module PsPlain { struct PsPlainData { float a; }; }");
+        Write("PsCheck", code);
+
+        var (ok, log) = Compile("PsCheck");
+        Assert.True(ok, log);
+    }
+
+    // The explain lines count a struct field with its fields (a partial struct field with the fields of the effect)
+    [Fact]
+    public void ExplainCountsStructFields()
+    {
+        Write("PsInnerOwner", "module PsInnerOwner { partial struct PsInner { float x; }; }");
+        Write("PsInnerY", "module PsInnerY { import PsInnerOwner; extend struct PsInner { float2 y; }; }");
+        Write("PsWithStruct", "module PsWithStruct { import PsOwner; import PsInnerOwner; struct PsPair { float2 v; }; extend struct PsData { PsPair pair; PsInner inner; }; }");
+        Write("PsLayer", "shader PsLayer : PsLayerBase { import PsInnerY; }");
+        Write("PsRoot", """
+            shader PsRoot : ComputeShaderBase
+            {
+                import PsWithStruct;
+                compose PsLayerBase layer;
+                RWBuffer<float4> Out;
+                override void Compute() { PsData d = (PsData)0; Out[0] = layer.Read(d) + d.pair.v.x + d.inner.x; }
+            }
+            """);
+
+        var (ok, log, explanation) = Mix("PsRoot", "PsLayer");
+        Assert.True(ok, log);
+        Assert.Contains("""
+            partial struct PsData (owner PsOwner): 3 fields, 24 bytes
+              field PsData.a : float (PsOwner)
+              field PsData.pair : PsPair (PsWithStruct)
+              field PsData.inner : PsInner (PsWithStruct)
+            partial struct PsInner (owner PsInnerOwner): 2 fields, 12 bytes
+            """.ReplaceLineEndings(), explanation);
+    }
+
+    // SDSL0128 at link: each class sees one half of the cycle, the effect has both
+    [Fact]
+    public void CycleInTheEffectIsAnError()
+    {
+        Write("PsCycleP", "module PsCycleP { partial struct PsP { float a; }; }");
+        Write("PsCycleQ", "module PsCycleQ { partial struct PsQ { float b; }; }");
+        Write("PsAddQ", "module PsAddQ { import PsCycleP; import PsCycleQ; extend struct PsP { PsQ q; }; float GetA(PsP p) { return p.a; } }");
+        Write("PsAddP", "module PsAddP { import PsCycleP; import PsCycleQ; extend struct PsQ { PsP p; }; float GetB(PsQ q) { return q.b; } }");
+        Write("PsLayer", "shader PsLayer : PsLayerBase { import PsAddP; override float Read(PsData d) { PsQ q = (PsQ)0; return GetB(q); } }");
+        Write("PsRoot", """
+            shader PsRoot : ComputeShaderBase
+            {
+                import PsOwner;
+                import PsAddQ;
+                compose PsLayerBase layer;
+                RWBuffer<float4> Out;
+                override void Compute() { PsData d = (PsData)0; PsP p = (PsP)0; Out[0] = layer.Read(d) + GetA(p); }
+            }
+            """);
+
+        var (ok, log, _) = Mix("PsRoot", "PsLayer");
+        Assert.False(ok);
+        Assert.Contains("SDSL0128: struct PsP contains itself: PsP.q (PsAddQ) -> PsQ.p (PsAddP) -> PsP.", log);
     }
 
     // SDSL0125: where the layout is shared (streams, cbuffers, buffers, groupshared), also through a plain struct

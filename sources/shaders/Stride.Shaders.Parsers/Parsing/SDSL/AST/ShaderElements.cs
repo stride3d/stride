@@ -251,7 +251,7 @@ public partial class ShaderStruct(Identifier typename, TextLocation info) : Shad
 
     public override void ProcessSymbol(SymbolTable table, SpirvContext context)
     {
-        // The class declares the views of its partial structs before its other structs (PartialStructs.DeclareViews)
+        // Called by PartialStructs.DeclareStructs, after the structs this one contains; a partial struct is declared there as a view
         if (Kind != ShaderStructKind.Plain)
             return;
         base.ProcessSymbol(table, context);

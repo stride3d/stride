@@ -29,11 +29,15 @@ public partial class ShaderMixer
     /// <summary>
     /// Collects the views of each partial struct from every class of the effect and declares the joined struct, before
     /// the classes are merged (each class's view is then replaced by it, see <see cref="PartialStructRewriter"/>).
+    /// The plain structs used by its fields are declared first, and replace the ones of their classes
+    /// (<see cref="MixinGlobalContext.PartialFieldStructs"/>).
     /// </summary>
     private static void DeclarePartialStructs(MixinGlobalContext globalContext, SpirvContext context, ShaderMixinInstantiation root)
     {
         var layouts = globalContext.PartialStructs;
         var visited = new HashSet<ShaderMixinInstantiation>();
+        // Plain struct name → class that declares it, for the message of a cycle
+        var plainDeclarers = new Dictionary<string, string>();
         Collect(root);
         if (layouts.Count == 0)
             return;
@@ -51,11 +55,54 @@ public partial class ShaderMixer
             layout.Fields.AddRange(fields);
             for (var index = 0; index < fields.Count; index++)
                 layout.IndexByName.Add(fields[index].Name, index);
-            var structType = new StructType(layout.Name, fields.Select(x => new StructuredTypeMember(x.Name, x.Type, x.Modifier)).ToList());
-            layout.Id = context.DeclareStructuredType(structType, context.Bound++);
+        }
+
+        // Depth first: a struct is declared after the structs its fields use. The path is the chain of fields from the
+        // first struct being declared, for the message of a cycle (two classes can each add one half of it).
+        var path = new List<(StructType Struct, string Field, string? Declarer)>();
+        foreach (var layout in layouts.Values)
+            Declare(new StructType(layout.Name, []) { PartialOwner = layout.Owner });
+
+        void Declare(SymbolType type)
+        {
+            while (type is ArrayType array)
+                type = array.BaseType;
+            if (type is not StructType structType)
+                return;
+            var layout = structType.PartialOwner is { } owner ? layouts[(owner, structType.Name)] : null;
+            if (layout != null ? layout.Id != 0 : context.Types.ContainsKey(structType))
+                return;
+            if (path.FindIndex(x => x.Struct.Equals(structType)) is var start and not -1)
+            {
+                var chain = string.Join(" -> ", path.Skip(start).Select(x => x.Declarer != null ? $"{x.Struct.Name}.{x.Field} ({x.Declarer})" : $"{x.Struct.Name}.{x.Field}").Append(structType.Name));
+                throw new InvalidOperationException(string.Format(SDSLErrorMessages.SDSL0128, structType.Name, chain));
+            }
+
+            var fields = layout != null
+                ? layout.Fields.Select(x => (x.Name, x.Type, (string?)x.Declarer))
+                : structType.Members.Select(x => (x.Name, x.Type, plainDeclarers.GetValueOrDefault(structType.Name)));
+            foreach (var (name, fieldType, declarer) in fields)
+            {
+                path.Add((structType, name, declarer));
+                Declare(fieldType);
+                path.RemoveAt(path.Count - 1);
+            }
+
+            if (layout == null)
+            {
+                globalContext.PartialFieldStructs.Add(structType, context.DeclareStructuredType(structType, context.Bound++));
+                return;
+            }
+            // A partial owner: the views of the classes find it in Types (equal by name and owner)
+            var joined = new StructType(layout.Name, layout.Fields.Select(x => new StructuredTypeMember(x.Name, x.Type, x.Modifier)).ToList())
+            {
+                PartialOwner = layout.Owner,
+                PartialDeclarers = layout.Fields.Select(x => x.Declarer).ToList(),
+            };
+            layout.Id = context.DeclareStructuredType(joined, context.Bound++);
             // The member indexes access chains are rewritten to: declared now, so the classes' own int type and constants
             // are merged with them (types added during a class merge would not be)
-            for (var index = 0; index < fields.Count; index++)
+            for (var index = 0; index < layout.Fields.Count; index++)
                 context.CompileConstant(index);
         }
 
@@ -67,6 +114,11 @@ public partial class ShaderMixer
             {
                 if (shaderClass.Buffer is not { } buffers)
                     continue;
+                foreach (var i in buffers.Context)
+                {
+                    if (i.Op == Op.OpTypeStruct && buffers.Context.ReverseTypes.TryGetValue(i.Data.IdResult!.Value, out var declared) && declared is StructType { PartialOwner: null } plain)
+                        plainDeclarers.TryAdd(plain.Name, shaderClass.ClassName);
+                }
                 foreach (var type in buffers.Context.ReverseTypes.Values)
                 {
                     if (type is not StructType { PartialOwner: { } owner } view)
@@ -232,23 +284,29 @@ public partial class ShaderMixer
 
     private static void ExplainPartialStructs(StringBuilder builder, MixinGlobalContext globalContext)
     {
-        foreach (var layout in globalContext.PartialStructs.Values.OrderBy(x => x.Name, StringComparer.Ordinal))
+        var layouts = globalContext.PartialStructs;
+        foreach (var layout in layouts.Values.OrderBy(x => x.Name, StringComparer.Ordinal))
         {
-            builder.AppendLine($"partial struct {layout.Name} (owner {layout.Owner}): {layout.Fields.Count} fields, {layout.Fields.Sum(x => SizeInBytes(x.Type))} bytes");
+            builder.AppendLine($"partial struct {layout.Name} (owner {layout.Owner}): {layout.Fields.Count} fields, {SizeInBytes(layout)} bytes");
             foreach (var field in layout.Fields)
                 builder.AppendLine($"  field {layout.Name}.{field.Name} : {field.Type} ({field.Declarer})");
         }
-    }
 
-    // Packed size (no padding): what the fields cost when the struct is stored or passed on
-    private static int SizeInBytes(SymbolType type) => type switch
-    {
-        ScalarType { Type: Scalar.Half } => 2,
-        ScalarType { Type: Scalar.Double or Scalar.Int64 or Scalar.UInt64 } => 8,
-        ScalarType => 4,
-        VectorType vector => vector.Size * SizeInBytes(vector.BaseType),
-        MatrixType matrix => matrix.Rows * matrix.Columns * SizeInBytes(matrix.BaseType),
-        ArrayType { Size: > 0 } array => array.Size * SizeInBytes(array.BaseType),
-        _ => 0,
-    };
+        int SizeInBytes(PartialStructLayout layout) => layout.Fields.Sum(x => FieldSizeInBytes(x.Type));
+
+        // Packed size (no padding): what the fields cost when the struct is stored or passed on
+        int FieldSizeInBytes(SymbolType type) => type switch
+        {
+            ScalarType { Type: Scalar.Half } => 2,
+            ScalarType { Type: Scalar.Double or Scalar.Int64 or Scalar.UInt64 } => 8,
+            ScalarType => 4,
+            VectorType vector => vector.Size * FieldSizeInBytes(vector.BaseType),
+            MatrixType matrix => matrix.Rows * matrix.Columns * FieldSizeInBytes(matrix.BaseType),
+            ArrayType { Size: > 0 } array => array.Size * FieldSizeInBytes(array.BaseType),
+            // A partial struct field has the fields of the effect, not those of the view its class sees
+            StructType { PartialOwner: { } owner } partial => SizeInBytes(layouts[(owner, partial.Name)]),
+            StructType plain => plain.Members.Sum(x => FieldSizeInBytes(x.Type)),
+            _ => 0,
+        };
+    }
 }

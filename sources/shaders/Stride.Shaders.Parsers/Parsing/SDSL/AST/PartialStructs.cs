@@ -19,13 +19,17 @@ internal static class PartialStructs
         public string Name { get; } = name;
         public string Owner { get; } = owner;
         public List<(string Name, SymbolType Type, TypeModifier Modifier, string Declarer)> Fields { get; } = [];
+        /// <summary>The <c>partial struct</c> / <c>extend struct</c> elements of the class being compiled.</summary>
+        public List<ShaderStruct> OwnParts { get; } = [];
     }
 
     /// <summary>
-    /// Declares the view of each partial struct the class sees (inherited, imported, or its own), before its other structs
-    /// so they can contain one. Also reports two plain structs of one name reached through two classes (SDSL0215).
+    /// Declares the structs of the class: the view of each partial struct it sees (inherited, imported, or its own) and its
+    /// plain structs, each after the structs it contains, so a partial struct can have a struct field and a plain struct can
+    /// contain a partial struct. Also reports two plain structs of one name reached through two classes (SDSL0215).
     /// </summary>
-    public static void DeclareViews(SymbolTable table, SpirvContext context, ShaderClass shaderClass)
+    /// <returns>false when a struct contains itself (SDSL0128): nothing more can be declared.</returns>
+    public static bool DeclareStructs(SymbolTable table, SpirvContext context, ShaderClass shaderClass)
     {
         var className = shaderClass.Name.Name;
         var partials = new Dictionary<string, PartialStruct>();
@@ -82,11 +86,11 @@ internal static class PartialStructs
                     }
                     var declared = new PartialStruct(name, className);
                     partials.Add(name, declared);
-                    AddOwnFields(table, shaderClass, element, declared);
+                    declared.OwnParts.Add(element);
                     break;
                 case ShaderStructKind.Extend:
                     if (partials.TryGetValue(name, out var extended))
-                        AddOwnFields(table, shaderClass, element, extended);
+                        extended.OwnParts.Add(element);
                     else if (plainOwners.TryGetValue(name, out var plainOwner))
                         table.AddError(new(element.TypeName.Info, string.Format(SDSLErrorMessages.SDSL0122, className, name, plainOwner)));
                     else
@@ -95,57 +99,149 @@ internal static class PartialStructs
             }
         }
 
+        // A plain struct hidden by a partial struct is an error (SDSL0123), not declared
+        var plains = shaderClass.Elements.OfType<ShaderStruct>().Where(x => x.Kind == ShaderStructKind.Plain && !partials.ContainsKey(x.TypeName.Name)).ToList();
+        var plainsByName = new Dictionary<string, ShaderStruct>();
+        foreach (var plain in plains)
+            plainsByName.TryAdd(plain.TypeName.Name, plain);
+
+        // Depth first, in declaration order: a struct is declared after the structs it contains. The path is the chain of
+        // fields from the first struct being declared, for the message of a cycle.
+        var done = new HashSet<string>();
+        var declaredPlains = new HashSet<ShaderStruct>();
+        var path = new List<(string Struct, string Field, string Declarer)>();
+        foreach (var plain in plains)
+        {
+            if (!Declare(plain.TypeName.Name, plain))
+                return false;
+        }
         foreach (var partial in partials.Values)
         {
-            // Owner first, then the other parts by class name: the same set of classes gives the same layout in every effect
-            var fields = partial.Fields
-                .Select((field, index) => (field, index))
-                .OrderBy(x => x.field.Declarer == partial.Owner ? 0 : 1)
-                .ThenBy(x => x.field.Declarer, StringComparer.Ordinal)
-                .ThenBy(x => x.index)
-                .Select(x => x.field)
-                .ToList();
-            var view = new StructType(partial.Name, fields.Select(x => new StructuredTypeMember(x.Name, x.Type, x.Modifier)).ToList())
+            if (!Declare(partial.Name, null))
+                return false;
+        }
+        return true;
+
+        // plain: a plain struct of this class, given in declaration order (a second plain struct of one name is declared too,
+        // and fails as before). A struct of another class is only walked, for the cycle check.
+        bool Declare(string name, ShaderStruct? plain)
+        {
+            var partial = plain == null ? partials.GetValueOrDefault(name) : null;
+            if (plain == null && partial == null)
+                plain = plainsByName.GetValueOrDefault(name);
+            if (plain != null ? declaredPlains.Contains(plain) : done.Contains(name))
+                return true;
+            if (path.FindIndex(x => x.Struct == name) is var start and not -1)
             {
-                PartialOwner = partial.Owner,
-                PartialDeclarers = fields.Select(x => x.Declarer).ToList(),
-            };
-            table.DeclaredTypes[partial.Name] = view;
-            context.DeclarePartialStructView(view, context.Bound++);
-            foreach (var element in shaderClass.Elements.OfType<ShaderStruct>())
+                var chain = string.Join(" -> ", path.Skip(start).Select(x => $"{x.Struct}.{x.Field} ({x.Declarer})").Append(name));
+                table.AddError(new(partial?.OwnParts.FirstOrDefault()?.TypeName.Info ?? plain?.TypeName.Info ?? shaderClass.Name.Info, string.Format(SDSLErrorMessages.SDSL0128, name, chain)));
+                return false;
+            }
+
+            foreach (var (field, uses, declarer) in Uses(name, partial, plain))
             {
-                if (element.Kind != ShaderStructKind.Plain && element.TypeName.Name == partial.Name)
-                    element.Type = view;
+                path.Add((name, field, declarer));
+                foreach (var used in uses)
+                {
+                    if (!Declare(used, null))
+                        return false;
+                }
+                path.RemoveAt(path.Count - 1);
+            }
+
+            if (partial != null)
+            {
+                DeclareView(table, context, className, partial);
+            }
+            else if (plain != null)
+            {
+                plain.ProcessSymbol(table, context);
+                declaredPlains.Add(plain);
+            }
+            done.Add(name);
+            return true;
+        }
+
+        // The fields of a struct and the struct names their types use (through arrays and the plain structs of other classes)
+        IEnumerable<(string Field, IEnumerable<string> Uses, string Declarer)> Uses(string name, PartialStruct? partial, ShaderStruct? plain)
+        {
+            if (partial != null)
+            {
+                foreach (var field in partial.Fields)
+                    yield return (field.Name, StructNames(field.Type), field.Declarer);
+                foreach (var member in partial.OwnParts.SelectMany(x => x.Members))
+                    yield return (member.Name.Name, StructNames(member.TypeName), className);
+            }
+            else if (plain != null)
+            {
+                foreach (var member in plain.Members)
+                    yield return (member.Name.Name, StructNames(member.TypeName), className);
+            }
+            // A struct of another class
+            else if (table.DeclaredTypes.TryGetValue(name, out var type) && type is StructType { PartialOwner: null } other)
+            {
+                foreach (var member in other.Members)
+                    yield return (member.Name, StructNames(member.Type), plainOwners.GetValueOrDefault(name, "?"));
+            }
+        }
+
+        IEnumerable<string> StructNames(object type)
+        {
+            switch (type)
+            {
+                case TypeName typeName when partials.ContainsKey(typeName.Name) || plainsByName.ContainsKey(typeName.Name):
+                    yield return typeName.Name;
+                    break;
+                case TypeName typeName when table.DeclaredTypes.TryGetValue(typeName.Name, out var declaredType):
+                    foreach (var used in StructNames(declaredType))
+                        yield return used;
+                    break;
+                case ArrayType array:
+                    foreach (var used in StructNames(array.BaseType))
+                        yield return used;
+                    break;
+                case StructType structType:
+                    yield return structType.Name;
+                    break;
             }
         }
     }
 
-    private static void AddOwnFields(SymbolTable table, ShaderClass shaderClass, ShaderStruct element, PartialStruct partial)
+    /// <summary>
+    /// Declares the view of a partial struct: the fields of the parts the class reaches, its own fields resolved now.
+    /// </summary>
+    private static void DeclareView(SymbolTable table, SpirvContext context, string className, PartialStruct partial)
     {
-        var className = shaderClass.Name.Name;
-        foreach (var member in element.Members)
+        foreach (var element in partial.OwnParts)
         {
-            // A struct of this class is declared after the partial structs: not resolved yet
-            if (shaderClass.Elements.OfType<ShaderStruct>().Any(x => x.Kind == ShaderStructKind.Plain && x.TypeName.Name == member.TypeName.Name))
+            foreach (var member in element.Members)
             {
-                table.AddError(new(member.Name.Info, string.Format(SDSLErrorMessages.SDSL0127, className, partial.Name, member.Name.Name, member.TypeName)));
-                continue;
+                member.TypeName.ProcessSymbol(table);
+                member.Type = member.TypeName.Type;
+                if (member.Type == null)
+                    continue;
+                table.DeclaredTypes.TryAdd(member.Type.ToString(), member.Type);
+                AddField(table, member.Name.Info, partial, member.Name.Name, member.Type, member.TypeModifier, className);
             }
-            member.TypeName.ProcessSymbol(table);
-            member.Type = member.TypeName.Type;
-            if (member.Type == null)
-                continue;
-            table.DeclaredTypes.TryAdd(member.Type.ToString(), member.Type);
-            var baseType = member.Type;
-            while (baseType is ArrayType arrayType)
-                baseType = arrayType.BaseType;
-            if (baseType is StructuredType)
-            {
-                table.AddError(new(member.Name.Info, string.Format(SDSLErrorMessages.SDSL0127, className, partial.Name, member.Name.Name, member.Type)));
-                continue;
-            }
-            AddField(table, member.Name.Info, partial, member.Name.Name, member.Type, member.TypeModifier, className);
         }
+
+        // Owner first, then the other parts by class name: the same set of classes gives the same layout in every effect
+        var fields = partial.Fields
+            .Select((field, index) => (field, index))
+            .OrderBy(x => x.field.Declarer == partial.Owner ? 0 : 1)
+            .ThenBy(x => x.field.Declarer, StringComparer.Ordinal)
+            .ThenBy(x => x.index)
+            .Select(x => x.field)
+            .ToList();
+        var view = new StructType(partial.Name, fields.Select(x => new StructuredTypeMember(x.Name, x.Type, x.Modifier)).ToList())
+        {
+            PartialOwner = partial.Owner,
+            PartialDeclarers = fields.Select(x => x.Declarer).ToList(),
+        };
+        table.DeclaredTypes[partial.Name] = view;
+        context.DeclarePartialStructView(view, context.Bound++);
+        foreach (var element in partial.OwnParts)
+            element.Type = view;
     }
 
     private static void AddField(SymbolTable table, TextLocation location, PartialStruct partial, string name, SymbolType type, TypeModifier modifier, string declarer)
