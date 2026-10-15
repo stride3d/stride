@@ -134,6 +134,13 @@ namespace Stride.Graphics
                         NativeAccessMask |= VkAccessFlags.ShaderWrite;
                     }
                 }
+
+                if ((ViewFlags & BufferFlags.ArgumentBuffer) != 0)
+                {
+                    createInfo.usage |= VkBufferUsageFlags.IndirectBuffer;
+                    NativeAccessMask |= VkAccessFlags.IndirectCommandRead;
+                    NativePipelineStageMask |= VkPipelineStageFlags.DrawIndirect;
+                }
             }
 
             // Create buffer
