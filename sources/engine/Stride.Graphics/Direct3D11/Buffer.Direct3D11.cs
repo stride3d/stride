@@ -46,6 +46,8 @@ namespace Stride.Graphics
         /// <exception cref="ArgumentException">Element size (<c>StructureByteStride</c>) must be greater than zero for Structured Buffers.</exception>
         protected partial Buffer InitializeFromImpl(ref readonly BufferDescription description, BufferFlags viewFlags, PixelFormat viewFormat, IntPtr dataPointer)
         {
+            CheckRawBufferSize(description.SizeInBytes, viewFlags);
+
             bufferDescription = description;
             nativeDescription = ConvertToNativeDescription(in description);
 

@@ -872,18 +872,31 @@ namespace Stride.Graphics
         /// </param>
         /// <returns>The proposed <see cref="PixelFormat"/> to use.</returns>
         /// <exception cref="ArgumentException">
-        ///   The <see cref="Buffer"/> is an <strong>Index Buffer</strong> that will be bound as a <em>Shader Resource</em>,
+        ///   The <see cref="Buffer"/> is an <strong>Index Buffer</strong> that will be bound as a typed <em>Shader Resource</em>,
         ///   but the <paramref name="elementSize"/> is neither 2 bytes (<c>sizeof(short)</c>) nor 4 bytes (<c>sizeof(int)</c>).
         /// </exception>
         private static PixelFormat CheckPixelFormat(BufferFlags bufferFlags, int elementSize, PixelFormat viewFormat)
         {
-            if (!bufferFlags.HasFlag(BufferFlags.IndexBuffer) || !bufferFlags.HasFlag(BufferFlags.ShaderResource))
+            // A raw view has its own format (32-bit words), whatever the index size
+            if (!bufferFlags.HasFlag(BufferFlags.IndexBuffer) || !bufferFlags.HasFlag(BufferFlags.ShaderResource) || bufferFlags.HasFlag(BufferFlags.RawBuffer))
                 return viewFormat;
 
             if (elementSize != 2 && elementSize != 4)
                 throw new ArgumentException("Element size must be set to sizeof(short) = 2 or sizeof(int) = 4 for Index Buffers if bound as a Shader Resource", nameof(elementSize));
 
             return elementSize == 2 ? PixelFormat.R16_UInt : PixelFormat.R32_UInt;
+        }
+
+        /// <summary>
+        ///   Checks that a Buffer with raw views is a whole number of 32-bit words, the unit raw views address.
+        /// </summary>
+        /// <exception cref="ArgumentException">
+        ///   <paramref name="viewFlags"/> has <see cref="BufferFlags.RawBuffer"/> and <paramref name="sizeInBytes"/> is not a multiple of 4.
+        /// </exception>
+        private static void CheckRawBufferSize(int sizeInBytes, BufferFlags viewFlags)
+        {
+            if (viewFlags.HasFlag(BufferFlags.RawBuffer) && sizeInBytes % sizeof(uint) != 0)
+                throw new ArgumentException($"A raw Buffer must be a multiple of 4 bytes in size (it is {sizeInBytes} bytes): pad its data", nameof(sizeInBytes));
         }
 
         /// <summary>
