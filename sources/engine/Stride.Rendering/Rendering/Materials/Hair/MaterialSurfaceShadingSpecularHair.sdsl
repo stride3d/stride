@@ -363,7 +363,7 @@ namespace Stride.Rendering.Materials
             }
 
             // TODO: Multiply by alpha or not?
-            return ComputeHairImageBasedLightingSpecular(surfaceData).rgb * streams.matDiffuse.a;   // TODO: Technically we should use "streams.shadingColorAlpha" but its value is assigned AFTER the shading, which makes it useless.
+            return ComputeHairImageBasedLightingSpecular(surfaceData).rgb * streams.matDiffuseSpecularAlphaBlend.y * streams.matDiffuse.a;   // TODO: Technically we should use "streams.shadingColorAlpha" but its value is assigned AFTER the shading, which makes it useless.
         }
 
         override void AfterLightingAndShading()

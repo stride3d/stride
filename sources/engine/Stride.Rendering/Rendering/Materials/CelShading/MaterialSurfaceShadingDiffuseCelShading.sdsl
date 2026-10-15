@@ -31,7 +31,7 @@ namespace Stride.Rendering.Materials
                 diffuseColor *= (1 - streams.matSpecularVisible);
             }
 
-            float3 result =  diffuseColor / PI * lighting * streams.matDiffuseSpecularAlphaBlend.x;
+            float3 result =  diffuseColor / PI * lighting;
             return result;
         }
 

@@ -19,6 +19,8 @@ namespace Stride.Rendering.Materials
     [CategoryOrder(15, "Clear coat")]
     public class MaterialClearCoatFeature : MaterialFeature, IMaterialClearCoatFeature
     {
+        private static readonly BlendStateDescription PremultipliedAdditive = new(sourceBlend: Blend.One, destinationBlend: Blend.One);
+
         /// <summary>
         /// Gets or sets the distance at which the base paint layer should transition to the metal flakes layer.
         /// </summary>
@@ -395,12 +397,10 @@ namespace Stride.Rendering.Materials
             // Make sure the parameters are not out of range
             ClampInputs();
 
-            // Set the blend state for both pass
-            context.MaterialPass.BlendState = BlendStates.Additive;
-
             var isMetalFlakesPass = (context.PassIndex == 0);
             if (isMetalFlakesPass)
             {
+                // The base pass keeps the blend state of the material's transparency, if it has one
                 // Do the Base Paint first
                 AddBaseDiffuse(context);
                 AddBaseGlossiness(context);
@@ -419,6 +419,11 @@ namespace Stride.Rendering.Materials
 
                 // Enable transparency for clear coat pass only
                 context.MaterialPass.HasTransparency = true;
+
+                // The clear coat is added on top of the base pass. Shaded colors are already multiplied by the
+                // material's alpha (1 without transparency), so they are added as they are: blending by the
+                // source alpha would apply it a second time
+                context.MaterialPass.BlendState = PremultipliedAdditive;
 
                 AddClearCoatNormalMap(context);
                 AddClearCoatGlossinessMap(context);
