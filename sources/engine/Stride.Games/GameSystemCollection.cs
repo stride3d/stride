@@ -38,6 +38,8 @@ namespace Stride.Games
         private readonly List<KeyValuePair<IUpdateable, ProfilingKey>> updateableGameSystems;
         private readonly List<IContentable> contentableGameSystems;
         private readonly List<IContentable> currentlyContentGameSystems;
+        // The systems whose LoadContent succeeded: only they are unloaded
+        private readonly HashSet<IContentable> contentLoadedGameSystems = [];
         private readonly List<KeyValuePair<IDrawable, ProfilingKey>> currentlyDrawingGameSystems;
         private readonly List<KeyValuePair<IUpdateable, ProfilingKey>> currentlyUpdatingGameSystems;
         private bool isFirstUpdateDone = false;
@@ -159,13 +161,15 @@ namespace Stride.Games
                 }
             }
 
-            foreach (var contentable in currentlyContentGameSystems)
+            try
             {
-                using (var profile = Profiler.Begin(GameProfilingKeys.GameSystemLoadContent, GetGameSystemName(contentable)))
-                    contentable.LoadContent();
+                foreach (var contentable in currentlyContentGameSystems)
+                    LoadContent(contentable);
             }
-
-            currentlyContentGameSystems.Clear();
+            finally
+            {
+                currentlyContentGameSystems.Clear();
+            }
         }
 
         /// <summary>
@@ -188,12 +192,35 @@ namespace Stride.Games
                 }
             }
 
-            foreach (var contentable in currentlyContentGameSystems)
+            try
             {
-                contentable.UnloadContent();
+                foreach (var contentable in currentlyContentGameSystems)
+                    UnloadContent(contentable);
             }
+            finally
+            {
+                currentlyContentGameSystems.Clear();
+            }
+        }
 
-            currentlyContentGameSystems.Clear();
+        private void LoadContent(IContentable contentable)
+        {
+            using (Profiler.Begin(GameProfilingKeys.GameSystemLoadContent, GetGameSystemName(contentable)))
+                contentable.LoadContent();
+
+            lock (contentLoadedGameSystems)
+                contentLoadedGameSystems.Add(contentable);
+        }
+
+        private void UnloadContent(IContentable contentable)
+        {
+            // A system whose LoadContent failed (or never ran) has nothing to unload
+            bool loaded;
+            lock (contentLoadedGameSystems)
+                loaded = contentLoadedGameSystems.Remove(contentable);
+
+            if (loaded)
+                contentable.UnloadContent();
         }
 
         public void Initialize()
@@ -216,12 +243,8 @@ namespace Stride.Games
                 var gameSystemName = GetGameSystemName(pendingGameSystems[0]);
                 using (var profile = Profiler.Begin(GameProfilingKeys.GameSystemInitialize, gameSystemName))
                     pendingGameSystems[0].Initialize();
-                if (State == GameSystemState.ContentLoaded && pendingGameSystems[0] is IContentable)
-                {
-                    var contentable = (IContentable)pendingGameSystems[0];
-                    using (var profile = Profiler.Begin(GameProfilingKeys.GameSystemLoadContent, gameSystemName))
-                        contentable.LoadContent();
-                }
+                if (State == GameSystemState.ContentLoaded && pendingGameSystems[0] is IContentable contentable)
+                    LoadContent(contentable);
 
                 pendingGameSystems.RemoveAt(0);
             }
@@ -279,7 +302,7 @@ namespace Stride.Games
                 // Load the content of IContentable when running
                 if (State >= GameSystemState.ContentLoaded)
                 {
-                    contentableSystem.LoadContent();
+                    LoadContent(contentableSystem);
                 }
             }
 
@@ -318,7 +341,7 @@ namespace Stride.Games
                 // UnLoads the content of IContentable when running
                 if (State == GameSystemState.ContentLoaded)
                 {
-                    contentableSystem.UnloadContent();
+                    UnloadContent(contentableSystem);
                 }
             }
 
