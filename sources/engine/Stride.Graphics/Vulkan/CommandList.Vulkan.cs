@@ -757,6 +757,8 @@ namespace Stride.Graphics
         /// <param name="offsetInBytes">The offset information bytes.</param>
         public void Dispatch(Buffer indirectBuffer, int offsetInBytes)
         {
+            ArgumentNullException.ThrowIfNull(indirectBuffer);
+
             RecordDebugCounter(DebugCounterKind.Dispatch);
             CleanupRenderPass();
             BindPipeline();
@@ -834,13 +836,11 @@ namespace Stride.Graphics
         /// <param name="alignedByteOffsetForArgs">Offset in <em>pBufferForArgs</em> to the start of the GPU generated primitives.</param>
         public void DrawIndexedInstanced(Buffer argumentsBuffer, int alignedByteOffsetForArgs = 0)
         {
-            if (argumentsBuffer == null) throw new ArgumentNullException("argumentsBuffer");
+            ArgumentNullException.ThrowIfNull(argumentsBuffer);
 
             PrepareDraw();
 
-            throw new NotImplementedException();
-            //NativeCommandBuffer.DrawIndirect(argumentsBuffer.NativeBuffer, (ulong) alignedByteOffsetForArgs, );
-            //NativeDeviceContext.DrawIndexedInstancedIndirect(argumentsBuffer.NativeBuffer, alignedByteOffsetForArgs);
+            GraphicsDevice.NativeDeviceApi.vkCmdDrawIndexedIndirect(currentCommandList.NativeCommandBuffer, argumentsBuffer.NativeBuffer, (ulong) alignedByteOffsetForArgs, drawCount: 1, stride: 0);
 
             GraphicsDevice.FrameDrawCalls++;
         }
@@ -870,12 +870,11 @@ namespace Stride.Graphics
         /// <param name="alignedByteOffsetForArgs">Offset in <em>pBufferForArgs</em> to the start of the GPU generated primitives.</param>
         public void DrawInstanced(Buffer argumentsBuffer, int alignedByteOffsetForArgs = 0)
         {
-            if (argumentsBuffer == null) throw new ArgumentNullException("argumentsBuffer");
+            ArgumentNullException.ThrowIfNull(argumentsBuffer);
 
             PrepareDraw();
 
-            throw new NotImplementedException();
-            //NativeDeviceContext.DrawIndexedInstancedIndirect(argumentsBuffer.NativeBuffer, alignedByteOffsetForArgs);
+            GraphicsDevice.NativeDeviceApi.vkCmdDrawIndirect(currentCommandList.NativeCommandBuffer, argumentsBuffer.NativeBuffer, (ulong) alignedByteOffsetForArgs, drawCount: 1, stride: 0);
 
             GraphicsDevice.FrameDrawCalls++;
         }

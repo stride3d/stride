@@ -443,6 +443,8 @@ namespace Stride.Graphics
                 shaderStorageImageWriteWithoutFormat = deviceFeatures.shaderStorageImageWriteWithoutFormat,
                 geometryShader = deviceFeatures.geometryShader,
                 fragmentStoresAndAtomics = deviceFeatures.fragmentStoresAndAtomics,
+                // Indirect draw arguments with a non-zero start instance
+                drawIndirectFirstInstance = deviceFeatures.drawIndirectFirstInstance,
             };
 
             Span<VkUtf8String> supportedExtensionProperties = stackalloc VkUtf8String[]
