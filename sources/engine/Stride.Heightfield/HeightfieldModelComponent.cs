@@ -17,7 +17,7 @@ namespace Stride.Heightfield;
 /// Work in conjunction with a material hosting a <see cref="HeightfieldDisplacementFeature"/>.
 /// </summary>
 [DataContract("HeightfieldModelComponent")]
-[Display("Heightfield Model Component")]
+[Display("Heightfield Model Component", Expand = ExpandRule.Once)]
 [ComponentCategory("Model")]
 [DefaultEntityComponentProcessor(typeof(Processor))]
 public class HeightfieldModelComponent : EntityComponent
