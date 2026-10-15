@@ -436,6 +436,8 @@ namespace Stride.Graphics
                 tessellationShader = RequestedProfile >= GraphicsProfile.Level_11_0 && deviceFeatures.tessellationShader,
                 shaderStorageImageReadWithoutFormat = deviceFeatures.shaderStorageImageReadWithoutFormat,
                 shaderStorageImageWriteWithoutFormat = deviceFeatures.shaderStorageImageWriteWithoutFormat,
+                // Indirect draw arguments with a non-zero start instance
+                drawIndirectFirstInstance = deviceFeatures.drawIndirectFirstInstance,
             };
 
             Span<VkUtf8String> supportedExtensionProperties = stackalloc VkUtf8String[]
