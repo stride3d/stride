@@ -39,6 +39,12 @@ public sealed class ProjectUpgradeContext
     /// <summary>The full path to the project file.</summary>
     public UFile ProjectFullPath { get; }
 
+    /// <summary>
+    /// The upgrade backup, or <c>null</c> when none is requested. An action that writes, moves or deletes a
+    /// sibling file on disk snapshots it first (the csproj is already snapshotted).
+    /// </summary>
+    public UpgradeBackup Backup { get; internal init; }
+
     /// <summary>The logger.</summary>
     public ILogger Log { get; }
 

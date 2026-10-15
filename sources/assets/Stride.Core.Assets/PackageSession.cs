@@ -138,6 +138,7 @@ public abstract class PackageContainer
                     {
                         try
                         {
+                            Session?.UpgradeBackup?.Snapshot(file.ToOSPath());
                             File.Delete(file.FullPath);
                         }
                         catch (Exception ex)
@@ -210,6 +211,8 @@ public abstract class PackageContainer
 
             foreach (var project in vsProjs.Values)
             {
+                if (project.IsDirty)
+                    Session?.UpgradeBackup?.Snapshot(project.FullPath);
                 project.Save();
                 project.ProjectCollection.UnloadAllProjects();
                 project.ProjectCollection.Dispose();
@@ -572,6 +575,9 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
         get => VSSolution.FullPath;
         set => VSSolution.FullPath = value;
     }
+
+    // A session opened from a .csproj or a .sdpkg has an empty SolutionPath, not a null one.
+    private bool HasSolution => !string.IsNullOrEmpty(VSSolution.FullPath);
 
     public AssemblyContainer AssemblyContainer { get; }
 
@@ -1004,15 +1010,18 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
     }
 
     // Constructs the copy-on-write upgrade backup the first time an upgrade-enabled load runs, mirroring the
-    // solution directory (or, for a standalone project upgrade with no solution, the project's directory).
+    // solution directory (with no solution, the project's directory, or the package's for a bare .sdpkg).
     private void ArmUpgradeBackup(PackageLoadParameters loadParameters, ILogger log)
     {
         if (!loadParameters.BackupBeforeUpgrade || UpgradeBackup is not null)
             return;
 
-        var root = SolutionPath is not null
+        var root = HasSolution
             ? Path.GetDirectoryName(SolutionPath.ToOSPath())
-            : Projects.OfType<SolutionProject>().Select(x => Path.GetDirectoryName(x.FullPath.ToOSPath())).FirstOrDefault();
+            : Projects.Select(x => x is SolutionProject project ? project.FullPath : x.Package.FullPath)
+                .Where(x => x is not null)
+                .Select(x => Path.GetDirectoryName(x.ToOSPath()))
+                .FirstOrDefault();
         if (!string.IsNullOrEmpty(root))
             UpgradeBackup = new UpgradeBackup(root, DateTime.Now, log);
     }
@@ -1283,6 +1292,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
                         {
                             var generatedAbsolutePath = assetItem.GetGeneratedAbsolutePath().ToOSPath();
 
+                            UpgradeBackup?.Snapshot(generatedAbsolutePath);
                             File.Delete(generatedAbsolutePath);
 
                             var generatedInclude = assetItem.GetGeneratedInclude();
@@ -1294,6 +1304,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
                         }
                     }
 
+                    UpgradeBackup?.Snapshot(assetPath);
                     File.Delete(assetPath);
                 }
                 catch (Exception ex)
@@ -1304,6 +1315,8 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
 
             foreach (var project in vsProjs.Values)
             {
+                if (project.IsDirty)
+                    UpgradeBackup?.Snapshot(project.FullPath);
                 project.Save();
                 project.ProjectCollection.UnloadAllProjects();
                 project.ProjectCollection.Dispose();
