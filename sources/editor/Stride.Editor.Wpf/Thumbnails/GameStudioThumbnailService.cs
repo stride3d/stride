@@ -262,6 +262,10 @@ namespace Stride.Editor.Thumbnails
             if (e.Result != ThumbnailBuildResult.Cancelled)
             {
                 ThumbnailCompleted?.Invoke(this, new ThumbnailCompletedArgs(e.AssetId, thumbnailData));
+
+                // Show why a thumbnail is broken (e.g. a font that fails to load) in the asset log
+                var hasProblems = e.BuildLog?.Messages.Any(x => x.IsAtLeast(LogMessageType.Warning)) ?? false;
+                session.AssetLog.SetAssetLog(e.AssetId, "Thumbnail", hasProblems ? e.BuildLog : null);
             }
 
             lock (hashLock)
