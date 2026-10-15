@@ -208,6 +208,7 @@ namespace Stride.Core.Assets.Editor.View.Controls
             {
                 newList.CollectionChanged += logViewer.OnLogMessagesCollectionChanged;
             }
+            logViewer.ApplyFilters();
         }
 
         private void OnLogMessagesCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
@@ -215,23 +216,46 @@ namespace Stride.Core.Assets.Editor.View.Controls
             if (logGridView == null || logGridView.ItemsSource == null || LogMessages == null)
                 return;
 
-            if (e.Action == NotifyCollectionChangedAction.Reset)
+            // Apply only the change: the messages are added one by one, and filtering them all again each time is quadratic
+            switch (e.Action)
             {
-                FilteredLogMessages.Clear();
-            }
-            else
-            {
-                // Only apply filter if there's any new displayable messages
-                bool refreshFilter = false;
-                if (e.OldItems != null)
-                    refreshFilter = e.OldItems.OfType<ILogMessage>().Any(IsMessageVisible);
-
-                if (!refreshFilter && e.NewItems != null)
-                    refreshFilter = e.NewItems.OfType<ILogMessage>().Any(IsMessageVisible);
-
-                if (refreshFilter)
+                case NotifyCollectionChangedAction.Add when e.NewItems.Count == 1 && e.NewStartingIndex >= 0:
+                    var newMessage = (ILogMessage)e.NewItems[0];
+                    if (IsMessageVisible(newMessage))
+                    {
+                        if (e.NewStartingIndex == LogMessages.Count - 1)
+                            FilteredLogMessages.Add(newMessage);
+                        else
+                            FilteredLogMessages.Insert(CountVisibleMessages(e.NewStartingIndex), newMessage);
+                    }
+                    break;
+                case NotifyCollectionChangedAction.Remove when e.OldItems.Count == 1 && e.OldStartingIndex >= 0:
+                    if (IsMessageVisible((ILogMessage)e.OldItems[0]))
+                    {
+                        if (e.OldStartingIndex == LogMessages.Count)
+                            FilteredLogMessages.RemoveAt(FilteredLogMessages.Count - 1);
+                        else
+                            FilteredLogMessages.RemoveAt(CountVisibleMessages(e.OldStartingIndex));
+                    }
+                    break;
+                default:
                     ApplyFilters();
+                    break;
             }
+        }
+
+        /// <summary>
+        /// Counts the visible messages before the given index of <see cref="LogMessages"/>, which is the index in <see cref="FilteredLogMessages"/> of a message at this index.
+        /// </summary>
+        private int CountVisibleMessages(int index)
+        {
+            var count = 0;
+            for (var i = 0; i < index; ++i)
+            {
+                if (IsMessageVisible(LogMessages[i]))
+                    ++count;
+            }
+            return count;
         }
 
         private static void FilterPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
