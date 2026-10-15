@@ -332,6 +332,10 @@ PositionStream2	0	module	-	-	ShaderBase
 PositionStream4	0	module	-	-		
 PositionVertexTransform	0	shader	-	-	ShaderBase,Transformation,PositionStream	
 PostEffectBoundingRay	1	module	-	-	ImageEffectShader,DepthBase,Transformation,PositionStream4	
+PushConstantsComputeTestShader	0	shader	-	-	ComputeShaderBase	
+PushConstantsDrawTestShader	0	shader	-	-	ImageEffectShader	
+PushConstantsOtherComputeTestShader	0	shader	-	-	ComputeShaderBase	
+PushConstantsPlainDrawTestShader	0	shader	-	-	ImageEffectShader	
 RadiancePrefilteringGGXNoComputeShader	1	shader	-	-	Math,ImageEffectShader	
 RadiancePrefilteringGGXShader	1	shader	-	-	Math,ComputeShaderBase	
 RangeCompressorShader	0	shader	-	-	ImageEffectShader	

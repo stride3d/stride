@@ -1,0 +1,24 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Graphics.Tests
+{
+    /// <summary>
+    /// Fills the render target with a color from the push constants, read in the pixel shader.
+    /// </summary>
+    internal shader PushConstantsDrawTestShader
+    {
+        import ImageEffectShader;
+
+        [PushConstant] cbuffer PushData
+        {
+            float4 Color;
+            float Intensity;
+        };
+
+        module override float4 Shading()
+        {
+            return float4(Color.rgb * Intensity, Color.a);
+        }
+    };
+}

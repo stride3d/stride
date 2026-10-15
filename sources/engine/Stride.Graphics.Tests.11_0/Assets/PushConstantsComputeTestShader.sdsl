@@ -1,0 +1,36 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Graphics.Tests
+{
+    /// <summary>
+    /// Writes every push constant (the whole 32-byte block) into a buffer, at the slot given by Slot.
+    /// </summary>
+    internal shader PushConstantsComputeTestShader
+    {
+        import ComputeShaderBase;
+
+        [PushConstant] cbuffer PushData
+        {
+            uint4 Values;
+            float2 Scale;
+            uint Slot;
+            uint Factor;
+        };
+
+        module RWStructuredBuffer<uint> Output;
+
+        override void Compute()
+        {
+            uint start = Slot * 8;
+            Output[start + 0] = Values.x * Factor;
+            Output[start + 1] = Values.y * Factor;
+            Output[start + 2] = Values.z * Factor;
+            Output[start + 3] = Values.w * Factor;
+            Output[start + 4] = asuint(Scale.x);
+            Output[start + 5] = asuint(Scale.y);
+            Output[start + 6] = Slot;
+            Output[start + 7] = Factor;
+        }
+    };
+}

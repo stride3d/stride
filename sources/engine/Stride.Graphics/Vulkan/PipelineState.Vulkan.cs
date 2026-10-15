@@ -367,12 +367,18 @@ namespace Stride.Graphics
             NativeDescriptorSetLayout = DescriptorSetLayout.CreateNativeDescriptorSetLayout(GraphicsDevice, destinationEntries, out DescriptorTypeCounts);
 
             // Create pipeline layout
+            // Push constants: one range of the full size for all stages, the same in every layout, so the values stay
+            // valid between two pipelines with push constants (layouts "compatible for push constants")
+            HasPushConstants = pipelineStateDescription.EffectBytecode.Reflection.PushConstants is not null;
+            var pushConstantRange = new VkPushConstantRange { stageFlags = VkShaderStageFlags.All, offset = 0, size = CommandList.PushConstantsSize };
             var nativeDescriptorSetLayout = NativeDescriptorSetLayout;
             var pipelineLayoutCreateInfo = new VkPipelineLayoutCreateInfo
             {
                 sType = VkStructureType.PipelineLayoutCreateInfo,
                 setLayoutCount = 1,
-                pSetLayouts = &nativeDescriptorSetLayout
+                pSetLayouts = &nativeDescriptorSetLayout,
+                pushConstantRangeCount = HasPushConstants ? 1u : 0u,
+                pPushConstantRanges = HasPushConstants ? &pushConstantRange : null,
             };
             GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreatePipelineLayout(GraphicsDevice.NativeDevice, &pipelineLayoutCreateInfo, allocator: null, out NativeLayout));
         }

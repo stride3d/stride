@@ -79,6 +79,7 @@ namespace Stride.Graphics
             // Effect
             rootSignature = pipelineStateDescription.RootSignature;
             effectBytecode = pipelineStateDescription.EffectBytecode;
+            HasPushConstants = effectBytecode?.Reflection.PushConstants is not null;
 
             CreateShaders(pipelineStateCache);
 

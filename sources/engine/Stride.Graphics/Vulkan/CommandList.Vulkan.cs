@@ -136,6 +136,7 @@ namespace Stride.Graphics
             pipelineDirty = true;
             viewportDirty = true;
             scissorsDirty = true;
+            pushConstantsDirty = true;
 
             activeStencilReference = null;
         }
@@ -224,6 +225,16 @@ namespace Stride.Graphics
             NativePipelineBindCount++;
         }
 
+        private unsafe void PushConstants()
+        {
+            if (!pushConstantsDirty || !activePipeline.HasPushConstants)
+                return;
+
+            fixed (byte* data = PushConstantsBytes)
+                GraphicsDevice.NativeDeviceApi.vkCmdPushConstants(currentCommandList.NativeCommandBuffer, activePipeline.NativeLayout, VkShaderStageFlags.All, offset: 0, PushConstantsSize, data);
+            pushConstantsDirty = false;
+        }
+
         /// <summary>
         /// Sets the <see cref="Viewport"/> and its scissor rectangle.
         /// </summary>
@@ -297,6 +308,7 @@ namespace Stride.Graphics
             EnsureRenderPass();
             BindPipeline();
             BindDescriptorSets();
+            PushConstants();
             SetViewportImpl();
             GraphicsDevice.NativeDeviceApi.vkCmdSetStencilReference(currentCommandList.NativeCommandBuffer, VkStencilFaceFlags.FrontAndBack, activeStencilReference ?? 0);
             GraphicsDevice.NativeDeviceApi.vkCmdSetBlendConstants(currentCommandList.NativeCommandBuffer, blendFactor.R, blendFactor.G, blendFactor.B, blendFactor.A);
@@ -504,6 +516,8 @@ namespace Stride.Graphics
 
             activePipeline = pipelineState;
             pipelineDirty = true;
+            // A pipeline without push constants has a layout without the range: the values must be pushed again after it
+            pushConstantsDirty = true;
         }
 
         public unsafe void SetVertexBuffer(int index, Buffer buffer, int offset, int stride)
@@ -970,6 +984,7 @@ namespace Stride.Graphics
             BeginCommandOutsideRenderPass();
             BindPipeline();
             BindDescriptorSets();
+            PushConstants();
             GraphicsDevice.NativeDeviceApi.vkCmdDispatch(currentCommandList.NativeCommandBuffer, (uint)threadCountX, (uint)threadCountY, (uint)threadCountZ);
         }
 
@@ -986,6 +1001,7 @@ namespace Stride.Graphics
             BeginCommandOutsideRenderPass();
             BindPipeline();
             BindDescriptorSets();
+            PushConstants();
             GraphicsDevice.NativeDeviceApi.vkCmdDispatchIndirect(currentCommandList.NativeCommandBuffer, indirectBuffer.NativeBuffer, (ulong)offsetInBytes);
         }
 

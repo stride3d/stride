@@ -22,6 +22,11 @@ public partial class PipelineState : GraphicsResourceBase
     // TODO: Unused? Vulkan backend has 'inputBindingCount', but does not write to this property.
     public int InputBindingCount { get; private set; }
 
+    /// <summary>
+    ///   Gets a value indicating whether the shaders read push constants (<see cref="CommandList.SetPushConstants(System.ReadOnlySpan{byte}, int)"/>).
+    /// </summary>
+    internal bool HasPushConstants { get; private set; }
+
 
     /// <summary>
     ///   Creates a new <strong>Pipeline State</strong> object from the provided description.
