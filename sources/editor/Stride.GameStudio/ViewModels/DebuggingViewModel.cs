@@ -205,10 +205,11 @@ namespace Stride.GameStudio.ViewModels
                         };
                         continue;
                     }
-                    // Skip Binary changes, and changes from projects the editor doesn't load (null Assembly,
-                    // e.g. executable heads): those have no loaded assembly to reload, and their source is
-                    // handled by the Roslyn/CodeViewModel path instead.
-                    if (assemblyChange?.Assembly == null || assemblyChange.ChangeType == AssemblyChangeType.Binary)
+                    // Skip changes from projects the editor doesn't load (null Assembly, e.g. executable heads):
+                    // those have no loaded assembly to reload, and their source is handled by the Roslyn/CodeViewModel
+                    // path instead. Skip the binary of a project too: its source change already asks for a build.
+                    // A dev build of a dependency package has no project: its binary is the change.
+                    if (assemblyChange?.Assembly == null || (assemblyChange.ChangeType == AssemblyChangeType.Binary && assemblyChange.Project != null))
                         continue;
                     modifiedAssemblies[assemblyChange.Assembly] = new ModifiedAssembly
                     {
@@ -301,13 +302,34 @@ namespace Stride.GameStudio.ViewModels
                     });
             }
 
-            // An assembly the watcher doesn't track is reloaded on its own, before the others.
+            // An assembly the watcher doesn't track (a dev build of a dependency package) is reloaded too, before the others.
             foreach (var changedAssembly in changedAssemblies)
             {
                 if (!expanded.Contains(changedAssembly.Key))
                     result.Insert(0, changedAssembly.Value);
             }
-            return result;
+
+            // Any loaded assembly that references a reloaded one, whatever its package: its reference stays bound to the
+            // copy it resolved first. Ordered dependencies first, as the references go.
+            var loadedAssemblies = Session.AllPackages.SelectMany(x => x.LoadedAssemblies).Where(x => x.Assembly != null)
+                .GroupBy(x => x.Assembly).ToDictionary(x => x.Key, x => x.First());
+            var closure = Session.AssemblyContainer.GetDependentsClosure(result.Select(x => x.LoadedAssembly.Assembly).NotNull());
+            var trackedAssemblies = projectWatcher.SnapshotTrackedAssemblies();
+            foreach (var assembly in closure)
+            {
+                if (!loadedAssemblies.TryGetValue(assembly, out var loadedAssembly) || result.Any(x => x.LoadedAssembly == loadedAssembly))
+                    continue;
+
+                // A project builds against the new copy; a package's binary loads again as it is
+                result.Add(new ModifiedAssembly
+                {
+                    LoadedAssembly = loadedAssembly,
+                    ChangeType = loadedAssembly.ProjectReference != null ? AssemblyChangeType.Dependency : AssemblyChangeType.Binary,
+                    Project = trackedAssemblies.FirstOrDefault(x => x.LoadedAssembly == loadedAssembly)?.Project,
+                });
+            }
+            var order = closure.Select((assembly, index) => (assembly, index)).ToDictionary(x => x.assembly, x => x.index);
+            return result.OrderBy(x => x.LoadedAssembly.Assembly != null && order.TryGetValue(x.LoadedAssembly.Assembly, out var index) ? index : -1).ToList();
         }
 
         private async Task ReloadAssemblies()
@@ -389,7 +411,9 @@ namespace Stride.GameStudio.ViewModels
                 // If the assembly binary has changed, just reload
                 if (modifiedAssembly.ChangeType == AssemblyChangeType.Binary)
                 {
-                    assembliesToReload.Add(modifiedAssembly);
+                    var assemblyToReload = modifiedAssembly;
+                    assemblyToReload.LoadedAssemblyPath = loadedAssembly.Path;
+                    assembliesToReload.Add(assemblyToReload);
                 }
                 else if (loadedAssembly.ProjectReference != null)
                 {
@@ -409,6 +433,20 @@ namespace Stride.GameStudio.ViewModels
                     assemblyToReload.LoadedAssemblyPath = result.AssemblyPath;
                     assembliesToReload.Add(assemblyToReload);
                 }
+            }
+
+            // The host's own copy, or a copy the host's code is bound to, stays in use: a new copy next to it would mix
+            // the types of both. Only a new session uses the new build.
+            var inUseByHost = assembliesToReload
+                .Select(x => x.LoadedAssembly.Assembly)
+                .Where(x => x != null && (System.Runtime.Loader.AssemblyLoadContext.GetLoadContext(x) == System.Runtime.Loader.AssemblyLoadContext.Default
+                                          || Core.Reflection.AssemblyContainer.IsBoundByHost(x)))
+                .Select(x => x.GetName().Name)
+                .ToList();
+            if (inUseByHost.Count > 0)
+            {
+                assemblyReloadLogger.Error($"[{string.Join(", ", inUseByHost)}] in use by Game Studio itself: reload the session to use the new build. No assembly was reloaded.");
+                assembliesToReload.Clear();
             }
 
             var userDocumentationService = Session.ServiceProvider.Get<UserDocumentationService>();

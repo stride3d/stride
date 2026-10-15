@@ -98,6 +98,60 @@ public class TestAssemblyContainer
         container.UnloadAssembly(originalDependency);
     }
 
+    [Fact]
+    public void DependentsClosureFollowsReferencesDependenciesFirst()
+    {
+        using var directory = new TemporaryDirectory();
+        var (packagePath, _) = EmitPackageWithDependency(directory.Path);
+
+        var container = new AssemblyContainer();
+        var package = container.LoadAssemblyFromPath(packagePath)!;
+        var dependency = package.GetType("PackageType")!.BaseType!.Assembly;
+
+        // Reloading the dependency reloads the package that references it, after it
+        Assert.Equal([dependency, package], container.GetDependentsClosure([dependency]));
+        // Nothing references the package
+        Assert.Equal([package], container.GetDependentsClosure([package]));
+
+        container.UnloadAssembly(package);
+        container.UnloadAssembly(dependency);
+    }
+
+    [Fact]
+    public void ReferenceFromHostCodeBindsTheContainerCopy()
+    {
+        using var directory = new TemporaryDirectory();
+        var (packagePath, dependencyName) = EmitPackageWithDependency(directory.Path);
+
+        var container = new AssemblyContainer();
+        var package = container.LoadAssemblyFromPath(packagePath)!;
+        var dependency = package.GetType("PackageType")!.BaseType!.Assembly;
+
+        // A lookup by name from code that doesn't reference it (as WPF or the YAML serializer) binds nothing
+        Assert.Same(package, Type.GetType($"PackageType, {package.GetName().Name}", throwOnError: false)?.Assembly);
+        Assert.False(AssemblyContainer.IsBoundByHost(package));
+        // References between assemblies of the container bind nothing either
+        Assert.False(AssemblyContainer.IsBoundByHost(dependency));
+
+        // Host code (default context) deriving from a type of the container's copy
+        var hostName = "Stride.HostCodeProbe" + Guid.NewGuid().ToString("N");
+        var dependencyImage = File.ReadAllBytes(Path.Combine(directory.Path, dependencyName + ".dll"));
+        var dependencyType = new AssemblyLoadContext(null, isCollectible: true).LoadFromStream(new MemoryStream(dependencyImage)).GetType("DependencyType")!;
+        var builder = new PersistedAssemblyBuilder(new AssemblyName(hostName), typeof(object).Assembly);
+        builder.DefineDynamicModule(hostName).DefineType("HostType", TypeAttributes.Public, dependencyType).CreateType();
+        var hostImage = new MemoryStream();
+        builder.Save(hostImage);
+        hostImage.Position = 0;
+        var host = AssemblyLoadContext.Default.LoadFromStream(hostImage);
+
+        Assert.Same(dependency, host.GetType("HostType")!.BaseType!.Assembly);
+        Assert.True(AssemblyContainer.IsBoundByHost(dependency));
+        Assert.False(AssemblyContainer.IsBoundByHost(package));
+
+        container.UnloadAssembly(package);
+        container.UnloadAssembly(dependency);
+    }
+
     /// <summary>
     /// Writes a package assembly whose type derives from a type of a dependency next to it.
     /// </summary>
