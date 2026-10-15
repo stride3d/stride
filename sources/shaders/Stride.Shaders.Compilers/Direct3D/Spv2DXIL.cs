@@ -184,6 +184,10 @@ public static partial class Spv2DXIL
         out DXILSpirvObject out_dxil
     );
 
+    // Frees the buffer of a DXILSpirvObject filled by spirv_to_dxil or spirv_to_dxil_pipeline
+    [LibraryImport("spirv_to_dxil.dll")]
+    [UnmanagedCallConv(CallConvs = new Type[] { typeof(CallConvCdecl) })]
+    public static partial void spirv_to_dxil_free(ref DXILSpirvObject dxil);
 
     [LibraryImport("spirv_to_dxil.dll", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
     public static partial ulong spirv_to_dxil_get_version();
