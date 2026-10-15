@@ -126,6 +126,17 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
 
         var memberNames = new Dictionary<(int, int), string>();
         var blocks = new HashSet<int>();
+
+        // Matrix layout of struct members, known before the struct is built: a struct is a key of context.Types, which
+        // compares members, so it can't change once registered (SPIR-V and HLSL have opposite meanings for rows / columns)
+        var memberLayouts = new Dictionary<(int, int), TypeModifier>();
+        for (var i = start; i < end; i++)
+        {
+            var instruction = context[i];
+            if (instruction.Op == Op.OpMemberDecorate && (OpMemberDecorate)instruction is { Decoration: Decoration.ColMajor or Decoration.RowMajor } memberDecorate)
+                memberLayouts[(memberDecorate.StructureType, memberDecorate.Member)] = memberDecorate.Decoration == Decoration.ColMajor ? TypeModifier.RowMajor : TypeModifier.ColumnMajor;
+        }
+
         for (var i = start; i < end; i++)
         {
             var instruction = context[i];
@@ -206,7 +217,7 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
                     var type = context.ReverseTypes[fieldData];
                     if (!memberNames.TryGetValue((typeStructInstruction.ResultId, index), out var name))
                         name = $"_member{index}";
-                    fields.Add(new(name, type, TypeModifier.None));
+                    fields.Add(new(name, type, memberLayouts.GetValueOrDefault((typeStructInstruction.ResultId, index), TypeModifier.None)));
                 }
                 // TODO: Ideally we shouldn't depend on struct OpName, so we should use UserTypeGOOGLE?
                 StructuredType structType = (blocks.Contains(typeStructInstruction.ResultId))
@@ -319,23 +330,6 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
                     resolved = realShaderImporter.ResolveStructType(shaderSym, importStruct.StructName);
                 }
                 RegisterType(importStruct.ResultId, resolved ?? new StructType(importStruct.StructName, []));
-            }
-        }
-
-        // Second pass (for processing when info from first pass is needed)
-        for (var i = start; i < end; i++)
-        {
-            var instruction = context[i];
-
-            // Can be declared before OpTypeStruct, so done in second pass
-            if (instruction.Op == Op.OpMemberDecorate && (OpMemberDecorate)instruction is { } memberDecorate)
-            {
-                var structType = (StructuredType)context.ReverseTypes[memberDecorate.StructureType];
-                // Note: SPIR-V and HLSL have opposite meaning for Rows/Columns 
-                if (memberDecorate.Decoration == Decoration.ColMajor)
-                    structType.Members[memberDecorate.Member] = structType.Members[memberDecorate.Member] with { TypeModifier = TypeModifier.RowMajor };
-                else if (memberDecorate.Decoration == Decoration.RowMajor)
-                    structType.Members[memberDecorate.Member] = structType.Members[memberDecorate.Member] with { TypeModifier = TypeModifier.ColumnMajor };
             }
         }
     }
