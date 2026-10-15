@@ -139,6 +139,26 @@ namespace Stride.Graphics
         /// </remarks>
         internal ComPtr<ID3D12CommandAllocator> NativeCopyCommandAllocator => ToComPtr(nativeCopyCommandAllocator);
 
+        // Command signatures of the indirect calls: one argument each and no root arguments, so no root signature
+        private ID3D12CommandSignature* drawCommandSignature;
+        private ID3D12CommandSignature* drawIndexedCommandSignature;
+        private ID3D12CommandSignature* dispatchCommandSignature;
+
+        /// <summary>
+        ///   Gets the Command Signature of <see cref="CommandList.DrawInstanced(Buffer, int)"/>.
+        /// </summary>
+        internal ID3D12CommandSignature* DrawCommandSignature => drawCommandSignature;
+
+        /// <summary>
+        ///   Gets the Command Signature of <see cref="CommandList.DrawIndexedInstanced(Buffer, int)"/>.
+        /// </summary>
+        internal ID3D12CommandSignature* DrawIndexedCommandSignature => drawIndexedCommandSignature;
+
+        /// <summary>
+        ///   Gets the Command Signature of <see cref="CommandList.Dispatch(Buffer, int)"/>.
+        /// </summary>
+        internal ID3D12CommandSignature* DispatchCommandSignature => dispatchCommandSignature;
+
         private ID3D12GraphicsCommandList7* nativeCopyCommandList;
 
         /// <summary>
@@ -634,6 +654,10 @@ namespace Stride.Graphics
 
             commandList.Close();
 
+            drawCommandSignature = CreateCommandSignature(IndirectArgumentType.Draw, (uint) sizeof(DrawArguments));
+            drawIndexedCommandSignature = CreateCommandSignature(IndirectArgumentType.DrawIndexed, (uint) sizeof(DrawIndexedArguments));
+            dispatchCommandSignature = CreateCommandSignature(IndirectArgumentType.Dispatch, (uint) sizeof(DispatchArguments));
+
             // Fences for next frame and resource cleaning
             FrameFence = new FenceHelper(this);
             CommandListFence = new FenceHelper(this);
@@ -873,6 +897,27 @@ namespace Stride.Graphics
                 Log.Error($"[D3D12] GPU queue did not drain within {GpuIdleTimeoutMs / 1000}s; continuing teardown. A pending Present whose window was already destroyed can never complete.");
         }
 
+        /// <summary>
+        ///   Creates the Command Signature of an indirect call that reads one argument structure and changes no root argument.
+        /// </summary>
+        private ID3D12CommandSignature* CreateCommandSignature(IndirectArgumentType type, uint byteStride)
+        {
+            var argument = new IndirectArgumentDesc { Type = type };
+            var description = new CommandSignatureDesc
+            {
+                ByteStride = byteStride,
+                NumArgumentDescs = 1,
+                PArgumentDescs = &argument,
+            };
+
+            ID3D12CommandSignature* commandSignature;
+            HResult result = nativeDevice->CreateCommandSignature(&description, pRootSignature: null, SilkMarshal.GuidPtrOf<ID3D12CommandSignature>(), (void**) &commandSignature);
+            if (result.IsFailure)
+                result.Throw();
+
+            return commandSignature;
+        }
+
         protected partial void DestroyPlatformDevice()
         {
             ReleaseDevice();
@@ -889,6 +934,10 @@ namespace Stride.Graphics
             SafeRelease(ref nativeCopyCommandQueue);
             SafeRelease(ref nativeCopyCommandAllocator);
             SafeRelease(ref nativeCopyCommandList);
+
+            SafeRelease(ref drawCommandSignature);
+            SafeRelease(ref drawIndexedCommandSignature);
+            SafeRelease(ref dispatchCommandSignature);
 
             SafeRelease(ref nativeUploadBuffer);
 
