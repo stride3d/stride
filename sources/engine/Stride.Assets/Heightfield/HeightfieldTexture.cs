@@ -59,142 +59,140 @@ public record HeightfieldTexture : HeightfieldTextureSharedData, IHeightfieldLay
             return;
         }
 
-        using (var context = new Stride.Assets.Skyboxes.SkyboxGeneratorContext(new(), MicrothreadLocalDatabases.ProviderService))
-        {
-            var loadedTexture = context.Content.Load<Texture>(Texture.Url, ContentManagerLoaderSettings.StreamingDisabled);
-            var baseImage = loadedTexture.GetDataAsImage(context.RenderDrawContext.CommandList);
+        var content = new ContentManager(MicrothreadLocalDatabases.ProviderService);
+        var loadedTexture = content.Load<Texture>(Texture.Url, ContentManagerLoaderSettings.StreamingDisabled);
+        var baseImage = loadedTexture.GetSerializationData().Image;
 
-            using (var textureTool = new TextureTool())
-            using (var texImage = textureTool.Load(baseImage, baseImage.Description.Format.IsSRgb))
+        using (var textureTool = new TextureTool())
+        using (var texImage = textureTool.Load(baseImage, baseImage.Description.Format.IsSRgb))
+        {
+            switch (texImage.Format)
             {
-                switch (texImage.Format)
+                case PixelFormat.R32_Float:
+                case PixelFormat.R16_UNorm:
+                case PixelFormat.R16_SNorm:
+                case PixelFormat.R16_Float:
+                case PixelFormat.R8_UNorm:
+                    break;
+
+                case PixelFormat.R32G32B32A32_Float:
+                case PixelFormat.R16G16B16A16_Float:
+                    textureTool.Convert(texImage, PixelFormat.R32_Float);
+                    break;
+
+                case PixelFormat.R16G16B16A16_UNorm:
+                case PixelFormat.R16G16_UNorm:
+                    textureTool.Convert(texImage, PixelFormat.R16_UNorm);
+                    break;
+
+                case PixelFormat.R16G16B16A16_SNorm:
+                case PixelFormat.R16G16_SNorm:
+                    textureTool.Convert(texImage, PixelFormat.R16_SNorm);
+                    break;
+
+                case PixelFormat.R8_SNorm:
+                case PixelFormat.B8G8R8A8_UNorm:
+                case PixelFormat.B8G8R8X8_UNorm:
+                case PixelFormat.R8G8B8A8_UNorm:
+                case PixelFormat.R8G8_UNorm:
+
+                case PixelFormat.R8G8B8A8_SNorm:
+                case PixelFormat.R8G8_SNorm:
+
+                case PixelFormat.B8G8R8A8_UNorm_SRgb:
+                case PixelFormat.B8G8R8X8_UNorm_SRgb:
+                case PixelFormat.R8G8B8A8_UNorm_SRgb:
+                    textureTool.Convert(texImage, PixelFormat.R8_UNorm);
+                    break;
+
+                default:
+                    commandContext.Logger.Warning($"{texImage.Format} does not have a specific implementation. Falling back to float conversion");
+                    textureTool.Convert(texImage, PixelFormat.R32_Float);
+                    break;
+            }
+
+            using (var image = textureTool.ConvertToStrideImage(texImage))
+            {
+                var pixelBuffer = image.GetPixelBuffer(0, 0, 0);
+
+                ReadOnlySpan<byte> heights;
+
+                minHeight = float.PositiveInfinity;
+                maxHeight = float.NegativeInfinity;
+                switch (image.Description.Format)
                 {
                     case PixelFormat.R32_Float:
-                    case PixelFormat.R16_UNorm:
-                    case PixelFormat.R16_SNorm:
+                        var floats = pixelBuffer.GetPixels<float>();
+                        MathUtil.FindMinMax(floats, out minHeight, out maxHeight);
+
+                        // See RuntimeLayer.Heights
+                        foreach (ref var f in floats.AsSpan())
+                            f *= HeightMultiplier;
+
+                        heights = MemoryMarshal.Cast<float, byte>(floats.AsSpan());
+                        break;
+
                     case PixelFormat.R16_Float:
+                        var halfs = pixelBuffer.GetPixels<Half>();
+                        foreach (var v in halfs)
+                        {
+                            minHeight = MathF.Min(minHeight, (float)v);
+                            maxHeight = MathF.Max(maxHeight, (float)v);
+                        }
+
+                        // See RuntimeLayer.Heights
+                        foreach (ref var f in halfs.AsSpan())
+                            f = (Half)((float)f * HeightMultiplier);
+
+                        heights = MemoryMarshal.Cast<Half, byte>(halfs.AsSpan());
+                        break;
+
+                    case PixelFormat.R16_SNorm:
+                        var shorts = pixelBuffer.GetPixels<short>();
+                        MathUtil.FindMinMax(shorts, out var minShort, out var maxShort);
+                        minHeight = minShort;
+                        maxHeight = maxShort;
+
+                        heights = MemoryMarshal.Cast<short, byte>(shorts);
+                        break;
+
+                    case PixelFormat.R16_UNorm:
+                        var ushorts = pixelBuffer.GetPixels<ushort>();
+                        MathUtil.FindMinMax(ushorts, out var minUShort, out var maxUShort);
+                        minHeight = minUShort;
+                        maxHeight = maxUShort;
+
+                        heights = MemoryMarshal.Cast<ushort, byte>(ushorts);
+                        break;
+
                     case PixelFormat.R8_UNorm:
-                        break;
+                        var bytes = pixelBuffer.GetPixels<byte>();
+                        MathUtil.FindMinMax(bytes, out var minByte, out var maxByte);
+                        minHeight = minByte;
+                        maxHeight = maxByte;
 
-                    case PixelFormat.R32G32B32A32_Float:
-                    case PixelFormat.R16G16B16A16_Float:
-                        textureTool.Convert(texImage, PixelFormat.R32_Float);
-                        break;
-
-                    case PixelFormat.R16G16B16A16_UNorm:
-                    case PixelFormat.R16G16_UNorm:
-                        textureTool.Convert(texImage, PixelFormat.R16_UNorm);
-                        break;
-
-                    case PixelFormat.R16G16B16A16_SNorm:
-                    case PixelFormat.R16G16_SNorm:
-                        textureTool.Convert(texImage, PixelFormat.R16_SNorm);
-                        break;
-
-                    case PixelFormat.R8_SNorm:
-                    case PixelFormat.B8G8R8A8_UNorm:
-                    case PixelFormat.B8G8R8X8_UNorm:
-                    case PixelFormat.R8G8B8A8_UNorm:
-                    case PixelFormat.R8G8_UNorm:
-
-                    case PixelFormat.R8G8B8A8_SNorm:
-                    case PixelFormat.R8G8_SNorm:
-
-                    case PixelFormat.B8G8R8A8_UNorm_SRgb:
-                    case PixelFormat.B8G8R8X8_UNorm_SRgb:
-                    case PixelFormat.R8G8B8A8_UNorm_SRgb:
-                        textureTool.Convert(texImage, PixelFormat.R8_UNorm);
+                        heights = bytes;
                         break;
 
                     default:
-                        commandContext.Logger.Warning($"{texImage.Format} does not have a specific implementation. Falling back to float conversion");
-                        textureTool.Convert(texImage, PixelFormat.R32_Float);
-                        break;
+                        throw new InvalidOperationException();
                 }
+                minHeight *= HeightMultiplier;
+                maxHeight *= HeightMultiplier;
 
-                using (var image = textureTool.ConvertToStrideImage(texImage))
+                var description = image.Description;
+
+                runtimeLayer = new RuntimeLayer
                 {
-                    var pixelBuffer = image.GetPixelBuffer(0, 0, 0);
-
-                    ReadOnlySpan<byte> heights;
-
-                    minHeight = float.PositiveInfinity;
-                    maxHeight = float.NegativeInfinity;
-                    switch (image.Description.Format)
-                    {
-                        case PixelFormat.R32_Float:
-                            var floats = pixelBuffer.GetPixels<float>();
-                            MathUtil.FindMinMax(floats, out minHeight, out maxHeight);
-
-                            // See RuntimeLayer.Heights
-                            foreach (ref var f in floats.AsSpan())
-                                f *= HeightMultiplier;
-
-                            heights = MemoryMarshal.Cast<float, byte>(floats.AsSpan());
-                            break;
-
-                        case PixelFormat.R16_Float:
-                            var halfs = pixelBuffer.GetPixels<Half>();
-                            foreach (var v in halfs)
-                            {
-                                minHeight = MathF.Min(minHeight, (float)v);
-                                maxHeight = MathF.Max(maxHeight, (float)v);
-                            }
-
-                            // See RuntimeLayer.Heights
-                            foreach (ref var f in halfs.AsSpan())
-                                f = (Half)((float)f * HeightMultiplier);
-
-                            heights = MemoryMarshal.Cast<Half, byte>(halfs.AsSpan());
-                            break;
-
-                        case PixelFormat.R16_SNorm:
-                            var shorts = pixelBuffer.GetPixels<short>();
-                            MathUtil.FindMinMax(shorts, out var minShort, out var maxShort);
-                            minHeight = minShort;
-                            maxHeight = maxShort;
-
-                            heights = MemoryMarshal.Cast<short, byte>(shorts);
-                            break;
-
-                        case PixelFormat.R16_UNorm:
-                            var ushorts = pixelBuffer.GetPixels<ushort>();
-                            MathUtil.FindMinMax(ushorts, out var minUShort, out var maxUShort);
-                            minHeight = minUShort;
-                            maxHeight = maxUShort;
-
-                            heights = MemoryMarshal.Cast<ushort, byte>(ushorts);
-                            break;
-
-                        case PixelFormat.R8_UNorm:
-                            var bytes = pixelBuffer.GetPixels<byte>();
-                            MathUtil.FindMinMax(bytes, out var minByte, out var maxByte);
-                            minHeight = minByte;
-                            maxHeight = maxByte;
-
-                            heights = bytes;
-                            break;
-
-                        default:
-                            throw new InvalidOperationException();
-                    }
-                    minHeight *= HeightMultiplier;
-                    maxHeight *= HeightMultiplier;
-
-                    var description = image.Description;
-
-                    runtimeLayer = new RuntimeLayer
-                    {
-                        BufferResolution = new Int2(description.Width, description.Height),
-                        Texture = Texture,
-                        Tiling = Tiling,
-                        BilinearSampling = BilinearSampling,
-                        HeightMultiplier = HeightMultiplier,
-                        Heights = heights.ToArray(),
-                        HeightsFormat = image.Description.Format,
-                        HeightfieldSubdivision = subdivision
-                    };
-                }
+                    BufferResolution = new Int2(description.Width, description.Height),
+                    Texture = Texture,
+                    Tiling = Tiling,
+                    BilinearSampling = BilinearSampling,
+                    HeightMultiplier = HeightMultiplier,
+                    Heights = heights.ToArray(),
+                    HeightsFormat = image.Description.Format,
+                    HeightfieldSubdivision = subdivision
+                };
             }
         }
     }

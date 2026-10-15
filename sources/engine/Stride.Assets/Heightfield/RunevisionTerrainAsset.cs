@@ -13,6 +13,7 @@ using Stride.Core.Mathematics;
 using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
 using Stride.Graphics;
+using Stride.Graphics.Data;
 using Stride.TextureConverter;
 using Vector2 = Stride.Core.Mathematics.Vector2;
 using Vector3 = Stride.Core.Mathematics.Vector3;
@@ -243,27 +244,25 @@ public sealed class RunevisionTerrainAsset : Asset
             Int2 texResolution;
             if (Texture?.IsEmpty == false)
             {
-                using (var context = new Stride.Assets.Skyboxes.SkyboxGeneratorContext(new(), MicrothreadLocalDatabases.ProviderService))
+                var content = new ContentManager(MicrothreadLocalDatabases.ProviderService);
+                var loadedTexture = content.Load<Texture>(Texture.Url, ContentManagerLoaderSettings.StreamingDisabled);
+                var baseImage = loadedTexture.GetSerializationData().Image;
+
+                using (var textureTool = new TextureTool())
+                using (var texImage = textureTool.Load(baseImage, baseImage.Description.Format.IsSRgb))
                 {
-                    var loadedTexture = context.Content.Load<Texture>(Texture.Url, ContentManagerLoaderSettings.StreamingDisabled);
-                    var baseImage = loadedTexture.GetDataAsImage(context.RenderDrawContext.CommandList);
+                    textureTool.Convert(texImage, PixelFormat.R32_Float);
 
-                    using (var textureTool = new TextureTool())
-                    using (var texImage = textureTool.Load(baseImage, baseImage.Description.Format.IsSRgb))
+                    using (var image = textureTool.ConvertToStrideImage(texImage))
                     {
-                        textureTool.Convert(texImage, PixelFormat.R32_Float);
+                        var pixelBuffer = image.GetPixelBuffer(0, 0, 0);
 
-                        using (var image = textureTool.ConvertToStrideImage(texImage))
-                        {
-                            var pixelBuffer = image.GetPixelBuffer(0, 0, 0);
+                        heights = pixelBuffer.GetPixels<float>();
+                        foreach (ref var height in heights.AsSpan())
+                            height *= HeightMultiplier;
 
-                            heights = pixelBuffer.GetPixels<float>();
-                            foreach (ref var height in heights.AsSpan())
-                                height *= HeightMultiplier;
-
-                            var description = image.Description;
-                            texResolution = new Int2(description.Width, description.Height);
-                        }
+                        var description = image.Description;
+                        texResolution = new Int2(description.Width, description.Height);
                     }
                 }
             }
