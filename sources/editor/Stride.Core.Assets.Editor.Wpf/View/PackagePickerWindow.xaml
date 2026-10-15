@@ -27,7 +27,10 @@
     <ListBox x:Name="PackageListBox" Margin="10" ItemsSource="{Binding Packages}">
       <ListBox.ItemTemplate>
         <DataTemplate>
-          <TextBlock Text="{Binding Name}"/>
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Text="{Binding Name}"/>
+            <TextBlock Text="{Binding Note}" Margin="8,0,0,0" Opacity="0.5"/>
+          </StackPanel>
         </DataTemplate>
       </ListBox.ItemTemplate>
     </ListBox>

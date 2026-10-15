@@ -1,0 +1,24 @@
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.props" />
+  <PropertyGroup>
+    <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <StrideAssemblyProcessorOptions>--serialization</StrideAssemblyProcessorOptions>
+    <StridePackageKind>Assets</StridePackageKind>
+    <StridePackAssets>true</StridePackAssets>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\shared\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\assets\Stride.Core.Assets\Stride.Core.Assets.csproj" />
+    <ProjectReference Include="..\..\Stride.Assets.VHACD\Stride.Assets.VHACD.csproj" />
+    <ProjectReference Include="..\Stride.BepuPhysics\Stride.BepuPhysics.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Templates\Assets\**" />
+  </ItemGroup>
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />
+</Project>

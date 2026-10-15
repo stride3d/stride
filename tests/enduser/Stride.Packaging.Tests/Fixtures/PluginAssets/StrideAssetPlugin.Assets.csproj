@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>StrideAssetPlugin.Assets</RootNamespace>
+    <PackageId>StrideAssetPlugin.Assets</PackageId>
+    <!-- The companion states what it carries; the kind test removes this. -->
+    <StridePackageKind>Assets</StridePackageKind>
+    <!-- Assets packages carry the runtime package's version; the mismatch test overrides it. -->
+    <Version Condition="'$(PluginAssetsVersion)' == ''">1.0.0</Version>
+    <Version Condition="'$(PluginAssetsVersion)' != ''">$(PluginAssetsVersion)</Version>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Stride.Core.Assets" Version="$(StrideEngineVersion)" />
+    <PackageReference Include="Stride.AssetCompiler" Version="$(StrideEngineVersion)" IncludeAssets="build;buildTransitive" />
+    <ProjectReference Include="..\Plugin\StrideAssetPlugin.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Templates\**" />
+  </ItemGroup>
+</Project>

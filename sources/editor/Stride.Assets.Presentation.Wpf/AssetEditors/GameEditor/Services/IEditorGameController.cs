@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core;
@@ -66,6 +67,12 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
 
         [CanBeNull]
         T GetService<T>() where T : IEditorGameViewModelService;
+
+        /// <summary>
+        /// Every service implementing <typeparamref name="T"/>, in registration order; empty before the game started.
+        /// </summary>
+        [NotNull]
+        IReadOnlyList<T> GetServices<T>() where T : IEditorGameViewModelService;
 
         /// <summary>
         /// Triggers a re-evaluation of the active render stages.

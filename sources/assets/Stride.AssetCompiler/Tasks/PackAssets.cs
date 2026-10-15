@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Stride.Core;
 using Stride.Core.Assets;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
@@ -17,7 +18,11 @@ namespace Stride.AssetCompiler.Tasks
 {
     public static class PackAssetsHelper
     {
-        public static bool Run(Core.Diagnostics.Logger logger, string projectFile, string intermediatePackagePath, List<(string SourcePath, string PackagePath)> generatedItems, IReadOnlyList<string> assetAssemblies = null, string assetNamespace = null)
+        /// <param name="hostAssemblies">Package-relative paths (lib/tfm/name.dll) of the assemblies the hosts load.</param>
+        /// <param name="companionPackages">Companion declarations as <c>Kind:Name:Version[:Replaces[:Toolkit]]</c>, Replaces being ';'-separated.</param>
+        /// <param name="packageKind">What the package carries (StridePackageKind); null or empty for a runtime package.</param>
+        /// <param name="packageToolkit">The UI toolkit of an Editor package's views (StrideEditorToolkit); null or empty for a neutral one.</param>
+        public static bool Run(Core.Diagnostics.Logger logger, string projectFile, string intermediatePackagePath, List<(string SourcePath, string PackagePath)> generatedItems, IReadOnlyList<string> hostAssemblies = null, string assetNamespace = null, IReadOnlyList<string> companionPackages = null, string packageKind = null, string packageToolkit = null)
         {
             var package = Package.Load(logger, projectFile, new PackageLoadParameters()
             {
@@ -229,10 +234,61 @@ namespace Stride.AssetCompiler.Tasks
             var assetNamespaceDeclaration = !string.IsNullOrEmpty(assetNamespace) ? assetNamespace : package.AssetNamespace;
             newPackage.AssetNamespace = PackageContainer.ResolveAssetNamespace(assetNamespaceDeclaration, package.Meta.Name);
 
-            // Host-loadable asset assemblies, stored relative to the packed sdpkg (at stride/X.sdpkg).
+            // Packed sdpkg states what the package carries (a build property, absent from the authored sdpkg)
+            if (!string.IsNullOrWhiteSpace(packageKind))
+            {
+                if (Enum.TryParse<PackageKind>(packageKind.Trim(), ignoreCase: true, out var ownKind))
+                    newPackage.Kind = ownKind;
+                else
+                    logger.Error($"Package kind [{packageKind}] is not one of {string.Join(", ", Enum.GetNames<PackageKind>())}.");
+            }
+            if (!string.IsNullOrWhiteSpace(packageToolkit))
+            {
+                if (newPackage.Kind == PackageKind.Editor)
+                    newPackage.Toolkit = packageToolkit.Trim();
+                else
+                    logger.Error($"Package toolkit [{packageToolkit}] needs the Editor kind; this package is {newPackage.Kind}.");
+            }
+
+            // Packed sdpkg stores the companion package names, versions, kinds and toolkits, read from the companion projects at pack time.
+            if (companionPackages != null)
+            {
+                foreach (var declaration in companionPackages)
+                {
+                    var parts = declaration.Split(':');
+                    if (parts.Length is < 3 or > 5 || !Enum.TryParse<PackageKind>(parts[0].Trim(), ignoreCase: true, out var kind) || kind == PackageKind.Runtime || string.IsNullOrWhiteSpace(parts[1]))
+                    {
+                        logger.Error($"Companion package declaration [{declaration}] is not of the form Kind:Name:Version[:Replaces[:Toolkit]] with Kind Assets or Editor.");
+                        continue;
+                    }
+                    var companion = new CompanionPackage
+                    {
+                        Kind = kind,
+                        Name = parts[1].Trim(),
+                        Version = !string.IsNullOrWhiteSpace(parts[2]) ? new PackageVersion(parts[2].Trim()) : null,
+                    };
+                    if (parts.Length >= 4)
+                    {
+                        foreach (var replaced in parts[3].Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                            companion.Replaces.Add(replaced);
+                    }
+                    if (parts.Length == 5 && !string.IsNullOrWhiteSpace(parts[4]))
+                    {
+                        if (kind != PackageKind.Editor)
+                        {
+                            logger.Error($"Companion package declaration [{declaration}] has a toolkit; only an Editor companion can.");
+                            continue;
+                        }
+                        companion.Toolkit = parts[4].Trim();
+                    }
+                    newPackage.CompanionPackages.Add(companion);
+                }
+            }
+
+            // Host-loadable assemblies, stored relative to the packed sdpkg (at stride/X.sdpkg).
             // Each path is lib/<tfm>/<name>.dll (built by the pack target); tag the entry with its TFM
             // so a multi-targeted package lets the consumer load the build matching its compiler runtime.
-            if (assetAssemblies != null)
+            if (hostAssemblies != null)
             {
                 // The TFM is the path segment right after "lib".
                 static string TargetFrameworkFromPath(string libRelativePath)
@@ -244,15 +300,15 @@ namespace Stride.AssetCompiler.Tasks
                     return null;
                 }
 
-                foreach (var assetAssembly in assetAssemblies)
+                foreach (var hostAssembly in hostAssemblies)
                 {
-                    var normalized = assetAssembly.Replace('\\', '/');
-                    newPackage.AssetAssemblies.Add(new AssetAssembly(TargetFrameworkFromPath(normalized), (UFile)("../" + normalized)));
+                    var normalized = hostAssembly.Replace('\\', '/');
+                    newPackage.HostAssemblies.Add(new AssetAssembly(TargetFrameworkFromPath(normalized), (UFile)("../" + normalized)));
                 }
             }
 
-            // Save package if there are resources, assets, or declared asset assemblies
-            if (generatedItems.Count > 0 || newPackage.AssetAssemblies.Count > 0)
+            // Save package if there are resources, assets, or declarations
+            if (generatedItems.Count > 0 || newPackage.HostAssemblies.Count > 0 || newPackage.CompanionPackages.Count > 0 || newPackage.Kind != PackageKind.Runtime || newPackage.Toolkit is not null)
             {
                 // Make sure we have a standalone package
                 var standalonePackage = new StandalonePackage(newPackage);

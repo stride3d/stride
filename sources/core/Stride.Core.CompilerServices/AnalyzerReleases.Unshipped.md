@@ -6,4 +6,4 @@
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 STRDIAG011 | Build | Warning | STRDIAG011UndeclaredProjectAssetExtension
-
+STRDIAG014 | Build | Warning | STRDIAG014UndeclaredAssetFileExtension

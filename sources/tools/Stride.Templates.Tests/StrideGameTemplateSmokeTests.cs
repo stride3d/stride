@@ -107,6 +107,7 @@ public class StrideGameTemplateSmokeTests
                 InstantiateUpdateOnlyAndValidate(workspace, projectName: "SmokeUpdateOnly");
                 InstantiateSpacedNameAndValidate(workspace, projectName: "Smoke Spaced Game");
                 InstantiateSkipSolutionAndValidate(workspace, projectName: "SmokeSkipSolution");
+                InstantiateDottedPluginNameAndValidate(workspace, pluginName: "Smoke.Fog", typeName: "Fog");
                 InstantiateAssetPackAndValidate(workspace, gameProjectName: "SmokeBlankGame");
             }
             finally
@@ -200,6 +201,28 @@ public class StrideGameTemplateSmokeTests
         Assert.True(Directory.Exists(Path.Combine(instantiated, $"{projectName}.Windows")),
             $"skipSolution must still emit the exec project {projectName}.Windows/ under {instantiated}");
         Assert.Empty(Directory.EnumerateFiles(instantiated, "*.slnx", SearchOption.AllDirectories));
+    }
+
+    /// <summary>
+    /// stride-plugin with a dotted name (the NuGet convention): project names and namespaces keep the dots, the types
+    /// are named after the last segment, so <c>Smoke.Fog</c> declares <c>Smoke.Fog.FogComponent</c> (not the invalid
+    /// <c>Smoke.FogComponent</c>) and its asset file extension is <c>.sdfog</c>.
+    /// </summary>
+    private void InstantiateDottedPluginNameAndValidate(string workspace, string pluginName, string typeName)
+    {
+        var newResult = RunDotnet(workspace, "new", "stride-plugin", "-n", pluginName);
+        Assert.True(newResult.exitCode == 0, $"dotnet new stride-plugin -n {pluginName} failed:\n{newResult.output}");
+
+        var instantiated = Path.Combine(workspace, pluginName);
+        var component = Path.Combine(instantiated, pluginName, $"{typeName}Component.cs");
+        Assert.True(File.Exists(component), $"Expected the component at {component}");
+        var componentText = File.ReadAllText(component);
+        Assert.Contains($"namespace {pluginName};", componentText);
+        Assert.Contains($"public class {typeName}Component", componentText);
+        Assert.Contains($"[assembly: AssetFileExtension(\".sd{typeName.ToLowerInvariant()}\", typeof({pluginName}.{typeName}Data))]", File.ReadAllText(Path.Combine(instantiated, pluginName, $"{typeName}Data.cs")));
+        Assert.True(File.Exists(Path.Combine(instantiated, $"{pluginName}.Assets", $"{pluginName}.Assets.csproj")), "Expected the Assets project to keep the dotted name");
+        Assert.Contains($"public class {typeName}Asset ", File.ReadAllText(Path.Combine(instantiated, $"{pluginName}.Assets", $"{typeName}Asset.cs")));
+        Assert.Contains($"public sealed class {typeName}EditorPlugin ", File.ReadAllText(Path.Combine(instantiated, $"{pluginName}.Editor", $"{typeName}EditorPlugin.cs")));
     }
 
     /// <summary>

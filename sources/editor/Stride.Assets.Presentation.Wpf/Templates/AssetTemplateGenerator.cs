@@ -46,6 +46,8 @@ namespace Stride.Assets.Presentation.Templates
                 // Ensure unicity of names amongst package
                 var name = NamingHelper.ComputeNewName(asset.Location, x => parameters.Package.Assets.Find(x) != null, "{0}_{1}");
                 var item = new AssetItem(name, asset.Asset);
+                // Overrides marked by the generator (items a derived asset owns)
+                asset.YamlMetadata.CopyInto(item.YamlMetadata);
 
                 try
                 {

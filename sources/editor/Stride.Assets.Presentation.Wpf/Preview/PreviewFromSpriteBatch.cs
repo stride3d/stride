@@ -49,7 +49,10 @@ namespace Stride.Assets.Presentation.Preview
             Game.Script.AddTask(MoveAndScaleSpriteOnUserInput); 
         }
 
-        protected virtual Vector2 SpriteSize
+        /// <summary>
+        /// The size of what the preview draws, in pixels at scale 1; zero until the content is loaded.
+        /// </summary>
+        public virtual Vector2 SpriteSize
         {
             get { return Vector2.Zero; }
         }

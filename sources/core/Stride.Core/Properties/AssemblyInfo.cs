@@ -7,7 +7,6 @@ using System.Runtime.CompilerServices;
 
 // Alphabetic sort
 [assembly: InternalsVisibleTo("Stride.Assets.Models" + Stride.PublicKeys.Default)]
-[assembly: InternalsVisibleTo("Stride.Audio" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Core.Assets" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Core.Serialization" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Core.Serializers" + Stride.PublicKeys.Default)]
@@ -16,12 +15,9 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Stride.Foundation" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Games" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Graphics" + Stride.PublicKeys.Default)]
-[assembly: InternalsVisibleTo("Stride.Particles" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Rendering" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Shaders" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.TextureConverter" + Stride.PublicKeys.Default)]
-[assembly: InternalsVisibleTo("Stride.UI" + Stride.PublicKeys.Default)]
-[assembly: InternalsVisibleTo("Stride.Video" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.VirtualReality" + Stride.PublicKeys.Default)]
 
 // Test projects

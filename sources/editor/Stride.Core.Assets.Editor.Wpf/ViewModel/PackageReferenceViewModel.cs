@@ -78,6 +78,8 @@ namespace Stride.Core.Assets.Editor.ViewModel
             InitialUndelete(canUndoRedoCreation);
         }
 
+        internal DependencyRange Dependency => dependency;
+
         public override string Name
         {
             get => dependency.Name;

@@ -7,8 +7,13 @@
     <!-- Real-game shape: platform-head executable with no sdpkg of its own; assets flow in from
          the referenced .Game project's package. -->
     <StrideContainsAssetTypes>false</StrideContainsAssetTypes>
+    <!-- A platform project names its platform (the default is Windows): the one the test runs on -->
+    <StridePlatform Condition="$([MSBuild]::IsOSPlatform('Linux'))">Linux</StridePlatform>
+    <StridePlatform Condition="$([MSBuild]::IsOSPlatform('OSX'))">macOS</StridePlatform>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="Consumer.Game\Consumer.Game.csproj" />
+    <!-- The .Game project's sources are its own (a real game keeps the two projects in separate folders) -->
+    <Compile Remove="Consumer.Game\**" />
   </ItemGroup>
 </Project>

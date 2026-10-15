@@ -14,7 +14,11 @@ public interface IAssetSerializerFactory
 
 public interface IAssetSerializer
 {
-    object Load(Stream stream, UFile filePath, ILogger? log, bool clearBrokenObjectReferences, out bool aliasOccurred, out AttachedYamlAssetMetadata yamlMetadata, string? assetNamespace = null);
+    /// <param name="expectedType">
+    /// The type the caller expects (<see cref="Asset"/>, <see cref="Package"/>). The file's own type tag wins; this
+    /// is what an asset whose type is not loaded falls back to, so it can be read as an unloadable one.
+    /// </param>
+    object Load(Stream stream, UFile filePath, ILogger? log, bool clearBrokenObjectReferences, out bool aliasOccurred, out AttachedYamlAssetMetadata yamlMetadata, string? assetNamespace = null, Type? expectedType = null);
 
     void Save(Stream stream, object asset, AttachedYamlAssetMetadata? yamlMetadata, ILogger? log = null, string? assetNamespace = null);
 }

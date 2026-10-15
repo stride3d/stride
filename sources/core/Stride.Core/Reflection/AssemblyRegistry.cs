@@ -166,6 +166,25 @@ public static class AssemblyRegistry
     }
 
     /// <summary>
+    /// The types of <paramref name="assembly"/> the assembly processor indexed under any of <paramref name="keys"/>
+    /// (<see cref="AssemblyScanAttribute"/> types; a generic attribute's generic definition).
+    /// </summary>
+    public static IEnumerable<Type> GetScanTypes(Assembly assembly, params Type[] keys)
+    {
+        if (GetScanTypes(assembly) is not { } scanTypes)
+            yield break;
+
+        foreach (var key in keys)
+        {
+            if (scanTypes.Types.TryGetValue(key, out var types))
+            {
+                foreach (var type in types)
+                    yield return type;
+            }
+        }
+    }
+
+    /// <summary>
     /// Registers an assembly with the specified categories.
     /// </summary>
     /// <param name="assembly">The assembly.</param>
@@ -288,12 +307,32 @@ public static class AssemblyRegistry
 
     private static void OnAssemblyRegistered(Assembly assembly, HashSet<string> categories)
     {
-        AssemblyRegistered?.Invoke(null, new AssemblyRegisteredEventArgs(assembly, categories));
+        Raise(AssemblyRegistered, new AssemblyRegisteredEventArgs(assembly, categories));
     }
 
     private static void OnAssemblyUnregistered(Assembly assembly, HashSet<string> categories)
     {
-        AssemblyUnregistered?.Invoke(null, new AssemblyRegisteredEventArgs(assembly, categories));
+        Raise(AssemblyUnregistered, new AssemblyRegisteredEventArgs(assembly, categories));
+    }
+
+    // Each handler on its own: a failing one (a plugin's, say) is logged and the others still run. Registration runs in
+    // the assembly's module initializer, where an exception would also leave the assembly unusable.
+    private static void Raise(EventHandler<AssemblyRegisteredEventArgs>? handlers, AssemblyRegisteredEventArgs e)
+    {
+        if (handlers is null)
+            return;
+
+        foreach (var handler in handlers.GetInvocationList().Cast<EventHandler<AssemblyRegisteredEventArgs>>())
+        {
+            try
+            {
+                handler(null, e);
+            }
+            catch (Exception ex)
+            {
+                Log.Value.Error($"A handler of assembly [{e.Assembly.GetName().Name}] (un)registration failed: {handler.Method.DeclaringType}.{handler.Method.Name}", ex);
+            }
+        }
     }
 
     /// <summary>

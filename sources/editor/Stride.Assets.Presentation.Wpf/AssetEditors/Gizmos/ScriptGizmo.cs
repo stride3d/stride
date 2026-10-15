@@ -13,12 +13,4 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         {
         }
     }
-    [GizmoComponent(typeof(UIComponent), true)]
-    public class UIGizmo : BillboardingGizmo<UIComponent>
-    {
-        public UIGizmo(EntityComponent component)
-            : base(component, "UI", GizmoResources.UIGizmo)
-        {
-        }
-    }
 }

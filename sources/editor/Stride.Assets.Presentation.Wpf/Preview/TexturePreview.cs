@@ -111,7 +111,7 @@ namespace Stride.Assets.Presentation.Preview
             return SwizzleMode.None;
         }
 
-        protected override Vector2 SpriteSize
+        public override Vector2 SpriteSize
         {
             get
             {

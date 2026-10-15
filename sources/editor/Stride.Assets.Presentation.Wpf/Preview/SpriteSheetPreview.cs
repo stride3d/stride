@@ -72,7 +72,7 @@ namespace Stride.Assets.Presentation.Preview
         /// </summary>
         public int CurrentFrame { get; set; }
 
-        protected override Vector2 SpriteSize
+        public override Vector2 SpriteSize
         {
             get
             {

@@ -95,6 +95,10 @@ namespace Stride.Core.Assets.Editor.Components.Properties
 
         public void UnregisterNodePresenterUpdater(INodePresenterUpdater nodeUpdater) => ViewModelService.AvailableUpdaters.Remove(nodeUpdater);
 
+        public IReadOnlyCollection<INodePresenterCommand> NodePresenterCommands => ViewModelService.AvailableCommands;
+
+        public IReadOnlyCollection<INodePresenterUpdater> NodePresenterUpdaters => ViewModelService.AvailableUpdaters;
+
         // TODO: remove processViewModel
         public async Task<GraphViewModel> GenerateSelectionPropertiesAsync(IEnumerable<IPropertyProviderViewModel> selectedObjects)
         {

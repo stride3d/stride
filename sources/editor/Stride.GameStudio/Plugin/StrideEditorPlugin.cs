@@ -26,10 +26,6 @@ namespace Stride.GameStudio.Plugin
     {
         public bool EnableThumbnailService { get; set; } = true;
 
-        protected override void Initialize(ILogger logger)
-        {
-        }
-
         public override void InitializeSession(SessionViewModel session)
         {
             var fallbackDirectory = UPath.Combine(EditorSettings.FallbackBuildCacheDirectory, new UDirectory(StrideGameStudio.EditorName));
@@ -59,25 +55,6 @@ namespace Stride.GameStudio.Plugin
             // Reclaim stale cache entries before the builder opens the DB (nothing holds it yet, so no coordination needed).
             CollectBuildCache(buildDirectory);
 
-            var pluginService = session.ServiceProvider.Get<IAssetsPluginService>();
-            var previewFactories = new Dictionary<Type, AssetPreviewFactory>();
-            foreach (var stridePlugin in pluginService.Plugins.OfType<StrideAssetsPlugin>())
-            {
-                var pluginTypes = stridePlugin.GetType().Assembly.GetTypes();
-                foreach (var type in pluginTypes)
-                {
-                    var localType = type;
-                    if (typeof(IAssetPreview).IsAssignableFrom(type))
-                    {
-                        var previewAttribute = type.GetCustomAttribute<AssetPreviewAttribute>();
-                        if (previewAttribute != null)
-                        {
-                            previewFactories.Add(previewAttribute.AssetType, (builder, game, asset) => (IAssetPreview)Activator.CreateInstance(localType));
-                        }
-                    }
-                }
-            }
-
             var settingsProvider = new GameSettingsProviderService(session);
             session.ServiceProvider.RegisterService(settingsProvider);
 
@@ -86,7 +63,6 @@ namespace Stride.GameStudio.Plugin
             session.ServiceProvider.RegisterService(builderService.Database); // TODO: this should be removed, the AssetBuilderService is reachable from anywhere now
 
             var previewService = new GameStudioPreviewService(session);
-            previewService.RegisterAssetPreviewFactories(previewFactories);
             session.ServiceProvider.RegisterService(previewService);
 
             if (EnableThumbnailService)
@@ -209,11 +185,6 @@ namespace Stride.GameStudio.Plugin
                 catch (UnauthorizedAccessException) { }
             }
             return referenced;
-        }
-
-        public override void RegisterAssetPreviewViewTypes(IDictionary<Type, Type> assetPreviewViewTypes)
-        {
-            // nothing for now
         }
     }
 }
