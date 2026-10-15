@@ -3,10 +3,10 @@
 
 #if (STRIDE_UI_WINFORMS || STRIDE_UI_WPF)
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Windows.Forms;
 using Stride.Games;
 
@@ -14,6 +14,8 @@ namespace Stride.Input
 {
     internal class KeyboardWinforms : KeyboardDeviceBase, ITextInputDevice, IDisposable
     {
+        private const int MaxStackCompositionBytes = 512;
+
         private readonly Control uiControl;
         private readonly List<TextInputEvent> textEvents = new List<TextInputEvent>();
 
@@ -167,14 +169,25 @@ namespace Stride.Input
         private unsafe string GetCompositionString(IntPtr context, int type)
         {
             int len = Win32Native.ImmGetCompositionString(context, type, IntPtr.Zero, 0);
-            byte[] data = new byte[len];
+            if (len <= 0)
+                return string.Empty;
 
-            fixed (byte* dataPtr = data)
+            byte[] rented = null;
+            Span<byte> data = len <= MaxStackCompositionBytes ? stackalloc byte[len] : (rented = ArrayPool<byte>.Shared.Rent(len)).AsSpan(0, len);
+            try
             {
-                Win32Native.ImmGetCompositionString(context, type, (nint)dataPtr, len);
-            }
+                fixed (byte* dataPtr = data)
+                {
+                    Win32Native.ImmGetCompositionString(context, type, (nint)dataPtr, len);
+                }
 
-            return Encoding.Unicode.GetString(data);
+                return TextInputStrings.FromUtf16(MemoryMarshal.Cast<byte, char>(data));
+            }
+            finally
+            {
+                if (rented != null)
+                    ArrayPool<byte>.Shared.Return(rented);
+            }
         }
 
         private void OnComposition(IntPtr hWnd, int lParam)
