@@ -81,6 +81,11 @@ namespace Stride.Core.Assets.Editor.View.Controls
         public static readonly DependencyProperty SessionProperty = DependencyProperty.Register("Session", typeof(SessionViewModel), typeof(GridLogViewer));
 
         /// <summary>
+        /// Identifies the <see cref="ToolBarContent"/> dependency property.
+        /// </summary>
+        public static readonly DependencyProperty ToolBarContentProperty = DependencyProperty.Register("ToolBarContent", typeof(object), typeof(GridLogViewer));
+
+        /// <summary>
         /// Gets or sets the collection of <see cref="ILogMessage"/> to display.
         /// </summary>
         public ObservableList<ILogMessage> LogMessages
@@ -107,6 +112,11 @@ namespace Stride.Core.Assets.Editor.View.Controls
         /// Gets or sets whether the tool bar should be visible.
         /// </summary>
         public bool IsToolBarVisible { get { return (bool)GetValue(IsToolBarVisibleProperty); } set { SetValue(IsToolBarVisibleProperty, value); } }
+
+        /// <summary>
+        /// Gets or sets more filters, shown in the tool bar before the level filters.
+        /// </summary>
+        public object ToolBarContent { get { return GetValue(ToolBarContentProperty); } set { SetValue(ToolBarContentProperty, value); } }
 
         /// <summary>
         /// Gets or sets whether the log viewer should display debug messages.
