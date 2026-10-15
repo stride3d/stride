@@ -285,12 +285,13 @@ namespace Stride.GameStudio.ViewModels
             var modifiedLoadabilitiesCopy = new Dictionary<PackageViewModel, ModifiedAssembly>(modifiedLoadabilities);
             modifiedLoadabilities.Clear();
             var loadabilityChanged = false;
+            // A build clears the build log: what the flips logged is shown again after each one
+            var loadabilityLog = new LoggerResult();
+            BuildLog.AddLogger(loadabilityLog);
             foreach (var modifiedLoadability in modifiedLoadabilitiesCopy)
             {
                 var package = modifiedLoadability.Key;
                 var change = modifiedLoadability.Value;
-                var logResult = new LoggerResult();
-                BuildLog.AddLogger(logResult);
                 if (change.LoadedAssembly == null)
                 {
                     // The project should now be loaded: build it, then load and register it through the
@@ -298,6 +299,7 @@ namespace Stride.GameStudio.ViewModels
                     if (package.Package.Container is not SolutionProject solutionProject)
                         continue;
                     var result = await BuildProject(solutionProject.FullPath);
+                    BuildLog.EnsureLoggerWithPast(loadabilityLog);
                     if (!result.IsSuccessful)
                     {
                         modifiedLoadabilities[package] = change;
@@ -305,9 +307,9 @@ namespace Stride.GameStudio.ViewModels
                     }
                     using (var transaction = Session.UndoRedoService.CreateTransaction())
                     {
-                        package.Package.UpdateAssemblyReferences(logResult);
+                        package.Package.UpdateAssemblyReferences(loadabilityLog);
                         // Reload with no assembly swap: re-deserializes IUnloadable instances so the newly loaded types resurrect.
-                        GameStudioAssemblyReloader.Reload(Session, logResult, async () =>
+                        GameStudioAssemblyReloader.Reload(Session, loadabilityLog, async () =>
                         {
                             if (change.Project != null)
                                 await entityComponentsSorter.AnalyzeProject(Session, change.Project, assemblyTrackingCancellation.Token);
@@ -327,7 +329,7 @@ namespace Stride.GameStudio.ViewModels
                     // (preserving their Yaml), then the assembly is unloaded and unregistered.
                     using (var transaction = Session.UndoRedoService.CreateTransaction())
                     {
-                        GameStudioAssemblyReloader.Unload(Session, logResult, UpdateCommands, () =>
+                        GameStudioAssemblyReloader.Unload(Session, loadabilityLog, UpdateCommands, () =>
                         {
                             modifiedLoadabilities[package] = change;
                         }, package.Package, change.LoadedAssembly);
@@ -371,6 +373,7 @@ namespace Stride.GameStudio.ViewModels
                     }
                 }
             }
+            BuildLog.EnsureLoggerWithPast(loadabilityLog);
 
             UpdateCommands();
             trackAssemblyChanges = true;
