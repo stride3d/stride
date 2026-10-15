@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Interop;
 using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Editor.Components.AddAssets;
 using Stride.Core.Assets.Editor.Components.AddAssets.View;
@@ -181,6 +182,10 @@ namespace Stride.Core.Assets.Editor.View
             await Task.WhenAll(precedingWindows.Select(x => x.Displayed.Task));
             // Then wait for the next window to be ready to display
             await nextWindow.ReadyToDisplay.Task;
+            // Then wait for the message boxes that are up (the upgrade question asked while a session loads):
+            // the progress window would open on top of them and hide them.
+            while (await nextWindow.WorkProgress.Dispatcher.InvokeAsync(() => WindowManager.ModalWindows.Count > 0 || ComponentDispatcher.IsThreadModal))
+                await Task.Delay(100);
 
             // Check if we should actually display the window
             if (!nextWindow.WorkProgress.WorkDone || nextWindow.WorkProgress.ShouldStayOpen())
