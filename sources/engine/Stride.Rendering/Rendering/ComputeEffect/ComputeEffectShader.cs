@@ -57,6 +57,22 @@ namespace Stride.Rendering.ComputeEffect
         public Int3 ThreadNumbers { get; set; }
 
         /// <summary>
+        /// Gets or sets a Buffer holding the thread group counts to dispatch (three <c>uint</c>), or <c>null</c> to dispatch
+        /// <see cref="ThreadGroupCounts"/>.
+        /// </summary>
+        /// <remarks>
+        /// The Buffer needs <see cref="BufferFlags.ArgumentBuffer"/> (see <see cref="Graphics.Buffer.Argument"/>). After a GPU
+        /// write, transition it to <see cref="BarrierLayout.IndirectArgument"/> before drawing this effect. The shader's
+        /// <c>ThreadGroupCountGlobal</c> still comes from <see cref="ThreadGroupCounts"/>.
+        /// </remarks>
+        public Graphics.Buffer IndirectArguments { get; set; }
+
+        /// <summary>
+        /// Gets or sets the byte offset of the thread group counts in <see cref="IndirectArguments"/>.
+        /// </summary>
+        public int IndirectArgumentsOffset { get; set; }
+
+        /// <summary>
         /// Gets or sets the name of the input compute shader file (.sdsl)
         /// </summary>
         public string ShaderSourceName { get; set; }
@@ -114,8 +130,10 @@ namespace Stride.Rendering.ComputeEffect
             // Apply the effect
             EffectInstance.Apply(context.GraphicsContext);
 
-            // Draw a full screen quad
-            context.CommandList.Dispatch(ThreadGroupCounts.X, ThreadGroupCounts.Y, ThreadGroupCounts.Z);
+            if (IndirectArguments is not null)
+                context.CommandList.Dispatch(IndirectArguments, IndirectArgumentsOffset);
+            else
+                context.CommandList.Dispatch(ThreadGroupCounts.X, ThreadGroupCounts.Y, ThreadGroupCounts.Z);
 
             TransitionBoundTextures(context.CommandList, afterDispatch: true);
 
