@@ -27,7 +27,7 @@ namespace Stride.Rendering.Materials
 
             var reflected = fresnel * geometricShadowing * normalDistribution / 4;
 
-            return celLightFunction.Compute(reflected) * streams.lightColorNdotL * streams.matDiffuseSpecularAlphaBlend.y;
+            return celLightFunction.ComputeColor(reflected) * streams.lightColorNdotL * streams.matDiffuseSpecularAlphaBlend.y;
         }
 
         override float3 ComputeEnvironmentLightContribution()

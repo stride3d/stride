@@ -11,15 +11,16 @@ namespace Stride.Rendering.Materials
 
         override float3 ComputeDirectLightContribution()
         {
-            float3 celLight = streams.NdotL * streams.lightAttenuation;
-            
+            float lightIn = streams.NdotL * streams.lightAttenuation;
+            float3 celLight;
+
             if (FakeNDotL > 0)
             {
-				celLight = celLightFunction.Compute(celLight * FakeNDotL);
+				celLight = celLightFunction.Compute(lightIn * FakeNDotL);
             }
             else
             {
-				celLight = celLightFunction.Compute(celLight);
+				celLight = celLightFunction.Compute(lightIn);
             }
             
 			float3 lighting = celLight * streams.lightColor * streams.shadowColor * streams.lightDirectAmbientOcclusion;      
@@ -44,7 +45,7 @@ namespace Stride.Rendering.Materials
                 diffuseColor *= (1 - streams.matSpecularVisible);
             }
 
-            float3 celLight = celLightFunction.Compute(streams.envLightDiffuseColor);
+            float3 celLight = celLightFunction.ComputeColor(streams.envLightDiffuseColor);
             return diffuseColor * celLight;
         }
     };
