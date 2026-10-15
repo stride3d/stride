@@ -410,11 +410,10 @@ public class BodyComponent : CollidableComponent
         float deltaTime = (float)Simulation.FixedTimeStep.TotalSeconds;
 
         var newVelocity = (targetPosition - Position) / deltaTime;
+        // Zero is written too, to cancel velocity from other sources, but it does not wake the body
         if (newVelocity.LengthSquared() > float.Epsilon)
-        {
             Awake = true;
-            LinearVelocity = newVelocity;
-        }
+        LinearVelocity = newVelocity;
     }
 
     /// <summary>
@@ -441,11 +440,10 @@ public class BodyComponent : CollidableComponent
         float sinHalfAngle = axis.Length();
         float scale = sinHalfAngle > 0f ? 2f * MathF.Atan2(sinHalfAngle, quatDelta.W) / (sinHalfAngle * deltaTime) : 0f;
         var newVelocity = axis * scale;
+        // Zero is written too, to cancel velocity from other sources, but it does not wake the body
         if (newVelocity.LengthSquared() > float.Epsilon)
-        {
             Awake = true;
-            AngularVelocity = newVelocity;
-        }
+        AngularVelocity = newVelocity;
     }
 
     /// <summary>
