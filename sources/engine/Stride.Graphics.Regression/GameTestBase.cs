@@ -1162,5 +1162,20 @@ namespace Stride.Graphics.Regression
         {
             Skip.IfNot(GraphicsDevice.Platform == platform, $"This test requires the '{platform}' graphics platform. It has been skipped");
         }
+
+        /// <summary>
+        ///   Skips the test unless Vulkan synchronization validation runs and also checks the buffers and images
+        ///   shaders access through descriptors: a debug device, <c>STRIDE_VULKAN_SYNC_VALIDATION=1</c>
+        ///   and a validation layer of version 1.3.290 or later.
+        /// </summary>
+        public static void RequireShaderAccessSyncValidation()
+        {
+#if STRIDE_GRAPHICS_API_VULKAN && DEBUG
+            bool isActive = GraphicsAdapterFactory.GetInstance(enableValidation: true).HasShaderAccessSyncValidation;
+#else
+            bool isActive = false;
+#endif
+            Skip.IfNot(isActive, "This test requires Vulkan synchronization validation of shader accesses. It has been skipped");
+        }
     }
 }
