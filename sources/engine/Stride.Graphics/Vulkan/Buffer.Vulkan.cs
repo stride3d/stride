@@ -22,6 +22,8 @@ namespace Stride.Graphics
         /// <param name="dataPointer">The data pointer.</param>
         protected partial Buffer InitializeFromImpl(ref readonly BufferDescription description, BufferFlags viewFlags, PixelFormat viewFormat, IntPtr dataPointer)
         {
+            CheckRawBufferSize(description.SizeInBytes, viewFlags);
+
             bufferDescription = description;
             //nativeDescription = ConvertToNativeDescription(Description);
             ViewFlags = viewFlags;
@@ -110,7 +112,8 @@ namespace Stride.Graphics
                     NativePipelineStageMask |= VkPipelineStageFlags.VertexShader | VkPipelineStageFlags.FragmentShader | VkPipelineStageFlags.ComputeShader;
                 }
 
-                if ((ViewFlags & BufferFlags.StructuredBuffer) != 0)
+                // Structured and raw (ByteAddressBuffer) views are both storage buffers
+                if ((ViewFlags & (BufferFlags.StructuredBuffer | BufferFlags.RawBuffer)) != 0)
                 {
                     createInfo.usage |= VkBufferUsageFlags.StorageBuffer;
                     NativeAccessMask |= VkAccessFlags.ShaderRead;
@@ -122,7 +125,7 @@ namespace Stride.Graphics
                     }
                 }
 
-                if ((ViewFlags & BufferFlags.ShaderResource) != 0)
+                if ((ViewFlags & BufferFlags.ShaderResource) != 0 && (ViewFlags & BufferFlags.RawBuffer) == 0)
                 {
                     createInfo.usage |= VkBufferUsageFlags.UniformTexelBuffer;
                     NativeAccessMask |= VkAccessFlags.ShaderRead;
@@ -224,15 +227,11 @@ namespace Stride.Graphics
         {
             var viewFormat = ViewFormat;
 
-            if ((ViewFlags & BufferFlags.RawBuffer) != 0)
-            {
-                viewFormat = PixelFormat.R32_Typeless;
-            }
-
-            // Structured buffers bind as VK_DESCRIPTOR_TYPE_STORAGE_BUFFER and don't need a
-            // VkBufferView — only typed (Buffer<T>/RWBuffer<T>) and raw views go through
+            // Structured and raw buffers bind as VK_DESCRIPTOR_TYPE_STORAGE_BUFFER and don't need a
+            // VkBufferView — only typed (Buffer<T>/RWBuffer<T>) views go through
             // VK_DESCRIPTOR_TYPE_*_TEXEL_BUFFER, which require a real VkFormat.
             if ((ViewFlags & (BufferFlags.ShaderResource | BufferFlags.UnorderedAccess)) != 0
+                && (ViewFlags & BufferFlags.RawBuffer) == 0
                 && viewFormat != PixelFormat.None)
             {
                 NativeBufferView = GetShaderResourceView(viewFormat);
