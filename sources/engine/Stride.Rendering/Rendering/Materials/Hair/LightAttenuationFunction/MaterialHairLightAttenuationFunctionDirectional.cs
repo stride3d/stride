@@ -60,8 +60,8 @@ namespace Stride.Rendering.Materials
         [Display("Normals to use")]
         public NormalMode SelectedNormalMode { get; set; } = NormalMode.MeshAndNormalMap;
 
-        private static readonly ValueParameterKey<float> HardnessReciprocalParameterKey = ParameterKeys.NewValue<float>();
-        private static readonly ValueParameterKey<float> BoundaryShiftParameterKey = ParameterKeys.NewValue<float>();
+        private static readonly ValueParameterKey<float> HardnessReciprocalParameterKey = (ValueParameterKey<float>)ParameterKeys.Merge(ParameterKeys.NewValue<float>(), typeof(MaterialHairLightAttenuationFunctionDirectional), "MaterialHairLightAttenuationFunctionDirectional.HardnessReciprocalParameterKey");
+        private static readonly ValueParameterKey<float> BoundaryShiftParameterKey = (ValueParameterKey<float>)ParameterKeys.Merge(ParameterKeys.NewValue<float>(), typeof(MaterialHairLightAttenuationFunctionDirectional), "MaterialHairLightAttenuationFunctionDirectional.BoundaryShiftParameterKey");
 
         public ShaderSource Generate(MaterialGeneratorContext context)
         {
@@ -85,6 +85,12 @@ namespace Stride.Rendering.Materials
         public override int GetHashCode()
         {
             return typeof(MaterialHairLightAttenuationFunctionDirectional).GetHashCode();
+        }
+
+        [ModuleInitializer]
+        internal static void __Initialize__()
+        {
+            System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(typeof(MaterialHairLightAttenuationFunctionDirectional).TypeHandle);
         }
     }
 }

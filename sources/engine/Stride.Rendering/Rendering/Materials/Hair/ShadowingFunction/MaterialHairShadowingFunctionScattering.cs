@@ -31,7 +31,7 @@ namespace Stride.Rendering.Materials
         [Display("Extinction strength")]
         public float ExtinctionStrength { get; set; } = 15.0f;
 
-        private static readonly ValueParameterKey<float> ExtinctionStrengthKey = ParameterKeys.NewValue<float>();
+        private static readonly ValueParameterKey<float> ExtinctionStrengthKey = (ValueParameterKey<float>)ParameterKeys.Merge(ParameterKeys.NewValue<float>(), typeof(MaterialHairShadowingFunctionScattering), "MaterialHairShadowingFunctionScattering.ExtinctionStrengthKey");
 
         public ShaderSource Generate(MaterialGeneratorContext context)
         {
@@ -53,6 +53,12 @@ namespace Stride.Rendering.Materials
         public override int GetHashCode()
         {
             return typeof(MaterialHairShadowingFunctionScattering).GetHashCode();
+        }
+
+        [ModuleInitializer]
+        internal static void __Initialize__()
+        {
+            System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(typeof(MaterialHairShadowingFunctionScattering).TypeHandle);
         }
     }
 }

@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Stride.Core;
 using Stride.Core.Mathematics;
 namespace Stride.Rendering.Images
 {
@@ -12,7 +13,7 @@ namespace Stride.Rendering.Images
     /// </remarks>
     public class ColorCombiner : ImageEffectShader
     {
-        internal static readonly PermutationParameterKey<int> FactorCount = ParameterKeys.NewPermutation(0);
+        internal static readonly PermutationParameterKey<int> FactorCount = (PermutationParameterKey<int>)ParameterKeys.Merge(ParameterKeys.NewPermutation(0), typeof(ColorCombiner), "ColorCombiner.FactorCount");
 
         private readonly float[] factors;
 
@@ -65,6 +66,12 @@ namespace Stride.Rendering.Images
             Parameters.Set(FactorCount, value);
             Parameters.Set(ColorCombinerShaderKeys.Factors, factors);
             Parameters.Set(ColorCombinerShaderKeys.ModulateRGB, ModulateRGB);
+        }
+
+        [ModuleInitializer]
+        internal static void __Initialize__()
+        {
+            System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(typeof(ColorCombiner).TypeHandle);
         }
     }
 }

@@ -112,7 +112,7 @@ namespace Stride.Rendering.Materials
         }
         */
 
-        private static readonly ValueParameterKey<float> HairAlphaThresholdKey = ParameterKeys.NewValue<float>();
+        private static readonly ValueParameterKey<float> HairAlphaThresholdKey = (ValueParameterKey<float>)ParameterKeys.Merge(ParameterKeys.NewValue<float>(), typeof(MaterialDiffuseHairModelFeature), "MaterialDiffuseHairModelFeature.HairAlphaThresholdKey");
 
         public override void GenerateShader(MaterialGeneratorContext context)
         {
@@ -166,6 +166,12 @@ namespace Stride.Rendering.Materials
                 hashCode = (hashCode * 397) ^ AlphaThreshold.GetHashCode();
                 return hashCode;
             }
+        }
+
+        [ModuleInitializer]
+        internal static void __Initialize__()
+        {
+            System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(typeof(MaterialDiffuseHairModelFeature).TypeHandle);
         }
     }
 }

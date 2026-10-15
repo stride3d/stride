@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -20,8 +20,8 @@ namespace Stride.Rendering.Materials
     [DataContract("MaterialSubsurfaceScatteringScatteringProfileCustom")]
     public class MaterialSubsurfaceScatteringScatteringProfileCustom : IMaterialSubsurfaceScatteringScatteringProfile
     {
-        private static readonly ObjectParameterKey<Texture> FalloffTexture = ParameterKeys.NewObject<Texture>();
-        private static readonly ValueParameterKey<Color4> FalloffValue = ParameterKeys.NewValue<Color4>();
+        private static readonly ObjectParameterKey<Texture> FalloffTexture = (ObjectParameterKey<Texture>)ParameterKeys.Merge(ParameterKeys.NewObject<Texture>(), typeof(MaterialSubsurfaceScatteringScatteringProfileCustom), "MaterialSubsurfaceScatteringScatteringProfileCustom.FalloffTexture");
+        private static readonly ValueParameterKey<Color4> FalloffValue = (ValueParameterKey<Color4>)ParameterKeys.Merge(ParameterKeys.NewValue<Color4>(), typeof(MaterialSubsurfaceScatteringScatteringProfileCustom), "MaterialSubsurfaceScatteringScatteringProfileCustom.FalloffValue");
         private static readonly Color DefaultProfileColor = new Color(1.0f, 0.5f, 0.2f, 1.0f);
 
         public MaterialSubsurfaceScatteringScatteringProfileCustom()
@@ -111,6 +111,12 @@ namespace Stride.Rendering.Materials
         public override int GetHashCode()
         {
             return FalloffMap.GetHashCode();
+        }
+
+        [ModuleInitializer]
+        internal static void __Initialize__()
+        {
+            System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(typeof(MaterialSubsurfaceScatteringScatteringProfileCustom).TypeHandle);
         }
     }
 }

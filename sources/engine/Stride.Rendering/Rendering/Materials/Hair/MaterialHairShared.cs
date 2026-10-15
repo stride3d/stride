@@ -37,7 +37,7 @@ namespace Stride.Rendering.Materials
             TransparentFront = 2,
         }
 
-        private static readonly ValueParameterKey<float> HairAlphaThresholdKey = ParameterKeys.NewValue<float>();
+        private static readonly ValueParameterKey<float> HairAlphaThresholdKey = (ValueParameterKey<float>)ParameterKeys.Merge(ParameterKeys.NewValue<float>(), typeof(HairShared), "HairShared.HairAlphaThresholdKey");
 
         public static void SetMaterialPassParameters(MaterialGeneratorContext context, ShaderMixinSource shaderSource, float alphaThreshold)
         {
@@ -71,6 +71,12 @@ namespace Stride.Rendering.Materials
                 shaderSource.AddComposition(functionName, new MaterialHairDiscardFunctionTransparentPass().Generate(context, uniqueAlphaThresholdKey));
                 break;
             }
+        }
+
+        [ModuleInitializer]
+        internal static void __Initialize__()
+        {
+            System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(typeof(HairShared).TypeHandle);
         }
     }
 }

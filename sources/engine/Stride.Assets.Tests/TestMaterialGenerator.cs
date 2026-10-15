@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Xunit;
+using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization;
 using Stride.Core.Yaml;
@@ -21,15 +22,15 @@ namespace Stride.Assets.Tests
     /// </summary>
     public class TestMaterialGenerator
     {
-        public static readonly ValueParameterKey<Color4> DiffuseValueCustom1 = ParameterKeys.NewValue<Color4>();
+        public static readonly ValueParameterKey<Color4> DiffuseValueCustom1 = (ValueParameterKey<Color4>)ParameterKeys.Merge(ParameterKeys.NewValue<Color4>(), typeof(TestMaterialGenerator), "TestMaterialGenerator.DiffuseValueCustom1");
 
-        public static readonly ValueParameterKey<float> BlendValueCustom1 = ParameterKeys.NewValue<float>();
+        public static readonly ValueParameterKey<float> BlendValueCustom1 = (ValueParameterKey<float>)ParameterKeys.Merge(ParameterKeys.NewValue<float>(), typeof(TestMaterialGenerator), "TestMaterialGenerator.BlendValueCustom1");
 
-        public static readonly ValueParameterKey<float> BlendValueCustom2 = ParameterKeys.NewValue<float>();
+        public static readonly ValueParameterKey<float> BlendValueCustom2 = (ValueParameterKey<float>)ParameterKeys.Merge(ParameterKeys.NewValue<float>(), typeof(TestMaterialGenerator), "TestMaterialGenerator.BlendValueCustom2");
 
-        public static readonly ValueParameterKey<float> MetalnessValueCustom1 = ParameterKeys.NewValue<float>();
+        public static readonly ValueParameterKey<float> MetalnessValueCustom1 = (ValueParameterKey<float>)ParameterKeys.Merge(ParameterKeys.NewValue<float>(), typeof(TestMaterialGenerator), "TestMaterialGenerator.MetalnessValueCustom1");
 
-        public static readonly ValueParameterKey<float> MetalnessValueCustom2 = ParameterKeys.NewValue<float>();
+        public static readonly ValueParameterKey<float> MetalnessValueCustom2 = (ValueParameterKey<float>)ParameterKeys.Merge(ParameterKeys.NewValue<float>(), typeof(TestMaterialGenerator), "TestMaterialGenerator.MetalnessValueCustom2");
 
         /// <summary>
         /// Test single material (one shading model, no layers)
@@ -1060,6 +1061,12 @@ Compositions:
                 stream.Position = 0;
                 return new StreamReader(stream).ReadToEnd();
             }
+        }
+
+        [ModuleInitializer]
+        internal static void __Initialize__()
+        {
+            System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(typeof(TestMaterialGenerator).TypeHandle);
         }
     }
 }
