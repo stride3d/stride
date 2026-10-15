@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Stride.Core;
 using Stride.Core.Assets;
 using Stride.Core.BuildEngine;
 using Stride.Core.Extensions;
@@ -29,6 +30,15 @@ namespace Stride.Assets.Models
         public bool ImportMorphTargets { get; set; } = true;
         public MorphDeltaSource MorphNormals { get; set; }
         public MorphDeltaSource MorphTangents { get; set; }
+
+        /// <summary>
+        /// Gets or sets whether the model's vertex and index buffers get raw shader resource views (and a size padded to 4 bytes).
+        /// </summary>
+        /// <remarks>
+        /// Not serialized with the other parameters: <see cref="ComputeParameterHash"/> adds it only when it is on.
+        /// </remarks>
+        [DataMemberIgnore]
+        public bool ShaderReadableBuffers { get; set; }
 
         public bool Allow32BitIndex { get; set; }
         public int MaxInputSlots { get; set; }
@@ -301,7 +311,7 @@ namespace Stride.Assets.Models
 
             var vbMap = new Dictionary<VertexBufferBinding, VertexBufferBinding>();
             var sizeVertexBuffer = uniqueVB.Select(x => x.Buffer.GetSerializationData().Content.Length).Sum();
-            var vertexBuffer = new BufferData(BufferFlags.VertexBuffer, new byte[sizeVertexBuffer]);
+            var vertexBuffer = new BufferData(BufferFlags.VertexBuffer | ShaderReadableFlags, new byte[PadBufferSize(sizeVertexBuffer)]);
             var vertexBufferSerializable = vertexBuffer.ToSerializableVersion();
 
             var vertexBufferNextIndex = 0;
@@ -331,7 +341,7 @@ namespace Stride.Assets.Models
 
             if (uniqueIB.Count > 0)
             {
-                var indexBuffer = new BufferData(BufferFlags.IndexBuffer, new byte[sizeIndexBuffer]);
+                var indexBuffer = new BufferData(BufferFlags.IndexBuffer | ShaderReadableFlags, new byte[PadBufferSize(sizeIndexBuffer)]);
                 var indexBufferSerializable = indexBuffer.ToSerializableVersion();
                 var indexBufferNextIndex = 0;
 
@@ -384,5 +394,10 @@ namespace Stride.Assets.Models
             if (!foundNormals || !foundTangents) throw new InvalidOperationException("Morph base directions were removed before coordinate transformation.");
             mesh.MorphTargets = mesh.MorphTargets.Transform(matrix, normals, tangents);
         }
+
+        private BufferFlags ShaderReadableFlags => ShaderReadableBuffers ? BufferFlags.ShaderResource | BufferFlags.RawBuffer : BufferFlags.None;
+
+        // Raw views address 32-bit words, so a shader-readable buffer is padded to a multiple of 4 bytes
+        private int PadBufferSize(int size) => ShaderReadableBuffers ? (size + 3) & ~3 : size;
     }
 }
