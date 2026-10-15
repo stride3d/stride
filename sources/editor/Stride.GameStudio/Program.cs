@@ -36,6 +36,7 @@ using Stride.Editor;
 using Stride.Editor.Build;
 using Stride.Editor.Preview;
 using Stride.GameStudio.Helpers;
+using Stride.GameStudio.Logs;
 using Stride.GameStudio.Plugin;
 using Stride.GameStudio.Services;
 using Stride.GameStudio.View;
@@ -258,6 +259,8 @@ public static partial class Program
 
             //listen to logger for crash report
             GlobalLogger.GlobalMessageLogged += GlobalLoggerOnGlobalMessageLogged;
+            // Keep warnings and errors for the Editor tab of the Output panel, which does not exist yet
+            GlobalLogBuffer.Instance.Start();
             // Route GlobalLogger output to the debugger's output pane (no-op in Release), as configured
             // by the Logging editor settings: Warning+ by default, since Info/Verbose volume slows the
             // debugger noticeably, with the graphics modules in full for validation layer messages.

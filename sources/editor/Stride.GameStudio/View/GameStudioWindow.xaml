@@ -697,6 +697,18 @@
                       </TabItem.Header>
                       <sd:TextLogViewer LogMessages="{Binding Messages}" ShowDebugMessages="False" ShowVerboseMessages="False" ShowInfoMessages="True"/>
                     </TabItem>
+                    <!-- Warnings and errors of the global log (preview, plugins, editors...); no auto-activation: broken thumbnails log here too -->
+                    <TabItem DataContext="{Binding Debugging.EditorLog}">
+                      <TabItem.Header>
+                        <TextBlock FontWeight="{Binding HasNewMessages, Mode=OneWay, Converter={sd:BoolToParam},
+                                    ConverterParameter={x:Static FontWeights.Bold}, FallbackValue={x:Static FontWeights.Normal}}"
+                                   Foreground="{StaticResource SelectedTextBrush}">
+                                    <Run Text="{sd:Localize Editor}"/>
+                                    <Run Text="{Binding HasNewMessages, Mode=OneWay, Converter={sd:BoolToParam}, ConverterParameter=*}"/>
+                        </TextBlock>
+                      </TabItem.Header>
+                      <sd:TextLogViewer LogMessages="{Binding Messages}" ShowDebugMessages="False" ShowVerboseMessages="False" ShowInfoMessages="True"/>
+                    </TabItem>
                     <!-- FIXME live scripting is disabled (XK-4309) -->
                     <TabItem DataContext="{Binding Debugging.LiveScriptingLog}" Visibility="Collapsed">
                       <TabItem.Header>
