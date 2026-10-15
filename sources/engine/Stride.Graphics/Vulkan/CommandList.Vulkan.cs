@@ -696,6 +696,7 @@ namespace Stride.Graphics
                 0x20 => BarrierLayout.DepthStencilRead,
                 0x80 => BarrierLayout.ShaderResource,
                 0xC0 => BarrierLayout.ShaderResource,
+                0x200 => BarrierLayout.IndirectArgument,
                 0x400 => BarrierLayout.CopyDest,
                 0x800 => BarrierLayout.CopySource,
                 0x1000 => BarrierLayout.ResolveDest,

@@ -64,6 +64,7 @@ internal static class BarrierMapping
         BarrierLayout.Present => VkAccessFlags.MemoryRead,
         BarrierLayout.ResolveSource => VkAccessFlags.TransferRead,
         BarrierLayout.ResolveDest => VkAccessFlags.TransferWrite,
+        BarrierLayout.IndirectArgument => VkAccessFlags.IndirectCommandRead,
         _ => VkAccessFlags.None,
     };
 
@@ -83,6 +84,7 @@ internal static class BarrierMapping
         BarrierLayout.Present => VkPipelineStageFlags.BottomOfPipe,
         BarrierLayout.ResolveSource => VkPipelineStageFlags.Transfer,
         BarrierLayout.ResolveDest => VkPipelineStageFlags.Transfer,
+        BarrierLayout.IndirectArgument => VkPipelineStageFlags.DrawIndirect,
         _ => VkPipelineStageFlags.TopOfPipe,
     };
 }
