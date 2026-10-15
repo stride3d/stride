@@ -563,7 +563,7 @@ namespace Stride.Shaders.Compiler
         /// Compile SPIR-V to DXIL for all stages in a single linked call. Needed so spirv_to_dxil
         /// can match PS inputs to VS outputs correctly when some varyings are unused.
         /// </summary>
-        private static unsafe void CompileDxilPipeline(ReadOnlySpan<byte> spirvBytecode, List<InterfaceProcessor.EntryPointInfo> entryPoints, List<ShaderBytecode> shaderStageBytecodes)
+        internal static unsafe void CompileDxilPipeline(ReadOnlySpan<byte> spirvBytecode, List<InterfaceProcessor.EntryPointInfo> entryPoints, List<ShaderBytecode> shaderStageBytecodes)
         {
             var runtimeConf = new RuntimeConf
             {
@@ -639,7 +639,11 @@ namespace Stride.Shaders.Compiler
                 finally
                 {
                     for (int i = 0; i < entryPoints.Count; i++)
+                    {
                         if (nameHandles[i].IsAllocated) nameHandles[i].Free();
+                        // Allocated by mesa (also for the stages done before a failure): copied above, freed here
+                        if (outputs[i].buffer != null) Spv2DXIL.spirv_to_dxil_free(ref outputs[i]);
+                    }
                 }
             }
         }
