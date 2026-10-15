@@ -290,6 +290,13 @@ public sealed partial class CBuffer(string name, TextLocation info) : ShaderBuff
     public Symbol? Symbol { get; private set; }
     private bool? isStaged;
 
+    public ShaderAttributeList? Attributes { get; set; }
+
+    /// <summary>
+    /// <c>[PushConstant] cbuffer</c>: its members go to the effect's push-constant block instead of a constant buffer.
+    /// </summary>
+    public bool IsPushConstant => Attributes?.Attributes.OfType<AnyShaderAttribute>().Any(x => x.Name.Name == "PushConstant") ?? false;
+
     public record struct AttributeAnalysisResult(string? LinkName = null, int? LinkId = null, bool Color = false);
 
     public static AttributeAnalysisResult ProcessAttributes(SymbolTable table, SpirvContext context, TextLocation info, List<ShaderAttribute>? attributes)
@@ -377,6 +384,9 @@ public sealed partial class CBuffer(string name, TextLocation info) : ShaderBuff
             }
         }
 
+        if (IsPushConstant)
+            CheckPushConstant(table);
+
         var constantBufferType = (ConstantBufferSymbol)Type!;
 
         // We try to avoid clash in case multiple cbuffer TYPE with same name
@@ -424,9 +434,37 @@ public sealed partial class CBuffer(string name, TextLocation info) : ShaderBuff
             }
         }
 
+        // A push-constant cbuffer stays Uniform until the mixer has joined the effect's push-constant block
         var pointerType = new PointerType(Type!, Specification.StorageClass.Uniform);
-        builder.Insert(new OpVariableSDSL(context.GetOrRegister(pointerType), variable, Specification.StorageClass.Uniform, (isStaged ?? false) ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None, null));
+        var flags = (isStaged ?? false) ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None;
+        if (IsPushConstant)
+            flags |= Specification.VariableFlagsMask.PushConstant;
+        builder.Insert(new OpVariableSDSL(context.GetOrRegister(pointerType), variable, Specification.StorageClass.Uniform, flags, null));
     }
+
+    /// <summary>
+    /// A push-constant member is a 32-bit scalar or a 2- or 4-component vector of them (SDSL0129), so that std430 (Vulkan),
+    /// cbuffer packing (Direct3D 11) and root constants (Direct3D 12) give the same layout. The block is once per effect
+    /// (SDSL0130): module members, or a root-only class.
+    /// </summary>
+    private void CheckPushConstant(SymbolTable table)
+    {
+        var shaderName = table.CurrentShader!.Name;
+        foreach (var member in Members)
+        {
+            if (!IsPushConstantMemberType(member.Type))
+                table.AddError(new(member.Info, string.Format(SDSLErrorMessages.SDSL0129, shaderName, Name, member.Name.Name, member.TypeName)));
+        }
+        if (!(isStaged ?? false) && !table.CurrentShaderFlags.HasFlag(Specification.ShaderFlagsMask.Root))
+            table.AddError(new(Info, string.Format(SDSLErrorMessages.SDSL0130, shaderName, Name)));
+    }
+
+    public static bool IsPushConstantMemberType(SymbolType? type) => type switch
+    {
+        ScalarType { Type: Scalar.Int or Scalar.UInt or Scalar.Float } => true,
+        VectorType { BaseType.Type: Scalar.Int or Scalar.UInt or Scalar.Float, Size: 2 or 4 } => true,
+        _ => false,
+    };
 }
 
 public sealed partial class RGroup(string name, TextLocation info) : ShaderBuffer(name, info)

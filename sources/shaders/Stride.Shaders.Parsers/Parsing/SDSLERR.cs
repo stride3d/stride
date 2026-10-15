@@ -144,6 +144,16 @@ public static class SDSLErrorMessages
     // SDSL0127: reserved (a field of a partial struct couldn't be a struct; lifted before the first release)
     public const string SDSL0128 = "SDSL0128: struct {0} contains itself: {1}. A struct can't contain itself, directly or through an array. Remove one of these fields.";
 
+    // Push constants
+    // SDSL0129-0130 are found when a class compiles, SDSL0131-0134 when an effect is mixed
+
+    public const string SDSL0129 = "SDSL0129: {0}: member {2} of the [PushConstant] cbuffer {1} has type {3}. A push-constant member is an int, uint or float, or a 2- or 4-component vector of them (for example uint2 or float4). Change the type, or move the member to another cbuffer.";
+    public const string SDSL0130 = "SDSL0130: {0}: the [PushConstant] cbuffer {1} has instance members, so each composition instance of {0} would get its own copy, but an effect has one push-constant block. Mark its members 'module', or mark {0} [Root] if it is only mixed at the root of an effect.";
+    public const string SDSL0131 = "SDSL0131: the push constants of this effect take {0} bytes, more than the {1}-byte limit: {2}. Remove members, or move some of them to another cbuffer.";
+    public const string SDSL0132 = "SDSL0132: cbuffer {0} is [PushConstant] in {1} but not in {2}. Add [PushConstant] in {2}, or rename one of them.";
+    public const string SDSL0133 = "SDSL0133: on Direct3D 11, the push constants of this effect use register b{0}, but the effect has {1} other cbuffers, so b{0} is taken. Use fewer cbuffers, or remove [PushConstant].";
+    public const string SDSL0134 = "SDSL0134: {0}: member {1} ({2}) is at byte {3} of the push-constant block, but a {2} must start at a multiple of {4} bytes, so that the C# struct given to SetPushConstants has the same layout on every graphics API. Move it to such an offset (add a member before it), or reorder the members (for example the vectors first).";
+
     // Definition checks: found when a class compiles, reported as warnings (errors with ShaderLoaderBase.WarningsAsErrors)
 
     public const string SDSL0200 = "SDSL0200: {0}.{1}() is marked 'override', but no inherited class declares {1}: it starts a new method, and calls made through a parent never reach it. Inherit the class that declares {1}, or remove 'override'.";
