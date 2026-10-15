@@ -150,12 +150,20 @@ public record struct BufferParsers : IParser<ShaderBuffer>
         }
         else
             scanner.Position = tmp;
+        var typeModifier = TypeModifier.None;
+        if (Tokens.AnyOf(["row_major", "column_major"], ref scanner, out var matrixLayout, advance: true) && Parsers.Spaces1(ref scanner, result, out _))
+            typeModifier = matrixLayout == "row_major" ? TypeModifier.RowMajor : TypeModifier.ColumnMajor;
+        else
+            scanner.Position = tmp;
         if (
             Parsers.TypeNameIdentifierArraySizeValue(ref scanner, result, out var typeName, out var identifier, out var value, advance: true)
             && Parsers.FollowedBy(ref scanner, Tokens.Set(";"), withSpaces: true, advance: true)
         )
         {
-            parsed = new ShaderMember(typeName, identifier, value, scanner[position..scanner.Position], isStage, streamKind);
+            parsed = new ShaderMember(typeName, identifier, value, scanner[position..scanner.Position], isStage, streamKind)
+            {
+                TypeModifier = typeModifier,
+            };
             if (hasAttributes)
                 parsed.Attributes = attributes!.Attributes;
             return true;

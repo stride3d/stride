@@ -323,6 +323,11 @@ public sealed partial class ShaderMember(
         if (pointerType.BaseType is ByteAddressBufferType { WriteAllowed: false } or StructuredBufferType { WriteAllowed: false })
             context.Add(new OpDecorate(variable, Specification.Decoration.NonWritable, []));
 
+        // An explicit matrix layout, for the member the mixer makes of this variable in the Globals cbuffer (SPIR-V and HLSL have
+        // opposite meanings: HLSL row_major = SPIR-V ColMajor); removed from the variable before the output
+        if (pointerType.BaseType is MatrixType or ArrayType { BaseType: MatrixType } && TypeModifier is TypeModifier.RowMajor or TypeModifier.ColumnMajor)
+            context.Add(new OpDecorate(variable, TypeModifier == TypeModifier.RowMajor ? Specification.Decoration.ColMajor : Specification.Decoration.RowMajor, []));
+
         RGroup.DecorateVariableLinkInfo(table, shader, context, Info, Name, Attributes, variable);
     }
 

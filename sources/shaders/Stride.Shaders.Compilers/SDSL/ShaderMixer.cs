@@ -1273,7 +1273,9 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     or Decoration.ShaderConstantSDSL
                     or Decoration.PatchConstantFuncSDSL
                     or Decoration.LinkIdSDSL or Decoration.LinkSDSL or Decoration.ColorSDSL or Decoration.LogicalGroupSDSL or Decoration.ResourceGroupSDSL or Decoration.ResourceGroupIdSDSL
-                    or Decoration.SamplerStateSDSL)
+                    or Decoration.SamplerStateSDSL
+                    // Matrix layout of a member variable (moved to the Globals cbuffer); only valid on struct members in SPIR-V
+                    or Decoration.RowMajor or Decoration.ColMajor)
                 return true;
             if ((i.Op == Op.OpMemberDecorate || i.Op == Op.OpMemberDecorateString) && (Decoration)i.Data.Memory.Span[3] is Decoration.LinkIdSDSL or Decoration.LinkSDSL or Decoration.ColorSDSL or Decoration.LogicalGroupSDSL or Decoration.ResourceGroupSDSL)
                 return true;
