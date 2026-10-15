@@ -88,8 +88,16 @@ public static class Dispatcher
 
             // Might as well steal some work instead of just waiting,
             // also helps prevent potential deadlocks from badly threaded code
+            // Back off when there is nothing to steal: a pure user-mode spin can't be
+            // suspended for GC under Wine with .NET 9+ (special user APCs aren't delivered)
+            var spinWait = new SpinWait();
             while (Volatile.Read(ref batch.ItemsDone) < batch.Total && Volatile.Read(ref batch.ExceptionThrown) == null)
-                ThreadPool.Instance.TryCooperate();
+            {
+                if (ThreadPool.Instance.TryCooperate())
+                    spinWait.Reset();
+                else
+                    spinWait.SpinOnce(sleep1Threshold: -1);
+            }
 
             var ex = Interlocked.Exchange(ref batch.ExceptionThrown, null);
             if (ex != null)
