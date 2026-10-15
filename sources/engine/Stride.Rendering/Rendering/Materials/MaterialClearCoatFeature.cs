@@ -323,7 +323,7 @@ namespace Stride.Rendering.Materials
             context.UseStreamWithCustomBlend(MaterialShaderStage.Pixel, "matNormal", new ShaderClassSource("MaterialStreamNormalBlend"));
             context.Parameters.Set(MaterialKeys.HasNormalMap, true);
 
-            mixinNormalMap.Mixins.Add(new ShaderClassSource("MaterialSurfaceNormalMap", OrangePeelIsXYNormal, OrangePeelScaleAndBias));
+            mixinNormalMap.Mixins.Add(new ShaderClassSource("MaterialSurfaceNormalMap", MetalFlakeslIsXYNormal, MetalFlakesScaleAndBias));
 
             mixinNormalMap.AddComposition("normalMap", computeColorSource);
             context.AddShaderSource(MaterialShaderStage.Pixel, mixinNormalMap);
