@@ -53,7 +53,6 @@ public unsafe partial struct GraphicsDeviceFeatures
         mapFeaturesPerFormat = new FeaturesPerFormat[256];
 
         // Set back the real GraphicsProfile that is used
-        // TODO D3D12
         RequestedProfile = device.RequestedProfile;
         CurrentProfile = GraphicsProfileHelper.FromFeatureLevel(device.CurrentFeatureLevel);
 
