@@ -4,9 +4,9 @@
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.Loader;
 using Microsoft.Extensions.DependencyModel;
 using Stride.Core.Diagnostics;
-using Stride.Core.IO;
 
 namespace Stride.Core.Reflection;
 
@@ -32,14 +32,9 @@ public class AssemblyContainer
     private readonly Dictionary<string, LoadedAssembly> loadedAssembliesByName = new(StringComparer.InvariantCultureIgnoreCase);
     private readonly HashSet<string> dependencies = new(StringComparer.InvariantCultureIgnoreCase);
     private static readonly string[] KnownAssemblyExtensions = [".dll", ".exe"];
-    [ThreadStatic]
-    private static AssemblyContainer currentContainer;
 
     [ThreadStatic]
-    private static LoggerResult log;
-
-    [ThreadStatic]
-    private static string? currentSearchDirectory;
+    private static LoggerResult? log;
 
     private static readonly ConditionalWeakTable<Assembly, LoadedAssembly> assemblyToContainers = [];
 
@@ -78,8 +73,6 @@ public class AssemblyContainer
         if (assemblyFullPath is null) throw new ArgumentNullException(nameof(assemblyFullPath));
 #endif
 
-        log = new LoggerResult();
-
         assemblyFullPath = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, assemblyFullPath));
         var assemblyDirectory = Path.GetDirectoryName(assemblyFullPath);
 
@@ -88,15 +81,19 @@ public class AssemblyContainer
             throw new ArgumentException("Invalid assembly path. Doesn't contain directory information");
         }
 
+        // Dependencies resolved while loading (module initializers included) log here too; resolved later, they don't log
+        var previousLog = log;
+        var currentLog = log = new LoggerResult();
         try
         {
             return LoadAssemblyFromPathInternal(assemblyFullPath);
         }
         finally
         {
+            log = previousLog;
             if (outputLog != null)
             {
-                log.CopyTo(outputLog);
+                currentLog.CopyTo(outputLog);
             }
         }
     }
@@ -158,96 +155,42 @@ public class AssemblyContainer
         }
     }
 
-    [ThreadStatic]
-    private static bool resolvingFromHost;
-
-    // Simple names the host does not provide
-    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, bool> missingHostAssemblies = new(StringComparer.OrdinalIgnoreCase);
-
     /// <summary>
-    /// The assembly of that simple name when the host application provides it, loaded in the default load context; otherwise null.
+    /// The current assembly of this container that a reference to <paramref name="assemblyName"/> binds to, whatever load context holds it; otherwise null.
     /// </summary>
-    /// <remarks>The host's set is fixed after startup, so each missing name is asked only once.</remarks>
-    internal static Assembly? TryLoadHostAssembly(string simpleName)
+    private Assembly? FindLoadedAssembly(AssemblyName assemblyName)
     {
-        var loaded = System.Runtime.Loader.AssemblyLoadContext.Default.Assemblies.FirstOrDefault(x => !x.IsDynamic && string.Equals(x.GetName().Name, simpleName, StringComparison.OrdinalIgnoreCase));
-        if (loaded is not null || missingHostAssemblies.ContainsKey(simpleName))
-            return loaded;
-
-        // The host's own resolution only: the containers' resolve handler stays out of it
-        resolvingFromHost = true;
-        try
-        {
-            return System.Runtime.Loader.AssemblyLoadContext.Default.LoadFromAssemblyName(new AssemblyName(simpleName));
-        }
-        catch (FileNotFoundException)
-        {
-            missingHostAssemblies.TryAdd(simpleName, true);
-            return null;
-        }
-        catch (FileLoadException)
-        {
-            return null;
-        }
-        finally
-        {
-            resolvingFromHost = false;
-        }
-    }
-
-    private Assembly? LoadAssemblyByName(AssemblyName assemblyName, string searchDirectory)
-    {
-#if NET6_0_OR_GREATER
-        ArgumentNullException.ThrowIfNull(assemblyName);
-#else
-        if (assemblyName is null) throw new ArgumentNullException(nameof(assemblyName));
-#endif
-
         // Note: Do not compare by full name as it is too restricive in regards to versioning.
         // For example consider App -> Foo -> Bar (1.0) with the App referencing a newer version of Bar (2.0)
         // A full name comparison would now compare Bar (1.0) to Bar (2.0) and fail to load.
-
-        // First, check the list of already loaded assemblies
+        lock (loadedAssemblies)
         {
-            var matchingAssembly = loadedAssemblies.FirstOrDefault(x => AssemblyName.ReferenceMatchesDefinition(assemblyName, x.Assembly.GetName()));
-            if (matchingAssembly != null)
-                return matchingAssembly.Assembly;
+            return loadedAssemblies.FirstOrDefault(x => AssemblyName.ReferenceMatchesDefinition(assemblyName, x.Assembly.GetName()))?.Assembly;
         }
+    }
 
-        // Share an assembly the host has loaded or ships, so its serializers and registries exist once
-        {
-            var hostAssembly = System.Runtime.Loader.AssemblyLoadContext.Default.Assemblies.FirstOrDefault(x => !x.IsDynamic && AssemblyName.ReferenceMatchesDefinition(assemblyName, x.GetName()));
-            if (hostAssembly != null)
-                return hostAssembly;
-
-            if (assemblyName.Name is { } simpleName && TryLoadHostAssembly(simpleName) is { } shippedAssembly)
-                return shippedAssembly;
-        }
-
-        // Second, use .deps.json files (generated by MSBuild when PreserveCompilationContext == true)
+    /// <summary>
+    /// The file a reference to <paramref name="assemblyName"/> loads from, for an assembly the host does not provide; otherwise null.
+    /// </summary>
+    private string? FindDependencyPath(AssemblyName assemblyName, string searchDirectory)
+    {
+        // First, use .deps.json files (generated by MSBuild when PreserveCompilationContext == true)
         // It ensures that we load the same assemblies as were used while compiling
-        foreach (var loadedAssembly in loadedAssemblies)
+        lock (loadedAssemblies)
         {
-            var dependencies = loadedAssembly.Dependencies;
-            if (dependencies == null)
-                continue;
-
-            if (dependencies.TryGetValue(assemblyName.Name!, out var fullPath))
+            foreach (var loadedAssembly in loadedAssemblies)
             {
-                return LoadAssemblyFromPathInternal(fullPath);
+                if (loadedAssembly.Dependencies?.TryGetValue(assemblyName.Name!, out var fullPath) == true)
+                    return fullPath;
             }
         }
 
         // Look in search paths
-        var assemblyPartialPathList = new List<string>();
-        assemblyPartialPathList.AddRange(KnownAssemblyExtensions.Select(knownExtension => assemblyName.Name + knownExtension));
-        foreach (var assemblyPartialPath in assemblyPartialPathList)
+        foreach (var knownExtension in KnownAssemblyExtensions)
         {
-            var assemblyFullPath = Path.Combine(searchDirectory, assemblyPartialPath);
+            var assemblyFullPath = Path.Combine(searchDirectory, assemblyName.Name + knownExtension);
             if (File.Exists(assemblyFullPath))
-            {
-                return LoadAssemblyFromPathInternal(assemblyFullPath);
-            }
+                return assemblyFullPath;
         }
 
         // See if it was registered
@@ -263,7 +206,7 @@ public class AssemblyContainer
                     {
                         var otherAssemblyName = AssemblyName.GetAssemblyName(dependency);
                         if (AssemblyName.ReferenceMatchesDefinition(assemblyName, otherAssemblyName))
-                            return LoadAssemblyFromPathInternal(dependency);
+                            return dependency;
                     }
                     catch (Exception)
                     {
@@ -276,7 +219,8 @@ public class AssemblyContainer
         return null;
     }
 
-    private Assembly? LoadAssemblyFromPathInternal(string assemblyFullPath)
+    /// <param name="context">The load context of the assembly whose reference asks for this one, or null for an assembly the container is asked to load.</param>
+    private Assembly? LoadAssemblyFromPathInternal(string assemblyFullPath, ContainerLoadContext? context = null)
     {
 #if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(assemblyFullPath);
@@ -301,12 +245,27 @@ public class AssemblyContainer
                 var sameName = loadedAssemblies.FirstOrDefault(x => string.Equals(x.Assembly.GetName().Name, simpleName, StringComparison.OrdinalIgnoreCase));
                 if (sameName != null)
                 {
-                    log.Warning($"Assembly [{simpleName}] is already loaded from [{sameName.Path}]; not loading [{assemblyFullPath}]");
+                    log?.Warning($"Assembly [{simpleName}] is already loaded from [{sameName.Path}]; not loading [{assemblyFullPath}]");
                     return sameName.Assembly;
                 }
 
                 if (!File.Exists(assemblyFullPath))
                     return null;
+
+                if (context is null)
+                {
+                    // The host's copy wins. One it has loaded already needs no context: a context can't be freed
+                    var hostAssembly = AssemblyLoadContext.Default.Assemblies.FirstOrDefault(x => !x.IsDynamic && string.Equals(x.GetName().Name, simpleName, StringComparison.OrdinalIgnoreCase));
+                    if (hostAssembly is not null)
+                        return hostAssembly;
+
+                    // A load context of its own, asked by name: the host's copy still wins (the default context, with the
+                    // trusted platform assemblies and the host's resolvers), else the context loads this file. Reloading
+                    // the assembly loads the new copy in a new context.
+                    context = new ContainerLoadContext(this, assemblyFullPath);
+                    if (context.PrimaryName is { } primaryName)
+                        return context.LoadFromAssemblyName(primaryName);
+                }
 
                 // The assembly loads from bytes, without a location for its module initializer to probe natives from
                 RegisterNativeLibraries(assemblyFullPath);
@@ -320,131 +279,105 @@ public class AssemblyContainer
                 var assemblyBytes = File.ReadAllBytes(assemblyFullPath);
                 var pdbBytes = pdbFullPath != null ? File.ReadAllBytes(pdbFullPath) : null;
 
-                // Load the assembly into the current AppDomain
-                Assembly assembly;
-                if (new UDirectory(AppDomain.CurrentDomain.BaseDirectory) == new UFile(assemblyFullPath).GetFullDirectory())
+                // Load .deps.json file (if any)
+                var depsFile = Path.ChangeExtension(assemblyFullPath, ".deps.json");
+                Dictionary<string, string>? dependenciesMapping = null;
+                if (File.Exists(depsFile))
                 {
-                    // If loading from base directory, don't even try to load through byte array, as Assembly.Load will notice there is a "safer" version to load
-                    // This happens usually when opening Stride assemblies themselves
+                    // Read file
+                    var dependenciesReader = new DependencyContextJsonReader();
+                    DependencyContext? dependencies = null;
+                    using (var dependenciesStream = File.OpenRead(depsFile))
+                    {
+                        dependencies = dependenciesReader.Read(dependenciesStream);
+                    }
+
+                    // Locate NuGet package folder
+                    var settings = NuGet.Configuration.Settings.LoadDefaultSettings(Path.GetDirectoryName(assemblyFullPath));
+                    var globalPackagesFolder = NuGet.Configuration.SettingsUtility.GetGlobalPackagesFolder(settings);
+
+                    // Build list of assemblies listed in .deps.json file
+                    dependenciesMapping = [];
+                    foreach (var library in dependencies.RuntimeLibraries)
+                    {
+                        if (library.Path == null)
+                            continue;
+
+                        foreach (var runtimeAssemblyGroup in library.RuntimeAssemblyGroups)
+                        {
+                            foreach (var runtimeFile in runtimeAssemblyGroup.RuntimeFiles)
+                            {
+                                var fullPath = Path.Combine(globalPackagesFolder, library.Path, runtimeFile.Path);
+                                if (File.Exists(fullPath))
+                                {
+                                    var assemblyName = Path.GetFileNameWithoutExtension(runtimeFile.Path);
+
+                                    // TODO: Properly deal with file duplicates (same file in multiple package, or RID conflicts)
+                                    dependenciesMapping.TryAdd(assemblyName, fullPath);
+                                }
+                                else
+                                {
+                                    // DLL missing from NuGet cache — check for dev-redirect stub
+                                    var packageFolder = Path.Combine(globalPackagesFolder, library.Path);
+                                    var assemblyName = Path.GetFileNameWithoutExtension(runtimeFile.Path);
+                                    var redirectPath = TryResolveDevRedirect(packageFolder, library.Name, assemblyName);
+                                    if (redirectPath != null)
+                                        dependenciesMapping.TryAdd(assemblyName, redirectPath);
+                                }
+                            }
+                        }
+
+                        // It seems .deps.json files don't contain library info if referencer is non-RID specific and dependency is RID specific
+                        // (i.e. compiling Game project without runtime identifier and a dependency needs runtime identifier)
+                        // TODO: Look for a proper way to query that properly, maybe using NuGet API? however some constraints are:
+                        // - limited info (only .deps.json available from path, no project info; we might need to reconstruct a proper NuGet restore request from .deps.json)
+                        // - need to be fast (make sure to use NuGet caching mechanism)
+                        if (library.RuntimeAssemblyGroups.Count == 0)
+                        {
+                            var runtimeFolder = new[] { "win", "any" }
+                                .Select(runtime => Path.Combine(globalPackagesFolder, library.Path, "runtimes", runtime))
+                                .Where(Directory.Exists)
+                                .SelectMany(folder => Directory.EnumerateDirectories(Path.Combine(folder, "lib")))
+                                .FirstOrDefault(file => Path.GetFileName(file).StartsWith("net", StringComparison.Ordinal)); // Only consider framework netXX and netstandardX.X
+                            if (runtimeFolder != null)
+                            {
+                                foreach (var runtimeFile in Directory.EnumerateFiles(runtimeFolder, "*.dll"))
+                                {
+                                    var assemblyName = Path.GetFileNameWithoutExtension(runtimeFile);
+
+                                    // TODO: Properly deal with file duplicates (same file in multiple package, or RID conflicts)
+                                    dependenciesMapping.TryAdd(assemblyName, runtimeFile);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Assembly assembly;
+                const uint unverifiableExecutableWithFixups = 0x80131019;
+                try
+                {
+                    using var assemblyStream = new MemoryStream(assemblyBytes);
+                    using var pdbStream = pdbBytes != null ? new MemoryStream(pdbBytes) : null;
+                    assembly = context.LoadFromStream(assemblyStream, pdbStream);
+                }
+                catch (FileLoadException fileLoadException)
+                when ((uint)fileLoadException.HResult == unverifiableExecutableWithFixups)
+                {
+                    // No way to load from byte array (see https://stackoverflow.com/questions/5005409/exception-with-resolving-assemblies-attempt-to-load-an-unverifiable-executable)
                     assembly = Assembly.LoadFrom(assemblyFullPath);
                 }
-                else
+                catch (BadImageFormatException)
                 {
-                    // Load .deps.json file (if any)
-                    var depsFile = Path.ChangeExtension(assemblyFullPath, ".deps.json");
-                    Dictionary<string, string>? dependenciesMapping = null;
-                    if (File.Exists(depsFile))
-                    {
-                        // Read file
-                        var dependenciesReader = new DependencyContextJsonReader();
-                        DependencyContext? dependencies = null;
-                        using (var dependenciesStream = File.OpenRead(depsFile))
-                        {
-                            dependencies = dependenciesReader.Read(dependenciesStream);
-                        }
-
-                        // Locate NuGet package folder
-                        var settings = NuGet.Configuration.Settings.LoadDefaultSettings(Path.GetDirectoryName(assemblyFullPath));
-                        var globalPackagesFolder = NuGet.Configuration.SettingsUtility.GetGlobalPackagesFolder(settings);
-
-                        // Build list of assemblies listed in .deps.json file
-                        dependenciesMapping = [];
-                        foreach (var library in dependencies.RuntimeLibraries)
-                        {
-                            if (library.Path == null)
-                                continue;
-
-                            foreach (var runtimeAssemblyGroup in library.RuntimeAssemblyGroups)
-                            {
-                                foreach (var runtimeFile in runtimeAssemblyGroup.RuntimeFiles)
-                                {
-                                    var fullPath = Path.Combine(globalPackagesFolder, library.Path, runtimeFile.Path);
-                                    if (File.Exists(fullPath))
-                                    {
-                                        var assemblyName = Path.GetFileNameWithoutExtension(runtimeFile.Path);
-
-                                        // TODO: Properly deal with file duplicates (same file in multiple package, or RID conflicts)
-                                        dependenciesMapping.TryAdd(assemblyName, fullPath);
-                                    }
-                                    else
-                                    {
-                                        // DLL missing from NuGet cache — check for dev-redirect stub
-                                        var packageFolder = Path.Combine(globalPackagesFolder, library.Path);
-                                        var assemblyName = Path.GetFileNameWithoutExtension(runtimeFile.Path);
-                                        var redirectPath = TryResolveDevRedirect(packageFolder, library.Name, assemblyName);
-                                        if (redirectPath != null)
-                                            dependenciesMapping.TryAdd(assemblyName, redirectPath);
-                                    }
-                                }
-                            }
-
-                            // It seems .deps.json files don't contain library info if referencer is non-RID specific and dependency is RID specific
-                            // (i.e. compiling Game project without runtime identifier and a dependency needs runtime identifier)
-                            // TODO: Look for a proper way to query that properly, maybe using NuGet API? however some constraints are:
-                            // - limited info (only .deps.json available from path, no project info; we might need to reconstruct a proper NuGet restore request from .deps.json)
-                            // - need to be fast (make sure to use NuGet caching mechanism)
-                            if (library.RuntimeAssemblyGroups.Count == 0)
-                            {
-                                var runtimeFolder = new[] { "win", "any" }
-                                    .Select(runtime => Path.Combine(globalPackagesFolder, library.Path, "runtimes", runtime))
-                                    .Where(Directory.Exists)
-                                    .SelectMany(folder => Directory.EnumerateDirectories(Path.Combine(folder, "lib")))
-                                    .FirstOrDefault(file => Path.GetFileName(file).StartsWith("net", StringComparison.Ordinal)); // Only consider framework netXX and netstandardX.X
-                                if (runtimeFolder != null)
-                                {
-                                    foreach (var runtimeFile in Directory.EnumerateFiles(runtimeFolder, "*.dll"))
-                                    {
-                                        var assemblyName = Path.GetFileNameWithoutExtension(runtimeFile);
-
-                                        // TODO: Properly deal with file duplicates (same file in multiple package, or RID conflicts)
-                                        dependenciesMapping.TryAdd(assemblyName, runtimeFile);
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    // TODO: Is using AppDomain would provide more opportunities for unloading?
-                    const uint unverifiableExecutableWithFixups = 0x80131019;
-                    try
-                    {
-                        assembly = pdbBytes != null ? Assembly.Load(assemblyBytes, pdbBytes) : Assembly.Load(assemblyBytes);
-                    }
-                    catch (FileLoadException fileLoadException)
-                    when ((uint)fileLoadException.HResult == unverifiableExecutableWithFixups)
-                    {
-                        // No way to load from byte array (see https://stackoverflow.com/questions/5005409/exception-with-resolving-assemblies-attempt-to-load-an-unverifiable-executable)
-                        assembly = Assembly.LoadFrom(assemblyFullPath);
-                    }
-                    catch (BadImageFormatException)
-                    {
-                        // It could be a mixed mode assembly (see https://stackoverflow.com/questions/2945080/how-do-i-dynamically-load-raw-assemblies-that-contains-unmanaged-codebypassing)
-                        assembly = Assembly.LoadFrom(assemblyFullPath);
-                    }
-                    loadedAssembly = new LoadedAssembly(this, assemblyFullPath, assembly, dependenciesMapping);
-                    loadedAssemblies.Add(loadedAssembly);
-                    loadedAssembliesByName.Add(assemblyFullPath, loadedAssembly);
-
-                    // Loaded from bytes, the assembly has a load context of its own: its [DllImport] calls find the
-                    // native libraries registered above only through a resolver on that context
-                    NativeLibraryHelper.RegisterResolverFor(assembly);
-
-                    // Force assembly resolve with proper name (with proper context)
-                    var previousSearchDirectory = currentSearchDirectory;
-                    var previousContainer = currentContainer;
-                    try
-                    {
-                        currentContainer = this;
-                        currentSearchDirectory = Path.GetDirectoryName(assemblyFullPath);
-
-                        Assembly.Load(assembly.FullName);
-                    }
-                    finally
-                    {
-                        currentContainer = previousContainer;
-                        currentSearchDirectory = previousSearchDirectory;
-                    }
+                    // It could be a mixed mode assembly (see https://stackoverflow.com/questions/2945080/how-do-i-dynamically-load-raw-assemblies-that-contains-unmanaged-codebypassing)
+                    assembly = Assembly.LoadFrom(assemblyFullPath);
                 }
+                loadedAssembly = new LoadedAssembly(this, assemblyFullPath, assembly, dependenciesMapping);
+                loadedAssemblies.Add(loadedAssembly);
+                loadedAssembliesByName.Add(assemblyFullPath, loadedAssembly);
+
+                // Its [DllImport] calls find the native libraries registered above only through a resolver on its load context
+                NativeLibraryHelper.RegisterResolverFor(assembly);
 
                 // Make sure there is no duplicate
                 Debug.Assert(!assemblyToContainers.TryGetValue(assembly, out var _));
@@ -461,12 +394,12 @@ public class AssemblyContainer
         }
         catch (Exception exception)
         {
-            log.Error($"Error while loading assembly reference [{assemblyFullPath}]", exception);
+            log?.Error($"Error while loading assembly reference [{assemblyFullPath}]", exception);
             if (exception is ReflectionTypeLoadException loaderException)
             {
                 foreach (var exceptionForType in loaderException.LoaderExceptions)
                 {
-                    log.Error("Unable to load type. See exception.", exceptionForType);
+                    log?.Error("Unable to load type. See exception.", exceptionForType);
                 }
             }
         }
@@ -487,34 +420,12 @@ public class AssemblyContainer
             NativeLibraryHelper.RegisterDependenciesFrom(Path.GetDirectoryName(libDirectory)!);
     }
 
+    // Asked from outside the containers' load contexts (e.g. WPF binding a BAML type's generic arguments, a type name
+    // read by host code): a container's current copy. The default context does not keep the answer, so a reload is seen.
     private static Assembly? CurrentDomain_AssemblyResolve(object? sender, ResolveEventArgs args)
-    {
-        if (resolvingFromHost)
-            return null;
+        => FindContainerAssembly(new AssemblyName(args.Name));
 
-        // If it is handled by current thread, then we can handle it here.
-        var container = currentContainer;
-        string? searchDirectory = currentSearchDirectory;
-
-        // If it's a dependent assembly loaded later, find container and path
-        if (container == null && args.RequestingAssembly != null && assemblyToContainers.TryGetValue(args.RequestingAssembly, out var loadedAssembly))
-        {
-            // Assembly reference requested after initial resolve, we need to setup context temporarily
-            container = loadedAssembly.Container;
-            searchDirectory = Path.GetDirectoryName(loadedAssembly.Path);
-        }
-
-        // Load assembly
-        if (container != null)
-        {
-            var assemblyName = new AssemblyName(args.Name);
-            return container.LoadAssemblyByName(assemblyName, searchDirectory ?? string.Empty);
-        }
-
-        // Asked from outside any container (e.g. WPF binding a BAML type's generic arguments): use a container's copy
-        return FindContainerAssembly(new AssemblyName(args.Name));
-    }
-
+    // Only the assemblies currently in a container are mapped: removing one unmaps it
     private static Assembly? FindContainerAssembly(AssemblyName assemblyName)
     {
         foreach (var (assembly, _) in assemblyToContainers)
@@ -590,5 +501,53 @@ public class AssemblyContainer
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// The load context of an assembly a container loads, and of the dependencies it brings that the host does not
+    /// provide. Not collectible: an assembly loaded again (a reload) gets a new context next to the old one.
+    /// </summary>
+    /// <remarks>
+    /// A reference resolves to the container's current assembly of that name, whatever context holds it; then to the
+    /// default context (the host's copy wins); then <see cref="AssemblyLoadContext.Resolving"/> loads it in this context
+    /// from the package's files. Nothing throws until every step failed.
+    /// </remarks>
+    private sealed class ContainerLoadContext : AssemblyLoadContext
+    {
+        private readonly AssemblyContainer container;
+        private readonly string primaryPath;
+
+        public ContainerLoadContext(AssemblyContainer container, string primaryPath)
+            : base(Path.GetFileName(primaryPath))
+        {
+            this.container = container;
+            this.primaryPath = primaryPath;
+            Resolving += OnResolving;
+
+            try
+            {
+                // Asked by simple name, so that the host's copy wins whatever its version
+                PrimaryName = new AssemblyName(AssemblyName.GetAssemblyName(primaryPath).Name!);
+            }
+            catch (Exception)
+            {
+                // Not a managed assembly: loaded from its file, and fails there with the actual error
+            }
+        }
+
+        /// <summary>The assembly this context was created for, or null when its file has no readable name.</summary>
+        public AssemblyName? PrimaryName { get; }
+
+        protected override Assembly? Load(AssemblyName assemblyName)
+            => IsPrimary(assemblyName) ? null : container.FindLoadedAssembly(assemblyName);
+
+        private Assembly? OnResolving(AssemblyLoadContext context, AssemblyName assemblyName)
+        {
+            var path = IsPrimary(assemblyName) ? primaryPath : container.FindDependencyPath(assemblyName, Path.GetDirectoryName(primaryPath)!);
+            return path != null ? container.LoadAssemblyFromPathInternal(path, this) : null;
+        }
+
+        private bool IsPrimary(AssemblyName assemblyName)
+            => string.Equals(assemblyName.Name, PrimaryName?.Name, StringComparison.OrdinalIgnoreCase);
     }
 }
