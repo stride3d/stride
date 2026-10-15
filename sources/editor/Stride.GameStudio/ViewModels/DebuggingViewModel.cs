@@ -68,6 +68,10 @@ namespace Stride.GameStudio.ViewModels
             ProjectLog.AddLoggerWithPast(logger);
             LiveScriptingLog = new LoggerViewModel(ServiceProvider);
             LiveScriptingLog.AddLogger(assemblyReloadLogger);
+            EditorLog = new LoggerViewModel(ServiceProvider);
+            var editorLogger = new LoggerResult("Editor");
+            EditorLog.AddLogger(editorLogger);
+            GlobalLogBuffer.Instance.ForwardTo(editorLogger);
             BuildProjectCommand = new AnonymousTaskCommand(ServiceProvider, () => BuildProject(false));
             StartProjectCommand = new AnonymousTaskCommand(ServiceProvider, () => BuildProject(true));
             CancelBuildCommand = new AnonymousCommand(ServiceProvider, () => { currentBuild?.Cancel(); });
@@ -120,6 +124,12 @@ namespace Stride.GameStudio.ViewModels
         public LoggerViewModel LiveScriptingLog { get; }
 
         /// <summary>
+        /// Gets the editor log: the warnings and errors of the global log (preview, plugins, editors...).
+        /// </summary>
+        [NotNull]
+        public LoggerViewModel EditorLog { get; }
+
+        /// <summary>
         /// Gets the title of the output pane, including an asterisk if new logs have arrived.
         /// </summary>
         // We need to manage dirtiness of the output title directly in the string because the rad pane requires a single string as title
@@ -167,6 +177,7 @@ namespace Stride.GameStudio.ViewModels
         private void Cleanup()
         {
             BuildLog.Destroy();
+            EditorLog.Destroy();
             debugService?.Dispose();
 
             trackAssemblyChanges = false;
