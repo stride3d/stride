@@ -996,7 +996,24 @@ namespace Stride.Graphics
         /// <exception cref="ArgumentNullException"><paramref name="indirectBuffer"/> is <see langword="null"/>.</exception>
         public void Dispatch(Buffer indirectBuffer, int offsetInBytes)
         {
-            throw new NotImplementedException(); // TODO: Implement DispatchIndirect
+            ArgumentNullException.ThrowIfNull(indirectBuffer);
+
+            PrepareDraw(isDispatch: true);
+
+            ExecuteIndirect(GraphicsDevice.DispatchCommandSignature, indirectBuffer, offsetInBytes);
+        }
+
+        /// <summary>
+        ///   Records one indirect call that reads its arguments from <paramref name="argumentsBuffer"/>.
+        /// </summary>
+        /// <remarks>
+        ///   The caller transitions <paramref name="argumentsBuffer"/> to <see cref="BarrierLayout.IndirectArgument"/>
+        ///   after a GPU write; the Command List does not do it.
+        /// </remarks>
+        private unsafe void ExecuteIndirect(ID3D12CommandSignature* commandSignature, Buffer argumentsBuffer, int offsetInBytes)
+        {
+            // One command, no count buffer
+            currentCommandList.NativeCommandList.ExecuteIndirect(commandSignature, 1, (ID3D12Resource*) argumentsBuffer.NativeResource, (ulong) offsetInBytes, (ID3D12Resource*) null, 0);
         }
 
         /// <summary>
@@ -1080,8 +1097,7 @@ namespace Stride.Graphics
 
             PrepareDraw();
 
-            //NativeDeviceContext.DrawIndexedInstancedIndirect(argumentsBuffer.NativeBuffer, alignedByteOffsetForArgs);
-            throw new NotImplementedException(); // TODO: Implement DrawIndexedInstancedIndirect
+            ExecuteIndirect(GraphicsDevice.DrawIndexedCommandSignature, argumentsBuffer, alignedByteOffsetForArgs);
 
             GraphicsDevice.FrameDrawCalls++;
         }
@@ -1117,8 +1133,7 @@ namespace Stride.Graphics
 
             PrepareDraw();
 
-            //NativeDeviceContext.DrawIndexedInstancedIndirect(argumentsBuffer.NativeBuffer, alignedByteOffsetForArgs);
-            throw new NotImplementedException(); // TODO: Implement DrawInstancedIndirect
+            ExecuteIndirect(GraphicsDevice.DrawCommandSignature, argumentsBuffer, alignedByteOffsetForArgs);
 
             GraphicsDevice.FrameDrawCalls++;
         }
