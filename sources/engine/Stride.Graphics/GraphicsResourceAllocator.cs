@@ -158,6 +158,7 @@ namespace Stride.Graphics
             {
                 Recycle(textureCache, recyclePolicy);
                 Recycle(bufferCache, recyclePolicy);
+                Recycle(queryPoolCache, recyclePolicy);
             }
 
             /// <summary>
@@ -165,7 +166,8 @@ namespace Stride.Graphics
             /// </summary>
             void Recycle<TKey>(ResourceCache<TKey> cache, GraphicsResourceRecyclePolicyDelegate recyclePolicy)
             {
-                foreach (var resourceList in cache.Values)
+                List<TKey> emptyDescriptions = null;
+                foreach (var (description, resourceList) in cache)
                 {
                     for (int i = resourceList.Count - 1; i >= 0; i--)
                     {
@@ -182,6 +184,16 @@ namespace Stride.Graphics
                             resourceLink.AccessCountSinceLastRecycle = 0;
                         }
                     }
+
+                    // Forget descriptions with no resources left, so the cache does not grow with every size ever requested
+                    if (resourceList.Count == 0)
+                        (emptyDescriptions ??= []).Add(description);
+                }
+
+                if (emptyDescriptions is not null)
+                {
+                    foreach (var description in emptyDescriptions)
+                        cache.Remove(description);
                 }
             }
         }
@@ -388,7 +400,7 @@ namespace Stride.Graphics
             var newResource = createResource(description, viewFormat);
 
             string allocatorName = string.IsNullOrWhiteSpace(Name) ? string.Empty : $"{Name}-";
-            string resourceName = string.IsNullOrWhiteSpace(newResource.Name) ? newResource.GetType().Name : Name;
+            string resourceName = string.IsNullOrWhiteSpace(newResource.Name) ? newResource.GetType().Name : newResource.Name;
 
             newResource.Name = $"{allocatorName}{resourceName}-{cachedLinks.Count}";
 
@@ -429,7 +441,7 @@ namespace Stride.Graphics
             if (resource is not (Texture or Buffer or QueryPool))
                 throw new ArgumentException("Unsupported Graphics Resource. Only Textures, Buffers and QueryPools are supported", nameof(resource));
 
-            if (referenceDelta == 0 || !resourceLinks.TryGetValue(resource, out var resourceLink))
+            if (!resourceLinks.TryGetValue(resource, out var resourceLink))
                 throw new ArgumentException("The Graphics Resource was not allocated by this allocator", nameof(resource));
 
             UpdateCounter(resourceLink, referenceDelta);
