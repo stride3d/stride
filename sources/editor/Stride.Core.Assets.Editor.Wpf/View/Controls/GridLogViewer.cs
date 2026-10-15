@@ -88,23 +88,7 @@ namespace Stride.Core.Assets.Editor.View.Controls
         /// <summary>
         /// Gets or sets the collection of <see cref="ILogMessage"/> to display.
         /// </summary>
-        public ObservableList<ILogMessage> LogMessages
-        {
-            get { return (ObservableList<ILogMessage>)GetValue(LogMessagesProperty); }
-            set
-            {
-                var prevList = LogMessages;
-                if (prevList != null)
-                {
-                    prevList.CollectionChanged -= OnLogMessagesCollectionChanged;
-                }
-                SetValue(LogMessagesProperty, value);
-                if (value != null)
-                {
-                    value.CollectionChanged += OnLogMessagesCollectionChanged;
-                }
-            }
-        }
+        public ObservableList<ILogMessage> LogMessages { get { return (ObservableList<ILogMessage>)GetValue(LogMessagesProperty); } set { SetValue(LogMessagesProperty, value); } }
 
         public ObservableList<ILogMessage> FilteredLogMessages { get; set; } = new ObservableList<ILogMessage>();
 

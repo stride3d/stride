@@ -31,6 +31,9 @@ namespace Stride.Core.Assets.Editor.ViewModel.Logs
         // Followed by the package name: one log per package
         public const string ConsistencyLogName = "Consistency";
 
+        // Above this many changes in one update, the shown messages are replaced at once instead of one by one
+        private const int MaxIncrementalChanges = 1000;
+
         private readonly SessionViewModel session;
         private readonly Dictionary<LogKey, Logger> loggers = new Dictionary<LogKey, Logger>();
         private readonly HashSet<Logger> createdLoggers = new HashSet<Logger>();
@@ -206,7 +209,30 @@ namespace Stride.Core.Assets.Editor.ViewModel.Logs
         /// </summary>
         private void UpdateFilteredMessages(List<ILogMessage> messages)
         {
+            // A log replaced by the same messages (e.g. a thumbnail built again) keeps the shown ones, so the view keeps its selection
             var kept = new HashSet<ILogMessage>(messages, ReferenceEqualityComparer.Instance);
+            var shown = new HashSet<ILogMessage>(FilteredMessages, ReferenceEqualityComparer.Instance);
+            var removed = FilteredMessages.Where(x => !kept.Contains(x)).ToLookup(GetContentKey);
+            if (removed.Count > 0)
+            {
+                var reusable = removed.ToDictionary(x => x.Key, x => new Queue<ILogMessage>(x));
+                for (var i = 0; i < messages.Count; ++i)
+                {
+                    if (!shown.Contains(messages[i]) && reusable.TryGetValue(GetContentKey(messages[i]), out var queue) && queue.Count > 0)
+                        messages[i] = queue.Dequeue();
+                }
+                kept = new HashSet<ILogMessage>(messages, ReferenceEqualityComparer.Instance);
+            }
+            // Each change in the middle of the list costs the view a pass over it (adding at the end does not): when much of the list changes (e.g. another scope), replace it all at once
+            var appended = 0;
+            while (appended < messages.Count && !shown.Contains(messages[^(appended + 1)]))
+                ++appended;
+            if (FilteredMessages.Count(x => !kept.Contains(x)) + messages.Count(x => !shown.Contains(x)) - appended > MaxIncrementalChanges)
+            {
+                FilteredMessages.Clear();
+                FilteredMessages.AddRange(messages);
+                return;
+            }
             for (var i = FilteredMessages.Count - 1; i >= 0; --i)
             {
                 if (!kept.Contains(FilteredMessages[i]))
@@ -222,6 +248,8 @@ namespace Stride.Core.Assets.Editor.ViewModel.Logs
             // Only left when the kept messages changed order
             FilteredMessages.RemoveRange(messages.Count, FilteredMessages.Count - messages.Count);
         }
+
+        private static (LogMessageType, string, string, AssetId?) GetContentKey(ILogMessage message) => (message.Type, message.Text, message.Module, GetAssetId(message));
 
         private AssetEntryMessage GetAssetEntryMessage(ILogMessage message, AssetId assetId, UFile assetUrl)
         {
