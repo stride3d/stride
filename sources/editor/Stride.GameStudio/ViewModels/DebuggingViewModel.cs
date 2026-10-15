@@ -282,7 +282,38 @@ namespace Stride.GameStudio.ViewModels
         /// <summary>
         /// The changed assemblies plus the loaded assemblies that depend on them, in dependency order.
         /// </summary>
-        private List<ModifiedAssembly> ExpandWithDependents(Dictionary<PackageLoadedAssembly, ModifiedAssembly> changedAssemblies)
+        /// <summary>
+        /// The dependencies of the changed projects whose restored version differs from what the session loaded. A
+        /// project whose csproj changed restores first, so that its build uses the dependencies it now asks for.
+        /// </summary>
+        private async Task<List<DependencyVersionChange>> FindDependencyVersionChanges(IEnumerable<ModifiedAssembly> modifiedAssemblies)
+        {
+            var changes = new List<DependencyVersionChange>();
+            var projects = new HashSet<SolutionProject>();
+            foreach (var modifiedAssembly in modifiedAssemblies)
+            {
+                var package = Session.AllPackages.FirstOrDefault(x => x.LoadedAssemblies.Contains(modifiedAssembly.LoadedAssembly))?.Package;
+                if (package?.Container is not SolutionProject project || project.FullPath is null || !projects.Add(project))
+                    continue;
+
+                try
+                {
+                    if (modifiedAssembly.ChangeType == AssemblyChangeType.Project)
+                        await VSProjectHelper.RestoreNugetPackages(assemblyReloadLogger, project.FullPath.ToOSPath());
+                    changes.AddRange(package.Session.FindDependencyVersionChanges(project));
+                }
+                catch (Exception e)
+                {
+                    assemblyReloadLogger.Error($"[{project.FullPath.GetFileNameWithoutExtension()}] could not read its restored dependencies", e);
+                }
+            }
+
+            // A dependency of several projects changes once
+            return changes.GroupBy(x => x.Dependency.Name, StringComparer.OrdinalIgnoreCase).Select(x => x.First()).ToList();
+        }
+
+        /// <param name="changedLibraries">Library assemblies moving to another version: the assemblies that reference them reload too.</param>
+        private List<ModifiedAssembly> ExpandWithDependents(Dictionary<PackageLoadedAssembly, ModifiedAssembly> changedAssemblies, IReadOnlyCollection<System.Reflection.Assembly> changedLibraries)
         {
             if (projectWatcher == null)
                 return changedAssemblies.Values.ToList();
@@ -313,7 +344,7 @@ namespace Stride.GameStudio.ViewModels
             // copy it resolved first. Ordered dependencies first, as the references go.
             var loadedAssemblies = Session.AllPackages.SelectMany(x => x.LoadedAssemblies).Where(x => x.Assembly != null)
                 .GroupBy(x => x.Assembly).ToDictionary(x => x.Key, x => x.First());
-            var closure = Session.AssemblyContainer.GetDependentsClosure(result.Select(x => x.LoadedAssembly.Assembly).NotNull());
+            var closure = Session.AssemblyContainer.GetDependentsClosure(result.Select(x => x.LoadedAssembly.Assembly).NotNull().Concat(changedLibraries));
             var trackedAssemblies = projectWatcher.SnapshotTrackedAssemblies();
             foreach (var assembly in closure)
             {
@@ -402,17 +433,46 @@ namespace Stride.GameStudio.ViewModels
                 projectWatcher.RefreshLoadedAssembly(package);
             }
 
+            // A dependency of a rebuilt project moving to another version (a PackageReference edit) loads its new version
+            // with the rest: the project builds against it
+            var versionChanges = await FindDependencyVersionChanges(modifiedAssembliesCopy.Values);
+            var blockedChanges = versionChanges.Where(x => x.Blocker != null).ToList();
+            if (blockedChanges.Count > 0)
+            {
+                foreach (var blockedChange in blockedChanges)
+                    assemblyReloadLogger.Error($"[{blockedChange}] can't replace the loaded version in this session ({blockedChange.Blocker}): reload the session to use it. No assembly was reloaded.");
+                foreach (var pending in modifiedAssembliesCopy)
+                    modifiedAssemblies[pending.Key] = pending.Value;
+                askOnNextChange = true;
+                UpdateCommands();
+                trackAssemblyChanges = true;
+                return;
+            }
+            foreach (var versionChange in versionChanges)
+            {
+                foreach (var (packageAssembly, newPath) in versionChange.PackageAssemblies)
+                {
+                    modifiedAssembliesCopy[packageAssembly] = new ModifiedAssembly
+                    {
+                        LoadedAssembly = packageAssembly,
+                        LoadedAssemblyPath = newPath,
+                        ChangeType = AssemblyChangeType.Binary,
+                    };
+                }
+            }
+            var changedLibraries = versionChanges.SelectMany(x => x.Libraries).Select(x => x.LoadedAssembly.Assembly).ToList();
+
             // The whole set builds before anything reloads: a runtime reloaded without its companions (or the other way
             // around) would bind them to different copies of its types. One failed build reloads nothing, and the
             // changes stay pending.
-            foreach (var modifiedAssembly in ExpandWithDependents(modifiedAssembliesCopy))
+            foreach (var modifiedAssembly in ExpandWithDependents(modifiedAssembliesCopy, changedLibraries))
             {
                 var loadedAssembly = modifiedAssembly.LoadedAssembly;
-                // If the assembly binary has changed, just reload
+                // If the assembly binary has changed, just reload (from the new version's file for a version change)
                 if (modifiedAssembly.ChangeType == AssemblyChangeType.Binary)
                 {
                     var assemblyToReload = modifiedAssembly;
-                    assemblyToReload.LoadedAssemblyPath = loadedAssembly.Path;
+                    assemblyToReload.LoadedAssemblyPath ??= loadedAssembly.Path;
                     assembliesToReload.Add(assemblyToReload);
                 }
                 else if (loadedAssembly.ProjectReference != null)
@@ -426,6 +486,7 @@ namespace Stride.GameStudio.ViewModels
                             modifiedAssemblies[pending.Key] = pending.Value;
                         askOnNextChange = true;
                         assembliesToReload.Clear();
+                        versionChanges.Clear();
                         break;
                     }
 
@@ -447,6 +508,7 @@ namespace Stride.GameStudio.ViewModels
             {
                 assemblyReloadLogger.Error($"[{string.Join(", ", inUseByHost)}] in use by Game Studio itself: reload the session to use the new build. No assembly was reloaded.");
                 assembliesToReload.Clear();
+                versionChanges.Clear();
             }
 
             var userDocumentationService = Session.ServiceProvider.Get<UserDocumentationService>();
@@ -460,10 +522,21 @@ namespace Stride.GameStudio.ViewModels
             trackAssemblyChanges = true;
 
             // If any assemblies are built successfully, reload them
-            if (assembliesToReload.Count > 0)
+            if (assembliesToReload.Count > 0 || versionChanges.Count > 0)
             {
                 using (var transaction = Session.UndoRedoService.CreateTransaction())
                 {
+                    // Before the reload, so that the reloaded assemblies resolve the new versions; undone after it
+                    if (versionChanges.Count > 0)
+                    {
+                        foreach (var versionChange in versionChanges)
+                            assemblyReloadLogger.Info($"[{versionChange}] loads the new version.");
+                        void Apply() => versionChanges.ForEach(x => x.Apply());
+                        void Revert() => Enumerable.Reverse(versionChanges).ForEach(x => x.Revert());
+                        Apply();
+                        Session.UndoRedoService.PushOperation(new Core.Presentation.Dirtiables.AnonymousDirtyingOperation([], Revert, Apply));
+                    }
+
                     var assemblyToAnalyze = assembliesToReload.Where(x => x.LoadedAssembly?.Assembly != null && x.Project != null).ToDictionary(x => x.Project, x => x.LoadedAssembly.Assembly.FullName);
                     var logResult = new LoggerResult();
                     BuildLog.AddLogger(logResult);
