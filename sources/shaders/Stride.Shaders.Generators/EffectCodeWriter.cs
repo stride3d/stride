@@ -19,6 +19,21 @@ public class EffectCodeWriter : ShaderWriter
 
     private bool isProcessingColor = false;
 
+    // The namespaces the generated code sees, to find the C# type of a struct key (see CSharpTypeExists)
+    private static readonly string[] GeneratedUsings = ["Stride.Core", "Stride.Rendering", "Stride.Graphics", "Stride.Shaders", "Stride.Core.Mathematics"];
+    private readonly List<string> usings = [.. GeneratedUsings];
+    private string? currentNamespace;
+
+    /// <summary>
+    /// Whether a C# type exists, by full name. A key of a struct type needs a C# struct with the same name (e.g.
+    /// <c>DirectionalLightData</c>, written by hand); when there is none, the key is not written, so the generated code
+    /// builds. Null: every struct key is written.
+    /// </summary>
+    public Func<string, bool>? CSharpTypeExists { get; init; }
+
+    /// <summary>The full names the C# type of each struct key can have, collected while writing.</summary>
+    public HashSet<string> CSharpTypeCandidates { get; } = [];
+
     public bool Run(Node node)
     {
         void LogErrors()
@@ -120,6 +135,19 @@ public class EffectCodeWriter : ShaderWriter
             }
         }
 
+        // A struct key needs a C# struct of the same name
+        if (variableType == null && parameterType is StructType or ExternalType)
+        {
+            var candidates = CSharpTypeNames(parameterType.ToString());
+            CSharpTypeCandidates.UnionWith(candidates);
+            if (CSharpTypeExists != null && !candidates.Any(CSharpTypeExists))
+            {
+                WriteLine($"// No key for {name}: no C# type {parameterType} for its struct type");
+                isProcessingColor = false;
+                return;
+            }
+        }
+
         var csharpType = variableType ?? ToCSharpType(parameterType);
 
         Write($"public static readonly {parameterKeyType}ParameterKey<");
@@ -145,6 +173,17 @@ public class EffectCodeWriter : ShaderWriter
         WriteLine(";");
 
         isProcessingColor = false;
+    }
+
+    // The full names C# can resolve a type name to in the generated code: the namespace and its parents, then the usings
+    private List<string> CSharpTypeNames(string typeName)
+    {
+        var names = new List<string>();
+        for (var ns = currentNamespace; !string.IsNullOrEmpty(ns); ns = ns.LastIndexOf('.') is var dot and >= 0 ? ns[..dot] : null)
+            names.Add($"{ns}.{typeName}");
+        names.AddRange(usings.Select(x => $"{x}.{typeName}"));
+        names.Add(typeName);
+        return names;
     }
 
     // Maps a resolved shader type to the C# type used for its parameter key and default value.
@@ -299,6 +338,7 @@ public class EffectCodeWriter : ShaderWriter
     public override void VisitUsingShaderNamespace(UsingShaderNamespace usingShaderNamespace)
     {
         Write("using ").Write(string.Join('.', usingShaderNamespace.NamespacePath)).WriteLine(";");
+        usings.Add(string.Join('.', usingShaderNamespace.NamespacePath));
     }
 
     public override void VisitShaderFile(ShaderFile shaderFile)
@@ -324,6 +364,7 @@ public class EffectCodeWriter : ShaderWriter
     {
         Write("namespace ").Write(string.Join(".", shaderNamespace.NamespacePath)).WriteLine();
         OpenBrace();
+        currentNamespace = string.Join(".", shaderNamespace.NamespacePath);
 
         var declarations = shaderNamespace.Declarations;
 
@@ -720,9 +761,11 @@ public class EffectCodeWriter : ShaderWriter
     {
         if (element is ShaderMember member)
         {
+            // static and groupshared members are not parameters (not in a cbuffer)
             if (member.IsCompose
                 || member.TypeModifier == TypeModifier.Const
-                || member.StreamKind != StreamKind.None)
+                || member.StreamKind != StreamKind.None
+                || member.StorageClass is StorageClass.Static or StorageClass.GroupShared)
                 return false;
         }
         // TODO:
