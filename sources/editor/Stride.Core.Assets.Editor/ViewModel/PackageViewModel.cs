@@ -403,7 +403,10 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
             var assetList = Package.Assets.Where(item => IsReferenceable(item.Asset)).ToDictionary(x => x.Location.FullPath);
             var assetViewModels = Assets.Where(x => IsReferenceable(x.AssetItem.Asset)).ToList();
-            var logger = Session.AssetLog.GetLogger(LogKey.Get("Consistency"));
+            // Runs after each change: the previous result is replaced
+            var logKey = LogKey.Get($"Consistency {Name}");
+            Session.AssetLog.ClearMessages(logKey);
+            var logger = Session.AssetLog.GetLogger(logKey);
 
             foreach (var asset in assetViewModels)
             {

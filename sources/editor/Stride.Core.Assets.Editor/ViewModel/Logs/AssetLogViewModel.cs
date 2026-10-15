@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Stride.Core.Assets.Analysis;
+using Stride.Core.Assets.Diagnostics;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Collections;
@@ -18,6 +19,7 @@ namespace Stride.Core.Assets.Editor.ViewModel.Logs
     {
         private readonly SessionViewModel session;
         private readonly Dictionary<LogKey, Logger> loggers = new Dictionary<LogKey, Logger>();
+        private readonly HashSet<Logger> createdLoggers = new HashSet<Logger>();
         private bool waiting;
         private int errorCount;
 
@@ -91,12 +93,34 @@ namespace Stride.Core.Assets.Editor.ViewModel.Logs
                 }
                 return result;
             });
-            var selectedLoggers = loggers.Where(x => ids.Contains(x.Key.AssetId));
-            foreach (var loggerResult in selectedLoggers.Select(x => x.Value).OfType<LoggerResult>())
+            foreach (var (key, logger) in loggers)
             {
-                FilteredMessages.AddRange(loggerResult.Messages);
+                if (logger is not LoggerResult loggerResult)
+                    continue;
+
+                if (key.AssetId != AssetId.Empty)
+                {
+                    if (ids.Contains(key.AssetId))
+                        FilteredMessages.AddRange(loggerResult.Messages);
+                }
+                else
+                {
+                    // A log that is not about one asset (session load, consistency): its messages about no asset or about a selected one
+                    FilteredMessages.AddRange(loggerResult.Messages.Where(x => GetAssetId(x) is not { } id || ids.Contains(id)));
+                }
             }
             ErrorCount = FilteredMessages.Count(x => x.IsAtLeast(LogMessageType.Warning));
+        }
+
+        private static AssetId? GetAssetId(ILogMessage message)
+        {
+            var id = message switch
+            {
+                AssetLogMessage assetMessage => assetMessage.AssetReference?.Id,
+                AssetSerializableLogMessage assetMessage => assetMessage.AssetId,
+                _ => null,
+            };
+            return id == AssetId.Empty ? null : id;
         }
 
         private void AssetBuilt(object sender, AssetBuiltEventArgs e)
@@ -151,18 +175,23 @@ namespace Stride.Core.Assets.Editor.ViewModel.Logs
             {
                 RemoveLogger(logger);
                 loggers.Remove(key);
+                createdLoggers.Remove(logger);
                 return true;
             }
             return false;
         }
 
+        /// <summary>
+        /// Gets the logger with the given key. A logger created here is shown in this log.
+        /// </summary>
         public Logger GetLogger(LogKey key, bool create = true)
         {
             Logger logger;
             if (!loggers.TryGetValue(key, out logger) && create)
             {
-                logger = GlobalLogger.GetLogger(key.ToString());
-                loggers.Add(key, logger);
+                logger = new LoggerResult(key.ToString());
+                createdLoggers.Add(logger);
+                AddLogger(key, logger);
             }
             return logger;
         }
@@ -173,6 +202,9 @@ namespace Stride.Core.Assets.Editor.ViewModel.Logs
             if (logger != null)
             {
                 ClearMessages(logger);
+                // The filtered messages are read from the loggers: a logger created here is reused, so it must forget its messages too
+                if (createdLoggers.Contains(logger))
+                    ((LoggerResult)logger).Clear();
             }
         }
     }
