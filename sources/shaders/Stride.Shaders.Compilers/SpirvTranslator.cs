@@ -17,6 +17,10 @@ public unsafe record struct SpirvTranslator(ReadOnlyMemory<uint> Words)
     static readonly Cross cross;
     static readonly Logger Log = GlobalLogger.GetLogger("SpirvTranslator");
 
+    // SPVC_HLSL_PUSH_CONSTANT_DESC_SET and SPVC_HLSL_PUSH_CONSTANT_BINDING: the descriptor set and binding that name the push-constant block
+    const uint HlslPushConstantDescriptorSet = ~0u;
+    const uint HlslPushConstantBinding = 0;
+
     static SpirvTranslator()
     {
         NativeLibraryHelper.PreloadLibrary("spirv-cross", typeof(SpirvTranslator));
@@ -145,6 +149,17 @@ public unsafe record struct SpirvTranslator(ReadOnlyMemory<uint> Words)
             cross.CompilerHlslAddVertexAttributeRemap(compiler, vertexInputRemap, (nuint)vertexInputRemapCount);
 
             cross.CompilerHlslSetResourceBindingFlags(compiler, 0);
+
+            // Direct3D 11 has no push constants: the push-constant block becomes a constant buffer at a fixed register,
+            // which the mixer keeps free (SDSL0133)
+            HlslResourceBinding pushConstantsBinding = default;
+            cross.HlslResourceBindingInit(&pushConstantsBinding);
+            pushConstantsBinding.Stage = cross.CompilerGetExecutionModel(compiler);
+            pushConstantsBinding.DescSet = HlslPushConstantDescriptorSet;
+            pushConstantsBinding.Binding = HlslPushConstantBinding;
+            pushConstantsBinding.Cbv.RegisterBinding = SDSL.ShaderMixer.PushConstantsRegisterDirect3D11;
+            pushConstantsBinding.Cbv.RegisterSpace = 0;
+            cross.CompilerHlslAddResourceBinding(compiler, &pushConstantsBinding);
         }
 
         if (backend == Backend.Glsl)

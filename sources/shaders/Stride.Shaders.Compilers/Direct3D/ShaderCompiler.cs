@@ -325,6 +325,24 @@ namespace Stride.Shaders.Compiler.Direct3D
                     UpdateConstantBufferReflection(constantBuffer);
                 }
 
+                // The push-constant block: SpirvTranslator puts it at a fixed register. It is described by
+                // EffectReflection.PushConstants, not by a resource group, so both loops below skip it.
+                string? pushConstantsName = null;
+                if (effectReflection.PushConstants is not null)
+                {
+                    for (uint i = 0; i < shaderReflectionDesc.BoundResources; ++i)
+                    {
+                        ShaderInputBindDesc bindDesc = default;
+                        HResult getBindDescResult = shaderReflection.GetResourceBindingDesc(i, ref bindDesc);
+                        if (!getBindDescResult.IsFailure
+                            && bindDesc.Type == D3DShaderInputType.D3DSitCbuffer
+                            && bindDesc.BindPoint == Compilers.SDSL.ShaderMixer.PushConstantsRegisterDirect3D11)
+                        {
+                            pushConstantsName = GetUtf8Span(bindDesc.Name).GetString();
+                        }
+                    }
+                }
+
                 // Constant Buffers
                 for (uint i = 0; i < shaderReflectionDesc.ConstantBuffers; ++i)
                 {
@@ -344,6 +362,8 @@ namespace Stride.Shaders.Compiler.Direct3D
                         continue;
 
                     string constantBufferName = GetUtf8Span(constantBufferDesc.Name).GetString()!;
+                    if (constantBufferName == pushConstantsName)
+                        continue;
                     var linkBuffer = effectReflection.ConstantBuffers.First(buffer => buffer.Name == constantBufferName);
 
                     ValidateConstantBufferReflection(constantBuffer, ref constantBufferDesc, linkBuffer, log);
@@ -372,6 +392,8 @@ namespace Stride.Shaders.Compiler.Direct3D
                     var elementType = default(EffectTypeDescription);
 
                     string resourceName = GetUtf8Span(boundResourceDesc.Name).GetString()!;
+                    if (resourceName == pushConstantsName)
+                        continue;
 
                     foreach (var linkResource in effectReflection.ResourceBindings)
                     {

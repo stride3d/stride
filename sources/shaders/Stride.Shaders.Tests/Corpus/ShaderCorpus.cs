@@ -232,6 +232,13 @@ static class ShaderCorpus
             foreach (var member in cbuffer.Members)
                 builder.AppendLine($"  {member.Offset,5} {member.Size,5} {member.RawName} => {member.KeyInfo.KeyName} : {TypeText(member.Type)} [{member.LogicalGroup}]");
         }
+        // Only for an effect with push constants, so the text of the others is unchanged
+        if (reflection.PushConstants is { } pushConstants)
+        {
+            builder.AppendLine($"push constants size {pushConstants.Size}");
+            foreach (var member in pushConstants.Members)
+                builder.AppendLine($"  {member.Offset,5} {member.Size,5} {member.RawName} : {TypeText(member.Type)}");
+        }
         foreach (var binding in reflection.ResourceBindings)
             builder.AppendLine($"binding {binding.Stage} {binding.Class} {binding.Type} {binding.RawName} => {binding.KeyInfo.KeyName} slot {binding.SlotStart}+{binding.SlotCount} group {binding.ResourceGroup} [{binding.LogicalGroup}]");
         foreach (var group in reflection.ResourceGroups)

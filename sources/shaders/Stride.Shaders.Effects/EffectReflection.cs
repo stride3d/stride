@@ -63,6 +63,17 @@ namespace Stride.Shaders
         public List<ShaderInputAttributeDescription> InputAttributes { get; set; }
 
         /// <summary>
+        /// The push-constant block of the effect (from its <c>[PushConstant] cbuffer</c> declarations), or <c>null</c> if it
+        /// has none. It is not in a resource group: it is set with <c>CommandList.SetPushConstants</c>, not with a descriptor set.
+        /// </summary>
+        public EffectConstantBufferDescription PushConstants { get; set; }
+
+        /// <summary>
+        /// The size in bytes of a push-constant block, on every graphics API.
+        /// </summary>
+        public const int PushConstantsSize = 32;
+
+        /// <summary>
         /// Finds a resource group by name, with fallback for the default set slot ("Globals").
         /// </summary>
         public EffectResourceGroupDescription FindResourceGroup(string name, string defaultSetSlot = null)

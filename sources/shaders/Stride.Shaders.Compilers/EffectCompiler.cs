@@ -430,6 +430,16 @@ namespace Stride.Shaders.Compiler
                         builder.AppendLine("***************************");
                     }
 
+                    if (bytecode.Reflection.PushConstants is { } pushConstants)
+                    {
+                        builder.AppendLine("****  PushConstants    ****");
+                        builder.AppendLine("***************************");
+                        builder.AppendLine($"push constants [Size: {pushConstants.Size}]");
+                        foreach (var parameter in pushConstants.Members)
+                            builder.AppendLine($"@P    {parameter.RawName} [Offset: {parameter.Offset}, Size: {parameter.Size}]");
+                        builder.AppendLine("***************************");
+                    }
+
                     if (bytecode.Reflection.ResourceBindings.Count > 0)
                     {
                         builder.AppendLine("******** Resources ********");
