@@ -1111,6 +1111,31 @@ new ShaderMacro("class", "shader"),
         TestCore($"MSAADepthResolverShader{samples}", shaderSource, "./assets/Stride/SDSL");
     }
 
+    // The editor's fallback when a mesh effect fails to compile: the mixins of `StrideEditorForwardShadingEffect`
+    // before its `discard;` (the effect stops there, see EffectDiscardTests)
+    [Fact]
+    public void EditorEffectErrorFallbackCompiles()
+    {
+        var shaderSource = new ShaderMixinSource
+        {
+            Mixins =
+            {
+                new ShaderClassSource("ShaderBase"),
+                new ShaderClassSource("ShadingBase"),
+                new ShaderClassSource("TransformationBase"),
+                new ShaderClassSource("TransformationWAndVP"),
+                new ShaderClassSource("CompilationErrorShader"),
+            },
+            Macros =
+            {
+                new ShaderMacro("STRIDE_GRAPHICS_API_DIRECT3D", "1"),
+                new ShaderMacro("STRIDE_GRAPHICS_API_DIRECT3D11", "1"),
+            },
+        };
+
+        TestCore("EditorEffectErrorFallback", shaderSource, "./assets/Stride/SDSL");
+    }
+
     // Issue #3323: LightProbeShader truncates a float3x4 to a float3x3, and it is the only
     // engine shader casting a non-square matrix. That cast used to emit invalid SPIR-V, so
     // any scene with enough light probes to form a tetrahedron failed to render.
