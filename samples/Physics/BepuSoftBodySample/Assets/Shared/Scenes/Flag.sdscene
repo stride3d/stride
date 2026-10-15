@@ -1,0 +1,184 @@
+!SceneAsset
+Id: f3aeb795-2a02-6086-d58b-73f176316194
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+ChildrenIds: []
+Offset: {X: 0.0, Y: 0.0, Z: 0.0}
+Hierarchy:
+    RootParts:
+        - ref!! 182ab3ae-ea6c-e582-66d6-10be0e14b124
+        - ref!! 06995f2c-8290-7196-6789-699df2f998d4
+        - ref!! 08d9bfa2-8488-6445-d4bd-7941e3bc3227
+        - ref!! d51b525d-5714-d605-50d0-c5afbdbaadad
+        - ref!! 7947cac8-42df-1bbf-b576-670d14e65079
+        - ref!! 33b7d812-61f4-393a-7a7c-3d92195a7519
+        - ref!! 89f2a06d-3221-ff7b-4c02-7d7169740b44
+    Parts:
+        -   Entity:
+                Id: 182ab3ae-ea6c-e582-66d6-10be0e14b124
+                Name: Camera
+                Components:
+                    789ff9b7533ee2aed8fb3cb6f5dbba67: !TransformComponent
+                        Id: 9d7741d3-afbb-51d6-5563-dc2802a4553f
+                        Position: {X: 1.5, Y: 3.2, Z: 6.5}
+                        Rotation: {X: -0.030721, Y: 0.007688, Z: 0.000236, W: 0.999498}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    226efeb37ecd9cd560f0a36fc7f5b272: !BepuSoftBodySample.Game.Components.Camera.BasicCameraControllerComponent,BepuSoftBodySample.Game
+                        Id: 17a22cc1-6016-62f9-c03e-c761bfc2601f
+                        Gamepad: false
+                        KeyboardMovementSpeed: {X: 5.0, Y: 5.0, Z: 5.0}
+                        SpeedFactor: 4.0
+                    c3ad804f397fd0145b709c1853fa6913: !BepuSoftBodySample.Game.Components.Camera.FindAndAttachCameraComponent,BepuSoftBodySample.Game
+                        Id: 8f35c9a3-4794-4cb7-1c1e-479b7ef4b5ae
+                        CameraComponent: null
+        -   Entity:
+                Id: 06995f2c-8290-7196-6789-699df2f998d4
+                Name: Skybox
+                Components:
+                    9edb0f6b67f86d99ca80a9132e9dceaf: !TransformComponent
+                        Id: 5e4de10d-9d5f-66af-48d8-c38743ec098b
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    043d550345651bb43058c54607a4c516: !BackgroundComponent
+                        Id: 24e9826e-f4fe-654a-ac44-ba71e6f86fee
+                        Texture: 329a39e7-4963-475c-a2c0-bdfc73b5f0d4:Skybox texture
+                        Intensity: 1.0
+                    c6cd4862278ebaf39339d5c6aca88e83: !LightComponent
+                        Id: c4782299-2694-e75a-1aeb-056092a0f622
+                        Type: !LightSkybox
+                            Skybox: c7a3f3cb-e399-4779-bbbb-a4a2a1e50aa1:Skybox
+                        Intensity: 0.5
+        -   Entity:
+                Id: 08d9bfa2-8488-6445-d4bd-7941e3bc3227
+                Name: Sun
+                Components:
+                    4026cf28562d45f67af322af7a7418f4: !TransformComponent
+                        Id: a74c2e7d-ebda-c742-5c42-7b45d923b583
+                        Position: {X: 0.0, Y: 5.0, Z: 0.0}
+                        Rotation: {X: -0.397327, Y: 0.209735, Z: 0.093796, W: 0.888451}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    7ab480b4956c784308ea49d50b369963: !LightComponent
+                        Id: e5d527c1-a45a-7962-adb4-20cb5668a78f
+                        Type: !LightDirectional
+                            Color: !ColorRgbProvider
+                                Value: {R: 1.0, G: 0.956, B: 0.886}
+                            Shadow:
+                                Enabled: true
+                                Filter: !LightShadowMapFilterTypePcf
+                                    FilterSize: Filter7x7
+                                Size: XLarge
+                                DepthRange: {}
+                                PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
+                                ComputeTransmittance: false
+                                BiasParameters:
+                                    NormalOffsetScale: 20.0
+                        Intensity: 3.0
+        -   Entity:
+                Id: d51b525d-5714-d605-50d0-c5afbdbaadad
+                Name: Floor
+                Components:
+                    27f64f7934d15d036d07ca701b199496: !TransformComponent
+                        Id: ab9576c3-fc49-74b9-3e89-6762c81d9ca2
+                        Position: {X: 0.0, Y: -0.5, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 200.0, Y: 1.0, Z: 200.0}
+                        Children: {}
+                    852ea79f869ea520910f175806be28dc: !ModelComponent
+                        Id: 5956d2d4-ef92-6f78-c59d-56a8a7f71e9e
+                        Model: b4d30d41-5492-cf4e-0dae-6c5e5f9387fa:Models/Cube
+                        Materials:
+                            fd6843891b68c34ee37a9b1cadee42b4~0: 6c520bad-a549-71d1-4f29-ec019f3a1fdf:Materials/Floor
+                    a4c05bc1481fb6415a7c6a78c116b9c3: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
+                        Id: 5d6cab3d-377d-abd9-3509-580ea097cb54
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                e6c850940f8e1eb269bab3cb348186ba: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 200.0, Y: 1.0, Z: 200.0}
+                        FrictionCoefficient: 1.0
+        -   Entity:
+                Id: 7947cac8-42df-1bbf-b576-670d14e65079
+                Name: Scripts
+                Components:
+                    85861fb2dd9da27a1ac84683c284b2da: !TransformComponent
+                        Id: 9453dcd7-651a-903c-51e3-88ce07250fc5
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    51d2ef904d4ba0b2f015bdeea0e56488: !BepuSoftBodySample.Game.Components.SceneDescriptionComponent,BepuSoftBodySample.Game
+                        Id: 1c18e8dc-5a3b-d44d-6676-458b4a87f505
+                        Description: 'A flag pinned along its pole, in a wind whose strength and direction change over time.'
+                    e33cfa5597ac0bde5dba33fe4d6a24c7: !BepuSoftBodySample.Game.Components.SoftGravityGunComponent,BepuSoftBodySample.Game
+                        Id: 9e04887f-73ba-1ddc-bfe0-9028f50d769f
+                        CameraEntity: ref!! 182ab3ae-ea6c-e582-66d6-10be0e14b124
+                        MarkerPrefab: 3075790f-ed9d-6dac-f16a-f38a848b055c:Prefabs/Marker
+                        BallPrefab: 93d5a3da-f3a6-2397-f88c-146ee67bac7a:Prefabs/Ball
+                    8a3e3eaa5a18be6590590c4af982419b: !BepuSoftBodySample.Game.Components.ParticleViewComponent,BepuSoftBodySample.Game
+                        Id: 6dcbc79e-d4e1-6e00-5251-ad5b992d25fe
+                        ParticleMaterial: 3e38fbde-13b9-e3b0-e472-cb12e55512a4:Materials/Particle
+                        PinnedMaterial: 12f5ec95-8de0-100e-ddc7-10bcd7660756:Materials/PinnedParticle
+        -   Entity:
+                Id: 33b7d812-61f4-393a-7a7c-3d92195a7519
+                Name: Pole
+                Components:
+                    801293ef4d749616842fb99b948611f9: !TransformComponent
+                        Id: 5e0c289a-64fb-2ef2-c12a-c5708d617f17
+                        Position: {X: 0.0, Y: 2.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.12, Y: 4.0, Z: 0.12}
+                        Children: {}
+                    c0d383d0050c7cb5f6c07e3fde69cad0: !ModelComponent
+                        Id: c81bcb8c-2d06-e7c3-d5c8-4c3db308861d
+                        Model: 3bd803b1-7ef6-3815-690d-d74a5f69606a:Models/Cylinder
+                        Materials:
+                            e1b1c8bb0f0899427aff89e1f0107d9e~0: 307f36ed-8afc-7888-7a56-a43ac56affe7:Materials/Steel
+                    67abb0800fe3a0c90f9c327b10dd20c7: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
+                        Id: 9cc877f8-dffb-d74f-a925-23944203a8dc
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                50a4634d17bf07c42c67b2dec2b76f44: !Stride.BepuPhysics.Definitions.Colliders.CylinderCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Radius: 0.06
+                                    Length: 4.0
+                        FrictionCoefficient: 1.0
+        -   Entity:
+                Id: 89f2a06d-3221-ff7b-4c02-7d7169740b44
+                Name: Flag
+                Components:
+                    e39b6a2e4474de99f53083742cea9d40: !TransformComponent
+                        Id: 9768d534-f528-f9d8-9e4e-fa0dd4e18c03
+                        Position: {X: 1.26, Y: 3.2, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    e74e4ab26c21bf1765925a4cc05b6ce7: !ModelComponent
+                        Id: 5887f817-baec-4d46-25a3-5bd5b667276f
+                        Model: 0b1b80ab-4dd1-ffc3-b350-87e21408eb89:Models/Flag
+                        Materials:
+                            be24b64af0f4c512c5e5ac750d41eeb8~0: b7086ee1-6d6a-58df-6e74-d7140c5dfa08:Materials/Cloth
+                    ab57d4f130dc9e44be2086b6a8060ce1: !Stride.BepuPhysics.Soft.ClothComponent,Stride.BepuPhysics.Soft
+                        Id: 5557077f-9ce8-8fe7-835e-48c275132fe3
+                        Collider: !Stride.BepuPhysics.Soft.Colliders.ParticleCollider,Stride.BepuPhysics.Soft {}
+                        Mass: 0.4
+                        BendStiffness: 2.0
+                        AirDrag: 0.6
+                        Turbulence: 0.5
+                        Pins:
+                            57bbdfbf74baadd9e0d7afa75f8f5777:
+                                Region: {Minimum: {X: -1.21, Y: -1000.0, Z: -1000.0}, Maximum: {X: -1.19, Y: 1000.0, Z: 1000.0}}
+                                Anchor: null
+                    1c3122c91a7068268045d1955a92f33b: !BepuSoftBodySample.Game.Components.GustyWindComponent,BepuSoftBodySample.Game
+                        Id: 1afbf9b7-bec0-3614-7c99-beeba71ee7c5
+                        Direction: {X: 1.0, Y: 0.0, Z: 0.0}
+                        Speed: 7.0
+                        Gusts: 3.0
+                        Swing: 0.35

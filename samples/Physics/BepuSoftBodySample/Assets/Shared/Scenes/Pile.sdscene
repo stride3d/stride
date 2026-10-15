@@ -1,0 +1,287 @@
+!SceneAsset
+Id: 32c12218-b01d-ab3b-0c1a-f90ff68e50fd
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+ChildrenIds: []
+Offset: {X: 0.0, Y: 0.0, Z: 0.0}
+Hierarchy:
+    RootParts:
+        - ref!! 0da82027-d7a5-ec63-8c12-6ab4f3363557
+        - ref!! 841fa6cd-5d05-a97d-8a07-46964be3319b
+        - ref!! cf855055-98b2-798b-9c87-6b370503423c
+        - ref!! e815c11e-94b4-3a88-48fa-a72b6d2f663f
+        - ref!! 19163253-f872-88a0-4e2e-c025c64b9351
+        - ref!! 9556338e-9c72-3500-fa38-9c72e42f1fe4
+        - ref!! 6e7481aa-b425-861f-7c07-af63f96d5da4
+        - ref!! 8283bc2c-981a-2948-b2c0-f90b4ac4a175
+        - ref!! 9f3b4fa0-d9b4-8d1a-e33c-66b1bd107826
+        - ref!! 8d866da8-8ee3-a7bb-f2e1-9c508fba743c
+        - ref!! 9bd61aa1-1350-983c-848d-a68924af32bd
+    Parts:
+        -   Entity:
+                Id: 0da82027-d7a5-ec63-8c12-6ab4f3363557
+                Name: Camera
+                Components:
+                    d930081a34a5bfa9403630c51410f974: !TransformComponent
+                        Id: 89e28902-cdeb-51b0-7454-31e0b67fb478
+                        Position: {X: 0.0, Y: 5.5, Z: 7.0}
+                        Rotation: {X: -0.291358, Y: 0.0, Z: 0.0, W: 0.956614}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    b60e4d81bac3c9d6d8e926d8da632666: !BepuSoftBodySample.Game.Components.Camera.BasicCameraControllerComponent,BepuSoftBodySample.Game
+                        Id: d86ffb00-b46a-259e-87bd-bc75acb66358
+                        Gamepad: false
+                        KeyboardMovementSpeed: {X: 5.0, Y: 5.0, Z: 5.0}
+                        SpeedFactor: 4.0
+                    019d98ca5a1d0bdb6c968d9ffdd21e68: !BepuSoftBodySample.Game.Components.Camera.FindAndAttachCameraComponent,BepuSoftBodySample.Game
+                        Id: 581f8a4f-75ec-f2ad-a6d3-ee7cf097007d
+                        CameraComponent: null
+        -   Entity:
+                Id: 841fa6cd-5d05-a97d-8a07-46964be3319b
+                Name: Skybox
+                Components:
+                    7a67d9f8fa00e0298c2e15d654ed24b4: !TransformComponent
+                        Id: a064c7ab-2790-cef8-5f8a-a93b3136cfea
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    d19744fd680bce02591f0d69fb211ec4: !BackgroundComponent
+                        Id: e7b92685-4026-a008-35c6-94cc9a6918fb
+                        Texture: 329a39e7-4963-475c-a2c0-bdfc73b5f0d4:Skybox texture
+                        Intensity: 1.0
+                    39a99b445841c12caf2418a1db2191cf: !LightComponent
+                        Id: 05997294-72a9-bcd9-dd2e-b1f8adee653b
+                        Type: !LightSkybox
+                            Skybox: c7a3f3cb-e399-4779-bbbb-a4a2a1e50aa1:Skybox
+                        Intensity: 0.5
+        -   Entity:
+                Id: cf855055-98b2-798b-9c87-6b370503423c
+                Name: Sun
+                Components:
+                    eeec0c505e758c00cfd71a735251f7e9: !TransformComponent
+                        Id: 3edf5114-e79b-cd6f-a82a-5c5993339eb5
+                        Position: {X: 0.0, Y: 5.0, Z: 0.0}
+                        Rotation: {X: -0.397327, Y: 0.209735, Z: 0.093796, W: 0.888451}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    9a21b5049b2ed371b8f106594d96af2c: !LightComponent
+                        Id: 075acdbb-9382-f5dc-b1cc-ea88c41228a3
+                        Type: !LightDirectional
+                            Color: !ColorRgbProvider
+                                Value: {R: 1.0, G: 0.956, B: 0.886}
+                            Shadow:
+                                Enabled: true
+                                Filter: !LightShadowMapFilterTypePcf
+                                    FilterSize: Filter7x7
+                                Size: XLarge
+                                DepthRange: {}
+                                PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
+                                ComputeTransmittance: false
+                                BiasParameters:
+                                    NormalOffsetScale: 20.0
+                        Intensity: 3.0
+        -   Entity:
+                Id: e815c11e-94b4-3a88-48fa-a72b6d2f663f
+                Name: Floor
+                Components:
+                    5f240a1a38d901cd8ca81ff35574d851: !TransformComponent
+                        Id: 1307b12a-5da2-ae9f-9887-72a797521b0d
+                        Position: {X: 0.0, Y: -0.5, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 200.0, Y: 1.0, Z: 200.0}
+                        Children: {}
+                    14a6f6f8d8c470c4338f099dc71ba725: !ModelComponent
+                        Id: 72d39e36-823d-03cf-b2f8-814edf2f0e05
+                        Model: b4d30d41-5492-cf4e-0dae-6c5e5f9387fa:Models/Cube
+                        Materials:
+                            fd6843891b68c34ee37a9b1cadee42b4~0: 6c520bad-a549-71d1-4f29-ec019f3a1fdf:Materials/Floor
+                    dc1730defe7167ec66918d700e1f2107: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
+                        Id: 54f909dc-71ef-2164-ad68-c280711e4fb7
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                e6c850940f8e1eb269bab3cb348186ba: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 200.0, Y: 1.0, Z: 200.0}
+                        FrictionCoefficient: 1.0
+        -   Entity:
+                Id: 19163253-f872-88a0-4e2e-c025c64b9351
+                Name: Scripts
+                Components:
+                    1e5d2c3746d1cc360d4a7232776d2757: !TransformComponent
+                        Id: ad5a9b08-94d9-9538-12ea-7e859e1fc569
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    df97620c2016c903ba8193ef692b63f6: !BepuSoftBodySample.Game.Components.SceneDescriptionComponent,BepuSoftBodySample.Game
+                        Id: f265565f-db14-c0c5-0d98-94a422537deb
+                        Description: 'Very soft balls of jelly pour into a glass bin and fill it like a paste, then a glass piston squeezes them down, over and over.'
+                    fdd4955df8b7c02f4ec7dc2d676f6b97: !BepuSoftBodySample.Game.Components.SoftGravityGunComponent,BepuSoftBodySample.Game
+                        Id: df61a92d-352a-cdff-3936-541896160cd1
+                        CameraEntity: ref!! 0da82027-d7a5-ec63-8c12-6ab4f3363557
+                        MarkerPrefab: 3075790f-ed9d-6dac-f16a-f38a848b055c:Prefabs/Marker
+                        BallPrefab: 93d5a3da-f3a6-2397-f88c-146ee67bac7a:Prefabs/Ball
+                    b0c28b45a9ecc5e9086d5df5ee6c07f5: !BepuSoftBodySample.Game.Components.ParticleViewComponent,BepuSoftBodySample.Game
+                        Id: 5eba9e7a-e630-1584-e964-9e3ade646c02
+                        ParticleMaterial: 3e38fbde-13b9-e3b0-e472-cb12e55512a4:Materials/Particle
+                        PinnedMaterial: 12f5ec95-8de0-100e-ddc7-10bcd7660756:Materials/PinnedParticle
+        -   Entity:
+                Id: 9556338e-9c72-3500-fa38-9c72e42f1fe4
+                Name: Glass left
+                Components:
+                    7eeaeffc8a1dece98173c38ca3ec8494: !TransformComponent
+                        Id: 9bbaae82-ed28-0625-e0e3-0127f15c3f84
+                        Position: {X: -1.6, Y: 0.8, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.1, Y: 1.6, Z: 3.3}
+                        Children: {}
+                    bedb20cde832c90c5682fb542c62124f: !ModelComponent
+                        Id: 56b835d3-473c-94b5-92de-3506cca904e2
+                        Model: b4d30d41-5492-cf4e-0dae-6c5e5f9387fa:Models/Cube
+                        Materials:
+                            dc60473e290778aa78790bee59df34cf~0: cf35995e-630c-3c76-c3fc-3b099981ceef:Materials/Glass
+                    2bcaa3ab48ff60854dc75286746897b2: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
+                        Id: 13798f3f-237e-9c5d-7d8f-da55a4982e38
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                0b72eb1a7de6ef199a0d2b831fbe1e63: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 0.1, Y: 1.6, Z: 3.3}
+                        FrictionCoefficient: 1.0
+        -   Entity:
+                Id: 6e7481aa-b425-861f-7c07-af63f96d5da4
+                Name: Glass right
+                Components:
+                    2e091c53538c1dec7211c046b52a08e3: !TransformComponent
+                        Id: 097cc7dd-1aa3-a27b-75c8-937d592a86a5
+                        Position: {X: 1.6, Y: 0.8, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 0.1, Y: 1.6, Z: 3.3}
+                        Children: {}
+                    91c54008a647ebf29f2f6d95057855e2: !ModelComponent
+                        Id: a89d9824-825c-cf75-0e93-eac17c3a4057
+                        Model: b4d30d41-5492-cf4e-0dae-6c5e5f9387fa:Models/Cube
+                        Materials:
+                            5c8b4433c8ac657467f6eb871ec69d2a~0: cf35995e-630c-3c76-c3fc-3b099981ceef:Materials/Glass
+                    be8db6e8e0fea1f008342b6070edd122: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
+                        Id: 561be313-78a5-ec06-915d-4b00e468c026
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                99f7e10abcbedf39a26ffc9aaf609249: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 0.1, Y: 1.6, Z: 3.3}
+                        FrictionCoefficient: 1.0
+        -   Entity:
+                Id: 8283bc2c-981a-2948-b2c0-f90b4ac4a175
+                Name: Glass back
+                Components:
+                    e21d8342246af86df08f5734137bb895: !TransformComponent
+                        Id: 21f6f2e2-4c21-094a-6fdc-c896c27e6b30
+                        Position: {X: 0.0, Y: 0.8, Z: -1.6}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 3.1, Y: 1.6, Z: 0.1}
+                        Children: {}
+                    418ce36933b53af60be80b4b23e9ed13: !ModelComponent
+                        Id: b38de6a9-fcc8-bf8f-a167-81d0b40c6219
+                        Model: b4d30d41-5492-cf4e-0dae-6c5e5f9387fa:Models/Cube
+                        Materials:
+                            c4ef47d9e909e79851a8a686a12aabfb~0: cf35995e-630c-3c76-c3fc-3b099981ceef:Materials/Glass
+                    31a58aaf4b7f12202ffe5544cce633cf: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
+                        Id: 0de6b37e-ab49-a22b-d081-49c77256452e
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                32d2c8b25c90f5bca85ca2a8580a48cd: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 3.1, Y: 1.6, Z: 0.1}
+                        FrictionCoefficient: 1.0
+        -   Entity:
+                Id: 9f3b4fa0-d9b4-8d1a-e33c-66b1bd107826
+                Name: Glass front
+                Components:
+                    f58296da9a91e2f05e31e4de4c2819bf: !TransformComponent
+                        Id: dd5079b4-727c-5e58-18d8-6189532d9673
+                        Position: {X: 0.0, Y: 0.8, Z: 1.6}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 3.1, Y: 1.6, Z: 0.1}
+                        Children: {}
+                    6e8fe44967697ba65e6c40913e39ef80: !ModelComponent
+                        Id: bbba3961-9da8-453a-46ca-68894745da82
+                        Model: b4d30d41-5492-cf4e-0dae-6c5e5f9387fa:Models/Cube
+                        Materials:
+                            72e5b96c31eb7c34d5fae9b5d4c75d01~0: cf35995e-630c-3c76-c3fc-3b099981ceef:Materials/Glass
+                    88361882efdd54551f55eda12b8eb75a: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
+                        Id: 004fb7bc-3718-287e-7e86-6f18f03dea16
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                4049d7bb2765575522f3f9b37606b575: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 3.1, Y: 1.6, Z: 0.1}
+                        FrictionCoefficient: 1.0
+        -   Entity:
+                Id: 8d866da8-8ee3-a7bb-f2e1-9c508fba743c
+                Name: Glass piston
+                Components:
+                    7e4f116ba15e87cb1cbef72e1103a9db: !TransformComponent
+                        Id: 5447f14a-5f78-5f13-255c-91c385b2c2b0
+                        Position: {X: 0.0, Y: 4.6, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 2.9, Y: 0.2, Z: 2.9}
+                        Children: {}
+                    ed213ae3a60c49ffce7c633cdfd6c042: !ModelComponent
+                        Id: 3e4cf453-017c-3d39-27a1-bfa55e82a08e
+                        Model: b4d30d41-5492-cf4e-0dae-6c5e5f9387fa:Models/Cube
+                        Materials:
+                            fa8bef22c9cd27e95ef1bc8c116cf4c2~0: cf35995e-630c-3c76-c3fc-3b099981ceef:Materials/Glass
+                    32d9ea5d9bf077a8cf66a1fa4fb021be: !Stride.BepuPhysics.BodyComponent,Stride.BepuPhysics
+                        Id: c7c2e4c4-53c7-b922-758f-8d28e042dd92
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                e82e433bea2091ae731da22662f07597: !Stride.BepuPhysics.Definitions.Colliders.BoxCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Size: {X: 2.9, Y: 0.2, Z: 2.9}
+                        Kinematic: true
+                        Gravity: false
+                    53282d3e96cf6eb544da52038f487f0b: !BepuSoftBodySample.Game.Components.PistonComponent,BepuSoftBodySample.Game
+                        Id: de404964-2c99-1e0d-7df4-42cd7a15daf8
+                        Stroke: 3.95
+                        StartDelay: 4.0
+                        TravelTime: 3.0
+                        HoldTime: 1.5
+                        RestTime: 1.5
+        -   Entity:
+                Id: 9bd61aa1-1350-983c-848d-a68924af32bd
+                Name: Spawner
+                Components:
+                    6a8f10b7a063589de515c50ae2881dfc: !TransformComponent
+                        Id: 5d2d4eef-d914-acbc-78c1-e4e51d01c2ad
+                        Position: {X: 0.0, Y: 3.4, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    e1ba14539af0f9c7fc401cdf09d7d141: !BepuSoftBodySample.Game.Components.SoftSpawnerComponent,BepuSoftBodySample.Game
+                        Id: e6d0d886-2891-8bb9-477c-8b790049de5e
+                        Prefab: 1fd1d4a5-70b9-3e7e-b2c3-8a113aa36e62:Prefabs/JellyBall
+                        Materials:
+                            5202dea8cf9ec6ba39324671566e98c8: a0d98ab3-bb3c-8e29-140a-471a886409b1:Materials/Strawberry
+                            bbc45fbd7e9a363ccdfd51bc4528979c: ef84157c-df9e-8802-e426-06e1ef9a01e3:Materials/Lime
+                            36945b47b35fbff0ef1a1749769e70b9: a6ac4738-3401-9edf-d11e-4fad889b46bd:Materials/Orange
+                            219b63cb4140aca2c5347916c16e31b4: f45d72b9-de30-aad1-56a6-55433d7cd194:Materials/Blueberry
+                            7df3b1c3007fcde3d6e84ba09023bfc8: 1edb4d5d-f782-54da-8766-dda3e45abfee:Materials/Grape
+                            b67fe7770ea59573d61343d108961710: d8fa4837-ac2b-0f0c-2351-343646594e50:Materials/Lemon
+                        Count: 22
+                        Interval: 0.12
+                        Spread: {X: 2.0, Y: 1.0, Z: 2.0}
+                        MaximumScale: 1.25
