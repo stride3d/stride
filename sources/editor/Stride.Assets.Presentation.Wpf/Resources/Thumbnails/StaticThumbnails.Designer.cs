@@ -129,35 +129,5 @@ namespace Stride.Assets.Presentation.Resources.Thumbnails {
                 return ((byte[])(obj));
             }
         }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        public static byte[] SoundThumbnail {
-            get {
-                object obj = ResourceManager.GetObject("SoundThumbnail", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        public static byte[] UILibraryThumbnail {
-            get {
-                object obj = ResourceManager.GetObject("UILibraryThumbnail", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        public static byte[] VideoThumbnail {
-            get {
-                object obj = ResourceManager.GetObject("VideoThumbnail", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
     }
 }

@@ -5,6 +5,7 @@ namespace Stride.Editor.Preview.View
     /// <summary>
     /// An interface that represents the view of a preview.
     /// </summary>
+    [Stride.Core.Reflection.AssemblyScan]
     public interface IPreviewView
     {
         /// <summary>

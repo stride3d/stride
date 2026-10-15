@@ -12,7 +12,7 @@ flowchart TD
     Setup["StrideSetup.exe<br/>Advanced Installer bundle<br/>sources/launcher/Setup/"]
     Prereq["launcher-prerequisites.exe<br/>sources/launcher/Prerequisites/"]
     Exe["Stride.Launcher.exe<br/>Avalonia MVVM app<br/>sources/launcher/Stride.Launcher/"]
-    NuGet["NuGet feed<br/>(packages.stride3d.net, nuget.org)"]
+    NuGet["NuGet feed<br/>(nuget.org)"]
     Store["NugetStore<br/>sources/assets/Stride.Core.Packages/"]
     GS["Stride.GameStudio<br/>(selected version)"]
 

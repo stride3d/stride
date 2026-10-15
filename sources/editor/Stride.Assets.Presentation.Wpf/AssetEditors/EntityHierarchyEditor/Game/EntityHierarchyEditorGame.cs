@@ -14,16 +14,15 @@ using Stride.Core.Yaml;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
 using Stride.Assets.Presentation.AssetEditors.Gizmos;
 using Stride.Assets.Presentation.SceneEditor;
+using Stride.Assets.Rendering;
 using Stride.Editor.EditorGame.Game;
 using Stride.Editor.Extensions;
 using Stride.Engine;
 using Stride.Engine.Design;
 using Stride.Games;
-using Stride.Physics;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
 using Stride.Rendering.Lights;
-using Stride.Rendering.UI;
 using Stride.Shaders.Compiler;
 using StrideEffects;
 
@@ -131,8 +130,12 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
         /// This method must be called only once.
         /// </remarks>
         /// <seealso cref="EnsureContentScene"/>
-        internal void InitializeContentScene()
+        /// <exception cref="InvalidOperationException">The content scene is already initialized.</exception>
+        public void InitializeContentScene()
         {
+            if (ContentScene != null)
+                throw new InvalidOperationException($"The {nameof(ContentScene)} is already initialized.");
+
             var contentScene = new Scene();
             ContentScene = contentScene;
             // Setup the scene for the game
@@ -210,11 +213,6 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                     }
                 };
             }
-
-            //init physics system
-            var physicsSystem = new Bullet2PhysicsSystem(Services);
-            Services.AddService<IPhysicsSystem>(physicsSystem);
-            GameSystems.Add(physicsSystem);
         }
 
         /// <inheritdoc />
@@ -255,19 +253,10 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             // TODO: Maybe define this scene default graphics compositor as an asset?
             var defaultGraphicsCompositor = GraphicsCompositorHelper.CreateDefault(true, EditorGraphicsCompositorHelper.EditorForwardShadingEffect);
 
-            // Add UI (engine doesn't depend on it)
-            defaultGraphicsCompositor.RenderFeatures.Add(new UIRenderFeature
-            {
-                RenderStageSelectors =
-                {
-                    new SimpleGroupToRenderStageSelector
-                    {
-                        RenderStage = defaultGraphicsCompositor.RenderStages.First(x => x.Name == "Transparent"),
-                        EffectName = "Test",
-                        RenderGroup = GizmoBase.DefaultGroupMask
-                    }
-                }
-            });
+            // The render features the loaded packages bring (IRenderFeatureProvider, e.g. UI), as in previews and thumbnails
+            var opaqueStage = defaultGraphicsCompositor.RenderStages.First(x => x.Name == "Opaque");
+            var transparentStage = defaultGraphicsCompositor.RenderStages.First(x => x.Name == "Transparent");
+            RenderFeatureProviders.AddPackageRenderFeatures(defaultGraphicsCompositor, opaqueStage, transparentStage);
 
             // Make the game switch to this graphics compositor
             UpdateGraphicsCompositor(defaultGraphicsCompositor);

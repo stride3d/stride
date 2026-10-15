@@ -24,6 +24,7 @@ using Stride.Rendering.Compositing;
 
 namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
 {
+    [EditorGameService(typeof(EntityHierarchyEditorController), Order = 210)]
     public class EditorGameEntityTransformService : EditorGameMouseServiceBase, IEditorGameEntityTransformViewModelService
     {
         private readonly List<TransformationGizmo> transformationGizmos = new List<TransformationGizmo>();
@@ -172,9 +173,11 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             meshRenderFeature.PipelineProcessors.Add(new MeshPipelineProcessor { TransparentRenderStage = transformTransparentGizmoRenderStage });
 
             var editorCompositor = (EditorTopLevelCompositor)game.EditorSceneSystem.GraphicsCompositor.Game;
-            editorCompositor.PostGizmoCompositors.Add(new ClearRenderer { ClearFlags = ClearRendererFlags.DepthOnly });
-            editorCompositor.PostGizmoCompositors.Add(new SingleStageRenderer { RenderStage = transformMainGizmoRenderStage, Name = "Transform Opaque Gizmos" });
-            editorCompositor.PostGizmoCompositors.Add(new SingleStageRenderer { RenderStage = transformTransparentGizmoRenderStage, Name = "Transform Transparent Gizmos" });
+            editorCompositor.AddOverlayGizmoCompositor(new SceneRendererCollection
+            {
+                new SingleStageRenderer { RenderStage = transformMainGizmoRenderStage, Name = "Transform Opaque Gizmos" },
+                new SingleStageRenderer { RenderStage = transformTransparentGizmoRenderStage, Name = "Transform Transparent Gizmos" },
+            }, EditorTopLevelCompositor.TopmostOverlayGizmoLayer);
 
             TranslationGizmo = new TranslationGizmo();
             RotationGizmo = new RotationGizmo();

@@ -11,9 +11,10 @@ namespace Stride.Assets.Templates;
 
 /// <summary>
 /// Bootstraps the editor-internal template registry (asset / script / project-modification .sdtpl
-/// files in Stride.Assets.Presentation + Stride.SpriteStudio.Offline, plus the dotnet new project
-/// templates from Stride.Templates.*). Non-WPF entry point — callable from headless test runners
-/// without pulling Stride.Assets.Presentation (and its WPF dependency tree) into the consumer.
+/// files in Stride.Assets.Presentation.Wpf, plus the dotnet new project templates from Stride.Templates.*;
+/// a package's own templates come with its Assets companion). Non-WPF entry point — callable from
+/// headless test runners without pulling Stride.Assets.Presentation.Wpf (and its WPF dependency tree)
+/// into the consumer.
 /// </summary>
 public static class StrideDefaultTemplates
 {
@@ -28,7 +29,7 @@ public static class StrideDefaultTemplates
         // Only TemplateFolders are needed here (loaded regardless of this flag); skip the package's
         // assets — they're unused for template registration and slow to load.
         var loadParams = new PackageLoadParameters { LoadAssemblyReferences = loadAssemblyReferences, AutoLoadTemporaryAssets = false };
-        foreach (var packageInfo in new[] { new { Name = "Stride.Assets.Presentation.Wpf", Version = StrideVersion.NuGetVersion }, new { Name = "Stride.SpriteStudio.Offline", Version = StrideVersion.NuGetVersion } })
+        foreach (var packageInfo in new[] { new { Name = "Stride.Assets.Presentation.Wpf", Version = StrideVersion.NuGetVersion } })
         {
             var logger = new LoggerResult();
             var packageFile = PackageStore.Instance.GetPackageFileName(packageInfo.Name, new PackageVersionRange(new PackageVersion(packageInfo.Version)));

@@ -5,7 +5,16 @@
     <TargetFrameworks>$(StrideRuntimeTargetFrameworks)</TargetFrameworks>
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StridePackAssets>true</StridePackAssets>
+    <!-- The renderers and the volume component are written in compositor and scene assets -->
+    <StrideContainsAssetTypes>true</StrideContainsAssetTypes>
   </PropertyGroup>
+  <ItemGroup>
+    <!-- Companion package: the volume gizmo and entity factories in .Editor (no asset types, so no .Assets) -->
+    <StrideCompanionProject Include="..\Stride.Voxels.Editor\Stride.Voxels.Editor.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Templates\Assets\**" />
+  </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>

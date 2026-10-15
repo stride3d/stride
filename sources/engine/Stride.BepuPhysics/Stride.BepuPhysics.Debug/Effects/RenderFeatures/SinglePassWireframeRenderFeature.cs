@@ -10,11 +10,13 @@ using Stride.Rendering;
 
 namespace Stride.BepuPhysics.Debug.Effects.RenderFeatures;
 
+/// <summary>
+/// Draws <see cref="WireFrameRenderObject"/>s as wireframes, in the render stages picked by <see cref="RootRenderFeature.RenderStageSelectors"/>.
+/// </summary>
 public class SinglePassWireframeRenderFeature : RootRenderFeature
 {
     private DynamicEffectInstance _shader = null!;
     private MutablePipelineState _pipelineState = null!;
-    private readonly List<WireFrameRenderObject> _wireframes = new();
 
     [DataMember(0)]
     public bool Enable = true;
@@ -27,7 +29,7 @@ public class SinglePassWireframeRenderFeature : RootRenderFeature
 
     public SinglePassWireframeRenderFeature()
     {
-        SortKey = 255;
+        SortKey = 254; // Below LineRenderFeature, so contacts are drawn over the wireframes
     }
 
     protected override void InitializeCore()
@@ -46,18 +48,6 @@ public class SinglePassWireframeRenderFeature : RootRenderFeature
         _pipelineState.State.RasterizerState.CullMode = CullMode.None;
     }
 
-    protected override void OnAddRenderObject(RenderObject renderObject)
-    {
-        base.OnAddRenderObject(renderObject);
-        _wireframes.Add((WireFrameRenderObject)renderObject);
-    }
-
-    protected override void OnRemoveRenderObject(RenderObject renderObject)
-    {
-        base.OnRemoveRenderObject(renderObject);
-        _wireframes.Remove((WireFrameRenderObject)renderObject);
-    }
-
     public override void Prepare(RenderDrawContext context)
     {
         base.Prepare(context);
@@ -68,17 +58,21 @@ public class SinglePassWireframeRenderFeature : RootRenderFeature
         Enable = enable;
     }
 
-    public override void Draw(RenderDrawContext context, RenderView renderView, RenderViewStage renderViewStage)
+    public override void Draw(RenderDrawContext context, RenderView renderView, RenderViewStage renderViewStage, int startIndex, int endIndex)
     {
-        if (!Enable) return;
+        if (!Enable || startIndex == endIndex) return;
 
         _shader.UpdateEffect(context.GraphicsDevice);
         _shader.Parameters.Set(TransformationKeys.WorldScale, new Vector3(1.002f));
-        _shader.Parameters.Set(SinglePassWireframeShaderKeys.Viewport, new Vector4(context.RenderContext.RenderView.ViewSize, 0, 0));
+        // The bound viewport rather than the view size, so edges line up with SV_Position when the view is offset (VR eye, letterboxing)
+        var viewport = context.CommandList.Viewport;
+        _shader.Parameters.Set(SinglePassWireframeShaderKeys.Viewport, new Vector4(viewport.Width, viewport.Height, viewport.X, viewport.Y));
         _shader.Parameters.Set(SinglePassWireframeShaderKeys.LineWidth, LineWidth);
 
-        foreach (var myRenderObject in _wireframes)
+        for (int index = startIndex; index < endIndex; index++)
         {
+            var myRenderObject = (WireFrameRenderObject)GetRenderNode(renderViewStage.SortedRenderNodes[index].RenderNode).RenderObject;
+
             // set shader parameters
             _shader.Parameters.Set(TransformationKeys.WorldViewProjection, myRenderObject.WorldMatrix * renderView.ViewProjection); // matrix
             _shader.Parameters.Set(SinglePassWireframeShaderKeys.LineColor, (Vector3)myRenderObject.Color);

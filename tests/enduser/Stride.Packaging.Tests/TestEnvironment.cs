@@ -9,6 +9,7 @@ using Stride.Core.Assets;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Samples.Generator;
+using Xunit.Abstractions;
 
 namespace Stride.Packaging.Tests;
 
@@ -80,6 +81,28 @@ internal static class TestEnvironment
                 file.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}"))
                 continue;
             File.Copy(file, file.Replace(source, dest), overwrite: true);
+        }
+    }
+
+    /// <summary>
+    /// Deletes a case's temp tree once the case is done: each holds its own NuGet restore (well over 1 GB), so
+    /// a full run would fill a CI runner's disk. Set STRIDE_KEEP_TEST_DIRS to keep them for a look after the run.
+    /// </summary>
+    public static void DeleteCaseDirectory(string caseDir, ITestOutputHelper? output = null)
+    {
+        if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("STRIDE_KEEP_TEST_DIRS")) || !Directory.Exists(caseDir))
+            return;
+        try
+        {
+            // Extracted packages can hold read-only files
+            foreach (var file in Directory.EnumerateFiles(caseDir, "*", SearchOption.AllDirectories))
+                File.SetAttributes(file, FileAttributes.Normal);
+            Directory.Delete(caseDir, recursive: true);
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            // A file still in use (a build server): left for the OS temp cleanup
+            output?.WriteLine($"Could not delete [{caseDir}]: {e.Message}");
         }
     }
 

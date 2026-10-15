@@ -1169,6 +1169,8 @@ namespace Stride.Graphics
             }
             else if (source is Buffer sourceBuffer && destination is Buffer destinationBuffer)
             {
+                CleanupRenderPass();
+
                 var bufferBarriers = stackalloc VkBufferMemoryBarrier[2];
                 bufferBarriers[0] = new VkBufferMemoryBarrier(sourceBuffer.NativeBuffer, sourceBuffer.NativeAccessMask, VkAccessFlags.TransferRead);
                 bufferBarriers[1] = new VkBufferMemoryBarrier(destinationBuffer.NativeBuffer, destinationBuffer.NativeAccessMask, VkAccessFlags.TransferWrite);
@@ -1202,9 +1204,33 @@ namespace Stride.Graphics
             }
         }
 
-        public void CopyMultisample(Texture sourceMultisampleTexture, int sourceSubResource, Texture destTexture, int destSubResource, PixelFormat format = PixelFormat.None)
+        /// <remarks>
+        ///   Vulkan resolves between images of the same format: <paramref name="format"/> is ignored.
+        /// </remarks>
+        public unsafe void CopyMultisample(Texture sourceMultisampleTexture, int sourceSubResource, Texture destTexture, int destSubResource, PixelFormat format = PixelFormat.None)
         {
-            throw new NotImplementedException();
+            ArgumentNullException.ThrowIfNull(sourceMultisampleTexture);
+            ArgumentNullException.ThrowIfNull(destTexture);
+
+            RecordDebugCounter(DebugCounterKind.Copy);
+
+            if (!sourceMultisampleTexture.IsMultiSampled)
+                throw new ArgumentException("Source Texture is not a MSAA Texture", nameof(sourceMultisampleTexture));
+
+            ResourceBarrierTransition(sourceMultisampleTexture, BarrierLayout.ResolveSource);
+            ResourceBarrierTransition(destTexture, BarrierLayout.ResolveDest);
+            CleanupRenderPass();
+
+            var source = sourceMultisampleTexture.ParentTexture ?? sourceMultisampleTexture;
+            var destination = destTexture.ParentTexture ?? destTexture;
+            var mipLevel = destSubResource % destination.MipLevelCount;
+            var region = new VkImageResolve
+            {
+                srcSubresource = GetSubresourceLayers(source, source.NativeImageAspect, sourceSubResource),
+                dstSubresource = GetSubresourceLayers(destination, destination.NativeImageAspect, destSubResource),
+                extent = new VkExtent3D(Texture.CalculateMipSize(destination.Width, mipLevel), Texture.CalculateMipSize(destination.Height, mipLevel), 1),
+            };
+            GraphicsDevice.NativeDeviceApi.vkCmdResolveImage(currentCommandList.NativeCommandBuffer, source.NativeImage, VkImageLayout.TransferSrcOptimal, destination.NativeImage, VkImageLayout.TransferDstOptimal, regionCount: 1, &region);
         }
 
         /// <summary>

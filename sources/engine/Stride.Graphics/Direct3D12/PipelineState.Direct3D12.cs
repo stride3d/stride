@@ -226,8 +226,8 @@ namespace Stride.Graphics
                     // TODO: D3D12: Hardcoded Stream-Output in PipelineState
                     StreamOutput = new StreamOutputDesc(),
                     PrimitiveTopologyType = GetPrimitiveTopologyType(pipelineStateDescription.PrimitiveType),
-                    // TODO: D3D12: Hardcoded no Multi-Sampling in PipelineState
-                    SampleDesc = new SampleDesc(1, 0)
+                    // The sample count of the render targets (MultisampleCount.None = 1)
+                    SampleDesc = new SampleDesc((uint)Math.Max((int)pipelineStateDescription.Output.MultisampleCount, 1), 0)
                 };
 
                 // Disable Depth Buffer if no format specified

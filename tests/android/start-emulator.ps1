@@ -30,9 +30,14 @@ $isWin = [System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform([Syst
 # loader at it. The package must already be restored — running `dotnet restore` on the
 # main solution at least once populates ~/.nuget/packages.
 $homeDir = if ($env:USERPROFILE) { $env:USERPROFILE } else { $HOME }
-$nupkgRoot = [IO.Path]::Combine($homeDir, ".nuget", "packages", "stride.dependencies.lavapipe")
-if (-not (Test-Path $nupkgRoot)) {
-    Write-Error "Lavapipe NuGet package not found under $nupkgRoot. Run 'dotnet restore' first."
+# The version the repo pins, as CI uses; the NuGet cache can hold older ones.
+$packagesProps = [IO.Path]::Combine($PSScriptRoot, "..", "..", "sources", "Directory.Packages.props")
+$lavapipeVersion = ([xml](Get-Content $packagesProps)).Project.ItemGroup.PackageVersion |
+    Where-Object { $_.Include -eq "Stride.Dependencies.Lavapipe" } |
+    Select-Object -ExpandProperty Version -First 1
+$nupkgRoot = [IO.Path]::Combine($homeDir, ".nuget", "packages", "stride.dependencies.lavapipe", $lavapipeVersion)
+if (-not $lavapipeVersion -or -not (Test-Path $nupkgRoot)) {
+    Write-Error "Lavapipe NuGet package $lavapipeVersion not found under $nupkgRoot. Run 'dotnet restore' first."
     exit 1
 }
 # Linux uses the no-dma_buf Lavapipe variant (runtimes/linux-x64-nodmabuf/native/): gfxstream
@@ -110,6 +115,8 @@ if ($isWin) {
 } else {
     $emuArgs += "-gpu", "host", "-feature", "ForceGpuHost"
 }
+# Linux: no crashpad, so an emulator crash leaves a core dump for emulator-crash-capture.sh.
+if ($IsLinux) { $emuArgs += "-crash-report-mode", "disabled" }
 if (-not $Window) { $emuArgs += "-no-window" }
 
 Write-Host "VK_DRIVER_FILES=$($env:VK_DRIVER_FILES)"

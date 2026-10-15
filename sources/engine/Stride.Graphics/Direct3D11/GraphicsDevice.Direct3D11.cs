@@ -24,8 +24,6 @@ namespace Stride.Graphics
 {
     public unsafe partial class GraphicsDevice
     {
-        private static readonly Logger Log = GlobalLogger.GetLogger(nameof(GraphicsDevice));
-
         internal readonly int ConstantBufferDataPlacementAlignment = 16;
 
         private const GraphicsPlatform GraphicPlatform = GraphicsPlatform.Direct3D11;

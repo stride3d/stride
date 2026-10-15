@@ -11,7 +11,6 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Stride.Engine" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Rendering " + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Graphics" + Stride.PublicKeys.Default)]
-[assembly: InternalsVisibleTo("Stride.Audio" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Games" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Graphics.Regression" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Graphics.Tests" + Stride.PublicKeys.Default)]

@@ -2,14 +2,17 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
-using Stride.Audio;
 using Stride.Core;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Mathematics;
+using Stride.Core.Reflection;
 using Stride.Core.Storage;
 using Stride.Engine.Design;
 using Stride.Engine.Processors;
@@ -45,6 +48,8 @@ namespace Stride.Engine
         private readonly GameFontSystem gameFontSystem;
 
         private readonly LogListener logListener;
+
+        private readonly List<GameSystemBase> declaredSystems = new List<GameSystemBase>();
 
         private DatabaseFileProvider databaseFileProvider;
 
@@ -90,12 +95,6 @@ namespace Stride.Engine
         /// </summary>
         /// <value>The streaming system.</value>
         public StreamingManager Streaming { get; }
-
-        /// <summary>
-        /// Gets the audio system.
-        /// </summary>
-        /// <value>The audio.</value>
-        public AudioSystem Audio { get; }
 
         /// <summary>
         /// Gets the sprite animation system.
@@ -206,10 +205,6 @@ namespace Stride.Engine
 
             Streaming = new StreamingManager(Services);
 
-            Audio = new AudioSystem(Services);
-            Services.AddService(Audio);
-            Services.AddService<IAudioEngineProvider>(Audio);
-
             gameFontSystem = new GameFontSystem(Services);
             Services.AddService(gameFontSystem.FontSystem);
             Services.AddService<IFontFactory>(gameFontSystem.FontSystem);
@@ -225,6 +220,9 @@ namespace Stride.Engine
 
             VRDeviceSystem = new VRDeviceSystem(Services);
             Services.AddService(VRDeviceSystem);
+
+            // The systems the loaded packages declare (audio, ...): created now so their services exist, added in Initialize
+            CreateDeclaredGameSystems();
 
             // Creates the graphics device manager
             GraphicsDeviceManager = new GraphicsDeviceManager(this);
@@ -391,16 +389,59 @@ namespace Stride.Engine
             GameSystems.Add(Streaming);
             GameSystems.Add(SceneSystem);
 
-            // Add the Audio System
-            GameSystems.Add(Audio);
-
             // Add the VR System
             GameSystems.Add(VRDeviceSystem);
+
+            // Add the systems the loaded packages declare (audio, ...), after the engine's own
+            foreach (var system in declaredSystems)
+                GameSystems.Add(system);
 
             // TODO: data-driven?
             Content.Serializer.RegisterSerializer(new ImageSerializer());
 
             OnGameStarted(this);
+        }
+
+        /// <summary>
+        /// Whether this game runs inside the editor (scene, prefab and preview games): it creates only the declared
+        /// systems that ask for it (<see cref="GameSystemAttribute.Editor"/>). Read in the constructor, so an override
+        /// returns a constant.
+        /// </summary>
+        protected virtual bool IsEditorGame => false;
+
+        /// <summary>
+        /// Creates the systems marked <see cref="GameSystemAttribute"/> in the assemblies registered when the game is
+        /// created (from the assembly processor's scan index) and registers their services.
+        /// </summary>
+        private void CreateDeclaredGameSystems()
+        {
+            // In a fixed order (assembly, then type name), whatever the order the assemblies registered in
+            foreach (var assembly in AssemblyRegistry.FindAll().OrderBy(x => x.FullName, StringComparer.Ordinal))
+            {
+                if (AssemblyRegistry.GetScanTypes(assembly)?.Types.TryGetValue(typeof(GameSystemAttribute), out var systemTypes) != true)
+                    continue;
+
+                foreach (var systemType in systemTypes.OrderBy(x => x.FullName, StringComparer.Ordinal))
+                {
+                    if (systemType.IsAbstract || declaredSystems.Any(x => x.GetType() == systemType))
+                        continue;
+                    if (IsEditorGame && systemType.GetCustomAttribute<GameSystemAttribute>(inherit: false)?.Editor != true)
+                        continue;
+
+                    GameSystemBase system;
+                    try
+                    {
+                        system = (GameSystemBase)Activator.CreateInstance(systemType, Services);
+                    }
+                    catch (Exception e)
+                    {
+                        throw new InvalidOperationException($"Could not create the game system [{systemType}] declared with [GameSystem]", e is TargetInvocationException { InnerException: { } inner } ? inner : e);
+                    }
+
+                    Services.AddService(systemType, system);
+                    declaredSystems.Add(system);
+                }
+            }
         }
 
         /// <summary>

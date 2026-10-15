@@ -22,25 +22,20 @@ namespace Stride.Assets.Presentation.Templates
             // AddLibraryGenerator registered after DotNetNew so it takes precedence for stride-library
             // templates (TemplateManager iterates most-recent-first).
             QuantumTemplateRegistration.Register(new AddLibraryGenerator(new WpfAddLibraryParameterPrompt()));
+            QuantumTemplateRegistration.Register(new AddPluginGenerator(new WpfAddPluginParameterPrompt()));
             TemplateManager.Register(new UpdatePlatformsGenerator(new WpfUpdatePlatformsParameterPrompt()));
             RegisterUpdatePlatformsDescription();
             TemplateManager.Register(AssetFactoryTemplateGenerator.Default);
             TemplateManager.Register(AssetFromFileTemplateGenerator.Default);
             // Specific asset templates must be registered after AssetFactoryTemplateGenerator
-            TemplateManager.Register(HeightmapFactoryTemplateGenerator.Default);
-            TemplateManager.Register(ColliderShapeHullFactoryTemplateGenerator.Default);
-            TemplateManager.Register(ColliderShapeStaticMeshFactoryTemplateGenerator.Default);
-            TemplateManager.Register(HullAssetFactoryTemplateGenerator.Default);
             TemplateManager.Register(ProceduralModelFactoryTemplateGenerator.Default);
             TemplateManager.Register(SkyboxFactoryTemplateGenerator.Default);
-            TemplateManager.Register(GraphicsCompositorTemplateGenerator.Default);
+            TemplateManager.Register(DerivedAssetTemplateGenerator.Default);
             TemplateManager.Register(ScriptTemplateGenerator.Default);
             TemplateManager.Register(SpriteSheetFromFileTemplateGenerator.Default);
             TemplateManager.Register(ModelFromFileTemplateGenerator.Default);
             TemplateManager.Register(SkeletonFromFileTemplateGenerator.Default);
             TemplateManager.Register(AnimationFromFileTemplateGenerator.Default);
-            TemplateManager.Register(VideoFromFileTemplateGenerator.Default);
-            TemplateManager.Register(SoundFromFileTemplateGenerator.Default);
         }
 
         /// <summary>

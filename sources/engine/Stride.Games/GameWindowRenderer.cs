@@ -273,7 +273,7 @@ namespace Stride.Games
             {
                 savedPresenter = GraphicsDevice.Presenter;
 
-                if (!CreateOrUpdatePresenter())
+                if (!CreateOrUpdatePresenter() || !Presenter.CanPresentFrame())
                 {
                     beginDrawOk = false;
                     return false;

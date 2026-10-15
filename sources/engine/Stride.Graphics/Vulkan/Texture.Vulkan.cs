@@ -246,7 +246,8 @@ namespace Stride.Graphics
                 arrayLayers = (uint) ArraySize,
                 extent = new VkExtent3D(Width, Height, Depth),
                 mipLevels = (uint) MipLevelCount,
-                samples = VkSampleCountFlags.Count1,
+                // MultisampleCount values are the sample counts, as the VkSampleCountFlags bits (None = 1, unset = 0)
+                samples = (VkSampleCountFlags) Math.Max((int) MultisampleCount, 1),
                 format = NativeFormat,
                 flags = VkImageCreateFlags.None,
                 tiling = VkImageTiling.Optimal,
@@ -288,7 +289,7 @@ namespace Stride.Graphics
             var memoryProperties = VkMemoryPropertyFlags.DeviceLocal;
 
             // Create native image
-            // TODO: Multisampling, flags, usage, etc.
+            // TODO: flags, usage, etc.
             GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreateImage(GraphicsDevice.NativeDevice, &createInfo, allocator: null, out NativeImage));
 
             // Allocate and bind memory
@@ -509,9 +510,6 @@ namespace Stride.Graphics
                 // For shader resource views, use only the depth aspect (not stencil) when sampling depth-stencil textures
                 subresourceRange = new VkImageSubresourceRange(HasStencil ? VkImageAspectFlags.Depth : NativeImageAspect, (uint) mipIndex, (uint) mipCount, (uint) arrayOrDepthSlice, (uint) layerCount)
             };
-
-            if (IsMultiSampled)
-                throw new NotImplementedException();
 
             if (IsMultiSampled && Dimension != TextureDimension.Texture2D)
                 throw new NotSupportedException("Multisample is only supported for 2D Textures");

@@ -43,6 +43,8 @@ namespace Stride.Core.Assets.Editor.ViewModel
         public static string StorePackageCategoryName = Tr._("External packages");
         public static string LocalPackageCategoryName = Tr._("Local packages");
         public const string SolutionExtension = ".slnx";
+        /// <summary>The UI toolkit of this editor; only the Editor companion packages for it are loaded.</summary>
+        public const string EditorToolkitName = EditorToolkits.Wpf;
         public const int SaveIrreversibleSourceFileOperationsMessageCount = 5;
 
         private readonly IUndoRedoService undoRedoService;
@@ -236,6 +238,14 @@ namespace Stride.Core.Assets.Editor.ViewModel
         public event EventHandler<ActiveAssetsChangedArgs> ActiveAssetsChanged;
 
         /// <summary>
+        /// Raised when the asset types and templates of the session may have changed (packages or asset assemblies changed).
+        /// </summary>
+        public event EventHandler AssetTypesChanged;
+
+        // Non-zero while a raise is scheduled
+        private int assetTypesChangedPending;
+
+        /// <summary>
         /// Gets whether the session is currently in a special context to fix up assets.
         /// </summary>
         /// <seealso cref="CreateAssetFixupContext"/>
@@ -266,7 +276,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         public static async Task<SessionViewModel> CreateNewSession(EditorViewModel editor, IViewModelServiceProvider serviceProvider, NewSessionParameters newSessionParameters)
         {
             var loggerResult = new LoggerResult();
-            var session = new PackageSession();
+            var session = new PackageSession { LoadEditorPackages = true, EditorToolkit = EditorToolkitName };
 
             var workProgress = new WorkProgressViewModel(serviceProvider, loggerResult)
             {
@@ -485,6 +495,10 @@ namespace Stride.Core.Assets.Editor.ViewModel
             {
                 CancelToken = cancellationSource.Token,
                 BackupBeforeUpgrade = true,
+                LoadEditorPackages = true,
+                EditorToolkit = EditorToolkitName,
+                // An asset of a missing plugin stays in the session as an unloadable asset
+                LoadAssetsOfUnknownType = true,
             };
             var backupChoiceMade = false;
             loadParameters.PackageUpgradeRequested = (package, pendingUpgrades) =>
@@ -539,6 +553,8 @@ namespace Stride.Core.Assets.Editor.ViewModel
             // Unregister collection
             ServiceProvider.Get<SelectionService>().UnregisterSelectionScope(ActiveAssetView.SelectedContent);
             ActiveAssetView.SelectedAssets.CollectionChanged -= SelectedAssetsCollectionChanged;
+            Core.Reflection.AssemblyRegistry.AssemblyRegistered -= AssetAssembliesChanged;
+            Core.Reflection.AssemblyRegistry.AssemblyUnregistered -= AssetAssembliesChanged;
 
             base.Destroy();
         }
@@ -638,6 +654,9 @@ namespace Stride.Core.Assets.Editor.ViewModel
             packageCategories.Add(StorePackageCategoryName, new PackageCategoryViewModel(StorePackageCategoryName, this));
             UpdatePackageViewModel = new UpdatePackageTemplateCollectionViewModel(this);
             LocalPackages.CollectionChanged += LocalPackagesCollectionChanged;
+            // Asset assemblies add or remove asset types
+            Core.Reflection.AssemblyRegistry.AssemblyRegistered += AssetAssembliesChanged;
+            Core.Reflection.AssemblyRegistry.AssemblyUnregistered += AssetAssembliesChanged;
 
             // Initialize commands
             SaveSessionCommand = new AnonymousTaskCommand(ServiceProvider, SaveSession);
@@ -1359,6 +1378,32 @@ namespace Stride.Core.Assets.Editor.ViewModel
             // The root-asset menu lists the local packages
             if (ActiveAssetView != null)
                 RefreshRootAssetSelection();
+
+            // A package brings its own asset templates
+            RaiseAssetTypesChanged();
+        }
+
+        /// <summary>
+        /// Raises <see cref="AssetTypesChanged"/> once for a burst of asset assembly changes, such as an assembly reload.
+        /// </summary>
+        private void AssetAssembliesChanged(object sender, Core.Reflection.AssemblyRegisteredEventArgs e)
+        {
+            if (!e.Categories.Contains(Core.Reflection.AssemblyCommonCategories.Assets))
+                return;
+
+            if (Interlocked.Exchange(ref assetTypesChangedPending, 1) != 0)
+                return;
+
+            Dispatcher.InvokeAsync(() =>
+            {
+                Interlocked.Exchange(ref assetTypesChangedPending, 0);
+                RaiseAssetTypesChanged();
+            }).Forget();
+        }
+
+        private void RaiseAssetTypesChanged()
+        {
+            AssetTypesChanged?.Invoke(this, EventArgs.Empty);
         }
 
         private async Task NewProject()
@@ -1407,6 +1452,9 @@ namespace Stride.Core.Assets.Editor.ViewModel
             // This action is uncancellable - In case of errors, we still try to create view models to match what is currently in the PackageSession, but the template has responsibility to clean itself up in case of failure.
             // TODO: check what is created here and try to avoid it
             ProcessAddedProjects(loggerResult, workProgress, true);
+            // A template can also reference a new project from an existing one (Add plugin)
+            foreach (var package in LocalPackages)
+                package.AddMissingDependencyViewModels();
 
             if (CurrentProject == null)
                 AutoSelectCurrentProject();
@@ -1471,6 +1519,44 @@ namespace Stride.Core.Assets.Editor.ViewModel
             await workProgress.NotifyWorkFinished(cancellationSource.IsCancellationRequested, loggerResult.HasErrors);
 
             return AllPackages.FirstOrDefault(x => x.Package == package);
+        }
+
+        /// <summary>
+        /// Loads what a dependency just added (and restored) brings to the projects: its packages, their companions,
+        /// assemblies and assets, as opening the session would have.
+        /// </summary>
+        internal async Task LoadAddedDependencies(LoggerResult loggerResult)
+        {
+            var workProgress = new WorkProgressViewModel(ServiceProvider, loggerResult)
+            {
+                Title = Tr._p("Title", "Adding dependency..."),
+                KeepOpen = KeepOpen.OnWarningsOrErrors,
+                IsIndeterminate = true,
+                IsCancellable = false
+            };
+            workProgress.RegisterProgressStatus(loggerResult, true);
+            var cancellationSource = new CancellationTokenSource();
+
+            ServiceProvider.Get<IEditorDialogService>().ShowProgressWindow(workProgress, 500);
+
+            await Task.Run(() =>
+            {
+                try
+                {
+                    session.LoadAddedDependencies(loggerResult, CreatePackageLoadParameters(workProgress, cancellationSource));
+                }
+                catch (Exception e)
+                {
+                    loggerResult.Error(Tr._p("Log", "There was a problem loading the new dependencies."), e);
+                }
+            }, cancellationSource.Token);
+
+            workProgress.Minimum = 0;
+            workProgress.ProgressValue = 0;
+            workProgress.Maximum = session.Projects.Where(x => !packageMap.ContainsValue(x)).Sum(x => x.Package.Assets.Count);
+            ProcessAddedProjects(loggerResult, workProgress, true);
+
+            await workProgress.NotifyWorkFinished(cancellationSource.IsCancellationRequested, loggerResult.HasErrors);
         }
 
         internal void ProcessAddedProjects(LoggerResult loggerResult, WorkProgressViewModel workProgress, bool packageAlreadyInSession)
@@ -1540,18 +1626,35 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 return;
 
             var packagePicker = Dialogs.CreatePackagePickerDialog(this);
-            // Filter out the selected package, packages that are dependent on the selected package
-            // and packages that are already referenced.
+            // Hide packages already referenced directly, companions, executables, and the selected package and its dependents.
+            // A suggested package available through another dependency stays, marked: a direct reference is what
+            // [GameSystem] needs. Any other package already available (the engine's own) is hidden.
+            var container = selectedPackage.Package.Container;
+            var referencedNames = new HashSet<string>(container.DirectDependencies.Select(d => d.Name), StringComparer.OrdinalIgnoreCase);
+            var availableNames = new HashSet<string>(container.FlattenedDependencies.Select(d => d.Name), StringComparer.OrdinalIgnoreCase);
+            var suggestedNames = new HashSet<string>(SuggestedPackages.Select(p => p.Id), StringComparer.OrdinalIgnoreCase);
+            var companionNames = new HashSet<string>(AllPackages.SelectMany(p => p.Package.CompanionPackages).Select(c => c.Name), StringComparer.OrdinalIgnoreCase);
             packagePicker.Filter = x =>
             {
-                if (!(x is LoadedPickablePackageViewModel loadedPackage))
+                if (referencedNames.Contains(x.Name) || companionNames.Contains(x.Name))
+                    return false;
+                var available = availableNames.Contains(x.Name);
+                if (available && !suggestedNames.Contains(x.Name))
+                    return false;
+                x.Note = available ? Tr._p("Message", "(already available through another dependency)") : null;
+
+                if (x is not LoadedPickablePackageViewModel loadedPackage)
                     return true;
 
-                return !(loadedPackage.Package == selectedPackage || loadedPackage.Package.DependsOn(selectedPackage) ||
-                         selectedPackage.Dependencies.Content.Select(r => r.Target).Contains(loadedPackage.Package));
+                var package = loadedPackage.Package.Package;
+                if (package.Kind != PackageKind.Runtime || package.Container is StandalonePackage { IsCompanionPackage: true } or SolutionProject { Type: ProjectType.Executable })
+                    return false;
+
+                return !(loadedPackage.Package == selectedPackage || loadedPackage.Package.DependsOn(selectedPackage));
             };
 
-            if (AllPackages.All(x => !packagePicker.Filter(new LoadedPickablePackageViewModel(x))))
+            // The same list the picker shows: the loaded packages and the suggested ones not loaded yet
+            if (!(await SuggestPackagesToAdd()).Any(packagePicker.Filter))
             {
                 await Dialogs.MessageBoxAsync(Tr._p("Message", "There are no packages that can be added as dependencies to this package."), MessageBoxButton.OK, MessageBoxImage.Information);
                 return;

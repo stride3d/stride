@@ -152,9 +152,6 @@ namespace Stride.Editor.EditorGame.Game
 
             // Editor tools, such as gizmos and the UI editor's adorners, must see all input, including input over UI
             Input.MaskCapturedInput = false;
-
-            // TODO: the physics system should not be registered by default here!
-            Physics.Simulation.DisableSimulation = true;
         }
 
         /// <inheritdoc />

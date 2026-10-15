@@ -48,6 +48,11 @@ on:
         required: false
         default: false
         type: boolean
+      docs-notes:
+        description: Use the written release notes from stride-docs (engine release only).
+        required: false
+        default: false
+        type: boolean
     secrets:
       gh-token:
         description: >-
@@ -87,6 +92,7 @@ jobs:
           scope: ${{ inputs.scope }}
           apply: ${{ inputs.apply }}
           add-contributors: ${{ inputs.add-contributors }}
+          docs-notes: ${{ inputs.docs-notes }}
           anthropic-api-key: ${{ secrets.anthropic-api-key }}
           github-token: ${{ secrets.gh-token }}      # write-capable: shell reads + apply
           readonly-token: ${{ github.token }}         # read-only: the model's own tool calls

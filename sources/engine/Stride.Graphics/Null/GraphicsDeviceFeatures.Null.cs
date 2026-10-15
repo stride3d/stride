@@ -18,6 +18,9 @@ namespace Stride.Graphics
             HasDepthAsReadOnlyRT = false;
             HasDepthAsSRV = true;
             HasMultiSampleDepthAsSRV = false;
+            HasIndex32Bits = true;
+            HasGeometryShaders = true;
+            HasPixelShaderUnorderedAccess = true;
             HasDoublePrecision = true;
             HasDriverCommandLists = true;
             HasMultiThreadingConcurrentResources = true;

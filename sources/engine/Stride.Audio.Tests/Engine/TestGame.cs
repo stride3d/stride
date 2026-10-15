@@ -3,7 +3,9 @@
 
 using Xunit;
 
+using Stride.Core;
 using Stride.Engine;
+using Stride.Games;
 
 namespace Stride.Audio.Tests.Engine
 {
@@ -34,6 +36,52 @@ namespace Stride.Audio.Tests.Engine
                 AudioSystem audioInterface = game.Audio;
                 Assert.NotNull(audioInterface);
             }
+        }
+
+        /// <summary>
+        /// The audio system is a declared game system (<see cref="Stride.Games.GameSystemAttribute"/>): the game creates it
+        /// and registers its services in its constructor, before Initialize adds it to the game systems.
+        /// </summary>
+        [Fact]
+        public void TestDeclaredSystemCreatedWithTheGame()
+        {
+            using (var game = new Game())
+            {
+                var audio = game.Services.GetService<AudioSystem>();
+                Assert.NotNull(audio);
+                Assert.Same(audio, game.Services.GetService<IAudioEngineProvider>());
+                Assert.DoesNotContain(audio, game.GameSystems);
+            }
+        }
+
+        /// <summary>
+        /// An editor game creates only the declared systems that ask for it: audio does, a system of the game itself
+        /// does not.
+        /// </summary>
+        [Fact]
+        public void TestEditorGameCreatesOnlyTheSystemsDeclaredForTheEditor()
+        {
+            using (var game = new Game())
+                Assert.NotNull(game.Services.GetService<GameOnlySystem>());
+
+            using (var editorGame = new EditorTestGame())
+            {
+                Assert.NotNull(editorGame.Services.GetService<AudioSystem>());
+                Assert.Null(editorGame.Services.GetService<GameOnlySystem>());
+            }
+        }
+
+        [GameSystem]
+        public class GameOnlySystem : GameSystemBase
+        {
+            public GameOnlySystem(IServiceRegistry registry) : base(registry)
+            {
+            }
+        }
+
+        private class EditorTestGame : Game
+        {
+            protected override bool IsEditorGame => true;
         }
     }
 }

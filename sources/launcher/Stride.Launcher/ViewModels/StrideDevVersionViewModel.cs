@@ -164,6 +164,9 @@ public sealed class StrideDevVersionViewModel : StrideVersionViewModel
     public override string DisplayName => localPackage is not null ? $"{PackageSimpleName} {localPackage.Version} (local)" : base.DisplayName;
 
     /// <inheritdoc/>
+    public override string ListName => localPackage is not null ? $"{PackageSimpleName} {localPackage.Version}" : base.ListName;
+
+    /// <inheritdoc/>
     public override string FullName => localPackage?.Version.ToString() ?? path.MakeRelative(path.GetParent());
 
     /// <inheritdoc/>

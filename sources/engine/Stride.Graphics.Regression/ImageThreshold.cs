@@ -116,6 +116,21 @@ internal static class ImageThreshold
     public static AllowBucket[] Resolve(ThresholdRule[] rules, string imageName,
         string? platform = null, string? api = null, string? device = null)
     {
+        var bestRule = ResolveRule(rules, imageName, platform, api, device);
+        if (bestRule?.Allow == null)
+            return DefaultBuckets;
+
+        return bestRule.Allow
+            .Select(kv => AllowBucket.Parse(kv.Key, kv.Value))
+            .ToArray();
+    }
+
+    /// <summary>
+    /// The rule <see cref="Resolve"/> takes its buckets from, or null when no rule matches.
+    /// </summary>
+    public static ThresholdRule? ResolveRule(ThresholdRule[] rules, string imageName,
+        string? platform = null, string? api = null, string? device = null)
+    {
         ThresholdRule? bestRule = null;
         int bestScore = -1;
 
@@ -148,12 +163,7 @@ internal static class ImageThreshold
             }
         }
 
-        if (bestRule?.Allow == null)
-            return DefaultBuckets;
-
-        return bestRule.Allow
-            .Select(kv => AllowBucket.Parse(kv.Key, kv.Value))
-            .ToArray();
+        return bestRule;
     }
 
     // Supports '*' (any run of characters) and '?' (single character) wildcards.

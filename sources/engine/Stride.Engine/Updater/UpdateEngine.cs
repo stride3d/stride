@@ -7,11 +7,9 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Stride.Core.Reflection;
 using Stride.Core.Serialization;
-using Stride.Core.Threading;
 
 namespace Stride.Updater
 {
@@ -20,7 +18,6 @@ namespace Stride.Updater
     /// </summary>
     public static unsafe class UpdateEngine
     {
-        private static readonly ConcurrentPool<Stack<UpdateStackEntry>> StackPool = new ConcurrentPool<Stack<UpdateStackEntry>>(() => new Stack<UpdateStackEntry>());
         // Concurrent: RegisterMember/RegisterMemberResolver write these while Compile reads them,
         // and Compile runs in parallel (AnimationProcessor dispatches AnimationUpdater.Update across
         // worker threads). A plain Dictionary corrupts under that concurrent access.
@@ -484,24 +481,41 @@ namespace Stride.Updater
         /// <param name="updateObjects">The data source for objects and non-blittable struct</param>
         public static void Run(object target, CompiledUpdate compiledUpdate, IntPtr updateData, UpdateObjectData[] updateObjects)
         {
-            var operations = compiledUpdate.UpdateOperations;
-            var temporaryObjects = compiledUpdate.TemporaryObjects;
-
-            var stack = StackPool.Acquire();
-
-            // Current object being processed
-            object currentObj = target;
-            object nextObject;
-
-            // pinned test (this will need to be on a stack somehow)
-            var currentPtr = UpdateEngineHelper.ObjectToPointer(currentObj);
-
-            if (operations.Length == 0)
+            if (compiledUpdate.UpdateOperations.Length == 0)
                 return;
 
-            ref var operation = ref MemoryMarshal.GetArrayDataReference(operations);
-            for (int index = 0; index < operations.Length; index++)
+            var state = new RunState
             {
+                Operations = compiledUpdate.UpdateOperations,
+                TemporaryObjects = compiledUpdate.TemporaryObjects,
+                UpdateData = updateData,
+                UpdateObjects = updateObjects,
+            };
+
+            // Getters and setters get raw pointers into the objects (even as their "this"), and they can allocate:
+            // each entered object stays pinned until it is left, so a GC can't move it
+            fixed (byte* _ = &UpdateEngineHelper.GetRawData(target))
+            {
+                RunOperations(ref state, UpdateEngineHelper.ObjectToPointer(target), 0);
+            }
+        }
+
+        /// <summary>
+        /// Runs operations on the current object until the leave operation that matches the enter of this object.
+        /// </summary>
+        /// <param name="state">The state of <see cref="Run"/>.</param>
+        /// <param name="currentPtr">The pointer to the current object (or to the unboxed struct).</param>
+        /// <param name="parentPtr">The pointer to the member of the parent object that holds the current object.</param>
+        private static void RunOperations(ref RunState state, nint currentPtr, nint parentPtr)
+        {
+            var operations = state.Operations;
+            var updateData = state.UpdateData;
+            var updateObjects = state.UpdateObjects;
+
+            while (state.Index < operations.Length)
+            {
+                ref var operation = ref operations[state.Index++];
+
                 // Adjust offset
                 currentPtr += operation.AdjustOffset;
 
@@ -509,100 +523,69 @@ namespace Stride.Updater
                 {
                     case UpdateOperationType.EnterObjectProperty:
                     {
-                        nextObject = ((UpdatableProperty)operation.Member).GetObject(currentPtr);
+                        var nextObject = ((UpdatableProperty)operation.Member).GetObject(currentPtr);
                         if ((nextObject == null || (!operation.EnterChecker?.CanEnter(nextObject) ?? false)) && operation.SkipCountIfNull != -1)
                         {
-                            index += operation.SkipCountIfNull;
-                            operation = ref Unsafe.Add(ref operation, operation.SkipCountIfNull);
+                            state.Index += operation.SkipCountIfNull;
                             break;
                         }
 
-                        // Compute offset and push to stack
-                        stack.Push(new UpdateStackEntry(
-                            currentObj,
-                            (int)((byte*)currentPtr - (byte*)UpdateEngineHelper.ObjectToPointer(currentObj))));
-
-                        // Get object
-                        currentObj = nextObject;
-                        currentPtr = UpdateEngineHelper.ObjectToPointer(currentObj);
-
+                        fixed (byte* _ = &UpdateEngineHelper.GetRawData(nextObject))
+                        {
+                            RunOperations(ref state, UpdateEngineHelper.ObjectToPointer(nextObject), currentPtr);
+                        }
                         break;
                     }
                     case UpdateOperationType.EnterStructPropertyBase:
                     {
-                        // Compute offset and push to stack
-                        stack.Push(new UpdateStackEntry(
-                            currentObj,
-                            (int)((byte*)currentPtr - (byte*)UpdateEngineHelper.ObjectToPointer(currentObj))));
-
-                        currentObj = temporaryObjects[operation.DataOffset];
-                        currentPtr = ((UpdatablePropertyBase)operation.Member).GetStructAndUnbox(currentPtr, currentObj);
-
+                        var temporaryObject = state.TemporaryObjects[operation.DataOffset];
+                        fixed (byte* _ = &UpdateEngineHelper.GetRawData(temporaryObject))
+                        {
+                            var structPtr = ((UpdatablePropertyBase)operation.Member).GetStructAndUnbox(currentPtr, temporaryObject);
+                            RunOperations(ref state, structPtr, currentPtr);
+                        }
                         break;
                     }
                     case UpdateOperationType.EnterObjectField:
                     {
-                        nextObject = ((UpdatableField)operation.Member).GetObject(currentPtr);
+                        var nextObject = ((UpdatableField)operation.Member).GetObject(currentPtr);
                         if ((nextObject == null || (!operation.EnterChecker?.CanEnter(nextObject) ?? false)) && operation.SkipCountIfNull != -1)
                         {
-                            index += operation.SkipCountIfNull;
-                            operation = ref Unsafe.Add(ref operation, operation.SkipCountIfNull);
+                            state.Index += operation.SkipCountIfNull;
                             break;
                         }
 
-                        // Compute offset and push to stack
-                        stack.Push(new UpdateStackEntry(
-                            currentObj,
-                            (int)((byte*)currentPtr - (byte*)UpdateEngineHelper.ObjectToPointer(currentObj))));
-
-                        // Get object
-                        currentObj = nextObject;
-                        currentPtr = UpdateEngineHelper.ObjectToPointer(currentObj);
+                        fixed (byte* _ = &UpdateEngineHelper.GetRawData(nextObject))
+                        {
+                            RunOperations(ref state, UpdateEngineHelper.ObjectToPointer(nextObject), currentPtr);
+                        }
                         break;
                     }
                     case UpdateOperationType.EnterObjectCustom:
                     {
-                        nextObject = ((UpdatableCustomAccessor)operation.Member).GetObject(currentPtr);
+                        var nextObject = ((UpdatableCustomAccessor)operation.Member).GetObject(currentPtr);
                         if ((nextObject == null || (!operation.EnterChecker?.CanEnter(nextObject) ?? false)) && operation.SkipCountIfNull != -1)
                         {
-                            index += operation.SkipCountIfNull;
-                            operation = ref Unsafe.Add(ref operation, operation.SkipCountIfNull);
+                            state.Index += operation.SkipCountIfNull;
                             break;
                         }
 
-                        // Compute offset and push to stack
-                        stack.Push(new UpdateStackEntry(
-                            currentObj,
-                            (int)((byte*)currentPtr - (byte*)UpdateEngineHelper.ObjectToPointer(currentObj))));
-
-                        // Get object
-                        currentObj = nextObject;
-                        currentPtr = UpdateEngineHelper.ObjectToPointer(currentObj);
+                        fixed (byte* _ = &UpdateEngineHelper.GetRawData(nextObject))
+                        {
+                            RunOperations(ref state, UpdateEngineHelper.ObjectToPointer(nextObject), currentPtr);
+                        }
                         break;
                     }
 
                     case UpdateOperationType.LeaveAndCopyStructPropertyBase:
                     {
-                        // Save back struct pointer
-                        var oldPtr = currentPtr;
-
-                        // Restore currentObj and currentPtr from stack
-                        var stackEntry = stack.Pop();
-                        currentObj = stackEntry.Object;
-                        currentPtr = UpdateEngineHelper.ObjectToPointer(currentObj) + stackEntry.Offset;
-
-                        // Use setter to set back struct
-                        ((UpdatablePropertyBase)operation.Member).SetBlittable(currentPtr, oldPtr);
-
-                        break;
+                        // Use setter to set back struct (the caller still pins both the parent and the struct box)
+                        ((UpdatablePropertyBase)operation.Member).SetBlittable(parentPtr, currentPtr);
+                        return;
                     }
                     case UpdateOperationType.Leave:
                     {
-                        // Restore currentObj and currentPtr from stack
-                        var stackEntry = stack.Pop();
-                        currentObj = stackEntry.Object;
-                        currentPtr = UpdateEngineHelper.ObjectToPointer(currentObj) + stackEntry.Offset;
-                        break;
+                        return;
                     }
                     case UpdateOperationType.ConditionalSetObjectProperty:
                     {
@@ -697,11 +680,21 @@ namespace Stride.Updater
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
-
-                operation = ref Unsafe.Add(ref operation, 1);
             }
+        }
 
-            StackPool.Release(stack);
+        /// <summary>
+        /// State of <see cref="Run"/>, shared by the nested <see cref="RunOperations"/> calls.
+        /// </summary>
+        private struct RunState
+        {
+            public UpdateOperation[] Operations;
+            public object[] TemporaryObjects;
+            public IntPtr UpdateData;
+            public UpdateObjectData[] UpdateObjects;
+
+            // Index of the next operation to run
+            public int Index;
         }
 
         // Helper struct to blit small struct
@@ -759,21 +752,6 @@ namespace Stride.Updater
                     hashCode = (hashCode * 397) ^ Name.GetHashCode();
                     return hashCode;
                 }
-            }
-        }
-
-        /// <summary>
-        /// Stack entry used in <see cref="Run"/>.
-        /// </summary>
-        private struct UpdateStackEntry
-        {
-            public object Object;
-            public int Offset;
-
-            public UpdateStackEntry(object o, int offset)
-            {
-                Object = o;
-                Offset = offset;
             }
         }
     }

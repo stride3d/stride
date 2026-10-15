@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>AcmeSpinPlugin.Assets</RootNamespace>
+    <PackageId>AcmeSpinPlugin.Assets</PackageId>
+    <StridePackageKind>Assets</StridePackageKind>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Stride.Core.Assets" Version="$(StrideEngineVersion)" />
+    <PackageReference Include="Stride.AssetCompiler" Version="$(StrideEngineVersion)" IncludeAssets="build;buildTransitive" />
+    <!-- The other plugin's Assets companion: DoubleSpinAsset derives from its SpinAsset -->
+    <PackageReference Include="StrideAssetPlugin.Assets" Version="1.0.0" />
+    <ProjectReference Include="..\PluginExt\AcmeSpinPlugin.csproj" />
+  </ItemGroup>
+</Project>

@@ -91,6 +91,22 @@ internal class AssemblyScanProcessor : IAssemblyDefinitionProcessor
             // Dictionary<Type, List<Type>>
             var dictionaryType = collectionAssembly.MainModule.GetType(typeof(Dictionary<,>).FullName);
 
+            // [DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors, typeof(X))] for each scanned type:
+            // consumers create them by reflection (Activator.CreateInstance), so trimming and NativeAOT must keep them
+            var dynamicDependencyType = mscorlibAssembly.MainModule.GetTypeResolved("System.Diagnostics.CodeAnalysis.DynamicDependencyAttribute");
+            var memberTypesType = mscorlibAssembly.MainModule.GetTypeResolved("System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes");
+            var dynamicDependencyConstructor = assembly.MainModule.ImportReference(dynamicDependencyType.GetConstructors().Single(x => x.Parameters.Count == 2
+                && x.Parameters[0].ParameterType.FullName == memberTypesType.FullName && x.Parameters[1].ParameterType.FullName == typeof(Type).FullName));
+            var memberTypesTypeRef = assembly.MainModule.ImportReference(memberTypesType);
+            foreach (var scanType in registry.ScanTypes.SelectMany(x => x.Value).Distinct())
+            {
+                var dynamicDependency = new CustomAttribute(dynamicDependencyConstructor);
+                // DynamicallyAccessedMemberTypes.PublicConstructors (the type is missing from netstandard2.0)
+                dynamicDependency.ConstructorArguments.Add(new CustomAttributeArgument(memberTypesTypeRef, 0x0003));
+                dynamicDependency.ConstructorArguments.Add(new CustomAttributeArgument(typeTypeRef, assembly.MainModule.ImportReference(scanType)));
+                initializeMethod.CustomAttributes.Add(dynamicDependency);
+            }
+
             var initializeMethodIL = initializeMethod.Body.GetILProcessor();
 
             // AssemblyRegistry.RegisterScanTypes(typeof(AssemblyScanType).GetTypeInfo().Assembly, dictionary);
@@ -149,27 +165,25 @@ internal class AssemblyScanProcessor : IAssemblyDefinitionProcessor
 
             // Check if the attribute type has any AssemblyScanAttribute attribute
             // This allows to create custom attributes and scan for them
+            var hasAssemblyScanAttribute = false;
+            var inherited = true;
             foreach (var attributeAttribute in attribute.AttributeType.Resolve().CustomAttributes)
             {
-                var hasAssemblyScanAttribute = false;
                 if (attributeAttribute.AttributeType.FullName == "Stride.Core.Reflection.AssemblyScanAttribute")
                 {
                     hasAssemblyScanAttribute = true;
                 }
-                else if (attributeAttribute.AttributeType.FullName == attributeUsageTypeName)
+                else if (attributeAttribute.AttributeType.FullName == attributeUsageTypeName && attributeAttribute.HasProperties
+                    && attributeAttribute.Properties.FirstOrDefault(x => x.Name == nameof(AttributeUsageAttribute.Inherited)).Argument.Value as bool? == false)
                 {
-                    // If AttributeUsage has Inherited = false, let's skip right away if we are not processing main type
-                    if (scanType != type && attributeAttribute.HasProperties
-                        && attributeAttribute.Properties.FirstOrDefault(x => x.Name == nameof(AttributeUsageAttribute.Inherited)).Argument.Value as bool? == false)
-                    {
-                        break;
-                    }
+                    inherited = false;
                 }
+            }
 
-                if (hasAssemblyScanAttribute)
-                {
-                    RegisterType(log, assemblyScanRegistry, type, attribute.AttributeType);
-                }
+            // An attribute with AttributeUsage Inherited = false only registers the type that carries it
+            if (hasAssemblyScanAttribute && (inherited || scanType == type))
+            {
+                RegisterType(log, assemblyScanRegistry, type, attribute.AttributeType);
             }
         }
     }

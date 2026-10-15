@@ -30,6 +30,11 @@ namespace Stride.Graphics
         private const GraphicsPlatform GraphicPlatform = GraphicsPlatform.Vulkan;
         internal GraphicsProfile RequestedProfile;
 
+        /// <summary>
+        ///   The core features enabled on the logical device. Only these may be used, whatever the physical device offers.
+        /// </summary>
+        internal VkPhysicalDeviceFeatures EnabledFeatures;
+
         private bool simulateReset = false;
         // Set by the first VK_ERROR_DEVICE_LOST: Vulkan has no query for it, a lost device only answers that to its calls
         private bool deviceLost;
@@ -435,6 +440,8 @@ namespace Stride.Graphics
                 tessellationShader = RequestedProfile >= GraphicsProfile.Level_11_0 && deviceFeatures.tessellationShader,
                 shaderStorageImageReadWithoutFormat = deviceFeatures.shaderStorageImageReadWithoutFormat,
                 shaderStorageImageWriteWithoutFormat = deviceFeatures.shaderStorageImageWriteWithoutFormat,
+                geometryShader = deviceFeatures.geometryShader,
+                fragmentStoresAndAtomics = deviceFeatures.fragmentStoresAndAtomics,
             };
 
             Span<VkUtf8String> supportedExtensionProperties = stackalloc VkUtf8String[]
@@ -594,6 +601,7 @@ namespace Stride.Graphics
             };
 
             CheckResult(NativeInstanceApi.vkCreateDevice(NativePhysicalDevice, in deviceCreateInfo, null, out nativeDevice));
+            EnabledFeatures = enabledFeature;
 
             nativeDeviceApi = new VkDeviceApi(NativeInstanceApi, in nativeDevice);
 

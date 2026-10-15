@@ -12,6 +12,7 @@ using Stride.Rendering.Skyboxes;
 
 namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
 {
+    [EditorGameService(typeof(EntityHierarchyEditorController), Order = 160)]
     public class EditorGameCubemapService : EditorGameServiceBase, IEditorGameCubemapService
     {
         private readonly EntityHierarchyEditorViewModel editor;

@@ -89,6 +89,12 @@ namespace Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewM
         protected FuncClipboardMonitor<bool> PasteMonitor { get; } = new FuncClipboardMonitor<bool>();
 
         /// <summary>
+        /// The text on the clipboard, null when there is none.
+        /// </summary>
+        [CanBeNull]
+        protected static string ClipboardText => SafeClipboard.GetText();
+
+        /// <summary>
         /// Clears the selection.
         /// </summary>
 
@@ -442,7 +448,7 @@ namespace Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewM
             if (items == null) throw new ArgumentNullException(nameof(items));
 
             // Retrieve data from the clipboard
-            var text = SafeClipboard.GetText();
+            var text = ClipboardText;
             if (string.IsNullOrEmpty(text))
                 return;
 

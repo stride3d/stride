@@ -361,19 +361,91 @@ internal sealed class UITestHost
             var session = TryGetSession();
             if (session is null) return list;
 
+            // Hidden games skip Draw, so their frame count doesn't advance: don't wait for them.
+
             // 1) Shared asset-preview game (runs on its own STA thread, drives thumbnail rendering).
             var previewSvc = session.ServiceProvider.TryGet<GameStudioPreviewService>();
-            if (previewSvc?.PreviewGame is { IsRunning: true } previewGame)
+            if (previewSvc?.PreviewGame is { IsRunning: true, IsEditorHidden: false } previewGame)
                 list.Add(new WatchedGame(previewGame, previewGame.DrawTime?.FrameCount ?? 0));
 
             // 2) Each open asset editor's embedded game.
             if (session.ServiceProvider.TryGet<IAssetEditorsManager>() is not AssetEditorsManager aem) return list;
             foreach (var editorVm in aem.EditorViewModels)
             {
-                if (editorVm is GameEditorViewModel { Controller: IEditorGameAccess access } && access.EditorGame is { IsRunning: true } game)
+                if (editorVm is GameEditorViewModel { Controller: IEditorGameAccess access } && access.EditorGame is { IsRunning: true, IsEditorHidden: false } game)
                     list.Add(new WatchedGame(game, game.DrawTime?.FrameCount ?? 0));
             }
             return list;
+        }
+
+        /// <summary>
+        /// Returns the running game of the game editor document (e.g. the scene editor) whose asset URL is
+        /// <paramref name="idOrTitle"/>, matched like <see cref="SearchTree"/> matches document titles.
+        /// </summary>
+        private static EditorServiceGame? FindEditorGame(string idOrTitle)
+        {
+            var session = TryGetSession();
+            if (session?.ServiceProvider.TryGet<IAssetEditorsManager>() is not AssetEditorsManager aem) return null;
+            foreach (var editorVm in aem.EditorViewModels)
+            {
+                if (editorVm is GameEditorViewModel { Controller: IEditorGameAccess access } gameEditor
+                    && access.EditorGame is { IsRunning: true } game
+                    && (string.Equals(gameEditor.Asset.Url, idOrTitle, StringComparison.Ordinal)
+                        || gameEditor.Asset.Url.EndsWith("/" + idOrTitle, StringComparison.Ordinal)))
+                    return game;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// When <paramref name="idOrTitle"/> is a game editor document, waits until its game has drawn
+        /// frames with a back buffer of its window's size. Right after a resize, the swap chain still
+        /// shows the old back buffer stretched, and slow renderers (D3D12 on WARP) take seconds per frame.
+        /// </summary>
+        private async Task WaitForEditorGameResized(string idOrTitle, double timeoutSeconds = 60)
+        {
+            var game = await host.dispatcher.InvokeAsync(() => FindEditorGame(idOrTitle)).Task.ConfigureAwait(false);
+            if (game is null) return;
+
+            const int RequiredFrames = 2;
+            var deadline = DateTime.UtcNow.AddSeconds(timeoutSeconds);
+            int? firstFrameAtSize = null;
+            var sizes = "unknown";
+            while (DateTime.UtcNow < deadline)
+            {
+                try
+                {
+                    var frame = game.DrawTime?.FrameCount ?? 0;
+                    var backBuffer = game.GraphicsDevice?.Presenter?.BackBuffer;
+                    var hwnd = game.Window?.NativeWindow?.Handle ?? IntPtr.Zero;
+                    if (backBuffer is not null && hwnd != IntPtr.Zero && GetClientRect(hwnd, out var rect))
+                    {
+                        int width = rect.Right - rect.Left, height = rect.Bottom - rect.Top;
+                        sizes = $"back buffer {backBuffer.Width}x{backBuffer.Height}, window {width}x{height}";
+                        if (backBuffer.Width == width && backBuffer.Height == height)
+                        {
+                            firstFrameAtSize ??= frame;
+                            if (frame - firstFrameAtSize >= RequiredFrames)
+                            {
+                                host.Log($"WaitForEditorGameResized: '{idOrTitle}' drew {RequiredFrames} frames at {width}x{height}");
+                                return;
+                            }
+                        }
+                        else
+                        {
+                            firstFrameAtSize = null;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Game disposed mid-wait
+                    host.Log($"WaitForEditorGameResized: '{idOrTitle}' stopped: {ex.Message}");
+                    return;
+                }
+                await Task.Delay(100).ConfigureAwait(false);
+            }
+            host.Log($"WaitForEditorGameResized: '{idOrTitle}' timed out after {timeoutSeconds}s ({sizes})");
         }
 
         /// <summary>
@@ -510,7 +582,24 @@ internal sealed class UITestHost
             return null;
         }
 
-        public Task<bool> SelectTemplate(Guid templateId) =>
+        public async Task<bool> SelectTemplate(Guid templateId, double timeoutSeconds = 30)
+        {
+            // The template list fills asynchronously after the window shows
+            var deadline = DateTime.UtcNow.AddSeconds(timeoutSeconds);
+            while (true)
+            {
+                if (await TrySelectTemplate(templateId).ConfigureAwait(false))
+                    return true;
+                if (DateTime.UtcNow >= deadline)
+                {
+                    host.Log($"SelectTemplate: {templateId} not selected after {timeoutSeconds}s");
+                    return false;
+                }
+                await Task.Delay(500).ConfigureAwait(false);
+            }
+        }
+
+        private Task<bool> TrySelectTemplate(Guid templateId) =>
             host.dispatcher.InvokeAsync(() =>
             {
                 host.Log($"SelectTemplate: {templateId}");
@@ -589,6 +678,9 @@ internal sealed class UITestHost
                 await WaitDispatcherIdle();
                 await Task.Delay(250).ConfigureAwait(false);
                 await WaitDispatcherIdle();
+
+                // An embedded game (scene editor) must also draw at the new size.
+                await WaitForEditorGameResized(idOrTitle);
 
                 await host.dispatcher.InvokeAsync(() => { }, DispatcherPriority.Render).Task.ConfigureAwait(false);
                 await Task.Delay(150).ConfigureAwait(false);
@@ -783,6 +875,13 @@ internal sealed class UITestHost
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
         [return: MarshalAs(System.Runtime.InteropServices.UnmanagedType.Bool)]
         private static extern bool PostMessage(IntPtr hWnd, int Msg, IntPtr wParam, IntPtr lParam);
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct RECT { public int Left, Top, Right, Bottom; }
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(System.Runtime.InteropServices.UnmanagedType.Bool)]
+        private static extern bool GetClientRect(IntPtr hWnd, out RECT lpRect);
 
         private static DebuggingViewModel TryGetDebugging()
         {

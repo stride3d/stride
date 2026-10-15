@@ -28,6 +28,11 @@ on:
         required: false
         default: true
         type: boolean
+      docs-notes:
+        description: Use the written release notes from stride-docs (engine only). For a stable X.Y.0, master's notes also open the release body.
+        required: false
+        default: true
+        type: boolean
 
 jobs:
   # Detect the product from the 'to' tag prefix (releases/ cli/ vspackage/ launcher/); a
@@ -41,6 +46,7 @@ jobs:
       tag-match: ${{ steps.cfg.outputs.tag-match }}
       scope: ${{ steps.cfg.outputs.scope }}
       apply-tag: ${{ steps.cfg.outputs.apply-tag }}
+      docs-notes: ${{ steps.cfg.outputs.docs-notes }}
     steps:
       - id: cfg
         env:
@@ -49,6 +55,7 @@ jobs:
           GH_REPO: ${{ github.repository }}
           TO: ${{ inputs.to }}
           APPLY: ${{ inputs.apply-to-release }}
+          DOCS_NOTES: ${{ inputs.docs-notes }}
         run: |
           case "$TO" in
             cli/*)       P="the Stride CLI"; M="cli/*"; S="sources/launcher/Stride.Cli" ;;
@@ -56,6 +63,8 @@ jobs:
             launcher/*)  P="the Stride Launcher"; M="launcher/*"; S="sources/launcher/Stride.Launcher" ;;
             *)           P="the Stride engine"; M="releases/*"; S=". :(exclude)sources/launcher/Stride.Cli :(exclude)sources/tools/Stride.VisualStudio.* :(exclude)sources/launcher/Stride.Launcher" ;;
           esac
+          # stride-docs only has release notes for the engine.
+          case "$M" in releases/*) D="$DOCS_NOTES" ;; *) D=false ;; esac
           APPLY_TAG=""
           if [ "$APPLY" = "true" ]; then
             if [ -n "$TO" ] && gh release view "$TO" >/dev/null 2>&1; then
@@ -64,7 +73,7 @@ jobs:
               echo "::warning::apply-to-release is on, but '$TO' is not an existing release tag; generating without applying."
             fi
           fi
-          { echo "product=$P"; echo "tag-match=$M"; echo "scope=$S"; echo "apply-tag=$APPLY_TAG"; } >> "$GITHUB_OUTPUT"
+          { echo "product=$P"; echo "tag-match=$M"; echo "scope=$S"; echo "apply-tag=$APPLY_TAG"; echo "docs-notes=$D"; } >> "$GITHUB_OUTPUT"
 
   Notes:
     needs: Config
@@ -81,6 +90,7 @@ jobs:
       scope: ${{ needs.Config.outputs.scope }}
       apply: ${{ needs.Config.outputs.apply-tag != '' }}
       add-contributors: ${{ inputs.add-contributors }}
+      docs-notes: ${{ needs.Config.outputs.docs-notes == 'true' }}
     secrets:
       gh-token: ${{ secrets.GH_PAT }}      # write-capable PAT: shell reads + apply (model uses the read-only GITHUB_TOKEN)
       anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}

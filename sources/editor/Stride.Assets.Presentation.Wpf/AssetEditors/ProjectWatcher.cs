@@ -36,6 +36,8 @@ namespace Stride.Assets.Presentation.AssetEditors
         Source,
         /// <summary>The project's editor loadability (StrideContainsAssetTypes) flipped: load or unload its assembly.</summary>
         Loadability,
+        /// <summary>An assembly this one depends on is being reloaded: rebuild and reload it too.</summary>
+        Dependency,
     }
 
     public class AssemblyChangedEvent
@@ -233,6 +235,24 @@ namespace Stride.Assets.Presentation.AssetEditors
 
         public TrackingCollection<TrackedAssembly> TrackedAssemblies => trackedAssemblies;
 
+        /// <summary>
+        /// The changed assemblies plus the loaded assemblies whose package depends on them, dependencies first.
+        /// </summary>
+        public List<TrackedAssembly> GetAssembliesToReload(IEnumerable<PackageLoadedAssembly> changedAssemblies)
+        {
+            var changed = new HashSet<PackageLoadedAssembly>(changedAssemblies);
+            var tracked = SnapshotTrackedAssemblies().Where(x => x.LoadedAssembly != null && x.Package?.Package.Meta.Name != null).ToList();
+            var changedNames = new HashSet<string>(tracked.Where(x => changed.Contains(x.LoadedAssembly)).Select(x => x.Package.Package.Meta.Name), StringComparer.OrdinalIgnoreCase);
+            if (changedNames.Count == 0)
+                return new List<TrackedAssembly>();
+
+            var toReload = tracked.Where(x => changedNames.Contains(x.Package.Package.Meta.Name)
+                                              || x.Package.Package.LoadDependencyNames.Any(changedNames.Contains)).ToList();
+
+            var order = PackageSession.OrderDependenciesFirst(toReload.Select(x => x.Package.Package).Distinct().ToList());
+            return toReload.OrderBy(x => order.IndexOf(x.Package.Package)).ToList();
+        }
+
         /// <summary>Thread-safe snapshot of the tracked assemblies for enumeration off the mutating thread.</summary>
         public List<TrackedAssembly> SnapshotTrackedAssemblies()
         {
@@ -324,6 +344,13 @@ namespace Stride.Assets.Presentation.AssetEditors
                 // The .csproj itself changed: reload the MSBuild project and Roslyn workspace.
                 if (string.Equals(trackedAssembly.Project.FilePath, changedFile, StringComparison.OrdinalIgnoreCase))
                 {
+                    // One save raises several events, handled one after the other (each waits for the reload below).
+                    // An empty file is a save in progress: a later event brings its content. The same content as
+                    // the last load has nothing new.
+                    var projectFileContent = TryReadProjectFile(changedFile);
+                    if (projectFileContent == string.Empty || (projectFileContent != null && projectFileContent == trackedAssembly.ProjectFileContent))
+                        return null;
+
                     await UpdateProject(trackedAssembly, forceReload: true);
                     CheckLoadabilityChanged(trackedAssembly);
                     return new AssemblyChangedEvent(trackedAssembly.LoadedAssembly, AssemblyChangeType.Project, trackedAssembly.Project.FilePath, trackedAssembly.Project);
@@ -497,13 +524,33 @@ namespace Stride.Assets.Presentation.AssetEditors
                 }
             }
 
+            var projectFileContent = TryReadProjectFile(location.ToOSPath());
             var project = await OpenProject(location, forceReload);
             if (project == null)
                 return false;
 
             trackedAssembly.Project = project;
+            trackedAssembly.ProjectFileContent = projectFileContent;
             TrackProjectDocuments(project, trackedAssembly.Package.PackagePath.GetFullDirectory());
             return true;
+        }
+
+        private static string TryReadProjectFile(string path)
+        {
+            try
+            {
+                using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+                using var reader = new StreamReader(stream);
+                return reader.ReadToEnd();
+            }
+            catch (IOException)
+            {
+                return null;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return null;
+            }
         }
 
         /// <summary>Tracks the source documents of a project (limited to the package/project folders) for change notifications.</summary>
@@ -563,6 +610,8 @@ namespace Stride.Assets.Presentation.AssetEditors
 
         /// <summary>
         /// Opens the solution into the shared <see cref="msbuildWorkspace"/> once (or reloads it on <paramref name="forceReload"/>).
+        /// A session with no solution (opened from a .csproj or a .sdpkg) opens nothing here: <see cref="OpenProject"/>
+        /// adds each project, and a reload reopens the projects already in the workspace.
         /// </summary>
         private async Task<Solution> EnsureSolutionOpened(bool forceReload)
         {
@@ -579,7 +628,10 @@ namespace Stride.Assets.Presentation.AssetEditors
 
                 if (!solutionOpened || forceReload)
                 {
-                    await msbuildWorkspace.OpenSolutionAsync(session.SolutionPath.ToOSPath());
+                    if (!string.IsNullOrEmpty(session.SolutionPath))
+                        await msbuildWorkspace.OpenSolutionAsync(session.SolutionPath.ToOSPath());
+                    else if (solutionOpened)
+                        await ReopenProjects();
                     solutionOpened = true;
 
                     // Surface design-time build issues instead of swallowing them (empty-document symptoms).
@@ -608,6 +660,31 @@ namespace Stride.Assets.Presentation.AssetEditors
             }
         }
 
+        /// <summary>
+        /// Reloads a workspace that has no solution: closes it and opens again the projects it held. The caller holds
+        /// <see cref="solutionLock"/>.
+        /// </summary>
+        private async Task ReopenProjects()
+        {
+            var projectPaths = msbuildWorkspace.CurrentSolution.Projects.Select(x => x.FilePath).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+            msbuildWorkspace.CloseSolution();
+            foreach (var projectPath in projectPaths)
+            {
+                // Already opened as a reference of a project reopened before it
+                if (msbuildWorkspace.CurrentSolution.Projects.Any(x => string.Equals(x.FilePath, projectPath, StringComparison.OrdinalIgnoreCase)))
+                    continue;
+
+                try
+                {
+                    await msbuildWorkspace.OpenProjectAsync(projectPath);
+                }
+                catch (Exception e)
+                {
+                    logger.Warning($"[ScriptWorkspace] Could not reload project '{projectPath}': {e.Message}");
+                }
+            }
+        }
+
         private void directoryWatcher_Modified(object sender, FileEvent e)
         {
             fileChanged.Post(e);
@@ -620,6 +697,9 @@ namespace Stride.Assets.Presentation.AssetEditors
             public PackageLoadedAssembly LoadedAssembly { get; set; }
 
             public Project Project { get; set; }
+
+            /// <summary>The .csproj text when <see cref="Project"/> was loaded, or null if it could not be read.</summary>
+            public string ProjectFileContent { get; set; }
         }
     }
 }

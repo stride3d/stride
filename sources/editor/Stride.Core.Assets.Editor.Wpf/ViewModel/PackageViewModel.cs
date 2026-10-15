@@ -506,6 +506,19 @@ namespace Stride.Core.Assets.Editor.ViewModel
             }
         }
 
+        /// <summary>
+        /// Creates the nodes of the direct dependencies added to the model without this view model (a session template
+        /// such as Add plugin).
+        /// </summary>
+        internal void AddMissingDependencyViewModels()
+        {
+            foreach (var dependency in Package.Container.DirectDependencies)
+            {
+                if (!Dependencies.Content.OfType<DirectDependencyReferenceViewModel>().Any(x => x.Dependency == dependency))
+                    new DirectDependencyReferenceViewModel(dependency, this, Dependencies, false);
+            }
+        }
+
         public async Task AddDependency(PickablePackageViewModel pickablePackageViewModel)
         {
             using (var transaction = UndoRedoService.CreateTransaction())
@@ -522,23 +535,13 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 // Update dependencies with NuGet
                 if (Package.Container is SolutionProject project2)
                 {
+                    // The whole solution: a project referencing this one (the game's executable) needs the new package too
                     var log = new LoggerResult();
-                    await VSProjectHelper.RestoreNugetPackages(log, project2.FullPath);
-                    PackageSession.UpdateDependencies(project2, false, true);
+                    var solutionPath = Session.SolutionPath;
+                    await VSProjectHelper.RestoreNugetPackages(log, solutionPath != null && File.Exists(solutionPath) ? solutionPath : project2.FullPath);
 
-                    // If the package is not part of session yet, make sure it gets added at this point
-                    foreach (var projectDependency in project2.FlattenedDependencies)
-                    {
-                        if (projectDependency.Package == null && projectDependency.Type == DependencyType.Package)
-                        {
-                            var packageFile = PackageStore.Instance.GetPackageFileName(projectDependency.Name, new PackageVersionRange(projectDependency.Version));
-                            if (packageFile != null && File.Exists(packageFile))
-                            {
-                                var dependencyPackageViewModel = await Session.AddExistingProject(packageFile);
-                                projectDependency.Package = dependencyPackageViewModel.Package;
-                            }
-                        }
-                    }
+                    // The packages not in the session yet, with their companions (a plugin's asset and editor types)
+                    await Session.LoadAddedDependencies(log);
                 }
             }
         }
@@ -812,6 +815,11 @@ namespace Stride.Core.Assets.Editor.ViewModel
         public abstract string Name { get; }
 
         public abstract DependencyRange DependencyRange { get; }
+
+        /// <summary>
+        /// A note shown next to the name (a package already available through another dependency).
+        /// </summary>
+        public string Note { get => field; set => SetValue(ref field, value); }
     }
 
     public class LoadedPickablePackageViewModel : PickablePackageViewModel

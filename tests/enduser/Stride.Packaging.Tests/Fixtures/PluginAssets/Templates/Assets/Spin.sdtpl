@@ -1,0 +1,8 @@
+!TemplateAssetFactory
+Id: 9C2B6F1E-4D3A-4E5B-8C7D-0A1B2C3D4E5F
+AssetTypeName: SpinAsset
+Name: Spin
+Scope: Asset
+Description: A spin asset from the plugin
+Group: Plugin
+DefaultOutputName: Spin

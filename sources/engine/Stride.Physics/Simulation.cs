@@ -8,6 +8,7 @@ using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
 using Stride.Core.MicroThreading;
 using Stride.Engine;
+using Stride.Engine.Design;
 using Stride.Rendering;
 using static BulletSharp.UnsafeNativeMethods;
 
@@ -70,6 +71,14 @@ namespace Stride.Physics
         /// </summary>
         public static bool DisableSimulation = false;
 
+        private readonly bool disabledByExecutionMode;
+
+        /// <summary>
+        /// True when the simulation does not step and its components create no bodies: <see cref="DisableSimulation"/>
+        /// is set, or the scene does not run as a game (editor, thumbnail, preview). The Bullet world is still created.
+        /// </summary>
+        public bool IsDisabled => DisableSimulation || disabledByExecutionMode;
+
         public delegate PhysicsEngineFlags OnSimulationCreationDelegate();
 
         public delegate void SimulationTickEvent(Simulation sender, float tick);
@@ -88,6 +97,7 @@ namespace Stride.Physics
         internal Simulation(PhysicsProcessor processor, PhysicsSettings configuration)
         {
             this.processor = processor;
+            disabledByExecutionMode = (processor.EntityManager.ExecutionMode & ExecutionMode.Runtime) == 0;
 
             if (configuration.Flags == PhysicsEngineFlags.None)
             {

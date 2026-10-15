@@ -29,6 +29,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
     /// <summary>
     /// Handles rendering of navigation meshes associated with the current scene
     /// </summary>
+    [EditorGameService(typeof(EntityHierarchyEditorController), Order = 150)]
     public class EditorGameLightProbeGizmoService : EditorGameServiceBase, IEditorGameLightProbeService
     {
         // Wireframe lightprobes mesh
@@ -160,9 +161,11 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             meshRenderFeature.PipelineProcessors.Add(new AntiAliasLinePipelineProcessor { RenderStage = lightProbeWireframeRenderStage });
             var editorCompositor = (EditorTopLevelCompositor)game.EditorSceneSystem.GraphicsCompositor.Game;
             editorCompositor.PostGizmoCompositors.Add(new SingleStageRenderer { RenderStage = lightProbeWireframeRenderStage, Name = "LightProbe Wireframe Gizmos" });
-            editorCompositor.PostGizmoCompositors.Add(new ClearRenderer { ClearFlags = ClearRendererFlags.DepthOnly });
-            editorCompositor.PostGizmoCompositors.Add(new SingleStageRenderer { RenderStage = lightProbeGizmoRenderStage, Name = "LightProbe Gizmos" });
-            editorCompositor.PostGizmoCompositors.Add(new SingleStageRenderer { RenderStage = selectionRenderStage, Name = "LightProbe Selection Gizmo" });
+            editorCompositor.AddOverlayGizmoCompositor(new SceneRendererCollection
+            {
+                new SingleStageRenderer { RenderStage = lightProbeGizmoRenderStage, Name = "LightProbe Gizmos" },
+                new SingleStageRenderer { RenderStage = selectionRenderStage, Name = "LightProbe Selection Gizmo" },
+            });
 
             // Add debug entity
             debugEntity = new Entity("Navigation debug entity");

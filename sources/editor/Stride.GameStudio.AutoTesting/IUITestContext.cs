@@ -71,9 +71,10 @@ public interface IUITestContext
 
     /// <summary>
     /// Selects a template in the ProjectSelectionWindow by template id and returns true if found.
+    /// Retries until <paramref name="timeoutSeconds"/> while the template list is still loading.
     /// The dialog stays open; close it via <see cref="CloseModalWithOk"/>.
     /// </summary>
-    Task<bool> SelectTemplate(Guid templateId);
+    Task<bool> SelectTemplate(Guid templateId, double timeoutSeconds = 30);
 
     /// <summary>
     /// Closes a modal dialog with <c>DialogResult.Ok</c> (equivalent to clicking OK / Create).

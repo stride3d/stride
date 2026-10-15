@@ -53,6 +53,30 @@ So you just dispatch `release.yml` on the branch: it publishes the committed ver
 
 The Deploy stage is a reusable workflow ([`release-deploy.yml`](../../.github/workflows/release-deploy.yml)) that `release.yml` calls with the current run. It can also be **dispatched standalone with a `run-id`** to deploy a *prior* signed build — the "sign once (`deploy: false`), test the artifacts locally, then deploy the exact same `.nupkg`s without a rebuild" flow. It downloads that run's `packages` artifact, tags the commit the artifacts were *built* from (not the current branch tip), and otherwise behaves identically (push → tag → release → bump).
 
+## Nightly builds
+
+[`nightly.yml`](../../.github/workflows/nightly.yml) builds the engine packages of `master` and of the maintained `master-x.y` branches (`NIGHTLY_BRANCHES`) every night, and pushes them to the nightly feed. The schedule (01:23 UTC, when `STRIDE_ENABLE_SCHEDULED_CI` is set) runs on `master` only, as for any GitHub schedule, so that run dispatches the workflow on each listed branch; it can also be dispatched by hand on any branch.
+
+```
+https://packages.stride3d.net/nightly/index.json
+```
+
+- **Version**: `X.Y.Z-nightly.YYYYMMDD.N`, the branch's committed `MajorMinor.Patch` with the committed suffix replaced (`-p:StrideNightlyLabel=nightly.YYYYMMDD.N`, checked by `StrideGitVersion`; `N` is the run number). It sorts above every `-betaN` of the same `X.Y.Z` and below the stable release. Not a local build (`IsLocalBuild` is false), so it behaves like a release for upgraders and the launcher.
+- **Build**: the release build, unsigned and without the prerequisites installer. A run whose branch hasn't changed since that branch's last published nightly builds nothing (`force` rebuilds). A dispatch with `publish: false` builds the packages as an artifact only (any branch).
+- **Samples**: not packed. The engine names the published content (`StrideSamplesVersion`), as a release does.
+- **Packages with their own version** (`Stride.CrashReporter`) append the label (`5.0.1` → `5.0.1-nightly.YYYYMMDD.N`, `5.0.1-beta1` → `5.0.1-beta1.nightly.YYYYMMDD.N`), on the package and on the version the hosts depend on and bake in: a number not released yet must never reach the feed under its release number. The build fails if a package lacks the label.
+- **Feed**: a static [Sleet](https://github.com/emgarten/Sleet) feed in the `nightly` container of the `stridenightly` storage account, served at `packages.stride3d.net/nightly/` by the `stride-nightly` route of Front Door (no caching; Sleet's index files change on every push). After each push the workflow keeps the `NIGHTLY_KEEP` (14) newest nightlies of each package **per major.minor** and deletes older ones. Sleet's own retention is off on this feed: it counts per package only, so daily nightlies of one line would push out those of a quieter one.
+- **Credentials**: the publish job runs in the `nightly` GitHub environment (`master` and the listed `master-x.y` only) and signs in to Azure with the GitHub OIDC token as the `stride-nightly-ci` managed identity, which may only write to the `nightly` container. No secret is stored.
+- **Adding a branch**: the branch needs this workflow and the `StrideNightlyLabel` support (a cherry-pick), it goes into `NIGHTLY_BRANCHES` on `master`, and into the deployment branches of the `nightly` environment.
+
+To use nightlies, tick "Show nightly builds of Stride" in the launcher settings (gear in the title bar): the launcher adds the feed to the user's NuGet.config and lists the nightlies in rows of their own ("Stride 4.5 Nightly"). With the CLI, `--nightly` includes them: `stride sdk install --nightly` (and `update`, or an install of a nightly by its version) adds the feed to the user's NuGet.config the same way, since Game Studio and the projects on a nightly restore from it later; `stride sdk available --nightly` only lists them, and `stride upgrade --nightly` may pick an installed nightly. Without `--nightly`, the newest version is never a nightly, even with `--prerelease`. Without either, add the feed by hand (a launcher before 6.0.6 removes it again at startup):
+
+```bash
+dotnet nuget add source https://packages.stride3d.net/nightly/index.json --name "Stride Nightly"
+```
+
+Each nightly takes space in the NuGet cache (`~/.nuget/packages`); uninstall old ones from the launcher or with `stride sdk uninstall`.
+
 ## Stride CLI
 
 The `stride` command-line tool ([`sources/launcher/Stride.Cli`](../../sources/launcher/Stride.Cli)) is versioned and released **independently of the engine** — it's a `dotnet tool` consumed by end users, not part of an engine `major.minor` line. Its version is plain SemVer in [`Stride.Cli.csproj`](../../sources/launcher/Stride.Cli/Stride.Cli.csproj) (`<Version>`), bumped by hand; the project uses `Microsoft.NET.Sdk` (not the Stride SDK), so none of the engine's `-devN`/overlay machinery applies to it.
@@ -65,7 +89,7 @@ Install: `dotnet tool install -g Stride.Cli`.
 
 `Stride.CrashReporter` (the out-of-process crash dialog, [`sources/crashreport/Stride.CrashReporter`](../../sources/crashreport/Stride.CrashReporter)) carries **its own version**, in [`StrideCrashReporterVersion.props`](../../sources/crashreport/StrideCrashReporterVersion.props), so an engine release republishes it only when it changed. It is 26 MB per copy (Avalonia and its natives for three RIDs under `tools/`), which every engine release used to republish; now an unchanged version is packed, skipped on push (`--skip-duplicate`), and users keep the copy already in their NuGet cache.
 
-Unlike the CLI it needs no workflow of its own: it is a project of the Stride SDK, so the engine release packs it (`-devN` in a checkout, plain in a package build, never the engine's prerelease suffix) and pushes it alongside. Bump the number with any change that ships in the package, or the change never reaches users — `changes.yml` warns on a PR that forgets. Never reuse a number.
+Unlike the CLI it needs no workflow of its own: it is a project of the Stride SDK, so the engine release packs it (`-devN` in a checkout, plain in a package build, the nightly label appended in a [nightly build](#nightly-builds), never the engine's prerelease suffix) and pushes it alongside. Bump the number with any change that ships in the package, or the change never reaches users — `changes.yml` warns on a PR that forgets. Never reuse a number.
 
 The hosts resolve it by that exact version: Game Studio and the asset compiler depend on it (`>= <version>`, which NuGet restores as exactly that), and `Stride.CrashReport` bakes the same value in (`CrashReporterVersion` assembly metadata, with the worktree suffix in a dev checkout), so `NativeCrashReporting` launches only the reporter the host was built for, never another one found in the store. It looks in the store the host's own startup restore used (`Stride.NuGetResolver` passes it as `STRIDE_NUGET_PACKAGES`, NuGet config included), since the crash library reads no NuGet config itself. The Launcher and the CLI declare no dependency and so capture native crashes only when an engine install left that exact version; otherwise they report managed crashes only.
 

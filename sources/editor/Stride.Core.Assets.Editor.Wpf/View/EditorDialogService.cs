@@ -287,6 +287,14 @@ namespace Stride.Core.Assets.Editor.View
             }
         }
 
+        public void UnregisterAdditionalTemplateProvider(ITemplateProvider provider)
+        {
+            AdditionalProviders.Remove(provider);
+            PropertyViewHelper.HeaderProviders.UnregisterTemplateProvider(provider);
+            PropertyViewHelper.FooterProviders.UnregisterTemplateProvider(provider);
+            PropertyViewHelper.EditorProviders.UnregisterTemplateProvider(provider);
+        }
+
         // TODO: Move this in PluginService
         public void UnregisterAdditionalTemplateProviders()
         {

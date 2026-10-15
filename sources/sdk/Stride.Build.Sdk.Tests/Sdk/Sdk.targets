@@ -334,12 +334,13 @@
        which picks TargetFrameworks.First() — that's $(StrideFramework) = Game. Cross-targeting
        dispatches inner builds in parallel by default, so without this barrier a peer TFM's
        compile-asset step can race ahead of Game finishing. Re-entering the same csproj is
-       cached by MSBuild — no-op if Game is already built, blocking barrier otherwise. -->
+       cached by MSBuild — no-op if Game is already built, blocking barrier otherwise. The peer's
+       manifest references Game's: Build alone can return before another request writes it. -->
   <Target Name="_StrideWaitForGameInnerBuild"
           BeforeTargets="StrideCompileAsset"
           Condition="$(_StrideTestPlatforms.Contains(';Game;')) And '$(StridePlatform)' != 'Game' And '$(StrideIsExecutable)' == 'true' And '$(StrideCompilerSkipBuild)' != 'true'">
     <MSBuild Projects="$(MSBuildProjectFullPath)"
-             Targets="Build"
+             Targets="Build;StrideWriteAssetBuildManifest"
              Properties="TargetFramework=$(StrideFramework)" />
   </Target>
 

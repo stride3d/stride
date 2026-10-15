@@ -21,9 +21,14 @@ namespace Stride.Particles.Components
     [DefaultEntityComponentRenderer(typeof(ParticleSystemRenderProcessor))]
     [ComponentOrder(10200)]
     [ComponentCategory("Particles")]
-    public sealed class ParticleSystemComponent : ActivableEntityComponent
-    {        
+    public sealed class ParticleSystemComponent : ActivableEntityComponent, IEntityComponentBounds, IThumbnailComponent
+    {
         private ParticleSystem particleSystem;
+
+        /// <inheritdoc />
+        [DataMemberIgnore]
+        public BoundingBox LocalBounds => ParticleSystem?.BoundingShape?.GetAABB(Vector3.Zero, Quaternion.Identity, 1.0f)
+            ?? new BoundingBox(new Vector3(-2.0f), new Vector3(2.0f));
 
         /// <summary>
         /// The particle system associated with this component
@@ -43,6 +48,14 @@ namespace Stride.Particles.Components
         [DataMember(1)]
         [Display("Editor control")]
         public ParticleSystemControl Control = new ParticleSystemControl();
+
+        /// <inheritdoc />
+        void IThumbnailComponent.PrepareThumbnail()
+        {
+            // The system runs for the control's warm-up time before the thumbnail frame
+            if (ParticleSystem?.Settings is { } settings && Control is { } control)
+                settings.WarmupTime = control.ThumbnailWarmupTime;
+        }
 
         /// <summary>
         /// The color shade will be applied to all particles (via their materials) during rendering.

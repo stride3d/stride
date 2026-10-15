@@ -43,4 +43,17 @@ public class TestLocalBuildSwitch
     {
         Assert.Equal(expected, new PackageVersion(version).IsLocalBuild);
     }
+
+    [Theory]
+    [InlineData("4.5.0-nightly.20261014.3", true)]
+    [InlineData("5.0.1-beta1.nightly.20261014.3", true)]
+    [InlineData("4.5.0-beta01", false)]
+    [InlineData("4.5.0-dev3", false)]
+    [InlineData("4.5.0", false)]
+    public void IsNightly(string version, bool expected)
+    {
+        var packageVersion = new PackageVersion(version);
+        Assert.Equal(expected, packageVersion.IsNightly);
+        Assert.False(packageVersion.IsNightly && packageVersion.IsLocalBuild);
+    }
 }

@@ -2,6 +2,8 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.CommandLine;
 using Stride.Cli.Core;
+using Stride.Core;
+using Stride.Core.Packages;
 
 // sdk: manage installed Stride versions (the engine, editor, and tools).
 internal static class SdkCommand
@@ -9,6 +11,7 @@ internal static class SdkCommand
     public static Command Create(StrideVersionManager manager)
     {
         var prerelease = new Option<bool>("--prerelease") { Description = "Include prerelease (beta) versions when resolving the newest version or line." };
+        var nightly = new Option<bool>("--nightly") { Description = $"Include the nightly builds (X.Y.Z-nightly.YYYYMMDD.N, project upgrades might not be fully tested). Install and update add their feed ({NugetStore.NightlyFeedUrl}) to your NuGet.config." };
 
         // list: print the installed Stride versions.
         var listCommand = new Command("list", "List installed Stride versions.");
@@ -28,9 +31,13 @@ internal static class SdkCommand
         // available: print the Stride versions offered by the package sources (one per line, newest first).
         var availableCommand = new Command("available", "List Stride versions available from the package sources.");
         availableCommand.Options.Add(prerelease);
+        availableCommand.Options.Add(nightly);
         availableCommand.SetAction(async (parseResult, cancellationToken) =>
         {
-            var versions = await manager.GetAvailable(parseResult.GetValue(prerelease), cancellationToken);
+            // Listing only: the NuGet.config is left as is
+            if (parseResult.GetValue(nightly))
+                manager.AddNightlyFeed(save: false);
+            var versions = await manager.GetAvailable(parseResult.GetValue(prerelease), parseResult.GetValue(nightly), cancellationToken);
             if (versions.Count == 0)
             {
                 Console.Error.WriteLine("No Stride version is available from the package sources.");
@@ -51,9 +58,13 @@ internal static class SdkCommand
         var installCommand = new Command("install", "Install a Stride version (additive; never removes an existing one).");
         installCommand.Arguments.Add(installVersion);
         installCommand.Options.Add(prerelease);
+        installCommand.Options.Add(nightly);
         installCommand.SetAction(async (parseResult, cancellationToken) =>
         {
             var spec = parseResult.GetValue(installVersion);
+            // Before the project's restore below, which might need it
+            if (parseResult.GetValue(nightly) && !AddNightlyFeed(manager))
+                return 1;
             // No version given but inside a project: install the version that project needs (sets you up to work
             // on it), rather than the newest available. The restore that resolves it also pulls its engine packages.
             if (spec is null && manager.FindProjectVersion(Environment.CurrentDirectory) is { } projectVersion)
@@ -61,11 +72,14 @@ internal static class SdkCommand
                 spec = projectVersion.ToString();
                 Console.WriteLine($"Installing Stride {spec} required by the project in this directory.");
             }
+            // A nightly asked for by its version needs the feed too
+            if (spec is not null && PackageVersion.TryParse(spec, out var specVersion) && specVersion.IsNightly && !AddNightlyFeed(manager))
+                return 1;
 
             var progress = new InstallProgressConsole();
             try
             {
-                var installed = await manager.Install(spec, parseResult.GetValue(prerelease), progress, cancellationToken);
+                var installed = await manager.Install(spec, parseResult.GetValue(prerelease), parseResult.GetValue(nightly), progress, cancellationToken);
                 progress.Dispose();
                 Console.WriteLine($"Installed Stride {installed.Version}.");
                 return 0;
@@ -116,12 +130,15 @@ internal static class SdkCommand
         var updateCommand = new Command("update", "Update installed Stride lines to their newest patch.");
         updateCommand.Arguments.Add(updateLine);
         updateCommand.Options.Add(prerelease);
+        updateCommand.Options.Add(nightly);
         updateCommand.SetAction(async (parseResult, cancellationToken) =>
         {
+            if (parseResult.GetValue(nightly) && !AddNightlyFeed(manager))
+                return 1;
             var progress = new InstallProgressConsole();
             try
             {
-                var updated = await manager.Update(parseResult.GetValue(updateLine), parseResult.GetValue(prerelease), progress, cancellationToken);
+                var updated = await manager.Update(parseResult.GetValue(updateLine), parseResult.GetValue(prerelease), parseResult.GetValue(nightly), progress, cancellationToken);
                 progress.Dispose();
                 if (updated.Count == 0)
                 {
@@ -148,5 +165,22 @@ internal static class SdkCommand
         sdk.Subcommands.Add(uninstallCommand);
         sdk.Subcommands.Add(updateCommand);
         return sdk;
+    }
+
+    // Adds the nightly feed to the user's NuGet.config when it isn't there yet, as the launcher's "Show nightly builds"
+    // does, and says so. False, with the error printed, when the NuGet.config can't be written.
+    internal static bool AddNightlyFeed(StrideVersionManager manager)
+    {
+        try
+        {
+            if (manager.AddNightlyFeed(save: true))
+                Console.WriteLine($"Added the nightly feed ({NugetStore.NightlyFeedUrl}) to your NuGet.config.");
+            return true;
+        }
+        catch (Exception exception)
+        {
+            Console.Error.WriteLine($"Could not add the nightly feed ({NugetStore.NightlyFeedUrl}) to your NuGet.config: {exception.Message}");
+            return false;
+        }
     }
 }

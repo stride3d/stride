@@ -22,8 +22,6 @@ public class TopDownCreate : IUITest
             ctx.Exit(1);
             return;
         }
-        await Task.Delay(TimeSpan.FromSeconds(1)); // templates panel populate
-
         if (!await ctx.SelectTemplate(new Guid("A363FBC5-89EF-4E7A-B870-6D070813D034")))
         {
             ctx.Exit(1);
