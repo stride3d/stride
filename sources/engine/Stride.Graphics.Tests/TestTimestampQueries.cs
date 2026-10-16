@@ -31,6 +31,38 @@ namespace Stride.Graphics.Tests
             });
         }
 
+        /// <summary>
+        /// A timestamp pool polled until its data is ready can be released at once: no read-back still uses it. On
+        /// Direct3D 12, each poll used to queue one more read-back, still running when the pool was released.
+        /// </summary>
+        [SkippableFact]
+        public void PolledPoolCanBeReleased()
+        {
+            PerformTest(game =>
+            {
+                var device = game.GraphicsDevice;
+                var commandList = game.GraphicsContext.CommandList;
+
+                using var buffer = Buffer.Structured.New<uint>(device, 1, unorderedAccess: true);
+                var data = new long[2];
+
+                // Many rounds, so some polls run while the GPU still resolves the queries
+                for (int round = 0; round < 300; round++)
+                {
+                    using var pool = QueryPool.New(device, QueryType.Timestamp, 2);
+                    commandList.WriteTimestamp(pool, 0);
+                    commandList.WriteTimestamp(pool, 1);
+
+                    // Reading the buffer back submits the command list and waits for it
+                    buffer.GetData<uint>(commandList);
+
+                    var stopwatch = Stopwatch.StartNew();
+                    while (!pool.TryGetData(data))
+                        Assert.True(stopwatch.ElapsedMilliseconds < 5000, "Timestamps not ready after 5 s");
+                }
+            });
+        }
+
         private static long[] WriteTwoAndRead(GameTestBase game, QueryPool pool)
         {
             var device = game.GraphicsDevice;
