@@ -1237,11 +1237,22 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         }
         SpirvBuilder.RemapIds(temp, 0, temp.Count, remapIds);
 
+        // A parameter semantic is stored as a member decoration of its function: the entry point wrapper consumes those of the entry
+        // points, the others (helpers: HLSL ignores them) must not reach the output, where they are invalid
+        var functionIds = new HashSet<int>();
+        foreach (var i in temp)
+        {
+            if (i.Op == Op.OpFunction && i.Data.IdResult is int functionId)
+                functionIds.Add(functionId);
+        }
+
         // Remove in a single pass (we do in-place without RemoveAt otherwise it would be up to O(n^2) complexity)
         RemoveInstructionWhere(temp, i =>
         {
             // Remove Nop
             if (i.Op == Op.OpNop)
+                return true;
+            if (i.Op == Op.OpMemberDecorateString && (Decoration)i.Data.Memory.Span[3] == Decoration.UserSemantic && functionIds.Contains(i.Data.Memory.Span[1]))
                 return true;
             // Also remove some other SDSL specific operators (that we keep late mostly for debug purposes)
             if (i.Op == Op.OpShaderSDSL
