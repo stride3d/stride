@@ -107,6 +107,36 @@ public class StrideShaderTests
         Assert.Contains("Can't cast from float3 to float4 (more components): HLSL doesn't add components implicitly, write them (float4(value, ...))", exception.Message);
     }
 
+    // A shader whose byte address buffers come from another shader (a base, or the target of a static call) imports their types by name.
+    [Theory]
+    [InlineData("ByteAddressBufferInherited")]
+    [InlineData("ByteAddressBufferStaticCall")]
+    public void ByteAddressBufferOfAnotherShaderIsImported(string shaderName)
+    {
+        SpirvCrossSupport.SkipUnlessAvailable();
+        FxcSupport.SkipUnlessAvailable();
+
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+        shaderMixer.ShaderLoader.LoadExternalBuffer(shaderName, [], out _, out _, out _);
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(new ShaderClassSource(shaderName), new ShaderMixer.Options(true), log, out var bytecode, out _, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+
+        var validation = Spv.ValidateBinary(bytecode);
+        Assert.True(validation.IsValid, validation.Output);
+
+        var legalized = SpirvTools.LegalizeForHlsl(System.Runtime.InteropServices.MemoryMarshal.Cast<byte, uint>(bytecode.ToArray()));
+        var translator = new SpirvTranslator(legalized.AsMemory());
+        var compute = translator.GetEntryPoints().First(x => x.ExecutionModel == ExecutionModel.GLCompute);
+        var hlsl = translator.Translate(Backend.Hlsl, compute);
+
+        Assert.Contains("RWByteAddressBuffer", hlsl);
+        var errors = FxcSupport.Compile(hlsl, "cs_5_0");
+        Assert.True(errors is null, errors + Environment.NewLine + hlsl);
+    }
+
     // Reflection reports a multidimensional cbuffer array as a flat element count
     // (float4 Data2D[2][3] => 6 elements), matching fxc and the runtime parameter layout.
     [Fact]

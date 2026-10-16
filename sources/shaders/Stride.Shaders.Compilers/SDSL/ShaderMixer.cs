@@ -678,13 +678,15 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     if (!remapIds.TryGetValue(typeStruct2.ResultId, out var structId))
                         structId = typeStruct2.ResultId;
                     structTypes.Add(structName, structId);
-                    // Also add an entry using ToId()-style name for structured buffer types,
-                    // since OpImportStructSDSL.StructName uses ToId() format (e.g. "StructuredBuffer<X>")
-                    // while OpName uses "type.StructuredBuffer.X" format
+                    // Also add an entry using ToId()-style name for buffer types,
+                    // since OpImportStructSDSL.StructName uses ToId() format (e.g. "StructuredBuffer<X>", "ByteAddressBuffer")
+                    // while OpName uses "type.StructuredBuffer.X" / "type.ByteAddressBuffer" format
                     if (structName.StartsWith("type.StructuredBuffer."))
                         structTypes.TryAdd($"StructuredBuffer<{structName.Substring("type.StructuredBuffer.".Length)}>", structId);
                     else if (structName.StartsWith("type.RWStructuredBuffer."))
                         structTypes.TryAdd($"RWStructuredBuffer<{structName.Substring("type.RWStructuredBuffer.".Length)}>", structId);
+                    else if (structName is "type.ByteAddressBuffer" or "type.RWByteAddressBuffer")
+                        structTypes.TryAdd(structName.Substring("type.".Length), structId);
                 }
 
                 // Process OpImport*SDSL
