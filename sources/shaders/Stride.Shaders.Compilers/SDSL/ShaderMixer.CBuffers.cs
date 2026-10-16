@@ -454,7 +454,7 @@ namespace Stride.Shaders.Compilers.SDSL
                     var member = cb.Members[index];
                     var memberSize = SpirvBuilder.ComputeBufferOffset(member.Type, member.TypeModifier, ref constantBufferOffset, SpirvBuilder.AlignmentRules.CBuffer).Size;
 
-                    DecorateMember(context, structTypeId, index, constantBufferOffset, memberSize, member.Type, member.TypeModifier);
+                    DecorateMember(context, structTypeId, index, constantBufferOffset, member.Type, member.TypeModifier, SpirvBuilder.AlignmentRules.CBuffer);
 
                     var metadata = cbufferMetadata[index];
 
@@ -497,10 +497,11 @@ namespace Stride.Shaders.Compilers.SDSL
             }
         }
 
-        private static void DecorateMember(SpirvContext context, int structTypeId, int index, int offset, int size, SymbolType memberType, TypeModifier memberTypeModifier)
+        private static void DecorateMember(SpirvContext context, int structTypeId, int index, int offset, SymbolType memberType, TypeModifier memberTypeModifier, SpirvBuilder.AlignmentRules alignmentRules)
         {
             context.Add(new OpMemberDecorate(structTypeId, index, Decoration.Offset, [offset]));
-            if (memberType is MatrixType or ArrayType { BaseType: MatrixType })
+            var matrixType = memberType switch { MatrixType m => m, ArrayType { BaseType: MatrixType m } => m, _ => null };
+            if (matrixType != null)
             {
                 // HLSL row_major    => SPIR-V ColMajor
                 // HLSL column_major => SPIR-V RowMajor
@@ -508,7 +509,8 @@ namespace Stride.Shaders.Compilers.SDSL
                 // An explicit layout is already on the type (SpirvContext.DeclareStructuredType)
                 if (memberTypeModifier == TypeModifier.None)
                     context.Add(new OpMemberDecorate(structTypeId, index, Decoration.RowMajor, []));
-                context.Add(new OpMemberDecorate(structTypeId, index, Decoration.MatrixStride, [16]));
+                // The stride the buffer size was computed with (SpirvBuilder.TypeSizeInBuffer)
+                context.Add(new OpMemberDecorate(structTypeId, index, Decoration.MatrixStride, [SpirvBuilder.MatrixStride(matrixType, memberTypeModifier, alignmentRules)]));
             }
         }
 

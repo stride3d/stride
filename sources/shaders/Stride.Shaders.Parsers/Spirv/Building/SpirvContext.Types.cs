@@ -213,7 +213,7 @@ public partial class SpirvContext
         if (structuredBufferType.BaseType is MatrixType m)
         {
             Buffer.Add(new OpMemberDecorate(bufferType, 0, Specification.Decoration.RowMajor, []));
-            Buffer.Add(new OpMemberDecorate(bufferType, 0, Specification.Decoration.MatrixStride, [SpirvBuilder.StorageBufferArrayStride(new VectorType(m.BaseType, m.Columns))]));
+            Buffer.Add(new OpMemberDecorate(bufferType, 0, Specification.Decoration.MatrixStride, [SpirvBuilder.MatrixStride(m, TypeModifier.None, SpirvBuilder.AlignmentRules.StructuredBuffer)]));
         }
         Buffer.Add(new OpDecorate(bufferType, Specification.Decoration.Block, []));
 

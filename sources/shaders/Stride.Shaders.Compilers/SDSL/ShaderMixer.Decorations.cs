@@ -78,7 +78,7 @@ public partial class ShaderMixer
 
             // Note: we assume if already added by another cbuffer using this type, the offsets were computed the same way
             offsets[i] = offset;
-            DecorateMember(context, structId, i, offset, memberSize, s.Members[i].Type, s.Members[i].TypeModifier);
+            DecorateMember(context, structId, i, offset, s.Members[i].Type, s.Members[i].TypeModifier, alignmentRules);
 
             offset += memberSize;
             SpirvBuilder.PadOffsetAfterArray(s.Members[i].Type, s.Members[i].TypeModifier, offsets[i], ref offset, alignmentRules);
