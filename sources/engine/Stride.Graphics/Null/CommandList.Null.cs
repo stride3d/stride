@@ -190,6 +190,16 @@ namespace Stride.Graphics
             NullHelper.ToImplement();
         }
 
+        public void UnorderedAccessBarrier(GraphicsResource resource)
+        {
+            NullHelper.ToImplement();
+        }
+
+        public void UnorderedAccessBarrier()
+        {
+            NullHelper.ToImplement();
+        }
+
         /// <summary>
         /// Draw non-indexed, non-instanced primitives.
         /// </summary>

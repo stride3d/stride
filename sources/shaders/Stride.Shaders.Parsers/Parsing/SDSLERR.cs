@@ -49,7 +49,9 @@ public static class SDSLErrorMessages
     public const string SDSL0041 = "SDSL0041: Expected expression or semi colon";
     public const string SDSL0042 = "SDSL0042: Expected prefix expression";
     public const string SDSL0043 = "SDSL0043: Unexpected <EOF>";
-    public const string SDSL0044 = "SDSL0044: Use of register and packoffset keyword deprecated";
+    public const string SDSL0048 = "SDSL0048: '{0}' is a reserved word and can't be a name. Rename it";
+    public const string SDSL0049 = "SDSL0049: Code after the end of shader {0}. Only shader, effect and params declarations can follow: remove it, or move it into the shader";
+    public const string SDSL0050 = "SDSL0050: {0} {1} is declared inside {2} {3}, but it is not a member of a {2}. Move it out of the block";
 
 
     // Semantic errors
@@ -71,4 +73,9 @@ public static class SDSLErrorMessages
     public const string SDSL0114 = "SDSL0114: {0}.{1}({2}) at line {3} implements abstract method {4}.{1} but is not marked 'override'. Add the 'override' keyword.";
     public const string SDSL0115 = "SDSL0115: {0}.{1}({2}) at line {3} hides inherited method {4}.{1} but is not marked 'override'. Add the 'override' keyword, or rename the method.";
     public const string SDSL0118 = "SDSL0118: {0} declares generic parameter '{1}' of type {2} at line {3}. Texture and sampler generic parameters are not supported. Declare a texture or sampler member instead, or use a ComputeColorTexture...Sampler shader with a texture key.";
+    public const string SDSL0145 = "SDSL0145: Swizzle {0} writes the same element twice. Write each element once.";
+
+    // HLSL warnings: valid HLSL that is probably a mistake, reported when a class compiles
+    public const string SDSL0219 = "SDSL0219: comma expression ({0}): the values before the last are dropped, the result is {1}. To build a vector, write its type: float4(...).";
+    public const string SDSL0220 = "SDSL0220: {0} on {1} is ignored: Stride lays out cbuffers and binds resources itself. Remove it.";
 }

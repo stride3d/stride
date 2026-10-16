@@ -80,8 +80,8 @@ namespace Stride.Rendering.Voxels
                     reportedUnsupported = true;
 
                     Log.Warning(!features.HasComputeShaders
-                        ? "Voxelization is disabled: this device does not support compute shaders."
-                        : "Voxelization is disabled: this device does not support unordered access from pixel shaders.");
+                        ? "Voxelization is disabled: compute shaders are not available on this device with the game's graphics profile."
+                        : "Voxelization is disabled: unordered access from pixel shaders is not available on this device with the game's graphics profile.");
                 }
 
                 return;
@@ -251,6 +251,7 @@ namespace Stride.Rendering.Voxels
                 }
             }
         }
+
         public virtual void Draw(RenderDrawContext drawContext, Shadows.IShadowMapRenderer ShadowMapRenderer)
         {
             if (renderVoxelVolumes == null || renderVoxelVolumes.Count == 0)
@@ -270,6 +271,8 @@ namespace Stride.Rendering.Voxels
                     if (!processedVolume.Voxelize) continue;
 
                     VoxelStorageContext storageContext = processedVolume.StorageContext;
+
+                    (processedVolume.Storage as VoxelStorageClipmaps)?.ClearNewResources(drawContext.CommandList);
 
                     using (drawContext.QueryManager.BeginProfile(Color.Black, PassesVoxelizationProfilingKey))
                     {

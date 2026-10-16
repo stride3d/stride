@@ -235,7 +235,9 @@ namespace Stride.Graphics
                     SemanticName = semanticNamePtr,
                     SemanticIndex = (uint) inputElement.SemanticIndex,
                     AlignedByteOffset = (uint) inputElement.AlignedByteOffset,
-                    Format = (Format) inputElement.Format
+                    Format = (Format) inputElement.Format,
+                    InputSlotClass = (Silk.NET.Direct3D11.InputClassification) inputElement.InputSlotClass,
+                    InstanceDataStepRate = (uint) inputElement.InstanceDataStepRate
                 };
             }
 

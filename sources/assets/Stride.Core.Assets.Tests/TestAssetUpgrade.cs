@@ -172,6 +172,18 @@ public class TestAssetUpgrade : TestBase
         Assert.Null(loadingFile.AssetContent);
     }
 
+    [Fact]
+    public void AnInvalidFileReportsWhereItIsInvalid()
+    {
+        // Its header reads fine, so the asset is migrated: the YAML error further down is the reason it fails
+        var loadingFile = SaveForLoading(new MyUpgradedAsset(1) { Test1 = [32, 64] }, nameof(AnInvalidFileReportsWhereItIsInvalid));
+        File.AppendAllText(loadingFile.FilePath.FullPath, "Broken: [unclosed\n");
+        var context = new AssetMigrationContext(null, loadingFile.ToReference(), loadingFile.FilePath.ToOSPath(), new LoggerResult());
+
+        var exception = Assert.ThrowsAny<YamlException>(() => AssetMigration.MigrateAssetIfNeeded(context, loadingFile));
+        Assert.Contains("Lin:", exception.Message);
+    }
+
     private PackageLoadingAssetFile SaveForLoading(MyUpgradedAsset asset, string name)
     {
         var loadingFile = new PackageLoadingAssetFile(Path.Combine(DirectoryTestBase, "TestUpgrade", name + ".sdobj"), DirectoryTestBase);

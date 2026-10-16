@@ -63,24 +63,16 @@ public class PackageLoadingAssetFile
         return new AssetReference(AssetId.Empty, AssetLocation);
     }
 
+    /// <summary>
+    /// The asset file as a YAML document, or null when an asset upgrader marked it as deleted.
+    /// </summary>
+    /// <exception cref="YamlException">The file is no valid YAML; the message says where.</exception>
     public YamlAsset? AsYamlAsset()
     {
-        // The asset file might have been been marked as deleted during the run of asset upgrader. In this case let's just return null.
         if (Deleted)
             return null;
 
-        try
-        {
-            return new YamlAsset(this);
-        }
-        catch (SyntaxErrorException)
-        {
-            return null;
-        }
-        catch (YamlException)
-        {
-            return null;
-        }
+        return new YamlAsset(this);
     }
 
     public Stream OpenStream()

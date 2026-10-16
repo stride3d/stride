@@ -575,6 +575,15 @@ public class ShaderWriter : NodeWalker
         WriteStatementContent(whileStatement.Body);
     }
 
+    public override void VisitDoWhile(DoWhile doWhile)
+    {
+        WriteLine("do");
+        WriteStatementContent(doWhile.Body);
+        Write("while").WriteSpace().Write("(");
+        VisitNode(doWhile.Condition);
+        WriteLine(");");
+    }
+
     public override void VisitForEach(ForEach forEach)
     {
         WriteLinkLine(forEach);

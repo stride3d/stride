@@ -1,0 +1,23 @@
+// Structured buffers of every kind with and without a layout difference between std430 and Direct3D (see TightStructuredBufferTests)
+namespace Stride.Shaders.Tests;
+
+shader TightLayoutMarker
+{
+    struct Pair
+    {
+        float3 A;
+        float B;
+    };
+
+    StructuredBuffer<float3> V3;
+    StructuredBuffer<float3x3> M33;
+    StructuredBuffer<float4> F4;
+    StructuredBuffer<Pair> Pairs;
+    RWStructuredBuffer<float3> Output;
+
+    [numthreads(1, 1, 1)]
+    void CSMain()
+    {
+        Output[0] = V3[1] + M33[0][2] + F4[0].xyz + Pairs[0].A * Pairs[0].B;
+    }
+};

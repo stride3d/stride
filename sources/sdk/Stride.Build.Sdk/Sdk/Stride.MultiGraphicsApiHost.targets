@@ -6,7 +6,8 @@
     For hosts that pick the graphics API at launch (GameStudio, AssetCompiler), lay API-dependent
     runtime assemblies into per-API subfolders (bin/.../Vulkan/Stride.Graphics.dll) instead of flat;
     GraphicsApiHostResolver loads the selected one. Routed in: (1) Stride.* graphics assemblies (same identity across APIs, so must be
-    isolated; detected by their bin/<cfg>[/<tfm>]/<Api>/ path) and (2) API-exclusive interop
+    isolated; detected by their bin/<cfg>[/<tfm>]/<Api>/ path), with the natives their .ssdeps lists outside
+    runtimes/ (Direct3D12/D3D12/D3D12Core.dll), and (2) API-exclusive interop
     (Silk.NET.Direct3D12/WinPixEventRuntime -> Direct3D12/, Vortice.Vulkan -> Vulkan/). Shared interop
     stays flat (DXGI/DXC span D3D11+D3D12; Silk.NET.Direct3D11 is used cross-API by FXC reflection).
   -->
@@ -65,6 +66,29 @@
             }
         };
 
+        // Natives of an API variant outside runtimes/<rid>/native/ (e.g. Direct3D12/D3D12/D3D12Core.dll), listed in its
+        // .ssdeps: they are looked up next to the variant's assembly. runtimes/ natives are shared and deployed flat.
+        System.Action<string, string> stageApiNatives = (assemblyFile, api) =>
+        {
+            var ssdeps = System.IO.Path.ChangeExtension(assemblyFile, ".ssdeps");
+            if (!System.IO.File.Exists(ssdeps))
+                return;
+            var variantDir = System.IO.Path.GetDirectoryName(assemblyFile);
+            foreach (var line in System.IO.File.ReadAllLines(ssdeps))
+            {
+                var parts = line.Split(';');
+                if (parts.Length < 2 || parts[0] != "NativeLib")
+                    continue;
+                var relativePath = parts[1].TrimStart('.', '/', '\\');
+                var source = System.IO.Path.Combine(variantDir, relativePath);
+                if (relativePath.StartsWith("runtimes/") || !System.IO.File.Exists(source) || !seen.Add(api + "|" + relativePath))
+                    continue;
+                var ti = new Microsoft.Build.Utilities.TaskItem(source);
+                ti.SetMetadata("StageSubPath", System.IO.Path.Combine(api, relativePath.Replace('/', System.IO.Path.DirectorySeparatorChar)));
+                staged.Add(ti);
+            }
+        };
+
         foreach (var item in CopyLocalItems)
         {
             var path = item.GetMetadata("FullPath");
@@ -78,7 +102,10 @@
                 flat.Add(item);
                 var apiRoot = System.IO.Path.GetDirectoryName(dir); // strip the <Api> segment
                 foreach (var api in apis)
+                {
                     stageInto(System.IO.Path.Combine(apiRoot, api, fileName), api);
+                    stageApiNatives(System.IO.Path.Combine(apiRoot, api, fileName), api);
+                }
                 continue;
             }
 

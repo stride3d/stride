@@ -155,6 +155,8 @@ public partial class SpirvContext
                     _ => throw new NotImplementedException($"Can't add type {type}")
                 },
             VectorType v => Buffer.AddData(new OpTypeVector(id, GetOrRegister(v.BaseType), v.Size)).IdResult,
+            // SPIR-V has floating-point matrices only (HLSL also has int, uint and bool ones): fail here, not with invalid SPIR-V later
+            MatrixType m when !m.BaseType.IsFloating() => throw new NotSupportedException($"Matrices of {m.BaseType} ({m}) are not supported: use a float matrix, or an array of {new VectorType(m.BaseType, m.Rows)}"),
             MatrixType m => Buffer
                 .AddData(new OpTypeMatrix(id, GetOrRegister(new VectorType(m.BaseType, m.Rows)), m.Columns))
                 .IdResult,
@@ -206,6 +208,13 @@ public partial class SpirvContext
         var bufferType = Buffer.Add(new OpTypeStruct(Bound++, [runtimeArrayType])).ResultId;
         AddName(bufferType, $"type.{(structuredBufferType.WriteAllowed ? "RW" : "")}StructuredBuffer.{structuredBufferType.BaseType.ToId()}");
         Buffer.Add(new OpMemberDecorate(bufferType, 0, Specification.Decoration.Offset, [0]));
+        // A struct element gets its matrix layout on its own members; a matrix element only has this member to carry it.
+        // As for a matrix member: HLSL's default column_major is SPIR-V RowMajor, each SPIR-V row padded to its buffer alignment
+        if (structuredBufferType.BaseType is MatrixType m)
+        {
+            Buffer.Add(new OpMemberDecorate(bufferType, 0, Specification.Decoration.RowMajor, []));
+            Buffer.Add(new OpMemberDecorate(bufferType, 0, Specification.Decoration.MatrixStride, [SpirvBuilder.MatrixStride(m, TypeModifier.None, SpirvBuilder.AlignmentRules.StructuredBuffer)]));
+        }
         Buffer.Add(new OpDecorate(bufferType, Specification.Decoration.Block, []));
 
         return bufferType;
@@ -347,6 +356,10 @@ public partial class SpirvContext
         {
             var member = structSymbol.Members[index];
             AddMemberName(id, index, member.Name);
+            // An explicit matrix layout is kept with the type, so the mixer reads it back (SPIR-V and HLSL have opposite
+            // meanings: HLSL row_major = SPIR-V ColMajor). The default layout is chosen by the mixer.
+            if (member.Type is MatrixType or ArrayType { BaseType: MatrixType } && member.TypeModifier is TypeModifier.RowMajor or TypeModifier.ColumnMajor)
+                Add(new OpMemberDecorate(id, index, member.TypeModifier == TypeModifier.RowMajor ? Specification.Decoration.ColMajor : Specification.Decoration.RowMajor, []));
         }
 
         Types[structSymbol] = id;

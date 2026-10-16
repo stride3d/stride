@@ -1,0 +1,17 @@
+// The same element twice in a written swizzle: error SDSL0145 (FXC X3025)
+namespace Stride.Shaders.Tests;
+
+shader SwizzleWritesTwice
+{
+    RWStructuredBuffer<float4> Output;
+
+    [numthreads(1, 1, 1)]
+    void CSMain()
+    {
+        float4x4 m = 0;
+        m._m00_m00 = float2(1, 2);
+        float4 v = 0;
+        v.xx = float2(3, 4);
+        Output[0] = v + m[0];
+    }
+};

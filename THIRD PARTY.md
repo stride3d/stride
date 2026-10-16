@@ -30,6 +30,10 @@ Stride uses the following open-source products.
 * [V-HACD](https://github.com/kmammou/v-hacd) (zlib License)
 * [YamlDotNet](https://github.com/aaubry/YamlDotNet) (MIT License)
 
+### Windows, Direct3D 12 (Microsoft redistributables)
+* [DirectX 12 Agility SDK](https://www.nuget.org/packages/Microsoft.Direct3D.D3D12) (Microsoft Software License Terms; its distributable `D3D12Core.dll` and `D3D12SDKLayers.dll` are copied next to Direct3D 12 games)
+* [WinPixEventRuntime](https://www.nuget.org/packages/WinPixEventRuntime) (MIT License)
+
 ### Linux, iOS, Android
 * [Mono Class Libraries](https://github.com/mono/mono/tree/master/mcs/class) (MIT License)
 

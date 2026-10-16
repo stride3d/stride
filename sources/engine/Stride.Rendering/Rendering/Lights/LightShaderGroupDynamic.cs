@@ -36,7 +36,7 @@ namespace Stride.Rendering.Lights
 
         protected LightShaderGroupDynamic(RenderContext renderContext, ILightShadowMapShaderGroupData shadowGroup)
         {
-            graphicsProfile = renderContext.GraphicsDevice.Features.RequestedProfile;
+            graphicsProfile = renderContext.GraphicsDevice.EffectProfile;
             ShadowGroup = shadowGroup;
         }
 

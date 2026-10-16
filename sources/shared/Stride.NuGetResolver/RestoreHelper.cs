@@ -196,6 +196,19 @@ namespace Stride.Core.Assets
             }
         }
 
+        /// <summary>
+        ///   Gets the folder of a package in a restore result, or <see langword="null"/> if the restore didn't include it.
+        /// </summary>
+        public static string? FindPackagePath(LockFile lockFile, string packageId)
+        {
+            foreach (var ((name, _), path) in GetLibPaths(lockFile))
+            {
+                if (string.Equals(name, packageId, StringComparison.OrdinalIgnoreCase))
+                    return path;
+            }
+            return null;
+        }
+
         private static Dictionary<(string, NuGetVersion), string> GetLibPaths(LockFile lockFile)
         {
             var libPaths = new Dictionary<ValueTuple<string, NuGet.Versioning.NuGetVersion>, string>();

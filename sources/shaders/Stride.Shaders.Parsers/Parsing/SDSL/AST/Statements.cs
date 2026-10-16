@@ -22,6 +22,7 @@ public abstract class Statement(TextLocation info) : ValueNode(info)
 public partial class EmptyStatement(TextLocation info) : Statement(info)
 {
     public override SymbolType? Type { get => ScalarType.Void; set { } }
+    public override void ProcessSymbol(SymbolTable table) { }
     public override void Compile(SymbolTable table, CompilerUnit compiler) { }
     public override string ToString() => ";";
 }
@@ -213,6 +214,14 @@ public partial class Declare(TypeName typename, TextLocation info) : Declaration
 
 
 
+/// <summary>
+/// A failure while compiling a statement, with the statement's location (like a <see cref="SemanticError"/>).
+/// </summary>
+public class StatementCompileException(SemanticError error, Exception inner) : InvalidOperationException(error.ToString(), inner)
+{
+    public SemanticError Error { get; } = error;
+}
+
 public partial class BlockStatement(TextLocation info) : Statement(info)
 {
     public List<Statement> Statements { get; set; } = [];
@@ -235,7 +244,15 @@ public partial class BlockStatement(TextLocation info) : Statement(info)
         {
             if (compiler.SourceFileId is int fileId && s is not EmptyStatement)
                 builder.EmitLine(fileId, s.Info.Line, s.Info.Column);
-            s.Compile(table, compiler);
+            try
+            {
+                s.Compile(table, compiler);
+            }
+            catch (Exception e) when (e is not (StatementCompileException or NotConstantExpressionException))
+            {
+                // Most compile failures are exceptions without a location: give them the innermost statement's
+                throw new StatementCompileException(new(s.Info, e.Message), e);
+            }
             if (SpirvBuilder.IsBlockTermination(builder.GetLastInstructionType()))
                 break;
         }

@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Runtime.InteropServices;
 
 namespace Stride.Shaders.Parsers.Tests;
 
@@ -48,7 +49,18 @@ public abstract class FrameRenderer(uint width = 800, uint height = 600)
     }
 
     /// <summary>
-    /// Matches "cbuffer.X", "texture.X" and "buffer.X" test parameters to their reflection resource bindings.
+    /// The contents of a "structuredbuffer.X" test parameter: <c>"stride: f0 f1 ..."</c>, the element stride in bytes, then floats in memory order.
+    /// </summary>
+    protected static (int Stride, byte[] Data) ParseStructuredBufferData(string value)
+    {
+        var colon = value.IndexOf(':');
+        var stride = int.Parse(value[..colon], CultureInfo.InvariantCulture);
+        var floats = value[(colon + 1)..].Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(x => float.Parse(x, NumberStyles.Float, CultureInfo.InvariantCulture)).ToArray();
+        return (stride, MemoryMarshal.AsBytes(floats.AsSpan()).ToArray());
+    }
+
+    /// <summary>
+    /// Matches "cbuffer.X", "texture.X", "buffer.X" and "structuredbuffer.X" test parameters to their reflection resource bindings.
     /// </summary>
     protected IEnumerable<(EffectResourceBindingDescription Binding, string ResourceType, string Value)> MatchResourceParameters()
     {
@@ -58,7 +70,7 @@ public abstract class FrameRenderer(uint width = 800, uint height = 600)
             if (dotIndex == -1)
                 continue;
             var resourceType = parameter.Key.Substring(0, dotIndex);
-            if (resourceType is not ("cbuffer" or "texture" or "buffer"))
+            if (resourceType is not ("cbuffer" or "texture" or "buffer" or "structuredbuffer"))
                 continue;
             var resourceName = parameter.Key.Substring(dotIndex + 1);
             var binding = EffectReflection.ResourceBindings.Single(x => x.KeyInfo.KeyName.EndsWith(resourceName));
@@ -85,6 +97,16 @@ public abstract class FrameRenderer(uint width = 800, uint height = 600)
                 {
                     if (structParameters.TryGetValue(member.Name, out var memberValue))
                         FillData(memberValue, member.Type, offset + member.Offset, cbufferDataPtr);
+                }
+                break;
+            // Values in memory order (rows of a row_major matrix, columns of a column_major one), 16 bytes per row / column
+            case { Class: EffectParameterClass.MatrixRows or EffectParameterClass.MatrixColumns, Type: EffectParameterType.Float }:
+                var vectorSize = type.Class == EffectParameterClass.MatrixRows ? type.ColumnCount : type.RowCount;
+                int matrixIndex = 0;
+                foreach (var comp in TestHeaderParser.SplitArgs(value))
+                {
+                    *((float*)&cbufferDataPtr[offset + matrixIndex / vectorSize * 16 + matrixIndex % vectorSize * sizeof(float)]) = float.Parse(comp, NumberStyles.Float, CultureInfo.InvariantCulture);
+                    matrixIndex++;
                 }
                 break;
             case { Class: EffectParameterClass.Vector }:

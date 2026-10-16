@@ -1,0 +1,34 @@
+// PSMain(ExpectedResult=#336699FF)
+
+namespace Stride.Shaders.Tests;
+
+shader DoWhile
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    void PSMain()
+    {
+        // The body runs once even when the condition is false
+        int once = 0;
+        do { once++; } while (false);
+
+        // continue goes to the condition, break leaves the loop
+        int i = 0;
+        int sum = 0;
+        [loop] do
+        {
+            i++;
+            if (i == 2)
+                continue;
+            sum += i;
+            if (sum > 100)
+                break;
+        } while (i < 4);
+
+        // A body without braces; `done` starts with `do` but is a name
+        int done = 0;
+        do done += 3; while (done < 5);
+
+        streams.ColorTarget = float4(once == 1 ? 0.2 : 0, sum == 8 ? 0.4 : 0, done == 6 ? 0.6 : 0, 1);
+    }
+};

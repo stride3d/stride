@@ -142,6 +142,46 @@ public partial class ParenthesisExpression(Expression expression, TextLocation i
     public override string ToString() => $"({Expression})";
 }
 
+/// <summary>
+/// HLSL comma operator <c>(a, b, c)</c>: evaluates every value in order, the result is the last one.
+/// Only parsed inside parentheses, since a comma also separates arguments and initializer values.
+/// </summary>
+public partial class CommaExpression(List<Expression> expressions, TextLocation info) : Expression(info)
+{
+    public List<Expression> Expressions { get; set; } = expressions;
+
+    public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
+    {
+        for (var i = 0; i < Expressions.Count - 1; i++)
+            Expressions[i].ProcessSymbol(table);
+        Expressions[^1].ProcessSymbol(table, expectedType);
+        Type = Expressions[^1].Type;
+
+        // As fxc's X3081: a dropped value without side effect usually means a vector constructor was intended
+        if (Expressions.Take(Expressions.Count - 1).Any(x => !HasSideEffect(x)))
+            table.AddWarning(new(Info, string.Format(SDSLErrorMessages.SDSL0219, Info.Text, Expressions[^1].Info.Text)));
+    }
+
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
+    {
+        for (var i = 0; i < Expressions.Count - 1; i++)
+            Expressions[i].Compile(table, compiler);
+        return Expressions[^1].Compile(table, compiler);
+    }
+
+    private static bool HasSideEffect(Expression expression) => expression switch
+    {
+        AssignExpression or MethodCall => true,
+        PrefixExpression { Operator: Operator.Inc or Operator.Dec } => true,
+        AccessorChainExpression chain => chain.Accessors.Any(x => x is PostfixIncrement or MethodCall),
+        ParenthesisExpression parenthesis => HasSideEffect(parenthesis.Expression),
+        CommaExpression comma => comma.Expressions.Any(HasSideEffect),
+        _ => false,
+    };
+
+    public override string ToString() => string.Join(", ", Expressions);
+}
+
 public partial class MethodCall(Identifier name, ShaderExpressionList arguments, TextLocation info) : Expression(info)
 {
     public Identifier Name = name;
@@ -448,7 +488,7 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
             if (!loadedShaderSymbol.TryResolveSymbol(Name, out functionSymbol))
             {
                 functionSymbol = default;
-                table.AddError(new(Info, string.Format(SDSLErrorMessages.SDSL0109, Name)));
+                table.AddError(new(Info, string.Format(SDSLErrorMessages.SDSL0109, Name, loadedShaderSymbol.Name)));
                 return false;
             }
         }
@@ -803,9 +843,38 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                         return;
                     }
                 case (PointerType { BaseType: MatrixType } or MatrixType, Identifier { Name: var swizzle } id) when id.IsMatrixSwizzle((MatrixType)currentValueType.GetValueType(), out var swizzles):
-                    throw new NotImplementedException("Assign back to matrix swizzle is not implemented yet");
+                    {
+                        if (swizzles.Distinct().Count() != swizzles.Count)
+                        {
+                            table.AddError(new(id.Info, string.Format(SDSLErrorMessages.SDSL0145, swizzle)));
+                            return;
+                        }
+
+                        // Same shape as a vector swizzle: insert each written element into the matrix, which becomes the value to assign
+                        var matrixType = (MatrixType)currentValueType.GetValueType();
+                        var matrix = currentValueType is PointerType
+                            ? new SpirvValue(builder.InsertData(new OpLoad(context.GetOrRegister(matrixType), context.Bound++, lvalueBase.Id, null, [])))
+                            : lvalueBase;
+                        // A scalar is copied to every written element
+                        rvalue = builder.Convert(context, rvalue, matrixType.BaseType.GetVectorOrScalar(swizzles.Count));
+                        for (var j = 0; j < swizzles.Count; j++)
+                        {
+                            var element = swizzles.Count == 1
+                                ? rvalue.Id
+                                : builder.Insert(new OpCompositeExtract(context.GetOrRegister(matrixType.BaseType), context.Bound++, rvalue.Id, [j])).ResultId;
+                            // (Column, Row) as the read path extracts them: the HLSL row is the SPIR-V column
+                            matrix = new(builder.InsertData(new OpCompositeInsert(context.GetOrRegister(matrixType), context.Bound++, element, matrix.Id, [swizzles[j].Column, swizzles[j].Row])));
+                        }
+                        rvalue = matrix;
+                        break;
+                    }
                 case (PointerType { BaseType: VectorType or ScalarType } or VectorType or ScalarType, Identifier { Name: var swizzle } id) when id.IsVectorSwizzle():
                     // Swizzle: we transform the value to assign accordingly
+                    if (swizzle.Distinct().Count() != swizzle.Length)
+                    {
+                        table.AddError(new(id.Info, string.Format(SDSLErrorMessages.SDSL0145, swizzle)));
+                        return;
+                    }
 
                     // We load the original value (if pointer)
                     var lvalueType = currentValueType;
@@ -818,6 +887,11 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                     // Shuffle with new data
                     switch (lvalueType)
                     {
+                        // One element of a vector value (`m._m01_m02.y = x`; on a pointer it is an access chain instead)
+                        case VectorType v when swizzle.Length == 1:
+                            rvalue = builder.Convert(context, rvalue, v.BaseType);
+                            rvalue = new(builder.InsertData(new OpCompositeInsert(context.GetOrRegister(lvalueType), context.Bound++, rvalue.Id, lvalueBase.Id, [ConvertSwizzle(swizzle[0])])));
+                            break;
                         case VectorType v:
                             var shuffleIndices = shuffleBuffer[..v.Size];
                             // Default: lvalue
@@ -862,6 +936,13 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
     }
 
     // Since there are many switch case, we do both ProcessSymbols and Compile in the same functions to make sure to not miss anything (depending on if compiler is set)
+    // HLSL converts a floating-point index to an integer (towards zero); SPIR-V indexes with an integer only
+    private static SpirvValue CompileIndex(IndexerExpression indexer, SymbolTable table, CompilerUnit compiler)
+    {
+        var value = indexer.Index.CompileAsValue(table, compiler);
+        return compiler.Context.ReverseTypes[value.TypeId].IsFloating() ? compiler.Builder.Convert(compiler.Context, value, ScalarType.Int) : value;
+    }
+
     public SpirvValue CompileHelper(SymbolTable table, CompilerUnit? compiler = null)
     {
         SpirvValue result = default;
@@ -1050,7 +1131,7 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                         // so first, we push a 0 to access the OpTypeRuntimeArray
                         PushAccessChainId(accessChainIds, compiler.Context.CompileConstant(0).Id);
                         // Then we push the index inside the array
-                        var indexerValue = indexer.Index.CompileAsValue(table, compiler);
+                        var indexerValue = CompileIndex(indexer, table, compiler);
                         PushAccessChainId(accessChainIds, indexerValue.Id);
                         break;
                     }
@@ -1373,7 +1454,7 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                             break;
                         }
 
-                        var indexerValue = indexer.Index.CompileAsValue(table, compiler);
+                        var indexerValue = CompileIndex(indexer, table, compiler);
                         PushAccessChainId(accessChainIds, indexerValue.Id);
                         break;
                     }
@@ -1389,7 +1470,7 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                             accessor.Type = new PointerType(t, p.StorageClass);
                             break;
                         }
-                        var indexerValue = indexer.Index.CompileAsValue(table, compiler);
+                        var indexerValue = CompileIndex(indexer, table, compiler);
                         PushAccessChainId(accessChainIds, indexerValue.Id);
                         break;
                     }
@@ -1408,7 +1489,7 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                             break;
                         }
 
-                        var indexerValue = indexer.Index.CompileAsValue(table, compiler);
+                        var indexerValue = CompileIndex(indexer, table, compiler);
                         PushAccessChainId(accessChainIds, indexerValue.Id);
                         break;
                     }
@@ -1436,7 +1517,7 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                         builder.Insert(new OpStore(functionVariable, result.Id, null, []));
                         result = new SpirvValue(functionVariable, ptrType);
                         // Process again the same item with new type
-                        var indexerValue = indexer.Index.CompileAsValue(table, compiler);
+                        var indexerValue = CompileIndex(indexer, table, compiler);
                         PushAccessChainId(accessChainIds, indexerValue.Id);
                         break;
                     }
@@ -1448,7 +1529,7 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                             accessor.Type = new PointerType(t, p.StorageClass);
                             break;
                         }
-                        var indexerValue = indexer.Index.CompileAsValue(table, compiler);
+                        var indexerValue = CompileIndex(indexer, table, compiler);
                         PushAccessChainId(accessChainIds, indexerValue.Id);
                         break;
                     }

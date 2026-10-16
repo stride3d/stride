@@ -16,7 +16,6 @@ using Stride.Assets.Presentation.AssetEditors.ScriptEditor;
 using Stride.Assets.Scripts;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.Assets.Editor.ViewModel.Logs;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
@@ -74,9 +73,6 @@ namespace Stride.Assets.Presentation.ViewModel
         {
             try
             {
-                // Surface workspace load diagnostics and reload errors in the asset log panel.
-                strideAssetsViewModel.Session.AssetLog.AddLogger(LogKey.Get("Project"), Logger);
-
                 var watcher = new ProjectWatcher(strideAssetsViewModel.Session, Logger);
                 projectWatcher = watcher;
                 await watcher.Initialize();
