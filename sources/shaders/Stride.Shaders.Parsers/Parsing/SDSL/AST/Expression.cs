@@ -1723,6 +1723,7 @@ public partial class BinaryExpression(Expression left, Operator op, Expression r
 
     private SymbolType? expectedOperandType;
     private object? foldedValue;
+    private bool precedenceWarned;
 
     public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
     {
@@ -1737,6 +1738,8 @@ public partial class BinaryExpression(Expression left, Operator op, Expression r
 
         Left.ProcessSymbol(table);
         Right.ProcessSymbol(table);
+
+        WarnComparisonInBitwiseOperation(table);
 
         var analysisResult = SpirvBuilder.AnalyzeBinaryOperation(table, Left.ValueType!, Op, Right.ValueType!, Info);
 
@@ -1763,6 +1766,25 @@ public partial class BinaryExpression(Expression left, Operator op, Expression r
         var result = builder.BinaryOperation(table, context, left, Op, right, Info);
         Type = context.ReverseTypes[result.TypeId];
         return result;
+    }
+
+    // As DXC's -Wparentheses: `a & b == c` computes b == c first, which usually isn't what was meant
+    private void WarnComparisonInBitwiseOperation(SymbolTable table)
+    {
+        if (precedenceWarned || Op is not (Operator.AND or Operator.OR or Operator.XOR))
+            return;
+
+        // A comparison in parentheses is a ParenthesisExpression, so it doesn't match
+        static bool IsComparison(Expression e) => e is BinaryExpression
+        {
+            Op: Operator.Equals or Operator.NotEquals or Operator.Lower or Operator.LowerOrEqual or Operator.Greater or Operator.GreaterOrEqual
+        };
+        var comparison = IsComparison(Left) ? (BinaryExpression)Left : IsComparison(Right) ? (BinaryExpression)Right : null;
+        if (comparison == null)
+            return;
+
+        precedenceWarned = true;
+        table.AddWarning(new(Info, string.Format(SDSLErrorMessages.SDSL0232, Op.ToSymbol(), comparison.Op.ToSymbol(), Info.Text, comparison.Info.Text)));
     }
 
     public override string ToString()

@@ -158,6 +158,10 @@ public partial class SpirvBuilder
             _ => FindCommonBaseTypeForBinaryOperation(leftElementType, rightElementType),
         };
 
+        // As in HLSL (and C), bools are promoted to int for arithmetic, bitwise and comparison operators: true & false is 0 (an int)
+        if (desiredElementType is { Type: Scalar.Boolean } && op is not (Operator.LogicalAND or Operator.LogicalOR or Operator.Equals or Operator.NotEquals))
+            desiredElementType = ScalarType.Int;
+
         // Check size
         SymbolType resultType;
         switch (leftType, rightType)
