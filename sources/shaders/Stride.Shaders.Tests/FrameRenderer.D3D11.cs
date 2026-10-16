@@ -25,6 +25,8 @@ public class D3D11FrameRenderer(uint width = 800, uint height = 600) : FrameRend
     D3D11 d3d11 = null!;
     D3DCompiler compiler = null!;
 
+    // Silk's ref ComPtr<T> overloads take the address without pinning, and a GC can move this object during the call:
+    // create into a local, then copy it to the field.
     ComPtr<IDXGIFactory2> factory = default;
     ComPtr<IDXGISwapChain1> swapchain = default;
     ComPtr<ID3D11Device> device = default;
@@ -166,6 +168,8 @@ float4 main(vs_out input) : SV_TARGET {
         {
             foreach (var flags in new[] { CreateDeviceFlag.Debug, default(CreateDeviceFlag) })
             {
+                ComPtr<ID3D11Device> newDevice = default;
+                ComPtr<ID3D11DeviceContext> newDeviceContext = default;
                 hr = d3d11.CreateDevice
                 (
                     default(ComPtr<IDXGIAdapter>),
@@ -175,12 +179,14 @@ float4 main(vs_out input) : SV_TARGET {
                     null,
                     0,
                     D3D11.SdkVersion,
-                    ref device,
+                    ref newDevice,
                     null,
-                    ref deviceContext
+                    ref newDeviceContext
                 );
                 if (hr >= 0)
                 {
+                    device = newDevice;
+                    deviceContext = newDeviceContext;
                     created = true;
                     debugEnabled = flags == CreateDeviceFlag.Debug;
                     break;
@@ -213,6 +219,7 @@ float4 main(vs_out input) : SV_TARGET {
         factory = dxgi.CreateDXGIFactory<IDXGIFactory2>();
 
         // Create the swapchain.
+        ComPtr<IDXGISwapChain1> newSwapchain = default;
         SilkMarshal.ThrowHResult
         (
             factory.CreateSwapChainForHwnd
@@ -222,9 +229,10 @@ float4 main(vs_out input) : SV_TARGET {
                 in swapChainDesc,
                 null,
                 ref Unsafe.NullRef<IDXGIOutput>(),
-                ref swapchain
+                ref newSwapchain
             )
         );
+        swapchain = newSwapchain;
 
         // Create our vertex buffer.
         var bufferDesc = new BufferDesc
@@ -241,7 +249,9 @@ float4 main(vs_out input) : SV_TARGET {
                 PSysMem = vertexData
             };
 
-            SilkMarshal.ThrowHResult(device.CreateBuffer(in bufferDesc, in subresourceData, ref vertexBuffer));
+            ComPtr<ID3D11Buffer> newVertexBuffer = default;
+            SilkMarshal.ThrowHResult(device.CreateBuffer(in bufferDesc, in subresourceData, ref newVertexBuffer));
+            vertexBuffer = newVertexBuffer;
         }
 
         // Create our index buffer.
@@ -259,7 +269,9 @@ float4 main(vs_out input) : SV_TARGET {
                 PSysMem = indexData
             };
 
-            SilkMarshal.ThrowHResult(device.CreateBuffer(in bufferDesc, in subresourceData, ref indexBuffer));
+            ComPtr<ID3D11Buffer> newIndexBuffer = default;
+            SilkMarshal.ThrowHResult(device.CreateBuffer(in bufferDesc, in subresourceData, ref newIndexBuffer));
+            indexBuffer = newIndexBuffer;
         }
     }
 
@@ -281,6 +293,7 @@ float4 main(vs_out input) : SV_TARGET {
         ComPtr<ID3D10Blob> computeCode = CompileShader("cs_5_0", ComputeShaderSource);
 
         // Create vertex shader.
+        ComPtr<ID3D11ComputeShader> newComputeShader = default;
         SilkMarshal.ThrowHResult
         (
             device.CreateComputeShader
@@ -288,9 +301,10 @@ float4 main(vs_out input) : SV_TARGET {
                 computeCode.GetBufferPointer(),
                 computeCode.GetBufferSize(),
                 ref Unsafe.NullRef<ID3D11ClassLinkage>(),
-                ref computeShader
+                ref newComputeShader
             )
         );
+        computeShader = newComputeShader;
 
         deviceContext.CSSetShader(computeShader, ref Unsafe.NullRef<ComPtr<ID3D11ClassInstance>>(), 0);
 
@@ -314,6 +328,7 @@ float4 main(vs_out input) : SV_TARGET {
         domainCode = DomainShaderSource != null ? CompileShader("ds_5_0", DomainShaderSource) : default;
 
         // Create vertex shader.
+        ComPtr<ID3D11VertexShader> newVertexShader = default;
         SilkMarshal.ThrowHResult
         (
             device.CreateVertexShader
@@ -321,13 +336,15 @@ float4 main(vs_out input) : SV_TARGET {
                 vertexCode.GetBufferPointer(),
                 vertexCode.GetBufferSize(),
                 ref Unsafe.NullRef<ID3D11ClassLinkage>(),
-                ref vertexShader
+                ref newVertexShader
             )
         );
+        vertexShader = newVertexShader;
 
         // Create hull shader.
         if (hullCode.Handle != null)
         {
+            ComPtr<ID3D11HullShader> newHullShader = default;
             SilkMarshal.ThrowHResult
             (
                 device.CreateHullShader
@@ -335,14 +352,16 @@ float4 main(vs_out input) : SV_TARGET {
                     hullCode.GetBufferPointer(),
                     hullCode.GetBufferSize(),
                     ref Unsafe.NullRef<ID3D11ClassLinkage>(),
-                    ref hullShader
+                    ref newHullShader
                 )
             );
+            hullShader = newHullShader;
         }
 
         // Create domain shader.
         if (domainCode.Handle != null)
         {
+            ComPtr<ID3D11DomainShader> newDomainShader = default;
             SilkMarshal.ThrowHResult
             (
                 device.CreateDomainShader
@@ -350,9 +369,10 @@ float4 main(vs_out input) : SV_TARGET {
                     domainCode.GetBufferPointer(),
                     domainCode.GetBufferSize(),
                     ref Unsafe.NullRef<ID3D11ClassLinkage>(),
-                    ref domainShader
+                    ref newDomainShader
                 )
             );
+            domainShader = newDomainShader;
         }
     }
 
@@ -436,6 +456,7 @@ float4 main(vs_out input) : SV_TARGET {
                 }
             }
 
+            ComPtr<ID3D11InputLayout> newInputLayout = default;
             fixed (InputElementDesc* inputElementsPtr = inputElements.AsSpan())
                 SilkMarshal.ThrowHResult
                 (
@@ -445,9 +466,10 @@ float4 main(vs_out input) : SV_TARGET {
                         (uint)inputElements.Count,
                         vertexCode.GetBufferPointer(),
                         vertexCode.GetBufferSize(),
-                        ref inputLayout
+                        ref newInputLayout
                     )
                 );
+            inputLayout = newInputLayout;
         }
 
         // Update the input assembler to use our shader input layout, and associated vertex & index buffers.
@@ -474,6 +496,7 @@ float4 main(vs_out input) : SV_TARGET {
         // Create geometry shader.
         if (geometryCode.Handle != null)
         {
+            ComPtr<ID3D11GeometryShader> newGeometryShader = default;
             SilkMarshal.ThrowHResult
             (
                 device.CreateGeometryShader
@@ -481,13 +504,15 @@ float4 main(vs_out input) : SV_TARGET {
                     geometryCode.GetBufferPointer(),
                     geometryCode.GetBufferSize(),
                     ref Unsafe.NullRef<ID3D11ClassLinkage>(),
-                    ref geometryShader
+                    ref newGeometryShader
                 )
             );
+            geometryShader = newGeometryShader;
         }
 
         // Create pixel shader.
         ComPtr<ID3D10Blob> pixelCode = CompileShader("ps_5_0", PixelShaderSource);
+        ComPtr<ID3D11PixelShader> newPixelShader = default;
         SilkMarshal.ThrowHResult
         (
             device.CreatePixelShader
@@ -495,9 +520,10 @@ float4 main(vs_out input) : SV_TARGET {
                 pixelCode.GetBufferPointer(),
                 pixelCode.GetBufferSize(),
                 ref Unsafe.NullRef<ID3D11ClassLinkage>(),
-                ref pixelShader
+                ref newPixelShader
             )
         );
+        pixelShader = newPixelShader;
 
         SetupInputAssemblerState(vertexCode);
 
