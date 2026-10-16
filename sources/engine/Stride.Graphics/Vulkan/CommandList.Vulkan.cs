@@ -26,6 +26,11 @@ namespace Stride.Graphics
         private PipelineState activePipeline;
         private bool pipelineDirty = true;
 
+        /// <summary>
+        ///   The number of <c>vkCmdBindPipeline</c> calls recorded by this command list (checked by the tests).
+        /// </summary>
+        internal int NativePipelineBindCount;
+
         // Per-CB layout state. Stride's per-Texture NativeLayout is a single shared field mutated
         // by every CB's ResourceBarrierTransition calls in arbitrary order, which disagrees with
         // Vulkan's per-execution-order layout tracking when CBs record concurrently. This map
@@ -200,6 +205,9 @@ namespace Stride.Graphics
                 return;
 
             GraphicsDevice.NativeDeviceApi.vkCmdBindPipeline(currentCommandList.NativeCommandBuffer, activePipeline.IsCompute ? VkPipelineBindPoint.Compute : VkPipelineBindPoint.Graphics, activePipeline.NativePipeline);
+            // Bound until SetPipelineState changes it or the command buffer is reset; it stays across render pass instances
+            pipelineDirty = false;
+            NativePipelineBindCount++;
         }
 
         /// <summary>
