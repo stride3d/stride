@@ -93,6 +93,26 @@ The template's content is small but complete: a component and a content type (ru
 - Asset templates: a `Templates/Assets/*.sdtpl` in the `Assets` package (`!TemplateAssetFactory`), listed under `TemplateFolders` in the package's `.sdpkg` next to the project (the template's `MyPlugin.Assets.sdpkg` shows the shape), packed with it. Without that list the asset type never appears in *Add asset*.
 - Render features: a class implementing `IRenderFeatureProvider` (in `Stride.Assets`) in the `Assets` or `Editor` package returns the render features the plugin needs, for the opaque and transparent stages it is given. The editor's preview and thumbnail compositors take them at runtime; `Stride.SpriteStudio.Editor`, `Stride.Particles.Editor` and `Stride.UI.Editor` work this way. A game's own compositor asset is the game's: the engine default it derives from carries no plugin feature, so a compositor created in Game Studio gets the features of its project's packages (its dependencies, `PackageTypeScope`), and for an existing one, once the game references the plugin, *Add package features* in the compositor editor adds the missing ones (through the property graph, so undo and the dirty flag follow). The engine's compositors carry no particle or UI feature since `Stride.Particles` and `Stride.UI` became plugins; upgrading a game's compositor derived from them keeps each of those features it had, now owned by the game's compositor, or removes it when the game does not reference that plugin.
 
+## Reloading in Game Studio
+
+Game Studio reloads a plugin's assemblies while the session stays open. It asks first, or the user runs *Reload game assemblies*. The reload is one undo step.
+
+- **A plugin project of the solution**: an edit of its code or its `.csproj` builds it again, and it reloads.
+- **A dependency built locally** (a dev-redirect to a source tree, as `GenerateDevPackages` sets up): Game Studio watches the assemblies the checkout built. When they are rebuilt, they reload.
+- **A `PackageReference` version change** in a project of the solution: the project restores, and the dependency loads its new version.
+
+With any of these, the loaded assemblies that reference a reloaded one reload too, whatever their package, dependencies first: a reference stays bound to the copy it loaded first. Each assembly gets a load context of its own. A reference resolves to the session's current copy first, then to Game Studio's own copy, then to the package's files. The whole set builds before anything reloads: if one build fails, nothing reloads, and the changes stay pending.
+
+Some changes need a new session (*Reload session*). The Output panel says which one and why, and nothing reloads:
+
+- A version change where the new version adds or drops an assembly, the package ships assets, or the package has companions (their versions follow it).
+- An assembly Game Studio's own code is bound to: one it ships with (the engine's packages, at the version it was built with), or one that its code looked up by name. A new copy next to it would mix the types of both.
+
+A package from the NuGet cache never changes for its version, so it is only reloaded when another version replaces it.
+
 ## Known limitations
+
+- A reload closes the editors of the assets that use reloaded types; their changes stay in the session, and the Output panel lists them to open again. The old assemblies stay in memory until Game Studio closes.
+- The editor games that keep running (asset previews, thumbnails) keep the `[GameSystem(Editor = true)]` systems of a reloaded plugin as they were created: reload the session to get the new ones.
 
 - Game Studio's lists are not limited to the project being edited: they show what every package of the session brings. This covers the *Add asset* templates, the *Add component* and *Create entity* menus, the gizmo list, the type pickers of the property grid and the asset picker. With two games (or a game and a library) in one session, the plugins and scripts of one show up while editing the other. `PackageTypeScope.For(package).Contains(type)` tells whether a type is available to a project, as the render features of a compositor already use it.
