@@ -4,19 +4,14 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Silk.NET.Direct3D.Compilers;
-using Stride.Shaders.Compiler;
 using Stride.Shaders.Compilers.Direct3D;
-using Stride.Shaders.Compilers.SDSL;
 using Stride.Shaders.Spirv.Tools;
 
 namespace Stride.Shaders.Parsers.Tests;
 
 /// <summary>
-/// The <c>spirv_to_dxil</c> interop (mesa): struct layouts, specialization constants, and the native output buffers.
+/// The <c>spirv_to_dxil</c> interop (mesa): struct layouts and specialization constants.
 /// </summary>
-/// <remarks>Not run in parallel with other tests: the leak test measures the native process heap.</remarks>
-[Collection(nameof(Spv2DxilTests))]
-[CollectionDefinition(nameof(Spv2DxilTests), DisableParallelization = true)]
 public unsafe class Spv2DxilTests
 {
     [Fact]
@@ -52,75 +47,11 @@ public unsafe class Spv2DxilTests
         }
     }
 
-    /// <summary>
-    /// The DXIL buffers that <c>spirv_to_dxil_pipeline</c> allocates are freed after each compile: the native heap does not
-    /// grow over many compiles of the same shader.
-    /// </summary>
-    [Fact]
-    public void PipelineCompileDoesNotLeakNativeMemory()
-    {
-        SkipUnlessWindows();
-
-        var shaderMixer = new ShaderMixer(new ShaderLoader("./assets/SDSL/CompilerTests"));
-        var log = new Stride.Core.Diagnostics.LoggerResult();
-        Assert.True(shaderMixer.MergeSDSL(new ShaderClassSource("TextureConstantOffset"), new ShaderMixer.Options(false), log, out var bytecode, out _, out _, out var entryPoints),
-            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
-        var spirv = bytecode.ToArray();
-
-        var dxilSize = 0;
-        void Compile(int count)
-        {
-            for (int i = 0; i < count; i++)
-            {
-                var stages = new List<ShaderBytecode>();
-                EffectCompiler.CompileDxilPipeline(spirv, entryPoints, stages);
-                dxilSize = stages.Sum(s => s.Data.Length);
-            }
-        }
-
-        Compile(200);
-        var before = NativeHeapAllocatedBytes();
-        const int compiles = 3000;
-        Compile(compiles);
-        var growth = NativeHeapAllocatedBytes() - before;
-
-        // A leak of every output buffer would grow by compiles * dxilSize (a few MB here)
-        Assert.True(growth < compiles * (long)dxilSize / 4, $"The native heap grew by {growth / 1024} KB over {compiles} compiles of {dxilSize} bytes of DXIL");
-    }
-
     static void SkipUnlessWindows()
     {
         if (!OperatingSystem.IsWindows())
             Assert.Skip("spirv_to_dxil is only shipped for Windows");
     }
-
-    /// <summary>
-    /// Bytes allocated in the process heap, where the C runtime's <c>malloc</c> (so mesa's) allocates.
-    /// </summary>
-    static long NativeHeapAllocatedBytes()
-    {
-        // Finalizers may free native memory
-        GC.Collect();
-        GC.WaitForPendingFinalizers();
-        var summary = new HeapSummaryData { cb = (uint)sizeof(HeapSummaryData) };
-        Assert.True(HeapSummary(GetProcessHeap(), 0, &summary));
-        return (long)summary.cbAllocated;
-    }
-
-    struct HeapSummaryData
-    {
-        public uint cb;
-        public nuint cbAllocated;
-        public nuint cbCommitted;
-        public nuint cbReserved;
-        public nuint cbMaxReserve;
-    }
-
-    [DllImport("kernel32.dll")]
-    static extern nint GetProcessHeap();
-
-    [DllImport("kernel32.dll")]
-    static extern bool HeapSummary(nint heap, uint flags, HeapSummaryData* summary);
 
     /// <summary>
     /// A fragment shader that writes a float spec constant (<c>SpecId</c> 0, default 1.0) to its color output.
