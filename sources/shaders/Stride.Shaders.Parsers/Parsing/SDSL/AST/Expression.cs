@@ -601,11 +601,14 @@ public partial class PrefixExpression(Operator op, Expression expression, TextLo
             case Operator.Inc:
             case Operator.Dec:
             case Operator.Not:
+                Expression.ProcessSymbol(table, expectedType);
+                Type = Expression.ValueType;
+                break;
             case Operator.BitwiseNot:
             case Operator.Plus:
             case Operator.Minus:
                 Expression.ProcessSymbol(table, expectedType);
-                Type = Expression.ValueType;
+                Type = PromoteBoolean(Expression.ValueType!);
                 break;
             default:
                 table.AddError(new(Info, string.Format(SDSLErrorMessages.SDSL0111, $"Prefix operator {Operator}")));
@@ -632,6 +635,32 @@ public partial class PrefixExpression(Operator op, Expression expression, TextLo
         var valueExpression = isPointer
             ? compiler.Builder.AsValue(compiler.Context, expression)
             : expression;
+
+        // As in HLSL, +b, -b and ~b compute on int
+        if (Operator is Operator.Plus or Operator.Minus or Operator.BitwiseNot && valueType.GetElementType() is ScalarType { Type: Scalar.Boolean })
+        {
+            valueType = PromoteBoolean(valueType);
+            valueExpression = builder.Convert(context, valueExpression, valueType);
+        }
+
+        if (valueType is MatrixType matrixType && Operator is Operator.Plus or Operator.Minus)
+        {
+            if (Operator == Operator.Plus)
+                return valueExpression;
+
+            // OpFNegate / OpSNegate take a scalar or a vector: negate each column
+            var columnType = new VectorType(matrixType.BaseType, matrixType.Rows);
+            var columnTypeId = context.GetOrRegister(columnType);
+            Span<int> columns = stackalloc int[matrixType.Columns];
+            for (var i = 0; i < matrixType.Columns; i++)
+            {
+                var column = builder.Insert(new OpCompositeExtract(columnTypeId, context.Bound++, valueExpression.Id, [i])).ResultId;
+                columns[i] = matrixType.BaseType.IsFloating()
+                    ? builder.Insert(new OpFNegate(columnTypeId, context.Bound++, column)).ResultId
+                    : builder.Insert(new OpSNegate(columnTypeId, context.Bound++, column)).ResultId;
+            }
+            return new(builder.InsertData(new OpCompositeConstruct(valueExpression.TypeId, context.Bound++, [.. columns])));
+        }
 
         if (valueType is ScalarType or VectorType)
         {
@@ -668,8 +697,9 @@ public partial class PrefixExpression(Operator op, Expression expression, TextLo
                         return new(result.ResultId, result.ResultType);
                     }
                 case Operator.Plus:
-                    // Nothing to do
-                    return expression;
+                    // The value, never the variable: +x can't be assigned to
+                    Type = valueType;
+                    return valueExpression;
                 case Operator.Minus:
                     {
                         var result = valueType.GetElementType() switch
@@ -698,6 +728,10 @@ public partial class PrefixExpression(Operator op, Expression expression, TextLo
             throw new NotImplementedException();
         }
     }
+
+    // bool, bool2... become int, int2...
+    private static SymbolType PromoteBoolean(SymbolType type)
+        => type.GetElementType() is ScalarType { Type: Scalar.Boolean } ? type.WithElementType(ScalarType.Int) : type;
 
     public override string ToString() => $"{Operator.ToSymbol()}{Expression}";
 }
