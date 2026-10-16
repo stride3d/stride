@@ -51,6 +51,7 @@ public static class SDSLErrorMessages
     public const string SDSL0043 = "SDSL0043: Unexpected <EOF>";
     public const string SDSL0048 = "SDSL0048: '{0}' is a reserved word and can't be a name. Rename it";
     public const string SDSL0049 = "SDSL0049: Code after the end of shader {0}. Only shader, effect and params declarations can follow: remove it, or move it into the shader";
+    public const string SDSL0050 = "SDSL0050: {0} {1} is declared inside {2} {3}, but it is not a member of a {2}. Move it out of the block";
 
 
     // Semantic errors
