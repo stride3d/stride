@@ -518,6 +518,26 @@ public class StrideShaderTests
         Assert.Equal(3u, outputVertices.Parameters[0]);
     }
 
+    // Vulkan rejects a geometry shader without an invocation count (VUID-VkPipelineShaderStageCreateInfo-stage-00715)
+    [Fact]
+    public void GeometryShaderDeclaresOneInvocation()
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(new ShaderClassSource("GSInputArrayFieldAccess"), new ShaderMixer.Options(true), log, out var bytecode, out _, out _, out var entryPoints),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+
+        var validation = Spv.ValidateBinary(bytecode);
+        Assert.True(validation.IsValid, validation.Output);
+
+        var geometry = Assert.Single(entryPoints, e => e.Stage == ShaderStage.Geometry);
+        var invocations = Assert.Single(ReadExecutionModes(bytecode), m => m.Mode == Stride.Shaders.Spirv.Specification.ExecutionMode.Invocations);
+        Assert.Equal(geometry.Id, invocations.EntryPoint);
+        Assert.Equal(1u, invocations.Parameters[0]);
+    }
+
     [Theory]
     [InlineData("ComposeNumThreadsRoot", 16u)]
     [InlineData("ComposeNumThreadsInheritRoot", 8u)]
