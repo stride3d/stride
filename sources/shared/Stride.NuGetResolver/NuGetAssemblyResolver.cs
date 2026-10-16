@@ -170,6 +170,13 @@ public static partial class NuGetAssemblyResolver
                             var nativeLibs = RestoreHelper.ListNativeLibs(result.LockFile);
                             RegisterNativeDependencies(assemblyNameToPath, nativeLibs);
 
+                            // The D3D12 Agility SDK is a native-only package: D3D12Runtime (Stride.Graphics) loads it from here
+                            if (RestoreHelper.FindPackagePath(result.LockFile, "Microsoft.Direct3D.D3D12") is { } agilitySDKPackage)
+                            {
+                                var architecture = RuntimeInformation.ProcessArchitecture == Architecture.Arm64 ? "arm64" : "x64";
+                                AppContext.SetData("Stride.Graphics.D3D12AgilitySDKPath", Path.Combine(agilitySDKPackage, "build", "native", "bin", architecture));
+                            }
+
 #if STRIDE_NUGET_RESOLVER_UI
                             if (packageName == AvaloniaPackageName)
                             {
