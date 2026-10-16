@@ -734,13 +734,13 @@ namespace Stride.Graphics
         /// <param name="resource">The Graphics Resource written as unordered access.</param>
         /// <remarks>
         ///   A transition to <see cref="BarrierLayout.UnorderedAccess"/> can't do this: it is dropped when the resource
-        ///   already has that layout. A resource in another layout is transitioned first.
+        ///   already has that layout. The resource must already be in <see cref="BarrierLayout.UnorderedAccess"/>: this
+        ///   doesn't transition it.
         /// </remarks>
         public void UnorderedAccessBarrier(GraphicsResource resource)
         {
             ArgumentNullException.ThrowIfNull(resource);
 
-            ResourceBarrierTransition(resource, BarrierLayout.UnorderedAccess);
             FlushResourceBarriers();
             UnorderedAccessSync(resource, D3D12BarrierSync.AllShading, D3D12BarrierSync.AllShading);
         }

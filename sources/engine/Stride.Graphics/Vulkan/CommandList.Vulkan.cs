@@ -612,13 +612,12 @@ namespace Stride.Graphics
         /// <param name="resource">The Graphics Resource written as unordered access.</param>
         /// <remarks>
         ///   A transition to <see cref="BarrierLayout.UnorderedAccess"/> can't do this: it does nothing when the resource
-        ///   already has that layout. A resource in another layout is transitioned first.
+        ///   already has that layout. The resource must already be in <see cref="BarrierLayout.UnorderedAccess"/>: this
+        ///   doesn't transition it.
         /// </remarks>
         public unsafe void UnorderedAccessBarrier(GraphicsResource resource)
         {
             ArgumentNullException.ThrowIfNull(resource);
-
-            ResourceBarrierTransition(resource, BarrierLayout.UnorderedAccess);
 
             var stages = BarrierMapping.ToVkPipelineStageFlags(BarrierLayout.UnorderedAccess);
             const VkAccessFlags AccessBefore = VkAccessFlags.ShaderWrite;

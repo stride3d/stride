@@ -793,6 +793,7 @@ namespace Stride.Graphics
         /// </summary>
         /// <param name="resource">The Graphics Resource written as unordered access.</param>
         /// <remarks>
+        ///   The resource must already be in <see cref="BarrierLayout.UnorderedAccess"/>: this doesn't transition it.
         ///   Nothing to do on Direct3D 11: the runtime orders unordered accesses between calls.
         /// </remarks>
         public void UnorderedAccessBarrier(GraphicsResource resource)
