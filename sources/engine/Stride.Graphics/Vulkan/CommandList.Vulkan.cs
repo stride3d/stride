@@ -952,9 +952,13 @@ namespace Stride.Graphics
         /// <param name="value">The value.</param>
         /// <exception cref="ArgumentNullException">buffer</exception>
         /// <exception cref="ArgumentException">Expecting buffer supporting UAV;buffer</exception>
+        /// <exception cref="NotSupportedException">
+        ///   The buffer is raw, structured or of an integer format (clear it with integer values), or its elements can't
+        ///   be written by repeating one 32-bit word (see <see cref="ClearReadWrite(Buffer, UInt4)"/>).
+        /// </exception>
         public void ClearReadWrite(Buffer buffer, Vector4 value)
         {
-            throw new NotImplementedException();
+            ClearReadWriteImpl(buffer, GetClearWord(buffer, default, value));
         }
 
         /// <summary>
@@ -964,9 +968,12 @@ namespace Stride.Graphics
         /// <param name="value">The value.</param>
         /// <exception cref="ArgumentNullException">buffer</exception>
         /// <exception cref="ArgumentException">Expecting buffer supporting UAV;buffer</exception>
+        /// <exception cref="NotSupportedException">
+        ///   The elements can't be written by repeating one 32-bit word (see <see cref="ClearReadWrite(Buffer, UInt4)"/>).
+        /// </exception>
         public void ClearReadWrite(Buffer buffer, Int4 value)
         {
-            throw new NotImplementedException();
+            ClearReadWriteImpl(buffer, GetClearWord(buffer, new UInt4((uint) value.X, (uint) value.Y, (uint) value.Z, (uint) value.W), floatValue: null));
         }
 
         /// <summary>
@@ -976,10 +983,154 @@ namespace Stride.Graphics
         /// <param name="value">The value.</param>
         /// <exception cref="ArgumentNullException">buffer</exception>
         /// <exception cref="ArgumentException">Expecting buffer supporting UAV;buffer</exception>
+        /// <exception cref="NotSupportedException">
+        ///   The elements can't be written by repeating one 32-bit word: an 8 or 16-byte element (such as
+        ///   <see cref="PixelFormat.R32G32B32A32_UInt"/>) whose 32-bit words differ, or a format other than 8, 16 or 32-bit
+        ///   RGBA channels. Clear it with a value that repeats every 4 bytes (such as 0), or in a compute shader.
+        /// </exception>
+        /// <remarks>
+        ///   As on Direct3D, a raw or structured Buffer gets <c>X</c> in every 32-bit word, and a typed Buffer gets the low
+        ///   bits of each channel, without conversion.
+        /// </remarks>
         public void ClearReadWrite(Buffer buffer, UInt4 value)
         {
-            throw new NotImplementedException();
+            ClearReadWriteImpl(buffer, GetClearWord(buffer, value, floatValue: null));
         }
+
+        private unsafe void ClearReadWriteImpl(Buffer buffer, uint word)
+        {
+            RecordDebugCounter(DebugCounterKind.Clear);
+
+            // The fill is a transfer, synchronized like the Texture clear; leave the buffer in the unordered access
+            // layout afterwards, matching the Direct3D 12 behavior
+            ResourceBarrierTransition(buffer, BarrierLayout.CopyDest);
+
+            // Not allowed inside a render pass (the transition doesn't end it when the buffer is already a copy destination)
+            CleanupRenderPass();
+            GraphicsDevice.NativeDeviceApi.vkCmdFillBuffer(currentCommandList.NativeCommandBuffer, buffer.NativeBuffer, dstOffset: 0, (ulong) (buffer.SizeInBytes & ~3), word);
+
+            ResourceBarrierTransition(buffer, BarrierLayout.UnorderedAccess);
+        }
+
+        /// <summary>
+        ///   Gets the 32-bit word that <c>vkCmdFillBuffer</c> repeats to write a clear value in every element of a Buffer,
+        ///   as Direct3D's <c>ClearUnorderedAccessViewUint</c> / <c>Float</c> write it.
+        /// </summary>
+        /// <param name="buffer">The Buffer to clear.</param>
+        /// <param name="bits">The integer value: the low bits of each channel are copied.</param>
+        /// <param name="floatValue">The float value, converted to the format; <see langword="null"/> for an integer value.</param>
+        private static uint GetClearWord(Buffer buffer, UInt4 bits, Vector4? floatValue)
+        {
+            ArgumentNullException.ThrowIfNull(buffer);
+
+            if ((buffer.Flags & BufferFlags.UnorderedAccess) == 0)
+                throw new ArgumentException("Expecting a Buffer supporting UAV", nameof(buffer));
+
+            // Raw and structured views: X in every 32-bit word
+            if ((buffer.Flags & (BufferFlags.RawBuffer | BufferFlags.StructuredBuffer)) != 0)
+            {
+                if (floatValue is not null)
+                    throw new NotSupportedException("A raw or structured Buffer is cleared with an integer value (UInt4 or Int4), as on Direct3D.");
+                return bits.X;
+            }
+
+            var format = buffer.ViewFormat;
+            var (channelCount, channelBits, kind) = GetClearFormat(format)
+                ?? throw new NotSupportedException($"Clearing a Buffer of format {format} is not supported on Vulkan: only 8, 16 or 32-bit RGBA channels are.");
+
+            if (floatValue is not null && kind is ClearChannelKind.UInt or ClearChannelKind.SInt)
+                throw new NotSupportedException($"A Buffer of integer format {format} is cleared with an integer value (UInt4 or Int4), as on Direct3D.");
+
+            // One element, little-endian channels
+            Span<uint> bitsPerChannel = [bits.X, bits.Y, bits.Z, bits.W];
+            Span<byte> element = stackalloc byte[16];
+            element.Clear();
+            int channelSize = channelBits / 8;
+            for (int channel = 0; channel < channelCount; channel++)
+            {
+                uint channelValue = floatValue is Vector4 floats
+                    ? ConvertChannel(floats[channel], channelBits, kind)
+                    : bitsPerChannel[channel];
+
+                for (int i = 0; i < channelSize; i++)
+                    element[channel * channelSize + i] = (byte) (channelValue >> (8 * i));
+            }
+
+            // The fill repeats one 32-bit word: a smaller element is repeated in it, a larger one must be one word repeated
+            int elementSize = channelCount * channelSize;
+            Span<byte> word = stackalloc byte[4];
+            for (int i = 0; i < 4; i++)
+                word[i] = element[i % elementSize];
+
+            for (int i = 4; i < elementSize; i++)
+            {
+                if (element[i] != word[i % 4])
+                    throw new NotSupportedException($"Vulkan clears a Buffer by repeating one 32-bit word, and a {format} element of this value has different words. Clear it with a value that repeats every 4 bytes (such as 0), or in a compute shader.");
+            }
+
+            return BitConverter.ToUInt32(word);
+
+            static uint ConvertChannel(float value, int channelBits, ClearChannelKind kind) => kind switch
+            {
+                ClearChannelKind.Float when channelBits == 32 => BitConverter.SingleToUInt32Bits(value),
+                ClearChannelKind.Float => BitConverter.HalfToUInt16Bits((System.Half) value),
+                ClearChannelKind.UNorm => (uint) MathF.Round(Math.Clamp(value, 0, 1) * ((1u << channelBits) - 1)),
+                ClearChannelKind.SNorm => (uint) (int) MathF.Round(Math.Clamp(value, -1, 1) * ((1 << (channelBits - 1)) - 1)),
+                _ => throw new ArgumentOutOfRangeException(nameof(kind))
+            };
+        }
+
+        private enum ClearChannelKind { Float, UNorm, SNorm, UInt, SInt }
+
+        /// <summary>
+        ///   Gets the channels of a format a Buffer clear can write, or <see langword="null"/> if it can't.
+        /// </summary>
+        private static (int ChannelCount, int ChannelBits, ClearChannelKind Kind)? GetClearFormat(PixelFormat format) => format switch
+        {
+            PixelFormat.R32G32B32A32_Float => (4, 32, ClearChannelKind.Float),
+            PixelFormat.R32G32B32A32_UInt => (4, 32, ClearChannelKind.UInt),
+            PixelFormat.R32G32B32A32_SInt => (4, 32, ClearChannelKind.SInt),
+            PixelFormat.R32G32B32_Float => (3, 32, ClearChannelKind.Float),
+            PixelFormat.R32G32B32_UInt => (3, 32, ClearChannelKind.UInt),
+            PixelFormat.R32G32B32_SInt => (3, 32, ClearChannelKind.SInt),
+            PixelFormat.R32G32_Float => (2, 32, ClearChannelKind.Float),
+            PixelFormat.R32G32_UInt => (2, 32, ClearChannelKind.UInt),
+            PixelFormat.R32G32_SInt => (2, 32, ClearChannelKind.SInt),
+            PixelFormat.R32_Float => (1, 32, ClearChannelKind.Float),
+            PixelFormat.R32_UInt => (1, 32, ClearChannelKind.UInt),
+            PixelFormat.R32_SInt => (1, 32, ClearChannelKind.SInt),
+
+            PixelFormat.R16G16B16A16_Float => (4, 16, ClearChannelKind.Float),
+            PixelFormat.R16G16B16A16_UNorm => (4, 16, ClearChannelKind.UNorm),
+            PixelFormat.R16G16B16A16_UInt => (4, 16, ClearChannelKind.UInt),
+            PixelFormat.R16G16B16A16_SNorm => (4, 16, ClearChannelKind.SNorm),
+            PixelFormat.R16G16B16A16_SInt => (4, 16, ClearChannelKind.SInt),
+            PixelFormat.R16G16_Float => (2, 16, ClearChannelKind.Float),
+            PixelFormat.R16G16_UNorm => (2, 16, ClearChannelKind.UNorm),
+            PixelFormat.R16G16_UInt => (2, 16, ClearChannelKind.UInt),
+            PixelFormat.R16G16_SNorm => (2, 16, ClearChannelKind.SNorm),
+            PixelFormat.R16G16_SInt => (2, 16, ClearChannelKind.SInt),
+            PixelFormat.R16_Float => (1, 16, ClearChannelKind.Float),
+            PixelFormat.R16_UNorm => (1, 16, ClearChannelKind.UNorm),
+            PixelFormat.R16_UInt => (1, 16, ClearChannelKind.UInt),
+            PixelFormat.R16_SNorm => (1, 16, ClearChannelKind.SNorm),
+            PixelFormat.R16_SInt => (1, 16, ClearChannelKind.SInt),
+
+            PixelFormat.R8G8B8A8_UNorm => (4, 8, ClearChannelKind.UNorm),
+            PixelFormat.R8G8B8A8_UInt => (4, 8, ClearChannelKind.UInt),
+            PixelFormat.R8G8B8A8_SNorm => (4, 8, ClearChannelKind.SNorm),
+            PixelFormat.R8G8B8A8_SInt => (4, 8, ClearChannelKind.SInt),
+            PixelFormat.R8G8_UNorm => (2, 8, ClearChannelKind.UNorm),
+            PixelFormat.R8G8_UInt => (2, 8, ClearChannelKind.UInt),
+            PixelFormat.R8G8_SNorm => (2, 8, ClearChannelKind.SNorm),
+            PixelFormat.R8G8_SInt => (2, 8, ClearChannelKind.SInt),
+            PixelFormat.R8_UNorm => (1, 8, ClearChannelKind.UNorm),
+            PixelFormat.R8_UInt => (1, 8, ClearChannelKind.UInt),
+            PixelFormat.R8_SNorm => (1, 8, ClearChannelKind.SNorm),
+            PixelFormat.R8_SInt => (1, 8, ClearChannelKind.SInt),
+
+            _ => null
+        };
 
         /// <summary>
         /// Clears a read-write Texture. This texture must have been created with read-write/unordered access.
