@@ -43,8 +43,8 @@
 
     <!-- Pin software rendering to a fixed version side-loaded next to the test host exe instead of the
          OS one, for reproducible captures across CI/dev: WARP (rasterizer, D3D11/D3D12) and the D3D12
-         Agility SDK (runtime + debug layer, D3D12 only, into D3D12\ and activated by GraphicsDevice via
-         ID3D12SDKConfiguration). GeneratePathProperty is needed because these native packages use a
+         Agility SDK (runtime + debug layer, D3D12 only, into D3D12\ and loaded by D3D12Runtime through
+         an ID3D12DeviceFactory). GeneratePathProperty is needed because these native packages use a
          build/native/ layout that NuGet doesn't auto-import into C# projects. -->
     <PackageReference Include="Microsoft.Direct3D.WARP" GeneratePathProperty="true"
                       Condition="'$(StrideGraphicsApi)' == 'Direct3D11' Or '$(StrideGraphicsApi)' == 'Direct3D12'" />
