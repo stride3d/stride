@@ -272,6 +272,8 @@ namespace Stride.Rendering.Voxels
 
                     VoxelStorageContext storageContext = processedVolume.StorageContext;
 
+                    (processedVolume.Storage as VoxelStorageClipmaps)?.ClearNewResources(drawContext.CommandList);
+
                     using (drawContext.QueryManager.BeginProfile(Color.Black, PassesVoxelizationProfilingKey))
                     {
                         foreach (VoxelizationPass pass in processedVolume.passList.passes)
