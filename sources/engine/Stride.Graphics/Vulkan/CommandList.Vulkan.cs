@@ -103,6 +103,7 @@ namespace Stride.Graphics
             currentCommandList.NativeCommandBuffer = CommandBufferPool.GetObject(GraphicsDevice.CommandListFence.GetCompletedValue());
             currentCommandList.DescriptorPools = GraphicsDevice.DescriptorPoolLists.Acquire();
             currentCommandList.StagingResources = GraphicsDevice.StagingResourceLists.Acquire();
+            currentCommandList.QueryPools = GraphicsDevice.QueryPoolLists.Acquire();
 
             var beginInfo = new VkCommandBufferBeginInfo
             {
@@ -853,15 +854,36 @@ namespace Stride.Graphics
         /// Submit a timestamp query.
         /// </summary>
         /// <param name="queryPool">The QueryPool owning the query.</param>
-        /// <param name="query">The timestamp query.</param>
+        /// <param name="index">The index of the query to write.</param>
+        /// <remarks>
+        ///   The first write after the pool is created or read back resets all its queries first, as Vulkan requires
+        ///   (outside a render pass: it ends the current one). Read the pool back before writing a query again.
+        /// </remarks>
         public void WriteTimestamp(QueryPool queryPool, int index)
         {
+            if (queryPool.NeedsReset)
+                ResetQueryPool(queryPool);
+
             GraphicsDevice.NativeDeviceApi.vkCmdWriteTimestamp(currentCommandList.NativeCommandBuffer, VkPipelineStageFlags.AllCommands, queryPool.NativeQueryPool, (uint) index);
+
+            if (queryPool.UpdatingCommandList != this)
+            {
+                queryPool.UpdatingCommandList = this;
+                currentCommandList.QueryPools.Add(queryPool);
+            }
         }
 
+        /// <summary>
+        ///   Resets all the queries of a pool, so they can be written again.
+        /// </summary>
+        /// <param name="queryPool">The QueryPool to reset.</param>
         public void ResetQueryPool(QueryPool queryPool)
         {
+            // Not allowed inside a render pass
+            CleanupRenderPass();
             GraphicsDevice.NativeDeviceApi.vkCmdResetQueryPool(currentCommandList.NativeCommandBuffer, queryPool.NativeQueryPool, firstQuery: 0, (uint) queryPool.QueryCount);
+
+            queryPool.NeedsReset = false;
         }
 
         /// <summary>
