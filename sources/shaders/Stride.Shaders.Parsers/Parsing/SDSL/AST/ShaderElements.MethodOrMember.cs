@@ -476,11 +476,16 @@ public partial class ShaderMethod(
             }
         }
 
-        if (!IsOverride && CheckMissingOverride(table, ftype))
+        if (!IsOverride)
         {
-            IsOverride = true;
-            functionFlags |= Specification.FunctionFlagsMask.Override;
+            if (CheckMissingOverride(table, ftype))
+            {
+                IsOverride = true;
+                functionFlags |= Specification.FunctionFlagsMask.Override;
+            }
         }
+        else
+            CheckOverriddenMethod(table, ftype);
 
         var symbol = new Symbol(new(Name, SymbolKind.Method, IsStage: IsStaged), ftype, function.Id, MemberAccessWithImplicitThis: ftype, OwnerType: table.CurrentShader);
 
@@ -530,6 +535,26 @@ public partial class ShaderMethod(
             }
         }
         return false;
+    }
+
+    // An override needs an inherited method with its parameters and return type (one with its name and other
+    // parameters is a mistake; with no inherited method of that name, the method stands alone)
+    private void CheckOverriddenMethod(SymbolTable table, FunctionType ftype)
+    {
+        var sameName = table.InheritedShaders
+            .SelectMany(x => x.Symbol!.Methods, (x, method) => (Shader: x.Symbol!, Type: method.Item1.Type as FunctionType, Name: method.Item1.Id.Name))
+            .Where(x => x.Name == Name.Name && x.Type != null)
+            .ToList();
+        if (sameName.Count == 0 || sameName.Exists(x => x.Type == ftype))
+            return;
+
+        var parameters = FormatParameters(ftype);
+        if (sameName.Find(x => x.Type!.ParameterTypes.SequenceEqual(ftype.ParameterTypes)) is { Type: not null } sameParameters)
+            table.AddError(new(Name.Info, string.Format(SDSLErrorMessages.SDSL0175, table.CurrentShader!.Name, Name.Name, parameters, ftype.ReturnType, sameParameters.Shader.Name, sameParameters.Type.ReturnType)));
+        else
+            table.AddError(new(Name.Info, string.Format(SDSLErrorMessages.SDSL0176, table.CurrentShader!.Name, Name.Name, parameters, string.Join(", ", sameName.Select(x => $"{x.Shader.Name}.{Name.Name}({FormatParameters(x.Type!)})")))));
+
+        static string FormatParameters(FunctionType type) => string.Join(", ", type.ParameterTypes.Select(p => p.Type is PointerType pointer ? pointer.BaseType : p.Type));
     }
 
     // SPIR-V spec: SpacingX / VertexOrderX / PointMode execution modes are only valid on
@@ -726,6 +751,12 @@ public partial class ShaderMethod(
         // After compiling the body, check if this stage function referenced non-stage members
         if (builder.CurrentFunction is { ReferencesNonStageMembers: true })
             functionInfo.Flags |= Specification.FunctionFlagsMask.ReferencesNonStage;
+
+        if (ftype.ReturnType != ScalarType.Void && !SpirvBuilder.IsBlockTermination(builder.GetLastInstructionType()))
+        {
+            table.AddError(new(Name.Info, string.Format(SDSLErrorMessages.SDSL0177, table.CurrentShader!.Name, Name.Name)));
+            builder.Insert(new OpUnreachable());
+        }
 
         builder.EndFunction();
         table.Pop();

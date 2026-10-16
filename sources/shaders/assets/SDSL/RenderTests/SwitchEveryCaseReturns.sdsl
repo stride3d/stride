@@ -1,0 +1,29 @@
+// PSMain(ExpectedResult=#01020303, cbuffer.Globals=(Value=1))
+
+namespace Stride.Shaders.Tests;
+
+// Every section of the switch returns and there is a default: nothing runs after the switch
+shader SwitchEveryCaseReturns
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    stage int Value;
+
+    float Pick(int t)
+    {
+        switch (t)
+        {
+            case 0:
+                return 1;
+            case 1:
+                return 2;
+            default:
+                return 3;
+        }
+    }
+
+    void PSMain()
+    {
+        streams.ColorTarget = float4(Pick(Value - 1), Pick(Value), Pick(Value + 1), Pick(Value + 5)) / 255.0;
+    }
+};
