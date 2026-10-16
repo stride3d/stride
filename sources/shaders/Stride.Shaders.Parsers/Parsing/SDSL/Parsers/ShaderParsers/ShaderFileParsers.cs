@@ -59,11 +59,19 @@ public record struct ShaderFileParser : IParser<ShaderFile>
                 file.RootDeclarations.Add(uns);
                 Parsers.Spaces0(ref scanner, result, out _);
             }
-            else return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0001, scanner[scanner.Position], scanner.Memory));
+            else return Parsers.Exit(ref scanner, result, out parsed, position, AfterDeclarationError(ref scanner, file.RootDeclarations.LastOrDefault(), SDSLErrorMessages.SDSL0001));
         }
         parsed = file;
         return true;
     }
+
+    // Code after a shader's `};` (old DX9 effect globals, for example): say where it is instead of "unexpected token".
+    // A class that stopped at an element it couldn't parse is also returned, so it must have reached its closing brace.
+    internal static ParseError AfterDeclarationError<TScanner>(ref TScanner scanner, Node? previous, string otherwise)
+        where TScanner : struct, IScanner
+        => new(previous is ShaderClass shaderClass && shaderClass.Info.TextSpan.TrimEnd().TrimEnd(';').TrimEnd().EndsWith("}")
+            ? string.Format(SDSLErrorMessages.SDSL0049, shaderClass.Name)
+            : otherwise, scanner[scanner.Position], scanner.Memory);
     public static bool UsingNamespace<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out UsingShaderNamespace parsed, in ParseError? orError = null)
         where TScanner : struct, IScanner
         => new UsingNamespaceParser().Match(ref scanner, result, out parsed, orError);
@@ -142,7 +150,7 @@ public record struct NamespaceParsers : IParser<ShaderNamespace>
                     else if (ParamsParsers.Params(ref scanner, result, out var p) && Parsers.Spaces0(ref scanner, result, out _))
                         ns.Declarations.Add(p);
                     else
-                        return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0001, scanner[scanner.Position], scanner.Memory));
+                        return Parsers.Exit(ref scanner, result, out parsed, position, ShaderFileParser.AfterDeclarationError(ref scanner, ns.Declarations.LastOrDefault(), SDSLErrorMessages.SDSL0001));
                     Parsers.Spaces0(ref scanner, result, out _);
                 }
             }
@@ -158,7 +166,7 @@ public record struct NamespaceParsers : IParser<ShaderNamespace>
                     else if (ParamsParsers.Params(ref scanner, result, out var p) && Parsers.Spaces0(ref scanner, result, out _))
                         ns.Declarations.Add(p);
                     else
-                        return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0039, scanner[scanner.Position], scanner.Memory));
+                        return Parsers.Exit(ref scanner, result, out parsed, position, ShaderFileParser.AfterDeclarationError(ref scanner, ns.Declarations.LastOrDefault(), SDSLErrorMessages.SDSL0039));
                 }
             }
             else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
