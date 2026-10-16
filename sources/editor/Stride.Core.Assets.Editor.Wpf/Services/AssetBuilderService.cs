@@ -37,7 +37,7 @@ namespace Stride.Core.Assets.Editor.Services
             // Mount database (otherwise it will be mounted by DynamicBuilder thread, and it might happen too late)
             Builder.OpenObjectDatabase(buildDirectory, IndexName);
             
-            var builderInstance = new Builder(GlobalLogger.GetLogger("AssetBuilderService"), buildDirectory, IndexName)
+            var builderInstance = new Builder(Logger, buildDirectory, IndexName)
             {
                 BuilderName = "AssetBuilderService Builder",
                 ThreadCount = threadCount,
@@ -52,6 +52,12 @@ namespace Stride.Core.Assets.Editor.Services
         }
 
         public event EventHandler<AssetBuiltEventArgs> AssetBuilt;
+
+        /// <summary>
+        /// Gets the log of the builder, with the messages of every build step. It is not part of the global log: the build
+        /// log of each asset is shown in the asset log (see <see cref="AssetBuilt"/>).
+        /// </summary>
+        public Logger Logger { get; } = new BuilderLogger();
 
         /// <summary>
         ///   The number of build units waiting in the queue to be picked up. Test harnesses use this
@@ -172,6 +178,20 @@ namespace Stride.Core.Assets.Editor.Services
         private void NotifyAssetBuilt(AssetItem assetItem, LoggerResult buildLog)
         {
             AssetBuilt?.Invoke(this, new AssetBuiltEventArgs(assetItem, buildLog));
+        }
+
+        private sealed class BuilderLogger : Logger
+        {
+            public BuilderLogger()
+            {
+                Module = "AssetBuilderService";
+                ActivateLog(LogMessageType.Debug);
+            }
+
+            // Kept nowhere: only listeners (the debug page) see the messages
+            protected override void LogRaw(ILogMessage logMessage)
+            {
+            }
         }
     }
 }

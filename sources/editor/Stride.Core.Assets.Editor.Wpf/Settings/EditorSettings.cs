@@ -116,7 +116,6 @@ namespace Stride.Core.Assets.Editor.Settings
             SourceModuleLevels = new SettingsKey<Dictionary<string, LogMessageType>>("Logging/SourceModuleLevels", SettingsContainer, () => new Dictionary<string, LogMessageType>
             {
                 // The global loggers shown in the debug pages need their full history.
-                ["AssetBuilderService"] = LogMessageType.Debug,
                 ["EffectCompilerCache"] = LogMessageType.Debug,
                 ["Preview"] = LogMessageType.Debug,
                 [GraphViewModel.DefaultLoggerName] = LogMessageType.Debug,
