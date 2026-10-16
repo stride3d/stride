@@ -862,6 +862,13 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
     }
 
     // Since there are many switch case, we do both ProcessSymbols and Compile in the same functions to make sure to not miss anything (depending on if compiler is set)
+    // HLSL converts a floating-point index to an integer (towards zero); SPIR-V indexes with an integer only
+    private static SpirvValue CompileIndex(IndexerExpression indexer, SymbolTable table, CompilerUnit compiler)
+    {
+        var value = indexer.Index.CompileAsValue(table, compiler);
+        return compiler.Context.ReverseTypes[value.TypeId].IsFloating() ? compiler.Builder.Convert(compiler.Context, value, ScalarType.Int) : value;
+    }
+
     public SpirvValue CompileHelper(SymbolTable table, CompilerUnit? compiler = null)
     {
         SpirvValue result = default;
@@ -1050,7 +1057,7 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                         // so first, we push a 0 to access the OpTypeRuntimeArray
                         PushAccessChainId(accessChainIds, compiler.Context.CompileConstant(0).Id);
                         // Then we push the index inside the array
-                        var indexerValue = indexer.Index.CompileAsValue(table, compiler);
+                        var indexerValue = CompileIndex(indexer, table, compiler);
                         PushAccessChainId(accessChainIds, indexerValue.Id);
                         break;
                     }
@@ -1373,7 +1380,7 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                             break;
                         }
 
-                        var indexerValue = indexer.Index.CompileAsValue(table, compiler);
+                        var indexerValue = CompileIndex(indexer, table, compiler);
                         PushAccessChainId(accessChainIds, indexerValue.Id);
                         break;
                     }
@@ -1389,7 +1396,7 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                             accessor.Type = new PointerType(t, p.StorageClass);
                             break;
                         }
-                        var indexerValue = indexer.Index.CompileAsValue(table, compiler);
+                        var indexerValue = CompileIndex(indexer, table, compiler);
                         PushAccessChainId(accessChainIds, indexerValue.Id);
                         break;
                     }
@@ -1408,7 +1415,7 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                             break;
                         }
 
-                        var indexerValue = indexer.Index.CompileAsValue(table, compiler);
+                        var indexerValue = CompileIndex(indexer, table, compiler);
                         PushAccessChainId(accessChainIds, indexerValue.Id);
                         break;
                     }
@@ -1436,7 +1443,7 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                         builder.Insert(new OpStore(functionVariable, result.Id, null, []));
                         result = new SpirvValue(functionVariable, ptrType);
                         // Process again the same item with new type
-                        var indexerValue = indexer.Index.CompileAsValue(table, compiler);
+                        var indexerValue = CompileIndex(indexer, table, compiler);
                         PushAccessChainId(accessChainIds, indexerValue.Id);
                         break;
                     }
@@ -1448,7 +1455,7 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                             accessor.Type = new PointerType(t, p.StorageClass);
                             break;
                         }
-                        var indexerValue = indexer.Index.CompileAsValue(table, compiler);
+                        var indexerValue = CompileIndex(indexer, table, compiler);
                         PushAccessChainId(accessChainIds, indexerValue.Id);
                         break;
                     }
