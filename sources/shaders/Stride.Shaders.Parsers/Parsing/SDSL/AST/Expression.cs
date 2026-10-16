@@ -462,11 +462,10 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
                 var paramTarget = Arguments.Values[i].Compile(table, compiler, paramDefinitionType);
                 var paramTargetType = (PointerType)context.ReverseTypes[paramTarget.TypeId];
 
-                if (paramTargetType.BaseType != paramDefinitionType.BaseType)
-                    throw new InvalidOperationException($"Value of type {paramTargetType.BaseType} can't be used as out parameter {i} of type {paramDefinitionType.BaseType} in method call [{this}]");
-
-                var loadedResult = builder.Insert(new OpLoad(context.GetOrRegister(paramTargetType.BaseType), context.Bound++, paramVariable, null, [])).ResultId;
-                builder.Insert(new OpStore(paramTarget.Id, loadedResult, null, []));
+                // As in HLSL, the value is converted to the argument's type (an int receiving an out uint)
+                var loadedResult = builder.Insert(new OpLoad(context.GetOrRegister(paramDefinitionType.BaseType), context.Bound++, paramVariable, null, []));
+                var convertedResult = builder.Convert(context, new(loadedResult.ResultId, loadedResult.ResultType), paramTargetType.BaseType);
+                builder.Insert(new OpStore(paramTarget.Id, convertedResult.Id, null, []));
             }
         }
     }
