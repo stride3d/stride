@@ -1,0 +1,36 @@
+// PSMain(ExpectedResult=#336699FF, texture.Tex=#00000000)
+
+namespace Stride.Shaders.Tests;
+
+// An out argument of another type than the parameter gets the value converted, as in HLSL (the test texture is 1x1, one mip level)
+shader OutArgumentConversion
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    Texture2D Tex;
+
+    void WriteValue(out uint value)
+    {
+        value = 5;
+    }
+
+    void PSMain()
+    {
+        // Texture.GetDimensions with int and float outs
+        int2 size;
+        Tex.GetDimensions(size.x, size.y);
+        int width, height, levels;
+        Tex.GetDimensions(0, width, height, levels);
+        float floatWidth, floatHeight;
+        Tex.GetDimensions(floatWidth, floatHeight);
+        bool textureSize = all(size == int2(1, 1)) && width == 1 && height == 1 && levels == 1 && floatWidth == 1 && floatHeight == 1;
+
+        // A method's out uint into an int and a float
+        int intValue;
+        WriteValue(intValue);
+        float floatValue;
+        WriteValue(floatValue);
+
+        streams.ColorTarget = float4(textureSize ? 0.2 : 0, intValue == 5 ? 0.4 : 0, floatValue == 5 ? 0.6 : 0, 1);
+    }
+};
