@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Vortice.Vulkan;
 using static Vortice.Vulkan.Vulkan;
@@ -50,19 +51,24 @@ namespace Stride.Graphics
             Span<VkPhysicalDevice> nativePhysicalDevices = stackalloc VkPhysicalDevice[(int)physicalDevicesCount];
             defaultInstance.NativeInstanceApi.vkEnumeratePhysicalDevices(defaultInstance.NativeInstance, nativePhysicalDevices).CheckResult();
             
-            var physicalDevices = new List<(VkPhysicalDevice Device, VkPhysicalDeviceProperties Properties, VkPhysicalDeviceDriverProperties DriverProperties, int EnumerationIndex)>();
+            var physicalDevices = new List<(VkPhysicalDevice Device, VkPhysicalDeviceProperties Properties, VkPhysicalDeviceDriverProperties DriverProperties, long AdapterUid, int EnumerationIndex)>();
             for (int index = 0; index < nativePhysicalDevices.Length; index++)
             {
                 VkPhysicalDeviceProperties properties;
                 defaultInstance.NativeInstanceApi.vkGetPhysicalDeviceProperties(nativePhysicalDevices[index], out properties);
 
+                // The device LUID / UUID (core in 1.1) gives the adapter uid
+                VkPhysicalDeviceIDProperties idProps = new() { sType = VkStructureType.PhysicalDeviceIdProperties };
                 // VK_KHR_driver_properties (core in 1.2) exposes driver identity strings the packed driverVersion can't carry.
-                VkPhysicalDeviceDriverProperties driverProps = new() { sType = VkStructureType.PhysicalDeviceDriverProperties };
+                VkPhysicalDeviceDriverProperties driverProps = new() { sType = VkStructureType.PhysicalDeviceDriverProperties, pNext = &idProps };
                 VkPhysicalDeviceProperties2 properties2 = new() { sType = VkStructureType.PhysicalDeviceProperties2, pNext = &driverProps };
                 if (properties.apiVersion >= VkVersion.Version_1_2)
                     defaultInstance.NativeInstanceApi.vkGetPhysicalDeviceProperties2(nativePhysicalDevices[index], &properties2);
 
-                physicalDevices.Add((nativePhysicalDevices[index], properties, driverProps, index));
+                // The adapter keeps the driver properties: no pointer to this loop's locals
+                driverProps.pNext = null;
+
+                physicalDevices.Add((nativePhysicalDevices[index], properties, driverProps, GetAdapterUid(idProps), index));
             }
 
             // The fastest kind first, as DXGI's high-performance order does on Direct3D: a hybrid laptop enumerates its integrated GPU first.
@@ -71,8 +77,8 @@ namespace Stride.Graphics
             var adapterList = new List<GraphicsAdapter>();
             for (int index = 0; index < physicalDevices.Count; index++)
             {
-                var (device, properties, driverProps, enumerationIndex) = physicalDevices[index];
-                var adapter = new GraphicsAdapter(device, properties, driverProps, index, enumerationIndex);
+                var (device, properties, driverProps, adapterUid, enumerationIndex) = physicalDevices[index];
+                var adapter = new GraphicsAdapter(device, properties, driverProps, adapterUid, index, enumerationIndex);
                 staticCollector.Add(adapter);
                 adapterList.Add(adapter);
             }
@@ -81,6 +87,20 @@ namespace Stride.Graphics
             adapters = adapterList.ToArray();
 
             staticCollector.Add(new AnonymousDisposable(Cleanup));
+        }
+
+        /// <summary>
+        ///   Gets the <see cref="GraphicsAdapter.AdapterUid"/> of a physical device: its LUID when it has one (Windows), the
+        ///   same value as the DXGI adapter LUID, so <c>GraphicsDeviceManager.RequiredAdapterUid</c> picks the same GPU on
+        ///   every graphics API. Otherwise its device UUID folded to 64 bits.
+        /// </summary>
+        private static unsafe long GetAdapterUid(VkPhysicalDeviceIDProperties idProperties)
+        {
+            if (idProperties.deviceLUIDValid)
+                return Unsafe.ReadUnaligned<long>(idProperties.deviceLUID);
+
+            var uuid = (ulong*) idProperties.deviceUUID;
+            return (long) (uuid[0] ^ uuid[1]);
         }
 
         private static int PerformanceRank(VkPhysicalDeviceType type) => type switch
