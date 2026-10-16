@@ -1,0 +1,18 @@
+// PSMain(ExpectedResult=#336699FF)
+
+namespace Stride.Shaders.Tests;
+
+shader AnyAllScalar
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    void PSMain()
+    {
+        // any() / all() of a scalar is the scalar itself
+        float x = 0.75;
+        float4 color = float4(1, 0, 0, 1);
+        if (any(x > 0.5) && all(x < 1.0) && any(x) && !all(x - 0.75))
+            color = float4(0.2, 0.4, 0.6, 1);
+        streams.ColorTarget = color;
+    }
+};
