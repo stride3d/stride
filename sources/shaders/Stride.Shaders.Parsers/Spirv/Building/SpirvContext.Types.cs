@@ -155,6 +155,8 @@ public partial class SpirvContext
                     _ => throw new NotImplementedException($"Can't add type {type}")
                 },
             VectorType v => Buffer.AddData(new OpTypeVector(id, GetOrRegister(v.BaseType), v.Size)).IdResult,
+            // SPIR-V has floating-point matrices only (HLSL also has int, uint and bool ones): fail here, not with invalid SPIR-V later
+            MatrixType m when !m.BaseType.IsFloating() => throw new NotSupportedException($"Matrices of {m.BaseType} ({m}) are not supported: use a float matrix, or an array of {new VectorType(m.BaseType, m.Rows)}"),
             MatrixType m => Buffer
                 .AddData(new OpTypeMatrix(id, GetOrRegister(new VectorType(m.BaseType, m.Rows)), m.Columns))
                 .IdResult,
