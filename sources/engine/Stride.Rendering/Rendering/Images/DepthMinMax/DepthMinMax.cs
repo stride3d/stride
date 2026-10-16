@@ -3,6 +3,7 @@
 
 using System;
 
+using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
 
@@ -10,7 +11,7 @@ namespace Stride.Rendering.Images
 {
     public class DepthMinMax : ImageEffect
     {
-        internal static PermutationParameterKey<bool> IsFirstPassKey = ParameterKeys.NewPermutation<bool>();
+        internal static readonly PermutationParameterKey<bool> IsFirstPassKey = (PermutationParameterKey<bool>)ParameterKeys.Merge(ParameterKeys.NewPermutation<bool>(), typeof(DepthMinMax), "DepthMinMax.IsFirstPassKey");
 
         // TODO: Currently capturing two effects, because sdfx permutation triggers DynamicEffectCompiler
         private ImageEffectShader effectFirstPass;
@@ -80,6 +81,12 @@ namespace Stride.Rendering.Images
 
                 Result = new Vector2(min, max);
             }
+        }
+
+        [ModuleInitializer]
+        internal static void __Initialize__()
+        {
+            System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(typeof(DepthMinMax).TypeHandle);
         }
     }
 }

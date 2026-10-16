@@ -2,7 +2,7 @@
 
 namespace Stride.Shaders.Tests;
 
-shader GenericsArrayBase2<int TIgnored1, int TIgnored2, int TArraySizeHalf2>
+shader GenericsArrayBase4<int TIgnored1, int TIgnored2, int TArraySizeHalf2>
 {
     static const int TArraySize = TArraySizeHalf2 + TArraySizeHalf2;
     cbuffer Test
@@ -11,7 +11,7 @@ shader GenericsArrayBase2<int TIgnored1, int TIgnored2, int TArraySizeHalf2>
     }
 }
 
-shader GenericsArrayBase<int TArraySizeHalf> : GenericsArrayBase2<1, 2, TArraySizeHalf>
+shader GenericsArrayBase3<int TArraySizeHalf> : GenericsArrayBase4<1, 2, TArraySizeHalf>
 {
     stream float4 ColorTarget : SV_Target0;
     static const int TArraySize2 = TArraySize;
@@ -24,5 +24,5 @@ shader GenericsArrayBase<int TArraySizeHalf> : GenericsArrayBase2<1, 2, TArraySi
 
 effect GenericsArraySize2
 {
-	mixin GenericsArrayBase<2>;
+	mixin GenericsArrayBase3<2>;
 }

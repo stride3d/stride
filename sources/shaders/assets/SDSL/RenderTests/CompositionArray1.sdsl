@@ -32,7 +32,7 @@ shader CompositionTestArray
 	compose CompositionBase CompsInherited[];
 }
  
-shader CompositionTest : CompositionTestArray
+shader CompositionTest1 : CompositionTestArray
 {
     stream float4 ColorTarget : SV_Target0;
 
@@ -63,7 +63,7 @@ shader CompositionTest : CompositionTestArray
 
 effect CompositionArray1
 {
-	mixin CompositionTest;
+	mixin CompositionTest1;
 	mixin compose CompsStage += CompositionShaderA;
 	mixin compose CompsStage += CompositionShaderA;
 	mixin compose CompsStage += CompositionShaderB;

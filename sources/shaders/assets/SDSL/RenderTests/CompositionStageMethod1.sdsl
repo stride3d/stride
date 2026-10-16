@@ -51,7 +51,7 @@ shader CompositionShaderB : CompositionBase
 	}
 };
  
-shader CompositionTest : CompositionBase
+shader CompositionTest6 : CompositionBase
 {
     stream float4 ColorTarget : SV_Target0;
 
@@ -76,7 +76,7 @@ shader CompositionTest : CompositionBase
 
 effect CompositionStageMethod1
 {
-	mixin CompositionTest;
+	mixin CompositionTest6;
 	mixin compose Comp0 = CompositionShaderA;
 	mixin compose Comp1 = CompositionShaderB;
 }

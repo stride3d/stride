@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Threading.Tasks;
 using Xunit;
+using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Rendering;
 using Stride.Games;
@@ -10,7 +11,13 @@ namespace Stride.Graphics.Tests
 {
     public static class MyCustomShaderKeys
     {
-        public static readonly ValueParameterKey<Vector4> ColorFactor2 = ParameterKeys.NewValue<Vector4>();
+        public static readonly ValueParameterKey<Vector4> ColorFactor2 = (ValueParameterKey<Vector4>)ParameterKeys.Merge(ParameterKeys.NewValue<Vector4>(), typeof(MyCustomShaderKeys), "MyCustomShader.ColorFactor2");
+
+        [ModuleInitializer]
+        internal static void __Initialize__()
+        {
+            System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(typeof(MyCustomShaderKeys).TypeHandle);
+        }
     }
 
     public class TestCustomEffect : GraphicTestGameBase

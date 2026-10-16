@@ -9,21 +9,6 @@ namespace Stride.Rendering
     /// </summary>
     public static partial class TransformationKeys
     {
-        static TransformationKeys()
-        {
-            View = ParameterKeys.NewValue(Matrix.Identity);
-            Projection = ParameterKeys.NewValue(Matrix.Identity);
-            World = ParameterKeys.NewValue(Matrix.Identity);
-            WorldView = ParameterKeys.NewValue(Matrix.Identity);
-            WorldViewProjection = ParameterKeys.NewValue(Matrix.Identity);
-            WorldInverse = ParameterKeys.NewValue(Matrix.Identity);
-            WorldInverseTranspose = ParameterKeys.NewValue(Matrix.Identity);
-            ViewInverse = ParameterKeys.NewValue(Matrix.Identity);
-            ProjectionInverse = ParameterKeys.NewValue(Matrix.Identity);
-            WorldViewInverse = ParameterKeys.NewValue(Matrix.Identity);
-            WorldScale = ParameterKeys.NewValue(Vector3.One);
-        }
-
         // TODO GRAPHICS REFACTOR
         ///// <summary>
         ///// Extracts the projected screem 2d vector from the projection matrix.
