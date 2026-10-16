@@ -862,6 +862,38 @@ float4 main(vs_out input) : SV_TARGET {
                 deviceContext.GSSetShaderResources((uint)resourceReflection.SlotStart, 1U, &bufferSRV.Handle);
                 deviceContext.PSSetShaderResources((uint)resourceReflection.SlotStart, 1U, &bufferSRV.Handle);
             }
+            else if (resourceType == "structuredbuffer")
+            {
+                var (stride, data) = ParseStructuredBufferData(value);
+
+                ComPtr<ID3D11Buffer> buffer = default;
+                bufferDesc = new BufferDesc
+                {
+                    ByteWidth = (uint)data.Length,
+                    Usage = Usage.Default,
+                    BindFlags = (uint)BindFlag.ShaderResource,
+                    MiscFlags = (uint)ResourceMiscFlag.BufferStructured,
+                    StructureByteStride = (uint)stride,
+                };
+                fixed (byte* dataPtr = data)
+                {
+                    var subresourceData = new SubresourceData { PSysMem = dataPtr };
+                    SilkMarshal.ThrowHResult(device.CreateBuffer(in bufferDesc, in subresourceData, ref buffer));
+                }
+
+                ComPtr<ID3D11ShaderResourceView> bufferSRV = default;
+                var srvDesc = new ShaderResourceViewDesc
+                {
+                    Format = Format.FormatUnknown,
+                    ViewDimension = D3DSrvDimension.D3DSrvDimensionBuffer,
+                    Anonymous = new ShaderResourceViewDescUnion { Buffer = new() { FirstElement = 0, NumElements = (uint)(data.Length / stride) } },
+                };
+                SilkMarshal.ThrowHResult(device.CreateShaderResourceView(buffer, in srvDesc, ref bufferSRV));
+
+                deviceContext.CSSetShaderResources((uint)resourceReflection.SlotStart, 1U, &bufferSRV.Handle);
+                deviceContext.VSSetShaderResources((uint)resourceReflection.SlotStart, 1U, &bufferSRV.Handle);
+                deviceContext.PSSetShaderResources((uint)resourceReflection.SlotStart, 1U, &bufferSRV.Handle);
+            }
             else if (resourceType == "texture")
             {
                 var color = ParseColor(value);
