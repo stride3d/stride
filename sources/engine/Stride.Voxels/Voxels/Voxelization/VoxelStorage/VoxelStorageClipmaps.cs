@@ -405,9 +405,12 @@ namespace Stride.Rendering.Voxels
             BufferWriter.Parameters.Set(BufferToTextureKeys.IndirectReadAndStoreMacro, IndirectReadAndStoreMacro);
             BufferWriter.Parameters.Set(BufferToTextureKeys.IndirectStoreMacro, IndirectStoreMacro);
 
+            // The fragments buffer stays in unordered access: the voxelization pixel shader wrote it, this pass reads it,
+            // and the clear below writes it again, so each pass waits for the previous one
+            var commandList = drawContext.CommandList;
+            commandList.UnorderedAccessBarrier(FragmentsBuffer);
             ((RendererBase)BufferWriter).Draw(drawContext);
-
-
+            commandList.UnorderedAccessBarrier(FragmentsBuffer);
 
             ClearBuffer.Parameters.Set(ClearBufferKeys.buffer, FragmentsBuffer);
 
@@ -431,6 +434,9 @@ namespace Stride.Rendering.Voxels
                 ClearBuffer.Parameters.Set(ClearBufferKeys.count, clipMapElements);
             }
             ((RendererBase)ClearBuffer).Draw(drawContext);
+
+            // Before the next voxelization writes it
+            commandList.UnorderedAccessBarrier(FragmentsBuffer);
         }
     }
 }
