@@ -343,6 +343,8 @@ public record struct DeclareStatementParser : IParser<Statement>
 
         )
         {
+            if (Parsers.ReservedWordAsName(ref scanner, result, out var reservedWord))
+                return Parsers.Exit(ref scanner, result, out parsed, position, new(string.Format(SDSLErrorMessages.SDSL0048, reservedWord), scanner[scanner.Position], scanner.Memory));
             if (Parsers.Repeat(ref scanner, result, StatementParsers.DeclaredVarAssign, out List<DeclaredVariableAssign>? assigns, 1, true, ","))
             {
                 foreach (var a in assigns)
@@ -359,6 +361,9 @@ public record struct DeclareStatementParser : IParser<Statement>
                     };
                     return true;
                 }
+                // `int a, line;`: the list stopped at a reserved word
+                else if (Parsers.ReservedWordAsName(ref scanner, result, out reservedWord))
+                    return Parsers.Exit(ref scanner, result, out parsed, position, new(string.Format(SDSLErrorMessages.SDSL0048, reservedWord), scanner[scanner.Position], scanner.Memory));
                 else return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0033, scanner[scanner.Position], scanner.Memory));
             }
         }

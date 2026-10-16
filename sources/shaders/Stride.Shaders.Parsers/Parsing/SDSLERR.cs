@@ -49,6 +49,8 @@ public static class SDSLErrorMessages
     public const string SDSL0041 = "SDSL0041: Expected expression or semi colon";
     public const string SDSL0042 = "SDSL0042: Expected prefix expression";
     public const string SDSL0043 = "SDSL0043: Unexpected <EOF>";
+    public const string SDSL0048 = "SDSL0048: '{0}' is a reserved word and can't be a name. Rename it";
+    public const string SDSL0049 = "SDSL0049: Code after the end of shader {0}. Only shader, effect and params declarations can follow: remove it, or move it into the shader";
 
 
     // Semantic errors

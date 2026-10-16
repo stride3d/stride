@@ -24,6 +24,7 @@ public record struct ShaderMemberParser : IParser<ShaderMember>
             Parsers.VariableModifiers(ref scanner, result, out var isStaged, out var isCompose, out var streamKind, out var interpolation, out var typeModifier, out var storageClass, advance: true)
             && Parsers.Spaces0(ref scanner, result, out _);
 
+        var afterModifiers = scanner.Position;
         if (Parsers.TypeNameIdentifierArraySizeValue(ref scanner, result, out var typeName, out var identifier, out value))
         {
             if (!Qualifiers(ref scanner, result, out var semantic, out var register))
@@ -53,6 +54,13 @@ public record struct ShaderMemberParser : IParser<ShaderMember>
             }
             else return Parsers.Exit(ref scanner, result, out parsed, position);
         }
+
+        // `float triangle;`: say why the name doesn't parse
+        scanner.Position = afterModifiers;
+        if (LiteralsParser.TypeName(ref scanner, result, out _)
+            && Parsers.Spaces1(ref scanner, result, out _)
+            && Parsers.ReservedWordAsName(ref scanner, result, out var reservedWord))
+            return Parsers.Exit(ref scanner, result, out parsed, position, new(string.Format(SDSLErrorMessages.SDSL0048, reservedWord), scanner[scanner.Position], scanner.Memory));
         return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 

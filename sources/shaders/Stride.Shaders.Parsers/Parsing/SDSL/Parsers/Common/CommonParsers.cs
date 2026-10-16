@@ -249,6 +249,26 @@ public static class Parsers
             return false;
         }
     }
+
+    /// <summary>
+    /// After a declaration's type: true when the name is a reserved word (<c>int triangle = ...;</c>), so the error can say why
+    /// instead of "expected statement". Only a declaration shape counts (the word followed by <c>=</c>, <c>;</c>, <c>,</c> or <c>[</c>).
+    /// The scanner doesn't move.
+    /// </summary>
+    public static bool ReservedWordAsName<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out string word)
+        where TScanner : struct, IScanner
+    {
+        var position = scanner.Position;
+        while (Tokens.LetterOrDigit(ref scanner) || Tokens.Char('_', ref scanner))
+            scanner.Advance(1);
+        word = scanner.Memory[position..scanner.Position].ToString();
+        var isReserved = Reserved.Keywords.Contains(word)
+            && Spaces0(ref scanner, result, out _)
+            && (Tokens.Char('=', ref scanner) || Tokens.Char(';', ref scanner) || Tokens.Char(',', ref scanner) || Tokens.Char('[', ref scanner));
+        scanner.Position = position;
+        return isReserved;
+    }
+
     public static bool TypeNameIdentifierArraySizeValue<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out TypeName typeName, [MaybeNullWhen(false)] out Identifier identifier, [MaybeNullWhen(false)] out Expression? value, bool advance = true)
         where TScanner : struct, IScanner
     {
