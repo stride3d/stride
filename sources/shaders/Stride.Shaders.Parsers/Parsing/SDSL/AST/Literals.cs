@@ -967,6 +967,12 @@ public partial class TypeName(string name, TextLocation info) : Literal(info)
                 table.DeclaredTypes.Add(fullTypeName, numeric);
                 symbolType = numeric;
             }
+            else if (SymbolType.IsOneRowOrColumnMatrix(Name, out var vectorName))
+            {
+                // Continue with the vector, so the rest of the code doesn't fail on it
+                table.AddError(new(Info, string.Format(SDSLErrorMessages.SDSL0155, Name, vectorName)));
+                symbolType = VectorType.From(vectorName);
+            }
             else if (!IsArray && Generics.Count == 0 && SymbolType.TryGetBufferType(Name, null, out var bufferType))
             {
                 table.DeclaredTypes.Add(fullTypeName, bufferType);

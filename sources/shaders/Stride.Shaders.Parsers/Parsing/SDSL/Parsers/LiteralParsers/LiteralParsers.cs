@@ -186,6 +186,25 @@ public record struct LiteralsParser : IParser<Literal>
         )
         {
             var tnPos = scanner.Position;
+
+            // float1(x) and float1x1(x) are float(x); float1x3(...) is not supported yet
+            var wordEnd = scanner.Position;
+            while (wordEnd < scanner.Span.Length && (char.IsAsciiLetterOrDigit(scanner.Span[wordEnd]) || scanner.Span[wordEnd] == '_'))
+                wordEnd++;
+            var word = scanner.Span[position..wordEnd].ToString();
+            var parenthesis = wordEnd;
+            while (parenthesis < scanner.Span.Length && char.IsWhiteSpace(scanner.Span[parenthesis]))
+                parenthesis++;
+            // A declaration (float1x3 m;) is reported when its type is resolved
+            if (parenthesis < scanner.Span.Length && scanner.Span[parenthesis] == '(' && SymbolType.IsOneRowOrColumnMatrix(word, out var vectorName))
+                return Parsers.Exit(ref scanner, result, out parsed, position, new(string.Format(SDSLErrorMessages.SDSL0155, word, vectorName), scanner[position], scanner.Memory));
+            if (word != baseType && SymbolType.TryGetNumeric(word, out var oneComponentType) && oneComponentType is ScalarType)
+            {
+                // Then parsed as float(x) below
+                scanner.Position = tnPos = wordEnd;
+                baseType = word;
+            }
+
             if (Tokens.Digit(ref scanner, 2..4, advance: true))
             {
                 tnPos = scanner.Position;
