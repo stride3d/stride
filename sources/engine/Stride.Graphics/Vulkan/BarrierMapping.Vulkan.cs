@@ -76,7 +76,8 @@ internal static class BarrierMapping
         BarrierLayout.DepthStencilWrite => VkPipelineStageFlags.ColorAttachmentOutput | VkPipelineStageFlags.EarlyFragmentTests | VkPipelineStageFlags.LateFragmentTests,
         BarrierLayout.DepthStencilRead => VkPipelineStageFlags.EarlyFragmentTests | VkPipelineStageFlags.LateFragmentTests | VkPipelineStageFlags.VertexShader | VkPipelineStageFlags.FragmentShader | VkPipelineStageFlags.ComputeShader,
         BarrierLayout.ShaderResource => VkPipelineStageFlags.VertexShader | VkPipelineStageFlags.FragmentShader | VkPipelineStageFlags.ComputeShader,
-        BarrierLayout.UnorderedAccess => VkPipelineStageFlags.ComputeShader,
+        // As Direct3D 12 (all shading): pixel shaders write unordered access views too
+        BarrierLayout.UnorderedAccess => VkPipelineStageFlags.VertexShader | VkPipelineStageFlags.FragmentShader | VkPipelineStageFlags.ComputeShader,
         BarrierLayout.CopySource => VkPipelineStageFlags.Transfer,
         BarrierLayout.CopyDest => VkPipelineStageFlags.Transfer,
         BarrierLayout.Present => VkPipelineStageFlags.BottomOfPipe,
