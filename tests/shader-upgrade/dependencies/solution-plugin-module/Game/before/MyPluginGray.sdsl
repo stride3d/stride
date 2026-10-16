@@ -1,0 +1,8 @@
+// The game, written before 4.5 on the plugin: inherits its module
+shader MyPluginGray : ComputeColor, MyPluginMath
+{
+    override float4 Compute()
+    {
+        return float4(Luma(float3(0.5, 0.25, 1)).xxx, 1);
+    }
+};

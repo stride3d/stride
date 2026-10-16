@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -40,7 +41,7 @@ namespace Stride.Assets.Tests
             File.WriteAllText(Path.Combine(directory, "obj", "Debug", "Copy.sdfx"), OldEffect);
             var log = new LoggerResult();
 
-            ShaderSourceUpgrade.Run([directory], [ShaderSourceUpgrade.EffectKeywordsStep], null, log);
+            ShaderSourceUpgrade.Run([directory], new Dictionary<string, string>(), [ShaderSourceUpgrade.EffectKeywordsStep], null, log);
 
             var upgraded = OldEffect.Replace("shader Main", "effect Main");
             Assert.Equal([0xEF, 0xBB, 0xBF, .. Encoding.UTF8.GetBytes(upgraded)], File.ReadAllBytes(Path.Combine(directory, "Effects", "WithBom.sdfx")));

@@ -1,0 +1,10 @@
+// A game made for Stride 4.4.1 that uses the helpers of the plugin
+shader GameTint : ComputeColor
+{
+    import PkgHelpers;
+
+    override float4 Compute()
+    {
+        return float4(Tint(0.25), 1);
+    }
+};

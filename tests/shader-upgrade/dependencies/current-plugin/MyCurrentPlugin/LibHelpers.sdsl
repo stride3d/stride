@@ -1,0 +1,8 @@
+// A plugin made for Stride 4.5.5: its author keeps these helpers a shader, which the gate of 4.5.5 would make a module
+shader LibHelpers
+{
+    float3 Tint(float3 color)
+    {
+        return color * 0.5;
+    }
+};

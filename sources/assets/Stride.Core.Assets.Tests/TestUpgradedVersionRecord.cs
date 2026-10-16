@@ -59,6 +59,22 @@ public class TestUpgradedVersionRecord : IDisposable
             => registry.Shader("2.0.0", "effect-keywords", "class-to-shader");
     }
 
+    // A shader gate that reads the restore output of the project, for its package that isn't the engine's
+    [PackageUpgrader(["UpgradeRecord.ShaderGateReadsPackages"], "1.0.0", "2.0.0")]
+    public class ShaderGateReadingPackagesUpgrader : global::Stride.Assets.CodePackageUpgrader
+    {
+        public override void DeclareUpgrades(global::Stride.Assets.UpgradeRegistry registry)
+            => registry.Shader("2.0.0", "effect-keywords");
+    }
+
+    // It has source migrations (see CodeRunner), and a shader gate that reads the restore output of the project
+    [PackageUpgrader(["UpgradeRecord.CodeAndShaderGate"], "1.0.0", "2.0.0")]
+    public class CodeAndShaderGateUpgrader : global::Stride.Assets.CodePackageUpgrader
+    {
+        public override void DeclareUpgrades(global::Stride.Assets.UpgradeRegistry registry)
+            => registry.Shader("2.0.0", "effect-keywords");
+    }
+
     // It has source migrations (see CodeRunner), which do nothing
     [PackageUpgrader(["UpgradeRecord.CodeRules"], "1.0.0", "2.0.0")]
     public class CodeRulesUpgrader : SucceedingUpgraderBase;
@@ -87,7 +103,7 @@ public class TestUpgradedVersionRecord : IDisposable
         public static readonly ConcurrentBag<UFile> MigratedProjects = [];
 
         public bool HasSourceMigrations(IReadOnlyList<PendingCodeUpgrade> pending)
-            => pending.Any(x => x.Upgrader is CodeRulesUpgrader or CodeNotRunUpgrader or CodeThrowingUpgrader) || (inner?.HasSourceMigrations(pending) ?? false);
+            => pending.Any(x => x.Upgrader is CodeRulesUpgrader or CodeNotRunUpgrader or CodeThrowingUpgrader or CodeAndShaderGateUpgrader) || (inner?.HasSourceMigrations(pending) ?? false);
 
         public bool Run(UFile? solutionPath, IReadOnlyList<PendingCodeUpgrade> pending, UpgradeBackup? backup, ILogger log)
         {
@@ -262,8 +278,10 @@ public class TestUpgradedVersionRecord : IDisposable
         Assert.Equal(new Dictionary<string, string> { ["ShaderGate"] = "2.0.0" }, ReadRecords(game));
     }
 
-    [Fact]
-    public void AFailedShaderUpgradeRecordsNothing()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void AFailedShaderUpgradeRecordsNothing(bool gameFirst)
     {
         var game = WriteProject("Game", """<PackageReference Include="Stride.UpgradeRecord.ShaderGate" Version="1.0.0" />""");
         var windows = WriteProject("Game.Windows", """<ProjectReference Include="..\Game\Game.csproj" />""");
@@ -273,13 +291,14 @@ public class TestUpgradedVersionRecord : IDisposable
         // The effect can't be read, on every OS: .NET enforces FileShare.None on Linux and macOS too
         PackageSessionResult result;
         using (new FileStream(effect, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
-            result = LoadAndSave(WriteSolution(game, windows));
+            result = LoadAndSave(gameFirst ? WriteSolution(game, windows) : WriteSolution(windows, game));
 
         Assert.Empty(ReadRecords(game));
         Assert.Empty(ReadRecords(windows));
         AssertError(result, "Unable to read the shader [Main.sdfx]");
         AssertError(result, "Error while upgrading package [Game] for [Stride.UpgradeRecord.ShaderGate]", "Restore the files it changed from the upgrade backup");
-        // Game comes first in the solution, and its references moved before its shader upgrade failed
+        // Game is upgraded first, whatever the order of the solution, and the references of Game.Windows moved before the shader upgrade
+        // of Game failed
         AssertError(result, "The upgrade of [Game.Windows] is stopped: the project it references, [Game], could not be upgraded.", "Restore the files it changed from the upgrade backup");
     }
 
@@ -300,6 +319,41 @@ public class TestUpgradedVersionRecord : IDisposable
         Assert.Empty(ReadRecords(game));
         AssertError(result, "Unable to read the shader [Base.sdsl]");
         AssertError(result, "Error while upgrading package [Game] for [Stride.UpgradeRecord.ShaderGate]", "Restore the files it changed from the upgrade backup");
+    }
+
+    [Fact]
+    public void AShaderGateThatCantReadThePackagesStopsTheUpgradeBeforeAnythingChanges()
+    {
+        var game = WriteProject("Game", """<PackageReference Include="UpgradeRecord.ShaderGateReadsPackages" Version="1.0.0" />""");
+        var windows = WriteProject("Game.Windows", """<ProjectReference Include="..\Game\Game.csproj" />""");
+        var effect = Path.Combine(Path.GetDirectoryName(game)!, "Main.sdfx");
+        File.WriteAllText(effect, "namespace Game { shader Main { mixin Base; }; }");
+        var before = ReadFiles(game, windows, effect);
+
+        // Without its restore output, the shader upgrade can't read the package
+        var result = LoadAndSave(WriteSolution(game, windows));
+
+        Assert.Equal(before, ReadFiles(game, windows, effect));
+        AssertError(result, "Unable to upgrade project [Game]: it has no restore output");
+        AssertError(result, "The upgrade of [Game.Windows] is stopped: the project it references, [Game], could not be upgraded");
+    }
+
+    [Fact]
+    public void AShaderGateThatCantReadThePackagesStopsTheUpgradeBeforeTheSourceCodeIsMigrated()
+    {
+        var game = WriteProject("Game", """<PackageReference Include="UpgradeRecord.CodeAndShaderGate" Version="1.0.0" />""");
+        var windows = WriteProject("Game.Windows", """<ProjectReference Include="..\Game\Game.csproj" /><PackageReference Include="UpgradeRecord.CodeRules" Version="1.0.0" />""");
+        var before = ReadFiles(game, windows);
+
+        // The solution is restored, so its source code can be migrated, but its projects have no restore output (they have no SDK)
+        var result = LoadAndSave(WriteSolution(game, windows), parameters => parameters.AutoCompileProjects = true);
+
+        Assert.DoesNotContain(new UFile(game), CodeRunner.MigratedProjects);
+        Assert.DoesNotContain(new UFile(windows), CodeRunner.MigratedProjects);
+        Assert.Equal(before, ReadFiles(game, windows));
+        AssertError(result, "Unable to upgrade project [Game]: it has no restore output");
+        AssertError(result, "The upgrade of [Game] is stopped: a check before any change failed (see the error above), so nothing in it changed.");
+        AssertError(result, "The upgrade of [Game.Windows] is stopped: the project it references, [Game], could not be upgraded.");
     }
 
     [Theory]

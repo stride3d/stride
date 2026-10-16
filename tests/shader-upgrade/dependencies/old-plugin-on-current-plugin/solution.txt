@@ -1,0 +1,5 @@
+# A plugin for Stride 4.4.1 that uses a plugin for Stride 4.5.5, and the game that uses the old one: the old plugin is written for its own
+# version, whatever the version of what it uses, so the game is upgraded against it as its author's upgrade writes it
+plugin MyCurrentPlugin 4.5.5
+plugin MyOldPlugin 4.4.1 MyCurrentPlugin
+Game

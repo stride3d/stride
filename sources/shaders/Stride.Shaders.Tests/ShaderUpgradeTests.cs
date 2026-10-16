@@ -105,13 +105,53 @@ public class ShaderUpgradeTests
 
     static string FixturesDirectory => Path.Combine(RepositoryRoot, "tests", "shader-upgrade");
 
-    // tests/shader-upgrade/<step>/<case>: user-style shaders in the old syntax (before/) and their upgrade (after/)
+    // tests/shader-upgrade/<step>/<case>: user-style shaders in the old syntax (before/) and their upgrade (after/), with the
+    // sources of a library they use (dependencies/, already upgraded) when there is one. A case with a solution.txt has several projects,
+    // which the project upgrade goes through one by one (Stride.Assets.Tests, TestShaderSourceUpgrade)
     public static TheoryData<string> Fixtures()
     {
         var data = new TheoryData<string>();
-        foreach (var directory in Directory.EnumerateDirectories(FixturesDirectory).SelectMany(Directory.EnumerateDirectories).Order(StringComparer.Ordinal))
+        foreach (var directory in Directory.EnumerateDirectories(FixturesDirectory).SelectMany(Directory.EnumerateDirectories)
+            .Where(x => !File.Exists(Path.Combine(x, "solution.txt"))).Order(StringComparer.Ordinal))
             data.Add(Path.GetRelativePath(FixturesDirectory, directory).Replace('\\', '/'));
         return data;
+    }
+
+    // tests/shader-upgrade/dependencies/<case>/solution.txt: the projects of a solution and the plugins they use (TestShaderSourceUpgrade)
+    public static TheoryData<string> SolutionFixtures()
+    {
+        var data = new TheoryData<string>();
+        foreach (var directory in Directory.EnumerateDirectories(Path.Combine(FixturesDirectory, "dependencies")).Where(x => File.Exists(Path.Combine(x, "solution.txt"))).Order(StringComparer.Ordinal))
+            data.Add(Path.GetFileName(directory));
+        return data;
+    }
+
+    // The upgraded projects of a solution compile with the plugins and the projects they reference; a project the user didn't upgrade stays in
+    // the old language
+    [Theory]
+    [MemberData(nameof(SolutionFixtures))]
+    public void SolutionFixtureCompiles(string fixture)
+    {
+        var directory = Path.Combine(FixturesDirectory, "dependencies", fixture);
+        var members = File.ReadAllLines(Path.Combine(directory, "solution.txt")).Where(x => x.Length > 0 && x[0] != '#').Select(x => x.Split(' ')).ToList();
+        var plugins = members.Where(x => x[0] == "plugin").Select(x => PluginFolder(fixture, Path.Combine(directory, x[1]), x[2])).ToList();
+        var projects = members.Where(x => x[0] != "plugin" && !(x.Length > 1 && x[1] == "refused")).Select(x => Path.Combine(directory, x[0], "after")).ToList();
+        var loader = new ShaderLoader([.. projects, .. plugins, "./assets/Stride/SDSL"]);
+        foreach (var file in projects.SelectMany(x => Directory.EnumerateFiles(x, "*.sdsl")))
+            Assert.True(loader.LoadExternalBuffer(Path.GetFileNameWithoutExtension(file), [], out _, out _, out _), file);
+    }
+
+    // A plugin (<folder>) written for Stride <version>: one written before modules is compiled as the upgrade of a project that uses it reads it
+    static string PluginFolder(string fixture, string folder, string version)
+    {
+        if (new System.Version(version) >= new System.Version(4, 5, 5))
+            return folder;
+        var upgraded = Path.Combine(Path.GetTempPath(), "stride-solution-fixtures", fixture, Path.GetFileName(folder));
+        Directory.CreateDirectory(upgraded);
+        var files = Directory.EnumerateFiles(folder, "*.sdsl").ToDictionary(Path.GetFileName, File.ReadAllText)!;
+        foreach (var (name, text) in ShaderUpgrader.Upgrade(files!, EngineShaderClasses.Current).Files)
+            File.WriteAllText(Path.Combine(upgraded, name), text);
+        return upgraded;
     }
 
     static Dictionary<string, string> ReadFixture(string fixture, string part)
@@ -130,7 +170,7 @@ public class ShaderUpgradeTests
     {
         foreach (var fixture in Fixtures().Select(x => (string)x.Data))
         {
-            var result = ShaderUpgrader.Upgrade(ReadFixture(fixture, "before"), EngineShaderClasses.Current);
+            var result = ShaderUpgrader.Upgrade(ReadFixture(fixture, "before"), EngineShaderClasses.Current, dependencies: ReadFixture(fixture, "dependencies"));
             var directory = Path.Combine(FixturesDirectory, fixture, "after");
             Directory.CreateDirectory(directory);
             foreach (var (name, text) in result.Files)
@@ -146,17 +186,32 @@ public class ShaderUpgradeTests
     public void FixtureUpgrade(string fixture)
     {
         var expected = ReadFixture(fixture, "after");
-        var result = ShaderUpgrader.Upgrade(ReadFixture(fixture, "before"), EngineShaderClasses.Current);
+        var dependencies = ReadFixture(fixture, "dependencies");
+        var result = ShaderUpgrader.Upgrade(ReadFixture(fixture, "before"), EngineShaderClasses.Current, dependencies: dependencies);
         Assert.Equal(expected.Keys.Order(), result.Files.Keys.Order());
         foreach (var (name, text) in result.Files)
             Assert.Equal(expected[name].ReplaceLineEndings("\n"), text.ReplaceLineEndings("\n"));
+        Assert.Empty(result.Notes.Where(x => x.Contains("dependency written for an older Stride version")));
 
-        var again = ShaderUpgrader.Upgrade(expected, EngineShaderClasses.Current);
+        var again = ShaderUpgrader.Upgrade(expected, EngineShaderClasses.Current, dependencies: dependencies);
         Assert.Empty(again.Files.Where(x => expected[x.Key] != x.Value).Select(x => x.Key));
 
-        var loader = new ShaderLoader(Path.Combine(FixturesDirectory, fixture, "after"), "./assets/Stride/SDSL");
+        var loader = new ShaderLoader(Path.Combine(FixturesDirectory, fixture, "after"), Path.Combine(FixturesDirectory, fixture, "dependencies"), "./assets/Stride/SDSL");
         foreach (var name in expected.Keys)
             Assert.True(loader.LoadExternalBuffer(Path.GetFileNameWithoutExtension(name), [], out _, out _, out _), name);
+    }
+
+    // A dependency is read, never changed; one written for an older version is read as if upgraded, with a note
+    [Fact]
+    public void DependencyIsReadNotChanged()
+    {
+        var dependencies = new Dictionary<string, string> { ["MyLibSettings.sdsl"] = "shader MyLibSettings { stage float Scale; };" };
+        var files = new Dictionary<string, string> { ["MyUser.sdsl"] = "shader MyUser : MyLibSettings { float Get() { return Scale; } };" };
+        var result = ShaderUpgrader.Upgrade(files, EngineShaderClasses.Current, dependencies: dependencies);
+        Assert.Equal(["MyUser.sdsl"], result.Files.Keys);
+        Assert.Contains(result.Notes, x => x.StartsWith("MyLibSettings.sdsl: dependency written for an older Stride version", StringComparison.Ordinal));
+        // Not a module: only its own upgrade decides that
+        Assert.Contains(": MyLibSettings", result.Files["MyUser.sdsl"]);
     }
 
     // The upgraded feature works in a composition: its helpers are module code like the code calling them
@@ -405,5 +460,22 @@ public class ShaderUpgradeTests
         var result = ShaderUpgrader.Upgrade(new Dictionary<string, string> { ["A.sdsl"] = text }, engine: null, lastStep: "class-to-shader");
 
         Assert.Equal(expected ?? text, result.Files["A.sdsl"]);
+    }
+
+    // base.X() ran the version of X mixed before the caller, and X() the last one: an override of X in a library makes them differ, so base. stays
+    [Fact]
+    public void TheBaseCallOfAModuleMethodThatALibraryOverridesStays()
+    {
+        var dependencies = new Dictionary<string, string>
+        {
+            ["LibHelpers.sdsl"] = "module LibHelpers { float3 Tone(float3 color) { return color; } };\n",
+            ["LibWarm.sdsl"] = "[Root] shader LibWarm : ShadingBase { import LibHelpers; module override float3 Tone(float3 color) { return color * 2; } };\n",
+        };
+        var files = new Dictionary<string, string> { ["MyNode.sdsl"] = "shader MyNode : ComputeColor, LibHelpers { override float4 Compute() { return float4(base.Tone(1), 1); } };\n" };
+
+        var result = ShaderUpgrader.Upgrade(files, EngineShaderClasses.Current, dependencies: dependencies);
+
+        Assert.Contains("base.Tone(1)", result.Files["MyNode.sdsl"]);
+        Assert.Contains(result.Notes, x => x.Contains("MyNode calls base.Tone() of the module LibHelpers, and Tone is overridden", StringComparison.Ordinal));
     }
 }

@@ -1,0 +1,8 @@
+// A plugin made for Stride 4.5.5
+shader CurrentGray : ComputeColor
+{
+    override float4 Compute()
+    {
+        return float4(0.5, 0.5, 0.5, 1);
+    }
+};

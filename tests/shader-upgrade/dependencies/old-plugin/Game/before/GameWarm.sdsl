@@ -1,0 +1,13 @@
+// The game replaces that helper too: against the plugin as its author's upgrade writes it, an override of a method with a kind
+shader GameWarm : ComputeColor, PkgHelpers
+{
+    stage override float3 Shade(float3 color)
+    {
+        return color * 3;
+    }
+
+    override float4 Compute()
+    {
+        return float4(Shade(1), 1);
+    }
+};

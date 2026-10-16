@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.Json.Nodes;
 using System.Threading;
 using Stride.Core;
 using Stride.Core.Assets;
@@ -59,6 +60,9 @@ public class TestShaderSourceUpgrade : IDisposable
                 CodeUpgradeRunner.Instance = new CSharpProjectsRunner(CodeUpgradeRunner.Instance);
         }
     }
+
+    // The version that the engine's upgrader moves a project to
+    private static string CurrentVersion => AssetRegistry.GetPackageUpgrader("Stride.Engine")!.Attribute.UpdatedVersionRange.MinVersion.ToString();
 
     public void Dispose()
     {
@@ -200,13 +204,16 @@ public class TestShaderSourceUpgrade : IDisposable
         Assert.Equal("shader Own { module float Value; };\n", File.ReadAllText(own));
     }
 
-    // A project written for <version> that references the projects <references>, and its package
-    private string WriteProject(string name, string version, params string[] references)
+    // A project written for <version> that references the projects <references> and the packages <packages>, and its package
+    private string WriteProject(string name, string version, string[] references = null, string[] packages = null)
     {
-        var items = string.Concat(references.Select(x => $"""
+        var items = string.Concat((references ?? []).Select(x => $"""
                 <ProjectReference Include="..\{x}\{x}.csproj" />
 
-            """));
+            """).Concat((packages ?? []).Select(x => $"""
+                <PackageReference Include="{x}" Version="1.0.0" />
+
+            """)));
         var project = Write($"{name}/{name}.csproj", $"""
             <Project Sdk="Microsoft.NET.Sdk">
               <PropertyGroup>
@@ -257,10 +264,9 @@ public class TestShaderSourceUpgrade : IDisposable
     [Fact]
     public void ASessionUpgradesEachProjectFromItsOwnVersion()
     {
-        var current = AssetRegistry.GetPackageUpgrader("Stride.Engine")!.Attribute.UpdatedVersionRange.MinVersion.ToString();
         WriteProject("Library", "4.4.1");
         var library = Write("Library/Effects/LibOld.sdsl", "shader LibOld { stage float Value; };\n");
-        WriteProject("Game", current, "Library");
+        WriteProject("Game", CurrentVersion, ["Library"]);
         const string helpers = "shader GameHelpers { float3 Tint(float3 color) { return color; } };\n";
         const string fx = "shader GameFx : GameHelpers { float3 Apply(float3 color) { return Tint(color); } };\n";
         var gameHelpers = Write("Game/Effects/GameHelpers.sdsl", helpers);
@@ -271,5 +277,235 @@ public class TestShaderSourceUpgrade : IDisposable
         Assert.True(File.ReadAllText(library).Contains("module float Value;", StringComparison.Ordinal), string.Join(Environment.NewLine, log.Messages));
         Assert.Equal(helpers, File.ReadAllText(gameHelpers));
         Assert.Equal(fx, File.ReadAllText(gameFx));
+    }
+
+    // The projects that a project references are read from its project too, upgraded before it whatever the order of the solution: with no
+    // restore output here, the game still sees that LibHelpers became a module
+    [Theory]
+    [InlineData("Library", "Game")]
+    [InlineData("Game", "Library")]
+    public void ASessionReadsTheReferencedProjectsWithoutARestore(string first, string second)
+    {
+        WriteProject("Library", "4.4.1");
+        Write("Library/Effects/LibHelpers.sdsl", "shader LibHelpers { stage float3 Tint(float3 color) { return color; } };\n");
+        Write("Library/Effects/LibUser.sdsl", "shader LibUser : ComputeColor, LibHelpers { override float4 Compute() { return float4(Tint(1), 1); } };\n");
+        WriteProject("Game", "4.4.1", ["Library"]);
+        var game = Write("Game/Effects/GameFx.sdsl", "shader GameFx : ComputeColor, LibHelpers { override float4 Compute() { return float4(Tint(0.5), 1); } };\n");
+
+        var log = LoadSession(WriteSolutionFile(first, second));
+
+        Assert.True(File.ReadAllText(game).Contains("import LibHelpers;", StringComparison.Ordinal), string.Join(Environment.NewLine, log.Messages));
+    }
+
+    // A project whose packages the shader upgrade can't read (no restore output, or a failed restore) isn't upgraded: without them it would
+    // write other files, which no later upgrade would fix once its references name this version. Nothing in it changes
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void AProjectWhosePackagesCantBeReadIsNotUpgraded(bool failedRestore)
+    {
+        var project = WriteProject("Game", "4.4.1", packages: ["Some.Plugin"]);
+        const string text = "shader GameFx { stage float Value; };\n";
+        var shader = Write("Game/Effects/GameFx.sdsl", text);
+        if (failedRestore)
+        {
+            Write("Game/obj/project.assets.json", new JsonObject
+            {
+                ["version"] = 3,
+                ["targets"] = new JsonObject { ["net10.0"] = new JsonObject() },
+                ["libraries"] = new JsonObject(),
+                ["projectFileDependencyGroups"] = new JsonObject(),
+                ["packageFolders"] = new JsonObject(),
+                ["logs"] = new JsonArray(new JsonObject { ["code"] = "NU1101", ["level"] = "Error", ["message"] = "Unable to find package Some.Plugin.", ["libraryId"] = "Some.Plugin" }),
+            }.ToJsonString());
+        }
+        var projectText = File.ReadAllText(project);
+
+        var log = LoadSession(WriteSolutionFile("Game"));
+
+        Assert.Equal(text, File.ReadAllText(shader));
+        Assert.Equal(projectText, File.ReadAllText(project));
+        var reason = failedRestore ? "its restore failed: Unable to find package Some.Plugin." : "it has no restore output (obj/project.assets.json)";
+        Assert.Contains(log.Messages, x => x.Type == LogMessageType.Error && x.Text.Contains($"Unable to upgrade project [Game]: {reason}", StringComparison.Ordinal));
+    }
+
+    // tests/shader-upgrade/dependencies/<case>/solution.txt: the projects of a solution, each referencing the projects and the plugins before
+    // it. "<Project>": its shaders before the upgrade in <case>/<Project>/before/, and after it in after/; "<Project> refused": the user
+    // didn't upgrade it; "plugin <Name>": a NuGet package with the shaders of <case>/<Name>/, which nothing writes
+    public static TheoryData<string> SolutionFixtures()
+    {
+        var data = new TheoryData<string>();
+        foreach (var fixture in Directory.EnumerateDirectories(Path.Combine(FixturesDirectory, "dependencies")).Where(x => File.Exists(Path.Combine(x, "solution.txt"))).Order(StringComparer.Ordinal))
+            data.Add(Path.GetFileName(fixture));
+        return data;
+    }
+
+    private static string FixturesDirectory { get; } = FindFixtures();
+
+    private static string FindFixtures()
+    {
+        for (var parent = new DirectoryInfo(AppContext.BaseDirectory); parent != null; parent = parent.Parent)
+        {
+            var fixtures = Path.Combine(parent.FullName, "tests", "shader-upgrade");
+            if (Directory.Exists(fixtures))
+                return fixtures;
+        }
+        throw new DirectoryNotFoundException("tests/shader-upgrade is not above the test assembly");
+    }
+
+    // A plugin is written for <StrideVersion> and depends on the plugins <Uses>; a project for this version, or for 4.4.1 when the user refused
+    // its upgrade
+    private sealed record SolutionMember(string Name, bool Refused, bool IsPlugin, string StrideVersion, IReadOnlyList<string> Uses);
+
+    private sealed record SolutionFixture(string Directory, List<SolutionMember> Members);
+
+    private static SolutionFixture ReadSolution(string fixture)
+    {
+        var fixtureDirectory = Path.Combine(FixturesDirectory, "dependencies", fixture);
+        var members = File.ReadAllLines(Path.Combine(fixtureDirectory, "solution.txt")).Where(x => x.Length > 0 && x[0] != '#').Select(x => x.Split(' '))
+            .Select(x => x[0] == "plugin" ? new SolutionMember(x[1], false, true, x[2], x[3..])
+                : new SolutionMember(x[0], x.Length > 1 && x[1] == "refused", false, x.Length > 1 && x[1] == "refused" ? "4.4.1" : CurrentVersion, []))
+            .ToList();
+        return new SolutionFixture(fixtureDirectory, members);
+    }
+
+    // Each project as a game, <root>/<project>/<project>.csproj with its shaders in Effects/ and a restore output that lists the projects and
+    // the plugins before it; the plugins in the NuGet folder <root>/packages
+    // <pluginFiles>: the files of a plugin (by name), in place of those of the fixture
+    private List<(Package Package, bool Refused)> WriteSolution(SolutionFixture solution, string root, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> pluginFiles = null)
+    {
+        var packageFolder = Path.Combine(directory, root, "packages") + Path.DirectorySeparatorChar;
+        var libraries = new JsonObject();
+        var targetLibraries = new JsonObject();
+        var projects = new List<(Package, bool)>();
+        foreach (var member in solution.Members)
+        {
+            if (member.IsPlugin)
+            {
+                var path = $"{member.Name.ToLowerInvariant()}/1.0.0";
+                var files = pluginFiles?.GetValueOrDefault(member.Name)
+                    ?? Directory.EnumerateFiles(Path.Combine(solution.Directory, member.Name)).ToDictionary(Path.GetFileName, File.ReadAllText);
+                foreach (var (file, text) in files)
+                    Write($"{root}/packages/{path}/stride/Assets/Effects/{file}", text);
+                libraries[$"{member.Name}/1.0.0"] = new JsonObject { ["type"] = "package", ["path"] = path, ["files"] = new JsonArray() };
+                var dependencies = new JsonObject { ["Stride.Engine"] = member.StrideVersion };
+                foreach (var used in member.Uses)
+                    dependencies[used] = "1.0.0";
+                targetLibraries[$"{member.Name}/1.0.0"] = new JsonObject { ["type"] = "package", ["dependencies"] = dependencies };
+                continue;
+            }
+
+            foreach (var file in Directory.EnumerateFiles(Path.Combine(solution.Directory, member.Name, "before")))
+                Write($"{root}/{member.Name}/Effects/{Path.GetFileName(file)}", File.ReadAllText(file));
+            var restore = new JsonObject
+            {
+                ["version"] = 3,
+                ["targets"] = new JsonObject { ["net10.0"] = targetLibraries.DeepClone() },
+                ["libraries"] = libraries.DeepClone(),
+                ["projectFileDependencyGroups"] = new JsonObject(),
+                ["packageFolders"] = new JsonObject { [packageFolder] = new JsonObject() },
+            };
+            Write($"{root}/{member.Name}/obj/project.assets.json", restore.ToJsonString());
+            var package = new Package { Meta = { Name = member.Name }, FullPath = Path.Combine(directory, root, member.Name, $"{member.Name}.sdpkg") };
+            _ = new SolutionProject(package, Guid.NewGuid(), Write($"{root}/{member.Name}/{member.Name}.csproj", "<Project />"));
+            projects.Add((package, member.Refused));
+            libraries[$"{member.Name}/1.0.0"] = new JsonObject { ["type"] = "project", ["path"] = $"../{member.Name}/{member.Name}.csproj", ["msbuildProject"] = $"../{member.Name}/{member.Name}.csproj" };
+            targetLibraries[$"{member.Name}/1.0.0"] = new JsonObject { ["type"] = "project", ["dependencies"] = new JsonObject { ["Stride.Engine"] = member.StrideVersion } };
+        }
+        return projects;
+    }
+
+    // Each project the user upgrades, in reference order, as the session does it (PackageSession.PreLoadPackageDependencies, then
+    // PackageSession.TryLoadAssemblies)
+    private static void UpgradeSolution(List<(Package Package, bool Refused)> projects, CodePackageUpgrader upgrader, string version, LoggerResult log)
+    {
+        var dependency = new PackageDependency("Stride.Engine", new PackageVersionRange(new PackageVersion(version)));
+        foreach (var (package, _) in projects.Where(x => !x.Refused))
+        {
+            var session = new PackageSession();
+            Assert.True(upgrader.UpgradeBeforeAssembliesLoaded(new PackageLoadParameters(), session, log, package, dependency, null));
+            Assert.True(upgrader.UpgradeAfterRestore(new PackageLoadParameters(), session, log, package, dependency, null));
+        }
+    }
+
+    // The shaders of the projects of a copy of a solution, by <project>/<file>
+    private Dictionary<string, string> ReadWritten(SolutionFixture solution, string root)
+        => ReadShaders(solution.Members.Where(x => !x.IsPlugin).Select(x => (x.Name, Path.Combine(directory, root, x.Name, "Effects"))));
+
+    // The shaders of the projects of a fixture as they should end: after/, or before/ for a project the user didn't upgrade
+    private static Dictionary<string, string> ReadExpected(SolutionFixture solution)
+        => ReadShaders(solution.Members.Where(x => !x.IsPlugin).Select(x => (x.Name, Path.Combine(solution.Directory, x.Name, x.Refused ? "before" : "after"))));
+
+    private static Dictionary<string, string> ReadShaders(IEnumerable<(string Project, string Folder)> folders)
+        => folders.SelectMany(x => Directory.EnumerateFiles(x.Folder).Select(file => (Key: $"{x.Project}/{Path.GetFileName(file)}", Text: File.ReadAllText(file).ReplaceLineEndings("\n"))))
+            .ToDictionary(x => x.Key, x => x.Text);
+
+    // A project reads what it references, already upgraded, and writes only its own files: a library never changes for its users, and nothing
+    // writes a project the user didn't upgrade, or a plugin. Running it again changes nothing. With STRIDE_SHADER_UPGRADE_UPDATE=1, it writes
+    // the after/ folders instead (review the result before committing it)
+    [Theory]
+    [MemberData(nameof(SolutionFixtures))]
+    public void TheProjectsOfASolutionAreUpgradedInReferenceOrder(string fixture)
+    {
+        var solution = ReadSolution(fixture);
+        var projects = WriteSolution(solution, "solution");
+        var plugins = Directory.Exists(Path.Combine(directory, "solution", "packages"))
+            ? Directory.EnumerateFiles(Path.Combine(directory, "solution", "packages"), "*", SearchOption.AllDirectories).ToDictionary(x => x, File.ReadAllText)
+            : [];
+
+        var log = new LoggerResult();
+        UpgradeSolution(projects, new ShaderUpgrader(), "4.4.1.0", log);
+
+        var written = ReadWritten(solution, "solution");
+        if (Environment.GetEnvironmentVariable("STRIDE_SHADER_UPGRADE_UPDATE") == "1")
+        {
+            foreach (var (name, text) in written.Where(x => !solution.Members.Single(y => !y.IsPlugin && x.Key.StartsWith($"{y.Name}/", StringComparison.Ordinal)).Refused))
+            {
+                var after = Path.Combine(solution.Directory, Path.GetDirectoryName(name)!, "after", Path.GetFileName(name));
+                Directory.CreateDirectory(Path.GetDirectoryName(after)!);
+                File.WriteAllText(after, text);
+            }
+            foreach (var message in log.Messages)
+                Console.WriteLine($"{fixture}: {message.Text}");
+            return;
+        }
+
+        var expected = ReadExpected(solution);
+        Assert.Equal(expected.Keys.Order(), written.Keys.Order());
+        foreach (var (name, text) in written)
+            Assert.Equal(expected[name], text);
+        Assert.All(plugins, x => Assert.Equal(x.Value, File.ReadAllText(x.Key)));
+
+        UpgradeSolution(projects, new ShaderUpgrader(), "4.4.1.0", new LoggerResult());
+        Assert.Equal(written, ReadWritten(solution, "solution"));
+    }
+
+    // The files of a plugin as the project upgrade of its author writes them, gate by gate from <version>
+    private static IReadOnlyDictionary<string, string> UpgradedAsAProject(string folder, string version)
+    {
+        var registry = new UpgradeRegistry();
+        new ShaderUpgrader().DeclareUpgrades(registry);
+        IReadOnlyDictionary<string, string> files = Directory.EnumerateFiles(folder).ToDictionary(Path.GetFileName, File.ReadAllText);
+        foreach (var gate in registry.ShaderUpgrades.Where(x => new PackageVersion(version).Version < x.GateVersion.Version).OrderBy(x => x.GateVersion.Version))
+            files = Shaders.Parsing.Upgrade.ShaderUpgrader.Upgrade(files, Shaders.Parsing.Upgrade.EngineShaderClasses.Current, steps: gate.Steps).Files;
+        return files;
+    }
+
+    // The upgrade of a game reads an old plugin as the upgrade of its author writes it. So upgrading the game, then moving to the version of the
+    // plugin for this Stride, ends as moving the plugin first, then upgrading the game
+    [Fact]
+    public void AGameOnAnOldPluginEndsTheSameInEitherOrder()
+    {
+        var solution = ReadSolution("old-plugin");
+        var plugin = solution.Members.Single(x => x.IsPlugin);
+        var log = new LoggerResult();
+        UpgradeSolution(WriteSolution(solution, "game-first"), new ShaderUpgrader(), "4.4.1.0", log);
+
+        var pluginFirst = solution with { Members = solution.Members.Select(x => x.IsPlugin ? x with { StrideVersion = CurrentVersion } : x).ToList() };
+        var upgradedPlugin = new Dictionary<string, IReadOnlyDictionary<string, string>> { [plugin.Name] = UpgradedAsAProject(Path.Combine(solution.Directory, plugin.Name), plugin.StrideVersion) };
+        UpgradeSolution(WriteSolution(pluginFirst, "plugin-first", upgradedPlugin), new ShaderUpgrader(), "4.4.1.0", new LoggerResult());
+
+        Assert.Equal(ReadWritten(solution, "plugin-first"), ReadWritten(solution, "game-first"));
+        Assert.Single(log.Messages, x => x.Text.Contains($"{plugin.Name} is written for Stride 4.4.1", StringComparison.Ordinal));
     }
 }

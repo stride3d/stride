@@ -189,3 +189,28 @@ dotnet run --project sources/tools/Stride.Shaders.CorpusCapture -- --corpus sour
 ```
 
 Then commit `corpus.json`.
+
+## External shader libraries
+
+`ExternalShaderTests` (explicit) compiles the shaders of libraries outside this repository from local clones, to check a
+compiler change against real user code. Nothing of those libraries is committed: the tests read the clones from a local path.
+First written for vvvv's libraries (VL.Fuse, VL.StandardLibs, VL.Addons), which are the default set.
+
+```
+set STRIDE_EXTERNAL_SHADERS=C:\path\to\clones
+set STRIDE_EXTERNAL_SHADERS_OUT=C:\path\to\output
+dotnet test sources/shaders/Stride.Shaders.Tests --filter "FullyQualifiedName~ExternalShaderTests" -- xUnit.Explicit=on
+```
+
+- `CompileExternalShaders`: each class compiled alone, then mixed alone at the root through the Direct3D 11 chain (validate,
+  legalize, SPIRV-Cross, fxc). Writes `results.tsv` (one line per step: result, error codes, warning codes, messages).
+- `CompileExternalTrees`: mixin trees shaped like the ones VL.Stride builds from C# (generic values as strings, compositions,
+  compose arrays). Writes `trees.tsv` and each tree's reflection, to compare two branches.
+- `STRIDE_EXTERNAL_SHADERS_SET=Name=relative/path;...` replaces the libraries; `STRIDE_EXTERNAL_SHADERS_UPGRADE=1` runs the shader
+  source upgrade on them first, each library in the order of the set with the ones before it as its dependencies (in memory;
+  changed files and notes go to the output folder); `STRIDE_EXTERNAL_SHADERS_ONLY` /
+  `_SKIP` take class names; `STRIDE_EXTERNAL_SHADERS_DUMP=1` writes the mixed SPIR-V.
+- `progress.txt` gets each step before it runs: if a native crash ends the test process, its last line names the shader.
+
+Clones are untrusted data: read them, don't build them or run their scripts. Check a library's license before copying any of its
+code into a test; write minimal repros instead.

@@ -106,12 +106,14 @@ partial class PackageSession
     /// Reuses the cached MSBuild project (no restore) and the same upgrade-needed checks as
     /// <see cref="PreLoadPackageDependencies"/>: a direct <c>PackageReference</c> whose declared version
     /// is below the upgrader's target. Returns one entry per (project, upgrader) for the projects whose
-    /// upgrade was confirmed; the runner does the version-gate and only opens a workspace when source
-    /// rules actually apply.
+    /// upgrade was confirmed and whose upgraders can do their migration (<see cref="PackageUpgrader.CheckUpgrade"/>),
+    /// without the projects that reference one that can't; the runner does the version-gate and only opens a
+    /// workspace when source rules actually apply.
     /// </summary>
     private List<PendingCodeUpgrade> DetectPendingCodeUpgrades(ILogger log, PackageLoadParameters loadParameters)
     {
         var result = new List<PendingCodeUpgrade>();
+        var notUpgraded = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var project in Projects.OfType<SolutionProject>())
         {
             // PreLoadPackageDependencies skips a project whose dependencies are ready, or whose upgrade already ended, so no
@@ -158,11 +160,71 @@ partial class PackageSession
             }
 
             // The source migration writes user files, so it needs the same confirmation as the package upgrade.
-            if (projectCodeUpgrades.Count > 0 && PackageLoadParameters.ShouldUpgrade(RequestPackageUpgrade(project.Package, pendingPackageUpgrades, loadParameters)))
+            if (projectCodeUpgrades.Count == 0 || !PackageLoadParameters.ShouldUpgrade(RequestPackageUpgrade(project.Package, pendingPackageUpgrades, loadParameters)))
+                continue;
+            if (RestoreIfNoOutput(project, msProject, loadParameters, log).GetAwaiter().GetResult())
+                ClearCachedProject(projectPath);
+            if (CanUpgrade(project.Package, pendingPackageUpgrades, loadParameters, log))
+            {
                 result.AddRange(projectCodeUpgrades);
+            }
+            else
+            {
+                stoppedUpgrades[project] = "a check before any change failed (see the error above), so nothing in it changed";
+                notUpgraded.Add(Path.GetFullPath(projectPath));
+            }
+        }
+
+        // The projects that reference one that isn't upgraded aren't upgraded either (IsUpgradeStopped)
+        if (notUpgraded.Count > 0)
+        {
+            var referencesNotUpgraded = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
+            result.RemoveAll(x => ReferencesNotUpgraded(Path.GetFullPath(x.ProjectFullPath.ToOSPath())));
+
+            bool ReferencesNotUpgraded(string projectPath)
+            {
+                if (referencesNotUpgraded.TryGetValue(projectPath, out var value))
+                    return value;
+                referencesNotUpgraded[projectPath] = false;
+                List<string> references;
+                try
+                {
+                    var msProject = LoadOrGetCachedProject(projectPath, loadParameters);
+                    references = msProject.GetItems("ProjectReference").Select(x => Path.GetFullPath(Path.Combine(msProject.DirectoryPath, x.EvaluatedInclude))).Where(File.Exists).ToList();
+                }
+                catch (Exception e)
+                {
+                    log.Verbose($"Code upgrade detection: could not load [{Path.GetFileName(projectPath)}]: {e.Message}");
+                    return false;
+                }
+                return referencesNotUpgraded[projectPath] = references.Any(x => notUpgraded.Contains(x) || ReferencesNotUpgraded(x));
+            }
         }
         return result;
     }
+
+    // Gets the restore output of a project that has none, which an upgrader may read in CheckUpgrade: true when it restored the project
+    private static async Task<bool> RestoreIfNoOutput(SolutionProject project, Microsoft.Build.Evaluation.Project msProject, PackageLoadParameters loadParameters, ILogger log)
+    {
+        var assetsFile = msProject.GetPropertyValue("ProjectAssetsFile");
+        if (!loadParameters.AutoCompileProjects || (!string.IsNullOrEmpty(assetsFile) && File.Exists(assetsFile)))
+            return false;
+        try
+        {
+            log.Verbose($"Restore NuGet packages for {project.Name}...");
+            await VSProjectHelper.RestoreNugetPackages(log, project.FullPath, loadParameters.AllowUpgradeDowngradeRestore);
+            return true;
+        }
+        catch (Exception e)
+        {
+            log.Warning($"Unable to restore NuGet packages for project [{project.FullPath}]", e);
+            return false;
+        }
+    }
+
+    // Whether each upgrader can do its migration, before anything changes for the package: the one that can't logs why
+    private static bool CanUpgrade(Package package, IEnumerable<PendingPackageUpgrade> pendingPackageUpgrades, PackageLoadParameters loadParameters, ILogger log)
+        => pendingPackageUpgrades.All(x => x.PackageUpgrader.CheckUpgrade(loadParameters, package.Session, log, package, x.Dependency, x.DependencyPackage));
 
     private async Task PreLoadPackageDependencies(ILogger log, SolutionProject project, PackageLoadParameters loadParameters)
     {
@@ -372,6 +434,22 @@ partial class PackageSession
                 {
                     log.Error($"Necessary package migration for [{package.Meta.Name}] has not been allowed");
                     refusedUpgrades.Add(package);
+                    return;
+                }
+
+                // Each upgrader checks what it needs before anything changes here, such as the restore output that it reads: a project
+                // that has none gets it first. The pre-pass already checked the projects it covers; a project whose upgrade comes through
+                // a project it references is checked here only
+                msProject ??= LoadOrGetCachedProject(projectPath, loadParameters);
+                restoredSinceEvaluation |= await RestoreIfNoOutput(project, msProject, loadParameters, log);
+                if (!CanUpgrade(package, pendingPackageUpgrades, loadParameters, log))
+                {
+                    // Not loaded again, and not upgraded later (TryLoadAssemblies); the projects that reference it aren't upgraded either
+                    package.State = PackageState.UpgradeFailed;
+                    failedUpgrades.Add(package);
+                    log.Error(codeMigratedProjects.Contains(project.FullPath)
+                        ? $"Project [{project.Name}] was not upgraded, but its source code was already migrated. {RestoreFromBackupHint}"
+                        : $"Project [{project.Name}] was not upgraded, and nothing in it changed");
                     return;
                 }
 

@@ -1,0 +1,3 @@
+# A plugin made for Stride 4.5 (a NuGet package, read only) and the game that uses it; a plugin line gives the Stride version it depends on
+plugin MyPlugin 4.5.5
+Game
