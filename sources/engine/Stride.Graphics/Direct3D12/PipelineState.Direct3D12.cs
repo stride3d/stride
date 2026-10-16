@@ -179,13 +179,23 @@ namespace Stride.Graphics
 
             PrepareRootSignatureDescription(rootSignatureParameters, immutableSamplers, out RootSignatureDesc rootSignatureDesc);
 
-            var d3d12 = D3D12.GetApi();
-
             using ComPtr<ID3D10Blob> rootSignatureBytes = default;
             using ComPtr<ID3D10Blob> errorMessagesBlob = default;
 
-            HResult result = d3d12.SerializeRootSignature(in rootSignatureDesc, D3DRootSignatureVersion.Version1,
-                                                          ref rootSignatureBytes.GetPinnableReference(), ref errorMessagesBlob.GetPinnableReference());
+            // The global serializer belongs to the system runtime; a device from the Agility SDK serializes with its own
+            HResult result = NativeDevice.QueryInterface(out ComPtr<ID3D12DeviceConfiguration> deviceConfiguration);
+            if (result.IsSuccess)
+            {
+                var versionedDesc = new VersionedRootSignatureDesc(D3DRootSignatureVersion.Version10, desc10: rootSignatureDesc);
+                result = deviceConfiguration.SerializeVersionedRootSignature(in versionedDesc, ref rootSignatureBytes.GetPinnableReference(),
+                                                                             ref errorMessagesBlob.GetPinnableReference());
+                deviceConfiguration.Dispose();
+            }
+            else
+            {
+                result = D3D12.GetApi().SerializeRootSignature(in rootSignatureDesc, D3DRootSignatureVersion.Version1,
+                                                               ref rootSignatureBytes.GetPinnableReference(), ref errorMessagesBlob.GetPinnableReference());
+            }
             if (result.IsFailure)
                 result.Throw();
 

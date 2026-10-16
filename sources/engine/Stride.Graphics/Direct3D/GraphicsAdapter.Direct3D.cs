@@ -273,14 +273,7 @@ namespace Stride.Graphics
             if (featureLevel < D3DFeatureLevel.Level110)
                 featureLevel = D3DFeatureLevel.Level110;
 
-            // D3D12CreateDevice loads D3D12Core, so the Agility SDK has to be activated first
-            var d3d12 = Silk.NET.Direct3D12.D3D12.GetApi();
-            GraphicsDevice.TryActivateAgilitySDK(d3d12);
-
-            // Without an output pointer, D3D12CreateDevice only checks that the adapter supports the level
-            var deviceGuid = Silk.NET.Direct3D12.ID3D12Device.Guid;
-            HResult result = d3d12.CreateDevice((IUnknown*) dxgiAdapter, featureLevel, &deviceGuid, ppDevice: null);
-            var isSupported = result.IsSuccess;
+            var isSupported = D3D12Runtime.IsFeatureLevelSupported((IUnknown*) dxgiAdapter, featureLevel);
 #else
             var d3d11 = D3D11.GetApi(window: null);
 
