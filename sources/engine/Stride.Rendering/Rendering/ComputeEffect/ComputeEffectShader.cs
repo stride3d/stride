@@ -107,10 +107,12 @@ namespace Stride.Rendering.ComputeEffect
             // Apply pipeline state
             context.CommandList.SetPipelineState(pipelineState.CurrentState);
 
+            // Before the effect binds them: on Direct3D 11, the transition to unordered access is what unbinds a
+            // texture from the shader resource slots it is still bound to
+            TransitionBoundTextures(context.CommandList, afterDispatch: false);
+
             // Apply the effect
             EffectInstance.Apply(context.GraphicsContext);
-
-            TransitionBoundTextures(context.CommandList, afterDispatch: false);
 
             // Draw a full screen quad
             context.CommandList.Dispatch(ThreadGroupCounts.X, ThreadGroupCounts.Y, ThreadGroupCounts.Z);

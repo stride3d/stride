@@ -1,0 +1,21 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Graphics.Tests
+{
+    /// <summary>
+    /// Writes the average of each 2x2 block of a mip-level into the next mip-level of the same texture.
+    /// </summary>
+    internal shader MipDownsampleTestShader : ComputeShaderBase
+    {
+        stage Texture2D<float4> Input;
+        stage RWTexture2D<float4> Output;
+
+        override void Compute()
+        {
+            int2 position = (int2) streams.DispatchThreadId.xy * 2;
+            Output[streams.DispatchThreadId.xy] = (Input.Load(int3(position, 0)) + Input.Load(int3(position + int2(1, 0), 0))
+                                                 + Input.Load(int3(position + int2(0, 1), 0)) + Input.Load(int3(position + int2(1, 1), 0))) * 0.25;
+        }
+    };
+}
