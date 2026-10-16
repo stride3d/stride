@@ -226,6 +226,7 @@ public partial class SwitchStatement(Expression selector, TextLocation info) : F
         }
 
         // Compile each section's block
+        var sectionsStart = builder.Position;
         for (int i = 0; i < Sections.Count; i++)
         {
             builder.CreateBlock(context, sectionBlockIds[i], $"switch_case_{builder.SwitchBlockCount}_{i}");
@@ -235,11 +236,28 @@ public partial class SwitchStatement(Expression selector, TextLocation info) : F
                 builder.Insert(new OpBranch(mergeBlock));
         }
 
-        // Merge block
+        // Merge block: without a default, or when a section breaks or ends, the code after the switch runs
+        var isMergeBlockReachable = defaultBlockId == mergeBlock || BranchesTo(builder, sectionsStart, mergeBlock);
         builder.CreateBlock(context, mergeBlock, $"switch_merge_{builder.SwitchBlockCount}");
+        if (!isMergeBlockReachable)
+            builder.Insert(new OpUnreachable());
 
         builder.SwitchBlockCount++;
         builder.CurrentEscapeBlocks = previousEscapeBlocks;
+    }
+
+    private static bool BranchesTo(SpirvBuilder builder, int start, int label)
+    {
+        var buffer = builder.GetBuffer();
+        for (int index = start; index < builder.Position; index++)
+        {
+            var instruction = buffer[index];
+            if (instruction.Op == Specification.Op.OpBranch && ((OpBranch)instruction).TargetLabel == label)
+                return true;
+            if (instruction.Op == Specification.Op.OpBranchConditional && (OpBranchConditional)instruction is var branch && (branch.TrueLabel == label || branch.FalseLabel == label))
+                return true;
+        }
+        return false;
     }
 }
 

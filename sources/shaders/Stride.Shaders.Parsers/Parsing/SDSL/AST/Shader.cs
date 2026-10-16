@@ -613,7 +613,22 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
         if (!hasUnresolvableGenerics)
         {
             foreach (var member in Elements.OfType<ShaderMethod>())
-                member.ProcessSymbolBody(table, context);
+            {
+                var errorCount = table.Errors.Count;
+                try
+                {
+                    member.ProcessSymbolBody(table, context);
+                }
+                catch (Exception) when (table.Errors.Count > errorCount)
+                {
+                    // A failure after a reported error comes from it (e.g. an undeclared identifier has no type): report only the error
+                    return;
+                }
+            }
+
+            // Compiling a body with errors would fail on them again, with a less clear message
+            if (table.Errors.Count > 0)
+                return;
         }
 
         RenameCBufferVariables();

@@ -150,7 +150,9 @@ public partial class SymbolTable : ISymbolProvider
 
     public void AddError(SemanticError error)
     {
-        Errors.Add(error);
+        // An expression can be analyzed twice (e.g. the base of an accessor chain): report its error once
+        if (!Errors.Contains(error))
+            Errors.Add(error);
     }
 
     public void AddWarning(SemanticError warning)
