@@ -44,6 +44,10 @@ public static class AssetMigration
         return migrated;
     }
 
+    // A file that is no valid YAML throws, with where; one being migrated is never marked deleted
+    private static PackageLoadingAssetFile.YamlAsset OpenYamlAsset(PackageLoadingAssetFile loadAsset)
+        => loadAsset.AsYamlAsset() ?? throw new InvalidOperationException($"Asset file [{loadAsset.FilePath}] was deleted while being migrated");
+
     // The asset's type (from its tag) and the format keys its SerializedVersion records; null when it is no YAML asset
     // or its type is not loaded
     private static (Type AssetType, HashSet<string> SerializedKeys)? ReadAssetHeader(PackageLoadingAssetFile loadAsset)
@@ -140,7 +144,7 @@ public static class AssetMigration
                         serializedVersion = PackageVersion.Parse("0.0." + Convert.ToInt32(scalarVersion.Value, CultureInfo.InvariantCulture));
 
                         // Let's update to new format
-                        using var yamlAsset = loadAsset.AsYamlAsset();
+                        using var yamlAsset = OpenYamlAsset(loadAsset);
                         yamlAsset.DynamicRootNode.RemoveChild(nameof(Asset.SerializedVersion));
                         AssetUpgraderBase.SetSerializableVersion(yamlAsset.DynamicRootNode, dependencyName, serializedVersion);
 
@@ -195,7 +199,7 @@ public static class AssetMigration
             // Perform asset upgrade
             context.Log.Verbose($"{Path.GetFullPath(assetFullPath)} needs update, from version {serializedVersion} to version {expectedVersion}");
 
-            using var yamlAsset = loadAsset.AsYamlAsset();
+            using var yamlAsset = OpenYamlAsset(loadAsset);
             var yamlRootNode = yamlAsset.RootNode;
 
             // Check if there is any asset updater
