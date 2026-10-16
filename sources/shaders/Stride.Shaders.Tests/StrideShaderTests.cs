@@ -161,6 +161,32 @@ public class StrideShaderTests
         Assert.Equal(80, data1D.Size);
     }
 
+    // uint2 / uint3 / uint4 members have UInt2 / UInt3 / UInt4 keys and default values: in the generated keys, in the
+    // reflection, and in the keys the runtime creates from the reflection.
+    [Fact]
+    public void UIntVectorMembersHaveUnsignedKeys()
+    {
+        var shaderMixer = new ShaderMixer(new ShaderLoader("./assets/SDSL/CompilerTests"));
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(new ShaderClassSource("CBufferUIntVectors"), new ShaderMixer.Options(true), log, out _, out var reflection, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+
+        Stride.Graphics.Effect.PrepareReflection(reflection);
+        var members = reflection.ConstantBuffers.SelectMany(cb => cb.Members).ToDictionary(m => m.RawName);
+
+        AssertKey(Stride.Shaders.Tests.CBufferUIntVectorsKeys.Value2, "Value2", new Stride.Core.Mathematics.UInt2(1, 2));
+        AssertKey(Stride.Shaders.Tests.CBufferUIntVectorsKeys.Value3, "Value3", new Stride.Core.Mathematics.UInt3(3, 4, 5));
+        AssertKey(Stride.Shaders.Tests.CBufferUIntVectorsKeys.Value4, "Value4", new Stride.Core.Mathematics.UInt4(6, 7, 8, 4000000000));
+
+        void AssertKey<T>(Stride.Rendering.ValueParameterKey<T> generatedKey, string memberName, T defaultValue) where T : struct
+        {
+            Assert.Equal(defaultValue, generatedKey.DefaultValueMetadataT.DefaultValue);
+            Assert.Equal(defaultValue, members[memberName].DefaultValue);
+            Assert.IsType<Stride.Rendering.ValueParameterKey<T>>(members[memberName].KeyInfo.Key);
+        }
+    }
+
     [Fact]
     public void NumThreadsOnNonEntryMethodIsIgnoredWithWarning()
     {
