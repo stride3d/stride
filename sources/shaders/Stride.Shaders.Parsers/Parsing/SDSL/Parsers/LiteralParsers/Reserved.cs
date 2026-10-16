@@ -128,7 +128,7 @@ public static class Reserved
             "RWTexture2D",
             "RWTexture2DArray",
             "RWTexture3D",
-            "sample",
+            // Not `sample`: HLSL allows it as a name; the interpolation modifier is matched where modifiers are read
             "sampler",
             "SamplerState",
             "SamplerComparisonState",
