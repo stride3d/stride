@@ -22,8 +22,11 @@ namespace Stride.Heightfield;
 /// </summary>
 public unsafe struct HeightfieldShape : IShape
 {
-    #warning todo, better scheme for this
-    public static int TypeId => 32;
+    public static int TypeId
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => BepuPhysics.ShapeId<HeightfieldShape>.Id;
+    }
 
     /// <summary>A GCHandle pointing to a <see cref="IHeightfieldSampler"/></summary>
     public GCHandle Sampler;
