@@ -22,6 +22,7 @@ public abstract class Statement(TextLocation info) : ValueNode(info)
 public partial class EmptyStatement(TextLocation info) : Statement(info)
 {
     public override SymbolType? Type { get => ScalarType.Void; set { } }
+    public override void ProcessSymbol(SymbolTable table) { }
     public override void Compile(SymbolTable table, CompilerUnit compiler) { }
     public override string ToString() => ";";
 }
