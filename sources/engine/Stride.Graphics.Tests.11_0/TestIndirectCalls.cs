@@ -35,6 +35,14 @@ public class TestIndirectCalls : GraphicTestGameBase
     // Each instance adds this color, so two instances give 0.5
     private static readonly Vector4 InstanceColor = new(0.25f, 0.25f, 0.25f, 1.0f);
 
+    // The iOS simulator's Metal cannot draw with a base instance: MoltenVK fails the command buffer
+    // with VK_ERROR_FEATURE_NOT_PRESENT. Real iOS devices (A9 and later) support it.
+#if STRIDE_PLATFORM_IOS
+    private static bool IsSimulator => ObjCRuntime.Runtime.Arch == ObjCRuntime.Arch.SIMULATOR;
+#else
+    private static bool IsSimulator => false;
+#endif
+
     [SkippableFact]
     public void DispatchReadsCpuWrittenArguments()
     {
@@ -66,6 +74,8 @@ public class TestIndirectCalls : GraphicTestGameBase
     [SkippableFact]
     public void DrawInstancedReadsCpuWrittenArguments()
     {
+        Skip.If(IsSimulator, "The iOS simulator cannot draw with a base instance.");
+
         PerformTest(game =>
         {
             // (vertex count, instance count, start vertex, start instance) after one unused value
@@ -80,6 +90,8 @@ public class TestIndirectCalls : GraphicTestGameBase
     [SkippableFact]
     public void DrawIndexedInstancedReadsGpuWrittenArguments()
     {
+        Skip.If(IsSimulator, "The iOS simulator cannot draw with a base instance.");
+
         PerformTest(game =>
         {
             // (index count, instance count, start index, base vertex, start instance)
