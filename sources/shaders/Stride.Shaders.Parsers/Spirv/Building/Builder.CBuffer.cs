@@ -58,22 +58,32 @@ partial class SpirvBuilder
     }
 
     /// <summary>
-    /// Computes std430 size and alignment for a matrix in a StorageBuffer.
-    /// ColumnMajor: matrix is an array of <c>Columns</c> column-vectors of dimension <c>Rows</c>.
-    /// RowMajor: matrix is an array of <c>Rows</c> row-vectors of dimension <c>Columns</c>.
-    /// Each element vector is laid out at its std430 base-alignment stride, so non-square matrices
-    /// get trailing padding on the short axis.
+    /// The vectors a matrix is stored as in a buffer, as its layout decoration says (<c>ShaderMixer.DecorateMember</c>):
+    /// HLSL <c>column_major</c> (the default) is SPIR-V <c>RowMajor</c>, <c>Rows</c> vectors of <c>Columns</c> elements;
+    /// HLSL <c>row_major</c> is SPIR-V <c>ColMajor</c>, <c>Columns</c> vectors of <c>Rows</c> elements.
+    /// (A HLSL row is a SPIR-V column, so <c>Columns</c> counts the HLSL rows.)
+    /// </summary>
+    public static (int VectorSize, int Count) MatrixLayoutVectors(MatrixType m, TypeModifier typeModifier)
+        => typeModifier == TypeModifier.RowMajor ? (m.Rows, m.Columns) : (m.Columns, m.Rows);
+
+    /// <summary>
+    /// The <c>MatrixStride</c> decoration of a matrix in a buffer: a float4 register in a cbuffer, the std430 stride of
+    /// its vectors in a structured buffer.
+    /// </summary>
+    public static int MatrixStride(MatrixType m, TypeModifier typeModifier, AlignmentRules alignmentRules)
+        => alignmentRules == AlignmentRules.CBuffer
+            ? 16
+            : StorageBufferArrayStride(new VectorType(m.BaseType, MatrixLayoutVectors(m, typeModifier).VectorSize));
+
+    /// <summary>
+    /// Computes std430 size and alignment for a matrix in a StorageBuffer: its vectors (<see cref="MatrixLayoutVectors"/>),
+    /// each at its std430 base-alignment stride, so non-square matrices get trailing padding on the short axis.
     /// </summary>
     private static (int Size, int Alignment) StructuredBufferMatrixSize(MatrixType m, TypeModifier typeModifier)
     {
-        var (vecDim, vecCount) = typeModifier == TypeModifier.RowMajor
-            ? (m.Columns, m.Rows)
-            : (m.Rows, m.Columns);
-        var scalarSize = TypeSizeInBuffer(m.BaseType, typeModifier, AlignmentRules.StructuredBuffer).Size;
-        var vecSize = scalarSize * vecDim;
+        var (vecDim, vecCount) = MatrixLayoutVectors(m, typeModifier);
         var vecAlignment = StorageBufferBaseAlignment(new VectorType(m.BaseType, vecDim));
-        var vecStride = (vecSize + vecAlignment - 1) / vecAlignment * vecAlignment;
-        return (vecStride * vecCount, vecAlignment);
+        return (MatrixStride(m, typeModifier, AlignmentRules.StructuredBuffer) * vecCount, vecAlignment);
     }
 
     private static (int, int) StructSizeInBuffer(StructuredType s, AlignmentRules alignmentRules)
@@ -153,10 +163,7 @@ partial class SpirvBuilder
         ScalarType { Type: Scalar.Int64 or Scalar.UInt64 or Scalar.Double } => 8,
         VectorType { Size: 2, BaseType: var bt } => 2 * StorageBufferBaseAlignment(bt),
         VectorType { Size: 3 or 4, BaseType: var bt } => 4 * StorageBufferBaseAlignment(bt),
-        MatrixType m when typeModifier == TypeModifier.RowMajor
-            => StorageBufferBaseAlignment(new VectorType(m.BaseType, m.Columns)),
-        MatrixType m
-            => StorageBufferBaseAlignment(new VectorType(m.BaseType, m.Rows)),
+        MatrixType m => StorageBufferBaseAlignment(new VectorType(m.BaseType, MatrixLayoutVectors(m, typeModifier).VectorSize)),
         ArrayType a => StorageBufferBaseAlignment(a.BaseType, typeModifier),
         StructuredType s => MaxMemberAlignment(s),
         _ => throw new NotSupportedException($"Unsupported type for storage buffer alignment: {type}"),
