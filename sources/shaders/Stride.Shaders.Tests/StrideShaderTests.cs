@@ -401,6 +401,8 @@ public class StrideShaderTests
     [Theory]
     [InlineData("SwitchVariableLabel", "case label must be a constant integer expression")]
     [InlineData("SwitchDuplicateLabel", "case label has the same value (1)")]
+    // A continue in a switch goes to the loop around it (RenderTest ContinueInSwitch); without a loop, it is an error, as in DXC
+    [InlineData("SwitchContinueOutsideLoop", "continue is only valid in a loop")]
     // Only known once the generic of the base shader is: reported when mixing, with the location of the switch
     [InlineData("SwitchGenericDuplicateLabel", "SwitchGenericDuplicateLabel.sdsl(8,")]
     [InlineData("SwitchGenericDuplicateLabel", "two case labels with the same value (3)")]

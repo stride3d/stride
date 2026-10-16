@@ -61,10 +61,10 @@ public partial class Continue(TextLocation info) : Statement(info)
     {
         var (builder, context) = compiler;
 
-        if (builder.CurrentEscapeBlocks is not { } escapeBlocks)
-            throw new InvalidOperationException("Can't process continue statement (no context)");
+        if (builder.CurrentEscapeBlocks is not { ContinueBlock: not SpirvBuilder.EscapeBlocks.NoLoop } escapeBlocks)
+            throw new InvalidOperationException("continue is only valid in a loop");
 
-        builder.Insert(new OpBranch(escapeBlocks.ContinueBlock));
+        builder.Continue(context, escapeBlocks);
     }
 }
 
