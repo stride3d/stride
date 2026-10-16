@@ -194,10 +194,18 @@ public sealed partial class ShaderMember(
 
     public Symbol? Symbol { get; private set; }
 
+    /// <summary>
+    /// The initializer that is compiled. A composition gets its shader from the effect, so its initializer is kept in the tree
+    /// (tools can read it) but never compiled (SDSL0236), as in Stride 4.3.
+    /// </summary>
+    private Expression? CompiledValue => IsCompose ? null : Value;
+
     public override void ProcessSymbol(SymbolTable table, SpirvContext context)
     {
         base.ProcessSymbol(table, context);
         WarnIgnoredRegister(table, Name);
+        if (IsCompose && Value != null)
+            table.AddWarning(new(Value.Info, string.Format(SDSLErrorMessages.SDSL0236, Name, Value.Info.Text)));
         foreach (var generic in TypeName.Generics)
             generic.ProcessSymbol(table);
         if (!TypeName.TryResolveType(table, context, out var memberType))
@@ -275,7 +283,7 @@ public sealed partial class ShaderMember(
         Symbol = new Symbol(sid, Type, 0, OwnerType: table.CurrentShader!);
         table.CurrentShader!.Variables.Add((Symbol, IsStaged ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None));
 
-        Value?.ProcessSymbol(table, memberType);
+        CompiledValue?.ProcessSymbol(table, memberType);
     }
 
     public void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
@@ -291,7 +299,7 @@ public sealed partial class ShaderMember(
             variableFlags |= Specification.VariableFlagsMask.Stream;
 
         int? initializerId = null;
-        if (Value != null)
+        if (CompiledValue is { } value)
         {
             var valueType = pointerType.BaseType;
 
@@ -299,10 +307,10 @@ public sealed partial class ShaderMember(
             {
                 // Uniform variables become cbuffer members — their default values are set from the CPU side.
                 // Compile the initializer as a constant value (no function wrapper needed).
-                if (Value.TryCompileConstantValue(table, context, out var constantValue, valueType))
+                if (value.TryCompileConstantValue(table, context, out var constantValue, valueType))
                     initializerId = constantValue.Id;
                 else
-                    table.AddError(new(Value.Info, string.Format(SDSLErrorMessages.SDSL0173, Name, Value.Info.Text, TypeName)));
+                    table.AddError(new(value.Info, string.Format(SDSLErrorMessages.SDSL0173, Name, value.Info.Text, TypeName)));
             }
             else
             {
@@ -313,7 +321,7 @@ public sealed partial class ShaderMember(
                 initializerId = builder.Insert(new OpFunction(context.GetOrRegister(valueType), context.Bound++, Specification.FunctionControlMask.Const, context.GetOrRegister(functionType))).ResultId;
                 builder.Insert(new OpLabel(context.Bound++));
 
-                var initialValue = Value.CompileAsValue(table, compiler);
+                var initialValue = value.CompileAsValue(table, compiler);
                 initialValue = builder.Convert(context, initialValue, pointerType.BaseType);
 
                 builder.Return(initialValue);
