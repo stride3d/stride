@@ -91,13 +91,13 @@ internal static unsafe class D3D12Runtime
 
     private static ID3D12DeviceFactory* CreateDeviceFactory()
     {
-        var sdkPath = Path.Combine(AppContext.BaseDirectory, "D3D12") + Path.DirectorySeparatorChar;
-        var corePath = Path.Combine(sdkPath, "D3D12Core.dll");
-        if (!File.Exists(corePath))
+        var sdkPath = FindSDKPath();
+        if (sdkPath is null)
         {
             Log.Info("[D3D12] Using the system D3D12 runtime.");
             return null;
         }
+        var corePath = Path.Combine(sdkPath, "D3D12Core.dll");
 
         // The factory accepts only the exact version of the DLL
         if (!TryReadSDKVersion(corePath, out var sdkVersion))
@@ -124,6 +124,29 @@ internal static unsafe class D3D12Runtime
 
         Log.Info($"[D3D12] Using the Agility SDK {sdkVersion} from {sdkPath}.");
         return factory.Handle;
+    }
+
+    /// <summary>
+    ///   Finds the <c>D3D12\</c> folder next to this assembly, or the Microsoft.Direct3D.D3D12 package folder that
+    ///   Game Studio's NuGet resolver found (it loads this assembly from the package cache).
+    /// </summary>
+    /// <returns>The folder path ending with a separator, or <see langword="null"/> if there is no Agility SDK.</returns>
+    private static string FindSDKPath()
+    {
+        var assemblyDirectory = Path.GetDirectoryName(typeof(D3D12Runtime).Assembly.Location);
+        if (string.IsNullOrEmpty(assemblyDirectory))
+            assemblyDirectory = AppContext.BaseDirectory;
+
+        var sdkPath = Path.Combine(assemblyDirectory, "D3D12") + Path.DirectorySeparatorChar;
+        if (File.Exists(Path.Combine(sdkPath, "D3D12Core.dll")))
+            return sdkPath;
+
+        // Set by Stride.Core.Assets.NuGetAssemblyResolver
+        if (AppContext.GetData("Stride.Graphics.D3D12AgilitySDKPath") is string packagePath
+            && File.Exists(Path.Combine(packagePath, "D3D12Core.dll")))
+            return Path.TrimEndingDirectorySeparator(packagePath) + Path.DirectorySeparatorChar;
+
+        return null;
     }
 
     private static bool TryReadSDKVersion(string corePath, out uint sdkVersion)
