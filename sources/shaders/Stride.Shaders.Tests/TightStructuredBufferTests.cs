@@ -52,6 +52,30 @@ public class TightStructuredBufferTests
         Assert.Equal([0, 12, 16], perDraw.Members.Select(x => x.Offset));
     }
 
+    // The mark is what the Vulkan backend reads before creating the pipeline (PipelineState.Vulkan.CreateShaderStages): it must reach
+    // the stage bytecode through the effect compiler, and survive the serialization of the effect cache and precompiled bytecode
+    [Fact]
+    public void TheMarkReachesTheVulkanBytecode()
+    {
+        using var provider = new Stride.Core.IO.FileSystemProvider($"/tightlayout-{Guid.NewGuid():N}", AppContext.BaseDirectory);
+        using var compiler = new Stride.Shaders.Compiler.EffectCompiler(provider) { ValidateSpirv = true };
+        compiler.SourceDirectories.Add("assets/SDSL/CompilerTests");
+
+        var mixin = new ShaderMixinSource { Name = "TightLayoutMarker" };
+        mixin.Mixins.Add(new ShaderClassSource("TightLayoutMarker"));
+        var effectParameters = Stride.Shaders.Compiler.EffectCompilerParameters.Default with { Platform = Stride.Graphics.GraphicsPlatform.Vulkan };
+        var result = compiler.Compile(mixin, effectParameters, new Stride.Shaders.Compiler.CompilerParameters(), Stride.Core.Storage.ObjectId.New()).WaitForResult();
+        Assert.False(result.CompilationLog.HasErrors, string.Join(Environment.NewLine, result.CompilationLog.Messages.Select(m => m.Text)));
+
+        using var stream = new MemoryStream();
+        result.Bytecode.WriteTo(stream);
+        stream.Position = 0;
+        var reloaded = Stride.Shaders.EffectBytecode.FromStream(stream);
+
+        foreach (var stage in result.Bytecode.Stages.Concat(reloaded.Stages))
+            Assert.Equal("TightLayoutMarker_M33 TightLayoutMarker_Output TightLayoutMarker_V3", string.Join(' ', TightBuffers(stage.Data)!.Split(' ').Order()));
+    }
+
     // Direct3D 12 compiles the SPIR-V with spirv_to_dxil, which reads the byte offsets from it: it must take the tight layout
     [Fact]
     public unsafe void Direct3D12CompilesTheTightLayout()
