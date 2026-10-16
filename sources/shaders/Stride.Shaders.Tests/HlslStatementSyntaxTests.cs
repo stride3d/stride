@@ -42,4 +42,17 @@ public class HlslStatementSyntaxTests
 
         Assert.Equal([expectedMixin], mixin.Mixins.Select(x => x.ClassName));
     }
+
+    // `sample` is a name now, but stays an interpolation modifier where modifiers are read
+    [Fact]
+    public void SampleIsStillAnInterpolationModifier()
+    {
+        var result = SDSLParser.Parse("shader S { sample stream float4 A; float sample; };");
+        Assert.True(result.Errors.Count == 0, string.Join("\n", result.Errors.Select(x => x.ToString())));
+
+        var shader = Assert.IsType<ShaderClass>(Assert.Single(((ShaderFile)result.AST!).RootDeclarations));
+        var members = shader.Elements.OfType<ShaderMember>().ToList();
+        Assert.Equal(InterpolationModifier.Sample, members[0].Interpolation);
+        Assert.Equal("sample", members[1].Name.Name);
+    }
 }
