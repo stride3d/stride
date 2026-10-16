@@ -1,0 +1,20 @@
+// PSMain(ExpectedResult=#33669999)
+
+namespace Stride.Shaders.Tests;
+
+shader CommaExpression
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    void PSMain()
+    {
+        // The values are computed in order, the result is the last one
+        int i = 0;
+        int j = (i++, i += 2, i * 2);
+
+        // As with fxc, a list where a vector was meant gives the last value, splatted (warning SDSL0219)
+        float4 splat = (0.0f, 0.0f, 0.0f, 0.6f);
+
+        streams.ColorTarget = float4(i == 3 ? 0.2 : 0, j == 6 ? 0.4 : 0, splat.x, splat.w);
+    }
+};
