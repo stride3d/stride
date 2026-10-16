@@ -204,6 +204,7 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
         for (int i = 0; i < Arguments.Values.Count; ++i)
             argumentTypes[i] = Arguments.Values[i].Type!;
 
+        var errorCount = table.Errors.Count;
         if (TryResolveFunctionSymbol(table, argumentTypes, out var functionSymbol))
         {
             var functionType = (FunctionType)functionSymbol.Type;
@@ -218,7 +219,8 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
                 resolvedIntrinsicOverload = resolvedIntrinsic.Overload;
                 Type = resolvedIntrinsicOverload.Value.Type.ReturnType;
             }
-            else
+            // A method of that name was found, but the call doesn't fit it: that error says why
+            else if (table.Errors.Count == errorCount)
             {
                 table.AddError(new(Info, $"Can't find a valid method overload or intrinsic to call for {Name}({string.Join(", ", Arguments)})"));
             }
@@ -503,34 +505,27 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
         if (functionSymbol.Type is FunctionGroupType)
         {
             var accessibleMethods = functionSymbol.GroupMembers
-                // Check overload score
-                .Select(x => (Score: OverloadScore((FunctionType)x.Type, x.MethodDefaultParameters?.DefaultValues.Length ?? 0, argumentTypes), Symbol: x))
+                // Rank overloads like DXC
+                .Select(x => (Score: RankOverload((FunctionType)x.Type, x.MethodDefaultParameters?.DefaultValues.Length ?? 0, argumentTypes), Symbol: x))
                 // Remove non-applicable methods
-                .Where(x => x.Score != int.MaxValue)
+                .Where(x => x.Score != null)
                 // Group by signature/score (we assume method with exact same signature means they are overriding each other, but we might need to do a better check using override info)
                 .GroupBy(x => (x.Score, x.Symbol.Type))
                 // Sort by best match (score)
                 .OrderBy(x => x.Key.Score)
                 .ToList();
 
-            static string FormatSignature(string name, FunctionType ft)
-                => $"{name}({string.Join(", ", ft.ParameterTypes.Select(p => p.Type.GetValueType()))})";
-
             if (accessibleMethods.Count == 0)
             {
-                var callStr = FormatSignature(Name, new FunctionType(ScalarType.Void, [.. argumentTypes.Select(t => new FunctionParameter(t, ParameterModifiers.None))]));
-                var candidatesStr = string.Join("\n  ", functionSymbol.GroupMembers.Select(x => FormatSignature(Name, (FunctionType)x.Type)));
-                table.AddError(new(Info, $"Can't find a valid method overload for '{callStr}'. Candidates:\n  {candidatesStr}"));
+                table.AddError(new(Info, FormatNoOverloadError(functionSymbol.GroupMembers, argumentTypes)));
                 return false;
             }
 
             // Check if there is an ambiguous call (multiple method groups with the lowest score)
             if (accessibleMethods.Count > 1 && accessibleMethods[0].Key.Score == accessibleMethods[1].Key.Score)
             {
-                var callStr = FormatSignature(Name, new FunctionType(ScalarType.Void, [.. argumentTypes.Select(t => new FunctionParameter(t, ParameterModifiers.None))]));
-                var ambiguousStr = string.Join("\n  ", accessibleMethods.Where(g => g.Key.Score == accessibleMethods[0].Key.Score)
-                    .SelectMany(g => g).Select(x => $"{FormatSignature(Name, (FunctionType)x.Symbol.Type)} [score: {x.Score}]"));
-                table.AddError(new(Info, $"Ambiguous method overload for '{callStr}'. Matching candidates:\n  {ambiguousStr}"));
+                var ambiguous = accessibleMethods.Where(g => g.Key.Score == accessibleMethods[0].Key.Score).Select(g => g.First().Symbol);
+                table.AddError(new(Info, FormatAmbiguousError(ambiguous, argumentTypes)));
                 return false;
             }
 
