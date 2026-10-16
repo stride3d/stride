@@ -788,6 +788,30 @@ namespace Stride.Graphics
         }
 
         /// <summary>
+        ///   Makes the unordered access writes to a Graphics Resource visible to the next unordered accesses to it, such as
+        ///   a dispatch that writes a buffer, then a dispatch that reads or writes it.
+        /// </summary>
+        /// <param name="resource">The Graphics Resource written as unordered access.</param>
+        /// <remarks>
+        ///   Nothing to do on Direct3D 11: the runtime orders unordered accesses between calls.
+        /// </remarks>
+        public void UnorderedAccessBarrier(GraphicsResource resource)
+        {
+            ArgumentNullException.ThrowIfNull(resource);
+        }
+
+        /// <summary>
+        ///   Makes all unordered access writes visible to the next unordered accesses, such as a pass that writes several
+        ///   buffers, then a pass that reads them.
+        /// </summary>
+        /// <remarks>
+        ///   Nothing to do on Direct3D 11: the runtime orders unordered accesses between calls.
+        /// </remarks>
+        public void UnorderedAccessBarrier()
+        {
+        }
+
+        /// <summary>
         ///   Issues a non-indexed draw call, rendering a sequence of vertices directly from the bound Vertex Buffer.
         /// </summary>
         /// <param name="vertexCount">The number of vertices to draw.</param>
