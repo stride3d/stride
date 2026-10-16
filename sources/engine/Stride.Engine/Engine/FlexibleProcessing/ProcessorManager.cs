@@ -159,6 +159,28 @@ namespace Stride.Engine.FlexibleProcessing
             }
         }
 
+        /// <summary>
+        /// Drops the records of stale component types no entity holds (<paramref name="typesInUse"/>), and of stale
+        /// processor types that have no instance. A stale processor that still has components goes with its last one.
+        /// </summary>
+        /// <returns>Whether a record was dropped.</returns>
+        internal bool RemoveStaleTypes(Func<Type, bool> isStale, HashSet<Type> typesInUse)
+        {
+            var changed = false;
+            foreach (var componentType in new List<Type>(compTypeToProcessorIndices.Keys))
+            {
+                if (isStale(componentType) && !typesInUse.Contains(componentType))
+                    changed |= compTypeToProcessorIndices.Remove(componentType);
+            }
+            foreach (var (processorType, index) in new List<KeyValuePair<Type, int>>(typeToIndex))
+            {
+                // Its slot stays, with no instance: the indices of the other records point after it
+                if (isStale(processorType) && processors[index].Instance == null)
+                    changed |= typeToIndex.Remove(processorType);
+            }
+            return changed;
+        }
+
         public void Update(GameTime gameTime)
         {
             foreach (var (_, processor) in processorsToUpdate)
