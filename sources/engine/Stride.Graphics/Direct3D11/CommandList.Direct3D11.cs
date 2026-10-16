@@ -27,7 +27,7 @@ namespace Stride.Graphics
     {
         private const int ConstantBufferCount = D3D11.CommonshaderConstantBufferApiSlotCount; // 14 actually
         private const int SamplerStateCount = D3D11.CommonshaderSamplerSlotCount;
-        private const int ShaderResourceViewCount = D3D11.CommonshaderInputResourceSlotCount; // TODO: Unused?
+        private const int ShaderResourceViewCount = D3D11.CommonshaderInputResourceSlotCount;
         private const int SimultaneousRenderTargetCount = D3D11.SimultaneousRenderTargetCount;
         private const int UnorderedAcccesViewCount = D3D11.D3D111UavSlotCount;
 
@@ -44,6 +44,19 @@ namespace Stride.Graphics
 
         private readonly Buffer[] constantBuffers = new Buffer[StageCount * ConstantBufferCount];
         private readonly SamplerState[] samplerStates = new SamplerState[StageCount * SamplerStateCount];
+
+        // What the Shader Resource View bound to each slot reads, to find the views of a resource that is to be written
+        private readonly BoundShaderResource[] boundShaderResources = new BoundShaderResource[StageCount * ShaderResourceViewCount];
+
+        /// <summary>
+        ///   The native resource behind a bound Shader Resource View (identity only, no reference kept) and the
+        ///   sub-Resources it reads: mip-levels and array slices, end excluded.
+        /// </summary>
+        private struct BoundShaderResource
+        {
+            public nint Resource;
+            public int MipStart, MipEnd, ArraySliceStart, ArraySliceEnd;
+        }
 
         private PipelineState currentPipelineState;
 
@@ -145,6 +158,7 @@ namespace Stride.Graphics
 
             Array.Clear(samplerStates);
             Array.Clear(constantBuffers);
+            Array.Clear(boundShaderResources);
 
             Array.Clear(unorderedAccessViews);
             Array.Clear(currentRenderTargetViews);
@@ -403,6 +417,19 @@ namespace Stride.Graphics
 
             var nativeShaderResourceView = shaderResourceView is not null ? shaderResourceView.NativeShaderResourceView : default;
 
+            ref var bound = ref boundShaderResources[((int) stage - 1) * ShaderResourceViewCount + slot];
+            bound.Resource = shaderResourceView is not null ? (nint) shaderResourceView.NativeResource.Handle : 0;
+            if (shaderResourceView is Texture texture)
+            {
+                var (mipStart, mipCount, arraySliceStart, arraySliceCount) = texture.GetViewSubResourceRange();
+                (bound.MipStart, bound.MipEnd) = (mipStart, mipStart + mipCount);
+                (bound.ArraySliceStart, bound.ArraySliceEnd) = (arraySliceStart, arraySliceStart + arraySliceCount);
+            }
+            else
+            {
+                (bound.MipStart, bound.MipEnd, bound.ArraySliceStart, bound.ArraySliceEnd) = (0, int.MaxValue, 0, int.MaxValue);
+            }
+
             switch (stage)
             {
                 case ShaderStage.Vertex: nativeDeviceContext->VSSetShaderResources((uint) slot, NumViews: 1, ref nativeShaderResourceView); break;
@@ -653,15 +680,63 @@ namespace Stride.Graphics
         /// <param name="newState">The new state of <paramref name="resource"/>.</param>
         /// <remarks>
         ///   The Direct3D 11 implementation does not have synchronization barriers for Graphics Resource transitions.
+        ///   A transition to unordered access unbinds the sub-Resources it covers from the shader resource slots they
+        ///   are bound to, since binding them for writing while they are still bound for reading makes the runtime
+        ///   unbind them with a debug layer warning.
         /// </remarks>
         public void ResourceBarrierTransition(GraphicsResource resource, BarrierLayout newLayout, uint subresource = uint.MaxValue)
         {
-            // Nothing to do
+            if (newLayout == BarrierLayout.UnorderedAccess)
+                UnbindShaderResource(resource, subresource);
         }
 
         public void ResourceBarrierTransition(GraphicsResource resource, GraphicsResourceState newState)
         {
-            // Nothing to do
+            if (newState == GraphicsResourceState.UnorderedAccess)
+                UnbindShaderResource(resource, uint.MaxValue);
+        }
+
+        /// <summary>
+        ///   Gets a value indicating whether a Shader Resource View is bound to a slot of a stage (for tests).
+        /// </summary>
+        internal bool IsShaderResourceViewBound(ShaderStage stage, int slot)
+            => boundShaderResources[((int) stage - 1) * ShaderResourceViewCount + slot].Resource != 0;
+
+        /// <summary>
+        ///   Unbinds the Shader Resource Views that read a sub-Resource of a Graphics Resource, in every stage.
+        /// </summary>
+        /// <param name="resource">The Graphics Resource. A Texture View stands for its whole Texture, as in Direct3D 12.</param>
+        /// <param name="subresource">
+        ///   The sub-Resource index (see <see cref="Texture.GetSubResourceIndex"/>), or <see cref="uint.MaxValue"/> for all.
+        ///   Views of other sub-Resources stay bound: reading mip-level N while writing N + 1 is fine.
+        /// </param>
+        private void UnbindShaderResource(GraphicsResource resource, uint subresource)
+        {
+            var nativeResource = resource is not null ? (nint) resource.NativeResource.Handle : 0;
+            if (nativeResource == 0)
+                return;
+
+            bool allSubresources = subresource == uint.MaxValue || resource is not Texture;
+            int mipLevel = 0, arraySlice = 0;
+            if (!allSubresources)
+            {
+                var mipLevelCount = (uint) ((Texture) resource).MipLevelCount;
+                mipLevel = (int) (subresource % mipLevelCount);
+                arraySlice = (int) (subresource / mipLevelCount);
+            }
+
+            for (int i = 0; i < boundShaderResources.Length; i++)
+            {
+                ref var bound = ref boundShaderResources[i];
+                if (bound.Resource != nativeResource)
+                    continue;
+
+                if (allSubresources ||
+                    (mipLevel >= bound.MipStart && mipLevel < bound.MipEnd && arraySlice >= bound.ArraySliceStart && arraySlice < bound.ArraySliceEnd))
+                {
+                    SetShaderResourceView((ShaderStage) (i / ShaderResourceViewCount + 1), i % ShaderResourceViewCount, shaderResourceView: null);
+                }
+            }
         }
 
         /// <summary>
