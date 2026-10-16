@@ -728,6 +728,60 @@ namespace Stride.Graphics
         }
 
         /// <summary>
+        ///   Makes the unordered access writes to a Graphics Resource visible to the next unordered accesses to it, such as
+        ///   a dispatch that writes a buffer, then a dispatch that reads or writes it.
+        /// </summary>
+        /// <param name="resource">The Graphics Resource written as unordered access.</param>
+        /// <remarks>
+        ///   A transition to <see cref="BarrierLayout.UnorderedAccess"/> can't do this: it is dropped when the resource
+        ///   already has that layout. The resource must already be in <see cref="BarrierLayout.UnorderedAccess"/>: this
+        ///   doesn't transition it.
+        /// </remarks>
+        public void UnorderedAccessBarrier(GraphicsResource resource)
+        {
+            ArgumentNullException.ThrowIfNull(resource);
+
+            FlushResourceBarriers();
+            UnorderedAccessSync(resource, D3D12BarrierSync.AllShading, D3D12BarrierSync.AllShading);
+        }
+
+        /// <summary>
+        ///   Makes all unordered access writes visible to the next unordered accesses, such as a pass that writes several
+        ///   buffers, then a pass that reads them.
+        /// </summary>
+        /// <remarks>
+        ///   The resources stay in <see cref="BarrierLayout.UnorderedAccess"/>: transition them first if they aren't.
+        /// </remarks>
+        public unsafe void UnorderedAccessBarrier()
+        {
+            FlushResourceBarriers();
+            EnhancedBarriers.GlobalBarrier(currentCommandList.NativeCommandList.Handle, D3D12BarrierSync.AllShading, D3D12BarrierSync.AllShading,
+                                           D3D12BarrierAccess.UnorderedAccess, D3D12BarrierAccess.UnorderedAccess);
+        }
+
+        /// <summary>
+        ///   Orders the unordered accesses to a Graphics Resource of a synchronization scope before those of another one.
+        ///   The resource must be in <see cref="BarrierLayout.UnorderedAccess"/>.
+        /// </summary>
+        private unsafe void UnorderedAccessSync(GraphicsResource resource, D3D12BarrierSync syncBefore, D3D12BarrierSync syncAfter)
+        {
+            // Texture views share the native resource of their parent
+            if (resource is Texture { ParentTexture: not null } textureView)
+                resource = textureView.ParentTexture;
+
+            const D3D12BarrierAccess Access = D3D12BarrierAccess.UnorderedAccess;
+            if (resource is Texture)
+            {
+                var layout = BarrierMapping.ToEnhancedLayout(BarrierLayout.UnorderedAccess);
+                EnhancedBarriers.TextureBarrier(currentCommandList.NativeCommandList.Handle, resource.NativeResource, syncBefore, syncAfter, Access, Access, layout, layout);
+            }
+            else
+            {
+                EnhancedBarriers.BufferBarrier(currentCommandList.NativeCommandList.Handle, resource.NativeResource, syncBefore, syncAfter, Access, Access);
+            }
+        }
+
+        /// <summary>
         ///   Binds an array of Descriptor Sets at the specified index in the current pipeline's Root Signature,
         ///   making shader resources available for rendering operations.
         /// </summary>
@@ -1217,6 +1271,7 @@ namespace Stride.Graphics
 
             ResourceBarrierTransition(buffer, BarrierLayout.UnorderedAccess);
             FlushResourceBarriers();
+            UnorderedAccessSync(buffer, D3D12BarrierSync.AllShading, D3D12BarrierSync.ClearUnorderedAccessView);
 
             var cpuHandle = buffer.NativeUnorderedAccessView;
             var gpuHandle = GetGpuDescriptorHandle(cpuHandle);
@@ -1226,6 +1281,7 @@ namespace Stride.Graphics
 
             currentCommandList.NativeCommandList.ClearUnorderedAccessViewFloat(gpuHandle, cpuHandle, buffer.NativeResource,
                                                                                ref clearValue, NumRects: 0, in nullRect);
+            UnorderedAccessSync(buffer, D3D12BarrierSync.ClearUnorderedAccessView, D3D12BarrierSync.AllShading);
             RecordDebugCounter(DebugCounterKind.Clear);
         }
 
@@ -1245,6 +1301,7 @@ namespace Stride.Graphics
 
             ResourceBarrierTransition(buffer, BarrierLayout.UnorderedAccess);
             FlushResourceBarriers();
+            UnorderedAccessSync(buffer, D3D12BarrierSync.AllShading, D3D12BarrierSync.ClearUnorderedAccessView);
 
             var cpuHandle = buffer.NativeUnorderedAccessView;
             var gpuHandle = GetGpuDescriptorHandle(cpuHandle);
@@ -1254,6 +1311,7 @@ namespace Stride.Graphics
 
             currentCommandList.NativeCommandList.ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, buffer.NativeResource,
                                                                               ref clearValue, NumRects: 0, in nullRect);
+            UnorderedAccessSync(buffer, D3D12BarrierSync.ClearUnorderedAccessView, D3D12BarrierSync.AllShading);
             RecordDebugCounter(DebugCounterKind.Clear);
         }
 
@@ -1273,6 +1331,7 @@ namespace Stride.Graphics
 
             ResourceBarrierTransition(buffer, BarrierLayout.UnorderedAccess);
             FlushResourceBarriers();
+            UnorderedAccessSync(buffer, D3D12BarrierSync.AllShading, D3D12BarrierSync.ClearUnorderedAccessView);
 
             var cpuHandle = buffer.NativeUnorderedAccessView;
             var gpuHandle = GetGpuDescriptorHandle(cpuHandle);
@@ -1282,6 +1341,7 @@ namespace Stride.Graphics
 
             currentCommandList.NativeCommandList.ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, buffer.NativeResource,
                                                                               ref clearValue, NumRects: 0, in nullRect);
+            UnorderedAccessSync(buffer, D3D12BarrierSync.ClearUnorderedAccessView, D3D12BarrierSync.AllShading);
             RecordDebugCounter(DebugCounterKind.Clear);
         }
 
@@ -1301,6 +1361,7 @@ namespace Stride.Graphics
 
             ResourceBarrierTransition(texture, BarrierLayout.UnorderedAccess);
             FlushResourceBarriers();
+            UnorderedAccessSync(texture, D3D12BarrierSync.AllShading, D3D12BarrierSync.ClearUnorderedAccessView);
 
             var cpuHandle = texture.NativeUnorderedAccessView;
             var gpuHandle = GetGpuDescriptorHandle(cpuHandle);
@@ -1310,6 +1371,7 @@ namespace Stride.Graphics
 
             currentCommandList.NativeCommandList.ClearUnorderedAccessViewFloat(gpuHandle, cpuHandle, texture.NativeResource,
                                                                                ref clearValue, NumRects: 0, in nullRect);
+            UnorderedAccessSync(texture, D3D12BarrierSync.ClearUnorderedAccessView, D3D12BarrierSync.AllShading);
             RecordDebugCounter(DebugCounterKind.Clear);
         }
 
@@ -1329,6 +1391,7 @@ namespace Stride.Graphics
 
             ResourceBarrierTransition(texture, BarrierLayout.UnorderedAccess);
             FlushResourceBarriers();
+            UnorderedAccessSync(texture, D3D12BarrierSync.AllShading, D3D12BarrierSync.ClearUnorderedAccessView);
 
             var cpuHandle = texture.NativeUnorderedAccessView;
             var gpuHandle = GetGpuDescriptorHandle(cpuHandle);
@@ -1338,6 +1401,7 @@ namespace Stride.Graphics
 
             currentCommandList.NativeCommandList.ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, texture.NativeResource,
                                                                               ref clearValue, NumRects: 0, in nullRect);
+            UnorderedAccessSync(texture, D3D12BarrierSync.ClearUnorderedAccessView, D3D12BarrierSync.AllShading);
             RecordDebugCounter(DebugCounterKind.Clear);
         }
 
@@ -1357,6 +1421,7 @@ namespace Stride.Graphics
 
             ResourceBarrierTransition(texture, BarrierLayout.UnorderedAccess);
             FlushResourceBarriers();
+            UnorderedAccessSync(texture, D3D12BarrierSync.AllShading, D3D12BarrierSync.ClearUnorderedAccessView);
 
             var cpuHandle = texture.NativeUnorderedAccessView;
             var gpuHandle = GetGpuDescriptorHandle(cpuHandle);
@@ -1366,6 +1431,7 @@ namespace Stride.Graphics
 
             currentCommandList.NativeCommandList.ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, texture.NativeResource,
                                                                               ref clearValue, NumRects: 0, in nullRect);
+            UnorderedAccessSync(texture, D3D12BarrierSync.ClearUnorderedAccessView, D3D12BarrierSync.AllShading);
             RecordDebugCounter(DebugCounterKind.Clear);
         }
 

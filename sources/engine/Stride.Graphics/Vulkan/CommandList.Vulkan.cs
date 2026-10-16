@@ -606,6 +606,70 @@ namespace Stride.Graphics
         }
 
         /// <summary>
+        ///   Makes the unordered access writes to a Graphics Resource visible to the next unordered accesses to it, such as
+        ///   a dispatch that writes a buffer, then a dispatch that reads or writes it.
+        /// </summary>
+        /// <param name="resource">The Graphics Resource written as unordered access.</param>
+        /// <remarks>
+        ///   A transition to <see cref="BarrierLayout.UnorderedAccess"/> can't do this: it does nothing when the resource
+        ///   already has that layout. The resource must already be in <see cref="BarrierLayout.UnorderedAccess"/>: this
+        ///   doesn't transition it.
+        /// </remarks>
+        public unsafe void UnorderedAccessBarrier(GraphicsResource resource)
+        {
+            ArgumentNullException.ThrowIfNull(resource);
+
+            var stages = BarrierMapping.ToVkPipelineStageFlags(BarrierLayout.UnorderedAccess);
+            const VkAccessFlags AccessBefore = VkAccessFlags.ShaderWrite;
+            const VkAccessFlags AccessAfter = VkAccessFlags.ShaderRead | VkAccessFlags.ShaderWrite;
+
+            // Not allowed inside a render pass
+            CleanupRenderPass();
+
+            if (resource is Texture texture)
+            {
+                if (texture.ParentTexture != null)
+                    texture = texture.ParentTexture;
+
+                var layout = BarrierMapping.ToVkImageLayout(BarrierLayout.UnorderedAccess);
+                var imageBarrier = new VkImageMemoryBarrier(texture.NativeImage, new VkImageSubresourceRange(texture.NativeImageAspect, 0, uint.MaxValue, 0, uint.MaxValue), AccessBefore, AccessAfter, layout, layout);
+                GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, stages, stages, VkDependencyFlags.None, 0, null, 0, null, 1, &imageBarrier);
+            }
+            else if (resource is Buffer buffer)
+            {
+                var bufferBarrier = new VkBufferMemoryBarrier(buffer.NativeBuffer, AccessBefore, AccessAfter);
+                GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, stages, stages, VkDependencyFlags.None, 0, null, 1, &bufferBarrier, 0, null);
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        /// <summary>
+        ///   Makes all unordered access writes visible to the next unordered accesses, such as a pass that writes several
+        ///   buffers, then a pass that reads them.
+        /// </summary>
+        /// <remarks>
+        ///   The resources stay in <see cref="BarrierLayout.UnorderedAccess"/>: transition them first if they aren't.
+        /// </remarks>
+        public unsafe void UnorderedAccessBarrier()
+        {
+            var stages = BarrierMapping.ToVkPipelineStageFlags(BarrierLayout.UnorderedAccess);
+            var memoryBarrier = new VkMemoryBarrier
+            {
+                sType = VkStructureType.MemoryBarrier,
+                srcAccessMask = VkAccessFlags.ShaderWrite,
+                dstAccessMask = VkAccessFlags.ShaderRead | VkAccessFlags.ShaderWrite,
+            };
+
+            // Not allowed inside a render pass
+            CleanupRenderPass();
+
+            GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, stages, stages, VkDependencyFlags.None, 1, &memoryBarrier, 0, null, 0, null);
+        }
+
+        /// <summary>
         ///   Adopts the transfer layout as the tracked state of a texture that has no defined layout.
         ///   The restore barrier after a copy then has a legal target.
         /// </summary>
