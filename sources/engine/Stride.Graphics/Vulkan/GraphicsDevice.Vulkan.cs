@@ -26,6 +26,7 @@ namespace Stride.Graphics
 
         internal readonly ConcurrentPool<List<VkDescriptorPool>> DescriptorPoolLists = new ConcurrentPool<List<VkDescriptorPool>>(() => new List<VkDescriptorPool>());
         internal readonly ConcurrentPool<List<GraphicsResource>> StagingResourceLists = new ConcurrentPool<List<GraphicsResource>>(() => new List<GraphicsResource>());
+        internal readonly ConcurrentPool<List<QueryPool>> QueryPoolLists = new ConcurrentPool<List<QueryPool>>(() => new List<QueryPool>());
 
         private const GraphicsPlatform GraphicPlatform = GraphicsPlatform.Vulkan;
         internal GraphicsProfile RequestedProfile;
@@ -893,6 +894,15 @@ namespace Stride.Graphics
 
             StagingResourceLists.Release(commandList.StagingResources);
             commandList.StagingResources.Clear();
+
+            // Query pools can be read back once this submission has run
+            foreach (var queryPool in commandList.QueryPools)
+            {
+                queryPool.CommandListFenceValue = commandListFenceValue;
+                queryPool.UpdatingCommandList = null;
+            }
+            commandList.QueryPools.Clear();
+            QueryPoolLists.Release(commandList.QueryPools);
 
             // Recycle all resources
             foreach (var descriptorPool in commandList.DescriptorPools)
