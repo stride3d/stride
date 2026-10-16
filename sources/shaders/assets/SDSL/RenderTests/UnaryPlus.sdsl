@@ -1,0 +1,25 @@
+// PSMain(ExpectedResult=#3399CCFF)
+
+namespace Stride.Shaders.Tests;
+
+shader UnaryPlus
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    void PSMain()
+    {
+        float x = 0.2;
+        float2 v = float2(0.4, 0.6);
+        float2x2 m = float2x2(0.1, 0.2, 0.3, 0.8);
+        bool b = true;
+
+        // + and - on a matrix work on each element
+        float2x2 n = -(+m);
+
+        // As in HLSL, + and ~ on a bool compute on int
+        int i = +b + +b;
+        int j = ~b;
+
+        streams.ColorTarget = float4(+x, (+v).y, -n[1][1], (i == 2 && j == -2) ? 1 : 0);
+    }
+};
