@@ -67,11 +67,18 @@ namespace Stride.Engine.Tests
         {
             var s = new S();
             object boxed = s;
-            var p = UpdateEngineHelper.ObjectToPointer(boxed);
-            Assert.NotEqual((nint)Unsafe.AsPointer(ref s), (nint)p);
-            Assert.NotEqual((nint)Unsafe.AsPointer(ref boxed), (nint)p);
-            var t = UpdateEngineHelper.PointerToStruct<S>(p);
-            Assert.Equal(s.u, t.u);
+            // Pinned: the raw pointer must stay valid while the GC runs
+            var gch = GCHandle.Alloc(boxed, GCHandleType.Pinned);
+            try {
+                var p = UpdateEngineHelper.ObjectToPointer(boxed);
+                Assert.NotEqual((nint)Unsafe.AsPointer(ref s), (nint)p);
+                Assert.NotEqual((nint)Unsafe.AsPointer(ref boxed), (nint)p);
+                var t = UpdateEngineHelper.PointerToStruct<S>(p);
+                Assert.Equal(s.u, t.u);
+            } finally
+            {
+                gch.Free();
+            }
         }
         [Fact]
         public void TestIntField()
