@@ -117,7 +117,7 @@ public sealed class MeshCollider : ICollider
     void ICollider.AppendModel(List<BasicMeshBuffers> buffer, ShapeCacheSystem shapeCache, out object? cacheOut)
     {
         shapeCache.GetModelCache(Model, out var cache);
-        BasicMeshBuffers data;
+        var data = new BasicMeshBuffers();
         cache.GetBuffers(out data.Vertices, out data.Indices);
         buffer.Add(data);
         cacheOut = cache;
