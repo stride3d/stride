@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using Stride.Core;
@@ -51,6 +52,10 @@ namespace Stride.Graphics
         internal object QueueLock = new object();
 
         internal ThreadLocal<CommandBufferPool> NativeCopyCommandPools;
+
+        // Command buffers that move subresources into the layouts a command buffer assumed, submitted just before it
+        private CommandBufferPool layoutFixupCommandBuffers;
+        private readonly List<VkImageMemoryBarrier> layoutFixupBarriers = new();
         private NativeResourceCollector nativeResourceCollector;
         private GraphicsResourceLinkCollector graphicsResourceLinkCollector;
 
@@ -279,15 +284,22 @@ namespace Stride.Graphics
             if (commandLists == null) throw new ArgumentNullException(nameof(commandLists));
             if (count > commandLists.Length) throw new ArgumentOutOfRangeException(nameof(count));
 
-            var commandBufferInfos = stackalloc VkCommandBufferSubmitInfo[count];
-            for (int i = 0; i < count; i++)
-                commandBufferInfos[i] = CommandBufferSubmit(commandLists[i].NativeCommandBuffer);
+            // Each command list may be preceded by the barriers that bring what it assumed into place
+            var commandBufferInfos = stackalloc VkCommandBufferSubmitInfo[count * 2];
+            var commandBufferCount = 0;
 
             ulong nextCommandListFenceValue;
             lock (QueueLock)
             {
                 var commandListFenceValue = CommandListFence.NextFenceValue++;
                 nextCommandListFenceValue = commandListFenceValue + 1;
+
+                for (int i = 0; i < count; i++)
+                {
+                    if (ReconcileImageLayouts(commandLists[i].ImageLayouts, nextCommandListFenceValue) is { } fixup)
+                        commandBufferInfos[commandBufferCount++] = CommandBufferSubmit(fixup);
+                    commandBufferInfos[commandBufferCount++] = CommandBufferSubmit(commandLists[i].NativeCommandBuffer);
+                }
                 // Make sure all copies are done as well
                 var copyFenceValue = CopyFence.NextFenceValue;
 
@@ -307,7 +319,7 @@ namespace Stride.Graphics
                 var submitInfo = new VkSubmitInfo2
                 {
                     sType = VkStructureType.SubmitInfo2,
-                    commandBufferInfoCount = (uint)count,
+                    commandBufferInfoCount = (uint)commandBufferCount,
                     pCommandBufferInfos = commandBufferInfos,
                     waitSemaphoreInfoCount = (uint)waitSemaphoreCount,
                     pWaitSemaphoreInfos = &waitInfos[0],
@@ -608,6 +620,7 @@ namespace Stride.Graphics
             NativeDeviceApi.vkGetDeviceQueue(nativeDevice, 0, 0, out NativeCommandQueue);
 
             NativeCopyCommandPools = new(() => new CommandBufferPool(this, false), true);
+            layoutFixupCommandBuffers = new CommandBufferPool(this, false);
 
             DescriptorPools = new HeapPool(this, true);
 
@@ -820,6 +833,8 @@ namespace Stride.Graphics
             CopyFence.Dispose();
             CommandListFence.Dispose();
 
+            layoutFixupCommandBuffers.Dispose();
+            layoutFixupCommandBuffers = null;
             foreach (var nativeCopyCommandPool in NativeCopyCommandPools.Values)
                 nativeCopyCommandPool.Dispose();
             NativeCopyCommandPools.Dispose();
@@ -857,14 +872,18 @@ namespace Stride.Graphics
                 // Remember that we waited
                 LastGPUSyncCopyFenceToCommandFence = copyFenceValue;
 
-                // Submit commands
-                var commandBufferInfo = CommandBufferSubmit(commandList.NativeCommandBuffer);
+                // Submit commands, after the barriers that bring what it assumed into place
+                var commandBufferInfos = stackalloc VkCommandBufferSubmitInfo[2];
+                var commandBufferCount = 0;
+                if (ReconcileImageLayouts(commandList.ImageLayouts, nextCommandListFenceValue) is { } fixup)
+                    commandBufferInfos[commandBufferCount++] = CommandBufferSubmit(fixup);
+                commandBufferInfos[commandBufferCount++] = CommandBufferSubmit(commandList.NativeCommandBuffer);
                 var signalInfo = SemaphoreSubmit(CommandListFence.Semaphore, nextCommandListFenceValue);
                 var submitInfo = new VkSubmitInfo2
                 {
                     sType = VkStructureType.SubmitInfo2,
-                    commandBufferInfoCount = 1,
-                    pCommandBufferInfos = &commandBufferInfo,
+                    commandBufferInfoCount = (uint)commandBufferCount,
+                    pCommandBufferInfos = commandBufferInfos,
                     waitSemaphoreInfoCount = (uint)waitSemaphoreCount,
                     pWaitSemaphoreInfos = &waitInfos[0],
                     signalSemaphoreInfoCount = 1,
@@ -881,6 +900,60 @@ namespace Stride.Graphics
             RecycleCommandListResources(commandList, nextCommandListFenceValue);
 
             return nextCommandListFenceValue;
+        }
+
+        /// <summary>
+        ///   Records the barriers from the layouts the previous submissions left to the ones a command buffer assumed on first
+        ///   touch, then takes its final layouts as submitted. Called under <see cref="QueueLock"/>, in submission order.
+        /// </summary>
+        /// <returns>A command buffer to submit just before it, or <see langword="null"/> when every assumption holds.</returns>
+        private unsafe VkCommandBuffer? ReconcileImageLayouts(Dictionary<Texture, CommandBufferImageLayouts> imageLayouts, ulong fenceValue)
+        {
+            if (imageLayouts == null)
+                return null;
+
+            layoutFixupBarriers.Clear();
+            foreach (var (texture, layouts) in imageLayouts)
+            {
+                if (texture.NativeImage == VkImage.Null)
+                    continue;
+
+                var count = layouts.Current.Length;
+                if (texture.SubmittedLayouts?.Length != count)
+                    texture.SubmittedLayouts = new BarrierLayout?[count];
+                var submitted = texture.SubmittedLayouts;
+
+                for (int index = 0; index < count; index++)
+                {
+                    // Undefined is an assumption anything satisfies: the command buffer discards what was there
+                    if (layouts.Assumed[index] is { } assumed && assumed != BarrierLayout.Undefined
+                        && submitted[index] is { } actual && actual != assumed)
+                    {
+                        var mip = (uint)(index % texture.MipLevelCount);
+                        var layer = (uint)(index / texture.MipLevelCount);
+                        layoutFixupBarriers.Add(new VkImageMemoryBarrier(texture.NativeImage,
+                            new VkImageSubresourceRange(texture.NativeImageAspect, mip, 1, layer, 1),
+                            BarrierMapping.ToVkAccessFlags(actual), BarrierMapping.ToVkAccessFlags(assumed),
+                            BarrierMapping.ToVkImageLayout(actual), BarrierMapping.ToVkImageLayout(assumed)));
+                    }
+
+                    if (layouts.Current[index] is { } left)
+                        submitted[index] = left;
+                }
+            }
+
+            if (layoutFixupBarriers.Count == 0)
+                return null;
+
+            var commandBuffer = layoutFixupCommandBuffers.GetObject(CommandListFence.GetCompletedValue());
+            var beginInfo = new VkCommandBufferBeginInfo { sType = VkStructureType.CommandBufferBeginInfo, flags = VkCommandBufferUsageFlags.OneTimeSubmit };
+            NativeDeviceApi.vkBeginCommandBuffer(commandBuffer, &beginInfo);
+            var barriers = CollectionsMarshal.AsSpan(layoutFixupBarriers);
+            fixed (VkImageMemoryBarrier* barrierPointer = barriers)
+                NativeDeviceApi.vkCmdPipelineBarrier(commandBuffer, VkPipelineStageFlags.AllCommands, VkPipelineStageFlags.AllCommands, VkDependencyFlags.None, 0, null, 0, null, (uint)barriers.Length, barrierPointer);
+            CheckResult(NativeDeviceApi.vkEndCommandBuffer(commandBuffer));
+            layoutFixupCommandBuffers.RecycleObject(fenceValue, commandBuffer);
+            return commandBuffer;
         }
 
         private void RecycleCommandListResources(CompiledCommandList commandList, ulong commandListFenceValue)
