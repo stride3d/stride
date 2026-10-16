@@ -71,6 +71,7 @@ public static class SDSLErrorMessages
     public const string SDSL0114 = "SDSL0114: {0}.{1}({2}) at line {3} implements abstract method {4}.{1} but is not marked 'override'. Add the 'override' keyword.";
     public const string SDSL0115 = "SDSL0115: {0}.{1}({2}) at line {3} hides inherited method {4}.{1} but is not marked 'override'. Add the 'override' keyword, or rename the method.";
     public const string SDSL0118 = "SDSL0118: {0} declares generic parameter '{1}' of type {2} at line {3}. Texture and sampler generic parameters are not supported. Declare a texture or sampler member instead, or use a ComputeColorTexture...Sampler shader with a texture key.";
+    public const string SDSL0145 = "SDSL0145: Swizzle {0} writes the same element twice. Write each element once.";
 
     // HLSL warnings: valid HLSL that is probably a mistake, reported when a class compiles
     public const string SDSL0219 = "SDSL0219: comma expression ({0}): the values before the last are dropped, the result is {1}. To build a vector, write its type: float4(...).";
