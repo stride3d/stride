@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Stride.Core.Diagnostics;
 using Stride.Rendering;
 using Stride.Shaders.Parsing;
 using Stride.Shaders.Parsing.SDSL.AST;
@@ -67,5 +68,17 @@ public class HlslStatementSyntaxTests
         Assert.Equal(["P", "P_in_F", "P_in_G"], shader.Elements.OfType<ShaderStruct>().Select(x => x.TypeName.Name));
         var g = shader.Elements.OfType<ShaderMethod>().Single(x => x.Name.Name == "G");
         Assert.Equal("P_in_G", g.Body!.Statements.OfType<Declare>().Single().TypeName.Name);
+    }
+
+    // fxc's X3081: a dropped value without side effect usually means a vector constructor was intended
+    [Fact]
+    public void CommaExpressionDroppingAValueIsAWarning()
+    {
+        var loader = new ShaderLoader("./assets/SDSL/RenderTests") { Log = new LoggerResult() };
+        loader.LoadExternalBuffer("CommaExpression", [], out _, out _, out _);
+
+        var warnings = ((LoggerResult)loader.Log).Messages.Where(m => m.Type == LogMessageType.Warning).Select(m => m.Text).ToList();
+        var warning = Assert.Single(warnings);
+        Assert.Contains("SDSL0219: comma expression (0.0f, 0.0f, 0.0f, 0.6f): the values before the last are dropped, the result is 0.6f.", warning);
     }
 }
