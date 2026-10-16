@@ -59,6 +59,24 @@ public abstract class Expression(TextLocation info) : ValueNode(info)
 
     public SymbolType? ValueType => Type?.GetValueType();
 
+    /// <summary>
+    /// Set by the expressions that take a composition itself (a member access, a foreach collection): anywhere else, a composition
+    /// is used as a value (SDSL0165).
+    /// </summary>
+    internal bool AllowComposition { get; set; }
+
+    /// <summary>
+    /// Stops at a composition used as a value: the expression around it would fail later with an internal error.
+    /// </summary>
+    protected void CheckNotCompositionValue()
+    {
+        if (!AllowComposition && Type is PointerType { BaseType: ShaderSymbol or ArrayType { BaseType: ShaderSymbol } } compositionType)
+        {
+            var call = compositionType.BaseType is ArrayType ? $"{this}[0].Compute()" : $"{this}.Compute()";
+            throw new StatementCompileException(new(Info, string.Format(SDSLErrorMessages.SDSL0165, this, call)));
+        }
+    }
+
     public virtual SpirvValue CompileAsValue(SymbolTable table, CompilerUnit compiler, SymbolType? expectedType = null)
     {
         var result = Compile(table, compiler, expectedType);
@@ -934,10 +952,13 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
 
     public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
     {
+        // A composition is used through its members: Color.Compute()
+        Source.AllowComposition = true;
         Source.ProcessSymbol(table);
         var currentValueType = Source.Type;
 
         CompileHelper(table, null);
+        CheckNotCompositionValue();
     }
 
     public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
