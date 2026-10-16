@@ -99,12 +99,12 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
                     log.Info(info.ToString());
 
                 foreach (var warning in table.Warnings)
-                    log.Warning(warning.ToString());
+                    log.Warning(Format(filename, warning));
 
                 if (table.Errors.Count > 0)
                 {
                     foreach (var error in table.Errors)
-                        log.Error(error.ToString());
+                        log.Error(Format(filename, error));
                     hasErrors = true;
                 }
 
@@ -138,6 +138,19 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
         }
 
         return lastBuffer != null;
+    }
+
+    /// <summary>
+    /// file(line,col): the form build tools and editors link to, as for statement errors.
+    /// </summary>
+    private static string Format(string? filename, SemanticError error)
+    {
+        if (filename == null)
+            return error.ToString();
+
+        var text = error.Location.Text.Span.Trim();
+        var context = text.Length > 0 && !text.ContainsAny('\r', '\n') ? $" (in `{text}`)" : "";
+        return $"{filename}({error.Location.Line},{error.Location.Column}): {error.Message}{context}";
     }
 
     /// <summary>
