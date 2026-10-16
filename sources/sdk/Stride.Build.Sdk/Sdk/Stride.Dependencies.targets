@@ -247,10 +247,12 @@
       </_StrideDependencyToCopy>
     </ItemGroup>
 
-    <!-- Copy files -->
+    <!-- Copy files. An unchanged one is skipped: a process using the build output (Game Studio loads a dev-redirect
+         package's natives from there) holds it open, which would fail every rebuild, a managed-only change included -->
     <Copy
       SourceFiles = "@(_StrideDependencyToCopy)"
       DestinationFiles = "@(_StrideDependencyToCopy->'%(Destination)')"
+      SkipUnchangedFiles="true"
       OverwriteReadOnlyFiles="$(OverwriteReadOnlyFiles)"
       Retries="$(CopyRetryCount)"
       RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)"

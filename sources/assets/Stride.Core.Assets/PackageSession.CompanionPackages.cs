@@ -287,7 +287,7 @@ partial class PackageSession
         };
         package.SetCompanionDeclarations(manifest, Path.GetDirectoryName(manifestFile)!);
         var container = new StandalonePackage(package) { IsDependencyPackage = true };
-        container.Assemblies.AddRange(dependency.Assemblies);
+        container.Assemblies.AddRange(WithDevBuildAssemblies(dependency.Assemblies, manifest, manifestFile));
         package.State = PackageState.DependenciesReady;
         return container;
     }
