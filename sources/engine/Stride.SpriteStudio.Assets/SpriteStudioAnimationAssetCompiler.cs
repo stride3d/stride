@@ -27,6 +27,12 @@ namespace Stride.SpriteStudio.Assets
             var asset = (SpriteStudioAnimationAsset)assetItem.Asset;
             var colorSpace = context.GetColorSpace();
 
+            if (!SpriteStudioXmlImport.IsAnimationPack(asset.Source))
+            {
+                result.Error($"The source '{asset.Source}' is not a SpriteStudio animation file (.ssae). SpriteStudio project files (.sspj) are not supported: use one of the .ssae files of the project.");
+                return;
+            }
+
             result.BuildSteps = new AssetBuildStep(assetItem);
             result.BuildSteps.Add(new SpriteStudioAnimationAssetCommand(targetUrlInStorage, asset, colorSpace, assetItem.Package));
         }
@@ -48,15 +54,12 @@ namespace Stride.SpriteStudio.Assets
             {
                 var nodes = new List<SpriteStudioNode>();
                 string modelName;
-                if (!SpriteStudioXmlImport.ParseModel(Parameters.Source, nodes, out modelName))
-                {
-                    return null;
-                }
-
                 var anims = new List<SpriteStudioAnim>();
-                if (!SpriteStudioXmlImport.ParseAnimations(Parameters.Source, anims))
+                if (!SpriteStudioXmlImport.ParseModel(Parameters.Source, nodes, out modelName)
+                    || !SpriteStudioXmlImport.ParseAnimations(Parameters.Source, anims))
                 {
-                    return null;
+                    commandContext.Logger.Error($"Failed to parse the SpriteStudio file '{Parameters.Source}'.");
+                    return Task.FromResult(ResultStatus.Failed);
                 }
 
                 var assetManager = new ContentManager(MicrothreadLocalDatabases.ProviderService);

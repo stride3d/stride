@@ -29,6 +29,12 @@ namespace Stride.SpriteStudio.Assets
             var renderingSettings = gameSettingsAsset.GetOrCreate<RenderingSettings>();
             var colorSpace = renderingSettings.ColorSpace;
 
+            if (!SpriteStudioXmlImport.IsAnimationPack(asset.Source))
+            {
+                result.Error($"The source '{asset.Source}' is not a SpriteStudio animation file (.ssae). SpriteStudio project files (.sspj) are not supported: use one of the .ssae files of the project.");
+                return;
+            }
+
             var cells = new List<SpriteStudioCell>();
             var images = new List<UFile>();
             if (!SpriteStudioXmlImport.ParseCellMaps(asset.Source, images, cells)) throw new Exception("Failed to parse SpriteStudio cell textures.");
@@ -83,14 +89,16 @@ namespace Stride.SpriteStudio.Assets
             {
                 var nodes = new List<SpriteStudioNode>();
                 string modelName;
-                if (!SpriteStudioXmlImport.ParseModel(Parameters.Source, nodes, out modelName)) return null;
-
                 var cells = new List<SpriteStudioCell>();
                 var textures = new List<UFile>();
-                if (!SpriteStudioXmlImport.ParseCellMaps(Parameters.Source, textures, cells)) return null;
-
                 var anims = new List<SpriteStudioAnim>();
-                if (!SpriteStudioXmlImport.ParseAnimations(Parameters.Source, anims)) return null;             
+                if (!SpriteStudioXmlImport.ParseModel(Parameters.Source, nodes, out modelName)
+                    || !SpriteStudioXmlImport.ParseCellMaps(Parameters.Source, textures, cells)
+                    || !SpriteStudioXmlImport.ParseAnimations(Parameters.Source, anims))
+                {
+                    commandContext.Logger.Error($"Failed to parse the SpriteStudio file '{Parameters.Source}'.");
+                    return Task.FromResult(ResultStatus.Failed);
+                }
 
                 var assetManager = new ContentManager(MicrothreadLocalDatabases.ProviderService);
 
