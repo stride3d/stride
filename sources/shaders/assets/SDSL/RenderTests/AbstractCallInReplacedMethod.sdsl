@@ -1,0 +1,39 @@
+// PSMain(ExpectedResult=#336699FF)
+
+namespace Stride.Shaders.Tests;
+
+shader AbstractCallInReplacedMethodBase
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    abstract float4 Filter(float4 color);
+
+    stage float4 Shading()
+    {
+        return Filter(float4(1.0, 1.0, 1.0, 1.0));
+    }
+
+    float4 Tint()
+    {
+        return Filter(float4(0.0, 0.0, 0.0, 1.0));
+    }
+
+    void PSMain()
+    {
+        streams.ColorTarget = Shading() * Tint();
+    }
+};
+
+// Replaces both methods that call Filter, without a base call: their bodies never run, so nothing has to implement Filter
+shader AbstractCallInReplacedMethod : AbstractCallInReplacedMethodBase
+{
+    stage override float4 Shading()
+    {
+        return float4(0.2, 0.4, 0.6, 1.0);
+    }
+
+    override float4 Tint()
+    {
+        return float4(1.0, 1.0, 1.0, 1.0);
+    }
+};
