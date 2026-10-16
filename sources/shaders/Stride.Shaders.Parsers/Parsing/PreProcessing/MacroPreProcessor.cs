@@ -28,6 +28,11 @@ public static class MonoGamePreProcessor
                 }
             }
         }
+        // Byte-order marks at the start (an editor can save a second one) are not code: spaces keep the columns
+        var byteOrderMarks = content.Length - content.TrimStart('﻿').Length;
+        if (byteOrderMarks > 0)
+            content = new string(' ', byteOrderMarks) + content[byteOrderMarks..];
+
         // Note: CppNet is compiled in this project but doesn't support nullable
         var inputSource = new StringLexerSource(content, true, filename!);
 
