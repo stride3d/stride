@@ -70,4 +70,7 @@ public static class SDSLErrorMessages
     public const string SDSL0113 = "SDSL0113: Could not resolve member {0} in structure of type {1}";
     public const string SDSL0114 = "SDSL0114: {0}.{1}({2}) at line {3} implements abstract method {4}.{1} but is not marked 'override'; it is compiled as an override. Add the 'override' keyword.";
     public const string SDSL0115 = "SDSL0115: {0}.{1}({2}) at line {3} hides inherited method {4}.{1} but is not marked 'override'. Add the 'override' keyword, or rename the method.";
+
+    // HLSL warnings: valid HLSL that is probably a mistake, reported when a class compiles
+    public const string SDSL0219 = "SDSL0219: comma expression ({0}): the values before the last are dropped, the result is {1}. To build a vector, write its type: float4(...).";
 }

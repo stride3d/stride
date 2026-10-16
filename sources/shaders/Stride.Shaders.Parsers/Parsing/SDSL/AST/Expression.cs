@@ -142,6 +142,46 @@ public partial class ParenthesisExpression(Expression expression, TextLocation i
     public override string ToString() => $"({Expression})";
 }
 
+/// <summary>
+/// HLSL comma operator <c>(a, b, c)</c>: evaluates every value in order, the result is the last one.
+/// Only parsed inside parentheses, since a comma also separates arguments and initializer values.
+/// </summary>
+public partial class CommaExpression(List<Expression> expressions, TextLocation info) : Expression(info)
+{
+    public List<Expression> Expressions { get; set; } = expressions;
+
+    public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
+    {
+        for (var i = 0; i < Expressions.Count - 1; i++)
+            Expressions[i].ProcessSymbol(table);
+        Expressions[^1].ProcessSymbol(table, expectedType);
+        Type = Expressions[^1].Type;
+
+        // As fxc's X3081: a dropped value without side effect usually means a vector constructor was intended
+        if (Expressions.Take(Expressions.Count - 1).Any(x => !HasSideEffect(x)))
+            table.AddWarning(new(Info, string.Format(SDSLErrorMessages.SDSL0219, Info.Text, Expressions[^1].Info.Text)));
+    }
+
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
+    {
+        for (var i = 0; i < Expressions.Count - 1; i++)
+            Expressions[i].Compile(table, compiler);
+        return Expressions[^1].Compile(table, compiler);
+    }
+
+    private static bool HasSideEffect(Expression expression) => expression switch
+    {
+        AssignExpression or MethodCall => true,
+        PrefixExpression { Operator: Operator.Inc or Operator.Dec } => true,
+        AccessorChainExpression chain => chain.Accessors.Any(x => x is PostfixIncrement or MethodCall),
+        ParenthesisExpression parenthesis => HasSideEffect(parenthesis.Expression),
+        CommaExpression comma => comma.Expressions.Any(HasSideEffect),
+        _ => false,
+    };
+
+    public override string ToString() => string.Join(", ", Expressions);
+}
+
 public partial class MethodCall(Identifier name, ShaderExpressionList arguments, TextLocation info) : Expression(info)
 {
     public Identifier Name = name;

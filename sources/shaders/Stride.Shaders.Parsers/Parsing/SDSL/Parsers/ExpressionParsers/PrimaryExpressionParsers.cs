@@ -71,13 +71,29 @@ public record struct PrimaryParsers : IParser<Expression>
             && Parsers.Spaces0(ref scanner, result, out _)
             && ExpressionParser.Expression(ref scanner, result, out var expr, new(SDSLErrorMessages.SDSL0015, scanner[position], scanner.Memory))
             && Parsers.Spaces0(ref scanner, result, out _)
-            && Tokens.Char(')', ref scanner, advance: true)
         )
         {
-            parsed = new ParenthesisExpression(expr, scanner[position..scanner.Position]);
-            return true;
+            // Comma operator: `(a, b, c)`
+            if (Tokens.Char(',', ref scanner))
+            {
+                List<Expression> expressions = [expr];
+                while (Tokens.Char(',', ref scanner, advance: true))
+                {
+                    Parsers.Spaces0(ref scanner, result, out _);
+                    if (!ExpressionParser.Expression(ref scanner, result, out var next))
+                        return Parsers.Exit(ref scanner, result, out parsed, position, orError);
+                    expressions.Add(next);
+                    Parsers.Spaces0(ref scanner, result, out _);
+                }
+                expr = new CommaExpression(expressions, scanner[(position + 1)..scanner.Position]);
+            }
+            if (Tokens.Char(')', ref scanner, advance: true))
+            {
+                parsed = new ParenthesisExpression(expr, scanner[position..scanner.Position]);
+                return true;
+            }
         }
-        else return Parsers.Exit(ref scanner, result, out parsed, position, orError);
+        return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 
     public static bool ArrayLiteral<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Expression parsed, in ParseError? orError = null)
