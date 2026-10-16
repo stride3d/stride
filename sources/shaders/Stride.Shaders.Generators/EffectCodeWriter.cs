@@ -225,6 +225,9 @@ public class EffectCodeWriter : ShaderWriter
             case NumberLiteral number when type is ScalarType scalar:
                 Write(FormatScalarLiteral(number, scalar.Type));
                 break;
+            case PrefixExpression { Operator: Operator.Minus, Expression: NumberLiteral number } when type is ScalarType { Type: not (Scalar.UInt or Scalar.UInt64) } scalar:
+                Write("-").Write(FormatScalarLiteral(number, scalar.Type));
+                break;
             case VectorLiteral vector when type is VectorType { BaseType: var element }:
                 Write("new ").Write(ToCSharpType(type)).Write("(");
                 WriteInitialValueList(vector.Values, element);
@@ -235,11 +238,42 @@ public class EffectCodeWriter : ShaderWriter
                 WriteInitialValueList(matrix.Values, element);
                 Write(")");
                 break;
+            // { 1, 2, 3 }: the C# constructor takes the values in the same order (a matrix by rows)
+            case ArrayLiteral list when type is VectorType or MatrixType { Rows: 4, Columns: 4 }:
+                var values = new List<Expression>();
+                if (FlattenLiterals(list, values) && values.Count == (type is VectorType v ? v.Size : 16))
+                {
+                    Write("new ").Write(ToCSharpType(type)).Write("(");
+                    WriteInitialValueList(values, type is VectorType vector ? vector.BaseType : ((MatrixType)type).BaseType);
+                    Write(")");
+                }
+                break;
+            case ArrayLiteral:
+                // A default the key can't hold (struct, other matrix sizes, non-literal values): the key has none
+                break;
             default:
                 // Best-effort fallback for shapes we don't model (e.g. a named constant reference).
                 Write(value.ToString()!);
                 break;
         }
+    }
+
+    // The values of an initializer list without their inner braces, if all are literals
+    private static bool FlattenLiterals(ArrayLiteral list, List<Expression> result)
+    {
+        foreach (var value in list.Values)
+        {
+            if (value is ArrayLiteral inner)
+            {
+                if (!FlattenLiterals(inner, result))
+                    return false;
+            }
+            else if (value is NumberLiteral or BoolLiteral or PrefixExpression { Operator: Operator.Minus, Expression: NumberLiteral })
+                result.Add(value);
+            else
+                return false;
+        }
+        return true;
     }
 
     private void WriteInitialValueList(List<Expression> values, SymbolType elementType)

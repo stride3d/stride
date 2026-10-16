@@ -1,0 +1,15 @@
+namespace Stride.Shaders.Tests;
+
+shader InitializerListErrors
+{
+    Texture2D Tex;
+
+    float4 F()
+    {
+        float3x3 few = { 1, 2, 3, 4, 5, 6, 7, 8 };
+        float2 many[2] = { 1, 2, 3, 4, 5 };
+        float3 odd[] = { 1, 2, 3, 4 };
+        float4 sampled = { Tex, 1 };
+        return 0;
+    }
+};

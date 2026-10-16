@@ -368,26 +368,30 @@ public partial class MatrixLiteral(TypeName typeName, int rows, int cols, TextLo
     }
 }
 
+/// <summary>
+/// Initializer list: <c>{ 1, 2, x }</c>. As in HLSL, braces only group: each value is split into its scalars, which fill the
+/// scalars of the declared type in order (a matrix by rows, a struct by members, an array by elements).
+/// So <c>float2x2 m = { {1, 2}, {3, 4} }</c>, <c>{ 1, 2, 3, 4 }</c> and <c>{ float2(1, 2), 3, 4 }</c> are the same.
+/// </summary>
 public partial class ArrayLiteral(TextLocation info) : CompositeLiteral(info)
 {
+    // The values without their inner braces; null when the declared type isn't made of numbers (the values are then the elements)
+    private List<Expression>? flatValues;
+
     public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
     {
+        var elementType = expectedType is ArrayType { Size: -1 } unsized ? unsized.BaseType : expectedType;
+        if (elementType != null && ScalarCount(elementType) > 0)
+        {
+            ProcessFlattened(table, expectedType!, elementType);
+            return;
+        }
+        flatValues = null;
+
         Type = expectedType;
 
-        var expectedElementType = expectedType switch
-        {
-            VectorType v => v.BaseType,
-            MatrixType m => m.BaseType,
-            ArrayType a => a.BaseType,
-            _ => null,
-        };
-
         foreach (var value in Values)
-            value.ProcessSymbol(table, expectedElementType);
-
-        // Vector/Matrix brace initialization is fully handled by CompositeLiteral.CompileImpl
-        if (expectedType is VectorType or MatrixType)
-            return;
+            value.ProcessSymbol(table, (expectedType as ArrayType)?.BaseType);
 
         if (Type == null && Values.Count > 0)
             Type = new ArrayType(Values[0].ValueType!, Values.Count);
@@ -411,8 +415,161 @@ public partial class ArrayLiteral(TextLocation info) : CompositeLiteral(info)
         }
     }
 
+    private void ProcessFlattened(SymbolTable table, SymbolType expectedType, SymbolType elementType)
+    {
+        flatValues = [];
+        Flatten(Values, flatValues);
+
+        // The scalars to fill: those of the type, or of one element when the array size comes from the initializer
+        var leaves = new List<ScalarType>();
+        AddScalarTypes(elementType, leaves);
+        var unsized = expectedType != elementType;
+
+        var count = 0;
+        foreach (var value in flatValues)
+        {
+            value.ProcessSymbol(table);
+            var valueCount = ScalarCount(value.ValueType!);
+            if (valueCount <= 0)
+            {
+                table.AddError(new(value.Info, string.Format(SDSLErrorMessages.SDSL0157, value.ValueType)));
+                Type = expectedType;
+                return;
+            }
+
+            // A literal takes the type of the scalars it fills, as in float3(1, 2, 3)
+            if (value.ValueType is ScalarType or VectorType or MatrixType && (unsized || count + valueCount <= leaves.Count))
+            {
+                var leaf = leaves[count % leaves.Count];
+                var sameLeaf = true;
+                for (var i = count; i < count + valueCount; i++)
+                    sameLeaf &= leaves[i % leaves.Count] == leaf;
+                if (sameLeaf && value.ValueType.GetElementType() != leaf)
+                    value.ProcessSymbol(table, value.ValueType.WithElementType(leaf));
+            }
+            count += valueCount;
+        }
+
+        Type = expectedType;
+        if (unsized && count > 0 && count % leaves.Count == 0)
+            Type = new ArrayType(elementType, count / leaves.Count);
+        else if (unsized || count != leaves.Count)
+            table.AddError(new(Info, string.Format(SDSLErrorMessages.SDSL0156,
+                expectedType, unsized ? $"a multiple of {leaves.Count}" : leaves.Count.ToString(), count)));
+    }
+
+    public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
+    {
+        if (flatValues == null)
+            return base.CompileImpl(table, compiler);
+
+        var (builder, context) = compiler;
+        var values = flatValues.Select(x => (Value: x.CompileAsValue(table, compiler), Type: x.ValueType!)).ToList();
+        var (index, offset) = (0, 0);
+        return Build(Type!);
+
+        SpirvValue Build(SymbolType type)
+        {
+            // A value of the type it fills is used whole
+            if (offset == 0 && values[index].Type == type)
+                return values[index++].Value;
+
+            if (type is ScalarType scalarType)
+            {
+                var (value, valueType) = values[index];
+                if (valueType is not ScalarType)
+                {
+                    var path = new List<int>();
+                    var leaf = ScalarPath(valueType, offset, path);
+                    value = new(builder.InsertData(new OpCompositeExtract(context.GetOrRegister(leaf), context.Bound++, value.Id, [.. path])));
+                }
+                if (++offset == ScalarCount(valueType))
+                    (index, offset) = (index + 1, 0);
+                return builder.Convert(context, value, scalarType);
+            }
+
+            var parts = Parts(type).Select(x => Build(x).Id).ToArray();
+            return new(builder.InsertData(new OpCompositeConstruct(context.GetOrRegister(type), context.Bound++, [.. parts])));
+        }
+    }
+
+    private static void Flatten(List<Expression> values, List<Expression> result)
+    {
+        foreach (var value in values)
+        {
+            if (value is ArrayLiteral inner)
+                Flatten(inner.Values, result);
+            else
+                result.Add(value);
+        }
+    }
+
+    // What a composite is made of, in initializer order (a matrix: its rows, which are the SPIR-V columns)
+    private static IEnumerable<SymbolType> Parts(SymbolType type) => type switch
+    {
+        VectorType v => Enumerable.Repeat<SymbolType>(v.BaseType, v.Size),
+        MatrixType m => Enumerable.Repeat<SymbolType>(new VectorType(m.BaseType, m.Rows), m.Columns),
+        StructuredType s => s.Members.Select(x => x.Type),
+        ArrayType a => Enumerable.Repeat(a.BaseType, a.Size),
+        _ => [],
+    };
+
+    // The number of scalars in a type, or -1 if it isn't made of numbers only (a texture, an unsized array...)
+    private static int ScalarCount(SymbolType type)
+    {
+        switch (type)
+        {
+            case ScalarType { Type: not Scalar.Void }:
+                return 1;
+            case VectorType or MatrixType:
+                return type.GetElementCount();
+            case StructuredType or ArrayType { Size: > 0 }:
+                var count = 0;
+                foreach (var part in Parts(type))
+                {
+                    var partCount = ScalarCount(part);
+                    if (partCount <= 0)
+                        return -1;
+                    count += partCount;
+                }
+                return count;
+            default:
+                return -1;
+        }
+    }
+
+    private static void AddScalarTypes(SymbolType type, List<ScalarType> result)
+    {
+        if (type is ScalarType scalar)
+            result.Add(scalar);
+        else
+            foreach (var part in Parts(type))
+                AddScalarTypes(part, result);
+    }
+
+    // The OpCompositeExtract indices of the scalar at offset in a value of the given type, and its type
+    private static ScalarType ScalarPath(SymbolType type, int offset, List<int> path)
+    {
+        if (type is ScalarType scalar)
+            return scalar;
+
+        var index = 0;
+        foreach (var part in Parts(type))
+        {
+            var partCount = ScalarCount(part);
+            if (offset < partCount)
+            {
+                path.Add(index);
+                return ScalarPath(part, offset, path);
+            }
+            offset -= partCount;
+            index++;
+        }
+        throw new ArgumentOutOfRangeException(nameof(offset));
+    }
+
     public override string ToString()
-        => $"{Values.Count}({string.Join(", ", Values.Select(x => x.ToString()))})";
+        => $"{{ {string.Join(", ", Values.Select(x => x.ToString()))} }}";
 }
 
 public abstract partial class IdentifierBase(string name, TextLocation info) : Literal(info)

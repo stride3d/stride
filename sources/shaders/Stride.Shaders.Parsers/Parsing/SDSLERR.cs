@@ -89,6 +89,8 @@ public static class SDSLErrorMessages
     public const string SDSL0164 = "SDSL0164: Argument {0} of the call to {1} is written back (out or inout parameter), but {2} can't be written to. Pass a variable, a member or an array element; for a swizzle, pass a temporary variable and copy it after the call.";
     public const string SDSL0165 = "SDSL0165: composition {0} is used as a value, but a composition is a shader. Call its method instead, for example {1}.";
     public const string SDSL0166 = "SDSL0166: {0} calls abstract method {1}, but no shader of the effect overrides it. Mix in a shader that implements {1}.";
+    public const string SDSL0156 = "SDSL0156: {0} needs {1} values, but the initializer list has {2}. As in HLSL, braces only group: the values fill {0} in order.";
+    public const string SDSL0157 = "SDSL0157: a {0} can't be in an initializer list. Only numbers, vectors, matrices, and structs and arrays of them can.";
 
     // HLSL warnings: valid HLSL that is probably a mistake, reported when a class compiles
     public const string SDSL0219 = "SDSL0219: comma expression ({0}): the values before the last are dropped, the result is {1}. To build a vector, write its type: float4(...).";
