@@ -187,15 +187,15 @@ namespace Stride.Graphics
             for (int i = 0; i < renderTargetViews.Length; i++)
                 currentRenderTargetViews[i] = renderTargetViews[i].NativeRenderTargetView;
 
-            ref var renderTargetsToSet = ref renderTargetViews.Length > 0
-                ? ref currentRenderTargetViews.GetReference()
-                : ref NullRef<ComPtr<ID3D11RenderTargetView>>();
-
             var depthStencilToSet = depthStencilView?.NativeDepthStencilView ?? NullComPtr<ID3D11DepthStencilView>();
 
-            nativeDeviceContext->OMSetRenderTargets(NumViews: (uint) currentRenderTargetViewsActiveCount,
-                                                    ref renderTargetsToSet,
-                                                    depthStencilToSet);
+            // Pinned: Silk's ref ComPtr<T> overloads take the address without pinning, and the array is on the GC heap
+            fixed (ComPtr<ID3D11RenderTargetView>* renderTargetsToSet = currentRenderTargetViews)
+            {
+                nativeDeviceContext->OMSetRenderTargets(NumViews: (uint) currentRenderTargetViewsActiveCount,
+                                                        renderTargetViews.Length > 0 ? (ID3D11RenderTargetView**) renderTargetsToSet : null,
+                                                        depthStencilToSet.Handle);
+            }
         }
 
         /// <summary>
@@ -439,22 +439,22 @@ namespace Stride.Graphics
             int remainingSlots = currentUARenderTargetViews.Length - currentRenderTargetViewsActiveCount;
 
             scoped var uavs = currentUARenderTargetViews.AsSpan(start: currentRenderTargetViewsActiveCount, length: remainingSlots);
-            scoped ref var uavsRef = ref uavs.GetReference();
 
             scoped Span<uint> uavInitialCounts = stackalloc uint[remainingSlots];
             uavInitialCounts.Fill(unchecked((uint)-1));
             uavInitialCounts[slot - currentRenderTargetViewsActiveCount] = (uint) uavInitialOffset;
-            scoped ref readonly var uavInitialCountsRef = ref uavInitialCounts.GetReference();
 
             const uint D3D11_KEEP_RENDER_TARGETS_AND_DEPTH_STENCIL = 0xffffffff;
 
-            ref var noRenderTargets = ref NullRef<ComPtr<ID3D11RenderTargetView>>();
-            var noDepthStencilView = NullComPtr<ID3D11DepthStencilView>();
-
-            nativeDeviceContext->OMSetRenderTargetsAndUnorderedAccessViews(
-                D3D11_KEEP_RENDER_TARGETS_AND_DEPTH_STENCIL, ref noRenderTargets, noDepthStencilView,
-                UAVStartSlot: (uint) currentRenderTargetViewsActiveCount, NumUAVs: (uint) remainingSlots,
-                ref uavsRef, in uavInitialCountsRef);
+            // Pinned: Silk's ref ComPtr<T> overloads take the address without pinning, and the array is on the GC heap
+            fixed (ComPtr<ID3D11UnorderedAccessView>* uavsToSet = uavs)
+            fixed (uint* uavInitialCountsToSet = uavInitialCounts)
+            {
+                nativeDeviceContext->OMSetRenderTargetsAndUnorderedAccessViews(
+                    D3D11_KEEP_RENDER_TARGETS_AND_DEPTH_STENCIL, ppRenderTargetViews: null, pDepthStencilView: null,
+                    UAVStartSlot: (uint) currentRenderTargetViewsActiveCount, NumUAVs: (uint) remainingSlots,
+                    (ID3D11UnorderedAccessView**) uavsToSet, uavInitialCountsToSet);
+            }
         }
 
         /// <summary>
