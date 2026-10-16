@@ -88,6 +88,7 @@ public static class SDSLErrorMessages
     public const string SDSL0177 = "SDSL0177: Not all code paths of {0}.{1} return a value. Add a return at the end of the method (a switch needs a default that returns).";
     public const string SDSL0164 = "SDSL0164: Argument {0} of the call to {1} is written back (out or inout parameter), but {2} can't be written to. Pass a variable, a member or an array element; for a swizzle, pass a temporary variable and copy it after the call.";
     public const string SDSL0165 = "SDSL0165: composition {0} is used as a value, but a composition is a shader. Call its method instead, for example {1}.";
+    public const string SDSL0166 = "SDSL0166: {0} calls abstract method {1}, but no shader of the effect overrides it. Mix in a shader that implements {1}.";
 
     // HLSL warnings: valid HLSL that is probably a mistake, reported when a class compiles
     public const string SDSL0219 = "SDSL0219: comma expression ({0}): the values before the last are dropped, the result is {1}. To build a vector, write its type: float4(...).";
