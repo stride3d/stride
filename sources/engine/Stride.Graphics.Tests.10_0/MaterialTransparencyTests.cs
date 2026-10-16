@@ -389,9 +389,7 @@ public class MaterialTransparencyTests : GameTestBase
     [InlineData(LightKind.Ambient)]
     [InlineData(LightKind.Skybox)]
     [InlineData(LightKind.LightProbes)]
-    // Passes on Direct3D 11. On Direct3D 12 voxel GI adds no light (the result is black), and on Vulkan the voxelization
-    // geometry shader has no valid invocation count (VUID-VkPipelineShaderStageCreateInfo-stage-00715)
-    [InlineData(LightKind.VoxelGI, Skip = "Voxel GI: no light on Direct3D 12, invalid geometry shader on Vulkan")]
+    [InlineData(LightKind.VoxelGI)]
     public void AlphaScalesLitColorOnce(LightKind light)
     {
         var game = new MaterialTransparencyTests(light);

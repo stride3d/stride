@@ -47,6 +47,12 @@ public partial class DescriptorSetLayout
     /// </remarks>
     internal ReadOnlySpan<int> BindingOffsets => bindingOffsets;
 
+    private readonly bool[] unorderedAccessSlots;
+
+    /// <summary>
+    ///   Gets, for each binding slot, whether the slot holds an Unordered Access View (UAV).
+    /// </summary>
+    internal ReadOnlySpan<bool> UnorderedAccessSlots => unorderedAccessSlots;
 
     /// <summary>
     ///   Initializes a new instance of the <see cref="DescriptorSetLayout"/> class.
@@ -58,6 +64,7 @@ public partial class DescriptorSetLayout
     private DescriptorSetLayout(GraphicsDevice device, DescriptorSetLayoutBuilder builder)
     {
         bindingOffsets = new int[builder.ElementCount];
+        unorderedAccessSlots = new bool[builder.ElementCount];
 
         int currentBindingOffset = 0;
         foreach (var entry in builder.Entries)
@@ -73,7 +80,10 @@ public partial class DescriptorSetLayout
             else // SRV or UAV
             {
                 for (int i = 0; i < entry.ArraySize; ++i)
+                {
+                    unorderedAccessSlots[currentBindingOffset] = entry.Class == EffectParameterClass.UnorderedAccessView;
                     bindingOffsets[currentBindingOffset++] = SrvCount++ * device.SrvHandleIncrementSize;
+                }
             }
         }
     }
