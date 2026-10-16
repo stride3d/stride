@@ -77,6 +77,28 @@ partial class PackageSession
     }
 
     /// <summary>
+    /// The assemblies a dev-redirect package loads: its stub ships a copy of each assembly the checkout builds, taken
+    /// when the stub was made. The checkout's build replaces that copy (the game builds against it too, through the
+    /// stub's targets), so the session runs what the game runs and a rebuild reaches it; the other assemblies of the
+    /// package (a bundled dependency) stay.
+    /// </summary>
+    private static List<string> WithDevBuildAssemblies(IEnumerable<string> packageAssemblies, AssetBuildManifest? manifest, string? manifestFile)
+    {
+        var devBuilt = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        if (manifest is not null && manifestFile is not null)
+        {
+            var manifestDirectory = Path.GetDirectoryName(manifestFile)!;
+            foreach (var assembly in manifest.HostAssemblies)
+            {
+                var path = Path.GetFullPath(Path.Combine(manifestDirectory, assembly.ToOSPath()));
+                if (File.Exists(path))
+                    devBuilt.TryAdd(Path.GetFileName(path), path);
+            }
+        }
+        return packageAssemblies.Select(x => devBuilt.GetValueOrDefault(Path.GetFileName(x)) ?? x).ToList();
+    }
+
+    /// <summary>
     /// Cheap scan for projects with a pending package upgrade that may carry source-code migrations.
     /// Reuses the cached MSBuild project (no restore) and the same upgrade-needed checks as
     /// <see cref="PreLoadPackageDependencies"/>: a direct <c>PackageReference</c> whose declared version
@@ -468,7 +490,7 @@ partial class PackageSession
                         // resolved name): the csproj-driven declarations come from the manifest,
                         // the identity from the authored sdpkg
                         devContainer.AssetNamespace = PackageContainer.ResolveAssetNamespace(devManifest?.AssetNamespace, devPackage.AuthoredName ?? devPackage.Meta.Name);
-                        devContainer.Assemblies.AddRange(projectDependency.Assemblies);
+                        devContainer.Assemblies.AddRange(WithDevBuildAssemblies(projectDependency.Assemblies, devManifest, manifestFile));
                         // The consumer's flattened graph already covers this package's dependencies; mark it
                         // ready so we don't recurse the whole engine project tree into the session.
                         devPackage.State = PackageState.DependenciesReady;
