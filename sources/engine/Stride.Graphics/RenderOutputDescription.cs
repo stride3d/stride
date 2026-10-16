@@ -214,6 +214,10 @@ namespace Stride.Graphics
                 RenderTargetFormats[i] = commandList.RenderTargets[i].ViewFormat;
                 MultisampleCount = commandList.RenderTargets[i].MultisampleCount; // Multi-sampling should all be equal
             }
+
+            // A format left from an earlier capture with more Render Targets makes this description differ from an equal
+            // one, and Direct3D 12 rejects a format above the Render Target count
+            RenderTargetFormats[RenderTargetCount..].Fill(PixelFormat.None);
         }
 
 

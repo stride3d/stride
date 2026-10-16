@@ -247,7 +247,9 @@ namespace Stride.Graphics
                 var rtvFormats = nativePipelineStateDescription.RTVFormats.AsSpan();
                 Debug.Assert(sizeof(PixelFormat) == sizeof(Format));
                 Debug.Assert(rtvFormats.Length == pipelineStateDescription.Output.RenderTargetFormats.Length);
-                pipelineStateDescription.Output.RenderTargetFormats.As<PixelFormat, Format>().CopyTo(rtvFormats);
+                // Only the bound Render Targets: Direct3D 12 requires FormatUnknown (left as is) from NumRenderTargets on
+                var renderTargetCount = pipelineStateDescription.Output.RenderTargetCount;
+                pipelineStateDescription.Output.RenderTargetFormats[..renderTargetCount].As<PixelFormat, Format>().CopyTo(rtvFormats);
 
                 foreach (var stage in pipelineStateDescription.EffectBytecode.Stages)
                 {
