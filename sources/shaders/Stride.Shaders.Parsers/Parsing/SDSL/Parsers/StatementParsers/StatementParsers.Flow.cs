@@ -56,7 +56,12 @@ public record struct FlowParsers : IParser<Flow>
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
-        if (Tokens.Literal("while", ref scanner, advance: true) && Parsers.Spaces0(ref scanner, result, out _))
+        // `while` must be a whole word (not the start of `whileCount`)
+        if (
+            Tokens.Literal("while", ref scanner, advance: true)
+            && !(Tokens.LetterOrDigit(ref scanner) || Tokens.Char('_', ref scanner))
+            && Parsers.Spaces0(ref scanner, result, out _)
+        )
         {
             if (Tokens.Char('(', ref scanner, advance: true) && Parsers.Spaces0(ref scanner, result, out _))
             {
@@ -169,7 +174,12 @@ public record struct FlowParsers : IParser<Flow>
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
-        if (Tokens.Literal("foreach", ref scanner, advance: true) && Parsers.Spaces0(ref scanner, result, out _))
+        // `foreach` must be a whole word (not the start of `foreachCount`)
+        if (
+            Tokens.Literal("foreach", ref scanner, advance: true)
+            && !(Tokens.LetterOrDigit(ref scanner) || Tokens.Char('_', ref scanner))
+            && Parsers.Spaces0(ref scanner, result, out _)
+        )
         {
             if (Tokens.Char('(', ref scanner, advance: true) && Parsers.Spaces0(ref scanner, result, out _))
             {
