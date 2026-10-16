@@ -169,7 +169,7 @@ public class EditorScreenshotTests
         // and logs; the manifest above plus the required, fail-closed gate keep it honest.
         if (deferred.Count > 0)
             output.WriteLine($"[compare] DEFERRED {deferred.Count} frame(s) to the vision gate " +
-                             $"(no ANTHROPIC_API_KEY in this run): {string.Join(", ", deferred.Select(r => r.Frame))}");
+                             $"(no Anthropic API key in this run): {string.Join(", ", deferred.Select(r => r.Frame))}");
     }
 
     /// <summary>
@@ -210,7 +210,8 @@ public class EditorScreenshotTests
         PackageSessionPublicHelper.FindAndSetMSBuildVersion();
 
         var logger = new LoggerResult();
-        var session = new PackageSession();
+        // Disposed when done: it unloads the plugin assemblies it loaded, which the next sample's session loads again
+        using var session = new PackageSession();
         var parameters = new SessionTemplateGeneratorParameters { Session = session, Unattended = true };
         DotNetNewTemplateGenerator.SetParameters(parameters, new Dictionary<string, string>
         {

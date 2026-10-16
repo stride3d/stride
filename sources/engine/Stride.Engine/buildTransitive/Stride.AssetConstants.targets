@@ -19,11 +19,6 @@
     <CompilerVisibleProperty Include="StrideAssetUrlNamespace" />
     <CompilerVisibleProperty Include="StrideAssetConstantsClassName" />
     <CompilerVisibleProperty Include="StrideAssetConstantsNamespace" />
-    <!-- Engine asset tag -> content type map, shipped next to this file; plugins register
-         their own the same way from their buildTransitive targets. -->
-    <AdditionalFiles Include="$(MSBuildThisFileDirectory)Stride.AssetContentTypeMap.txt"
-                     Condition="Exists('$(_StrideAssetConstantsPackagePath)') And Exists('$(MSBuildThisFileDirectory)Stride.AssetContentTypeMap.txt')"
-                     StrideAssetContentTypeMap="true" />
   </ItemGroup>
 
   <UsingTask TaskName="StrideCollectAssetConstantsInputs"
@@ -51,10 +46,7 @@
             return s;
         };
 
-        // Only files whose extension is a registered asset content type become AdditionalFiles.
-        // The registry is the ext|type maps shipped by the engine and plugins (ContentTypeMaps),
-        // so raw resources (images, models, audio) sitting next to the .sd* assets are left out:
-        // a random file change never re-triggers the generator, and a binary never hits CS2015.
+        // Only .sd* files and map extensions become AdditionalFiles: raw resources would re-trigger the generator and hit CS2015
         var assetExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var map in ContentTypeMaps ?? new Microsoft.Build.Framework.ITaskItem[0])
         {
@@ -126,7 +118,8 @@
                 var relativeDir = Path.GetDirectoryName(file.Substring(folder.Length + 1)) ?? "";
                 if (relativeDir.Split(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries).Any(segment => excludedDirectories.Contains(segment)))
                     continue;
-                if (!assetExtensions.Contains(Path.GetExtension(file)))
+                var extension = Path.GetExtension(file);
+                if (!extension.StartsWith(".sd", StringComparison.OrdinalIgnoreCase) && !assetExtensions.Contains(extension))
                     continue;
                 var item = new Microsoft.Build.Utilities.TaskItem(file);
                 item.SetMetadata("StrideAssetFolder", folder);
@@ -150,8 +143,7 @@
       <_StrideAssetConstantsPackageName Condition="'$(_StrideAssetConstantsPackageName)' == ''">$(AssemblyName)</_StrideAssetConstantsPackageName>
       <_StrideAssetConstantsPackageName Condition="'$(_StrideAssetConstantsPackageName)' == ''">$(MSBuildProjectName)</_StrideAssetConstantsPackageName>
     </PropertyGroup>
-    <!-- The registered asset extensions the folder scan filters by: the ext|type maps engine and
-         plugins ship as AdditionalFiles (StrideAssetContentTypeMap metadata). -->
+    <!-- The ext|type maps a package ships give the extensions the folder scan takes besides .sd* -->
     <ItemGroup>
       <_StrideAssetContentTypeMap Include="@(AdditionalFiles)" Condition="'%(AdditionalFiles.StrideAssetContentTypeMap)' == 'true'" />
     </ItemGroup>

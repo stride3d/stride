@@ -182,6 +182,7 @@ public abstract class ShaderBuffer : ShaderElement
         var fields = new List<StructuredTypeMember>();
         foreach (var smem in Members)
         {
+            smem.WarnIgnoredRegister(table, smem.Name);
             smem.TypeName.ProcessSymbol(table);
             smem.Type = smem.TypeName.Type!;
             table.DeclaredTypes.TryAdd(smem.Type.ToString(), smem.Type);

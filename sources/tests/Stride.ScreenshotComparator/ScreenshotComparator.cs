@@ -101,10 +101,10 @@ public static class ScreenshotComparator
                 {
                     // No key in this run (typical on fork PRs, where secrets aren't exposed). Defer
                     // instead of failing closed: a trusted gate re-runs the comparison with the key.
-                    if (deferWhenVisionUnavailable && string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ANTHROPIC_API_KEY")))
+                    if (deferWhenVisionUnavailable && string.IsNullOrEmpty(ClaudeVisionFallback.ApiKey))
                     {
                         results.Add(new ComparisonResult(sample, frame, distance, frameThreshold, "deferred",
-                            $"lpips drift (vs {baselines.Count} baseline(s)); vision verdict deferred — no ANTHROPIC_API_KEY in this run"));
+                            $"lpips drift (vs {baselines.Count} baseline(s)); vision verdict deferred — no {ClaudeVisionFallback.ApiKeyVariables} in this run"));
                         continue;
                     }
 

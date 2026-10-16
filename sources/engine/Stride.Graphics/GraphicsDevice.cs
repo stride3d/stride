@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Stride.Core;
+using Stride.Core.Diagnostics;
 
 namespace Stride.Graphics
 {
@@ -25,11 +26,14 @@ namespace Stride.Graphics
         /// </summary>
         internal readonly Dictionary<SamplerStateDescription, SamplerState> CachedSamplerStates = [];
 
+        private static readonly Logger Log = GlobalLogger.GetLogger(nameof(GraphicsDevice));
+
         /// <summary>
         ///   Gets the features supported by the Graphics Device.
         /// </summary>
         public ref readonly GraphicsDeviceFeatures Features => ref features;
         private GraphicsDeviceFeatures features;
+        private GraphicsDeviceFeatures deviceFeatures;
 
         /// <summary>
         ///   The set of Graphics Resources currently managed by the Graphics Device.
@@ -149,7 +153,9 @@ namespace Stride.Graphics
             InitializePlatformDevice(graphicsProfiles, creationFlags, windowHandle);
 
             // Checks the features supported by the new Graphics Device
-            features = new GraphicsDeviceFeatures(this);
+            deviceFeatures = new GraphicsDeviceFeatures(this);
+            Log.Info($"Graphics device: {Adapter?.Description ?? "unknown adapter"} ({Platform})\n  {deviceFeatures}");
+            LimitFeaturesToEffectProfile();
 
             // Initialize the internal states of the new Graphics Device
             SamplerStates = new SamplerStateFactory(this);
@@ -309,9 +315,29 @@ namespace Stride.Graphics
         public SamplerStateFactory SamplerStates { get; private set; }
 
         /// <summary>
-        ///   Gets the graphics profile the Graphics Device is using, which determines the available features.
+        ///   Gets the graphics profile the effects are compiled against, when it is set apart from the Graphics Device.
         /// </summary>
-        internal GraphicsProfile? ShaderProfile { get; set; }
+        internal GraphicsProfile? ShaderProfile
+        {
+            get => shaderProfile;
+            set
+            {
+                shaderProfile = value;
+                LimitFeaturesToEffectProfile();
+                Log.Info($"Effects compiled for {EffectProfile}");
+            }
+        }
+        private GraphicsProfile? shaderProfile;
+
+        /// <summary>
+        ///   Gets the graphics profile the effects are compiled against. The Graphics Device can run at a higher level.
+        /// </summary>
+        internal GraphicsProfile EffectProfile => shaderProfile ?? deviceFeatures.RequestedProfile;
+
+        private void LimitFeaturesToEffectProfile()
+        {
+            features = deviceFeatures.LimitedTo(EffectProfile);
+        }
 
 
         /// <summary>

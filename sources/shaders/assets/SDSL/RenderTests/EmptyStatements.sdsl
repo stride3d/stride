@@ -1,0 +1,23 @@
+// PSMain(ExpectedResult=#336699FF)
+
+namespace Stride.Shaders.Tests;
+
+shader EmptyStatements
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    // An empty statement after a return
+    float4 Color()
+    {
+        return float4(0.2, 0.4, 0.6, 1);;
+    }
+
+    void PSMain()
+    {
+        // An empty statement alone, as the body of an if and of a loop
+        ;
+        if (false);
+        for (int i = 0; i < 2; i++);
+        streams.ColorTarget = Color();
+    }
+};

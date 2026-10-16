@@ -187,7 +187,7 @@ namespace Stride.Core.Presentation.Windows
 
         private static void ActivateMainWindow()
         {
-            if (MainWindow != null && MainWindow.Hwnd != IntPtr.Zero)
+            if (MainWindow != null && MainWindow.IsShown && MainWindow.Hwnd != IntPtr.Zero)
                 NativeHelper.SetActiveWindow(MainWindow.Hwnd);
         }
 
@@ -380,6 +380,14 @@ namespace Stride.Core.Presentation.Windows
             }
 
             windowInfo.IsShown = false;
+
+            // A hidden main window is not closed: keep it registered until its window is destroyed.
+            if (windowInfo == MainWindow && NativeHelper.IsWindow(hwnd))
+            {
+                Logger.Info($"Main window ({hwnd}) hidden.");
+                return;
+            }
+
             AllWindowsList.Remove(windowInfo);
 
             if (MainWindow != null && MainWindow.Equals(windowInfo))

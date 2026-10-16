@@ -192,6 +192,65 @@ public partial class While(Expression condition, Statement body, TextLocation in
     }
 }
 
+public partial class DoWhile(Statement body, Expression condition, TextLocation info, ShaderAttribute? attribute = null) : Loop(info)
+{
+    public Statement Body { get; set; } = body;
+    public Expression Condition { get; set; } = condition;
+    public ShaderAttribute? Attribute { get; internal set; } = attribute;
+
+    public override void ProcessSymbol(SymbolTable table)
+    {
+        Body.ProcessSymbol(table);
+        Condition.ProcessSymbol(table);
+    }
+
+    public override void Compile(SymbolTable table, CompilerUnit compiler)
+    {
+        var (builder, context) = compiler;
+
+        // Prepare blocks ids
+        var headerBlock = context.Bound++;
+        var bodyBlock = context.Bound++;
+        var previousEscapeBlocks = builder.CurrentEscapeBlocks;
+        var currentEscapeBlocks = new SpirvBuilder.EscapeBlocks(context.Bound++, context.Bound++);
+        builder.CurrentEscapeBlocks = currentEscapeBlocks;
+
+        builder.Insert(new OpBranch(headerBlock));
+
+        // Header block: the body always runs once
+        builder.CreateBlock(context, headerBlock, $"do_header_{builder.WhileBlockCount}");
+        builder.Insert(new OpLoopMerge(currentEscapeBlocks.MergeBlock, currentEscapeBlocks.ContinueBlock, Loop.LoopControlFromAttribute(Attribute), []));
+        builder.Insert(new OpBranch(bodyBlock));
+
+        // Body block
+        builder.CreateBlock(context, bodyBlock, $"do_body_{builder.WhileBlockCount}");
+        Body.Compile(table, compiler);
+        if (!SpirvBuilder.IsBlockTermination(builder.GetLastInstructionType()))
+            builder.Insert(new OpBranch(currentEscapeBlocks.ContinueBlock));
+
+        // Continue block: checks the condition, then goes back to the header or leaves
+        builder.CreateBlock(context, currentEscapeBlocks.ContinueBlock, $"do_continue_{builder.WhileBlockCount}");
+        var conditionValue = Condition.CompileAsValue(table, compiler);
+        if (Condition.ValueType is not ScalarType)
+            table.AddError(new(Condition.Info, "do-while statement condition expression must evaluate to a scalar"));
+
+        // Might need implicit conversion from float/int to bool
+        conditionValue = builder.Convert(context, conditionValue, ScalarType.Boolean);
+        builder.Insert(new OpBranchConditional(conditionValue.Id, headerBlock, currentEscapeBlocks.MergeBlock, []));
+
+        // Merge block
+        builder.CreateBlock(context, currentEscapeBlocks.MergeBlock, $"do_merge_{builder.WhileBlockCount}");
+
+        builder.WhileBlockCount++;
+        builder.CurrentEscapeBlocks = previousEscapeBlocks;
+    }
+
+    public override string ToString()
+    {
+        return $"do\n{Body}\nwhile({Condition});";
+    }
+}
+
 public enum ForAnnotationKind
 {
     Unroll,

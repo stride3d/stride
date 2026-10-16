@@ -20,6 +20,11 @@
           <BoxShadows x:Key="CardShadow">0 1 2 #17000000</BoxShadows>
           <SolidColorBrush x:Key="ChromeWhiteBrush" Color="{StaticResource SystemChromeWhiteColor}" />
           <SolidColorBrush x:Key="NeutralBackgroundBrush" Color="#80FFFFFF" />
+          <!-- Badges of the version rows: nightly builds (amber), local builds (blue) -->
+          <SolidColorBrush x:Key="NightlyBadgeBackgroundBrush" Color="#2EE08A00" />
+          <SolidColorBrush x:Key="NightlyBadgeForegroundBrush" Color="#9A5B00" />
+          <SolidColorBrush x:Key="LocalBadgeBackgroundBrush" Color="#263A8EE6" />
+          <SolidColorBrush x:Key="LocalBadgeForegroundBrush" Color="#1F5FA8" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
           <SolidColorBrush x:Key="AccentBrush" Color="{DynamicResource SystemAccentColor}" />
@@ -27,6 +32,10 @@
           <BoxShadows x:Key="CardShadow">0 1 2 #17FFFFFF</BoxShadows>
           <SolidColorBrush x:Key="ChromeWhiteBrush" Color="{StaticResource SystemChromeWhiteColor}" />
           <SolidColorBrush x:Key="NeutralBackgroundBrush" Color="#0FFFFFFF" />
+          <SolidColorBrush x:Key="NightlyBadgeBackgroundBrush" Color="#40F5A623" />
+          <SolidColorBrush x:Key="NightlyBadgeForegroundBrush" Color="#FFC46A" />
+          <SolidColorBrush x:Key="LocalBadgeBackgroundBrush" Color="#403A8EE6" />
+          <SolidColorBrush x:Key="LocalBadgeForegroundBrush" Color="#8AB8F0" />
         </ResourceDictionary>
       </ResourceDictionary.ThemeDictionaries>
       <Thickness x:Key="TileBorderThickness">12</Thickness>

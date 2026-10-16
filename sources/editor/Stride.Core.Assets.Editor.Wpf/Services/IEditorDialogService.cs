@@ -131,6 +131,9 @@ namespace Stride.Core.Assets.Editor.Services
 
         void RegisterAdditionalTemplateProvider(ITemplateProvider provider);
 
+        /// <summary>Removes one provider registered by <see cref="RegisterAdditionalTemplateProvider"/> (its plugin's assembly was unloaded).</summary>
+        void UnregisterAdditionalTemplateProvider(ITemplateProvider provider);
+
         void UnregisterAdditionalTemplateProviders();
     }
 

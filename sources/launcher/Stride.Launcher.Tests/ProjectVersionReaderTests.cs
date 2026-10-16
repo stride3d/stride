@@ -82,6 +82,15 @@ public sealed class ProjectVersionReaderTests : IDisposable
         Assert.Equal("4.3.0.2507", ReadVersion(project));
     }
 
+    [Fact]
+    public async Task ProjectOpenedOnItsOwnHasItsVersion()
+    {
+        // A recent project can be a .csproj, not only a solution
+        var project = WriteProject("4.3.0.2503", DateTime.UtcNow);
+
+        Assert.Equal("4.3.0.2503", (await PackageSessionHelper.GetPackageVersion(project))?.ToString());
+    }
+
     private static string? ReadVersion(string project) => ProjectVersionReader.ReadVersion(project, "Stride.Engine", "Xenko.Engine");
 
     private string WriteProject(string version, DateTime time)

@@ -47,6 +47,8 @@
     <PackageReference Include="Silk.NET.Direct3D12" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'" PrivateAssets="compile" />
     <PackageReference Include="Silk.NET.Direct3D.Compilers" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'" PrivateAssets="compile" />
     <PackageReference Include="Silk.NET.Sdl" PrivateAssets="compile" />
+    <!-- D3D12 Agility SDK: native-only package, copied by build\Stride.Graphics.targets (and the StrideNativeLib below for engine builds) -->
+    <PackageReference Include="Microsoft.Direct3D.D3D12" Condition="'$(TargetFramework)' == '$(StrideFramework)'" GeneratePathProperty="true" />
     <PackageReference Include="Silk.NET.Windowing.Sdl" Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)'" PrivateAssets="compile" />
   </ItemGroup>
   <Choose>
@@ -56,6 +58,19 @@
           <Link>runtimes\win-x64\native\%(Filename)%(Extension)</Link>
           <RelativePath>runtimes\win-x64\native\%(Filename)%(Extension)</RelativePath>
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </StrideNativeLib>
+        <!-- Loaded by D3D12Runtime from D3D12\ next to Stride.Graphics.dll. Not packed: NuGet consumers get them from the package -->
+        <StrideNativeLib Include="$(PkgMicrosoft_Direct3D_D3D12)\build\native\bin\x64\D3D12Core.dll">
+          <Link>D3D12\D3D12Core.dll</Link>
+          <RelativePath>D3D12\D3D12Core.dll</RelativePath>
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+          <Pack>false</Pack>
+        </StrideNativeLib>
+        <StrideNativeLib Include="$(PkgMicrosoft_Direct3D_D3D12)\build\native\bin\x64\d3d12SDKLayers.dll">
+          <Link>D3D12\D3D12SDKLayers.dll</Link>
+          <RelativePath>D3D12\D3D12SDKLayers.dll</RelativePath>
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+          <Pack>false</Pack>
         </StrideNativeLib>
       </ItemGroup>
     </When>

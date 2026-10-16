@@ -10,6 +10,7 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/stride3d/stride</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
 
     <!-- Native payload is placed into runtimes/<rid>/native/ by the build workflow
          before `dotnet pack` runs. The folder layout below is the standard NuGet
@@ -29,5 +30,9 @@
          not matching any real RID graph, so NuGet never auto-deploys it into consumers.
          Not copied to consumer output; start-emulator.ps1 reads it from the NuGet cache. -->
     <None Include="runtimes\linux-x64-nodmabuf\native\*" Pack="true" PackagePath="runtimes\linux-x64-nodmabuf\native\" />
+
+    <!-- Mesa ref/commits and LLVM version per platform, written by the build workflow. -->
+    <None Include="tools\VERSION.txt" Pack="true" PackagePath="tools\" />
+    <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 </Project>

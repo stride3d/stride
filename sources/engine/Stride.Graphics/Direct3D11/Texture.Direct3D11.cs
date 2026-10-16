@@ -955,9 +955,9 @@ namespace Stride.Graphics
             var needsTypelessDepth = IsDepthStencil || (IsShaderResource && IsDepthFormat(textureDescription.Format));
             if (needsTypelessDepth)
             {
-                if (IsShaderResource && GraphicsDevice.Features.CurrentProfile < GraphicsProfile.Level_10_0)
+                if (IsShaderResource && !GraphicsDevice.Features.HasDepthAsSRV)
                 {
-                    throw new NotSupportedException($"Shader Resource Views for Depth-Stencil Textures are not supported for Graphics profile < 10.0 (Current: [{GraphicsDevice.Features.CurrentProfile}])");
+                    throw new NotSupportedException($"This device does not support Depth-Stencil Textures as Shader Resource Views (Current profile: [{GraphicsDevice.Features.CurrentProfile}])");
                 }
                 else
                 {
@@ -1076,70 +1076,6 @@ namespace Stride.Graphics
                 MiscFlags = (uint) textureDescription.Options
             };
             return desc;
-        }
-
-        /// <summary>
-        ///   Checks a <see cref="TextureDescription"/> for invalid mip-levels and modifies the description if necessary.
-        /// </summary>
-        /// <param name="device">The graphics device.</param>
-        /// <param name="description">The Texture description to check.</param>
-        /// <returns>The updated Texture description.</returns>
-        /// <remarks>
-        ///   This check is to prevent issues with Direct3D 9.x where the driver may not be able to create mipmaps
-        ///   whose resolution in less than 4x4 pixels.
-        /// </remarks>
-        private static TextureDescription CheckMipLevels(GraphicsDevice device, ref TextureDescription description)
-        {
-            if (device.Features.CurrentProfile < GraphicsProfile.Level_10_0 &&
-                description.Flags.HasFlag(TextureFlags.DepthStencil) && description.Format.IsCompressed)
-            {
-                description.MipLevelCount = Math.Min(CalculateMipCount(description.Width, description.Height), description.MipLevelCount);
-            }
-            return description;
-        }
-
-        /// <summary>
-        ///   Calculates the number of mip-levels that can be created for a specified size, taking into account
-        ///   a minimum mip-level size.
-        /// </summary>
-        /// <param name="size">The size in pixels.</param>
-        /// <param name="minimumSizeLastMip">The minimum size of the last mip-level. By default, this is 4 pixels.</param>
-        /// <returns>The number of possible mip-levels.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">
-        ///   Both <paramref name="size"/> and <paramref name="minimumSizeLastMip"/> must be greater than 0.
-        /// </exception>
-        private static int CalculateMipCountFromSize(int size, int minimumSizeLastMip = 4)
-        {
-            // TODO: CountMips?
-
-            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(size);
-            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(minimumSizeLastMip);
-
-            int level = 1;
-            while ((size / 2) >= minimumSizeLastMip)
-            {
-                size = Math.Max(1, size / 2);
-                level++;
-            }
-            return level;
-        }
-
-        /// <summary>
-        ///   Calculates the number of mip-levels that can be created for a specified size, taking into account
-        ///   a minimum mip-level size.
-        /// </summary>
-        /// <param name="width">The width in pixels.</param>
-        /// <param name="height">The height in pixels.</param>
-        /// <param name="minimumSizeLastMip">The minimum size of the last mip-level. By default, this is 4 pixels.</param>
-        /// <returns>The number of possible mip-levels.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">
-        ///   <paramref name="width"/> and <paramref name="height"/> must be greater than 0, and
-        ///   <paramref name="minimumSizeLastMip"/> must also be greater than 0.
-        /// </exception>
-        private static int CalculateMipCount(int width, int height, int minimumSizeLastMip = 4)
-        {
-            return Math.Min(CalculateMipCountFromSize(width, minimumSizeLastMip),
-                            CalculateMipCountFromSize(height, minimumSizeLastMip));
         }
 
         /// <summary>

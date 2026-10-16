@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Collections.Generic;
+using System.Reflection;
 using Stride.Core.Assets;
 using Stride.Core.Diagnostics;
 using Stride.Core.Reflection;
@@ -17,6 +18,9 @@ namespace Stride.Assets.Presentation.AssemblyReloading
         private AssemblyContainer assemblyContainer;
         private Package package;
         private PackageLoadedAssembly loadedAssembly;
+        // The undo puts back instances of this copy's types: it loads this copy again, not a new one from the file
+        private Assembly unloadedAssembly;
+        private UnloadedAssembly unloaded;
 
         public UnloadAssembliesOperation(AssemblyContainer assemblyContainer, Package package, PackageLoadedAssembly loadedAssembly, IEnumerable<IDirtiable> dirtiables)
             : base(dirtiables)
@@ -28,7 +32,8 @@ namespace Stride.Assets.Presentation.AssemblyReloading
 
         public void Execute(ILogger log)
         {
-            ReloadAssembliesOperation.UnloadAssembly(log, assemblyContainer, loadedAssembly);
+            unloadedAssembly = loadedAssembly.Assembly;
+            unloaded = ReloadAssembliesOperation.UnloadAssembly(log, assemblyContainer, loadedAssembly);
             package.LoadedAssemblies.Remove(loadedAssembly);
         }
 
@@ -37,17 +42,23 @@ namespace Stride.Assets.Presentation.AssemblyReloading
             assemblyContainer = null;
             package = null;
             loadedAssembly = null;
+            unloadedAssembly = null;
+            unloaded = null;
         }
 
         protected override void Undo()
         {
-            var assembly = assemblyContainer.LoadAssemblyFromPath(loadedAssembly.Path);
-            if (assembly == null)
+            if (unloadedAssembly == null || unloaded == null)
                 return;
 
-            loadedAssembly.Assembly = assembly;
-            AssemblyRegistry.Register(assembly, AssemblyCommonCategories.Assets);
-            DataSerializerFactory.RegisterSerializationAssembly(assembly);
+            // The container resolves what an assembly references through the assembly that asks
+            if (unloaded.ContainerAssembly != null)
+                assemblyContainer.RestoreAssembly(unloaded.ContainerAssembly);
+
+            loadedAssembly.Assembly = unloadedAssembly;
+            // Its module initializer registered some categories and runs once only: it takes back the ones it had
+            AssemblyRegistry.Register(unloadedAssembly, unloaded.Categories.Count > 0 ? unloaded.Categories : new[] { AssemblyCommonCategories.Assets });
+            DataSerializerFactory.RegisterSerializationAssembly(unloadedAssembly);
             package.LoadedAssemblies.Add(loadedAssembly);
         }
 

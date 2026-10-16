@@ -27,7 +27,7 @@ namespace Stride.Graphics
     {
         private const int ConstantBufferCount = D3D11.CommonshaderConstantBufferApiSlotCount; // 14 actually
         private const int SamplerStateCount = D3D11.CommonshaderSamplerSlotCount;
-        private const int ShaderResourceViewCount = D3D11.CommonshaderInputResourceSlotCount; // TODO: Unused?
+        private const int ShaderResourceViewCount = D3D11.CommonshaderInputResourceSlotCount;
         private const int SimultaneousRenderTargetCount = D3D11.SimultaneousRenderTargetCount;
         private const int UnorderedAcccesViewCount = D3D11.D3D111UavSlotCount;
 
@@ -44,6 +44,19 @@ namespace Stride.Graphics
 
         private readonly Buffer[] constantBuffers = new Buffer[StageCount * ConstantBufferCount];
         private readonly SamplerState[] samplerStates = new SamplerState[StageCount * SamplerStateCount];
+
+        // What the Shader Resource View bound to each slot reads, to find the views of a resource that is to be written
+        private readonly BoundShaderResource[] boundShaderResources = new BoundShaderResource[StageCount * ShaderResourceViewCount];
+
+        /// <summary>
+        ///   The native resource behind a bound Shader Resource View (identity only, no reference kept) and the
+        ///   sub-Resources it reads: mip-levels and array slices, end excluded.
+        /// </summary>
+        private struct BoundShaderResource
+        {
+            public nint Resource;
+            public int MipStart, MipEnd, ArraySliceStart, ArraySliceEnd;
+        }
 
         private PipelineState currentPipelineState;
 
@@ -145,6 +158,7 @@ namespace Stride.Graphics
 
             Array.Clear(samplerStates);
             Array.Clear(constantBuffers);
+            Array.Clear(boundShaderResources);
 
             Array.Clear(unorderedAccessViews);
             Array.Clear(currentRenderTargetViews);
@@ -187,15 +201,15 @@ namespace Stride.Graphics
             for (int i = 0; i < renderTargetViews.Length; i++)
                 currentRenderTargetViews[i] = renderTargetViews[i].NativeRenderTargetView;
 
-            ref var renderTargetsToSet = ref renderTargetViews.Length > 0
-                ? ref currentRenderTargetViews.GetReference()
-                : ref NullRef<ComPtr<ID3D11RenderTargetView>>();
-
             var depthStencilToSet = depthStencilView?.NativeDepthStencilView ?? NullComPtr<ID3D11DepthStencilView>();
 
-            nativeDeviceContext->OMSetRenderTargets(NumViews: (uint) currentRenderTargetViewsActiveCount,
-                                                    ref renderTargetsToSet,
-                                                    depthStencilToSet);
+            // Pinned: Silk's ref ComPtr<T> overloads take the address without pinning, and the array is on the GC heap
+            fixed (ComPtr<ID3D11RenderTargetView>* renderTargetsToSet = currentRenderTargetViews)
+            {
+                nativeDeviceContext->OMSetRenderTargets(NumViews: (uint) currentRenderTargetViewsActiveCount,
+                                                        renderTargetViews.Length > 0 ? (ID3D11RenderTargetView**) renderTargetsToSet : null,
+                                                        depthStencilToSet.Handle);
+            }
         }
 
         /// <summary>
@@ -403,6 +417,19 @@ namespace Stride.Graphics
 
             var nativeShaderResourceView = shaderResourceView is not null ? shaderResourceView.NativeShaderResourceView : default;
 
+            ref var bound = ref boundShaderResources[((int) stage - 1) * ShaderResourceViewCount + slot];
+            bound.Resource = shaderResourceView is not null ? (nint) shaderResourceView.NativeResource.Handle : 0;
+            if (shaderResourceView is Texture texture)
+            {
+                var (mipStart, mipCount, arraySliceStart, arraySliceCount) = texture.GetViewSubResourceRange();
+                (bound.MipStart, bound.MipEnd) = (mipStart, mipStart + mipCount);
+                (bound.ArraySliceStart, bound.ArraySliceEnd) = (arraySliceStart, arraySliceStart + arraySliceCount);
+            }
+            else
+            {
+                (bound.MipStart, bound.MipEnd, bound.ArraySliceStart, bound.ArraySliceEnd) = (0, int.MaxValue, 0, int.MaxValue);
+            }
+
             switch (stage)
             {
                 case ShaderStage.Vertex: nativeDeviceContext->VSSetShaderResources((uint) slot, NumViews: 1, ref nativeShaderResourceView); break;
@@ -439,22 +466,22 @@ namespace Stride.Graphics
             int remainingSlots = currentUARenderTargetViews.Length - currentRenderTargetViewsActiveCount;
 
             scoped var uavs = currentUARenderTargetViews.AsSpan(start: currentRenderTargetViewsActiveCount, length: remainingSlots);
-            scoped ref var uavsRef = ref uavs.GetReference();
 
             scoped Span<uint> uavInitialCounts = stackalloc uint[remainingSlots];
             uavInitialCounts.Fill(unchecked((uint)-1));
             uavInitialCounts[slot - currentRenderTargetViewsActiveCount] = (uint) uavInitialOffset;
-            scoped ref readonly var uavInitialCountsRef = ref uavInitialCounts.GetReference();
 
             const uint D3D11_KEEP_RENDER_TARGETS_AND_DEPTH_STENCIL = 0xffffffff;
 
-            ref var noRenderTargets = ref NullRef<ComPtr<ID3D11RenderTargetView>>();
-            var noDepthStencilView = NullComPtr<ID3D11DepthStencilView>();
-
-            nativeDeviceContext->OMSetRenderTargetsAndUnorderedAccessViews(
-                D3D11_KEEP_RENDER_TARGETS_AND_DEPTH_STENCIL, ref noRenderTargets, noDepthStencilView,
-                UAVStartSlot: (uint) currentRenderTargetViewsActiveCount, NumUAVs: (uint) remainingSlots,
-                ref uavsRef, in uavInitialCountsRef);
+            // Pinned: Silk's ref ComPtr<T> overloads take the address without pinning, and the array is on the GC heap
+            fixed (ComPtr<ID3D11UnorderedAccessView>* uavsToSet = uavs)
+            fixed (uint* uavInitialCountsToSet = uavInitialCounts)
+            {
+                nativeDeviceContext->OMSetRenderTargetsAndUnorderedAccessViews(
+                    D3D11_KEEP_RENDER_TARGETS_AND_DEPTH_STENCIL, ppRenderTargetViews: null, pDepthStencilView: null,
+                    UAVStartSlot: (uint) currentRenderTargetViewsActiveCount, NumUAVs: (uint) remainingSlots,
+                    (ID3D11UnorderedAccessView**) uavsToSet, uavInitialCountsToSet);
+            }
         }
 
         /// <summary>
@@ -653,15 +680,63 @@ namespace Stride.Graphics
         /// <param name="newState">The new state of <paramref name="resource"/>.</param>
         /// <remarks>
         ///   The Direct3D 11 implementation does not have synchronization barriers for Graphics Resource transitions.
+        ///   A transition to unordered access unbinds the sub-Resources it covers from the shader resource slots they
+        ///   are bound to, since binding them for writing while they are still bound for reading makes the runtime
+        ///   unbind them with a debug layer warning.
         /// </remarks>
         public void ResourceBarrierTransition(GraphicsResource resource, BarrierLayout newLayout, uint subresource = uint.MaxValue)
         {
-            // Nothing to do
+            if (newLayout == BarrierLayout.UnorderedAccess)
+                UnbindShaderResource(resource, subresource);
         }
 
         public void ResourceBarrierTransition(GraphicsResource resource, GraphicsResourceState newState)
         {
-            // Nothing to do
+            if (newState == GraphicsResourceState.UnorderedAccess)
+                UnbindShaderResource(resource, uint.MaxValue);
+        }
+
+        /// <summary>
+        ///   Gets a value indicating whether a Shader Resource View is bound to a slot of a stage (for tests).
+        /// </summary>
+        internal bool IsShaderResourceViewBound(ShaderStage stage, int slot)
+            => boundShaderResources[((int) stage - 1) * ShaderResourceViewCount + slot].Resource != 0;
+
+        /// <summary>
+        ///   Unbinds the Shader Resource Views that read a sub-Resource of a Graphics Resource, in every stage.
+        /// </summary>
+        /// <param name="resource">The Graphics Resource. A Texture View stands for its whole Texture, as in Direct3D 12.</param>
+        /// <param name="subresource">
+        ///   The sub-Resource index (see <see cref="Texture.GetSubResourceIndex"/>), or <see cref="uint.MaxValue"/> for all.
+        ///   Views of other sub-Resources stay bound: reading mip-level N while writing N + 1 is fine.
+        /// </param>
+        private void UnbindShaderResource(GraphicsResource resource, uint subresource)
+        {
+            var nativeResource = resource is not null ? (nint) resource.NativeResource.Handle : 0;
+            if (nativeResource == 0)
+                return;
+
+            bool allSubresources = subresource == uint.MaxValue || resource is not Texture;
+            int mipLevel = 0, arraySlice = 0;
+            if (!allSubresources)
+            {
+                var mipLevelCount = (uint) ((Texture) resource).MipLevelCount;
+                mipLevel = (int) (subresource % mipLevelCount);
+                arraySlice = (int) (subresource / mipLevelCount);
+            }
+
+            for (int i = 0; i < boundShaderResources.Length; i++)
+            {
+                ref var bound = ref boundShaderResources[i];
+                if (bound.Resource != nativeResource)
+                    continue;
+
+                if (allSubresources ||
+                    (mipLevel >= bound.MipStart && mipLevel < bound.MipEnd && arraySlice >= bound.ArraySliceStart && arraySlice < bound.ArraySliceEnd))
+                {
+                    SetShaderResourceView((ShaderStage) (i / ShaderResourceViewCount + 1), i % ShaderResourceViewCount, shaderResourceView: null);
+                }
+            }
         }
 
         /// <summary>
@@ -710,6 +785,31 @@ namespace Stride.Graphics
             PrepareDraw(isDispatch: true); // TODO: PrepareDraw for Compute dispatch?
 
             nativeDeviceContext->DispatchIndirect(indirectBuffer.NativeBuffer, (uint) offsetInBytes);
+        }
+
+        /// <summary>
+        ///   Makes the unordered access writes to a Graphics Resource visible to the next unordered accesses to it, such as
+        ///   a dispatch that writes a buffer, then a dispatch that reads or writes it.
+        /// </summary>
+        /// <param name="resource">The Graphics Resource written as unordered access.</param>
+        /// <remarks>
+        ///   The resource must already be in <see cref="BarrierLayout.UnorderedAccess"/>: this doesn't transition it.
+        ///   Nothing to do on Direct3D 11: the runtime orders unordered accesses between calls.
+        /// </remarks>
+        public void UnorderedAccessBarrier(GraphicsResource resource)
+        {
+            ArgumentNullException.ThrowIfNull(resource);
+        }
+
+        /// <summary>
+        ///   Makes all unordered access writes visible to the next unordered accesses, such as a pass that writes several
+        ///   buffers, then a pass that reads them.
+        /// </summary>
+        /// <remarks>
+        ///   Nothing to do on Direct3D 11: the runtime orders unordered accesses between calls.
+        /// </remarks>
+        public void UnorderedAccessBarrier()
+        {
         }
 
         /// <summary>

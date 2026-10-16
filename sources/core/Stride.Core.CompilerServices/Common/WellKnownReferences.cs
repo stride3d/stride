@@ -53,6 +53,16 @@ internal static class WellKnownReferences
         return compilation.GetTypeByMetadataName("Stride.Core.Assets.AssetDescriptionAttribute");
     }
 
+    public static INamedTypeSymbol? AssetContentTypeAttribute(Compilation compilation)
+    {
+        return compilation.GetTypeByMetadataName("Stride.Core.Assets.AssetContentTypeAttribute");
+    }
+
+    public static INamedTypeSymbol? AssetFileExtensionAttribute(Compilation compilation)
+    {
+        return compilation.GetTypeByMetadataName("Stride.Core.Serialization.AssetFileExtensionAttribute");
+    }
+
     public static bool HasAttribute(this ISymbol symbol, INamedTypeSymbol attribute)
     {
         if (symbol.GetAttributes().Any(attr => attr.AttributeClass?.OriginalDefinition.Equals(attribute, SymbolEqualityComparer.Default) ?? false))

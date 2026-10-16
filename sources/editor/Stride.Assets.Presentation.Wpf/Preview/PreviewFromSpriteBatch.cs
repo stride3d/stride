@@ -49,7 +49,10 @@ namespace Stride.Assets.Presentation.Preview
             Game.Script.AddTask(MoveAndScaleSpriteOnUserInput); 
         }
 
-        protected virtual Vector2 SpriteSize
+        /// <summary>
+        /// The size of what the preview draws, in pixels at scale 1; zero until the content is loaded.
+        /// </summary>
+        public virtual Vector2 SpriteSize
         {
             get { return Vector2.Zero; }
         }
@@ -190,7 +193,8 @@ namespace Stride.Assets.Presentation.Preview
 
         private void RunOnGameThread(Action action)
         {
-            if (Game == null)
+            // The preview game may have ended (studio closing, device lost): its script system is gone.
+            if (Game == null || !Game.IsRunning)
                 return;
 
             Game.Script.AddTask(() =>

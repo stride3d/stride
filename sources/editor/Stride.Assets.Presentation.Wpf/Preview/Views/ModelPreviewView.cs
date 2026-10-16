@@ -10,7 +10,6 @@ namespace Stride.Assets.Presentation.Preview.Views
     [AssetPreviewView<PrefabPreview>]
     [AssetPreviewView<PrefabModelPreview>]
     [AssetPreviewView<ProceduralModelPreview>]
-    [AssetPreviewView<SpriteStudioSheetPreview>]
     public class ModelPreviewView : StridePreviewView
     {
         static ModelPreviewView()

@@ -73,26 +73,6 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
-        internal static byte[] AudioEmitterGizmo {
-            get {
-                object obj = ResourceManager.GetObject("AudioEmitterGizmo", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] AudioListenerGizmo {
-            get {
-                object obj = ResourceManager.GetObject("AudioListenerGizmo", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
         internal static byte[] BackgroundGizmo {
             get {
                 object obj = ResourceManager.GetObject("BackgroundGizmo", resourceCulture);
@@ -126,16 +106,6 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos {
         internal static byte[] NodeLinkGizmo {
             get {
                 object obj = ResourceManager.GetObject("NodeLinkGizmo", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] ParticleGizmo {
-            get {
-                object obj = ResourceManager.GetObject("ParticleGizmo", resourceCulture);
                 return ((byte[])(obj));
             }
         }
@@ -186,16 +156,6 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos {
         internal static byte[] SunLightGizmo {
             get {
                 object obj = ResourceManager.GetObject("SunLightGizmo", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] UIGizmo {
-            get {
-                object obj = ResourceManager.GetObject("UIGizmo", resourceCulture);
                 return ((byte[])(obj));
             }
         }

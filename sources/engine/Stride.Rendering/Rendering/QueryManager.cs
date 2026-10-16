@@ -125,13 +125,16 @@ namespace Stride.Rendering
                     if (!query.Pool.TryGetData(queryResults))
                         return;
 
-                    // Recycle the pool
                     pool = query.Pool;
-                    allocator.ReleaseReference(pool);
                 }
 
                 // Remove successful queries
                 queryEvents.Dequeue();
+
+                // Recycle the pool with its last query: the queue names the pools still referenced, which Dispose
+                // releases, also when profiling below throws
+                if (!queryEvents.TryPeek(out var nextQuery) || nextQuery.Pool != pool)
+                    allocator.ReleaseReference(pool);
 
                 // Profile
                 // An event with a key is a begin event

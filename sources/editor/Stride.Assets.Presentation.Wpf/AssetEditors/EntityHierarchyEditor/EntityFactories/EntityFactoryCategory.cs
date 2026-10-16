@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using Stride.Core.Presentation.Collections;
 
 namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories
 {
@@ -12,34 +13,40 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFa
 
         public class EntityFactoryViewModel
         {
-            internal EntityFactoryViewModel(IEntityFactory factory, string name)
+            internal EntityFactoryViewModel(IEntityFactory factory, string name, int order)
             {
                 Name = name;
                 Factory = factory;
+                Order = order;
             }
 
             public string Name { get; private set; }
 
             public IEntityFactory Factory { get; private set; }
+
+            internal int Order { get; }
         }
-   
+
         internal EntityFactoryCategory(string name)
         {
             Name = name;
-            Factories = new SortedList<int, EntityFactoryViewModel>();
+            Factories = new ObservableList<EntityFactoryViewModel>();
         }
 
         public string Name { get; }
 
-        public SortedList<int, EntityFactoryViewModel> Factories { get; }
+        /// <summary>
+        /// The factories of this category, sorted by order then by registration.
+        /// </summary>
+        public ObservableList<EntityFactoryViewModel> Factories { get; }
 
         public void AddFactory(IEntityFactory factory, string name, int order)
         {
-            while (Factories.ContainsKey(order))
-                ++order;
+            var index = 0;
+            while (index < Factories.Count && Factories[index].Order <= order)
+                ++index;
 
-            var viewModel = new EntityFactoryViewModel(factory, name);
-            Factories.Add(order, viewModel);
+            Factories.Insert(index, new EntityFactoryViewModel(factory, name, order));
         }
 
         public static void RegisterCategory(int order, string name)

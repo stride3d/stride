@@ -67,6 +67,23 @@ async function refreshPlatforms({ autoSelect = false } = {}) {
   sel.value = currentPlatform;
 }
 
+// A sidecar attempt's pixel counts as the 5-element display histogram [0, 1-2, 3-5, 6-15, 16+] that browser
+// recompute also produces, so downstream code is uniform. Sidecars hold `diffs` (pixels per diff "0" to "15",
+// then per band "16-31" … "128+", which all fall in 16+); older ones hold the display buckets themselves
+// (`buckets`).
+function sidecarHistogram(attempt) {
+  if (!attempt.diffs) {
+    const b = attempt.buckets || {};
+    return [b['0']||0, b['1-2']||0, b['3-5']||0, b['6-15']||0, b['16+']||0];
+  }
+  const histogram = [0, 0, 0, 0, 0];
+  for (const [key, count] of Object.entries(attempt.diffs)) {
+    const d = parseInt(key, 10); // a band's lower end: "16-31" parses as 16
+    histogram[d === 0 ? 0 : d <= 2 ? 1 : d <= 5 ? 2 : d <= 15 ? 3 : 4] += count;
+  }
+  return histogram;
+}
+
 function extractMatchedPlatform(path) {
   if (!path) return null;
   const parts = path.split(/[\\/]/);
@@ -93,7 +110,7 @@ async function reload() {
     ]);
     if (!gData) return;
     const gold = [
-      ...(gData.images || []).map(g => ({ name: g.name, fallback: null })),
+      ...(gData.images || []).map(g => ({ name: g.name, fallback: null, variants: g.variants || [] })),
       ...(gData.fallbacks || []).map(g => ({ name: g.name, fallback: g.fallbackPlatform }))
     ];
     const srcImgs = {};
@@ -104,8 +121,8 @@ async function reload() {
   cellStats = {};
   // Pre-populate cellStats from the sidecar (authoritative verdict + stats from the test
   // run) — unless a hash check says the data is stale. Staleness: any gold the sidecar
-  // referenced now hashes to something different, OR the current primary gold isn't
-  // among the hashes the run saw. When recompute is viable (hasPng=true) we fall through
+  // referenced now hashes to something different, OR a current gold of the bucket (the image
+  // or a variant) isn't among the hashes the run saw. When recompute is viable (hasPng=true) we fall through
   // so the browser does a real diff; when there's no PNG (Pass case), we trust as-is.
   for (const suite of allSuites) {
     const srcImgs = suiteData[suite]?.sourceImages;
@@ -118,14 +135,16 @@ async function reload() {
         if (it.hasPng) {
           const matchedAttempt = attempts.find(a => a.gold === sc.matched) || attempts[0];
           if (!matchedAttempt?.goldHash || !it.matchedGoldHash || it.matchedGoldHash !== matchedAttempt.goldHash) continue;
-          if (it.primaryGoldHash && !attempts.some(a => a.goldHash === it.primaryGoldHash)) continue;
+          // Stale too when the bucket has a gold (a variant, say) the run would compare against now. The runtime tries
+          // the bucket's golds in order and stops at the first match: a pass on this lane's gold never saw the later ones.
+          const passedOwn = sc.outcome === 'Pass' && extractMatchedPlatform(sc.matched) === currentPlatform;
+          const matchedIndex = variantIndex((sc.matched || '').split(/[\\/]/).pop());
+          const judging = (it.bucketGolds || []).filter(g => !passedOwn || variantIndex(g.file) <= matchedIndex);
+          if (judging.some(g => !attempts.some(a => a.goldHash === g.hash))) continue;
         }
         const best = attempts.find(a => a.passed) || attempts.find(a => a.kind === 'reference') || attempts[0];
         if (!best) continue;
-        // Buckets is a dict {"0":..., "1-2":..., ...}; flatten to the 5-element histogram
-        // shape that browser recompute also produces, so downstream code is uniform.
-        const b = best.buckets || {};
-        const histogram = [b['0']||0, b['1-2']||0, b['3-5']||0, b['6-15']||0, b['16+']||0];
+        const histogram = sidecarHistogram(best);
         const totalPixels = histogram.reduce((a, b) => a + b, 0);
         const diffPixels = histogram[2] + histogram[3] + histogram[4];
         cellStats[`${src.id}:${suite}:${it.name}`] = {
@@ -134,17 +153,20 @@ async function reload() {
           histogram,
           diffPixels, totalPixels,
           sidecarVerdict: sc.outcome === 'Pass',
-          sidecarBrief: formatHistogramBrief(histogram, best.thresholds),
+          sidecarBrief: best.diffs ? formatDiffsBrief(best.diffs, best.thresholds) : formatHistogramBrief(histogram, best.thresholds),
           sidecarMatched: sc.matched,
           // On Fail outcome `matched` is null; fall back to the best attempt's gold path
           // for the "via X" hint — still the gold the comparison was actually against.
           sidecarMatchedPlatform: extractMatchedPlatform(sc.matched || best.gold),
+          sidecarMatchedFile: (sc.matched || best.gold || '').split(/[\\/]/).pop(),
         };
       }
     }
   }
   resetAltGoldState();
   render();
+  // The golds may have changed (promote, delete): refetch the open detail pane's gold list and images.
+  if (focusedKey) renderDetailPane(focusedKey);
   loadFixableHints();
 }
 
@@ -299,6 +321,7 @@ function buildSuiteImages(suite) {
     const goldEntry = data.gold.find(g => g.name === name);
     const hasGold = !!goldEntry;
     const goldFallback = goldEntry?.fallback || null;
+    const goldVariants = goldEntry?.variants || [];
     const sourcesWithImage = {};
     for (const src of sources)
       sourcesWithImage[src.id] = (data.sourceImages[src.id] || []).some(s => s.name === name);
@@ -321,7 +344,7 @@ function buildSuiteImages(suite) {
       }
       status = anyFail ? 'fail' : anyPending ? 'pending' : 'pass';
     }
-    return { suite, name, hasGold, goldFallback, sourcesWithImage, status };
+    return { suite, name, hasGold, goldFallback, goldVariants, sourcesWithImage, status };
   });
 }
 
@@ -427,7 +450,7 @@ function buildRowCells(img, key) {
   let cells = `
     <td class="cb"><input type="checkbox" ${isSel ? 'checked' : ''} onclick="event.stopPropagation(); toggleSelect('${esc(key)}')"></td>
     <td style="padding-left:24px">${esc(img.name)}${isLoading ? ' <span class="spinner"></span>' : ''}<span data-row-tag="${esc(key)}">${img.status === 'fail' ? `<span class="tag-fail">${fixableVia[key] ? 'failing (fixable)' : 'failing'}</span>` : img.status === 'new' ? '<span class="tag-new">new</span>' : img.status === 'pending' ? '<span class="tag-pending">...</span>' : fixableVia[key] ? `<span class="tag-fix" title="Identical gold at ${esc(fixableVia[key].platform)}">consolidate</span>` : ''}</span></td>
-    <td><span class="cell ${img.goldFallback ? 'miss' : 'ref'}">${img.hasGold ? (img.goldFallback ? 'fb' : 'ref') : '—'}</span>${img.hasGold ? ` <span style="font-size:10px;color:#666">${esc(img.goldFallback || currentPlatform)}</span>` : ''}${goldThumb}</td>`;
+    <td><span class="cell ${img.goldFallback ? 'miss' : 'ref'}">${img.hasGold ? (img.goldFallback ? 'fb' : 'ref') : '—'}</span>${img.hasGold ? ` <span style="font-size:10px;color:#666">${esc(img.goldFallback || currentPlatform)}</span>` : ''}${img.goldVariants?.length ? ` <span style="font-size:10px;color:#999" title="${esc(img.goldVariants.join(', '))}">+${img.goldVariants.length} variant${img.goldVariants.length > 1 ? 's' : ''}</span>` : ''}${goldThumb}</td>`;
 
   const activeRef = compareRight[key] || `src:${getSourceForKey(key)}`;
   for (const src of sources) {
@@ -446,22 +469,13 @@ function buildRowCells(img, key) {
       const cls = passing === true ? 'pass' : passing === false ? 'fail' : 'pending';
       const icon = passing === true ? '✓' : passing === false ? '✗' : '…';
       const brief = formatThresholdBrief(result);
-      // Prefer the sidecar's precise matched gold; fall back to the browser-side
-      // alternate-scan result when only that knew which alt rescued the cell.
-      // Tooltip carries the full path as a safety net if the inline text wraps.
-      const matchedPlat = stats.sidecarMatchedPlatform
-        || altGoldStatus[statsKey]?.passingPlatform;
-      let matchSuffix = '';
-      if (matchedPlat && matchedPlat !== currentPlatform)
-        matchSuffix = ` <span title="${esc(matchedPlat)}">(via ${esc(matchedPlat)})</span>`;
-      else if (passing === true && !result.passed)
-        matchSuffix = ' (via alt)';
+      const matchSuffix = matchSuffixHtml(stats, statsKey, passing, result);
       cellHtml = `<span class="cell ${cls}" data-stats-key="${esc(statsKey)}">${icon} ${brief}${matchSuffix}</span>`;
     } else {
       cellHtml = `<span class="cell pending" data-stats-key="${esc(statsKey)}">…</span>`;
       computeCellStats(src.id, img.suite, img.name);
     }
-    // Passing tests are sidecar-only (no PNG); the cell shows only the verdict text.
+    // Most passing tests are sidecar-only (no PNG); the cell then shows only the verdict text.
     const srcItem = (suiteData[img.suite]?.sourceImages[src.id] || []).find(s => s.name === img.name);
     const hasPng = srcItem?.hasPng !== false;
     if (has && hasPng) {
@@ -477,6 +491,21 @@ function buildRowCells(img, key) {
     cells += `<td onclick="event.stopPropagation(); setActiveSource('${esc(key)}','${src.id}')"${isActive ? ' class="active-source"' : ''}>${cellHtml}</td>`;
   }
   return cells;
+}
+
+// Which gold a cell was judged against, when it isn't the current platform's <name>.png: "(via <platform>)"
+// for another bucket's gold, "(variantN)" for a variant. Prefers the sidecar's precise matched gold; falls
+// back to the browser-side alternate-scan result when only that knew which gold rescued the cell. Tooltip
+// carries the full platform as a safety net if the inline text wraps.
+function matchSuffixHtml(stats, statsKey, passing, result) {
+  const alt = altGoldStatus[statsKey];
+  const matchedPlat = stats.sidecarMatchedPlatform || alt?.passingPlatform;
+  const variant = variantLabel(stats.sidecarMatchedPlatform ? stats.sidecarMatchedFile : alt?.passingFile);
+  if (matchedPlat && matchedPlat !== currentPlatform)
+    return ` <span title="${esc(matchedPlat)}">(via ${esc(matchedPlat)}${variant ? ' ' + variant : ''})</span>`;
+  if (variant) return ` (${variant})`;
+  if (passing === true && !result.passed) return ' (via alt)';
+  return '';
 }
 
 function renderRow(key) {
@@ -510,12 +539,34 @@ function toggleSuite(suite) {
 // === Detail ===
 const detailVersion = {}; // track version to discard stale loads
 
+// Gold refs: "gold:<platform>" for <name>.png, "gold:<platform>|<file>" for one of its variants
+// (<name>.variantN.png), as listed by /api/gold/all.
+function goldRef(platform, file, name) {
+  return !file || file === name ? `gold:${platform}` : `gold:${platform}|${file}`;
+}
+function parseGoldRef(ref, name) {
+  const body = ref.slice(5);
+  const bar = body.indexOf('|');
+  return bar < 0 ? { plat: body, file: name } : { plat: body.slice(0, bar), file: body.slice(bar + 1) };
+}
+// 1 for <name>.png, N for <name>.variantN.png.
+function variantIndex(file) {
+  const label = variantLabel(file);
+  return label ? parseInt(label.slice('variant'.length), 10) : 1;
+}
+// "variant2" for <name>.variant2.png, '' for <name>.png.
+function variantLabel(file) {
+  // Same rule as GoldVariant: N >= 2, no leading zeros.
+  const m = /\.(variant(?:[2-9]|[1-9][0-9]{1,8}))\.png$/i.exec(file || '');
+  return m ? m[1] : '';
+}
+
 function resolveImageRef(ref, suite, name) {
   if (!ref) return null;
 
   if (ref.startsWith('gold:')) {
-    const plat = ref.slice(5);
-    return `/api/gold/image?suite=${enc(suite)}&platform=${enc(plat)}&name=${enc(name)}`;
+    const { plat, file } = parseGoldRef(ref, name);
+    return `/api/gold/image?suite=${enc(suite)}&platform=${enc(plat)}&name=${enc(file)}`;
   }
   if (ref.startsWith('src:')) {
     const srcId = ref.slice(4);
@@ -528,8 +579,8 @@ function resolveImageRef(ref, suite, name) {
 function resolveMetadataRef(ref, suite, name) {
   if (!ref) return null;
   if (ref.startsWith('gold:')) {
-    const plat = ref.slice(5);
-    return `/api/gold/metadata?suite=${enc(suite)}&platform=${enc(plat)}&name=${enc(name)}`;
+    const { plat, file } = parseGoldRef(ref, name);
+    return `/api/gold/metadata?suite=${enc(suite)}&platform=${enc(plat)}&name=${enc(file)}`;
   }
   if (ref.startsWith('src:')) {
     const srcId = ref.slice(4);
@@ -547,8 +598,10 @@ async function fetchMetadata(url) {
 // image (not the .metadata.json) and is a POST (it has the side effect of opening Explorer).
 function resolveRevealRef(ref, suite, name) {
   if (!ref) return null;
-  if (ref.startsWith('gold:'))
-    return `/api/gold/reveal?suite=${enc(suite)}&platform=${enc(ref.slice(5))}&name=${enc(name)}`;
+  if (ref.startsWith('gold:')) {
+    const { plat, file } = parseGoldRef(ref, name);
+    return `/api/gold/reveal?suite=${enc(suite)}&platform=${enc(plat)}&name=${enc(file)}`;
+  }
   if (ref.startsWith('src:'))
     return `/api/source/${ref.slice(4)}/reveal?suite=${enc(suite)}&platform=${enc(currentPlatform)}&name=${enc(name)}`;
   return null;
@@ -560,9 +613,11 @@ async function revealFile(url) {
 }
 
 function metadataSummary(m) {
-  // GPU name is already in the folder label; surface the next most useful axis: driver.
+  // GPU name is already in the folder label; surface the next most useful axis: driver. On a CPU
+  // rasterizer (WARP, Lavapipe, SwiftShader) the CPU comes first: it decides which gold variant matches.
   if (!m) return null;
-  const parts = [m.driverName, m.driverInfo || m.driverVersion].filter(Boolean);
+  const cpuRasterizer = m.gpuVendorId === '0x1414' || m.driverId === 'MesaLLVMPipe' || m.driverId === 'GoogleSwiftShader';
+  const parts = [cpuRasterizer && m.cpu, m.driverName, m.driverInfo || m.driverVersion].filter(Boolean);
   return parts.length ? parts.join(' ') : (m.apiName || m.os || null);
 }
 
@@ -575,6 +630,7 @@ function renderMetadataTable(m) {
   if (m.apiName) rows.push(['API', `${m.apiName}${m.apiVersion ? ' ' + m.apiVersion : ''}`]);
   if (m.os) rows.push(['OS', m.os]);
   if (m.cpu) rows.push(['CPU', m.cpu]);
+  if (m.cpuFeatures) rows.push(['CPU features', m.cpuFeatures]);
   return `<table class="metadata">` + rows.map(([k, v]) => `<tr><th>${k}</th><td>${esc(v)}</td></tr>`).join('') + `</table>`;
 }
 
@@ -595,11 +651,14 @@ function fillMetaPill(el, m, revealUrl) {
   el.innerHTML = `<span class="meta-text">${esc(metadataSummary(m) || '?')}</span>${reveal}<div class="meta-popup">${renderMetadataTable(m)}</div>`;
 }
 
-function buildRefOptions(goldPlatforms, selectedRef) {
+function buildRefOptions(goldPlatforms, selectedRef, name) {
   let html = '<optgroup label="Gold">';
   if (goldPlatforms.length === 0) html += '<option value="" disabled>No gold</option>';
-  for (const p of goldPlatforms)
-    html += `<option value="gold:${esc(p.platform)}" ${selectedRef === 'gold:' + p.platform ? 'selected' : ''}>${esc(p.platform)}</option>`;
+  for (const p of goldPlatforms) {
+    const ref = goldRef(p.platform, p.file, name);
+    const label = variantLabel(p.file) ? `${p.platform} ${variantLabel(p.file)}` : p.platform;
+    html += `<option value="${esc(ref)}" data-label="${esc(label)}" ${selectedRef === ref ? 'selected' : ''}>${esc(label)}</option>`;
+  }
   html += '</optgroup>';
   if (sources.length > 0) {
     html += '<optgroup label="Sources">';
@@ -611,9 +670,15 @@ function buildRefOptions(goldPlatforms, selectedRef) {
 }
 
 function pickDefaultLeft(goldPlatforms, img) {
-  // Match the gold the table row shows: primary if it exists for currentPlatform,
-  // otherwise the fallback the backend resolved. Only fall back to the scoring
-  // heuristic when the row has no gold at all.
+  // The gold the test run matched (a variant, possibly), when a source's sidecar says so. Else match the
+  // gold the table row shows: primary if it exists for currentPlatform, otherwise the fallback the backend
+  // resolved. Only fall back to the scoring heuristic when the row has no gold at all.
+  for (const src of sources) {
+    const st = img && cellStats[`${src.id}:${img.suite}:${img.name}`];
+    if (!st?.sidecarMatchedPlatform || !st.sidecarMatchedFile) continue;
+    const ref = goldRef(st.sidecarMatchedPlatform, st.sidecarMatchedFile, img.name);
+    if (goldPlatforms.some(p => goldRef(p.platform, p.file, img.name) === ref)) return ref;
+  }
   if (img?.hasGold) {
     const plat = img.goldFallback || currentPlatform;
     if (goldPlatforms.some(p => p.platform === plat)) return `gold:${plat}`;
@@ -667,8 +732,8 @@ async function fillDetail(id, key, suite, name, { ver, leftImg, rightImg, goldPl
   if (!container) return;
 
   // Build dropdowns
-  const leftOpts = buildRefOptions(goldPlatforms, leftRef);
-  const rightOpts = buildRefOptions(goldPlatforms, rightRef);
+  const leftOpts = buildRefOptions(goldPlatforms, leftRef, name);
+  const rightOpts = buildRefOptions(goldPlatforms, rightRef, name);
   const leftSelHtml = `<select onchange="switchDetailSide('${esc(key)}','left',this.value)">${leftOpts}</select>`;
   const rightSelHtml = `<select onchange="switchDetailSide('${esc(key)}','right',this.value)">${rightOpts}</select>`;
 
@@ -748,15 +813,14 @@ async function fillDetail(id, key, suite, name, { ver, leftImg, rightImg, goldPl
       // Compute diffs for all gold options, then auto-select best passing one
       const optResults = [];
       await Promise.all(goldOpts.map(async (opt) => {
-        const plat = opt.value.slice(5);
         try {
-          const gImg = await loadImg(`/api/gold/image?suite=${enc(suite)}&platform=${enc(plat)}&name=${enc(name)}`);
+          const gImg = await loadImg(resolveImageRef(opt.value, suite, name));
           if (detailVersion[key] !== ver) return;
           const tmpCanvas = new OffscreenCanvas(gImg.width, gImg.height);
           const s = computeImageDiff(gImg, otherImgForStats, tmpCanvas);
           const result = checkCellThreshold(suite, name, s);
           const icon = result.passed ? '\u2713' : '\u2717';
-          opt.textContent = `${icon} ${plat} (d=${s.maxDiff} px=${s.diffPixels})`;
+          opt.textContent = `${icon} ${opt.dataset.label} (d=${s.maxDiff} px=${s.diffPixels})`;
           opt.dataset.passed = result.passed ? '1' : '0';
           opt.style.color = result.passed ? '#4caf50' : '#f44336';
           optResults.push({ opt, result, diffPixels: s.diffPixels });
@@ -788,7 +852,8 @@ async function fillDetail(id, key, suite, name, { ver, leftImg, rightImg, goldPl
 // === Background cell stats ===
 const statsQueue = new Set();
 let statsRunning = false;
-// "srcId:suite:name" → { checked: bool, passingPlatform: string|null }.
+// "srcId:suite:name" → { checked: bool, passingPlatform: string|null, passingFile: string|null }
+// (passingFile is <name>.png or the variant that passed).
 // Populated once the preferred gold has been checked against alternates.
 // Drives the framework-style "any gold passes → cell passes" verdict.
 const altGoldStatus = {};
@@ -805,7 +870,7 @@ function resetAltGoldState() {
 function computeCellStats(srcId, suite, name) {
   const key = `${srcId}:${suite}:${name}`;
   if (cellStats[key] || statsQueue.has(key)) return;
-  // Skip when the source has no PNG (sidecar-only passing test); browser-side
+  // Skip when the source has no PNG (a sidecar-only passing test); browser-side
   // recompute would 404 every render and spin forever.
   const item = (suiteData[suite]?.sourceImages[srcId] || []).find(s => s.name === name);
   if (item && item.hasPng === false) return;
@@ -881,14 +946,15 @@ function isCellPassing(srcId, suite, name, stats) {
   // forever on a fail at a platform with only fallback golds).
   if (stats.sidecarVerdict !== undefined) return stats.sidecarVerdict;
   if (checkCellThreshold(suite, name, stats).passed) return true;
-  // Graphics.Regression only enumerates fallbacks when the primary gold for
-  // the current platform doesn't exist. If it does exist, that single file is
-  // the sole judge — a passing alternate doesn't rescue a failing primary.
+  // Graphics.Regression only enumerates fallbacks when the current platform's bucket has no gold. If it
+  // has, its golds (the image and its variants) are the sole judges — a passing alternate doesn't rescue
+  // a failing primary, it only makes the row fixable.
   const goldEntry = suiteData[suite]?.gold.find(g => g.name === name);
-  if (goldEntry && goldEntry.fallback == null) return false;
+  const ownBucket = goldEntry && goldEntry.fallback == null;
+  if (ownBucket && !goldEntry.variants?.length) return false;
   const alt = altGoldStatus[`${srcId}:${suite}:${name}`];
   if (!alt || !alt.checked) return null;
-  return alt.passingPlatform != null;
+  return ownBucket ? alt.passingPlatform === currentPlatform : alt.passingPlatform != null;
 }
 
 function updateCellInline(key, stats) {
@@ -905,14 +971,7 @@ function updateCellInline(key, stats) {
     el.removeAttribute('style');
     const icon = passing === true ? '✓' : passing === false ? '✗' : '…';
     const brief = formatThresholdBrief(result);
-    const matchedPlat = stats.sidecarMatchedPlatform
-      || altGoldStatus[key]?.passingPlatform;
-    let matchSuffix = '';
-    if (matchedPlat && matchedPlat !== currentPlatform)
-      matchSuffix = ` <span title="${esc(matchedPlat)}">(via ${esc(matchedPlat)})</span>`;
-    else if (passing === true && !result.passed)
-      matchSuffix = ' (via alt)';
-    el.innerHTML = `${icon} ${brief}${matchSuffix}`;
+    el.innerHTML = `${icon} ${brief}${matchSuffixHtml(stats, key, passing, result)}`;
   }
   // Update the row tag once all sources for this image are resolved
   const rowKey = `${suite}:${name}`;
@@ -955,27 +1014,32 @@ function updateCellInline(key, stats) {
 async function checkAlternateGold(srcId, suite, name, srcImg) {
   const key = `${srcId}:${suite}:${name}`;
   if (altGoldStatus[key]?.checked) return;
-  let passingPlatform = null;
+  let passingPlatform = null, passingFile = null;
   try {
-    const platforms = await fetch(`/api/gold/all?suite=${enc(suite)}&name=${enc(name)}`).then(r => r.json());
-    for (const p of platforms) {
-      if (p.platform === currentPlatform) continue;
+    const golds = await fetch(`/api/gold/all?suite=${enc(suite)}&name=${enc(name)}`).then(r => r.json());
+    // This bucket's variants first (any of them passes the test), then the other buckets' golds.
+    const order = [
+      ...golds.filter(p => p.platform === currentPlatform && p.file !== name),
+      ...golds.filter(p => p.platform !== currentPlatform),
+    ];
+    for (const p of order) {
       try {
-        const gImg = await loadImg(`/api/gold/image?suite=${enc(suite)}&platform=${enc(p.platform)}&name=${enc(name)}`);
+        const gImg = await loadImg(resolveImageRef(goldRef(p.platform, p.file, name), suite, name));
         const canvas = new OffscreenCanvas(gImg.width, gImg.height);
         const s = computeImageDiff(gImg, srcImg, canvas);
         if (checkCellThreshold(suite, name, s).passed) {
           passingPlatform = p.platform;
+          passingFile = p.file;
           break;
         }
       } catch {}
     }
   } catch {}
-  altGoldStatus[key] = { checked: true, passingPlatform };
-  // Record a "fixable" hit only when the primary gold lives at currentPlatform
-  // — deleting a fallback path would either be a no-op or hurt other platforms.
+  altGoldStatus[key] = { checked: true, passingPlatform, passingFile };
+  // Record a "fixable" hit only when the primary gold lives at currentPlatform and another bucket's gold
+  // passes — deleting a fallback path would either be a no-op or hurt other platforms.
   const goldEntry = suiteData[suite]?.gold.find(g => g.name === name);
-  if (passingPlatform && goldEntry && goldEntry.fallback == null) {
+  if (passingPlatform && passingPlatform !== currentPlatform && goldEntry && goldEntry.fallback == null) {
     const fixKey = `${suite}:${name}`;
     fixableVia[fixKey] = { platform: passingPlatform, goldFallback: currentPlatform };
   }
@@ -984,7 +1048,11 @@ async function checkAlternateGold(srcId, suite, name, srcImg) {
 async function computeThumbDiff(suite, name, srcId, canvasId) {
   try {
   
-    const goldUrl = `/api/gold/image?suite=${enc(suite)}&platform=${enc(currentPlatform)}&name=${enc(name)}`;
+    // Diff against the gold the test run compared with (a variant, possibly), when the sidecar says.
+    const st = cellStats[`${srcId}:${suite}:${name}`];
+    const goldUrl = st?.sidecarMatchedPlatform && st.sidecarMatchedFile
+      ? resolveImageRef(goldRef(st.sidecarMatchedPlatform, st.sidecarMatchedFile, name), suite, name)
+      : `/api/gold/image?suite=${enc(suite)}&platform=${enc(currentPlatform)}&name=${enc(name)}`;
     const srcUrl = `/api/source/${srcId}/image?suite=${enc(suite)}&platform=${enc(currentPlatform)}&name=${enc(name)}`;
     const [goldImg, srcImg] = await Promise.all([loadImg(goldUrl), loadImg(srcUrl)]);
     const canvas = document.getElementById(canvasId);
@@ -1214,14 +1282,16 @@ async function promoteSelected() {
   }
 
   const srcLabels = [...new Set(Object.values(groups).map(g => sources.find(s => s.id === g.srcId)?.label || g.srcId))];
-  if (!confirm(`Promote ${selected.size} image(s) from ${srcLabels.join(', ')} to gold?`)) return;
+  // The server only adds variants on CPU rasterizers (WARP, Lavapipe, SwiftShader); elsewhere it replaces the gold.
+  const asVariant = !!document.getElementById('promoteAsVariant')?.checked;
+  if (!confirm(`Promote ${selected.size} image(s) from ${srcLabels.join(', ')} to gold${asVariant ? ' as variants (CPU rasterizers only)' : ''}?`)) return;
 
   let totalPromoted = 0;
   for (const { srcId, suite, names } of Object.values(groups)) {
     const res = await fetch('/api/promote', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sourceId: srcId, suite, platform: currentPlatform, names })
+      body: JSON.stringify({ sourceId: srcId, suite, platform: currentPlatform, names, asVariant })
     });
     const result = await res.json();
     console.log('Promote result:', result);
@@ -2033,13 +2103,12 @@ init().then(async () => {
   } else {
     await addLocalSource().catch(() => {});
   }
-  // Re-hydrate the detail pane with the restored selection (if it still exists).
+  // Re-hydrate the restored selection (if it still exists); reload() already rendered its detail pane.
   if (focusedKey) {
     const row = document.querySelector(`tr.row[data-kb-key="${CSS.escape(focusedKey)}"]`);
     if (row) {
       row.classList.add('kb-focus');
       row.scrollIntoView({ block: 'nearest' });
-      renderDetailPane(focusedKey);
     } else {
       focusedKey = null;
       renderDetailPane(null);

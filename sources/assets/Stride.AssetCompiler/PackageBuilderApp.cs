@@ -20,10 +20,8 @@ using Stride.Core.Diagnostics;
 using Stride.Core.Yaml;
 using Stride.Assets.Models;
 using Stride.Assets.SpriteFont;
-using Stride.Particles;
 using Stride.Rendering.Materials;
 using Stride.Rendering.ProceduralModels;
-using Stride.SpriteStudio.Offline;
 using Stride.AssetCompiler.Tasks;
 using Stride.Core.IO;
 using Stride.CrashReport;
@@ -61,8 +59,6 @@ namespace Stride.AssetCompiler
             RuntimeHelpers.RunModuleConstructor(typeof(MaterialKeys).Module.ModuleHandle);
             RuntimeHelpers.RunModuleConstructor(typeof(SpriteFontAsset).Module.ModuleHandle);
             RuntimeHelpers.RunModuleConstructor(typeof(ModelAsset).Module.ModuleHandle);
-            RuntimeHelpers.RunModuleConstructor(typeof(SpriteStudioAnimationAsset).Module.ModuleHandle);
-            RuntimeHelpers.RunModuleConstructor(typeof(ParticleSystem).Module.ModuleHandle);
             //var project = new Package();
             //project.Save("test.sdpkg");
 
@@ -132,8 +128,11 @@ namespace Stride.AssetCompiler
                 { "dump-dir=", "crash-adopt only: directory of createdump minidumps to adopt into the crash store", v => options.NativeDumpDirectory = v },
                 { "server=", "This Compiler is launched as a server", v => { } },
                 { "graphics-api=", "Graphics API to load (Direct3D11|Direct3D12|Vulkan). Applied at startup by GraphicsApiSelector.", v => { } },
-                { "pack-asset-assembly=", "Host-loadable asset assembly (package-relative path) to declare in the packed sdpkg; repeat for each", v => options.PackAssetAssemblies.Add(v) },
+                { "pack-host-assembly=", "Host-loadable assembly (package-relative path) to declare in the packed sdpkg; repeat for each", v => options.PackHostAssemblies.Add(v) },
                 { "pack-asset-namespace=", "Asset URL namespace declaration to resolve into the packed sdpkg (true/false/name)", v => options.PackAssetNamespace = v },
+                { "pack-companion=", "Companion package to declare in the packed sdpkg, as Kind:Name:Version[:Replaces[:Toolkit]] (Kind = Assets or Editor; Replaces = ';'-separated package ids; Toolkit = the UI toolkit of an Editor companion's views); repeat for each", v => options.PackCompanionPackages.Add(v) },
+                { "pack-kind=", "What the packed package carries (Assets or Editor); a companion package states it", v => options.PackPackageKind = v },
+                { "pack-toolkit=", "The UI toolkit of an Editor package's views (e.g. Wpf); a view package states it", v => options.PackPackageToolkit = v },
                 { "t|threads=", "Number of threads to create. Default value is the number of hardware threads available.", v => options.ThreadCount = int.Parse(v) },
                 { "test=", "Run a test session.", v => options.TestName = v },
                 { "no-backup", "Upgrade verb only: skip backing up the files the upgrade overwrites (backup is on by default).", v => options.NoBackup = v != null },
@@ -421,7 +420,7 @@ namespace Stride.AssetCompiler
                     var intermediatePackagePath = options.BuildDirectory;
                     var generatedItems = new List<(string SourcePath, string PackagePath)>();
                     var logger = new LoggerResult();
-                    if (!PackAssetsHelper.Run(logger, csprojFile, intermediatePackagePath, generatedItems, options.PackAssetAssemblies, options.PackAssetNamespace))
+                    if (!PackAssetsHelper.Run(logger, csprojFile, intermediatePackagePath, generatedItems, options.PackHostAssemblies, options.PackAssetNamespace, options.PackCompanionPackages, options.PackPackageKind, options.PackPackageToolkit))
                     {
                         foreach (var message in logger.Messages)
                         {

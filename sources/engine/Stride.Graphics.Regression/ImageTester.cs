@@ -18,8 +18,8 @@ namespace Stride.Graphics.Regression
     public sealed class ImageComparisonEventArgs : EventArgs
     {
         /// <summary>Path under <c>tests/local/...</c> where the rendered output was (or
-        /// would be) written. May not exist on disk for a passing test unless
-        /// <c>ForceSaveImageOnSuccess</c> is set.</summary>
+        /// would be) written. For a passing test it exists only when a threshold rule let it
+        /// pass against its lane's gold, or when <c>ForceSaveImageOnSuccess</c> is set.</summary>
         public required string CurrentPath { get; init; }
         /// <summary>Path under <c>tests/...</c> of the gold image that was used for the
         /// comparison. For "missing reference" failures this is the expected gold path
@@ -78,20 +78,48 @@ namespace Stride.Graphics.Regression
             public string? GoldHash;
 
             /// <summary>
-            /// Histogram of per-pixel max channel difference.
-            /// Buckets: [0]=0, [1]=1-2, [2]=3-5, [3]=6-15, [4]=16+
+            /// Pixels per max channel difference: one entry per diff from 0 to 15, where the threshold rules work,
+            /// then one per band 16-31, 32-63, 64-127 and 128-255 (see <see cref="DiffRange"/>).
             /// </summary>
-            public DiffHistogramBuffer DiffHistogram;
+            public DiffCountsBuffer DiffCounts;
 
-            [System.Runtime.CompilerServices.InlineArray(5)]
-            public struct DiffHistogramBuffer
+            [System.Runtime.CompilerServices.InlineArray(DiffCountsLength)]
+            public struct DiffCountsBuffer
             {
                 private int _element0;
             }
 
+            /// <summary>Number of <see cref="DiffCounts"/> entries.</summary>
+            public const int DiffCountsLength = 20;
+
+            /// <summary>The diffs <see cref="DiffCounts"/>[<paramref name="index"/>] counts.</summary>
+            public static (int Min, int Max) DiffRange(int index) =>
+                index < 16 ? (index, index)
+                : index == DiffCountsLength - 1 ? (128, 255)
+                : (16 << (index - 16), (32 << (index - 16)) - 1);
+
+            /// <summary>The <see cref="DiffCounts"/> entry of a diff (0 to 255).</summary>
+            public static int DiffIndex(int diff) => diff < 16 ? diff : 12 + int.Log2(diff);
+
+            /// <summary>Pixels with a diff from <paramref name="min"/> to <paramref name="max"/>; a band counts whole when it overlaps.</summary>
+            public readonly int PixelsInRange(int min, int max)
+            {
+                int count = 0;
+                for (int i = 0; i < DiffCountsLength; i++)
+                {
+                    var range = DiffRange(i);
+                    if (range.Max >= min && range.Min <= max)
+                        count += DiffCounts[i];
+                }
+                return count;
+            }
+
+            /// <summary>Pixels at diff 3 or more: the default rule allows none, so on a pass they are what a threshold rule allowed.</summary>
+            public readonly int PixelsAtDiff3Plus => PixelsInRange(3, 255);
+
             public override readonly string ToString()
             {
-                var hist = $"[1-2]:{DiffHistogram[1]} [3-5]:{DiffHistogram[2]} [6-15]:{DiffHistogram[3]} [16+]:{DiffHistogram[4]}";
+                var hist = $"[1-2]:{PixelsInRange(1, 2)} [3-5]:{PixelsInRange(3, 5)} [6-15]:{PixelsInRange(6, 15)} [16+]:{PixelsInRange(16, 255)}";
                 var label = Passed ? "PASS" : "FAIL";
                 return $"{label} (max diff={MaxDiff}, PSNR={PSNR:F1}dB, {hist})";
             }
@@ -104,16 +132,16 @@ namespace Stride.Graphics.Regression
         public sealed class SidecarAttempt
         {
             public required string Gold { get; init; }
-            /// <summary><c>"reference"</c> for the exact-match gold, <c>"alternate"</c> for
-            /// fallback golds tried when the reference was missing.</summary>
+            /// <summary><c>"reference"</c> for a gold of the lane's own bucket (the image or one of its
+            /// variants), <c>"alternate"</c> for fallback golds tried when that bucket has none.</summary>
             public required string Kind { get; init; }
             public required bool Passed { get; init; }
             public required int MaxDiff { get; init; }
             public required double PsnrDb { get; init; }
-            /// <summary>Pixel-diff histogram keyed by range. Canonical keys, in order:
-            /// <c>"0"</c>, <c>"1-2"</c>, <c>"3-5"</c>, <c>"6-15"</c>, <c>"16+"</c>.</summary>
+            /// <summary>Pixels per max channel difference, keyed <c>"0"</c> to <c>"15"</c>, then by band
+            /// <c>"16-31"</c>, <c>"32-63"</c>, <c>"64-127"</c> and <c>"128+"</c>; only the entries that occur.</summary>
             [JsonConverter(typeof(InlineStringIntDictConverter))]
-            public required Dictionary<string, int> Buckets { get; init; }
+            public required Dictionary<string, int> Diffs { get; init; }
             /// <summary>Allow rule that was applied for this comparison (e.g. <c>{"3+": 0}</c>),
             /// so CompareGold can format the brief without re-resolving thresholds.jsonc.</summary>
             [JsonConverter(typeof(InlineStringIntDictConverter))]
@@ -132,6 +160,9 @@ namespace Stride.Graphics.Regression
         {
             public string? Os { get; init; }
             public string? Cpu { get; init; }
+            /// <summary>Vector instruction sets of the CPU (e.g. <c>"AVX2 FMA AVX512F V512"</c>): CPU rasterizers pick
+            /// their code paths from them, so they tell which gold variant a run matches.</summary>
+            public string? CpuFeatures { get; init; }
             public string? Gpu { get; init; }
             /// <summary>PCI vendor ID, 0x-prefixed hex.</summary>
             public string? GpuVendorId { get; init; }
@@ -163,8 +194,8 @@ namespace Stride.Graphics.Regression
             public required List<SidecarAttempt> Attempts { get; init; }
         }
 
-        // WriteIndented spreads dicts/arrays across lines; the bucket and threshold dicts
-        // are 5 entries max and read better on one line. WriteRawValue bypasses the
+        // WriteIndented spreads dicts/arrays across lines; the diffs and threshold dicts
+        // are 20 entries max and read better on one line. WriteRawValue bypasses the
         // writer's indentation pass for the rendered chunk.
         private sealed class InlineStringIntDictConverter : JsonConverter<Dictionary<string, int>>
         {
@@ -206,6 +237,7 @@ namespace Stride.Graphics.Regression
             {
                 Os = HostEnvironment.OsDescription,
                 Cpu = HostEnvironment.CpuName,
+                CpuFeatures = HostEnvironment.CpuFeatures,
                 Gpu = info?.GpuName,
                 GpuVendorId = info != null ? $"0x{info.VendorId:X4}" : null,
                 GpuDeviceId = info != null ? $"0x{info.DeviceId:X4}" : null,
@@ -255,14 +287,15 @@ namespace Stride.Graphics.Regression
             }
         }
 
-        // Canonical histogram-bucket keys, in order. The 5 ranges align with how the
-        // runtime computes the histogram; the consumer reads them by key.
-        private static readonly string[] BucketKeys = ["0", "1-2", "3-5", "6-15", "16+"];
-
         internal static SidecarAttempt ToSidecarAttempt(string goldPath, string referencePath, ComparisonStats stats, AllowBucket[]? thresholds)
         {
-            var buckets = new Dictionary<string, int>(5);
-            for (int i = 0; i < 5; i++) buckets[BucketKeys[i]] = stats.DiffHistogram[i];
+            var diffs = new Dictionary<string, int>();
+            for (int i = 0; i < ComparisonStats.DiffCountsLength; i++)
+            {
+                if (stats.DiffCounts[i] == 0) continue;
+                var (min, max) = ComparisonStats.DiffRange(i);
+                diffs[ImageThreshold.RangeKey(new AllowBucket(min, max == 255 ? int.MaxValue : max, 0))] = stats.DiffCounts[i];
+            }
             Dictionary<string, int>? thresholdDict = null;
             if (thresholds is { Length: > 0 })
             {
@@ -273,11 +306,12 @@ namespace Stride.Graphics.Regression
             return new SidecarAttempt
             {
                 Gold = goldPath,
-                Kind = goldPath == referencePath ? "reference" : "alternate",
+                // A variant of the reference sits in the same bucket and counts as the reference too.
+                Kind = Path.GetDirectoryName(goldPath) == Path.GetDirectoryName(referencePath) ? "reference" : "alternate",
                 Passed = stats.Passed,
                 MaxDiff = stats.MaxDiff,
                 PsnrDb = stats.PSNR,
-                Buckets = buckets,
+                Diffs = diffs,
                 Thresholds = thresholdDict,
                 GoldHash = stats.GoldHash,
             };
@@ -423,13 +457,6 @@ namespace Stride.Graphics.Regression
                         }
                     }
 
-                    // Build legacy display histogram
-                    int hist0 = pixelDiffs[0], hist1 = 0, hist2 = 0, hist3 = 0, hist4 = 0;
-                    for (int d = 1; d <= 2; d++) hist1 += pixelDiffs[d];
-                    for (int d = 3; d <= 5; d++) hist2 += pixelDiffs[d];
-                    for (int d = 6; d <= 15; d++) hist3 += pixelDiffs[d];
-                    for (int d = 16; d <= 255; d++) hist4 += pixelDiffs[d];
-
                     int differentPixels = totalPixels - pixelDiffs[0];
                     int channels = checkAlpha ? 4 : 3;
                     double mse = totalPixels > 0 ? (double)sumSquaredError / (totalPixels * channels) : 0;
@@ -447,11 +474,8 @@ namespace Stride.Graphics.Regression
                         Passed = passed,
                         GoldHash = goldHash,
                     };
-                    stats.DiffHistogram[0] = hist0;
-                    stats.DiffHistogram[1] = hist1;
-                    stats.DiffHistogram[2] = hist2;
-                    stats.DiffHistogram[3] = hist3;
-                    stats.DiffHistogram[4] = hist4;
+                    for (int d = 0; d < pixelDiffs.Length; d++)
+                        stats.DiffCounts[ComparisonStats.DiffIndex(d)] += pixelDiffs[d];
 
                     return passed;
                 }

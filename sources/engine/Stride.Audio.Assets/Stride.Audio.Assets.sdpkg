@@ -1,0 +1,9 @@
+!Package
+SerializedVersion: {Assets: 3.1.0.0}
+TemplateFolders:
+    - Path: !dir Templates/Assets
+      Group: Assets
+      Files:
+        - !file Templates/Assets/Media/DefaultSound.sdtpl
+        - !file Templates/Assets/Media/SpatializedSound.sdtpl
+        - !file Templates/Assets/Media/MusicSound.sdtpl

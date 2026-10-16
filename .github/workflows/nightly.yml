@@ -1,0 +1,246 @@
+name: Nightly
+# The marker tells the check job that such a run published nothing
+run-name: Nightly${{ github.event_name == 'workflow_dispatch' && !inputs.publish && ' (no publish)' || '' }}
+# Builds the engine packages of a branch as X.Y.Z-nightly.YYYYMMDD.N (unsigned) and pushes them to the nightly feed,
+# https://packages.stride3d.net/nightly/index.json, a static Sleet feed in the stridenightly storage account.
+# The schedule runs on master, which starts the same workflow on each branch of NIGHTLY_BRANCHES; each run builds
+# only when its branch changed since its last published nightly.
+# The samples content isn't packed: the engine names the published content, as a release does.
+
+on:
+  schedule:
+    # 01:23 UTC daily: before the other scheduled workflows (02:43-05:17), off the top of the hour.
+    - cron: '23 1 * * *'
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Push the packages to the nightly feed (master and master-x.y only)
+        default: true
+        type: boolean
+      force:
+        description: Build even when the branch hasn't changed since its last published nightly
+        default: false
+        type: boolean
+
+env:
+  # Branches the scheduled run starts besides master (each needs this workflow and the nightly environment)
+  NIGHTLY_BRANCHES: master-4.4
+  # Nightlies kept per package and major.minor
+  NIGHTLY_KEEP: 14
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nightly-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  #
+  # Skip when nothing changed, and choose the version label
+  #
+  Check:
+    name: Check
+    # Fork-friendly: the schedule fires only when STRIDE_ENABLE_SCHEDULED_CI is set on the repository.
+    if: github.event_name == 'workflow_dispatch' || vars.STRIDE_ENABLE_SCHEDULED_CI == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write  # reads the previous nightly runs, starts the runs of the other branches
+    outputs:
+      build: ${{ steps.check.outputs.build }}
+      label: ${{ steps.check.outputs.label }}
+    steps:
+      - name: Start the other branches
+        if: github.event_name == 'schedule'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for b in $NIGHTLY_BRANCHES; do
+            gh workflow run nightly.yml -R "${{ github.repository }}" --ref "$b" \
+              || echo "::warning::Could not start the nightly of $b (does the branch have this workflow?)"
+          done
+
+      - id: check
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          BRANCH="${{ github.ref_name }}"
+          # The commit of this branch's last successful nightly that could publish (runs without publishing are
+          # marked in their name; a run that found nothing to do has the published commit too)
+          LAST=$(gh api "repos/${{ github.repository }}/actions/workflows/nightly.yml/runs?branch=$BRANCH&status=success&per_page=20" \
+            --jq '[.workflow_runs[] | select(.display_title | contains("(no publish)") | not)] | .[0].head_sha // ""')
+          if [ "$LAST" = "${{ github.sha }}" ] && [ "${{ inputs.force }}" != "true" ]; then
+            echo "::notice::$BRANCH is at ${{ github.sha }}, already published by its last nightly: nothing to do."
+            echo "build=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          LABEL="nightly.$(date -u +%Y%m%d).${{ github.run_number }}"
+          echo "label=$LABEL" >> "$GITHUB_OUTPUT"
+          echo "build=true" >> "$GITHUB_OUTPUT"
+          echo "::notice::Version label: $LABEL"
+
+  #
+  # Build the packages (same build as release.yml, unsigned, without the prerequisites installer)
+  #
+  Package:
+    name: Package
+    needs: Check
+    if: needs.Check.outputs.build == 'true'
+    runs-on: windows-2025-vs2026
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          lfs: true
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Install Apple Workloads
+        # VS provisions the android workload but not ios/macos.
+        uses: ./.github/actions/stride-workload
+        with:
+          workloads: ios macos
+
+      - name: Build Package
+        run: |
+          dotnet build build\Stride.build `
+            -t:Package `
+            --no-restore `
+            -m -nr:false `
+            -p:StridePlatforms=Windows%3BLinux%3BAndroid%3BiOS%3BmacOS `
+            -p:StrideGraphicsApiDependentBuildAll=true `
+            -p:StrideSign=false `
+            -p:StrideBuildPrerequisitesInstaller=false `
+            -p:StrideNightlyLabel=${{ needs.Check.outputs.label }} `
+            -p:StrideNativeBuildMode=Clang
+        env:
+          StrideDisableAssetCompilerExecServerProxy: true
+
+      - name: Detect version
+        id: version
+        shell: pwsh
+        run: |
+          $pkg = Get-ChildItem -Path bin/packages -Filter "Stride.Core.*.nupkg" | Select-Object -First 1
+          if (-not $pkg) {
+            echo "::error::No Stride.Core package found"
+            exit 1
+          }
+          $version = $pkg.Name -replace 'Stride\.Core\.(.*?)\.nupkg','$1'
+          if ($version -notmatch '^\d+\.\d+\.\d+-nightly\.\d{8}\.\d+$') {
+            echo "::error::Version '$version' is not a nightly version (X.Y.Z-nightly.YYYYMMDD.N)"
+            exit 1
+          }
+          echo "version=$version" >> $env:GITHUB_OUTPUT
+          echo "::notice::Package version: $version"
+          # Packages with their own version (Stride.CrashReporter) append the label: a version not released yet
+          # must never reach the feed under its release number
+          $label = "${{ needs.Check.outputs.label }}"
+          $other = Get-ChildItem -Path bin/packages -Filter "*.nupkg" | Where-Object { $_.Name -notlike "*.$label.nupkg" -and $_.Name -notlike "*-$label.nupkg" }
+          if ($other) {
+            echo "::error::Packages without the nightly label: $($other.Name -join ', ')"
+            exit 1
+          }
+
+      - name: Upload NuGet packages
+        uses: actions/upload-artifact@v7
+        with:
+          name: stride-packages-${{ steps.version.outputs.version }}
+          path: bin/packages/*.nupkg
+          if-no-files-found: error
+          retention-days: 7
+
+  #
+  # Push to the nightly feed
+  #
+  Publish:
+    name: Publish ${{ needs.Package.outputs.version }}
+    needs: Package
+    if: (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/master-')) && (github.event_name == 'schedule' || inputs.publish)
+    runs-on: ubuntu-latest
+    # The environment holds AZURE_CLIENT_ID/AZURE_TENANT_ID of the stride-nightly-ci managed identity, whose
+    # federated credential trusts this environment only (and the environment, master and the listed master-x.y).
+    environment: nightly
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: stride-packages-${{ needs.Package.outputs.version }}
+          path: packages
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Push to the nightly feed
+        shell: bash
+        env:
+          AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+          AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+        run: |
+          set -euo pipefail
+          dotnet tool install --global sleet --version 7.2.0
+          # Sleet signs in through DefaultAzureCredential: the workload identity reads the GitHub OIDC token from a
+          # file. The token is short-lived: fetch a fresh one before each Sleet command.
+          export AZURE_FEDERATED_TOKEN_FILE="$RUNNER_TEMP/oidc-token"
+          sleet_run() {
+            curl -sSf -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+              "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=api://AzureADTokenExchange" | jq -r .value > "$AZURE_FEDERATED_TOKEN_FILE"
+            sleet "$@" --config sleet.json --source nightly
+          }
+          cat > sleet.json <<'EOF'
+          {
+            "config": { "feedLockTimeoutMinutes": 30 },
+            "sources": [
+              {
+                "name": "nightly",
+                "type": "azure",
+                "container": "nightly",
+                "path": "https://stridenightly.blob.core.windows.net/nightly/",
+                "baseURI": "https://packages.stride3d.net/nightly/"
+              }
+            ]
+          }
+          EOF
+          sleet_run push packages
+
+          # Retention: the NIGHTLY_KEEP newest nightlies of each package and major.minor (Sleet's own retention
+          # counts per package only, so a busy line would push out the nightlies of a quiet one)
+          python3 - packages > prune.txt <<'EOF'
+          import gzip, json, os, re, sys, urllib.error, urllib.request
+          keep = int(os.environ["NIGHTLY_KEEP"])
+          # X.Y.Z-nightly.D.N, or X.Y.Z-<prerelease>.nightly.D.N for packages with their own version
+          nightly = re.compile(r"^(\d+)\.(\d+)\.(\d+)-(?:[0-9A-Za-z-]+\.)?nightly\.(\d{8})\.(\d+)$")
+          ids = sorted({re.sub(r"\.\d+\.\d+\.\d+-.*\.nupkg$", "", f) for f in os.listdir(sys.argv[1]) if f.endswith(".nupkg")})
+          for id in ids:
+              url = f"https://stridenightly.blob.core.windows.net/nightly/flatcontainer/{id.lower()}/index.json"
+              try:
+                  with urllib.request.urlopen(url) as r:
+                      data = r.read()
+                      if r.headers.get("Content-Encoding") == "gzip":
+                          data = gzip.decompress(data)
+              except urllib.error.HTTPError:
+                  continue
+              lines = {}
+              for v in json.loads(data)["versions"]:
+                  m = nightly.match(v)
+                  if m:
+                      lines.setdefault(m.group(1, 2), []).append((tuple(int(x) for x in m.groups()), v))
+              for versions in lines.values():
+                  for _, v in sorted(versions, reverse=True)[keep:]:
+                      print(id, v)
+          EOF
+          while read -r id version <&3; do
+            echo "Pruning $id $version"
+            sleet_run delete --id "$id" --version "$version"
+          done 3< prune.txt
+          {
+            echo "## Nightly ${{ needs.Package.outputs.version }}"
+            echo ""
+            echo "Feed: \`https://packages.stride3d.net/nightly/index.json\`"
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -108,7 +108,7 @@ namespace Stride.Editor.Thumbnails
 
             try
             {
-                context.NotifyThumbnailBuilt(assetItem, result, changed, thumbnailStream, thumbnailHash);
+                context.NotifyThumbnailBuilt(assetItem, result, changed, thumbnailStream, thumbnailHash, buildStepEventArgs.Step.Logger);
             }
             finally
             {

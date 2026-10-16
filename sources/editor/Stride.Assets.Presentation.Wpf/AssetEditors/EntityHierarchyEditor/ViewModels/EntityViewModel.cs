@@ -38,7 +38,6 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
 
         // TODO These models should be pluggable later
         private readonly ModelComponentViewModel modelComponent;
-        private readonly ParticleSystemComponentViewModel particleComponent;
         private readonly CameraComponentViewModel cameraComponent;
 
         private readonly MemberGraphNodeBinding<string> nameNodeBinding;
@@ -58,7 +57,6 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
             componentsNodeBinding = new ObjectGraphNodeBinding<EntityComponentCollection>(assetNode[nameof(Entity.Components)].Target, nameof(Components), OnPropertyChanging, OnPropertyChanged, Editor.UndoRedoService, false);
 
             modelComponent = new ModelComponentViewModel(ServiceProvider, this);
-            particleComponent = new ParticleSystemComponentViewModel(ServiceProvider, this);
             cameraComponent = new CameraComponentViewModel(ServiceProvider, this);
             transformationNode = Editor.NodeContainer.GetNode(AssetSideEntity.Transform)[nameof(TransformComponent.Children)].Target;
             transformationNode.ItemChanging += TransformChildrenChanging;
@@ -132,7 +130,6 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
         {
             base.FinalizeNodePresenterTree(root);
             cameraComponent.FinalizeNodePresenterTree(root);
-            particleComponent.FinalizeNodePresenterTree(root);
         }
 
         /// <inheritdoc/>
@@ -256,7 +253,6 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
             nameNodeBinding.Dispose();
             componentsNodeBinding.Dispose();
             modelComponent.Destroy();
-            particleComponent.Destroy();
             cameraComponent.Destroy();
             propagator?.Destroy();
         }

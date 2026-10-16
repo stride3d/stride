@@ -23,12 +23,10 @@ using Stride.Core.Presentation.Services;
 using Stride.Assets;
 using Stride.Assets.Entities;
 using Stride.Assets.Materials;
-using Stride.Assets.Navigation;
 using Stride.Assets.Textures;
 using Stride.Editor.Build;
 using Stride.Editor.EditorGame.Game;
 using Stride.Graphics;
-using Stride.Navigation;
 
 namespace Stride.Editor.EditorGame.ContentLoader
 {
@@ -42,7 +40,7 @@ namespace Stride.Editor.EditorGame.ContentLoader
         private readonly GameSettingsProviderService settingsProvider;
         private RenderingMode currentRenderingMode;
         private ColorSpace currentColorSpace;
-        private ObjectId currentNavigationGroupsHash;
+        private readonly Dictionary<Type, ObjectId> gameSettingsSectionHashes = new Dictionary<Type, ObjectId>();
         private int loadingAssetCount;
 #if DEBUG
         private ContentManagerStats debugStats;
@@ -99,7 +97,7 @@ namespace Stride.Editor.EditorGame.ContentLoader
             settingsProvider.GameSettingsChanged += GameSettingsChanged;
             currentRenderingMode = settingsProvider.CurrentGameSettings.GetOrCreate<EditorSettings>().RenderingMode;
             currentColorSpace = settingsProvider.CurrentGameSettings.GetOrCreate<RenderingSettings>().ColorSpace;
-            currentNavigationGroupsHash = settingsProvider.CurrentGameSettings.GetOrDefault<NavigationSettings>().ComputeGroupsHash();
+            UpdateGameSettingsSectionHashes(settingsProvider.CurrentGameSettings, out _);
         }
 
         public LoaderReferenceManager Manager { get; }
@@ -614,13 +612,31 @@ namespace Stride.Editor.EditorGame.ContentLoader
                 await BuildAndReloadAssets(Asset.Dependencies.ReferencedAssets.Select(x => x.AssetItem));
             }
 
-            // Update navigation meshes that are previewed inside the current scene when the game settings's group settings for navigation meshes change
-            var navigationGroupsHash = e.GameSettings.GetOrDefault<NavigationSettings>().ComputeGroupsHash();
-            if (navigationGroupsHash != currentNavigationGroupsHash)
+            // Rebuild the assets whose compilation reads a game settings section that changed (navigation meshes and their groups, ...)
+            UpdateGameSettingsSectionHashes(e.GameSettings, out var changedSections);
+            if (changedSections.Count > 0)
             {
-                currentNavigationGroupsHash = navigationGroupsHash;
+                var assetTypes = AssetRegistry.GetPublicTypes().Where(x => GameSettingsDependencyAttribute.GetSections(x).Any(changedSections.Contains)).ToList();
+                await BuildAndReloadAssets(Session.AllAssets.Where(x => assetTypes.Contains(x.AssetType)).Select(x => x.AssetItem));
+            }
+        }
 
-                await BuildAndReloadAssets(Session.AllAssets.Where(x => x.AssetType == typeof(NavigationMeshAsset)).Select(x => x.AssetItem));
+        /// <summary>
+        /// Hashes every game settings section some asset type declares through <see cref="GameSettingsDependencyAttribute"/>
+        /// and reports the sections whose hash changed since the previous call.
+        /// </summary>
+        private void UpdateGameSettingsSectionHashes(GameSettingsAsset gameSettings, out HashSet<Type> changedSections)
+        {
+            changedSections = new HashSet<Type>();
+            foreach (var sectionType in GameSettingsDependencyAttribute.GetDeclaredSections())
+            {
+                var section = gameSettings.Defaults.FirstOrDefault(sectionType.IsInstanceOfType);
+                var hash = section != null ? AssetHash.Compute(section) : ObjectId.Empty;
+                if (gameSettingsSectionHashes.TryGetValue(sectionType, out var previousHash) && previousHash == hash)
+                    continue;
+
+                gameSettingsSectionHashes[sectionType] = hash;
+                changedSections.Add(sectionType);
             }
         }
 

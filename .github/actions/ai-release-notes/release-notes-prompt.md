@@ -42,6 +42,8 @@ $SCOPE_NOTE
 
 $GH_CHANGELOG
 
+$WRITTEN_NOTES
+
 # Input & how to investigate
 
 This release covers the commit range `$PREV..$TAG`. Start from the **first-parent** view of the

@@ -20,8 +20,8 @@ namespace Stride.Audio.Tests
         {
             await base.LoadContent();
 
-            music = Content.Load<Sound>("MusicFishLampMp3").CreateInstance(Audio.AudioEngine.DefaultListener);
-            effect = Content.Load<Sound>("EffectBip").CreateInstance(Audio.AudioEngine.DefaultListener);
+            music = Content.Load<Sound>("MusicFishLampMp3").CreateInstance(this.Audio.AudioEngine.DefaultListener);
+            effect = Content.Load<Sound>("EffectBip").CreateInstance(this.Audio.AudioEngine.DefaultListener);
             music.IsLooping = true;
             effect.IsLooping = true;
             music.Play();

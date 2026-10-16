@@ -148,7 +148,7 @@ Example: dotnet build build/Stride.build -t:Package
 
     <!-- Create SharedAssemblyInfo.Generated.cs with the committed version + git metadata (the Stride SDK swaps
          it in for SharedAssemblyInfo.cs when building the packages). -->
-    <StrideGitVersion RootDirectory="$(StrideRoot)" VersionFile="sources\shared\SharedAssemblyInfo.cs" GeneratedVersionFile="sources\shared\SharedAssemblyInfo.Generated.cs">
+    <StrideGitVersion RootDirectory="$(StrideRoot)" VersionFile="sources\shared\SharedAssemblyInfo.cs" GeneratedVersionFile="sources\shared\SharedAssemblyInfo.Generated.cs" NightlyLabel="$(StrideNightlyLabel)">
       <Output TaskParameter="NuGetVersion" PropertyName="StridePackageVersion"/>
     </StrideGitVersion>
 

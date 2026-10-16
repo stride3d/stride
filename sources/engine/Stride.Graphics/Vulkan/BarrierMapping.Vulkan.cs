@@ -64,6 +64,7 @@ internal static class BarrierMapping
         BarrierLayout.Present => VkAccessFlags.MemoryRead,
         BarrierLayout.ResolveSource => VkAccessFlags.TransferRead,
         BarrierLayout.ResolveDest => VkAccessFlags.TransferWrite,
+        BarrierLayout.IndirectArgument => VkAccessFlags.IndirectCommandRead,
         _ => VkAccessFlags.None,
     };
 
@@ -76,12 +77,14 @@ internal static class BarrierMapping
         BarrierLayout.DepthStencilWrite => VkPipelineStageFlags.ColorAttachmentOutput | VkPipelineStageFlags.EarlyFragmentTests | VkPipelineStageFlags.LateFragmentTests,
         BarrierLayout.DepthStencilRead => VkPipelineStageFlags.EarlyFragmentTests | VkPipelineStageFlags.LateFragmentTests | VkPipelineStageFlags.VertexShader | VkPipelineStageFlags.FragmentShader | VkPipelineStageFlags.ComputeShader,
         BarrierLayout.ShaderResource => VkPipelineStageFlags.VertexShader | VkPipelineStageFlags.FragmentShader | VkPipelineStageFlags.ComputeShader,
-        BarrierLayout.UnorderedAccess => VkPipelineStageFlags.ComputeShader,
+        // As Direct3D 12 (all shading): pixel shaders write unordered access views too
+        BarrierLayout.UnorderedAccess => VkPipelineStageFlags.VertexShader | VkPipelineStageFlags.FragmentShader | VkPipelineStageFlags.ComputeShader,
         BarrierLayout.CopySource => VkPipelineStageFlags.Transfer,
         BarrierLayout.CopyDest => VkPipelineStageFlags.Transfer,
         BarrierLayout.Present => VkPipelineStageFlags.BottomOfPipe,
         BarrierLayout.ResolveSource => VkPipelineStageFlags.Transfer,
         BarrierLayout.ResolveDest => VkPipelineStageFlags.Transfer,
+        BarrierLayout.IndirectArgument => VkPipelineStageFlags.DrawIndirect,
         _ => VkPipelineStageFlags.TopOfPipe,
     };
 }

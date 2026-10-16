@@ -40,6 +40,11 @@ public class NugetLocalPackage : NugetPackage
     public bool IsTemplatePackage => Info.Nuspec.GetPackageTypes().Any(type => type.Name == "Template");
 
     /// <summary>
+    /// The commit the package was built from (<c>&lt;repository commit="..."&gt;</c> of its nuspec), or null when it doesn't say.
+    /// </summary>
+    public string? RepositoryCommit => Info.Nuspec.GetRepositoryMetadata()?.Commit is { Length: > 0 } commit ? commit : null;
+
+    /// <summary>
     /// Whether the package declares the given freeform <c>&lt;tags&gt;</c> entry (space/semicolon/comma separated).
     /// </summary>
     /// <param name="tag">The tag to look for (case-insensitive).</param>

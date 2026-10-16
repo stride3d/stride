@@ -37,6 +37,9 @@ namespace Stride.Rendering.Voxels
         int storageUints;
         Stride.Graphics.Buffer FragmentsBuffer = null;
 
+        // New GPU memory is not zeroed on every API, and parts of these are read before anything writes them
+        readonly List<GraphicsResource> resourcesToClear = new();
+
         int ClipMapCount;
         int MipMapCount;
         int ClipMapCurrent = -1;
@@ -132,7 +135,30 @@ namespace Stride.Rendering.Voxels
             if (VoxelUtils.DisposeBufferBySpecs(FragmentsBuffer, storageUints * fragments) && storageUints * fragments > 0)
             {
                 FragmentsBuffer = Stride.Graphics.Buffer.Typed.New(context.device, storageUints * fragments, PixelFormat.R32_UInt, true);
+                resourcesToClear.Add(FragmentsBuffer);
             }
+        }
+
+        /// <summary>
+        /// Clears the buffers and textures created since the last call. Call it before the voxelization passes.
+        /// </summary>
+        public void ClearNewResources(CommandList commandList)
+        {
+            foreach (var resource in resourcesToClear)
+            {
+                if (resource.IsDisposed)
+                    continue;
+
+                if (resource is Stride.Graphics.Buffer buffer)
+                    commandList.ClearReadWrite(buffer, UInt4.Zero);
+                else
+                {
+                    // Sampled before anything writes them; the passes that write them transition them first
+                    commandList.ClearReadWrite((Texture)resource, Vector4.Zero);
+                    commandList.ResourceBarrierTransition(resource, BarrierLayout.ShaderResource);
+                }
+            }
+            resourcesToClear.Clear();
         }
 
 
@@ -150,6 +176,7 @@ namespace Stride.Rendering.Voxels
             if (VoxelUtils.DisposeTextureBySpecs(clipmap.ClipMaps, ClipMapTextureResolution, pixelFormat))
             {
                 clipmap.ClipMaps = Stride.Graphics.Texture.New3D(context.device, (int)ClipMapTextureResolution.X, (int)ClipMapTextureResolution.Y, (int)ClipMapTextureResolution.Z, new MipMapCount(false), pixelFormat, TextureFlags.ShaderResource | TextureFlags.UnorderedAccess);
+                resourcesToClear.Add(clipmap.ClipMaps);
             }
             if (VoxelUtils.DisposeTextureBySpecs(clipmap.MipMaps, MipMapResolution, pixelFormat))
             {
@@ -164,12 +191,14 @@ namespace Stride.Rendering.Voxels
                 Vector3 MipMapResolutionMax = MipMapResolution;
 
                 clipmap.MipMaps = Stride.Graphics.Texture.New3D(context.device, (int)MipMapResolution.X, (int)MipMapResolution.Y, (int)MipMapResolution.Z, new MipMapCount(true), pixelFormat, TextureFlags.ShaderResource | TextureFlags.UnorderedAccess);
+                resourcesToClear.Add(clipmap.MipMaps);
 
                 clipmap.TempMipMaps = new Stride.Graphics.Texture[MipMapCount];
 
                 for (int i = 0; i < clipmap.TempMipMaps.Length; i++)
                 {
                     clipmap.TempMipMaps[i] = Stride.Graphics.Texture.New3D(context.device, (int)MipMapResolutionMax.X, (int)MipMapResolutionMax.Y, (int)MipMapResolutionMax.Z, false, pixelFormat, TextureFlags.ShaderResource | TextureFlags.UnorderedAccess);
+                    resourcesToClear.Add(clipmap.TempMipMaps[i]);
 
                     MipMapResolutionMax /= 2;
                 }

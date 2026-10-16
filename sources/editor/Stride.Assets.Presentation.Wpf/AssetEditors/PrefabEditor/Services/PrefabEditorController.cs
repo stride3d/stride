@@ -128,13 +128,6 @@ namespace Stride.Assets.Presentation.AssetEditors.PrefabEditor.Services
             return Game.FindSubEntity(Guid.Empty, id.ObjectId);
         }
 
-        /// <inheritdoc/>
-        protected override void InitializeServices(EditorGameServiceRegistry serviceRegistry)
-        {
-            base.InitializeServices(serviceRegistry);
-            serviceRegistry.Add(new PrefabEditorLightService());
-        }
-
         [NotNull]
         private static PrefabEditorGame CreateEditorGame(TaskCompletionSource<bool> gameContentLoadedTaskSource, IEffectCompiler effectCompiler, string effectLogPath)
         {

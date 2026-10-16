@@ -66,6 +66,54 @@ public class TestSettings
     }
 
     [Fact]
+    public void TestSettingsKeyRegisteredAgain()
+    {
+        // A plugin assembly unloaded then loaded again: its key goes, and a new key of that name takes the value the
+        // profile holds
+        SettingsContainer.CreateSettingsProfile(setAsCurrent: true);
+        var key = new SettingsKey<int>("Test/Plugin/IntValue", SettingsContainer, 10);
+        key.SetValue(20);
+
+        Assert.True(SettingsContainer.UnregisterSettingsKey(key));
+        Assert.Null(SettingsContainer.GetSettingsKey("Test/Plugin/IntValue"));
+        Assert.False(SettingsContainer.UnregisterSettingsKey(key));
+
+        var reloadedKey = new SettingsKey<int>("Test/Plugin/IntValue", SettingsContainer, 10);
+        Assert.Same(reloadedKey, SettingsContainer.GetSettingsKey("Test/Plugin/IntValue"));
+        Assert.Equal(20, reloadedKey.GetValue());
+    }
+
+    [Fact]
+    public void TestValueSetThroughAnUnregisteredKeyIsConverted()
+    {
+        // The new key's type differs from the value's, as a type of the unloaded assembly does
+        SettingsContainer.CreateSettingsProfile(setAsCurrent: true);
+        var key = new SettingsKey<int>("Test/Plugin/ConvertedValue", SettingsContainer, 10);
+        SettingsContainer.UnregisterSettingsKey(key);
+        key.SetValue(30);
+
+        var reloadedKey = new SettingsKey<long>("Test/Plugin/ConvertedValue", SettingsContainer, 10L);
+
+        Assert.Equal(30L, reloadedKey.GetValue());
+    }
+
+    [Fact]
+    public void TestSameSettingsKeyRegisteredAgain()
+    {
+        // A static key of a plugin assembly that is registered again (undo of a reload)
+        SettingsContainer.CreateSettingsProfile(setAsCurrent: true);
+        var key = new SettingsKey<int>("Test/Plugin/IntValue", SettingsContainer, 10);
+        key.SetValue(20);
+        SettingsContainer.UnregisterSettingsKey(key);
+
+        SettingsContainer.RegisterSettingsKey(key);
+        SettingsContainer.RegisterSettingsKey(key);
+
+        Assert.Same(key, SettingsContainer.GetSettingsKey("Test/Plugin/IntValue"));
+        Assert.Equal(20, key.GetValue());
+    }
+
+    [Fact]
     public void TestSettingsWrite()
     {
         ValueSettingsKeys.Initialize();
@@ -305,9 +353,8 @@ public class TestSettings
     [Fact]
     public async Task TestSettingsFileModified()
     {
-        var tcs = new TaskCompletionSource<int>();
         EventHandler<FileModifiedEventArgs> settingsModified = (s, e) => e.ReloadFile = true;
-        EventHandler<SettingsFileLoadedEventArgs> settingsLoaded = (s, e) => tcs.SetResult(0);
+        SettingsProfile? profile = null;
         try
         {
             await using (var writer = new StreamWriter(TempPath("TestSettingsFileModified.txt")))
@@ -315,28 +362,33 @@ public class TestSettings
                 writer.Write(TestSettingsFileModifiedText1);
             }
             SettingsContainer.LoadSettingsProfile(TempPath("TestSettingsFileModified.txt"), true);
-            SettingsContainer.CurrentProfile.MonitorFileModification = true;
-            SettingsContainer.CurrentProfile.FileModified += settingsModified;
+            profile = SettingsContainer.CurrentProfile;
+            profile.MonitorFileModification = true;
+            profile.FileModified += settingsModified;
             ValueSettingsKeys.Initialize();
             ListSettingsKeys.Initialize();
             Assert.Equal(55, ValueSettingsKeys.IntValue.GetValue());
-
-            SettingsContainer.SettingsFileLoaded += settingsLoaded;
 
             await using (var writer = new StreamWriter(TempPath("TestSettingsFileModified.txt")))
             {
                 writer.Write(TestSettingsFileModifiedText2);
             }
 
-            // Gives some time to the file watcher to awake.
-            await tcs.Task;
+            // The writer can raise more than one change (truncate, then write), and the reload runs on another
+            // thread: wait for the new value rather than for the first reload
+            var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(10);
+            while (ValueSettingsKeys.IntValue.GetValue() != 75 && DateTime.UtcNow < deadline)
+                await Task.Delay(50);
 
             Assert.Equal(75, ValueSettingsKeys.IntValue.GetValue());
-            SettingsContainer.SettingsFileLoaded -= settingsLoaded;
         }
-        catch
+        finally
         {
-            SettingsContainer.SettingsFileLoaded -= settingsLoaded;
+            if (profile is not null)
+            {
+                profile.FileModified -= settingsModified;
+                profile.MonitorFileModification = false;
+            }
         }
     }
 }

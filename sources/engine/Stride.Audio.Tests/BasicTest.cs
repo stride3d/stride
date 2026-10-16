@@ -49,15 +49,15 @@ namespace Stride.Audio.Tests
                 if (Input.PointerEvents.Any(x => x.EventType == PointerEventType.Released))
                 {
                     if (count % 5 == 0)
-                        effect48kHz.CreateInstance(Audio.AudioEngine.DefaultListener).Play();
+                        effect48kHz.CreateInstance(this.Audio.AudioEngine.DefaultListener).Play();
                     else if (count % 5 == 1)
-                        effect11kHz.CreateInstance(Audio.AudioEngine.DefaultListener).Play();
+                        effect11kHz.CreateInstance(this.Audio.AudioEngine.DefaultListener).Play();
                     else if (count % 5 == 2)
-                        effect22kHz.CreateInstance(Audio.AudioEngine.DefaultListener).Play();
+                        effect22kHz.CreateInstance(this.Audio.AudioEngine.DefaultListener).Play();
                     else if (count % 5 == 3)
-                        effect11kHzStereo.CreateInstance(Audio.AudioEngine.DefaultListener).Play();
+                        effect11kHzStereo.CreateInstance(this.Audio.AudioEngine.DefaultListener).Play();
                     else if (count % 5 == 4)
-                        effect22kHzStereo.CreateInstance(Audio.AudioEngine.DefaultListener).Play();
+                        effect22kHzStereo.CreateInstance(this.Audio.AudioEngine.DefaultListener).Play();
 
                     count++;
                 }

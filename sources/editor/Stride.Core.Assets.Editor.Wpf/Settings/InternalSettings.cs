@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModel.Logs;
 using Stride.Core.IO;
 using Stride.Core.Settings;
 using Stride.Core.Yaml;
@@ -28,6 +29,8 @@ namespace Stride.Core.Assets.Editor.Settings
         public static SettingsKey<double> AssetViewTileThumbnailZoom = new SettingsKey<double>("Internal/AssetViewTileThumbnailZoom", SettingsContainer, 96.0);
         public static SettingsKey<double> AssetViewGridThumbnailZoom = new SettingsKey<double>("Internal/AssetViewGridThumbnailZoom", SettingsContainer, 16.0);
         public static SettingsKey<List<AssetFilterViewModelData>> ViewFilters = new SettingsKey<List<AssetFilterViewModelData>>("Internal/CurrentAssetFilters", SettingsContainer, () => new List<AssetFilterViewModelData>());
+        public static SettingsKey<AssetLogScope> AssetLogDisplayScope = new SettingsKey<AssetLogScope>("Internal/AssetLogScope", SettingsContainer, AssetLogScope.AllAssets);
+        public static SettingsKey<List<string>> AssetLogHiddenSources = new SettingsKey<List<string>>("Internal/AssetLogHiddenSources", SettingsContainer, () => new List<string>());
 
         private static readonly SettingsProfile Profile;
 

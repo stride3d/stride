@@ -246,7 +246,8 @@ namespace Stride.Graphics
                 arrayLayers = (uint) ArraySize,
                 extent = new VkExtent3D(Width, Height, Depth),
                 mipLevels = (uint) MipLevelCount,
-                samples = VkSampleCountFlags.Count1,
+                // MultisampleCount values are the sample counts, as the VkSampleCountFlags bits (None = 1, unset = 0)
+                samples = (VkSampleCountFlags) Math.Max((int) MultisampleCount, 1),
                 format = NativeFormat,
                 flags = VkImageCreateFlags.None,
                 tiling = VkImageTiling.Optimal,
@@ -288,7 +289,7 @@ namespace Stride.Graphics
             var memoryProperties = VkMemoryPropertyFlags.DeviceLocal;
 
             // Create native image
-            // TODO: Multisampling, flags, usage, etc.
+            // TODO: flags, usage, etc.
             GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreateImage(GraphicsDevice.NativeDevice, &createInfo, allocator: null, out NativeImage));
 
             // Allocate and bind memory
@@ -510,9 +511,6 @@ namespace Stride.Graphics
                 subresourceRange = new VkImageSubresourceRange(HasStencil ? VkImageAspectFlags.Depth : NativeImageAspect, (uint) mipIndex, (uint) mipCount, (uint) arrayOrDepthSlice, (uint) layerCount)
             };
 
-            if (IsMultiSampled)
-                throw new NotImplementedException();
-
             if (IsMultiSampled && Dimension != TextureDimension.Texture2D)
                 throw new NotSupportedException("Multisample is only supported for 2D Textures");
 
@@ -636,62 +634,6 @@ namespace Stride.Graphics
         internal static PixelFormat ComputeShaderResourceFormatFromDepthFormat(PixelFormat format)
         {
             return format;
-        }
-
-        /// <summary>
-        /// Check and modify if necessary the mipmap levels of the image (Troubles with DXT images whose resolution in less than 4x4 in DX9.x).
-        /// </summary>
-        /// <param name="device">The graphics device.</param>
-        /// <param name="description">The texture description.</param>
-        /// <returns>The updated texture description.</returns>
-        private static TextureDescription CheckMipLevels(GraphicsDevice device, ref TextureDescription description)
-        {
-            if (device.Features.CurrentProfile < GraphicsProfile.Level_10_0 && (description.Flags & TextureFlags.DepthStencil) == 0 && description.Format.IsCompressed)
-            {
-                description.MipLevelCount = Math.Min(CalculateMipCount(description.Width, description.Height), description.MipLevelCount);
-            }
-            return description;
-        }
-
-        /// <summary>
-        /// Calculates the mip level from a specified size.
-        /// </summary>
-        /// <param name="size">The size.</param>
-        /// <param name="minimumSizeLastMip">The minimum size of the last mip.</param>
-        /// <returns>The mip level.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">Value must be > 0;size</exception>
-        private static int CalculateMipCountFromSize(int size, int minimumSizeLastMip = 4)
-        {
-            if (size <= 0)
-            {
-                throw new ArgumentOutOfRangeException("Value must be > 0", "size");
-            }
-
-            if (minimumSizeLastMip <= 0)
-            {
-                throw new ArgumentOutOfRangeException("Value must be > 0", "minimumSizeLastMip");
-            }
-
-            int level = 1;
-            while ((size / 2) >= minimumSizeLastMip)
-            {
-                size = Math.Max(1, size / 2);
-                level++;
-            }
-            return level;
-        }
-
-        /// <summary>
-        /// Calculates the mip level from a specified width,height,depth.
-        /// </summary>
-        /// <param name="width">The width.</param>
-        /// <param name="height">The height.</param>
-        /// <param name="minimumSizeLastMip">The minimum size of the last mip.</param>
-        /// <returns>The mip level.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">Value must be &gt; 0;size</exception>
-        private static int CalculateMipCount(int width, int height, int minimumSizeLastMip = 4)
-        {
-            return Math.Min(CalculateMipCountFromSize(width, minimumSizeLastMip), CalculateMipCountFromSize(height, minimumSizeLastMip));
         }
 
         internal static bool IsDepthFormat(PixelFormat format)

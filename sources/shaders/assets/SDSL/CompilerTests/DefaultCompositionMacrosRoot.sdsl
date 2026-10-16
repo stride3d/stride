@@ -1,0 +1,14 @@
+namespace Stride.Shaders.Tests;
+
+// Value has no value in the mixin tree: the mixer composes its default shader, which must see the macros of this node
+shader DefaultCompositionMacrosRoot
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    compose DefaultCompositionMacrosValue Value;
+
+    void PSMain()
+    {
+        streams.ColorTarget = Value.Compute();
+    }
+}

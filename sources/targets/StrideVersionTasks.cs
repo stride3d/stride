@@ -323,6 +323,9 @@ public class StrideGitVersion : Task
     [Required] public string VersionFile { get; set; }
     [Required] public string GeneratedVersionFile { get; set; }
 
+    // A nightly build replaces the committed suffix with -nightly.YYYYMMDD.N (MajorMinor.Patch unchanged)
+    public string NightlyLabel { get; set; }
+
     [Output] public string NuGetVersion { get; set; }
 
     public override bool Execute()
@@ -335,6 +338,13 @@ public class StrideGitVersion : Task
 
             string majorMinor, version, suffix;
             StrideVersionUtil.ReadInputs(sourcePath, out majorMinor, out version, out suffix);
+
+            if (!string.IsNullOrEmpty(NightlyLabel))
+            {
+                if (!Regex.IsMatch(NightlyLabel, @"^nightly\.[0-9]{8}\.[0-9]+$"))
+                    throw new Exception("NightlyLabel '" + NightlyLabel + "' is not of the form nightly.YYYYMMDD.N");
+                suffix = "-" + NightlyLabel;
+            }
 
             string sha = StrideVersionUtil.Git(RootDirectory, "rev-parse HEAD").Substring(0, 8);
 

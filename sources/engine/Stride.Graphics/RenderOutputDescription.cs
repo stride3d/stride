@@ -161,7 +161,7 @@ namespace Stride.Graphics
         ///   Initializes a new instance of the <see cref="RenderOutputDescription"/> structure.
         /// </summary>
         /// <param name="renderTargetFormats">
-        ///   The pixel formats for up to 8 Render Targets.
+        ///   The pixel formats for up to <see cref="MaximumRenderTargetCount"/> Render Targets.
         ///   If a Render Target is set to <see cref="PixelFormat.None"/>, it is considered disabled.
         ///   Specify an empty span or all set to <see cref="PixelFormat.None"/> to disable the Render Targets.
         /// </param>
@@ -174,18 +174,18 @@ namespace Stride.Graphics
         ///   Specify <see cref="MultisampleCount.None"/> to disable multi-sampling.
         /// </param>
         /// <exception cref="ArgumentOutOfRangeException">
-        ///   Cannot specify the format for more than 8 Render Targets in <paramref name="renderTargetFormats"/>.
+        ///   Cannot specify the format for more than <see cref="MaximumRenderTargetCount"/> Render Targets in <paramref name="renderTargetFormats"/>.
         /// </exception>
         public RenderOutputDescription(ReadOnlySpan<PixelFormat> renderTargetFormats,
                                        PixelFormat depthStencilFormat = PixelFormat.None,
                                        MultisampleCount multisampleCount = MultisampleCount.None)
             : this()
         {
-            if (renderTargetFormats.Length > 8)
-                throw new ArgumentOutOfRangeException(nameof(renderTargetFormats), "Cannot specify the format for more than 8 Render Targets.");
+            if (renderTargetFormats.Length > MaximumRenderTargetCount)
+                throw new ArgumentOutOfRangeException(nameof(renderTargetFormats), $"Cannot specify the format for more than {MaximumRenderTargetCount} Render Targets.");
 
             int lastSetRenderTarget = -1;
-            for (int i = 0; i < MaximumRenderTargetCount; i++)
+            for (int i = 0; i < renderTargetFormats.Length; i++)
                 if (renderTargetFormats[i] != PixelFormat.None)
                     lastSetRenderTarget = i;
 
@@ -214,6 +214,10 @@ namespace Stride.Graphics
                 RenderTargetFormats[i] = commandList.RenderTargets[i].ViewFormat;
                 MultisampleCount = commandList.RenderTargets[i].MultisampleCount; // Multi-sampling should all be equal
             }
+
+            // A format left from an earlier capture with more Render Targets makes this description differ from an equal
+            // one, and Direct3D 12 rejects a format above the Render Target count
+            RenderTargetFormats[RenderTargetCount..].Fill(PixelFormat.None);
         }
 
 
@@ -223,6 +227,7 @@ namespace Stride.Graphics
             return RenderTargetCount == other.RenderTargetCount
                 && RenderTargetFormats.SequenceEqual(other.RenderTargetFormats)
                 && DepthStencilFormat == other.DepthStencilFormat
+                && MultisampleCount == other.MultisampleCount
                 && ScissorTestEnable == other.ScissorTestEnable;
         }
 
@@ -240,6 +245,7 @@ namespace Stride.Graphics
             for (int i = 0; i < MaximumRenderTargetCount; i++)
                 hashCode.Add(RenderTargetFormats[i]);
             hashCode.Add(DepthStencilFormat);
+            hashCode.Add(MultisampleCount);
             hashCode.Add(ScissorTestEnable);
             return hashCode.ToHashCode();
         }

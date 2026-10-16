@@ -19,7 +19,10 @@ namespace Stride.Graphics.Tests;
 /// The consumer is a dispatch rather than a readback: a readback copy emits its own barrier from
 /// the buffer's access and stage masks, which would synchronise the write even with no transition
 /// and leave the test unable to fail. Run with STRIDE_VULKAN_SYNC_VALIDATION=1 to have Vulkan
-/// report the hazard when the transition is missing.
+/// report the hazard when the transition is missing. This needs a validation layer of 1.3.290 or
+/// later, where Stride turns on <c>syncval_shader_accesses_heuristic</c>: without that setting,
+/// synchronization validation does not see what shaders access through descriptors.
+/// <see cref="TestSyncValidationBufferHazard"/> checks that the hazard is reported.
 /// </remarks>
 public class TestBufferBarrier : GraphicTestGameBase
 {

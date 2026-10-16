@@ -10,6 +10,7 @@
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/stride3d/stride</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
 
     <IncludeContentInPack>true</IncludeContentInPack>
   </PropertyGroup>
@@ -23,5 +24,9 @@
     <None Include="runtimes\iossimulator-arm64\native\*" Pack="true" PackagePath="runtimes\iossimulator-arm64\native\" CopyToOutputDirectory="PreserveNewest" />
     <None Include="runtimes\android-arm64\native\*" Pack="true" PackagePath="runtimes\android-arm64\native\" CopyToOutputDirectory="PreserveNewest" />
     <None Include="runtimes\android-x64\native\*"   Pack="true" PackagePath="runtimes\android-x64\native\"   CopyToOutputDirectory="PreserveNewest" />
+
+    <!-- SPIRV-Tools ref and commit, written by the build workflow. -->
+    <None Include="tools\VERSION.txt" Pack="true" PackagePath="tools\" />
+    <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 </Project>

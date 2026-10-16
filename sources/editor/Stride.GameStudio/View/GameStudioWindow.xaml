@@ -15,6 +15,7 @@
         xmlns:cmd="clr-namespace:Stride.Core.Presentation.Commands;assembly=Stride.Core.Presentation"
         xmlns:viewModels="clr-namespace:Stride.Core.Presentation.Quantum.ViewModels;assembly=Stride.Core.Presentation.Quantum"
         xmlns:viewModels1="clr-namespace:Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels;assembly=Stride.Core.Assets.Editor.Wpf"
+        xmlns:logs="clr-namespace:Stride.Core.Assets.Editor.ViewModel.Logs;assembly=Stride.Core.Assets.Editor.Wpf"
         mc:Ignorable="d" d:DesignHeight="300" d:DesignWidth="300"
         Title="{Binding EditorTitle, RelativeSource={RelativeSource Self}}" Width="1280" Height="900" Style="{DynamicResource WindowChromeStyle}"
         PreviewMouseDown="EditorWindowPreviewMouseDown"
@@ -665,7 +666,28 @@
                                        Title="{sd:Localize Asset error ({0}), Plural=Asset errors ({0}), Count={Binding Session.AssetLog.ErrorCount, Source={x:Static vm:GameStudioViewModel.GameStudio}}, IsStringFormat=True, Context=View}"
                                        gh:AvalonDockHelper.IsVisible="{Binding Panels.AssetLogPanelVisible, Mode=TwoWay,
                                        Source={x:Static vm:GameStudioViewModel.GameStudio}, FallbackValue={sd:True}}">
-                  <sd:GridLogViewer DataContext="{x:Static vm:GameStudioViewModel.GameStudio}" LogMessages="{Binding Session.AssetLog.FilteredMessages}" Session="{Binding Session}" ShowDebugMessages="False" ShowVerboseMessages="False" ShowInfoMessages="False"/>
+                  <sd:GridLogViewer DataContext="{x:Static vm:GameStudioViewModel.GameStudio}" LogMessages="{Binding Session.AssetLog.FilteredMessages}" Session="{Binding Session}" ShowDebugMessages="False" ShowVerboseMessages="False" ShowInfoMessages="False">
+                    <sd:GridLogViewer.ToolBarContent>
+                      <StackPanel Orientation="Horizontal" DataContext="{Binding Session.AssetLog, Source={x:Static vm:GameStudioViewModel.GameStudio}}">
+                        <ComboBox SelectedValuePath="Tag" SelectedValue="{Binding Scope}" MinWidth="100" VerticalAlignment="Center"
+                                  ToolTip="{sd:Localize Show the messages of all assets or only of the selected ones (and the assets they use), Context=ToolTip}">
+                          <ComboBoxItem Content="{sd:Localize All assets}" Tag="{x:Static logs:AssetLogScope.AllAssets}"/>
+                          <ComboBoxItem Content="{sd:Localize Selected assets}" Tag="{x:Static logs:AssetLogScope.SelectedAssets}"/>
+                        </ComboBox>
+                        <Menu VerticalAlignment="Center" Background="Transparent">
+                          <MenuItem Header="{Binding SourcesHeader}">
+                            <MenuItem Header="{sd:Localize Show all sources, Context=Menu}" Command="{Binding ShowAllSourcesCommand}"/>
+                            <Separator/>
+                            <MenuItem Header="{Binding Sources[0].DisplayName}" IsCheckable="True" IsChecked="{Binding Sources[0].IsShown}" StaysOpenOnClick="True"/>
+                            <MenuItem Header="{Binding Sources[1].DisplayName}" IsCheckable="True" IsChecked="{Binding Sources[1].IsShown}" StaysOpenOnClick="True"/>
+                            <MenuItem Header="{Binding Sources[2].DisplayName}" IsCheckable="True" IsChecked="{Binding Sources[2].IsShown}" StaysOpenOnClick="True"/>
+                            <MenuItem Header="{Binding Sources[3].DisplayName}" IsCheckable="True" IsChecked="{Binding Sources[3].IsShown}" StaysOpenOnClick="True"/>
+                            <MenuItem Header="{Binding Sources[4].DisplayName}" IsCheckable="True" IsChecked="{Binding Sources[4].IsShown}" StaysOpenOnClick="True"/>
+                          </MenuItem>
+                        </Menu>
+                      </StackPanel>
+                    </sd:GridLogViewer.ToolBarContent>
+                  </sd:GridLogViewer>
                 </xcad:LayoutAnchorable>
                 <!-- BUILD LOG -->
                 <xcad:LayoutAnchorable AutoHideMinHeight="200" ContentId="BuildLog" Title="{Binding Debugging.OutputTitle, Source={x:Static vm:GameStudioViewModel.GameStudio}}"
@@ -692,6 +714,18 @@
                                     ConverterParameter={x:Static FontWeights.Bold}, FallbackValue={x:Static FontWeights.Normal}}"
                                    Foreground="{StaticResource SelectedTextBrush}">
                                     <Run Text="{sd:Localize Project}"/>
+                                    <Run Text="{Binding HasNewMessages, Mode=OneWay, Converter={sd:BoolToParam}, ConverterParameter=*}"/>
+                        </TextBlock>
+                      </TabItem.Header>
+                      <sd:TextLogViewer LogMessages="{Binding Messages}" ShowDebugMessages="False" ShowVerboseMessages="False" ShowInfoMessages="True"/>
+                    </TabItem>
+                    <!-- Warnings and errors of the global log (preview, plugins, editors...); no auto-activation: broken thumbnails log here too -->
+                    <TabItem DataContext="{Binding Debugging.EditorLog}">
+                      <TabItem.Header>
+                        <TextBlock FontWeight="{Binding HasNewMessages, Mode=OneWay, Converter={sd:BoolToParam},
+                                    ConverterParameter={x:Static FontWeights.Bold}, FallbackValue={x:Static FontWeights.Normal}}"
+                                   Foreground="{StaticResource SelectedTextBrush}">
+                                    <Run Text="{sd:Localize Editor}"/>
                                     <Run Text="{Binding HasNewMessages, Mode=OneWay, Converter={sd:BoolToParam}, ConverterParameter=*}"/>
                         </TextBlock>
                       </TabItem.Header>

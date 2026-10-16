@@ -17,6 +17,18 @@ public abstract class MethodOrMember(TextLocation info, bool isStaged = false) :
 {
     public bool IsStaged { get; set; } = isStaged;
     public List<ShaderAttribute>? Attributes { get; set; } = null;
+
+    /// <summary>
+    /// An HLSL <c>register(...)</c> or <c>packoffset(...)</c> written after the name. Stride lays out cbuffers and binds resources itself,
+    /// so it is dropped with a warning.
+    /// </summary>
+    public TextLocation? IgnoredRegister { get; set; }
+
+    internal void WarnIgnoredRegister(SymbolTable table, Identifier name)
+    {
+        if (IgnoredRegister is { } register)
+            table.AddWarning(new(register, string.Format(SDSLErrorMessages.SDSL0220, register.Text, name)));
+    }
 }
 
 
@@ -41,6 +53,7 @@ public partial class ShaderSamplerState(Identifier name, TextLocation info) : Me
     public override void ProcessSymbol(SymbolTable table, SpirvContext context)
     {
         base.ProcessSymbol(table, context);
+        WarnIgnoredRegister(table, Name);
         Type = new PointerType(new SamplerType(), Specification.StorageClass.UniformConstant);
         table.DeclaredTypes.TryAdd(Type.ToString(), Type);
 
@@ -184,6 +197,7 @@ public sealed partial class ShaderMember(
     public override void ProcessSymbol(SymbolTable table, SpirvContext context)
     {
         base.ProcessSymbol(table, context);
+        WarnIgnoredRegister(table, Name);
         foreach (var generic in TypeName.Generics)
             generic.ProcessSymbol(table);
         if (!TypeName.TryResolveType(table, context, out var memberType))
@@ -323,6 +337,11 @@ public sealed partial class ShaderMember(
         if (pointerType.BaseType is ByteAddressBufferType { WriteAllowed: false } or StructuredBufferType { WriteAllowed: false })
             context.Add(new OpDecorate(variable, Specification.Decoration.NonWritable, []));
 
+        // An explicit matrix layout, for the member the mixer makes of this variable in the Globals cbuffer (SPIR-V and HLSL have
+        // opposite meanings: HLSL row_major = SPIR-V ColMajor); removed from the variable before the output
+        if (pointerType.BaseType is MatrixType or ArrayType { BaseType: MatrixType } && TypeModifier is TypeModifier.RowMajor or TypeModifier.ColumnMajor)
+            context.Add(new OpDecorate(variable, TypeModifier == TypeModifier.RowMajor ? Specification.Decoration.ColMajor : Specification.Decoration.RowMajor, []));
+
         RGroup.DecorateVariableLinkInfo(table, shader, context, Info, Name, Attributes, variable);
     }
 
@@ -389,6 +408,10 @@ public partial class ShaderMethod(
     public bool IsOverride { get; set; } = isOverride;
     public bool IsClone { get; set; } = isClone;
     public List<MethodParameter> Parameters { get; set; } = [];
+    /// <summary>
+    /// HLSL return semantic (<c>float4 F() : COLOR</c>): only an entry point's matters, and Stride's come from streams, so it is never emitted.
+    /// </summary>
+    public Identifier? ReturnSemantic { get; set; }
 
     public BlockStatement? Body { get; set; }
 

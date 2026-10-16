@@ -23,8 +23,6 @@ namespace Stride.Graphics
 {
     public unsafe partial class GraphicsDevice
     {
-        private static readonly Logger Log = GlobalLogger.GetLogger(nameof(GraphicsDevice));
-
         internal readonly int ConstantBufferDataPlacementAlignment = D3D12.ConstantBufferDataPlacementAlignment;
 
         private const GraphicsPlatform GraphicPlatform = GraphicsPlatform.Direct3D12;
@@ -33,17 +31,12 @@ namespace Stride.Graphics
         private static object debugLayerLock = new();
         private static bool debugLayerLoaded = false;
 
-        // D3D12 devices are singletons per adapter: every GraphicsDevice of the process on the same adapter shares
-        // the native device, its info queue and its live objects. Counted so that only the last one reports them.
+        // On the system runtime, D3D12 devices are singletons per adapter: every GraphicsDevice of the process on the same
+        // adapter shares the native device, its info queue and its live objects. Counted so that only the last one reports them.
         private static readonly Dictionary<nint, int> nativeDeviceUsers = new();
 
         // Debug devices whose message callback is registered, see UnregisterDebugMessageCallbacksAtExit
         private static readonly HashSet<GraphicsDevice> devicesWithCallback = new();
-
-        // D3D12 Agility SDK redist shipped app-local under D3D12\ (Microsoft.Direct3D.D3D12 1.619.x).
-        private const uint AgilitySDKVersion = 619;
-        private static readonly Guid CLSID_D3D12SDKConfiguration = new(0x7cda6aca, 0xa03e, 0x49c8, 0x94, 0x58, 0x03, 0x34, 0xd2, 0x0e, 0x07, 0xce);
-        private static bool agilitySDKChecked;
 
         private ID3D12InfoQueue* nativeInfoQueue;
         private ID3D12InfoQueue1* nativeInfoQueue1;
@@ -145,6 +138,26 @@ namespace Stride.Graphics
         ///   reference count, and <see cref="ComPtr{T}.Dispose()"/> when no longer needed to release the object.
         /// </remarks>
         internal ComPtr<ID3D12CommandAllocator> NativeCopyCommandAllocator => ToComPtr(nativeCopyCommandAllocator);
+
+        // Command signatures of the indirect calls: one argument each and no root arguments, so no root signature
+        private ID3D12CommandSignature* drawCommandSignature;
+        private ID3D12CommandSignature* drawIndexedCommandSignature;
+        private ID3D12CommandSignature* dispatchCommandSignature;
+
+        /// <summary>
+        ///   Gets the Command Signature of <see cref="CommandList.DrawInstanced(Buffer, int)"/>.
+        /// </summary>
+        internal ID3D12CommandSignature* DrawCommandSignature => drawCommandSignature;
+
+        /// <summary>
+        ///   Gets the Command Signature of <see cref="CommandList.DrawIndexedInstanced(Buffer, int)"/>.
+        /// </summary>
+        internal ID3D12CommandSignature* DrawIndexedCommandSignature => drawIndexedCommandSignature;
+
+        /// <summary>
+        ///   Gets the Command Signature of <see cref="CommandList.Dispatch(Buffer, int)"/>.
+        /// </summary>
+        internal ID3D12CommandSignature* DispatchCommandSignature => dispatchCommandSignature;
 
         private ID3D12GraphicsCommandList7* nativeCopyCommandList;
 
@@ -447,11 +460,6 @@ namespace Stride.Graphics
             // Command lists are thread-safe and execute deferred
             IsDeferred = true;
 
-            var d3d12 = D3D12.GetApi();
-
-            // Opt into an app-local Agility SDK (if shipped) before the debug layer / device load D3D12Core.
-            TryActivateAgilitySDK(d3d12);
-
             // The Debug Layer must be initialized before creating the device
             if (IsDebugMode)
             {
@@ -478,7 +486,7 @@ namespace Stride.Graphics
                 if (featureLevel < D3DFeatureLevel.Level110)
                     featureLevel = D3DFeatureLevel.Level110;
 
-                result = d3d12.CreateDevice(Adapter.NativeAdapter.AsIUnknown(), featureLevel, out ComPtr<ID3D12Device> device);
+                result = D3D12Runtime.CreateDevice(Adapter.NativeAdapter.AsIUnknown(), featureLevel, out ComPtr<ID3D12Device> device);
 
                 if (result.IsFailure)
                 {
@@ -494,7 +502,7 @@ namespace Stride.Graphics
                     nativeDeviceUsers[(nint)nativeDevice] = nativeDeviceUsers.GetValueOrDefault((nint)nativeDevice) + 1;
 
                 RequestedProfile = graphicsProfile;
-                CurrentFeatureLevel = featureLevel;
+                CurrentFeatureLevel = GetMaximumFeatureLevel(featureLevel);
 
                 // Check Enhanced Barriers support (D3D12_FEATURE_D3D12_OPTIONS12 = 41)
                 RequireEnhancedBarriersSupport();
@@ -646,6 +654,10 @@ namespace Stride.Graphics
 
             commandList.Close();
 
+            drawCommandSignature = CreateCommandSignature(IndirectArgumentType.Draw, (uint) sizeof(DrawArguments));
+            drawIndexedCommandSignature = CreateCommandSignature(IndirectArgumentType.DrawIndexed, (uint) sizeof(DrawIndexedArguments));
+            dispatchCommandSignature = CreateCommandSignature(IndirectArgumentType.Dispatch, (uint) sizeof(DispatchArguments));
+
             // Fences for next frame and resource cleaning
             FrameFence = new FenceHelper(this);
             CommandListFence = new FenceHelper(this);
@@ -659,7 +671,7 @@ namespace Stride.Graphics
             //
             void EnableDebugLayer()
             {
-                HResult result = d3d12.GetDebugInterface(out ComPtr<ID3D12Debug> debugInterface);
+                HResult result = D3D12Runtime.GetDebugInterface(D3D12Runtime.CLSID_D3D12Debug, out ComPtr<ID3D12Debug> debugInterface);
 
                 if (result.IsSuccess && debugInterface.IsNotNull())
                 {
@@ -682,7 +694,7 @@ namespace Stride.Graphics
                 }
 
                 // Enable DRED (Device Removed Extended Data) for GPU crash diagnostics
-                result = d3d12.GetDebugInterface(out ComPtr<ID3D12DeviceRemovedExtendedDataSettings> dredSettings);
+                result = D3D12Runtime.GetDebugInterface(D3D12Runtime.CLSID_D3D12DeviceRemovedExtendedData, out ComPtr<ID3D12DeviceRemovedExtendedDataSettings> dredSettings);
                 if (result.IsSuccess && dredSettings.IsNotNull())
                 {
                     dredSettings.SetAutoBreadcrumbsEnablement(DredEnablement.ForcedOn);
@@ -691,11 +703,25 @@ namespace Stride.Graphics
                 }
             }
 
+            // The device is created with a minimum level and runs at the highest one it supports.
+            // GraphicsProfile has no level above 11_1.
+            D3DFeatureLevel GetMaximumFeatureLevel(D3DFeatureLevel minimumFeatureLevel)
+            {
+                var levels = stackalloc D3DFeatureLevel[] { D3DFeatureLevel.Level110, D3DFeatureLevel.Level111 };
+                var featureLevels = new FeatureDataFeatureLevels { NumFeatureLevels = 2, PFeatureLevelsRequested = levels };
+
+                HResult hr = nativeDevice->CheckFeatureSupport(Silk.NET.Direct3D12.Feature.FeatureLevels, ref featureLevels,
+                                                                (uint) sizeof(FeatureDataFeatureLevels));
+                return hr.IsSuccess && featureLevels.MaxSupportedFeatureLevel > minimumFeatureLevel
+                    ? featureLevels.MaxSupportedFeatureLevel
+                    : minimumFeatureLevel;
+            }
+
             //
             // Requires D3D12 Enhanced Barriers. Throws if unsupported.
             //
-            // Minimum requirements: Windows 10 21H2 (build 19044) or Windows 11 — we use the
-            // system d3d12.dll, no Agility SDK is embedded. Driver floors: NVIDIA 531.18+,
+            // The runtime must support them: the Agility SDK under D3D12\ (see D3D12Runtime) or a recent
+            // Windows 11 system runtime; the Windows 10 system runtime doesn't. Driver floors: NVIDIA 531.18+,
             // AMD 23.5.2+, Intel 31.0.101.4032+. WARP and Xbox Series X|S are supported.
             //
             void RequireEnhancedBarriersSupport()
@@ -708,10 +734,13 @@ namespace Stride.Graphics
                                                                 (uint) sizeof(FeatureDataD3D12Options12));
                 if (!hr.IsSuccess || !options12.EnhancedBarriersSupported)
                 {
+                    var runtimeHint = D3D12Runtime.IsAgilitySDKLoaded
+                        ? ""
+                        : " The system D3D12 runtime is in use: ship the D3D12 Agility SDK under D3D12\\ " +
+                          "(the Windows 10 runtime has no Enhanced Barriers), and install the Windows updates from September 2023 or newer.";
                     throw new GraphicsDeviceException(
                         "D3D12 Enhanced Barriers are required but not supported by this device/driver. " +
-                        "Update to a recent GPU driver (NVIDIA 531.18+, AMD 23.5.2+, Intel 31.0.101.4032+) " +
-                        "and run on Windows 10 21H2 or Windows 11.");
+                        "Update to a recent GPU driver (NVIDIA 531.18+, AMD 23.5.2+, Intel 31.0.101.4032+)." + runtimeHint);
                 }
             }
         }
@@ -851,40 +880,6 @@ namespace Stride.Graphics
         private partial void AdjustDefaultPipelineStateDescription(ref PipelineStateDescription pipelineStateDescription) { }
 
         /// <summary>
-        ///   Activates an app-local D3D12 Agility SDK (shipped under <c>D3D12\</c>) once per process,
-        ///   before any device or debug interface is created. No-op if the redist isn't present.
-        /// </summary>
-        private static void TryActivateAgilitySDK(D3D12 d3d12)
-        {
-            lock (debugLayerLock)
-            {
-                if (agilitySDKChecked)
-                    return;
-                agilitySDKChecked = true;
-
-                if (!System.IO.File.Exists(System.IO.Path.Combine(AppContext.BaseDirectory, "D3D12", "D3D12Core.dll")))
-                    return;
-
-                var clsid = CLSID_D3D12SDKConfiguration;
-                int hr = d3d12.GetInterface(ref clsid, out ComPtr<ID3D12SDKConfiguration> sdkConfig);
-                if (hr < 0 || sdkConfig.IsNull())
-                {
-                    Log.Warning($"[D3D12] Agility SDK present but ID3D12SDKConfiguration is unavailable (0x{hr:X8}); using system D3D12.");
-                    return;
-                }
-
-                // Path is relative to the exe and must end with a separator.
-                hr = sdkConfig.SetSDKVersion(AgilitySDKVersion, "D3D12\\");
-                sdkConfig.Release();
-
-                if (hr < 0)
-                    Log.Warning($"[D3D12] Agility SDK SetSDKVersion({AgilitySDKVersion}) failed (0x{hr:X8}); using system D3D12.");
-                else
-                    Log.Info($"[D3D12] Using app-local Agility SDK {AgilitySDKVersion}.");
-            }
-        }
-
-        /// <summary>
         ///   Releases the platform-specific Graphics Device and all its associated resources.
         /// </summary>
         partial void WaitForGPUIdle()
@@ -900,6 +895,27 @@ namespace Stride.Graphics
             FrameFence.Signal(NativeCommandQueue, FrameFence.NextFenceValue);
             if (!FrameFence.WaitForFenceCPUInternal(FrameFence.NextFenceValue, GpuIdleTimeoutMs))
                 Log.Error($"[D3D12] GPU queue did not drain within {GpuIdleTimeoutMs / 1000}s; continuing teardown. A pending Present whose window was already destroyed can never complete.");
+        }
+
+        /// <summary>
+        ///   Creates the Command Signature of an indirect call that reads one argument structure and changes no root argument.
+        /// </summary>
+        private ID3D12CommandSignature* CreateCommandSignature(IndirectArgumentType type, uint byteStride)
+        {
+            var argument = new IndirectArgumentDesc { Type = type };
+            var description = new CommandSignatureDesc
+            {
+                ByteStride = byteStride,
+                NumArgumentDescs = 1,
+                PArgumentDescs = &argument,
+            };
+
+            ID3D12CommandSignature* commandSignature;
+            HResult result = nativeDevice->CreateCommandSignature(&description, pRootSignature: null, SilkMarshal.GuidPtrOf<ID3D12CommandSignature>(), (void**) &commandSignature);
+            if (result.IsFailure)
+                result.Throw();
+
+            return commandSignature;
         }
 
         protected partial void DestroyPlatformDevice()
@@ -918,6 +934,10 @@ namespace Stride.Graphics
             SafeRelease(ref nativeCopyCommandQueue);
             SafeRelease(ref nativeCopyCommandAllocator);
             SafeRelease(ref nativeCopyCommandList);
+
+            SafeRelease(ref drawCommandSignature);
+            SafeRelease(ref drawIndexedCommandSignature);
+            SafeRelease(ref dispatchCommandSignature);
 
             SafeRelease(ref nativeUploadBuffer);
 
@@ -1305,7 +1325,8 @@ namespace Stride.Graphics
         /// </param>
         internal partial void TagResourceAsNotAlive(GraphicsResourceLink resourceLink)
         {
-            Debug.Assert(resourceLink is { Resource: Texture or Buffer }, "Resource link cannot be null, and must be a Texture or a Buffer.");
+            // Query Pools come from the allocator too; only dynamic Textures and Buffers need handling
+            Debug.Assert(resourceLink?.Resource is not null, "Resource link cannot be null, and must have a Graphics Resource.");
 
             if (resourceLink.Resource is Texture { Usage: GraphicsResourceUsage.Dynamic })
             {

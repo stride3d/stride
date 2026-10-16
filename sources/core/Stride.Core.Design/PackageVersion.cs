@@ -129,6 +129,14 @@ public sealed partial class PackageVersion : IComparable, IComparable<PackageVer
         => SpecialVersion is { } label
            && (label.StartsWith("dev", StringComparison.OrdinalIgnoreCase) || label.Contains("-dev", StringComparison.OrdinalIgnoreCase));
 
+    /// <summary>
+    /// Gets whether this version is a nightly build: 4.5.0-nightly.20261014.3, or appended to a prerelease for a package
+    /// with its own version (5.0.1-beta1.nightly.20261014.3).
+    /// </summary>
+    public bool IsNightly
+        => SpecialVersion is { } label
+           && (label.StartsWith("nightly.", StringComparison.OrdinalIgnoreCase) || label.Contains(".nightly.", StringComparison.OrdinalIgnoreCase));
+
     public string[] GetOriginalVersionComponents()
     {
         if (!string.IsNullOrEmpty(originalString))

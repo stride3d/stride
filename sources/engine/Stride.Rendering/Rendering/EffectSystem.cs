@@ -142,7 +142,7 @@ namespace Stride.Rendering
             // Setup compilation parameters
             // GraphicsDevice might have been not valid until this point, which is why we compute platform and profile only at this point
             compilerParameters.EffectParameters.Platform = GraphicsDevice.Platform;
-            compilerParameters.EffectParameters.Profile = GraphicsDevice.ShaderProfile ?? GraphicsDevice.Features.RequestedProfile;
+            compilerParameters.EffectParameters.Profile = GraphicsDevice.EffectProfile;
             // Copy optimization/debug levels
             compilerParameters.EffectParameters.OptimizationLevel = effectCompilerParameters.OptimizationLevel;
             compilerParameters.EffectParameters.Debug = effectCompilerParameters.Debug;
