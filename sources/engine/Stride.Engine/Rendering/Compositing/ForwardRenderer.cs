@@ -150,12 +150,6 @@ namespace Stride.Rendering.Compositing
                 {
                     logger.Warning("Multisample count of " + (int)MSAALevel + " samples not supported. Falling back to highest supported sample count of " + (int)actualMultisampleCount + " samples.");
                 }
-
-                if (Platform.Type == PlatformType.iOS)
-                {
-                    // MSAA is not supported on iOS currently because OpenTK doesn't expose "GL.BlitFramebuffer()" on iOS for some reason.
-                    actualMultisampleCount = MultisampleCount.None;
-                }
             }
 
             var camera = Context.GetCurrentCamera();
