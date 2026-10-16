@@ -187,9 +187,12 @@ public partial class SwitchStatement(Expression selector, TextLocation info) : F
         for (int i = 0; i < Sections.Count; i++)
             sectionBlockIds[i] = context.Bound++;
 
-        // Set up escape blocks so break targets the merge block
+        // Set up escape blocks so break targets the merge block; a continue leaves the switch too, then continues the loop around it
         var previousEscapeBlocks = builder.CurrentEscapeBlocks;
-        builder.CurrentEscapeBlocks = new SpirvBuilder.EscapeBlocks(mergeBlock, mergeBlock);
+        var switchContinue = new SpirvBuilder.SwitchContinue();
+        builder.CurrentEscapeBlocks = previousEscapeBlocks is { ContinueBlock: not SpirvBuilder.EscapeBlocks.NoLoop }
+            ? new SpirvBuilder.EscapeBlocks(previousEscapeBlocks.Value.ContinueBlock, mergeBlock, switchContinue)
+            : new SpirvBuilder.EscapeBlocks(SpirvBuilder.EscapeBlocks.NoLoop, mergeBlock);
 
         // Build the labels and find default block
         int defaultBlockId = mergeBlock;
@@ -241,6 +244,20 @@ public partial class SwitchStatement(Expression selector, TextLocation info) : F
         builder.CreateBlock(context, mergeBlock, $"switch_merge_{builder.SwitchBlockCount}");
         if (!isMergeBlockReachable)
             builder.Insert(new OpUnreachable());
+
+        // After a continue inside the switch: clear the flag and continue the loop (or the switch around this one)
+        if (switchContinue.Flag is int flag)
+        {
+            var continueBlock = context.Bound++;
+            var afterBlock = context.Bound++;
+            var flagValue = builder.Insert(new OpLoad(context.GetOrRegister(ScalarType.Boolean), context.Bound++, flag, null, []));
+            builder.Insert(new OpSelectionMerge(afterBlock, Specification.SelectionControlMask.None));
+            builder.Insert(new OpBranchConditional(flagValue.ResultId, continueBlock, afterBlock, []));
+            builder.CreateBlock(context, continueBlock, $"switch_continue_{builder.SwitchBlockCount}");
+            builder.Insert(new OpStore(flag, context.CompileConstant(false).Id, null, []));
+            builder.Continue(context, previousEscapeBlocks!.Value);
+            builder.CreateBlock(context, afterBlock, $"switch_after_{builder.SwitchBlockCount}");
+        }
 
         builder.SwitchBlockCount++;
         builder.CurrentEscapeBlocks = previousEscapeBlocks;

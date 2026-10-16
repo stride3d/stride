@@ -30,7 +30,7 @@ public partial class SpirvBuilder()
         Insert(new OpLine(fileId, line, column));
     }
 
-    public int AddFunctionVariable(int paramType, int paramVariable)
+    public int AddFunctionVariable(int paramType, int paramVariable, int? initializer = null)
     {
         if (CurrentFunction is not SpirvFunction f)
             throw new InvalidOperationException();
@@ -43,7 +43,7 @@ public partial class SpirvBuilder()
         Position++;
         while (Position + 1 < Buffer.Count && Buffer[Position].Op == Op.OpVariable)
             Position++;
-        Insert(new OpVariable(paramType, paramVariable, StorageClass.Function, null));
+        Insert(new OpVariable(paramType, paramVariable, StorageClass.Function, initializer));
 
         Position = currentPosition + 1;
         CurrentBlock = currentBlock;
