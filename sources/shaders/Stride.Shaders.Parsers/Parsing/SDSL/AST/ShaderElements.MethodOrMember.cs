@@ -448,8 +448,11 @@ public partial class ShaderMethod(
             }
         }
 
-        if (!IsOverride)
-            CheckMissingOverride(table, ftype);
+        if (!IsOverride && CheckMissingOverride(table, ftype))
+        {
+            IsOverride = true;
+            functionFlags |= Specification.FunctionFlagsMask.Override;
+        }
 
         var symbol = new Symbol(new(Name, SymbolKind.Method, IsStage: IsStaged), ftype, function.Id, MemberAccessWithImplicitThis: ftype, OwnerType: table.CurrentShader);
 
@@ -476,7 +479,9 @@ public partial class ShaderMethod(
 
     // Without 'override', a method with the signature of an inherited one starts a separate method group,
     // so calls through the base never reach it. The mixer only logs the error message, so it carries the location.
-    private void CheckMissingOverride(SymbolTable table, FunctionType ftype)
+    // An implementation of an abstract method can only mean an override: it is compiled as one, with a warning
+    // (returns true). Hiding a method that has a body stays an error.
+    private bool CheckMissingOverride(SymbolTable table, FunctionType ftype)
     {
         foreach (var inheritedShader in table.InheritedShaders)
         {
@@ -486,12 +491,17 @@ public partial class ShaderMethod(
                 if (method.Id.Name != Name.Name || method.Type is not FunctionType methodType || methodType != ftype)
                     continue;
 
-                var message = (flags & Specification.FunctionFlagsMask.Abstract) != 0 ? SDSLErrorMessages.SDSL0114 : SDSLErrorMessages.SDSL0115;
                 var parameters = string.Join(", ", Parameters.Select(p => p.Type));
-                table.AddError(new(Name.Info, string.Format(message, table.CurrentShader!.Name, Name.Name, parameters, Name.Info.Line, inherited.Name)));
-                return;
+                if ((flags & Specification.FunctionFlagsMask.Abstract) != 0)
+                {
+                    table.AddWarning(new(Name.Info, string.Format(SDSLErrorMessages.SDSL0114, table.CurrentShader!.Name, Name.Name, parameters, Name.Info.Line, inherited.Name)));
+                    return true;
+                }
+                table.AddError(new(Name.Info, string.Format(SDSLErrorMessages.SDSL0115, table.CurrentShader!.Name, Name.Name, parameters, Name.Info.Line, inherited.Name)));
+                return false;
             }
         }
+        return false;
     }
 
     // SPIR-V spec: SpacingX / VertexOrderX / PointMode execution modes are only valid on
