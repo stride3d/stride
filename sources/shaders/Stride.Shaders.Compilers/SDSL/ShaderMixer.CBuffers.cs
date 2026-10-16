@@ -648,6 +648,8 @@ namespace Stride.Shaders.Compilers.SDSL
                 },
                 uint => v.Length switch
                 {
+                    2 => new UInt2((uint)v[0], (uint)v[1]),
+                    3 => new UInt3((uint)v[0], (uint)v[1], (uint)v[2]),
                     4 => (object)new UInt4((uint)v[0], (uint)v[1], (uint)v[2], (uint)v[3]),
                     _ => throw new NotSupportedException($"Unsupported uint vector size: {v.Length}"),
                 },

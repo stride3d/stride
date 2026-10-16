@@ -1,0 +1,16 @@
+// uint vector members with default values: their keys are UInt2 / UInt3 / UInt4.
+namespace Stride.Shaders.Tests;
+
+shader CBufferUIntVectors
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    uint2 Value2 = uint2(1, 2);
+    uint3 Value3 = uint3(3, 4, 5);
+    uint4 Value4 = uint4(6, 7, 8, 4000000000u);
+
+    stage void PSMain()
+    {
+        streams.ColorTarget = float4(Value2.x, Value3.y, Value4.z, Value4.w);
+    }
+}
