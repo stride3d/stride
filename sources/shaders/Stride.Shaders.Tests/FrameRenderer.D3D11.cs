@@ -865,15 +865,19 @@ float4 main(vs_out input) : SV_TARGET {
             else if (resourceType == "structuredbuffer")
             {
                 var (stride, data) = ParseStructuredBufferData(value);
+                // Byte address buffers are raw views of 4-byte words; read-write buffers are UAVs
+                var raw = resourceReflection.Type is EffectParameterType.ByteAddressBuffer or EffectParameterType.RWByteAddressBuffer;
+                var unorderedAccess = resourceReflection.Class == EffectParameterClass.UnorderedAccessView;
+                var elementCount = (uint)(data.Length / (raw ? sizeof(uint) : stride));
 
                 ComPtr<ID3D11Buffer> buffer = default;
                 bufferDesc = new BufferDesc
                 {
                     ByteWidth = (uint)data.Length,
                     Usage = Usage.Default,
-                    BindFlags = (uint)BindFlag.ShaderResource,
-                    MiscFlags = (uint)ResourceMiscFlag.BufferStructured,
-                    StructureByteStride = (uint)stride,
+                    BindFlags = (uint)(unorderedAccess ? BindFlag.UnorderedAccess | BindFlag.ShaderResource : BindFlag.ShaderResource),
+                    MiscFlags = (uint)(raw ? ResourceMiscFlag.BufferAllowRawViews : ResourceMiscFlag.BufferStructured),
+                    StructureByteStride = raw ? 0 : (uint)stride,
                 };
                 fixed (byte* dataPtr = data)
                 {
@@ -881,18 +885,37 @@ float4 main(vs_out input) : SV_TARGET {
                     SilkMarshal.ThrowHResult(device.CreateBuffer(in bufferDesc, in subresourceData, ref buffer));
                 }
 
-                ComPtr<ID3D11ShaderResourceView> bufferSRV = default;
-                var srvDesc = new ShaderResourceViewDesc
+                if (unorderedAccess)
                 {
-                    Format = Format.FormatUnknown,
-                    ViewDimension = D3DSrvDimension.D3DSrvDimensionBuffer,
-                    Anonymous = new ShaderResourceViewDescUnion { Buffer = new() { FirstElement = 0, NumElements = (uint)(data.Length / stride) } },
-                };
-                SilkMarshal.ThrowHResult(device.CreateShaderResourceView(buffer, in srvDesc, ref bufferSRV));
+                    ComPtr<ID3D11UnorderedAccessView> bufferUAV = default;
+                    var uavDesc = new UnorderedAccessViewDesc
+                    {
+                        Format = raw ? Format.FormatR32Typeless : Format.FormatUnknown,
+                        ViewDimension = UavDimension.Buffer,
+                        Anonymous = new UnorderedAccessViewDescUnion { Buffer = new() { FirstElement = 0, NumElements = elementCount, Flags = raw ? (uint)BufferUavFlag.Raw : 0 } },
+                    };
+                    SilkMarshal.ThrowHResult(device.CreateUnorderedAccessView(buffer, in uavDesc, ref bufferUAV));
 
-                deviceContext.CSSetShaderResources((uint)resourceReflection.SlotStart, 1U, &bufferSRV.Handle);
-                deviceContext.VSSetShaderResources((uint)resourceReflection.SlotStart, 1U, &bufferSRV.Handle);
-                deviceContext.PSSetShaderResources((uint)resourceReflection.SlotStart, 1U, &bufferSRV.Handle);
+                    // UAVs share the render targets' slots in a pixel shader: keep the bound render target
+                    const uint keepRenderTargetsAndDepthStencil = 0xFFFFFFFF;
+                    deviceContext.CSSetUnorderedAccessViews((uint)resourceReflection.SlotStart, 1U, &bufferUAV.Handle, (uint*)null);
+                    deviceContext.OMSetRenderTargetsAndUnorderedAccessViews(keepRenderTargetsAndDepthStencil, (ID3D11RenderTargetView**)null, (ID3D11DepthStencilView*)null, (uint)resourceReflection.SlotStart, 1U, &bufferUAV.Handle, (uint*)null);
+                }
+                else
+                {
+                    ComPtr<ID3D11ShaderResourceView> bufferSRV = default;
+                    var srvDesc = new ShaderResourceViewDesc
+                    {
+                        Format = raw ? Format.FormatR32Typeless : Format.FormatUnknown,
+                        ViewDimension = D3DSrvDimension.D3D11SrvDimensionBufferex,
+                        Anonymous = new ShaderResourceViewDescUnion { BufferEx = new() { FirstElement = 0, NumElements = elementCount, Flags = raw ? (uint)BufferexSrvFlag.Raw : 0 } },
+                    };
+                    SilkMarshal.ThrowHResult(device.CreateShaderResourceView(buffer, in srvDesc, ref bufferSRV));
+
+                    deviceContext.CSSetShaderResources((uint)resourceReflection.SlotStart, 1U, &bufferSRV.Handle);
+                    deviceContext.VSSetShaderResources((uint)resourceReflection.SlotStart, 1U, &bufferSRV.Handle);
+                    deviceContext.PSSetShaderResources((uint)resourceReflection.SlotStart, 1U, &bufferSRV.Handle);
+                }
             }
             else if (resourceType == "texture")
             {
