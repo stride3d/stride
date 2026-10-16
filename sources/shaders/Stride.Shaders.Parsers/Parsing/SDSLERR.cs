@@ -91,4 +91,7 @@ public static class SDSLErrorMessages
     // HLSL warnings: valid HLSL that is probably a mistake, reported when a class compiles
     public const string SDSL0219 = "SDSL0219: comma expression ({0}): the values before the last are dropped, the result is {1}. To build a vector, write its type: float4(...).";
     public const string SDSL0220 = "SDSL0220: {0} on {1} is ignored: Stride lays out cbuffers and binds resources itself. Remove it.";
+
+    // SDSL warnings
+    public const string SDSL0236 = "SDSL0236: the value of composition {0} is ignored: a composition gets its shader from the effect, not from a value. Remove '= {1}'.";
 }
