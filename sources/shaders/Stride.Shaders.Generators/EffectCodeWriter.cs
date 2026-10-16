@@ -193,8 +193,7 @@ public class EffectCodeWriter : ShaderWriter
         // half cbuffer members are unsupported (reflection rejects them); key as float so the generated C# stays valid.
         VectorType { BaseType.Type: Scalar.Float or Scalar.Half, Size: var n } => isProcessingColor && n is 3 or 4 ? $"Color{n}" : $"Vector{n}",
         VectorType { BaseType.Type: Scalar.Double, Size: var n } => $"Double{n}",
-        VectorType { BaseType.Type: Scalar.Int, Size: var n } => $"Int{n}",
-        VectorType { BaseType.Type: Scalar.UInt, Size: var n } => $"UInt{n}",
+        VectorType { BaseType.Type: Scalar.Int or Scalar.UInt, Size: var n } => $"Int{n}",
         MatrixType { Rows: 4, Columns: 4, BaseType.Type: Scalar.Float } => "Matrix",
         ArrayType a => $"{ToCSharpType(a.BaseType)}[]",
         BufferType or StructuredBufferType or AppendStructuredBufferType or ConsumeStructuredBufferType or ByteAddressBufferType => "Buffer",
@@ -497,7 +496,7 @@ public class EffectCodeWriter : ShaderWriter
         }
         else if (VectorType.Types.TryGetValue(typeName.Name, out var v2) && v2 is { BaseType.Type: Scalar.Int or Scalar.UInt })
         {
-            Write($"{(v2.BaseType.Type == Scalar.UInt ? "UInt" : "Int")}{v2.Size}");
+            Write($"Int{v2.Size}");
         }
         else if (MatrixType.Types.TryGetValue(typeName.Name, out var m) && m is { Columns: 4, Rows: 4, BaseType.Type: Scalar.Float })
         {

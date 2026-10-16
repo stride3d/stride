@@ -470,25 +470,6 @@ public class TestToString
     }
 
     [Fact]
-    public void TestUInt2()
-    {
-        DoTestToString(UInt2.Zero, ("X:0 Y:0", "X:0 Y:0", "X:0 Y:0", "X:0 Y:0"));
-        DoTestToString(UInt2.One, ("X:1 Y:1", "X:1 Y:1", "X:1 Y:1", "X:1 Y:1"));
-        DoTestToString(UInt2.UnitX, ("X:1 Y:0", "X:1 Y:0", "X:1 Y:0", "X:1 Y:0"));
-        DoTestToString(UInt2.UnitY, ("X:0 Y:1", "X:0 Y:1", "X:0 Y:1", "X:0 Y:1"));
-    }
-
-    [Fact]
-    public void TestUInt3()
-    {
-        DoTestToString(UInt3.Zero, ("X:0 Y:0 Z:0", "X:0 Y:0 Z:0", "X:0 Y:0 Z:0", "X:0 Y:0 Z:0"));
-        DoTestToString(UInt3.One, ("X:1 Y:1 Z:1", "X:1 Y:1 Z:1", "X:1 Y:1 Z:1", "X:1 Y:1 Z:1"));
-        DoTestToString(UInt3.UnitX, ("X:1 Y:0 Z:0", "X:1 Y:0 Z:0", "X:1 Y:0 Z:0", "X:1 Y:0 Z:0"));
-        DoTestToString(UInt3.UnitY, ("X:0 Y:1 Z:0", "X:0 Y:1 Z:0", "X:0 Y:1 Z:0", "X:0 Y:1 Z:0"));
-        DoTestToString(UInt3.UnitZ, ("X:0 Y:0 Z:1", "X:0 Y:0 Z:1", "X:0 Y:0 Z:1", "X:0 Y:0 Z:1"));
-    }
-
-    [Fact]
     public void TestUInt4()
     {
         DoTestToString(UInt4.Zero, ("X:0 Y:0 Z:0 W:0", "X:0 Y:0 Z:0 W:0", "X:0 Y:0 Z:0 W:0", "X:0 Y:0 Z:0 W:0"));

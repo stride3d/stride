@@ -14,7 +14,6 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Stride.UI" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Graphics.Tests" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Engine.Tests" + Stride.PublicKeys.Default)]
-[assembly: InternalsVisibleTo("Stride.Shaders.Tests" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Graphics.Regression" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Assets" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.VirtualReality" + Stride.PublicKeys.Default)]

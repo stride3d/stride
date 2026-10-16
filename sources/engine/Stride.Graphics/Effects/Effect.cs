@@ -113,7 +113,7 @@ namespace Stride.Graphics
             LoadDefaultParameters();
         }
 
-        internal static void PrepareReflection(EffectReflection reflection)
+        private static void PrepareReflection(EffectReflection reflection)
         {
             var resourceBindingsSpan = CollectionsMarshal.AsSpan(reflection.ResourceBindings);
 
@@ -300,9 +300,7 @@ namespace Stride.Graphics
                                 break;
                             case EffectParameterType.UInt:
                                 binding.KeyInfo.Key =
-                                    componentCount == 4 ? FindOrCreateValueKey<UInt4>(ref binding) :
-                                    componentCount == 3 ? FindOrCreateValueKey<UInt3>(ref binding) :
-                                    componentCount == 2 ? FindOrCreateValueKey<UInt2>(ref binding) : null;
+                                    componentCount == 4 ? FindOrCreateValueKey<UInt4>(ref binding) : null;
                                 break;
                             case EffectParameterType.Float:
                                 binding.KeyInfo.Key =
