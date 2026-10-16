@@ -16,6 +16,7 @@
     <ProjectReference Include="..\..\tests\Stride.XunitRunner\Stride.XunitRunner.csproj" />
     <ProjectReference Include="..\Stride.Engine\Stride.Engine.csproj" />
     <ProjectReference Include="..\Stride.Graphics.Regression\Stride.Graphics.Regression.csproj" />
+    <ProjectReference Include="..\..\plugins\Voxels\Stride.Voxels\Stride.Voxels.csproj" />
     <ProjectReference Include="..\..\core\Stride.Core.MicroThreading\Stride.Core.MicroThreading.csproj" />
   </ItemGroup>
   <ItemGroup>

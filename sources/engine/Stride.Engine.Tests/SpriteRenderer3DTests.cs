@@ -24,6 +24,11 @@ namespace Stride.Engine.Tests
         private const int ScreenWidth = 1024;
         private const int ScreenHeight = 780;
 
+        /// <summary>
+        /// Draws every sprite with alpha cutoff (its own effect), without screenshot.
+        /// </summary>
+        public bool AlphaCutoff { get; init; }
+
         public SpriteRenderer3DTests()
         {
             GraphicsDeviceManager.PreferredBackBufferWidth = ScreenWidth;
@@ -98,7 +103,10 @@ namespace Stride.Engine.Tests
 
             // add all the entities to the scene
             foreach (var entity in entities)
+            {
+                entity.Get<SpriteComponent>().IsAlphaCutoff = AlphaCutoff;
                 SceneSystem.SceneInstance.RootScene.Entities.Add(entity);
+            }
 
             cameraScript = new TestCamera(Services.GetSafeServiceAs<SceneSystem>().GraphicsCompositor);
             CameraComponent = cameraScript.Camera;
@@ -112,6 +120,12 @@ namespace Stride.Engine.Tests
         protected override void RegisterTests()
         {
             base.RegisterTests();
+
+            if (AlphaCutoff)
+            {
+                FrameGameSystem.Draw(() => { });
+                return;
+            }
 
             FrameGameSystem.TakeScreenshot();
             FrameGameSystem.Draw(() => UpdateSprites(0.6f)).TakeScreenshot();
@@ -147,6 +161,12 @@ namespace Stride.Engine.Tests
         public void SpriteRender3DRun()
         {
             RunGameTest(new SpriteRenderer3DTests());
+        }
+
+        [SkippableFact]
+        public void SpriteRender3DAlphaCutoff()
+        {
+            RunGameTest(new SpriteRenderer3DTests { AlphaCutoff = true });
         }
     }
 }
