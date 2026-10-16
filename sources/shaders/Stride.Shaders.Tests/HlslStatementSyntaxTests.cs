@@ -55,4 +55,17 @@ public class HlslStatementSyntaxTests
         Assert.Equal(InterpolationModifier.Sample, members[0].Interpolation);
         Assert.Equal("sample", members[1].Name.Name);
     }
+
+    // A local struct goes to the class under a unique name; the method's type names follow it
+    [Fact]
+    public void LocalStructsAreHoistedUnderUniqueNames()
+    {
+        var result = SDSLParser.Parse("shader S { struct P { float a; }; float F() { struct P { int b; }; P p; p.b = 1; return p.b; } float G() { struct P { int c; }; P p; p.c = 2; return p.c; } };");
+        Assert.True(result.Errors.Count == 0, string.Join("\n", result.Errors.Select(x => x.ToString())));
+
+        var shader = Assert.IsType<ShaderClass>(Assert.Single(((ShaderFile)result.AST!).RootDeclarations));
+        Assert.Equal(["P", "P_in_F", "P_in_G"], shader.Elements.OfType<ShaderStruct>().Select(x => x.TypeName.Name));
+        var g = shader.Elements.OfType<ShaderMethod>().Single(x => x.Name.Name == "G");
+        Assert.Equal("P_in_G", g.Body!.Statements.OfType<Declare>().Single().TypeName.Name);
+    }
 }
