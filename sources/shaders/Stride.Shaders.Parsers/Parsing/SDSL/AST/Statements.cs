@@ -217,7 +217,7 @@ public partial class Declare(TypeName typename, TextLocation info) : Declaration
 /// <summary>
 /// A failure while compiling a statement, with the statement's location (like a <see cref="SemanticError"/>).
 /// </summary>
-public class StatementCompileException(SemanticError error, Exception inner) : InvalidOperationException(error.ToString(), inner)
+public class StatementCompileException(SemanticError error, Exception? inner = null) : InvalidOperationException(error.ToString(), inner)
 {
     public SemanticError Error { get; } = error;
 }

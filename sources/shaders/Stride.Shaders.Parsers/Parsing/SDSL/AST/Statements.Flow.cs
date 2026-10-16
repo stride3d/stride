@@ -80,6 +80,8 @@ public partial class ForEach(TypeName typename, Identifier variable, Expression 
 
     public override void ProcessSymbol(SymbolTable table)
     {
+        // foreach (var c in Compositions)
+        Collection.AllowComposition = true;
         Collection.ProcessSymbol(table);
         if (!(Collection.Type is PointerType p && p.BaseType is ArrayType arrayType))
             throw new InvalidOperationException("foreach: Array type is expected");

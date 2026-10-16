@@ -560,6 +560,10 @@ public partial class Identifier(string name, TextLocation info) : IdentifierBase
 
                 ResolvedSymbol = symbol;
                 Type = symbol.Type;
+
+                // A shader name (static access) is not a composition
+                if (symbol.Id.Kind == SymbolKind.Variable)
+                    CheckNotCompositionValue();
             }
         }
     }
