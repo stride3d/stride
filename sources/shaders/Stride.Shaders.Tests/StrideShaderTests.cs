@@ -87,6 +87,15 @@ public class StrideShaderTests
         Assert.True(validationResult.IsValid, validationResult.Output);
     }
 
+    // SPIR-V has floating-point matrices only: an int4x4 is reported when the class compiles, not left as invalid SPIR-V
+    [Fact]
+    public void IntegerMatrixIsReportedWhenTheClassCompiles()
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var exception = Assert.Throws<InvalidOperationException>(() => loader.LoadExternalBuffer("IntegerMatrix", [], out _, out _, out _));
+        Assert.Contains("Matrices of int (int4x4) are not supported: use a float matrix, or an array of int4", exception.Message);
+    }
+
     // Reflection reports a multidimensional cbuffer array as a flat element count
     // (float4 Data2D[2][3] => 6 elements), matching fxc and the runtime parameter layout.
     [Fact]
