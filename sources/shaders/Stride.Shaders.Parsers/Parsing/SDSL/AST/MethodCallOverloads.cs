@@ -220,6 +220,21 @@ public partial class MethodCall
     }
 
     /// <summary>
+    /// The error for a call that a method with a single signature can't take.
+    /// </summary>
+    private string FormatCallError(FunctionType functionType, int defaultParameters, SymbolType[] argumentTypes)
+    {
+        RankOverload(functionType, defaultParameters, argumentTypes, out var mismatch);
+        var signature = FormatSignature(Name, functionType);
+        return mismatch.Kind switch
+        {
+            MismatchKind.ArgumentCount => string.Format(SDSLErrorMessages.SDSL0160, signature, FormatArgumentCount(functionType, defaultParameters), argumentTypes.Length),
+            MismatchKind.NotWritable => string.Format(SDSLErrorMessages.SDSL0164, mismatch.Index + 1, signature, Arguments.Values[mismatch.Index]),
+            _ => string.Format(SDSLErrorMessages.SDSL0161, mismatch.Index + 1, signature, argumentTypes[mismatch.Index].GetValueType(), functionType.ParameterTypes[mismatch.Index].Type.GetValueType()),
+        };
+    }
+
+    /// <summary>
     /// The error for a call that no overload can take, with the reason for each overload.
     /// </summary>
     private string FormatNoOverloadError(IEnumerable<Symbol> overloads, SymbolType[] argumentTypes)
