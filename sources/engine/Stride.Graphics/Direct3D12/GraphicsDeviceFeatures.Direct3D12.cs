@@ -156,7 +156,14 @@ public unsafe partial struct GraphicsDeviceFeatures
                 formatSupport = (FormatSupport) formatSupportData.Support1;
                 csFormatSupport = (ComputeShaderFormatSupport) formatSupportData.Support2;
 
-                maximumMultisampleCount = GetMaximumMultisampleCount(format);
+                // Only 2D textures can be multisampled, and sampler feedback maps can't. Asking for the quality levels
+                // of other formats removes the device on some drivers (Intel Arc, 32.0.101.8132: FormatUnknown, the
+                // sampler feedback formats); the others answer 1 sample. Not the multisample flags of Support1:
+                // typeless formats report none but can be multisampled.
+                bool canBeMultisampled = (formatSupportData.Support1 & FormatSupport1.Texture2D) != 0 &&
+                                         (formatSupportData.Support2 & FormatSupport2.SamplerFeedback) == 0;
+
+                maximumMultisampleCount = canBeMultisampled ? GetMaximumMultisampleCount(format) : MultisampleCount.None;
             }
         }
     }
