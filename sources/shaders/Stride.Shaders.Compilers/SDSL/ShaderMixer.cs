@@ -1,5 +1,6 @@
 using CommunityToolkit.HighPerformance;
 using Stride.Shaders.Core;
+using Stride.Shaders.Parsing;
 using Stride.Shaders.Parsing.Analysis;
 using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv.Building;
@@ -90,6 +91,9 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                 log.Error(error.Message);
             return false;
         }
+
+        if (!CheckAbstractCalls(globalContext, log))
+            return false;
 
         // Note: done first, so that the code analysis only has to know about OpSwitch
         if (!LowerSwitchIds(context, temp, log))
@@ -312,6 +316,15 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
         /// <summary>Maps source filename to merged OpString ID, used to deduplicate OpString/OpSource during merge.</summary>
         public Dictionary<string, int> SourceFileStrings { get; } = new();
+
+        /// <summary>
+        /// Calls that reach an abstract method no shader implements. They are errors unless the calling method is replaced
+        /// by an override that doesn't call it, as its body never runs (see <see cref="CheckAbstractCalls"/>).
+        /// </summary>
+        public List<(int Caller, MethodGroup? CallerGroup, string CallerName, string Method)> AbstractCalls { get; } = new();
+
+        /// <summary>The methods a <c>base.</c> call reaches.</summary>
+        public HashSet<int> BaseCallTargets { get; } = new();
     }
 
     class MixinNodeContext
@@ -953,6 +966,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         var baseInstructions = new HashSet<int>();
         var compositionArrayAccesses = new Dictionary<int, MixinNode>();
         ShaderInfo? currentShader = null;
+        var currentFunction = 0;
         for (var index = mixinNode.StartInstruction; index < mixinNode.EndInstruction; index++)
         {
             var i = temp[index];
@@ -1067,10 +1081,16 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
                         if (!baseMethodFound)
                             throw new InvalidOperationException($"Can't find a base method for {methodGroupEntry.Name}");
+
+                        globalContext.BaseCallTargets.Add(selectedMethod.MethodId);
                     }
 
+                    // Checked once every override is known (CheckAbstractCalls): the caller may be replaced and never run
                     if ((selectedMethod.Flags & FunctionFlagsMask.Abstract) != 0)
-                        throw new InvalidOperationException($"Trying to call an abstract method {selectedMethod.Shader.ShaderName}.{methodGroupEntry.Name}");
+                    {
+                        var callerGroup = mixinNode.MethodGroups.GetValueOrDefault(currentFunction) ?? mixinNode.Stage?.MethodGroups.GetValueOrDefault(currentFunction);
+                        globalContext.AbstractCalls.Add((currentFunction, callerGroup, $"{currentShader.ShaderName}.{context.Names[currentFunction]}", $"{selectedMethod.Shader.ShaderName}.{methodGroupEntry.Name}"));
+                    }
                     functionId = selectedMethod.MethodId;
 
                     memberAccesses.Add(memberAccess.ResultId, functionId);
@@ -1082,9 +1102,10 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
                 SetOpNop(i.Data.Memory.Span);
             }
-            else if (i.Data.Op == Op.OpFunction && (OpFunction)i is { } function && temp[index + 1].Op == Op.OpFunctionMetadataSDSL && (OpFunctionMetadataSDSL)temp[index + 1] is { } functionInfo)
+            else if (i.Data.Op == Op.OpFunction && (OpFunction)i is { } function)
             {
-                if (!mixinNode.MethodGroups.TryGetValue(function.ResultId, out var methodGroupEntry))
+                currentFunction = function.ResultId;
+                if (temp[index + 1].Op == Op.OpFunctionMetadataSDSL && !mixinNode.MethodGroups.ContainsKey(function.ResultId))
                     throw new InvalidOperationException($"Can't find method group info for {context.Names[function.ResultId]}");
             }
             else if (i.Data.Op == Op.OpFunctionEnd)
@@ -1096,6 +1117,27 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         }
     }
 
+
+    /// <summary>
+    /// A call to an abstract method no shader implements is an error, unless the calling method is replaced by an override and no
+    /// <c>base.</c> call reaches it: its body never runs (FilterBase.Shading calls abstract Filter, AddonKeyingBase replaces Shading).
+    /// The call is removed with the unused code.
+    /// </summary>
+    private static bool CheckAbstractCalls(MixinGlobalContext globalContext, ILogger log)
+    {
+        var result = true;
+        var reported = new HashSet<(string, string)>();
+        foreach (var (caller, callerGroup, callerName, method) in globalContext.AbstractCalls)
+        {
+            var replaced = callerGroup != null && callerGroup.Methods[^1].MethodId != caller && !globalContext.BaseCallTargets.Contains(caller);
+            if (!replaced && reported.Add((callerName, method)))
+            {
+                log.Error(string.Format(SDSLErrorMessages.SDSL0166, callerName, method));
+                result = false;
+            }
+        }
+        return result;
+    }
 
     static void SetOpNop(Span<int> words)
     {
