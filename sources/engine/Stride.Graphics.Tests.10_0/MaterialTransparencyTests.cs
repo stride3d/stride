@@ -393,7 +393,7 @@ public class MaterialTransparencyTests : GameTestBase
     [InlineData(LightKind.VoxelGI)]
     public void AlphaScalesLitColorOnce(LightKind light)
     {
-        Skip.If(light == LightKind.VoxelGI && Platform.Type == PlatformType.macOS,
+        Skip.If(light == LightKind.VoxelGI && Platform.Type is PlatformType.macOS or PlatformType.iOS,
             "MoltenVK has no geometry shaders for the default voxelization, and the tri-axis voxelization pipeline fails to create there");
 
         var game = new MaterialTransparencyTests(light);
