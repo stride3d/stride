@@ -99,6 +99,10 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         if (!LowerSwitchIds(context, temp, log))
             return false;
 
+        // Before the interface processing, which then analyzes the copies like any method
+        if (!SpecializeBufferParameters(context, temp, rootMixin, log))
+            return false;
+
         // Process streams and remove unused code/cbuffer/variable/resources
         var interfaceProcessor = new InterfaceProcessor
         {

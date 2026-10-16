@@ -1,0 +1,22 @@
+// PSMain(ExpectedResult=#336699FF, structuredbuffer.Values="16: 0 0 0 0 0 0 0 0")
+
+namespace Stride.Shaders.Tests;
+
+// A method writes the read-write structured buffer it is given
+shader BufferParameterWrite
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    RWStructuredBuffer<float4> Values;
+
+    void Put(RWStructuredBuffer<float4> target, uint index, float4 value)
+    {
+        target[index] = value;
+    }
+
+    void PSMain()
+    {
+        Put(Values, 1, float4(0.2, 0.4, 0.6, 1));
+        streams.ColorTarget = all(Values[0] == 0) ? Values[1] : float4(1, 0, 0, 1);
+    }
+};

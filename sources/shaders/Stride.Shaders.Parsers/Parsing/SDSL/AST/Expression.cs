@@ -439,13 +439,16 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
     /// </summary>
     /// <remarks>
     /// Applies to <c>ref</c> parameters (atomics need the actual memory pointer), opaque resources
-    /// (SPIR-V forbids OpStore to them) and geometry streams (nothing to copy). Used for both input and output arguments.
+    /// (SPIR-V forbids OpStore to them), structured and byte address buffers (a runtime array can't be copied; the mixer then
+    /// gives each call a copy of the method that uses the buffer itself) and geometry streams (nothing to copy).
+    /// Used for both input and output arguments.
     /// </remarks>
     /// <returns>True when the argument is passed as a pointer, false when it is copied.</returns>
     private static bool IsPassedByPointer(FunctionParameter parameter)
         => parameter.Type is PointerType pointerType
             && (parameter.Modifiers == ParameterModifiers.Ref
                 || pointerType.BaseType.IsOpaqueResource()
+                || pointerType.BaseType is StructuredBufferType or ByteAddressBufferType
                 || pointerType.BaseType is GeometryStreamType);
 
     protected void ProcessOutputArguments(SymbolTable table, CompilerUnit compiler, FunctionType functionType, Span<int> compiledParams)

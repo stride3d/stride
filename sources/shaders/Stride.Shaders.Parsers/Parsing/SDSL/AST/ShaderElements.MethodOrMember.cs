@@ -455,6 +455,10 @@ public partial class ShaderMethod(
             var argSym = p.TypeName.Type!;
             table.DeclaredTypes.TryAdd(argSym.ToString(), argSym);
             p.Type = argSym;
+            if (argSym is AppendStructuredBufferType or ConsumeStructuredBufferType)
+                table.AddError(new(p.Info, string.Format(SDSLErrorMessages.SDSL0180, p.Name, Name, argSym is AppendStructuredBufferType ? "AppendStructuredBuffer" : "ConsumeStructuredBuffer")));
+            else if (argSym is StructuredBufferType or ByteAddressBufferType && (p.Modifiers & ParameterModifiers.Out) != 0)
+                table.AddError(new(p.Info, string.Format(SDSLErrorMessages.SDSL0181, p.Name, Name, p.Modifiers == ParameterModifiers.InOut ? "inout" : "out")));
             var parameterType = GenerateParameterType(p);
             ftype.ParameterTypes.Add(new(parameterType, p.Modifiers));
             var parameterSymbol = new Symbol(new(p.Name, SymbolKind.Variable), parameterType, 0, OwnerType: table.CurrentShader);
@@ -588,6 +592,10 @@ public partial class ShaderMethod(
         // Opaque resources must use UniformConstant storage: see SymbolTypeExtensions.IsOpaqueResource.
         if (p.Type!.IsOpaqueResource())
             return new PointerType(p.Type!, Specification.StorageClass.UniformConstant);
+        // Like the buffer members, structured and byte address buffers stay in StorageBuffer storage: the caller's pointer is passed
+        // (ShaderMixer.SpecializeBufferParameters removes these parameters, SPIR-V would need variable pointers for them)
+        if (p.Type is StructuredBufferType or ByteAddressBufferType)
+            return new PointerType(p.Type, Specification.StorageClass.StorageBuffer);
 
         return new PointerType(p.Type!, Specification.StorageClass.Function);
     }
