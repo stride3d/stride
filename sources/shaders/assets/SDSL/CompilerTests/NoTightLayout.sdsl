@@ -1,0 +1,29 @@
+// A shader whose buffers have the same layout in std430 and Direct3D: its SPIR-V doesn't change with the tight layout option
+namespace Stride.Shaders.Tests;
+
+shader NoTightLayout
+{
+    struct Pair
+    {
+        float3 A;
+        float B;
+    };
+
+    cbuffer PerDraw
+    {
+        float3 Position;
+        float Scale;
+        float3 Color;
+    };
+
+    ByteAddressBuffer Raw;
+    StructuredBuffer<float4> F4;
+    StructuredBuffer<Pair> Pairs;
+    RWStructuredBuffer<float4> Output;
+
+    [numthreads(1, 1, 1)]
+    void CSMain()
+    {
+        Output[0] = float4(Position * Scale + Color, asfloat(Raw.Load(4))) + F4[0] + float4(Pairs[0].A, Pairs[0].B);
+    }
+};

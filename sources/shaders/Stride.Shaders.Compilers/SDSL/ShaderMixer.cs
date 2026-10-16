@@ -25,7 +25,11 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
     /// </summary>
     /// <param name="ResourcesRegisterSeparate">For D3D11/12: t, b and s registers are separate (and should be kept as low as possible so we number them from 0 in each category).</param>
     /// <param name="StripGoogleUserType">Strip SPV_GOOGLE_user_type extension and UserTypeGOOGLE decorations (needed for Vulkan, which rejects the extension unless VK_GOOGLE_user_type is supported).</param>
-    public record struct Options(bool ResourcesRegisterSeparate, bool StripGoogleUserType = false);
+    /// <param name="Direct3DStructuredBufferLayout">
+    /// For the APIs that read the SPIR-V layout (Vulkan, Direct3D 12): structured buffers whose std430 layout differs from Direct3D's
+    /// (3-element vectors...) use Direct3D's tight layout, so they read the same CPU data as on Direct3D 11.
+    /// </param>
+    public record struct Options(bool ResourcesRegisterSeparate, bool StripGoogleUserType = false, bool Direct3DStructuredBufferLayout = false);
 
     public IExternalShaderLoader ShaderLoader { get; } = shaderLoader;
 

@@ -46,7 +46,7 @@ public partial class RenderingTests
     {
         // Same per-platform choices as EffectCompiler
         RendererBackend.Direct3D11 => new ShaderMixer.Options(ResourcesRegisterSeparate: true),
-        RendererBackend.Vulkan => new ShaderMixer.Options(ResourcesRegisterSeparate: false, StripGoogleUserType: true),
+        RendererBackend.Vulkan => new ShaderMixer.Options(ResourcesRegisterSeparate: false, StripGoogleUserType: true, Direct3DStructuredBufferLayout: true),
         _ => throw new NotSupportedException(),
     };
 

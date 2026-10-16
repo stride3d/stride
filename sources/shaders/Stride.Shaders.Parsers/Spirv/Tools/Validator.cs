@@ -24,6 +24,9 @@ public static partial class Spv
         var options = targetVulkan
             ? SpirvTools.ValidatorOptions.RelaxBlockLayout | SpirvTools.ValidatorOptions.UniformBufferStandardLayout
             : SpirvTools.ValidatorOptions.None;
+        // Structured buffers in Direct3D's tight layout (the device enables scalarBlockLayout for them)
+        if (SpirvTools.TightStructuredBuffers(System.Runtime.InteropServices.MemoryMarshal.Cast<byte, uint>(spirvBytes)) != null)
+            options |= SpirvTools.ValidatorOptions.ScalarBlockLayout;
         var message = SpirvTools.Validate(spirvBytes, env, options);
         return message is null
             ? new ValidationResult(true, "")

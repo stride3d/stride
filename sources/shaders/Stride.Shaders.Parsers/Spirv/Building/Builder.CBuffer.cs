@@ -2,6 +2,7 @@ using Stride.Shaders.Core;
 using Stride.Shaders.Parsing.SDSL.AST;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Stride.Shaders.Spirv.Building;
@@ -11,7 +12,14 @@ partial class SpirvBuilder
     public enum AlignmentRules
     {
         CBuffer,
+        /// <summary>std430: 3- and 4-element vectors aligned to 16 bytes.</summary>
         StructuredBuffer,
+        /// <summary>
+        /// Direct3D's structured buffer layout: everything aligned to its scalar size, nothing padded to 16 bytes
+        /// (a <c>float3</c> is 12 bytes). Vulkan reads it with <c>scalarBlockLayout</c>. Only used where it differs from std430
+        /// (<see cref="StructuredBufferLayout"/>).
+        /// </summary>
+        StructuredBufferTight,
     }
 
     public static (int Size, int Alignment) TypeSizeInBuffer(SymbolType symbol, TypeModifier typeModifier, AlignmentRules alignmentRules)
@@ -23,7 +31,7 @@ partial class SpirvBuilder
         {
             // HLSL array size: last element is not padded to stride
             AlignmentRules.CBuffer => ((current.Size + 15) / 16 * 16 * (count - 1) + current.Size, 16),
-            AlignmentRules.StructuredBuffer => (current.Size * count, current.Alignment),
+            AlignmentRules.StructuredBuffer or AlignmentRules.StructuredBufferTight => (current.Size * count, current.Alignment),
             _ => throw new NotSupportedException($"Unsupported AlignmentRules value: {alignmentRules}"),
         };
         return (symbol) switch
@@ -46,6 +54,9 @@ partial class SpirvBuilder
             // expects matrix layout under relaxed block layout.
             MatrixType m when alignmentRules == AlignmentRules.StructuredBuffer
                 => StructuredBufferMatrixSize(m, typeModifier),
+            // Tight: the matrix vectors follow each other with no padding
+            MatrixType m when alignmentRules == AlignmentRules.StructuredBufferTight
+                => (MatrixStride(m, typeModifier, alignmentRules) * MatrixLayoutVectors(m, typeModifier).Count, TypeSizeInBuffer(m.BaseType, typeModifier, alignmentRules).Alignment),
             MatrixType m when typeModifier == TypeModifier.ColumnMajor || typeModifier == TypeModifier.None
                 => MultiplySize(TypeSizeInBuffer(m.BaseType, typeModifier, alignmentRules), (4 * (m.Rows - 1)) + m.Columns),
             MatrixType m when typeModifier == TypeModifier.RowMajor
@@ -70,10 +81,12 @@ partial class SpirvBuilder
     /// The <c>MatrixStride</c> decoration of a matrix in a buffer: a float4 register in a cbuffer, the std430 stride of
     /// its vectors in a structured buffer.
     /// </summary>
-    public static int MatrixStride(MatrixType m, TypeModifier typeModifier, AlignmentRules alignmentRules)
-        => alignmentRules == AlignmentRules.CBuffer
-            ? 16
-            : StorageBufferArrayStride(new VectorType(m.BaseType, MatrixLayoutVectors(m, typeModifier).VectorSize));
+    public static int MatrixStride(MatrixType m, TypeModifier typeModifier, AlignmentRules alignmentRules) => alignmentRules switch
+    {
+        AlignmentRules.CBuffer => 16,
+        AlignmentRules.StructuredBufferTight => TypeSizeInBuffer(m.BaseType, typeModifier, alignmentRules).Size * MatrixLayoutVectors(m, typeModifier).VectorSize,
+        _ => StorageBufferArrayStride(new VectorType(m.BaseType, MatrixLayoutVectors(m, typeModifier).VectorSize)),
+    };
 
     /// <summary>
     /// Computes std430 size and alignment for a matrix in a StorageBuffer: its vectors (<see cref="MatrixLayoutVectors"/>),
@@ -105,7 +118,7 @@ partial class SpirvBuilder
         var alignment = alignmentRules switch
         {
             AlignmentRules.CBuffer => 16,
-            AlignmentRules.StructuredBuffer => maxAlignment,
+            AlignmentRules.StructuredBuffer or AlignmentRules.StructuredBufferTight => maxAlignment,
             _ => throw new NotSupportedException($"Unsupported AlignmentRules value: {alignmentRules}"),
         };
 
@@ -183,10 +196,64 @@ partial class SpirvBuilder
     /// <see cref="TypeSizeInBuffer"/>) rounded up to the type's std430 base alignment, so that the
     /// emitted SPIR-V validates under relaxed block layout.
     /// </summary>
-    public static int StorageBufferArrayStride(SymbolType elementType, TypeModifier typeModifier = TypeModifier.None)
+    public static int StorageBufferArrayStride(SymbolType elementType, TypeModifier typeModifier = TypeModifier.None, AlignmentRules alignmentRules = AlignmentRules.StructuredBuffer)
     {
-        var size = TypeSizeInBuffer(elementType, typeModifier, AlignmentRules.StructuredBuffer).Size;
-        var alignment = StorageBufferBaseAlignment(elementType, typeModifier);
+        var (size, tightAlignment) = TypeSizeInBuffer(elementType, typeModifier, alignmentRules);
+        var alignment = alignmentRules == AlignmentRules.StructuredBufferTight ? tightAlignment : StorageBufferBaseAlignment(elementType, typeModifier);
         return (size + alignment - 1) / alignment * alignment;
+    }
+
+    /// <summary>
+    /// The layout of a structured buffer's elements: std430, unless it places a component elsewhere than Direct3D does
+    /// (3-element vectors, sizes that are not a multiple of 16...): then Direct3D's tight layout, so the same CPU data reads the same.
+    /// </summary>
+    public static AlignmentRules StructuredBufferLayout(SymbolType elementType)
+    {
+        var std430 = new List<int>();
+        var tight = new List<int>();
+        ComponentOffsets(elementType, TypeModifier.None, AlignmentRules.StructuredBuffer, 0, std430);
+        ComponentOffsets(elementType, TypeModifier.None, AlignmentRules.StructuredBufferTight, 0, tight);
+        return std430.SequenceEqual(tight) && StorageBufferArrayStride(elementType) == StorageBufferArrayStride(elementType, TypeModifier.None, AlignmentRules.StructuredBufferTight)
+            ? AlignmentRules.StructuredBuffer
+            : AlignmentRules.StructuredBufferTight;
+    }
+
+    // The byte offset of every scalar of a value laid out with these rules, as the decorations place it
+    // (struct members as ShaderMixer.EmitStructDecorations, arrays at StorageBufferArrayStride)
+    static void ComponentOffsets(SymbolType type, TypeModifier typeModifier, AlignmentRules alignmentRules, int offset, List<int> offsets)
+    {
+        switch (type)
+        {
+            case ScalarType:
+                offsets.Add(offset);
+                break;
+            case VectorType v:
+                var scalarSize = TypeSizeInBuffer(v.BaseType, typeModifier, alignmentRules).Size;
+                for (var i = 0; i < v.Size; i++)
+                    offsets.Add(offset + i * scalarSize);
+                break;
+            case MatrixType m:
+                var (vectorSize, count) = MatrixLayoutVectors(m, typeModifier);
+                var matrixStride = MatrixStride(m, typeModifier, alignmentRules);
+                for (var i = 0; i < count; i++)
+                    ComponentOffsets(new VectorType(m.BaseType, vectorSize), typeModifier, alignmentRules, offset + i * matrixStride, offsets);
+                break;
+            case ArrayType a:
+                var arrayStride = StorageBufferArrayStride(a.BaseType, typeModifier, alignmentRules);
+                for (var i = 0; i < a.Size; i++)
+                    ComponentOffsets(a.BaseType, typeModifier, alignmentRules, offset + i * arrayStride, offsets);
+                break;
+            case StructuredType s:
+                var memberOffset = 0;
+                foreach (var member in s.Members)
+                {
+                    var size = ComputeBufferOffset(member.Type, member.TypeModifier, ref memberOffset, alignmentRules).Size;
+                    ComponentOffsets(member.Type, member.TypeModifier, alignmentRules, offset + memberOffset, offsets);
+                    memberOffset += size;
+                }
+                break;
+            default:
+                throw new NotSupportedException($"Unsupported type for structured buffer layout: {type}");
+        }
     }
 }
