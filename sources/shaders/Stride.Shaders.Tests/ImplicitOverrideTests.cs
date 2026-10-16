@@ -9,7 +9,8 @@ namespace Stride.Shaders.Parsers.Tests;
 /// <summary>
 /// A method with the signature of an inherited one must be marked <c>override</c>. Without it, the method
 /// would start a separate method group and calls through the base would never reach it, so the compiler
-/// reports it on the method itself.
+/// reports it on the method itself. An implementation of an abstract method can only mean an override: it is
+/// compiled as one, with a warning.
 /// </summary>
 public class ImplicitOverrideTests : IDisposable
 {
@@ -78,12 +79,14 @@ public class ImplicitOverrideTests : IDisposable
         Assert.True(ok, log);
     }
 
+    // The root calls the abstract method through the composition: the mix fails ("call an abstract method") unless the
+    // implementation is linked as its override
     [Fact]
-    public void MissingOverrideOfAnAbstractMethodIsReportedOnTheImplementation()
+    public void MissingOverrideOfAnAbstractMethodIsAWarningAndTheImplementationIsCalled()
     {
-        var (ok, log) = Mix(MissingAbstractOverride);
-        Assert.False(ok);
-        Assert.Contains("SDSL0114: OverrideImplementation.Value() at line 5 implements abstract method OverrideContract.Value", log);
+        var (ok, log, warnings) = MixWithWarnings(MissingAbstractOverride);
+        Assert.True(ok, log);
+        Assert.Contains("SDSL0114: OverrideImplementation.Value() at line 5 implements abstract method OverrideContract.Value", warnings);
     }
 
     [Fact]
@@ -95,6 +98,12 @@ public class ImplicitOverrideTests : IDisposable
     }
 
     private (bool ok, string log) Mix(string implementation)
+    {
+        var (ok, log, _) = MixWithWarnings(implementation);
+        return (ok, log);
+    }
+
+    private (bool ok, string log, string warnings) MixWithWarnings(string implementation)
     {
         Write("OverrideContract", Contract);
         Write("OverrideImplementation", implementation);
@@ -110,7 +119,8 @@ public class ImplicitOverrideTests : IDisposable
         var log = new LoggerResult();
         var ok = new ShaderMixer(loader).MergeSDSL(source, new ShaderMixer.Options(true), log, out _, out _, out _, out _);
 
-        return (ok, string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+        return (ok, string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)),
+            string.Join(Environment.NewLine, log.Messages.Where(m => m.Type == LogMessageType.Warning).Select(m => m.Text)));
     }
 
     private void Write(string name, string code)
