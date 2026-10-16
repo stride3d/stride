@@ -1222,7 +1222,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// <remarks>This method should be used only for advanced modifications of assets such as global fixups, that still need to reky on undo/redo.</remarks>
         public IDisposable CreateAssetFixupContext()
         {
-            return new FixupAssetContext(this);
+            return new FixupAssetContext(UndoRedoService, x => IsInFixupAssetContext = x);
         }
 
         /// <summary>
