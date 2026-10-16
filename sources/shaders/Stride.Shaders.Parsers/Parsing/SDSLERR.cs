@@ -98,4 +98,5 @@ public static class SDSLErrorMessages
 
     // SDSL warnings
     public const string SDSL0236 = "SDSL0236: the value of composition {0} is ignored: a composition gets its shader from the effect, not from a value. Remove '= {1}'.";
+    public const string SDSL0232 = "SDSL0232: {0} has lower precedence than {1}: {2} computes {3} first. Add parentheses to make it clear.";
 }
