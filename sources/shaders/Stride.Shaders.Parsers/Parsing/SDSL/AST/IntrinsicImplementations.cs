@@ -149,6 +149,27 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
     public override SpirvValue CompileLog2(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => CompileGLSLFloatUnaryCall(table, context, builder, functionType.ReturnType, Specification.GLSLOp.GLSLLog2, x);
     public override SpirvValue CompilePow(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, SpirvValue y, TextLocation location = default) => CompileGLSLFloatBinaryCall(table, context, builder, functionType.ReturnType, Specification.GLSLOp.GLSLPow, x, y);
 
+    // lit(n_dot_l, n_dot_h, m) = (1, diffuse, specular, 1), as DXC lowers it:
+    // diffuse = n_dot_l < 0 ? 0 : n_dot_l, specular = (n_dot_l < 0 || n_dot_h < 0) ? 0 : pow(n_dot_h, m)
+    public override SpirvValue CompileLit(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue l, SpirvValue h, SpirvValue m, TextLocation location = default)
+    {
+        var scalarType = functionType.ReturnType.GetElementType();
+        var scalarTypeId = context.GetOrRegister(scalarType);
+        var boolType = context.GetOrRegister(ScalarType.Boolean);
+        var zero = builder.Convert(context, context.CompileConstant(0.0f), scalarType);
+        var one = builder.Convert(context, context.CompileConstant(1.0f), scalarType);
+
+        var diffuseIsZero = builder.Insert(new OpFOrdLessThan(boolType, context.Bound++, l.Id, zero.Id)).ResultId;
+        var diffuse = builder.Insert(new OpSelect(scalarTypeId, context.Bound++, diffuseIsZero, zero.Id, l.Id)).ResultId;
+
+        var halfVectorIsNegative = builder.Insert(new OpFOrdLessThan(boolType, context.Bound++, h.Id, zero.Id)).ResultId;
+        var specularIsZero = builder.Insert(new OpLogicalOr(boolType, context.Bound++, diffuseIsZero, halfVectorIsNegative)).ResultId;
+        var power = CompileGLSLFloatBinaryCall(table, context, builder, scalarType, Specification.GLSLOp.GLSLPow, h, m);
+        var specular = builder.Insert(new OpSelect(scalarTypeId, context.Bound++, specularIsZero, zero.Id, power.Id)).ResultId;
+
+        return new(builder.InsertData(new OpCompositeConstruct(context.GetOrRegister(functionType.ReturnType), context.Bound++, [one.Id, diffuse, specular, one.Id])));
+    }
+
     // Vector math
     public override SpirvValue CompileDistance(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue a, SpirvValue b, TextLocation location = default)
     {
@@ -478,7 +499,6 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
     }
     public override SpirvValue CompileIsnormal(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default) => throw new NotImplementedException();
     public override SpirvValue CompileLdexp(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, SpirvValue exp, TextLocation location = default) => throw new NotImplementedException();
-    public override SpirvValue CompileLit(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue l, SpirvValue h, SpirvValue m, TextLocation location = default) => throw new NotImplementedException();
     public override SpirvValue CompileModf(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, SpirvValue ip, TextLocation location = default) => throw new NotImplementedException();
     public override SpirvValue CompileMsad4(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue reference, SpirvValue source, SpirvValue accum, TextLocation location = default) => throw new NotImplementedException();
     public override SpirvValue CompileProcess2DQuadTessFactorsAvg(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue RawEdgeFactors, SpirvValue InsideScale, SpirvValue RoundedEdgeFactors, SpirvValue RoundedInsideFactors, SpirvValue UnroundedInsideFactors, TextLocation location = default) => throw new NotImplementedException();
