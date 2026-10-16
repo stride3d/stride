@@ -134,4 +134,14 @@ public sealed class HeightfieldCollider : ICollider
         Debug.Assert(shapeIndex.Type == HeightfieldShape.TypeId);
         shapes.GetShape<HeightfieldShape>(shapeIndex.Index).RayTest(pose, in ray, ref maximumT, pool, ref hitHandler);
     }
+
+    /// <inheritdoc cref="HeightfieldShape.SnapToSurface"/>
+    public Vector3 SnapToSurface(Vector3 worldSpacePoint)
+    {
+        if (_shape.Sampler.IsAllocated == false || _component?.Pose is not { } pose)
+            throw new InvalidOperationException("Collider is not part of the simulation");
+
+        return _shape.SnapToSurface(worldSpacePoint, pose);
+    }
+
 }

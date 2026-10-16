@@ -116,11 +116,6 @@ public unsafe struct HeightfieldShape : IShape
         p11 = new Vector3(x1, samples[3].Height, z1);
     }
 
-    public readonly void GetLocalChild(Int2 cell, out Triangle tri0, out Triangle tri1)
-    {
-        GetTrianglesInContinuousSpace(cell, out tri0, out tri1);
-    }
-
     private readonly void GetTrianglesInContinuousSpace(Int2 cell, out Triangle tri0, out Triangle tri1)
     {
         GetCellCornersInContinuousSpace(cell, out tri0.A, out tri0.B, out tri0.C, out tri1.C);
@@ -139,6 +134,11 @@ public unsafe struct HeightfieldShape : IShape
         (tri1.A, tri1.B) = (tri0.C, tri0.B);
     }
 
+    public readonly void GetLocalChild(Int2 cell, out Triangle tri0, out Triangle tri1)
+    {
+        GetTrianglesInContinuousSpace(cell, out tri0, out tri1);
+    }
+
     public readonly void GetPosedLocalChild(Int2 cell, out Triangle tri0, out Triangle tri1, out NRigidPose childPoseA, out NRigidPose childPoseB)
     {
         GetLocalChild(cell, out tri0, out tri1);
@@ -153,6 +153,59 @@ public unsafe struct HeightfieldShape : IShape
         tri1.A -= childPoseB.Position;
         tri1.B -= childPoseB.Position;
         tri1.C -= childPoseB.Position;
+    }
+
+    /// <summary>
+    /// Moves <see cref="worldSpacePoint"/> in bounds and returns the closest position <b><i>vertically</i></b> on this shape's surface
+    /// </summary>
+    /// <remarks>
+    /// Not necessarily the closest point on the surface; consider the case of the cell below this point being very far below it,
+    /// a triangle on a neighboring cell may sit at the same level as the input provided, it would be closer than the one below.
+    /// </remarks>
+    public Vector3 SnapToSurface(Vector3 worldSpacePoint, in NRigidPose pose)
+    {
+        // Regarding the remark above, one solution for ClosestOnSurface would be to
+        // take the distance between the local and snapped point, and use that value
+        // as the search radius to find candidates. Continuously reducing the radius every time we find a new minima
+        // Although this scales quite badly, especially if we don't use blocks to accelerate the query
+
+        Matrix3x3.CreateFromQuaternion(pose.Orientation, out var orientation);
+        Matrix3x3.TransformTranspose(worldSpacePoint - pose.Position, orientation, out var localPoint);
+        
+        localPoint = Vector3.Min(localPoint, new Vector3(Size, MaxHeight, Size));
+        localPoint = Vector3.Max(localPoint, new Vector3(0, MinHeight, 0));
+        localPoint.Y = MathF.BitIncrement(MaxHeight);
+        
+        localPoint *= SampleIntervalReciprocal;
+        var floor = Vector3.Round(localPoint, MidpointRounding.ToNegativeInfinity);
+        var cell = new Int2((int)floor.X, (int)floor.Z);
+        
+        GetCellCornersInDiscreteSpace(cell, out var samples);
+
+        var fracTopDown = new Vector2(localPoint.X - cell.X, localPoint.Z - cell.Y);
+        float baryB;
+        float baryC;
+        float a, b, c;
+        if (fracTopDown.X + fracTopDown.Y <= 1) // On the lower left, first triangle
+        {
+            a = samples[0].Height; // (x0, z0);
+            b = samples[1].Height; // (x1, z0);
+            c = samples[2].Height; // (x0, z1);
+            baryB = fracTopDown.X;
+            baryC = fracTopDown.Y;
+        }
+        else
+        {
+            b = samples[1].Height; // (x1, z0);
+            c = samples[2].Height; // (x0, z1);
+            a = samples[3].Height; // (x1, z1);
+            baryB = 1f - fracTopDown.X;
+            baryC = 1f - fracTopDown.Y;
+        }
+
+        var aAndB = float.MultiplyAddEstimate((b - a), baryB, a);
+        var aBAndC = float.MultiplyAddEstimate((c - a), baryC, aAndB);
+        return new Vector3(fracTopDown.X, aBAndC, fracTopDown.Y);
     }
 
     public readonly void ComputeBounds(Quaternion orientation, out Vector3 min, out Vector3 max)
