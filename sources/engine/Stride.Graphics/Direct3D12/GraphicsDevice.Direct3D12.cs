@@ -1276,7 +1276,8 @@ namespace Stride.Graphics
         /// </param>
         internal partial void TagResourceAsNotAlive(GraphicsResourceLink resourceLink)
         {
-            Debug.Assert(resourceLink is { Resource: Texture or Buffer }, "Resource link cannot be null, and must be a Texture or a Buffer.");
+            // Query Pools come from the allocator too; only dynamic Textures and Buffers need handling
+            Debug.Assert(resourceLink?.Resource is not null, "Resource link cannot be null, and must have a Graphics Resource.");
 
             if (resourceLink.Resource is Texture { Usage: GraphicsResourceUsage.Dynamic })
             {
