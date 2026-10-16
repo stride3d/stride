@@ -2,7 +2,7 @@
 
 ## Overview
 
-All concrete asset editors live in `Stride.Assets.Presentation.Wpf` under `sources/editor/Stride.Assets.Presentation.Wpf/AssetEditors/`. Most editor folders contain a `ViewModels/` subdirectory and a `Views/` subdirectory; ScriptEditor and VisualScriptEditor are exceptions where files sit flat at the folder root. The table below is the entry point for locating any existing editor.
+The concrete asset editors live in `Stride.Assets.Presentation.Wpf` under `sources/editor/Stride.Assets.Presentation.Wpf/AssetEditors/`, except the editors of plugin assets, which live in the plugin's `Editor` package: the UI page and library editors are in `Stride.UI.Editor` (view models) and `Stride.UI.Editor.Wpf` (views), under `sources/editor/plugins/`. Most editor folders contain a `ViewModels/` subdirectory and a `Views/` subdirectory; ScriptEditor and VisualScriptEditor are exceptions where files sit flat at the folder root. The table below is the entry point for locating any existing editor; its folders are relative to `AssetEditors/` unless they name a project.
 
 ## Editors
 
@@ -11,8 +11,8 @@ All concrete asset editors live in `Stride.Assets.Presentation.Wpf` under `sourc
 | `SpriteSheetEditorViewModel` | `SpriteSheetAsset` | `AssetEditorViewModel` | No | `SpriteEditor/` |
 | `SceneEditorViewModel` | `SceneAsset` | `EntityHierarchyEditorViewModel` | Yes | `EntityHierarchyEditor/` |
 | `PrefabEditorViewModel` | `PrefabAsset` | `EntityHierarchyEditorViewModel` | Yes | `EntityHierarchyEditor/` |
-| `UIPageEditorViewModel` | `UIPageAsset` | `AssetCompositeHierarchyEditorViewModel` | Yes | `UIPageEditor/` |
-| `UILibraryEditorViewModel` | `UILibraryAsset` | `AssetCompositeHierarchyEditorViewModel` | Yes | `UILibraryEditor/` |
+| `UIPageEditorViewModel` | `UIPageAsset` | `AssetCompositeHierarchyEditorViewModel` | Yes | `Stride.UI.Editor/ViewModels/` |
+| `UILibraryEditorViewModel` | `UILibraryAsset` | `AssetCompositeHierarchyEditorViewModel` | Yes | `Stride.UI.Editor/ViewModels/` |
 | `GraphicsCompositorEditorViewModel` | `GraphicsCompositorAsset` | `AssetEditorViewModel` | No | `GraphicsCompositorEditor/` |
 | `ScriptEditorViewModel` | Script assets | `AssetEditorViewModel` | No | `ScriptEditor/` |
 | `VisualScriptEditorViewModel` | `VisualScriptAsset` | `AssetEditorViewModel` | No | `VisualScriptEditor/` |
@@ -63,12 +63,12 @@ All concrete asset editors live in `Stride.Assets.Presentation.Wpf` under `sourc
 
 | Class | Role |
 |---|---|
-| `UIEditorBaseViewModel` | Shared base ViewModel (`UIEditor/ViewModels/`) |
+| `UIEditorBaseViewModel` | Shared base ViewModel (`Stride.UI.Editor/ViewModels/`) |
 | `UIPageEditorViewModel` | Subclass for UI pages |
 | `UILibraryEditorViewModel` | Subclass for UI libraries |
 | `UIElementViewModel` | Part ViewModel for each UI element |
-| `UIEditorView` | Abstract base view (`UIEditor/Views/`) |
-| `UIPageEditorView` / `UILibraryEditorView` | Concrete views |
+| `UIEditorView` | Abstract base view (`Stride.UI.Editor.Wpf/Views/`) |
+| `UIPageEditorView` / `UILibraryEditorView` | Concrete views (`Stride.UI.Editor.Wpf/Views/`) |
 
 **Notable:**
 - The adorner overlay (guidelines, resize handles) is rendered as a WPF layer on top of the game viewport — one of the few places where WPF and game rendering are explicitly composited.

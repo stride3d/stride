@@ -9,8 +9,8 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- Companion packages: the UI page and library assets, compilers and templates in .Assets, the UI editor in .Editor -->
-    <StrideCompanionProject Include="..\Stride.UI.Assets\Stride.UI.Assets.csproj" />
-    <StrideCompanionProject Include="..\Stride.UI.Editor\Stride.UI.Editor.csproj" />
+    <StrideCompanionProject Include="..\..\plugins\UI\Stride.UI.Assets\Stride.UI.Assets.csproj" />
+    <StrideCompanionProject Include="..\..\plugins\UI\Stride.UI.Editor\Stride.UI.Editor.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">

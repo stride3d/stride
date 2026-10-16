@@ -77,9 +77,6 @@
   <Folder Name="/20-StrideRuntime/">
     <Project Path="../sources/engine/Stride.Assets.Generators/Stride.Assets.Generators.csproj" />
     <Project Path="../sources/engine/Stride.Audio/Stride.Audio.csproj" />
-    <Project Path="../sources/engine/Stride.Audio.Assets/Stride.Audio.Assets.csproj" />
-    <Project Path="../sources/engine/Stride.Audio.Editor/Stride.Audio.Editor.csproj" />
-    <Project Path="../sources/engine/Stride.Audio.Editor.Wpf/Stride.Audio.Editor.Wpf.csproj" />
     <Project Path="../sources/engine/Stride.Engine/Stride.Engine.csproj" />
     <Project Path="../sources/engine/Stride.Foundation/Stride.Foundation.csproj" />
     <Project Path="../sources/engine/Stride.Games/Stride.Games.csproj" />
@@ -88,24 +85,13 @@
     <Project Path="../sources/engine/Stride.Native/Stride.Native.csproj" />
     <Project Path="../sources/engine/Stride.Navigation/Stride.Navigation.csproj" />
     <Project Path="../sources/engine/Stride.Particles/Stride.Particles.csproj" />
-    <Project Path="../sources/engine/Stride.Particles.Editor/Stride.Particles.Editor.csproj" />
     <Project Path="../sources/engine/Stride.Physics/Stride.Physics.csproj" />
-    <Project Path="../sources/engine/Stride.Physics.Assets/Stride.Physics.Assets.csproj" />
-    <Project Path="../sources/engine/Stride.Physics.Editor/Stride.Physics.Editor.csproj" />
     <Project Path="../sources/engine/Stride.Rendering/Stride.Rendering.csproj" />
     <Project Path="../sources/engine/Stride.SpriteStudio.Runtime/Stride.SpriteStudio.Runtime.csproj" />
-    <Project Path="../sources/engine/Stride.SpriteStudio.Assets/Stride.SpriteStudio.Assets.csproj" />
-    <Project Path="../sources/engine/Stride.SpriteStudio.Editor/Stride.SpriteStudio.Editor.csproj" />
     <Project Path="../sources/engine/Stride.UI/Stride.UI.csproj" />
-    <Project Path="../sources/engine/Stride.UI.Assets/Stride.UI.Assets.csproj" />
-    <Project Path="../sources/engine/Stride.UI.Editor/Stride.UI.Editor.csproj" />
-    <Project Path="../sources/engine/Stride.UI.Editor.Wpf/Stride.UI.Editor.Wpf.csproj" />
     <Project Path="../sources/engine/Stride.Video/Stride.Video.csproj" />
-    <Project Path="../sources/engine/Stride.Video.Assets/Stride.Video.Assets.csproj" />
-    <Project Path="../sources/engine/Stride.Video.Editor/Stride.Video.Editor.csproj" />
     <Project Path="../sources/engine/Stride.VirtualReality/Stride.VirtualReality.csproj" />
     <Project Path="../sources/engine/Stride.Voxels/Stride.Voxels.csproj" />
-    <Project Path="../sources/engine/Stride.Voxels.Editor/Stride.Voxels.Editor.csproj" />
   </Folder>
   <Folder Name="/20-StrideRuntime/Stride.Bepu/">
     <Project Path="../sources/engine/Stride.BepuPhysics/Stride.BepuPhysics.Debug/Stride.BepuPhysics.Debug.csproj" />
@@ -226,6 +212,34 @@
     <Project Path="../sources/tools/Stride.TemplateGenerator/Stride.TemplateGenerator.csproj" />
     <Project Path="../sources/tools/Stride.Templates.Tests/Stride.Templates.Tests.csproj" />
     <Project Path="../tests/enduser/Stride.Samples.Tests/Stride.Samples.Tests.csproj" />
+  </Folder>
+  <Folder Name="/80-Plugins/Audio/">
+    <Project Path="../sources/plugins/Audio/Stride.Audio.Assets/Stride.Audio.Assets.csproj" />
+    <Project Path="../sources/plugins/Audio/Stride.Audio.Editor.Wpf/Stride.Audio.Editor.Wpf.csproj" />
+    <Project Path="../sources/plugins/Audio/Stride.Audio.Editor/Stride.Audio.Editor.csproj" />
+  </Folder>
+  <Folder Name="/80-Plugins/Particles/">
+    <Project Path="../sources/plugins/Particles/Stride.Particles.Editor/Stride.Particles.Editor.csproj" />
+  </Folder>
+  <Folder Name="/80-Plugins/Physics/">
+    <Project Path="../sources/plugins/Physics/Stride.Physics.Assets/Stride.Physics.Assets.csproj" />
+    <Project Path="../sources/plugins/Physics/Stride.Physics.Editor/Stride.Physics.Editor.csproj" />
+  </Folder>
+  <Folder Name="/80-Plugins/SpriteStudio/">
+    <Project Path="../sources/plugins/SpriteStudio/Stride.SpriteStudio.Assets/Stride.SpriteStudio.Assets.csproj" />
+    <Project Path="../sources/plugins/SpriteStudio/Stride.SpriteStudio.Editor/Stride.SpriteStudio.Editor.csproj" />
+  </Folder>
+  <Folder Name="/80-Plugins/UI/">
+    <Project Path="../sources/plugins/UI/Stride.UI.Assets/Stride.UI.Assets.csproj" />
+    <Project Path="../sources/plugins/UI/Stride.UI.Editor.Wpf/Stride.UI.Editor.Wpf.csproj" />
+    <Project Path="../sources/plugins/UI/Stride.UI.Editor/Stride.UI.Editor.csproj" />
+  </Folder>
+  <Folder Name="/80-Plugins/Video/">
+    <Project Path="../sources/plugins/Video/Stride.Video.Assets/Stride.Video.Assets.csproj" />
+    <Project Path="../sources/plugins/Video/Stride.Video.Editor/Stride.Video.Editor.csproj" />
+  </Folder>
+  <Folder Name="/80-Plugins/Voxels/">
+    <Project Path="../sources/plugins/Voxels/Stride.Voxels.Editor/Stride.Voxels.Editor.csproj" />
   </Folder>
   <Folder Name="/90-Tools/">
     <Project Path="../sources/tests/Stride.ScreenshotComparator/Stride.ScreenshotComparator.csproj" />
