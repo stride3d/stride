@@ -1,0 +1,25 @@
+// GetDimensions and Load on a RWStructuredBuffer (StructuredBuffer's values are checked by RenderTest StructuredBufferGetDimensions)
+namespace Stride.Shaders.Tests;
+
+shader CSStructuredBufferGetDimensions
+{
+    struct Entry
+    {
+        float4 Position;
+        uint Id;
+    };
+
+    RWStructuredBuffer<Entry> Entries;
+    RWStructuredBuffer<uint> Output;
+
+    [numthreads(1, 1, 1)]
+    void CSMain()
+    {
+        uint count, stride;
+        Entries.GetDimensions(count, stride);
+        Output[0] = count;
+        Output[1] = stride;
+        Entry last = Entries.Load(count - 1);
+        Output[2] = last.Id;
+    }
+};
