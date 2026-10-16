@@ -9,7 +9,9 @@ using Stride.Core.Assets;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Collections;
+using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
+using Stride.Core.Reflection;
 using Stride.Core.Yaml;
 using Stride.Core.Yaml.Serialization;
 using Stride.Rendering;
@@ -34,9 +36,11 @@ namespace Stride.Assets.Rendering
     [AssetDescription(FileExtension)]
     [AssetFormatVersion(StrideConfig.LogicalPackageName, CurrentVersion, "2.1.0.2")]
     [AssetUpgrader(StrideConfig.LogicalPackageName, "2.1.0.2", "3.1.0.1", typeof(RenderingSplitUpgrader))]
+    [AssetUpgrader(StrideConfig.LogicalPackageName, "3.1.0.1", "3.1.0.2", typeof(ParticleFeatureOwnershipUpgrader))]
+    [AssetUpgrader(StrideConfig.LogicalPackageName, "3.1.0.2", "3.1.0.3", typeof(UIFeatureOwnershipUpgrader))]
     public partial class GraphicsCompositorAsset : Asset
     {
-        private const string CurrentVersion = "3.1.0.1";
+        private const string CurrentVersion = "3.1.0.3";
 
         /// <summary>
         /// The default file extension used by the <see cref="GraphicsCompositorAsset"/>.
@@ -141,6 +145,92 @@ namespace Stride.Assets.Rendering
                     {
                         node.Tag = node.Tag.Replace(",Stride.Engine", ",Stride.Rendering");
                     }
+                }
+            }
+        }
+
+        private sealed class ParticleFeatureOwnershipUpgrader : PluginFeatureOwnershipUpgrader
+        {
+            protected override string PluginPackage => "Stride.Particles";
+
+            protected override string FeatureTag => "!Stride.Particles.Rendering.ParticleEmitterRenderFeature,Stride.Particles";
+        }
+
+        private sealed class UIFeatureOwnershipUpgrader : PluginFeatureOwnershipUpgrader
+        {
+            protected override string PluginPackage => "Stride.UI";
+
+            protected override string FeatureTag => "!Stride.Rendering.UI.UIRenderFeature,Stride.UI";
+        }
+
+        // In a compositor derived from an engine compositor, the plugin's render feature becomes an owned item, so reconciling
+        // with the base keeps it; in a project without the plugin, the item is removed.
+        private abstract class PluginFeatureOwnershipUpgrader : AssetUpgraderBase
+        {
+            protected abstract string PluginPackage { get; }
+
+            protected abstract string FeatureTag { get; }
+
+            // DefaultGraphicsCompositorLevel10 and DefaultGraphicsCompositorLevel9 of Stride.Engine,
+            // DefaultGraphicsCompositorVoxels of Stride.Voxels
+            private static readonly string[] EngineCompositorIds =
+            [
+                "823a81bf-bac0-4552-9267-aeed499c40df",
+                "9af53371-51ba-49fc-b420-ee7874892e75",
+                "472e6944-3ddc-47db-8d6f-2e0a987475ec",
+            ];
+
+            private static bool DependsOn(PackageContainer container, string packageName)
+                => container.FlattenedDependencies.Any(x => string.Equals(x.Name, packageName, StringComparison.OrdinalIgnoreCase));
+
+            protected override void UpgradeAsset(AssetMigrationContext context, PackageVersion currentVersion, PackageVersion targetVersion, dynamic asset, PackageLoadingAssetFile assetFile, OverrideUpgraderHint overrideHint)
+            {
+                if (asset.Archetype == null)
+                    return;
+                var archetype = (string)asset.Archetype;
+                if (!EngineCompositorIds.Any(id => archetype.StartsWith(id, StringComparison.OrdinalIgnoreCase)))
+                    return;
+                var renderFeatures = asset.RenderFeatures as DynamicYamlMapping;
+                if (renderFeatures == null)
+                    return;
+                // A project whose dependencies are resolved (they hold Stride.Engine) without the plugin may lack it. It
+                // surely does when its restore had no errors and it does not declare the plugin either: only then is
+                // the item removed; otherwise it is kept, with a warning
+                var container = context.Package?.Container;
+                var withoutPlugin = container is not null and not StandalonePackage { IsDependencyPackage: true }
+                    && DependsOn(container, "Stride.Engine")
+                    && !string.Equals(container.Package.Meta.Name, PluginPackage, StringComparison.OrdinalIgnoreCase)
+                    && !DependsOn(container, PluginPackage);
+                var surelyWithoutPlugin = withoutPlugin
+                    && container is not SolutionProject { HasRestoreErrors: true }
+                    && !container!.DirectDependencies.Any(x => string.Equals(x.Name, PluginPackage, StringComparison.OrdinalIgnoreCase));
+
+                var items = renderFeatures.Node.Children;
+                foreach (var item in items.ToList())
+                {
+                    if (item.Value.Tag != FeatureTag || item.Key is not YamlScalarNode { Value: { } key })
+                        continue;
+                    // Already owned
+                    if (key.EndsWith(OverrideType.New.ToText(), StringComparison.Ordinal) || key.EndsWith((OverrideType.New | OverrideType.Sealed).ToText(), StringComparison.Ordinal))
+                        continue;
+
+                    if (surelyWithoutPlugin)
+                    {
+                        items.RemoveAt(items.IndexOf(item.Key));
+                        context.Log.Warning($"The render feature of {PluginPackage} is removed from this compositor: the project does not reference {PluginPackage}.");
+                        continue;
+                    }
+                    if (withoutPlugin)
+                        context.Log.Warning($"The render feature of {PluginPackage} is kept in this compositor, though {PluginPackage} is not among the project's resolved dependencies (its restore had errors, or it declares the package): restore the project, or remove the feature if the project does not use {PluginPackage}.");
+
+                    // A sealed item is owned and stays sealed
+                    var sealedText = OverrideType.Sealed.ToText();
+                    var newKey = key.EndsWith(sealedText, StringComparison.Ordinal)
+                        ? key[..^sealedText.Length] + (OverrideType.New | OverrideType.Sealed).ToText()
+                        : key + OverrideType.New.ToText();
+                    var index = items.IndexOf(item.Key);
+                    items.RemoveAt(index);
+                    items.Insert(index, new YamlScalarNode(newKey), item.Value);
                 }
             }
         }

@@ -23,6 +23,9 @@ namespace Stride.Core.Assets.Editor.View.ValueConverters
                 if (AssetsEditorPlugin.TypeImagesDictionary.TryGetValue(type, out result))
                     break;
 
+                if ((result = DeclaredImages.GetTypeImage(type)) is not null)
+                    break;
+
                 type = type.BaseType;
             }
 

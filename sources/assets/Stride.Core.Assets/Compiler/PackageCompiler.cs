@@ -10,7 +10,7 @@ namespace Stride.Core.Assets.Compiler;
 public class PackageCompiler : IPackageCompiler
 {
     private readonly IPackageCompilerSource packageCompilerSource;
-    private readonly AssetDependenciesCompiler dependenciesCompiler = new(typeof(AssetCompilationContext));
+    private readonly AssetDependenciesCompiler dependenciesCompiler = new(typeof(AssetCompilationContext)) { UnloadableAssetIsError = true };
 
     static PackageCompiler()
     {

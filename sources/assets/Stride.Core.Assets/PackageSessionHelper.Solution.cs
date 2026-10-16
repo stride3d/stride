@@ -18,29 +18,28 @@ internal partial class PackageSessionHelper
     {
         try
         {
-            // Solution file: extract projects
-            var solutionDirectory = Path.GetDirectoryName(fullPath) ?? "";
-            var solution = Solution.FromFile(fullPath);
+            // A project opened on its own (a .csproj), else the C# projects of the solution
+            var projectPaths = Path.GetExtension(fullPath).Equals(".csproj", StringComparison.OrdinalIgnoreCase)
+                ? [fullPath]
+                : Solution.FromFile(fullPath).Projects
+                    .Where(project => project.TypeGuid == KnownProjectTypeGuid.CSharp || project.TypeGuid == KnownProjectTypeGuid.CSharpLegacy)
+                    .Select(project => project.FullPath);
 
-            foreach (var project in solution.Projects)
+            foreach (var projectPath in projectPaths)
             {
-                if (project.TypeGuid == KnownProjectTypeGuid.CSharp || project.TypeGuid == KnownProjectTypeGuid.CSharpLegacy)
-                {
-                    var projectPath = project.FullPath;
 #if !STRIDE_LAUNCHER && !STRIDE_VSPACKAGE
-                    var projectAssetsJsonPath = Path.Combine(Path.GetDirectoryName(projectPath), "obj", LockFileFormat.AssetsFileName);
-                    if (!File.Exists(projectAssetsJsonPath))
-                    {
-                        var log = new Stride.Core.Diagnostics.LoggerResult();
-                        await VSProjectHelper.RestoreNugetPackages(log, projectPath);
-                    }
+                var projectAssetsJsonPath = Path.Combine(Path.GetDirectoryName(projectPath), "obj", LockFileFormat.AssetsFileName);
+                if (!File.Exists(projectAssetsJsonPath))
+                {
+                    var log = new Stride.Core.Diagnostics.LoggerResult();
+                    await VSProjectHelper.RestoreNugetPackages(log, projectPath);
+                }
 #endif
-                    // The restored version, or the one written in the project when edited since its restore
-                    if (ProjectVersionReader.ReadVersion(projectPath, "Stride.Engine", "Xenko.Engine") is { } version
-                        && PackageVersion.TryParse(version, out var packageVersion))
-                    {
-                        return packageVersion;
-                    }
+                // The restored version, or the one written in the project when edited since its restore
+                if (ProjectVersionReader.ReadVersion(projectPath, "Stride.Engine", "Xenko.Engine") is { } version
+                    && PackageVersion.TryParse(version, out var packageVersion))
+                {
+                    return packageVersion;
                 }
             }
         }

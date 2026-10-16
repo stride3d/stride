@@ -1,8 +1,63 @@
+diff --git a/meson.build b/meson.build
+index f4dc51dc5d5..2d2b6a90eca 100644
+--- a/meson.build
++++ b/meson.build
+@@ -2356,6 +2356,21 @@ endif
+ add_project_arguments(c_args,   language : ['c'])
+ add_project_arguments(cpp_args, language : ['cpp'])
+ 
++# Stride: a forced include renames malloc, free, strdup... to mimalloc in all Mesa code
++if get_option('stride-mimalloc')
++  if cc.get_argument_syntax() != 'msvc'
++    error('stride-mimalloc needs MSVC (forced include)')
++  endif
++  dep_mimalloc = subproject('mimalloc', default_options : ['default_library=static', 'override=false']).get_variable('mi_dep')
++  # Every target sees the header (the directory named in subprojects/mimalloc.wrap); spirv_to_dxil links the library
++  add_project_arguments(
++    '/I' + (meson.project_source_root() / 'subprojects/mimalloc-3.5.3/include'),
++    '/FI' + (meson.project_source_root() / 'src/microsoft/spirv_to_dxil/stride_malloc.h'),
++    language : ['c', 'cpp'])
++else
++  dep_mimalloc = dependency('', required : false)
++endif
++
+ gl_priv_reqs = []
+ 
+ if with_glx == 'xlib'
+diff --git a/meson.options b/meson.options
+index 024b8340252..78c85f13121 100644
+--- a/meson.options
++++ b/meson.options
+@@ -879,3 +879,11 @@ option(
+   value : false,
+   description : 'use experimental virtio backend for intel driver',
+ )
++
++option(
++  'stride-mimalloc',
++  type : 'boolean',
++  value : false,
++  description : 'Stride: send the allocations of Mesa code to a static mimalloc (MSVC only). ' +
++                'The Windows process heap serializes them when several threads compile at once.',
++)
+diff --git a/src/microsoft/spirv_to_dxil/meson.build b/src/microsoft/spirv_to_dxil/meson.build
+index a00ed9927bb..0791e458b37 100644
+--- a/src/microsoft/spirv_to_dxil/meson.build
++++ b/src/microsoft/spirv_to_dxil/meson.build
+@@ -14,7 +14,7 @@ libspirv_to_dxil = both_libraries(
+     sha1_h,
+   ],
+   vs_module_defs : 'spirv_to_dxil.def',
+-  dependencies : [idep_nir, idep_vtn, idep_libdxil_compiler],
++  dependencies : [idep_nir, idep_vtn, idep_libdxil_compiler, dep_mimalloc],
+   include_directories : [inc_include, inc_src],
+   install : true,
+ )
 diff --git a/src/microsoft/spirv_to_dxil/spirv_to_dxil.c b/src/microsoft/spirv_to_dxil/spirv_to_dxil.c
-index 1a8e6e2dee3..14b0f115dc8 100644
+index b9205aa018f..7dac08d9a36 100644
 --- a/src/microsoft/spirv_to_dxil/spirv_to_dxil.c
 +++ b/src/microsoft/spirv_to_dxil/spirv_to_dxil.c
-@@ -126,3 +126,140 @@ spirv_to_dxil_get_version()
+@@ -136,3 +136,145 @@ spirv_to_dxil_get_version()
     }
     return 0;
  }
@@ -60,7 +115,7 @@ index 1a8e6e2dee3..14b0f115dc8 100644
 +         goto cleanup;
 +      }
 +      nir_shader *nir = spirv_to_nir(
-+         stages[i].words, stages[i].word_count, NULL, 0,
++         stages[i].words, stages[i].word_count, NULL,
 +         (mesa_shader_stage)stage, stages[i].entry_point_name,
 +         spirv_opts, &nir_options);
 +      if (!nir) {
@@ -141,6 +196,11 @@ index 1a8e6e2dee3..14b0f115dc8 100644
 +   }
 +   glsl_type_singleton_decref();
 +
++#ifdef STRIDE_MIMALLOC
++   /* Gives this thread's empty pages back: a burst of compiles on many threads would keep them committed */
++   mi_collect(true);
++#endif
++
 +   return success;
 +}
 diff --git a/src/microsoft/spirv_to_dxil/spirv_to_dxil.def b/src/microsoft/spirv_to_dxil/spirv_to_dxil.def
@@ -153,10 +213,10 @@ index 62851f2160b..1c6f26c7a3a 100644
      spirv_to_dxil_get_version
 +    spirv_to_dxil_pipeline
 diff --git a/src/microsoft/spirv_to_dxil/spirv_to_dxil.h b/src/microsoft/spirv_to_dxil/spirv_to_dxil.h
-index 00b18849e41..902716c6221 100644
+index 8f4684ca58a..3619d41dfc6 100644
 --- a/src/microsoft/spirv_to_dxil/spirv_to_dxil.h
 +++ b/src/microsoft/spirv_to_dxil/spirv_to_dxil.h
-@@ -236,6 +236,31 @@ spirv_to_dxil(const uint32_t *words, size_t word_count,
+@@ -235,6 +235,31 @@ spirv_to_dxil(const uint32_t *words, size_t word_count,
                const struct dxil_spirv_logger *logger,
                struct dxil_spirv_object *out_dxil);
  
@@ -188,3 +248,60 @@ index 00b18849e41..902716c6221 100644
  /**
   * Free the buffer allocated by spirv_to_dxil.
   */
+diff --git a/src/microsoft/spirv_to_dxil/stride_malloc.h b/src/microsoft/spirv_to_dxil/stride_malloc.h
+new file mode 100644
+index 00000000000..7242f8bd3c3
+--- /dev/null
++++ b/src/microsoft/spirv_to_dxil/stride_malloc.h
+@@ -0,0 +1,31 @@
++/*
++ * Copyright © Stride contributors
++ * SPDX-License-Identifier: MIT
++ */
++
++/*
++ * Stride: forced include of every Mesa source when built with -Dstride-mimalloc=true. The calls to malloc, free,
++ * strdup... go to mimalloc, which has a heap per thread: the Windows process heap has one lock, and spirv_to_dxil
++ * running on many threads in one process waits on it most of the time.
++ *
++ * The C runtime headers come first, so their declarations keep their names and only the calls are renamed.
++ * Everything Mesa allocates is freed by Mesa (spirv_to_dxil_free for the output), so both sides stay on mimalloc.
++ */
++#ifndef STRIDE_MALLOC_H
++#define STRIDE_MALLOC_H
++
++#define STRIDE_MIMALLOC 1
++
++#include <stdlib.h>
++#include <malloc.h>
++#include <string.h>
++#include <wchar.h>
++#include <mbstring.h>
++
++#include <mimalloc-override.h>
++
++/* Mesa defines these itself on Windows (util/strndup.h, util/reallocarray.h), on top of malloc and realloc */
++#undef strndup
++#undef reallocarray
++
++#endif
+diff --git a/subprojects/mimalloc.wrap b/subprojects/mimalloc.wrap
+new file mode 100644
+index 00000000000..d20d0619068
+--- /dev/null
++++ b/subprojects/mimalloc.wrap
+@@ -0,0 +1,14 @@
++[wrap-file]
++directory = mimalloc-3.5.3
++source_url = https://github.com/microsoft/mimalloc/archive/refs/tags/v3.5.3.tar.gz
++source_filename = mimalloc-3.5.3.tar.gz
++source_hash = 3b4a15153a59905995f7070296ed604bb5ccc00cabb8b93446931aff77224d47
++source_fallback_url = https://wrapdb.mesonbuild.com/v2/mimalloc_3.5.3-1/get_source/mimalloc-3.5.3.tar.gz
++patch_filename = mimalloc_3.5.3-1_patch.zip
++patch_url = https://wrapdb.mesonbuild.com/v2/mimalloc_3.5.3-1/get_patch
++patch_fallback_url = https://github.com/mesonbuild/wrapdb/releases/download/mimalloc_3.5.3-1/mimalloc_3.5.3-1_patch.zip
++patch_hash = 6a64e3eaca05905ec8e662b66c74885732462c1d1296b4285781e68dec8640de
++wrapdb_version = 3.5.3-1
++
++[provide]
++dependency_names = mimalloc

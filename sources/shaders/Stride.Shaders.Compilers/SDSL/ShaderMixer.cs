@@ -25,7 +25,11 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
     /// </summary>
     /// <param name="ResourcesRegisterSeparate">For D3D11/12: t, b and s registers are separate (and should be kept as low as possible so we number them from 0 in each category).</param>
     /// <param name="StripGoogleUserType">Strip SPV_GOOGLE_user_type extension and UserTypeGOOGLE decorations (needed for Vulkan, which rejects the extension unless VK_GOOGLE_user_type is supported).</param>
-    public record struct Options(bool ResourcesRegisterSeparate, bool StripGoogleUserType = false);
+    /// <param name="Direct3DStructuredBufferLayout">
+    /// For the APIs that read the SPIR-V layout (Vulkan, Direct3D 12): structured buffers whose std430 layout differs from Direct3D's
+    /// (3-element vectors...) use Direct3D's tight layout, so they read the same CPU data as on Direct3D 11.
+    /// </param>
+    public record struct Options(bool ResourcesRegisterSeparate, bool StripGoogleUserType = false, bool Direct3DStructuredBufferLayout = false);
 
     public IExternalShaderLoader ShaderLoader { get; } = shaderLoader;
 
@@ -678,13 +682,15 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     if (!remapIds.TryGetValue(typeStruct2.ResultId, out var structId))
                         structId = typeStruct2.ResultId;
                     structTypes.Add(structName, structId);
-                    // Also add an entry using ToId()-style name for structured buffer types,
-                    // since OpImportStructSDSL.StructName uses ToId() format (e.g. "StructuredBuffer<X>")
-                    // while OpName uses "type.StructuredBuffer.X" format
+                    // Also add an entry using ToId()-style name for buffer types,
+                    // since OpImportStructSDSL.StructName uses ToId() format (e.g. "StructuredBuffer<X>", "ByteAddressBuffer")
+                    // while OpName uses "type.StructuredBuffer.X" / "type.ByteAddressBuffer" format
                     if (structName.StartsWith("type.StructuredBuffer."))
                         structTypes.TryAdd($"StructuredBuffer<{structName.Substring("type.StructuredBuffer.".Length)}>", structId);
                     else if (structName.StartsWith("type.RWStructuredBuffer."))
                         structTypes.TryAdd($"RWStructuredBuffer<{structName.Substring("type.RWStructuredBuffer.".Length)}>", structId);
+                    else if (structName is "type.ByteAddressBuffer" or "type.RWByteAddressBuffer")
+                        structTypes.TryAdd(structName.Substring("type.".Length), structId);
                 }
 
                 // Process OpImport*SDSL
@@ -1237,11 +1243,22 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         }
         SpirvBuilder.RemapIds(temp, 0, temp.Count, remapIds);
 
+        // A parameter semantic is stored as a member decoration of its function: the entry point wrapper consumes those of the entry
+        // points, the others (helpers: HLSL ignores them) must not reach the output, where they are invalid
+        var functionIds = new HashSet<int>();
+        foreach (var i in temp)
+        {
+            if (i.Op == Op.OpFunction && i.Data.IdResult is int functionId)
+                functionIds.Add(functionId);
+        }
+
         // Remove in a single pass (we do in-place without RemoveAt otherwise it would be up to O(n^2) complexity)
         RemoveInstructionWhere(temp, i =>
         {
             // Remove Nop
             if (i.Op == Op.OpNop)
+                return true;
+            if (i.Op == Op.OpMemberDecorateString && (Decoration)i.Data.Memory.Span[3] == Decoration.UserSemantic && functionIds.Contains(i.Data.Memory.Span[1]))
                 return true;
             // Also remove some other SDSL specific operators (that we keep late mostly for debug purposes)
             if (i.Op == Op.OpShaderSDSL
@@ -1262,7 +1279,9 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     or Decoration.ShaderConstantSDSL
                     or Decoration.PatchConstantFuncSDSL
                     or Decoration.LinkIdSDSL or Decoration.LinkSDSL or Decoration.ColorSDSL or Decoration.LogicalGroupSDSL or Decoration.ResourceGroupSDSL or Decoration.ResourceGroupIdSDSL
-                    or Decoration.SamplerStateSDSL)
+                    or Decoration.SamplerStateSDSL
+                    // Matrix layout of a member variable (moved to the Globals cbuffer); only valid on struct members in SPIR-V
+                    or Decoration.RowMajor or Decoration.ColMajor)
                 return true;
             if ((i.Op == Op.OpMemberDecorate || i.Op == Op.OpMemberDecorateString) && (Decoration)i.Data.Memory.Span[3] is Decoration.LinkIdSDSL or Decoration.LinkSDSL or Decoration.ColorSDSL or Decoration.LogicalGroupSDSL or Decoration.ResourceGroupSDSL)
                 return true;

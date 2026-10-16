@@ -1014,6 +1014,71 @@ Compositions:
             }
         }
 
+        /// <summary>
+        /// Test that each clear coat normal map uses its own flags: the metal flakes pass (pass 0) the metal
+        /// flakes ones, the clear coat pass (pass 1) the orange peel ones.
+        /// </summary>
+        [Fact]
+        public void TestClearCoatNormalMapFlags()
+        {
+            var context = new MaterialGeneratorContextExtended();
+            var materialDesc = new MaterialDescriptor
+            {
+                Attributes =
+                {
+                    Diffuse = new MaterialDiffuseMapFeature(new ComputeColor(Color.Black)),
+                    DiffuseModel = new MaterialDiffuseLambertModelFeature(),
+                    Specular = new MaterialMetalnessMapFeature(new ComputeFloat(0.0f)),
+                    SpecularModel = new MaterialSpecularMicrofacetModelFeature(),
+                    ClearCoat = new MaterialClearCoatFeature
+                    {
+                        // Each layer's flags set the other way round from the other layer's
+                        MetalFlakesScaleAndBias = false,
+                        MetalFlakeslIsXYNormal = true,
+                        OrangePeelScaleAndBias = true,
+                        OrangePeelIsXYNormal = false,
+                    },
+                },
+            };
+
+            var result = MaterialGenerator.Generate(materialDesc, context, "clear_coat");
+            Assert.False(result.HasErrors, result.ToText());
+            Assert.Equal(2, result.Material.Passes.Count);
+
+            // MaterialSurfaceNormalMap<bool TIsNormalXY1, bool TScaleAndBias>
+            Assert.Equal((true, false), NormalMapFlags(result.Material.Passes[0]));
+            Assert.Equal((false, true), NormalMapFlags(result.Material.Passes[1]));
+        }
+
+        private static (bool IsNormalXY1, bool ScaleAndBias) NormalMapFlags(MaterialPass pass)
+        {
+            var normalMaps = new List<ShaderClassSource>();
+            FindShaderClasses(pass.Parameters.Get(MaterialKeys.PixelStageSurfaceShaders), "MaterialSurfaceNormalMap", normalMaps);
+
+            var normalMap = Assert.Single(normalMaps);
+            return (bool.Parse(normalMap.GenericArguments[0]), bool.Parse(normalMap.GenericArguments[1]));
+        }
+
+        private static void FindShaderClasses(ShaderSource source, string className, List<ShaderClassSource> found)
+        {
+            switch (source)
+            {
+                case ShaderClassSource classSource when classSource.ClassName == className:
+                    found.Add(classSource);
+                    break;
+                case ShaderMixinSource mixin:
+                    foreach (var mixinClass in mixin.Mixins)
+                        FindShaderClasses(mixinClass, className, found);
+                    foreach (var composition in mixin.Compositions.Values)
+                        FindShaderClasses(composition, className, found);
+                    break;
+                case ShaderArraySource array:
+                    foreach (var value in array.Values)
+                        FindShaderClasses(value, className, found);
+                    break;
+            }
+        }
+
         private class MaterialGeneratorContextExtended : MaterialGeneratorContext
         {
             private readonly Dictionary<object, object> assetMap = new Dictionary<object, object>();

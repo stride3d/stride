@@ -471,9 +471,13 @@ namespace Stride.Graphics.Regression
         ///   A value indicating whether to capture a screenshot once the test has finished.
         ///   <see langword="true"/> to take a screenshot; otherwise, <see langword="false"/>.
         /// </param>
+        /// <param name="callerName">
+        ///   The calling test method, whose <see cref="AllowGpuValidationErrorAttribute"/>s apply. Filled in by the compiler.
+        /// </param>
         protected void PerformTest(Action<GameTestBase> testAction,
                                    GraphicsProfile? profileOverride = null,
-                                   bool takeSnapshot = false)
+                                   bool takeSnapshot = false,
+                                   [CallerMemberName] string callerName = null)
         {
             // Create a new test game instance
             var typeGame = GetType();
@@ -489,7 +493,7 @@ namespace Stride.Graphics.Regression
                 game.FrameGameSystem.TakeScreenshot();
 
             // Run the test
-            RunGameTest(game);
+            RunGameTest(game, callerName);
         }
 
         /// <summary>
@@ -512,6 +516,9 @@ namespace Stride.Graphics.Regression
         ///   A value indicating whether to capture a screenshot once the test has finished.
         ///   <see langword="true"/> to take a screenshot; otherwise, <see langword="false"/>.
         /// </param>
+        /// <param name="callerName">
+        ///   The calling test method, whose <see cref="AllowGpuValidationErrorAttribute"/>s apply. Filled in by the compiler.
+        /// </param>
         /// <remarks>
         ///   This method initializes a new test game instance, sets up an empty scene, and configures
         ///   a very simple graphics compositor to use the provided rendering callback.
@@ -519,7 +526,8 @@ namespace Stride.Graphics.Regression
         protected void PerformDrawTest(Action<GameTestBase, RenderDrawContext> drawTestAction,
                                        GraphicsProfile? profileOverride = null,
                                        string? subTestName = null,
-                                       bool takeSnapshot = true)
+                                       bool takeSnapshot = true,
+                                       [CallerMemberName] string callerName = null)
         {
             // Create a new test game instance
             var typeGame = GetType();
@@ -544,7 +552,7 @@ namespace Stride.Graphics.Regression
             };
 
             // Run the test
-            RunGameTest(game);
+            RunGameTest(game, callerName);
         }
 
         /// <summary>
@@ -1153,6 +1161,21 @@ namespace Stride.Graphics.Regression
         public static void RequireGraphicPlatform(GraphicsPlatform platform)
         {
             Skip.IfNot(GraphicsDevice.Platform == platform, $"This test requires the '{platform}' graphics platform. It has been skipped");
+        }
+
+        /// <summary>
+        ///   Skips the test unless Vulkan synchronization validation runs and also checks the buffers and images
+        ///   shaders access through descriptors: a debug device, <c>STRIDE_VULKAN_SYNC_VALIDATION=1</c>
+        ///   and a validation layer of version 1.3.290 or later.
+        /// </summary>
+        public static void RequireShaderAccessSyncValidation()
+        {
+#if STRIDE_GRAPHICS_API_VULKAN && DEBUG
+            bool isActive = GraphicsAdapterFactory.GetInstance(enableValidation: true).HasShaderAccessSyncValidation;
+#else
+            bool isActive = false;
+#endif
+            Skip.IfNot(isActive, "This test requires Vulkan synchronization validation of shader accesses. It has been skipped");
         }
     }
 }

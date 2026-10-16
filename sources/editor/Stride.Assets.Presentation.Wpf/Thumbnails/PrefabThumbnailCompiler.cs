@@ -8,7 +8,6 @@ using Stride.Assets.Entities;
 using Stride.Editor.Thumbnails;
 using Stride.Engine;
 using Stride.Extensions;
-using Stride.Particles.Components;
 
 namespace Stride.Assets.Presentation.Thumbnails
 {
@@ -52,14 +51,12 @@ namespace Stride.Assets.Presentation.Thumbnails
 
             private void AdjustChildEntity(Entity entity, ref bool canRotateEntity)
             {
-                if (entity.Components.Get<ModelComponent>() != null || entity.Components.Get<ParticleSystemComponent>() != null)
+                // Models and the components that take part in thumbnails are shown from an angle
+                foreach (var component in entity.Components)
                 {
-                    canRotateEntity = true;
-                }
-                var particles = entity.Components.Get<ParticleSystemComponent>();
-                if (particles?.ParticleSystem?.Settings != null && particles?.Control != null)
-                {
-                    particles.ParticleSystem.Settings.WarmupTime = particles.Control.ThumbnailWarmupTime;                    
+                    if (component is ModelComponent || component is IThumbnailComponent)
+                        canRotateEntity = true;
+                    (component as IThumbnailComponent)?.PrepareThumbnail();
                 }
 
                 foreach (var child in entity.GetChildren())

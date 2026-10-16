@@ -38,6 +38,17 @@ namespace Stride.Updater
         public static unsafe ref T RefBoxedStruct<T>(nint address) where T : struct
             => ref Unsafe.Unbox<T>(PointerToObject<object>(address));
 
+        /// <summary>Returns a reference to the first byte after the method table pointer of <paramref name="o"/>.
+        /// Pinning this reference pins the object.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ref byte GetRawData(object o)
+            => ref Unsafe.As<RawData>(o).Data;
+
+        private sealed class RawData
+        {
+            public byte Data;
+        }
+
         private static int ComputeArrayFirstElementOffset()
         {
             var testArray = new int[1];

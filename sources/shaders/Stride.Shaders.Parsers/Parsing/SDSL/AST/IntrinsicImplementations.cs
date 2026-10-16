@@ -716,6 +716,10 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
         var parameterType = context.ReverseTypes[x.TypeId].WithElementType(ScalarType.Boolean);
         x = builder.Convert(context, x, parameterType);
 
+        // OpAny / OpAll take a vector: for a scalar, the result is the value itself
+        if (parameterType is ScalarType)
+            return x;
+
         var instruction = builder.Insert(new OpAny(context.GetOrRegister(resultType), context.Bound++, x.Id));
         instruction.InstructionMemory.Span[0] = (int)(instruction.InstructionMemory.Span[0] & 0xFFFF0000) | (int)op;
         return new(instruction.ResultId, instruction.ResultType);

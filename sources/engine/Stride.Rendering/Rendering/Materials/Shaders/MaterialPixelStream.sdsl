@@ -99,9 +99,11 @@ namespace Stride.Rendering.Materials
             // Direct lighting can be slightly influenced by AO map
             streams.lightDirectAmbientOcclusion = lerp(1.0, streams.matAmbientOcclusion, streams.matAmbientOcclusionDirectLightingFactor);
 
-            // Diffuse visible 
+            // Diffuse visible: the diffuse alpha blend factor is applied here, before lighting, which is the same
+            // as after it since diffuse lighting is linear in the albedo. The specular one can't be (it would
+            // change the Fresnel term), so the specular shading models apply it after the BRDF
             streams.matDiffuseVisible = streams.matDiffuse.rgb * lerp(1.0f, streams.matCavity, streams.matCavityDiffuse) * streams.matDiffuseSpecularAlphaBlend.r * streams.matAlphaBlendColor;
-            streams.matSpecularVisible = streams.matSpecular.rgb * streams.matSpecularIntensity * lerp(1.0f, streams.matCavity, streams.matCavitySpecular) * streams.matDiffuseSpecularAlphaBlend.g * streams.matAlphaBlendColor;
+            streams.matSpecularVisible = streams.matSpecular.rgb * streams.matSpecularIntensity * lerp(1.0f, streams.matCavity, streams.matCavitySpecular) * streams.matAlphaBlendColor;
 
             streams.NdotV = max(dot(streams.normalWS, streams.viewWS), 0.0001f);
 

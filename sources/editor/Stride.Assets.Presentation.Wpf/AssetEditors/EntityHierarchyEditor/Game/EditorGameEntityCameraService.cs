@@ -15,9 +15,11 @@ using Stride.Engine;
 using Stride.Engine.Processors;
 using Stride.Input;
 using static Stride.Assets.Presentation.SceneEditor.SceneEditorSettings;
+using Stride.Editor.EditorGame.Game;
 
 namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
 {
+    [EditorGameService(typeof(EntityHierarchyEditorController), Order = 110)]
     public class EditorGameEntityCameraService : EditorGameCameraService, IEditorGameEntityCameraViewModelService
     {
         protected struct Input

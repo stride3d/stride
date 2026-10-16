@@ -117,14 +117,25 @@ public partial class App : Avalonia.Application
                 if (!string.IsNullOrEmpty(HeadlessFilter)) { argList.Add("--filter"); argList.Add(HeadlessFilter); }
                 if (!string.IsNullOrEmpty(HeadlessRepeat)) { argList.Add("--repeat"); argList.Add(HeadlessRepeat); }
                 var exit = StrideXunitRunner.RunHeadless(argList.ToArray());
-                System.Environment.Exit(exit);
+                ExitHeadlessRun(exit);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Headless test run crashed: {ex}");
-                System.Environment.Exit(2);
+                ExitHeadlessRun(2);
             }
         });
+    }
+
+    private static void ExitHeadlessRun(int exitCode)
+    {
+#if ANDROID
+        // libc exit() runs the emulator GL driver's static destructors, which abort on a destroyed
+        // mutex and leave a tombstone every run. The host reads results from the TRX, not the exit code.
+        Android.OS.Process.KillProcess(Android.OS.Process.MyPid());
+#else
+        System.Environment.Exit(exitCode);
+#endif
     }
 
     // Build a window title that identifies what this runner instance is testing:

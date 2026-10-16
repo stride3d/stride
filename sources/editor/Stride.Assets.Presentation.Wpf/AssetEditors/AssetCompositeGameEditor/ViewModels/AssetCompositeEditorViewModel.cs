@@ -34,7 +34,7 @@ namespace Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewM
 
         public abstract IEditorGamePartViewModel FindPartViewModel(AbsoluteId id);
 
-        internal void FixupAndRestoreSelection([NotNull] IEnumerable<object> previousSelection, [NotNull] IReadOnlyCollection<object> newSelection)
+        public void FixupAndRestoreSelection([NotNull] IEnumerable<object> previousSelection, [NotNull] IReadOnlyCollection<object> newSelection)
         {
             var fixedUpSelection = new List<object>();
             foreach (var item in previousSelection)

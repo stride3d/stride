@@ -113,14 +113,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libopenal-dev libvulkan1 xvfb lld vulkan-validationlayers libva2 libva-drm2 libva-x11-2
 
-      - name: Start virtual display (Linux)
-        if: runner.os == 'Linux'
-        run: |
-          # Lavapipe's x11 WSI needs a display server to expose VK_KHR_swapchain,
-          # which Stride's GraphicsDevice requires even for pure offscreen rendering.
-          Xvfb :99 -screen 0 1920x1080x24 &
-          echo "DISPLAY=:99" >> $GITHUB_ENV
-
       # PackageStore at test runtime calls Settings.LoadDefaultSettings(null) which only loads
       # user + machine configs, NOT the workspace's nuget.config (no walkup with null root).
       # Locally this works because the dev's user config has Stride.AutoPackDeploy's
@@ -173,29 +165,9 @@ jobs:
         if: runner.os == 'Windows' && matrix.graphics-api == 'Vulkan'
         uses: ./.github/actions/setup-vulkan-windows
 
-      # On Linux the Vulkan loader honors VK_DRIVER_FILES → point it at the linux-x64
-      # Lavapipe .so shipped inside the Stride.Dependencies.Lavapipe nupkg.
-      - name: Install Lavapipe and register its Vulkan ICD (Linux / Vulkan)
+      - name: Set up Lavapipe (Linux / Vulkan)
         if: runner.os == 'Linux' && matrix.graphics-api == 'Vulkan'
-        run: |
-          tmpDir="${{ runner.temp }}/lavapipe-fetch"
-          mkdir -p "$tmpDir"
-          cat > "$tmpDir/LavapipeFetch.csproj" <<'EOF'
-          <Project Sdk="Microsoft.NET.Sdk">
-            <PropertyGroup><TargetFramework>net10.0</TargetFramework></PropertyGroup>
-          </Project>
-          EOF
-          dotnet add "$tmpDir/LavapipeFetch.csproj" package Stride.Dependencies.Lavapipe
-          LIB=$(find ~/.nuget/packages/stride.dependencies.lavapipe -path "*/runtimes/linux-x64/native/libvulkan_lvp.so" | head -1)
-          if [ -z "$LIB" ]; then
-            echo "::error::Lavapipe libvulkan_lvp.so not found in NuGet cache"
-            exit 1
-          fi
-          LIB_ABS=$(readlink -f "$LIB")
-          ICD_JSON="$PWD/lvp_icd.json"
-          echo "{\"file_format_version\":\"1.0.0\",\"ICD\":{\"library_path\":\"$LIB_ABS\",\"api_version\":\"1.3.0\"}}" > "$ICD_JSON"
-          echo "VK_DRIVER_FILES=$ICD_JSON" >> $GITHUB_ENV
-          echo "Registered Lavapipe ICD: $ICD_JSON -> $LIB_ABS"
+        uses: ./.github/actions/setup-lavapipe-linux
 
       # Builds the test project plus its transitive ProjectReferences. StrideGraphicsApi (singular)
       # selects the test SDK output path; StrideGraphicsApis (plural) keeps the engine deps aligned
@@ -304,7 +276,8 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y lld
+          # libva: the asset compiler's ffmpeg (sound and video assets)
+          sudo apt-get install -y lld libva2 libva-drm2 libva-x11-2
 
       # The consumer-template generation (NuGetConsumerTests → PackageStore) reads the *user* NuGet
       # config (Settings.LoadDefaultSettings(null) ignores the workspace config), so register the
@@ -331,10 +304,15 @@ jobs:
           EOF
           dotnet nuget add source "${{ github.workspace }}/bin/packages" --name stride-local --configfile "$HOME/.nuget/NuGet/NuGet.Config"
 
+      # The consumers' asset compiles need a graphics device (skybox, model loading): WARP on Windows, Lavapipe here
+      - name: Set up Lavapipe (Linux)
+        if: runner.os == 'Linux'
+        uses: ./.github/actions/setup-lavapipe-linux
+
       # Build + test in one invocation: the test project's ProjectReferences pack the engine into
       # bin/packages, then the pack/consume + external-consumer tests run against it. StridePlatforms
       # is required for the test SDK to emit the test assembly (host platform; graphics API defaults
-      # per OS — D3D11 on Windows, Vulkan on Linux — and is irrelevant to these headless build tests).
+      # per OS — D3D11 on Windows, Vulkan on Linux).
       - name: Run packaging + consumer tests
         run: |
           dotnet test tests/enduser/Stride.Packaging.Tests/Stride.Packaging.Tests.csproj \

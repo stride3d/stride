@@ -1,0 +1,19 @@
+// PSMain(ExpectedResult=#0105090D, cbuffer.Test=(Matrix=(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16)))
+
+namespace Stride.Shaders.Tests;
+
+// A column_major cbuffer member: the cbuffer holds 1..16 in memory order, Matrix[0] is its first row.
+shader MatrixLayoutColumnMajorCBufferMember
+{
+    cbuffer Test
+    {
+        column_major float4x4 Matrix;
+    };
+
+    stream float4 ColorTarget : SV_Target0;
+
+    void PSMain()
+    {
+        streams.ColorTarget = Matrix[0] / 255.0;
+    }
+};

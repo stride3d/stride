@@ -26,6 +26,7 @@ using Stride.Rendering.Compositing;
 
 namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
 {
+    [EditorGameService(typeof(EntityHierarchyEditorController), Order = 230)]
     public class EditorGameMaterialHighlightService : EditorGameMouseServiceBase, IEditorGameMaterialHighlightService, IEditorGameMaterialHighlightViewModelService
     {
         private readonly EntityHierarchyEditorViewModel editor;

@@ -19,6 +19,8 @@ public sealed class AssetCompilerRegistry
 
     private readonly HashSet<Assembly> registeredAssemblies = [];
     private readonly Dictionary<CompilerTypeData, IAssetCompiler> typeToCompiler = [];
+    private readonly List<AttributeCompiler> attributeCompilers = [];
+    private readonly Dictionary<Assembly, List<CompilerTypeData>> declaredCompilers = [];
     private bool assembliesChanged;
 
     /// <summary>
@@ -87,11 +89,68 @@ public sealed class AssetCompilerRegistry
         typeToCompiler[typeData] = compiler;
     }
 
+    /// <summary>
+    /// Registers a compiler for each assembly attribute of type <typeparamref name="TAttribute"/> in the registered
+    /// assemblies, for declarations their assembly cannot compile itself (such as a static thumbnail an Assets package
+    /// declares and the editor compiles).
+    /// </summary>
+    /// <param name="context">The compilation context of the compilers.</param>
+    /// <param name="createCompiler">Creates the compiler of an attribute found on an assembly, with its asset type.</param>
+    public void RegisterAttributeCompilers<TAttribute>(Type context, Func<TAttribute, Assembly, (Type AssetType, IAssetCompiler Compiler)> createCompiler)
+        where TAttribute : Attribute
+    {
+        ArgumentNullException.ThrowIfNull(createCompiler);
+        if (!typeof(ICompilationContext).IsAssignableFrom(context))
+            throw new ArgumentException($"Invalid compiler context type [{context}], must inherit from ICompilerContext", nameof(context));
+
+        var attributeCompiler = new AttributeCompiler(typeof(TAttribute), context, (attribute, assembly) => createCompiler((TAttribute)attribute, assembly));
+        attributeCompilers.Add(attributeCompiler);
+        foreach (var assembly in registeredAssemblies)
+            RegisterAttributeCompilersFromAssembly(assembly, attributeCompiler);
+    }
+
+    private void RegisterAttributeCompilersFromAssembly(Assembly assembly, AttributeCompiler attributeCompiler)
+    {
+        IEnumerable<Attribute> attributes;
+        try
+        {
+            attributes = assembly.GetCustomAttributes(attributeCompiler.AttributeType).ToList();
+        }
+        catch (Exception ex)
+        {
+            log.Warning($"Could not read the attributes of assembly {assembly.FullName}", ex);
+            return;
+        }
+
+        foreach (var attribute in attributes)
+        {
+            try
+            {
+                var (assetType, compiler) = attributeCompiler.Create(attribute, assembly);
+                RegisterCompiler(assetType, compiler, attributeCompiler.Context);
+                if (!declaredCompilers.TryGetValue(assembly, out var declared))
+                    declaredCompilers.Add(assembly, declared = []);
+                declared.Add(new CompilerTypeData(attributeCompiler.Context, assetType));
+            }
+            catch (Exception ex)
+            {
+                log.Error($"Unable to instantiate the compiler declared by [{attribute.GetType()}] in [{assembly.GetName().Name}]", ex);
+            }
+        }
+    }
+
     private void UnregisterCompilersFromAssembly(Assembly assembly)
     {
         foreach (var typeToRemove in typeToCompiler.Where(typeAndCompile => typeAndCompile.Key.Type.Assembly == assembly || typeAndCompile.Value.GetType().Assembly == assembly).Select(e => e.Key).ToList())
         {
             typeToCompiler.Remove(typeToRemove);
+        }
+
+        // Compilers declared by the assembly's attributes, for asset types of other assemblies
+        if (declaredCompilers.Remove(assembly, out var declared))
+        {
+            foreach (var typeToRemove in declared)
+                typeToCompiler.Remove(typeToRemove);
         }
     }
 
@@ -198,6 +257,9 @@ public sealed class AssetCompilerRegistry
             }
         }
 
+        foreach (var attributeCompiler in attributeCompilers)
+            RegisterAttributeCompilersFromAssembly(assembly, attributeCompiler);
+
         // Taken from https://stackoverflow.com/questions/7889228/how-to-prevent-reflectiontypeloadexception-when-calling-assembly-gettypes
         [DebuggerNonUserCode]
         IEnumerable<Type> GetFullyLoadedTypes(Assembly assembly)
@@ -220,6 +282,8 @@ public sealed class AssetCompilerRegistry
         UnregisterCompilersFromAssembly(assembly);
         assembliesChanged = true;
     }
+
+    private sealed record AttributeCompiler(Type AttributeType, Type Context, Func<Attribute, Assembly, (Type AssetType, IAssetCompiler Compiler)> Create);
 
     private readonly struct CompilerTypeData : IEquatable<CompilerTypeData>
     {

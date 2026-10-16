@@ -36,6 +36,8 @@ public record struct StatementParsers : IParser<Statement>
             return true;
         else if (Continue(ref scanner, result, out parsed))
             return true;
+        else if (LocalStruct(ref scanner, result, out parsed))
+            return true;
         else if (Declare(ref scanner, result, out parsed))
             return true;
         else if (!Tokens.Char('{', ref scanner) && Expression(ref scanner, result, out parsed))
@@ -85,6 +87,17 @@ public record struct StatementParsers : IParser<Statement>
     internal static bool Declare<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Statement parsed, ParseError? orError = null)
         where TScanner : struct, IScanner
         => new DeclareStatementParser().Match(ref scanner, result, out parsed, orError);
+    internal static bool LocalStruct<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Statement parsed, ParseError? orError = null)
+        where TScanner : struct, IScanner
+    {
+        var position = scanner.Position;
+        if (new ShaderStructParser().Match(ref scanner, result, out var @struct))
+        {
+            parsed = new LocalStructDeclaration(@struct, scanner[position..scanner.Position]);
+            return true;
+        }
+        return Parsers.Exit(ref scanner, result, out parsed, position, orError);
+    }
     internal static bool DeclareOrAssign<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out Statement parsed, ParseError? orError = null)
         where TScanner : struct, IScanner
     {
@@ -330,6 +343,8 @@ public record struct DeclareStatementParser : IParser<Statement>
 
         )
         {
+            if (Parsers.ReservedWordAsName(ref scanner, result, out var reservedWord))
+                return Parsers.Exit(ref scanner, result, out parsed, position, new(string.Format(SDSLErrorMessages.SDSL0048, reservedWord), scanner[scanner.Position], scanner.Memory));
             if (Parsers.Repeat(ref scanner, result, StatementParsers.DeclaredVarAssign, out List<DeclaredVariableAssign>? assigns, 1, true, ","))
             {
                 foreach (var a in assigns)
@@ -346,6 +361,9 @@ public record struct DeclareStatementParser : IParser<Statement>
                     };
                     return true;
                 }
+                // `int a, line;`: the list stopped at a reserved word
+                else if (Parsers.ReservedWordAsName(ref scanner, result, out reservedWord))
+                    return Parsers.Exit(ref scanner, result, out parsed, position, new(string.Format(SDSLErrorMessages.SDSL0048, reservedWord), scanner[scanner.Position], scanner.Memory));
                 else return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0033, scanner[scanner.Position], scanner.Memory));
             }
         }

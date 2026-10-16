@@ -59,6 +59,17 @@ public sealed class PackageLoadParameters
     public bool LoadAssemblyReferences { get; set; }
 
     /// <summary>
+    /// Load the editor companion packages declared by session packages (<see cref="Package.CompanionPackages"/>). Only the editor sets this.
+    /// </summary>
+    public bool LoadEditorPackages { get; set; }
+
+    /// <summary>
+    /// The UI toolkit of the editor loading the session (Wpf), so the Editor companions written for another toolkit
+    /// stay out. Null loads the toolkit-neutral Editor companions only.
+    /// </summary>
+    public string? EditorToolkit { get; set; }
+
+    /// <summary>
     /// Gets or sets a value indicating whether to automatically compile projects that don't have their assembly generated.
     /// </summary>
     /// <value><c>true</c> if [automatic compile projects]; otherwise, <c>false</c>.</value>
@@ -151,6 +162,12 @@ public sealed class PackageLoadParameters
     /// Gets a boolean telling if MSBuild files should be evaluated when listing assets.
     /// </summary>
     public bool TemporaryAssetsInMsbuild { get; set; } = true;
+
+    /// <summary>
+    /// Load asset files whose asset type is not loaded as unloadable assets that keep their content.
+    /// Only the editor sets this, so a build does not fail on a stray file.
+    /// </summary>
+    public bool LoadAssetsOfUnknownType { get; set; }
 
     /// <summary>
     /// Clones this instance.

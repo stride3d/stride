@@ -25,6 +25,8 @@
     <Compile Include="ForwardRendererTransparentTargetsTest.cs" />
     <Compile Include="ParameterCollectionAttachedReferenceTest.cs" />
     <Compile Include="ParameterCollectionUpdateEngineTest.cs" />
+    <Compile Include="RenderFeatureTestBase.cs" />
+    <Compile Include="RenderFeatureTests.cs" />
     <Compile Include="EntityUpdateEngineTest.cs" />
     <Compile Include="AnimatedModelTests.cs" />
     <Compile Include="MorphTargetTests.cs" />
@@ -43,6 +45,7 @@
     <Compile Include="TestEntityManager.Benchmark.cs" />
     <Compile Include="TestEntityManager.cs" />
     <Compile Include="TestCameraProcessor.cs" />
+    <Compile Include="TestPreferredGraphicsProfiles.cs" />
     <Compile Include="TestTransformComponent.cs" />
     <Compile Include="TestUpdateEngine.cs" />
     <None Include="Build\TestSerializer.cs" />

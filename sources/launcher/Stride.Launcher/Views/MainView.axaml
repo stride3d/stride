@@ -299,8 +299,17 @@
             <Border DockPanel.Dock="Top"
                     BorderBrush="{StaticResource TileBorderBrush}" BorderThickness="8,4">
               <DockPanel Height="32">
-                <PathIcon Width="26" Height="26"
-                          Data="{StaticResource GeometrySwitch}"/>
+                <!-- The icon of the title refreshes the list: greyed while the versions are being listed -->
+                <Button Command="{Binding RefreshCommand}" IsEnabled="{Binding !IsSynchronizing}"
+                        Padding="2" Background="Transparent" BorderThickness="0" VerticalAlignment="Center"
+                        ToolTip.Tip="{x:Static l:Strings.ToolTipRefreshVersions}">
+                  <Interaction.Behaviors>
+                    <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
+                                                         DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
+                  </Interaction.Behaviors>
+                  <PathIcon Width="26" Height="26"
+                            Data="{StaticResource GeometrySwitch}"/>
+                </Button>
                 <TextBlock Text="{x:Static l:Strings.SwitchOrUpdateVersion}"
                            Margin="10,0"
                            FontSize="24" TextAlignment="Left" VerticalAlignment="Center" />
@@ -376,11 +385,17 @@
                                                                          DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
                                   </Interaction.Behaviors>
                                 </Button>
-                                <!-- Placed like the label of a store version -->
-                                <TextBlock Margin="12,0,4,0" IsHitTestVisible="False"
-                                           HorizontalAlignment="Left" VerticalAlignment="Center"
-                                           TextTrimming="CharacterEllipsis"
-                                           Text="{Binding DisplayName, StringFormat={x:Static l:Strings.VersionButton}}"/>
+                                <!-- Placed like the label of a store version, with the badge of a local build -->
+                                <DockPanel Margin="12,0,8,0" IsHitTestVisible="False">
+                                  <Border DockPanel.Dock="Right" VerticalAlignment="Center" Margin="6,0,0,0" Padding="5,1" CornerRadius="3"
+                                          Background="{DynamicResource LocalBadgeBackgroundBrush}">
+                                    <TextBlock Text="{x:Static l:Strings.BadgeLocal}" FontSize="10" FontWeight="SemiBold"
+                                               Foreground="{DynamicResource LocalBadgeForegroundBrush}"/>
+                                  </Border>
+                                  <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center"
+                                             TextTrimming="CharacterEllipsis"
+                                             Text="{Binding ListName, StringFormat={x:Static l:Strings.VersionButton}}"/>
+                                </DockPanel>
                                 <!-- The active version, the one Start starts -->
                                 <Border Width="3" HorizontalAlignment="Left" IsHitTestVisible="False"
                                         Background="{DynamicResource AccentBrush}" IsVisible="{Binding IsActive}"/>
@@ -474,7 +489,21 @@
                             <Button DockPanel.Dock="Left"
                                     Margin="0,0,4,0" Width="32" Height="32"
                                     Command="{Binding ReleaseNotes.ToggleCommand}"
+                                    IsVisible="{Binding !IsNightly}"
                                     ToolTip.Tip="{x:Static l:Strings.ToolTipReleaseNotes}">
+                              <Interaction.Behaviors>
+                                <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding Launcher.CurrentToolTip}"
+                                                                     DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
+                              </Interaction.Behaviors>
+                              <PathIcon Width="20" Height="20"
+                                        Data="{StaticResource GeometryNotes}"/>
+                            </Button>
+                            <!-- What's new, in place of the release notes of a nightly: its changes on GitHub -->
+                            <Button DockPanel.Dock="Left"
+                                    Margin="0,0,4,0" Width="32" Height="32"
+                                    Command="{Binding WhatsNewCommand}"
+                                    IsVisible="{Binding IsNightly}"
+                                    ToolTip.Tip="{Binding WhatsNewToolTip}">
                               <Interaction.Behaviors>
                                 <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding Launcher.CurrentToolTip}"
                                                                      DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
@@ -508,11 +537,19 @@
                                                                          DefaultValue="{x:Static l:Strings.ToolTipDefault}"/>
                                   </Interaction.Behaviors>
                                 </Button>
-                                <!-- One text rather than bound runs: those could stay empty once the row was busy (Avalonia 12.1) -->
-                                <TextBlock Margin="12,0,4,0" IsHitTestVisible="False"
-                                           HorizontalAlignment="Left" VerticalAlignment="Center"
-                                           TextTrimming="CharacterEllipsis"
-                                           Text="{Binding Label}"/>
+                                <!-- One text rather than bound runs: those could stay empty once the row was busy (Avalonia 12.1).
+                                     The badge of the nightly row on its right -->
+                                <DockPanel Margin="12,0,8,0" IsHitTestVisible="False">
+                                  <Border DockPanel.Dock="Right" VerticalAlignment="Center" Margin="6,0,0,0" Padding="5,1" CornerRadius="3"
+                                          Background="{DynamicResource NightlyBadgeBackgroundBrush}"
+                                          IsVisible="{Binding IsNightly}">
+                                    <TextBlock Text="{x:Static l:Strings.BadgeNightly}" FontSize="10" FontWeight="SemiBold"
+                                               Foreground="{DynamicResource NightlyBadgeForegroundBrush}"/>
+                                  </Border>
+                                  <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center"
+                                             TextTrimming="CharacterEllipsis"
+                                             Text="{Binding Label}"/>
+                                </DockPanel>
                                 <!-- The active version, the one Start starts -->
                                 <Border Width="3" HorizontalAlignment="Left" IsHitTestVisible="False"
                                         Background="{DynamicResource AccentBrush}" IsVisible="{Binding IsActive}"/>

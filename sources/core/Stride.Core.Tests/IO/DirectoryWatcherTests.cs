@@ -105,8 +105,8 @@ public class DirectoryWatcherTests : IDisposable
     [Fact]
     public void Modified_EventIsRaised_OnFileCreation()
     {
-        FileEvent? capturedEvent = null;
-        watcher.Modified += (sender, e) => capturedEvent = e;
+        using var eventRaised = new ManualResetEventSlim();
+        watcher.Modified += (sender, e) => eventRaised.Set();
         watcher.Track(testDirectory);
 
         // Give watcher time to initialize
@@ -115,10 +115,7 @@ public class DirectoryWatcherTests : IDisposable
         var testFile = Path.Combine(testDirectory, "newfile.txt");
         File.WriteAllText(testFile, "content");
 
-        // Wait for event to be raised
-        Thread.Sleep(1000);
-
-        Assert.NotNull(capturedEvent);
+        Assert.True(eventRaised.Wait(TimeSpan.FromSeconds(10)));
     }
 
     [Fact]

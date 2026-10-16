@@ -65,15 +65,24 @@ public class ServiceRegistry : IServiceRegistry
     public void AddService<T>(T service)
         where T : class
     {
-        ArgumentNullException.ThrowIfNull(service);
+        AddService(typeof(T), service);
+    }
 
-        var type = typeof(T);
+    /// <summary>Adds a service under a type known at run time.</summary>
+    /// <exception cref="ArgumentException">The service is not of <paramref name="serviceType"/>, or that type is already registered.</exception>
+    public void AddService(Type serviceType, object service)
+    {
+        ArgumentNullException.ThrowIfNull(serviceType);
+        ArgumentNullException.ThrowIfNull(service);
+        if (!serviceType.IsInstanceOfType(service))
+            throw new ArgumentException($"Service of type [{service.GetType()}] is not a [{serviceType}]", nameof(service));
+
         lock (registeredService)
         {
-            if (!registeredService.TryAdd(type, service))
-                throw new ArgumentException("Service is already registered with this type", nameof(type));
+            if (!registeredService.TryAdd(serviceType, service))
+                throw new ArgumentException("Service is already registered with this type", nameof(serviceType));
         }
-        OnServiceAdded(new ServiceEventArgs(type, service));
+        OnServiceAdded(new ServiceEventArgs(serviceType, service));
     }
 
     /// <inheritdoc />

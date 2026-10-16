@@ -60,7 +60,8 @@ namespace Stride.Editor.Thumbnails
         /// <param name="changed">A boolean indicating whether the thumbnal has changed since the last generation.</param>
         /// <param name="thumbnailStream">A stream to the thumbnail image.</param>
         /// <param name="thumbnailHash"></param>
-        internal void NotifyThumbnailBuilt(AssetItem assetItem, ThumbnailBuildResult result, bool changed, Stream thumbnailStream, ObjectId thumbnailHash)
+        /// <param name="buildLog">The log of the thumbnail build.</param>
+        internal void NotifyThumbnailBuilt(AssetItem assetItem, ThumbnailBuildResult result, bool changed, Stream thumbnailStream, ObjectId thumbnailHash, LoggerResult buildLog)
         {
             try
             {
@@ -75,7 +76,8 @@ namespace Stride.Editor.Thumbnails
                         AssetId = assetItem.Id,
                         Url = assetItem.Location,
                         Result = result,
-                        ThumbnailChanged = changed
+                        ThumbnailChanged = changed,
+                        BuildLog = buildLog,
                     };
 
                     Monitor.Exit(thumbnailCounterLock);

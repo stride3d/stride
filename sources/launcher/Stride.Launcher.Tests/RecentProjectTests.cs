@@ -35,4 +35,17 @@ public sealed class RecentProjectTests
     {
         Assert.False(RecentProjectViewModel.IsUpgrade(PackageVersion.Parse(project), PackageVersion.Parse(target)));
     }
+
+    [Theory]
+    [InlineData("4.4.0", "4.5.0", true)]
+    [InlineData("4.5.0-nightly.20261014.3", "4.5.0-nightly.20261015.4", true)]
+    [InlineData("4.5.0-nightly.20261014.3", "4.5.0", true)]
+    // A nightly is an upgrade from a release or a prerelease, but never suggested to one
+    [InlineData("4.5.0-beta01", "4.5.0-nightly.20261014.3", false)]
+    [InlineData("4.4.0", "4.5.0-nightly.20261014.3", false)]
+    public void IsSuggestedUpgrade_NightlyOnlyFromNightly(string project, string target, bool expected)
+    {
+        Assert.True(RecentProjectViewModel.IsUpgrade(PackageVersion.Parse(project), PackageVersion.Parse(target)));
+        Assert.Equal(expected, RecentProjectViewModel.IsSuggestedUpgrade(PackageVersion.Parse(project), PackageVersion.Parse(target)));
+    }
 }

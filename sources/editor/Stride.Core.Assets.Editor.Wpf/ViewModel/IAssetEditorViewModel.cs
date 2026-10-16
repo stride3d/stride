@@ -9,6 +9,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
     /// <summary>
     /// An interface that represents the view model of an asset editor.
     /// </summary>
+    [Stride.Core.Reflection.AssemblyScan]
     public interface IAssetEditorViewModel : IDestroyable
     {
         /// <summary>

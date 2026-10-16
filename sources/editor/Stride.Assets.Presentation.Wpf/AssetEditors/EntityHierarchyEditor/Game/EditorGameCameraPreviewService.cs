@@ -20,9 +20,11 @@ using Stride.Graphics;
 using Stride.Graphics.Font;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
+using Stride.Assets.Presentation.AssetEditors.SceneEditor.Services;
 
 namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
 {
+    [EditorGameService(typeof(SceneEditorController), Order = 300)]
     public class EditorGameCameraPreviewService : EditorGameServiceBase, IEditorGameCameraPreviewService, IEditorGameCameraPreviewViewModelService
     {
         private readonly IEditorGameController controller;
@@ -276,7 +278,6 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                     }
 
                     context.RenderSystem.Views.Add(RenderView);
-                    context.RenderView = RenderView;
 
                     // Setup viewport
                     Viewport = new Viewport(0, 0, (int)width, (int)height);

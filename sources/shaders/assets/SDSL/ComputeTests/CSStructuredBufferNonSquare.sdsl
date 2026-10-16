@@ -1,0 +1,36 @@
+// PSMain(ExpectedResult=#00000000)
+
+namespace Stride.Shaders.Tests;
+
+// Non-square matrices in structured buffers, as elements and as struct members (also row_major): their layout must
+// match their decorations, or the SPIR-V is invalid. The buffers are never bound; RenderTest StructuredBufferNonSquareMatrix
+// checks values
+shader CSStructuredBufferNonSquare
+{
+    struct Members
+    {
+        float4x3 A;
+        row_major float3x4 B;
+        float2x3 C;
+        float3x2 D;
+        float Tail;
+    };
+
+    StructuredBuffer<float4x3> M43;
+    StructuredBuffer<float3x4> M34;
+    StructuredBuffer<float2x4> M24;
+    StructuredBuffer<float4x2> M42;
+    StructuredBuffer<float2x3> M23;
+    StructuredBuffer<float3x2> M32;
+    StructuredBuffer<Members> Structs;
+    RWStructuredBuffer<float4> Output;
+
+    [numthreads(1, 1, 1)]
+    void CSMain()
+    {
+        float4 sum = float4(M43[1][3], 0) + M34[1][2] + M24[1][1] + float4(M42[1][3], 0, 0) + float4(M23[1][1], 0) + float4(M32[1][2], 0, 0);
+        Members s = Structs[1];
+        sum += float4(s.A[3], s.Tail) + s.B[2] + float4(s.C[1], 0) + float4(s.D[2], 0, 0);
+        Output[0] = sum;
+    }
+};

@@ -4,12 +4,15 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Compiler;
+using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.Components.Status;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModel.Logs;
 using Stride.Core.BuildEngine;
 using Stride.Core.Collections;
 using Stride.Core.Diagnostics;
@@ -54,6 +57,7 @@ namespace Stride.Editor.Thumbnails
 
             generator = new ThumbnailGenerator((EffectCompilerBase)assetBuilderService.EffectCompiler);
             compilerRegistry = new AssetCompilerRegistry { DefaultCompiler = new CustomAssetThumbnailCompiler() };
+            compilerRegistry.RegisterAttributeCompilers<StaticThumbnailAttribute>(typeof(ThumbnailCompilationContext), CreateStaticThumbnailCompiler);
             thumbnailCompiler = new ThumbnailListCompiler(generator, ThumbnailBuilt, compilerRegistry);
 
             gameSettingsProviderService = settingsProvider;
@@ -141,6 +145,14 @@ namespace Stride.Editor.Thumbnails
         public int PendingThumbnailCount { get { lock (hashLock) return thumbnailQueueHash.Count; } }
 
         /// <inheritdoc/>
+        private static (Type AssetType, IAssetCompiler Compiler) CreateStaticThumbnailCompiler(StaticThumbnailAttribute attribute, Assembly assembly)
+        {
+            var image = DeclaredResources.Read(assembly, attribute.ResourceName)
+                ?? throw new FileNotFoundException($"Embedded resource [{attribute.ResourceName}] not found in [{assembly.GetName().Name}]");
+            var compiler = (IAssetCompiler)Activator.CreateInstance(typeof(StaticThumbnailCompiler<>).MakeGenericType(attribute.AssetType), image)!;
+            return (attribute.AssetType, compiler);
+        }
+
         public bool HasStaticThumbnail(Type assetType)
         {
             var compiler = (IThumbnailCompiler)compilerRegistry.GetCompiler(assetType, typeof(ThumbnailCompilationContext));
@@ -251,6 +263,10 @@ namespace Stride.Editor.Thumbnails
             if (e.Result != ThumbnailBuildResult.Cancelled)
             {
                 ThumbnailCompleted?.Invoke(this, new ThumbnailCompletedArgs(e.AssetId, thumbnailData));
+
+                // Show why a thumbnail is broken (e.g. a font that fails to load) in the asset log
+                var hasProblems = e.BuildLog?.Messages.Any(x => x.IsAtLeast(LogMessageType.Warning)) ?? false;
+                session.AssetLog.SetAssetLog(e.AssetId, AssetLogViewModel.ThumbnailLogName, hasProblems ? e.BuildLog : null);
             }
 
             lock (hashLock)

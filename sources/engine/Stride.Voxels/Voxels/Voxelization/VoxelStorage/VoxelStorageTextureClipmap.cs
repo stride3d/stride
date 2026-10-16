@@ -177,6 +177,10 @@ namespace Stride.Rendering.Voxels
                 offsetIndex++;
             }
             Array.Copy(PerMapOffsetScale, PerMapOffsetScaleCurrent, PerMapOffsetScale.Length);
+
+            // The copies above leave both textures as copy destinations, and the lighting pass samples them
+            drawContext.CommandList.ResourceBarrierTransition(ClipMaps, BarrierLayout.ShaderResource);
+            drawContext.CommandList.ResourceBarrierTransition(MipMaps, BarrierLayout.ShaderResource);
         }
 
 

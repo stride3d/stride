@@ -163,9 +163,11 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                 entryPoints.Add(GenerateStreamWrapper(table, buffer, context, ExecutionModel.GLCompute, entryPointCS, analysisResult, liveAnalysis, false));
             }
 
+            // The PrimitiveId builtin needs Tessellation or Geometry, also when only the pixel shader reads it
+            var psReadsPrimitiveId = entryPointCS == null && streams.Any(s => s.Value.Read && s.Value.Semantic?.ToUpperInvariant() == "SV_PRIMITIVEID");
             if (entryPointHS != null || entryPointDS != null)
                 context.Add(new OpCapability(Capability.Tessellation));
-            else if (entryPointGS != null)
+            else if (entryPointGS != null || psReadsPrimitiveId)
                 context.Add(new OpCapability(Capability.Geometry));
 
             var inputAttributes = new List<ShaderInputAttributeDescription>();
@@ -230,9 +232,11 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                 }
 
                 // Those semantic variables are implicit in pixel shader, no need to forward them from previous stages
+                // (SV_PrimitiveID too when there is no geometry shader, the only stage that can write it)
                 foreach (var stream in streams)
                 {
-                    if (stream.Value.Semantic is { } semantic && (semantic.ToUpperInvariant() == "SV_COVERAGE" || semantic.ToUpperInvariant() == "SV_ISFRONTFACE" || semantic.ToUpperInvariant() == "VFACE"))
+                    if (stream.Value.Semantic is { } semantic && (semantic.ToUpperInvariant() == "SV_COVERAGE" || semantic.ToUpperInvariant() == "SV_ISFRONTFACE" || semantic.ToUpperInvariant() == "VFACE"
+                        || (semantic.ToUpperInvariant() == "SV_PRIMITIVEID" && entryPointGS == null)))
                         stream.Value.Read = false;
                 }
 
@@ -250,6 +254,10 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                     if (entryPoint.Item2 != null)
                     {
                         ReadWriteAnalyzer.AnalyzeStreamReadWrites(buffer, context, entryPoint.Item2.IdRef, analysisResult, liveAnalysis);
+
+                        if (entryPoint.Item1 == ExecutionModel.Geometry
+                            && streams.Any(s => s.Value.Output && !s.Value.Write && s.Value.Semantic?.ToUpperInvariant() == "SV_PRIMITIVEID"))
+                            throw new InvalidOperationException($"{nameof(InterfaceProcessor)}: The pixel shader reads SV_PrimitiveID, so the geometry shader must write it");
 
                         // Find patch constant entry point and process
                         var patchConstantEntryPoint = entryPoint.Item1 == ExecutionModel.TessellationControl ? ResolveHullPatchConstantEntryPoint(table, context, entryPoint.Item2) : null;

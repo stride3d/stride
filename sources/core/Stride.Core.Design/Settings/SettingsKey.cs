@@ -59,6 +59,8 @@ public abstract class SettingsKey
     /// </summary>
     public UFile Name { get; }
 
+    internal object GetDefaultObjectValue() => DefaultObjectValueCallback != null ? DefaultObjectValueCallback() : DefaultObjectValue;
+
     /// <summary>
     /// Gets the type of this <see cref="SettingsKey"/>.
     /// </summary>

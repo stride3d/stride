@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using Stride.Core;
@@ -26,6 +27,7 @@ namespace Stride.Graphics
 
         internal readonly ConcurrentPool<List<VkDescriptorPool>> DescriptorPoolLists = new ConcurrentPool<List<VkDescriptorPool>>(() => new List<VkDescriptorPool>());
         internal readonly ConcurrentPool<List<GraphicsResource>> StagingResourceLists = new ConcurrentPool<List<GraphicsResource>>(() => new List<GraphicsResource>());
+        internal readonly ConcurrentPool<List<QueryPool>> QueryPoolLists = new ConcurrentPool<List<QueryPool>>(() => new List<QueryPool>());
 
         private const GraphicsPlatform GraphicPlatform = GraphicsPlatform.Vulkan;
         internal GraphicsProfile RequestedProfile;
@@ -192,6 +194,44 @@ namespace Stride.Graphics
         // True when VK_EXT_metal_objects was enabled — lets us import CVPixelBuffer IOSurfaces as VkImage.
         internal bool HasMetalObjectsSupport { get; private set; }
 #endif
+
+        /// <summary>
+        /// Whether <c>scalarBlockLayout</c> is enabled: needed by shaders whose structured buffers use Direct3D's tight layout
+        /// (the shader compiler marks them, see <see cref="TightStructuredBuffers"/>).
+        /// </summary>
+        internal bool SupportsScalarBlockLayout { get; private set; }
+
+        /// <summary>
+        /// The text of the <c>OpSourceExtension</c> the shader compiler writes in a module whose structured buffers use Direct3D's tight
+        /// layout, followed by their names (same text as <c>SpirvTools.TightStructuredBufferMarker</c>).
+        /// </summary>
+        internal const string TightStructuredBufferMarker = "Stride.TightStructuredBuffers:";
+
+        /// <summary>
+        /// The structured buffers of a SPIR-V module that use Direct3D's tight layout, or null.
+        /// </summary>
+        internal static string TightStructuredBuffers(ReadOnlySpan<byte> spirv)
+        {
+            const int opSourceExtension = 4, opFunction = 54;
+            var words = MemoryMarshal.Cast<byte, uint>(spirv);
+            for (var i = 5; i < words.Length;)
+            {
+                var op = words[i] & 0xFFFF;
+                var wordCount = (int)(words[i] >> 16);
+                if (wordCount == 0 || op == opFunction || i + wordCount > words.Length)
+                    break;
+                if (op == opSourceExtension)
+                {
+                    var text = MemoryMarshal.AsBytes(words.Slice(i + 1, wordCount - 1));
+                    var length = text.IndexOf((byte)0);
+                    var extension = System.Text.Encoding.UTF8.GetString(length >= 0 ? text[..length] : text);
+                    if (extension.StartsWith(TightStructuredBufferMarker, StringComparison.Ordinal))
+                        return extension[TightStructuredBufferMarker.Length..].Trim();
+                }
+                i += wordCount;
+            }
+            return null;
+        }
 
         /// <summary>
         ///   Builds a <see cref="VkSemaphoreSubmitInfo"/> for a <see cref="vkQueueSubmit2"/> wait or signal.
@@ -437,11 +477,13 @@ namespace Stride.Graphics
                 shaderCullDistance = deviceFeatures.shaderCullDistance,
                 samplerAnisotropy = deviceFeatures.samplerAnisotropy,
                 depthClamp = deviceFeatures.depthClamp,
-                tessellationShader = RequestedProfile >= GraphicsProfile.Level_11_0 && deviceFeatures.tessellationShader,
+                tessellationShader = deviceFeatures.tessellationShader,
                 shaderStorageImageReadWithoutFormat = deviceFeatures.shaderStorageImageReadWithoutFormat,
                 shaderStorageImageWriteWithoutFormat = deviceFeatures.shaderStorageImageWriteWithoutFormat,
                 geometryShader = deviceFeatures.geometryShader,
                 fragmentStoresAndAtomics = deviceFeatures.fragmentStoresAndAtomics,
+                // Indirect draw arguments with a non-zero start instance
+                drawIndirectFirstInstance = deviceFeatures.drawIndirectFirstInstance,
             };
 
             Span<VkUtf8String> supportedExtensionProperties = stackalloc VkUtf8String[]
@@ -570,7 +612,10 @@ namespace Stride.Graphics
                 uniformBufferStandardLayout = VkBool32.True,
                 // FP16 in shaders (SPIR-V Float16 capability) — required by some HLSL→SPIR-V output.
                 shaderFloat16 = supportedVulkan12Features.shaderFloat16,
+                // Structured buffers in Direct3D's tight layout (float3 elements...): see SupportsScalarBlockLayout
+                scalarBlockLayout = supportedVulkan12Features.scalarBlockLayout,
             };
+            SupportsScalarBlockLayout = supportedVulkan12Features.scalarBlockLayout;
             var enabledVulkan11Features = new VkPhysicalDeviceVulkan11Features
             {
                 sType = VkStructureType.PhysicalDeviceVulkan11Features,
@@ -893,6 +938,15 @@ namespace Stride.Graphics
 
             StagingResourceLists.Release(commandList.StagingResources);
             commandList.StagingResources.Clear();
+
+            // Query pools can be read back once this submission has run
+            foreach (var queryPool in commandList.QueryPools)
+            {
+                queryPool.CommandListFenceValue = commandListFenceValue;
+                queryPool.UpdatingCommandList = null;
+            }
+            commandList.QueryPools.Clear();
+            QueryPoolLists.Release(commandList.QueryPools);
 
             // Recycle all resources
             foreach (var descriptorPool in commandList.DescriptorPools)

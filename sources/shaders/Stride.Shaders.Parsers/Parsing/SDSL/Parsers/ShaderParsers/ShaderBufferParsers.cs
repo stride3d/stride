@@ -78,7 +78,7 @@ public record struct BufferParsers : IParser<ShaderBuffer>
                             && Parsers.Spaces0(ref scanner, result, out _)
                         )
                             members.Add(member);
-                        else return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0001, scanner[scanner.Position], scanner.Memory));
+                        else return Parsers.Exit(ref scanner, result, out parsed, position, MemberError(ref scanner, result, "cbuffer", identifiers));
                     }
                     if (scanner.IsEof)
                         return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0043, scanner[scanner.Position], scanner.Memory));
@@ -117,7 +117,7 @@ public record struct BufferParsers : IParser<ShaderBuffer>
                             && Parsers.Spaces0(ref scanner, result, out _)
                         )
                             members.Add(member);
-                        else return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0001, scanner[scanner.Position], scanner.Memory));
+                        else return Parsers.Exit(ref scanner, result, out parsed, position, MemberError(ref scanner, result, "rgroup", identifiers));
                     }
                     if (scanner.IsEof)
                         return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0043, scanner[scanner.Position], scanner.Memory));
@@ -132,6 +132,30 @@ public record struct BufferParsers : IParser<ShaderBuffer>
             }
         }
         return Parsers.Exit(ref scanner, result, out parsed, position, orError);
+    }
+
+    // A member that didn't parse. `compose X Name;` and `stream X Name;` get their own error: Stride 4.3 moved them out of the
+    // block, since a composition or a stream is not a buffer member. The scanner doesn't move
+    static ParseError MemberError<TScanner>(ref TScanner scanner, ParseResult result, string blockKind, Identifier blockName)
+        where TScanner : struct, IScanner
+    {
+        var position = scanner.Position;
+        var error = new ParseError(SDSLErrorMessages.SDSL0001, scanner[position], scanner.Memory);
+        if (ShaderAttributeListParser.AttributeList(ref scanner, result, out _))
+            Parsers.Spaces0(ref scanner, result, out _);
+        var afterAttributes = scanner.Position;
+        if (!(Tokens.Literal("stage", ref scanner, advance: true) && Parsers.Spaces1(ref scanner, result, out _)))
+            scanner.Position = afterAttributes;
+        if (
+            Tokens.AnyOf(["compose", "stream"], ref scanner, out var keyword, advance: true)
+            && Parsers.Spaces1(ref scanner, result, out _)
+            && LiteralsParser.TypeName(ref scanner, result, out _)
+            && Parsers.Spaces1(ref scanner, result, out _)
+            && LiteralsParser.Identifier(ref scanner, result, out var name)
+        )
+            error = new(string.Format(SDSLErrorMessages.SDSL0050, keyword == "compose" ? "Composition" : "Stream", name, blockKind, blockName), scanner[position], scanner.Memory);
+        scanner.Position = position;
+        return error;
     }
 
     public static bool Member<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out ShaderMember parsed, in ParseError? orError = null)
@@ -150,12 +174,23 @@ public record struct BufferParsers : IParser<ShaderBuffer>
         }
         else
             scanner.Position = tmp;
+        var typeModifier = TypeModifier.None;
+        if (Tokens.AnyOf(["row_major", "column_major"], ref scanner, out var matrixLayout, advance: true) && Parsers.Spaces1(ref scanner, result, out _))
+            typeModifier = matrixLayout == "row_major" ? TypeModifier.RowMajor : TypeModifier.ColumnMajor;
+        else
+            scanner.Position = tmp;
+        // A semantic does nothing on a cbuffer member (as with FXC); a register or packoffset gets SDSL0220
         if (
             Parsers.TypeNameIdentifierArraySizeValue(ref scanner, result, out var typeName, out var identifier, out var value, advance: true)
+            && ShaderMemberParser.Qualifiers(ref scanner, result, out _, out var register)
             && Parsers.FollowedBy(ref scanner, Tokens.Set(";"), withSpaces: true, advance: true)
         )
         {
-            parsed = new ShaderMember(typeName, identifier, value, scanner[position..scanner.Position], isStage, streamKind);
+            parsed = new ShaderMember(typeName, identifier, value, scanner[position..scanner.Position], isStage, streamKind)
+            {
+                TypeModifier = typeModifier,
+                IgnoredRegister = register,
+            };
             if (hasAttributes)
                 parsed.Attributes = attributes!.Attributes;
             return true;

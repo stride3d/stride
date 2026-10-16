@@ -159,7 +159,9 @@ namespace Stride.Shaders.Compiler
                 // D3D12 also goes through SPIR-V (then DXIL via mesa), so it needs the unified
                 // binding scheme — only D3D11/FXC consumes the per-class b#/t#/u#/s# bank style.
                 ResourcesRegisterSeparate: effectParameters.Platform is GraphicsPlatform.Direct3D11,
-                StripGoogleUserType: effectParameters.Platform is GraphicsPlatform.Vulkan), log, out var spirvBytecode, out var effectReflection, out var usedHashSources, out var entryPoints))
+                StripGoogleUserType: effectParameters.Platform is GraphicsPlatform.Vulkan,
+                // Vulkan and D3D12 (spirv_to_dxil) read the SPIR-V layout; D3D11 packs the HLSL like Direct3D already
+                Direct3DStructuredBufferLayout: effectParameters.Platform is GraphicsPlatform.Vulkan or GraphicsPlatform.Direct3D12), log, out var spirvBytecode, out var effectReflection, out var usedHashSources, out var entryPoints))
                 return new EffectBytecodeCompilerResult(null, log);
 
             // Optional SPIR-V validation (requires spirv-val from Vulkan SDK)
@@ -639,7 +641,11 @@ namespace Stride.Shaders.Compiler
                 finally
                 {
                     for (int i = 0; i < entryPoints.Count; i++)
+                    {
                         if (nameHandles[i].IsAllocated) nameHandles[i].Free();
+                        // Allocated by mesa (also for the stages done before a failure): copied above, freed here
+                        if (outputs[i].buffer != null) Spv2DXIL.spirv_to_dxil_free(ref outputs[i]);
+                    }
                 }
             }
         }

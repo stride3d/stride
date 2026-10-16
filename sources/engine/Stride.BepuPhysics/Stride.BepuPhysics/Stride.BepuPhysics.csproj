@@ -7,10 +7,14 @@
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideAssemblyProcessorOptions>--serialization --parameter-key</StrideAssemblyProcessorOptions>
     <StrideCodeAnalysis>true</StrideCodeAnalysis>
+    <!-- The physics components and settings are written in scene and game settings assets -->
+    <StrideContainsAssetTypes>true</StrideContainsAssetTypes>
   </PropertyGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="Stride.Assets" />
+    <!-- Companion package: asset types, compilers and templates, loaded by the asset compiler and the editor -->
+    <StrideCompanionProject Include="..\Stride.BepuPhysics.Assets\Stride.BepuPhysics.Assets.csproj" />
+    <InternalsVisibleTo Include="Stride.BepuPhysics.Assets" />
   </ItemGroup>
 
   <ItemGroup>

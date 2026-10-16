@@ -228,7 +228,7 @@ namespace Stride.GameStudio.View
                 // Restore visible/hidden status of panes
                 GameStudioViewModel.GameStudio.Panels.LoadFromSettings();
                 // Initialize plugins
-                Editor.Session.ServiceProvider.Get<IAssetsPluginService>().Plugins.ForEach(x => x.InitializeSession(Editor.Session));
+                Editor.Session.ServiceProvider.Get<IAssetsPluginService>().InitializeSession(Editor.Session);
                 // Open assets that were being edited in the previous session
                 InitialEditorsOpened = ReopenAssetEditors(dockingLayout.LoadOpenAssets().ToList());
                 InitialEditorsOpened.Forget();

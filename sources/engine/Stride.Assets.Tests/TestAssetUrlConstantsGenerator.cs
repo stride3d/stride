@@ -37,12 +37,61 @@ namespace Stride.Assets.Tests
         }
 
         [Fact]
-        public void UntypedFallbackForUnregisteredExtension()
+        public void UntypedWhenTheMapTypeIsNotVisible()
         {
-            var result = Run([Asset("Thing.sdcustom")]);
+            var result = Run([Asset("Thing.sdcustom"), Map(".sdcustom|MyPlugin.NotReferenced")]);
 
             Assert.Contains("global::Stride.Core.Serialization.UrlReference Thing", result.Source);
             Assert.DoesNotContain("UrlReference<", result.Source);
+            AssertCompiles(result);
+        }
+
+        [Fact]
+        public void UnknownExtensionGetsNoConstant()
+        {
+            // An .sd* file no map, declaration or asset type knows (a shader next to the assets) is not an asset
+            var result = Run([Asset("Effect.sdsl")]);
+
+            Assert.Null(result.Source);
+        }
+
+        [Fact]
+        public void FormerEngineExtensionStaysUntypedWithAWarning()
+        {
+            // A video the game's references do not declare (no Stride.Video): an untyped constant, as before the move,
+            // and a warning naming the package
+            var result = Run([Asset("Intro.sdvid")], withoutReference: "Stride.Video");
+
+            Assert.Contains("global::Stride.Core.Serialization.UrlReference Intro", result.Source);
+            Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "STRDIAG015" && diagnostic.GetMessage().Contains("Stride.Video"));
+            AssertCompiles(result);
+        }
+
+        [Fact]
+        public void TypedViaAssemblyDeclaration()
+        {
+            // A plugin's runtime declares the extension of its Assets package's asset type, which the game does not reference
+            var result = Run(
+                [Asset("Thing.sdcustom")],
+                source: """
+                    [assembly: Stride.Core.Serialization.AssetFileExtension(".sdcustom", typeof(MyPlugin.CustomContent))]
+                    namespace MyPlugin
+                    {
+                        public class CustomContent { }
+                    }
+                    """);
+
+            Assert.Contains("UrlReference<global::MyPlugin.CustomContent> Thing", result.Source);
+            AssertCompiles(result);
+        }
+
+        [Fact]
+        public void TypedViaReferencedRuntimeDeclaration()
+        {
+            // Stride.Graphics declares .sdtex
+            var result = Run([Asset("Ground.sdtex")]);
+
+            Assert.Contains("UrlReference<global::Stride.Graphics.Texture> Ground", result.Source);
             AssertCompiles(result);
         }
 
@@ -63,6 +112,7 @@ namespace Stride.Assets.Tests
                 Asset("A b.sdcustom"),
                 Asset("A_b.sdcustom"),
                 Asset("2 Cool.sdcustom"),
+                Map(".sdcustom|MyPlugin.NotReferenced"),
             ]);
 
             Assert.Contains("UrlReference A_b ", result.Source);
@@ -202,11 +252,12 @@ namespace Stride.Assets.Tests
         private static RunResult Run(
             (string Path, string Content)[] files,
             string urlNamespace = "MyGame",
-            string source = "public class TestDummy { }")
+            string source = "public class TestDummy { }",
+            string? withoutReference = null)
         {
             var compilation = CSharpCompilation.Create("MyGame.Game",
                 [CSharpSyntaxTree.ParseText(source)],
-                References.Value,
+                References.Value.Where(reference => withoutReference is null || !string.Equals(Path.GetFileNameWithoutExtension(reference.FilePath), withoutReference, StringComparison.OrdinalIgnoreCase)),
                 new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
             var texts = files.Select(file => (AdditionalText)new TestAdditionalText(file.Path, file.Content)).ToArray();

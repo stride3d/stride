@@ -26,6 +26,11 @@ namespace Stride.Graphics
         private PipelineState activePipeline;
         private bool pipelineDirty = true;
 
+        /// <summary>
+        ///   The number of <c>vkCmdBindPipeline</c> calls recorded by this command list (checked by the tests).
+        /// </summary>
+        internal int NativePipelineBindCount;
+
         // Per-CB layout state. Stride's per-Texture NativeLayout is a single shared field mutated
         // by every CB's ResourceBarrierTransition calls in arbitrary order, which disagrees with
         // Vulkan's per-execution-order layout tracking when CBs record concurrently. This map
@@ -98,6 +103,7 @@ namespace Stride.Graphics
             currentCommandList.NativeCommandBuffer = CommandBufferPool.GetObject(GraphicsDevice.CommandListFence.GetCompletedValue());
             currentCommandList.DescriptorPools = GraphicsDevice.DescriptorPoolLists.Acquire();
             currentCommandList.StagingResources = GraphicsDevice.StagingResourceLists.Acquire();
+            currentCommandList.QueryPools = GraphicsDevice.QueryPoolLists.Acquire();
 
             var beginInfo = new VkCommandBufferBeginInfo
             {
@@ -200,6 +206,9 @@ namespace Stride.Graphics
                 return;
 
             GraphicsDevice.NativeDeviceApi.vkCmdBindPipeline(currentCommandList.NativeCommandBuffer, activePipeline.IsCompute ? VkPipelineBindPoint.Compute : VkPipelineBindPoint.Graphics, activePipeline.NativePipeline);
+            // Bound until SetPipelineState changes it or the command buffer is reset; it stays across render pass instances
+            pipelineDirty = false;
+            NativePipelineBindCount++;
         }
 
         /// <summary>
@@ -610,6 +619,70 @@ namespace Stride.Graphics
             => layout == BarrierLayout.Common ? buffer.NativePipelineStageMask : BarrierMapping.ToVkPipelineStageFlags(layout);
 
         /// <summary>
+        ///   Makes the unordered access writes to a Graphics Resource visible to the next unordered accesses to it, such as
+        ///   a dispatch that writes a buffer, then a dispatch that reads or writes it.
+        /// </summary>
+        /// <param name="resource">The Graphics Resource written as unordered access.</param>
+        /// <remarks>
+        ///   A transition to <see cref="BarrierLayout.UnorderedAccess"/> can't do this: it does nothing when the resource
+        ///   already has that layout. The resource must already be in <see cref="BarrierLayout.UnorderedAccess"/>: this
+        ///   doesn't transition it.
+        /// </remarks>
+        public unsafe void UnorderedAccessBarrier(GraphicsResource resource)
+        {
+            ArgumentNullException.ThrowIfNull(resource);
+
+            var stages = BarrierMapping.ToVkPipelineStageFlags(BarrierLayout.UnorderedAccess);
+            const VkAccessFlags AccessBefore = VkAccessFlags.ShaderWrite;
+            const VkAccessFlags AccessAfter = VkAccessFlags.ShaderRead | VkAccessFlags.ShaderWrite;
+
+            // Not allowed inside a render pass
+            CleanupRenderPass();
+
+            if (resource is Texture texture)
+            {
+                if (texture.ParentTexture != null)
+                    texture = texture.ParentTexture;
+
+                var layout = BarrierMapping.ToVkImageLayout(BarrierLayout.UnorderedAccess);
+                var imageBarrier = new VkImageMemoryBarrier(texture.NativeImage, new VkImageSubresourceRange(texture.NativeImageAspect, 0, uint.MaxValue, 0, uint.MaxValue), AccessBefore, AccessAfter, layout, layout);
+                GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, stages, stages, VkDependencyFlags.None, 0, null, 0, null, 1, &imageBarrier);
+            }
+            else if (resource is Buffer buffer)
+            {
+                var bufferBarrier = new VkBufferMemoryBarrier(buffer.NativeBuffer, AccessBefore, AccessAfter);
+                GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, stages, stages, VkDependencyFlags.None, 0, null, 1, &bufferBarrier, 0, null);
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        /// <summary>
+        ///   Makes all unordered access writes visible to the next unordered accesses, such as a pass that writes several
+        ///   buffers, then a pass that reads them.
+        /// </summary>
+        /// <remarks>
+        ///   The resources stay in <see cref="BarrierLayout.UnorderedAccess"/>: transition them first if they aren't.
+        /// </remarks>
+        public unsafe void UnorderedAccessBarrier()
+        {
+            var stages = BarrierMapping.ToVkPipelineStageFlags(BarrierLayout.UnorderedAccess);
+            var memoryBarrier = new VkMemoryBarrier
+            {
+                sType = VkStructureType.MemoryBarrier,
+                srcAccessMask = VkAccessFlags.ShaderWrite,
+                dstAccessMask = VkAccessFlags.ShaderRead | VkAccessFlags.ShaderWrite,
+            };
+
+            // Not allowed inside a render pass
+            CleanupRenderPass();
+
+            GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, stages, stages, VkDependencyFlags.None, 1, &memoryBarrier, 0, null, 0, null);
+        }
+
+        /// <summary>
         ///   Adopts the transfer layout as the tracked state of a texture that has no defined layout.
         ///   The restore barrier after a copy then has a legal target.
         /// </summary>
@@ -636,6 +709,7 @@ namespace Stride.Graphics
                 0x20 => BarrierLayout.DepthStencilRead,
                 0x80 => BarrierLayout.ShaderResource,
                 0xC0 => BarrierLayout.ShaderResource,
+                0x200 => BarrierLayout.IndirectArgument,
                 0x400 => BarrierLayout.CopyDest,
                 0x800 => BarrierLayout.CopySource,
                 0x1000 => BarrierLayout.ResolveDest,
@@ -696,6 +770,8 @@ namespace Stride.Graphics
         /// <param name="offsetInBytes">The offset information bytes.</param>
         public void Dispatch(Buffer indirectBuffer, int offsetInBytes)
         {
+            ArgumentNullException.ThrowIfNull(indirectBuffer);
+
             RecordDebugCounter(DebugCounterKind.Dispatch);
             CleanupRenderPass();
             BindPipeline();
@@ -773,13 +849,11 @@ namespace Stride.Graphics
         /// <param name="alignedByteOffsetForArgs">Offset in <em>pBufferForArgs</em> to the start of the GPU generated primitives.</param>
         public void DrawIndexedInstanced(Buffer argumentsBuffer, int alignedByteOffsetForArgs = 0)
         {
-            if (argumentsBuffer == null) throw new ArgumentNullException("argumentsBuffer");
+            ArgumentNullException.ThrowIfNull(argumentsBuffer);
 
             PrepareDraw();
 
-            throw new NotImplementedException();
-            //NativeCommandBuffer.DrawIndirect(argumentsBuffer.NativeBuffer, (ulong) alignedByteOffsetForArgs, );
-            //NativeDeviceContext.DrawIndexedInstancedIndirect(argumentsBuffer.NativeBuffer, alignedByteOffsetForArgs);
+            GraphicsDevice.NativeDeviceApi.vkCmdDrawIndexedIndirect(currentCommandList.NativeCommandBuffer, argumentsBuffer.NativeBuffer, (ulong) alignedByteOffsetForArgs, drawCount: 1, stride: 0);
 
             GraphicsDevice.FrameDrawCalls++;
         }
@@ -795,7 +869,7 @@ namespace Stride.Graphics
         {
             PrepareDraw();
 
-            GraphicsDevice.NativeDeviceApi.vkCmdDraw(currentCommandList.NativeCommandBuffer, (uint) vertexCountPerInstance, (uint) instanceCount, (uint) startVertexLocation, (uint) startVertexLocation);
+            GraphicsDevice.NativeDeviceApi.vkCmdDraw(currentCommandList.NativeCommandBuffer, (uint) vertexCountPerInstance, (uint) instanceCount, (uint) startVertexLocation, (uint) startInstanceLocation);
             //NativeCommandList.DrawInstanced(vertexCountPerInstance, instanceCount, startVertexLocation, startInstanceLocation);
 
             GraphicsDevice.FrameDrawCalls++;
@@ -809,12 +883,11 @@ namespace Stride.Graphics
         /// <param name="alignedByteOffsetForArgs">Offset in <em>pBufferForArgs</em> to the start of the GPU generated primitives.</param>
         public void DrawInstanced(Buffer argumentsBuffer, int alignedByteOffsetForArgs = 0)
         {
-            if (argumentsBuffer == null) throw new ArgumentNullException("argumentsBuffer");
+            ArgumentNullException.ThrowIfNull(argumentsBuffer);
 
             PrepareDraw();
 
-            throw new NotImplementedException();
-            //NativeDeviceContext.DrawIndexedInstancedIndirect(argumentsBuffer.NativeBuffer, alignedByteOffsetForArgs);
+            GraphicsDevice.NativeDeviceApi.vkCmdDrawIndirect(currentCommandList.NativeCommandBuffer, argumentsBuffer.NativeBuffer, (ulong) alignedByteOffsetForArgs, drawCount: 1, stride: 0);
 
             GraphicsDevice.FrameDrawCalls++;
         }
@@ -829,17 +902,18 @@ namespace Stride.Graphics
             GraphicsDevice.PushDebugScope(name);
             if (GraphicsDevice.IsProfilingSupported)
             {
-                var bytes = System.Text.Encoding.ASCII.GetBytes(name);
+                // pLabelName is a null-terminated string, as in the Direct3D 12 BeginEvent fallback
+                var maxBytes = System.Text.Encoding.ASCII.GetMaxByteCount(name.Length) + 1;
+                var nameBytes = stackalloc byte[maxBytes];
+                int written = System.Text.Encoding.ASCII.GetBytes(name, new Span<byte>(nameBytes, maxBytes));
+                nameBytes[written] = 0;
 
-                fixed (byte* bytesPointer = &bytes[0])
+                var labelInfo = new VkDebugUtilsLabelEXT
                 {
-                    var labelInfo = new VkDebugUtilsLabelEXT
-                    {
-                        sType = VkStructureType.DebugUtilsLabelEXT,
-                        pLabelName = bytesPointer
-                    };
-                    GraphicsDevice.NativeInstanceApi.vkCmdBeginDebugUtilsLabelEXT(currentCommandList.NativeCommandBuffer, &labelInfo);
-                }
+                    sType = VkStructureType.DebugUtilsLabelEXT,
+                    pLabelName = nameBytes
+                };
+                GraphicsDevice.NativeInstanceApi.vkCmdBeginDebugUtilsLabelEXT(currentCommandList.NativeCommandBuffer, &labelInfo);
             }
         }
 
@@ -858,15 +932,36 @@ namespace Stride.Graphics
         /// Submit a timestamp query.
         /// </summary>
         /// <param name="queryPool">The QueryPool owning the query.</param>
-        /// <param name="query">The timestamp query.</param>
+        /// <param name="index">The index of the query to write.</param>
+        /// <remarks>
+        ///   The first write after the pool is created or read back resets all its queries first, as Vulkan requires
+        ///   (outside a render pass: it ends the current one). Read the pool back before writing a query again.
+        /// </remarks>
         public void WriteTimestamp(QueryPool queryPool, int index)
         {
+            if (queryPool.NeedsReset)
+                ResetQueryPool(queryPool);
+
             GraphicsDevice.NativeDeviceApi.vkCmdWriteTimestamp(currentCommandList.NativeCommandBuffer, VkPipelineStageFlags.AllCommands, queryPool.NativeQueryPool, (uint) index);
+
+            if (queryPool.UpdatingCommandList != this)
+            {
+                queryPool.UpdatingCommandList = this;
+                currentCommandList.QueryPools.Add(queryPool);
+            }
         }
 
+        /// <summary>
+        ///   Resets all the queries of a pool, so they can be written again.
+        /// </summary>
+        /// <param name="queryPool">The QueryPool to reset.</param>
         public void ResetQueryPool(QueryPool queryPool)
         {
+            // Not allowed inside a render pass
+            CleanupRenderPass();
             GraphicsDevice.NativeDeviceApi.vkCmdResetQueryPool(currentCommandList.NativeCommandBuffer, queryPool.NativeQueryPool, firstQuery: 0, (uint) queryPool.QueryCount);
+
+            queryPool.NeedsReset = false;
         }
 
         /// <summary>
@@ -934,9 +1029,13 @@ namespace Stride.Graphics
         /// <param name="value">The value.</param>
         /// <exception cref="ArgumentNullException">buffer</exception>
         /// <exception cref="ArgumentException">Expecting buffer supporting UAV;buffer</exception>
+        /// <exception cref="NotSupportedException">
+        ///   The buffer is raw, structured or of an integer format (clear it with integer values), or its elements can't
+        ///   be written by repeating one 32-bit word (see <see cref="ClearReadWrite(Buffer, UInt4)"/>).
+        /// </exception>
         public void ClearReadWrite(Buffer buffer, Vector4 value)
         {
-            throw new NotImplementedException();
+            ClearReadWriteImpl(buffer, GetClearWord(buffer, default, value));
         }
 
         /// <summary>
@@ -946,9 +1045,12 @@ namespace Stride.Graphics
         /// <param name="value">The value.</param>
         /// <exception cref="ArgumentNullException">buffer</exception>
         /// <exception cref="ArgumentException">Expecting buffer supporting UAV;buffer</exception>
+        /// <exception cref="NotSupportedException">
+        ///   The elements can't be written by repeating one 32-bit word (see <see cref="ClearReadWrite(Buffer, UInt4)"/>).
+        /// </exception>
         public void ClearReadWrite(Buffer buffer, Int4 value)
         {
-            throw new NotImplementedException();
+            ClearReadWriteImpl(buffer, GetClearWord(buffer, new UInt4((uint) value.X, (uint) value.Y, (uint) value.Z, (uint) value.W), floatValue: null));
         }
 
         /// <summary>
@@ -958,10 +1060,154 @@ namespace Stride.Graphics
         /// <param name="value">The value.</param>
         /// <exception cref="ArgumentNullException">buffer</exception>
         /// <exception cref="ArgumentException">Expecting buffer supporting UAV;buffer</exception>
+        /// <exception cref="NotSupportedException">
+        ///   The elements can't be written by repeating one 32-bit word: an 8 or 16-byte element (such as
+        ///   <see cref="PixelFormat.R32G32B32A32_UInt"/>) whose 32-bit words differ, or a format other than 8, 16 or 32-bit
+        ///   RGBA channels. Clear it with a value that repeats every 4 bytes (such as 0), or in a compute shader.
+        /// </exception>
+        /// <remarks>
+        ///   As on Direct3D, a raw or structured Buffer gets <c>X</c> in every 32-bit word, and a typed Buffer gets the low
+        ///   bits of each channel, without conversion.
+        /// </remarks>
         public void ClearReadWrite(Buffer buffer, UInt4 value)
         {
-            throw new NotImplementedException();
+            ClearReadWriteImpl(buffer, GetClearWord(buffer, value, floatValue: null));
         }
+
+        private unsafe void ClearReadWriteImpl(Buffer buffer, uint word)
+        {
+            RecordDebugCounter(DebugCounterKind.Clear);
+
+            // The fill is a transfer, synchronized like the Texture clear; leave the buffer in the unordered access
+            // layout afterwards, matching the Direct3D 12 behavior
+            ResourceBarrierTransition(buffer, BarrierLayout.CopyDest);
+
+            // Not allowed inside a render pass (the transition doesn't end it when the buffer is already a copy destination)
+            CleanupRenderPass();
+            GraphicsDevice.NativeDeviceApi.vkCmdFillBuffer(currentCommandList.NativeCommandBuffer, buffer.NativeBuffer, dstOffset: 0, (ulong) (buffer.SizeInBytes & ~3), word);
+
+            ResourceBarrierTransition(buffer, BarrierLayout.UnorderedAccess);
+        }
+
+        /// <summary>
+        ///   Gets the 32-bit word that <c>vkCmdFillBuffer</c> repeats to write a clear value in every element of a Buffer,
+        ///   as Direct3D's <c>ClearUnorderedAccessViewUint</c> / <c>Float</c> write it.
+        /// </summary>
+        /// <param name="buffer">The Buffer to clear.</param>
+        /// <param name="bits">The integer value: the low bits of each channel are copied.</param>
+        /// <param name="floatValue">The float value, converted to the format; <see langword="null"/> for an integer value.</param>
+        private static uint GetClearWord(Buffer buffer, UInt4 bits, Vector4? floatValue)
+        {
+            ArgumentNullException.ThrowIfNull(buffer);
+
+            if ((buffer.Flags & BufferFlags.UnorderedAccess) == 0)
+                throw new ArgumentException("Expecting a Buffer supporting UAV", nameof(buffer));
+
+            // Raw and structured views: X in every 32-bit word
+            if ((buffer.Flags & (BufferFlags.RawBuffer | BufferFlags.StructuredBuffer)) != 0)
+            {
+                if (floatValue is not null)
+                    throw new NotSupportedException("A raw or structured Buffer is cleared with an integer value (UInt4 or Int4), as on Direct3D.");
+                return bits.X;
+            }
+
+            var format = buffer.ViewFormat;
+            var (channelCount, channelBits, kind) = GetClearFormat(format)
+                ?? throw new NotSupportedException($"Clearing a Buffer of format {format} is not supported on Vulkan: only 8, 16 or 32-bit RGBA channels are.");
+
+            if (floatValue is not null && kind is ClearChannelKind.UInt or ClearChannelKind.SInt)
+                throw new NotSupportedException($"A Buffer of integer format {format} is cleared with an integer value (UInt4 or Int4), as on Direct3D.");
+
+            // One element, little-endian channels
+            Span<uint> bitsPerChannel = [bits.X, bits.Y, bits.Z, bits.W];
+            Span<byte> element = stackalloc byte[16];
+            element.Clear();
+            int channelSize = channelBits / 8;
+            for (int channel = 0; channel < channelCount; channel++)
+            {
+                uint channelValue = floatValue is Vector4 floats
+                    ? ConvertChannel(floats[channel], channelBits, kind)
+                    : bitsPerChannel[channel];
+
+                for (int i = 0; i < channelSize; i++)
+                    element[channel * channelSize + i] = (byte) (channelValue >> (8 * i));
+            }
+
+            // The fill repeats one 32-bit word: a smaller element is repeated in it, a larger one must be one word repeated
+            int elementSize = channelCount * channelSize;
+            Span<byte> word = stackalloc byte[4];
+            for (int i = 0; i < 4; i++)
+                word[i] = element[i % elementSize];
+
+            for (int i = 4; i < elementSize; i++)
+            {
+                if (element[i] != word[i % 4])
+                    throw new NotSupportedException($"Vulkan clears a Buffer by repeating one 32-bit word, and a {format} element of this value has different words. Clear it with a value that repeats every 4 bytes (such as 0), or in a compute shader.");
+            }
+
+            return BitConverter.ToUInt32(word);
+
+            static uint ConvertChannel(float value, int channelBits, ClearChannelKind kind) => kind switch
+            {
+                ClearChannelKind.Float when channelBits == 32 => BitConverter.SingleToUInt32Bits(value),
+                ClearChannelKind.Float => BitConverter.HalfToUInt16Bits((System.Half) value),
+                ClearChannelKind.UNorm => (uint) MathF.Round(Math.Clamp(value, 0, 1) * ((1u << channelBits) - 1)),
+                ClearChannelKind.SNorm => (uint) (int) MathF.Round(Math.Clamp(value, -1, 1) * ((1 << (channelBits - 1)) - 1)),
+                _ => throw new ArgumentOutOfRangeException(nameof(kind))
+            };
+        }
+
+        private enum ClearChannelKind { Float, UNorm, SNorm, UInt, SInt }
+
+        /// <summary>
+        ///   Gets the channels of a format a Buffer clear can write, or <see langword="null"/> if it can't.
+        /// </summary>
+        private static (int ChannelCount, int ChannelBits, ClearChannelKind Kind)? GetClearFormat(PixelFormat format) => format switch
+        {
+            PixelFormat.R32G32B32A32_Float => (4, 32, ClearChannelKind.Float),
+            PixelFormat.R32G32B32A32_UInt => (4, 32, ClearChannelKind.UInt),
+            PixelFormat.R32G32B32A32_SInt => (4, 32, ClearChannelKind.SInt),
+            PixelFormat.R32G32B32_Float => (3, 32, ClearChannelKind.Float),
+            PixelFormat.R32G32B32_UInt => (3, 32, ClearChannelKind.UInt),
+            PixelFormat.R32G32B32_SInt => (3, 32, ClearChannelKind.SInt),
+            PixelFormat.R32G32_Float => (2, 32, ClearChannelKind.Float),
+            PixelFormat.R32G32_UInt => (2, 32, ClearChannelKind.UInt),
+            PixelFormat.R32G32_SInt => (2, 32, ClearChannelKind.SInt),
+            PixelFormat.R32_Float => (1, 32, ClearChannelKind.Float),
+            PixelFormat.R32_UInt => (1, 32, ClearChannelKind.UInt),
+            PixelFormat.R32_SInt => (1, 32, ClearChannelKind.SInt),
+
+            PixelFormat.R16G16B16A16_Float => (4, 16, ClearChannelKind.Float),
+            PixelFormat.R16G16B16A16_UNorm => (4, 16, ClearChannelKind.UNorm),
+            PixelFormat.R16G16B16A16_UInt => (4, 16, ClearChannelKind.UInt),
+            PixelFormat.R16G16B16A16_SNorm => (4, 16, ClearChannelKind.SNorm),
+            PixelFormat.R16G16B16A16_SInt => (4, 16, ClearChannelKind.SInt),
+            PixelFormat.R16G16_Float => (2, 16, ClearChannelKind.Float),
+            PixelFormat.R16G16_UNorm => (2, 16, ClearChannelKind.UNorm),
+            PixelFormat.R16G16_UInt => (2, 16, ClearChannelKind.UInt),
+            PixelFormat.R16G16_SNorm => (2, 16, ClearChannelKind.SNorm),
+            PixelFormat.R16G16_SInt => (2, 16, ClearChannelKind.SInt),
+            PixelFormat.R16_Float => (1, 16, ClearChannelKind.Float),
+            PixelFormat.R16_UNorm => (1, 16, ClearChannelKind.UNorm),
+            PixelFormat.R16_UInt => (1, 16, ClearChannelKind.UInt),
+            PixelFormat.R16_SNorm => (1, 16, ClearChannelKind.SNorm),
+            PixelFormat.R16_SInt => (1, 16, ClearChannelKind.SInt),
+
+            PixelFormat.R8G8B8A8_UNorm => (4, 8, ClearChannelKind.UNorm),
+            PixelFormat.R8G8B8A8_UInt => (4, 8, ClearChannelKind.UInt),
+            PixelFormat.R8G8B8A8_SNorm => (4, 8, ClearChannelKind.SNorm),
+            PixelFormat.R8G8B8A8_SInt => (4, 8, ClearChannelKind.SInt),
+            PixelFormat.R8G8_UNorm => (2, 8, ClearChannelKind.UNorm),
+            PixelFormat.R8G8_UInt => (2, 8, ClearChannelKind.UInt),
+            PixelFormat.R8G8_SNorm => (2, 8, ClearChannelKind.SNorm),
+            PixelFormat.R8G8_SInt => (2, 8, ClearChannelKind.SInt),
+            PixelFormat.R8_UNorm => (1, 8, ClearChannelKind.UNorm),
+            PixelFormat.R8_UInt => (1, 8, ClearChannelKind.UInt),
+            PixelFormat.R8_SNorm => (1, 8, ClearChannelKind.SNorm),
+            PixelFormat.R8_SInt => (1, 8, ClearChannelKind.SInt),
+
+            _ => null
+        };
 
         /// <summary>
         /// Clears a read-write Texture. This texture must have been created with read-write/unordered access.
@@ -1182,6 +1428,8 @@ namespace Stride.Graphics
             }
             else if (source is Buffer sourceBuffer && destination is Buffer destinationBuffer)
             {
+                CleanupRenderPass();
+
                 var bufferBarriers = stackalloc VkBufferMemoryBarrier[2];
                 bufferBarriers[0] = new VkBufferMemoryBarrier(sourceBuffer.NativeBuffer, sourceBuffer.NativeAccessMask, VkAccessFlags.TransferRead);
                 bufferBarriers[1] = new VkBufferMemoryBarrier(destinationBuffer.NativeBuffer, destinationBuffer.NativeAccessMask, VkAccessFlags.TransferWrite);
@@ -1215,9 +1463,33 @@ namespace Stride.Graphics
             }
         }
 
-        public void CopyMultisample(Texture sourceMultisampleTexture, int sourceSubResource, Texture destTexture, int destSubResource, PixelFormat format = PixelFormat.None)
+        /// <remarks>
+        ///   Vulkan resolves between images of the same format: <paramref name="format"/> is ignored.
+        /// </remarks>
+        public unsafe void CopyMultisample(Texture sourceMultisampleTexture, int sourceSubResource, Texture destTexture, int destSubResource, PixelFormat format = PixelFormat.None)
         {
-            throw new NotImplementedException();
+            ArgumentNullException.ThrowIfNull(sourceMultisampleTexture);
+            ArgumentNullException.ThrowIfNull(destTexture);
+
+            RecordDebugCounter(DebugCounterKind.Copy);
+
+            if (!sourceMultisampleTexture.IsMultiSampled)
+                throw new ArgumentException("Source Texture is not a MSAA Texture", nameof(sourceMultisampleTexture));
+
+            ResourceBarrierTransition(sourceMultisampleTexture, BarrierLayout.ResolveSource);
+            ResourceBarrierTransition(destTexture, BarrierLayout.ResolveDest);
+            CleanupRenderPass();
+
+            var source = sourceMultisampleTexture.ParentTexture ?? sourceMultisampleTexture;
+            var destination = destTexture.ParentTexture ?? destTexture;
+            var mipLevel = destSubResource % destination.MipLevelCount;
+            var region = new VkImageResolve
+            {
+                srcSubresource = GetSubresourceLayers(source, source.NativeImageAspect, sourceSubResource),
+                dstSubresource = GetSubresourceLayers(destination, destination.NativeImageAspect, destSubResource),
+                extent = new VkExtent3D(Texture.CalculateMipSize(destination.Width, mipLevel), Texture.CalculateMipSize(destination.Height, mipLevel), 1),
+            };
+            GraphicsDevice.NativeDeviceApi.vkCmdResolveImage(currentCommandList.NativeCommandBuffer, source.NativeImage, VkImageLayout.TransferSrcOptimal, destination.NativeImage, VkImageLayout.TransferDstOptimal, regionCount: 1, &region);
         }
 
         /// <summary>

@@ -1,0 +1,28 @@
+// PSMain(ExpectedResult=#00000000)
+
+namespace Stride.Shaders.Tests;
+
+// Matrix swizzle writes into storage: a structured buffer of matrices, and a struct field of a structured buffer element.
+// The buffers are never bound; this covers compilation, SPIR-V validation and the SPIRV-Cross round trip
+// (the values are checked by RenderTest MatrixSwizzleWrite)
+shader CSMatrixSwizzleWrite
+{
+    struct Transform
+    {
+        float4x4 Matrix;
+    };
+
+    RWStructuredBuffer<float4x4> Matrices;
+    RWStructuredBuffer<Transform> Transforms;
+
+    [numthreads(1, 1, 1)]
+    void CSMain()
+    {
+        Matrices[0]._m00_m11 = float2(1, 2);
+        Matrices[1]._41_42_43 = 3;
+        Matrices[2]._m30_m31_m32.z = 6;
+        Transforms[0].Matrix._m00_m11 = float2(1, 2);
+        Transforms[1].Matrix._41_42_43 = 3;
+        Transforms[2].Matrix._m30_m31_m32.z = 6;
+    }
+};

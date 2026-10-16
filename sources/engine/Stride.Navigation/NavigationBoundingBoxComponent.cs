@@ -16,12 +16,16 @@ namespace Stride.Navigation
     [DefaultEntityComponentProcessor(typeof(BoundingBoxProcessor), ExecutionMode = ExecutionMode.All)]
     [Display("Navigation bounding box")]
     [ComponentCategory("Navigation")]
-    public class NavigationBoundingBoxComponent : EntityComponent
+    public class NavigationBoundingBoxComponent : EntityComponent, IEntityComponentBounds
     {
         /// <summary>
         /// The size of one edge of the bounding box
         /// </summary>
         [DataMember(0)]
         public Vector3 Size { get; set; } = Vector3.One;
+
+        /// <inheritdoc />
+        [DataMemberIgnore]
+        public BoundingBox LocalBounds => new BoundingBox(-Size, Size);
     }
 }

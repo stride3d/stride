@@ -10,6 +10,8 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Stride.Engine" Version="$(StrideEngineVersion)" />
+    <!-- PluginPage is a UI page: Stride.UI brings the UI asset types (Stride.UI.Assets) -->
+    <PackageReference Include="Stride.UI" Version="$(StrideEngineVersion)" />
     <PackageReference Include="Stride.AssetCompiler" Version="$(StrideEngineVersion)" IncludeAssets="build;buildTransitive" />
   </ItemGroup>
 </Project>

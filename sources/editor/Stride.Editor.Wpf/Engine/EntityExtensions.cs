@@ -6,10 +6,7 @@ using System.Linq;
 using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Engine;
-using Stride.Navigation;
-using Stride.Particles.Components;
 using Stride.Rendering;
-using Stride.SpriteStudio.Runtime;
 
 namespace Stride.Editor.Engine
 {
@@ -160,52 +157,15 @@ namespace Stride.Editor.Engine
                 boundingSphere = BoundingSphere.Merge(boundingSphere, new BoundingSphere(center, maxScale * spriteDiagonalSize / 2f));
             }
 
-            var spriteStudioComponent = entity.Get<SpriteStudioComponent>();
-            if (spriteStudioComponent != null)
+            // Components that declare their own volume (a navigation bounding box, a particle system, a SpriteStudio sheet, ...)
+            foreach (var component in entity.Components)
             {
-                // Make sure nodes are prepared
-                if (!SpriteStudioProcessor.PrepareNodes(spriteStudioComponent)) return new BoundingSphere();
+                if (component is not IEntityComponentBounds { LocalBounds: var localBounds } || localBounds == BoundingBox.Empty)
+                    continue;
 
-                // Update root nodes
-                foreach (var node in spriteStudioComponent.Nodes)
-                {
-                    node.UpdateTransformation();
-                }
-
-                // Compute bounding sphere for each node
-                foreach (var node in spriteStudioComponent.Nodes.SelectDeep(x => x.ChildrenNodes))
-                {
-                    if (node.Sprite == null || node.Hide != 0) continue;
-
-                    var nodeMatrix = node.ModelTransform * worldMatrix;
-
-                    var spriteSize = node.Sprite.Size;
-                    var spriteDiagonalSize = MathF.Sqrt(spriteSize.X * spriteSize.X + spriteSize.Y * spriteSize.Y);
-
-                    Vector3 pos, scale;
-                    nodeMatrix.Decompose(out scale, out pos);
-
-                    var center = pos;
-                    var maxScale = Math.Max(scale.X, scale.Y); //2d ignore Z
-
-                    boundingSphere = BoundingSphere.Merge(boundingSphere, new BoundingSphere(center, maxScale * (spriteDiagonalSize / 2f)));
-                }
-            }
-
-            var particleComponent = entity.Get<ParticleSystemComponent>();
-            if (particleComponent != null)
-            {
-                var center = worldMatrix.TranslationVector;
-                var sphere = particleComponent.ParticleSystem?.BoundingShape != null ? BoundingSphere.FromBox(particleComponent.ParticleSystem.BoundingShape.GetAABB(center, Quaternion.Identity, 1.0f)) : new BoundingSphere(center, 2.0f);
-                boundingSphere = BoundingSphere.Merge(boundingSphere, sphere);
-            }
-
-            var boundingBoxComponent = entity.Get<NavigationBoundingBoxComponent>();
-            if (boundingBoxComponent != null)
-            {
-                var center = worldMatrix.TranslationVector;
-                var scales = new Vector3(worldMatrix.Row1.Length(), worldMatrix.Row2.Length(), worldMatrix.Row3.Length()) * boundingBoxComponent.Size;
-                boundingSphere = BoundingSphere.FromBox(new BoundingBox(-scales + center, scales + center));
+                var worldBounds = new BoundingBoxExt(localBounds);
+                worldBounds.Transform(worldMatrix);
+                boundingSphere = BoundingSphere.Merge(boundingSphere, BoundingSphere.FromBox((BoundingBox)worldBounds));
             }
 
             // Extend the bounding sphere to include the children

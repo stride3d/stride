@@ -10,4 +10,10 @@
   <PropertyGroup>
     <StrideCrashReporterVersion Condition="'$(StrideCrashReporterVersion)' == ''">5.0.0</StrideCrashReporterVersion>
   </PropertyGroup>
+  <!-- A nightly build appends its label, so a version not released yet never reaches the nightly feed under its
+       release number: 5.0.1 -> 5.0.1-nightly.YYYYMMDD.N, 5.0.1-beta1 -> 5.0.1-beta1.nightly.YYYYMMDD.N -->
+  <PropertyGroup Condition="'$(StrideNightlyLabel)' != ''">
+    <StrideCrashReporterVersion Condition="$(StrideCrashReporterVersion.Contains('-'))">$(StrideCrashReporterVersion).$(StrideNightlyLabel)</StrideCrashReporterVersion>
+    <StrideCrashReporterVersion Condition="!$(StrideCrashReporterVersion.Contains('-'))">$(StrideCrashReporterVersion)-$(StrideNightlyLabel)</StrideCrashReporterVersion>
+  </PropertyGroup>
 </Project>

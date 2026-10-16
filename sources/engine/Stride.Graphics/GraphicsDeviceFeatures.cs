@@ -36,6 +36,10 @@ namespace Stride.Graphics;
 ///     implement something, it reports <see langword="false"/> or <see cref="MultisampleCount.None"/>, even if the
 ///     GPU supports it.
 ///   </para>
+///   <para>
+///     On Direct3D, the fields that need a shader model are also limited to what effects compiled for
+///     the effect profile can use. The device can run at a higher level than that profile.
+///   </para>
 /// </remarks>
 public partial struct GraphicsDeviceFeatures
 {
@@ -53,6 +57,10 @@ public partial struct GraphicsDeviceFeatures
     /// <remarks>
     ///   This may differ from <see cref="RequestedProfile"/> if the <see cref="GraphicsDevice"/> could not be created
     ///   with that requested profile. This one represents the closest supported profile.
+    ///   <para>
+    ///     Vulkan has no feature levels. On Vulkan this is the requested profile, and the other fields come from the
+    ///     features of the Vulkan device.
+    ///   </para>
     /// </remarks>
     /// <seealso cref="GraphicsProfile"/>
     public readonly GraphicsProfile CurrentProfile;
@@ -176,6 +184,25 @@ public partial struct GraphicsDeviceFeatures
     ///   A value indicating if pixel shaders can write to unordered access views and use atomic operations on them.
     /// </summary>
     public readonly bool HasPixelShaderUnorderedAccess;
+
+    /// <summary>
+    ///   Limits the features that need a shader model to what effects compiled for <paramref name="effectProfile"/> can use.
+    /// </summary>
+    internal readonly GraphicsDeviceFeatures LimitedTo(GraphicsProfile effectProfile) => new(this, effectProfile);
+
+    private GraphicsDeviceFeatures(in GraphicsDeviceFeatures deviceFeatures, GraphicsProfile effectProfile)
+    {
+        this = deviceFeatures;
+
+#if STRIDE_GRAPHICS_API_DIRECT3D
+        // Direct3D compiles effects for the shader model of the effect profile
+        HasComputeShaders &= effectProfile >= GraphicsProfile.Level_10_0;
+        HasGeometryShaders &= effectProfile >= GraphicsProfile.Level_10_0;
+        HasDoublePrecision &= effectProfile >= GraphicsProfile.Level_11_0;
+        HasPixelShaderUnorderedAccess &= effectProfile >= GraphicsProfile.Level_11_0;
+        HasMultiSampleDepthAsSRV &= effectProfile >= GraphicsProfile.Level_11_0;
+#endif
+    }
 
     /// <summary>
     ///   Queries the features the <see cref="GraphicsDevice"/> supports for the specified <see cref="PixelFormat"/>.

@@ -1,0 +1,8 @@
+!TemplateAssetFactory
+Id: 4F8A2C6D-1B3E-4A7F-9C5D-2E6B8A0D4F71
+AssetTypeName: MyTemplateAsset
+Name: MyTemplate
+Scope: Asset
+Description: A MyTemplate asset
+Group: MyTemplate
+DefaultOutputName: MyTemplate

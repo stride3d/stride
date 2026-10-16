@@ -8,11 +8,28 @@ namespace Stride.Core.Assets.Editor.Components.AddAssets
 {
     public class AddAssetTemplateCollectionViewModel : AddItemTemplateCollectionViewModel
     {
+        private readonly SessionViewModel session;
+
         public AddAssetTemplateCollectionViewModel(SessionViewModel session)
             : base(session.ServiceProvider)
         {
+            this.session = session;
+            Refresh();
+        }
+
+        /// <summary>
+        /// Rebuilds the list from the session's packages: a package added since (a plugin joining the solution)
+        /// brings its own asset templates.
+        /// </summary>
+        public void Refresh()
+        {
+            RootGroup.Clear();
             foreach (TemplateDescription template in session.FindTemplates(TemplateScope.Asset))
             {
+                // A package can be in the session while the assembly defining its asset type is not loaded
+                if (template is TemplateAssetDescription assetTemplate && assetTemplate.FindAssetType() is null)
+                    continue;
+
                 var group = ProcessGroup(RootGroup, template.Group);
                 if (group != null)
                 {
@@ -22,6 +39,7 @@ namespace Stride.Core.Assets.Editor.Components.AddAssets
             }
 
             SelectedGroup = RootGroup;
+            UpdateTemplateList();
         }
 
         public DirectoryBaseViewModel CurrentDirectory { get; set; }

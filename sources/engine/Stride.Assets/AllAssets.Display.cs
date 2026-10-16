@@ -75,40 +75,6 @@ namespace Stride.Assets
         }
     }
 
-    namespace Media
-    {
-        [Display((int)AssetDisplayPriority.Media, "Sound")]
-        partial class SoundAsset
-        {
-        }
-
-        [Display((int)AssetDisplayPriority.Media + 50, "Video")]
-        partial class VideoAsset
-        {
-        }
-    }
-
-    namespace Navigation
-    {
-        [Display((int)AssetDisplayPriority.Navigation, "Navigation mesh")]
-        partial class NavigationMeshAsset
-        {
-        }
-    }
-
-    namespace Physics
-    {
-        [Display((int)AssetDisplayPriority.Physics, "Collider shape")]
-        partial class ColliderShapeAsset
-        {
-        }
-
-        [Display((int)AssetDisplayPriority.Physics + 50, "Heightmap")]
-        partial class HeightmapAsset
-        {
-        }
-    }
-
     namespace Rendering
     {
         [Display((int)AssetDisplayPriority.GraphicsCompositor, "Graphics compositor")]
@@ -168,19 +134,6 @@ namespace Stride.Assets
 
         [Display((int)AssetDisplayPriority.Textures + 50, "Render texture")]
         partial class RenderTextureAsset
-        {
-        }
-    }
-
-    namespace UI
-    {
-        [Display((int)AssetDisplayPriority.UI, "UI page")]
-        partial class UIPageAsset
-        {
-        }
-
-        [Display((int)AssetDisplayPriority.UI + 50, "UI library")]
-        partial class UILibraryAsset
         {
         }
     }

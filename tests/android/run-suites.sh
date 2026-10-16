@@ -37,6 +37,8 @@ rm -f /tmp/failed_suites
 # EOF and the loop exits silently.
 mapfile -t SUITES <<< "$ANDROID_TEST_SUITES"
 
+bash tests/android/emulator-crash-capture.sh arm
+
 for SUITE in "${SUITES[@]}"; do
   [ -z "$SUITE" ] && continue
   APK=$(ls "bin/Tests/$SUITE/Android-Vulkan/$CONFIGURATION/"*-Signed.apk 2>/dev/null | head -1)
@@ -66,6 +68,7 @@ for SUITE in "${SUITES[@]}"; do
     echo "$SUITE" >> /tmp/failed_suites
   fi
   CHILD_PID=
+  bash tests/android/emulator-crash-capture.sh collect "$PWD/tests/local"
   cp "tests/local/$SUITE/$SUITE.trx" TestResults/ 2>/dev/null || true
   # Uninstall to free the userdata partition before the next suite (avoids INSUFFICIENT_STORAGE).
   adb uninstall "$PACKAGE" >/dev/null 2>&1 || true

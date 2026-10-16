@@ -1,0 +1,20 @@
+// PSMain(ExpectedResult=#00000000)
+
+namespace Stride.Shaders.Tests;
+
+// Structured buffers of matrices (no struct around them) need the matrix layout on the buffer's block member:
+// without it the SPIR-V is invalid. The buffers are never bound; RenderTest StructuredBufferMatrix checks the values
+shader CSStructuredBufferMatrix
+{
+    StructuredBuffer<float4x4> Matrices;
+    StructuredBuffer<float2x2> Matrices2;
+    RWStructuredBuffer<float4x4> Output;
+
+    [numthreads(1, 1, 1)]
+    void CSMain()
+    {
+        float4x4 m = Matrices[0];
+        m[1].xy += Matrices2[2][1];
+        Output[0] = m;
+    }
+};

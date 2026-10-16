@@ -12,7 +12,6 @@ using Stride.Core.Serialization;
 using Stride.Core.Quantum;
 using Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewModels;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
-using Stride.Particles.Materials;
 using Stride.Core.Reflection;
 using Stride.Core.Assets.Quantum.Visitors;
 using System.Collections.Generic;

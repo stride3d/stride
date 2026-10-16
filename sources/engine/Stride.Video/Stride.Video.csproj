@@ -11,6 +11,11 @@
     <StridePackAssets>true</StridePackAssets>
     <StrideContainsAssetTypes>true</StrideContainsAssetTypes>
   </PropertyGroup>
+  <ItemGroup>
+    <!-- Companion packages: asset types and compiler in .Assets, editor extensions in .Editor -->
+    <StrideCompanionProject Include="..\Stride.Video.Assets\Stride.Video.Assets.csproj" />
+    <StrideCompanionProject Include="..\Stride.Video.Editor\Stride.Video.Editor.csproj" />
+  </ItemGroup>
   <PropertyGroup Condition="'$(TargetFramework)' == '$(StrideFramework)'">
     <DefineConstants>STRIDE_VIDEO_FFMPEG;$(DefineConstants)</DefineConstants>
   </PropertyGroup>
@@ -27,6 +32,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Stride.Engine\Stride.Engine.csproj" />
+    <ProjectReference Include="..\Stride.Audio\Stride.Audio.csproj" />
     <PackageReference Include="Microsoft.Windows.CsWin32" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'" >
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

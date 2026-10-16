@@ -39,6 +39,14 @@ namespace Stride.Rendering.Voxels
             }
             return false;
         }
+        /// <summary>
+        /// As many samples as <paramref name="device"/> supports for <paramref name="pixelFormat"/>, up to <paramref name="samples"/>.
+        /// </summary>
+        public static MultisampleCount GetSupportedMultisampleCount(GraphicsDevice device, PixelFormat pixelFormat, MultisampleCount samples)
+        {
+            return (MultisampleCount)Math.Min((int)samples, (int)device.Features[pixelFormat].MultisampleCountMax);
+        }
+
         public static bool DisposeTextureBySpecs(Stride.Graphics.Texture tex, Vector3 dim, Stride.Graphics.PixelFormat pixelFormat, MultisampleCount samples)
         {
             if (tex == null || !TextureDimensionsEqual(tex, dim) || tex.Format != pixelFormat || tex.MultisampleCount != samples)

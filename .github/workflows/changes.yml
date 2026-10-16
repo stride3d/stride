@@ -147,6 +147,18 @@ jobs:
               - 'deps/**'
               - 'tests/**'
               - 'build/Stride.Runtime.slnf'
+              # The workflows of the jobs it gates, their actions and the auditor the ApiNeutral job runs: an
+              # edit runs them
+              - '.github/workflows/test-windows-game-api-neutral.yml'
+              - '.github/workflows/test-windows-game.yml'
+              - '.github/workflows/test-windows-simple.yml'
+              - '.github/workflows/test-linux-game.yml'
+              - '.github/workflows/test-linux-simple.yml'
+              - '.github/workflows/test-macos-game.yml'
+              - '.github/actions/setup-vulkan-windows/**'
+              - '.github/actions/stride-checkout/**'
+              - '.github/actions/stride-workload/**'
+              - 'build/tools/ParallelBuildAuditor/**'
             ios:
               - 'sources/engine/**'
               - 'sources/core/**'
@@ -167,6 +179,8 @@ jobs:
               - 'tests/**/iOS.Vulkan/**'
               - 'build/Stride.iOS.slnf'
               - '.github/workflows/test-ios-game.yml'
+              - '.github/actions/stride-checkout/**'
+              - '.github/actions/stride-workload/**'
             android:
               - 'sources/engine/Stride.Games/**'
               - 'sources/**/*.Android.*'
@@ -177,6 +191,8 @@ jobs:
               - 'tests/**/Android.Vulkan/**'
               - 'build/Stride.Tests.Game.Android.slnf'
               - '.github/workflows/test-android-game.yml'
+              - '.github/actions/stride-checkout/**'
+              - '.github/actions/stride-workload/**'
             full:
               - 'sources/**'
               - 'deps/**'
