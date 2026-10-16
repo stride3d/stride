@@ -317,6 +317,16 @@ namespace Stride.SpriteStudio.Assets
             return true;
         }
 
+        /// <summary>
+        /// Checks that the file is a SpriteStudio animation pack (.ssae), the only format the parsers above read
+        /// (a .sspj project, for example, has cell maps but no model and no animation).
+        /// </summary>
+        public static bool IsAnimationPack(UFile file)
+        {
+            var xmlDoc = XDocument.Load(file);
+            return xmlDoc.Root?.Name.LocalName == "SpriteStudioAnimePack";
+        }
+
         public static bool SanityCheck(UFile file)
         {
             var xmlDoc = XDocument.Load(file);
