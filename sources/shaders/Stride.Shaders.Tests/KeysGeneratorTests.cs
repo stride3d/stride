@@ -67,6 +67,35 @@ public class KeysGeneratorTests
         Assert.DoesNotContain("Shared", generated);
     }
 
+    // An initializer list as a default value: the C# constructor takes the same values in the same order
+    [Fact]
+    public void InitializerListDefaultsBuild()
+    {
+        var shader = """
+            namespace Stride.Shaders.Tests.Keys;
+
+            shader KeysGeneratorCheck
+            {
+                cbuffer PerDraw
+                {
+                    float3 Direction = { 0, -1.5, 1 };
+                    int2 Cell = { 1, -2 };
+                    float4x4 Transform = { {1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1} };
+                    float2 NotLiteral = { Cell.x, 0 };
+                };
+            };
+            """;
+
+        var (generated, errors) = Build(shader, "");
+
+        Assert.Empty(errors);
+        Assert.Contains("ParameterKeys.NewValue<Vector3>(new Vector3(0f, -1.5f, 1f))", generated);
+        Assert.Contains("ParameterKeys.NewValue<Int2>(new Int2(1, -2))", generated);
+        Assert.Contains("ParameterKeys.NewValue<Matrix>(new Matrix(1f, 0f, 0f, 0f, 0f, 1f, 0f, 0f, 0f, 0f, 1f, 0f, 0f, 0f, 0f, 1f))", generated);
+        // A default the key can't hold: none
+        Assert.Contains("ParameterKeys.NewValue<Vector2>()", generated);
+    }
+
     // Runs the generator on the shader and compiles its output with the C# source
     private static (string Generated, List<string> Errors) Build(string shader, string csharp)
     {
