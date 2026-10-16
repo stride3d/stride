@@ -1,0 +1,24 @@
+// PSMain(ExpectedResult=#00000000)
+
+// A compute shader method that reads the structured buffer it is given
+
+namespace Stride.Shaders.Tests;
+
+shader CSBufferParameterRead
+{
+    stage stream uint3 DispatchThreadId : SV_DispatchThreadID;
+
+    StructuredBuffer<float4> Source;
+    RWStructuredBuffer<float4> Values;
+
+    float4 Get(StructuredBuffer<float4> source, uint index)
+    {
+        return source[index];
+    }
+
+    [numthreads(1, 1, 1)]
+    void CSMain()
+    {
+        Values[streams.DispatchThreadId.x] = Get(Source, streams.DispatchThreadId.x);
+    }
+}

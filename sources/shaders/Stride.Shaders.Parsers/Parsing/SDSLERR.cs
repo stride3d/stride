@@ -92,6 +92,8 @@ public static class SDSLErrorMessages
     public const string SDSL0156 = "SDSL0156: {0} needs {1} values, but the initializer list has {2}. As in HLSL, braces only group: the values fill {0} in order.";
     public const string SDSL0157 = "SDSL0157: a {0} can't be in an initializer list. Only numbers, vectors, matrices, and structs and arrays of them can.";
     public const string SDSL0155 = "SDSL0155: {0} (a matrix with one row or one column) is not supported yet. Use {1}.";
+    public const string SDSL0180 = "SDSL0180: Parameter '{0}' of {1}: {2} is not supported. Use a RWStructuredBuffer with a separate counter buffer instead.";
+    public const string SDSL0181 = "SDSL0181: Buffer parameter '{0}' of {1} is '{2}': a buffer parameter always refers to the caller's buffer, so it can't be out or inout. Remove '{2}'.";
 
     // HLSL warnings: valid HLSL that is probably a mistake, reported when a class compiles
     public const string SDSL0219 = "SDSL0219: comma expression ({0}): the values before the last are dropped, the result is {1}. To build a vector, write its type: float4(...).";

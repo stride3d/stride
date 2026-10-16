@@ -1,6 +1,5 @@
 // Overloads that differ only by the element type of a structured buffer: each call takes the one of its buffer
-// (a buffer of another element type is not a candidate). Class compile only: a structured buffer parameter doesn't give
-// valid SPIR-V yet, with or without overloads
+// (a buffer of another element type is not a candidate). The class compile; mixed and run: ComputeTests/CSBufferElementOverload
 namespace Stride.Shaders.Tests;
 
 shader BufferElementOverload
