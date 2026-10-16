@@ -155,8 +155,10 @@ public record struct ReturnStatementParser : IParser<Statement>
             parsed = new Return(scanner[position..scanner.Position]);
             return true;
         }
+        // `return` must be a whole word (not the start of `returnValue`)
         else if (
             Tokens.Literal("return", ref scanner, advance: true)
+            && !(Tokens.LetterOrDigit(ref scanner) || Tokens.Char('_', ref scanner))
         )
         {
 
