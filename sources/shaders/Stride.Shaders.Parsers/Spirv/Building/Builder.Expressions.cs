@@ -461,6 +461,8 @@ public partial class SpirvBuilder
             (ScalarType { Type: Scalar.Float }, ScalarType { Type: Scalar.Int or Scalar.UInt }) => 7,
             (ScalarType { Type: Scalar.Float or Scalar.Half or Scalar.Int or Scalar.UInt }, ScalarType { Type: Scalar.Boolean }) => 7,
             (ScalarType { Type: Scalar.Int or Scalar.UInt or Scalar.Boolean }, ScalarType { Type: Scalar.Float }) => 2,
+            // Convert() does it; intrinsics still prefer their float overload for a bool
+            (ScalarType { Type: Scalar.Boolean }, ScalarType { Type: Scalar.Int }) => 3,
 
             // Half conversions: half=>float (widening) is cheaper than float=>half (narrowing/lossy)
             (ScalarType { Type: Scalar.Half }, ScalarType { Type: Scalar.Float or Scalar.Double }) => 1,

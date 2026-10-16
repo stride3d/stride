@@ -224,6 +224,11 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
             {
                 table.AddError(new(Info, $"Can't find a valid method overload or intrinsic to call for {Name}({string.Join(", ", Arguments)})"));
             }
+            // The call doesn't fit the only signature, but the result type is known: the code around it can still be checked
+            else if (functionSymbol?.Type is FunctionType mismatchedFunctionType)
+            {
+                Type = mismatchedFunctionType.ReturnType;
+            }
         }
 
         ResolvedFunctionSymbol = functionSymbol;
@@ -532,6 +537,16 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
             // Note: actual override (base/this) will be reevaluted during ShaderMixer, but overload (different signature) won't be changed
             // So we just pick the method with the lowest score
             functionSymbol = accessibleMethods[0].First().Symbol;
+        }
+        // An argument without type already has its error
+        else if (functionSymbol.Type is FunctionType singleFunctionType && !argumentTypes.Contains(null))
+        {
+            var defaultParameters = functionSymbol.MethodDefaultParameters?.DefaultValues.Length ?? 0;
+            if (RankOverload(singleFunctionType, defaultParameters, argumentTypes) == null)
+            {
+                table.AddError(new(Info, FormatCallError(singleFunctionType, defaultParameters, argumentTypes)));
+                return false;
+            }
         }
 
         return functionSymbol.Type is FunctionType;
