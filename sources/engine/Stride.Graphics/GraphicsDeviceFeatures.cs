@@ -33,8 +33,8 @@ namespace Stride.Graphics;
 ///   </para>
 ///   <para>
 ///     Each field says what Stride can use on this device with this graphics backend. When the backend does not
-///     implement something, it reports <see langword="false"/> or <see cref="MultisampleCount.None"/>, even if the
-///     GPU supports it.
+///     implement something, it reports <see langword="false"/>, <see cref="MultisampleCount.None"/>,
+///     <see cref="BindlessTier.None"/> or 0, even if the GPU supports it.
 ///   </para>
 ///   <para>
 ///     On Direct3D, the fields that need a shader model are also limited to what effects compiled for
@@ -186,6 +186,28 @@ public partial struct GraphicsDeviceFeatures
     public readonly bool HasPixelShaderUnorderedAccess;
 
     /// <summary>
+    ///   The level of bindless access (shaders index a large array of textures) that Stride can use on this device.
+    /// </summary>
+    /// <remarks>
+    ///   <see cref="BindlessTier.None"/> when the graphics backend does not implement bindless access, even if the GPU
+    ///   supports it. The device log shows the GPU level next to this one.
+    /// </remarks>
+    public readonly BindlessTier BindlessTier;
+
+    /// <summary>
+    ///   The maximum number of sampled textures in one bindless array, for the shader stage with the lowest limit.
+    /// </summary>
+    /// <remarks>
+    ///   0 when <see cref="BindlessTier"/> is <see cref="BindlessTier.None"/>.
+    /// </remarks>
+    public readonly int MaxBindlessSampledTextureCount;
+
+    /// <summary>
+    ///   What the GPU supports for bindless access, whether or not the backend uses it.
+    /// </summary>
+    internal readonly BindlessSupport GpuBindless;
+
+    /// <summary>
     ///   Limits the features that need a shader model to what effects compiled for <paramref name="effectProfile"/> can use.
     /// </summary>
     internal readonly GraphicsDeviceFeatures LimitedTo(GraphicsProfile effectProfile) => new(this, effectProfile);
@@ -272,6 +294,8 @@ public partial struct GraphicsDeviceFeatures
                $"HasDepthAsSRV: {HasDepthAsSRV}, HasDepthAsReadOnlyRT: {HasDepthAsReadOnlyRT}, " +
                $"HasMultiSampleDepthAsSRV: {HasMultiSampleDepthAsSRV}, HasResourceRenaming: {HasResourceRenaming}, " +
                $"HasIndex32Bits: {HasIndex32Bits}, HasGeometryShaders: {HasGeometryShaders}, " +
-               $"HasPixelShaderUnorderedAccess: {HasPixelShaderUnorderedAccess}";
+               $"HasPixelShaderUnorderedAccess: {HasPixelShaderUnorderedAccess}, " +
+               $"BindlessTier: {BindlessTier} (GPU: {GpuBindless.Tier}{(GpuBindless.Detail is null ? "" : $", {GpuBindless.Detail}")}), " +
+               $"MaxBindlessSampledTextureCount: {MaxBindlessSampledTextureCount} (GPU: {GpuBindless.MaxSampledTextureCount})";
     }
 }
