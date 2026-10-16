@@ -226,10 +226,21 @@ public unsafe class VulkanFrameRenderer(uint width = 800, uint height = 600, byt
             queueCount = 1,
             pQueuePriorities = &priority,
         };
+        // Structured buffers in Direct3D's tight layout need scalarBlockLayout (as GraphicsDevice.Vulkan enables it)
+        var supportedVulkan12Features = new VkPhysicalDeviceVulkan12Features { sType = VkStructureType.PhysicalDeviceVulkan12Features };
+        var supportedFeatures = new VkPhysicalDeviceFeatures2 { sType = VkStructureType.PhysicalDeviceFeatures2, pNext = &supportedVulkan12Features };
+        instanceApi.vkGetPhysicalDeviceFeatures2(physicalDevice, &supportedFeatures);
+        var enabledVulkan12Features = new VkPhysicalDeviceVulkan12Features
+        {
+            sType = VkStructureType.PhysicalDeviceVulkan12Features,
+            scalarBlockLayout = supportedVulkan12Features.scalarBlockLayout,
+        };
+
         using var ppEnabledExtensionNames = new VkStringArray(enabledExtensions);
         var createInfo = new VkDeviceCreateInfo
         {
             sType = VkStructureType.DeviceCreateInfo,
+            pNext = &enabledVulkan12Features,
             queueCreateInfoCount = 1,
             pQueueCreateInfos = &queueCreateInfo,
             enabledExtensionCount = ppEnabledExtensionNames.Length,
