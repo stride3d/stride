@@ -98,6 +98,19 @@ public record struct LiteralsParser : IParser<Literal>
             while (Tokens.LetterOrDigit(ref scanner) || Tokens.Char('_', ref scanner))
                 scanner.Advance(1);
             var identifier = new Identifier(scanner.Memory[position..scanner.Position].ToString(), scanner[position..scanner.Position]);
+            // HLSL's `unsigned int` (also `unsigned int2`, `unsigned int2x2`) is `uint`
+            if (identifier.Name == "unsigned")
+            {
+                if (!Parsers.Spaces1(ref scanner, result, out _))
+                    return Parsers.Exit(ref scanner, result, out name, position, orError);
+                var intPosition = scanner.Position;
+                while (Tokens.LetterOrDigit(ref scanner) || Tokens.Char('_', ref scanner))
+                    scanner.Advance(1);
+                var intName = scanner.Memory[intPosition..scanner.Position].ToString();
+                if (intName != "int" && !(intName.StartsWith("int") && Reserved.TypeNames.Contains(intName)))
+                    return Parsers.Exit(ref scanner, result, out name, position, orError);
+                identifier = new Identifier($"u{intName}", scanner[position..scanner.Position]);
+            }
             name = new TypeName(identifier.Name, scanner[position..scanner.Position]);
 
             var intermediate = scanner.Position;
