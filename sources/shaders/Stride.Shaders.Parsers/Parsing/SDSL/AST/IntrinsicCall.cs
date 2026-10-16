@@ -56,8 +56,8 @@ public class IntrinsicCallHelper
 
             AppendStructuredBufferType => (GetOrCreateExpander(thisType, nameof(IntrinsicsDefinitions.AppendStructuredBufferMethods), IntrinsicsDefinitions.AppendStructuredBufferMethods), AppendStructuredBufferMethodsImplementations.Instance),
             ConsumeStructuredBufferType => (GetOrCreateExpander(thisType, nameof(IntrinsicsDefinitions.ConsumeStructuredBufferMethods), IntrinsicsDefinitions.ConsumeStructuredBufferMethods), ConsumeStructuredBufferMethodsImplementations.Instance),
-            StructuredBufferType { WriteAllowed: false } => (GetOrCreateExpander(thisType, nameof(IntrinsicsDefinitions.StructuredBufferMethods), IntrinsicsDefinitions.StructuredBufferMethods), null),
-            StructuredBufferType { WriteAllowed: true } => (GetOrCreateExpander(thisType, nameof(IntrinsicsDefinitions.RWStructuredBufferMethods), IntrinsicsDefinitions.RWStructuredBufferMethods), null),
+            StructuredBufferType { WriteAllowed: false } => (GetOrCreateExpander(thisType, nameof(IntrinsicsDefinitions.StructuredBufferMethods), IntrinsicsDefinitions.StructuredBufferMethods), StructuredBufferMethodsImplementations.Instance),
+            StructuredBufferType { WriteAllowed: true } => (GetOrCreateExpander(thisType, nameof(IntrinsicsDefinitions.RWStructuredBufferMethods), IntrinsicsDefinitions.RWStructuredBufferMethods), StructuredBufferMethodsImplementations.Instance),
 
             ByteAddressBufferType { WriteAllowed: false } => (GetOrCreateExpander(thisType, nameof(IntrinsicsDefinitions.ByteAddressBufferMethods), IntrinsicsDefinitions.ByteAddressBufferMethods), ByteAddressBufferMethodsImplementations.Instance),
             ByteAddressBufferType { WriteAllowed: true } => (GetOrCreateExpander(thisType, nameof(IntrinsicsDefinitions.RWByteAddressBufferMethods), IntrinsicsDefinitions.RWByteAddressBufferMethods), ByteAddressBufferMethodsImplementations.Instance),

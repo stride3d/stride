@@ -276,9 +276,9 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
         SpirvValue result;
         if (resolvedIntrinsicOverload != null)
         {
-            // ByteAddressBuffer needs the pointer for OpAccessChain, not the loaded struct value
+            // Storage buffers need the pointer for OpAccessChain / OpArrayLength, not the loaded struct value
             SpirvValue? @this = MemberCall != null
-                ? (MemberCallBaseType is ByteAddressBufferType ? MemberCall.Value : builder.AsValue(context, MemberCall.Value))
+                ? (MemberCallBaseType is ByteAddressBufferType or StructuredBufferType ? MemberCall.Value : builder.AsValue(context, MemberCall.Value))
                 : null;
             result = IntrinsicCallHelper.CompileIntrinsic(table, compiler, resolvedIntrinsicCompiler!, resolvedIntrinsicNamespace!, Name.Name, resolvedIntrinsicOverload.Value, @this, compiledParams, Info);
         }
@@ -1630,6 +1630,22 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                         // We store the modified value back in the variable
                         builder.Insert(new OpStore(resultPointer.Id, modifiedValue.Id, null, []));
 
+                        break;
+                    }
+                // A buffer has methods but no members: `buffer.Length` is FXC-only, DXC rejects it too
+                case (PointerType { BaseType: var bufferType and (StructuredBufferType or BufferType or ByteAddressBufferType) }, Identifier member):
+                    {
+                        // After the error, the member is a uint 0 so the rest of the method still analyzes (the class doesn't compile)
+                        if (compiler != null)
+                        {
+                            result = compiler.Context.CompileConstant((uint)0);
+                            break;
+                        }
+
+                        var getDimensionsParameters = bufferType is BufferType or ByteAddressBufferType ? "out uint width" : "out uint count, out uint stride";
+                        var buffer = i == 0 ? Source : new AccessorChainExpression(Source, Info) { Accessors = Accessors[0..i] };
+                        table.AddError(new(member.Info, string.Format(SDSLErrorMessages.SDSL0150, bufferType, member.Name, buffer, getDimensionsParameters)));
+                        accessor.Type = ScalarType.UInt;
                         break;
                     }
                 default:

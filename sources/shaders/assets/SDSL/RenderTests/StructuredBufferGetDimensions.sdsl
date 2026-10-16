@@ -1,0 +1,30 @@
+// PSMain(ExpectedResult=#336699FF, structuredbuffer.Matrices="64: 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31", structuredbuffer.Values="16: 1 2 3 4 5 6 7 8 9 10 11 12", structuredbuffer.Points="12: 1 2 3 4 5 6")
+
+namespace Stride.Shaders.Tests;
+
+shader StructuredBufferGetDimensions
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    // Two float4x4 (64 bytes each), three float4 (16 bytes each), two float3 (12 bytes each: Direct3D's stride, not std430's 16)
+    StructuredBuffer<float4x4> Matrices;
+    StructuredBuffer<float4> Values;
+    StructuredBuffer<float3> Points;
+
+    void PSMain()
+    {
+        uint matrixCount, matrixStride;
+        Matrices.GetDimensions(matrixCount, matrixStride);
+
+        uint valueCount, valueStride;
+        Values.GetDimensions(valueCount, valueStride);
+
+        uint pointCount, pointStride;
+        Points.GetDimensions(pointCount, pointStride);
+
+        // Load(i) reads the same element as [i]
+        bool load = all(Values.Load(1) == float4(5, 6, 7, 8)) && all(Values.Load(2) == Values[2]) && all(Points.Load(1) == float3(4, 5, 6));
+
+        streams.ColorTarget = float4(matrixCount == 2 && matrixStride == 64 ? 0.2 : 0, valueCount == 3 && valueStride == 16 && pointCount == 2 && pointStride == 12 ? 0.4 : 0, load ? 0.6 : 0, 1);
+    }
+};
