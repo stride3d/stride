@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 using Xunit;
 
+using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Processors;
@@ -384,7 +385,7 @@ public class MaterialTransparencyTests : GameTestBase
         return new Color3((float)pixel.X, (float)pixel.Y, (float)pixel.Z);
     }
 
-    [Theory]
+    [SkippableTheory]
     [InlineData(LightKind.Directional)]
     [InlineData(LightKind.Ambient)]
     [InlineData(LightKind.Skybox)]
@@ -392,6 +393,9 @@ public class MaterialTransparencyTests : GameTestBase
     [InlineData(LightKind.VoxelGI)]
     public void AlphaScalesLitColorOnce(LightKind light)
     {
+        Skip.If(light == LightKind.VoxelGI && Platform.Type == PlatformType.macOS,
+            "MoltenVK has no geometry shaders for the default voxelization, and the tri-axis voxelization pipeline fails to create there");
+
         var game = new MaterialTransparencyTests(light);
         RunGameTest(game);
 
