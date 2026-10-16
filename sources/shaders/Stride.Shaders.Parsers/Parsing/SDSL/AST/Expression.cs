@@ -843,9 +843,38 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                         return;
                     }
                 case (PointerType { BaseType: MatrixType } or MatrixType, Identifier { Name: var swizzle } id) when id.IsMatrixSwizzle((MatrixType)currentValueType.GetValueType(), out var swizzles):
-                    throw new NotImplementedException("Assign back to matrix swizzle is not implemented yet");
+                    {
+                        if (swizzles.Distinct().Count() != swizzles.Count)
+                        {
+                            table.AddError(new(id.Info, string.Format(SDSLErrorMessages.SDSL0145, swizzle)));
+                            return;
+                        }
+
+                        // Same shape as a vector swizzle: insert each written element into the matrix, which becomes the value to assign
+                        var matrixType = (MatrixType)currentValueType.GetValueType();
+                        var matrix = currentValueType is PointerType
+                            ? new SpirvValue(builder.InsertData(new OpLoad(context.GetOrRegister(matrixType), context.Bound++, lvalueBase.Id, null, [])))
+                            : lvalueBase;
+                        // A scalar is copied to every written element
+                        rvalue = builder.Convert(context, rvalue, matrixType.BaseType.GetVectorOrScalar(swizzles.Count));
+                        for (var j = 0; j < swizzles.Count; j++)
+                        {
+                            var element = swizzles.Count == 1
+                                ? rvalue.Id
+                                : builder.Insert(new OpCompositeExtract(context.GetOrRegister(matrixType.BaseType), context.Bound++, rvalue.Id, [j])).ResultId;
+                            // (Column, Row) as the read path extracts them: the HLSL row is the SPIR-V column
+                            matrix = new(builder.InsertData(new OpCompositeInsert(context.GetOrRegister(matrixType), context.Bound++, element, matrix.Id, [swizzles[j].Column, swizzles[j].Row])));
+                        }
+                        rvalue = matrix;
+                        break;
+                    }
                 case (PointerType { BaseType: VectorType or ScalarType } or VectorType or ScalarType, Identifier { Name: var swizzle } id) when id.IsVectorSwizzle():
                     // Swizzle: we transform the value to assign accordingly
+                    if (swizzle.Distinct().Count() != swizzle.Length)
+                    {
+                        table.AddError(new(id.Info, string.Format(SDSLErrorMessages.SDSL0145, swizzle)));
+                        return;
+                    }
 
                     // We load the original value (if pointer)
                     var lvalueType = currentValueType;
@@ -858,6 +887,11 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                     // Shuffle with new data
                     switch (lvalueType)
                     {
+                        // One element of a vector value (`m._m01_m02.y = x`; on a pointer it is an access chain instead)
+                        case VectorType v when swizzle.Length == 1:
+                            rvalue = builder.Convert(context, rvalue, v.BaseType);
+                            rvalue = new(builder.InsertData(new OpCompositeInsert(context.GetOrRegister(lvalueType), context.Bound++, rvalue.Id, lvalueBase.Id, [ConvertSwizzle(swizzle[0])])));
+                            break;
                         case VectorType v:
                             var shuffleIndices = shuffleBuffer[..v.Size];
                             // Default: lvalue

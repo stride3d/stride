@@ -1,0 +1,28 @@
+// PSMain(ExpectedResult=#336699FF)
+
+namespace Stride.Shaders.Tests;
+
+shader MatrixSwizzleWrite
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    void PSMain()
+    {
+        // Writes through matrix swizzles, read back by row and column (m[row][col])
+        float4x4 m = 0;
+        m._m00_m11 = float2(1, 2);       // zero-based: row 0 column 0, row 1 column 1
+        m._41_42_43 = float3(3, 4, 5);   // one-based: row 4, columns 1 to 3
+        m._m22_m33 = 6;                  // a scalar goes to every written element
+        m._m01_m02_m03.y = 7;            // a swizzle of a swizzle: only row 0 column 2
+
+        bool written = m[0][0] == 1 && m[1][1] == 2 && all(m[3].xyz == float3(3, 4, 5)) && m[2][2] == 6 && m[3][3] == 6 && m[0][2] == 7;
+        bool othersKept = m[0][1] == 0 && m[0][3] == 0 && m[1][0] == 0 && m[2][3] == 0;
+
+        // Not square: 3 rows, 4 columns
+        float3x4 n = 0;
+        n._m23_m20 = float2(8, 9);
+        bool notSquare = n[2][3] == 8 && n[2][0] == 9 && n[0][2] == 0;
+
+        streams.ColorTarget = float4(written ? 0.2 : 0, othersKept ? 0.4 : 0, notSquare ? 0.6 : 0, 1);
+    }
+};
