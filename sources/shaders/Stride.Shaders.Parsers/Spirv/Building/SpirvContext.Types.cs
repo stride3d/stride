@@ -208,6 +208,13 @@ public partial class SpirvContext
         var bufferType = Buffer.Add(new OpTypeStruct(Bound++, [runtimeArrayType])).ResultId;
         AddName(bufferType, $"type.{(structuredBufferType.WriteAllowed ? "RW" : "")}StructuredBuffer.{structuredBufferType.BaseType.ToId()}");
         Buffer.Add(new OpMemberDecorate(bufferType, 0, Specification.Decoration.Offset, [0]));
+        // A struct element gets its matrix layout on its own members; a matrix element only has this member to carry it.
+        // As for a matrix member: HLSL's default column_major is SPIR-V RowMajor, each SPIR-V row padded to its buffer alignment
+        if (structuredBufferType.BaseType is MatrixType m)
+        {
+            Buffer.Add(new OpMemberDecorate(bufferType, 0, Specification.Decoration.RowMajor, []));
+            Buffer.Add(new OpMemberDecorate(bufferType, 0, Specification.Decoration.MatrixStride, [SpirvBuilder.StorageBufferArrayStride(new VectorType(m.BaseType, m.Columns))]));
+        }
         Buffer.Add(new OpDecorate(bufferType, Specification.Decoration.Block, []));
 
         return bufferType;
