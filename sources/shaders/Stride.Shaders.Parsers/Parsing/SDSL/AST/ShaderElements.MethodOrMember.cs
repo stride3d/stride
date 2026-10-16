@@ -231,6 +231,9 @@ public sealed partial class ShaderMember(
             _ => Specification.StorageClass.Uniform,
         };
 
+        if (Value != null && StreamKind is StreamKind.Stream or StreamKind.PatchStream)
+            table.AddError(new(Value.Info, string.Format(SDSLErrorMessages.SDSL0172, Name, Value.Info.Text)));
+
         if (TypeModifier == TypeModifier.Const)
         {
             if (Value == null)
@@ -646,9 +649,13 @@ public partial class ShaderMethod(
                             }, []));
                         }
                     }
+                    else if (anyAttribute.Name.Name.Equals("StreamOutput", StringComparison.OrdinalIgnoreCase))
+                    {
+                        table.AddError(new(anyAttribute.Info, string.Format(SDSLErrorMessages.SDSL0170, Name)));
+                    }
                     else
                     {
-                        throw new NotImplementedException($"Can't parse method attribute {anyAttribute} on method {Name}");
+                        table.AddError(new(anyAttribute.Info, string.Format(SDSLErrorMessages.SDSL0171, anyAttribute.Name, Name)));
                     }
                 }
             }
