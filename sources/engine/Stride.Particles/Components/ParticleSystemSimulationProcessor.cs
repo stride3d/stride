@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using Stride.Core.Mathematics;
 using Stride.Core.Threading;
 using Stride.Engine;
+using Stride.Engine.Design;
 using Stride.Games;
 using Stride.Rendering;
 
@@ -53,7 +54,7 @@ namespace Stride.Particles.Components
 
         public List<ParticleSystemComponentState> ParticleSystems { get; private set; }
 
-        private void UpdateParticleSystem(ParticleSystemComponentState state, float deltaTime)
+        private void UpdateParticleSystem(ParticleSystemComponentState state, float deltaTime, bool applyEditorControl)
         {
             var speed = state.ParticleSystemComponent.Speed;
             var transformComponent = state.TransformComponent;
@@ -88,6 +89,11 @@ namespace Stride.Particles.Components
                 particleSystem.UniformScale = xScale;
             }
 
+            // In the scene editor and in asset previews, the editor control plays, pauses, stops and restarts the system
+            // (a one-shot effect restarts every ResetSeconds instead of playing only once)
+            if (applyEditorControl)
+                state.ParticleSystemComponent.Control.Update(deltaTime * speed, particleSystem);
+
             particleSystem.Update(deltaTime * speed);
         }
 
@@ -95,6 +101,7 @@ namespace Stride.Particles.Components
         public override void Draw(RenderContext context)
         {
             float deltaTime = (float) context.Time.WarpElapsed.TotalSeconds;
+            var applyEditorControl = (EntityManager.ExecutionMode & (ExecutionMode.Editor | ExecutionMode.Preview)) != 0;
 
             ParticleSystems.Clear();
             foreach (var particleSystemStateKeyPair in ComponentDatas)
@@ -110,7 +117,7 @@ namespace Stride.Particles.Components
                 }
             }
 
-            Dispatcher.ForEach(ParticleSystems, state => UpdateParticleSystem(state, deltaTime));
+            Dispatcher.ForEach(ParticleSystems, state => UpdateParticleSystem(state, deltaTime, applyEditorControl));
         }
 
         /// <inheritdoc />
