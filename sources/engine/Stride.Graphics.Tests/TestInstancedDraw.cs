@@ -28,9 +28,19 @@ public class TestInstancedDraw : GameTestBase
 
     private static readonly Color[] InstanceColors = [Color.Red, Color.Lime, Color.Blue, Color.Yellow];
 
+    // The iOS simulator's Metal cannot draw with a base instance: MoltenVK fails the command buffer
+    // with VK_ERROR_FEATURE_NOT_PRESENT. Real iOS devices (A9 and later) support it.
+#if STRIDE_PLATFORM_IOS
+    private static bool IsSimulator => ObjCRuntime.Runtime.Arch == ObjCRuntime.Arch.SIMULATOR;
+#else
+    private static bool IsSimulator => false;
+#endif
+
     [SkippableFact]
     public void DrawInstancedStartsAtTheStartInstance()
     {
+        Skip.If(IsSimulator, "The iOS simulator cannot draw with a base instance.");
+
         PerformTest(game =>
         {
             var color = Draw(game, commandList => commandList.DrawInstanced(3, 1, startVertexLocation: 3, startInstanceLocation: 1));
@@ -42,6 +52,8 @@ public class TestInstancedDraw : GameTestBase
     [SkippableFact]
     public void DrawIndexedInstancedStartsAtTheStartInstance()
     {
+        Skip.If(IsSimulator, "The iOS simulator cannot draw with a base instance.");
+
         PerformTest(game =>
         {
             var color = Draw(game, commandList => commandList.DrawIndexedInstanced(3, 1, startIndexLocation: 0, baseVertexLocation: 3, startInstanceLocation: 2));
