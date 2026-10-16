@@ -418,7 +418,8 @@ public unsafe class VulkanFrameRenderer(uint width = 800, uint height = 600, byt
                 }
                 case VkDescriptorType.StorageBuffer:
                 {
-                    var (buffer, _) = CreateHostBuffer(1024, VkBufferUsageFlags.StorageBuffer, new byte[1024]);
+                    var data = value != null ? ParseStructuredBufferData(value).Data : new byte[1024];
+                    var (buffer, _) = CreateHostBuffer((ulong)data.Length, VkBufferUsageFlags.StorageBuffer, data);
                     writes.Add(((uint)binding.SlotStart, descriptorType, new VkDescriptorBufferInfo { buffer = buffer, offset = 0, range = ulong.MaxValue }, default, default));
                     break;
                 }
