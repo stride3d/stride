@@ -389,9 +389,9 @@ public class MaterialTransparencyTests : GameTestBase
     [InlineData(LightKind.Ambient)]
     [InlineData(LightKind.Skybox)]
     [InlineData(LightKind.LightProbes)]
-    // Passes its checks, but the D3D11 debug layer warns on every frame that voxelization binds a texture as
-    // a compute UAV while it is still bound as an input, which fails any game test
-    [InlineData(LightKind.VoxelGI, Skip = "Voxel GI: CSSetUnorderedAccessViews hazard in voxelization (D3D11 debug layer warning)")]
+    // Passes on Direct3D 11. On Direct3D 12 voxel GI adds no light (the result is black), and on Vulkan the voxelization
+    // geometry shader has no valid invocation count (VUID-VkPipelineShaderStageCreateInfo-stage-00715)
+    [InlineData(LightKind.VoxelGI, Skip = "Voxel GI: no light on Direct3D 12, invalid geometry shader on Vulkan")]
     public void AlphaScalesLitColorOnce(LightKind light)
     {
         var game = new MaterialTransparencyTests(light);
