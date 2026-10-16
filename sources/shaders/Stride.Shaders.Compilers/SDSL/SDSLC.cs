@@ -69,6 +69,12 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
                 {
                     shader.Compile(table, compiler);
                 }
+                catch (StatementCompileException e) when (filename != null)
+                {
+                    // file(line,col): the form build tools and editors link to
+                    log.Error($"{filename}({e.Error.Location.Line},{e.Error.Location.Column}): {e.Error.Message} (in `{e.Error.Location.Text.Span.Trim()}`)", e);
+                    hasErrors = true;
+                }
                 catch (Exception e)
                 {
                     log.Error(e.Message, e);

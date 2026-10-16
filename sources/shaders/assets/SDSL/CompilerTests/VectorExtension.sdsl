@@ -1,0 +1,10 @@
+namespace Stride.Shaders.Tests;
+
+shader VectorExtension
+{
+    float4 Extend(float3 color)
+    {
+        float3 scaled = color * 2;
+        return scaled;
+    }
+};
