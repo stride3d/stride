@@ -282,6 +282,67 @@ public class StrideShaderTests
         Assert.True(errors is null, errors + Environment.NewLine + hlsl);
     }
 
+    public static TheoryData<string, Stride.Graphics.GraphicsPlatform> PrimitiveIdShadersPerGraphicsApi()
+    {
+        var data = new TheoryData<string, Stride.Graphics.GraphicsPlatform>();
+        foreach (var shaderName in new[] { "PSPrimitiveId", "PSPrimitiveIdFromGS", "PSPrimitiveIdTessellation" })
+        {
+            foreach (var platform in new[] { Stride.Graphics.GraphicsPlatform.Direct3D11, Stride.Graphics.GraphicsPlatform.Direct3D12, Stride.Graphics.GraphicsPlatform.Vulkan })
+                data.Add(shaderName, platform);
+        }
+        return data;
+    }
+
+    // A pixel shader reads SV_PrimitiveID with no geometry shader, after tessellation, or as written by a geometry shader.
+    // The effect compiler runs each graphics API's backend: FXC (Direct3D 11), spirv_to_dxil (Direct3D 12), spirv-val (Vulkan).
+    [Theory]
+    [MemberData(nameof(PrimitiveIdShadersPerGraphicsApi))]
+    public void PixelShaderReadsPrimitiveId(string shaderName, Stride.Graphics.GraphicsPlatform platform)
+    {
+        if (platform != Stride.Graphics.GraphicsPlatform.Vulkan && !OperatingSystem.IsWindows())
+            Assert.Skip("Direct3D shaders are compiled on Windows only");
+
+        using var provider = new FileSystemProvider($"/primitiveid-{Guid.NewGuid():N}", AppContext.BaseDirectory);
+        using var compiler = new Stride.Shaders.Compiler.EffectCompiler(provider) { ValidateSpirv = true };
+        compiler.SourceDirectories.Add("assets/SDSL/CompilerTests");
+
+        var mixin = new ShaderMixinSource { Name = shaderName };
+        mixin.Mixins.Add(new ShaderClassSource(shaderName));
+        var effectParameters = Stride.Shaders.Compiler.EffectCompilerParameters.Default with { Platform = platform };
+        var result = compiler.Compile(mixin, effectParameters, new Stride.Shaders.Compiler.CompilerParameters(), ObjectId.New()).WaitForResult();
+
+        Assert.False(result.CompilationLog.HasErrors, string.Join(Environment.NewLine, result.CompilationLog.Messages.Select(m => m.Text)));
+        Assert.Contains(result.Bytecode.Stages, stage => stage.Stage == ShaderStage.Pixel);
+    }
+
+    // The PrimitiveId builtin needs the Geometry or the Tessellation capability, declared once.
+    [Theory]
+    [InlineData("PSPrimitiveId", "Geometry")]
+    [InlineData("PSPrimitiveIdFromGS", "Geometry")]
+    [InlineData("PSPrimitiveIdTessellation", "Tessellation")]
+    public void PrimitiveIdCapabilityIsDeclaredOnce(string shaderName, string capability)
+    {
+        var shaderMixer = new ShaderMixer(new ShaderLoader("./assets/SDSL/CompilerTests"));
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(new ShaderClassSource(shaderName), new ShaderMixer.Options(true), log, out var bytecode, out _, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+
+        var disassembly = Spv.Dis(SpirvBytecode.CreateFromSpan(bytecode), DisassemblerFlags.Name, true);
+        var capabilities = System.Text.RegularExpressions.Regex.Matches(disassembly, @"OpCapability (\w+)").Select(m => m.Groups[1].Value).Where(c => c != "Shader");
+        Assert.Equal([capability], capabilities);
+    }
+
+    [Fact]
+    public void PrimitiveIdReadByPixelShaderMustBeWrittenByGeometryShader()
+    {
+        var shaderMixer = new ShaderMixer(new ShaderLoader("./assets/SDSL/CompilerTests"));
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        var exception = Assert.Throws<InvalidOperationException>(() => shaderMixer.MergeSDSL(new ShaderClassSource("PSPrimitiveIdGSNoWrite"), new ShaderMixer.Options(true), log, out _, out _, out _, out _));
+        Assert.Contains("The pixel shader reads SV_PrimitiveID, so the geometry shader must write it", exception.Message);
+    }
+
     // `static const uint X = 1` converts its int literal. The constant must stay usable, and keep its type,
     // as an array size, once inherited, and when its value comes from a generic of the base shader.
     // ConstInherited: every constant of a base shader is imported, whatever it is made of (vector, vector

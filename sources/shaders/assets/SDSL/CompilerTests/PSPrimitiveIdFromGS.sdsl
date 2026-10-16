@@ -1,0 +1,32 @@
+// A geometry shader writes SV_PrimitiveID, the pixel shader reads it.
+namespace Stride.Shaders.Tests;
+
+shader PSPrimitiveIdFromGS
+{
+    stream float4 ColorTarget : SV_Target0;
+    stream float4 Position : POSITION;
+    stream float4 ShadingPosition : SV_Position;
+    stream uint PrimitiveId : SV_PrimitiveID;
+
+    void VSMain()
+    {
+        streams.ShadingPosition = streams.Position;
+    }
+
+    [maxvertexcount(3)]
+    void GSMain(triangle Input input[3], inout TriangleStream<Output> triangleStream)
+    {
+        for (int i = 0; i < 3; i++)
+        {
+            streams = input[i];
+            streams.PrimitiveId = 5;
+            triangleStream.Append(streams);
+        }
+        triangleStream.RestartStrip();
+    }
+
+    stage void PSMain()
+    {
+        streams.ColorTarget = float4(streams.PrimitiveId & 1, 0, 0, 1);
+    }
+}
