@@ -1,0 +1,27 @@
+// PSMain(ExpectedResult=#00000000)
+
+// Overloads that differ only by the element type of a structured buffer: each call takes the one of its buffer
+// (a buffer of another element type is not a candidate), and the mixer gives each call a copy of its overload
+namespace Stride.Shaders.Tests;
+
+shader CSBufferElementOverload
+{
+    RWStructuredBuffer<uint3> Counts;
+    RWStructuredBuffer<int4> Offsets;
+    StructuredBuffer<float2> Weights;
+    StructuredBuffer<float4> Colors;
+
+    void Reset(RWStructuredBuffer<uint3> target, uint index) { target[index] = uint3(1, 2, 3); }
+    void Reset(RWStructuredBuffer<int4> target, uint index) { target[index] = int4(-1, -2, -3, -4); }
+
+    float Sum(StructuredBuffer<float2> source, uint index) { return source[index].x + source[index].y; }
+    float Sum(StructuredBuffer<float4> source, uint index) { return dot(source[index], 1); }
+
+    [numthreads(1, 1, 1)]
+    void CSMain(uint3 id : SV_DispatchThreadID)
+    {
+        Reset(Counts, id.x);
+        Reset(Offsets, id.x);
+        Offsets[id.x + 1] = int4(Sum(Weights, id.x), Sum(Colors, id.x), 0, 0);
+    }
+};
