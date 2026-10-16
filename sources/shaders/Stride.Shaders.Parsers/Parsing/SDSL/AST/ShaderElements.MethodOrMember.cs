@@ -17,6 +17,18 @@ public abstract class MethodOrMember(TextLocation info, bool isStaged = false) :
 {
     public bool IsStaged { get; set; } = isStaged;
     public List<ShaderAttribute>? Attributes { get; set; } = null;
+
+    /// <summary>
+    /// An HLSL <c>register(...)</c> or <c>packoffset(...)</c> written after the name. Stride lays out cbuffers and binds resources itself,
+    /// so it is dropped with a warning.
+    /// </summary>
+    public TextLocation? IgnoredRegister { get; set; }
+
+    internal void WarnIgnoredRegister(SymbolTable table, Identifier name)
+    {
+        if (IgnoredRegister is { } register)
+            table.AddWarning(new(register, string.Format(SDSLErrorMessages.SDSL0220, register.Text, name)));
+    }
 }
 
 
@@ -41,6 +53,7 @@ public partial class ShaderSamplerState(Identifier name, TextLocation info) : Me
     public override void ProcessSymbol(SymbolTable table, SpirvContext context)
     {
         base.ProcessSymbol(table, context);
+        WarnIgnoredRegister(table, Name);
         Type = new PointerType(new SamplerType(), Specification.StorageClass.UniformConstant);
         table.DeclaredTypes.TryAdd(Type.ToString(), Type);
 
@@ -184,6 +197,7 @@ public sealed partial class ShaderMember(
     public override void ProcessSymbol(SymbolTable table, SpirvContext context)
     {
         base.ProcessSymbol(table, context);
+        WarnIgnoredRegister(table, Name);
         foreach (var generic in TypeName.Generics)
             generic.ProcessSymbol(table);
         if (!TypeName.TryResolveType(table, context, out var memberType))
@@ -389,6 +403,10 @@ public partial class ShaderMethod(
     public bool IsOverride { get; set; } = isOverride;
     public bool IsClone { get; set; } = isClone;
     public List<MethodParameter> Parameters { get; set; } = [];
+    /// <summary>
+    /// HLSL return semantic (<c>float4 F() : COLOR</c>): only an entry point's matters, and Stride's come from streams, so it is never emitted.
+    /// </summary>
+    public Identifier? ReturnSemantic { get; set; }
 
     public BlockStatement? Body { get; set; }
 

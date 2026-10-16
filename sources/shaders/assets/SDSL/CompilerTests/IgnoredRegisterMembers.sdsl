@@ -1,0 +1,17 @@
+// HLSL register qualifiers on class members, as in VL.Addons' AdaptiveSharpen: dropped with warning SDSL0220
+namespace Stride.Shaders.Tests;
+
+shader IgnoredRegisterMembers
+{
+    float2 p1 : register(c1);
+    float Scale : register(c2) = 2;
+    SamplerState PointSampler : register(s3);
+
+    RWStructuredBuffer<float4> Output;
+
+    [numthreads(1, 1, 1)]
+    void CSMain()
+    {
+        Output[0] = float4(p1 * Scale, 0, 1);
+    }
+};
