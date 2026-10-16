@@ -299,8 +299,10 @@ public sealed partial class ShaderMember(
             {
                 // Uniform variables become cbuffer members — their default values are set from the CPU side.
                 // Compile the initializer as a constant value (no function wrapper needed).
-                var constantValue = Value.CompileConstantValue(table, context, valueType);
-                initializerId = constantValue.Id;
+                if (Value.TryCompileConstantValue(table, context, out var constantValue, valueType))
+                    initializerId = constantValue.Id;
+                else
+                    table.AddError(new(Value.Info, string.Format(SDSLErrorMessages.SDSL0173, Name, Value.Info.Text, TypeName)));
             }
             else
             {
