@@ -14,7 +14,8 @@ public struct Scanner(string code) : IScanner
     public int Position { get; set; } = 0;
 
     public readonly int Line => Span[..Position].Count('\n') + 1;
-    public readonly int Column => Position - Span[..Position].LastIndexOf('\n') + 1;
+    // 1 for the first character of a line (LastIndexOf gives -1 on the first line)
+    public readonly int Column => Position - Span[..Position].LastIndexOf('\n');
 
 
 
