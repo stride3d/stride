@@ -150,8 +150,6 @@ public class TestUnorderedAccessBarrier : GraphicTestGameBase
     [SkippableFact]
     public void ClearReadWriteIsOrderedWithDispatches()
     {
-        Skip.If(GraphicsDevice.Platform == GraphicsPlatform.Vulkan, "ClearReadWrite(Buffer) is not implemented on Vulkan yet.");
-
         RunGameTest(new TestUnorderedAccessBarrier(Case.Clear));
     }
 }
