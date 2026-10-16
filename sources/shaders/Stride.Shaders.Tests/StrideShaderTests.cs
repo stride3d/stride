@@ -96,6 +96,17 @@ public class StrideShaderTests
         Assert.Contains("Matrices of int (int4x4) are not supported: use a float matrix, or an array of int4", exception.Message);
     }
 
+    // HLSL truncates a vector implicitly but doesn't extend one (fxc: X3017): the error names the statement and the fix
+    [Fact]
+    public void VectorExtensionIsReportedWithTheStatement()
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var exception = Assert.Throws<InvalidOperationException>(() => loader.LoadExternalBuffer("VectorExtension", [], out _, out _, out _));
+        Assert.Contains("VectorExtension.sdsl(8,9): ", exception.Message);
+        Assert.Contains("(in `return scaled;`)", exception.Message);
+        Assert.Contains("Can't cast from float3 to float4 (more components): HLSL doesn't add components implicitly, write them (float4(value, ...))", exception.Message);
+    }
+
     // Reflection reports a multidimensional cbuffer array as a flat element count
     // (float4 Data2D[2][3] => 6 elements), matching fxc and the runtime parameter layout.
     [Fact]
