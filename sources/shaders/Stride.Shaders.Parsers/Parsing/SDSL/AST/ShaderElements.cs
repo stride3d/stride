@@ -342,7 +342,12 @@ public sealed partial class CBuffer(string name, TextLocation info) : ShaderBuff
                 isStaged = member.IsStaged;
             // Make sure IsStaged for all members match the first member (they're all the same)
             if (isStaged != member.IsStaged)
-                throw new InvalidOperationException($"cbuffer {Name} have a mix of stage and non-stage members");
+            {
+                var (stageMember, nonStageMember) = member.IsStaged ? (member, Members[0]) : (Members[0], member);
+                var fullName = LogicalGroup != null ? $"{Name}.{LogicalGroup}" : Name;
+                table.AddError(new(member.Info, string.Format(SDSLErrorMessages.SDSL0174, fullName, stageMember.Name, nonStageMember.Name)));
+                break;
+            }
         }
 
         var constantBufferType = (ConstantBufferSymbol)Type!;
