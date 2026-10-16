@@ -33,17 +33,12 @@ namespace Stride.Graphics
         private static object debugLayerLock = new();
         private static bool debugLayerLoaded = false;
 
-        // D3D12 devices are singletons per adapter: every GraphicsDevice of the process on the same adapter shares
-        // the native device, its info queue and its live objects. Counted so that only the last one reports them.
+        // On the system runtime, D3D12 devices are singletons per adapter: every GraphicsDevice of the process on the same
+        // adapter shares the native device, its info queue and its live objects. Counted so that only the last one reports them.
         private static readonly Dictionary<nint, int> nativeDeviceUsers = new();
 
         // Debug devices whose message callback is registered, see UnregisterDebugMessageCallbacksAtExit
         private static readonly HashSet<GraphicsDevice> devicesWithCallback = new();
-
-        // D3D12 Agility SDK redist shipped app-local under D3D12\ (Microsoft.Direct3D.D3D12 1.619.x).
-        private const uint AgilitySDKVersion = 619;
-        private static readonly Guid CLSID_D3D12SDKConfiguration = new(0x7cda6aca, 0xa03e, 0x49c8, 0x94, 0x58, 0x03, 0x34, 0xd2, 0x0e, 0x07, 0xce);
-        private static bool agilitySDKChecked;
 
         private ID3D12InfoQueue* nativeInfoQueue;
         private ID3D12InfoQueue1* nativeInfoQueue1;
@@ -447,11 +442,6 @@ namespace Stride.Graphics
             // Command lists are thread-safe and execute deferred
             IsDeferred = true;
 
-            var d3d12 = D3D12.GetApi();
-
-            // Opt into an app-local Agility SDK (if shipped) before the debug layer / device load D3D12Core.
-            TryActivateAgilitySDK(d3d12);
-
             // The Debug Layer must be initialized before creating the device
             if (IsDebugMode)
             {
@@ -478,7 +468,7 @@ namespace Stride.Graphics
                 if (featureLevel < D3DFeatureLevel.Level110)
                     featureLevel = D3DFeatureLevel.Level110;
 
-                result = d3d12.CreateDevice(Adapter.NativeAdapter.AsIUnknown(), featureLevel, out ComPtr<ID3D12Device> device);
+                result = D3D12Runtime.CreateDevice(Adapter.NativeAdapter.AsIUnknown(), featureLevel, out ComPtr<ID3D12Device> device);
 
                 if (result.IsFailure)
                 {
@@ -659,7 +649,7 @@ namespace Stride.Graphics
             //
             void EnableDebugLayer()
             {
-                HResult result = d3d12.GetDebugInterface(out ComPtr<ID3D12Debug> debugInterface);
+                HResult result = D3D12Runtime.GetDebugInterface(D3D12Runtime.CLSID_D3D12Debug, out ComPtr<ID3D12Debug> debugInterface);
 
                 if (result.IsSuccess && debugInterface.IsNotNull())
                 {
@@ -682,7 +672,7 @@ namespace Stride.Graphics
                 }
 
                 // Enable DRED (Device Removed Extended Data) for GPU crash diagnostics
-                result = d3d12.GetDebugInterface(out ComPtr<ID3D12DeviceRemovedExtendedDataSettings> dredSettings);
+                result = D3D12Runtime.GetDebugInterface(D3D12Runtime.CLSID_D3D12DeviceRemovedExtendedData, out ComPtr<ID3D12DeviceRemovedExtendedDataSettings> dredSettings);
                 if (result.IsSuccess && dredSettings.IsNotNull())
                 {
                     dredSettings.SetAutoBreadcrumbsEnablement(DredEnablement.ForcedOn);
@@ -694,8 +684,8 @@ namespace Stride.Graphics
             //
             // Requires D3D12 Enhanced Barriers. Throws if unsupported.
             //
-            // Minimum requirements: Windows 10 21H2 (build 19044) or Windows 11 — we use the
-            // system d3d12.dll, no Agility SDK is embedded. Driver floors: NVIDIA 531.18+,
+            // The runtime must support them: the Agility SDK under D3D12\ (see D3D12Runtime) or a recent
+            // Windows 11 system runtime; the Windows 10 system runtime doesn't. Driver floors: NVIDIA 531.18+,
             // AMD 23.5.2+, Intel 31.0.101.4032+. WARP and Xbox Series X|S are supported.
             //
             void RequireEnhancedBarriersSupport()
@@ -708,10 +698,13 @@ namespace Stride.Graphics
                                                                 (uint) sizeof(FeatureDataD3D12Options12));
                 if (!hr.IsSuccess || !options12.EnhancedBarriersSupported)
                 {
+                    var runtimeHint = D3D12Runtime.IsAgilitySDKLoaded
+                        ? ""
+                        : " The system D3D12 runtime is in use: ship the D3D12 Agility SDK under D3D12\\ " +
+                          "(the Windows 10 runtime has no Enhanced Barriers), and install the Windows updates from September 2023 or newer.";
                     throw new GraphicsDeviceException(
                         "D3D12 Enhanced Barriers are required but not supported by this device/driver. " +
-                        "Update to a recent GPU driver (NVIDIA 531.18+, AMD 23.5.2+, Intel 31.0.101.4032+) " +
-                        "and run on Windows 10 21H2 or Windows 11.");
+                        "Update to a recent GPU driver (NVIDIA 531.18+, AMD 23.5.2+, Intel 31.0.101.4032+)." + runtimeHint);
                 }
             }
         }
@@ -849,40 +842,6 @@ namespace Stride.Graphics
         /// </summary>
         /// <param name="pipelineStateDescription">A Pipeline State description that can be modified and adjusted.</param>
         private partial void AdjustDefaultPipelineStateDescription(ref PipelineStateDescription pipelineStateDescription) { }
-
-        /// <summary>
-        ///   Activates an app-local D3D12 Agility SDK (shipped under <c>D3D12\</c>) once per process,
-        ///   before any device or debug interface is created. No-op if the redist isn't present.
-        /// </summary>
-        private static void TryActivateAgilitySDK(D3D12 d3d12)
-        {
-            lock (debugLayerLock)
-            {
-                if (agilitySDKChecked)
-                    return;
-                agilitySDKChecked = true;
-
-                if (!System.IO.File.Exists(System.IO.Path.Combine(AppContext.BaseDirectory, "D3D12", "D3D12Core.dll")))
-                    return;
-
-                var clsid = CLSID_D3D12SDKConfiguration;
-                int hr = d3d12.GetInterface(ref clsid, out ComPtr<ID3D12SDKConfiguration> sdkConfig);
-                if (hr < 0 || sdkConfig.IsNull())
-                {
-                    Log.Warning($"[D3D12] Agility SDK present but ID3D12SDKConfiguration is unavailable (0x{hr:X8}); using system D3D12.");
-                    return;
-                }
-
-                // Path is relative to the exe and must end with a separator.
-                hr = sdkConfig.SetSDKVersion(AgilitySDKVersion, "D3D12\\");
-                sdkConfig.Release();
-
-                if (hr < 0)
-                    Log.Warning($"[D3D12] Agility SDK SetSDKVersion({AgilitySDKVersion}) failed (0x{hr:X8}); using system D3D12.");
-                else
-                    Log.Info($"[D3D12] Using app-local Agility SDK {AgilitySDKVersion}.");
-            }
-        }
 
         /// <summary>
         ///   Releases the platform-specific Graphics Device and all its associated resources.
