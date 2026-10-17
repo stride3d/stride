@@ -10,7 +10,7 @@ using Stride.Rendering.Materials;
 namespace Stride.Rendering
 {
     /// <summary>
-    /// Computes and uploads skinning info.
+    /// Computes and uploads skinning info, and binds the morph targets applied in the vertex shader.
     /// </summary>
     public class SkinningRenderFeature : SubRenderFeature
     {
@@ -19,6 +19,8 @@ namespace Stride.Rendering
         private ObjectPropertyKey<Matrix[]> renderModelObjectInfoKey;
 
         private ConstantBufferOffsetReference blendMatrices;
+        private LogicalGroupReference morphGroup;
+        private ConstantBufferOffsetReference morphTargetCount;
 
         private static readonly ProfilingKey PrepareEffectPermutationsKey = new ProfilingKey("SkinningRenderFeature.PrepareEffectPermutations");
 
@@ -43,6 +45,8 @@ namespace Stride.Rendering
             renderEffectKey = ((RootEffectRenderFeature)RootRenderFeature).RenderEffectKey;
 
             blendMatrices = ((RootEffectRenderFeature)RootRenderFeature).CreateDrawCBufferOffsetSlot(TransformationSkinningKeys.BlendMatrixArray.Name);
+            morphGroup = ((RootEffectRenderFeature)RootRenderFeature).CreateDrawLogicalGroup("Morph");
+            morphTargetCount = ((RootEffectRenderFeature)RootRenderFeature).CreateDrawCBufferOffsetSlot("TransformationMorph.MorphTargetCount");
         }
 
         /// <inheritdoc/>
@@ -91,6 +95,9 @@ namespace Stride.Rendering
                         var skinningBones = Math.Max(MaxBones, renderMesh.Mesh.Skinning.Bones.Length);
                         renderEffect.EffectValidator.ValidateParameter(MaterialKeys.SkinningMaxBones, skinningBones);
                     }
+
+                    if (renderMesh.MorphBuffers != null)
+                        renderEffect.EffectValidator.ValidateParameter(StrideEffectBaseKeys.MorphTargets, renderMesh.MorphBuffers.Flags);
                 }
             });
         }
@@ -123,6 +130,20 @@ namespace Stride.Rendering
                     var perDrawLayout = renderNode.RenderEffect.Reflection?.PerDrawLayout;
                     if (perDrawLayout == null)
                         continue;
+
+                    if (morphGroup.Index >= 0 && ((RenderMesh)renderNode.RenderObject).MorphBuffers is { } morphBuffers)
+                    {
+                        var group = perDrawLayout.GetLogicalGroup(morphGroup);
+                        if (group.DescriptorEntryStart != -1)
+                        {
+                            renderNode.Resources.DescriptorSet.SetShaderResourceView(group.DescriptorEntryStart, morphBuffers.Entries);
+                            renderNode.Resources.DescriptorSet.SetShaderResourceView(group.DescriptorEntryStart + 1, morphBuffers.VertexOffsets);
+                            renderNode.Resources.DescriptorSet.SetShaderResourceView(group.DescriptorEntryStart + 2, morphBuffers.Weights);
+                        }
+                        var targetCountOffset = perDrawLayout.GetConstantBufferOffset(morphTargetCount);
+                        if (targetCountOffset != -1)
+                            *(uint*)((byte*)renderNode.Resources.ConstantBuffer.Data + targetCountOffset) = (uint)morphBuffers.TargetCount;
+                    }
 
                     var blendMatricesOffset = perDrawLayout.GetConstantBufferOffset(blendMatrices);
                     if (blendMatricesOffset == -1)

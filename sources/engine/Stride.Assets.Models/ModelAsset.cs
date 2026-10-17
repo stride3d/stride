@@ -8,6 +8,8 @@ using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.IO;
 using Stride.Core.Mathematics;
+using Stride.Core.Yaml;
+using Stride.Importer.Common;
 using Stride.Rendering;
 
 namespace Stride.Assets.Models
@@ -17,9 +19,10 @@ namespace Stride.Assets.Models
     [AssetContentType(typeof(Model))]
     [Display((int)AssetDisplayPriority.Models + 80, "Model")]
     [AssetFormatVersion(StrideConfig.LogicalPackageName, CurrentVersion, "2.0.0.0")]
+    [AssetUpgrader(StrideConfig.LogicalPackageName, "2.0.0.0", "2.1.0.0", typeof(DisableMorphTargetsUpgrader))]
     public sealed class ModelAsset : Asset, IAssetWithSource, IModelAsset
     {
-        private const string CurrentVersion = "2.0.0.0";
+        private const string CurrentVersion = "2.1.0.0";
 
         /// <summary>
         /// The default file extension used by the <see cref="ModelAsset"/>.
@@ -91,8 +94,41 @@ namespace Stride.Assets.Models
         [Category]
         public List<IModelModifier> Modifiers { get; } = new List<IModelModifier>();
 
+        /// <userdoc>
+        /// When unchecked, morph targets (blend shapes) in the source file are ignored and the model is imported without them.
+        /// </userdoc>
+        [DataMember(54), DefaultValue(true)]
+        public bool ImportMorphTargets { get; set; } = true;
+
+        /// <userdoc>
+        /// Where the normal deltas of morph targets come from: the source file, generated from the target shapes, or both.
+        /// </userdoc>
+        [DataMember(56), DefaultValue(MorphDeltaSource.ImportOrGenerate)]
+        public MorphDeltaSource MorphNormals { get; set; } = MorphDeltaSource.ImportOrGenerate;
+
+        /// <userdoc>
+        /// Where the tangent deltas of morph targets come from: the source file, generated from the target shapes, or both.
+        /// </userdoc>
+        [DataMember(57), DefaultValue(MorphDeltaSource.ImportOrGenerate)]
+        public MorphDeltaSource MorphTangents { get; set; } = MorphDeltaSource.ImportOrGenerate;
+
+        // Editor metadata only; packed runtime targets are built from the source mesh.
+        [DataMember(60), Display(Browsable = false)]
+        public List<string> MorphTargetNames { get; } = new();
+
         /// <inheritdoc/>
         [DataMemberIgnore]
         public override UFile MainSource => Source;
+
+        /// <summary>
+        /// Models saved before morph target import keep their previous behavior: merged meshes and no compute deformation.
+        /// </summary>
+        private class DisableMorphTargetsUpgrader : AssetUpgraderBase
+        {
+            protected override void UpgradeAsset(AssetMigrationContext context, PackageVersion currentVersion, PackageVersion targetVersion, dynamic asset, PackageLoadingAssetFile assetFile, OverrideUpgraderHint overrideHint)
+            {
+                asset.ImportMorphTargets = false;
+            }
+        }
     }
 }

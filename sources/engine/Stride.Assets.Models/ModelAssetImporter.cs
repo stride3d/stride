@@ -179,6 +179,7 @@ namespace Stride.Assets.Models
         private static ModelAsset ImportModel(List<AssetItem> assetReferences, UFile assetSource, UFile localPath, EntityInfo entityInfo, bool shouldPostFixName, AssetItem skeletonAsset)
         {
             var asset = new ModelAsset { Source = assetSource };
+            if (entityInfo.MorphTargetNames != null) asset.MorphTargetNames.AddRange(entityInfo.MorphTargetNames);
 
             if (entityInfo.Models != null)
             {

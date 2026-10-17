@@ -19,6 +19,12 @@ namespace Stride.Rendering
         /// A single mesh may be split into multiple RenderMeshes due to multiple material passes.
         /// </remarks>
         public int UniqueMeshCount;
+
+        /// <summary>
+        /// Deforms the meshes of this model when a view collects them, or <c>null</c>.
+        /// </summary>
+        internal IModelDeformer Deformer;
+
         public struct MaterialInfo
         {
             public Material Material;

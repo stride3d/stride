@@ -16,8 +16,20 @@ namespace Stride.Rendering
     public class ModelRenderProcessor : EntityProcessor<ModelComponent, RenderModel>, IEntityComponentRenderProcessor
     {
         private Material fallbackMaterial;
+        private ModelDeformationRenderer deformationRenderer;
 
         public Dictionary<ModelComponent, RenderModel> RenderModels => ComponentDatas;
+
+        /// <summary>
+        /// Forces the mesh deformation path, for benchmarks and tests. <c>null</c> (the default) deforms meshes with morph
+        /// targets in compute when the device supports it, and leaves skinning-only meshes to the vertex shader.
+        /// </summary>
+        internal static MeshDeformationOverride DeformationOverride { get; set; }
+
+        /// <summary>
+        /// The renderer deforming models with morph targets or compute skinning, for tests.
+        /// </summary>
+        internal ModelDeformationRenderer DeformationRenderer => deformationRenderer;
 
         public VisibilityGroup VisibilityGroup { get; set; }
 
@@ -55,6 +67,7 @@ namespace Stride.Rendering
         /// <inheritdoc />
         protected override void OnEntityComponentRemoved(Entity entity, ModelComponent component, RenderModel renderModel)
         {
+            deformationRenderer?.Remove(component);
             // Remove old meshes
             if (renderModel.Meshes != null)
             {
@@ -64,6 +77,13 @@ namespace Stride.Rendering
                     VisibilityGroup.RenderObjects.Remove(renderMesh);
                 }
             }
+        }
+
+        protected internal override void OnSystemRemove()
+        {
+            deformationRenderer?.Dispose();
+            deformationRenderer = null;
+            base.OnSystemRemove();
         }
 
         /// <inheritdoc />
@@ -80,6 +100,29 @@ namespace Stride.Rendering
                 CheckMeshes(modelComponent, renderModel);
                 UpdateRenderModel(modelComponent, renderModel);
             });
+
+            // Schedules the deformation of each model; MeshRenderFeature deforms the ones a view collects.
+            var deformationOverride = DeformationOverride;
+            bool computeSkinning = deformationOverride?.Mode == MeshDeformationMode.Compute;
+            deformationRenderer?.Configure(deformationOverride);
+            deformationRenderer?.BeginFrame();
+            foreach (var item in ComponentDatas)
+            {
+                bool hasMorphs = item.Key.Morphs.Enabled && item.Key.Model?.Meshes.Exists(mesh => mesh.MorphTargets?.VertexCount > 0) == true;
+                bool hasSkinning = computeSkinning && item.Key.Model?.Meshes.Exists(mesh => mesh.Skinning != null) == true;
+                if (!item.Key.Enabled || item.Key.Model == null || (!hasMorphs && !hasSkinning))
+                {
+                    deformationRenderer?.Remove(item.Key);
+                    item.Value.Deformer = null;
+                    continue;
+                }
+                if (deformationRenderer == null)
+                {
+                    deformationRenderer = new ModelDeformationRenderer(new RenderDrawContext(Services, context, Services.GetSafeServiceAs<GraphicsContext>()));
+                    deformationRenderer.Configure(deformationOverride);
+                }
+                deformationRenderer.Schedule(item.Key, item.Value);
+            }
         }
 
         private void UpdateRenderModel(ModelComponent modelComponent, RenderModel renderModel)
@@ -113,6 +156,7 @@ namespace Stride.Rendering
                         renderMesh.IsScalingNegative = nodeTransformations[nodeIndex].IsScalingNegative;
                         renderMesh.BoundingBox = new BoundingBoxExt(meshInfo.BoundingBox);
                         renderMesh.BlendMatrices = meshInfo.BlendMatrices;
+                        renderMesh.MorphBuffers = null;
                     }
                 }
             }
