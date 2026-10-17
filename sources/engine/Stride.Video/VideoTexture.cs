@@ -208,10 +208,15 @@ namespace Stride.Video
             effectInstance.Parameters.Set(mipLevelKey, input.MipLevel);  // TODO: STABILITY: Manually pass the mip level?
 
             // Set the "output" texture as the render target (the copy destination):
+            graphicsContext.CommandList.ResourceBarrierTransition(input, BarrierLayout.ShaderResource);
+            graphicsContext.CommandList.ResourceBarrierTransition(output, BarrierLayout.RenderTarget);
             graphicsContext.CommandList.SetRenderTargetAndViewport(null, output);
 
             // Perform the actual draw call to filter and copy the texture:
             graphicsContext.DrawQuad(effectInstance);
+
+            // The written mip-level is read next, as the input of the next one or by the materials showing the video
+            graphicsContext.CommandList.ResourceBarrierTransition(output, BarrierLayout.ShaderResource);
         }
 
         private void AllocateTextureViewsForMipMaps(Texture parentTexture)
