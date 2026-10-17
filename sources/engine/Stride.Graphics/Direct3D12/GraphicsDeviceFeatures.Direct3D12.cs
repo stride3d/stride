@@ -67,6 +67,9 @@ public unsafe partial struct GraphicsDeviceFeatures
 
         HasDoublePrecision = d3D12Options.DoublePrecisionFloatShaderOps;
 
+        // The GPU level, for the log; BindlessTier is what the backend uses
+        GpuBindless = GetD3D12BindlessSupport((int)d3D12Options.ResourceBindingTier);
+
         // TODO: D3D12: Confirm these are correct
         // Some docs: https://msdn.microsoft.com/en-us/library/windows/desktop/ff476876(v=vs.85).aspx
         HasDepthAsSRV = true;
