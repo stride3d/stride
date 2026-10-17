@@ -560,7 +560,7 @@ namespace Stride.Graphics
                 CleanupRenderPass();
 
                 var memoryBarrier = new VkImageMemoryBarrier(texture.NativeImage, new VkImageSubresourceRange(texture.NativeImageAspect, 0, uint.MaxValue, 0, uint.MaxValue), oldAccessMask, newAccessMask, oldLayout, newVkLayout);
-                GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, sourceStages, newStages, VkDependencyFlags.None, 0, null, 0, null, 1, &memoryBarrier);
+                PipelineBarrier(sourceStages, newStages, VkDependencyFlags.None, 0, null, 0, null, 1, &memoryBarrier);
             }
             else if (resource is Buffer buffer)
             {
@@ -596,7 +596,7 @@ namespace Stride.Graphics
                 CleanupRenderPass();
 
                 var bufferMemoryBarrier = new VkBufferMemoryBarrier(buffer.NativeBuffer, oldAccessMask, newAccessMask);
-                GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, sourceStages, newStages, VkDependencyFlags.None, 0, null, 1, &bufferMemoryBarrier, 0, null);
+                PipelineBarrier(sourceStages, newStages, VkDependencyFlags.None, 0, null, 1, &bufferMemoryBarrier, 0, null);
             }
             else
             {
@@ -631,12 +631,12 @@ namespace Stride.Graphics
 
                 var layout = BarrierMapping.ToVkImageLayout(BarrierLayout.UnorderedAccess);
                 var imageBarrier = new VkImageMemoryBarrier(texture.NativeImage, new VkImageSubresourceRange(texture.NativeImageAspect, 0, uint.MaxValue, 0, uint.MaxValue), AccessBefore, AccessAfter, layout, layout);
-                GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, stages, stages, VkDependencyFlags.None, 0, null, 0, null, 1, &imageBarrier);
+                PipelineBarrier(stages, stages, VkDependencyFlags.None, 0, null, 0, null, 1, &imageBarrier);
             }
             else if (resource is Buffer buffer)
             {
                 var bufferBarrier = new VkBufferMemoryBarrier(buffer.NativeBuffer, AccessBefore, AccessAfter);
-                GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, stages, stages, VkDependencyFlags.None, 0, null, 1, &bufferBarrier, 0, null);
+                PipelineBarrier(stages, stages, VkDependencyFlags.None, 0, null, 1, &bufferBarrier, 0, null);
             }
             else
             {
@@ -664,7 +664,20 @@ namespace Stride.Graphics
             // Not allowed inside a render pass
             CleanupRenderPass();
 
-            GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, stages, stages, VkDependencyFlags.None, 1, &memoryBarrier, 0, null, 0, null);
+            PipelineBarrier(stages, stages, VkDependencyFlags.None, 1, &memoryBarrier, 0, null, 0, null);
+        }
+
+        /// <summary>
+        ///   Records a pipeline barrier with synchronization2 (<c>vkCmdPipelineBarrier2</c>): every barrier gets the
+        ///   given stages.
+        /// </summary>
+        private unsafe void PipelineBarrier(VkPipelineStageFlags srcStageMask, VkPipelineStageFlags dstStageMask, VkDependencyFlags dependencyFlags,
+                                            uint memoryBarrierCount, VkMemoryBarrier* memoryBarriers,
+                                            uint bufferMemoryBarrierCount, VkBufferMemoryBarrier* bufferMemoryBarriers,
+                                            uint imageMemoryBarrierCount, VkImageMemoryBarrier* imageMemoryBarriers)
+        {
+            PipelineBarriers.Record(GraphicsDevice.NativeDeviceApi, currentCommandList.NativeCommandBuffer, srcStageMask, dstStageMask, dependencyFlags,
+                                    memoryBarrierCount, memoryBarriers, bufferMemoryBarrierCount, bufferMemoryBarriers, imageMemoryBarrierCount, imageMemoryBarriers);
         }
 
         /// <summary>
@@ -1296,7 +1309,7 @@ namespace Stride.Graphics
                 }
 
                 var copySrcStages = FixStagesForAccess(sourceParent.NativePipelineStageMask | destinationParent.NativePipelineStageMask, sourceParent.NativeAccessMask | destinationParent.NativeAccessMask);
-                GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, copySrcStages, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferBarrierCount, bufferBarriers, imageBarrierCount, imageBarriers);
+                PipelineBarrier(copySrcStages, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferBarrierCount, bufferBarriers, imageBarrierCount, imageBarriers);
 
                 // TODO: compute all regions at once in a single call
                 for (var subresource = 0; subresource < sourceTexture.MipLevelCount * sourceTexture.ArraySize; ++subresource)
@@ -1410,7 +1423,7 @@ namespace Stride.Graphics
                 }
 
                 var dstStages = FixStagesForAccess(sourceParent.NativePipelineStageMask | destinationParent.NativePipelineStageMask, sourceParent.NativeAccessMask | destinationParent.NativeAccessMask);
-                GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, VkPipelineStageFlags.Transfer, dstStages, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferBarrierCount, bufferBarriers, imageBarrierCount, imageBarriers);
+                PipelineBarrier(VkPipelineStageFlags.Transfer, dstStages, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferBarrierCount, bufferBarriers, imageBarrierCount, imageBarriers);
             }
             else if (source is Buffer sourceBuffer && destination is Buffer destinationBuffer)
             {
@@ -1420,7 +1433,7 @@ namespace Stride.Graphics
                 bufferBarriers[0] = new VkBufferMemoryBarrier(sourceBuffer.NativeBuffer, sourceBuffer.NativeAccessMask, VkAccessFlags.TransferRead);
                 bufferBarriers[1] = new VkBufferMemoryBarrier(destinationBuffer.NativeBuffer, destinationBuffer.NativeAccessMask, VkAccessFlags.TransferWrite);
                 var srcStages = FixStagesForAccess(sourceBuffer.NativePipelineStageMask | destinationBuffer.NativePipelineStageMask, sourceBuffer.NativeAccessMask | destinationBuffer.NativeAccessMask);
-                GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, srcStages, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 2, bufferBarriers, imageMemoryBarrierCount: 0, imageMemoryBarriers: null);
+                PipelineBarrier(srcStages, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 2, bufferBarriers, imageMemoryBarrierCount: 0, imageMemoryBarriers: null);
 
                 var copy = new VkBufferCopy
                 {
@@ -1441,7 +1454,7 @@ namespace Stride.Graphics
                 bufferBarriers[0] = new VkBufferMemoryBarrier(sourceBuffer.NativeBuffer, VkAccessFlags.TransferRead, sourceBuffer.NativeAccessMask);
                 bufferBarriers[1] = new VkBufferMemoryBarrier(destinationBuffer.NativeBuffer, VkAccessFlags.TransferWrite, destinationBuffer.NativeAccessMask);
                 var bufDstStages = FixStagesForAccess(sourceBuffer.NativePipelineStageMask | destinationBuffer.NativePipelineStageMask, sourceBuffer.NativeAccessMask | destinationBuffer.NativeAccessMask);
-                GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, VkPipelineStageFlags.Transfer, bufDstStages, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 2, bufferBarriers, imageMemoryBarrierCount: 0, imageMemoryBarriers: null);
+                PipelineBarrier(VkPipelineStageFlags.Transfer, bufDstStages, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 2, bufferBarriers, imageMemoryBarrierCount: 0, imageMemoryBarriers: null);
             }
             else
             {
@@ -1535,7 +1548,7 @@ namespace Stride.Graphics
                 }
 
                 var copySrcStages3 = FixStagesForAccess(sourceTexture.NativePipelineStageMask | destinationParent.NativePipelineStageMask, sourceParent.NativeAccessMask | destinationParent.NativeAccessMask);
-                GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, copySrcStages3, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferBarrierCount, bufferBarriers, imageBarrierCount, imageBarriers);
+                PipelineBarrier(copySrcStages3, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferBarrierCount, bufferBarriers, imageBarrierCount, imageBarriers);
 
                 // Copy
                 if (destinationTexture.Usage == GraphicsResourceUsage.Staging)
@@ -1642,7 +1655,7 @@ namespace Stride.Graphics
                 }
 
                 var dstStages2 = FixStagesForAccess(sourceTexture.NativePipelineStageMask | destinationParent.NativePipelineStageMask, sourceParent.NativeAccessMask | destinationParent.NativeAccessMask);
-                GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, VkPipelineStageFlags.Transfer, dstStages2, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferBarrierCount, bufferBarriers, imageBarrierCount, imageBarriers);
+                PipelineBarrier(VkPipelineStageFlags.Transfer, dstStages2, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferBarrierCount, bufferBarriers, imageBarrierCount, imageBarriers);
             }
             else if (source is Buffer sourceBuffer && destination is Buffer destinationBuffer)
             {
@@ -1658,7 +1671,7 @@ namespace Stride.Graphics
                 bufferBarriers[0] = new VkBufferMemoryBarrier(sourceBuffer.NativeBuffer, sourceBuffer.NativeAccessMask, VkAccessFlags.TransferRead);
                 bufferBarriers[1] = new VkBufferMemoryBarrier(destinationBuffer.NativeBuffer, destinationBuffer.NativeAccessMask, VkAccessFlags.TransferWrite);
                 var srcStages = FixStagesForAccess(sourceBuffer.NativePipelineStageMask | destinationBuffer.NativePipelineStageMask, sourceBuffer.NativeAccessMask | destinationBuffer.NativeAccessMask);
-                GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, srcStages, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 2, bufferBarriers, imageMemoryBarrierCount: 0, imageMemoryBarriers: null);
+                PipelineBarrier(srcStages, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 2, bufferBarriers, imageMemoryBarrierCount: 0, imageMemoryBarriers: null);
 
                 var copy = new VkBufferCopy { srcOffset = srcOffset, dstOffset = dstOffset, size = size };
                 GraphicsDevice.NativeDeviceApi.vkCmdCopyBuffer(currentCommandList.NativeCommandBuffer, sourceBuffer.NativeBuffer, destinationBuffer.NativeBuffer, regionCount: 1, &copy);
@@ -1673,7 +1686,7 @@ namespace Stride.Graphics
                 bufferBarriers[0] = new VkBufferMemoryBarrier(sourceBuffer.NativeBuffer, VkAccessFlags.TransferRead, sourceBuffer.NativeAccessMask);
                 bufferBarriers[1] = new VkBufferMemoryBarrier(destinationBuffer.NativeBuffer, VkAccessFlags.TransferWrite, destinationBuffer.NativeAccessMask);
                 var dstStages = FixStagesForAccess(sourceBuffer.NativePipelineStageMask | destinationBuffer.NativePipelineStageMask, sourceBuffer.NativeAccessMask | destinationBuffer.NativeAccessMask);
-                GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, VkPipelineStageFlags.Transfer, dstStages, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 2, bufferBarriers, imageMemoryBarrierCount: 0, imageMemoryBarriers: null);
+                PipelineBarrier(VkPipelineStageFlags.Transfer, dstStages, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 2, bufferBarriers, imageMemoryBarrierCount: 0, imageMemoryBarriers: null);
             }
             else
             {
@@ -1822,7 +1835,7 @@ namespace Stride.Graphics
                 var subresourceRange = new VkImageSubresourceRange(texture.NativeImageAspect, (uint) mipSlice, levelCount: 1, (uint) arraySlice, 1);
 
                 var memoryBarrier = new VkImageMemoryBarrier(texture.NativeImage, subresourceRange, texture.NativeAccessMask, VkAccessFlags.TransferWrite, texture.NativeLayout, VkImageLayout.TransferDstOptimal);
-                GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, texture.NativePipelineStageMask | VkPipelineStageFlags.Host, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 1, &uploadBufferMemoryBarrier, imageMemoryBarrierCount: 1, &memoryBarrier);
+                PipelineBarrier(texture.NativePipelineStageMask | VkPipelineStageFlags.Host, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 1, &uploadBufferMemoryBarrier, imageMemoryBarrierCount: 1, &memoryBarrier);
 
                 // TODO VULKAN: Handle depth-stencil (NOTE: only supported on graphics queue)
                 // TODO VULKAN: Handle non-packed pitches
@@ -1839,7 +1852,7 @@ namespace Stride.Graphics
 
                 AdoptTransferLayoutIfUndefined(texture, BarrierLayout.CopyDest);
                 memoryBarrier = new VkImageMemoryBarrier(texture.NativeImage, subresourceRange, VkAccessFlags.TransferWrite, texture.NativeAccessMask, VkImageLayout.TransferDstOptimal, texture.NativeLayout);
-                GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, VkPipelineStageFlags.Transfer, texture.NativePipelineStageMask, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 0, bufferMemoryBarriers: null, imageMemoryBarrierCount: 1, &memoryBarrier);
+                PipelineBarrier(VkPipelineStageFlags.Transfer, texture.NativePipelineStageMask, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 0, bufferMemoryBarriers: null, imageMemoryBarrierCount: 1, &memoryBarrier);
             }
             else
             {
@@ -1856,13 +1869,13 @@ namespace Stride.Graphics
 
                     memoryBarriers[0] = uploadBufferMemoryBarrier;
                     memoryBarriers[1] = new VkBufferMemoryBarrier(buffer.NativeBuffer, buffer.NativeAccessMask, VkAccessFlags.TransferWrite, bufferCopy.dstOffset, bufferCopy.size);
-                    GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, buffer.NativePipelineStageMask | VkPipelineStageFlags.Host, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 2, memoryBarriers, imageMemoryBarrierCount: 0, imageMemoryBarriers: null);
+                    PipelineBarrier(buffer.NativePipelineStageMask | VkPipelineStageFlags.Host, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 2, memoryBarriers, imageMemoryBarrierCount: 0, imageMemoryBarriers: null);
 
                     GraphicsDevice.NativeDeviceApi.vkCmdCopyBuffer(currentCommandList.NativeCommandBuffer, uploadResource, buffer.NativeBuffer, regionCount: 1, &bufferCopy);
 
                     var memoryBarrier = new VkBufferMemoryBarrier(buffer.NativeBuffer, VkAccessFlags.TransferWrite, buffer.NativeAccessMask, bufferCopy.dstOffset, bufferCopy.size);
                     var uploadDstStages = FixStagesForAccess(buffer.NativePipelineStageMask, buffer.NativeAccessMask);
-                    GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, VkPipelineStageFlags.Transfer, uploadDstStages, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 1, &memoryBarrier, imageMemoryBarrierCount: 0, imageMemoryBarriers: null);
+                    PipelineBarrier(VkPipelineStageFlags.Transfer, uploadDstStages, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 1, &memoryBarrier, imageMemoryBarrierCount: 0, imageMemoryBarriers: null);
                 }
                 else
                 {

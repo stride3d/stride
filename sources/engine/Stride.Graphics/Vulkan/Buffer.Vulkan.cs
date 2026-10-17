@@ -189,7 +189,7 @@ namespace Stride.Graphics
 
                         // Barrier
                         var memoryBarrier = new VkBufferMemoryBarrier(uploadResource, VkAccessFlags.HostWrite, VkAccessFlags.TransferRead, (ulong) uploadOffset, (ulong) sizeInBytes);
-                        GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(commandBuffer, VkPipelineStageFlags.Host, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 1, &memoryBarrier, imageMemoryBarrierCount: 0, imageMemoryBarriers: null);
+                        PipelineBarriers.Record(GraphicsDevice.NativeDeviceApi, commandBuffer,VkPipelineStageFlags.Host, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 1, &memoryBarrier, imageMemoryBarrierCount: 0, imageMemoryBarriers: null);
 
                         // Copy
                         var bufferCopy = new VkBufferCopy
@@ -209,7 +209,7 @@ namespace Stride.Graphics
                 // Barrier
                 var bufferMemoryBarrier = new VkBufferMemoryBarrier(NativeBuffer, VkAccessFlags.TransferWrite, NativeAccessMask);
                 var dstStages = CommandList.FixStagesForAccess(NativePipelineStageMask, NativeAccessMask);
-                GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(commandBuffer, VkPipelineStageFlags.Transfer, dstStages, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 1, &bufferMemoryBarrier, imageMemoryBarrierCount: 0, imageMemoryBarriers: null);
+                PipelineBarriers.Record(GraphicsDevice.NativeDeviceApi, commandBuffer,VkPipelineStageFlags.Transfer, dstStages, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 1, &bufferMemoryBarrier, imageMemoryBarrierCount: 0, imageMemoryBarriers: null);
 
                 // Close and submit
                 GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkEndCommandBuffer(commandBuffer));
