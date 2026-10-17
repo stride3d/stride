@@ -386,7 +386,7 @@ Hierarchy:
                     d59085720b28b549bf42b71a289cc7dc: !ImageElement ref!! 728590d5-280b-49b5-bf42-b71a289cc7dc
                     b1a3419f779cbf48a7193dcd9b7da20e: !ContentDecorator ref!! 9f41a3b1-9c77-48bf-a719-3dcd9b7da20e
                     55cc6fc1efd07d438926bff6cccd30b0: !Grid ref!! c16fcc55-d0ef-437d-8926-bff6cccd30b0
-                    6e1b04d0ace21a4a8efb34b43a2c0f63: !Button ref!! d0041b6e-e2ac-4a1a-8efb-34b43a2c0f63
+                    d33c2e28ce13691d5fa00e09fa5cec71: !Grid ref!! ab70d6c0-7a0a-43b1-96d6-c32dc98c02b7
                 RowDefinitions:
                     ea070dbad6b0b9468aebce98a1af043f:
                         MaximumSize: 150.0
@@ -429,6 +429,30 @@ Hierarchy:
                 Source: !SpriteFromSheet
                     Sheet: dba38b73-6f43-40ba-a4da-8e711695c7e8:MainSceneImages
                     CurrentFrame: 1
+                Color: {R: 255, G: 255, B: 255, A: 255}
+        -   UIElement: !Button
+                Id: 9369157a-fba7-4044-bb95-732caf59b080
+                DependencyProperties:
+                    f6cde5f23fd411677b5757983c241ebe~GridBase.RowPropertyKey: 5
+                    7fca4c266742401d591ef0427d6a679d~GridBase.RowSpanPropertyKey: 1
+                    b3b60f0da8e2b25fc8da09c894867997~GridBase.ColumnPropertyKey: 3
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                DrawLayerNumber: 2
+                HorizontalAlignment: Center
+                VerticalAlignment: Center
+                Margin: {}
+                Name: quitButton
+                Padding: {Left: 90.0, Top: 30.0, Right: 25.0, Bottom: 35.0}
+                Content: !TextBlock ref!! dd205542-4330-40c1-bb29-8def65b4899c
+                PressedImage: !SpriteFromSheet
+                    Sheet: dba38b73-6f43-40ba-a4da-8e711695c7e8:MainSceneImages
+                    CurrentFrame: 28
+                NotPressedImage: !SpriteFromSheet
+                    Sheet: dba38b73-6f43-40ba-a4da-8e711695c7e8:MainSceneImages
+                    CurrentFrame: 28
+                MouseOverImage: !SpriteFromSheet
+                    Sheet: dba38b73-6f43-40ba-a4da-8e711695c7e8:MainSceneImages
+                    CurrentFrame: 28
                 Color: {R: 255, G: 255, B: 255, A: 255}
         -   UIElement: !TextBlock
                 Id: 9e4d8544-f658-4809-92d0-d572b8cf0504
@@ -513,13 +537,33 @@ Hierarchy:
                     1eb543878a00314da7c768ba706fba9e: !ImageElement ref!! 8743b51e-008a-4d31-a7c7-68ba706fba9e
                     aaba185fae8fad4ba0c137071cbad445: !TextBlock ref!! 5f18baaa-8fae-4bad-a0c1-37071cbad445
                     40fa5350ac46be438ddea82569860dfc: !StackPanel ref!! 5053fa40-46ac-43be-8dde-a82569860dfc
+        -   UIElement: !Grid
+                Id: ab70d6c0-7a0a-43b1-96d6-c32dc98c02b7
+                DependencyProperties:
+                    87df8b280be5c3238c065b895ced26f9~GridBase.RowPropertyKey: 5
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                Margin: {}
+                Name: buttonPanel
+                Children:
+                    292f0fe57cf83208ae73c53ce6f379c4: !Button ref!! d0041b6e-e2ac-4a1a-8efb-34b43a2c0f63
+                    a341322829175b71e47057b057c80e80: !Button ref!! 9369157a-fba7-4044-bb95-732caf59b080
+                RowDefinitions: {}
+                ColumnDefinitions:
+                    dd58282b5fd4eb2f39cb1481040a8783: {}
+                    9c6d827b1cf0441662a43a844190a02b:
+                        Type: Auto
+                    702a361207455eece8621cb22d74c224: {}
+                    7489b841d30d024cc30e6f7b9dce8572:
+                        Type: Auto
+                    2b7bea06d35470d3307562424fb338f7: {}
+                LayerDefinitions: {}
         -   UIElement: !TextBlock
                 Id: b1f4bd45-d914-4488-b56c-e6ddd23103b7
                 DependencyProperties: {}
                 BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
                 Margin: {}
-                Name: quitText
-                Text: Quit Sample
+                Name: captureLabText
+                Text: Capture Lab
                 Font: 6a45aa77-17aa-4fde-9acd-9452744e14ca:WesternFont
                 TextColor: {R: 255, G: 255, B: 255, A: 255}
                 OutlineColor: {R: 0, G: 0, B: 0, A: 255}
@@ -611,13 +655,14 @@ Hierarchy:
         -   UIElement: !Button
                 Id: d0041b6e-e2ac-4a1a-8efb-34b43a2c0f63
                 DependencyProperties:
-                    f6cde5f23fd411677b5757983c241ebe~GridBase.RowPropertyKey: 5
+                    f6cde5f23fd411677b5757983c241ebe~GridBase.RowPropertyKey: 0
+                    96d4b32fbd3894f0a12b598c3fd7280b~GridBase.ColumnPropertyKey: 1
                 BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
                 DrawLayerNumber: 2
                 HorizontalAlignment: Center
                 VerticalAlignment: Center
                 Margin: {}
-                Name: quitButton
+                Name: captureLabButton
                 Padding: {Left: 90.0, Top: 30.0, Right: 25.0, Bottom: 35.0}
                 Content: !TextBlock ref!! b1f4bd45-d914-4488-b56c-e6ddd23103b7
                 PressedImage: !SpriteFromSheet
@@ -630,6 +675,17 @@ Hierarchy:
                     Sheet: dba38b73-6f43-40ba-a4da-8e711695c7e8:MainSceneImages
                     CurrentFrame: 28
                 Color: {R: 255, G: 255, B: 255, A: 255}
+        -   UIElement: !TextBlock
+                Id: dd205542-4330-40c1-bb29-8def65b4899c
+                DependencyProperties: {}
+                BackgroundColor: {R: 0, G: 0, B: 0, A: 0}
+                Margin: {}
+                Name: quitText
+                Text: Quit Sample
+                Font: 6a45aa77-17aa-4fde-9acd-9452744e14ca:WesternFont
+                TextColor: {R: 255, G: 255, B: 255, A: 255}
+                OutlineColor: {R: 0, G: 0, B: 0, A: 255}
+                OutlineThickness: 0.0
         -   UIElement: !TextBlock
                 Id: f388d14a-fa2b-4015-b18a-feb03845ff9e
                 DependencyProperties: {}

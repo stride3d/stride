@@ -1,0 +1,73 @@
+!SceneAsset
+Id: e957eef2-bfd5-4f1d-8035-53276e9cf4c5
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+ChildrenIds: []
+Offset: {X: 0.0, Y: 0.0, Z: 0.0}
+Hierarchy:
+    RootParts:
+        - ref!! 8ee01cbe-cc11-4ad5-b65f-d607263ea209
+        - ref!! 68878867-8586-4a37-a7a8-f6368f64f39b
+        - ref!! 9748fc16-6e21-4423-9c4e-b5086e23f179
+    Parts:
+        -   Entity:
+                Id: 68878867-8586-4a37-a7a8-f6368f64f39b
+                Name: CaptureLabWorld
+                Components:
+                    9fdea0002d77844ae3c1059c74a71837: !TransformComponent
+                        Id: 36681269-a850-4a09-9c6f-038610ced481
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    9ecca1240638f668d744d3c0692e2a39: !UIComponent
+                        Id: 62e78213-bc0e-49b8-a9c9-eb4cde46dc4c
+                        Page: c6282d60-926e-4153-94b3-b807d7c89be7:CaptureLabWorld
+                        IsFullScreen: false
+                        Resolution: {X: 1280.0, Y: 720.0, Z: 1000.0}
+                        Size: {X: 2.0, Y: 1.2, Z: 1.0}
+                        IsBillboard: false
+        -   Entity:
+                Id: 8ee01cbe-cc11-4ad5-b65f-d607263ea209
+                Name: CaptureLab
+                Components:
+                    44390ff6bf41ee150ff862838c481953: !TransformComponent
+                        Id: f5a35df1-1801-457d-924d-bd3adab53282
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    20b8d82aa56bd06916ee8a5fc680bd11: !UIComponent
+                        Id: 54e9d96f-1d34-4d12-a9dc-0203d85f3ad4
+                        Page: 31fd9008-8baa-46ab-a8f2-3d76eab49481:CaptureLab
+                        Resolution: {X: 1280.0, Y: 720.0, Z: 1000.0}
+                        Size: {X: 1.28, Y: 0.72, Z: 1.0}
+                    bb86d8741470acfc62006c3cbba2dfc8: !GameMenu.CaptureLabScript,GameMenu.Game
+                        Id: 0c59e85b-8aff-4570-92ca-601ce5e0e490
+                        MenuSceneUrl: 9294c606-6173-4215-a8dc-0d5043d68333:MainScene
+                        MovingTargetSpeed: 0.35
+                        WorldPanel: ref!! 68878867-8586-4a37-a7a8-f6368f64f39b
+                    52dfba3316fc0eb37d87d804ca117980: !GameMenu.InputCaptureMonitor,GameMenu.Game
+                        Id: f986f13c-0ec3-497b-b205-c1c9dc48d3de
+        -   Entity:
+                Id: 9748fc16-6e21-4423-9c4e-b5086e23f179
+                Name: LabCamera
+                Components:
+                    4ddebcf45504d5db47a2ed8bd3f1ab06: !TransformComponent
+                        Id: d65a42f4-a72b-41c3-985a-052ee817fe70
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    7c7dea5b5bab0083a2dc50ac5a4c9bf0: !CameraComponent
+                        Id: 12ea1218-499d-494c-a92c-b75bf6d8691b
+                        Name: null
+                        Projection: Perspective
+                        Slot: 33a02921-a3f4-4baa-91b2-b557748dca5e
+                    6d5fd03a9433bd689dd3b2eb7e272d0d: !GameMenu.OrbitCamera,GameMenu.Game
+                        Id: 7b8af79d-945f-41ec-a19c-5e272e4269ae
+                        Target: ref!! 68878867-8586-4a37-a7a8-f6368f64f39b
+                        Distance: 6.0
+                        Height: 1.0
+                        DegreesPerSecond: 20.0
+                        MaximumAngle: 50.0

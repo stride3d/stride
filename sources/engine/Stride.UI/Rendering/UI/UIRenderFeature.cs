@@ -63,12 +63,6 @@ namespace Stride.Rendering.UI
             batch = uiSystem.Batch;
         }
 
-        partial void PickingPrepare();
-
-        partial void PickingUpdate(RenderUIElement renderUIElement, Vector3 virtualResolution, Viewport viewport, ref Matrix worldViewProj, GameTime drawTime, ref UIElement elementUnderMouseCursor);
-
-        partial void PickingClear();
-
         public override void Draw(RenderDrawContext context, RenderView renderView, RenderViewStage renderViewStage, int startIndex, int endIndex)
         {
             lock (drawLock)
@@ -108,9 +102,6 @@ namespace Stride.Rendering.UI
             renderingContext.Time = drawTime;
             renderingContext.RenderTarget = context.CommandList.RenderTargets[0]; // TODO: avoid hardcoded index 0
 
-            // Prepare content required for Picking and MouseOver events
-            PickingPrepare();
-
             // allocate temporary graphics resources if needed
             Texture scopedDepthBuffer = null;
             foreach (var uiElement in uiElementStates)
@@ -124,19 +115,16 @@ namespace Stride.Rendering.UI
                 }
             }
 
-            // see UIElementUnderMouseCursor property
-            UIElement elementUnderMouseCursor = null;
+            var backBuffer = graphicsDeviceService.GraphicsDevice.Presenter?.BackBuffer;
+            var backBufferSize = backBuffer != null ? new Vector2(backBuffer.Width, backBuffer.Height) : Vector2.Zero;
 
-
-            // update view parameters and perform UI picking
+            // update view parameters and record what picking needs for the next capture phase
             foreach (var uiElementState in uiElementStates)
             {
                 var renderObject = uiElementState.RenderObject;
                 var rootElement = renderObject.Page?.RootElement;
                 if (rootElement == null)
                     continue;
-
-                UIElement loopedElementUnderMouseCursor = null;
 
                 // calculate the size of the virtual resolution depending on target size (UI canvas)
                 var virtualResolution = renderObject.Resolution;
@@ -163,18 +151,17 @@ namespace Stride.Rendering.UI
 
                 uiElementState.VirtualResolution = virtualResolution;
 
-                // Check if the current UI component is being picked based on the current ViewParameters (used to draw this element)
-                using (Profiler.Begin(UIProfilerKeys.TouchEventsUpdate))
+                uiSystem.RecordPickingTarget(new UIPickingTarget
                 {
-                    PickingUpdate(uiElementState.RenderObject, uiElementState.VirtualResolution, context.CommandList.Viewport, ref uiElementState.WorldViewProjectionMatrix, drawTime, ref loopedElementUnderMouseCursor);
-
-                    // only update result element, when this one has a value
-                    if (loopedElementUnderMouseCursor != null)
-                        elementUnderMouseCursor = loopedElementUnderMouseCursor;
-                }
+                    RenderObject = renderObject,
+                    View = renderView,
+                    WorldViewProjection = uiElementState.WorldViewProjectionMatrix,
+                    VirtualResolution = virtualResolution,
+                    Viewport = context.CommandList.Viewport,
+                    BackBufferSize = backBufferSize,
+                    Frame = drawTime.FrameCount,
+                });
             }
-            
-            uiSystem.UIElementUnderMouseCursor = elementUnderMouseCursor;
 
             // render the UI elements of all the entities
             foreach (var uiElementState in uiElementStates)
@@ -263,8 +250,6 @@ namespace Stride.Rendering.UI
                 batch.End();
             }
 
-            PickingClear();
-
             // Revert the Depth-Stencil buffer to the default value
             context.CommandList.SetRenderTargets(context.CommandList.DepthStencilBuffer, context.CommandList.RenderTargets);
 
@@ -273,14 +258,6 @@ namespace Stride.Rendering.UI
             {
                 context.RenderContext.Allocator.ReleaseReference(scopedDepthBuffer);
             }
-        }
-
-        public override void Flush(RenderDrawContext context)
-        {
-            base.Flush(context);
-
-            // Drain the UI-side event buffer; must be done in flush given that Draw() can be called more than once depending on UI render group and stages
-            uiSystem?.ClearPendingPointerEvents();
         }
 
         private void RecursiveDrawWithClipping(RenderDrawContext context, UIElement element, ref Matrix worldViewProj, SamplerState samplerState)

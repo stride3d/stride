@@ -27,6 +27,9 @@ namespace Stride.Input
 
         public int Priority { get; set; }
 
+        /// <inheritdoc/>
+        public DeviceCaptureState CaptureState { get; } = new DeviceCaptureState();
+
         public IInputSource Source { get; }
 
         public bool IsEnabled { get; set; }

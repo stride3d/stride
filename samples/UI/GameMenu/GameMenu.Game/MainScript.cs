@@ -4,8 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Stride.Core.Mathematics;
+using Stride.Core.Serialization;
 using Stride.Engine;
 using Stride.Graphics;
+using Stride.Input;
 using Stride.Rendering.Sprites;
 using Stride.UI;
 using Stride.UI.Controls;
@@ -77,6 +79,11 @@ namespace GameMenu
         /// UI library containing the modal popups and the ship button template.
         /// </summary>
         public UILibrary UILibrary { get; set; }
+
+        /// <summary>
+        /// The capture lab scene, opened with the "Capture lab" button or F10.
+        /// </summary>
+        public UrlReference<Scene> CaptureLabSceneUrl { get; set; }
 
         private int Bonus
         {
@@ -182,6 +189,10 @@ namespace GameMenu
             InitializeShipSelectionPopup();
             InitializeWelcomePopup();
 
+            var captureLabButton = page.RootElement.FindVisualChildOfType<Button>("captureLabButton");
+            if (captureLabButton != null)
+                captureLabButton.Click += delegate { OpenCaptureLab(); };
+
             // Add pop-ups to the overlay
             var overlay = (UniformGrid) page.RootElement;
             overlay.Children.Add(shipSelectPopup);
@@ -273,6 +284,21 @@ namespace GameMenu
             }
 
             return shipPanel;
+        }
+
+        protected override void UpdateScene()
+        {
+            if (Input.IsKeyPressed(Keys.F10))
+                OpenCaptureLab();
+        }
+
+        private void OpenCaptureLab()
+        {
+            if (CaptureLabSceneUrl == null)
+                return;
+
+            SceneSystem.SceneInstance.RootScene = Content.Load(CaptureLabSceneUrl);
+            Cancel();
         }
 
         private void InitializeMainPage()

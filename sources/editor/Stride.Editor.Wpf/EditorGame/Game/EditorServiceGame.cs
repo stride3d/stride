@@ -149,6 +149,9 @@ namespace Stride.Editor.EditorGame.Game
             MicrothreadLocalDatabases.MountCommonDatabase();
 
             base.Initialize();
+
+            // Editor tools, such as gizmos and the UI editor's adorners, must see all input, including input over UI
+            Input.MaskCapturedInput = false;
         }
 
         /// <inheritdoc />
