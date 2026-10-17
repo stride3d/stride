@@ -147,23 +147,23 @@ public class VirtualNodePresenter : NodePresenterBase
         RaiseNodeChanged(e.OldValue, e.ChangeType, (e as ItemChangeEventArgs)?.Index ?? NodeIndex.Empty);
     }
 
-    private void RaiseNodeChanging(object? newValue, ContentChangeType changeType, NodeIndex index)
+    private void RaiseNodeChanging(object? newValue, ContentChangeType changeType, NodeIndex changedIndex)
     {
-        if (ShouldRaiseEvent(changeType, index))
+        if (ShouldRaiseEvent(changeType, changedIndex))
         {
             RaiseValueChanging(newValue);
         }
     }
 
-    private void RaiseNodeChanged(object? oldValue, ContentChangeType changeType, NodeIndex index)
+    private void RaiseNodeChanged(object? oldValue, ContentChangeType changeType, NodeIndex changedIndex)
     {
-        if (ShouldRaiseEvent(changeType, index))
+        if (ShouldRaiseEvent(changeType, changedIndex))
         {
             RaiseValueChanged(oldValue);
         }
     }
 
-    private bool ShouldRaiseEvent(ContentChangeType changeType, NodeIndex index)
+    private bool ShouldRaiseEvent(ContentChangeType changeType, NodeIndex changedIndex)
     {
         if (updatingValue)
             return false;
@@ -171,6 +171,9 @@ public class VirtualNodePresenter : NodePresenterBase
         if (AssociatedNode.Node == null || AssociatedNode.Index == NodeIndex.Empty)
             return true;
 
-        return index != NodeIndex.Empty && ItemNodePresenter.IsValidChange(changeType, index, Index);
+        // This row shows one entry of a collection. Item rows ignore adds and removes because their parent
+        // rebuilds them, but nothing rebuilds a virtual row, so it refreshes on any change to its own entry.
+        bool changeIsOnThisRowsEntry = Equals(changedIndex, Index);
+        return changeIsOnThisRowsEntry;
     }
 }
