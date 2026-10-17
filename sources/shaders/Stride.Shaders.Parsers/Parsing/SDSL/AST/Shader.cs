@@ -616,6 +616,7 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
                     }
                 }
             }
+            DefinitionChecks.CheckParentGenericArgumentCount(table, mixin, generics.Length);
             var shaderClassSource = new ShaderClassInstantiation(mixin.Name, generics);
             return SpirvBuilder.BuildInheritanceListIncludingSelf(table.ShaderLoader, context, shaderClassSource, table.CurrentMacros.AsSpan(), table.InheritedShaders, ResolveStep.Compile);
         }

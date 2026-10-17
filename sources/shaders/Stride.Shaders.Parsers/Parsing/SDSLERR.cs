@@ -77,6 +77,7 @@ public static class SDSLErrorMessages
     public const string SDSL0113 = "SDSL0113: Could not resolve member {0} in structure of type {1}";
     public const string SDSL0114 = "SDSL0114: {0}.{1}({2}) at line {3} implements abstract method {4}.{1} but is not marked 'override'. Add the 'override' keyword.";
     public const string SDSL0115 = "SDSL0115: {0}.{1}({2}) at line {3} hides inherited method {4}.{1} but is not marked 'override'. Add the 'override' keyword, or rename the method.";
+    public const string SDSL0117 = "SDSL0117: {0} has {1} generic parameter(s) ({2}), but {3} given{4}. Give a value for each parameter; an effect log or a C# mixin tree written for an older version of the shader gives this error too: rebuild it.";
     public const string SDSL0118 = "SDSL0118: {0} declares generic parameter '{1}' of type {2} at line {3}. Texture and sampler generic parameters are not supported. Declare a texture or sampler member instead, or use a ComputeColorTexture...Sampler shader with a texture key.";
     public const string SDSL0145 = "SDSL0145: Swizzle {0} writes the same element twice. Write each element once.";
     public const string SDSL0160 = "SDSL0160: {0} takes {1}, but the call gives {2}.";
@@ -126,4 +127,11 @@ public static class SDSLErrorMessages
     public const string SDSL0242 = "SDSL0242: & within |: {0} computes {1} first. Add parentheses around it to make it clear.";
     public const string SDSL0243 = "SDSL0243: && within ||: {0} computes {1} first. Add parentheses around it to make it clear.";
     public const string SDSL0244 = "SDSL0244: {0} has lower precedence than {1}: {2} computes {3} first. Add parentheses to make it clear.";
+
+    // Definition checks: found when a class compiles, reported as warnings (errors with ShaderLoaderBase.WarningsAsErrors)
+
+    public const string SDSL0200 = "SDSL0200: {0}.{1}() is marked 'override', but no inherited class declares {1}: it starts a new method, and calls made through a parent never reach it. Inherit the class that declares {1}, or remove 'override'.";
+    public const string SDSL0201 = "SDSL0201: base.{1}() in {0}: no inherited class declares {1}() with this signature, so mixing {0} always fails. Inherit the class that declares it, or call {1}() without 'base'.";
+    public const string SDSL0202 = "SDSL0202: {0} has {1} generic parameter(s) ({2}), but {3} given: the extra values are ignored. Remove them.";
+    public const string SDSL0203 = "SDSL0203: [Color] on {0}, of type {1}: only float3 and float4 (or arrays of them) can be colors. Remove [Color], or change the type.";
 }

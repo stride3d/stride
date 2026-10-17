@@ -34,6 +34,7 @@ public partial class InstructionInfo
 
         group++;
         OrderGroup[(Op.OpSourceHashSDSL, null)] = group;
+        OrderGroup[(Op.OpDiagnosticSDSL, null)] = group;
 
         group++;
         OrderGroup[(Op.OpExtension, null)] = group;

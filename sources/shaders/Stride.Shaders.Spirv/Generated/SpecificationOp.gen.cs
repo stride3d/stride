@@ -793,6 +793,7 @@ public static partial class Specification
         OpBinaryOperationSDSL = 8030,
         OpSourceHashSDSL = 8031,
         OpSwitchIdSDSL = 8032,
+        OpDiagnosticSDSL = 8033,
         OpEffectSDFX = 9000,
         OpParamsUseSDFX = 9001,
         OpParamsSDFX = 9002,
