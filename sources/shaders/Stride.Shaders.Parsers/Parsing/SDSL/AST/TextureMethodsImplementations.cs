@@ -621,7 +621,8 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
             }
             else
             {
-                table.AddError(new(location, "Texture sample offset must be a constant expression (non-constant Offset requires Vulkan maintenance8)"));
+                imask |= ImageOperandsMask.Offset;
+                operands[operandCount++] = offset.Value.Id;
             }
         }
         if (sampleIndex != null)

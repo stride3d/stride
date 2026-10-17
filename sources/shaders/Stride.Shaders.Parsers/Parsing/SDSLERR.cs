@@ -103,6 +103,7 @@ public static class SDSLErrorMessages
     public const string SDSL0186 = "SDSL0186: The destination of {0}, {1}, is {2}: other threads don't see it. Use an element of a RWStructuredBuffer, RWBuffer or RWTexture, or a groupshared variable.";
     public const string SDSL0187 = "SDSL0187: {0} on a float is not supported: on Vulkan it needs float atomics, which Stride doesn't enable. Store the float's bits in an int or uint (asuint, asfloat) and update it with InterlockedCompareExchange.";
     public const string SDSL0188 = "SDSL0188: {0}: 64-bit atomic operations are not supported (Direct3D 11 has none). Use a 32-bit int or uint.";
+    public const string SDSL0189 = "SDSL0189: This texture offset is not a constant, even with the methods inlined and the [unroll] loops unrolled. Use a literal, a static const value, or the counter of an [unroll] loop with constant bounds; a value from a cbuffer, a stream or a loop without [unroll] can't be an offset.";
 
     // HLSL warnings: valid HLSL that is probably a mistake, reported when a class compiles
     public const string SDSL0219 = "SDSL0219: comma expression ({0}): the values before the last are dropped, the result is {1}. To build a vector, write its type: float4(...).";
