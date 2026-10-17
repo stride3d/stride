@@ -242,6 +242,13 @@ public sealed partial class ShaderMember(
         if (Value != null && StreamKind is StreamKind.Stream or StreamKind.PatchStream)
             table.AddError(new(Value.Info, string.Format(SDSLErrorMessages.SDSL0172, Name, Value.Info.Text)));
 
+        // A cbuffer member (any non-static member) or a structured buffer element
+        if (storageClass is Specification.StorageClass.Uniform or Specification.StorageClass.StorageBuffer && FindIntegerMatrix(memberType) is { } integerMatrix)
+        {
+            table.AddError(new(TypeName.Info, string.Format(SDSLErrorMessages.SDSL0195, Name, integerMatrix, new VectorType(integerMatrix.BaseType, integerMatrix.Rows))));
+            return;
+        }
+
         if (TypeModifier == TypeModifier.Const)
         {
             if (Value == null)
