@@ -455,7 +455,7 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
     {
         var previousReferencedPackages = referencedPackages;
         referencedPackages = StridePackageReferences.Find(store, mainPackages);
-        var unusedPackages = previousReferencedPackages.Where(package => !referencedPackages.Contains(package)).ToList();
+        var unusedPackages = StridePackageReferences.FindUnused(store, previousReferencedPackages, referencedPackages);
         if (unusedPackages.Count == 0)
             return;
 

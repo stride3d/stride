@@ -334,6 +334,15 @@ public partial class NugetStore : INugetDownloadProgress
     }
 
     /// <summary>
+    /// Whether the user package folder has a folder for <paramref name="id"/> <paramref name="version"/>, installed or
+    /// not: a local build's package that its checkout invalidated until the next restore has one, but is not installed.
+    /// </summary>
+    public bool HasPackageFolder(string id, PackageVersion version)
+    {
+        return Directory.Exists(new VersionFolderPathResolver(InstallPath).GetInstallPath(id, version.ToNuGetVersion()));
+    }
+
+    /// <summary>
     /// Get the most recent version associated to <paramref name="packageIds"/>. To make sense
     /// it is assumed that packageIds represent the same package under a different name.
     /// </summary>
