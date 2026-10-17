@@ -156,6 +156,19 @@ internal struct D3D12SubresourceRange
         FirstPlane = 0,
         NumPlanes = 0,
     };
+
+    /// <summary>
+    ///   A range of mip-levels and array slices of the first plane (color, or depth-only textures).
+    /// </summary>
+    public static D3D12SubresourceRange FromRange(TextureSubresourceRange range) => new()
+    {
+        IndexOrFirstMipLevel = (uint) range.MipStart,
+        NumMipLevels = (uint) range.MipCount,
+        FirstArraySlice = (uint) range.ArraySliceStart,
+        NumArraySlices = (uint) range.ArraySliceCount,
+        FirstPlane = 0,
+        NumPlanes = 1,
+    };
 }
 
 /// <summary>
@@ -173,14 +186,15 @@ internal unsafe struct D3D12BarrierGroup
 internal static unsafe class EnhancedBarriers
 {
     /// <summary>
-    ///   Emits a single-texture enhanced Barrier on the given command list (all subresources).
+    ///   Emits a single-texture enhanced Barrier on the given command list (all subresources, or a range of them).
     /// </summary>
     public static void TextureBarrier(
         ID3D12GraphicsCommandList7* commandList,
         ID3D12Resource* resource,
         D3D12BarrierSync syncBefore, D3D12BarrierSync syncAfter,
         D3D12BarrierAccess accessBefore, D3D12BarrierAccess accessAfter,
-        NativeBarrierLayout layoutBefore, NativeBarrierLayout layoutAfter)
+        NativeBarrierLayout layoutBefore, NativeBarrierLayout layoutAfter,
+        D3D12SubresourceRange? subresources = null)
     {
         var barrier = new D3D12TextureBarrier
         {
@@ -191,7 +205,7 @@ internal static unsafe class EnhancedBarriers
             LayoutBefore = layoutBefore,
             LayoutAfter = layoutAfter,
             PResource = resource,
-            Subresources = D3D12SubresourceRange.All,
+            Subresources = subresources ?? D3D12SubresourceRange.All,
             Flags = 0,
         };
         var group = new D3D12BarrierGroup

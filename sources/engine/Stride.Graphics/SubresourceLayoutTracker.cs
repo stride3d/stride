@@ -2,8 +2,15 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 
 namespace Stride.Graphics;
+
+/// <summary>
+///   A barrier a <see cref="SubresourceLayoutTracker"/> transition needs: the subresource it moves
+///   (<see cref="uint.MaxValue"/> for the whole resource) and the layout it moves it from.
+/// </summary>
+internal readonly record struct SubresourceTransition(uint Subresource, BarrierLayout LayoutBefore);
 
 /// <summary>
 ///   Tracks the <see cref="BarrierLayout"/> of a resource's subresources for barrier transitions.
@@ -80,6 +87,68 @@ internal struct SubresourceLayoutTracker
                 return true;
         }
         return false;
+    }
+
+    /// <summary>
+    ///   Moves a subresource, or the whole resource with <see cref="uint.MaxValue"/>, to a layout, and adds the
+    ///   barriers it needs to <paramref name="transitions"/>: none if it is already there, one whole-resource
+    ///   barrier if every subresource shares a layout, otherwise one per subresource that differs.
+    /// </summary>
+    public void Transition(uint subresource, BarrierLayout newLayout, List<SubresourceTransition> transitions)
+    {
+        if (!NeedsTransition(subresource, newLayout))
+            return;
+
+        if (subresource == uint.MaxValue && mixed && !TryGetCommonLayout(out _))
+        {
+            for (int i = 0; i < perSubresource!.Length; i++)
+            {
+                if (perSubresource[i] != newLayout)
+                    transitions.Add(new SubresourceTransition((uint) i, perSubresource[i]));
+            }
+        }
+        else
+        {
+            var layoutBefore = subresource == uint.MaxValue && mixed ? perSubresource![0] : Get(subresource);
+            transitions.Add(new SubresourceTransition(subresource, layoutBefore));
+        }
+
+        Set(subresource, newLayout);
+        CollapseIfUniform();
+    }
+
+    /// <summary>
+    ///   Moves a range of the subresources of a texture to a layout, and adds one barrier per subresource
+    ///   that changes to <paramref name="transitions"/>.
+    /// </summary>
+    /// <param name="range">The mip-levels and array slices to move.</param>
+    /// <param name="mipLevelCount">The number of mip-levels of the texture, to number its subresources.</param>
+    /// <param name="newLayout">The layout to move them to.</param>
+    /// <param name="transitions">The list to add the barriers to.</param>
+    public void Transition(TextureSubresourceRange range, int mipLevelCount, BarrierLayout newLayout, List<SubresourceTransition> transitions)
+    {
+        for (int arraySlice = range.ArraySliceStart; arraySlice < range.ArraySliceEnd; arraySlice++)
+        {
+            for (int mipLevel = range.MipStart; mipLevel < range.MipEnd; mipLevel++)
+            {
+                var subresource = (uint) (arraySlice * mipLevelCount + mipLevel);
+                var layoutBefore = Get(subresource);
+                if (layoutBefore == newLayout)
+                    continue;
+
+                transitions.Add(new SubresourceTransition(subresource, layoutBefore));
+                Set(subresource, newLayout);
+            }
+        }
+
+        CollapseIfUniform();
+    }
+
+    // Back to the single layout when every subresource is in the same one again (a mip chain moved them one by one)
+    private void CollapseIfUniform()
+    {
+        if (mixed && TryGetCommonLayout(out var layout))
+            Set(uint.MaxValue, layout);
     }
 
     /// <summary>

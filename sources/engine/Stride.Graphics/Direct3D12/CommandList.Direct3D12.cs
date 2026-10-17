@@ -45,6 +45,9 @@ namespace Stride.Graphics
         /// </summary>
         internal int PendingBarrierCount => pendingBarriers.Count;
 
+        // Scratch list for the barriers of one ResourceBarrierTransition. Reused to avoid per-call allocs.
+        private readonly List<SubresourceTransition> barrierTransitions = new(16);
+
         // Scratch map for FlushResourceBarriers coalescing. Reused to avoid per-flush allocs.
         private readonly Dictionary<(GraphicsResource, uint), int> barrierCoalesceMap = new(16);
 
@@ -410,19 +413,6 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Computes the D3D12 subresource index for a texture or texture view.
-        ///   Returns <see cref="uint.MaxValue"/> for whole-resource (non-view) textures.
-        /// </summary>
-        private static uint GetTextureSubresource(Texture texture)
-        {
-            if (texture.ParentTexture is null)
-                return uint.MaxValue; // Whole resource
-
-            var parent = texture.ParentTexture;
-            return (uint)(texture.MipLevel + texture.ArraySlice * parent.MipLevelCount);
-        }
-
-        /// <summary>
         ///   Sets the reference value for Depth-Stencil tests.
         /// </summary>
         /// <param name="stencilReference">Reference value to perform against when doing a Depth-Stencil test.</param>
@@ -561,14 +551,15 @@ namespace Stride.Graphics
             RecordDebugCounter(DebugCounterKind.Barrier);
 
             // Texture views share the native resource of their parent; barrier the parent instead, and only the
-            // subresource a single-element view covers: a mip chain reads one mip while it writes the next.
-            // Depth-stencil textures keep the whole-resource barrier: their stencil plane has its own subresources,
-            // which the tracker does not know
+            // subresources the view covers: a mip chain reads one mip while it writes the next
+            TextureSubresourceRange? viewRange = null;
+            int mipLevelCount = 1;
             if (resource is Texture texture)
             {
-                if (subresource == uint.MaxValue && texture.ParentTexture is { } parent && texture.ViewType == ViewType.Single && !parent.IsDepthStencil)
-                    subresource = (uint) parent.GetSubResourceIndex(texture.ArraySlice, texture.MipLevel);
+                if (subresource == uint.MaxValue)
+                    viewRange = texture.GetBarrierRange();
                 resource = texture.RootTexture;
+                mipLevelCount = texture.MipLevelCount;
             }
 
             // Seed CL-local tracker from shared on first touch; Clone to avoid aliasing its
@@ -577,45 +568,23 @@ namespace Stride.Graphics
             if (!exists)
                 tracker = resource.LayoutTracker.Clone();
 
-            if (tracker.NeedsTransition(subresource, newLayout))
-            {
-                // When per-subresource tracking is active and a whole-resource transition is requested,
-                // only emit barriers for subresources that actually differ, or a single one if they all share a layout
-                if (subresource == uint.MaxValue && tracker.HasPerSubresourceTracking)
-                {
-                    if (tracker.TryGetCommonLayout(out var commonLayout))
-                    {
-                        pendingBarriers.Add(new ResourceBarrierDescription(resource, commonLayout, newLayout)
-                        {
-                            Subresource = uint.MaxValue
-                        });
-                    }
-                    else
-                    {
-                        var layouts = tracker.PerSubresourceLayouts;
-                        for (int i = 0; i < layouts.Length; i++)
-                        {
-                            if (layouts[i] != newLayout)
-                            {
-                                pendingBarriers.Add(new ResourceBarrierDescription(resource, layouts[i], newLayout)
-                                {
-                                    Subresource = (uint)i
-                                });
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    pendingBarriers.Add(new ResourceBarrierDescription(resource, tracker.Get(subresource), newLayout)
-                    {
-                        Subresource = subresource
-                    });
-                }
+            barrierTransitions.Clear();
+            if (viewRange is { } range)
+                tracker.Transition(range, mipLevelCount, newLayout, barrierTransitions);
+            else
+                tracker.Transition(subresource, newLayout, barrierTransitions);
 
-                tracker.Set(subresource, newLayout);
-                resource.LayoutTracker = tracker;
+            if (barrierTransitions.Count == 0)
+                return;
+
+            foreach (var transition in barrierTransitions)
+            {
+                pendingBarriers.Add(new ResourceBarrierDescription(resource, transition.LayoutBefore, newLayout)
+                {
+                    Subresource = transition.Subresource
+                });
             }
+            resource.LayoutTracker = tracker;
         }
 
         /// <summary>
@@ -788,19 +757,24 @@ namespace Stride.Graphics
 
         /// <summary>
         ///   Orders the unordered accesses to a Graphics Resource of a synchronization scope before those of another one.
-        ///   The resource must be in <see cref="BarrierLayout.UnorderedAccess"/>.
+        ///   The resource must be in <see cref="BarrierLayout.UnorderedAccess"/> (for a Texture View, the sub-Resources it covers).
         /// </summary>
         private unsafe void UnorderedAccessSync(GraphicsResource resource, D3D12BarrierSync syncBefore, D3D12BarrierSync syncAfter)
         {
-            // Texture views share the native resource of their parent
+            // Texture views share the native resource of their parent, and cover only some of its subresources
+            D3D12SubresourceRange? subresources = null;
             if (resource is Texture texture)
+            {
+                if (texture.GetBarrierRange() is { } range)
+                    subresources = D3D12SubresourceRange.FromRange(range);
                 resource = texture.RootTexture;
+            }
 
             const D3D12BarrierAccess Access = D3D12BarrierAccess.UnorderedAccess;
             if (resource is Texture)
             {
                 var layout = BarrierMapping.ToEnhancedLayout(BarrierLayout.UnorderedAccess);
-                EnhancedBarriers.TextureBarrier(currentCommandList.NativeCommandList.Handle, resource.NativeResource, syncBefore, syncAfter, Access, Access, layout, layout);
+                EnhancedBarriers.TextureBarrier(currentCommandList.NativeCommandList.Handle, resource.NativeResource, syncBefore, syncAfter, Access, Access, layout, layout, subresources);
             }
             else
             {
