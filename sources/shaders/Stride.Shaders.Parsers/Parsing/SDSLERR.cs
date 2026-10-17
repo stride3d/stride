@@ -100,6 +100,10 @@ public static class SDSLErrorMessages
     public const string SDSL0192 = "SDSL0192: {0}.{1}: {1} is {2}, so '{0}.' doesn't apply to it. Write {1}.";
     public const string SDSL0193 = "SDSL0193: Can't convert {0} to {1}: HLSL doesn't add components implicitly. Write them: {1}(value, ...).";
     public const string SDSL0194 = "SDSL0194: Stream {0} is read{1} before any stage writes it, and it has no semantic, so it can't come from a vertex buffer. Write streams.{0} before reading it, or give it a semantic if it is a vertex buffer input.";
+    public const string SDSL0185 = "SDSL0185: {0} works on an int or uint, but its destination {1} has type {2}. Use an int or uint element of a buffer, a texture or a groupshared variable (for a float, store its bits with asuint and update it with InterlockedCompareExchange).";
+    public const string SDSL0186 = "SDSL0186: The destination of {0}, {1}, is {2}: other threads don't see it. Use an element of a RWStructuredBuffer, RWBuffer or RWTexture, or a groupshared variable.";
+    public const string SDSL0187 = "SDSL0187: {0} on a float is not supported: on Vulkan it needs float atomics, which Stride doesn't enable. Store the float's bits in an int or uint (asuint, asfloat) and update it with InterlockedCompareExchange.";
+    public const string SDSL0188 = "SDSL0188: {0}: 64-bit atomic operations are not supported (Direct3D 11 has none). Use a 32-bit int or uint.";
 
     // HLSL warnings: valid HLSL that is probably a mistake, reported when a class compiles
     public const string SDSL0219 = "SDSL0219: comma expression ({0}): the values before the last are dropped, the result is {1}. To build a vector, write its type: float4(...).";

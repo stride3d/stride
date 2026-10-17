@@ -648,28 +648,32 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
 
     public static SpirvValue CompileInterlockedCall(SymbolTable table, SpirvContext context, SpirvBuilder builder, InterlockedOp op, SpirvValue dest, SpirvValue value, SpirvValue? originalLocation = null, SpirvValue? compare = null)
     {
+        // MethodCall.CheckAtomicCall gave the destination the argument's type: an int or uint in shared memory
         var destType = context.ReverseTypes[dest.TypeId];
         if (destType is not PointerType pointerType || pointerType.BaseType is not ScalarType { Type: Scalar.UInt or Scalar.Int } s)
             throw new InvalidOperationException($"l-value int or uint expected but got {destType}");
 
         var resultType = s;
+        // The signature takes uint values (any int for Min and Max): as in DXC, they become the destination's type
+        value = builder.Convert(context, value, resultType);
+        var scope = context.CompileConstant((int)(pointerType.StorageClass == Specification.StorageClass.Workgroup ? Specification.Scope.Workgroup : Specification.Scope.Device));
 
         // If there is an out parameter to save original value
         SpirvValue originalValue;
         if (op == InterlockedOp.CompareStore || op == InterlockedOp.CompareExchange)
         {
             var instruction = builder.Insert(new OpAtomicCompareExchange(context.GetOrRegister(resultType), context.Bound++, dest.Id,
-                context.CompileConstant((int)Specification.Scope.Device).Id,
+                scope.Id,
                 context.CompileConstant((int)Specification.MemorySemanticsMask.Relaxed).Id,
                 context.CompileConstant((int)Specification.MemorySemanticsMask.Relaxed).Id,
-                compare!.Value.Id,
-                value.Id));
+                value.Id,
+                builder.Convert(context, compare!.Value, resultType).Id));
             originalValue = new SpirvValue(instruction.ResultId, instruction.ResultType);
         }
         else
         {
             var instruction = builder.Insert(new OpAtomicIAdd(context.GetOrRegister(resultType), context.Bound++, dest.Id,
-                context.CompileConstant((int)Specification.Scope.Device).Id,
+                scope.Id,
                 context.CompileConstant((int)Specification.MemorySemanticsMask.Relaxed).Id,
                 value.Id));
             // Update instruction type (they all share same memory layout)
