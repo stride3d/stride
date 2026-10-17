@@ -171,6 +171,9 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
         bytecode = SpirvBytecode.CreateBytecodeFromBuffers(temp);
 
+        if (!MakeSampleOffsetsConstant(ref bytecode, log))
+            return false;
+
         effectReflection = globalContext.Reflection;
         usedHashSources = shaderLoader.Sources;
         return true;
