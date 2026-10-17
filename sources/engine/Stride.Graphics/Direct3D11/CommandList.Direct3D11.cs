@@ -421,9 +421,9 @@ namespace Stride.Graphics
             bound.Resource = shaderResourceView is not null ? (nint) shaderResourceView.NativeResource.Handle : 0;
             if (shaderResourceView is Texture texture)
             {
-                var (mipStart, mipCount, arraySliceStart, arraySliceCount) = texture.GetViewSubResourceRange();
-                (bound.MipStart, bound.MipEnd) = (mipStart, mipStart + mipCount);
-                (bound.ArraySliceStart, bound.ArraySliceEnd) = (arraySliceStart, arraySliceStart + arraySliceCount);
+                var range = texture.GetViewSubResourceRange();
+                (bound.MipStart, bound.MipEnd) = (range.MipStart, range.MipEnd);
+                (bound.ArraySliceStart, bound.ArraySliceEnd) = (range.ArraySliceStart, range.ArraySliceEnd);
             }
             else
             {

@@ -22,14 +22,14 @@ public class TestUnorderedAccessTransitionUnbind : GraphicTestGameBase
             var array = Texture.New2D(device, 8, 8, mipCount: 3, PixelFormat.R8G8B8A8_UNorm, TextureFlags.ShaderResource, arraySize: 2);
             var volume = Texture.New3D(device, 8, 8, 8, mipCount: 3, PixelFormat.R8G8B8A8_UNorm, TextureFlags.ShaderResource);
 
-            Assert.Equal((0, 3, 0, 2), array.GetViewSubResourceRange());
-            Assert.Equal((1, 1, 1, 1), array.ToTextureView(ViewType.Single, 1, 1).GetViewSubResourceRange());
-            Assert.Equal((1, 1, 1, 1), array.ToTextureView(ViewType.MipBand, 1, 1).GetViewSubResourceRange());
-            Assert.Equal((1, 2, 1, 1), array.ToTextureView(ViewType.ArrayBand, 1, 1).GetViewSubResourceRange());
+            Assert.Equal(new TextureSubresourceRange(0, 3, 0, 2), array.GetViewSubResourceRange());
+            Assert.Equal(new TextureSubresourceRange(1, 1, 1, 1), array.ToTextureView(ViewType.Single, 1, 1).GetViewSubResourceRange());
+            Assert.Equal(new TextureSubresourceRange(1, 1, 1, 1), array.ToTextureView(ViewType.MipBand, 1, 1).GetViewSubResourceRange());
+            Assert.Equal(new TextureSubresourceRange(1, 2, 1, 1), array.ToTextureView(ViewType.ArrayBand, 1, 1).GetViewSubResourceRange());
 
             // Depth slices are not sub-resources
-            Assert.Equal((0, 3, 0, 1), volume.GetViewSubResourceRange());
-            Assert.Equal((2, 1, 0, 1), volume.ToTextureView(ViewType.Single, 0, 2).GetViewSubResourceRange());
+            Assert.Equal(new TextureSubresourceRange(0, 3, 0, 1), volume.GetViewSubResourceRange());
+            Assert.Equal(new TextureSubresourceRange(2, 1, 0, 1), volume.ToTextureView(ViewType.Single, 0, 2).GetViewSubResourceRange());
         });
     }
 
