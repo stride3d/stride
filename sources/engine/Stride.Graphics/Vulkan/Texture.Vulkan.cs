@@ -38,8 +38,21 @@ namespace Stride.Graphics
         internal VkFormat NativeFormat;
         internal bool HasStencil;
 
-        internal VkImageLayout NativeLayout;
-        internal VkAccessFlags NativeAccessMask;
+        private VkImageLayout nativeLayout;
+        private VkAccessFlags nativeAccessMask;
+
+        // A Texture View has no layout state of its own: these are its parent Texture's
+        internal VkImageLayout NativeLayout
+        {
+            get => RootTexture.nativeLayout;
+            set => RootTexture.nativeLayout = value;
+        }
+        internal VkAccessFlags NativeAccessMask
+        {
+            get => RootTexture.nativeAccessMask;
+            set => RootTexture.nativeAccessMask = value;
+        }
+
         internal VkImageAspectFlags NativeImageAspect;
 
         public void Recreate(DataBox[] dataBoxes = null)
@@ -140,9 +153,13 @@ namespace Stride.Graphics
                     throw new InvalidOperationException();
 
                 IsHostVisibleHeap = true;
-                NativeAccessMask = VkAccessFlags.HostRead | VkAccessFlags.HostWrite;
 
-                NativePipelineStageMask = VkPipelineStageFlags.Host;
+                // A view shares its parent's state
+                if (ParentTexture is null)
+                {
+                    NativeAccessMask = VkAccessFlags.HostRead | VkAccessFlags.HostWrite;
+                    NativePipelineStageMask = VkPipelineStageFlags.Host;
+                }
 
                 if (ParentTexture != null)
                 {
@@ -165,27 +182,31 @@ namespace Stride.Graphics
                 if (NativeImage != VkImage.Null)
                     throw new InvalidOperationException();
 
-                var initialLayout = GetInitialBarrierLayout();
-                NativeLayout = BarrierMapping.ToVkImageLayout(initialLayout);
-                LayoutTracker.Initialize(initialLayout, ArraySize * MipLevelCount);
+                // A view shares its parent's state
+                if (ParentTexture is null)
+                {
+                    var initialLayout = GetInitialBarrierLayout();
+                    NativeLayout = BarrierMapping.ToVkImageLayout(initialLayout);
+                    LayoutTracker.Initialize(initialLayout, ArraySize * MipLevelCount);
 
-                if (NativeLayout == VkImageLayout.TransferDstOptimal)
-                    NativeAccessMask = VkAccessFlags.TransferRead;
+                    if (NativeLayout == VkImageLayout.TransferDstOptimal)
+                        NativeAccessMask = VkAccessFlags.TransferRead;
 
-                if (NativeLayout == VkImageLayout.ColorAttachmentOptimal)
-                    NativeAccessMask = VkAccessFlags.ColorAttachmentWrite | VkAccessFlags.ColorAttachmentRead;
+                    if (NativeLayout == VkImageLayout.ColorAttachmentOptimal)
+                        NativeAccessMask = VkAccessFlags.ColorAttachmentWrite | VkAccessFlags.ColorAttachmentRead;
 
-                if (NativeLayout == VkImageLayout.DepthStencilAttachmentOptimal)
-                    NativeAccessMask = VkAccessFlags.DepthStencilAttachmentWrite | VkAccessFlags.DepthStencilAttachmentRead;
+                    if (NativeLayout == VkImageLayout.DepthStencilAttachmentOptimal)
+                        NativeAccessMask = VkAccessFlags.DepthStencilAttachmentWrite | VkAccessFlags.DepthStencilAttachmentRead;
 
-                if (NativeLayout == VkImageLayout.ShaderReadOnlyOptimal)
-                    NativeAccessMask = VkAccessFlags.ShaderRead | VkAccessFlags.InputAttachmentRead;
+                    if (NativeLayout == VkImageLayout.ShaderReadOnlyOptimal)
+                        NativeAccessMask = VkAccessFlags.ShaderRead | VkAccessFlags.InputAttachmentRead;
 
-                NativePipelineStageMask =
-                    IsRenderTarget ? VkPipelineStageFlags.ColorAttachmentOutput :
-                    IsDepthStencil ? VkPipelineStageFlags.ColorAttachmentOutput | VkPipelineStageFlags.EarlyFragmentTests | VkPipelineStageFlags.LateFragmentTests :
-                    IsShaderResource || IsUnorderedAccess ? VkPipelineStageFlags.VertexShader | VkPipelineStageFlags.FragmentShader | VkPipelineStageFlags.ComputeShader :
-                    VkPipelineStageFlags.None;
+                    NativePipelineStageMask =
+                        IsRenderTarget ? VkPipelineStageFlags.ColorAttachmentOutput :
+                        IsDepthStencil ? VkPipelineStageFlags.ColorAttachmentOutput | VkPipelineStageFlags.EarlyFragmentTests | VkPipelineStageFlags.LateFragmentTests :
+                        IsShaderResource || IsUnorderedAccess ? VkPipelineStageFlags.VertexShader | VkPipelineStageFlags.FragmentShader | VkPipelineStageFlags.ComputeShader :
+                        VkPipelineStageFlags.None;
+                }
 
                 if (ParentTexture != null)
                 {

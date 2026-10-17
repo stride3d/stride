@@ -561,8 +561,8 @@ namespace Stride.Graphics
             RecordDebugCounter(DebugCounterKind.Barrier);
 
             // Texture views share the native resource of their parent; barrier the parent instead
-            if (resource is Texture { ParentTexture: not null } textureView)
-                resource = textureView.ParentTexture;
+            if (resource is Texture texture)
+                resource = texture.RootTexture;
 
             // Seed CL-local tracker from shared on first touch; Clone to avoid aliasing its
             // perSubresource array.
@@ -786,8 +786,8 @@ namespace Stride.Graphics
         private unsafe void UnorderedAccessSync(GraphicsResource resource, D3D12BarrierSync syncBefore, D3D12BarrierSync syncAfter)
         {
             // Texture views share the native resource of their parent
-            if (resource is Texture { ParentTexture: not null } textureView)
-                resource = textureView.ParentTexture;
+            if (resource is Texture texture)
+                resource = texture.RootTexture;
 
             const D3D12BarrierAccess Access = D3D12BarrierAccess.UnorderedAccess;
             if (resource is Texture)
@@ -1549,8 +1549,8 @@ namespace Stride.Graphics
             void CopyBetweenTextures(Texture sourceTexture, Texture destinationTexture)
             {
                 // Get the parent Textures in case these are Texture Views
-                var sourceParent = sourceTexture.ParentTexture ?? sourceTexture;
-                var destinationParent = destinationTexture.ParentTexture ?? destinationTexture;
+                var sourceParent = sourceTexture.RootTexture;
+                var destinationParent = destinationTexture.RootTexture;
 
                 if (destinationTexture.Usage == GraphicsResourceUsage.Staging)
                 {
@@ -1868,7 +1868,7 @@ namespace Stride.Graphics
 
                 if (destinationTexture.Usage == GraphicsResourceUsage.Staging)
                 {
-                    var destinationParent = destinationTexture.ParentTexture ?? destinationTexture;
+                    var destinationParent = destinationTexture.RootTexture;
 
                     SkipInit(out PlacedSubresourceFootprint footprint);
                     uint numRows = 0;

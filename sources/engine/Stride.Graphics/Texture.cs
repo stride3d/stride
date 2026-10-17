@@ -320,6 +320,11 @@ namespace Stride.Graphics
         internal Texture ParentTexture { get; private set; }
 
         /// <summary>
+        ///   Gets the Texture that holds the state of this Texture: its parent if this is a Texture View, otherwise itself.
+        /// </summary>
+        internal Texture RootTexture => ParentTexture ?? this;
+
+        /// <summary>
         ///   Gets the total amount of memory allocated by the Texture in bytes.
         /// </summary>
         internal int SizeInBytes { get; private set; }
