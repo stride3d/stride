@@ -1329,6 +1329,26 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
                     //indexes[i] = builder.CreateConstant(context, shader, new IntegerLiteral(new(32, false, true), index, new())).Id;
                     PushAccessChainId(accessChainIds, compiler.Context.CompileConstant(index).Id);
                     break;
+                // A member of a struct value (a method result: Make(3).Id, Values.Load(1).Id): extract it, as DXC does
+                case (StructType s, Identifier field):
+                    {
+                        var fieldIndex = s.TryGetFieldIndex(field);
+                        if (compiler == null)
+                        {
+                            if (fieldIndex == -1)
+                            {
+                                table.AddError(new(Info, string.Format(SDSLErrorMessages.SDSL0113, field.Name, currentValueType)));
+                                return default;
+                            }
+
+                            accessor.Type = s.Members[fieldIndex].Type;
+                            break;
+                        }
+
+                        var (builder, context) = compiler;
+                        result = new(builder.InsertData(new OpCompositeExtract(context.GetOrRegister(s.Members[fieldIndex].Type), context.Bound++, result.Id, [fieldIndex])));
+                        break;
+                    }
                 // Swizzles
                 case (PointerType { BaseType: MatrixType m } p, Identifier id) when id.IsMatrixSwizzle(m, out var swizzles):
                     {
