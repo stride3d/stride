@@ -20,9 +20,9 @@ public class TestMultisampledRenderTarget : GraphicTestGameBase
             var device = game.GraphicsDevice;
             var commandList = game.GraphicsContext.CommandList;
 
-            var multisampled = Texture.New2D(device, 64, 64, MipMapCount.One, PixelFormat.R8G8B8A8_UNorm, textureData: null,
+            using var multisampled = Texture.New2D(device, 64, 64, MipMapCount.One, PixelFormat.R8G8B8A8_UNorm, textureData: null,
                 TextureFlags.RenderTarget | TextureFlags.ShaderResource, multisampleCount: MultisampleCount.X4);
-            var resolved = Texture.New2D(device, 64, 64, PixelFormat.R8G8B8A8_UNorm);
+            using var resolved = Texture.New2D(device, 64, 64, PixelFormat.R8G8B8A8_UNorm);
 
             commandList.Clear(multisampled, Color.Red);
             commandList.CopyMultisample(multisampled, 0, resolved, 0);

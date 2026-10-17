@@ -31,14 +31,14 @@ public class TestPixelShaderUnorderedAccess : GraphicTestGameBase
 
             var device = game.GraphicsDevice;
             var commandList = game.GraphicsContext.CommandList;
-            var output = Buffer.Typed.New(device, 1, PixelFormat.R32_UInt, unorderedAccess: true);
-            var target = Texture.New2D(device, 8, 8, PixelFormat.R8G8B8A8_UNorm, TextureFlags.RenderTarget);
+            using var output = Buffer.Typed.New(device, 1, PixelFormat.R32_UInt, unorderedAccess: true);
+            using var target = Texture.New2D(device, 8, 8, PixelFormat.R8G8B8A8_UNorm, TextureFlags.RenderTarget);
 
-            var effect = new EffectInstance(game.EffectSystem.LoadEffect("PixelShaderUnorderedAccessEffect").WaitForResult());
+            using var effect = new EffectInstance(game.EffectSystem.LoadEffect("PixelShaderUnorderedAccessEffect").WaitForResult());
             effect.UpdateEffect(device);
 
             var layouts = effect.DescriptorReflection.Layouts.Select(layout => layout.Layout).ToArray();
-            var pool = DescriptorPool.New(device, [new DescriptorTypeCount(EffectParameterClass.UnorderedAccessView, 8)]);
+            using var pool = DescriptorPool.New(device, [new DescriptorTypeCount(EffectParameterClass.UnorderedAccessView, 8)]);
             var descriptorSets = new DescriptorSet[layouts.Length];
             for (int i = 0; i < layouts.Length; i++)
             {
