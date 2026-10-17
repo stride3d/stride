@@ -49,6 +49,11 @@ internal class StreamVariableInfo(string? semantic, string name, PointerType typ
     /// </summary>
     public string? ReadByMethod { get; set; }
 
+    /// <summary>
+    /// Where that first read is in the source (<c>file(line,column): </c>), if known.
+    /// </summary>
+    public string? ReadAt { get; set; }
+
     // Note: if Patch is true, it will be index in CONSTANTS struct, otherwise STREAMS struct
     public int StreamStructFieldIndex { get; internal set; }
 
