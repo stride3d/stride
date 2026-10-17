@@ -85,7 +85,7 @@ public static class SDSLErrorMessages
     public const string SDSL0175 = "SDSL0175: {0}.{1}({2}) returns {3}, but the method it overrides, {4}.{1}({2}), returns {5}. Use the same return type.";
     public const string SDSL0176 = "SDSL0176: {0}.{1}({2}) is marked 'override', but no inherited method has this name and these parameters. Inherited: {3}. Use the parameters of the method to override, or remove 'override'.";
     public const string SDSL0177 = "SDSL0177: Not all code paths of {0}.{1} return a value. Add a return at the end of the method (a switch needs a default that returns).";
-    public const string SDSL0164 = "SDSL0164: Argument {0} of the call to {1} is written back (out or inout parameter), but {2} can't be written to. Pass a variable, a member or an array element; for a swizzle, pass a temporary variable and copy it after the call.";
+    public const string SDSL0164 = "SDSL0164: Argument {0} of the call to {1} is written back (out or inout parameter), but {2} can't be written to. Pass a variable, a member, an array element, or a swizzle that names each element once.";
     public const string SDSL0165 = "SDSL0165: composition {0} is used as a value, but a composition is a shader. Call its method instead, for example {1}.";
     public const string SDSL0166 = "SDSL0166: {0} calls abstract method {1}, but no shader of the effect overrides it. Mix in a shader that implements {1}.";
     public const string SDSL0156 = "SDSL0156: {0} needs {1} values, but the initializer list has {2}. As in HLSL, braces only group: the values fill {0} in order.";

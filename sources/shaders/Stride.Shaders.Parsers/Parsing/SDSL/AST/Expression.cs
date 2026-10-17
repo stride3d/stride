@@ -157,6 +157,8 @@ public partial class ParenthesisExpression(Expression expression, TextLocation i
     }
     public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler) => Expression.Compile(table, compiler);
 
+    public override void SetValue(SymbolTable table, CompilerUnit compiler, SpirvValue rvalue) => Expression.SetValue(table, compiler, rvalue);
+
     public override string ToString() => $"({Expression})";
 }
 
@@ -220,7 +222,11 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
 
         var argumentTypes = new SymbolType[Arguments.Values.Count];
         for (int i = 0; i < Arguments.Values.Count; ++i)
-            argumentTypes[i] = Arguments.Values[i].Type!;
+        {
+            // A swizzle of a variable can take an out value: it is written back through the swizzle after the call
+            var argument = Arguments.Values[i];
+            argumentTypes[i] = IsWritableSwizzle(argument) ? new PointerType(argument.Type!, Specification.StorageClass.Function) : argument.Type!;
+        }
 
         var errorCount = table.Errors.Count;
         if (TryResolveFunctionSymbol(table, argumentTypes, out var functionSymbol))
@@ -451,6 +457,13 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
                 || pointerType.BaseType is StructuredBufferType or ByteAddressBufferType
                 || pointerType.BaseType is GeometryStreamType);
 
+    private static bool IsWritableSwizzle(Expression argument) => argument switch
+    {
+        AccessorChainExpression chain => chain.IsWritableSwizzle(),
+        ParenthesisExpression parenthesis => IsWritableSwizzle(parenthesis.Expression),
+        _ => false,
+    };
+
     protected void ProcessOutputArguments(SymbolTable table, CompilerUnit compiler, FunctionType functionType, Span<int> compiledParams)
     {
         var (builder, context) = compiler;
@@ -462,7 +475,16 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
             {
                 var paramDefinitionType = (PointerType)paramDefinition.Type;
                 var paramVariable = compiledParams[i];
-                var paramTarget = Arguments.Values[i].Compile(table, compiler, paramDefinitionType);
+                var argument = Arguments.Values[i];
+                if (argument.Type is not PointerType)
+                {
+                    // A swizzle (IsWritableSwizzle): the value is written through it, after conversion to its type
+                    var loadedValue = builder.Insert(new OpLoad(context.GetOrRegister(paramDefinitionType.BaseType), context.Bound++, paramVariable, null, []));
+                    argument.SetValue(table, compiler, builder.Convert(context, new(loadedValue.ResultId, loadedValue.ResultType), argument.Type!));
+                    continue;
+                }
+
+                var paramTarget = argument.Compile(table, compiler, paramDefinitionType);
                 var paramTargetType = (PointerType)context.ReverseTypes[paramTarget.TypeId];
 
                 // As in HLSL, the value is converted to the argument's type (an int receiving an out uint)
@@ -848,6 +870,32 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
 
         texelPointer = new SpirvValue(instruction.ResultId, instruction.ResultType);
         return true;
+    }
+
+    /// <summary>
+    /// Whether this chain is a swizzle value that <see cref="SetValue"/> can write: swizzles of a variable, each element once.
+    /// </summary>
+    internal bool IsWritableSwizzle()
+    {
+        if (Type is null or PointerType)
+            return false;
+
+        for (var i = Accessors.Count - 1; i >= 0; --i)
+        {
+            var baseType = i > 0 ? Accessors[i - 1].Type : Source.Type;
+            var isSwizzle = (baseType?.GetValueType(), Accessors[i]) switch
+            {
+                (MatrixType m, Identifier id) => id.IsMatrixSwizzle(m, out var swizzles) && swizzles.Distinct().Count() == swizzles.Count,
+                (VectorType, Identifier id) => id.IsVectorSwizzle() && id.Name.Distinct().Count() == id.Name.Length,
+                _ => false,
+            };
+            if (!isSwizzle)
+                return false;
+            if (baseType is PointerType)
+                return true;
+        }
+
+        return false;
     }
 
     public override void SetValue(SymbolTable table, CompilerUnit compiler, SpirvValue rvalue)
