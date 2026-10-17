@@ -1043,6 +1043,8 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
 
     public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
     {
+        ResolveThisMember(table);
+
         // A composition is used through its members: Color.Compute()
         Source.AllowComposition = true;
         Source.ProcessSymbol(table);
@@ -1055,6 +1057,31 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
     public override SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler)
     {
         return CompileHelper(table, compiler);
+    }
+
+    /// <summary>
+    /// <c>this.X</c> (X a variable or a composition) continues from the member X, resolved among the shader's members only.
+    /// </summary>
+    /// <remarks>
+    /// A stage member is shared by every instance, and a variable is not overridden: <c>this.X</c> on the first and
+    /// <c>base.X</c> on any variable are errors (SDSL0192). Method calls (<c>this.M()</c>, <c>base.M()</c>) are not changed.
+    /// </remarks>
+    private void ResolveThisMember(SymbolTable table)
+    {
+        if (Source is not Identifier { Name: "this" or "base" } qualifier || Accessors.Count == 0 || Accessors[0] is not Identifier member
+            || table.CurrentShader is not { } shader)
+            return;
+
+        if (!shader.TryResolveSymbol(member.Name, out var symbol) || symbol.Id.Kind is not (SymbolKind.Variable or SymbolKind.Composition or SymbolKind.CBuffer or SymbolKind.TBuffer or SymbolKind.RGroup))
+            throw new StatementCompileException(new(member.Info, string.Format(SDSLErrorMessages.SDSL0112, member.Name, qualifier.Name, shader.Name)));
+        if (qualifier.Name == "base")
+            throw new StatementCompileException(new(Info, string.Format(SDSLErrorMessages.SDSL0192, qualifier.Name, member.Name, "a variable, which is not overridden")));
+        // A cbuffer member's symbol refers to its cbuffer, which has the flag
+        if (symbol.Id.IsStage || (symbol.OwnerType ?? shader).Variables.Any(v => v.Symbol.IdRef == symbol.IdRef && (v.Flags & VariableFlagsMask.Stage) != 0))
+            throw new StatementCompileException(new(Info, string.Format(SDSLErrorMessages.SDSL0192, qualifier.Name, member.Name, "a stage member, shared by every instance")));
+
+        Source = new Identifier(member.Name, member.Info) { MemberOnly = true };
+        Accessors.RemoveAt(0);
     }
 
     // Since there are many switch case, we do both ProcessSymbols and Compile in the same functions to make sure to not miss anything (depending on if compiler is set)

@@ -1,0 +1,54 @@
+// PSMain(ExpectedResult=#336699FF, cbuffer.PerDraw=(Weight=0.6))
+
+namespace Stride.Shaders.Tests;
+
+// this.X reads the member X of the shader, as X does, even where a local has the same name
+shader ThisMemberValue
+{
+    float Compute()
+    {
+        return 0.2;
+    }
+};
+
+shader ThisMemberDouble : ThisMemberValue
+{
+    override float Compute()
+    {
+        return 0.4;
+    }
+};
+
+shader ThisMemberBase
+{
+    compose ThisMemberValue Inherited;
+};
+
+shader ThisMemberTest : ThisMemberBase
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    compose ThisMemberValue Value;
+    compose ThisMemberValue Values[];
+
+    cbuffer PerDraw
+    {
+        float Weight;
+    }
+
+    void PSMain()
+    {
+        float Value = 9;
+        float Weight = 9;
+        float compositions = this.Value.Compute() + this.Values[0].Compute();
+        streams.ColorTarget = float4(compositions - 0.2, this.Inherited.Compute(), this.Weight, Value == 9 && Weight == 9 ? 1 : 0);
+    }
+};
+
+effect ThisMember
+{
+    mixin ThisMemberTest;
+    mixin compose Value = ThisMemberValue;
+    mixin compose Values += ThisMemberValue;
+    mixin compose Inherited = ThisMemberDouble;
+}
