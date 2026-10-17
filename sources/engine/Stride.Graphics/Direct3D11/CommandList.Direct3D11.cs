@@ -673,11 +673,20 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Inserts a barrier that transitions a Graphics Resource to a new state, ensuring proper synchronization
-        ///   between different GPU operations accessing the resource.
+        ///   Inserts a barrier that transitions a Graphics Resource to a new layout, ensuring proper synchronization
+        ///   between the GPU operations accessing it before and after.
         /// </summary>
-        /// <param name="resource">The Graphics Resource to transition to a different state.</param>
-        /// <param name="newState">The new state of <paramref name="resource"/>.</param>
+        /// <param name="resource">
+        ///   The Graphics Resource to transition. For a Texture View, only the mip-levels and array slices it covers move,
+        ///   so a mip chain can read one mip-level while it writes the next. A View of a depth-stencil Texture moves the
+        ///   whole Texture.
+        /// </param>
+        /// <param name="newLayout">The new layout of <paramref name="resource"/>.</param>
+        /// <param name="subresource">
+        ///   The sub-Resource to transition, numbered in the Texture as <see cref="Texture.GetSubResourceIndex"/> does (also
+        ///   when <paramref name="resource"/> is a View of it), or <see cref="uint.MaxValue"/> for the whole
+        ///   <paramref name="resource"/>.
+        /// </param>
         /// <remarks>
         ///   The Direct3D 11 implementation does not have synchronization barriers for Graphics Resource transitions.
         ///   A transition to unordered access unbinds the sub-Resources it covers from the shader resource slots they
