@@ -144,8 +144,10 @@ internal struct SubresourceLayoutTracker
         CollapseIfUniform();
     }
 
-    // Back to the single layout when every subresource is in the same one again (a mip chain moved them one by one)
-    private void CollapseIfUniform()
+    /// <summary>
+    ///   Goes back to the single layout when every subresource is in the same one again (a mip chain moved them one by one).
+    /// </summary>
+    public void CollapseIfUniform()
     {
         if (mixed && TryGetCommonLayout(out var layout))
             Set(uint.MaxValue, layout);

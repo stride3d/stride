@@ -15,7 +15,7 @@ public class TestTextureViewBarriers : GraphicTestGameBase
     {
         PerformTest(game =>
         {
-            Skip.IfNot(GraphicsDevice.Platform == GraphicsPlatform.Direct3D12, "Per-subresource view barriers are implemented on Direct3D 12.");
+            Skip.IfNot(GraphicsDevice.Platform is GraphicsPlatform.Direct3D12 or GraphicsPlatform.Vulkan, "Layouts are tracked on Direct3D 12 and Vulkan.");
 
             var commandList = game.GraphicsContext.CommandList;
             var texture = Texture.New2D(game.GraphicsDevice, 16, 16, mipCount: 2, PixelFormat.R8G8B8A8_UNorm,
@@ -40,7 +40,7 @@ public class TestTextureViewBarriers : GraphicTestGameBase
     {
         PerformTest(game =>
         {
-            Skip.IfNot(GraphicsDevice.Platform == GraphicsPlatform.Direct3D12, "Per-subresource view barriers are implemented on Direct3D 12.");
+            Skip.IfNot(GraphicsDevice.Platform is GraphicsPlatform.Direct3D12 or GraphicsPlatform.Vulkan, "Layouts are tracked on Direct3D 12 and Vulkan.");
 
             var commandList = game.GraphicsContext.CommandList;
             using var texture = Texture.New2D(game.GraphicsDevice, 16, 16, mipCount: 3, PixelFormat.R8G8B8A8_UNorm, TextureFlags.ShaderResource, arraySize: 2);
@@ -116,7 +116,7 @@ public class TestTextureViewBarriers : GraphicTestGameBase
     {
         PerformTest(game =>
         {
-            Skip.IfNot(GraphicsDevice.Platform == GraphicsPlatform.Direct3D12, "Per-subresource view barriers are implemented on Direct3D 12.");
+            Skip.IfNot(GraphicsDevice.Platform is GraphicsPlatform.Direct3D12 or GraphicsPlatform.Vulkan, "Layouts are tracked on Direct3D 12 and Vulkan.");
 
             var commandList = game.GraphicsContext.CommandList;
             var texture = Texture.New2D(game.GraphicsDevice, 16, 16, PixelFormat.D24_UNorm_S8_UInt, TextureFlags.DepthStencil, arraySize: 2);
