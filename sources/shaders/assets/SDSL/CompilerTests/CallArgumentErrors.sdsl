@@ -29,7 +29,7 @@ shader CallArgumentErrors
         float few = Score(corner, id.x);
         float many = Blend(1, 2, 0.25, 4);
         float wrong = Score(corner, corner, id.x);
-        Fill(corner.xy);
+        Fill(corner.xx);
         Output[id.x] = float4(few, many, wrong, 0);
     }
 };

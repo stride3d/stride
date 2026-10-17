@@ -38,7 +38,7 @@ public class OverloadResolutionTests
         Assert.Contains("SDSL0160: Score(float4, StructuredBuffer<float4>, uint) takes 3 arguments, but the call gives 2.", message);
         Assert.Contains("SDSL0160: Blend(float, float, float) takes 2 to 3 arguments, but the call gives 4.", message);
         Assert.Contains("SDSL0161: Argument 2 of the call to Score(float4, StructuredBuffer<float4>, uint) has type float4, which can't be converted to StructuredBuffer<float4>.", message);
-        Assert.Contains("SDSL0164: Argument 1 of the call to Fill(float2) is written back (out or inout parameter), but corner.xy can't be written to.", message);
+        Assert.Contains("SDSL0164: Argument 1 of the call to Fill(float2) is written back (out or inout parameter), but corner.xx can't be written to.", message);
     }
 
     [Fact]
