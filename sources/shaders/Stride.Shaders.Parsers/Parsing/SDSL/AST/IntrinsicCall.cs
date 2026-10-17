@@ -9,14 +9,29 @@ using Stride.Shaders.Spirv;
 
 namespace Stride.Shaders.Parsing.SDSL;
 
+/// <summary>
+/// Why an intrinsic lookup found no intrinsic to call.
+/// </summary>
+public enum IntrinsicLookupFailure
+{
+    None,
+    UnknownName,
+    NoMatchingOverload,
+    NotImplemented,
+}
+
 public class IntrinsicCallHelper
 {
     private static IntrinsicTemplateExpander? TemplateExpander { get; set; }
     private static Dictionary<SymbolType, IntrinsicTemplateExpander> ClassTemplateExpanders = new();
 
     public static bool TryResolveIntrinsic(SymbolTable table, SymbolType? thisType, string name, SymbolType[] argumentTypes, out (IIntrinsicCompiler Compiler, string Namespace, IntrinsicTemplateExpander.IntrinsicOverload Overload) resolvedIntrinsic)
+        => TryResolveIntrinsic(table, thisType, name, argumentTypes, out resolvedIntrinsic, out _);
+
+    public static bool TryResolveIntrinsic(SymbolTable table, SymbolType? thisType, string name, SymbolType[] argumentTypes, out (IIntrinsicCompiler Compiler, string Namespace, IntrinsicTemplateExpander.IntrinsicOverload Overload) resolvedIntrinsic, out IntrinsicLookupFailure failure)
     {
         resolvedIntrinsic = default;
+        failure = IntrinsicLookupFailure.UnknownName;
 
         static IntrinsicTemplateExpander GetOrCreateExpander(SymbolType type, string @namespace, FrozenDictionary<string, IntrinsicDefinition[]> intrinsicsDefinitions)
         {
@@ -90,10 +105,18 @@ public class IntrinsicCallHelper
         }
 
         if (bestOverloadScore == int.MaxValue)
+        {
+            failure = IntrinsicLookupFailure.NoMatchingOverload;
             return false;
+        }
 
         if (intrinsicCompiler == null)
+        {
+            failure = IntrinsicLookupFailure.NotImplemented;
             return false;
+        }
+
+        failure = IntrinsicLookupFailure.None;
 
         resolvedIntrinsic = (intrinsicCompiler, templateExpander.Namespace, bestOverload);
         return true;

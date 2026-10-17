@@ -104,7 +104,7 @@ public class StrideShaderTests
         var exception = Assert.Throws<InvalidOperationException>(() => loader.LoadExternalBuffer("VectorExtension", [], out _, out _, out _));
         Assert.Contains("VectorExtension.sdsl(8,9): ", exception.Message);
         Assert.Contains("(in `return scaled;`)", exception.Message);
-        Assert.Contains("Can't cast from float3 to float4 (more components): HLSL doesn't add components implicitly, write them (float4(value, ...))", exception.Message);
+        Assert.Contains("SDSL0193: Can't convert float3 to float4: HLSL doesn't add components implicitly. Write them: float4(value, ...).", exception.Message);
     }
 
     // A shader whose byte address buffers come from another shader (a base, or the target of a static call) imports their types by name.

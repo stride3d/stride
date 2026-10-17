@@ -42,11 +42,14 @@ internal static class ReadWriteAnalyzer
         var streams = analysisResult.Streams;
         var variables = analysisResult.Variables;
         var accessChainBases = new Dictionary<int, (int Base, StreamsKindSDSL? StreamKind)>();
+        (int File, int Line, int Column)? currentLine = null;
 
         foreach (ref var i in CollectionsMarshal.AsSpan(methodInstructions))
         {
+            if (i.Op is Op.OpLine && new OpLine(ref i) is { } line)
+                currentLine = (line.File, line.Line, line.Column);
             // Check for any Streams variable
-            if (i.Op is Op.OpFunction && new OpFunction(ref i) is { } function)
+            else if (i.Op is Op.OpFunction && new OpFunction(ref i) is { } function)
             {
                 var functionType = (FunctionType)context.ReverseTypes[function.FunctionType];
                 var streamsTypeSearch = new StreamsTypeSearch();
@@ -114,6 +117,8 @@ internal static class ReadWriteAnalyzer
                             // Remember who read it first (before any write) for diagnostics: if this stream ends up
                             // with no producer and no semantic, we can point at the method that expects it.
                             streamInfo.ReadByMethod ??= context.Names.TryGetValue(functionId, out var readerName) ? readerName : null;
+                            if (currentLine is { } readLine && context.GetBuffer().TryGetInstructionById(readLine.File, out var file) && file.Op == Op.OpString)
+                                streamInfo.ReadAt ??= $"{((OpString)file).Value}({readLine.Line},{readLine.Column}): ";
                         }
                     }
                 }

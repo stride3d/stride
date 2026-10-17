@@ -52,7 +52,7 @@ public abstract class Expression(TextLocation info) : ValueNode(info)
 
     protected void ThrowErrorOnLValue()
     {
-        throw new InvalidOperationException($"{this} is not a l-value and cannot be assigned to.");
+        throw new StatementCompileException(new(Info, string.Format(SDSLErrorMessages.SDSL0103, Info.Text.Span.Trim().ToString())));
     }
 
     public abstract SpirvValue CompileImpl(SymbolTable table, CompilerUnit compiler);
@@ -236,7 +236,7 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
         }
         else
         {
-            if (IntrinsicCallHelper.TryResolveIntrinsic(table, MemberCallBaseType, Name, argumentTypes, out var resolvedIntrinsic))
+            if (IntrinsicCallHelper.TryResolveIntrinsic(table, MemberCallBaseType, Name, argumentTypes, out var resolvedIntrinsic, out var intrinsicFailure))
             {
                 resolvedIntrinsicCompiler = resolvedIntrinsic.Compiler;
                 resolvedIntrinsicNamespace = resolvedIntrinsic.Namespace;
@@ -246,7 +246,14 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
             // A method of that name was found, but the call doesn't fit it: that error says why
             else if (table.Errors.Count == errorCount)
             {
-                table.AddError(new(Info, $"Can't find a valid method overload or intrinsic to call for {Name}({string.Join(", ", Arguments)})"));
+                table.AddError(new(Info, intrinsicFailure switch
+                {
+                    IntrinsicLookupFailure.NotImplemented => string.Format(SDSLErrorMessages.SDSL0111, $"{MemberCallBaseType}.{Name}"),
+                    IntrinsicLookupFailure.UnknownName when MemberCallBaseType != null => string.Format(SDSLErrorMessages.SDSL0109, Name, MemberCallBaseType),
+                    IntrinsicLookupFailure.UnknownName when functionSymbol == null => string.Format(SDSLErrorMessages.SDSL0110, Name),
+                    IntrinsicLookupFailure.NoMatchingOverload => string.Format(SDSLErrorMessages.SDSL0162, FormatSignature(Name, argumentTypes), $" {Name} is an intrinsic: check the number and types of its arguments."),
+                    _ => string.Format(SDSLErrorMessages.SDSL0162, FormatSignature(Name, argumentTypes), $" {Name} is not a method."),
+                }));
             }
             // The call doesn't fit the only signature, but the result type is known: the code around it can still be checked
             else if (functionSymbol?.Type is FunctionType mismatchedFunctionType)
