@@ -39,6 +39,8 @@ namespace Stride.Graphics
 
         private readonly ComPtr<ID3D11UnorderedAccessView>[] currentUARenderTargetViews = new ComPtr<ID3D11UnorderedAccessView>[SimultaneousRenderTargetCount];
         private readonly ComPtr<ID3D11UnorderedAccessView>[] unorderedAccessViews = new ComPtr<ID3D11UnorderedAccessView>[UnorderedAcccesViewCount]; // Only CS
+        // What the CS UAV bound to each slot writes: a view of the same sub-Resources bound as SRV is a hazard too
+        private readonly BoundResourceView[] unorderedAccessResources = new BoundResourceView[UnorderedAcccesViewCount];
 
         private const int StageCount = 6;
 
@@ -46,16 +48,40 @@ namespace Stride.Graphics
         private readonly SamplerState[] samplerStates = new SamplerState[StageCount * SamplerStateCount];
 
         // What the Shader Resource View bound to each slot reads, to find the views of a resource that is to be written
-        private readonly BoundShaderResource[] boundShaderResources = new BoundShaderResource[StageCount * ShaderResourceViewCount];
+        private readonly BoundResourceView[] boundShaderResources = new BoundResourceView[StageCount * ShaderResourceViewCount];
 
         /// <summary>
-        ///   The native resource behind a bound Shader Resource View (identity only, no reference kept) and the
-        ///   sub-Resources it reads: mip-levels and array slices, end excluded.
+        ///   The native resource behind a bound View (identity only, no reference kept) and the
+        ///   sub-Resources it accesses: mip-levels and array slices, end excluded.
         /// </summary>
-        private struct BoundShaderResource
+        private struct BoundResourceView
         {
             public nint Resource;
             public int MipStart, MipEnd, ArraySliceStart, ArraySliceEnd;
+
+            public static BoundResourceView Of(GraphicsResource view)
+            {
+                if (view is null)
+                    return default;
+
+                var bound = new BoundResourceView { Resource = (nint) view.NativeResource.Handle };
+                if (view is Texture texture)
+                {
+                    var (mipStart, mipCount, arraySliceStart, arraySliceCount) = texture.GetViewSubResourceRange();
+                    (bound.MipStart, bound.MipEnd) = (mipStart, mipStart + mipCount);
+                    (bound.ArraySliceStart, bound.ArraySliceEnd) = (arraySliceStart, arraySliceStart + arraySliceCount);
+                }
+                else
+                {
+                    (bound.MipStart, bound.MipEnd, bound.ArraySliceStart, bound.ArraySliceEnd) = (0, int.MaxValue, 0, int.MaxValue);
+                }
+                return bound;
+            }
+
+            public readonly bool Overlaps(in BoundResourceView other)
+                => Resource != 0 && Resource == other.Resource &&
+                   MipStart < other.MipEnd && other.MipStart < MipEnd &&
+                   ArraySliceStart < other.ArraySliceEnd && other.ArraySliceStart < ArraySliceEnd;
         }
 
         private PipelineState currentPipelineState;
@@ -161,6 +187,7 @@ namespace Stride.Graphics
             Array.Clear(boundShaderResources);
 
             Array.Clear(unorderedAccessViews);
+            Array.Clear(unorderedAccessResources);
             Array.Clear(currentRenderTargetViews);
             Array.Clear(currentUARenderTargetViews);
 
@@ -417,18 +444,7 @@ namespace Stride.Graphics
 
             var nativeShaderResourceView = shaderResourceView is not null ? shaderResourceView.NativeShaderResourceView : default;
 
-            ref var bound = ref boundShaderResources[((int) stage - 1) * ShaderResourceViewCount + slot];
-            bound.Resource = shaderResourceView is not null ? (nint) shaderResourceView.NativeResource.Handle : 0;
-            if (shaderResourceView is Texture texture)
-            {
-                var (mipStart, mipCount, arraySliceStart, arraySliceCount) = texture.GetViewSubResourceRange();
-                (bound.MipStart, bound.MipEnd) = (mipStart, mipStart + mipCount);
-                (bound.ArraySliceStart, bound.ArraySliceEnd) = (arraySliceStart, arraySliceStart + arraySliceCount);
-            }
-            else
-            {
-                (bound.MipStart, bound.MipEnd, bound.ArraySliceStart, bound.ArraySliceEnd) = (0, int.MaxValue, 0, int.MaxValue);
-            }
+            boundShaderResources[((int) stage - 1) * ShaderResourceViewCount + slot] = BoundResourceView.Of(shaderResourceView);
 
             switch (stage)
             {
@@ -519,6 +535,7 @@ namespace Stride.Graphics
                 if (unorderedAccessViews[slot].Handle != nativeUnorderedAccessView.Handle)
                 {
                     unorderedAccessViews[slot] = nativeUnorderedAccessView;
+                    unorderedAccessResources[slot] = BoundResourceView.Of(unorderedAccessView);
 
                     nativeDeviceContext->CSSetUnorderedAccessViews((uint) slot, NumUAVs: 1, ref nativeUnorderedAccessView, (uint*) &uavInitialOffset);
                 }
@@ -538,19 +555,29 @@ namespace Stride.Graphics
         /// <param name="unorderedAccessView">The Unordered Access View to unset.</param>
         internal void UnsetUnorderedAccessView(GraphicsResource unorderedAccessView)
         {
-            var nativeUav = unorderedAccessView is not null ? unorderedAccessView.NativeUnorderedAccessView : default;
-            if (nativeUav.IsNull())
+            if (unorderedAccessView is null)
+                return;
+            var nativeUav = unorderedAccessView.NativeUnorderedAccessView;
+            var read = BoundResourceView.Of(unorderedAccessView);
+            if (nativeUav.IsNull() && read.Resource == 0)
                 return;
 
             for (int slot = 0; slot < UnorderedAcccesViewCount; slot++)
             {
-                if (unorderedAccessViews[slot].Handle == nativeUav.Handle)
+                if (unorderedAccessViews[slot].IsNull())
+                    continue;
+                // Direct3D nulls an SRV whose sub-Resources are still bound as a UAV, through any view of them.
+                // A UAV of other sub-Resources stays bound: reading mip-level N while writing N + 1 is fine.
+                if (unorderedAccessViews[slot].Handle == nativeUav.Handle || unorderedAccessResources[slot].Overlaps(read))
                 {
                     var nullUav = NullComPtr<ID3D11UnorderedAccessView>();
                     unorderedAccessViews[slot] = nullUav;
+                    unorderedAccessResources[slot] = default;
                     NativeDeviceContext.CSSetUnorderedAccessViews((uint) slot, NumUAVs: 1, ppUnorderedAccessViews: ref nullUav, pUAVInitialCounts: null);
                 }
             }
+            if (nativeUav.IsNull())
+                return;
             for (int slot = 0; slot < SimultaneousRenderTargetCount; slot++)
             {
                 if (currentUARenderTargetViews[slot].Handle == nativeUav.Handle)
