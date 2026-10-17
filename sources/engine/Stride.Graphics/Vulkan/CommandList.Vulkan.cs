@@ -394,14 +394,14 @@ namespace Stride.Graphics
                             // The descriptor's layout field must match the image's actual layout as
                             // this CB understands it. Use the per-CB map rather than texture.NativeLayout
                             // (which can be mutated by other CBs recording concurrently).
-                            var parent = texture?.ParentTexture ?? texture;
+                            var parent = texture?.RootTexture;
                             var perCb = parent != null && currentCbLayouts.TryGetValue(parent, out var l) ? (BarrierLayout?)l : null;
                             // Sampling the depth buffer while it is bound as a read-only attachment:
                             // the image rides in DepthStencilReadOnlyOptimal, including on worker
                             // command lists that did not record the transition themselves.
                             bool sampledBoundReadOnlyDepth = depthStencilBuffer != null
                                 && (depthStencilBuffer.IsDepthStencilReadOnly || DepthStencilAccess == DepthStencilAccess.Read)
-                                && parent == (depthStencilBuffer.ParentTexture ?? depthStencilBuffer);
+                                && parent == depthStencilBuffer.RootTexture;
                             var imageLayout = perCb == BarrierLayout.DepthStencilRead || (perCb == null && sampledBoundReadOnlyDepth)
                                 ? VkImageLayout.DepthStencilReadOnlyOptimal
                                 : VkImageLayout.ShaderReadOnlyOptimal;
@@ -518,8 +518,7 @@ namespace Stride.Graphics
 
             if (resource is Texture texture)
             {
-                if (texture.ParentTexture != null)
-                    texture = texture.ParentTexture;
+                texture = texture.RootTexture;
 
                 // Resolve "from" layout for THIS CB. If we've already transitioned the texture in
                 // this CB, use that; otherwise assume the last-submitted global state (NativeLayout).
@@ -628,8 +627,7 @@ namespace Stride.Graphics
 
             if (resource is Texture texture)
             {
-                if (texture.ParentTexture != null)
-                    texture = texture.ParentTexture;
+                texture = texture.RootTexture;
 
                 var layout = BarrierMapping.ToVkImageLayout(BarrierLayout.UnorderedAccess);
                 var imageBarrier = new VkImageMemoryBarrier(texture.NativeImage, new VkImageSubresourceRange(texture.NativeImageAspect, 0, uint.MaxValue, 0, uint.MaxValue), AccessBefore, AccessAfter, layout, layout);
@@ -675,6 +673,7 @@ namespace Stride.Graphics
         /// </summary>
         private void AdoptTransferLayoutIfUndefined(Texture texture, BarrierLayout transferLayout)
         {
+            texture = texture.RootTexture;
             if (texture.NativeLayout != VkImageLayout.Undefined)
                 return;
 
@@ -1271,9 +1270,8 @@ namespace Stride.Graphics
                 var imageBarriers = stackalloc VkImageMemoryBarrier[2];
                 var bufferBarriers = stackalloc VkBufferMemoryBarrier[2];
 
-                // A view's own layout state is never updated: the tracked state is its parent's
-                var sourceParent = sourceTexture.ParentTexture ?? sourceTexture;
-                var destinationParent = destinationTexture.ParentTexture ?? destinationTexture;
+                var sourceParent = sourceTexture.RootTexture;
+                var destinationParent = destinationTexture.RootTexture;
 
                 uint bufferBarrierCount = 0;
                 uint imageBarrierCount = 0;
@@ -1468,8 +1466,8 @@ namespace Stride.Graphics
             ResourceBarrierTransition(destTexture, BarrierLayout.ResolveDest);
             CleanupRenderPass();
 
-            var source = sourceMultisampleTexture.ParentTexture ?? sourceMultisampleTexture;
-            var destination = destTexture.ParentTexture ?? destTexture;
+            var source = sourceMultisampleTexture.RootTexture;
+            var destination = destTexture.RootTexture;
             var mipLevel = destSubResource % destination.MipLevelCount;
             var region = new VkImageResolve
             {
@@ -1511,8 +1509,8 @@ namespace Stride.Graphics
                 var imageBarriers = stackalloc VkImageMemoryBarrier[2];
                 var bufferBarriers = stackalloc VkBufferMemoryBarrier[2];
 
-                var sourceParent = sourceTexture.ParentTexture ?? sourceTexture;
-                var destinationParent = destinationTexture.ParentTexture ?? destinationTexture;
+                var sourceParent = sourceTexture.RootTexture;
+                var destinationParent = destinationTexture.RootTexture;
 
                 uint bufferBarrierCount = 0;
                 uint imageBarrierCount = 0;
@@ -1817,8 +1815,7 @@ namespace Stride.Graphics
 
             if (texture != null)
             {
-                // A view's own layout state is never updated: the tracked state is its parent's
-                texture = texture.ParentTexture ?? texture;
+                texture = texture.RootTexture;
 
                 var mipSlice = subResourceIndex % texture.MipLevelCount;
                 var arraySlice = subResourceIndex / texture.MipLevelCount;
