@@ -1833,7 +1833,7 @@ public partial class BinaryExpression(Expression left, Operator op, Expression r
         Left.ProcessSymbol(table);
         Right.ProcessSymbol(table);
 
-        WarnComparisonInBitwiseOperation(table);
+        WarnPrecedence(table);
 
         var analysisResult = SpirvBuilder.AnalyzeBinaryOperation(table, Left.ValueType!, Op, Right.ValueType!, Info);
 
@@ -1863,22 +1863,31 @@ public partial class BinaryExpression(Expression left, Operator op, Expression r
     }
 
     // As DXC's -Wparentheses: `a & b == c` computes b == c first, which usually isn't what was meant
-    private void WarnComparisonInBitwiseOperation(SymbolTable table)
+    private void WarnPrecedence(SymbolTable table)
     {
-        if (precedenceWarned || Op is not (Operator.AND or Operator.OR or Operator.XOR))
+        if (precedenceWarned)
             return;
 
-        // A comparison in parentheses is a ParenthesisExpression, so it doesn't match
-        static bool IsComparison(Expression e) => e is BinaryExpression
-        {
-            Op: Operator.Equals or Operator.NotEquals or Operator.Lower or Operator.LowerOrEqual or Operator.Greater or Operator.GreaterOrEqual
-        };
-        var comparison = IsComparison(Left) ? (BinaryExpression)Left : IsComparison(Right) ? (BinaryExpression)Right : null;
-        if (comparison == null)
+        // An operand in parentheses is a ParenthesisExpression, so it doesn't match
+        BinaryExpression? Operand(Func<Operator, bool> match)
+            => Left is BinaryExpression left && match(left.Op) ? left : Right is BinaryExpression right && match(right.Op) ? right : null;
+
+        string? warning = null;
+        if (Op is Operator.AND or Operator.OR or Operator.XOR
+            && Operand(op => op is Operator.Equals or Operator.NotEquals or Operator.Lower or Operator.LowerOrEqual or Operator.Greater or Operator.GreaterOrEqual) is { } comparison)
+            warning = string.Format(SDSLErrorMessages.SDSL0232, Op.ToSymbol(), comparison.Op.ToSymbol(), Info.Text, comparison.Info.Text);
+        else if (Op is Operator.OR && Operand(op => op is Operator.AND) is { } and)
+            warning = string.Format(SDSLErrorMessages.SDSL0242, Info.Text, and.Info.Text);
+        else if (Op is Operator.LogicalOR && Operand(op => op is Operator.LogicalAND) is { } logicalAnd)
+            warning = string.Format(SDSLErrorMessages.SDSL0243, Info.Text, logicalAnd.Info.Text);
+        else if (Op is Operator.LeftShift or Operator.RightShift && Operand(op => op is Operator.Plus or Operator.Minus) is { } additive)
+            warning = string.Format(SDSLErrorMessages.SDSL0244, Op.ToSymbol(), additive.Op.ToSymbol(), Info.Text, additive.Info.Text);
+
+        if (warning == null)
             return;
 
         precedenceWarned = true;
-        table.AddWarning(new(Info, string.Format(SDSLErrorMessages.SDSL0232, Op.ToSymbol(), comparison.Op.ToSymbol(), Info.Text, comparison.Info.Text)));
+        table.AddWarning(new(Info, warning));
     }
 
     public override string ToString()
