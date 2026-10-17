@@ -819,10 +819,6 @@ public partial class NugetStore : INugetDownloadProgress
 
     private async Task UninstallPackageUnguarded(NugetPackage package, ProgressReport? progress)
     {
-#if DEBUG
-        var installedPackages = GetPackagesInstalled([package.Id]);
-        Debug.Assert(installedPackages.FirstOrDefault(p => p.Equals(package)) is not null);
-#endif
         using (GetLocalRepositoryLock())
         {
             currentProgressReport = progress;
@@ -830,9 +826,13 @@ public partial class NugetStore : INugetDownloadProgress
             {
                 var identity = new PackageIdentity(package.Id, package.Version.ToNuGetVersion());
 
+                // Not installed (anymore): nothing to remove. A folder without NuGet's integrity files counts as not
+                // installed too, such as a local build's package its checkout invalidated until the next restore.
+                var installPath = GetInstalledPath(identity.Id, identity.Version.ToPackageVersion());
+                if (installPath is null)
+                    return;
+
                 // Notify that uninstallation started.
-                var installPath = GetInstalledPath(identity.Id, identity.Version.ToPackageVersion())
-                    ?? throw new InvalidOperationException($"Could not find installation path for package {identity}");
                 OnPackageUninstalling(this, new PackageOperationEventArgs(new PackageName(package.Id, package.Version), installPath));
 
                 var projectContext = new EmptyNuGetProjectContext()
