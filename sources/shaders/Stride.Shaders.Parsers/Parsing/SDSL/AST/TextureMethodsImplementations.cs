@@ -72,7 +72,10 @@ internal class TextureMethodsImplementations : TextureMethodsDeclarations
                 shuffleIndices[i] = i;
 
             lod = new SpirvValue(builder.InsertData(new OpCompositeExtract(context.GetOrRegister(ScalarType.Int), context.Bound++, x.Id, [imageCoordSize - 1])));
-            x = new(builder.InsertData(new OpVectorShuffle(context.GetOrRegister(coordType), context.Bound++, x.Id, x.Id, new(shuffleIndices))));
+            // A 1D texture's coordinate is a scalar: OpVectorShuffle only makes vectors
+            x = imageCoordSize == 2
+                ? new(builder.InsertData(new OpCompositeExtract(context.GetOrRegister(coordType), context.Bound++, x.Id, [0])))
+                : new(builder.InsertData(new OpVectorShuffle(context.GetOrRegister(coordType), context.Bound++, x.Id, x.Id, new(shuffleIndices))));
         }
 
         TextureGenerateImageOperands(table, context, builder, lod, o, s, out var imask, out var imParams, location: location);

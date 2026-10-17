@@ -209,6 +209,22 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         }
         foreach (var i in context)
         {
+            if (i.Op == Op.OpTypeImage && (OpTypeImage)i is { } typeImage && typeImage.Dim == Dim.Dim1D && typeImage.Sampled is 0 or 1)
+            {
+                context.Add(new OpCapability(Capability.Sampled1D));
+                break;
+            }
+        }
+        foreach (var i in context)
+        {
+            if (i.Op == Op.OpTypeImage && (OpTypeImage)i is { } typeImage && typeImage.Dim == Dim.Dim1D && typeImage.Sampled is 2)
+            {
+                context.Add(new OpCapability(Capability.Image1D));
+                break;
+            }
+        }
+        foreach (var i in context)
+        {
             if (i.Op == Op.OpTypeImage && (OpTypeImage)i is { } typeImage && typeImage.Sampled is 2 && typeImage.ImageFormat == ImageFormat.Unknown)
             {
                 context.Add(new OpCapability(Capability.StorageImageWriteWithoutFormat));
