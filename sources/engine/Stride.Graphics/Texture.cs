@@ -1927,21 +1927,18 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Gets the mip-levels and array slices this Texture View accesses, as ranges of the sub-Resources of the
+        ///   Gets the mip-levels and array slices this Texture View accesses, as a range of the sub-Resources of the
         ///   Texture (see <see cref="GetSubResourceIndex"/>).
         /// </summary>
-        /// <remarks>
-        ///   The depth slices of a three-dimensional Texture are not sub-Resources, so its range has a single array slice.
-        /// </remarks>
-        internal (int MipStart, int MipCount, int ArraySliceStart, int ArraySliceCount) GetViewSubResourceRange()
+        internal TextureSubresourceRange GetViewSubResourceRange()
         {
             int arraySlice = ArraySlice;
             int mipLevel = MipLevel;
             GetViewSliceBounds(ViewType, ref arraySlice, ref mipLevel, out var arraySliceCount, out var mipCount);
 
             return Dimension == TextureDimension.Texture3D
-                ? (mipLevel, mipCount, 0, 1)
-                : (mipLevel, mipCount, arraySlice, arraySliceCount);
+                ? new TextureSubresourceRange(mipLevel, mipCount, ArraySliceStart: 0, ArraySliceCount: 1)
+                : new TextureSubresourceRange(mipLevel, mipCount, arraySlice, arraySliceCount);
         }
 
         /// <summary>
