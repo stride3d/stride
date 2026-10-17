@@ -1271,6 +1271,7 @@ namespace Stride.Graphics
                 var imageBarriers = stackalloc VkImageMemoryBarrier[2];
                 var bufferBarriers = stackalloc VkBufferMemoryBarrier[2];
 
+                // A view's own layout state is never updated: the tracked state is its parent's
                 var sourceParent = sourceTexture.ParentTexture ?? sourceTexture;
                 var destinationParent = destinationTexture.ParentTexture ?? destinationTexture;
 
@@ -1280,23 +1281,23 @@ namespace Stride.Graphics
                 // Initial barriers
                 if (sourceTexture.Usage == GraphicsResourceUsage.Staging)
                 {
-                    bufferBarriers[bufferBarrierCount++] = new VkBufferMemoryBarrier(sourceParent.NativeBuffer, sourceTexture.NativeAccessMask, VkAccessFlags.TransferRead);
+                    bufferBarriers[bufferBarrierCount++] = new VkBufferMemoryBarrier(sourceParent.NativeBuffer, sourceParent.NativeAccessMask, VkAccessFlags.TransferRead);
                 }
                 else
                 {
-                    imageBarriers[imageBarrierCount++] = new VkImageMemoryBarrier(sourceParent.NativeImage, new VkImageSubresourceRange(sourceParent.NativeImageAspect, baseMipLevel: 0, levelCount: uint.MaxValue, baseArrayLayer: 0, layerCount: uint.MaxValue), sourceTexture.NativeAccessMask, VkAccessFlags.TransferRead, sourceTexture.NativeLayout, VkImageLayout.TransferSrcOptimal);
+                    imageBarriers[imageBarrierCount++] = new VkImageMemoryBarrier(sourceParent.NativeImage, new VkImageSubresourceRange(sourceParent.NativeImageAspect, baseMipLevel: 0, levelCount: uint.MaxValue, baseArrayLayer: 0, layerCount: uint.MaxValue), sourceParent.NativeAccessMask, VkAccessFlags.TransferRead, sourceParent.NativeLayout, VkImageLayout.TransferSrcOptimal);
                 }
 
                 if (destinationTexture.Usage == GraphicsResourceUsage.Staging)
                 {
-                    bufferBarriers[bufferBarrierCount++] = new VkBufferMemoryBarrier(destinationParent.NativeBuffer, destinationTexture.NativeAccessMask, VkAccessFlags.TransferWrite);
+                    bufferBarriers[bufferBarrierCount++] = new VkBufferMemoryBarrier(destinationParent.NativeBuffer, destinationParent.NativeAccessMask, VkAccessFlags.TransferWrite);
                 }
                 else
                 {
-                    imageBarriers[imageBarrierCount++] = new VkImageMemoryBarrier(destinationParent.NativeImage, new VkImageSubresourceRange(destinationParent.NativeImageAspect, baseMipLevel: 0, levelCount: uint.MaxValue, baseArrayLayer: 0, layerCount: uint.MaxValue), destinationTexture.NativeAccessMask, VkAccessFlags.TransferWrite, destinationTexture.NativeLayout, VkImageLayout.TransferDstOptimal);
+                    imageBarriers[imageBarrierCount++] = new VkImageMemoryBarrier(destinationParent.NativeImage, new VkImageSubresourceRange(destinationParent.NativeImageAspect, baseMipLevel: 0, levelCount: uint.MaxValue, baseArrayLayer: 0, layerCount: uint.MaxValue), destinationParent.NativeAccessMask, VkAccessFlags.TransferWrite, destinationParent.NativeLayout, VkImageLayout.TransferDstOptimal);
                 }
 
-                var copySrcStages = FixStagesForAccess(sourceTexture.NativePipelineStageMask | destinationParent.NativePipelineStageMask, sourceTexture.NativeAccessMask | destinationTexture.NativeAccessMask);
+                var copySrcStages = FixStagesForAccess(sourceParent.NativePipelineStageMask | destinationParent.NativePipelineStageMask, sourceParent.NativeAccessMask | destinationParent.NativeAccessMask);
                 GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, copySrcStages, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferBarrierCount, bufferBarriers, imageBarrierCount, imageBarriers);
 
                 // TODO: compute all regions at once in a single call
@@ -1410,7 +1411,7 @@ namespace Stride.Graphics
                     imageBarrierCount++;
                 }
 
-                var dstStages = FixStagesForAccess(sourceTexture.NativePipelineStageMask | destinationParent.NativePipelineStageMask, sourceParent.NativeAccessMask | destinationParent.NativeAccessMask);
+                var dstStages = FixStagesForAccess(sourceParent.NativePipelineStageMask | destinationParent.NativePipelineStageMask, sourceParent.NativeAccessMask | destinationParent.NativeAccessMask);
                 GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(currentCommandList.NativeCommandBuffer, VkPipelineStageFlags.Transfer, dstStages, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferBarrierCount, bufferBarriers, imageBarrierCount, imageBarriers);
             }
             else if (source is Buffer sourceBuffer && destination is Buffer destinationBuffer)
@@ -1816,6 +1817,9 @@ namespace Stride.Graphics
 
             if (texture != null)
             {
+                // A view's own layout state is never updated: the tracked state is its parent's
+                texture = texture.ParentTexture ?? texture;
+
                 var mipSlice = subResourceIndex % texture.MipLevelCount;
                 var arraySlice = subResourceIndex / texture.MipLevelCount;
                 var subresourceRange = new VkImageSubresourceRange(texture.NativeImageAspect, (uint) mipSlice, levelCount: 1, (uint) arraySlice, 1);
