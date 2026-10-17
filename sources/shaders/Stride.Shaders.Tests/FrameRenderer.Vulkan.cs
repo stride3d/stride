@@ -53,6 +53,8 @@ public unsafe class VulkanFrameRenderer(uint width = 800, uint height = 600, byt
     private readonly List<VkPipeline> pipelines = [];
     private readonly List<VkRenderPass> renderPasses = [];
     private readonly List<VkFramebuffer> framebuffers = [];
+    // The memory of each storage buffer, by key name, for ReadBuffer
+    private readonly Dictionary<string, (VkDeviceMemory Memory, ulong Size)> storageBuffers = new();
 
     private static void Check(VkResult result, [CallerArgumentExpression(nameof(result))] string call = null)
     {
@@ -430,7 +432,8 @@ public unsafe class VulkanFrameRenderer(uint width = 800, uint height = 600, byt
                 case VkDescriptorType.StorageBuffer:
                 {
                     var data = value != null ? ParseStructuredBufferData(value).Data : new byte[1024];
-                    var (buffer, _) = CreateHostBuffer((ulong)data.Length, VkBufferUsageFlags.StorageBuffer, data);
+                    var (buffer, memory) = CreateHostBuffer((ulong)data.Length, VkBufferUsageFlags.StorageBuffer, data);
+                    storageBuffers[binding.KeyInfo.KeyName] = (memory, (ulong)data.Length);
                     writes.Add(((uint)binding.SlotStart, descriptorType, new VkDescriptorBufferInfo { buffer = buffer, offset = 0, range = ulong.MaxValue }, default, default));
                     break;
                 }
@@ -864,7 +867,27 @@ public unsafe class VulkanFrameRenderer(uint width = 800, uint height = 600, byt
             if (descriptorSetLocal != VkDescriptorSet.Null)
                 deviceApi.vkCmdBindDescriptorSets(commandBuffer, VkPipelineBindPoint.Compute, pipelineLayout, 0, 1, &descriptorSetLocal, 0, null);
             deviceApi.vkCmdDispatch(commandBuffer, 32, 32, 1);
+
+            // ReadBuffer maps the storage buffers
+            var barrier = new VkMemoryBarrier
+            {
+                sType = VkStructureType.MemoryBarrier,
+                srcAccessMask = VkAccessFlags.ShaderWrite,
+                dstAccessMask = VkAccessFlags.HostRead,
+            };
+            deviceApi.vkCmdPipelineBarrier(commandBuffer, VkPipelineStageFlags.ComputeShader, VkPipelineStageFlags.Host,
+                VkDependencyFlags.None, 1, &barrier, 0, null, 0, null);
         });
+    }
+
+    public override byte[] ReadBuffer(string resourceName)
+    {
+        var (memory, size) = storageBuffers[FindResourceBinding(resourceName).KeyInfo.KeyName];
+        void* mapped;
+        Check(deviceApi.vkMapMemory(device, memory, 0, size, 0, &mapped));
+        var data = new ReadOnlySpan<byte>(mapped, (int)size).ToArray();
+        deviceApi.vkUnmapMemory(device, memory);
+        return data;
     }
 
     public override void PresentAndFinish()
@@ -890,6 +913,7 @@ public unsafe class VulkanFrameRenderer(uint width = 800, uint height = 600, byt
         // The same renderer runs once per test header: reset so the next SetupTest starts clean
         pipelines.Clear();
         framebuffers.Clear();
+        storageBuffers.Clear();
         renderPasses.Clear();
         samplers.Clear();
         bufferViews.Clear();

@@ -18,6 +18,11 @@ public abstract class FrameRenderer(uint width = 800, uint height = 600)
 
     public abstract void Compute();
 
+    /// <summary>
+    /// The contents of the buffer a "structuredbuffer.X" test parameter created, after <see cref="Compute"/>.
+    /// </summary>
+    public abstract byte[] ReadBuffer(string resourceName);
+
     public abstract void PresentAndFinish();
 
     /// <summary>
@@ -73,10 +78,12 @@ public abstract class FrameRenderer(uint width = 800, uint height = 600)
             if (resourceType is not ("cbuffer" or "texture" or "buffer" or "structuredbuffer"))
                 continue;
             var resourceName = parameter.Key.Substring(dotIndex + 1);
-            var binding = EffectReflection.ResourceBindings.Single(x => x.KeyInfo.KeyName.EndsWith(resourceName));
-            yield return (binding, resourceType, parameter.Value);
+            yield return (FindResourceBinding(resourceName), resourceType, parameter.Value);
         }
     }
+
+    protected EffectResourceBindingDescription FindResourceBinding(string resourceName)
+        => EffectReflection.ResourceBindings.Single(x => x.KeyInfo.KeyName.EndsWith(resourceName));
 
     protected static unsafe void FillData(string value, EffectTypeDescription type, int offset, byte* cbufferDataPtr)
     {

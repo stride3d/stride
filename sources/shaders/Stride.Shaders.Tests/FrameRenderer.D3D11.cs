@@ -41,6 +41,9 @@ public class D3D11FrameRenderer(uint width = 800, uint height = 600) : FrameRend
     ComPtr<ID3D11ComputeShader> computeShader = default;
     ComPtr<ID3D11InputLayout> inputLayout = default;
 
+    // The buffers of "structuredbuffer.X" test parameters, by key name, for ReadBuffer
+    readonly Dictionary<string, ComPtr<ID3D11Buffer>> structuredBuffers = new();
+
     //Vertex shaders are run on each vertex.
     public string VertexShaderSource = @"
 struct vs_in {
@@ -280,6 +283,10 @@ float4 main(vs_out input) : SV_TARGET {
         // Present the drawn image.
         swapchain.Present(1, 0);
 
+        foreach (var buffer in structuredBuffers.Values)
+            buffer.Dispose();
+        structuredBuffers.Clear();
+
         cts.Cancel();
         try { infoQueueTask?.Wait(); } catch (AggregateException) { }
         cts.Dispose();
@@ -308,11 +315,35 @@ float4 main(vs_out input) : SV_TARGET {
 
         deviceContext.CSSetShader(computeShader, ref Unsafe.NullRef<ComPtr<ID3D11ClassInstance>>(), 0);
 
-        ApplyParameters();
+        ApplyParameters(compute: true);
 
         deviceContext.Dispatch(32, 32, 1);
 
         computeCode.Dispose();
+    }
+
+    public override unsafe byte[] ReadBuffer(string resourceName)
+    {
+        var buffer = structuredBuffers[FindResourceBinding(resourceName).KeyInfo.KeyName];
+        BufferDesc bufferDesc = default;
+        buffer.GetDesc(ref bufferDesc);
+        bufferDesc = new BufferDesc
+        {
+            ByteWidth = bufferDesc.ByteWidth,
+            Usage = Usage.Staging,
+            CPUAccessFlags = (uint)CpuAccessFlag.Read,
+        };
+
+        ComPtr<ID3D11Buffer> stagingBuffer = default;
+        SilkMarshal.ThrowHResult(device.CreateBuffer(in bufferDesc, null, ref stagingBuffer));
+        deviceContext.CopyResource(stagingBuffer, buffer);
+
+        MappedSubresource mappedResource = default;
+        SilkMarshal.ThrowHResult(deviceContext.Map(stagingBuffer, 0, Map.MapRead, 0, ref mappedResource));
+        var data = new Span<byte>(mappedResource.PData, (int)bufferDesc.ByteWidth).ToArray();
+        deviceContext.Unmap(stagingBuffer, 0);
+        stagingBuffer.Dispose();
+        return data;
     }
 
     private unsafe void CompileAndSetupPipeline(
@@ -774,7 +805,7 @@ float4 main(vs_out input) : SV_TARGET {
         if (domainCode.Handle != null) domainCode.Dispose();
     }
 
-    private unsafe void ApplyParameters()
+    private unsafe void ApplyParameters(bool compute = false)
     {
         BufferDesc bufferDesc;
         foreach (var (resourceReflection, resourceType, value) in MatchResourceParameters())
@@ -884,6 +915,7 @@ float4 main(vs_out input) : SV_TARGET {
                     var subresourceData = new SubresourceData { PSysMem = dataPtr };
                     SilkMarshal.ThrowHResult(device.CreateBuffer(in bufferDesc, in subresourceData, ref buffer));
                 }
+                structuredBuffers[resourceReflection.KeyInfo.KeyName] = buffer;
 
                 if (unorderedAccess)
                 {
@@ -896,10 +928,13 @@ float4 main(vs_out input) : SV_TARGET {
                     };
                     SilkMarshal.ThrowHResult(device.CreateUnorderedAccessView(buffer, in uavDesc, ref bufferUAV));
 
-                    // UAVs share the render targets' slots in a pixel shader: keep the bound render target
+                    // UAVs share the render targets' slots in a pixel shader: keep the bound render target.
+                    // A UAV bound to the output merger is unbound from the compute stage, so only one of them.
                     const uint keepRenderTargetsAndDepthStencil = 0xFFFFFFFF;
-                    deviceContext.CSSetUnorderedAccessViews((uint)resourceReflection.SlotStart, 1U, &bufferUAV.Handle, (uint*)null);
-                    deviceContext.OMSetRenderTargetsAndUnorderedAccessViews(keepRenderTargetsAndDepthStencil, (ID3D11RenderTargetView**)null, (ID3D11DepthStencilView*)null, (uint)resourceReflection.SlotStart, 1U, &bufferUAV.Handle, (uint*)null);
+                    if (compute)
+                        deviceContext.CSSetUnorderedAccessViews((uint)resourceReflection.SlotStart, 1U, &bufferUAV.Handle, (uint*)null);
+                    else
+                        deviceContext.OMSetRenderTargetsAndUnorderedAccessViews(keepRenderTargetsAndDepthStencil, (ID3D11RenderTargetView**)null, (ID3D11DepthStencilView*)null, (uint)resourceReflection.SlotStart, 1U, &bufferUAV.Handle, (uint*)null);
                 }
                 else
                 {

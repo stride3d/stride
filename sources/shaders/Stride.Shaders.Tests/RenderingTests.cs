@@ -124,6 +124,16 @@ public partial class RenderingTests
 
             renderer.SetupTest();
             renderer.Compute();
+
+            // "expected.X": the first 32-bit words of buffer X after the dispatch, as integers
+            foreach (var (key, value) in parameters.Where(x => x.Key.StartsWith("expected.")))
+            {
+                var resourceName = key["expected.".Length..];
+                var expected = value.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(x => unchecked((int)long.Parse(x, CultureInfo.InvariantCulture))).ToArray();
+                var actual = MemoryMarshal.Cast<byte, int>(renderer.ReadBuffer(resourceName))[..expected.Length].ToArray();
+                Assert.Equal($"{resourceName}: {string.Join(" ", expected)}", $"{resourceName}: {string.Join(" ", actual)}");
+            }
+
             // Present is useful for RenderDoc and other graphics capture programs
             renderer.PresentAndFinish();
         }
