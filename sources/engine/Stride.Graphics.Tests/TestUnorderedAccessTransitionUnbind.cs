@@ -59,8 +59,13 @@ public class TestUnorderedAccessTransitionUnbind : GraphicTestGameBase
             Assert.True(commandList.IsShaderResourceViewBound(ShaderStage.Pixel, 0));
             Assert.False(commandList.IsShaderResourceViewBound(ShaderStage.Compute, 1));
 
-            // Write the whole texture, here through a view of mip-level 1 (a view stands for its whole texture, as in Direct3D 12)
+            // Write mip-level 1 through its view: a view stands for the sub-resources it covers, as in Direct3D 12 and Vulkan
             commandList.ResourceBarrierTransition(mip1, BarrierLayout.UnorderedAccess);
+            Assert.True(commandList.IsShaderResourceViewBound(ShaderStage.Compute, 0));
+            Assert.True(commandList.IsShaderResourceViewBound(ShaderStage.Pixel, 0));
+
+            // Write the whole texture
+            commandList.ResourceBarrierTransition(texture, BarrierLayout.UnorderedAccess);
             Assert.False(commandList.IsShaderResourceViewBound(ShaderStage.Compute, 0));
             Assert.False(commandList.IsShaderResourceViewBound(ShaderStage.Pixel, 0));
 #endif
