@@ -70,13 +70,9 @@ public class TestComputeReadMipWriteNextMip : GraphicTestGameBase
                 Assert.Equal(new Vector4(2 * x + 0.5f, 2 * y + 0.5f, 2 * x + 2 * y + 1, 1), mip1[y * (TextureSize / 2) + x]);
     }
 
-    [SkippableFact]
+    [Fact]
     public void ComputeShaderReadsMipAndWritesNextMip()
     {
-        Skip.If(GraphicsDevice.Platform == GraphicsPlatform.Vulkan,
-            "Vulkan tracks one layout per texture, so mip-level N can't be sampled while N + 1 is written in the same dispatch " +
-            "(follow-up: per-subresource layout tracking in the Vulkan backend, per-view transitions in ComputeEffectShader).");
-
         RunGameTest(new TestComputeReadMipWriteNextMip());
     }
 }
