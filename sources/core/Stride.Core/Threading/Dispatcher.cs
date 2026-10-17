@@ -89,7 +89,11 @@ public static class Dispatcher
             // Might as well steal some work instead of just waiting,
             // also helps prevent potential deadlocks from badly threaded code
             while (Volatile.Read(ref batch.ItemsDone) < batch.Total && Volatile.Read(ref batch.ExceptionThrown) == null)
+            {
                 ThreadPool.Instance.TryCooperate();
+                if (WineGCSafePoint.IsWine)
+                    WineGCSafePoint.Poll();
+            }
 
             var ex = Interlocked.Exchange(ref batch.ExceptionThrown, null);
             if (ex != null)
