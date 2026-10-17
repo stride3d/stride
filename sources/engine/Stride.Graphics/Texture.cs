@@ -1947,6 +1947,23 @@ namespace Stride.Graphics
         }
 
         /// <summary>
+        ///   Gets the sub-Resources of the parent Texture a barrier on this Texture View moves.
+        /// </summary>
+        /// <returns>
+        ///   The range of the View, or <see langword="null"/> for the whole Texture: this is not a View, the View covers
+        ///   the whole Texture, or the Texture is a depth-stencil (its stencil plane has its own sub-Resources, which the
+        ///   layout tracker does not know).
+        /// </returns>
+        internal TextureSubresourceRange? GetBarrierRange()
+        {
+            if (ParentTexture is not { } parent || parent.IsDepthStencil)
+                return null;
+
+            var range = GetViewSubResourceRange();
+            return range.CoversWhole(parent) ? null : range;
+        }
+
+        /// <summary>
         ///   Returns the number of Views the Texture can have.
         /// </summary>
         /// <returns>The number of Views the Texture can have.</returns>

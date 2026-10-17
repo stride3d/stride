@@ -25,4 +25,13 @@ internal readonly record struct TextureSubresourceRange(int MipStart, int MipCou
     ///   Gets the array slice after the last one in the range.
     /// </summary>
     public int ArraySliceEnd => ArraySliceStart + ArraySliceCount;
+
+    /// <summary>
+    ///   Determines whether the range covers every sub-Resource of a Texture.
+    /// </summary>
+    public bool CoversWhole(Texture texture)
+    {
+        var arraySize = texture.Dimension == TextureDimension.Texture3D ? 1 : texture.ArraySize;
+        return MipStart == 0 && MipCount == texture.MipLevelCount && ArraySliceStart == 0 && ArraySliceCount == arraySize;
+    }
 }
