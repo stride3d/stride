@@ -172,12 +172,13 @@ public partial class SpirvContext
             // Do not infer a storage image format from the element type. The view decides it:
             // RWTexture2D<float4> binds equally to R8G8B8A8_UNorm and R32G32B32A32_Float. An
             // Unknown format makes ShaderMixer request StorageImage{Read,Write}WithoutFormat.
+            // A scalar int or uint is the exception, as in RWBuffer: atomics need R32i / R32ui.
             Texture1DType t => Buffer.AddData(new OpTypeImage(id, GetOrRegister(t.ReturnType), t.Dimension,
-                t.Depth, t.Arrayed ? 1 : 0, t.Multisampled ? 1 : 0, t.Sampled, t.Format, null)).IdResult,
+                t.Depth, t.Arrayed ? 1 : 0, t.Multisampled ? 1 : 0, t.Sampled, GetStorageImageFormat(t), null)).IdResult,
             Texture2DType t => Buffer.AddData(new OpTypeImage(id, GetOrRegister(t.ReturnType), t.Dimension,
-                t.Depth, t.Arrayed ? 1 : 0, t.Multisampled ? 1 : 0, t.Sampled, t.Format, null)).IdResult,
+                t.Depth, t.Arrayed ? 1 : 0, t.Multisampled ? 1 : 0, t.Sampled, GetStorageImageFormat(t), null)).IdResult,
             Texture3DType t => Buffer.AddData(new OpTypeImage(id, GetOrRegister(t.ReturnType), t.Dimension,
-                t.Depth, t.Arrayed ? 1 : 0, t.Multisampled ? 1 : 0, t.Sampled, t.Format, null)).IdResult,
+                t.Depth, t.Arrayed ? 1 : 0, t.Multisampled ? 1 : 0, t.Sampled, GetStorageImageFormat(t), null)).IdResult,
             TextureCubeType t => Buffer.AddData(new OpTypeImage(id, GetOrRegister(t.ReturnType), t.Dimension,
                 t.Depth, t.Arrayed ? 1 : 0, t.Multisampled ? 1 : 0, t.Sampled, t.Format, null)).IdResult,
             SamplerType st => Buffer.AddData(new OpTypeSampler(id)).IdResult,
@@ -242,14 +243,21 @@ public partial class SpirvContext
     /// </remarks>
     /// <returns>A concrete format for a writable 32-bit integer buffer, Unknown otherwise.</returns>
     private static Specification.ImageFormat GetStorageImageFormat(BufferType bufferType)
-        => bufferType.WriteAllowed
-            ? bufferType.BaseType switch
-            {
-                ScalarType { Type: Scalar.UInt } => Specification.ImageFormat.R32ui,
-                ScalarType { Type: Scalar.Int } => Specification.ImageFormat.R32i,
-                _ => Specification.ImageFormat.Unknown,
-            }
-            : Specification.ImageFormat.Unknown;
+        => bufferType.WriteAllowed ? GetIntegerTexelFormat(bufferType.BaseType) : Specification.ImageFormat.Unknown;
+
+    /// <summary>
+    /// Retrieves the image format a texture declares: as for <see cref="GetStorageImageFormat(BufferType)"/>, R32i / R32ui
+    /// for a read-write texture of int or uint (also what DXC declares), its own format otherwise.
+    /// </summary>
+    private static Specification.ImageFormat GetStorageImageFormat(TextureType textureType)
+        => textureType is { Sampled: 2, Format: Specification.ImageFormat.Unknown } ? GetIntegerTexelFormat(textureType.ReturnType) : textureType.Format;
+
+    private static Specification.ImageFormat GetIntegerTexelFormat(SymbolType texelType) => texelType switch
+    {
+        ScalarType { Type: Scalar.UInt } => Specification.ImageFormat.R32ui,
+        ScalarType { Type: Scalar.Int } => Specification.ImageFormat.R32i,
+        _ => Specification.ImageFormat.Unknown,
+    };
 
     private int RegisterByteAddressBufferType(ByteAddressBufferType byteAddressBufferType)
     {

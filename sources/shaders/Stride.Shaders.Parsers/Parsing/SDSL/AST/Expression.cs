@@ -238,9 +238,11 @@ public partial class MethodCall(Identifier name, ShaderExpressionList arguments,
         {
             if (IntrinsicCallHelper.TryResolveIntrinsic(table, MemberCallBaseType, Name, argumentTypes, out var resolvedIntrinsic, out var intrinsicFailure))
             {
+                var overload = resolvedIntrinsic.Overload;
+                CheckAtomicCall(table, ref overload);
                 resolvedIntrinsicCompiler = resolvedIntrinsic.Compiler;
                 resolvedIntrinsicNamespace = resolvedIntrinsic.Namespace;
-                resolvedIntrinsicOverload = resolvedIntrinsic.Overload;
+                resolvedIntrinsicOverload = overload;
                 Type = resolvedIntrinsicOverload.Value.Type.ReturnType;
             }
             // A method of that name was found, but the call doesn't fit it: that error says why
@@ -837,12 +839,12 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
     private SpirvValue[]? intermediateValues;
 
     /// <summary>
-    /// Compiles a trailing <c>buffer[i]</c> into an <c>OpImageTexelPointer</c> for use by atomics.
+    /// Compiles a trailing <c>buffer[i]</c> or <c>texture[uv]</c> into an <c>OpImageTexelPointer</c> for use by atomics.
     /// </summary>
     /// <remarks>
-    /// A typed buffer is a storage image, so normal indexing produces an image read/write; atomics
+    /// A typed buffer or a read-write texture is a storage image, so normal indexing produces an image read/write; atomics
     /// need a pointer, and OpImageTexelPointer results may only be consumed by atomics, hence this
-    /// is only used on the <c>ref</c> argument path. Returns false when the chain is not a buffer index.
+    /// is only used on the <c>ref</c> argument path. Returns false when the chain is not a buffer or texture index.
     /// </remarks>
     public bool TryCompileAsTexelPointer(SymbolTable table, CompilerUnit compiler, out SpirvValue texelPointer)
     {
@@ -853,12 +855,17 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
 
         var lastIndex = Accessors.Count - 1;
         var baseType = lastIndex > 0 ? Accessors[lastIndex - 1].Type : Source.Type;
-        if (baseType is not PointerType { BaseType: BufferType bufferType })
-            return false;
+        var (texelType, coordinateType) = baseType switch
+        {
+            PointerType { BaseType: BufferType bufferType } => (bufferType.BaseType, (SymbolType)ScalarType.Int),
+            PointerType { BaseType: TextureType { Sampled: 2 } texture } => (texture.ReturnType,
+                texture.CoordinateDimension == 1 ? ScalarType.Int : new VectorType(ScalarType.Int, texture.CoordinateDimension)),
+            _ => default,
+        };
 
         // Image atomics are only defined on 32-bit integer texels, which is also the only case
         // where the image declares a format - see SpirvContext.GetStorageImageFormat.
-        if (bufferType.BaseType is not ScalarType { Type: Scalar.UInt or Scalar.Int })
+        if (texelType is not ScalarType { Type: Scalar.UInt or Scalar.Int })
             return false;
 
         var (builder, context) = compiler;
@@ -868,8 +875,8 @@ public partial class AccessorChainExpression(Expression source, TextLocation inf
 
         // The image operand stays a pointer to the image; it must not be loaded into a value.
         var image = intermediateValues![lastIndex];
-        var coordinate = builder.Convert(context, indexer.Index.CompileAsValue(table, compiler), ScalarType.Int);
-        var pointerType = new PointerType(bufferType.BaseType, Specification.StorageClass.Image);
+        var coordinate = builder.Convert(context, indexer.Index.CompileAsValue(table, compiler), coordinateType);
+        var pointerType = new PointerType(texelType, Specification.StorageClass.Image);
 
         var instruction = builder.Insert(new OpImageTexelPointer(
             context.GetOrRegister(pointerType), context.Bound++,
