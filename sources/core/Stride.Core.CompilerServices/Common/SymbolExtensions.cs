@@ -62,4 +62,67 @@ internal static class SymbolExtensions
         }
         return false;
     }
+
+    public static IEnumerable<INamedTypeSymbol> GetAllTypes(this IAssemblySymbol assembly)
+    {
+        var globalNamespace = assembly.GlobalNamespace;
+        if (globalNamespace is not null)
+        {
+            foreach (var type in globalNamespace.GetAllTypes())
+            {
+                yield return type;
+            }
+        }
+    }
+
+    public static IEnumerable<INamedTypeSymbol> GetAllTypes(this INamespaceSymbol @namespace)
+    {
+        foreach (var type in @namespace.GetTypeMembers())
+        {
+            yield return type;
+            foreach (var nestedType in type.GetAllTypes())
+            {
+                yield return nestedType;
+            }
+        }
+        foreach (var nestedNamespace in @namespace.GetNamespaceMembers())
+        {
+            foreach (var type in nestedNamespace.GetAllTypes())
+            {
+                yield return type;
+            }
+        }
+    }
+
+    public static IEnumerable<INamedTypeSymbol> GetAllTypes(this INamedTypeSymbol type)
+    {
+        foreach (var nestedType in type.GetTypeMembers())
+        {
+            yield return nestedType;
+            foreach (var nestedNestedType in nestedType.GetAllTypes())
+            {
+                yield return nestedNestedType;
+            }
+        }
+    }
+
+    public static IEnumerable<INamedTypeSymbol> GetAllBaseTypesAscending(this INamedTypeSymbol type)
+    {
+        while (type.BaseType is not null)
+        {
+            yield return type.BaseType;
+            type = type.BaseType;
+        }
+    }
+
+    public static IEnumerable<INamedTypeSymbol> GetAllBaseTypesDescending(this INamedTypeSymbol type)
+    {
+        var stack = new Stack<INamedTypeSymbol>();
+        while (type.BaseType is not null)
+        {
+            stack.Push(type.BaseType);
+            type = type.BaseType;
+        }
+        return stack;
+    }
 }
