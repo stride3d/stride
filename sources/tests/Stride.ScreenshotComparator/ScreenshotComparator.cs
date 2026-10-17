@@ -112,7 +112,7 @@ public static class ScreenshotComparator
                     var verdict = ClaudeVisionFallback.Compare(baselines, newPng, prompt);
                     var detail = $"lpips drift (vs {baselines.Count} baseline(s)); claude: {verdict.Reason}";
                     results.Add(new ComparisonResult(sample, frame, distance, frameThreshold,
-                        verdict.Pass ? "ok-via-claude" : "drift", detail));
+                        verdict.Pass ? "ok-via-claude" : "drift", detail, verdict.Reason));
                     continue;
                 }
 
@@ -261,5 +261,6 @@ public static class ScreenshotComparator
     private readonly record struct FrameMetadata(float? Threshold, bool ClaudeFallbackEnabled, string? ClaudeFallbackHint);
 }
 
-/// <summary>One row per (sample, frame) compared. <see cref="Lpips"/> is null for status="new" / "missing" / "error".</summary>
-public sealed record ComparisonResult(string Sample, string Frame, float? Lpips, float Threshold, string Status, string? Detail);
+/// <summary>One row per (sample, frame) compared. <see cref="Lpips"/> is null for status="new" / "missing" / "error".
+/// <see cref="VisionReason"/> is the vision model's own reason, when it judged the frame (also part of <see cref="Detail"/>).</summary>
+public sealed record ComparisonResult(string Sample, string Frame, float? Lpips, float Threshold, string Status, string? Detail, string? VisionReason = null);
