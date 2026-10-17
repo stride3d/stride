@@ -527,8 +527,16 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
         }
 
         table.InheritedShaders.Clear();
+        var missingParent = false;
         foreach (var mixin in Mixins)
         {
+            if (!table.ShaderLoader.Exists(mixin.Name))
+            {
+                table.AddError(new(mixin.Info, string.Format(SDSLErrorMessages.SDSL0191, mixin.Name, Name)));
+                missingParent = true;
+                continue;
+            }
+
             var mixinGenerics = (mixin as GenericIdentifier)?.Generics;
             var generics = new ConstantExpression[mixinGenerics != null ? mixinGenerics.Values.Count : 0];
             if (mixinGenerics != null)
@@ -570,6 +578,10 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
             var shaderClassSource = new ShaderClassInstantiation(mixin.Name, generics);
             SpirvBuilder.BuildInheritanceListIncludingSelf(table.ShaderLoader, context, shaderClassSource, table.CurrentMacros.AsSpan(), table.InheritedShaders, ResolveStep.Compile);
         }
+
+        // Its members would be undeclared names: the missing shader is the error
+        if (missingParent)
+            return;
 
         RegisterShaderType(table, currentShader);
 

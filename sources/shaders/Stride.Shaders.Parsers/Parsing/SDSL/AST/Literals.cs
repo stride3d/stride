@@ -1050,7 +1050,7 @@ public partial class TypeName(string name, TextLocation info) : Literal(info)
             {
                 return new ExternalType(Name, null);
             }
-            throw new InvalidOperationException($"Could not resolve type [{Name}]");
+            throw new StatementCompileException(new(Info, string.Format(SDSLErrorMessages.SDSL0190, Name)));
         }
 
         return result;

@@ -559,7 +559,7 @@ public partial class SpirvBuilder
                 values[0] = valueId;
                 break;
             case (VectorType v1, VectorType v2) when v1.Size < v2.Size:
-                throw new InvalidOperationException($"Can't cast from {v1} to {v2} (more components): HLSL doesn't add components implicitly, write them ({v2}(value, ...))");
+                throw new InvalidOperationException(string.Format(SDSLErrorMessages.SDSL0193, v1, v2));
             case (VectorType v1, VectorType v2) when v1.Size > v2.Size:
                 {
                     Span<int> valuesTemp = stackalloc int[v2.Size];

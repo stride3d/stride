@@ -59,7 +59,7 @@ public static class SDSLErrorMessages
     public const string SDSL0100 = "SDSL0100: Variable is not declared";
     public const string SDSL0101 = "SDSL0101: Variable is already declared";
     public const string SDSL0102 = "SDSL0102: Variable is not a constant";
-    public const string SDSL0103 = "SDSL0103: Variable cannot be assigned to";
+    public const string SDSL0103 = "SDSL0103: {0} can't be assigned to: it is a value, not a variable. Assign to a variable, a member, an array element or a swizzle.";
     public const string SDSL0104 = "SDSL0104: Cannot infer type";
     public const string SDSL0105 = "SDSL0105: Unrecognized node";
     public const string SDSL0106 = "SDSL0106: Unsupported type";
@@ -94,6 +94,10 @@ public static class SDSLErrorMessages
     public const string SDSL0180 = "SDSL0180: Parameter '{0}' of {1}: {2} is not supported. Use a RWStructuredBuffer with a separate counter buffer instead.";
     public const string SDSL0181 = "SDSL0181: Buffer parameter '{0}' of {1} is '{2}': a buffer parameter always refers to the caller's buffer, so it can't be out or inout. Remove '{2}'.";
     public const string SDSL0150 = "SDSL0150: {0} has no member '{1}'. To get the size of a buffer, call {2}.GetDimensions({3}).";
+    public const string SDSL0190 = "SDSL0190: Unknown type {0}. Check its name; a struct or a shader must be declared in this shader, one it inherits, or another shader file.";
+    public const string SDSL0191 = "SDSL0191: {1} inherits from {0}, but shader {0} can't be found. Check its name, and that its .sdsl file is with the other shaders.";
+    public const string SDSL0193 = "SDSL0193: Can't convert {0} to {1}: HLSL doesn't add components implicitly. Write them: {1}(value, ...).";
+    public const string SDSL0194 = "SDSL0194: Stream {0} is read{1} before any stage writes it, and it has no semantic, so it can't come from a vertex buffer. Write streams.{0} before reading it, or give it a semantic if it is a vertex buffer input.";
 
     // HLSL warnings: valid HLSL that is probably a mistake, reported when a class compiles
     public const string SDSL0219 = "SDSL0219: comma expression ({0}): the values before the last are dropped, the result is {1}. To build a vector, write its type: float4(...).";
