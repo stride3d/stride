@@ -39,6 +39,12 @@ namespace Stride.Graphics
         private DescriptorSet[] boundDescriptorSets;
         private readonly ID3D12DescriptorHeap*[] descriptorHeaps = new ID3D12DescriptorHeap*[2];
         private readonly List<ResourceBarrierDescription> pendingBarriers = new(16);
+
+        /// <summary>
+        ///   The number of barriers recorded and not flushed yet (checked by the tests).
+        /// </summary>
+        internal int PendingBarrierCount => pendingBarriers.Count;
+
         // Scratch map for FlushResourceBarriers coalescing. Reused to avoid per-flush allocs.
         private readonly Dictionary<(GraphicsResource, uint), int> barrierCoalesceMap = new(16);
 
@@ -567,18 +573,28 @@ namespace Stride.Graphics
             if (tracker.NeedsTransition(subresource, newLayout))
             {
                 // When per-subresource tracking is active and a whole-resource transition is requested,
-                // only emit barriers for subresources that actually differ
+                // only emit barriers for subresources that actually differ, or a single one if they all share a layout
                 if (subresource == uint.MaxValue && tracker.HasPerSubresourceTracking)
                 {
-                    var layouts = tracker.PerSubresourceLayouts;
-                    for (int i = 0; i < layouts.Length; i++)
+                    if (tracker.TryGetCommonLayout(out var commonLayout))
                     {
-                        if (layouts[i] != newLayout)
+                        pendingBarriers.Add(new ResourceBarrierDescription(resource, commonLayout, newLayout)
                         {
-                            pendingBarriers.Add(new ResourceBarrierDescription(resource, layouts[i], newLayout)
+                            Subresource = uint.MaxValue
+                        });
+                    }
+                    else
+                    {
+                        var layouts = tracker.PerSubresourceLayouts;
+                        for (int i = 0; i < layouts.Length; i++)
+                        {
+                            if (layouts[i] != newLayout)
                             {
-                                Subresource = (uint)i
-                            });
+                                pendingBarriers.Add(new ResourceBarrierDescription(resource, layouts[i], newLayout)
+                                {
+                                    Subresource = (uint)i
+                                });
+                            }
                         }
                     }
                 }
