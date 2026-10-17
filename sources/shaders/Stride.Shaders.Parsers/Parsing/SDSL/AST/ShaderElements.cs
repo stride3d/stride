@@ -328,6 +328,8 @@ public sealed partial class CBuffer(string name, TextLocation info) : ShaderBuff
         {
             cbMember.TypeName.ProcessSymbol(table);
             cbMember.Type = cbMember.TypeName.Type;
+            if (ShaderMember.FindIntegerMatrix(cbMember.Type) is { } integerMatrix)
+                table.AddError(new(cbMember.TypeName.Info, string.Format(SDSLErrorMessages.SDSL0195, cbMember.Name, integerMatrix, new VectorType(integerMatrix.BaseType, integerMatrix.Rows))));
         }
 
         var pointerType = new PointerType(Type!, Specification.StorageClass.Uniform);

@@ -1,0 +1,53 @@
+// PSMain(ExpectedResult=#336699FF)
+
+namespace Stride.Shaders.Tests;
+
+// int, uint and bool matrices (arrays of rows in SPIR-V, as in DXC): a static const table indexed [row][column],
+// initializers, component-wise operators and comparisons, a row write, casts, swizzles, transpose, mul, a struct member,
+// parameters and return values. Each group of checks lights one channel
+shader IntegerMatrices
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    static const int4x4 Pattern = { 0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5 };
+
+    struct Cell
+    {
+        int2x2 M;
+        float Weight;
+    };
+
+    uint2x2 Twice(uint2x2 m)
+    {
+        return m * 2u;
+    }
+
+    void PSMain()
+    {
+        bool table = Pattern[1][2] == 14 && Pattern[3][0] == 15 && Pattern[2].w == 9;
+
+        int2x3 a = { 1, 2, 3, 4, 5, 6 };
+        int2x3 b = int2x3(int3(1, 1, 1), int3(2, 2, 2));
+        // (1 2 3; 4 5 6) + (2 2 2; 4 4 4) - (0 1 1; 2 2 0) = (3 3 4; 6 7 10)
+        int2x3 c = a + b * 2 - (a / 2) % 3;
+        c[1][2] = 7;
+        bool2x3 greater = a > b;
+        float2x3 f = c;
+        uint2x3 u = (uint2x3)(-a);
+        Cell cell;
+        cell.M = int2x2(5, 6, 7, 8);
+        cell.M[1] = int2(9, 10);
+        bool operators = c[0][2] == 4 && c[1][1] == 7 && c[1][2] == 7 && !greater[0][0] && greater[0][1] && greater[1][2]
+            && f[1][0] == 6.0 && u[0][0] == 0xFFFFFFFF && c._m12 + c._11 == 10 && all(cell.M[0] == int2(5, 6)) && cell.M[1][1] == 10;
+
+        int3x2 t = transpose(a);
+        int2 v = mul(a, int3(1, 1, 1));
+        int3 w = mul(int2(1, 2), a);
+        int2x2 m = mul(a, t);
+        uint2x2 twice = Twice(uint2x2(1, 2, 3, 4));
+        bool intrinsics = t[2][1] == 6 && t[0][1] == 4 && all(v == int2(6, 15)) && all(w == int3(9, 12, 15))
+            && m[0][0] == 14 && m[0][1] == 32 && m[1][1] == 77 && twice[1][0] == 6;
+
+        streams.ColorTarget = float4(table ? 0.2 : 0, operators ? 0.4 : 0, intrinsics ? 0.6 : 0, 1);
+    }
+};

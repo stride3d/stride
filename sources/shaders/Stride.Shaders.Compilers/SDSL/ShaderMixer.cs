@@ -160,6 +160,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         // Normalize OpTypeImage: replace full return types (e.g. float4) with scalar base types
         // as required by SPIR-V spec, then dedup any resulting identical types.
         NormalizeImageSampledTypes(context);
+
+        LowerIntegerMatrices(context);
         new TypeDuplicateHelper(context).RemoveDuplicateImageTypes(temp);
 
         foreach (var inst in context)

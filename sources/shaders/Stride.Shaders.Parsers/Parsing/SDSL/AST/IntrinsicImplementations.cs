@@ -205,6 +205,9 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
     {
         // Version on https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-mul
         // Note: SPIR-V and HLSL have opposite meaning for Rows/Columns and multiplication order need to be swapped
+        if (!context.ReverseTypes[a.TypeId].GetElementType().IsFloating() || !context.ReverseTypes[b.TypeId].GetElementType().IsFloating())
+            return CompileIntegerMul(table, context, builder, a, b, location);
+
         var result = (context.ReverseTypes[a.TypeId], context.ReverseTypes[b.TypeId]) switch
         {
             (ScalarType type1, ScalarType type2) => builder.InsertData(new OpFMul(a.TypeId, context.Bound++, a.Id, b.Id)),
@@ -225,6 +228,67 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
         };
 
         return new SpirvValue(result);
+    }
+
+    /// <summary>
+    /// mul() on integers: SPIR-V's matrix instructions and OpDot are for floats, so it is built from multiplications and
+    /// additions, row by row (the SPIR-V columns of a matrix are its HLSL rows).
+    /// </summary>
+    private static SpirvValue CompileIntegerMul(SymbolTable table, SpirvContext context, SpirvBuilder builder, SpirvValue a, SpirvValue b, TextLocation location)
+    {
+        var (typeA, typeB) = (context.ReverseTypes[a.TypeId], context.ReverseTypes[b.TypeId]);
+        return (typeA, typeB) switch
+        {
+            (ScalarType or VectorType or MatrixType, ScalarType) or (ScalarType, VectorType or MatrixType) => builder.BinaryOperation(table, context, a, Operator.Mul, b, location),
+            (VectorType v1, VectorType v2) when v1.Size == v2.Size => IntegerDot(table, context, builder, a, b, location),
+            // mul(v, M): the sum of the rows of M weighted by v
+            (VectorType v, MatrixType m) when v.Size == m.Columns => SumRows(table, context, builder, a, b, m, location),
+            // mul(M, v): one dot product per row of M
+            (MatrixType m, VectorType v) when m.Rows == v.Size => CompositeOfRows(context, builder, new VectorType(m.BaseType, m.Columns), m.Columns,
+                row => IntegerDot(table, context, builder, Row(context, builder, a, m, row), b, location)),
+            // mul(M1, M2): each row of M1 times M2
+            (MatrixType m1, MatrixType m2) when m1.Rows == m2.Columns => CompositeOfRows(context, builder, new MatrixType(m1.BaseType, m2.Rows, m1.Columns), m1.Columns,
+                row => SumRows(table, context, builder, Row(context, builder, a, m1, row), b, m2, location)),
+            _ => throw new NotSupportedException($"Unsupported mul operand types: {typeA} and {typeB}"),
+        };
+    }
+
+    private static SpirvValue Row(SpirvContext context, SpirvBuilder builder, SpirvValue matrix, MatrixType type, int row)
+        => new(builder.InsertData(new OpCompositeExtract(context.GetOrRegister(new VectorType(type.BaseType, type.Rows)), context.Bound++, matrix.Id, [row])));
+
+    private static SpirvValue Element(SpirvContext context, SpirvBuilder builder, SpirvValue vector, int index)
+    {
+        var elementType = context.GetOrRegister(((VectorType)context.ReverseTypes[vector.TypeId]).BaseType);
+        return new(builder.InsertData(new OpCompositeExtract(elementType, context.Bound++, vector.Id, [index])));
+    }
+
+    private static SpirvValue IntegerDot(SymbolTable table, SpirvContext context, SpirvBuilder builder, SpirvValue a, SpirvValue b, TextLocation location)
+    {
+        var product = builder.BinaryOperation(table, context, a, Operator.Mul, b, location);
+        var size = ((VectorType)context.ReverseTypes[product.TypeId]).Size;
+        var sum = Element(context, builder, product, 0);
+        for (var i = 1; i < size; i++)
+            sum = builder.BinaryOperation(table, context, sum, Operator.Plus, Element(context, builder, product, i), location);
+        return sum;
+    }
+
+    private static SpirvValue SumRows(SymbolTable table, SpirvContext context, SpirvBuilder builder, SpirvValue vector, SpirvValue matrix, MatrixType type, TextLocation location)
+    {
+        SpirvValue sum = default;
+        for (var row = 0; row < type.Columns; row++)
+        {
+            var term = builder.BinaryOperation(table, context, Row(context, builder, matrix, type, row), Operator.Mul, Element(context, builder, vector, row), location);
+            sum = row == 0 ? term : builder.BinaryOperation(table, context, sum, Operator.Plus, term, location);
+        }
+        return sum;
+    }
+
+    private static SpirvValue CompositeOfRows(SpirvContext context, SpirvBuilder builder, SymbolType type, int rows, Func<int, SpirvValue> getRow)
+    {
+        var values = new int[rows];
+        for (var row = 0; row < rows; row++)
+            values[row] = getRow(row).Id;
+        return new(builder.InsertData(new OpCompositeConstruct(context.GetOrRegister(type), context.Bound++, [.. values])));
     }
 
     public override SpirvValue CompileReflect(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue i, SpirvValue n, TextLocation location = default)
@@ -516,6 +580,21 @@ internal class IntrinsicImplementations : IntrinsicsDeclarations
     public override SpirvValue CompileTranspose(SymbolTable table, SpirvContext context, SpirvBuilder builder, FunctionType functionType, SpirvValue x, TextLocation location = default)
     {
         var returnTypeId = context.GetOrRegister(functionType.ReturnType);
+        // OpTranspose is for floats: an integer matrix is transposed element by element
+        if (functionType.ReturnType is MatrixType { BaseType: var baseType } returnType && !baseType.IsFloating())
+        {
+            var elementType = context.GetOrRegister(baseType);
+            var rowType = context.GetOrRegister(new VectorType(baseType, returnType.Rows));
+            var rows = new int[returnType.Columns];
+            var elements = new int[returnType.Rows];
+            for (var row = 0; row < returnType.Columns; row++)
+            {
+                for (var column = 0; column < returnType.Rows; column++)
+                    elements[column] = new SpirvValue(builder.InsertData(new OpCompositeExtract(elementType, context.Bound++, x.Id, [column, row]))).Id;
+                rows[row] = new SpirvValue(builder.InsertData(new OpCompositeConstruct(rowType, context.Bound++, [.. elements]))).Id;
+            }
+            return new(builder.InsertData(new OpCompositeConstruct(returnTypeId, context.Bound++, [.. rows])));
+        }
         var result = builder.Insert(new OpTranspose(returnTypeId, context.Bound++, x.Id));
         return new(result.ResultId, result.ResultType);
     }
