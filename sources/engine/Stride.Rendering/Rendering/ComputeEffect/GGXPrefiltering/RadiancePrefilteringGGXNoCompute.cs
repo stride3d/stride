@@ -92,6 +92,10 @@ namespace Stride.Rendering.ComputeEffect.GGXPrefiltering
 
             for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
             {
+                // The input is a parameter, not an image effect input, so nothing else transitions it
+                // (the copy of the highest level leaves it in a copy layout on Direct3D 12)
+                context.CommandList.ResourceBarrierTransition(input, BarrierLayout.ShaderResource);
+
                 for (int faceIndex = 0; faceIndex < faceCount; faceIndex++)
                 {
                     using var outputView = output.ToTextureView(ViewType.Single, faceIndex, mipLevel);
