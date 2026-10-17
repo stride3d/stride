@@ -98,9 +98,26 @@ namespace Stride.Graphics.GeometricPrimitives
             /// <param name="toLeftHanded">if set to <c>true</c> vertices and indices will be transformed to left handed. Default is false.</param>
             /// <returns>A sphere primitive.</returns>
             /// <exception cref="System.ArgumentOutOfRangeException">tessellation;Must be &gt;= 3</exception>
-            public static GeometricPrimitive New(GraphicsDevice device, float length = 1.0f, float radius = 0.5f, int tessellation = 8, float uScale = 1.0f, float vScale = 1.0f, bool toLeftHanded = false)
+            public static GeometricPrimitive New(GraphicsDevice device, float length, float radius, int tessellation, float uScale, float vScale, bool toLeftHanded)
             {
-                return new GeometricPrimitive(device, New(length, radius, tessellation, uScale, vScale, toLeftHanded));
+                return New(device, length, radius, tessellation, uScale, vScale, toLeftHanded, lengthRings: 0);
+            }
+
+            /// <summary>
+            /// Creates a capsule primitive with additional rings along its length.
+            /// </summary>
+            /// <param name="device">The device.</param>
+            /// <param name="length">The length. That is the distance between the two sphere centers.</param>
+            /// <param name="radius">The radius of the capsule.</param>
+            /// <param name="tessellation">The tessellation.</param>
+            /// <param name="uScale">Scale U coordinates between 0 and the values of this parameter.</param>
+            /// <param name="vScale">Scale V coordinates 0 and the values of this parameter.</param>
+            /// <param name="toLeftHanded">if set to <c>true</c> vertices and indices will be transformed to left handed. Default is false.</param>
+            /// <param name="lengthRings">The number of vertex rings added between the two hemispheres. Negative values are treated as 0.</param>
+            /// <returns>A capsule primitive.</returns>
+            public static GeometricPrimitive New(GraphicsDevice device, float length = 1.0f, float radius = 0.5f, int tessellation = 8, float uScale = 1.0f, float vScale = 1.0f, bool toLeftHanded = false, int lengthRings = 0)
+            {
+                return new GeometricPrimitive(device, New(length, radius, tessellation, uScale, vScale, toLeftHanded, lengthRings));
             }
 
             /// <summary>
@@ -114,34 +131,62 @@ namespace Stride.Graphics.GeometricPrimitives
             /// <param name="toLeftHanded">if set to <c>true</c> vertices and indices will be transformed to left handed. Default is false.</param>
             /// <returns>A sphere primitive.</returns>
             /// <exception cref="System.ArgumentOutOfRangeException">tessellation;Must be &gt;= 3</exception>
-            public static GeometricMeshData<VertexPositionNormalTexture> New(float length = 1.0f, float radius = 0.5f, int tessellation = 8, float uScale = 1.0f, float vScale = 1.0f, bool toLeftHanded = false)
+            public static GeometricMeshData<VertexPositionNormalTexture> New(float length, float radius, int tessellation, float uScale, float vScale, bool toLeftHanded)
+            {
+                return New(length, radius, tessellation, uScale, vScale, toLeftHanded, lengthRings: 0);
+            }
+
+            /// <summary>
+            /// Creates a capsule primitive with additional rings along its length.
+            /// </summary>
+            /// <param name="length">The length of the capsule. That is the distance between the two sphere centers.</param>
+            /// <param name="radius">The radius of the capsule.</param>
+            /// <param name="tessellation">The tessellation.</param>
+            /// <param name="uScale">Scale U coordinates between 0 and the values of this parameter.</param>
+            /// <param name="vScale">Scale V coordinates 0 and the values of this parameter.</param>
+            /// <param name="toLeftHanded">if set to <c>true</c> vertices and indices will be transformed to left handed. Default is false.</param>
+            /// <param name="lengthRings">The number of vertex rings added between the two hemispheres. Negative values are treated as 0.</param>
+            /// <returns>A capsule primitive.</returns>
+            public static GeometricMeshData<VertexPositionNormalTexture> New(float length = 1.0f, float radius = 0.5f, int tessellation = 8, float uScale = 1.0f, float vScale = 1.0f, bool toLeftHanded = false, int lengthRings = 0)
             {
                 if (tessellation < 3) tessellation = 3;
+                if (lengthRings < 0) lengthRings = 0;
 
                 int verticalSegments = 2 * tessellation;
                 int horizontalSegments = 4 * tessellation;
+                int ringCount = verticalSegments + lengthRings;
 
-                var vertices = new VertexPositionNormalTexture[verticalSegments * (horizontalSegments + 1)];
-                var indices = new int[(verticalSegments - 1) * (horizontalSegments + 1) * 6];
+                var vertices = new VertexPositionNormalTexture[ringCount * (horizontalSegments + 1)];
+                var indices = new int[(ringCount - 1) * (horizontalSegments + 1) * 6];
 
                 var vertexCount = 0;
                 // Create rings of vertices at progressively higher latitudes.
-                for (int i = 0; i < verticalSegments; i++)
+                for (int ring = 0; ring < ringCount; ring++)
                 {
                     float v;
                     float deltaY;
                     float latitude;
-                    if (i < verticalSegments / 2)
+                    if (ring < tessellation)
                     {
+                        var i = ring;
                         deltaY = -length / 2;
                         v = 1.0f - (0.25f * i / (tessellation - 1));
                         latitude = (float)((i * Math.PI / (verticalSegments - 2)) - Math.PI / 2.0);
                     }
-                    else
+                    else if (ring >= tessellation + lengthRings)
                     {
+                        var i = ring - lengthRings;
                         deltaY = length / 2;
                         v = 0.5f - (0.25f * (i - 1) / (tessellation - 1));
                         latitude = (float)(((i - 1) * Math.PI / (verticalSegments - 2)) - Math.PI / 2.0);
+                    }
+                    else
+                    {
+                        // Rings between the two equators, evenly spaced along the length.
+                        var t = (float)(ring - tessellation + 1) / (lengthRings + 1);
+                        deltaY = length * (t - 0.5f);
+                        v = 0.75f - 0.5f * t;
+                        latitude = 0;
                     }
 
                     var dy = MathF.Sin(latitude);
@@ -171,7 +216,7 @@ namespace Stride.Graphics.GeometricPrimitives
                 int stride = horizontalSegments + 1;
 
                 int indexCount = 0;
-                for (int i = 0; i < verticalSegments - 1; i++)
+                for (int i = 0; i < ringCount - 1; i++)
                 {
                     for (int j = 0; j <= horizontalSegments; j++)
                     {

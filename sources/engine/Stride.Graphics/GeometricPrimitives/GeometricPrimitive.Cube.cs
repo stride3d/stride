@@ -85,8 +85,6 @@ namespace Stride.Graphics.GeometricPrimitives
         /// </summary>
         public static class Cube
         {
-            // TODO: Add support to tesselate the faces of the cube
-
             private const int CubeFaceCount = 6;
 
             private static readonly Vector3[] FaceNormals = new Vector3[CubeFaceCount]
@@ -99,13 +97,35 @@ namespace Stride.Graphics.GeometricPrimitives
                     new Vector3(0, -1, 0),
                 };
 
-            private static readonly Vector2[] TextureCoordinates = new Vector2[4]
-                {
-                    new Vector2(1, 0),
-                    new Vector2(1, 1),
-                    new Vector2(0, 1),
-                    new Vector2(0, 0),
-                };
+            /// <summary>
+            /// Creates a cube with six faces each one pointing in a different direction.
+            /// </summary>
+            /// <param name="device">The device.</param>
+            /// <param name="size">The size.</param>
+            /// <param name="uScale">Scale U coordinates between 0 and the values of this parameter.</param>
+            /// <param name="vScale">Scale V coordinates 0 and the values of this parameter.</param>
+            /// <param name="toLeftHanded">if set to <c>true</c> vertices and indices will be transformed to left handed. Default is false.</param>
+            /// <returns>A cube.</returns>
+            public static GeometricPrimitive New(GraphicsDevice device, float size, float uScale, float vScale, bool toLeftHanded)
+            {
+                return New(device, size, uScale, vScale, toLeftHanded, subdivisions: 0);
+            }
+
+            /// <summary>
+            /// Creates a cube with six faces each one pointing in a different direction, each face split into a grid.
+            /// </summary>
+            /// <param name="device">The device.</param>
+            /// <param name="size">The size.</param>
+            /// <param name="uScale">Scale U coordinates between 0 and the values of this parameter.</param>
+            /// <param name="vScale">Scale V coordinates 0 and the values of this parameter.</param>
+            /// <param name="toLeftHanded">if set to <c>true</c> vertices and indices will be transformed to left handed. Default is false.</param>
+            /// <param name="subdivisions">The number of cuts added along each edge of a face. Negative values are treated as 0.</param>
+            /// <returns>A cube.</returns>
+            public static GeometricPrimitive New(GraphicsDevice device, float size = 1.0f, float uScale = 1.0f, float vScale = 1.0f, bool toLeftHanded = false, int subdivisions = 0)
+            {
+                // Create the primitive object.
+                return new GeometricPrimitive(device, New(size, uScale, vScale, toLeftHanded, subdivisions));
+            }
 
             /// <summary>
             /// Creates a cube with six faces each one pointing in a different direction.
@@ -116,25 +136,25 @@ namespace Stride.Graphics.GeometricPrimitives
             /// <param name="vScale">Scale V coordinates 0 and the values of this parameter.</param>
             /// <param name="toLeftHanded">if set to <c>true</c> vertices and indices will be transformed to left handed. Default is false.</param>
             /// <returns>A cube.</returns>
-            public static GeometricPrimitive New(GraphicsDevice device, float size = 1.0f, float uScale = 1.0f, float vScale = 1.0f, bool toLeftHanded = false)
+            public static GeometricPrimitive New(GraphicsDevice device, Vector3 size, float uScale, float vScale, bool toLeftHanded)
             {
-                // Create the primitive object.
-                return new GeometricPrimitive(device, New(size, uScale, vScale, toLeftHanded));
+                return New(device, size, uScale, vScale, toLeftHanded, subdivisions: 0);
             }
 
             /// <summary>
-            /// Creates a cube with six faces each one pointing in a different direction.
+            /// Creates a cube with six faces each one pointing in a different direction, each face split into a grid.
             /// </summary>
             /// <param name="device">The device.</param>
             /// <param name="size">The size.</param>
             /// <param name="uScale">Scale U coordinates between 0 and the values of this parameter.</param>
             /// <param name="vScale">Scale V coordinates 0 and the values of this parameter.</param>
             /// <param name="toLeftHanded">if set to <c>true</c> vertices and indices will be transformed to left handed. Default is false.</param>
+            /// <param name="subdivisions">The number of cuts added along each edge of a face. Negative values are treated as 0.</param>
             /// <returns>A cube.</returns>
-            public static GeometricPrimitive New(GraphicsDevice device, Vector3 size, float uScale = 1.0f, float vScale = 1.0f, bool toLeftHanded = false)
+            public static GeometricPrimitive New(GraphicsDevice device, Vector3 size, float uScale = 1.0f, float vScale = 1.0f, bool toLeftHanded = false, int subdivisions = 0)
             {
                 // Create the primitive object.
-                return new GeometricPrimitive(device, New(size, uScale, vScale, toLeftHanded));
+                return new GeometricPrimitive(device, New(size, uScale, vScale, toLeftHanded, subdivisions));
             }
 
             /// <summary>
@@ -145,9 +165,23 @@ namespace Stride.Graphics.GeometricPrimitives
             /// <param name="vScale">Scale V coordinates 0 and the values of this parameter.</param>
             /// <param name="toLeftHanded">if set to <c>true</c> vertices and indices will be transformed to left handed. Default is false.</param>
             /// <returns>A cube.</returns>
-            public static GeometricMeshData<VertexPositionNormalTexture> New(float size = 1.0f, float uScale = 1.0f, float vScale = 1.0f, bool toLeftHanded = false)
+            public static GeometricMeshData<VertexPositionNormalTexture> New(float size, float uScale, float vScale, bool toLeftHanded)
             {
-                return New(new Vector3(size), uScale, vScale, toLeftHanded);
+                return New(size, uScale, vScale, toLeftHanded, subdivisions: 0);
+            }
+
+            /// <summary>
+            /// Creates a cube with six faces each one pointing in a different direction, each face split into a grid.
+            /// </summary>
+            /// <param name="size">The size.</param>
+            /// <param name="uScale">Scale U coordinates between 0 and the values of this parameter.</param>
+            /// <param name="vScale">Scale V coordinates 0 and the values of this parameter.</param>
+            /// <param name="toLeftHanded">if set to <c>true</c> vertices and indices will be transformed to left handed. Default is false.</param>
+            /// <param name="subdivisions">The number of cuts added along each edge of a face. Negative values are treated as 0.</param>
+            /// <returns>A cube.</returns>
+            public static GeometricMeshData<VertexPositionNormalTexture> New(float size = 1.0f, float uScale = 1.0f, float vScale = 1.0f, bool toLeftHanded = false, int subdivisions = 0)
+            {
+                return New(new Vector3(size), uScale, vScale, toLeftHanded, subdivisions);
             }
 
             /// <summary>
@@ -158,20 +192,33 @@ namespace Stride.Graphics.GeometricPrimitives
             /// <param name="vScale">Scale V coordinates 0 and the values of this parameter.</param>
             /// <param name="toLeftHanded">if set to <c>true</c> vertices and indices will be transformed to left handed. Default is false.</param>
             /// <returns>A cube.</returns>
-            public static GeometricMeshData<VertexPositionNormalTexture> New(Vector3 size, float uScale = 1.0f, float vScale = 1.0f, bool toLeftHanded = false)
+            public static GeometricMeshData<VertexPositionNormalTexture> New(Vector3 size, float uScale, float vScale, bool toLeftHanded)
             {
-                var vertices = new VertexPositionNormalTexture[CubeFaceCount * 4];
-                var indices = new int[CubeFaceCount * 6];
+                return New(size, uScale, vScale, toLeftHanded, subdivisions: 0);
+            }
 
-                var texCoords = new Vector2[4];
-                for (var i = 0; i < 4; i++)
-                {
-                    texCoords[i] = TextureCoordinates[i] * new Vector2(uScale, vScale);
-                }
+            /// <summary>
+            /// Creates a cube with six faces each one pointing in a different direction, each face split into a grid.
+            /// </summary>
+            /// <param name="size">The size.</param>
+            /// <param name="uScale">Scale U coordinates between 0 and the values of this parameter.</param>
+            /// <param name="vScale">Scale V coordinates 0 and the values of this parameter.</param>
+            /// <param name="toLeftHanded">if set to <c>true</c> vertices and indices will be transformed to left handed. Default is false.</param>
+            /// <param name="subdivisions">The number of cuts added along each edge of a face. Negative values are treated as 0.</param>
+            /// <returns>A cube.</returns>
+            public static GeometricMeshData<VertexPositionNormalTexture> New(Vector3 size, float uScale = 1.0f, float vScale = 1.0f, bool toLeftHanded = false, int subdivisions = 0)
+            {
+                if (subdivisions < 0) subdivisions = 0;
+
+                var segments = subdivisions + 1;
+                var gridSize = segments + 1;
+                var faceVertexCount = gridSize * gridSize;
+
+                var vertices = new VertexPositionNormalTexture[CubeFaceCount * faceVertexCount];
+                var indices = new int[CubeFaceCount * segments * segments * 6];
 
                 size /= 2.0f;
 
-                int vertexCount = 0;
                 int indexCount = 0;
                 // Create each face in turn.
                 for (int i = 0; i < CubeFaceCount; i++)
@@ -187,25 +234,40 @@ namespace Stride.Graphics.GeometricPrimitives
                     Vector3 side2;
                     Vector3.Cross(ref normal, ref side1, out side2);
 
-                    // Six indices (two triangles) per face.
-                    int vbase = i * 4;
-                    indices[indexCount++] = (vbase + 0);
-                    indices[indexCount++] = (vbase + 1);
-                    indices[indexCount++] = (vbase + 2);
+                    // Six indices (two triangles) per grid cell.
+                    int vbase = i * faceVertexCount;
+                    for (int row = 0; row < segments; row++)
+                    {
+                        for (int column = 0; column < segments; column++)
+                        {
+                            indices[indexCount++] = vbase + GridIndex(row, column);
+                            indices[indexCount++] = vbase + GridIndex(row, column + 1);
+                            indices[indexCount++] = vbase + GridIndex(row + 1, column + 1);
 
-                    indices[indexCount++] = (vbase + 0);
-                    indices[indexCount++] = (vbase + 2);
-                    indices[indexCount++] = (vbase + 3);
+                            indices[indexCount++] = vbase + GridIndex(row, column);
+                            indices[indexCount++] = vbase + GridIndex(row + 1, column + 1);
+                            indices[indexCount++] = vbase + GridIndex(row + 1, column);
+                        }
+                    }
 
-                    // Four vertices per face.
-                    vertices[vertexCount++] = new VertexPositionNormalTexture((normal - side1 - side2) * size, normal, texCoords[0]);
-                    vertices[vertexCount++] = new VertexPositionNormalTexture((normal - side1 + side2) * size, normal, texCoords[1]);
-                    vertices[vertexCount++] = new VertexPositionNormalTexture((normal + side1 + side2) * size, normal, texCoords[2]);
-                    vertices[vertexCount++] = new VertexPositionNormalTexture((normal + side1 - side2) * size, normal, texCoords[3]);
+                    // A grid of vertices per face.
+                    for (int row = 0; row < gridSize; row++)
+                    {
+                        var a = -1 + 2.0f * row / segments;
+                        for (int column = 0; column < gridSize; column++)
+                        {
+                            var b = -1 + 2.0f * column / segments;
+                            var textureCoordinate = new Vector2((1 - (float)row / segments) * uScale, (float)column / segments * vScale);
+                            vertices[vbase + GridIndex(row, column)] = new VertexPositionNormalTexture((normal + side1 * a + side2 * b) * size, normal, textureCoordinate);
+                        }
+                    }
                 }
 
                 // Create the primitive object.
                 return new GeometricMeshData<VertexPositionNormalTexture>(vertices, indices, toLeftHanded) { Name = "Cube" };
+
+                // Rows alternate direction, so that without subdivision a face keeps its four-corner layout.
+                int GridIndex(int row, int column) => row * gridSize + (row % 2 == 0 ? column : segments - column);
             }
         }
     }
