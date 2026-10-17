@@ -201,6 +201,31 @@ jobs:
     steps:
       - run: echo "::notice title=Packaged::${{ needs.Package.outputs.version }}"
 
+      # A signed build that wasn't deployed: say how to test it and deploy these exact packages later.
+      - name: How to deploy this build
+        if: ${{ inputs.sign && !inputs.deploy }}
+        shell: bash
+        env:
+          VERSION: ${{ needs.Package.outputs.version }}
+        run: |
+          {
+            echo "### Deploy Stride $VERSION"
+            echo
+            echo "This signed build was not deployed. To test its packages locally (for example in the launcher's local feed):"
+            echo
+            echo '```'
+            echo "gh run download ${{ github.run_id }} -R ${{ github.repository }} -n stride-packages-$VERSION"
+            echo '```'
+            echo
+            echo "To deploy these exact packages (NuGet.org, the releases/$VERSION tag, the GitHub Release and its notes):"
+            echo
+            echo '```'
+            echo "gh workflow run release-deploy.yml -R ${{ github.repository }} --ref ${{ github.ref_name }} -f run-id=${{ github.run_id }}"
+            echo '```'
+            echo
+            echo "Or run [Release Deploy](${{ github.server_url }}/${{ github.repository }}/actions/workflows/release-deploy.yml) on \`${{ github.ref_name }}\` with run-id \`${{ github.run_id }}\`."
+          } >> "$GITHUB_STEP_SUMMARY"
+
   #
   # Deploy to NuGet.org and create GitHub Release
   #
