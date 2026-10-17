@@ -695,6 +695,11 @@ public partial class Identifier(string name, TextLocation info) : IdentifierBase
 {
     internal bool AllowStreamVariables { get; set; }
 
+    /// <summary>
+    /// Resolved among the shader's members only (<c>this.X</c>): a local of the same name doesn't hide it.
+    /// </summary>
+    internal bool MemberOnly { get; set; }
+
     public static implicit operator string(Identifier identifier) => identifier.Name;
 
     public override void ProcessSymbol(SymbolTable table, SymbolType? expectedType = null)
@@ -705,7 +710,10 @@ public partial class Identifier(string name, TextLocation info) : IdentifierBase
             Type = new PointerType(new StreamsType(Specification.StreamsKindSDSL.Streams), Specification.StorageClass.Private);
         else
         {
-            if (!table.TryResolveSymbol(Name, out var symbol))
+            Symbol? symbol = null;
+            if (MemberOnly)
+                table.CurrentShader?.TryResolveSymbol(Name, out symbol);
+            else if (!table.TryResolveSymbol(Name, out symbol))
             {
                 symbol = GenericIdentifier.ResolveExternalShader(table, table.Context, Info, Name, null);
             }
