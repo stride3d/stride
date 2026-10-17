@@ -370,8 +370,8 @@ public partial class RenderingTests
         var validationResult = Spv.ValidateFile($"{shaderName}.spv");
         Assert.True(validationResult.IsValid, validationResult.Output);
 
-        // Convert to HLSL
-        var translator = new SpirvTranslator(bytecode.ToArray().AsMemory().Cast<byte, uint>());
+        // Convert to HLSL, legalizing first like the runtime path in EffectCompiler
+        var translator = new SpirvTranslator(SpirvTools.LegalizeForHlsl(MemoryMarshal.Cast<byte, uint>(bytecode)).AsMemory());
         var entryPoints = translator.GetEntryPoints();
         var codeVS = entryPoints.Any(x => x.ExecutionModel == ExecutionModel.Vertex)
             ? translator.Translate(Backend.Hlsl, entryPoints.First(x => x.ExecutionModel == ExecutionModel.Vertex))
