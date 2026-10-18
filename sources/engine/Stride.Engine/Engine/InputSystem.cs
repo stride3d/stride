@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Linq;
 using Stride.Core;
 using Stride.Engine.Design;
 using Stride.Games;
@@ -30,7 +31,7 @@ namespace Stride.Engine
             base.Initialize();
 
             Manager.Initialize(Game.Context);
-            Manager.ApplySettings(Services.GetService<IGameSettingsService>()?.Settings?.GetOrCreateConfiguration<InputSettings>());
+            Manager.ApplySettings(Services.GetService<IGameSettingsService>()?.Settings?.Configurations.OfType<InputSettings>().FirstOrDefault());
 
             Game.Activated += OnApplicationResumed;
             Game.Deactivated += OnApplicationPaused;
