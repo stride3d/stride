@@ -126,6 +126,7 @@
     <PackageVersion Include="Avalonia.Fonts.Inter" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Avalonia.Themes.Fluent" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.3" />
+    <PackageVersion Include="Xaml.Behaviors.Avalonia" Version="$(AvaloniaBehaviorVersion)" />
     <PackageVersion Include="Xaml.Behaviors.Interactions" Version="$(AvaloniaBehaviorVersion)" />
     <PackageVersion Include="MarkView.Avalonia" Version="$(AvaloniaMarkViewVersion)" />
     <PackageVersion Include="MarkView.Avalonia.Mermaid" Version="$(AvaloniaMarkViewVersion)" />
