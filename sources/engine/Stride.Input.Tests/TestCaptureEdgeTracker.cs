@@ -8,7 +8,7 @@ using Xunit;
 namespace Stride.Input.Tests;
 
 /// <summary>
-///   Covers the rules for input that is held when a capture begins or ends.
+/// Covers the rules for input that is held when a capture begins or ends.
 /// </summary>
 public class TestCaptureEdgeTracker
 {

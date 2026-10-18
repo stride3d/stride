@@ -7,17 +7,17 @@ using Stride.Data;
 namespace Stride.Input;
 
 /// <summary>
-///   Game settings for input.
+/// Game settings for input.
 /// </summary>
 [DataContract]
 [Display("Input")]
 public sealed class InputSettings : Configuration
 {
     /// <summary>
-    ///   Gets or sets a value indicating whether input captured by UI layers is hidden from game code.
+    /// Gets or sets a value indicating whether input captured by UI layers is hidden from game code.
     /// </summary>
     /// <userdoc>
-    ///   When enabled, input that the UI uses, such as a click on a button or typing in a text box, is not seen by game scripts.
+    /// When enabled, input that the UI uses, such as a click on a button or typing in a text box, is not seen by game scripts.
     /// </userdoc>
     [DataMember(10)]
     [Display("Hide captured input from the game")]

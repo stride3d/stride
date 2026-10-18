@@ -7,18 +7,18 @@ using System.Collections.Generic;
 namespace Stride.Input;
 
 /// <summary>
-///   Presents the down, pressed and released sets of a device as the game sees them while the device's
-///   capture state changes.
+/// Presents the down, pressed and released sets of a device as the game sees them while the device's
+/// capture state changes.
 /// </summary>
 /// <remarks>
-///   <para>
-///     While the device is masked, nothing is down or pressed. When masking begins, everything that was already down
-///     is reported as released until the next device update, so the game never sees input stuck down.
-///   </para>
-///   <para>
-///     When masking ends, input that is still held stays hidden, and its eventual release is hidden too, until
-///     it is pressed again. The game never sees input it did not see pressed.
-///   </para>
+/// <para>
+/// While the device is masked, nothing is down or pressed. When masking begins, everything that was already down
+/// is reported as released until the next device update, so the game never sees input stuck down.
+/// </para>
+/// <para>
+/// When masking ends, input that is still held stays hidden, and its eventual release is hidden too, until
+/// it is pressed again. The game never sees input it did not see pressed.
+/// </para>
 /// </remarks>
 /// <typeparam name="T">The key or button type.</typeparam>
 internal sealed class CaptureEdgeTracker<T>
@@ -38,8 +38,8 @@ internal sealed class CaptureEdgeTracker<T>
     /// <param name="rawPressed">The input pressed this frame.</param>
     /// <param name="rawReleased">The input released this frame.</param>
     /// <param name="rawNewPresses">
-    ///   The input newly pressed this frame, excluding repeats. Defaults to <paramref name="rawPressed"/> for devices
-    ///   that do not repeat.
+    /// The input newly pressed this frame, excluding repeats. Defaults to <paramref name="rawPressed"/> for devices
+    /// that do not repeat.
     /// </param>
     public CaptureEdgeTracker(DeviceCaptureState capture, Core.Collections.IReadOnlySet<T> rawDown, Core.Collections.IReadOnlySet<T> rawPressed, Core.Collections.IReadOnlySet<T> rawReleased, Core.Collections.IReadOnlySet<T> rawNewPresses = null)
     {
@@ -60,7 +60,7 @@ internal sealed class CaptureEdgeTracker<T>
     public Core.Collections.IReadOnlySet<T> Released { get; }
 
     /// <summary>
-    ///   Gets the input that was held when masking ended and has not been pressed again since.
+    /// Gets the input that was held when masking ended and has not been pressed again since.
     /// </summary>
     public HashSet<T> Suppressed => suppressed;
 
@@ -99,7 +99,7 @@ internal sealed class CaptureEdgeTracker<T>
     }
 
     /// <summary>
-    ///   Advances the tracked edges after the device has updated its raw sets for a new frame.
+    /// Advances the tracked edges after the device has updated its raw sets for a new frame.
     /// </summary>
     public void AfterDeviceUpdate()
     {

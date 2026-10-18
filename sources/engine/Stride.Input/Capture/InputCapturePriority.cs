@@ -4,23 +4,23 @@
 namespace Stride.Input;
 
 /// <summary>
-///   Common priorities for <see cref="InputManager.TryCapture"/>. A higher priority takes a device from a lower one.
-///   Any value is valid.
+/// Common priorities for <see cref="InputManager.TryCapture"/>. A higher priority takes a device from a lower one.
+/// Any value is valid.
 /// </summary>
 public static class InputCapturePriority
 {
     /// <summary>
-    ///   For capture driven by hovering, such as a pointer over a UI panel.
+    /// For capture driven by hovering, such as a pointer over a UI panel.
     /// </summary>
     public const int Hover = 0;
 
     /// <summary>
-    ///   For capture driven by focus, such as a text box that receives the keyboard.
+    /// For capture driven by focus, such as a text box that receives the keyboard.
     /// </summary>
     public const int Focus = 100;
 
     /// <summary>
-    ///   For modal layers, such as a console or a pause menu.
+    /// For modal layers, such as a console or a pause menu.
     /// </summary>
     public const int Modal = 1000;
 }

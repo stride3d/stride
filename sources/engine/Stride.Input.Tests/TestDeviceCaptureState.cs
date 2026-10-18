@@ -6,7 +6,7 @@ using Xunit;
 namespace Stride.Input.Tests;
 
 /// <summary>
-///   Covers the capture state that every input device carries.
+/// Covers the capture state that every input device carries.
 /// </summary>
 public class TestDeviceCaptureState
 {

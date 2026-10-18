@@ -8,7 +8,7 @@ using Xunit;
 namespace Stride.Input.Tests;
 
 /// <summary>
-///   Covers what the game sees of a captured mouse, and of a pointer device with one captured pointer.
+/// Covers what the game sees of a captured mouse, and of a pointer device with one captured pointer.
 /// </summary>
 public class TestPointerCapture
 {

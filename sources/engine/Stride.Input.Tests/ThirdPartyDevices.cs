@@ -8,8 +8,8 @@ using Stride.Core.Collections;
 namespace Stride.Input.Tests;
 
 /// <summary>
-///   A keyboard that implements <see cref="IKeyboardDevice"/> directly, the way a third-party device would,
-///   without deriving from any engine base class.
+/// A keyboard that implements <see cref="IKeyboardDevice"/> directly, the way a third-party device would,
+/// without deriving from any engine base class.
 /// </summary>
 internal sealed class ThirdPartyKeyboard : IKeyboardDevice
 {
@@ -44,7 +44,7 @@ internal sealed class ThirdPartyKeyboard : IKeyboardDevice
 }
 
 /// <summary>
-///   A gamepad that implements <see cref="IGamePadDevice"/> directly, the way a third-party device would.
+/// A gamepad that implements <see cref="IGamePadDevice"/> directly, the way a third-party device would.
 /// </summary>
 internal sealed class ThirdPartyGamePad : IGamePadDevice
 {

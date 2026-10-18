@@ -6,7 +6,7 @@ using Xunit;
 namespace Stride.Input.Tests;
 
 /// <summary>
-///   Covers the Input section of the game settings.
+/// Covers the Input section of the game settings.
 /// </summary>
 public class TestInputSettings
 {

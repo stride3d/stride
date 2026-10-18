@@ -6,8 +6,8 @@ using System.Runtime.CompilerServices;
 namespace Stride.Input;
 
 /// <summary>
-///   Holds the capture state of devices that do not provide their own, such as third-party devices that
-///   implement the device interfaces directly.
+/// Holds the capture state of devices that do not provide their own, such as third-party devices that
+/// implement the device interfaces directly.
 /// </summary>
 internal static class DeviceCaptureStates
 {

@@ -7,7 +7,7 @@ using System.Collections.Generic;
 namespace Stride.Input;
 
 /// <summary>
-///   A pointer set as the game sees it: pointers that are masked, because they or their device are captured, are left out.
+/// A pointer set as the game sees it: pointers that are masked, because they or their device are captured, are left out.
 /// </summary>
 internal sealed class PointerSetView(DeviceCaptureState capture, Core.Collections.IReadOnlySet<PointerPoint> raw) : Core.Collections.IReadOnlySet<PointerPoint>
 {

@@ -6,7 +6,7 @@ using Xunit;
 namespace Stride.Input.Tests;
 
 /// <summary>
-///   Covers what the game sees of a keyboard that is captured.
+/// Covers what the game sees of a keyboard that is captured.
 /// </summary>
 public class TestKeyboardCapture
 {

@@ -6,7 +6,7 @@ using Xunit;
 namespace Stride.Input.Tests;
 
 /// <summary>
-///   Covers what the game sees of a captured gamepad.
+/// Covers what the game sees of a captured gamepad.
 /// </summary>
 public class TestGamePadCapture
 {

@@ -6,8 +6,8 @@ using Xunit;
 namespace Stride.Input.Tests;
 
 /// <summary>
-///   Covers masking through the shared query methods, which applies to every device, including devices that
-///   implement the interfaces directly.
+/// Covers masking through the shared query methods, which applies to every device, including devices that
+/// implement the interfaces directly.
 /// </summary>
 public class TestQueryMasking
 {

@@ -8,7 +8,7 @@ using Xunit;
 namespace Stride.Input.Tests;
 
 /// <summary>
-///   Covers the capture phase of <see cref="InputManager.Update"/> and the game-facing state built after it.
+/// Covers the capture phase of <see cref="InputManager.Update"/> and the game-facing state built after it.
 /// </summary>
 public class TestCapturePhase
 {

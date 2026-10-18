@@ -6,11 +6,11 @@ using System;
 namespace Stride.Input;
 
 /// <summary>
-///   The capture state of one input device: which owner holds the device or its pointers, and whether
-///   game-facing reads of the device are masked.
+/// The capture state of one input device: which owner holds the device or its pointers, and whether
+/// game-facing reads of the device are masked.
 /// </summary>
 /// <remarks>
-///   Only <see cref="InputManager"/> changes this state, through its capture methods.
+/// Only <see cref="InputManager"/> changes this state, through its capture methods.
 /// </remarks>
 public sealed class DeviceCaptureState
 {
@@ -21,62 +21,62 @@ public sealed class DeviceCaptureState
     internal DeviceCaptureState() { }
 
     /// <summary>
-    ///   Gets the owner that holds the whole device, or <c>null</c> when the device is not captured.
+    /// Gets the owner that holds the whole device, or <c>null</c> when the device is not captured.
     /// </summary>
     public object Owner { get; private set; }
 
     /// <summary>
-    ///   Gets the priority the current owner captured the device with.
+    /// Gets the priority the current owner captured the device with.
     /// </summary>
     public int Priority { get; private set; }
 
     /// <summary>
-    ///   Gets a value indicating whether an owner holds the whole device.
+    /// Gets a value indicating whether an owner holds the whole device.
     /// </summary>
     public bool IsCaptured => Owner != null;
 
     /// <summary>
-    ///   Gets a value indicating whether game-facing reads of the device report no input.
+    /// Gets a value indicating whether game-facing reads of the device report no input.
     /// </summary>
     public bool IsMasked => maskingEnabled && Owner != null;
 
     internal int PointerSlotCount => pointerOwners.Length;
 
     /// <summary>
-    ///   Set by engine device bases whose own state already reflects masking, including capture edges. The shared
-    ///   query methods then read that state as it is instead of hiding it.
+    /// Set by engine device bases whose own state already reflects masking, including capture edges. The shared
+    /// query methods then read that state as it is instead of hiding it.
     /// </summary>
     internal bool DeviceMasksOwnState { get; set; }
 
     /// <summary>
-    ///   Gets a value indicating whether the shared query methods must hide the device's state themselves.
+    /// Gets a value indicating whether the shared query methods must hide the device's state themselves.
     /// </summary>
     internal bool QueriesMustMask => IsMasked && !DeviceMasksOwnState;
 
     /// <summary>
-    ///   Set by <see cref="InputManager"/> while capture changes happen before game code has read the current frame,
-    ///   during its capture phase. Input pressed in that frame was never seen, so it gets no release edge.
+    /// Set by <see cref="InputManager"/> while capture changes happen before game code has read the current frame,
+    /// during its capture phase. Input pressed in that frame was never seen, so it gets no release edge.
     /// </summary>
     internal bool ChangingBeforeGameReads { get; set; }
 
     internal event Action<bool> MaskChanged;
 
     /// <summary>
-    ///   Raised by <see cref="InputManager"/> right after the device has updated for a new frame.
+    /// Raised by <see cref="InputManager"/> right after the device has updated for a new frame.
     /// </summary>
     internal event Action DeviceUpdated;
 
     internal void RaiseDeviceUpdated() => DeviceUpdated?.Invoke();
 
     /// <summary>
-    ///   Gets the owner that holds a pointer of this device, or <c>null</c> when the pointer is not captured.
+    /// Gets the owner that holds a pointer of this device, or <c>null</c> when the pointer is not captured.
     /// </summary>
     /// <param name="pointerId">The pointer identifier.</param>
     public object GetPointerOwner(int pointerId) => (uint)pointerId < (uint)pointerOwners.Length ? pointerOwners[pointerId] : null;
 
     /// <summary>
-    ///   Gets a value indicating whether game-facing reads of a pointer report no input, because the pointer
-    ///   or the whole device is captured.
+    /// Gets a value indicating whether game-facing reads of a pointer report no input, because the pointer
+    /// or the whole device is captured.
     /// </summary>
     /// <param name="pointerId">The pointer identifier.</param>
     public bool IsPointerMasked(int pointerId) => IsMasked || (maskingEnabled && GetPointerOwner(pointerId) != null);

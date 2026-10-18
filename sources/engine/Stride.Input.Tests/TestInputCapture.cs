@@ -6,7 +6,7 @@ using Xunit;
 namespace Stride.Input.Tests;
 
 /// <summary>
-///   Covers capturing and releasing input devices and pointers through <see cref="InputManager"/>.
+/// Covers capturing and releasing input devices and pointers through <see cref="InputManager"/>.
 /// </summary>
 public class TestInputCapture
 {
