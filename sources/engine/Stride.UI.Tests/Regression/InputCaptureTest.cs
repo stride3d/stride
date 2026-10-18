@@ -27,14 +27,22 @@ namespace Stride.UI.Tests.Regression
             GameDragReleasedOverUI,
             DragFromButtonProducesNoGesture,
             LockedMouseIsNotCapturedByHover,
+            ClickOnButtonThatMoved,
+            ClickOnWorldSpacePanel,
+            HitTestablePanelBackgroundCapturesClicks,
+            ImageWithoutHitTestLetsClicksThrough,
         }
 
         private static readonly Vector2 OnButton = new Vector2(0.1f, 0.08f);
         private static readonly Vector2 OutsideUI = new Vector2(0.9f, 0.9f);
+        private static readonly Vector2 OnMovedButton = new Vector2(0.5f, 0.38f);
+        private static readonly Vector2 OnPanel = new Vector2(0.6f, 0.1f);
+        private static readonly Vector2 OnImage = new Vector2(0.75f, 0.58f);
 
         private readonly Scenario scenario;
         private Button button;
         private PointerSimulated touch;
+        private Button worldButton;
 
         public InputCaptureTest() : this(Scenario.ClickOnButton)
         {
@@ -55,7 +63,38 @@ namespace Stride.UI.Tests.Regression
             ApplyButtonDefaultStyle(button);
             button.SetCanvasRelativePosition(new Vector3(0.025f, 0.05f, 0f));
 
-            UIComponent.Page = new Engine.UIPage { RootElement = new Canvas { Children = { button } } };
+            var canvas = new Canvas { Children = { button } };
+            UIComponent.Page = new Engine.UIPage { RootElement = canvas };
+
+            switch (scenario)
+            {
+                case Scenario.ClickOnWorldSpacePanel:
+                    worldButton = new Button { HorizontalAlignment = HorizontalAlignment.Stretch, VerticalAlignment = VerticalAlignment.Stretch };
+                    ApplyButtonDefaultStyle(worldButton);
+                    var worldPanel = new Engine.Entity("World panel")
+                    {
+                        new Engine.UIComponent
+                        {
+                            IsFullScreen = false,
+                            IsBillboard = false,
+                            Resolution = new Vector3(400, 300, 100),
+                            Size = new Vector3(400, 300, 100),
+                            Page = new Engine.UIPage { RootElement = worldButton },
+                        },
+                    };
+                    Scene.Entities.Add(worldPanel);
+                    break;
+                case Scenario.HitTestablePanelBackgroundCapturesClicks:
+                    var panel = new Grid { CanBeHitByUser = true, Width = 200, Height = 100 };
+                    panel.SetCanvasAbsolutePosition(new Vector3(500, 30, 0));
+                    canvas.Children.Add(panel);
+                    break;
+                case Scenario.ImageWithoutHitTestLetsClicksThrough:
+                    var image = new ImageElement { Width = 100, Height = 100 };
+                    image.SetCanvasAbsolutePosition(new Vector3(700, 300, 0));
+                    canvas.Children.Add(image);
+                    break;
+            }
 
             touch = InputSourceSimulated.AddPointer();
         }
@@ -95,6 +134,20 @@ namespace Stride.UI.Tests.Regression
                     break;
                 case Scenario.LockedMouseIsNotCapturedByHover:
                     FrameGameSystem.Draw(2, HoverButtonWithLockedMouse);
+                    break;
+                case Scenario.ClickOnButtonThatMoved:
+                    FrameGameSystem.Draw(2, MoveButton);
+                    FrameGameSystem.Draw(3, ClickOnMovedButton);
+                    break;
+                case Scenario.ClickOnWorldSpacePanel:
+                    FrameGameSystem.Draw(2, MoveCamera);
+                    FrameGameSystem.Draw(3, ClickOnWorldPanel);
+                    break;
+                case Scenario.HitTestablePanelBackgroundCapturesClicks:
+                    FrameGameSystem.Draw(2, ClickOnPanelBackground);
+                    break;
+                case Scenario.ImageWithoutHitTestLetsClicksThrough:
+                    FrameGameSystem.Draw(2, ClickOnImage);
                     break;
             }
         }
@@ -183,6 +236,57 @@ namespace Stride.UI.Tests.Regression
             Assert.All(touchEvents, e => Assert.Equal(1, e.PointerId));
         }
 
+        private void MoveButton()
+        {
+            button.SetCanvasRelativePosition(new Vector3(0.425f, 0.35f, 0f));
+        }
+
+        private void ClickOnMovedButton()
+        {
+            MouseSimulated.SetPosition(OnMovedButton);
+            MouseSimulated.SimulateMouseDown(MouseButton.Left);
+            Input.Update(new GameTime());
+
+            Assert.True(button.IsPressed);
+            Assert.False(Input.IsMouseButtonPressed(MouseButton.Left));
+        }
+
+        private void MoveCamera()
+        {
+            Camera.Transform.Position = new Vector3(300, 0, 1000);
+        }
+
+        private void ClickOnWorldPanel()
+        {
+            var panelCenter = Vector3.TransformCoordinate(Vector3.Zero, CameraComponent.ViewProjectionMatrix);
+            MouseSimulated.SetPosition(new Vector2((panelCenter.X + 1) / 2, (1 - panelCenter.Y) / 2));
+            MouseSimulated.SimulateMouseDown(MouseButton.Left);
+            Input.Update(new GameTime());
+
+            Assert.True(worldButton.IsPressed);
+            Assert.False(Input.IsMouseButtonPressed(MouseButton.Left));
+        }
+
+        private void ClickOnPanelBackground()
+        {
+            MouseSimulated.SetPosition(OnPanel);
+            MouseSimulated.SimulateMouseDown(MouseButton.Left);
+            Input.Update(new GameTime());
+
+            Assert.True(Input.Mouse.CaptureState.IsCaptured);
+            Assert.False(Input.IsMouseButtonPressed(MouseButton.Left));
+        }
+
+        private void ClickOnImage()
+        {
+            MouseSimulated.SetPosition(OnImage);
+            MouseSimulated.SimulateMouseDown(MouseButton.Left);
+            Input.Update(new GameTime());
+
+            Assert.False(Input.Mouse.CaptureState.IsCaptured);
+            Assert.True(Input.IsMouseButtonPressed(MouseButton.Left));
+        }
+
         [Theory]
         [InlineData(Scenario.ClickOnButton)]
         [InlineData(Scenario.ClickOutsideUI)]
@@ -191,6 +295,10 @@ namespace Stride.UI.Tests.Regression
         [InlineData(Scenario.GameDragReleasedOverUI)]
         [InlineData(Scenario.DragFromButtonProducesNoGesture)]
         [InlineData(Scenario.LockedMouseIsNotCapturedByHover)]
+        [InlineData(Scenario.ClickOnButtonThatMoved)]
+        [InlineData(Scenario.ClickOnWorldSpacePanel)]
+        [InlineData(Scenario.HitTestablePanelBackgroundCapturesClicks)]
+        [InlineData(Scenario.ImageWithoutHitTestLetsClicksThrough)]
         public void RunInputCaptureTest(Scenario testScenario)
         {
             RunGameTest(new InputCaptureTest(testScenario));
