@@ -30,6 +30,8 @@ internal sealed class ThirdPartyKeyboard : IKeyboardDevice
 
     public int Priority { get; set; }
 
+    public DeviceCaptureState CaptureState { get; } = new DeviceCaptureState();
+
     public IInputSource Source => null;
 
     public Core.Collections.IReadOnlySet<Keys> PressedKeys { get; }
@@ -64,6 +66,8 @@ internal sealed class ThirdPartyGamePad : IGamePadDevice
     public Guid Id { get; } = Guid.NewGuid();
 
     public Guid ProductId => Id;
+
+    public DeviceCaptureState CaptureState { get; } = new DeviceCaptureState();
 
     public int Priority { get; set; }
 

@@ -18,7 +18,7 @@ public sealed class DeviceCaptureState
     private int[] pointerPriorities = Array.Empty<int>();
     private bool maskingEnabled = true;
 
-    internal DeviceCaptureState() { }
+    public DeviceCaptureState() { }
 
     /// <summary>
     /// Gets the owner that holds the whole device, or <c>null</c> when the device is not captured.

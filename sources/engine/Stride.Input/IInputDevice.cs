@@ -38,6 +38,9 @@ namespace Stride.Input
         /// <summary>
         /// The capture state of this device. Only <see cref="InputManager"/> changes it.
         /// </summary>
-        DeviceCaptureState CaptureState => DeviceCaptureStates.GetOrCreate(this);
+        /// <remarks>
+        /// Return the same instance on every call, for example from <c>{ get; } = new DeviceCaptureState();</c>.
+        /// </remarks>
+        DeviceCaptureState CaptureState { get; }
     }
 }

@@ -11,18 +11,9 @@ namespace Stride.Input.Tests;
 public class TestDeviceCaptureState
 {
     [Fact]
-    public void ThirdPartyDeviceGetsAStableCaptureState()
-    {
-        IInputDevice device = new ThirdPartyKeyboard();
-
-        Assert.Same(device.CaptureState, device.CaptureState);
-        Assert.False(device.CaptureState.IsCaptured);
-    }
-
-    [Fact]
     public void MaskedOnlyWhileCapturedAndMaskingEnabled()
     {
-        var state = DeviceCaptureStates.GetOrCreate(new ThirdPartyKeyboard());
+        var state = new DeviceCaptureState();
 
         state.SetOwner(new object(), 0);
         Assert.True(state.IsMasked);
@@ -35,7 +26,7 @@ public class TestDeviceCaptureState
     [Fact]
     public void PointerCaptureMasksOnlyThatPointer()
     {
-        var state = DeviceCaptureStates.GetOrCreate(new ThirdPartyKeyboard());
+        var state = new DeviceCaptureState();
 
         state.SetPointerOwner(3, new object(), 0);
 
