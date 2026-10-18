@@ -9,7 +9,7 @@ namespace Stride.Input
     {
         private readonly List<InputEvent> events = new List<InputEvent>();
 
-        private GamePadState state = new GamePadState();
+        private GamePadState rawState = new GamePadState();
 
         protected InputManager InputManager { get; }
 
@@ -27,7 +27,7 @@ namespace Stride.Input
             GameControllerDevice = controller;
         }
 
-        protected override GamePadState RawState => state;
+        protected override GamePadState RawState => rawState;
 
         public override void Update(List<InputEvent> inputEvents)
         {
@@ -47,7 +47,7 @@ namespace Stride.Input
             // Apply events to gamepad state
             for (int index = eventStart; index < inputEvents.Count;)
             {
-                if (!state.Update(inputEvents[index]))
+                if (!rawState.Update(inputEvents[index]))
                 {
                     // Discard event, since it didn't affect the state
                     InputManager.PoolInputEvent(inputEvents[index]); // Put event back into event pool

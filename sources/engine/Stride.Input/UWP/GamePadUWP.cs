@@ -15,7 +15,7 @@ namespace Stride.Input
     {
         internal Gamepad Gamepad;
         private readonly double[] lastAxisState = new double[6];
-        private GamePadState state = new GamePadState();
+        private GamePadState rawState = new GamePadState();
 
         private Dictionary<GamepadButtons, GamePadButton> buttonMap = new Dictionary<GamepadButtons, GamePadButton>
         {
@@ -51,7 +51,7 @@ namespace Stride.Input
 
         public override IInputSource Source { get; }
 
-        protected override GamePadState RawState => state;
+        protected override GamePadState RawState => rawState;
 
         public override void Update(List<InputEvent> inputEvents)
         {
@@ -64,7 +64,7 @@ namespace Stride.Input
             {
                 int mask = 1 << i;
                 GamePadButton button = buttonMap[(GamepadButtons)mask];
-                var oldState = (state.Buttons & button) != 0;
+                var oldState = (rawState.Buttons & button) != 0;
                 var newState = (reading.Buttons & (GamepadButtons)mask) != 0;
                 if (oldState != newState)
                 {
@@ -72,7 +72,7 @@ namespace Stride.Input
                     buttonEvent.IsDown = newState;
                     buttonEvent.Button = button;
                     inputEvents.Add(buttonEvent);
-                    if (state.Update(buttonEvent))
+                    if (rawState.Update(buttonEvent))
                     {
                         UpdateButtonState(buttonEvent);
                     }
@@ -121,7 +121,7 @@ namespace Stride.Input
             GamePadAxisEvent axisEvent = InputEventPool<GamePadAxisEvent>.GetOrCreate(this);
             axisEvent.Value = (float)newValue;
             axisEvent.Axis = axis;
-            state.Update(axisEvent);
+            rawState.Update(axisEvent);
             return axisEvent;
         }
     }
