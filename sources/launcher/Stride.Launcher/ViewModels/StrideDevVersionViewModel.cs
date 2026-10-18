@@ -161,10 +161,16 @@ public sealed class StrideDevVersionViewModel : StrideVersionViewModel
     public override string Name => "Local " + path.MakeRelative(path.GetParent());
 
     /// <inheritdoc/>
-    public override string DisplayName => localPackage is not null ? $"{PackageSimpleName} {localPackage.Version} (local)" : base.DisplayName;
+    public override string DisplayName => localPackage is not null ? $"{ListName} (local)" : base.DisplayName;
 
     /// <inheritdoc/>
-    public override string ListName => localPackage is not null ? $"{PackageSimpleName} {localPackage.Version}" : base.ListName;
+    public override string ListName => localPackage is not null ? GetListName(PackageSimpleName, localPackage.Version.ToString(), checkoutDirectory) : base.ListName;
+
+    /// <summary>
+    /// Gets the name of a local version in the list, followed by the folder of its checkout so that the -devN versions of several checkouts can be told apart.
+    /// </summary>
+    internal static string GetListName(string packageSimpleName, string version, string? checkoutDirectory)
+        => checkoutDirectory is not null ? $"{packageSimpleName} {version} · {Path.GetFileName(Path.TrimEndingDirectorySeparator(checkoutDirectory))}" : $"{packageSimpleName} {version}";
 
     /// <inheritdoc/>
     public override string FullName => localPackage?.Version.ToString() ?? path.MakeRelative(path.GetParent());
