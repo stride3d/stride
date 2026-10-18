@@ -19,6 +19,8 @@ namespace Stride.Input
 
         internal int CaptureVersion { get; private set; }
 
+        internal int FrameIndex { get; private set; }
+
         /// <summary>
         /// Raised during <see cref="Update"/> after input events are routed to listeners and before game-facing state is built.
         /// Owners decide the captures for the frame here.
@@ -164,8 +166,6 @@ namespace Stride.Input
                 }
             }
         }
-
-        internal int FrameIndex { get; private set; }
 
         /// <summary>
         /// Determines whether an input event comes from a masked device, or from a masked pointer of a pointer device.
