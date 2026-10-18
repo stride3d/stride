@@ -150,7 +150,7 @@ namespace Stride.Editor.EditorGame.Game
 
             base.Initialize();
 
-            // Editor tools, such as gizmos and the UI editor's adorners, must see all input, including input over UI
+            // The UI editor's adorner canvas is hit-testable over the whole view and its touch handlers read the mouse from Input, so masking would hide every click from them
             Input.MaskCapturedInput = false;
         }
 
