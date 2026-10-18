@@ -181,15 +181,13 @@ namespace Stride.Input
 
         private static bool IsMaskedDevice(IInputDevice device) => device != null && device.CaptureState.IsMasked;
 
-        private List<PointerEvent> GetGesturePointerEvents()
+        private void CollectUnmaskedPointerEvents(List<PointerEvent> target)
         {
-            gesturePointerEvents.Clear();
             foreach (var pointerEvent in pointerEvents)
             {
                 if (!IsMasked(pointerEvent))
-                    gesturePointerEvents.Add(pointerEvent);
+                    target.Add(pointerEvent);
             }
-            return gesturePointerEvents;
         }
 
         private void OnCaptureChanged(IInputDevice device, int? pointerId, object previousOwner, object newOwner)

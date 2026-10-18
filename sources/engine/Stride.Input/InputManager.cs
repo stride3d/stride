@@ -1021,10 +1021,12 @@ namespace Stride.Input
         {
             currentGestureEvents.Clear();
 
+            CollectUnmaskedPointerEvents(gesturePointerEvents);
             foreach (var gestureRecognizer in gestureConfigToRecognizer.Values)
             {
-                gestureRecognizer.ProcessPointerEvents(elapsedGameTime, GetGesturePointerEvents(), currentGestureEvents);
+                gestureRecognizer.ProcessPointerEvents(elapsedGameTime, gesturePointerEvents, currentGestureEvents);
             }
+            gesturePointerEvents.Clear();
         }
 
         private void UpdateVirtualButtonStates()
