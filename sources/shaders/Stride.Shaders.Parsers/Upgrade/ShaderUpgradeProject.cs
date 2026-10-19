@@ -179,8 +179,10 @@ internal sealed class ShaderUpgradeProject
     }
 
     /// <summary>
-    /// Can be mixed only at the root, as the compiler decides it: <c>[Root]</c>, or a shader whose parent or import is root-only;
-    /// a module passes on only its own <c>[Root]</c>. In code written before modules, every parent is a shader.
+    /// Can be mixed only at the root, as the compiler decides it for the code before the upgrade: <c>[Root]</c>, or a shader whose
+    /// parent or import is root-only; a module passes on only its own <c>[Root]</c>. In code written before modules, every parent is a
+    /// shader: an engine or dependency class that is a module now was a shader in the version the project was written for, so its
+    /// imports pass on as parents did (TransformationBase imports ShaderBase).
     /// </summary>
     public bool IsRootOnly(string name)
     {
@@ -188,11 +190,13 @@ internal sealed class ShaderUpgradeProject
             return result;
         rootOnly[name] = false;
         result = rootMarkers.Contains(name)
-            || Classes.TryGetValue(name, out var shaderClass) && !shaderClass.IsModule
+            || Classes.TryGetValue(name, out var shaderClass) && (!shaderClass.IsModule || !IsProjectClass(shaderClass))
                 && shaderClass.Parents.Any(parent => StreamsModuleFor(name, parent) == null
-                    && (Classes.TryGetValue(parent, out var parentClass) && parentClass.IsModule ? rootMarkers.Contains(parent) : IsRootOnly(parent)));
+                    && (Classes.TryGetValue(parent, out var parentClass) && parentClass.IsModule && IsProjectClass(parentClass) ? rootMarkers.Contains(parent) : IsRootOnly(parent)));
         return rootOnly[name] = result;
     }
+
+    private static bool IsProjectClass(ShaderUpgradeClass shaderClass) => !shaderClass.IsEngine && !shaderClass.IsDependency;
 
     /// <summary>
     /// A shader that was root-only through a parent that becomes a module, and whose code relies on being mixed at the root, gets its
