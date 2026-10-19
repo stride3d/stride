@@ -350,19 +350,21 @@ namespace Stride.Graphics
                 var uploadMemory = GraphicsDevice.AllocateUploadBuffer(totalSize, out var uploadResource, out var uploadOffset);
 
                 // Upload buffer barrier
-                var bufferBarriers = stackalloc VkBufferMemoryBarrier[2];
-                bufferBarriers[0] = new VkBufferMemoryBarrier(uploadResource, VkAccessFlags.HostWrite, VkAccessFlags.TransferRead, (ulong) uploadOffset, (ulong) totalSize);
+                var uploadBarrier = PipelineBarriers.BufferBarrier(uploadResource, VkPipelineStageFlags.Host, VkAccessFlags.HostWrite, VkPipelineStageFlags.Transfer, VkAccessFlags.TransferRead, (ulong) uploadOffset, (ulong) totalSize);
 
                 if (Usage == GraphicsResourceUsage.Staging)
                 {
-                    bufferBarriers[1] = new VkBufferMemoryBarrier(NativeBuffer, NativeAccessMask, VkAccessFlags.TransferWrite);
-                    PipelineBarriers.Record(GraphicsDevice.NativeDeviceApi, commandBuffer,VkPipelineStageFlags.Host, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 2, bufferBarriers, imageMemoryBarrierCount: 0, imageMemoryBarriers: null);
+                    PipelineBarriers.Record(GraphicsDevice.NativeDeviceApi, commandBuffer, bufferBarriers: [
+                        uploadBarrier,
+                        PipelineBarriers.BufferBarrier(NativeBuffer, NativePipelineStageMask, NativeAccessMask, VkPipelineStageFlags.Transfer, VkAccessFlags.TransferWrite)]);
                 }
                 else
                 {
-                    // Image barrier
-                    var initialBarrier = new VkImageMemoryBarrier(NativeImage, new VkImageSubresourceRange(NativeImageAspect, baseMipLevel: 0, levelCount: uint.MaxValue, baseArrayLayer: 0, layerCount: uint.MaxValue), VkAccessFlags.None, VkAccessFlags.TransferWrite, VkImageLayout.Undefined, VkImageLayout.TransferDstOptimal);
-                    PipelineBarriers.Record(GraphicsDevice.NativeDeviceApi, commandBuffer,VkPipelineStageFlags.Host, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 1, bufferBarriers, imageMemoryBarrierCount: 1, &initialBarrier);
+                    // Image barrier: no content to wait for yet
+                    PipelineBarriers.Record(GraphicsDevice.NativeDeviceApi, commandBuffer, bufferBarriers: [uploadBarrier], imageBarriers: [
+                        PipelineBarriers.ImageBarrier(NativeImage, new VkImageSubresourceRange(NativeImageAspect, baseMipLevel: 0, levelCount: uint.MaxValue, baseArrayLayer: 0, layerCount: uint.MaxValue),
+                                                      VkPipelineStageFlags.None, VkAccessFlags.None, VkImageLayout.Undefined,
+                                                      VkPipelineStageFlags.Transfer, VkAccessFlags.TransferWrite, VkImageLayout.TransferDstOptimal)]);
                 }
 
                 // Copy data boxes to upload buffer
@@ -416,9 +418,9 @@ namespace Stride.Graphics
 
                 if (Usage == GraphicsResourceUsage.Staging)
                 {
-                    bufferBarriers[0] = new VkBufferMemoryBarrier(NativeBuffer, VkAccessFlags.TransferWrite, NativeAccessMask);
                     var stagingDstStages = CommandList.FixStagesForAccess(NativePipelineStageMask, NativeAccessMask);
-                    PipelineBarriers.Record(GraphicsDevice.NativeDeviceApi, commandBuffer,VkPipelineStageFlags.Transfer, stagingDstStages, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 1, bufferBarriers, imageMemoryBarrierCount: 0, imageMemoryBarriers: null);
+                    PipelineBarriers.Record(GraphicsDevice.NativeDeviceApi, commandBuffer, bufferBarriers: [
+                        PipelineBarriers.BufferBarrier(NativeBuffer, VkPipelineStageFlags.Transfer, VkAccessFlags.TransferWrite, stagingDstStages, NativeAccessMask)]);
                 }
 
                 IsInitialized = true;
@@ -426,13 +428,15 @@ namespace Stride.Graphics
 
             if (Usage != GraphicsResourceUsage.Staging)
             {
-                // Transition to default layout
-                var imageMemoryBarrier = new VkImageMemoryBarrier(NativeImage,
-                    new VkImageSubresourceRange(NativeImageAspect, baseMipLevel: 0, levelCount: uint.MaxValue, baseArrayLayer: 0, layerCount: uint.MaxValue),
-                    dataBoxes == null || dataBoxes.Length == 0 ? VkAccessFlags.None : VkAccessFlags.TransferWrite, NativeAccessMask,
-                    dataBoxes == null || dataBoxes.Length == 0 ? VkImageLayout.Undefined : VkImageLayout.TransferDstOptimal, NativeLayout);
+                // Transition to default layout, after the upload of the initial data if there is some
+                bool hasData = dataBoxes != null && dataBoxes.Length > 0;
                 var texDstStages = CommandList.FixStagesForAccess(NativePipelineStageMask, NativeAccessMask);
-                PipelineBarriers.Record(GraphicsDevice.NativeDeviceApi, commandBuffer,VkPipelineStageFlags.Transfer, texDstStages, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 0, bufferMemoryBarriers: null, imageMemoryBarrierCount: 1, &imageMemoryBarrier);
+                PipelineBarriers.Record(GraphicsDevice.NativeDeviceApi, commandBuffer, imageBarriers: [
+                    PipelineBarriers.ImageBarrier(NativeImage, new VkImageSubresourceRange(NativeImageAspect, baseMipLevel: 0, levelCount: uint.MaxValue, baseArrayLayer: 0, layerCount: uint.MaxValue),
+                                                  hasData ? VkPipelineStageFlags.Transfer : VkPipelineStageFlags.None,
+                                                  hasData ? VkAccessFlags.TransferWrite : VkAccessFlags.None,
+                                                  hasData ? VkImageLayout.TransferDstOptimal : VkImageLayout.Undefined,
+                                                  texDstStages, NativeAccessMask, NativeLayout)]);
             }
 
             // Close and submit

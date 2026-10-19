@@ -182,11 +182,6 @@ internal struct SubresourceLayoutTracker
     internal readonly int SubresourceCount => subresourceCount;
 
     /// <summary>
-    ///   Gets the per-subresource array. Only valid when <see cref="HasPerSubresourceTracking"/> is true.
-    /// </summary>
-    internal readonly ReadOnlySpan<BarrierLayout> PerSubresourceLayouts => mixed ? perSubresource : default;
-
-    /// <summary>
     ///   Returns an independent copy (a plain struct copy aliases the <see cref="perSubresource"/> array).
     ///   A copy of a tracker with a single layout does not allocate.
     /// </summary>
