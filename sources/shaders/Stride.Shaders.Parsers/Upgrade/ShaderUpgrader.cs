@@ -144,9 +144,8 @@ public static class ShaderUpgrader
     }
 
     /// <summary>
-    /// A method that implements an abstract method of a project or dependency class (same name and parameter types) without
-    /// <c>override</c> gets it. Abstract methods of engine classes are not known here (the engine list has no methods): the compiler
-    /// reports those (SDSL0114).
+    /// A method that implements an abstract method of a parent (same name and parameter types) without <c>override</c> gets it: a
+    /// project, dependency or engine class (the engine list has the abstract methods).
     /// </summary>
     private static Dictionary<string, ShaderSourceText> AddOverride(ShaderUpgradeProject project, Dictionary<string, string> texts, List<string> notes)
     {

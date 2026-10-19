@@ -5,9 +5,9 @@ using System.Text;
 namespace Stride.Shaders.Parsing.Upgrade;
 
 /// <summary>
-/// The engine shader classes as the upgrade of a project needs them: kind (module or shader), compose type, <c>[Root]</c>, parents. When a
-/// project is upgraded, the engine shaders on disk are those of its old version, so this list of the current engine is
-/// embedded instead (<c>EngineShaders.txt</c>, checked against the engine sources by a test).
+/// The engine shader classes as the upgrade of a project needs them: kind (module or shader), compose type, <c>[Root]</c>, parents,
+/// abstract methods. When a project is upgraded, the engine shaders on disk are those of its old version, so this list of the
+/// current engine is embedded instead (<c>EngineShaders.txt</c>, checked against the engine sources by a test).
 /// </summary>
 public sealed class EngineShaderClasses
 {
@@ -30,7 +30,8 @@ public sealed class EngineShaderClasses
 
     /// <summary>
     /// Reads the format of <see cref="Write"/>: one class per line, <c>name, generic parameter count, module|shader, compose|-,
-    /// root|-, parents</c> separated by tabs; <c>#</c> starts a comment line.
+    /// root|-, parents, abstract methods</c> separated by tabs; <c>#</c> starts a comment line. An abstract method is
+    /// <c>Name(parameter types)</c>, several separated by <c>;</c>.
     /// </summary>
     public static EngineShaderClasses Parse(string text)
     {
@@ -41,7 +42,7 @@ public sealed class EngineShaderClasses
             if (trimmed.Length == 0 || trimmed.StartsWith('#'))
                 continue;
             var columns = trimmed.Split('\t');
-            result.Classes.Add(new ShaderUpgradeClass
+            var shaderClass = new ShaderUpgradeClass
             {
                 Name = columns[0],
                 GenericParameterCount = int.Parse(columns[1]),
@@ -49,7 +50,13 @@ public sealed class EngineShaderClasses
                 IsComposeType = columns[3] == "compose",
                 IsRoot = columns[4] == "root",
                 Parents = columns.Length > 5 && columns[5].Length > 0 ? [.. columns[5].Split(',')] : [],
-            });
+            };
+            foreach (var method in columns.Length > 6 && columns[6].Length > 0 ? columns[6].Split(';') : [])
+            {
+                var open = method.IndexOf('(');
+                shaderClass.Methods.Add((method[..open], shaderClass.IsModule, IsOverride: false, IsAbstract: true, method[(open + 1)..^1], ""));
+            }
+            result.Classes.Add(shaderClass);
         }
         return result;
     }
@@ -65,10 +72,10 @@ public sealed class EngineShaderClasses
             throw new InvalidOperationException($"Engine shaders can't be read:\n{string.Join("\n", notes)}");
 
         var result = new StringBuilder();
-        result.Append("# Engine shader classes for the shader source upgrade (ShaderUpgrader): name, generic parameter count, module|shader, compose|-, root|- ([Root]), parents.\n");
+        result.Append("# Engine shader classes for the shader source upgrade (ShaderUpgrader): name, generic parameter count, module|shader, compose|-, root|- ([Root]), parents, abstract methods.\n");
         result.Append("# Generated from the engine .sdsl files by the explicit test ShaderUpgradeTests.UpdateEngineShaderClasses.\n");
         foreach (var shaderClass in project.ProjectClasses.OrderBy(x => x.Name, StringComparer.Ordinal))
-            result.Append($"{shaderClass.Name}\t{shaderClass.GenericParameterCount}\t{(shaderClass.IsModule ? "module" : "shader")}\t{(project.IsComposeType(shaderClass.Name) ? "compose" : "-")}\t{(shaderClass.IsRoot ? "root" : "-")}\t{string.Join(",", shaderClass.Parents)}\n");
+            result.Append($"{shaderClass.Name}\t{shaderClass.GenericParameterCount}\t{(shaderClass.IsModule ? "module" : "shader")}\t{(project.IsComposeType(shaderClass.Name) ? "compose" : "-")}\t{(shaderClass.IsRoot ? "root" : "-")}\t{string.Join(",", shaderClass.Parents)}\t{string.Join(";", shaderClass.Methods.Where(x => x.IsAbstract).Select(x => $"{x.Name}({x.Signature})"))}\n");
         return result.ToString();
     }
 }
