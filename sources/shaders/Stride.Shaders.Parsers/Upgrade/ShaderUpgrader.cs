@@ -25,6 +25,8 @@ public static class ShaderUpgrader
         // 4.4: a `compose` or a `stream` declared inside a `cbuffer` or `rgroup` is not a member of it (SDSL0050); 4.3 compiled it as
         // declared after the block
         "compose-out-of-buffer",
+        // 4.5: the value of a composition (`compose ComputeFloat C = 0.5;`) never did anything (SDSL0236)
+        "drop-compose-value",
         // 4.4: an implementation of an abstract method is marked `override` (SDSL0114); after the rename, the parser rejects `stage`
         "add-override",
         // 4.5: module code of a class used in compositions can only call module methods
@@ -87,7 +89,7 @@ public static class ShaderUpgrader
     }
 
     // The steps that change text without reading the classes, in the order of Steps (they come first)
-    private static readonly Func<string, string>[] TextSteps = [ClassToShader, DropClone, StageToModule, ComposeOutOfBuffer];
+    private static readonly Func<string, string>[] TextSteps = [ClassToShader, DropClone, StageToModule, ComposeOutOfBuffer, DropComposeValue];
 
     private static void Apply(Dictionary<string, string> texts, Func<ShaderUpgradeProject, Dictionary<string, ShaderSourceText>> step, EngineShaderClasses? engine,
         List<string> notes, IReadOnlyDictionary<string, string> dependencies)
@@ -233,6 +235,18 @@ public static class ShaderUpgrader
             var indentation = text[blockLine..block.Index];
             source.Insert(after, string.Concat(moved.Select(x => source.NewLine + indentation + x)));
         }
+        return source.Apply();
+    }
+
+    /// <summary>
+    /// The value of a composition (<c>compose ComputeFloat Strength = 0.5;</c>) is removed: the effect gives the composition its
+    /// shader, and VL reads its default from <c>[Default(...)]</c>.
+    /// </summary>
+    internal static string DropComposeValue(string text)
+    {
+        var source = new ShaderSourceText(text);
+        foreach (var match in source.CodeMatches(@"(?<![\w.])compose\s+[A-Za-z_][\w.]*\s*(?:<[^;{}=]*>)?\s+[A-Za-z_]\w*(?:\s*\[\s*\w*\s*\])?(\s*=[^;]*);"))
+            source.Replace(match.Groups[1].Index, match.Groups[1].Length, "");
         return source.Apply();
     }
 
