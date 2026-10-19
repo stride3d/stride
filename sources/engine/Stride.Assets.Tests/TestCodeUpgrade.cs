@@ -737,4 +737,44 @@ public class TestCodeUpgrade
         Assert.Contains("class Other { public string Name => \"Other\"; }", result);
         AssertCompiles(result);
     }
+
+    [Fact]
+    public async Task PropertyOverrideRenameMovesOverridesToTheNewProperty()
+    {
+        // The 4.5 shape: GamePadDeviceBase.State became non-virtual and subclasses override RawState instead
+        const string OldBase = "public abstract class GamePadDeviceBase { public abstract int State { get; } }";
+        const string NewBase = "public abstract class GamePadDeviceBase { public int State => RawState; protected abstract int RawState { get; } }";
+        var source = $$"""
+            namespace Input
+            {
+                {{OldBase}}
+            }
+            namespace TestNs
+            {
+                class Pad : Input.GamePadDeviceBase
+                {
+                    private int state;
+
+                    public override int State => state;
+                }
+                class DerivedPad : Pad
+                {
+                    public override int State => base.State + 1;
+                    public int Read() => State;
+                }
+                abstract class OtherBase { public abstract int State { get; } }
+                class Other : OtherBase { public override int State => 0; }
+            }
+            """;
+
+        var result = await ApplyAsync(source, PropertyOverrideRename("Input.GamePadDeviceBase", "State", "RawState", SyntaxKind.ProtectedKeyword));
+
+        Assert.Contains("protected override int RawState => state;", result);
+        // base.State would now call the public State, which calls RawState again
+        Assert.Contains("protected override int RawState => base.RawState + 1;", result);
+        // Reads of State and overrides of an unrelated State are left alone
+        Assert.Contains("public int Read() => State;", result);
+        Assert.Contains("class Other : OtherBase { public override int State => 0; }", result);
+        AssertCompiles(result.Replace(OldBase, NewBase));
+    }
 }

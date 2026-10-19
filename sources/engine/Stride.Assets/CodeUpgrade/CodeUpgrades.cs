@@ -561,6 +561,88 @@ public static class CodeUpgrades
     }
 
     /// <summary>
+    /// Migrates overrides of a property whose overridable part moved to another property:
+    /// <c>public override GamePadState State => state;</c> → <c>protected override GamePadState RawState => state;</c>.
+    /// Each override of <paramref name="propertyName"/> on <paramref name="declaringType"/> (its full metadata name) is renamed
+    /// <paramref name="newPropertyName"/> with the accessibility <paramref name="newAccessibility"/>, and <c>base.</c> uses of the
+    /// property inside it go to the new property too, since the old one now calls the new one.
+    /// </summary>
+    public static CodeUpgrade PropertyOverrideRename(string declaringType, string propertyName, string newPropertyName, SyntaxKind newAccessibility)
+    {
+        ArgumentNullException.ThrowIfNull(declaringType);
+        ArgumentNullException.ThrowIfNull(propertyName);
+        ArgumentNullException.ThrowIfNull(newPropertyName);
+        if (!SyntaxFacts.IsAccessibilityModifier(newAccessibility))
+            throw new ArgumentException("The accessibility must be an accessibility keyword.", nameof(newAccessibility));
+
+        return async (solution, targets, cancellationToken) =>
+        {
+            foreach (var projectId in targets)
+            {
+                var project = solution.GetProject(projectId);
+                if (project is null)
+                    continue;
+
+                foreach (var documentId in project.DocumentIds)
+                {
+                    var document = solution.GetDocument(documentId);
+                    if (document is null || !SymbolRewriteEngine.IsUpgradableSource(document))
+                        continue;
+
+                    var root = await document.GetSyntaxRootAsync(cancellationToken);
+                    var semanticModel = await document.GetSemanticModelAsync(cancellationToken);
+                    var overridden = semanticModel?.Compilation.GetTypeByMetadataName(declaringType)?.GetMembers(propertyName).OfType<IPropertySymbol>().FirstOrDefault();
+                    if (root is null || overridden is null)
+                        continue;
+
+                    var overrides = root.DescendantNodes().OfType<PropertyDeclarationSyntax>()
+                        .Where(declaration => Overrides(semanticModel.GetDeclaredSymbol(declaration, cancellationToken), overridden))
+                        .ToList();
+                    if (overrides.Count == 0)
+                        continue;
+
+                    var newRoot = root.ReplaceNodes(overrides, (_, declaration) =>
+                    {
+                        var baseUses = declaration.DescendantNodes().OfType<MemberAccessExpressionSyntax>()
+                            .Where(x => x.Expression is BaseExpressionSyntax && x.Name.Identifier.ValueText == propertyName);
+                        declaration = declaration.ReplaceNodes(baseUses, (_, access) => access.WithName(SyntaxFactory.IdentifierName(newPropertyName).WithTriviaFrom(access.Name)));
+
+                        // The first accessibility keyword becomes the new one and the others go (public → protected, protected internal → protected)
+                        var modifiers = new SyntaxTokenList();
+                        var replaced = false;
+                        foreach (var modifier in declaration.Modifiers)
+                        {
+                            if (!SyntaxFacts.IsAccessibilityModifier(modifier.Kind()))
+                                modifiers = modifiers.Add(modifier);
+                            else if (!replaced)
+                            {
+                                modifiers = modifiers.Add(SyntaxFactory.Token(newAccessibility).WithTriviaFrom(modifier));
+                                replaced = true;
+                            }
+                        }
+
+                        return declaration
+                            .WithModifiers(modifiers)
+                            .WithIdentifier(SyntaxFactory.Identifier(newPropertyName).WithTriviaFrom(declaration.Identifier));
+                    });
+                    solution = solution.WithDocumentSyntaxRoot(documentId, newRoot);
+                }
+            }
+            return solution;
+        };
+
+        static bool Overrides(IPropertySymbol property, IPropertySymbol overridden)
+        {
+            for (var current = property?.OverriddenProperty; current is not null; current = current.OverriddenProperty)
+            {
+                if (SymbolEqualityComparer.Default.Equals(current.OriginalDefinition, overridden))
+                    return true;
+            }
+            return false;
+        }
+    }
+
+    /// <summary>
     /// Removes <c>using</c> directives for namespaces that left the Stride dependency closure
     /// (each entry matches itself and its sub-namespaces). Only directives the compiler reports as
     /// unnecessary (CS8019, checked against the old-version closure) are removed: an unused directive is
