@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 
 namespace Stride.Assets;
 
@@ -454,18 +455,110 @@ public static class CodeUpgrades
                 }
 
                 // Import the namespace once per file (the callback sees the root as edited so far)
-                editor.ReplaceNode(editor.OriginalRoot, (root, _) =>
-                {
-                    if (root is not CompilationUnitSyntax unit || unit.Usings.Any(x => x.Name?.ToString() == extensionNamespace))
-                        return root;
-                    var directive = SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(extensionNamespace)).NormalizeWhitespace().WithTrailingTrivia(SyntaxFactory.EndOfLine(Environment.NewLine));
-                    return unit.AddUsings(directive);
-                });
+                editor.ReplaceNode(editor.OriginalRoot, (root, _) => root is CompilationUnitSyntax unit ? AddUsing(unit, extensionNamespace) : root);
             });
     }
 
     private static MemberAccessExpressionSyntax Access(ExpressionSyntax receiver, SimpleNameSyntax member)
         => SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, receiver, member);
+
+    private static CompilationUnitSyntax AddUsing(CompilationUnitSyntax unit, string @namespace)
+    {
+        if (unit.Usings.Any(x => x.Name?.ToString() == @namespace))
+            return unit;
+        var directive = SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(@namespace)).NormalizeWhitespace().WithTrailingTrivia(SyntaxFactory.EndOfLine(Environment.NewLine));
+        return unit.AddUsings(directive);
+    }
+
+    /// <summary>
+    /// Migrates an interface that gained a required member: each class that implements <paramref name="interfaceType"/> itself,
+    /// rather than through a base class that already does, gets <paramref name="memberDeclaration"/> after its last property,
+    /// and the file gets the <c>using</c> for <paramref name="memberNamespace"/>. A class that already has a member with that name is left alone.
+    /// </summary>
+    /// <param name="interfaceType">The full metadata name of the interface, e.g. <c>"Stride.Input.IInputDevice"</c>.</param>
+    /// <param name="memberDeclaration">The property or event to add, as C# source.</param>
+    /// <param name="memberNamespace">The namespace the member's types live in.</param>
+    public static CodeUpgrade InterfaceMemberAdd(string interfaceType, string memberDeclaration, string memberNamespace)
+    {
+        ArgumentNullException.ThrowIfNull(interfaceType);
+        ArgumentNullException.ThrowIfNull(memberDeclaration);
+        ArgumentNullException.ThrowIfNull(memberNamespace);
+        var (member, memberName) = SyntaxFactory.ParseMemberDeclaration(memberDeclaration) switch
+        {
+            PropertyDeclarationSyntax property => ((MemberDeclarationSyntax)property, property.Identifier.ValueText),
+            EventDeclarationSyntax @event => (@event, @event.Identifier.ValueText),
+            _ => throw new ArgumentException("The member must be a property or an event with accessors.", nameof(memberDeclaration)),
+        };
+
+        return async (solution, targets, cancellationToken) =>
+        {
+            foreach (var projectId in targets)
+            {
+                var project = solution.GetProject(projectId);
+                if (project is null)
+                    continue;
+
+                foreach (var documentId in project.DocumentIds)
+                {
+                    // Read from the solution as edited so far: a partial class completed in one file is complete in the next
+                    var document = solution.GetDocument(documentId);
+                    if (document is null || !SymbolRewriteEngine.IsUpgradableSource(document))
+                        continue;
+
+                    var root = await document.GetSyntaxRootAsync(cancellationToken);
+                    var semanticModel = await document.GetSemanticModelAsync(cancellationToken);
+                    var @interface = semanticModel?.Compilation.GetTypeByMetadataName(interfaceType);
+                    if (root is not CompilationUnitSyntax unit || @interface is null)
+                        continue;
+
+                    var classes = new HashSet<INamedTypeSymbol>(SymbolEqualityComparer.Default);
+                    var declarations = new List<TypeDeclarationSyntax>();
+                    var needsUsing = false;
+                    foreach (var declaration in unit.DescendantNodes().OfType<TypeDeclarationSyntax>())
+                    {
+                        if (semanticModel.GetDeclaredSymbol(declaration, cancellationToken) is not { TypeKind: TypeKind.Class } type
+                            || !type.AllInterfaces.Contains(@interface, SymbolEqualityComparer.Default)
+                            || (type.BaseType?.AllInterfaces.Contains(@interface, SymbolEqualityComparer.Default) ?? false)
+                            || !type.GetMembers(memberName).IsEmpty
+                            || !classes.Add(type))
+                            continue;
+
+                        declarations.Add(declaration);
+                        var containingNamespace = type.ContainingNamespace.ToDisplayString();
+                        needsUsing |= containingNamespace != memberNamespace && !containingNamespace.StartsWith(memberNamespace + ".", StringComparison.Ordinal);
+                    }
+                    if (declarations.Count == 0)
+                        continue;
+
+                    var newRoot = unit.ReplaceNodes(declarations, (_, declaration) => InsertMember(declaration, member));
+                    if (needsUsing)
+                        newRoot = AddUsing(newRoot, memberNamespace);
+
+                    var formatted = await Formatter.FormatAsync(document.WithSyntaxRoot(newRoot), Formatter.Annotation, cancellationToken: cancellationToken);
+                    solution = formatted.Project.Solution;
+                }
+            }
+            return solution;
+        };
+    }
+
+    /// <summary>
+    /// Inserts a member after the last property, or else before the first member, with that member's indentation and line ending.
+    /// A member added to a class without members, or written on one line, is left to the formatter.
+    /// </summary>
+    private static TypeDeclarationSyntax InsertMember(TypeDeclarationSyntax declaration, MemberDeclarationSyntax member)
+    {
+        var members = declaration.Members;
+        var lastProperty = members.LastOrDefault(x => x is BasePropertyDeclarationSyntax);
+        var anchor = lastProperty ?? members.FirstOrDefault();
+        var endOfLine = anchor?.GetTrailingTrivia().Where(x => x.IsKind(SyntaxKind.EndOfLineTrivia)).TakeLast(1).ToList();
+        if (endOfLine is not [_])
+            return declaration.AddMembers(member.WithAdditionalAnnotations(Formatter.Annotation));
+
+        var indentation = anchor.GetLeadingTrivia().Where(x => x.IsKind(SyntaxKind.WhitespaceTrivia)).TakeLast(1);
+        member = member.WithLeadingTrivia(indentation).WithTrailingTrivia(endOfLine);
+        return declaration.WithMembers(members.Insert(lastProperty is null ? 0 : members.IndexOf(lastProperty) + 1, member));
+    }
 
     /// <summary>
     /// Removes <c>using</c> directives for namespaces that left the Stride dependency closure

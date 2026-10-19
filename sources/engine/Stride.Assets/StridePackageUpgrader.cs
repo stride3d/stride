@@ -146,6 +146,10 @@ namespace Stride.Assets
                 Rewrite(
                     MemberToExtension("Stride.Engine.Game", "Audio", "Stride.Audio"),
                     MemberToExtension("Stride.Engine.ScriptComponent", "Audio", "Stride.Audio", throughMember: "Game")),
+
+                // 4.5: input devices hold their capture state, so a device that implements the input interfaces itself
+                // rather than through an engine base class needs one (#3505).
+                InterfaceMemberAdd("Stride.Input.IInputDevice", "public DeviceCaptureState CaptureState { get; } = new DeviceCaptureState();", "Stride.Input"),
             ]);
 
             // Structural csproj migrations, gated by the version each change landed at. Run against the

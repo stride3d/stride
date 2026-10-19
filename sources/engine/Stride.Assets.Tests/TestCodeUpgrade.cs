@@ -687,4 +687,54 @@ public class TestCodeUpgrade
         Assert.Contains("else", result);
         AssertCompiles(result);
     }
+
+    [Fact]
+    public async Task InterfaceMemberAddCompletesOnlyClassesThatImplementTheInterfaceThemselves()
+    {
+        // The 4.5 shape: IInputDevice gained CaptureState, which the engine base classes already provide
+        var source = """
+            namespace Input
+            {
+                public sealed class DeviceCaptureState { }
+                public interface IInputDevice { string Name { get; } }
+                public interface IMouseDevice : IInputDevice { }
+                public abstract class DeviceBase : IInputDevice { public string Name => "Base"; }
+            }
+            namespace TestNs
+            {
+                class Mouse : Input.IMouseDevice
+                {
+                    public string Name => "Mouse";
+
+                    void Update() { }
+                }
+                class DerivedMouse : Mouse { }
+                class FromBase : Input.DeviceBase { }
+                class Already : Input.IInputDevice
+                {
+                    public string Name => "Already";
+                    public Input.DeviceCaptureState CaptureState => null;
+                }
+                partial class Split : Input.IInputDevice { }
+                partial class Split { public string Name => "Split"; }
+                class Other { public string Name => "Other"; }
+            }
+            """;
+
+        var result = await ApplyAsync(source, InterfaceMemberAdd("Input.IInputDevice", "public DeviceCaptureState CaptureState { get; } = new DeviceCaptureState();", "Input"));
+
+        Assert.StartsWith("using Input;", result);
+        // DeviceBase, Mouse and one declaration of Split get the member; a derived class, a class deriving from the base and one that already has it don't
+        Assert.Equal(3, result.Split("public DeviceCaptureState CaptureState { get; } = new DeviceCaptureState();").Length - 1);
+        Assert.Contains("""
+                    public string Name => "Mouse";
+                    public DeviceCaptureState CaptureState { get; } = new DeviceCaptureState();
+
+                    void Update() { }
+            """, result);
+        Assert.Contains("class DerivedMouse : Mouse { }", result);
+        Assert.Contains("class FromBase : Input.DeviceBase { }", result);
+        Assert.Contains("class Other { public string Name => \"Other\"; }", result);
+        AssertCompiles(result);
+    }
 }
