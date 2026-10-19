@@ -15,9 +15,10 @@ namespace Stride.Shaders
         public static readonly ObjectParameterKey<bool> Enable = ParameterKeys.NewObject<bool>();
 
         /// <summary>
-        /// The class modifier declaration (Default: "public partial")
+        /// The class modifiers (Default: none, the class takes the access modifier of its other parts). The class is always
+        /// partial: the generated file only holds the bytecode field, one part of a class declared elsewhere.
         /// </summary>
-        public static readonly ObjectParameterKey<string> ClassDeclaration = ParameterKeys.NewObject("public partial");
+        public static readonly ObjectParameterKey<string> ClassDeclaration = ParameterKeys.NewObject("");
 
         /// <summary>
         /// The namespace used for the declaration.
