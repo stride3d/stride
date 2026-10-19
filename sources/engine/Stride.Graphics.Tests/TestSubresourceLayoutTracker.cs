@@ -82,17 +82,17 @@ public class TestSubresourceLayoutTracker : GraphicTestGameBase
             using var texture = Texture.New2D(game.GraphicsDevice, 8, 8, mipCount: 4, PixelFormat.R8G8B8A8_UNorm, TextureFlags.ShaderResource | TextureFlags.RenderTarget);
             commandList.ResourceBarrierTransition(texture, BarrierLayout.ShaderResource);
 
-            // Mip-level 1 goes to render target and back: all mip-levels share one layout again
+            // Mip-level 1 goes to render target and back: all mip-levels share one layout again. The whole-resource
+            // barrier is recorded after the pending sub-resource ones, which leaves it alone
             commandList.ResourceBarrierTransition(texture, BarrierLayout.RenderTarget, 1);
             commandList.ResourceBarrierTransition(texture, BarrierLayout.ShaderResource, 1);
-            int count = commandList.PendingBarrierCount;
             commandList.ResourceBarrierTransition(texture, BarrierLayout.CopySource);
-            Assert.Equal(1, commandList.PendingBarrierCount - count);
+            Assert.Equal(1, commandList.PendingBarrierCount);
 
             // Mip-levels 1 and 2 in other layouts: one barrier for each sub-resource that differs
             commandList.ResourceBarrierTransition(texture, BarrierLayout.RenderTarget, 1);
             commandList.ResourceBarrierTransition(texture, BarrierLayout.CopyDest, 2);
-            count = commandList.PendingBarrierCount;
+            int count = commandList.PendingBarrierCount;
             commandList.ResourceBarrierTransition(texture, BarrierLayout.CopySource);
             Assert.Equal(2, commandList.PendingBarrierCount - count);
 #endif
