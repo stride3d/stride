@@ -583,6 +583,18 @@ namespace Stride.Graphics
             if (barrierTransitions.Count == 0)
                 return;
 
+            // A whole-resource barrier and subresource barriers of the same resource overlap: don't put them in the same
+            // barrier call, record the pending ones first, so each barrier starts from the layout the previous one left
+            bool whole = barrierTransitions[0].Subresource == uint.MaxValue;
+            foreach (var pending in pendingBarriers)
+            {
+                if (pending.Resource == resource && (pending.Subresource == uint.MaxValue) != whole)
+                {
+                    FlushResourceBarriers();
+                    break;
+                }
+            }
+
             foreach (var transition in barrierTransitions)
             {
                 pendingBarriers.Add(new ResourceBarrierDescription(resource, transition.LayoutBefore, newLayout)

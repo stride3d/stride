@@ -18,10 +18,10 @@ public class TestTextureViewBarriers : GraphicTestGameBase
             Skip.IfNot(GraphicsDevice.Platform is GraphicsPlatform.Direct3D12 or GraphicsPlatform.Vulkan, "Layouts are tracked on Direct3D 12 and Vulkan.");
 
             var commandList = game.GraphicsContext.CommandList;
-            var texture = Texture.New2D(game.GraphicsDevice, 16, 16, mipCount: 2, PixelFormat.R8G8B8A8_UNorm,
+            using var texture = Texture.New2D(game.GraphicsDevice, 16, 16, mipCount: 2, PixelFormat.R8G8B8A8_UNorm,
                 TextureFlags.ShaderResource | TextureFlags.RenderTarget);
-            var mip0 = texture.ToTextureView(new TextureViewDescription { Type = ViewType.Single, MipLevel = 0, Format = texture.Format, Flags = TextureFlags.ShaderResource });
-            var mip1 = texture.ToTextureView(new TextureViewDescription { Type = ViewType.Single, MipLevel = 1, Format = texture.Format, Flags = TextureFlags.RenderTarget });
+            using var mip0 = texture.ToTextureView(new TextureViewDescription { Type = ViewType.Single, MipLevel = 0, Format = texture.Format, Flags = TextureFlags.ShaderResource });
+            using var mip1 = texture.ToTextureView(new TextureViewDescription { Type = ViewType.Single, MipLevel = 1, Format = texture.Format, Flags = TextureFlags.RenderTarget });
 
             commandList.ResourceBarrierTransition(mip0, BarrierLayout.ShaderResource);
             commandList.ResourceBarrierTransition(mip1, BarrierLayout.RenderTarget);
@@ -101,9 +101,34 @@ public class TestTextureViewBarriers : GraphicTestGameBase
             }
             Assert.False(texture.LayoutTracker.HasPerSubresourceTracking);
 
-            count = commandList.PendingBarrierCount;
+            // The chain's subresource barriers are recorded first (see below), then one barrier waits
             commandList.ResourceBarrierTransition(texture, BarrierLayout.CopySource);
-            Assert.Equal(1, commandList.PendingBarrierCount - count);
+            Assert.Equal(1, commandList.PendingBarrierCount);
+#endif
+        });
+    }
+
+    /// <summary>
+    /// A whole-texture barrier and a subresource barrier of the same texture don't go into the same barrier call: the
+    /// pending one is recorded first, so the second one starts from the layout the first one left.
+    /// </summary>
+    [SkippableFact]
+    public void WholeAndSubresourceBarriersAreRecordedSeparately()
+    {
+        PerformTest(game =>
+        {
+            Skip.IfNot(GraphicsDevice.Platform == GraphicsPlatform.Direct3D12, "Counts Direct3D 12 barriers.");
+
+#if STRIDE_GRAPHICS_API_DIRECT3D12
+            var commandList = game.GraphicsContext.CommandList;
+            using var texture = Texture.New2D(game.GraphicsDevice, 16, 16, mipCount: 2, PixelFormat.R8G8B8A8_UNorm, TextureFlags.ShaderResource | TextureFlags.RenderTarget);
+            using var mip1 = texture.ToTextureView(ViewType.Single, 0, 1);
+
+            commandList.ResourceBarrierTransition(texture, BarrierLayout.CopySource);
+            Assert.NotEqual(0, commandList.PendingBarrierCount);
+
+            commandList.ResourceBarrierTransition(mip1, BarrierLayout.ShaderResource);
+            Assert.Equal(1, commandList.PendingBarrierCount);
 #endif
         });
     }
@@ -119,8 +144,8 @@ public class TestTextureViewBarriers : GraphicTestGameBase
             Skip.IfNot(GraphicsDevice.Platform is GraphicsPlatform.Direct3D12 or GraphicsPlatform.Vulkan, "Layouts are tracked on Direct3D 12 and Vulkan.");
 
             var commandList = game.GraphicsContext.CommandList;
-            var texture = Texture.New2D(game.GraphicsDevice, 16, 16, PixelFormat.D24_UNorm_S8_UInt, TextureFlags.DepthStencil, arraySize: 2);
-            var slice1 = texture.ToTextureView(new TextureViewDescription { Type = ViewType.Single, ArraySlice = 1, Format = texture.Format, Flags = TextureFlags.DepthStencil });
+            using var texture = Texture.New2D(game.GraphicsDevice, 16, 16, PixelFormat.D24_UNorm_S8_UInt, TextureFlags.DepthStencil, arraySize: 2);
+            using var slice1 = texture.ToTextureView(new TextureViewDescription { Type = ViewType.Single, ArraySlice = 1, Format = texture.Format, Flags = TextureFlags.DepthStencil });
 
             commandList.ResourceBarrierTransition(texture, BarrierLayout.DepthStencilRead);
             commandList.ResourceBarrierTransition(slice1, BarrierLayout.DepthStencilWrite);
