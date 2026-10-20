@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -40,6 +41,13 @@ namespace Stride.Engine.Tests
         // Frames at which to count the models no view collected, and the counts.
         private readonly List<int> countFrames = new();
         private readonly Dictionary<int, int> uncollectedModelCounts = new();
+        private bool testLifecycle;
+        private bool testBatchGrowth;
+        private Stride.Graphics.Buffer outputBeforeGrowth;
+        private string testVertexLayout;
+        private readonly HashSet<int> lifecycleCheckFrames = new();
+        private readonly HashSet<(Stride.Graphics.Buffer Buffer, int Offset)> outputSlots = new();
+        private int lifecycleChecksRun;
 
         public MorphTargetTests()
         {
@@ -59,18 +67,96 @@ namespace Stride.Engine.Tests
             EnableDirectionalShadows();
 
             var model = Content.Load<Model>("MorphDonut Model");
-            // Imported meshes leave tangent skinning disabled by default; this fixture exercises it explicitly.
-            foreach (var mesh in model.Meshes.Where(mesh => mesh.Skinning != null))
-                mesh.Parameters.Set(MaterialKeys.HasSkinningTangent, true);
-            var clip = Content.Load<AnimationClip>("MorphDonut Animation");
-            var material = Material.New(GraphicsDevice, new MaterialDescriptor
+            bool hasNormals = testVertexLayout != "PositionOnly";
+            bool hasTangents = hasNormals && testVertexLayout != "NoTangent";
+            if (testVertexLayout != null)
             {
-                Attributes =
+                foreach (var mesh in model.Meshes)
                 {
-                    Diffuse = new MaterialDiffuseMapFeature(new ComputeShaderClassColor { MixinReference = "DeformationBasisColor" }),
-                    DiffuseModel = new MaterialDiffuseLambertModelFeature(),
-                },
-            });
+                    var binding = Assert.Single(mesh.Draw.VertexBuffers);
+                    var elements = binding.Declaration.EnumerateWithOffsets().ToArray();
+                    var indices = elements.Single(element => element.VertexElement.SemanticName == "BLENDINDICES");
+                    int originalIndexBytes = indices.VertexElement.Format.SizeInBytes;
+                    int indexBytes = testVertexLayout switch
+                    {
+                        "Indices16" => 8,
+                        "Indices8" => 4,
+                        _ => originalIndexBytes,
+                    };
+                    int indexSizeChange = indexBytes - originalIndexBytes;
+                    int stride = binding.Stride + indexSizeChange;
+                    const int prefixBytes = 64;
+                    var source = binding.Buffer.GetData<byte>(GraphicsContext.CommandList);
+                    var vertices = new byte[prefixBytes + binding.Count * stride];
+                    Array.Fill(vertices, (byte)0xCD, 0, prefixBytes);
+                    for (int vertex = 0; vertex < binding.Count; vertex++)
+                    {
+                        var sourceVertex = source.AsSpan(binding.Offset + vertex * binding.Stride, binding.Stride);
+                        var destinationVertex = vertices.AsSpan(prefixBytes + vertex * stride, stride);
+                        if (indexSizeChange == 0)
+                        {
+                            sourceVertex.CopyTo(destinationVertex);
+                            continue;
+                        }
+                        sourceVertex[..indices.Offset].CopyTo(destinationVertex);
+                        for (int influence = 0; influence < 4; influence++)
+                        {
+                            ushort index = originalIndexBytes == 8
+                                ? BinaryPrimitives.ReadUInt16LittleEndian(sourceVertex[(indices.Offset + influence * 2)..])
+                                : sourceVertex[indices.Offset + influence];
+                            if (indexBytes == 8)
+                                BinaryPrimitives.WriteUInt16LittleEndian(destinationVertex[(indices.Offset + influence * 2)..], index);
+                            else
+                                destinationVertex[indices.Offset + influence] = checked((byte)index);
+                        }
+                        sourceVertex[(indices.Offset + originalIndexBytes)..]
+                            .CopyTo(destinationVertex[(indices.Offset + indexBytes)..]);
+                    }
+                    var declaration = new List<VertexElement>(elements.Length);
+                    foreach (var element in elements)
+                    {
+                        var attribute = element.VertexElement;
+                        if ((!hasNormals && attribute.SemanticName == "NORMAL")
+                            || (!hasTangents && attribute.SemanticName == "TANGENT"))
+                            continue;
+                        var format = attribute.SemanticName == "BLENDINDICES"
+                            ? (indexBytes == 8 ? PixelFormat.R16G16B16A16_UInt : PixelFormat.R8G8B8A8_UInt)
+                            : attribute.Format;
+                        int offset = element.Offset > indices.Offset ? element.Offset + indexSizeChange : element.Offset;
+                        declaration.Add(new VertexElement(attribute.SemanticName, attribute.SemanticIndex, format, offset));
+                    }
+                    var buffer = Stride.Graphics.Buffer.New(GraphicsDevice, vertices.AsSpan(), stride, BufferFlags.VertexBuffer).DisposeBy(this);
+                    mesh.Draw = new MeshDraw
+                    {
+                        PrimitiveType = mesh.Draw.PrimitiveType,
+                        IndexBuffer = mesh.Draw.IndexBuffer,
+                        StartLocation = mesh.Draw.StartLocation,
+                        DrawCount = mesh.Draw.DrawCount,
+                        VertexBuffers = [new VertexBufferBinding(buffer, new VertexDeclaration(declaration.ToArray(), 0, stride), binding.Count, stride, prefixBytes)],
+                    };
+                }
+            }
+            // Imported meshes leave tangent skinning disabled by default; this fixture exercises it explicitly.
+            foreach (var mesh in model.Meshes)
+            {
+                if (mesh.Skinning == null)
+                    continue;
+                mesh.Parameters.Set(MaterialKeys.HasSkinningTangent, hasTangents);
+                if (!hasNormals)
+                    mesh.Parameters.Set(MaterialKeys.HasSkinningNormal, false);
+            }
+            var clip = Content.Load<AnimationClip>("MorphDonut Animation");
+            var descriptor = new MaterialDescriptor();
+            if (hasTangents)
+            {
+                descriptor.Attributes.Diffuse = new MaterialDiffuseMapFeature(new ComputeShaderClassColor { MixinReference = "DeformationBasisColor" });
+                descriptor.Attributes.DiffuseModel = new MaterialDiffuseLambertModelFeature();
+            }
+            else
+            {
+                descriptor.Attributes.Emissive = new MaterialEmissiveMapFeature(new ComputeColor(Color.White));
+            }
+            var material = Material.New(GraphicsDevice, descriptor);
             foreach (var instance in model.Materials)
                 instance.Material = material;
             AmbientLight.Intensity = 0.25f;
@@ -96,6 +182,69 @@ namespace Stride.Engine.Tests
         protected override void RegisterTests()
         {
             base.RegisterTests();
+
+            if (testBatchGrowth)
+            {
+                var hidden = new Entity[4];
+                var model = donuts[0].Get<ModelComponent>().Model;
+                var firstPosition = donuts[0].Transform.Position;
+                FrameGameSystem.Update(1, () =>
+                {
+                    donuts[0].Transform.Position = new Vector3(0, 0, 60);
+                    // Five existing instances occupy eight slots. The ninth forces growth while the first is hidden.
+                    for (int index = 0; index < hidden.Length; index++)
+                    {
+                        var extra = new Entity { new ModelComponent(model) };
+                        extra.Transform.Position = new Vector3(0, 0, 60 + index * 5);
+                        Scene.Entities.Add(extra);
+                        hidden[index] = extra;
+                    }
+                });
+                FrameGameSystem.Update(2, () => donuts[0].Transform.Position = firstPosition);
+                FrameGameSystem.Update(3, () =>
+                {
+                    foreach (var extra in hidden)
+                        Scene.Entities.Remove(extra);
+                });
+            }
+
+            if (testLifecycle)
+            {
+                var component = donuts[0].Get<ModelComponent>();
+                var originalModel = component.Model;
+                var unskinnedModel = new Model();
+                foreach (var mesh in originalModel.Meshes)
+                    unskinnedModel.Meshes.Add(new Mesh(mesh.Draw, mesh.Parameters)
+                    {
+                        MorphTargets = mesh.MorphTargets,
+                        MaterialIndex = mesh.MaterialIndex,
+                    });
+                foreach (var material in originalModel.Materials)
+                    unskinnedModel.Materials.Add(material);
+
+                Action[] transitions =
+                [
+                    () => { },
+                    () => component.Morphs.Enabled = false,
+                    () => component.Enabled = false,
+                    () => { component.Enabled = true; component.Morphs.Enabled = true; },
+                    () => component.Model = null,
+                    () => component.Model = unskinnedModel,
+                    () => component.Model = originalModel,
+                    () => Scene.Entities.Remove(donuts[0]),
+                    () => Scene.Entities.Add(donuts[0]),
+                    () => component.Model = unskinnedModel,
+                    () => component.Model = originalModel,
+                ];
+                for (int index = 0; index < transitions.Length; index++)
+                {
+                    FrameGameSystem.Update(index * 2, transitions[index]);
+                    int checkFrame = index * 2 + 1;
+                    FrameGameSystem.Draw(checkFrame, () => { });
+                    lifecycleCheckFrames.Add(checkFrame);
+                }
+                return;
+            }
 
             int frame = 0;
 
@@ -200,6 +349,40 @@ namespace Stride.Engine.Tests
         protected override void Draw(Stride.Games.GameTime gameTime)
         {
             base.Draw(gameTime);
+            if (testBatchGrowth && FrameGameSystem.CurrentFrame <= 2)
+            {
+                int frame = FrameGameSystem.CurrentFrame;
+                var processor = SceneSystem.SceneInstance.GetProcessor<ModelRenderProcessor>();
+                if (frame > 0)
+                    Assert.Equal(frame == 1 ? 5 : 4, processor.DeformationRenderer.UncollectedModelCount);
+                if (ModelRenderProcessor.DeformationOverride.Mode == MeshDeformationMode.Compute)
+                {
+                    var output = processor.RenderModels[donuts[0].Get<ModelComponent>()].Meshes[0].ActiveMeshDraw.VertexBuffers[1].Buffer;
+                    if (frame == 0)
+                        outputBeforeGrowth = output;
+                    else
+                    {
+                        Assert.NotSame(outputBeforeGrowth, output);
+                        Assert.Equal(outputBeforeGrowth.SizeInBytes * 2, output.SizeInBytes);
+                    }
+                    outputSlots.Clear();
+                    foreach (var donut in donuts)
+                        AssertDeformationBindings(processor, donut.Get<ModelComponent>(), outputSlots);
+                }
+            }
+            if (lifecycleCheckFrames.Contains(FrameGameSystem.CurrentFrame))
+            {
+                var processor = SceneSystem.SceneInstance.GetProcessor<ModelRenderProcessor>();
+                var component = donuts[0].Get<ModelComponent>();
+                Assert.Equal(donuts[0].Scene == Scene, processor.RenderModels.ContainsKey(component));
+                outputSlots.Clear();
+                foreach (var donut in donuts)
+                {
+                    if (donut.Scene == Scene)
+                        AssertDeformationBindings(processor, donut.Get<ModelComponent>(), outputSlots);
+                }
+                lifecycleChecksRun++;
+            }
             if (countFrames.Contains(FrameGameSystem.CurrentFrame))
             {
                 var modelProcessor = SceneSystem.SceneInstance.GetProcessor<ModelRenderProcessor>();
@@ -214,6 +397,53 @@ namespace Stride.Engine.Tests
                 model.SetMorphWeight(name, weight);
         }
 
+        private static void AssertDeformationBindings(ModelRenderProcessor processor, ModelComponent component,
+            HashSet<(Stride.Graphics.Buffer Buffer, int Offset)> outputSlots)
+        {
+            var renderedModel = processor.RenderModels[component];
+            if (component.Model == null)
+            {
+                foreach (var mesh in renderedModel.Meshes)
+                    Assert.DoesNotContain(mesh, processor.VisibilityGroup.RenderObjects);
+                return;
+            }
+            if (!component.Enabled)
+            {
+                foreach (var mesh in renderedModel.Meshes)
+                    Assert.False(mesh.Enabled);
+                return;
+            }
+            for (int meshIndex = 0; meshIndex < component.Model.Meshes.Count; meshIndex++)
+            {
+                var sourceMesh = component.Model.Meshes[meshIndex];
+                bool morph = component.Morphs.Enabled && sourceMesh.MorphTargets != null;
+                bool compute = ModelRenderProcessor.DeformationOverride.Mode == MeshDeformationMode.Compute
+                    && (morph || sourceMesh.Skinning != null);
+                var material = renderedModel.Materials[meshIndex];
+                for (int pass = 0; pass < material.MeshCount; pass++)
+                {
+                    var renderedMesh = renderedModel.Meshes[material.MeshStartIndex + pass];
+                    if (compute)
+                    {
+                        Assert.NotSame(sourceMesh, renderedMesh.Mesh);
+                        Assert.Null(renderedMesh.Mesh.Skinning);
+                        Assert.Equal(2, renderedMesh.ActiveMeshDraw.VertexBuffers.Length);
+                        if (pass == 0)
+                        {
+                            var output = renderedMesh.ActiveMeshDraw.VertexBuffers[1];
+                            Assert.True(outputSlots.Add((output.Buffer, output.Offset)), "Two meshes share a compute output slot.");
+                        }
+                    }
+                    else
+                    {
+                        Assert.Same(sourceMesh, renderedMesh.Mesh);
+                        Assert.Same(sourceMesh.Draw, renderedMesh.ActiveMeshDraw);
+                    }
+                    Assert.Equal(morph && !compute, renderedMesh.MorphBuffers != null);
+                }
+            }
+        }
+
         // The donut behind the camera is the only one not deformed; the donut seen only by a shadow view is deformed.
         private void AssertOnlyHiddenDonutUncollected()
         {
@@ -224,12 +454,51 @@ namespace Stride.Engine.Tests
         }
 
         [Theory]
+        [InlineData("Vertex", false)]
+        [InlineData("ComputeSingle", false)]
+        [InlineData("ComputeBatched", false)]
+        [InlineData("Vertex", true)]
+        [InlineData("ComputeSingle", true)]
+        [InlineData("ComputeBatched", true)]
+        public void RunTestGame(string path, bool lifecycle)
+        {
+            var game = new MorphTargetTests { TestName = lifecycle ? path + ".Lifecycle" : path, testLifecycle = lifecycle };
+            RunPath(game, path);
+        }
+
+        [Theory]
         [InlineData("Vertex")]
         [InlineData("ComputeSingle")]
         [InlineData("ComputeBatched")]
-        public void RunTestGame(string path)
+        public void RunBatchGrowthTestGame(string path)
         {
-            var game = new MorphTargetTests { TestName = path };
+            RunPath(new MorphTargetTests { TestName = path, testBatchGrowth = true }, path);
+        }
+
+        [Theory]
+        [InlineData("Vertex", "Offset")]
+        [InlineData("ComputeSingle", "Offset")]
+        [InlineData("ComputeBatched", "Offset")]
+        [InlineData("Vertex", "Indices8")]
+        [InlineData("ComputeSingle", "Indices8")]
+        [InlineData("ComputeBatched", "Indices8")]
+        [InlineData("Vertex", "Indices16")]
+        [InlineData("ComputeSingle", "Indices16")]
+        [InlineData("ComputeBatched", "Indices16")]
+        [InlineData("Vertex", "PositionOnly")]
+        [InlineData("ComputeSingle", "PositionOnly")]
+        [InlineData("ComputeBatched", "PositionOnly")]
+        [InlineData("Vertex", "NoTangent")]
+        [InlineData("ComputeSingle", "NoTangent")]
+        [InlineData("ComputeBatched", "NoTangent")]
+        public void RunVertexLayoutTestGame(string path, string layout)
+        {
+            bool lifecycle = layout is "PositionOnly" or "NoTangent";
+            RunPath(new MorphTargetTests { TestName = path, testVertexLayout = layout, testLifecycle = lifecycle }, path);
+        }
+
+        private static void RunPath(MorphTargetTests game, string path)
+        {
             var previousOverride = ModelRenderProcessor.DeformationOverride;
             try
             {
@@ -240,8 +509,12 @@ namespace Stride.Engine.Tests
                     "ComputeBatched" => ComputeBatchedPath,
                     _ => throw new ArgumentOutOfRangeException(nameof(path)),
                 };
+                // Equivalent vertex layouts and batch growth reuse this path's existing golds.
                 RunGameTest(game);
-                game.AssertOnlyHiddenDonutUncollected();
+                if (game.testLifecycle)
+                    Assert.Equal(game.lifecycleCheckFrames.Count, game.lifecycleChecksRun);
+                else
+                    game.AssertOnlyHiddenDonutUncollected();
             }
             finally
             {
