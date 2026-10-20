@@ -40,8 +40,10 @@ namespace Stride.Graphics
         private readonly ComPtr<ID3D11UnorderedAccessView>[] currentUARenderTargetViews = new ComPtr<ID3D11UnorderedAccessView>[SimultaneousRenderTargetCount];
         private readonly ComPtr<ID3D11UnorderedAccessView>[] unorderedAccessViews = new ComPtr<ID3D11UnorderedAccessView>[UnorderedAcccesViewCount]; // Only CS
 
-        // What the CS Unordered Access View bound to each slot writes, to find the views of a resource that is to be read
+        // What the Unordered Access View bound to each slot writes (compute, and pixel shader in the output-merger slots),
+        // to find the views of a resource that is to be read
         private readonly BoundResourceView[] boundUnorderedAccessViews = new BoundResourceView[UnorderedAcccesViewCount];
+        private readonly BoundResourceView[] boundRenderTargetUnorderedAccessViews = new BoundResourceView[SimultaneousRenderTargetCount];
 
         private const int StageCount = 6;
 
@@ -191,6 +193,7 @@ namespace Stride.Graphics
             Array.Clear(boundUnorderedAccessViews);
             Array.Clear(currentRenderTargetViews);
             Array.Clear(currentUARenderTargetViews);
+            Array.Clear(boundRenderTargetUnorderedAccessViews);
 
             // Since nothing can be drawn in default state, no need to set anything (another SetPipelineState should happen before)
             currentPipelineState = GraphicsDevice.DefaultPipelineState;
@@ -203,6 +206,7 @@ namespace Stride.Graphics
         {
             Array.Clear(currentRenderTargetViews);
             Array.Clear(currentUARenderTargetViews);
+            Array.Clear(boundRenderTargetUnorderedAccessViews);
 
             // Reset all targets
             nativeDeviceContext->OMSetRenderTargets(NumViews: 0, ppRenderTargetViews: null, pDepthStencilView: null);
@@ -545,41 +549,10 @@ namespace Stride.Graphics
             {
                 if (currentUARenderTargetViews[slot].Handle != nativeUnorderedAccessView.Handle)
                 {
+                    boundRenderTargetUnorderedAccessViews[slot] = BoundResourceView.Of(unorderedAccessView);
                     OMSetSingleUnorderedAccessView(slot, nativeUnorderedAccessView, uavInitialOffset);
                 }
             }
-        }
-
-        /// <summary>
-        ///   Unsets an Unordered Access View from the shader pipeline.
-        /// </summary>
-        /// <param name="unorderedAccessView">The Unordered Access View to unset.</param>
-        internal void UnsetUnorderedAccessView(GraphicsResource unorderedAccessView)
-        {
-            var nativeUav = unorderedAccessView is not null ? unorderedAccessView.NativeUnorderedAccessView : default;
-            if (nativeUav.IsNull())
-                return;
-
-            for (int slot = 0; slot < UnorderedAcccesViewCount; slot++)
-            {
-                if (unorderedAccessViews[slot].Handle == nativeUav.Handle)
-                    UnbindComputeUnorderedAccessView(slot);
-            }
-            for (int slot = 0; slot < SimultaneousRenderTargetCount; slot++)
-            {
-                if (currentUARenderTargetViews[slot].Handle == nativeUav.Handle)
-                {
-                    OMSetSingleUnorderedAccessView(slot, NullComPtr<ID3D11UnorderedAccessView>(), uavInitialOffset: -1);
-                }
-            }
-        }
-
-        private void UnbindComputeUnorderedAccessView(int slot)
-        {
-            var nullUav = NullComPtr<ID3D11UnorderedAccessView>();
-            unorderedAccessViews[slot] = nullUav;
-            boundUnorderedAccessViews[slot] = default;
-            NativeDeviceContext.CSSetUnorderedAccessViews((uint) slot, NumUAVs: 1, ppUnorderedAccessViews: ref nullUav, pUAVInitialCounts: null);
         }
 
         /// <summary>
@@ -714,15 +687,15 @@ namespace Stride.Graphics
         ///   unbinds what the runtime would otherwise unbind itself: a transition to unordered access unbinds the
         ///   sub-Resources it covers from the shader resource slots they are bound to (binding them for writing while they
         ///   are bound for reading makes the runtime unbind them, with a debug layer warning), and a transition to shader
-        ///   resource unbinds them from the compute unordered access slots (otherwise the runtime nulls the shader
-        ///   resource view, and the read sees nothing).
+        ///   resource unbinds them from the unordered access slots of the compute and pixel stages (otherwise the runtime
+        ///   nulls the shader resource view, and the read sees nothing).
         /// </remarks>
         public void ResourceBarrierTransition(GraphicsResource resource, BarrierLayout newLayout, uint subresource = uint.MaxValue)
         {
             if (newLayout == BarrierLayout.UnorderedAccess)
                 UnbindShaderResource(resource, subresource);
             else if (newLayout == BarrierLayout.ShaderResource)
-                UnbindComputeUnorderedAccess(resource, subresource);
+                UnbindUnorderedAccess(resource, subresource);
         }
 
         public void ResourceBarrierTransition(GraphicsResource resource, GraphicsResourceState newState)
@@ -730,7 +703,7 @@ namespace Stride.Graphics
             if (newState == GraphicsResourceState.UnorderedAccess)
                 UnbindShaderResource(resource, uint.MaxValue);
             else if ((newState & GraphicsResourceState.AllShaderResource) != 0)
-                UnbindComputeUnorderedAccess(resource, uint.MaxValue);
+                UnbindUnorderedAccess(resource, uint.MaxValue);
         }
 
         /// <summary>
@@ -740,9 +713,11 @@ namespace Stride.Graphics
             => boundShaderResources[((int) stage - 1) * ShaderResourceViewCount + slot].Resource != 0;
 
         /// <summary>
-        ///   Gets a value indicating whether an Unordered Access View is bound to a slot of the compute stage (for tests).
+        ///   Gets a value indicating whether an Unordered Access View is bound to a slot of the compute or pixel stage
+        ///   (for tests).
         /// </summary>
-        internal bool IsComputeUnorderedAccessViewBound(int slot) => boundUnorderedAccessViews[slot].Resource != 0;
+        internal bool IsUnorderedAccessViewBound(ShaderStage stage, int slot)
+            => (stage == ShaderStage.Compute ? boundUnorderedAccessViews : boundRenderTargetUnorderedAccessViews)[slot].Resource != 0;
 
         /// <summary>
         ///   Unbinds the Shader Resource Views that read a sub-Resource of a Graphics Resource, in every stage.
@@ -765,7 +740,8 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Unbinds the compute Unordered Access Views that write a sub-Resource of a Graphics Resource.
+        ///   Unbinds the Unordered Access Views that write a sub-Resource of a Graphics Resource, in the compute and pixel
+        ///   stages.
         /// </summary>
         /// <param name="resource">
         ///   The Graphics Resource. A Texture View stands for the sub-Resources it covers, as in Direct3D 12 and Vulkan.
@@ -774,13 +750,28 @@ namespace Stride.Graphics
         ///   The sub-Resource index (see <see cref="Texture.GetSubResourceIndex"/>), or <see cref="uint.MaxValue"/> for all
         ///   (or all the View covers). Views of other sub-Resources stay bound: writing mip-level N + 1 while reading N is fine.
         /// </param>
-        private void UnbindComputeUnorderedAccess(GraphicsResource resource, uint subresource)
+        private void UnbindUnorderedAccess(GraphicsResource resource, uint subresource)
         {
             var nativeResource = GetTransitionedSubresources(resource, subresource, out var read);
+
             for (int slot = 0; slot < UnorderedAcccesViewCount; slot++)
             {
                 if (boundUnorderedAccessViews[slot].Overlaps(nativeResource, read))
-                    UnbindComputeUnorderedAccessView(slot);
+                {
+                    var nullUav = NullComPtr<ID3D11UnorderedAccessView>();
+                    unorderedAccessViews[slot] = nullUav;
+                    boundUnorderedAccessViews[slot] = default;
+                    NativeDeviceContext.CSSetUnorderedAccessViews((uint) slot, NumUAVs: 1, ppUnorderedAccessViews: ref nullUav, pUAVInitialCounts: null);
+                }
+            }
+
+            for (int slot = 0; slot < SimultaneousRenderTargetCount; slot++)
+            {
+                if (boundRenderTargetUnorderedAccessViews[slot].Overlaps(nativeResource, read))
+                {
+                    boundRenderTargetUnorderedAccessViews[slot] = default;
+                    OMSetSingleUnorderedAccessView(slot, NullComPtr<ID3D11UnorderedAccessView>(), uavInitialOffset: -1);
+                }
             }
         }
 
