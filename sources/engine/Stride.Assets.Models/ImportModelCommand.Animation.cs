@@ -256,6 +256,23 @@ namespace Stride.Assets.Models
                     }
                 }
 
+                // Morph weights: one name drives the target on every mesh of the model, so node clips merge into ModelComponent channels
+                foreach (var nodeAnimationClip in animationClips.Values)
+                {
+                    foreach (var channel in nodeAnimationClip.Channels)
+                    {
+                        var channelName = channel.Key;
+                        if (!channelName.StartsWith("MorphWeights[", StringComparison.Ordinal))
+                            continue;
+
+                        var targetName = "[ModelComponent.Key]." + channelName;
+                        if (animationClip.Channels.ContainsKey(targetName))
+                            commandContext.Logger.Warning($"Morph target channel {channelName} is animated by several nodes; only the first is kept.");
+                        else
+                            animationClip.AddCurve(targetName, nodeAnimationClip.Curves[channel.Value.CurveIndex]);
+                    }
+                }
+
                 if (ImportCustomAttributes)
                 {
                     // Add clips clips animating other properties than node transformations
