@@ -9,7 +9,8 @@ namespace Stride.Graphics.Tests;
 
 /// <summary>
 /// On Direct3D 11, a transition to unordered access unbinds the shader resource views that read what is about to
-/// be written, and only those: reading mip-level N while writing mip-level N + 1 stays possible.
+/// be written, a transition to shader resource the compute unordered access views that write what is about to be read,
+/// and only those: reading mip-level N while writing mip-level N + 1 stays possible.
 /// </summary>
 public class TestUnorderedAccessTransitionUnbind : GraphicTestGameBase
 {
@@ -68,6 +69,45 @@ public class TestUnorderedAccessTransitionUnbind : GraphicTestGameBase
             commandList.ResourceBarrierTransition(texture, BarrierLayout.UnorderedAccess);
             Assert.False(commandList.IsShaderResourceViewBound(ShaderStage.Compute, 0));
             Assert.False(commandList.IsShaderResourceViewBound(ShaderStage.Pixel, 0));
+#endif
+        });
+    }
+
+    /// <summary>
+    /// The other direction: a transition to shader resource unbinds the UAVs (compute, and pixel shader in the
+    /// output-merger slots) that write what is about to be read, even through another view of the texture (otherwise
+    /// Direct3D 11 nulls the shader resource view, #1026), and only those: writing mip-level N + 1 while reading
+    /// mip-level N stays possible.
+    /// </summary>
+    [SkippableTheory]
+    [InlineData(ShaderStage.Compute)]
+    [InlineData(ShaderStage.Pixel)]
+    public void TransitionToShaderResourceUnbindsOnlyTheUavsOfTheReadSubResource(ShaderStage stage)
+    {
+        PerformTest(game =>
+        {
+            Skip.IfNot(GraphicsDevice.Platform == GraphicsPlatform.Direct3D11, "Unordered access view unbinding on transitions is Direct3D 11 only.");
+
+#if STRIDE_GRAPHICS_API_DIRECT3D11
+            var device = game.GraphicsDevice;
+            var commandList = game.GraphicsContext.CommandList;
+
+            using var texture = Texture.New2D(device, 4, 4, mipCount: 2, PixelFormat.R8G8B8A8_UNorm, TextureFlags.ShaderResource | TextureFlags.UnorderedAccess);
+            using var mip0 = texture.ToTextureView(ViewType.Single, 0, 0);
+            using var mip1 = texture.ToTextureView(ViewType.Single, 0, 1);
+
+            // Write mip-level 1 (pixel shader UAVs go in the output-merger slots after the render targets)
+            int slot = stage == ShaderStage.Pixel ? commandList.RenderTargetCount : 0;
+            commandList.SetUnorderedAccessView(stage, slot, mip1, -1);
+            Assert.True(commandList.IsUnorderedAccessViewBound(stage, slot));
+
+            // Read mip-level 0: the UAV of mip-level 1 stays bound
+            commandList.ResourceBarrierTransition(mip0, BarrierLayout.ShaderResource);
+            Assert.True(commandList.IsUnorderedAccessViewBound(stage, slot));
+
+            // Read the whole texture, through the texture itself (not the view the UAV was bound with)
+            commandList.ResourceBarrierTransition(texture, BarrierLayout.ShaderResource);
+            Assert.False(commandList.IsUnorderedAccessViewBound(stage, slot));
 #endif
         });
     }
