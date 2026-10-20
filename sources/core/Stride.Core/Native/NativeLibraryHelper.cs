@@ -34,6 +34,8 @@ public static partial class NativeLibraryHelper
     private static readonly Dictionary<string, nint> loadedLibraries = new(StringComparer.OrdinalIgnoreCase);
     private static readonly Lock loadedLibrariesLock = new();
     private static readonly HashSet<string> registeredDirectories = new(StringComparer.OrdinalIgnoreCase);
+    // Registered directories searched only when a library is asked for (see RegisterDependenciesFrom)
+    private static readonly List<string> flatDirectories = [];
     private static bool globalResolverRegistered;
 #if STRIDE_PLATFORM_DESKTOP
     private static readonly HashSet<System.Runtime.Loader.AssemblyLoadContext> resolvedLoadContexts = [];
@@ -146,7 +148,8 @@ public static partial class NativeLibraryHelper
             // Resolver-registered natives: the extension-less map is keyed by SONAME-stripped base name
             // (matches libassimp.so.6); the with-extension map only matches an exact unversioned filename.
             if (nativeDependenciesWithoutExtensions.TryGetValue(name, out string? knownPath)
-                || nativeDependenciesWithExtensions.TryGetValue(nameWithExtension, out knownPath))
+                || nativeDependenciesWithExtensions.TryGetValue(nameWithExtension, out knownPath)
+                || TryFindInRegisteredDirectories(name, out knownPath))
                 return knownPath;
 
             // Try in current path
@@ -201,7 +204,8 @@ public static partial class NativeLibraryHelper
             }
 
             // Was the dependency registered beforehand?
-            if (nativeDependenciesWithoutExtensions.TryGetValue(libraryName, out string? path) &&
+            if ((nativeDependenciesWithoutExtensions.TryGetValue(libraryName, out string? path)
+                 || TryFindInRegisteredDirectories(libraryName, out path)) &&
                 NativeLibrary.TryLoad(path, out nint knownLibHandle))
             {
                 return AddLoadedLibrary(libraryName, knownLibHandle);
@@ -324,58 +328,58 @@ public static partial class NativeLibraryHelper
         string baseDir = AppContext.BaseDirectory;
         string currentExeDir = Path.GetDirectoryName(Environment.ProcessPath) ?? string.Empty;
 
-        result = ProbePath(Path.Combine(ownerAssemblyDir, platformNativeLibsDir)) ??
-                 ProbePath(Path.Combine(baseDir, platformNativeLibsDir)) ??
-                 ProbePath(Path.Combine(Environment.CurrentDirectory, platformNativeLibsDir)) ??
-                 ProbePath(Path.Combine(currentExeDir, platformNativeLibsDir)) ??
+        result = ProbeDirectory(Path.Combine(ownerAssemblyDir, platformNativeLibsDir), libraryNameWithExtension) ??
+                 ProbeDirectory(Path.Combine(baseDir, platformNativeLibsDir), libraryNameWithExtension) ??
+                 ProbeDirectory(Path.Combine(Environment.CurrentDirectory, platformNativeLibsDir), libraryNameWithExtension) ??
+                 ProbeDirectory(Path.Combine(currentExeDir, platformNativeLibsDir), libraryNameWithExtension) ??
                  // .NET flattens runtimes/<rid>/native/ to the publish root when RuntimeIdentifier
                  // is set, so probe the bare directories too.
-                 ProbePath(ownerAssemblyDir) ??
-                 ProbePath(baseDir) ??
-                 ProbePath(Environment.CurrentDirectory) ??
-                 ProbePath(currentExeDir) ??
+                 ProbeDirectory(ownerAssemblyDir, libraryNameWithExtension) ??
+                 ProbeDirectory(baseDir, libraryNameWithExtension) ??
+                 ProbeDirectory(Environment.CurrentDirectory, libraryNameWithExtension) ??
+                 ProbeDirectory(currentExeDir, libraryNameWithExtension) ??
                  // Also try without platform for Windows-only packages (backwards compatible for editor packages)
-                 ProbePath(Path.Combine(ownerAssemblyDir, cpu)) ??
-                 ProbePath(Path.Combine(baseDir, cpu)) ??
-                 ProbePath(Path.Combine(Environment.CurrentDirectory, cpu)) ??
-                 ProbePath(Path.Combine(currentExeDir, cpu));
+                 ProbeDirectory(Path.Combine(ownerAssemblyDir, cpu), libraryNameWithExtension) ??
+                 ProbeDirectory(Path.Combine(baseDir, cpu), libraryNameWithExtension) ??
+                 ProbeDirectory(Path.Combine(Environment.CurrentDirectory, cpu), libraryNameWithExtension) ??
+                 ProbeDirectory(Path.Combine(currentExeDir, cpu), libraryNameWithExtension);
 
         return result is not null;
+    }
 
-        //
-        // Probes the specified directory for the presence of the native library file.
-        //
-        string? ProbePath(string path)
+    /// <summary>
+    ///   Probes the specified directory for the presence of the native library file.
+    /// </summary>
+    private static string? ProbeDirectory(string path, string libraryNameWithExtension)
+    {
+        // A relative path comes from an assembly without a location (loaded from bytes). It resolves against the
+        // current directory, which dlopen does not search: the current directory is probed by its full path instead.
+        if (!Path.IsPathRooted(path))
+            return null;
+
+        var libraryFilePath = Path.Combine(path, libraryNameWithExtension);
+        if (File.Exists(libraryFilePath))
+            return libraryFilePath;
+
+        if (!Directory.Exists(path))
+            return null;
+
+        // NuGet packages often ship only the SONAME-versioned variant (libfoo.so.5,
+        // libfoo.5.dylib). Glob for it; pick the highest version on multiple matches.
+        // Windows/Android/iOS/UWP require unversioned names, so they don't glob.
+        var (pattern, versionPrefix) = Platform.Type switch
         {
-            // A relative path comes from an assembly without a location (loaded from bytes). It resolves against the
-            // current directory, which dlopen does not search: the current directory is probed by its full path instead.
-            if (!Path.IsPathRooted(path))
-                return null;
+            PlatformType.Linux => (libraryNameWithExtension + ".*", libraryNameWithExtension),
+            PlatformType.macOS => (Path.GetFileNameWithoutExtension(libraryNameWithExtension) + ".*" + libExtension,
+                                   Path.GetFileNameWithoutExtension(libraryNameWithExtension)),
+            _ => (null, null),
+        };
+        if (pattern is null)
+            return null;
 
-            var libraryFilePath = Path.Combine(path, libraryNameWithExtension);
-            if (File.Exists(libraryFilePath))
-                return libraryFilePath;
-
-            if (!Directory.Exists(path))
-                return null;
-
-            // NuGet packages often ship only the SONAME-versioned variant (libfoo.so.5,
-            // libfoo.5.dylib). Glob for it; pick the highest version on multiple matches.
-            // Windows/Android/iOS/UWP require unversioned names, so they don't glob.
-            var (pattern, versionPrefix) = Platform.Type switch
-            {
-                PlatformType.Linux => (libraryNameWithExtension + ".*", libraryNameWithExtension),
-                PlatformType.macOS => (Path.GetFileNameWithoutExtension(libraryNameWithExtension) + ".*" + libExtension,
-                                       Path.GetFileNameWithoutExtension(libraryNameWithExtension)),
-                _ => (null, null),
-            };
-            if (pattern is null)
-                return null;
-
-            return Directory.EnumerateFiles(path, pattern)
-                .OrderByDescending(f => ParseVersion(f, versionPrefix!))
-                .FirstOrDefault();
-        }
+        return Directory.EnumerateFiles(path, pattern)
+            .OrderByDescending(f => ParseVersion(f, versionPrefix!))
+            .FirstOrDefault();
 
         static Version ParseVersion(string file, string prefix)
         {
@@ -479,9 +483,10 @@ public static partial class NativeLibraryHelper
     public static void RegisterDependenciesFrom(string directory)
     {
         ArgumentNullException.ThrowIfNull(directory);
+        var fullDirectory = Path.GetFullPath(directory);
         lock (loadedLibrariesLock)
         {
-            if (!registeredDirectories.Add(Path.GetFullPath(directory)))
+            if (!registeredDirectories.Add(fullDirectory))
                 return;
         }
 
@@ -492,16 +497,47 @@ public static partial class NativeLibraryHelper
                 RegisterDependency(file);
         }
 
+        // The directory itself is searched only when a library is asked for: listing it here meant opening each of
+        // its DLLs to skip the managed ones (on Windows they share the extension), tens of milliseconds each with an
+        // antivirus, for the dozens of assemblies a build folder holds
         if (Directory.Exists(directory))
         {
-            // libfoo.so.6 on Linux; on Windows, the managed assemblies next to them share the extension
-            var pattern = Platform.Type == PlatformType.Linux ? "*" + libExtension + "*" : "*" + libExtension;
-            foreach (var file in Directory.EnumerateFiles(directory, pattern))
+            lock (loadedLibrariesLock)
             {
-                if (Platform.Type != PlatformType.Windows || !IsManagedAssembly(file))
-                    RegisterDependency(file);
+                flatDirectories.Add(fullDirectory);
+#if STRIDE_PLATFORM_DESKTOP
+                EnsureGlobalResolverRegistered();
+#endif
             }
         }
+    }
+
+    /// <summary>
+    ///   Looks for <paramref name="libraryName"/> in the directories <see cref="RegisterDependenciesFrom"/> searches on
+    ///   demand, and registers it when found.
+    /// </summary>
+    private static bool TryFindInRegisteredDirectories(string libraryName, [NotNullWhen(true)] out string? libraryPath)
+    {
+        lock (loadedLibrariesLock)
+        {
+            foreach (var directory in flatDirectories)
+            {
+                libraryPath = ProbeDirectory(directory, libraryName + libExtension);
+                // Native libs on Linux/macOS are conventionally named "lib<X>", which [DllImport] strings often drop
+                if (libraryPath is null && Platform.Type != PlatformType.Windows && !libraryName.StartsWith("lib", StringComparison.Ordinal))
+                    libraryPath = ProbeDirectory(directory, "lib" + libraryName + libExtension);
+
+                // On Windows, the managed assemblies next to the native libraries share their extension
+                if (libraryPath is not null && (Platform.Type != PlatformType.Windows || !IsManagedAssembly(libraryPath)))
+                {
+                    RegisterDependency(libraryPath);
+                    return true;
+                }
+            }
+        }
+
+        libraryPath = null;
+        return false;
 
         static bool IsManagedAssembly(string file)
         {
@@ -657,7 +693,8 @@ public static partial class NativeLibraryHelper
             if (loadedLibraries.TryGetValue(name, out var handle))
                 return handle;
 
-            if (nativeDependenciesWithoutExtensions.TryGetValue(name, out var path) &&
+            if ((nativeDependenciesWithoutExtensions.TryGetValue(name, out var path)
+                 || TryFindInRegisteredDirectories(name, out path)) &&
                 NativeLibrary.TryLoad(path, out var loadedHandle))
             {
                 loadedLibraries.Add(name, loadedHandle);

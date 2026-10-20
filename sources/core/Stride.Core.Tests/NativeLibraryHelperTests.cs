@@ -36,4 +36,26 @@ public class NativeLibraryHelperTests
             Directory.Delete(directory, recursive: true);
         }
     }
+
+    [Fact]
+    public void NativeLibrariesNextToTheAssembliesAreLookedUpWhenAskedFor()
+    {
+        // The directory is not listed at registration (that opened each of its DLLs): a library is searched by name
+        var directory = Path.Combine(Path.GetTempPath(), "StrideNativeTests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(directory);
+        try
+        {
+            NativeLibraryHelper.RegisterDependenciesFrom(directory);
+
+            var nativeName = "stride_test_native_" + Guid.NewGuid().ToString("N");
+            var nativePath = Path.Combine(directory, nativeName + LibraryExtension);
+            File.WriteAllBytes(nativePath, [0]);
+
+            Assert.Equal(nativePath, NativeLibraryHelper.LocateLibrary(nativeName, typeof(NativeLibraryHelperTests)));
+        }
+        finally
+        {
+            Directory.Delete(directory, recursive: true);
+        }
+    }
 }
