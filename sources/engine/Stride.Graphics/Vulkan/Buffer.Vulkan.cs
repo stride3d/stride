@@ -188,8 +188,8 @@ namespace Stride.Graphics
                         MemoryUtilities.CopyWithAlignmentFallback((void*) uploadMemory, (void*) dataPointer, (uint) sizeInBytes);
 
                         // Barrier
-                        var memoryBarrier = new VkBufferMemoryBarrier(uploadResource, VkAccessFlags.HostWrite, VkAccessFlags.TransferRead, (ulong) uploadOffset, (ulong) sizeInBytes);
-                        GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(commandBuffer, VkPipelineStageFlags.Host, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 1, &memoryBarrier, imageMemoryBarrierCount: 0, imageMemoryBarriers: null);
+                        PipelineBarriers.Record(GraphicsDevice.NativeDeviceApi, commandBuffer, bufferBarriers: [
+                            PipelineBarriers.BufferBarrier(uploadResource, VkPipelineStageFlags.Host, VkAccessFlags.HostWrite, VkPipelineStageFlags.Transfer, VkAccessFlags.TransferRead, (ulong) uploadOffset, (ulong) sizeInBytes)]);
 
                         // Copy
                         var bufferCopy = new VkBufferCopy
@@ -207,9 +207,9 @@ namespace Stride.Graphics
                 }
 
                 // Barrier
-                var bufferMemoryBarrier = new VkBufferMemoryBarrier(NativeBuffer, VkAccessFlags.TransferWrite, NativeAccessMask);
                 var dstStages = CommandList.FixStagesForAccess(NativePipelineStageMask, NativeAccessMask);
-                GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(commandBuffer, VkPipelineStageFlags.Transfer, dstStages, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 1, &bufferMemoryBarrier, imageMemoryBarrierCount: 0, imageMemoryBarriers: null);
+                PipelineBarriers.Record(GraphicsDevice.NativeDeviceApi, commandBuffer, bufferBarriers: [
+                    PipelineBarriers.BufferBarrier(NativeBuffer, VkPipelineStageFlags.Transfer, VkAccessFlags.TransferWrite, dstStages, NativeAccessMask)]);
 
                 // Close and submit
                 GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkEndCommandBuffer(commandBuffer));

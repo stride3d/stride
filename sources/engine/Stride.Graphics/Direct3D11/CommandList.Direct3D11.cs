@@ -421,9 +421,9 @@ namespace Stride.Graphics
             bound.Resource = shaderResourceView is not null ? (nint) shaderResourceView.NativeResource.Handle : 0;
             if (shaderResourceView is Texture texture)
             {
-                var (mipStart, mipCount, arraySliceStart, arraySliceCount) = texture.GetViewSubResourceRange();
-                (bound.MipStart, bound.MipEnd) = (mipStart, mipStart + mipCount);
-                (bound.ArraySliceStart, bound.ArraySliceEnd) = (arraySliceStart, arraySliceStart + arraySliceCount);
+                var range = texture.GetViewSubResourceRange();
+                (bound.MipStart, bound.MipEnd) = (range.MipStart, range.MipEnd);
+                (bound.ArraySliceStart, bound.ArraySliceEnd) = (range.ArraySliceStart, range.ArraySliceEnd);
             }
             else
             {
@@ -673,11 +673,20 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Inserts a barrier that transitions a Graphics Resource to a new state, ensuring proper synchronization
-        ///   between different GPU operations accessing the resource.
+        ///   Inserts a barrier that transitions a Graphics Resource to a new layout, ensuring proper synchronization
+        ///   between the GPU operations accessing it before and after.
         /// </summary>
-        /// <param name="resource">The Graphics Resource to transition to a different state.</param>
-        /// <param name="newState">The new state of <paramref name="resource"/>.</param>
+        /// <param name="resource">
+        ///   The Graphics Resource to transition. For a Texture View, only the mip-levels and array slices it covers move,
+        ///   so a mip chain can read one mip-level while it writes the next. A View of a depth-stencil Texture moves the
+        ///   whole Texture.
+        /// </param>
+        /// <param name="newLayout">The new layout of <paramref name="resource"/>.</param>
+        /// <param name="subresource">
+        ///   The sub-Resource to transition, numbered in the Texture as <see cref="Texture.GetSubResourceIndex"/> does (also
+        ///   when <paramref name="resource"/> is a View of it), or <see cref="uint.MaxValue"/> for the whole
+        ///   <paramref name="resource"/>.
+        /// </param>
         /// <remarks>
         ///   The Direct3D 11 implementation does not have synchronization barriers for Graphics Resource transitions.
         ///   A transition to unordered access unbinds the sub-Resources it covers from the shader resource slots they
@@ -705,10 +714,12 @@ namespace Stride.Graphics
         /// <summary>
         ///   Unbinds the Shader Resource Views that read a sub-Resource of a Graphics Resource, in every stage.
         /// </summary>
-        /// <param name="resource">The Graphics Resource. A Texture View stands for its whole Texture, as in Direct3D 12.</param>
+        /// <param name="resource">
+        ///   The Graphics Resource. A Texture View stands for the sub-Resources it covers, as in Direct3D 12 and Vulkan.
+        /// </param>
         /// <param name="subresource">
-        ///   The sub-Resource index (see <see cref="Texture.GetSubResourceIndex"/>), or <see cref="uint.MaxValue"/> for all.
-        ///   Views of other sub-Resources stay bound: reading mip-level N while writing N + 1 is fine.
+        ///   The sub-Resource index (see <see cref="Texture.GetSubResourceIndex"/>), or <see cref="uint.MaxValue"/> for all
+        ///   (or all the View covers). Views of other sub-Resources stay bound: reading mip-level N while writing N + 1 is fine.
         /// </param>
         private void UnbindShaderResource(GraphicsResource resource, uint subresource)
         {
@@ -716,13 +727,19 @@ namespace Stride.Graphics
             if (nativeResource == 0)
                 return;
 
-            bool allSubresources = subresource == uint.MaxValue || resource is not Texture;
-            int mipLevel = 0, arraySlice = 0;
-            if (!allSubresources)
+            // The sub-Resources written: the one given, the ones the View covers, or all (null)
+            TextureSubresourceRange? written = null;
+            if (resource is Texture texture)
             {
-                var mipLevelCount = (uint) ((Texture) resource).MipLevelCount;
-                mipLevel = (int) (subresource % mipLevelCount);
-                arraySlice = (int) (subresource / mipLevelCount);
+                if (subresource != uint.MaxValue)
+                {
+                    var mipLevelCount = (uint) texture.MipLevelCount;
+                    written = new TextureSubresourceRange((int) (subresource % mipLevelCount), MipCount: 1, (int) (subresource / mipLevelCount), ArraySliceCount: 1);
+                }
+                else
+                {
+                    written = texture.GetBarrierRange();
+                }
             }
 
             for (int i = 0; i < boundShaderResources.Length; i++)
@@ -731,8 +748,9 @@ namespace Stride.Graphics
                 if (bound.Resource != nativeResource)
                     continue;
 
-                if (allSubresources ||
-                    (mipLevel >= bound.MipStart && mipLevel < bound.MipEnd && arraySlice >= bound.ArraySliceStart && arraySlice < bound.ArraySliceEnd))
+                if (written is not { } range ||
+                    (range.MipStart < bound.MipEnd && bound.MipStart < range.MipEnd &&
+                     range.ArraySliceStart < bound.ArraySliceEnd && bound.ArraySliceStart < range.ArraySliceEnd))
                 {
                     SetShaderResourceView((ShaderStage) (i / ShaderResourceViewCount + 1), i % ShaderResourceViewCount, shaderResourceView: null);
                 }

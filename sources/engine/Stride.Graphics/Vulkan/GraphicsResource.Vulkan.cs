@@ -32,7 +32,21 @@ namespace Stride.Graphics
         internal int LastBarrierCommandListId;
 
         internal VkDeviceMemory NativeMemory;
-        internal VkPipelineStageFlags NativePipelineStageMask;
+
+        private VkPipelineStageFlags nativePipelineStageMask;
+
+        // A Texture View has no state of its own: this is its parent Texture's
+        internal VkPipelineStageFlags NativePipelineStageMask
+        {
+            get => this is Texture { ParentTexture: { } parent } ? parent.nativePipelineStageMask : nativePipelineStageMask;
+            set
+            {
+                if (this is Texture { ParentTexture: { } parent })
+                    parent.nativePipelineStageMask = value;
+                else
+                    nativePipelineStageMask = value;
+            }
+        }
 
         protected bool IsDebugMode
         {

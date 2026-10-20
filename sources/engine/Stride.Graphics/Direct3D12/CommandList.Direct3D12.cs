@@ -39,6 +39,15 @@ namespace Stride.Graphics
         private DescriptorSet[] boundDescriptorSets;
         private readonly ID3D12DescriptorHeap*[] descriptorHeaps = new ID3D12DescriptorHeap*[2];
         private readonly List<ResourceBarrierDescription> pendingBarriers = new(16);
+
+        /// <summary>
+        ///   The number of barriers recorded and not flushed yet (checked by the tests).
+        /// </summary>
+        internal int PendingBarrierCount => pendingBarriers.Count;
+
+        // Scratch list for the barriers of one ResourceBarrierTransition. Reused to avoid per-call allocs.
+        private readonly List<SubresourceTransition> barrierTransitions = new(16);
+
         // Scratch map for FlushResourceBarriers coalescing. Reused to avoid per-flush allocs.
         private readonly Dictionary<(GraphicsResource, uint), int> barrierCoalesceMap = new(16);
 
@@ -404,19 +413,6 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Computes the D3D12 subresource index for a texture or texture view.
-        ///   Returns <see cref="uint.MaxValue"/> for whole-resource (non-view) textures.
-        /// </summary>
-        private static uint GetTextureSubresource(Texture texture)
-        {
-            if (texture.ParentTexture is null)
-                return uint.MaxValue; // Whole resource
-
-            var parent = texture.ParentTexture;
-            return (uint)(texture.MipLevel + texture.ArraySlice * parent.MipLevelCount);
-        }
-
-        /// <summary>
         ///   Sets the reference value for Depth-Stencil tests.
         /// </summary>
         /// <param name="stencilReference">Reference value to perform against when doing a Depth-Stencil test.</param>
@@ -540,23 +536,37 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Inserts a barrier that transitions a Graphics Resource to a new state, ensuring proper synchronization
-        ///   between different GPU operations accessing the resource.
+        ///   Inserts a barrier that transitions a Graphics Resource to a new layout, ensuring proper synchronization
+        ///   between the GPU operations accessing it before and after.
         /// </summary>
-        /// <param name="resource">The Graphics Resource to transition to a different state.</param>
-        /// <param name="newState">The new state of <paramref name="resource"/>.</param>
-        /// <summary>
-        ///   Transitions a resource to a new layout using the cross-platform barrier abstraction.
-        /// </summary>
+        /// <param name="resource">
+        ///   The Graphics Resource to transition. For a Texture View, only the mip-levels and array slices it covers move,
+        ///   so a mip chain can read one mip-level while it writes the next. A View of a depth-stencil Texture moves the
+        ///   whole Texture.
+        /// </param>
+        /// <param name="newLayout">The new layout of <paramref name="resource"/>.</param>
+        /// <param name="subresource">
+        ///   The sub-Resource to transition, numbered in the Texture as <see cref="Texture.GetSubResourceIndex"/> does (also
+        ///   when <paramref name="resource"/> is a View of it), or <see cref="uint.MaxValue"/> for the whole
+        ///   <paramref name="resource"/>.
+        /// </param>
         public void ResourceBarrierTransition(GraphicsResource resource, BarrierLayout newLayout, uint subresource = uint.MaxValue)
         {
             Debug.Assert(resource is not null, "Resource must not be null.");
 
             RecordDebugCounter(DebugCounterKind.Barrier);
 
-            // Texture views share the native resource of their parent; barrier the parent instead
-            if (resource is Texture { ParentTexture: not null } textureView)
-                resource = textureView.ParentTexture;
+            // Texture views share the native resource of their parent; barrier the parent instead, and only the
+            // subresources the view covers: a mip chain reads one mip while it writes the next
+            TextureSubresourceRange? viewRange = null;
+            int mipLevelCount = 1;
+            if (resource is Texture texture)
+            {
+                if (subresource == uint.MaxValue)
+                    viewRange = texture.GetBarrierRange();
+                resource = texture.RootTexture;
+                mipLevelCount = texture.MipLevelCount;
+            }
 
             // Seed CL-local tracker from shared on first touch; Clone to avoid aliasing its
             // perSubresource array.
@@ -564,35 +574,35 @@ namespace Stride.Graphics
             if (!exists)
                 tracker = resource.LayoutTracker.Clone();
 
-            if (tracker.NeedsTransition(subresource, newLayout))
-            {
-                // When per-subresource tracking is active and a whole-resource transition is requested,
-                // only emit barriers for subresources that actually differ
-                if (subresource == uint.MaxValue && tracker.HasPerSubresourceTracking)
-                {
-                    var layouts = tracker.PerSubresourceLayouts;
-                    for (int i = 0; i < layouts.Length; i++)
-                    {
-                        if (layouts[i] != newLayout)
-                        {
-                            pendingBarriers.Add(new ResourceBarrierDescription(resource, layouts[i], newLayout)
-                            {
-                                Subresource = (uint)i
-                            });
-                        }
-                    }
-                }
-                else
-                {
-                    pendingBarriers.Add(new ResourceBarrierDescription(resource, tracker.Get(subresource), newLayout)
-                    {
-                        Subresource = subresource
-                    });
-                }
+            barrierTransitions.Clear();
+            if (viewRange is { } range)
+                tracker.Transition(range, mipLevelCount, newLayout, barrierTransitions);
+            else
+                tracker.Transition(subresource, newLayout, barrierTransitions);
 
-                tracker.Set(subresource, newLayout);
-                resource.LayoutTracker = tracker;
+            if (barrierTransitions.Count == 0)
+                return;
+
+            // A whole-resource barrier and subresource barriers of the same resource overlap: don't put them in the same
+            // barrier call, record the pending ones first, so each barrier starts from the layout the previous one left
+            bool whole = barrierTransitions[0].Subresource == uint.MaxValue;
+            foreach (var pending in pendingBarriers)
+            {
+                if (pending.Resource == resource && (pending.Subresource == uint.MaxValue) != whole)
+                {
+                    FlushResourceBarriers();
+                    break;
+                }
             }
+
+            foreach (var transition in barrierTransitions)
+            {
+                pendingBarriers.Add(new ResourceBarrierDescription(resource, transition.LayoutBefore, newLayout)
+                {
+                    Subresource = transition.Subresource
+                });
+            }
+            resource.LayoutTracker = tracker;
         }
 
         /// <summary>
@@ -765,19 +775,24 @@ namespace Stride.Graphics
 
         /// <summary>
         ///   Orders the unordered accesses to a Graphics Resource of a synchronization scope before those of another one.
-        ///   The resource must be in <see cref="BarrierLayout.UnorderedAccess"/>.
+        ///   The resource must be in <see cref="BarrierLayout.UnorderedAccess"/> (for a Texture View, the sub-Resources it covers).
         /// </summary>
         private unsafe void UnorderedAccessSync(GraphicsResource resource, D3D12BarrierSync syncBefore, D3D12BarrierSync syncAfter)
         {
-            // Texture views share the native resource of their parent
-            if (resource is Texture { ParentTexture: not null } textureView)
-                resource = textureView.ParentTexture;
+            // Texture views share the native resource of their parent, and cover only some of its subresources
+            D3D12SubresourceRange? subresources = null;
+            if (resource is Texture texture)
+            {
+                if (texture.GetBarrierRange() is { } range)
+                    subresources = D3D12SubresourceRange.FromRange(range);
+                resource = texture.RootTexture;
+            }
 
             const D3D12BarrierAccess Access = D3D12BarrierAccess.UnorderedAccess;
             if (resource is Texture)
             {
                 var layout = BarrierMapping.ToEnhancedLayout(BarrierLayout.UnorderedAccess);
-                EnhancedBarriers.TextureBarrier(currentCommandList.NativeCommandList.Handle, resource.NativeResource, syncBefore, syncAfter, Access, Access, layout, layout);
+                EnhancedBarriers.TextureBarrier(currentCommandList.NativeCommandList.Handle, resource.NativeResource, syncBefore, syncAfter, Access, Access, layout, layout, subresources);
             }
             else
             {
@@ -1533,8 +1548,8 @@ namespace Stride.Graphics
             void CopyBetweenTextures(Texture sourceTexture, Texture destinationTexture)
             {
                 // Get the parent Textures in case these are Texture Views
-                var sourceParent = sourceTexture.ParentTexture ?? sourceTexture;
-                var destinationParent = destinationTexture.ParentTexture ?? destinationTexture;
+                var sourceParent = sourceTexture.RootTexture;
+                var destinationParent = destinationTexture.RootTexture;
 
                 if (destinationTexture.Usage == GraphicsResourceUsage.Staging)
                 {
@@ -1852,7 +1867,7 @@ namespace Stride.Graphics
 
                 if (destinationTexture.Usage == GraphicsResourceUsage.Staging)
                 {
-                    var destinationParent = destinationTexture.ParentTexture ?? destinationTexture;
+                    var destinationParent = destinationTexture.RootTexture;
 
                     SkipInit(out PlacedSubresourceFootprint footprint);
                     uint numRows = 0;

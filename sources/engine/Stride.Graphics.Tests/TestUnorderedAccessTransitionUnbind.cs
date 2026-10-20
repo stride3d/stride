@@ -22,14 +22,14 @@ public class TestUnorderedAccessTransitionUnbind : GraphicTestGameBase
             var array = Texture.New2D(device, 8, 8, mipCount: 3, PixelFormat.R8G8B8A8_UNorm, TextureFlags.ShaderResource, arraySize: 2);
             var volume = Texture.New3D(device, 8, 8, 8, mipCount: 3, PixelFormat.R8G8B8A8_UNorm, TextureFlags.ShaderResource);
 
-            Assert.Equal((0, 3, 0, 2), array.GetViewSubResourceRange());
-            Assert.Equal((1, 1, 1, 1), array.ToTextureView(ViewType.Single, 1, 1).GetViewSubResourceRange());
-            Assert.Equal((1, 1, 1, 1), array.ToTextureView(ViewType.MipBand, 1, 1).GetViewSubResourceRange());
-            Assert.Equal((1, 2, 1, 1), array.ToTextureView(ViewType.ArrayBand, 1, 1).GetViewSubResourceRange());
+            Assert.Equal(new TextureSubresourceRange(0, 3, 0, 2), array.GetViewSubResourceRange());
+            Assert.Equal(new TextureSubresourceRange(1, 1, 1, 1), array.ToTextureView(ViewType.Single, 1, 1).GetViewSubResourceRange());
+            Assert.Equal(new TextureSubresourceRange(1, 1, 1, 1), array.ToTextureView(ViewType.MipBand, 1, 1).GetViewSubResourceRange());
+            Assert.Equal(new TextureSubresourceRange(1, 2, 1, 1), array.ToTextureView(ViewType.ArrayBand, 1, 1).GetViewSubResourceRange());
 
             // Depth slices are not sub-resources
-            Assert.Equal((0, 3, 0, 1), volume.GetViewSubResourceRange());
-            Assert.Equal((2, 1, 0, 1), volume.ToTextureView(ViewType.Single, 0, 2).GetViewSubResourceRange());
+            Assert.Equal(new TextureSubresourceRange(0, 3, 0, 1), volume.GetViewSubResourceRange());
+            Assert.Equal(new TextureSubresourceRange(2, 1, 0, 1), volume.ToTextureView(ViewType.Single, 0, 2).GetViewSubResourceRange());
         });
     }
 
@@ -59,8 +59,13 @@ public class TestUnorderedAccessTransitionUnbind : GraphicTestGameBase
             Assert.True(commandList.IsShaderResourceViewBound(ShaderStage.Pixel, 0));
             Assert.False(commandList.IsShaderResourceViewBound(ShaderStage.Compute, 1));
 
-            // Write the whole texture, here through a view of mip-level 1 (a view stands for its whole texture, as in Direct3D 12)
+            // Write mip-level 1 through its view: a view stands for the sub-resources it covers, as in Direct3D 12 and Vulkan
             commandList.ResourceBarrierTransition(mip1, BarrierLayout.UnorderedAccess);
+            Assert.True(commandList.IsShaderResourceViewBound(ShaderStage.Compute, 0));
+            Assert.True(commandList.IsShaderResourceViewBound(ShaderStage.Pixel, 0));
+
+            // Write the whole texture
+            commandList.ResourceBarrierTransition(texture, BarrierLayout.UnorderedAccess);
             Assert.False(commandList.IsShaderResourceViewBound(ShaderStage.Compute, 0));
             Assert.False(commandList.IsShaderResourceViewBound(ShaderStage.Pixel, 0));
 #endif
