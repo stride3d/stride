@@ -377,8 +377,10 @@
                                          HorizontalAlignment="Center" VerticalAlignment="Center"
                                          IsVisible="{Binding IsProcessing}" />
                               <Grid IsVisible="{Binding !IsProcessing}">
+                                <!-- The tooltip (and the status bar, through the behavior) carries the full name and the
+                                     checkout path: the row cuts a long checkout folder name short -->
                                 <Button Command="{Binding SetAsActiveCommand}"
-                                        ToolTip.Tip="{Binding FullName, StringFormat={x:Static l:Strings.ToolTipSetActiveVersion}}"
+                                        ToolTip.Tip="{Binding SetActiveToolTip}"
                                         HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                                   <Interaction.Behaviors>
                                     <sd:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding Launcher.CurrentToolTip}"

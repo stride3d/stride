@@ -49,6 +49,14 @@ public sealed class StrideDevVersionViewModel : StrideVersionViewModel
     public string OpenCheckoutToolTip => string.Format(checkoutDirectory is not null ? Strings.ToolTipOpenCheckout : Strings.ToolTipOpenFolder, FullName);
 
     /// <summary>
+    /// Gets the tooltip of the row's set-active button, shown in the status bar too while the row is hovered: the full
+    /// <see cref="ListName"/> and the path of the checkout, as the list cuts a long checkout folder name short.
+    /// </summary>
+    public string SetActiveToolTip => checkoutDirectory is not null
+        ? string.Format(Strings.ToolTipSetActiveDevVersion, ListName, checkoutDirectory)
+        : string.Format(Strings.ToolTipSetActiveVersion, FullName);
+
+    /// <summary>
     /// Gets the command that opens the Stride solution of the checkout, with the default application (Visual Studio).
     /// </summary>
     public ICommandBase OpenSolutionCommand { get; }

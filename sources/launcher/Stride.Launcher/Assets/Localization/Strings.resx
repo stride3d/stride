@@ -305,6 +305,10 @@
     <value>Set current version to {0}</value>
     <comment>{0}: long version name</comment>
   </data>
+  <data name="ToolTipSetActiveDevVersion" xml:space="preserve">
+    <value>Set current version to {0} (built from {1})</value>
+    <comment>Tooltip (and status bar text) of a locally built version whose checkout is known: the list may cut its name short. {0}: list name with the checkout folder, {1}: full path of the checkout</comment>
+  </data>
   <data name="ToolTipStartButton" xml:space="preserve">
     <value>Start Stride Game Studio {0}</value>
     <comment>{0}: long version name</comment>
