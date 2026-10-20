@@ -1,0 +1,21 @@
+!Model
+Id: c41faf88-3e74-40d5-af0b-7c43925d3eda
+SerializedVersion: {Stride: 2.1.0.0}
+Tags: []
+Source: !file ../../../Resources/Cube/cube.gltf
+Skeleton: null
+PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
+Materials:
+    447efe1ded72478b96e06f38ebee58be:
+        Name: Material
+        MaterialInstance:
+            Material: null
+DeduplicateMaterials: false
+Modifiers: {}
+MorphTargetNames:
+    7d412bbe66754fac8da249632322febc: Taller
+    fb6620bb342642d98d28c1c36d93c3d3: Twisted
+    3b1ecd1183b247c984a968b5abae066f: Tapered
+    7f2383d2521c4237bc4db4dde0561d21: Rounded
+~SourceHashes:
+    01160bab265fe489aedc9417ddf87c19~../../../Resources/Cube/cube.gltf: 129e52f5ea3bd165e37ffcb9fd51a994
