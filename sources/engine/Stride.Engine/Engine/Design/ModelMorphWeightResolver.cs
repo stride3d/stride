@@ -132,11 +132,10 @@ namespace Stride.Engine.Design
                 throw new NotSupportedException();
             }
 
-            // Must not allocate: the update engine holds the component by an unpinned address, and a garbage collection
-            // would move it. A component the renderer has not bound yet (its first frame) is skipped.
             private int FindSlot(ModelComponent modelComponent)
             {
-                var layout = modelComponent.BoundMorphLayout;
+                // UpdateEngine pins the component during this call, including allocations needed on first use.
+                var layout = modelComponent.BindMorphWeights();
                 return layout != null && layout.SlotByName.TryGetValue(targetName, out var slot) ? slot : -1;
             }
         }

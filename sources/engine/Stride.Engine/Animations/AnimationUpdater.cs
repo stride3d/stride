@@ -39,15 +39,26 @@ namespace Stride.Animations
         private void RegenerateUpdateChannels(List<AnimationBlender.Channel> channels)
         {
             var updateMemberInfos = new List<UpdateMemberInfo>();
+            List<UpdateMemberInfo> morphMemberInfos = null;
 
             foreach (var channel in channels)
             {
                 if (channel.IsUserCustomProperty)
                     continue;
 
-                updateMemberInfos.Add(new UpdateMemberInfo { Name = channel.PropertyName, DataOffset = channel.Offset });
+                var member = new UpdateMemberInfo { Name = channel.PropertyName, DataOffset = channel.Offset };
+                if (channel.PropertyName.StartsWith("[ModelComponent.Key].MorphWeights[", StringComparison.Ordinal))
+                {
+                    morphMemberInfos ??= new List<UpdateMemberInfo>();
+                    morphMemberInfos.Add(member);
+                }
+                else
+                    updateMemberInfos.Add(member);
             }
 
+            // Model-reference curves must run before morph accessors bind and write the resulting model's slots.
+            if (morphMemberInfos != null)
+                updateMemberInfos.AddRange(morphMemberInfos);
             compiledUpdate = UpdateEngine.Compile(typeof(Entity), updateMemberInfos);
         }
     }

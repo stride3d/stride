@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Stride.Animations;
 using Stride.Core.Assets;
 using Stride.Core.Serialization;
 using Stride.Engine;
@@ -142,17 +143,147 @@ public class TestModelComponentMorphs
         // Each channel is a (condition, value) pair, as written by the animation blender.
         var data = new float[] { 1, 0.5f, 1, 0.75f };
         var component = entity.Get<ModelComponent>();
-        // Animation only writes weights of a bound component, which the renderer does every frame.
-        _ = Weights(component);
         Run(entity, update, data);
         Assert.Equal(new[] { 0f, 0.5f }, Weights(component));
 
         // The same compiled update binds to another model by name; missing targets are skipped.
         component.Model = other;
         Run(entity, update, data);
-        Assert.Empty(Weights(component).Where(weight => weight != 0));
-        Run(entity, update, data);
         Assert.Equal(new[] { 0.75f }, Weights(component));
+    }
+
+    [Fact]
+    public void NullModelAndInPlaceMeshReplacementRebindAuthoredWeights()
+    {
+        var shared = ModelWithTargets();
+        var first = new ModelComponent(shared);
+        var second = new ModelComponent(shared);
+        Author(first, "Smile", 0.25f);
+        Author(first, "Blink", 0.75f);
+        first.SetMorphWeight("Smile", 2f);
+        first.Model = null;
+        Assert.False(first.HasMorphTargets);
+        Assert.Equal(0, first.MorphTargetCount);
+        Assert.True(first.MorphTargetNames.IsEmpty);
+        Assert.Equal(-1, first.FindMorphTarget("Smile"));
+        first.SetAllMorphWeights(0f);
+        first.Model = shared;
+        Assert.Equal(0.25f, first.GetMorphWeight(first.FindMorphTarget("Smile")));
+
+        shared.Meshes[0].MorphTargets = MeshMorphData.Create(0, new[] { "Blink", "Smile" }, Array.Empty<MeshMorphEntry>());
+        Assert.Equal(new[] { "Blink", "Smile" }, first.MorphTargetNames.ToArray());
+        Assert.Equal(new[] { 0.75f, 0.25f }, Weights(first));
+        Assert.Equal(new[] { 0f, 0f }, Weights(second));
+        shared.Meshes.Clear();
+        Assert.False(first.HasMorphTargets);
+        Assert.Empty(Weights(first));
+        shared.Meshes.Add(ModelWithTargets().Meshes[0]);
+        Assert.Equal(new[] { 0.25f }, Weights(first));
+        Assert.Equal(new[] { 0f }, Weights(second));
+    }
+
+    [Theory]
+    [InlineData(float.NaN)]
+    [InlineData(float.PositiveInfinity)]
+    [InlineData(float.NegativeInfinity)]
+    public void NonfiniteRuntimeWritesLeaveExistingWeightsUnchanged(float value)
+    {
+        var component = new ModelComponent(ModelWithTargets());
+        component.SetMorphWeight("Smile", 0.5f);
+        Assert.Throws<ArgumentOutOfRangeException>(() => component.SetMorphWeight(0, value));
+        Assert.Throws<ArgumentOutOfRangeException>(() => component.SetMorphWeight("Smile", value));
+        Assert.Throws<ArgumentOutOfRangeException>(() => component.SetMorphWeight("Smile".AsSpan(), value));
+        Assert.Throws<ArgumentOutOfRangeException>(() => component.SetAllMorphWeights(value));
+        Assert.Equal(0.5f, component.GetMorphWeight(0));
+        Assert.Empty(component.Morphs.Weights);
+    }
+
+    [Fact]
+    public void NamesAreOrdinalAndInvalidNamesAndSlotsDoNotChangeWeights()
+    {
+        var component = new ModelComponent(ModelWithTargets());
+        component.SetMorphWeight("Smile".AsSpan(), -2f);
+        Assert.Equal(0, component.FindMorphTarget("Smile".AsSpan()));
+        Assert.Equal(-1, component.FindMorphTarget("smile"));
+        Assert.Throws<ArgumentException>(() => component.FindMorphTarget(" ".AsSpan()));
+        Assert.Throws<ArgumentException>(() => component.SetMorphWeight("smile".AsSpan(), 1f));
+        Assert.Throws<ArgumentNullException>(() => component.FindMorphTarget((string)null));
+        Assert.Throws<ArgumentOutOfRangeException>(() => component.GetMorphWeight(-1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => component.SetMorphWeight(1, 1f));
+        Assert.Throws<IndexOutOfRangeException>(() => component.GetMorphTargetName(1));
+        Assert.Equal(-2f, component.GetMorphWeight(0));
+    }
+
+    [Fact]
+    public void BlendedMorphAnimationAppliesOnTheFirstUpdateAfterModelChanges()
+    {
+        var component = new ModelComponent(ModelWithTargets());
+        Author(component, "Smile", 0.1f);
+        var entity = new Entity { component };
+        var blender = new AnimationBlender();
+        var evaluators = new List<AnimationClipEvaluator>();
+        foreach (float value in new[] { 0.2f, 0.8f })
+        {
+            var clip = new AnimationClip { Duration = TimeSpan.FromSeconds(1) };
+            foreach (var name in new[] { "Smile", "Frown" })
+            {
+                var curve = new AnimationCurve<float>();
+                curve.KeyFrames.Add(new KeyFrameData<float>(CompressedTimeSpan.Zero, value));
+                curve.KeyFrames.Add(new KeyFrameData<float>(CompressedTimeSpan.FromSeconds(1), value));
+                clip.AddCurve($"[ModelComponent.Key].MorphWeights[{name}]", curve);
+            }
+            evaluators.Add(blender.CreateEvaluator(clip));
+        }
+        try
+        {
+            AnimationClipResult result = null;
+            blender.Compute([AnimationOperation.NewPush(evaluators[0]), AnimationOperation.NewPush(evaluators[1]),
+                AnimationOperation.NewBlend(CoreAnimationOperation.Blend, 0.5f)], ref result);
+            var updater = new AnimationUpdater();
+            updater.Update(entity, result);
+            Assert.Equal(0.5f, component.GetMorphWeight(component.FindMorphTarget("Smile")), 5);
+
+            Author(component, "Smile", 0.3f);
+            updater.Update(entity, result);
+            Assert.Equal(0.5f, component.GetMorphWeight(component.FindMorphTarget("Smile")), 5);
+
+            var replacement = new Model();
+            replacement.Meshes.Add(new Mesh { MorphTargets = MeshMorphData.Create(0, new[] { "Frown", "Smile" }, Array.Empty<MeshMorphEntry>()) });
+            component.Model = replacement;
+            updater.Update(entity, result);
+            Assert.Equal(new[] { 0.5f, 0.5f }, Weights(component));
+
+            component.Model = null;
+            updater.Update(entity, result);
+            component.Model = replacement;
+            // Resume with only the second clip, without priming the component through a weight getter.
+            blender.Compute([AnimationOperation.NewPush(evaluators[1])], ref result);
+            updater.Update(entity, result);
+            Assert.Equal(new[] { 0.8f, 0.8f }, Weights(component));
+            Assert.Equal(0.3f, component.Morphs.Weights["Smile"]);
+
+            // A model-reference curve in the same result must be applied before named morph curves.
+            var animatedReplacement = ModelWithTargets(target: "Frown");
+            var replacementClip = new AnimationClip { Duration = TimeSpan.FromSeconds(1) };
+            var replacementCurve = new AnimationCurve<object>();
+            replacementCurve.KeyFrames.Add(new KeyFrameData<object>(CompressedTimeSpan.Zero, animatedReplacement));
+            replacementClip.AddCurve("[ModelComponent.Key].Model", replacementCurve);
+            var weightCurve = new AnimationCurve<float>();
+            weightCurve.KeyFrames.Add(new KeyFrameData<float>(CompressedTimeSpan.Zero, 0.65f));
+            weightCurve.KeyFrames.Add(new KeyFrameData<float>(CompressedTimeSpan.FromSeconds(1), 0.65f));
+            replacementClip.AddCurve("[ModelComponent.Key].MorphWeights[Frown]", weightCurve);
+            var replacementEvaluator = blender.CreateEvaluator(replacementClip);
+            evaluators.Add(replacementEvaluator);
+            blender.Compute([AnimationOperation.NewPush(replacementEvaluator)], ref result);
+            updater.Update(entity, result);
+            Assert.Same(animatedReplacement, component.Model);
+            Assert.Equal(0.65f, component.GetMorphWeight(component.FindMorphTarget("Frown")));
+        }
+        finally
+        {
+            foreach (var evaluator in evaluators)
+                blender.ReleaseEvaluator(evaluator);
+        }
     }
 
     private static float[] Weights(ModelComponent component)

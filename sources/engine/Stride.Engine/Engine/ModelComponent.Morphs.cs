@@ -121,11 +121,8 @@ public sealed partial class ModelComponent
 
     internal void PrepareMorphWeights()
     {
-        SynchronizeMorphTargets();
-        if (morphLayout == null)
-            return;
-        ApplyAuthoredWeights();
-        if (!meshWeightsDirty)
+        BindMorphWeights();
+        if (morphLayout == null || !meshWeightsDirty)
             return;
         for (int mesh = 0; mesh < meshWeights.Length; mesh++)
         {
@@ -142,18 +139,10 @@ public sealed partial class ModelComponent
         return meshWeights[mesh];
     }
 
-    /// <summary>
-    /// The morph layout when the component is already bound to its model and authored weights, otherwise <c>null</c>.
-    /// Never allocates: animation updates hold the component by an unpinned address, so a garbage collection
-    /// started by an allocation during the update could move it. <see cref="PrepareMorphWeights"/> binds it every frame.
-    /// </summary>
-    internal ModelMorphLayout BoundMorphLayout
-        => ReferenceEquals(Model, morphModel) && morphLayout != null && appliedAuthoringVersion == Morphs.Version && morphLayout.Matches(Model) ? morphLayout : null;
-
-    /// <summary>Weight of a slot of <see cref="BoundMorphLayout"/>.</summary>
+    /// <summary>Weight of a slot from <see cref="BindMorphWeights"/>.</summary>
     internal float GetBoundMorphWeight(int slot) => slotWeights[slot];
 
-    /// <summary>Sets the weight of a slot of <see cref="BoundMorphLayout"/> without allocating.</summary>
+    /// <summary>Sets the weight of a slot from <see cref="BindMorphWeights"/> without allocating.</summary>
     internal void SetBoundMorphWeight(int slot, float value)
     {
         ModelMorphSettings.CheckWeight(value);
@@ -163,11 +152,13 @@ public sealed partial class ModelComponent
         meshWeightsDirty = true;
     }
 
-    private void Bind()
+    /// <summary>Binds the current model and authored weights, reusing unchanged state, and returns the layout.</summary>
+    internal ModelMorphLayout BindMorphWeights()
     {
         SynchronizeMorphTargets();
         if (morphLayout != null)
             ApplyAuthoredWeights();
+        return morphLayout;
     }
 
     /// <summary>Finds the slot of a morph target by name.</summary>
@@ -199,7 +190,7 @@ public sealed partial class ModelComponent
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="slot"/> is out of range.</exception>
     public float GetMorphWeight(int slot)
     {
-        Bind();
+        BindMorphWeights();
         if ((uint)slot >= (uint)slotWeights.Length)
             throw new ArgumentOutOfRangeException(nameof(slot));
         return slotWeights[slot];
@@ -218,7 +209,7 @@ public sealed partial class ModelComponent
     public void SetMorphWeight(int slot, float value)
     {
         ModelMorphSettings.CheckWeight(value);
-        Bind();
+        BindMorphWeights();
         if ((uint)slot >= (uint)slotWeights.Length)
             throw new ArgumentOutOfRangeException(nameof(slot));
         if (slotWeights[slot] == value)
@@ -262,7 +253,7 @@ public sealed partial class ModelComponent
     public void SetAllMorphWeights(float value)
     {
         ModelMorphSettings.CheckWeight(value);
-        Bind();
+        BindMorphWeights();
         Array.Fill(slotWeights, value);
         meshWeightsDirty = true;
     }
