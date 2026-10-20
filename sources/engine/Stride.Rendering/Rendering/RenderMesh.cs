@@ -37,6 +37,11 @@ namespace Stride.Rendering
 
         public Matrix[] BlendMatrices;
 
+        /// <summary>
+        /// Morph targets applied in the vertex shader, or <c>null</c>.
+        /// </summary>
+        public MeshMorphBuffers MorphBuffers;
+
         public int InstanceCount;
     }
 }
