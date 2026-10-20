@@ -59,20 +59,18 @@ internal sealed class HeightfieldAssetCompiler : AssetCompilerBase
             var coarseBlocks = new HeightRange[coarseBlocksSubdivision * coarseBlocksSubdivision];
             coarseBlocks.AsSpan().Fill(new HeightRange(float.PositiveInfinity, float.NegativeInfinity));
 
-            var cancellationToken = commandContext.CurrentCommand.CancellationToken;
-
             await DispatcherLowPriority.ForBatchedAsync(coarseBlocks.Length, (blockStart, blockEnd) =>
             {
                 int blockIndex = blockStart;
                 foreach (ref var range in coarseBlocks.AsSpan()[blockStart..blockEnd])
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
+                    CancellationToken.ThrowIfCancellationRequested();
                     range = HeightRange.ExtractRange(blockIndex, coarseBlocksSubdivision, coarseBlockInterval, Parameters.Subdivision, heightfieldFunction);
                     blockIndex++;
                 }
             });
 
-            cancellationToken.ThrowIfCancellationRequested();
+            CancellationToken.ThrowIfCancellationRequested();
 
             var runtimeObject = new Heightfield
             {

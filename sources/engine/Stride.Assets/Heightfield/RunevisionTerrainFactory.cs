@@ -9,7 +9,7 @@ internal class RunevisionTerrainAssetFactory : AssetFactory<RunevisionTerrainAss
 {
     public static RunevisionTerrainAsset Create()
     {
-        return new RunevisionTerrainAsset { HeightInput = null };
+        return new RunevisionTerrainAsset { HeightInput = new RunevisionTerrainAsset.FractalNoise() };
     }
 
     public override RunevisionTerrainAsset New()

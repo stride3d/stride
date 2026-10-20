@@ -79,13 +79,11 @@ internal class RunevisionTerrainAssetCompiler : AssetCompilerBase
 
             var heightSampler = Parameters.HeightInput.BuildSampler();
 
-            var cancellationToken = commandContext.CurrentCommand.CancellationToken;
-
             await DispatcherLowPriority.ForBatchedAsync(Parameters.Resolution, (yStart, yEnd) =>
             {
                 for (int y = yStart; y < yEnd; y++)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
+                    CancellationToken.ThrowIfCancellationRequested();
 
                     float min = float.PositiveInfinity;
                     float max = float.NegativeInfinity;
@@ -122,7 +120,7 @@ internal class RunevisionTerrainAssetCompiler : AssetCompilerBase
                     {
                         for (int y = yStart; y < yEnd; y++)
                         {
-                            cancellationToken.ThrowIfCancellationRequested();
+                            CancellationToken.ThrowIfCancellationRequested();
 
                             var span = samples.AsSpan(y * Parameters.Resolution, Parameters.Resolution);
                             for (int x = 0; x < span.Length; x++)
@@ -139,7 +137,7 @@ internal class RunevisionTerrainAssetCompiler : AssetCompilerBase
                     {
                         for (int y = yStart; y < yEnd; y++)
                         {
-                            cancellationToken.ThrowIfCancellationRequested();
+                            CancellationToken.ThrowIfCancellationRequested();
 
                             var span = samples.AsSpan(y * Parameters.Resolution, Parameters.Resolution);
                             for (int x = 0; x < span.Length; x++)
@@ -162,7 +160,7 @@ internal class RunevisionTerrainAssetCompiler : AssetCompilerBase
                 {
                     for (int y = yStart; y < yEnd; y++)
                     {
-                        cancellationToken.ThrowIfCancellationRequested();
+                        CancellationToken.ThrowIfCancellationRequested();
 
                         var span = samples.AsSpan(y * Parameters.Resolution, Parameters.Resolution);
                         for (int x = 0; x < span.Length; x++)
@@ -178,7 +176,7 @@ internal class RunevisionTerrainAssetCompiler : AssetCompilerBase
             {
                 for (int y = yStart; y < yEnd; y++)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
+                    CancellationToken.ThrowIfCancellationRequested();
 
                     var spanSamples = samples.AsSpan(y * Parameters.Resolution, Parameters.Resolution);
                     var spanPacked = dataPacked.AsSpan(y * Parameters.Resolution, Parameters.Resolution);
@@ -203,7 +201,7 @@ internal class RunevisionTerrainAssetCompiler : AssetCompilerBase
                 }
             });
 
-            cancellationToken.ThrowIfCancellationRequested();
+            CancellationToken.ThrowIfCancellationRequested();
 
             unsafe
             {
