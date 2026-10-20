@@ -1,0 +1,93 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+using System;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Input;
+using Microsoft.Xaml.Behaviors;
+using Stride.Core.Presentation.Controls;
+
+namespace Stride.Assets.Presentation.View.Behaviors
+{
+    /// <summary>
+    /// Shows the value of a slider in the scene while its thumb is dragged, and applies it once on release, so the drag
+    /// is a single undo step from the start value to the end value. Clicks and keys apply their value at once.
+    /// </summary>
+    /// <remarks>
+    /// Only user input applies a value: a value set from code, such as the property grid refreshing the slider or the
+    /// slider clamping a weight beyond its range, is not an edit and is not written back. The slider is bound one way
+    /// from the text box, and this behavior copies its value to the text box before validating it.
+    /// The editor sends each change to the scene game one after another, waiting for the game to apply it, which lags
+    /// behind a drag: <see cref="Preview"/> writes the dragged values to the scene directly instead.
+    /// </remarks>
+    public sealed class LiveSliderEditBehavior : Behavior<Slider>
+    {
+        public static readonly DependencyProperty TextBoxProperty = DependencyProperty.Register(nameof(TextBox), typeof(NumericTextBox), typeof(LiveSliderEditBehavior));
+        public static readonly DependencyProperty PreviewProperty = DependencyProperty.Register(nameof(Preview), typeof(Action<double>), typeof(LiveSliderEditBehavior));
+
+        private bool dragging;
+
+        /// <summary>The text box bound to the edited value, validated to apply the slider value.</summary>
+        public NumericTextBox TextBox { get { return (NumericTextBox)GetValue(TextBoxProperty); } set { SetValue(TextBoxProperty, value); } }
+
+        /// <summary>Shows a dragged value in the scene without applying it.</summary>
+        public Action<double> Preview { get { return (Action<double>)GetValue(PreviewProperty); } set { SetValue(PreviewProperty, value); } }
+
+        protected override void OnAttached()
+        {
+            base.OnAttached();
+            AssociatedObject.AddHandler(Thumb.DragStartedEvent, (DragStartedEventHandler)OnDragStarted);
+            AssociatedObject.AddHandler(Thumb.DragCompletedEvent, (DragCompletedEventHandler)OnDragCompleted);
+            AssociatedObject.ValueChanged += OnValueChanged;
+            AssociatedObject.KeyUp += OnKeyUp;
+            AssociatedObject.AddHandler(UIElement.PreviewMouseLeftButtonUpEvent, (MouseButtonEventHandler)OnMouseUp, true);
+        }
+
+        protected override void OnDetaching()
+        {
+            AssociatedObject.RemoveHandler(Thumb.DragStartedEvent, (DragStartedEventHandler)OnDragStarted);
+            AssociatedObject.RemoveHandler(Thumb.DragCompletedEvent, (DragCompletedEventHandler)OnDragCompleted);
+            AssociatedObject.ValueChanged -= OnValueChanged;
+            AssociatedObject.KeyUp -= OnKeyUp;
+            AssociatedObject.RemoveHandler(UIElement.PreviewMouseLeftButtonUpEvent, (MouseButtonEventHandler)OnMouseUp);
+            dragging = false;
+            base.OnDetaching();
+        }
+
+        private void OnDragStarted(object sender, DragStartedEventArgs e) => dragging = true;
+
+        private void OnDragCompleted(object sender, DragCompletedEventArgs e)
+        {
+            dragging = false;
+            Apply();
+        }
+
+        private void OnValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (dragging)
+                Preview?.Invoke(e.NewValue);
+        }
+
+        // A click on the track moves the thumb without a drag.
+        private void OnMouseUp(object sender, MouseButtonEventArgs e)
+        {
+            if (!dragging)
+                Apply();
+        }
+
+        private void OnKeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.Key is Key.Up or Key.PageUp or Key.Down or Key.PageDown or Key.Left or Key.Right or Key.Home or Key.End)
+                Apply();
+        }
+
+        private void Apply()
+        {
+            if (TextBox == null)
+                return;
+            TextBox.Value = AssociatedObject.Value;
+            TextBox.Validate();
+        }
+    }
+}
