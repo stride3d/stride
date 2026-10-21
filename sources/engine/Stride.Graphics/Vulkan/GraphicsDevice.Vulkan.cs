@@ -426,6 +426,9 @@ namespace Stride.Graphics
         {
             rendererName = Adapter.Description;
 
+            if (PipelineBarriers.UseLegacyBarriers)
+                Log.Info("Vulkan: Android emulator driver (gfxstream), barriers are recorded with vkCmdPipelineBarrier (its vkCmdPipelineBarrier2 leaves emulated ETC2 / ASTC textures compressed)");
+
             NativeInstanceApi.vkGetPhysicalDeviceProperties(NativePhysicalDevice, out var physicalDeviceProperties);
             ConstantBufferDataPlacementAlignment = (int)physicalDeviceProperties.limits.minUniformBufferOffsetAlignment;
             TimestampFrequency = (long)(1.0e9 / physicalDeviceProperties.limits.timestampPeriod); // Resolution in nanoseconds
