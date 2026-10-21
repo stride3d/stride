@@ -102,7 +102,7 @@ public class EffectCodeWriter : ShaderWriter
         shaderStruct.ProcessSymbol(table, table.Context);
     }
 
-    protected void WriteVariableAsParameterKey(bool isSdfx, TypeName typeName, Identifier name, Expression? initialValue, List<ShaderAttribute> attributes, string declaringTypeName, string declaringKeyNamePrefix)
+    protected void WriteVariableAsParameterKey(bool isSdfx, TypeName typeName, Identifier name, Expression? initialValue, List<ShaderAttribute> attributes, string declaringTypeName)
     {
         isProcessingColor = attributes.OfType<AnyShaderAttribute>().Any(x => x.Name == "Color");
         var variableType = attributes.OfType<AnyShaderAttribute>().Where(x => x.Name == "Type").Select(x => ((StringLiteral)x.Parameters[0]).Value).FirstOrDefault();
@@ -174,6 +174,7 @@ public class EffectCodeWriter : ShaderWriter
             Write(variableMap);
         }
 
+        var declaringKeyNamePrefix = declaringTypeName.EndsWith("Keys", StringComparison.Ordinal) ? declaringTypeName[..^4] : declaringTypeName;
         Write(", typeof(").Write(declaringTypeName).Write("), ").Write(SymbolDisplay.FormatLiteral($"{declaringKeyNamePrefix}.{name}", true)).Write(")");
 
         WriteLine(";");
@@ -345,8 +346,7 @@ public class EffectCodeWriter : ShaderWriter
         // Do nothing
         if (IsParameterKey(shaderMember))
         {
-            var (declaringTypeName, declaringKeyNamePrefix) = GetCurrentShaderClassKeyOwner();
-            WriteVariableAsParameterKey(false, shaderMember.TypeName, shaderMember.Name, shaderMember.Value, shaderMember.Attributes ?? [], declaringTypeName, declaringKeyNamePrefix);
+            WriteVariableAsParameterKey(false, shaderMember.TypeName, shaderMember.Name, shaderMember.Value, shaderMember.Attributes ?? [], GetCurrentShaderClassKeyOwner());
         }
     }
 
@@ -355,8 +355,7 @@ public class EffectCodeWriter : ShaderWriter
         // Do nothing
         if (IsParameterKey(shaderSamplerState))
         {
-            var (declaringTypeName, declaringKeyNamePrefix) = GetCurrentShaderClassKeyOwner();
-            WriteVariableAsParameterKey(false, new TypeName("SamplerState", default), shaderSamplerState.Name, null, shaderSamplerState.Attributes ?? [], declaringTypeName, declaringKeyNamePrefix);
+            WriteVariableAsParameterKey(false, new TypeName("SamplerState", default), shaderSamplerState.Name, null, shaderSamplerState.Attributes ?? [], GetCurrentShaderClassKeyOwner());
         }
     }
 
@@ -365,18 +364,16 @@ public class EffectCodeWriter : ShaderWriter
         // Do nothing
         if (IsParameterKey(shaderSamplerState))
         {
-            var (declaringTypeName, declaringKeyNamePrefix) = GetCurrentShaderClassKeyOwner();
-            WriteVariableAsParameterKey(false, new TypeName("SamplerState", default), shaderSamplerState.Name, null, shaderSamplerState.Attributes ?? [], declaringTypeName, declaringKeyNamePrefix);
+            WriteVariableAsParameterKey(false, new TypeName("SamplerState", default), shaderSamplerState.Name, null, shaderSamplerState.Attributes ?? [], GetCurrentShaderClassKeyOwner());
         }
     }
 
-    private (string DeclaringTypeName, string DeclaringKeyNamePrefix) GetCurrentShaderClassKeyOwner()
+    private string GetCurrentShaderClassKeyOwner()
     {
         if (currentShaderClass is null)
             throw new InvalidOperationException("Shader parameter keys must be generated inside a shader class.");
 
-        var shaderClassName = currentShaderClass.Name.ToString();
-        return ($"{shaderClassName}Keys", shaderClassName);
+        return $"{currentShaderClass.Name}Keys";
     }
 
     public override void VisitBlockStatement(BlockStatement blockStatement)
@@ -821,7 +818,7 @@ public class EffectCodeWriter : ShaderWriter
             foreach (var parameter in effectParameters.Parameters)
             {
                 WriteLinkLine(parameter);
-                WriteVariableAsParameterKey(true, parameter.Type, parameter.Identifier, parameter.DefaultValue, [], effectParameters.Name, effectParameters.Name);
+                WriteVariableAsParameterKey(true, parameter.Type, parameter.Identifier, parameter.DefaultValue, [], effectParameters.Name);
             }
 
             moduleInitializerLines.Add($"global::System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(typeof(global::{currentNamespace}.{effectParameters.Name}).TypeHandle);");
