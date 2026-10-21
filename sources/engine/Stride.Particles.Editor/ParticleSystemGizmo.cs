@@ -45,14 +45,7 @@ namespace Stride.Particles.Editor
             //var scl = Component.ParticleSystem.UniformScale;
             //var rot = Component.ParticleSystem.Rotation;
 
-            // Update some edit-time settings on the particle system
-            {
-                var deltaTime = (float)Game.UpdateTime.Elapsed.TotalSeconds;
-
-                var speed = Component.Speed;
-                var particleSystemControl = Component.Control;
-                particleSystemControl.Update(deltaTime * speed, Component.ParticleSystem);
-            }
+            // The edit-time control (Component.Control) is applied by ParticleSystemSimulationProcessor, also in previews
 
             if (!IsSelected || !IsEnabled)
             {

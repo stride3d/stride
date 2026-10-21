@@ -17,7 +17,8 @@ namespace Stride.Graphics.Tests;
 
 /// <summary>
 /// Checks that Vulkan synchronization validation reports a buffer hazard: a compute write read by a
-/// second dispatch with no barrier between them.
+/// second dispatch with no barrier between them. The read binds the buffer for unordered access, as
+/// <see cref="ComputeEffectShader"/> transitions a buffer bound as shader resource, which orders the read.
 /// </summary>
 /// <remarks>
 /// The barrier tests such as <see cref="TestBufferBarrier"/> pass when no hazard is reported, so they
@@ -61,7 +62,7 @@ public class TestSyncValidationBufferHazard : GraphicTestGameBase
 
         readEffect = new ComputeEffectShader(renderContext)
         {
-            ShaderSourceName = "BufferBarrierReadTestShader",
+            ShaderSourceName = "BufferHazardReadTestShader",
             ThreadNumbers = new Int3(ElementCount, 1, 1),
             ThreadGroupCounts = new Int3(1, 1, 1),
         };
@@ -87,10 +88,10 @@ public class TestSyncValidationBufferHazard : GraphicTestGameBase
             writeEffect.Parameters.Set(BufferBarrierTestShaderKeys.Output, sharedBuffer);
             ((RendererBase)writeEffect).Draw(renderDrawContext);
 
-            // No transition of sharedBuffer to ShaderResource: the read below races the write above
+            // No UnorderedAccessBarrier on sharedBuffer: the read below races the write above
             commandList.ResourceBarrierTransition(resultBuffer, BarrierLayout.UnorderedAccess);
-            readEffect.Parameters.Set(BufferBarrierReadTestShaderKeys.Input, sharedBuffer);
-            readEffect.Parameters.Set(BufferBarrierReadTestShaderKeys.Result, resultBuffer);
+            readEffect.Parameters.Set(BufferHazardReadTestShaderKeys.Input, sharedBuffer);
+            readEffect.Parameters.Set(BufferHazardReadTestShaderKeys.Result, resultBuffer);
             ((RendererBase)readEffect).Draw(renderDrawContext);
         }
         finally

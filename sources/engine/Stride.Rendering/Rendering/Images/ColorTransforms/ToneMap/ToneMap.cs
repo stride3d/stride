@@ -16,7 +16,7 @@ namespace Stride.Rendering.Images
     [DataContract("ToneMap")]
     public class ToneMap : ColorTransform
     {
-        private float previousLuminance;
+        private float? previousLuminance;
 
         private readonly Stopwatch timer;
 
@@ -200,10 +200,19 @@ namespace Stride.Rendering.Images
             float adaptedLum = luminanceResult.AverageLuminance;
             if (TemporalAdaptation)
             {
+                // The first frame starts adapted to what it measures (its luminance readback waits for the GPU, so it is
+                // this frame's value): starting from 0 gave a near-white image that faded in over a second or two
+                var previous = previousLuminance ?? adaptedLum;
+
                 // Get adapted luminance
                 // From "Perceptual effects in real-time tone mapping" by Grzegorz Krawczyk, Karol Myszkowski, Hans-Peter Seidel, p. 3, Equation 5
-                adaptedLum = (float)(previousLuminance + (luminanceResult.AverageLuminance - previousLuminance) * (1.0 - Math.Exp(-elapsedTime.TotalSeconds * AdaptationRate)));
+                adaptedLum = (float)(previous + (luminanceResult.AverageLuminance - previous) * (1.0 - Math.Exp(-elapsedTime.TotalSeconds * AdaptationRate)));
                 previousLuminance = adaptedLum;
+            }
+            else
+            {
+                // Turned on again later: start from the luminance measured then, not from an old one
+                previousLuminance = null;
             }
 
             var keyValue = KeyValue;
