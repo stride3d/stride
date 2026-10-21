@@ -394,17 +394,17 @@ public class EffectCodeWriter : ShaderWriter
 
     public override void VisitShaderFile(ShaderFile shaderFile)
     {
-        var rootClasses = shaderFile.RootDeclarations.OfType<ShaderClass>().ToList();
-        if (rootClasses.Count > 0)
+        var rootTypes = shaderFile.RootDeclarations.Where(x => x is not UsingShaderNamespace).ToList();
+        if (rootTypes.Count > 0)
         {
-            shaderFile.RootDeclarations.RemoveAll(x => x is ShaderClass);
+            shaderFile.RootDeclarations.RemoveAll(x => x is not UsingShaderNamespace);
 
             // Make sure all top-level objects without namespace are wrapped inside a namespace
             shaderFile.Namespaces.Add(new ShaderNamespace(default)
             {
                 Namespace = new(DefaultNameSpace, default),
                 NamespacePath = DefaultNameSpace.Split('.').Select(x => new Identifier(x, default)).ToList(),
-                Declarations = rootClasses.ToList<ShaderDeclaration>(),
+                Declarations = rootTypes,
             });
         }
 
