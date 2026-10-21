@@ -71,6 +71,10 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
         /// </summary>
         public SceneSystem EditorSceneSystem { get; private set; }
 
+        /// <inheritdoc />
+        protected override IEnumerable<SceneInstance> SceneInstances
+            => EditorSceneSystem?.SceneInstance is { } editorSceneInstance ? [.. base.SceneInstances, editorSceneInstance] : base.SceneInstances;
+
         /// <summary>
         /// Finds the entity identified by <paramref name="entityId"/>.
         /// </summary>

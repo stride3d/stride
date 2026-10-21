@@ -421,7 +421,7 @@ namespace Stride.GameStudio.ViewModels
                         }, () =>
                         {
                             modifiedLoadabilities[package] = change;
-                        }, new Dictionary<PackageLoadedAssembly, string>());
+                        }, new Dictionary<PackageLoadedAssembly, string>(), package.Package.LoadedAssemblies.Select(x => x.Assembly).NotNull().ToHashSet());
                         Session.AllAssets.ForEach(x => x.PropertyGraph?.RefreshBase());
                         Session.AllAssets.ForEach(x => x.PropertyGraph?.ReconcileWithBase());
                         Session.UndoRedoService.SetName(transaction, "Load game assemblies");

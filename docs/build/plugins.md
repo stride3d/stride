@@ -110,9 +110,12 @@ Some changes need a new session (*Reload session*). The Output panel says which 
 
 A package from the NuGet cache never changes for its version, so it is only reloaded when another version replaces it.
 
+The open editors follow a reload, its undo and its redo: the objects of the reloaded types are replaced in their assets, and each editor game (and the asset preview) replaces the components, drops the processors and `[GameSystem(Editor = true)]` systems of the old types and creates the new ones.
+
 ## Known limitations
 
-- A reload closes the editors of the assets that use reloaded types; their changes stay in the session, and the Output panel lists them to open again. The old assemblies stay in memory until Game Studio closes.
-- The editor games that keep running (asset previews, thumbnails) keep the `[GameSystem(Editor = true)]` systems of a reloaded plugin as they were created: reload the session to get the new ones.
+- An editor still closes when it can't follow a reload, its undo or its redo: its asset is restored as a whole (its own type is reloaded), or the editor, its controller, its game or one of its editor game services comes from a reloaded assembly, or an assembly that goes or comes declares gizmos (the existing ones aren't recreated) or render features (`IRenderFeatureProvider`, the editor's compositor isn't rebuilt). Its changes stay in the session; on the reload itself, the Output panel lists it to open again.
+- Thumbnails keep the render features of a reloaded plugin as they were created: reload the session to get the new ones.
+- The old assemblies stay in memory until Game Studio closes.
 
 - Game Studio's lists are not limited to the project being edited: they show what every package of the session brings. This covers the *Add asset* templates, the *Add component* and *Create entity* menus, the gizmo list, the type pickers of the property grid and the asset picker. With two games (or a game and a library) in one session, the plugins and scripts of one show up while editing the other. `PackageTypeScope.For(package).Contains(type)` tells whether a type is available to a project, as the render features of a compositor already use it.
