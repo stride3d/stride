@@ -26,7 +26,7 @@ shader CompositionShaderB : CompositionBase
 	}
 };
  
-shader CompositionTest5
+shader CompositionTest
 {
     stream float4 ColorTarget : SV_Target0;
 
@@ -42,7 +42,7 @@ shader CompositionTest5
 
 effect CompositionMethodCall
 {
-	mixin CompositionTest5;
+	mixin CompositionTest;
 	mixin compose Comp0 = CompositionShaderA;
 	mixin compose Comp1 = CompositionShaderB;
 	// Comp2 will have default value

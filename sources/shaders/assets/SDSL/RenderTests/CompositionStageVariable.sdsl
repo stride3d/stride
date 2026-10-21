@@ -26,7 +26,7 @@ shader CompositionShaderB : CompositionBase
 {
 };
  
-shader CompositionTest8 : CompositionBase2
+shader CompositionTest : CompositionBase2
 {
     stream float4 ColorTarget : SV_Target0;
 
@@ -44,7 +44,7 @@ shader CompositionTest8 : CompositionBase2
 
 effect CompositionStageVariable
 {
-	mixin CompositionTest8;
+	mixin CompositionTest;
 	mixin compose Comp0 = CompositionShaderA;
 	mixin compose Comp1 = CompositionShaderB;
 	// Comp2 will have default value
