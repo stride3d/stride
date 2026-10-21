@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using Stride.Core;
+using Stride.Core.Diagnostics;
 using Stride.Core.Threading;
 using Vortice.Vulkan;
 using static Vortice.Vulkan.Vulkan;
@@ -18,6 +19,8 @@ namespace Stride.Graphics
 {
     public partial class GraphicsDevice
     {
+        private static readonly Logger Log = GlobalLogger.GetLogger(nameof(GraphicsDevice));
+
         /// <summary>
         ///   Counter for generating unique command list IDs. Incremented atomically on each CommandList.Reset.
         /// </summary>
@@ -420,6 +423,9 @@ namespace Stride.Graphics
         private unsafe partial void InitializePlatformDevice(GraphicsProfile[] graphicsProfiles, DeviceCreationFlags deviceCreationFlags, object windowHandle)
         {
             rendererName = Adapter.Description;
+
+            if (PipelineBarriers.UseLegacyBarriers)
+                Log.Info("Vulkan: Android emulator driver (gfxstream), barriers are recorded with vkCmdPipelineBarrier (its vkCmdPipelineBarrier2 leaves emulated ETC2 / ASTC textures compressed)");
 
             NativeInstanceApi.vkGetPhysicalDeviceProperties(NativePhysicalDevice, out var physicalDeviceProperties);
             ConstantBufferDataPlacementAlignment = (int)physicalDeviceProperties.limits.minUniformBufferOffsetAlignment;
