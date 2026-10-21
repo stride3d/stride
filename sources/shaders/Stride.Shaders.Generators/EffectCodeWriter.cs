@@ -19,6 +19,7 @@ public class EffectCodeWriter : ShaderWriter
 
     private bool isProcessingColor = false;
     private ShaderClass? currentShaderClass;
+    private readonly List<string> moduleInitializerLines = [];
 
     // The namespaces the generated code sees, to find the C# type of a struct key (see CSharpTypeExists)
     private static readonly string[] GeneratedUsings = ["Stride.Core", "Stride.Rendering", "Stride.Graphics", "Stride.Shaders", "Stride.Core.Mathematics"];
@@ -332,14 +333,7 @@ public class EffectCodeWriter : ShaderWriter
                     VisitNode(shaderEffect.Block!);
                 }
 
-                WriteLine();
-                WriteLine("[System.Runtime.CompilerServices.ModuleInitializer]");
-                WriteLine("internal static void __Initialize__()");
-                {
-                    OpenBrace();
-                    Write("ShaderMixinManager.Register(\"").Write(shaderEffect.Name).Write("\", new ").Write(shaderEffect.Name).WriteLine("());");
-                    CloseBrace();
-                }
+                moduleInitializerLines.Add($"global::Stride.Shaders.ShaderMixinManager.Register(\"{shaderEffect.Name}\", new global::{currentNamespace}.ShaderMixins.{shaderEffect.Name}());");
                 CloseBrace();
             }
             CloseBrace();
@@ -415,6 +409,20 @@ public class EffectCodeWriter : ShaderWriter
         }
 
         base.VisitShaderFile(shaderFile);
+
+        if (moduleInitializerLines.Count > 0)
+        {
+            WriteLine();
+            WriteLine("file static class ShaderGenerator__ModuleInitializer");
+            OpenBrace();
+            WriteLine("[global::System.Runtime.CompilerServices.ModuleInitializer]");
+            WriteLine("internal static void __Initialize__()");
+            OpenBrace();
+            foreach (var line in moduleInitializerLines)
+                WriteLine(line);
+            CloseBrace();
+            CloseBrace();
+        }
     }
 
     public override void VisitShaderNamespace(ShaderNamespace shaderNamespace)
@@ -790,14 +798,7 @@ public class EffectCodeWriter : ShaderWriter
             }
             currentShaderClass = previousShaderClass;
 
-            WriteLine();
-            WriteLine("[global::System.Runtime.CompilerServices.ModuleInitializer]");
-            WriteLine("internal static void __Initialize__()");
-            {
-                OpenBrace();
-                Write("global::System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(typeof(").Write(shaderClass.Name).WriteLine("Keys).TypeHandle);");
-                CloseBrace();
-            }
+            moduleInitializerLines.Add($"global::System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(typeof(global::{currentNamespace}.{shaderClass.Name}Keys).TypeHandle);");
 
             CloseBrace();
         }
@@ -823,14 +824,7 @@ public class EffectCodeWriter : ShaderWriter
                 WriteVariableAsParameterKey(true, parameter.Type, parameter.Identifier, parameter.DefaultValue, [], effectParameters.Name, effectParameters.Name);
             }
 
-            WriteLine();
-            WriteLine("[global::System.Runtime.CompilerServices.ModuleInitializer]");
-            WriteLine("internal static void __Initialize__()");
-            {
-                OpenBrace();
-                Write("global::System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(typeof(").Write(effectParameters.Name).WriteLine(").TypeHandle);");
-                CloseBrace();
-            }
+            moduleInitializerLines.Add($"global::System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(typeof(global::{currentNamespace}.{effectParameters.Name}).TypeHandle);");
 
             CloseBrace();
         }
