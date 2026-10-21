@@ -5,6 +5,7 @@ using System.Collections.Specialized;
 using System.Linq;
 using Stride.Core.Collections;
 using Stride.Engine;
+using Stride.Games;
 using Stride.Navigation;
 
 namespace Gameplay
@@ -27,7 +28,7 @@ namespace Gameplay
             Game.GameSystems.CollectionChanged -= GameSystemsOnCollectionChanged;
         }
 
-        private void GameSystemsOnCollectionChanged(object sender, TrackingCollectionChangedEventArgs trackingCollectionChangedEventArgs)
+        private void GameSystemsOnCollectionChanged(object sender, TrackingCollectionChangedEventArgs<IGameSystemBase> trackingCollectionChangedEventArgs)
         {
             if (trackingCollectionChangedEventArgs.Action == NotifyCollectionChangedAction.Add)
             {
