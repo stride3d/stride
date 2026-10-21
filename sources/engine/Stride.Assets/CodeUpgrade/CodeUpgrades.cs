@@ -468,6 +468,73 @@ public static class CodeUpgrades
         => SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, receiver, member);
 
     /// <summary>
+    /// Migrates the event handlers of an event args type that became generic over the collection raising the event:
+    /// <c>void OnChanged(object s, TrackingCollectionChangedEventArgs e)</c> → <c>void OnChanged(object s, TrackingCollectionChangedEventArgs&lt;Entity&gt; e)</c>.
+    /// Each entry of <paramref name="collections"/> maps a collection type (its metadata name) to the new event args type of the
+    /// same namespace, which takes the collection's type arguments. The handler is a method or local function subscribed in the
+    /// same file, or a lambda with typed parameters. A handler with no such subscription, or subscribed to collections that give
+    /// different types, is left for the user to port.
+    /// </summary>
+    public static SymbolRewrite EventArgsToGeneric(string eventArgsType, params (string CollectionType, string EventArgsName)[] collections)
+    {
+        ArgumentNullException.ThrowIfNull(eventArgsType);
+        ArgumentNullException.ThrowIfNull(collections);
+        return new SymbolRewrite(
+            compilation => compilation.GetTypeByMetadataName(eventArgsType) is { } type ? [type] : [],
+            (editor, referenceNode, symbol) =>
+            {
+                // The type's own name (not an alias), as the type of a parameter
+                if (referenceNode is not IdentifierNameSyntax name || name.Identifier.ValueText != symbol.Name)
+                    return;
+                SyntaxNode type = name;
+                while ((type.Parent is QualifiedNameSyntax qualified && qualified.Right == type) || type.Parent is NullableTypeSyntax)
+                    type = type.Parent;
+                if (type.Parent is not ParameterSyntax parameter)
+                    return;
+
+                var semanticModel = editor.SemanticModel;
+                IEnumerable<AssignmentExpressionSyntax> subscriptions = parameter.Parent?.Parent is ParenthesizedLambdaExpressionSyntax lambda
+                    ? lambda.Parent is AssignmentExpressionSyntax assignment && assignment.Right == lambda ? [assignment] : []
+                    : FindSubscriptions(semanticModel, editor.OriginalRoot, semanticModel.GetDeclaredSymbol(parameter)?.ContainingSymbol);
+
+                string newType = null;
+                foreach (var subscription in subscriptions)
+                {
+                    var subscriptionType = semanticModel.GetSymbolInfo(subscription.Left).Symbol is IEventSymbol { ContainingType: var collection }
+                        ? NewEventArgsType(semanticModel, collection, name.SpanStart)
+                        : null;
+                    if (subscriptionType is null || newType is not null && newType != subscriptionType)
+                        return;
+                    newType = subscriptionType;
+                }
+                if (newType is not null)
+                    editor.ReplaceNode(name, SyntaxFactory.ParseTypeName(newType).WithTriviaFrom(name));
+            });
+
+        // The += and -= of the handler method on an event
+        static IEnumerable<AssignmentExpressionSyntax> FindSubscriptions(SemanticModel semanticModel, SyntaxNode root, ISymbol handler)
+        {
+            if (handler is not IMethodSymbol { MethodKind: MethodKind.Ordinary or MethodKind.LocalFunction })
+                return [];
+            return root.DescendantNodes().OfType<AssignmentExpressionSyntax>()
+                .Where(x => x.IsKind(SyntaxKind.AddAssignmentExpression) || x.IsKind(SyntaxKind.SubtractAssignmentExpression))
+                .Where(x => SymbolEqualityComparer.Default.Equals(semanticModel.GetSymbolInfo(x.Right).Symbol, handler));
+        }
+
+        string NewEventArgsType(SemanticModel semanticModel, INamedTypeSymbol collection, int position)
+        {
+            foreach (var (collectionType, eventArgsName) in collections)
+            {
+                if (!SymbolEqualityComparer.Default.Equals(collection.OriginalDefinition, semanticModel.Compilation.GetTypeByMetadataName(collectionType)))
+                    continue;
+                var typeArguments = collection.TypeArguments.Select(x => x.ToMinimalDisplayString(semanticModel, position));
+                return $"{eventArgsName}<{string.Join(", ", typeArguments)}>";
+            }
+            return null;
+        }
+    }
+
+    /// <summary>
     /// Removes <c>using</c> directives for namespaces that left the Stride dependency closure
     /// (each entry matches itself and its sub-namespaces). Only directives the compiler reports as
     /// unnecessary (CS8019, checked against the old-version closure) are removed: an unused directive is

@@ -146,6 +146,13 @@ namespace Stride.Assets
                 Rewrite(
                     MemberToExtension("Stride.Engine.Game", "Audio", "Stride.Audio"),
                     MemberToExtension("Stride.Engine.ScriptComponent", "Audio", "Stride.Audio", throughMember: "Game")),
+
+                // 4.5: the event args of the tracking collections take the item type (and the key type for TrackingDictionary).
+                Rewrite(
+                    EventArgsToGeneric("Stride.Core.Collections.TrackingCollectionChangedEventArgs",
+                        ("Stride.Core.Collections.TrackingCollection`1", "TrackingCollectionChangedEventArgs"),
+                        ("Stride.Core.Collections.TrackingHashSet`1", "TrackingCollectionChangedEventArgs"),
+                        ("Stride.Core.Collections.TrackingDictionary`2", "TrackingKeyedCollectionChangedEventArgs"))),
             ]);
 
             // Structural csproj migrations, gated by the version each change landed at. Run against the
