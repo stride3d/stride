@@ -185,7 +185,7 @@ internal class AssemblyScanGenerator : IIncrementalGenerator
                 {
                     file static partial class AssemblyScanResults
                     {
-                        // [global::System.Runtime.CompilerServices.ModuleInitializer]
+                        [global::System.Runtime.CompilerServices.ModuleInitializer]
                 {{attributes}}
                         public static void Initialize()
                         {
