@@ -104,7 +104,7 @@ public record SinusoidalWave : SinusoidalWaveSharedData, IHeightfieldLayerBuilde
             foreach (ref var sample in samples)
             {
                 var coord = (Vector2)sample.SampleCoord * Tiling;
-                sample.Height += MathF.Sin(coord.X) * MathF.Cos(coord.Y) * Multiplier;
+                sample.Height = MathF.Sin(coord.X) * MathF.Cos(coord.Y) * Multiplier;
             }
         }
 
