@@ -96,6 +96,7 @@ namespace Stride.Assets.Models
 
         /// <userdoc>
         /// When unchecked, morph targets (blend shapes) in the source file are ignored and the model is imported without them.
+        /// After checking it on a model imported without morph targets, use Update from source to show their weights in the editor.
         /// </userdoc>
         [DataMember(54), DefaultValue(true)]
         public bool ImportMorphTargets { get; set; } = true;

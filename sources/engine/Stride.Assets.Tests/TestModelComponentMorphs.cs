@@ -90,9 +90,7 @@ public class TestModelComponentMorphs
         var shared = ModelWithTargets(2);
         shared.Meshes.Add(new Mesh { MorphTargets = MeshMorphData.Create(0, new[] { "Blink", "Smile" }, Array.Empty<MeshMorphEntry>()) });
         var component = new ModelComponent(shared);
-        Assert.Equal(new[] { "Smile", "Blink" }, component.MorphTargetNames.ToArray());
-        Assert.Equal(2, component.MorphTargetCount);
-        Assert.Equal("Blink", component.GetMorphTargetName(1));
+        Assert.Equal(new[] { "Smile", "Blink" }, component.MorphTargetNames);
         int smile = component.FindMorphTarget("Smile"), blink = component.FindMorphTarget("Blink");
         Assert.Equal(-1, component.FindMorphTarget("Missing"));
         component.SetMorphWeight(smile, 0.5f);
@@ -108,7 +106,7 @@ public class TestModelComponentMorphs
         // So does replacing the dictionary.
         component.Morphs.Weights = new() { ["Smile"] = 0.75f };
         Assert.Equal(0.75f, component.GetMorphWeight(smile));
-        Assert.True(component.MorphTargetNames == new ModelComponent(shared).MorphTargetNames);
+        Assert.Same(component.MorphTargetNames, new ModelComponent(shared).MorphTargetNames);
     }
 
     [Fact]
@@ -163,15 +161,14 @@ public class TestModelComponentMorphs
         first.SetMorphWeight("Smile", 2f);
         first.Model = null;
         Assert.False(first.HasMorphTargets);
-        Assert.Equal(0, first.MorphTargetCount);
-        Assert.True(first.MorphTargetNames.IsEmpty);
+        Assert.Empty(first.MorphTargetNames);
         Assert.Equal(-1, first.FindMorphTarget("Smile"));
         first.SetAllMorphWeights(0f);
         first.Model = shared;
         Assert.Equal(0.25f, first.GetMorphWeight(first.FindMorphTarget("Smile")));
 
         shared.Meshes[0].MorphTargets = MeshMorphData.Create(0, new[] { "Blink", "Smile" }, Array.Empty<MeshMorphEntry>());
-        Assert.Equal(new[] { "Blink", "Smile" }, first.MorphTargetNames.ToArray());
+        Assert.Equal(new[] { "Blink", "Smile" }, first.MorphTargetNames);
         Assert.Equal(new[] { 0.75f, 0.25f }, Weights(first));
         Assert.Equal(new[] { 0f, 0f }, Weights(second));
         shared.Meshes.Clear();
@@ -210,7 +207,7 @@ public class TestModelComponentMorphs
         Assert.Throws<ArgumentNullException>(() => component.FindMorphTarget((string)null));
         Assert.Throws<ArgumentOutOfRangeException>(() => component.GetMorphWeight(-1));
         Assert.Throws<ArgumentOutOfRangeException>(() => component.SetMorphWeight(1, 1f));
-        Assert.Throws<IndexOutOfRangeException>(() => component.GetMorphTargetName(1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => component.MorphTargetNames[1]);
         Assert.Equal(-2f, component.GetMorphWeight(0));
     }
 
@@ -287,7 +284,7 @@ public class TestModelComponentMorphs
     }
 
     private static float[] Weights(ModelComponent component)
-        => Enumerable.Range(0, component.MorphTargetCount).Select(component.GetMorphWeight).ToArray();
+        => Enumerable.Range(0, component.MorphTargetNames.Count).Select(component.GetMorphWeight).ToArray();
 
     private static void Author(ModelComponent component, string name, float value)
         => component.Morphs.Weights[name] = value;

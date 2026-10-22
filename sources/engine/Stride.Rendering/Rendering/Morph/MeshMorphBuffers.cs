@@ -8,7 +8,7 @@ namespace Stride.Rendering;
 /// <summary>
 /// GPU inputs of a <see cref="RenderMesh"/> whose morph targets are applied in the vertex shader (<c>TransformationMorph</c>).
 /// </summary>
-public sealed class MeshMorphBuffers
+internal sealed class MeshMorphBuffers
 {
     // Bits of the MorphTargets shader macro; keep in sync with TransformationMorph.sdsl.
     /// <summary>Flag: morph targets are applied (positions).</summary>

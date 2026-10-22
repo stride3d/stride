@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using Stride.Core;
 using Stride.Rendering;
 
@@ -61,28 +62,17 @@ public sealed partial class ModelComponent
     /// <remarks>
     /// A slot stands for one target name across the whole model: meshes with a target of the same name share its slot
     /// and its weight. Slots are the same for every component using the model, and stay valid until the model changes.
-    /// The span reads names shared by every instance of the model without copying them: read it, don't keep it.
-    /// Use <see cref="MorphTargetCount"/> and <see cref="GetMorphTargetName(int)"/> where a span can't be used.
+    /// The list is shared by every instance of the model, so reading it doesn't allocate.
     /// </remarks>
     [DataMemberIgnore]
-    public ReadOnlySpan<string> MorphTargetNames
+    public IReadOnlyList<string> MorphTargetNames
     {
         get
         {
             SynchronizeMorphTargets();
-            return morphLayout?.SlotNames;
+            return morphLayout?.ReadOnlySlotNames ?? ReadOnlyCollection<string>.Empty;
         }
     }
-
-    /// <summary>The number of distinct morph targets of the <see cref="Model"/>, the length of <see cref="MorphTargetNames"/>.</summary>
-    [DataMemberIgnore]
-    public int MorphTargetCount => MorphTargetNames.Length;
-
-    /// <summary>Gets the name of the morph target at a slot.</summary>
-    /// <param name="slot">The slot, from 0 to <see cref="MorphTargetCount"/> - 1.</param>
-    /// <returns>The target name.</returns>
-    /// <exception cref="IndexOutOfRangeException"><paramref name="slot"/> is out of range.</exception>
-    public string GetMorphTargetName(int slot) => MorphTargetNames[slot];
 
     private void SynchronizeMorphTargets()
     {

@@ -14,8 +14,8 @@ namespace Stride.Rendering;
 /// <remarks>
 /// Packed for the GPU, with the same bytes on the CPU: the vertex index, then the target index and the nine delta
 /// components as 16-bit floats. Build entries with <see cref="Create"/> and read them through <see cref="ShapeIndex"/>,
-/// <see cref="PositionDelta"/>, <see cref="NormalDelta"/> and <see cref="TangentDelta"/>; the raw fields are the
-/// packed words.
+/// <see cref="PositionDelta"/>, <see cref="NormalDelta"/> and <see cref="TangentDelta"/>. The packed words are internal,
+/// so the packing can change without breaking user code.
 /// </remarks>
 [DataContract]
 [StructLayout(LayoutKind.Sequential, Pack = 4)]
@@ -32,22 +32,28 @@ public struct MeshMorphEntry
     private const uint PairMagnitudeMask = HalfMagnitudeMask | HighHalfMagnitudeMask;
 
     /// <summary>The vertex the deltas apply to.</summary>
+    [DataMember(0)]
     public uint VertexIndex;
 
     /// <summary>Packed: the target index (low 16 bits) and the position delta X (high 16 bits).</summary>
-    public uint ShapeAndPositionX;
+    [DataMember(1)]
+    internal uint ShapeAndPositionX;
 
     /// <summary>Packed: the position delta Y and Z.</summary>
-    public uint PositionYZ;
+    [DataMember(2)]
+    internal uint PositionYZ;
 
     /// <summary>Packed: the normal delta X and Y.</summary>
-    public uint NormalXY;
+    [DataMember(3)]
+    internal uint NormalXY;
 
     /// <summary>Packed: the normal delta Z and the tangent delta X.</summary>
-    public uint NormalZTangentX;
+    [DataMember(4)]
+    internal uint NormalZTangentX;
 
     /// <summary>Packed: the tangent delta Y and Z.</summary>
-    public uint TangentYZ;
+    [DataMember(5)]
+    internal uint TangentYZ;
 
     /// <summary>The index of the target in <see cref="MeshMorphData.TargetNames"/>.</summary>
     [DataMemberIgnore] public readonly ushort ShapeIndex => (ushort)ShapeAndPositionX;

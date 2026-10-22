@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Runtime.CompilerServices;
 using Stride.Rendering;
 
@@ -17,6 +18,8 @@ internal sealed class ModelMorphLayout
     public readonly MeshMorphData[] MorphDataPerMesh;
     /// <summary>Per slot: the target name.</summary>
     public readonly string[] SlotNames;
+    /// <summary><see cref="SlotNames"/> as returned by <see cref="ModelComponent.MorphTargetNames"/>, shared by every instance.</summary>
+    public readonly ReadOnlyCollection<string> ReadOnlySlotNames;
     public readonly Dictionary<string, int> SlotByName;
     /// <summary><see cref="SlotByName"/> looked up by a span, without allocating a string.</summary>
     public readonly Dictionary<string, int>.AlternateLookup<ReadOnlySpan<char>> SlotBySpanName;
@@ -47,6 +50,7 @@ internal sealed class ModelMorphLayout
             }
         }
         SlotNames = slotNames.ToArray();
+        ReadOnlySlotNames = Array.AsReadOnly(SlotNames);
         SlotBySpanName = SlotByName.GetAlternateLookup<ReadOnlySpan<char>>();
     }
 

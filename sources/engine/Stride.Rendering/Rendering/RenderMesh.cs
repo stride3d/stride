@@ -40,7 +40,7 @@ namespace Stride.Rendering
         /// <summary>
         /// Morph targets applied in the vertex shader, or <c>null</c>.
         /// </summary>
-        public MeshMorphBuffers MorphBuffers;
+        internal MeshMorphBuffers MorphBuffers;
 
         public int InstanceCount;
     }
