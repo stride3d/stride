@@ -33,6 +33,8 @@ namespace Stride.Graphics
             NativeAccessMask = VkAccessFlags.ShaderRead;
             NativePipelineStageMask = VkPipelineStageFlags.VertexInput | VkPipelineStageFlags.FragmentShader | VkPipelineStageFlags.ComputeShader;
             LayoutTracker.Initialize(BarrierLayout.ShaderResource, ArraySize * MipLevelCount);
+            // A new image: what the submissions left applies to the previous one
+            SubmittedLayouts = null;
             InitializeData(null);
             IsInitialized = true;
             importedImageHandled = true;

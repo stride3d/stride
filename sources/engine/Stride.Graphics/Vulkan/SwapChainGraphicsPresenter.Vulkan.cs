@@ -237,6 +237,9 @@ namespace Stride.Graphics
 
             lock (GraphicsDevice.QueueLock)
             {
+                // The layouts the submissions left belong to the previous image
+                backBuffer.SubmittedLayouts = null;
+
                 // Signal vkAcquireNextImageKHR Fence => GraphicsDevice.CommandList (so that next command list will wait for this to complete)
                 var commandListFenceValue = GraphicsDevice.CommandListFence.NextFenceValue++;
                 var nextCommandListFenceValue = commandListFenceValue + 1;

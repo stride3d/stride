@@ -28,6 +28,7 @@ namespace Stride.Graphics
         internal readonly ConcurrentPool<List<VkDescriptorPool>> DescriptorPoolLists = new ConcurrentPool<List<VkDescriptorPool>>(() => new List<VkDescriptorPool>());
         internal readonly ConcurrentPool<List<GraphicsResource>> StagingResourceLists = new ConcurrentPool<List<GraphicsResource>>(() => new List<GraphicsResource>());
         internal readonly ConcurrentPool<List<QueryPool>> QueryPoolLists = new ConcurrentPool<List<QueryPool>>(() => new List<QueryPool>());
+        internal readonly ConcurrentPool<List<RecordedTransition>> RecordedTransitionLists = new ConcurrentPool<List<RecordedTransition>>(() => new List<RecordedTransition>());
 
         private const GraphicsPlatform GraphicPlatform = GraphicsPlatform.Vulkan;
         internal GraphicsProfile RequestedProfile;
@@ -53,6 +54,11 @@ namespace Stride.Graphics
         internal object QueueLock = new object();
 
         internal ThreadLocal<CommandBufferPool> NativeCopyCommandPools;
+
+        // Command buffers that move subresources into the layouts the next command buffer assumed (see SubmittedLayoutReplay)
+        private CommandBufferPool layoutCorrectionCommandBuffers;
+        private readonly List<RecordedTransition> layoutCorrections = new();
+        private readonly List<VkImageMemoryBarrier2> layoutCorrectionBarriers = new();
         private NativeResourceCollector nativeResourceCollector;
         private GraphicsResourceLinkCollector graphicsResourceLinkCollector;
 
@@ -319,15 +325,23 @@ namespace Stride.Graphics
             if (commandLists == null) throw new ArgumentNullException(nameof(commandLists));
             if (count > commandLists.Length) throw new ArgumentOutOfRangeException(nameof(count));
 
-            var commandBufferInfos = stackalloc VkCommandBufferSubmitInfo[count];
-            for (int i = 0; i < count; i++)
-                commandBufferInfos[i] = CommandBufferSubmit(commandLists[i].NativeCommandBuffer);
+            // Each command list may be preceded by the barriers that bring what it assumed into place
+            var commandBufferInfos = stackalloc VkCommandBufferSubmitInfo[count * 2];
+            var commandBufferCount = 0;
 
             ulong nextCommandListFenceValue;
             lock (QueueLock)
             {
                 var commandListFenceValue = CommandListFence.NextFenceValue++;
                 nextCommandListFenceValue = commandListFenceValue + 1;
+
+                for (int i = 0; i < count; i++)
+                {
+                    if (CorrectAssumedLayouts(commandLists[i].RecordedTransitions, nextCommandListFenceValue) is { } correction)
+                        commandBufferInfos[commandBufferCount++] = CommandBufferSubmit(correction);
+                    commandBufferInfos[commandBufferCount++] = CommandBufferSubmit(commandLists[i].NativeCommandBuffer);
+                }
+
                 // Make sure all copies are done as well
                 var copyFenceValue = CopyFence.NextFenceValue;
 
@@ -347,7 +361,7 @@ namespace Stride.Graphics
                 var submitInfo = new VkSubmitInfo2
                 {
                     sType = VkStructureType.SubmitInfo2,
-                    commandBufferInfoCount = (uint)count,
+                    commandBufferInfoCount = (uint)commandBufferCount,
                     pCommandBufferInfos = commandBufferInfos,
                     waitSemaphoreInfoCount = (uint)waitSemaphoreCount,
                     pWaitSemaphoreInfos = &waitInfos[0],
@@ -656,6 +670,7 @@ namespace Stride.Graphics
             NativeDeviceApi.vkGetDeviceQueue(nativeDevice, 0, 0, out NativeCommandQueue);
 
             NativeCopyCommandPools = new(() => new CommandBufferPool(this, false), true);
+            layoutCorrectionCommandBuffers = new CommandBufferPool(this, false);
 
             DescriptorPools = new HeapPool(this, true);
 
@@ -868,6 +883,8 @@ namespace Stride.Graphics
             CopyFence.Dispose();
             CommandListFence.Dispose();
 
+            layoutCorrectionCommandBuffers.Dispose();
+            layoutCorrectionCommandBuffers = null;
             foreach (var nativeCopyCommandPool in NativeCopyCommandPools.Values)
                 nativeCopyCommandPool.Dispose();
             NativeCopyCommandPools.Dispose();
@@ -905,14 +922,18 @@ namespace Stride.Graphics
                 // Remember that we waited
                 LastGPUSyncCopyFenceToCommandFence = copyFenceValue;
 
-                // Submit commands
-                var commandBufferInfo = CommandBufferSubmit(commandList.NativeCommandBuffer);
+                // Submit commands, after the barriers that bring what it assumed into place
+                var commandBufferInfos = stackalloc VkCommandBufferSubmitInfo[2];
+                var commandBufferCount = 0;
+                if (CorrectAssumedLayouts(commandList.RecordedTransitions, nextCommandListFenceValue) is { } correction)
+                    commandBufferInfos[commandBufferCount++] = CommandBufferSubmit(correction);
+                commandBufferInfos[commandBufferCount++] = CommandBufferSubmit(commandList.NativeCommandBuffer);
                 var signalInfo = SemaphoreSubmit(CommandListFence.Semaphore, nextCommandListFenceValue);
                 var submitInfo = new VkSubmitInfo2
                 {
                     sType = VkStructureType.SubmitInfo2,
-                    commandBufferInfoCount = 1,
-                    pCommandBufferInfos = &commandBufferInfo,
+                    commandBufferInfoCount = (uint)commandBufferCount,
+                    pCommandBufferInfos = commandBufferInfos,
                     waitSemaphoreInfoCount = (uint)waitSemaphoreCount,
                     pWaitSemaphoreInfos = &waitInfos[0],
                     signalSemaphoreInfoCount = 1,
@@ -929,6 +950,35 @@ namespace Stride.Graphics
             RecycleCommandListResources(commandList, nextCommandListFenceValue);
 
             return nextCommandListFenceValue;
+        }
+
+        /// <summary>
+        ///   Replays the layout changes a command list recorded on the layouts the earlier submissions left (see
+        ///   <see cref="SubmittedLayoutReplay"/>), and records the barriers it needs before it. Called under <see cref="QueueLock"/>.
+        /// </summary>
+        /// <returns>A command buffer to submit just before the command list, or <see langword="null"/> if it needs none.</returns>
+        private unsafe VkCommandBuffer? CorrectAssumedLayouts(List<RecordedTransition> recordedTransitions, ulong fenceValue)
+        {
+            layoutCorrections.Clear();
+            SubmittedLayoutReplay.Replay(recordedTransitions, layoutCorrections);
+
+            layoutCorrectionBarriers.Clear();
+            foreach (var correction in layoutCorrections)
+            {
+                var texture = (Texture) correction.Resource;
+                if (texture.NativeImage != VkImage.Null)
+                    layoutCorrectionBarriers.Add(CommandList.ImageBarrier(texture, correction.Subresource, correction.LayoutBefore, correction.LayoutAfter));
+            }
+            if (layoutCorrectionBarriers.Count == 0)
+                return null;
+
+            var commandBuffer = layoutCorrectionCommandBuffers.GetObject(CommandListFence.GetCompletedValue());
+            var beginInfo = new VkCommandBufferBeginInfo { sType = VkStructureType.CommandBufferBeginInfo, flags = VkCommandBufferUsageFlags.OneTimeSubmit };
+            CheckResult(NativeDeviceApi.vkBeginCommandBuffer(commandBuffer, &beginInfo));
+            PipelineBarriers.Record(NativeDeviceApi, commandBuffer, imageBarriers: CollectionsMarshal.AsSpan(layoutCorrectionBarriers));
+            CheckResult(NativeDeviceApi.vkEndCommandBuffer(commandBuffer));
+            layoutCorrectionCommandBuffers.RecycleObject(fenceValue, commandBuffer);
+            return commandBuffer;
         }
 
         private void RecycleCommandListResources(CompiledCommandList commandList, ulong commandListFenceValue)
@@ -958,6 +1008,10 @@ namespace Stride.Graphics
             }
             DescriptorPoolLists.Release(commandList.DescriptorPools);
             commandList.DescriptorPools.Clear();
+
+            // CPU-side only, and already replayed at submission: unlike the GPU resources above, they need no fence
+            commandList.RecordedTransitions.Clear();
+            RecordedTransitionLists.Release(commandList.RecordedTransitions);
 
             commandList.Builder.CommandBufferPool.RecycleObject(commandListFenceValue, commandList.NativeCommandBuffer);
         }
