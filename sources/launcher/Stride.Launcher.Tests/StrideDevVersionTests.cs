@@ -54,20 +54,4 @@ public sealed class StrideDevVersionTests : IDisposable
 
         Assert.Null(StrideDevVersionViewModel.FindCheckoutInLedger(ledger, "beta8"));
     }
-
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public void GetListName_NamesTheCheckoutFolder(bool trailingSeparator)
-    {
-        var checkout = Checkout("stride2") + (trailingSeparator ? Path.DirectorySeparatorChar : "");
-
-        Assert.Equal("Stride 4.5.0-dev2 · stride2", StrideDevVersionViewModel.GetListName("Stride", "4.5.0-dev2", checkout));
-    }
-
-    [Fact]
-    public void GetListName_UnknownCheckout_IsTheVersionOnly()
-    {
-        Assert.Equal("Stride 4.5.0-dev2", StrideDevVersionViewModel.GetListName("Stride", "4.5.0-dev2", null));
-    }
 }

@@ -49,11 +49,11 @@ public sealed class StrideDevVersionViewModel : StrideVersionViewModel
     public string OpenCheckoutToolTip => string.Format(checkoutDirectory is not null ? Strings.ToolTipOpenCheckout : Strings.ToolTipOpenFolder, FullName);
 
     /// <summary>
-    /// Gets the tooltip of the row's set-active button, shown in the status bar too while the row is hovered: the full
-    /// <see cref="ListName"/> and the path of the checkout, as the list cuts a long checkout folder name short.
+    /// Gets the text the status bar shows while the row's set-active button is hovered, with the path of the checkout
+    /// so that the -devN versions of several checkouts can be told apart.
     /// </summary>
     public string SetActiveToolTip => checkoutDirectory is not null
-        ? string.Format(Strings.ToolTipSetActiveDevVersion, ListName, checkoutDirectory)
+        ? string.Format(Strings.ToolTipSetActiveDevVersion, FullName, checkoutDirectory)
         : string.Format(Strings.ToolTipSetActiveVersion, FullName);
 
     /// <summary>
@@ -169,16 +169,10 @@ public sealed class StrideDevVersionViewModel : StrideVersionViewModel
     public override string Name => "Local " + path.MakeRelative(path.GetParent());
 
     /// <inheritdoc/>
-    public override string DisplayName => localPackage is not null ? $"{ListName} (local)" : base.DisplayName;
+    public override string DisplayName => localPackage is not null ? $"{PackageSimpleName} {localPackage.Version} (local)" : base.DisplayName;
 
     /// <inheritdoc/>
-    public override string ListName => localPackage is not null ? GetListName(PackageSimpleName, localPackage.Version.ToString(), checkoutDirectory) : base.ListName;
-
-    /// <summary>
-    /// Gets the name of a local version in the list, followed by the folder of its checkout so that the -devN versions of several checkouts can be told apart.
-    /// </summary>
-    internal static string GetListName(string packageSimpleName, string version, string? checkoutDirectory)
-        => checkoutDirectory is not null ? $"{packageSimpleName} {version} · {Path.GetFileName(Path.TrimEndingDirectorySeparator(checkoutDirectory))}" : $"{packageSimpleName} {version}";
+    public override string ListName => localPackage is not null ? $"{PackageSimpleName} {localPackage.Version}" : base.ListName;
 
     /// <inheritdoc/>
     public override string FullName => localPackage?.Version.ToString() ?? path.MakeRelative(path.GetParent());
