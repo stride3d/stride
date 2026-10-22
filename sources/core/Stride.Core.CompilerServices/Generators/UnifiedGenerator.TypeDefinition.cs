@@ -49,7 +49,7 @@ internal partial class UnifiedGenerator
 
         public static TypeDefinition FromSymbol(INamedTypeSymbol symbol)
         {
-            var genericParameters = symbol.TypeParameters.Select(tp => tp.Name).ToArray();
+            var genericParameters = symbol.TypeParameters.Select(tp => EscapeIdentifier(tp.Name)).ToArray();
             BaseDefinition? parent = null;
             if (symbol.ContainingType is not null)
             {
@@ -59,7 +59,7 @@ internal partial class UnifiedGenerator
             {
                 parent = NamespaceDefinition.FromSymbol(symbol.ContainingNamespace);
             }
-            return new TypeDefinition(symbol.Name, parent, genericParameters);
+            return new TypeDefinition(EscapeIdentifier(symbol.Name), parent, genericParameters);
         }
     }
 }

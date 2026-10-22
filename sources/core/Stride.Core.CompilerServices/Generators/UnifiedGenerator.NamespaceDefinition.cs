@@ -23,7 +23,7 @@ internal partial class UnifiedGenerator
             {
                 parent = AssemblyDefinition.FromSymbol(symbol.ContainingAssembly);
             }
-            return new NamespaceDefinition(symbol.Name, parent);
+            return new NamespaceDefinition(EscapeIdentifier(symbol.Name), parent);
         }
     }
 }
