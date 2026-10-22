@@ -97,7 +97,7 @@ internal class AssemblyScanGenerator : IIncrementalGenerator
             var thisType = TypeDefinition.FromSymbol(symbol);
             var interfaces = symbol.AllInterfaces.Select(i => TypeDefinition.FromSymbol(i.OriginalDefinition)).ToArray();
             var baseTypes = symbol.GetAllBaseTypesAscending().Select(t => TypeDefinition.FromSymbol(t.OriginalDefinition)).ToArray();
-            var attributes = GetAllAttributeTypes(symbol).Select(TypeDefinition.FromSymbol).ToArray();
+            var attributes = GetAllAttributeTypes(symbol).Select(TypeDefinition.FromSymbol).Distinct().ToArray();
             return new TypeData(thisType, interfaces, baseTypes, attributes);
         }).WhereNotNull();
 
