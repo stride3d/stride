@@ -67,6 +67,10 @@ namespace Stride.Graphics
         /// </summary>
         internal readonly ConcurrentPool<List<GraphicsResource>> StagingResourceLists = new(() => []);
         /// <summary>
+        ///   Concurrent pool for lists of the texture layout changes a Command List records.
+        /// </summary>
+        internal readonly ConcurrentPool<List<RecordedTransition>> RecordedTransitionLists = new(() => []);
+        /// <summary>
         ///   Concurrent pool for lists of native Direct3D 12 Descriptor Heaps.
         /// </summary>
         internal readonly ConcurrentPool<List<ComPtr<ID3D12DescriptorHeap>>> DescriptorHeapLists = new(() => []);
@@ -171,6 +175,10 @@ namespace Stride.Graphics
         internal ComPtr<ID3D12GraphicsCommandList7> NativeCopyCommandList => ToComPtr(nativeCopyCommandList);
 
         internal object NativeCopyCommandListLock = new();
+
+        // Moves subresources into the layouts the next Command List assumed (see SubmittedLayoutReplay); under QueueLock
+        private ID3D12GraphicsCommandList7* layoutCorrectionCommandList;
+        private readonly List<RecordedTransition> layoutCorrections = [];
 
         /// <summary>
         ///   Represents the size, in bytes, of the resource heap dedicated to Shader Resource Views.
@@ -384,13 +392,6 @@ namespace Stride.Graphics
             {
                 var commandListFenceValue = CommandListFence.NextFenceValue++;
 
-                for (int index = 0; index < count; index++)
-                {
-                    var commandList = commandLists[index];
-                    commandListToExecute[index] = commandList.NativeCommandList.AsComPtr<ID3D12GraphicsCommandList7, ID3D12CommandList>();
-                    RecycleCommandListResources(commandList, commandListFenceValue + 1);
-                }
-
                 if (commandListFenceValue > 0)
                     CommandListFence.Wait(NativeCommandQueue, commandListFenceValue);
 
@@ -401,7 +402,24 @@ namespace Stride.Graphics
                     lastGPUSyncCopyFenceToCommandFence = copyFenceValue;
                 }
 
-                nativeCommandQueue->ExecuteCommandLists((uint) count, commandListToExecute);
+                // A Command List whose assumed layouts need barriers runs after them, and after the ones before it
+                int pendingCount = 0;
+                for (int index = 0; index < count; index++)
+                {
+                    var commandList = commandLists[index];
+                    if (RecordLayoutCorrections(commandList.RecordedTransitions, commandListFenceValue + 1))
+                    {
+                        if (pendingCount > 0)
+                            nativeCommandQueue->ExecuteCommandLists((uint) pendingCount, commandListToExecute);
+                        pendingCount = 0;
+                        var correction = (ID3D12CommandList*) layoutCorrectionCommandList;
+                        nativeCommandQueue->ExecuteCommandLists(NumCommandLists: 1, in correction);
+                    }
+                    commandListToExecute[pendingCount++] = commandList.NativeCommandList.AsComPtr<ID3D12GraphicsCommandList7, ID3D12CommandList>();
+                    RecycleCommandListResources(commandList, commandListFenceValue + 1);
+                }
+
+                nativeCommandQueue->ExecuteCommandLists((uint) pendingCount, commandListToExecute);
 
                 CommandListFence.Signal(NativeCommandQueue, commandListFenceValue + 1);
             }
@@ -934,6 +952,7 @@ namespace Stride.Graphics
             SafeRelease(ref nativeCopyCommandQueue);
             SafeRelease(ref nativeCopyCommandAllocator);
             SafeRelease(ref nativeCopyCommandList);
+            SafeRelease(ref layoutCorrectionCommandList);
 
             SafeRelease(ref drawCommandSignature);
             SafeRelease(ref drawIndexedCommandSignature);
@@ -1243,6 +1262,12 @@ namespace Stride.Graphics
                     lastGPUSyncCopyFenceToCommandFence = copyFenceValue;
                 }
 
+                if (RecordLayoutCorrections(commandList.RecordedTransitions, commandListFenceValue + 1))
+                {
+                    var correction = (ID3D12CommandList*) layoutCorrectionCommandList;
+                    nativeCommandQueue->ExecuteCommandLists(NumCommandLists: 1, in correction);
+                }
+
                 var nativeCommandList = commandList.NativeCommandList.AsComPtr<ID3D12GraphicsCommandList7, ID3D12CommandList>();
                 nativeCommandQueue->ExecuteCommandLists(NumCommandLists: 1, ref nativeCommandList);
 
@@ -1261,6 +1286,58 @@ namespace Stride.Graphics
             RecycleCommandListResources(commandList, commandListFenceValue + 1);
 
             return commandListFenceValue + 1;
+        }
+
+        /// <summary>
+        ///   Replays the layout changes a Command List recorded on the layouts the earlier submissions left (see
+        ///   <see cref="SubmittedLayoutReplay"/>), and records the barriers it needs before it in
+        ///   <see cref="layoutCorrectionCommandList"/>. Called under <see cref="QueueLock"/>.
+        /// </summary>
+        /// <returns><see langword="true"/> if <see cref="layoutCorrectionCommandList"/> must run just before the Command List.</returns>
+        private bool RecordLayoutCorrections(List<RecordedTransition> recordedTransitions, ulong fenceValue)
+        {
+            layoutCorrections.Clear();
+            SubmittedLayoutReplay.Replay(recordedTransitions, layoutCorrections);
+
+            // A resource disposed since its transition was recorded can no longer be used by the Command List
+            layoutCorrections.RemoveAll(correction => correction.Resource.NativeResource.Handle is null);
+            if (layoutCorrections.Count == 0)
+                return false;
+
+            var commandAllocator = CommandAllocators.GetObject(CommandListFence.Fence.GetCompletedValue());
+            HResult result;
+            if (layoutCorrectionCommandList is null)
+            {
+                result = nativeDevice->CreateCommandList(nodeMask: 0, CommandListType.Direct, commandAllocator, pInitialState: ref NullRef<ID3D12PipelineState>(),
+                                                         out ComPtr<ID3D12GraphicsCommandList7> commandList);
+                layoutCorrectionCommandList = commandList;
+            }
+            else
+            {
+                result = layoutCorrectionCommandList->Reset(commandAllocator, pInitialState: ref NullRef<ID3D12PipelineState>());
+            }
+            if (result.IsFailure)
+                result.Throw();
+
+            var count = layoutCorrections.Count;
+            Span<D3D12TextureBarrier> barriers = count <= 64 ? stackalloc D3D12TextureBarrier[count] : new D3D12TextureBarrier[count];
+            for (int i = 0; i < count; i++)
+            {
+                var correction = layoutCorrections[i];
+                barriers[i] = CommandList.TextureBarrier(correction.Resource, correction.Subresource, correction.LayoutBefore, correction.LayoutAfter);
+            }
+            fixed (D3D12TextureBarrier* pBarriers = barriers)
+            {
+                var group = new D3D12BarrierGroup { Type = D3D12BarrierType.Texture, NumBarriers = (uint) count, PBarriers = pBarriers };
+                layoutCorrectionCommandList->Barrier(1, (BarrierGroup*) &group);
+            }
+
+            result = layoutCorrectionCommandList->Close();
+            if (result.IsFailure)
+                result.Throw();
+
+            CommandAllocators.RecycleObject(fenceValue, commandAllocator);
+            return true;
         }
 
         /// <summary>
@@ -1294,6 +1371,10 @@ namespace Stride.Graphics
 
             StagingResourceLists.Release(commandList.StagingResources);
             commandList.StagingResources.Clear();
+
+            // CPU-side only, and already replayed at submission: unlike the GPU resources below, they need no fence
+            commandList.RecordedTransitions.Clear();
+            RecordedTransitionLists.Release(commandList.RecordedTransitions);
 
             // Recycle resources (SRVs, UAVs, Samplers, etc.)
             foreach (var heap in commandList.SrvHeaps)

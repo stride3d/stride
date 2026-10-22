@@ -7,8 +7,9 @@ namespace Stride.Graphics.Tests;
 
 /// <summary>
 /// Command lists record in any order but run in submission order: on first touch, a command list assumes the layout the
-/// last recorded one left, and submission corrects it when the last submitted one left another. The Vulkan validation
-/// layer reports a command list that finds a texture in another layout than the one its barriers start from.
+/// last recorded one left, and submission corrects it when the last submitted one left another. The validation layers
+/// (Vulkan, and Direct3D 12 with GPU-based validation, on a GPU only) report a command list that finds a texture in
+/// another layout than the one its barriers start from.
 /// </summary>
 public class TestSubmittedLayouts : GraphicTestGameBase
 {
@@ -18,7 +19,7 @@ public class TestSubmittedLayouts : GraphicTestGameBase
         PerformTest(game =>
         {
             var device = game.GraphicsDevice;
-            Skip.IfNot(GraphicsDevice.Platform == GraphicsPlatform.Vulkan, "Vulkan layouts.");
+            Skip.IfNot(GraphicsDevice.Platform is GraphicsPlatform.Vulkan or GraphicsPlatform.Direct3D12, "Explicit layouts.");
 
             using var texture = Texture.New2D(device, 16, 16, PixelFormat.R8G8B8A8_UNorm, TextureFlags.ShaderResource | TextureFlags.RenderTarget);
             using var setup = CommandList.New(device);
@@ -49,7 +50,7 @@ public class TestSubmittedLayouts : GraphicTestGameBase
         PerformTest(game =>
         {
             var device = game.GraphicsDevice;
-            Skip.IfNot(GraphicsDevice.Platform == GraphicsPlatform.Vulkan, "Vulkan layouts.");
+            Skip.IfNot(GraphicsDevice.Platform is GraphicsPlatform.Vulkan or GraphicsPlatform.Direct3D12, "Explicit layouts.");
 
             using var texture = Texture.New2D(device, 16, 16, PixelFormat.R8G8B8A8_UNorm, TextureFlags.ShaderResource | TextureFlags.RenderTarget);
             using var setup = CommandList.New(device);
@@ -77,7 +78,7 @@ public class TestSubmittedLayouts : GraphicTestGameBase
         PerformTest(game =>
         {
             var device = game.GraphicsDevice;
-            Skip.IfNot(GraphicsDevice.Platform == GraphicsPlatform.Vulkan, "Vulkan layouts.");
+            Skip.IfNot(GraphicsDevice.Platform is GraphicsPlatform.Vulkan or GraphicsPlatform.Direct3D12, "Explicit layouts.");
 
             using var texture = Texture.New2D(device, 16, 16, PixelFormat.R8G8B8A8_UNorm, TextureFlags.ShaderResource | TextureFlags.RenderTarget);
             using var commandList = CommandList.New(device);
