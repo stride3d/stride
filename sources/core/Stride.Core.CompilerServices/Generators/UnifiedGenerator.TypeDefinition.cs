@@ -2,7 +2,7 @@ using Stride.Core.CompilerServices.Common;
 
 namespace Stride.Core.CompilerServices.Generators;
 
-internal partial class UnifiedGenerator
+public partial class UnifiedGenerator
 {
     private sealed record TypeDefinition(string Name, BaseDefinition? Parent, EquatableArray<string> GenericParameters) : BaseDefinition
     {

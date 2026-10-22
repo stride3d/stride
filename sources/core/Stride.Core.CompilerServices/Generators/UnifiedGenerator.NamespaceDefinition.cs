@@ -1,6 +1,6 @@
 namespace Stride.Core.CompilerServices.Generators;
 
-internal partial class UnifiedGenerator
+public partial class UnifiedGenerator
 {
     private sealed record NamespaceDefinition(string Name, BaseDefinition? Parent) : BaseDefinition
     {

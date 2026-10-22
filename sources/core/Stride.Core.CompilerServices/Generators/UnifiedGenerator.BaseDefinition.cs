@@ -2,7 +2,7 @@ using Microsoft.CodeAnalysis.CSharp;
 
 namespace Stride.Core.CompilerServices.Generators;
 
-internal partial class UnifiedGenerator
+public partial class UnifiedGenerator
 {
     private abstract record BaseDefinition
     {

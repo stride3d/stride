@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Stride.Core.CompilerServices.Generators;
 
-internal partial class UnifiedGenerator
+public partial class UnifiedGenerator
 {
     private sealed record AssemblyDefinition(string Name) : BaseDefinition
     {
