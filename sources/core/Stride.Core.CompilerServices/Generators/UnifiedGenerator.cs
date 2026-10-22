@@ -9,7 +9,7 @@ namespace Stride.Core.CompilerServices.Generators;
 [Generator]
 internal sealed partial class UnifiedGenerator : IIncrementalGenerator
 {
-    private const int ModuleInitializerOrderForAssemblyScanResults = -1000;
+    private const int ModuleInitializerOrderForAssemblyScanResults = -10000;
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
