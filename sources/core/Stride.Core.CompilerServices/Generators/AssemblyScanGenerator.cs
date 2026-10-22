@@ -21,6 +21,9 @@ internal class AssemblyScanGenerator : IIncrementalGenerator
                 if (!HasAssemblyScanAttribute(type))
                 {
                 }
+                else if (!compilation.IsSymbolAccessibleWithinThisAssembly(type))
+                {
+                }
                 else if (type.TypeKind == TypeKind.Interface)
                 {
                     assemblyScanInterfaceTypes.Add(type);
@@ -43,8 +46,13 @@ internal class AssemblyScanGenerator : IIncrementalGenerator
 
         var sourceInterfaceProvider = context.SyntaxProvider.ForAttributeWithMetadataName(WellKnownReferences.AssemblyScanAttributeName, (node, _) => node is InterfaceDeclarationSyntax, (context, _) =>
         {
-            return TypeDefinition.FromSymbol((INamedTypeSymbol)context.TargetSymbol);
-        }).Collect();
+            var type = (INamedTypeSymbol)context.TargetSymbol;
+
+            if (!context.SemanticModel.Compilation.IsSymbolAccessibleWithinThisAssembly(type))
+                return null;
+
+            return TypeDefinition.FromSymbol(type);
+        }).WhereNotNull().Collect();
 
         var sourceClassProvider = context.SyntaxProvider.ForAttributeWithMetadataName(WellKnownReferences.AssemblyScanAttributeName, (node, _) => node is ClassDeclarationSyntax or RecordDeclarationSyntax, (context, _) =>
         {
@@ -52,6 +60,9 @@ internal class AssemblyScanGenerator : IIncrementalGenerator
                 return null;
 
             if (InheritsFromSystemAttribute(type))
+                return null;
+
+            if (!context.SemanticModel.Compilation.IsSymbolAccessibleWithinThisAssembly(type))
                 return null;
 
             return TypeDefinition.FromSymbol(type);
@@ -63,6 +74,9 @@ internal class AssemblyScanGenerator : IIncrementalGenerator
                 return null;
 
             if (!InheritsFromSystemAttribute(type))
+                return null;
+
+            if (!context.SemanticModel.Compilation.IsSymbolAccessibleWithinThisAssembly(type))
                 return null;
 
             return TypeDefinition.FromSymbol(type);
@@ -91,7 +105,7 @@ internal class AssemblyScanGenerator : IIncrementalGenerator
                 return null;
 
             // Exclude private nested types in this assembly, as they cannot be accessed from our generated code.
-            if (!context.SemanticModel.Compilation.IsSymbolAccessibleWithin(symbol, context.SemanticModel.Compilation.Assembly))
+            if (!context.SemanticModel.Compilation.IsSymbolAccessibleWithinThisAssembly(symbol))
                 return null;
 
             var thisType = TypeDefinition.FromSymbol(symbol);
