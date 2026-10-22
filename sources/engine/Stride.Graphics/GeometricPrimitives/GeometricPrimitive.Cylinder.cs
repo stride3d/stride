@@ -107,7 +107,7 @@ namespace Stride.Graphics.GeometricPrimitives
             /// <param name="tessellation">The tessellation.</param>
             /// <param name="uScale">Scale U coordinates between 0 and the values of this parameter.</param>
             /// <param name="vScale">Scale V coordinates 0 and the values of this parameter.</param>
-            /// <param name="toLeftHanded">if set to <c>true</c> vertices and indices will be transformed to left handed. Default is false.</param>
+            /// <param name="toLeftHanded">if set to <c>true</c> vertices and indices will be transformed to left handed.</param>
             /// <returns>A cylinder primitive.</returns>
             /// <exception cref="System.ArgumentOutOfRangeException">tessellation;tessellation must be &gt;= 3</exception>
             public static GeometricPrimitive New(GraphicsDevice device, float height, float radius, int tessellation, float uScale, float vScale, bool toLeftHanded)
@@ -141,7 +141,7 @@ namespace Stride.Graphics.GeometricPrimitives
             /// <param name="tessellation">The tessellation.</param>
             /// <param name="uScale">Scale U coordinates between 0 and the values of this parameter.</param>
             /// <param name="vScale">Scale V coordinates 0 and the values of this parameter.</param>
-            /// <param name="toLeftHanded">if set to <c>true</c> vertices and indices will be transformed to left handed. Default is false.</param>
+            /// <param name="toLeftHanded">if set to <c>true</c> vertices and indices will be transformed to left handed.</param>
             /// <returns>A cylinder primitive.</returns>
             /// <exception cref="System.ArgumentOutOfRangeException">tessellation;tessellation must be &gt;= 3</exception>
             public static GeometricMeshData<VertexPositionNormalTexture> New(float height, float radius, int tessellation, float uScale, float vScale, bool toLeftHanded)

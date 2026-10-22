@@ -104,7 +104,7 @@ namespace Stride.Graphics.GeometricPrimitives
             /// <param name="size">The size.</param>
             /// <param name="uScale">Scale U coordinates between 0 and the values of this parameter.</param>
             /// <param name="vScale">Scale V coordinates 0 and the values of this parameter.</param>
-            /// <param name="toLeftHanded">if set to <c>true</c> vertices and indices will be transformed to left handed. Default is false.</param>
+            /// <param name="toLeftHanded">if set to <c>true</c> vertices and indices will be transformed to left handed.</param>
             /// <returns>A cube.</returns>
             public static GeometricPrimitive New(GraphicsDevice device, float size, float uScale, float vScale, bool toLeftHanded)
             {
@@ -134,7 +134,7 @@ namespace Stride.Graphics.GeometricPrimitives
             /// <param name="size">The size.</param>
             /// <param name="uScale">Scale U coordinates between 0 and the values of this parameter.</param>
             /// <param name="vScale">Scale V coordinates 0 and the values of this parameter.</param>
-            /// <param name="toLeftHanded">if set to <c>true</c> vertices and indices will be transformed to left handed. Default is false.</param>
+            /// <param name="toLeftHanded">if set to <c>true</c> vertices and indices will be transformed to left handed.</param>
             /// <returns>A cube.</returns>
             public static GeometricPrimitive New(GraphicsDevice device, Vector3 size, float uScale, float vScale, bool toLeftHanded)
             {
@@ -163,7 +163,7 @@ namespace Stride.Graphics.GeometricPrimitives
             /// <param name="size">The size.</param>
             /// <param name="uScale">Scale U coordinates between 0 and the values of this parameter.</param>
             /// <param name="vScale">Scale V coordinates 0 and the values of this parameter.</param>
-            /// <param name="toLeftHanded">if set to <c>true</c> vertices and indices will be transformed to left handed. Default is false.</param>
+            /// <param name="toLeftHanded">if set to <c>true</c> vertices and indices will be transformed to left handed.</param>
             /// <returns>A cube.</returns>
             public static GeometricMeshData<VertexPositionNormalTexture> New(float size, float uScale, float vScale, bool toLeftHanded)
             {
@@ -190,7 +190,7 @@ namespace Stride.Graphics.GeometricPrimitives
             /// <param name="size">The size.</param>
             /// <param name="uScale">Scale U coordinates between 0 and the values of this parameter.</param>
             /// <param name="vScale">Scale V coordinates 0 and the values of this parameter.</param>
-            /// <param name="toLeftHanded">if set to <c>true</c> vertices and indices will be transformed to left handed. Default is false.</param>
+            /// <param name="toLeftHanded">if set to <c>true</c> vertices and indices will be transformed to left handed.</param>
             /// <returns>A cube.</returns>
             public static GeometricMeshData<VertexPositionNormalTexture> New(Vector3 size, float uScale, float vScale, bool toLeftHanded)
             {
