@@ -8,7 +8,7 @@ using Stride.Core.CompilerServices.Common;
 namespace Stride.Core.CompilerServices.Generators;
 
 [Generator]
-internal class AssemblyScanGenerator : IIncrementalGenerator
+internal class UnifiedGenerator : IIncrementalGenerator
 {
     private const int ModuleInitializerOrderForAssemblyScanResults = -1000;
 
