@@ -66,6 +66,9 @@ public record HeightfieldTexture : HeightfieldTextureSharedData, IHeightfieldLay
         using (var textureTool = new TextureTool())
         using (var texImage = textureTool.Load(baseImage, baseImage.Description.Format.IsSRgb))
         {
+            if (texImage.Format.IsCompressed)
+                textureTool.Decompress(texImage, texImage.Format.IsSRgb);
+
             switch (texImage.Format)
             {
                 case PixelFormat.R32_Float:

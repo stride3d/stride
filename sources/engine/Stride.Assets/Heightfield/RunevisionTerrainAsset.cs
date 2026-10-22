@@ -251,6 +251,8 @@ public sealed class RunevisionTerrainAsset : Asset
                 using (var textureTool = new TextureTool())
                 using (var texImage = textureTool.Load(baseImage, baseImage.Description.Format.IsSRgb))
                 {
+                    if (texImage.Format.IsCompressed)
+                        textureTool.Decompress(texImage, texImage.Format.IsSRgb);
                     textureTool.Convert(texImage, PixelFormat.R32_Float);
 
                     using (var image = textureTool.ConvertToStrideImage(texImage))
