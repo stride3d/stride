@@ -3,12 +3,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Compiler;
 using Stride.Core.BuildEngine;
 using Stride.Core.Mathematics;
+using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
 using Stride.Core.Threading;
 using Stride.Graphics;
@@ -46,6 +48,28 @@ internal class RunevisionTerrainAssetCompiler : AssetCompilerBase
         public RunevisionTerrainCompileCommand(string url, RunevisionTerrainAsset parameters, IAssetFinder assetFinder)
             : base(url, parameters, assetFinder)
         {
+        }
+
+        protected override void ComputeParameterHash(BinarySerializationWriter writer)
+        {
+            base.ComputeParameterHash(writer);
+            foreach (var inputFile in Parameters.HeightInput.GetInputFiles())
+            {
+                var linkedAsset = AssetFinder.FindAsset(inputFile.Path);
+                if (linkedAsset?.Asset != null)
+                {
+                    var lastModified = linkedAsset.ModifiedTime;
+                    // Actual TextureAssets don't update ModifiedTime when the texture at the url changes
+                    if (linkedAsset.Asset.MainSource is { } sourceUrl)
+                    {
+                        var assetFullPath = sourceUrl.ToOSPath();
+                        var fileModified = File.GetLastWriteTime(assetFullPath);
+                        if (lastModified < fileModified)
+                            lastModified = fileModified;
+                    }
+                    writer.Serialize(ref lastModified, ArchiveMode.Serialize);
+                }
+            }
         }
 
         protected override async Task<ResultStatus> DoCommandOverride(ICommandContext commandContext)

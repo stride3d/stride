@@ -228,13 +228,13 @@ public sealed class RunevisionTerrainAsset : Asset
         public float DefaultHeight = 0.45f;
         public float Tiling = 1f;
         public float HeightMultiplier = 1f;
-        public required UrlReference<Texture> Texture;
+        public required Texture Texture;
 
         /// <inheritdoc/>
         public IEnumerable<ObjectUrl> GetInputFiles()
         {
-            if (Texture != null! && Texture.IsEmpty == false)
-                yield return new ObjectUrl(UrlType.Content, Texture.Url);
+            if (Texture != null!)
+                yield return new ObjectUrl(UrlType.Content, AttachedReferenceManager.GetUrl(Texture) ?? throw new NullReferenceException());
         }
 
         /// <inheritdoc/>
@@ -242,10 +242,11 @@ public sealed class RunevisionTerrainAsset : Asset
         {
             float[] heights;
             Int2 texResolution;
-            if (Texture?.IsEmpty == false)
+            if (Texture is not null)
             {
                 var content = new ContentManager(MicrothreadLocalDatabases.ProviderService);
-                var loadedTexture = content.Load<Texture>(Texture.Url, ContentManagerLoaderSettings.StreamingDisabled);
+                var url = AttachedReferenceManager.GetUrl(Texture) ?? throw new NullReferenceException();
+                var loadedTexture = content.Load<Texture>(url, ContentManagerLoaderSettings.StreamingDisabled);
                 var baseImage = loadedTexture.GetSerializationData().Image;
 
                 using (var textureTool = new TextureTool())
