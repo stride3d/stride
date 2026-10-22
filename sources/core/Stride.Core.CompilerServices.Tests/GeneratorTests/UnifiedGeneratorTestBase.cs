@@ -7,11 +7,11 @@ using Stride.Core.Reflection;
 
 namespace Stride.Core.CompilerServices.Tests.GeneratorTests;
 
-public abstract class GeneratorTestBase
+public abstract class UnifiedGeneratorTestBase
 {
     protected CSharpSourceGeneratorTest<UnifiedGenerator, DefaultVerifier> Context { get; }
 
-    public GeneratorTestBase()
+    public UnifiedGeneratorTestBase()
     {
         Context = new()
         {

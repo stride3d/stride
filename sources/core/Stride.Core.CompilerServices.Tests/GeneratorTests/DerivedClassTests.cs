@@ -2,7 +2,7 @@ using Xunit;
 
 namespace Stride.Core.CompilerServices.Tests.GeneratorTests;
 
-public class DerivedClassTests : GeneratorTestBase
+public class DerivedClassTests : UnifiedGeneratorTestBase
 {
     [Fact]
     public async Task ScanningForBaseClass()
