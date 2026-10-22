@@ -10,6 +10,8 @@ namespace Stride.Core.CompilerServices.Generators;
 [Generator]
 internal class AssemblyScanGenerator : IIncrementalGenerator
 {
+    private const int ModuleInitializerOrderForAssemblyScanResults = -1000;
+
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         var referenceDataProvider = context.CompilationProvider.Select((compilation, _) =>
@@ -209,7 +211,7 @@ internal class AssemblyScanGenerator : IIncrementalGenerator
 
         var code = new StringBuilder();
         var allModuleInitializers = hasAssemblyScanResults
-            ? moduleInitializers.Append(new OrderedModuleInitializerMethod(0, "global::Stride.Core.Serialization.AssemblyScan.AssemblyScanResults.Initialize"))
+            ? moduleInitializers.Append(new OrderedModuleInitializerMethod(ModuleInitializerOrderForAssemblyScanResults, "global::Stride.Core.Serialization.AssemblyScan.AssemblyScanResults.Initialize"))
             : moduleInitializers;
         foreach (var method in allModuleInitializers.OrderBy(x => x.Order))
         {
