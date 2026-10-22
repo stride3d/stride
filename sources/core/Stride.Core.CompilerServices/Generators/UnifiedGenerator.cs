@@ -13,7 +13,7 @@ internal sealed partial class UnifiedGenerator : IIncrementalGenerator
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        var referenceDataProvider = context.CompilationProvider.Select((compilation, _) =>
+        var referenceDataProvider = context.CompilationProvider.Select((compilation, cancellationToken) =>
         {
             List<INamedTypeSymbol> assemblyScanAttributes = [];
             List<INamedTypeSymbol> assemblyScanBaseTypes = [];
@@ -21,6 +21,7 @@ internal sealed partial class UnifiedGenerator : IIncrementalGenerator
 
             foreach (var module in compilation.GetAllReferencedModules())
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 if (module.Name != "Stride.Core" && !module.ReferencedAssemblies.Any(i => i.Name == "Stride.Core"))
                 {
                     continue;
@@ -120,7 +121,9 @@ internal sealed partial class UnifiedGenerator : IIncrementalGenerator
 
             var thisType = TypeDefinition.FromSymbol(symbol);
             var interfaces = symbol.TypeKind == TypeKind.Interface ? [] : symbol.AllInterfaces.Select(i => TypeDefinition.FromSymbol(i.OriginalDefinition)).ToArray();
+            cancellationToken.ThrowIfCancellationRequested();
             var baseTypes = symbol.TypeKind == TypeKind.Interface ? [] : symbol.GetAllBaseTypesAscending().Select(t => TypeDefinition.FromSymbol(t.OriginalDefinition)).ToArray();
+            cancellationToken.ThrowIfCancellationRequested();
             var attributes = GetAllAttributeTypes(symbol).Select(TypeDefinition.FromSymbol).Distinct().ToArray();
 
             return interfaces.Length != 0 || baseTypes.Length != 0 || attributes.Length != 0
@@ -128,7 +131,7 @@ internal sealed partial class UnifiedGenerator : IIncrementalGenerator
                 : null;
         }).WhereNotNull();
 
-        var scanResultsProvider = typeDataProvider.Combine(scanTargetDataProvider).SelectMany((pair, _) =>
+        var scanResultsProvider = typeDataProvider.Combine(scanTargetDataProvider).SelectMany((pair, cancellationToken) =>
         {
             var (typeData, scanTargetData) = pair;
             List<(string ScanType, string ThisType)>? results = null;
@@ -140,6 +143,7 @@ internal sealed partial class UnifiedGenerator : IIncrementalGenerator
                     results.Add((@interface.UnboundFullName, typeData.ThisType.UnboundFullName));
                 }
             }
+            cancellationToken.ThrowIfCancellationRequested();
             if (scanTargetData.BaseTypes.Contains(typeData.ThisType))
             {
                 results ??= [];
@@ -153,6 +157,7 @@ internal sealed partial class UnifiedGenerator : IIncrementalGenerator
                     results.Add((baseType.UnboundFullName, typeData.ThisType.UnboundFullName));
                 }
             }
+            cancellationToken.ThrowIfCancellationRequested();
             foreach (var attribute in typeData.Attributes)
             {
                 if (scanTargetData.Attributes.Contains(attribute))
