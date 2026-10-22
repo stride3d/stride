@@ -488,6 +488,8 @@ namespace Stride.Graphics
                 // at Common and the first runtime enhanced Barrier will transition it from there.
                 LayoutTracker.Initialize(needsInitCL ? desiredLayout : BarrierLayout.Common,
                                          ArraySize * MipLevelCount);
+                // A new resource: what the submissions left applies to the previous one
+                SubmittedLayouts = null;
             }
 
             //
