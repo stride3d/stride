@@ -20,6 +20,28 @@ internal readonly record struct RecordedTransition(GraphicsResource Resource, ui
 internal static class SubmittedLayoutReplay
 {
     /// <summary>
+    ///   Records the layouts a command list assumes on its first touch of a Texture, as changes to the same layout, so that
+    ///   submission corrects them even when the command list then needs no barrier.
+    /// </summary>
+    public static void RecordAssumed(List<RecordedTransition> transitions, GraphicsResource resource, in SubresourceLayoutTracker tracker)
+    {
+        if (tracker.TryGetCommonLayout(out var common))
+        {
+            // Undefined is met by any layout
+            if (common != BarrierLayout.Undefined)
+                transitions.Add(new RecordedTransition(resource, uint.MaxValue, common, common));
+            return;
+        }
+
+        for (uint subresource = 0; subresource < tracker.SubresourceCount; subresource++)
+        {
+            var layout = tracker.Get(subresource);
+            if (layout != BarrierLayout.Undefined)
+                transitions.Add(new RecordedTransition(resource, subresource, layout, layout));
+        }
+    }
+
+    /// <summary>
     ///   Replays the layout changes a command list recorded on the layouts the earlier submissions left, and adds to
     ///   <paramref name="corrections"/> a barrier for each subresource it found in another layout than the one it assumed.
     ///   Called under the queue lock, in submission order.

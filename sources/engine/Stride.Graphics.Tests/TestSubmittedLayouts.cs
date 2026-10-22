@@ -70,6 +70,38 @@ public class TestSubmittedLayouts : GraphicTestGameBase
     }
 
     /// <summary>
+    /// A command list whose first touch needs no barrier (the texture is already in the layout it asks for) still gets
+    /// corrected: the layout it assumes is recorded on first touch. The common case with parallel recording.
+    /// </summary>
+    [SkippableFact]
+    public void FirstTouchWithoutBarrierIsCorrected()
+    {
+        PerformTest(game =>
+        {
+            var device = game.GraphicsDevice;
+            Skip.IfNot(GraphicsDevice.Platform is GraphicsPlatform.Vulkan or GraphicsPlatform.Direct3D12, "Explicit layouts.");
+
+            using var texture = Texture.New2D(device, 16, 16, PixelFormat.R8G8B8A8_UNorm, TextureFlags.ShaderResource | TextureFlags.RenderTarget);
+            using var setup = CommandList.New(device);
+            using var first = CommandList.New(device);
+            using var second = CommandList.New(device);
+
+            setup.ResourceBarrierTransition(texture, BarrierLayout.ShaderResource);
+            device.ExecuteCommandList(setup.Close());
+
+            first.ResourceBarrierTransition(texture, BarrierLayout.RenderTarget);
+            // Already RenderTarget for this command list: no barrier recorded, but submitted first it finds ShaderResource
+            second.ResourceBarrierTransition(texture, BarrierLayout.RenderTarget);
+
+            device.ExecuteCommandList(second.Close());
+            Assert.Equal(BarrierLayout.RenderTarget, texture.SubmittedLayouts[0]);
+
+            device.ExecuteCommandList(first.Close());
+            Assert.Equal(BarrierLayout.RenderTarget, texture.SubmittedLayouts[0]);
+        });
+    }
+
+    /// <summary>
     /// A texture whose native resource is recreated starts from the new one's layout, not from what was submitted for the old one.
     /// </summary>
     [SkippableFact]

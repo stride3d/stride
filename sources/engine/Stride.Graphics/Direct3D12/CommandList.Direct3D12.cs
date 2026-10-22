@@ -573,8 +573,13 @@ namespace Stride.Graphics
             // Seed CL-local tracker from shared on first touch; Clone to avoid aliasing its
             // perSubresource array.
             ref var tracker = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cbLayouts, resource, out bool exists);
+            bool recordTransitions = resource is Texture && !resource.IsHostVisibleHeap;
             if (!exists)
+            {
                 tracker = resource.LayoutTracker.Clone();
+                if (recordTransitions)
+                    SubmittedLayoutReplay.RecordAssumed(currentCommandList.RecordedTransitions, resource, tracker);
+            }
 
             barrierTransitions.Clear();
             if (viewRange is { } range)
@@ -597,7 +602,6 @@ namespace Stride.Graphics
                 }
             }
 
-            bool recordTransitions = resource is Texture && !resource.IsHostVisibleHeap;
             foreach (var transition in barrierTransitions)
             {
                 pendingBarriers.Add(new ResourceBarrierDescription(resource, transition.LayoutBefore, newLayout)

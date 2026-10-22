@@ -774,7 +774,10 @@ namespace Stride.Graphics
         {
             ref var tracker = ref CollectionsMarshal.GetValueRefOrAddDefault(currentCbLayouts, texture, out bool exists);
             if (!exists)
+            {
                 tracker = texture.LayoutTracker.Clone();
+                SubmittedLayoutReplay.RecordAssumed(currentCommandList.RecordedTransitions, texture, tracker);
+            }
             return ref tracker;
         }
 
