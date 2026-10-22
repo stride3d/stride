@@ -7,8 +7,6 @@
     <StridePackageKind>Editor</StridePackageKind>
     <!-- The views of the WPF Game Studio; Stride.Audio.Editor (toolkit-neutral) declares this package as its companion -->
     <StrideEditorToolkit>Wpf</StrideEditorToolkit>
-    <!-- Indexes the [AssemblyScan] types (the preview views) the plugin registers -->
-    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
