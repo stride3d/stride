@@ -159,5 +159,7 @@
   <ItemGroup>
     <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="5.3.0" PrivateAssets="all" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="5.3.0" PrivateAssets="all" />
+    <!-- Compiler of the AssemblyProcessor (pinned so its committed binaries are reproducible) -->
+    <PackageVersion Include="Microsoft.Net.Compilers.Toolset" Version="5.3.0" />
   </ItemGroup>
 </Project>
