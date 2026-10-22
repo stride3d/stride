@@ -63,9 +63,9 @@ internal static class SymbolExtensions
         return false;
     }
 
-    public static IEnumerable<INamedTypeSymbol> GetAllTypes(this IAssemblySymbol assembly)
+    public static IEnumerable<INamedTypeSymbol> GetAllTypes(this IModuleSymbol module)
     {
-        var globalNamespace = assembly.GlobalNamespace;
+        var globalNamespace = module.GlobalNamespace;
         if (globalNamespace is not null)
         {
             foreach (var type in globalNamespace.GetAllTypes())

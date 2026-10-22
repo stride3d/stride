@@ -19,25 +19,32 @@ internal sealed partial class UnifiedGenerator : IIncrementalGenerator
             List<INamedTypeSymbol> assemblyScanBaseTypes = [];
             List<INamedTypeSymbol> assemblyScanInterfaceTypes = [];
 
-            foreach (var type in compilation.GetAllTypesInReferences())
+            foreach (var module in compilation.GetAllReferencedModules())
             {
-                if (!HasAssemblyScanAttribute(type))
+                if (module.Name != "Stride.Core" && !module.ReferencedAssemblies.Any(i => i.Name == "Stride.Core"))
                 {
+                    continue;
                 }
-                else if (!compilation.IsSymbolAccessibleWithinThisAssembly(type))
+                foreach (var type in module.GetAllTypes())
                 {
-                }
-                else if (type.TypeKind == TypeKind.Interface)
-                {
-                    assemblyScanInterfaceTypes.Add(type);
-                }
-                else if (type.InheritsFromSystemAttribute())
-                {
-                    assemblyScanAttributes.Add(type);
-                }
-                else if (!type.IsSealed)
-                {
-                    assemblyScanBaseTypes.Add(type);
+                    if (!HasAssemblyScanAttribute(type))
+                    {
+                    }
+                    else if (!compilation.IsSymbolAccessibleWithinThisAssembly(type))
+                    {
+                    }
+                    else if (type.TypeKind == TypeKind.Interface)
+                    {
+                        assemblyScanInterfaceTypes.Add(type);
+                    }
+                    else if (type.InheritsFromSystemAttribute())
+                    {
+                        assemblyScanAttributes.Add(type);
+                    }
+                    else if (!type.IsSealed)
+                    {
+                        assemblyScanBaseTypes.Add(type);
+                    }
                 }
             }
             return new ScanTargetData(
