@@ -105,7 +105,7 @@ internal sealed partial class UnifiedGenerator : IIncrementalGenerator
 
         var typeDataProvider = context.SyntaxProvider.CreateSyntaxProvider((node, _) =>
         {
-            return node is BaseTypeDeclarationSyntax;
+            return node is BaseTypeDeclarationSyntax and not InterfaceDeclarationSyntax;
         },
         (context, cancellationToken) =>
         {
@@ -120,9 +120,9 @@ internal sealed partial class UnifiedGenerator : IIncrementalGenerator
                 return null;
 
             var thisType = TypeDefinition.FromSymbol(symbol);
-            var interfaces = symbol.TypeKind == TypeKind.Interface ? [] : symbol.AllInterfaces.Select(i => TypeDefinition.FromSymbol(i.OriginalDefinition)).ToArray();
+            var interfaces = symbol.AllInterfaces.Select(i => TypeDefinition.FromSymbol(i.OriginalDefinition)).ToArray();
             cancellationToken.ThrowIfCancellationRequested();
-            var baseTypes = symbol.TypeKind == TypeKind.Interface ? [] : symbol.GetAllBaseTypesAscending().Select(t => TypeDefinition.FromSymbol(t.OriginalDefinition)).ToArray();
+            var baseTypes = symbol.GetAllBaseTypesAscending().Select(t => TypeDefinition.FromSymbol(t.OriginalDefinition)).ToArray();
             cancellationToken.ThrowIfCancellationRequested();
             var attributes = GetAllAttributeTypes(symbol).Select(TypeDefinition.FromSymbol).Distinct().ToArray();
 
