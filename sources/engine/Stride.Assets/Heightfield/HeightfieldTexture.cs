@@ -341,7 +341,8 @@ public record HeightfieldTexture : HeightfieldTextureSharedData, IHeightfieldLay
                     int y0 = TWrapper.Wrap((int)cellCoord.Y, Mask.Y);
                     var index = x0 + y0 * (Mask.X + 1);
 
-                    Debug.Assert(index < Heights.Length);
+                    Debug.Assert(index < Heights.Length / sizeof(T));
+                    Debug.Assert(index >= 0);
 
                     sample.Height = TConverter.ToFloat(tPtr[index]);
                 }
@@ -371,10 +372,18 @@ public record HeightfieldTexture : HeightfieldTextureSharedData, IHeightfieldLay
 
                     int x0 = TWrapper.Wrap((int)cellCorner.X, Mask.X);
                     int y0 = TWrapper.Wrap((int)cellCorner.Y, Mask.Y);
-                    int x1 = TWrapper.Wrap(x0 + 1, Mask.X);
-                    int y1 = TWrapper.Wrap(y0 + 1, Mask.Y);
+                    int x1 = (x0 + 1) & Mask.X;
+                    int y1 = (y0 + 1) & Mask.Y;
 
-                    Debug.Assert(x0 + y0 < Heights.Length && x0 + y1 < Heights.Length && x1 + y0 < Heights.Length && x1 + y1 < Heights.Length);
+                    Debug.Assert(x0 + y0 < Heights.Length / sizeof(T));
+                    Debug.Assert(x0 + y1 < Heights.Length / sizeof(T));
+                    Debug.Assert(x1 + y0 < Heights.Length / sizeof(T));
+                    Debug.Assert(x1 + y1 < Heights.Length / sizeof(T));
+
+                    Debug.Assert(x0 + y0 >= 0);
+                    Debug.Assert(x0 + y1 >= 0);
+                    Debug.Assert(x1 + y0 >= 0);
+                    Debug.Assert(x1 + y1 >= 0);
 
                     var r = Mask.X + 1;
                     y0 *= r;
