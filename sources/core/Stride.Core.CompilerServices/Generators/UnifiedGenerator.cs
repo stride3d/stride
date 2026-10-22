@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -8,7 +7,7 @@ using Stride.Core.CompilerServices.Common;
 namespace Stride.Core.CompilerServices.Generators;
 
 [Generator]
-internal class UnifiedGenerator : IIncrementalGenerator
+internal sealed partial class UnifiedGenerator : IIncrementalGenerator
 {
     private const int ModuleInitializerOrderForAssemblyScanResults = -1000;
 
@@ -32,7 +31,7 @@ internal class UnifiedGenerator : IIncrementalGenerator
                 {
                     assemblyScanInterfaceTypes.Add(type);
                 }
-                else if (InheritsFromSystemAttribute(type))
+                else if (type.InheritsFromSystemAttribute())
                 {
                     assemblyScanAttributes.Add(type);
                 }
@@ -63,7 +62,7 @@ internal class UnifiedGenerator : IIncrementalGenerator
             if (context.TargetSymbol is not INamedTypeSymbol type || type.IsSealed)
                 return null;
 
-            if (InheritsFromSystemAttribute(type))
+            if (type.InheritsFromSystemAttribute())
                 return null;
 
             if (!context.SemanticModel.Compilation.IsSymbolAccessibleWithinThisAssembly(type))
@@ -77,7 +76,7 @@ internal class UnifiedGenerator : IIncrementalGenerator
             if (context.TargetSymbol is not INamedTypeSymbol type)
                 return null;
 
-            if (!InheritsFromSystemAttribute(type))
+            if (!type.InheritsFromSystemAttribute())
                 return null;
 
             if (!context.SemanticModel.Compilation.IsSymbolAccessibleWithinThisAssembly(type))
@@ -299,17 +298,6 @@ internal class UnifiedGenerator : IIncrementalGenerator
             """;
     }
 
-    private static bool InheritsFromSystemAttribute(INamedTypeSymbol type)
-    {
-        while (type.BaseType is not null)
-        {
-            if (type.BaseType is { Name: "Attribute", ContainingNamespace: { Name: "System", ContainingNamespace: null or { IsGlobalNamespace: true } } })
-                return true;
-            type = type.BaseType;
-        }
-        return false;
-    }
-
     private static IEnumerable<INamedTypeSymbol> GetAllAttributeTypes(INamedTypeSymbol type)
     {
         foreach (var attribute in type.GetAttributes())
@@ -389,117 +377,5 @@ internal class UnifiedGenerator : IIncrementalGenerator
                 return true;
         }
         return false;
-    }
-
-    private sealed record TypeData(
-        TypeDefinition ThisType,
-        EquatableArray<TypeDefinition> Interfaces,
-        EquatableArray<TypeDefinition> BaseTypes,
-        EquatableArray<TypeDefinition> Attributes);
-
-    private sealed record ScanTargetData(
-        EquatableSet<TypeDefinition> Attributes,
-        EquatableSet<TypeDefinition> BaseTypes,
-        EquatableSet<TypeDefinition> InterfaceTypes)
-    {
-    }
-
-    private abstract record BaseDefinition
-    {
-        public abstract string FullName { get; }
-    }
-    private sealed record AssemblyDefinition(string Name) : BaseDefinition
-    {
-        public override string FullName => Name;
-
-        [return: NotNullIfNotNull(nameof(symbol))]
-        public static AssemblyDefinition? FromSymbol(IAssemblySymbol? symbol)
-        {
-            if (symbol is null)
-                return null;
-            return new AssemblyDefinition(symbol.Name);
-        }
-    }
-    private sealed record NamespaceDefinition(string Name, BaseDefinition? Parent) : BaseDefinition
-    {
-        public override string FullName
-        {
-            get
-            {
-                return field ??= Parent is NamespaceDefinition ? $"{Parent.FullName}.{Name}" : Name;
-            }
-        }
-
-        public static NamespaceDefinition FromSymbol(INamespaceSymbol symbol)
-        {
-            BaseDefinition? parent;
-            if (symbol.ContainingNamespace is not null && !symbol.ContainingNamespace.IsGlobalNamespace)
-            {
-                parent = FromSymbol(symbol.ContainingNamespace);
-            }
-            else
-            {
-                parent = AssemblyDefinition.FromSymbol(symbol.ContainingAssembly);
-            }
-            return new NamespaceDefinition(symbol.Name, parent);
-        }
-    }
-    private sealed record TypeDefinition(string Name, BaseDefinition? Parent, EquatableArray<string> GenericParameters) : BaseDefinition
-    {
-        public TypeDefinition(string Name, BaseDefinition? Parent) : this(Name, Parent, EquatableArray<string>.Empty)
-        {
-        }
-
-        public override string FullName
-        {
-            get
-            {
-                if (field is null)
-                {
-                    var genericParameters = GenericParameters.Count > 0 ? $"<{string.Join(", ", GenericParameters)}>" : "";
-                    field = Parent is NamespaceDefinition or TypeDefinition ? $"{Parent.FullName}.{Name}{genericParameters}" : $"{Name}{genericParameters}";
-                }
-                return field;
-            }
-        }
-
-        public string UnboundFullName
-        {
-            get
-            {
-                if (field is null)
-                {
-                    var genericParameters = GenericParameters.Count > 0 ? $"<{new string(',', GenericParameters.Count - 1)}>" : "";
-                    if (Parent is NamespaceDefinition)
-                    {
-                        field = $"{Parent.FullName}.{Name}{genericParameters}";
-                    }
-                    else if (Parent is TypeDefinition declaringType)
-                    {
-                        field = $"{declaringType.UnboundFullName}.{Name}{genericParameters}";
-                    }
-                    else
-                    {
-                        field = $"{Name}{genericParameters}";
-                    }
-                }
-                return field;
-            }
-        }
-
-        public static TypeDefinition FromSymbol(INamedTypeSymbol symbol)
-        {
-            var genericParameters = symbol.TypeParameters.Select(tp => tp.Name).ToArray();
-            BaseDefinition? parent = null;
-            if (symbol.ContainingType is not null)
-            {
-                parent = FromSymbol(symbol.ContainingType);
-            }
-            else if (symbol.ContainingNamespace is not null && !symbol.ContainingNamespace.IsGlobalNamespace)
-            {
-                parent = NamespaceDefinition.FromSymbol(symbol.ContainingNamespace);
-            }
-            return new TypeDefinition(symbol.Name, parent, genericParameters);
-        }
     }
 }

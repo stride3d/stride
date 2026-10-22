@@ -125,4 +125,15 @@ internal static class SymbolExtensions
         }
         return stack;
     }
+
+    public static bool InheritsFromSystemAttribute(this INamedTypeSymbol type)
+    {
+        while (type.BaseType is not null)
+        {
+            if (type.BaseType is { Name: "Attribute", ContainingNamespace: { Name: "System", ContainingNamespace: null or { IsGlobalNamespace: true } } })
+                return true;
+            type = type.BaseType;
+        }
+        return false;
+    }
 }

@@ -1,0 +1,29 @@
+namespace Stride.Core.CompilerServices.Generators;
+
+internal partial class UnifiedGenerator
+{
+    private sealed record NamespaceDefinition(string Name, BaseDefinition? Parent) : BaseDefinition
+    {
+        public override string FullName
+        {
+            get
+            {
+                return field ??= Parent is NamespaceDefinition ? $"{Parent.FullName}.{Name}" : Name;
+            }
+        }
+
+        public static NamespaceDefinition FromSymbol(INamespaceSymbol symbol)
+        {
+            BaseDefinition? parent;
+            if (symbol.ContainingNamespace is not null && !symbol.ContainingNamespace.IsGlobalNamespace)
+            {
+                parent = FromSymbol(symbol.ContainingNamespace);
+            }
+            else
+            {
+                parent = AssemblyDefinition.FromSymbol(symbol.ContainingAssembly);
+            }
+            return new NamespaceDefinition(symbol.Name, parent);
+        }
+    }
+}
