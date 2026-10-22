@@ -992,6 +992,14 @@ namespace Stride.Graphics
 
                 if (depth > 1)
                     depth >>= 1;
+
+                if (metadata.Format.IsCompressed)
+                {
+                    var blockWidth = metadata.Format.BlockWidth;
+                    var blockHeight = metadata.Format.BlockHeight;
+                    width = (width + blockWidth - 1) / blockWidth * blockWidth;
+                    height = (height + blockHeight - 1) / blockHeight * blockHeight;
+                }
             }
             return mipmaps;
         }
@@ -1049,6 +1057,14 @@ namespace Stride.Graphics
 
                     if (d > 1)
                         d >>= 1;
+
+                    if (imageDesc.Format.IsCompressed)
+                    {
+                        var blockWidth = imageDesc.Format.BlockWidth;
+                        var blockHeight = imageDesc.Format.BlockHeight;
+                        w = (w + blockWidth - 1) / blockWidth * blockWidth;
+                        h = (h + blockHeight - 1) / blockHeight * blockHeight;
+                    }
                 }
 
                 // For the last mipmaps, store just the number of zbuffers in total
@@ -1114,6 +1130,14 @@ namespace Stride.Graphics
 
                     if (d > 1)
                         d >>= 1;
+
+                    if (imageDesc.Format.IsCompressed)
+                    {
+                        var blockWidth = imageDesc.Format.BlockWidth;
+                        var blockHeight = imageDesc.Format.BlockHeight;
+                        w = (w + blockWidth - 1) / blockWidth * blockWidth;
+                        h = (h + blockHeight - 1) / blockHeight * blockHeight;
+                    }
                 }
             }
         }
