@@ -22,7 +22,7 @@ internal sealed partial class UnifiedGenerator : IIncrementalGenerator
             foreach (var module in compilation.GetAllReferencedModules())
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                if (module.Name != "Stride.Core" && !module.ReferencedAssemblies.Any(i => i.Name == "Stride.Core"))
+                if (module.ContainingAssembly.Name != "Stride.Core" && !module.ReferencedAssemblies.Any(i => i.Name == "Stride.Core"))
                 {
                     continue;
                 }
