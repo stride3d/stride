@@ -14,12 +14,8 @@ internal partial class UnifiedGenerator
         {
             get
             {
-                if (field is null)
-                {
-                    var genericParameters = GenericParameters.Count > 0 ? $"<{string.Join(", ", GenericParameters)}>" : "";
-                    field = Parent is NamespaceDefinition or TypeDefinition ? $"{Parent.FullName}.{Name}{genericParameters}" : $"{Name}{genericParameters}";
-                }
-                return field;
+                var genericParameters = GenericParameters.Count > 0 ? $"<{string.Join(", ", GenericParameters)}>" : "";
+                return Parent is NamespaceDefinition or TypeDefinition ? $"{Parent.FullName}.{Name}{genericParameters}" : $"{Name}{genericParameters}";
             }
         }
 
@@ -27,23 +23,19 @@ internal partial class UnifiedGenerator
         {
             get
             {
-                if (field is null)
+                var genericParameters = GenericParameters.Count > 0 ? $"<{new string(',', GenericParameters.Count - 1)}>" : "";
+                if (Parent is NamespaceDefinition)
                 {
-                    var genericParameters = GenericParameters.Count > 0 ? $"<{new string(',', GenericParameters.Count - 1)}>" : "";
-                    if (Parent is NamespaceDefinition)
-                    {
-                        field = $"{Parent.FullName}.{Name}{genericParameters}";
-                    }
-                    else if (Parent is TypeDefinition declaringType)
-                    {
-                        field = $"{declaringType.UnboundFullName}.{Name}{genericParameters}";
-                    }
-                    else
-                    {
-                        field = $"{Name}{genericParameters}";
-                    }
+                    return $"{Parent.FullName}.{Name}{genericParameters}";
                 }
-                return field;
+                else if (Parent is TypeDefinition declaringType)
+                {
+                    return $"{declaringType.UnboundFullName}.{Name}{genericParameters}";
+                }
+                else
+                {
+                    return $"{Name}{genericParameters}";
+                }
             }
         }
 

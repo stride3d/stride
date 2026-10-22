@@ -8,7 +8,7 @@ internal partial class UnifiedGenerator
         {
             get
             {
-                return field ??= Parent is NamespaceDefinition ? $"{Parent.FullName}.{Name}" : Name;
+                return Parent is NamespaceDefinition ? $"{Parent.FullName}.{Name}" : Name;
             }
         }
 
