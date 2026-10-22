@@ -222,7 +222,7 @@ internal sealed partial class UnifiedGenerator : IIncrementalGenerator
             {
                 file static class ModuleInitializer
                 {
-                    [System.Runtime.CompilerServices.ModuleInitializer]
+                    [global::System.Runtime.CompilerServices.ModuleInitializer]
                     public static void Initialize()
                     {
             {{code}}        }
@@ -279,7 +279,6 @@ internal sealed partial class UnifiedGenerator : IIncrementalGenerator
             {
                 file static partial class AssemblyScanResults
                 {
-                    [global::System.Runtime.CompilerServices.ModuleInitializer]
             {{attributes}}
                     public static void Initialize()
                     {
