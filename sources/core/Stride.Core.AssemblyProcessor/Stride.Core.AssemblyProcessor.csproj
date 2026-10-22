@@ -16,7 +16,7 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
+    <DebugType>none</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>STRIDE_ASSEMBLY_PROCESSOR;STRIDE_PLATFORM_DESKTOP;TRACE</DefineConstants>
@@ -30,6 +30,21 @@
   <PropertyGroup>
     <DependencyDir>$(ProjectDir)..\..\..\deps</DependencyDir>
   </PropertyGroup>
+
+  <!-- Reproducible build: the binaries committed in deps are the same bytes on any machine and any .NET 10 SDK,
+       so a review can rebuild them and compare hashes. The path map hides the checkout path, git isn't queried
+       (no commit hash in the version or the source link), and the compiler and targeting pack are pinned
+       instead of coming from the SDK. Release has no PDB: it holds a checksum of every source file, which
+       changes with the line endings of the checkout and with the generated AssemblyInfo (Visual Studio's
+       MSBuild writes another header comment). -->
+  <PropertyGroup>
+    <EnableSourceControlManagerQueries>false</EnableSourceControlManagerQueries>
+    <PathMap>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\..\'))=/_/</PathMap>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Net.Compilers.Toolset" PrivateAssets="all" />
+    <FrameworkReference Update="Microsoft.NETCore.App" TargetingPackVersion="10.0.0" />
+  </ItemGroup>
 
   <!-- ======================================================================================== -->
   <!-- Item Groups                                                                              -->
@@ -84,11 +99,6 @@
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
 
-  <!-- Define the full set of built items for later use -->
-  <ItemGroup>
-    <BuiltItems Include="$(TargetDir)*" />
-  </ItemGroup>
-
   <!-- ======================================================================================== -->
   <!-- Tasks & Targets                                                                          -->
   <!-- ======================================================================================== -->
@@ -115,6 +125,10 @@
 
   <!-- Copies the built items to the deps folder -->
   <Target Name="CopyFiles" AfterTargets="PostBuildEvent">
+    <!-- Globbed here, after the build: at evaluation time the output of a clean build doesn't exist yet -->
+    <ItemGroup>
+      <BuiltItems Include="$(TargetDir)*" />
+    </ItemGroup>
     <Copy
       SourceFiles="@(BuiltItems)"
       DestinationFolder="$(DependencyDir)\AssemblyProcessor\$(TargetFramework)"
