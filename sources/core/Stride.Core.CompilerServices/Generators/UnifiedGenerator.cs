@@ -112,8 +112,8 @@ internal sealed partial class UnifiedGenerator : IIncrementalGenerator
                 return null;
 
             var thisType = TypeDefinition.FromSymbol(symbol);
-            var interfaces = symbol.AllInterfaces.Select(i => TypeDefinition.FromSymbol(i.OriginalDefinition)).ToArray();
-            var baseTypes = symbol.GetAllBaseTypesAscending().Select(t => TypeDefinition.FromSymbol(t.OriginalDefinition)).ToArray();
+            var interfaces = symbol.TypeKind == TypeKind.Interface ? [] : symbol.AllInterfaces.Select(i => TypeDefinition.FromSymbol(i.OriginalDefinition)).ToArray();
+            var baseTypes = symbol.TypeKind == TypeKind.Interface ? [] : symbol.GetAllBaseTypesAscending().Select(t => TypeDefinition.FromSymbol(t.OriginalDefinition)).ToArray();
             var attributes = GetAllAttributeTypes(symbol).Select(TypeDefinition.FromSymbol).Distinct().ToArray();
 
             return interfaces.Length != 0 || baseTypes.Length != 0 || attributes.Length != 0
