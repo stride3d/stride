@@ -13,6 +13,7 @@ namespace Stride.Graphics
         internal List<VkDescriptorPool> DescriptorPools;
         internal List<GraphicsResource> StagingResources;
         internal List<QueryPool> QueryPools;
+        internal List<RecordedTransition> RecordedTransitions;
     }
 }
 #endif

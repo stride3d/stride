@@ -27,6 +27,12 @@ namespace Stride.Graphics
         }
 
         /// <summary>
+        ///   The layout the command lists submitted so far left each subresource in (<see langword="null"/> while unknown),
+        ///   read and written under the queue lock. See <see cref="SubmittedLayoutReplay"/>.
+        /// </summary>
+        internal BarrierLayout?[] SubmittedLayouts;
+
+        /// <summary>
         ///   Whether this resource lives on a CPU-visible heap (Upload / Readback on D3D12, host-visible
         ///   memory on Vulkan). The native resource state on such heaps is a fixed lifetime property
         ///   (D3D12: <c>GENERIC_READ</c> or <c>COPY_DEST</c>; Vulkan: no layout transitions needed for

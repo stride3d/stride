@@ -188,6 +188,8 @@ namespace Stride.Graphics
                     var initialLayout = GetInitialBarrierLayout();
                     NativeLayout = BarrierMapping.ToVkImageLayout(initialLayout);
                     LayoutTracker.Initialize(initialLayout, ArraySize * MipLevelCount);
+                    // A new image: what the submissions left applies to the previous one
+                    SubmittedLayouts = null;
 
                     if (NativeLayout == VkImageLayout.TransferDstOptimal)
                         NativeAccessMask = VkAccessFlags.TransferRead;
