@@ -80,7 +80,7 @@ internal class AssemblyScanGenerator : IIncrementalGenerator
 
         var typeDataProvider = context.SyntaxProvider.CreateSyntaxProvider((node, _) =>
         {
-            return node is TypeDeclarationSyntax { AttributeLists.Count: > 0 } or TypeDeclarationSyntax { BaseList.Types.Count: > 0 };
+            return node is TypeDeclarationSyntax;
         },
         (context, cancellationToken) =>
         {
@@ -98,7 +98,10 @@ internal class AssemblyScanGenerator : IIncrementalGenerator
             var interfaces = symbol.AllInterfaces.Select(i => TypeDefinition.FromSymbol(i.OriginalDefinition)).ToArray();
             var baseTypes = symbol.GetAllBaseTypesAscending().Select(t => TypeDefinition.FromSymbol(t.OriginalDefinition)).ToArray();
             var attributes = GetAllAttributeTypes(symbol).Select(TypeDefinition.FromSymbol).Distinct().ToArray();
-            return new TypeData(thisType, interfaces, baseTypes, attributes);
+
+            return interfaces.Length != 0 || baseTypes.Length != 0 || attributes.Length != 0
+                ? new TypeData(thisType, interfaces, baseTypes, attributes)
+                : null;
         }).WhereNotNull();
 
         var scanResultsProvider = typeDataProvider.Combine(scanTargetDataProvider).SelectMany((pair, _) =>
