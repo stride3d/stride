@@ -119,17 +119,4 @@ internal readonly struct EquatableSet<T> : IEquatable<EquatableSet<T>>, IReadOnl
     {
         return !left.Equals(right);
     }
-
-    /// <summary>
-    /// Combines the elements of two sets into a new set.
-    /// </summary>
-    /// <param name="set1">The first set.</param>
-    /// <param name="set2">The second set.</param>
-    /// <param name="comparer">The comparer used by the resulting set, or <see langword="null"/> to use the default comparer.</param>
-    /// <returns>A set containing the distinct elements from both input sets.</returns>
-    public static EquatableSet<T> Merge(EquatableSet<T> set1, EquatableSet<T> set2, IEqualityComparer<T>? comparer = null)
-    {
-        var mergedItems = set1.Items.Concat(set2.Items);
-        return new EquatableSet<T>(mergedItems, comparer);
-    }
 }

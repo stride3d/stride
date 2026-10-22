@@ -115,17 +115,6 @@ internal static class SymbolExtensions
         }
     }
 
-    public static IEnumerable<INamedTypeSymbol> GetAllBaseTypesDescending(this INamedTypeSymbol type)
-    {
-        var stack = new Stack<INamedTypeSymbol>();
-        while (type.BaseType is not null)
-        {
-            stack.Push(type.BaseType);
-            type = type.BaseType;
-        }
-        return stack;
-    }
-
     public static bool InheritsFromSystemAttribute(this INamedTypeSymbol type)
     {
         while (type.BaseType is not null)
