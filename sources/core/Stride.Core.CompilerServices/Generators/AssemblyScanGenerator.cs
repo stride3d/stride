@@ -46,7 +46,7 @@ internal class AssemblyScanGenerator : IIncrementalGenerator
             return TypeDefinition.FromSymbol((INamedTypeSymbol)context.TargetSymbol);
         }).Collect();
 
-        var sourceClassProvider = context.SyntaxProvider.ForAttributeWithMetadataName(WellKnownReferences.AssemblyScanAttributeName, (node, _) => node is ClassDeclarationSyntax, (context, _) =>
+        var sourceClassProvider = context.SyntaxProvider.ForAttributeWithMetadataName(WellKnownReferences.AssemblyScanAttributeName, (node, _) => node is ClassDeclarationSyntax or RecordDeclarationSyntax, (context, _) =>
         {
             if (context.TargetSymbol is not INamedTypeSymbol type || type.IsSealed)
                 return null;
@@ -80,7 +80,7 @@ internal class AssemblyScanGenerator : IIncrementalGenerator
 
         var typeDataProvider = context.SyntaxProvider.CreateSyntaxProvider((node, _) =>
         {
-            return node is TypeDeclarationSyntax;
+            return node is BaseTypeDeclarationSyntax;
         },
         (context, cancellationToken) =>
         {
