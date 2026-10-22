@@ -63,6 +63,14 @@
   </PropertyGroup>
 
   <!-- ================================================================ -->
+  <!-- XML Documentation File -->
+  <!-- ================================================================ -->
+  <!-- Must be before the Microsoft.NET.Sdk import: the SDK computes DocumentationFile from it. -->
+  <PropertyGroup Condition="'$(StridePublicApi)' == 'true'">
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
   <!-- Import base Microsoft.NET.Sdk targets -->
   <!-- ================================================================ -->
   <!-- This gives us all standard .NET SDK functionality -->
@@ -211,7 +219,6 @@
   <!-- StridePublicApi - User Documentation (.usrdoc) Support -->
   <!-- ================================================================ -->
   <PropertyGroup Condition="'$(StridePublicApi)' == 'true'">
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.usrdoc</AllowedOutputExtensionsInPackageBuildOutputFolder>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);_StrideRegisterUserDocOutputs</TargetsForTfmSpecificBuildOutput>
   </PropertyGroup>
@@ -315,19 +322,6 @@
        before Stride.AutoPackDeploy.targets evaluates its GeneratePackageOnBuild gate) -->
   <Import Project="$(StrideRoot)sources\targets\Stride.DevPackages.targets" />
   <Import Project="$(StrideRoot)sources\targets\Stride.AutoPackDeploy.targets" />
-
-  <!-- ================================================================ -->
-  <!-- NuGet Documentation File -->
-  <!-- ================================================================ -->
-  <PropertyGroup Condition="'$(StridePackageBuild)' == 'true'">
-    <!-- Enable XML documentation for published NuGet packages.
-         Developers can add <GenerateDocumentationFile>true</GenerateDocumentationFile> in
-         Stride.Local.props file if they wish to enable documentation in other scenarios. -->
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(GenerateDocumentationFile)' == 'true' And '$(DocumentationFile)' == ''">
-    <DocumentationFile>$(OutputPath)$(AssemblyName).xml</DocumentationFile>
-  </PropertyGroup>
 
   <!-- ================================================================ -->
   <!-- Localization Satellite Assemblies -->
