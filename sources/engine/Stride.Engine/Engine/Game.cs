@@ -421,7 +421,7 @@ namespace Stride.Engine
 
         /// <summary>
         /// Creates the systems marked <see cref="GameSystemAttribute"/> in the assemblies registered when the game is
-        /// created (from the assembly processor's scan index) and registers their services.
+        /// created using the source-generated scan indexes and registers their services.
         /// </summary>
         private void CreateDeclaredGameSystems()
         {

@@ -166,7 +166,7 @@ public static class AssemblyRegistry
     }
 
     /// <summary>
-    /// The types of <paramref name="assembly"/> the assembly processor indexed under any of <paramref name="keys"/>
+    /// The types of <paramref name="assembly"/> recorded in the source-generated scan index under any of <paramref name="keys"/>
     /// (<see cref="AssemblyScanAttribute"/> types; a generic attribute's generic definition).
     /// </summary>
     public static IEnumerable<Type> GetScanTypes(Assembly assembly, params Type[] keys)

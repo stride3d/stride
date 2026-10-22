@@ -27,7 +27,7 @@ using Xunit;
 namespace Stride.GameStudio.Tests
 {
     /// <summary>
-    /// The editor finds plugins, gizmos, previews, factories and services through the assembly processor's scan index;
+    /// The editor finds plugins, gizmos, previews, factories and services through the source-generated scan index;
     /// the index of the default plugin assembly must list the known ones.
     /// </summary>
     public class TestDiscoveryIndex

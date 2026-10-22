@@ -334,8 +334,8 @@ namespace Stride.Assets.Presentation
         }
 
         /// <summary>
-        /// Gizmos, asset highlighters, add-asset policies and entity factories of <paramref name="assembly"/>, from the
-        /// assembly processor's scan index.
+        /// Gizmos, asset highlighters, add-asset policies and entity factories of <paramref name="assembly"/>, discovered
+        /// through its source-generated scan index.
         /// </summary>
         private void OnRegisteredAssetAssembly(Assembly assembly)
         {
