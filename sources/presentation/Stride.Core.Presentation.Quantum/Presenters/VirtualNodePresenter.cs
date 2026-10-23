@@ -171,6 +171,9 @@ public class VirtualNodePresenter : NodePresenterBase
         if (AssociatedNode.Node == null || AssociatedNode.Index == NodeIndex.Empty)
             return true;
 
-        return index != NodeIndex.Empty && ItemNodePresenter.IsValidChange(changeType, index, Index);
+        // Unlike an item presenter, which the collection's presenter rebuilds when items are added or removed, nothing
+        // rebuilds a virtual node: adding or removing the item at its index changes its value too.
+        return index != NodeIndex.Empty && Equals(index, Index)
+            && changeType is ContentChangeType.CollectionUpdate or ContentChangeType.CollectionAdd or ContentChangeType.CollectionRemove;
     }
 }

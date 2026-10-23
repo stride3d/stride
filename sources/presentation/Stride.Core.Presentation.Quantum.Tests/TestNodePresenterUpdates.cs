@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Core.Presentation.Quantum.Tests.Helpers;
 using Stride.Core.Quantum;
 
@@ -472,6 +473,30 @@ public class TestNodePresenterUpdates
         Assert.Equal(typeof(List<Types.SimpleType>), presenter.Children[1].Type);
         Assert.Empty(presenter.Children[1].Children);
         Assert.Equal(instance.List, presenter.Children[1].Value);
+    }
+
+    [Fact]
+    public void TestVirtualNodeOfDictionaryItemFollowsAddUpdateAndRemove()
+    {
+        var instance = new Types.ClassWithDictionary();
+        var context = BuildContext(instance);
+        var presenter = context.Factory.CreateNodeHierarchy(context.RootNode, new GraphNodePath(context.RootNode));
+        var dictionaryNode = context.RootNode[nameof(Types.ClassWithDictionary.Dictionary)].Target;
+        var index = new NodeIndex("Key");
+        // Like a slider shown for a key the dictionary may not have yet: it reads 0 until the key is added.
+        var virtualNode = new VirtualNodePresenter((INodePresenterFactoryInternal)context.Factory, context.PropertyProvider, presenter, "Key", typeof(float), 0,
+            () => dictionaryNode.Indices.Contains(index) ? dictionaryNode.Retrieve(index) : 0f, value => { });
+        virtualNode.RegisterAssociatedNode(new NodeAccessor(dictionaryNode, index));
+        var changes = new List<object>();
+        virtualNode.ValueChanged += (_, _) => changes.Add(virtualNode.Value);
+
+        dictionaryNode.Add(1f, index);
+        dictionaryNode.Update(0.5f, index);
+        dictionaryNode.Remove(0.5f, index);
+        // Other keys don't change this node.
+        dictionaryNode.Add(1f, new NodeIndex("Other"));
+
+        Assert.Equal(new object[] { 1f, 0.5f, 0f }, changes);
     }
 
     private static TestInstanceContext BuildContext(object instance)

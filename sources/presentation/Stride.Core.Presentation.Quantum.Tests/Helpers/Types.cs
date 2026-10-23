@@ -62,6 +62,11 @@ public static class Types
         public List<string> List { get; set; } = [];
     }
 
+    public class ClassWithDictionary
+    {
+        public Dictionary<string, float> Dictionary { get; set; } = [];
+    }
+
     public class ClassWithRefCollection
     {
         [Display(1)]
