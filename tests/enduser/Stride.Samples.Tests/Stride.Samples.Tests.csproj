@@ -62,17 +62,17 @@
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\sources\engine\Stride.Video.Assets\Stride.Video.Assets.csproj">
+    <ProjectReference Include="..\..\..\sources\plugins\Video\Stride.Video.Assets\Stride.Video.Assets.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\sources\engine\Stride.Physics.Assets\Stride.Physics.Assets.csproj">
+    <ProjectReference Include="..\..\..\sources\plugins\Physics\Stride.Physics.Assets\Stride.Physics.Assets.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\sources\engine\Stride.UI.Assets\Stride.UI.Assets.csproj">
+    <ProjectReference Include="..\..\..\sources\plugins\UI\Stride.UI.Assets\Stride.UI.Assets.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The concrete asset editors live in `Stride.Assets.Presentation.Wpf` under `sources/editor/Stride.Assets.Presentation.Wpf/AssetEditors/`, except the editors of plugin assets, which live in the plugin's `Editor` package: the UI page and library editors are in `Stride.UI.Editor` (view models) and `Stride.UI.Editor.Wpf` (views), under `sources/editor/plugins/`. Most editor folders contain a `ViewModels/` subdirectory and a `Views/` subdirectory; ScriptEditor and VisualScriptEditor are exceptions where files sit flat at the folder root. The table below is the entry point for locating any existing editor; its folders are relative to `AssetEditors/` unless they name a project.
+The concrete asset editors live in `Stride.Assets.Presentation.Wpf` under `sources/editor/Stride.Assets.Presentation.Wpf/AssetEditors/`, except the editors of plugin assets, which live in the plugin's `Editor` package: the UI page and library editors are in `Stride.UI.Editor` (view models) and `Stride.UI.Editor.Wpf` (views), under `sources/plugins/UI/`. Most editor folders contain a `ViewModels/` subdirectory and a `Views/` subdirectory; ScriptEditor and VisualScriptEditor are exceptions where files sit flat at the folder root. The table below is the entry point for locating any existing editor; its folders are relative to `AssetEditors/` unless they name a project.
 
 ## Editors
 
