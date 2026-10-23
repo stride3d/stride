@@ -87,7 +87,8 @@ jobs:
     # below to match the .NET iOS 26.5 SDK pack's strict version check). macos-15's newest Xcode
     # is 26.3, which the 26.5 pack rejects.
     runs-on: macos-26
-    timeout-minutes: 45
+    # A normal run takes 26-37 min; a slow runner VM (macOS arm64 capacity crunch) made the build alone take 28 min.
+    timeout-minutes: 60
     env:
       DOTNET_NUGET_SIGNATURE_VERIFICATION: "false"
       # Workaround for paravirt-GPU SimMetalHost crash on macos-26 runners: force MoltenVK to
@@ -97,6 +98,13 @@ jobs:
       # descriptor indexing is required, which didn't avoid the crash).
       SIMCTL_CHILD_MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS: "0"
     steps:
+      # Hosted runners vary per VM (CPU model, core count, load); record them to tell a slow runner from a slow change.
+      - name: Report runner resources
+        run: |
+          sysctl -n machdep.cpu.brand_string hw.ncpu hw.memsize
+          df -h /
+          uptime
+
       # Bootstrap .github so the local composite action below is resolvable pre-checkout.
       - uses: actions/checkout@v7
         with:
