@@ -159,11 +159,13 @@ public static class AssemblyRegistry
     /// </summary>
     /// <remarks>
     /// Called from the assembly's module initializer: building the index loads the scanned types (and their assemblies),
-    /// which mustn't happen that early.
+    /// which mustn't happen that early. Building it can run module initializers that ask for this same index (e.g.
+    /// AssetQuantumRegistry scans the registered asset assemblies), so a nested call builds it again instead of failing:
+    /// the first index built is kept.
     /// </remarks>
     public static void RegisterScanTypes(Assembly assembly, Func<ScanTypes> factory)
     {
-        AssemblyToScanTypes.TryAdd(assembly, new Lazy<ScanTypes>(factory));
+        AssemblyToScanTypes.TryAdd(assembly, new Lazy<ScanTypes>(factory, LazyThreadSafetyMode.PublicationOnly));
     }
 
     /// <summary>
