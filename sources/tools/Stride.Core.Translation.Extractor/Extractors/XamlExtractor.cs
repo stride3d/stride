@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 using Stride.Core.Annotations;
@@ -131,6 +132,8 @@ namespace Stride.Core.Translation.Extractor
                 int j = braceStart + 1;
                 while (j < value.Length && depth > 0)
                 {
+                    // A backslash escapes the next character (e.g. \, or \} in a markup extension)
+                    if (value[j] == '\\') { j += 2; continue; }
                     if (value[j] == '{') depth++;
                     else if (value[j] == '}') depth--;
                     j++;
@@ -231,6 +234,7 @@ namespace Stride.Core.Translation.Extractor
             for (int i = 0; i < content.Length; i++)
             {
                 char c = content[i];
+                if (c == '\\') { i++; continue; }
                 if (c == '\'' && depth == 0) { inQuote = !inQuote; continue; }
                 if (inQuote) continue;
                 if (c == '{') depth++;
@@ -254,6 +258,7 @@ namespace Stride.Core.Translation.Extractor
             for (int i = 0; i < arg.Length; i++)
             {
                 char c = arg[i];
+                if (c == '\\') { i++; continue; }
                 if (c == '{') depth++;
                 else if (c == '}') depth--;
                 else if (c == '=' && depth == 0) return i;
@@ -264,11 +269,26 @@ namespace Stride.Core.Translation.Extractor
         private static string Unquote(string value)
         {
             if (value.Length >= 2 && value[0] == '\'' && value[^1] == '\'')
-                return value[1..^1];
+                return Unescape(value[1..^1]);
             // Strip XAML literal-brace escape prefix {}Hello → Hello
             if (value.StartsWith("{}"))
-                return value[2..];
-            return value;
+                return Unescape(value[2..]);
+            return Unescape(value);
+        }
+
+        private static string Unescape(string value)
+        {
+            // In markup extension arguments a backslash escapes the next character: \, → ,
+            if (!value.Contains('\\'))
+                return value;
+            var sb = new StringBuilder(value.Length);
+            for (int i = 0; i < value.Length; i++)
+            {
+                if (value[i] == '\\' && i + 1 < value.Length)
+                    i++;
+                sb.Append(value[i]);
+            }
+            return sb.ToString();
         }
 
         private static int IndexOfFirst(string s, params char[] chars)
