@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using System.Runtime.Loader;
 using Stride.Core;
@@ -70,9 +71,10 @@ public class StaleTypesTests
         Assert.DoesNotContain(typeof(OldComponent), scene.ComponentTypes);
     }
 
-    [Fact]
+    [SkippableFact]
     public void RemoveStaleTypesCreatesTheNewCopyOfAProcessorOfAComponentThatStays()
     {
+        TestAssemblyCopy.SkipIfUnavailable();
         using var copy = new TestAssemblyCopy();
         using var game = new Game();
         var scene = new SceneInstance(game.Services, new Scene { Entities = { new Entity { new OldComponent() } } });
@@ -90,9 +92,10 @@ public class StaleTypesTests
         Assert.False(scene.RemoveStaleTypes(x => x == typeof(OldProcessor)));
     }
 
-    [Fact]
+    [SkippableFact]
     public void FlexibleProcessorOfANewCopyRunsNextToTheOldOne()
     {
+        TestAssemblyCopy.SkipIfUnavailable();
         FlexibleProcessor.Added = FlexibleProcessor.Removed = 0;
         using var copy = new TestAssemblyCopy();
         using var game = new Game();
@@ -131,6 +134,13 @@ public class StaleTypesTests
         }
 
         public Assembly Assembly { get; }
+
+        /// <summary>
+        /// The copy is loaded from this assembly's file, which some hosts don't have (Android loads it from the APK:
+        /// its location is only a file name).
+        /// </summary>
+        public static void SkipIfUnavailable()
+            => Skip.IfNot(Path.IsPathRooted(typeof(StaleTypesTests).Assembly.Location), "The test assembly isn't loaded from a file");
 
         public void Register() => AssemblyRegistry.Register(Assembly, "StaleTypesTests");
 
