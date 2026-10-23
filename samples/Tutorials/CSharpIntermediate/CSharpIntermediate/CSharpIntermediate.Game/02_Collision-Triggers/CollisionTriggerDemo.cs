@@ -22,10 +22,9 @@ namespace CSharpIntermediate.Code
             staticCollider.Collisions.CollectionChanged += CollisionsChanged;
         }
 
-        private void CollisionsChanged(object sender, TrackingCollectionChangedEventArgs args)
+        private void CollisionsChanged(object sender, TrackingCollectionChangedEventArgs<Collision> args)
         {
-            // Cast the argument 'item' to a collision object
-            var collision = (Collision)args.Item;
+            var collision = args.Item;
 
             // We need to make sure which collision object is not the Trigger collider
             // We perform a little check to find the ballCollider 

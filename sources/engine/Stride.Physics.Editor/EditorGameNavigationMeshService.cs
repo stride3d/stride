@@ -407,7 +407,7 @@ namespace Stride.Physics.Editor
             return ret;
         }
 
-        private void GameSystemsOnCollectionChanged(object sender, TrackingCollectionChangedEventArgs e)
+        private void GameSystemsOnCollectionChanged(object sender, TrackingCollectionChangedEventArgs<IGameSystemBase> e)
         {
             if (dynamicNavigationMeshSystem != null)
                 return;

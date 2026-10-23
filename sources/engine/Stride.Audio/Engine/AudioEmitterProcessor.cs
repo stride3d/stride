@@ -233,7 +233,7 @@ namespace Stride.Audio
             data.AudioEmitterComponent.ControllerCollectionChanged -= OnSoundControllerListChanged;
         }
 
-        private void OnListenerCollectionChanged(object o, TrackingCollectionChangedEventArgs args)
+        private void OnListenerCollectionChanged(object o, TrackingKeyedCollectionChangedEventArgs<AudioListenerComponent, AudioListener> args)
         {
             if (!args.CollectionChanged) // no keys have been added or removed, only one of the values changed
                 return;
@@ -249,11 +249,11 @@ namespace Stride.Audio
                 {
                     if (args.Action == NotifyCollectionChangedAction.Add) // A new listener have been added
                     {
-                        soundController.CreateSoundInstance((AudioListenerComponent)args.Key, false);
+                        soundController.CreateSoundInstance(args.Key, false);
                     }
                     else if (args.Action == NotifyCollectionChangedAction.Remove) // A listener have been removed
                     {
-                        soundController.DestroySoundInstances((AudioListenerComponent)args.Key);
+                        soundController.DestroySoundInstances(args.Key);
                     }
                 }
             }

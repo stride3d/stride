@@ -261,7 +261,7 @@ namespace Stride.Games
             }
         }
 
-        private void GameSystems_CollectionChanged(object sender, TrackingCollectionChangedEventArgs e)
+        private void GameSystems_CollectionChanged(object sender, TrackingCollectionChangedEventArgs<IGameSystemBase> e)
         {
             if (e.Action == NotifyCollectionChangedAction.Add)
             {
@@ -273,9 +273,9 @@ namespace Stride.Games
             }
         }
 
-        private void GameSystems_ItemAdded(object sender, TrackingCollectionChangedEventArgs e)
+        private void GameSystems_ItemAdded(object sender, TrackingCollectionChangedEventArgs<IGameSystemBase> e)
         {
-            var gameSystem = (IGameSystemBase)e.Item;
+            var gameSystem = e.Item;
 
             // If the game is already running, then we can initialize the game system now
             if (State >= GameSystemState.Initialized)
@@ -321,9 +321,9 @@ namespace Stride.Games
             }
         }
 
-        private void GameSystems_ItemRemoved(object sender, TrackingCollectionChangedEventArgs e)
+        private void GameSystems_ItemRemoved(object sender, TrackingCollectionChangedEventArgs<IGameSystemBase> e)
         {
-            var gameSystem = (IGameSystemBase)e.Item;
+            var gameSystem = e.Item;
 
             if (State == GameSystemState.None)
             {

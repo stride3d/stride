@@ -687,4 +687,117 @@ public class TestCodeUpgrade
         Assert.Contains("else", result);
         AssertCompiles(result);
     }
+
+    // The 4.5 shape: the tracking collections raise event args generic over their item type (and key type).
+    private const string OldTrackingCollections = """
+        namespace TestNs
+        {
+            public class TrackingCollectionChangedEventArgs : System.EventArgs { public object Item => null; public object Key => null; }
+            public class TrackingCollection<T> { public event System.EventHandler<TrackingCollectionChangedEventArgs> CollectionChanged; }
+            public class TrackingDictionary<TKey, TValue> { public event System.EventHandler<TrackingCollectionChangedEventArgs> CollectionChanged; }
+            public class Other { public event System.EventHandler<TrackingCollectionChangedEventArgs> CollectionChanged; }
+        }
+        """;
+
+    private const string NewTrackingCollections = """
+        namespace TestNs
+        {
+            public sealed class TrackingCollectionChangedEventArgs<T> : System.EventArgs { public T Item => default; }
+            public sealed class TrackingKeyedCollectionChangedEventArgs<TKey, TValue> : System.EventArgs { public TValue Item => default; public TKey Key => default; }
+            public class TrackingCollection<T> { public event System.EventHandler<TrackingCollectionChangedEventArgs<T>> CollectionChanged; }
+            public class TrackingDictionary<TKey, TValue> { public event System.EventHandler<TrackingKeyedCollectionChangedEventArgs<TKey, TValue>> CollectionChanged; }
+        }
+        """;
+
+    private static readonly CodeUpgrade TrackingUpgrade = Rewrite(
+        EventArgsToGeneric("TestNs.TrackingCollectionChangedEventArgs",
+            ("TestNs.TrackingCollection`1", "TrackingCollectionChangedEventArgs"),
+            ("TestNs.TrackingDictionary`2", "TrackingKeyedCollectionChangedEventArgs")));
+
+    [Fact]
+    public async Task EventArgsToGenericTakesTheTypeOfTheSubscribedCollection()
+    {
+        var source = OldTrackingCollections + """
+
+            namespace Game
+            {
+                using TestNs;
+                using System.Collections.Generic;
+
+                class Entity { }
+                class EntityCollection : TrackingCollection<Entity> { }
+                class Usage
+                {
+                    EntityCollection entities;
+                    TrackingCollection<List<int>> lists;
+                    TrackingDictionary<string, Entity> byName;
+
+                    void Start()
+                    {
+                        entities.CollectionChanged += OnEntities;
+                        entities.CollectionChanged -= OnEntities;
+                        lists.CollectionChanged += OnLists;
+                        byName.CollectionChanged += OnByName;
+                        lists.CollectionChanged += (object s, TrackingCollectionChangedEventArgs e) => { };
+                        byName.CollectionChanged += OnLocal;
+
+                        void OnLocal(object s, TestNs.TrackingCollectionChangedEventArgs e) { }
+                    }
+
+                    void OnEntities(object s, TrackingCollectionChangedEventArgs e) { var entity = (Entity)e.Item; }
+                    void OnLists(object s, TrackingCollectionChangedEventArgs e) { }
+                    void OnByName(object s, TrackingCollectionChangedEventArgs e) { var key = (string)e.Key; }
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(source, TrackingUpgrade);
+
+        Assert.Contains("void OnEntities(object s, TrackingCollectionChangedEventArgs<Entity> e) { var entity = (Entity)e.Item; }", result);
+        Assert.Contains("void OnLists(object s, TrackingCollectionChangedEventArgs<List<int>> e)", result);
+        Assert.Contains("void OnByName(object s, TrackingKeyedCollectionChangedEventArgs<string, Entity> e)", result);
+        Assert.Contains("(object s, TrackingCollectionChangedEventArgs<List<int>> e) => { }", result);
+        Assert.Contains("void OnLocal(object s, TestNs.TrackingKeyedCollectionChangedEventArgs<string, Entity> e)", result);
+        // The collection declarations keep their own event type.
+        Assert.Contains("public event System.EventHandler<TrackingCollectionChangedEventArgs> CollectionChanged; }", result);
+        AssertCompiles(result.Replace(OldTrackingCollections, NewTrackingCollections));
+    }
+
+    [Fact]
+    public async Task EventArgsToGenericLeavesHandlersWithoutOneCollectionType()
+    {
+        var source = OldTrackingCollections + """
+
+            namespace Game
+            {
+                using TestNs;
+                using Args = TestNs.TrackingCollectionChangedEventArgs;
+
+                class Usage
+                {
+                    TrackingCollection<int> numbers;
+                    TrackingCollection<string> names;
+                    Other other;
+                    System.EventHandler<TrackingCollectionChangedEventArgs> stored;
+
+                    void Start()
+                    {
+                        numbers.CollectionChanged += OnMixed;
+                        names.CollectionChanged += OnMixed;
+                        other.CollectionChanged += OnOther;
+                        names.CollectionChanged += OnAlias;
+                    }
+
+                    void OnMixed(object s, TrackingCollectionChangedEventArgs e) { }
+                    void OnOther(object s, TrackingCollectionChangedEventArgs e) { }
+                    void OnUnsubscribed(object s, TrackingCollectionChangedEventArgs e) { }
+                    void OnAlias(object s, Args e) { }
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(source, TrackingUpgrade);
+
+        Assert.Equal(source, result);
+    }
 }
