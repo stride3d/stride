@@ -1,9 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Xml;
@@ -17,10 +15,10 @@ namespace Stride.Core.Assets.Editor.Services
     {
         private static readonly Logger Log = GlobalLogger.GetLogger(nameof(UserDocumentationService));
 
-        private readonly Dictionary<string, string> cachedDocumentations = new Dictionary<string, string>();
+        private readonly ConcurrentDictionary<string, string> cachedDocumentations = new ConcurrentDictionary<string, string>();
         private readonly HashSet<string> undocumentedAssemblies = new HashSet<string>();
         private readonly HashSet<string> documentedAssemblies = new HashSet<string>();
-        private readonly object lockObj = new object();
+        private readonly Lock lockObj = new Lock();
 
         [CanBeNull]
         public string GetMemberDocumentation([NotNull] IMemberDescriptor member, Type rootType)
@@ -35,11 +33,8 @@ namespace Stride.Core.Assets.Editor.Services
                 // Remove generic type arguments specifications
                 key = $"{prefix}:{rootType.FullName}.{member.Name}";
 
-                lock (lockObj)
-                {
-                    if (cachedDocumentations.TryGetValue(key, out result))
-                        return result;
-                }
+                if (cachedDocumentations.TryGetValue(key, out result))
+                    return result;
             }
 
             if (!CacheAssemblyDocumentation(member.DeclaringType.Assembly))
@@ -50,10 +45,7 @@ namespace Stride.Core.Assets.Editor.Services
             // Remove generic type arguments specifications
             key = $"{prefix}:{declaringType}.{member.Name}";
 
-            lock (lockObj)
-            {
-                return cachedDocumentations.TryGetValue(key, out result) ? result : null;
-            }            
+            return cachedDocumentations.TryGetValue(key, out result) ? result : null;
         }
 
         [CanBeNull]
@@ -71,10 +63,7 @@ namespace Stride.Core.Assets.Editor.Services
             var suffix = propertyKey.Name.Split('.').Last();
             var key = $"F:{declaringType}.{suffix}";
 
-            lock (lockObj)
-            {
-                return cachedDocumentations.TryGetValue(key, out string result) ? result : null;
-            }            
+            return cachedDocumentations.TryGetValue(key, out string result) ? result : null;
         }
 
         public void ClearCachedAssemblyDocumentation([NotNull] Assembly assembly)
@@ -200,10 +189,7 @@ namespace Stride.Core.Assets.Editor.Services
                             continue;
                         }
 
-                        lock (lockObj)
-                        {
-                            cachedDocumentations[key] = documentation;
-                        }
+                        cachedDocumentations[key] = documentation;
                     }
                 }
             }
@@ -251,10 +237,7 @@ namespace Stride.Core.Assets.Editor.Services
                         var key = line.Substring(0, separator);
                         var documentation = line.Substring(separator + 1);
 
-                        lock (lockObj)
-                        {
-                            cachedDocumentations[key] = documentation;
-                        }
+                        cachedDocumentations[key] = documentation;
                     }
                 }
             }
