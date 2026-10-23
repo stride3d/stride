@@ -56,7 +56,8 @@ public sealed class BepuSimulation : IDisposable
     internal CollidableProperty<MaterialProperties> CollidableMaterials { get; } = new();
     internal ContactEventsManager ContactEvents { get; }
 
-    internal List<BodyComponent?> Bodies { get; } = new();
+    /// <summary> The component owning each body handle, a <see cref="BodyComponent"/> or a collidable spanning multiple bodies </summary>
+    internal List<CollidableComponent?> Bodies { get; } = new();
     internal List<StaticComponent?> Statics { get; } = new();
 
     /// <inheritdoc cref="Stride.BepuPhysics.Definitions.CollisionMatrix"/>
@@ -339,15 +340,32 @@ public sealed class BepuSimulation : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public CollidableComponent GetComponent(CollidableReference collidable)
     {
-        return collidable.Mobility == CollidableMobility.Static ? GetComponent(collidable.StaticHandle) : GetComponent(collidable.BodyHandle);
+        if (collidable.Mobility == CollidableMobility.Static)
+            return GetComponent(collidable.StaticHandle);
+
+        var owner = Bodies[collidable.BodyHandle.Value];
+        Debug.Assert(owner is not null, "Handle is invalid, Bepu's array indexing strategy might have changed under us");
+        return owner;
     }
 
+    /// <summary> The <see cref="BodyComponent"/> which created this body </summary>
+    /// <remarks>
+    /// Bodies owned by a collidable spanning multiple bodies have no <see cref="BodyComponent"/>, this returns null for them;
+    /// use <see cref="GetComponent(CollidableReference)"/> to find the owner of any body
+    /// </remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public BodyComponent GetComponent(BodyHandle handle)
     {
-        var body = Bodies[handle.Value];
-        Debug.Assert(body is not null, "Handle is invalid, Bepu's array indexing strategy might have changed under us");
+        var body = Bodies[handle.Value] as BodyComponent;
+        Debug.Assert(body is not null, "Handle is invalid or not owned by a BodyComponent");
         return body;
+    }
+
+    internal void SetBodyOwner(BodyHandle handle, CollidableComponent? owner)
+    {
+        while (Bodies.Count <= handle.Value)
+            Bodies.Add(null);
+        Bodies[handle.Value] = owner;
     }
 
     public StaticComponent GetComponent(StaticHandle handle)
@@ -676,6 +694,13 @@ public sealed class BepuSimulation : IDisposable
                 int i = 0;
                 foreach (CollidableReference reference in broadPhaseEnumerator.References)
                 {
+                    // Convex pairs skip AllowCollisionTesting, which filters the others
+                    if (collisionMask.IsSet(CollidableMaterials[reference].Layer) == false)
+                    {
+                        i++;
+                        continue;
+                    }
+
                     BRigidPose poseOther;
                     TypedIndex shapeIndexOther;
                     //Collidables can be associated with either bodies or statics. We have to look in a different place depending on which it is.
@@ -883,9 +908,10 @@ public sealed class BepuSimulation : IDisposable
         {
             for (int i = start; i < endExclusive; i++)
             {
-                var bepuBody = bodies.GetBodyReference(bodies.ActiveSet.IndexToHandle[i]);
-                var strideBody = bepuSimulation.GetComponent(bepuBody);
-                SyncTransformsWithPhysics(bepuBody, strideBody);
+                var handle = bodies.ActiveSet.IndexToHandle[i];
+                // Collidables spanning multiple bodies sync their own transform
+                if (bepuSimulation.Bodies[handle.Value] is BodyComponent strideBody)
+                    SyncTransformsWithPhysics(bodies.GetBodyReference(handle), strideBody);
             }
         }
 
@@ -1063,14 +1089,13 @@ public sealed class BepuSimulation : IDisposable
 
     private readonly struct UpdatePreviousVelocities : Dispatcher.IBatchJob
     {
-        public required List<BodyComponent?> Bodies { get; init; }
+        public required List<CollidableComponent?> Bodies { get; init; }
 
         public void Process(int start, int endExclusive)
         {
             for (; start < endExclusive; start++)
             {
-                var body = Bodies[start];
-                if (body is not null)
+                if (Bodies[start] is BodyComponent body)
                 {
                     body.PreviousAngularVelocity = body.AngularVelocity;
                     body.PreviousLinearVelocity = body.LinearVelocity;

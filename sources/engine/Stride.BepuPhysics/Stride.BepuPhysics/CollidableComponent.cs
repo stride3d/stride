@@ -264,6 +264,16 @@ public abstract class CollidableComponent : EntityComponent
     /// </remarks>
     internal virtual bool ShouldCalculateInertia => true;
 
+    /// <summary> The amount of bepu collidables this component owns, more than one for collidables spanning multiple bodies </summary>
+    internal virtual int CollidableCount => CollidableReference.HasValue ? 1 : 0;
+
+    /// <summary> One of the <see cref="CollidableCount"/> bepu collidables this component owns </summary>
+    internal virtual CollidableReference GetCollidableReference(int index)
+    {
+        Debug.Assert(index == 0);
+        return CollidableReference!.Value;
+    }
+
     public CollidableComponent()
     {
         _collider = new CompoundCollider();
@@ -323,8 +333,6 @@ public abstract class CollidableComponent : EntityComponent
         if (Simulation is null)
             return;
 
-        uint handleValue = CollidableReference!.Value.Packed;
-
         Versioning = Interlocked.Increment(ref VersioningCounter);
         Processor?.OnPreRemove?.Invoke(this);
 
@@ -341,8 +349,9 @@ public abstract class CollidableComponent : EntityComponent
             ShapeIndex = default;
         }
 
+        Simulation.ContactEvents.ClearStoredManifoldsOf(this);
         DetachInner();
-        Simulation.ContactEvents.ClearCollisionsOf(this, handleValue); // Ensure that removing this collidable sends the appropriate contact events to listeners
+        Simulation.ContactEvents.ClearTrackedCollisionsOf(this); // Ensure that removing this collidable sends the appropriate contact events to listeners
 
         Simulation = null;
     }
@@ -364,7 +373,12 @@ public abstract class CollidableComponent : EntityComponent
 
 #warning this is still kind of a mess, what should we do here ?
         mat.Gravity = this is BodyComponent body && body.Gravity;
+
+        OnMaterialPropertiesUpdated();
     }
+
+    /// <summary> Called after <see cref="MaterialProperties"/> has been written to </summary>
+    internal virtual void OnMaterialPropertiesUpdated() { }
 
     protected abstract ref MaterialProperties MaterialProperties { get; }
     protected internal abstract NRigidPose? Pose { get; }
@@ -481,7 +495,7 @@ public abstract class CollidableComponent : EntityComponent
         RayTest(origin, dir, ref maxDistance, ref handler);
     }
 
-    internal void RayTest<TRayHitHandler>(
+    internal virtual void RayTest<TRayHitHandler>(
         in Vector3 origin,
         in Vector3 dir,
         ref float maximumT,
