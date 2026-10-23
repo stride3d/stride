@@ -8,7 +8,6 @@
   </PropertyGroup>
   <!-- Runtime dependencies -->
   <ItemGroup>
-    <PackageVersion Include="Basic.Reference.Assemblies.Net100" Version="1.8.13" />
     <PackageVersion Include="BepuPhysics" Version="2.5.0-beta.28" />
     <PackageVersion Include="CommunityToolkit.HighPerformance" Version="8.4.0" />
     <PackageVersion Include="DotRecast.Core" Version="2025.2.1" />
@@ -17,7 +16,6 @@
     <PackageVersion Include="DotRecast.Recast.Toolset" Version="2025.2.1" />
     <PackageVersion Include="FFmpeg.AutoGen" Version="7.1.1" />
     <PackageVersion Include="K4os.Compression.LZ4.Legacy" Version="1.3.6" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing" Version="1.1.4" />
     <PackageVersion Include="Microsoft.Direct3D.WARP" Version="1.0.21" />
     <PackageVersion Include="Microsoft.Direct3D.D3D12" Version="1.619.3" />
     <PackageVersion Include="Microsoft.ML.OnnxRuntime" Version="1.20.1" />
@@ -110,6 +108,7 @@
   <ItemGroup>
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
     <PackageVersion Include="coverlet.msbuild" Version="6.0.4" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing" Version="1.1.4" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
     <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="xunit.runner.utility" Version="2.9.3" />
