@@ -55,21 +55,24 @@ namespace Stride.Rendering
         }
 
         /// <inheritdoc/>
-        public override void Extract()
+        public override unsafe void Extract()
         {
             using var _ = Profiler.Begin(ExtractKey);
             var renderModelObjectInfo = RootRenderFeature.RenderData.GetData(RenderModelObjectInfoKey);
 
             //for (int index = 0; index < RootRenderFeature.ObjectNodeReferences.Count; index++)
-            Dispatcher.For(0, RootRenderFeature.ObjectNodeReferences.Count, index =>
+            Dispatcher.For(0, RootRenderFeature.ObjectNodeReferences.Count, (this, renderModelObjectInfo), &ForAction);
+
+            static void ForAction((TransformRenderFeature, ObjectPropertyData<RenderModelFrameInfo>) state, int index)
             {
-                var objectNodeReference = RootRenderFeature.ObjectNodeReferences[index];
-                var objectNode = RootRenderFeature.GetObjectNode(objectNodeReference);
+                var (@this, renderModelObjectInfo) = state;
+                var objectNodeReference = @this.RootRenderFeature.ObjectNodeReferences[index];
+                var objectNode = @this.RootRenderFeature.GetObjectNode(objectNodeReference);
                 var renderMesh = objectNode.RenderObject as RenderMesh;
 
                 // TODO: Extract world
                 renderModelObjectInfo[objectNodeReference].World = renderMesh != null ? renderMesh.World : Matrix.Identity;
-            });
+            }
         }
 
         /// <inheritdoc/>

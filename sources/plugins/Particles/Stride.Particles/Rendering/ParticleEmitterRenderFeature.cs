@@ -240,7 +240,7 @@ namespace Stride.Particles.Rendering
         /// Builds the shared vertex and index buffers used by the particle systems
         /// </summary>
         /// <param name="renderDrawContext"><see cref="RenderDrawContext"/> to access the command list and the graphics context</param>
-        private void BuildParticleBuffers(RenderDrawContext renderDrawContext)
+        private unsafe void BuildParticleBuffers(RenderDrawContext renderDrawContext)
         {
             // Build particle buffers
             var commandList = renderDrawContext.CommandList;
@@ -255,9 +255,12 @@ namespace Stride.Particles.Rendering
             var sharedBufferPtr = mappedVertices.DataBox.DataPointer;
 
             //for (int renderNodeIndex = 0; renderNodeIndex < RenderNodes.Count; renderNodeIndex++)
-            Dispatcher.For(0, RenderNodes.Count, (renderNodeIndex) =>
+            Dispatcher.For(0, RenderNodes.Count, (this, renderParticleNodeData, sharedBufferPtr), &ForAction);
+
+            static void ForAction((ParticleEmitterRenderFeature, RenderPropertyData<RenderAttributesPerNode>, IntPtr) state, int renderNodeIndex)
             {
-                var renderNode = RenderNodes[renderNodeIndex];
+                var (@this, renderParticleNodeData, sharedBufferPtr) = state;
+                var renderNode = @this.RenderNodes[renderNodeIndex];
                 var renderParticleEmitter = (RenderParticleEmitter)renderNode.RenderObject;
 
                 var renderNodeReference = new RenderNodeReference(renderNodeIndex);
@@ -265,15 +268,15 @@ namespace Stride.Particles.Rendering
                 if (nodeData.IndexCount <= 0)
                     return; // Nothing to draw, nothing to build
 
-                nodeData.VertexBuffer = particleBufferContext.VertexBuffer;
-                nodeData.IndexBuffer = particleBufferContext.IndexBuffer;
+                nodeData.VertexBuffer = @this.particleBufferContext.VertexBuffer;
+                nodeData.IndexBuffer = @this.particleBufferContext.IndexBuffer;
 
                 renderParticleNodeData[renderNodeReference] = nodeData;
 
                 // TODO Build this per view, not per node!!!
                 Matrix.Invert(ref renderNode.RenderView.View, out var viewInverse);
                 renderParticleEmitter.ParticleEmitter.BuildVertexBuffer(sharedBufferPtr + nodeData.VertexBufferOffset, ref viewInverse, ref renderNode.RenderView.ViewProjection);
-            });
+            }
 
             commandList.UnmapSubResource(mappedVertices);
         }

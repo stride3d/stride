@@ -175,6 +175,31 @@ public static class Dispatcher
         }
     }
 
+    private readonly unsafe struct ForParameters<T>
+    {
+        public readonly delegate*<T, int, void> Action;
+        public readonly T Parameter;
+        public readonly int Start;
+        public ForParameters(delegate*<T, int, void> action, T parameter, int start)
+        {
+            Action = action;
+            Parameter = parameter;
+            Start = start;
+        }
+    }
+
+    public static unsafe void For<T>(int fromInclusive, int toExclusive, T parameter, delegate*<T, int, void> action)
+    {
+        ForBatched(toExclusive - fromInclusive, new ForParameters<T>(action, parameter, fromInclusive), &ForWrapped);
+        static void ForWrapped(ForParameters<T> parameters, int from, int toExclusive)
+        {
+            for (int i = from; i < toExclusive; i++)
+            {
+                parameters.Action(parameters.Parameter, parameters.Start + i);
+            }
+        }
+    }
+
     public static unsafe void For(int fromInclusive, int toExclusive, Action<int> action)
     {
         var parameters = (action, fromInclusive);
