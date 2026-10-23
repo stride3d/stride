@@ -144,6 +144,7 @@ jobs:
               - 'sources/shared/**'
               - 'sources/sdk/**'
               - 'sources/assets/**'
+              - 'sources/plugins/**'
               - 'deps/**'
               - 'tests/**'
               - 'build/Stride.Runtime.slnf'
