@@ -40,6 +40,8 @@ namespace Stride.Assets.Models
         protected override Model LoadModel(ICommandContext commandContext, ContentManager contentManager)
         {
             var converter = CreateMeshConverter(commandContext);
+            converter.MorphNormals = MorphNormals;
+            converter.MorphTangents = MorphTangents;
 
             // Note: FBX exporter uses Materials for the mapping, but Assimp already uses indices so we can reuse them
             // We should still unify the behavior to be more consistent at some point (i.e. if model was changed on the HDD but not in the asset).

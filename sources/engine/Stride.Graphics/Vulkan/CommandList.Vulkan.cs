@@ -571,8 +571,8 @@ namespace Stride.Graphics
                     if (fromLayout == newLayout)
                         return;
 
-                    oldAccessMask = BarrierMapping.ToVkAccessFlags(fromLayout);
-                    sourceStages = BarrierMapping.ToVkPipelineStageFlags(fromLayout);
+                    oldAccessMask = BufferAccessFlags(buffer, fromLayout);
+                    sourceStages = BufferPipelineStageFlags(buffer, fromLayout);
                 }
                 else
                 {
@@ -580,8 +580,8 @@ namespace Stride.Graphics
                     sourceStages = buffer.NativePipelineStageMask;
                 }
 
-                var newAccessMask = BarrierMapping.ToVkAccessFlags(newLayout);
-                var newStages = BarrierMapping.ToVkPipelineStageFlags(newLayout);
+                var newAccessMask = BufferAccessFlags(buffer, newLayout);
+                var newStages = BufferPipelineStageFlags(buffer, newLayout);
 
                 sourceStages = FixStagesForAccess(sourceStages, oldAccessMask);
                 newStages = FixStagesForAccess(newStages, newAccessMask);
@@ -600,6 +600,19 @@ namespace Stride.Graphics
                 throw new NotImplementedException();
             }
         }
+
+        /// <summary>
+        ///   The access of a buffer in a layout. In <see cref="BarrierLayout.Common"/> a buffer is back to its usual use,
+        ///   such as vertex fetch for a vertex buffer, so its barrier covers the accesses of its usage flags.
+        /// </summary>
+        private static VkAccessFlags BufferAccessFlags(Buffer buffer, BarrierLayout layout)
+            => layout == BarrierLayout.Common ? buffer.NativeAccessMask : BarrierMapping.ToVkAccessFlags(layout);
+
+        /// <summary>
+        ///   The pipeline stages of a buffer in a layout. See <see cref="BufferAccessFlags"/>.
+        /// </summary>
+        private static VkPipelineStageFlags BufferPipelineStageFlags(Buffer buffer, BarrierLayout layout)
+            => layout == BarrierLayout.Common ? buffer.NativePipelineStageMask : BarrierMapping.ToVkPipelineStageFlags(layout);
 
         /// <summary>
         ///   Makes the unordered access writes to a Graphics Resource visible to the next unordered accesses to it, such as

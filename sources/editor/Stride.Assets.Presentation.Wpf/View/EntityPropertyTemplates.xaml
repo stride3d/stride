@@ -10,12 +10,67 @@
                     xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
                     xmlns:assetCommands="clr-namespace:Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;assembly=Stride.Core.Assets.Editor.Wpf"
                     xmlns:qvm="clr-namespace:Stride.Core.Presentation.Quantum.ViewModels;assembly=Stride.Core.Presentation.Quantum"
-                    xmlns:localView="clr-namespace:Stride.Assets.Presentation.View">
+                    xmlns:localView="clr-namespace:Stride.Assets.Presentation.View"
+                    xmlns:localBehaviors="clr-namespace:Stride.Assets.Presentation.View.Behaviors"
+                    xmlns:editorBehaviors="clr-namespace:Stride.Core.Assets.Editor.View.Behaviors;assembly=Stride.Core.Assets.Editor.Wpf">
 
   <ResourceDictionary.MergedDictionaries>
     <ResourceDictionary Source="/Stride.Core.Assets.Editor.Wpf;component/View/DefaultPropertyTemplateProviders.xaml"/>
     <ResourceDictionary Source="/Stride.Assets.Presentation.Wpf;component/View/ImageDictionary.xaml"/>
   </ResourceDictionary.MergedDictionaries>
+
+  <tp:MorphWeightsTemplateProvider x:Key="MorphWeightsHeaderTemplateProvider" OverrideRule="All"
+                                  sd:PropertyViewHelper.TemplateCategory="PropertyHeader">
+    <DataTemplate>
+      <Grid Visibility="{Binding IsVisible, Converter={sd:VisibleOrCollapsed}}" sd:PropertyViewHelper.Increment="0" Margin="15,0,0,0">
+        <Border Background="{StaticResource EmphasisColorBrush}" Opacity="0.5" Margin="6" MinHeight="20"/>
+        <DockPanel Margin="10,4">
+          <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+            <Button Content="Min All" Command="{Binding MinAllMorphWeights}" Margin="2,0" Padding="6,1" ToolTip="Set all morph weights to -1"/>
+            <Button Content="Reset All" Command="{Binding ResetAllMorphWeights}" Margin="2,0" Padding="6,1" ToolTip="Set all morph weights to 0"/>
+            <Button Content="Max All" Command="{Binding MaxAllMorphWeights}" Margin="2,0" Padding="6,1" ToolTip="Set all morph weights to 1"/>
+          </StackPanel>
+          <ToggleButton DockPanel.Dock="Left" Template="{StaticResource PropertyGridHeaderExpanderToggleButton}" Width="8" Height="8"
+                        IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource AncestorType=sd:PropertyViewItem}}"/>
+          <TextBlock Text="{Binding DisplayName}" Margin="8,0,0,0" VerticalAlignment="Center" Foreground="{StaticResource SelectedTextBrush}"/>
+        </DockPanel>
+      </Grid>
+    </DataTemplate>
+  </tp:MorphWeightsTemplateProvider>
+
+  <!-- The default ranged value editor, with a slider that applies its value while dragged. The slider covers -1 to 1;
+       the text box accepts any weight, and the slider only writes to it on user input, so its range never clamps a weight. -->
+  <tp:MorphWeightTemplateProvider x:Key="MorphWeightTemplateProvider" OverrideRule="All" sd:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="qvm:NodeViewModel">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="3*"/>
+          <ColumnDefinition Width="*" MinWidth="60"/>
+        </Grid.ColumnDefinitions>
+        <Slider Grid.Column="0" Height="22" VerticalAlignment="Center"
+                Value="{Binding Value, ElementName=TextBox, Mode=OneWay}"
+                Minimum="{Binding Minimum, Converter={sd:Chained {sd:DifferentValuesToNull}, {sd:ToDouble}}}"
+                Maximum="{Binding Maximum, Converter={sd:Chained {sd:DifferentValuesToNull}, {sd:ToDouble}}}"
+                SmallChange="{Binding SmallStep, Converter={sd:Chained {sd:DifferentValuesToNull}, {sd:ToDouble}}}"
+                LargeChange="{Binding LargeStep, Converter={sd:Chained {sd:DifferentValuesToNull}, {sd:ToDouble}}}">
+          <i:Interaction.Behaviors>
+            <localBehaviors:LiveSliderEditBehavior TextBox="{Binding ElementName=TextBox}" Preview="{Binding MorphWeightPreview}"/>
+            <sd:ChangeCursorOnSliderThumbBehavior/>
+          </i:Interaction.Behaviors>
+        </Slider>
+        <sd:NumericTextBox x:Name="TextBox" Grid.Column="1" SelectAllOnFocus="True" Margin="6,2,2,2"
+                           Value="{Binding NodeValue, Converter={sd:Chained {sd:DifferentValuesToNull}, {sd:ToDouble}}}"
+                           SmallChange="{Binding SmallStep, Converter={sd:Chained {sd:DifferentValuesToNull}, {sd:ToDouble}}}"
+                           LargeChange="{Binding LargeStep, Converter={sd:Chained {sd:DifferentValuesToNull}, {sd:ToDouble}}}"
+                           DecimalPlaces="{Binding DecimalPlaces, Converter={sd:Chained {sd:DifferentValuesToNull}, {sd:ToDouble}}, FallbackValue=6}"
+                           DisplayUpDownButtons="False">
+          <i:Interaction.Behaviors>
+            <editorBehaviors:TextBoxPropertyValueValidationBehavior AdornerStoryboard="{StaticResource HighlightBorderAdornerValidationErrorStoryboard}"/>
+          </i:Interaction.Behaviors>
+        </sd:NumericTextBox>
+      </Grid>
+    </DataTemplate>
+  </tp:MorphWeightTemplateProvider>
 
   <sd:TypeMatchTemplateProvider x:Key="EntityComponentTemplateProvider" Type="engine:EntityComponent"
                                   Template="{StaticResource HeaderReadOnlyProperty}" OverrideRule="Most"

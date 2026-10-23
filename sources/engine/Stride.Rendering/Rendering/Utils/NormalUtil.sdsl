@@ -5,6 +5,23 @@
 /// </summary>
 shader NormalUtil
 {
+    // Shorter vectors fall back instead of amplifying rounding noise.
+    static const float MinNormalizeLengthSquared = 1e-20;
+
+    // Normalizes value, or returns fallback when value is too short to have a direction.
+    float3 SafeNormalize(float3 value, float3 fallback)
+    {
+        float lengthSquared = dot(value, value);
+        return lengthSquared > MinNormalizeLengthSquared ? value * rsqrt(lengthSquared) : fallback;
+    }
+
+    // Any unit vector perpendicular to the unit vector direction.
+    float3 Perpendicular(float3 direction)
+    {
+        // Cross with the axis least aligned with direction.
+        float3 axis = abs(direction.x) < 0.9 ? float3(1, 0, 0) : float3(0, 1, 0);
+        return SafeNormalize(cross(axis, direction), float3(0, 0, 1));
+    }
     // Blending Normal methods: http://blog.selfshadow.com/publications/blending-in-detail/
 
     float3 BlendLinear(float3 n1, float3 n2)

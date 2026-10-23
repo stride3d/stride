@@ -13,6 +13,8 @@ using Stride.Core.Serialization.Contents;
 using Stride.Extensions;
 using Stride.Graphics;
 using Stride.Graphics.Data;
+using Stride.Graphics.Semantics;
+using Stride.Importer.Common;
 using Stride.Rendering;
 
 namespace Stride.Assets.Models
@@ -24,6 +26,9 @@ namespace Stride.Assets.Models
         public Vector3 PivotPosition { get; set; }
 
         public bool MergeMeshes { get; set; }
+        public bool ImportMorphTargets { get; set; } = true;
+        public MorphDeltaSource MorphNormals { get; set; }
+        public MorphDeltaSource MorphTangents { get; set; }
 
         public bool Allow32BitIndex { get; set; }
         public int MaxInputSlots { get; set; }
@@ -62,6 +67,8 @@ namespace Stride.Assets.Models
             var modelSkeleton = LoadSkeleton(commandContext, contentManager); // we get model skeleton to compare it to real skeleton we need to map to
             AdjustSkeleton(modelSkeleton);
             var model = LoadModel(commandContext, contentManager);
+            if (!ImportMorphTargets)
+                foreach (var mesh in model.Meshes) mesh.MorphTargets = null;
             if (!CheckInputSlots(commandContext, model))
             {
                 return null;
@@ -115,6 +122,7 @@ namespace Stride.Assets.Models
                 if (!MathUtil.NearEqual(ScaleImport, 1.0f))
                 {
                     var transformationMatrix = Matrix.Scaling(ScaleImport);
+                    TransformMorphTargets(mesh, transformationMatrix);
                     for (int vbIdx = 0; vbIdx < mesh.Draw.VertexBuffers.Length; vbIdx++)
                     {
                         mesh.Draw.VertexBuffers[vbIdx].TransformBuffer(ref transformationMatrix);
@@ -165,6 +173,7 @@ namespace Stride.Assets.Models
                 {
                     // Transform vertices
                     var transformationMatrix = CombineMatricesFromNodeIndices(hierarchyUpdater.NodeTransformations, skeletonMapping.SourceToSource[mesh.NodeIndex], mesh.NodeIndex);
+                    TransformMorphTargets(mesh, transformationMatrix);
                     for (int vbIdx = 0; vbIdx < mesh.Draw.VertexBuffers.Length; vbIdx++)
                     {
                         mesh.Draw.VertexBuffers[vbIdx].TransformBuffer(ref transformationMatrix);
@@ -191,6 +200,8 @@ namespace Stride.Assets.Models
             // Apply custom model modifiers
             if (ModelModifiers != null)
             {
+                if (ModelModifiers.Count > 0 && model.Meshes.Any(mesh => mesh.MorphTargets != null))
+                    throw new InvalidOperationException("Custom model modifiers are not supported for morph models until their vertex remapping contract is defined.");
                 foreach (var modifier in ModelModifiers)
                 {
                     modifier.Apply(commandContext, model);
@@ -206,6 +217,7 @@ namespace Stride.Assets.Models
                 foreach (var meshesPerDrawCall in meshesByNode.GroupBy(x => x,
                     new AnonymousEqualityComparer<Mesh>((x, y) =>
                     x.MaterialIndex == y.MaterialIndex // Same material
+                    && (ReferenceEquals(x, y) || (x.MorphTargets == null && y.MorphTargets == null)) // Preserve each morph vertex domain.
                     && ArrayExtensions.ArraysEqual(x.Skinning?.Bones, y.Skinning?.Bones) // Same bones
                     && CompareParameters(model, x, y) // Same parameters
                     && CompareShadowOptions(model, x, y), // Same shadow parameters
@@ -243,6 +255,13 @@ namespace Stride.Assets.Models
 
             // split the meshes if necessary
             model.Meshes = SplitExtensions.SplitMeshes(model.Meshes, Allow32BitIndex);
+
+            foreach (var mesh in model.Meshes)
+            {
+                mesh.MorphTargets?.Validate();
+                if (mesh.MorphTargets != null && mesh.MorphTargets.VertexCount != mesh.Draw.VertexBuffers[0].Count)
+                    throw new InvalidOperationException("Model modifier changed a morph mesh's vertex domain without remapping its contributions.");
+            }
 
             // Refresh skeleton updater with asset skeleton
             hierarchyUpdater = new SkeletonUpdater(skeleton);
@@ -349,5 +368,21 @@ namespace Stride.Assets.Models
             return model;
         }
 
+        private static void TransformMorphTargets(Mesh mesh, Matrix matrix)
+        {
+            if (mesh.MorphTargets == null) return;
+            int count = mesh.MorphTargets.VertexCount;
+            var normals = mesh.MorphTargets.HasNormalDeltas ? new Vector3[count] : null;
+            var tangents = mesh.MorphTargets.HasTangentDeltas ? new Vector3[count] : null;
+            bool foundNormals = normals == null, foundTangents = tangents == null;
+            foreach (var binding in mesh.Draw.VertexBuffers)
+            {
+                var reader = new VertexBufferHelper(binding, binding.Buffer.GetSerializationData().Content, out _);
+                if (!foundNormals) foundNormals = reader.Copy<Relaxed<NormalSemantic>, Vector3>(normals);
+                if (!foundTangents) foundTangents = reader.Copy<Relaxed<TangentSemantic>, Vector3>(tangents);
+            }
+            if (!foundNormals || !foundTangents) throw new InvalidOperationException("Morph base directions were removed before coordinate transformation.");
+            mesh.MorphTargets = mesh.MorphTargets.Transform(matrix, normals, tangents);
+        }
     }
 }

@@ -40,6 +40,16 @@ namespace Stride.Importer.ThreeD
 
         public Logger Logger { get; set; }
 
+        /// <summary>
+        /// Where morph target normal deltas come from.
+        /// </summary>
+        public MorphDeltaSource MorphNormals { get; set; }
+
+        /// <summary>
+        /// Where morph target tangent deltas come from.
+        /// </summary>
+        public MorphDeltaSource MorphTangents { get; set; }
+
         private readonly Assimp assimp = CreateAssimpApi();
 
         private static Assimp CreateAssimpApi()
@@ -121,6 +131,22 @@ namespace Stride.Importer.ThreeD
                     Nodes = ExtractNodeHierarchy(scene, nodeNames),
                     AnimationNodes = ExtractAnimations(scene, animationNames)
                 };
+
+                entityInfo.MorphTargetNames = new List<string>();
+                var morphNames = new HashSet<string>(StringComparer.Ordinal);
+                for (uint meshIndex = 0; meshIndex < scene->MNumMeshes; meshIndex++)
+                {
+                    var mesh = scene->MMeshes[meshIndex];
+                    if (mesh->MNumAnimMeshes > MeshMorphData.MaxTargetCount || (mesh->MNumAnimMeshes != 0 && mesh->MAnimMeshes == null))
+                        throw new InvalidOperationException("Invalid morph target table.");
+                    for (int shape = 0; shape < mesh->MNumAnimMeshes; shape++)
+                    {
+                        var target = mesh->MAnimMeshes[shape];
+                        if (target == null) throw new InvalidOperationException("Missing morph target.");
+                        var name = MorphTargetName(target, shape);
+                        if (morphNames.Add(name)) entityInfo.MorphTargetNames.Add(name);
+                    }
+                }
 
                 if (extractTextureDependencies)
                     entityInfo.TextureDependencies = ExtractTextureDependencies(scene);
@@ -235,6 +261,7 @@ namespace Stride.Importer.ThreeD
                         Name = meshInfo.Name,
                         MaterialIndex = meshInfo.MaterialIndex,
                         NodeIndex = nodeIndex,
+                        MorphTargets = meshInfo.MorphTargets,
                     };
 
                     if (meshInfo.Bones != null)
@@ -555,9 +582,98 @@ namespace Stride.Importer.ThreeD
                         return null;
                     }
                 }
+
+                // animation of morph target weights (after nodes, as they share the node's clip)
+                for (uint morphAnimId = 0; morphAnimId < aiAnim->MNumMorphMeshChannels; ++morphAnimId)
+                {
+                    ProcessMorphAnimation(animationData.AnimationClips, scene, aiAnim->MMorphMeshChannels[morphAnimId], ticksPerSec, meshIndexToNodeIndex);
+                }
             }
 
             return animationData;
+        }
+
+        private unsafe void ProcessMorphAnimation(Dictionary<string, AnimationClip> animationClips, Scene* scene, MeshMorphAnim* channel, double ticksPerSec, Dictionary<int, List<int>> meshIndexToNodeIndex)
+        {
+            // The channel names the node (glTF), the mesh, or "<mesh name>*<mesh index>" (FBX) owning the morph targets;
+            // its keys index that mesh's anim meshes.
+            var channelName = channel->MName.AsString;
+            var nodeName = channelName.CleanNodeName();
+            Silk.NET.Assimp.Mesh* mesh = null;
+            int star = channelName.LastIndexOf('*');
+            if (star >= 0 && int.TryParse(channelName.AsSpan(star + 1), out var meshIndex) && (uint)meshIndex < scene->MNumMeshes)
+            {
+                mesh = scene->MMeshes[meshIndex];
+                nodeName = meshIndexToNodeIndex.TryGetValue(meshIndex, out var owners) && owners.Count > 0
+                    ? nodes[owners[0]].Name
+                    : channelName[..star].CleanNodeName();
+            }
+            else
+            {
+                foreach (var (index, nodeIndices) in meshIndexToNodeIndex)
+                {
+                    if (nodeIndices.Exists(nodeIndex => nodes[nodeIndex].Name == nodeName) || scene->MMeshes[index]->MName.AsString == channelName)
+                    {
+                        mesh = scene->MMeshes[index];
+                        break;
+                    }
+                }
+            }
+            if (mesh == null)
+            {
+                Logger.Warning($"Morph animation channel '{channelName}' matches no mesh and will be ignored.");
+                return;
+            }
+
+            // Like node animation: one clip per node, with one channel per target ("MorphWeights[<name>]").
+            if (!animationClips.TryGetValue(nodeName, out var animationClip))
+                animationClips.Add(nodeName, animationClip = new AnimationClip());
+
+            var curves = new Dictionary<uint, AnimationCurve<float>>();
+            for (uint keyId = 0; keyId < channel->MNumKeys; keyId++)
+            {
+                var key = channel->MKeys[keyId];
+                for (uint i = 0; i < key.MNumValuesAndWeights; i++)
+                {
+                    uint target = key.MValues[i];
+                    if (target >= mesh->MNumAnimMeshes || curves.ContainsKey(target))
+                        continue;
+
+                    // Same naming as ProcessMorphTargets, so curves match the imported target names.
+                    var name = MorphTargetName(mesh->MAnimMeshes[target], (int)target);
+                    if (name.Contains(']'))
+                    {
+                        Logger.Warning($"Morph target '{name}' cannot be animated: ']' is not allowed in animation paths.");
+                        continue;
+                    }
+                    var curve = new AnimationCurve<float> { InterpolationType = AnimationCurveInterpolationType.Linear };
+                    curves.Add(target, curve);
+                    animationClip.AddCurve($"MorphWeights[{name}]", curve);
+                }
+            }
+
+            // Targets missing from a key have weight 0 at that key.
+            var lastKeyTime = new CompressedTimeSpan();
+            for (uint keyId = 0; keyId < channel->MNumKeys; keyId++)
+            {
+                var key = channel->MKeys[keyId];
+                lastKeyTime = Utils.AiTimeToStrideTimeSpan(key.MTime, ticksPerSec);
+                foreach (var curve in curves.Values)
+                {
+                    curve.KeyFrames.Add(new KeyFrameData<float>(lastKeyTime, 0));
+                }
+                for (uint i = 0; i < key.MNumValuesAndWeights; i++)
+                {
+                    if (!curves.TryGetValue(key.MValues[i], out var curve))
+                        continue;
+                    var weight = (float)key.MWeights[i];
+                    if (!float.IsFinite(weight))
+                        throw new InvalidOperationException($"Morph animation channel '{channelName}' has a non-finite weight.");
+                    curve.KeyFrames[^1] = new KeyFrameData<float>(lastKeyTime, weight);
+                }
+            }
+            if (channel->MNumKeys > 0 && animationClip.Duration < lastKeyTime)
+                animationClip.Duration = lastKeyTime;
         }
 
         private unsafe void ProcessNodeAnimation(Dictionary<string, AnimationClip> animationClips, NodeAnim* nodeAnim, double ticksPerSec, Dictionary<string, List<int>> duplicateNodeNameToNodeIndices, Dictionary<string, int> boneNameToNodeIndex)
@@ -593,6 +709,19 @@ namespace Stride.Importer.ThreeD
 
             if (animationClip.Curves.Count > 0)
                 animationClips.Add(targetNodeName, animationClip);
+        }
+
+        /// <summary>
+        /// Name of a morph target. Assimp names FBX blend shapes "Channel.Shape"; exporters such as Blender give both the
+        /// same name, which is collapsed so the target matches its glTF name.
+        /// </summary>
+        private static unsafe string MorphTargetName(AnimMesh* target, int index)
+        {
+            var name = target->MName.AsString;
+            if (string.IsNullOrWhiteSpace(name))
+                return $"Morph{index}";
+            int dot = name.IndexOf('.');
+            return dot > 0 && name.AsSpan(0, dot).SequenceEqual(name.AsSpan(dot + 1)) ? name[..dot] : name;
         }
 
         private unsafe void ProcessAnimationCurveVector(AnimationClip animationClip, VectorKey* keys, uint nbKeys, string partialTargetName, double ticksPerSec, bool isTranslation)
@@ -1100,8 +1229,173 @@ namespace Stride.Importer.ThreeD
                 MaterialIndex = (int)mesh->MMaterialIndex,
                 HasSkinningPosition = hasSkinningPosition,
                 HasSkinningNormal = hasSkinningNormal,
-                TotalClusterCount = totalClusterCount
+                TotalClusterCount = totalClusterCount,
+                MorphTargets = ProcessMorphTargets(mesh),
             };
+        }
+
+        private unsafe MeshMorphData ProcessMorphTargets(Silk.NET.Assimp.Mesh* mesh)
+        {
+            if (mesh->MNumAnimMeshes == 0) return null;
+            if (mesh->MAnimMeshes == null || mesh->MNumAnimMeshes > MeshMorphData.MaxTargetCount)
+                throw new InvalidOperationException("Morph target table is missing or exceeds the 16-bit shape limit.");
+            var names = new string[mesh->MNumAnimMeshes];
+            var usedNames = new HashSet<string>(StringComparer.Ordinal);
+            var vertexCount = (int)mesh->MNumVertices;
+            var generator = CreateMorphFrameGenerator(mesh);
+            var shapes = new MorphShapeImport[names.Length];
+            for (int shape = 0; shape < names.Length; shape++)
+            {
+                var target = mesh->MAnimMeshes[shape];
+                if (target == null || target->MNumVertices != mesh->MNumVertices)
+                    throw new InvalidOperationException($"Morph target {shape} has incompatible vertex topology.");
+                names[shape] = MorphTargetName(target, shape);
+                if (!usedNames.Add(names[shape])) throw new InvalidOperationException($"Duplicate morph target name '{names[shape]}'.");
+
+                bool fileNormals = target->MNormals != null && mesh->MNormals != null;
+                bool fileTangents = target->MTangents != null && mesh->MTangents != null;
+                bool generateNormals = MorphNormals == MorphDeltaSource.Generate || (MorphNormals == MorphDeltaSource.ImportOrGenerate && !fileNormals);
+                bool generateTangents = mesh->MTangents != null && (MorphTangents == MorphDeltaSource.Generate || (MorphTangents == MorphDeltaSource.ImportOrGenerate && !fileTangents));
+                if ((generateNormals && generator == null) || (generateTangents && generator?.CanGenerateTangents != true))
+                    Logger.Warning($"Morph '{names[shape]}': normal or tangent deltas cannot be generated (missing triangles, normals or UVs); those deltas remain zero.");
+                if ((MorphNormals == MorphDeltaSource.Import && !fileNormals) || (MorphTangents == MorphDeltaSource.Import && mesh->MTangents != null && !fileTangents))
+                    Logger.Warning($"Morph '{names[shape]}' has missing normal or tangent attributes; those deltas remain zero.");
+                shapes[shape] = new MorphShapeImport
+                {
+                    ImportNormals = fileNormals && MorphNormals is MorphDeltaSource.Import or MorphDeltaSource.ImportOrGenerate,
+                    ImportTangents = fileTangents && MorphTangents is MorphDeltaSource.Import or MorphDeltaSource.ImportOrGenerate,
+                    GenerateNormals = generateNormals && generator != null,
+                    GenerateTangents = generateTangents && generator?.CanGenerateTangents == true,
+                };
+            }
+
+            // Targets are independent: convert them in parallel, each thread with its own generator scratch memory.
+            var meshPointer = (nint)mesh;
+            System.Threading.Tasks.Parallel.For(0, names.Length, () => generator?.CreateScratch(), (shape, _, scratch) =>
+            {
+                ProcessMorphTarget((Silk.NET.Assimp.Mesh*)meshPointer, shape, shapes[shape], generator, scratch);
+                return scratch;
+            }, _ => { });
+
+            var entries = new List<MeshMorphEntry>();
+            bool hasNormals = false, hasTangents = false;
+            for (int shape = 0; shape < names.Length; shape++)
+            {
+                entries.AddRange(shapes[shape].Entries);
+                hasNormals |= shapes[shape].ImportNormals || shapes[shape].GenerateNormals;
+                hasTangents |= shapes[shape].ImportTangents || shapes[shape].GenerateTangents;
+                if (shapes[shape].FlippedTangents > 0)
+                    Logger.Warning($"Morph '{names[shape]}' mirrors the tangent frame at {shapes[shape].FlippedTangents} vertices; their tangent deltas are ignored.");
+            }
+            return MeshMorphData.Create(vertexCount, names, entries, hasNormals, hasTangents);
+        }
+
+        private sealed class MorphShapeImport
+        {
+            public bool ImportNormals;
+            public bool ImportTangents;
+            public bool GenerateNormals;
+            public bool GenerateTangents;
+            public List<MeshMorphEntry> Entries;
+            public int FlippedTangents;
+        }
+
+        private unsafe void ProcessMorphTarget(Silk.NET.Assimp.Mesh* mesh, int shape, MorphShapeImport import, MorphFrameGenerator generator, MorphFrameGenerator.Scratch scratch)
+        {
+            var target = mesh->MAnimMeshes[shape];
+            var vertexCount = (int)mesh->MNumVertices;
+            var movedVertices = new List<int>();
+            if (target->MVertices != null)
+            {
+                for (int vertex = 0; vertex < vertexCount; vertex++)
+                {
+                    if (target->MVertices[vertex] != mesh->MVertices[vertex])
+                        movedVertices.Add(vertex);
+                }
+            }
+
+            bool generate = import.GenerateNormals || import.GenerateTangents;
+            if (generate)
+            {
+                var positions = target->MVertices != null ? target->MVertices : mesh->MVertices;
+                generator.Generate(new ReadOnlySpan<Vector3>(positions, vertexCount), movedVertices, import.GenerateTangents, scratch);
+            }
+
+            import.Entries = new List<MeshMorphEntry>();
+            for (int vertex = 0; vertex < vertexCount; vertex++)
+            {
+                var position = target->MVertices != null
+                    ? Vector3.TransformNormal(target->MVertices[vertex].ToStrideVector3() - mesh->MVertices[vertex].ToStrideVector3(), rootTransform) : Vector3.Zero;
+                bool generated = generate && scratch.Contains(vertex);
+                var normal = import.ImportNormals ? MorphDirection(target->MNormals[vertex].ToStrideVector3(), mesh->MNormals[vertex].ToStrideVector3())
+                    : import.GenerateNormals && generated ? GeneratedMorphDirection(scratch.Normals[vertex], generator.BaseNormals[vertex]) : Vector3.Zero;
+                var tangent = import.ImportTangents ? MorphDirection(target->MTangents[vertex].ToStrideVector3(), mesh->MTangents[vertex].ToStrideVector3())
+                    : import.GenerateTangents && generated ? GeneratedMorphDirection(scratch.Tangents[vertex], generator.BaseTangents[vertex]) : Vector3.Zero;
+                if (import.ImportTangents && import.ImportNormals && target->MBitangents != null && mesh->MBitangents != null)
+                {
+                    float baseSign = Vector3.Dot(Vector3.Cross(mesh->MNormals[vertex].ToStrideVector3(), mesh->MTangents[vertex].ToStrideVector3()), mesh->MBitangents[vertex].ToStrideVector3());
+                    float targetSign = Vector3.Dot(Vector3.Cross(target->MNormals[vertex].ToStrideVector3(), target->MTangents[vertex].ToStrideVector3()), target->MBitangents[vertex].ToStrideVector3());
+                    // Handedness is not encoded; keep the base tangent where the target frame is mirrored.
+                    // Importers often regenerate target tangents (e.g. FBX), which can flip at seams.
+                    if ((baseSign < 0) != (targetSign < 0)) { tangent = Vector3.Zero; import.FlippedTangents++; }
+                }
+                var entry = MeshMorphEntry.Create((uint)vertex, (ushort)shape, position, normal, tangent);
+                if (!entry.IsZero) import.Entries.Add(entry);
+            }
+        }
+
+        private unsafe MorphFrameGenerator CreateMorphFrameGenerator(Silk.NET.Assimp.Mesh* mesh)
+        {
+            bool needed = MorphNormals is MorphDeltaSource.ImportOrGenerate or MorphDeltaSource.Generate
+                || MorphTangents is MorphDeltaSource.ImportOrGenerate or MorphDeltaSource.Generate;
+            if (!needed || mesh->MNormals == null || mesh->MFaces == null)
+                return null;
+
+            var vertexCount = (int)mesh->MNumVertices;
+            var positions = new Vector3[vertexCount];
+            var normals = new Vector3[vertexCount];
+            for (int vertex = 0; vertex < vertexCount; vertex++)
+            {
+                positions[vertex] = mesh->MVertices[vertex].ToStrideVector3();
+                normals[vertex] = mesh->MNormals[vertex].ToStrideVector3();
+            }
+
+            Vector2[] uvs = null;
+            if (mesh->MTextureCoords[0] != null && mesh->MTangents != null)
+            {
+                uvs = new Vector2[vertexCount];
+                for (int vertex = 0; vertex < vertexCount; vertex++)
+                    uvs[vertex] = new Vector2(mesh->MTextureCoords[0][vertex].X, mesh->MTextureCoords[0][vertex].Y);
+            }
+
+            var triangles = new List<int>((int)mesh->MNumFaces * 3);
+            for (int face = 0; face < mesh->MNumFaces; face++)
+            {
+                if (mesh->MFaces[face].MNumIndices != 3)
+                    continue;
+                for (int corner = 0; corner < 3; corner++)
+                    triangles.Add((int)mesh->MFaces[face].MIndices[corner]);
+            }
+            return triangles.Count == 0 ? null : new MorphFrameGenerator(positions, normals, uvs, triangles.ToArray());
+        }
+
+        private Vector3 GeneratedMorphDirection(Vector3 target, Vector3 basis)
+        {
+            // Degenerate geometry has no computed direction; that vertex keeps a zero delta.
+            if (target == Vector3.Zero || basis == Vector3.Zero)
+                return Vector3.Zero;
+            return MorphDirection(target, basis);
+        }
+
+        private Vector3 MorphDirection(Vector3 target, Vector3 basis)
+        {
+            // Match the base import's direction transform. Normalize attributes, never their delta.
+            target = Vector3.TransformNormal(target, rootTransform);
+            basis = Vector3.TransformNormal(basis, rootTransform);
+            if (!float.IsFinite(target.X) || !float.IsFinite(target.Y) || !float.IsFinite(target.Z) || !float.IsFinite(target.LengthSquared()) || target.LengthSquared() <= 0 ||
+                !float.IsFinite(basis.X) || !float.IsFinite(basis.Y) || !float.IsFinite(basis.Z) || !float.IsFinite(basis.LengthSquared()) || basis.LengthSquared() <= 0)
+                throw new InvalidOperationException("Morph direction attributes must be finite and nonzero.");
+            return Vector3.Normalize(target) - Vector3.Normalize(basis);
         }
 
         /// <summary>
@@ -1659,6 +1953,7 @@ namespace Stride.Importer.ThreeD
         public bool HasSkinningPosition = false;
         public bool HasSkinningNormal = false;
         public int TotalClusterCount = 0;
+        public MeshMorphData MorphTargets;
     }
 
     public class MaterialInstantiation

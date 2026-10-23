@@ -686,15 +686,15 @@ namespace Stride.Graphics
         ///   The Direct3D 11 implementation does not have synchronization barriers for Graphics Resource transitions. It
         ///   unbinds what the runtime would otherwise unbind itself: a transition to unordered access unbinds the
         ///   sub-Resources it covers from the shader resource slots they are bound to (binding them for writing while they
-        ///   are bound for reading makes the runtime unbind them, with a debug layer warning), and a transition to shader
-        ///   resource unbinds them from the unordered access slots of the compute and pixel stages (otherwise the runtime
-        ///   nulls the shader resource view, and the read sees nothing).
+        ///   are bound for reading makes the runtime unbind them, with a debug layer warning), and any other transition
+        ///   unbinds them from the unordered access slots of the compute and pixel stages (otherwise the runtime nulls the
+        ///   read binding, such as a shader resource view or a vertex buffer, and the read sees nothing).
         /// </remarks>
         public void ResourceBarrierTransition(GraphicsResource resource, BarrierLayout newLayout, uint subresource = uint.MaxValue)
         {
             if (newLayout == BarrierLayout.UnorderedAccess)
                 UnbindShaderResource(resource, subresource);
-            else if (newLayout == BarrierLayout.ShaderResource)
+            else
                 UnbindUnorderedAccess(resource, subresource);
         }
 
@@ -702,7 +702,7 @@ namespace Stride.Graphics
         {
             if (newState == GraphicsResourceState.UnorderedAccess)
                 UnbindShaderResource(resource, uint.MaxValue);
-            else if ((newState & GraphicsResourceState.AllShaderResource) != 0)
+            else
                 UnbindUnorderedAccess(resource, uint.MaxValue);
         }
 
