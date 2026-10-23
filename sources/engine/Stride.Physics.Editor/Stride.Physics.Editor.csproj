@@ -18,6 +18,9 @@
     <ProjectReference Include="..\Stride.Navigation\Stride.Navigation.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="DotRecast.Detour" />
+  </ItemGroup>
+  <ItemGroup>
     <EmbeddedResource Include="Resources\PhysicsComponent.png" />
     <EmbeddedResource Include="Resources\PhysicsConstraintComponent.png" />
   </ItemGroup>

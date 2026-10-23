@@ -20,8 +20,6 @@
 
   <ItemGroup>
     <PackageReference Include="NuGet.Protocol" />
-    <PackageReference Include="NuGet.PackageManagement" />
-    <PackageReference Include="NuGet.Resolver" />
     <PackageReference Include="NuGet.Commands" />
     <PackageReference Include="Avalonia.Desktop" PrivateAssets="all" />
     <PackageReference Include="Avalonia.Themes.Fluent" PrivateAssets="all" />

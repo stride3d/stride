@@ -25,7 +25,6 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Silk.NET.Input" />
     <PackageReference Include="Silk.NET.Windowing.Sdl" />
     <!-- Vulkan test renderer uses Vortice, like the engine's Vulkan backend -->
     <PackageReference Include="Vortice.Vulkan" />

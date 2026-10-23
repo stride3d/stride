@@ -17,14 +17,11 @@
     <PackageReference Include="Microsoft.Build.Framework" ExcludeAssets="runtime" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Build" ExcludeAssets="runtime" PrivateAssets="all" />
     <PackageReference Include="AvalonEdit" />
-    <PackageReference Include="System.Reactive.Linq" />
-    <PackageReference Include="System.Reactive" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" />
     <PackageReference Include="RoslynPad.Editor.Windows" />
     <PackageReference Include="RoslynPad.Roslyn.Windows" />
     <PackageReference Include="RoslynPad.Roslyn" />
-    <PackageReference Include="DotRecast.Detour" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
