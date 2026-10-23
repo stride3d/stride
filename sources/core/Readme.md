@@ -11,7 +11,6 @@ The assembly processor is a legacy job that runs after any project is built and 
 * Generating field/property docs in a simplified format for the editor
 * Module initializer generator (no longer necessary, built into .NET)
 * Removing locals initialization (no longer necessary, built into .NET)
-* Managing custom pooling of delegates for the dispatcher
 
 Most of the AssemblyProcessor is poorly documented and deals with a lot of IL weaving using Mono.Cecil.
 This makes it hard to debug and modify. AssemblyProcessor should be slowly deprecated in favor of native .NET/Roslyn solutions.
