@@ -73,15 +73,17 @@ namespace Stride.Assets.Presentation
         private static ResourceDictionary graphicsCompositorTemplateDictionary;
         private static ResourceDictionary visualScriptingTemplateDictionary;
         private static ResourceDictionary visualScriptingGraphTemplatesDictionary;
-        private static readonly Dictionary<Type, Type> GizmoTypes = new Dictionary<Type, Type>();
-        private static readonly Dictionary<Type, Type> AssetHighlighterTypes = new Dictionary<Type, Type>();
+        // Replaced, never changed: the editor games read them on their threads while an assembly registers
+        private static volatile IReadOnlyDictionary<Type, Type> gizmoTypes = new Dictionary<Type, Type>();
+        private static volatile IReadOnlyDictionary<Type, Type> assetHighlighterTypes = new Dictionary<Type, Type>();
+        private static readonly object TypeMapsLock = new object();
         // Replaced, never changed: an assembly can register on any thread (a package loaded by a background task)
         private static volatile IReadOnlyList<Type> addAssetPolicyTypes = [];
         private static readonly object AddAssetPolicyTypesLock = new object();
 
-        public static IReadOnlyDictionary<Type, Type> GizmoTypeDictionary => GizmoTypes;
+        public static IReadOnlyDictionary<Type, Type> GizmoTypeDictionary => gizmoTypes;
 
-        public static IReadOnlyDictionary<Type, Type> AssetHighlighterTypesDictionary => AssetHighlighterTypes;
+        public static IReadOnlyDictionary<Type, Type> AssetHighlighterTypesDictionary => assetHighlighterTypes;
 
         /// <summary>
         /// The <see cref="IAddAssetPolicy"/> implementations of every asset assembly, in registration order.
@@ -339,19 +341,10 @@ namespace Stride.Assets.Presentation
         /// </summary>
         private void OnRegisteredAssetAssembly(Assembly assembly)
         {
-            foreach (var type in AssemblyRegistry.GetScanTypes(assembly, typeof(GizmoComponentAttribute)))
+            lock (TypeMapsLock)
             {
-                if (type.IsAssignableTo(typeof(IGizmo)) && type.GetCustomAttribute<GizmoComponentAttribute>(true) is {} attribute)
-                    GizmoTypes.Add(attribute.ComponentType, type);
-            }
-            foreach (var type in AssemblyRegistry.GetScanTypes(assembly, typeof(AssetHighlighterAttribute)))
-            {
-                if (!type.IsAssignableTo(typeof(AssetHighlighter)))
-                    continue;
-                foreach (var attribute in type.GetCustomAttributes<AssetHighlighterAttribute>(false).NotNull())
-                {
-                    AssetHighlighterTypes.Add(attribute.AssetType, type);
-                }
+                gizmoTypes = WithTypes(gizmoTypes, GetGizmoTypes(assembly));
+                assetHighlighterTypes = WithTypes(assetHighlighterTypes, GetAssetHighlighterTypes(assembly));
             }
             var policyTypes = AssemblyRegistry.GetScanTypes(assembly, typeof(IAddAssetPolicy)).Where(IsAddAssetPolicy).ToList();
             lock (AddAssetPolicyTypesLock)
@@ -363,19 +356,10 @@ namespace Stride.Assets.Presentation
 
         private void OnUnregisteredAssetAssembly(Assembly assembly)
         {
-            foreach (var type in AssemblyRegistry.GetScanTypes(assembly, typeof(GizmoComponentAttribute)))
+            lock (TypeMapsLock)
             {
-                if (type.IsAssignableTo(typeof(IGizmo)) && type.GetCustomAttribute<GizmoComponentAttribute>(true) is {} attribute)
-                    GizmoTypes.Remove(attribute.ComponentType);
-            }
-            foreach (var type in AssemblyRegistry.GetScanTypes(assembly, typeof(AssetHighlighterAttribute)))
-            {
-                if (!type.IsAssignableTo(typeof(AssetHighlighter)))
-                    continue;
-                foreach (var attribute in type.GetCustomAttributes<AssetHighlighterAttribute>(false).NotNull())
-                {
-                    AssetHighlighterTypes.Remove(attribute.AssetType);
-                }
+                gizmoTypes = WithoutTypes(gizmoTypes, GetGizmoTypes(assembly));
+                assetHighlighterTypes = WithoutTypes(assetHighlighterTypes, GetAssetHighlighterTypes(assembly));
             }
             var policyTypes = AssemblyRegistry.GetScanTypes(assembly, typeof(IAddAssetPolicy)).ToHashSet();
             lock (AddAssetPolicyTypesLock)
@@ -383,6 +367,54 @@ namespace Stride.Assets.Presentation
 
             var factoryTypes = AssemblyRegistry.GetScanTypes(assembly, typeof(IEntityFactory)).ToArray();
             OnUiThread(() => UnregisterEntityFactories(factoryTypes));
+        }
+
+        // Component type -> gizmo type
+        private static List<KeyValuePair<Type, Type>> GetGizmoTypes(Assembly assembly)
+        {
+            var types = new List<KeyValuePair<Type, Type>>();
+            foreach (var type in AssemblyRegistry.GetScanTypes(assembly, typeof(GizmoComponentAttribute)))
+            {
+                if (type.IsAssignableTo(typeof(IGizmo)) && type.GetCustomAttribute<GizmoComponentAttribute>(true) is {} attribute)
+                    types.Add(KeyValuePair.Create(attribute.ComponentType, type));
+            }
+            return types;
+        }
+
+        // Asset type -> highlighter type
+        private static List<KeyValuePair<Type, Type>> GetAssetHighlighterTypes(Assembly assembly)
+        {
+            var types = new List<KeyValuePair<Type, Type>>();
+            foreach (var type in AssemblyRegistry.GetScanTypes(assembly, typeof(AssetHighlighterAttribute)))
+            {
+                if (!type.IsAssignableTo(typeof(AssetHighlighter)))
+                    continue;
+                foreach (var attribute in type.GetCustomAttributes<AssetHighlighterAttribute>(false).NotNull())
+                    types.Add(KeyValuePair.Create(attribute.AssetType, type));
+            }
+            return types;
+        }
+
+        // The last registered type wins: two assemblies may declare one for the same key, and a reload can register the
+        // new copy before the old one goes
+        private static Dictionary<Type, Type> WithTypes(IReadOnlyDictionary<Type, Type> map, List<KeyValuePair<Type, Type>> types)
+        {
+            var result = new Dictionary<Type, Type>(map);
+            foreach (var (key, type) in types)
+                result[key] = type;
+            return result;
+        }
+
+        // Only the types the assembly registered: a key another assembly took since keeps its type
+        private static Dictionary<Type, Type> WithoutTypes(IReadOnlyDictionary<Type, Type> map, List<KeyValuePair<Type, Type>> types)
+        {
+            var result = new Dictionary<Type, Type>(map);
+            foreach (var (key, type) in types)
+            {
+                if (result.TryGetValue(key, out var current) && current == type)
+                    result.Remove(key);
+            }
+            return result;
         }
 
         private static bool IsEntityFactory(Type type)

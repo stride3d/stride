@@ -306,7 +306,73 @@ namespace Stride.Engine
             OnEntityRemoved(entity);
         }
 
-        [UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "Processor ctor rooted via [DefaultEntityComponentProcessor(typeof(...))] DAM.")]
+        /// <summary>
+        /// Removes what this manager keeps of types that are gone (their assembly was unloaded, or replaced by a new copy):
+        /// the processors of a stale type or for a stale component type, which first remove their entities, and the stale
+        /// component types no entity holds any more. The processors of the new copies come by themselves as their
+        /// components are added, and a component type that stays gets the new copy of a processor it lost. A stale
+        /// component still on an entity stays there, without its processors, until it is replaced. Called on the game
+        /// thread after an assembly change, as the editor does; a second call does nothing.
+        /// </summary>
+        /// <param name="isStale">Whether a type is gone.</param>
+        /// <returns>Whether a processor or a component type was removed or added.</returns>
+        internal bool RemoveStaleTypes(Func<Type, bool> isStale)
+        {
+            ArgumentNullException.ThrowIfNull(isStale);
+
+            var changed = false;
+            for (int i = processors.Count - 1; i >= 0; i--)
+            {
+                if (IsStale(processors[i]))
+                {
+                    processors.RemoveAt(i);
+                    changed = true;
+                }
+            }
+            for (int i = pendingProcessors.Count - 1; i >= 0; i--)
+            {
+                if (IsStale(pendingProcessors[i]))
+                    pendingProcessors.RemoveAt(i);
+            }
+
+            // A type an entity still holds keeps its records: they are used when its components are removed
+            var typesInUse = new HashSet<Type>();
+            foreach (var entity in entities)
+            {
+                foreach (var component in entity.Components)
+                    typesInUse.Add(component.GetType());
+            }
+
+            foreach (var componentType in componentTypes.ToList())
+            {
+                if (isStale(componentType) && !typesInUse.Contains(componentType))
+                {
+                    componentTypes.Remove(componentType);
+                    changed = true;
+                }
+            }
+            foreach (var componentType in MapComponentTypeToProcessors.Keys.ToList())
+            {
+                if (isStale(componentType) && !typesInUse.Contains(componentType))
+                    MapComponentTypeToProcessors.Remove(componentType);
+            }
+            changed |= flexibleProcessors.RemoveStaleTypes(isStale, typesInUse);
+
+            // A component type that stays may have lost a processor of a stale type: the new copy takes its place
+            foreach (var componentType in componentTypes.ToList())
+            {
+                if (!isStale(componentType))
+                    CollectProcessors(componentType);
+            }
+            changed |= pendingProcessors.Count > 0;
+            RegisterPendingProcessors();
+
+            return changed;
+
+            bool IsStale(EntityProcessor processor)
+                => isStale(processor.GetType()) || isStale(processor.MainComponentType) || processor.RequiredTypes.Any(x => isStale(x));
+        }
+
         private void CollectNewProcessorsByComponentType(TypeInfo componentType)
         {
             if (componentTypes.Contains(componentType))
@@ -317,6 +383,12 @@ namespace Stride.Engine
             componentTypes.Add(componentType);
             OnComponentTypeAdded(componentType);
 
+            CollectProcessors(componentType);
+        }
+
+        [UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "Processor ctor rooted via [DefaultEntityComponentProcessor(typeof(...))] DAM.")]
+        private void CollectProcessors(TypeInfo componentType)
+        {
             // Automatically collect processors that are used by this component
             var processorAttributes = componentType.GetCustomAttributes<DefaultEntityComponentProcessorAttribute>();
             foreach (var processorAttributeType in processorAttributes)

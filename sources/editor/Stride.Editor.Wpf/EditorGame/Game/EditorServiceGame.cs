@@ -1,13 +1,20 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using System.Collections.Generic;
+using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.BuildEngine;
+using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Mathematics;
+using Stride.Core.Reflection;
 using Stride.Editor.Build;
 using Stride.Editor.Engine;
+using Stride.Engine;
 using Stride.Games;
 using Stride.Games.Time;
 using Stride.Graphics;
@@ -54,7 +61,17 @@ namespace Stride.Editor.EditorGame.Game
         private bool prevForceOneUpdatePerDraw;
         private bool isFirstDrawCall = true;    // We need to call BeginDraw at least once to ensure graphics context is generated
 
+        // The assemblies unregistered since the game started, without the ones registered again (as on an undo): the
+        // processors and systems of their types are stale
+        private readonly HashSet<Assembly> unregisteredAssemblies = [];
+        private int reconcilePending;
+
         public EditorGameServiceRegistry EditorServices { get; private set; }
+
+        /// <summary>
+        /// The scene instances of this game, whose processors follow an assembly change.
+        /// </summary>
+        protected virtual IEnumerable<SceneInstance> SceneInstances => SceneSystem.SceneInstance is { } sceneInstance ? [sceneInstance] : [];
 
         public IGameSettingsAccessor PackageSettings { get; set; }
 
@@ -149,6 +166,84 @@ namespace Stride.Editor.EditorGame.Game
             MicrothreadLocalDatabases.MountCommonDatabase();
 
             base.Initialize();
+
+            AssemblyRegistry.AssemblyRegistered += AssemblyRegistered;
+            AssemblyRegistry.AssemblyUnregistered += AssemblyUnregistered;
+            // The systems were created with the game: an assembly change since then is caught up
+            ScheduleReconcile();
+        }
+
+        /// <inheritdoc />
+        protected override void Destroy()
+        {
+            AssemblyRegistry.AssemblyRegistered -= AssemblyRegistered;
+            AssemblyRegistry.AssemblyUnregistered -= AssemblyUnregistered;
+
+            base.Destroy();
+        }
+
+        private void AssemblyRegistered(object sender, AssemblyRegisteredEventArgs e)
+        {
+            lock (unregisteredAssemblies)
+                unregisteredAssemblies.Remove(e.Assembly);
+            ScheduleReconcile();
+        }
+
+        private void AssemblyUnregistered(object sender, AssemblyRegisteredEventArgs e)
+        {
+            lock (unregisteredAssemblies)
+                unregisteredAssemblies.Add(e.Assembly);
+            ScheduleReconcile();
+        }
+
+        // An assembly change (a reload, its undo or redo, an unload) happens on the UI thread, one assembly at a time: one
+        // reconcile on the game thread follows the whole change. One that runs in the middle of it is completed by the next,
+        // since a second run changes nothing.
+        private void ScheduleReconcile()
+        {
+            // An event raised while the game is being destroyed: its scripts are gone
+            if (IsDisposed)
+                return;
+            if (Interlocked.Exchange(ref reconcilePending, 1) == 0)
+                Script.AddTask(ReconcileAssemblies);
+        }
+
+        /// <summary>
+        /// Drops the processors and systems of the types of the unregistered assemblies, and creates the ones of the
+        /// registered assemblies. The components follow on their own, as their asset's objects are swapped.
+        /// </summary>
+        private Task ReconcileAssemblies()
+        {
+            Interlocked.Exchange(ref reconcilePending, 0);
+            HashSet<Assembly> stale;
+            lock (unregisteredAssemblies)
+                stale = [.. unregisteredAssemblies];
+
+            // Each step on its own: an exception (a plugin's game system that fails to construct) is logged, and doesn't
+            // fault the game
+            if (stale.Count > 0)
+            {
+                foreach (var sceneInstance in SceneInstances)
+                {
+                    try
+                    {
+                        sceneInstance.RemoveStaleTypes(type => stale.Contains(type.Assembly));
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Error("Could not drop the processors of the unloaded assemblies", e);
+                    }
+                }
+            }
+            try
+            {
+                ReconcileDeclaredGameSystems();
+            }
+            catch (Exception e)
+            {
+                Log.Error("Could not update the game systems after an assembly change", e);
+            }
+            return Task.CompletedTask;
         }
 
         /// <inheritdoc />

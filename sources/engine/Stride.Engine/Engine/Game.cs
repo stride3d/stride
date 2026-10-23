@@ -50,6 +50,8 @@ namespace Stride.Engine
         private readonly LogListener logListener;
 
         private readonly List<GameSystemBase> declaredSystems = new List<GameSystemBase>();
+        // Whether Initialize added the declared systems to the game systems: the ones created later go there directly
+        private bool declaredSystemsAdded;
 
         private DatabaseFileProvider databaseFileProvider;
 
@@ -405,6 +407,7 @@ namespace Stride.Engine
             // Add the systems the loaded packages declare (audio, ...), after the engine's own
             foreach (var system in declaredSystems)
                 GameSystems.Add(system);
+            declaredSystemsAdded = true;
 
             // TODO: data-driven?
             Content.Serializer.RegisterSerializer(new ImageSerializer());
@@ -420,10 +423,73 @@ namespace Stride.Engine
         protected virtual bool IsEditorGame => false;
 
         /// <summary>
-        /// Creates the systems marked <see cref="GameSystemAttribute"/> in the assemblies registered when the game is
-        /// created using the source-generated scan indexes and registers their services.
+        /// Makes the systems marked <see cref="GameSystemAttribute"/> match the assemblies registered now. A system whose
+        /// type is not declared any more (its assembly was unloaded, or replaced by a new copy) is removed from the game
+        /// systems and the services, and disposed; a system declared since is created, as the constructor does. Called on
+        /// the game thread after an assembly change, as the editor does; a second call does nothing.
         /// </summary>
-        private void CreateDeclaredGameSystems()
+        /// <returns>Whether a system was removed or created.</returns>
+        internal bool ReconcileDeclaredGameSystems()
+        {
+            var declaredTypes = GetDeclaredGameSystemTypes().ToHashSet();
+            var changed = false;
+            for (int i = declaredSystems.Count - 1; i >= 0; i--)
+            {
+                var system = declaredSystems[i];
+                if (declaredTypes.Contains(system.GetType()))
+                    continue;
+
+                // Called from a script, it runs in the middle of the update, which goes on over a copy of the systems:
+                // disabled, the system isn't updated again once disposed
+                system.Enabled = false;
+                system.Visible = false;
+                declaredSystems.RemoveAt(i);
+                GameSystems.Remove(system);
+                Services.RemoveService(system.GetType(), system);
+                system.Dispose();
+                changed = true;
+            }
+
+            return CreateDeclaredGameSystems() || changed;
+        }
+
+        /// <summary>
+        /// Creates the systems marked <see cref="GameSystemAttribute"/> in the registered assemblies that are not created
+        /// yet, and registers their services.
+        /// </summary>
+        /// <returns>Whether a system was created.</returns>
+        private bool CreateDeclaredGameSystems()
+        {
+            var created = false;
+            foreach (var systemType in GetDeclaredGameSystemTypes())
+            {
+                if (declaredSystems.Any(x => x.GetType() == systemType))
+                    continue;
+
+                GameSystemBase system;
+                try
+                {
+                    system = (GameSystemBase)Activator.CreateInstance(systemType, Services);
+                }
+                catch (Exception e)
+                {
+                    throw new InvalidOperationException($"Could not create the game system [{systemType}] declared with [GameSystem]", e is TargetInvocationException { InnerException: { } inner } ? inner : e);
+                }
+
+                Services.AddService(systemType, system);
+                declaredSystems.Add(system);
+                if (declaredSystemsAdded)
+                    GameSystems.Add(system);
+                created = true;
+            }
+            return created;
+        }
+
+        /// <summary>
+        /// The types marked <see cref="GameSystemAttribute"/> in the registered assemblies (from their source-generated
+        /// scan indexes) that this game creates.
+        /// </summary>
+        private IEnumerable<Type> GetDeclaredGameSystemTypes()
         {
             // In a fixed order (assembly, then type name), whatever the order the assemblies registered in
             foreach (var assembly in AssemblyRegistry.FindAll().OrderBy(x => x.FullName, StringComparer.Ordinal))
@@ -433,23 +499,12 @@ namespace Stride.Engine
 
                 foreach (var systemType in systemTypes.OrderBy(x => x.FullName, StringComparer.Ordinal))
                 {
-                    if (systemType.IsAbstract || declaredSystems.Any(x => x.GetType() == systemType))
+                    if (systemType.IsAbstract)
                         continue;
                     if (IsEditorGame && systemType.GetCustomAttribute<GameSystemAttribute>(inherit: false)?.Editor != true)
                         continue;
 
-                    GameSystemBase system;
-                    try
-                    {
-                        system = (GameSystemBase)Activator.CreateInstance(systemType, Services);
-                    }
-                    catch (Exception e)
-                    {
-                        throw new InvalidOperationException($"Could not create the game system [{systemType}] declared with [GameSystem]", e is TargetInvocationException { InnerException: { } inner } ? inner : e);
-                    }
-
-                    Services.AddService(systemType, system);
-                    declaredSystems.Add(system);
+                    yield return systemType;
                 }
             }
         }

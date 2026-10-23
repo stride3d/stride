@@ -53,7 +53,8 @@ namespace Stride.Graphics
 
         // Per-CL layout state. Seeded from GraphicsResource.LayoutTracker on first touch; used by
         // ResourceBarrierTransition so the read path can't race concurrent writes. Writes still
-        // mirror to the shared tracker (matches Vulkan 03a246a1b8).
+        // mirror to the shared tracker (matches Vulkan 03a246a1b8), and texture layout changes are
+        // recorded so submission corrects the first-touch guess (SubmittedLayoutReplay).
         private readonly Dictionary<GraphicsResource, SubresourceLayoutTracker> cbLayouts = new();
 
         // Mappings from CPU-side Descriptor Handles to GPU-side Descriptor Handles
@@ -163,6 +164,7 @@ namespace Stride.Graphics
             currentCommandList.SrvHeaps = GraphicsDevice.DescriptorHeapLists.Acquire();
             currentCommandList.SamplerHeaps = GraphicsDevice.DescriptorHeapLists.Acquire();
             currentCommandList.StagingResources = GraphicsDevice.StagingResourceLists.Acquire();
+            currentCommandList.RecordedTransitions = GraphicsDevice.RecordedTransitionLists.Acquire();
 
             // Get a new allocator and unused command list
             currentCommandList.NativeCommandAllocator = GraphicsDevice.CommandAllocators.GetObject(GraphicsDevice.CommandListFence.Fence.GetCompletedValue());
@@ -571,8 +573,13 @@ namespace Stride.Graphics
             // Seed CL-local tracker from shared on first touch; Clone to avoid aliasing its
             // perSubresource array.
             ref var tracker = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(cbLayouts, resource, out bool exists);
+            bool recordTransitions = resource is Texture && !resource.IsHostVisibleHeap;
             if (!exists)
+            {
                 tracker = resource.LayoutTracker.Clone();
+                if (recordTransitions)
+                    SubmittedLayoutReplay.RecordAssumed(currentCommandList.RecordedTransitions, resource, tracker);
+            }
 
             barrierTransitions.Clear();
             if (viewRange is { } range)
@@ -601,6 +608,8 @@ namespace Stride.Graphics
                 {
                     Subresource = transition.Subresource
                 });
+                if (recordTransitions)
+                    currentCommandList.RecordedTransitions.Add(new RecordedTransition(resource, transition.Subresource, transition.LayoutBefore, newLayout));
             }
             resource.LayoutTracker = tracker;
         }
@@ -668,30 +677,17 @@ namespace Stride.Graphics
                 if (desc.Resource.NativeResource.Handle is null)
                     continue;
 
-                var syncBefore = BarrierMapping.ToEnhancedSync(desc.LayoutBefore);
-                var syncAfter = BarrierMapping.ToEnhancedSync(desc.LayoutAfter);
-                var accessBefore = BarrierMapping.ToEnhancedAccess(desc.LayoutBefore);
-                var accessAfter = BarrierMapping.ToEnhancedAccess(desc.LayoutAfter);
-
                 if (desc.Resource is Texture)
                 {
-                    textureBarriers[textureCount++] = new D3D12TextureBarrier
-                    {
-                        SyncBefore = syncBefore,
-                        SyncAfter = syncAfter,
-                        AccessBefore = accessBefore,
-                        AccessAfter = accessAfter,
-                        LayoutBefore = BarrierMapping.ToEnhancedLayout(desc.LayoutBefore),
-                        LayoutAfter = BarrierMapping.ToEnhancedLayout(desc.LayoutAfter),
-                        PResource = desc.Resource.NativeResource,
-                        Subresources = desc.Subresource == uint.MaxValue
-                            ? D3D12SubresourceRange.All
-                            : D3D12SubresourceRange.Single(desc.Subresource),
-                        Flags = 0,
-                    };
+                    textureBarriers[textureCount++] = TextureBarrier(desc.Resource, desc.Subresource, desc.LayoutBefore, desc.LayoutAfter);
                 }
                 else
                 {
+                    var syncBefore = BarrierMapping.ToEnhancedSync(desc.LayoutBefore);
+                    var syncAfter = BarrierMapping.ToEnhancedSync(desc.LayoutAfter);
+                    var accessBefore = BarrierMapping.ToEnhancedAccess(desc.LayoutBefore);
+                    var accessAfter = BarrierMapping.ToEnhancedAccess(desc.LayoutAfter);
+
                     bufferBarriers[bufferCount++] = new D3D12BufferBarrier
                     {
                         SyncBefore = syncBefore,
@@ -740,6 +736,25 @@ namespace Stride.Graphics
                 }
             }
         }
+
+        /// <summary>
+        ///   Gets the barrier that moves a subresource of a Texture (not a View), or the whole Texture with
+        ///   <see cref="uint.MaxValue"/>, between two layouts.
+        /// </summary>
+        internal static D3D12TextureBarrier TextureBarrier(GraphicsResource texture, uint subresource, BarrierLayout layoutBefore, BarrierLayout layoutAfter) => new()
+        {
+            SyncBefore = BarrierMapping.ToEnhancedSync(layoutBefore),
+            SyncAfter = BarrierMapping.ToEnhancedSync(layoutAfter),
+            AccessBefore = BarrierMapping.ToEnhancedAccess(layoutBefore),
+            AccessAfter = BarrierMapping.ToEnhancedAccess(layoutAfter),
+            LayoutBefore = BarrierMapping.ToEnhancedLayout(layoutBefore),
+            LayoutAfter = BarrierMapping.ToEnhancedLayout(layoutAfter),
+            PResource = texture.NativeResource,
+            Subresources = subresource == uint.MaxValue
+                ? D3D12SubresourceRange.All
+                : D3D12SubresourceRange.Single(subresource),
+            Flags = 0,
+        };
 
         /// <summary>
         ///   Makes the unordered access writes to a Graphics Resource visible to the next unordered accesses to it, such as

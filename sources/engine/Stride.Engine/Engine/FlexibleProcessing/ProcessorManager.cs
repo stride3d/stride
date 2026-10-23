@@ -92,9 +92,9 @@ namespace Stride.Engine.FlexibleProcessing
                         continue;
 
                     if (instance is IUpdateProcessor update)
-                        processorsToUpdate.Add(new(update.Order, pDataRef.Type), new(update, new ProfilingKey(GameProfilingKeys.GameUpdate, GetType().Name)));
+                        processorsToUpdate.Add(new(update.Order, pDataRef.Type, procIndex), new(update, new ProfilingKey(GameProfilingKeys.GameUpdate, GetType().Name)));
                     if (instance is IDrawProcessor draw)
-                        processorsToDraw.Add(new(draw.Order, pDataRef.Type), new(draw, new ProfilingKey(GameProfilingKeys.GameDraw, GetType().Name)));
+                        processorsToDraw.Add(new(draw.Order, pDataRef.Type, procIndex), new(draw, new ProfilingKey(GameProfilingKeys.GameDraw, GetType().Name)));
 
                     instance.SystemAdded(registry);
                     // Don't read or write to pDataRef from here on since SystemAdded may have mutated processors' backing array
@@ -159,6 +159,28 @@ namespace Stride.Engine.FlexibleProcessing
             }
         }
 
+        /// <summary>
+        /// Drops the records of stale component types no entity holds (<paramref name="typesInUse"/>), and of stale
+        /// processor types that have no instance. A stale processor that still has components goes with its last one.
+        /// </summary>
+        /// <returns>Whether a record was dropped.</returns>
+        internal bool RemoveStaleTypes(Func<Type, bool> isStale, HashSet<Type> typesInUse)
+        {
+            var changed = false;
+            foreach (var componentType in new List<Type>(compTypeToProcessorIndices.Keys))
+            {
+                if (isStale(componentType) && !typesInUse.Contains(componentType))
+                    changed |= compTypeToProcessorIndices.Remove(componentType);
+            }
+            foreach (var (processorType, index) in new List<KeyValuePair<Type, int>>(typeToIndex))
+            {
+                // Its slot stays, with no instance: the indices of the other records point after it
+                if (isStale(processorType) && processors[index].Instance == null)
+                    changed |= typeToIndex.Remove(processorType);
+            }
+            return changed;
+        }
+
         public void Update(GameTime gameTime)
         {
             foreach (var (_, processor) in processorsToUpdate)
@@ -185,13 +207,17 @@ namespace Stride.Engine.FlexibleProcessing
         private record struct DrawData(IDrawProcessor Instance, ProfilingKey ProfilingKey);
         private record struct ProcessorData(IProcessorBase? Instance, Type Type, int ComponentCount);
 
-        private readonly record struct ProcessorSortingKey(int Order, Type Type) : IComparable<ProcessorSortingKey>
+        // Index is the processor's slot: two copies of one processor type (an assembly reloaded while components of the
+        // old copy remain) have the same name, and both run until the old one has no component left
+        private readonly record struct ProcessorSortingKey(int Order, Type Type, int Index) : IComparable<ProcessorSortingKey>
         {
             public int CompareTo(ProcessorSortingKey other)
             {
                 int comp = Order.CompareTo(other.Order);
                 if (comp == 0)
-                    return string.Compare(Type.FullName, other.Type.FullName, StringComparison.Ordinal);
+                    comp = string.Compare(Type.FullName, other.Type.FullName, StringComparison.Ordinal);
+                if (comp == 0)
+                    comp = Index.CompareTo(other.Index);
 
                 return comp;
             }

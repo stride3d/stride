@@ -35,8 +35,8 @@ namespace Stride.Graphics
         // CB's ResourceBarrierTransition calls in arbitrary order, which disagrees with Vulkan's
         // per-execution-order layout tracking when CBs record concurrently. This map remembers what
         // layouts THIS CB believes each texture holds for the draws it records.
-        // Cleared on Reset. The first touch of a texture in a CB still falls back to the shared
-        // tracker — that's a known limitation to be addressed by adding a "last-submitted layout" tracker.
+        // Cleared on Reset. The first touch of a texture in a CB falls back to the shared tracker; the
+        // layout changes are also recorded, so submission corrects that guess (SubmittedLayoutReplay).
         private readonly Dictionary<Texture, SubresourceLayoutTracker> currentCbLayouts = new();
 
         // Scratch lists for the barriers of one call. Reused to avoid per-call allocs.
@@ -124,6 +124,7 @@ namespace Stride.Graphics
             currentCommandList.DescriptorPools = GraphicsDevice.DescriptorPoolLists.Acquire();
             currentCommandList.StagingResources = GraphicsDevice.StagingResourceLists.Acquire();
             currentCommandList.QueryPools = GraphicsDevice.QueryPoolLists.Acquire();
+            currentCommandList.RecordedTransitions = GraphicsDevice.RecordedTransitionLists.Acquire();
 
             var beginInfo = new VkCommandBufferBeginInfo
             {
@@ -773,7 +774,10 @@ namespace Stride.Graphics
         {
             ref var tracker = ref CollectionsMarshal.GetValueRefOrAddDefault(currentCbLayouts, texture, out bool exists);
             if (!exists)
+            {
                 tracker = texture.LayoutTracker.Clone();
+                SubmittedLayoutReplay.RecordAssumed(currentCommandList.RecordedTransitions, texture, tracker);
+            }
             return ref tracker;
         }
 
@@ -800,7 +804,10 @@ namespace Stride.Graphics
             // Mirrored to the shared tracker, for the next command list that uses the texture
             texture.LayoutTracker = tracker;
             foreach (var transition in transitions)
+            {
                 AddPendingBarrier(ImageBarrier(texture, transition.Subresource, transition.LayoutBefore, newLayout));
+                currentCommandList.RecordedTransitions.Add(new RecordedTransition(texture, transition.Subresource, transition.LayoutBefore, newLayout));
+            }
         }
 
         /// <summary>
@@ -817,6 +824,7 @@ namespace Stride.Graphics
 
                 tracker.Set(transition.Subresource, transition.LayoutBefore);
                 AddPendingBarrier(ImageBarrier(texture, transition.Subresource, transferLayout, transition.LayoutBefore));
+                currentCommandList.RecordedTransitions.Add(new RecordedTransition(texture, transition.Subresource, transferLayout, transition.LayoutBefore));
             }
             tracker.CollapseIfUniform();
             texture.LayoutTracker = tracker;
@@ -892,7 +900,7 @@ namespace Stride.Graphics
         ///   Gets the barrier that moves a subresource of a Texture (not a View), or the whole Texture with
         ///   <see cref="uint.MaxValue"/>, between two layouts, with the stages and accesses of each.
         /// </summary>
-        private static VkImageMemoryBarrier2 ImageBarrier(Texture texture, uint subresource, BarrierLayout layoutBefore, BarrierLayout layoutAfter)
+        internal static VkImageMemoryBarrier2 ImageBarrier(Texture texture, uint subresource, BarrierLayout layoutBefore, BarrierLayout layoutAfter)
         {
             var mipLevelCount = (uint) texture.MipLevelCount;
             var range = subresource == uint.MaxValue

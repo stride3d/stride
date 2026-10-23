@@ -51,7 +51,8 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFa
 
         public static void RegisterCategory(int order, string name)
         {
-            CategoryOrders.Add(name, order);
+            // A plugin registers from its module initializer, which runs again when its assembly reloads
+            CategoryOrders[name] = order;
         }
 
         int IComparable<EntityFactoryCategory>.CompareTo(EntityFactoryCategory other)

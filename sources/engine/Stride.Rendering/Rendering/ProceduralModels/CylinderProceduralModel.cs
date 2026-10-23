@@ -4,6 +4,7 @@
 using System.ComponentModel;
 
 using Stride.Core;
+using Stride.Core.Annotations;
 using Stride.Graphics;
 using Stride.Graphics.GeometricPrimitives;
 
@@ -50,9 +51,19 @@ namespace Stride.Rendering.ProceduralModels
         [DefaultValue(32)]
         public int Tessellation { get; set; } = 32;
 
+        /// <summary>
+        /// Gets or sets the number of vertex rings added along the height of the side.
+        /// </summary>
+        /// <remarks>Negative values are treated as 0.</remarks>
+        /// <userdoc>The number of rings added along the height of the cylinder, so that it can bend when its vertices are deformed.</userdoc>
+        [DataMember(40)]
+        [DefaultValue(0)]
+        [DataMemberRange(0, 0)]
+        public int HeightRings { get; set; } = 0;
+
         protected override GeometricMeshData<VertexPositionNormalTexture> CreatePrimitiveMeshData()
         {
-            return GeometricPrimitive.Cylinder.New(Height, Radius, Tessellation, UvScale.X, UvScale.Y);
+            return GeometricPrimitive.Cylinder.New(Height, Radius, Tessellation, UvScale.X, UvScale.Y, heightRings: HeightRings);
         }
     }
 }
