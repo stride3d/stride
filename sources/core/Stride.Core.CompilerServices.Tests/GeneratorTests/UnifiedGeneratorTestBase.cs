@@ -54,7 +54,7 @@ public abstract class UnifiedGeneratorTestBase
                     {
                         global::Stride.Core.Reflection.AssemblyRegistry.RegisterScanTypes(
                             typeof(global::Stride.Core.Serialization.AssemblyScan.AssemblyScanResults).Assembly,
-                            new global::Stride.Core.Reflection.AssemblyRegistry.ScanTypes(
+                            static () => new global::Stride.Core.Reflection.AssemblyRegistry.ScanTypes(
                                 new global::System.Collections.Generic.Dictionary<global::System.Type, global::System.Collections.Generic.List<global::System.Type>>
                                 {
                                     {

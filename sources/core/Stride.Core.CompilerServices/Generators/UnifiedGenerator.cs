@@ -288,6 +288,8 @@ public sealed partial class UnifiedGenerator : IIncrementalGenerator
             sb.AppendLine("},");
         }
 
+        // The index is registered as a factory: building it runs the typeof of every scanned type, which loads their
+        // assemblies (and runs their module initializers), so it waits for the first GetScanTypes.
         return $$"""
             namespace Stride.Core.Serialization.AssemblyScan
             {
@@ -297,7 +299,7 @@ public sealed partial class UnifiedGenerator : IIncrementalGenerator
                     {
                         global::Stride.Core.Reflection.AssemblyRegistry.RegisterScanTypes(
                             typeof(global::Stride.Core.Serialization.AssemblyScan.AssemblyScanResults).Assembly,
-                            new global::Stride.Core.Reflection.AssemblyRegistry.ScanTypes(
+                            static () => new global::Stride.Core.Reflection.AssemblyRegistry.ScanTypes(
                                 new global::System.Collections.Generic.Dictionary<global::System.Type, global::System.Collections.Generic.List<global::System.Type>>
                                 {
             {{sb}}

@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Stride.Core.Diagnostics;
@@ -18,7 +19,7 @@ public static class AssemblyRegistry
     private static readonly object Lock = new();
     private static readonly Dictionary<string, HashSet<Assembly>> MapCategoryToAssemblies = [];
     private static readonly Dictionary<Assembly, HashSet<string>> MapAssemblyToCategories = [];
-    private static readonly Dictionary<Assembly, ScanTypes> AssemblyToScanTypes = [];
+    private static readonly ConcurrentDictionary<Assembly, Lazy<ScanTypes>> AssemblyToScanTypes = new();
     private static readonly Dictionary<string, Assembly> AssemblyNameToAssembly = new(StringComparer.OrdinalIgnoreCase);
 
     static AssemblyRegistry()
@@ -153,16 +154,35 @@ public static class AssemblyRegistry
         return categories;
     }
 
-    public static void RegisterScanTypes(Assembly assembly, ScanTypes types)
+    /// <summary>
+    /// Registers the scan index of <paramref name="assembly"/>, built by <paramref name="factory"/> on its first use.
+    /// </summary>
+    /// <remarks>
+    /// Called from the assembly's module initializer: building the index loads the scanned types (and their assemblies),
+    /// which mustn't happen that early.
+    /// </remarks>
+    public static void RegisterScanTypes(Assembly assembly, Func<ScanTypes> factory)
     {
-        AssemblyToScanTypes.TryAdd(assembly, types);
+        AssemblyToScanTypes.TryAdd(assembly, new Lazy<ScanTypes>(factory));
     }
 
+    /// <summary>
+    /// Registers the scan index of <paramref name="assembly"/>.
+    /// </summary>
+    /// <remarks>
+    /// Kept for assemblies built by the AssemblyProcessor, which register their index this way.
+    /// </remarks>
+    public static void RegisterScanTypes(Assembly assembly, ScanTypes types)
+    {
+        AssemblyToScanTypes.TryAdd(assembly, new Lazy<ScanTypes>(types));
+    }
+
+    /// <summary>
+    /// The scan index of <paramref name="assembly"/>, or <c>null</c> if it has none.
+    /// </summary>
     public static ScanTypes? GetScanTypes(Assembly assembly)
     {
-        AssemblyToScanTypes.TryGetValue(assembly, out var assemblyScanTypes);
-
-        return assemblyScanTypes;
+        return AssemblyToScanTypes.TryGetValue(assembly, out var assemblyScanTypes) ? assemblyScanTypes.Value : null;
     }
 
     /// <summary>
