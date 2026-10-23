@@ -299,6 +299,27 @@ public static class Dispatcher
         ForEach<T, TLocal, ConcurrentCollector<T>>(collection, initializeLocal, action, finalizeLocal);
     }
 
+    private readonly unsafe struct ForEachParameters<T, TList, TState>(TList collection, TState state, delegate*<T, TState, void> action)
+        where TList : IReadOnlyList<T>
+    {
+        public readonly TList Collection = collection;
+        public readonly TState State = state;
+        public readonly delegate*<T, TState, void> Action = action;
+    }
+
+    public static unsafe void ForEach<T, TList, TState>(TList collection, TState state, delegate*<T, TState, void> action) where TList : IReadOnlyList<T>
+    {
+        var parameters = new ForEachParameters<T, TList, TState>(collection, state, action);
+        ForBatched(collection.Count, parameters, &ForEachList);
+        static void ForEachList(ForEachParameters<T, TList, TState> parameters, int from, int toExclusive)
+        {
+            for (int i = from; i < toExclusive; i++)
+            {
+                parameters.Action(parameters.Collection[i], parameters.State);
+            }
+        }
+    }
+
     public static unsafe void ForEach<T, TList>(TList collection, Action<T> action) where TList : IReadOnlyList<T>
     {
         var parameters = (action, collection);
@@ -309,6 +330,46 @@ public static class Dispatcher
             for (int i = from; i < toExclusive; i++)
             {
                 parameters.action(parameters.collection[i]);
+            }
+        }
+    }
+
+    private readonly unsafe struct ForEachLocalParameters<TItem, TLocal, TList, TState>(TList collection, TState state, delegate*<TState, TLocal> initializeLocal, delegate*<TItem, TState, TLocal, void> action, delegate*<TState, TLocal, void> finalizeLocal)
+        where TList : IReadOnlyList<TItem>
+    {
+        public readonly TList Collection = collection;
+        public readonly TState State = state;
+        public readonly delegate*<TState, TLocal> InitializeLocal = initializeLocal;
+        public readonly delegate*<TItem, TState, TLocal, void> Action = action;
+        public readonly delegate*<TState, TLocal, void> FinalizeLocal = finalizeLocal;
+    }
+
+    public static unsafe void ForEach<TItem, TLocal, TList, TState>(TList collection, TState state, delegate*<TState, TLocal> initializeLocal, delegate*<TItem, TState, TLocal, void> action, delegate*<TState, TLocal, void> finalizeLocal = null) where TList : IReadOnlyList<TItem>
+    {
+        var parameters = new ForEachLocalParameters<TItem, TLocal, TList, TState>(collection, state, initializeLocal, action, finalizeLocal);
+        ForBatched(collection.Count, parameters, &ForEachList);
+
+        static void ForEachList(ForEachLocalParameters<TItem, TLocal, TList, TState> parameters, int from, int toExclusive)
+        {
+            TLocal local = default!;
+            try
+            {
+                if (parameters.InitializeLocal != null)
+                {
+                    local = parameters.InitializeLocal(parameters.State);
+                }
+
+                for (int i = from; i < toExclusive; i++)
+                {
+                    parameters.Action(parameters.Collection[i], parameters.State, local);
+                }
+            }
+            finally
+            {
+                if (parameters.FinalizeLocal != null)
+                {
+                    parameters.FinalizeLocal(parameters.State, local);
+                }
             }
         }
     }
