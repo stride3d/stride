@@ -120,6 +120,23 @@ public class ServiceRegistry : IServiceRegistry
         }
     }
 
+    /// <summary>Removes the service registered under a type known at run time, if it is <paramref name="service"/>.</summary>
+    /// <returns>Whether it was removed.</returns>
+    internal bool RemoveService(Type serviceType, object service)
+    {
+        ArgumentNullException.ThrowIfNull(serviceType);
+        ArgumentNullException.ThrowIfNull(service);
+
+        lock (registeredService)
+        {
+            if (!registeredService.TryGetValue(serviceType, out var current) || !ReferenceEquals(current, service))
+                return false;
+            registeredService.Remove(serviceType);
+        }
+        OnServiceRemoved(new ServiceEventArgs(serviceType, service));
+        return true;
+    }
+
     /// <inheritdoc />
     public T GetOrCreate<T>() where T : class, IService
     {
