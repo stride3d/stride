@@ -121,31 +121,33 @@ namespace Stride.Rendering
         public override unsafe void Prepare(RenderDrawContext context)
         {
             var renderModelObjectInfoData = RootRenderFeature.RenderData.GetData(renderModelObjectInfoKey);
+            Dispatcher.ForBatched(RootRenderFeature.RenderNodes.Count, (this, renderModelObjectInfoData), &ForBatchedAction);
 
-            Dispatcher.ForBatched(RootRenderFeature.RenderNodes.Count, (from, toExclusive) =>
+            static void ForBatchedAction((SkinningRenderFeature, ObjectPropertyData<Matrix[]>) state, int from, int toExclusive)
             {
+                var (@this, renderModelObjectInfoData) = state;
                 for (int i = from; i < toExclusive; i++)
                 {
-                    var renderNode = RootRenderFeature.RenderNodes[i];
+                    var renderNode = @this.RootRenderFeature.RenderNodes[i];
                     var perDrawLayout = renderNode.RenderEffect.Reflection?.PerDrawLayout;
                     if (perDrawLayout == null)
                         continue;
 
-                    if (morphGroup.Index >= 0 && ((RenderMesh)renderNode.RenderObject).MorphBuffers is { } morphBuffers)
+                    if (@this.morphGroup.Index >= 0 && ((RenderMesh)renderNode.RenderObject).MorphBuffers is { } morphBuffers)
                     {
-                        var group = perDrawLayout.GetLogicalGroup(morphGroup);
+                        var group = perDrawLayout.GetLogicalGroup(@this.morphGroup);
                         if (group.DescriptorEntryStart != -1)
                         {
                             renderNode.Resources.DescriptorSet.SetShaderResourceView(group.DescriptorEntryStart, morphBuffers.Entries);
                             renderNode.Resources.DescriptorSet.SetShaderResourceView(group.DescriptorEntryStart + 1, morphBuffers.VertexOffsets);
                             renderNode.Resources.DescriptorSet.SetShaderResourceView(group.DescriptorEntryStart + 2, morphBuffers.Weights);
                         }
-                        var targetCountOffset = perDrawLayout.GetConstantBufferOffset(morphTargetCount);
+                        var targetCountOffset = perDrawLayout.GetConstantBufferOffset(@this.morphTargetCount);
                         if (targetCountOffset != -1)
                             *(uint*)((byte*)renderNode.Resources.ConstantBuffer.Data + targetCountOffset) = (uint)morphBuffers.TargetCount;
                     }
 
-                    var blendMatricesOffset = perDrawLayout.GetConstantBufferOffset(blendMatrices);
+                    var blendMatricesOffset = perDrawLayout.GetConstantBufferOffset(@this.blendMatrices);
                     if (blendMatricesOffset == -1)
                         continue;
 
@@ -160,7 +162,7 @@ namespace Stride.Rendering
                         MemoryUtilities.CopyWithAlignmentFallback(mappedCB, blendMatricesPtr, (uint)renderModelObjectInfo.Length * (uint)sizeof(Matrix));
                     }
                 }
-            });
+            }
         }
     }
 }

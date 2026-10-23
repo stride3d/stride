@@ -310,18 +310,20 @@ namespace Stride.Rendering.Materials
         }
 
         /// <inheritdoc/>
-        public override void Prepare(RenderDrawContext context)
+        public override unsafe void Prepare(RenderDrawContext context)
         {
             // Assign descriptor sets to each render node
             var resourceGroupPool = ((RootEffectRenderFeature)RootRenderFeature).ResourceGroupPool;
+            Dispatcher.ForBatched(RootRenderFeature.RenderNodes.Count, (this, context, resourceGroupPool), &ForBatchedAction);
 
-            Dispatcher.ForBatched(RootRenderFeature.RenderNodes.Count, (from, toExclusive) =>
+            static void ForBatchedAction((MaterialRenderFeature, RenderDrawContext, ResourceGroup[]) state, int from, int toExclusive)
             {
+                var (@this, context, resourceGroupPool) = state;
                 var threadContext = context.RenderContext.GetThreadContext();
                 for (int i = from; i < toExclusive; i++)
                 {
                     var renderNodeReference = new RenderNodeReference(i);
-                    var renderNode = RootRenderFeature.RenderNodes[i];
+                    var renderNode = @this.RootRenderFeature.RenderNodes[i];
                     var renderMesh = (RenderMesh)renderNode.RenderObject;
 
                     // Ignore fallback effects
@@ -334,16 +336,16 @@ namespace Stride.Rendering.Materials
                     var materialParameters = material.Parameters;
 
                     // Register resources usage
-                    Context.StreamingManager?.StreamResources(materialParameters);
+                    @this.Context.StreamingManager?.StreamResources(materialParameters);
 
-                    var resources = UpdateMaterial(RenderSystem, threadContext, materialInfo, perMaterialDescriptorSetSlot.Index, renderNode.RenderEffect, materialParameters);
+                    var resources = UpdateMaterial(@this.RenderSystem, threadContext, materialInfo, @this.perMaterialDescriptorSetSlot.Index, renderNode.RenderEffect, materialParameters);
                     if (resources == null)
                         continue;
 
-                    var descriptorSetPoolOffset = ((RootEffectRenderFeature)RootRenderFeature).ComputeResourceGroupOffset(renderNodeReference);
-                    resourceGroupPool[descriptorSetPoolOffset + perMaterialDescriptorSetSlot.Index] = resources;
+                    var descriptorSetPoolOffset = ((RootEffectRenderFeature)@this.RootRenderFeature).ComputeResourceGroupOffset(renderNodeReference);
+                    resourceGroupPool[descriptorSetPoolOffset + @this.perMaterialDescriptorSetSlot.Index] = resources;
                 }
-            });
+            }
         }
 
         public override void Draw(RenderDrawContext context, RenderView renderView, RenderViewStage renderViewStage, int startIndex, int endIndex)

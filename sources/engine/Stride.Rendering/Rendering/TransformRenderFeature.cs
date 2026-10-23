@@ -160,17 +160,20 @@ namespace Stride.Rendering
             // Update PerDraw (World, WorldViewProj, etc...)
             // Copy Entity.World to PerDraw cbuffer
             // TODO: Have a PerObject cbuffer?
-            Dispatcher.ForBatched(RootRenderFeature.RenderNodes.Count, (from, toExclusive) =>
+            Dispatcher.ForBatched(RootRenderFeature.RenderNodes.Count, (this, renderModelObjectInfoData, renderModelViewInfoData), &ForBatchedAction);
+
+            static void ForBatchedAction((TransformRenderFeature, ObjectPropertyData<RenderModelFrameInfo>, ViewObjectPropertyData<RenderModelViewInfo>) state, int from, int toExclusive)
             {
+                var (@this, renderModelObjectInfoData, renderModelViewInfoData) = state;
                 for (int i = from; i < toExclusive; i++)
                 {
-                    var renderNode = RootRenderFeature.RenderNodes[i];
+                    var renderNode = @this.RootRenderFeature.RenderNodes[i];
                     var perDrawLayout = renderNode.RenderEffect.Reflection?.PerDrawLayout;
                     if (perDrawLayout == null)
                         continue;
 
-                    var worldOffset = perDrawLayout.GetConstantBufferOffset(this.world);
-                    var worldInverseOffset = perDrawLayout.GetConstantBufferOffset(this.worldInverse);
+                    var worldOffset = perDrawLayout.GetConstantBufferOffset(@this.world);
+                    var worldInverseOffset = perDrawLayout.GetConstantBufferOffset(@this.worldInverse);
 
                     if (worldOffset == -1 && worldInverseOffset == -1)
                         continue;
@@ -210,7 +213,7 @@ namespace Stride.Rendering
                         *perDraw = perDrawData;
                     }
                 }
-            });
+            }
         }
 
         [StructLayout(LayoutKind.Sequential)]
