@@ -189,12 +189,12 @@ public static class Dispatcher
         }
     }
 
-    public static unsafe void For<TLocal>(int fromInclusive, int toExclusive, Func<TLocal> initializeLocal, Action<int, TLocal> action, Action<TLocal> finalizeLocal = null)
+    public static unsafe void For<TLocal>(int fromInclusive, int toExclusive, Func<TLocal> initializeLocal, Action<int, TLocal> action, Action<TLocal>? finalizeLocal = null)
     {
         var parameters = (initializeLocal, action, finalizeLocal, fromInclusive);
         ForBatched(toExclusive - fromInclusive, parameters, &ForWrapped);
 
-        static void ForWrapped((Func<TLocal> initializeLocal, Action<int, TLocal> action, Action<TLocal> finalizeLocal, int start) parameters, int from, int toExclusive)
+        static void ForWrapped((Func<TLocal> initializeLocal, Action<int, TLocal> action, Action<TLocal>? finalizeLocal, int start) parameters, int from, int toExclusive)
         {
             TLocal local = default;
             try
