@@ -23,7 +23,7 @@ namespace Stride.Core.Assets.Editor.Services
         [CanBeNull]
         public string GetMemberDocumentation([NotNull] IMemberDescriptor member, Type rootType)
         {
-            if (member == null) throw new ArgumentNullException(nameof(member));
+            ArgumentNullException.ThrowIfNull(member);
             string result;
             string key;
 
@@ -51,7 +51,7 @@ namespace Stride.Core.Assets.Editor.Services
         [CanBeNull]
         public string GetPropertyKeyDocumentation([NotNull] PropertyKey propertyKey)
         {
-            if (propertyKey == null) throw new ArgumentNullException(nameof(propertyKey));
+            ArgumentNullException.ThrowIfNull(propertyKey);
             var ownerType = propertyKey.OwnerType;
             if (ownerType == null)
                 return null;
