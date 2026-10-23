@@ -34,6 +34,19 @@ namespace Stride.Core.Assets.Editor.ViewModel
             base.Destroy();
         }
 
+        /// <inheritdoc />
+        protected override void OnAssetReplaced(Asset previousAsset)
+        {
+            var previousHierarchy = ((AssetCompositeHierarchy<TAssetPartDesign, TAssetPart>)previousAsset).Hierarchy;
+            previousHierarchy.Parts.Values.ForEach(UntrackBaseChanges);
+            NodeContainer.GetNode(previousHierarchy.Parts).ItemChanged -= PartsChanged;
+
+            Asset.Hierarchy.Parts.Values.ForEach(TrackBaseChanges);
+            NodeContainer.GetNode(Asset.Hierarchy.Parts).ItemChanged += PartsChanged;
+
+            base.OnAssetReplaced(previousAsset);
+        }
+
         public AssetCompositeHierarchyPropertyGraph<TAssetPartDesign, TAssetPart> AssetHierarchyPropertyGraph => (AssetCompositeHierarchyPropertyGraph<TAssetPartDesign, TAssetPart>)PropertyGraph;
 
         /// <summary>

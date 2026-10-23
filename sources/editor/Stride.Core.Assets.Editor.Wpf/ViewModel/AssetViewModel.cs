@@ -14,6 +14,7 @@ using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.Quantum;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Quantum;
+using Stride.Core.Assets.Yaml;
 using Stride.Core.Annotations;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
@@ -525,7 +526,33 @@ namespace Stride.Core.Assets.Editor.ViewModel
             if (newAsset.MainSource != AssetItem.Asset.MainSource && newAsset is not IUnloadable && AssetItem.Asset is not IUnloadable)
                 throw new ArgumentException("Assets must have the same source.");
 
-            var newAssetItem = AssetItem.Clone(newAsset: newAsset);
+            UpdateAsset(newAsset, null, loggerResult);
+        }
+
+        /// <summary>
+        /// Replace the internal asset with the one provided, as it was read with the given Yaml metadata (overrides, ...), this function
+        /// expects the two assets to have the same identity. Its source can differ, as when the asset file has been changed on the disk.
+        /// </summary>
+        /// <param name="newAsset">The asset replacing the current one.</param>
+        /// <param name="yamlMetadata">The Yaml metadata of the new asset, or <c>null</c> to keep the current ones.</param>
+        /// <param name="loggerResult">The logger receiving the errors of the initialization of the new asset.</param>
+        /// <exception cref="ArgumentException">The asset provided does not have the same identity as the current one</exception>
+        public void UpdateAsset(Asset newAsset, AttachedYamlAssetMetadata yamlMetadata, ILogger loggerResult)
+        {
+            if (newAsset.Id != AssetItem.Asset.Id)
+                throw new ArgumentException("Assets must have the same Id.");
+
+            var previousAsset = AssetItem.Asset;
+            AssetItem newAssetItem;
+            if (yamlMetadata != null)
+            {
+                newAssetItem = new AssetItem(AssetItem.Location, newAsset) { SourceFolder = AssetItem.SourceFolder, AlternativePath = AssetItem.AlternativePath };
+                yamlMetadata.CopyInto(newAssetItem.YamlMetadata);
+            }
+            else
+            {
+                newAssetItem = AssetItem.Clone(newAsset: newAsset);
+            }
 
             package.Assets.Remove(AssetItem);
             package.Assets.Add(newAssetItem);
@@ -543,6 +570,35 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 PropertyGraph.ItemChanged += AssetPropertyChanged;
                 PropertyGraph.Initialize();
             }
+
+            OnAssetReplaced(previousAsset);
+        }
+
+        /// <summary>
+        /// Called by <see cref="UpdateAsset(Asset, AttachedYamlAssetMetadata, ILogger)"/> once the asset has been replaced by another instance, so that the state this view model
+        /// built from the previous instance (event handlers on its nodes, ...) follows the new one.
+        /// </summary>
+        /// <param name="previousAsset">The asset instance that has been replaced.</param>
+        /// <remarks>
+        /// Inheriting classes should override it when they keep such state, provided that they also call the base implementation.
+        /// </remarks>
+        protected virtual void OnAssetReplaced([NotNull] Asset previousAsset)
+        {
+            using (SuspendNotificationForCollectionChange(nameof(Tags)))
+            {
+                Tags.CollectionChanged -= TagsCollectionChanged;
+                Tags.Clear();
+                Tags.AddRange(Asset.Tags);
+                Tags.CollectionChanged += TagsCollectionChanged;
+            }
+
+            Sources.OnAssetReplaced();
+
+            clearArchetypeCommand.IsEnabled = Asset.Archetype != null;
+            clearReplacesCommand.IsEnabled = IsReplacing;
+            OnPropertyChanged(nameof(IsReplacing), nameof(ReplacesUrl));
+            if (previousAsset.Replaces?.Id != Asset.Replaces?.Id)
+                Session.CheckAssetReplacements(this);
         }
 
         private bool UpdateUrl(Package newPackage, DirectoryBaseViewModel newDirectory, string newName, bool updateParentDirectory = true)
