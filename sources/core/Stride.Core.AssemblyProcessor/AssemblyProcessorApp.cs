@@ -189,8 +189,6 @@ public class AssemblyProcessorApp
                 processors.Add(new SerializationProcessor());
             }
 
-            processors.Add(new DispatcherProcessor());
-
             // Check if there is already a AssemblyProcessedAttribute (in which case we can skip processing, it has already been done).
             // Note that we should probably also match the command line as well so that we throw an error if processing is different (need to rebuild).
             if (

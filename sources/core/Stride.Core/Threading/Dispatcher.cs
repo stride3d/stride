@@ -160,7 +160,7 @@ public static class Dispatcher
         ForBatched(items, batchedDelegate);
     }
 
-    public static unsafe void ForBatched(int items, [Pooled] Action<int, int> executeBatch)
+    public static void ForBatched(int items, Action<int, int> executeBatch)
     {
         var batchedDelegate = new BatchedDelegate<Action<int, int>>
         {
@@ -175,7 +175,7 @@ public static class Dispatcher
         }
     }
 
-    public static unsafe void For(int fromInclusive, int toExclusive, [Pooled] Action<int> action)
+    public static unsafe void For(int fromInclusive, int toExclusive, Action<int> action)
     {
         var parameters = (action, fromInclusive);
         ForBatched(toExclusive - fromInclusive, parameters, &ForWrapped);
@@ -189,7 +189,7 @@ public static class Dispatcher
         }
     }
 
-    public static unsafe void For<TLocal>(int fromInclusive, int toExclusive, [Pooled] Func<TLocal> initializeLocal, [Pooled] Action<int, TLocal> action, [Pooled] Action<TLocal> finalizeLocal = null)
+    public static unsafe void For<TLocal>(int fromInclusive, int toExclusive, Func<TLocal> initializeLocal, Action<int, TLocal> action, Action<TLocal> finalizeLocal = null)
     {
         var parameters = (initializeLocal, action, finalizeLocal, fromInclusive);
         ForBatched(toExclusive - fromInclusive, parameters, &ForWrapped);
@@ -216,32 +216,32 @@ public static class Dispatcher
         }
     }
 
-    public static void ForEach<T>(T[] collection, [Pooled] Action<T> action)
+    public static void ForEach<T>(T[] collection, Action<T> action)
     {
         ForEach<T, T[]>(collection, action);
     }
 
-    public static void ForEach<T>(ConcurrentCollector<T> collection, [Pooled] Action<T> action)
+    public static void ForEach<T>(ConcurrentCollector<T> collection, Action<T> action)
     {
         ForEach<T, ConcurrentCollector<T>>(collection, action);
     }
 
-    public static void ForEach<T>(List<T> collection, [Pooled] Action<T> action)
+    public static void ForEach<T>(List<T> collection, Action<T> action)
     {
         ForEach<T, List<T>>(collection, action);
     }
 
-    public static void ForEach<T, TLocal>(ConcurrentCollector<T> collection, [Pooled] Func<TLocal> initializeLocal, [Pooled] Action<T, TLocal> action, [Pooled] Action<TLocal> finalizeLocal = null)
+    public static void ForEach<T, TLocal>(ConcurrentCollector<T> collection, Func<TLocal> initializeLocal, Action<T, TLocal> action, Action<TLocal> finalizeLocal = null)
     {
         ForEach<T, TLocal, ConcurrentCollector<T>>(collection, initializeLocal, action, finalizeLocal);
     }
 
-    public static void ForEach<T>(FastCollection<T> collection, [Pooled] Action<T> action)
+    public static void ForEach<T>(FastCollection<T> collection, Action<T> action)
     {
         ForEach<T, FastCollection<T>>(collection, action);
     }
 
-    public static unsafe void ForEach<T>(ConcurrentCollector<T> collection, [Pooled] ValueAction<T> action)
+    public static unsafe void ForEach<T>(ConcurrentCollector<T> collection, ValueAction<T> action)
     {
         var parameters = (action, collection);
         ForBatched(collection.Count, parameters, &ForEachList);
@@ -255,7 +255,7 @@ public static class Dispatcher
         }
     }
 
-    public static unsafe void ForEach<T, TList>(TList collection, [Pooled] Action<T> action) where TList : IReadOnlyList<T>
+    public static unsafe void ForEach<T, TList>(TList collection, Action<T> action) where TList : IReadOnlyList<T>
     {
         var parameters = (action, collection);
         ForBatched(collection.Count, parameters, &ForEachList);
@@ -269,7 +269,7 @@ public static class Dispatcher
         }
     }
 
-    public static unsafe void ForEach<TItem, TLocal, TList>(TList collection, [Pooled] Func<TLocal> initializeLocal, [Pooled] Action<TItem, TLocal> action, [Pooled] Action<TLocal> finalizeLocal = null) where TList : IReadOnlyList<TItem>
+    public static unsafe void ForEach<TItem, TLocal, TList>(TList collection, Func<TLocal> initializeLocal, Action<TItem, TLocal> action, Action<TLocal> finalizeLocal = null) where TList : IReadOnlyList<TItem>
     {
         var parameters = (initializeLocal, action, finalizeLocal, collection);
         ForBatched(collection.Count, parameters, &ForEachList);
@@ -296,7 +296,7 @@ public static class Dispatcher
         }
     }
 
-    public static unsafe void ForEach<TKey, TValue>(Dictionary<TKey, TValue> collection, [Pooled] Action<KeyValuePair<TKey, TValue>> action)
+    public static unsafe void ForEach<TKey, TValue>(Dictionary<TKey, TValue> collection, Action<KeyValuePair<TKey, TValue>> action)
         where TKey : notnull
     {
         var parameters = (action, collection);
@@ -320,7 +320,7 @@ public static class Dispatcher
         }
     }
 
-    public static unsafe void ForEach<TKey, TValue, TLocal>(Dictionary<TKey, TValue> collection, [Pooled] Func<TLocal> initializeLocal, [Pooled] Action<KeyValuePair<TKey, TValue>, TLocal> action, [Pooled] Action<TLocal> finalizeLocal = null)
+    public static unsafe void ForEach<TKey, TValue, TLocal>(Dictionary<TKey, TValue> collection, Func<TLocal> initializeLocal, Action<KeyValuePair<TKey, TValue>, TLocal> action, Action<TLocal> finalizeLocal = null)
         where TKey : notnull
     {
         var parameters = (initializeLocal, action, finalizeLocal, collection);
