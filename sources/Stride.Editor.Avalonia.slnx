@@ -40,6 +40,7 @@
     <Project Path="assets/Stride.Core.Packages/Stride.Core.Packages.csproj" />
   </Folder>
   <Folder Name="/50-Presentation/">
+    <Project Path="presentation/Stride.Core.Presentation.Quantum/Stride.Core.Presentation.Quantum.csproj" />
     <Project Path="presentation/Stride.Core.Presentation/Stride.Core.Presentation.csproj" />
     <Project Path="presentation/Stride.Core.Quantum/Stride.Core.Quantum.csproj" />
   </Folder>
@@ -64,6 +65,8 @@
     <Project Path="engine/Stride.Assets.Generators/Stride.Assets.Generators.csproj" />
     <Project Path="engine/Stride.Assets.Models/Stride.Assets.Models.csproj" />
     <Project Path="engine/Stride.Assets/Stride.Assets.csproj" />
+    <Project Path="engine/Stride.Assets.FFmpeg/Stride.Assets.FFmpeg.csproj" />
+    <Project Path="engine/Stride.Assets.VHACD/Stride.Assets.VHACD.csproj" />
   </Folder>
   <Folder Name="/80-Plugins/Audio/">
     <Project Path="plugins/Audio/Stride.Audio/Stride.Audio.csproj" />
