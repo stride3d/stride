@@ -36,13 +36,14 @@ $env:STRIDE_GRAPHICS_SOFTWARE_RENDERING = "1"
 if (-not $SkipBuild) {
 Write-Host "=== Step 1: Clean ===" -ForegroundColor Cyan
 $testProjects = @(
-    "Stride.Graphics.Tests",
-    "Stride.UI.Tests"
+    "sources\engine\Stride.Graphics.Tests",
+    "sources\plugins\UI\Stride.UI.Tests"
 )
-foreach ($proj in $testProjects) {
+foreach ($projDir in $testProjects) {
+    $proj = Split-Path $projDir -Leaf
     Remove-Item -Recurse -Force "bin\Tests\$proj\Linux" -ErrorAction SilentlyContinue
-    Remove-Item -Recurse -Force "sources\engine\$proj\obj\stride" -ErrorAction SilentlyContinue
-    Remove-Item -Recurse -Force "sources\engine\$proj\obj\Linux-Vulkan" -ErrorAction SilentlyContinue
+    Remove-Item -Recurse -Force "$projDir\obj\stride" -ErrorAction SilentlyContinue
+    Remove-Item -Recurse -Force "$projDir\obj\Linux-Vulkan" -ErrorAction SilentlyContinue
 }
 
 Write-Host "=== Step 2: Build (targeting Linux/Vulkan) ===" -ForegroundColor Cyan
