@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
@@ -421,6 +422,14 @@ namespace Stride.Navigation
             return meshTile;
         }
 
+        private readonly record struct BuildInputParameters
+        {
+            public required NavigationMeshBuilder Builder { get; init; }
+            public required CollisionFilterGroupFlags IncludedCollisionGroups { get; init; }
+            public required NavigationMeshCache LastCache { get; init; }
+            public required StrongBox<bool> ClearCache { get; init; }
+        }
+
         /// <summary>
         /// Rebuilds outdated triangle data for colliders and recalculates hashes storing everything in StaticColliderData
         /// </summary>
@@ -428,9 +437,20 @@ namespace Stride.Navigation
         {
             NavigationMeshCache lastCache = oldNavigationMesh?.Cache;
             
-            bool clearCache = false;
-            
-            Dispatcher.ForEach(collidersLocal, colliderData =>
+            var clearCache = new StrongBox<bool>();
+            var state = new BuildInputParameters
+            {
+                Builder = this,
+                IncludedCollisionGroups = includedCollisionGroups,
+                LastCache = lastCache,
+                ClearCache = clearCache,
+            };
+            unsafe
+            {
+                Dispatcher.ForEach<StaticColliderData, StaticColliderData[], BuildInputParameters>(collidersLocal, state, &BuildColliderInput);
+            }
+
+            static void BuildColliderInput(StaticColliderData colliderData, BuildInputParameters state)
             {
                 var entity = colliderData.Component.Entity;
                 TransformComponent entityTransform = entity.Transform;
@@ -439,9 +459,9 @@ namespace Stride.Navigation
                 NavigationMeshInputBuilder entityNavigationMeshInputBuilder = colliderData.InputBuilder = new NavigationMeshInputBuilder();
 
                 // Compute hash of collider and compare it with the previous build if there is one
-                colliderData.ParameterHash = NavigationMeshBuildUtils.HashEntityCollider(colliderData.Component, includedCollisionGroups);
+                colliderData.ParameterHash = NavigationMeshBuildUtils.HashEntityCollider(colliderData.Component, state.IncludedCollisionGroups);
                 colliderData.Previous = null;
-                if (lastCache?.Objects.TryGetValue(colliderData.Component.Id, out colliderData.Previous) ?? false)
+                if (state.LastCache?.Objects.TryGetValue(colliderData.Component.Id, out colliderData.Previous) ?? false)
                 {
                     if ((!colliderData.Component.AlwaysUpdateNaviMeshCache) &&
                         (colliderData.Previous.ParameterHash == colliderData.ParameterHash))
@@ -458,14 +478,14 @@ namespace Stride.Navigation
 
                 // Clear cache on removal of infinite planes
                 if (colliderData.Planes.Count > 0)
-                    clearCache = true;
+                    state.ClearCache.Value = true;
 
                 // Clear planes
                 colliderData.Planes.Clear();
 
                 // Return empty data for disabled colliders, filtered out colliders or trigger colliders 
                 if (!colliderData.Component.Enabled || colliderData.Component.IsTrigger ||
-                    !NavigationMeshBuildUtils.CheckColliderFilter(colliderData.Component, includedCollisionGroups))
+                    !NavigationMeshBuildUtils.CheckColliderFilter(colliderData.Component, state.IncludedCollisionGroups))
                 {
                     colliderData.Processed = true;
                     return;
@@ -489,7 +509,7 @@ namespace Stride.Navigation
                         if (shapeType == typeof(BoxColliderShape))
                         {
                             var box = (BoxColliderShape)shape;
-                            var boxDesc = GetColliderShapeDesc<BoxColliderShapeDesc>(box.Description);
+                            var boxDesc = state.Builder.GetColliderShapeDesc<BoxColliderShapeDesc>(box.Description);
                             Matrix transform = box.PositiveCenterMatrix * entityWorldMatrix;
 
                             var meshData = GeometricPrimitive.Cube.New(boxDesc.Size, toLeftHanded: true);
@@ -498,7 +518,7 @@ namespace Stride.Navigation
                         else if (shapeType == typeof(SphereColliderShape))
                         {
                             var sphere = (SphereColliderShape)shape;
-                            var sphereDesc = GetColliderShapeDesc<SphereColliderShapeDesc>(sphere.Description);
+                            var sphereDesc = state.Builder.GetColliderShapeDesc<SphereColliderShapeDesc>(sphere.Description);
                             Matrix transform = sphere.PositiveCenterMatrix * entityWorldMatrix;
 
                             var meshData = GeometricPrimitive.Sphere.New(sphereDesc.Radius, toLeftHanded: true);
@@ -507,7 +527,7 @@ namespace Stride.Navigation
                         else if (shapeType == typeof(CylinderColliderShape))
                         {
                             var cylinder = (CylinderColliderShape)shape;
-                            var cylinderDesc = GetColliderShapeDesc<CylinderColliderShapeDesc>(cylinder.Description);
+                            var cylinderDesc = state.Builder.GetColliderShapeDesc<CylinderColliderShapeDesc>(cylinder.Description);
                             Matrix transform = cylinder.PositiveCenterMatrix * entityWorldMatrix;
 
                             var meshData = GeometricPrimitive.Cylinder.New(cylinderDesc.Height, cylinderDesc.Radius, toLeftHanded: true);
@@ -516,7 +536,7 @@ namespace Stride.Navigation
                         else if (shapeType == typeof(CapsuleColliderShape))
                         {
                             var capsule = (CapsuleColliderShape)shape;
-                            var capsuleDesc = GetColliderShapeDesc<CapsuleColliderShapeDesc>(capsule.Description);
+                            var capsuleDesc = state.Builder.GetColliderShapeDesc<CapsuleColliderShapeDesc>(capsule.Description);
                             Matrix transform = capsule.PositiveCenterMatrix * entityWorldMatrix;
 
                             var meshData = GeometricPrimitive.Capsule.New(capsuleDesc.Length, capsuleDesc.Radius, toLeftHanded: true);
@@ -525,7 +545,7 @@ namespace Stride.Navigation
                         else if (shapeType == typeof(ConeColliderShape))
                         {
                             var cone = (ConeColliderShape)shape;
-                            var coneDesc = GetColliderShapeDesc<ConeColliderShapeDesc>(cone.Description);
+                            var coneDesc = state.Builder.GetColliderShapeDesc<ConeColliderShapeDesc>(cone.Description);
                             Matrix transform = cone.PositiveCenterMatrix * entityWorldMatrix;
 
                             var meshData = GeometricPrimitive.Cone.New(coneDesc.Radius, coneDesc.Height, toLeftHanded: true);
@@ -534,7 +554,7 @@ namespace Stride.Navigation
                         else if (shapeType == typeof(StaticPlaneColliderShape))
                         {
                             var planeShape = (StaticPlaneColliderShape)shape;
-                            var planeDesc = GetColliderShapeDesc<StaticPlaneColliderShapeDesc>(planeShape.Description);
+                            var planeDesc = state.Builder.GetColliderShapeDesc<StaticPlaneColliderShapeDesc>(planeShape.Description);
                             Matrix transform = entityWorldMatrix;
 
                             Plane plane = new Plane(planeDesc.Normal, planeDesc.Offset)
@@ -637,13 +657,13 @@ namespace Stride.Navigation
 
                 // Clear cache on addition of infinite planes
                 if (colliderData.Planes.Count > 0)
-                    clearCache = true;
+                    state.ClearCache.Value = true;
 
                 // Mark collider as processed
                 colliderData.Processed = true;
-            });
+            }
 
-            if (clearCache && oldNavigationMesh != null)
+            if (clearCache.Value && oldNavigationMesh != null)
             {
                 oldNavigationMesh = null;
             }
