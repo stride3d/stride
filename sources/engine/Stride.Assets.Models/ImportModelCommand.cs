@@ -152,6 +152,10 @@ namespace Stride.Assets.Models
                     writer.Write(modifier.Version);
                 }
             }
+
+            // Hashed only when on, so the models that don't use it keep the hash they had before the option existed
+            if (ShaderReadableBuffers)
+                writer.Write(nameof(ShaderReadableBuffers));
         }
 
         /// <summary>

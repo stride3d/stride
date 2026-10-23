@@ -76,6 +76,17 @@ namespace Stride.Assets.Models
         [DefaultValue(true)]
         public bool MergeMeshes { get; set; } = true;
 
+        /// <summary>
+        /// Gets or sets whether shaders can read the vertex and index buffers of the model.
+        /// </summary>
+        /// <userdoc>
+        /// When checked, shaders can read the vertex and index buffers of the model as raw buffers (ByteAddressBuffer),
+        /// for example to fetch vertices in a compute shader. Leave it unchecked unless a shader needs it.
+        /// </userdoc>
+        [DataMember(37)]
+        [DefaultValue(false)]
+        public bool ShaderReadableBuffers { get; set; }
+
         /// <inheritdoc/>
         [DataMember(40)]
         [MemberCollection(ReadOnly = true)]

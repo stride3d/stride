@@ -46,6 +46,8 @@ namespace Stride.Graphics
         /// </exception>
         protected partial Buffer InitializeFromImpl(ref readonly BufferDescription description, BufferFlags bufferFlags, PixelFormat viewFormat, IntPtr dataPointer)
         {
+            CheckRawBufferSize(description.SizeInBytes, bufferFlags);
+
             bufferDescription = description;
             nativeDescription = ConvertToNativeDescription(in description);
 
