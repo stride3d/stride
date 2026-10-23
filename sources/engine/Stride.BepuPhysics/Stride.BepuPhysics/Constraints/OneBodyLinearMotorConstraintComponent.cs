@@ -17,6 +17,12 @@ public sealed class OneBodyLinearMotorConstraintComponent : OneBodyConstraintCom
 {
     public OneBodyLinearMotorConstraintComponent() => BepuConstraint = new() { Settings = new MotorSettings(1000, 10) };
 
+    internal override void CenterOfMassShifted(BodyComponent body, Vector3 shift)
+    {
+        if (ReferenceEquals(body, A))
+            LocalOffset -= shift;
+    }
+
     public Vector3 LocalOffset
     {
         get
