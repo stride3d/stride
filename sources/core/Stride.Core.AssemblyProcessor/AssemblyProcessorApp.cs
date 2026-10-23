@@ -179,8 +179,6 @@ public class AssemblyProcessorApp
                 processors.Add(new ParameterKeyProcessor());
             }
 
-            processors.Add(new AssemblyVersionProcessor());
-
             if (DocumentationFile != null)
             {
                 processors.Add(new GenerateUserDocumentationProcessor(DocumentationFile));
