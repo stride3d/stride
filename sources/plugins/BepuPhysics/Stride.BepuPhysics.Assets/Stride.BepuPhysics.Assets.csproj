@@ -14,7 +14,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\assets\Stride.Core.Assets\Stride.Core.Assets.csproj" />
-    <ProjectReference Include="..\..\Stride.Assets.VHACD\Stride.Assets.VHACD.csproj" />
+    <ProjectReference Include="..\..\..\engine\Stride.Assets.VHACD\Stride.Assets.VHACD.csproj" />
     <ProjectReference Include="..\Stride.BepuPhysics\Stride.BepuPhysics.csproj" />
   </ItemGroup>
   <ItemGroup>

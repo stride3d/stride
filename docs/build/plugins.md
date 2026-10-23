@@ -8,7 +8,7 @@ A Stride plugin extends the engine with runtime types (components, content) and,
 | `MyPlugin.Assets` | `Assets` | asset classes, compilers, importers, asset templates, icons, static thumbnails | the asset compiler, Game Studio |
 | `MyPlugin.Editor` | `Editor` | plugin class, gizmos, previews, thumbnails | Game Studio only |
 
-The engine's own optional packages follow the same shape: `Stride.Physics` declares `Stride.Physics.Assets` and `Stride.Physics.Editor`, `Stride.Audio` declares `Stride.Audio.Assets` and `Stride.Audio.Editor`, and so on. Their runtime projects live in `sources/engine/`, their `Assets` and `Editor` projects in `sources/plugins/<Name>/` (`sources/plugins/Physics/Stride.Physics.Assets`, `sources/plugins/Physics/Stride.Physics.Editor`).
+The engine's own optional packages follow the same shape: `Stride.Physics` declares `Stride.Physics.Assets` and `Stride.Physics.Editor`, `Stride.Audio` declares `Stride.Audio.Assets` and `Stride.Audio.Editor`, and so on. All the projects of a plugin (runtime, `Assets`, `Editor`, `Editor.Wpf` and tests) live together in `sources/plugins/<Name>/`: `sources/plugins/Audio/` holds `Stride.Audio`, `Stride.Audio.Assets`, `Stride.Audio.Editor`, `Stride.Audio.Editor.Wpf` and `Stride.Audio.Tests`. The folder names the plugin, not always its projects: the Bullet physics plugin keeps its `Stride.Physics` project and assembly names in `sources/plugins/BulletPhysics/`, beside `sources/plugins/BepuPhysics/`.
 
 ## Declaring the packages
 

@@ -15,7 +15,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\assets\Stride.Core.Assets\Stride.Core.Assets.csproj" />
     <ProjectReference Include="..\..\..\engine\Stride.Assets.FFmpeg\Stride.Assets.FFmpeg.csproj" />
-    <ProjectReference Include="..\..\..\engine\Stride.Audio\Stride.Audio.csproj" />
+    <ProjectReference Include="..\Stride.Audio\Stride.Audio.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Templates\Assets\**" />

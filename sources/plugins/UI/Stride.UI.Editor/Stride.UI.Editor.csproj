@@ -17,7 +17,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\editor\Stride.Assets.Presentation.Wpf\Stride.Assets.Presentation.Wpf.csproj" />
-    <ProjectReference Include="..\..\..\engine\Stride.UI\Stride.UI.csproj" />
+    <ProjectReference Include="..\Stride.UI\Stride.UI.csproj" />
     <ProjectReference Include="..\Stride.UI.Assets\Stride.UI.Assets.csproj" />
   </ItemGroup>
   <ItemGroup>

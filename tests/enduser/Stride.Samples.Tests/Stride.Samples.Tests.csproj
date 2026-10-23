@@ -57,7 +57,7 @@
       <!-- Cross-targeting ref: SetTargetFramework avoids MSB4057 on GetTargetPath (outer build lacks it). -->
       <SetTargetFramework>TargetFramework=$(StrideFramework)</SetTargetFramework>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\sources\engine\Stride.BepuPhysics\Stride.BepuPhysics.Assets\Stride.BepuPhysics.Assets.csproj">
+    <ProjectReference Include="..\..\..\sources\plugins\BepuPhysics\Stride.BepuPhysics.Assets\Stride.BepuPhysics.Assets.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
@@ -67,7 +67,7 @@
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\sources\plugins\Physics\Stride.Physics.Assets\Stride.Physics.Assets.csproj">
+    <ProjectReference Include="..\..\..\sources\plugins\BulletPhysics\Stride.Physics.Assets\Stride.Physics.Assets.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
@@ -77,7 +77,7 @@
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\sources\engine\Stride.Particles\Stride.Particles.csproj">
+    <ProjectReference Include="..\..\..\sources\plugins\Particles\Stride.Particles\Stride.Particles.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>

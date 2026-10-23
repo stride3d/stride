@@ -76,13 +76,13 @@
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
     <!-- Soft references to the plugins so their dev packages are up to date on every editor build -->
-    <ProjectReference Include="..\..\engine\Stride.BepuPhysics\Stride.BepuPhysics\Stride.BepuPhysics.csproj">
+    <ProjectReference Include="..\..\plugins\BepuPhysics\Stride.BepuPhysics\Stride.BepuPhysics.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\..\engine\Stride.BepuPhysics\Stride.BepuPhysics.Assets\Stride.BepuPhysics.Assets.csproj">
+    <ProjectReference Include="..\..\plugins\BepuPhysics\Stride.BepuPhysics.Assets\Stride.BepuPhysics.Assets.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\..\engine\Stride.Audio\Stride.Audio.csproj">
+    <ProjectReference Include="..\..\plugins\Audio\Stride.Audio\Stride.Audio.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="..\..\plugins\Audio\Stride.Audio.Assets\Stride.Audio.Assets.csproj">
@@ -94,10 +94,10 @@
     <ProjectReference Include="..\..\plugins\Audio\Stride.Audio.Editor.Wpf\Stride.Audio.Editor.Wpf.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\..\plugins\Physics\Stride.Physics.Assets\Stride.Physics.Assets.csproj">
+    <ProjectReference Include="..\..\plugins\BulletPhysics\Stride.Physics.Assets\Stride.Physics.Assets.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\..\plugins\Physics\Stride.Physics.Editor\Stride.Physics.Editor.csproj">
+    <ProjectReference Include="..\..\plugins\BulletPhysics\Stride.Physics.Editor\Stride.Physics.Editor.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="..\..\plugins\SpriteStudio\Stride.SpriteStudio.Assets\Stride.SpriteStudio.Assets.csproj">
@@ -106,16 +106,16 @@
     <ProjectReference Include="..\..\plugins\SpriteStudio\Stride.SpriteStudio.Editor\Stride.SpriteStudio.Editor.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\..\engine\Stride.Video\Stride.Video.csproj">
+    <ProjectReference Include="..\..\plugins\Video\Stride.Video\Stride.Video.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\..\engine\Stride.Voxels\Stride.Voxels.csproj">
+    <ProjectReference Include="..\..\plugins\Voxels\Stride.Voxels\Stride.Voxels.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="..\..\plugins\Voxels\Stride.Voxels.Editor\Stride.Voxels.Editor.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\..\engine\Stride.Particles\Stride.Particles.csproj">
+    <ProjectReference Include="..\..\plugins\Particles\Stride.Particles\Stride.Particles.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="..\..\plugins\Particles\Stride.Particles.Editor\Stride.Particles.Editor.csproj">
@@ -127,7 +127,7 @@
     <ProjectReference Include="..\..\plugins\Video\Stride.Video.Editor\Stride.Video.Editor.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\..\engine\Stride.UI\Stride.UI.csproj">
+    <ProjectReference Include="..\..\plugins\UI\Stride.UI\Stride.UI.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="..\..\plugins\UI\Stride.UI.Assets\Stride.UI.Assets.csproj">

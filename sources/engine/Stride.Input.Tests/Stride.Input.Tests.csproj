@@ -16,7 +16,7 @@
     <ItemGroup>
     <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
     <ProjectReference Include="..\Stride.Engine\Stride.Engine.csproj" />
-    <ProjectReference Include="..\Stride.UI\Stride.UI.csproj" />
+    <ProjectReference Include="..\..\plugins\UI\Stride.UI\Stride.UI.csproj" />
     <ProjectReference Include="..\Stride.Graphics.Regression\Stride.Graphics.Regression.csproj" />
   </ItemGroup>
   <ItemGroup>

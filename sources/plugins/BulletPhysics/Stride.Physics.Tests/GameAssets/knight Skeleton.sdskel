@@ -2,7 +2,7 @@
 Id: 75bd17ea-ca0f-4281-bf94-12ce8d08b2fe
 SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
-Source: ../../../data/tests/knight/scenes/knight.fbx
+Source: ../../../../data/tests/knight/scenes/knight.fbx
 PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
 Nodes:
     2b83a4a0d5dde6216f7c2fe8b32bbfe2: {Name: RootNode, Depth: 0}
@@ -78,4 +78,4 @@ Nodes:
     da2d3bd3d448cc793075b306f6013752: {Name: ch00_Knight_directionalLight2, Depth: 2}
     2fce07ad46758179789fd1f17c2f356e: {Name: ch00_Knight_ambientLight1, Depth: 2}
 ~SourceHashes:
-    b8add0cdae11b78717e1b9c851b25c11~../../../data/tests/knight/scenes/knight.fbx: af4ac6da9a62b02bd84f4a8147dd38a7
+    b8add0cdae11b78717e1b9c851b25c11~../../../../data/tests/knight/scenes/knight.fbx: af4ac6da9a62b02bd84f4a8147dd38a7

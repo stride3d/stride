@@ -47,7 +47,7 @@
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\sources\engine\Stride.Particles\Stride.Particles.csproj">
+    <ProjectReference Include="..\..\..\sources\plugins\Particles\Stride.Particles\Stride.Particles.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
@@ -57,7 +57,7 @@
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\sources\engine\Stride.Audio\Stride.Audio.csproj">
+    <ProjectReference Include="..\..\..\sources\plugins\Audio\Stride.Audio\Stride.Audio.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
@@ -77,7 +77,7 @@
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\sources\engine\Stride.SpriteStudio.Runtime\Stride.SpriteStudio.Runtime.csproj">
+    <ProjectReference Include="..\..\..\sources\plugins\SpriteStudio\Stride.SpriteStudio.Runtime\Stride.SpriteStudio.Runtime.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
@@ -92,7 +92,7 @@
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\sources\engine\Stride.Voxels\Stride.Voxels.csproj">
+    <ProjectReference Include="..\..\..\sources\plugins\Voxels\Stride.Voxels\Stride.Voxels.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
@@ -102,7 +102,7 @@
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\sources\engine\Stride.UI\Stride.UI.csproj">
+    <ProjectReference Include="..\..\..\sources\plugins\UI\Stride.UI\Stride.UI.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
@@ -123,17 +123,17 @@
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
     <!-- A runtime package and its Assets companion: the companion declaration is not a reference, so both are listed -->
-    <ProjectReference Include="..\..\..\sources\engine\Stride.BepuPhysics\Stride.BepuPhysics\Stride.BepuPhysics.csproj">
+    <ProjectReference Include="..\..\..\sources\plugins\BepuPhysics\Stride.BepuPhysics\Stride.BepuPhysics.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\sources\engine\Stride.BepuPhysics\Stride.BepuPhysics.Assets\Stride.BepuPhysics.Assets.csproj">
+    <ProjectReference Include="..\..\..\sources\plugins\BepuPhysics\Stride.BepuPhysics.Assets\Stride.BepuPhysics.Assets.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\sources\engine\Stride.Video\Stride.Video.csproj">
+    <ProjectReference Include="..\..\..\sources\plugins\Video\Stride.Video\Stride.Video.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
@@ -143,17 +143,17 @@
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\sources\engine\Stride.Physics\Stride.Physics.csproj">
+    <ProjectReference Include="..\..\..\sources\plugins\BulletPhysics\Stride.Physics\Stride.Physics.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\sources\plugins\Physics\Stride.Physics.Assets\Stride.Physics.Assets.csproj">
+    <ProjectReference Include="..\..\..\sources\plugins\BulletPhysics\Stride.Physics.Assets\Stride.Physics.Assets.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\sources\plugins\Physics\Stride.Physics.Editor\Stride.Physics.Editor.csproj" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+    <ProjectReference Include="..\..\..\sources\plugins\BulletPhysics\Stride.Physics.Editor\Stride.Physics.Editor.csproj" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>

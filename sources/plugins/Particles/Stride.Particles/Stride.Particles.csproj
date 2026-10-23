@@ -11,15 +11,15 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- Companion package: the gizmo, entity factories, property grid and preview pieces in .Editor (no asset types, so no .Assets) -->
-    <StrideCompanionProject Include="..\..\plugins\Particles\Stride.Particles.Editor\Stride.Particles.Editor.csproj" />
+    <StrideCompanionProject Include="..\Stride.Particles.Editor\Stride.Particles.Editor.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
+    <Compile Include="..\..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Stride.Engine\Stride.Engine.csproj" />
+    <ProjectReference Include="..\..\..\engine\Stride.Engine\Stride.Engine.csproj" />
   </ItemGroup>
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk/Sdk/Sdk.targets" />
 </Project>

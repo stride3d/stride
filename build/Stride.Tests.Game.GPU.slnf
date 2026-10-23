@@ -6,8 +6,8 @@
       "..\\sources\\engine\\Stride.Graphics.Tests.10_0\\Stride.Graphics.Tests.10_0.csproj",
       "..\\sources\\engine\\Stride.Graphics.Tests.11_0\\Stride.Graphics.Tests.11_0.csproj",
       "..\\sources\\engine\\Stride.Engine.Tests\\Stride.Engine.Tests.csproj",
-      "..\\sources\\engine\\Stride.Physics.Tests\\Stride.Physics.Tests.csproj",
-      "..\\sources\\engine\\Stride.UI.Tests\\Stride.UI.Tests.csproj"
+      "..\\sources\\plugins\\BulletPhysics\\Stride.Physics.Tests\\Stride.Physics.Tests.csproj",
+      "..\\sources\\plugins\\UI\\Stride.UI.Tests\\Stride.UI.Tests.csproj"
     ]
   }
 }

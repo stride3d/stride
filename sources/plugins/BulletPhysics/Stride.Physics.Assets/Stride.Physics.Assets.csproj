@@ -17,7 +17,7 @@
     <ProjectReference Include="..\..\..\engine\Stride.Assets\Stride.Assets.csproj" />
     <ProjectReference Include="..\..\..\engine\Stride.Assets.VHACD\Stride.Assets.VHACD.csproj" />
     <ProjectReference Include="..\..\..\engine\Stride.Navigation\Stride.Navigation.csproj" />
-    <ProjectReference Include="..\..\..\engine\Stride.Physics\Stride.Physics.csproj" />
+    <ProjectReference Include="..\Stride.Physics\Stride.Physics.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="Templates\Assets\**" />

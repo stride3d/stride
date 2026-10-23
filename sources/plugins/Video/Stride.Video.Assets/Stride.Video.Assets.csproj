@@ -16,7 +16,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\assets\Stride.Core.Assets\Stride.Core.Assets.csproj" />
     <ProjectReference Include="..\..\..\engine\Stride.Assets.FFmpeg\Stride.Assets.FFmpeg.csproj" />
-    <ProjectReference Include="..\..\..\engine\Stride.Video\Stride.Video.csproj" />
+    <ProjectReference Include="..\Stride.Video\Stride.Video.csproj" />
     <PackageReference Include="FFmpeg.AutoGen" />
   </ItemGroup>
   <ItemGroup>

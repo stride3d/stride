@@ -12,12 +12,12 @@
 #include "../../../deps/NativePath/TINYSTL/unordered_set.h"
 #include "../../../deps/NativePath/TINYSTL/unordered_map.h"
 #include "../../../deps/NativePath/TINYSTL/vector.h"
-#include "../../Stride.Native/StrideNative.h"
+#include "../../../../engine/Stride.Native/StrideNative.h"
 
 
 #define HAVE_STDINT_H
-#include "../../../../deps/OpenAL/AL/al.h"
-#include "../../../../deps/OpenAL/AL/alc.h"
+#include "../../../../../deps/OpenAL/AL/al.h"
+#include "../../../../../deps/OpenAL/AL/alc.h"
 
 extern "C" {
 	class SpinLock

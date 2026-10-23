@@ -12,9 +12,9 @@
 #include "../../../deps/NativePath/NativeMath.h"
 #include "../../../deps/NativePath/TINYSTL/vector.h"
 #include "../../../deps/NativePath/TINYSTL/unordered_set.h"
-#include "../../../../deps/OpenSLES/OpenSLES.h"
-#include "../../../../deps/OpenSLES/OpenSLES_Android.h"
-#include "../../Stride.Native/StrideNative.h"
+#include "../../../../../deps/OpenSLES/OpenSLES.h"
+#include "../../../../../deps/OpenSLES/OpenSLES_Android.h"
+#include "../../../../engine/Stride.Native/StrideNative.h"
 
 extern "C" {
 	class SpinLock

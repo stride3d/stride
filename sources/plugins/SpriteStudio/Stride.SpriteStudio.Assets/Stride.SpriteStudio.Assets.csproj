@@ -16,7 +16,7 @@
   <ItemGroup>
     <!-- Stride.Assets for the sprite sheet and animation assets the compilers build on -->
     <ProjectReference Include="..\..\..\engine\Stride.Assets\Stride.Assets.csproj" />
-    <ProjectReference Include="..\..\..\engine\Stride.SpriteStudio.Runtime\Stride.SpriteStudio.Runtime.csproj" />
+    <ProjectReference Include="..\Stride.SpriteStudio.Runtime\Stride.SpriteStudio.Runtime.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Templates\Assets\**" />

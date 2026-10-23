@@ -2,7 +2,7 @@
 Id: b95b844e-7fad-423c-aeaf-2578203584ce
 SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
-Source: ../../../data/tests/knight/scenes/knight.fbx
+Source: ../../../../data/tests/knight/scenes/knight.fbx
 Skeleton: 75bd17ea-ca0f-4281-bf94-12ce8d08b2fe:knight Skeleton
 PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
 Materials:
@@ -19,4 +19,4 @@ Materials:
         MaterialInstance:
             Material: 5e5b92a7-284d-4305-aec9-cc5574de6604:c100_chr_ch00_Knight_SWORD1
 ~SourceHashes:
-    503c61700d19f1261d6dc5a080c55c20~../../../data/tests/knight/scenes/knight.fbx: af4ac6da9a62b02bd84f4a8147dd38a7
+    503c61700d19f1261d6dc5a080c55c20~../../../../data/tests/knight/scenes/knight.fbx: af4ac6da9a62b02bd84f4a8147dd38a7

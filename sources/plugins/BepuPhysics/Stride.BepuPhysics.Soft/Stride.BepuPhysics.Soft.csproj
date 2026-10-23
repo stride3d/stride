@@ -12,7 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Stride.BepuPhysics\Stride.BepuPhysics.csproj" />
-    <ProjectReference Include="..\..\Stride.Engine\Stride.Engine.csproj" />
+    <ProjectReference Include="..\..\..\engine\Stride.Engine\Stride.Engine.csproj" />
   </ItemGroup>
 
   <ItemGroup>

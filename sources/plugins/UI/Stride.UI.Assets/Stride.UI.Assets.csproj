@@ -15,7 +15,7 @@
   <ItemGroup>
     <!-- Stride.Assets for the sprite font and sprite sheet assets a UI page or library compiles with -->
     <ProjectReference Include="..\..\..\engine\Stride.Assets\Stride.Assets.csproj" />
-    <ProjectReference Include="..\..\..\engine\Stride.UI\Stride.UI.csproj" />
+    <ProjectReference Include="..\Stride.UI\Stride.UI.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Templates\Assets\**" />

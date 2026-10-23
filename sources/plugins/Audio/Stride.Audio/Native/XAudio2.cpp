@@ -8,7 +8,7 @@
 #include "../../../deps/NativePath/NativePath.h"
 #include "../../../deps/NativePath/NativeThreading.h"
 #include "../../../deps/NativePath/NativeDynamicLinking.h"
-#include "../../Stride.Native/StrideNative.h"
+#include "../../../../engine/Stride.Native/StrideNative.h"
 
 extern "C" {
 	class SpinLock

@@ -162,6 +162,7 @@ jobs:
               - 'build/tools/ParallelBuildAuditor/**'
             ios:
               - 'sources/engine/**'
+              - 'sources/plugins/**'
               - 'sources/core/**'
               - 'sources/native/**'
               - 'sources/shared/**'

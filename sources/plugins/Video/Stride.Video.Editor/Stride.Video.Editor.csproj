@@ -13,7 +13,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\editor\Stride.Assets.Presentation.Wpf\Stride.Assets.Presentation.Wpf.csproj" />
-    <ProjectReference Include="..\..\..\engine\Stride.Video\Stride.Video.csproj" />
+    <ProjectReference Include="..\Stride.Video\Stride.Video.csproj" />
     <ProjectReference Include="..\Stride.Video.Assets\Stride.Video.Assets.csproj" />
   </ItemGroup>
   <ItemGroup>

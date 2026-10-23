@@ -14,9 +14,9 @@
   </PropertyGroup>
     <ItemGroup>
     <ProjectReference Include="..\..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
-    <ProjectReference Include="..\..\Stride.Engine\Stride.Engine.csproj" />
+    <ProjectReference Include="..\..\..\engine\Stride.Engine\Stride.Engine.csproj" />
     <ProjectReference Include="..\Stride.BepuPhysics\Stride.BepuPhysics.csproj" />
-    <ProjectReference Include="..\..\Stride.Graphics.Regression\Stride.Graphics.Regression.csproj" />
+    <ProjectReference Include="..\..\..\engine\Stride.Graphics.Regression\Stride.Graphics.Regression.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Stride.BepuPhysics.Tests.sdpkg" />

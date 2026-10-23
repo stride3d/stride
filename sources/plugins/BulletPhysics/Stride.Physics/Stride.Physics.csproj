@@ -13,25 +13,25 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- Companion packages: asset types, compilers and templates (physics and navigation) in .Assets, editor extensions in .Editor -->
-    <StrideCompanionProject Include="..\..\plugins\Physics\Stride.Physics.Assets\Stride.Physics.Assets.csproj" />
-    <StrideCompanionProject Include="..\..\plugins\Physics\Stride.Physics.Editor\Stride.Physics.Editor.csproj" />
+    <StrideCompanionProject Include="..\Stride.Physics.Assets\Stride.Physics.Assets.csproj" />
+    <StrideCompanionProject Include="..\Stride.Physics.Editor\Stride.Physics.Editor.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <StrideNativeLib Include="..\..\..\deps\BulletPhysics\$(StridePlatformDeps)\**\libbulletc.*">
+    <StrideNativeLib Include="..\..\..\..\deps\BulletPhysics\$(StridePlatformDeps)\**\libbulletc.*">
       <Link>runtimes\%(RecursiveDir)native\%(Filename)%(Extension)</Link>
     </StrideNativeLib>
     <Reference Include="BulletSharp">
-      <HintPath>..\..\..\deps\BulletPhysics\$(StrideBulletPlatform)\BulletSharp.NetStandard.dll</HintPath>
+      <HintPath>..\..\..\..\deps\BulletPhysics\$(StrideBulletPlatform)\BulletSharp.NetStandard.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
+    <Compile Include="..\..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Stride.Engine\Stride.Engine.csproj" />
-    <ProjectReference Include="..\..\core\Stride.Core.MicroThreading\Stride.Core.MicroThreading.csproj" />
+    <ProjectReference Include="..\..\..\engine\Stride.Engine\Stride.Engine.csproj" />
+    <ProjectReference Include="..\..\..\core\Stride.Core.MicroThreading\Stride.Core.MicroThreading.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

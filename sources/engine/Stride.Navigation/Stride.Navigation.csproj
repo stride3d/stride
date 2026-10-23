@@ -15,7 +15,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Stride.Physics\Stride.Physics.csproj" />
+    <ProjectReference Include="..\..\plugins\BulletPhysics\Stride.Physics\Stride.Physics.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="DotRecast.Core" PrivateAssets="compile" />

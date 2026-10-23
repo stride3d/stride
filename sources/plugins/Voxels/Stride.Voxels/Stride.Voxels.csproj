@@ -10,21 +10,21 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- Companion package: the volume gizmo and entity factories in .Editor (no asset types, so no .Assets) -->
-    <StrideCompanionProject Include="..\..\plugins\Voxels\Stride.Voxels.Editor\Stride.Voxels.Editor.csproj" />
+    <StrideCompanionProject Include="..\Stride.Voxels.Editor\Stride.Voxels.Editor.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Templates\Assets\**" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
+    <Compile Include="..\..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Stride.Engine\Stride.Engine.csproj" />
-    <ProjectReference Include="..\Stride.Native\Stride.Native.csproj" />
-    <ProjectReference Include="..\Stride.Games\Stride.Games.csproj" />
-    <ProjectReference Include="..\Stride.Rendering\Stride.Rendering.csproj" />
+    <ProjectReference Include="..\..\..\engine\Stride.Engine\Stride.Engine.csproj" />
+    <ProjectReference Include="..\..\..\engine\Stride.Native\Stride.Native.csproj" />
+    <ProjectReference Include="..\..\..\engine\Stride.Games\Stride.Games.csproj" />
+    <ProjectReference Include="..\..\..\engine\Stride.Rendering\Stride.Rendering.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />

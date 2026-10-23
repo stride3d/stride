@@ -84,8 +84,8 @@ sources/engine/Stride.Graphics.Tests/log/
 sources/engine/Stride.Graphics/log/
 sources/engine/Stride.Graphics/Shaders/log/
 sources/engine/Stride.Input.Tests/app_data/
-sources/engine/Stride.UI.Tests/log/
-sources/engine/Stride.UI.Tests/app_data/
+sources/plugins/UI/Stride.UI.Tests/log/
+sources/plugins/UI/Stride.UI.Tests/app_data/
 sources/engine/Stride.Graphics.Tests/app_data/
 sources/tests/framework/Stride.Framework.Audio.Tests/app_data/
 libfreetype.a

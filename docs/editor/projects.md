@@ -2,7 +2,7 @@
 
 ## Role
 
-The editor codebase is split across `sources/presentation/` (MVVM framework, shared controls, Quantum-to-UI binding) and `sources/editor/` (editor infrastructure and concrete asset editors, while the `Assets` and `Editor` packages of the engine's plugins live under `sources/plugins/<Name>/`). WPF is the only supported view layer, but ViewModels are written to be platform-agnostic. This file maps each project to its responsibility and WPF coupling status.
+The editor codebase is split across `sources/presentation/` (MVVM framework, shared controls, Quantum-to-UI binding) and `sources/editor/` (editor infrastructure and concrete asset editors, while each engine plugin's projects, from its runtime to its `Assets` and `Editor` packages, live under `sources/plugins/<Name>/`). WPF is the only supported view layer, but ViewModels are written to be platform-agnostic. This file maps each project to its responsibility and WPF coupling status.
 
 ## The WPF Boundary
 
