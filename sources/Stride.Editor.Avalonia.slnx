@@ -8,22 +8,14 @@
     <Project Path="core/Stride.Core/Stride.Core.csproj" />
   </Folder>
   <Folder Name="/20-StrideRuntime/">
-    <Project Path="engine/Stride.Audio/Stride.Audio.csproj" />
     <Project Path="engine/Stride.Engine/Stride.Engine.csproj" />
     <Project Path="engine/Stride.Foundation/Stride.Foundation.csproj" />
     <Project Path="engine/Stride.Games/Stride.Games.csproj" />
     <Project Path="engine/Stride.Graphics/Stride.Graphics.csproj" />
     <Project Path="engine/Stride.Input/Stride.Input.csproj" />
     <Project Path="engine/Stride.Native/Stride.Native.csproj" />
-    <Project Path="engine/Stride.Navigation/Stride.Navigation.csproj" />
-    <Project Path="engine/Stride.Physics/Stride.Physics.csproj" />
     <Project Path="engine/Stride.Rendering/Stride.Rendering.csproj" />
-    <Project Path="engine/Stride.UI/Stride.UI.csproj" />
-    <Project Path="engine/Stride.Video/Stride.Video.csproj" />
     <Project Path="engine/Stride.VirtualReality/Stride.VirtualReality.csproj" />
-  </Folder>
-  <Folder Name="/20-StrideRuntime/Stride.Bepu/">
-    <Project Path="engine/Stride.BepuPhysics/Stride.BepuPhysics/Stride.BepuPhysics.csproj" />
   </Folder>
   <Folder Name="/22-StrideRuntime.Shaders/">
     <Project Path="shaders/Stride.Shaders.Compilers/Stride.Shaders.Compilers.csproj" />
@@ -72,6 +64,22 @@
     <Project Path="engine/Stride.Assets.Generators/Stride.Assets.Generators.csproj" />
     <Project Path="engine/Stride.Assets.Models/Stride.Assets.Models.csproj" />
     <Project Path="engine/Stride.Assets/Stride.Assets.csproj" />
+  </Folder>
+  <Folder Name="/80-Plugins/Audio/">
+    <Project Path="plugins/Audio/Stride.Audio/Stride.Audio.csproj" />
+  </Folder>
+  <Folder Name="/80-Plugins/BepuPhysics/">
+    <Project Path="plugins/BepuPhysics/Stride.BepuPhysics/Stride.BepuPhysics.csproj" />
+  </Folder>
+  <Folder Name="/80-Plugins/BulletPhysics/">
+    <Project Path="plugins/BulletPhysics/Stride.Navigation/Stride.Navigation.csproj" />
+    <Project Path="plugins/BulletPhysics/Stride.Physics/Stride.Physics.csproj" />
+  </Folder>
+  <Folder Name="/80-Plugins/UI/">
+    <Project Path="plugins/UI/Stride.UI/Stride.UI.csproj" />
+  </Folder>
+  <Folder Name="/80-Plugins/Video/">
+    <Project Path="plugins/Video/Stride.Video/Stride.Video.csproj" />
   </Folder>
   <Folder Name="/90-Tools/" />
   <Folder Name="/90-Tools/3D-Importers/">
