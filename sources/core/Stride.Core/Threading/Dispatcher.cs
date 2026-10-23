@@ -272,30 +272,13 @@ public static class Dispatcher
         }
     }
 
-    public static void ForEach<T>(T[] collection, Action<T> action)
-    {
-        ForEach<T, T[]>(collection, action);
-    }
+    public static void ForEach<T>(T[] collection, Action<T> action) => ForEach<T, T[]>(collection, action);
 
-    public static void ForEach<T>(ConcurrentCollector<T> collection, Action<T> action)
-    {
-        ForEach<T, ConcurrentCollector<T>>(collection, action);
-    }
+    public static void ForEach<T>(List<T> collection, Action<T> action) => ForEach<T, List<T>>(collection, action);
 
-    public static void ForEach<T>(List<T> collection, Action<T> action)
-    {
-        ForEach<T, List<T>>(collection, action);
-    }
+    public static void ForEach<T>(FastCollection<T> collection, Action<T> action) => ForEach<T, FastCollection<T>>(collection, action);
 
-    public static void ForEach<T, TLocal>(ConcurrentCollector<T> collection, Func<TLocal> initializeLocal, Action<T, TLocal> action, Action<TLocal> finalizeLocal = null)
-    {
-        ForEach<T, TLocal, ConcurrentCollector<T>>(collection, initializeLocal, action, finalizeLocal);
-    }
-
-    public static void ForEach<T>(FastCollection<T> collection, Action<T> action)
-    {
-        ForEach<T, FastCollection<T>>(collection, action);
-    }
+    public static void ForEach<T>(ConcurrentCollector<T> collection, Action<T> action) => ForEach<T, ConcurrentCollector<T>>(collection, action);
 
     public static unsafe void ForEach<T>(ConcurrentCollector<T> collection, ValueAction<T> action)
     {
@@ -309,6 +292,11 @@ public static class Dispatcher
                 parameters.action(ref parameters.collection.Items[i]);
             }
         }
+    }
+
+    public static void ForEach<T, TLocal>(ConcurrentCollector<T> collection, Func<TLocal> initializeLocal, Action<T, TLocal> action, Action<TLocal>? finalizeLocal = null)
+    {
+        ForEach<T, TLocal, ConcurrentCollector<T>>(collection, initializeLocal, action, finalizeLocal);
     }
 
     public static unsafe void ForEach<T, TList>(TList collection, Action<T> action) where TList : IReadOnlyList<T>
@@ -325,14 +313,14 @@ public static class Dispatcher
         }
     }
 
-    public static unsafe void ForEach<TItem, TLocal, TList>(TList collection, Func<TLocal> initializeLocal, Action<TItem, TLocal> action, Action<TLocal> finalizeLocal = null) where TList : IReadOnlyList<TItem>
+    public static unsafe void ForEach<TItem, TLocal, TList>(TList collection, Func<TLocal> initializeLocal, Action<TItem, TLocal> action, Action<TLocal>? finalizeLocal = null) where TList : IReadOnlyList<TItem>
     {
         var parameters = (initializeLocal, action, finalizeLocal, collection);
         ForBatched(collection.Count, parameters, &ForEachList);
 
-        static void ForEachList((Func<TLocal> initializeLocal, Action<TItem, TLocal> action, Action<TLocal> finalizeLocal, TList collection) parameters, int from, int toExclusive)
+        static void ForEachList((Func<TLocal> initializeLocal, Action<TItem, TLocal> action, Action<TLocal>? finalizeLocal, TList collection) parameters, int from, int toExclusive)
         {
-            TLocal local = default;
+            TLocal local = default!;
             try
             {
                 if (parameters.initializeLocal != null)
@@ -376,13 +364,13 @@ public static class Dispatcher
         }
     }
 
-    public static unsafe void ForEach<TKey, TValue, TLocal>(Dictionary<TKey, TValue> collection, Func<TLocal> initializeLocal, Action<KeyValuePair<TKey, TValue>, TLocal> action, Action<TLocal> finalizeLocal = null)
+    public static unsafe void ForEach<TKey, TValue, TLocal>(Dictionary<TKey, TValue> collection, Func<TLocal> initializeLocal, Action<KeyValuePair<TKey, TValue>, TLocal> action, Action<TLocal>? finalizeLocal = null)
         where TKey : notnull
     {
         var parameters = (initializeLocal, action, finalizeLocal, collection);
         ForBatched(collection.Count, parameters, &ForEachDict);
 
-        static void ForEachDict((Func<TLocal> initializeLocal, Action<KeyValuePair<TKey, TValue>, TLocal> action, Action<TLocal> finalizeLocal, Dictionary<TKey, TValue> collection) parameters, int from, int toExclusive)
+        static void ForEachDict((Func<TLocal> initializeLocal, Action<KeyValuePair<TKey, TValue>, TLocal> action, Action<TLocal>? finalizeLocal, Dictionary<TKey, TValue> collection) parameters, int from, int toExclusive)
         {
             using var enumerator = parameters.collection.GetEnumerator();
 
@@ -391,7 +379,7 @@ public static class Dispatcher
                 enumerator.MoveNext();
             }
 
-            TLocal local = default;
+            TLocal local = default!;
             try
             {
                 if (parameters.initializeLocal != null)
