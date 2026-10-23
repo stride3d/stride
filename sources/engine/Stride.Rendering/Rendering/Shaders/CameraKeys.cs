@@ -12,7 +12,7 @@ namespace Stride.Rendering
         /// <summary>
         /// Camera focus distance
         /// </summary>
-        public static readonly ValueParameterKey<float> FocusDistance = ParameterKeys.NewValue(0.0f);
+        public static readonly ValueParameterKey<float> FocusDistance = (ValueParameterKey<float>)ParameterKeys.Merge(ParameterKeys.NewValue(0.0f), typeof(CameraKeys), "Camera.FocusDistance");
 
         public static Vector2 ZProjectionACalculate(float nearClipPlane, float farClipPlane)
         {
@@ -28,5 +28,7 @@ namespace Stride.Rendering
             // From (0) z = B / (depth - A)
             return new Vector2(farClipPlane / (farClipPlane - nearClipPlane), (-farClipPlane * nearClipPlane) / (farClipPlane - nearClipPlane));
         }
+
+        // __Initialize__ is defined by the source generator in another partial class file.
     }
 }

@@ -15,7 +15,7 @@ namespace Stride.Rendering.Images
     /// </summary>
     public class LuminanceEffect : ImageEffect
     {
-        public static readonly ObjectParameterKey<LuminanceResult> LuminanceResult = ParameterKeys.NewObject<LuminanceResult>();
+        public static readonly ObjectParameterKey<LuminanceResult> LuminanceResult = (ObjectParameterKey<LuminanceResult>)ParameterKeys.Merge(ParameterKeys.NewObject<LuminanceResult>(), typeof(LuminanceEffect), "LuminanceEffect.LuminanceResult");
 
         private PixelFormat luminanceFormat = PixelFormat.R16_Float;
         private GaussianBlur blur;
@@ -204,6 +204,12 @@ namespace Stride.Rendering.Images
                 //    }
                 //}
             }
+        }
+
+        [ModuleInitializer]
+        internal static void __Initialize__()
+        {
+            System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(typeof(LuminanceEffect).TypeHandle);
         }
     }
 }

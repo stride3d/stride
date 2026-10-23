@@ -1,5 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+using Stride.Core;
+
 namespace Stride.Rendering
 {
     /// <summary>
@@ -14,7 +16,7 @@ namespace Stride.Rendering
         /// <userdoc>
         /// Use the material parameters to generate effects
         /// </userdoc>
-        public static readonly ValueParameterKey<bool> UseParameters = ParameterKeys.NewValue<bool>();
+        public static readonly ValueParameterKey<bool> UseParameters = (ValueParameterKey<bool>)ParameterKeys.Merge(ParameterKeys.NewValue<bool>(), typeof(MaterialAssetKeys), "MaterialAsset.UseParameters");
 
         /// <summary>
         /// Allow material compilation without mesh.
@@ -22,6 +24,12 @@ namespace Stride.Rendering
         /// <userdoc>
         /// Generate a shader even if the materials aren't attached to a mesh
         /// </userdoc>
-        public static readonly ValueParameterKey<bool> GenerateShader = ParameterKeys.NewValue<bool>();
+        public static readonly ValueParameterKey<bool> GenerateShader = (ValueParameterKey<bool>)ParameterKeys.Merge(ParameterKeys.NewValue<bool>(), typeof(MaterialAssetKeys), "MaterialAsset.GenerateShader");
+
+        [ModuleInitializer]
+        internal static void __Initialize__()
+        {
+            System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(typeof(MaterialAssetKeys).TypeHandle);
+        }
     }
 }

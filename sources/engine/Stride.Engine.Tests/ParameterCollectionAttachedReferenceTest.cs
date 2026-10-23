@@ -6,6 +6,7 @@ using System.Collections.Generic;
 
 using Xunit;
 
+using Stride.Core;
 using Stride.Core.Assets;
 using Stride.Core.Diagnostics;
 using Stride.Core.Serialization;
@@ -19,7 +20,7 @@ namespace Stride.Engine.Tests
     /// </summary>
     public class ParameterCollectionAttachedReferenceTest
     {
-        public static readonly ObjectParameterKey<object> ObjectKey = ParameterKeys.NewObject<object>();
+        public static readonly ObjectParameterKey<object> ObjectKey = (ObjectParameterKey<object>)ParameterKeys.Merge(ParameterKeys.NewObject<object>(), typeof(ParameterCollectionAttachedReferenceTest), "ParameterCollectionAttachedReferenceTest.ObjectKey");
 
         [Fact]
         public void TestResolveWithoutContentManagerWarnsAndKeepsProxy()
@@ -90,6 +91,12 @@ namespace Stride.Engine.Tests
             }
 
             return warnings;
+        }
+
+        [ModuleInitializer]
+        internal static void __Initialize__()
+        {
+            System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(typeof(ParameterCollectionAttachedReferenceTest).TypeHandle);
         }
 
         private class TestReferencedContent

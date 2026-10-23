@@ -13,9 +13,9 @@ namespace Stride.Engine.Tests
 {
     public class ParameterCollectionUpdateEngineTest
     {
-        public static readonly ValueParameterKey<int> IntKey = ParameterKeys.NewValue<int>();
-        public static readonly ValueParameterKey<BlittableStruct> BlittableKey = ParameterKeys.NewValue<BlittableStruct>();
-        public static readonly ObjectParameterKey<object> ObjectKey = ParameterKeys.NewObject<object>();
+        public static readonly ValueParameterKey<int> IntKey = (ValueParameterKey<int>)ParameterKeys.Merge(ParameterKeys.NewValue<int>(), typeof(ParameterCollectionUpdateEngineTest), "ParameterCollectionUpdateEngineTest.IntKey");
+        public static readonly ValueParameterKey<BlittableStruct> BlittableKey = (ValueParameterKey<BlittableStruct>)ParameterKeys.Merge(ParameterKeys.NewValue<BlittableStruct>(), typeof(ParameterCollectionUpdateEngineTest), "ParameterCollectionUpdateEngineTest.BlittableKey");
+        public static readonly ObjectParameterKey<object> ObjectKey = (ObjectParameterKey<object>)ParameterKeys.Merge(ParameterKeys.NewObject<object>(), typeof(ParameterCollectionUpdateEngineTest), "ParameterCollectionUpdateEngineTest.ObjectKey");
 
         [Fact]
         public void TestParameterCollectionResolver()
@@ -42,6 +42,12 @@ namespace Stride.Engine.Tests
             Assert.Equal(123, test.Parameters.Get(BlittableKey).IntField);
             Assert.Equal(123, test.Parameters.Get(BlittableKey).IntProperty);
             Assert.Equal(test2, test.Parameters.Get(ObjectKey));
+        }
+
+        [ModuleInitializer]
+        internal static void __Initialize__()
+        {
+            System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(typeof(ParameterCollectionUpdateEngineTest).TypeHandle);
         }
     }
 
