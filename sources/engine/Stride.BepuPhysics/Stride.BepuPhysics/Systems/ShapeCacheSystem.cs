@@ -18,6 +18,9 @@ namespace Stride.BepuPhysics.Systems;
 
 internal class ShapeCacheSystem : IDisposable, IService
 {
+    /// <summary> Tessellation of the debug meshes of spheres, cylinders and capsules, read when the system and the capsule meshes are built </summary>
+    internal static int CurvedTessellation { get; set; } = 8;
+
     internal readonly BasicMeshBuffers _boxShapeData;
     internal readonly BasicMeshBuffers _cylinderShapeData;
     internal readonly BasicMeshBuffers _sphereShapeData;
@@ -31,12 +34,37 @@ internal class ShapeCacheSystem : IDisposable, IService
     {
         this.Services = Services;
         var box = GeometricPrimitive.Cube.New(new Vector3(1, 1, 1));
-        var cylinder = GeometricPrimitive.Cylinder.New(1, 1, 8);
-        var sphere = GeometricPrimitive.Sphere.New(1, 8);
+        var cylinder = GeometricPrimitive.Cylinder.New(1, 1, CurvedTessellation);
+        var sphere = GeometricPrimitive.Sphere.New(1, CurvedTessellation);
 
         _boxShapeData = new() { Vertices = box.Vertices.Select(x => new VertexPosition3(x.Position)).ToArray(), Indices = box.Indices };
-        _cylinderShapeData = new() { Vertices = cylinder.Vertices.Select(x => new VertexPosition3(x.Position)).ToArray(), Indices = cylinder.Indices };
-        _sphereShapeData = new() { Vertices = sphere.Vertices.Select(x => new VertexPosition3(x.Position)).ToArray(), Indices = sphere.Indices };
+        _cylinderShapeData = Approximation(cylinder, p => MathF.Min(MathF.Abs(new Vector2(p.X, p.Z).Length() - 1f), MathF.Abs(MathF.Abs(p.Y) - 0.5f)));
+        _sphereShapeData = Approximation(sphere, p => MathF.Abs(p.Length() - 1f));
+    }
+
+    /// <summary> The mesh of a curved shape and its largest distance to the exact surface, measured on each face </summary>
+    private static BasicMeshBuffers Approximation(GeometricMeshData<VertexPositionNormalTexture> mesh, Func<Vector3, float> distanceToSurface)
+    {
+        const int Samples = 8;
+        var vertices = mesh.Vertices.Select(x => new VertexPosition3(x.Position)).ToArray();
+        var indices = mesh.Indices;
+        float deviation = 0f;
+        for (int t = 0; t + 2 < indices.Length; t += 3)
+        {
+            var a = vertices[indices[t]].Position;
+            var b = vertices[indices[t + 1]].Position;
+            var c = vertices[indices[t + 2]].Position;
+            for (int i = 0; i <= Samples; i++)
+            {
+                for (int j = 0; i + j <= Samples; j++)
+                {
+                    var point = a + (b - a) * ((float)i / Samples) + (c - a) * ((float)j / Samples);
+                    deviation = MathF.Max(deviation, distanceToSurface(point));
+                }
+            }
+        }
+
+        return new() { Vertices = vertices, Indices = indices, MaxDeviation = deviation };
     }
 
     public void Dispose()
@@ -76,8 +104,9 @@ internal class ShapeCacheSystem : IDisposable, IService
 
     internal BasicMeshBuffers BuildCapsule(CapsuleCollider cap)
     {
-        var capGeo = GeometricPrimitive.Capsule.New(cap.Length, cap.Radius, 8);
-        return new() { Vertices = capGeo.Vertices.Select(x => new VertexPosition3(x.Position)).ToArray(), Indices = capGeo.Indices };
+        var capGeo = GeometricPrimitive.Capsule.New(cap.Length, cap.Radius, CurvedTessellation);
+        var halfLength = cap.Length / 2f;
+        return Approximation(capGeo, p => MathF.Abs(Vector3.Distance(p, new Vector3(0f, Math.Clamp(p.Y, -halfLength, halfLength), 0f)) - cap.Radius));
     }
     internal BasicMeshBuffers BuildTriangle(TriangleCollider tri)
     {
@@ -131,8 +160,23 @@ internal class ShapeCacheSystem : IDisposable, IService
                 for (int i = 0; i < hullClass.Points.Length; i++)
                     outPointsWithAutoCast[vertexWriteHead++] = hullClass.Points[i].ToNumeric();
 
-                for (int i = 0; i < hullClass.Indices.Length; i++)
+                // A hull's triangles may come wound either way; the wireframe tells front from back faces by winding,
+                // so each one is turned to face away from the hull's center, the way the other debug meshes are
+                var center = System.Numerics.Vector3.Zero;
+                for (int i = 0; i < hullClass.Points.Length; i++)
+                    center += hullClass.Points[i].ToNumeric();
+                center /= Math.Max(hullClass.Points.Length, 1);
+
+                for (int i = 0; i + 2 < hullClass.Indices.Length; i += 3)
+                {
+                    var a = hullClass.Points[(int)hullClass.Indices[i]].ToNumeric();
+                    var b = hullClass.Points[(int)hullClass.Indices[i + 1]].ToNumeric();
+                    var c = hullClass.Points[(int)hullClass.Indices[i + 2]].ToNumeric();
+                    var outward = System.Numerics.Vector3.Dot(System.Numerics.Vector3.Cross(b - a, c - a), a - center) > 0;
                     outIndices[indexWriteHead++] = vertMappingStart + (int)hullClass.Indices[i];
+                    outIndices[indexWriteHead++] = vertMappingStart + (int)hullClass.Indices[outward ? i + 1 : i + 2];
+                    outIndices[indexWriteHead++] = vertMappingStart + (int)hullClass.Indices[outward ? i + 2 : i + 1];
+                }
             }
         }
     }

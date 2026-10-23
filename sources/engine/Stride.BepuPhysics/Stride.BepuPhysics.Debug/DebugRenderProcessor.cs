@@ -22,6 +22,8 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
     private bool _visible;
     private bool _trackingShapes;
     private DebugRenderComponent? _component;
+    private SinglePassWireframeRenderFeature? _wireframeFeature;
+    private int _lastObjectId;
     private IGame _game = null!;
     private SceneSystem _sceneSystem = null!;
     private ShapeCacheSystem _shapeCacheSystem = null!;
@@ -150,6 +152,7 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
                 _sceneSystem.GraphicsCompositor.RenderFeatures.Add(wireframeFeature);
             }
             AddOverlayStageSelector(wireframeFeature, "StrideSinglePassWireframeShader");
+            _wireframeFeature = wireframeFeature;
             if (_sceneSystem.GraphicsCompositor.RenderFeatures.OfType<LineRenderFeature>().FirstOrDefault() is not { } lineFeature)
             {
                 lineFeature = new LineRenderFeature();
@@ -166,6 +169,9 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
         }
 
         base.Draw(context);
+
+        if (_wireframeFeature is not null)
+            _wireframeFeature.ShowBackFaces = _component?.ShowBackFaces ?? false;
 
         if (_visible && _sceneSystem.SceneInstance.GetProcessor<CollidableProcessor>() is { } collidables)
             UpdateShapeTracking(collidables);
@@ -267,12 +273,16 @@ public class DebugRenderProcessor : EntityProcessor<DebugRenderComponent>
         collidable.Collider.GetLocalTransforms(collidable, transforms);
 
         WireFrameRenderObject[] wireframes = new WireFrameRenderObject[transforms.Length];
+        var objectId = ++_lastObjectId;
         for (int i = 0; i < shapeData.Count; i++)
         {
             var data = shapeData[i];
 
             var wireframe = WireFrameRenderObject.New(_game.GraphicsDevice, data.Indices, data.Vertices);
             wireframe.Color = GetCurrentColor(collidable);
+            wireframe.MaxDeviation = data.MaxDeviation;
+            wireframe.Owner = collidable.Entity;
+            wireframe.ObjectId = objectId;
             Matrix.Transformation(ref transforms[i].Scale, ref transforms[i].RotationLocal, ref transforms[i].PositionLocal, out wireframe.CollidableBaseMatrix);
             wireframes[i] = wireframe;
             _visibilityGroup.RenderObjects.Add(wireframe);

@@ -41,6 +41,12 @@ public class DebugRenderComponent : SyncScript
     public bool ShowShapes { get; set; } = true;
 
     /// <summary>
+    /// Whether to draw the back faces of the colliders as dashed lines; like the other lines, other objects hide them, their own visual model does not.
+    /// </summary>
+    [DataMember]
+    public bool ShowBackFaces { get; set; }
+
+    /// <summary>
     /// Whether to draw a marker at each contact point the solver is currently resolving.
     /// </summary>
     [DataMember]
