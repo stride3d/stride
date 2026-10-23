@@ -43,8 +43,6 @@ public class AssemblyProcessorApp
 
     public string? DocumentationFile { get; set; }
 
-    public string? NewAssemblyName { get; set; }
-
     internal PlatformType Platform { get; set; }
 
     public List<string> SearchDirectories { get; set; }
@@ -180,16 +178,6 @@ public class AssemblyProcessorApp
             {
                 processors.Add(new ParameterKeyProcessor());
             }
-
-            if (NewAssemblyName != null)
-            {
-                processors.Add(new RenameAssemblyProcessor(NewAssemblyName));
-            }
-
-            //processors.Add(new AsyncBridgeProcessor());
-
-            // Always applies the interop processor
-            processors.Add(new InteropProcessor());
 
             processors.Add(new AssemblyVersionProcessor());
 
