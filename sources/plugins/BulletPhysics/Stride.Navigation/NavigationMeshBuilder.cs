@@ -75,6 +75,18 @@ namespace Stride.Navigation
             }
         }
 
+        private readonly record struct BuildTileParameters
+        {
+            public required NavigationMeshBuilder Builder { get; init; }
+            public required NavigationMeshBuildSettings BuildSettings { get; init; }
+            public required NavigationAgentSettings AgentSettings { get; init; }
+            public required ICollection<BoundingBox> BoundingBoxes { get; init; }
+            public required CancellationToken CancellationToken { get; init; }
+            public required Vector3[] InputVertices { get; init; }
+            public required int[] InputIndices { get; init; }
+            public required ConcurrentCollector<Tuple<Point, NavigationMeshTile>> BuiltTiles { get; init; }
+        }
+
         /// <summary>
         /// Performs the build of a navigation mesh
         /// </summary>
@@ -234,19 +246,35 @@ namespace Stride.Navigation
                     }
 
                     ConcurrentCollector<Tuple<Point, NavigationMeshTile>> builtTiles = new ConcurrentCollector<Tuple<Point, NavigationMeshTile>>(tilesToBuild.Count);
-                    Dispatcher.ForEach(tilesToBuild.ToArray(), tileCoordinate =>
+                    var parameters = new BuildTileParameters
+                    {
+                        Builder = this,
+                        BuildSettings = buildSettings,
+                        AgentSettings = currentAgentSettings,
+                        BoundingBoxes = boundingBoxes,
+                        CancellationToken = cancellationToken,
+                        InputVertices = inputVertices,
+                        InputIndices = inputIndices,
+                        BuiltTiles = builtTiles,
+                    };
+                    unsafe
+                    {
+                        Dispatcher.ForEach<Point, Point[], BuildTileParameters>(tilesToBuild.ToArray(), parameters, &BuildTileAction);
+                    }
+
+                    static void BuildTileAction(Point tileCoordinate, BuildTileParameters parameters)
                     {
                         // Allow cancellation while building tiles
-                        if (cancellationToken.IsCancellationRequested)
+                        if (parameters.CancellationToken.IsCancellationRequested)
                             return;
 
                         // Builds the tile, or returns null when there is nothing generated for this tile (empty tile)
-                        NavigationMeshTile meshTile = BuildTile(tileCoordinate, buildSettings, currentAgentSettings, boundingBoxes,
-                            inputVertices, inputIndices);
+                        NavigationMeshTile meshTile = parameters.Builder.BuildTile(tileCoordinate, parameters.BuildSettings, parameters.AgentSettings,
+                            parameters.BoundingBoxes, parameters.InputVertices, parameters.InputIndices);
 
                         // Add the result to the list of built tiles
-                        builtTiles.Add(new Tuple<Point, NavigationMeshTile>(tileCoordinate, meshTile));
-                    });
+                        parameters.BuiltTiles.Add(new Tuple<Point, NavigationMeshTile>(tileCoordinate, meshTile));
+                    }
 
                     if (cancellationToken.IsCancellationRequested)
                     {

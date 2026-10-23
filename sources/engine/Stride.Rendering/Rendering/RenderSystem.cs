@@ -4,13 +4,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Runtime.InteropServices;
 using System.Threading;
 using Stride.Core;
 using Stride.Core.Collections;
-using Stride.Core.Threading;
 using Stride.Core.Diagnostics;
+using Stride.Core.Mathematics;
+using Stride.Core.Threading;
 using Stride.Graphics;
-using System.Runtime.InteropServices;
 
 namespace Stride.Rendering
 {
@@ -273,17 +274,28 @@ namespace Stride.Rendering
             using (Profiler.Begin(PrepareSortKey))
             {
                 // Sort
-                Dispatcher.ForEach(Views, view =>
+                Dispatcher.ForEach<RenderView, FastTrackingCollection<RenderView>, RenderSystem>(Views, this, &SortView);
+
+                static void SortView(RenderView view, RenderSystem renderSystem)
                 {
-                    Dispatcher.For(0, view.RenderStages.Count, () => prepareThreadLocals.Acquire(), (index, local) =>
+                    var state = (renderSystem, view);
+                    Dispatcher.For<(RenderSystem, RenderView), PrepareThreadLocals>(0, view.RenderStages.Count, state, &InitializeLocal, &SortRenderStage, &FinalizeLocal);
+
+                    static PrepareThreadLocals InitializeLocal((RenderSystem, RenderView) state)
                     {
+                        return state.Item1.prepareThreadLocals.Acquire();
+                    }
+
+                    static void SortRenderStage((RenderSystem, RenderView) state, int index, PrepareThreadLocals local)
+                    {
+                        var (renderSystem, view) = state;
                         var renderViewStage = view.RenderStages[index];
 
                         var renderNodes = renderViewStage.RenderNodes;
                         if (renderNodes.Count == 0)
                             return;
 
-                        var renderStage = RenderStages[renderViewStage.Index];
+                        var renderStage = renderSystem.RenderStages[renderViewStage.Index];
                         var sortedRenderNodes = renderViewStage.SortedRenderNodes;
 
                         CollectionsMarshal.SetCount(sortedRenderNodes, renderNodes.Count);
@@ -314,8 +326,13 @@ namespace Stride.Rendering
                                 sortedRenderNodes[i] = renderNodes[i];
                             }
                         }
-                    }, state => prepareThreadLocals.Release(state));
-                });
+                    }
+
+                    static void FinalizeLocal((RenderSystem, RenderView) state, PrepareThreadLocals local)
+                    {
+                        state.Item1.prepareThreadLocals.Release(local);
+                    }
+                }
             }
 
             // Flush the resources uploaded during Prepare
@@ -348,7 +365,22 @@ namespace Stride.Rendering
             return RenderStageDepthAccess.Mixed; // empty stage: nothing to pre-transition
         }
 
-        public void Draw(RenderDrawContext renderDrawContext, RenderView renderView, RenderStage renderStage)
+        private readonly record struct DrawParameters
+        {
+            public required RenderSystem RenderSystem { get; init; }
+            public required RenderDrawContext RenderDrawContext { get; init; }
+            public required RenderView RenderView { get; init; }
+            public required RenderViewStage RenderViewStage { get; init; }
+            public required int BatchSize { get; init; }
+            public required int RenderNodeCount { get; init; }
+            public required Texture DepthStencilBuffer { get; init; }
+            public required int RenderTargetCount { get; init; }
+            public required Viewport Viewport { get; init; }
+            public required Rectangle Scissor { get; init; }
+            public required DepthStencilAccess DepthStencilAccess { get; init; }
+        }
+
+        public unsafe void Draw(RenderDrawContext renderDrawContext, RenderView renderView, RenderStage renderStage)
         {
             using var _ = Profiler.Begin(DrawKey);
             // Sync point: draw (from now, we should execute with a graphics device context to perform rendering)
@@ -462,23 +494,47 @@ namespace Stride.Rendering
                 }
                 commandLists[0] = commandList.Close();
 
-                Dispatcher.For(0, batchCount, () => renderDrawContext.RenderContext.GetThreadContext(), (batchIndex, threadContext) =>
+                var state = new DrawParameters
                 {
+                    RenderSystem = this,
+                    RenderDrawContext = renderDrawContext,
+                    RenderView = renderView,
+                    RenderViewStage = renderViewStage,
+                    BatchSize = batchSize,
+                    RenderNodeCount = renderNodeCount,
+                    DepthStencilBuffer = depthStencilBuffer,
+                    RenderTargetCount = renderTargetCount,
+                    Viewport = viewport,
+                    Scissor = scissor,
+                    DepthStencilAccess = depthStencilAccess,
+                };
+                Dispatcher.For(0, batchCount, state, &InitializeLocal, &ForAction);
+
+                static RenderDrawContext InitializeLocal(DrawParameters state)
+                {
+                    return state.RenderDrawContext.RenderContext.GetThreadContext();
+                }
+
+                static void ForAction(DrawParameters state, int batchIndex, RenderDrawContext threadContext)
+                {
+                    var renderSystem = state.RenderSystem;
+                    var renderViewStage = state.RenderViewStage;
+                    var renderNodes = renderViewStage.SortedRenderNodes;
                     using var _ = Profiler.Begin(DrawRenderFeatureChunksKey);
                     threadContext.CommandList.Reset();
                     threadContext.CommandList.ClearState();
 
                     // Transfer state to all command lists
-                    scoped ReadOnlySpan<Texture> renderTargetsToSet = renderTargets.AsSpan(0, renderTargetCount);
-                    threadContext.CommandList.SetRenderTargets(depthStencilBuffer, renderTargetsToSet);
-                    threadContext.CommandList.SetViewport(viewport);
-                    threadContext.CommandList.SetScissorRectangle(scissor);
-                    threadContext.CommandList.DepthStencilAccess = depthStencilAccess;
+                    scoped ReadOnlySpan<Texture> renderTargetsToSet = renderSystem.renderTargets.AsSpan(0, state.RenderTargetCount);
+                    threadContext.CommandList.SetRenderTargets(state.DepthStencilBuffer, renderTargetsToSet);
+                    threadContext.CommandList.SetViewport(state.Viewport);
+                    threadContext.CommandList.SetScissorRectangle(state.Scissor);
+                    threadContext.CommandList.DepthStencilAccess = state.DepthStencilAccess;
 
-                    var currentStart = batchSize * batchIndex;
+                    var currentStart = state.BatchSize * batchIndex;
                     int currentEnd;
 
-                    var endExclusive = Math.Min(renderNodeCount, currentStart + batchSize);
+                    var endExclusive = int.Min(state.RenderNodeCount, currentStart + state.BatchSize);
 
                     if (endExclusive <= currentStart)
                         return;
@@ -493,11 +549,11 @@ namespace Stride.Rendering
                         }
 
                         // Divide into task chunks for parallelism
-                        currentRenderFeature.Draw(threadContext, renderView, renderViewStage, currentStart, currentEnd);
+                        currentRenderFeature.Draw(threadContext, state.RenderView, renderViewStage, currentStart, currentEnd);
                     }
 
-                    commandLists[batchIndex + 1] = threadContext.CommandList.Close();
-                });
+                    renderSystem.commandLists[batchIndex + 1] = threadContext.CommandList.Close();
+                }
 
                 GraphicsDevice.ExecuteCommandLists(batchCount + 1, commandLists);
 
