@@ -5,7 +5,6 @@ The following libraries cover abstractions and base implementations of various l
 The assembly processor is a legacy job that runs after any project is built and delivers IL patching for the following:
 
 * Serialization system (migration to roslyn [in progress](https://github.com/stride3d/stride/pull/1609))
-* AssemblyScan system - packing selected types into a dictionary for quick access instead of using reflection
 * Adding references to the assembly (used only within Stride build - see `Stride.Core.targets - StrideAddReference`)
 * Modyfing static constructor for static instances of `Stride.Rendering.ParameterKey<T>` (**TODO**: why?)
 * Renaming assembly

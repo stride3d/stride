@@ -200,7 +200,6 @@ public class AssemblyProcessorApp
 
             if (SerializationAssembly)
             {
-                processors.Add(new AssemblyScanProcessor());
                 processors.Add(new SerializationProcessor());
             }
 

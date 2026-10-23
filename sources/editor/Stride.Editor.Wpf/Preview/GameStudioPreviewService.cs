@@ -364,8 +364,8 @@ namespace Stride.Editor.Preview
         }
 
         /// <summary>
-        /// Previews tagged <see cref="AssetPreviewAttribute"/> in <paramref name="assembly"/> (from the assembly processor's
-        /// scan index). An assembly can register on any thread (a package loaded by a background task).
+        /// Registers previews tagged <see cref="AssetPreviewAttribute"/> in <paramref name="assembly"/> using its
+        /// source-generated scan index. An assembly can register on any thread (a package loaded by a background task).
         /// </summary>
         private void RegisterAssetPreviews(Assembly assembly)
         {

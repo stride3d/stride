@@ -486,8 +486,8 @@ namespace Stride.Engine
         }
 
         /// <summary>
-        /// The types marked <see cref="GameSystemAttribute"/> in the registered assemblies (from the assembly processor's
-        /// scan index) that this game creates.
+        /// The types marked <see cref="GameSystemAttribute"/> in the registered assemblies (from their source-generated
+        /// scan indexes) that this game creates.
         /// </summary>
         private IEnumerable<Type> GetDeclaredGameSystemTypes()
         {
