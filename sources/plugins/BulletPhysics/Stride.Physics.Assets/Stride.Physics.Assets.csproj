@@ -16,7 +16,7 @@
     <!-- Stride.Assets for the texture asset (heightmap input), the scene asset (navigation mesh input) and the texture tool -->
     <ProjectReference Include="..\..\..\engine\Stride.Assets\Stride.Assets.csproj" />
     <ProjectReference Include="..\..\..\engine\Stride.Assets.VHACD\Stride.Assets.VHACD.csproj" />
-    <ProjectReference Include="..\..\..\engine\Stride.Navigation\Stride.Navigation.csproj" />
+    <ProjectReference Include="..\Stride.Navigation\Stride.Navigation.csproj" />
     <ProjectReference Include="..\Stride.Physics\Stride.Physics.csproj" />
   </ItemGroup>
   <ItemGroup>

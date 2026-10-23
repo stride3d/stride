@@ -34,7 +34,7 @@
     <ProjectReference Include="..\..\plugins\UI\Stride.UI.Tests\Stride.UI.Tests.csproj"
                       Properties="$(_StrideSuiteRefProperties)"
                       StrideTestSuiteRef="true" />
-    <ProjectReference Include="..\..\engine\Stride.Navigation.Tests\Stride.Navigation.Tests.csproj"
+    <ProjectReference Include="..\..\plugins\BulletPhysics\Stride.Navigation.Tests\Stride.Navigation.Tests.csproj"
                       Properties="$(_StrideSuiteRefProperties)"
                       StrideTestSuiteRef="true" />
     <ProjectReference Include="..\..\plugins\BulletPhysics\Stride.Physics.Tests\Stride.Physics.Tests.csproj"

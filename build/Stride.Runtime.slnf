@@ -13,7 +13,7 @@
       "..\\sources\\engine\\Stride.Graphics\\Stride.Graphics.csproj",
       "..\\sources\\engine\\Stride.Input\\Stride.Input.csproj",
       "..\\sources\\engine\\Stride.Native\\Stride.Native.csproj",
-      "..\\sources\\engine\\Stride.Navigation\\Stride.Navigation.csproj",
+      "..\\sources\\plugins\\BulletPhysics\\Stride.Navigation\\Stride.Navigation.csproj",
       "..\\sources\\plugins\\Particles\\Stride.Particles\\Stride.Particles.csproj",
       "..\\sources\\plugins\\BulletPhysics\\Stride.Physics\\Stride.Physics.csproj",
       "..\\sources\\engine\\Stride.Rendering\\Stride.Rendering.csproj",

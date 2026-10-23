@@ -10,12 +10,12 @@
     <StrideContainsAssetTypes>true</StrideContainsAssetTypes>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
+    <Compile Include="..\..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\plugins\BulletPhysics\Stride.Physics\Stride.Physics.csproj" />
+    <ProjectReference Include="..\Stride.Physics\Stride.Physics.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="DotRecast.Core" PrivateAssets="compile" />
