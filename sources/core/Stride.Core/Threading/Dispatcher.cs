@@ -184,8 +184,9 @@ public static class Dispatcher
 
     public static unsafe void For<T>(int fromInclusive, int toExclusive, T parameter, delegate*<T, int, void> action)
     {
-        ForBatched(toExclusive - fromInclusive, new ForParameters<T>(action, parameter, fromInclusive), &ForWrapped);
-        static void ForWrapped(ForParameters<T> parameters, int from, int toExclusive)
+        var parameters = new ForParameters<T>(action, parameter, fromInclusive);
+        ForBatched(toExclusive - fromInclusive, ref parameters, &ForWrapped);
+        static void ForWrapped(ref ForParameters<T> parameters, int from, int toExclusive)
         {
             for (int i = from; i < toExclusive; i++)
             {
@@ -220,8 +221,8 @@ public static class Dispatcher
     public static unsafe void For<T, TLocal>(int fromInclusive, int toExclusive, T parameter, delegate*<T, TLocal> initializeLocal, delegate*<T, int, TLocal, void> action, delegate*<T, TLocal, void> finalizeLocal = null)
     {
         var parameters = new ForParameters<T, TLocal>(initializeLocal, action, finalizeLocal, parameter, fromInclusive);
-        ForBatched(toExclusive - fromInclusive, parameters, &ForWrapped);
-        static void ForWrapped(ForParameters<T, TLocal> parameters, int from, int toExclusive)
+        ForBatched(toExclusive - fromInclusive, ref parameters, &ForWrapped);
+        static void ForWrapped(ref ForParameters<T, TLocal> parameters, int from, int toExclusive)
         {
             TLocal local = default!;
             try
@@ -310,8 +311,8 @@ public static class Dispatcher
     public static unsafe void ForEach<T, TList, TState>(TList collection, TState state, delegate*<T, TState, void> action) where TList : IReadOnlyList<T>
     {
         var parameters = new ForEachParameters<T, TList, TState>(collection, state, action);
-        ForBatched(collection.Count, parameters, &ForEachList);
-        static void ForEachList(ForEachParameters<T, TList, TState> parameters, int from, int toExclusive)
+        ForBatched(collection.Count, ref parameters, &ForEachList);
+        static void ForEachList(ref ForEachParameters<T, TList, TState> parameters, int from, int toExclusive)
         {
             for (int i = from; i < toExclusive; i++)
             {
@@ -347,9 +348,9 @@ public static class Dispatcher
     public static unsafe void ForEach<TItem, TLocal, TList, TState>(TList collection, TState state, delegate*<TState, TLocal> initializeLocal, delegate*<TItem, TState, TLocal, void> action, delegate*<TState, TLocal, void> finalizeLocal = null) where TList : IReadOnlyList<TItem>
     {
         var parameters = new ForEachLocalParameters<TItem, TLocal, TList, TState>(collection, state, initializeLocal, action, finalizeLocal);
-        ForBatched(collection.Count, parameters, &ForEachList);
+        ForBatched(collection.Count, ref parameters, &ForEachList);
 
-        static void ForEachList(ForEachLocalParameters<TItem, TLocal, TList, TState> parameters, int from, int toExclusive)
+        static void ForEachList(ref ForEachLocalParameters<TItem, TLocal, TList, TState> parameters, int from, int toExclusive)
         {
             TLocal local = default!;
             try
