@@ -88,7 +88,7 @@ namespace Stride.Rendering
         /// Collects render objects visibile in a view (if not previously collected before).
         /// </summary>
         /// <param name="view"></param>
-        public void TryCollect(RenderView view)
+        public unsafe void TryCollect(RenderView view)
         {
             using var _ = Profiler.Begin(TryCollectKey);
             // Already colleted this frame?
@@ -132,27 +132,38 @@ namespace Stride.Rendering
             // Process objects
             //foreach (var renderObject in RenderObjects)
             //Dispatcher.ForEach(RenderObjects, renderObject =>
-            Dispatcher.For(0, RenderObjects.Count, () => collectorCache.Value, (index, cache) =>
+            var collectParameters = (this, view, frustum, cullingMode, cullingMask, plane);
+            Dispatcher.For<(VisibilityGroup, RenderView, BoundingFrustum, CameraCullingMode, RenderGroupMask, Plane), ConcurrentCollectorCache<RenderObject>>(0, RenderObjects.Count, collectParameters, &InitializeLocal, &ForAction, &FinalizeLocal);
+
+            view.RenderObjects.Close();
+
+            static ConcurrentCollectorCache<RenderObject> InitializeLocal((VisibilityGroup, RenderView, BoundingFrustum, CameraCullingMode, RenderGroupMask, Plane) state)
             {
-                var renderObject = RenderObjects[index];
+                return state.Item1.collectorCache.Value;
+            }
+
+            static void ForAction((VisibilityGroup, RenderView, BoundingFrustum, CameraCullingMode, RenderGroupMask, Plane) state, int index, ConcurrentCollectorCache<RenderObject> cache)
+            {
+                var (group, view, frustum, cullingMode, cullingMask, plane) = state;
+                var renderObject = group.RenderObjects[index];
 
                 // Skip not enabled objects
                 if (!renderObject.Enabled || ((RenderGroupMask)(1U << (int)renderObject.RenderGroup) & cullingMask) == 0)
                     return;
 
-                var renderStageMask = RenderData.GetData(RenderStageMaskKey);
-                var renderStageMaskNode = renderObject.VisibilityObjectNode * stageMaskMultiplier;
+                var renderStageMask = group.RenderData.GetData(group.RenderStageMaskKey);
+                var renderStageMaskNode = renderObject.VisibilityObjectNode * group.stageMaskMultiplier;
 
                 // Determine if this render object belongs to this view
                 bool renderStageMatch = false;
                 unsafe
                 {
-                    fixed (uint* viewRenderStageMaskStart = viewRenderStageMask)
+                    fixed (uint* viewRenderStageMaskStart = group.viewRenderStageMask)
                     fixed (uint* objectRenderStageMaskStart = renderStageMask.Data)
                     {
                         var viewRenderStageMaskPtr = viewRenderStageMaskStart;
                         var objectRenderStageMaskPtr = objectRenderStageMaskStart + renderStageMaskNode.Index;
-                        for (int i = 0; i < viewRenderStageMask.Length; ++i)
+                        for (int i = 0; i < group.viewRenderStageMask.Length; ++i)
                         {
                             if ((*viewRenderStageMaskPtr++ & *objectRenderStageMaskPtr++) != 0)
                             {
@@ -185,9 +196,12 @@ namespace Stride.Rendering
                 {
                     CalculateMinMaxDistance(ref plane, ref renderObject.BoundingBox, ref view.MinimumDistance, ref view.MaximumDistance);
                 }
-            }, cache => cache.Flush());
+            }
 
-            view.RenderObjects.Close();
+            static void FinalizeLocal((VisibilityGroup, RenderView, BoundingFrustum, CameraCullingMode, RenderGroupMask, Plane) _, ConcurrentCollectorCache<RenderObject> cache)
+            {
+                cache.Flush();
+            }
         }
 
         public void Copy(RenderView source, RenderView target)

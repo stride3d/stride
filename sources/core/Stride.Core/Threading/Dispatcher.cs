@@ -175,17 +175,11 @@ public static class Dispatcher
         }
     }
 
-    private readonly unsafe struct ForParameters<T>
+    private readonly unsafe struct ForParameters<T>(delegate*<T, int, void> action, T parameter, int start)
     {
-        public readonly delegate*<T, int, void> Action;
-        public readonly T Parameter;
-        public readonly int Start;
-        public ForParameters(delegate*<T, int, void> action, T parameter, int start)
-        {
-            Action = action;
-            Parameter = parameter;
-            Start = start;
-        }
+        public readonly delegate*<T, int, void> Action = action;
+        public readonly T Parameter = parameter;
+        public readonly int Start = start;
     }
 
     public static unsafe void For<T>(int fromInclusive, int toExclusive, T parameter, delegate*<T, int, void> action)
@@ -214,6 +208,43 @@ public static class Dispatcher
         }
     }
 
+    private readonly unsafe struct ForParameters<T, TLocal>(delegate*<T, TLocal> initializeLocal, delegate*<T, int, TLocal, void> action, delegate*<T, TLocal, void> finalizeLocal, T parameter, int start)
+    {
+        public readonly delegate*<T, TLocal> InitializeLocal = initializeLocal;
+        public readonly delegate*<T, int, TLocal, void> Action = action;
+        public readonly delegate*<T, TLocal, void> FinalizeLocal = finalizeLocal;
+        public readonly T Parameter = parameter;
+        public readonly int Start = start;
+    }
+
+    public static unsafe void For<T, TLocal>(int fromInclusive, int toExclusive, T parameter, delegate*<T, TLocal> initializeLocal, delegate*<T, int, TLocal, void> action, delegate*<T, TLocal, void> finalizeLocal = null)
+    {
+        var parameters = new ForParameters<T, TLocal>(initializeLocal, action, finalizeLocal, parameter, fromInclusive);
+        ForBatched(toExclusive - fromInclusive, parameters, &ForWrapped);
+        static void ForWrapped(ForParameters<T, TLocal> parameters, int from, int toExclusive)
+        {
+            TLocal local = default!;
+            try
+            {
+                if (parameters.InitializeLocal != null)
+                {
+                    local = parameters.InitializeLocal(parameters.Parameter);
+                }
+                for (int i = from; i < toExclusive; i++)
+                {
+                    parameters.Action(parameters.Parameter, parameters.Start + i, local);
+                }
+            }
+            finally
+            {
+                if (parameters.FinalizeLocal != null)
+                {
+                    parameters.FinalizeLocal(parameters.Parameter, local);
+                }
+            }
+        }
+    }
+
     public static unsafe void For<TLocal>(int fromInclusive, int toExclusive, Func<TLocal> initializeLocal, Action<int, TLocal> action, Action<TLocal>? finalizeLocal = null)
     {
         var parameters = (initializeLocal, action, finalizeLocal, fromInclusive);
@@ -221,7 +252,7 @@ public static class Dispatcher
 
         static void ForWrapped((Func<TLocal> initializeLocal, Action<int, TLocal> action, Action<TLocal>? finalizeLocal, int start) parameters, int from, int toExclusive)
         {
-            TLocal local = default;
+            TLocal local = default!;
             try
             {
                 if (parameters.initializeLocal != null)
