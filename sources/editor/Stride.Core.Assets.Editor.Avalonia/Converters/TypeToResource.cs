@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Globalization;
+using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Presentation.Avalonia.Converters;
 
 namespace Stride.Core.Assets.Editor.Avalonia.Converters;
@@ -18,9 +19,11 @@ public sealed class TypeToResource : OneWayValueConverter<TypeToResource>
         object? result = null;
         while (type is not null)
         {
-            // FIXME xplat-editor
-            //if (AssetsEditorPlugin.TypeImagesDictionary.TryGetValue(type, out result))
-            //    break;
+            if (AssetsEditorPlugin.TypeImagesDictionary.TryGetValue(type, out result))
+                break;
+
+            if (!tryBase)
+                break;
 
             type = type.BaseType;
         }

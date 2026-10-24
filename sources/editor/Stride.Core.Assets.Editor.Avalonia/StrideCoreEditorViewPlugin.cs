@@ -2,7 +2,11 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core.Assets.Editor.Avalonia.Views;
-using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Assets.Editor.Components.CopyPasteProcessors;
+using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.ViewModel.CopyPasteProcessors;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Avalonia.Views;
 using Stride.Core.Presentation.Views;
@@ -29,6 +33,13 @@ public sealed class StrideCoreEditorViewPlugin : AssetsEditorPlugin
     public override void RegisterAssetPreviewViewTypes(IDictionary<Type, Type> assetPreviewViewTypes)
     {
         // nothing for now
+    }
+
+    public override void RegisterPasteProcessors(ICollection<IPasteProcessor> pasteProcessors, ISessionViewModel session)
+    {
+        // Same processors as the WPF CoreAssetsEditorPlugin
+        pasteProcessors.Add(new AssetPropertyPasteProcessor());
+        pasteProcessors.Add(new AssetItemPasteProcessor((SessionViewModel)session));
     }
 
     public override void RegisterPrimitiveTypes(ICollection<Type> primitiveTypes)

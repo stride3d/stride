@@ -12,10 +12,6 @@ public sealed class CategoryNodeTemplateProvider : NodeViewModelTemplateProvider
 
     public override bool MatchNode(NodeViewModel node)
     {
-        if (node.AssociatedData.TryGetValue(CategoryData.Category, out var value))
-        {
-            return (bool)value;
-        }
-        return false;
+        return node.AssociatedData.TryGetValue(CategoryData.Category, out var value) && value is true;
     }
 }

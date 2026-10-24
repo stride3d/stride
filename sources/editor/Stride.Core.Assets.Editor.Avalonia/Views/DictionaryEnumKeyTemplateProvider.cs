@@ -29,9 +29,8 @@ public sealed class DictionaryEnumKeyTemplateProvider : DictionaryTemplateProvid
         if (!base.MatchNode(node))
             return false;
 
-        if (node.AssociatedData.TryGetValue(DictionaryNodeUpdater.DictionaryNodeKeyType.Name, out var value))
+        if (node.AssociatedData.TryGetValue(DictionaryNodeUpdater.DictionaryNodeKeyType.Name, out var value) && value is Type type)
         {
-            var type = (Type)value;
             return type.IsEnum;
         }
 
