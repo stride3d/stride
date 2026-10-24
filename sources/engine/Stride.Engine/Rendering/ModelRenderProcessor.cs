@@ -91,15 +91,16 @@ namespace Stride.Rendering
         {
             // Note: we are rebuilding RenderMeshes every frame
             // TODO: check if it wouldn't be better to add/remove directly in CheckMeshes()?
-            //foreach (var entity in ComponentDatas)
-            Dispatcher.ForEach(ComponentDatas, entity =>
+            unsafe
             {
-                var modelComponent = entity.Key;
-                var renderModel = entity.Value;
+                Dispatcher.ForEachEnumerated<KeyValuePair<ModelComponent, RenderModel>, Dictionary<ModelComponent, RenderModel>, ModelRenderProcessor>(ComponentDatas, this, &ProcessEntity);
+            }
 
-                CheckMeshes(modelComponent, renderModel);
-                UpdateRenderModel(modelComponent, renderModel);
-            });
+            static void ProcessEntity(ModelRenderProcessor processor, KeyValuePair<ModelComponent, RenderModel> entity)
+            {
+                processor.CheckMeshes(entity.Key, entity.Value);
+                processor.UpdateRenderModel(entity.Key, entity.Value);
+            }
 
             // Schedules the deformation of each model; MeshRenderFeature deforms the ones a view collects.
             var deformationOverride = DeformationOverride;

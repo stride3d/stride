@@ -60,8 +60,18 @@ namespace Stride.Animations
         {
             var time = context.Time;
 
-            //foreach (var entity in ComponentDatas.Values)
-            Dispatcher.ForEach(ComponentDatas, () => animationOperationPool.Acquire(), (entity, animationOperations) =>
+            var parameters = (Processor: this, Elapsed: time.WarpElapsed);
+            unsafe
+            {
+                Dispatcher.ForEachEnumerated<KeyValuePair<AnimationComponent, AssociatedData>, List<AnimationOperation>, Dictionary<AnimationComponent, AssociatedData>, (AnimationProcessor Processor, TimeSpan Elapsed)>(ComponentDatas, in parameters, &InitializeLocal, &ProcessEntity, &FinalizeLocal);
+            }
+
+            static List<AnimationOperation> InitializeLocal(ref readonly (AnimationProcessor Processor, TimeSpan Elapsed) parameters)
+            {
+                return parameters.Processor.animationOperationPool.Acquire();
+            }
+
+            static void ProcessEntity(ref readonly (AnimationProcessor Processor, TimeSpan Elapsed) parameters, KeyValuePair<AnimationComponent, AssociatedData> entity, List<AnimationOperation> animationOperations)
             {
                 var associatedData = entity.Value;
 
@@ -84,7 +94,7 @@ namespace Stride.Animations
                         {
                             case AnimationRepeatMode.PlayOnceHold:
                             case AnimationRepeatMode.PlayOnce:
-                                playingAnimation.CurrentTime = TimeSpan.FromTicks(playingAnimation.CurrentTime.Ticks + (long)(time.WarpElapsed.Ticks * (double)playingAnimation.TimeFactor));
+                                playingAnimation.CurrentTime = TimeSpan.FromTicks(playingAnimation.CurrentTime.Ticks + (long)(parameters.Elapsed.Ticks * (double)playingAnimation.TimeFactor));
                                 if (playingAnimation.CurrentTime > playingAnimation.Clip.Duration)
                                     playingAnimation.CurrentTime = playingAnimation.Clip.Duration;
                                 else if (playingAnimation.CurrentTime < TimeSpan.Zero)
@@ -94,7 +104,7 @@ namespace Stride.Animations
                                 playingAnimation.CurrentTime = playingAnimation.Clip.Duration == TimeSpan.Zero
                                     ? TimeSpan.Zero
                                     : TimeSpan.FromTicks((playingAnimation.CurrentTime.Ticks + playingAnimation.Clip.Duration.Ticks
-                                        + (long)(time.WarpElapsed.Ticks * (double)playingAnimation.TimeFactor)) % playingAnimation.Clip.Duration.Ticks);
+                                        + (long)(parameters.Elapsed.Ticks * (double)playingAnimation.TimeFactor)) % playingAnimation.Clip.Duration.Ticks);
                                 break;
                             default:
                                 throw new ArgumentOutOfRangeException();
@@ -158,8 +168,8 @@ namespace Stride.Animations
                         if (playingAnimation.CrossfadeRemainingTime > TimeSpan.Zero)
                         {
                             playingAnimation.Weight += (playingAnimation.WeightTarget - playingAnimation.Weight)
-                                                       * ((float)time.WarpElapsed.Ticks / playingAnimation.CrossfadeRemainingTime.Ticks);
-                            playingAnimation.CrossfadeRemainingTime -= time.WarpElapsed;
+                                                       * ((float)parameters.Elapsed.Ticks / playingAnimation.CrossfadeRemainingTime.Ticks);
+                            playingAnimation.CrossfadeRemainingTime -= parameters.Elapsed;
                             if (playingAnimation.CrossfadeRemainingTime <= TimeSpan.Zero)
                             {
                                 playingAnimation.Weight = playingAnimation.WeightTarget;
@@ -185,10 +195,15 @@ namespace Stride.Animations
                 }
 
                 animationOperations.Clear();
-            }, animationOperations => animationOperationPool.Release(animationOperations));
+            }
+
+            static void FinalizeLocal(ref readonly (AnimationProcessor Processor, TimeSpan Elapsed) parameters, List<AnimationOperation> animationOperations)
+            {
+                parameters.Processor.animationOperationPool.Release(animationOperations);
+            }
         }
 
-        private AnimationOperation CreatePushOperation(PlayingAnimation playingAnimation)
+        private static AnimationOperation CreatePushOperation(PlayingAnimation playingAnimation)
         {
             return AnimationOperation.NewPush(playingAnimation.Evaluator, playingAnimation.CurrentTime);
         }

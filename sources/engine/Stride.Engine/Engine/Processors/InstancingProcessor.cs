@@ -35,11 +35,17 @@ namespace Stride.Engine.Processors
         public override void Draw(RenderContext context)
         {
             // Process the components
-            Dispatcher.ForEach(ComponentDatas, item =>
+            var parameters = (Processor: this, Context: context);
+            unsafe
             {
-                UpdateInstancing(item.Key, item.Value);
-                TransferData(context, item.Key, item.Value.RenderInstancing);
-            });
+                Dispatcher.ForEachEnumerated<KeyValuePair<InstancingComponent, InstancingData>, Dictionary<InstancingComponent, InstancingData>, (InstancingProcessor Processor, RenderContext Context)>(ComponentDatas, in parameters, &ProcessEntity);
+            }
+
+            static void ProcessEntity(ref readonly (InstancingProcessor Processor, RenderContext Context) parameters, KeyValuePair<InstancingComponent, InstancingData> item)
+            {
+                parameters.Processor.UpdateInstancing(item.Key, item.Value);
+                TransferData(parameters.Context, item.Key, item.Value.RenderInstancing);
+            }
         }
 
         private static void TransferData(RenderContext context, InstancingComponent instancingComponent, RenderInstancing renderInstancing)
