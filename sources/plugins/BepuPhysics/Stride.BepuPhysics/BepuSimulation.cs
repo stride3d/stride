@@ -783,6 +783,9 @@ public sealed class BepuSimulation : IDisposable
             }
         }
 
+        if (_remainingUpdateTime >= FixedTimeStep)
+            _remainingUpdateTime = TimeSpan.FromTicks(_remainingUpdateTime.Ticks % FixedTimeStep.Ticks);
+
         InterpolateTransforms();
     }
 
