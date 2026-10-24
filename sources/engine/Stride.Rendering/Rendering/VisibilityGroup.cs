@@ -84,6 +84,16 @@ namespace Stride.Rendering
             }
         }
 
+        private readonly record struct CollectParameters
+        {
+            public required VisibilityGroup Group { get; init; }
+            public required RenderView View { get; init; }
+            public required BoundingFrustum Frustum { get; init; }
+            public required CameraCullingMode CullingMode { get; init; }
+            public required RenderGroupMask CullingMask { get; init; }
+            public required Plane Plane { get; init; }
+        }
+
         /// <summary>
         /// Collects render objects visibile in a view (if not previously collected before).
         /// </summary>
@@ -130,25 +140,33 @@ namespace Stride.Rendering
             var cullingMask = view.CullingMask;
 
             // Process objects
-            //foreach (var renderObject in RenderObjects)
-            //Dispatcher.ForEach(RenderObjects, renderObject =>
-            var collectParameters = (this, view, frustum, cullingMode, cullingMask, plane);
-            Dispatcher.For<ConcurrentCollectorCache<RenderObject>, (VisibilityGroup, RenderView, BoundingFrustum, CameraCullingMode, RenderGroupMask, Plane)>(0, RenderObjects.Count, collectParameters, &InitializeLocal, &ForAction, &FinalizeLocal);
+            var collectParameters = new CollectParameters
+            {
+                Group = this,
+                View = view,
+                Frustum = frustum,
+                CullingMode = cullingMode,
+                CullingMask = cullingMask,
+                Plane = plane,
+            };
+            Dispatcher.For(0, RenderObjects.Count, collectParameters, &InitializeLocal, &ForAction, &FinalizeLocal);
 
             view.RenderObjects.Close();
 
-            static ConcurrentCollectorCache<RenderObject> InitializeLocal(ref (VisibilityGroup, RenderView, BoundingFrustum, CameraCullingMode, RenderGroupMask, Plane) state)
+            static ConcurrentCollectorCache<RenderObject> InitializeLocal(ref CollectParameters state)
             {
-                return state.Item1.collectorCache.Value;
+                return state.Group.collectorCache.Value;
             }
 
-            static void ForAction(ref (VisibilityGroup, RenderView, BoundingFrustum, CameraCullingMode, RenderGroupMask, Plane) state, int index, ConcurrentCollectorCache<RenderObject> cache)
+            static void ForAction(ref CollectParameters state, int index, ConcurrentCollectorCache<RenderObject> cache)
             {
-                var (group, view, frustum, cullingMode, cullingMask, plane) = state;
+                var group = state.Group;
+                var frustum = state.Frustum;
+                var plane = state.Plane;
                 var renderObject = group.RenderObjects[index];
 
                 // Skip not enabled objects
-                if (!renderObject.Enabled || ((RenderGroupMask)(1U << (int)renderObject.RenderGroup) & cullingMask) == 0)
+                if (!renderObject.Enabled || ((RenderGroupMask)(1U << (int)renderObject.RenderGroup) & state.CullingMask) == 0)
                     return;
 
                 var renderStageMask = group.RenderData.GetData(group.RenderStageMaskKey);
@@ -180,25 +198,25 @@ namespace Stride.Rendering
 
                 // Fast AABB transform: http://zeuxcg.org/2010/10/17/aabb-from-obb-with-component-wise-abs/
                 // Compute transformed AABB (by world)
-                if (cullingMode == CameraCullingMode.Frustum
+                if (state.CullingMode == CameraCullingMode.Frustum
                     && renderObject.BoundingBox.Extent != Vector3.Zero
-                    && !FrustumContainsBox(ref frustum, ref renderObject.BoundingBox, view.VisiblityIgnoreDepthPlanes))
+                    && !FrustumContainsBox(ref frustum, ref renderObject.BoundingBox, state.View.VisiblityIgnoreDepthPlanes))
                 {
                     return;
                 }
 
                 // Add object to list of visible objects
                 // TODO GRAPHICS REFACTOR we should be able to push multiple elements with future VisibilityObject
-                view.RenderObjects.Add(renderObject, cache);
+                state.View.RenderObjects.Add(renderObject, cache);
 
                 // Calculate bounding box of all render objects in the view
                 if (renderObject.BoundingBox.Extent != Vector3.Zero)
                 {
-                    CalculateMinMaxDistance(ref plane, ref renderObject.BoundingBox, ref view.MinimumDistance, ref view.MaximumDistance);
+                    CalculateMinMaxDistance(ref plane, ref renderObject.BoundingBox, ref state.View.MinimumDistance, ref state.View.MaximumDistance);
                 }
             }
 
-            static void FinalizeLocal(ref (VisibilityGroup, RenderView, BoundingFrustum, CameraCullingMode, RenderGroupMask, Plane) _, ConcurrentCollectorCache<RenderObject> cache)
+            static void FinalizeLocal(ref CollectParameters _, ConcurrentCollectorCache<RenderObject> cache)
             {
                 cache.Flush();
             }
