@@ -154,6 +154,9 @@
     <Project Path="sources/presentation/Stride.Core.Presentation.Quantum.Tests/Stride.Core.Presentation.Quantum.Tests.csproj" />
     <Project Path="sources/presentation/Stride.Core.Quantum.Tests/Stride.Core.Quantum.Tests.csproj" />
   </Folder>
+  <Folder Name="/51-Presentation.Tests/Avalonia/">
+    <Project Path="sources/presentation/Stride.Core.Presentation.Avalonia.Tests/Stride.Core.Presentation.Avalonia.Tests.csproj" />
+  </Folder>
   <Folder Name="/51-Presentation.Tests/Wpf/">
     <Project Path="sources/presentation/Stride.Core.Presentation.Wpf.Tests/Stride.Core.Presentation.Wpf.Tests.csproj" />
   </Folder>

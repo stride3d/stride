@@ -13,6 +13,7 @@
       "sources\\core\\Stride.Core.Yaml.Tests\\Stride.Core.Yaml.Tests.csproj",
       "sources\\editor\\Stride.Core.Assets.Editor.Tests\\Stride.Core.Assets.Editor.Tests.csproj",
       "sources\\editor\\Stride.GameStudio.Tests\\Stride.GameStudio.Tests.csproj",
+      "sources\\presentation\\Stride.Core.Presentation.Avalonia.Tests\\Stride.Core.Presentation.Avalonia.Tests.csproj",
       "sources\\presentation\\Stride.Core.Presentation.Quantum.Tests\\Stride.Core.Presentation.Quantum.Tests.csproj",
       "sources\\presentation\\Stride.Core.Presentation.Wpf.Tests\\Stride.Core.Presentation.Wpf.Tests.csproj",
       "sources\\presentation\\Stride.Core.Quantum.Tests\\Stride.Core.Quantum.Tests.csproj",
