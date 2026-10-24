@@ -20,6 +20,7 @@ using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Resolver;
 using NuGet.Versioning;
+using Stride.Core.Assets;
 using Stride.Core.Extensions;
 using Stride.Core.Windows;
 using ISettings = NuGet.Configuration.ISettings;
@@ -844,6 +845,12 @@ public partial class NugetStore : INugetDownloadProgress
                 // Simply delete the installed package and its .nupkg installed in it.
                 await Task.Run(() => FileSystemUtility.DeleteDirectorySafe(installPath, true, projectContext));
 
+                // And the restore the NuGet resolver made of a dev version when it was started: built again under the same
+                // version, it would otherwise start with the old dependency graph, as a no-op restore. A release keeps its
+                // dependencies, so its restore stays valid.
+                if (IsDevVersion(package.Version))
+                    NuGetResolverCache.Delete(identity.Id, identity.Version.ToString());
+
                 // Notify that uninstallation completed.
                 OnPackageUninstalled(this, new PackageOperationEventArgs(new PackageName(package.Id, package.Version), installPath));
                 //currentProgressReport = progress;
@@ -1204,6 +1211,15 @@ public partial class NugetStore : INugetDownloadProgress
         return package.Version < new PackageVersion(3, 1, 0, 0)
             ? File.Exists(GetRedirectFile(package))
             : (package.Version.SpecialVersion?.StartsWith("dev", StringComparison.Ordinal) == true && !package.Version.SpecialVersion.Contains('.'));
+    }
+
+    /// <summary>
+    /// Gets whether <paramref name="version"/> is the version of a local build: its label has a dev part, as in
+    /// 4.5.0-dev, 4.5.0-dev3 or 4.5.0-beta8-dev3. A local build can be built again under the same version.
+    /// </summary>
+    public static bool IsDevVersion(PackageVersion version)
+    {
+        return version.SpecialVersion?.Split('-').Any(x => x.StartsWith("dev", StringComparison.Ordinal) && x.Skip(3).All(char.IsAsciiDigit)) == true;
     }
 
     public bool IsDevRedirectPackage(NugetServerPackage package)
