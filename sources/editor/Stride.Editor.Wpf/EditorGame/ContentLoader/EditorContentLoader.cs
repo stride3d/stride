@@ -28,6 +28,7 @@ using Stride.Assets.Textures;
 using Stride.Editor.Build;
 using Stride.Editor.EditorGame.Game;
 using Stride.Graphics;
+using Stride.Heightfield.Assets;
 using Stride.Navigation;
 
 namespace Stride.Editor.EditorGame.ContentLoader
@@ -133,8 +134,16 @@ namespace Stride.Editor.EditorGame.ContentLoader
         /// Types that support fast reloading (ie. updating existing object instead of loading a new one and updating references).
         /// </summary>
         // TODO: add an Attribute on Assets to specify if they are fast-reloadable (plugin approach)
-        // TODO: Fix this nonsense
-        private static ICollection<Type> FastReloadTypes => new[] { /*typeof(MaterialAsset),*/ typeof(TextureAsset) };
+        private static ICollection<Type> FastReloadTypes =>
+        [
+            typeof(MaterialAsset), 
+            // Note: Removing either one of these from fast reload does not reload them
+            //       when they are part of a material, but removing all of them works appropritaly.
+            //       Looks like fast reload expects all dependencies to also be fast-reloadable?
+            typeof(TextureAsset),
+            typeof(RunevisionTerrainAsset),
+            typeof(NormalFromHeightAsset)
+        ];
 
         /// <summary>
         /// The <see cref="EditorServiceGame"/> associated with this instance.
