@@ -175,18 +175,18 @@ public static class Dispatcher
         }
     }
 
-    private readonly unsafe struct ForParameters<T>(delegate*<T, int, void> action, T parameter, int start)
+    private readonly unsafe struct ForParameters<TParameter>(int start, TParameter parameter, delegate*<TParameter, int, void> action)
     {
-        public readonly delegate*<T, int, void> Action = action;
-        public readonly T Parameter = parameter;
         public readonly int Start = start;
+        public readonly TParameter Parameter = parameter;
+        public readonly delegate*<TParameter, int, void> Action = action;
     }
 
-    public static unsafe void For<T>(int fromInclusive, int toExclusive, T parameter, delegate*<T, int, void> action)
+    public static unsafe void For<TParameter>(int fromInclusive, int toExclusive, TParameter parameter, delegate*<TParameter, int, void> action)
     {
-        var parameters = new ForParameters<T>(action, parameter, fromInclusive);
+        var parameters = new ForParameters<TParameter>(fromInclusive, parameter, action);
         ForBatched(toExclusive - fromInclusive, ref parameters, &ForWrapped);
-        static void ForWrapped(ref ForParameters<T> parameters, int from, int toExclusive)
+        static void ForWrapped(ref ForParameters<TParameter> parameters, int from, int toExclusive)
         {
             for (int i = from; i < toExclusive; i++)
             {
@@ -209,20 +209,20 @@ public static class Dispatcher
         }
     }
 
-    private readonly unsafe struct ForParameters<T, TLocal>(delegate*<T, TLocal> initializeLocal, delegate*<T, int, TLocal, void> action, delegate*<T, TLocal, void> finalizeLocal, T parameter, int start)
+    private readonly unsafe struct ForParameters<TLocal, TParameter>(int start, TParameter parameter, delegate*<TParameter, TLocal> initializeLocal, delegate*<TParameter, int, TLocal, void> action, delegate*<TParameter, TLocal, void> finalizeLocal)
     {
-        public readonly delegate*<T, TLocal> InitializeLocal = initializeLocal;
-        public readonly delegate*<T, int, TLocal, void> Action = action;
-        public readonly delegate*<T, TLocal, void> FinalizeLocal = finalizeLocal;
-        public readonly T Parameter = parameter;
         public readonly int Start = start;
+        public readonly TParameter Parameter = parameter;
+        public readonly delegate*<TParameter, TLocal> InitializeLocal = initializeLocal;
+        public readonly delegate*<TParameter, int, TLocal, void> Action = action;
+        public readonly delegate*<TParameter, TLocal, void> FinalizeLocal = finalizeLocal;
     }
 
-    public static unsafe void For<T, TLocal>(int fromInclusive, int toExclusive, T parameter, delegate*<T, TLocal> initializeLocal, delegate*<T, int, TLocal, void> action, delegate*<T, TLocal, void> finalizeLocal = null)
+    public static unsafe void For<TLocal, TParameter>(int fromInclusive, int toExclusive, TParameter parameter, delegate*<TParameter, TLocal> initializeLocal, delegate*<TParameter, int, TLocal, void> action, delegate*<TParameter, TLocal, void> finalizeLocal = null)
     {
-        var parameters = new ForParameters<T, TLocal>(initializeLocal, action, finalizeLocal, parameter, fromInclusive);
+        var parameters = new ForParameters<TLocal, TParameter>(fromInclusive, parameter, initializeLocal, action, finalizeLocal);
         ForBatched(toExclusive - fromInclusive, ref parameters, &ForWrapped);
-        static void ForWrapped(ref ForParameters<T, TLocal> parameters, int from, int toExclusive)
+        static void ForWrapped(ref ForParameters<TLocal, TParameter> parameters, int from, int toExclusive)
         {
             TLocal local = default!;
             try
@@ -300,23 +300,23 @@ public static class Dispatcher
         ForEach<T, TLocal, ConcurrentCollector<T>>(collection, initializeLocal, action, finalizeLocal);
     }
 
-    private readonly unsafe struct ForEachParameters<T, TList, TState>(TList collection, TState state, delegate*<T, TState, void> action)
+    private readonly unsafe struct ForEachParameters<T, TList, TParameter>(TList collection, TParameter parameter, delegate*<TParameter, T, void> action)
         where TList : IReadOnlyList<T>
     {
         public readonly TList Collection = collection;
-        public readonly TState State = state;
-        public readonly delegate*<T, TState, void> Action = action;
+        public readonly TParameter Parameter = parameter;
+        public readonly delegate*<TParameter, T, void> Action = action;
     }
 
-    public static unsafe void ForEach<T, TList, TState>(TList collection, TState state, delegate*<T, TState, void> action) where TList : IReadOnlyList<T>
+    public static unsafe void ForEach<T, TList, TParameter>(TList collection, TParameter parameter, delegate*<TParameter, T, void> action) where TList : IReadOnlyList<T>
     {
-        var parameters = new ForEachParameters<T, TList, TState>(collection, state, action);
+        var parameters = new ForEachParameters<T, TList, TParameter>(collection, parameter, action);
         ForBatched(collection.Count, ref parameters, &ForEachList);
-        static void ForEachList(ref ForEachParameters<T, TList, TState> parameters, int from, int toExclusive)
+        static void ForEachList(ref ForEachParameters<T, TList, TParameter> parameters, int from, int toExclusive)
         {
             for (int i = from; i < toExclusive; i++)
             {
-                parameters.Action(parameters.Collection[i], parameters.State);
+                parameters.Action(parameters.Parameter, parameters.Collection[i]);
             }
         }
     }
@@ -335,41 +335,42 @@ public static class Dispatcher
         }
     }
 
-    private readonly unsafe struct ForEachLocalParameters<TItem, TLocal, TList, TState>(TList collection, TState state, delegate*<TState, TLocal> initializeLocal, delegate*<TItem, TState, TLocal, void> action, delegate*<TState, TLocal, void> finalizeLocal)
+    private readonly unsafe struct ForEachLocalParameters<TItem, TLocal, TList, TParameter>(TList collection, TParameter parameter, delegate*<TParameter, TLocal> initializeLocal, delegate*<TParameter, TItem, TLocal, void> action, delegate*<TParameter, TLocal, void> finalizeLocal)
         where TList : IReadOnlyList<TItem>
     {
         public readonly TList Collection = collection;
-        public readonly TState State = state;
-        public readonly delegate*<TState, TLocal> InitializeLocal = initializeLocal;
-        public readonly delegate*<TItem, TState, TLocal, void> Action = action;
-        public readonly delegate*<TState, TLocal, void> FinalizeLocal = finalizeLocal;
+        public readonly TParameter Parameter = parameter;
+        public readonly delegate*<TParameter, TLocal> InitializeLocal = initializeLocal;
+        public readonly delegate*<TParameter, TItem, TLocal, void> Action = action;
+        public readonly delegate*<TParameter, TLocal, void> FinalizeLocal = finalizeLocal;
     }
 
-    public static unsafe void ForEach<TItem, TLocal, TList, TState>(TList collection, TState state, delegate*<TState, TLocal> initializeLocal, delegate*<TItem, TState, TLocal, void> action, delegate*<TState, TLocal, void> finalizeLocal = null) where TList : IReadOnlyList<TItem>
+    public static unsafe void ForEach<TItem, TLocal, TList, TParameter>(TList collection, TParameter parameter, delegate*<TParameter, TLocal> initializeLocal, delegate*<TParameter, TItem, TLocal, void> action, delegate*<TParameter, TLocal, void> finalizeLocal = null)
+        where TList : IReadOnlyList<TItem>
     {
-        var parameters = new ForEachLocalParameters<TItem, TLocal, TList, TState>(collection, state, initializeLocal, action, finalizeLocal);
+        var parameters = new ForEachLocalParameters<TItem, TLocal, TList, TParameter>(collection, parameter, initializeLocal, action, finalizeLocal);
         ForBatched(collection.Count, ref parameters, &ForEachList);
 
-        static void ForEachList(ref ForEachLocalParameters<TItem, TLocal, TList, TState> parameters, int from, int toExclusive)
+        static void ForEachList(ref ForEachLocalParameters<TItem, TLocal, TList, TParameter> parameters, int from, int toExclusive)
         {
             TLocal local = default!;
             try
             {
                 if (parameters.InitializeLocal != null)
                 {
-                    local = parameters.InitializeLocal(parameters.State);
+                    local = parameters.InitializeLocal(parameters.Parameter);
                 }
 
                 for (int i = from; i < toExclusive; i++)
                 {
-                    parameters.Action(parameters.Collection[i], parameters.State, local);
+                    parameters.Action(parameters.Parameter, parameters.Collection[i], local);
                 }
             }
             finally
             {
                 if (parameters.FinalizeLocal != null)
                 {
-                    parameters.FinalizeLocal(parameters.State, local);
+                    parameters.FinalizeLocal(parameters.Parameter, local);
                 }
             }
         }

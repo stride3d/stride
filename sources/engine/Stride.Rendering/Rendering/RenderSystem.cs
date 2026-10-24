@@ -276,10 +276,10 @@ namespace Stride.Rendering
                 // Sort
                 Dispatcher.ForEach<RenderView, FastTrackingCollection<RenderView>, RenderSystem>(Views, this, &SortView);
 
-                static void SortView(RenderView view, RenderSystem renderSystem)
+                static void SortView(RenderSystem renderSystem, RenderView view)
                 {
                     var state = (renderSystem, view);
-                    Dispatcher.For<(RenderSystem, RenderView), PrepareThreadLocals>(0, view.RenderStages.Count, state, &InitializeLocal, &SortRenderStage, &FinalizeLocal);
+                    Dispatcher.For<PrepareThreadLocals, (RenderSystem, RenderView)>(0, view.RenderStages.Count, state, &InitializeLocal, &SortRenderStage, &FinalizeLocal);
 
                     static PrepareThreadLocals InitializeLocal((RenderSystem, RenderView) state)
                     {

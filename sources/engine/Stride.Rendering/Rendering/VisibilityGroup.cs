@@ -133,7 +133,7 @@ namespace Stride.Rendering
             //foreach (var renderObject in RenderObjects)
             //Dispatcher.ForEach(RenderObjects, renderObject =>
             var collectParameters = (this, view, frustum, cullingMode, cullingMask, plane);
-            Dispatcher.For<(VisibilityGroup, RenderView, BoundingFrustum, CameraCullingMode, RenderGroupMask, Plane), ConcurrentCollectorCache<RenderObject>>(0, RenderObjects.Count, collectParameters, &InitializeLocal, &ForAction, &FinalizeLocal);
+            Dispatcher.For<ConcurrentCollectorCache<RenderObject>, (VisibilityGroup, RenderView, BoundingFrustum, CameraCullingMode, RenderGroupMask, Plane)>(0, RenderObjects.Count, collectParameters, &InitializeLocal, &ForAction, &FinalizeLocal);
 
             view.RenderObjects.Close();
 
