@@ -52,7 +52,7 @@ public class PluginService : IAssetsPluginService
 
     private sealed record EnumImageRegistration(object Value);
 
-    private SessionViewModel? session;
+    private ISessionViewModel? session;
     private ILogger? logger;
 
     public PluginService()
@@ -61,7 +61,7 @@ public class PluginService : IAssetsPluginService
         AssetsPlugin.PluginsRemoved += PluginsRemoved;
     }
 
-    public void RegisterSession(SessionViewModel session, ILogger logger)
+    public void RegisterSession(ISessionViewModel session, ILogger logger)
     {
         this.session = session;
         this.logger = logger;
@@ -91,7 +91,7 @@ public class PluginService : IAssetsPluginService
             {
                 TryRegisterPlugin(plugin, currentSession, logger!, () =>
                 {
-                    if (currentSession.IsEditorInitialized)
+                    if (((SessionViewModel)currentSession).IsEditorInitialized)
                         InitializePluginSession(plugin, currentSession);
                 });
             }
@@ -99,7 +99,7 @@ public class PluginService : IAssetsPluginService
     }
 
     // A plugin that fails to join the session is reported and left out; the other plugins still join
-    private void TryRegisterPlugin(AssetsPlugin plugin, SessionViewModel session, ILogger logger, Action? then = null)
+    private void TryRegisterPlugin(AssetsPlugin plugin, ISessionViewModel session, ILogger logger, Action? then = null)
     {
         try
         {
@@ -112,16 +112,16 @@ public class PluginService : IAssetsPluginService
         }
     }
 
-    public void InitializeSession(SessionViewModel session)
+    public void InitializeSession(ISessionViewModel session)
     {
         foreach (var plugin in Plugins.ToList())
             InitializePluginSession(plugin, session);
     }
 
     // Records the property grid commands and updaters the plugin adds, to remove them on unload
-    private void InitializePluginSession(AssetsPlugin plugin, SessionViewModel session)
+    private void InitializePluginSession(AssetsPlugin plugin, ISessionViewModel session)
     {
-        var properties = session.AssetViewProperties;
+        var properties = (SessionObjectPropertiesViewModel)session.AssetViewProperties;
         var commands = properties.NodePresenterCommands.ToList();
         var updaters = properties.NodePresenterUpdaters.ToList();
         plugin.InitializeSession(session);
@@ -136,7 +136,7 @@ public class PluginService : IAssetsPluginService
         registrations.AddRange(added);
     }
 
-    private void RegisterPlugin(AssetsPlugin plugin, SessionViewModel session, ILogger logger)
+    private void RegisterPlugin(AssetsPlugin plugin, ISessionViewModel session, ILogger logger)
     {
         if (!sessionPlugins.Add(plugin))
             return;
@@ -280,7 +280,7 @@ public class PluginService : IAssetsPluginService
     /// <summary>
     /// Removes what a plugin of an unloaded assembly registered.
     /// </summary>
-    private void UnregisterPlugin(AssetsPlugin plugin, SessionViewModel session)
+    private void UnregisterPlugin(AssetsPlugin plugin, ISessionViewModel session)
     {
         if (!sessionPlugins.Remove(plugin))
             return;
@@ -307,7 +307,7 @@ public class PluginService : IAssetsPluginService
                         enumImages.Remove(enumImage.Value);
                         break;
                     case INodePresenterCommand command:
-                        session.AssetViewProperties.UnregisterNodePresenterCommand(command);
+                        ((SessionObjectPropertiesViewModel)session.AssetViewProperties).UnregisterNodePresenterCommand(command);
                         break;
                     case INodePresenterUpdater updater:
                         session.AssetViewProperties.UnregisterNodePresenterUpdater(updater);
@@ -342,12 +342,12 @@ public class PluginService : IAssetsPluginService
         }
     }
 
-    public bool HasImagesForEnum(SessionViewModel? session, Type enumType)
+    public bool HasImagesForEnum(ISessionViewModel? session, Type enumType)
     {
         return session != null && (enumTypesWithImages.Contains(enumType) || DeclaredImages.HasEnumImages(enumType));
     }
 
-    public object? GetImageForEnum(SessionViewModel? session, object value)
+    public object? GetImageForEnum(ISessionViewModel? session, object value)
     {
         if (session == null)
             return null;
@@ -366,7 +366,7 @@ public class PluginService : IAssetsPluginService
         return Plugins.OfType<AssetsEditorPlugin>().SelectMany(x => x.ProfileSettings);
     }
 
-    public bool HasEditorView(SessionViewModel session, Type viewModelType)
+    public bool HasEditorView(ISessionViewModel session, Type viewModelType)
     {
         return editorViewModelTypes.Any(x => x.Key.IsAssignableFrom(viewModelType));
     }

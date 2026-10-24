@@ -16,7 +16,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             if (session == null) throw new ArgumentNullException(nameof(session));
 
             // Apply primitive types, commands and associated data providers that comes from plugins
-            var pluginService = session.ServiceProvider.Get<ISessionObjectsPluginService>();
+            var pluginService = session.ServiceProvider.Get<IAssetsPluginService>();
             additionalPrimitiveTypes = pluginService.GetPrimitiveTypes(session).ToArray();
         }
 

@@ -23,7 +23,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFa
             EntityFactoryCategory.RegisterCategory(30, "Camera");
         }
 
-        public override Task<Entity> CreateEntity(EntityHierarchyItemViewModel parent)
+        public override Task<Entity> CreateEntity(IEntityHierarchyItemViewModel parent)
         {
             var slotId = default(SceneCameraSlotId);
             var gameSettings = parent.Asset.ServiceProvider.Get<GameSettingsProviderService>().CurrentGameSettings;
@@ -46,7 +46,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFa
     [Display(20, "Orthographic camera", "Camera")]
     public class OrthographicCameraEntityFactory : EntityFactory
     {
-        public override Task<Entity> CreateEntity(EntityHierarchyItemViewModel parent)
+        public override Task<Entity> CreateEntity(IEntityHierarchyItemViewModel parent)
         {
             var name = ComputeNewName(parent, "Camera");
             var component = new CameraComponent

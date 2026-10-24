@@ -253,7 +253,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 GetOrCreateAssetDirectory(explicitDirectory, false);
             }
 
-            var pluginService = Session.ServiceProvider.Get<ISessionObjectsPluginService>();
+            var pluginService = Session.ServiceProvider.Get<IAssetsPluginService>();
             foreach (var property in pluginService.GetProfileSettings())
             {
                 RegisterSettings(property);

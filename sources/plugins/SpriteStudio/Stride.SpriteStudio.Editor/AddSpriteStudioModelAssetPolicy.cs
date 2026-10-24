@@ -17,7 +17,7 @@ internal sealed class AddSpriteStudioModelAssetPolicy : CreateComponentPolicyBas
 {
     /// <inheritdoc />
     [NotNull]
-    protected override EntityComponent CreateComponentFromAsset(EntityHierarchyItemViewModel parent, SpriteStudioModelViewModel asset)
+    protected override EntityComponent CreateComponentFromAsset(IEntityHierarchyItemViewModel parent, SpriteStudioModelViewModel asset)
     {
         return new SpriteStudioComponent
         {

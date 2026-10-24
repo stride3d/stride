@@ -10,7 +10,7 @@
     <StridePackageKind>Editor</StridePackageKind>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Stride.Assets.Presentation.Wpf" Version="$EngineVersion$" />
+    <PackageReference Include="Stride.Assets.Presentation.Common" Version="$EngineVersion$" />
     <PackageReference Include="Stride.AssetCompiler" Version="$EngineVersion$" IncludeAssets="build;buildTransitive" />
     <ProjectReference Include="..\MyTemplate\MyTemplate.csproj" />
     <ProjectReference Include="..\MyTemplate.Assets\MyTemplate.Assets.csproj" />

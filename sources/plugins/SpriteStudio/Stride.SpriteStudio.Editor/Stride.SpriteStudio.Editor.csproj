@@ -7,12 +7,16 @@
     <StridePackageKind>Editor</StridePackageKind>
   </PropertyGroup>
   <ItemGroup>
+    <!-- The sheet preview's WPF view: the WPF Game Studio loads it, another toolkit's editor does not -->
+    <StrideCompanionProject Include="..\Stride.SpriteStudio.Editor.Wpf\Stride.SpriteStudio.Editor.Wpf.csproj" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="..\..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\editor\Stride.Assets.Presentation.Wpf\Stride.Assets.Presentation.Wpf.csproj" />
+    <ProjectReference Include="..\..\..\editor\Stride.Assets.Presentation.Common\Stride.Assets.Presentation.Common.csproj" />
     <ProjectReference Include="..\Stride.SpriteStudio.Runtime\Stride.SpriteStudio.Runtime.csproj" />
     <ProjectReference Include="..\Stride.SpriteStudio.Assets\Stride.SpriteStudio.Assets.csproj" />
   </ItemGroup>

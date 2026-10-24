@@ -15,7 +15,7 @@ namespace Stride.Particles.Editor
     /// <summary>
     /// Refreshes a particle material when one of its blending properties changes in the property grid.
     /// </summary>
-    [EditorGameService(typeof(EntityHierarchyEditorController), Order = 250)]
+    [EditorGameService(typeof(IEntityHierarchyEditorController), Order = 250)]
     public class EditorGameParticleComponentChangeWatcherService : EditorGameComponentChangeWatcherService
     {
         public EditorGameParticleComponentChangeWatcherService(IEditorGameController controller)

@@ -14,7 +14,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
     internal class AddSpriteSheetAssetPolicy : CreateComponentPolicyBase<SpriteSheetAsset, SpriteSheetViewModel>
     {
         /// <inheritdoc />
-        protected override bool CanAddOrInsert(EntityHierarchyItemViewModel parent, SpriteSheetViewModel asset, AddChildModifiers modifiers, int index, out string message, params object[] messageArgs)
+        protected override bool CanAddOrInsert(IEntityHierarchyItemViewModel parent, SpriteSheetViewModel asset, AddChildModifiers modifiers, int index, out string message, params object[] messageArgs)
         {
             if (asset.Asset.Type == SpriteSheetType.UI)
             {
@@ -27,7 +27,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
 
         /// <inheritdoc />
         [NotNull]
-        protected override EntityComponent CreateComponentFromAsset(EntityHierarchyItemViewModel parent, SpriteSheetViewModel asset)
+        protected override EntityComponent CreateComponentFromAsset(IEntityHierarchyItemViewModel parent, SpriteSheetViewModel asset)
         {
             return new SpriteComponent
             {

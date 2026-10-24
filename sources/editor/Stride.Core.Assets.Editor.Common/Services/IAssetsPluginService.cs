@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
+using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Diagnostics;
 
 #nullable enable
@@ -9,15 +10,15 @@ using Stride.Core.Diagnostics;
 using Stride.Core.Assets.Editor.ViewModel;
 
 namespace Stride.Core.Assets.Editor.Services;
-public interface IAssetsPluginService : ISessionObjectsPluginService
+public interface IAssetsPluginService
 {
     IReadOnlyList<AssetsPlugin> Plugins { get; }
 
-    bool HasImagesForEnum(SessionViewModel? session, Type enumType);
+    bool HasImagesForEnum(ISessionViewModel? session, Type enumType);
 
-    object? GetImageForEnum(SessionViewModel? session, object value);
+    object? GetImageForEnum(ISessionViewModel? session, object value);
 
-    bool HasEditorView(SessionViewModel session, Type viewModelType);
+    bool HasEditorView(ISessionViewModel session, Type viewModelType);
 
     Type? GetAssetViewModelType(Type assetType);
 
@@ -29,10 +30,20 @@ public interface IAssetsPluginService : ISessionObjectsPluginService
 
     Type? GetPreviewViewType(Type previewType);
 
-    void RegisterSession(SessionViewModel session, ILogger logger);
+    void RegisterSession(ISessionViewModel session, ILogger logger);
 
     /// <summary>
     /// Initializes the registered plugins for the editor of <paramref name="session"/>.
     /// </summary>
-    void InitializeSession(SessionViewModel session);
+    void InitializeSession(ISessionViewModel session);
+
+    /// <summary>
+    /// Gets the types that the plugins register as primitive types, which the property grid does not expand.
+    /// </summary>
+    IEnumerable<Type> GetPrimitiveTypes(ISessionViewModel session);
+
+    /// <summary>
+    /// Gets the settings that the plugins add to the properties of the packages.
+    /// </summary>
+    IEnumerable<PackageSettingsEntry> GetProfileSettings();
 }

@@ -15,9 +15,9 @@ namespace Stride.Assets.Presentation.AssetEditors.SceneEditor.ViewModels
     internal class AddSceneAssetPolicy : CustomPolicyBase<SceneAsset, SceneViewModel>
     {
         /// <inheritdoc />
-        protected override bool CanAddOrInsert(EntityHierarchyItemViewModel parent, SceneViewModel asset, AddChildModifiers modifiers, int index, out string message, params object[] messageArgs)
+        protected override bool CanAddOrInsert(IEntityHierarchyItemViewModel parent, SceneViewModel asset, AddChildModifiers modifiers, int index, out string message, params object[] messageArgs)
         {
-            var currentRoot = parent.Owner as SceneRootViewModel;
+            var currentRoot = (parent as EntityHierarchyItemViewModel)?.Owner as SceneRootViewModel;
             // Note: scene are inserted after all entities
             if (currentRoot == null || index < currentRoot.EntityCount)
             {
@@ -33,9 +33,9 @@ namespace Stride.Assets.Presentation.AssetEditors.SceneEditor.ViewModels
         }
 
         /// <inheritdoc />
-        protected override void ApplyPolicy(EntityHierarchyItemViewModel parent, IReadOnlyCollection<SceneViewModel> assets, int index, Vector3 position)
+        protected override void ApplyPolicy(IEntityHierarchyItemViewModel parent, IReadOnlyCollection<SceneViewModel> assets, int index, Vector3 position)
         {
-            var currentRoot = parent.Owner as SceneRootViewModel;
+            var currentRoot = (parent as EntityHierarchyItemViewModel)?.Owner as SceneRootViewModel;
             var currentScene = currentRoot?.Asset as SceneViewModel;
             if (currentScene == null)
                 return;

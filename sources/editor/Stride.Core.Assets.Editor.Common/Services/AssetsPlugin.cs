@@ -47,7 +47,7 @@ public abstract class AssetsPlugin
     /// <summary>
     /// Called when the session's editor initializes: the place for the property grid commands and updaters.
     /// </summary>
-    public virtual void InitializeSession(SessionViewModel session)
+    public virtual void InitializeSession(ISessionViewModel session)
     {
     }
 
@@ -168,12 +168,12 @@ public abstract class AssetsPlugin
     {
     }
 
-    protected internal virtual void SessionLoaded(SessionViewModel session)
+    protected internal virtual void SessionLoaded(ISessionViewModel session)
     {
         // Intentionally does nothing
     }
 
-    protected internal virtual void SessionDisposed(SessionViewModel session)
+    protected internal virtual void SessionDisposed(ISessionViewModel session)
     {
         // Intentionally does nothing
     }

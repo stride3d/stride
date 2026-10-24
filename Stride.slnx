@@ -233,6 +233,7 @@
   </Folder>
   <Folder Name="/80-Plugins/SpriteStudio/">
     <Project Path="sources/plugins/SpriteStudio/Stride.SpriteStudio.Assets/Stride.SpriteStudio.Assets.csproj" />
+    <Project Path="sources/plugins/SpriteStudio/Stride.SpriteStudio.Editor.Wpf/Stride.SpriteStudio.Editor.Wpf.csproj" />
     <Project Path="sources/plugins/SpriteStudio/Stride.SpriteStudio.Editor/Stride.SpriteStudio.Editor.csproj" />
     <Project Path="sources/plugins/SpriteStudio/Stride.SpriteStudio.Runtime/Stride.SpriteStudio.Runtime.csproj" />
   </Folder>
