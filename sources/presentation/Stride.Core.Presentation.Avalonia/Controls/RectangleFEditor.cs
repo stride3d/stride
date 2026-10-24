@@ -14,21 +14,21 @@ public sealed class RectangleFEditor : VectorEditorBase<RectangleF?>
     {
         RectXProperty.Changed.AddClassHandler<RectangleFEditor>(OnComponentPropertyChanged);
         RectYProperty.Changed.AddClassHandler<RectangleFEditor>(OnComponentPropertyChanged);
-        RectXProperty.Changed.AddClassHandler<RectangleFEditor>(OnComponentPropertyChanged);
+        RectWidthProperty.Changed.AddClassHandler<RectangleFEditor>(OnComponentPropertyChanged);
         RectHeightProperty.Changed.AddClassHandler<RectangleFEditor>(OnComponentPropertyChanged);
     }
 
     public static readonly StyledProperty<float?> RectXProperty =
-        AvaloniaProperty.Register<RectangleEditor, float?>(nameof(RectX), defaultBindingMode: BindingMode.TwoWay, coerce: CoerceComponentValue);
+        AvaloniaProperty.Register<RectangleFEditor, float?>(nameof(RectX), defaultBindingMode: BindingMode.TwoWay, coerce: CoerceComponentValue);
 
     public static readonly StyledProperty<float?> RectYProperty =
-        AvaloniaProperty.Register<RectangleEditor, float?>(nameof(RectY), defaultBindingMode: BindingMode.TwoWay, coerce: CoerceComponentValue);
+        AvaloniaProperty.Register<RectangleFEditor, float?>(nameof(RectY), defaultBindingMode: BindingMode.TwoWay, coerce: CoerceComponentValue);
 
     public static readonly StyledProperty<float?> RectWidthProperty =
-        AvaloniaProperty.Register<RectangleEditor, float?>(nameof(RectWidth), defaultBindingMode: BindingMode.TwoWay, coerce: CoerceComponentValue);
+        AvaloniaProperty.Register<RectangleFEditor, float?>(nameof(RectWidth), defaultBindingMode: BindingMode.TwoWay, coerce: CoerceComponentValue);
 
     public static readonly StyledProperty<float?> RectHeightProperty =
-        AvaloniaProperty.Register<RectangleEditor, float?>(nameof(RectHeight), defaultBindingMode: BindingMode.TwoWay, coerce: CoerceComponentValue);
+        AvaloniaProperty.Register<RectangleFEditor, float?>(nameof(RectHeight), defaultBindingMode: BindingMode.TwoWay, coerce: CoerceComponentValue);
 
     public float? RectX
     {

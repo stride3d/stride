@@ -14,7 +14,7 @@ public sealed class TimeSpanEditor : TemplatedControl
         AvaloniaProperty.Register<TimeSpanEditor, TimeSpan?>(nameof(Value), defaultBindingMode: BindingMode.TwoWay);
 
     public static readonly StyledProperty<string?> PlaceholderTextProperty =
-        AvaloniaProperty.Register<DateTimeEditor, string?>(nameof(PlaceholderText));
+        AvaloniaProperty.Register<TimeSpanEditor, string?>(nameof(PlaceholderText));
 
     public static readonly StyledProperty<int?> DaysProperty =
         AvaloniaProperty.Register<TimeSpanEditor, int?>(nameof(Days), defaultBindingMode: BindingMode.TwoWay);

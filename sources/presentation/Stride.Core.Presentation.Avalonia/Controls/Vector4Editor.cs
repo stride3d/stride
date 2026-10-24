@@ -29,10 +29,10 @@ public sealed class Vector4Editor : VectorEditor<Vector4?>
         AvaloniaProperty.Register<Vector4Editor, float?>(nameof(Y), defaultBindingMode: BindingMode.TwoWay, coerce: CoerceComponentValue);
 
     public static readonly StyledProperty<float?> ZProperty =
-        AvaloniaProperty.Register<Vector3Editor, float?>(nameof(Z), defaultBindingMode: BindingMode.TwoWay, coerce: CoerceComponentValue);
+        AvaloniaProperty.Register<Vector4Editor, float?>(nameof(Z), defaultBindingMode: BindingMode.TwoWay, coerce: CoerceComponentValue);
 
     public static readonly StyledProperty<float?> WProperty =
-        AvaloniaProperty.Register<Vector3Editor, float?>(nameof(W), defaultBindingMode: BindingMode.TwoWay, coerce: CoerceComponentValue);
+        AvaloniaProperty.Register<Vector4Editor, float?>(nameof(W), defaultBindingMode: BindingMode.TwoWay, coerce: CoerceComponentValue);
 
     public float? Length
     {
@@ -137,7 +137,9 @@ public sealed class Vector4Editor : VectorEditor<Vector4?>
     private static float? CoerceLengthValue(AvaloniaObject sender, float? baseValue)
     {
         baseValue = CoerceComponentValue(sender, baseValue);
-        return Math.Max(0.0f, baseValue ?? 0.0f);
+        // Keep null as is: Avalonia coerces the default value too, and a non-null default would replace a current value set
+        // with SetCurrentValue when styling re-evaluates the property, which resets the vector to zero.
+        return baseValue.HasValue ? Math.Max(0.0f, baseValue.Value) : null;
     }
 
     private static Vector4 FromLength(Vector4 value, float length)

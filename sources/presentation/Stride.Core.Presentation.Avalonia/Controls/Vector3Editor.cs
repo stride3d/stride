@@ -120,7 +120,9 @@ public sealed class Vector3Editor : VectorEditor<Vector3?>
     private static float? CoerceLengthValue(AvaloniaObject sender, float? baseValue)
     {
         baseValue = CoerceComponentValue(sender, baseValue);
-        return Math.Max(0.0f, baseValue ?? 0.0f);
+        // Keep null as is: Avalonia coerces the default value too, and a non-null default would replace a current value set
+        // with SetCurrentValue when styling re-evaluates the property, which resets the vector to zero.
+        return baseValue.HasValue ? Math.Max(0.0f, baseValue.Value) : null;
     }
 
     private static Vector3 FromLength(Vector3 value, float length)
