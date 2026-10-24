@@ -17,6 +17,18 @@ public abstract class MethodOrMember(TextLocation info, bool isStaged = false) :
 {
     public bool IsStaged { get; set; } = isStaged;
     public List<ShaderAttribute>? Attributes { get; set; } = null;
+
+    /// <summary>
+    /// An HLSL <c>register(...)</c> or <c>packoffset(...)</c> written after the name. Stride lays out cbuffers and binds resources itself,
+    /// so it is dropped with a warning.
+    /// </summary>
+    public TextLocation? IgnoredRegister { get; set; }
+
+    internal void WarnIgnoredRegister(SymbolTable table, Identifier name)
+    {
+        if (IgnoredRegister is { } register)
+            table.AddWarning(new(register, string.Format(SDSLErrorMessages.SDSL0220, register.Text, name)));
+    }
 }
 
 
@@ -41,6 +53,7 @@ public partial class ShaderSamplerState(Identifier name, TextLocation info) : Me
     public override void ProcessSymbol(SymbolTable table, SpirvContext context)
     {
         base.ProcessSymbol(table, context);
+        WarnIgnoredRegister(table, Name);
         Type = new PointerType(new SamplerType(), Specification.StorageClass.UniformConstant);
         table.DeclaredTypes.TryAdd(Type.ToString(), Type);
 
@@ -181,9 +194,18 @@ public sealed partial class ShaderMember(
 
     public Symbol? Symbol { get; private set; }
 
+    /// <summary>
+    /// The initializer that is compiled. A composition gets its shader from the effect, so its initializer is kept in the tree
+    /// (tools can read it) but never compiled (SDSL0236), as in Stride 4.3.
+    /// </summary>
+    private Expression? CompiledValue => IsCompose ? null : Value;
+
     public override void ProcessSymbol(SymbolTable table, SpirvContext context)
     {
         base.ProcessSymbol(table, context);
+        WarnIgnoredRegister(table, Name);
+        if (IsCompose && Value != null)
+            table.AddWarning(new(Value.Info, string.Format(SDSLErrorMessages.SDSL0236, Name, Value.Info.Text)));
         foreach (var generic in TypeName.Generics)
             generic.ProcessSymbol(table);
         if (!TypeName.TryResolveType(table, context, out var memberType))
@@ -216,6 +238,16 @@ public sealed partial class ShaderMember(
             (_, _, StreamKind.Stream or StreamKind.PatchStream) => Specification.StorageClass.Private,
             _ => Specification.StorageClass.Uniform,
         };
+
+        if (Value != null && StreamKind is StreamKind.Stream or StreamKind.PatchStream)
+            table.AddError(new(Value.Info, string.Format(SDSLErrorMessages.SDSL0172, Name, Value.Info.Text)));
+
+        // A cbuffer member (any non-static member) or a structured buffer element
+        if (storageClass is Specification.StorageClass.Uniform or Specification.StorageClass.StorageBuffer && FindIntegerMatrix(memberType) is { } integerMatrix)
+        {
+            table.AddError(new(TypeName.Info, string.Format(SDSLErrorMessages.SDSL0195, Name, integerMatrix, new VectorType(integerMatrix.BaseType, integerMatrix.Rows))));
+            return;
+        }
 
         if (TypeModifier == TypeModifier.Const)
         {
@@ -258,7 +290,7 @@ public sealed partial class ShaderMember(
         Symbol = new Symbol(sid, Type, 0, OwnerType: table.CurrentShader!);
         table.CurrentShader!.Variables.Add((Symbol, IsStaged ? Specification.VariableFlagsMask.Stage : Specification.VariableFlagsMask.None));
 
-        Value?.ProcessSymbol(table, memberType);
+        CompiledValue?.ProcessSymbol(table, memberType);
     }
 
     public void Compile(SymbolTable table, ShaderClass shader, CompilerUnit compiler)
@@ -274,7 +306,7 @@ public sealed partial class ShaderMember(
             variableFlags |= Specification.VariableFlagsMask.Stream;
 
         int? initializerId = null;
-        if (Value != null)
+        if (CompiledValue is { } value)
         {
             var valueType = pointerType.BaseType;
 
@@ -282,8 +314,10 @@ public sealed partial class ShaderMember(
             {
                 // Uniform variables become cbuffer members — their default values are set from the CPU side.
                 // Compile the initializer as a constant value (no function wrapper needed).
-                var constantValue = Value.CompileConstantValue(table, context, valueType);
-                initializerId = constantValue.Id;
+                if (value.TryCompileConstantValue(table, context, out var constantValue, valueType))
+                    initializerId = constantValue.Id;
+                else
+                    table.AddError(new(value.Info, string.Format(SDSLErrorMessages.SDSL0173, Name, value.Info.Text, TypeName)));
             }
             else
             {
@@ -294,7 +328,7 @@ public sealed partial class ShaderMember(
                 initializerId = builder.Insert(new OpFunction(context.GetOrRegister(valueType), context.Bound++, Specification.FunctionControlMask.Const, context.GetOrRegister(functionType))).ResultId;
                 builder.Insert(new OpLabel(context.Bound++));
 
-                var initialValue = Value.CompileAsValue(table, compiler);
+                var initialValue = value.CompileAsValue(table, compiler);
                 initialValue = builder.Convert(context, initialValue, pointerType.BaseType);
 
                 builder.Return(initialValue);
@@ -322,6 +356,11 @@ public sealed partial class ShaderMember(
 
         if (pointerType.BaseType is ByteAddressBufferType { WriteAllowed: false } or StructuredBufferType { WriteAllowed: false })
             context.Add(new OpDecorate(variable, Specification.Decoration.NonWritable, []));
+
+        // An explicit matrix layout, for the member the mixer makes of this variable in the Globals cbuffer (SPIR-V and HLSL have
+        // opposite meanings: HLSL row_major = SPIR-V ColMajor); removed from the variable before the output
+        if (pointerType.BaseType is MatrixType or ArrayType { BaseType: MatrixType } && TypeModifier is TypeModifier.RowMajor or TypeModifier.ColumnMajor)
+            context.Add(new OpDecorate(variable, TypeModifier == TypeModifier.RowMajor ? Specification.Decoration.ColMajor : Specification.Decoration.RowMajor, []));
 
         RGroup.DecorateVariableLinkInfo(table, shader, context, Info, Name, Attributes, variable);
     }
@@ -389,6 +428,10 @@ public partial class ShaderMethod(
     public bool IsOverride { get; set; } = isOverride;
     public bool IsClone { get; set; } = isClone;
     public List<MethodParameter> Parameters { get; set; } = [];
+    /// <summary>
+    /// HLSL return semantic (<c>float4 F() : COLOR</c>): only an entry point's matters, and Stride's come from streams, so it is never emitted.
+    /// </summary>
+    public Identifier? ReturnSemantic { get; set; }
 
     public BlockStatement? Body { get; set; }
 
@@ -419,6 +462,10 @@ public partial class ShaderMethod(
             var argSym = p.TypeName.Type!;
             table.DeclaredTypes.TryAdd(argSym.ToString(), argSym);
             p.Type = argSym;
+            if (argSym is AppendStructuredBufferType or ConsumeStructuredBufferType)
+                table.AddError(new(p.Info, string.Format(SDSLErrorMessages.SDSL0180, p.Name, Name, argSym is AppendStructuredBufferType ? "AppendStructuredBuffer" : "ConsumeStructuredBuffer")));
+            else if (argSym is StructuredBufferType or ByteAddressBufferType && (p.Modifiers & ParameterModifiers.Out) != 0)
+                table.AddError(new(p.Info, string.Format(SDSLErrorMessages.SDSL0181, p.Name, Name, p.Modifiers == ParameterModifiers.InOut ? "inout" : "out")));
             var parameterType = GenerateParameterType(p);
             ftype.ParameterTypes.Add(new(parameterType, p.Modifiers));
             var parameterSymbol = new Symbol(new(p.Name, SymbolKind.Variable), parameterType, 0, OwnerType: table.CurrentShader);
@@ -450,6 +497,8 @@ public partial class ShaderMethod(
 
         if (!IsOverride)
             CheckMissingOverride(table, ftype);
+        else
+            CheckOverriddenMethod(table, ftype);
 
         var symbol = new Symbol(new(Name, SymbolKind.Method, IsStage: IsStaged), ftype, function.Id, MemberAccessWithImplicitThis: ftype, OwnerType: table.CurrentShader);
 
@@ -494,6 +543,26 @@ public partial class ShaderMethod(
         }
     }
 
+    // An override needs an inherited method with its parameters and return type (one with its name and other
+    // parameters is a mistake; with no inherited method of that name, the method stands alone)
+    private void CheckOverriddenMethod(SymbolTable table, FunctionType ftype)
+    {
+        var sameName = table.InheritedShaders
+            .SelectMany(x => x.Symbol!.Methods, (x, method) => (Shader: x.Symbol!, Type: method.Item1.Type as FunctionType, Name: method.Item1.Id.Name))
+            .Where(x => x.Name == Name.Name && x.Type != null)
+            .ToList();
+        if (sameName.Count == 0 || sameName.Exists(x => x.Type == ftype))
+            return;
+
+        var parameters = FormatParameters(ftype);
+        if (sameName.Find(x => x.Type!.ParameterTypes.SequenceEqual(ftype.ParameterTypes)) is { Type: not null } sameParameters)
+            table.AddError(new(Name.Info, string.Format(SDSLErrorMessages.SDSL0175, table.CurrentShader!.Name, Name.Name, parameters, ftype.ReturnType, sameParameters.Shader.Name, sameParameters.Type.ReturnType)));
+        else
+            table.AddError(new(Name.Info, string.Format(SDSLErrorMessages.SDSL0176, table.CurrentShader!.Name, Name.Name, parameters, string.Join(", ", sameName.Select(x => $"{x.Shader.Name}.{Name.Name}({FormatParameters(x.Type!)})")))));
+
+        static string FormatParameters(FunctionType type) => string.Join(", ", type.ParameterTypes.Select(p => p.Type is PointerType pointer ? pointer.BaseType : p.Type));
+    }
+
     // SPIR-V spec: SpacingX / VertexOrderX / PointMode execution modes are only valid on
     // TessellationEvaluation entry points. HLSL places them on the hull shader function,
     // so for spec compliance we emit them on DSMain's function id instead. Throws if
@@ -517,6 +586,10 @@ public partial class ShaderMethod(
         // Opaque resources must use UniformConstant storage: see SymbolTypeExtensions.IsOpaqueResource.
         if (p.Type!.IsOpaqueResource())
             return new PointerType(p.Type!, Specification.StorageClass.UniformConstant);
+        // Like the buffer members, structured and byte address buffers stay in StorageBuffer storage: the caller's pointer is passed
+        // (ShaderMixer.SpecializeBufferParameters removes these parameters, SPIR-V would need variable pointers for them)
+        if (p.Type is StructuredBufferType or ByteAddressBufferType)
+            return new PointerType(p.Type, Specification.StorageClass.StorageBuffer);
 
         return new PointerType(p.Type!, Specification.StorageClass.Function);
     }
@@ -623,9 +696,13 @@ public partial class ShaderMethod(
                             }, []));
                         }
                     }
+                    else if (anyAttribute.Name.Name.Equals("StreamOutput", StringComparison.OrdinalIgnoreCase))
+                    {
+                        table.AddError(new(anyAttribute.Info, string.Format(SDSLErrorMessages.SDSL0170, Name)));
+                    }
                     else
                     {
-                        throw new NotImplementedException($"Can't parse method attribute {anyAttribute} on method {Name}");
+                        table.AddError(new(anyAttribute.Info, string.Format(SDSLErrorMessages.SDSL0171, anyAttribute.Name, Name)));
                     }
                 }
             }
@@ -684,6 +761,12 @@ public partial class ShaderMethod(
         // After compiling the body, check if this stage function referenced non-stage members
         if (builder.CurrentFunction is { ReferencesNonStageMembers: true })
             functionInfo.Flags |= Specification.FunctionFlagsMask.ReferencesNonStage;
+
+        if (ftype.ReturnType != ScalarType.Void && !SpirvBuilder.IsBlockTermination(builder.GetLastInstructionType()))
+        {
+            table.AddError(new(Name.Info, string.Format(SDSLErrorMessages.SDSL0177, table.CurrentShader!.Name, Name.Name)));
+            builder.Insert(new OpUnreachable());
+        }
 
         builder.EndFunction();
         table.Pop();

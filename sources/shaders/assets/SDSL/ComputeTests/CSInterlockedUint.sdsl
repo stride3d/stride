@@ -1,0 +1,43 @@
+// CSMain(structuredbuffer.Values="4: 0 0 0 0 0 0 0 0 0 0 0 0 0 0", expected.Values="4294966272 0 4294967295 1023 2147483647 7 5 3 7 4 2 4294967291")
+
+namespace Stride.Shaders.Tests;
+
+// Every Interlocked* operation on a uint buffer, from 1024 threads (32 x 32 groups of one). Min and Max are unsigned: the
+// int values (-1, thread - 512) are the largest uints. Thread 0 alone checks the original values
+shader CSInterlockedUint
+{
+    stage stream uint3 DispatchThreadId : SV_DispatchThreadID;
+
+    RWStructuredBuffer<uint> Values;
+
+    [numthreads(1, 1, 1)]
+    void CSMain()
+    {
+        uint thread = streams.DispatchThreadId.x + streams.DispatchThreadId.y * 32;
+
+        InterlockedAdd(Values[0], -1);
+        InterlockedMin(Values[1], (int)thread - 512);
+        InterlockedMax(Values[2], (int)thread - 512);
+        InterlockedMax(Values[3], thread);
+        InterlockedOr(Values[4], 1u << (thread % 31));
+        InterlockedXor(Values[5], thread < 3 ? 1u << thread : 0u);
+
+        if (thread == 0)
+        {
+            uint original;
+            InterlockedExchange(Values[6], 3, original);
+            InterlockedExchange(Values[6], 7, original);
+            Values[7] = original;
+            InterlockedAnd(Values[6], 6, original);
+            Values[8] = original;
+            InterlockedCompareExchange(Values[6], 6, 4, original);
+            InterlockedCompareExchange(Values[6], 6, 100, original);
+            Values[9] = original;
+            InterlockedCompareStore(Values[6], 4, 5);
+            int signedOriginal;
+            InterlockedAdd(Values[10], 7, signedOriginal);
+            InterlockedAdd(Values[10], -5, signedOriginal);
+            Values[11] = signedOriginal - 12;
+        }
+    }
+}

@@ -73,7 +73,9 @@ public static partial class NuGetAssemblyResolver
             return;
 
         // Note: we perform nuget restore inside the assembly resolver rather than top level module ctor (otherwise it freezes)
-        AppDomain.CurrentDomain.AssemblyResolve += (_, eventArgs) =>
+        // The default context's resolver: a load context that falls back to the default one (a session's package
+        // assemblies) gets the host's copy from here before trying its own files
+        System.Runtime.Loader.AssemblyLoadContext.Default.Resolving += (_, aname) =>
         {
             if (!assembliesResolved)
             {
@@ -170,6 +172,13 @@ public static partial class NuGetAssemblyResolver
                             var nativeLibs = RestoreHelper.ListNativeLibs(result.LockFile);
                             RegisterNativeDependencies(assemblyNameToPath, nativeLibs);
 
+                            // The D3D12 Agility SDK is a native-only package: D3D12Runtime (Stride.Graphics) loads it from here
+                            if (RestoreHelper.FindPackagePath(result.LockFile, "Microsoft.Direct3D.D3D12") is { } agilitySDKPackage)
+                            {
+                                var architecture = RuntimeInformation.ProcessArchitecture == Architecture.Arm64 ? "arm64" : "x64";
+                                AppContext.SetData("Stride.Graphics.D3D12AgilitySDKPath", Path.Combine(agilitySDKPackage, "build", "native", "bin", architecture));
+                            }
+
 #if STRIDE_NUGET_RESOLVER_UI
                             if (packageName == AvaloniaPackageName)
                             {
@@ -212,7 +221,6 @@ public static partial class NuGetAssemblyResolver
 
             if (assemblyNameToPath != null)
             {
-                var aname = new AssemblyName(eventArgs.Name);
                 if (aname.Name!.StartsWith("Microsoft.Build", StringComparison.Ordinal) && aname.Name != "Microsoft.Build.Locator")
                     return null;
 

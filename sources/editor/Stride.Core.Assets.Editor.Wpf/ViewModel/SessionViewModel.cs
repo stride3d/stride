@@ -358,7 +358,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 sessionViewModel.LoadDocumentation();
 
                 // Copy the result of the asset loading to the log panel.
-                sessionViewModel.AssetLog.AddLogger(LogKey.Get("Session"), loggerResult);
+                sessionViewModel.AssetLog.AddLogger(LogKey.Get(AssetLogViewModel.SessionLogName), loggerResult);
 
                 // Now resize the undo stack to the correct size.
                 undoRedoService.Resize(200);
@@ -459,7 +459,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 sessionViewModel.ActionHistory.Initialize();
 
                 // Copy the result of the asset loading to the log panel.
-                sessionViewModel.AssetLog.AddLogger(LogKey.Get("Session"), sessionResult);
+                sessionViewModel.AssetLog.AddLogger(LogKey.Get(AssetLogViewModel.SessionLogName), sessionResult);
 
                 sessionViewModel.CheckConsistency();
                 sessionViewModel.CheckAssetReplacements();
@@ -1119,17 +1119,15 @@ namespace Stride.Core.Assets.Editor.ViewModel
             replacedTargets = newReplaced;
 
             if (changedAsset != null && (changedAsset.IsDeleted || changedAsset.Asset.Replaces == null))
-                AssetLog.ClearMessages(LogKey.Get(changedAsset.Id, AssetReplacementLogName));
+                AssetLog.ClearMessages(LogKey.Get(changedAsset.Id, AssetLogViewModel.AssetReplacementLogName));
             AssetReplacementsChanged?.Invoke(this, EventArgs.Empty);
         }
 
         private Dictionary<AssetId, AssetViewModel> replacedTargets = new();
 
-        private const string AssetReplacementLogName = "AssetReplacement";
-
         private void CheckAssetReplacement([NotNull] AssetViewModel asset)
         {
-            var logKey = LogKey.Get(asset.Id, AssetReplacementLogName);
+            var logKey = LogKey.Get(asset.Id, AssetLogViewModel.AssetReplacementLogName);
             AssetLog.ClearMessages(logKey);
             if (asset.Asset.Replaces is not { } target)
                 return;
@@ -1224,7 +1222,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// <remarks>This method should be used only for advanced modifications of assets such as global fixups, that still need to reky on undo/redo.</remarks>
         public IDisposable CreateAssetFixupContext()
         {
-            return new FixupAssetContext(this);
+            return new FixupAssetContext(UndoRedoService, x => IsInFixupAssetContext = x);
         }
 
         /// <summary>

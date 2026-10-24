@@ -57,6 +57,22 @@ namespace Stride.Rendering.ComputeEffect
         public Int3 ThreadNumbers { get; set; }
 
         /// <summary>
+        /// Gets or sets a Buffer holding the thread group counts to dispatch (three <c>uint</c>), or <c>null</c> to dispatch
+        /// <see cref="ThreadGroupCounts"/>.
+        /// </summary>
+        /// <remarks>
+        /// The Buffer needs <see cref="BufferFlags.ArgumentBuffer"/> (see <see cref="Graphics.Buffer.Argument"/>). After a GPU
+        /// write, transition it to <see cref="BarrierLayout.IndirectArgument"/> before drawing this effect. The shader's
+        /// <c>ThreadGroupCountGlobal</c> still comes from <see cref="ThreadGroupCounts"/>.
+        /// </remarks>
+        public Graphics.Buffer IndirectArguments { get; set; }
+
+        /// <summary>
+        /// Gets or sets the byte offset of the thread group counts in <see cref="IndirectArguments"/>.
+        /// </summary>
+        public int IndirectArgumentsOffset { get; set; }
+
+        /// <summary>
         /// Gets or sets the name of the input compute shader file (.sdsl)
         /// </summary>
         public string ShaderSourceName { get; set; }
@@ -107,27 +123,27 @@ namespace Stride.Rendering.ComputeEffect
             // Apply pipeline state
             context.CommandList.SetPipelineState(pipelineState.CurrentState);
 
+            // Before the effect binds them: on Direct3D 11, the transitions are what unbind a resource from the slots
+            // of the other kind it is still bound to (shader resource or unordered access)
+            TransitionBoundResources(context.CommandList, afterDispatch: false);
+
             // Apply the effect
             EffectInstance.Apply(context.GraphicsContext);
 
-            TransitionBoundTextures(context.CommandList, afterDispatch: false);
+            if (IndirectArguments is not null)
+                context.CommandList.Dispatch(IndirectArguments, IndirectArgumentsOffset);
+            else
+                context.CommandList.Dispatch(ThreadGroupCounts.X, ThreadGroupCounts.Y, ThreadGroupCounts.Z);
 
-            // Draw a full screen quad
-            context.CommandList.Dispatch(ThreadGroupCounts.X, ThreadGroupCounts.Y, ThreadGroupCounts.Z);
-
-            TransitionBoundTextures(context.CommandList, afterDispatch: true);
-
-            // Un-apply
-            //throw new InvalidOperationException();
-            //EffectInstance.Effect.UnbindResources(GraphicsDevice);
+            TransitionBoundResources(context.CommandList, afterDispatch: true);
         }
 
         /// <summary>
-        /// Transitions the textures bound to the compute shader to the layout their binding needs
-        /// (shader resource or unordered access), and written textures back to shader resource
-        /// after the dispatch so they can be sampled afterwards.
+        /// Transitions the textures and buffers bound to the compute shader to the layout their binding needs
+        /// (shader resource or unordered access), so a buffer one pass writes and the next one reads is synchronized,
+        /// and written textures back to shader resource after the dispatch so they can be sampled afterwards.
         /// </summary>
-        private void TransitionBoundTextures(CommandList commandList, bool afterDispatch)
+        private void TransitionBoundResources(CommandList commandList, bool afterDispatch)
         {
             foreach (var binding in EffectInstance.Effect.Bytecode.Reflection.ResourceBindings)
             {
@@ -135,21 +151,25 @@ namespace Stride.Rendering.ComputeEffect
                 if (!isUnorderedAccess && binding.Class != EffectParameterClass.ShaderResourceView)
                     continue;
 
-                if (binding.KeyInfo.Key is not ObjectParameterKey<Texture> textureKey)
-                    continue;
-
-                var texture = Parameters.Get(textureKey);
-                if (texture is null)
+                GraphicsResource resource = binding.KeyInfo.Key switch
+                {
+                    ObjectParameterKey<Texture> textureKey => Parameters.Get(textureKey),
+                    ObjectParameterKey<Stride.Graphics.Buffer> bufferKey => Parameters.Get(bufferKey),
+                    _ => null,
+                };
+                if (resource is null)
                     continue;
 
                 if (afterDispatch)
                 {
-                    if (isUnorderedAccess && texture.IsShaderResource)
-                        commandList.ResourceBarrierTransition(texture, BarrierLayout.ShaderResource);
+                    // A written texture can be sampled by any pass next; a buffer is transitioned by the pass that
+                    // reads it (some stay in unordered access across passes, with unordered access barriers)
+                    if (isUnorderedAccess && resource is Texture { IsShaderResource: true })
+                        commandList.ResourceBarrierTransition(resource, BarrierLayout.ShaderResource);
                 }
                 else
                 {
-                    commandList.ResourceBarrierTransition(texture, isUnorderedAccess ? BarrierLayout.UnorderedAccess : BarrierLayout.ShaderResource);
+                    commandList.ResourceBarrierTransition(resource, isUnorderedAccess ? BarrierLayout.UnorderedAccess : BarrierLayout.ShaderResource);
                 }
             }
         }

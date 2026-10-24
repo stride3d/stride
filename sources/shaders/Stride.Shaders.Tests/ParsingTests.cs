@@ -1,6 +1,7 @@
 
 using Stride.Shaders.Parsing;
 using Stride.Shaders.Parsing.Analysis;
+using Stride.Shaders.Parsing.SDSL.AST;
 namespace Stride.Shaders.Parsers.Tests;
 
 public class ParsingTests1
@@ -31,6 +32,18 @@ public class ParsingTests1
         var text = MonoGamePreProcessor.OpenAndRun(path, []);
         var result = SDSLParser.Parse(text);
         Assert.True(result.Errors.Count == 0, path + string.Join("\n", result.Errors.Select(x => x.ToString())));
+    }
+
+    // A struct member can be an array, like a shader member
+    [Fact]
+    public void StructMemberCanBeAnArray()
+    {
+        var result = SDSLParser.Parse("shader S { struct T { float2 uv[4]; float x; }; };");
+        Assert.True(result.Errors.Count == 0, string.Join("\n", result.Errors.Select(x => x.ToString())));
+        var members = ((ShaderFile)result.AST!).RootDeclarations.OfType<ShaderClass>().Single().Elements.OfType<ShaderStruct>().Single().Members;
+        Assert.Equal(["uv", "x"], members.Select(x => x.Name.Name));
+        Assert.Single(members[0].TypeName.ArraySize!);
+        Assert.Null(members[1].TypeName.ArraySize);
     }
 
     // Regression test: a trailing-dot float literal (e.g. "1.") is valid per the HLSL grammar

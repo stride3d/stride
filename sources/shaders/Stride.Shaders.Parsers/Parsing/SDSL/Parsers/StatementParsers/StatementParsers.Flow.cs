@@ -26,6 +26,13 @@ public record struct FlowParsers : IParser<Flow>
             parsed = w;
             return true;
         }
+        else if (DoWhile(ref scanner, result, out var dw, statementParser, orError))
+        {
+            if (hasAttributes)
+                dw.Attribute = attribute;
+            parsed = dw;
+            return true;
+        }
         else if (ForEach(ref scanner, result, out var fe, statementParser, orError))
         {
             parsed = fe;
@@ -49,7 +56,12 @@ public record struct FlowParsers : IParser<Flow>
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
-        if (Tokens.Literal("while", ref scanner, advance: true) && Parsers.Spaces0(ref scanner, result, out _))
+        // `while` must be a whole word (not the start of `whileCount`)
+        if (
+            Tokens.Literal("while", ref scanner, advance: true)
+            && !(Tokens.LetterOrDigit(ref scanner) || Tokens.Char('_', ref scanner))
+            && Parsers.Spaces0(ref scanner, result, out _)
+        )
         {
             if (Tokens.Char('(', ref scanner, advance: true) && Parsers.Spaces0(ref scanner, result, out _))
             {
@@ -74,6 +86,35 @@ public record struct FlowParsers : IParser<Flow>
     public static bool While<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out While parsed, ParseError? orError = null)
         where TScanner : struct, IScanner
         => While(ref scanner, result, out parsed, StatementParsers.Statement, orError);
+
+    public static bool DoWhile<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out DoWhile parsed, ParserDelegate<TScanner, Statement> statementParser, ParseError? orError = null)
+        where TScanner : struct, IScanner
+    {
+        var position = scanner.Position;
+        // `do` must be a whole word (not the start of `double` or `done`)
+        if (
+            Tokens.Literal("do", ref scanner, advance: true)
+            && !(Tokens.LetterOrDigit(ref scanner) || Tokens.Char('_', ref scanner))
+            && Parsers.Spaces0(ref scanner, result, out _)
+        )
+        {
+            if (!statementParser(ref scanner, result, out var statement, new(SDSLErrorMessages.SDSL0010, scanner[scanner.Position], scanner.Memory)))
+                return Parsers.Exit(ref scanner, result, out parsed, position, orError);
+            Parsers.Spaces0(ref scanner, result, out _);
+            if (!(Tokens.Literal("while", ref scanner, advance: true) && Parsers.Spaces0(ref scanner, result, out _) && Tokens.Char('(', ref scanner, advance: true)))
+                return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0035, scanner[scanner.Position], scanner.Memory));
+            Parsers.Spaces0(ref scanner, result, out _);
+            if (!ExpressionParser.Expression(ref scanner, result, out var expression, new(SDSLErrorMessages.SDSL0015, scanner[scanner.Position], scanner.Memory)))
+                return Parsers.Exit(ref scanner, result, out parsed, position, orError);
+            if (!Parsers.FollowedBy(ref scanner, Tokens.Char(')'), withSpaces: true, advance: true))
+                return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0018, scanner[scanner.Position], scanner.Memory));
+            if (!Parsers.FollowedBy(ref scanner, Tokens.Char(';'), withSpaces: true, advance: true))
+                return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0033, scanner[scanner.Position], scanner.Memory));
+            parsed = new(statement, expression, scanner[position..scanner.Position]);
+            return true;
+        }
+        return Parsers.Exit(ref scanner, result, out parsed, position, orError);
+    }
 
     public static bool For<TScanner>(ref TScanner scanner, ParseResult result, [MaybeNullWhen(false)] out For parsed, ParserDelegate<TScanner, Statement> statementParser, ParseError? orError = null)
         where TScanner : struct, IScanner
@@ -133,7 +174,12 @@ public record struct FlowParsers : IParser<Flow>
         where TScanner : struct, IScanner
     {
         var position = scanner.Position;
-        if (Tokens.Literal("foreach", ref scanner, advance: true) && Parsers.Spaces0(ref scanner, result, out _))
+        // `foreach` must be a whole word (not the start of `foreachCount`)
+        if (
+            Tokens.Literal("foreach", ref scanner, advance: true)
+            && !(Tokens.LetterOrDigit(ref scanner) || Tokens.Char('_', ref scanner))
+            && Parsers.Spaces0(ref scanner, result, out _)
+        )
         {
             if (Tokens.Char('(', ref scanner, advance: true) && Parsers.Spaces0(ref scanner, result, out _))
             {

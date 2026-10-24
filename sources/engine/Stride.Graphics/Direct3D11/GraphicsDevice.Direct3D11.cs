@@ -267,6 +267,46 @@ namespace Stride.Graphics
             // NOTE: The lifetime of the Command List is managed by this GraphicsDevice, so the Command List
             //       should not Release()
             InternalMainCommandList = new CommandList(this).DisposeBy(this);
+
+            ReadTimestampFrequency();
+        }
+
+        /// <summary>
+        ///   Reads the tick frequency of timestamp queries with an empty disjoint query, so it is known before
+        ///   <see cref="Begin"/> reads back the first frame's disjoint query.
+        /// </summary>
+        private void ReadTimestampFrequency()
+        {
+            const int S_FALSE = 1;
+
+            var disjointQueryDescription = new QueryDesc(Query.TimestampDisjoint);
+            ComPtr<ID3D11Query> query = default;
+
+            HResult result = nativeDevice->CreateQuery(in disjointQueryDescription, ref query);
+
+            if (result.IsFailure)
+                result.Throw();
+
+            try
+            {
+                nativeDeviceContext->Begin(query);
+                nativeDeviceContext->End(query);
+
+                Unsafe.SkipInit(out QueryDataTimestampDisjoint queryResult);
+
+                // GetData flushes the context; an empty query completes as soon as the GPU reaches it
+                while ((result = nativeDeviceContext->GetData(query, ref queryResult, query.GetDataSize(), GetDataFlags: 0)) == S_FALSE)
+                    Thread.Yield();
+
+                if (result.IsFailure)
+                    result.Throw();
+
+                TimestampFrequency = (long) queryResult.Frequency;
+            }
+            finally
+            {
+                query.Release();
+            }
         }
 
         private partial string GetRendererName() => rendererName;
@@ -346,8 +386,8 @@ namespace Stride.Graphics
                 if (Adapter.VendorId == 0x8086)
                 {
                     // TODO: This is relevant still? Newer Intel Arc HW and drivers should have better support for 9.x
-                    if (graphicsProfile < GraphicsProfile.Level_10_0 && (!ShaderProfile.HasValue || ShaderProfile.Value < GraphicsProfile.Level_10_0))
-                        ShaderProfile = GraphicsProfile.Level_10_0;
+                    if (graphicsProfile < GraphicsProfile.Level_10_0 && (!shaderProfile.HasValue || shaderProfile.Value < GraphicsProfile.Level_10_0))
+                        shaderProfile = GraphicsProfile.Level_10_0;
                 }
 
                 RequestedProfile = graphicsProfile;

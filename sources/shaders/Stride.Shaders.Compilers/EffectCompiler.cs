@@ -159,7 +159,9 @@ namespace Stride.Shaders.Compiler
                 // D3D12 also goes through SPIR-V (then DXIL via mesa), so it needs the unified
                 // binding scheme — only D3D11/FXC consumes the per-class b#/t#/u#/s# bank style.
                 ResourcesRegisterSeparate: effectParameters.Platform is GraphicsPlatform.Direct3D11,
-                StripGoogleUserType: effectParameters.Platform is GraphicsPlatform.Vulkan), log, out var spirvBytecode, out var effectReflection, out var usedHashSources, out var entryPoints))
+                StripGoogleUserType: effectParameters.Platform is GraphicsPlatform.Vulkan,
+                // Vulkan and D3D12 (spirv_to_dxil) read the SPIR-V layout; D3D11 packs the HLSL like Direct3D already
+                Direct3DStructuredBufferLayout: effectParameters.Platform is GraphicsPlatform.Vulkan or GraphicsPlatform.Direct3D12), log, out var spirvBytecode, out var effectReflection, out var usedHashSources, out var entryPoints))
                 return new EffectBytecodeCompilerResult(null, log);
 
             // Optional SPIR-V validation (requires spirv-val from Vulkan SDK)
@@ -339,7 +341,8 @@ namespace Stride.Shaders.Compiler
                 }
                 else
                 {
-                    var spirvBytecodeArray = spirvBytecode.ToArray();
+                    // Without debug info, no source path or source text: the same sources give the same bytes on every machine
+                    var spirvBytecodeArray = effectParameters.Debug ? spirvBytecode.ToArray() : StripDebugInstructions(spirvBytecode);
                     var spirvBytecodeId = ObjectId.FromBytes(spirvBytecodeArray);
                     foreach (var entryPoint in entryPoints)
                     {
@@ -639,7 +642,11 @@ namespace Stride.Shaders.Compiler
                 finally
                 {
                     for (int i = 0; i < entryPoints.Count; i++)
+                    {
                         if (nameHandles[i].IsAllocated) nameHandles[i].Free();
+                        // Allocated by mesa (also for the stages done before a failure): copied above, freed here
+                        if (outputs[i].buffer != null) Spv2DXIL.spirv_to_dxil_free(ref outputs[i]);
+                    }
                 }
             }
         }
@@ -672,5 +679,28 @@ namespace Stride.Shaders.Compiler
             }
         }
 #endif
+
+        /// <summary>
+        /// The SPIR-V without its debug instructions: OpString (source paths), OpSource (the text of each source file), OpLine.
+        /// </summary>
+        private static byte[] StripDebugInstructions(ReadOnlySpan<byte> spirvBytecode)
+        {
+            var words = MemoryMarshal.Cast<byte, uint>(spirvBytecode);
+            const int HeaderWordCount = 5;
+            var result = new List<uint>(words.Length);
+            result.AddRange(words[..HeaderWordCount]);
+            for (var index = HeaderWordCount; index < words.Length;)
+            {
+                var wordCount = (int)(words[index] >> 16);
+                if (wordCount == 0)
+                    throw new InvalidOperationException($"Invalid SPIR-V instruction at word {index}");
+                var op = (Spirv.Specification.Op)(words[index] & 0xFFFF);
+                if (op is not (Spirv.Specification.Op.OpString or Spirv.Specification.Op.OpSource or Spirv.Specification.Op.OpSourceContinued
+                    or Spirv.Specification.Op.OpLine or Spirv.Specification.Op.OpNoLine or Spirv.Specification.Op.OpModuleProcessed))
+                    result.AddRange(words.Slice(index, wordCount));
+                index += wordCount;
+            }
+            return MemoryMarshal.AsBytes(CollectionsMarshal.AsSpan(result)).ToArray();
+        }
     }
 }

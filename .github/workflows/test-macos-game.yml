@@ -82,6 +82,13 @@ jobs:
       # Crash-report store (asset compiler etc.) lands in the uploaded artifacts.
       STRIDE_CRASH_DIR: "${{ github.workspace }}/TestResults/crash-reports"
     steps:
+      # Hosted runners vary per VM (CPU model, core count, load); record them to tell a slow runner from a slow change.
+      - name: Report runner resources
+        run: |
+          sysctl -n machdep.cpu.brand_string hw.ncpu hw.memsize
+          df -h /
+          uptime
+
       # Bootstrap .github so the local composite action below is resolvable pre-checkout.
       - uses: actions/checkout@v7
         with:

@@ -1,5 +1,6 @@
 using CommunityToolkit.HighPerformance;
 using Stride.Shaders.Core;
+using Stride.Shaders.Parsing;
 using Stride.Shaders.Parsing.Analysis;
 using Stride.Shaders.Parsing.SDSL.AST;
 using Stride.Shaders.Spirv.Building;
@@ -25,7 +26,11 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
     /// </summary>
     /// <param name="ResourcesRegisterSeparate">For D3D11/12: t, b and s registers are separate (and should be kept as low as possible so we number them from 0 in each category).</param>
     /// <param name="StripGoogleUserType">Strip SPV_GOOGLE_user_type extension and UserTypeGOOGLE decorations (needed for Vulkan, which rejects the extension unless VK_GOOGLE_user_type is supported).</param>
-    public record struct Options(bool ResourcesRegisterSeparate, bool StripGoogleUserType = false);
+    /// <param name="Direct3DStructuredBufferLayout">
+    /// For the APIs that read the SPIR-V layout (Vulkan, Direct3D 12): structured buffers whose std430 layout differs from Direct3D's
+    /// (3-element vectors...) use Direct3D's tight layout, so they read the same CPU data as on Direct3D 11.
+    /// </param>
+    public record struct Options(bool ResourcesRegisterSeparate, bool StripGoogleUserType = false, bool Direct3DStructuredBufferLayout = false);
 
     public IExternalShaderLoader ShaderLoader { get; } = shaderLoader;
 
@@ -87,8 +92,15 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             return false;
         }
 
+        if (!CheckAbstractCalls(globalContext, log))
+            return false;
+
         // Note: done first, so that the code analysis only has to know about OpSwitch
         if (!LowerSwitchIds(context, temp, log))
+            return false;
+
+        // Before the interface processing, which then analyzes the copies like any method
+        if (!SpecializeBufferParameters(context, temp, rootMixin, log))
             return false;
 
         // Process streams and remove unused code/cbuffer/variable/resources
@@ -148,6 +160,8 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         // Normalize OpTypeImage: replace full return types (e.g. float4) with scalar base types
         // as required by SPIR-V spec, then dedup any resulting identical types.
         NormalizeImageSampledTypes(context);
+
+        LowerIntegerMatrices(context);
         new TypeDuplicateHelper(context).RemoveDuplicateImageTypes(temp);
 
         foreach (var inst in context)
@@ -158,6 +172,9 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         temp.Sort();
 
         bytecode = SpirvBytecode.CreateBytecodeFromBuffers(temp);
+
+        if (!MakeSampleOffsetsConstant(ref bytecode, log))
+            return false;
 
         effectReflection = globalContext.Reflection;
         usedHashSources = shaderLoader.Sources;
@@ -187,6 +204,22 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
             if (i.Op == Op.OpTypeImage && (OpTypeImage)i is { } typeImage && typeImage.Dim == Dim.Buffer && typeImage.Sampled is 2)
             {
                 context.Add(new OpCapability(Capability.ImageBuffer));
+                break;
+            }
+        }
+        foreach (var i in context)
+        {
+            if (i.Op == Op.OpTypeImage && (OpTypeImage)i is { } typeImage && typeImage.Dim == Dim.Dim1D && typeImage.Sampled is 0 or 1)
+            {
+                context.Add(new OpCapability(Capability.Sampled1D));
+                break;
+            }
+        }
+        foreach (var i in context)
+        {
+            if (i.Op == Op.OpTypeImage && (OpTypeImage)i is { } typeImage && typeImage.Dim == Dim.Dim1D && typeImage.Sampled is 2)
+            {
+                context.Add(new OpCapability(Capability.Image1D));
                 break;
             }
         }
@@ -308,6 +341,15 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
         /// <summary>Maps source filename to merged OpString ID, used to deduplicate OpString/OpSource during merge.</summary>
         public Dictionary<string, int> SourceFileStrings { get; } = new();
+
+        /// <summary>
+        /// Calls that reach an abstract method no shader implements. They are errors unless the calling method is replaced
+        /// by an override that doesn't call it, as its body never runs (see <see cref="CheckAbstractCalls"/>).
+        /// </summary>
+        public List<(int Caller, MethodGroup? CallerGroup, string CallerName, string Method)> AbstractCalls { get; } = new();
+
+        /// <summary>The methods a <c>base.</c> call reaches.</summary>
+        public HashSet<int> BaseCallTargets { get; } = new();
     }
 
     class MixinNodeContext
@@ -678,13 +720,15 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     if (!remapIds.TryGetValue(typeStruct2.ResultId, out var structId))
                         structId = typeStruct2.ResultId;
                     structTypes.Add(structName, structId);
-                    // Also add an entry using ToId()-style name for structured buffer types,
-                    // since OpImportStructSDSL.StructName uses ToId() format (e.g. "StructuredBuffer<X>")
-                    // while OpName uses "type.StructuredBuffer.X" format
+                    // Also add an entry using ToId()-style name for buffer types,
+                    // since OpImportStructSDSL.StructName uses ToId() format (e.g. "StructuredBuffer<X>", "ByteAddressBuffer")
+                    // while OpName uses "type.StructuredBuffer.X" / "type.ByteAddressBuffer" format
                     if (structName.StartsWith("type.StructuredBuffer."))
                         structTypes.TryAdd($"StructuredBuffer<{structName.Substring("type.StructuredBuffer.".Length)}>", structId);
                     else if (structName.StartsWith("type.RWStructuredBuffer."))
                         structTypes.TryAdd($"RWStructuredBuffer<{structName.Substring("type.RWStructuredBuffer.".Length)}>", structId);
+                    else if (structName is "type.ByteAddressBuffer" or "type.RWByteAddressBuffer")
+                        structTypes.TryAdd(structName.Substring("type.".Length), structId);
                 }
 
                 // Process OpImport*SDSL
@@ -947,6 +991,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         var baseInstructions = new HashSet<int>();
         var compositionArrayAccesses = new Dictionary<int, MixinNode>();
         ShaderInfo? currentShader = null;
+        var currentFunction = 0;
         for (var index = mixinNode.StartInstruction; index < mixinNode.EndInstruction; index++)
         {
             var i = temp[index];
@@ -1061,10 +1106,16 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
                         if (!baseMethodFound)
                             throw new InvalidOperationException($"Can't find a base method for {methodGroupEntry.Name}");
+
+                        globalContext.BaseCallTargets.Add(selectedMethod.MethodId);
                     }
 
+                    // Checked once every override is known (CheckAbstractCalls): the caller may be replaced and never run
                     if ((selectedMethod.Flags & FunctionFlagsMask.Abstract) != 0)
-                        throw new InvalidOperationException($"Trying to call an abstract method {selectedMethod.Shader.ShaderName}.{methodGroupEntry.Name}");
+                    {
+                        var callerGroup = mixinNode.MethodGroups.GetValueOrDefault(currentFunction) ?? mixinNode.Stage?.MethodGroups.GetValueOrDefault(currentFunction);
+                        globalContext.AbstractCalls.Add((currentFunction, callerGroup, $"{currentShader.ShaderName}.{context.Names[currentFunction]}", $"{selectedMethod.Shader.ShaderName}.{methodGroupEntry.Name}"));
+                    }
                     functionId = selectedMethod.MethodId;
 
                     memberAccesses.Add(memberAccess.ResultId, functionId);
@@ -1076,9 +1127,10 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
                 SetOpNop(i.Data.Memory.Span);
             }
-            else if (i.Data.Op == Op.OpFunction && (OpFunction)i is { } function && temp[index + 1].Op == Op.OpFunctionMetadataSDSL && (OpFunctionMetadataSDSL)temp[index + 1] is { } functionInfo)
+            else if (i.Data.Op == Op.OpFunction && (OpFunction)i is { } function)
             {
-                if (!mixinNode.MethodGroups.TryGetValue(function.ResultId, out var methodGroupEntry))
+                currentFunction = function.ResultId;
+                if (temp[index + 1].Op == Op.OpFunctionMetadataSDSL && !mixinNode.MethodGroups.ContainsKey(function.ResultId))
                     throw new InvalidOperationException($"Can't find method group info for {context.Names[function.ResultId]}");
             }
             else if (i.Data.Op == Op.OpFunctionEnd)
@@ -1090,6 +1142,27 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         }
     }
 
+
+    /// <summary>
+    /// A call to an abstract method no shader implements is an error, unless the calling method is replaced by an override and no
+    /// <c>base.</c> call reaches it: its body never runs (FilterBase.Shading calls abstract Filter, AddonKeyingBase replaces Shading).
+    /// The call is removed with the unused code.
+    /// </summary>
+    private static bool CheckAbstractCalls(MixinGlobalContext globalContext, ILogger log)
+    {
+        var result = true;
+        var reported = new HashSet<(string, string)>();
+        foreach (var (caller, callerGroup, callerName, method) in globalContext.AbstractCalls)
+        {
+            var replaced = callerGroup != null && callerGroup.Methods[^1].MethodId != caller && !globalContext.BaseCallTargets.Contains(caller);
+            if (!replaced && reported.Add((callerName, method)))
+            {
+                log.Error(string.Format(SDSLErrorMessages.SDSL0166, callerName, method));
+                result = false;
+            }
+        }
+        return result;
+    }
 
     static void SetOpNop(Span<int> words)
     {
@@ -1237,11 +1310,22 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         }
         SpirvBuilder.RemapIds(temp, 0, temp.Count, remapIds);
 
+        // A parameter semantic is stored as a member decoration of its function: the entry point wrapper consumes those of the entry
+        // points, the others (helpers: HLSL ignores them) must not reach the output, where they are invalid
+        var functionIds = new HashSet<int>();
+        foreach (var i in temp)
+        {
+            if (i.Op == Op.OpFunction && i.Data.IdResult is int functionId)
+                functionIds.Add(functionId);
+        }
+
         // Remove in a single pass (we do in-place without RemoveAt otherwise it would be up to O(n^2) complexity)
         RemoveInstructionWhere(temp, i =>
         {
             // Remove Nop
             if (i.Op == Op.OpNop)
+                return true;
+            if (i.Op == Op.OpMemberDecorateString && (Decoration)i.Data.Memory.Span[3] == Decoration.UserSemantic && functionIds.Contains(i.Data.Memory.Span[1]))
                 return true;
             // Also remove some other SDSL specific operators (that we keep late mostly for debug purposes)
             if (i.Op == Op.OpShaderSDSL
@@ -1262,7 +1346,9 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
                     or Decoration.ShaderConstantSDSL
                     or Decoration.PatchConstantFuncSDSL
                     or Decoration.LinkIdSDSL or Decoration.LinkSDSL or Decoration.ColorSDSL or Decoration.LogicalGroupSDSL or Decoration.ResourceGroupSDSL or Decoration.ResourceGroupIdSDSL
-                    or Decoration.SamplerStateSDSL)
+                    or Decoration.SamplerStateSDSL
+                    // Matrix layout of a member variable (moved to the Globals cbuffer); only valid on struct members in SPIR-V
+                    or Decoration.RowMajor or Decoration.ColMajor)
                 return true;
             if ((i.Op == Op.OpMemberDecorate || i.Op == Op.OpMemberDecorateString) && (Decoration)i.Data.Memory.Span[3] is Decoration.LinkIdSDSL or Decoration.LinkSDSL or Decoration.ColorSDSL or Decoration.LogicalGroupSDSL or Decoration.ResourceGroupSDSL)
                 return true;

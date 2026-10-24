@@ -66,19 +66,31 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           DOTNET_NUGET_SIGNATURE_VERIFICATION: "false"
+          # Event data through the environment, never spliced into the script
+          HEAD_REPO: ${{ github.event.workflow_run.head_repository.full_name }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
         run: |
           cli="sources/tests/Stride.ScreenshotComparator.VisionGate/Stride.ScreenshotComparator.VisionGate.csproj"
           rc=0
           shopt -s nullglob
           captured=false
+          # Failed frames, one per line, for the status description
+          failures="$RUNNER_TEMP/vision-gate-failures.txt"
+          : > "$failures"
+          echo "failures=$failures" >> "$GITHUB_OUTPUT"
 
-          # Golds from the PR when its checkout succeeded, else the base ones.
+          # Golds from the PR when its checkout succeeded, else the base ones. The summary links to the ones used.
           if [ "${{ steps.pr-golds.outcome }}" = "success" ]; then
             golds="pr-golds"
+            golds_url="https://github.com/$HEAD_REPO/blob/$HEAD_SHA"
           else
             echo "::warning::PR gold checkout failed; judging against the base golds"
             golds="."
+            golds_url="https://github.com/$GITHUB_REPOSITORY/blob/$(git rev-parse HEAD)"
           fi
+          report=(--summary "$GITHUB_STEP_SUMMARY" --failures "$failures")
 
           # Enduser sample captures → committed sample fixtures as gold (gameplay vision prompt).
           enduser_baseline="$golds/tests/enduser/Stride.Samples.Tests/Fixtures"
@@ -87,7 +99,8 @@ jobs:
             captured=true
             echo "::group::vision gate over $d"
             dotnet run --project "$cli" -nr:false -v:m -p:WarningLevel=0 -- \
-              --new "$d" --baseline "$enduser_baseline" || rc=1
+              --new "$d" --baseline "$enduser_baseline" "${report[@]}" \
+              --baseline-url "$golds_url/tests/enduser/Stride.Samples.Tests/Fixtures" || rc=1
             echo "::endgroup::"
           done
 
@@ -105,9 +118,21 @@ jobs:
             captured=true
             echo "::group::vision gate over $d (baseline dpi=$dpi)"
             dotnet run --project "$cli" -nr:false -v:m -p:WarningLevel=0 -- \
-              --new "$d" --baseline "$golds/tests/editor/baselines/$dpi" --prompt editor || rc=1
+              --new "$d" --baseline "$golds/tests/editor/baselines/$dpi" --prompt editor "${report[@]}" \
+              --baseline-url "$golds_url/tests/editor/baselines/$dpi" || rc=1
             echo "::endgroup::"
           done
+
+          # Under the tables, when a frame was judged
+          if [ -s "$GITHUB_STEP_SUMMARY" ]; then
+            {
+              echo "Captures: the artifacts of the [screenshot run]($RUN_URL), or"
+              echo
+              echo '```'
+              echo "gh run download $RUN_ID -R $GITHUB_REPOSITORY -n <artifact>"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
 
           if [ "$captured" = false ]; then
             # No screenshots-* artifacts → no screenshot suite ran (or it ran with nothing deferred):
@@ -127,14 +152,26 @@ jobs:
         with:
           script: |
             const ok = '${{ steps.gate.outputs.result }}' === '0';
+            // Names the failed frames (read from the file, as they come from the PR's artifacts); a status
+            // description holds 140 characters
+            const fs = require('fs');
+            const file = '${{ steps.gate.outputs.failures }}';
+            const failed = file && fs.existsSync(file)
+              ? [...new Set(fs.readFileSync(file, 'utf8').split('\n').map(x => x.trim()).filter(x => x))]
+              : [];
+            let description = ok
+              ? 'Deferred frames resolved (or nothing was deferred)'
+              : failed.length > 0
+                ? `Failed: ${failed.join(', ')}`
+                : 'Deferred frame(s) failed the vision re-judge';
+            if (description.length > 140)
+              description = description.slice(0, 137) + '...';
             await github.rest.repos.createCommitStatus({
               owner: context.repo.owner, repo: context.repo.repo,
               sha: context.payload.workflow_run.head_sha,
               context: 'Screenshot Vision Gate',
               state: ok ? 'success' : 'failure',
               target_url: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
-              description: ok
-                ? 'Deferred frames resolved (or nothing was deferred)'
-                : 'Deferred frame(s) failed the vision re-judge',
+              description,
             });
             if (!ok) core.setFailed('Screenshot Vision Gate failed');

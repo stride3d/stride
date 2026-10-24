@@ -1,0 +1,21 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Graphics.Tests
+{
+    /// <summary>
+    /// Increments each element of a read-write structured buffer, last element first: the first thread groups read
+    /// what the last thread groups of a previous dispatch wrote.
+    /// </summary>
+    internal shader UnorderedAccessReverseIncrementTestShader : ComputeShaderBase
+    {
+        stage RWStructuredBuffer<uint> Data;
+        stage uint Count;
+
+        override void Compute()
+        {
+            uint index = Count - 1 - streams.DispatchThreadId.x;
+            Data[index] = Data[index] + 1;
+        }
+    };
+}

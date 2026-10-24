@@ -72,8 +72,8 @@ public static class AssetQuantumRegistry
         if (!RegisteredAssemblies.Add(assembly))
             return;
 
-        // Read the precomputed scan index instead of reflecting over every type: the assembly processor
-        // already buckets the [AssemblyScan] graph attributes, so this skips loading unrelated types (some
+        // Read the precomputed scan index instead of reflecting over every type: the Roslyn source generator
+        // buckets the [AssemblyScan] graph attributes, so this skips loading unrelated types (some
         // assemblies, e.g. Stride.Assets referencing MSBuild, can't fully load all their types in every host).
         var scanTypes = AssemblyRegistry.GetScanTypes(assembly);
         if (scanTypes is null)

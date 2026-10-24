@@ -33,8 +33,12 @@ namespace Stride.Graphics;
 ///   </para>
 ///   <para>
 ///     Each field says what Stride can use on this device with this graphics backend. When the backend does not
-///     implement something, it reports <see langword="false"/> or <see cref="MultisampleCount.None"/>, even if the
-///     GPU supports it.
+///     implement something, it reports <see langword="false"/>, <see cref="MultisampleCount.None"/>,
+///     <see cref="BindlessTier.None"/> or 0, even if the GPU supports it.
+///   </para>
+///   <para>
+///     On Direct3D, the fields that need a shader model are also limited to what effects compiled for
+///     the effect profile can use. The device can run at a higher level than that profile.
 ///   </para>
 /// </remarks>
 public partial struct GraphicsDeviceFeatures
@@ -53,6 +57,10 @@ public partial struct GraphicsDeviceFeatures
     /// <remarks>
     ///   This may differ from <see cref="RequestedProfile"/> if the <see cref="GraphicsDevice"/> could not be created
     ///   with that requested profile. This one represents the closest supported profile.
+    ///   <para>
+    ///     Vulkan has no feature levels. On Vulkan this is the requested profile, and the other fields come from the
+    ///     features of the Vulkan device.
+    ///   </para>
     /// </remarks>
     /// <seealso cref="GraphicsProfile"/>
     public readonly GraphicsProfile CurrentProfile;
@@ -178,6 +186,47 @@ public partial struct GraphicsDeviceFeatures
     public readonly bool HasPixelShaderUnorderedAccess;
 
     /// <summary>
+    ///   The level of bindless access (shaders index a large array of textures) that Stride can use on this device.
+    /// </summary>
+    /// <remarks>
+    ///   <see cref="BindlessTier.None"/> when the graphics backend does not implement bindless access, even if the GPU
+    ///   supports it. The device log shows the GPU level next to this one.
+    /// </remarks>
+    public readonly BindlessTier BindlessTier;
+
+    /// <summary>
+    ///   The maximum number of sampled textures in one bindless array, for the shader stage with the lowest limit.
+    /// </summary>
+    /// <remarks>
+    ///   0 when <see cref="BindlessTier"/> is <see cref="BindlessTier.None"/>.
+    /// </remarks>
+    public readonly int MaxBindlessSampledTextureCount;
+
+    /// <summary>
+    ///   What the GPU supports for bindless access, whether or not the backend uses it.
+    /// </summary>
+    internal readonly BindlessSupport GpuBindless;
+
+    /// <summary>
+    ///   Limits the features that need a shader model to what effects compiled for <paramref name="effectProfile"/> can use.
+    /// </summary>
+    internal readonly GraphicsDeviceFeatures LimitedTo(GraphicsProfile effectProfile) => new(this, effectProfile);
+
+    private GraphicsDeviceFeatures(in GraphicsDeviceFeatures deviceFeatures, GraphicsProfile effectProfile)
+    {
+        this = deviceFeatures;
+
+#if STRIDE_GRAPHICS_API_DIRECT3D
+        // Direct3D compiles effects for the shader model of the effect profile
+        HasComputeShaders &= effectProfile >= GraphicsProfile.Level_10_0;
+        HasGeometryShaders &= effectProfile >= GraphicsProfile.Level_10_0;
+        HasDoublePrecision &= effectProfile >= GraphicsProfile.Level_11_0;
+        HasPixelShaderUnorderedAccess &= effectProfile >= GraphicsProfile.Level_11_0;
+        HasMultiSampleDepthAsSRV &= effectProfile >= GraphicsProfile.Level_11_0;
+#endif
+    }
+
+    /// <summary>
     ///   Queries the features the <see cref="GraphicsDevice"/> supports for the specified <see cref="PixelFormat"/>.
     /// </summary>
     /// <param name="pixelFormat">The pixel format.</param>
@@ -245,6 +294,8 @@ public partial struct GraphicsDeviceFeatures
                $"HasDepthAsSRV: {HasDepthAsSRV}, HasDepthAsReadOnlyRT: {HasDepthAsReadOnlyRT}, " +
                $"HasMultiSampleDepthAsSRV: {HasMultiSampleDepthAsSRV}, HasResourceRenaming: {HasResourceRenaming}, " +
                $"HasIndex32Bits: {HasIndex32Bits}, HasGeometryShaders: {HasGeometryShaders}, " +
-               $"HasPixelShaderUnorderedAccess: {HasPixelShaderUnorderedAccess}";
+               $"HasPixelShaderUnorderedAccess: {HasPixelShaderUnorderedAccess}, " +
+               $"BindlessTier: {BindlessTier} (GPU: {GpuBindless.Tier}{(GpuBindless.Detail is null ? "" : $", {GpuBindless.Detail}")}), " +
+               $"MaxBindlessSampledTextureCount: {MaxBindlessSampledTextureCount} (GPU: {GpuBindless.MaxSampledTextureCount})";
     }
 }

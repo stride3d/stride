@@ -53,7 +53,6 @@ public unsafe partial struct GraphicsDeviceFeatures
         mapFeaturesPerFormat = new FeaturesPerFormat[256];
 
         // Set back the real GraphicsProfile that is used
-        // TODO D3D12
         RequestedProfile = device.RequestedProfile;
         CurrentProfile = GraphicsProfileHelper.FromFeatureLevel(device.CurrentFeatureLevel);
 
@@ -67,6 +66,9 @@ public unsafe partial struct GraphicsDeviceFeatures
             result.Throw();
 
         HasDoublePrecision = d3D12Options.DoublePrecisionFloatShaderOps;
+
+        // The GPU level, for the log; BindlessTier is what the backend uses
+        GpuBindless = GetD3D12BindlessSupport((int)d3D12Options.ResourceBindingTier);
 
         // TODO: D3D12: Confirm these are correct
         // Some docs: https://msdn.microsoft.com/en-us/library/windows/desktop/ff476876(v=vs.85).aspx
@@ -161,7 +163,14 @@ public unsafe partial struct GraphicsDeviceFeatures
                 formatSupport = (FormatSupport) formatSupportData.Support1;
                 csFormatSupport = (ComputeShaderFormatSupport) formatSupportData.Support2;
 
-                maximumMultisampleCount = GetMaximumMultisampleCount(format);
+                // Only 2D textures can be multisampled, and sampler feedback maps can't. Asking for the quality levels
+                // of other formats removes the device on some drivers (Intel Arc, 32.0.101.8132: FormatUnknown, the
+                // sampler feedback formats); the others answer 1 sample. Not the multisample flags of Support1:
+                // typeless formats report none but can be multisampled.
+                bool canBeMultisampled = (formatSupportData.Support1 & FormatSupport1.Texture2D) != 0 &&
+                                         (formatSupportData.Support2 & FormatSupport2.SamplerFeedback) == 0;
+
+                maximumMultisampleCount = canBeMultisampled ? GetMaximumMultisampleCount(format) : MultisampleCount.None;
             }
         }
     }

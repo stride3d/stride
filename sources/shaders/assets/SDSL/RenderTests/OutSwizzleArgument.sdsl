@@ -1,0 +1,52 @@
+// PSMain(ExpectedResult=#336699FF)
+
+namespace Stride.Shaders.Tests;
+
+// A swizzle given for an out or inout parameter: the value is written back through the swizzle after the call, as in DXC
+shader OutSwizzleArgument
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    void Fill(out float2 value)
+    {
+        value = float2(0.25, 0.5);
+    }
+
+    void Twice(inout float2 value)
+    {
+        value *= 2;
+    }
+
+    void Round(out float2 value)
+    {
+        value = float2(1.5, 2.5);
+    }
+
+    void PSMain()
+    {
+        // Vector swizzles, in another order than the vector, and in parentheses
+        float4 v = 1;
+        Fill(v.wy);
+        float4 w = float4(0.1, 0.15, 0.3, 0.5);
+        Twice(w.wz);
+        float4 p = 0;
+        Fill((p.zx));
+        bool vectors = all(v == float4(1, 0.5, 1, 0.25)) && all(w == float4(0.1, 0.15, 0.6, 1)) && all(p == float4(0.5, 0, 0.25, 0));
+
+        // A matrix swizzle, and a swizzle of a matrix row
+        float3x3 m = 0;
+        m[2] = float3(0.1, 9, 0.3);
+        Fill(m._m01_m10);
+        Twice(m[2].zx);
+        bool matrices = m[0][1] == 0.25 && m[1][0] == 0.5 && all(m[2] == float3(0.2, 9, 0.6)) && m[0][0] == 0;
+
+        // The value is converted to the swizzle's type; an intrinsic's out parameters take swizzles too
+        int4 n = 0;
+        Round(n.zx);
+        float4 sc = 0;
+        sincos(float2(0, 0), sc.xz, sc.yw);
+        bool others = all(n == int4(2, 0, 1, 0)) && all(sc == float4(0, 1, 0, 1));
+
+        streams.ColorTarget = float4(vectors ? 0.2 : 0, matrices ? 0.4 : 0, others ? 0.6 : 0, 1);
+    }
+};

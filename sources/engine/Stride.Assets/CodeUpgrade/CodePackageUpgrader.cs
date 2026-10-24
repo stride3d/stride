@@ -74,7 +74,7 @@ public abstract class CodePackageUpgrader : PackageUpgrader, ICodeUpgradeProvide
         try
         {
             project = VSProjectHelper.LoadProject(projectFullPath.ToOSPath());
-            var context = new ProjectUpgradeContext(project, solutionProject, projectFullPath, log);
+            var context = new ProjectUpgradeContext(project, solutionProject, projectFullPath, log) { Backup = session.UpgradeBackup };
 
             foreach (var registration in applicable)
                 registration.Upgrade(context);

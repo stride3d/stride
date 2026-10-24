@@ -29,6 +29,7 @@
     <Compile Include="RenderFeatureTests.cs" />
     <Compile Include="EntityUpdateEngineTest.cs" />
     <Compile Include="AnimatedModelTests.cs" />
+    <Compile Include="MorphTargetTests.cs" />
     <Compile Include="EventSystemTests.cs" />
     <Compile Include="SpriteProviderTests.cs" />
     <Compile Include="SpriteRenderer2DTests.cs" />
@@ -44,6 +45,7 @@
     <Compile Include="TestEntityManager.Benchmark.cs" />
     <Compile Include="TestEntityManager.cs" />
     <Compile Include="TestCameraProcessor.cs" />
+    <Compile Include="TestPreferredGraphicsProfiles.cs" />
     <Compile Include="TestTransformComponent.cs" />
     <Compile Include="TestUpdateEngine.cs" />
     <None Include="Build\TestSerializer.cs" />

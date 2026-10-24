@@ -14,6 +14,24 @@ namespace Stride.GameStudio.Logs
         {
         }
         
+        /// <summary>
+        /// Shows what <paramref name="logger"/> logs from now on, unless it is shown already.
+        /// </summary>
+        public void EnsureLogger(Logger logger)
+        {
+            if (!Loggers.ContainsKey(logger))
+                AddLogger(logger);
+        }
+
+        /// <summary>
+        /// Shows what <paramref name="logger"/> logged and logs from now on, unless it is shown already.
+        /// </summary>
+        public void EnsureLoggerWithPast(LoggerResult logger)
+        {
+            if (!Loggers.ContainsKey(logger))
+                AddLoggerWithPast(logger);
+        }
+
         public void ForwardSerializableLog(SerializableLogMessage message)
         {
             foreach (var logger in Loggers.Keys)

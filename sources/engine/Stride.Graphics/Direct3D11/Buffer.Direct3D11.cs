@@ -53,6 +53,11 @@ namespace Stride.Graphics
             InitCountAndViewFormat(out elementCount, ref viewFormat);
             ViewFormat = viewFormat;
 
+            // Direct3D 11 has typed UAVs only from feature level 11_0, and only for some formats; otherwise creating the view fails with E_INVALIDARG.
+            bool isTypedUnorderedAccess = viewFlags.HasFlag(BufferFlags.UnorderedAccess) && viewFormat != PixelFormat.None && !viewFlags.HasFlag(BufferFlags.RawBuffer);
+            if (isTypedUnorderedAccess && !GraphicsDevice.Features[viewFormat].FormatSupport.HasFlag(FormatSupport.TypedUnorderedAccessView))
+                throw new NotSupportedException($"This device has no typed unordered access for {viewFormat} (RWBuffer<T> in a shader). Typed UAVs need {GraphicsProfile.Level_11_0} or later; the device runs {GraphicsDevice.Features.CurrentProfile}.");
+
             var subresourceData = dataPointer != 0 ? new SubresourceData(dataPointer.ToPointer()) : default;
 
             var buffer = NullComPtr<ID3D11Buffer>();

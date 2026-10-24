@@ -368,8 +368,9 @@ partial class PackageSession
             // A dev-redirect stub (source checkout, StrideDevPackages) ships the packed sdpkg but none of its
             // assets: those, and the shader sources, are read live from the checkout project, through the
             // project's own sdpkg, so an edited engine asset or shader reaches a game's build with no
-            // regeneration. The packed sdpkg still names the asset assemblies (resolved above). The asset
-            // namespace and companions come from the project's build manifest (the stub can be stale), else the stub.
+            // regeneration. The packed sdpkg still names the asset assemblies (resolved above), loaded from the
+            // checkout's build when there is one. The asset namespace and companions come from the project's build
+            // manifest (the stub can be stale), else the stub.
             var devProjectDirectory = NugetStore.TryGetDevRedirectProjectDirectory(libraryPath, library.Name);
             var sourceSdpkgPath = devProjectDirectory is null ? null : Path.Combine(devProjectDirectory, library.Name + Package.PackageFileExtension);
             if (sourceSdpkgPath is not null && File.Exists(sourceSdpkgPath))
@@ -390,6 +391,7 @@ partial class PackageSession
                 {
                     package.AssetNamespace ??= PackageContainer.ResolveAssetNamespace(manifest.AssetNamespace, package.Meta.Name);
                     package.SetCompanionDeclarations(manifest, Path.GetDirectoryName(manifestFile)!);
+                    hostAssetAssemblies = WithDevBuildAssemblies(hostAssetAssemblies, manifest, manifestFile);
                 }
                 else
                 {

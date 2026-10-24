@@ -208,6 +208,10 @@ namespace Stride.Assets.Skyboxes
                 }
             }
 
+            // Each mip-level was read as the next one's input, except the last one, still a render target:
+            // the prefiltering passes sample the whole texture
+            context.RenderDrawContext.CommandList.ResourceBarrierTransition(mipped, BarrierLayout.ShaderResource);
+
             return mipped;
         }
 

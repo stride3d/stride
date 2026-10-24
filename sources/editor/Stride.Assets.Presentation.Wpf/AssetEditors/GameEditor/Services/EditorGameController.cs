@@ -425,7 +425,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Services
 
         /// <summary>
         /// Creates the services declared for this controller by <see cref="EditorGameServiceAttribute"/> in every asset
-        /// assembly (from the assembly processor's scan index). Override to fetch the ones the controller keeps a reference to.
+        /// assembly through its source-generated scan index. Override to fetch the ones the controller keeps a reference to.
         /// </summary>
         protected virtual void InitializeServices([NotNull] EditorGameServiceRegistry services)
         {

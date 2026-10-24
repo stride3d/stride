@@ -42,11 +42,14 @@ internal static class ReadWriteAnalyzer
         var streams = analysisResult.Streams;
         var variables = analysisResult.Variables;
         var accessChainBases = new Dictionary<int, (int Base, StreamsKindSDSL? StreamKind)>();
+        (int File, int Line, int Column)? currentLine = null;
 
         foreach (ref var i in CollectionsMarshal.AsSpan(methodInstructions))
         {
+            if (i.Op is Op.OpLine && new OpLine(ref i) is { } line)
+                currentLine = (line.File, line.Line, line.Column);
             // Check for any Streams variable
-            if (i.Op is Op.OpFunction && new OpFunction(ref i) is { } function)
+            else if (i.Op is Op.OpFunction && new OpFunction(ref i) is { } function)
             {
                 var functionType = (FunctionType)context.ReverseTypes[function.FunctionType];
                 var streamsTypeSearch = new StreamsTypeSearch();
@@ -114,11 +117,13 @@ internal static class ReadWriteAnalyzer
                             // Remember who read it first (before any write) for diagnostics: if this stream ends up
                             // with no producer and no semantic, we can point at the method that expects it.
                             streamInfo.ReadByMethod ??= context.Names.TryGetValue(functionId, out var readerName) ? readerName : null;
+                            if (currentLine is { } readLine && context.GetBuffer().TryGetInstructionById(readLine.File, out var file) && file.Op == Op.OpString)
+                                streamInfo.ReadAt ??= $"{((OpString)file).Value}({readLine.Line},{readLine.Column}): ";
                         }
                     }
                 }
                 if (variables.TryGetValue(accessChain.Base, out var variableInfo))
-                    variableInfo.UsedThisStage = true;
+                    MarkVariableUsed(variableInfo);
                 if (analysisResult.Resources.TryGetValue(accessChain.Base, out var resourceInfo))
                     resourceInfo.UsedThisStage = true;
                 if (analysisResult.CBuffers.TryGetValue(accessChain.Base, out var cbufferInfo))
@@ -140,7 +145,7 @@ internal static class ReadWriteAnalyzer
                     streamInfo.Write = true;
                 }
                 if (variables.TryGetValue(accessChain.Base, out var variableInfo))
-                    variableInfo.UsedThisStage = true;
+                    MarkVariableUsed(variableInfo);
                 if (analysisResult.Resources.TryGetValue(accessChain.Base, out var resourceInfo))
                     resourceInfo.UsedThisStage = true;
                 if (analysisResult.CBuffers.TryGetValue(accessChain.Base, out var cbufferInfo))
@@ -159,7 +164,7 @@ internal static class ReadWriteAnalyzer
                 if (!accessChainBases.TryGetValue(pointer, out var atomicAccessChain))
                     atomicAccessChain.Base = pointer;
                 if (variables.TryGetValue(atomicAccessChain.Base, out var variableInfo2))
-                    variableInfo2.UsedThisStage = true;
+                    MarkVariableUsed(variableInfo2);
                 if (analysisResult.Resources.TryGetValue(atomicAccessChain.Base, out var resourceInfo2))
                     resourceInfo2.UsedThisStage = true;
                 if (analysisResult.CBuffers.TryGetValue(atomicAccessChain.Base, out var cbufferInfo2))
@@ -170,7 +175,7 @@ internal static class ReadWriteAnalyzer
                 // OpArrayLength directly references the struct variable pointer (word 3)
                 var structureId = i.Memory.Span[3];
                 if (variables.TryGetValue(structureId, out var variableInfo3))
-                    variableInfo3.UsedThisStage = true;
+                    MarkVariableUsed(variableInfo3);
                 if (analysisResult.Resources.TryGetValue(structureId, out var resourceInfo3))
                     resourceInfo3.UsedThisStage = true;
             }
@@ -229,7 +234,7 @@ internal static class ReadWriteAnalyzer
                     if (analysisResult.Resources.TryGetValue(argId, out var argResourceInfo))
                         argResourceInfo.UsedThisStage = true;
                     if (variables.TryGetValue(argId, out var argVariableInfo))
-                        argVariableInfo.UsedThisStage = true;
+                        MarkVariableUsed(argVariableInfo);
                     if (analysisResult.CBuffers.TryGetValue(argId, out var argCBufferInfo))
                         argCBufferInfo.UsedThisStage = true;
                 }
@@ -240,6 +245,15 @@ internal static class ReadWriteAnalyzer
         }
 
         return methodInfo.HasStreamAccess;
+
+        // The entry point wrapper calls a used variable's initializer method, so what the initializer reads is used too
+        // (a uniform's initializer is a constant: its default value)
+        void MarkVariableUsed(VariableInfo variableInfo)
+        {
+            variableInfo.UsedThisStage = true;
+            if (variableInfo.VariableMethodInitializerId is int initializerId && variableInfo.Type.StorageClass != StorageClass.Uniform)
+                AnalyzeStreamReadWrites(buffer, context, initializerId, analysisResult, liveAnalysis);
+        }
     }
 
     internal class StreamsTypeSearch : TypeWalker

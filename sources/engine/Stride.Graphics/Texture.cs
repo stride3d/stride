@@ -320,6 +320,11 @@ namespace Stride.Graphics
         internal Texture ParentTexture { get; private set; }
 
         /// <summary>
+        ///   Gets the Texture that holds the state of this Texture: its parent if this is a Texture View, otherwise itself.
+        /// </summary>
+        internal Texture RootTexture => ParentTexture ?? this;
+
+        /// <summary>
         ///   Gets the total amount of memory allocated by the Texture in bytes.
         /// </summary>
         internal int SizeInBytes { get; private set; }
@@ -1924,6 +1929,38 @@ namespace Stride.Graphics
                     mipCount = 0;
                     break;
             }
+        }
+
+        /// <summary>
+        ///   Gets the mip-levels and array slices this Texture View accesses, as a range of the sub-Resources of the
+        ///   Texture (see <see cref="GetSubResourceIndex"/>).
+        /// </summary>
+        internal TextureSubresourceRange GetViewSubResourceRange()
+        {
+            int arraySlice = ArraySlice;
+            int mipLevel = MipLevel;
+            GetViewSliceBounds(ViewType, ref arraySlice, ref mipLevel, out var arraySliceCount, out var mipCount);
+
+            return Dimension == TextureDimension.Texture3D
+                ? new TextureSubresourceRange(mipLevel, mipCount, ArraySliceStart: 0, ArraySliceCount: 1)
+                : new TextureSubresourceRange(mipLevel, mipCount, arraySlice, arraySliceCount);
+        }
+
+        /// <summary>
+        ///   Gets the sub-Resources of the parent Texture a barrier on this Texture View moves.
+        /// </summary>
+        /// <returns>
+        ///   The range of the View, or <see langword="null"/> for the whole Texture: this is not a View, the View covers
+        ///   the whole Texture, or the Texture is a depth-stencil (its stencil plane has its own sub-Resources, which the
+        ///   layout tracker does not know).
+        /// </returns>
+        internal TextureSubresourceRange? GetBarrierRange()
+        {
+            if (ParentTexture is not { } parent || parent.IsDepthStencil)
+                return null;
+
+            var range = GetViewSubResourceRange();
+            return range.CoversWhole(parent) ? null : range;
         }
 
         /// <summary>

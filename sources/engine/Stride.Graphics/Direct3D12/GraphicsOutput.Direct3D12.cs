@@ -93,8 +93,6 @@ public unsafe partial class GraphicsOutput
         if (targetProfiles.IsEmpty)
             throw new ArgumentNullException(nameof(targetProfiles));
 
-        var d3d12 = D3D12.GetApi();
-
         // NOTE: Assume the same underlying integer type
         Debug.Assert(sizeof(GraphicsProfile) == sizeof(D3DFeatureLevel));
         var featureLevels = targetProfiles.As<GraphicsProfile, D3DFeatureLevel>();
@@ -109,7 +107,7 @@ public unsafe partial class GraphicsOutput
             var featureLevelToTry = featureLevels[i];
 
             // Create Device D3D12 with feature Level based on profile
-            result = d3d12.CreateDevice(nativeAdapter, featureLevelToTry, out deviceTemp);
+            result = D3D12Runtime.CreateDevice(nativeAdapter, featureLevelToTry, out deviceTemp);
 
             if (result.IsSuccess)
                 break;
@@ -157,13 +155,11 @@ public unsafe partial class GraphicsOutput
     /// <returns>The current <see cref="DisplayMode"/> of the output, or <see langword="null"/> if couldn't be determined.</returns>
     private DisplayMode? GetCurrentDisplayMode()
     {
-        var d3d12 = D3D12.GetApi();
-
         // Try to create a dummy ID3D12Device with no consideration to Graphics Profiles, etc.
         // We only want to get missing information about the current display irrespective of graphics profiles
         var unspecifiedAdapter = ComPtrHelpers.NullComPtr<IUnknown>();
         D3DFeatureLevel selectedLevel = 0;
-        HResult result = d3d12.CreateDevice(unspecifiedAdapter, selectedLevel, out ComPtr<ID3D12Device> deviceTemp);
+        HResult result = D3D12Runtime.CreateDevice(unspecifiedAdapter, selectedLevel, out ComPtr<ID3D12Device> deviceTemp);
 
         if (result.IsFailure)
         {

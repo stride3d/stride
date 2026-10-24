@@ -16,49 +16,59 @@ public class EffectGenerator : IIncrementalGenerator
                 .AdditionalTextsProvider
                 .Where(x => Path.GetExtension(x.Path).ToLowerInvariant() is ".sdfx" or ".sdsl");
 
-        context.RegisterSourceOutput(shaderFiles, GenerateShaderKeysAndEffects);
+        // The C# types the struct keys can use: the candidate full names of every file, then the ones the compilation has. The
+        // answer is a string, so a C# change regenerates the keys only when the answer changes.
+        var candidates = shaderFiles.Select((file, _) => string.Join("\n", Generate(file, null).Candidates));
+        var existingTypes = candidates.Collect().Combine(context.CompilationProvider).Select((x, _) => string.Join("\n", x.Left
+            .SelectMany(names => names.Split('\n'))
+            .Where(name => name.Length > 0 && x.Right.GetTypeByMetadataName(name) != null)
+            .Distinct()
+            .OrderBy(name => name, StringComparer.Ordinal)));
+
+        context.RegisterSourceOutput(shaderFiles.Combine(existingTypes), (output, x) =>
+        {
+            var existing = new HashSet<string>(x.Right.Split('\n'));
+            output.AddSource(GetSafeHintName(x.Left.Path), Generate(x.Left, existing.Contains).Text);
+        });
     }
 
-    private void GenerateShaderKeysAndEffects(SourceProductionContext arg1, AdditionalText arg2)
+    /// <summary>
+    /// Generates the keys and effects of a shader file.
+    /// </summary>
+    /// <param name="csharpTypeExists">Whether a C# type exists, by full name, for the keys of struct type (see <see cref="EffectCodeWriter.CSharpTypeExists"/>).</param>
+    /// <returns>The code, and the full names the C# types of its struct keys can have.</returns>
+    public static (string Text, IEnumerable<string> Candidates) Generate(AdditionalText file, Func<string, bool>? csharpTypeExists)
     {
-        var filename = GetSafeHintName(arg2.Path);
-        var isSdfx = Path.GetExtension(arg2.Path).Equals(".sdfx", StringComparison.OrdinalIgnoreCase);
+        var isSdfx = Path.GetExtension(file.Path).Equals(".sdfx", StringComparison.OrdinalIgnoreCase);
 
         try
         {
-            var preprocessedText = MonoGamePreProcessor.Run(arg2.GetText()?.ToString() ?? throw new InvalidOperationException($"Could not read file content for {arg2.Path}"), arg2.Path);
+            var preprocessedText = MonoGamePreProcessor.Run(file.GetText()?.ToString() ?? throw new InvalidOperationException($"Could not read file content for {file.Path}"), file.Path);
             var parsed = SDSLParser.Parse(preprocessedText);
             if (parsed.Errors.Count > 0)
             {
                 var sb = new StringBuilder();
                 foreach (var error in parsed.Errors)
                     sb.AppendLine($"#error Parse error: {error}");
-                arg1.AddSource(filename, sb.ToString());
-                return;
+                return (sb.ToString(), []);
             }
             else if (parsed.AST == null)
             {
-                arg1.AddSource(filename, "#error No AST parsed");
-                return;
+                return ("#error No AST parsed", []);
             }
 
             // .sdfx files must declare 'effect', not 'shader' — catch the mistake here
             // instead of silently emitting unbuildable C#.
             if (isSdfx && parsed.AST is Parsing.ShaderFile sdfxFile && HasShaderClassDeclaration(sdfxFile))
-            {
-                arg1.AddSource(filename, $"#error '{Path.GetFileName(arg2.Path)}' contains a 'shader' declaration. Use 'effect' (or 'partial effect') inside .sdfx files; 'shader' / 'partial shader' belongs in .sdsl.");
-                return;
-            }
+                return ($"#error '{Path.GetFileName(file.Path)}' contains a 'shader' declaration. Use 'effect' (or 'partial effect') inside .sdfx files; 'shader' / 'partial shader' belongs in .sdsl.", []);
 
-            var effectCodeWriter = new EffectCodeWriter();
+            var effectCodeWriter = new EffectCodeWriter { CSharpTypeExists = csharpTypeExists };
             effectCodeWriter.Run(parsed.AST);
-            arg1.AddSource(filename, effectCodeWriter.Text);
+            return (effectCodeWriter.Text, effectCodeWriter.CSharpTypeCandidates);
         }
         catch (Exception e)
         {
-            var sb = new StringBuilder();
-            sb.AppendLine($"#error Exception while running {nameof(EffectGenerator)} {e}");
-            arg1.AddSource(filename, sb.ToString());
+            return ($"#error Exception while running {nameof(EffectGenerator)} {e}", []);
         }
     }
 

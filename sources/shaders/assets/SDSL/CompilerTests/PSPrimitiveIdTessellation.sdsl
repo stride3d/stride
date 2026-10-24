@@ -1,0 +1,12 @@
+// A pixel shader reads SV_PrimitiveID after tessellation, with no geometry shader.
+namespace Stride.Shaders.Tests;
+
+shader PSPrimitiveIdTessellation : HSOverrideBase
+{
+    stream uint PrimitiveId : SV_PrimitiveID;
+
+    override void PSMain()
+    {
+        streams.ColorTarget = float4(streams.PrimitiveId & 1, 0, 0, 1);
+    }
+}

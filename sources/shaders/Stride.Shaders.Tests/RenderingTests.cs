@@ -46,7 +46,7 @@ public partial class RenderingTests
     {
         // Same per-platform choices as EffectCompiler
         RendererBackend.Direct3D11 => new ShaderMixer.Options(ResourcesRegisterSeparate: true),
-        RendererBackend.Vulkan => new ShaderMixer.Options(ResourcesRegisterSeparate: false, StripGoogleUserType: true),
+        RendererBackend.Vulkan => new ShaderMixer.Options(ResourcesRegisterSeparate: false, StripGoogleUserType: true, Direct3DStructuredBufferLayout: true),
         _ => throw new NotSupportedException(),
     };
 
@@ -124,6 +124,16 @@ public partial class RenderingTests
 
             renderer.SetupTest();
             renderer.Compute();
+
+            // "expected.X": the first 32-bit words of buffer X after the dispatch, as integers
+            foreach (var (key, value) in parameters.Where(x => x.Key.StartsWith("expected.")))
+            {
+                var resourceName = key["expected.".Length..];
+                var expected = value.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(x => unchecked((int)long.Parse(x, CultureInfo.InvariantCulture))).ToArray();
+                var actual = MemoryMarshal.Cast<byte, int>(renderer.ReadBuffer(resourceName))[..expected.Length].ToArray();
+                Assert.Equal($"{resourceName}: {string.Join(" ", expected)}", $"{resourceName}: {string.Join(" ", actual)}");
+            }
+
             // Present is useful for RenderDoc and other graphics capture programs
             renderer.PresentAndFinish();
         }
@@ -179,6 +189,39 @@ public partial class RenderingTests
         File.WriteAllBytes($"{shaderName3}.spv", bytecode3);
         var validation = Spv.ValidateFile($"{shaderName3}.spv");
         Assert.True(validation.IsValid, validation.Output);
+    }
+
+    [Fact]
+    public void HelperParameterSemanticIsNotInOutput()
+    {
+        // Regression: a semantic on a parameter of a function that is not an entry point was left in the output as a member
+        // decoration of the function. That is invalid SPIR-V that the SPIRV-Tools validator doesn't report (it checks the target
+        // of OpMemberDecorate, not of OpMemberDecorateString), and spirv-opt crashed the process on it once the function was
+        // inlined and removed (LegalizeForHlsl, the Direct3D 11 path).
+        const string shaderName = "HelperParameterSemantic";
+        var shaderMixer = new ShaderMixer(new ShaderLoader("./assets/SDSL/RenderTests"));
+        shaderMixer.ShaderLoader.LoadExternalBuffer(shaderName, [], out _, out _, out _);
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(new ShaderClassSource(shaderName), new ShaderMixer.Options(true), log, out var bytecode, out _, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+
+        // Every member decoration targets a struct type
+        var words = MemoryMarshal.Cast<byte, uint>(bytecode).ToArray();
+        var structTypes = new HashSet<uint>();
+        var memberDecorationTargets = new List<uint>();
+        for (var w = 5; w < words.Length; w += (int)(words[w] >> 16))
+        {
+            var op = (Stride.Shaders.Spirv.Specification.Op)(words[w] & 0xFFFF);
+            if (op == Stride.Shaders.Spirv.Specification.Op.OpTypeStruct)
+                structTypes.Add(words[w + 1]);
+            else if (op is Stride.Shaders.Spirv.Specification.Op.OpMemberDecorate or Stride.Shaders.Spirv.Specification.Op.OpMemberDecorateString)
+                memberDecorationTargets.Add(words[w + 1]);
+        }
+        Assert.All(memberDecorationTargets, target => Assert.Contains(target, structTypes));
+
+        // Legalization inlines the helper and removes it
+        SpirvTools.LegalizeForHlsl(words);
     }
 
     [Fact]
@@ -327,8 +370,8 @@ public partial class RenderingTests
         var validationResult = Spv.ValidateFile($"{shaderName}.spv");
         Assert.True(validationResult.IsValid, validationResult.Output);
 
-        // Convert to HLSL
-        var translator = new SpirvTranslator(bytecode.ToArray().AsMemory().Cast<byte, uint>());
+        // Convert to HLSL, legalizing first like the runtime path in EffectCompiler
+        var translator = new SpirvTranslator(SpirvTools.LegalizeForHlsl(MemoryMarshal.Cast<byte, uint>(bytecode)).AsMemory());
         var entryPoints = translator.GetEntryPoints();
         var codeVS = entryPoints.Any(x => x.ExecutionModel == ExecutionModel.Vertex)
             ? translator.Translate(Backend.Hlsl, entryPoints.First(x => x.ExecutionModel == ExecutionModel.Vertex))

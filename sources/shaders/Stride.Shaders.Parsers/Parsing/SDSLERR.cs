@@ -49,7 +49,9 @@ public static class SDSLErrorMessages
     public const string SDSL0041 = "SDSL0041: Expected expression or semi colon";
     public const string SDSL0042 = "SDSL0042: Expected prefix expression";
     public const string SDSL0043 = "SDSL0043: Unexpected <EOF>";
-    public const string SDSL0044 = "SDSL0044: Use of register and packoffset keyword deprecated";
+    public const string SDSL0048 = "SDSL0048: '{0}' is a reserved word and can't be a name. Rename it";
+    public const string SDSL0049 = "SDSL0049: Code after the end of shader {0}. Only shader, effect and params declarations can follow: remove it, or move it into the shader";
+    public const string SDSL0050 = "SDSL0050: {0} {1} is declared inside {2} {3}, but it is not a member of a {2}. Move it out of the block";
 
 
     // Semantic errors
@@ -57,7 +59,7 @@ public static class SDSLErrorMessages
     public const string SDSL0100 = "SDSL0100: Variable is not declared";
     public const string SDSL0101 = "SDSL0101: Variable is already declared";
     public const string SDSL0102 = "SDSL0102: Variable is not a constant";
-    public const string SDSL0103 = "SDSL0103: Variable cannot be assigned to";
+    public const string SDSL0103 = "SDSL0103: {0} can't be assigned to: it is a value, not a variable. Assign to a variable, a member, an array element or a swizzle.";
     public const string SDSL0104 = "SDSL0104: Cannot infer type";
     public const string SDSL0105 = "SDSL0105: Unrecognized node";
     public const string SDSL0106 = "SDSL0106: Unsupported type";
@@ -71,4 +73,48 @@ public static class SDSLErrorMessages
     public const string SDSL0114 = "SDSL0114: {0}.{1}({2}) at line {3} implements abstract method {4}.{1} but is not marked 'override'. Add the 'override' keyword.";
     public const string SDSL0115 = "SDSL0115: {0}.{1}({2}) at line {3} hides inherited method {4}.{1} but is not marked 'override'. Add the 'override' keyword, or rename the method.";
     public const string SDSL0118 = "SDSL0118: {0} declares generic parameter '{1}' of type {2} at line {3}. Texture and sampler generic parameters are not supported. Declare a texture or sampler member instead, or use a ComputeColorTexture...Sampler shader with a texture key.";
+    public const string SDSL0145 = "SDSL0145: Swizzle {0} writes the same element twice. Write each element once.";
+    public const string SDSL0160 = "SDSL0160: {0} takes {1}, but the call gives {2}.";
+    public const string SDSL0161 = "SDSL0161: Argument {0} of the call to {1} has type {2}, which can't be converted to {3}.";
+    public const string SDSL0162 = "SDSL0162: No overload of {0} can take these arguments:{1}";
+    public const string SDSL0163 = "SDSL0163: The call {0} is ambiguous: these overloads match equally well:{1}\nCast the arguments to the parameter types of the one to call.";
+    public const string SDSL0170 = "SDSL0170: [StreamOutput] on {0} is not supported: Stride shaders have no geometry shader stream output. Remove the attribute; to keep generated vertices, write them to a RWStructuredBuffer from a compute shader instead.";
+    public const string SDSL0171 = "SDSL0171: Attribute [{0}] on method {1} is not supported. Remove it.";
+    public const string SDSL0172 = "SDSL0172: Stream {0} has an initial value ({1}), but a stream has none. Remove it, and assign the value in the stage that writes the stream first (streams.{0} = {1};).";
+    public const string SDSL0173 = "SDSL0173: The initial value of member {0} ({1}) is not a constant. A member's initial value is its default value, set by the application, so it must be a constant. To compute it from other members, declare it static (static {2} {0} = {1};), or compute it where it is used.";
+    public const string SDSL0174 = "SDSL0174: cbuffer {0} mixes stage and non-stage members ({1} is stage, {2} is not). Split it: declare the stage members in a second cbuffer {0} block (blocks with the same name are merged into one cbuffer).";
+    public const string SDSL0175 = "SDSL0175: {0}.{1}({2}) returns {3}, but the method it overrides, {4}.{1}({2}), returns {5}. Use the same return type.";
+    public const string SDSL0176 = "SDSL0176: {0}.{1}({2}) is marked 'override', but no inherited method has this name and these parameters. Inherited: {3}. Use the parameters of the method to override, or remove 'override'.";
+    public const string SDSL0177 = "SDSL0177: Not all code paths of {0}.{1} return a value. Add a return at the end of the method (a switch needs a default that returns).";
+    public const string SDSL0164 = "SDSL0164: Argument {0} of the call to {1} is written back (out or inout parameter), but {2} can't be written to. Pass a variable, a member, an array element, or a swizzle that names each element once.";
+    public const string SDSL0165 = "SDSL0165: composition {0} is used as a value, but a composition is a shader. Call its method instead, for example {1}.";
+    public const string SDSL0166 = "SDSL0166: {0} calls abstract method {1}, but no shader of the effect overrides it. Mix in a shader that implements {1}.";
+    public const string SDSL0156 = "SDSL0156: {0} needs {1} values, but the initializer list has {2}. As in HLSL, braces only group: the values fill {0} in order.";
+    public const string SDSL0157 = "SDSL0157: a {0} can't be in an initializer list. Only numbers, vectors, matrices, and structs and arrays of them can.";
+    public const string SDSL0155 = "SDSL0155: {0} (a matrix with one row or one column) is not supported yet. Use {1}.";
+    public const string SDSL0180 = "SDSL0180: Parameter '{0}' of {1}: {2} is not supported. Use a RWStructuredBuffer with a separate counter buffer instead.";
+    public const string SDSL0181 = "SDSL0181: Buffer parameter '{0}' of {1} is '{2}': a buffer parameter always refers to the caller's buffer, so it can't be out or inout. Remove '{2}'.";
+    public const string SDSL0195 = "SDSL0195: {0} holds an int, uint or bool matrix ({1}), which can't be in a cbuffer or a buffer yet. Use an array of {2} instead, or a float matrix; a static matrix (or a local one) works.";
+    public const string SDSL0150 = "SDSL0150: {0} has no member '{1}'. To get the size of a buffer, call {2}.GetDimensions({3}).";
+    public const string SDSL0190 = "SDSL0190: Unknown type {0}. Check its name; a struct or a shader must be declared in this shader, one it inherits, or another shader file.";
+    public const string SDSL0191 = "SDSL0191: {1} inherits from {0}, but shader {0} can't be found. Check its name, and that its .sdsl file is with the other shaders.";
+    public const string SDSL0192 = "SDSL0192: {0}.{1}: {1} is {2}, so '{0}.' doesn't apply to it. Write {1}.";
+    public const string SDSL0193 = "SDSL0193: Can't convert {0} to {1}: HLSL doesn't add components implicitly. Write them: {1}(value, ...).";
+    public const string SDSL0194 = "SDSL0194: Stream {0} is read{1} before any stage writes it, and it has no semantic, so it can't come from a vertex buffer. Write streams.{0} before reading it, or give it a semantic if it is a vertex buffer input.";
+    public const string SDSL0185 = "SDSL0185: {0} works on an int or uint, but its destination {1} has type {2}. Use an int or uint element of a buffer, a texture or a groupshared variable (for a float, store its bits with asuint and update it with InterlockedCompareExchange).";
+    public const string SDSL0186 = "SDSL0186: The destination of {0}, {1}, is {2}: other threads don't see it. Use an element of a RWStructuredBuffer, RWBuffer or RWTexture, or a groupshared variable.";
+    public const string SDSL0187 = "SDSL0187: {0} on a float is not supported: on Vulkan it needs float atomics, which Stride doesn't enable. Store the float's bits in an int or uint (asuint, asfloat) and update it with InterlockedCompareExchange.";
+    public const string SDSL0188 = "SDSL0188: {0}: 64-bit atomic operations are not supported (Direct3D 11 has none). Use a 32-bit int or uint.";
+    public const string SDSL0189 = "SDSL0189: This texture offset is not a constant, even with the methods inlined and the [unroll] loops unrolled. Use a literal, a static const value, or the counter of an [unroll] loop with constant bounds; a value from a cbuffer, a stream or a loop without [unroll] can't be an offset.";
+
+    // HLSL warnings: valid HLSL that is probably a mistake, reported when a class compiles
+    public const string SDSL0219 = "SDSL0219: comma expression ({0}): the values before the last are dropped, the result is {1}. To build a vector, write its type: float4(...).";
+    public const string SDSL0220 = "SDSL0220: {0} on {1} is ignored: Stride lays out cbuffers and binds resources itself. Remove it.";
+
+    // SDSL warnings
+    public const string SDSL0236 = "SDSL0236: the value of composition {0} is ignored: a composition gets its shader from the effect, not from a value. Remove '= {1}'.";
+    public const string SDSL0232 = "SDSL0232: {0} has lower precedence than {1}: {2} computes {3} first. Add parentheses to make it clear.";
+    public const string SDSL0242 = "SDSL0242: & within |: {0} computes {1} first. Add parentheses around it to make it clear.";
+    public const string SDSL0243 = "SDSL0243: && within ||: {0} computes {1} first. Add parentheses around it to make it clear.";
+    public const string SDSL0244 = "SDSL0244: {0} has lower precedence than {1}: {2} computes {3} first. Add parentheses to make it clear.";
 }

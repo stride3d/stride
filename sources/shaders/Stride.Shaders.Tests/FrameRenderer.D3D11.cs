@@ -25,6 +25,8 @@ public class D3D11FrameRenderer(uint width = 800, uint height = 600) : FrameRend
     D3D11 d3d11 = null!;
     D3DCompiler compiler = null!;
 
+    // Silk's ref ComPtr<T> overloads take the address without pinning, and a GC can move this object during the call:
+    // create into a local, then copy it to the field.
     ComPtr<IDXGIFactory2> factory = default;
     ComPtr<IDXGISwapChain1> swapchain = default;
     ComPtr<ID3D11Device> device = default;
@@ -38,6 +40,9 @@ public class D3D11FrameRenderer(uint width = 800, uint height = 600) : FrameRend
     ComPtr<ID3D11PixelShader> pixelShader = default;
     ComPtr<ID3D11ComputeShader> computeShader = default;
     ComPtr<ID3D11InputLayout> inputLayout = default;
+
+    // The buffers of "structuredbuffer.X" test parameters, by key name, for ReadBuffer
+    readonly Dictionary<string, ComPtr<ID3D11Buffer>> structuredBuffers = new();
 
     //Vertex shaders are run on each vertex.
     public string VertexShaderSource = @"
@@ -166,6 +171,8 @@ float4 main(vs_out input) : SV_TARGET {
         {
             foreach (var flags in new[] { CreateDeviceFlag.Debug, default(CreateDeviceFlag) })
             {
+                ComPtr<ID3D11Device> newDevice = default;
+                ComPtr<ID3D11DeviceContext> newDeviceContext = default;
                 hr = d3d11.CreateDevice
                 (
                     default(ComPtr<IDXGIAdapter>),
@@ -175,12 +182,14 @@ float4 main(vs_out input) : SV_TARGET {
                     null,
                     0,
                     D3D11.SdkVersion,
-                    ref device,
+                    ref newDevice,
                     null,
-                    ref deviceContext
+                    ref newDeviceContext
                 );
                 if (hr >= 0)
                 {
+                    device = newDevice;
+                    deviceContext = newDeviceContext;
                     created = true;
                     debugEnabled = flags == CreateDeviceFlag.Debug;
                     break;
@@ -213,6 +222,7 @@ float4 main(vs_out input) : SV_TARGET {
         factory = dxgi.CreateDXGIFactory<IDXGIFactory2>();
 
         // Create the swapchain.
+        ComPtr<IDXGISwapChain1> newSwapchain = default;
         SilkMarshal.ThrowHResult
         (
             factory.CreateSwapChainForHwnd
@@ -222,9 +232,10 @@ float4 main(vs_out input) : SV_TARGET {
                 in swapChainDesc,
                 null,
                 ref Unsafe.NullRef<IDXGIOutput>(),
-                ref swapchain
+                ref newSwapchain
             )
         );
+        swapchain = newSwapchain;
 
         // Create our vertex buffer.
         var bufferDesc = new BufferDesc
@@ -241,7 +252,9 @@ float4 main(vs_out input) : SV_TARGET {
                 PSysMem = vertexData
             };
 
-            SilkMarshal.ThrowHResult(device.CreateBuffer(in bufferDesc, in subresourceData, ref vertexBuffer));
+            ComPtr<ID3D11Buffer> newVertexBuffer = default;
+            SilkMarshal.ThrowHResult(device.CreateBuffer(in bufferDesc, in subresourceData, ref newVertexBuffer));
+            vertexBuffer = newVertexBuffer;
         }
 
         // Create our index buffer.
@@ -259,7 +272,9 @@ float4 main(vs_out input) : SV_TARGET {
                 PSysMem = indexData
             };
 
-            SilkMarshal.ThrowHResult(device.CreateBuffer(in bufferDesc, in subresourceData, ref indexBuffer));
+            ComPtr<ID3D11Buffer> newIndexBuffer = default;
+            SilkMarshal.ThrowHResult(device.CreateBuffer(in bufferDesc, in subresourceData, ref newIndexBuffer));
+            indexBuffer = newIndexBuffer;
         }
     }
 
@@ -267,6 +282,10 @@ float4 main(vs_out input) : SV_TARGET {
     {
         // Present the drawn image.
         swapchain.Present(1, 0);
+
+        foreach (var buffer in structuredBuffers.Values)
+            buffer.Dispose();
+        structuredBuffers.Clear();
 
         cts.Cancel();
         try { infoQueueTask?.Wait(); } catch (AggregateException) { }
@@ -281,6 +300,7 @@ float4 main(vs_out input) : SV_TARGET {
         ComPtr<ID3D10Blob> computeCode = CompileShader("cs_5_0", ComputeShaderSource);
 
         // Create vertex shader.
+        ComPtr<ID3D11ComputeShader> newComputeShader = default;
         SilkMarshal.ThrowHResult
         (
             device.CreateComputeShader
@@ -288,17 +308,42 @@ float4 main(vs_out input) : SV_TARGET {
                 computeCode.GetBufferPointer(),
                 computeCode.GetBufferSize(),
                 ref Unsafe.NullRef<ID3D11ClassLinkage>(),
-                ref computeShader
+                ref newComputeShader
             )
         );
+        computeShader = newComputeShader;
 
         deviceContext.CSSetShader(computeShader, ref Unsafe.NullRef<ComPtr<ID3D11ClassInstance>>(), 0);
 
-        ApplyParameters();
+        ApplyParameters(compute: true);
 
         deviceContext.Dispatch(32, 32, 1);
 
         computeCode.Dispose();
+    }
+
+    public override unsafe byte[] ReadBuffer(string resourceName)
+    {
+        var buffer = structuredBuffers[FindResourceBinding(resourceName).KeyInfo.KeyName];
+        BufferDesc bufferDesc = default;
+        buffer.GetDesc(ref bufferDesc);
+        bufferDesc = new BufferDesc
+        {
+            ByteWidth = bufferDesc.ByteWidth,
+            Usage = Usage.Staging,
+            CPUAccessFlags = (uint)CpuAccessFlag.Read,
+        };
+
+        ComPtr<ID3D11Buffer> stagingBuffer = default;
+        SilkMarshal.ThrowHResult(device.CreateBuffer(in bufferDesc, null, ref stagingBuffer));
+        deviceContext.CopyResource(stagingBuffer, buffer);
+
+        MappedSubresource mappedResource = default;
+        SilkMarshal.ThrowHResult(deviceContext.Map(stagingBuffer, 0, Map.MapRead, 0, ref mappedResource));
+        var data = new Span<byte>(mappedResource.PData, (int)bufferDesc.ByteWidth).ToArray();
+        deviceContext.Unmap(stagingBuffer, 0);
+        stagingBuffer.Dispose();
+        return data;
     }
 
     private unsafe void CompileAndSetupPipeline(
@@ -314,6 +359,7 @@ float4 main(vs_out input) : SV_TARGET {
         domainCode = DomainShaderSource != null ? CompileShader("ds_5_0", DomainShaderSource) : default;
 
         // Create vertex shader.
+        ComPtr<ID3D11VertexShader> newVertexShader = default;
         SilkMarshal.ThrowHResult
         (
             device.CreateVertexShader
@@ -321,13 +367,15 @@ float4 main(vs_out input) : SV_TARGET {
                 vertexCode.GetBufferPointer(),
                 vertexCode.GetBufferSize(),
                 ref Unsafe.NullRef<ID3D11ClassLinkage>(),
-                ref vertexShader
+                ref newVertexShader
             )
         );
+        vertexShader = newVertexShader;
 
         // Create hull shader.
         if (hullCode.Handle != null)
         {
+            ComPtr<ID3D11HullShader> newHullShader = default;
             SilkMarshal.ThrowHResult
             (
                 device.CreateHullShader
@@ -335,14 +383,16 @@ float4 main(vs_out input) : SV_TARGET {
                     hullCode.GetBufferPointer(),
                     hullCode.GetBufferSize(),
                     ref Unsafe.NullRef<ID3D11ClassLinkage>(),
-                    ref hullShader
+                    ref newHullShader
                 )
             );
+            hullShader = newHullShader;
         }
 
         // Create domain shader.
         if (domainCode.Handle != null)
         {
+            ComPtr<ID3D11DomainShader> newDomainShader = default;
             SilkMarshal.ThrowHResult
             (
                 device.CreateDomainShader
@@ -350,9 +400,10 @@ float4 main(vs_out input) : SV_TARGET {
                     domainCode.GetBufferPointer(),
                     domainCode.GetBufferSize(),
                     ref Unsafe.NullRef<ID3D11ClassLinkage>(),
-                    ref domainShader
+                    ref newDomainShader
                 )
             );
+            domainShader = newDomainShader;
         }
     }
 
@@ -436,6 +487,7 @@ float4 main(vs_out input) : SV_TARGET {
                 }
             }
 
+            ComPtr<ID3D11InputLayout> newInputLayout = default;
             fixed (InputElementDesc* inputElementsPtr = inputElements.AsSpan())
                 SilkMarshal.ThrowHResult
                 (
@@ -445,9 +497,10 @@ float4 main(vs_out input) : SV_TARGET {
                         (uint)inputElements.Count,
                         vertexCode.GetBufferPointer(),
                         vertexCode.GetBufferSize(),
-                        ref inputLayout
+                        ref newInputLayout
                     )
                 );
+            inputLayout = newInputLayout;
         }
 
         // Update the input assembler to use our shader input layout, and associated vertex & index buffers.
@@ -474,6 +527,7 @@ float4 main(vs_out input) : SV_TARGET {
         // Create geometry shader.
         if (geometryCode.Handle != null)
         {
+            ComPtr<ID3D11GeometryShader> newGeometryShader = default;
             SilkMarshal.ThrowHResult
             (
                 device.CreateGeometryShader
@@ -481,13 +535,15 @@ float4 main(vs_out input) : SV_TARGET {
                     geometryCode.GetBufferPointer(),
                     geometryCode.GetBufferSize(),
                     ref Unsafe.NullRef<ID3D11ClassLinkage>(),
-                    ref geometryShader
+                    ref newGeometryShader
                 )
             );
+            geometryShader = newGeometryShader;
         }
 
         // Create pixel shader.
         ComPtr<ID3D10Blob> pixelCode = CompileShader("ps_5_0", PixelShaderSource);
+        ComPtr<ID3D11PixelShader> newPixelShader = default;
         SilkMarshal.ThrowHResult
         (
             device.CreatePixelShader
@@ -495,9 +551,10 @@ float4 main(vs_out input) : SV_TARGET {
                 pixelCode.GetBufferPointer(),
                 pixelCode.GetBufferSize(),
                 ref Unsafe.NullRef<ID3D11ClassLinkage>(),
-                ref pixelShader
+                ref newPixelShader
             )
         );
+        pixelShader = newPixelShader;
 
         SetupInputAssemblerState(vertexCode);
 
@@ -748,7 +805,7 @@ float4 main(vs_out input) : SV_TARGET {
         if (domainCode.Handle != null) domainCode.Dispose();
     }
 
-    private unsafe void ApplyParameters()
+    private unsafe void ApplyParameters(bool compute = false)
     {
         BufferDesc bufferDesc;
         foreach (var (resourceReflection, resourceType, value) in MatchResourceParameters())
@@ -835,6 +892,65 @@ float4 main(vs_out input) : SV_TARGET {
                 deviceContext.DSSetShaderResources((uint)resourceReflection.SlotStart, 1U, &bufferSRV.Handle);
                 deviceContext.GSSetShaderResources((uint)resourceReflection.SlotStart, 1U, &bufferSRV.Handle);
                 deviceContext.PSSetShaderResources((uint)resourceReflection.SlotStart, 1U, &bufferSRV.Handle);
+            }
+            else if (resourceType == "structuredbuffer")
+            {
+                var (stride, data) = ParseStructuredBufferData(value);
+                // Byte address buffers are raw views of 4-byte words; read-write buffers are UAVs
+                var raw = resourceReflection.Type is EffectParameterType.ByteAddressBuffer or EffectParameterType.RWByteAddressBuffer;
+                var unorderedAccess = resourceReflection.Class == EffectParameterClass.UnorderedAccessView;
+                var elementCount = (uint)(data.Length / (raw ? sizeof(uint) : stride));
+
+                ComPtr<ID3D11Buffer> buffer = default;
+                bufferDesc = new BufferDesc
+                {
+                    ByteWidth = (uint)data.Length,
+                    Usage = Usage.Default,
+                    BindFlags = (uint)(unorderedAccess ? BindFlag.UnorderedAccess | BindFlag.ShaderResource : BindFlag.ShaderResource),
+                    MiscFlags = (uint)(raw ? ResourceMiscFlag.BufferAllowRawViews : ResourceMiscFlag.BufferStructured),
+                    StructureByteStride = raw ? 0 : (uint)stride,
+                };
+                fixed (byte* dataPtr = data)
+                {
+                    var subresourceData = new SubresourceData { PSysMem = dataPtr };
+                    SilkMarshal.ThrowHResult(device.CreateBuffer(in bufferDesc, in subresourceData, ref buffer));
+                }
+                structuredBuffers[resourceReflection.KeyInfo.KeyName] = buffer;
+
+                if (unorderedAccess)
+                {
+                    ComPtr<ID3D11UnorderedAccessView> bufferUAV = default;
+                    var uavDesc = new UnorderedAccessViewDesc
+                    {
+                        Format = raw ? Format.FormatR32Typeless : Format.FormatUnknown,
+                        ViewDimension = UavDimension.Buffer,
+                        Anonymous = new UnorderedAccessViewDescUnion { Buffer = new() { FirstElement = 0, NumElements = elementCount, Flags = raw ? (uint)BufferUavFlag.Raw : 0 } },
+                    };
+                    SilkMarshal.ThrowHResult(device.CreateUnorderedAccessView(buffer, in uavDesc, ref bufferUAV));
+
+                    // UAVs share the render targets' slots in a pixel shader: keep the bound render target.
+                    // A UAV bound to the output merger is unbound from the compute stage, so only one of them.
+                    const uint keepRenderTargetsAndDepthStencil = 0xFFFFFFFF;
+                    if (compute)
+                        deviceContext.CSSetUnorderedAccessViews((uint)resourceReflection.SlotStart, 1U, &bufferUAV.Handle, (uint*)null);
+                    else
+                        deviceContext.OMSetRenderTargetsAndUnorderedAccessViews(keepRenderTargetsAndDepthStencil, (ID3D11RenderTargetView**)null, (ID3D11DepthStencilView*)null, (uint)resourceReflection.SlotStart, 1U, &bufferUAV.Handle, (uint*)null);
+                }
+                else
+                {
+                    ComPtr<ID3D11ShaderResourceView> bufferSRV = default;
+                    var srvDesc = new ShaderResourceViewDesc
+                    {
+                        Format = raw ? Format.FormatR32Typeless : Format.FormatUnknown,
+                        ViewDimension = D3DSrvDimension.D3D11SrvDimensionBufferex,
+                        Anonymous = new ShaderResourceViewDescUnion { BufferEx = new() { FirstElement = 0, NumElements = elementCount, Flags = raw ? (uint)BufferexSrvFlag.Raw : 0 } },
+                    };
+                    SilkMarshal.ThrowHResult(device.CreateShaderResourceView(buffer, in srvDesc, ref bufferSRV));
+
+                    deviceContext.CSSetShaderResources((uint)resourceReflection.SlotStart, 1U, &bufferSRV.Handle);
+                    deviceContext.VSSetShaderResources((uint)resourceReflection.SlotStart, 1U, &bufferSRV.Handle);
+                    deviceContext.PSSetShaderResources((uint)resourceReflection.SlotStart, 1U, &bufferSRV.Handle);
+                }
             }
             else if (resourceType == "texture")
             {

@@ -44,3 +44,18 @@ jobs:
             -p:Configuration=${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }} `
             -p:StrideSkipUnitTests=true `
             -p:StrideSkipAutoPack=true
+      # The Release build is reproducible: it must give the committed deps/AssemblyProcessor bytes
+      - name: Compare with the committed binaries
+        if: (github.event.inputs.build-type || inputs.build-type) == 'Release'
+        shell: pwsh
+        run: |
+          $hashes = Get-ChildItem deps/AssemblyProcessor -Recurse -File -Include *.dll, *.pdb |
+            ForEach-Object { '{0}  {1}' -f (Get-FileHash $_ -Algorithm SHA256).Hash.ToLowerInvariant(), (Resolve-Path -Relative $_) }
+          $changed = git status --porcelain deps/AssemblyProcessor
+          @("Commit: $(git rev-parse HEAD)", "SDK: $(dotnet --version)", '```') + $hashes + @('```') | Add-Content $env:GITHUB_STEP_SUMMARY
+          $hashes
+          if ($changed) {
+            $changed
+            echo "::error::The built AssemblyProcessor differs from the committed deps/AssemblyProcessor"
+            exit 1
+          }

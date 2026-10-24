@@ -87,6 +87,47 @@ public class StrideShaderTests
         Assert.True(validationResult.IsValid, validationResult.Output);
     }
 
+    // HLSL truncates a vector implicitly but doesn't extend one (fxc: X3017): the error names the statement and the fix
+    [Fact]
+    public void VectorExtensionIsReportedWithTheStatement()
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var exception = Assert.Throws<InvalidOperationException>(() => loader.LoadExternalBuffer("VectorExtension", [], out _, out _, out _));
+        Assert.Contains("VectorExtension.sdsl(8,9): ", exception.Message);
+        Assert.Contains("(in `return scaled;`)", exception.Message);
+        Assert.Contains("SDSL0193: Can't convert float3 to float4: HLSL doesn't add components implicitly. Write them: float4(value, ...).", exception.Message);
+    }
+
+    // A shader whose byte address buffers come from another shader (a base, or the target of a static call) imports their types by name.
+    [Theory]
+    [InlineData("ByteAddressBufferInherited")]
+    [InlineData("ByteAddressBufferStaticCall")]
+    public void ByteAddressBufferOfAnotherShaderIsImported(string shaderName)
+    {
+        SpirvCrossSupport.SkipUnlessAvailable();
+        FxcSupport.SkipUnlessAvailable();
+
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+        shaderMixer.ShaderLoader.LoadExternalBuffer(shaderName, [], out _, out _, out _);
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(new ShaderClassSource(shaderName), new ShaderMixer.Options(true), log, out var bytecode, out _, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+
+        var validation = Spv.ValidateBinary(bytecode);
+        Assert.True(validation.IsValid, validation.Output);
+
+        var legalized = SpirvTools.LegalizeForHlsl(System.Runtime.InteropServices.MemoryMarshal.Cast<byte, uint>(bytecode.ToArray()));
+        var translator = new SpirvTranslator(legalized.AsMemory());
+        var compute = translator.GetEntryPoints().First(x => x.ExecutionModel == ExecutionModel.GLCompute);
+        var hlsl = translator.Translate(Backend.Hlsl, compute);
+
+        Assert.Contains("RWByteAddressBuffer", hlsl);
+        var errors = FxcSupport.Compile(hlsl, "cs_5_0");
+        Assert.True(errors is null, errors + Environment.NewLine + hlsl);
+    }
+
     // Reflection reports a multidimensional cbuffer array as a flat element count
     // (float4 Data2D[2][3] => 6 elements), matching fxc and the runtime parameter layout.
     [Fact]
@@ -262,6 +303,67 @@ public class StrideShaderTests
         Assert.True(errors is null, errors + Environment.NewLine + hlsl);
     }
 
+    public static TheoryData<string, Stride.Graphics.GraphicsPlatform> PrimitiveIdShadersPerGraphicsApi()
+    {
+        var data = new TheoryData<string, Stride.Graphics.GraphicsPlatform>();
+        foreach (var shaderName in new[] { "PSPrimitiveId", "PSPrimitiveIdFromGS", "PSPrimitiveIdTessellation" })
+        {
+            foreach (var platform in new[] { Stride.Graphics.GraphicsPlatform.Direct3D11, Stride.Graphics.GraphicsPlatform.Direct3D12, Stride.Graphics.GraphicsPlatform.Vulkan })
+                data.Add(shaderName, platform);
+        }
+        return data;
+    }
+
+    // A pixel shader reads SV_PrimitiveID with no geometry shader, after tessellation, or as written by a geometry shader.
+    // The effect compiler runs each graphics API's backend: FXC (Direct3D 11), spirv_to_dxil (Direct3D 12), spirv-val (Vulkan).
+    [Theory]
+    [MemberData(nameof(PrimitiveIdShadersPerGraphicsApi))]
+    public void PixelShaderReadsPrimitiveId(string shaderName, Stride.Graphics.GraphicsPlatform platform)
+    {
+        if (platform != Stride.Graphics.GraphicsPlatform.Vulkan && !OperatingSystem.IsWindows())
+            Assert.Skip("Direct3D shaders are compiled on Windows only");
+
+        using var provider = new FileSystemProvider($"/primitiveid-{Guid.NewGuid():N}", AppContext.BaseDirectory);
+        using var compiler = new Stride.Shaders.Compiler.EffectCompiler(provider) { ValidateSpirv = true };
+        compiler.SourceDirectories.Add("assets/SDSL/CompilerTests");
+
+        var mixin = new ShaderMixinSource { Name = shaderName };
+        mixin.Mixins.Add(new ShaderClassSource(shaderName));
+        var effectParameters = Stride.Shaders.Compiler.EffectCompilerParameters.Default with { Platform = platform };
+        var result = compiler.Compile(mixin, effectParameters, new Stride.Shaders.Compiler.CompilerParameters(), ObjectId.New()).WaitForResult();
+
+        Assert.False(result.CompilationLog.HasErrors, string.Join(Environment.NewLine, result.CompilationLog.Messages.Select(m => m.Text)));
+        Assert.Contains(result.Bytecode.Stages, stage => stage.Stage == ShaderStage.Pixel);
+    }
+
+    // The PrimitiveId builtin needs the Geometry or the Tessellation capability, declared once.
+    [Theory]
+    [InlineData("PSPrimitiveId", "Geometry")]
+    [InlineData("PSPrimitiveIdFromGS", "Geometry")]
+    [InlineData("PSPrimitiveIdTessellation", "Tessellation")]
+    public void PrimitiveIdCapabilityIsDeclaredOnce(string shaderName, string capability)
+    {
+        var shaderMixer = new ShaderMixer(new ShaderLoader("./assets/SDSL/CompilerTests"));
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(new ShaderClassSource(shaderName), new ShaderMixer.Options(true), log, out var bytecode, out _, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+
+        var disassembly = Spv.Dis(SpirvBytecode.CreateFromSpan(bytecode), DisassemblerFlags.Name, true);
+        var capabilities = System.Text.RegularExpressions.Regex.Matches(disassembly, @"OpCapability (\w+)").Select(m => m.Groups[1].Value).Where(c => c != "Shader");
+        Assert.Equal([capability], capabilities);
+    }
+
+    [Fact]
+    public void PrimitiveIdReadByPixelShaderMustBeWrittenByGeometryShader()
+    {
+        var shaderMixer = new ShaderMixer(new ShaderLoader("./assets/SDSL/CompilerTests"));
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        var exception = Assert.Throws<InvalidOperationException>(() => shaderMixer.MergeSDSL(new ShaderClassSource("PSPrimitiveIdGSNoWrite"), new ShaderMixer.Options(true), log, out _, out _, out _, out _));
+        Assert.Contains("The pixel shader reads SV_PrimitiveID, so the geometry shader must write it", exception.Message);
+    }
+
     // `static const uint X = 1` converts its int literal. The constant must stay usable, and keep its type,
     // as an array size, once inherited, and when its value comes from a generic of the base shader.
     // ConstInherited: every constant of a base shader is imported, whatever it is made of (vector, vector
@@ -290,6 +392,8 @@ public class StrideShaderTests
     [Theory]
     [InlineData("SwitchVariableLabel", "case label must be a constant integer expression")]
     [InlineData("SwitchDuplicateLabel", "case label has the same value (1)")]
+    // A continue in a switch goes to the loop around it (RenderTest ContinueInSwitch); without a loop, it is an error, as in DXC
+    [InlineData("SwitchContinueOutsideLoop", "continue is only valid in a loop")]
     // Only known once the generic of the base shader is: reported when mixing, with the location of the switch
     [InlineData("SwitchGenericDuplicateLabel", "SwitchGenericDuplicateLabel.sdsl(8,")]
     [InlineData("SwitchGenericDuplicateLabel", "two case labels with the same value (3)")]
@@ -405,6 +509,26 @@ public class StrideShaderTests
         var outputVertices = Assert.Single(ReadExecutionModes(bytecode), m => m.Mode == Stride.Shaders.Spirv.Specification.ExecutionMode.OutputVertices);
         Assert.Equal(hull.Id, outputVertices.EntryPoint);
         Assert.Equal(3u, outputVertices.Parameters[0]);
+    }
+
+    // Vulkan rejects a geometry shader without an invocation count (VUID-VkPipelineShaderStageCreateInfo-stage-00715)
+    [Fact]
+    public void GeometryShaderDeclaresOneInvocation()
+    {
+        var loader = new ShaderLoader("./assets/SDSL/CompilerTests");
+        var shaderMixer = new ShaderMixer(loader);
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(new ShaderClassSource("GSInputArrayFieldAccess"), new ShaderMixer.Options(true), log, out var bytecode, out _, out _, out var entryPoints),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+
+        var validation = Spv.ValidateBinary(bytecode);
+        Assert.True(validation.IsValid, validation.Output);
+
+        var geometry = Assert.Single(entryPoints, e => e.Stage == ShaderStage.Geometry);
+        var invocations = Assert.Single(ReadExecutionModes(bytecode), m => m.Mode == Stride.Shaders.Spirv.Specification.ExecutionMode.Invocations);
+        Assert.Equal(geometry.Id, invocations.EntryPoint);
+        Assert.Equal(1u, invocations.Parameters[0]);
     }
 
     [Theory]
@@ -1111,6 +1235,31 @@ new ShaderMacro("class", "shader"),
         TestCore($"MSAADepthResolverShader{samples}", shaderSource, "./assets/Stride/SDSL");
     }
 
+    // The editor's fallback when a mesh effect fails to compile: the mixins of `StrideEditorForwardShadingEffect`
+    // before its `discard;` (the effect stops there, see EffectDiscardTests)
+    [Fact]
+    public void EditorEffectErrorFallbackCompiles()
+    {
+        var shaderSource = new ShaderMixinSource
+        {
+            Mixins =
+            {
+                new ShaderClassSource("ShaderBase"),
+                new ShaderClassSource("ShadingBase"),
+                new ShaderClassSource("TransformationBase"),
+                new ShaderClassSource("TransformationWAndVP"),
+                new ShaderClassSource("CompilationErrorShader"),
+            },
+            Macros =
+            {
+                new ShaderMacro("STRIDE_GRAPHICS_API_DIRECT3D", "1"),
+                new ShaderMacro("STRIDE_GRAPHICS_API_DIRECT3D11", "1"),
+            },
+        };
+
+        TestCore("EditorEffectErrorFallback", shaderSource, "./assets/Stride/SDSL");
+    }
+
     // Issue #3323: LightProbeShader truncates a float3x4 to a float3x3, and it is the only
     // engine shader casting a non-square matrix. That cast used to emit invalid SPIR-V, so
     // any scene with enough light probes to form a tetrahedron failed to render.
@@ -1329,6 +1478,23 @@ new ShaderMacro("class", "shader"),
                 Assert.False(metadata.Flags.HasFlag(Stride.Shaders.Spirv.Specification.FunctionFlagsMask.ReferencesNonStage),
                     "A static call is not an instance access: the stage method must stay stage-only importable.");
         }
+    }
+
+    // A composition with no value in the mixin tree gets its default shader, compiled with the macros of its node
+    [Fact]
+    public void DefaultCompositionGetsTheMacrosOfItsNode()
+    {
+        var shaderMixer = new ShaderMixer(new ShaderLoader("./assets/SDSL/CompilerTests"));
+        var mixin = new ShaderMixinSource { Mixins = { new ShaderClassSource("DefaultCompositionMacrosRoot") } };
+        mixin.AddMacro("DEFAULT_COMPOSITION_MACRO", 1);
+
+        var log = new Stride.Core.Diagnostics.LoggerResult();
+        Assert.True(shaderMixer.MergeSDSL(mixin, new ShaderMixer.Options(true), log, out var bytecode, out _, out _, out _),
+            string.Join(Environment.NewLine, log.Messages.Select(m => m.Text)));
+
+        var code = Spv.Dis(SpirvBytecode.CreateFromSpan(bytecode), DisassemblerFlags.Id, false);
+        Assert.Matches(@"OpConstant %\S+ 42\b", code);
+        Assert.DoesNotMatch(@"OpConstant %\S+ 7\b", code);
     }
 
     // A non-stage variable read through its shader name (Base.Value) from a stage method is an instance access.

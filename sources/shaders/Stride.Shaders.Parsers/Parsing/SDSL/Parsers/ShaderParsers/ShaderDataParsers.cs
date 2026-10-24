@@ -24,20 +24,24 @@ public record struct ShaderMemberParser : IParser<ShaderMember>
             Parsers.VariableModifiers(ref scanner, result, out var isStaged, out var isCompose, out var streamKind, out var interpolation, out var typeModifier, out var storageClass, advance: true)
             && Parsers.Spaces0(ref scanner, result, out _);
 
+        var afterModifiers = scanner.Position;
         if (Parsers.TypeNameIdentifierArraySizeValue(ref scanner, result, out var typeName, out var identifier, out value))
         {
-            Identifier? semantic = null;
-            if (Parsers.FollowedBy(ref scanner, Tokens.Char(':'), withSpaces: true, advance: true))
-            {
-                if (!Parsers.FollowedByDel(ref scanner, result, LiteralsParser.Identifier, out semantic, withSpaces: true, advance: true))
-                    return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0001, scanner[scanner.Position], scanner.Memory));
-            }
+            if (!Qualifiers(ref scanner, result, out var semantic, out var register))
+                return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0001, scanner[scanner.Position], scanner.Memory));
+
+            // HLSL writes the value after the qualifiers: `float2 p : register(c1) = 1;`
+            if (value == null && (semantic != null || register != null)
+                && Parsers.FollowedBy(ref scanner, Tokens.Char('='), withSpaces: true, advance: true)
+                && !Parsers.FollowedBy(ref scanner, result, ExpressionParser.Expression, out value, withSpaces: true, advance: true))
+                return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0015, scanner[scanner.Position], scanner.Memory));
 
             if (Parsers.FollowedBy(ref scanner, Tokens.Char(';'), withSpaces: true, advance: true))
             {
                 parsed = new(typeName, identifier, value, scanner[position..scanner.Position])
                 {
                     Semantic = semantic,
+                    IgnoredRegister = register,
                     Attributes = hasAttributes ? attributes!.Attributes : null!,
                     IsStaged = isStaged,
                     IsCompose = isCompose,
@@ -50,7 +54,48 @@ public record struct ShaderMemberParser : IParser<ShaderMember>
             }
             else return Parsers.Exit(ref scanner, result, out parsed, position);
         }
+
+        // `float triangle;`: say why the name doesn't parse
+        scanner.Position = afterModifiers;
+        if (LiteralsParser.TypeName(ref scanner, result, out _)
+            && Parsers.Spaces1(ref scanner, result, out _)
+            && Parsers.ReservedWordAsName(ref scanner, result, out var reservedWord))
+            return Parsers.Exit(ref scanner, result, out parsed, position, new(string.Format(SDSLErrorMessages.SDSL0048, reservedWord), scanner[scanner.Position], scanner.Memory));
         return Parsers.Exit(ref scanner, result, out parsed, position, orError);
+    }
+
+    /// <summary>
+    /// HLSL qualifiers after a declared name: <c>: SEMANTIC</c>, <c>: register(...)</c> and <c>: packoffset(...)</c>, in any order.
+    /// Stride lays out cbuffers and binds resources itself, so a register or packoffset is only kept for its warning (SDSL0220).
+    /// Returns false when a <c>:</c> is followed by none of them.
+    /// </summary>
+    public static bool Qualifiers<TScanner>(ref TScanner scanner, ParseResult result, out Identifier? semantic, out TextLocation? register)
+        where TScanner : struct, IScanner
+    {
+        semantic = null;
+        register = null;
+        while (Parsers.FollowedBy(ref scanner, Tokens.Char(':'), withSpaces: true, advance: true))
+        {
+            Parsers.Spaces0(ref scanner, result, out _);
+            var start = scanner.Position;
+            if (Tokens.AnyOf(["register", "packoffset"], ref scanner, out _, advance: true)
+                && Parsers.FollowedBy(ref scanner, Tokens.Char('('), withSpaces: true, advance: true))
+            {
+                while (!scanner.IsEof && !Tokens.Char(')', ref scanner))
+                    scanner.Advance(1);
+                if (!Tokens.Char(')', ref scanner, advance: true))
+                    return false;
+                register ??= scanner[start..scanner.Position];
+            }
+            else
+            {
+                scanner.Position = start;
+                if (!LiteralsParser.Identifier(ref scanner, result, out var identifier))
+                    return false;
+                semantic = identifier;
+            }
+        }
+        return true;
     }
 }
 public record struct ShaderStructParser : IParser<ShaderStruct>
@@ -95,6 +140,9 @@ public record struct ShaderSamplerStateParser : IParser<ShaderSamplerState>
 
         )
         {
+            // A semantic does nothing on a sampler (as with FXC); a register gets SDSL0220
+            if (!ShaderMemberParser.Qualifiers(ref scanner, result, out _, out var register))
+                return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0001, scanner[scanner.Position], scanner.Memory));
             if (
                 Parsers.FollowedBy(ref scanner, Tokens.Char('{'), withSpaces: true, advance: true)
                 && Parsers.Spaces0(ref scanner, result, out _)
@@ -105,13 +153,14 @@ public record struct ShaderSamplerStateParser : IParser<ShaderSamplerState>
             {
                 parsed = new(identifier, scanner[position..scanner.Position])
                 {
-                    Parameters = assignments
+                    Parameters = assignments,
+                    IgnoredRegister = register,
                 };
                 return true;
             }
             else if (Parsers.FollowedBy(ref scanner, Tokens.Char(';'), withSpaces: true, advance: true))
             {
-                parsed = new(identifier, scanner[position..scanner.Position]);
+                parsed = new(identifier, scanner[position..scanner.Position]) { IgnoredRegister = register };
                 return true;
             }
             else return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0019, scanner[scanner.Position], scanner.Memory));
@@ -149,6 +198,9 @@ public record struct ShaderSamplerComparisonStateParser : IParser<ShaderSamplerC
 
         )
         {
+            // A semantic does nothing on a sampler (as with FXC); a register gets SDSL0220
+            if (!ShaderMemberParser.Qualifiers(ref scanner, result, out _, out var register))
+                return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0001, scanner[scanner.Position], scanner.Memory));
             if (
                 Parsers.FollowedBy(ref scanner, Tokens.Char('{'), withSpaces: true, advance: true)
                 && Parsers.Spaces0(ref scanner, result, out _)
@@ -159,13 +211,14 @@ public record struct ShaderSamplerComparisonStateParser : IParser<ShaderSamplerC
             {
                 parsed = new(identifier, scanner[position..scanner.Position])
                 {
-                    Parameters = assignments
+                    Parameters = assignments,
+                    IgnoredRegister = register,
                 };
                 return true;
             }
             else if (Parsers.FollowedBy(ref scanner, Tokens.Char(';'), withSpaces: true, advance: true))
             {
-                parsed = new(identifier, scanner[position..scanner.Position]);
+                parsed = new(identifier, scanner[position..scanner.Position]) { IgnoredRegister = register };
                 return true;
             }
             else return Parsers.Exit(ref scanner, result, out parsed, position, new(SDSLErrorMessages.SDSL0019, scanner[scanner.Position], scanner.Memory));
@@ -211,9 +264,16 @@ public record struct ShaderStructMemberParser : IParser<ShaderStructMember>
             Parsers.FollowedBy(ref scanner, result, LiteralsParser.TypeName, out TypeName? typename, withSpaces: true, advance: true)
             && Parsers.Spaces1(ref scanner, result, out _)
             && Parsers.FollowedBy(ref scanner, result, LiteralsParser.Identifier, out Identifier? identifier, withSpaces: true, advance: true)
-            && Parsers.FollowedBy(ref scanner, Tokens.Char(';'), withSpaces: true)
         )
         {
+            // Array member: `float2 uv[4];`
+            var beforeArraySize = scanner.Position;
+            if (Parsers.FollowedByDelList(ref scanner, result, Parsers.ArraySizes, out List<Expression>? arraySize, withSpaces: true, advance: true))
+                typename!.ArraySize = arraySize;
+            else
+                scanner.Position = beforeArraySize;
+            if (!Parsers.FollowedBy(ref scanner, Tokens.Char(';'), withSpaces: true))
+                return Parsers.Exit(ref scanner, result, out parsed, position, orError);
             parsed = new ShaderStructMember(typename!, identifier!, scanner[position..scanner.Position]);
             if (hasAttributes)
                 parsed.Attributes = attributes!.Attributes;

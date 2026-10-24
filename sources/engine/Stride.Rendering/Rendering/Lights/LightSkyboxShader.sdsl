@@ -31,7 +31,7 @@ namespace Stride.Rendering.Lights
             var sampleDirection = mul(streams.normalWS, (float3x3)SkyMatrix);
             sampleDirection = float3(sampleDirection.xy, -sampleDirection.z);
 
-            streams.envLightDiffuseColor = lightDiffuseColor.Compute(sampleDirection).rgb * Intensity * ambientAccessibility * streams.matDiffuseSpecularAlphaBlend.x;
+            streams.envLightDiffuseColor = lightDiffuseColor.Compute(sampleDirection).rgb * Intensity * ambientAccessibility;
 
             // -----------------------------------------
             // Specular lighting
@@ -43,7 +43,7 @@ namespace Stride.Rendering.Lights
             sampleDirection = mul(sampleDirection, (float3x3)SkyMatrix);
             sampleDirection = float3(sampleDirection.xy, -sampleDirection.z);
 
-            streams.envLightSpecularColor = lightSpecularColor.Compute(sampleDirection).rgb * Intensity * ambientAccessibility * streams.matDiffuseSpecularAlphaBlend.y;
+            streams.envLightSpecularColor = lightSpecularColor.Compute(sampleDirection).rgb * Intensity * ambientAccessibility;
         }
     };
 }

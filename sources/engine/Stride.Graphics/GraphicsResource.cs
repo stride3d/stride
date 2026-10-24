@@ -10,10 +10,27 @@ namespace Stride.Graphics
     /// </summary>
     public abstract partial class GraphicsResource : GraphicsResourceBase
     {
+        private SubresourceLayoutTracker layoutTracker;
+
         /// <summary>
         ///   Tracks the layout of this resource's subresources for cross-platform barrier transitions.
+        ///   A Texture View has no state of its own: this is its parent Texture's tracker.
         /// </summary>
-        internal SubresourceLayoutTracker LayoutTracker;
+        internal ref SubresourceLayoutTracker LayoutTracker
+        {
+            get
+            {
+                if (this is Texture { ParentTexture: { } parent })
+                    return ref parent.layoutTracker;
+                return ref layoutTracker;
+            }
+        }
+
+        /// <summary>
+        ///   The layout the command lists submitted so far left each subresource in (<see langword="null"/> while unknown),
+        ///   read and written under the queue lock. See <see cref="SubmittedLayoutReplay"/>.
+        /// </summary>
+        internal BarrierLayout?[] SubmittedLayouts;
 
         /// <summary>
         ///   Whether this resource lives on a CPU-visible heap (Upload / Readback on D3D12, host-visible

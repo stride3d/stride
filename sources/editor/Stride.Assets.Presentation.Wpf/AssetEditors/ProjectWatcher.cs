@@ -76,7 +76,9 @@ namespace Stride.Assets.Presentation.AssetEditors
     {
         private readonly LoggerResult logger;
         private readonly TrackingCollection<TrackedAssembly> trackedAssemblies;
-        // Guards trackedAssemblies mutations/enumerations: mutated from package changes, enumerated on the dataflow thread.
+        // Assemblies of dependency packages built locally (a dev-redirect's source tree), whose binary can change
+        private readonly List<PackageLoadedAssembly> devBuildAssemblies = new List<PackageLoadedAssembly>();
+        // Guards trackedAssemblies and devBuildAssemblies mutations/enumerations: mutated from package changes, enumerated on the dataflow thread.
         private readonly object trackedAssembliesLock = new object();
         private readonly BufferBlock<FileEvent> fileChanged = new BufferBlock<FileEvent>();
         private readonly IDisposable fileChangedLink1;
@@ -124,6 +126,7 @@ namespace Stride.Assets.Presentation.AssetEditors
             roslynHost = AsyncLazy.New(CreateRoslynHost);
 
             session.LocalPackages.CollectionChanged += LocalPackagesChanged;
+            session.StorePackages.CollectionChanged += StorePackagesChanged;
 
             directoryWatcher = new DirectoryWatcher();
             directoryWatcher.Modified += directoryWatcher_Modified;
@@ -159,7 +162,8 @@ namespace Stride.Assets.Presentation.AssetEditors
                         var project = assemblyChange.Project;
                         // Only binary/project structural changes fan out to dependent assemblies;
                         // source-content and asset-membership changes are local to their own project.
-                        var referencedProjects = assemblyChange.ChangeType is AssemblyChangeType.Binary or AssemblyChangeType.Project
+                        // A dev build has no project here: its dependents are found when reloading.
+                        var referencedProjects = project != null && assemblyChange.ChangeType is AssemblyChangeType.Binary or AssemblyChangeType.Project
                             ? msbuildWorkspace.CurrentSolution.GetProjectDependencyGraph().GetProjectsThatTransitivelyDependOnThisProject(project.Id)
                             : Enumerable.Empty<ProjectId>();
                         var trackedSnapshot = SnapshotTrackedAssemblies();
@@ -265,6 +269,7 @@ namespace Stride.Assets.Presentation.AssetEditors
             batchChangesCancellationTokenSource.Cancel();
 
             session.LocalPackages.CollectionChanged -= LocalPackagesChanged;
+            session.StorePackages.CollectionChanged -= StorePackagesChanged;
             directoryWatcher.Dispose();
             fileChangedLink1.Dispose();
             fileChangedLink2.Dispose();
@@ -280,6 +285,8 @@ namespace Stride.Assets.Presentation.AssetEditors
                 // Snapshot: TrackPackage awaits, and concurrent additions invalidate the enumerator.
                 foreach (var package in session.LocalPackages.ToList())
                     await TrackPackage(package);
+                foreach (var package in session.StorePackages.ToList())
+                    TrackDevBuild(package);
 
                 // Locate the current package's game executable and track it, so external changes to its
                 // scripts sync too (the executable isn't tracked as a library assembly).
@@ -334,6 +341,16 @@ namespace Stride.Assets.Presentation.AssetEditors
             var renameEvent = e as FileRenameEvent;
             // For a rename, the old path is what identifies the existing document/tracked assembly.
             var changedFile = renameEvent?.OldFullPath ?? e.FullPath;
+
+            // A dev build of a dependency package was rebuilt: no project here, its binary is the change
+            List<PackageLoadedAssembly> devBuildSnapshot;
+            lock (trackedAssembliesLock)
+                devBuildSnapshot = devBuildAssemblies.ToList();
+            foreach (var devBuildAssembly in devBuildSnapshot)
+            {
+                if (string.Equals(devBuildAssembly.Path, changedFile, StringComparison.OrdinalIgnoreCase))
+                    return new AssemblyChangedEvent(devBuildAssembly, AssemblyChangeType.Binary, changedFile, null);
+            }
 
             foreach (var trackedAssembly in SnapshotTrackedAssemblies())
             {
@@ -449,6 +466,63 @@ namespace Stride.Assets.Presentation.AssetEditors
             {
                 logger.Error("Failed to track local package changes", ex);
             }
+        }
+
+        private void StorePackagesChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            try
+            {
+                if (e.OldItems != null)
+                {
+                    lock (trackedAssembliesLock)
+                    {
+                        foreach (PackageViewModel oldItem in e.OldItems)
+                            devBuildAssemblies.RemoveAll(oldItem.LoadedAssemblies.Contains);
+                    }
+                }
+
+                if (e.NewItems != null)
+                {
+                    foreach (PackageViewModel newItem in e.NewItems)
+                        TrackDevBuild(newItem);
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.Error("Failed to track dependency package changes", ex);
+            }
+        }
+
+        /// <summary>
+        /// Tracks the assemblies of a dependency package that a local build produces (a dev-redirect points at its source
+        /// tree): a rebuild changes them. A package from the NuGet cache never changes for its version.
+        /// </summary>
+        private void TrackDevBuild(PackageViewModel package)
+        {
+            if (!package.IsLoaded || !trackBinaries)
+                return;
+
+            foreach (var loadedAssembly in package.LoadedAssemblies)
+            {
+                if (string.IsNullOrEmpty(loadedAssembly.Path) || IsInPackageCache(loadedAssembly.Path))
+                    continue;
+
+                directoryWatcher.Track(loadedAssembly.Path);
+                lock (trackedAssembliesLock)
+                {
+                    if (!devBuildAssemblies.Contains(loadedAssembly))
+                        devBuildAssemblies.Add(loadedAssembly);
+                }
+            }
+        }
+
+        private static readonly Lazy<string> GlobalPackagesFolder = new Lazy<string>(() =>
+            Path.GetFullPath(NuGet.Configuration.SettingsUtility.GetGlobalPackagesFolder(NuGet.Configuration.Settings.LoadDefaultSettings(null))));
+
+        private static bool IsInPackageCache(string path)
+        {
+            var folder = GlobalPackagesFolder.Value.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+            return Path.GetFullPath(path).StartsWith(folder, StringComparison.OrdinalIgnoreCase);
         }
 
         private void UntrackPackage(PackageViewModel package)
@@ -623,7 +697,9 @@ namespace Stride.Assets.Presentation.AssetEditors
                 if (msbuildWorkspace == null)
                 {
                     var host = await RoslynHost;
-                    msbuildWorkspace = MSBuildWorkspace.Create(ImmutableDictionary<string, string>.Empty, host.HostServices);
+                    // The restore's own messages (NuGet audit, ...) are logged by the restore and the game build; replayed by each design-time build they read as workspace failures
+                    var properties = ImmutableDictionary<string, string>.Empty.Add("EmitAssetsLogMessages", "false");
+                    msbuildWorkspace = MSBuildWorkspace.Create(properties, host.HostServices);
                 }
 
                 if (!solutionOpened || forceReload)

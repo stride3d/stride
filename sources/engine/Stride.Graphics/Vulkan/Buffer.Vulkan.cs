@@ -110,29 +110,34 @@ namespace Stride.Graphics
                     NativePipelineStageMask |= VkPipelineStageFlags.VertexShader | VkPipelineStageFlags.FragmentShader | VkPipelineStageFlags.ComputeShader;
                 }
 
-                if ((ViewFlags & BufferFlags.StructuredBuffer) != 0)
+                // The usage follows the descriptor type the shader declares for the buffer (see VulkanConvertExtensions):
+                // structured and raw buffers bind as storage buffers, typed buffers as texel buffers.
+                if (IsStorageBuffer)
                 {
                     createInfo.usage |= VkBufferUsageFlags.StorageBuffer;
-                    NativeAccessMask |= VkAccessFlags.ShaderRead;
-                    NativePipelineStageMask |= VkPipelineStageFlags.VertexShader | VkPipelineStageFlags.FragmentShader | VkPipelineStageFlags.ComputeShader;
-
+                }
+                else
+                {
+                    if ((ViewFlags & BufferFlags.ShaderResource) != 0)
+                        createInfo.usage |= VkBufferUsageFlags.UniformTexelBuffer;
                     if ((ViewFlags & BufferFlags.UnorderedAccess) != 0)
-                    {
-                        NativeAccessMask |= VkAccessFlags.ShaderWrite;
-                    }
+                        createInfo.usage |= VkBufferUsageFlags.StorageTexelBuffer;
                 }
 
-                if ((ViewFlags & BufferFlags.ShaderResource) != 0)
+                if (IsStorageBuffer || (ViewFlags & (BufferFlags.ShaderResource | BufferFlags.UnorderedAccess)) != 0)
                 {
-                    createInfo.usage |= VkBufferUsageFlags.UniformTexelBuffer;
                     NativeAccessMask |= VkAccessFlags.ShaderRead;
                     NativePipelineStageMask |= VkPipelineStageFlags.VertexShader | VkPipelineStageFlags.FragmentShader | VkPipelineStageFlags.ComputeShader;
 
                     if ((ViewFlags & BufferFlags.UnorderedAccess) != 0)
-                    {
-                        createInfo.usage |= VkBufferUsageFlags.StorageTexelBuffer;
                         NativeAccessMask |= VkAccessFlags.ShaderWrite;
-                    }
+                }
+
+                if ((ViewFlags & BufferFlags.ArgumentBuffer) != 0)
+                {
+                    createInfo.usage |= VkBufferUsageFlags.IndirectBuffer;
+                    NativeAccessMask |= VkAccessFlags.IndirectCommandRead;
+                    NativePipelineStageMask |= VkPipelineStageFlags.DrawIndirect;
                 }
             }
 
@@ -181,8 +186,8 @@ namespace Stride.Graphics
                         MemoryUtilities.CopyWithAlignmentFallback((void*) uploadMemory, (void*) dataPointer, (uint) sizeInBytes);
 
                         // Barrier
-                        var memoryBarrier = new VkBufferMemoryBarrier(uploadResource, VkAccessFlags.HostWrite, VkAccessFlags.TransferRead, (ulong) uploadOffset, (ulong) sizeInBytes);
-                        GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(commandBuffer, VkPipelineStageFlags.Host, VkPipelineStageFlags.Transfer, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 1, &memoryBarrier, imageMemoryBarrierCount: 0, imageMemoryBarriers: null);
+                        PipelineBarriers.Record(GraphicsDevice.NativeDeviceApi, commandBuffer, bufferBarriers: [
+                            PipelineBarriers.BufferBarrier(uploadResource, VkPipelineStageFlags.Host, VkAccessFlags.HostWrite, VkPipelineStageFlags.Transfer, VkAccessFlags.TransferRead, (ulong) uploadOffset, (ulong) sizeInBytes)]);
 
                         // Copy
                         var bufferCopy = new VkBufferCopy
@@ -200,9 +205,9 @@ namespace Stride.Graphics
                 }
 
                 // Barrier
-                var bufferMemoryBarrier = new VkBufferMemoryBarrier(NativeBuffer, VkAccessFlags.TransferWrite, NativeAccessMask);
                 var dstStages = CommandList.FixStagesForAccess(NativePipelineStageMask, NativeAccessMask);
-                GraphicsDevice.NativeDeviceApi.vkCmdPipelineBarrier(commandBuffer, VkPipelineStageFlags.Transfer, dstStages, VkDependencyFlags.None, memoryBarrierCount: 0, memoryBarriers: null, bufferMemoryBarrierCount: 1, &bufferMemoryBarrier, imageMemoryBarrierCount: 0, imageMemoryBarriers: null);
+                PipelineBarriers.Record(GraphicsDevice.NativeDeviceApi, commandBuffer, bufferBarriers: [
+                    PipelineBarriers.BufferBarrier(NativeBuffer, VkPipelineStageFlags.Transfer, VkAccessFlags.TransferWrite, dstStages, NativeAccessMask)]);
 
                 // Close and submit
                 GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkEndCommandBuffer(commandBuffer));
@@ -222,22 +227,21 @@ namespace Stride.Graphics
         /// </summary>
         private void InitializeViews()
         {
-            var viewFormat = ViewFormat;
-
-            if ((ViewFlags & BufferFlags.RawBuffer) != 0)
+            // Only typed buffers (Buffer<T>/RWBuffer<T>) need a VkBufferView: they bind as
+            // VK_DESCRIPTOR_TYPE_*_TEXEL_BUFFER, which requires a real VkFormat. Storage buffers are bound directly.
+            if (!IsStorageBuffer
+                && (ViewFlags & (BufferFlags.ShaderResource | BufferFlags.UnorderedAccess)) != 0
+                && ViewFormat != PixelFormat.None)
             {
-                viewFormat = PixelFormat.R32_Typeless;
-            }
-
-            // Structured buffers bind as VK_DESCRIPTOR_TYPE_STORAGE_BUFFER and don't need a
-            // VkBufferView — only typed (Buffer<T>/RWBuffer<T>) and raw views go through
-            // VK_DESCRIPTOR_TYPE_*_TEXEL_BUFFER, which require a real VkFormat.
-            if ((ViewFlags & (BufferFlags.ShaderResource | BufferFlags.UnorderedAccess)) != 0
-                && viewFormat != PixelFormat.None)
-            {
-                NativeBufferView = GetShaderResourceView(viewFormat);
+                NativeBufferView = GetShaderResourceView(ViewFormat);
             }
         }
+
+        /// <summary>
+        /// Gets a value indicating whether the buffer binds as a <c>VK_DESCRIPTOR_TYPE_STORAGE_BUFFER</c>:
+        /// structured buffers and raw buffers (<c>ByteAddressBuffer</c>), which have no texel format.
+        /// </summary>
+        private bool IsStorageBuffer => (ViewFlags & (BufferFlags.StructuredBuffer | BufferFlags.RawBuffer)) != 0;
 
         internal unsafe VkBufferView GetShaderResourceView(PixelFormat viewFormat)
         {

@@ -62,15 +62,6 @@ namespace Stride.Graphics
         /// </returns>
         protected internal delegate TResource CreateResourceDelegate<TResource, TDescription>(TDescription description, PixelFormat viewFormat);
 
-        /// <summary>
-        ///   Represents a method that retrieves a description of a Graphics Resource.
-        /// </summary>
-        /// <typeparam name="TResource">The type of the Graphics Resource for which the description is retrieved.</typeparam>
-        /// <typeparam name="TDescription">The type of the description returned for the Graphics Resource.</typeparam>
-        /// <param name="resource">The Graphics Resource for which the description is to be retrieved.</param>
-        /// <returns>The description of the specified Graphics Resource.</returns>
-        protected internal delegate TDescription GetDescriptionDelegate<TResource, TDescription>(TResource resource);
-
         #endregion
 
         private readonly object thisLock = new();
@@ -78,6 +69,10 @@ namespace Stride.Graphics
         private readonly TextureCache textureCache = [];      // Cache for Textures by their TextureDescription
         private readonly BufferCache bufferCache = [];        // Cache for Buffers by their BufferDescription
         private readonly QueryPoolCache queryPoolCache = [];  // Cache for QueryPools by their QueryPoolDescription
+
+        // Every allocated resource and its link. A resource is cached under the description it was requested with,
+        // which can differ from its own (e.g. a depth format the device does not support), so it is found by identity.
+        private readonly Dictionary<GraphicsResourceBase, GraphicsResourceLink> resourceLinks = new(ReferenceEqualityComparer.Instance);
 
         private readonly CreateTextureDelegate createTextureDelegate;
         private readonly CreateBufferDelegate createBufferDelegate;
@@ -163,14 +158,16 @@ namespace Stride.Graphics
             {
                 Recycle(textureCache, recyclePolicy);
                 Recycle(bufferCache, recyclePolicy);
+                Recycle(queryPoolCache, recyclePolicy);
             }
 
             /// <summary>
             ///   Recycles the specified cache.
             /// </summary>
-            static void Recycle<TKey>(ResourceCache<TKey> cache, GraphicsResourceRecyclePolicyDelegate recyclePolicy)
+            void Recycle<TKey>(ResourceCache<TKey> cache, GraphicsResourceRecyclePolicyDelegate recyclePolicy)
             {
-                foreach (var resourceList in cache.Values)
+                List<TKey> emptyDescriptions = null;
+                foreach (var (description, resourceList) in cache)
                 {
                     for (int i = resourceList.Count - 1; i >= 0; i--)
                     {
@@ -181,28 +178,26 @@ namespace Stride.Graphics
                             {
                                 resourceLink.Resource.Dispose();
                                 resourceList.RemoveAt(i);
+                                resourceLinks.Remove(resourceLink.Resource);
                             }
                             // Reset the access count
                             resourceLink.AccessCountSinceLastRecycle = 0;
                         }
                     }
+
+                    // Forget descriptions with no resources left, so the cache does not grow with every size ever requested
+                    if (resourceList.Count == 0)
+                        (emptyDescriptions ??= []).Add(description);
+                }
+
+                if (emptyDescriptions is not null)
+                {
+                    foreach (var description in emptyDescriptions)
+                        cache.Remove(description);
                 }
             }
         }
 
-
-        /// <summary>
-        ///   Returns a description for a specified <see cref="Buffer"/>.
-        /// </summary>
-        private static BufferDescription GetBufferDescription(Buffer buffer) => buffer.Description;
-        /// <summary>
-        ///   Returns a description for a specified <see cref="Texture"/>.
-        /// </summary>
-        private static TextureDescription GetTextureDescription(Texture texture) => texture.Description;
-        /// <summary>
-        ///   Returns a description for a specified <see cref="QueryPool"/>.
-        /// </summary>
-        private static QueryPoolDescription GetQueryPoolDescription(QueryPool queryPool) => new(queryPool.QueryType, queryPool.QueryCount);
 
 
         /// <summary>
@@ -215,7 +210,7 @@ namespace Stride.Graphics
             // Global lock to be thread-safe
             lock (thisLock)
             {
-                return GetTemporaryResource(textureCache, description, createTextureDelegate, GetTextureDescription, PixelFormat.None);
+                return GetTemporaryResource(textureCache, description, createTextureDelegate, PixelFormat.None);
             }
         }
 
@@ -233,7 +228,7 @@ namespace Stride.Graphics
             // Global lock to be thread-safe
             lock (thisLock)
             {
-                return GetTemporaryResource(bufferCache, description, createBufferDelegate, GetBufferDescription, viewFormat);
+                return GetTemporaryResource(bufferCache, description, createBufferDelegate, viewFormat);
             }
         }
 
@@ -248,7 +243,7 @@ namespace Stride.Graphics
             // Global lock to be thread-safe
             lock (thisLock)
             {
-                return GetTemporaryResource(queryPoolCache, new QueryPoolDescription(queryType, queryCount), createQueryPoolDelegate, GetQueryPoolDescription, PixelFormat.None);
+                return GetTemporaryResource(queryPoolCache, new QueryPoolDescription(queryType, queryCount), createQueryPoolDelegate, PixelFormat.None);
             }
         }
 
@@ -338,6 +333,7 @@ namespace Stride.Graphics
                 DisposeCache(textureCache);
                 DisposeCache(bufferCache);
                 DisposeCache(queryPoolCache);
+                resourceLinks.Clear();
             }
 
             base.Destroy();
@@ -368,10 +364,6 @@ namespace Stride.Graphics
         ///   A delegate that creates a Graphics Resource given a description and a data format for SRVs.
         ///   See <see cref="CreateTexture"/>, <see cref="CreateBuffer"/>, or <see cref="CreateQueryPool"/> for examples.
         /// </param>
-        /// <param name="getDescription">
-        ///   A delegate that retrieves the actual description of a Graphics Resource.
-        ///   See <see cref="GetTextureDescription"/>, <see cref="GetBufferDescription"/>, or <see cref="GetQueryPoolDescription"/> for examples.
-        /// </param>
         /// <param name="viewFormat">
         ///   The data format for the View that will be seen by Shaders.
         ///   Specify <see cref="PixelFormat.None"/> to use the default format of the Graphics Resource.
@@ -382,17 +374,20 @@ namespace Stride.Graphics
             ResourceCache<TDescription> cache,
             TDescription description,
             CreateResourceDelegate<TResource, TDescription> createResource,
-            GetDescriptionDelegate<TResource, TDescription> getDescription,
             PixelFormat viewFormat)
 
             where TResource : GraphicsResourceBase
             where TDescription : struct
         {
             // For a specific description, get allocated resources
-            List<GraphicsResourceLink> resourceLinks = GetOrCreateCache(description);
+            if (!cache.TryGetValue(description, out List<GraphicsResourceLink> cachedLinks))
+            {
+                // If no resources are allocated for this description, create a new list
+                cache.Add(description, cachedLinks = []);
+            }
 
             // Find an available resource (non-referenced, but not disposed)
-            foreach (var resourceLink in resourceLinks)
+            foreach (var resourceLink in cachedLinks)
             {
                 if (resourceLink.ReferenceCount == 0)
                 {
@@ -405,38 +400,19 @@ namespace Stride.Graphics
             var newResource = createResource(description, viewFormat);
 
             string allocatorName = string.IsNullOrWhiteSpace(Name) ? string.Empty : $"{Name}-";
-            string resourceName = string.IsNullOrWhiteSpace(newResource.Name) ? newResource.GetType().Name : Name;
+            string resourceName = string.IsNullOrWhiteSpace(newResource.Name) ? newResource.GetType().Name : newResource.Name;
 
-            newResource.Name = $"{allocatorName}{resourceName}-{resourceLinks.Count}";
+            newResource.Name = $"{allocatorName}{resourceName}-{cachedLinks.Count}";
 
-            // Description may be altered when creating a resource (based on hardware limitations, etc.)
-            // We get here its actual final description
-            var realDescription = getDescription(newResource);
-
-            // Get or create the resource cache for the new description
-            resourceLinks = GetOrCreateCache(realDescription);
-
-            // Add the resource to the allocated resources
+            // Add the resource to the allocated resources, under the requested description: the device may have created
+            // it with another one (e.g. a depth format it does not support), but the next request will ask for this one
             //   Start with RefCount == 1, because we don't want this resource to be available if a post-FX processor is calling
             //   several times this GetTemporaryTexture method.
             var newResourceLink = new GraphicsResourceLink(newResource) { ReferenceCount = 1 };
-            resourceLinks.Add(newResourceLink);
+            cachedLinks.Add(newResourceLink);
+            resourceLinks.Add(newResource, newResourceLink);
 
             return newResource;
-
-            //
-            // Gets or creates a cache for allocated Graphics Resources matching the specified description.
-            //
-            List<GraphicsResourceLink> GetOrCreateCache(TDescription description)
-            {
-                // For a specific description, get allocated resources
-                if (!cache.TryGetValue(description, out List<GraphicsResourceLink> resourceLinks))
-                {
-                    // If no resources are allocated for this description, create a new list
-                    cache.Add(description, resourceLinks = []);
-                }
-                return resourceLinks;
-            }
         }
 
 
@@ -462,69 +438,13 @@ namespace Stride.Graphics
             if (resource is null)
                 return;
 
-            bool resourceFound = false;
+            if (resource is not (Texture or Buffer or QueryPool))
+                throw new ArgumentException("Unsupported Graphics Resource. Only Textures, Buffers and QueryPools are supported", nameof(resource));
 
-            resourceFound = resource switch
-            {
-                Texture texture => UpdateReferenceCount(textureCache, texture, GetTextureDescription, referenceDelta),
-                Buffer buffer => UpdateReferenceCount(bufferCache, buffer, GetBufferDescription, referenceDelta),
-                QueryPool queryPool => UpdateReferenceCount(queryPoolCache, queryPool, GetQueryPoolDescription, referenceDelta),
-
-                _ => throw new ArgumentException("Unsupported Graphics Resource. Only Textures, Buffers and QueryPools are supported", nameof(resource))
-            };
-
-            if (!resourceFound)
+            if (!resourceLinks.TryGetValue(resource, out var resourceLink))
                 throw new ArgumentException("The Graphics Resource was not allocated by this allocator", nameof(resource));
-        }
 
-        /// <summary>
-        ///   Updates the reference count for a specified Graphics Resource.
-        /// </summary>
-        /// <typeparam name="TResource">The type of the Graphics Resource.</typeparam>
-        /// <typeparam name="TDescription">The type of an object that describes the characteristics of the Graphics Resource.</typeparam>
-        /// <param name="cache">The cache of allocated Graphics Resources of the intended type.</param>
-        /// <param name="resource">The Graphics Resource whose reference count is to be updated.</param>
-        /// <param name="getDescription">
-        ///   A delegate that retrieves the actual description of a Graphics Resource.
-        ///   See <see cref="GetTextureDescription"/>, <see cref="GetBufferDescription"/>, or <see cref="GetQueryPoolDescription"/> for examples.
-        /// </param>
-        /// <param name="referenceDelta">
-        ///   The change in the reference count. Positive values increase the count, while negative values decrease it.
-        /// </param>
-        /// <returns>
-        ///   <see langword="true"/> if the reference count for <paramref name="resource"/> was updated; <see langword="false"/> otherwise.
-        /// </returns>
-        /// <exception cref="ArgumentException">
-        ///   The <paramref name="referenceDelta"/> is invalid. It cannot make the reference count of the <paramref name="resource"/> negative.
-        /// </exception>
-        private bool UpdateReferenceCount<TDescription, TResource>(
-            ResourceCache<TDescription> cache,
-            TResource resource,
-            GetDescriptionDelegate<TResource, TDescription> getDescription,
-            int referenceDelta)
-
-            where TResource : GraphicsResourceBase
-            where TDescription : struct
-        {
-            if (resource is null || referenceDelta == 0)
-            {
-                return false;
-            }
-
-            // Check if the resource is known by this allocator
-            if (cache.TryGetValue(getDescription(resource), out List<GraphicsResourceLink> resourceLinks))
-            {
-                foreach (var resourceLink in resourceLinks)
-                {
-                    if (resourceLink.Resource == resource)
-                    {
-                        UpdateCounter(resourceLink, referenceDelta);
-                        return true;
-                    }
-                }
-            }
-            // Resource not found in the cache
-            return false;
+            UpdateCounter(resourceLink, referenceDelta);
         }
 
         /// <summary>

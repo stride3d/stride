@@ -1,0 +1,44 @@
+// PSMain(ExpectedResult=#336699FF)
+
+namespace Stride.Shaders.Tests;
+
+shader BraceInitializers
+{
+    stream float4 ColorTarget : SV_Target0;
+
+    struct Item
+    {
+        int Id;
+        float Weight;
+    };
+
+    struct Pair
+    {
+        Item First;
+        float2 Value;
+    };
+
+    // A matrix by rows
+    static const float3x3 Sobel = { {-1, -2, -1}, {0, 0, 0}, {1, 2, 1} };
+    // The size comes from the initializer
+    static const float3 Offsets[] = { {0.1, 0.2, 0.3}, {0.4, 0.5, 0.6} };
+
+    void PSMain()
+    {
+        float x = 0.2;
+        float y = 0.4;
+
+        // As in HLSL, braces only group: the values fill the scalars in order
+        const float3x3 k = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        Item items[2] = { {1, x}, {2, y} };
+        Item flat[2] = { 3, x, 4, y };
+        Pair p = { {5, 0.6}, float2(x, y) };
+        float2x3 m = { float3(1, 2, 3), float3(4, 5, 6) };
+
+        bool ok = Sobel[0][1] == -2 && Sobel[2][0] == 1 && k[1][2] == 6 && k[2][0] == 7
+            && items[1].Id == 2 && flat[1].Id == 4 && flat[0].Weight == x && p.First.Id == 5 && p.Value.y == y
+            && m[1][0] == 4 && m[0][2] == 3 && Offsets[1].y == 0.5;
+
+        streams.ColorTarget = float4(items[0].Weight, items[1].Weight, p.First.Weight, ok ? 1 : 0);
+    }
+};

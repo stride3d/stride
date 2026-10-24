@@ -31,11 +31,11 @@ public static class ShaderCompilerVersion
     ///   Bump when the SPIR-V compiled from a Shader changes: a different constant buffer layout, resource
     ///   order, or code generation. Invalidates the Shader cache and the Effect caches.
     /// </summary>
-    public const int Shader = 3;
+    public const int Shader = 8;
 
     /// <summary>
     ///   Bump when what is derived from the SPIR-V changes while the SPIR-V does not: reflection, or the
     ///   bytecode compiled from it for each graphics API. Invalidates the Effect caches only.
     /// </summary>
-    public const int Effect = 2;
+    public const int Effect = 5;
 }
