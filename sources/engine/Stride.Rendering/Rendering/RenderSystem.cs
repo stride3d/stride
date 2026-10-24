@@ -281,12 +281,12 @@ namespace Stride.Rendering
                     var state = (renderSystem, view);
                     Dispatcher.For<PrepareThreadLocals, (RenderSystem, RenderView)>(0, view.RenderStages.Count, state, &InitializeLocal, &SortRenderStage, &FinalizeLocal);
 
-                    static PrepareThreadLocals InitializeLocal((RenderSystem, RenderView) state)
+                    static PrepareThreadLocals InitializeLocal(ref (RenderSystem, RenderView) state)
                     {
                         return state.Item1.prepareThreadLocals.Acquire();
                     }
 
-                    static void SortRenderStage((RenderSystem, RenderView) state, int index, PrepareThreadLocals local)
+                    static void SortRenderStage(ref (RenderSystem, RenderView) state, int index, PrepareThreadLocals local)
                     {
                         var (renderSystem, view) = state;
                         var renderViewStage = view.RenderStages[index];
@@ -328,7 +328,7 @@ namespace Stride.Rendering
                         }
                     }
 
-                    static void FinalizeLocal((RenderSystem, RenderView) state, PrepareThreadLocals local)
+                    static void FinalizeLocal(ref (RenderSystem, RenderView) state, PrepareThreadLocals local)
                     {
                         state.Item1.prepareThreadLocals.Release(local);
                     }
@@ -510,12 +510,12 @@ namespace Stride.Rendering
                 };
                 Dispatcher.For(0, batchCount, state, &InitializeLocal, &ForAction);
 
-                static RenderDrawContext InitializeLocal(DrawParameters state)
+                static RenderDrawContext InitializeLocal(ref DrawParameters state)
                 {
                     return state.RenderDrawContext.RenderContext.GetThreadContext();
                 }
 
-                static void ForAction(DrawParameters state, int batchIndex, RenderDrawContext threadContext)
+                static void ForAction(ref DrawParameters state, int batchIndex, RenderDrawContext threadContext)
                 {
                     var renderSystem = state.RenderSystem;
                     var renderViewStage = state.RenderViewStage;

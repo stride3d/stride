@@ -63,7 +63,7 @@ namespace Stride.Rendering
             //for (int index = 0; index < RootRenderFeature.ObjectNodeReferences.Count; index++)
             Dispatcher.For(0, RootRenderFeature.ObjectNodeReferences.Count, (this, renderModelObjectInfo), &ForAction);
 
-            static void ForAction((TransformRenderFeature, ObjectPropertyData<RenderModelFrameInfo>) state, int index)
+            static void ForAction(ref (TransformRenderFeature, ObjectPropertyData<RenderModelFrameInfo>) state, int index)
             {
                 var (@this, renderModelObjectInfo) = state;
                 var objectNodeReference = @this.RootRenderFeature.ObjectNodeReferences[index];

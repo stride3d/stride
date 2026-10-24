@@ -137,12 +137,12 @@ namespace Stride.Rendering
 
             view.RenderObjects.Close();
 
-            static ConcurrentCollectorCache<RenderObject> InitializeLocal((VisibilityGroup, RenderView, BoundingFrustum, CameraCullingMode, RenderGroupMask, Plane) state)
+            static ConcurrentCollectorCache<RenderObject> InitializeLocal(ref (VisibilityGroup, RenderView, BoundingFrustum, CameraCullingMode, RenderGroupMask, Plane) state)
             {
                 return state.Item1.collectorCache.Value;
             }
 
-            static void ForAction((VisibilityGroup, RenderView, BoundingFrustum, CameraCullingMode, RenderGroupMask, Plane) state, int index, ConcurrentCollectorCache<RenderObject> cache)
+            static void ForAction(ref (VisibilityGroup, RenderView, BoundingFrustum, CameraCullingMode, RenderGroupMask, Plane) state, int index, ConcurrentCollectorCache<RenderObject> cache)
             {
                 var (group, view, frustum, cullingMode, cullingMask, plane) = state;
                 var renderObject = group.RenderObjects[index];
@@ -198,7 +198,7 @@ namespace Stride.Rendering
                 }
             }
 
-            static void FinalizeLocal((VisibilityGroup, RenderView, BoundingFrustum, CameraCullingMode, RenderGroupMask, Plane) _, ConcurrentCollectorCache<RenderObject> cache)
+            static void FinalizeLocal(ref (VisibilityGroup, RenderView, BoundingFrustum, CameraCullingMode, RenderGroupMask, Plane) _, ConcurrentCollectorCache<RenderObject> cache)
             {
                 cache.Flush();
             }

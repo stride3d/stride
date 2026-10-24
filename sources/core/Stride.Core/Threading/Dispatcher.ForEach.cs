@@ -36,6 +36,7 @@ public static partial class Dispatcher
 
     private readonly unsafe struct ForEachParameters<T, TList, TParameter>(TList collection, TParameter parameter, delegate*<TParameter, T, void> action) : IBatchJob
         where TList : IReadOnlyList<T>
+        where TParameter : class
     {
         public readonly TList Collection = collection;
         public readonly TParameter Parameter = parameter;
@@ -50,9 +51,35 @@ public static partial class Dispatcher
         }
     }
 
-    public static unsafe void ForEach<T, TList, TParameter>(TList collection, TParameter parameter, delegate*<TParameter, T, void> action) where TList : IReadOnlyList<T>
+    public static unsafe void ForEach<T, TList, TParameter>(TList collection, TParameter parameter, delegate*<TParameter, T, void> action)
+        where TList : IReadOnlyList<T>
+        where TParameter : class
     {
         ForBatched(collection.Count, new ForEachParameters<T, TList, TParameter>(collection, parameter, action));
+    }
+
+    private unsafe struct ForEachParametersRef<T, TList, TParameter>(TList collection, in TParameter parameter, delegate*<ref TParameter, T, void> action) : IBatchJob
+        where TList : IReadOnlyList<T>
+        where TParameter : struct
+    {
+        public readonly TList Collection = collection;
+        public TParameter Parameter = parameter;
+        public readonly delegate*<ref TParameter, T, void> Action = action;
+
+        public void Process(int start, int endExclusive)
+        {
+            for (int i = start; i < endExclusive; i++)
+            {
+                Action(ref Parameter, Collection[i]);
+            }
+        }
+    }
+
+    public static unsafe void ForEach<T, TList, TParameter>(TList collection, in TParameter parameter, delegate*<ref TParameter, T, void> action)
+        where TList : IReadOnlyList<T>
+        where TParameter : struct
+    {
+        ForBatched(collection.Count, new ForEachParametersRef<T, TList, TParameter>(collection, in parameter, action));
     }
 
     public static unsafe void ForEach<T, TList>(TList collection, Action<T> action) where TList : IReadOnlyList<T>
@@ -71,6 +98,7 @@ public static partial class Dispatcher
 
     private readonly unsafe struct ForEachLocalParameters<TItem, TLocal, TList, TParameter>(TList collection, TParameter parameter, delegate*<TParameter, TLocal> initializeLocal, delegate*<TParameter, TItem, TLocal, void> action, delegate*<TParameter, TLocal, void> finalizeLocal) : IBatchJob
         where TList : IReadOnlyList<TItem>
+        where TParameter : class
     {
         public readonly TList Collection = collection;
         public readonly TParameter Parameter = parameter;
@@ -105,8 +133,51 @@ public static partial class Dispatcher
 
     public static unsafe void ForEach<TItem, TLocal, TList, TParameter>(TList collection, TParameter parameter, delegate*<TParameter, TLocal> initializeLocal, delegate*<TParameter, TItem, TLocal, void> action, delegate*<TParameter, TLocal, void> finalizeLocal = null)
         where TList : IReadOnlyList<TItem>
+        where TParameter : class
     {
         ForBatched(collection.Count, new ForEachLocalParameters<TItem, TLocal, TList, TParameter>(collection, parameter, initializeLocal, action, finalizeLocal));
+    }
+
+    private unsafe struct ForEachLocalParametersRef<TItem, TLocal, TList, TParameter>(TList collection, in TParameter parameter, delegate*<ref TParameter, TLocal> initializeLocal, delegate*<ref TParameter, TItem, TLocal, void> action, delegate*<ref TParameter, TLocal, void> finalizeLocal) : IBatchJob
+        where TList : IReadOnlyList<TItem>
+        where TParameter : struct
+    {
+        public readonly TList Collection = collection;
+        public TParameter Parameter = parameter;
+        public readonly delegate*<ref TParameter, TLocal> InitializeLocal = initializeLocal;
+        public readonly delegate*<ref TParameter, TItem, TLocal, void> Action = action;
+        public readonly delegate*<ref TParameter, TLocal, void> FinalizeLocal = finalizeLocal;
+
+        public void Process(int start, int endExclusive)
+        {
+            TLocal local = default!;
+            try
+            {
+                if (InitializeLocal != null)
+                {
+                    local = InitializeLocal(ref Parameter);
+                }
+
+                for (int i = start; i < endExclusive; i++)
+                {
+                    Action(ref Parameter, Collection[i], local);
+                }
+            }
+            finally
+            {
+                if (FinalizeLocal != null)
+                {
+                    FinalizeLocal(ref Parameter, local);
+                }
+            }
+        }
+    }
+
+    public static unsafe void ForEach<TItem, TLocal, TList, TParameter>(TList collection, in TParameter parameter, delegate*<ref TParameter, TLocal> initializeLocal, delegate*<ref TParameter, TItem, TLocal, void> action, delegate*<ref TParameter, TLocal, void> finalizeLocal = null)
+        where TList : IReadOnlyList<TItem>
+        where TParameter : struct
+    {
+        ForBatched(collection.Count, new ForEachLocalParametersRef<TItem, TLocal, TList, TParameter>(collection, in parameter, initializeLocal, action, finalizeLocal));
     }
 
     public static unsafe void ForEach<TItem, TLocal, TList>(TList collection, Func<TLocal> initializeLocal, Action<TItem, TLocal> action, Action<TLocal>? finalizeLocal = null) where TList : IReadOnlyList<TItem>

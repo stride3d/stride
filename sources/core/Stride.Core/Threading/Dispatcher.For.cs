@@ -6,6 +6,7 @@ namespace Stride.Core.Threading;
 public static partial class Dispatcher
 {
     private readonly unsafe struct ForParameters<TParameter>(int start, TParameter parameter, delegate*<TParameter, int, void> action) : IBatchJob
+        where TParameter : class
     {
         public readonly int Start = start;
         public readonly TParameter Parameter = parameter;
@@ -21,8 +22,31 @@ public static partial class Dispatcher
     }
 
     public static unsafe void For<TParameter>(int fromInclusive, int toExclusive, TParameter parameter, delegate*<TParameter, int, void> action)
+        where TParameter : class
     {
         ForBatched(toExclusive - fromInclusive, new ForParameters<TParameter>(fromInclusive, parameter, action));
+    }
+
+    private unsafe struct ForParametersRef<TParameter>(int start, in TParameter parameter, delegate*<ref TParameter, int, void> action) : IBatchJob
+        where TParameter : struct
+    {
+        public readonly int Start = start;
+        public TParameter Parameter = parameter;
+        public readonly delegate*<ref TParameter, int, void> Action = action;
+
+        public void Process(int start, int endExclusive)
+        {
+            for (int i = start; i < endExclusive; i++)
+            {
+                Action(ref Parameter, Start + i);
+            }
+        }
+    }
+
+    public static unsafe void For<TParameter>(int fromInclusive, int toExclusive, in TParameter parameter, delegate*<ref TParameter, int, void> action)
+        where TParameter : struct
+    {
+        ForBatched(toExclusive - fromInclusive, new ForParametersRef<TParameter>(fromInclusive, in parameter, action));
     }
 
     public static unsafe void For(int fromInclusive, int toExclusive, Action<int> action)
@@ -40,6 +64,7 @@ public static partial class Dispatcher
     }
 
     private readonly unsafe struct ForParameters<TLocal, TParameter>(int start, TParameter parameter, delegate*<TParameter, TLocal> initializeLocal, delegate*<TParameter, int, TLocal, void> action, delegate*<TParameter, TLocal, void> finalizeLocal) : IBatchJob
+        where TParameter : class
     {
         public readonly int Start = start;
         public readonly TParameter Parameter = parameter;
@@ -72,8 +97,48 @@ public static partial class Dispatcher
     }
 
     public static unsafe void For<TLocal, TParameter>(int fromInclusive, int toExclusive, TParameter parameter, delegate*<TParameter, TLocal> initializeLocal, delegate*<TParameter, int, TLocal, void> action, delegate*<TParameter, TLocal, void> finalizeLocal = null)
+        where TParameter : class
     {
         ForBatched(toExclusive - fromInclusive, new ForParameters<TLocal, TParameter>(fromInclusive, parameter, initializeLocal, action, finalizeLocal));
+    }
+
+    private unsafe struct ForParametersRef<TLocal, TParameter>(int start, in TParameter parameter, delegate*<ref TParameter, TLocal> initializeLocal, delegate*<ref TParameter, int, TLocal, void> action, delegate*<ref TParameter, TLocal, void> finalizeLocal) : IBatchJob
+        where TParameter : struct
+    {
+        public readonly int Start = start;
+        public TParameter Parameter = parameter;
+        public readonly delegate*<ref TParameter, TLocal> InitializeLocal = initializeLocal;
+        public readonly delegate*<ref TParameter, int, TLocal, void> Action = action;
+        public readonly delegate*<ref TParameter, TLocal, void> FinalizeLocal = finalizeLocal;
+
+        public void Process(int start, int endExclusive)
+        {
+            TLocal local = default!;
+            try
+            {
+                if (InitializeLocal != null)
+                {
+                    local = InitializeLocal(ref Parameter);
+                }
+                for (int i = start; i < endExclusive; i++)
+                {
+                    Action(ref Parameter, Start + i, local);
+                }
+            }
+            finally
+            {
+                if (FinalizeLocal != null)
+                {
+                    FinalizeLocal(ref Parameter, local);
+                }
+            }
+        }
+    }
+
+    public static unsafe void For<TLocal, TParameter>(int fromInclusive, int toExclusive, in TParameter parameter, delegate*<ref TParameter, TLocal> initializeLocal, delegate*<ref TParameter, int, TLocal, void> action, delegate*<ref TParameter, TLocal, void> finalizeLocal = null)
+        where TParameter : struct
+    {
+        ForBatched(toExclusive - fromInclusive, new ForParametersRef<TLocal, TParameter>(fromInclusive, in parameter, initializeLocal, action, finalizeLocal));
     }
 
     public static unsafe void For<TLocal>(int fromInclusive, int toExclusive, Func<TLocal> initializeLocal, Action<int, TLocal> action, Action<TLocal>? finalizeLocal = null)

@@ -257,7 +257,7 @@ namespace Stride.Particles.Rendering
             //for (int renderNodeIndex = 0; renderNodeIndex < RenderNodes.Count; renderNodeIndex++)
             Dispatcher.For(0, RenderNodes.Count, (this, renderParticleNodeData, sharedBufferPtr), &ForAction);
 
-            static void ForAction((ParticleEmitterRenderFeature, RenderPropertyData<RenderAttributesPerNode>, IntPtr) state, int renderNodeIndex)
+            static void ForAction(ref (ParticleEmitterRenderFeature, RenderPropertyData<RenderAttributesPerNode>, IntPtr) state, int renderNodeIndex)
             {
                 var (@this, renderParticleNodeData, sharedBufferPtr) = state;
                 var renderNode = @this.RenderNodes[renderNodeIndex];
