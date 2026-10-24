@@ -3,7 +3,7 @@
 using Xunit;
 using Stride.Core.Assets.Editor.View.Behaviors;
 
-namespace Stride.Core.Assets.Editor.Tests
+namespace Stride.Core.Assets.Editor.Wpf.Tests
 {
     public class TestDropZoneCalculator
     {

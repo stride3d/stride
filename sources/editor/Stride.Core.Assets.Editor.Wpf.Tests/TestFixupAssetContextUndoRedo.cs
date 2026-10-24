@@ -8,7 +8,7 @@ using Stride.Core.Assets.Quantum.Tests.Helpers;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Quantum;
 
-namespace Stride.Core.Assets.Editor.Tests
+namespace Stride.Core.Assets.Editor.Wpf.Tests
 {
     public class TestFixupAssetContextUndoRedo
     {

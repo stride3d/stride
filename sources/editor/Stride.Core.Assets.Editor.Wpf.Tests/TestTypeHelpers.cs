@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using Stride.Core.Assets.Editor.Internal;
 using Xunit;
 
-namespace Stride.Core.Assets.Editor.Tests
+namespace Stride.Core.Assets.Editor.Wpf.Tests
 {
     public class TestTypeHelpers
     {

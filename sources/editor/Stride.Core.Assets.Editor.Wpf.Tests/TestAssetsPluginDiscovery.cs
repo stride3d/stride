@@ -6,7 +6,7 @@ using System.Linq;
 using Stride.Core.Assets.Editor.Services;
 using Xunit;
 
-namespace Stride.Core.Assets.Editor.Tests
+namespace Stride.Core.Assets.Editor.Wpf.Tests
 {
     public class TestAssetsPluginDiscovery
     {

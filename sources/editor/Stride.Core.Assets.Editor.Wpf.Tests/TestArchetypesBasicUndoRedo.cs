@@ -10,7 +10,7 @@ using Stride.Core.Presentation.Dirtiables;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Quantum;
 
-namespace Stride.Core.Assets.Editor.Tests
+namespace Stride.Core.Assets.Editor.Wpf.Tests
 {
     /// <summary>
     /// This class repeats the tests done by <see cref="TestArchetypesBasic"/> and verifies that undo/redo works for them.

@@ -180,6 +180,7 @@
     <Project Path="sources/editor/Stride.Assets.Presentation.Common.Tests/Stride.Assets.Presentation.Common.Tests.csproj" />
     <Project Path="sources/editor/Stride.Core.Assets.Editor.Common.Tests/Stride.Core.Assets.Editor.Common.Tests.csproj" />
     <Project Path="sources/editor/Stride.Core.Assets.Editor.Tests/Stride.Core.Assets.Editor.Tests.csproj" />
+    <Project Path="sources/editor/Stride.Core.Assets.Editor.Wpf.Tests/Stride.Core.Assets.Editor.Wpf.Tests.csproj" />
     <Project Path="sources/editor/Stride.GameStudio.AutoTesting/Stride.GameStudio.AutoTesting.csproj" />
     <Project Path="sources/editor/Stride.GameStudio.Tests/Stride.GameStudio.Tests.csproj" />
     <Project Path="tests/editor/Stride.Editor.Tests/Stride.Editor.Tests.csproj" />
