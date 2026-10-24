@@ -6,7 +6,7 @@ using Stride.Core.Storage;
 namespace Stride.Core.Assets.Editor.ViewModel
 {
     /// <summary>
-    /// The part of the tracker of asset source files (<see cref="AssetSourceTrackerViewModel"/>) that the session objects use.
+    /// The part of the tracker of asset source files (<c>AssetSourceTrackerViewModel</c>) that the session objects use.
     /// </summary>
     public interface IAssetSourceTrackerViewModel
     {

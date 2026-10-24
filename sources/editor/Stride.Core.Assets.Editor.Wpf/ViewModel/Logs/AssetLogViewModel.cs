@@ -29,7 +29,7 @@ namespace Stride.Core.Assets.Editor.ViewModel.Logs
         public const string AssetReplacementLogName = "AssetReplacement";
         public const string SessionLogName = "Session";
         // Followed by the package name: one log per package
-        public const string ConsistencyLogName = "Consistency";
+        public const string ConsistencyLogName = IAssetLogViewModel.ConsistencyLogName;
 
         // Above this many changes in one update, the shown messages are replaced at once instead of one by one
         private const int MaxIncrementalChanges = 1000;

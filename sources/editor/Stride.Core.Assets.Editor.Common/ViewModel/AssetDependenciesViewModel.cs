@@ -43,25 +43,25 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// <summary>
         /// Gets the collection of assets that directly references the related asset.
         /// </summary>
-        /// <remarks>This collection is updated asynchronously, however it is always up-to-date when <see cref="SessionViewModel.AssetPropertiesChanged"/> is raised.</remarks>
+        /// <remarks>This collection is updated asynchronously, however it is always up-to-date when <see cref="ISessionViewModel.AssetPropertiesChanged"/> is raised.</remarks>
         public IReadOnlyCollection<AssetViewModel> ReferencerAssets { get { return referencerAssets; } private set { SetValue(ref referencerAssets, value); } }
 
         /// <summary>
         /// Gets the collection of assets directly referenced by the related asset.
         /// </summary>
-        /// <remarks>This collection is updated asynchronously, however it is always up-to-date when <see cref="SessionViewModel.AssetPropertiesChanged"/> is raised.</remarks>
+        /// <remarks>This collection is updated asynchronously, however it is always up-to-date when <see cref="ISessionViewModel.AssetPropertiesChanged"/> is raised.</remarks>
         public IReadOnlyCollection<AssetViewModel> ReferencedAssets { get { return referencedAssets; } private set { SetValue(ref referencedAssets, value); } }
 
         /// <summary>
         /// Gets the collection of assets that references the related asset directly or indirectly.
         /// </summary>
-        /// <remarks>This collection is updated asynchronously, however it is always up-to-date when <see cref="SessionViewModel.AssetPropertiesChanged"/> is raised.</remarks>
+        /// <remarks>This collection is updated asynchronously, however it is always up-to-date when <see cref="ISessionViewModel.AssetPropertiesChanged"/> is raised.</remarks>
         public IReadOnlyCollection<AssetViewModel> RecursiveReferencerAssets { get { return recursiveReferencerAssets; } private set { SetValue(ref recursiveReferencerAssets, value); } }
 
         /// <summary>
         /// Gets the collection of assets referenced by the related asset directly or indirectly.
         /// </summary>
-        /// <remarks>This collection is updated asynchronously, however it is always up-to-date when <see cref="SessionViewModel.AssetPropertiesChanged"/> is raised.</remarks>
+        /// <remarks>This collection is updated asynchronously, however it is always up-to-date when <see cref="ISessionViewModel.AssetPropertiesChanged"/> is raised.</remarks>
         public IReadOnlyCollection<AssetViewModel> RecursiveReferencedAssets { get { return recursiveReferencedAssets; } private set { SetValue(ref recursiveReferencedAssets, value); } }
 
         /// <summary>
@@ -177,7 +177,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         }
 
         /// <summary>
-        /// Gets a command that toggles this asset as a root asset of its default target package (see <see cref="SessionViewModel.GetDefaultRootAssetTarget"/>).
+        /// Gets a command that toggles this asset as a root asset of its default target package (see <see cref="ISessionViewModel.GetDefaultRootAssetTarget"/>).
         /// </summary>
         public ICommandBase ToggleIsRootOnSelectedAssetCommand { get; }
 

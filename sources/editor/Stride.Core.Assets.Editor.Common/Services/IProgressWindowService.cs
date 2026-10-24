@@ -5,7 +5,7 @@ using Stride.Core.Assets.Editor.ViewModel.Progress;
 namespace Stride.Core.Assets.Editor.Services
 {
     /// <summary>
-    /// Shows the progress of background tasks. The editor's dialog service (<see cref="IEditorDialogService"/>) provides it.
+    /// Shows the progress of background tasks. The editor's dialog service (<c>IEditorDialogService</c>) provides it.
     /// </summary>
     public interface IProgressWindowService
     {

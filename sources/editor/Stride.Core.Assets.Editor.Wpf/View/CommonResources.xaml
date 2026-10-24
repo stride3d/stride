@@ -5,6 +5,7 @@
                     xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
                     xmlns:view="clr-namespace:Stride.Core.Assets.Editor.View"
                     xmlns:viewModel="clr-namespace:Stride.Core.Assets.Editor.ViewModel"
+                    xmlns:commonViewModel="clr-namespace:Stride.Core.Assets.Editor.ViewModel;assembly=Stride.Core.Assets.Editor.Common"
                     xmlns:behaviors="clr-namespace:Stride.Core.Assets.Editor.View.Behaviors"
                     mc:Ignorable="d">
 
@@ -200,7 +201,7 @@
 
   <view:TreeViewTemplateSelector x:Key="SolutionTreeViewTemplate">
     <view:TreeViewTemplateSelector.PackageTemplate>
-      <HierarchicalDataTemplate ItemsSource="{Binding Content}" DataType="viewModel:PackageViewModel">
+      <HierarchicalDataTemplate ItemsSource="{Binding Content}" DataType="commonViewModel:PackageViewModel">
         <StackPanel Orientation="Horizontal" ToolTip="{Binding PackagePath, Converter={sd:UDirectoryToString}}">
           <Image Source="{StaticResource ImagePackage}" Margin="0,0,5,0"/>
           <TextBlock x:Name="PackageText">
@@ -216,7 +217,7 @@
       </HierarchicalDataTemplate>
     </view:TreeViewTemplateSelector.PackageTemplate>
     <view:TreeViewTemplateSelector.AssetMountPointTemplate>
-      <HierarchicalDataTemplate ItemsSource="{Binding SubDirectories}" DataType="viewModel:AssetMountPointViewModel">
+      <HierarchicalDataTemplate ItemsSource="{Binding SubDirectories}" DataType="commonViewModel:AssetMountPointViewModel">
         <StackPanel Orientation="Horizontal">
           <Image x:Name="DirectoryImage" Source="{StaticResource ImageRootFolder}" Margin="0,0,5,0"/>
           <TextBlock>
@@ -226,7 +227,7 @@
       </HierarchicalDataTemplate>
     </view:TreeViewTemplateSelector.AssetMountPointTemplate>
     <view:TreeViewTemplateSelector.DirectoryTemplate>
-      <HierarchicalDataTemplate ItemsSource="{Binding SubDirectories}" DataType="viewModel:DirectoryViewModel">
+      <HierarchicalDataTemplate ItemsSource="{Binding SubDirectories}" DataType="commonViewModel:DirectoryViewModel">
         <StackPanel Orientation="Horizontal">
           <Image x:Name="DirectoryImage" Source="{StaticResource ImageFolder}" Margin="0,0,5,0"/>
           <TextBlock>
@@ -236,7 +237,7 @@
       </HierarchicalDataTemplate>
     </view:TreeViewTemplateSelector.DirectoryTemplate>
     <view:TreeViewTemplateSelector.DependencyCategoryTemplate>
-      <HierarchicalDataTemplate ItemsSource="{Binding Content}" DataType="viewModel:ICategoryViewModel">
+      <HierarchicalDataTemplate ItemsSource="{Binding Content}" DataType="commonViewModel:ICategoryViewModel">
         <StackPanel Orientation="Horizontal">
           <Image Source="{StaticResource ImageDepsRoot}" Margin="0,0,5,0"/>
           <TextBlock>
@@ -246,7 +247,7 @@
       </HierarchicalDataTemplate>
     </view:TreeViewTemplateSelector.DependencyCategoryTemplate>
     <view:TreeViewTemplateSelector.ProjectTemplate>
-      <HierarchicalDataTemplate ItemsSource="{Binding Content}" DataType="viewModel:ProjectViewModel">
+      <HierarchicalDataTemplate ItemsSource="{Binding Content}" DataType="commonViewModel:ProjectViewModel">
         <StackPanel Orientation="Horizontal">
           <Image Width="16" Height="16" Source="{Binding GenericType, Converter={sd:StaticResourceConverter}}" Margin="0,0,5,0"/>
           <TextBlock x:Name="ProjectText">
@@ -261,7 +262,7 @@
       </HierarchicalDataTemplate>
     </view:TreeViewTemplateSelector.ProjectTemplate>
     <view:TreeViewTemplateSelector.ProjectCodeTemplate>
-      <HierarchicalDataTemplate ItemsSource="{Binding SubDirectories}" DataType="viewModel:ProjectCodeViewModel">
+      <HierarchicalDataTemplate ItemsSource="{Binding SubDirectories}" DataType="commonViewModel:ProjectCodeViewModel">
         <StackPanel Orientation="Horizontal">
           <Image x:Name="DirectoryImage" Source="{StaticResource ImageRootFolder}" Margin="0,0,5,0"/>
           <TextBlock>
@@ -271,7 +272,7 @@
       </HierarchicalDataTemplate>
     </view:TreeViewTemplateSelector.ProjectCodeTemplate>
     <view:TreeViewTemplateSelector.PackageReferenceTemplate>
-      <DataTemplate DataType="viewModel:PackageReferenceViewModel">
+      <DataTemplate DataType="commonViewModel:PackageReferenceViewModel">
         <StackPanel Orientation="Horizontal">
           <Image Source="{StaticResource ImagePackageReference}" Margin="0,0,5,0"/>
           <TextBlock Text="{Binding Name, Mode=OneWay}"/>
@@ -282,7 +283,7 @@
 
   <view:TreeViewTemplateSelector x:Key="SolutionTreeViewEditTemplate">
     <view:TreeViewTemplateSelector.PackageTemplate>
-      <HierarchicalDataTemplate ItemsSource="{Binding AssetMountPoint.SubDirectories}" DataType="viewModel:PackageViewModel">
+      <HierarchicalDataTemplate ItemsSource="{Binding AssetMountPoint.SubDirectories}" DataType="commonViewModel:PackageViewModel">
         <StackPanel Orientation="Horizontal" Margin="0,2">
           <Image Source="{StaticResource ImagePackage}" Margin="0,0,5,0"/>
           <sd:TextBox Text="{Binding Name}" GetFocusOnLoad="True" SelectAllOnFocus="True" ValidateOnLostFocus="True"/>
@@ -290,7 +291,7 @@
       </HierarchicalDataTemplate>
     </view:TreeViewTemplateSelector.PackageTemplate>
     <view:TreeViewTemplateSelector.AssetMountPointTemplate>
-      <HierarchicalDataTemplate ItemsSource="{Binding SubDirectories}" DataType="viewModel:AssetMountPointViewModel">
+      <HierarchicalDataTemplate ItemsSource="{Binding SubDirectories}" DataType="commonViewModel:AssetMountPointViewModel">
         <StackPanel Orientation="Horizontal" Margin="0,2">
           <Image Source="{StaticResource ImageRootFolder}" Margin="0,0,5,0"/>
           <sd:TextBox Text="{Binding Name}" GetFocusOnLoad="True" SelectAllOnFocus="True" ValidateOnLostFocus="True"/>
@@ -298,7 +299,7 @@
       </HierarchicalDataTemplate>
     </view:TreeViewTemplateSelector.AssetMountPointTemplate>
     <view:TreeViewTemplateSelector.DirectoryTemplate>
-      <HierarchicalDataTemplate ItemsSource="{Binding SubDirectories}" DataType="viewModel:DirectoryViewModel">
+      <HierarchicalDataTemplate ItemsSource="{Binding SubDirectories}" DataType="commonViewModel:DirectoryViewModel">
         <StackPanel Orientation="Horizontal" Margin="0,2">
           <Image Source="{StaticResource ImageFolder}" Margin="0,0,5,0"/>
           <sd:TextBox Text="{Binding Name}" GetFocusOnLoad="True" SelectAllOnFocus="True" ValidateOnLostFocus="True"/>
@@ -306,7 +307,7 @@
       </HierarchicalDataTemplate>
     </view:TreeViewTemplateSelector.DirectoryTemplate>
     <view:TreeViewTemplateSelector.DependencyCategoryTemplate>
-      <HierarchicalDataTemplate ItemsSource="{Binding Content}" DataType="viewModel:ICategoryViewModel">
+      <HierarchicalDataTemplate ItemsSource="{Binding Content}" DataType="commonViewModel:ICategoryViewModel">
         <StackPanel Orientation="Horizontal" Margin="0,2">
           <Image Source="{StaticResource ImageDepsRoot}" Margin="0,0,5,0"/>
           <sd:TextBox Text="{Binding Name}" GetFocusOnLoad="True" SelectAllOnFocus="True" ValidateOnLostFocus="True"/>
@@ -314,7 +315,7 @@
       </HierarchicalDataTemplate>
     </view:TreeViewTemplateSelector.DependencyCategoryTemplate>
     <view:TreeViewTemplateSelector.ProjectTemplate>
-      <HierarchicalDataTemplate ItemsSource="{Binding SubDirectories}" DataType="viewModel:ProjectViewModel">
+      <HierarchicalDataTemplate ItemsSource="{Binding SubDirectories}" DataType="commonViewModel:ProjectViewModel">
         <StackPanel Orientation="Horizontal" Margin="0,2">
           <Image Width="16" Height="16" Source="{Binding GenericType, Converter={sd:StaticResourceConverter}}" Margin="0,0,5,0"/>
           <sd:TextBox Text="{Binding Name}" GetFocusOnLoad="True" SelectAllOnFocus="True" ValidateOnLostFocus="True"/>

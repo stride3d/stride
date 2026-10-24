@@ -1,0 +1,96 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2026-09-12 15:24:54+0200\n"
+"PO-Revision-Date: 2019-03-24 02:39+0000\n"
+"Last-Translator: Allan Nordhøy <epost@anotheragency.no>\n"
+"Language-Team: Norwegian Bokmål <https://hosted.weblate.org/projects/stride/"
+"coreassetseditor/nb_NO/>\n"
+"Language: nb_NO\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 3.6-dev\n"
+
+#: ../editor/Stride.Core.Assets.Editor.Common/ViewModel/PackageViewModel.cs:443
+#. Error message when the template generator of the selected template is unreachable
+msgctxt "Message"
+msgid ""
+"Unable to retrieve template generator for the selected template. Aborting."
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor.Common/ViewModel/AssetViewModel.cs:663
+msgctxt "Message"
+msgid ""
+"Unable to rename asset to '{0}' because an asset with the same name exists "
+"in the same directory"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor.Common/ViewModel/AssetViewModel.cs:668
+msgctxt "Message"
+msgid "Unable to rename asset with an empty name"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor.Common/ViewModel/DirectoryViewModel.cs:106
+msgctxt "Message"
+msgid "This package that contains this folder can't be edited."
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor.Common/ViewModel/DirectoryViewModel.cs:143
+msgctxt "Message"
+msgid "Unable to rename folder. {0}"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor.Common/ViewModel/DirectoryViewModel.cs:168
+msgctxt "Message"
+msgid "A folder with the same name already exists in the parent folder."
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor.Common/ViewModel/DirectoryViewModel.cs:190
+msgctxt "Message"
+msgid "Path is a device name"
+msgstr "Stien er et enhetsnavn"
+
+#: ../editor/Stride.Core.Assets.Editor.Common/ViewModel/PackageViewModel.cs:647
+msgctxt "Message"
+msgid "This package couldn't be renamed. {0}"
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor.Common/ViewModel/PackageViewModel.cs:678
+msgctxt "Message"
+msgid "A package with the same name already exists in the session."
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor.Common/ViewModel/SessionObjectViewModel.cs:110
+msgctxt "Message"
+msgid "The name is too long."
+msgstr "Navnet er for langt."
+
+#: ../editor/Stride.Core.Assets.Editor.Common/ViewModel/SessionObjectViewModel.cs:116
+msgctxt "Message"
+msgid "The name contains invalid characters."
+msgstr "Navnet inneholder forbudte tegn."
+
+#: ../editor/Stride.Core.Assets.Editor.Common/ViewModel/SessionObjectViewModel.cs:122
+msgctxt "Message"
+msgid "The name is empty."
+msgstr "Navnet er tomt."
+
+#: ../editor/Stride.Core.Assets.Editor.Common/Components/TemplateDescriptions/TemplateGeneratorHelper.cs:34
+#. Log message displayed when an operation has been canceled
+msgctxt "Log"
+msgid "Operation cancelled."
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor.Common/Components/TemplateDescriptions/TemplateGeneratorHelper.cs:41
+#: ../editor/Stride.Core.Assets.Editor.Common/Components/TemplateDescriptions/TemplateGeneratorHelper.cs:60
+#. Message displayed when an exception occurs while generating a template
+msgctxt "Log"
+msgid "An exception occurred while generating the template."
+msgstr ""
+
+#: ../editor/Stride.Core.Assets.Editor.Common/View/Behaviors/DragDrop/DragDropBehavior.cs:25
+msgctxt "Message"
+msgid "Can't drop here"
+msgstr ""

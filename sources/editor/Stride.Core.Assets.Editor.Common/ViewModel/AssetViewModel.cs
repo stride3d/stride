@@ -269,7 +269,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
         /// <summary>
         /// Sets the asset that replaces this one (the reverse of <see cref="IsReplacing"/>), driven by
-        /// <see cref="SessionViewModel.CheckAssetReplacements"/> when the session's declarations change.
+        /// <see cref="ISessionViewModel.CheckAssetReplacements"/> when the session's declarations change.
         /// </summary>
         internal void UpdateReplacedBy(AssetViewModel replacer)
         {

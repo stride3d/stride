@@ -125,7 +125,7 @@
         <MenuItem ItemsSource="{Binding Session.ActiveAssetView.SingleSelectedAsset.AssetCommands}" IsCheckable="True"
                   Visibility="{Binding HasItems, RelativeSource={RelativeSource Self}, Converter={sd:VisibleOrCollapsed}, FallbackValue={sd:Collapsed}}">
           <MenuItem.ItemContainerStyle>
-            <Style TargetType="{x:Type MenuItem}" BasedOn="{StaticResource {x:Type MenuItem}}" d:DataContext="{d:DesignInstance sd:MenuCommandInfo}">
+            <Style TargetType="{x:Type MenuItem}" BasedOn="{StaticResource {x:Type MenuItem}}" d:DataContext="{d:DesignInstance assetvm:MenuCommandInfo}">
               <Setter Property="Command" Value="{Binding Command}" />
               <Setter Property="CommandParameter" Value="{Binding}" />
               <Setter Property="Header" Value="{Binding DisplayName}" />
