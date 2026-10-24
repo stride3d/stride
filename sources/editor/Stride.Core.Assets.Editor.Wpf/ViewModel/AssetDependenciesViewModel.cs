@@ -38,7 +38,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// <summary>
         /// Gets the session containing the related asset.
         /// </summary>
-        public SessionViewModel Session => Asset.Session;
+        public ISessionViewModel Session => Asset.Session;
 
         /// <summary>
         /// Gets the collection of assets that directly references the related asset.
@@ -181,9 +181,9 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// </summary>
         public ICommandBase ToggleIsRootOnSelectedAssetCommand { get; }
 
-        internal static Task TriggerInitialReferenceBuild(SessionViewModel session) => NotifyAssetChanged(session, null);
+        internal static Task TriggerInitialReferenceBuild(ISessionViewModel session) => NotifyAssetChanged(session, null);
 
-        internal static Task NotifyAssetChanged(SessionViewModel session, AssetViewModel asset)
+        internal static Task NotifyAssetChanged(ISessionViewModel session, AssetViewModel asset)
         {
             if (session == null) throw new ArgumentNullException(nameof(session));
             lock (DirtyDependencies)
@@ -248,7 +248,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             }
         }
 
-        private static void UpdateReferences(SessionViewModel session)
+        private static void UpdateReferences(ISessionViewModel session)
         {
             if (session == null) throw new ArgumentNullException(nameof(session));
 

@@ -17,7 +17,7 @@ public interface IAssetsPluginService
 
     object? GetImageForEnum(SessionViewModel? session, object value);
 
-    IEnumerable<Type> GetPrimitiveTypes(SessionViewModel session);
+    IEnumerable<Type> GetPrimitiveTypes(ISessionViewModel session);
 
     bool HasEditorView(SessionViewModel session, Type viewModelType);
 

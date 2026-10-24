@@ -46,7 +46,7 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters
         /// Finds the asset that replaces <paramref name="targetId"/> via the incoming Replace links.
         /// At most one replacement per asset is valid.
         /// </summary>
-        private static AssetViewModel FindReplacer(SessionViewModel session, AssetId targetId)
+        private static AssetViewModel FindReplacer(ISessionViewModel session, AssetId targetId)
         {
             var dependencies = session.DependencyManager.ComputeDependencies(targetId, AssetDependencySearchOptions.In, ContentLinkType.Replace);
             if (dependencies == null)

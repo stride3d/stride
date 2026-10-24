@@ -59,7 +59,7 @@ namespace Stride.Core.Assets.Editor.Services
         /// <param name="source">The source of the reference.</param>
         /// <returns>The view model corresponding to the referenced asset if found, null otherwise.</returns>
         /// <remarks>The <paramref name="source"/> parameter must either be an <see cref="AssetReference"/>, or a proxy object of an <see cref="AttachedReference"/>.</remarks>
-        public static AssetViewModel GetReferenceTarget(SessionViewModel session, object source)
+        public static AssetViewModel GetReferenceTarget(ISessionViewModel session, object source)
         {
             if (source is AssetReference assetReference)
             {

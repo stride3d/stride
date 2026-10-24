@@ -17,7 +17,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         private bool isEditing;
         private bool isDeleted = true;
 
-        protected SessionObjectViewModel([NotNull] SessionViewModel session)
+        protected SessionObjectViewModel([NotNull] ISessionViewModel session)
             : base(session.SafeArgument(nameof(session)).ServiceProvider)
         {
             Session = session;
@@ -29,7 +29,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// Gets the session in which this object is currently in.
         /// </summary>
         [NotNull]
-        public SessionViewModel Session { get; }
+        public ISessionViewModel Session { get; }
 
         /// <summary>
         /// Gets whether this object is currently deleted.

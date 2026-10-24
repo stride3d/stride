@@ -355,7 +355,7 @@ public class PluginService : IAssetsPluginService
         return enumImages.TryGetValue(value, out var image) ? image : DeclaredImages.GetEnumImage(value);
     }
 
-    public IEnumerable<Type> GetPrimitiveTypes(SessionViewModel session)
+    public IEnumerable<Type> GetPrimitiveTypes(ISessionViewModel session)
     {
         return primitiveTypes;
     }

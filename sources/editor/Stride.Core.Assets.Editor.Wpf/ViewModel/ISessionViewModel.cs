@@ -12,6 +12,7 @@ using Stride.Core.Assets.Quantum;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Collections;
+using Stride.Core.Presentation.Dirtiables;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
 
@@ -23,6 +24,11 @@ namespace Stride.Core.Assets.Editor.ViewModel
     /// </summary>
     public interface ISessionViewModel
     {
+        /// <summary>
+        /// Gets the dirtiable objects of the session, that the session objects add to their own.
+        /// </summary>
+        IEnumerable<IDirtiable> Dirtiables { get; }
+
         /// <summary>
         /// Gets the service provider of the session.
         /// </summary>
@@ -139,6 +145,16 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// Gets the type of view model to use for the given asset.
         /// </summary>
         Type GetAssetViewModelType(AssetItem assetItem);
+
+        /// <summary>
+        /// Notifies that the properties of the given assets have changed, once their dependencies are up to date.
+        /// </summary>
+        void NotifyAssetPropertiesChanged(IReadOnlyCollection<AssetViewModel> assets);
+
+        /// <summary>
+        /// Checks that the asset view models of each package match the assets of the package.
+        /// </summary>
+        void CheckConsistency();
 
         /// <summary>
         /// Validates every <see cref="Asset.Replaces"/> declaration of the session.

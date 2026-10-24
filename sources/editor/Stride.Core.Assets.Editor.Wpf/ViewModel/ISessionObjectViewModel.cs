@@ -13,7 +13,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
         string Name { get; set; }
 
-        SessionViewModel Session { get; }
+        ISessionViewModel Session { get; }
 
         ThumbnailData ThumbnailData { get; }
 
