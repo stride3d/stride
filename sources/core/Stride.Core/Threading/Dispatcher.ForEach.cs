@@ -7,14 +7,19 @@ namespace Stride.Core.Threading;
 
 public static partial class Dispatcher
 {
+    [Obsolete("Delegate pooling is not longer supported. Use a more performant overload.")]
     public static void ForEach<T>(T[] collection, Action<T> action) => ForEach<T, T[]>(collection, action);
 
+    [Obsolete("Delegate pooling is not longer supported. Use a more performant overload.")]
     public static void ForEach<T>(List<T> collection, Action<T> action) => ForEach<T, List<T>>(collection, action);
 
+    [Obsolete("Delegate pooling is not longer supported. Use a more performant overload.")]
     public static void ForEach<T>(FastCollection<T> collection, Action<T> action) => ForEach<T, FastCollection<T>>(collection, action);
 
+    [Obsolete("Delegate pooling is not longer supported. Use a more performant overload.")]
     public static void ForEach<T>(ConcurrentCollector<T> collection, Action<T> action) => ForEach<T, ConcurrentCollector<T>>(collection, action);
 
+    [Obsolete("Delegate pooling is not longer supported. Use a more performant overload.")]
     public static unsafe void ForEach<T>(ConcurrentCollector<T> collection, ValueAction<T> action)
     {
         var parameters = (action, collection);
@@ -29,6 +34,7 @@ public static partial class Dispatcher
         }
     }
 
+    [Obsolete("Delegate pooling is not longer supported. Use a more performant overload.")]
     public static void ForEach<T, TLocal>(ConcurrentCollector<T> collection, Func<TLocal> initializeLocal, Action<T, TLocal> action, Action<TLocal>? finalizeLocal = null)
     {
         ForEach<T, TLocal, ConcurrentCollector<T>>(collection, initializeLocal, action, finalizeLocal);
@@ -82,6 +88,7 @@ public static partial class Dispatcher
         ForBatched(collection.Count, new ForEachParametersRef<T, TList, TParameter>(collection, in parameter, action));
     }
 
+    [Obsolete("Delegate pooling is not longer supported. Use a more performant overload.")]
     public static unsafe void ForEach<T, TList>(TList collection, Action<T> action) where TList : IReadOnlyList<T>
     {
         var parameters = (action, collection);
@@ -180,6 +187,7 @@ public static partial class Dispatcher
         ForBatched(collection.Count, new ForEachLocalParametersRef<TItem, TLocal, TList, TParameter>(collection, in parameter, initializeLocal, action, finalizeLocal));
     }
 
+    [Obsolete("Delegate pooling is not longer supported. Use a more performant overload.")]
     public static unsafe void ForEach<TItem, TLocal, TList>(TList collection, Func<TLocal> initializeLocal, Action<TItem, TLocal> action, Action<TLocal>? finalizeLocal = null) where TList : IReadOnlyList<TItem>
     {
         var parameters = (initializeLocal, action, finalizeLocal, collection);

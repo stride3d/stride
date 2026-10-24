@@ -167,6 +167,7 @@ public static partial class Dispatcher
         ForBatched(collection.Count, new ForEachEnumeratedLocalParametersRef<TItem, TLocal, TCollection, TParameter>(collection, in parameter, initializeLocal, action, finalizeLocal));
     }
 
+    [Obsolete("Delegate pooling is not longer supported. Use a ForEachEnumerated instead.")]
     public static unsafe void ForEach<TKey, TValue>(Dictionary<TKey, TValue> collection, Action<KeyValuePair<TKey, TValue>> action)
         where TKey : notnull
     {
@@ -191,6 +192,7 @@ public static partial class Dispatcher
         }
     }
 
+    [Obsolete("Delegate pooling is not longer supported. Use a ForEachEnumerated instead.")]
     public static unsafe void ForEach<TKey, TValue, TLocal>(Dictionary<TKey, TValue> collection, Func<TLocal> initializeLocal, Action<KeyValuePair<TKey, TValue>, TLocal> action, Action<TLocal>? finalizeLocal = null)
         where TKey : notnull
     {

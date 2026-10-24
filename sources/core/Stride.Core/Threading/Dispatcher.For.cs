@@ -49,6 +49,7 @@ public static partial class Dispatcher
         ForBatched(toExclusive - fromInclusive, new ForParametersRef<TParameter>(fromInclusive, in parameter, action));
     }
 
+    [Obsolete("Delegate pooling is not longer supported. Use a more performant overload.")]
     public static unsafe void For(int fromInclusive, int toExclusive, Action<int> action)
     {
         var parameters = (action, fromInclusive);
@@ -141,6 +142,7 @@ public static partial class Dispatcher
         ForBatched(toExclusive - fromInclusive, new ForParametersRef<TLocal, TParameter>(fromInclusive, in parameter, initializeLocal, action, finalizeLocal));
     }
 
+    [Obsolete("Delegate pooling is not longer supported. Use a more performant overload.")]
     public static unsafe void For<TLocal>(int fromInclusive, int toExclusive, Func<TLocal> initializeLocal, Action<int, TLocal> action, Action<TLocal>? finalizeLocal = null)
     {
         var parameters = (initializeLocal, action, finalizeLocal, fromInclusive);

@@ -25,6 +25,7 @@ public static partial class Dispatcher
         ForBatched(items, batchedDelegate);
     }
 
+    [Obsolete("Delegate pooling is not longer supported. Use a more performant overload.")]
     public static void ForBatched(int items, Action<int, int> executeBatch)
     {
         var batchedDelegate = new BatchedDelegate<Action<int, int>>
