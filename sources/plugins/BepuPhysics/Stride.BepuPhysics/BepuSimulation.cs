@@ -163,7 +163,28 @@ public sealed class BepuSimulation : IDisposable
     /// Represents the maximum number of steps per frame to avoid a death loop
     /// </summary>
     [Display(5, "Max steps/frame", CategoryTime)]
+    [Obsolete($"Use {nameof(PhysicsBudget)} and {nameof(DropRemainingTime)} instead")]
     public int MaxStepPerFrame { get; set; } = 3;
+
+    /// <summary>
+    /// The maximum amount of time (as a ratio of <see cref="FixedTimeStepSeconds"/>) allowed for physics to catch up with game time
+    /// when the game's update rate is reduced or otherwise throttled.
+    /// <para/>
+    /// 0.5 would allow physics to perform additional ticks for up until half of the duration of
+    /// <see cref="FixedTimeStepSeconds"/> before yielding to other game systems.
+    /// </summary>
+    [Display(6, "Physics Budget", CategoryTime)]
+    public float PhysicsBudget { get; set; } = 0.5f;
+
+    /// <summary>
+    /// When physics runs out of <see cref="PhysicsBudget"/>, should those ticks be dropped instead of caught up to
+    /// </summary>
+    /// <remarks>
+    /// Dropping will cause physics time and game time to diverge,
+    /// potentially introducing issues in your components implementing <see cref="ISimulationUpdate"/>
+    /// </remarks>
+    [Display(7, "Drop Remaining Time", CategoryTime)]
+    public bool DropRemainingTime { get; set; } = false;
 
     /// <summary>
     /// Allows for per-body features like <see cref="BodyComponent.Gravity"/> at a cost to the simulation's performance
@@ -731,7 +752,9 @@ public sealed class BepuSimulation : IDisposable
         // TimeSpan multiplication is lossy, skipping mult when we can
         _remainingUpdateTime += TimeScale == 1f ? elapsed : elapsed * TimeScale;
 
-        for (int stepCount = 0; _remainingUpdateTime >= FixedTimeStep && (MaxStepPerFrame == -1 || stepCount < MaxStepPerFrame); stepCount++, _remainingUpdateTime -= FixedTimeStep)
+        var budgetAllowed = FixedTimeStep * PhysicsBudget;
+        long ts = Stopwatch.GetTimestamp();
+        for (; _remainingUpdateTime >= FixedTimeStep && Stopwatch.GetElapsedTime(ts, Stopwatch.GetTimestamp()) < budgetAllowed; _remainingUpdateTime -= FixedTimeStep)
         {
             if (_softStartScheduled)
             {
@@ -782,6 +805,9 @@ public sealed class BepuSimulation : IDisposable
                 body.CurrentPose = body.BodyReference.Value.Pose;
             }
         }
+
+        if (DropRemainingTime && _remainingUpdateTime >= FixedTimeStep)
+            _remainingUpdateTime = TimeSpan.FromTicks(_remainingUpdateTime.Ticks % FixedTimeStep.Ticks);
 
         InterpolateTransforms();
     }
