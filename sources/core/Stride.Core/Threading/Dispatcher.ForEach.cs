@@ -40,13 +40,13 @@ public static partial class Dispatcher
         ForEach<T, TLocal, ConcurrentCollector<T>>(collection, initializeLocal, action, finalizeLocal);
     }
 
-    private readonly unsafe struct ForEachParameters<T, TList, TParameter>(TList collection, TParameter parameter, delegate*<TParameter, T, void> action) : IBatchJob
-        where TList : IReadOnlyList<T>
+    private readonly unsafe struct ForEachParameters<TItem, TList, TParameter>(TList collection, TParameter parameter, delegate*<TParameter, TItem, void> action) : IBatchJob
+        where TList : IReadOnlyList<TItem>
         where TParameter : class
     {
         public readonly TList Collection = collection;
         public readonly TParameter Parameter = parameter;
-        public readonly delegate*<TParameter, T, void> Action = action;
+        public readonly delegate*<TParameter, TItem, void> Action = action;
 
         public readonly void Process(int start, int endExclusive)
         {
@@ -57,11 +57,20 @@ public static partial class Dispatcher
         }
     }
 
-    public static unsafe void ForEach<T, TList, TParameter>(TList collection, TParameter parameter, delegate*<TParameter, T, void> action)
-        where TList : IReadOnlyList<T>
+    /// <summary>
+    /// Executes an action on multiple threads for each item in a collection using a shared reference parameter.
+    /// </summary>
+    /// <typeparam name="TItem">The type of the items in the collection.</typeparam>
+    /// <typeparam name="TList">The collection type.</typeparam>
+    /// <typeparam name="TParameter">The reference type passed to each action invocation.</typeparam>
+    /// <param name="collection">The collection whose items are processed.</param>
+    /// <param name="parameter">The shared parameter instance provided to each action invocation.</param>
+    /// <param name="action">A function pointer invoked for each item, receiving the shared parameter and the item.</param>
+    public static unsafe void ForEach<TItem, TList, TParameter>(TList collection, TParameter parameter, delegate*<TParameter, TItem, void> action)
+        where TList : IReadOnlyList<TItem>
         where TParameter : class
     {
-        ForBatched(collection.Count, new ForEachParameters<T, TList, TParameter>(collection, parameter, action));
+        ForBatched(collection.Count, new ForEachParameters<TItem, TList, TParameter>(collection, parameter, action));
     }
 
     private readonly unsafe struct ForEachParametersRef<T, TList, TParameter>(TList collection, in TParameter parameter, delegate*<ref readonly TParameter, T, void> action) : IBatchJob
@@ -81,11 +90,20 @@ public static partial class Dispatcher
         }
     }
 
-    public static unsafe void ForEach<T, TList, TParameter>(TList collection, in TParameter parameter, delegate*<ref readonly TParameter, T, void> action)
-        where TList : IReadOnlyList<T>
+    /// <summary>
+    /// Executes an action on multiple threads for each item in a collection using a shared value parameter.
+    /// </summary>
+    /// <typeparam name="TItem">The type of the items in the collection.</typeparam>
+    /// <typeparam name="TList">The collection type.</typeparam>
+    /// <typeparam name="TParameter">The value type passed by readonly reference to each action invocation.</typeparam>
+    /// <param name="collection">The collection whose items are processed.</param>
+    /// <param name="parameter">The shared parameter value provided by readonly reference to each action invocation. It is copied twice.</param>
+    /// <param name="action">A function pointer invoked for each item, receiving the shared parameter by readonly reference and the item.</param>
+    public static unsafe void ForEach<TItem, TList, TParameter>(TList collection, in TParameter parameter, delegate*<ref readonly TParameter, TItem, void> action)
+        where TList : IReadOnlyList<TItem>
         where TParameter : struct
     {
-        ForBatched(collection.Count, new ForEachParametersRef<T, TList, TParameter>(collection, in parameter, action));
+        ForBatched(collection.Count, new ForEachParametersRef<TItem, TList, TParameter>(collection, in parameter, action));
     }
 
     [Obsolete("Delegate pooling is not longer supported. Use a more performant overload.")]
@@ -138,6 +156,18 @@ public static partial class Dispatcher
         }
     }
 
+    /// <summary>
+    /// Executes an action on multiple threads for each item in a collection, using a local value initialized and finalized for each batch.
+    /// </summary>
+    /// <typeparam name="TItem">The type of the items in the collection.</typeparam>
+    /// <typeparam name="TLocal">The local value type used while processing a batch.</typeparam>
+    /// <typeparam name="TList">The collection type.</typeparam>
+    /// <typeparam name="TParameter">The reference type shared with the initialization, action, and finalization callbacks.</typeparam>
+    /// <param name="collection">The collection whose items are processed.</param>
+    /// <param name="parameter">The shared parameter instance provided to each callback invocation.</param>
+    /// <param name="initializeLocal">A function pointer that initializes the local value for a batch, or null to use the default value.</param>
+    /// <param name="action">A function pointer invoked for each item, receiving the shared parameter, the item, and the batch's local value.</param>
+    /// <param name="finalizeLocal">An optional function pointer invoked to finalize the local value after processing a batch.</param>
     public static unsafe void ForEach<TItem, TLocal, TList, TParameter>(TList collection, TParameter parameter, delegate*<TParameter, TLocal> initializeLocal, delegate*<TParameter, TItem, TLocal, void> action, delegate*<TParameter, TLocal, void> finalizeLocal = null)
         where TList : IReadOnlyList<TItem>
         where TParameter : class
@@ -180,6 +210,18 @@ public static partial class Dispatcher
         }
     }
 
+    /// <summary>
+    /// Executes an action on multiple threads for each item in a collection, using a local value initialized and finalized for each batch.
+    /// </summary>
+    /// <typeparam name="TItem">The type of the items in the collection.</typeparam>
+    /// <typeparam name="TLocal">The local value type used while processing a batch.</typeparam>
+    /// <typeparam name="TList">The collection type.</typeparam>
+    /// <typeparam name="TParameter">The value type shared by readonly reference with the initialization, action, and finalization callbacks.</typeparam>
+    /// <param name="collection">The collection whose items are processed.</param>
+    /// <param name="parameter">The shared parameter value provided by readonly reference to each callback invocation. It is copied twice.</param>
+    /// <param name="initializeLocal">A function pointer that initializes the local value for a batch, or null to use the default value.</param>
+    /// <param name="action">A function pointer invoked for each item, receiving the shared parameter by readonly reference, the item, and the batch's local value.</param>
+    /// <param name="finalizeLocal">An optional function pointer invoked to finalize the local value after processing a batch.</param>
     public static unsafe void ForEach<TItem, TLocal, TList, TParameter>(TList collection, in TParameter parameter, delegate*<ref readonly TParameter, TLocal> initializeLocal, delegate*<ref readonly TParameter, TItem, TLocal, void> action, delegate*<ref readonly TParameter, TLocal, void> finalizeLocal = null)
         where TList : IReadOnlyList<TItem>
         where TParameter : struct

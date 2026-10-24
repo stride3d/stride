@@ -5,13 +5,13 @@ namespace Stride.Core.Threading;
 
 public static partial class Dispatcher
 {
-    private readonly unsafe struct ForEachEnumeratedParameters<T, TCollection, TParameter>(TCollection collection, TParameter parameter, delegate*<TParameter, T, void> action) : IBatchJob
-        where TCollection : IReadOnlyCollection<T>
+    private readonly unsafe struct ForEachEnumeratedParameters<TItem, TCollection, TParameter>(TCollection collection, TParameter parameter, delegate*<TParameter, TItem, void> action) : IBatchJob
+        where TCollection : IReadOnlyCollection<TItem>
         where TParameter : class
     {
         public readonly TCollection Collection = collection;
         public readonly TParameter Parameter = parameter;
-        public readonly delegate*<TParameter, T, void> Action = action;
+        public readonly delegate*<TParameter, TItem, void> Action = action;
 
         public readonly void Process(int start, int endExclusive)
         {
@@ -31,20 +31,32 @@ public static partial class Dispatcher
         }
     }
 
-    public static unsafe void ForEachEnumerated<T, TCollection, TParameter>(TCollection collection, TParameter parameter, delegate*<TParameter, T, void> action)
-        where TCollection : IReadOnlyCollection<T>
+    /// <summary>
+    /// Executes an action on multiple threads for each item in an enumerable collection using a shared reference parameter.
+    /// </summary>
+    /// <remarks>
+    /// This method has poor time complexity because each batch enumerates from the beginning of the collection. Use it only when <typeparamref name="TCollection"/> does not implement <see cref="IReadOnlyList{TItem}"/>; otherwise, use the corresponding <see cref="ForEach{TItem, TList, TParameter}"/> overload instead.
+    /// </remarks>
+    /// <typeparam name="TItem">The type of the items in the collection.</typeparam>
+    /// <typeparam name="TCollection">The collection type.</typeparam>
+    /// <typeparam name="TParameter">The reference type passed to each action invocation.</typeparam>
+    /// <param name="collection">The collection whose items are processed.</param>
+    /// <param name="parameter">The shared parameter instance provided to each action invocation.</param>
+    /// <param name="action">A function pointer invoked for each item, receiving the shared parameter and the item.</param>
+    public static unsafe void ForEachEnumerated<TItem, TCollection, TParameter>(TCollection collection, TParameter parameter, delegate*<TParameter, TItem, void> action)
+        where TCollection : IReadOnlyCollection<TItem>
         where TParameter : class
     {
-        ForBatched(collection.Count, new ForEachEnumeratedParameters<T, TCollection, TParameter>(collection, parameter, action));
+        ForBatched(collection.Count, new ForEachEnumeratedParameters<TItem, TCollection, TParameter>(collection, parameter, action));
     }
 
-    private readonly unsafe struct ForEachEnumeratedParametersRef<T, TCollection, TParameter>(TCollection collection, in TParameter parameter, delegate*<ref readonly TParameter, T, void> action) : IBatchJob
-        where TCollection : IReadOnlyCollection<T>
+    private readonly unsafe struct ForEachEnumeratedParametersRef<TItem, TCollection, TParameter>(TCollection collection, in TParameter parameter, delegate*<ref readonly TParameter, TItem, void> action) : IBatchJob
+        where TCollection : IReadOnlyCollection<TItem>
         where TParameter : struct
     {
         public readonly TCollection Collection = collection;
         public readonly TParameter Parameter = parameter;
-        public readonly delegate*<ref readonly TParameter, T, void> Action = action;
+        public readonly delegate*<ref readonly TParameter, TItem, void> Action = action;
 
         public void Process(int start, int endExclusive)
         {
@@ -62,11 +74,23 @@ public static partial class Dispatcher
         }
     }
 
-    public static unsafe void ForEachEnumerated<T, TCollection, TParameter>(TCollection collection, in TParameter parameter, delegate*<ref readonly TParameter, T, void> action)
-        where TCollection : IReadOnlyCollection<T>
+    /// <summary>
+    /// Executes an action on multiple threads for each item in an enumerable collection using a shared value parameter.
+    /// </summary>
+    /// <remarks>
+    /// This method has poor time complexity because each batch enumerates from the beginning of the collection. Use it only when <typeparamref name="TCollection"/> does not implement <see cref="IReadOnlyList{TItem}"/>; otherwise, use the corresponding <see cref="ForEach{TItem, TList, TParameter}"/> overload instead.
+    /// </remarks>
+    /// <typeparam name="TItem">The type of the items in the collection.</typeparam>
+    /// <typeparam name="TCollection">The collection type.</typeparam>
+    /// <typeparam name="TParameter">The value type passed by readonly reference to each action invocation.</typeparam>
+    /// <param name="collection">The collection whose items are processed.</param>
+    /// <param name="parameter">The shared parameter value provided by readonly reference to each action invocation. It is copied twice.</param>
+    /// <param name="action">A function pointer invoked for each item, receiving the shared parameter by readonly reference and the item.</param>
+    public static unsafe void ForEachEnumerated<TItem, TCollection, TParameter>(TCollection collection, in TParameter parameter, delegate*<ref readonly TParameter, TItem, void> action)
+        where TCollection : IReadOnlyCollection<TItem>
         where TParameter : struct
     {
-        ForBatched(collection.Count, new ForEachEnumeratedParametersRef<T, TCollection, TParameter>(collection, in parameter, action));
+        ForBatched(collection.Count, new ForEachEnumeratedParametersRef<TItem, TCollection, TParameter>(collection, in parameter, action));
     }
 
     private readonly unsafe struct ForEachEnumeratedLocalParameters<TItem, TLocal, TCollection, TParameter>(TCollection collection, TParameter parameter, delegate*<TParameter, TLocal> initializeLocal, delegate*<TParameter, TItem, TLocal, void> action, delegate*<TParameter, TLocal, void> finalizeLocal) : IBatchJob
@@ -111,6 +135,21 @@ public static partial class Dispatcher
         }
     }
 
+    /// <summary>
+    /// Executes an action on multiple threads for each item in an enumerable collection, using a local value initialized and finalized for each batch.
+    /// </summary>
+    /// <remarks>
+    /// This method has poor time complexity because each batch enumerates from the beginning of the collection. Use it only when <typeparamref name="TCollection"/> does not implement <see cref="IReadOnlyList{TItem}"/>; otherwise, use the corresponding <see cref="ForEach{TItem, TLocal, TList, TParameter}"/> overload instead.
+    /// </remarks>
+    /// <typeparam name="TItem">The type of the items in the collection.</typeparam>
+    /// <typeparam name="TLocal">The local value type used while processing a batch.</typeparam>
+    /// <typeparam name="TCollection">The collection type.</typeparam>
+    /// <typeparam name="TParameter">The reference type shared with the initialization, action, and finalization callbacks.</typeparam>
+    /// <param name="collection">The collection whose items are processed.</param>
+    /// <param name="parameter">The shared parameter instance provided to each callback invocation.</param>
+    /// <param name="initializeLocal">A function pointer that initializes the local value for a batch, or null to use the default value.</param>
+    /// <param name="action">A function pointer invoked for each item, receiving the shared parameter, the item, and the batch's local value.</param>
+    /// <param name="finalizeLocal">An optional function pointer invoked to finalize the local value after processing a batch.</param>
     public static unsafe void ForEachEnumerated<TItem, TLocal, TCollection, TParameter>(TCollection collection, TParameter parameter, delegate*<TParameter, TLocal> initializeLocal, delegate*<TParameter, TItem, TLocal, void> action, delegate*<TParameter, TLocal, void> finalizeLocal = null)
         where TCollection : IReadOnlyCollection<TItem>
         where TParameter : class
@@ -160,6 +199,21 @@ public static partial class Dispatcher
         }
     }
 
+    /// <summary>
+    /// Executes an action on multiple threads for each item in an enumerable collection, using a local value initialized and finalized for each batch.
+    /// </summary>
+    /// <remarks>
+    /// This method has poor time complexity because each batch enumerates from the beginning of the collection. Use it only when <typeparamref name="TCollection"/> does not implement <see cref="IReadOnlyList{TItem}"/>; otherwise, use the corresponding <see cref="ForEach{TItem, TLocal, TList, TParameter}"/> overload instead.
+    /// </remarks>
+    /// <typeparam name="TItem">The type of the items in the collection.</typeparam>
+    /// <typeparam name="TLocal">The local value type used while processing a batch.</typeparam>
+    /// <typeparam name="TCollection">The collection type.</typeparam>
+    /// <typeparam name="TParameter">The value type shared by readonly reference with the initialization, action, and finalization callbacks.</typeparam>
+    /// <param name="collection">The collection whose items are processed.</param>
+    /// <param name="parameter">The shared parameter value provided by readonly reference to each callback invocation. It is copied twice.</param>
+    /// <param name="initializeLocal">A function pointer that initializes the local value for a batch, or null to use the default value.</param>
+    /// <param name="action">A function pointer invoked for each item, receiving the shared parameter by readonly reference, the item, and the batch's local value.</param>
+    /// <param name="finalizeLocal">An optional function pointer invoked to finalize the local value after processing a batch.</param>
     public static unsafe void ForEachEnumerated<TItem, TLocal, TCollection, TParameter>(TCollection collection, in TParameter parameter, delegate*<ref readonly TParameter, TLocal> initializeLocal, delegate*<ref readonly TParameter, TItem, TLocal, void> action, delegate*<ref readonly TParameter, TLocal, void> finalizeLocal = null)
         where TCollection : IReadOnlyCollection<TItem>
         where TParameter : struct
