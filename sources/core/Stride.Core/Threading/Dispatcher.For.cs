@@ -5,24 +5,24 @@ namespace Stride.Core.Threading;
 
 public static partial class Dispatcher
 {
-    private readonly unsafe struct ForParameters<TParameter>(int start, TParameter parameter, delegate*<TParameter, int, void> action)
+    private readonly unsafe struct ForParameters<TParameter>(int start, TParameter parameter, delegate*<TParameter, int, void> action) : IBatchJob
     {
         public readonly int Start = start;
         public readonly TParameter Parameter = parameter;
         public readonly delegate*<TParameter, int, void> Action = action;
+
+        public void Process(int start, int endExclusive)
+        {
+            for (int i = start; i < endExclusive; i++)
+            {
+                Action(Parameter, Start + i);
+            }
+        }
     }
 
     public static unsafe void For<TParameter>(int fromInclusive, int toExclusive, TParameter parameter, delegate*<TParameter, int, void> action)
     {
-        var parameters = new ForParameters<TParameter>(fromInclusive, parameter, action);
-        ForBatched(toExclusive - fromInclusive, ref parameters, &ForWrapped);
-        static void ForWrapped(ref ForParameters<TParameter> parameters, int from, int toExclusive)
-        {
-            for (int i = from; i < toExclusive; i++)
-            {
-                parameters.Action(parameters.Parameter, parameters.Start + i);
-            }
-        }
+        ForBatched(toExclusive - fromInclusive, new ForParameters<TParameter>(fromInclusive, parameter, action));
     }
 
     public static unsafe void For(int fromInclusive, int toExclusive, Action<int> action)
@@ -39,41 +39,41 @@ public static partial class Dispatcher
         }
     }
 
-    private readonly unsafe struct ForParameters<TLocal, TParameter>(int start, TParameter parameter, delegate*<TParameter, TLocal> initializeLocal, delegate*<TParameter, int, TLocal, void> action, delegate*<TParameter, TLocal, void> finalizeLocal)
+    private readonly unsafe struct ForParameters<TLocal, TParameter>(int start, TParameter parameter, delegate*<TParameter, TLocal> initializeLocal, delegate*<TParameter, int, TLocal, void> action, delegate*<TParameter, TLocal, void> finalizeLocal) : IBatchJob
     {
         public readonly int Start = start;
         public readonly TParameter Parameter = parameter;
         public readonly delegate*<TParameter, TLocal> InitializeLocal = initializeLocal;
         public readonly delegate*<TParameter, int, TLocal, void> Action = action;
         public readonly delegate*<TParameter, TLocal, void> FinalizeLocal = finalizeLocal;
-    }
 
-    public static unsafe void For<TLocal, TParameter>(int fromInclusive, int toExclusive, TParameter parameter, delegate*<TParameter, TLocal> initializeLocal, delegate*<TParameter, int, TLocal, void> action, delegate*<TParameter, TLocal, void> finalizeLocal = null)
-    {
-        var parameters = new ForParameters<TLocal, TParameter>(fromInclusive, parameter, initializeLocal, action, finalizeLocal);
-        ForBatched(toExclusive - fromInclusive, ref parameters, &ForWrapped);
-        static void ForWrapped(ref ForParameters<TLocal, TParameter> parameters, int from, int toExclusive)
+        public readonly void Process(int start, int endExclusive)
         {
             TLocal local = default!;
             try
             {
-                if (parameters.InitializeLocal != null)
+                if (InitializeLocal != null)
                 {
-                    local = parameters.InitializeLocal(parameters.Parameter);
+                    local = InitializeLocal(Parameter);
                 }
-                for (int i = from; i < toExclusive; i++)
+                for (int i = start; i < endExclusive; i++)
                 {
-                    parameters.Action(parameters.Parameter, parameters.Start + i, local);
+                    Action(Parameter, Start + i, local);
                 }
             }
             finally
             {
-                if (parameters.FinalizeLocal != null)
+                if (FinalizeLocal != null)
                 {
-                    parameters.FinalizeLocal(parameters.Parameter, local);
+                    FinalizeLocal(Parameter, local);
                 }
             }
         }
+    }
+
+    public static unsafe void For<TLocal, TParameter>(int fromInclusive, int toExclusive, TParameter parameter, delegate*<TParameter, TLocal> initializeLocal, delegate*<TParameter, int, TLocal, void> action, delegate*<TParameter, TLocal, void> finalizeLocal = null)
+    {
+        ForBatched(toExclusive - fromInclusive, new ForParameters<TLocal, TParameter>(fromInclusive, parameter, initializeLocal, action, finalizeLocal));
     }
 
     public static unsafe void For<TLocal>(int fromInclusive, int toExclusive, Func<TLocal> initializeLocal, Action<int, TLocal> action, Action<TLocal>? finalizeLocal = null)
