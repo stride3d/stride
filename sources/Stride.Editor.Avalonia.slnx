@@ -47,6 +47,9 @@
   <Folder Name="/50-Presentation/Avalonia/">
     <Project Path="presentation/Stride.Core.Presentation.Avalonia/Stride.Core.Presentation.Avalonia.csproj" />
   </Folder>
+  <Folder Name="/51-Presentation.Tests/Avalonia/">
+    <Project Path="presentation/Stride.Core.Presentation.Avalonia.Tests/Stride.Core.Presentation.Avalonia.Tests.csproj" />
+  </Folder>
   <Folder Name="/60-Editor/">
     <Project Path="editor/Stride.Assets.Editor/Stride.Assets.Editor.csproj" />
     <Project Path="editor/Stride.Assets.Presentation.Common/Stride.Assets.Presentation.Common.csproj" />
@@ -64,6 +67,10 @@
     <Project Path="editor/Stride.GameStudio.Avalonia.Desktop/Stride.GameStudio.Avalonia.Desktop.csproj" />
     <Project Path="editor/Stride.GameStudio.Avalonia/Stride.GameStudio.Avalonia.csproj" />
   </Folder>
+  <Folder Name="/61-Editor.Tests/">
+    <Project Path="editor/Stride.Assets.Presentation.Common.Tests/Stride.Assets.Presentation.Common.Tests.csproj" />
+    <Project Path="editor/Stride.Core.Assets.Editor.Common.Tests/Stride.Core.Assets.Editor.Common.Tests.csproj" />
+  </Folder>
   <Folder Name="/70-StrideAssets/">
     <Project Path="engine/Stride.Assets.Generators/Stride.Assets.Generators.csproj" />
     <Project Path="engine/Stride.Assets.Models/Stride.Assets.Models.csproj" />
@@ -72,6 +79,8 @@
     <Project Path="engine/Stride.Assets.VHACD/Stride.Assets.VHACD.csproj" />
   </Folder>
   <Folder Name="/80-Plugins/Audio/">
+    <Project Path="plugins/Audio/Stride.Audio.Assets/Stride.Audio.Assets.csproj" />
+    <Project Path="plugins/Audio/Stride.Audio.Editor/Stride.Audio.Editor.csproj" />
     <Project Path="plugins/Audio/Stride.Audio/Stride.Audio.csproj" />
   </Folder>
   <Folder Name="/80-Plugins/BepuPhysics/">
@@ -79,15 +88,34 @@
   </Folder>
   <Folder Name="/80-Plugins/BulletPhysics/">
     <Project Path="plugins/BulletPhysics/Stride.Navigation/Stride.Navigation.csproj" />
+    <Project Path="plugins/BulletPhysics/Stride.Physics.Assets/Stride.Physics.Assets.csproj" />
+    <Project Path="plugins/BulletPhysics/Stride.Physics.Editor/Stride.Physics.Editor.csproj" />
     <Project Path="plugins/BulletPhysics/Stride.Physics/Stride.Physics.csproj" />
+  </Folder>
+  <Folder Name="/80-Plugins/Particles/">
+    <Project Path="plugins/Particles/Stride.Particles.Editor/Stride.Particles.Editor.csproj" />
+    <Project Path="plugins/Particles/Stride.Particles/Stride.Particles.csproj" />
+  </Folder>
+  <Folder Name="/80-Plugins/SpriteStudio/">
+    <Project Path="plugins/SpriteStudio/Stride.SpriteStudio.Assets/Stride.SpriteStudio.Assets.csproj" />
+    <Project Path="plugins/SpriteStudio/Stride.SpriteStudio.Editor/Stride.SpriteStudio.Editor.csproj" />
+    <Project Path="plugins/SpriteStudio/Stride.SpriteStudio.Runtime/Stride.SpriteStudio.Runtime.csproj" />
   </Folder>
   <Folder Name="/80-Plugins/UI/">
     <Project Path="plugins/UI/Stride.UI/Stride.UI.csproj" />
   </Folder>
   <Folder Name="/80-Plugins/Video/">
+    <Project Path="plugins/Video/Stride.Video.Assets/Stride.Video.Assets.csproj" />
+    <Project Path="plugins/Video/Stride.Video.Editor/Stride.Video.Editor.csproj" />
     <Project Path="plugins/Video/Stride.Video/Stride.Video.csproj" />
   </Folder>
-  <Folder Name="/90-Tools/" />
+  <Folder Name="/80-Plugins/Voxels/">
+    <Project Path="plugins/Voxels/Stride.Voxels.Editor/Stride.Voxels.Editor.csproj" />
+    <Project Path="plugins/Voxels/Stride.Voxels/Stride.Voxels.csproj" />
+  </Folder>
+  <Folder Name="/90-Tools/">
+    <Project Path="tests/xunit.runner.stride/xunit.runner.stride.csproj" />
+  </Folder>
   <Folder Name="/90-Tools/3D-Importers/">
     <Project Path="tools/Stride.Importer.3D/Stride.Importer.3D.csproj" />
     <Project Path="tools/Stride.Importer.Common/Stride.Importer.Common.csproj" />

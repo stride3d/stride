@@ -16,6 +16,16 @@
     <ProjectReference Include="..\Stride.Assets.Presentation.Common\Stride.Assets.Presentation.Common.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <!-- Build order only: TestEditorPackageToolkit reads the build manifests of the toolkit-neutral plugin Editor packages,
+         so they are built before the tests run; their assemblies are not referenced -->
+    <ProjectReference Include="..\..\plugins\Audio\Stride.Audio.Editor\Stride.Audio.Editor.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\plugins\BulletPhysics\Stride.Physics.Editor\Stride.Physics.Editor.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\plugins\Particles\Stride.Particles.Editor\Stride.Particles.Editor.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\plugins\SpriteStudio\Stride.SpriteStudio.Editor\Stride.SpriteStudio.Editor.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\plugins\Video\Stride.Video.Editor\Stride.Video.Editor.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\plugins\Voxels\Stride.Voxels.Editor\Stride.Voxels.Editor.csproj" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
