@@ -9,7 +9,9 @@ namespace Stride.Core.Assets.Editor.Tests;
 
 internal static class Module
 {
-    [ModuleInitializer]
+    // Stride's attribute (not System.Runtime.CompilerServices'): the generated initializer runs the scan index registration first,
+    // which the asset registration below needs
+    [Stride.Core.ModuleInitializer]
     internal static void Initialize()
     {
         // The test asset types must be known to load the saved packages
