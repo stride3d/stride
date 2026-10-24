@@ -8,7 +8,7 @@ using Stride.Core.Presentation.Commands;
 namespace Stride.Core.Assets.Editor.ViewModel
 {
     /// <summary>
-    /// The part of an asset view (<see cref="AssetCollectionViewModel"/>) that the session objects use.
+    /// The part of an asset view (<c>AssetCollectionViewModel</c>) that the session objects use.
     /// </summary>
     public interface IAssetCollectionViewModel
     {

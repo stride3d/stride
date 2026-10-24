@@ -20,7 +20,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
 {
     /// <summary>
     /// The part of the session that the session objects (assets, packages, directories...) and their helpers use,
-    /// so that they do not depend on the editor's <see cref="SessionViewModel"/>.
+    /// so that they do not depend on the editor's <c>SessionViewModel</c>.
     /// </summary>
     public interface ISessionViewModel
     {

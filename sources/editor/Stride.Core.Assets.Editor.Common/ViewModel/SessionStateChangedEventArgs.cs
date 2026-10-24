@@ -5,7 +5,7 @@ using System;
 namespace Stride.Core.Assets.Editor.ViewModel
 {
     /// <summary>
-    /// Arguments of the <see cref="SessionViewModel.SessionStateChanged"/> event.
+    /// Arguments of the <see cref="ISessionViewModel.SessionStateChanged"/> event.
     /// </summary>
     public class SessionStateChangedEventArgs : EventArgs { }
 }

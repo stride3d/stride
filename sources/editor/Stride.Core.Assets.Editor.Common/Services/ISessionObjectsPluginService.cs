@@ -8,7 +8,7 @@ using Stride.Core.Assets.Editor.ViewModel;
 namespace Stride.Core.Assets.Editor.Services;
 
 /// <summary>
-/// What the session objects (packages, assets...) need from the plugins. The editor's plugin service (<see cref="IAssetsPluginService"/>) provides it.
+/// What the session objects (packages, assets...) need from the plugins. The editor's plugin service (<c>IAssetsPluginService</c>) provides it.
 /// </summary>
 public interface ISessionObjectsPluginService
 {

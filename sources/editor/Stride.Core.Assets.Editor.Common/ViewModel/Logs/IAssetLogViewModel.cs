@@ -5,10 +5,15 @@ using Stride.Core.Diagnostics;
 namespace Stride.Core.Assets.Editor.ViewModel.Logs
 {
     /// <summary>
-    /// The part of the asset log (<see cref="AssetLogViewModel"/>) that the session objects use.
+    /// The part of the asset log (<c>AssetLogViewModel</c>) that the session objects use.
     /// </summary>
     public interface IAssetLogViewModel
     {
+        /// <summary>
+        /// The name of the logs of package consistency, followed by the package name: one log per package (see <see cref="LogKey.Name"/>).
+        /// </summary>
+        public const string ConsistencyLogName = "Consistency";
+
         /// <summary>
         /// Gets the logger of the given log, creating it if needed and <paramref name="create"/> is true.
         /// </summary>
