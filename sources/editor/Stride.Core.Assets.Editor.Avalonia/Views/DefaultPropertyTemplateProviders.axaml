@@ -4,6 +4,7 @@
                     xmlns:caec="using:Stride.Core.Assets.Editor.Avalonia.Converters"
                     xmlns:caeqnpc="using:Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands"
                     xmlns:caev="using:Stride.Core.Assets.Editor.Avalonia.Views"
+                    xmlns:caevm="using:Stride.Core.Assets.Editor.ViewModel"
                     xmlns:capvm="using:Stride.Core.Assets.Presentation.ViewModels"
                     xmlns:cpqvm="using:Stride.Core.Presentation.Quantum.ViewModels"
                     xmlns:yaml="using:Stride.Core.Yaml"
@@ -1436,7 +1437,7 @@
                     ToolTip.Tip="{sd:LocalizeString Select the referenced asset, Context=ToolTip}">
               <Image x:Name="ThumbnailImage"
                      Width="64" Height="64"
-                     DataContext="{Binding ((capvm:AssetViewModel)NodeValue), Converter={caec:ContentReferenceToAsset}}"
+                     DataContext="{Binding ((caevm:AssetViewModel)NodeValue), Converter={caec:ContentReferenceToAsset}}"
                      Source="{Binding ThumbnailData?.Presenter, Mode=OneWay}"/>
               <Interaction.Behaviors>
                 <!-- FIXME only on pointer down -->
@@ -1446,7 +1447,7 @@
               </Interaction.Behaviors>
             </Border>
             <ProgressBar Width="16" Height="4" IsIndeterminate="True"
-                         DataContext="{Binding ((capvm:AssetViewModel)NodeValue), Converter={caec:ContentReferenceToAsset}}"
+                         DataContext="{Binding ((caevm:AssetViewModel)NodeValue), Converter={caec:ContentReferenceToAsset}}"
                          IsVisible="{Binding ThumbnailData, Converter={sd:Chained {sd:ObjectToBool}, {sd:InvertBool}}, FallbackValue={sd:False}}"/>
             <Border Width="64" Height="64"
                     Background="Transparent"
@@ -1543,10 +1544,12 @@
             <TextBlock Margin="8"
                        Foreground="Orange"
                        TextTrimming="CharacterEllipsis" TextWrapping="WrapWithOverflow">
-              <MultiBinding StringFormat="{sd:LocalizeString Unable to load the object of type {0} from assembly {1}}">
-                <Binding Path="((yaml:IUnloadable)NodeValue).TypeName" FallbackValue=""/>
-                <Binding Path="((yaml:IUnloadable)NodeValue).AssemblyName" FallbackValue=""/>
-              </MultiBinding>
+              <TextBlock.Text>
+                <MultiBinding StringFormat="{sd:LocalizeString Unable to load the object of type {0} from assembly {1}}">
+                  <Binding Path="((yaml:IUnloadable)NodeValue).TypeName" FallbackValue=""/>
+                  <Binding Path="((yaml:IUnloadable)NodeValue).AssemblyName" FallbackValue=""/>
+                </MultiBinding>
+              </TextBlock.Text>
             </TextBlock>
             <TextBlock Margin="8"
                        TextTrimming="CharacterEllipsis" TextWrapping="WrapWithOverflow"

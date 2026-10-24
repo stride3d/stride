@@ -8,6 +8,7 @@ using Stride.Core.Presentation.Avalonia.Converters;
 using Stride.Core.Presentation.Quantum.ViewModels;
 using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
+using Stride.Core.Translation;
 
 namespace Stride.Core.Assets.Editor.Avalonia.Converters;
 
@@ -19,7 +20,7 @@ public sealed class ContentReferenceToUrl : ValueConverterBase<ContentReferenceT
             return ContentReferenceHelper.EmptyReference;
 
         if (value == NodeViewModel.DifferentValues)
-            return "(Different values)";
+            return Tr._("(Different values)");
 
         var contentReference = value as IReference ?? AttachedReferenceManager.GetOrCreateAttachedReference(value);
         var asset = contentReference.Id != AssetId.Empty ? SessionViewModel.Instance.GetAssetById(contentReference.Id) : null;

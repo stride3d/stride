@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Presentation.Quantum.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Avalonia.Views;
@@ -27,8 +29,9 @@ public sealed class EnumTemplateProvider : NodeViewModelTemplateProvider
 
         if (ImageEnum)
         {
-            // FIXME xplat-editor
-            return false;
+            var pluginService = node.ServiceProvider.TryGet<IAssetsPluginService>();
+            if (pluginService is null || !pluginService.HasImagesForEnum(SessionViewModel.Instance, node.Type))
+                return false;
         }
 
         return true;
