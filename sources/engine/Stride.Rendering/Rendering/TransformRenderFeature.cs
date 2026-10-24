@@ -75,6 +75,14 @@ namespace Stride.Rendering
             }
         }
 
+        private readonly record struct PrepareViewParameters
+        {
+            public required RootRenderFeature RootRenderFeature { get; init; }
+            public required RenderView View { get; init; }
+            public required ObjectPropertyData<RenderModelFrameInfo> RenderModelObjectInfoData { get; init; }
+            public required ViewObjectPropertyData<RenderModelViewInfo> RenderModelViewInfoData { get; init; }
+        }
+
         /// <inheritdoc/>
         public override unsafe void Prepare(RenderDrawContext context)
         {
@@ -106,15 +114,25 @@ namespace Stride.Rendering
                 var viewFeature = view.Features[RootRenderFeature.Index];
 
                 // Compute WorldView and WorldViewProjection
-                Dispatcher.ForEach(viewFeature.ViewObjectNodes, renderPerViewNodeReference =>
+                var parameters = new PrepareViewParameters
                 {
-                    var renderPerViewNode = RootRenderFeature.GetViewObjectNode(renderPerViewNodeReference);
-                    ref var renderModelFrameInfo = ref renderModelObjectInfoData[renderPerViewNode.ObjectNode];
-                    ref var renderModelViewInfo = ref renderModelViewInfoData[renderPerViewNodeReference];
+                    RootRenderFeature = RootRenderFeature,
+                    View = view,
+                    RenderModelObjectInfoData = renderModelObjectInfoData,
+                    RenderModelViewInfoData = renderModelViewInfoData,
+                };
+                Dispatcher.ForEach<ViewObjectNodeReference, ConcurrentCollector<ViewObjectNodeReference>, PrepareViewParameters>(viewFeature.ViewObjectNodes, in parameters, &ProcessViewObjectNode);
+
+                static void ProcessViewObjectNode(ref readonly PrepareViewParameters parameters, ViewObjectNodeReference renderPerViewNodeReference)
+                {
+                    var renderPerViewNode = parameters.RootRenderFeature.GetViewObjectNode(renderPerViewNodeReference);
+                    ref var renderModelFrameInfo = ref parameters.RenderModelObjectInfoData[renderPerViewNode.ObjectNode];
+                    ref var renderModelViewInfo = ref parameters.RenderModelViewInfoData[renderPerViewNodeReference];
+                    var view = parameters.View;
 
                     Matrix.Multiply(ref renderModelFrameInfo.World, ref view.View, out renderModelViewInfo.WorldView);
                     Matrix.Multiply(ref renderModelFrameInfo.World, ref view.ViewProjection, out renderModelViewInfo.WorldViewProjection);
-                });
+                }
 
                 // Copy ViewProjection to PerView cbuffer
                 foreach (var viewLayout in viewFeature.Layouts)

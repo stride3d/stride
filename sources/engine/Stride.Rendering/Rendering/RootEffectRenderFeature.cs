@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using Stride.Core;
 using Stride.Core.Annotations;
+using Stride.Core.Collections;
 using Stride.Core.Diagnostics;
 using Stride.Core.Storage;
 using Stride.Core.Threading;
@@ -421,6 +422,21 @@ namespace Stride.Rendering
         {
         }
 
+        private readonly record struct ValidateEffectParameters
+        {
+            public required RootEffectRenderFeature Feature { get; init; }
+            public required StaticObjectPropertyData<RenderEffect> RenderEffects { get; init; }
+            public required int EffectSlotCount { get; init; }
+        }
+
+        private readonly record struct CompileEffectParameters
+        {
+            public required RootEffectRenderFeature Feature { get; init; }
+            public required StaticObjectPropertyData<RenderEffect> RenderEffects { get; init; }
+            public required int EffectSlotCount { get; init; }
+            public required DateTime CurrentTime { get; init; }
+        }
+
         /// <inheritdoc/>
         public override void PrepareEffectPermutations(RenderDrawContext context)
         {
@@ -431,18 +447,35 @@ namespace Stride.Rendering
             var renderEffects = RenderData.GetData(RenderEffectKey);
             int effectSlotCount = EffectPermutationSlotCount;
 
-            Dispatcher.ForEach(RenderSystem.Views, view =>
+            var validationParameters = new ValidateEffectParameters
             {
-                var viewFeature = view.Features[Index];
-                Dispatcher.ForEach(viewFeature.RenderNodes, renderNodeReference =>
+                Feature = this,
+                RenderEffects = renderEffects,
+                EffectSlotCount = effectSlotCount,
+            };
+            unsafe
+            {
+                Dispatcher.ForEach<RenderView, FastTrackingCollection<RenderView>, ValidateEffectParameters>(RenderSystem.Views, in validationParameters, &ProcessView);
+            }
+
+            static void ProcessView(ref readonly ValidateEffectParameters parameters, RenderView view)
+            {
+                var viewFeature = view.Features[parameters.Feature.Index];
+                unsafe
                 {
-                    var renderNode = this.GetRenderNode(renderNodeReference);
+                    Dispatcher.ForEach<RenderNodeReference, ConcurrentCollector<RenderNodeReference>, ValidateEffectParameters>(viewFeature.RenderNodes, in parameters, &ValidateRenderNode);
+                }
+
+                static void ValidateRenderNode(ref readonly ValidateEffectParameters parameters, RenderNodeReference renderNodeReference)
+                {
+                    var feature = parameters.Feature;
+                    var renderNode = feature.GetRenderNode(renderNodeReference);
                     var renderObject = renderNode.RenderObject;
 
                     // Get RenderEffect
                     var staticObjectNode = renderObject.StaticObjectNode;
-                    var staticEffectObjectNode = staticObjectNode * effectSlotCount + effectSlots[renderNode.RenderStage.Index].Index;
-                    var renderEffect = renderEffects[staticEffectObjectNode];
+                    var staticEffectObjectNode = staticObjectNode * parameters.EffectSlotCount + feature.effectSlots[renderNode.RenderStage.Index].Index;
+                    var renderEffect = parameters.RenderEffects[staticEffectObjectNode];
 
                     var effectSelector = renderObject.ActiveRenderStages[renderNode.RenderStage.Index].EffectSelector;
 
@@ -450,16 +483,16 @@ namespace Stride.Rendering
                     if (renderEffect == null || effectSelector != renderEffect.EffectSelector)
                     {
                         renderEffect = new RenderEffect(renderObject.ActiveRenderStages[renderNode.RenderStage.Index].EffectSelector);
-                        renderEffects[staticEffectObjectNode] = renderEffect;
+                        parameters.RenderEffects[staticEffectObjectNode] = renderEffect;
                     }
 
                     // Is it the first time this frame that we check this RenderEffect?
-                    if (renderEffect.MarkAsUsed(RenderSystem))
+                    if (renderEffect.MarkAsUsed(feature.RenderSystem))
                     {
                         renderEffect.EffectValidator.BeginEffectValidation();
                     }
-                });
-            });
+                }
+            }
 
             // Step1: Perform permutations
             PrepareEffectPermutationsImpl(context);
@@ -471,15 +504,26 @@ namespace Stride.Rendering
             // Step2: Compile effects
             using (Profiler.Begin(CompileEffectsKey))
             {
-                Dispatcher.ForEach(RenderObjects, renderObject =>
+                var parameters = new CompileEffectParameters
                 {
-                    //var renderObject = RenderObjects[index];
+                    Feature = this,
+                    RenderEffects = renderEffects,
+                    EffectSlotCount = effectSlotCount,
+                    CurrentTime = currentTime,
+                };
+                unsafe
+                {
+                    Dispatcher.ForEach<RenderObject, List<RenderObject>, CompileEffectParameters>(RenderObjects, in parameters, &CompileRenderObject);
+                }
+
+                static void CompileRenderObject(ref readonly CompileEffectParameters parameters, RenderObject renderObject)
+                {
                     var staticObjectNode = renderObject.StaticObjectNode;
 
-                    for (int i = 0; i < effectSlotCount; ++i)
+                    for (int i = 0; i < parameters.EffectSlotCount; ++i)
                     {
-                        var staticEffectObjectNode = staticObjectNode * effectSlotCount + i;
-                        var renderEffect = renderEffects[staticEffectObjectNode];
+                        var staticEffectObjectNode = staticObjectNode * parameters.EffectSlotCount + i;
+                        var renderEffect = parameters.RenderEffects[staticEffectObjectNode];
 
                         // Skip if not used
                         if (renderEffect == null)
@@ -488,7 +532,7 @@ namespace Stride.Rendering
                         // Skip reflection update unless a state change requires it
                         renderEffect.IsReflectionUpdateRequired = false;
 
-                        if (!renderEffect.IsUsedDuringThisFrame(RenderSystem))
+                        if (!renderEffect.IsUsedDuringThisFrame(parameters.Feature.RenderSystem))
                             continue;
 
                         // Skip if nothing changed
@@ -498,9 +542,9 @@ namespace Stride.Rendering
                             renderEffect.Effect = null;
                             renderEffect.State = RenderEffectState.Skip;
                         }
-                        else if (renderEffect.EffectValidator.EndEffectValidation() && (renderEffect.Effect == null || !renderEffect.Effect.SourceChanged) && !(renderEffect.State == RenderEffectState.Error && currentTime >= renderEffect.RetryTime))
+                        else if (renderEffect.EffectValidator.EndEffectValidation() && (renderEffect.Effect == null || !renderEffect.Effect.SourceChanged) && !(renderEffect.State == RenderEffectState.Error && parameters.CurrentTime >= renderEffect.RetryTime))
                         {
-                            InvalidateEffectPermutation(renderObject, renderEffect);
+                            parameters.Feature.InvalidateEffectPermutation(renderObject, renderEffect);
 
                             // Still, let's check if there is a pending effect compiling
                             var pendingEffect = renderEffect.PendingEffect;
@@ -512,7 +556,7 @@ namespace Stride.Rendering
                             {
                                 // The effect can fail compilation asynchronously
                                 renderEffect.State = RenderEffectState.Error;
-                                renderEffect.Effect = ComputeFallbackEffect?.Invoke(renderObject, renderEffect, RenderEffectState.Error);
+                                renderEffect.Effect = parameters.Feature.ComputeFallbackEffect?.Invoke(renderObject, renderEffect, RenderEffectState.Error);
                             }
                             else
                             {
@@ -540,7 +584,7 @@ namespace Stride.Rendering
                             try
                             {
                                 // The effect can fail compilation synchronously
-                                asyncEffect = RenderSystem.EffectSystem.LoadEffect(renderEffect.EffectSelector.EffectName, staticCompilerParameters);
+                                asyncEffect = parameters.Feature.RenderSystem.EffectSystem.LoadEffect(renderEffect.EffectSelector.EffectName, staticCompilerParameters);
                                 staticCompilerParameters.Clear();
                             }
                             catch
@@ -548,7 +592,7 @@ namespace Stride.Rendering
                                 staticCompilerParameters.Clear();
                                 renderEffect.ClearFallbackParameters();
                                 renderEffect.State = RenderEffectState.Error;
-                                renderEffect.Effect = ComputeFallbackEffect?.Invoke(renderObject, renderEffect, RenderEffectState.Error);
+                                renderEffect.Effect = parameters.Feature.ComputeFallbackEffect?.Invoke(renderObject, renderEffect, RenderEffectState.Error);
                                 continue;
                             }
 
@@ -559,13 +603,13 @@ namespace Stride.Rendering
                                 renderEffect.ClearFallbackParameters();
                                 renderEffect.PendingEffect = asyncEffect.Task;
                                 renderEffect.State = RenderEffectState.Compiling;
-                                renderEffect.Effect = ComputeFallbackEffect?.Invoke(renderObject, renderEffect, RenderEffectState.Compiling);
+                                renderEffect.Effect = parameters.Feature.ComputeFallbackEffect?.Invoke(renderObject, renderEffect, RenderEffectState.Compiling);
                             }
                         }
 
                         renderEffect.IsReflectionUpdateRequired = true;
                     }
-                });
+                }
             }
 
             // Step3: Update reflection infos (offset, etc...)
@@ -708,6 +752,15 @@ namespace Stride.Rendering
         {
         }
 
+        private readonly record struct PrepareParameters
+        {
+            public required RootEffectRenderFeature Feature { get; init; }
+            public required RenderView View { get; init; }
+            public required RenderViewFeature ViewFeature { get; init; }
+            public required StaticObjectPropertyData<RenderEffect> RenderEffects { get; init; }
+            public required int EffectSlotCount { get; init; }
+        }
+
         /// <inheritdoc/>
         public override void Prepare(RenderDrawContext context)
         {
@@ -724,17 +777,44 @@ namespace Stride.Rendering
             foreach (var view in RenderSystem.Views)
             {
                 var viewFeature = view.Features[Index];
-
-                Dispatcher.ForEach(viewFeature.RenderNodes, () => prepareThreadContext.Value, (renderNodeReference, batch) =>
+                var parameters = new PrepareParameters
                 {
+                    Feature = this,
+                    View = view,
+                    ViewFeature = viewFeature,
+                    RenderEffects = renderEffects,
+                    EffectSlotCount = effectSlotCount,
+                };
+                ProcessView(in parameters);
+            }
+
+            static void ProcessView(in PrepareParameters parameters)
+            {
+                unsafe
+                {
+                    Dispatcher.ForEach<RenderNodeReference, PrepareThreadContext, ConcurrentCollector<RenderNodeReference>, PrepareParameters>(parameters.ViewFeature.RenderNodes, in parameters, &InitializeLocal, &ProcessRenderNode);
+                }
+
+                parameters.ViewFeature.RenderNodes.Close();
+                parameters.ViewFeature.Layouts.Close();
+
+                static PrepareThreadContext InitializeLocal(ref readonly PrepareParameters parameters)
+                {
+                    return parameters.Feature.prepareThreadContext.Value;
+                }
+
+                static void ProcessRenderNode(ref readonly PrepareParameters parameters, RenderNodeReference renderNodeReference, PrepareThreadContext batch)
+                {
+                    var feature = parameters.Feature;
+                    var view = parameters.View;
                     var threadContext = batch.Context;
-                    var renderNode = this.GetRenderNode(renderNodeReference);
+                    var renderNode = feature.GetRenderNode(renderNodeReference);
                     var renderObject = renderNode.RenderObject;
 
                     // Get RenderEffect
                     var staticObjectNode = renderObject.StaticObjectNode;
-                    var staticEffectObjectNode = staticObjectNode * effectSlotCount + effectSlots[renderNode.RenderStage.Index].Index;
-                    var renderEffect = renderEffects[staticEffectObjectNode];
+                    var staticEffectObjectNode = staticObjectNode * parameters.EffectSlotCount + feature.effectSlots[renderNode.RenderStage.Index].Index;
+                    var renderEffect = parameters.RenderEffects[staticEffectObjectNode];
 
                     // Not compiled yet?
                     if (renderEffect.Effect == null)
@@ -742,7 +822,7 @@ namespace Stride.Rendering
                         renderNode.RenderEffect = renderEffect;
                         renderNode.EffectObjectNode = EffectObjectNodeReference.Invalid;
                         renderNode.Resources = null;
-                        RenderNodes[renderNodeReference.Index] = renderNode;
+                        feature.RenderNodes[renderNodeReference.Index] = renderNode;
                         return;
                     }
 
@@ -752,7 +832,7 @@ namespace Stride.Rendering
                     var viewLayout = renderEffectReflection.PerViewLayout;
                     if (viewLayout != null)
                     {
-                        var viewCount = RenderSystem.Views.Count;
+                        var viewCount = feature.RenderSystem.Views.Count;
                         if (viewLayout.Entries?.Length < viewCount)
                         {
                             // TODO: Should this be a first loop?
@@ -773,28 +853,28 @@ namespace Stride.Rendering
                             }
                         }
 
-                        if (viewLayout.Entries[view.Index].MarkAsUsed(RenderSystem))
+                        if (viewLayout.Entries[view.Index].MarkAsUsed(feature.RenderSystem))
                         {
                             threadContext.ResourceGroupAllocator.PrepareResourceGroup(viewLayout, BufferPoolAllocationType.UsedMultipleTime, viewLayout.Entries[view.Index].Resources);
 
                             // Register it in list of view layouts to update for this frame
-                            viewFeature.Layouts.Add(viewLayout);
+                            parameters.ViewFeature.Layouts.Add(viewLayout);
                         }
                     }
 
                     // PerFrame resources/cbuffer
                     var frameLayout = renderEffect.Reflection.PerFrameLayout;
-                    if (frameLayout != null && frameLayout.Entry.MarkAsUsed(RenderSystem))
+                    if (frameLayout != null && frameLayout.Entry.MarkAsUsed(feature.RenderSystem))
                     {
                         threadContext.ResourceGroupAllocator.PrepareResourceGroup(frameLayout, BufferPoolAllocationType.UsedMultipleTime, frameLayout.Entry.Resources);
 
                         // Register it in list of frame layouts to update for this frame
-                        FrameLayouts.Add(frameLayout);
+                        feature.FrameLayouts.Add(frameLayout);
                     }
 
                     // PerDraw resources/cbuffer
                     // Get nodes
-                    var viewObjectNode = GetViewObjectNode(renderNode.ViewObjectNode);
+                    var viewObjectNode = feature.GetViewObjectNode(renderNode.ViewObjectNode);
 
                     // Allocate descriptor set
                     renderNode.Resources = threadContext.ResourceGroupAllocator.AllocateResourceGroup();
@@ -804,7 +884,7 @@ namespace Stride.Rendering
                     }
 
                     // Create EffectObjectNode
-                    var effectObjectNodeIndex = EffectObjectNodes.Add(new EffectObjectNode(renderEffect, viewObjectNode.ObjectNode));
+                    var effectObjectNodeIndex = feature.EffectObjectNodes.Add(new EffectObjectNode(renderEffect, viewObjectNode.ObjectNode));
 
                     // Link to EffectObjectNode (created right after)
                     // TODO: rewrite this
@@ -813,10 +893,10 @@ namespace Stride.Rendering
                     renderNode.RenderEffect = renderEffect;
 
                     // Bind well-known descriptor sets
-                    var descriptorSetPoolOffset = ComputeResourceGroupOffset(renderNodeReference);
-                    ResourceGroupPool[descriptorSetPoolOffset + perFrameDescriptorSetSlot.Index] = frameLayout?.Entry.Resources;
-                    ResourceGroupPool[descriptorSetPoolOffset + perViewDescriptorSetSlot.Index] = renderEffect.Reflection.PerViewLayout?.Entries[view.Index].Resources;
-                    ResourceGroupPool[descriptorSetPoolOffset + perDrawDescriptorSetSlot.Index] = renderNode.Resources;
+                    var descriptorSetPoolOffset = feature.ComputeResourceGroupOffset(renderNodeReference);
+                    feature.ResourceGroupPool[descriptorSetPoolOffset + feature.perFrameDescriptorSetSlot.Index] = frameLayout?.Entry.Resources;
+                    feature.ResourceGroupPool[descriptorSetPoolOffset + feature.perViewDescriptorSetSlot.Index] = renderEffect.Reflection.PerViewLayout?.Entries[view.Index].Resources;
+                    feature.ResourceGroupPool[descriptorSetPoolOffset + feature.perDrawDescriptorSetSlot.Index] = renderNode.Resources;
 
                     // Create resource group for everything else in case of fallback effects
                     if (renderEffect.State != RenderEffectState.Normal && renderEffect.FallbackParameters != null)
@@ -827,12 +907,12 @@ namespace Stride.Rendering
                             renderEffect.FallbackParameterUpdater = new EffectParameterUpdater(renderEffect.Reflection.FallbackUpdaterLayout, renderEffect.FallbackParameters);
                         }
 
-                        renderEffect.FallbackParameterUpdater.Update(RenderSystem.GraphicsDevice, threadContext.ResourceGroupAllocator, renderEffect.FallbackParameters);
+                        renderEffect.FallbackParameterUpdater.Update(feature.RenderSystem.GraphicsDevice, threadContext.ResourceGroupAllocator, renderEffect.FallbackParameters);
 
                         var fallbackResourceGroupMapping = renderEffect.Reflection.FallbackResourceGroupMapping;
                         for (int i = 0; i < fallbackResourceGroupMapping.Length; ++i)
                         {
-                            ResourceGroupPool[descriptorSetPoolOffset + fallbackResourceGroupMapping[i]] = renderEffect.FallbackParameterUpdater.ResourceGroups[i];
+                            feature.ResourceGroupPool[descriptorSetPoolOffset + fallbackResourceGroupMapping[i]] = renderEffect.FallbackParameterUpdater.ResourceGroups[i];
                         }
                     }
 
@@ -857,9 +937,9 @@ namespace Stride.Rendering
                         pipelineState.RasterizerState.MultisampleCount = stageOutput.MultisampleCount;
 
                         // Bind VAO
-                        ProcessPipelineState(Context, renderNodeReference, ref renderNode, renderObject, pipelineState);
+                        feature.ProcessPipelineState(feature.Context, renderNodeReference, ref renderNode, renderObject, pipelineState);
 
-                        foreach (var pipelineProcessor in PipelineProcessors)
+                        foreach (var pipelineProcessor in feature.PipelineProcessors)
                             pipelineProcessor.Process(renderNodeReference, ref renderNode, renderObject, pipelineState);
 
                         mutablePipelineState.Update();
@@ -875,11 +955,8 @@ namespace Stride.Rendering
 
                     renderNode.PipelineState = pipelineStateObject;
 
-                    RenderNodes[renderNodeReference.Index] = renderNode;
-                });
-
-                viewFeature.RenderNodes.Close();
-                viewFeature.Layouts.Close();
+                    feature.RenderNodes[renderNodeReference.Index] = renderNode;
+                }
             }
 
             EffectObjectNodes.Close();

@@ -105,6 +105,12 @@ namespace Stride.Rendering
             }
         }
 
+        private readonly record struct ExtractParameters
+        {
+            public required RenderSystem RenderSystem { get; init; }
+            public required RenderView View { get; init; }
+        }
+
         /// <summary>
         /// Extract data from entities, should be as fast as possible to not block simulation loop. It should be mostly copies, and the actual processing should be part of Prepare().
         /// </summary>
@@ -142,7 +148,12 @@ namespace Stride.Rendering
             }
 
             // Create nodes for objects to render
-            Dispatcher.ForEach(Views, view =>
+            unsafe
+            {
+                Dispatcher.ForEach<RenderView, FastTrackingCollection<RenderView>, RenderSystem>(Views, this, &ProcessView);
+            }
+
+            static void ProcessView(RenderSystem renderSystem, RenderView view)
             {
                 using var _ = Profiler.Begin(CreateObjectNodesKey);
                 // Sort per render feature (used for later sorting)
@@ -152,47 +163,17 @@ namespace Stride.Rendering
                     Dispatcher.Sort(view.RenderObjects, RenderObjectFeatureComparer.Default);
                 }
 
-                Dispatcher.ForEach(view.RenderObjects, () => extractThreadLocals.Value, (renderObject, batch) =>
+                var parameters = new ExtractParameters
                 {
-                    var renderFeature = renderObject.RenderFeature;
-                    var viewFeature = view.Features[renderFeature.Index];
+                    RenderSystem = renderSystem,
+                    View = view,
+                };
+                unsafe
+                {
+                    Dispatcher.ForEach<RenderObject, ExtractThreadLocals, ConcurrentCollector<RenderObject>, ExtractParameters>(view.RenderObjects, in parameters, &InitializeLocal, &ProcessRenderObject, &FinalizeLocal);
+                }
 
-                    // Create object node
-                    renderFeature.GetOrCreateObjectNode(renderObject);
-
-                    // Let's create the view object node
-                    var renderViewNode = renderFeature.CreateViewObjectNode(view, renderObject);
-                    viewFeature.ViewObjectNodes.Add(renderViewNode, batch.ViewFeatureObjectNodeCache);
-
-                    // Collect object
-                    // TODO: Check which stage it belongs to (and skip everything if it doesn't belong to any stage)
-                    // TODO: For now, we build list and then copy. Another way would be to count and then fill (might be worse, need to check)
-
-                    using (Profiler.Begin(CollectObjectKey))
-                    {
-                        var activeRenderStages = renderObject.ActiveRenderStages;
-                        foreach (var renderViewStage in view.RenderStages)
-                        {
-                            // Check if this RenderObject wants to be rendered for this render stage
-                            var renderStageIndex = renderViewStage.Index;
-                            if (!activeRenderStages[renderStageIndex].Active)
-                                continue;
-
-                            var renderStage = RenderStages[renderStageIndex];
-                            if (renderStage.Filter != null && !renderStage.Filter.IsVisible(renderObject, view, renderViewStage))
-                                continue;
-
-                            var renderNode = renderFeature.CreateRenderNode(renderObject, view, renderViewNode, renderStage);
-
-                            // Note: Used mostly during updating
-                            viewFeature.RenderNodes.Add(renderNode, batch.ViewFeatureRenderNodeCache);
-
-                            // Note: Used mostly during rendering
-                            renderViewStage.RenderNodes.Add(new RenderNodeFeatureReference(renderFeature, renderNode, renderObject), batch.ViewStageRenderNodeCache);
-                        }
-                    }
-                }, batch => batch.Flush());
-                // Finish collectin of view feature nodes
+                // Finish collecting of view feature nodes
                 foreach (var viewFeature in view.Features)
                 {
                     viewFeature.ViewObjectNodes.Close();
@@ -208,7 +189,58 @@ namespace Stride.Rendering
                         Dispatcher.Sort(renderViewStage.RenderNodes, RenderNodeFeatureReferenceComparer.Default);
                     }
                 }
-            });
+
+                static ExtractThreadLocals InitializeLocal(ref readonly ExtractParameters parameters)
+                {
+                    return parameters.RenderSystem.extractThreadLocals.Value;
+                }
+
+                static void ProcessRenderObject(ref readonly ExtractParameters parameters, RenderObject renderObject, ExtractThreadLocals batch)
+                {
+                    var renderFeature = renderObject.RenderFeature;
+                    var viewFeature = parameters.View.Features[renderFeature.Index];
+
+                    // Create object node
+                    renderFeature.GetOrCreateObjectNode(renderObject);
+
+                    // Let's create the view object node
+                    var renderViewNode = renderFeature.CreateViewObjectNode(parameters.View, renderObject);
+                    viewFeature.ViewObjectNodes.Add(renderViewNode, batch.ViewFeatureObjectNodeCache);
+
+                    // Collect object
+                    // TODO: Check which stage it belongs to (and skip everything if it doesn't belong to any stage)
+                    // TODO: For now, we build list and then copy. Another way would be to count and then fill (might be worse, need to check)
+
+                    using (Profiler.Begin(CollectObjectKey))
+                    {
+                        var activeRenderStages = renderObject.ActiveRenderStages;
+                        foreach (var renderViewStage in parameters.View.RenderStages)
+                        {
+                            // Check if this RenderObject wants to be rendered for this render stage
+                            var renderStageIndex = renderViewStage.Index;
+                            if (!activeRenderStages[renderStageIndex].Active)
+                                continue;
+
+                            var renderStage = parameters.RenderSystem.RenderStages[renderStageIndex];
+                            if (renderStage.Filter != null && !renderStage.Filter.IsVisible(renderObject, parameters.View, renderViewStage))
+                                continue;
+
+                            var renderNode = renderFeature.CreateRenderNode(renderObject, parameters.View, renderViewNode, renderStage);
+
+                            // Note: Used mostly during updating
+                            viewFeature.RenderNodes.Add(renderNode, batch.ViewFeatureRenderNodeCache);
+
+                            // Note: Used mostly during rendering
+                            renderViewStage.RenderNodes.Add(new RenderNodeFeatureReference(renderFeature, renderNode, renderObject), batch.ViewStageRenderNodeCache);
+                        }
+                    }
+                }
+
+                static void FinalizeLocal(ref readonly ExtractParameters parameters, ExtractThreadLocals batch)
+                {
+                    batch.Flush();
+                }
+            }
 
             // Finish collection of render feature nodes
             foreach (var renderFeature in RenderFeatures)

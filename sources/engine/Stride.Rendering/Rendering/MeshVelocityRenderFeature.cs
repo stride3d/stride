@@ -52,6 +52,15 @@ namespace Stride.Rendering
             previousWorldViewProjection = ((RootEffectRenderFeature)RootRenderFeature).CreateDrawCBufferOffsetSlot(MeshVelocityKeys.PreviousWorldViewProjection.Name);
         }
 
+        private readonly record struct PrepareEffectPermutationParameters
+        {
+            public required RootRenderFeature RootRenderFeature { get; init; }
+            public required RenderSystem RenderSystem { get; init; }
+            public required RootEffectRenderFeature RootEffectRenderFeature { get; init; }
+            public required StaticObjectPropertyData<RenderEffect> RenderEffects { get; init; }
+            public required int EffectSlotCount { get; init; }
+        }
+
         public override void PrepareEffectPermutations(RenderDrawContext context)
         {
             using var _ = Profiler.Begin(PrepareEffectPermutationsKey);
@@ -60,29 +69,59 @@ namespace Stride.Rendering
             var rootEffectRenderFeature = ((RootEffectRenderFeature)RootRenderFeature);
             var renderEffects = RootRenderFeature.RenderData.GetData(((RootEffectRenderFeature)RootRenderFeature).RenderEffectKey);
             int effectSlotCount = ((RootEffectRenderFeature)RootRenderFeature).EffectPermutationSlotCount;
-            
-            Dispatcher.ForEach(RootRenderFeature.ObjectNodeReferences, objectNodeReference =>
+
+            var parameters = new PrepareEffectPermutationParameters
             {
-                var objectNode = RootRenderFeature.GetObjectNode(objectNodeReference);
+                RootRenderFeature = RootRenderFeature,
+                RenderSystem = RenderSystem,
+                RootEffectRenderFeature = rootEffectRenderFeature,
+                RenderEffects = renderEffects,
+                EffectSlotCount = effectSlotCount,
+            };
+            unsafe
+            {
+                Dispatcher.ForEach<ObjectNodeReference, ConcurrentCollector<ObjectNodeReference>, PrepareEffectPermutationParameters>(RootRenderFeature.ObjectNodeReferences, in parameters, &ProcessObjectNode);
+            }
+
+            static void ProcessObjectNode(ref readonly PrepareEffectPermutationParameters parameters, ObjectNodeReference objectNodeReference)
+            {
+                var objectNode = parameters.RootRenderFeature.GetObjectNode(objectNodeReference);
                 var renderMesh = (RenderMesh)objectNode.RenderObject;
                 var staticObjectNode = renderMesh.StaticObjectNode;
 
                 renderMesh.ActiveMeshDraw = renderMesh.Mesh.Draw;
 
-                foreach (var stage in RenderSystem.RenderStages)
+                foreach (var stage in parameters.RenderSystem.RenderStages)
                 {
                     if (stage == null)
                         continue;
-                    var effectSlot = rootEffectRenderFeature.GetEffectPermutationSlot(stage);
-                    var staticEffectObjectNode = staticObjectNode * effectSlotCount + effectSlot.Index;
-                    var renderEffect = renderEffects[staticEffectObjectNode];
+                    var effectSlot = parameters.RootEffectRenderFeature.GetEffectPermutationSlot(stage);
+                    var staticEffectObjectNode = staticObjectNode * parameters.EffectSlotCount + effectSlot.Index;
+                    var renderEffect = parameters.RenderEffects[staticEffectObjectNode];
 
                     if (renderEffect != null)
                     {
                         renderEffect.EffectValidator.ValidateParameter(StrideEffectBaseKeys.ComputeVelocityShader, new ShaderClassSource("MeshVelocity"));
                     }
                 }
-            });
+            }
+        }
+
+        private readonly record struct PreviousViewParameters
+        {
+            public required RootRenderFeature RootRenderFeature { get; init; }
+            public required ObjectPropertyData<TransformRenderFeature.RenderModelFrameInfo> RenderModelObjectInfoData { get; init; }
+            public required ViewObjectPropertyData<PreviousObjectViewInfo> PreviousTransformationViewInfoData { get; init; }
+            public required RenderViewData ViewData { get; init; }
+        }
+
+        private readonly record struct PreviousPerDrawParameters
+        {
+            public required ConcurrentCollector<RenderNode> RenderNodes { get; init; }
+            public required ConstantBufferOffsetReference PreviousWorldViewProjectionOffset { get; init; }
+            public required ObjectPropertyData<TransformRenderFeature.RenderModelFrameInfo> RenderModelObjectInfoData { get; init; }
+            public required ViewObjectPropertyData<PreviousObjectViewInfo> PreviousTransformationViewInfoData { get; init; }
+            public required StaticObjectPropertyData<StaticObjectInfo> PreviousTransformationInfoData { get; init; }
         }
 
         public override unsafe void Prepare(RenderDrawContext context)
@@ -121,21 +160,30 @@ namespace Stride.Rendering
                     renderViewDatas.Add(view, viewData);
                 }
 
-                Dispatcher.ForEach(viewFeature.ViewObjectNodes, renderPerViewNodeReference =>
+                var parameters = new PreviousViewParameters
                 {
-                    var renderPerViewNode = RootRenderFeature.GetViewObjectNode(renderPerViewNodeReference);
-                    var renderModelFrameInfo = renderModelObjectInfoData[renderPerViewNode.ObjectNode];
-                    
-                    Matrix previousViewProjection = viewData.PreviousViewProjection;
+                    RootRenderFeature = RootRenderFeature,
+                    RenderModelObjectInfoData = renderModelObjectInfoData,
+                    PreviousTransformationViewInfoData = previousTransformationViewInfoData,
+                    ViewData = viewData,
+                };
+                Dispatcher.ForEach<ViewObjectNodeReference, ConcurrentCollector<ViewObjectNodeReference>, PreviousViewParameters>(viewFeature.ViewObjectNodes, in parameters, &ProcessViewObjectNode);
+
+                static void ProcessViewObjectNode(ref readonly PreviousViewParameters parameters, ViewObjectNodeReference renderPerViewNodeReference)
+                {
+                    var renderPerViewNode = parameters.RootRenderFeature.GetViewObjectNode(renderPerViewNodeReference);
+                    var renderModelFrameInfo = parameters.RenderModelObjectInfoData[renderPerViewNode.ObjectNode];
+
+                    Matrix previousViewProjection = parameters.ViewData.PreviousViewProjection;
 
                     Matrix previousWorldViewProjection;
                     Matrix.Multiply(ref renderModelFrameInfo.World, ref previousViewProjection, out previousWorldViewProjection);
 
-                    previousTransformationViewInfoData[renderPerViewNodeReference] = new PreviousObjectViewInfo
+                    parameters.PreviousTransformationViewInfoData[renderPerViewNodeReference] = new PreviousObjectViewInfo
                     {
                         WorldViewProjection = previousWorldViewProjection,
                     };
-                });
+                }
 
                 // Shift current view projection transform into previous
                 viewData.PreviousViewProjection = view.ViewProjection;
@@ -151,30 +199,41 @@ namespace Stride.Rendering
             updatedViews.Clear();
 
             // Update cbuffer for previous WVP matrix
-            Dispatcher.ForEach(((RootEffectRenderFeature)RootRenderFeature).RenderNodes, (ref RenderNode renderNode) =>
+            var perDrawParameters = new PreviousPerDrawParameters
             {
+                RenderNodes = ((RootEffectRenderFeature)RootRenderFeature).RenderNodes,
+                PreviousWorldViewProjectionOffset = previousWorldViewProjection,
+                RenderModelObjectInfoData = renderModelObjectInfoData,
+                PreviousTransformationViewInfoData = previousTransformationViewInfoData,
+                PreviousTransformationInfoData = previousTransformationInfoData,
+            };
+            Dispatcher.For(0, perDrawParameters.RenderNodes.Count, in perDrawParameters, &UpdatePerDraw);
+
+            static void UpdatePerDraw(ref readonly PreviousPerDrawParameters parameters, int index)
+            {
+                ref var renderNode = ref parameters.RenderNodes.Items[index];
                 var perDrawLayout = renderNode.RenderEffect.Reflection?.PerDrawLayout;
                 if (perDrawLayout == null)
                     return;
 
-                var previousWvpOffset = perDrawLayout.GetConstantBufferOffset(previousWorldViewProjection);
+                var previousWvpOffset = perDrawLayout.GetConstantBufferOffset(parameters.PreviousWorldViewProjectionOffset);
                 if (previousWvpOffset == -1)
                     return;
-                
+
                 var mappedCB = renderNode.Resources.ConstantBuffer.Data;
                 var previousPerDraw = (PreviousPerDraw*)((byte*)mappedCB + previousWvpOffset);
 
-                var renderModelFrameInfo = renderModelObjectInfoData[renderNode.RenderObject.ObjectNode];
-                var renderModelPreviousFrameInfo = previousTransformationViewInfoData[renderNode.ViewObjectNode];
-                
+                var renderModelFrameInfo = parameters.RenderModelObjectInfoData[renderNode.RenderObject.ObjectNode];
+                var renderModelPreviousFrameInfo = parameters.PreviousTransformationViewInfoData[renderNode.ViewObjectNode];
+
                 // Shift current world transform into previous transform
-                previousTransformationInfoData[renderNode.RenderObject.StaticObjectNode] = new StaticObjectInfo
+                parameters.PreviousTransformationInfoData[renderNode.RenderObject.StaticObjectNode] = new StaticObjectInfo
                 {
                     World = renderModelFrameInfo.World,
                 };
-                
+
                 previousPerDraw->PreviousWorldViewProjection = renderModelPreviousFrameInfo.WorldViewProjection;
-            });
+            }
         }
 
         internal class RenderViewData
