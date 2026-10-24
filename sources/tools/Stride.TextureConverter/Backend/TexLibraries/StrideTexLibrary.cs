@@ -155,6 +155,10 @@ namespace Stride.TextureConverter.TexLibraries
             {
                 Log.Error($"Inverting Y is intended for nomal map textures, not sRGB...");
             }
+            else
+            {
+                Log.Error($"Inverting Y is not implemented for format {image.Format}");
+            }
         }
 
         /// <summary>
