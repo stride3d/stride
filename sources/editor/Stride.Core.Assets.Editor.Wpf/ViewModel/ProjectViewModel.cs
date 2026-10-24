@@ -44,7 +44,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
     {
         private bool isCurrentProject;
 
-        public ProjectViewModel(SessionViewModel session, SolutionProject project, bool packageAlreadyInSession)
+        public ProjectViewModel(ISessionViewModel session, SolutionProject project, bool packageAlreadyInSession)
             : base(session, project, packageAlreadyInSession)
         {
             content.Add(Code = new ProjectCodeViewModel(this));

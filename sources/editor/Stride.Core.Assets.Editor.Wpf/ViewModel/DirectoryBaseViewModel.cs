@@ -20,7 +20,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         private readonly AutoUpdatingSortedObservableCollection<DirectoryViewModel> subDirectories = new AutoUpdatingSortedObservableCollection<DirectoryViewModel>(CompareDirectories);
         private readonly ObservableList<AssetViewModel> assets = new ObservableList<AssetViewModel>();
 
-        protected DirectoryBaseViewModel(SessionViewModel session)
+        protected DirectoryBaseViewModel(ISessionViewModel session)
             : base(session)
         {
             SubDirectories = new ReadOnlyObservableCollection<DirectoryViewModel>(subDirectories);

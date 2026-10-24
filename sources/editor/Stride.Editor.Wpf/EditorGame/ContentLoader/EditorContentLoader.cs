@@ -82,7 +82,7 @@ namespace Stride.Editor.EditorGame.ContentLoader
             Asset = asset ?? throw new ArgumentNullException(nameof(asset));
             Editor = editor ?? throw new ArgumentNullException(nameof(editor));
             GameDispatcher = gameDispatcher ?? throw new ArgumentNullException(nameof(gameDispatcher));
-            Session = asset.Session;
+            Session = (SessionViewModel)asset.Session;
             foreach (var sessionAsset in Session.AllAssets)
             {
                 if (sessionAsset.Asset.Replaces is { } replaces)

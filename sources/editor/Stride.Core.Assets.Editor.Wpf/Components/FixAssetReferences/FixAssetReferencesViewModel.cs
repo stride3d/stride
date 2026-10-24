@@ -89,7 +89,7 @@ namespace Stride.Core.Assets.Editor.Components.FixAssetReferences
 
         public override async Task<AssetViewModel> PickupObject(AssetViewModel objectToFix, Type propertyType)
         {
-            var assetPicker = ServiceProvider.Get<IEditorDialogService>().CreateAssetPickerDialog(objectToFix.Session);
+            var assetPicker = ServiceProvider.Get<IEditorDialogService>().CreateAssetPickerDialog((SessionViewModel)objectToFix.Session);
             assetPicker.Message = "Select an asset to replace the deleted asset";
             assetPicker.Filter = x => !IsInObjectsToFixList(x);
             assetPicker.InitialLocation = objectToFix.Directory;

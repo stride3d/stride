@@ -99,7 +99,7 @@ namespace Stride.Editor.Build
             return buildSteps;
         }
 
-        public ListBuildStep CreateUserShaderBuildSteps(SessionViewModel session)
+        public ListBuildStep CreateUserShaderBuildSteps(ISessionViewModel session)
         {
             var packages = session.AllPackages.Where(project => !project.Package.IsReadOnly).ToList();
             if (packages.Count == 0)

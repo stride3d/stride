@@ -40,7 +40,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         protected readonly SortedObservableCollection<DirtiableEditableViewModel> content = new SortedObservableCollection<DirtiableEditableViewModel>(ComparePackageContent);
         private readonly List<AssetViewModel> deletedAssetsSinceLastSave = new List<AssetViewModel>();
 
-        public PackageViewModel(SessionViewModel session, PackageContainer packageContainer, bool packageAlreadyInSession)
+        public PackageViewModel(ISessionViewModel session, PackageContainer packageContainer, bool packageAlreadyInSession)
             : base(session)
         {
             PackageContainer = packageContainer;
@@ -103,7 +103,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// <summary>
         /// Gets the properties of the package.
         /// </summary>
-        public SessionObjectPropertiesViewModel Properties => Session.AssetViewProperties;
+        public ISessionObjectPropertiesViewModel Properties => Session.AssetViewProperties;
 
         /// <summary>
         /// Gets whether this package is editable.
@@ -601,7 +601,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         }
 
         // TODO: Move this in an utility class
-        internal static List<AssetViewModel> GetReferencers(IAssetDependencyManager dependencyManager, SessionViewModel session, IEnumerable<AssetItem> assets)
+        internal static List<AssetViewModel> GetReferencers(IAssetDependencyManager dependencyManager, ISessionViewModel session, IEnumerable<AssetItem> assets)
         {
             var result = new List<AssetViewModel>();
 
@@ -847,10 +847,10 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
     public class UnloadedPickablePackageViewModel : PickablePackageViewModel
     {
-        private readonly SessionViewModel session;
+        private readonly ISessionViewModel session;
         private readonly PackageName package;
 
-        public UnloadedPickablePackageViewModel(SessionViewModel session, PackageName package) : base(session.ServiceProvider)
+        public UnloadedPickablePackageViewModel(ISessionViewModel session, PackageName package) : base(session.ServiceProvider)
         {
             this.session = session;
             this.package = package;

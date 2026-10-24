@@ -11,7 +11,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
     {
         private readonly Type[] additionalPrimitiveTypes;
         
-        public SessionNodeContainer(SessionViewModel session)
+        public SessionNodeContainer(ISessionViewModel session)
         {
             if (session == null) throw new ArgumentNullException(nameof(session));
 
