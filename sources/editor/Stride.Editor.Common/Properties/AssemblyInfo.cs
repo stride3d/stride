@@ -6,3 +6,7 @@ using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("Stride.Editor.Wpf" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.GameStudio" + Stride.PublicKeys.Default)]
+// The agnostic editor layer and its tests
+[assembly: InternalsVisibleTo("Stride.Editor" + Stride.PublicKeys.Default)]
+[assembly: InternalsVisibleTo("Stride.Editor.Avalonia" + Stride.PublicKeys.Default)]
+[assembly: InternalsVisibleTo("Stride.Editor.Services.Tests" + Stride.PublicKeys.Default)]
