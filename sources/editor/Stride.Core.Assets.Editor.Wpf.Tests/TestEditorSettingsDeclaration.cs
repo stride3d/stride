@@ -6,7 +6,7 @@ using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Settings;
 using Xunit;
 
-namespace Stride.Core.Assets.Editor.Tests;
+namespace Stride.Core.Assets.Editor.Wpf.Tests;
 
 public class TestEditorSettingsDeclaration
 {

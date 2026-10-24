@@ -11,7 +11,7 @@ using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Quantum;
 
-namespace Stride.Core.Assets.Editor.Tests
+namespace Stride.Core.Assets.Editor.Wpf.Tests
 {
     public sealed class TestCopyPasteProperties
     {

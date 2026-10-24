@@ -6,7 +6,7 @@ using Xunit;
 using Stride.Core.Assets.Editor.View.Behaviors;
 using Stride.Core.Assets.Editor.ViewModel;
 
-namespace Stride.Core.Assets.Editor.Tests
+namespace Stride.Core.Assets.Editor.Wpf.Tests
 {
     public class TestDragContainer
     {
