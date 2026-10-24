@@ -65,7 +65,7 @@ The plugin's three projects can live in the game's solution as source. The game 
 <ProjectReference Include="..\MyPlugin\MyPlugin.csproj" />
 ```
 
-The game's executable project builds the `Assets` companions declared along its project references and lists their build manifests in its own, so the asset compiler finds them without any restore and the game output never ships them. A companion that no project references is restored by the runtime project's build the first time. The `Editor` companions are not built by the game: Game Studio compiles them from the solution. On Linux and macOS, a game build leaves out a companion that targets Windows only (an `Editor` project) instead of restoring it, since no host there loads it.
+The game's executable project builds the `Assets` companions declared along its project references and lists their build manifests in its own, so the asset compiler finds them without any restore and the game output never ships them. A companion that no project references is restored by the runtime project's build the first time. The `Editor` companions are not built by the game: Game Studio compiles them from the solution. On Linux and macOS, a game build leaves out a companion that targets Windows only (a `.Wpf` view package, or an `Editor` package that still uses WPF) instead of restoring it, since no host there loads it; a toolkit-neutral `Editor` package targets `net10.0` (`$(StrideXplatEditorTargetFramework)` in the engine) and is restored like any other.
 
 ## Creating a plugin
 

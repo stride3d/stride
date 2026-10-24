@@ -46,6 +46,8 @@ public class TestEditorPackageToolkit
         Assert.DoesNotContain(project.Descendants("UseWPF"), x => string.Equals(x.Value.Trim(), "true", StringComparison.OrdinalIgnoreCase));
         Assert.Empty(project.Descendants("StrideEditorToolkit"));
         Assert.Contains(project.Descendants("StridePackageKind"), x => x.Value.Trim() == "Editor");
+        // A toolkit-neutral package has no reason to target Windows only
+        Assert.Equal("$(StrideXplatEditorTargetFramework)", project.Descendants("TargetFramework").Single().Value.Trim());
     }
 
     [Theory]
