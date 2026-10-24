@@ -126,6 +126,9 @@ public class ListBuildStep : BuildStep
                         newOutputObject.Tags.Add(tag);
                     }
                 }
+
+                // Forward logs (as for a command step below): the sub list holds the logs of its own commands
+                enumerableBuildStep.Logger.CopyTo(Logger);
             }
 
             if (buildStep is CommandBuildStep commandBuildStep)

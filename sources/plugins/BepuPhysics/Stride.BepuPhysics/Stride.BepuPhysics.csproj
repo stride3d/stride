@@ -1,0 +1,29 @@
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk/Sdk/Sdk.props" />
+  <PropertyGroup>
+    <TargetFrameworks>$(StrideRuntimeTargetFrameworks)</TargetFrameworks>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <StrideAssemblyProcessorOptions>--serialization --parameter-key</StrideAssemblyProcessorOptions>
+    <StrideCodeAnalysis>true</StrideCodeAnalysis>
+    <!-- The physics components and settings are written in scene and game settings assets -->
+    <StrideContainsAssetTypes>true</StrideContainsAssetTypes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Companion package: asset types, compilers and templates, loaded by the asset compiler and the editor -->
+    <StrideCompanionProject Include="..\Stride.BepuPhysics.Assets\Stride.BepuPhysics.Assets.csproj" />
+    <InternalsVisibleTo Include="Stride.BepuPhysics.Assets" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\engine\Stride.Engine\Stride.Engine.csproj" />
+    <ProjectReference Include="..\..\..\core\Stride.Core.MicroThreading\Stride.Core.MicroThreading.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BepuPhysics" />
+  </ItemGroup>
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk/Sdk/Sdk.targets" />
+</Project>

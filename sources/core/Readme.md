@@ -5,11 +5,8 @@ The following libraries cover abstractions and base implementations of various l
 The assembly processor is a legacy job that runs after any project is built and delivers IL patching for the following:
 
 * Serialization system (migration to roslyn [in progress](https://github.com/stride3d/stride/pull/1609))
-* AssemblyScan system - packing selected types into a dictionary for quick access instead of using reflection
 * Adding references to the assembly (used only within Stride build - see `Stride.Core.targets - StrideAddReference`)
 * Modyfing static constructor for static instances of `Stride.Rendering.ParameterKey<T>` (**TODO**: why?)
-* Renaming assembly
-* Provind IL intrinsics for things that were not available in previous C# versions (deprecated, `Stride.Core.Interop` has been marked obsolete)
 * Fix for mono for mobile platforms where an incorrect IL operation was performed on pointers (no longer necessary, see [issue](https://github.com/xamarin/xamarin-android/issues/1177))
 * Modifying assembly version using attribute to include build timestamp
 * Generating field/property docs in a simplified format for the editor

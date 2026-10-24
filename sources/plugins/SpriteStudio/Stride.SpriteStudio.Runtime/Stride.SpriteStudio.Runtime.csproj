@@ -1,0 +1,25 @@
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk/Sdk/Sdk.props" />
+  <PropertyGroup>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <TargetFrameworks>$(StrideRuntimeTargetFrameworks)</TargetFrameworks>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <StrideAssemblyProcessorOptions>--serialization --parameter-key</StrideAssemblyProcessorOptions>
+    <!-- The SpriteStudio components are written in scene assets -->
+    <StrideContainsAssetTypes>true</StrideContainsAssetTypes>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Companion packages: sheet and animation assets, compilers, importer and templates in .Assets, editor extensions in .Editor -->
+    <StrideCompanionProject Include="..\Stride.SpriteStudio.Assets\Stride.SpriteStudio.Assets.csproj" />
+    <StrideCompanionProject Include="..\Stride.SpriteStudio.Editor\Stride.SpriteStudio.Editor.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\shared\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\engine\Stride.Engine\Stride.Engine.csproj" />
+  </ItemGroup>
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk/Sdk/Sdk.targets" />
+</Project>

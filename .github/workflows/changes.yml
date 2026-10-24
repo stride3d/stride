@@ -144,6 +144,7 @@ jobs:
               - 'sources/shared/**'
               - 'sources/sdk/**'
               - 'sources/assets/**'
+              - 'sources/plugins/**'
               - 'deps/**'
               - 'tests/**'
               - 'build/Stride.Runtime.slnf'
@@ -161,6 +162,7 @@ jobs:
               - 'build/tools/ParallelBuildAuditor/**'
             ios:
               - 'sources/engine/**'
+              - 'sources/plugins/**'
               - 'sources/core/**'
               - 'sources/native/**'
               - 'sources/shared/**'

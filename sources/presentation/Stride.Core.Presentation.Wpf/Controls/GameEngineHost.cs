@@ -25,6 +25,9 @@ namespace Stride.Core.Presentation.Controls
     {
         private readonly List<HwndSource> contextMenuSources = new List<HwndSource>();
         private bool updateRequested;
+        private bool detachRequested;
+        private HwndSource parentSource;
+        private readonly HwndSourceHook parentWindowHook; // HwndSource keeps its hooks with weak references
         private int mouseMoveCount;
         private Point contextMenuPosition;
         private DpiScale dpiScale;
@@ -45,6 +48,7 @@ namespace Stride.Core.Presentation.Controls
         public GameEngineHost(IntPtr childHandle)
         {
             Handle = childHandle;
+            parentWindowHook = ParentWindowHook;
             MinWidth = 32;
             MinHeight = 32;
             Loaded += OnLoaded;
@@ -66,6 +70,8 @@ namespace Stride.Core.Presentation.Controls
             Unloaded -= OnUnloaded;
             LayoutUpdated -= OnLayoutUpdated;
             IsVisibleChanged -= OnIsVisibleChanged;
+            parentSource?.RemoveHook(parentWindowHook);
+            parentSource = null;
             // TODO: This seems to be blocking when exiting the Game Studio, but doesn't seem to be necessary
             //NativeHelper.SetParent(Handle, IntPtr.Zero);
             NativeHelper.DestroyWindow(Handle);
@@ -87,7 +93,12 @@ namespace Stride.Core.Presentation.Controls
 
         private void OnUnloaded(object sender, RoutedEventArgs e)
         {
-            Detach();
+            // Raised after the move when the host moved to another parent (its old parent is unloaded once the host
+            // is already visible in the new one): nothing to do, Loaded follows
+            if (IsVisible && GetHwndSource() != null)
+                return;
+
+            DetachUnlessMoved();
         }
 
         private void OnLayoutUpdated(object sender, EventArgs e)
@@ -106,19 +117,52 @@ namespace Stride.Core.Presentation.Controls
             }
             else
             {
-                Detach();
+                DetachUnlessMoved();
             }
+        }
+
+        /// <summary>
+        /// Hides the game window, unless the host is only moving to another parent: a host that leaves the visual tree
+        /// (e.g. its view is replaced by a new one) comes back only after the new parent's layout, and hiding the window
+        /// in between shows the WPF background for a few frames, or longer when the UI thread is busy building the new parent.
+        /// </summary>
+        private void DetachUnlessMoved()
+        {
+            // Still in the window (e.g. a collapsed panel): really hidden
+            if (PresentationSource.FromVisual(this) != null)
+            {
+                Detach();
+                return;
+            }
+
+            if (detachRequested)
+                return;
+
+            detachRequested = true;
+            Dispatcher.InvokeAsync(() =>
+            {
+                detachRequested = false;
+                // Disposed meanwhile (e.g. its editor was closed): the game window is already destroyed
+                if (!isDisposed && !IsVisible)
+                    Detach();
+            }, DispatcherPriority.Input); // After the layout and Loaded passes that would bring the host back
         }
 
         private void Attach()
         {
-            if (attached)
-                return;
-
             var hwndSource = GetHwndSource();
+
+            if (attached)
+            {
+                // Moved without being detached: keep the window, unless the new parent is in another window
+                if (hwndSource == null || hwndSource.Handle == parentHandle)
+                    return;
+                Detach();
+            }
+
             if (hwndSource == null)
                 return;
-                
+
             var hwndParent = hwndSource.Handle;
             if (hwndParent == IntPtr.Zero)
                 return;
@@ -137,6 +181,11 @@ namespace Stride.Core.Presentation.Controls
             // Update the parent to be the parent of the host
             NativeHelper.SetParent(Handle, hwndParent);
             parentHandle = hwndParent;
+
+            // A closing window destroys its child windows, also when the host is only moving out of it (e.g. a floating
+            // panel docked back, while the detach is deferred): take the game window out when the parent is destroyed
+            parentSource = hwndSource;
+            parentSource.AddHook(parentWindowHook);
 
             // Register keyboard sink to make shortcuts work
             ((IKeyboardInputSink)this).KeyboardInputSite = ((IKeyboardInputSink)hwndSource).RegisterKeyboardInputSink(this);
@@ -159,6 +208,9 @@ namespace Stride.Core.Presentation.Controls
                 parentHandle = mainWindowHandle;
             }
 
+            parentSource?.RemoveHook(parentWindowHook);
+            parentSource = null;
+
             // Unregister keyboard sink
             var site = ((IKeyboardInputSink)this).KeyboardInputSite;
             ((IKeyboardInputSink)this).KeyboardInputSite = null;
@@ -167,6 +219,14 @@ namespace Stride.Core.Presentation.Controls
             // Make sure we will actually attach next time Attach() is called
             lastBoundingBox = Int4.Zero;
             attached = false;
+        }
+
+        private IntPtr ParentWindowHook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {
+            // The child windows still exist while their parent handles WM_DESTROY
+            if (msg == NativeHelper.WM_DESTROY && hwnd == parentHandle)
+                Detach();
+            return IntPtr.Zero;
         }
 
         private static IntPtr GetMainWindowHandle()
@@ -185,6 +245,11 @@ namespace Stride.Core.Presentation.Controls
             Dispatcher.InvokeAsync(() =>
             {
                 updateRequested = false;
+
+                // Out of the visual tree (moving to another parent): leave the window as it is until the host is back
+                if (GetHwndSource() == null)
+                    return;
+
                 Visual root = null;
                 var shouldShow = true;
                 var parent = (Visual)VisualTreeHelper.GetParent(this);

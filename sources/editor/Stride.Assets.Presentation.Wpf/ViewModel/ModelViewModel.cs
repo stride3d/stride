@@ -2,12 +2,14 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 using Stride.Assets.Models;
 using Stride.Assets.Presentation.Templates;
 using Stride.Core.Assets;
+using Stride.Core.Assets.Quantum;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Annotations;
@@ -53,6 +55,8 @@ namespace Stride.Assets.Presentation.ViewModel
 
         protected override void UpdateAssetFromSource(ModelAsset assetToMerge)
         {
+            UpdateMorphTargetNames(AssetRootNode, assetToMerge.MorphTargetNames);
+
             // Create a dictionary containing all new and old materials, favoring old ones to maintain existing references
             var dictionary = assetToMerge.Materials.ToDictionary(x => x.Name, x => x);
             Asset.Materials.ForEach(x => dictionary[x.Name] = x);
@@ -77,6 +81,53 @@ namespace Stride.Assets.Presentation.ViewModel
 
                 // Use Restore to allow to set manually the id.
                 materialsNode.Restore(dictionary[assetToMerge.Materials[i].Name], new NodeIndex(i), id);
+            }
+        }
+
+        internal static void UpdateMorphTargetNames(IAssetObjectNode modelNode, IReadOnlyList<string> importedNames)
+        {
+            // Use Quantum so refreshing this imported metadata is saved and undone with the source update.
+            var namesNode = modelNode[nameof(ModelAsset.MorphTargetNames)].Target;
+            var currentNames = (List<string>)namesNode.Retrieve();
+            int firstChangedIndex = 0;
+            while (firstChangedIndex < currentNames.Count && firstChangedIndex < importedNames.Count)
+            {
+                if (currentNames[firstChangedIndex] != importedNames[firstChangedIndex])
+                    break;
+
+                ++firstChangedIndex;
+            }
+            if (firstChangedIndex == currentNames.Count && firstChangedIndex == importedNames.Count)
+                return;
+
+            // Only preserve IDs for entries that will be removed and may be restored.
+            // Appending names or removing names from the end needs no lookup.
+            Dictionary<string, ItemId> itemIdsByName = null;
+            if (firstChangedIndex < currentNames.Count && firstChangedIndex < importedNames.Count)
+            {
+                itemIdsByName = new Dictionary<string, ItemId>(currentNames.Count - firstChangedIndex, StringComparer.Ordinal);
+                var currentItemIds = CollectionItemIdHelper.GetCollectionItemIds(currentNames);
+                foreach (var item in currentItemIds)
+                {
+                    int index = (int)item.Key;
+                    if (index >= firstChangedIndex)
+                        itemIdsByName.Add(currentNames[index], item.Value);
+                }
+            }
+
+            // Remove names from the first change onward, working backwards to keep earlier indexes valid.
+            for (int index = currentNames.Count - 1; index >= firstChangedIndex; --index)
+            {
+                namesNode.Remove(currentNames[index], new NodeIndex(index));
+            }
+
+            for (int index = firstChangedIndex; index < importedNames.Count; ++index)
+            {
+                var name = importedNames[index];
+                var itemId = itemIdsByName != null && itemIdsByName.TryGetValue(name, out var existingId)
+                    ? existingId
+                    : ItemId.New();
+                namesNode.Restore(name, new NodeIndex(index), itemId);
             }
         }
 

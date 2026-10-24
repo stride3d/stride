@@ -47,6 +47,9 @@
     <StrideSampleTemplate Include="stride-customeffect">
       <SamplePath>$(StrideRoot)samples/Graphics/CustomEffect</SamplePath>
     </StrideSampleTemplate>
+    <StrideSampleTemplate Include="stride-morphtargets">
+      <SamplePath>$(StrideRoot)samples/Graphics/MorphTargets</SamplePath>
+    </StrideSampleTemplate>
     <StrideSampleTemplate Include="stride-bepuphysics">
       <SamplePath>$(StrideRoot)samples/Physics/BepuSample</SamplePath>
     </StrideSampleTemplate>
@@ -84,6 +87,7 @@
     <UpToDateCheckInput Include="$(StrideRoot)samples/Graphics/SpriteFonts/**/*" />
     <UpToDateCheckInput Include="$(StrideRoot)samples/Graphics/MaterialShader/**/*" />
     <UpToDateCheckInput Include="$(StrideRoot)samples/Graphics/CustomEffect/**/*" />
+    <UpToDateCheckInput Include="$(StrideRoot)samples/Graphics/MorphTargets/**/*" />
     <UpToDateCheckInput Include="$(StrideRoot)samples/Physics/BepuSample/**/*" />
     <UpToDateCheckInput Include="$(StrideRoot)samples/Physics/PhysicsSample/**/*" />
     <UpToDateCheckInput Include="$(StrideRoot)samples/Input/TouchInputs/**/*" />

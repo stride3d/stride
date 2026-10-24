@@ -18,8 +18,10 @@ using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Interop;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.Windows;
+using Stride.Core.Serialization;
 using Stride.Core.Translation;
 using Stride.Assets.Entities;
+using Stride.Assets.Models;
 using Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewModels;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
@@ -173,6 +175,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
             EditorDebugTools.UnregisterDebugPage(debugPage);
 
             Session.ActiveAssetView.SelectedAssets.CollectionChanged -= SelectedAssetsChanged;
+            Session.AssetPropertiesChanged -= ReferencedModelChanged;
 
             // Unregister editor view models
             Overlays.Destroy();
@@ -292,6 +295,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
         protected override async Task<bool> InitializeEditor()
         {
             Session.ActiveAssetView.SelectedAssets.CollectionChanged += SelectedAssetsChanged;
+            Session.AssetPropertiesChanged += ReferencedModelChanged;
             if (!await base.InitializeEditor())
                 return false;
 
@@ -339,6 +343,43 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
         {
             EditorProperties.UpdateTypeAndName(SelectedItems, x => "Entity", x => x.Name, "entities");
             await EditorProperties.GenerateSelectionPropertiesAsync(SelectedItems);
+        }
+
+        private void ReferencedModelChanged(object sender, AssetChangedEventArgs e)
+        {
+            if (!e.Assets.Any(asset => asset.Asset is ModelAsset))
+                return;
+
+            // Imported target names and import settings belong to the model asset, not the selected entity.
+            // Refresh on the UI thread, including when the source update is undone or redone.
+            Dispatcher.InvokeAsync(() =>
+            {
+                if (IsDestroyed || Session.ActiveProperties != EditorProperties || SelectedItems.Count == 0)
+                    return;
+
+                var changedModelIds = new HashSet<AssetId>();
+                foreach (var asset in e.Assets)
+                {
+                    if (asset.Asset is ModelAsset)
+                        changedModelIds.Add(asset.Id);
+                }
+
+                foreach (var entity in SelectedItems)
+                {
+                    foreach (var component in entity.AssetSideEntity.Components)
+                    {
+                        if (component is not ModelComponent modelComponent)
+                            continue;
+
+                        var modelReference = AttachedReferenceManager.GetAttachedReference(modelComponent.Model);
+                        if (modelReference == null || !changedModelIds.Contains(modelReference.Id))
+                            continue;
+
+                        EditorProperties.RefreshSelectedPropertiesAsync().Forget();
+                        return;
+                    }
+                }
+            }).Forget();
         }
 
         private void LoadSettings()

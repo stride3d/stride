@@ -63,6 +63,14 @@
   </PropertyGroup>
 
   <!-- ================================================================ -->
+  <!-- XML Documentation File -->
+  <!-- ================================================================ -->
+  <!-- Must be before the Microsoft.NET.Sdk import: the SDK computes DocumentationFile from it. -->
+  <PropertyGroup Condition="'$(StridePublicApi)' == 'true'">
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <!-- ================================================================ -->
   <!-- Import base Microsoft.NET.Sdk targets -->
   <!-- ================================================================ -->
   <!-- This gives us all standard .NET SDK functionality -->
@@ -211,7 +219,6 @@
   <!-- StridePublicApi - User Documentation (.usrdoc) Support -->
   <!-- ================================================================ -->
   <PropertyGroup Condition="'$(StridePublicApi)' == 'true'">
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.usrdoc</AllowedOutputExtensionsInPackageBuildOutputFolder>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);_StrideRegisterUserDocOutputs</TargetsForTfmSpecificBuildOutput>
   </PropertyGroup>

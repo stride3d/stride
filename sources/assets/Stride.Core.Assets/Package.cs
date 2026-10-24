@@ -1202,15 +1202,14 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
             }
 
             // Check if assembly is already loaded in appdomain (for Stride core assemblies that are not
-            // plugins, or an assembly already loaded by another package of the session)
+            // plugins, or an assembly already loaded by another package of the session). A copy from another path (the
+            // executable's output, a graphics API's folder) is the same assembly: reused here, where the container warns
             var assembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(x => string.Equals(x.GetName().Name, Path.GetFileNameWithoutExtension(assemblyPath), StringComparison.InvariantCultureIgnoreCase)
                 && CanReuseLoadedAssembly(x));
 
-            // An assembly the host ships is shared even before anything used it: a second copy loaded from the
-            // package would register its types and serializers twice once a dependent binds to the host's
-            assembly ??= AssemblyContainer.TryLoadHostAssembly(Path.GetFileNameWithoutExtension(assemblyPath));
-
-            // Otherwise, load assembly from its file
+            // Otherwise, load assembly from its file. An assembly the host ships is shared even before anything used it
+            // (the container asks the host first): a second copy loaded from the package would register its types and
+            // serializers twice once a dependent binds to the host's
             if (assembly is null)
             {
                 assembly = assemblyContainer.LoadAssemblyFromPath(assemblyPath, log);

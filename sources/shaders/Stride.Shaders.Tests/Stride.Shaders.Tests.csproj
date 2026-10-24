@@ -76,6 +76,8 @@
   <ItemGroup>
     <ProjectReference Include="..\Stride.Shaders.Compilers\Stride.Shaders.Compilers.csproj" />
     <ProjectReference Include="..\Stride.Shaders.Parsers\Stride.Shaders.Parsers.csproj" />
+    <!-- EmbeddedEffectTests reads the EmbeddedEffects.yaml lists of Stride.Graphics -->
+    <ProjectReference Include="..\..\core\Stride.Core.Yaml\Stride.Core.Yaml.csproj" />
     <!-- KeysGeneratorTests: runs the generator and builds its output. Referenced by its dll: as a project, its target path
          (the generator and its dependencies, for analyzer use) drops Stride.Shaders and others from this project's deps.json -->
     <ProjectReference Include="..\Stride.Shaders.Generators\Stride.Shaders.Generators.csproj" ReferenceOutputAssembly="false" />

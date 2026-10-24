@@ -1,0 +1,12 @@
+!TemplateSample
+Id: e6bf8768-4941-4ee1-8813-b2ce3838543d
+Name: "Sample: morph targets"
+Scope: Session
+Description: Demonstrates how to deform a model with morph targets
+FullDescription: |
+   This sample demonstrates how to drive the morph targets (blend shapes) of a model from a script and from an animation, combined with skeletal animation, on models imported from glTF and FBX files.
+Group: Samples/Graphics
+Icon: .sdtpl/Icon.png
+DefaultOutputName: MorphTargets
+Screenshots:
+    - .sdtpl/screenshot1_small.jpg

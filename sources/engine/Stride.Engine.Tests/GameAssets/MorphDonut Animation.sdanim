@@ -1,0 +1,16 @@
+!Animation
+Id: d8031d47-062d-48da-bd08-3c7c5f0c3dfb
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: !file ../../../data/tests/MorphDonut/donut.gltf
+AnimationStack: 0
+ClipDuration:
+    Enabled: false
+    StartAnimationTime: 0:00:00:00.0000000
+    EndAnimationTime: 0:00:30:00.0000000
+PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
+RepeatMode: LoopInfinite
+Type: !StandardAnimationAssetType {}
+Skeleton: e263f830-083c-4315-8560-bb6a0f87d789:MorphDonut Skeleton
+RootMotion: false
+PreviewModel: 42096854-845d-42af-a645-4ac4c79d30e4:MorphDonut Model

@@ -964,6 +964,15 @@ namespace Stride.Launcher.Assets.Localization {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Set current version to {0} (built from {1}).
+        /// </summary>
+        public static string ToolTipSetActiveDevVersion {
+            get {
+                return ResourceManager.GetString("ToolTipSetActiveDevVersion", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Open the Stride solution of {0}.
         /// </summary>
         public static string ToolTipOpenSolution {

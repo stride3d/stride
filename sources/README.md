@@ -49,6 +49,10 @@ For detailed SDK documentation, see [SDK-GUIDE.md](../docs/build/SDK-GUIDE.md).
 * __Stride.Core.Shaders__: Shader parsing, type analysis and conversion library (used by HLSL->GLSL and Stride Shader Language)
 * __Irony.GrammarExplorer__: Language syntax tester, you can check how [Stride Shading Language (SDSL)](https://doc.stride3d.net/latest/en/manual/graphics/effects-and-shaders/shading-language/index.html) works or test newly introduced features
 
+### plugins ###
+
+* One folder per engine plugin (`Audio`, `BepuPhysics`, `BulletPhysics`, `Particles`, `SpriteStudio`, `UI`, `Video`, `Voxels`), holding its runtime project, its `Assets` and `Editor` companion packages and its tests. See [plugins.md](../docs/build/plugins.md).
+
 ### sdk ###
 
 * MSBuild SDK packages that provide build logic for all Stride projects. See [Build System](#build-system) above.
