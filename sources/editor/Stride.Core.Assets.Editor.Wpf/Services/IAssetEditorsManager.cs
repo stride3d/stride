@@ -55,7 +55,7 @@ namespace Stride.Core.Assets.Editor.Services
         /// Opens (and activates) an editor window for the given asset. If an editor window for this asset already exists, simply activates it.
         /// </summary>
         /// <param name="asset">The asset for which to show an editor window.</param>
-        Task OpenAssetEditorWindow(AssetViewModel asset);
+        Task OpenAssetEditorWindow(AssetViewModel asset, bool makeNewInstance = false);
 
         /// <summary>
         /// Try to find an opened editor for the given asset.
