@@ -5,6 +5,7 @@ using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters;
 using Stride.Core.Assets.Editor.Settings;
+using Stride.Core.Assets.Editor.Settings.ViewModels;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Collections;
@@ -103,7 +104,8 @@ public sealed class SettingsViewModel : PropertiesViewModel
         RegisterNodePresenterCommand(new BrowseDirectoryCommand(dialogService));
         RegisterNodePresenterCommand(new BrowseFileCommand(dialogService));
 
-        var settingsDirectoryNames = Profile.Container.GetAllSettingsKeys().Select(x => x.DisplayName.GetFullDirectory());
+        var settingsDirectoryNames = Profile.Container.GetAllSettingsKeys().Select(x => x.DisplayName.GetFullDirectory())
+            .Concat(EditorSettings.GetAllCommands().Select(x => x.DisplayName.GetFullDirectory()));
 
         foreach (var name in settingsDirectoryNames)
         {
