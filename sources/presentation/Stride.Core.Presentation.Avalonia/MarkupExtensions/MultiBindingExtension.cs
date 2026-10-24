@@ -1,3 +1,4 @@
+using Avalonia;
 using Avalonia.Data;
 using Avalonia.Data.Converters;
 using Avalonia.Metadata;
@@ -115,7 +116,7 @@ public sealed class MultiBindingExtension
 
     public IMultiValueConverter? Converter { get; init; }
 
-    public object FallbackValue { get; init; }
+    public object? FallbackValue { get; init; } = AvaloniaProperty.UnsetValue;
 
     public MultiBinding ProvideTypedValue()
     {
