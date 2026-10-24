@@ -263,7 +263,7 @@ namespace Stride.Navigation
                         Dispatcher.ForEach<Point, Point[], BuildTileParameters>(tilesToBuild.ToArray(), parameters, &BuildTileAction);
                     }
 
-                    static void BuildTileAction(ref BuildTileParameters parameters, Point tileCoordinate)
+                    static void BuildTileAction(ref readonly BuildTileParameters parameters, Point tileCoordinate)
                     {
                         // Allow cancellation while building tiles
                         if (parameters.CancellationToken.IsCancellationRequested)
@@ -450,7 +450,7 @@ namespace Stride.Navigation
                 Dispatcher.ForEach<StaticColliderData, StaticColliderData[], BuildInputParameters>(collidersLocal, state, &BuildColliderInput);
             }
 
-            static void BuildColliderInput(ref BuildInputParameters state, StaticColliderData colliderData)
+            static void BuildColliderInput(ref readonly BuildInputParameters state, StaticColliderData colliderData)
             {
                 var entity = colliderData.Component.Entity;
                 TransformComponent entityTransform = entity.Transform;

@@ -153,12 +153,12 @@ namespace Stride.Rendering
 
             view.RenderObjects.Close();
 
-            static ConcurrentCollectorCache<RenderObject> InitializeLocal(ref CollectParameters state)
+            static ConcurrentCollectorCache<RenderObject> InitializeLocal(ref readonly CollectParameters state)
             {
                 return state.Group.collectorCache.Value;
             }
 
-            static void ForAction(ref CollectParameters state, int index, ConcurrentCollectorCache<RenderObject> cache)
+            static void ForAction(ref readonly CollectParameters state, int index, ConcurrentCollectorCache<RenderObject> cache)
             {
                 var group = state.Group;
                 var frustum = state.Frustum;
@@ -216,7 +216,7 @@ namespace Stride.Rendering
                 }
             }
 
-            static void FinalizeLocal(ref CollectParameters _, ConcurrentCollectorCache<RenderObject> cache)
+            static void FinalizeLocal(ref readonly CollectParameters _, ConcurrentCollectorCache<RenderObject> cache)
             {
                 cache.Flush();
             }
