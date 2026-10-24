@@ -606,6 +606,22 @@ namespace Stride.BepuPhysics.Tests
             Assert.Equal(expectedSteps, steps);
         }
 
+        [Fact]
+        public static void MaxStepPerFrameDropsTheStepsBeyondItTest()
+        {
+            using var simulation = new BepuSimulation { MaxStepPerFrame = 3 };
+            int steps = 0;
+            simulation.Register(new SimUpdateListener { SimUpdate = () => steps++ });
+
+            simulation.Update(simulation.FixedTimeStep * 10.5);
+            steps = 0;
+            simulation.Update(simulation.FixedTimeStep * 0.5);
+            simulation.Update(simulation.FixedTimeStep);
+            simulation.Update(simulation.FixedTimeStep);
+
+            Assert.Equal(3, steps);
+        }
+
         [Theory]
         [InlineData(0f, 1f, 0f, 0.2f)]
         [InlineData(1f, 1f, 0f, 2.5f)]
