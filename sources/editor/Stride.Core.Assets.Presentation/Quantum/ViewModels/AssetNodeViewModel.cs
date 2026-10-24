@@ -1,26 +1,38 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.ComponentModel;
+using Stride.Core.Assets.Editor.Quantum.NodePresenters;
+using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Serialization;
+using Stride.Core.Serialization.Contents;
 using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Core.Presentation.Quantum.ViewModels;
 using Stride.Core.Presentation.Services;
-using Stride.Core.Assets.Presentation.Quantum.NodePresenters;
 
 namespace Stride.Core.Assets.Presentation.Quantum.ViewModels;
 
 public class AssetNodeViewModel : NodeViewModel, IInternalAssetNodeViewModel
 {
     private bool overrideChanging;
+    // For content reference fields, the displayed URL is resolved live from the target asset, so the
+    // field must be refreshed when the target's Url changes (e.g. its folder is renamed, or undone).
+    private readonly bool isContentReference;
+    private AssetViewModel? observedReferenceTarget;
 
     public AssetNodeViewModel(GraphViewModel ownerViewModel, NodeViewModel? parent, string baseName, Type nodeType, List<INodePresenter> nodePresenters)
         : base(ownerViewModel, parent, baseName, nodeType, nodePresenters)
     {
+        isContentReference = AssetRegistry.CanBeAssignedToContentTypes(Type, checkIsUrlType: true);
         foreach (var nodePresenter in NodePresenters)
         {
             nodePresenter.OverrideChanging += OverrideChanging;
             nodePresenter.OverrideChanged += OverrideChanged;
+            if (isContentReference)
+                nodePresenter.ValueChanged += ReferenceValueChanged;
         }
+        if (isContentReference)
+            UpdateReferenceTargetSubscription();
     }
 
     /// <inheritdoc/>
@@ -30,18 +42,24 @@ public class AssetNodeViewModel : NodeViewModel, IInternalAssetNodeViewModel
         {
             nodePresenter.OverrideChanging -= OverrideChanging;
             nodePresenter.OverrideChanged -= OverrideChanged;
+            if (isContentReference)
+                nodePresenter.ValueChanged -= ReferenceValueChanged;
+        }
+        if (observedReferenceTarget != null)
+        {
+            observedReferenceTarget.PropertyChanged -= OnReferenceTargetPropertyChanged;
+            observedReferenceTarget = null;
         }
         base.Destroy();
     }
 
-    public bool HasBase => NodePresenters.All(x => x.HasBase);
+    public bool HasBase => NodePresenters.First().HasBase;
 
-    public bool IsInherited => NodePresenters.All(x => x.IsInherited);
+    public bool IsInherited => NodePresenters.First().IsInherited;
 
-    public bool IsOverridden => NodePresenters.All(x => x.IsOverridden);
+    public bool IsOverridden => NodePresenters.First().IsOverridden;
 
-    [Obsolete]
-    public bool IsObjectReference => NodePresenters.All(x => x.IsObjectReference(x.Value));
+    public bool IsObjectReference => NodePresenters.First().IsObjectReference(NodeValue);
 
     private new IEnumerable<IAssetNodePresenter> NodePresenters => base.NodePresenters.Cast<IAssetNodePresenter>();
 
@@ -50,7 +68,10 @@ public class AssetNodeViewModel : NodeViewModel, IInternalAssetNodeViewModel
         var actionService = ServiceProvider.TryGet<IUndoRedoService>();
         using var transaction = actionService?.CreateTransaction();
         base.SetNodeValue(newValue);
-        actionService?.SetName(transaction!, $"Update property {DisplayPath}");
+        if (transaction != null)
+        {
+            actionService!.SetName(transaction, $"Update property {DisplayPath}");
+        }
     }
 
     /// <inheritdoc/>
@@ -90,13 +111,52 @@ public class AssetNodeViewModel : NodeViewModel, IInternalAssetNodeViewModel
         return false;
     }
 
+    private void ReferenceValueChanged(object? sender, ValueChangedEventArgs e)
+    {
+        // The reference was reassigned: re-point the subscription at the new target.
+        UpdateReferenceTargetSubscription();
+    }
+
+    private void UpdateReferenceTargetSubscription()
+    {
+        var target = ResolveReferenceTarget();
+        if (ReferenceEquals(target, observedReferenceTarget))
+            return;
+
+        if (observedReferenceTarget != null)
+            observedReferenceTarget.PropertyChanged -= OnReferenceTargetPropertyChanged;
+        observedReferenceTarget = target;
+        if (observedReferenceTarget != null)
+            observedReferenceTarget.PropertyChanged += OnReferenceTargetPropertyChanged;
+    }
+
+    private AssetViewModel? ResolveReferenceTarget()
+    {
+        var value = NodeValue;
+        if (value == null || value == DifferentValues)
+            return null;
+
+        var reference = value as IReference ?? AttachedReferenceManager.GetOrCreateAttachedReference(value);
+        if (reference == null || reference.Id == AssetId.Empty)
+            return null;
+
+        // The session of the asset that owns this node is the one the reference resolves in.
+        return NodePresenters.FirstOrDefault()?.Asset?.Session.GetAssetById(reference.Id);
+    }
+
+    private void OnReferenceTargetPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(AssetViewModel.Url))
+            OnPropertyChanged(nameof(NodeValue));
+    }
+
     private void OverrideChanging(object? sender, EventArgs e)
     {
         if (!overrideChanging)
         {
-            (Parent as IInternalAssetNodeViewModel)?.ChildOverrideChanging();
-            OnPropertyChanging(nameof(HasBase), nameof(IsOverridden), nameof(IsInherited));
             overrideChanging = true;
+            OnPropertyChanging(nameof(HasBase), nameof(IsInherited), nameof(IsOverridden));
+            ((IInternalAssetNodeViewModel?)Parent)?.ChildOverrideChanging();
         }
     }
 
@@ -104,8 +164,8 @@ public class AssetNodeViewModel : NodeViewModel, IInternalAssetNodeViewModel
     {
         if (overrideChanging)
         {
-            OnPropertyChanged(nameof(HasBase), nameof(IsOverridden), nameof(IsInherited));
-            (Parent as IInternalAssetNodeViewModel)?.ChildOverrideChanged();
+            OnPropertyChanged(nameof(HasBase), nameof(IsInherited), nameof(IsOverridden));
+            ((IInternalAssetNodeViewModel?)Parent)?.ChildOverrideChanged();
             overrideChanging = false;
         }
     }

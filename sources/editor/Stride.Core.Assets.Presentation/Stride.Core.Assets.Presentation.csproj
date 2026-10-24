@@ -15,6 +15,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- The session objects (assets, packages, directories...) and the node presenters are shared with the WPF editor
+         through Stride.Core.Assets.Editor.Common until the projects are consolidated. -->
+    <ProjectReference Include="..\Stride.Core.Assets.Editor.Common\Stride.Core.Assets.Editor.Common.csproj" />
     <ProjectReference Include="..\..\assets\Stride.Core.Assets.Quantum\Stride.Core.Assets.Quantum.csproj" />
     <ProjectReference Include="..\..\presentation\Stride.Core.Presentation.Quantum\Stride.Core.Presentation.Quantum.csproj" />
   </ItemGroup>
