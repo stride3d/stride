@@ -324,10 +324,12 @@ namespace Stride.GameStudio.View
             // Open assets
             var assets = assetIds.Select(x => Editor.Session.GetAssetById(x)).NotNull().ToList();
             Editor.Session.ActiveAssetView.SelectAssets(assets.Last().Yield());
+            var reopenedAssetIds = new HashSet<AssetId>();
             foreach (var asset in assets)
             {
                 // HACK: temporary open and await asset editor sequentially
-                await assetEditorsManager.OpenAssetEditorWindow(asset, false);
+                var forceNewInstance = !reopenedAssetIds.Add(asset.Id);
+                await assetEditorsManager.OpenAssetEditorWindow(asset, saveSettings: false, forceNewInstance: forceNewInstance);
             }
             // Close remaining hidden windows (i.e. windows that failed to load, or which asset is not available anymore)
             assetEditorsManager.CloseAllHiddenWindows();
@@ -379,7 +381,7 @@ namespace Stride.GameStudio.View
 
             Editor.Session.ActiveAssetView.SelectAssets(asset.Yield());
 
-            await assetEditorsManager.OpenAssetEditorWindow(asset);
+            await assetEditorsManager.OpenAssetEditorWindow(asset, false, false);
         }
 
         private void OpenDebugWindow()

@@ -97,6 +97,7 @@
         <!-- Asset -->
         <MenuItem Header="{sd:Localize Asset, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}"/>
         <MenuItem Header="{sd:Localize Edit asset..., Context=Menu}" Command="{Binding Session.EditSelectedContentCommand}" Icon="{sd:Image {StaticResource ImageEditAsset}}" InputGestureText="{x:Static strings:KeyGestures.EditAsset}"/>
+        <MenuItem Header="{sd:Localize Open in new view, Context=Menu}" Command="{Binding Session.OpenSelectedContentInNewViewCommand}" Icon="{sd:Image {StaticResource ImageEditAsset}}" Visibility="{Binding Session.OpenSelectedContentInNewViewCommand.IsEnabled, Converter={sd:VisibleOrCollapsed}}"/>
         <MenuItem Header="{Binding Session.RootAssetToggleHeader}" Command="{Binding Session.ToggleIsRootOnSelectedAssetCommand}"
                   Icon="{sd:Image {StaticResource ImageAssetIsRoot}}"/>
         <!-- One toggle per package the selection can be rooted in; the default target (the plain item above) is bold -->

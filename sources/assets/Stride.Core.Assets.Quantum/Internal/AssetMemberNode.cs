@@ -46,6 +46,11 @@ internal class AssetMemberNode : MemberNode, IAssetMemberNode, IAssetNodeInterna
         contents[key] = node;
     }
 
+    public bool RemoveContent(string key)
+    {
+        return contents.Remove(key);
+    }
+
     public IGraphNode? GetContent(string key)
     {
         contents.TryGetValue(key, out var node);

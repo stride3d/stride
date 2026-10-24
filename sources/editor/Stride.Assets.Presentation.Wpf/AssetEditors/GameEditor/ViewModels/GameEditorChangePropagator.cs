@@ -15,6 +15,7 @@ using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Core.Reflection;
 using Stride.Core.Assets.Quantum.Visitors;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels
 {
@@ -22,13 +23,15 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels
         where TAssetPart : class, IIdentifiable
         where TItemViewModel : AssetCompositeItemViewModel, IEditorGamePartViewModel where TAssetPartDesign : class, IAssetPartDesign<TAssetPart>
     {
-        private const string GameSideContentKey = "Game";
+        private readonly string gameSideContentKey = $"Game_{Guid.NewGuid():N}";
         private readonly GraphNodeLinker gameObjectLinker;
         private readonly GraphNodeChangeListener listener;
         private readonly BufferBlock<INodeChangeEventArgs> propagatorQueue = new BufferBlock<INodeChangeEventArgs>();
         private readonly TaskCompletionSource<int> gameSideReady = new TaskCompletionSource<int>();
         private readonly TaskCompletionSource<int> initialized = new TaskCompletionSource<int>();
-        private bool running = true;
+        private readonly HashSet<IAssetNode> linkedAssetNodes = [];
+        private readonly Lock linkedAssetNodesLock = new();
+        private volatile bool running = true;
 
         public GameEditorChangePropagator([NotNull] AssetCompositeEditorViewModel editor, [NotNull] TItemViewModel owner, [NotNull] TAssetPart assetSidePart)
         {
@@ -59,6 +62,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels
             listener.ItemChanged -= AssetSideNodeChanged;
 
             running = false;
+            ClearGameSideContent();
             // This will resume the propagator task if it's awaiting, and allow it to complete.
             propagatorQueue.Post(null);
         }
@@ -84,10 +88,28 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels
             }
         }
 
-        private static void LinkNode(IGraphNode assetNode, IGraphNode gameNode)
+        private void LinkNode(IGraphNode assetNode, IGraphNode gameNode)
         {
-            var node = (IAssetNode)assetNode;
-            node.SetContent(GameSideContentKey, gameNode);
+            lock (linkedAssetNodesLock)
+            {
+                if (!running)
+                    return;
+
+                var node = (IAssetNode)assetNode;
+                node.SetContent(gameSideContentKey, gameNode);
+                linkedAssetNodes.Add(node);
+            }
+        }
+
+        private void ClearGameSideContent()
+        {
+            lock (linkedAssetNodesLock)
+            {
+                foreach (var node in linkedAssetNodes)
+                    node.RemoveContent(gameSideContentKey);
+
+                linkedAssetNodes.Clear();
+            }
         }
 
         private void AssetSideNodeChanged(object sender, INodeChangeEventArgs e)
@@ -131,7 +153,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels
             await gameSideReady.Task;
 
             await Initialize(assetSidePart);
-            var contentReferenceCollector = new ContentReferenceCollector(Owner.Asset.PropertyGraph.Definition);
+            var contentReferenceCollector = new ContentReferenceCollector(Owner.Asset.PropertyGraph.Definition, gameSideContentKey);
             await Editor.Controller.InvokeTask(() =>
             {
                 Editor.Controller.Logger.Debug($"Registering reference to: {Owner.Id}");
@@ -162,7 +184,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels
                     continue;
 
                 var assetNode = (IAssetNode)e.Node;
-                var gameSideNode = assetNode.GetContent(GameSideContentKey);
+                var gameSideNode = assetNode.GetContent(gameSideContentKey);
                 if (gameSideNode == null)
                     throw new InvalidOperationException("Unable to retrieve the game-side node");
 
@@ -196,7 +218,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.ViewModels
                                 // If we're in scenario where rootNode is an object node and index is not empty, we might already have the node in the dictionary so let's check this in Visiting
                                 visitor.Visiting += (node, path) =>
                                 {
-                                    var gameSideNode = ((IAssetNode)node).GetContent(GameSideContentKey);
+                                    var gameSideNode = ((IAssetNode)node).GetContent(gameSideContentKey);
                                     if (gameSideNode != null)
                                         removedNodes.Add(gameSideNode);
                                 };
