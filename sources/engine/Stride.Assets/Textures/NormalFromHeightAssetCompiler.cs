@@ -142,6 +142,13 @@ internal class NormalFromHeightAssetCompiler : AssetCompilerBase
 
                         var pixelNormalizedSize = 1f / (Vector2)texResolution;
                         var vec = (d1 - d0) / (2f * pixelNormalizedSize * Parameters.SizeInUnits);
+                        // Remap into texture range
+                        vec = vec * 0.5f + new Vector2(0.5f);
+                        if (Parameters.InvertX)
+                            vec.X = 1 - vec.X;
+                        if (Parameters.InvertY)
+                            vec.Y = 1 - vec.Y;
+
                         span[x] = (Half2)vec;
                     }
                 }
@@ -173,6 +180,7 @@ internal class NormalFromHeightAssetCompiler : AssetCompilerBase
                         coord.X += texResolution.X;
                     else if (coord.X >= texResolution.X)
                         coord.X -= texResolution.X;
+
                     if (coord.Y < 0)
                         coord.Y += texResolution.Y;
                     else if (coord.Y >= texResolution.Y)

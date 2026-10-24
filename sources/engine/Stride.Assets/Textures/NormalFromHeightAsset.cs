@@ -89,10 +89,20 @@ public sealed class NormalFromHeightAsset : Asset
     public bool IsSizeInPercentage { get; set; } = true;
 
     /// <summary>
+    /// Indicating whether the X-component of normals should be inverted.
+    /// </summary>
+    /// <userdoc>
+    /// Indicates that a positive X-component (red) faces right in tangent space.
+    /// </userdoc>
+    [DefaultValue(true)]
+    [Display("Invert X", "Format")]
+    public bool InvertX { get; set; } = true;
+
+    /// <summary>
     /// Indicating whether the Y-component of normals should be inverted, to compensate for a flipped tangent-space.
     /// </summary>
     /// <userdoc>
-    /// Indicates that a positive Y-component (green) faces up in tangent space. This options depends on your normal maps generation tools.
+    /// Indicates that a positive Y-component (green) faces up in tangent space.
     /// </userdoc>
     [DefaultValue(true)]
     [Display("Invert Y", "Format")]

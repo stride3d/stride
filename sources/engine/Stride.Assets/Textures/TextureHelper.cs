@@ -119,7 +119,7 @@ namespace Stride.Assets.Textures
                 ShouldCompress = param.Compress;
                 DesiredAlpha = AlphaFormat.None;
                 TextureHint = TextureHint.NormalMap;
-                InvertY = param.InvertY;
+                InvertY = false;
                 GenerateMipmaps = param.GenerateMipmaps;
                 ColorKeyColor = default;
                 ColorKeyEnabled = false;
