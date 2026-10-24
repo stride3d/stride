@@ -29,6 +29,7 @@
     <ProjectReference Include="..\..\engine\Stride.Assets.Models\Stride.Assets.Models.csproj" />
     <ProjectReference Include="..\..\tools\Stride.TextureConverter\Stride.TextureConverter.csproj" />
     <ProjectReference Include="..\Stride.Core.Assets.Editor.Wpf\Stride.Core.Assets.Editor.Wpf.csproj" />
+    <ProjectReference Include="..\Stride.Editor.Common\Stride.Editor.Common.csproj" />
     <ProjectReference Include="..\..\core\Stride.Core.MicroThreading\Stride.Core.MicroThreading.csproj" />
   </ItemGroup>
   <ItemGroup>
@@ -40,16 +41,6 @@
   <!-- Resources -->
   <ItemGroup>
     <None Include="Resources\*.png" />
-    <Compile Update="Resources\DefaultThumbnails.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>DefaultThumbnails.resx</DependentUpon>
-    </Compile>
-    <EmbeddedResource Update="Resources\DefaultThumbnails.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <SubType>Designer</SubType>
-      <LastGenOutput>DefaultThumbnails.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />
 </Project>

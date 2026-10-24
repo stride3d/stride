@@ -164,6 +164,9 @@
     <Project Path="sources/crashreport/Stride.CrashReport/Stride.CrashReport.csproj" />
     <Project Path="sources/crashreport/Stride.CrashReporter/Stride.CrashReporter.csproj" />
     <Project Path="sources/crashreport/Stride.CrashReport.TestProbe/Stride.CrashReport.TestProbe.csproj" />
+    <Project Path="sources/editor/Stride.Assets.Presentation.Common/Stride.Assets.Presentation.Common.csproj" />
+    <Project Path="sources/editor/Stride.Core.Assets.Editor.Common/Stride.Core.Assets.Editor.Common.csproj" />
+    <Project Path="sources/editor/Stride.Editor.Common/Stride.Editor.Common.csproj" />
     <Project Path="sources/engine/Stride.Debugger/Stride.Debugger.csproj" />
   </Folder>
   <Folder Name="/60-Editor/Wpf/">

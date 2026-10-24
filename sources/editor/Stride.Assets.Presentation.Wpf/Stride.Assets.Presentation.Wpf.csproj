@@ -31,16 +31,6 @@
     <None Include="*.cd" />
     <Page Include="**\*.xaml" SubType="Designer" Generator="MSBuild:Compile" />
     <Compile Update="**\*.xaml.cs" SubType="Code" DependentUpon="%(Filename)" />
-    <EmbeddedResource Update="AssetEditors\Gizmos\GizmoResources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <SubType>Designer</SubType>
-      <LastGenOutput>GizmoResources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <Compile Update="AssetEditors\Gizmos\GizmoResources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>GizmoResources.resx</DependentUpon>
-    </Compile>
     <Compile Update="Properties\Settings.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Settings.settings</DependentUpon>
@@ -63,6 +53,7 @@
     <ProjectReference Include="..\..\tools\Stride.Graphics.RenderDocPlugin\Stride.Graphics.RenderDocPlugin.csproj" />
     <ProjectReference Include="..\Stride.Core.Assets.Editor.Wpf\Stride.Core.Assets.Editor.Wpf.csproj" />
     <ProjectReference Include="..\Stride.Editor.Wpf\Stride.Editor.Wpf.csproj" />
+    <ProjectReference Include="..\Stride.Assets.Presentation.Common\Stride.Assets.Presentation.Common.csproj" />
     <!-- Force Stride.Templates.Games (NewGame, the bundled-with-installer set) to build before
          GameStudio links. Without this, a fresh checkout that builds only the editor never
          produces the .nupkg the DotNetNewTemplateBridge resolves via PackageStore at runtime.
@@ -84,7 +75,6 @@
   <!-- Resources -->
   <ItemGroup>
     <Resource Include="Resources\Components\*.png" />
-    <Resource Include="Resources\Gizmos\*.png" />
     <Resource Include="Resources\Icons\*.png" />
     <Compile Update="Resources\Strings\KeyGestures.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -94,17 +84,6 @@
     <EmbeddedResource Update="Resources\Strings\KeyGestures.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>KeyGestures.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <None Include="Resources\Thumbnails\*.png" />
-    <Compile Update="Resources\Thumbnails\StaticThumbnails.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>StaticThumbnails.resx</DependentUpon>
-    </Compile>
-    <EmbeddedResource Update="Resources\Thumbnails\StaticThumbnails.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>StaticThumbnails.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="Resources\*.cur" />
   </ItemGroup>

@@ -11,6 +11,7 @@
         xmlns:vm="clr-namespace:Stride.GameStudio.ViewModels"
         xmlns:xcad="https://github.com/Dirkster99/AvalonDock"
         xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+        xmlns:assetvm="clr-namespace:Stride.Core.Assets.Editor.ViewModel;assembly=Stride.Core.Assets.Editor.Common"
         xmlns:system="clr-namespace:System;assembly=mscorlib"
         xmlns:cmd="clr-namespace:Stride.Core.Presentation.Commands;assembly=Stride.Core.Presentation"
         xmlns:viewModels="clr-namespace:Stride.Core.Presentation.Quantum.ViewModels;assembly=Stride.Core.Presentation.Quantum"
@@ -588,8 +589,8 @@
                         <sd:TreeView.ItemContainerStyle>
                           <Style TargetType="{x:Type sd:TreeViewItem}" BasedOn="{StaticResource {x:Type sd:TreeViewItem}}">
                             <Setter Property="IsExpanded" Value="{Binding Mode=OneTime, Converter={sd:AssetToExpandedAtInitialization}}"/>
-                            <Setter Property="IsEditable" Value="{Binding IsEditable, Mode=OneTime}" d:DataContext="{d:DesignInstance sd:IIsEditableViewModel}"/>
-                            <Setter Property="IsEditing" Value="{Binding IsEditing, Mode=TwoWay}" d:DataContext="{d:DesignInstance sd:IIsEditableViewModel}"/>
+                            <Setter Property="IsEditable" Value="{Binding IsEditable, Mode=OneTime}" d:DataContext="{d:DesignInstance assetvm:IIsEditableViewModel}"/>
+                            <Setter Property="IsEditing" Value="{Binding IsEditing, Mode=TwoWay}" d:DataContext="{d:DesignInstance assetvm:IIsEditableViewModel}"/>
                             <Setter Property="ContextMenu" Value="{StaticResource ContextMenu}"/>
                             <Setter Property="TemplateSelectorEdit" Value="{StaticResource SolutionTreeViewEditTemplate}"/>
                             <Setter Property="sd:Interaction.Behaviors">
