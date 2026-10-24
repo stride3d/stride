@@ -72,6 +72,9 @@
     <Project Path="editor/Stride.Core.Assets.Editor.Common.Tests/Stride.Core.Assets.Editor.Common.Tests.csproj" />
     <Project Path="editor/Stride.Core.Assets.Editor.Tests/Stride.Core.Assets.Editor.Tests.csproj" />
   </Folder>
+  <Folder Name="/61-Editor.Tests/Avalonia/">
+    <Project Path="editor/Stride.Core.Assets.Editor.Avalonia.Tests/Stride.Core.Assets.Editor.Avalonia.Tests.csproj" />
+  </Folder>
   <Folder Name="/70-StrideAssets/">
     <Project Path="engine/Stride.Assets.Generators/Stride.Assets.Generators.csproj" />
     <Project Path="engine/Stride.Assets.Models/Stride.Assets.Models.csproj" />
