@@ -10,6 +10,7 @@ using Stride.Core.IO;
 using Stride.Core.Storage;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
+using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Translation;
 
 namespace Stride.Core.Assets.Editor.ViewModel
@@ -78,7 +79,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         public string RootContainerName => Package.Name;
 
         /// <inheritdoc/>
-        public ThumbnailData ThumbnailData => FolderThumbnail ?? (FolderThumbnail = GetFolderThumbnail(Dispatcher));
+        public ThumbnailData ThumbnailData => FolderThumbnail ?? (FolderThumbnail = GetFolderThumbnail(ServiceProvider, Dispatcher));
 
         /// <inheritdoc/>
         public override string TypeDisplayName => "Folder";
@@ -89,12 +90,13 @@ namespace Stride.Core.Assets.Editor.ViewModel
         [NotNull]
         public ICommandBase RenameCommand { get; }
 
-        private static ThumbnailData GetFolderThumbnail(IDispatcherService dispatcher)
+        private static ThumbnailData GetFolderThumbnail(IViewModelServiceProvider serviceProvider, IDispatcherService dispatcher)
         {
             const string assetKey = "FolderIconAlfredo";
             var objectId = ObjectId.FromObject(assetKey);
-            var data = new ResourceThumbnailData(objectId, assetKey);
-            data.PrepareForPresentation(dispatcher).Forget();
+            // Without a factory (no UI), folders have no thumbnail
+            var data = serviceProvider.TryGet<IThumbnailDataFactory>()?.CreateFromResource(objectId, assetKey);
+            data?.PrepareForPresentation(dispatcher).Forget();
             return data;
         }
 

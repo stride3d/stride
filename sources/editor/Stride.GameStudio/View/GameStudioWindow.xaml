@@ -129,7 +129,7 @@
               <Setter Property="Command" Value="{Binding Command}" />
               <Setter Property="CommandParameter" Value="{Binding}" />
               <Setter Property="Header" Value="{Binding DisplayName}" />
-              <Setter Property="Icon" Value="{Binding Icon}" />
+              <Setter Property="Icon" Value="{Binding Icon, Converter={sd:MenuIconToImage}}" />
               <Setter Property="IsEnabled" Value="{Binding Command.IsEnabled, Mode=OneWay}" />
               <Setter Property="ToolTip" Value="{Binding Tooltip}" />
               <Setter Property="InputGestureText" Value="{Binding Gesture}" />
