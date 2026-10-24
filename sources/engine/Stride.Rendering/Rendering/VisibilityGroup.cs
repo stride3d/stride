@@ -84,14 +84,14 @@ namespace Stride.Rendering
             }
         }
 
-        private readonly record struct CollectParameters
+        private readonly record struct CollectParameters(VisibilityGroup group, RenderView view, BoundingFrustum frustum, CameraCullingMode cullingMode, RenderGroupMask cullingMask, Plane plane)
         {
-            public required VisibilityGroup Group { get; init; }
-            public required RenderView View { get; init; }
-            public required BoundingFrustum Frustum { get; init; }
-            public required CameraCullingMode CullingMode { get; init; }
-            public required RenderGroupMask CullingMask { get; init; }
-            public required Plane Plane { get; init; }
+            public readonly VisibilityGroup Group = group;
+            public readonly RenderView View = view;
+            public readonly BoundingFrustum Frustum = frustum;
+            public readonly CameraCullingMode CullingMode = cullingMode;
+            public readonly RenderGroupMask CullingMask = cullingMask;
+            public readonly Plane Plane = plane;
         }
 
         /// <summary>
@@ -140,15 +140,7 @@ namespace Stride.Rendering
             var cullingMask = view.CullingMask;
 
             // Process objects
-            var collectParameters = new CollectParameters
-            {
-                Group = this,
-                View = view,
-                Frustum = frustum,
-                CullingMode = cullingMode,
-                CullingMask = cullingMask,
-                Plane = plane,
-            };
+            var collectParameters = new CollectParameters(this, view, frustum, cullingMode, cullingMask, plane);
             Dispatcher.For(0, RenderObjects.Count, collectParameters, &InitializeLocal, &ForAction, &FinalizeLocal);
 
             view.RenderObjects.Close();
@@ -160,28 +152,25 @@ namespace Stride.Rendering
 
             static void ForAction(ref readonly CollectParameters state, int index, ConcurrentCollectorCache<RenderObject> cache)
             {
-                var group = state.Group;
-                var frustum = state.Frustum;
-                var plane = state.Plane;
-                var renderObject = group.RenderObjects[index];
+                var renderObject = state.Group.RenderObjects[index];
 
                 // Skip not enabled objects
                 if (!renderObject.Enabled || ((RenderGroupMask)(1U << (int)renderObject.RenderGroup) & state.CullingMask) == 0)
                     return;
 
-                var renderStageMask = group.RenderData.GetData(group.RenderStageMaskKey);
-                var renderStageMaskNode = renderObject.VisibilityObjectNode * group.stageMaskMultiplier;
+                var renderStageMask = state.Group.RenderData.GetData(state.Group.RenderStageMaskKey);
+                var renderStageMaskNode = renderObject.VisibilityObjectNode * state.Group.stageMaskMultiplier;
 
                 // Determine if this render object belongs to this view
                 bool renderStageMatch = false;
                 unsafe
                 {
-                    fixed (uint* viewRenderStageMaskStart = group.viewRenderStageMask)
+                    fixed (uint* viewRenderStageMaskStart = state.Group.viewRenderStageMask)
                     fixed (uint* objectRenderStageMaskStart = renderStageMask.Data)
                     {
                         var viewRenderStageMaskPtr = viewRenderStageMaskStart;
                         var objectRenderStageMaskPtr = objectRenderStageMaskStart + renderStageMaskNode.Index;
-                        for (int i = 0; i < group.viewRenderStageMask.Length; ++i)
+                        for (int i = 0; i < state.Group.viewRenderStageMask.Length; ++i)
                         {
                             if ((*viewRenderStageMaskPtr++ & *objectRenderStageMaskPtr++) != 0)
                             {
@@ -200,7 +189,7 @@ namespace Stride.Rendering
                 // Compute transformed AABB (by world)
                 if (state.CullingMode == CameraCullingMode.Frustum
                     && renderObject.BoundingBox.Extent != Vector3.Zero
-                    && !FrustumContainsBox(ref frustum, ref renderObject.BoundingBox, state.View.VisiblityIgnoreDepthPlanes))
+                    && !FrustumContainsBox(in state.Frustum, in renderObject.BoundingBox, state.View.VisiblityIgnoreDepthPlanes))
                 {
                     return;
                 }
@@ -212,7 +201,7 @@ namespace Stride.Rendering
                 // Calculate bounding box of all render objects in the view
                 if (renderObject.BoundingBox.Extent != Vector3.Zero)
                 {
-                    CalculateMinMaxDistance(ref plane, ref renderObject.BoundingBox, ref state.View.MinimumDistance, ref state.View.MaximumDistance);
+                    CalculateMinMaxDistance(in state.Plane, in renderObject.BoundingBox, ref state.View.MinimumDistance, ref state.View.MaximumDistance);
                 }
             }
 
@@ -237,7 +226,7 @@ namespace Stride.Rendering
             target.RenderObjects.Close();
         }
 
-        public static bool FrustumContainsBox(ref BoundingFrustum frustum, ref BoundingBoxExt boundingBoxExt, bool ignoreDepthPlanes)
+        public static bool FrustumContainsBox(ref readonly BoundingFrustum frustum, ref readonly BoundingBoxExt boundingBoxExt, bool ignoreDepthPlanes)
         {
             unsafe
             {
@@ -264,7 +253,7 @@ namespace Stride.Rendering
             }
         }
 
-        private static void CalculateMinMaxDistance(ref Plane plane, ref BoundingBoxExt boundingBox, ref float minDistance, ref float maxDistance)
+        private static void CalculateMinMaxDistance(ref readonly Plane plane, ref readonly BoundingBoxExt boundingBox, ref float minDistance, ref float maxDistance)
         {
             var nearCorner = boundingBox.Minimum;
             var farCorner = boundingBox.Maximum;
@@ -281,11 +270,11 @@ namespace Stride.Rendering
             float oldDistance;
 
             // Interlocked exchange if lower
-            var distance = CollisionHelper.DistancePlanePoint(ref plane, ref nearCorner);
+            var distance = CollisionHelper.DistancePlanePoint(in plane, in nearCorner);
             while ((oldDistance = minDistance) > distance && Interlocked.CompareExchange(ref minDistance, distance, oldDistance) != oldDistance) { }
 
             // Interlocked exchange if greater
-            distance = CollisionHelper.DistancePlanePoint(ref plane, ref farCorner);
+            distance = CollisionHelper.DistancePlanePoint(in plane, in farCorner);
             while ((oldDistance = maxDistance) < distance && Interlocked.CompareExchange(ref maxDistance, distance, oldDistance) != oldDistance) { }
         }
 
