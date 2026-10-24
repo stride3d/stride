@@ -1,20 +1,30 @@
 # Stride.Editor
 
-This project is the main project for the `Game` support in the editor.
+This project is the main project for the `Game` support in the editor: the session-bound services that build assets for
+the editor games and previews, and the thumbnail service.
 
 ## Dependencies
 
-* It can references any Stride libraries, as long as their are cross-platform.
+* It can reference any Stride libraries, as long as they are cross-platform.
 * It should be platform-agnostic as well as UI-agnostic.
   In other words, no dependencies on platform (e.g. Windows), or UI library (e.g. Avalonia, WPF) are allowed.
-* It will mainly reference `Stride.Core.Assets.Editor` as well as Stride runtime libraries.
+* It references `Stride.Core.Assets.Editor` (the agnostic session), `Stride.Editor.Common` (the part of this layer that is
+  shared with `Stride.Editor.Wpf` until the consolidation: editor game base classes, preview contracts, thumbnail compilers,
+  build units and preview compilers) and the Stride runtime libraries.
 
 ## Implementations
 
-All `Game` supporting helpers and managers for the editors are here.
+* `Build`: `GameStudioBuilderService` (the asset builder of a session, with the effect compiler), `GameStudioDatabase` (the
+  compiled content of the editor games, with the asset replacement redirects), `StrideShaderImporter`.
+* `EditorGame/ContentLoader`: `EditorContentLoader`, the loader of the assets an editor game shows.
+* `Thumbnails`: `GameStudioThumbnailService` and its build unit, `BitmapThumbnailData` and `ResourceThumbnailData`, whose
+  presenter is a `Stride.Graphics.Image` (the view of each toolkit converts it), `ThumbnailDataFactory`.
+
+The application registers the services in a session the way `Stride.GameStudio`'s `StrideEditorPlugin` does for WPF.
 
 ## Notes
 
 * The goal is to be able to share that library with any application that wants to work with Stride runtime and manage instance of `Game`.
 * It is Stride specific, but it can be used by other applications beside the GameStudio.
-
+* The counterpart of this project for the WPF editor is `Stride.Editor.Wpf`; both keep their own copy of the session-bound
+  services until the consolidation.
