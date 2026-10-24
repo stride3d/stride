@@ -9,7 +9,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
     /// </summary>
     public sealed class RootAssetTargetViewModel
     {
-        public RootAssetTargetViewModel(SessionViewModel session, PackageViewModel package, bool isDefault, bool isChecked, bool isPartiallyChecked)
+        public RootAssetTargetViewModel(ISessionViewModel session, PackageViewModel package, bool isDefault, bool isChecked, bool isPartiallyChecked)
         {
             Package = package;
             IsDefault = isDefault;

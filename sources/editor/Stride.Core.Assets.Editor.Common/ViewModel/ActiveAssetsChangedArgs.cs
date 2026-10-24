@@ -6,7 +6,7 @@ using System.Collections.Generic;
 namespace Stride.Core.Assets.Editor.ViewModel
 {
     /// <summary>
-    /// Arguments of the <see cref="SessionViewModel.ActiveAssetsChanged"/> event.
+    /// Arguments of the <c>ActiveAssetsChanged</c> event of the session.
     /// </summary>
     public class ActiveAssetsChangedArgs : EventArgs
     {

@@ -14,7 +14,7 @@ namespace Stride.Core.Assets.Editor.ViewModel.Progress
     /// <summary>
     /// A thread-safe view model used to display progress and log of a background operation.
     /// </summary>
-    public class WorkProgressViewModel : DispatcherViewModel
+    public class WorkProgressViewModel : DispatcherViewModel, IProgressViewModel
     {
         private readonly object asyncUpdateLock = new object();
         private string title = "Work in progress...";
@@ -146,6 +146,17 @@ namespace Stride.Core.Assets.Editor.ViewModel.Progress
         /// <param name="newProgressValue">The new progress value to set.</param>
         /// <remarks>Uses this method to reduce overhead of frequent progress updates.</remarks>
         public void UpdateProgressAsync(string newProgressMessage, double newProgressValue)
+        {
+            UpdateProgressCore(newProgressMessage, newProgressValue);
+        }
+
+        /// <inheritdoc/>
+        void IProgressViewModel.UpdateProgress(string message, double value)
+        {
+            UpdateProgressCore(message, value);
+        }
+
+        private void UpdateProgressCore(string newProgressMessage, double newProgressValue)
         {
             lock (asyncUpdateLock)
             {
