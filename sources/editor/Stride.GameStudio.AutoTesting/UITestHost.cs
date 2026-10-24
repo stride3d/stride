@@ -1081,7 +1081,7 @@ internal sealed class UITestHost
                 this.position = position;
             }
 
-            public Task<Entity> CreateEntity(EntityHierarchyItemViewModel parent)
+            public Task<Entity> CreateEntity(IEntityHierarchyItemViewModel parent)
             {
                 var entity = new Entity(entityName);
                 entity.Transform.Position = position;
