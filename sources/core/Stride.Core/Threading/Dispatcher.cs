@@ -88,8 +88,12 @@ public static class Dispatcher
 
             // Might as well steal some work instead of just waiting,
             // also helps prevent potential deadlocks from badly threaded code
+            var spin = new SpinWait();
             while (Volatile.Read(ref batch.ItemsDone) < batch.Total && Volatile.Read(ref batch.ExceptionThrown) == null)
-                ThreadPool.Instance.TryCooperate();
+            {
+                if (!ThreadPool.Instance.TryCooperate())
+                    spin.SpinOnce();
+            }
 
             var ex = Interlocked.Exchange(ref batch.ExceptionThrown, null);
             if (ex != null)
@@ -630,8 +634,12 @@ public static class Dispatcher
         {
             // Might as well steal some work instead of just waiting,
             // also helps prevent potential deadlocks from badly threaded code
+            var spin = new SpinWait();
             while (Volatile.Read(ref OpLeft) != 0 && !Finished.WaitOne(0))
-                ThreadPool.Instance.TryCooperate();
+            {
+                if (!ThreadPool.Instance.TryCooperate())
+                    spin.SpinOnce();
+            }
         }
     }
 
