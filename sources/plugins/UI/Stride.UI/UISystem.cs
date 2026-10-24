@@ -3,11 +3,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Stride.Core;
+using Stride.Core.Diagnostics;
 using Stride.Games;
 using Stride.Graphics;
 using Stride.Input;
+using Stride.Rendering;
+using Stride.Rendering.UI;
 using Stride.UI.Controls;
 
 namespace Stride.UI
@@ -15,7 +17,7 @@ namespace Stride.UI
     /// <summary>
     /// Interface of the UI system.
     /// </summary>
-    public class UISystem : GameSystemBase, IService, IInputEventListener<PointerEvent>
+    public class UISystem : GameSystemBase, IService, IInputEventListener<PointerEvent>, IInputEventListener<KeyEvent>, IInputEventListener<TextInputEvent>
     {
         internal UIBatch Batch { get; private set; }
 
@@ -26,14 +28,38 @@ namespace Stride.UI
         internal DepthStencilStateDescription DecreaseStencilValueState { get; private set; }
 
         private InputManager input;
+        private UIPicking picking;
+        private readonly GameTime idleTime = new GameTime();
 
-        // UI picking runs in Draw but events are routed in Update; with IsFixedTimeStep+slow Draw,
-        // the next Update can clear InputManager.PointerEvents before Draw consumes them. Buffer
-        // pointer events here so they survive across catch-up Updates and are drained per-Draw.
+        // Pointer events routed this frame, picked against the UI in the capture phase of the same InputManager.Update
         private readonly List<PointerEvent> pendingPointerEvents = new List<PointerEvent>();
-        internal IReadOnlyList<PointerEvent> PendingPointerEvents => pendingPointerEvents;
-        internal void ClearPendingPointerEvents() => pendingPointerEvents.Clear();
+        // One target for each view that drew a UI component, so a component drawn by several cameras is picked in each of them
+        private readonly Dictionary<(RenderUIElement, RenderView), UIPickingTarget> pickingTargets = new Dictionary<(RenderUIElement, RenderView), UIPickingTarget>();
+
+        // Keys and text are read through the listener, because the game-facing keyboard state is masked while the UI holds the keyboard
+        private readonly List<KeyEvent> pendingKeyEvents = new List<KeyEvent>();
+        private readonly List<TextInputEvent> pendingTextEvents = new List<TextInputEvent>();
+        private readonly HashSet<Keys> downKeys = new HashSet<Keys>();
+        private readonly Core.Collections.IReadOnlySet<Keys> downKeysView;
+
+        private UIElement focusedElement;
+
         void IInputEventListener<PointerEvent>.ProcessEvent(PointerEvent inputEvent) => pendingPointerEvents.Add(inputEvent);
+
+        void IInputEventListener<KeyEvent>.ProcessEvent(KeyEvent inputEvent)
+        {
+            pendingKeyEvents.Add(inputEvent);
+            if (inputEvent.IsDown)
+                downKeys.Add(inputEvent.Key);
+            else
+                downKeys.Remove(inputEvent.Key);
+        }
+
+        void IInputEventListener<TextInputEvent>.ProcessEvent(TextInputEvent inputEvent) => pendingTextEvents.Add(inputEvent);
+
+        internal void RecordPickingTarget(in UIPickingTarget target) => pickingTargets[(target.RenderObject, target.View)] = target;
+
+        internal int PickingTargetCount => pickingTargets.Count;
 
         /// <summary>
         /// Represents the UI-element currently under the mouse cursor.
@@ -45,11 +71,30 @@ namespace Stride.UI
         /// <summary>
         /// The <see cref="UIElement"/> that currently has the focus.
         /// </summary>
-        public UIElement FocusedElement { get; internal set; }
+        /// <remarks>
+        /// While an element has the focus, the UI captures the keyboard, so game code does not see what is typed.
+        /// </remarks>
+        public UIElement FocusedElement
+        {
+            get => focusedElement;
+            internal set
+            {
+                focusedElement = value;
+
+                if (input == null || !input.HasKeyboard)
+                    return;
+
+                if (value != null)
+                    input.TryCapture(input.Keyboard, this, InputCapturePriority.Focus);
+                else
+                    input.Release(input.Keyboard, this);
+            }
+        }
 
         public UISystem(IServiceRegistry registry)
             : base(registry)
         {
+            downKeysView = new Core.Collections.ReadOnlySet<Keys>(downKeys);
             var gameSystems = registry.GetService<IGameSystemCollection>();
             gameSystems?.Add(this);
         }
@@ -59,7 +104,12 @@ namespace Stride.UI
             base.Initialize();
 
             input = Services.GetService<InputManager>();
-            input?.AddListener(this);
+            if (input != null)
+            {
+                picking = new UIPicking(this, input);
+                input.AddListener(this);
+                input.ResolvingCapture += OnResolvingCapture;
+            }
 
             Enabled = true;
             Visible = false;
@@ -73,7 +123,12 @@ namespace Stride.UI
 
         protected override void Destroy()
         {
-            input?.RemoveListener(this);
+            if (input != null)
+            {
+                input.ResolvingCapture -= OnResolvingCapture;
+                input.RemoveListener(this);
+                input.ReleaseAll(this);
+            }
 
             if (Game != null) // thumbnail system has no game
             {
@@ -142,6 +197,53 @@ namespace Stride.UI
             // revert the state of the edit text here?
         }
 
+        private void OnResolvingCapture(object sender, EventArgs e)
+        {
+            // An element that was hidden or disabled while focused, such as a text box in a closed popup, loses the focus
+            if (focusedElement != null && !CanKeepFocus(focusedElement))
+            {
+                if (focusedElement is EditText editText)
+                    editText.IsSelectionActive = false;
+                FocusedElement = null;
+            }
+
+            // Take the keyboard back if a higher-priority owner held it while an element kept the focus
+            if (focusedElement != null && input.HasKeyboard)
+                input.TryCapture(input.Keyboard, this, InputCapturePriority.Focus);
+
+            UIElement elementUnderMouseCursor;
+            using (Profiler.Begin(UIProfilerKeys.TouchEventsUpdate))
+            {
+                elementUnderMouseCursor = picking.Run(pendingPointerEvents, pickingTargets, Game?.UpdateTime ?? idleTime);
+            }
+            pendingPointerEvents.Clear();
+            UIElementUnderMouseCursor = elementUnderMouseCursor;
+
+            if (!input.HasMouse)
+                return;
+
+            // Hover captures the mouse, except while a button pressed outside the UI is held or released, so a game drag that
+            // crosses the UI goes on and ends. A locked mouse (mouse-look) is never captured, because its position is not a cursor.
+            var mouse = input.Mouse;
+            var gameDragInProgress = !picking.MouseDragOwnedByUi && !ReferenceEquals(mouse.CaptureState.Owner, this)
+                && (mouse.DownButtons.Count > 0 || mouse.ReleasedButtons.Count > 0);
+            var wantsMouse = (elementUnderMouseCursor != null && !gameDragInProgress) || picking.MouseDragOwnedByUi;
+            if (wantsMouse && !mouse.IsPositionLocked)
+                input.TryCapture(mouse, this, InputCapturePriority.Hover);
+            else
+                input.Release(mouse, this);
+        }
+
+        private static bool CanKeepFocus(UIElement element)
+        {
+            for (var current = element; current != null; current = current.VisualParent)
+            {
+                if (!current.IsVisible || !current.IsEnabled)
+                    return false;
+            }
+            return true;
+        }
+
         public override void Update(GameTime gameTime)
         {
             base.Update(gameTime);
@@ -155,12 +257,15 @@ namespace Stride.UI
                 return;
 
             if (FocusedElement == null || !FocusedElement.IsHierarchyEnabled)
+            {
+                pendingKeyEvents.Clear();
+                pendingTextEvents.Clear();
                 return;
+            }
 
             // Raise text input events
-            var textEvents = input.Events.OfType<TextInputEvent>();
             bool enteredText = false;
-            foreach (var textEvent in textEvents)
+            foreach (var textEvent in pendingTextEvents)
             {
                 enteredText = true;
                 FocusedElement?.RaiseTextInputEvent(new TextEventArgs
@@ -172,10 +277,10 @@ namespace Stride.UI
                 });
             }
 
-            foreach (var keyEvent in input.KeyEvents)
+            foreach (var keyEvent in pendingKeyEvents)
             {
                 var key = keyEvent.Key;
-                var evt = new KeyEventArgs { Key = key, Input = input };
+                var evt = new KeyEventArgs { Key = key, Input = input, DownKeys = downKeysView };
                 if (enteredText)
                     continue; // Skip key events if text was entered
                 if (keyEvent.IsDown)
@@ -188,10 +293,13 @@ namespace Stride.UI
                 }
             }
 
-            foreach (var key in input.DownKeys)
+            foreach (var key in downKeys)
             {
-                FocusedElement?.RaiseKeyDownEvent(new KeyEventArgs { Key = key, Input = input });
+                FocusedElement?.RaiseKeyDownEvent(new KeyEventArgs { Key = key, Input = input, DownKeys = downKeysView });
             }
+
+            pendingKeyEvents.Clear();
+            pendingTextEvents.Clear();
         }
 
         public static IService NewInstance(IServiceRegistry services) => new UISystem(services);

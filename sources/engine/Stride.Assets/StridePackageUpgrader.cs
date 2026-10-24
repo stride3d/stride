@@ -23,6 +23,7 @@ using Stride.Assets.Templates;
 using Stride.Graphics;
 using Microsoft.Build.Construction;
 using Microsoft.Build.Evaluation;
+using Microsoft.CodeAnalysis.CSharp;
 using Stride.Core.Annotations;
 using static Stride.Assets.CodeUpgrades;
 
@@ -146,6 +147,14 @@ namespace Stride.Assets
                 Rewrite(
                     MemberToExtension("Stride.Engine.Game", "Audio", "Stride.Audio"),
                     MemberToExtension("Stride.Engine.ScriptComponent", "Audio", "Stride.Audio", throughMember: "Game")),
+
+                // 4.5: input devices hold their capture state, so a device that implements the input interfaces itself
+                // rather than through an engine base class needs one (#3505).
+                InterfaceMemberAdd("Stride.Input.IInputDevice", "public DeviceCaptureState CaptureState { get; } = new DeviceCaptureState();", "Stride.Input"),
+
+                // 4.5: GamePadDeviceBase.State is no longer virtual, so that it can hide a captured gamepad;
+                // custom gamepads provide their state through RawState instead (#3505).
+                PropertyOverrideRename("Stride.Input.GamePadDeviceBase", "State", "RawState", SyntaxKind.ProtectedKeyword),
             ]);
 
             // Structural csproj migrations, gated by the version each change landed at. Run against the

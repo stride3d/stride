@@ -16,8 +16,24 @@ namespace Stride.UI
         public Keys Key { get; init; }
 
         /// <summary>
-        /// A reference to the input system that can be used to check the status of the other keys.
+        /// A reference to the input system.
         /// </summary>
+        /// <remarks>
+        /// While the UI holds the keyboard, the input system hides the keyboard from game-facing reads. Use
+        /// <see cref="DownKeys"/> or <see cref="IsKeyDown"/> to check the status of the other keys.
+        /// </remarks>
         public InputManager Input { get; init; }
+
+        /// <summary>
+        /// The keys that are held, as the UI sees them.
+        /// </summary>
+        public Core.Collections.IReadOnlySet<Keys> DownKeys { get; init; }
+
+        /// <summary>
+        /// Determines whether a key is held, as the UI sees it.
+        /// </summary>
+        /// <param name="key">The key.</param>
+        /// <returns><c>true</c> if the key is held; otherwise, <c>false</c>.</returns>
+        public bool IsKeyDown(Keys key) => DownKeys?.Contains(key) ?? false;
     }
 }
