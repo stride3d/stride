@@ -258,8 +258,7 @@ namespace Stride.Core.Assets
                     ProjectName = Path.GetFileNameWithoutExtension(projectPath),
                     ProjectStyle = ProjectStyle.PackageReference,
                     ProjectUniqueName = projectPath,
-                    // Per-user dir, not the shared temp dir: the output drives assembly loading and its name is predictable (pre-seed risk)
-                    OutputPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "stride", "nugetresolver", $"{packageName}-{versionRange.MinVersion.ToString()}-{nugetFramework.GetShortFolderName()}-{runtimeIdentifier}"),
+                    OutputPath = NuGetResolverCache.GetFolder(packageName, versionRange.MinVersion.ToString(), nugetFramework.GetShortFolderName(), runtimeIdentifier),
                     OriginalTargetFrameworks = new[] { nugetFramework.GetShortFolderName() },
                     ConfigFilePaths = settings.GetConfigFilePaths(),
                     PackagesPath = SettingsUtility.GetGlobalPackagesFolder(settings),

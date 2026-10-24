@@ -19,6 +19,7 @@
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="..\..\shared\Stride.NuGetResolver\NuGetResolverCache.cs" Link="NuGetResolverCache.cs" />
     <Compile Update="TargetGenerator.cs">
       <DependentUpon>TargetGenerator.tt</DependentUpon>
       <AutoGen>True</AutoGen>
