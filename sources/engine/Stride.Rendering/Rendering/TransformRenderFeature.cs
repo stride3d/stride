@@ -183,7 +183,7 @@ namespace Stride.Rendering
             // TODO: Have a PerObject cbuffer?
             Dispatcher.ForBatched(RootRenderFeature.RenderNodes.Count, (this, renderModelObjectInfoData, renderModelViewInfoData), &ForBatchedAction);
 
-            static void ForBatchedAction((TransformRenderFeature, ObjectPropertyData<RenderModelFrameInfo>, ViewObjectPropertyData<RenderModelViewInfo>) state, int from, int toExclusive)
+            static void ForBatchedAction(ref readonly (TransformRenderFeature, ObjectPropertyData<RenderModelFrameInfo>, ViewObjectPropertyData<RenderModelViewInfo>) state, int from, int toExclusive)
             {
                 var (@this, renderModelObjectInfoData, renderModelViewInfoData) = state;
                 for (int i = from; i < toExclusive; i++)

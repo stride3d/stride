@@ -55,7 +55,7 @@ public static partial class Dispatcher
         var parameters = (action, fromInclusive);
         ForBatched(toExclusive - fromInclusive, parameters, &ForWrapped);
 
-        static void ForWrapped((Action<int> action, int start) parameters, int from, int toExclusive)
+        static void ForWrapped(ref readonly (Action<int> action, int start) parameters, int from, int toExclusive)
         {
             for (int i = from; i < toExclusive; i++)
             {
@@ -148,7 +148,7 @@ public static partial class Dispatcher
         var parameters = (initializeLocal, action, finalizeLocal, fromInclusive);
         ForBatched(toExclusive - fromInclusive, parameters, &ForWrapped);
 
-        static void ForWrapped((Func<TLocal> initializeLocal, Action<int, TLocal> action, Action<TLocal>? finalizeLocal, int start) parameters, int from, int toExclusive)
+        static void ForWrapped(ref readonly (Func<TLocal> initializeLocal, Action<int, TLocal> action, Action<TLocal>? finalizeLocal, int start) parameters, int from, int toExclusive)
         {
             TLocal local = default!;
             try

@@ -336,7 +336,7 @@ namespace Stride.Rendering.Materials
             var resourceGroupPool = ((RootEffectRenderFeature)RootRenderFeature).ResourceGroupPool;
             Dispatcher.ForBatched(RootRenderFeature.RenderNodes.Count, (this, context, resourceGroupPool), &ForBatchedAction);
 
-            static void ForBatchedAction((MaterialRenderFeature, RenderDrawContext, ResourceGroup[]) state, int from, int toExclusive)
+            static void ForBatchedAction(ref readonly (MaterialRenderFeature, RenderDrawContext, ResourceGroup[]) state, int from, int toExclusive)
             {
                 var (@this, context, resourceGroupPool) = state;
                 var threadContext = context.RenderContext.GetThreadContext();

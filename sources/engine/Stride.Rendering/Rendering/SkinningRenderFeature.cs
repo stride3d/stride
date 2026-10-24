@@ -162,7 +162,7 @@ namespace Stride.Rendering
             var renderModelObjectInfoData = RootRenderFeature.RenderData.GetData(renderModelObjectInfoKey);
             Dispatcher.ForBatched(RootRenderFeature.RenderNodes.Count, (this, renderModelObjectInfoData), &ForBatchedAction);
 
-            static void ForBatchedAction((SkinningRenderFeature, ObjectPropertyData<Matrix[]>) state, int from, int toExclusive)
+            static void ForBatchedAction(ref readonly (SkinningRenderFeature, ObjectPropertyData<Matrix[]>) state, int from, int toExclusive)
             {
                 var (@this, renderModelObjectInfoData) = state;
                 for (int i = from; i < toExclusive; i++)

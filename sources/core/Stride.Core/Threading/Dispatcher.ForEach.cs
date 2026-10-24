@@ -25,7 +25,7 @@ public static partial class Dispatcher
         var parameters = (action, collection);
         ForBatched(collection.Count, parameters, &ForEachList);
 
-        static void ForEachList((ValueAction<T> action, ConcurrentCollector<T> collection) parameters, int from, int toExclusive)
+        static void ForEachList(ref readonly (ValueAction<T> action, ConcurrentCollector<T> collection) parameters, int from, int toExclusive)
         {
             for (int i = from; i < toExclusive; i++)
             {
@@ -94,7 +94,7 @@ public static partial class Dispatcher
         var parameters = (action, collection);
         ForBatched(collection.Count, parameters, &ForEachList);
 
-        static void ForEachList((Action<T> action, TList collection) parameters, int from, int toExclusive)
+        static void ForEachList(ref readonly (Action<T> action, TList collection) parameters, int from, int toExclusive)
         {
             for (int i = from; i < toExclusive; i++)
             {
@@ -193,7 +193,7 @@ public static partial class Dispatcher
         var parameters = (initializeLocal, action, finalizeLocal, collection);
         ForBatched(collection.Count, parameters, &ForEachList);
 
-        static void ForEachList((Func<TLocal> initializeLocal, Action<TItem, TLocal> action, Action<TLocal>? finalizeLocal, TList collection) parameters, int from, int toExclusive)
+        static void ForEachList(ref readonly (Func<TLocal> initializeLocal, Action<TItem, TLocal> action, Action<TLocal>? finalizeLocal, TList collection) parameters, int from, int toExclusive)
         {
             TLocal local = default!;
             try

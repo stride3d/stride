@@ -174,7 +174,7 @@ public static partial class Dispatcher
         var parameters = (action, collection);
         ForBatched(collection.Count, parameters, &ForEachDict);
 
-        static void ForEachDict((Action<KeyValuePair<TKey, TValue>> action, Dictionary<TKey, TValue> collection) parameters, int from, int toExclusive)
+        static void ForEachDict(ref readonly (Action<KeyValuePair<TKey, TValue>> action, Dictionary<TKey, TValue> collection) parameters, int from, int toExclusive)
         {
             using var enumerator = parameters.collection.GetEnumerator();
 
@@ -199,7 +199,7 @@ public static partial class Dispatcher
         var parameters = (initializeLocal, action, finalizeLocal, collection);
         ForBatched(collection.Count, parameters, &ForEachDict);
 
-        static void ForEachDict((Func<TLocal> initializeLocal, Action<KeyValuePair<TKey, TValue>, TLocal> action, Action<TLocal>? finalizeLocal, Dictionary<TKey, TValue> collection) parameters, int from, int toExclusive)
+        static void ForEachDict(ref readonly (Func<TLocal> initializeLocal, Action<KeyValuePair<TKey, TValue>, TLocal> action, Action<TLocal>? finalizeLocal, Dictionary<TKey, TValue> collection) parameters, int from, int toExclusive)
         {
             using var enumerator = parameters.collection.GetEnumerator();
 
