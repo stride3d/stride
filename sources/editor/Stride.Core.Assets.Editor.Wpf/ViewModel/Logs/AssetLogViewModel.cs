@@ -21,7 +21,7 @@ using Stride.Core.Translation;
 
 namespace Stride.Core.Assets.Editor.ViewModel.Logs
 {
-    public class AssetLogViewModel : LoggerViewModel
+    public class AssetLogViewModel : LoggerViewModel, IAssetLogViewModel
     {
         // The names of the logs (see LogKey.Name); each one is a source that can be hidden
         public const string BuildLogName = "Build";

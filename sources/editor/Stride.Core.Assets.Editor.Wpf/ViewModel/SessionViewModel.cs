@@ -38,7 +38,7 @@ using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.ViewModel
 {
-    public class SessionViewModel : DirtiableEditableViewModel, IAssetFinder
+    public class SessionViewModel : DirtiableEditableViewModel, IAssetFinder, ISessionViewModel
     {
         public static string StorePackageCategoryName = Tr._("External packages");
         public static string LocalPackageCategoryName = Tr._("Local packages");
@@ -1242,6 +1242,26 @@ namespace Stride.Core.Assets.Editor.ViewModel
         {
             ((IDictionary<AssetId, AssetViewModel>)assetIdMap).Remove(asset.Id);
         }
+
+        IAssetCollectionViewModel ISessionViewModel.ActiveAssetView => ActiveAssetView;
+
+        ISessionObjectPropertiesViewModel ISessionViewModel.AssetViewProperties => AssetViewProperties;
+
+        IAssetSourceTrackerViewModel ISessionViewModel.SourceTracker => SourceTracker;
+
+        IAssetLogViewModel ISessionViewModel.AssetLog => AssetLog;
+
+        void ISessionViewModel.RegisterAsset(AssetViewModel asset) => RegisterAsset(asset);
+
+        void ISessionViewModel.UnregisterAsset(AssetViewModel asset) => UnregisterAsset(asset);
+
+        void ISessionViewModel.RefreshRootAssetSelection() => RefreshRootAssetSelection();
+
+        void ISessionViewModel.ProcessAddedProjects(LoggerResult loggerResult, WorkProgressViewModel workProgress, bool packageAlreadyInSession) => ProcessAddedProjects(loggerResult, workProgress, packageAlreadyInSession);
+
+        void ISessionViewModel.ProcessRemovedProjects() => ProcessRemovedProjects();
+
+        Task ISessionViewModel.LoadAddedDependencies(LoggerResult loggerResult) => LoadAddedDependencies(loggerResult);
 
         /// <summary>
         /// Attempts to close the session. If the session has unsaved changes, ask the user wether to save it or not. If the user cancels

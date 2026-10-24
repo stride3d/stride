@@ -53,7 +53,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         ModificationDateThenName,
     }
 
-    public sealed class AssetCollectionViewModel : DispatcherViewModel, IAddChildViewModel
+    public sealed class AssetCollectionViewModel : DispatcherViewModel, IAddChildViewModel, IAssetCollectionViewModel
     {
         public sealed class AssetFilterViewModel : DispatcherViewModel, IEquatable<AssetFilterViewModel>
         {
