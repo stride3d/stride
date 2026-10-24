@@ -15,7 +15,6 @@ using Stride.Core.Quantum;
 using Stride.Assets.Entities;
 using Stride.Navigation.Assets;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
-using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Assets.Presentation.AssetEditors.SceneEditor.Game;
 using Stride.Assets.Presentation.AssetEditors.SceneEditor.Services;
 using Stride.Editor.Build;
@@ -37,14 +36,14 @@ namespace Stride.Physics.Editor
     /// <summary>
     /// Handles rendering of navigation meshes associated with the current scene
     /// </summary>
-    [EditorGameService(typeof(SceneEditorController), Order = 310)]
+    [EditorGameService(typeof(ISceneEditorController), Order = 310)]
     public class EditorGameNavigationMeshService : EditorGameServiceBase, IEditorGameOverlayService
     {
         private const float LayerHeightMultiplier = 0.05f;
 
         private readonly NavigationMeshManager navigationMeshManager;
 
-        private readonly EntityHierarchyEditorViewModel editor;
+        private readonly IAssetEditorViewModel editor;
 
         private readonly Dictionary<NavigationMesh, NavigationMeshDebugVisual> debugVisuals = new Dictionary<NavigationMesh, NavigationMeshDebugVisual>();
 
@@ -70,10 +69,10 @@ namespace Stride.Physics.Editor
         private readonly List<EditorOverlay> overlays = new List<EditorOverlay>();
         private readonly HashSet<Guid> visibleGroups = new HashSet<Guid>();
 
-        private SceneEditorController sceneEditorController;
+        private readonly ISceneEditorController sceneEditorController;
         private GameSettingsProviderService gameSettingsProviderService;
 
-        public EditorGameNavigationMeshService(EntityHierarchyEditorViewModel editor, SceneEditorController controller)
+        public EditorGameNavigationMeshService(IAssetEditorViewModel editor, ISceneEditorController controller)
         {
             this.editor = editor;
             sceneEditorController = controller;
@@ -83,8 +82,8 @@ namespace Stride.Physics.Editor
         public override async ValueTask DisposeAsync()
         {
             // Remove registered events
-            editor.Session.DeletedAssetsChanged -= OnDeletedAssetsChanged;
-            editor.Session.AssetPropertiesChanged -= OnAssetPropertiesChanged;
+            editor.Asset.Session.DeletedAssetsChanged -= OnDeletedAssetsChanged;
+            editor.Asset.Session.AssetPropertiesChanged -= OnAssetPropertiesChanged;
 
             game.SceneAdded -= GameOnSceneAdded;
             game.SceneRemoved -= GameOnSceneRemoved;
@@ -219,7 +218,7 @@ namespace Stride.Physics.Editor
             game = editorGame as SceneEditorGame;
             if (game == null) throw new ArgumentException($"{nameof(game)} is not of type {nameof(EntityHierarchyEditorGame)}");
 
-            gameSettingsProviderService = editor.ServiceProvider.Get<GameSettingsProviderService>();
+            gameSettingsProviderService = editor.Asset.ServiceProvider.Get<GameSettingsProviderService>();
             gameSettingsProviderService.GameSettingsChanged += GameSettingsProviderServiceOnGameSettingsChanged;
             UpdateGroups(gameSettingsProviderService.CurrentGameSettings);
             await navigationMeshManager.Initialize();
@@ -232,8 +231,8 @@ namespace Stride.Physics.Editor
             game.EditorScene.Entities.Add(rootDebugEntity);
 
             // Handle added/updated navigation meshes so that they can be made visible when this scene is shown
-            editor.Session.AssetPropertiesChanged += OnAssetPropertiesChanged;
-            editor.Session.DeletedAssetsChanged += OnDeletedAssetsChanged;
+            editor.Asset.Session.AssetPropertiesChanged += OnAssetPropertiesChanged;
+            editor.Asset.Session.DeletedAssetsChanged += OnDeletedAssetsChanged;
 
             editorGame.Script.AddTask(async () =>
             {
@@ -245,7 +244,7 @@ namespace Stride.Physics.Editor
             });
 
             // Initial update
-            foreach (var asset in editor.Session.AllAssets)
+            foreach (var asset in editor.Asset.Session.AllAssets)
             {
                 if (asset.AssetType == typeof(NavigationMeshAsset))
                 {

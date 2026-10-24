@@ -1,11 +1,10 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System.Windows;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Compiler;
 using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Services;
-using Stride.Editor.Build;
+using Stride.Core.Assets.Editor.Services;
 
 namespace Stride.Editor.Preview
 {
@@ -17,7 +16,7 @@ namespace Stride.Editor.Preview
         /// <summary>
         /// Gets the asset builder service used to build asset.
         /// </summary>
-        GameStudioBuilderService AssetBuilderService { get; }
+        AssetBuilderService AssetBuilderService { get; }
 
         /// <summary>
         /// Gets the <see cref="IDispatcherService"/> to use to update UI.
@@ -40,11 +39,5 @@ namespace Stride.Editor.Preview
         /// <param name="asset">The asset to compile.</param>
         /// <returns>An <see cref="AssetCompilerResult"/> containing the generated build steps.</returns>
         AssetCompilerResult Compile(AssetItem asset);
-
-        /// <summary>
-        /// Gets the framework element that contains the stride viewport.
-        /// </summary>
-        /// <returns></returns>
-        FrameworkElement GetStrideView();
     }
 }

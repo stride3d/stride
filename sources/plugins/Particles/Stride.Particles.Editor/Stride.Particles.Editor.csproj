@@ -12,7 +12,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\editor\Stride.Assets.Presentation.Wpf\Stride.Assets.Presentation.Wpf.csproj" />
+    <ProjectReference Include="..\..\..\editor\Stride.Assets.Presentation.Common\Stride.Assets.Presentation.Common.csproj" />
     <ProjectReference Include="..\Stride.Particles\Stride.Particles.csproj" />
   </ItemGroup>
   <ItemGroup>

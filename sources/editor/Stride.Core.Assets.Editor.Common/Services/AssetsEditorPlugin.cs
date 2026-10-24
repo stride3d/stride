@@ -8,7 +8,6 @@ using Stride.Core.Reflection;
 using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.Presentation.View;
 using Stride.Core.Presentation.Views;
 
 #nullable enable
@@ -60,15 +59,15 @@ public abstract class AssetsEditorPlugin : AssetsPlugin
     {
     }
 
-    public virtual void RegisterCopyProcessors(ICollection<ICopyProcessor> copyProcessors, SessionViewModel session)
+    public virtual void RegisterCopyProcessors(ICollection<ICopyProcessor> copyProcessors, ISessionViewModel session)
     {
     }
 
-    public virtual void RegisterPasteProcessors(ICollection<IPasteProcessor> pasteProcessors, SessionViewModel session)
+    public virtual void RegisterPasteProcessors(ICollection<IPasteProcessor> pasteProcessors, ISessionViewModel session)
     {
     }
 
-    public virtual void RegisterPostPasteProcessors(ICollection<IAssetPostPasteProcessor> postePasteProcessors, SessionViewModel session)
+    public virtual void RegisterPostPasteProcessors(ICollection<IAssetPostPasteProcessor> postePasteProcessors, ISessionViewModel session)
     {
     }
 

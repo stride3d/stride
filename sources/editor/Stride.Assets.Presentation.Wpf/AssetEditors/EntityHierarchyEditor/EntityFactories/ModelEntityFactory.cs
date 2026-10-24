@@ -19,9 +19,9 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFa
             EntityFactoryCategory.RegisterCategory(10, "Model");
         }
 
-        public override async Task<Entity> CreateEntity(EntityHierarchyItemViewModel parent)
+        public override async Task<Entity> CreateEntity(IEntityHierarchyItemViewModel parent)
         {
-            var model = await PickupAsset(parent.Editor.Session, new [] { typeof(IModelAsset) });
+            var model = await EntityFactoryHelper.PickupAsset(parent.Asset.Session, new [] { typeof(IModelAsset) });
             if (model == null)
                 return null;
 
@@ -35,9 +35,9 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFa
     //[Display(20, "Instanced Model with Instance", "Model")]
     //public class InstancedModelWithInstanceEntityFactory : EntityFactory
     //{
-    //    public override async Task<Entity> CreateEntity(EntityHierarchyItemViewModel parent)
+    //    public override async Task<Entity> CreateEntity(IEntityHierarchyItemViewModel parent)
     //    {
-    //        var model = await PickupAsset(parent.Editor.Session, new[] { typeof(IModelAsset) });
+    //        var model = await EntityFactoryHelper.PickupAsset(parent.Asset.Session, new[] { typeof(IModelAsset) });
     //        if (model == null)
     //            return null;
 
@@ -59,9 +59,9 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFa
     [Display(30, "Instanced Model", "Model")]
     public class InstancedModelEntityFactory : EntityFactory
     {
-        public override async Task<Entity> CreateEntity(EntityHierarchyItemViewModel parent)
+        public override async Task<Entity> CreateEntity(IEntityHierarchyItemViewModel parent)
         {
-            var model = await PickupAsset(parent.Editor.Session, new[] { typeof(IModelAsset) });
+            var model = await EntityFactoryHelper.PickupAsset(parent.Asset.Session, new[] { typeof(IModelAsset) });
             if (model == null)
                 return null;
 
@@ -75,7 +75,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFa
     [Display(40, "Model Instance", "Model")]
     public class InstanceEntityFactory : EntityFactory
     {
-        public override Task<Entity> CreateEntity(EntityHierarchyItemViewModel parent)
+        public override Task<Entity> CreateEntity(IEntityHierarchyItemViewModel parent)
         {
             var name = ComputeNewName(parent, "Instance");
             var component = new InstanceComponent();

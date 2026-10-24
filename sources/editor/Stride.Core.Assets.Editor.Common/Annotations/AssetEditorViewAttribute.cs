@@ -21,7 +21,7 @@ public abstract class AssetEditorViewAttribute : Attribute
 [AttributeUsage(AttributeTargets.Class)]
 [BaseTypeRequired(typeof(IEditorView))]
 public sealed class AssetEditorViewAttribute<T> : AssetEditorViewAttribute
-    where T : AssetEditorViewModel
+    where T : IAssetEditorViewModel
 {
     /// <summary>
     /// The editor view model type described by this attribute.

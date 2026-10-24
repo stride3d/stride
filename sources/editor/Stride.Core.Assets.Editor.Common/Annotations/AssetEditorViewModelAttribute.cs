@@ -18,7 +18,7 @@ public abstract class AssetEditorViewModelAttribute : Attribute
 /// This attribute is used to register an editor view model class and associate it to an asset view model type.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class)]
-[BaseTypeRequired(typeof(AssetEditorViewModel))]
+[BaseTypeRequired(typeof(IAssetEditorViewModel))]
 public sealed class AssetEditorViewModelAttribute<T> : AssetEditorViewModelAttribute
     where T : AssetViewModel
 {

@@ -43,6 +43,12 @@ namespace Stride.Editor.Preview
         /// </summary>
         protected bool IsRunning { get; private set; }
 
+        /// <summary>
+        /// Gets the view displaying this preview, once <see cref="Initialize(AssetViewModel, IPreviewBuilder)"/> has created it.
+        /// </summary>
+        [CanBeNull]
+        protected IPreviewView PreviewView => previewView;
+
         /// <inheritdoc/>
         public IAssetPreviewViewModel PreviewViewModel { get; protected set; }
 

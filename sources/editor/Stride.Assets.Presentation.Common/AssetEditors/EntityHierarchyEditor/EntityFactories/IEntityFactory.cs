@@ -10,6 +10,6 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFa
     [Stride.Core.Reflection.AssemblyScan]
     public interface IEntityFactory
     {
-        Task<Entity> CreateEntity([NotNull] EntityHierarchyItemViewModel parent);
+        Task<Entity> CreateEntity([NotNull] IEntityHierarchyItemViewModel parent);
     }
 }

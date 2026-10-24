@@ -183,12 +183,7 @@ namespace Stride.Assets.Presentation.Preview
         /// </summary>
         private Vector2? GetLaidOutViewSize()
         {
-            var view = Builder?.GetStrideView();
-            if (view == null || view.ActualWidth <= 0 || view.ActualHeight <= 0)
-                return null;
-
-            var dpi = System.Windows.Media.VisualTreeHelper.GetDpi(view);
-            return new Vector2((int)(view.ActualWidth * dpi.DpiScaleX), (int)(view.ActualHeight * dpi.DpiScaleY));
+            return PreviewView?.GetLaidOutViewSize();
         }
 
         private void RunOnGameThread(Action action)

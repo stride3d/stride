@@ -32,10 +32,10 @@ namespace Stride.Editor.Build
 
     public class GameSettingsProviderService : IDisposable, IGameSettingsAccessor
     {
-        private readonly SessionViewModel session;
+        private readonly ISessionViewModel session;
         private Package currentPackage;
 
-        public GameSettingsProviderService(SessionViewModel session)
+        public GameSettingsProviderService(ISessionViewModel session)
         {
             this.session = session;
             session.SessionStateChanged += SessionOnSessionStateChanged;
