@@ -49,9 +49,12 @@
   </Folder>
   <Folder Name="/60-Editor/">
     <Project Path="editor/Stride.Assets.Editor/Stride.Assets.Editor.csproj" />
+    <Project Path="editor/Stride.Assets.Presentation.Common/Stride.Assets.Presentation.Common.csproj" />
     <Project Path="editor/Stride.Assets.Presentation/Stride.Assets.Presentation.csproj" />
+    <Project Path="editor/Stride.Core.Assets.Editor.Common/Stride.Core.Assets.Editor.Common.csproj" />
     <Project Path="editor/Stride.Core.Assets.Editor/Stride.Core.Assets.Editor.csproj" />
     <Project Path="editor/Stride.Core.Assets.Presentation/Stride.Core.Assets.Presentation.csproj" />
+    <Project Path="editor/Stride.Editor.Common/Stride.Editor.Common.csproj" />
     <Project Path="editor/Stride.Editor/Stride.Editor.csproj" />
   </Folder>
   <Folder Name="/60-Editor/Avalonia/">
