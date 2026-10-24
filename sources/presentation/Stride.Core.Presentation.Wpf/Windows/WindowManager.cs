@@ -64,12 +64,32 @@ namespace Stride.Core.Presentation.Windows
         /// <summary>
         /// Gets the collection of currently visible modal windows.
         /// </summary>
-        public static IReadOnlyList<WindowInfo> ModalWindows => ModalWindowsList;
+        /// <remarks>
+        /// Windows destroyed without a hide event (Wine does not raise <c>EVENT_OBJECT_HIDE</c> for them) are dropped on read.
+        /// </remarks>
+        public static IReadOnlyList<WindowInfo> ModalWindows
+        {
+            get
+            {
+                PruneStale();
+                return ModalWindowsList;
+            }
+        }
 
         /// <summary>
         /// Gets the collection of currently visible blocking windows.
         /// </summary>
-        public static IReadOnlyList<WindowInfo> BlockingWindows => BlockingWindowsList;
+        /// <remarks>
+        /// Windows destroyed without a hide event (Wine does not raise <c>EVENT_OBJECT_HIDE</c> for them) are dropped on read.
+        /// </remarks>
+        public static IReadOnlyList<WindowInfo> BlockingWindows
+        {
+            get
+            {
+                PruneStale();
+                return BlockingWindowsList;
+            }
+        }
 
         /// <summary>
         /// Raised when the last blocking or modal window closes, so the main window can be used again.
@@ -231,13 +251,23 @@ namespace Stride.Core.Presentation.Windows
             }
         }
 
+        private static void PruneStale()
+        {
+            if (dispatcher == null || !dispatcher.CheckAccess())
+                return;
+            if (ModalWindowsList.Any(IsStale) || BlockingWindowsList.Any(IsStale))
+                RefreshDisabledStates();
+        }
+
+        private static bool IsStale(WindowInfo windowInfo) => windowInfo.IsShown && (windowInfo.Hwnd == IntPtr.Zero || !NativeHelper.IsWindow(windowInfo.Hwnd));
+
         private static void PruneClosed(List<WindowInfo> list)
         {
             for (var i = list.Count - 1; i >= 0; i--)
             {
                 var windowInfo = list[i];
                 // Only prune windows we actually saw shown; a not-yet-shown window has no hwnd yet.
-                if (windowInfo.IsShown && (windowInfo.Hwnd == IntPtr.Zero || !NativeHelper.IsWindow(windowInfo.Hwnd)))
+                if (IsStale(windowInfo))
                 {
                     Logger.Verbose($"Pruning destroyed window ({windowInfo.Hwnd}) from tracking lists.");
                     list.RemoveAt(i);
