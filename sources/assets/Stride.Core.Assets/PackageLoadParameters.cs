@@ -64,7 +64,7 @@ public sealed class PackageLoadParameters
     public bool LoadEditorPackages { get; set; }
 
     /// <summary>
-    /// The UI toolkit of the editor loading the session (Wpf), so the Editor companions written for another toolkit
+    /// The UI toolkit of the editor loading the session (Wpf or Avalonia), so the Editor companions written for another toolkit
     /// stay out. Null loads the toolkit-neutral Editor companions only.
     /// </summary>
     public string? EditorToolkit { get; set; }
