@@ -64,7 +64,10 @@ public class TestEditorPackageToolkit
     [MemberData(nameof(Neutral))]
     public void NeutralPackagesAreBuiltWithoutToolkit(string package)
     {
-        foreach (var manifest in LoadManifests(package))
+        // The test project lists the neutral packages as build-order references, so their manifests always exist here
+        var manifests = LoadManifests(package).ToList();
+        Assert.NotEmpty(manifests);
+        foreach (var manifest in manifests)
             Assert.Null(manifest.PackageToolkit);
     }
 
@@ -79,11 +82,27 @@ public class TestEditorPackageToolkit
     [Fact]
     public void NeutralPackagesDeclareTheirWpfCompanions()
     {
-        foreach (var manifest in LoadManifests("Audio/Stride.Audio.Editor").Concat(LoadManifests("SpriteStudio/Stride.SpriteStudio.Editor")))
+        foreach (var package in new[] { "Audio/Stride.Audio.Editor", "SpriteStudio/Stride.SpriteStudio.Editor" })
         {
-            var companion = Assert.Single(manifest.CompanionPackages);
-            Assert.Equal(EditorToolkits.Wpf, companion.Toolkit);
-            Assert.EndsWith(".Editor.Wpf", companion.Package);
+            // The project declares its view package as a companion
+            var declared = Assert.Single(LoadProject(package).Descendants("StrideCompanionProject"));
+            Assert.EndsWith(".Editor.Wpf.csproj", (string?)declared.Attribute("Include"), StringComparison.OrdinalIgnoreCase);
+
+            // The manifest records it as a Wpf companion. Off Windows, a build whose solution did not restore the companion
+            // leaves it out (no host there loads a Windows-only package; see Stride.AssetBuildManifest.targets), so the
+            // manifest may list no companion at all there, never another one.
+            var manifests = LoadManifests(package).ToList();
+            Assert.NotEmpty(manifests);
+            foreach (var manifest in manifests)
+            {
+                if (OperatingSystem.IsWindows())
+                    Assert.Single(manifest.CompanionPackages);
+                foreach (var companion in manifest.CompanionPackages)
+                {
+                    Assert.Equal(EditorToolkits.Wpf, companion.Toolkit);
+                    Assert.EndsWith(".Editor.Wpf", companion.Package);
+                }
+            }
         }
     }
 
