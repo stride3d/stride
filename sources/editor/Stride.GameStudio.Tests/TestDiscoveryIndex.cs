@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Stride.Assets.Presentation;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
@@ -34,8 +35,6 @@ namespace Stride.GameStudio.Tests
     {
         [Theory]
         [InlineData(typeof(AssetsPlugin), typeof(StrideDefaultAssetsPlugin))]
-        [InlineData(typeof(GizmoComponentAttribute), typeof(DispatcherLightGizmo))]
-        [InlineData(typeof(GizmoComponentAttribute), typeof(CameraGizmo))]
         [InlineData(typeof(IEntityFactory), typeof(SpriteEntityFactory))]
         [InlineData(typeof(IAddAssetPolicy), typeof(AddPrefabAssetPolicy))]
         [InlineData(typeof(AssetViewModel), typeof(SceneViewModel))]
@@ -48,6 +47,19 @@ namespace Stride.GameStudio.Tests
         public void DefaultPluginAssemblyIndexListsKnownTypes(Type key, Type expected)
         {
             var assembly = typeof(StrideDefaultAssetsPlugin).Assembly;
+            Assert.NotNull(AssemblyRegistry.GetScanTypes(assembly));
+            Assert.Contains(expected, AssemblyRegistry.GetScanTypes(assembly, key).ToList());
+        }
+
+        [Theory]
+        [InlineData(typeof(GizmoComponentAttribute), typeof(DispatcherLightGizmo))]
+        [InlineData(typeof(GizmoComponentAttribute), typeof(CameraGizmo))]
+        public void SharedAssemblyIndexListsKnownTypes(Type key, Type expected)
+        {
+            // The WPF-free gizmos live in Stride.Assets.Presentation.Common, which the WPF assembly registers when it loads
+            RuntimeHelpers.RunModuleConstructor(typeof(StrideDefaultAssetsPlugin).Module.ModuleHandle);
+            var assembly = typeof(GizmoBase).Assembly;
+            Assert.Contains(assembly, AssemblyRegistry.Find(AssemblyCommonCategories.Assets));
             Assert.NotNull(AssemblyRegistry.GetScanTypes(assembly));
             Assert.Contains(expected, AssemblyRegistry.GetScanTypes(assembly, key).ToList());
         }
