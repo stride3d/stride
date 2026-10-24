@@ -177,6 +177,8 @@
   </Folder>
   <Folder Name="/61-Editor.Tests/">
     <Project Path="sources/crashreport/Stride.CrashReport.Tests/Stride.CrashReport.Tests.csproj" />
+    <Project Path="sources/editor/Stride.Assets.Presentation.Common.Tests/Stride.Assets.Presentation.Common.Tests.csproj" />
+    <Project Path="sources/editor/Stride.Core.Assets.Editor.Common.Tests/Stride.Core.Assets.Editor.Common.Tests.csproj" />
     <Project Path="sources/editor/Stride.Core.Assets.Editor.Tests/Stride.Core.Assets.Editor.Tests.csproj" />
     <Project Path="sources/editor/Stride.GameStudio.AutoTesting/Stride.GameStudio.AutoTesting.csproj" />
     <Project Path="sources/editor/Stride.GameStudio.Tests/Stride.GameStudio.Tests.csproj" />
