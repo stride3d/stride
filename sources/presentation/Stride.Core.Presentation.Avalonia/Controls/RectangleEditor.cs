@@ -14,7 +14,7 @@ public sealed class RectangleEditor : VectorEditorBase<Rectangle?>
     {
         RectXProperty.Changed.AddClassHandler<RectangleEditor>(OnComponentPropertyChanged);
         RectYProperty.Changed.AddClassHandler<RectangleEditor>(OnComponentPropertyChanged);
-        RectXProperty.Changed.AddClassHandler<RectangleEditor>(OnComponentPropertyChanged);
+        RectWidthProperty.Changed.AddClassHandler<RectangleEditor>(OnComponentPropertyChanged);
         RectHeightProperty.Changed.AddClassHandler<RectangleEditor>(OnComponentPropertyChanged);
     }
 

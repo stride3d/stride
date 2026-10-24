@@ -12,52 +12,52 @@ using Matrix = Mathematics.Matrix;
 public sealed class MatrixEditor : VectorEditorBase<Matrix?>
 {
     public static readonly StyledProperty<float?> M11Property =
-        AvaloniaProperty.Register<RectangleEditor, float?>(nameof(M11), defaultBindingMode: BindingMode.TwoWay, coerce: CoerceComponentValue);
+        AvaloniaProperty.Register<MatrixEditor, float?>(nameof(M11), defaultBindingMode: BindingMode.TwoWay, coerce: CoerceComponentValue);
 
     public static readonly StyledProperty<float?> M12Property =
-        AvaloniaProperty.Register<RectangleEditor, float?>(nameof(M12), defaultBindingMode: BindingMode.TwoWay, coerce: CoerceComponentValue);
+        AvaloniaProperty.Register<MatrixEditor, float?>(nameof(M12), defaultBindingMode: BindingMode.TwoWay, coerce: CoerceComponentValue);
 
     public static readonly StyledProperty<float?> M13Property =
-        AvaloniaProperty.Register<RectangleEditor, float?>(nameof(M13), defaultBindingMode: BindingMode.TwoWay, coerce: CoerceComponentValue);
+        AvaloniaProperty.Register<MatrixEditor, float?>(nameof(M13), defaultBindingMode: BindingMode.TwoWay, coerce: CoerceComponentValue);
 
     public static readonly StyledProperty<float?> M14Property =
-        AvaloniaProperty.Register<RectangleEditor, float?>(nameof(M14), defaultBindingMode: BindingMode.TwoWay, coerce: CoerceComponentValue);
+        AvaloniaProperty.Register<MatrixEditor, float?>(nameof(M14), defaultBindingMode: BindingMode.TwoWay, coerce: CoerceComponentValue);
 
     public static readonly StyledProperty<float?> M21Property =
-        AvaloniaProperty.Register<RectangleEditor, float?>(nameof(M21), defaultBindingMode: BindingMode.TwoWay, coerce: CoerceComponentValue);
+        AvaloniaProperty.Register<MatrixEditor, float?>(nameof(M21), defaultBindingMode: BindingMode.TwoWay, coerce: CoerceComponentValue);
 
     public static readonly StyledProperty<float?> M22Property =
-        AvaloniaProperty.Register<RectangleEditor, float?>(nameof(M22), defaultBindingMode: BindingMode.TwoWay, coerce: CoerceComponentValue);
+        AvaloniaProperty.Register<MatrixEditor, float?>(nameof(M22), defaultBindingMode: BindingMode.TwoWay, coerce: CoerceComponentValue);
 
     public static readonly StyledProperty<float?> M23Property =
-        AvaloniaProperty.Register<RectangleEditor, float?>(nameof(M23), defaultBindingMode: BindingMode.TwoWay, coerce: CoerceComponentValue);
+        AvaloniaProperty.Register<MatrixEditor, float?>(nameof(M23), defaultBindingMode: BindingMode.TwoWay, coerce: CoerceComponentValue);
 
     public static readonly StyledProperty<float?> M24Property =
-        AvaloniaProperty.Register<RectangleEditor, float?>(nameof(M24), defaultBindingMode: BindingMode.TwoWay, coerce: CoerceComponentValue);
+        AvaloniaProperty.Register<MatrixEditor, float?>(nameof(M24), defaultBindingMode: BindingMode.TwoWay, coerce: CoerceComponentValue);
 
     public static readonly StyledProperty<float?> M31Property =
-        AvaloniaProperty.Register<RectangleEditor, float?>(nameof(M31), defaultBindingMode: BindingMode.TwoWay, coerce: CoerceComponentValue);
+        AvaloniaProperty.Register<MatrixEditor, float?>(nameof(M31), defaultBindingMode: BindingMode.TwoWay, coerce: CoerceComponentValue);
 
     public static readonly StyledProperty<float?> M32Property =
-        AvaloniaProperty.Register<RectangleEditor, float?>(nameof(M32), defaultBindingMode: BindingMode.TwoWay, coerce: CoerceComponentValue);
+        AvaloniaProperty.Register<MatrixEditor, float?>(nameof(M32), defaultBindingMode: BindingMode.TwoWay, coerce: CoerceComponentValue);
 
     public static readonly StyledProperty<float?> M33Property =
-        AvaloniaProperty.Register<RectangleEditor, float?>(nameof(M33), defaultBindingMode: BindingMode.TwoWay, coerce: CoerceComponentValue);
+        AvaloniaProperty.Register<MatrixEditor, float?>(nameof(M33), defaultBindingMode: BindingMode.TwoWay, coerce: CoerceComponentValue);
 
     public static readonly StyledProperty<float?> M34Property =
-        AvaloniaProperty.Register<RectangleEditor, float?>(nameof(M34), defaultBindingMode: BindingMode.TwoWay, coerce: CoerceComponentValue);
+        AvaloniaProperty.Register<MatrixEditor, float?>(nameof(M34), defaultBindingMode: BindingMode.TwoWay, coerce: CoerceComponentValue);
 
     public static readonly StyledProperty<float?> M41Property =
-        AvaloniaProperty.Register<RectangleEditor, float?>(nameof(M41), defaultBindingMode: BindingMode.TwoWay, coerce: CoerceComponentValue);
+        AvaloniaProperty.Register<MatrixEditor, float?>(nameof(M41), defaultBindingMode: BindingMode.TwoWay, coerce: CoerceComponentValue);
 
     public static readonly StyledProperty<float?> M42Property =
-        AvaloniaProperty.Register<RectangleEditor, float?>(nameof(M42), defaultBindingMode: BindingMode.TwoWay, coerce: CoerceComponentValue);
+        AvaloniaProperty.Register<MatrixEditor, float?>(nameof(M42), defaultBindingMode: BindingMode.TwoWay, coerce: CoerceComponentValue);
 
     public static readonly StyledProperty<float?> M43Property =
-        AvaloniaProperty.Register<RectangleEditor, float?>(nameof(M43), defaultBindingMode: BindingMode.TwoWay, coerce: CoerceComponentValue);
+        AvaloniaProperty.Register<MatrixEditor, float?>(nameof(M43), defaultBindingMode: BindingMode.TwoWay, coerce: CoerceComponentValue);
 
     public static readonly StyledProperty<float?> M44Property =
-        AvaloniaProperty.Register<RectangleEditor, float?>(nameof(M44), defaultBindingMode: BindingMode.TwoWay, coerce: CoerceComponentValue);
+        AvaloniaProperty.Register<MatrixEditor, float?>(nameof(M44), defaultBindingMode: BindingMode.TwoWay, coerce: CoerceComponentValue);
 
     private static readonly Dictionary<AvaloniaProperty, int> PropertyToIndex;
 

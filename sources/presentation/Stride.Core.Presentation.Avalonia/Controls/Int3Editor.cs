@@ -24,7 +24,7 @@ public sealed class Int3Editor : VectorEditorBase<Int3?>
         AvaloniaProperty.Register<Int3Editor, int?>(nameof(Y), defaultBindingMode: BindingMode.TwoWay);
 
     public static readonly StyledProperty<int?> ZProperty =
-        AvaloniaProperty.Register<Int4Editor, int?>(nameof(Z), defaultBindingMode: BindingMode.TwoWay);
+        AvaloniaProperty.Register<Int3Editor, int?>(nameof(Z), defaultBindingMode: BindingMode.TwoWay);
 
     public int? X
     {
