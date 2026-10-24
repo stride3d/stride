@@ -11,6 +11,8 @@
       "sources\\editor\\Stride.Core.Assets.Editor.Common.Tests\\Stride.Core.Assets.Editor.Common.Tests.csproj",
       "sources\\editor\\Stride.Core.Assets.Editor.Avalonia.Tests\\Stride.Core.Assets.Editor.Avalonia.Tests.csproj",
       "sources\\editor\\Stride.Core.Assets.Editor.Tests\\Stride.Core.Assets.Editor.Tests.csproj",
+      "sources\\editor\\Stride.Editor.Avalonia.Tests\\Stride.Editor.Avalonia.Tests.csproj",
+      "sources\\editor\\Stride.Editor.Services.Tests\\Stride.Editor.Services.Tests.csproj",
       "sources\\core\\Stride.Core.Design.Tests\\Stride.Core.Design.Tests.csproj",
       "sources\\core\\Stride.Core.Mathematics.Tests\\Stride.Core.Mathematics.Tests.csproj",
       "sources\\core\\Stride.Core.Tests\\Stride.Core.Tests.csproj",

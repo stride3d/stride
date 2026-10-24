@@ -104,6 +104,17 @@ namespace Stride.Editor.Build
             return Build(asset, GetAssetReplacements(asset.Package?.Session));
         }
 
+        /// <summary>
+        /// Gets the compiled object the database holds for a URL, outside of a micro-thread (the tests look at the redirects).
+        /// </summary>
+        internal async Task<OutputObject?> GetOutputAsync(ObjectUrl url)
+        {
+            using ((await databaseLock.ReserveSyncLock()).Lock())
+            {
+                return database.TryGetValue(url, out var output) ? output : null;
+            }
+        }
+
         private Dictionary<string, AssetItem>? GetAssetReplacements(PackageSession? session)
         {
             lock (assetReplacementsLock)
