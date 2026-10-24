@@ -12,7 +12,6 @@ using Stride.Core.BuildEngine;
 using Stride.Core.IO;
 using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
-using Stride.Assets.Textures;
 using Stride.Core.Assets.Visitors;
 using Stride.Core.Reflection;
 using Stride.Graphics;
@@ -96,6 +95,14 @@ namespace Stride.Assets.Materials
                 graphicsProfile = context.GetGameSettingsAsset().GetOrCreate<RenderingSettings>().DefaultGraphicsProfile;
             }
 
+            public override IEnumerable<ObjectUrl> GetInputFiles()
+            {
+                foreach (var (url, id) in SourceFilesCollector.GetSourceFiles(assetItem.Asset))
+                {
+                    yield return new ObjectUrl(UrlType.Content, url);
+                }
+            }
+
             protected override void ComputeParameterHash(BinarySerializationWriter writer)
             {
                 base.ComputeParameterHash(writer);
@@ -105,24 +112,6 @@ namespace Stride.Assets.Materials
                 // Write graphics profile and color space
                 writer.Write(graphicsProfile);
                 writer.Write(colorSpace);
-
-                foreach (var (url, id) in SourceFilesCollector.GetSourceFiles(assetItem.Asset))
-                {
-                    var linkedAsset = AssetFinder.FindAsset(id);
-                    if (linkedAsset?.Asset != null)
-                    {
-                        writer.SerializeExtended(linkedAsset.Asset, ArchiveMode.Serialize);
-                    }
-                }
-
-                foreach (var compileTimeDependency in ((MaterialAsset)assetItem.Asset).FindMaterialReferences())
-                {
-                    var linkedAsset = AssetFinder.FindAsset(compileTimeDependency.Id);
-                    if (linkedAsset?.Asset != null)
-                    {
-                        writer.SerializeExtended(linkedAsset.Asset, ArchiveMode.Serialize);
-                    }
-                }
             }
 
             protected override Task<ResultStatus> DoCommandOverride(ICommandContext commandContext)

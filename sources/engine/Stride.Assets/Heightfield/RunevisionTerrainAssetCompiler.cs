@@ -3,14 +3,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 using Stride.Core.Assets;
-using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Compiler;
 using Stride.Core.BuildEngine;
 using Stride.Core.Mathematics;
-using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
 using Stride.Core.Threading;
 using Stride.Graphics;
@@ -22,11 +19,6 @@ namespace Stride.Heightfield.Assets;
 [AssetCompiler(typeof(RunevisionTerrainAsset), typeof(AssetCompilationContext))]
 internal class RunevisionTerrainAssetCompiler : AssetCompilerBase
 {
-    public override IEnumerable<BuildDependencyInfo> GetInputTypes(AssetItem assetItem)
-    {
-        yield break;
-    }
-
     public override IEnumerable<ObjectUrl> GetInputFiles(AssetItem assetItem)
     {
         var asset = (RunevisionTerrainAsset)assetItem.Asset;
@@ -50,25 +42,11 @@ internal class RunevisionTerrainAssetCompiler : AssetCompilerBase
         {
         }
 
-        protected override void ComputeParameterHash(BinarySerializationWriter writer)
+        public override IEnumerable<ObjectUrl> GetInputFiles()
         {
-            base.ComputeParameterHash(writer);
             foreach (var inputFile in Parameters.HeightInput.GetInputFiles())
             {
-                var linkedAsset = AssetFinder.FindAsset(inputFile.Path);
-                if (linkedAsset?.Asset != null)
-                {
-                    var lastModified = linkedAsset.ModifiedTime;
-                    // Actual TextureAssets don't update ModifiedTime when the texture at the url changes
-                    if (linkedAsset.Asset.MainSource is { } sourceUrl)
-                    {
-                        var assetFullPath = sourceUrl.ToOSPath();
-                        var fileModified = File.GetLastWriteTime(assetFullPath);
-                        if (lastModified < fileModified)
-                            lastModified = fileModified;
-                    }
-                    writer.Serialize(ref lastModified, ArchiveMode.Serialize);
-                }
+                yield return inputFile;
             }
         }
 

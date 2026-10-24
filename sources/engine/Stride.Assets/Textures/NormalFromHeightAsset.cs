@@ -8,7 +8,6 @@ using Stride.Assets;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Assets;
-using Stride.Core.Serialization;
 using Stride.Graphics;
 
 namespace Stride.Heightfield.Assets;
@@ -24,7 +23,7 @@ public sealed class NormalFromHeightAsset : Asset
     public const string FileExtension = ".sdhnrm";
 
     [Display(null, "Input")]
-    public required UrlReference<Texture> HeightInput { get; set; }
+    public required Texture HeightInput { get; set; }
 
     /// <userdoc>
     /// Is the texture expected to tile or fit

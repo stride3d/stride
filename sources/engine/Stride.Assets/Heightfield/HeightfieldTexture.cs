@@ -31,16 +31,16 @@ public record HeightfieldTexture : HeightfieldTextureSharedData, IHeightfieldLay
     /// <inheritdoc/>
     public IEnumerable<ObjectUrl> GetInputFiles()
     {
-        if (!string.IsNullOrEmpty(Texture?.Url))
+        if (Texture is not null)
         {
-            yield return new ObjectUrl(UrlType.Content, Texture.Url);
+            yield return new ObjectUrl(UrlType.Content, AttachedReferenceManager.GetUrl(Texture) ?? throw new NullReferenceException());
         }
     }
 
     /// <inheritdoc/>
     public void BuildRuntimeRepresentation(float size, int subdivision, ICommandContext commandContext, IAssetFinder assetFinder, out IHeightfieldRuntimeLayer runtimeLayer, out float minHeight, out float maxHeight)
     {
-        if (Texture == null! || string.IsNullOrEmpty(Texture.Url))
+        if (Texture is null)
         {
             runtimeLayer = new RuntimeLayer
             {
@@ -60,7 +60,7 @@ public record HeightfieldTexture : HeightfieldTextureSharedData, IHeightfieldLay
         }
 
         var content = new ContentManager(MicrothreadLocalDatabases.ProviderService);
-        var loadedTexture = content.Load<Texture>(Texture.Url, ContentManagerLoaderSettings.StreamingDisabled);
+        var loadedTexture = content.Load<Texture>(AttachedReferenceManager.GetUrl(Texture) ?? throw new NullReferenceException(), ContentManagerLoaderSettings.StreamingDisabled);
         var baseImage = loadedTexture.GetSerializationData().Image;
 
         using (var textureTool = new TextureTool())
@@ -292,10 +292,11 @@ public record HeightfieldTexture : HeightfieldTextureSharedData, IHeightfieldLay
         /// <inheritdoc/>
         public IComputeScalar BuildGpuSideSampler(MaterialGeneratorContext context)
         {
-            if (Texture == null! || string.IsNullOrEmpty(Texture.Url))
+            if (Texture is null)
                 return new ComputeFloat(HeightMultiplier);
 
-            var proxyObject = context.Content.Load(Texture);
+            var url = AttachedReferenceManager.GetUrl(Texture) ?? throw new NullReferenceException();
+            var proxyObject = context.Content.Load<Texture>(url, ContentManagerLoaderSettings.StreamingDisabled);
 
             var size = new Vector2(proxyObject.Width, proxyObject.Height);
             if (size.X == 0) // might not be allocated/uploaded yet, in which case we'll fetch the backing image
@@ -304,7 +305,7 @@ public record HeightfieldTexture : HeightfieldTextureSharedData, IHeightfieldLay
                 size = new Vector2(img.Description.Width, img.Description.Height);
             }
 
-            var textureScalar = new ComputeTextureScalar(proxyObject, TextureCoordinate.Texcoord0, default, default)
+            var textureScalar = new ComputeTextureScalar(Texture, TextureCoordinate.Texcoord0, default, default)
             {
                 Filtering = BilinearSampling ? TextureFilter.Linear : TextureFilter.Point,
                 AddressModeU = TextureAddressMode.Wrap,

@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Compiler;
 using Stride.Core.BuildEngine;
-using Stride.Core.Mathematics;
 using Stride.Core.Serialization.Contents;
 using Stride.Core.Threading;
 

@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 using Stride.Assets;
 using Stride.Assets.Textures;
 using Stride.Core.Assets;
-using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Compiler;
 using Stride.Core.BuildEngine;
 using Stride.Core.Mathematics;
+using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
 using Stride.Core.Threading;
 using Stride.Graphics;
@@ -22,17 +22,15 @@ namespace Stride.Heightfield.Assets;
 [AssetCompiler(typeof(NormalFromHeightAsset), typeof(AssetCompilationContext))]
 internal class NormalFromHeightAssetCompiler : AssetCompilerBase
 {
-    public override IEnumerable<BuildDependencyInfo> GetInputTypes(AssetItem assetItem)
-    {
-        yield break;
-    }
-
     public override IEnumerable<ObjectUrl> GetInputFiles(AssetItem assetItem)
     {
         var asset = (NormalFromHeightAsset)assetItem.Asset;
         var texture = asset.HeightInput;
-        if (texture != null! && texture.IsEmpty == false)
-            yield return new ObjectUrl(UrlType.Content, texture.Url);
+        if (texture is not null)
+        {
+            var url = AttachedReferenceManager.GetUrl(texture) ?? throw new NullReferenceException();
+            yield return new ObjectUrl(UrlType.Content, url);
+        }
     }
 
     protected override void Prepare(AssetCompilerContext context, AssetItem assetItem, string targetUrlInStorage, AssetCompilerResult result)
@@ -64,18 +62,29 @@ internal class NormalFromHeightAssetCompiler : AssetCompilerBase
             this.importParameters = importParameters;
         }
 
+        public override IEnumerable<ObjectUrl> GetInputFiles()
+        {
+            var texture = Parameters.HeightInput;
+            if (texture is not null)
+            {
+                var url = AttachedReferenceManager.GetUrl(texture) ?? throw new NullReferenceException();
+                yield return new ObjectUrl(UrlType.Content, url);
+            }
+        }
+
         protected override async Task<ResultStatus> DoCommandOverride(ICommandContext commandContext)
         {
             var heightInput = Parameters.HeightInput;
             
-            if (heightInput is null || heightInput.IsEmpty)
+            if (heightInput is null)
                 return ResultStatus.Failed;
             
             float[] heights;
             Int2 texResolution;
 
             var content = new ContentManager(MicrothreadLocalDatabases.ProviderService);
-            var loadedTexture = content.Load<Texture>(heightInput.Url, ContentManagerLoaderSettings.StreamingDisabled);
+            var url = AttachedReferenceManager.GetUrl(heightInput) ?? throw new NullReferenceException();
+            var loadedTexture = content.Load<Texture>(url, ContentManagerLoaderSettings.StreamingDisabled);
             var baseImage = loadedTexture.GetSerializationData().Image;
 
             using (var textureTool = new TextureTool())

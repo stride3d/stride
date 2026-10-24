@@ -16,7 +16,7 @@ public record HeightfieldTextureSharedData
     /// <summary>
     /// Input texture this Heightfield is built from, reads height from the red channel
     /// </summary>
-    public required UrlReference<Texture> Texture { get; init; } = null!;
+    public required Texture Texture { get; init; } = null!;
 
     /// <summary>
     /// Mutates the resulting height; <see cref="Texture"/>[x,y] * <see cref="HeightMultiplier"/>

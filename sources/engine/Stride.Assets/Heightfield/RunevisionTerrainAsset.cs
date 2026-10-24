@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Numerics;
 using Stride.Assets;
 using Stride.Core;
@@ -35,59 +36,25 @@ public sealed class RunevisionTerrainAsset : Asset
     public const string FileExtension = ".rvtrn";
 
     /// <summary>
-    /// Resolution of the output texture, amount of pixels would be <see cref="Resolution"/>^2
-    /// </summary>
-    [DataMemberRange(minimum: 32, maximum: 16384, 0, 0, 0)]
-    public int Resolution 
-    {
-        get;
-        set
-        {
-            ArgumentOutOfRangeException.ThrowIfLessThan(value, 32);
-            ArgumentOutOfRangeException.ThrowIfGreaterThan(value, 16384);
-            field = value;
-        }
-    } = 1024;
-
-    /// <summary>
     /// The width of the terrain captured within the texture
     /// </summary>
+    [Display(null, "Settings")]
     public float Tiling { get; set; } = 1f;
 
     /// <summary>
     /// A multiplier over the height output by the generator, occurs after <see cref="Normalization"/>
     /// </summary>
+    [Display(null, "Settings")]
     public float Height { get; set; } = 1f;
 
     /// <inheritdoc cref="NormalizationMethod"/>
+    [Display(null, "Settings")]
     public NormalizationMethod Normalization { get; set; } = NormalizationMethod.Root;
-
-    /// <summary>
-    /// The format the generated texture will be in
-    /// </summary>
-    public PixelFormat Format { get; set; } = PixelFormat.R16G16B16A16_Float;
-
-    /// <inheritdoc cref="DataTypes"/>
-    /// <remarks>
-    /// Data is laid out into the textures' RGBA channel sequentially, from low to high bit set.
-    /// For example <see cref="DataTypes.Ridges"/>(0b0100) | <see cref="DataTypes.Height"/>(0b0001)
-    /// would have the latter in the R and former in the G channel.
-    /// </remarks>
-    public DataTypes Data
-    { 
-        get;
-        set
-        {
-            if (BitOperations.PopCount((uint)value) > 4)
-                throw new ArgumentOutOfRangeException($"More than 4 {nameof(Data)} listed");
-
-            field = value;
-        } 
-    } = DataTypes.Height | DataTypes.Erosion | DataTypes.Ridges | DataTypes.TreesWhenEnabled;
 
     /// <summary>
     /// The input heightfield data to apply the erosion filter over
     /// </summary>
+    [Display(null, "Settings")]
     public required IHeightInput HeightInput
     { 
         get;
@@ -101,6 +68,7 @@ public sealed class RunevisionTerrainAsset : Asset
     /// <summary>
     /// The settings used by the erosion filter
     /// </summary>
+    [Display(null, "Settings")]
     public RunevisionTerrainErosion.Settings Settings
     { 
         get;
@@ -110,6 +78,47 @@ public sealed class RunevisionTerrainAsset : Asset
             field = value;
         } 
     } = new();
+
+    /// <summary>
+    /// Resolution of the output texture, amount of pixels would be <see cref="Resolution"/>^2
+    /// </summary>
+    [DataMemberRange(minimum: 32, maximum: 16384, 0, 0, 0)]
+    [Display(null, "Format")]
+    public int Resolution 
+    {
+        get;
+        set
+        {
+            ArgumentOutOfRangeException.ThrowIfLessThan(value, 32);
+            ArgumentOutOfRangeException.ThrowIfGreaterThan(value, 16384);
+            field = value;
+        }
+    } = 1024;
+
+    /// <summary>
+    /// The format the generated texture will be in
+    /// </summary>
+    [Display(null, "Format")]
+    public PixelFormat Format { get; set; } = PixelFormat.R16G16B16A16_Float;
+
+    /// <inheritdoc cref="DataTypes"/>
+    /// <remarks>
+    /// Data is laid out into the textures' RGBA channel sequentially, from low to high bit set.
+    /// For example <see cref="DataTypes.Ridges"/>(0b0100) | <see cref="DataTypes.Height"/>(0b0001)
+    /// would have the latter in the R and former in the G channel.
+    /// </remarks>
+    [Display(null, "Format")]
+    public DataTypes Data
+    { 
+        get;
+        set
+        {
+            if (BitOperations.PopCount((uint)value) > 4)
+                throw new ArgumentOutOfRangeException($"More than 4 {nameof(Data)} listed");
+
+            field = value;
+        } 
+    } = DataTypes.Height | DataTypes.Erosion | DataTypes.Ridges | DataTypes.TreesWhenEnabled;
 
     /// <summary>
     /// An input heightfield to erode through <see cref="RunevisionTerrainAsset"/>

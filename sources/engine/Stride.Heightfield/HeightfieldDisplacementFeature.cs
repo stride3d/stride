@@ -43,9 +43,9 @@ public class HeightfieldDisplacementFeature : MaterialFeature, IMaterialDisplace
         if (HeightfieldSource == null!)
             return;
 
-        // This is an on-build workaround. During build, HeightfieldSource is not fully loaded, just an empty proxy.
-        // RetrieveGPUSideSampler in most case requires full data before it can provide the right sampler.
-        // No clue how I can ensure HeightfieldSource is properly and entirely deserialized when the MaterialCompiler calls into this function
+        // This is an on-build workaround. During build, HeightfieldSource is an empty proxy
+        // created through ContentReferenceSerializer. Seems to be on purpose?
+        // RetrieveGPUSideSampler in most case requires full data to provide the right sampler so we'll force load it.
         var source = HeightfieldSource;
         if (context.Content.TryGetAssetUrl(source, out _) == false)
         {
