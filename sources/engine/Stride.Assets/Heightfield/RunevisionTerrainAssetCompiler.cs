@@ -215,11 +215,15 @@ internal class RunevisionTerrainAssetCompiler : AssetCompilerBase
                         if (dataPackedFormat != Parameters.Format)
                             textureTool.Convert(texImage, Parameters.Format);
 
-                        var boxFilteringIsSupported = !texImage.Format.IsSRgb || MathUtil.IsPow2(Parameters.Resolution);
-                        textureTool.GenerateMipMaps(texImage, boxFilteringIsSupported ? Filter.MipMapGeneration.Box : Filter.MipMapGeneration.Linear);
-                        var imageWithMipmaps = textureTool.ConvertToStrideImage(texImage);
-                        commandContext.Logger.Info($"Saving {Url} - {imageWithMipmaps.TotalSizeInBytes / 1024}MB");
-                        assetManager.Save(Url, imageWithMipmaps.ToSerializableVersion(), typeof(Texture));
+                        if (Parameters.GenerateMipmaps)
+                        {
+                            var boxFilteringIsSupported = !texImage.Format.IsSRgb || MathUtil.IsPow2(Parameters.Resolution);
+                            textureTool.GenerateMipMaps(texImage, boxFilteringIsSupported ? Filter.MipMapGeneration.Box : Filter.MipMapGeneration.Linear);
+                        }
+
+                        var image = textureTool.ConvertToStrideImage(texImage);
+                        commandContext.Logger.Info($"Saving {Url} - {image.TotalSizeInBytes / 1024}MB");
+                        assetManager.Save(Url, image.ToSerializableVersion(), typeof(Texture));
                     }
                 }
             }

@@ -101,6 +101,17 @@ public sealed class RunevisionTerrainAsset : Asset
     [Display(null, "Format")]
     public PixelFormat Format { get; set; } = PixelFormat.R16G16B16A16_Float;
 
+    /// <summary>
+    /// Gets or sets a value indicating whether to generate mipmaps.
+    /// </summary>
+    /// <value><c>true</c> if mipmaps are generated; otherwise, <c>false</c>.</value>
+    /// <userdoc>
+    /// Generate mipmaps for the texture
+    /// </userdoc>
+    [DefaultValue(true)]
+    [Display("Generate mipmaps", "Format")]
+    public bool GenerateMipmaps { get; set; } = true;
+
     /// <inheritdoc cref="DataTypes"/>
     /// <remarks>
     /// Data is laid out into the textures' RGBA channel sequentially, from low to high bit set.
