@@ -312,20 +312,25 @@ public class HeightfieldColliderShape : ColliderShape
 
         public void Update(CommandList commandList)
         {
-            Dispatcher.ForEach(Tiles, (tile) =>
+            unsafe
+            {
+                Dispatcher.ForEach<Tile, List<Tile>, HeightfieldDebugPrimitive>(Tiles, this, &UpdateTile);
+            }
+
+            static void UpdateTile(HeightfieldDebugPrimitive shape, Tile tile)
             {
                 for (int j = 0; j <= tile.Height; ++j)
                 {
                     for (int i = 0; i <= tile.Width; ++i)
                     {
-                        GetHeightStickHeightAndColor(tile.Point.X + i, tile.Point.Y + j, out var heightStickHeight, out var color);
+                        shape.GetHeightStickHeightAndColor(tile.Point.X + i, tile.Point.Y + j, out var heightStickHeight, out var color);
 
                         var index = j * (tile.Width + 1) + i;
                         tile.Vertices[index].Position.Y = heightStickHeight;
                         tile.Vertices[index].Color = color;
                     }
                 }
-            });
+            }
 
             foreach (var tile in Tiles)
             {

@@ -4,13 +4,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Runtime.InteropServices;
 using System.Threading;
 using Stride.Core;
 using Stride.Core.Collections;
-using Stride.Core.Threading;
 using Stride.Core.Diagnostics;
+using Stride.Core.Mathematics;
+using Stride.Core.Threading;
 using Stride.Graphics;
-using System.Runtime.InteropServices;
 
 namespace Stride.Rendering
 {
@@ -104,6 +105,12 @@ namespace Stride.Rendering
             }
         }
 
+        private readonly record struct ExtractParameters
+        {
+            public required RenderSystem RenderSystem { get; init; }
+            public required RenderView View { get; init; }
+        }
+
         /// <summary>
         /// Extract data from entities, should be as fast as possible to not block simulation loop. It should be mostly copies, and the actual processing should be part of Prepare().
         /// </summary>
@@ -141,7 +148,12 @@ namespace Stride.Rendering
             }
 
             // Create nodes for objects to render
-            Dispatcher.ForEach(Views, view =>
+            unsafe
+            {
+                Dispatcher.ForEach<RenderView, FastTrackingCollection<RenderView>, RenderSystem>(Views, this, &ProcessView);
+            }
+
+            static void ProcessView(RenderSystem renderSystem, RenderView view)
             {
                 using var _ = Profiler.Begin(CreateObjectNodesKey);
                 // Sort per render feature (used for later sorting)
@@ -151,47 +163,17 @@ namespace Stride.Rendering
                     Dispatcher.Sort(view.RenderObjects, RenderObjectFeatureComparer.Default);
                 }
 
-                Dispatcher.ForEach(view.RenderObjects, () => extractThreadLocals.Value, (renderObject, batch) =>
+                var parameters = new ExtractParameters
                 {
-                    var renderFeature = renderObject.RenderFeature;
-                    var viewFeature = view.Features[renderFeature.Index];
+                    RenderSystem = renderSystem,
+                    View = view,
+                };
+                unsafe
+                {
+                    Dispatcher.ForEach<RenderObject, ExtractThreadLocals, ConcurrentCollector<RenderObject>, ExtractParameters>(view.RenderObjects, in parameters, &InitializeLocal, &ProcessRenderObject, &FinalizeLocal);
+                }
 
-                    // Create object node
-                    renderFeature.GetOrCreateObjectNode(renderObject);
-
-                    // Let's create the view object node
-                    var renderViewNode = renderFeature.CreateViewObjectNode(view, renderObject);
-                    viewFeature.ViewObjectNodes.Add(renderViewNode, batch.ViewFeatureObjectNodeCache);
-
-                    // Collect object
-                    // TODO: Check which stage it belongs to (and skip everything if it doesn't belong to any stage)
-                    // TODO: For now, we build list and then copy. Another way would be to count and then fill (might be worse, need to check)
-
-                    using (Profiler.Begin(CollectObjectKey))
-                    {
-                        var activeRenderStages = renderObject.ActiveRenderStages;
-                        foreach (var renderViewStage in view.RenderStages)
-                        {
-                            // Check if this RenderObject wants to be rendered for this render stage
-                            var renderStageIndex = renderViewStage.Index;
-                            if (!activeRenderStages[renderStageIndex].Active)
-                                continue;
-
-                            var renderStage = RenderStages[renderStageIndex];
-                            if (renderStage.Filter != null && !renderStage.Filter.IsVisible(renderObject, view, renderViewStage))
-                                continue;
-
-                            var renderNode = renderFeature.CreateRenderNode(renderObject, view, renderViewNode, renderStage);
-
-                            // Note: Used mostly during updating
-                            viewFeature.RenderNodes.Add(renderNode, batch.ViewFeatureRenderNodeCache);
-
-                            // Note: Used mostly during rendering
-                            renderViewStage.RenderNodes.Add(new RenderNodeFeatureReference(renderFeature, renderNode, renderObject), batch.ViewStageRenderNodeCache);
-                        }
-                    }
-                }, batch => batch.Flush());
-                // Finish collectin of view feature nodes
+                // Finish collecting of view feature nodes
                 foreach (var viewFeature in view.Features)
                 {
                     viewFeature.ViewObjectNodes.Close();
@@ -207,7 +189,58 @@ namespace Stride.Rendering
                         Dispatcher.Sort(renderViewStage.RenderNodes, RenderNodeFeatureReferenceComparer.Default);
                     }
                 }
-            });
+
+                static ExtractThreadLocals InitializeLocal(ref readonly ExtractParameters parameters)
+                {
+                    return parameters.RenderSystem.extractThreadLocals.Value;
+                }
+
+                static void ProcessRenderObject(ref readonly ExtractParameters parameters, RenderObject renderObject, ExtractThreadLocals batch)
+                {
+                    var renderFeature = renderObject.RenderFeature;
+                    var viewFeature = parameters.View.Features[renderFeature.Index];
+
+                    // Create object node
+                    renderFeature.GetOrCreateObjectNode(renderObject);
+
+                    // Let's create the view object node
+                    var renderViewNode = renderFeature.CreateViewObjectNode(parameters.View, renderObject);
+                    viewFeature.ViewObjectNodes.Add(renderViewNode, batch.ViewFeatureObjectNodeCache);
+
+                    // Collect object
+                    // TODO: Check which stage it belongs to (and skip everything if it doesn't belong to any stage)
+                    // TODO: For now, we build list and then copy. Another way would be to count and then fill (might be worse, need to check)
+
+                    using (Profiler.Begin(CollectObjectKey))
+                    {
+                        var activeRenderStages = renderObject.ActiveRenderStages;
+                        foreach (var renderViewStage in parameters.View.RenderStages)
+                        {
+                            // Check if this RenderObject wants to be rendered for this render stage
+                            var renderStageIndex = renderViewStage.Index;
+                            if (!activeRenderStages[renderStageIndex].Active)
+                                continue;
+
+                            var renderStage = parameters.RenderSystem.RenderStages[renderStageIndex];
+                            if (renderStage.Filter != null && !renderStage.Filter.IsVisible(renderObject, parameters.View, renderViewStage))
+                                continue;
+
+                            var renderNode = renderFeature.CreateRenderNode(renderObject, parameters.View, renderViewNode, renderStage);
+
+                            // Note: Used mostly during updating
+                            viewFeature.RenderNodes.Add(renderNode, batch.ViewFeatureRenderNodeCache);
+
+                            // Note: Used mostly during rendering
+                            renderViewStage.RenderNodes.Add(new RenderNodeFeatureReference(renderFeature, renderNode, renderObject), batch.ViewStageRenderNodeCache);
+                        }
+                    }
+                }
+
+                static void FinalizeLocal(ref readonly ExtractParameters parameters, ExtractThreadLocals batch)
+                {
+                    batch.Flush();
+                }
+            }
 
             // Finish collection of render feature nodes
             foreach (var renderFeature in RenderFeatures)
@@ -273,17 +306,28 @@ namespace Stride.Rendering
             using (Profiler.Begin(PrepareSortKey))
             {
                 // Sort
-                Dispatcher.ForEach(Views, view =>
+                Dispatcher.ForEach<RenderView, FastTrackingCollection<RenderView>, RenderSystem>(Views, this, &SortView);
+
+                static void SortView(RenderSystem renderSystem, RenderView view)
                 {
-                    Dispatcher.For(0, view.RenderStages.Count, () => prepareThreadLocals.Acquire(), (index, local) =>
+                    var state = (renderSystem, view);
+                    Dispatcher.For<PrepareThreadLocals, (RenderSystem, RenderView)>(0, view.RenderStages.Count, state, &InitializeLocal, &SortRenderStage, &FinalizeLocal);
+
+                    static PrepareThreadLocals InitializeLocal(ref readonly (RenderSystem, RenderView) state)
                     {
+                        return state.Item1.prepareThreadLocals.Acquire();
+                    }
+
+                    static void SortRenderStage(ref readonly (RenderSystem, RenderView) state, int index, PrepareThreadLocals local)
+                    {
+                        var (renderSystem, view) = state;
                         var renderViewStage = view.RenderStages[index];
 
                         var renderNodes = renderViewStage.RenderNodes;
                         if (renderNodes.Count == 0)
                             return;
 
-                        var renderStage = RenderStages[renderViewStage.Index];
+                        var renderStage = renderSystem.RenderStages[renderViewStage.Index];
                         var sortedRenderNodes = renderViewStage.SortedRenderNodes;
 
                         CollectionsMarshal.SetCount(sortedRenderNodes, renderNodes.Count);
@@ -314,8 +358,13 @@ namespace Stride.Rendering
                                 sortedRenderNodes[i] = renderNodes[i];
                             }
                         }
-                    }, state => prepareThreadLocals.Release(state));
-                });
+                    }
+
+                    static void FinalizeLocal(ref readonly (RenderSystem, RenderView) state, PrepareThreadLocals local)
+                    {
+                        state.Item1.prepareThreadLocals.Release(local);
+                    }
+                }
             }
 
             // Flush the resources uploaded during Prepare
@@ -348,7 +397,22 @@ namespace Stride.Rendering
             return RenderStageDepthAccess.Mixed; // empty stage: nothing to pre-transition
         }
 
-        public void Draw(RenderDrawContext renderDrawContext, RenderView renderView, RenderStage renderStage)
+        private readonly record struct DrawParameters
+        {
+            public required RenderSystem RenderSystem { get; init; }
+            public required RenderDrawContext RenderDrawContext { get; init; }
+            public required RenderView RenderView { get; init; }
+            public required RenderViewStage RenderViewStage { get; init; }
+            public required int BatchSize { get; init; }
+            public required int RenderNodeCount { get; init; }
+            public required Texture DepthStencilBuffer { get; init; }
+            public required int RenderTargetCount { get; init; }
+            public required Viewport Viewport { get; init; }
+            public required Rectangle Scissor { get; init; }
+            public required DepthStencilAccess DepthStencilAccess { get; init; }
+        }
+
+        public unsafe void Draw(RenderDrawContext renderDrawContext, RenderView renderView, RenderStage renderStage)
         {
             using var _ = Profiler.Begin(DrawKey);
             // Sync point: draw (from now, we should execute with a graphics device context to perform rendering)
@@ -462,23 +526,47 @@ namespace Stride.Rendering
                 }
                 commandLists[0] = commandList.Close();
 
-                Dispatcher.For(0, batchCount, () => renderDrawContext.RenderContext.GetThreadContext(), (batchIndex, threadContext) =>
+                var state = new DrawParameters
                 {
+                    RenderSystem = this,
+                    RenderDrawContext = renderDrawContext,
+                    RenderView = renderView,
+                    RenderViewStage = renderViewStage,
+                    BatchSize = batchSize,
+                    RenderNodeCount = renderNodeCount,
+                    DepthStencilBuffer = depthStencilBuffer,
+                    RenderTargetCount = renderTargetCount,
+                    Viewport = viewport,
+                    Scissor = scissor,
+                    DepthStencilAccess = depthStencilAccess,
+                };
+                Dispatcher.For(0, batchCount, state, &InitializeLocal, &ForAction);
+
+                static RenderDrawContext InitializeLocal(ref readonly DrawParameters state)
+                {
+                    return state.RenderDrawContext.RenderContext.GetThreadContext();
+                }
+
+                static void ForAction(ref readonly DrawParameters state, int batchIndex, RenderDrawContext threadContext)
+                {
+                    var renderSystem = state.RenderSystem;
+                    var renderViewStage = state.RenderViewStage;
+                    var renderNodes = renderViewStage.SortedRenderNodes;
                     using var _ = Profiler.Begin(DrawRenderFeatureChunksKey);
                     threadContext.CommandList.Reset();
                     threadContext.CommandList.ClearState();
 
                     // Transfer state to all command lists
-                    scoped ReadOnlySpan<Texture> renderTargetsToSet = renderTargets.AsSpan(0, renderTargetCount);
-                    threadContext.CommandList.SetRenderTargets(depthStencilBuffer, renderTargetsToSet);
-                    threadContext.CommandList.SetViewport(viewport);
-                    threadContext.CommandList.SetScissorRectangle(scissor);
-                    threadContext.CommandList.DepthStencilAccess = depthStencilAccess;
+                    scoped ReadOnlySpan<Texture> renderTargetsToSet = renderSystem.renderTargets.AsSpan(0, state.RenderTargetCount);
+                    threadContext.CommandList.SetRenderTargets(state.DepthStencilBuffer, renderTargetsToSet);
+                    threadContext.CommandList.SetViewport(state.Viewport);
+                    threadContext.CommandList.SetScissorRectangle(state.Scissor);
+                    threadContext.CommandList.DepthStencilAccess = state.DepthStencilAccess;
 
-                    var currentStart = batchSize * batchIndex;
+                    var currentStart = state.BatchSize * batchIndex;
                     int currentEnd;
 
-                    var endExclusive = Math.Min(renderNodeCount, currentStart + batchSize);
+                    var endExclusive = int.Min(state.RenderNodeCount, currentStart + state.BatchSize);
 
                     if (endExclusive <= currentStart)
                         return;
@@ -493,11 +581,11 @@ namespace Stride.Rendering
                         }
 
                         // Divide into task chunks for parallelism
-                        currentRenderFeature.Draw(threadContext, renderView, renderViewStage, currentStart, currentEnd);
+                        currentRenderFeature.Draw(threadContext, state.RenderView, renderViewStage, currentStart, currentEnd);
                     }
 
-                    commandLists[batchIndex + 1] = threadContext.CommandList.Close();
-                });
+                    renderSystem.commandLists[batchIndex + 1] = threadContext.CommandList.Close();
+                }
 
                 GraphicsDevice.ExecuteCommandLists(batchCount + 1, commandLists);
 

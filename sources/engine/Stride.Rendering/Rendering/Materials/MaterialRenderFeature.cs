@@ -134,6 +134,14 @@ namespace Stride.Rendering.Materials
             perMaterialDescriptorSetSlot = ((RootEffectRenderFeature)RootRenderFeature).GetOrCreateEffectDescriptorSetSlot("PerMaterial");
         }
 
+        private readonly record struct PrepareEffectPermutationParameters
+        {
+            public required MaterialRenderFeature Feature { get; init; }
+            public required StaticObjectPropertyData<RenderEffect> RenderEffects { get; init; }
+            public required StaticObjectPropertyData<TessellationState> TessellationStates { get; init; }
+            public required int EffectSlotCount { get; init; }
+        }
+
         /// <inheritdoc/>
         public override void PrepareEffectPermutations(RenderDrawContext context)
         {
@@ -142,7 +150,19 @@ namespace Stride.Rendering.Materials
             var tessellationStates = RootRenderFeature.RenderData.GetData(tessellationStateKey);
             int effectSlotCount = ((RootEffectRenderFeature)RootRenderFeature).EffectPermutationSlotCount;
 
-            Dispatcher.ForEach(RootRenderFeature.RenderObjects, renderObject =>
+            var parameters = new PrepareEffectPermutationParameters
+            {
+                Feature = this,
+                RenderEffects = renderEffects,
+                TessellationStates = tessellationStates,
+                EffectSlotCount = effectSlotCount,
+            };
+            unsafe
+            {
+                Dispatcher.ForEach<RenderObject, List<RenderObject>, PrepareEffectPermutationParameters>(RootRenderFeature.RenderObjects, in parameters, &ProcessRenderObject);
+            }
+
+            static void ProcessRenderObject(ref readonly PrepareEffectPermutationParameters parameters, RenderObject renderObject)
             {
                 var staticObjectNode = renderObject.StaticObjectNode;
 
@@ -156,7 +176,7 @@ namespace Stride.Rendering.Materials
                 var materialSortKey = material != null ? (material.SortKey & 0x0FFF) | ((uint)material.PassIndex << 12) : 0;
                 renderObject.StateSortKey = (renderObject.StateSortKey & 0x0000FFFF) | (materialSortKey << 16);
 
-                ref var tessellationState = ref tessellationStates[staticObjectNode];
+                ref var tessellationState = ref parameters.TessellationStates[staticObjectNode];
 
                 // Update draw data if tessellation is active
                 if (material.TessellationMethod != StrideTessellationMethod.None)
@@ -180,7 +200,7 @@ namespace Stride.Rendering.Materials
                         // adapt the primitive type and index buffer to the tessellation used
                         if (tessellationState.Method.PerformsAdjacentEdgeAverage())
                         {
-                            renderMeshesToGenerateAEN.Add(renderMesh);
+                            parameters.Feature.renderMeshesToGenerateAEN.Add(renderMesh);
                         }
                         else
                         {
@@ -216,10 +236,10 @@ namespace Stride.Rendering.Materials
                     resetPipelineState = true;
                 }
 
-                for (int i = 0; i < effectSlotCount; ++i)
+                for (int i = 0; i < parameters.EffectSlotCount; ++i)
                 {
-                    var staticEffectObjectNode = staticObjectNode * effectSlotCount + i;
-                    var renderEffect = renderEffects[staticEffectObjectNode];
+                    var staticEffectObjectNode = staticObjectNode * parameters.EffectSlotCount + i;
+                    var renderEffect = parameters.RenderEffects[staticEffectObjectNode];
 
                     if (renderEffect == null)
                         continue;
@@ -229,18 +249,18 @@ namespace Stride.Rendering.Materials
                         renderEffect.InvalidatePipelineState();
 
                     // Skip effects not used during this frame
-                    if (!renderEffect.IsUsedDuringThisFrame(RenderSystem))
+                    if (!renderEffect.IsUsedDuringThisFrame(parameters.Feature.RenderSystem))
                         continue;
 
                     if (materialInfo == null || materialInfo.MaterialPass != material)
                     {
                         // First time this material is initialized, let's create associated info
-                        lock (allMaterialInfos)
+                        lock (parameters.Feature.allMaterialInfos)
                         {
-                            if (!allMaterialInfos.TryGetValue(material, out materialInfo))
+                            if (!parameters.Feature.allMaterialInfos.TryGetValue(material, out materialInfo))
                             {
                                 materialInfo = new MaterialInfo(material);
-                                allMaterialInfos.Add(material, materialInfo);
+                                parameters.Feature.allMaterialInfos.Add(material, materialInfo);
                             }
                         }
                         renderMesh.MaterialInfo = materialInfo;
@@ -304,24 +324,26 @@ namespace Stride.Rendering.Materials
                     if (materialInfo.UseDitheredShadows)
                         renderEffect.EffectValidator.ValidateParameter(MaterialKeys.UseDitheredShadows, materialInfo.UseDitheredShadows);
                 }
-            });
+            }
 
             renderMeshesToGenerateAEN.Close();
         }
 
         /// <inheritdoc/>
-        public override void Prepare(RenderDrawContext context)
+        public override unsafe void Prepare(RenderDrawContext context)
         {
             // Assign descriptor sets to each render node
             var resourceGroupPool = ((RootEffectRenderFeature)RootRenderFeature).ResourceGroupPool;
+            Dispatcher.ForBatched(RootRenderFeature.RenderNodes.Count, (this, context, resourceGroupPool), &ForBatchedAction);
 
-            Dispatcher.ForBatched(RootRenderFeature.RenderNodes.Count, (from, toExclusive) =>
+            static void ForBatchedAction(ref readonly (MaterialRenderFeature, RenderDrawContext, ResourceGroup[]) state, int from, int toExclusive)
             {
+                var (@this, context, resourceGroupPool) = state;
                 var threadContext = context.RenderContext.GetThreadContext();
                 for (int i = from; i < toExclusive; i++)
                 {
                     var renderNodeReference = new RenderNodeReference(i);
-                    var renderNode = RootRenderFeature.RenderNodes[i];
+                    var renderNode = @this.RootRenderFeature.RenderNodes[i];
                     var renderMesh = (RenderMesh)renderNode.RenderObject;
 
                     // Ignore fallback effects
@@ -334,16 +356,16 @@ namespace Stride.Rendering.Materials
                     var materialParameters = material.Parameters;
 
                     // Register resources usage
-                    Context.StreamingManager?.StreamResources(materialParameters);
+                    @this.Context.StreamingManager?.StreamResources(materialParameters);
 
-                    var resources = UpdateMaterial(RenderSystem, threadContext, materialInfo, perMaterialDescriptorSetSlot.Index, renderNode.RenderEffect, materialParameters);
+                    var resources = UpdateMaterial(@this.RenderSystem, threadContext, materialInfo, @this.perMaterialDescriptorSetSlot.Index, renderNode.RenderEffect, materialParameters);
                     if (resources == null)
                         continue;
 
-                    var descriptorSetPoolOffset = ((RootEffectRenderFeature)RootRenderFeature).ComputeResourceGroupOffset(renderNodeReference);
-                    resourceGroupPool[descriptorSetPoolOffset + perMaterialDescriptorSetSlot.Index] = resources;
+                    var descriptorSetPoolOffset = ((RootEffectRenderFeature)@this.RootRenderFeature).ComputeResourceGroupOffset(renderNodeReference);
+                    resourceGroupPool[descriptorSetPoolOffset + @this.perMaterialDescriptorSetSlot.Index] = resources;
                 }
-            });
+            }
         }
 
         public override void Draw(RenderDrawContext context, RenderView renderView, RenderViewStage renderViewStage, int startIndex, int endIndex)

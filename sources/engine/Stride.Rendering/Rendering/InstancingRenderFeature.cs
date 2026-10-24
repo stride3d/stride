@@ -105,6 +105,14 @@ namespace Stride.Rendering
             buffer.SetData(commandList, (ReadOnlySpan<TData>)fromData.AsSpan(0, Math.Min(elementCount, fromData.Length)));
         }
 
+        private readonly record struct PrepareEffectPermutationParameters
+        {
+            public required RenderSystem RenderSystem { get; init; }
+            public required StaticObjectPropertyData<InstancingData> InstancingData { get; init; }
+            public required StaticObjectPropertyData<RenderEffect> RenderEffects { get; init; }
+            public required int EffectSlotCount { get; init; }
+        }
+
         public override void PrepareEffectPermutations(RenderDrawContext context)
         {
             using var _ = Profiler.Begin(PrepareEffectPermutationsKey);
@@ -113,20 +121,31 @@ namespace Stride.Rendering
             var renderEffects = RootRenderFeature.RenderData.GetData(renderEffectKey);
             int effectSlotCount = ((RootEffectRenderFeature)RootRenderFeature).EffectPermutationSlotCount;
 
-            Dispatcher.ForEach(RootRenderFeature.RenderObjects, renderObject =>
+            var parameters = new PrepareEffectPermutationParameters
+            {
+                RenderSystem = RenderSystem,
+                InstancingData = renderObjectInstancingData,
+                RenderEffects = renderEffects,
+                EffectSlotCount = effectSlotCount,
+            };
+            unsafe
+            {
+                Dispatcher.ForEach<RenderObject, List<RenderObject>, PrepareEffectPermutationParameters>(RootRenderFeature.RenderObjects, in parameters, &ProcessRenderObject);
+            }
+
+            static void ProcessRenderObject(ref readonly PrepareEffectPermutationParameters parameters, RenderObject renderObject)
             {
                 var renderMesh = (RenderMesh)renderObject;
-
                 var staticObjectNode = renderMesh.StaticObjectNode;
-                var instancingData = renderObjectInstancingData[staticObjectNode];
+                var instancingData = parameters.InstancingData[staticObjectNode];
 
-                for (int i = 0; i < effectSlotCount; i++)
+                for (int i = 0; i < parameters.EffectSlotCount; i++)
                 {
-                    var staticEffectObjectNode = staticObjectNode * effectSlotCount + i;
-                    var renderEffect = renderEffects[staticEffectObjectNode];
+                    var staticEffectObjectNode = staticObjectNode * parameters.EffectSlotCount + i;
+                    var renderEffect = parameters.RenderEffects[staticEffectObjectNode];
 
                     // Skip effects not used during this frame
-                    if (renderEffect == null || !renderEffect.IsUsedDuringThisFrame(RenderSystem))
+                    if (renderEffect == null || !renderEffect.IsUsedDuringThisFrame(parameters.RenderSystem))
                         continue;
 
                     if (instancingData.InstanceCount > 0)
@@ -135,7 +154,7 @@ namespace Stride.Rendering
                         renderEffect.EffectValidator.ValidateParameter(StrideEffectBaseKeys.HasInstancing, instancingData.InstanceCount > 0); 
                     }
                 }
-            });
+            }
         }
 
         /// <inheritdoc/>

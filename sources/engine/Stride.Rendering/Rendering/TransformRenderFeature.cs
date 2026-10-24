@@ -55,21 +55,32 @@ namespace Stride.Rendering
         }
 
         /// <inheritdoc/>
-        public override void Extract()
+        public override unsafe void Extract()
         {
             using var _ = Profiler.Begin(ExtractKey);
             var renderModelObjectInfo = RootRenderFeature.RenderData.GetData(RenderModelObjectInfoKey);
 
             //for (int index = 0; index < RootRenderFeature.ObjectNodeReferences.Count; index++)
-            Dispatcher.For(0, RootRenderFeature.ObjectNodeReferences.Count, index =>
+            Dispatcher.For(0, RootRenderFeature.ObjectNodeReferences.Count, (this, renderModelObjectInfo), &ForAction);
+
+            static void ForAction(ref readonly (TransformRenderFeature, ObjectPropertyData<RenderModelFrameInfo>) state, int index)
             {
-                var objectNodeReference = RootRenderFeature.ObjectNodeReferences[index];
-                var objectNode = RootRenderFeature.GetObjectNode(objectNodeReference);
+                var (@this, renderModelObjectInfo) = state;
+                var objectNodeReference = @this.RootRenderFeature.ObjectNodeReferences[index];
+                var objectNode = @this.RootRenderFeature.GetObjectNode(objectNodeReference);
                 var renderMesh = objectNode.RenderObject as RenderMesh;
 
                 // TODO: Extract world
                 renderModelObjectInfo[objectNodeReference].World = renderMesh != null ? renderMesh.World : Matrix.Identity;
-            });
+            }
+        }
+
+        private readonly record struct PrepareViewParameters
+        {
+            public required RootRenderFeature RootRenderFeature { get; init; }
+            public required RenderView View { get; init; }
+            public required ObjectPropertyData<RenderModelFrameInfo> RenderModelObjectInfoData { get; init; }
+            public required ViewObjectPropertyData<RenderModelViewInfo> RenderModelViewInfoData { get; init; }
         }
 
         /// <inheritdoc/>
@@ -103,15 +114,25 @@ namespace Stride.Rendering
                 var viewFeature = view.Features[RootRenderFeature.Index];
 
                 // Compute WorldView and WorldViewProjection
-                Dispatcher.ForEach(viewFeature.ViewObjectNodes, renderPerViewNodeReference =>
+                var parameters = new PrepareViewParameters
                 {
-                    var renderPerViewNode = RootRenderFeature.GetViewObjectNode(renderPerViewNodeReference);
-                    ref var renderModelFrameInfo = ref renderModelObjectInfoData[renderPerViewNode.ObjectNode];
-                    ref var renderModelViewInfo = ref renderModelViewInfoData[renderPerViewNodeReference];
+                    RootRenderFeature = RootRenderFeature,
+                    View = view,
+                    RenderModelObjectInfoData = renderModelObjectInfoData,
+                    RenderModelViewInfoData = renderModelViewInfoData,
+                };
+                Dispatcher.ForEach<ViewObjectNodeReference, ConcurrentCollector<ViewObjectNodeReference>, PrepareViewParameters>(viewFeature.ViewObjectNodes, in parameters, &ProcessViewObjectNode);
+
+                static void ProcessViewObjectNode(ref readonly PrepareViewParameters parameters, ViewObjectNodeReference renderPerViewNodeReference)
+                {
+                    var renderPerViewNode = parameters.RootRenderFeature.GetViewObjectNode(renderPerViewNodeReference);
+                    ref var renderModelFrameInfo = ref parameters.RenderModelObjectInfoData[renderPerViewNode.ObjectNode];
+                    ref var renderModelViewInfo = ref parameters.RenderModelViewInfoData[renderPerViewNodeReference];
+                    var view = parameters.View;
 
                     Matrix.Multiply(ref renderModelFrameInfo.World, ref view.View, out renderModelViewInfo.WorldView);
                     Matrix.Multiply(ref renderModelFrameInfo.World, ref view.ViewProjection, out renderModelViewInfo.WorldViewProjection);
-                });
+                }
 
                 // Copy ViewProjection to PerView cbuffer
                 foreach (var viewLayout in viewFeature.Layouts)
@@ -160,17 +181,20 @@ namespace Stride.Rendering
             // Update PerDraw (World, WorldViewProj, etc...)
             // Copy Entity.World to PerDraw cbuffer
             // TODO: Have a PerObject cbuffer?
-            Dispatcher.ForBatched(RootRenderFeature.RenderNodes.Count, (from, toExclusive) =>
+            Dispatcher.ForBatched(RootRenderFeature.RenderNodes.Count, (this, renderModelObjectInfoData, renderModelViewInfoData), &ForBatchedAction);
+
+            static void ForBatchedAction(ref readonly (TransformRenderFeature, ObjectPropertyData<RenderModelFrameInfo>, ViewObjectPropertyData<RenderModelViewInfo>) state, int from, int toExclusive)
             {
+                var (@this, renderModelObjectInfoData, renderModelViewInfoData) = state;
                 for (int i = from; i < toExclusive; i++)
                 {
-                    var renderNode = RootRenderFeature.RenderNodes[i];
+                    var renderNode = @this.RootRenderFeature.RenderNodes[i];
                     var perDrawLayout = renderNode.RenderEffect.Reflection?.PerDrawLayout;
                     if (perDrawLayout == null)
                         continue;
 
-                    var worldOffset = perDrawLayout.GetConstantBufferOffset(this.world);
-                    var worldInverseOffset = perDrawLayout.GetConstantBufferOffset(this.worldInverse);
+                    var worldOffset = perDrawLayout.GetConstantBufferOffset(@this.world);
+                    var worldInverseOffset = perDrawLayout.GetConstantBufferOffset(@this.worldInverse);
 
                     if (worldOffset == -1 && worldInverseOffset == -1)
                         continue;
@@ -210,7 +234,7 @@ namespace Stride.Rendering
                         *perDraw = perDrawData;
                     }
                 }
-            });
+            }
         }
 
         [StructLayout(LayoutKind.Sequential)]

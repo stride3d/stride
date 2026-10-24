@@ -223,6 +223,15 @@ namespace Stride.Rendering.Lights
         {
         }
 
+        private readonly record struct EffectPermutationParameters
+        {
+            public required ForwardLightingRenderFeature Feature { get; init; }
+            public required StaticObjectPropertyData<RenderEffect> RenderEffects { get; init; }
+            public required int EffectSlotCount { get; init; }
+            public required ShaderSourceCollection DirectLightShaders { get; init; }
+            public required ShaderSourceCollection EnvironmentLightShaders { get; init; }
+        }
+
         /// <inheritdoc/>
         public override void PrepareEffectPermutations(RenderDrawContext context)
         {
@@ -314,7 +323,20 @@ namespace Stride.Rendering.Lights
             var directLightShaders = GetReadonlyShaderSources(shaderPermutation.DirectLightShaders);
             var environmentLightShaders = GetReadonlyShaderSources(shaderPermutation.EnvironmentLightShaders);
 
-            Dispatcher.ForEach(RootRenderFeature.RenderObjects, renderObject =>
+            var parameters = new EffectPermutationParameters
+            {
+                Feature = this,
+                RenderEffects = renderEffects,
+                EffectSlotCount = effectSlotCount,
+                DirectLightShaders = directLightShaders,
+                EnvironmentLightShaders = environmentLightShaders,
+            };
+            unsafe
+            {
+                Dispatcher.ForEach<RenderObject, List<RenderObject>, EffectPermutationParameters>(RootRenderFeature.RenderObjects, in parameters, &ProcessRenderObject);
+            }
+
+            static void ProcessRenderObject(ref readonly EffectPermutationParameters parameters, RenderObject renderObject)
             {
                 var renderMesh = (RenderMesh)renderObject;
 
@@ -323,27 +345,27 @@ namespace Stride.Rendering.Lights
 
                 var staticObjectNode = renderMesh.StaticObjectNode;
 
-                for (int i = 0; i < effectSlotCount; ++i)
+                for (int i = 0; i < parameters.EffectSlotCount; ++i)
                 {
                     // Don't apply lighting for shadow casters
-                    if (ignoredEffectSlots.Contains(i))
+                    if (parameters.Feature.ignoredEffectSlots.Contains(i))
                             continue;
 
-                    var staticEffectObjectNode = staticObjectNode * effectSlotCount + i;
-                    var renderEffect = renderEffects[staticEffectObjectNode];
+                    var staticEffectObjectNode = staticObjectNode * parameters.EffectSlotCount + i;
+                    var renderEffect = parameters.RenderEffects[staticEffectObjectNode];
 
                     // Skip effects not used during this frame
-                    if (renderEffect == null || !renderEffect.IsUsedDuringThisFrame(RenderSystem))
+                    if (renderEffect == null || !renderEffect.IsUsedDuringThisFrame(parameters.Feature.RenderSystem))
                         continue;
 
-                    renderEffect.EffectValidator.ValidateParameter(LightingKeys.DirectLightGroups, directLightShaders);
-                    renderEffect.EffectValidator.ValidateParameter(LightingKeys.EnvironmentLights, environmentLightShaders);
+                    renderEffect.EffectValidator.ValidateParameter(LightingKeys.DirectLightGroups, parameters.DirectLightShaders);
+                    renderEffect.EffectValidator.ValidateParameter(LightingKeys.EnvironmentLights, parameters.EnvironmentLightShaders);
 
                     // Some light groups have additional effect permutation
-                    foreach (var lightGroup in shaderPermutation.PermutationLightGroups)
+                    foreach (var lightGroup in parameters.Feature.shaderPermutation.PermutationLightGroups)
                         lightGroup.ApplyEffectPermutations(renderEffect);
                 }
-            });
+            }
         }
 
         /// <summary>
@@ -408,9 +430,20 @@ namespace Stride.Rendering.Lights
                 }
 
                 // PerDraw
-                Dispatcher.ForEach(viewFeature.RenderNodes, () => prepareThreadLocals.Value, (renderNodeReference, locals) =>
+                var parameters = (Feature: this, Context: context, ViewIndex: viewIndex);
+                unsafe
                 {
-                    var renderNode = RootRenderFeature.GetRenderNode(renderNodeReference);
+                    Dispatcher.ForEach<RenderNodeReference, PrepareThreadLocals, ConcurrentCollector<RenderNodeReference>, (ForwardLightingRenderFeature Feature, RenderDrawContext Context, int ViewIndex)>(viewFeature.RenderNodes, in parameters, &InitializeLocal, &ProcessRenderNode);
+                }
+
+                static PrepareThreadLocals InitializeLocal(ref readonly (ForwardLightingRenderFeature Feature, RenderDrawContext Context, int ViewIndex) parameters)
+                {
+                    return parameters.Feature.prepareThreadLocals.Value;
+                }
+
+                static void ProcessRenderNode(ref readonly (ForwardLightingRenderFeature Feature, RenderDrawContext Context, int ViewIndex) parameters, RenderNodeReference renderNodeReference, PrepareThreadLocals locals)
+                {
+                    var renderNode = parameters.Feature.RootRenderFeature.GetRenderNode(renderNodeReference);
 
                     // Ignore fallback effects
                     if (renderNode.RenderEffect.State != RenderEffectState.Normal)
@@ -420,7 +453,7 @@ namespace Stride.Rendering.Lights
                     if (drawLayout == null)
                         return;
 
-                    var drawLighting = drawLayout.GetLogicalGroup(drawLightingKey);
+                    var drawLighting = drawLayout.GetLogicalGroup(parameters.Feature.drawLightingKey);
                     if (drawLighting.Hash == ObjectId.Empty)
                         return;
 
@@ -438,18 +471,18 @@ namespace Stride.Rendering.Lights
                     }
 
                     // Compute PerDraw lighting
-                    foreach (var directLightGroup in shaderPermutation.DirectLightGroups)
+                    foreach (var directLightGroup in parameters.Feature.shaderPermutation.DirectLightGroups)
                     {
-                        directLightGroup.ApplyDrawParameters(context, viewIndex, locals.DrawParameters, ref renderNode.RenderObject.BoundingBox);
+                        directLightGroup.ApplyDrawParameters(parameters.Context, parameters.ViewIndex, locals.DrawParameters, ref renderNode.RenderObject.BoundingBox);
                     }
-                    foreach (var environmentLight in shaderPermutation.EnvironmentLights)
+                    foreach (var environmentLight in parameters.Feature.shaderPermutation.EnvironmentLights)
                     {
-                        environmentLight.ApplyDrawParameters(context, viewIndex, locals.DrawParameters, ref renderNode.RenderObject.BoundingBox);
+                        environmentLight.ApplyDrawParameters(parameters.Context, parameters.ViewIndex, locals.DrawParameters, ref renderNode.RenderObject.BoundingBox);
                     }
 
                     // Update resources
                     renderNode.Resources.UpdateLogicalGroup(ref drawLighting, locals.DrawParameters);
-                });
+                }
             }
         }
 

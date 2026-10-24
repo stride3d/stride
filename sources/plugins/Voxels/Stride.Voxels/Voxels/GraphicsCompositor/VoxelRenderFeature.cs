@@ -34,6 +34,15 @@ namespace Stride.Rendering.Voxels
             VoxelizerStorerCasterKey = ((RootEffectRenderFeature)RootRenderFeature).CreateViewLogicalGroup("VoxelizerStorer");
         }
 
+        private readonly record struct PreparePassParameters
+        {
+            public required RenderSystem RenderSystem { get; init; }
+            public required RootEffectRenderFeature RootEffectRenderFeature { get; init; }
+            public required StaticObjectPropertyData<RenderEffect> RenderEffects { get; init; }
+            public required int EffectSlotCount { get; init; }
+            public required VoxelizationPass Pass { get; init; }
+        }
+
         public override void PrepareEffectPermutations(RenderDrawContext context)
         {
             renderVoxelVolumeData = Context.VisibilityGroup.Tags.Get(CurrentProcessedVoxelVolumes);
@@ -66,18 +75,32 @@ namespace Stride.Rendering.Voxels
                     //Each pass in a group should have identical shaders
                     var pass = group[0];
 
-                    Dispatcher.ForEach(RootRenderFeature.RenderObjects, renderObject =>
+                    var parameters = new PreparePassParameters
                     {
+                        RenderSystem = RenderSystem,
+                        RootEffectRenderFeature = rootEffectRenderFeature,
+                        RenderEffects = renderEffects,
+                        EffectSlotCount = effectSlotCount,
+                        Pass = pass,
+                    };
+                    unsafe
+                    {
+                        Dispatcher.ForEach<RenderObject, List<RenderObject>, PreparePassParameters>(RootRenderFeature.RenderObjects, in parameters, &ProcessRenderObject);
+                    }
+
+                    static void ProcessRenderObject(ref readonly PreparePassParameters parameters, RenderObject renderObject)
+                    {
+                        var pass = parameters.Pass;
                         var renderMesh = (RenderMesh)renderObject;
 
                         var staticObjectNode = renderMesh.StaticObjectNode;
 
 
-                        var effectSlot = rootEffectRenderFeature.GetEffectPermutationSlot(RenderSystem.RenderStages[pass.view.RenderStages[0].Index]);
+                        var effectSlot = parameters.RootEffectRenderFeature.GetEffectPermutationSlot(parameters.RenderSystem.RenderStages[pass.view.RenderStages[0].Index]);
                         {
 
-                            var staticEffectObjectNode = staticObjectNode * effectSlotCount + effectSlot.Index;
-                            var renderEffect = renderEffects[staticEffectObjectNode];
+                            var staticEffectObjectNode = staticObjectNode * parameters.EffectSlotCount + effectSlot.Index;
+                            var renderEffect = parameters.RenderEffects[staticEffectObjectNode];
 
                             // Skip effects not used during this frame
                             if (renderEffect != null)
@@ -87,7 +110,7 @@ namespace Stride.Rendering.Voxels
                                 renderEffect.EffectValidator.ValidateParameter(VoxelizeToFragmentsKeys.GeometryShaderMaxVertexCount, pass.storer.GeometryShaderOutputCount() * pass.method.GeometryShaderOutputCount());
                             }
                         }
-                    });
+                    }
                 }
             }
         }

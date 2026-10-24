@@ -97,6 +97,13 @@ namespace Stride.Particles.Components
             particleSystem.Update(deltaTime * speed);
         }
 
+        private readonly record struct UpdateParticleSystemParameters
+        {
+            public required ParticleSystemSimulationProcessor Processor { get; init; }
+            public required float DeltaTime { get; init; }
+            public required bool ApplyEditorControl { get; init; }
+        }
+
         /// <inheritdoc />
         public override void Draw(RenderContext context)
         {
@@ -117,7 +124,21 @@ namespace Stride.Particles.Components
                 }
             }
 
-            Dispatcher.ForEach(ParticleSystems, state => UpdateParticleSystem(state, deltaTime, applyEditorControl));
+            var parameters = new UpdateParticleSystemParameters
+            {
+                Processor = this,
+                DeltaTime = deltaTime,
+                ApplyEditorControl = applyEditorControl,
+            };
+            unsafe
+            {
+                Dispatcher.ForEach<ParticleSystemComponentState, List<ParticleSystemComponentState>, UpdateParticleSystemParameters>(ParticleSystems, in parameters, &UpdateParticleSystem);
+            }
+
+            static void UpdateParticleSystem(ref readonly UpdateParticleSystemParameters parameters, ParticleSystemComponentState state)
+            {
+                parameters.Processor.UpdateParticleSystem(state, parameters.DeltaTime, parameters.ApplyEditorControl);
+            }
         }
 
         /// <inheritdoc />

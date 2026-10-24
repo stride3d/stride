@@ -84,11 +84,21 @@ namespace Stride.Rendering
             }
         }
 
+        private readonly record struct CollectParameters(VisibilityGroup group, RenderView view, BoundingFrustum frustum, CameraCullingMode cullingMode, RenderGroupMask cullingMask, Plane plane)
+        {
+            public readonly VisibilityGroup Group = group;
+            public readonly RenderView View = view;
+            public readonly BoundingFrustum Frustum = frustum;
+            public readonly CameraCullingMode CullingMode = cullingMode;
+            public readonly RenderGroupMask CullingMask = cullingMask;
+            public readonly Plane Plane = plane;
+        }
+
         /// <summary>
         /// Collects render objects visibile in a view (if not previously collected before).
         /// </summary>
         /// <param name="view"></param>
-        public void TryCollect(RenderView view)
+        public unsafe void TryCollect(RenderView view)
         {
             using var _ = Profiler.Begin(TryCollectKey);
             // Already colleted this frame?
@@ -130,29 +140,37 @@ namespace Stride.Rendering
             var cullingMask = view.CullingMask;
 
             // Process objects
-            //foreach (var renderObject in RenderObjects)
-            //Dispatcher.ForEach(RenderObjects, renderObject =>
-            Dispatcher.For(0, RenderObjects.Count, () => collectorCache.Value, (index, cache) =>
+            var collectParameters = new CollectParameters(this, view, frustum, cullingMode, cullingMask, plane);
+            Dispatcher.For(0, RenderObjects.Count, collectParameters, &InitializeLocal, &ForAction, &FinalizeLocal);
+
+            view.RenderObjects.Close();
+
+            static ConcurrentCollectorCache<RenderObject> InitializeLocal(ref readonly CollectParameters state)
             {
-                var renderObject = RenderObjects[index];
+                return state.Group.collectorCache.Value;
+            }
+
+            static void ForAction(ref readonly CollectParameters state, int index, ConcurrentCollectorCache<RenderObject> cache)
+            {
+                var renderObject = state.Group.RenderObjects[index];
 
                 // Skip not enabled objects
-                if (!renderObject.Enabled || ((RenderGroupMask)(1U << (int)renderObject.RenderGroup) & cullingMask) == 0)
+                if (!renderObject.Enabled || ((RenderGroupMask)(1U << (int)renderObject.RenderGroup) & state.CullingMask) == 0)
                     return;
 
-                var renderStageMask = RenderData.GetData(RenderStageMaskKey);
-                var renderStageMaskNode = renderObject.VisibilityObjectNode * stageMaskMultiplier;
+                var renderStageMask = state.Group.RenderData.GetData(state.Group.RenderStageMaskKey);
+                var renderStageMaskNode = renderObject.VisibilityObjectNode * state.Group.stageMaskMultiplier;
 
                 // Determine if this render object belongs to this view
                 bool renderStageMatch = false;
                 unsafe
                 {
-                    fixed (uint* viewRenderStageMaskStart = viewRenderStageMask)
+                    fixed (uint* viewRenderStageMaskStart = state.Group.viewRenderStageMask)
                     fixed (uint* objectRenderStageMaskStart = renderStageMask.Data)
                     {
                         var viewRenderStageMaskPtr = viewRenderStageMaskStart;
                         var objectRenderStageMaskPtr = objectRenderStageMaskStart + renderStageMaskNode.Index;
-                        for (int i = 0; i < viewRenderStageMask.Length; ++i)
+                        for (int i = 0; i < state.Group.viewRenderStageMask.Length; ++i)
                         {
                             if ((*viewRenderStageMaskPtr++ & *objectRenderStageMaskPtr++) != 0)
                             {
@@ -169,25 +187,28 @@ namespace Stride.Rendering
 
                 // Fast AABB transform: http://zeuxcg.org/2010/10/17/aabb-from-obb-with-component-wise-abs/
                 // Compute transformed AABB (by world)
-                if (cullingMode == CameraCullingMode.Frustum
+                if (state.CullingMode == CameraCullingMode.Frustum
                     && renderObject.BoundingBox.Extent != Vector3.Zero
-                    && !FrustumContainsBox(ref frustum, ref renderObject.BoundingBox, view.VisiblityIgnoreDepthPlanes))
+                    && !FrustumContainsBox(in state.Frustum, in renderObject.BoundingBox, state.View.VisiblityIgnoreDepthPlanes))
                 {
                     return;
                 }
 
                 // Add object to list of visible objects
                 // TODO GRAPHICS REFACTOR we should be able to push multiple elements with future VisibilityObject
-                view.RenderObjects.Add(renderObject, cache);
+                state.View.RenderObjects.Add(renderObject, cache);
 
                 // Calculate bounding box of all render objects in the view
                 if (renderObject.BoundingBox.Extent != Vector3.Zero)
                 {
-                    CalculateMinMaxDistance(ref plane, ref renderObject.BoundingBox, ref view.MinimumDistance, ref view.MaximumDistance);
+                    CalculateMinMaxDistance(in state.Plane, in renderObject.BoundingBox, ref state.View.MinimumDistance, ref state.View.MaximumDistance);
                 }
-            }, cache => cache.Flush());
+            }
 
-            view.RenderObjects.Close();
+            static void FinalizeLocal(ref readonly CollectParameters _, ConcurrentCollectorCache<RenderObject> cache)
+            {
+                cache.Flush();
+            }
         }
 
         public void Copy(RenderView source, RenderView target)
@@ -205,7 +226,7 @@ namespace Stride.Rendering
             target.RenderObjects.Close();
         }
 
-        public static bool FrustumContainsBox(ref BoundingFrustum frustum, ref BoundingBoxExt boundingBoxExt, bool ignoreDepthPlanes)
+        public static bool FrustumContainsBox(ref readonly BoundingFrustum frustum, ref readonly BoundingBoxExt boundingBoxExt, bool ignoreDepthPlanes)
         {
             unsafe
             {
@@ -232,7 +253,7 @@ namespace Stride.Rendering
             }
         }
 
-        private static void CalculateMinMaxDistance(ref Plane plane, ref BoundingBoxExt boundingBox, ref float minDistance, ref float maxDistance)
+        private static void CalculateMinMaxDistance(ref readonly Plane plane, ref readonly BoundingBoxExt boundingBox, ref float minDistance, ref float maxDistance)
         {
             var nearCorner = boundingBox.Minimum;
             var farCorner = boundingBox.Maximum;
@@ -249,11 +270,11 @@ namespace Stride.Rendering
             float oldDistance;
 
             // Interlocked exchange if lower
-            var distance = CollisionHelper.DistancePlanePoint(ref plane, ref nearCorner);
+            var distance = CollisionHelper.DistancePlanePoint(in plane, in nearCorner);
             while ((oldDistance = minDistance) > distance && Interlocked.CompareExchange(ref minDistance, distance, oldDistance) != oldDistance) { }
 
             // Interlocked exchange if greater
-            distance = CollisionHelper.DistancePlanePoint(ref plane, ref farCorner);
+            distance = CollisionHelper.DistancePlanePoint(in plane, in farCorner);
             while ((oldDistance = maxDistance) < distance && Interlocked.CompareExchange(ref maxDistance, distance, oldDistance) != oldDistance) { }
         }
 
