@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.Assets.Editor.ViewModel.Progress;
 using Stride.Core.Assets.Templates;
 using Stride.Core.Annotations;
 using Stride.Core.Settings;
@@ -19,7 +18,7 @@ namespace Stride.Core.Assets.Editor.Services
     /// <summary>
     /// This interface represents the dialog service used for the editor. It extends <see cref="IDialogService2"/> with some editor-specific dialogs.
     /// </summary>
-    public interface IEditorDialogService : IDialogService2
+    public interface IEditorDialogService : IDialogService2, IProgressWindowService
     {
         /// <summary>
         /// Shows a notification window in the lower right corner of the primary screen.
@@ -58,13 +57,6 @@ namespace Stride.Core.Assets.Editor.Services
         /// </summary>
         /// <param name="serviceProvider">The service provider for view models.</param>
         void ShowSettingsWindow(IViewModelServiceProvider serviceProvider);
-
-        /// <summary>
-        /// Shows a progress window which can provide feedback and log on the progression of a background task. This method is non-blocking.
-        /// </summary>
-        /// <param name="workProgress">The <see cref="WorkProgressViewModel"/> to use to provide background task information.</param>
-        /// <param name="minDelay">The minimal delay to wait before opening the dialog. If the dialog should stay open under certain conditions and the work is finished before this delay, the window will open immediately. Otherwise, it will open only if the work is not finished when the delay is over.</param>
-        void ShowProgressWindow(WorkProgressViewModel workProgress, int minDelay);
 
         /// <summary>
         /// Creates a package instantiation window, allowing to create or open a package.

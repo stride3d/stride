@@ -9,15 +9,13 @@ using Stride.Core.Diagnostics;
 using Stride.Core.Assets.Editor.ViewModel;
 
 namespace Stride.Core.Assets.Editor.Services;
-public interface IAssetsPluginService
+public interface IAssetsPluginService : ISessionObjectsPluginService
 {
     IReadOnlyList<AssetsPlugin> Plugins { get; }
 
     bool HasImagesForEnum(SessionViewModel? session, Type enumType);
 
     object? GetImageForEnum(SessionViewModel? session, object value);
-
-    IEnumerable<Type> GetPrimitiveTypes(ISessionViewModel session);
 
     bool HasEditorView(SessionViewModel session, Type viewModelType);
 

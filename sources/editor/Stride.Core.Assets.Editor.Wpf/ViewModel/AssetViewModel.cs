@@ -7,8 +7,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using System.Windows.Controls;
-using System.Windows.Media.Imaging;
 using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.Quantum;
@@ -115,28 +113,29 @@ namespace Stride.Core.Assets.Editor.ViewModel
             createReplacingAssetCommand = new AnonymousCommand(ServiceProvider, CreateReplacingAsset) { IsEnabled = CanReplace };
             clearArchetypeCommand = new AnonymousCommand(ServiceProvider, ClearArchetype) { IsEnabled = Asset.Archetype != null };
             clearReplacesCommand = new AnonymousCommand(ServiceProvider, ClearReplaces) { IsEnabled = IsReplacing };
-            // TODO: make the view model independent of the view (ie. MenuCommandInfo.Icon and remove this dispatcher call.
+            // Note: the icons are resource keys that the view resolves (see MenuCommandInfo.Icon). The commands are still added
+            // asynchronously so that the ones that derived view models add in their constructor keep coming first.
             Dispatcher.InvokeAsync(() =>
             {
                 assetCommands.Add(new MenuCommandInfo(ServiceProvider, createDerivedAssetCommand)
                 {
                     DisplayName = "Create derived asset",
-                    Icon = new Image { Source = new BitmapImage(new Uri("/Stride.Core.Assets.Editor.Wpf;component/Resources/Icons/copy_link-32.png", UriKind.RelativeOrAbsolute)) },
+                    Icon = "ImageCopyLink",
                 });
                 assetCommands.Add(new MenuCommandInfo(ServiceProvider, createReplacingAssetCommand)
                 {
                     DisplayName = "Create replacing asset",
-                    Icon = new Image { Source = new BitmapImage(new Uri("/Stride.Core.Assets.Editor.Wpf;component/Resources/Icons/copy_link-32.png", UriKind.RelativeOrAbsolute)) },
+                    Icon = "ImageCopyLink",
                 });
                 assetCommands.Add(new MenuCommandInfo(ServiceProvider, clearArchetypeCommand)
                 {
                     DisplayName = "Clear archetype",
-                    Icon = new Image { Source = new BitmapImage(new Uri("/Stride.Core.Assets.Editor.Wpf;component/Resources/Icons/delete_link-32.png", UriKind.RelativeOrAbsolute)) },
+                    Icon = "ImageDeleteLink",
                 });
                 assetCommands.Add(new MenuCommandInfo(ServiceProvider, clearReplacesCommand)
                 {
                     DisplayName = "Clear replaces",
-                    Icon = new Image { Source = new BitmapImage(new Uri("/Stride.Core.Assets.Editor.Wpf;component/Resources/Icons/delete_link-32.png", UriKind.RelativeOrAbsolute)) },
+                    Icon = "ImageDeleteLink",
                 });
             }).Forget();
             NodeContainer = parameters.Container;

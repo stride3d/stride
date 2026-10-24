@@ -253,13 +253,10 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 GetOrCreateAssetDirectory(explicitDirectory, false);
             }
 
-            var pluginService = Session.ServiceProvider.Get<IAssetsPluginService>();
-            foreach (var plugin in pluginService.Plugins.OfType<AssetsEditorPlugin>())
+            var pluginService = Session.ServiceProvider.Get<ISessionObjectsPluginService>();
+            foreach (var property in pluginService.GetProfileSettings())
             {
-                foreach (var property in plugin.ProfileSettings)
-                {
-                    RegisterSettings(property);
-                }
+                RegisterSettings(property);
             }
         }
 
@@ -484,7 +481,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 {
                     workProgress.RegisterProgressStatus(loggerResult, true);
 
-                    ServiceProvider.Get<IEditorDialogService>().ShowProgressWindow(workProgress, 500);
+                    ServiceProvider.Get<IProgressWindowService>().ShowProgressWindow(workProgress, 500);
 
                 	await Task.Run(() =>
                     {

@@ -43,11 +43,11 @@ namespace Stride.Core.Assets.Editor.Components.TemplateDescriptions
 
             if (parameters.Logger.HasErrors || !success)
             {
-                workProgress?.ServiceProvider.Get<IEditorDialogService>().ShowProgressWindow(workProgress, 0);
+                workProgress?.ServiceProvider.Get<IProgressWindowService>().ShowProgressWindow(workProgress, 0);
                 return false;
             }
 
-            workProgress?.ServiceProvider.Get<IEditorDialogService>().ShowProgressWindow(workProgress, 500);
+            workProgress?.ServiceProvider.Get<IProgressWindowService>().ShowProgressWindow(workProgress, 500);
 
             var result = await Task.Run(() =>
             {

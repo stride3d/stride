@@ -2,20 +2,21 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using Stride.Core.Storage;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Services
 {
+    /// <summary>
+    /// The thumbnail of a session object, built in the background and then displayed through <see cref="Presenter"/>.
+    /// </summary>
+    /// <remarks>The subclasses that build the images of a UI framework live with that framework (see <see cref="IThumbnailDataFactory"/>).</remarks>
     public abstract class ThumbnailData : ViewModelBase
     {
         protected readonly ObjectId thumbnailId;
-        private static readonly Dictionary<ObjectId, Task<ImageSource>> ComputingThumbnails = new Dictionary<ObjectId, Task<ImageSource>>();
+        private static readonly Dictionary<ObjectId, Task<object>> ComputingThumbnails = new Dictionary<ObjectId, Task<object>>();
         private object presenter;
 
         protected ThumbnailData(ObjectId thumbnailId)
@@ -27,7 +28,7 @@ namespace Stride.Core.Assets.Editor.Services
 
         public async Task PrepareForPresentation(IDispatcherService dispatcher)
         {
-            Task<ImageSource> task;
+            Task<object> task;
             lock (ComputingThumbnails)
             {
                 if (!ComputingThumbnails.TryGetValue(thumbnailId, out task))
@@ -50,105 +51,12 @@ namespace Stride.Core.Assets.Editor.Services
         /// <summary>
         /// Fetches and prepare the image source instance to be displayed.
         /// </summary>
-        /// <returns></returns>
-        protected abstract ImageSource BuildImageSource();
+        /// <returns>The object that the view displays, set as <see cref="Presenter"/>.</returns>
+        protected abstract object BuildImageSource();
 
         /// <summary>
         /// Clears the resources required to build the image source.
         /// </summary>
         protected abstract void FreeBuildingResources();
-    }
-
-    /// <summary>
-    /// Generic ImageSource resources, DrawingImage vectors, etc. support for thumbnails.
-    /// </summary>
-    public sealed class ResourceThumbnailData : ThumbnailData
-    {
-        object resourceKey;
-        
-        /// <param name="resourceKey">The key used to fetch the resource, most likely a string.</param>
-        public ResourceThumbnailData(ObjectId thumbnailId, object resourceKey) : base(thumbnailId)
-        {
-            this.resourceKey = resourceKey;
-        }
-
-        /// <inheritdoc />
-        protected override ImageSource BuildImageSource()
-        {
-            if (resourceKey == null)
-                return null;
-            try
-            {
-                return System.Windows.Application.Current.TryFindResource(resourceKey) as ImageSource;
-            }
-            catch (Exception)
-            {
-                return null;
-            }
-        }
-
-        /// <inheritdoc />
-        protected override void FreeBuildingResources()
-        {
-            resourceKey = null;
-        }
-    }
-
-    /// <summary>
-    /// Byte streams bitmap support for thumbnails.
-    /// </summary>
-    public sealed class BitmapThumbnailData : ThumbnailData
-    {
-        private static readonly ObjectCache<ObjectId, ImageSource> Cache = new ObjectCache<ObjectId, ImageSource>(512);
-        private Stream thumbnailBitmapStream;
-
-        public BitmapThumbnailData(ObjectId thumbnailId, Stream thumbnailBitmapStream) : base(thumbnailId)
-        {
-            this.thumbnailBitmapStream = thumbnailBitmapStream;
-        }
-
-        /// <inheritdoc />
-        protected override ImageSource BuildImageSource()
-        {
-            return BuildAsBitmapImage(thumbnailId, thumbnailBitmapStream);
-        }
-
-        /// <inheritdoc />
-        protected override void FreeBuildingResources()
-        {
-            thumbnailBitmapStream = null;
-        }
-
-        private static ImageSource BuildAsBitmapImage(ObjectId thumbnailId, Stream thumbnailStream)
-        {
-            if (thumbnailStream == null)
-                return null;
-
-            var stream = thumbnailStream;
-            if (!stream.CanRead)
-                return null;
-
-            var result = Cache.TryGet(thumbnailId);
-            if (result != null)
-                return result;
-
-            try
-            {
-                var bitmap = new BitmapImage();
-                stream.Position = 0;
-                bitmap.BeginInit();
-                bitmap.StreamSource = stream;
-                bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                bitmap.EndInit();
-                bitmap.Freeze();
-                thumbnailStream.Close();
-                Cache.Cache(thumbnailId, bitmap);
-                return bitmap;
-            }
-            catch (Exception)
-            {
-                return null;
-            }
-        }
     }
 }

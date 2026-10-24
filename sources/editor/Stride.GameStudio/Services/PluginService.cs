@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Annotations;
+using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.Internal;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
@@ -358,6 +359,11 @@ public class PluginService : IAssetsPluginService
     public IEnumerable<Type> GetPrimitiveTypes(ISessionViewModel session)
     {
         return primitiveTypes;
+    }
+
+    public IEnumerable<PackageSettingsEntry> GetProfileSettings()
+    {
+        return Plugins.OfType<AssetsEditorPlugin>().SelectMany(x => x.ProfileSettings);
     }
 
     public bool HasEditorView(SessionViewModel session, Type viewModelType)

@@ -53,7 +53,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         }
 
         /// <summary>
-        /// Gets or sets the icon that appears in a <see cref="System.Windows.Controls.MenuItem"/>.
+        /// Gets or sets the icon that appears in the menu item: either the key of an image resource, that the view resolves, or an object that the view displays.
         /// </summary>
         public object Icon
         {
