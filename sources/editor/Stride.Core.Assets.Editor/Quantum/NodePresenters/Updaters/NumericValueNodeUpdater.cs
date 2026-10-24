@@ -5,7 +5,7 @@ using System.Reflection;
 using Stride.Core.Annotations;
 using Stride.Core.Reflection;
 using Stride.Core.Presentation.Quantum.Presenters;
-using Stride.Core.Assets.Presentation.Quantum.NodePresenters;
+using Stride.Core.Assets.Editor.Quantum.NodePresenters;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Keys;
 
 namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters;

@@ -3,42 +3,30 @@
 
 using System.Collections.Specialized;
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.ViewModels;
 
-/// <summary>
-/// This view model manages updating thumbnails of <see cref="AssetViewModel"/>.
-/// </summary>
-public class ThumbnailsViewModel : DispatcherViewModel
+public sealed class ThumbnailsViewModel : DispatcherViewModel
 {
     private readonly SessionViewModel session;
     private readonly HashSet<PackageViewModel> initialQueue = [];
     private IThumbnailService? thumbnailService;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ThumbnailsViewModel"/> class.
-    /// </summary>
-    /// <param name="session">The session associated to this view model.</param>
     public ThumbnailsViewModel(SessionViewModel session)
         : base(session.SafeArgument(nameof(session)).ServiceProvider)
     {
         this.session = session;
-        // FIXME xplat-editor
-        //session.AssetCollection.FilteredContent.CollectionChanged += VisibleAssetsChanged;
-        session.AssetCollection.SelectedContent.CollectionChanged += VisibleAssetsChanged;
+        session.AssetCollection.FilteredContent.CollectionChanged += VisibleAssetsChanged;
         session.AssetPropertiesChanged += AssetPropertiesChanged;
         ServiceProvider.ServiceRegistered += ServiceRegistered;
     }
 
-    /// <inheritdoc/>
     public override void Destroy()
     {
-        // FIXME xplat-editor
-        //session.AssetCollection.FilteredContent.CollectionChanged -= VisibleAssetsChanged;
-        session.AssetCollection.SelectedContent.CollectionChanged -= VisibleAssetsChanged;
+        session.AssetCollection.FilteredContent.CollectionChanged -= VisibleAssetsChanged;
         session.AssetPropertiesChanged -= AssetPropertiesChanged;
         ServiceProvider.ServiceRegistered -= ServiceRegistered;
 
@@ -51,10 +39,13 @@ public class ThumbnailsViewModel : DispatcherViewModel
     }
 
     /// <summary>
-    /// Increases the priority of thumbnail processing for the given assets, if they are queued for thumbnail processing.
-    /// This methods has no effect for assets that are not currently in the thumbnail processing queue.
+    /// Stops building thumbnails, once the current one is done.
     /// </summary>
-    /// <param name="assets"></param>
+    public Task StopAsync()
+    {
+        return thumbnailService?.StopAsync() ?? Task.CompletedTask;
+    }
+
     public void IncreaseThumbnailPriority(IEnumerable<AssetViewModel> assets)
     {
         if (thumbnailService != null)
@@ -65,10 +56,16 @@ public class ThumbnailsViewModel : DispatcherViewModel
         }
     }
 
-    /// <summary>
-    /// Starts the first build of thumbnails from the given package. This method should be invoked only once per package, after it and its dependencies have been loaded.
-    /// </summary>
-    /// <param name="package">The package for which to build thumbnails.</param>
+    public void ForceRefreshThumbnails(IEnumerable<AssetViewModel> assets)
+    {
+        if (thumbnailService != null)
+        {
+            var assetItems = new HashSet<AssetItem>(assets.Select(x => x.AssetItem));
+            // We run this as a task to prevent dead lock
+            Task.Run(() => thumbnailService.AddThumbnailAssetItems(assetItems, QueuePosition.First));
+        }
+    }
+
     internal void StartInitialBuild(PackageViewModel package)
     {
         if (thumbnailService == null)
@@ -81,11 +78,6 @@ public class ThumbnailsViewModel : DispatcherViewModel
         RefreshThumbnails(package.Assets, true);
     }
 
-    /// <summary>
-    /// Refreshes the thumbnails of the given assets.
-    /// </summary>
-    /// <param name="assets">The assets for which to refresh thumbnails.</param>
-    /// <param name="firstPriority">If <c>true</c>, the given assets will be put in the front of the thumbnail processing queue.</param>
     private void RefreshThumbnails(IEnumerable<AssetViewModel> assets, bool firstPriority)
     {
         if (thumbnailService != null)
@@ -93,16 +85,6 @@ public class ThumbnailsViewModel : DispatcherViewModel
             var assetItems = new HashSet<AssetItem>(assets.Select(x => x.AssetItem));
             // We run this as a task to prevent dead lock
             Task.Run(() => thumbnailService.AddThumbnailAssetItems(assetItems, firstPriority ? QueuePosition.First : QueuePosition.Last));
-        }
-    }
-
-    public void ForceRefreshThumbnails(IEnumerable<AssetViewModel> assets)
-    {
-        if (thumbnailService != null)
-        {
-            var assetItems = new HashSet<AssetItem>(assets.Select(x => x.AssetItem));
-            // We run this as a task to prevent dead lock
-            Task.Run(() => thumbnailService.AddThumbnailAssetItems(assetItems, QueuePosition.First));
         }
     }
 
@@ -123,9 +105,7 @@ public class ThumbnailsViewModel : DispatcherViewModel
 
     private void VisibleAssetsChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        // FIXME xplat-editor
-        //IncreaseThumbnailPriority(session.AssetCollection.FilteredContent.OfType<AssetViewModel>());
-        IncreaseThumbnailPriority(session.AssetCollection.SelectedContent.OfType<AssetViewModel>());
+        IncreaseThumbnailPriority(session.AssetCollection.FilteredContent.OfType<AssetViewModel>());
     }
 
     private void AssetPropertiesChanged(object? sender, AssetChangedEventArgs e)
@@ -141,7 +121,7 @@ public class ThumbnailsViewModel : DispatcherViewModel
         {
             Dispatcher.InvokeAsync(async () =>
             {
-                asset.ThumbnailData = e.Data;
+                asset.SetThumbnailData(e.Data);
                 await e.Data.PrepareForPresentation(Dispatcher);
             });
         }

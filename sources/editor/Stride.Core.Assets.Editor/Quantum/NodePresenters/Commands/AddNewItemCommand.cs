@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core.Annotations;
-using Stride.Core.Assets.Presentation.Quantum.NodePresenters;
+using Stride.Core.Assets.Editor.Quantum.NodePresenters;
 using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Core.Reflection;

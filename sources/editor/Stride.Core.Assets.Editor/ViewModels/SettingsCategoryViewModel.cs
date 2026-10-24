@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core.Annotations;
+using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Presentation.Collections;
@@ -47,6 +48,16 @@ public sealed class SettingsCategoryViewModel : DispatcherViewModel, IPropertyPr
             }
         }
 
+        // Add the settings commands
+        foreach (var command in EditorSettings.GetAllCommands())
+        {
+            var displayName = command.DisplayName.ToString();
+            if (displayName.StartsWith(settingsPath, StringComparison.Ordinal) && !displayName[pathLength..].Contains('/'))
+            {
+                settingsList.Add(command.DisplayName.GetFileName()!, command);
+            }
+        }
+
     }
 
     public string Name { get; }
@@ -68,7 +79,7 @@ public sealed class SettingsCategoryViewModel : DispatcherViewModel, IPropertyPr
 
 
     /// <summary>
-    /// A dictionary representing the different settings objects (<see cref="SettingsKey"/>) indexed by their display name.
+    /// A dictionary representing the different settings objects (<see cref="SettingsKey"/> or <see cref="SettingsCommand"/>) indexed by their display name.
     /// </summary>
     internal IReadOnlyDictionary<string, object> SettingsList => settingsList;
 

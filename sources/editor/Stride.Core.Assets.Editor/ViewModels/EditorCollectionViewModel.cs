@@ -3,6 +3,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.ViewModels;

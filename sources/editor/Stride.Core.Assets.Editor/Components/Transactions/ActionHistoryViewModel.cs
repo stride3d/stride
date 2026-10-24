@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core.Assets.Editor.ViewModels;
+using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Collections;
@@ -25,8 +26,8 @@ public sealed class ActionHistoryViewModel : DispatcherViewModel
         this.session = session;
         service = ServiceProvider.Get<IUndoRedoService>();
         transactions.CollectionChanged += (_, _) => RefreshUndoRedoStatus();
-        UndoCommand = new AnonymousCommand(ServiceProvider, () => { service.Undo(); /*session.CheckConsistency();*/ RefreshUndoRedoStatus(); });
-        RedoCommand = new AnonymousCommand(ServiceProvider, () => { service.Redo(); /*session.CheckConsistency();*/ RefreshUndoRedoStatus(); });
+        UndoCommand = new AnonymousCommand(ServiceProvider, () => { service.Undo(); session.CheckConsistency(); RefreshUndoRedoStatus(); });
+        RedoCommand = new AnonymousCommand(ServiceProvider, () => { service.Redo(); session.CheckConsistency(); RefreshUndoRedoStatus(); });
         RefreshUndoRedoStatus();
     }
 

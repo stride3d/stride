@@ -3,7 +3,7 @@
 
 using System.Reflection;
 using Stride.Core;
-using Stride.Core.Assets.Presentation.Quantum.NodePresenters;
+using Stride.Core.Assets.Editor.Quantum.NodePresenters;
 using Stride.Core.Mathematics;
 
 namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters;

@@ -4,9 +4,10 @@
 using System.Collections;
 using Stride.Core.Reflection;
 using Stride.Core.Presentation.Quantum.Presenters;
-using Stride.Core.Assets.Presentation.Quantum.NodePresenters;
+using Stride.Core.Assets.Editor.Quantum.NodePresenters;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Components.CopyPasteProcessors;
+using Stride.Core.Assets.Editor.ViewModel.CopyPasteProcessors;
 using Stride.Core.Annotations;
 
 namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;

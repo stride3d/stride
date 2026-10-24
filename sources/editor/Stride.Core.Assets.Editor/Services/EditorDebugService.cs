@@ -42,7 +42,7 @@ public sealed class EditorDebugService : IEditorDebugService
 
         return Dispatcher.Invoke(() =>
         {
-            var page = new LoggerViewModel(serviceProvider, logger) { Title = title };
+            var page = new DebugLogViewModel(serviceProvider, logger) { Title = title };
             if (register)
             {
                 RegisterDebugPage(page);
