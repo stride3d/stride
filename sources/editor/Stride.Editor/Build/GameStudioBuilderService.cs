@@ -18,6 +18,7 @@ namespace Stride.Editor.Build
     {
         public static string? GlobalEffectLogPath;
         private readonly ManualResetEvent shaderLoadedEvent = new ManualResetEvent(false);
+        private readonly TaskCompletionSource shadersLoaded = new(TaskCreationOptions.RunContinuationsAsynchronously);
         private readonly EffectPriorityScheduler taskScheduler;
         private readonly EffectCompilerBase effectCompiler;
         private readonly IEditorDebugService? debugService;
@@ -44,12 +45,14 @@ namespace Stride.Editor.Build
             if (shaderBuildSteps != null)
             {
                 shaderBuildSteps.StepProcessed += ShaderBuildStepsStepProcessed;
+                ShaderImportProgress = new ShaderImportProgressStatus(shaderBuildSteps);
                 PushBuildUnit(new PrecompiledAssetBuildUnit(AssetBuildUnitIdentifier.Default, shaderBuildSteps, true));
             }
             else
             {
                 // No package of the session has system shaders (a session without the Stride package, the tests): nothing to wait for
                 shaderLoadedEvent.Set();
+                shadersLoaded.TrySetResult();
             }
 
             Database = new GameStudioDatabase(this, settingsProvider);
@@ -87,6 +90,17 @@ namespace Stride.Editor.Build
         public string? EffectLogPath => GlobalEffectLogPath;
 
         /// <summary>
+        /// Gets the progress of the import of the system shaders, the build the session runs when it opens (thumbnails and previews
+        /// wait for it); <c>null</c> when there was nothing to import.
+        /// </summary>
+        public IProgressStatus? ShaderImportProgress { get; }
+
+        /// <summary>
+        /// Gets whether the system shaders are imported (or there were none to import).
+        /// </summary>
+        public bool AreShadersLoaded => shadersLoaded.Task.IsCompleted;
+
+        /// <summary>
         /// Gets whether this instance of <see cref="GameStudioBuilderService"/> has been disposed.
         /// </summary>
         public bool IsDisposed { get; private set; }
@@ -114,13 +128,18 @@ namespace Stride.Editor.Build
         private void ShaderBuildStepsStepProcessed(object? sender, BuildStepEventArgs e)
         {
             shaderLoadedEvent.Set();
+            shadersLoaded.TrySetResult();
         }
 
         public void WaitForShaders()
         {
-            // TODO: turn into task
             shaderLoadedEvent.WaitOne();
         }
+
+        /// <summary>
+        /// Waits for the system shaders to be imported, without blocking the caller as <see cref="WaitForShaders"/> does.
+        /// </summary>
+        public Task WaitForShadersAsync() => shadersLoaded.Task;
 
         private void StartPushNotificationsTask()
         {
@@ -147,6 +166,38 @@ namespace Stride.Editor.Build
                     }
                 }
             });
+        }
+
+        /// <summary>
+        /// Reports the progress of the system shader import: one step per build step of the import (a shader asset, then the
+        /// update of the import cache).
+        /// </summary>
+        private sealed class ShaderImportProgressStatus : IProgressStatus
+        {
+            private readonly int stepCount;
+            private int processedSteps;
+
+            public ShaderImportProgressStatus(ListBuildStep buildSteps)
+            {
+                var steps = buildSteps.Steps.ToList();
+                stepCount = steps.Count;
+                foreach (var step in steps)
+                    step.StepProcessed += StepProcessed;
+            }
+
+            public event EventHandler<ProgressStatusEventArgs>? ProgressChanged;
+
+            public void OnProgressChanged(ProgressStatusEventArgs e)
+            {
+                ProgressChanged?.Invoke(this, e);
+            }
+
+            private void StepProcessed(object? sender, BuildStepEventArgs e)
+            {
+                e.Step.StepProcessed -= StepProcessed;
+                var current = Interlocked.Increment(ref processedSteps);
+                OnProgressChanged(new ProgressStatusEventArgs($"Importing the system shaders ({current}/{stepCount})", current, stepCount));
+            }
         }
     }
 }
