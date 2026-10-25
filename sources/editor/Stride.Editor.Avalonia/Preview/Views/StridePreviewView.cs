@@ -6,6 +6,7 @@ using Avalonia.Controls.Metadata;
 using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
+using Avalonia.VisualTree;
 using Stride.Core.Mathematics;
 using Stride.Editor.Preview;
 using Stride.Editor.Preview.View;
@@ -85,7 +86,12 @@ public class StridePreviewView : TemplatedControl, IPreviewView
     {
         if (presenter != null && builder != null)
         {
-            presenter.Content = builder.GetStrideView();
+            var strideView = builder.GetStrideView();
+            // The previews share the game view: the view of the previous preview (an asset of another type) may still
+            // hold it, and a control has a single parent
+            if (strideView?.GetVisualParent() is ContentPresenter previous && previous != presenter)
+                previous.Content = null;
+            presenter.Content = strideView;
         }
     }
 }

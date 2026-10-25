@@ -30,6 +30,28 @@ public sealed class StridePreviewViewTests
     }
 
     [AvaloniaFact]
+    public void TheViewOfANewPreviewTakesTheGameViewFromThePreviousOne()
+    {
+        // The previews share the game view: selecting an asset of another type replaces the view while the old one still
+        // holds the game view
+        var gameView = new Border();
+        var builder = new FakePreviewBuilder(gameView);
+        var previousView = new StridePreviewView();
+        previousView.InitializeView(builder, new FakeAssetPreview());
+        var window = new Window { Content = previousView };
+        window.Show();
+
+        var nextView = new StridePreviewView();
+        nextView.InitializeView(builder, new FakeAssetPreview());
+        window.Content = nextView;
+        Dispatcher.UIThread.RunJobs();
+
+        var presenter = Assert.Single(nextView.GetVisualDescendants().OfType<ContentPresenter>().Where(x => x.Name == StridePreviewView.PartStrideView));
+        Assert.Same(gameView, presenter.Content);
+        Assert.Same(presenter, gameView.GetVisualParent());
+    }
+
+    [AvaloniaFact]
     public void InitializingTheViewAttachesThePreviewToItsViewModel()
     {
         var viewModel = new FakePreviewViewModel();
