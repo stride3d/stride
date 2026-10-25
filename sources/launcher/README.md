@@ -76,7 +76,7 @@ Command groups:
 - `stride sdk <list|install|uninstall|update>` — manage installed Stride engine versions.
 - `stride new` — create a project from a template.
 - `stride upgrade` — move a project to a newer installed engine (4.4.0+).
-- `stride studio` — open Game Studio for the project's version.
+- `stride studio` — open Game Studio for the project's version. `--editor wpf|avalonia` picks the Game Studio when the version has both; the default is WPF on Windows, Avalonia elsewhere.
 - `stride self update` / `stride version` — manage and inspect the CLI itself.
 
 Build/pack it from source:

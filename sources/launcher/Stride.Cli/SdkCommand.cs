@@ -25,7 +25,7 @@ internal static class SdkCommand
             }
 
             foreach (var version in versions)
-                Console.WriteLine($"{version.Version}  ({version.PackageId})");
+                Console.WriteLine($"{version.Version}  ({string.Join(", ", version.Editors.Select(editor => editor.DisplayName()))})");
         });
 
         // available: print the Stride versions offered by the package sources (one per line, newest first).
