@@ -125,7 +125,13 @@ public sealed class ActionHistoryViewModel : DispatcherViewModel
             await session.NotifyAssetPropertiesChangedAsync(dirtiables);
         }
 
-        await Dispatcher.InvokeAsync(() => transactions.ForEach(x => x.Refresh()));
+        // The commands were refreshed when the undo or redo ran, before this handler updated the transactions: refresh them again
+        // now that IsDone is current, otherwise Redo stays disabled after an undo.
+        await Dispatcher.InvokeAsync(() =>
+        {
+            transactions.ForEach(x => x.Refresh());
+            RefreshUndoRedoStatus();
+        });
     }
 
     private void RefreshUndoRedoStatus()
