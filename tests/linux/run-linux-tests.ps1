@@ -18,10 +18,10 @@
     Additional arguments forwarded to dotnet vstest.
 
 .EXAMPLE
-    .\build\test-linux-gpu.ps1
-    .\build\test-linux-gpu.ps1 -Filter "TestDynamicSpriteFont"
-    .\build\test-linux-gpu.ps1 -SkipBuild
-    .\build\test-linux-gpu.ps1 -- --Logger:console
+    .\tests\linux\run-linux-tests.ps1
+    .\tests\linux\run-linux-tests.ps1 -Filter "TestDynamicSpriteFont"
+    .\tests\linux\run-linux-tests.ps1 -SkipBuild
+    .\tests\linux\run-linux-tests.ps1 -- --Logger:console
 #>
 param(
     [string]$Filter,
@@ -32,6 +32,11 @@ param(
 
 $ErrorActionPreference = "Stop"
 $env:STRIDE_GRAPHICS_SOFTWARE_RENDERING = "1"
+
+# The repo root, two levels up from this script: the build and the WSL run both work from there
+$repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+Push-Location $repoRoot
+try {
 
 if (-not $SkipBuild) {
 Write-Host "=== Step 1: Clean ===" -ForegroundColor Cyan
@@ -105,7 +110,7 @@ for d in "$HOME/.dotnet" "/usr/share/dotnet" "/usr/lib/dotnet"; do
 done
 export STRIDE_GRAPHICS_SOFTWARE_RENDERING=1
 export STRIDE_MAX_PARALLELISM=8
-cd /mnt/c/dev/stride2
+cd "__STRIDE_ROOT__"
 
 # Register SwiftShader ICD
 LIB=$(find bin/Tests -name libvk_swiftshader.so -path "*/linux-x64/*" | head -1)
@@ -135,6 +140,8 @@ dotnet vstest bin/Tests/Stride.UI.Tests/Linux/Vulkan/Stride.UI.Tests.dll \
   $FILTER_ARG $EXTRA_ARGS -- RunConfiguration.MaxCpuCount=1
 '@
 
+$wslScript = $wslScript.Replace('__STRIDE_ROOT__', (wsl wslpath -u ($repoRoot -replace '\\', '/')))
+
 $wslScriptPath = "$env:TEMP\stride_linux_gpu_test.sh"
 # Write without BOM for bash compatibility
 [System.IO.File]::WriteAllText($wslScriptPath, $wslScript, [System.Text.UTF8Encoding]::new($false))
@@ -145,3 +152,7 @@ wsl -- /bin/bash $wslScriptLinux $Filter $extraArgs
 
 Write-Host ""
 Write-Host "Done. Use 'tests\compare-gold.cmd' to review results visually." -ForegroundColor Green
+}
+finally {
+    Pop-Location
+}
