@@ -12,7 +12,8 @@ using Stride.Core.Presentation.Avalonia.Tests;
 namespace Stride.Core.Presentation.Avalonia.Tests;
 
 /// <summary>
-/// The application the headless tests run in: the Fluent theme plus the editor styles of Stride.Core.Presentation.Avalonia.
+/// The application the headless tests run in: the Fluent theme, the theme of AvaloniaEdit (the code editor) and the editor
+/// styles of Stride.Core.Presentation.Avalonia.
 /// </summary>
 public sealed class TestApplication : Application
 {
@@ -23,6 +24,10 @@ public sealed class TestApplication : Application
     public override void Initialize()
     {
         Styles.Add(new FluentTheme());
+        Styles.Add(new StyleInclude(new Uri("avares://Stride.Core.Presentation.Avalonia.Tests/"))
+        {
+            Source = new Uri("avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml"),
+        });
         Styles.Add(new StyleInclude(new Uri("avares://Stride.Core.Presentation.Avalonia.Tests/"))
         {
             Source = new Uri("avares://Stride.Core.Presentation.Avalonia/Themes/EditorStyles.axaml"),

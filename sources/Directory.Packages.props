@@ -113,6 +113,7 @@
     <AvaloniaVersion>12.1.1</AvaloniaVersion>
     <AvaloniaBehaviorVersion>12.0.0</AvaloniaBehaviorVersion>
     <AvaloniaMarkViewVersion>12.2.1</AvaloniaMarkViewVersion>
+    <AvaloniaEditVersion>12.0.0</AvaloniaEditVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="Avalonia" Version="$(AvaloniaVersion)" />
@@ -131,6 +132,9 @@
     <PackageVersion Include="MarkView.Avalonia.Mermaid" Version="$(AvaloniaMarkViewVersion)" />
     <PackageVersion Include="MarkView.Avalonia.Svg" Version="$(AvaloniaMarkViewVersion)" />
     <PackageVersion Include="MarkView.Avalonia.SyntaxHighlighting" Version="$(AvaloniaMarkViewVersion)" />
+    <!-- The code editor (scripts): AvaloniaEdit, and TextMate grammars for the highlighting -->
+    <PackageVersion Include="Avalonia.AvaloniaEdit" Version="$(AvaloniaEditVersion)" />
+    <PackageVersion Include="AvaloniaEdit.TextMate" Version="$(AvaloniaEditVersion)" />
   </ItemGroup>
   <!-- Windows/WPF dependencies -->
   <ItemGroup>
