@@ -3,7 +3,6 @@
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Presentation.Commands;
-using Stride.Assets.Models;
 using Stride.Assets.Presentation.Preview;
 using Stride.Editor.Annotations;
 using Stride.Editor.Preview;
@@ -54,9 +53,7 @@ namespace Stride.Assets.Presentation.ViewModel.Preview
 
         public static AssetItem FindModelForPreview(AssetItem assetItem)
         {
-            var animationAsset = (AnimationAsset)assetItem.Asset;
-            var previewModelAsset = (animationAsset?.PreviewModel != null ? assetItem.Package.FindAssetFromProxyObject(animationAsset.PreviewModel) : null);
-            return (previewModelAsset?.Asset as ModelAsset)?.Skeleton != null ? previewModelAsset : null;
+            return AnimationPreviewHelper.FindModelForPreview(assetItem);
         }
 
         private void UpdateViewModelTime(bool isTimeValid, float current, float animDuration)
