@@ -25,8 +25,25 @@ public sealed class StrideImageConverterTests
 
         var result = new StrideImage().Convert(image, typeof(object), null, CultureInfo.InvariantCulture);
 
-        var bitmap = Assert.IsType<AvaloniaBitmap>(result);
-        bitmap.Dispose();
+        Assert.IsType<AvaloniaBitmap>(result);
+    }
+
+    [AvaloniaFact]
+    public void AnImageIsConvertedOnce()
+    {
+        // Every asset with the same static thumbnail shows the same image, and the bindings convert it again on each refresh:
+        // a new bitmap each time flooded the UI thread of the xplat editor (feature/xplat-roadmap-phase-1 56d4810b3)
+        using var image = Image.New2D(64, 64, 1, PixelFormat.B8G8R8A8_UNorm);
+        using var other = Image.New2D(64, 64, 1, PixelFormat.B8G8R8A8_UNorm);
+        var converter = new StrideImage();
+
+        var first = converter.Convert(image, typeof(object), null, CultureInfo.InvariantCulture);
+        var second = converter.Convert(image, typeof(object), null, CultureInfo.InvariantCulture);
+        var third = converter.Convert(other, typeof(object), null, CultureInfo.InvariantCulture);
+
+        Assert.IsType<AvaloniaBitmap>(first);
+        Assert.Same(first, second);
+        Assert.NotSame(first, third);
     }
 
     [AvaloniaFact]
