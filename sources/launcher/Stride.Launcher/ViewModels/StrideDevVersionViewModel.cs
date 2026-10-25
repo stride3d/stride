@@ -194,12 +194,7 @@ public sealed class StrideDevVersionViewModel : StrideVersionViewModel
     /// <summary>
     /// Gets the Game Studio of the package <paramref name="packageId"/>, WPF or Avalonia, or null when it isn't one of them.
     /// </summary>
-    internal static string? GetEditorName(string? packageId) => packageId switch
-    {
-        GameStudioNames.Stride => "WPF",
-        GameStudioNames.StrideAvalonia => "Avalonia",
-        _ => null,
-    };
+    internal static string? GetEditorName(string? packageId) => GameStudioEditors.FromPackageId(packageId)?.DisplayName();
 
     /// <inheritdoc/>
     public override string FullName => localPackage?.Version.ToString() ?? path.MakeRelative(path.GetParent());
