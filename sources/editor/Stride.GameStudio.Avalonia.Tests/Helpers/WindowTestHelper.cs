@@ -17,6 +17,22 @@ internal static class WindowTestHelper
     }
 
     /// <summary>
+    /// Pumps the dispatcher until the condition holds, or fails after the timeout: the session's history and properties update
+    /// asynchronously after a change.
+    /// </summary>
+    public static async Task WaitUntilAsync(Func<bool> condition, string what, int timeoutMilliseconds = 5000)
+    {
+        var deadline = DateTime.UtcNow.AddMilliseconds(timeoutMilliseconds);
+        while (!condition())
+        {
+            if (DateTime.UtcNow > deadline)
+                throw new TimeoutException($"Timed out waiting for {what}.");
+            await Task.Delay(25);
+            await PumpAsync();
+        }
+    }
+
+    /// <summary>
     /// Closes a window and waits for it to be closed: the main window saves its settings first and closes when the dispatcher is
     /// idle, and a window left open renders after the test's application is gone.
     /// </summary>
