@@ -47,6 +47,78 @@
 
   <!-- 
   *****************************************************************************************************************************
+  User documentation file (.usrdoc) generation
+  *****************************************************************************************************************************
+  -->
+
+  <UsingTask TaskName="ExtractUserDocs"
+             TaskFactory="RoslynCodeTaskFactory"
+             AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <XmlFile    ParameterType="System.String" Required="true" />
+      <TargetFile ParameterType="System.String" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System" />
+      <Using Namespace="System.Collections.Generic" />
+      <Using Namespace="System.IO" />
+      <Using Namespace="System.Text.RegularExpressions" />
+      <Using Namespace="System.Xml.Linq" />
+      <Code Type="Fragment" Language="cs">
+        <![CDATA[
+        var result = new Dictionary<string, string>();
+
+        var regex = new Regex("[ ]{2,}", RegexOptions.None);
+        var document = XElement.Load(XmlFile);
+        foreach (var member in document.Descendants("member"))
+        {
+            var nameAttribute = member.Attribute("name");
+            if (nameAttribute == null)
+                continue;
+
+            foreach (var userdocElement in member.Descendants("userdoc"))
+            {
+                var key = nameAttribute.Value;
+                if (!key.StartsWith("P:", StringComparison.Ordinal) && !key.StartsWith("F:", StringComparison.Ordinal))
+                    continue;
+
+                var userdoc = userdocElement.Value;
+                userdoc = userdoc.Replace('\t', ' ').Replace('\r', ' ').Replace('\n', ' ').Trim();
+                userdoc = regex.Replace(userdoc, " ");// Removes double space.
+
+                result[key] = userdoc;
+            }
+        }
+
+        Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(TargetFile)));
+        using (var writer = new StreamWriter(TargetFile))
+        {
+            foreach (var entry in result)
+            {
+                writer.WriteLine("{0}={1}", entry.Key, entry.Value);
+            }
+        }
+        Log.LogMessage(MessageImportance.High, "Wrote user documentation to " + TargetFile);
+      ]]>
+      </Code>
+    </Task>
+  </UsingTask>
+
+  <Target Name="ExtractUserDocs"
+          AfterTargets="CoreCompile"
+          Condition="'$(DocumentationFile)' != ''">
+
+    <ExtractUserDocs XmlFile="$(DocumentationFile)" TargetFile="$(IntermediateOutputPath)$(AssemblyName).usrdoc" />
+
+    <ItemGroup>
+      <None Include="$(IntermediateOutputPath)$(AssemblyName).usrdoc"
+            Link="$(AssemblyName).userdoc"
+            CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+  </Target>
+
+  <!-- 
+  *****************************************************************************************************************************
   Assembly Processor
   *****************************************************************************************************************************
   -->
@@ -88,11 +160,9 @@
     </ItemGroup>
     <PropertyGroup>
       <StrideAssemblyProcessorOptions Condition="'$(StrideAssemblyProcessorOptions)' == ''">--parameter-key --auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
-      <StrideAssemblyProcessorOptions Condition="'$(DocumentationFile)' != ''">$(StrideAssemblyProcessorOptions) --docfile="$(DocumentationFile)"</StrideAssemblyProcessorOptions>
       <!-- Physics, Particles and SpriteStudio assembly is actually hard coded/referenced here, remove once a better system is in place! -->
       <!-- Please keep in sync with AssemblyRecompiler.cs -->
       <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorOptions) @(StrideAddReference->'--add-reference=%22%(Identity)%22',' ')</StrideAssemblyProcessorOptions>
-      <StrideAssemblyProcessorOptions Condition="'$(DocumentationFile)' != ''">$(StrideAssemblyProcessorOptions) --docfile="$(DocumentationFile)"</StrideAssemblyProcessorOptions>
       <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorOptions) --references-file="$(IntermediateOutputPath)StrideReferences.cache"</StrideAssemblyProcessorOptions>
       <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorOptions) --platform=$(StridePlatform) "$(IntermediateOutputPath)$(TargetName)$(TargetExt)"</StrideAssemblyProcessorOptions>
       <StrideAssemblyProcessorOptions Condition="'$(AssemblyOriginatorKeyFile)' != ''">$(StrideAssemblyProcessorOptions) --delete-output-on-error</StrideAssemblyProcessorOptions>
