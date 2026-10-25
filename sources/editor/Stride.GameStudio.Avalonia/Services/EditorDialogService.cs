@@ -24,6 +24,11 @@ internal class EditorDialogService : DialogService, IEditorDialogService
         this.serviceProvider = serviceProvider;
     }
 
+    /// <summary>
+    /// The notification bar; a host without one shows nothing.
+    /// </summary>
+    private INotificationService? Notifications => serviceProvider.TryGet<INotificationService>();
+
     public async Task ShowAboutWindowAsync()
     {
         if (MainWindow is null) return;
@@ -91,6 +96,11 @@ internal class EditorDialogService : DialogService, IEditorDialogService
         {
             workProgress.NotifyWindowClosed();
         }
+    }
+
+    public void ShowNotification(WorkProgressViewModel workProgress)
+    {
+        Notifications?.AddNotification(workProgress);
     }
 
     public async Task ShowSettingsWindowAsync()
