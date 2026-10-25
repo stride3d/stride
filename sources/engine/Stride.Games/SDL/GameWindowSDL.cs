@@ -76,8 +76,12 @@ namespace Stride.Games
                 else //fullscreen to windowed or window resize
                 {
                     window.IsFullScreen = false;
-                    if (canResize)
-                        window.ClientSize = new Size2(clientWidth, clientHeight);
+                    // A window resize already has the new size: setting it again is not free on X11, where SDL moves a
+                    // non-resizable (borderless) window back to the position it computed from the root window. That throws
+                    // a window embedded in another one, such as the editor's game views, out of its parent.
+                    var clientSize = new Size2(clientWidth, clientHeight);
+                    if (canResize && window.ClientSize != clientSize)
+                        window.ClientSize = clientSize;
                     // Only restore the windowed position when actually leaving fullscreen. On plain
                     // resizes the get/set round-trip is not symmetric about the decoration frame on
                     // X11 reparenting WMs, so restoring it every resize walks the window up-left.
