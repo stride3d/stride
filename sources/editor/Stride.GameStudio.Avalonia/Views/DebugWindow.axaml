@@ -3,6 +3,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:caevm="using:Stride.Core.Assets.Editor.ViewModels"
+             xmlns:cpvm="using:Stride.Core.Presentation.ViewModel"
         xmlns:gsc="using:Stride.GameStudio.Avalonia.Controls"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="Stride.GameStudio.Avalonia.Views.DebugWindow"
@@ -21,7 +22,7 @@
           <gsc:DebugAssetNodesUserControl />
         </DataTemplate>
 
-        <DataTemplate DataType="{x:Type caevm:LoggerViewModel}">
+        <DataTemplate DataType="{x:Type cpvm:LoggerViewModel}">
           <gsc:DebugLogUserControl />
         </DataTemplate>
 

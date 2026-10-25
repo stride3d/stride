@@ -16,6 +16,7 @@ namespace Stride.GameStudio.Avalonia.Views;
 public partial class MainWindow : Window
 {
     private TaskCompletionSource<bool>? closingTask;
+    private bool closeConfirmed;
     private Size restoreBounds;
 
     public MainWindow()
@@ -40,6 +41,8 @@ public partial class MainWindow : Window
     protected override void OnClosing(WindowClosingEventArgs e)
     {
         base.OnClosing(e);
+        if (closeConfirmed)
+            return;
         switch (e.CloseReason)
         {
             case WindowCloseReason.ApplicationShutdown:
@@ -141,7 +144,7 @@ public partial class MainWindow : Window
             InternalSettings.SaveProfile();
         }
 
-        static void Shutdown()
+        void Shutdown()
         {
             if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
             {
@@ -150,7 +153,9 @@ public partial class MainWindow : Window
             }
             else
             {
-                Environment.Exit(0);
+                // Without a desktop lifetime (a headless host), the window is just closed: the host owns the process
+                closeConfirmed = true;
+                Close();
             }
         }
     }

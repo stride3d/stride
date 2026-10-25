@@ -14,11 +14,15 @@ internal static class TypeHelpers
     /// <returns>The associated type if found; otherwise, <c>null</c>.</returns>
     public static Type? TryGetTypeOrBase(Type keyType, IReadOnlyDictionary<Type, Type> typeMap)
     {
-        var currentType = keyType;
+        Type? currentType = keyType;
         Type? returnType;
         do
         {
             if (typeMap.TryGetValue(currentType, out returnType))
+                break;
+
+            // A registration on an open generic base (PreviewFromSpriteBatch<>) covers every closed one
+            if (currentType.IsConstructedGenericType && typeMap.TryGetValue(currentType.GetGenericTypeDefinition(), out returnType))
                 break;
 
             currentType = currentType.BaseType;

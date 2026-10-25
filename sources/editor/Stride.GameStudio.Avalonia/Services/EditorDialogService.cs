@@ -4,6 +4,7 @@
 using Avalonia.Controls;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Settings;
+using Stride.Core.Assets.Editor.ViewModel.Progress;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Presentation.Avalonia.Services;
 using Stride.Core.Presentation.Services;
@@ -81,7 +82,8 @@ internal class EditorDialogService : DialogService, IEditorDialogService
                 };
                 workProgress.NotifyWindowWillOpen();
                 
-                if (MainWindow is not null) progressWindow.ShowDialog(MainWindow);
+                // A dialog needs a visible owner; before the main window shows (or without one), the progress window stands alone
+                if (MainWindow is { IsVisible: true }) progressWindow.ShowDialog(MainWindow);
                 else progressWindow.Show();
             });
         }
