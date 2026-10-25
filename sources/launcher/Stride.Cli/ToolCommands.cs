@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.CommandLine;
+using Stride;
 using Stride.Cli.Core;
 using Stride.Core;
 using Stride.Core.Assets;
@@ -82,11 +83,26 @@ internal static class ToolCommands
         }
 
         if (installed.Count == 0)
-            return GameStudioEditors.Default(GameStudioEditors.All, wine);
-        if (GameStudioEditors.Default(installed, wine) is { } fallback)
+            return DefaultEditor(GameStudioEditors.All, wine);
+        if (DefaultEditor(installed, wine) is { } fallback)
             return fallback;
         Console.Error.WriteLine($"Stride {version} has only the {string.Join(" and ", installed.Select(other => other.DisplayName()))} Game Studio installed, which {WineRequired}.");
         return null;
+    }
+
+    // The Game Studio to open when none is asked for, among the installed ones: on Windows the WPF one when it is
+    // there, else the Avalonia one; elsewhere the Avalonia one, else the WPF one under Wine when wine is available.
+    // Null when none of them can run.
+    private static GameStudioEditor? DefaultEditor(IEnumerable<GameStudioEditor> installed, bool wine)
+    {
+        GameStudioEditor[] preferred = OperatingSystem.IsWindows()
+            ? [GameStudioEditor.Wpf, GameStudioEditor.Avalonia]
+            : [GameStudioEditor.Avalonia, GameStudioEditor.Wpf];
+        var candidates = installed.ToList();
+        return preferred
+            .Where(editor => candidates.Contains(editor) && (editor.RunsNatively() || wine))
+            .Select(editor => (GameStudioEditor?)editor)
+            .FirstOrDefault();
     }
 
     // asset: advanced escape hatch — forward a verb and arguments straight to the Asset Compiler. Hidden because
