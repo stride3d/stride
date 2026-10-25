@@ -340,7 +340,12 @@ namespace Stride.Games
             if (window != null)
             {
                 window.MaximizeBox = allowUserResizing;
-                window.FormBorderStyle = isFullScreenMaximized || isBorderLess ? FormBorderStyle.None : allowUserResizing ? FormBorderStyle.Sizable : FormBorderStyle.FixedSingle;
+                var borderStyle = isFullScreenMaximized || isBorderLess ? FormBorderStyle.None : allowUserResizing ? FormBorderStyle.Sizable : FormBorderStyle.FixedSingle;
+                // A borderless window that allows resizing stays resizable: it has no border to drag, but its size changes with
+                // its parent when it is embedded in another window (the editor's game views), which SDL refuses on Windows to a
+                // non-resizable borderless window. Both flags are set at once: each change of the resizable flag moves an X11
+                // window to the position SDL computed from the root window.
+                window.SetBorderStyle(borderStyle, allowUserResizing && !isFullScreenMaximized);
 
                 if (isFullScreenMaximized)
                 {
