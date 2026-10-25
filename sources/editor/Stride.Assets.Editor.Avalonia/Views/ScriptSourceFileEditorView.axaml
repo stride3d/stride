@@ -2,14 +2,23 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
              xmlns:vm="using:Stride.Assets.Editor.ViewModels"
+             xmlns:controls="using:Stride.Core.Presentation.Avalonia.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Stride.Assets.Editor.Avalonia.Views.ScriptSourceFileEditorView"
              x:DataType="vm:ScriptSourceFileEditorViewModel">
+  <UserControl.KeyBindings>
+    <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveCommand}" />
+  </UserControl.KeyBindings>
   <DockPanel>
-    <Grid DockPanel.Dock="Top">
-      <TextBlock Text="ScriptSourceFile Editor" />
-    </Grid>
-    <TextBlock Text="{Binding Asset.Name}" />
+    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="4" Margin="4">
+      <!-- The command is enabled while the text has unsaved edits -->
+      <Button x:Name="SaveButton" Content="{sd:LocalizeString Save}" Command="{Binding SaveCommand}"
+              ToolTip.Tip="{sd:LocalizeString Save the script (Ctrl+S)}" />
+    </StackPanel>
+    <!-- The code-behind loads the text: the editor holds its own document, which a binding of its text would rebuild on
+         every keystroke -->
+    <controls:CodeTextEditor x:Name="Editor" FontSize="{Binding FontSize}" />
   </DockPanel>
 </UserControl>
