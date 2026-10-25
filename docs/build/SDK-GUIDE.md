@@ -1,14 +1,15 @@
 # Stride Build System (SDK)
 
-The Stride build system is implemented as a set of MSBuild SDK packages under `sources/sdk/`. All projects import the SDK files directly from source using `$(StrideRoot)`-relative paths (see [How Projects Import the SDK](#how-projects-import-the-sdk)).
+The Stride build system is a set of four MSBuild SDKs (props and targets) under `sources/sdk/`. Every project imports them directly from source (see [How Projects Import the SDK](#how-projects-import-the-sdk)); they are not NuGet packages.
 
-## SDK Packages
+## SDKs
 
-| Package | Purpose |
+| SDK | Purpose |
 |---------|---------|
 | **Stride.Build.Sdk** | Base SDK for all Stride projects. Platform detection, target frameworks, graphics API multi-targeting, assembly processor, native dependencies, shader support. |
 | **Stride.Build.Sdk.Editor** | Composes `Stride.Build.Sdk`. Adds `StrideEditorTargetFramework` and `StrideXplatEditorTargetFramework`. |
 | **Stride.Build.Sdk.Tests** | Composes `Stride.Build.Sdk.Editor`. Adds xunit packages, test infrastructure, launcher code, and asset compilation support. |
+| **Stride.Build.Sdk.MultiPlatform.Tests** | Composes `Stride.Build.Sdk.Tests` for tests that run on several platforms (multi-TFM, from `$(StridePlatforms)`). |
 
 ### Hierarchy
 
@@ -16,25 +17,10 @@ The Stride build system is implemented as a set of MSBuild SDK packages under `s
 Stride.Build.Sdk (base: platform, graphics, assembly processor, shaders)
   +-- Stride.Build.Sdk.Editor (adds editor framework properties)
         +-- Stride.Build.Sdk.Tests (adds xunit, test infrastructure, asset compilation)
+              +-- Stride.Build.Sdk.MultiPlatform.Tests (multi-platform tests)
 ```
 
-Each SDK internally imports `Microsoft.NET.Sdk` (internal chaining pattern, same approach as `Microsoft.NET.Sdk.Web`). Users only reference a single SDK.
-
-### Version Management
-
-SDK versions are pinned in `global.json`:
-
-```json
-{
-  "msbuild-sdks": {
-    "Stride.Build.Sdk": "4.3.0-dev",
-    "Stride.Build.Sdk.Editor": "4.3.0-dev",
-    "Stride.Build.Sdk.Tests": "4.3.0-dev"
-  }
-}
-```
-
-Only one version of each SDK can be active during a build.
+Each SDK internally imports `Microsoft.NET.Sdk` (internal chaining pattern, same approach as `Microsoft.NET.Sdk.Web`). A project imports a single SDK.
 
 ---
 
@@ -58,7 +44,7 @@ The **props import** uses `GetDirectoryNameOfFileAbove` — a static MSBuild fun
 
 The **targets import** uses `$(StrideRoot)` because `Directory.Build.props` has already been evaluated by that point.
 
-This replaces the earlier `<Project Sdk="Stride.Build.Sdk">` style which required the SDK packages to be pre-built and cached in `~/.nuget/packages/` before any project could load.
+Projects used `<Project Sdk="Stride.Build.Sdk">` before (see [History](#history)).
 
 ### Why direct imports?
 
@@ -88,79 +74,9 @@ By the time the project file reaches the closing targets `<Import>`, `Directory.
 <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk/Sdk/Sdk.targets" />
 ```
 
-### Reverting to full-SDK style
+### History
 
-To go back to `<Project Sdk="Stride.Build.Sdk">`:
-
-**Step 1 — Restore SDK internal cross-references (4 files):**
-
-`sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.props` — replace:
-```xml
-<Import Project="$(MSBuildThisFileDirectory)..\..\Stride.Build.Sdk/Sdk/Sdk.props" />
-```
-with:
-```xml
-<Import Project="Sdk.props" Sdk="Stride.Build.Sdk" />
-```
-
-`sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets` — replace:
-```xml
-<Import Project="$(MSBuildThisFileDirectory)..\..\Stride.Build.Sdk/Sdk/Sdk.targets" />
-```
-with:
-```xml
-<Import Project="Sdk.targets" Sdk="Stride.Build.Sdk" />
-```
-
-`sources/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.props` — replace:
-```xml
-<Import Project="$(MSBuildThisFileDirectory)..\..\Stride.Build.Sdk.Editor/Sdk/Sdk.props" />
-```
-with:
-```xml
-<Import Project="Sdk.props" Sdk="Stride.Build.Sdk.Editor" />
-```
-
-`sources/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.targets` — replace:
-```xml
-<Import Project="$(MSBuildThisFileDirectory)..\..\Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />
-```
-with:
-```xml
-<Import Project="Sdk.targets" Sdk="Stride.Build.Sdk.Editor" />
-```
-
-**Step 2 — Restore project files:**
-
-Use `git` to revert the project file changes (all 125 `.csproj` files). The direct-import form was introduced in one commit, so a targeted revert or checkout is the most reliable approach.
-
-**Step 3 — Uncomment `global.json` `msbuild-sdks` entries.**
-
-**Step 4 — Uncomment `nuget.config` `packageSourceMapping` entry and re-add the `stride-sdks` source.**
-
-**Step 5 — Re-add `BuildSdk` target to `build/Stride.build`:**
-
-Restore the target and add `DependsOnTargets="BuildSdk"` (or `BuildSdk;` prefix where multiple dependencies exist) to: `Build`, `BuildRuntime`, `BuildWindows`, `BuildWindowsDirect3D11`, `BuildWindowsDirect3D12`, `BuildAndroid`, `BuildiOS`, `BuildUWP`, `BuildWindowsVulkan`, `BuildLinux`, `BuildmacOS`, `BuildLauncher`, `RunTestsWindows`, `RunTestsMobile`.
-
-```xml
-<!--
-Build Stride MSBuild SDK packages (Stride.Build.Sdk, Stride.Build.Sdk.Editor, Stride.Build.Sdk.Tests)
-into the local NuGet cache. Required before any project using Sdk="Stride.Build.Sdk" can build.
--->
-<Target Name="BuildSdk">
-  <PropertyGroup>
-    <StrideSdkSolution>$(StrideRoot)sources\sdk\Stride.Build.Sdk.slnx</StrideSdkSolution>
-  </PropertyGroup>
-  <MSBuild Targets="Restore" Projects="$(StrideSdkSolution)" />
-  <MSBuild Targets="Build" Projects="$(StrideSdkSolution)" />
-</Target>
-```
-
-**Step 6 — Build the SDK packages:**
-
-```bash
-dotnet build sources/sdk/Stride.Build.Sdk.slnx
-```
+The SDKs were first NuGet packages, used as `<Project Sdk="Stride.Build.Sdk">` ([#3085](https://github.com/stride3d/stride/pull/3085)). MSBuild resolves such an SDK before any project file loads, so the packages had to be built into the NuGet cache before Visual Studio could open the solution. Commit `11de67077d` switched every project to direct imports, and the package projects were removed later. To revisit package-style SDKs, start from those two.
 
 ---
 
@@ -218,7 +134,8 @@ A test that must run on multiple platforms imports `Stride.Build.Sdk.MultiPlatfo
 ```
 sources/sdk/
 +-- Stride.Build.Sdk/
-|   +-- Stride.Build.Sdk.csproj
+|   +-- Stride.PackageMetadata.props           # NuGet metadata shared by the engine packages
+|   +-- nuget-icon.png                         # Icon of the engine packages
 |   +-- Sdk/
 |       +-- Sdk.props                          # Entry point (before project file)
 |       +-- Sdk.targets                        # Entry point (after project file)
@@ -233,27 +150,32 @@ sources/sdk/
 |       +-- Stride.Dependencies.targets        # .ssdeps native dependency system
 |       +-- Stride.CodeAnalysis.targets        # Code analysis rules
 |       +-- Stride.PackageInfo.targets         # NuGet metadata, versioning
+|       +-- Stride.NuGetVersion.props          # Package version from SharedAssemblyInfo.cs
+|       +-- Stride.GitVersion.targets          # Release version + git metadata (package.proj)
+|       +-- Stride.WorktreeVersion.targets     # Per-checkout dev version suffix
+|       +-- Stride.DevPackages.targets         # Dev-redirect package stubs (StrideDevPackages=true)
+|       +-- Stride.AutoPackDeploy.targets      # Auto-pack into bin/packages
+|       +-- StrideVersionTasks.cs              # Inline tasks of the version targets
+|       +-- StrideDevPackagesTasks.cs          # Inline tasks of Stride.DevPackages.targets
 |       +-- Stride.NativeBuildMode.props       # Clang/MSVC selection
 |       +-- Stride.DisableBuild.targets        # Empty targets for build skip
 |       +-- Stride.ruleset                     # Code analysis ruleset
 +-- Stride.Build.Sdk.Editor/
-|   +-- Stride.Build.Sdk.Editor.csproj
 |   +-- Sdk/
 |       +-- Sdk.props                          # Imports Stride.Build.Sdk + editor frameworks
 |       +-- Sdk.targets                        # Passthrough to Stride.Build.Sdk
 |       +-- Stride.Editor.Frameworks.props     # Editor framework definitions
-+-- Stride.Build.Sdk.Tests/
-|   +-- Stride.Build.Sdk.Tests.csproj
++-- Stride.Build.Sdk.MultiPlatform.Tests/
 |   +-- Sdk/
-|       +-- Sdk.props                          # Test defaults, output paths
-|       +-- Sdk.targets                        # xunit packages, shader support, launchers
-|       +-- LauncherGame.Desktop.cs            # Test launcher for graphics tests
-|       +-- LauncherSimple.Desktop.cs          # Test launcher for simple tests
-+-- Stride.Build.Sdk.slnx                           # Solution for building SDK packages
-+-- Directory.Build.props                      # Shared SDK project config
+|       +-- Sdk.props                          # Sets StrideMultiPlatformTest, imports Stride.Build.Sdk.Tests
+|       +-- Sdk.targets                        # Passthrough to Stride.Build.Sdk.Tests
++-- Stride.Build.Sdk.Tests/
+    +-- Sdk/
+        +-- Sdk.props                          # Test defaults, output paths
+        +-- Sdk.targets                        # xunit packages, shader support, launchers
+        +-- LauncherGame.Desktop.cs            # Test launcher for graphics tests
+        +-- LauncherSimple.Desktop.cs          # Test launcher for simple tests
 ```
-
-**Important:** SDK packages must ONLY use the `Sdk/` folder. Never add a `build/` folder — NuGet auto-imports `build/PackageId.props` and `build/PackageId.targets` even for SDK packages, causing double-import when combined with `Sdk="PackageName"` on the `<Project>` element. This was the root cause of a critical bug where `Configuration` became empty during restore with 2+ ProjectReferences.
 
 ---
 
@@ -261,7 +183,7 @@ sources/sdk/
 
 This is the most important concept for understanding and modifying the SDK.
 
-When MSBuild processes `<Project Sdk="Stride.Build.Sdk">`, it evaluates files in this strict order:
+When MSBuild loads a Stride project, it evaluates files in this strict order:
 
 ```
 Phase 1: Stride.Build.Sdk/Sdk/Sdk.props       <-- BEFORE project file
@@ -301,12 +223,6 @@ Phase 3: Stride.Build.Sdk/Sdk/Sdk.targets     <-- AFTER project file
 - Properties that **set defaults** -> Sdk.props
 - Properties that **check user values** or **compute derived values** -> Sdk.targets
 - Build **targets and tasks** -> Sdk.targets
-
-### Historical note
-
-The old build system used `<Import Project="..\..\targets\Stride.Core.props" />` placed *after* setting properties in the .csproj. This allowed properties to be visible during the import, but required users to carefully order their property definitions before the import — a fragile pattern. The SDK approach standardizes the evaluation order, eliminating this class of bugs.
-
-The old system had a critical bug where a user flag (the former `StrideRuntime`) was checked in the `.props` phase before the user's .csproj defined it, causing multi-targeting to silently fail unless the property was set before the import or passed on the command line. The SDK avoids this entirely: the runtime/test framework sets are precomputed in `.props` from `$(StridePlatforms)`, and each project declares `<TargetFrameworks>$(StrideRuntimeTargetFrameworks)</TargetFrameworks>` directly — so there is no late-consumed user flag at all.
 
 ### Full import order
 
@@ -507,40 +423,7 @@ The `.ssdeps` system (`Stride.Dependencies.targets`) handles native library dist
 
 ## Development Workflow
 
-### Building the SDK
-
-The SDK packages don't need to be built for day-to-day development — projects now import SDK files directly from source. Rebuild the SDK packages only when preparing a NuGet release or when testing the full-SDK (`Sdk="Stride.Build.Sdk"`) mode.
-
-If you do need to build the packages (e.g. for a NuGet release), rebuild and clear the NuGet cache:
-
-```bash
-# 1. Kill any running MSBuild/dotnet processes
-taskkill /F /IM dotnet.exe 2>nul
-
-# 2. Clean NuGet cache
-rmdir /s /q "%USERPROFILE%\.nuget\packages\stride.build.sdk" 2>nul
-rmdir /s /q "%USERPROFILE%\.nuget\packages\stride.build.sdk.editor" 2>nul
-rmdir /s /q "%USERPROFILE%\.nuget\packages\stride.build.sdk.tests" 2>nul
-
-# 3. Build the SDK
-dotnet build sources\sdk\Stride.Build.Sdk.slnx
-
-# 4. Verify packages
-dir build\packages\*.nupkg
-```
-
-### NuGet Package Flow
-
-```
-sources/sdk/              (SDK source code)
-    | dotnet build
-build/packages/            (Local .nupkg files)
-    | dotnet restore (on consuming project)
-%USERPROFILE%\.nuget\packages\  (NuGet global cache)
-    | Build uses cached SDK
-```
-
-**Common issue:** Old SDK version cached. Always clear cache after SDK changes.
+SDK files are imported from source, so an edit takes effect on the next build: there is nothing to rebuild or clear first.
 
 ### Testing Changes
 
@@ -573,53 +456,25 @@ dotnet build -v:detailed sources\core\Stride.Core\Stride.Core.csproj
 
 ### SDK composition: internal chaining
 
-`Stride.Build.Sdk` internally imports `Microsoft.NET.Sdk`. Users only reference `<Project Sdk="Stride.Build.Sdk">`. This follows the pattern used by `Microsoft.NET.Sdk.Web` and gives the SDK full control over import order.
+`Stride.Build.Sdk` internally imports `Microsoft.NET.Sdk`. A project only imports the `Sdk.props`/`Sdk.targets` of one Stride SDK. This follows the pattern used by `Microsoft.NET.Sdk.Web` and gives the SDK full control over import order.
 
-The alternative (additive SDKs where users write `<Project Sdk="Microsoft.NET.Sdk"><Sdk Name="Stride.Build.Sdk" />`) was rejected: more verbose, potential ordering issues, and requires users to manage two SDK references.
+The alternative (importing `Microsoft.NET.Sdk` in each project, then the Stride SDK on top) was rejected: more verbose, potential ordering issues, and two imports to manage per project.
 
-### Three SDK packages instead of one
+### Three SDKs instead of one
 
 Separating `Stride.Build.Sdk.Editor` prevents engine runtime projects from accidentally depending on editor frameworks (WPF). Separating `Stride.Build.Sdk.Tests` keeps xunit dependencies out of production code. The hierarchy ensures each project type gets exactly the right defaults.
 
-### No `Stride.Build.Sdk.Runtime` package
+### No `Stride.Build.Sdk.Runtime`
 
 Initially considered, but unnecessary. Runtime projects use `Stride.Build.Sdk` directly and declare `<TargetFrameworks>$(StrideRuntimeTargetFrameworks)</TargetFrameworks>` — a set the SDK precomputes in `Stride.Platform.props` from the active platforms.
 
 ### Evaluation timing: defaults in props, logic in targets
 
-All user-configurable flags (`StrideAssemblyProcessor`, `StrideCodeAnalysis`, etc.) get default values in `Sdk.props` and are checked in `Sdk.targets`. This is the standard MSBuild SDK pattern and avoids the evaluation-order bugs present in the old system. (Framework selection sidesteps it differently — see the note under [Correct patterns](#correct-patterns).)
-
-### No `build/` convention files
-
-NuGet's `build/` convention auto-imports `.props` and `.targets` files even for SDK packages, causing double-import. The SDK exclusively uses the `Sdk/` folder for MSBuild SDK resolution.
-
----
-
-## Features Intentionally Not Ported
-
-| Feature | Reason |
-|---------|--------|
-| Xamarin-specific workarounds | .NET for Android/iOS doesn't need them |
-| `SolutionName` default | Not needed in SDK-style builds |
-| `StridePackageStride` path resolution | Package paths are SDK-relative |
-| `DependencyDir`, `BuildDir`, `SourceDir` | Package structure replaces relative paths |
-| Empty default targets (Build, Clean) | `Microsoft.NET.Sdk` provides these |
-| `ErrorReport=prompt`, `FileAlignment=512` | .NET defaults are sufficient |
-| `ExecutableExtension` | .NET SDK handles this |
-| C++ output path for vcxproj | C++ projects don't use `Stride.Build.Sdk` |
-| UWP-specific properties | UWP is being phased out |
+All user-configurable flags (`StrideAssemblyProcessor`, `StrideCodeAnalysis`, etc.) get default values in `Sdk.props` and are checked in `Sdk.targets`. This is the standard MSBuild SDK pattern. (Framework selection sidesteps it differently — see the note under [Correct patterns](#correct-patterns).)
 
 ---
 
 ## Troubleshooting
-
-### Build fails after SDK changes
-
-SDK files are imported directly from source — changes take effect on the next build with no cache clear needed. If you are testing the NuGet package mode (`Sdk="Stride.Build.Sdk"`), then after SDK changes you still need to kill dotnet processes, clear the cache, and rebuild the packages. See "Building the SDK" above.
-
-### Configuration is empty (`bin\net10.0\` instead of `bin\Debug\net10.0\`)
-
-This was caused by `build/` convention files in the SDK package. They have been removed. If it recurs, check that no `build/` folder exists in the SDK packages.
 
 ### Properties from .csproj not visible
 
@@ -631,7 +486,7 @@ Ensure the .csproj declares `<TargetFrameworks>$(StrideRuntimeTargetFrameworks)<
 
 ### Assembly processor not running
 
-Check that `StrideAssemblyProcessor=true` is set. Verify the processor binaries exist. Clear the NuGet cache and rebuild the SDK.
+Check that `StrideAssemblyProcessor=true` is set. Verify the processor binaries exist in `deps/AssemblyProcessor/`.
 
 ---
 

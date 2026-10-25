@@ -383,7 +383,7 @@
   <!-- ================================================================ -->
   <!-- Platform Target Metadata -->
   <!-- ================================================================ -->
-  <!-- Used by Stride.build to detect if unit tests prefer to run in 32 or 64 bits -->
+  <!-- Exposes the test project's PlatformTarget (32 or 64 bits); the old test runner of the build script read it, nothing in the repo does now -->
   <Target Name="_StrideAfterGetTargetPathWithTargetPlatformMoniker"
           AfterTargets="GetTargetPathWithTargetPlatformMoniker">
     <ItemGroup>

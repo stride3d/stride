@@ -34,7 +34,7 @@
   <Import Project="Stride.AssemblyProcessor.targets" />
   <Import Project="Stride.CodeAnalysis.targets" />
   <Import Project="Stride.PackageInfo.targets" />
-  <Import Project="$(StrideRoot)sources\targets\Stride.WorktreeVersion.targets" Condition="'$(_StrideWorktreeVersionTargetsImported)' != 'true'" />
+  <Import Project="Stride.WorktreeVersion.targets" Condition="'$(_StrideWorktreeVersionTargetsImported)' != 'true'" />
 
   <!-- ================================================================ -->
   <!-- Disable ValidateExecutableReferences -->
@@ -335,8 +335,8 @@
   <!-- ================================================================ -->
   <!-- Dev packages mode: skip packing and use redirect packages (must set StrideSkipAutoPack
        before Stride.AutoPackDeploy.targets evaluates its GeneratePackageOnBuild gate) -->
-  <Import Project="$(StrideRoot)sources\targets\Stride.DevPackages.targets" />
-  <Import Project="$(StrideRoot)sources\targets\Stride.AutoPackDeploy.targets" />
+  <Import Project="Stride.DevPackages.targets" />
+  <Import Project="Stride.AutoPackDeploy.targets" />
 
   <!-- ================================================================ -->
   <!-- Localization Satellite Assemblies -->
@@ -374,14 +374,14 @@
   <!-- ================================================================ -->
   <!-- The single place that swaps the version template for the generated overlay, so the StrideVersion.* consts
        carry the real computed version. Dev/CI builds: StrideEnsureWorktreeVersion (a dependency) generates the
-       overlay first. Package builds: the overlay is generated once up front by StrideGitVersion in Stride.build, so
+       overlay first. Package builds: the overlay is generated once up front by StrideGitVersion in package.proj, so
        here we only require that it exists. If it is somehow missing we leave the base template, which compiles the
        sentinel PublicVersion (4.4.65534) - loud rather than a plausible-looking wrong version. -->
   <Target Name="StrideApplyGeneratedVersion"
           DependsOnTargets="StrideEnsureWorktreeVersion"
           BeforeTargets="PrepareResources">
     <Error Condition="'$(StridePackageBuild)' == 'true' And !Exists('$(StrideRoot)sources\shared\SharedAssemblyInfo.Generated.cs')"
-           Text="SharedAssemblyInfo.Generated.cs has not been generated. Make sure the Stride.build PackageEnvironment target (StrideGitVersion) ran successfully before the package build."/>
+           Text="SharedAssemblyInfo.Generated.cs has not been generated. Make sure the package.proj PackageEnvironment target (StrideGitVersion) ran successfully before the package build."/>
     <ItemGroup Condition="Exists('$(StrideRoot)sources\shared\SharedAssemblyInfo.Generated.cs')">
       <StrideSharedAssemblyFile Include="@(Compile)" Condition="'%(Compile.FullPath)' == '$([System.IO.Path]::GetFullPath(`$(StrideRoot)sources\shared\SharedAssemblyInfo.cs`))'"/>
       <Compile Remove="@(StrideSharedAssemblyFile)" />

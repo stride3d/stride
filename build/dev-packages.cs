@@ -1,5 +1,5 @@
 // Dev-redirect NuGet stub generator for Stride.
-// Usage: dotnet run build/GenerateDevPackages.cs -- [options]
+// Usage: dotnet run --file build/dev-packages.cs -- [options]
 //
 // Generates stub .nupkg files that redirect to dev-built DLLs (and natives, and analyzers),
 // eliminating the ~50s NuGet packing overhead on every incremental build.
@@ -113,7 +113,7 @@ var projects = projectMap.Values.Distinct().ToList(); // the map lists a project
 var stampPath = Path.Combine(nugetDevDir, $".devpackages-{version}");
 var fixedInputs = new[]
 {
-    Path.Combine(strideRoot, "build", "GenerateDevPackages.cs"),
+    Path.Combine(strideRoot, "build", "dev-packages.cs"),
     Path.Combine(strideRoot, "sources", "Directory.Packages.props"),
     solution,
 };
@@ -501,7 +501,7 @@ static IEnumerable<string> BuildAssets(ProjectInfo project)
             .Concat(Directory.EnumerateFiles(dir, "*.props", SearchOption.AllDirectories)));
 
 // SHA-256 of a file's content with CRLF folded to LF, lowercase hex. Mirrored by StrideCheckDevPackageInputs
-// (sources/targets/StrideDevPackagesTasks.cs); keep the two in step.
+// (sources/sdk/Stride.Build.Sdk/Sdk/StrideDevPackagesTasks.cs); keep the two in step.
 static string ContentHash(string path)
 {
     var bytes = File.ReadAllBytes(path);

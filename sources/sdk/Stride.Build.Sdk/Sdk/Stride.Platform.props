@@ -74,7 +74,7 @@
     <StridePlatforms Condition="'$(StridePlatforms)' == '' And '$([MSBuild]::IsOSPlatform(OSX))'">macOS</StridePlatforms>
     <StridePlatforms Condition="'$(StridePlatforms)' == '' And '$([MSBuild]::IsOSPlatform(Linux))'">Linux</StridePlatforms>
 
-    <!-- Unescape in case it was passed from Stride.build with escaped characters -->
+    <!-- Unescape in case it was passed from package.proj with escaped characters -->
     <StridePlatforms>$([MSBuild]::Unescape('$(StridePlatforms)'))</StridePlatforms>
 
     <!-- Create delimited version for .Contains() checks in Stride.Frameworks.targets -->

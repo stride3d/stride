@@ -4,7 +4,7 @@
     Dev Packages Mode: when StrideDevPackages=true, skip NuGet auto-packing and use
     redirect packages that point to dev-built DLLs. Generated automatically on first build.
 
-    Set StrideDevPackages=true in your repo-root Directory.Build.props (gitignored).
+    Set StrideDevPackages=true in build/Stride.Local.props.
   -->
 
   <PropertyGroup Condition="'$(StrideDevPackages)' == 'true'">
@@ -30,7 +30,7 @@
        output name, is unknown, and a declared output that never appears would keep VS rebuilding the project. -->
   <ItemGroup Condition="'$(_StrideDevStubProject)' == 'true' And '$(PackageId)' != '' And Exists('$(StrideRoot)sources\shared\SharedAssemblyInfo.Generated.cs')">
     <UpToDateCheckOutput Include="$(LocalAppData)/stride/nugetdev/$(PackageId).$(PackageVersion)$(_StrideDevStubSuffix).nupkg" />
-    <UpToDateCheckInput Include="$(StrideRoot)build\GenerateDevPackages.cs" />
+    <UpToDateCheckInput Include="$(StrideRoot)build\dev-packages.cs" />
   </ItemGroup>
 
   <UsingTask TaskName="StrideCheckDevPackageInputs" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
@@ -68,7 +68,7 @@
 
     <StrideCheckDevPackageInputs ManifestPath="$(_StrideDevPackagesStamp).inputs" StampPath="$(_StrideDevPackagesStamp)"
                                  StubsPath="$(_StrideDevPackagesStamp).stubs" OwnStub="$(_StrideOwnStub)"
-                                 FixedInputs="$(StrideRoot)build\GenerateDevPackages.cs;$(StrideRoot)sources\Directory.Packages.props;$(StrideRoot)Stride.slnx"
+                                 FixedInputs="$(StrideRoot)build\dev-packages.cs;$(StrideRoot)sources\Directory.Packages.props;$(StrideRoot)Stride.slnx"
                                  Condition="Exists('$(_StrideDevPackagesStamp)')">
       <Output TaskParameter="Changed" ItemName="_StrideStaleStubInputs" />
       <Output TaskParameter="OwnStubFresh" PropertyName="_StrideOwnStubFresh" />
@@ -113,13 +113,13 @@
              Condition="'$(_StrideStubStale)' == 'true'" />
     <!-- The script's output is normal importance: nothing more at minimal verbosity, the details from normal on.
          The root is passed explicitly (the script's fallback is the current directory). -->
-    <Exec Command="dotnet run --file &quot;$(StrideRoot)build\GenerateDevPackages.cs&quot; -- --stride-root &quot;$(StrideRoot.TrimEnd('\'))&quot; --configuration $(Configuration) --adopt &quot;$(_StrideAdoptPackDir)$(_StrideOwnStub)&quot;"
+    <Exec Command="dotnet run --file &quot;$(StrideRoot)build\dev-packages.cs&quot; -- --stride-root &quot;$(StrideRoot.TrimEnd('\'))&quot; --configuration $(Configuration) --adopt &quot;$(_StrideAdoptPackDir)$(_StrideOwnStub)&quot;"
           WorkingDirectory="$(StrideRoot)" StandardOutputImportance="normal" StandardErrorImportance="high"
           Condition="'$(_StrideStubStale)' == 'true'" />
   </Target>
 
   <!-- Cleanup: if flag is off but stamp exists, wipe dev packages so real packing resumes.
-       Stamp file is a manifest of the nupkg filenames GenerateDevPackages.cs deployed, so we
+       Stamp file is a manifest of the nupkg filenames dev-packages.cs deployed, so we
        delete exactly those and nothing else. Not during the generator's own pack
        (StrideDevPackagesGenerating): it builds with the flag off too, and wiping there would
        drop the current stubs before the new set is known to be complete. -->
@@ -142,7 +142,7 @@
     <ItemGroup>
       <_StrideDevPackagesToDelete Include="$(LocalAppData)/stride/nugetdev/%(_StrideDevPackagesStubManifest.Identity)"
                                   Condition="'%(_StrideDevPackagesStubManifest.Identity)' != ''" />
-      <!-- The bin/packages mirrors (GenerateDevPackages copies stubs there so the repo
+      <!-- The bin/packages mirrors (dev-packages.cs copies stubs there so the repo
            nuget.config's stride-local mapping stays valid in dev mode). -->
       <_StrideDevPackagesToDelete Include="$(StrideRoot)bin\packages\%(_StrideDevPackagesStubManifest.Identity)"
                                   Condition="'%(_StrideDevPackagesStubManifest.Identity)' != ''" />

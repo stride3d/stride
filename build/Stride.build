@@ -294,7 +294,7 @@ Example: dotnet build build/Stride.build -t:Package
   </Target>
 
   <!-- StrideGitVersion task (package version from git release tags); shared with Stride.Samples.build. -->
-  <Import Project="$(StrideRoot)sources\targets\Stride.GitVersion.targets"
+  <Import Project="$(StrideRoot)sources\sdk\Stride.Build.Sdk\Sdk\Stride.GitVersion.targets"
           Condition="'$(_StrideGitVersionTargetsImported)' != 'true'" />
 
   <!-- Launcher: BuildLauncher, PackageLauncher, PackageInstaller, FullBuildLauncher, PublishLauncher -->

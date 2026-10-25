@@ -1,4 +1,4 @@
-<!-- Per-project version stamping (dev + CI; the release/package path uses StrideGitVersion in Stride.build).
+<!-- Per-project version stamping (dev + CI; the release/package path uses StrideGitVersion in package.proj).
 
      The build version is the committed MajorMinor.Patch from SharedAssemblyInfo.cs, shared with the release
      generator (Stride.GitVersion.targets) via StrideVersionTasks.cs.
@@ -34,7 +34,7 @@
   </UsingTask>
 
   <!-- Resolve the suffix and (re)generate SharedAssemblyInfo.Generated.cs. Skipped on package builds: there
-       StrideGitVersion (Stride.build) generates the overlay once up front. The lock inside the task plus this target
+       StrideGitVersion (package.proj) generates the overlay once up front. The lock inside the task plus this target
        running before PrepareResources means no project compiles the generated file while another is still writing
        it. The actual Compile swap lives in StrideApplyGeneratedVersion (Sdk.targets), so it happens in one place. -->
   <Target Name="StrideEnsureWorktreeVersion"

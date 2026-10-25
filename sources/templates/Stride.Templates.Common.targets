@@ -13,7 +13,7 @@
 
   <!-- StrideNuGetVersion (+ parts) from SharedAssemblyInfo[.Generated].cs; shared with Stride.PackageInfo.targets.
        Imported here (vanilla Microsoft.NET.Sdk, outside the Stride SDK chain). -p:PackageVersion=X pins explicitly. -->
-  <Import Project="$(StrideRoot)sources\targets\Stride.NuGetVersion.props" />
+  <Import Project="$(StrideRoot)sources\sdk\Stride.Build.Sdk\Sdk\Stride.NuGetVersion.props" />
 
   <!-- The developer's local settings (StridePackContentTemplates among them). The Stride SDK imports this file for
        engine projects; these projects use NoTargets, outside that chain. It only exists once a Stride SDK project
@@ -86,7 +86,7 @@
   <!-- Per-checkout NuGet version suffix; mirrors StrideAppendWorktreeVersion in
        Stride.PackageInfo.targets (templates use Microsoft.NET.Sdk so don't get it transitively).
        Must run before the preprocessor too so $EngineVersion$ matches the engine's suffix. -->
-  <Import Project="$(StrideRoot)sources/targets/Stride.WorktreeVersion.targets"
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk/Sdk/Stride.WorktreeVersion.targets"
           Condition="'$(_StrideWorktreeVersionTargetsImported)' != 'true'" />
   <Target Name="StrideTemplatesAppendWorktreeVersion"
           DependsOnTargets="StrideEnsureWorktreeVersion"
@@ -117,7 +117,7 @@
   <!-- Auto-pack to bin/packages and deploy to %LocalAppData%\stride\nugetdev on build
        (shared with the Stride SDK chain; imported directly here because this project uses
        vanilla Microsoft.NET.Sdk). -->
-  <Import Project="$(StrideRoot)sources\targets\Stride.AutoPackDeploy.targets" />
+  <Import Project="$(StrideRoot)sources\sdk\Stride.Build.Sdk\Sdk\Stride.AutoPackDeploy.targets" />
 
   <!-- CI safeguard: never publish a non-preprocessed nupkg. -->
   <Target Name="StrideAssertPackModeForRelease" BeforeTargets="GenerateNuspec"
@@ -134,7 +134,7 @@
 
   <!-- Removes this checkout's local content packs (bin/packages, the nugetdev feed, the extracted copies in the
        global cache): the bridge and the CLI prefer a -devN pack while it exists. A build with
-       StridePackContentTemplates off runs it (StrideCleanContentTemplatesWhenOff); build/Stride.Samples.build
+       StridePackContentTemplates off runs it (StrideCleanContentTemplatesWhenOff); build/samples.proj
        -t:CleanContentTemplates runs it on all three packages by hand. Also warns about a pack in those feeds that
        carries a published version (no -devN): restores may take it over the published package. -->
   <Target Name="CleanContentTemplates" DependsOnTargets="StrideEnsureWorktreeVersion"

@@ -98,7 +98,7 @@ The template's content is small but complete: a component and a content type (ru
 Game Studio reloads a plugin's assemblies while the session stays open. It asks first, or the user runs *Reload game assemblies*. The reload is one undo step.
 
 - **A plugin project of the solution**: an edit of its code or its `.csproj` builds it again, and it reloads.
-- **A dependency built locally** (a dev-redirect to a source tree, as `GenerateDevPackages` sets up): Game Studio watches the assemblies the checkout built. When they are rebuilt, they reload.
+- **A dependency built locally** (a dev-redirect to a source tree, as `build/dev-packages.cs` sets up): Game Studio watches the assemblies the checkout built. When they are rebuilt, they reload.
 - **A `PackageReference` version change** in a project of the solution: the project restores, and the dependency loads its new version.
 
 With any of these, the loaded assemblies that reference a reloaded one reload too, whatever their package, dependencies first: a reference stays bound to the copy it loaded first. Each assembly gets a load context of its own. A reference resolves to the session's current copy first, then to Game Studio's own copy, then to the package's files. The whole set builds before anything reloads: if one build fails, nothing reloads, and the changes stay pending.

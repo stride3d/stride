@@ -11,7 +11,7 @@ using System.Threading;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 
-// Two questions about one project's stub, answered from the generator's files (see build/GenerateDevPackages.cs):
+// Two questions about one project's stub, answered from the generator's files (see build/dev-packages.cs):
 //  - Changed: the inputs of the manifest ("<sha256>\t<path>" per line: csprojs and packed build/ assets) whose
 //    content changed since the stubs were generated. A file older than the stamp is trusted without being read; a
 //    newer one is confirmed by content hash, so mtime churn alone (touch, checkout, rebase) is not a change. A

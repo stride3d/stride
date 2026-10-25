@@ -33,12 +33,12 @@
   </PropertyGroup>
 
   <!-- StrideGitVersion task (clean release version from git release tags). -->
-  <Import Project="$(StrideRoot)sources\targets\Stride.GitVersion.targets"
+  <Import Project="$(StrideRoot)sources\sdk\Stride.Build.Sdk\Sdk\Stride.GitVersion.targets"
           Condition="'$(_StrideGitVersionTargetsImported)' != 'true'" />
 
   <!-- Worktree-version machinery: provides StrideWorktreeSuffix so we can build the local,
        actually-published dev version (clean + suffix, e.g. 4.4.0-dev2). -->
-  <Import Project="$(StrideRoot)sources\targets\Stride.WorktreeVersion.targets"
+  <Import Project="$(StrideRoot)sources\sdk\Stride.Build.Sdk\Sdk\Stride.WorktreeVersion.targets"
           Condition="'$(_StrideWorktreeVersionTargetsImported)' != 'true'" />
 
   <!-- The content version authority (StrideSamplesVersion, _StrideCommittedSamplesVersion), shared with the

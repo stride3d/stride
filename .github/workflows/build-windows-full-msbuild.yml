@@ -23,7 +23,6 @@ on:
     # Build-logic paths only: the places engine-compat regressions actually come from.
     paths:
       - 'sources/sdk/**'
-      - 'sources/targets/**'
       - 'sources/native/**'
       - '.github/workflows/build-windows-full-msbuild.yml'
 
