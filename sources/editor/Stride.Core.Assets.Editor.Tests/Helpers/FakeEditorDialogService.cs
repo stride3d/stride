@@ -18,6 +18,8 @@ public sealed class FakeEditorDialogService : IEditorDialogService
 
     public List<WorkProgressViewModel> ProgressWindows { get; } = [];
 
+    public List<WorkProgressViewModel> Notifications { get; } = [];
+
     /// <summary>
     /// The answer to the next message boxes.
     /// </summary>
@@ -30,6 +32,8 @@ public sealed class FakeEditorDialogService : IEditorDialogService
     }
 
     public void ShowProgressWindow(WorkProgressViewModel workProgress) => ProgressWindows.Add(workProgress);
+
+    public void ShowNotification(WorkProgressViewModel workProgress) => Notifications.Add(workProgress);
 
     public Task<CheckedMessageBoxResult> CheckedMessageBoxAsync(string message, bool? isChecked, string checkboxMessage, MessageBoxButton buttons = MessageBoxButton.OK, MessageBoxImage image = MessageBoxImage.None)
     {

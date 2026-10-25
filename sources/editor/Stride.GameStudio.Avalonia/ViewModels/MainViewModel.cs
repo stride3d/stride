@@ -58,6 +58,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
 
         Status = new StatusViewModel(ServiceProvider);
         Status.PushStatus("Ready");
+        Notifications = serviceProvider.TryGet<INotificationService>();
 
         // The most recently used sessions of this and the earlier editor versions
         MRU = GameStudioInternalSettings.CreateMostRecentlyUsedFiles();
@@ -72,6 +73,11 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     }
 
     public StatusViewModel Status { get; }
+
+    /// <summary>
+    /// The background operations shown in the notification bar; <c>null</c> when the host has no bar.
+    /// </summary>
+    public INotificationService? Notifications { get; }
 
     public string Title
     {

@@ -16,6 +16,7 @@ using Stride.Assets;
 using Stride.Assets.Editor;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Settings;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Avalonia.Extensions;
@@ -326,6 +327,8 @@ public partial class App : Application
             services.Add(new ClipboardService(clipboard));
         var serviceProvider = new ViewModelServiceProvider(services);
         serviceProvider.RegisterService(new EditorDebugService(serviceProvider));
+        // The notification bar of the main view: the dialog service shows the background operations there
+        serviceProvider.RegisterService(new NotificationsViewModel(serviceProvider));
         serviceProvider.RegisterService(new EditorDialogService(serviceProvider));
         return serviceProvider;
     }
