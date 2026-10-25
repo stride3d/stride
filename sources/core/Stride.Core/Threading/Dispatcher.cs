@@ -90,8 +90,7 @@ public static class Dispatcher
             // also helps prevent potential deadlocks from badly threaded code
             while (Volatile.Read(ref batch.ItemsDone) < batch.Total && Volatile.Read(ref batch.ExceptionThrown) == null)
             {
-                ThreadPool.Instance.TryCooperate();
-                if (WineGCSafePoint.IsWine)
+                if (!ThreadPool.Instance.TryCooperate() && WineGCSafePoint.IsWine)
                     WineGCSafePoint.Poll();
             }
 
