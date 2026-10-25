@@ -2,7 +2,9 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModel.Progress;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.Windows;
@@ -34,6 +36,23 @@ public sealed class FakeEditorDialogService : IEditorDialogService
     public void ShowProgressWindow(WorkProgressViewModel workProgress) => ProgressWindows.Add(workProgress);
 
     public void ShowNotification(WorkProgressViewModel workProgress) => Notifications.Add(workProgress);
+
+    /// <summary>
+    /// The pickers opened so far.
+    /// </summary>
+    public List<AssetPickerViewModel> AssetPickers { get; } = [];
+
+    /// <summary>
+    /// Picks the asset of the next asset pickers from the listed ones; <c>null</c> cancels them.
+    /// </summary>
+    public Func<AssetPickerViewModel, AssetViewModel?> PickAsset { get; set; } = _ => null;
+
+    public Task<AssetViewModel?> OpenAssetPickerAsync(SessionViewModel session, IEnumerable<Type> acceptedTypes, Func<AssetViewModel, bool>? filter = null, AssetViewModel? initialAsset = null, DirectoryBaseViewModel? initialLocation = null)
+    {
+        var picker = new AssetPickerViewModel(session, acceptedTypes, filter, initialAsset, initialLocation);
+        AssetPickers.Add(picker);
+        return Task.FromResult(PickAsset(picker));
+    }
 
     public Task<CheckedMessageBoxResult> CheckedMessageBoxAsync(string message, bool? isChecked, string checkboxMessage, MessageBoxButton buttons = MessageBoxButton.OK, MessageBoxImage image = MessageBoxImage.None)
     {
