@@ -33,7 +33,7 @@ The version is set in one place: the `<version>` element of [Stride.Launcher.nus
 [Stride.Launcher.Version.props](../../sources/launcher/Stride.Launcher/Stride.Launcher.Version.props) reads it and appends the suffix, into `StrideLauncherVersion`, for both of the following.
 
 - **Launcher exe.** [Stride.Launcher.csproj](../../sources/launcher/Stride.Launcher/Stride.Launcher.csproj) uses it as its `Version`. `SelfUpdater` compares the exe's `AssemblyInformationalVersion` against NuGet.
-- **NuGet package.** [Stride.Launcher.Release.targets](../../sources/launcher/Stride.Launcher.Release.targets) packs with `-Version $(StrideLauncherVersion)`. It also fills the update lines of the description: `$SetupUrl$`, the package's setup on its GitHub release, and `$UpdateRules$` (see [self-update.md](self-update.md#update-rules)).
+- **NuGet package.** [Stride.Launcher.Release.targets](../../sources/launcher/Stride.Launcher.Release.targets) packs it with the version `$(StrideLauncherVersion)`. It also fills the update lines of the description: `$SetupUrl$`, the package's setup on its GitHub release, and `$UpdateRules$` (see [self-update.md](self-update.md#update-rules)).
 - **StrideSetup.** An MSI version is numbers only, so the `GetStrideSetupVersion` task ([Setup/GetStrideSetupVersion.cs](../../sources/launcher/Setup/GetStrideSetupVersion.cs)) maps the launcher version to `major.minor.(patch * 100 + rank)`. The rank sorts pre-releases before their release: alpha 11-19, beta 31-39, preview 51-59, rc 71-79, release 99. For example, `6.1.0-beta1` is `6.1.31` and `6.1.0` is `6.1.99`. The ProductCode is a name-based UUID of the launcher version: a new one for each version (MSI major upgrade), the same one when a version is built again. The real version (`StrideVersion` property) is what Add/Remove Programs shows.
 
 The version values in the committed `setup.aip` are placeholders: `PackageInstaller` sets them on a copy (`setup-generated.aip`, git-ignored) and builds that.
@@ -62,10 +62,10 @@ The build names the setup `StrideSetup-<version>.exe` (e.g. `StrideSetup-6.0.1.e
 
 ## Building
 
-The targets are in [Stride.Launcher.Release.targets](../../sources/launcher/Stride.Launcher.Release.targets), run through [Stride.build](../../build/Stride.build), which imports it. The setup needs Advanced Installer 22.0:
+The targets are in [Stride.Launcher.Release.targets](../../sources/launcher/Stride.Launcher.Release.targets), run through [package.proj](../../build/package.proj), which imports it. The setup needs Advanced Installer 22.0:
 
 ```
-msbuild build\Stride.build /t:FullBuildLauncher /p:StrideSign=false [/p:VersionSuffix=beta1]
+msbuild build\package.proj /t:FullBuildLauncher /p:StrideSign=false [/p:VersionSuffix=beta1]
 ```
 
 `FullBuildLauncher` publishes the exe (`BuildLauncher`), packs the nupkg (`PackageLauncher`) and builds the setup (`PackageInstaller`), all into `bin\launcher\`. `_StrideSetupVersion` only prints the computed versions, without Advanced Installer.

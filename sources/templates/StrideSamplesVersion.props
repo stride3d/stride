@@ -10,7 +10,7 @@
      Kept out of SharedAssemblyInfo.cs so a samples release rebuilds only Stride.Assets, not every assembly:
      Stride.Assets embeds this file as a resource (outside its reference assembly, so its dependents don't rebuild
      either) and the bridge reads the value from it. Imported by Stride.Templates.Common.targets (the pack side) and
-     build/Stride.Samples.build (the samples release side).
+     build/samples.proj (the samples release side).
 
      StrideSamplesVersion is the version a content pack gets (before the -devN worktree suffix). It defaults to the
      committed value; a -p:StrideSamplesVersion= global property wins (release-samples.yml packs the new number before

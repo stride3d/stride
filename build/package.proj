@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Build file used to build and package Stride from the command line.
+Example: dotnet build build/package.proj -t:Package
+-->
+<Project DefaultTargets="Help" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <StrideRoot>$(MSBuildThisFileDirectory)..\</StrideRoot>
+    <StrideSolution>$(StrideRoot)Stride.slnx</StrideSolution>
+    <StrideVisualStudioSolution>$(StrideRoot)sources\tools\Stride.VisualStudio.slnx</StrideVisualStudioSolution>
+    <StrideSolutionLauncher>$(StrideRoot)sources\launcher\Stride.Launcher.slnx</StrideSolutionLauncher>
+    <StridePlatforms Condition="'$(StridePlatforms)' == ''">Windows</StridePlatforms>
+    <BuildProperties>Configuration=Release;NoWarn=1591;DeployExtension=false;StridePlatforms=$([MSBuild]::Escape('$(StridePlatforms)'));StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)</BuildProperties>
+    <StrideSign Condition="'$(StrideSign)' == ''">true</StrideSign>
+    <BuildProperties Condition="'$(StrideSign)' != ''">$(BuildProperties);StrideSign=$(StrideSign)</BuildProperties>
+    <AdvancedInstallerPath Condition="'$(AdvancedInstallerPath)' == '' And Exists('$(MSBuildProgramFiles32)\Caphyon\Advanced Installer 22.0\bin\x86\AdvancedInstaller.com')">$(MSBuildProgramFiles32)\Caphyon\Advanced Installer 22.0\bin\x86\AdvancedInstaller.com</AdvancedInstallerPath>
+    <AdvancedInstallerBuildScript Condition="'$(StrideSign)' == 'true'">$(MSBuildThisFileDirectory)package\advancedinstaller-signed.aic</AdvancedInstallerBuildScript>
+    <AdvancedInstallerBuildScript Condition="'$(StrideSign)' != 'true'">$(MSBuildThisFileDirectory)package\advancedinstaller-unsigned.aic</AdvancedInstallerBuildScript>
+    <StrideBuildPrerequisitesInstaller Condition="'$(StrideBuildPrerequisitesInstaller)' == ''">true</StrideBuildPrerequisitesInstaller>
+
+    <!-- Shared signing config, defined once (was duplicated across SignPackage / VSIXPlugin /
+         PackageLauncher). The client secret is the only sensitive arg; it lives here in a single
+         place and every signing Exec uses EchoOff so it never reaches the log.
+         TODO hardening: the `sign` tool uses Azure.Identity, so the secret could move to an
+         AZURE_CLIENT_SECRET env var (off the command line entirely) — needs a signed-build test. -->
+    <StrideSignTool>dotnet tool run sign -- code azure-key-vault</StrideSignTool>
+    <!-- dotnet tool finds the manifest (build/package/dotnet-tools.json) from the directory it runs in -->
+    <StrideSignToolDirectory>$(MSBuildThisFileDirectory)package\</StrideSignToolDirectory>
+    <StrideSignArgs>--description "Stride" --description-url "https://stride3d.net" --publisher-name "Stride" --azure-key-vault-tenant-id "$(StrideSignTenantId)" --azure-key-vault-client-id "$(StrideSignClientId)" --azure-key-vault-client-secret "$(StrideSignClientSecret)" --azure-key-vault-certificate "$(StrideSignKeyVaultCertificate)" --azure-key-vault-url "https://$(StrideSignKeyVaultName).vault.azure.net/" --file-list "$(MSBuildThisFileDirectory)package\sign-file-list.txt" -v Information</StrideSignArgs>
+  </PropertyGroup>
+
+  <!-- The sign tool is a local dotnet tool, pinned in build/package/dotnet-tools.json -->
+  <Target Name="_RestoreSignTool" Condition="'$(StrideSign)' == 'true'">
+    <Exec Command="dotnet tool restore" WorkingDirectory="$(StrideSignToolDirectory)" />
+  </Target>
+
+  <!-- Packs $(StrideNuspec) into $(StrideNuspecOutput), as "nuget pack" did: files from $(StrideNuspecBasePath), the
+       $tokens$ from $(StrideNuspecProperties) (its ; escaped as %3B), and the <version> replaced by $(StrideNuspecVersion)
+       when set (MSBuild's Pack ignores PackageVersion for a .nuspec, so a copy gets the version) -->
+  <Target Name="_PackNuspec">
+    <PropertyGroup>
+      <_StrideNuspecCopy>$(StrideRoot)bin\obj\nuspec\$([System.IO.Path]::GetFileName('$(StrideNuspec)'))</_StrideNuspecCopy>
+      <_StrideNuspecPackProject>$(MSBuildThisFileDirectory)package\NuspecPack\NuspecPack.csproj</_StrideNuspecPackProject>
+    </PropertyGroup>
+    <Copy SourceFiles="$(StrideNuspec)" DestinationFiles="$(_StrideNuspecCopy)" />
+    <XmlPoke Condition="'$(StrideNuspecVersion)' != ''" XmlInputPath="$(_StrideNuspecCopy)" Query="/*[local-name()='package']/*[local-name()='metadata']/*[local-name()='version']" Value="$(StrideNuspecVersion)" />
+    <MSBuild Projects="$(_StrideNuspecPackProject)" Targets="Restore" />
+    <MSBuild Projects="$(_StrideNuspecPackProject)" Targets="Pack" Properties="NuspecFile=$(_StrideNuspecCopy);NuspecBasePath=$(StrideNuspecBasePath);StrideNuspecProperties=$(StrideNuspecProperties);PackageOutputPath=$(StrideNuspecOutput)" />
+  </Target>
+
+  <!-- Sign every *.nupkg in $(StrideSignDir). Pass the dir, not a glob: a wildcard expands only when
+       literal in an Include, not via a property. Error if nothing matches, so we never ship unsigned. -->
+  <Target Name="_SignFiles" DependsOnTargets="SignCredentialsCheck;_RestoreSignTool" Condition="'$(StrideSign)' == 'true'">
+    <ItemGroup>
+      <_SignList Include="$(StrideSignDir)\*.nupkg" />
+    </ItemGroup>
+    <Error Condition="'@(_SignList)' == ''" Text="StrideSign=true but no .nupkg found in '$(StrideSignDir)' — nothing to sign. Refusing to ship an unsigned package." />
+    <Message Importance="high" Text="Signing @(_SignList->Count()) file(s)" />
+    <Exec Command="$(StrideSignTool) %(_SignList.Identity) $(StrideSignArgs)" WorkingDirectory="$(StrideSignToolDirectory)" EchoOff="true" />
+  </Target>
+
+  <!-- Build an AdvancedInstaller .aip ($(StrideInstallerAip)), signing inline when StrideSign.
+       Shared by PrerequisitesInstaller and PackageInstaller.
+       The secret goes via EnvironmentVariables (not the command line) — AdvancedInstaller reads it. -->
+  <Target Name="_BuildAdvancedInstaller" DependsOnTargets="SignCredentialsCheck">
+    <Exec Condition="'$(StrideSign)' == 'true'" Command='"$(AdvancedInstallerPath)" /edit "$(StrideInstallerAip)" /SetAzureKeyVaultParameters -tenant_id $(StrideSignTenantId) -app_id $(StrideSignClientId) -vault_name $(StrideSignKeyVaultName) -certificate_name $(StrideSignKeyVaultCertificate) -enable_signing ' />
+    <Exec Command='"$(AdvancedInstallerPath)" /execute "$(StrideInstallerAip)" "$(AdvancedInstallerBuildScript)"' EnvironmentVariables="StrideSignClientSecret=&quot;$(StrideSignClientSecret)&quot;" />
+  </Target>
+
+  <Target Name="Help">
+    <Message Importance="high" Text="Stride build targets (run: dotnet build build/package.proj -t:&lt;Target&gt;)%0a%0a  Build         - build the full Stride solution (Windows)%0a  Package       - build + pack + sign NuGet packages (BuildPackages = build only, SignPackage = sign only)%0a  PackageSamples - pack the content template packs%0a  VSIXPlugin    - build + pack the Visual Studio extension%0a  FullBuildLauncher - build the launcher + installer%0a  PackageCli    - build + pack + sign the Stride CLI dotnet tool (Stride.Cli)%0a%0aThe release workflows push the packages.%0a%0aCommon properties: -p:StrideSign=false  -p:StrideGraphicsApiDependentBuildAll=true" />
+  </Target>
+
+  <!--
+  VSIX Stride plugin
+  -->
+  <Target Name="VSIXPlugin" DependsOnTargets="PreparePackageBuild;Restore">
+    <ItemGroup>
+      <FilesToDeleteVSIX Include="$(StrideRoot)bin\vsix\*.nupkg"/>
+    </ItemGroup>
+
+    <Delete Files="@(FilesToDeleteVSIX)"/>
+
+    <MSBuild Targets="Restore" Projects="$(StrideVisualStudioSolution)" />
+    <MSBuild Targets="Stride_VisualStudio_Package;Stride_VisualStudio_Package_Shaders;Stride_VisualStudio_PackageInstall" Projects="$(StrideVisualStudioSolution)" Properties="$(BuildProperties);Platform=Any CPU;VersionSuffix=$(VersionSuffix)"/>
+    <!-- Ask each package for its built .vsix path (Configuration/TargetFramework-derived) and the main package for
+         its independent NuGet version (VersionPrefix + VersionSuffix), so the nuspec stays TFM- and version-agnostic.
+         Use Platform=AnyCPU (not "Any CPU"): these query the csproj directly, where the spaced solution-platform
+         name isn't normalized and would append an "Any CPU" segment to $(OutputPath) that the solution build (which
+         does normalize it) never produces — leaving nuget pack looking for a .vsix that isn't there. -->
+    <MSBuild Targets="GetVsixOutputPath" Projects="$(StrideRoot)sources\tools\Stride.VisualStudio.Package\Stride.VisualStudio.Package.csproj" Properties="$(BuildProperties);Platform=AnyCPU;VersionSuffix=$(VersionSuffix)">
+      <Output TaskParameter="TargetOutputs" PropertyName="StrideVsixPath" />
+    </MSBuild>
+    <MSBuild Targets="GetVsixOutputPath" Projects="$(StrideRoot)sources\tools\Stride.VisualStudio.Package.Shaders\Stride.VisualStudio.Package.Shaders.csproj" Properties="$(BuildProperties);Platform=AnyCPU">
+      <Output TaskParameter="TargetOutputs" PropertyName="StrideShadersVsixPath" />
+    </MSBuild>
+    <MSBuild Targets="GetPackageVersion" Projects="$(StrideRoot)sources\tools\Stride.VisualStudio.Package\Stride.VisualStudio.Package.csproj" Properties="$(BuildProperties);Platform=AnyCPU;VersionSuffix=$(VersionSuffix)">
+      <Output TaskParameter="TargetOutputs" PropertyName="StrideVsPackageVersion" />
+    </MSBuild>
+    <MSBuild Projects="$(MSBuildThisFileFullPath)" Targets="_PackNuspec" Properties="StrideNuspec=$(StrideRoot)sources\tools\Stride.VisualStudio.Package\Stride.VisualStudio.Package.nuspec;StrideNuspecBasePath=$(StrideRoot)sources\tools\Stride.VisualStudio.Package;StrideNuspecVersion=$(StrideVsPackageVersion);StrideNuspecProperties=VsixPath=$(StrideVsixPath)%3BShadersVsixPath=$(StrideShadersVsixPath);StrideNuspecOutput=$(StrideRoot)bin\vsix" />
+ 
+    <!-- Invoke _SignFiles via MSBuild (not CallTarget) so StrideSignDir reaches it and its *.nupkg glob resolves -->
+    <MSBuild Projects="$(MSBuildThisFileFullPath)" Targets="_SignFiles"
+             Properties="StrideSign=$(StrideSign);StrideSignDir=$(MSBuildThisFileDirectory)..\bin\vsix" />
+  </Target>
+  
+  <!--
+  Package Installer: install-prerequisites.exe
+  -->
+  <Target Name="PrerequisitesInstaller">
+    <Delete Files="$(StrideRoot)Bin\Prerequisites\install-prerequisites.exe"/>
+    <!-- Note: this exe will be signed as part of GameStudio.nupkg -->
+    <MSBuild Projects="$(MSBuildThisFileFullPath)" Targets="_BuildAdvancedInstaller" Properties="StrideInstallerAip=$(StrideRoot)sources\prerequisites\prerequisites.aip" />
+  </Target>
+
+  <!-- Package -->
+  <Target Name="PreparePackageBuild">
+    <PropertyGroup>
+      <BuildProperties>$(BuildProperties);StridePublicApi=true;StridePackageBuild=true</BuildProperties>
+    </PropertyGroup>
+    
+    <ItemGroup>
+      <FilesToDeletePackages Include="$(StrideRoot)bin\packages\*.nupkg"/>
+    </ItemGroup>
+
+    <Delete Files="@(FilesToDeletePackages)"/>
+
+    <!-- Create SharedAssemblyInfo.Generated.cs with the committed version + git metadata (the Stride SDK swaps
+         it in for SharedAssemblyInfo.cs when building the packages). -->
+    <StrideGitVersion RootDirectory="$(StrideRoot)" VersionFile="sources\shared\SharedAssemblyInfo.cs" GeneratedVersionFile="sources\shared\SharedAssemblyInfo.Generated.cs" NightlyLabel="$(StrideNightlyLabel)">
+      <Output TaskParameter="NuGetVersion" PropertyName="StridePackageVersion"/>
+    </StrideGitVersion>
+
+    <Message Text="Done preparing build for version $(StridePackageVersion)"/>
+    <Exec Command="echo **Engine version:** $(StridePackageVersion) &gt;&gt; $(GITHUB_STEP_SUMMARY)" Condition="'$(GITHUB_STEP_SUMMARY)' != ''" IgnoreExitCode="true" />
+  </Target>
+  <PropertyGroup>
+    <_StridePackageTargetPrerequisitesInstaller Condition="'$(StrideBuildPrerequisitesInstaller)' == 'true'">PrerequisitesInstaller</_StridePackageTargetPrerequisitesInstaller>
+  </PropertyGroup>
+  <!-- Build phase: produce packages WITHOUT signing. Secret-free, so the workflow can run this
+       as its own step and confine signing secrets to the SignPackage step (TODO: wire that split
+       in release.yml — needs a signed-build test; note the prerequisites installer still signs
+       inline during build via AdvancedInstaller, so full scoping requires building it unsigned). -->
+  <Target Name="BuildPackages" DependsOnTargets="PreparePackageBuild;$(_StridePackageTargetPrerequisitesInstaller);Build"/>
+  <!-- Build + sign, in order. Same behavior as before; the BuildPackages/SignPackage seam lets
+       callers run the two phases separately. -->
+  <Target Name="Package" DependsOnTargets="BuildPackages;SignPackage"/>
+
+  <!--
+  Stride CLI dotnet tool (Stride.Cli)
+  Versioned independently of the engine (SemVer in Stride.Cli.csproj); deployed by
+  .github/workflows/release-cli.yml. BuildPackageCli packs the tool nupkg (secret-free),
+  SignPackageCli signs it via the shared _SignFiles target, PackageCli does both.
+  -->
+  <PropertyGroup>
+    <StrideCliProject>$(StrideRoot)sources\launcher\Stride.Cli\Stride.Cli.csproj</StrideCliProject>
+    <StrideCliPackageDir>$(StrideRoot)bin\cli</StrideCliPackageDir>
+  </PropertyGroup>
+
+  <Target Name="BuildPackageCli">
+    <ItemGroup>
+      <_StrideCliOldPackages Include="$(StrideCliPackageDir)\*.nupkg" />
+    </ItemGroup>
+    <Delete Files="@(_StrideCliOldPackages)" />
+    <MSBuild Projects="$(StrideCliProject)" Targets="Restore" />
+    <!-- StrideSkipAutoPack: engine ProjectReferences build but don't auto-pack their own .nupkg into our output. -->
+    <MSBuild Projects="$(StrideCliProject)" Targets="Pack"
+             Properties="Configuration=Release;ContinuousIntegrationBuild=true;StrideSkipAutoPack=true;VersionSuffix=$(VersionSuffix);PackageOutputPath=$(StrideCliPackageDir)" />
+  </Target>
+
+  <Target Name="SignPackageCli">
+    <MSBuild Projects="$(MSBuildThisFileFullPath)" Targets="_SignFiles"
+             Properties="StrideSign=$(StrideSign);StrideSignDir=$(StrideCliPackageDir)" />
+  </Target>
+
+  <Target Name="PackageCli" DependsOnTargets="BuildPackageCli;SignPackageCli" />
+
+  <!--
+  Content template packs (Stride.Templates.Samples / .Games.Starters / .AssetPacks)
+  Versioned by sources/templates/StrideSamplesVersion.props, published on their own schedule by
+  .github/workflows/release-samples.yml; the engine release never packs them. PackageSamples produces the
+  release-shaped (fully preprocessed) packs into bin/packages, stamped for this branch's engine version (the committed
+  one, with its suffix); SignPackage then signs them.
+  -->
+  <Target Name="PackageSamples" DependsOnTargets="PreparePackageBuild">
+    <MSBuild Projects="$(StrideRoot)build\samples.proj" Targets="PackContentTemplates"
+             Properties="Configuration=Release;StridePackageBuild=true" />
+  </Target>
+
+  <!-- In-repo sample version management (SamplesToDevEngine / SamplesToReleaseEngine / PrepareSamplesForRelease /
+       CleanContentTemplates) is standalone in build/samples.proj - run it directly, e.g.
+       dotnet msbuild build/samples.proj -t:PrepareSamplesForRelease. See docs/build/versioning.md. -->
+
+  <Target Name="Restore">
+    <MSBuild Targets="Restore" Projects="$(StrideSolution)" Properties="StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll);StrideGraphicsApis=$(StrideGraphicsApis);StridePlatforms=$(StridePlatforms)" />
+  </Target>
+
+  <Target Name="Build">
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideSolution);StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)"/>
+    <MSBuild Targets="Build" Projects="$(StrideSolution)" Properties="$(BuildProperties);Platform=Any CPU"/>
+  </Target>
+
+  <Target Name="SignCredentialsCheck" Condition="'$(StrideSign)' == 'true'">
+    <Error Condition="'$(StrideSignTenantId)' == ''" Text="StrideSignTenantId is not set. Please set StrideSign to false if you don't want to sign using code certificates." />
+    <Error Condition="'$(StrideSignClientId)' == ''" Text="StrideSignClientId is not set. Please set StrideSign to false if you don't want to sign using code certificates." />
+    <Error Condition="'$(StrideSignClientSecret)' == ''" Text="StrideSignClientSecret is not set. Please set StrideSign to false if you don't want to sign using code certificates." />
+    <Error Condition="'$(StrideSignKeyVaultCertificate)' == ''" Text="StrideSignKeyVaultCertificate is not set. Please set StrideSign to false if you don't want to sign using code certificates." />
+    <Error Condition="'$(StrideSignKeyVaultName)' == ''" Text="StrideSignKeyVaultName is not set. Please set StrideSign to false if you don't want to sign using code certificates." />
+  </Target>
+
+  <Target Name="SignPackage">
+    <MSBuild Projects="$(MSBuildThisFileFullPath)" Targets="_SignFiles"
+             Properties="StrideSign=$(StrideSign);StrideSignDir=$(MSBuildThisFileDirectory)..\bin\packages" />
+  </Target>
+
+  <!-- StrideGitVersion task (package version from git release tags); shared with samples.proj. -->
+  <Import Project="$(StrideRoot)sources\sdk\Stride.Build.Sdk\Sdk\Stride.GitVersion.targets"
+          Condition="'$(_StrideGitVersionTargetsImported)' != 'true'" />
+
+
+  <!-- Launcher: BuildLauncher, PackageLauncher, PackageInstaller, FullBuildLauncher -->
+  <Import Project="$(StrideRoot)sources\launcher\Stride.Launcher.Release.targets" />
+
+</Project>

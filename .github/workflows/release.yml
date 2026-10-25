@@ -120,9 +120,9 @@ jobs:
           if ("${{ inputs.platform-ios }}" -eq "true") { $platforms += ";iOS" }
           if ("${{ inputs.platform-macos }}" -eq "true") { $platforms += ";macOS" }
           echo "Building for platforms: $platforms"
-          # --no-restore: Stride.build's targets restore their own solutions (same as the
+          # --no-restore: package.proj's targets restore their own solutions (same as the
           # previous desktop msbuild invocation, which never passed /restore).
-          dotnet build build\Stride.build `
+          dotnet build build\package.proj `
             -t:Package `
             --no-restore `
             ${{ inputs.upload-binlog && !inputs.sign && '-bl' || '' }} -m -nr:false `

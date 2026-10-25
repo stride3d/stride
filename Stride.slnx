@@ -1,6 +1,9 @@
 <Solution>
   <Folder Name="/00-Build/">
-    <File Path="build/Stride.build" />
+    <File Path="build/dev-packages.cs" />
+    <File Path="build/install-gamestudio.proj" />
+    <File Path="build/package.proj" />
+    <File Path="build/samples.proj" />
   </Folder>
   <Folder Name="/00-Build/Stride.Build.Sdk.Editor/">
     <File Path="sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.props" />

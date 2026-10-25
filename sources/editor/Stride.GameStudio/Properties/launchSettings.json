@@ -14,19 +14,19 @@
     "GameStudio (packaged nupkg)": {
       "commandName": "Executable",
       "executablePath": "dotnet",
-      "commandLineArgs": "msbuild build/install-gamestudio.targets -t:Run",
+      "commandLineArgs": "msbuild build/install-gamestudio.proj -t:Run",
       "workingDirectory": "../../.."
     },
     "GameStudio (packaged, Direct3D12)": {
       "commandName": "Executable",
       "executablePath": "dotnet",
-      "commandLineArgs": "msbuild build/install-gamestudio.targets -t:Run -p:GameStudioGraphicsApi=Direct3D12",
+      "commandLineArgs": "msbuild build/install-gamestudio.proj -t:Run -p:GameStudioGraphicsApi=Direct3D12",
       "workingDirectory": "../../.."
     },
     "GameStudio (packaged, Vulkan)": {
       "commandName": "Executable",
       "executablePath": "dotnet",
-      "commandLineArgs": "msbuild build/install-gamestudio.targets -t:Run -p:GameStudioGraphicsApi=Vulkan",
+      "commandLineArgs": "msbuild build/install-gamestudio.proj -t:Run -p:GameStudioGraphicsApi=Vulkan",
       "workingDirectory": "../../.."
     }
   }

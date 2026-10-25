@@ -20,7 +20,7 @@ sources/launcher/
 ├── Stride.Launcher/         Avalonia MVVM application
 ├── Stride.Launcher.Tests/   Launcher unit tests
 ├── Setup/                   Advanced Installer project producing StrideSetup
-└── Stride.Launcher.Release.targets   Release build (exe, NuGet package, StrideSetup), imported by build/Stride.build
+└── Stride.Launcher.Release.targets   Release build (exe, NuGet package, StrideSetup), imported by build/package.proj
 ```
 
 See [docs/launcher/](../../docs/launcher/) for contributor-oriented documentation on the launcher's internals.
@@ -30,7 +30,7 @@ See [docs/launcher/](../../docs/launcher/) for contributor-oriented documentatio
 Build the launcher exe, its NuGet package and StrideSetup into `bin\launcher\` (the setup needs Advanced Installer 22.0):
 
 ```
-msbuild build\Stride.build /t:FullBuildLauncher /p:StrideSign=false [/p:VersionSuffix=beta1]
+msbuild build\package.proj /t:FullBuildLauncher /p:StrideSign=false [/p:VersionSuffix=beta1]
 ```
 
 Releases go through [release-launcher.yml](../../.github/workflows/release-launcher.yml). See [docs/launcher/packaging.md](../../docs/launcher/packaging.md) for the details.
@@ -82,7 +82,7 @@ Command groups:
 Build/pack it from source:
 
 ```bash
-dotnet build build/Stride.build -t:PackageCli   # -> bin/cli/Stride.Cli.<version>.nupkg
+dotnet build build/package.proj -t:PackageCli   # -> bin/cli/Stride.Cli.<version>.nupkg
 ```
 
 # Versioning

@@ -172,8 +172,18 @@ jobs:
     runs-on: windows-2025-vs2026
     environment: production
     steps:
+      # The sign tool version is pinned in build/package/dotnet-tools.json: check out only that file
+      - uses: actions/checkout@v7
+        with:
+          sparse-checkout: /build/package/dotnet-tools.json
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
       - name: Install signing tool
-        run: dotnet tool install sign --tool-path ./sign-tool --version 0.9.0-beta.23127.3
+        shell: pwsh
+        run: |
+          $version = (Get-Content build/package/dotnet-tools.json | ConvertFrom-Json).tools.sign.version
+          dotnet tool install sign --tool-path ./sign-tool --version $version
 
       - name: Download artifact
         uses: actions/download-artifact@v8
