@@ -1419,7 +1419,8 @@
           <Image Source="{StaticResource ImageFetchAsset}" Width="16" Height="16"/>
         </Button>
       </UniformGrid>
-      <TextBox Margin="5"
+      <!-- MinWidth 0: in a narrow grid the box shrinks instead of overflowing onto the buttons, which it would cover -->
+      <TextBox Margin="5" MinWidth="0"
                IsReadOnly="{Binding IsReadOnly}"
                Text="{Binding NodeValue, Converter={caec:ContentReferenceToUrl}, UpdateSourceTrigger=Explicit}"
                ContextMenu="{StaticResource ReferenceContextMenu}">
