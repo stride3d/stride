@@ -470,9 +470,23 @@ namespace Stride.Graphics.SDL
             }
             set
             {
-                SDL.SetWindowBordered(sdlHandle, value == FormBorderStyle.None ? SdlBool.False : SdlBool.True);
-                SDL.SetWindowResizable(sdlHandle, value == FormBorderStyle.Sizable ? SdlBool.True : SdlBool.False);
+                SetBorderStyle(value, value == FormBorderStyle.Sizable);
             }
+        }
+
+        /// <summary>
+        /// Sets the border of the window and whether its size can change.
+        /// </summary>
+        /// <param name="style">The border of the window.</param>
+        /// <param name="resizable">
+        /// Whether the size of the window can change. A borderless window has no border to drag, but its size can still change,
+        /// such as the size of a window embedded in another one: on Windows, SDL keeps the client area of a non-resizable
+        /// borderless window at the last size SDL set itself.
+        /// </param>
+        public void SetBorderStyle(FormBorderStyle style, bool resizable)
+        {
+            SDL.SetWindowBordered(sdlHandle, style == FormBorderStyle.None ? SdlBool.False : SdlBool.True);
+            SDL.SetWindowResizable(sdlHandle, resizable ? SdlBool.True : SdlBool.False);
         }
 
         public void SetRelativeMouseMode(bool enabled)
