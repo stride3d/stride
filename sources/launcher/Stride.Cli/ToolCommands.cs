@@ -19,7 +19,7 @@ internal static class ToolCommands
         };
         var version = new Option<string?>("--version") { Description = "Open with a specific Stride version instead of the one from a project in the current directory." };
         var framework = new Option<string?>(DotNetHostSelector.FrameworkArg) { Description = "Run Game Studio on at least this .NET major (e.g. net11.0); a solution that needs a newer one still gets it." };
-        var editor = new Option<GameStudioEditor?>("--editor") { Description = "Game Studio to open, wpf or avalonia. Defaults to WPF on Windows when the version has it, else Avalonia." };
+        var editor = new Option<GameStudioEditor?>("--editor") { Description = "Game Studio to open, wpf or avalonia. Defaults to WPF on Windows when the version has it, else Avalonia. Off Windows, WPF runs under Wine (wine on the PATH, its prefix set up for Stride)." };
 
         var command = new Command("studio", "Open Game Studio.");
         command.Arguments.Add(path);
@@ -35,34 +35,42 @@ internal static class ToolCommands
             var chosen = ChooseEditor(manager, resolved, parseResult.GetValue(editor));
             if (chosen is null)
                 return 1;
+            var underWine = !chosen.Value.RunsNatively();
 
             // Open the solution in the current directory by default. Game Studio expects a .sln (opening a bare
             // .csproj crashes it), so only a solution is auto-selected — never a project.
             var args = new List<string>();
             var solution = parseResult.GetValue(path) ?? manager.FindSolution(Environment.CurrentDirectory);
             if (solution is not null)
-                args.Add(solution);
+                args.Add(underWine ? Wine.ToWindowsPath(solution) : solution);
             args.AddRange(parseResult.UnmatchedTokens);
             if (parseResult.GetValue(framework) is { } explicitFramework)
                 args.AddRange([DotNetHostSelector.FrameworkArg, explicitFramework]);
 
-            return Tools.Run(manager.LocateGameStudio(resolved, chosen.Value), $"the {chosen.Value.DisplayName()} Game Studio for Stride {resolved}", args, wait: false, sessionPath: solution);
+            var executable = manager.LocateGameStudio(resolved, chosen.Value);
+            var description = $"the {chosen.Value.DisplayName()} Game Studio for Stride {resolved}";
+            return underWine
+                ? Tools.RunUnderWine(executable, description, args)
+                : Tools.Run(executable, description, args, wait: false, sessionPath: solution);
         });
 
         return command;
     }
 
-    // The Game Studio to open for a version: the requested one when it is installed and runs here, else the default
-    // among the installed ones. Prints why and returns null when there is none to open. A version with no Game Studio
-    // installed goes on with the default, so that the error is the usual "Could not find".
+    private const string WineRequired = "runs on Windows only, or under Wine: put wine on the PATH, with its prefix set up for Stride";
+
+    // The Game Studio to open for a version: the requested one when it is installed and can run here (natively or
+    // under Wine), else the default among the installed ones. Prints why and returns null when there is none to open.
+    // A version with no Game Studio installed goes on with the default, so that the error is the usual "Could not find".
     private static GameStudioEditor? ChooseEditor(StrideVersionManager manager, PackageVersion version, GameStudioEditor? requested)
     {
         var installed = manager.GetInstalledEditors(version);
+        var wine = Wine.Find() is not null;
         if (requested is { } editor)
         {
-            if (!editor.RunsHere())
+            if (!editor.RunsNatively() && !wine)
             {
-                Console.Error.WriteLine($"The {editor.DisplayName()} Game Studio runs on Windows only.");
+                Console.Error.WriteLine($"The {editor.DisplayName()} Game Studio {WineRequired}.");
                 return null;
             }
             if (installed.Count > 0 && !installed.Contains(editor))
@@ -74,10 +82,10 @@ internal static class ToolCommands
         }
 
         if (installed.Count == 0)
-            return GameStudioEditors.Default(GameStudioEditors.All);
-        if (GameStudioEditors.Default(installed) is { } fallback)
+            return GameStudioEditors.Default(GameStudioEditors.All, wine);
+        if (GameStudioEditors.Default(installed, wine) is { } fallback)
             return fallback;
-        Console.Error.WriteLine($"Stride {version} has only the {string.Join(" and ", installed.Select(other => other.DisplayName()))} Game Studio installed, which runs on Windows only.");
+        Console.Error.WriteLine($"Stride {version} has only the {string.Join(" and ", installed.Select(other => other.DisplayName()))} Game Studio installed, which {WineRequired}.");
         return null;
     }
 

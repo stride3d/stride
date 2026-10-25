@@ -36,10 +36,7 @@ internal static class Tools
         }
         else
         {
-            // An older editor would take the option for a session path.
-            var index = args.IndexOf(DotNetHostSelector.FrameworkArg);
-            if (index >= 0)
-                args.RemoveRange(index, Math.Min(2, args.Count - index));
+            RemoveFrameworkOption(args);
             startInfo = DotNetHostSelector.NativeStartInfo(appDll, args);
         }
         // A detached editor must not share this console: dotnet.exe is a console program and would be tied to it.
@@ -57,5 +54,48 @@ internal static class Tools
 
         process.WaitForExit();
         return process.ExitCode;
+    }
+
+    // Runs a Windows-only editor under Wine, detached: `wine <exe> <args>`, as a shell would. The host selection Run
+    // does goes against the .NET installs of this machine, not those of the Wine prefix, so the editor is left to pick
+    // its runtime itself, as when started without the CLI. Wine's own debug output is off unless WINEDEBUG says.
+    public static int RunUnderWine(string? executable, string description, IReadOnlyList<string> forwardedArgs)
+    {
+        if (executable is null)
+        {
+            Console.Error.WriteLine($"Could not find {description}.");
+            return 1;
+        }
+        var wine = Wine.Find();
+        if (wine is null)
+        {
+            Console.Error.WriteLine($"Could not find wine on the PATH to run {description}.");
+            return 1;
+        }
+
+        var args = forwardedArgs.ToList();
+        if (!DotNetHostSelector.SupportsHostSelection(Path.ChangeExtension(executable, ".dll")))
+            RemoveFrameworkOption(args);
+        var startInfo = new ProcessStartInfo(wine) { UseShellExecute = false };
+        startInfo.ArgumentList.Add(executable);
+        foreach (var arg in args)
+            startInfo.ArgumentList.Add(arg);
+        if (Environment.GetEnvironmentVariable("WINEDEBUG") is null)
+            startInfo.Environment["WINEDEBUG"] = "-all";
+
+        if (Process.Start(startInfo) is null)
+        {
+            Console.Error.WriteLine($"Failed to start {executable} under Wine.");
+            return 1;
+        }
+        return 0;
+    }
+
+    // An older editor would take the option for a session path.
+    private static void RemoveFrameworkOption(List<string> args)
+    {
+        var index = args.IndexOf(DotNetHostSelector.FrameworkArg);
+        if (index >= 0)
+            args.RemoveRange(index, Math.Min(2, args.Count - index));
     }
 }

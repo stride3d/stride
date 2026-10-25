@@ -568,10 +568,13 @@ public sealed class StrideVersionManager
     /// <summary>
     ///   Locates <paramref name="editor"/>'s executable for the given version in its own package, or null if not
     ///   found. Tools.Run starts the apphost next to it when there is one, else the .dll via `dotnet`, so the .dll
-    ///   stands for an editor packed without its apphost (and off Windows, where an apphost has no extension).
+    ///   stands for an editor packed without its apphost (and off Windows, where an apphost has no extension). An
+    ///   editor that doesn't run natively here runs under Wine, which needs its Windows .exe.
     /// </summary>
     public string? LocateGameStudio(PackageVersion version, GameStudioEditor editor)
-        => LocateExecutable(editor.PackageId(), version, editor.PackageId() + ".exe", editor.PackageId() + ".dll");
+        => editor.RunsNatively()
+            ? LocateExecutable(editor.PackageId(), version, editor.PackageId() + ".exe", editor.PackageId() + ".dll")
+            : LocateExecutable(editor.PackageId(), version, includeWindowsOnly: true, editor.PackageId() + ".exe");
 
     /// <summary>
     ///   Locates the asset compiler executable for the given version, or null if not found. The package is
@@ -678,6 +681,11 @@ public sealed class StrideVersionManager
 
     // Searches the package's tools/ and lib/ folders for the first matching executable.
     private string? LocateExecutable(string packageId, PackageVersion version, params string[] executableNames)
+        => LocateExecutable(packageId, version, includeWindowsOnly: OperatingSystem.IsWindows(), executableNames);
+
+    // The same, also in the Windows-only TFM folders (net10.0-windows7.0) when includeWindowsOnly: off Windows, those
+    // builds only run under Wine.
+    private string? LocateExecutable(string packageId, PackageVersion version, bool includeWindowsOnly, params string[] executableNames)
     {
         var installPath = store.GetInstalledPath(packageId, version);
         if (string.IsNullOrEmpty(installPath))
@@ -692,8 +700,8 @@ public sealed class StrideVersionManager
             foreach (var executableName in executableNames)
             {
                 var match = Directory.EnumerateFiles(directory, executableName, SearchOption.AllDirectories)
-                    // Skip Windows-only TFM folders (net10.0-windows7.0) off Windows; sort for a deterministic pick.
-                    .Where(path => OperatingSystem.IsWindows() || !IsWindowsTargetFrameworkFolder(path))
+                    // Skip Windows-only TFM folders (net10.0-windows7.0) unless asked; sort for a deterministic pick.
+                    .Where(path => includeWindowsOnly || !IsWindowsTargetFrameworkFolder(path))
                     .OrderBy(path => path, StringComparer.Ordinal)
                     .FirstOrDefault();
                 if (match is not null)

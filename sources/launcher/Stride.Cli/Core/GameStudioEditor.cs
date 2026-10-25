@@ -43,19 +43,24 @@ public static class GameStudioEditors
             .Select(editor => (GameStudioEditor?)editor)
             .FirstOrDefault();
 
-    /// <summary>Whether <paramref name="editor"/> runs on this OS: the WPF one needs Windows.</summary>
-    public static bool RunsHere(this GameStudioEditor editor)
+    /// <summary>Whether <paramref name="editor"/> runs natively on this OS: the WPF one needs Windows, or Wine.</summary>
+    public static bool RunsNatively(this GameStudioEditor editor)
         => editor != GameStudioEditor.Wpf || OperatingSystem.IsWindows();
 
     /// <summary>
-    ///   The Game Studio to open when none is asked for, among the <paramref name="installed"/> ones: the WPF one on
-    ///   Windows when it is there, else the Avalonia one; null when none of them runs on this OS.
+    ///   The Game Studio to open when none is asked for, among the <paramref name="installed"/> ones: on Windows the
+    ///   WPF one when it is there, else the Avalonia one; elsewhere the Avalonia one, else the WPF one under Wine when
+    ///   <paramref name="wine"/> is available. Null when none of them can run.
     /// </summary>
-    public static GameStudioEditor? Default(IEnumerable<GameStudioEditor> installed)
+    public static GameStudioEditor? Default(IEnumerable<GameStudioEditor> installed, bool wine)
     {
-        var runnable = installed.Where(RunsHere).ToList();
-        return runnable.Contains(GameStudioEditor.Wpf) ? GameStudioEditor.Wpf
-            : runnable.Contains(GameStudioEditor.Avalonia) ? GameStudioEditor.Avalonia
-            : null;
+        GameStudioEditor[] preferred = OperatingSystem.IsWindows()
+            ? [GameStudioEditor.Wpf, GameStudioEditor.Avalonia]
+            : [GameStudioEditor.Avalonia, GameStudioEditor.Wpf];
+        var candidates = installed.ToList();
+        return preferred
+            .Where(editor => candidates.Contains(editor) && (editor.RunsNatively() || wine))
+            .Select(editor => (GameStudioEditor?)editor)
+            .FirstOrDefault();
     }
 }
