@@ -26,7 +26,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          sparse-checkout: build/deps/llvm-windows
+          sparse-checkout: deps/llvm-windows
 
       - name: Download and extract official release
         shell: bash
@@ -35,7 +35,7 @@ jobs:
           URL="https://github.com/llvm/llvm-project/releases/download/llvmorg-$V/clang+llvm-$V-x86_64-pc-windows-msvc.tar.xz"
           echo "Downloading $URL"
           curl -fsSL -o llvm.tar.xz "$URL"
-          DEST=build/deps/llvm-windows/tools/win-x64
+          DEST=deps/llvm-windows/tools/win-x64
           mkdir -p "$DEST"
           tar -xJf llvm.tar.xz -C "$DEST" --strip-components=2 \
             "clang+llvm-$V-x86_64-pc-windows-msvc/bin/clang.exe" \
@@ -57,10 +57,10 @@ jobs:
         run: |
           $version = "${{ github.event.inputs.version }}"
           if (-not $version) { $version = (Get-Date -Format "yyyy.M.d") }
-          nuget pack build/deps/llvm-windows/Stride.Dependencies.LLVM.Windows.nuspec `
+          nuget pack deps/llvm-windows/Stride.Dependencies.LLVM.Windows.nuspec `
             -Version $version `
             -Properties "llvmVersion=${{ github.event.inputs.llvm-version }}" `
-            -BasePath build/deps/llvm-windows `
+            -BasePath deps/llvm-windows `
             -OutputDirectory nupkg
           echo "PACKAGE_VERSION=$version" >> $env:GITHUB_ENV
 

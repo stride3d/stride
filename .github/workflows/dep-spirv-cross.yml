@@ -108,7 +108,7 @@ jobs:
       - name: Prepare package contents
         shell: pwsh
         run: |
-          $destDir = "build/deps/spirv-cross"
+          $destDir = "deps/spirv-cross"
           # Silk.NET expects the DLL named "spirv-cross"
           foreach ($rid in 'win-x64', 'win-arm64') {
             New-Item -Path "$destDir/$rid" -ItemType Directory -Force | Out-Null
@@ -135,8 +135,8 @@ jobs:
             "Built: $(Get-Date -AsUTC -Format yyyy-MM-dd)"
             "Workflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           )
-          New-Item -ItemType Directory -Force build/deps/spirv-cross/tools | Out-Null
-          $lines | Set-Content build/deps/spirv-cross/tools/VERSION.txt
+          New-Item -ItemType Directory -Force deps/spirv-cross/tools | Out-Null
+          $lines | Set-Content deps/spirv-cross/tools/VERSION.txt
           $block = @('```') + $lines + @('```')
           $block | Add-Content $env:GITHUB_STEP_SUMMARY
           @(
@@ -146,7 +146,7 @@ jobs:
             ""
             "## Build"
             ""
-          ) + $block | Set-Content build/deps/spirv-cross/README.md
+          ) + $block | Set-Content deps/spirv-cross/README.md
 
       - name: Pack NuGet
         shell: pwsh
@@ -154,7 +154,7 @@ jobs:
           $commitHash = '${{ needs.build-windows.outputs.commit }}'.Substring(0, 7)
           $version = "${{ github.event.inputs.version }}"
           if (-not $version) { $version = (Get-Date -Format "yyyy.M.d") }
-          nuget pack build/deps/spirv-cross/Stride.Dependencies.SpirvCross.nuspec `
+          nuget pack deps/spirv-cross/Stride.Dependencies.SpirvCross.nuspec `
             -Version $version `
             -Properties "commit=$commitHash;strideCommit=${{ github.sha }}" `
             -OutputDirectory nupkg

@@ -3,7 +3,7 @@
 # C API and the shim's stride_spv* entry points.
 #
 # Usage (from dep-spirv-tools.yml):
-#   cmake -S build/deps/spirv-tools -B _build \
+#   cmake -S deps/spirv-tools -B _build \
 #         -DSPIRV_TOOLS_SOURCE_DIR=<path to cloned SPIRV-Tools>
 #   cmake --build _build
 

@@ -3,7 +3,7 @@ name: "Dep: Build & Deploy SPIRV-Tools"
 # Ships a single combined library — stride_spirv_tools — that bundles
 # SPIRV-Tools-static + SPIRV-Tools-opt + a thin C shim (stride_spvopt_shim.cpp),
 # re-exporting both the upstream libspirv.h C API (validator, etc.) and our
-# stride_spv* optimizer entry points. See build/deps/spirv-tools/CMakeLists.txt.
+# stride_spv* optimizer entry points. See deps/spirv-tools/CMakeLists.txt.
 #
 # Upstream: https://github.com/KhronosGroup/SPIRV-Tools
 #   Dependencies fetched via `python utils/git-sync-deps` (gets SPIRV-Headers).
@@ -44,7 +44,7 @@ jobs:
       commit: ${{ steps.info.outputs.commit }}
     steps:
       - uses: actions/checkout@v7
-        with: { path: stride-src, sparse-checkout: build/deps/spirv-tools }
+        with: { path: stride-src, sparse-checkout: deps/spirv-tools }
 
       - name: Clone SPIRV-Tools
         shell: pwsh
@@ -68,7 +68,7 @@ jobs:
       - name: Configure & build stride_spirv_tools
         shell: cmd
         run: |
-          cmake -S stride-src/build/deps/spirv-tools -B _build -G Ninja ^
+          cmake -S stride-src/deps/spirv-tools -B _build -G Ninja ^
             -DCMAKE_BUILD_TYPE=Release ^
             -DSPIRV_TOOLS_SOURCE_DIR=%CD%/spirv-tools-src
           cmake --build _build --target stride_spirv_tools
@@ -92,7 +92,7 @@ jobs:
       commit: ${{ steps.info.outputs.commit }}
     steps:
       - uses: actions/checkout@v7
-        with: { path: stride-src, sparse-checkout: build/deps/spirv-tools }
+        with: { path: stride-src, sparse-checkout: deps/spirv-tools }
 
       - name: Clone SPIRV-Tools
         shell: pwsh
@@ -114,7 +114,7 @@ jobs:
       - name: Configure & build stride_spirv_tools
         shell: cmd
         run: |
-          cmake -S stride-src/build/deps/spirv-tools -B _build -G Ninja ^
+          cmake -S stride-src/deps/spirv-tools -B _build -G Ninja ^
             -DCMAKE_BUILD_TYPE=Release ^
             -DSPIRV_TOOLS_SOURCE_DIR=%CD%/spirv-tools-src
           cmake --build _build --target stride_spirv_tools
@@ -138,7 +138,7 @@ jobs:
       commit: ${{ steps.info.outputs.commit }}
     steps:
       - uses: actions/checkout@v7
-        with: { path: stride-src, sparse-checkout: build/deps/spirv-tools }
+        with: { path: stride-src, sparse-checkout: deps/spirv-tools }
 
       - name: Clone SPIRV-Tools
         run: |
@@ -158,7 +158,7 @@ jobs:
 
       - name: Configure & build stride_spirv_tools
         run: |
-          cmake -S stride-src/build/deps/spirv-tools -B _build -G Ninja \
+          cmake -S stride-src/deps/spirv-tools -B _build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DSPIRV_TOOLS_SOURCE_DIR=$PWD/spirv-tools-src
           cmake --build _build --target stride_spirv_tools
@@ -181,7 +181,7 @@ jobs:
       commit: ${{ steps.info.outputs.commit }}
     steps:
       - uses: actions/checkout@v7
-        with: { path: stride-src, sparse-checkout: build/deps/spirv-tools }
+        with: { path: stride-src, sparse-checkout: deps/spirv-tools }
 
       - name: Clone SPIRV-Tools
         run: |
@@ -198,7 +198,7 @@ jobs:
 
       - name: Configure & build stride_spirv_tools
         run: |
-          cmake -S stride-src/build/deps/spirv-tools -B _build -G Ninja \
+          cmake -S stride-src/deps/spirv-tools -B _build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_OSX_ARCHITECTURES=arm64 \
             -DSPIRV_TOOLS_SOURCE_DIR=$PWD/spirv-tools-src
@@ -224,7 +224,7 @@ jobs:
       commit: ${{ steps.info.outputs.commit }}
     steps:
       - uses: actions/checkout@v7
-        with: { path: stride-src, sparse-checkout: build/deps/spirv-tools }
+        with: { path: stride-src, sparse-checkout: deps/spirv-tools }
 
       - name: Clone SPIRV-Tools
         run: |
@@ -246,7 +246,7 @@ jobs:
           # the Xcode "new build system" rejects (no common dependency).
           # CMAKE_OSX_SYSROOT must be set explicitly because Ninja doesn't
           # auto-detect the iOS SDK path like the Xcode generator does.
-          cmake -S stride-src/build/deps/spirv-tools -B _build -G Ninja \
+          cmake -S stride-src/deps/spirv-tools -B _build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_SYSTEM_NAME=iOS \
             -DCMAKE_OSX_ARCHITECTURES=arm64 \
@@ -277,7 +277,7 @@ jobs:
       commit: ${{ steps.info.outputs.commit }}
     steps:
       - uses: actions/checkout@v7
-        with: { path: stride-src, sparse-checkout: build/deps/spirv-tools }
+        with: { path: stride-src, sparse-checkout: deps/spirv-tools }
 
       - name: Clone SPIRV-Tools
         run: |
@@ -294,7 +294,7 @@ jobs:
 
       - name: Configure & build stride_spirv_tools
         run: |
-          cmake -S stride-src/build/deps/spirv-tools -B _build -G Ninja \
+          cmake -S stride-src/deps/spirv-tools -B _build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_SYSTEM_NAME=iOS \
             -DCMAKE_OSX_ARCHITECTURES=arm64 \
@@ -327,7 +327,7 @@ jobs:
           - { abi: x86_64,    rid: android-x64   }
     steps:
       - uses: actions/checkout@v7
-        with: { path: stride-src, sparse-checkout: build/deps/spirv-tools }
+        with: { path: stride-src, sparse-checkout: deps/spirv-tools }
 
       - name: Clone SPIRV-Tools
         run: |
@@ -347,7 +347,7 @@ jobs:
 
       - name: Configure & build stride_spirv_tools
         run: |
-          cmake -S stride-src/build/deps/spirv-tools -B _build -G Ninja \
+          cmake -S stride-src/deps/spirv-tools -B _build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake \
             -DANDROID_ABI=${{ matrix.abi }} \
@@ -389,7 +389,7 @@ jobs:
       - name: Stage native payload into csproj
         shell: pwsh
         run: |
-          $destRoot = "build/deps/spirv-tools/runtimes"
+          $destRoot = "deps/spirv-tools/runtimes"
           $rids = 'win-x64','win-arm64','linux-x64','osx-arm64','ios-arm64','iossimulator-arm64','android-arm64','android-x64'
           foreach ($rid in $rids) {
             $native = "$destRoot/$rid/native"
@@ -422,8 +422,8 @@ jobs:
             "Built: $(Get-Date -AsUTC -Format yyyy-MM-dd)"
             "Workflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           )
-          New-Item -ItemType Directory -Force build/deps/spirv-tools/tools | Out-Null
-          $lines | Set-Content build/deps/spirv-tools/tools/VERSION.txt
+          New-Item -ItemType Directory -Force deps/spirv-tools/tools | Out-Null
+          $lines | Set-Content deps/spirv-tools/tools/VERSION.txt
           $block = @('```') + $lines + @('```')
           $block | Add-Content $env:GITHUB_STEP_SUMMARY
           @(
@@ -433,14 +433,14 @@ jobs:
             ""
             "## Build"
             ""
-          ) + $block | Set-Content build/deps/spirv-tools/README.md
+          ) + $block | Set-Content deps/spirv-tools/README.md
 
       - name: Pack NuGet (dotnet pack)
         shell: pwsh
         run: |
           $version = "${{ github.event.inputs.version }}"
           if (-not $version) { $version = (Get-Date -Format "yyyy.M.d") }
-          dotnet pack build/deps/spirv-tools/Stride.Dependencies.SPIRVTools.csproj `
+          dotnet pack deps/spirv-tools/Stride.Dependencies.SPIRVTools.csproj `
             -c Release `
             -p:PackageVersion=$version `
             -p:RepositoryCommit=${{ github.sha }} `
