@@ -21,6 +21,11 @@ public sealed class EditorSessionFixture : IDisposable
 {
     public const string PackageName = "TestGame";
 
+    /// <summary>
+    /// The suffix of a location given to <see cref="OpenAsync"/> that saves a <see cref="TestOtherEditorAsset"/> there.
+    /// </summary>
+    public const string OtherSuffix = ".other";
+
     private bool destroyed;
 
     private EditorSessionFixture(string directory, IViewModelServiceProvider serviceProvider, FakeEditorDialogService dialogs, FakeClipboardService clipboard, FakePluginService plugins)
@@ -156,9 +161,12 @@ public sealed class EditorSessionFixture : IDisposable
 
         foreach (var (location, value) in assets)
         {
-            var path = Path.Combine(packageDirectory, "Assets", location + ".sdtesteditor");
+            // A location ending with ".other" holds a TestOtherEditorAsset, the others a TestEditorAsset
+            var isOther = location.EndsWith(OtherSuffix, StringComparison.Ordinal);
+            var path = Path.Combine(packageDirectory, "Assets", isOther ? location[..^OtherSuffix.Length] + ".sdtestother" : location + ".sdtesteditor");
             System.IO.Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-            AssetFileSerializer.Save(path, new TestEditorAsset { Value = value }, null);
+            Asset asset = isOther ? new TestOtherEditorAsset { Value = value } : new TestEditorAsset { Value = value };
+            AssetFileSerializer.Save(path, asset, null);
         }
     }
 }
