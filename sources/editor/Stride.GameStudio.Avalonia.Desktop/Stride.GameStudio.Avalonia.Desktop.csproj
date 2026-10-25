@@ -1,5 +1,6 @@
 ﻿<Project>
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.props" />
+
   <PropertyGroup>
     <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
     <RuntimeIdentifiers>linux-x64;win-x64</RuntimeIdentifiers>
@@ -10,19 +11,20 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="../../shared/SharedAssemblyInfo.cs">
-      <Link>Properties/SharedAssemblyInfo.cs</Link>
+    <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
   </ItemGroup>
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <OutputType Condition="'$(Configuration)' == 'Debug'">Exe</OutputType>
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
 
   <ItemGroup>
-    <AvaloniaResource Include="Assets/**" />
+    <AvaloniaResource Include="Assets\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -30,10 +32,20 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../Stride.GameStudio.Avalonia/Stride.GameStudio.Avalonia.csproj" />
+    <ProjectReference Include="..\Stride.GameStudio.Avalonia\Stride.GameStudio.Avalonia.csproj" />
   </ItemGroup>
 
-  <Import Project="../../shared/Stride.NuGetResolver.Targets/Stride.NuGetResolver.Targets.projitems" Label="Shared" />
+  <ItemGroup>
+    <Compile Include="..\..\launcher\Stride.Launcher\Crash\CrashReportArgs.cs" Link="Crash\CrashReportArgs.cs" />
+    <Compile Include="..\..\launcher\Stride.Launcher\Crash\CrashReportData.cs" Link="Crash\CrashReportData.cs" />
+    <Compile Include="..\..\launcher\Stride.Launcher\Crash\CrashReportViewModel.cs" Link="Crash\CrashReportViewModel.cs" />
+    <AvaloniaXaml Include="..\..\launcher\Stride.Launcher\Crash\CrashReportWindow.axaml" Link="Crash\CrashReportWindow.axaml">
+      <SubType>Designer</SubType>
+    </AvaloniaXaml>
+    <Compile Include="..\..\launcher\Stride.Launcher\Crash\CrashReportWindow.axaml.cs" Link="Crash\CrashReportWindow.axaml.cs" />
+  </ItemGroup>
+
+  <Import Project="..\..\shared\Stride.NuGetResolver.Targets\Stride.NuGetResolver.Targets.projitems" Label="Shared" />
 
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />
 </Project>
