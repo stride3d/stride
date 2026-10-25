@@ -5,7 +5,7 @@
              xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
              xmlns:caect="using:Stride.Core.Assets.Editor.Components.Transactions"
              xmlns:caevm="using:Stride.Core.Assets.Editor.ViewModels"
-             xmlns:capvm="using:Stride.Core.Assets.Presentation.ViewModels"
+             xmlns:capvm="using:Stride.Core.Assets.Editor.ViewModel"
              xmlns:cpc="using:Stride.Core.Presentation.Commands"
              xmlns:gsc="using:Stride.GameStudio.Avalonia.Converters"
              xmlns:gsh="using:Stride.GameStudio.Avalonia.Helpers"
@@ -40,6 +40,23 @@
         <MenuItem Header="{sd:LocalizeString _Close, Context=Menu}"
                   Command="{Binding CloseCommand}"
                   IsEnabled="{Binding Session, Mode=OneWay, Converter={sd:ObjectToBool}}"/>
+        <Separator/>
+        <!-- Recent sessions (the most recently used sessions of this editor version or an earlier one) -->
+        <MenuItem Header="{sd:LocalizeString Open _recent, Context=Menu}"
+                  Name="RecentSessionsMenu"
+                  ItemsSource="{Binding RecentFiles}"
+                  IsEnabled="{Binding RecentFiles.Count, Mode=OneWay, Converter={sd:NumericToBool}}">
+          <MenuItem.ItemContainerTheme>
+            <ControlTheme TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}" x:DataType="gsvm:RecentSessionViewModel">
+              <Setter Property="Header" Value="{Binding Name}"/>
+              <Setter Property="ToolTip.Tip" Value="{Binding FilePath}"/>
+              <Setter Property="Command" Value="{Binding OpenCommand}"/>
+            </ControlTheme>
+          </MenuItem.ItemContainerTheme>
+        </MenuItem>
+        <MenuItem Header="{sd:LocalizeString Clear recent sessions, Context=Menu}"
+                  Command="{Binding ClearRecentFilesCommand}"
+                  IsEnabled="{Binding RecentFiles.Count, Mode=OneWay, Converter={sd:NumericToBool}}"/>
         <Separator/>
         <MenuItem Header="{sd:LocalizeString E_xit, Context=Menu}"
                   Command="{Binding ExitCommand}"

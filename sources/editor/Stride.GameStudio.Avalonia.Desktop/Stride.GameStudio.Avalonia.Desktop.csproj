@@ -33,6 +33,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Stride.GameStudio.Avalonia\Stride.GameStudio.Avalonia.csproj" />
+    <!-- The crash report window (shared with the launcher) sends through Stride.CrashReport -->
+    <ProjectReference Include="..\..\crashreport\Stride.CrashReport\Stride.CrashReport.csproj" />
   </ItemGroup>
 
   <ItemGroup>

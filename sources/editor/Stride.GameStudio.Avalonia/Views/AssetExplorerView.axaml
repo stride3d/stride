@@ -5,7 +5,7 @@
              xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
              xmlns:caevm="using:Stride.Core.Assets.Editor.ViewModels"
              xmlns:caec="using:Stride.Core.Assets.Editor.Avalonia.Converters"
-             xmlns:capvm="using:Stride.Core.Assets.Presentation.ViewModels"
+             xmlns:capvm="using:Stride.Core.Assets.Editor.ViewModel"
              xmlns:gscv="using:Stride.GameStudio.Avalonia.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Stride.GameStudio.Avalonia.Views.AssetExplorerView"

@@ -11,7 +11,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input.Platform;
 using Avalonia.Threading;
-using Microsoft.Build.Locator;
+using Stride.Core.Assets;
 using Stride.Core.Diagnostics;
 using Stride.Crash;
 using Stride.Crash.ViewModels;
@@ -23,6 +23,12 @@ internal sealed class Program
     private const int MaxLogMessageCount = 10;
     private static readonly ConcurrentQueue<string> logRingbuffer = new();
     private static int terminating;
+    private static bool resetGraphicsApiPreference;
+
+    /// <summary>
+    /// Whether the graphics API preference of the settings was unavailable at startup and must be reset to the default.
+    /// </summary>
+    public static bool ResetGraphicsApiPreference => resetGraphicsApiPreference;
 
     // Initialization code. Don't use any Avalonia, third-party APIs or any
     // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
@@ -31,10 +37,24 @@ internal sealed class Program
     {
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
+        // The persisted graphics API preference isn't staged in this build: fall back to the platform default and reset
+        // the setting, so the user isn't stuck in a fail-at-launch loop (the WPF Game Studio asks first; there is no window yet here).
+        if (GraphicsApiHostResolver.UnavailablePreference is { } unavailableApi)
+        {
+            var fallback = GraphicsApiHostResolver.UseFallback();
+            Console.Error.WriteLine($"Graphics API '{unavailableApi}' (from Game Studio settings) is not available in this build; continuing with '{fallback}' and resetting the setting to Default.");
+            resetGraphicsApiPreference = true;
+        }
+
         try
         {
-            MSBuildLocator.RegisterDefaults();
+            // MSBuild is located when the first session opens (PackageSessionPublicHelper.FindAndSetMSBuildVersion loads it in its
+            // own context: the SDK's NuGet assemblies must not collide with the editor's own)
             Thread.CurrentThread.Name = "Main thread";
+
+            // The managed handlers can't see a native access violation (native interop, GPU drivers): it kills the process
+            // first. The native handler captures such a crash for the reporter (Windows only; a no-op elsewhere).
+            Stride.CrashReport.NativeCrashReporting.Install("GameStudio");
 
             // Listen to logger for crash report
             GlobalLogger.GlobalMessageLogged += OnGlobalMessageLogged;
@@ -42,6 +62,10 @@ internal sealed class Program
             // Parse launcher arguments before starting the Avalonia app so that
             // App.LauncherNotifier is set before the first window opens.
             ParseLauncherArgs(args);
+            // The session to open and the services to turn off (/DisableThumbnails, /DisablePreview, /DebugEditorGraphics)
+            App.Options = StartupOptions.Parse(args);
+            foreach (var unknown in App.Options.UnknownArguments)
+                GlobalLogger.GetLogger("GameStudio").Warning($"Unknown command line option [{unknown}] ignored.");
 
             BuildAvaloniaApp()
                 .StartWithClassicDesktopLifetime(args, ShutdownMode.OnMainWindowClose);
@@ -185,12 +209,19 @@ internal sealed class Program
 
         var englishCulture = new CultureInfo("en-US");
         Thread.CurrentThread.CurrentCulture = Thread.CurrentThread.CurrentUICulture = englishCulture;
+        // The exception goes to the standard error too: the crash report window may not open (no display, a broken rendering)
+        Console.Error.WriteLine($"Game Studio crashed ({location}):");
+        Console.Error.WriteLine(exception);
+        // Snapshot the other threads on the faulting thread (the crashing thread's stack is in the exception)
+        var threads = Stride.CrashReport.ThreadSnapshot.CaptureAtCurrentThread(out var crashedThreadId, out var crashedThreadName);
         var reportArgs = new CrashReportArgs
         {
             Exception = exception,
             Location = location,
             Logs = [.. logRingbuffer],
-            ThreadName = Thread.CurrentThread.Name
+            ThreadName = crashedThreadName ?? Thread.CurrentThread.Name,
+            ThreadId = crashedThreadId,
+            Threads = threads,
         };
         CrashReport(reportArgs);
     }

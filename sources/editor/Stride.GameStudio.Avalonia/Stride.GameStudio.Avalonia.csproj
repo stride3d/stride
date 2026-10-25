@@ -18,6 +18,8 @@
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
     <AvaloniaResource Include="..\..\..\BACKERS.md" Link="Assets\BACKERS.md" />
+    <!-- The folder and static thumbnails (ThumbnailDataFactory looks them up by name in this assembly) -->
+    <EmbeddedResource Include="Resources\*.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -39,12 +41,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Stride.Editor.Avalonia\Stride.Editor.Avalonia.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <!-- TODO xplat-editor that reference shouldn't be explicit and such assembly should be loaded as external plugins -->
+    <!-- The editor's own plugin layers (Stride.Assets.Presentation, Stride.Assets.Editor, Stride.Assets.Editor.Avalonia and the core editor views):
+         loaded by App.InitializePlugins. Plugin packages (Audio, SpriteStudio, ...) are never referenced: they come as companions of the session's packages. -->
     <ProjectReference Include="..\Stride.Assets.Editor.Avalonia\Stride.Assets.Editor.Avalonia.csproj" />
   </ItemGroup>
+
+  <!-- The most recently used sessions, shared with the WPF Game Studio's Stride.Core.Assets.Editor.Wpf -->
+  <Import Project="..\Stride.Core.MostRecentlyUsedFiles\Stride.Core.MostRecentlyUsedFiles.projitems" Label="Shared" />
 
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />
 </Project>
