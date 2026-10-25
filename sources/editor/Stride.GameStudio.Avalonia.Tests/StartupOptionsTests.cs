@@ -56,6 +56,29 @@ public sealed class StartupOptionsTests
     }
 
     [Fact]
+    public void TheProjectSwitchNamesTheSession()
+    {
+        var options = StartupOptions.Parse(["/NewProject", "--project", "/home/user/MyGame/MyGame.sln", "/DisablePreview"]);
+
+        Assert.Equal("/home/user/MyGame/MyGame.sln", options.InitialSessionPath?.FullPath);
+        Assert.False(options.NewProject);
+        Assert.True(options.DisablePreview);
+        Assert.Empty(options.UnknownArguments);
+
+        var windowsStyle = StartupOptions.Parse(["/project", "C:/Games/MyGame/MyGame.sdpkg"]);
+        Assert.Equal("C:/Games/MyGame/MyGame.sdpkg", windowsStyle.InitialSessionPath?.FullPath);
+    }
+
+    [Fact]
+    public void AProjectSwitchWithoutPathIsReported()
+    {
+        var options = StartupOptions.Parse(["--project"]);
+
+        Assert.Null(options.InitialSessionPath);
+        Assert.Equal(["--project"], options.UnknownArguments);
+    }
+
+    [Fact]
     public void UnknownOptionsAreReportedNotTakenForPaths()
     {
         var options = StartupOptions.Parse(["/Unknown", "--other"]);
