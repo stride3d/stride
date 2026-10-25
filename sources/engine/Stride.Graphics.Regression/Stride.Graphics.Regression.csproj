@@ -54,20 +54,6 @@
     <ProjectReference Include="..\Stride.Engine\Stride.Engine.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Scripts\RunAndroidTest.bat">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Scripts\RunAndroidUnitTest.bat">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Scripts\RunUniqueAndroidTest.bat">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Scripts\RunUniqueWindowsTest.bat">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Web\jquery-2.1.0.min.js" />
     <None Include="Web\tableBuilder.js" />
     <None Include="Web\Vizualizer.html" />
