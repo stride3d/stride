@@ -191,6 +191,7 @@
     <Project Path="sources/editor/Stride.Assets.Editor.Avalonia.Tests/Stride.Assets.Editor.Avalonia.Tests.csproj" />
     <Project Path="sources/editor/Stride.Core.Assets.Editor.Avalonia.Tests/Stride.Core.Assets.Editor.Avalonia.Tests.csproj" />
     <Project Path="sources/editor/Stride.Editor.Avalonia.Tests/Stride.Editor.Avalonia.Tests.csproj" />
+    <Project Path="sources/editor/Stride.GameStudio.Avalonia.Tests/Stride.GameStudio.Avalonia.Tests.csproj" />
   </Folder>
   <Folder Name="/70-StrideAssets/">
     <Project Path="sources/engine/Stride.Assets.Models/Stride.Assets.Models.csproj" />
