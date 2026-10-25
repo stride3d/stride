@@ -76,14 +76,7 @@ internal static class Tools
         var args = forwardedArgs.ToList();
         if (!DotNetHostSelector.SupportsHostSelection(Path.ChangeExtension(executable, ".dll")))
             RemoveFrameworkOption(args);
-        var startInfo = new ProcessStartInfo(wine) { UseShellExecute = false };
-        startInfo.ArgumentList.Add(executable);
-        foreach (var arg in args)
-            startInfo.ArgumentList.Add(arg);
-        if (Environment.GetEnvironmentVariable("WINEDEBUG") is null)
-            startInfo.Environment["WINEDEBUG"] = "-all";
-
-        if (Process.Start(startInfo) is null)
+        if (Process.Start(Wine.StartInfo(wine, [executable, .. args])) is null)
         {
             Console.Error.WriteLine($"Failed to start {executable} under Wine.");
             return 1;
