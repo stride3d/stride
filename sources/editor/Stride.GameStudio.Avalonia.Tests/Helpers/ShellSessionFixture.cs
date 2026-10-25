@@ -101,6 +101,8 @@ internal sealed class ShellSessionFixture : IDisposable
             return;
         disposed = true;
 
+        // The preview panel owns the preview service of the session
+        Main.Preview?.Dispose();
         if (Main.Session is { } session)
         {
             var builder = session.ServiceProvider.TryGet<GameStudioBuilderService>();

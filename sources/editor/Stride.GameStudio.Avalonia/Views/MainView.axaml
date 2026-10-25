@@ -166,7 +166,9 @@
         <GridSplitter Grid.Column="3" ResizeDirection="Auto"/>
         <!-- Asset preview, history and references -->
         <TabControl Grid.Column="4">
-          <TabItem Header="Asset preview">
+          <!-- The preview game renders only while this tab is selected -->
+          <TabItem Header="Asset preview"
+                   IsSelected="{Binding Preview.IsPreviewVisible, Mode=TwoWay, FallbackValue={sd:True}}">
             <gsvw:AssetPreviewView BorderThickness="2"
                                  BorderBrush="Cyan"
                                  Padding="2"/>

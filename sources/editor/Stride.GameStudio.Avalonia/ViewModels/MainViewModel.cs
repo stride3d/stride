@@ -32,6 +32,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     private static readonly string baseTitle = StrideGameStudio.EditorTitle;
     private static bool msBuildFound;
     private SessionViewModel? session;
+    private PreviewViewModel? preview;
     private string title = baseTitle;
 
 #if DEBUG
@@ -81,6 +82,15 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     /// The background operations shown in the notification bar; <c>null</c> when the host has no bar.
     /// </summary>
     public INotificationService? Notifications { get; }
+
+    /// <summary>
+    /// The asset preview panel of the session; <c>null</c> without a session.
+    /// </summary>
+    public PreviewViewModel? Preview
+    {
+        get => preview;
+        private set => SetValue(ref preview, value);
+    }
 
     public string Title
     {
@@ -186,7 +196,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
         // We have a session, let's restart cleanly
         if (session is not null)
         {
-            session = null;
+            CloseSessionServices();
             (Application.Current as App)?.Restart(filePath);
             return true;
         }
@@ -225,6 +235,8 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
         // now that the session has its views
         ServiceProvider.Get<IAssetsPluginService>().InitializeSession(Session);
         Session.PluginsInitialized();
+        // It owns the preview service that a plugin has just registered, and the preview game with it
+        Preview = new PreviewViewModel(Session);
 
         // The build the session runs when it opens: thumbnails and previews wait for it
         _ = ShowShaderImportAsync(Session);
@@ -347,9 +359,19 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
         // We have a session, let's restart empty
         if (session is not null && Application.Current is App app)
         {
-            session = null;
+            CloseSessionServices();
             app.Restart();
         }
+    }
+
+    /// <summary>
+    /// Forgets the session before the editor restarts, and exits its preview game: the next editor starts its own.
+    /// </summary>
+    private void CloseSessionServices()
+    {
+        Preview?.Dispose();
+        Preview = null;
+        session = null;
     }
 
     private void OnExit()
