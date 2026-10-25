@@ -1,7 +1,10 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Headless;
+using Avalonia.Input;
 using Avalonia.Threading;
 
 namespace Stride.GameStudio.Avalonia.Tests.Helpers;
@@ -30,6 +33,20 @@ internal static class WindowTestHelper
             await Task.Delay(25);
             await PumpAsync();
         }
+    }
+
+    /// <summary>
+    /// Clicks the middle of a control with the left mouse button, as a user would: unlike raising its Click event, a click runs the
+    /// command of a button.
+    /// </summary>
+    public static async Task ClickAsync(this Window window, Control control)
+    {
+        var center = control.TranslatePoint(new Point(control.Bounds.Width / 2, control.Bounds.Height / 2), window)
+            ?? throw new InvalidOperationException("The control is not in the window.");
+        window.MouseMove(center);
+        window.MouseDown(center, MouseButton.Left);
+        window.MouseUp(center, MouseButton.Left);
+        await PumpAsync();
     }
 
     /// <summary>
