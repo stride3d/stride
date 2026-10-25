@@ -18,7 +18,8 @@
     <ProjectReference Include="..\Stride.Physics.Assets\Stride.Physics.Assets.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="DotRecast.Detour" />
+    <!-- Needed for NavigationMeshTile.Data (DtMeshData): Stride.Navigation doesn't flow DotRecast at compile time -->
+    <PackageReference Include="DotRecast.Detour" PrivateAssets="compile" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\PhysicsComponent.png" />
