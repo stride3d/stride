@@ -51,7 +51,8 @@ public sealed class StartupOptions
     /// <summary>
     /// Parses the command line of the WPF Game Studio: <c>/NewProject</c>, <c>/DisableThumbnails</c>, <c>/DisablePreview</c>,
     /// <c>/DebugEditorGraphics</c>, a session path; the launcher handshake (<c>/LauncherWindowHandle</c>, <c>/LauncherPipe</c>)
-    /// and the host selection (<c>--graphics-api</c>) take a value and are consumed by the host.
+    /// and the host selection (<c>--graphics-api</c>) take a value and are consumed by the host. <c>--project &lt;path&gt;</c>
+    /// (or <c>/project</c>) names the session explicitly, as the earlier Avalonia prototype did.
     /// </summary>
     public static StartupOptions Parse(IReadOnlyList<string> args)
     {
@@ -66,6 +67,10 @@ public sealed class StartupOptions
                 case "/RecordEffects":
                     // Consumed by the host (or not supported yet): skip the value
                     i++;
+                    break;
+                case "--project" or "/project" when i + 1 < args.Count:
+                    options.InitialSessionPath = args[++i];
+                    options.NewProject = false;
                     break;
                 case "/NewProject":
                     options.NewProject = true;
