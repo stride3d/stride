@@ -13,7 +13,7 @@
 [![All Contributors](https://img.shields.io/github/all-contributors/stride3d/stride?color=ee8449)](#contributors)
 [![Financial sponsors](https://img.shields.io/opencollective/all/stride3d?logo=opencollective)](https://opencollective.com/stride3d)
 [![License](https://img.shields.io/badge/license-MIT-blue)](https://github.com/stride3d/stride/blob/master/LICENSE.md)
-[![Contributor Covenant](https://img.shields.io/badge/contributor%20covenant-2.0-4baaaa.svg)](CODE_OF_CONDUCT.md)
+[![Contributor Covenant](https://img.shields.io/badge/contributor%20covenant-2.0-4baaaa.svg)](.github/CODE_OF_CONDUCT.md)
 
 # Welcome to the Stride Game Engine
 
@@ -76,6 +76,21 @@ Our [Roadmap](https://doc.stride3d.net/latest/en/contributors/roadmap.html) comm
 2. Open `Stride.slnx` in Visual Studio 2026.
 3. Build the `Stride.GameStudio` project (default startup, in the `60-Editor` folder) or run it directly from the toolbar.
 
+### Repository layout
+
+| Folder | What it holds |
+|---|---|
+| `Stride.slnx` | The main solution: open this one |
+| `sources/` | What ships, by area (`core`, `engine`, `editor`, `assets`, `shaders`, `presentation`, `launcher`, `tools`...). Unit tests sit next to their code. The `Stride.*.slnf` filters are the slices CI builds |
+| `tests/` | Test-only projects and data: editor and end-user suites, GPU gold images, device scripts. See [tests/README.md](tests/README.md) |
+| `samples/` | Sample games and templates, built like user projects (`samples/StrideSamples.slnx`) |
+| `deps/` | Third-party code: committed binaries, and the recipes that build them or the `Stride.Dependencies.*` packages |
+| `build/` | How CI and releases build, sign and pack (`package.proj`), and your local settings (`Stride.Local.props`) |
+| `docs/` | Contributor docs: build, debugging, editor, launcher, asset system |
+| `bin/` | Build output and local packages (ignored by git) |
+
+There is no `Directory.Build.props` at the root on purpose: `sources/` and `tests/` have their own, and samples must build like a user's project.
+
 ### Contribution Guidelines
 
 Please check our [Contributing Guidelines](https://doc.stride3d.net/latest/en/contributors/index.html).
@@ -120,7 +135,7 @@ This project is supported by the [.NET Foundation](http://www.dotnetfoundation.o
 
 ## 🛡️ License
 
-Stride is covered by the [MIT License](LICENSE.md) unless stated otherwise (i.e. for some files that are copied from other projects). You can find the list of third-party projects [here](THIRD%20PARTY.md). Contributors need to sign the following [Contribution License Agreement](https://github.com/dotnet-foundation/.github/blob/main/CLA/dotnetfoundation.yml).
+Stride is covered by the [MIT License](LICENSE.md) unless stated otherwise (i.e. for some files that are copied from other projects). You can find the list of third-party projects [here](THIRD-PARTY-NOTICES.md). Contributors need to sign the following [Contribution License Agreement](https://github.com/dotnet-foundation/.github/blob/main/CLA/dotnetfoundation.yml).
 
 ## ✨ Contributors 
 

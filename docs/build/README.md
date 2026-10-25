@@ -44,9 +44,9 @@ If you'd rather not install the full Visual Studio IDE:
    ```bash
    git clone https://github.com/stride3d/stride.git
    ```
-5. From the `build/` directory, run:
+5. From the repo root, run:
    ```bash
-   msbuild /t:Build Stride.build
+   msbuild -restore Stride.slnx
    ```
 
 ### Using `dotnet build`
@@ -66,13 +66,13 @@ Instantiates a sample from the locally built template packages, bound to this ch
 1. **Produce the packages.**
    - Dev-redirect mode (`StrideDevPackages=true` in `build/Stride.Local.props` — fastest engine iteration):
      ```bash
-     dotnet run build/GenerateDevPackages.cs
+     dotnet run --file build/dev-packages.cs
      ```
      Builds the solution and deploys redirect packages to `%LocalAppData%\stride\nugetdev`, mirrored into `bin\packages` so the repo's own feed stays current too.
    - Normal mode: any engine build (Visual Studio or `dotnet build Stride.slnx`) auto-packs real packages into `bin\packages`.
 2. **Deploy the package closure into the NuGet cache** — this is what makes a version "installed" for the `stride` CLI, and it purges stale same-version extractions so a rebuilt package actually takes effect:
    ```bash
-   dotnet msbuild build/install-gamestudio.targets -t:Deploy
+   dotnet msbuild build/install-gamestudio.proj -t:Deploy
    ```
 3. **Instantiate** (browse with `stride new list --version 4.4.0-devN`):
    ```bash
@@ -88,7 +88,7 @@ Instantiates a sample from the locally built template packages, bound to this ch
 After engine changes: in dev-redirect mode rebuild the engine project, then rebuild the game (the redirect re-copies the tree's DLLs into its `Bin`); in normal mode rebuild (auto-repack) and run the Deploy step again.
 
 > [!NOTE]
-> Any build run with `-p:StrideDevPackages=false` while dev-redirect packages are deployed deletes them (the intended cleanup when switching modes off) — rerun `GenerateDevPackages.cs` afterwards.
+> Any build run with `-p:StrideDevPackages=false` while dev-redirect packages are deployed deletes them (the intended cleanup when switching modes off) — rerun `dev-packages.cs` afterwards.
 
 See also [sources/templates/README.md](../../sources/templates/README.md) for iterating on the template packages themselves.
 
