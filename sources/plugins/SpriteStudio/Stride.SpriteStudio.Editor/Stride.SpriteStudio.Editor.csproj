@@ -9,6 +9,8 @@
   <ItemGroup>
     <!-- The sheet preview's WPF view: the WPF Game Studio loads it, another toolkit's editor does not -->
     <StrideCompanionProject Include="..\Stride.SpriteStudio.Editor.Wpf\Stride.SpriteStudio.Editor.Wpf.csproj" />
+    <!-- Its Avalonia view: the Avalonia editor loads it, the WPF Game Studio does not -->
+    <StrideCompanionProject Include="..\Stride.SpriteStudio.Editor.Avalonia\Stride.SpriteStudio.Editor.Avalonia.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\shared\SharedAssemblyInfo.cs">

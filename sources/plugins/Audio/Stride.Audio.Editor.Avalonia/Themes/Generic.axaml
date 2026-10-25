@@ -1,0 +1,37 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+                    xmlns:audio="using:Stride.Audio.Editor">
+  <!-- The control themes of this assembly; AudioEditorAvaloniaPlugin merges this dictionary into the application. -->
+  <ControlTheme x:Key="{x:Type audio:SoundPreviewView}" TargetType="audio:SoundPreviewView">
+    <Setter Property="Template">
+      <ControlTemplate TargetType="audio:SoundPreviewView">
+        <DockPanel x:DataType="audio:SoundPreviewViewModel">
+          <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" IsVisible="{Binding IsAudioValid}">
+            <Button x:Name="PART_Play" Command="{Binding PlayCommand}" Background="Transparent" Width="24" Height="24" Padding="0"
+                    ToolTip.Tip="{sd:LocalizeString Play the sound, Context=ToolTip}">
+              <TextBlock Text="&#x25B6;" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Button>
+            <Button x:Name="PART_Pause" Command="{Binding PauseCommand}" Background="Transparent" Width="24" Height="24" Padding="0"
+                    ToolTip.Tip="{sd:LocalizeString Pause the sound, Context=ToolTip}">
+              <TextBlock Text="&#x23F8;" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Button>
+            <Slider x:Name="PART_Volume" Margin="5,0" Minimum="0" Maximum="1" Width="60" VerticalAlignment="Center"
+                    Value="{Binding MasterVolume}"/>
+          </StackPanel>
+          <Border VerticalAlignment="Center">
+            <StackPanel>
+              <Slider x:Name="PART_Position" Margin="15,5" Minimum="0" Maximum="{Binding Duration.TotalSeconds, Mode=OneWay}"
+                      Value="{Binding CurrentValue}" IsVisible="{Binding IsAudioValid}"/>
+              <TextBlock HorizontalAlignment="Center" IsVisible="{Binding IsAudioValid}">
+                <Run Text="{Binding CurrentTime, StringFormat={}{0:mm\\:ss\\:fff}, Mode=OneWay}"/><Run Text="/"/><Run Text="{Binding Duration, StringFormat={}{0:mm\\:ss\\:fff}, Mode=OneWay}"/>
+              </TextBlock>
+              <TextBlock Text="{sd:LocalizeString Building preview sound asset...}" HorizontalAlignment="Center"
+                         IsVisible="{Binding IsAudioValid, Converter={sd:InvertBool}}"/>
+            </StackPanel>
+          </Border>
+        </DockPanel>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+</ResourceDictionary>
