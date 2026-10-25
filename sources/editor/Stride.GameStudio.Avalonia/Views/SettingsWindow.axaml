@@ -1,0 +1,64 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+        xmlns:caeb="using:Stride.Core.Assets.Editor.Avalonia.Behaviors"
+        xmlns:caevm="using:Stride.Core.Assets.Editor.ViewModels"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="Stride.GameStudio.Avalonia.Views.SettingsWindow"
+        x:DataType="caevm:SettingsViewModel"
+        Title="SettingsWindow"
+        Width="800" Height="600" WindowStartupLocation="CenterOwner">
+  <Window.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="avares://Stride.Core.Assets.Editor.Avalonia/Themes/PropertyViewTheme.axaml"/>
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </Window.Resources>
+  <DockPanel>
+    <UniformGrid DockPanel.Dock="Bottom"
+                 Rows="1"
+                 HorizontalAlignment="Right"
+                 Margin="16">
+      <Button Content="{sd:LocalizeString Save and close, Context=Button}"
+              Margin="8,0,0,0" Padding="16,4">
+        <Interaction.Behaviors>
+          <sd:ButtonCloseWindowBehavior Command="{Binding ValidateChangesCommand}"/>
+        </Interaction.Behaviors>
+      </Button>
+      <Button Content="{sd:LocalizeString Cancel, Context=Button}"
+              Margin="8,0,0,0" Padding="16,4"
+              IsCancel="True">
+        <Interaction.Behaviors>
+          <sd:ButtonCloseWindowBehavior Command="{Binding DiscardChangesCommand}"/>
+        </Interaction.Behaviors>
+      </Button>
+    </UniformGrid>
+
+    <Grid ColumnDefinitions="*,Auto,2*">
+      <TreeView Grid.Column="0"
+                ItemsSource="{Binding Categories}"
+                SelectedItem="{Binding SelectedCategory}">
+        <Control.DataTemplates>
+          <TreeDataTemplate DataType="{x:Type caevm:SettingsCategoryViewModel}"
+                            ItemsSource="{Binding SubCategories}">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="{Binding Name}" />
+            </StackPanel>
+          </TreeDataTemplate>
+        </Control.DataTemplates>
+      </TreeView>
+
+      <GridSplitter Grid.Column="1" ResizeBehavior="PreviousAndNext" VerticalAlignment="Stretch" />
+
+      <sd:PropertyView Grid.Column="2"
+                       ItemsSource="{Binding ViewModel?.RootNode.Children}">
+        <Interaction.Behaviors>
+          <caeb:PropertyViewAutoExpandNodesBehavior ViewModel="{Binding ViewModel, Mode=OneWay}" />
+        </Interaction.Behaviors>
+      </sd:PropertyView>
+    </Grid>
+  </DockPanel>
+</Window>

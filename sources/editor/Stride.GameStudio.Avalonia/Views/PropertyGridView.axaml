@@ -1,0 +1,35 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+             xmlns:caeb="using:Stride.Core.Assets.Editor.Avalonia.Behaviors"
+             xmlns:caecp="using:Stride.Core.Assets.Editor.Components.Properties"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Stride.GameStudio.Avalonia.Views.PropertyGridView"
+             x:DataType="caecp:SessionObjectPropertiesViewModel">
+  <UserControl.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="avares://Stride.Core.Assets.Editor.Avalonia/Themes/PropertyViewTheme.axaml"/>
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </UserControl.Resources>
+  <UserControl.Styles>
+    <Style Selector="sd|PropertyViewItem[IsHovered=True]">
+      <Setter Property="Background" Value="{DynamicResource PropertyHoveredBackground}"/>
+    </Style>
+    <Style Selector="sd|PropertyViewItem[IsFocused=True]">
+      <Setter Property="Background" Value="{DynamicResource PropertyFocusedBackground}"/>
+    </Style>
+  </UserControl.Styles>
+  <DockPanel LastChildFill="True">
+    <TextBlock DockPanel.Dock="Top" Text="Property Grid"/>
+    <sd:PropertyView ItemsSource="{Binding ViewModel?.RootNode.Children}"
+                     IsVisible="{Binding CanDisplayProperties}">
+      <Interaction.Behaviors>
+        <caeb:PropertyViewAutoExpandNodesBehavior ViewModel="{Binding ViewModel, Mode=OneWay}" />
+      </Interaction.Behaviors>
+    </sd:PropertyView>
+  </DockPanel>
+</UserControl>
