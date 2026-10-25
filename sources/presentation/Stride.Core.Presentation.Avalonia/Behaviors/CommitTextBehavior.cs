@@ -26,7 +26,7 @@ public sealed class CommitTextBehavior : Behavior<TextBox>
         base.OnAttached();
         if (AssociatedObject is { } textBox)
         {
-            textBox.TextChanged += OnTextChanged;
+            textBox.TextChanging += OnTextChanging;
             textBox.KeyDown += OnKeyDown;
             textBox.LostFocus += OnLostFocus;
         }
@@ -37,17 +37,18 @@ public sealed class CommitTextBehavior : Behavior<TextBox>
     {
         if (AssociatedObject is { } textBox)
         {
-            textBox.TextChanged -= OnTextChanged;
+            textBox.TextChanging -= OnTextChanging;
             textBox.KeyDown -= OnKeyDown;
             textBox.LostFocus -= OnLostFocus;
         }
         base.OnDetaching();
     }
 
-    private void OnTextChanged(object? sender, TextChangedEventArgs e)
+    private void OnTextChanging(object? sender, TextChangingEventArgs e)
     {
         // The text also changes when the binding displays a new source value: only an edit made while the box has the
-        // focus is something to commit.
+        // focus is something to commit. TextChanging is raised as the text changes; TextChanged comes later from the
+        // dispatcher, when the focus may have moved (and the edit, been cancelled).
         if (AssociatedObject is { IsFocused: true, IsReadOnly: false })
             hasChanges = true;
     }
@@ -89,7 +90,9 @@ public sealed class CommitTextBehavior : Behavior<TextBox>
         if (AssociatedObject is not { } textBox)
             return;
 
-        hasChanges = false;
+        // Showing the bound value again changes the text while the box has the focus, which counts as an edit: forget the
+        // edit only afterwards, or moving the focus away would write the bound value back
         BindingOperations.GetBindingExpressionBase(textBox, TextBox.TextProperty)?.UpdateTarget();
+        hasChanges = false;
     }
 }
