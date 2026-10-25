@@ -2,7 +2,21 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+             xmlns:gsvm="using:Stride.GameStudio.Avalonia.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="Stride.GameStudio.Avalonia.Views.AssetPreviewView">
-  Asset Preview
+             x:Class="Stride.GameStudio.Avalonia.Views.AssetPreviewView"
+             x:DataType="gsvm:MainViewModel">
+  <!-- The view of the preview of the selected asset, built by the preview service of the session -->
+  <Panel>
+    <TextBlock Text="{sd:LocalizeString No asset to preview}"
+               HorizontalAlignment="Center" VerticalAlignment="Center"
+               Opacity="0.5"
+               IsVisible="{Binding !#PreviewContent.IsVisible}"/>
+    <!-- A ContentControl, not a ContentPresenter: a presenter takes a content that is not a control (null, when there is
+         no preview) as its data context, which would cut its own bindings off the view model -->
+    <ContentControl x:Name="PreviewContent"
+                    Content="{Binding Preview.PreviewObject, FallbackValue={x:Null}}"
+                    IsVisible="{Binding Preview.PreviewObject, Converter={sd:ObjectToBool}, FallbackValue={sd:False}}"/>
+  </Panel>
 </UserControl>

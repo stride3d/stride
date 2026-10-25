@@ -10,6 +10,7 @@ using Stride.Core.Diagnostics;
 using Stride.Core.Reflection;
 using Stride.Editor.Avalonia;
 using Stride.Editor.Avalonia.Preview;
+using Stride.Editor.Build;
 
 namespace Stride.Assets.Editor.Avalonia;
 
@@ -30,6 +31,14 @@ public sealed class StrideEditorViewPlugin : StrideAssetsAvaloniaPlugin
     {
         if (GameStudioPreviewService.DisablePreview)
             return;
+
+        // The preview service needs the builder and the game settings of the session, which StrideEditorPlugin registers
+        // first: without them (a plugin that failed, a changed order) the session has no preview rather than failing to open
+        if (session.ServiceProvider.TryGet<GameStudioBuilderService>() is null || session.ServiceProvider.TryGet<GameSettingsProviderService>() is null)
+        {
+            GlobalLogger.GetLogger(nameof(StrideEditorViewPlugin)).Error("The asset preview is not available: the session has no builder or game settings service.");
+            return;
+        }
 
         var previewService = new GameStudioPreviewService(session);
         session.ServiceProvider.RegisterService(previewService);
