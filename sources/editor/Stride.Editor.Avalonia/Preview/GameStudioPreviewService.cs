@@ -437,6 +437,14 @@ namespace Stride.Editor.Avalonia.Preview
                 // square on the desktop): the host shows the window once it is embedded
                 MakeWindowVisibleOnRun = false;
             }
+
+            protected override void Initialize()
+            {
+                base.Initialize();
+                // The host gives the window its size: a borderless SDL window must stay resizable to follow it (on Windows,
+                // SDL keeps the client area of a non-resizable borderless window at the 64x64 of the first back buffer)
+                Window.AllowUserResizing = true;
+            }
         }
     }
 }
