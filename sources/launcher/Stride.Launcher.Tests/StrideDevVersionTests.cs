@@ -54,4 +54,18 @@ public sealed class StrideDevVersionTests : IDisposable
 
         Assert.Null(StrideDevVersionViewModel.FindCheckoutInLedger(ledger, "beta8"));
     }
+
+    [Fact]
+    public void GetEditorName_TellsTheWpfAndTheAvaloniaGameStudio()
+    {
+        Assert.Equal("WPF", StrideDevVersionViewModel.GetEditorName("Stride.GameStudio"));
+        Assert.Equal("Avalonia", StrideDevVersionViewModel.GetEditorName("Stride.GameStudio.Avalonia.Desktop"));
+    }
+
+    [Fact]
+    public void GetEditorName_OtherPackageOrNone_IsNull()
+    {
+        Assert.Null(StrideDevVersionViewModel.GetEditorName("Stride.Launcher"));
+        Assert.Null(StrideDevVersionViewModel.GetEditorName(null));
+    }
 }

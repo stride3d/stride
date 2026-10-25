@@ -32,6 +32,7 @@ public abstract class StrideVersionViewModel : PackageVersionViewModel, ICompara
         Major = major;
         Minor = minor;
         IsNightly = isNightly;
+        DependentProperties.Add(nameof(FullName), [nameof(StartName)]);
         SetAsActiveCommand = new AnonymousCommand(ServiceProvider, () => launcher.ActiveVersion = this);
     }
 
@@ -146,6 +147,11 @@ public abstract class StrideVersionViewModel : PackageVersionViewModel, ICompara
     /// Gets the name of this version in the version list, where a badge next to it tells a nightly or a local build.
     /// </summary>
     public virtual string ListName => GetName(PackageSimpleName, Major, Minor, true);
+
+    /// <summary>
+    /// Gets the name of this version on the Start button.
+    /// </summary>
+    public virtual string StartName => FullName;
 
     /// <summary>
     /// Gets the command that will set the associated package as active.

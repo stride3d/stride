@@ -362,7 +362,9 @@ public sealed class RecentProjectViewModel : DispatcherViewModel
     /// </summary>
     private OpenWithOption? DefaultOption(IEnumerable<StrideVersionViewModel> versions)
     {
-        var exact = versions.FirstOrDefault(x => x is not StrideStoreVersionViewModel && x.CanDelete && x.FullName == stridePackageVersion);
+        // The WPF and the Avalonia Game Studio of a checkout are two local builds of the same version: the active one, else one that starts
+        var exactBuilds = versions.Where(x => x is not StrideStoreVersionViewModel && x.CanDelete && x.FullName == stridePackageVersion).ToList();
+        var exact = exactBuilds.FirstOrDefault(x => x == Launcher.ActiveVersion) ?? exactBuilds.FirstOrDefault(x => x.CanStart) ?? exactBuilds.FirstOrDefault();
         if (exact is not null)
             return new(exact, null, projectVersion);
 
