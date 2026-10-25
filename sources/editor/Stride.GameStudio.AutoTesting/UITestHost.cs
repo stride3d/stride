@@ -49,7 +49,7 @@ namespace Stride.GameStudio.AutoTesting;
 internal sealed class UITestHost
 {
     // Output dir suffix is the runtime monitor DPI percentage so per-DPI captures stay separate
-    // (baselines are likewise stored under tests/editor/baselines/dpi<N>/). The runner detects
+    // (baselines are likewise stored under tests/editor/Stride.Editor.Tests/baselines/dpi<N>/). The runner detects
     // DPI at startup via GetDpiForMonitor(MDT_EFFECTIVE_DPI), which returns the user-set scale
     // factor regardless of process DPI-awareness.
     private const string OutDirNamePrefix = "ui-test-out-dpi";

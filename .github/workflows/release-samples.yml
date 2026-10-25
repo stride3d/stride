@@ -182,7 +182,7 @@ jobs:
       # tests' own pack identical to the one above.
       - name: Smoke test
         run: |
-          dotnet test sources\tools\Stride.Templates.Tests `
+          dotnet test tests\enduser\Stride.Templates.Tests `
             -c Release `
             -p:StridePackageBuild=true `
             -p:StrideSamplesVersion=${{ steps.version.outputs.version }} `

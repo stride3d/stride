@@ -347,7 +347,7 @@ public class StrideGameTemplateSmokeTests
 
     /// <summary>
     /// Walk up from the test's bin dir looking for Stride.slnx as the repo root marker.
-    /// The test is launched from sources/tools/Stride.Templates.Tests/bin/.../ so a few hops up.
+    /// The test is launched from tests/enduser/Stride.Templates.Tests/bin/.../ so a few hops up.
     /// </summary>
     private static string FindRepoRoot()
     {

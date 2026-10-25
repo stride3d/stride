@@ -41,11 +41,11 @@ fi
 PACKAGE=$(basename "$APK" -Signed.apk)
 echo "Running $PACKAGE"
 
-bash tests/android/emulator-crash-capture.sh arm
+bash tests/infra/android/emulator-crash-capture.sh arm
 
 # Background + wait so the INT/TERM trap above can interrupt and forward the signal —
 # `wait` is one of the few bash constructs that returns on signal mid-call.
-pwsh tests/android/run-android-tests.ps1 \
+pwsh tests/infra/android/run-android-tests.ps1 \
     -Package "$PACKAGE" \
     -Suite "Stride.Tests.Combined" \
     -Apk "$APK" \
@@ -60,7 +60,7 @@ EXIT=0
 wait "$CHILD_PID" || EXIT=$?
 CHILD_PID=
 
-bash tests/android/emulator-crash-capture.sh collect "$PWD/tests/local"
+bash tests/infra/android/emulator-crash-capture.sh collect "$PWD/tests/local"
 
 # Flatten per-suite TRX into TestResults/ so the test-reporting action (which doesn't
 # recurse) picks them all up.

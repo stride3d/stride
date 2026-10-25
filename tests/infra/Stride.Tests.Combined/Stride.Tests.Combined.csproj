@@ -1,5 +1,5 @@
 <Project>
-  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.MultiPlatform.Tests/Sdk/Sdk.props" />
+  <Import Project="../../../sources/sdk/Stride.Build.Sdk.MultiPlatform.Tests/Sdk/Sdk.props" />
   <PropertyGroup>
     <TargetFrameworks>$(StrideTestTargetFrameworks)</TargetFrameworks>
   </PropertyGroup>
@@ -18,38 +18,38 @@
   <ItemGroup>
     <!-- xunit.runner.stride is a shared library, not a suite: referenced with clean globals so
          this dispatch dedups with the suites' own direct references. -->
-    <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
-    <ProjectReference Include="..\..\engine\Stride.Engine.NoAssets.Tests\Stride.Engine.NoAssets.Tests.csproj"
+    <ProjectReference Include="..\..\..\sources\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
+    <ProjectReference Include="..\..\..\sources\engine\Stride.Engine.NoAssets.Tests\Stride.Engine.NoAssets.Tests.csproj"
                       Properties="$(_StrideSuiteRefProperties)"
                       StrideTestSuiteRef="true" />
-    <ProjectReference Include="..\..\engine\Stride.Input.Tests\Stride.Input.Tests.csproj"
+    <ProjectReference Include="..\..\..\sources\engine\Stride.Input.Tests\Stride.Input.Tests.csproj"
                       Properties="$(_StrideSuiteRefProperties)"
                       StrideTestSuiteRef="true" />
-    <ProjectReference Include="..\..\plugins\Audio\Stride.Audio.Tests\Stride.Audio.Tests.csproj"
+    <ProjectReference Include="..\..\..\sources\plugins\Audio\Stride.Audio.Tests\Stride.Audio.Tests.csproj"
                       Properties="$(_StrideSuiteRefProperties)"
                       StrideTestSuiteRef="true" />
-    <ProjectReference Include="..\..\plugins\Particles\Stride.Particles.Tests\Stride.Particles.Tests.csproj"
+    <ProjectReference Include="..\..\..\sources\plugins\Particles\Stride.Particles.Tests\Stride.Particles.Tests.csproj"
                       Properties="$(_StrideSuiteRefProperties)"
                       StrideTestSuiteRef="true" />
-    <ProjectReference Include="..\..\plugins\UI\Stride.UI.Tests\Stride.UI.Tests.csproj"
+    <ProjectReference Include="..\..\..\sources\plugins\UI\Stride.UI.Tests\Stride.UI.Tests.csproj"
                       Properties="$(_StrideSuiteRefProperties)"
                       StrideTestSuiteRef="true" />
-    <ProjectReference Include="..\..\plugins\BulletPhysics\Stride.Navigation.Tests\Stride.Navigation.Tests.csproj"
+    <ProjectReference Include="..\..\..\sources\plugins\BulletPhysics\Stride.Navigation.Tests\Stride.Navigation.Tests.csproj"
                       Properties="$(_StrideSuiteRefProperties)"
                       StrideTestSuiteRef="true" />
-    <ProjectReference Include="..\..\plugins\BulletPhysics\Stride.Physics.Tests\Stride.Physics.Tests.csproj"
+    <ProjectReference Include="..\..\..\sources\plugins\BulletPhysics\Stride.Physics.Tests\Stride.Physics.Tests.csproj"
                       Properties="$(_StrideSuiteRefProperties)"
                       StrideTestSuiteRef="true" />
-    <ProjectReference Include="..\..\engine\Stride.Engine.Tests\Stride.Engine.Tests.csproj"
+    <ProjectReference Include="..\..\..\sources\engine\Stride.Engine.Tests\Stride.Engine.Tests.csproj"
                       Properties="$(_StrideSuiteRefProperties)"
                       StrideTestSuiteRef="true" />
-    <ProjectReference Include="..\..\engine\Stride.Graphics.Tests\Stride.Graphics.Tests.csproj"
+    <ProjectReference Include="..\..\..\sources\engine\Stride.Graphics.Tests\Stride.Graphics.Tests.csproj"
                       Properties="$(_StrideSuiteRefProperties)"
                       StrideTestSuiteRef="true" />
-    <ProjectReference Include="..\..\engine\Stride.Graphics.Tests.10_0\Stride.Graphics.Tests.10_0.csproj"
+    <ProjectReference Include="..\..\..\sources\engine\Stride.Graphics.Tests.10_0\Stride.Graphics.Tests.10_0.csproj"
                       Properties="$(_StrideSuiteRefProperties)"
                       StrideTestSuiteRef="true" />
-    <ProjectReference Include="..\..\engine\Stride.Graphics.Tests.11_0\Stride.Graphics.Tests.11_0.csproj"
+    <ProjectReference Include="..\..\..\sources\engine\Stride.Graphics.Tests.11_0\Stride.Graphics.Tests.11_0.csproj"
                       Properties="$(_StrideSuiteRefProperties)"
                       StrideTestSuiteRef="true" />
   </ItemGroup>

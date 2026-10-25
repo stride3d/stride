@@ -167,7 +167,7 @@ jobs:
           # process run. use-combined=false → slnf build + per-suite .apps + per-suite install/run.
           USE_COMBINED="${{ github.event.inputs.use-combined || inputs.use-combined || 'true' }}"
           if [ "$USE_COMBINED" = "true" ]; then
-            echo "IOS_BUILD_TARGET=sources/tests/Stride.Tests.Combined/Stride.Tests.Combined.csproj" >> "$GITHUB_ENV"
+            echo "IOS_BUILD_TARGET=tests/infra/Stride.Tests.Combined/Stride.Tests.Combined.csproj" >> "$GITHUB_ENV"
             echo "IOS_TEST_SUITES=Stride.Tests.Combined" >> "$GITHUB_ENV"
           elif [ -n "$SUITES" ]; then
             # The iOS solution filter narrowed to the needed suites; per-suite .app bundles land under
@@ -284,7 +284,7 @@ jobs:
               )
               if ($filter) { $driverArgs += @('-Filter', $filter) }
               if ([int]$repeat -gt 1) { $driverArgs += @('-Repeat', $repeat) }
-              & pwsh tests/ios/run-ios-tests.ps1 @driverArgs
+              & pwsh tests/infra/ios/run-ios-tests.ps1 @driverArgs
               if ($LASTEXITCODE -ne 0 -and $worstExit -eq 0) { $worstExit = $LASTEXITCODE }
               Write-Host "::endgroup::"
           }

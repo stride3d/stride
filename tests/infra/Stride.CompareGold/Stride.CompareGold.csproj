@@ -14,6 +14,6 @@
     <Compile Include="..\..\..\sources\engine\Stride.Graphics.Regression\ImageThreshold.cs" Link="Linked\ImageThreshold.cs" />
     <Compile Include="..\..\..\sources\engine\Stride.Graphics.Regression\GoldVariant.cs" Link="Linked\GoldVariant.cs" />
     <!-- Managed PNG decode for the headless compare (avoids the engine's native FreeImage path). -->
-    <PackageReference Include="StbImageSharp" Version="2.30.15" />
+    <PackageReference Include="StbImageSharp" />
   </ItemGroup>
 </Project>

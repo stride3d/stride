@@ -97,7 +97,7 @@ For persistent opt-in across builds, drop a `Directory.Build.user.props` in your
 End-to-end smoke test (pack → `dotnet new install` → instantiate → `dotnet restore`):
 
 ```bash
-dotnet test sources/tools/Stride.Templates.Tests
+dotnet test tests/enduser/Stride.Templates.Tests
 ```
 
 CI release pack — produces the version-stamped, fully-preprocessed `.nupkg` (asset prune + final schema migrations) that ships to nuget.org:

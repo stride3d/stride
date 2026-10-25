@@ -31,7 +31,7 @@ $isWin = [System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform([Syst
 # main solution at least once populates ~/.nuget/packages.
 $homeDir = if ($env:USERPROFILE) { $env:USERPROFILE } else { $HOME }
 # The version the repo pins, as CI uses; the NuGet cache can hold older ones.
-$packagesProps = [IO.Path]::Combine($PSScriptRoot, "..", "..", "sources", "Directory.Packages.props")
+$packagesProps = [IO.Path]::Combine($PSScriptRoot, "..", "..", "..", "sources", "Directory.Packages.props")
 $lavapipeVersion = ([xml](Get-Content $packagesProps)).Project.ItemGroup.PackageVersion |
     Where-Object { $_.Include -eq "Stride.Dependencies.Lavapipe" } |
     Select-Object -ExpandProperty Version -First 1

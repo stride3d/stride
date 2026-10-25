@@ -177,7 +177,7 @@ jobs:
               - 'sources/**/Platforms/iOS/**'
               - 'sources/native/**'
               - 'sources/sdk/**'
-              - 'tests/ios/**'
+              - 'tests/infra/ios/**'
               - 'tests/**/iOS.Vulkan/**'
               - 'sources/Stride.iOS.slnf'
               - '.github/workflows/test-ios-game.yml'
@@ -189,7 +189,7 @@ jobs:
               - 'sources/**/Platforms/Android/**'
               - 'sources/native/**'
               - 'sources/sdk/**'
-              - 'tests/android/**'
+              - 'tests/infra/android/**'
               - 'tests/**/Android.Vulkan/**'
               - 'sources/Stride.Tests.Game.Android.slnf'
               - '.github/workflows/test-android-game.yml'
@@ -198,4 +198,7 @@ jobs:
             full:
               - 'sources/**'
               - 'deps/**'
+              # Projects of the full build that live outside sources/
+              - 'tests/infra/Stride.*/**'
+              - 'tests/enduser/Stride.Templates.Tests/**'
               - 'Stride.slnx'

@@ -52,7 +52,7 @@ A visual comparison tool for reviewing gold image differences:
 tests\compare-gold.cmd
 
 # Or directly:
-dotnet run --project build/tools/Stride.CompareGold
+dotnet run --project tests/infra/Stride.CompareGold
 ```
 
 ### Features
@@ -105,10 +105,10 @@ Generating brand-new gold makes the platform jobs go **red** ("reference image m
 
 ```powershell
 # Build on Windows, test on Linux via WSL2
-.\tests\linux\run-linux-tests.ps1
+.\tests\infra\linux\run-linux-tests.ps1
 
 # Skip rebuild, just re-run tests
-.\tests\linux\run-linux-tests.ps1 -SkipBuild
+.\tests\infra\linux\run-linux-tests.ps1 -SkipBuild
 
 # Review results visually
 tests\compare-gold.cmd

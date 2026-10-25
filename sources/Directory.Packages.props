@@ -84,6 +84,7 @@
     <PackageVersion Include="Sentry" Version="6.8.0" />
     <PackageVersion Include="Silk.NET.Assimp" Version="$(SilkVersion)" />
     <PackageVersion Include="SixLabors.ImageSharp" Version="3.1.12" />
+    <PackageVersion Include="StbImageSharp" Version="2.30.15" />
     <PackageVersion Include="Stride.GNU.Getopt" Version="3.0.0" />
     <PackageVersion Include="Stride.GNU.Gettext" Version="3.0.0" />
     <PackageVersion Include="Stride.Mono.TextTemplating" Version="2.1.0-preview-0009-g0d0b6db3ca" />

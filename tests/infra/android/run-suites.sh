@@ -37,7 +37,7 @@ rm -f /tmp/failed_suites
 # EOF and the loop exits silently.
 mapfile -t SUITES <<< "$ANDROID_TEST_SUITES"
 
-bash tests/android/emulator-crash-capture.sh arm
+bash tests/infra/android/emulator-crash-capture.sh arm
 
 for SUITE in "${SUITES[@]}"; do
   [ -z "$SUITE" ] && continue
@@ -51,7 +51,7 @@ for SUITE in "${SUITES[@]}"; do
   echo "::group::Run $SUITE"
   # Background + wait so the INT/TERM trap above can interrupt and forward the signal —
   # `wait` is one of the few bash constructs that returns on signal mid-call.
-  pwsh tests/android/run-android-tests.ps1 \
+  pwsh tests/infra/android/run-android-tests.ps1 \
       -Package "$PACKAGE" \
       -Suite "$SUITE" \
       -Apk "$APK" \
@@ -68,7 +68,7 @@ for SUITE in "${SUITES[@]}"; do
     echo "$SUITE" >> /tmp/failed_suites
   fi
   CHILD_PID=
-  bash tests/android/emulator-crash-capture.sh collect "$PWD/tests/local"
+  bash tests/infra/android/emulator-crash-capture.sh collect "$PWD/tests/local"
   cp "tests/local/$SUITE/$SUITE.trx" TestResults/ 2>/dev/null || true
   # Uninstall to free the userdata partition before the next suite (avoids INSUFFICIENT_STORAGE).
   adb uninstall "$PACKAGE" >/dev/null 2>&1 || true

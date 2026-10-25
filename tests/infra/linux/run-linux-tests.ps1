@@ -18,10 +18,10 @@
     Additional arguments forwarded to dotnet vstest.
 
 .EXAMPLE
-    .\tests\linux\run-linux-tests.ps1
-    .\tests\linux\run-linux-tests.ps1 -Filter "TestDynamicSpriteFont"
-    .\tests\linux\run-linux-tests.ps1 -SkipBuild
-    .\tests\linux\run-linux-tests.ps1 -- --Logger:console
+    .\tests\infra\linux\run-linux-tests.ps1
+    .\tests\infra\linux\run-linux-tests.ps1 -Filter "TestDynamicSpriteFont"
+    .\tests\infra\linux\run-linux-tests.ps1 -SkipBuild
+    .\tests\infra\linux\run-linux-tests.ps1 -- --Logger:console
 #>
 param(
     [string]$Filter,
@@ -34,7 +34,7 @@ $ErrorActionPreference = "Stop"
 $env:STRIDE_GRAPHICS_SOFTWARE_RENDERING = "1"
 
 # The repo root, two levels up from this script: the build and the WSL run both work from there
-$repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+$repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
 Push-Location $repoRoot
 try {
 

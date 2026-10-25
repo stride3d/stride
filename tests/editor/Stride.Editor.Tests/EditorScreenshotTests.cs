@@ -27,7 +27,7 @@ namespace Stride.Editor.Tests;
 /// xunit orchestrator for the GameStudio editor screenshot regression pipeline. Each [Theory] entry
 /// spawns Stride.GameStudio.AutoTesting.exe in a subprocess (one fixture per process for WPF
 /// singleton-state isolation), waits for it to exit, then runs <see cref="ScreenshotComparator"/>
-/// against committed baselines under <c>tests/editor/baselines/dpi100/&lt;fixture&gt;/&lt;frame&gt;.png</c>.
+/// against committed baselines under <c>tests/editor/Stride.Editor.Tests/baselines/dpi100/&lt;fixture&gt;/&lt;frame&gt;.png</c>.
 /// </summary>
 [CollectionDefinition("EditorScreenshots", DisableParallelization = true)]
 public class EditorScreenshotsCollection { }
@@ -141,7 +141,7 @@ public class EditorScreenshotTests
 
         // Compare against baselines. Filter to this fixture so the same captureRoot can host
         // multiple fixtures' captures across test invocations.
-        var baselineDir = Path.Combine(worktree, "tests", "editor", "baselines", Dpi);
+        var baselineDir = Path.Combine(worktree, "tests", "editor", "Stride.Editor.Tests", "baselines", Dpi);
         var results = ScreenshotComparator.Compare(captureRoot, baselineDir,
             sampleFilter: fixtureName, defaultPrompt: prompt,
             deferWhenVisionUnavailable: true);
@@ -243,7 +243,7 @@ public class EditorScreenshotTests
 
     private static string ResolveAutoTestingExe(string testDllPath, string worktree)
     {
-        // tests\editor\bin\<cfg>\<tfm>\Stride.Editor.Tests.dll → mirror the cfg+tfm into the runner's
+        // tests\editor\Stride.Editor.Tests\bin\<cfg>\<tfm>\Stride.Editor.Tests.dll → mirror the cfg+tfm into the runner's
         // sources\editor\Stride.GameStudio.AutoTesting\bin tree.
         var dllDir = new DirectoryInfo(Path.GetDirectoryName(testDllPath)!);
         var tfm = dllDir.Name;

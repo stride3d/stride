@@ -174,7 +174,7 @@
     <Project Path="sources/editor/Stride.Core.Assets.Editor.Tests/Stride.Core.Assets.Editor.Tests.csproj" />
     <Project Path="sources/editor/Stride.GameStudio.AutoTesting/Stride.GameStudio.AutoTesting.csproj" />
     <Project Path="sources/editor/Stride.GameStudio.Tests/Stride.GameStudio.Tests.csproj" />
-    <Project Path="tests/editor/Stride.Editor.Tests.csproj" />
+    <Project Path="tests/editor/Stride.Editor.Tests/Stride.Editor.Tests.csproj" />
   </Folder>
   <Folder Name="/70-StrideAssets/">
     <Project Path="sources/engine/Stride.Assets.Models/Stride.Assets.Models.csproj" />
@@ -194,7 +194,7 @@
     <Project Path="sources/templates/Stride.Templates.Games/Stride.Templates.Games.csproj" />
     <Project Path="sources/templates/Stride.Templates.Samples/Stride.Templates.Samples.csproj" />
     <Project Path="sources/tools/Stride.TemplateGenerator/Stride.TemplateGenerator.csproj" />
-    <Project Path="sources/tools/Stride.Templates.Tests/Stride.Templates.Tests.csproj" />
+    <Project Path="tests/enduser/Stride.Templates.Tests/Stride.Templates.Tests.csproj" />
     <Project Path="tests/enduser/Stride.Samples.Tests/Stride.Samples.Tests.csproj" />
   </Folder>
   <Folder Name="/80-Plugins/Audio/">
@@ -245,7 +245,7 @@
     <Project Path="sources/plugins/Voxels/Stride.Voxels/Stride.Voxels.csproj" />
   </Folder>
   <Folder Name="/90-Tools/">
-    <Project Path="sources/tests/Stride.ScreenshotComparator/Stride.ScreenshotComparator.csproj" />
+    <Project Path="tests/infra/Stride.ScreenshotComparator/Stride.ScreenshotComparator.csproj" />
     <Project Path="sources/tests/xunit.runner.stride/xunit.runner.stride.csproj" />
     <Project Path="sources/tools/Stride.ConnectionRouter/Stride.ConnectionRouter.csproj" />
     <Project Path="sources/tools/Stride.Core.Translation.Extractor/Stride.Core.Translation.Extractor.csproj" />
@@ -267,7 +267,7 @@
     <Project Path="sources/shared/Stride.NuGetResolver/Stride.NuGetResolver.csproj" />
   </Folder>
   <Folder Name="/90-Tools/TextureConverter/">
-    <Project Path="sources/tests/tools/Stride.TextureConverter.Tests/Stride.TextureConverter.Tests.csproj" />
+    <Project Path="sources/tools/Stride.TextureConverter.Tests/Stride.TextureConverter.Tests.csproj" />
     <Project Path="sources/tools/Stride.TextureConverter/Stride.TextureConverter.csproj" />
   </Folder>
   <Folder Name="/90-Tools/VisualStudio/">

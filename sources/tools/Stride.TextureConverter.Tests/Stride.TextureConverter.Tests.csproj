@@ -7,13 +7,13 @@
     <StrideCompilerTargetsEnable Condition="'$(StridePackageBuild)' == 'true'">false</StrideCompilerTargetsEnable>
   </PropertyGroup>
     <ItemGroup>
-    <Content Include="..\..\..\data\tests\TextureConverter\**\*.*">
+    <Content Include="..\..\data\tests\TextureConverter\**\*.*">
       <Link>InputImages\%(RecursiveDir)%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\tools\Stride.TextureConverter\Stride.TextureConverter.csproj" />
+    <ProjectReference Include="..\Stride.TextureConverter\Stride.TextureConverter.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />

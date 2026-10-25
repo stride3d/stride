@@ -1,5 +1,5 @@
 <Project>
-  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk/Sdk/Sdk.props" />
+  <Import Project="../../../sources/sdk/Stride.Build.Sdk/Sdk/Sdk.props" />
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -16,5 +16,5 @@
   <ItemGroup>
     <None Include="models/lpips_alex.onnx" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
-  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk/Sdk/Sdk.targets" />
+  <Import Project="../../../sources/sdk/Stride.Build.Sdk/Sdk/Sdk.targets" />
 </Project>
