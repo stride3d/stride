@@ -12,9 +12,9 @@ using Stride.Assets.Editor.Avalonia.Tests;
 namespace Stride.Assets.Editor.Avalonia.Tests;
 
 /// <summary>
-/// The application the headless tests run in: the Fluent theme, the editor styles of Stride.Core.Presentation.Avalonia and the
-/// control themes of Stride.Editor.Avalonia, included the way the GameStudio shell includes them. The plugins merge their own
-/// themes when they initialize.
+/// The application the headless tests run in: the Fluent theme, the theme of AvaloniaEdit (the code editor), the editor styles
+/// of Stride.Core.Presentation.Avalonia and the control themes of Stride.Editor.Avalonia, included the way the GameStudio shell
+/// includes them. The plugins merge their own themes when they initialize.
 /// </summary>
 public sealed class TestApplication : Application
 {
@@ -26,6 +26,10 @@ public sealed class TestApplication : Application
     {
         var baseUri = new Uri("avares://Stride.Assets.Editor.Avalonia.Tests/");
         Styles.Add(new FluentTheme());
+        Styles.Add(new StyleInclude(baseUri)
+        {
+            Source = new Uri("avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml"),
+        });
         Styles.Add(new StyleInclude(baseUri)
         {
             Source = new Uri("avares://Stride.Core.Presentation.Avalonia/Themes/EditorStyles.axaml"),
