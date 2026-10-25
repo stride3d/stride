@@ -5,6 +5,7 @@
              xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
              xmlns:caevm="using:Stride.Core.Assets.Editor.ViewModels"
              xmlns:caec="using:Stride.Core.Assets.Editor.Avalonia.Converters"
+             xmlns:dd="using:Stride.Core.Assets.Editor.Avalonia.DragDrop"
              xmlns:capvm="using:Stride.Core.Assets.Editor.ViewModel"
              xmlns:gscv="using:Stride.GameStudio.Avalonia.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
@@ -200,11 +201,13 @@
       </ItemsControl.ItemsPanel>
       <ItemsControl.ItemTemplate>
         <DataTemplate DataType="{x:Type capvm:AssetViewModel}">
-          <StackPanel Orientation="Horizontal">
+          <StackPanel Orientation="Horizontal" Background="Transparent">
             <Interaction.Behaviors>
               <EventTriggerBehavior EventName="DoubleTapped">
                 <InvokeCommandAction Command="{Binding ((caevm:SessionViewModel)Session).EditSelectedContentCommand}" />
               </EventTriggerBehavior>
+              <!-- Drags the asset onto a reference of the property grid -->
+              <dd:AssetDragBehavior/>
             </Interaction.Behaviors>
             <TextBlock Text="Asset: " />
             <TextBlock Text="{Binding Name}" />
