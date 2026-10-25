@@ -68,7 +68,7 @@
 
     <StrideCheckDevPackageInputs ManifestPath="$(_StrideDevPackagesStamp).inputs" StampPath="$(_StrideDevPackagesStamp)"
                                  StubsPath="$(_StrideDevPackagesStamp).stubs" OwnStub="$(_StrideOwnStub)"
-                                 FixedInputs="$(StrideRoot)build\GenerateDevPackages.cs;$(StrideRoot)sources\Directory.Packages.props;$(StrideRoot)build\Stride.slnx"
+                                 FixedInputs="$(StrideRoot)build\GenerateDevPackages.cs;$(StrideRoot)sources\Directory.Packages.props;$(StrideRoot)Stride.slnx"
                                  Condition="Exists('$(_StrideDevPackagesStamp)')">
       <Output TaskParameter="Changed" ItemName="_StrideStaleStubInputs" />
       <Output TaskParameter="OwnStubFresh" PropertyName="_StrideOwnStubFresh" />

@@ -21,6 +21,7 @@ public sealed class StrideDevVersionViewModel : StrideVersionViewModel
     private readonly NugetLocalPackage localPackage;
     private readonly bool isDevRedirect;
     private readonly string? checkoutDirectory;
+    private readonly string solutionPath;
 
     internal StrideDevVersionViewModel(MainViewModel launcher, NugetStore store, [CanBeNull] NugetLocalPackage localPackage, UDirectory path, bool isDevRedirect)
         : base(launcher, store, localPackage, localPackage.Id, int.MaxValue, devMinorCounter--)
@@ -30,8 +31,9 @@ public sealed class StrideDevVersionViewModel : StrideVersionViewModel
         this.isDevRedirect = isDevRedirect;
         DownloadCommand.IsEnabled = false;
         checkoutDirectory = FindCheckout();
+        solutionPath = FindSolution(checkoutDirectory);
         OpenCheckoutCommand = new AnonymousCommand(ServiceProvider, () => ShellOpen(checkoutDirectory ?? InstallPath)) { IsEnabled = Directory.Exists(checkoutDirectory ?? InstallPath) };
-        OpenSolutionCommand = new AnonymousCommand(ServiceProvider, () => ShellOpen(SolutionPath)) { IsEnabled = File.Exists(SolutionPath) };
+        OpenSolutionCommand = new AnonymousCommand(ServiceProvider, () => ShellOpen(solutionPath)) { IsEnabled = File.Exists(solutionPath) };
         // Find the editors so the version can be started.
         UpdateAvailableEditors();
         // Update initial status (IsVisible will be set to true)
@@ -61,7 +63,11 @@ public sealed class StrideDevVersionViewModel : StrideVersionViewModel
     /// </summary>
     public ICommandBase OpenSolutionCommand { get; }
 
-    private string SolutionPath => checkoutDirectory is not null ? Path.Combine(checkoutDirectory, "build", "Stride.slnx") : "";
+    // The Stride solution of the checkout: at its root, or in build/ for older checkouts.
+    private static string FindSolution(string? checkoutDirectory)
+        => checkoutDirectory is null ? ""
+            : File.Exists(Path.Combine(checkoutDirectory, "Stride.slnx")) ? Path.Combine(checkoutDirectory, "Stride.slnx")
+            : Path.Combine(checkoutDirectory, "build", "Stride.slnx");
 
     // The checkout this version is built from, or null:
     // - the ledger of the checkouts built on this machine (as the version tasks write it) maps its -devN suffix, for a

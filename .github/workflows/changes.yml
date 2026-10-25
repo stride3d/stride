@@ -147,7 +147,7 @@ jobs:
               - 'sources/plugins/**'
               - 'deps/**'
               - 'tests/**'
-              - 'build/Stride.Runtime.slnf'
+              - 'sources/Stride.Runtime.slnf'
               # The workflows of the jobs it gates, their actions and the auditor the ApiNeutral job runs: an
               # edit runs them
               - '.github/workflows/test-windows-game-api-neutral.yml'
@@ -168,7 +168,7 @@ jobs:
               - 'sources/shared/**'
               - 'sources/sdk/**'
               - 'deps/**'
-              - 'build/Stride.iOS.slnf'
+              - 'sources/Stride.iOS.slnf'
             # Strictly iOS-specific paths: shared engine / MoltenVK / AVFoundation code is
             # already covered per-PR by macOS-Tests-Game on the cheaper macOS-vs-iOS surface.
             ios-tests:
@@ -179,7 +179,7 @@ jobs:
               - 'sources/sdk/**'
               - 'tests/ios/**'
               - 'tests/**/iOS.Vulkan/**'
-              - 'build/Stride.iOS.slnf'
+              - 'sources/Stride.iOS.slnf'
               - '.github/workflows/test-ios-game.yml'
               - '.github/actions/stride-checkout/**'
               - '.github/actions/stride-workload/**'
@@ -191,11 +191,11 @@ jobs:
               - 'sources/sdk/**'
               - 'tests/android/**'
               - 'tests/**/Android.Vulkan/**'
-              - 'build/Stride.Tests.Game.Android.slnf'
+              - 'sources/Stride.Tests.Game.Android.slnf'
               - '.github/workflows/test-android-game.yml'
               - '.github/actions/stride-checkout/**'
               - '.github/actions/stride-workload/**'
             full:
               - 'sources/**'
               - 'deps/**'
-              - 'build/Stride.slnx'
+              - 'Stride.slnx'

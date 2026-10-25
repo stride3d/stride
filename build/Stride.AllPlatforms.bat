@@ -1,2 +1,2 @@
 set StridePlatforms=Windows;UWP;Android;iOS;Linux
-Stride.slnx
+"%~dp0..\Stride.slnx"

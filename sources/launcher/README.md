@@ -57,7 +57,7 @@ dotnet publish sources/launcher/Stride.Launcher/Stride.Launcher.csproj -c Releas
 
 ## From Visual Studio / Rider
 
-Open `build/Stride.Launcher.slnx` (or `sources/launcher/Stride.Launcher/Stride.Launcher.csproj`) and build the `Stride.Launcher` project. Set it as the startup project to launch it under the debugger.
+Open `sources/launcher/Stride.Launcher.slnx` (or `sources/launcher/Stride.Launcher/Stride.Launcher.csproj`) and build the `Stride.Launcher` project. Set it as the startup project to launch it under the debugger.
 
 A convenience launcher script, [PackageLauncher-Debug.bat](Stride.Launcher/PackageLauncher-Debug.bat), packages a Debug build as a NuGet package for local testing.
 

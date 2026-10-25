@@ -6,9 +6,9 @@ Example: dotnet build build/Stride.build -t:Package
 <Project DefaultTarget="Help" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <StrideRoot>$(MSBuildThisFileDirectory)..\</StrideRoot>
-    <StrideSolution>$(StrideRoot)build\Stride.slnx</StrideSolution>
-    <StrideVisualStudioSolution>$(StrideRoot)build\Stride.VisualStudio.slnx</StrideVisualStudioSolution>
-    <StrideSolutionLauncher>$(StrideRoot)build\Stride.Launcher.slnx</StrideSolutionLauncher>
+    <StrideSolution>$(StrideRoot)Stride.slnx</StrideSolution>
+    <StrideVisualStudioSolution>$(StrideRoot)sources\tools\Stride.VisualStudio.slnx</StrideVisualStudioSolution>
+    <StrideSolutionLauncher>$(StrideRoot)sources\launcher\Stride.Launcher.slnx</StrideSolutionLauncher>
     <StridePlatforms Condition="'$(StridePlatforms)' == ''">Windows</StridePlatforms>
     <BuildProperties>Configuration=Release;NoWarn=1591;DeployExtension=false;StridePlatforms=$([MSBuild]::Escape('$(StridePlatforms)'));StrideGraphicsApiDependentBuildAll=$(StrideGraphicsApiDependentBuildAll)</BuildProperties>
     <StrideSign Condition="'$(StrideSign)' == ''">true</StrideSign>
@@ -239,27 +239,27 @@ Example: dotnet build build/Stride.build -t:Package
   </Target>
 
   <Target Name="BuildWindowsDirect3D11">
-    <MSBuild Projects="$(MSBuildThisFileFullPath)" Targets="_BuildPlatform" Properties="StrideTargetSolution=$(StrideRoot)build\Stride.Runtime.slnf;StrideGraphicsApis=Direct3D11" />
+    <MSBuild Projects="$(MSBuildThisFileFullPath)" Targets="_BuildPlatform" Properties="StrideTargetSolution=$(StrideRoot)sources\Stride.Runtime.slnf;StrideGraphicsApis=Direct3D11" />
   </Target>
 
   <Target Name="BuildWindowsDirect3D12">
-    <MSBuild Projects="$(MSBuildThisFileFullPath)" Targets="_BuildPlatform" Properties="StrideTargetSolution=$(StrideRoot)build\Stride.Runtime.slnf;StrideGraphicsApis=Direct3D12" />
+    <MSBuild Projects="$(MSBuildThisFileFullPath)" Targets="_BuildPlatform" Properties="StrideTargetSolution=$(StrideRoot)sources\Stride.Runtime.slnf;StrideGraphicsApis=Direct3D12" />
   </Target>
 
   <Target Name="BuildWindowsVulkan">
-    <MSBuild Projects="$(MSBuildThisFileFullPath)" Targets="_BuildPlatform" Properties="StrideTargetSolution=$(StrideRoot)build\Stride.Runtime.slnf;StrideGraphicsApis=Vulkan" />
+    <MSBuild Projects="$(MSBuildThisFileFullPath)" Targets="_BuildPlatform" Properties="StrideTargetSolution=$(StrideRoot)sources\Stride.Runtime.slnf;StrideGraphicsApis=Vulkan" />
   </Target>
 
   <Target Name="BuildAndroid">
-    <MSBuild Projects="$(MSBuildThisFileFullPath)" Targets="_BuildPlatform" Properties="StrideTargetSolution=$(StrideRoot)build\Stride.Android.slnf;StridePlatforms=Android" />
+    <MSBuild Projects="$(MSBuildThisFileFullPath)" Targets="_BuildPlatform" Properties="StrideTargetSolution=$(StrideRoot)sources\Stride.Android.slnf;StridePlatforms=Android" />
   </Target>
 
   <Target Name="BuildiOS">
-    <MSBuild Projects="$(MSBuildThisFileFullPath)" Targets="_BuildPlatform" Properties="StrideTargetSolution=$(StrideRoot)build\Stride.iOS.slnf;StridePlatforms=iOS" />
+    <MSBuild Projects="$(MSBuildThisFileFullPath)" Targets="_BuildPlatform" Properties="StrideTargetSolution=$(StrideRoot)sources\Stride.iOS.slnf;StridePlatforms=iOS" />
   </Target>
 
   <Target Name="BuildLinux">
-    <MSBuild Projects="$(MSBuildThisFileFullPath)" Targets="_BuildPlatform" Properties="StrideTargetSolution=$(StrideRoot)build\Stride.Runtime.slnf;StridePlatforms=Linux" />
+    <MSBuild Projects="$(MSBuildThisFileFullPath)" Targets="_BuildPlatform" Properties="StrideTargetSolution=$(StrideRoot)sources\Stride.Runtime.slnf;StridePlatforms=Linux" />
   </Target>
 
   <!-- macOS is bespoke: uses the full solution with Platform=macOS (not StridePlatforms). -->
@@ -274,7 +274,7 @@ Example: dotnet build build/Stride.build -t:Package
   <!-- BuildRuntime is bespoke: builds the runtime slnf WITH packing/tests (no skip flags). -->
   <Target Name="BuildRuntime">
     <PropertyGroup>
-      <StrideRuntimeSolution>$(StrideRoot)build\Stride.Runtime.slnf</StrideRuntimeSolution>
+      <StrideRuntimeSolution>$(StrideRoot)sources\Stride.Runtime.slnf</StrideRuntimeSolution>
     </PropertyGroup>
     <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="StridePlatforms=$(StridePlatforms);StrideSolution=$(StrideRuntimeSolution)"/>
     <MSBuild Targets="Build" Projects="$(StrideRuntimeSolution)" Properties="$(BuildProperties)"/>

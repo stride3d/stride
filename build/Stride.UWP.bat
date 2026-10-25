@@ -1,2 +1,2 @@
 set StridePlatforms=Windows;UWP
-Stride.Runtime.slnf
+"%~dp0..\sources\Stride.Runtime.slnf"

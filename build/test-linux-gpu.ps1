@@ -47,7 +47,7 @@ foreach ($projDir in $testProjects) {
 }
 
 Write-Host "=== Step 2: Build (targeting Linux/Vulkan) ===" -ForegroundColor Cyan
-dotnet build build\Stride.Tests.Game.GPU.slnf `
+dotnet build sources\Stride.Tests.Game.GPU.slnf `
     -nr:false `
     -v:m -p:WarningLevel=0 `
     -p:Configuration=Debug `

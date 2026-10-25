@@ -142,7 +142,7 @@ jobs:
           # so the same ICD serves both; it then drives the emulator's Vulkan path via -gpu host
           # -feature ForceGpuHost (gfxstream forwards Vulkan to the host loader, honouring
           # VK_DRIVER_FILES).
-          dotnet restore build/Stride.Tests.Game.Runtime.slnf \
+          dotnet restore sources/Stride.Tests.Game.Runtime.slnf \
             -p:StridePlatforms=Linux \
             -p:StrideGraphicsApis=Vulkan
           LIB=$(find ~/.nuget/packages/stride.dependencies.lavapipe -path "*/runtimes/linux-x64-nodmabuf/native/libvulkan_lvp.so" | head -1)
@@ -179,14 +179,14 @@ jobs:
           elif [ -n "$SUITES" ]; then
             # The Android solution filter narrowed to the needed suites; per-suite APKs land under
             # bin/Tests/<Suite>/Android-Vulkan/<Config>/. Run step iterates ANDROID_TEST_SUITES.
-            TARGET=$(dotnet run --project build/tools/Stride.TestSuites -- --projects "$SUITES" --slnf build/Stride.Tests.Game.Android.slnf)
+            TARGET=$(dotnet run --project build/tools/Stride.TestSuites -- --projects "$SUITES" --slnf sources/Stride.Tests.Game.Android.slnf)
             echo "ANDROID_BUILD_TARGET=$TARGET" >> "$GITHUB_ENV"
             echo "ANDROID_RUN_SCRIPT=tests/android/run-suites.sh" >> "$GITHUB_ENV"
             { echo "ANDROID_TEST_SUITES<<EOF"; echo $SUITES | tr ' ' '\n'; echo "EOF"; } >> "$GITHUB_ENV"
           else
             # slnf path: one build evaluates the graph once; per-suite APKs land under
             # bin/Tests/<Suite>/Android-Vulkan/<Config>/. Run step iterates ANDROID_TEST_SUITES.
-            echo "ANDROID_BUILD_TARGET=build/Stride.Tests.Game.Android.slnf" >> "$GITHUB_ENV"
+            echo "ANDROID_BUILD_TARGET=sources/Stride.Tests.Game.Android.slnf" >> "$GITHUB_ENV"
             echo "ANDROID_RUN_SCRIPT=tests/android/run-suites.sh" >> "$GITHUB_ENV"
             {
               echo "ANDROID_TEST_SUITES<<EOF"

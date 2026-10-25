@@ -203,7 +203,7 @@ static string SuiteName(string project)
 static string FindRepoRoot()
 {
     for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
-        if (File.Exists(Path.Combine(directory.FullName, "Stride.sln")) || Directory.Exists(Path.Combine(directory.FullName, ".git")))
+        if (File.Exists(Path.Combine(directory.FullName, "Stride.slnx")) || Directory.Exists(Path.Combine(directory.FullName, ".git")))
             return directory.FullName;
     return Directory.GetCurrentDirectory();
 }

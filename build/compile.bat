@@ -64,6 +64,7 @@ set _platform_target=Any CPU
 rem Compiling the various solutions
 
 set Project=Stride.slnx
+set ProjectPath=%~dp0..\Stride.slnx
 rem We always compile tests for the main solution
 set __OldSkipTestBuild=%__SkipTestBuild%
 set __SkipTestBuild=false
@@ -72,11 +73,13 @@ set __SkipTestBuild=%__OldSkipTestBuild%
 if %ERRORLEVEL% NEQ 0 if "%__ContinueOnError%" == "false" goto exit
 
 set Project=Stride.Android.slnf
+set ProjectPath=%~dp0..\sources\Stride.Android.slnf
 set _platform_target=Android
 call :compile
 if %ERRORLEVEL% NEQ 0 if "%__ContinueOnError%" == "false" goto exit
 
 set Project=Stride.iOS.slnf
+set ProjectPath=%~dp0..\sources\Stride.iOS.slnf
 set _platform_target=iPhone
 call :compile
 if %ERRORLEVEL% NEQ 0 if "%__ContinueOnError%" == "false" goto exit
@@ -84,10 +87,10 @@ if %ERRORLEVEL% NEQ 0 if "%__ContinueOnError%" == "false" goto exit
 goto exit
 
 rem Compile our solution. The following variables needs to be set:
-rem "Project" is the solution name
+rem "Project" is the solution name, "ProjectPath" its path
 rem "_platform_target" is the platform being targeted
 :compile
-set _option=/nologo /nr:false /m /verbosity:%__BuildVerbosity% /p:Configuration=%__BuildType% /p:Platform="%_platform_target%" /p:StrideSkipUnitTests=%__SkipTestBuild% %Project% /p:DeployExtension=false
+set _option=/nologo /nr:false /m /verbosity:%__BuildVerbosity% /p:Configuration=%__BuildType% /p:Platform="%_platform_target%" /p:StrideSkipUnitTests=%__SkipTestBuild% "%ProjectPath%" /p:DeployExtension=false
 
 if "%__BuildDoc%" == "1" set _option=%_option% /p:StridePublicApi=true
 
