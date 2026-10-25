@@ -2,8 +2,10 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Avalonia.Controls;
+using Stride.Core.Assets.Editor.Avalonia.Views;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Settings;
+using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModel.Progress;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Presentation.Avalonia.Services;
@@ -101,6 +103,19 @@ internal class EditorDialogService : DialogService, IEditorDialogService
     public void ShowNotification(WorkProgressViewModel workProgress)
     {
         Notifications?.AddNotification(workProgress);
+    }
+
+    public async Task<AssetViewModel?> OpenAssetPickerAsync(SessionViewModel session, IEnumerable<Type> acceptedTypes, Func<AssetViewModel, bool>? filter = null, AssetViewModel? initialAsset = null, DirectoryBaseViewModel? initialLocation = null)
+    {
+        if (MainWindow is null) return null;
+
+        return await Dispatcher.InvokeTask(async () =>
+        {
+            var picker = new AssetPickerViewModel(session, acceptedTypes, filter, initialAsset, initialLocation);
+            var window = new AssetPickerWindow { DataContext = picker };
+            var picked = await window.ShowDialog<bool>(MainWindow);
+            return picked ? picker.SelectedAsset : null;
+        });
     }
 
     public async Task ShowSettingsWindowAsync()
