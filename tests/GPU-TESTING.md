@@ -29,7 +29,7 @@ This sets `STRIDE_TESTS_GPU=1`, which skips software rendering. Note that GPU re
 
 [Lavapipe](https://docs.mesa3d.org/drivers/llvmpipe.html) is Mesa's CPU-based Vulkan driver (the Vulkan front-end of `llvmpipe`). The `Stride.Dependencies.Lavapipe` NuGet package provides the software-Vulkan driver (`vulkan_lvp.dll` and its ICD JSON) for Windows, Linux, and macOS x64, built from Mesa source in `.github/workflows/dep-lavapipe.yml`.
 
-Gold images are stored under `tests/<TestProject>/Windows.Vulkan/Lavapipe/` (and `Linux.Vulkan/Lavapipe/`, plus `Android.Vulkan/Lavapipe-LinuxHost/` and `Lavapipe-WindowsHost/` for the emulator).
+Gold images are stored under `tests/baselines/<TestProject>/Windows.Vulkan/Lavapipe/` (and `Linux.Vulkan/Lavapipe/`, plus `Android.Vulkan/Lavapipe-LinuxHost/` and `Lavapipe-WindowsHost/` for the emulator).
 
 Lavapipe is included automatically when building with `StrideGraphicsApi=Vulkan`. When software rendering is active (the default), the test framework invokes the package's module initializer, which sets `VK_DRIVER_FILES` so the Vulkan loader picks Lavapipe — no registry or environment setup needed locally. This path is desktop-only (Windows/Linux/macOS); Android and iOS get Vulkan from the emulator/device.
 
@@ -41,7 +41,7 @@ macOS defaults to the **real GPU** via [MoltenVK](https://github.com/KhronosGrou
 
 [WARP](https://learn.microsoft.com/en-us/windows/win32/direct3darticles/directx-warp) (Windows Advanced Rasterization Platform) is Microsoft's software rasterizer for Direct3D. It is built into Windows and requires no additional packages.
 
-Gold images are stored under `tests/<TestProject>/Windows.Direct3D11/WARP/` and `tests/<TestProject>/Windows.Direct3D12/WARP/`.
+Gold images are stored under `tests/baselines/<TestProject>/Windows.Direct3D11/WARP/` and `tests/baselines/<TestProject>/Windows.Direct3D12/WARP/`.
 
 ## CompareGold Tool
 

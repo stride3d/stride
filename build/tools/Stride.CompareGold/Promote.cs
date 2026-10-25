@@ -37,7 +37,7 @@ internal static class HeadlessPromote
               Repo-wide unless --source (dir or CI run, as for promote) scopes it to those suites.
 
           Priority: Windows.Direct3D12 > Windows.Vulkan > Linux.Vulkan > macOS.Vulkan > Android.Vulkan > iOS.Vulkan > Windows.Direct3D11.
-          --tests defaults to the tests/ dir of the enclosing Stride checkout.
+          --tests defaults to the tests/ dir of the enclosing Stride checkout (golds in its baselines/, renders in its local/).
         """;
 
     // Promotion priority: a render matching one already accepted from an earlier entry is skipped,
@@ -67,15 +67,13 @@ internal static class HeadlessPromote
         bool addVariants = args.Contains("--add-variants");
         string? outPath = GetArg(args, "--out");
 
-        var testsDir = testsArg
-            ?? (findStrideRoot(AppContext.BaseDirectory) is { } r1 ? Path.Combine(r1, "tests")
-                : findStrideRoot(Directory.GetCurrentDirectory()) is { } r2 ? Path.Combine(r2, "tests")
-                : null);
-        if (testsDir is null)
+        var testsRoot = GoldFiles.FindTestsRoot(testsArg, findStrideRoot, out var testsError);
+        if (testsRoot is null)
         {
-            Console.Error.WriteLine($"{mode}: could not locate the tests/ directory; pass --tests <dir>");
+            Console.Error.WriteLine($"{mode}: {testsError}");
             return 2;
         }
+        var testsDir = Path.Combine(testsRoot, "baselines");
 
         // --source as a CI run reference (a real directory always wins): a bare run id, "repo:id"
         // (repo = owner → owner/stride, or owner/name), or a full Actions run URL. Downloads that
@@ -94,7 +92,7 @@ internal static class HeadlessPromote
         // promote defaults --source to tests/local (the just-generated renders) — same as the UI's
         // "Local" source. dedup with no --source means repo-wide.
         if (mode == "promote" && string.IsNullOrEmpty(source))
-            source = Path.Combine(testsDir, "local");
+            source = Path.Combine(testsRoot, "local");
 
         bool hasSource = !string.IsNullOrEmpty(source);
         if (hasSource && !Directory.Exists(source))
@@ -291,7 +289,7 @@ internal static class HeadlessPromote
         }
     }
 
-    // Existing gold layout: tests/<Suite>/<Platform.API>/<Device>/<name>.png (skip the "local" dir), keyed by
+    // Existing gold layout: tests/baselines/<Suite>/<Platform.API>/<Device>/<name>.png, keyed by
     // image name; a bucket's variants (<name>.variantN.png) go under the same name.
     private static void CollectGold(string testsDir, string suite, Dictionary<string, List<(string platApi, string device, string path)>> byName)
     {
@@ -300,7 +298,6 @@ internal static class HeadlessPromote
         foreach (var platDir in Directory.GetDirectories(suiteDir))
         {
             var platApi = Path.GetFileName(platDir);
-            if (platApi.Equals("local", StringComparison.OrdinalIgnoreCase)) continue;
             foreach (var devDir in Directory.GetDirectories(platDir))
             {
                 var device = Path.GetFileName(devDir);
@@ -314,16 +311,12 @@ internal static class HeadlessPromote
         }
     }
 
-    // Suite == the top-level assembly-named dir under tests/ (excluding the local/ output dir).
+    // Suite == the top-level assembly-named dir under tests/baselines/.
     private static IEnumerable<string> EnumerateSuites(string testsDir)
     {
         if (!Directory.Exists(testsDir)) yield break;
         foreach (var dir in Directory.GetDirectories(testsDir))
-        {
-            var name = Path.GetFileName(dir);
-            if (!name.Equals("local", StringComparison.OrdinalIgnoreCase))
-                yield return name;
-        }
+            yield return Path.GetFileName(dir);
     }
 
     private static int Rank(string platformApi)

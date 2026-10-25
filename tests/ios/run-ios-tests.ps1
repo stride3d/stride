@@ -20,7 +20,7 @@ param(
                                                            # Required because casing/acronyms (UI, 10_0) can't be auto-recovered from $Package.
     [string]$App,                                          # .app bundle path; skip install if already deployed
     [string]$RepoRoot,                                     # Stride repo root; auto-discovered from script dir
-    [string]$GoldDir,                                      # Override gold push source; defaults to <RepoRoot>/tests/<Suite>
+    [string]$GoldDir,                                      # Override gold push source; defaults to <RepoRoot>/tests/baselines/<Suite>
     [string]$ResultsDir,                                   # Override result pull dest; defaults to <RepoRoot>/tests/local/<Suite>
     [string]$Simulator = 'booted',                         # 'booted' (use whatever is booted), a UDID, or a device-type+OS pair (e.g. 'iPhone 15')
     [int]$TimeoutSeconds = 1800,                           # max wait for tests to finish
@@ -58,7 +58,7 @@ if (-not $ResultsDir) {
 }
 # Inner-suite discovery for multi-suite hosts (Stride.Tests.Combined): scan the .app for
 # *.Tests.dll names. Each one keys gold lookup by Assembly.GetName().Name at runtime, so we
-# push <RepoRoot>/tests/<DllName>/ for each. Single-suite apps surface their own *.Tests.dll
+# push <RepoRoot>/tests/baselines/<DllName>/ for each. Single-suite apps surface their own *.Tests.dll
 # alongside, so the discovery list collapses to one and behavior matches the pre-Combined flow.
 # `*.Tests*` (not `*.Tests.dll`) so suffixed variants like Stride.Graphics.Tests.10_0.dll match.
 $innerSuites = @()
@@ -71,7 +71,7 @@ if ($App -and (Test-Path $App)) {
 if ($innerSuites.Count -eq 0) { $innerSuites = @($Suite) }
 # $GoldDir override applies only to $Suite (back-compat with single-suite callers).
 if (-not $PSBoundParameters.ContainsKey('GoldDir') -and $RepoRoot) {
-    $candidate = Join-Path $RepoRoot "tests/$Suite"
+    $candidate = Join-Path $RepoRoot "tests/baselines/$Suite"
     if (Test-Path $candidate) { $GoldDir = $candidate }
 }
 Write-Host "Suite:    $Suite"
@@ -157,10 +157,10 @@ if (-not $dataContainer -or -not (Test-Path $dataContainer)) {
 }
 foreach ($s in $innerSuites) {
     $src = if ($s -eq $Suite -and $GoldDir) { $GoldDir }
-           elseif ($RepoRoot) { Join-Path $RepoRoot "tests/$s" }
+           elseif ($RepoRoot) { Join-Path $RepoRoot "tests/baselines/$s" }
            else { $null }
     if (-not $src -or -not (Test-Path $src)) { continue }
-    $target = Join-Path $dataContainer "Documents/tests/$s"
+    $target = Join-Path $dataContainer "Documents/tests/baselines/$s"
     Write-Host "Pushing gold $src/* -> $target (cleared first)"
     if (Test-Path $target) { Remove-Item -Recurse -Force $target }
     New-Item -ItemType Directory -Force -Path $target | Out-Null

@@ -8,6 +8,28 @@ using Stride.Graphics.Regression;
 // (<name>.variantN.png, see GoldVariant) the same way.
 internal static class GoldFiles
 {
+    // The tests/ directory, which holds the golds in baselines/<Suite>/... and the renders of local runs in local/<Suite>/...:
+    // --tests when given, else the one of the Stride checkout this tool runs from. Null, with the reason in error, when there
+    // is none or it has no baselines/ folder.
+    public static string? FindTestsRoot(string? testsArg, Func<string, string?> findStrideRoot, out string error)
+    {
+        var testsRoot = testsArg;
+        if (testsRoot is null && (findStrideRoot(AppContext.BaseDirectory) ?? findStrideRoot(Directory.GetCurrentDirectory())) is { } strideRoot)
+            testsRoot = Path.Combine(strideRoot, "tests");
+        if (testsRoot is null)
+        {
+            error = "could not locate the tests/ directory; pass --tests <dir>";
+            return null;
+        }
+        if (!Directory.Exists(Path.Combine(testsRoot, "baselines")))
+        {
+            error = $"{testsRoot} has no baselines/ folder; --tests is the tests/ directory, not the gold folder";
+            return null;
+        }
+        error = "";
+        return testsRoot;
+    }
+
     // Where a render that is added as a variant to a bucket with golds goes: over the variant made on the same
     // CPU, else to a new variant (a gold with no CPU recorded counts as another CPU's).
     public static string VariantTarget(string renderPng, string name, List<string> bucketGolds)

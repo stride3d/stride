@@ -785,7 +785,7 @@ namespace Stride.Graphics.Regression
 #if STRIDE_PLATFORM_ANDROID
             return Android.App.Application.Context.FilesDir!.AbsolutePath;
 #elif STRIDE_PLATFORM_IOS
-            // Gold images get pushed into Documents/tests/<Suite>/ by run-ios-tests.ps1, and
+            // Gold images get pushed into Documents/tests/baselines/<Suite>/ by run-ios-tests.ps1, and
             // generated images / trx are written to Documents/tests/local/<Suite>/ for the host
             // to pull back via `xcrun simctl get_app_container ... data`.
             return Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
@@ -847,10 +847,12 @@ namespace Stride.Graphics.Regression
 
             var platformSpecificDir = GetPlatformSpecificDirectory();
 
-            var testsBaseDir = Path.Combine(GetTestsRootDirectory(), "tests");
+            // Gold images in tests/baselines/, the renders of this run in tests/local/
+            var testsDir = Path.Combine(GetTestsRootDirectory(), "tests");
+            var testsBaseDir = Path.Combine(testsDir, "baselines");
             var testFileName = GenerateTestArtifactFileName(testsBaseDir, frameName, platformSpecificDir, ".png");
 
-            var testsLocalBaseDir = Path.Combine(testsBaseDir, "local");
+            var testsLocalBaseDir = Path.Combine(testsDir, "local");
             var testLocalFileName = GenerateTestArtifactFileName(testsLocalBaseDir, frameName, platformSpecificDir, ".png");
 
             // The golds of this bucket (the image and its variants); without any, the golds of every other bucket

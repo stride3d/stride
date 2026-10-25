@@ -32,7 +32,7 @@ internal static class GoldStats
                       model: shows which instruction sets split a CPU rasterizer's output.
           --all       Also list lanes without a rule whose pixels all stayed under 3. By default, lanes
                       without a rule show only when they had pixels at 3+.
-          --tests     Gold tests/ dir (default: the enclosing Stride checkout). Its thresholds.jsonc files
+          --tests     tests/ dir, golds in its baselines/ (default: the enclosing Stride checkout). Its thresholds.jsonc files
                       give the current rules. Samples compared against a gold that has changed since are
                       skipped.
           --out       Also write the rows as JSON.
@@ -62,15 +62,13 @@ internal static class GoldStats
         }
 
         var sources = GetArgs(args, "--source");
-        var testsDir = GetArg(args, "--tests")
-            ?? (findStrideRoot(AppContext.BaseDirectory) is { } r1 ? Path.Combine(r1, "tests")
-                : findStrideRoot(Directory.GetCurrentDirectory()) is { } r2 ? Path.Combine(r2, "tests")
-                : null);
-        if (testsDir is null)
+        var testsRoot = GoldFiles.FindTestsRoot(GetArg(args, "--tests"), findStrideRoot, out var testsError);
+        if (testsRoot is null)
         {
-            Console.Error.WriteLine("stats: could not locate the tests/ directory; pass --tests <dir>");
+            Console.Error.WriteLine($"stats: {testsError}");
             return 2;
         }
+        var testsDir = Path.Combine(testsRoot, "baselines");
         var imagePattern = GetArg(args, "--image");
         var showAll = args.Contains("--all");
         byCpuFeatures = args.Contains("--cpu-features");
@@ -94,7 +92,7 @@ internal static class GoldStats
         }
 
         if (sources.Count == 0)
-            sources.Add(Path.Combine(testsDir, "local"));
+            sources.Add(Path.Combine(testsRoot, "local"));
 
         // A run named twice (by id and by URL, or by --source and --last) counts once: run ids are unique on GitHub.
         sources = sources

@@ -20,7 +20,7 @@ param(
                                                            # Required because casing/acronyms (UI, 10_0) can't be auto-recovered from $Package.
     [string]$Apk,                                          # APK to install; skip if already deployed
     [string]$RepoRoot,                                     # Stride repo root; auto-discovered from script dir
-    [string]$GoldDir,                                      # Override gold push source; defaults to <RepoRoot>/tests/<Suite>
+    [string]$GoldDir,                                      # Override gold push source; defaults to <RepoRoot>/tests/baselines/<Suite>
     [string]$ResultsDir,                                   # Override result pull dest; defaults to <RepoRoot>/tests/local
     [string]$Avd,                                          # AVD name to boot if no device is connected
     [string]$Serial,                                       # adb -s target. When -Avd is used, derived from -Port.
@@ -72,7 +72,7 @@ if (-not $ResultsDir) {
 }
 # Inner-suite discovery for multi-suite hosts (Stride.Tests.Combined): scan the APK's build dir
 # for *.Tests*.dll. Each one keys gold lookup by Assembly.GetName().Name at runtime, so we push
-# <RepoRoot>/tests/<DllName>/ for each. Single-suite APKs surface their own *.Tests.dll alongside,
+# <RepoRoot>/tests/baselines/<DllName>/ for each. Single-suite APKs surface their own *.Tests.dll alongside,
 # so the discovery list collapses to one and behavior matches the pre-Combined flow.
 # `*.Tests*` (not `*.Tests.dll`) so suffixed variants like Stride.Graphics.Tests.10_0.dll match.
 $innerSuites = @()
@@ -86,7 +86,7 @@ if ($Apk -and (Test-Path $Apk)) {
 if ($innerSuites.Count -eq 0) { $innerSuites = @($Suite) }
 # $GoldDir override applies only to $Suite (back-compat with single-suite callers).
 if (-not $PSBoundParameters.ContainsKey('GoldDir') -and $RepoRoot) {
-    $candidate = Join-Path $RepoRoot "tests/$Suite"
+    $candidate = Join-Path $RepoRoot "tests/baselines/$Suite"
     if (Test-Path $candidate) { $GoldDir = $candidate }
 }
 Write-Host "Suite:    $Suite"
@@ -219,7 +219,7 @@ if ($Apk) {
 }
 
 # 3+4. Push gold images per inner suite into the app's internal FilesDir
-# (/data/user/0/<pkg>/files/tests/<SuiteName>/). targetSdk 30+ scoped storage blocks app
+# (/data/user/0/<pkg>/files/tests/baselines/<SuiteName>/). targetSdk 30+ scoped storage blocks app
 # writes through the FUSE-bound external path, so we bridge adb-shell uid <-> app uid via
 # tar streams + run-as. Multi-suite hosts (Combined) push one dir per inner suite, keyed
 # by AssemblyName (matching GameTestBase's Assembly.GetName().Name gold lookup).
@@ -228,16 +228,16 @@ if ($Apk) {
 # device, otherwise the on-device framework still finds it as "primary" and ignores fallbacks.
 foreach ($s in $innerSuites) {
     $src = if ($s -eq $Suite -and $GoldDir) { $GoldDir }
-           elseif ($RepoRoot) { Join-Path $RepoRoot "tests/$s" }
+           elseif ($RepoRoot) { Join-Path $RepoRoot "tests/baselines/$s" }
            else { $null }
     if (-not $src -or -not (Test-Path $src)) { continue }
-    Write-Host "Pushing gold $src/* -> files/tests/$s/ on device (cleared first)"
-    & $adb shell "run-as $Package sh -c 'rm -rf files/tests/$s && mkdir -p files/tests/$s'" 2>$null | Out-Null
+    Write-Host "Pushing gold $src/* -> files/tests/baselines/$s/ on device (cleared first)"
+    & $adb shell "run-as $Package sh -c 'rm -rf files/tests/baselines/$s && mkdir -p files/tests/baselines/$s'" 2>$null | Out-Null
     $localTar = [IO.Path]::GetTempFileName()
     try {
         & $tar c -C $src -f $localTar . 2>$null
         Invoke-Adb push $localTar "/data/local/tmp/$Package-gold.tar" | Out-Null
-        Invoke-Adb shell "cat /data/local/tmp/$Package-gold.tar | run-as $Package tar x -C files/tests/$s" 2>$null | Out-Null
+        Invoke-Adb shell "cat /data/local/tmp/$Package-gold.tar | run-as $Package tar x -C files/tests/baselines/$s" 2>$null | Out-Null
         Invoke-Adb shell "rm /data/local/tmp/$Package-gold.tar" 2>$null | Out-Null
     } finally {
         Remove-Item $localTar -ErrorAction SilentlyContinue

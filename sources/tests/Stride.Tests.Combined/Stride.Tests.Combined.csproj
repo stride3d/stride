@@ -151,12 +151,12 @@
   </Target>
 
   <!-- Android: push each referenced suite's gold images. The base _StridePushTestGoldImages only
-       pushes this project's own gold dir (tests/Stride.Tests.Combined/, which doesn't exist);
-       push each ProjectReference's tests/<Filename>/ instead. -->
+       pushes this project's own gold dir (tests/baselines/Stride.Tests.Combined/, which doesn't exist);
+       push each ProjectReference's tests/baselines/<Filename>/ instead. -->
   <Target Name="_StridePushSuiteGoldImages"
           AfterTargets="Install"
           Condition="'$(StridePlatform)' == 'Android'">
-    <Exec Command="&quot;$(AdbToolPath)adb&quot; $(AdbTarget) push --sync &quot;$(StrideRoot)tests\%(ProjectReference.Filename)\.&quot; &quot;/sdcard/Android/data/$(_AndroidPackage)/files/tests/%(ProjectReference.Filename)&quot;"
-          Condition="$([System.String]::Copy('%(ProjectReference.Filename)').Contains('.Tests')) And Exists('$(StrideRoot)tests\%(ProjectReference.Filename)')" />
+    <Exec Command="&quot;$(AdbToolPath)adb&quot; $(AdbTarget) push --sync &quot;$(StrideRoot)tests\baselines\%(ProjectReference.Filename)\.&quot; &quot;/sdcard/Android/data/$(_AndroidPackage)/files/tests/baselines/%(ProjectReference.Filename)&quot;"
+          Condition="$([System.String]::Copy('%(ProjectReference.Filename)').Contains('.Tests')) And Exists('$(StrideRoot)tests\baselines\%(ProjectReference.Filename)')" />
   </Target>
 </Project>

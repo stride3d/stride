@@ -63,8 +63,9 @@ var strideRoot = FindStrideRoot(AppContext.BaseDirectory)
     ?? FindStrideRoot(Directory.GetCurrentDirectory())
     ?? throw new InvalidOperationException("Could not find Stride root (looking for 'tests/' + 'sources/' directories)");
 
-var testsDir = Path.Combine(strideRoot, "tests");
-var localDir = Path.Combine(testsDir, "local");
+// The gold images (tests/baselines/<Suite>/...) and the renders of local runs (tests/local/<Suite>/...)
+var testsDir = Path.Combine(strideRoot, "tests", "baselines");
+var localDir = Path.Combine(strideRoot, "tests", "local");
 // Path → (mtime, hash). Cleared automatically by mtime mismatch; no eviction needed.
 var hashCache = new System.Collections.Concurrent.ConcurrentDictionary<string, (long mtimeTicks, string hash)>();
 // Runtime serialises +Infinity for exact-match PSNR; opt into the named-literal extension.
@@ -111,7 +112,6 @@ _ = Task.Run(() =>
     int files = 0;
     foreach (var suiteDir in Directory.GetDirectories(testsDir))
     {
-        if (Path.GetFileName(suiteDir) == "local") continue;
         foreach (var (_, list) in GetSuiteGoldByName(suiteDir))
         foreach (var (_, path) in list) { CachedGoldHash(path); files++; }
     }
@@ -203,10 +203,7 @@ app.MapGet("/api/suites", () =>
     var suites = new HashSet<string>();
     if (Directory.Exists(testsDir))
         foreach (var dir in Directory.GetDirectories(testsDir))
-        {
-            var name = Path.GetFileName(dir);
-            if (name != "local") suites.Add(name);
-        }
+            suites.Add(Path.GetFileName(dir));
     // Also from sources
     foreach (var src in sourceManager.GetAll())
         if (Directory.Exists(src.Path))
@@ -253,7 +250,6 @@ app.MapGet("/api/gold/images", (string suite, string platform) =>
         foreach (var pDir in Directory.GetDirectories(suiteDir))
         {
             var pName = Path.GetFileName(pDir);
-            if (pName == "local") continue;
             foreach (var dDir in Directory.GetDirectories(pDir))
             {
                 var device = Path.GetFileName(dDir);
@@ -302,7 +298,6 @@ app.MapGet("/api/gold/image", (string suite, string platform, string name) =>
         foreach (var pDir in Directory.GetDirectories(suiteDir))
         {
             var pName = Path.GetFileName(pDir);
-            if (pName == "local") continue;
             foreach (var dDir in Directory.GetDirectories(pDir))
             {
                 var candidate = Path.Combine(dDir, name);
@@ -352,7 +347,6 @@ app.MapGet("/api/gold/all", (string suite, string name) =>
     if (!Directory.Exists(suiteDir)) return Results.Ok(results);
     foreach (var pDir in Directory.GetDirectories(suiteDir))
     {
-        if (Path.GetFileName(pDir) == "local") continue;
         foreach (var dDir in Directory.GetDirectories(pDir))
             foreach (var gold in GoldVariant.InBucket(dDir, name))
                 results.Add(new { Platform = $"{Path.GetFileName(pDir)}/{Path.GetFileName(dDir)}", File = Path.GetFileName(gold) });
@@ -784,7 +778,6 @@ Dictionary<string, List<(string platform, string path)>> GetSuiteGoldByName(stri
     foreach (var pDir in Directory.GetDirectories(suiteDir))
     {
         var pName = Path.GetFileName(pDir);
-        if (pName == "local") continue;
         foreach (var dDir in Directory.GetDirectories(pDir))
         {
             var plat = $"{pName}/{Path.GetFileName(dDir)}";
