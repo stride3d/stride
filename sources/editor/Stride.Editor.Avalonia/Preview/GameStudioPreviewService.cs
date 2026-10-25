@@ -28,6 +28,7 @@ using Stride.Editor.Avalonia.Engine;
 using Stride.Editor.Preview;
 using Stride.Games;
 using Stride.Graphics;
+using Stride.Shaders.Compiler;
 
 namespace Stride.Editor.Avalonia.Preview
 {
@@ -165,7 +166,7 @@ namespace Stride.Editor.Avalonia.Preview
 
             initializationSignal.Set();
 
-            PreviewGame = new PreviewGame(AssetBuilderService.EffectCompiler);
+            PreviewGame = new EmbeddedPreviewGame(AssetBuilderService.EffectCompiler);
             var context = new GameContextSDL(gameForm) { InitializeDatabase = false };
 
             // Wait for shaders to be loaded
@@ -422,6 +423,20 @@ namespace Stride.Editor.Avalonia.Preview
         public void OnHidePreview()
         {
             PreviewGame.IsEditorHidden = true;
+        }
+
+        /// <summary>
+        /// The preview game, whose window stays hidden until a <see cref="GameEngineHost"/> embeds it.
+        /// </summary>
+        private sealed class EmbeddedPreviewGame : PreviewGame
+        {
+            public EmbeddedPreviewGame(IEffectCompiler effectCompiler)
+                : base(effectCompiler)
+            {
+                // A running game shows its window, which is a top-level window until the host reparents it (an empty
+                // square on the desktop): the host shows the window once it is embedded
+                MakeWindowVisibleOnRun = false;
+            }
         }
     }
 }
