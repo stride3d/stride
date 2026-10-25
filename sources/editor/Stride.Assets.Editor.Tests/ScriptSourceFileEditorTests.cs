@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Text;
 using Stride.Assets.Editor.Tests.Helpers;
 using Stride.Assets.Editor.ViewModels;
 using Stride.Assets.Presentation.ViewModels;
@@ -118,6 +119,24 @@ public sealed class ScriptSourceFileEditorTests
         Assert.Equal(2, dialogs.Messages.Count);
         Assert.Equal(Edited, File.ReadAllText(PathOf(editor)));
         Assert.False(editor.IsModified);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task SavingKeepsTheByteOrderMarkOfTheFile(bool hasByteOrderMark)
+    {
+        using var fixture = await OpenAsync();
+        var script = fixture.Session.AllAssets.OfType<ScriptSourceFileViewModel>().Single();
+        File.WriteAllText(script.AssetItem.FullPath.ToOSPath(), Script, new UTF8Encoding(hasByteOrderMark));
+        var editor = NewEditor(fixture);
+        editor.OnTextEdited(Edited);
+
+        await editor.SaveAsync();
+
+        var bytes = File.ReadAllBytes(PathOf(editor));
+        Assert.Equal(hasByteOrderMark, bytes.AsSpan().StartsWith(Encoding.UTF8.Preamble));
+        Assert.Equal(Edited, File.ReadAllText(PathOf(editor)));
     }
 
     [Fact]
