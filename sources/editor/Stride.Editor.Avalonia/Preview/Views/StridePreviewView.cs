@@ -20,6 +20,11 @@ public class StridePreviewView : TemplatedControl, IPreviewView
 {
     public const string PartStrideView = "PART_StrideView";
 
+    /// <summary>
+    /// The views derived from this one share its control theme unless they override this property with their own type.
+    /// </summary>
+    protected override Type StyleKeyOverride => typeof(StridePreviewView);
+
     private IAvaloniaPreviewBuilder? builder;
     private IAssetPreview? previewer;
     private ContentPresenter? presenter;
