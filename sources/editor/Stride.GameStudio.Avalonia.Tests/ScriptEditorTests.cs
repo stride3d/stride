@@ -102,6 +102,34 @@ public sealed class ScriptEditorTests
         }
     }
 
+    [AvaloniaFact]
+    public async Task AnExternalChangeShowsWhenTheWindowIsActivatedAgain()
+    {
+        using var fixture = await OpenAsync();
+        var window = new MainWindow { DataContext = fixture.Main };
+        window.Show();
+        try
+        {
+            var (editor, view) = await OpenEditorAsync(fixture, window);
+            var code = CodeEditor(view);
+            code.TextArea.Focus();
+            await WindowTestHelper.PumpAsync();
+            const string external = "// Changed by another program\n" + Script;
+
+            // The user comes back from another program: the focus stays in the editor, the window is activated
+            File.WriteAllText(editor.Asset.AssetItem.FullPath.ToOSPath(), external);
+            window.Activate();
+            await WindowTestHelper.PumpAsync();
+
+            Assert.Equal(external, code.Text);
+            Assert.False(editor.IsModified);
+        }
+        finally
+        {
+            await window.CloseAsync();
+        }
+    }
+
     private static Task<ShellSessionFixture> OpenAsync()
     {
         return ShellSessionFixture.OpenAsync(("Player", new ScriptSourceFileAsset { Text = Script }));

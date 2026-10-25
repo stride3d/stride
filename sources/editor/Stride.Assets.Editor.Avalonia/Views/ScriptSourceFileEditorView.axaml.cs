@@ -12,12 +12,14 @@ namespace Stride.Assets.Editor.Avalonia.Views;
 
 /// <summary>
 /// The view of the script editor: a code editor that shows the text of the view model and reports the edits of the user to it,
-/// and reloads the file when another program changed it (checked when the view shows and when the editor gets the focus).
+/// and reloads the file when another program changed it (checked when the view shows, when the editor gets the focus, and when
+/// the window is activated again: coming back from another program leaves the focus where it was).
 /// </summary>
 [AssetEditorView<ScriptSourceFileEditorViewModel>]
 public sealed partial class ScriptSourceFileEditorView : UserControl, IAssetEditorView
 {
     private ScriptSourceFileEditorViewModel? viewModel;
+    private WindowBase? window;
 
     public ScriptSourceFileEditorView()
     {
@@ -46,12 +48,26 @@ public sealed partial class ScriptSourceFileEditorView : UserControl, IAssetEdit
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
     {
         base.OnAttachedToVisualTree(e);
+        window = TopLevel.GetTopLevel(this) as WindowBase;
+        if (window is not null)
+            window.Activated += OnWindowActivated;
         viewModel?.CheckExternalChanges();
+    }
+
+    /// <inheritdoc />
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnDetachedFromVisualTree(e);
+        if (window is not null)
+            window.Activated -= OnWindowActivated;
+        window = null;
     }
 
     private void OnEditorTextEdited(object? sender, string text) => viewModel?.OnTextEdited(text);
 
     private void OnEditorGotFocus(object? sender, FocusChangedEventArgs e) => viewModel?.CheckExternalChanges();
+
+    private void OnWindowActivated(object? sender, EventArgs e) => viewModel?.CheckExternalChanges();
 
     private void OnTextReloaded(object? sender, string text) => Editor.LoadText(text);
 }
