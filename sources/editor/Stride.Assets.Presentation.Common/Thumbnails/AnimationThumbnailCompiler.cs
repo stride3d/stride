@@ -13,7 +13,7 @@ using Stride.Core.Serialization.Contents;
 using Stride.Animations;
 using Stride.Assets.Models;
 using Stride.Assets.Presentation.Resources.Thumbnails;
-using Stride.Assets.Presentation.ViewModel.Preview;
+using Stride.Assets.Presentation.Preview;
 using Stride.Editor.Resources;
 using Stride.Editor.Thumbnails;
 using Stride.Engine;
@@ -40,7 +40,7 @@ namespace Stride.Assets.Presentation.Thumbnails
         protected override void CompileThumbnail(ThumbnailCompilerContext context, string thumbnailStorageUrl, AssetItem assetItem, Package originalPackage, AssetCompilerResult result)
         {
             // A model asset should have been generated during CompileWithDependencies()
-            var modelAssetItem = AnimationPreviewViewModel.FindModelForPreview(assetItem);
+            var modelAssetItem = AnimationPreviewHelper.FindModelForPreview(assetItem);
 
             if (modelAssetItem != null)
             {

@@ -8,3 +8,7 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Stride.GameStudio.AutoTesting" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.GameStudio.Tests" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Assets.Presentation.Common.Tests" + Stride.PublicKeys.Default)]
+[assembly: InternalsVisibleTo("Stride.Assets.Editor" + Stride.PublicKeys.Default)]
+[assembly: InternalsVisibleTo("Stride.Assets.Editor.Avalonia" + Stride.PublicKeys.Default)]
+[assembly: InternalsVisibleTo("Stride.Assets.Editor.Tests" + Stride.PublicKeys.Default)]
+[assembly: InternalsVisibleTo("Stride.Assets.Editor.Avalonia.Tests" + Stride.PublicKeys.Default)]
