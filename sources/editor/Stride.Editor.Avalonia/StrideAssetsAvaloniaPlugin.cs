@@ -3,6 +3,7 @@
 
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Markup.Xaml.Styling;
 using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Views;
 
@@ -53,9 +54,14 @@ public abstract class StrideAssetsAvaloniaPlugin : StrideAssetsPlugin
             return;
         }
 
-        if (!application.Resources.MergedDictionaries.Contains(themes))
-        {
-            application.Resources.MergedDictionaries.Add(themes);
-        }
+        var merged = application.Resources.MergedDictionaries;
+        if (merged.Contains(themes))
+            return;
+
+        // A plugin can be initialized once per session: the same dictionary, loaded again, is the same source
+        if (themes is ResourceInclude { Source: { } source } && merged.OfType<ResourceInclude>().Any(x => x.Source == source))
+            return;
+
+        merged.Add(themes);
     }
 }

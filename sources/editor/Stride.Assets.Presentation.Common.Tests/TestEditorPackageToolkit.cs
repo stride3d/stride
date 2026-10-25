@@ -9,9 +9,9 @@ namespace Stride.Assets.Presentation.Common.Tests;
 
 /// <summary>
 /// The Editor packages of the plugins reference no WPF or Avalonia project, so the build infers them toolkit-neutral and
-/// any editor loads them; their views live in <c>.Wpf</c> companion packages. A reference to a <c>*.Wpf</c> or
-/// <c>*.Avalonia</c> project would silently tie a package to one editor (see <c>_StrideInferEditorToolkit</c> in
-/// Stride.AssetBuildManifest.targets).
+/// any editor loads them; their views live in <c>.Wpf</c> and <c>.Avalonia</c> companion packages. A reference to a
+/// <c>*.Wpf</c> or <c>*.Avalonia</c> project would silently tie a package to one editor (see
+/// <c>_StrideInferEditorToolkit</c> in Stride.AssetBuildManifest.targets).
 /// </summary>
 public class TestEditorPackageToolkit
 {
@@ -33,9 +33,26 @@ public class TestEditorPackageToolkit
         "UI/Stride.UI.Editor.Wpf",
     ];
 
+    private static readonly string[] AvaloniaPackages =
+    [
+        "Audio/Stride.Audio.Editor.Avalonia",
+        "SpriteStudio/Stride.SpriteStudio.Editor.Avalonia",
+    ];
+
+    // The neutral packages whose views come in one companion per toolkit
+    private static readonly string[] PackagesWithViewCompanions =
+    [
+        "Audio/Stride.Audio.Editor",
+        "SpriteStudio/Stride.SpriteStudio.Editor",
+    ];
+
     public static TheoryData<string> Neutral => new(NeutralPackages);
 
     public static TheoryData<string> Wpf => new(WpfPackages);
+
+    public static TheoryData<string> Avalonia => new(AvaloniaPackages);
+
+    public static TheoryData<string> WithViewCompanions => new(PackagesWithViewCompanions);
 
     [Theory]
     [MemberData(nameof(Neutral))]
@@ -63,6 +80,29 @@ public class TestEditorPackageToolkit
     }
 
     [Theory]
+    [MemberData(nameof(Avalonia))]
+    public void AvaloniaPackagesSayItAndReferenceNoWpf(string package)
+    {
+        var project = LoadProject(package);
+
+        // The Avalonia editor base assemblies are not named *.Avalonia everywhere, so the companions say their toolkit
+        Assert.Contains(project.Descendants("StrideEditorToolkit"), x => x.Value.Trim() == EditorToolkits.Avalonia);
+        Assert.Contains(project.Descendants("StridePackageKind"), x => x.Value.Trim() == "Editor");
+        Assert.Empty(WpfReferences(project));
+        Assert.DoesNotContain(project.Descendants("UseWPF"), x => string.Equals(x.Value.Trim(), "true", StringComparison.OrdinalIgnoreCase));
+        // The Avalonia editor runs everywhere
+        Assert.Equal("$(StrideXplatEditorTargetFramework)", project.Descendants("TargetFramework").Single().Value.Trim());
+    }
+
+    [Theory]
+    [MemberData(nameof(Avalonia))]
+    public void AvaloniaPackagesAreBuiltAsAvalonia(string package)
+    {
+        foreach (var manifest in LoadManifests(package))
+            Assert.Equal(EditorToolkits.Avalonia, manifest.PackageToolkit);
+    }
+
+    [Theory]
     [MemberData(nameof(Neutral))]
     public void NeutralPackagesAreBuiltWithoutToolkit(string package)
     {
@@ -81,29 +121,33 @@ public class TestEditorPackageToolkit
             Assert.Equal(EditorToolkits.Wpf, manifest.PackageToolkit);
     }
 
-    [Fact]
-    public void NeutralPackagesDeclareTheirWpfCompanions()
+    [Theory]
+    [MemberData(nameof(WithViewCompanions))]
+    public void NeutralPackagesDeclareOneViewCompanionPerToolkit(string package)
     {
-        foreach (var package in new[] { "Audio/Stride.Audio.Editor", "SpriteStudio/Stride.SpriteStudio.Editor" })
-        {
-            // The project declares its view package as a companion
-            var declared = Assert.Single(LoadProject(package).Descendants("StrideCompanionProject"));
-            Assert.EndsWith(".Editor.Wpf.csproj", (string?)declared.Attribute("Include"), StringComparison.OrdinalIgnoreCase);
+        // The project declares one view package per toolkit as companions
+        var declared = LoadProject(package).Descendants("StrideCompanionProject").Select(x => (string?)x.Attribute("Include")).ToList();
+        Assert.Equal(2, declared.Count);
+        Assert.Single(declared, x => x!.EndsWith(".Editor.Wpf.csproj", StringComparison.OrdinalIgnoreCase));
+        Assert.Single(declared, x => x!.EndsWith(".Editor.Avalonia.csproj", StringComparison.OrdinalIgnoreCase));
 
-            // The manifest records it as a Wpf companion. Off Windows, a build whose solution did not restore the companion
-            // leaves it out (no host there loads a Windows-only package; see Stride.AssetBuildManifest.targets), so the
-            // manifest may list no companion at all there, never another one.
-            var manifests = LoadManifests(package).ToList();
-            Assert.NotEmpty(manifests);
-            foreach (var manifest in manifests)
+        // The manifest records each companion with its toolkit. Off Windows, a build whose solution did not restore the
+        // Wpf companion leaves it out (no host there loads a Windows-only package; see Stride.AssetBuildManifest.targets),
+        // so the manifest may list the Avalonia companion alone there, never another one.
+        var manifests = LoadManifests(package).ToList();
+        Assert.NotEmpty(manifests);
+        foreach (var manifest in manifests)
+        {
+            if (OperatingSystem.IsWindows())
+                Assert.Equal(2, manifest.CompanionPackages.Count);
+            Assert.Contains(manifest.CompanionPackages, x => x.Toolkit == EditorToolkits.Avalonia && x.Package.EndsWith(".Editor.Avalonia"));
+            foreach (var companion in manifest.CompanionPackages)
             {
-                if (OperatingSystem.IsWindows())
-                    Assert.Single(manifest.CompanionPackages);
-                foreach (var companion in manifest.CompanionPackages)
-                {
-                    Assert.Equal(EditorToolkits.Wpf, companion.Toolkit);
-                    Assert.EndsWith(".Editor.Wpf", companion.Package);
-                }
+                Assert.Equal(PackageKind.Editor, companion.Kind);
+                var toolkit = companion.Package.EndsWith(".Editor.Wpf") ? EditorToolkits.Wpf
+                    : companion.Package.EndsWith(".Editor.Avalonia") ? EditorToolkits.Avalonia
+                    : throw new Xunit.Sdk.XunitException($"Unexpected companion {companion.Package} of {package}.");
+                Assert.Equal(toolkit, companion.Toolkit);
             }
         }
     }
