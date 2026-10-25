@@ -138,12 +138,27 @@ public sealed class ScriptSourceFileEditorViewModel : AssetEditorViewModel<Scrip
         // The user can keep typing while the file is written: what is saved is the text of now
         var text = currentText;
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-        // UTF-8 with a byte order mark, as the session saves source files
-        await File.WriteAllTextAsync(path, text, Encoding.UTF8);
+        await File.WriteAllTextAsync(path, text, EncodingOf(path));
 
         Asset.Asset.Text = text;
         savedText = text;
         signature = FileContentSignature.Capture(path);
         IsModified = !string.Equals(currentText, savedText, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// The encoding to save a file with: UTF-8, with a byte order mark unless the file has none, so that a save changes only
+    /// the text. A new file gets one, as the session writes source files.
+    /// </summary>
+    private static Encoding EncodingOf(string path)
+    {
+        if (!File.Exists(path))
+            return Encoding.UTF8;
+
+        Span<byte> start = stackalloc byte[3];
+        using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+        var length = stream.ReadAtLeast(start, start.Length, throwOnEndOfStream: false);
+        var hasByteOrderMark = start[..length].SequenceEqual(Encoding.UTF8.Preamble);
+        return hasByteOrderMark ? Encoding.UTF8 : new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
     }
 }
