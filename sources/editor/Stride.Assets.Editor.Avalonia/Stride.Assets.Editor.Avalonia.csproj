@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.props" />
 
   <PropertyGroup>
@@ -7,12 +7,23 @@
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <!-- Like Stride.Assets.Presentation.Wpf this assembly is part of the editor host, not an Editor package, so it declares
+         no StridePackageKind and no StrideEditorToolkit (the toolkit check requires StridePackageKind Editor). -->
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Include="../../shared/SharedAssemblyInfo.cs">
       <Link>Properties/SharedAssemblyInfo.cs</Link>
     </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" />
+    <!-- Conditions below are needed to remove AvaloniaUI.DiagnosticsSupport package from build output in Release configuration. -->
+    <PackageReference Include="AvaloniaUI.DiagnosticsSupport">
+      <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
+      <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
