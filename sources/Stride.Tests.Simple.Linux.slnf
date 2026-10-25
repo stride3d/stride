@@ -7,6 +7,8 @@
       "sources\\buildengine\\Stride.Core.BuildEngine.Tests\\Stride.Core.BuildEngine.Tests.csproj",
       "sources\\core\\Stride.Core.CompilerServices.Tests\\Stride.Core.CompilerServices.Tests.csproj",
       "sources\\crashreport\\Stride.CrashReport.Tests\\Stride.CrashReport.Tests.csproj",
+      "sources\\editor\\Stride.Assets.Editor.Avalonia.Tests\\Stride.Assets.Editor.Avalonia.Tests.csproj",
+      "sources\\editor\\Stride.Assets.Editor.Tests\\Stride.Assets.Editor.Tests.csproj",
       "sources\\editor\\Stride.Assets.Presentation.Common.Tests\\Stride.Assets.Presentation.Common.Tests.csproj",
       "sources\\editor\\Stride.Core.Assets.Editor.Common.Tests\\Stride.Core.Assets.Editor.Common.Tests.csproj",
       "sources\\editor\\Stride.Core.Assets.Editor.Avalonia.Tests\\Stride.Core.Assets.Editor.Avalonia.Tests.csproj",
