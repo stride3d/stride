@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Stride.Assets;
 using Stride.GameStudio.AutoTesting;
 
-namespace Stride.Editor.Tests;
+namespace Stride.Editor.Wpf.Tests;
 
 [UITest(SampleTemplateId = "A363FBC5-89EF-4E7A-B870-6D070813D034")]
 public class TopDownCreate : IUITest

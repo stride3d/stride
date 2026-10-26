@@ -34,7 +34,7 @@
       "sources\\editor\\Stride.Editor.Avalonia.Tests\\Stride.Editor.Avalonia.Tests.csproj",
       "sources\\editor\\Stride.Editor.Avalonia\\Stride.Editor.Avalonia.csproj",
       "sources\\editor\\Stride.Editor.Common\\Stride.Editor.Common.csproj",
-      "sources\\editor\\Stride.Editor.Services.Tests\\Stride.Editor.Services.Tests.csproj",
+      "sources\\editor\\Stride.Editor.Tests\\Stride.Editor.Tests.csproj",
       "sources\\editor\\Stride.Editor\\Stride.Editor.csproj",
       "sources\\editor\\Stride.GameStudio.Avalonia.Desktop\\Stride.GameStudio.Avalonia.Desktop.csproj",
       "sources\\editor\\Stride.GameStudio.Avalonia.Tests\\Stride.GameStudio.Avalonia.Tests.csproj",

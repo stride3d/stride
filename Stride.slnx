@@ -194,10 +194,10 @@
     <Project Path="sources/editor/Stride.Core.Assets.Editor.Common.Tests/Stride.Core.Assets.Editor.Common.Tests.csproj" />
     <Project Path="sources/editor/Stride.Core.Assets.Editor.Tests/Stride.Core.Assets.Editor.Tests.csproj" />
     <Project Path="sources/editor/Stride.Core.Assets.Editor.Wpf.Tests/Stride.Core.Assets.Editor.Wpf.Tests.csproj" />
-    <Project Path="sources/editor/Stride.Editor.Services.Tests/Stride.Editor.Services.Tests.csproj" />
+    <Project Path="sources/editor/Stride.Editor.Tests/Stride.Editor.Tests.csproj" />
     <Project Path="sources/editor/Stride.GameStudio.AutoTesting/Stride.GameStudio.AutoTesting.csproj" />
     <Project Path="sources/editor/Stride.GameStudio.Tests/Stride.GameStudio.Tests.csproj" />
-    <Project Path="tests/editor/Stride.Editor.Tests/Stride.Editor.Tests.csproj" />
+    <Project Path="tests/editor/Stride.Editor.Wpf.Tests/Stride.Editor.Wpf.Tests.csproj" />
   </Folder>
   <Folder Name="/61-Editor.Tests/Avalonia/">
     <Project Path="sources/editor/Stride.Assets.Editor.Avalonia.Tests/Stride.Assets.Editor.Avalonia.Tests.csproj" />

@@ -10,7 +10,7 @@ using Stride.Assets.Presentation.Templates;
 using Stride.Core.Mathematics;
 using Stride.GameStudio.AutoTesting;
 
-namespace Stride.Editor.Tests;
+namespace Stride.Editor.Wpf.Tests;
 
 [UITest(SampleTemplateId = NewGameTemplateId)]
 public class NewGameEditor : IUITest

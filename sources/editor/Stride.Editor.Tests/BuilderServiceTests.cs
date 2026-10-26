@@ -5,9 +5,9 @@ using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Core.BuildEngine;
 using Stride.Editor.Build;
-using Stride.Editor.Services.Tests.Helpers;
+using Stride.Editor.Tests.Helpers;
 
-namespace Stride.Editor.Services.Tests;
+namespace Stride.Editor.Tests;
 
 public sealed class BuilderServiceTests
 {
