@@ -839,8 +839,12 @@
     <DataTemplate DataType="cpqvm:NodeViewModel">
       <Grid ColumnDefinitions="Auto, 3*">
         <TextBox Grid.Column="0" Margin="2" Width="40" TextAlignment="Center"
-                 Text="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:CharToString}}}"
-                 ToolTip.Tip="{sd:LocalizeString Character, Context=ToolTip}"/>
+                 Text="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:CharToString}}, UpdateSourceTrigger=Explicit}"
+                 ToolTip.Tip="{sd:LocalizeString Character, Context=ToolTip}">
+          <Interaction.Behaviors>
+            <sd:CommitTextBehavior/>
+          </Interaction.Behaviors>
+        </TextBox>
         <sd:NumericTextBox x:Name="NumericTextBox"
                            Grid.Column="1" Margin="2"
                            Value="{Binding NodeValue, Converter={sd:CharToUnicode}, UpdateSourceTrigger=Explicit}"
@@ -938,8 +942,10 @@
   <!-- Provider for string -->
   <caev:TypeMatchTemplateProvider x:Key="StringPropertyTemplateProvider" Type="{x:Type s:String}" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="cpqvm:NodeViewModel">
-      <TextBox Text="{Binding NodeValue, Converter={caec:DifferentValuesToString}}">
+      <!-- Commit on Enter or focus loss after a user edit, as in WPF: the default trigger made one history entry per key -->
+      <TextBox Text="{Binding NodeValue, Converter={caec:DifferentValuesToString}, UpdateSourceTrigger=Explicit}">
         <Interaction.Behaviors>
+          <sd:CommitTextBehavior/>
           <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
             <ChangePropertyAction PropertyName="PlaceholderText" Value="{sd:LocalizeString (Different values)}"/>
           </DataTriggerBehavior>
@@ -1187,8 +1193,9 @@
                 Command="{Binding [BrowseDirectory]}"
                 ToolTip.Tip="{sd:LocalizeString Browse directory, Context=Tooltip}"/>
         <TextBox Margin="2"
-                 Text="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:UDirectoryToString}}}">
+                 Text="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:UDirectoryToString}}, UpdateSourceTrigger=Explicit}">
           <Interaction.Behaviors>
+            <sd:CommitTextBehavior/>
             <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
               <ChangePropertyAction PropertyName="PlaceholderText" Value="{sd:LocalizeString (Different values)}"/>
             </DataTriggerBehavior>
@@ -1208,8 +1215,9 @@
                 Command="{Binding [BrowseFile]}"
                 ToolTip.Tip="{sd:LocalizeString Browse file, Context=Tooltip}"/>
         <TextBox Margin="2"
-                 Text="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:UFileToString}}}">
+                 Text="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:UFileToString}}, UpdateSourceTrigger=Explicit}">
           <Interaction.Behaviors>
+            <sd:CommitTextBehavior/>
             <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
               <ChangePropertyAction PropertyName="PlaceholderText" Value="{sd:LocalizeString (Different values)}"/>
             </DataTriggerBehavior>

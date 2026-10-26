@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core.Assets;
+using Stride.Core.Reflection;
 
 namespace Stride.GameStudio.Avalonia.Tests;
 
@@ -21,6 +22,9 @@ internal static class Module
         Directory.CreateDirectory(ConfigDirectory);
         Environment.SetEnvironmentVariable("XDG_CONFIG_HOME", ConfigDirectory);
         Environment.SetEnvironmentVariable("APPDATA", ConfigDirectory);
+
+        // The test asset types must be known to load the saved packages
+        AssemblyRegistry.Register(typeof(Module).Assembly, AssemblyCommonCategories.Assets);
 
         // What the desktop host would have parsed from the command line: no thumbnails and no previews, there is no graphics device
         App.Options = new StartupOptions { EnableThumbnails = false, DisablePreview = true };
