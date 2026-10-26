@@ -146,7 +146,7 @@ jobs:
           $projects = "${{ github.event.inputs.projects || inputs.projects }}"
           $filter = "${{ github.event.inputs.test-filter || inputs.test-filter }}"
           $neutral = '${{ matrix.graphics-api }}' -eq 'Direct3D11' -and ($projects -or $filter -or '${{ inputs.api-neutral-suites }}' -eq 'true')
-          $slnf = if ($neutral) { 'build/Stride.Tests.Game.Desktop.slnf' } else { 'build/Stride.Tests.Game.GPU.slnf' }
+          $slnf = if ($neutral) { 'sources/Stride.Tests.Game.Desktop.slnf' } else { 'sources/Stride.Tests.Game.GPU.slnf' }
           $target = dotnet run --project build/tools/Stride.TestSuites -- `
             --projects "$projects" --filter "$filter" --slnf $slnf
           Write-Host "Build/test target: $(if ($target) { $target } else { '(nothing)' })"

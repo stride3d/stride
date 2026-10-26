@@ -108,7 +108,7 @@ jobs:
 
       - name: Build Package
         run: |
-          dotnet build build\Stride.build `
+          dotnet build build\package.proj `
             -t:Package `
             --no-restore `
             -m -nr:false `

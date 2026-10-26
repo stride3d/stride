@@ -62,7 +62,7 @@ jobs:
       - name: Build
         id: build
         run: |
-          dotnet build build\Stride.Tests.Game.slnf `
+          dotnet build sources\Stride.Tests.Game.slnf `
             -p:StrideTestRuntimeIdentifier=win-x64 `
             -p:StrideNativeBuildMode=Clang `
             -p:StrideSkipAutoPack=true `
@@ -79,7 +79,7 @@ jobs:
           $filterArgs = if ($filter) { @('--filter', $filter) } else { @() }
           for ($i = 1; $i -le $repeat; $i++) {
             Write-Host "=== Test run $i / $repeat ==="
-            dotnet test build\Stride.Tests.Game.slnf `
+            dotnet test sources\Stride.Tests.Game.slnf `
               --no-build `
               --logger:"trx;LogFilePrefix=run-$i" --results-directory TestResults `
               --blame-hang-timeout 5m --blame-hang-dump-type full `

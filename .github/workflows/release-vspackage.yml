@@ -70,7 +70,7 @@ jobs:
       - name: Build VS Package
         run: |
           # --no-restore: the VSIXPlugin target restores its solution itself.
-          dotnet build build\Stride.build `
+          dotnet build build\package.proj `
             -t:VSIXPlugin `
             --no-restore `
             ${{ inputs.upload-binlog && !inputs.sign && '-bl' || '' }} -m -nr:false `

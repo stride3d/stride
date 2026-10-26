@@ -310,9 +310,13 @@ public sealed class StrideVersionManager
 
     /// <summary>The solution file (.sln/.slnx/.slnf) in <paramref name="workingDirectory"/>, or null if none.</summary>
     public string? FindSolution(string workingDirectory)
-        => Directory.Exists(workingDirectory)
+        => Directory.Exists(workingDirectory) && !IsStrideSourceCheckout(workingDirectory)
             ? Directory.EnumerateFiles(workingDirectory).FirstOrDefault(Solution.IsSolutionFile)
             : null;
+
+    // The root of a Stride source checkout (Stride.slnx next to sources/) is not a game project: its solution is the engine's.
+    private static bool IsStrideSourceCheckout(string directory)
+        => File.Exists(Path.Combine(directory, "Stride.slnx")) && Directory.Exists(Path.Combine(directory, "sources"));
 
     /// <summary>The first C# project (.csproj) in <paramref name="workingDirectory"/>, or null if none.</summary>
     public string? FindProject(string workingDirectory)
@@ -566,7 +570,7 @@ public sealed class StrideVersionManager
     // how `dotnet build` finds its target: the current directory only, not a recursive scan.
     private static List<string> GetProjectFiles(string workingDirectory)
     {
-        if (!Directory.Exists(workingDirectory))
+        if (!Directory.Exists(workingDirectory) || IsStrideSourceCheckout(workingDirectory))
             return [];
 
         var solutionFiles = Directory.EnumerateFiles(workingDirectory).Where(Solution.IsSolutionFile);

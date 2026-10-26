@@ -50,6 +50,7 @@ jobs:
           allow-unsafe-pr-checkout: true   # images only, nothing from it is executed
           lfs: true
           sparse-checkout: |
+            tests/editor/Stride.Editor.Tests/baselines
             tests/editor/baselines
             tests/enduser/Stride.Samples.Tests/Fixtures
 
@@ -72,7 +73,7 @@ jobs:
           RUN_ID: ${{ github.event.workflow_run.id }}
           RUN_URL: ${{ github.event.workflow_run.html_url }}
         run: |
-          cli="sources/tests/Stride.ScreenshotComparator.VisionGate/Stride.ScreenshotComparator.VisionGate.csproj"
+          cli="tests/infra/Stride.ScreenshotComparator.VisionGate/Stride.ScreenshotComparator.VisionGate.csproj"
           rc=0
           shopt -s nullglob
           captured=false
@@ -105,7 +106,10 @@ jobs:
           done
 
           # Editor captures → per-DPI editor baselines (the capture dir name encodes the DPI bucket,
-          # e.g. ui-test-out-dpi100 → tests/editor/baselines/dpi100). Uses the editor vision prompt.
+          # e.g. ui-test-out-dpi100 → tests/editor/Stride.Editor.Tests/baselines/dpi100). Uses the editor vision prompt.
+          # PRs branched before the editor tests moved have them in tests/editor/baselines.
+          editor_baselines=tests/editor/Stride.Editor.Tests/baselines
+          [ -d "$golds/$editor_baselines" ] || editor_baselines=tests/editor/baselines
           for d in artifacts/*/ui-test-out-dpi*; do
             [ -d "$d" ] || continue
             dpi="${d##*ui-test-out-}"   # ui-test-out-dpi100 → dpi100
@@ -118,8 +122,8 @@ jobs:
             captured=true
             echo "::group::vision gate over $d (baseline dpi=$dpi)"
             dotnet run --project "$cli" -nr:false -v:m -p:WarningLevel=0 -- \
-              --new "$d" --baseline "$golds/tests/editor/baselines/$dpi" --prompt editor "${report[@]}" \
-              --baseline-url "$golds_url/tests/editor/baselines/$dpi" || rc=1
+              --new "$d" --baseline "$golds/$editor_baselines/$dpi" --prompt editor "${report[@]}" \
+              --baseline-url "$golds_url/$editor_baselines/$dpi" || rc=1
             echo "::endgroup::"
           done
 

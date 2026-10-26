@@ -137,8 +137,10 @@ jobs:
 
       - name: Pack content templates
         run: |
-          dotnet build build\Stride.build `
+          # --no-restore: the target restores what it needs; the implicit restore would restore all of Stride.slnx
+          dotnet build build\package.proj `
             -t:PackageSamples `
+            --no-restore `
             -p:StrideSamplesVersion=${{ steps.version.outputs.version }} `
             -p:StrideSign=${{ inputs.sign }}
 
@@ -180,7 +182,7 @@ jobs:
       # tests' own pack identical to the one above.
       - name: Smoke test
         run: |
-          dotnet test sources\tools\Stride.Templates.Tests `
+          dotnet test tests\enduser\Stride.Templates.Tests `
             -c Release `
             -p:StridePackageBuild=true `
             -p:StrideSamplesVersion=${{ steps.version.outputs.version }} `
@@ -189,7 +191,8 @@ jobs:
       - name: Sign
         if: ${{ inputs.sign }}
         run: |
-          dotnet build build\Stride.build -t:SignPackage -p:StrideSign=true
+          # --no-restore: the target restores what it needs; the implicit restore would restore all of Stride.slnx
+          dotnet build build\package.proj -t:SignPackage --no-restore -p:StrideSign=true
         env:
           StrideSignTenantId: ${{ secrets.STRIDE_SIGN_TENANT_ID }}
           StrideSignClientId: ${{ secrets.STRIDE_SIGN_CLIENT_ID }}

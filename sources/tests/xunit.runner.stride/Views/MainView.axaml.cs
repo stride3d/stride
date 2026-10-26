@@ -568,7 +568,7 @@ public partial class MainView : UserControl
     }
 
     // A render is written to tests/local/<Suite>/<Platform.API>/<Device>/<name>.png, and its lane's gold is the same path
-    // without "local": tests/<Suite>/<Platform.API>/<Device>/<name>.png.
+    // under baselines: tests/baselines/<Suite>/<Platform.API>/<Device>/<name>.png.
     static string? OwnGoldPath(string currentPath)
     {
         foreach (var separator in new[] { '\\', '/' })
@@ -576,7 +576,7 @@ public partial class MainView : UserControl
             var local = $"{separator}tests{separator}local{separator}";
             var index = currentPath.LastIndexOf(local, System.StringComparison.OrdinalIgnoreCase);
             if (index >= 0)
-                return string.Concat(currentPath.AsSpan(0, index), $"{separator}tests{separator}", currentPath.AsSpan(index + local.Length));
+                return string.Concat(currentPath.AsSpan(0, index), $"{separator}tests{separator}baselines{separator}", currentPath.AsSpan(index + local.Length));
         }
         return null;
     }

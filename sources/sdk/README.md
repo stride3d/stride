@@ -1,16 +1,17 @@
-# Stride MSBuild SDK Packages
+# Stride MSBuild SDKs
 
-This directory contains three MSBuild SDK packages that provide build logic for all Stride projects.
+This directory contains the build logic of every Stride project: four MSBuild SDKs (props and targets) that each project imports directly from source.
 
-| Package | Purpose |
-|---------|---------|
-| **Stride.Build.Sdk** | Base SDK for all projects. Platform detection, target frameworks, graphics API multi-targeting, assembly processor, native dependencies. |
-| **Stride.Build.Sdk.Editor** | Composes `Stride.Build.Sdk`. Adds editor framework properties. |
-| **Stride.Build.Sdk.Tests** | Composes `Stride.Build.Sdk.Editor`. Adds xunit, test infrastructure, launcher code, asset compilation. |
+| SDK | Used by | Purpose |
+|-----|---------|---------|
+| **Stride.Build.Sdk** | Runtime libraries | Platform detection, target frameworks, graphics API multi-targeting, assembly processor, native dependencies. |
+| **Stride.Build.Sdk.Editor** | Editor and tool projects | Composes `Stride.Build.Sdk`. Adds editor framework properties. |
+| **Stride.Build.Sdk.Tests** | Test projects | Composes `Stride.Build.Sdk.Editor`. Adds xunit, test infrastructure, launcher code, asset compilation. |
+| **Stride.Build.Sdk.MultiPlatform.Tests** | Tests that run on several platforms | Composes `Stride.Build.Sdk.Tests`. Targets every platform in `$(StridePlatforms)`. |
 
-## Current Import Mode: Direct Imports
+They are for building the Stride engine itself, not for end-user game projects.
 
-All Stride projects currently import these SDK files **directly from source** rather than via NuGet packages:
+## How a project imports them
 
 ```xml
 <Project>
@@ -20,7 +21,7 @@ All Stride projects currently import these SDK files **directly from source** ra
 </Project>
 ```
 
-**Why:** MSBuild SDK resolution (`Sdk="Stride.Build.Sdk"`) requires the packages to be pre-built and cached in `~/.nuget/packages/` before the solution can open. Direct imports load files straight from the source tree — no pre-build step, and changes to `.targets` files take effect immediately.
+Files load straight from the source tree: there is no build step before opening the solution, and changes to `.props`/`.targets` files take effect immediately.
 
 **Why two different import mechanisms:**
 - The props import uses `GetDirectoryNameOfFileAbove` because `$(StrideRoot)` is not yet set when the first import runs (it is set by `sources/Directory.Build.props`, which is auto-discovered only after `Microsoft.NET.Sdk` loads `Microsoft.Common.props` — which happens inside `Sdk.props`).
@@ -28,16 +29,4 @@ All Stride projects currently import these SDK files **directly from source** ra
 
 The SDK internal cross-references (`Stride.Build.Sdk.Editor` -> `Stride.Build.Sdk`, etc.) also use `$(MSBuildThisFileDirectory)`-relative paths for the same reason.
 
-## Reverting to Full SDK Mode
-
-See the "Reverting to full-SDK style" section in `docs/build/SDK-GUIDE.md` for complete instructions.
-
-## Building the SDK Packages
-
-The packages are only needed when testing NuGet package distribution or reverting to full SDK mode:
-
-```bash
-dotnet build sources/sdk/Stride.Build.Sdk.slnx
-```
-
-For detailed documentation, see [docs/build/SDK-GUIDE.md](../../docs/build/SDK-GUIDE.md).
+For detailed documentation, including why these are no longer NuGet packages, see [docs/build/SDK-GUIDE.md](../../docs/build/SDK-GUIDE.md).
