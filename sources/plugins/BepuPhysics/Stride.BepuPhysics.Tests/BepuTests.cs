@@ -722,6 +722,10 @@ namespace Stride.BepuPhysics.Tests
                 // RunGameTest fails on any GPU validation error or warning reported while these frames render
                 for (var i = 0; i < 10; i++) await game.Script.NextFrame();
 
+                // Without contacts the line feature skips its draw, and this test would cover nothing there
+                var contactLines = game.SceneSystem.SceneInstance.VisibilityGroups.First().RenderObjects.OfType<LineRenderObject>().Single();
+                Assert.True(contactLines.VertexCount > 0, "No contact lines were drawn");
+
                 game.Exit();
             });
             RunGameTest(game);
