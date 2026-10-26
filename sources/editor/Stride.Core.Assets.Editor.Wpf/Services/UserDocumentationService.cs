@@ -82,47 +82,43 @@ namespace Stride.Core.Assets.Editor.Services
 
             var assemblyName = assembly.GetName().Name;
 
-            // Check if the assembly has already been marked as undocumented
-            if (assemblies.TryGetValue(assemblyName, out var documented) && !documented)
-                return false;
+            // Return early if the assembly has already been processed
+            if (assemblies.TryGetValue(assemblyName, out var documented))
+                return documented;
 
-            // If no documentation has been loaded yet, attempt to load it now
-            if (!assemblies.ContainsKey(assemblyName))
+            // No documentation has been loaded yet, attempt to load it now
+            var location = assembly.Location;
+            if (string.IsNullOrEmpty(location) && ViewModel.SessionViewModel.Instance.CurrentProject?.Package != null)
             {
-                var location = assembly.Location;
-                if (string.IsNullOrEmpty(location) && ViewModel.SessionViewModel.Instance.CurrentProject?.Package != null)
+                //Try to find the assembly in the loaded assemblies, since Location won't be populated in the case of User assemblies
+                var package = ViewModel.SessionViewModel.Instance.CurrentProject.Package;
+
+                if (package.Container is SolutionProject solutionProject && solutionProject.Type == ProjectType.Executable)
                 {
-                    //Try to find the assembly in the loaded assemblies, since Location won't be populated in the case of User assemblies
-                    var package = ViewModel.SessionViewModel.Instance.CurrentProject.Package;
-
-                    if (package.Container is SolutionProject solutionProject && solutionProject.Type == ProjectType.Executable)
+                    Log.Info($"Package {solutionProject.Name} is a solution project. Attempting to cache documentation for dependencies.");
+                    foreach (var dep in solutionProject.DirectDependencies)
                     {
-                        Log.Info($"Package {solutionProject.Name} is a solution project. Attempting to cache documentation for dependencies.");
-                        foreach (var dep in solutionProject.DirectDependencies)
-                        {
-                            var docPath = Path.Combine(Path.GetDirectoryName(solutionProject.TargetPath) ?? "", dep.Name + ".xml");
+                        var docPath = Path.Combine(Path.GetDirectoryName(solutionProject.TargetPath) ?? "", dep.Name + ".xml");
 
-                            CacheAssemblyDocumentationFromPath(dep.Name, docPath);
-                        }
-                    }
-                    else
-                    {
-                        foreach (var asm in package.LoadedAssemblies)
-                        {
-                            var name = asm.Assembly.GetName();
-                            if (name.Name == assemblyName)
-                            {
-                                CacheAssemblyDocumentationFromPath(assemblyName, asm.Path);
-                                break;
-                            }
-                        }
+                        CacheAssemblyDocumentationFromPath(dep.Name, docPath);
                     }
                 }
                 else
                 {
-                    CacheAssemblyDocumentationFromPath(assemblyName, location);
+                    foreach (var asm in package.LoadedAssemblies)
+                    {
+                        var name = asm.Assembly.GetName();
+                        if (name.Name == assemblyName)
+                        {
+                            CacheAssemblyDocumentationFromPath(assemblyName, asm.Path);
+                            break;
+                        }
+                    }
                 }
-
+            }
+            else
+            {
+                CacheAssemblyDocumentationFromPath(assemblyName, location);
             }
 
             return assemblies.TryGetValue(assemblyName, out documented) && documented;
