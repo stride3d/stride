@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.CommandLine;
+using System.CommandLine.Parsing;
 using Stride;
 using Stride.Cli.Core;
 using Stride.Core;
@@ -20,7 +21,12 @@ internal static class ToolCommands
         };
         var version = new Option<string?>("--version") { Description = "Open with a specific Stride version instead of the one from a project in the current directory." };
         var framework = new Option<string?>(DotNetHostSelector.FrameworkArg) { Description = "Run Game Studio on at least this .NET major (e.g. net11.0); a solution that needs a newer one still gets it." };
-        var editor = new Option<GameStudioEditor?>("--editor") { Description = "Game Studio to open, wpf or avalonia. Defaults to WPF on Windows when the version has it, else Avalonia. Off Windows, WPF runs under Wine (wine on the PATH, its prefix set up for Stride)." };
+        var editor = new Option<GameStudioEditor?>("--editor")
+        {
+            Description = "Game Studio to open, wpf or avalonia. Defaults to WPF on Windows when the version has it, else Avalonia. Off Windows, WPF runs under Wine (wine on the PATH, its prefix set up for Stride).",
+            HelpName = "wpf|avalonia",
+            CustomParser = ParseEditor,
+        };
 
         var command = new Command("studio", "Open Game Studio.");
         command.Arguments.Add(path);
@@ -37,6 +43,14 @@ internal static class ToolCommands
             if (chosen is null)
                 return 1;
             var underWine = !chosen.Value.RunsNatively();
+            // Before anything runs under Wine: winepath below can take a while, even create a prefix.
+            var executable = manager.LocateGameStudio(resolved, chosen.Value);
+            var description = $"the {chosen.Value.DisplayName()} Game Studio for Stride {resolved}";
+            if (executable is null)
+            {
+                Console.Error.WriteLine($"Could not find {description}.");
+                return 1;
+            }
 
             // Open the solution in the current directory by default. Game Studio expects a .sln (opening a bare
             // .csproj crashes it), so only a solution is auto-selected — never a project.
@@ -48,14 +62,28 @@ internal static class ToolCommands
             if (parseResult.GetValue(framework) is { } explicitFramework)
                 args.AddRange([DotNetHostSelector.FrameworkArg, explicitFramework]);
 
-            var executable = manager.LocateGameStudio(resolved, chosen.Value);
-            var description = $"the {chosen.Value.DisplayName()} Game Studio for Stride {resolved}";
             return underWine
                 ? Tools.RunUnderWine(executable, description, args)
                 : Tools.Run(executable, description, args, wait: false, sessionPath: solution);
         });
 
         return command;
+    }
+
+    // A Game Studio by its name, any case. Not by number, which the default enum parsing would take, even outside of
+    // GameStudioEditors.All.
+    private static GameStudioEditor? ParseEditor(ArgumentResult result)
+    {
+        if (result.Tokens.Count == 0)
+            return null;
+        var token = result.Tokens[0].Value;
+        foreach (var candidate in GameStudioEditors.All)
+        {
+            if (string.Equals(candidate.ToString(), token, StringComparison.OrdinalIgnoreCase))
+                return candidate;
+        }
+        result.AddError($"Unknown Game Studio '{token}': use wpf or avalonia.");
+        return null;
     }
 
     private const string WineRequired = "runs on Windows only, or under Wine: put wine on the PATH, with its prefix set up for Stride";
