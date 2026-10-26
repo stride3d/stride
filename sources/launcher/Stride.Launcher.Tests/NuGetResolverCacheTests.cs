@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core;
+using NuGet.Versioning;
 using Stride.Core.Assets;
 using Stride.Core.Packages;
 using Xunit;
@@ -60,6 +61,31 @@ public sealed class NuGetResolverCacheTests : IDisposable
         Assert.Equal(2, NuGetResolverCache.Delete("Stride.GameStudio", "4.5.0-dev", root));
 
         Assert.Equal(kept.Order(), Directory.EnumerateDirectories(root).Select(Path.GetFileName).Order());
+    }
+
+    // From the PackageVersion the store uninstalls to the folder the resolver restored into, named from NuGetVersion
+    [Theory]
+    [InlineData("4.5.0-dev")]
+    [InlineData("4.5.0-beta8-dev3")]
+    [InlineData("4.5.0.1-dev")]
+    public void DeleteResolverRestore_DeletesTheFoldersTheResolverMade(string version)
+    {
+        var folder = NuGetResolverCache.GetFolder("Stride.GameStudio", new NuGetVersion(version).ToString(), "net10.0-windows7.0", "win-x64");
+        var restored = Path.Combine(root, Path.GetFileName(folder));
+        Directory.CreateDirectory(restored);
+
+        Assert.Equal(1, NugetStore.DeleteResolverRestore("Stride.GameStudio", new PackageVersion(version), root));
+        Assert.False(Directory.Exists(restored));
+    }
+
+    [Fact]
+    public void DeleteResolverRestore_LeavesReleases()
+    {
+        var restored = Path.Combine(root, "Stride.GameStudio-4.4.0.1-net10.0-windows7.0-win-x64");
+        Directory.CreateDirectory(restored);
+
+        Assert.Equal(0, NugetStore.DeleteResolverRestore("Stride.GameStudio", new PackageVersion("4.4.0.1"), root));
+        Assert.True(Directory.Exists(restored));
     }
 
     [Fact]
