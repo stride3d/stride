@@ -21,8 +21,8 @@ public class TestResourceDebugNames : GraphicTestGameBase
     {
         PerformTest(game =>
         {
-            var texture = Texture.New2D(game.GraphicsDevice, 4, 4, PixelFormat.R8G8B8A8_UNorm);
-            var buffer = Buffer.Vertex.New(game.GraphicsDevice, 64);
+            using var texture = Texture.New2D(game.GraphicsDevice, 4, 4, PixelFormat.R8G8B8A8_UNorm);
+            using var buffer = Buffer.Vertex.New(game.GraphicsDevice, 64);
 
             texture.Name = "RenamedTexture";
             buffer.Name = "RenamedBuffer";
@@ -40,13 +40,14 @@ public class TestResourceDebugNames : GraphicTestGameBase
     {
         PerformTest(game =>
         {
-            var texture = Texture.New2D(game.GraphicsDevice, 4, 4, mipCount: 2, PixelFormat.R8G8B8A8_UNorm);
+            using var texture = Texture.New2D(game.GraphicsDevice, 4, 4, mipCount: 2, PixelFormat.R8G8B8A8_UNorm);
             texture.Name = "RenamedTexture";
-            var view = texture.ToTextureView(new TextureViewDescription { Type = ViewType.Single, MipLevel = 1, Format = texture.Format, Flags = TextureFlags.ShaderResource });
+            using var view = texture.ToTextureView(new TextureViewDescription { Type = ViewType.Single, MipLevel = 1, Format = texture.Format, Flags = TextureFlags.ShaderResource });
 
             view.Name = "RenamedView";
 
-            Assert.Contains("RenamedTexture", GetNativeName(texture));
+            // The view's own name starts with its parent's: only the parent's name is followed by its handle
+            Assert.StartsWith("RenamedTexture (", GetNativeName(texture));
         });
     }
 
