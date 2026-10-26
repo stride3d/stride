@@ -26,10 +26,11 @@ using Stride.Assets.Entities;
 using Stride.Assets.Materials;
 using Stride.Assets.Textures;
 using Stride.Editor.Build;
+using Stride.Editor.EditorGame.ContentLoader;
 using Stride.Editor.EditorGame.Game;
 using Stride.Graphics;
 
-namespace Stride.Editor.EditorGame.ContentLoader
+namespace Stride.Assets.Editor.EditorGame.ContentLoader
 {
     /// <summary>
     /// A class that handles loading/unloading referenced resources for a game used in an editor.

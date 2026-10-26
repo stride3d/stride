@@ -27,7 +27,15 @@ namespace Stride.Editor.Build
         private readonly bool createDebugTools;
         private int currentJobToken = -1;
 
-        public GameStudioBuilderService(SessionViewModel session, GameSettingsProviderService settingsProvider, string buildDirectory, bool createDebugTools = true)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GameStudioBuilderService"/> class.
+        /// </summary>
+        /// <param name="session">The session whose assets to build.</param>
+        /// <param name="settingsProvider">The provider of the game settings of the session.</param>
+        /// <param name="shaderImporter">The importer of the shaders of the session, built first; <c>null</c> when there are none to import.</param>
+        /// <param name="buildDirectory">The directory of the build database.</param>
+        /// <param name="createDebugTools">Whether to create the debug pages, when the host registers an <see cref="IEditorDebugService"/>.</param>
+        public GameStudioBuilderService(SessionViewModel session, GameSettingsProviderService settingsProvider, IShaderImporter? shaderImporter, string buildDirectory, bool createDebugTools = true)
             : base(buildDirectory)
         {
             Session = session ?? throw new ArgumentNullException(nameof(session));
@@ -40,8 +48,7 @@ namespace Stride.Editor.Build
                 effectCompilerServiceDebugPage = debugService?.CreateLogDebugPage(GlobalLogger.GetLogger("EffectCompilerCache"), "EffectCompilerCache");
             }
 
-            var shaderImporter = new StrideShaderImporter();
-            var shaderBuildSteps = shaderImporter.CreateSystemShaderBuildSteps(session);
+            var shaderBuildSteps = shaderImporter?.CreateSystemShaderBuildSteps(session);
             if (shaderBuildSteps != null)
             {
                 shaderBuildSteps.StepProcessed += ShaderBuildStepsStepProcessed;
@@ -50,7 +57,7 @@ namespace Stride.Editor.Build
             }
             else
             {
-                // No package of the session has system shaders (a session without the Stride package, the tests): nothing to wait for
+                // No importer, or nothing left to import: nothing to wait for
                 shaderLoadedEvent.Set();
                 shadersLoaded.TrySetResult();
             }

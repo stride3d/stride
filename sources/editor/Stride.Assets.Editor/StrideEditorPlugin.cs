@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Reflection;
+using Stride.Assets.Editor.Build;
 using Stride.Assets.Editor.Quantum.NodePresenters.Commands;
 using Stride.Assets.Editor.Quantum.NodePresenters.Updaters;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories;
@@ -123,7 +124,7 @@ public sealed class StrideEditorPlugin : StrideAssetsPlugin
         var settingsProvider = new GameSettingsProviderService(session);
         session.ServiceProvider.RegisterService(settingsProvider);
 
-        var builderService = new GameStudioBuilderService(sessionViewModel, settingsProvider, buildDirectory);
+        var builderService = new GameStudioBuilderService(sessionViewModel, settingsProvider, new StrideShaderImporter(), buildDirectory);
         session.ServiceProvider.RegisterService(builderService);
         session.ServiceProvider.RegisterService(builderService.Database); // TODO: this should be removed, the AssetBuilderService is reachable from anywhere now
 

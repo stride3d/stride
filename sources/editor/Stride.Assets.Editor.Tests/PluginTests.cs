@@ -141,6 +141,9 @@ public sealed class PluginTests
         var builder = fixture.ServiceProvider.TryGet<GameStudioBuilderService>();
         Assert.NotNull(builder);
         Assert.Same(builder.Database, fixture.ServiceProvider.TryGet<GameStudioDatabase>());
+        // The builder imports the shaders of the session first, with the Stride shader importer
+        Assert.NotNull(builder.ShaderImportProgress);
+        await builder.WaitForShadersAsync().WaitAsync(TimeSpan.FromSeconds(30));
         // The thumbnail service is off in this fixture (no graphics device)
         Assert.Null(fixture.ServiceProvider.TryGet<GameStudioThumbnailService>());
         // The build directory lives under the package that owns the game settings
