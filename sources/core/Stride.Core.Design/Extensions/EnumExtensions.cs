@@ -23,7 +23,7 @@ public static class EnumExtensions
             if (bits == 0L)
                 continue; // skip the zero value
 
-            while (flag < bits)
+            while (flag < bits && flag != 0)
                 flag <<= 1;
 
             if (flag == bits)
