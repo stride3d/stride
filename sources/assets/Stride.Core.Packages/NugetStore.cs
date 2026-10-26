@@ -1208,6 +1208,23 @@ public partial class NugetStore : INugetDownloadProgress
         return Directory.Exists(dir) ? dir : null;
     }
 
+    /// <summary>
+    /// The build output (<c>bin/&lt;StrideDevConfiguration&gt;</c>) of the checkout project a dev-redirect stub installed at
+    /// <paramref name="packagePath"/> stands for, or null when the folder isn't such a stub or the project isn't built.
+    /// A stub drops the tools/ closure of a tool package, so a tool of a dev version runs from there.
+    /// </summary>
+    public static string? TryGetDevRedirectOutputDirectory(string packagePath, string packageId)
+    {
+        var projectDirectory = TryGetDevRedirectProjectDirectory(packagePath, packageId);
+        if (projectDirectory is null)
+            return null;
+
+        var text = File.ReadAllText(Path.Combine(packagePath, "build", $"{packageId}.props"));
+        var configuration = Regex.Match(text, "<StrideDevConfiguration[^>]*>(.*?)</StrideDevConfiguration>").Groups[1].Value;
+        var outputDirectory = Path.Combine(projectDirectory, "bin", string.IsNullOrEmpty(configuration) ? "Debug" : configuration);
+        return Directory.Exists(outputDirectory) ? outputDirectory : null;
+    }
+
     public string GetRedirectFile(NugetLocalPackage package)
     {
         return Path.Combine(package.Path, $"{package.Id}.redirect");
