@@ -175,10 +175,32 @@ public sealed class StrideDevVersionViewModel : StrideVersionViewModel
     public override string Name => "Local " + path.MakeRelative(path.GetParent());
 
     /// <inheritdoc/>
-    public override string DisplayName => localPackage is not null ? $"{PackageSimpleName} {localPackage.Version} (local)" : base.DisplayName;
+    public override string DisplayName => localPackage is null ? base.DisplayName
+        : EditorName is null ? $"{PackageSimpleName} {localPackage.Version} (local)"
+        : $"{PackageSimpleName} {localPackage.Version} (local, {EditorName})";
 
     /// <inheritdoc/>
     public override string ListName => localPackage is not null ? $"{PackageSimpleName} {localPackage.Version}" : base.ListName;
+
+    /// <inheritdoc/>
+    public override string StartName => EditorName is not null ? $"{FullName} ({EditorName})" : FullName;
+
+    /// <summary>
+    /// Gets the Game Studio this local build is of, WPF or Avalonia, or null when its package is neither. A checkout builds both:
+    /// two packages of the same version, that the version list, the Start button and the versions a recent project can be
+    /// opened with tell apart by it.
+    /// </summary>
+    public string? EditorName => GetEditorName(localPackage?.Id);
+
+    /// <summary>
+    /// Gets the badge of <see cref="EditorName"/>, next to the LOCAL badge in the version list.
+    /// </summary>
+    public string? EditorBadge => EditorName?.ToUpperInvariant();
+
+    /// <summary>
+    /// Gets the Game Studio of the package <paramref name="packageId"/>, WPF or Avalonia, or null when it isn't one of them.
+    /// </summary>
+    internal static string? GetEditorName(string? packageId) => GameStudioEditors.FromPackageId(packageId)?.DisplayName();
 
     /// <inheritdoc/>
     public override string FullName => localPackage?.Version.ToString() ?? path.MakeRelative(path.GetParent());

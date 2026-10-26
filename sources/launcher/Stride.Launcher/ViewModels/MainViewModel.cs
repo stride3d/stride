@@ -128,8 +128,24 @@ public sealed class MainViewModel : DispatcherViewModel, IPackagesLogger, IDispo
                 value?.IsActive = true;
                 Dispatcher.InvokeAsync(() => StartStudioCommand.IsEnabled = value?.CanStart ?? false);
                 RefreshRuntimes();
+                // A click on a recent project opens it with the active version when several local builds match it
+                UpdateRecentProjectsOpenOptions();
             }
         }
+    }
+
+    private void UpdateRecentProjectsOpenOptions()
+    {
+        List<RecentProjectViewModel> projects;
+        lock (RecentProjects)
+        {
+            projects = [.. RecentProjects];
+        }
+        Dispatcher.InvokeAsync(() =>
+        {
+            foreach (var project in projects)
+                project.UpdateOpenOptions(StrideVersions);
+        });
     }
 
     public ObservableList<RecentProjectViewModel> RecentProjects { get; } = [];

@@ -15,6 +15,8 @@ namespace Stride.Cli.Core;
 /// </summary>
 public sealed class StrideVersionManager
 {
+    // The package every Stride version is published under, the one install and update fetch from the sources. The
+    // Avalonia Game Studio's package (GameStudioEditor.Avalonia) is only found once installed, e.g. by a local build.
     private const string MainPackageId = "Stride.GameStudio";
 
     private readonly NugetStore store = new(oldRootDirectory: null);
@@ -26,15 +28,26 @@ public sealed class StrideVersionManager
     public event Action? RestoreFinished;
     private readonly ManagedVersionStore managedVersions = new();
 
-    /// <summary>Lists the installed Stride versions, newest first.</summary>
+    /// <summary>
+    ///   Lists the installed Stride versions, newest first: a version is installed when one of its Game Studios is,
+    ///   and is listed once with all of them.
+    /// </summary>
     public IReadOnlyList<StrideVersion> GetInstalled()
     {
-        return store.GetPackagesInstalled(store.MainPackageIds)
-            .Where(package => package.Id == MainPackageId)
-            .OrderByDescending(package => package.Version)
-            .Select(ToStrideVersion)
+        return store.GetPackagesInstalled(GameStudioEditors.All.Select(editor => editor.PackageId()))
+            .GroupBy(package => package.Version)
+            .OrderByDescending(group => group.Key)
+            .Select(group => new StrideVersion(group.Key, GameStudioEditors.All
+                .Where(editor => group.Any(package => GameStudioEditors.FromPackageId(package.Id) == editor))
+                .ToList()))
             .ToList();
     }
+
+    /// <summary>The Game Studios installed for <paramref name="version"/>, in <see cref="GameStudioEditors.All"/> order.</summary>
+    public IReadOnlyList<GameStudioEditor> GetInstalledEditors(PackageVersion version)
+        => GameStudioEditors.All
+            .Where(editor => !string.IsNullOrEmpty(store.GetInstalledPath(editor.PackageId(), version)))
+            .ToList();
 
     /// <summary>
     ///   Adds the nightly feed (<see cref="NugetStore.NightlyFeedUrl"/>) unless a source has it already, and returns
@@ -93,7 +106,7 @@ public sealed class StrideVersionManager
         var installed = await InstallWithProgress(target, progress)
             ?? throw new InvalidOperationException($"Failed to install Stride {target.Version}.");
 
-        return ToStrideVersion(installed);
+        return ToStrideVersion(installed.Version);
     }
 
     // Installs a resolved package, forwarding NuGet's restore events as InstallProgress updates.
@@ -134,32 +147,37 @@ public sealed class StrideVersionManager
     }
 
     /// <summary>
-    ///   Uninstalls the given Stride version along with any dependencies it pulled in that are no longer used
-    ///   by another installed version. Returns false if it was not installed.
+    ///   Uninstalls the given Stride version (each of its Game Studios) along with any dependencies they pulled in
+    ///   that are no longer used by another installed version. Returns false if it was not installed.
     /// </summary>
     public async Task<bool> Uninstall(string versionSpec, IProgress<InstallProgress>? progress = null)
     {
-        var local = store.FindLocalPackage(MainPackageId, new PackageVersion(versionSpec));
-        if (local is null)
+        var version = new PackageVersion(versionSpec);
+        var locals = GameStudioEditors.All
+            .Select(editor => store.FindLocalPackage(editor.PackageId(), version))
+            .OfType<NugetPackage>()
+            .ToList();
+        if (locals.Count == 0)
             return false;
 
         // Dependency closure of the version being removed.
         var removing = new Dictionary<string, NugetLocalPackage>();
-        CollectStrideDependencies(local, removing);
+        foreach (var local in locals)
+            CollectStrideDependencies(local, removing);
 
         // Dependencies still referenced by another installed version are kept.
         var stillReferenced = new Dictionary<string, NugetLocalPackage>();
         foreach (var main in store.GetPackagesInstalled(store.MainPackageIds))
         {
-            if (main.Id == local.Id && main.Version.Equals(local.Version))
+            if (locals.Any(local => main.Id == local.Id && main.Version.Equals(local.Version)))
                 continue;
             CollectStrideDependencies(main, stillReferenced);
         }
 
         // The version itself plus its now-unused dependencies.
-        var toRemove = new List<NugetPackage> { local };
+        var toRemove = new List<NugetPackage>(locals);
         foreach (var (key, dependency) in removing)
-            if (!stillReferenced.ContainsKey(key))
+            if (!stillReferenced.ContainsKey(key) && !locals.Any(local => local.Id == dependency.Id && local.Version.Equals(dependency.Version)))
                 toRemove.Add(dependency);
 
         for (var i = 0; i < toRemove.Count; i++)
@@ -236,7 +254,7 @@ public sealed class StrideVersionManager
             }
 
             managed[targetLine] = newest.Version.ToString();
-            updated.Add(ToStrideVersion(installedPackage));
+            updated.Add(ToStrideVersion(installedPackage.Version));
         }
 
         managedVersions.Save(managed);
@@ -551,9 +569,16 @@ public sealed class StrideVersionManager
         return paths;
     }
 
-    /// <summary>Locates the Game Studio executable for the given version, or null if not found.</summary>
-    public string? LocateGameStudio(PackageVersion version)
-        => LocateExecutable("Stride.GameStudio", version, "Stride.GameStudio.Avalonia.Desktop.exe", "Stride.GameStudio.exe");
+    /// <summary>
+    ///   Locates <paramref name="editor"/>'s executable for the given version in its own package, or null if not
+    ///   found. Tools.Run starts the apphost next to it when there is one, else the .dll via `dotnet`, so the .dll
+    ///   stands for an editor packed without its apphost (and off Windows, where an apphost has no extension). An
+    ///   editor that doesn't run natively here runs under Wine, which needs its Windows .exe.
+    /// </summary>
+    public string? LocateGameStudio(PackageVersion version, GameStudioEditor editor)
+        => editor.RunsNatively()
+            ? LocateExecutable(editor.PackageId(), version, editor.PackageId() + ".exe", editor.PackageId() + ".dll")
+            : LocateExecutable(editor.PackageId(), version, includeWindowsOnly: true, editor.PackageId() + ".exe");
 
     /// <summary>
     ///   Locates the asset compiler executable for the given version, or null if not found. The package is
@@ -660,6 +685,11 @@ public sealed class StrideVersionManager
 
     // Searches the package's tools/ and lib/ folders for the first matching executable.
     private string? LocateExecutable(string packageId, PackageVersion version, params string[] executableNames)
+        => LocateExecutable(packageId, version, includeWindowsOnly: OperatingSystem.IsWindows(), executableNames);
+
+    // The same, also in the Windows-only TFM folders (net10.0-windows7.0) when includeWindowsOnly: off Windows, those
+    // builds only run under Wine.
+    private string? LocateExecutable(string packageId, PackageVersion version, bool includeWindowsOnly, params string[] executableNames)
     {
         var installPath = store.GetInstalledPath(packageId, version);
         if (string.IsNullOrEmpty(installPath))
@@ -674,8 +704,8 @@ public sealed class StrideVersionManager
             foreach (var executableName in executableNames)
             {
                 var match = Directory.EnumerateFiles(directory, executableName, SearchOption.AllDirectories)
-                    // Skip Windows-only TFM folders (net10.0-windows7.0) off Windows; sort for a deterministic pick.
-                    .Where(path => OperatingSystem.IsWindows() || !IsWindowsTargetFrameworkFolder(path))
+                    // Skip Windows-only TFM folders (net10.0-windows7.0) unless asked; sort for a deterministic pick.
+                    .Where(path => includeWindowsOnly || !IsWindowsTargetFrameworkFolder(path))
                     .OrderBy(path => path, StringComparer.Ordinal)
                     .FirstOrDefault();
                 if (match is not null)
@@ -690,8 +720,8 @@ public sealed class StrideVersionManager
     private static bool IsWindowsTargetFrameworkFolder(string path)
         => path.Contains("-windows", StringComparison.OrdinalIgnoreCase);
 
-    private StrideVersion ToStrideVersion(NugetLocalPackage package)
-        => new(package.Id, package.Version, store.GetInstalledPath(package.Id, package.Version));
+    private StrideVersion ToStrideVersion(PackageVersion version)
+        => new(version, GetInstalledEditors(version));
 
     // available is newest-first. A "major.minor" spec resolves to the newest patch in that line.
     private static NugetServerPackage? Resolve(IReadOnlyList<NugetServerPackage> available, string? versionSpec, bool includePrerelease, bool includeNightly)
