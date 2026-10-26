@@ -65,7 +65,7 @@ namespace Stride.Core.Presentation.Windows
         /// Gets the collection of currently visible modal windows.
         /// </summary>
         /// <remarks>
-        /// Windows destroyed without a hide event (Wine does not raise <c>EVENT_OBJECT_HIDE</c> for them) are dropped on read.
+        /// Windows destroyed without a hide event (Wine does not raise <c>EVENT_OBJECT_HIDE</c> for them) are dropped when this is read from the dispatcher thread.
         /// </remarks>
         public static IReadOnlyList<WindowInfo> ModalWindows
         {
