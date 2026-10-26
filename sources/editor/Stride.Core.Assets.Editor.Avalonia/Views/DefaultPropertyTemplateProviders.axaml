@@ -847,7 +847,7 @@
                            ToolTip.Tip="{sd:LocalizeString Unicode value, Context=ToolTip}">
           <Interaction.Behaviors>
             <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
-              <ChangePropertyAction PropertyName="Watermark" Value="{sd:LocalizeString (Different values)}"/>
+              <ChangePropertyAction PropertyName="PlaceholderText" Value="{sd:LocalizeString (Different values)}"/>
             </DataTriggerBehavior>
           </Interaction.Behaviors>
         </sd:NumericTextBox>
@@ -863,7 +863,7 @@
                        Maximum="{Binding [Maximum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}}, FallbackValue={x:Static s:Decimal.MaxValue}}">
       <Interaction.Behaviors>
         <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
-          <ChangePropertyAction PropertyName="Watermark" Value="{sd:LocalizeString (Different values)}"/>
+          <ChangePropertyAction PropertyName="PlaceholderText" Value="{sd:LocalizeString (Different values)}"/>
         </DataTriggerBehavior>
       </Interaction.Behaviors>
     </sd:NumericTextBox>
@@ -881,7 +881,7 @@
                        Maximum="{Binding [Maximum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}}, FallbackValue={x:Static s:Decimal.MaxValue}}">
       <Interaction.Behaviors>
         <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
-          <ChangePropertyAction PropertyName="Watermark" Value="{sd:LocalizeString (Different values)}"/>
+          <ChangePropertyAction PropertyName="PlaceholderText" Value="{sd:LocalizeString (Different values)}"/>
         </DataTriggerBehavior>
       </Interaction.Behaviors>
     </sd:NumericTextBox>
@@ -927,7 +927,7 @@
                            Maximum="{Binding [Maximum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}}, FallbackValue={x:Static s:Decimal.MaxValue}}">
           <Interaction.Behaviors>
             <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
-              <ChangePropertyAction PropertyName="Watermark" Value="{sd:LocalizeString (Different values)}"/>
+              <ChangePropertyAction PropertyName="PlaceholderText" Value="{sd:LocalizeString (Different values)}"/>
             </DataTriggerBehavior>
           </Interaction.Behaviors>
         </sd:NumericTextBox>
@@ -941,7 +941,7 @@
       <TextBox Text="{Binding NodeValue, Converter={caec:DifferentValuesToString}}">
         <Interaction.Behaviors>
           <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
-            <ChangePropertyAction PropertyName="Watermark" Value="{sd:LocalizeString (Different values)}"/>
+            <ChangePropertyAction PropertyName="PlaceholderText" Value="{sd:LocalizeString (Different values)}"/>
           </DataTriggerBehavior>
         </Interaction.Behaviors>
       </TextBox>
@@ -955,7 +955,7 @@
                          Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}}">
         <Interaction.Behaviors>
           <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
-            <ChangePropertyAction PropertyName="Watermark" Value="{sd:LocalizeString (Different values)}"/>
+            <ChangePropertyAction PropertyName="PlaceholderText" Value="{sd:LocalizeString (Different values)}"/>
           </DataTriggerBehavior>
         </Interaction.Behaviors>
       </sd:DateTimeEditor>
@@ -969,7 +969,7 @@
                          Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}}">
         <Interaction.Behaviors>
           <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
-            <ChangePropertyAction PropertyName="Watermark" Value="×"/>
+            <ChangePropertyAction PropertyName="PlaceholderText" Value="×"/>
           </DataTriggerBehavior>
         </Interaction.Behaviors>
       </sd:TimeSpanEditor>
@@ -983,7 +983,7 @@
                       Palette="{x:Static caev:ColorPalettes.Metals}">
         <Interaction.Behaviors>
           <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
-            <ChangePropertyAction PropertyName="Watermark" Value="{sd:LocalizeString (Different values)}"/>
+            <ChangePropertyAction PropertyName="PlaceholderText" Value="{sd:LocalizeString (Different values)}"/>
           </DataTriggerBehavior>
         </Interaction.Behaviors>
       </sd:ColorEditor>
@@ -997,7 +997,7 @@
                        Palette="{x:Static caev:ColorPalettes.Metals}">
         <Interaction.Behaviors>
           <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
-            <ChangePropertyAction PropertyName="Watermark" Value="{sd:LocalizeString (Different values)}"/>
+            <ChangePropertyAction PropertyName="PlaceholderText" Value="{sd:LocalizeString (Different values)}"/>
           </DataTriggerBehavior>
         </Interaction.Behaviors>
       </sd:Color3Editor>
@@ -1011,7 +1011,7 @@
                        Palette="{x:Static caev:ColorPalettes.Metals}">
         <Interaction.Behaviors>
           <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
-            <ChangePropertyAction PropertyName="Watermark" Value="{sd:LocalizeString (Different values)}"/>
+            <ChangePropertyAction PropertyName="PlaceholderText" Value="{sd:LocalizeString (Different values)}"/>
           </DataTriggerBehavior>
         </Interaction.Behaviors>
       </sd:Color4Editor>
@@ -1026,7 +1026,7 @@
                         DecimalPlaces="3">
         <Interaction.Behaviors>
           <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
-            <ChangePropertyAction PropertyName="Watermark" Value="≠"/>
+            <ChangePropertyAction PropertyName="PlaceholderText" Value="≠"/>
           </DataTriggerBehavior>
         </Interaction.Behaviors>
       </sd:Vector2Editor>
@@ -1041,7 +1041,7 @@
                         DecimalPlaces="3">
         <Interaction.Behaviors>
           <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
-            <ChangePropertyAction PropertyName="Watermark" Value="≠"/>
+            <ChangePropertyAction PropertyName="PlaceholderText" Value="≠"/>
           </DataTriggerBehavior>
         </Interaction.Behaviors>
       </sd:Vector3Editor>
@@ -1056,7 +1056,7 @@
                         DecimalPlaces="3">
         <Interaction.Behaviors>
           <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
-            <ChangePropertyAction PropertyName="Watermark" Value="≠"/>
+            <ChangePropertyAction PropertyName="PlaceholderText" Value="≠"/>
           </DataTriggerBehavior>
         </Interaction.Behaviors>
       </sd:Vector4Editor>
@@ -1070,7 +1070,7 @@
                      Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}, UpdateSourceTrigger=Explicit}">
         <Interaction.Behaviors>
           <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
-            <ChangePropertyAction PropertyName="Watermark" Value="≠"/>
+            <ChangePropertyAction PropertyName="PlaceholderText" Value="≠"/>
           </DataTriggerBehavior>
         </Interaction.Behaviors>
       </sd:Int2Editor>
@@ -1084,7 +1084,7 @@
                      Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}, UpdateSourceTrigger=Explicit}">
         <Interaction.Behaviors>
           <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
-            <ChangePropertyAction PropertyName="Watermark" Value="≠"/>
+            <ChangePropertyAction PropertyName="PlaceholderText" Value="≠"/>
           </DataTriggerBehavior>
         </Interaction.Behaviors>
       </sd:Int3Editor>
@@ -1098,7 +1098,7 @@
                      Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}, UpdateSourceTrigger=Explicit}">
         <Interaction.Behaviors>
           <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
-            <ChangePropertyAction PropertyName="Watermark" Value="≠"/>
+            <ChangePropertyAction PropertyName="PlaceholderText" Value="≠"/>
           </DataTriggerBehavior>
         </Interaction.Behaviors>
       </sd:Int4Editor>
@@ -1112,7 +1112,7 @@
                           Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}, UpdateSourceTrigger=Explicit}">
         <Interaction.Behaviors>
           <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
-            <ChangePropertyAction PropertyName="Watermark" Value="≠"/>
+            <ChangePropertyAction PropertyName="PlaceholderText" Value="≠"/>
           </DataTriggerBehavior>
         </Interaction.Behaviors>
       </sd:RectangleEditor>
@@ -1126,7 +1126,7 @@
                            Value="{Binding NodeValue, Converter={caec:DifferentValuesToNull}, UpdateSourceTrigger=Explicit}">
         <Interaction.Behaviors>
           <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
-            <ChangePropertyAction PropertyName="Watermark" Value="≠"/>
+            <ChangePropertyAction PropertyName="PlaceholderText" Value="≠"/>
           </DataTriggerBehavior>
         </Interaction.Behaviors>
       </sd:RectangleFEditor>
@@ -1141,7 +1141,7 @@
                            DecimalPlaces="3">
         <Interaction.Behaviors>
           <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
-            <ChangePropertyAction PropertyName="Watermark" Value="≠"/>
+            <ChangePropertyAction PropertyName="PlaceholderText" Value="≠"/>
           </DataTriggerBehavior>
         </Interaction.Behaviors>
       </sd:QuaternionEditor>
@@ -1156,7 +1156,7 @@
                        DecimalPlaces="3">
         <Interaction.Behaviors>
           <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
-            <ChangePropertyAction PropertyName="Watermark" Value="≠"/>
+            <ChangePropertyAction PropertyName="PlaceholderText" Value="≠"/>
           </DataTriggerBehavior>
         </Interaction.Behaviors>
       </sd:MatrixEditor>
@@ -1170,7 +1170,7 @@
                          ToolTip.Tip="{sd:LocalizeString Angle in degrees, Context=Tooltip}">
         <Interaction.Behaviors>
           <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
-            <ChangePropertyAction PropertyName="Watermark" Value="{sd:LocalizeString (Different values)}"/>
+            <ChangePropertyAction PropertyName="PlaceholderText" Value="{sd:LocalizeString (Different values)}"/>
           </DataTriggerBehavior>
         </Interaction.Behaviors>
       </sd:NumericTextBox>
@@ -1190,7 +1190,7 @@
                  Text="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:UDirectoryToString}}}">
           <Interaction.Behaviors>
             <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
-              <ChangePropertyAction PropertyName="Watermark" Value="{sd:LocalizeString (Different values)}"/>
+              <ChangePropertyAction PropertyName="PlaceholderText" Value="{sd:LocalizeString (Different values)}"/>
             </DataTriggerBehavior>
           </Interaction.Behaviors>
         </TextBox>
@@ -1211,7 +1211,7 @@
                  Text="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:UFileToString}}}">
           <Interaction.Behaviors>
             <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
-              <ChangePropertyAction PropertyName="Watermark" Value="{sd:LocalizeString (Different values)}"/>
+              <ChangePropertyAction PropertyName="PlaceholderText" Value="{sd:LocalizeString (Different values)}"/>
             </DataTriggerBehavior>
           </Interaction.Behaviors>
         </TextBox>
