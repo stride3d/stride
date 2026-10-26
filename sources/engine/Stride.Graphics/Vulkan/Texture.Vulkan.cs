@@ -210,6 +210,8 @@ namespace Stride.Graphics
                     NativeDepthStencilView = GetDepthStencilView();
                 }
             }
+
+            SetDebugName();
         }
 
         private unsafe void CreateBuffer()

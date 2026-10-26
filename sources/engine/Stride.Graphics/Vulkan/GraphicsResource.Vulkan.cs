@@ -43,16 +43,26 @@ namespace Stride.Graphics
             }
         }
 
-        protected override unsafe void OnNameChanged()
+        protected override void OnNameChanged()
         {
             base.OnNameChanged();
+            SetDebugName();
+        }
+
+        /// <summary>
+        /// Gives the resource's name to its native image or buffer, where the validation layer and debuggers read it.
+        /// </summary>
+        internal unsafe void SetDebugName()
+        {
             if (GraphicsDevice is not { IsProfilingSupported: true } || string.IsNullOrEmpty(Name))
                 return;
 
-            // A texture view shares its parent's image: naming it would rename the parent
+            // A texture view shares its parent's image: naming it would rename the parent.
+            // A staging texture has a buffer instead of an image.
             var (objectType, objectHandle) = this switch
             {
                 Texture { ParentTexture: null } texture when texture.NativeImage != VkImage.Null => (VkObjectType.Image, texture.NativeImage.Handle),
+                Texture { ParentTexture: null } texture when texture.NativeBuffer != VkBuffer.Null => (VkObjectType.Buffer, texture.NativeBuffer.Handle),
                 Buffer buffer when buffer.NativeBuffer != VkBuffer.Null => (VkObjectType.Buffer, buffer.NativeBuffer.Handle),
                 _ => (VkObjectType.Unknown, 0UL),
             };
