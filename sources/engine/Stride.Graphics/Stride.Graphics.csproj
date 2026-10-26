@@ -47,6 +47,7 @@
     <PackageReference Include="Silk.NET.Direct3D12" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'" PrivateAssets="compile" />
     <PackageReference Include="Silk.NET.Direct3D.Compilers" Condition="'$(TargetFramework)' == '$(StrideFramework)' Or '$(TargetFramework)' == '$(StrideFrameworkUWP)'" PrivateAssets="compile" />
     <PackageReference Include="Silk.NET.Sdl" PrivateAssets="compile" />
+    <PackageReference Include="Silk.NET.DXGI" Condition="'$(TargetFramework)' == '$(StrideFramework)'" PrivateAssets="compile" />
     <!-- D3D12 Agility SDK: native-only package, copied by build\Stride.Graphics.targets (and the StrideNativeLib below for engine builds) -->
     <PackageReference Include="Microsoft.Direct3D.D3D12" Condition="'$(TargetFramework)' == '$(StrideFramework)'" GeneratePathProperty="true" />
     <PackageReference Include="Silk.NET.Windowing.Sdl" Condition="'$(TargetFramework)' == '$(StrideFrameworkAndroid)'" PrivateAssets="compile" />
