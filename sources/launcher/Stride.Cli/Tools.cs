@@ -59,13 +59,8 @@ internal static class Tools
     // Runs a Windows-only editor under Wine, detached: `wine <exe> <args>`, as a shell would. The host selection Run
     // does goes against the .NET installs of this machine, not those of the Wine prefix, so the editor is left to pick
     // its runtime itself, as when started without the CLI. Wine's own debug output is off unless WINEDEBUG says.
-    public static int RunUnderWine(string? executable, string description, IReadOnlyList<string> forwardedArgs)
+    public static int RunUnderWine(string executable, string description, IReadOnlyList<string> forwardedArgs)
     {
-        if (executable is null)
-        {
-            Console.Error.WriteLine($"Could not find {description}.");
-            return 1;
-        }
         var wine = Wine.Find();
         if (wine is null)
         {
