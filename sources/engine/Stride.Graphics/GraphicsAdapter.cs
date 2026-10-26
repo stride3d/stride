@@ -15,12 +15,25 @@ namespace Stride.Graphics
     /// </remarks>
     public sealed partial class GraphicsAdapter : ComponentBase
     {
-        private readonly GraphicsOutput[] graphicsOutputs;
+        private GraphicsOutput[] graphicsOutputs;
 
         /// <summary>
         ///   Gets the <see cref="GraphicsOutput"/>s attached to this adapter.
         /// </summary>
-        public ReadOnlySpan<GraphicsOutput> Outputs => graphicsOutputs;
+        /// <remarks>
+        /// On Vulkan platforms using SDL2 discovery, outputs are desktop presentation
+        /// targets available to this adapter; SDL2 does not identify physical GPU ownership.
+        /// </remarks>
+        public ReadOnlySpan<GraphicsOutput> Outputs
+        {
+            get
+            {
+#if STRIDE_GRAPHICS_API_VULKAN
+                EnsureOutputs();
+#endif
+                return graphicsOutputs;
+            }
+        }
 
         /// <summary>
         ///   Gets the unique identifier of this <see cref="GraphicsAdapter"/>.
