@@ -15,10 +15,11 @@ namespace Stride.Core.Assets.Editor.Services
     {
         private static readonly Logger Log = GlobalLogger.GetLogger(nameof(UserDocumentationService));
 
-        private readonly ConcurrentDictionary<string, string> cachedDocumentations = new ConcurrentDictionary<string, string>();
-        private readonly HashSet<string> undocumentedAssemblies = new HashSet<string>();
-        private readonly HashSet<string> documentedAssemblies = new HashSet<string>();
-        private readonly Lock lockObj = new Lock();
+        private readonly ConcurrentDictionary<string, string> cachedDocumentations = new();
+        /// <summary>
+        /// Dictionary of loaded assemblies and whether they have documentation or not. True if the assembly has documentation, false if it does not.
+        /// </summary>
+        private readonly ConcurrentDictionary<string, bool> assemblies = new();
 
         [CanBeNull]
         public string GetMemberDocumentation([NotNull] IMemberDescriptor member, Type rootType)
@@ -70,11 +71,7 @@ namespace Stride.Core.Assets.Editor.Services
         {
             var assemblyName = assembly.GetName().Name;
 
-            lock (lockObj)
-            {
-                documentedAssemblies.Remove(assemblyName);
-                undocumentedAssemblies.Remove(assemblyName);
-            }
+            assemblies.TryRemove(assemblyName, out _);
         }
 
         public bool CacheAssemblyDocumentation([NotNull] Assembly assembly)
@@ -86,11 +83,11 @@ namespace Stride.Core.Assets.Editor.Services
             var assemblyName = assembly.GetName().Name;
 
             // Check if the assembly has already been marked as undocumented
-            if (undocumentedAssemblies.Contains(assemblyName))
+            if (assemblies.TryGetValue(assemblyName, out var documented) && !documented)
                 return false;
 
             // If no documentation has been loaded yet, attempt to load it now
-            if (!documentedAssemblies.Contains(assemblyName))
+            if (!assemblies.ContainsKey(assemblyName))
             {
                 var location = assembly.Location;
                 if (string.IsNullOrEmpty(location) && ViewModel.SessionViewModel.Instance.CurrentProject?.Package != null)
@@ -128,12 +125,12 @@ namespace Stride.Core.Assets.Editor.Services
 
             }
 
-            return documentedAssemblies.Contains(assemblyName);
+            return assemblies.TryGetValue(assemblyName, out documented) && documented;
         }
 
         private void CacheAssemblyDocumentationFromPath(string assemblyName, string location)
         {
-            if (string.IsNullOrEmpty(location) || documentedAssemblies.Contains(assemblyName))
+            if (string.IsNullOrEmpty(location) || (assemblies.TryGetValue(assemblyName, out var documented) && documented))
             {
                 return;
             }
@@ -146,18 +143,12 @@ namespace Stride.Core.Assets.Editor.Services
                 // Fallback to XML assembly.
                 if (!CacheXmlDocumentation(basePath + ".xml"))
                 {
-                    lock (lockObj)
-                    {
-                        undocumentedAssemblies.Add(assemblyName);
-                    }
+                    assemblies[assemblyName] = false;
                     return;
                 }
             }
 
-            lock (lockObj)
-            {
-                documentedAssemblies.Add(assemblyName);
-            }
+            assemblies[assemblyName] = true;
         }
 
         /// <summary>
