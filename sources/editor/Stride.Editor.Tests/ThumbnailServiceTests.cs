@@ -9,11 +9,11 @@ using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.BuildEngine;
 using Stride.Core.Diagnostics;
 using Stride.Core.Storage;
-using Stride.Editor.Services.Tests.Helpers;
+using Stride.Editor.Tests.Helpers;
 using Stride.Editor.Thumbnails;
 using Stride.Graphics;
 
-namespace Stride.Editor.Services.Tests;
+namespace Stride.Editor.Tests;
 
 public sealed class ThumbnailServiceTests
 {

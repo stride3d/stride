@@ -9,7 +9,7 @@
 using System.Threading.Tasks;
 using Stride.GameStudio.AutoTesting;
 
-namespace Stride.Editor.Tests;
+namespace Stride.Editor.Wpf.Tests;
 
 [UITest(SampleTemplateId = "81d2adea-37b1-4711-834c-0d73a05c206c")]
 public class ScriptEditor : IUITest

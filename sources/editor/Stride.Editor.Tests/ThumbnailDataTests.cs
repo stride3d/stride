@@ -7,7 +7,7 @@ using Stride.Core.Storage;
 using Stride.Editor.Thumbnails;
 using Stride.Graphics;
 
-namespace Stride.Editor.Services.Tests;
+namespace Stride.Editor.Tests;
 
 public sealed class ThumbnailDataTests
 {
@@ -27,7 +27,7 @@ public sealed class ThumbnailDataTests
     [Fact]
     public async Task AResourceThumbnailDecodesAnEmbeddedImageByItsManifestName()
     {
-        var data = new ResourceThumbnailData(ObjectId.New(), "Stride.Editor.Services.Tests.Resources.StaticThumbnail.png", typeof(ThumbnailDataTests).Assembly);
+        var data = new ResourceThumbnailData(ObjectId.New(), "Stride.Editor.Tests.Resources.StaticThumbnail.png", typeof(ThumbnailDataTests).Assembly);
 
         await data.PrepareForPresentation(Dispatcher);
 

@@ -6,10 +6,10 @@ using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Core.IO;
 using Stride.Core.Serialization.Contents;
-using Stride.Editor.Services.Tests.Helpers;
+using Stride.Editor.Tests.Helpers;
 using Stride.Graphics;
 
-namespace Stride.Editor.Services.Tests;
+namespace Stride.Editor.Tests;
 
 public sealed class DatabaseTests
 {

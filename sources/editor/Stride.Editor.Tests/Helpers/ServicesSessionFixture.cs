@@ -12,7 +12,7 @@ using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Editor.Build;
 
-namespace Stride.Editor.Services.Tests.Helpers;
+namespace Stride.Editor.Tests.Helpers;
 
 /// <summary>
 /// A package with the given assets, saved to a temporary folder and opened through the agnostic <see cref="SessionViewModel"/>,
@@ -72,7 +72,7 @@ public sealed class ServicesSessionFixture : IDisposable
     /// <param name="withBuilder">Whether to create the builder service (and its database); the thumbnail tests need it, a session-only test does not.</param>
     public static async Task<ServicesSessionFixture> OpenAsync(bool withBuilder, params (string Location, Asset Asset)[] assets)
     {
-        var directory = Path.Combine(Path.GetTempPath(), "Stride.Editor.Services.Tests", Guid.NewGuid().ToString("N"));
+        var directory = Path.Combine(Path.GetTempPath(), "Stride.Editor.Tests", Guid.NewGuid().ToString("N"));
         var dialogs = new FakeEditorDialogService();
         var serviceProvider = new ViewModelServiceProvider(
         [
@@ -117,7 +117,7 @@ public sealed class ServicesSessionFixture : IDisposable
     /// <summary>
     /// The temporary package directory the assets of a fixture are written to, before the fixture exists (for the sources of the assets).
     /// </summary>
-    public static string NewPackageDirectory() => Path.Combine(Path.GetTempPath(), "Stride.Editor.Services.Tests", Guid.NewGuid().ToString("N"), PackageName);
+    public static string NewPackageDirectory() => Path.Combine(Path.GetTempPath(), "Stride.Editor.Tests", Guid.NewGuid().ToString("N"), PackageName);
 
     public void Dispose()
     {

@@ -1,7 +1,7 @@
 <Project>
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.props" />
 
-  <!-- The tests of the agnostic Stride.Editor (the WPF screenshot host tests/editor/Stride.Editor.Tests keeps the plain name) -->
+  <!-- The tests of the agnostic Stride.Editor (the WPF screenshot host is tests/editor/Stride.Editor.Wpf.Tests) -->
   <PropertyGroup>
     <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
     <RuntimeIdentifiers>linux-x64;win-x64</RuntimeIdentifiers>
@@ -24,7 +24,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\StaticThumbnail.png" LogicalName="Stride.Editor.Services.Tests.Resources.StaticThumbnail.png" />
+    <EmbeddedResource Include="Resources\StaticThumbnail.png" LogicalName="Stride.Editor.Tests.Resources.StaticThumbnail.png" />
   </ItemGroup>
 
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.targets" />

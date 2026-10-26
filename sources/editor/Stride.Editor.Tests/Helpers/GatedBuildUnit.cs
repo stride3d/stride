@@ -5,7 +5,7 @@ using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.BuildEngine;
 
-namespace Stride.Editor.Services.Tests.Helpers;
+namespace Stride.Editor.Tests.Helpers;
 
 /// <summary>
 /// A build unit with no build step. Its preparation can wait on a gate, which holds the builder's queue: the builder prepares

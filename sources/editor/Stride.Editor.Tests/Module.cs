@@ -9,7 +9,7 @@ using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Reflection;
 using Stride.Editor.Thumbnails;
 
-namespace Stride.Editor.Services.Tests;
+namespace Stride.Editor.Tests;
 
 internal static class Module
 {

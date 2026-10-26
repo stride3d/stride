@@ -6,7 +6,7 @@ using Stride.Core;
 using Stride.Core.Assets;
 using Stride.Data;
 
-namespace Stride.Editor.Services.Tests.Helpers;
+namespace Stride.Editor.Tests.Helpers;
 
 /// <summary>
 /// A game settings section some asset type depends on.
