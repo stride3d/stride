@@ -836,6 +836,10 @@ public partial class NugetStore : INugetDownloadProgress
             {
                 var identity = new PackageIdentity(package.Id, package.Version.ToNuGetVersion());
 
+                // First, as its folder may be gone already: a dev package its checkout's build invalidated in the NuGet
+                // cache still has a restore.
+                DeleteResolverRestore(package.Id, package.Version);
+
                 // Not installed (anymore): nothing to remove. A folder without NuGet's integrity files counts as not
                 // installed too, such as a local build's package its checkout invalidated until the next restore.
                 var installPath = GetInstalledPath(identity.Id, identity.Version.ToPackageVersion());
@@ -853,12 +857,6 @@ public partial class NugetStore : INugetDownloadProgress
 
                 // Simply delete the installed package and its .nupkg installed in it.
                 await Task.Run(() => FileSystemUtility.DeleteDirectorySafe(installPath, true, projectContext));
-
-                // And the restore the NuGet resolver made of a dev version when it was started: built again under the same
-                // version, it would otherwise start with the old dependency graph, as a no-op restore. A release keeps its
-                // dependencies, so its restore stays valid.
-                if (IsDevVersion(package.Version))
-                    NuGetResolverCache.Delete(identity.Id, identity.Version.ToString());
 
                 // Notify that uninstallation completed.
                 OnPackageUninstalled(this, new PackageOperationEventArgs(new PackageName(package.Id, package.Version), installPath));
@@ -1220,6 +1218,24 @@ public partial class NugetStore : INugetDownloadProgress
         return package.Version < new PackageVersion(3, 1, 0, 0)
             ? File.Exists(GetRedirectFile(package))
             : (package.Version.SpecialVersion?.StartsWith("dev", StringComparison.Ordinal) == true && !package.Version.SpecialVersion.Contains('.'));
+    }
+
+    /// <summary>
+    /// Deletes the restore the NuGet resolver made of a dev version when it was started: built again under the same
+    /// version, it would otherwise start with the old dependency graph, as a no-op restore. A release keeps its
+    /// dependencies, so its restore stays valid and is left.
+    /// </summary>
+    /// <param name="packageId">The package id.</param>
+    /// <param name="version">The package version.</param>
+    /// <param name="resolverCacheRoot">The folder of the restores, or null for the one the resolver uses.</param>
+    /// <returns>The number of restore folders deleted.</returns>
+    public static int DeleteResolverRestore(string packageId, PackageVersion version, string? resolverCacheRoot = null)
+    {
+        if (!IsDevVersion(version))
+            return 0;
+
+        // As the resolver names it: 4.5.0-dev, where a PackageVersion converted to NuGet keeps four parts (4.5.0.0-dev)
+        return NuGetResolverCache.Delete(packageId, version.ToNuGetVersion().ToNormalizedString(), resolverCacheRoot);
     }
 
     /// <summary>
