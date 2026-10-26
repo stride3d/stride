@@ -1,9 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Xml;
@@ -17,15 +15,16 @@ namespace Stride.Core.Assets.Editor.Services
     {
         private static readonly Logger Log = GlobalLogger.GetLogger(nameof(UserDocumentationService));
 
-        private readonly Dictionary<string, string> cachedDocumentations = new Dictionary<string, string>();
-        private readonly HashSet<string> undocumentedAssemblies = new HashSet<string>();
-        private readonly HashSet<string> documentedAssemblies = new HashSet<string>();
-        private readonly object lockObj = new object();
+        private readonly ConcurrentDictionary<string, string> cachedDocumentations = new();
+        /// <summary>
+        /// Dictionary of loaded assemblies and whether they have documentation or not. True if the assembly has documentation, false if it does not.
+        /// </summary>
+        private readonly ConcurrentDictionary<string, bool> assemblies = new();
 
         [CanBeNull]
         public string GetMemberDocumentation([NotNull] IMemberDescriptor member, Type rootType)
         {
-            if (member == null) throw new ArgumentNullException(nameof(member));
+            ArgumentNullException.ThrowIfNull(member);
             string result;
             string key;
 
@@ -35,11 +34,8 @@ namespace Stride.Core.Assets.Editor.Services
                 // Remove generic type arguments specifications
                 key = $"{prefix}:{rootType.FullName}.{member.Name}";
 
-                lock (lockObj)
-                {
-                    if (cachedDocumentations.TryGetValue(key, out result))
-                        return result;
-                }
+                if (cachedDocumentations.TryGetValue(key, out result))
+                    return result;
             }
 
             if (!CacheAssemblyDocumentation(member.DeclaringType.Assembly))
@@ -50,16 +46,13 @@ namespace Stride.Core.Assets.Editor.Services
             // Remove generic type arguments specifications
             key = $"{prefix}:{declaringType}.{member.Name}";
 
-            lock (lockObj)
-            {
-                return cachedDocumentations.TryGetValue(key, out result) ? result : null;
-            }            
+            return cachedDocumentations.TryGetValue(key, out result) ? result : null;
         }
 
         [CanBeNull]
         public string GetPropertyKeyDocumentation([NotNull] PropertyKey propertyKey)
         {
-            if (propertyKey == null) throw new ArgumentNullException(nameof(propertyKey));
+            ArgumentNullException.ThrowIfNull(propertyKey);
             var ownerType = propertyKey.OwnerType;
             if (ownerType == null)
                 return null;
@@ -71,21 +64,14 @@ namespace Stride.Core.Assets.Editor.Services
             var suffix = propertyKey.Name.Split('.').Last();
             var key = $"F:{declaringType}.{suffix}";
 
-            lock (lockObj)
-            {
-                return cachedDocumentations.TryGetValue(key, out string result) ? result : null;
-            }            
+            return cachedDocumentations.TryGetValue(key, out string result) ? result : null;
         }
 
         public void ClearCachedAssemblyDocumentation([NotNull] Assembly assembly)
         {
             var assemblyName = assembly.GetName().Name;
 
-            lock (lockObj)
-            {
-                documentedAssemblies.Remove(assemblyName);
-                undocumentedAssemblies.Remove(assemblyName);
-            }
+            assemblies.TryRemove(assemblyName, out _);
         }
 
         public bool CacheAssemblyDocumentation([NotNull] Assembly assembly)
@@ -96,55 +82,51 @@ namespace Stride.Core.Assets.Editor.Services
 
             var assemblyName = assembly.GetName().Name;
 
-            // Check if the assembly has already been marked as undocumented
-            if (undocumentedAssemblies.Contains(assemblyName))
-                return false;
+            // Return early if the assembly has already been processed
+            if (assemblies.TryGetValue(assemblyName, out var documented))
+                return documented;
 
-            // If no documentation has been loaded yet, attempt to load it now
-            if (!documentedAssemblies.Contains(assemblyName))
+            // No documentation has been loaded yet, attempt to load it now
+            var location = assembly.Location;
+            if (string.IsNullOrEmpty(location) && ViewModel.SessionViewModel.Instance.CurrentProject?.Package != null)
             {
-                var location = assembly.Location;
-                if (string.IsNullOrEmpty(location) && ViewModel.SessionViewModel.Instance.CurrentProject?.Package != null)
+                //Try to find the assembly in the loaded assemblies, since Location won't be populated in the case of User assemblies
+                var package = ViewModel.SessionViewModel.Instance.CurrentProject.Package;
+
+                if (package.Container is SolutionProject solutionProject && solutionProject.Type == ProjectType.Executable)
                 {
-                    //Try to find the assembly in the loaded assemblies, since Location won't be populated in the case of User assemblies
-                    var package = ViewModel.SessionViewModel.Instance.CurrentProject.Package;
-
-                    if (package.Container is SolutionProject solutionProject && solutionProject.Type == ProjectType.Executable)
+                    Log.Info($"Package {solutionProject.Name} is a solution project. Attempting to cache documentation for dependencies.");
+                    foreach (var dep in solutionProject.DirectDependencies)
                     {
-                        Log.Info($"Package {solutionProject.Name} is a solution project. Attempting to cache documentation for dependencies.");
-                        foreach (var dep in solutionProject.DirectDependencies)
-                        {
-                            var docPath = Path.Combine(Path.GetDirectoryName(solutionProject.TargetPath) ?? "", dep.Name + ".xml");
+                        var docPath = Path.Combine(Path.GetDirectoryName(solutionProject.TargetPath) ?? "", dep.Name + ".xml");
 
-                            CacheAssemblyDocumentationFromPath(dep.Name, docPath);
-                        }
-                    }
-                    else
-                    {
-                        foreach (var asm in package.LoadedAssemblies)
-                        {
-                            var name = asm.Assembly.GetName();
-                            if (name.Name == assemblyName)
-                            {
-                                CacheAssemblyDocumentationFromPath(assemblyName, asm.Path);
-                                break;
-                            }
-                        }
+                        CacheAssemblyDocumentationFromPath(dep.Name, docPath);
                     }
                 }
                 else
                 {
-                    CacheAssemblyDocumentationFromPath(assemblyName, location);
+                    foreach (var asm in package.LoadedAssemblies)
+                    {
+                        var name = asm.Assembly.GetName();
+                        if (name.Name == assemblyName)
+                        {
+                            CacheAssemblyDocumentationFromPath(assemblyName, asm.Path);
+                            break;
+                        }
+                    }
                 }
-
+            }
+            else
+            {
+                CacheAssemblyDocumentationFromPath(assemblyName, location);
             }
 
-            return documentedAssemblies.Contains(assemblyName);
+            return assemblies.TryGetValue(assemblyName, out documented) && documented;
         }
 
         private void CacheAssemblyDocumentationFromPath(string assemblyName, string location)
         {
-            if (string.IsNullOrEmpty(location) || documentedAssemblies.Contains(assemblyName))
+            if (string.IsNullOrEmpty(location) || (assemblies.TryGetValue(assemblyName, out var documented) && documented))
             {
                 return;
             }
@@ -157,18 +139,12 @@ namespace Stride.Core.Assets.Editor.Services
                 // Fallback to XML assembly.
                 if (!CacheXmlDocumentation(basePath + ".xml"))
                 {
-                    lock (lockObj)
-                    {
-                        undocumentedAssemblies.Add(assemblyName);
-                    }
+                    assemblies[assemblyName] = false;
                     return;
                 }
             }
 
-            lock (lockObj)
-            {
-                documentedAssemblies.Add(assemblyName);
-            }
+            assemblies[assemblyName] = true;
         }
 
         /// <summary>
@@ -200,10 +176,7 @@ namespace Stride.Core.Assets.Editor.Services
                             continue;
                         }
 
-                        lock (lockObj)
-                        {
-                            cachedDocumentations[key] = documentation;
-                        }
+                        cachedDocumentations[key] = documentation;
                     }
                 }
             }
@@ -251,10 +224,7 @@ namespace Stride.Core.Assets.Editor.Services
                         var key = line.Substring(0, separator);
                         var documentation = line.Substring(separator + 1);
 
-                        lock (lockObj)
-                        {
-                            cachedDocumentations[key] = documentation;
-                        }
+                        cachedDocumentations[key] = documentation;
                     }
                 }
             }
