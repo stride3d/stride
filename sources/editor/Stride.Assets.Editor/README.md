@@ -13,6 +13,11 @@ This project is the main project for the assets in the editor.
 
 All view models for the Stride asset editors are here.
 
+Also the editor services that know the Stride asset types, which the agnostic `Stride.Editor` does not:
+
+* `Build`: `StrideShaderImporter`, the import of the shader assets of a session; the plugin passes it to the builder service.
+* `EditorGame/ContentLoader`: `EditorContentLoader`, the loader of the assets an editor game shows.
+
 ## Notes
 
 * The goal is to be able to share that library with any application that wants to work with Stride assets and edit them.

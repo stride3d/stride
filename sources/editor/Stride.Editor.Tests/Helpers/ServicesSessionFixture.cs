@@ -70,7 +70,21 @@ public sealed class ServicesSessionFixture : IDisposable
     /// Saves a package with the given assets (location relative to the package, asset) and opens it with the build services.
     /// </summary>
     /// <param name="withBuilder">Whether to create the builder service (and its database); the thumbnail tests need it, a session-only test does not.</param>
-    public static async Task<ServicesSessionFixture> OpenAsync(bool withBuilder, params (string Location, Asset Asset)[] assets)
+    public static Task<ServicesSessionFixture> OpenAsync(bool withBuilder, params (string Location, Asset Asset)[] assets)
+    {
+        // The shader importer is a Stride assets one (Stride.Assets.Editor): this layer builds without it
+        return OpenAsync(withBuilder, null, assets);
+    }
+
+    /// <summary>
+    /// Saves a package with the given assets and opens it with the build services, the builder importing shaders with the given importer.
+    /// </summary>
+    public static Task<ServicesSessionFixture> OpenWithShaderImporterAsync(IShaderImporter shaderImporter, params (string Location, Asset Asset)[] assets)
+    {
+        return OpenAsync(true, shaderImporter, assets);
+    }
+
+    private static async Task<ServicesSessionFixture> OpenAsync(bool withBuilder, IShaderImporter? shaderImporter, (string Location, Asset Asset)[] assets)
     {
         var directory = Path.Combine(Path.GetTempPath(), "Stride.Editor.Tests", Guid.NewGuid().ToString("N"));
         var dialogs = new FakeEditorDialogService();
@@ -96,7 +110,7 @@ public sealed class ServicesSessionFixture : IDisposable
         {
             var buildDirectory = Path.Combine(directory, "build");
             System.IO.Directory.CreateDirectory(buildDirectory);
-            fixture.Builder = new GameStudioBuilderService(session, fixture.SettingsProvider, buildDirectory);
+            fixture.Builder = new GameStudioBuilderService(session, fixture.SettingsProvider, shaderImporter, buildDirectory);
             serviceProvider.RegisterService(fixture.Builder);
             serviceProvider.RegisterService(fixture.Builder.Database);
         }
