@@ -21,7 +21,6 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Mono.Options" />
-    <PackageReference Include="System.ServiceProcess.ServiceController" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
