@@ -54,6 +54,31 @@ static class ShaderCorpus
 
     public static List<ShaderCorpusEntry> ReadEntries() => ShaderCorpusEntry.ReadFile(CorpusFile);
 
+    /// <summary>
+    /// The engine shader classes the corpus should reach (name → file, relative to the repository): the .sdsl files of the
+    /// shader roots apart from the samples, without the shaders of test projects.
+    /// </summary>
+    public static SortedDictionary<string, string> EngineShaderClasses()
+    {
+        var names = new SortedDictionary<string, string>(StringComparer.Ordinal);
+        foreach (var root in ShaderRoots.Where(x => x != "samples"))
+        {
+            var directory = Path.Combine(RepositoryRoot, root);
+            if (!Directory.Exists(directory))
+                continue;
+            foreach (var file in Directory.EnumerateFiles(directory, "*.sdsl", SearchOption.AllDirectories))
+            {
+                var relative = Path.GetRelativePath(RepositoryRoot, file).Replace('\\', '/');
+                var folders = relative.Split('/')[..^1];
+                // bin / obj, and test projects such as Stride.Engine.Tests or Stride.Graphics.Tests.11_0
+                if (folders.Any(x => x is "bin" or "obj" || x.EndsWith(".Tests", StringComparison.Ordinal) || x.Contains(".Tests.", StringComparison.Ordinal)))
+                    continue;
+                names.TryAdd(Path.GetFileNameWithoutExtension(file), relative);
+            }
+        }
+        return names;
+    }
+
     static string RenderTestsDirectory => Path.Combine(RepositoryRoot, "sources", "shaders", "assets", "SDSL", "RenderTests");
 
     static string FindRepositoryRoot()

@@ -10,11 +10,13 @@ namespace Stride.Shaders.Parsers.Tests.Corpus;
 /// <summary>
 /// Compiles every corpus permutation and compares its normalized SPIR-V, reflection and explain dump: with the hashes in
 /// <c>Corpus/snapshot.txt</c> (<see cref="CompilerOutputUnchanged"/>, the CI check), or with a full baseline run saved locally
-/// (<see cref="SaveBaseline"/> then <see cref="MatchesBaseline"/>, which gives a readable diff). See <c>Corpus/README.md</c>.
+/// (<see cref="SaveBaseline"/> then <see cref="MatchesBaseline"/>, which gives a readable diff). The CI check also lists the
+/// engine shader classes no permutation mixes, against <c>Corpus/uncovered.txt</c>. See <c>Corpus/README.md</c>.
 /// </summary>
-public class ShaderCorpusTests
+public partial class ShaderCorpusTests
 {
     static string SnapshotFile => Path.Combine(ShaderCorpus.CorpusDirectory, "snapshot.txt");
+    static string UncoveredFile => Path.Combine(ShaderCorpus.CorpusDirectory, "uncovered.txt");
 
     // Next to the test output, so it survives rebuilds and branch switches
     static string OutputDirectory => Path.Combine(AppContext.BaseDirectory, "ShaderCorpus");
@@ -33,8 +35,9 @@ public class ShaderCorpusTests
     [Fact]
     public void CompilerOutputUnchanged()
     {
-        var current = Run(OutputDirectory, out var filter);
-        Check(Compare(ReadSnapshot(SnapshotFile), current, filter, OutputDirectory, baseDirectory: null));
+        var current = Run(OutputDirectory, out var filter, out var mixed);
+        var report = Compare(ReadSnapshot(SnapshotFile), current, filter, OutputDirectory, baseDirectory: null);
+        Check(string.IsNullOrEmpty(filter) ? CheckCoverage(report, mixed) : report);
     }
 
     // The corpus format keeps everything the hash covers (what capture writes, the test reads back)
@@ -54,7 +57,7 @@ public class ShaderCorpusTests
     [Fact(Explicit = true)]
     public void SaveBaseline()
     {
-        Run(BaselineDirectory, out _, optimize: true);
+        Run(BaselineDirectory, out _, out _, optimize: true);
         Console.WriteLine($"Baseline saved: {BaselineDirectory}");
     }
 
@@ -67,21 +70,54 @@ public class ShaderCorpusTests
     {
         if (!File.Exists(Path.Combine(BaselineDirectory, "snapshot.txt")))
             Assert.Fail($"No baseline in {BaselineDirectory}: run {nameof(SaveBaseline)} first (before the compiler change)");
-        var current = Run(OutputDirectory, out var filter, optimize: true);
+        var current = Run(OutputDirectory, out var filter, out _, optimize: true);
         Check(Compare(ReadSnapshot(Path.Combine(BaselineDirectory, "snapshot.txt")), current, filter, OutputDirectory, BaselineDirectory));
     }
 
     /// <summary>
-    /// Rewrites <c>Corpus/snapshot.txt</c> from the current compiler, after a change was checked to be expected.
+    /// Rewrites <c>Corpus/snapshot.txt</c> from the current compiler, after a change was checked to be expected, and
+    /// <c>Corpus/uncovered.txt</c>.
     /// </summary>
     [Fact(Explicit = true)]
     public void UpdateSnapshot()
     {
-        var current = Run(OutputDirectory, out var filter);
-        if (!string.IsNullOrEmpty(filter) || ShaderCorpus.SelectedPlatforms.Length != ShaderCorpus.Platforms.Length)
+        if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("STRIDE_SHADER_CORPUS_FILTER")) || ShaderCorpus.SelectedPlatforms.Length != ShaderCorpus.Platforms.Length)
             Assert.Fail("Updating the snapshot needs the whole corpus on every platform, unset STRIDE_SHADER_CORPUS_FILTER and STRIDE_SHADER_CORPUS_PLATFORMS");
+        var current = Run(OutputDirectory, out _, out var mixed);
         File.WriteAllText(SnapshotFile, Manifest(current));
         Console.WriteLine($"Snapshot updated: {SnapshotFile}");
+        var uncovered = ShaderCorpus.EngineShaderClasses().Where(x => !mixed.Contains(x.Key)).OrderBy(x => x.Value, StringComparer.Ordinal).ToList();
+        File.WriteAllText(UncoveredFile, UncoveredHeader + string.Concat(uncovered.Select(x => $"{x.Key}  # {x.Value}\n")));
+        Console.WriteLine($"{uncovered.Count} engine shader classes not mixed by the corpus: {UncoveredFile}");
+    }
+
+    const string UncoveredHeader =
+        "# Engine shader classes that no corpus permutation mixes. Written by ShaderCorpusTests.UpdateSnapshot; checked by\n"
+        + "# CompilerOutputUnchanged: a new engine shader the corpus doesn't reach fails it. Capture an effect that uses it\n"
+        + "# (Corpus/README.md), or list it here with UpdateSnapshot. One class per line, sorted by file.\n";
+
+    // Engine shader classes no permutation mixes, against Corpus/uncovered.txt: a new one fails, so a new feature gets into
+    // the corpus (or is listed on purpose)
+    static (bool Failed, string Text) CheckCoverage((bool Failed, string Text) report, SortedSet<string> mixed)
+    {
+        var engine = ShaderCorpus.EngineShaderClasses();
+        var listed = File.Exists(UncoveredFile)
+            ? File.ReadAllLines(UncoveredFile).Select(x => x.Split('#')[0].Trim()).Where(x => x.Length > 0).ToHashSet(StringComparer.Ordinal)
+            : [];
+        var lines = new List<string>();
+        lines.AddRange(engine.Where(x => !mixed.Contains(x.Key) && !listed.Contains(x.Key)).Select(x => $"uncovered {x.Key} ({x.Value}): no permutation mixes it"));
+        lines.AddRange(listed.Where(mixed.Contains).Order(StringComparer.Ordinal).Select(x => $"covered   {x}: mixed now, but listed in uncovered.txt"));
+        lines.AddRange(listed.Where(x => !engine.ContainsKey(x)).Order(StringComparer.Ordinal).Select(x => $"gone      {x}: listed in uncovered.txt, but no engine shader has this name"));
+        if (lines.Count == 0)
+            return report;
+
+        var text = new StringBuilder(report.Text);
+        text.AppendLine();
+        text.AppendLine($"Shader corpus coverage (against Corpus/uncovered.txt): {lines.Count} differences");
+        foreach (var line in lines)
+            text.AppendLine(line);
+        text.AppendLine($"Capture an effect that uses a new shader (see Corpus/README.md), or run {nameof(UpdateSnapshot)} to rewrite uncovered.txt.");
+        return (true, text.ToString());
     }
 
     static void Check((bool Failed, string Text) report)
@@ -97,7 +133,8 @@ public class ShaderCorpusTests
     /// one readable file per part and entry, plus <c>snapshot.txt</c> with their hashes.
     /// </summary>
     /// <param name="optimize">Also writes the <c>.optimized.spvasm</c> files, see <see cref="CorpusResult.Optimized"/>.</param>
-    static SortedDictionary<string, string> Run(string outputDirectory, out string? filter, bool optimize = false)
+    /// <param name="mixed">The shader classes mixed by at least one permutation, from the explain dumps.</param>
+    static SortedDictionary<string, string> Run(string outputDirectory, out string? filter, out SortedSet<string> mixed, bool optimize = false)
     {
         if (Directory.Exists(outputDirectory))
             Directory.Delete(outputDirectory, recursive: true);
@@ -135,8 +172,13 @@ public class ShaderCorpusTests
         total.Stop();
 
         var current = new SortedDictionary<string, string>(StringComparer.Ordinal);
+        mixed = new SortedSet<string>(StringComparer.Ordinal);
         foreach (var (result, line, _) in results)
+        {
             current[result.Key] = line;
+            foreach (System.Text.RegularExpressions.Match match in MixedClass().Matches(result.Explain ?? ""))
+                mixed.Add(match.Groups[1].Value);
+        }
         File.WriteAllText(Path.Combine(outputDirectory, "snapshot.txt"), Manifest(current));
 
         var mixTime = TimeSpan.FromTicks(results.Sum(x => x.Result.MixTime.Ticks));
@@ -173,6 +215,10 @@ public class ShaderCorpusTests
     static Dictionary<string, string> ParseParts(string value) => value.Split(' ').Select(x => x.Split('=')).ToDictionary(x => x[0], x => x[1]);
 
     const string OptimizedSuffix = ".optimized.spvasm";
+
+    // A class line of an explain dump: "  mixin X"
+    [System.Text.RegularExpressions.GeneratedRegex(@"^ +mixin ([A-Za-z_]\w*)", System.Text.RegularExpressions.RegexOptions.Multiline)]
+    private static partial System.Text.RegularExpressions.Regex MixedClass();
 
     static readonly string[] DiffSuffixes = [".error.txt", ".explain.txt", ".reflection.txt", ".legal.spvasm", ".spvasm", OptimizedSuffix];
 

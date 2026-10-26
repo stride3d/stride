@@ -19,6 +19,10 @@ output did not change. A compiler PR either shows "unchanged" or lists exactly w
   - `explain`: the mixer's linking decisions (`ShaderMixer.Explanation`): mixin order per node, members placed in
     each node, override chain of each method,
   - `error`: instead of the four above, for a permutation that does not compile.
+- `uncovered.txt`: the engine shader classes (`sources/engine`, `sources/plugins`, the editor's shaders; test projects
+  left out) that no permutation mixes, read from the explain dumps. A new engine shader that the corpus doesn't reach
+  fails `CompilerOutputUnchanged`, so a new feature either gets a capture (see "Refreshing the corpus") or is listed
+  here on purpose.
 
 RenderTests shaders (`sources/shaders/assets/SDSL/RenderTests`) are added as extra entries.
 
@@ -35,11 +39,11 @@ Vulkan.
 
 | Test | Runs | Does |
 |---|---|---|
-| `CompilerOutputUnchanged` | always (CI) | compares with `snapshot.txt` |
+| `CompilerOutputUnchanged` | always (CI) | compares with `snapshot.txt`, and the classes no permutation mixes with `uncovered.txt` |
 | `CorpusEntriesRoundTrip` | always | the permutation files read back with the same hashes |
 | `SaveBaseline` | explicit | saves a full run to `ShaderCorpus.baseline/` next to the test assembly |
 | `MatchesBaseline` | explicit | compares with that baseline and writes `ShaderCorpus/diff.txt` (git diff of every changed file, names-only changes included) |
-| `UpdateSnapshot` | explicit | rewrites `snapshot.txt` |
+| `UpdateSnapshot` | explicit | rewrites `snapshot.txt` and `uncovered.txt` |
 
 Explicit tests run when selected in the IDE, or from the command line with `-- xUnit.Explicit=on`.
 
@@ -68,7 +72,8 @@ generic parameter since): reported, not a failure. A permutation that compiled b
 
 ## Refreshing the corpus
 
-Refresh the corpus after rendering or material changes. A compiler PR should not need a refresh.
+Refresh the corpus after rendering or material changes, and when `CompilerOutputUnchanged` reports a new engine
+shader that no permutation mixes (`uncovered.txt`). A compiler PR should not need a refresh.
 
 The corpus is rebuilt from empty, out of what the current code really compiles, by the **Refresh Shader Corpus**
 workflow (`.github/workflows/refresh-shader-corpus.yml`, manual dispatch: GitHub offers it once the file is on the
@@ -81,8 +86,8 @@ default branch, and it then runs on any branch that has it). It:
   temporal anti-aliasing, cubemap backgrounds),
 - adds the effects listed in the two `EmbeddedEffects.yaml` of `Stride.Graphics` (the bytecode embedded in
   `SpriteBatch`, `UIBatch`, `PrimitiveQuad` and the text renderer, which runtime never compiles),
-- writes `corpus.json`, updates `snapshot.txt`, and uploads both as the `shader-corpus-refresh` artifact (or opens a PR
-  with `open-pr`). The run summary lists the permutations per source.
+- writes `corpus.json`, updates `snapshot.txt` and `uncovered.txt`, and uploads them as the `shader-corpus-refresh`
+  artifact (or opens a PR with `open-pr`). The run summary lists the permutations per source.
 
 Capture: with `STRIDE_SHADER_CORPUS_CAPTURE=<folder>` set (and optionally `STRIDE_SHADER_CORPUS_TAG=<source name>`;
 otherwise the test suite for a game test, else the entry assembly name, e.g. the game or `Stride.GameStudio`), every
@@ -106,4 +111,4 @@ To add captures to the committed corpus instead (for example from a new scenario
 dotnet run --project sources/tools/Stride.Shaders.CorpusCapture -- --corpus sources/shaders/Stride.Shaders.Tests/Corpus/corpus.json --capture <folder>
 ```
 
-Then run `UpdateSnapshot`, and commit `corpus.json` and `snapshot.txt`.
+Then run `UpdateSnapshot`, and commit `corpus.json`, `snapshot.txt` and `uncovered.txt`.

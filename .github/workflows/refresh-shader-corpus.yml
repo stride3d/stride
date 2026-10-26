@@ -3,7 +3,7 @@ name: Refresh Shader Corpus
 # Rebuilds sources/shaders/Stride.Shaders.Tests/Corpus/corpus.json from empty (see Corpus/README.md), out of what the
 # current code compiles: the samples and the editor run with capture on, the game test suites too, and the
 # EmbeddedEffects.yaml lists of Stride.Graphics add the effects whose bytecode is embedded (runtime never compiles them).
-# Then snapshot.txt is updated. The result is uploaded as an artifact, and optionally opened as a PR.
+# Then snapshot.txt and uncovered.txt are updated. The result is uploaded as an artifact, and optionally opened as a PR.
 
 on:
   workflow_dispatch:
@@ -99,6 +99,7 @@ jobs:
           path: |
             sources/shaders/Stride.Shaders.Tests/Corpus/corpus.json
             sources/shaders/Stride.Shaders.Tests/Corpus/snapshot.txt
+            sources/shaders/Stride.Shaders.Tests/Corpus/uncovered.txt
             corpus-sources.txt
       - name: Open PR with the refreshed corpus
         if: inputs.open-pr
@@ -119,3 +120,4 @@ jobs:
           add-paths: |
             sources/shaders/Stride.Shaders.Tests/Corpus/corpus.json
             sources/shaders/Stride.Shaders.Tests/Corpus/snapshot.txt
+            sources/shaders/Stride.Shaders.Tests/Corpus/uncovered.txt
