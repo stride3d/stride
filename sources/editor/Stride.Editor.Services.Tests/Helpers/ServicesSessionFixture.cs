@@ -76,7 +76,7 @@ public sealed class ServicesSessionFixture : IDisposable
         var dialogs = new FakeEditorDialogService();
         var serviceProvider = new ViewModelServiceProvider(
         [
-            new NullDispatcherService(),
+            new InlineDispatcherService(),
             dialogs,
             new FakeClipboardService(),
             new FakePluginService(),
@@ -174,5 +174,75 @@ public sealed class ServicesSessionFixture : IDisposable
             System.IO.Directory.CreateDirectory(Path.GetDirectoryName(path)!);
             AssetFileSerializer.Save(path, asset, null);
         }
+    }
+
+    /// <summary>
+    /// Runs the dispatcher calls inline, like <see cref="NullDispatcherService"/>, but one at a time, in a synchronization context that also
+    /// runs their continuations one at a time: the view models get the exclusive access a UI thread gives them.
+    /// </summary>
+    /// <remarks>
+    /// The builder raises its events in its micro-threads, and the view models reacting to them dispatch their work. Run inline in the caller's
+    /// context, an async method started there (the delayed refresh of the asset log) would post its continuation to the micro-thread after it
+    /// has completed ("MicroThread is already completed but still posting continuations"), or run it on the thread pool while another build
+    /// changes the logs it reads. Both crash the test host.
+    /// </remarks>
+    private sealed class InlineDispatcherService : IDispatcherService
+    {
+        public bool CheckAccess() => true;
+
+        public void EnsureAccess(bool inDispatcherThread = true)
+        {
+        }
+
+        public void Invoke(Action callback) => ExclusiveContext.Run(() => { callback(); return true; });
+
+        public TResult Invoke<TResult>(Func<TResult> callback) => ExclusiveContext.Run(callback);
+
+        public Task InvokeAsync(Action callback, CancellationToken token = default)
+        {
+            Invoke(callback);
+            return Task.CompletedTask;
+        }
+
+        public Task<TResult> InvokeAsync<TResult>(Func<TResult> callback, CancellationToken token = default) => Task.FromResult(ExclusiveContext.Run(callback));
+
+        public Task InvokeTask(Func<Task> task, CancellationToken token = default) => ExclusiveContext.Run(task);
+
+        public Task<TResult> InvokeTask<TResult>(Func<Task<TResult>> task, CancellationToken token = default) => ExclusiveContext.Run(task);
+
+        public Task LowPriorityInvokeAsync(Action callback, CancellationToken token = default) => InvokeAsync(callback, token);
+    }
+
+    /// <summary>
+    /// A synchronization context that runs everything posted to it on the thread pool, one at a time.
+    /// </summary>
+    private sealed class ExclusiveContext : SynchronizationContext
+    {
+        private static readonly ExclusiveContext Instance = new();
+        private static readonly object Gate = new();
+
+        public static TResult Run<TResult>(Func<TResult> callback)
+        {
+            // The lock is reentrant: a dispatcher call made from a dispatched one runs inline, as on a UI thread
+            lock (Gate)
+            {
+                var context = Current;
+                SetSynchronizationContext(Instance);
+                try
+                {
+                    return callback();
+                }
+                finally
+                {
+                    SetSynchronizationContext(context);
+                }
+            }
+        }
+
+        public override void Post(SendOrPostCallback d, object? state) => ThreadPool.QueueUserWorkItem(_ => Run(() => { d(state); return true; }));
+
+        public override void Send(SendOrPostCallback d, object? state) => Run(() => { d(state); return true; });
+
+        public override SynchronizationContext CreateCopy() => this;
     }
 }
