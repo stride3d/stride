@@ -2,20 +2,121 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
              xmlns:vm="using:Stride.Core.Assets.Editor.ViewModel"
              xmlns:vm2="using:Stride.Core.Assets.Editor.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Stride.GameStudio.Avalonia.Views.SolutionExplorerView"
              x:DataType="vm2:SessionViewModel">
+  <UserControl.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="avares://Stride.Core.Assets.Editor.Avalonia/Views/ImageResources.axaml"/>
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </UserControl.Resources>
   <DockPanel>
     <Grid DockPanel.Dock="Top">
       <TextBlock Text="Solution Explorer" />
     </Grid>
     <!-- A "*" follows the name of an item with unsaved changes, as in the WPF solution explorer -->
-    <TreeView ItemsSource="{Binding PackageCategories.Values}"
+    <TreeView x:Name="SolutionTree"
+              Focusable="True"
+              ItemsSource="{Binding PackageCategories.Values}"
               SelectedItems="{Binding AssetCollection.SelectedLocations}"
               SelectionMode="Multiple"
               Margin="4">
+      <!-- The Edit commands while the solution explorer has the focus, as the command bindings of the WPF tree -->
+      <sd:EditCommands.Bindings>
+        <sd:EditCommandBinding Kind="Cut" Command="{Binding AssetCollection.CutLocationsCommand}"/>
+        <sd:EditCommandBinding Kind="Copy" Command="{Binding AssetCollection.CopyLocationsCommand}"/>
+        <sd:EditCommandBinding Kind="Paste" Command="{Binding AssetCollection.PasteCommand}"/>
+        <sd:EditCommandBinding Kind="Delete" Command="{Binding DeleteSelectedSolutionItemsCommand}"/>
+        <sd:EditCommandBinding Kind="Rename" Command="{Binding RenameDirectoryOrPackageCommand}" CommandParameter="{Binding AssetCollection.SelectedLocations}"/>
+      </sd:EditCommands.Bindings>
+      <!-- The context menu of the WPF solution explorer, with the items whose commands are ported, in groups shown when one of
+           their commands applies to the selection -->
+      <TreeView.ContextMenu>
+        <ContextMenu x:Name="SolutionContextMenu">
+          <MenuItem Header="{sd:LocalizeString Folder, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"
+                    IsVisible="{Binding NewDirectoryCommand.IsEnabled}"/>
+          <MenuItem Header="{sd:LocalizeString Create folder, Context=Menu}"
+                    Command="{Binding NewDirectoryCommand}"
+                    CommandParameter="{Binding AssetCollection.SelectedLocations}"
+                    IsVisible="{Binding NewDirectoryCommand.IsEnabled}">
+            <MenuItem.Icon>
+              <Image Source="{StaticResource ImageNewFolder}"/>
+            </MenuItem.Icon>
+          </MenuItem>
+
+          <MenuItem Header="{sd:LocalizeString Package, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"
+                    IsVisible="{sd:MultiBinding {Binding SetCurrentProjectCommand.IsEnabled}, {Binding ActivatePackagePropertiesCommand.IsEnabled}, Converter={sd:OrMulti}}"/>
+          <MenuItem Header="{sd:LocalizeString Set as current project, Context=Menu}"
+                    Command="{Binding SetCurrentProjectCommand}"
+                    CommandParameter="{Binding AssetCollection.SelectedLocations}"
+                    IsVisible="{Binding SetCurrentProjectCommand.IsEnabled}">
+            <MenuItem.Icon>
+              <Image Source="{StaticResource ImageStartupProject}"/>
+            </MenuItem.Icon>
+          </MenuItem>
+          <MenuItem Header="{sd:LocalizeString Package properties, Context=Menu}"
+                    Command="{Binding ActivatePackagePropertiesCommand}"
+                    IsVisible="{Binding ActivatePackagePropertiesCommand.IsEnabled}">
+            <MenuItem.Icon>
+              <Image Source="{StaticResource ImagePackageProperties}"/>
+            </MenuItem.Icon>
+          </MenuItem>
+
+          <MenuItem Header="{sd:LocalizeString Solution, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"
+                    IsVisible="{Binding AddExistingProjectCommand.IsEnabled}"/>
+          <MenuItem Header="{sd:LocalizeString Add existing project..., Context=Menu}"
+                    Command="{Binding AddExistingProjectCommand}"
+                    IsVisible="{Binding AddExistingProjectCommand.IsEnabled}">
+            <MenuItem.Icon>
+              <Image Source="{StaticResource ImageAddExistingProject}"/>
+            </MenuItem.Icon>
+          </MenuItem>
+
+          <MenuItem Header="{sd:LocalizeString Actions, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"/>
+          <MenuItem Header="{sd:LocalizeString Cut, Context=Menu}"
+                    Command="{Binding AssetCollection.CutLocationsCommand}"
+                    InputGesture="{x:Static sd:EditCommands.CutGesture}">
+            <MenuItem.Icon>
+              <Image Source="{StaticResource ImageCut}"/>
+            </MenuItem.Icon>
+          </MenuItem>
+          <MenuItem Header="{sd:LocalizeString Copy, Context=Menu}"
+                    Command="{Binding AssetCollection.CopyLocationsCommand}"
+                    InputGesture="{x:Static sd:EditCommands.CopyGesture}">
+            <MenuItem.Icon>
+              <Image Source="{StaticResource ImageCopy}"/>
+            </MenuItem.Icon>
+          </MenuItem>
+          <MenuItem Header="{sd:LocalizeString Paste, Context=Menu}"
+                    Command="{Binding AssetCollection.PasteCommand}"
+                    InputGesture="{x:Static sd:EditCommands.PasteGesture}">
+            <MenuItem.Icon>
+              <Image Source="{StaticResource ImagePaste}"/>
+            </MenuItem.Icon>
+          </MenuItem>
+          <MenuItem Header="{sd:LocalizeString Delete, Context=Menu}"
+                    Command="{Binding DeleteSelectedSolutionItemsCommand}"
+                    InputGesture="{x:Static sd:EditCommands.DeleteGesture}">
+            <MenuItem.Icon>
+              <Image Source="{StaticResource ImageDelete}"/>
+            </MenuItem.Icon>
+          </MenuItem>
+          <MenuItem Header="{sd:LocalizeString Rename, Context=Menu}"
+                    Command="{Binding RenameDirectoryOrPackageCommand}"
+                    CommandParameter="{Binding AssetCollection.SelectedLocations}"
+                    IsVisible="{Binding RenameDirectoryOrPackageCommand.IsEnabled}"
+                    InputGesture="{x:Static sd:EditCommands.RenameGesture}">
+            <MenuItem.Icon>
+              <Image Source="{StaticResource ImageRename}"/>
+            </MenuItem.Icon>
+          </MenuItem>
+        </ContextMenu>
+      </TreeView.ContextMenu>
       <Control.DataTemplates>
         <TreeDataTemplate DataType="{x:Type vm:AssetMountPointViewModel}"
                           ItemsSource="{Binding SubDirectories}">
@@ -36,7 +137,13 @@
                           ItemsSource="{Binding SubDirectories}">
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="Directory: " />
-            <TextBlock Text="{Binding Name}" />
+            <TextBlock Text="{Binding Name}" IsVisible="{Binding !IsEditing}" />
+            <!-- Renaming in place (F2): the box replaces the name while the folder is editing -->
+            <TextBox Text="{Binding Name, Mode=OneWay}" IsVisible="{Binding IsEditing}" MinWidth="80">
+              <Interaction.Behaviors>
+                <sd:InlineEditBehavior Name="{Binding Name, Mode=TwoWay}" IsEditing="{Binding IsEditing, Mode=TwoWay}"/>
+              </Interaction.Behaviors>
+            </TextBox>
             <TextBlock Text="*" IsVisible="{Binding IsDirty}" />
           </StackPanel>
         </TreeDataTemplate>

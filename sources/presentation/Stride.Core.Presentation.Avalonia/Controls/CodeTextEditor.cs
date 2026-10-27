@@ -5,6 +5,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Styling;
 using AvaloniaEdit;
+using Stride.Core.Presentation.Avalonia.Commands;
 using AvaloniaEdit.TextMate;
 using TextMateSharp.Grammars;
 
@@ -18,7 +19,7 @@ namespace Stride.Core.Presentation.Avalonia.Controls;
 /// The application includes AvaloniaEdit's theme (<c>avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml</c>), which
 /// this control shares.
 /// </remarks>
-public sealed class CodeTextEditor : TextEditor
+public sealed class CodeTextEditor : TextEditor, IEditCommandHandler
 {
     private readonly RegistryOptions registryOptions;
     private readonly TextMate.Installation textMate;
@@ -46,6 +47,53 @@ public sealed class CodeTextEditor : TextEditor
 
     /// <inheritdoc />
     protected override Type StyleKeyOverride => typeof(TextEditor);
+
+    /// <summary>
+    /// The editor keeps the Edit commands that act on its text: the Edit menu undoes, cuts, copies, pastes and deletes in the
+    /// editor while it has the focus, as the shortcuts of the editor do.
+    /// </summary>
+    bool IEditCommandHandler.Handles(EditCommandKind kind) => kind != EditCommandKind.Rename;
+
+    /// <inheritdoc />
+    bool IEditCommandHandler.CanExecute(EditCommandKind kind)
+    {
+        return kind switch
+        {
+            EditCommandKind.Undo => CanUndo,
+            EditCommandKind.Redo => CanRedo,
+            EditCommandKind.Cut => !IsReadOnly && SelectionLength > 0,
+            EditCommandKind.Copy => SelectionLength > 0,
+            EditCommandKind.Paste => !IsReadOnly,
+            EditCommandKind.Delete => !IsReadOnly && SelectionLength > 0,
+            _ => false,
+        };
+    }
+
+    /// <inheritdoc />
+    void IEditCommandHandler.Execute(EditCommandKind kind)
+    {
+        switch (kind)
+        {
+            case EditCommandKind.Undo:
+                Undo();
+                break;
+            case EditCommandKind.Redo:
+                Redo();
+                break;
+            case EditCommandKind.Cut:
+                Cut();
+                break;
+            case EditCommandKind.Copy:
+                Copy();
+                break;
+            case EditCommandKind.Paste:
+                Paste();
+                break;
+            case EditCommandKind.Delete:
+                Delete();
+                break;
+        }
+    }
 
     /// <summary>
     /// Shows a text, such as the content of a file: it raises no <see cref="TextEdited"/> and cannot be undone.

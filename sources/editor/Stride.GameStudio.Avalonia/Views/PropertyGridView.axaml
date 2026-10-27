@@ -5,6 +5,8 @@
              xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
              xmlns:caeb="using:Stride.Core.Assets.Editor.Avalonia.Behaviors"
              xmlns:caecp="using:Stride.Core.Assets.Editor.Components.Properties"
+             xmlns:capqvm="using:Stride.Core.Assets.Presentation.Quantum.ViewModels"
+             xmlns:gsvw="using:Stride.GameStudio.Avalonia.Views"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Stride.GameStudio.Avalonia.Views.PropertyGridView"
              x:DataType="caecp:SessionObjectPropertiesViewModel">
@@ -12,6 +14,7 @@
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
         <ResourceInclude Source="avares://Stride.Core.Assets.Editor.Avalonia/Themes/PropertyViewTheme.axaml"/>
+        <ResourceInclude Source="avares://Stride.Core.Assets.Editor.Avalonia/Views/ImageResources.axaml"/>
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
   </UserControl.Resources>
@@ -22,10 +25,47 @@
     <Style Selector="sd|PropertyViewItem[IsFocused=True]">
       <Setter Property="Background" Value="{DynamicResource PropertyFocusedBackground}"/>
     </Style>
+    <!-- The context menu of a property, as in the WPF property grid: it works on the value of the property. The Edit menu
+         and the shortcuts reach the same commands through the bindings the code-behind gives each property. -->
+    <Style Selector="sd|PropertyViewItem" x:DataType="capqvm:AssetNodeViewModel">
+      <Setter Property="ContextMenu">
+        <Template>
+          <ContextMenu x:DataType="capqvm:AssetNodeViewModel">
+            <MenuItem Header="{sd:LocalizeString Reset to base value, Context=Menu}"
+                      Command="{Binding [ResetOverride]}"
+                      IsEnabled="{Binding HasBase}"/>
+            <Separator/>
+            <MenuItem Header="{sd:LocalizeString Copy, Context=Menu}"
+                      Command="{Binding [CopyProperty]}"
+                      InputGesture="{x:Static sd:EditCommands.CopyGesture}">
+              <MenuItem.Icon>
+                <Image Source="{StaticResource ImageCopy}"/>
+              </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem Header="{sd:LocalizeString Paste, Context=Menu}"
+                      Command="{Binding [PasteProperty]}"
+                      InputGesture="{x:Static sd:EditCommands.PasteGesture}">
+              <MenuItem.Icon>
+                <Image Source="{StaticResource ImagePaste}"/>
+              </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem Header="{sd:LocalizeString Replace, Context=Menu}"
+                      Command="{Binding [ReplaceProperty]}"
+                      IsVisible="{Binding [HasCommand_ReplaceProperty]}"
+                      InputGesture="{x:Static gsvw:PropertyGridView.ReplaceGesture}">
+              <MenuItem.Icon>
+                <Image Source="{StaticResource ImagePaste}"/>
+              </MenuItem.Icon>
+            </MenuItem>
+          </ContextMenu>
+        </Template>
+      </Setter>
+    </Style>
   </UserControl.Styles>
   <DockPanel LastChildFill="True">
     <TextBlock DockPanel.Dock="Top" Text="Property Grid"/>
-    <sd:PropertyView ItemsSource="{Binding ViewModel?.RootNode.Children}"
+    <sd:PropertyView x:Name="Properties"
+                     ItemsSource="{Binding ViewModel?.RootNode.Children}"
                      IsVisible="{Binding CanDisplayProperties}">
       <Interaction.Behaviors>
         <caeb:PropertyViewAutoExpandNodesBehavior ViewModel="{Binding ViewModel, Mode=OneWay}" />

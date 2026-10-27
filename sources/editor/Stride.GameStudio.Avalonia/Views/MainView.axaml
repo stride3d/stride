@@ -27,6 +27,12 @@
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
   </UserControl.Resources>
+  <!-- The Edit commands that no panel handles, as the command bindings of the WPF window: Undo and Redo act on the session
+       wherever the focus is, unless a text editor has it. -->
+  <sd:EditCommands.Bindings>
+    <sd:EditCommandBinding Kind="Undo" Command="{Binding UndoCommand}"/>
+    <sd:EditCommandBinding Kind="Redo" Command="{Binding RedoCommand}"/>
+  </sd:EditCommands.Bindings>
 
   <Grid RowDefinitions="Auto, *, Auto, 25"
         Background="Transparent">
@@ -75,19 +81,60 @@
                   Command="{Binding ExitCommand}"
                   HotKey="Alt+F4" InputGesture="{Binding $self.HotKey, Mode=OneTime}"/>
       </MenuItem>
-      <!-- Edit menu -->
+      <!-- Edit menu: its items act on the panel that has the focus, through the router of the view (see EditCommandRouter), as
+           the application commands of WPF do. Their shortcuts are handled by the main window after the focused control, so
+           that a text box keeps its own; the items only show them. -->
       <MenuItem Header="{sd:LocalizeString Edit, Context=Menu}">
-        <!-- Undo and Redo bind the stable commands of the main view model, and their shortcuts are key bindings of the main
-             window, like Save: the hot key of an item of a closed menu fires only if the item was enabled when the menu last
-             opened. -->
         <MenuItem Header="{sd:LocalizeString Undo, Context=Menu}"
                   Name="UndoMenuItem"
-                  Command="{Binding UndoCommand}"
-                  InputGesture="{x:Static gsvw:MainView.UndoGesture}"/>
+                  InputGesture="{x:Static sd:EditCommands.UndoGesture}">
+          <MenuItem.Icon>
+            <Image Source="{StaticResource ImageUndo}"/>
+          </MenuItem.Icon>
+        </MenuItem>
         <MenuItem Header="{sd:LocalizeString Redo, Context=Menu}"
                   Name="RedoMenuItem"
-                  Command="{Binding RedoCommand}"
-                  InputGesture="{x:Static gsvw:MainView.RedoGesture}"/>
+                  InputGesture="{x:Static sd:EditCommands.RedoGesture}">
+          <MenuItem.Icon>
+            <Image Source="{StaticResource ImageRedo}"/>
+          </MenuItem.Icon>
+        </MenuItem>
+        <Separator/>
+        <MenuItem Header="{sd:LocalizeString Cut, Context=Menu}"
+                  Name="CutMenuItem"
+                  InputGesture="{x:Static sd:EditCommands.CutGesture}">
+          <MenuItem.Icon>
+            <Image Source="{StaticResource ImageCut}"/>
+          </MenuItem.Icon>
+        </MenuItem>
+        <MenuItem Header="{sd:LocalizeString Copy, Context=Menu}"
+                  Name="CopyMenuItem"
+                  InputGesture="{x:Static sd:EditCommands.CopyGesture}">
+          <MenuItem.Icon>
+            <Image Source="{StaticResource ImageCopy}"/>
+          </MenuItem.Icon>
+        </MenuItem>
+        <MenuItem Header="{sd:LocalizeString Paste, Context=Menu}"
+                  Name="PasteMenuItem"
+                  InputGesture="{x:Static sd:EditCommands.PasteGesture}">
+          <MenuItem.Icon>
+            <Image Source="{StaticResource ImagePaste}"/>
+          </MenuItem.Icon>
+        </MenuItem>
+        <MenuItem Header="{sd:LocalizeString Delete, Context=Menu}"
+                  Name="DeleteMenuItem"
+                  InputGesture="{x:Static sd:EditCommands.DeleteGesture}">
+          <MenuItem.Icon>
+            <Image Source="{StaticResource ImageDelete}"/>
+          </MenuItem.Icon>
+        </MenuItem>
+        <MenuItem Header="{sd:LocalizeString Rename, Context=Menu}"
+                  Name="RenameMenuItem"
+                  InputGesture="{x:Static sd:EditCommands.RenameGesture}">
+          <MenuItem.Icon>
+            <Image Source="{StaticResource ImageRename}"/>
+          </MenuItem.Icon>
+        </MenuItem>
         <Separator/>
         <MenuItem Header="{sd:LocalizeString _Settings..., Context=Menu}"
                   Command="{Binding OpenSettingsWindowCommand}"

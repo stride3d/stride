@@ -43,6 +43,8 @@
   <ControlTheme x:Key="{x:Type sd:PropertyViewItem}" TargetType="sd:PropertyViewItem"
                 x:DataType="cpqvm:NodeViewModel">
     <Setter Property="Background" Value="Transparent"/>
+    <!-- A click on a property gives it the focus, so that the Edit commands (copy and paste a value) reach it -->
+    <Setter Property="Focusable" Value="True"/>
     <Setter Property="Increment" Value="12"/>
     <Setter Property="HorizontalAlignment" Value="Stretch"/>
     <Setter Property="HeaderTemplate">
