@@ -721,11 +721,8 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
 
         CheckConsistency();
 
-        // Prepare packages to be saved by setting their dirty flag correctly
-        foreach (var package in LocalPackages)
-        {
-            package.PreparePackageForSaving();
-        }
+        // Ensure any edition is validated by triggering lost focus, etc.
+        ServiceProvider.Get<IEditorDialogService>().ClearKeyboardFocus();
 
         var sessionResult = new LoggerResult();
         var workProgress = new WorkProgressViewModel(ServiceProvider, sessionResult)
@@ -736,6 +733,16 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
             IsCancellable = false,
         };
         workProgress.RegisterProgressStatus(sessionResult, true);
+
+        // The editors that keep changes outside their asset (the text of a script) save them first: they may ask the user,
+        // which must happen before the progress window shows; their errors go to the log of the save
+        await EditorCollection.SaveEditorChangesAsync(sessionResult);
+
+        // Prepare packages to be saved by setting their dirty flag correctly
+        foreach (var package in LocalPackages)
+        {
+            package.PreparePackageForSaving();
+        }
 
         ServiceProvider.Get<IEditorDialogService>().ShowProgressWindow(workProgress);
 

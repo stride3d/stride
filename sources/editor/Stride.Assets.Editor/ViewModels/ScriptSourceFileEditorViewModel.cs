@@ -6,6 +6,7 @@ using Stride.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.Editors;
 using Stride.Core.Assets.Editor.ViewModels;
+using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.Windows;
@@ -14,8 +15,9 @@ using Stride.Core.Translation;
 namespace Stride.Assets.Editor.ViewModels;
 
 /// <summary>
-/// The editor of a script: the text of its file, which the editor saves itself (the editor has no command to save the session
-/// yet), and reloads when another program changes the file while the editor has no unsaved edit.
+/// The editor of a script: the text of its file, which the editor saves itself (with its own Save, or when the session saves),
+/// and reloads when another program changes the file while the editor has no unsaved edit. The script is dirty while the
+/// text has unsaved edits, as in the WPF editor.
 /// </summary>
 [AssetEditorViewModel<ScriptSourceFileViewModel>]
 public sealed class ScriptSourceFileEditorViewModel : AssetEditorViewModel<ScriptSourceFileViewModel>
@@ -70,7 +72,11 @@ public sealed class ScriptSourceFileEditorViewModel : AssetEditorViewModel<Scrip
     public bool IsModified
     {
         get => isModified;
-        private set => SetValue(ref isModified, value, () => SaveCommand.IsEnabled = value);
+        private set => SetValue(ref isModified, value, () =>
+        {
+            SaveCommand.IsEnabled = value;
+            Asset.SetHasUnsavedText(value);
+        });
     }
 
     /// <summary>
@@ -145,6 +151,31 @@ public sealed class ScriptSourceFileEditorViewModel : AssetEditorViewModel<Scrip
         savedText = text;
         signature = FileContentSignature.Capture(path);
         IsModified = !string.Equals(currentText, savedText, StringComparison.Ordinal);
+    }
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// The session saves the unsaved edits of the text through <see cref="SaveAsync"/>, which asks before overwriting a change of
+    /// another program. A file that cannot be written is an error of the session save; the edits stay unsaved.
+    /// </remarks>
+    public override async Task SaveChangesAsync(ILogger logger)
+    {
+        try
+        {
+            await SaveAsync();
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            logger.Error(string.Format(Tr._p("Log", "The script {0} could not be saved. {1}"), Asset.Url, e.Message), e);
+        }
+    }
+
+    /// <inheritdoc />
+    public override void Destroy()
+    {
+        // The edits that the user dropped (Don't save) go with the editor: the script has the text of its file again
+        Asset.SetHasUnsavedText(false);
+        base.Destroy();
     }
 
     /// <inheritdoc />

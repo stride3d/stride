@@ -10,5 +10,9 @@
         Icon="/Assets/GameStudio.ico"
         Title="{Binding Title}"
         Width="1280" Height="900">
+  <Window.KeyBindings>
+    <!-- File > Save, wherever the focus is (see the File menu of MainView) -->
+    <KeyBinding Gesture="{x:Static gsvw:MainView.SaveGesture}" Command="{Binding SaveCommand}"/>
+  </Window.KeyBindings>
   <gsvw:MainView />
 </Window>

@@ -8,14 +8,12 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Stride.Assets.Editor.Avalonia.Views.ScriptSourceFileEditorView"
              x:DataType="vm:ScriptSourceFileEditorViewModel">
-  <UserControl.KeyBindings>
-    <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveCommand}" />
-  </UserControl.KeyBindings>
+  <!-- Ctrl+S is the shell's File > Save, which saves the script with the rest of the session, as in the WPF editor -->
   <DockPanel>
     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="4" Margin="4">
-      <!-- The command is enabled while the text has unsaved edits -->
+      <!-- The command is enabled while the text has unsaved edits; it saves this script only -->
       <Button x:Name="SaveButton" Content="{sd:LocalizeString Save}" Command="{Binding SaveCommand}"
-              ToolTip.Tip="{sd:LocalizeString Save the script (Ctrl+S)}" />
+              ToolTip.Tip="{sd:LocalizeString Save the script}" />
     </StackPanel>
     <!-- The code-behind loads the text: the editor holds its own document, which a binding of its text would rebuild on
          every keystroke -->

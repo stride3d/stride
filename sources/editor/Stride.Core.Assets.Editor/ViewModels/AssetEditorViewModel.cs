@@ -4,6 +4,7 @@
 using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.ViewModels;
@@ -74,6 +75,17 @@ public abstract class AssetEditorViewModel : DispatcherViewModel, IAssetEditorVi
     public virtual Task<bool> Initialize()
     {
         return Task.FromResult(true);
+    }
+
+    /// <summary>
+    /// Saves the changes that the editor keeps outside its asset, such as the text of a script, which its editor writes to the
+    /// file itself. The session calls it before it saves; the default editor keeps no such change.
+    /// </summary>
+    /// <param name="logger">The log of the session save, which gets the errors.</param>
+    /// <returns>A task that completes when the changes are saved, or when the user chose not to save them.</returns>
+    public virtual Task SaveChangesAsync(ILogger logger)
+    {
+        return Task.CompletedTask;
     }
 
     /// <summary>

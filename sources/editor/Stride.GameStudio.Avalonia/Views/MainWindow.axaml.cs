@@ -113,8 +113,8 @@ public partial class MainWindow : Window
     {
         try
         {
-            // The editors save or drop their unsaved changes, as the user chooses; the user can also keep the editor open
-            if (DataContext is MainViewModel mainViewModel && !await mainViewModel.CloseEditorsAsync())
+            // The session and its editors save or drop their unsaved changes, as the user chooses; the user can also cancel
+            if (DataContext is MainViewModel mainViewModel && !await mainViewModel.CloseSessionAsync())
             {
                 closingTask?.SetResult(false);
                 return;
