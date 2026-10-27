@@ -57,12 +57,14 @@ public sealed class TemplateProviderTests
     }
 }
 
+// The template providers are AvaloniaObjects: Avalonia facts keep them on the headless session's thread. A plain fact
+// runs on an xunit worker in parallel and can claim the UI dispatcher before the session starts, which fails its setup.
 public sealed class TemplateProviderMatchingTests
 {
     private readonly NodeViewModelContext context = new();
     private readonly SampleObject sample = new();
 
-    [Theory]
+    [AvaloniaTheory]
     [InlineData(nameof(SampleObject.Integer), true)]
     [InlineData(nameof(SampleObject.Text), false)]
     public void TypeMatchProviderMatchesTheNodeType(string member, bool expected)
@@ -73,7 +75,7 @@ public sealed class TemplateProviderMatchingTests
         Assert.Equal("Int32", provider.Name);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void TypeMatchProviderWithoutTypeMatchesEveryNode()
     {
         var provider = new TypeMatchTemplateProvider { Template = null! };
@@ -83,7 +85,7 @@ public sealed class TemplateProviderMatchingTests
         Assert.Equal("Undefined", provider.Name);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void CollectionProvidersMatchTheirKindOfCollection()
     {
         var list = context.MemberOf(sample, nameof(SampleObject.Numbers));
@@ -107,7 +109,7 @@ public sealed class TemplateProviderMatchingTests
         Assert.False(dictionaryProvider.Match(list));
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void ListProviderNamesItsElementType()
     {
         var list = context.MemberOf(sample, nameof(SampleObject.Numbers));
@@ -119,7 +121,7 @@ public sealed class TemplateProviderMatchingTests
         Assert.True(new ListTemplateProvider { ElementType = typeof(string), Template = null! }.Match(list));
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void EnumProvidersDistinguishFlags()
     {
         var plain = context.MemberOf(sample, nameof(SampleObject.Plain));
@@ -142,7 +144,7 @@ public sealed class TemplateProviderMatchingTests
         Assert.False(imageProvider.Match(plain));
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void NullableProviderMatchesNullableStructsOnly()
     {
         var provider = new NullableTemplateProvider { Template = null! };
@@ -154,7 +156,7 @@ public sealed class TemplateProviderMatchingTests
         Assert.False(provider.Match(context.MemberOf(sample, nameof(SampleObject.Text))));
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void ProvidersOnlyMatchNodes()
     {
         Assert.False(new TypeMatchTemplateProvider { Type = typeof(string), Template = null! }.Match("a string"));
