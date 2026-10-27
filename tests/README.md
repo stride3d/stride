@@ -15,7 +15,7 @@ Test projects that are not the unit tests of one assembly, and the reference ima
 | `baselines/` | Gold images of the GPU tests, compared pixel by pixel by `GameTestBase`: `<Suite>/<Platform.API>/<Device>/<TestName>.png` (for example `Stride.Graphics.Tests/Windows.Direct3D11/WARP/`). Only this layout: CompareGold reads every folder here as a suite, so the editor and sample references, compared by `ScreenshotComparator`, stay with their projects. See [GPU-TESTING.md](GPU-TESTING.md) |
 | `local/` | Images that local test runs save when a test fails (ignored by git) |
 
-`compare-gold.cmd` opens the CompareGold tool, to compare the images in `local/` with the golds. `gpu.runsettings` runs the GPU tests on your graphics card instead of a software renderer (see [GPU-TESTING.md](GPU-TESTING.md)).
+`compare-gold.cmd` opens the CompareGold tool, to compare the images in `local/` with the golds. `gpu.runsettings` runs the GPU tests on your graphics card instead of a software renderer (see [GPU-TESTING.md](GPU-TESTING.md)). `editor-coverage.runsettings` collects the code coverage of the editor-side assemblies when testing `sources/Stride.Editor.Avalonia.slnf` (CI job `test-editor-avalonia.yml`).
 
 `Directory.Build.props` and `Directory.Packages.props` let the projects here build like the ones in `sources/`, whose files are not found from this tree.
 
