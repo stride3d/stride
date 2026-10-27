@@ -113,10 +113,14 @@ public partial class MainWindow : Window
     {
         try
         {
-            // TODO asks editors to save their modified assets
-            // if cancel: closingTask?.SetResult(false); return;
+            // The editors save or drop their unsaved changes, as the user chooses; the user can also keep the editor open
+            if (DataContext is MainViewModel mainViewModel && !await mainViewModel.CloseEditorsAsync())
+            {
+                closingTask?.SetResult(false);
+                return;
+            }
 
-            // TODO force all editors and secondary windows to close
+            // TODO force all secondary windows to close
 
             // Internal settings
             SaveInternalSettings();

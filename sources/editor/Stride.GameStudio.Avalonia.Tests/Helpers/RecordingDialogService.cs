@@ -44,6 +44,11 @@ internal sealed class RecordingDialogService : IEditorDialogService
         return Task.FromResult(PickAsset(picker));
     }
 
+    /// <summary>
+    /// Picks the button of the next message boxes with custom buttons; the first one by default.
+    /// </summary>
+    public Func<IReadOnlyCollection<DialogButtonInfo>, int> PickButton { get; set; } = buttons => buttons.First().Result;
+
     public bool HasMainWindow => false;
 
     public void Exit(int exitCode = 0) => throw new NotSupportedException();
@@ -63,7 +68,7 @@ internal sealed class RecordingDialogService : IEditorDialogService
     public Task<int> CheckedMessageBoxAsync(string message, IReadOnlyCollection<DialogCheckBoxInfo> checkBoxes, IReadOnlyCollection<DialogButtonInfo> buttons, MessageBoxImage image = MessageBoxImage.None)
     {
         Messages.Add(message);
-        return Task.FromResult(buttons.First().Result);
+        return Task.FromResult(PickButton(buttons));
     }
 
     public Task<MessageBoxResult> MessageBoxAsync(string message, MessageBoxButton buttons = MessageBoxButton.OK, MessageBoxImage image = MessageBoxImage.None)
@@ -75,7 +80,7 @@ internal sealed class RecordingDialogService : IEditorDialogService
     public Task<int> MessageBoxAsync(string message, IReadOnlyCollection<DialogButtonInfo> buttons, MessageBoxImage image = MessageBoxImage.None)
     {
         Messages.Add(message);
-        return Task.FromResult(buttons.First().Result);
+        return Task.FromResult(PickButton(buttons));
     }
 
     public Task<UFile?> OpenFilePickerAsync(UDirectory? initialPath = null, IReadOnlyList<FilePickerFilter>? filters = null) => Task.FromResult<UFile?>(null);

@@ -85,4 +85,15 @@ public abstract class AssetEditorViewModel : DispatcherViewModel, IAssetEditorVi
     {
         return true;
     }
+
+    /// <summary>
+    /// Processes anything before closing the editor, such as saving the file, and asks the user when needed. The editor
+    /// collection calls this one, since a question to the user is asynchronous. The default calls <see cref="PreviewClose"/>.
+    /// </summary>
+    /// <param name="save"><c>true</c> if the file should be saved, <c>false</c> if it can be closed without asking the user, <c>null</c> if the user should be asked.</param>
+    /// <returns>A task that completes with <c>true</c> if the editor can be closed, <c>false</c> if the user interrupted.</returns>
+    public virtual Task<bool> PreviewCloseAsync(bool? save)
+    {
+        return Task.FromResult(PreviewClose(save));
+    }
 }

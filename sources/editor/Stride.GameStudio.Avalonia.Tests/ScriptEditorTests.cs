@@ -17,8 +17,9 @@ using Stride.GameStudio.Avalonia.Views;
 namespace Stride.GameStudio.Avalonia.Tests;
 
 /// <summary>
-/// The script editor in the shell: a script opens in the code editor, the edits of the user are saved with Ctrl+S, and a change
-/// that another program makes to the file shows when the editor gets the focus back.
+/// The script editor in the shell: a script opens in the code editor, the edits of the user are saved with Ctrl+S, a change
+/// that another program makes to the file shows when the editor gets the focus back, and closing the window or the session
+/// asks the user about the unsaved edits.
 /// </summary>
 public sealed class ScriptEditorTests
 {
@@ -128,6 +129,113 @@ public sealed class ScriptEditorTests
         {
             await window.CloseAsync();
         }
+    }
+
+    [AvaloniaFact]
+    public async Task ClosingTheWindowSavesTheEditsWhenTheUserSaysSo()
+    {
+        using var fixture = await OpenAsync();
+        var dialogs = fixture.ReplaceDialogService();
+        var window = new MainWindow { DataContext = fixture.Main };
+        var closed = false;
+        window.Closed += (_, _) => closed = true;
+        window.Show();
+        try
+        {
+            var (editor, view) = await TypeAsync(fixture, window, "// ");
+
+            // The first button saves; the window closes once the file is written
+            await window.CloseAsync();
+            await WindowTestHelper.WaitUntilAsync(() => closed, "the close of the window");
+
+            Assert.Single(dialogs.Messages);
+            Assert.Equal("// " + Script, File.ReadAllText(editor.Asset.AssetItem.FullPath.ToOSPath()));
+            Assert.Empty(fixture.Session.EditorCollection.Editors);
+        }
+        finally
+        {
+            if (!closed)
+                await window.CloseAsync();
+        }
+    }
+
+    [AvaloniaFact]
+    public async Task CancellingTheCloseKeepsTheWindowAndTheEdits()
+    {
+        using var fixture = await OpenAsync();
+        var dialogs = fixture.ReplaceDialogService();
+        var window = new MainWindow { DataContext = fixture.Main };
+        var closed = false;
+        window.Closed += (_, _) => closed = true;
+        window.Show();
+        try
+        {
+            var (editor, view) = await TypeAsync(fixture, window, "// ");
+
+            dialogs.PickButton = buttons => buttons.Single(x => x.IsCancel).Result;
+            await window.CloseAsync();
+
+            Assert.Single(dialogs.Messages);
+            Assert.False(closed);
+            Assert.Same(editor, fixture.Session.EditorCollection.ActiveEditor);
+            Assert.True(editor.IsModified);
+            Assert.Equal("// " + Script, CodeEditor(view).Text);
+            Assert.Equal(Script, File.ReadAllText(editor.Asset.AssetItem.FullPath.ToOSPath()));
+
+            // Don't save: the window closes and the file keeps its text
+            dialogs.PickButton = buttons => buttons.Single(x => !x.IsDefault && !x.IsCancel).Result;
+            await window.CloseAsync();
+            await WindowTestHelper.WaitUntilAsync(() => closed, "the close of the window");
+            Assert.Equal(Script, File.ReadAllText(editor.Asset.AssetItem.FullPath.ToOSPath()));
+        }
+        finally
+        {
+            if (!closed)
+                await window.CloseAsync();
+        }
+    }
+
+    [AvaloniaFact]
+    public async Task ClosingTheSessionAsksAboutTheEditsToo()
+    {
+        using var fixture = await OpenAsync();
+        var dialogs = fixture.ReplaceDialogService();
+        var window = new MainWindow { DataContext = fixture.Main };
+        window.Show();
+        try
+        {
+            var (editor, _) = await TypeAsync(fixture, window, "// ");
+
+            // File > Close, then Cancel
+            dialogs.PickButton = buttons => buttons.Single(x => x.IsCancel).Result;
+            fixture.Main.CloseCommand.Execute();
+            await WindowTestHelper.PumpAsync();
+
+            Assert.Single(dialogs.Messages);
+            Assert.Same(fixture.Session, fixture.Main.Session);
+            Assert.Same(editor, fixture.Session.EditorCollection.ActiveEditor);
+            Assert.True(editor.IsModified);
+        }
+        finally
+        {
+            dialogs.PickButton = buttons => buttons.Single(x => !x.IsDefault && !x.IsCancel).Result;
+            await window.CloseAsync();
+        }
+    }
+
+    /// <summary>
+    /// Opens the editor of the script and types a text at its start.
+    /// </summary>
+    private static async Task<(ScriptSourceFileEditorViewModel Editor, ScriptSourceFileEditorView View)> TypeAsync(ShellSessionFixture fixture, Window window, string text)
+    {
+        var (editor, view) = await OpenEditorAsync(fixture, window);
+        var code = CodeEditor(view);
+        code.TextArea.Focus();
+        code.CaretOffset = 0;
+        window.KeyTextInput(text);
+        await WindowTestHelper.PumpAsync();
+        Assert.True(editor.IsModified);
+        return (editor, view);
     }
 
     private static Task<ShellSessionFixture> OpenAsync()
