@@ -59,6 +59,18 @@
                   Command="{Binding ClearRecentFilesCommand}"
                   IsEnabled="{Binding RecentFiles.Count, Mode=OneWay, Converter={sd:NumericToBool}}"/>
         <Separator/>
+        <!-- Save and reload, as in the WPF editor: Save is enabled whenever a session is open. Its shortcut is a key binding
+             of the main window: the hot key of an item of a closed menu fires only if the item was enabled when the menu last
+             opened (Avalonia evaluates its command then), and WPF binds Ctrl+S to the window too. -->
+        <MenuItem Header="{sd:LocalizeString _Save, Context=Menu}"
+                  Name="SaveMenuItem"
+                  Command="{Binding SaveCommand}"
+                  InputGesture="{x:Static gsvw:MainView.SaveGesture}"/>
+        <Separator/>
+        <MenuItem Header="{sd:LocalizeString _Reload project, Context=Menu}"
+                  Command="{Binding ReloadCommand}"
+                  IsEnabled="{Binding Session, Mode=OneWay, Converter={sd:ObjectToBool}}"/>
+        <Separator/>
         <MenuItem Header="{sd:LocalizeString E_xit, Context=Menu}"
                   Command="{Binding ExitCommand}"
                   HotKey="Alt+F4" InputGesture="{Binding $self.HotKey, Mode=OneTime}"/>

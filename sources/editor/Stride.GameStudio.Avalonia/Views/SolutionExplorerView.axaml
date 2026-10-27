@@ -11,6 +11,7 @@
     <Grid DockPanel.Dock="Top">
       <TextBlock Text="Solution Explorer" />
     </Grid>
+    <!-- A "*" follows the name of an item with unsaved changes, as in the WPF solution explorer -->
     <TreeView ItemsSource="{Binding PackageCategories.Values}"
               SelectedItems="{Binding AssetCollection.SelectedLocations}"
               SelectionMode="Multiple"
@@ -20,6 +21,7 @@
                           ItemsSource="{Binding SubDirectories}">
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="{Binding Name}" />
+            <TextBlock Text="*" IsVisible="{Binding IsDirty}" />
           </StackPanel>
         </TreeDataTemplate>
         <TreeDataTemplate DataType="{x:Type vm:ICategoryViewModel}"
@@ -27,6 +29,7 @@
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="Category: " />
             <TextBlock Text="{Binding Name}" />
+            <TextBlock Text="*" IsVisible="{Binding IsDirty}" />
           </StackPanel>
         </TreeDataTemplate>
         <TreeDataTemplate DataType="{x:Type vm:DirectoryViewModel}"
@@ -34,6 +37,7 @@
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="Directory: " />
             <TextBlock Text="{Binding Name}" />
+            <TextBlock Text="*" IsVisible="{Binding IsDirty}" />
           </StackPanel>
         </TreeDataTemplate>
         <TreeDataTemplate DataType="{x:Type vm:ProjectViewModel}"
@@ -41,6 +45,7 @@
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="Project: " />
             <TextBlock Text="{Binding Name}" />
+            <TextBlock Text="*" IsVisible="{Binding IsDirty}" />
           </StackPanel>
         </TreeDataTemplate>
         <TreeDataTemplate DataType="{x:Type vm:PackageViewModel}"
@@ -48,6 +53,7 @@
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="Package: " />
             <TextBlock Text="{Binding Name}" />
+            <TextBlock Text="*" IsVisible="{Binding IsDirty}" />
           </StackPanel>
         </TreeDataTemplate>
         <DataTemplate DataType="{x:Type vm:PackageReferenceViewModel}">
@@ -60,6 +66,7 @@
                           ItemsSource="{Binding SubDirectories}">
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="{Binding Name}" />
+            <TextBlock Text="*" IsVisible="{Binding IsDirty}" />
           </StackPanel>
         </TreeDataTemplate>
         <!-- Fallback -->

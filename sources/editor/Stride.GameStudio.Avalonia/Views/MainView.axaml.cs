@@ -20,6 +20,11 @@ public partial class MainView : UserControl
     public static KeyGesture? RedoGesture => Application.Current?.PlatformSettings?.HotkeyConfiguration.Redo.FirstOrDefault();
 
     /// <summary>
+    /// Gets a platform-specific <see cref="KeyGesture"/> for the Save action: Ctrl+S, or Cmd+S on macOS.
+    /// </summary>
+    public static KeyGesture SaveGesture => new(Key.S, Application.Current?.PlatformSettings?.HotkeyConfiguration.CommandModifiers ?? KeyModifiers.Control);
+
+    /// <summary>
     /// Gets a platform-specific <see cref="KeyGesture"/> for the Undo action
     /// </summary>
     public static KeyGesture? UndoGesture => Application.Current?.PlatformSettings?.HotkeyConfiguration.Undo.FirstOrDefault();

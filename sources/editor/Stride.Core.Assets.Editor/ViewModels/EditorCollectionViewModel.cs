@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.ViewModels;
 
@@ -103,6 +104,18 @@ public sealed class EditorCollectionViewModel : DispatcherViewModel, IAssetEdito
                 return false;
         }
         return true;
+    }
+
+    /// <summary>
+    /// Saves the changes that the open editors keep outside their asset, see <see cref="AssetEditorViewModel.SaveChangesAsync"/>.
+    /// </summary>
+    /// <param name="logger">The log of the session save, which gets the errors.</param>
+    public async Task SaveEditorChangesAsync(ILogger logger)
+    {
+        foreach (var editor in editors.ToList())
+        {
+            await editor.SaveChangesAsync(logger);
+        }
     }
 
     public bool TryGetAssetEditor<TEditor>(AssetViewModel asset, [MaybeNullWhen(false)] out TEditor assetEditor) where TEditor : AssetEditorViewModel
