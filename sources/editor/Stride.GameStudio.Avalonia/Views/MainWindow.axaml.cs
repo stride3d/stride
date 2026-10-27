@@ -10,7 +10,6 @@ using Avalonia.Threading;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Avalonia.Extensions;
-using Stride.Core.Presentation.Commands;
 using Stride.GameStudio.Avalonia.Settings;
 using Stride.GameStudio.Avalonia.ViewModels;
 
@@ -62,29 +61,15 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
-    /// The shortcuts of Edit > Undo and Redo. They run here, after the focused control has seen the key, so that a text box keeps
-    /// its own Ctrl+Z and Ctrl+Y: Avalonia evaluates the key bindings of the window before it raises the key event, so a
-    /// <see cref="KeyBinding"/> would undo the session instead of the text.
+    /// The shortcuts of the Edit menu (Undo, Redo, Cut, Copy, Paste, Delete and Rename) go to the panel that has the focus. They
+    /// run here, after the focused control has seen the key, so that a text box keeps its own Ctrl+Z and Ctrl+C: Avalonia
+    /// evaluates the key bindings of the window before it raises the key event, so a <see cref="KeyBinding"/> would act on
+    /// the session instead of the text.
     /// </summary>
     protected override void OnKeyDown(KeyEventArgs e)
     {
         base.OnKeyDown(e);
-        if (e.Handled || DataContext is not MainViewModel mainViewModel)
-            return;
-
-        if (MainView.UndoGesture.Matches(e))
-            e.Handled = TryExecute(mainViewModel.UndoCommand);
-        else if (MainView.RedoGesture.Matches(e))
-            e.Handled = TryExecute(mainViewModel.RedoCommand);
-        return;
-
-        static bool TryExecute(ICommandBase command)
-        {
-            if (!command.CanExecute(null))
-                return false;
-            command.Execute(null);
-            return true;
-        }
+        View.EditRouter.TryHandleKey(e);
     }
 
     protected override void OnLoaded(RoutedEventArgs _)

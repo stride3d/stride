@@ -1369,6 +1369,9 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
 
     private void SetCurrentProject(object? selectedItem)
     {
+        // The context menu of the solution explorer passes the selected locations
+        if (selectedItem is IEnumerable items and not string)
+            selectedItem = items.Cast<object>().LastOrDefault();
         if (selectedItem is not ProjectViewModel project)
         {
             // Editor.MessageBox(Resources.Strings.SessionViewModel.SelectExecutableAsCurrentProject, MessageBoxButton.OK, MessageBoxImage.Information);
