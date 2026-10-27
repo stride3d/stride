@@ -15,15 +15,22 @@ internal static class Module
         // (its registered dependency directories) and loads each one once
         OverrideImportResolution<HarfBuzzSharp.ContentType>();
         OverrideImportResolution<SkiaSharp.GRBackend>();
+        // ANGLE, Avalonia's GPU renderer on Windows: Avalonia imports av_libGLESv2.dll but its package ships
+        // av_libglesv2.dll, which a case-sensitive folder doesn't find, and then Avalonia renders the whole editor in
+        // software. Only that library goes through the helper (lowercase): Avalonia.Win32's other imports are system libraries
+        OverrideImportResolution<global::Avalonia.Win32PlatformOptions>(name => name.StartsWith("av_lib", StringComparison.OrdinalIgnoreCase) ? Path.GetFileNameWithoutExtension(name).ToLowerInvariant() : null);
         return;
 
-        static void OverrideImportResolution<T>()
+        static void OverrideImportResolution<T>(Func<string, string?>? map = null)
         {
             NativeLibrary.SetDllImportResolver(typeof(T).Assembly, (name, _, _) =>
             {
+                var libraryName = map != null ? map(name) : name;
+                if (libraryName == null)
+                    return IntPtr.Zero;
                 try
                 {
-                    return NativeLibraryHelper.PreloadLibrary(name, typeof(T));
+                    return NativeLibraryHelper.PreloadLibrary(libraryName, typeof(T));
                 }
                 catch (Exception)
                 {
