@@ -94,9 +94,10 @@ public class HeightfieldModelComponent : EntityComponent
 
             foreach (var (heightfieldRendering, data) in ComponentDatas)
             {
-                if (data.Version != heightfieldRendering._version && Generate(ref data.Model, data.ModelComponent, heightfieldRendering))
+                if (data.Version != heightfieldRendering._version)
                 {
                     data.Version = heightfieldRendering._version;
+                    Generate(ref data.Model, data.ModelComponent, heightfieldRendering);
                 }
 
                 if (data.Model == null)
@@ -148,12 +149,9 @@ public class HeightfieldModelComponent : EntityComponent
             }
         }
 
-        private bool Generate(ref Model? model, ModelComponent modelComponent, HeightfieldModelComponent component)
+        private void Generate(ref Model? model, ModelComponent modelComponent, HeightfieldModelComponent component)
         {
             Dispose(ref model);
-
-            if (Services is null)
-                return false;
 
             model = new PlaneProceduralModel
             {
@@ -166,7 +164,6 @@ public class HeightfieldModelComponent : EntityComponent
             }.Generate(Services);
 
             modelComponent.Model = model;
-            return true;
         }
 
         private void Dispose(ref Model? model)
