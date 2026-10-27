@@ -1,0 +1,148 @@
+name: Test Editor (Avalonia)
+
+# Builds the cross-platform (Avalonia) editor and runs its test projects on Linux and Windows,
+# with a coverage report of the editor-side assemblies (no threshold: the summary is informative).
+# The WPF editor stays covered by build-windows-full.yml, test-windows-simple.yml and
+# test-windows-editor.yml.
+
+on:
+  workflow_dispatch:
+    inputs:
+      build-type:
+        description: Build Configuration
+        default: Debug
+        type: choice
+        options:
+          - Debug
+          - Release
+      test-filter:
+        description: 'dotnet test --filter expression (blank = all tests)'
+        type: string
+        default: ''
+      repeat:
+        description: 'Rerun the filtered test set up to N times, stop on first failure (flake hunting). 1 = single run (default).'
+        type: number
+        default: 1
+  workflow_call:
+    inputs:
+      build-type:
+        default: Debug
+        type: string
+      test-filter:
+        default: ''
+        type: string
+      repeat:
+        default: 1
+        type: number
+
+concurrency:
+  group: test-editor-avalonia-${{ github.event.pull_request.number || github.sha }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
+  cancel-in-progress: true
+
+env:
+  # The solution filter of the Avalonia editor and its tests (a subset of Stride.slnx).
+  EDITOR_SOLUTION: sources/Stride.Editor.Avalonia.slnf
+  # Coverage restricted to the editor-side assemblies.
+  EDITOR_RUNSETTINGS: tests/editor-coverage.runsettings
+  REPORTGENERATOR_VERSION: 5.4.18
+  BUILD_TYPE: ${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
+
+jobs:
+  Editor-Tests:
+    name: ${{ matrix.name }} (Editor Avalonia, ${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Linux
+            os: ubuntu-24.04
+            platform: Linux
+          - name: Windows
+            os: windows-2025-vs2026
+            platform: Windows
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          lfs: true
+          submodules: true
+          ref: ${{ github.ref }}
+      - name: Install dependencies
+        if: runner.os == 'Linux'
+        # lld links the native code the filter builds (Stride.Native.targets, Stride.CrashReport); the Vulkan
+        # loader for the tests that open a graphics device
+        run: sudo apt-get update && sudo apt-get install -y libvulkan1 lld
+      # ContinuousIntegrationBuild=false keeps the real source paths in the pdbs (CI=true maps them to /_/),
+      # so that the coverage report finds the sources; this job ships no package.
+      - name: Build
+        run: |
+          dotnet build "$EDITOR_SOLUTION" \
+            -nr:false \
+            -v:m -p:WarningLevel=0 \
+            -p:Configuration="$BUILD_TYPE" \
+            -p:StridePlatforms=${{ matrix.platform }} \
+            -p:ContinuousIntegrationBuild=false
+      - name: Test
+        run: |
+          FILTER="${{ github.event.inputs.test-filter || inputs.test-filter }}"
+          REPEAT="${{ github.event.inputs.repeat || inputs.repeat || '1' }}"
+          FILTER_ARG=()
+          if [ -n "$FILTER" ]; then FILTER_ARG=(--filter "$FILTER"); fi
+          for i in $(seq 1 "$REPEAT"); do
+            echo "=== Test run $i / $REPEAT ==="
+            dotnet test "$EDITOR_SOLUTION" \
+              --no-build \
+              --settings "$EDITOR_RUNSETTINGS" \
+              --logger:"trx;LogFilePrefix=run-$i" --results-directory TestResults \
+              --blame-hang-timeout 5m --blame-hang-dump-type full \
+              -p:Configuration="$BUILD_TYPE" \
+              "${FILTER_ARG[@]}" || { ec=$?; echo "Run $i failed (exit $ec); stopping."; exit $ec; }
+          done
+      - name: Publish Test Report
+        if: always()
+        uses: phoenix-actions/test-reporting@v16
+        with:
+          name: 'Test Report: ${{ matrix.name }} Editor Avalonia'
+          path: TestResults/*.trx
+          reporter: dotnet-trx
+          output-to: step-summary
+          list-tests: 'failed'
+      # ReportGenerator as a pinned dotnet tool rather than its action: the same command runs locally,
+      # and no further third-party action is needed.
+      - name: Coverage report
+        if: always()
+        run: |
+          shopt -s globstar nullglob
+          REPORTS=(TestResults/**/*.cobertura.xml)
+          if [ ${#REPORTS[@]} -eq 0 ]; then echo "No coverage file found."; exit 0; fi
+          dotnet tool install dotnet-reportgenerator-globaltool --version "$REPORTGENERATOR_VERSION" --tool-path .tools
+          IFS=';'
+          .tools/reportgenerator \
+            "-reports:${REPORTS[*]}" \
+            -targetdir:CoverageReport \
+            "-reporttypes:Html;Cobertura;MarkdownSummaryGithub" \
+            "-filefilters:-*/obj/*" \
+            "-title:Editor Avalonia (${{ matrix.name }})"
+          # Generated sources (obj/) are left out above; the method coverage row only links to ReportGenerator Pro.
+          {
+            echo "## Coverage: ${{ matrix.name }} Editor Avalonia"
+            tail -n +2 CoverageReport/SummaryGithub.md | grep -v 'Method coverage:'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results-editor-avalonia-${{ matrix.platform }}
+          path: TestResults/
+          if-no-files-found: ignore
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-editor-avalonia-${{ matrix.platform }}
+          path: CoverageReport/
+          if-no-files-found: ignore
