@@ -8,6 +8,7 @@ using Stride.Core.Assets.Editor.Editors;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
+using Stride.Core.Presentation.Windows;
 using Stride.Core.Translation;
 
 namespace Stride.Assets.Editor.ViewModels;
@@ -144,6 +145,55 @@ public sealed class ScriptSourceFileEditorViewModel : AssetEditorViewModel<Scrip
         savedText = text;
         signature = FileContentSignature.Capture(path);
         IsModified = !string.Equals(currentText, savedText, StringComparison.Ordinal);
+    }
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// Unsaved edits are never dropped silently: with <paramref name="save"/> <c>null</c>, the user saves them, drops them, or
+    /// keeps the editor open. The editor stays open when the save did not happen (the user kept a change of another program).
+    /// </remarks>
+    public override async Task<bool> PreviewCloseAsync(bool? save)
+    {
+        if (!IsModified || save == false)
+            return true;
+
+        if (save is null)
+        {
+            var buttons = new[]
+            {
+                new DialogButtonInfo { Content = Tr._p("Button", "Save"), Result = (int)MessageBoxResult.Yes, IsDefault = true },
+                new DialogButtonInfo { Content = Tr._p("Button", "Don't save"), Result = (int)MessageBoxResult.No },
+                new DialogButtonInfo { Content = Tr._p("Button", "Cancel"), Result = (int)MessageBoxResult.Cancel, IsCancel = true },
+            };
+            var message = string.Format(Tr._p("Message", "The script {0} has unsaved changes.\r\n\r\nDo you want to save them?"), Asset.Name);
+            var result = await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, buttons, MessageBoxImage.Question);
+            if (result == (int)MessageBoxResult.No)
+                return true;
+            if (result != (int)MessageBoxResult.Yes)
+                return false;
+        }
+
+        try
+        {
+            await SaveAsync();
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            var message = string.Format(Tr._p("Message", "The script {0} could not be saved.\r\n\r\n{1}"), Asset.Name, e.Message);
+            await ServiceProvider.Get<IDialogService>().MessageBoxAsync(message, MessageBoxButton.OK, MessageBoxImage.Error);
+            return false;
+        }
+        return !IsModified;
+    }
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// A synchronous close can neither save nor ask: the editor closes only when no edit would be lost, see
+    /// <see cref="PreviewCloseAsync"/>.
+    /// </remarks>
+    public override bool PreviewClose(bool? save)
+    {
+        return !IsModified || save == false;
     }
 
     /// <summary>

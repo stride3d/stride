@@ -12,8 +12,8 @@ using Stride.Core.Presentation.Services;
 namespace Stride.Assets.Editor.Tests;
 
 /// <summary>
-/// The script editor (<see cref="ScriptSourceFileEditorViewModel"/>): the edits of its text, its save to the file, and the
-/// changes that another program makes to the file.
+/// The script editor (<see cref="ScriptSourceFileEditorViewModel"/>): the edits of its text, its save to the file, the
+/// changes that another program makes to the file, and its close, which never drops edits silently.
 /// </summary>
 public sealed class ScriptSourceFileEditorTests
 {
@@ -150,6 +150,111 @@ public sealed class ScriptSourceFileEditorTests
 
         Assert.Equal(External, File.ReadAllText(PathOf(editor)));
         Assert.Empty(Dialogs(fixture).Messages);
+    }
+
+    [Fact]
+    public async Task ClosingWithoutEditDoesNotAsk()
+    {
+        using var fixture = await OpenAsync();
+        var editor = NewEditor(fixture);
+
+        Assert.True(await editor.PreviewCloseAsync(null));
+        Assert.Empty(Dialogs(fixture).Messages);
+    }
+
+    [Theory]
+    [InlineData(MessageBoxResult.Yes, true, Edited)]
+    [InlineData(MessageBoxResult.No, true, Script)]
+    [InlineData(MessageBoxResult.Cancel, false, Script)]
+    public async Task ClosingWithEditsAsksTheUser(MessageBoxResult answer, bool closes, string file)
+    {
+        using var fixture = await OpenAsync();
+        var editor = NewEditor(fixture);
+        var dialogs = Dialogs(fixture);
+        editor.OnTextEdited(Edited);
+
+        // Save, Don't save or Cancel
+        dialogs.Answer = answer;
+        Assert.Equal(closes, await editor.PreviewCloseAsync(null));
+
+        Assert.Single(dialogs.Messages);
+        Assert.Equal(file, File.ReadAllText(PathOf(editor)));
+        // Only a save makes the text match the file again
+        Assert.Equal(answer != MessageBoxResult.Yes, editor.IsModified);
+    }
+
+    [Theory]
+    [InlineData(true, Edited)]
+    [InlineData(false, Script)]
+    public async Task ClosingWithAnAnswerSavesOrDropsWithoutAsking(bool save, string file)
+    {
+        using var fixture = await OpenAsync();
+        var editor = NewEditor(fixture);
+        editor.OnTextEdited(Edited);
+
+        Assert.True(await editor.PreviewCloseAsync(save));
+
+        Assert.Empty(Dialogs(fixture).Messages);
+        Assert.Equal(file, File.ReadAllText(PathOf(editor)));
+    }
+
+    [Fact]
+    public async Task ClosingKeepsTheEditorWhenTheSaveDidNotHappen()
+    {
+        using var fixture = await OpenAsync();
+        var editor = NewEditor(fixture);
+        var dialogs = Dialogs(fixture);
+        editor.OnTextEdited(Edited);
+        File.WriteAllText(PathOf(editor), External);
+
+        // The user keeps the change of the other program instead of overwriting it
+        dialogs.Answer = MessageBoxResult.Cancel;
+        Assert.False(await editor.PreviewCloseAsync(true));
+
+        Assert.Equal(External, File.ReadAllText(PathOf(editor)));
+        Assert.True(editor.IsModified);
+    }
+
+    [Fact]
+    public async Task ASynchronousCloseNeverDropsEdits()
+    {
+        using var fixture = await OpenAsync();
+        var editor = NewEditor(fixture);
+        Assert.True(editor.PreviewClose(null));
+
+        editor.OnTextEdited(Edited);
+
+        Assert.False(editor.PreviewClose(null));
+        Assert.False(editor.PreviewClose(true));
+        Assert.True(editor.PreviewClose(false));
+        Assert.Empty(Dialogs(fixture).Messages);
+    }
+
+    [Fact]
+    public async Task TheEditorCollectionClosesItsEditorsOnceTheyAgree()
+    {
+        using var fixture = await OpenAsync();
+        var collection = fixture.Session.EditorCollection;
+        var script = fixture.Session.AllAssets.OfType<ScriptSourceFileViewModel>().Single();
+        collection.OpenAssetEditor(script);
+        var editor = Assert.IsType<ScriptSourceFileEditorViewModel>(collection.ActiveEditor);
+        var dialogs = Dialogs(fixture);
+        editor.OnTextEdited(Edited);
+
+        // The user keeps the editor open
+        dialogs.Answer = MessageBoxResult.Cancel;
+        Assert.False(await collection.CloseAllEditorsAsync(null));
+        Assert.Same(editor, Assert.Single(collection.Editors));
+        Assert.True(collection.TryGetAssetEditor<ScriptSourceFileEditorViewModel>(script, out _));
+
+        // The user drops the edits
+        dialogs.Answer = MessageBoxResult.No;
+        Assert.True(await collection.CloseAllEditorsAsync(null));
+        Assert.Empty(collection.Editors);
+        Assert.Null(collection.ActiveEditor);
+        Assert.False(collection.TryGetAssetEditor<ScriptSourceFileEditorViewModel>(script, out _));
+        Assert.Equal(Script, File.ReadAllText(PathOf(editor)));
+        Assert.Equal(2, dialogs.Messages.Count);
     }
 
     [Fact]
