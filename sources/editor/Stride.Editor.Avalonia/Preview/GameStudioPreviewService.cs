@@ -436,6 +436,12 @@ namespace Stride.Editor.Avalonia.Preview
                 // A running game shows its window, which is a top-level window until the host reparents it (an empty
                 // square on the desktop): the host shows the window once it is embedded
                 MakeWindowVisibleOnRun = false;
+                // The main window keeps the focus, never the embedded window, and a game renders an unfocused window like a
+                // minimized one, 15 frames a second: the preview took up to 67 ms to follow each resize of its panel (and on
+                // Windows the editor waits for the game thread to take the new size). A shown preview renders at most 60
+                // frames a second; a hidden one is still throttled (IsEditorHidden, and 15 frames a second before it shows)
+                TreatNotFocusedLikeMinimized = false;
+                WindowMinimumUpdateRate.SetMaxFrequency(60);
             }
 
             protected override void Initialize()
