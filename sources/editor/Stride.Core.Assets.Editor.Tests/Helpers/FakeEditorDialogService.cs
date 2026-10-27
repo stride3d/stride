@@ -93,10 +93,18 @@ public sealed class FakeEditorDialogService : IEditorDialogService
     public Task<UFile?> SaveFilePickerAsync(UDirectory? initialPath = null, IReadOnlyList<FilePickerFilter>? filters = null, string? defaultExtension = null, string? defaultFileName = null) => Task.FromResult<UFile?>(null);
 
     /// <summary>
-    /// Answers a custom-button message box with the button matching <see cref="Answer"/>, or the first one.
+    /// Picks the button of the next message boxes with custom buttons; when <c>null</c>, the button matching <see cref="Answer"/>.
+    /// </summary>
+    public Func<IReadOnlyCollection<DialogButtonInfo>, int>? PickButton { get; set; }
+
+    /// <summary>
+    /// Answers a custom-button message box with <see cref="PickButton"/>, else the button matching <see cref="Answer"/>, or the
+    /// first one.
     /// </summary>
     private int ButtonResult(IReadOnlyCollection<DialogButtonInfo> buttons)
     {
+        if (PickButton is not null)
+            return PickButton(buttons);
         var match = buttons.FirstOrDefault(x => x.Result == (int)Answer) ?? buttons.First();
         return match.Result;
     }
