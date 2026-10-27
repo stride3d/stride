@@ -54,6 +54,8 @@ public sealed class TemplateProviderTests
     }
 }
 
+// The template providers are AvaloniaObjects: Avalonia facts keep them on the headless session's thread. A plain fact
+// runs on an xunit worker in parallel and can claim the UI dispatcher before the session starts, which fails its setup.
 public sealed class TemplateProviderMatchingTests
 {
     private readonly NodeViewModelContext context = new();
@@ -75,7 +77,7 @@ public sealed class TemplateProviderMatchingTests
     }
 
 
-    [Fact]
+    [AvaloniaFact]
     public void TheEntityReferenceProviderMatchesEntityNodes()
     {
         var provider = new EntityReferenceTemplateProvider { Template = null! };
@@ -88,7 +90,7 @@ public sealed class TemplateProviderMatchingTests
         Assert.Equal("EntityReference", provider.Name);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void TheComponentReferenceProviderMatchesComponentsAndTheirInterfaces()
     {
         var provider = new EntityComponentReferenceTemplateProvider { Template = null! };
@@ -104,7 +106,7 @@ public sealed class TemplateProviderMatchingTests
         Assert.All(components.Children, x => Assert.False(provider.Match(x)));
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void TheComponentCollectionProviderMatchesTheComponentsOfAnEntity()
     {
         var provider = new EntityComponentCollectionTemplateProvider { Template = null! };
@@ -116,7 +118,7 @@ public sealed class TemplateProviderMatchingTests
         Assert.False(provider.Match(context.MemberOf(holder, nameof(Holder.Owner))));
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void TheAddConfigurationProviderMatchesTheDefaultsOfTheGameSettings()
     {
         var provider = new GameSettingAddConfigurationTemplateProvider { Template = null! };
