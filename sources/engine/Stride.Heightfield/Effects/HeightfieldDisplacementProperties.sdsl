@@ -8,6 +8,9 @@ namespace Stride.Heightfield
         cbuffer PerMaterial
         {
             stage float HeightfieldSize;
+            stage float HeightfieldMinHeight;
+            stage float HeightfieldMaxHeight;
+            stage float HeightfieldSubdivision;
             stage float PlaneSize;
             stage float PlaneCellSize;
         }

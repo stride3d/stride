@@ -64,6 +64,10 @@ public class HeightfieldDisplacementFeature : MaterialFeature, IMaterialDisplace
         context.IsNotPixelStage = materialStage != MaterialShaderStage.Pixel;
         var inner = source.BuildGpuSideSampler(context);
         var innerShaderSource = inner.GenerateShaderSource(context, new MaterialComputeColorKeys(MaterialKeys.DisplacementMap, MaterialKeys.DisplacementValue));
+        context.Parameters.Set(HeightfieldDisplacementPropertiesKeys.HeightfieldSize, source.Size);
+        context.Parameters.Set(HeightfieldDisplacementPropertiesKeys.HeightfieldMinHeight, source.MinHeight);
+        context.Parameters.Set(HeightfieldDisplacementPropertiesKeys.HeightfieldMaxHeight, source.MaxHeight);
+        context.Parameters.Set(HeightfieldDisplacementPropertiesKeys.HeightfieldSubdivision, source.Subdivision);
         context.IsNotPixelStage = false;
 
         mixin.AddComposition("inner", innerShaderSource);

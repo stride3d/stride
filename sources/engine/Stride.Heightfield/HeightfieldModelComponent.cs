@@ -25,19 +25,6 @@ public class HeightfieldModelComponent : EntityComponent
     private int _version;
 
     /// <summary>
-    /// The heightfield definition to render
-    /// </summary>
-    public required IHeightfieldSource Source
-    {
-        get;
-        set
-        {
-            field = value;
-            _version++;
-        }
-    }
-
-    /// <summary>
     /// The material to use for the mesh. Must have <see cref="HeightfieldDisplacementFeature"/> set as the displacement feature.
     /// </summary>
     public readonly MaterialInstance Material = new();
@@ -81,9 +68,9 @@ public class HeightfieldModelComponent : EntityComponent
     {
         protected override AssociatedData GenerateComponentData(Entity entity, HeightfieldModelComponent component)
         {
+            var data = new AssociatedData();
             var e = new Entity($"{nameof(HeightfieldModelComponent)} model");
             e.Transform.Parent = entity.Transform;
-            var data = new AssociatedData();
             e.Add(data.ModelComponent);
             return data;
         }
@@ -107,11 +94,13 @@ public class HeightfieldModelComponent : EntityComponent
 
             foreach (var (heightfieldRendering, data) in ComponentDatas)
             {
-                if (data.Version != heightfieldRendering._version)
+                if (data.Version != heightfieldRendering._version && Generate(ref data.Model, data.ModelComponent, heightfieldRendering))
                 {
                     data.Version = heightfieldRendering._version;
-                    Generate(ref data.Model, data.ModelComponent, heightfieldRendering);
                 }
+
+                if (data.Model == null)
+                    continue;
 
                 data.ModelComponent.RenderGroup = heightfieldRendering.RenderGroup;
 
@@ -124,11 +113,14 @@ public class HeightfieldModelComponent : EntityComponent
                 if (mat.Passes.Count == 0)
                     continue; // In editor
 
-                if (heightfieldRendering.Source is null)
-                    continue;
+                var parameterCollection = mat.Passes[0].Parameters;
 
-                var fieldCellCount = heightfieldRendering.Source.Subdivision - 1;
-                var fieldSize = heightfieldRendering.Source.Size;
+                var fieldSubdivision = parameterCollection.Get(HeightfieldDisplacementPropertiesKeys.HeightfieldSubdivision);
+                var fieldSize = parameterCollection.Get(HeightfieldDisplacementPropertiesKeys.HeightfieldSize);
+                var fieldMinHeight = parameterCollection.Get(HeightfieldDisplacementPropertiesKeys.HeightfieldMinHeight);
+                var fieldMaxHeight = parameterCollection.Get(HeightfieldDisplacementPropertiesKeys.HeightfieldMaxHeight);
+
+                var fieldCellCount = fieldSubdivision - 1;
                 var fieldCellSize = fieldSize / fieldCellCount * 2;
 
                 var renderedCellCount = (heightfieldRendering.Tessellation - 1);
@@ -138,20 +130,30 @@ public class HeightfieldModelComponent : EntityComponent
                 if (heightfieldRendering.VirtualPlaneRatio > 0)
                     planeSize = Math.Min(fieldSizeForRenderedCellSize * heightfieldRendering.VirtualPlaneRatio, planeSize);
                 var cellSize = planeSize / renderedCellCount;
-                mat.Passes[0].Parameters.Set(HeightfieldDisplacementPropertiesKeys.PlaneCellSize, cellSize);
-                mat.Passes[0].Parameters.Set(HeightfieldDisplacementPropertiesKeys.PlaneSize, planeSize);
-                mat.Passes[0].Parameters.Set(HeightfieldDisplacementPropertiesKeys.HeightfieldSize, fieldSize);
+                parameterCollection.Set(HeightfieldDisplacementPropertiesKeys.PlaneCellSize, cellSize);
+                parameterCollection.Set(HeightfieldDisplacementPropertiesKeys.PlaneSize, planeSize);
+
+                BoundingBox bb;
+                bb.Minimum = default;
+                bb.Maximum = new Vector3(fieldSize);
+                bb.Minimum.Y = fieldMinHeight;
+                bb.Maximum.Y = fieldMaxHeight;
+
+                BoundingSphere bs;
+                bs.Center = bb.Center;
+                bs.Radius = bb.Extent.Length();
+
+                data.Model.Meshes[0].BoundingBox = bb;
+                data.Model.Meshes[0].BoundingSphere = bs;
             }
         }
 
-        private void Generate(ref Model? model, ModelComponent modelComponent, HeightfieldModelComponent component)
+        private bool Generate(ref Model? model, ModelComponent modelComponent, HeightfieldModelComponent component)
         {
             Dispose(ref model);
 
-            if (Services is null || component.Source == null!)
-                return;
-
-            var sourceSize = component.Source.Size;
+            if (Services is null)
+                return false;
 
             model = new PlaneProceduralModel
             {
@@ -163,21 +165,8 @@ public class HeightfieldModelComponent : EntityComponent
                 NumberOfTextureCoordinates = 1
             }.Generate(Services);
 
-            BoundingBox bb;
-            bb.Minimum = default;
-            bb.Maximum = new Vector3(sourceSize);
-            bb.Minimum.Y = component.Source.MinHeight;
-            bb.Maximum.Y = component.Source.MaxHeight;
-
-            BoundingSphere bs;
-            bs.Center = bb.Center;
-            bs.Radius = bb.Extent.Length();
-
-            model.Meshes[0].BoundingBox = bb;
-            model.Meshes[0].BoundingSphere = bs;
-            model.BoundingBox = bb;
-            model.BoundingSphere = bs;
             modelComponent.Model = model;
+            return true;
         }
 
         private void Dispose(ref Model? model)
