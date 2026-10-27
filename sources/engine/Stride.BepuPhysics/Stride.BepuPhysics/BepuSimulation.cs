@@ -301,7 +301,6 @@ public sealed class BepuSimulation : IDisposable
     {
         var targetThreadCount = ThreadCount > -1 ? ThreadCount : Dispatcher.MaxDegreeOfParallelism;
 
-        #warning Consider wrapping stride's threadpool/dispatcher into an IThreadDispatcher and passing that over to bepu instead of using their dispatcher
         _threadDispatcher = new DispatcherWrapper(targetThreadCount);
         BufferPool = new BufferPool();
         ContactEvents = new ContactEventsManager(BufferPool, this, targetThreadCount);
