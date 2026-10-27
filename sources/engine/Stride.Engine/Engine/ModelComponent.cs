@@ -155,16 +155,22 @@ namespace Stride.Engine
         /// <summary>
         /// Gets the bounding box in world space.
         /// </summary>
+        /// <remarks>
+        /// Cached from <see cref="Model"/> when the <see cref="TransformComponent"/>'s matrix is updated
+        /// </remarks>
         /// <value>The bounding box.</value>
         [DataMemberIgnore]
-        public BoundingBox BoundingBox;
+        public BoundingBox BoundingBox { get; private set; }
 
         /// <summary>
         /// Gets the bounding sphere in world space.
         /// </summary>
+        /// <remarks>
+        /// Cached from <see cref="Model"/> when the <see cref="TransformComponent"/>'s matrix is updated
+        /// </remarks>
         /// <value>The bounding sphere.</value>
         [DataMemberIgnore]
-        public BoundingSphere BoundingSphere;
+        public BoundingSphere BoundingSphere { get; private set; }
 
         /// <summary>
         /// Gets the material at the specified index. If the material is not overriden by this component, it will try to get it from <see cref="Stride.Rendering.Model.Materials"/>
@@ -254,8 +260,8 @@ namespace Stride.Engine
             }
 
             // Update the bounding sphere / bounding box in world space
-            BoundingSphere = BoundingSphere.Empty;
-            BoundingBox = BoundingBox.Empty;
+            var boundingSphere = BoundingSphere.Empty;
+            var boundingBox = BoundingBox.Empty;
             bool modelHasBoundingBox = false;
 
             for (int meshIndex = 0; meshIndex < Model.Meshes.Count; meshIndex++)
@@ -304,16 +310,19 @@ namespace Stride.Engine
 
                 if (modelHasBoundingBox)
                 {
-                    BoundingBox.Merge(ref BoundingBox, ref meshInfo.BoundingBox, out BoundingBox);
-                    BoundingSphere.Merge(ref BoundingSphere, ref meshInfo.BoundingSphere, out BoundingSphere);
+                    BoundingBox.Merge(ref boundingBox, ref meshInfo.BoundingBox, out boundingBox);
+                    BoundingSphere.Merge(ref boundingSphere, ref meshInfo.BoundingSphere, out boundingSphere);
                 }
                 else
                 {
-                    BoundingBox = meshInfo.BoundingBox;
-                    BoundingSphere = meshInfo.BoundingSphere;
+                    boundingBox = meshInfo.BoundingBox;
+                    boundingSphere = meshInfo.BoundingSphere;
                     modelHasBoundingBox = true;
                 }
             }
+            
+            BoundingBox = boundingBox;
+            BoundingSphere = boundingSphere;
         }
     }
 }

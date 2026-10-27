@@ -71,12 +71,14 @@ namespace Stride.Rendering
         /// <value>
         /// The bounding box.
         /// </value>
+        [Obsolete("This property is unused, use the one defined under individual meshes or on ModelComponent")]
         public BoundingBox BoundingBox { get; set; }
 
         /// <summary>
         /// Gets or sets the bounding sphere encompassing all the <see cref="Meshes"/> (not including animation).
         /// </summary>
         /// <value>The bounding sphere.</value>
+        [Obsolete("This property is unused, use the one defined under individual meshes or on ModelComponent")]
         public BoundingSphere BoundingSphere { get; set; }
 
         // Temporarily removed
