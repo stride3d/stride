@@ -5,6 +5,7 @@ using System.Diagnostics;
 using Avalonia;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Components.Status;
+using Stride.Core.Assets.Editor.Components.Transactions;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.ViewModel.Progress;
@@ -32,6 +33,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     private static readonly string baseTitle = StrideGameStudio.EditorTitle;
     private static bool msBuildFound;
     private SessionViewModel? session;
+    private ActionHistoryViewModel? history;
     private PreviewViewModel? preview;
     private UFile? sessionPath;
     private string title = baseTitle;
@@ -63,6 +65,8 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
         ReloadCommand = new AnonymousTaskCommand(serviceProvider, OnReload);
         // Enabled while a session is open, even without a change, as in WPF
         SaveCommand = new AnonymousTaskCommand(serviceProvider, OnSave) { IsEnabled = false };
+        UndoCommand = new AnonymousCommand(serviceProvider, () => history?.UndoCommand.Execute()) { IsEnabled = false };
+        RedoCommand = new AnonymousCommand(serviceProvider, () => history?.RedoCommand.Execute()) { IsEnabled = false };
 
         Status = new StatusViewModel(ServiceProvider);
         Status.PushStatus("Ready");
@@ -77,7 +81,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     public SessionViewModel? Session
     {
         get => session;
-        set => SetValue(ref session, value, () => SaveCommand.IsEnabled = value is not null);
+        set => SetValue(ref session, value, OnSessionChanged);
     }
 
     public StatusViewModel Status { get; }
@@ -148,6 +152,21 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     /// only when the menu opens, so the item's Ctrl+S would keep the state of the command it had when the editor started.
     /// </remarks>
     public ICommandBase SaveCommand { get; }
+
+    /// <summary>
+    /// Undoes the last action of the session (<see cref="ActionHistoryViewModel.UndoCommand"/>).
+    /// </summary>
+    /// <remarks>
+    /// The Edit menu and the window's Ctrl+Z bind this command rather than the history's, for the same reason as <see cref="SaveCommand"/>:
+    /// the command of the history changes with the session, and its state after every action.
+    /// </remarks>
+    public ICommandBase UndoCommand { get; }
+
+    /// <summary>
+    /// Redoes the last undone action of the session (<see cref="ActionHistoryViewModel.RedoCommand"/>).
+    /// </summary>
+    /// <remarks>See <see cref="UndoCommand"/>.</remarks>
+    public ICommandBase RedoCommand { get; }
 
     private EditorDialogService DialogService => ServiceProvider.Get<EditorDialogService>();
 
@@ -267,6 +286,32 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     /// <summary>
     /// Shows the import of the system shaders in the notification bar until it is done; nothing when there is none to wait for.
     /// </summary>
+    /// <summary>
+    /// Follows the history of the new session: <see cref="UndoCommand"/> and <see cref="RedoCommand"/> mirror its commands.
+    /// </summary>
+    private void OnSessionChanged()
+    {
+        SaveCommand.IsEnabled = session is not null;
+        if (history is not null)
+        {
+            history.UndoCommand.CanExecuteChanged -= UpdateUndoRedo;
+            history.RedoCommand.CanExecuteChanged -= UpdateUndoRedo;
+        }
+        history = session?.ActionHistory;
+        if (history is not null)
+        {
+            history.UndoCommand.CanExecuteChanged += UpdateUndoRedo;
+            history.RedoCommand.CanExecuteChanged += UpdateUndoRedo;
+        }
+        UpdateUndoRedo(null, EventArgs.Empty);
+    }
+
+    private void UpdateUndoRedo(object? sender, EventArgs e)
+    {
+        UndoCommand.IsEnabled = history?.UndoCommand.IsEnabled ?? false;
+        RedoCommand.IsEnabled = history?.RedoCommand.IsEnabled ?? false;
+    }
+
     private async Task ShowShaderImportAsync(SessionViewModel openedSession)
     {
         if (Notifications is null || openedSession.ServiceProvider.TryGet<GameStudioBuilderService>() is not { AreShadersLoaded: false } builder)

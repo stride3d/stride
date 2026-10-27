@@ -77,12 +77,17 @@
       </MenuItem>
       <!-- Edit menu -->
       <MenuItem Header="{sd:LocalizeString Edit, Context=Menu}">
+        <!-- Undo and Redo bind the stable commands of the main view model, and their shortcuts are key bindings of the main
+             window, like Save: the hot key of an item of a closed menu fires only if the item was enabled when the menu last
+             opened. -->
         <MenuItem Header="{sd:LocalizeString Undo, Context=Menu}"
-                  Command="{Binding Session?.ActionHistory?.UndoCommand, TargetNullValue={x:Static cpc:DisabledCommand.Instance}}"
-                  HotKey="{x:Static gsvw:MainView.UndoGesture}" InputGesture="{Binding $self.HotKey, Mode=OneTime}"/>
+                  Name="UndoMenuItem"
+                  Command="{Binding UndoCommand}"
+                  InputGesture="{x:Static gsvw:MainView.UndoGesture}"/>
         <MenuItem Header="{sd:LocalizeString Redo, Context=Menu}"
-                  Command="{Binding Session?.ActionHistory?.RedoCommand, TargetNullValue={x:Static cpc:DisabledCommand.Instance}}"
-                  HotKey="{x:Static gsvw:MainView.RedoGesture}" InputGesture="{Binding $self.HotKey, Mode=OneTime}"/>
+                  Name="RedoMenuItem"
+                  Command="{Binding RedoCommand}"
+                  InputGesture="{x:Static gsvw:MainView.RedoGesture}"/>
         <Separator/>
         <MenuItem Header="{sd:LocalizeString _Settings..., Context=Menu}"
                   Command="{Binding OpenSettingsWindowCommand}"
