@@ -1,0 +1,37 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+        xmlns:conv="using:Stride.Core.Assets.Editor.Avalonia.Converters"
+        xmlns:vm="using:Stride.Core.Assets.Editor.Components.AddAssets"
+        mc:Ignorable="d" d:DesignWidth="520" d:DesignHeight="300"
+        x:Class="Stride.Core.Assets.Editor.Avalonia.Views.ItemTemplatesWindow"
+        x:DataType="vm:AssetTemplatesViewModel"
+        Title="{sd:LocalizeString Add asset..., Context=Title}"
+        SizeToContent="WidthAndHeight"
+        CanResize="False"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner">
+  <!-- The templates that can import the files; a click on one (or Enter) picks it -->
+  <ListBox x:Name="TemplateList" Width="500" Margin="10"
+           ItemsSource="{Binding Templates}"
+           SelectedItem="{Binding SelectedTemplate, Mode=TwoWay}">
+    <ListBox.ItemTemplate>
+      <DataTemplate DataType="vm:AssetTemplateItemViewModel">
+        <DockPanel Height="56" Background="Transparent">
+          <Image DockPanel.Dock="Left" Width="48" Height="48" Margin="2"
+                 Source="{Binding Template.Icon, Converter={x:Static conv:TemplateImageConverter.Instance}}"/>
+          <DockPanel Margin="18,0">
+            <TextBlock DockPanel.Dock="Top" FontSize="16" Text="{Binding Template.Name}"/>
+            <!-- "N out of M file(s)" when the files are of several kinds -->
+            <TextBlock DockPanel.Dock="Bottom" FontStyle="Italic" Margin="12,0" HorizontalAlignment="Right"
+                       Text="{Binding CountText}"
+                       IsVisible="{Binding CountText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+            <TextBlock Text="{Binding Template.Description}" TextWrapping="Wrap" TextTrimming="WordEllipsis"/>
+          </DockPanel>
+        </DockPanel>
+      </DataTemplate>
+    </ListBox.ItemTemplate>
+  </ListBox>
+</Window>
