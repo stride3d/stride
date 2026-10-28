@@ -458,6 +458,16 @@ namespace Stride.Graphics
             SafeRelease(ref depthStencilView);
             SafeRelease(ref renderTargetView);
 
+#if STRIDE_GRAPHICS_API_DIRECT3D11
+            // The Texture created its NT handle (CreateSharedHandle) and owns it: the consumers opened their own reference
+            if (SharedNtHandleName.Length > 0 && SharedHandle != IntPtr.Zero)
+            {
+                Win32.CloseHandle(SharedHandle);
+                SharedHandle = IntPtr.Zero;
+                SharedNtHandleName = string.Empty;
+            }
+#endif
+
             base.OnDestroyed(immediately);
         }
 

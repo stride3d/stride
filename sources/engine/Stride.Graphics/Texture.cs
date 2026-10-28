@@ -210,6 +210,10 @@ namespace Stride.Graphics
         /// <value>
         ///   A handle that identifies the shared Texture, or <see cref="IntPtr.Zero"/> if it is not a shared resource.
         /// </value>
+        /// <remarks>
+        ///   An NT handle (<see cref="TextureOptions.SharedNtHandle"/>) belongs to the Texture, which closes it when it is
+        ///   destroyed: a consumer opens its own reference to the resource with it before that.
+        /// </remarks>
         public IntPtr SharedHandle { get; private set; } = IntPtr.Zero;
 
 #if STRIDE_GRAPHICS_API_DIRECT3D11
