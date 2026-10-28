@@ -1416,8 +1416,13 @@
       </UniformGrid>
       <TextBox Margin="5"
                IsReadOnly="{Binding IsReadOnly}"
-               Text="{Binding NodeValue, Converter={caec:ContentReferenceToUrl}}"
-               ContextMenu="{StaticResource ReferenceContextMenu}"/>
+               Text="{Binding NodeValue, Converter={caec:ContentReferenceToUrl}, UpdateSourceTrigger=Explicit}"
+               ContextMenu="{StaticResource ReferenceContextMenu}">
+        <!-- Commit on Enter or focus loss after a user edit only: the default trigger wrote the reference back on display -->
+        <Interaction.Behaviors>
+          <sd:CommitTextBehavior/>
+        </Interaction.Behaviors>
+      </TextBox>
     </DockPanel>
   </DataTemplate>
   <caev:ContentReferenceTemplateProvider x:Key="SimpleContentReferenceTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyEditor"
@@ -1470,8 +1475,12 @@
           <TextBox DockPanel.Dock="Top"
                    Margin="5"
                    IsReadOnly="{Binding IsReadOnly}"
-                   Text="{Binding NodeValue, Converter={caec:ContentReferenceToUrl}}"
-                   ContextMenu="{StaticResource ReferenceContextMenu}"/>
+                   Text="{Binding NodeValue, Converter={caec:ContentReferenceToUrl}, UpdateSourceTrigger=Explicit}"
+                   ContextMenu="{StaticResource ReferenceContextMenu}">
+            <Interaction.Behaviors>
+              <sd:CommitTextBehavior/>
+            </Interaction.Behaviors>
+          </TextBox>
           <UniformGrid Rows="1"
                        HorizontalAlignment="Right" VerticalAlignment="Top">
             <Button Theme="{StaticResource ImageButtonTheme}"

@@ -6,6 +6,8 @@ using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("Stride.Core.Assets.Editor.Wpf" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.GameStudio" + Stride.PublicKeys.Default)]
+[assembly: InternalsVisibleTo("Stride.GameStudio.Avalonia" + Stride.PublicKeys.Default)]
+[assembly: InternalsVisibleTo("Stride.GameStudio.Avalonia.Tests" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Core.Assets.Editor.Wpf.Tests" + Stride.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Stride.Core.Assets.Editor.Common.Tests" + Stride.PublicKeys.Default)]
 // The cross-platform editor layers
