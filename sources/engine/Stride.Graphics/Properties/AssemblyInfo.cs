@@ -20,4 +20,5 @@ using System.Runtime.CompilerServices;
 
 #if !STRIDE_SIGNED
 [assembly: InternalsVisibleTo("Stride.Assets.Presentation.Wpf")]
+[assembly: InternalsVisibleTo("Stride.Assets.Editor")]
 #endif

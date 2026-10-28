@@ -40,9 +40,10 @@ public class AssetEditorViewModel<TAsset> : AssetEditorViewModel, IAssetEditorVi
 }
 
 /// <summary>
-/// Base view model for asset editors.
+/// Base view model for asset editors. It implements the toolkit-neutral <see cref="IAssetEditorViewModel"/> of the plugin
+/// contracts, so the plugins register the editors and their views the same way for every editor shell.
 /// </summary>
-public abstract class AssetEditorViewModel : DispatcherViewModel
+public abstract class AssetEditorViewModel : DispatcherViewModel, IAssetEditorViewModel
 {
     protected AssetEditorViewModel(AssetViewModel asset)
         : base(asset.ServiceProvider)
@@ -65,4 +66,23 @@ public abstract class AssetEditorViewModel : DispatcherViewModel
     /// reloading changed assets. Editors with an asynchronous initialization override it.
     /// </summary>
     public virtual Task EditorInitialized => Task.CompletedTask;
+
+    /// <summary>
+    /// Initializes this editor asynchronously. The default initialization has nothing to do and succeeds.
+    /// </summary>
+    /// <returns>A task that completes when the initialization has ended, with <c>true</c> when it succeeded.</returns>
+    public virtual Task<bool> Initialize()
+    {
+        return Task.FromResult(true);
+    }
+
+    /// <summary>
+    /// Processes anything before closing the editor, such as saving the file. The default editor closes without a question.
+    /// </summary>
+    /// <param name="save"><c>true</c> if the file should be saved, <c>false</c> if it can be closed without asking the user, <c>null</c> if the user should be asked.</param>
+    /// <returns><c>true</c> if the editor can be closed, <c>false</c> if the user interrupted.</returns>
+    public virtual bool PreviewClose(bool? save)
+    {
+        return true;
+    }
 }

@@ -68,12 +68,14 @@
     <Project Path="editor/Stride.GameStudio.Avalonia/Stride.GameStudio.Avalonia.csproj" />
   </Folder>
   <Folder Name="/61-Editor.Tests/">
+    <Project Path="editor/Stride.Assets.Editor.Tests/Stride.Assets.Editor.Tests.csproj" />
     <Project Path="editor/Stride.Assets.Presentation.Common.Tests/Stride.Assets.Presentation.Common.Tests.csproj" />
     <Project Path="editor/Stride.Core.Assets.Editor.Common.Tests/Stride.Core.Assets.Editor.Common.Tests.csproj" />
     <Project Path="editor/Stride.Core.Assets.Editor.Tests/Stride.Core.Assets.Editor.Tests.csproj" />
     <Project Path="editor/Stride.Editor.Services.Tests/Stride.Editor.Services.Tests.csproj" />
   </Folder>
   <Folder Name="/61-Editor.Tests/Avalonia/">
+    <Project Path="editor/Stride.Assets.Editor.Avalonia.Tests/Stride.Assets.Editor.Avalonia.Tests.csproj" />
     <Project Path="editor/Stride.Core.Assets.Editor.Avalonia.Tests/Stride.Core.Assets.Editor.Avalonia.Tests.csproj" />
     <Project Path="editor/Stride.Editor.Avalonia.Tests/Stride.Editor.Avalonia.Tests.csproj" />
   </Folder>
@@ -86,6 +88,7 @@
   </Folder>
   <Folder Name="/80-Plugins/Audio/">
     <Project Path="plugins/Audio/Stride.Audio.Assets/Stride.Audio.Assets.csproj" />
+    <Project Path="plugins/Audio/Stride.Audio.Editor.Avalonia/Stride.Audio.Editor.Avalonia.csproj" />
     <Project Path="plugins/Audio/Stride.Audio.Editor/Stride.Audio.Editor.csproj" />
     <Project Path="plugins/Audio/Stride.Audio/Stride.Audio.csproj" />
   </Folder>
@@ -104,6 +107,7 @@
   </Folder>
   <Folder Name="/80-Plugins/SpriteStudio/">
     <Project Path="plugins/SpriteStudio/Stride.SpriteStudio.Assets/Stride.SpriteStudio.Assets.csproj" />
+    <Project Path="plugins/SpriteStudio/Stride.SpriteStudio.Editor.Avalonia/Stride.SpriteStudio.Editor.Avalonia.csproj" />
     <Project Path="plugins/SpriteStudio/Stride.SpriteStudio.Editor/Stride.SpriteStudio.Editor.csproj" />
     <Project Path="plugins/SpriteStudio/Stride.SpriteStudio.Runtime/Stride.SpriteStudio.Runtime.csproj" />
   </Folder>

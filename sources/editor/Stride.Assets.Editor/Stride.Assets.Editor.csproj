@@ -3,6 +3,8 @@
 
   <PropertyGroup>
     <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
@@ -16,6 +18,8 @@
 
   <ItemGroup>
     <ProjectReference Include="../Stride.Assets.Presentation/Stride.Assets.Presentation.csproj" />
+    <!-- The WPF-free part of the Stride assets editor layer, shared with Stride.Assets.Presentation.Wpf until the consolidation -->
+    <ProjectReference Include="../Stride.Assets.Presentation.Common/Stride.Assets.Presentation.Common.csproj" />
     <ProjectReference Include="../Stride.Core.Assets.Editor/Stride.Core.Assets.Editor.csproj" />
     <ProjectReference Include="../Stride.Editor/Stride.Editor.csproj" />
   </ItemGroup>
