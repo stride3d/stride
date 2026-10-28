@@ -8,7 +8,9 @@ using Avalonia.Headless.XUnit;
 using Avalonia.Markup.Xaml.Styling;
 using Avalonia.VisualTree;
 using Stride.Assets.Editor.Avalonia.Views.Preview;
+using Stride.Assets.Editor.Tests.Helpers;
 using Stride.Audio.Editor;
+using Stride.Core.Assets.Editor.Editors;
 using Stride.Core.Diagnostics;
 using Stride.Editor.Avalonia.Preview.Views;
 using Stride.SpriteStudio.Editor;
@@ -24,9 +26,7 @@ public sealed class CompanionTests
     [Fact]
     public void TheAudioCompanionRegistersTheSoundPreviewView()
     {
-        var views = new Dictionary<Type, Type>();
-
-        new AudioEditorAvaloniaPlugin().RegisterAssetPreviewViewTypes(views);
+        var views = PluginRegistrations.Of(new AudioEditorAvaloniaPlugin(), typeof(IAssetEditorView)).AssetPreviewViewTypes;
 
         Assert.Equal(typeof(SoundPreviewView), Assert.Single(views).Value);
         Assert.Equal(typeof(SoundPreview), Assert.Single(views).Key);
@@ -35,9 +35,7 @@ public sealed class CompanionTests
     [Fact]
     public void TheSpriteStudioCompanionRegistersTheSheetPreviewView()
     {
-        var views = new Dictionary<Type, Type>();
-
-        new SpriteStudioEditorAvaloniaPlugin().RegisterAssetPreviewViewTypes(views);
+        var views = PluginRegistrations.Of(new SpriteStudioEditorAvaloniaPlugin(), typeof(IAssetEditorView)).AssetPreviewViewTypes;
 
         Assert.Equal(typeof(SpriteStudioSheetPreviewView), views[typeof(SpriteStudioSheetPreview)]);
         Assert.Single(views);

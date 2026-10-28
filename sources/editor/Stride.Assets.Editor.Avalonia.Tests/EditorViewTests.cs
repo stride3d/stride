@@ -4,6 +4,7 @@
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using Stride.Assets.Editor.Avalonia.Views;
+using Stride.Assets.Editor.Tests.Helpers;
 using Stride.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Editor.Editors;
 
@@ -14,9 +15,7 @@ public sealed class EditorViewTests
     [Fact]
     public void TheViewPluginRegistersTheEditorViews()
     {
-        var views = new Dictionary<Type, Type>();
-
-        new StrideEditorViewPlugin().RegisterAssetEditorViewTypes(views);
+        var views = PluginRegistrations.Of(new StrideEditorViewPlugin(), typeof(IAssetEditorView)).AssetEditorViewTypes;
 
         Assert.Equal(typeof(SpriteSheetEditorView), views[typeof(SpriteSheetEditorViewModel)]);
         Assert.Equal(typeof(GraphicsCompositorEditorView), views[typeof(GraphicsCompositorEditorViewModel)]);
