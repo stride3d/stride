@@ -104,6 +104,7 @@ public sealed class StartupOptions
                     break;
                 case "--viewport-readback":
                     options.ViewportReadback = true;
+                    options.ForwardedArguments.Add((args[i], null));
                     break;
                 // An absolute path starts with a slash on Linux and macOS: a session file is never an option
                 case var arg when (arg.StartsWith('/') || arg.StartsWith("--", StringComparison.Ordinal)) && !IsSessionFile(arg):
