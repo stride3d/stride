@@ -316,8 +316,9 @@ namespace Stride.Graphics
                 SharedHandle = IntPtr.Zero;
             }
 #if STRIDE_GRAPHICS_API_DIRECT3D11
-            else if (textureDescription.Options.HasFlag(TextureOptions.SharedNtHandle) ||
-                     textureDescription.Options.HasFlag(TextureOptions.SharedKeyedMutex))
+            // An NT handle only exists for a resource created with the NT handle option: a keyed mutex alone has a
+            // legacy (global) handle, like Shared
+            else if (textureDescription.Options.HasFlag(TextureOptions.SharedNtHandle))
             {
                 HResult result = NativeDeviceChild.QueryInterface(out ComPtr<IDXGIResource1> sharedResource1);
 
@@ -327,8 +328,9 @@ namespace Stride.Graphics
                 var uniqueName = $"Stride:{Guid.NewGuid()}";
 
                 void* sharedHandle = null;
+                // Read and write: a consumer that only reads the texture (a UI compositor copying the frames) opens it too
                 result = sharedResource1.CreateSharedHandle(pAttributes: in NullRef<SecurityAttributes>(),
-                                                            dwAccess: DxgiConstants.SharedAccessResourceWrite,
+                                                            dwAccess: DxgiConstants.SharedAccessResourceRead | DxgiConstants.SharedAccessResourceWrite,
                                                             uniqueName, ref sharedHandle);
                 if (result.IsFailure)
                     result.Throw();
@@ -339,7 +341,8 @@ namespace Stride.Graphics
                 SharedNtHandleName = uniqueName;
             }
 #endif
-            else if (textureDescription.Options.HasFlag(TextureOptions.Shared))
+            else if (textureDescription.Options.HasFlag(TextureOptions.Shared) ||
+                     textureDescription.Options.HasFlag(TextureOptions.SharedKeyedMutex))
             {
                 HResult result = NativeDeviceChild.QueryInterface(out ComPtr<IDXGIResource> sharedResource);
 

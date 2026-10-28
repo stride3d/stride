@@ -204,7 +204,8 @@ namespace Stride.Graphics
 
         /// <summary>
         ///   Gets a handle that identifies the Texture as a shared resource when it has the
-        ///   option <see cref="TextureOptions.Shared"/> or <see cref="TextureOptions.SharedNtHandle"/>.
+        ///   option <see cref="TextureOptions.Shared"/> or <see cref="TextureOptions.SharedNtHandle"/>
+        ///   (on Direct3D 11, <see cref="TextureOptions.SharedKeyedMutex"/> alone gives a global handle too).
         /// </summary>
         /// <value>
         ///   A handle that identifies the shared Texture, or <see cref="IntPtr.Zero"/> if it is not a shared resource.
