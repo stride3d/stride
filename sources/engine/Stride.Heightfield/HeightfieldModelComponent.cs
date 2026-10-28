@@ -45,6 +45,10 @@ public class HeightfieldModelComponent : EntityComponent
     /// <summary>
     /// The amount of subdivisions for the plane, 4 producing a grid of 4^2 vertices
     /// </summary>
+    /// <remarks>
+    /// When using material tessellation, steep slopes may inadvertently cause some of the triangles to be culled out.
+    /// Increase this value and reduce maximum subdivision on your tessellation to alleviate this issue.
+    /// </remarks>
     /// <exception cref="ArgumentOutOfRangeException">Value must be greater than one</exception>
     public int Tessellation
     {
