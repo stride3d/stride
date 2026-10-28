@@ -15,6 +15,13 @@ Mainly the editor game base classes and services, the content loader interface, 
 
 Since slice 4 (plugin contracts) also `StrideAssetsPlugin` (the toolkit-neutral plugin base; `StrideAssetsWpfPlugin` in `Stride.Editor.Wpf` adds the resource dictionaries), the preview contracts `IPreviewBuilder`, `IAssetPreview`, `AssetPreview`, `IPreviewView`, `IAssetPreviewViewModel` and their attributes (the WPF view host is `IWpfPreviewBuilder` in `Stride.Editor.Wpf`), `EditorGameServiceAttribute`, `GameSettingsProviderService` and the preview build units.
 
+Since slice 8 (agnostic `Stride.Editor`) also the build units and compilers that need neither WPF nor the WPF session:
+`EditorGameBuildUnit`, `PrecompiledAssetBuildUnit`, `PreviewCompilationContext`, `ThumbnailListCompiler`,
+`AnimationAssetEditorGameCompiler`, `AnimationAssetPreviewCompiler` and `PrefabAssetPreviewCompiler` (hence the
+`Stride.Assets.Models` reference). The session-bound services (`GameStudioBuilderService`, `GameStudioDatabase`,
+`StrideShaderImporter`, `EditorContentLoader`, `GameStudioThumbnailService`, `ThumbnailAssetBuildUnit`) exist twice, in
+`Stride.Editor.Wpf` and in `Stride.Editor`, until the consolidation.
+
 ## Notes
 
 * This project goes away in Phase 3 of the port, when its code merges into the agnostic editor projects.

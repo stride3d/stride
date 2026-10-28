@@ -59,4 +59,10 @@ public abstract class AssetEditorViewModel : DispatcherViewModel
     /// The current session.
     /// </summary>
     public SessionViewModel Session => (SessionViewModel)Asset.Session;
+
+    /// <summary>
+    /// A task that completes once the editor is initialized; the content loader of an editor game waits for it before
+    /// reloading changed assets. Editors with an asynchronous initialization override it.
+    /// </summary>
+    public virtual Task EditorInitialized => Task.CompletedTask;
 }
