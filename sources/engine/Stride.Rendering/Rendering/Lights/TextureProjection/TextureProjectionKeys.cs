@@ -9,6 +9,7 @@ namespace Stride.Rendering.Lights
     /// <summary>
     /// Keys used for texture projection by lights.
     /// </summary>
+    [EffectKeys]
     public static class TextureProjectionKeys
     {
         /// <summary>

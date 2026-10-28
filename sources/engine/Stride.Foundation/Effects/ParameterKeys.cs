@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Text;
 
 using Stride.Core;
+using Stride.Core.Diagnostics;
 
 namespace Stride.Rendering
 {
@@ -17,6 +18,7 @@ namespace Stride.Rendering
         private static readonly List<ParameterKey> keys = new List<ParameterKey>();
         private static readonly Dictionary<string, ParameterKey> keyByNames = new Dictionary<string, ParameterKey>();
         private static readonly Dictionary<ParameterComposedKey, ParameterKey> composedKeys = new Dictionary<ParameterComposedKey, ParameterKey>();
+        private static readonly Logger logger = GlobalLogger.GetLogger(nameof(ParameterKeys));
 
         /// <summary>
         /// Returns property keys matching a given type
@@ -99,18 +101,24 @@ namespace Stride.Rendering
 
         public static ParameterKey Merge(ParameterKey key, Type ownerType, string name)
         {
+            ArgumentException.ThrowIfNullOrEmpty(name);
             lock (keyByNames)
             {
-                /*if (keyByNames.TryGetValue(name, out duplicateKey))
+                if (keyByNames.TryGetValue(name, out var duplicateKey))
                 {
-                    if (duplicateKey.PropertyType != key.PropertyType)
+                    if (!AreSameTypes(duplicateKey.PropertyType, key.PropertyType))
                     {
-                        // TODO: For now, throw an exception, but we should be nicer about it
-                        // (log and allow the two keys to co-exist peacefully?)
-                        throw new InvalidOperationException("Two ParameterKey with same name but different types have been initialized.");
+                        logger.Error($"Two ParameterKey with same name '{name}' but different types have been initialized: '{duplicateKey.PropertyType}' and '{key.PropertyType}'.");
                     }
-                    return key;
-                }*/
+                    if (duplicateKey.OwnerType != null)
+                    {
+                        var otherOwnerType = key.OwnerType ?? ownerType ?? duplicateKey.OwnerType;
+                        if (!AreSameTypes(duplicateKey.OwnerType, otherOwnerType))
+                        {
+                            logger.Error($"Two ParameterKey with same name '{name}' but different owners have been initialized: '{duplicateKey.OwnerType}' and '{otherOwnerType}'.");
+                        }
+                    }
+                }
 
                 if (string.IsNullOrEmpty(key.Name))
                     key.SetName(name);
@@ -121,6 +129,8 @@ namespace Stride.Rendering
                     key.SetOwnerType(ownerType);
             }
             return key;
+
+            static bool AreSameTypes(Type type1, Type type2) => type1 == type2 || (type1 != null && type2 != null && type1.FullName == type2.FullName && type1.Assembly.FullName == type2.Assembly.FullName);
         }
 
         /// <summary>

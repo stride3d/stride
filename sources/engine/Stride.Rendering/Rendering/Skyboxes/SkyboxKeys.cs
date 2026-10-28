@@ -8,6 +8,7 @@ using Stride.Shaders;
 
 namespace Stride.Rendering.Skyboxes
 {
+    [EffectKeys]
     public static class SkyboxKeys
     {
         public static readonly ValueParameterKey<float> Intensity = ParameterKeys.NewValue(1.0f);

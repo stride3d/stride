@@ -174,11 +174,6 @@ public class AssemblyProcessorApp
                 new AddReferenceProcessor(ReferencesToAdd)
             };
 
-            if (ParameterKey)
-            {
-                processors.Add(new ParameterKeyProcessor());
-            }
-
             if (DocumentationFile != null)
             {
                 processors.Add(new GenerateUserDocumentationProcessor(DocumentationFile));
