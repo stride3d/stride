@@ -51,6 +51,11 @@ namespace Stride.Graphics
         private VkDevice nativeDevice;
         private VkDeviceApi nativeDeviceApi;
         internal VkQueue NativeCommandQueue;
+
+        /// <summary>
+        ///   Whether the device can export memory and semaphores as POSIX file descriptors (<see cref="ExportableTexture"/>).
+        /// </summary>
+        internal bool HasExternalObjectsSupport;
         internal object QueueLock = new object();
 
         internal ThreadLocal<CommandBufferPool> NativeCopyCommandPools;
@@ -507,6 +512,9 @@ namespace Stride.Graphics
             {
                 VK_KHR_SWAPCHAIN_EXTENSION_NAME,
                 VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME,
+                // Textures shared with another device or API (ExportableTexture, opt-in)
+                VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME,
+                VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME,
 #if STRIDE_PLATFORM_IOS || STRIDE_PLATFORM_MACOS
                 // IOSurface-backed VkImage import (zero-copy CVPixelBuffer upload on Apple platforms).
                 VK_EXT_METAL_OBJECTS_EXTENSION_NAME,
@@ -570,6 +578,17 @@ namespace Stride.Graphics
                 desiredExtensionProperties.Add(VK_EXT_QUEUE_FAMILY_FOREIGN_EXTENSION_NAME);
             }
 #endif
+
+            // Only a host that opts in gets the extensions: the runtime's devices stay as they were
+            HasExternalObjectsSupport = ExportableTexture.EnableExternalObjects
+                && availableExtensionProperties.Contains(VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME)
+                && availableExtensionProperties.Contains(VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME)
+                && CanExportOpaqueFileDescriptors();
+            if (HasExternalObjectsSupport)
+            {
+                desiredExtensionProperties.Add(VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME);
+                desiredExtensionProperties.Add(VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME);
+            }
 
             // Profiling labels travel through VK_EXT_debug_utils (instance-level, enabled at factory init).
             // Replaces the deprecated VK_EXT_debug_marker which required a separate device extension and
@@ -837,6 +856,50 @@ namespace Stride.Graphics
         /// <summary>
         ///   Waits for the device to be idle. A lost device is idle too: its resources can be torn down.
         /// </summary>
+        /// <summary>
+        ///   Whether the physical device can export the memory of a color image and binary semaphores as opaque
+        ///   POSIX file descriptors, which <see cref="ExportableTexture"/> needs. Some drivers advertise the
+        ///   extensions without supporting that handle type (Lavapipe, for semaphores).
+        /// </summary>
+        private unsafe bool CanExportOpaqueFileDescriptors()
+        {
+            var semaphoreInfo = new VkPhysicalDeviceExternalSemaphoreInfo
+            {
+                sType = VkStructureType.PhysicalDeviceExternalSemaphoreInfo,
+                handleType = VkExternalSemaphoreHandleTypeFlags.OpaqueFD,
+            };
+            var semaphoreProperties = new VkExternalSemaphoreProperties { sType = VkStructureType.ExternalSemaphoreProperties };
+            NativeInstanceApi.vkGetPhysicalDeviceExternalSemaphoreProperties(NativePhysicalDevice, &semaphoreInfo, &semaphoreProperties);
+            if ((semaphoreProperties.externalSemaphoreFeatures & VkExternalSemaphoreFeatureFlags.Exportable) == 0)
+                return false;
+
+            // The same image as ExportableTexture.Create makes
+            var externalImageInfo = new VkPhysicalDeviceExternalImageFormatInfo
+            {
+                sType = VkStructureType.PhysicalDeviceExternalImageFormatInfo,
+                handleType = VkExternalMemoryHandleTypeFlags.OpaqueFD,
+            };
+            var imageInfo = new VkPhysicalDeviceImageFormatInfo2
+            {
+                sType = VkStructureType.PhysicalDeviceImageFormatInfo2,
+                pNext = &externalImageInfo,
+                format = VkFormat.R8G8B8A8Unorm,
+                type = VkImageType.Image2D,
+                tiling = VkImageTiling.Optimal,
+                usage = VkImageUsageFlags.ColorAttachment | VkImageUsageFlags.Sampled | VkImageUsageFlags.TransferSrc | VkImageUsageFlags.TransferDst,
+                flags = VkImageCreateFlags.MutableFormat,
+            };
+            var externalImageProperties = new VkExternalImageFormatProperties { sType = VkStructureType.ExternalImageFormatProperties };
+            var imageProperties = new VkImageFormatProperties2
+            {
+                sType = VkStructureType.ImageFormatProperties2,
+                pNext = &externalImageProperties,
+            };
+            if (NativeInstanceApi.vkGetPhysicalDeviceImageFormatProperties2(NativePhysicalDevice, &imageInfo, &imageProperties) != VkResult.Success)
+                return false;
+            return (externalImageProperties.externalMemoryProperties.externalMemoryFeatures & VkExternalMemoryFeatureFlags.Exportable) != 0;
+        }
+
         internal void WaitIdle()
         {
             var result = NativeDeviceApi.vkDeviceWaitIdle(nativeDevice);
