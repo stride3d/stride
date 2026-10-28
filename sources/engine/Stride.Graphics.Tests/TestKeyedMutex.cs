@@ -64,6 +64,10 @@ public class TestKeyedMutex : GraphicTestGameBase
             Assert.True(ntShared.HasKeyedMutex);
             Assert.True(ntShared.AcquireSync(0, 0));
             ntShared.ReleaseSync(0);
+
+            // The Texture owns its NT handle and closes it when it is destroyed
+            ntShared.Dispose();
+            Assert.Equal(IntPtr.Zero, ntShared.SharedHandle);
         });
     }
 #endif
