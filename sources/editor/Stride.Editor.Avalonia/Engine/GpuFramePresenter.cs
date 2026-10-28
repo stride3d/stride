@@ -396,6 +396,8 @@ internal sealed class GpuFramePresenter : IDisposable
             Width = texture.Width,
             Height = texture.Height,
             Format = PlatformGraphicsExternalImageFormat.R8G8B8A8UNorm,
+            // Stride's first row is the top of the frame; an OpenGL compositor (ANGLE) would draw it at the bottom otherwise
+            TopLeftOrigin = true,
         });
         slot.ImportedVersion = version;
     }
@@ -410,6 +412,8 @@ internal sealed class GpuFramePresenter : IDisposable
             Width = texture.Texture.Width,
             Height = texture.Texture.Height,
             Format = PlatformGraphicsExternalImageFormat.R8G8B8A8UNorm,
+            // Stride's first row is the top of the frame; an OpenGL compositor (GLX) would draw it at the bottom otherwise
+            TopLeftOrigin = true,
             MemorySize = texture.MemorySize,
         });
         readySemaphore = interop.ImportSemaphore(new PlatformHandle(texture.ExportReadySemaphore(), VulkanSemaphoreFd));
