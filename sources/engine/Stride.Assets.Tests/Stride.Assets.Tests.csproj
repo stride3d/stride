@@ -30,6 +30,7 @@
     <Compile Include="TestHeightmapAssetCompatibility.cs" />
     <Compile Include="TestPluginPackageUpgrade.cs" />
     <Compile Include="TestAudioProjectUpgrade.cs" />
+    <Compile Include="TestAssetConstantsTargets.cs" />
     <Compile Include="TestFFmpegTool.cs" />
     <Compile Include="TestRawMediaImporters.cs" />
     <Compile Include="TestAssetUrlConstantsGenerator.cs" />
@@ -80,6 +81,10 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="readme.md" />
+    <None Include="..\Stride.Engine\buildTransitive\Stride.AssetConstants.targets">
+      <Link>MSBuild\Stride.AssetConstants.targets</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="scenes\goblin.fbx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
