@@ -19,6 +19,10 @@
     <ProjectReference Include="..\Stride.Assets.Editor\Stride.Assets.Editor.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <!-- The new game generation test skips when the template package is not installed -->
+    <PackageReference Include="Xunit.SkippableFact" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
