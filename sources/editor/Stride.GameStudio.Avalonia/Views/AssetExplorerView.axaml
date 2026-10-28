@@ -232,6 +232,8 @@
                 <Setter Property="Command" Value="{Binding ToggleCommand}"/>
                 <Setter Property="ToggleType" Value="CheckBox"/>
                 <Setter Property="IsChecked" Value="{Binding IsChecked, Mode=OneWay}"/>
+                <!-- The default target (the plain toggle above acts on it) is bold, as in WPF -->
+                <Setter Property="FontWeight" Value="{Binding IsDefault, Converter={sd:BoolToParam}, ConverterParameter={x:Static FontWeight.Bold}}"/>
               </ControlTheme>
             </MenuItem.ItemContainerTheme>
           </MenuItem>

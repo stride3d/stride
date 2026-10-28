@@ -7,6 +7,7 @@ using Avalonia.Headless.XUnit;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.LogicalTree;
+using Avalonia.Media;
 using Avalonia.VisualTree;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.ViewModel;
@@ -241,6 +242,14 @@ public sealed class EditCommandTests
                     "Cut", "Copy", "Copy with dependencies", "Paste", "Delete", "Copy asset URL", "Rename",
                     "Create folder", "Update selected assets from their source",
                 ], Enabled(items));
+                // The default target of the root-asset submenu is bold, as in WPF
+                var targets = (MenuItem)items.Single(x => x is MenuItem { Header: "Include in build as root asset in" });
+                targets.Open();
+                await WindowTestHelper.PumpAsync();
+                var target = Assert.Single(targets.GetLogicalChildren().OfType<MenuItem>());
+                Assert.Equal(fixture.Package.Name, target.Header);
+                Assert.Equal(FontWeight.Bold, target.FontWeight);
+                targets.Close();
                 menu.Close();
                 await WindowTestHelper.PumpAsync();
 
