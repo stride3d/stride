@@ -53,26 +53,40 @@ public class HeightfieldDisplacementFeature : MaterialFeature, IMaterialDisplace
             source = (IHeightfieldRenderingSource)context.Content.Load(source.GetType(), url!);
         }
 
-        var materialStage = (MaterialShaderStage)Stage;
-
-        var positionMember = materialStage == MaterialShaderStage.Vertex ? "Position" : "PositionWS";
-        var normalMember = materialStage == MaterialShaderStage.Vertex ? "meshNormal" : "normalWS";
-        var mixin = new ShaderMixinSource();
-        mixin.Mixins.Add(new ShaderClassSource("HeightfieldDisplacement", positionMember, ComputeNormals, normalMember));
-
-        // Workaround to inform compute colors that sampling is occurring from a vertex shader
-        context.IsNotPixelStage = materialStage != MaterialShaderStage.Pixel;
-        var inner = source.BuildGpuSideSampler(context);
-        var innerShaderSource = inner.GenerateShaderSource(context, new MaterialComputeColorKeys(MaterialKeys.DisplacementMap, MaterialKeys.DisplacementValue));
         context.Parameters.Set(HeightfieldDisplacementPropertiesKeys.HeightfieldSize, source.Size);
         context.Parameters.Set(HeightfieldDisplacementPropertiesKeys.HeightfieldMinHeight, source.MinHeight);
         context.Parameters.Set(HeightfieldDisplacementPropertiesKeys.HeightfieldMaxHeight, source.MaxHeight);
         context.Parameters.Set(HeightfieldDisplacementPropertiesKeys.HeightfieldSubdivision, source.Subdivision);
+
+        // Workaround to inform compute colors that sampling is occurring from a vertex shader
+        context.IsNotPixelStage = true;
+        var inner = source.BuildGpuSideSampler(context);
+        var displacementSource = inner.GenerateShaderSource(context, new MaterialComputeColorKeys(MaterialKeys.DisplacementMap, MaterialKeys.DisplacementValue));
         context.IsNotPixelStage = false;
 
-        mixin.AddComposition("inner", innerShaderSource);
+        var beforePixelShader = new ShaderMixinSource();
+        var displacementWindow = new ShaderClassSource("HeightfieldDisplacementWindow");
+        if (Stage == DisplacementMapStage.Domain)
+        {
+            // We want to comply with tessellation, have the displacement window on the vertex stage,
+            // while the offset is on the domain stage
+            var vertexMixin = new ShaderMixinSource();
+            vertexMixin.Mixins.Add(displacementWindow);
+            vertexMixin.AddComposition("inner", displacementSource);
+            context.SetStreamFinalModifier<MaterialDisplacementMapFeature>(MaterialShaderStage.Vertex, vertexMixin);
+        }
+        else
+        {
+            beforePixelShader.Mixins.Add(displacementWindow);
+        }
+
+        var normalMember = Stage == DisplacementMapStage.Vertex ? "meshNormal" : "normalWS";
+        bool recomputeHeight = Stage == DisplacementMapStage.Domain; // Correct samples height post tessellation
+        beforePixelShader.Mixins.Add(new ShaderClassSource("HeightfieldDisplacement", recomputeHeight, ComputeNormals, normalMember));
+        beforePixelShader.AddComposition("inner", displacementSource);
+
         // Note: Using 'MaterialDisplacementMapFeature' to test the type specific conditional AddAdjacentEdgeAverageShaders,
         // will likely need a custom handler
-        context.SetStreamFinalModifier<MaterialDisplacementMapFeature>(materialStage, mixin);
+        context.SetStreamFinalModifier<MaterialDisplacementMapFeature>(Stage == DisplacementMapStage.Vertex ? MaterialShaderStage.Vertex : MaterialShaderStage.Domain, beforePixelShader);
     }
 }
