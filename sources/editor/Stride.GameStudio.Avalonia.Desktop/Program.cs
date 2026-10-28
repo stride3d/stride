@@ -60,6 +60,9 @@ internal sealed class Program
             // Listen to logger for crash report
             GlobalLogger.GlobalMessageLogged += OnGlobalMessageLogged;
 
+            if (GraphicsApiPreferenceInitializer.OverriddenPreference is { } overriddenApi)
+                GlobalLogger.GetLogger("GameStudio").Warning($"The graphics API '{overriddenApi}' of the Game Studio settings is not used: the Avalonia Game Studio renders with {GraphicsApiSelector.HostPreference} for now.");
+
             // Parse launcher arguments before starting the Avalonia app so that
             // App.LauncherNotifier is set before the first window opens.
             ParseLauncherArgs(args);
@@ -156,6 +159,9 @@ internal sealed class Program
     public static AppBuilder BuildAvaloniaApp()
         => AppBuilder.Configure<App>()
             .UsePlatformDetect()
+            // Linux: Vulkan first, so that the compositor can import the memory of the Vulkan textures the editor's games
+            // render into (GpuFramePresenter); then Avalonia's usual GLX, then software rendering
+            .With(new X11PlatformOptions { RenderingMode = [X11RenderingMode.Vulkan, X11RenderingMode.Glx, X11RenderingMode.Software] })
             .WithInterFont()
             .LogToTrace();
 
