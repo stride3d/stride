@@ -13,12 +13,16 @@
     <ProjectReference Include="..\Stride.Assets.Generators\Stride.Assets.Generators.csproj" />
     <ProjectReference Include="..\Stride.SpriteStudio.Offline\Stride.SpriteStudio.Offline.csproj" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
+    <!-- TestAssetConstantsTargets loads project files: MSBuild itself comes from the locator -->
+    <PackageReference Include="Microsoft.Build" ExcludeAssets="runtime" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Build.Framework" ExcludeAssets="runtime" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\assets\Stride.Core.Assets.Tests\Helpers\GuidGenerator.cs">
       <Link>GuidGenerator.cs</Link>
     </Compile>
     <Compile Include="TestAssetContentTypeMap.cs" />
+    <Compile Include="TestAssetConstantsTargets.cs" />
     <Compile Include="TestAssetUrlConstantsGenerator.cs" />
     <Compile Include="TestCodeUpgrade.cs" />
     <Compile Include="TestContentTemplateResolver.cs" />
@@ -63,6 +67,14 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="readme.md" />
+    <None Include="..\Stride.Engine\buildTransitive\Stride.AssetConstants.targets">
+      <Link>MSBuild\Stride.AssetConstants.targets</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\Stride.Engine\buildTransitive\Stride.AssetContentTypeMap.txt">
+      <Link>MSBuild\Stride.AssetContentTypeMap.txt</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="scenes\goblin.fbx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
