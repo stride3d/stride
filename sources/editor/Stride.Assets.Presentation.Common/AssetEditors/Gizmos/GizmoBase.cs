@@ -32,6 +32,16 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         public const RenderGroup DefaultGroup = RenderGroup.Group0;
         
         /// <summary>
+        /// The entity group of the transformation gizmo (and of the gizmos drawn with it).
+        /// </summary>
+        public const RenderGroup TransformationGizmoGroup = RenderGroup.Group4;
+
+        /// <summary>
+        /// The render group mask of <see cref="TransformationGizmoGroup"/>.
+        /// </summary>
+        public const RenderGroupMask TransformationGizmoGroupMask = RenderGroupMask.Group4;
+
+        /// <summary>
         /// The entity group of the physics gizmo.
         /// </summary>
         public const RenderGroup PhysicsShapesGroup = RenderGroup.Group7;

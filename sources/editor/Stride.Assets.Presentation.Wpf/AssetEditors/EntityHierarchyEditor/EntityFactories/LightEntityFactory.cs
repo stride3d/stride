@@ -21,7 +21,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFa
             EntityFactoryCategory.RegisterCategory(20, "Light");
         }
 
-        public override async Task<Entity> CreateEntity(EntityHierarchyItemViewModel parent)
+        public override async Task<Entity> CreateEntity(IEntityHierarchyItemViewModel parent)
         {
             var name = ComputeNewName(parent, "Directional light");
             var component = new LightComponent();
@@ -35,7 +35,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFa
     [Display(20, "Point light", "Light")]
     public class PointLightEntityFactory : EntityFactory
     {
-        public override async Task<Entity> CreateEntity(EntityHierarchyItemViewModel parent)
+        public override async Task<Entity> CreateEntity(IEntityHierarchyItemViewModel parent)
         {
             var name = ComputeNewName(parent, "Point light");
             var component = new LightComponent { Type = new LightPoint() };
@@ -48,7 +48,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFa
     [Display(30, "Spot light", "Light")]
     public class SpotLightEntityFactory : EntityFactory
     {
-        public override async Task<Entity> CreateEntity(EntityHierarchyItemViewModel parent)
+        public override async Task<Entity> CreateEntity(IEntityHierarchyItemViewModel parent)
         {
             var name = ComputeNewName(parent, "Spot light");
             var component = new LightComponent { Type = new LightSpot() };
@@ -62,7 +62,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFa
     [Display(40, "Ambient light", "Light")]
     public class AmbientLightEntityFactory : EntityFactory
     {
-        public override Task<Entity> CreateEntity(EntityHierarchyItemViewModel parent)
+        public override Task<Entity> CreateEntity(IEntityHierarchyItemViewModel parent)
         {
             var name = ComputeNewName(parent, "Ambient light");
             var component = new LightComponent { Type = new LightAmbient() };
@@ -73,9 +73,9 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFa
     [Display(50, "Skybox light", "Light")]
     public class SkyboxLightEntityFactory : EntityFactory
     {
-        public override async Task<Entity> CreateEntity(EntityHierarchyItemViewModel parent)
+        public override async Task<Entity> CreateEntity(IEntityHierarchyItemViewModel parent)
         {
-            var skybox = await PickupAsset(parent.Editor.Session, new[] { typeof(SkyboxAsset) });
+            var skybox = await EntityFactoryHelper.PickupAsset(parent.Asset.Session, new[] { typeof(SkyboxAsset) });
             if (skybox == null)
                 return null;
             var skyboxAsset = (SkyboxAsset)skybox.Asset;
@@ -90,7 +90,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFa
     [Display(70, "Light probe", "Light")]
     public class LightProbeEntityFactory : EntityFactory
     {
-        public override async Task<Entity> CreateEntity(EntityHierarchyItemViewModel parent)
+        public override async Task<Entity> CreateEntity(IEntityHierarchyItemViewModel parent)
         {
             var name = ComputeNewName(parent, "Light probe");
             var lightProbeComponent = new LightProbeComponent();

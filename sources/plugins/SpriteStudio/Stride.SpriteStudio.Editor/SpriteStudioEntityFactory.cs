@@ -15,7 +15,7 @@ namespace Stride.SpriteStudio.Editor;
 [Display(40, "SpriteStudio", "2D")]
 public class SpriteStudioEntityFactory : EntityFactory
 {
-    public override Task<Entity> CreateEntity(EntityHierarchyItemViewModel parent)
+    public override Task<Entity> CreateEntity(IEntityHierarchyItemViewModel parent)
     {
         var name = ComputeNewName(parent, "SpriteStudio");
         var component = new SpriteStudioComponent();

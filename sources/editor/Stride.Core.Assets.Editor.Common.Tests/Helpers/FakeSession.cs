@@ -168,13 +168,43 @@ public sealed class FakeSession : ISessionViewModel
     }
 }
 
-public sealed class FakePluginService : ISessionObjectsPluginService
+public sealed class FakePluginService : IAssetsPluginService
 {
     public List<Type> PrimitiveTypes { get; } = [];
+
+    public List<AssetsPlugin> Plugins { get; } = [];
+
+    IReadOnlyList<AssetsPlugin> IAssetsPluginService.Plugins => Plugins;
 
     public IEnumerable<Type> GetPrimitiveTypes(ISessionViewModel session) => PrimitiveTypes;
 
     public IEnumerable<PackageSettingsEntry> GetProfileSettings() => [];
+
+    public bool HasImagesForEnum(ISessionViewModel? session, Type enumType) => false;
+
+    public object? GetImageForEnum(ISessionViewModel? session, object value) => null;
+
+    public bool HasEditorView(ISessionViewModel session, Type viewModelType) => false;
+
+    public Type? GetAssetViewModelType(Type assetType) => null;
+
+    public Type? GetEditorViewModelType(Type viewModelType) => null;
+
+    public Type? GetEditorViewType(Type editorViewModelType) => null;
+
+    public Type? GetPreviewViewModelType(Type previewType) => null;
+
+    public Type? GetPreviewViewType(Type previewType) => null;
+
+    public void RegisterSession(ISessionViewModel session, ILogger logger)
+    {
+    }
+
+    public void InitializeSession(ISessionViewModel session)
+    {
+        foreach (var plugin in Plugins)
+            plugin.InitializeSession(session);
+    }
 }
 
 public sealed class FakeProgressWindowService : IProgressWindowService

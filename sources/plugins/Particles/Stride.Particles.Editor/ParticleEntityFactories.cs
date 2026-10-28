@@ -26,7 +26,7 @@ namespace Stride.Particles.Editor
             EntityFactoryCategory.RegisterCategory(50, "Particle system");
         }
 
-        public override Task<Entity> CreateEntity(EntityHierarchyItemViewModel parent)
+        public override Task<Entity> CreateEntity(IEntityHierarchyItemViewModel parent)
         {
             var name = ComputeNewName(parent, "Empty particle system");
             var component = new ParticleSystemComponent();
@@ -37,7 +37,7 @@ namespace Stride.Particles.Editor
     [Display(20, "Simple particle system", "Particle system")]
     public class SimpleParticleSystemEntityFactory : EntityFactory
     {
-        public override Task<Entity> CreateEntity(EntityHierarchyItemViewModel parent)
+        public override Task<Entity> CreateEntity(IEntityHierarchyItemViewModel parent)
         {
             var name = ComputeNewName(parent, "Simple particle system");
 
@@ -84,7 +84,7 @@ namespace Stride.Particles.Editor
     [Display(30, "Fountain particle system", "Particle system")]
     public class SmokeParticleSystemEntityFactory : EntityFactory
     {
-        public override Task<Entity> CreateEntity(EntityHierarchyItemViewModel parent)
+        public override Task<Entity> CreateEntity(IEntityHierarchyItemViewModel parent)
         {
             var name = ComputeNewName(parent, "Smoke particle system");
 
@@ -126,7 +126,7 @@ namespace Stride.Particles.Editor
     [Display(40, "Ribbon particle system", "Particle system")]
     public class RibbonParticleSystemEntityFactory : EntityFactory
     {
-        public override Task<Entity> CreateEntity(EntityHierarchyItemViewModel parent)
+        public override Task<Entity> CreateEntity(IEntityHierarchyItemViewModel parent)
         {
             var name = ComputeNewName(parent, "Ribbon particle system");
 

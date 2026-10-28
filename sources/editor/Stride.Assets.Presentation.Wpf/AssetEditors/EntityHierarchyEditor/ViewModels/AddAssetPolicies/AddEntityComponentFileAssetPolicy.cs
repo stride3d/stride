@@ -16,7 +16,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
     internal class AddEntityComponentFileAssetPolicy : CreateComponentPolicyBase<ScriptSourceFileAsset, ScriptSourceFileAssetViewModel>
     {
         /// <inheritdoc />
-        protected override bool CanAddOrInsert(EntityHierarchyItemViewModel parent, ScriptSourceFileAssetViewModel asset, AddChildModifiers modifiers, int index, out string message, params object[] messageArgs)
+        protected override bool CanAddOrInsert(IEntityHierarchyItemViewModel parent, ScriptSourceFileAssetViewModel asset, AddChildModifiers modifiers, int index, out string message, params object[] messageArgs)
         {
             var scriptType = FindScriptType(asset.ServiceProvider, asset.AssetItem)?.FirstOrDefault();
             if (scriptType == null)
@@ -31,7 +31,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
         }
 
         /// <inheritdoc />
-        protected override EntityComponent CreateComponentFromAsset(EntityHierarchyItemViewModel parent, ScriptSourceFileAssetViewModel asset)
+        protected override EntityComponent CreateComponentFromAsset(IEntityHierarchyItemViewModel parent, ScriptSourceFileAssetViewModel asset)
         {
             var scriptType = FindScriptType(asset.ServiceProvider, asset.AssetItem)?.FirstOrDefault();
             if (scriptType == null)

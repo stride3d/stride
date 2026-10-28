@@ -23,7 +23,7 @@ namespace Stride.Physics.Editor
             EntityFactoryCategory.RegisterCategory(60, "Navigation");
         }
 
-        public override async Task<Entity> CreateEntity(EntityHierarchyItemViewModel parent)
+        public override async Task<Entity> CreateEntity(IEntityHierarchyItemViewModel parent)
         {
             var name = ComputeNewName(parent, "Navigation bounding box");
             var component = new NavigationBoundingBoxComponent();

@@ -30,7 +30,7 @@ using Stride.Engine;
 
 namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels
 {
-    public abstract class EntityHierarchyItemViewModel : AssetCompositeItemViewModel<EntityHierarchyViewModel, EntityHierarchyItemViewModel>, IAddChildViewModel, IInsertChildViewModel
+    public abstract class EntityHierarchyItemViewModel : AssetCompositeItemViewModel<EntityHierarchyViewModel, EntityHierarchyItemViewModel>, IAddChildViewModel, IInsertChildViewModel, IEntityHierarchyItemViewModel
     {
         private readonly List<IAddAssetPolicy> addAssetPolicies;
         private readonly ObservableList<EntityViewModel> subEntities = new ObservableList<EntityViewModel>();

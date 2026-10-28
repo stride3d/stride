@@ -15,7 +15,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
     {
         /// <inheritdoc />
         [NotNull]
-        protected override EntityComponent CreateComponentFromAsset(EntityHierarchyItemViewModel parent, AssetViewModel<TextureAsset> asset)
+        protected override EntityComponent CreateComponentFromAsset(IEntityHierarchyItemViewModel parent, AssetViewModel<TextureAsset> asset)
         {
             return new SpriteComponent
             {

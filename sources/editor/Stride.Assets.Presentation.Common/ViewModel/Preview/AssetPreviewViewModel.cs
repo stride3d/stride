@@ -13,9 +13,9 @@ namespace Stride.Assets.Presentation.ViewModel.Preview
     /// </summary>
     public abstract class AssetPreviewViewModel : DispatcherViewModel, IAssetPreviewViewModel
     {
-        public SessionViewModel Session { get; }
+        public ISessionViewModel Session { get; }
 
-        protected AssetPreviewViewModel(SessionViewModel session)
+        protected AssetPreviewViewModel(ISessionViewModel session)
             : base(session.SafeArgument(nameof(session)).ServiceProvider)
         {
             this.Session = session;

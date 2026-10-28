@@ -35,7 +35,7 @@ using Stride.Editor.Preview.View;
 
 namespace Stride.Assets.Presentation
 {
-    public sealed class StrideDefaultAssetsPlugin : StrideAssetsPlugin
+    public sealed class StrideDefaultAssetsPlugin : StrideAssetsWpfPlugin
     {
         /// <summary>
         /// Comparer for component types.
@@ -174,21 +174,22 @@ namespace Stride.Assets.Presentation
         }
 
         /// <inheritdoc />
-        public override void InitializeSession(SessionViewModel session)
+        public override void InitializeSession(ISessionViewModel session)
         {
+            var sessionViewModel = (SessionViewModel)session;
             session.ServiceProvider.RegisterService(new StrideDialogService());
-            var assetsViewModel = new StrideAssetsViewModel(session);
+            var assetsViewModel = new StrideAssetsViewModel(sessionViewModel);
 
-            session.AssetViewProperties.RegisterNodePresenterCommand(new FetchEntityCommand());
-            session.AssetViewProperties.RegisterNodePresenterCommand(new SetEntityReferenceCommand());
-            session.AssetViewProperties.RegisterNodePresenterCommand(new SetComponentReferenceCommand());
-            session.AssetViewProperties.RegisterNodePresenterCommand(new SetSymbolReferenceCommand());
-            session.AssetViewProperties.RegisterNodePresenterCommand(new PickupEntityCommand());
-            session.AssetViewProperties.RegisterNodePresenterCommand(new PickupEntityComponentCommand());
-            session.AssetViewProperties.RegisterNodePresenterCommand(new EditCurveCommand(session));
-            session.AssetViewProperties.RegisterNodePresenterCommand(new SkeletonNodePreserveAllCommand());
+            sessionViewModel.AssetViewProperties.RegisterNodePresenterCommand(new FetchEntityCommand());
+            sessionViewModel.AssetViewProperties.RegisterNodePresenterCommand(new SetEntityReferenceCommand());
+            sessionViewModel.AssetViewProperties.RegisterNodePresenterCommand(new SetComponentReferenceCommand());
+            sessionViewModel.AssetViewProperties.RegisterNodePresenterCommand(new SetSymbolReferenceCommand());
+            sessionViewModel.AssetViewProperties.RegisterNodePresenterCommand(new PickupEntityCommand());
+            sessionViewModel.AssetViewProperties.RegisterNodePresenterCommand(new PickupEntityComponentCommand());
+            sessionViewModel.AssetViewProperties.RegisterNodePresenterCommand(new EditCurveCommand(sessionViewModel));
+            sessionViewModel.AssetViewProperties.RegisterNodePresenterCommand(new SkeletonNodePreserveAllCommand());
             //TODO: Add back once properly implemented.
-            //session.AssetViewProperties.RegisterNodePresenterCommand(new AddNewScriptComponentCommand());
+            //sessionViewModel.AssetViewProperties.RegisterNodePresenterCommand(new AddNewScriptComponentCommand());
 
             session.AssetViewProperties.RegisterNodePresenterUpdater(new AnimationAssetNodeUpdater());
             session.AssetViewProperties.RegisterNodePresenterUpdater(new CameraSlotNodeUpdater());
@@ -210,21 +211,21 @@ namespace Stride.Assets.Presentation
             // Connects to effect compiler (to import new effect permutations discovered by running the game)
             if (Stride.Core.Assets.Editor.Settings.EditorSettings.UseEffectCompilerServer.GetValue())
             {
-                effectCompilerServerSession = new EffectCompilerServerSession(session);
+                effectCompilerServerSession = new EffectCompilerServerSession(sessionViewModel);
             }
 
             // Extra packages to display in "add reference" dialog
-            session.SuggestedPackages.Add(new PackageName(typeof(Stride.Engine.EntityComponent).Assembly.GetName().Name, new PackageVersion(StrideVersion.NuGetVersion)));
+            sessionViewModel.SuggestedPackages.Add(new PackageName(typeof(Stride.Engine.EntityComponent).Assembly.GetName().Name, new PackageVersion(StrideVersion.NuGetVersion)));
             // Plugins are not referenced by the editor, so their ids are strings
-            session.SuggestedPackages.Add(new PackageName("Stride.Audio", new PackageVersion(StrideVersion.NuGetVersion)));
-            session.SuggestedPackages.Add(new PackageName("Stride.Particles", new PackageVersion(StrideVersion.NuGetVersion)));
-            session.SuggestedPackages.Add(new PackageName("Stride.Navigation", new PackageVersion(StrideVersion.NuGetVersion)));
-            session.SuggestedPackages.Add(new PackageName("Stride.Physics", new PackageVersion(StrideVersion.NuGetVersion)));
-            session.SuggestedPackages.Add(new PackageName("Stride.BepuPhysics", new PackageVersion(StrideVersion.NuGetVersion)));
-            session.SuggestedPackages.Add(new PackageName("Stride.Video", new PackageVersion(StrideVersion.NuGetVersion)));
-            session.SuggestedPackages.Add(new PackageName("Stride.Voxels", new PackageVersion(StrideVersion.NuGetVersion)));
-            session.SuggestedPackages.Add(new PackageName("Stride.SpriteStudio.Runtime", new PackageVersion(StrideVersion.NuGetVersion)));
-            session.SuggestedPackages.Add(new PackageName("Stride.UI", new PackageVersion(StrideVersion.NuGetVersion)));
+            sessionViewModel.SuggestedPackages.Add(new PackageName("Stride.Audio", new PackageVersion(StrideVersion.NuGetVersion)));
+            sessionViewModel.SuggestedPackages.Add(new PackageName("Stride.Particles", new PackageVersion(StrideVersion.NuGetVersion)));
+            sessionViewModel.SuggestedPackages.Add(new PackageName("Stride.Navigation", new PackageVersion(StrideVersion.NuGetVersion)));
+            sessionViewModel.SuggestedPackages.Add(new PackageName("Stride.Physics", new PackageVersion(StrideVersion.NuGetVersion)));
+            sessionViewModel.SuggestedPackages.Add(new PackageName("Stride.BepuPhysics", new PackageVersion(StrideVersion.NuGetVersion)));
+            sessionViewModel.SuggestedPackages.Add(new PackageName("Stride.Video", new PackageVersion(StrideVersion.NuGetVersion)));
+            sessionViewModel.SuggestedPackages.Add(new PackageName("Stride.Voxels", new PackageVersion(StrideVersion.NuGetVersion)));
+            sessionViewModel.SuggestedPackages.Add(new PackageName("Stride.SpriteStudio.Runtime", new PackageVersion(StrideVersion.NuGetVersion)));
+            sessionViewModel.SuggestedPackages.Add(new PackageName("Stride.UI", new PackageVersion(StrideVersion.NuGetVersion)));
         }
 
         /// <inheritdoc />
@@ -235,26 +236,26 @@ namespace Stride.Assets.Presentation
         }
 
         /// <inheritdoc />
-        public override void RegisterCopyProcessors(ICollection<ICopyProcessor> copyProcessors, SessionViewModel session)
+        public override void RegisterCopyProcessors(ICollection<ICopyProcessor> copyProcessors, ISessionViewModel session)
         {
             copyProcessors.Add(new EntityComponentCopyProcessor());
         }
 
         /// <inheritdoc />
-        public override void RegisterPasteProcessors(ICollection<IPasteProcessor> pasteProcessors, SessionViewModel session)
+        public override void RegisterPasteProcessors(ICollection<IPasteProcessor> pasteProcessors, ISessionViewModel session)
         {
             pasteProcessors.Add(new EntityComponentPasteProcessor());
             pasteProcessors.Add(new EntityHierarchyPasteProcessor());
         }
 
         /// <inheritdoc />
-        public override void RegisterPostPasteProcessors(ICollection<IAssetPostPasteProcessor> postPasteProcessors, SessionViewModel session)
+        public override void RegisterPostPasteProcessors(ICollection<IAssetPostPasteProcessor> postPasteProcessors, ISessionViewModel session)
         {
             postPasteProcessors.Add(new ScenePostPasteProcessor());
         }
 
         /// <inheritdoc />
-        protected override void SessionDisposed(SessionViewModel session)
+        protected override void SessionDisposed(ISessionViewModel session)
         {
             if (effectCompilerServerSession != null)
             {

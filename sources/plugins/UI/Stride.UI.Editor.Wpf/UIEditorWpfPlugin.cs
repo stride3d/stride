@@ -12,7 +12,7 @@ namespace Stride.UI.Editor.Views;
 /// The Game Studio's entry point into this package: the UI page and library editor views declared in this assembly
 /// register through it, and it adds the UI property templates (thickness, strip definition).
 /// </summary>
-public sealed class UIEditorWpfPlugin : StrideAssetsPlugin
+public sealed class UIEditorWpfPlugin : StrideAssetsWpfPlugin
 {
     /// <inheritdoc />
     protected override void Initialize(ILogger logger)

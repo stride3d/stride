@@ -24,7 +24,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
         }
 
         /// <inheritdoc />
-        public bool CanAddOrInsert(EntityHierarchyItemViewModel parent, AssetViewModel asset, AddChildModifiers modifier, int index, out string message, params object[] messageArgs)
+        public bool CanAddOrInsert(IEntityHierarchyItemViewModel parent, AssetViewModel asset, AddChildModifiers modifier, int index, out string message, params object[] messageArgs)
         {
             return CanAddOrInsert(parent, (TAssetViewModel)asset, modifier, index, out message, messageArgs);
         }
@@ -40,7 +40,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
         /// <param name="messageArgs">Optional arguments for the message.</param>
         /// <returns><c>true</c> if the provided <paramref name="asset"/> can be added or inserted; otherwise, <c>false</c>.</returns>
         /// <seealso cref="CanAddOrInsert(EntityHierarchyItemViewModel,AssetViewModel,AddChildModifiers,int,out string,object[])"/>
-        protected abstract bool CanAddOrInsert([NotNull] EntityHierarchyItemViewModel parent, [NotNull] TAssetViewModel asset, AddChildModifiers modifier, int index, [NotNull] out string message, [NotNull] params object[] messageArgs);
+        protected abstract bool CanAddOrInsert([NotNull] IEntityHierarchyItemViewModel parent, [NotNull] TAssetViewModel asset, AddChildModifiers modifier, int index, [NotNull] out string message, [NotNull] params object[] messageArgs);
     }
 
     public abstract class CreateComponentPolicyBase<TAsset, TAssetViewModel> : AddAssetPolicyBase<TAsset, TAssetViewModel>, ICreateComponentPolicy
@@ -48,14 +48,14 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
         where TAssetViewModel : AssetViewModel, IAssetViewModel<TAsset>
     {
         /// <inheritdoc />
-        protected override bool CanAddOrInsert(EntityHierarchyItemViewModel parent, TAssetViewModel asset, AddChildModifiers modifier, int index, out string message, params object[] messageArgs)
+        protected override bool CanAddOrInsert(IEntityHierarchyItemViewModel parent, TAssetViewModel asset, AddChildModifiers modifier, int index, out string message, params object[] messageArgs)
         {
             message = string.Format("Add the selection into {0}", messageArgs);
             return true;
         }
 
         /// <inheritdoc />
-        public EntityComponent CreateComponentFromAsset(EntityHierarchyItemViewModel parent, AssetViewModel asset)
+        public EntityComponent CreateComponentFromAsset(IEntityHierarchyItemViewModel parent, AssetViewModel asset)
         {
             return CreateComponentFromAsset(parent, (TAssetViewModel)asset);
         }
@@ -68,7 +68,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
         /// <returns>The component to add or insert to the scene; or <c>null</c> if it could not be created.</returns>
         /// <seealso cref="CreateComponentFromAsset(EntityHierarchyItemViewModel,AssetViewModel)"/>
         [CanBeNull]
-        protected abstract EntityComponent CreateComponentFromAsset([NotNull] EntityHierarchyItemViewModel parent, [NotNull] TAssetViewModel asset);
+        protected abstract EntityComponent CreateComponentFromAsset([NotNull] IEntityHierarchyItemViewModel parent, [NotNull] TAssetViewModel asset);
     }
 
     public abstract class CreateEntitiesPolicyBase<TAsset, TAssetViewModel> : AddAssetPolicyBase<TAsset, TAssetViewModel>, ICreateEntitiesPolicy
@@ -76,7 +76,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
         where TAssetViewModel : AssetViewModel, IAssetViewModel<TAsset>
     {
         /// <inheritdoc />
-        public AssetCompositeHierarchyData<EntityDesign, Entity> CreateEntitiesFromAsset(EntityHierarchyItemViewModel parent, AssetViewModel asset)
+        public AssetCompositeHierarchyData<EntityDesign, Entity> CreateEntitiesFromAsset(IEntityHierarchyItemViewModel parent, AssetViewModel asset)
         {
             return CreateEntitiesFromAsset(parent, (TAssetViewModel)asset);
         }
@@ -89,7 +89,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
         /// <returns></returns>
         /// <seealso cref="CreateEntitiesFromAsset(EntityHierarchyItemViewModel,AssetViewModel)"/>
         [CanBeNull]
-        protected abstract AssetCompositeHierarchyData<EntityDesign, Entity> CreateEntitiesFromAsset([NotNull] EntityHierarchyItemViewModel parent, [NotNull] TAssetViewModel asset);
+        protected abstract AssetCompositeHierarchyData<EntityDesign, Entity> CreateEntitiesFromAsset([NotNull] IEntityHierarchyItemViewModel parent, [NotNull] TAssetViewModel asset);
     }
 
     public abstract class CustomPolicyBase<TAsset, TAssetViewModel> : AddAssetPolicyBase<TAsset, TAssetViewModel>, ICustomPolicy
@@ -97,7 +97,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
         where TAssetViewModel : AssetViewModel, IAssetViewModel<TAsset>
     {
         /// <inheritdoc />
-        public void ApplyPolicy(EntityHierarchyItemViewModel parent, IEnumerable<AssetViewModel> assets, int index, Vector3 position)
+        public void ApplyPolicy(IEntityHierarchyItemViewModel parent, IEnumerable<AssetViewModel> assets, int index, Vector3 position)
         {
             ApplyPolicy(parent, assets.Cast<TAssetViewModel>().ToList(), index, position);
         }
@@ -110,6 +110,6 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
         /// <param name="index">The index at which insertion should begin.</param>
         /// <param name="position"></param>
         /// <seealso cref="ApplyPolicy(EntityHierarchyItemViewModel,IEnumerable{AssetViewModel},int,Vector3)"/>
-        protected abstract void ApplyPolicy([NotNull] EntityHierarchyItemViewModel parent, [ItemNotNull, NotNull] IReadOnlyCollection<TAssetViewModel> assets, int index, Vector3 position);
+        protected abstract void ApplyPolicy([NotNull] IEntityHierarchyItemViewModel parent, [ItemNotNull, NotNull] IReadOnlyCollection<TAssetViewModel> assets, int index, Vector3 position);
     }
 }

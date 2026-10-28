@@ -106,6 +106,9 @@
     <ProjectReference Include="..\..\plugins\SpriteStudio\Stride.SpriteStudio.Editor\Stride.SpriteStudio.Editor.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
+    <ProjectReference Include="..\..\plugins\SpriteStudio\Stride.SpriteStudio.Editor.Wpf\Stride.SpriteStudio.Editor.Wpf.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
     <ProjectReference Include="..\..\plugins\Video\Stride.Video\Stride.Video.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>

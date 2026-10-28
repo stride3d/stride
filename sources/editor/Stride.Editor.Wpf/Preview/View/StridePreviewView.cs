@@ -2,13 +2,15 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
+using Stride.Core.Mathematics;
 
 namespace Stride.Editor.Preview.View
 {
     [TemplatePart(Name = "PART_StrideView", Type = typeof(ContentPresenter))]
     public class StridePreviewView : Control, IPreviewView
     {
-        private IPreviewBuilder builder;
+        private IWpfPreviewBuilder builder;
 
         private IAssetPreview previewer;
 
@@ -26,7 +28,7 @@ namespace Stride.Editor.Preview.View
         public void InitializeView(IPreviewBuilder previewBuilder, IAssetPreview assetPreview)
         {
             previewer = assetPreview;
-            builder = previewBuilder;
+            builder = (IWpfPreviewBuilder)previewBuilder;
             var viewModel = previewer.PreviewViewModel;
             if (viewModel != null)
             {
@@ -52,6 +54,17 @@ namespace Stride.Editor.Preview.View
         private void OnLoaded(object sender, RoutedEventArgs routedEventArgs)
         {
             previewer?.OnViewAttached();
+        }
+
+        /// <inheritdoc />
+        public Vector2? GetLaidOutViewSize()
+        {
+            var view = builder?.GetStrideView();
+            if (view == null || view.ActualWidth <= 0 || view.ActualHeight <= 0)
+                return null;
+
+            var dpi = VisualTreeHelper.GetDpi(view);
+            return new Vector2((int)(view.ActualWidth * dpi.DpiScaleX), (int)(view.ActualHeight * dpi.DpiScaleY));
         }
 
         private void UpdateStrideView()

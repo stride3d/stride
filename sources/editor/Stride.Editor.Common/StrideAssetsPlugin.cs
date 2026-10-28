@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Windows;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
@@ -14,7 +13,6 @@ using Stride.Core.Extensions;
 using Stride.Core.Reflection;
 using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
-using Stride.Core.Presentation.View;
 using Stride.Core.Presentation.Views;
 using Stride.Editor.Annotations;
 using Stride.Editor.Preview;
@@ -25,29 +23,34 @@ namespace Stride.Editor
 {
     public delegate IAssetPreview AssetPreviewFactory(IPreviewBuilder builder, PreviewGame game, AssetItem asset);
 
+    /// <summary>
+    /// The base class of the plugins that extend the Stride editors: it registers the asset previews, their view models
+    /// and views, the enum images and the template providers of the plugin's assembly. It is toolkit-neutral; the views
+    /// themselves and their resources (such as WPF resource dictionaries) belong to a companion package written for one
+    /// toolkit, see <c>StrideAssetsWpfPlugin</c>.
+    /// </summary>
     public abstract class StrideAssetsPlugin : AssetsEditorPlugin
     {
         private readonly Dictionary<object, object> enumImagesDictionary = [];
         private readonly List<ITemplateProvider> templateProviderList = [];
 
-        protected virtual void RegisterResourceDictionary(ResourceDictionary dictionary)
+        /// <summary>
+        /// Registers an image for a value of an enum, shown in place of the value in the editor.
+        /// </summary>
+        /// <param name="value">The enum value.</param>
+        /// <param name="image">The image, in the format of the editor's toolkit.</param>
+        protected void RegisterEnumImage(Enum value, object image)
         {
-            foreach (object entry in dictionary.Keys)
-            {
-                if (entry is Enum)
-                {
-                    enumImagesDictionary.Add(entry, dictionary[entry]);
-                }
-            }
+            enumImagesDictionary.Add(value, image);
+        }
 
-            foreach (object value in dictionary.Values)
-            {
-                var provider = value as ITemplateProvider;
-                if (provider != null)
-                {
-                    templateProviderList.Add(provider);
-                }
-            }
+        /// <summary>
+        /// Registers a template provider for the editor's property grid.
+        /// </summary>
+        /// <param name="provider">The template provider.</param>
+        protected void RegisterTemplateProvider(ITemplateProvider provider)
+        {
+            templateProviderList.Add(provider);
         }
 
         protected virtual void Initialize(ILogger logger)
@@ -59,7 +62,6 @@ namespace Stride.Editor
         {
             enumImagesDictionary.Clear();
             templateProviderList.Clear();
-
 
             Initialize(logger);
         }

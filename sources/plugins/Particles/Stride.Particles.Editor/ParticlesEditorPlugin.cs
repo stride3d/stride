@@ -23,7 +23,7 @@ namespace Stride.Particles.Editor;
 /// </summary>
 public sealed class ParticlesEditorPlugin : StrideAssetsPlugin
 {
-    public override void InitializeSession(SessionViewModel session)
+    public override void InitializeSession(ISessionViewModel session)
     {
         session.AssetViewProperties.RegisterNodePresenterUpdater(new ParticleSystemNodeUpdater());
     }

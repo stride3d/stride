@@ -19,7 +19,7 @@ namespace Stride.Audio.Editor
         private bool isAudioValid;
         private volatile bool updatingFromGame;
 
-        public SoundPreviewViewModel(SessionViewModel session)
+        public SoundPreviewViewModel(ISessionViewModel session)
             : base(session)
         {
             PlayCommand = new AnonymousCommand(ServiceProvider, Play);

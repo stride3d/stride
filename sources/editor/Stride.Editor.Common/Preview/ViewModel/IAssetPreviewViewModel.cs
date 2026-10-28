@@ -7,11 +7,11 @@ namespace Stride.Editor.Preview.ViewModel
     /// <summary>
     /// An interface that represents a view model that can be attached to an <see cref="IAssetPreview"/>.
     /// </summary>
-    /// <remarks>Implementation should provide at least one constructor with a <see cref="SessionViewModel"/> as first argument.</remarks>
+    /// <remarks>Implementation should provide at least one constructor with a <see cref="ISessionViewModel"/> as first argument.</remarks>
     [Stride.Core.Reflection.AssemblyScan]
     public interface IAssetPreviewViewModel
     {
-        SessionViewModel Session { get; }
+        ISessionViewModel Session { get; }
 
         /// <summary>
         /// Attaches the given preview to this view model.
