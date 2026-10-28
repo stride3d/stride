@@ -41,6 +41,12 @@
           VerticalAlignment="Top">
       <!-- File menu -->
       <MenuItem Header="{sd:LocalizeString _File, Context=Menu}">
+        <!-- A new session from a template (the project selection window), as WPF's File > New; its shortcut is a key binding of the
+             main window, like Save -->
+        <MenuItem Header="{sd:LocalizeString _New..., Context=Menu}"
+                  Name="NewMenuItem"
+                  Command="{Binding NewSessionCommand}"
+                  InputGesture="{x:Static gsvw:MainView.NewGesture}"/>
         <MenuItem Header="{sd:LocalizeString _Open..., Context=Menu}"
                   Command="{Binding OpenCommand}"
                   HotKey="Ctrl+O" InputGesture="{Binding $self.HotKey, Mode=OneTime}"/>

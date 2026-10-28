@@ -14,6 +14,7 @@ using MarkView.Avalonia;
 using MarkView.Avalonia.Rendering;
 using Stride.Assets;
 using Stride.Assets.Editor;
+using Stride.Assets.Templates;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.ViewModels;
@@ -133,6 +134,7 @@ public partial class App : Application
         // loading are dialogs of the main window, which must be visible by then
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
+            RegisterProjectTemplates();
             var mainWindow = new MainWindow();
             desktop.MainWindow = mainWindow;
             Restart();
@@ -140,6 +142,7 @@ public partial class App : Application
         }
         else if (ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
         {
+            RegisterProjectTemplates();
             var mainView = new MainView();
             singleViewPlatform.MainView = mainView;
             Restart();
@@ -152,8 +155,14 @@ public partial class App : Application
     /// </summary>
     private void OpenInitialSession()
     {
-        if (GetInitialSessionPath() is { } initialPath && mainViewModel is { } viewModel)
+        if (mainViewModel is not { } viewModel)
+            return;
+        if (GetInitialSessionPath() is { } initialPath)
             viewModel.OpenInitialSessionCommand.Execute(initialPath);
+        else
+            // No session to open: the project selection window, as the WPF editor shows at startup (its Cancel leaves the editor
+            // empty rather than exiting)
+            viewModel.SelectProjectCommand.Execute();
     }
 
     /// <summary>
@@ -161,15 +170,16 @@ public partial class App : Application
     /// </summary>
     /// <param name="initialPath">The session to open, or null for an empty editor.</param>
     /// <param name="initialSession">Whether this is the session the editor starts with (it is then guarded against a crash loop).</param>
-    public void Restart(UFile? initialPath = null, bool initialSession = false)
+    /// <param name="selectProject">Whether to show the project selection window (File > New), when no path is given.</param>
+    public void Restart(UFile? initialPath = null, bool initialSession = false, bool selectProject = false)
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            desktop.MainWindow!.DataContext = InitializeMainViewModel(initialPath, initialSession);
+            desktop.MainWindow!.DataContext = InitializeMainViewModel(initialPath, initialSession, selectProject);
         }
         else if (ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
         {
-            singleViewPlatform.MainView!.DataContext = InitializeMainViewModel(initialPath, initialSession);
+            singleViewPlatform.MainView!.DataContext = InitializeMainViewModel(initialPath, initialSession, selectProject);
         }
     }
 
@@ -196,7 +206,7 @@ public partial class App : Application
         return null;
     }
 
-    private MainViewModel InitializeMainViewModel(UFile? initialPath, bool initialSession)
+    private MainViewModel InitializeMainViewModel(UFile? initialPath, bool initialSession, bool selectProject = false)
     {
         // The services of the previous editor go with it (the plugin service listens to the plugin registry)
         (serviceProvider?.TryGet<PluginService>())?.Dispose();
@@ -210,6 +220,10 @@ public partial class App : Application
                 viewmodel.OpenInitialSessionCommand.Execute(initialPath);
             else
                 viewmodel.OpenCommand.Execute(initialPath);
+        }
+        else if (selectProject)
+        {
+            viewmodel.SelectProjectCommand.Execute();
         }
         return viewmodel;
     }
@@ -279,6 +293,23 @@ public partial class App : Application
 
         // Note: it doesn't have to be done here. The only constraint is to do it before AssetsPlugin.RegisteredPlugins is accessed for the first time.
         // So it could be delayed until after a window is opened and even display progress.
+    }
+
+    /// <summary>
+    /// Registers the project templates (new game, code library, plugin, and the starters and samples once downloaded) shown by the
+    /// new project windows, as the WPF plugin does when it loads. Only the templates installed on this machine are scanned here;
+    /// the missing content packages download in the background. An editor without templates still starts.
+    /// </summary>
+    private static void RegisterProjectTemplates()
+    {
+        try
+        {
+            DotNetNewTemplateBridge.RegisterProjectTemplates();
+        }
+        catch (Exception e)
+        {
+            Log.Warning("The project templates could not be loaded: the new project windows will be empty.", e);
+        }
     }
 
     /// <summary>

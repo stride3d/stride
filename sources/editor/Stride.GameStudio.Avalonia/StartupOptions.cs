@@ -19,7 +19,7 @@ public sealed class StartupOptions
     public UFile? InitialSessionPath { get; set; }
 
     /// <summary>
-    /// <c>/NewProject</c>: start without a session (the new project templates are not ported yet, so the editor opens empty).
+    /// <c>/NewProject</c>: start without a session, with the project selection window (a new project or a recent one).
     /// </summary>
     public bool NewProject { get; set; }
 
