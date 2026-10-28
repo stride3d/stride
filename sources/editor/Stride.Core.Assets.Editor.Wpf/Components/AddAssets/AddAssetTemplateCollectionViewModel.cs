@@ -38,6 +38,8 @@ namespace Stride.Core.Assets.Editor.Components.AddAssets
                 }
             }
 
+            // The selected template belonged to the old groups
+            SelectedTemplate = null;
             SelectedGroup = RootGroup;
             UpdateTemplateList();
         }

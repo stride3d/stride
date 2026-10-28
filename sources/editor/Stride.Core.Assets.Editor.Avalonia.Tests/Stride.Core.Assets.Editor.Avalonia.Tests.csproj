@@ -26,6 +26,10 @@
     <ProjectReference Include="..\Stride.Core.Assets.Editor.Avalonia\Stride.Core.Assets.Editor.Avalonia.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <!-- The package of test templates of the Core.Assets.Editor tests (xunit 2, not referenced): the same file -->
+    <Compile Include="..\Stride.Core.Assets.Editor.Tests\Helpers\TestTemplatePackage.cs">
+      <Link>Helpers\TestTemplatePackage.cs</Link>
+    </Compile>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>

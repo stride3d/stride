@@ -307,8 +307,9 @@ public partial class App : Application
 
     /// <summary>
     /// Registers the project templates (new game, code library, plugin, and the starters and samples once downloaded) shown by the
-    /// new project windows, as the WPF plugin does when it loads. Only the templates installed on this machine are scanned here;
-    /// the missing content packages download in the background. An editor without templates still starts.
+    /// new project windows, and the asset templates (the Add asset list) of the Stride package, as the WPF plugin does when it
+    /// loads. Only the templates installed on this machine are scanned here; the missing content packages download in the
+    /// background. An editor without templates still starts.
     /// </summary>
     private static void RegisterProjectTemplates()
     {
@@ -319,6 +320,15 @@ public partial class App : Application
         catch (Exception e)
         {
             Log.Warning("The project templates could not be loaded: the new project windows will be empty.", e);
+        }
+        try
+        {
+            // The asset assemblies are loaded by the plugins of the session, not by the template package
+            StrideDefaultTemplates.LoadAssetTemplates(loadAssemblyReferences: false);
+        }
+        catch (Exception e)
+        {
+            Log.Warning("The asset templates could not be loaded: the Add asset list will be empty.", e);
         }
     }
 
