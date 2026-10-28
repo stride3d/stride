@@ -43,7 +43,8 @@ internal enum GpuFramePresenterState
 /// </para>
 /// <list type="bullet">
 ///   <item>Direct3D 11 (the editor's API on Windows) with Avalonia on ANGLE (its default on Windows): textures created
-///   with the <c>SharedKeyedMutex</c> option, shared through their global handle and synchronized by their keyed mutex
+///   with the <c>SharedKeyedMutex</c> and <c>SharedNtHandle</c> options, shared through their NT handle (the handle type
+///   Direct3D 12 and Vulkan share through too, so a later API reuses this path) and synchronized by their keyed mutex
 ///   (the game acquires key 0 and releases key 1, the compositor acquires key 1 and releases key 0). Two textures are
 ///   used in turn: the game copies a frame into one while the compositor draws the other, and drops a frame only when
 ///   both are in use.</item>
@@ -58,12 +59,12 @@ internal enum GpuFramePresenterState
 /// </remarks>
 internal sealed class GpuFramePresenter : IDisposable
 {
-    private const string D3D11GlobalHandle = KnownPlatformGraphicsExternalImageHandleTypes.D3D11TextureGlobalSharedHandle;
+    private const string D3D11NtHandle = KnownPlatformGraphicsExternalImageHandleTypes.D3D11TextureNtHandle;
     private const string VulkanFd = KnownPlatformGraphicsExternalImageHandleTypes.VulkanOpaquePosixFileDescriptor;
     private const string VulkanSemaphoreFd = KnownPlatformGraphicsExternalSemaphoreHandleTypes.VulkanOpaquePosixFileDescriptor;
 
-    // Direct3D 11's TextureOptions.SharedKeyedMutex, which only exists in the Direct3D 11 build of Stride.Graphics
-    private const TextureOptions SharedKeyedMutex = (TextureOptions)256;
+    // Direct3D 11's TextureOptions.SharedKeyedMutex | SharedNtHandle, which only exist in the Direct3D 11 build of Stride.Graphics
+    private const TextureOptions SharedKeyedMutexNtHandle = (TextureOptions)(256 | 2048);
 
     private readonly OffscreenGameView view;
     private readonly Logger logger;
@@ -179,7 +180,7 @@ internal sealed class GpuFramePresenter : IDisposable
     {
         try
         {
-            if (handleType == D3D11GlobalHandle)
+            if (handleType == D3D11NtHandle)
                 return CopyFrameD3D11(commandList, backBuffer);
             if (frameInFlight)
                 return false;
@@ -234,7 +235,7 @@ internal sealed class GpuFramePresenter : IDisposable
             // The compositor opened its own reference to the texture: this one can go
             slot.Texture?.Dispose();
             slot.Texture = Texture.New2D(commandList.GraphicsDevice, backBuffer.Width, backBuffer.Height, Stride.Graphics.PixelFormat.R8G8B8A8_UNorm,
-                TextureFlags.RenderTarget | TextureFlags.ShaderResource, options: SharedKeyedMutex);
+                TextureFlags.RenderTarget | TextureFlags.ShaderResource, options: SharedKeyedMutexNtHandle);
             slot.Version++;
         }
 
@@ -299,10 +300,10 @@ internal sealed class GpuFramePresenter : IDisposable
             var imageTypes = string.Join(", ", interop.SupportedImageHandleTypes);
             var semaphoreTypes = string.Join(", ", interop.SupportedSemaphoreTypes);
             if (GraphicsDevice.Platform == GraphicsPlatform.Direct3D11
-                && interop.SupportedImageHandleTypes.Contains(D3D11GlobalHandle)
-                && interop.GetSynchronizationCapabilities(D3D11GlobalHandle).HasFlag(CompositionGpuImportedImageSynchronizationCapabilities.KeyedMutex))
+                && interop.SupportedImageHandleTypes.Contains(D3D11NtHandle)
+                && interop.GetSynchronizationCapabilities(D3D11NtHandle).HasFlag(CompositionGpuImportedImageSynchronizationCapabilities.KeyedMutex))
             {
-                handleType = D3D11GlobalHandle;
+                handleType = D3D11NtHandle;
             }
             else if (GraphicsDevice.Platform == GraphicsPlatform.Vulkan
                 && interop.SupportedImageHandleTypes.Contains(VulkanFd)
