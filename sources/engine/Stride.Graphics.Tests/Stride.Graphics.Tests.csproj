@@ -20,5 +20,9 @@
     <ProjectReference Include="..\Stride.Graphics.Regression\Stride.Graphics.Regression.csproj" />
     <ProjectReference Include="..\..\plugins\UI\Stride.UI\Stride.UI.csproj" />
   </ItemGroup>
+  <ItemGroup Condition="'$(StrideGraphicsApi)' == 'Vulkan'">
+    <!-- TestExportableTexture imports the exported memory and semaphores with a second, raw Vulkan device -->
+    <PackageReference Include="Vortice.Vulkan" />
+  </ItemGroup>
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.MultiPlatform.Tests/Sdk/Sdk.targets" />
 </Project>
