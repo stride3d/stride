@@ -424,9 +424,14 @@ public sealed class AddAssetTests
             WaitForHistory(fixture, transactions);
     }
 
+    /// <summary>
+    /// Waits for the background work of a creation: the history entry, and the selection of the new assets, which the asset
+    /// view refreshes from a pool thread with the test's null dispatcher (the editor's dispatcher serializes this).
+    /// </summary>
     private static void WaitForHistory(EditorSessionFixture fixture, int transactions)
     {
         Assert.True(SpinWait.SpinUntil(() => fixture.Session.ActionHistory.Transactions.Count > transactions, TimeSpan.FromSeconds(10)), "the creation to be recorded");
+        SpinWait.SpinUntil(() => fixture.Assets.SelectedAssets.Count > 0, TimeSpan.FromSeconds(10));
     }
 
     private static ITemplateDescriptionViewModel FindTemplate(EditorSessionFixture fixture, Guid id)
