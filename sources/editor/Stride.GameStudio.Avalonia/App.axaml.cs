@@ -25,6 +25,7 @@ using Stride.Core.Presentation.Avalonia.Services;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Settings;
 using Stride.Core.Translation;
+using Stride.Editor.Avalonia.Engine;
 using Stride.Editor.Avalonia.Preview;
 using Stride.Editor.Thumbnails;
 using Stride.GameStudio.Avalonia.Services;
@@ -298,7 +299,7 @@ public partial class App : Application
         }
 
         GameStudioPreviewService.DisablePreview = disablePreview;
-        GameStudioPreviewService.ForceReadback = Options.ViewportReadback;
+        OffscreenGameViewport.ForceReadback = Options.ViewportReadback;
         foreach (var plugin in AssetsPlugin.RegisteredPlugins.OfType<StrideEditorPlugin>())
             plugin.EnableThumbnailService = enableThumbnails;
 
