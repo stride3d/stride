@@ -27,6 +27,14 @@ namespace Stride.Editor.Engine
         /// <inheritdoc />
         protected override bool IsEditorGame => true;
 
+        /// <summary>
+        /// Gets or sets the host of the game when it has no window of its own, or <c>null</c> when the game has a window.
+        /// </summary>
+        /// <remarks>
+        /// Set it before the game runs.
+        /// </remarks>
+        public IEmbeddedGameHost Host { get; set; }
+
         /// <inheritdoc />
         protected override void Initialize()
         {
@@ -34,6 +42,23 @@ namespace Stride.Editor.Engine
 
             Window.IsBorderLess = true;
             Window.IsMouseVisible = true;
+
+            Host?.Initialize(this);
+        }
+
+        /// <inheritdoc />
+        protected override bool BeginDraw()
+        {
+            Host?.BeginDraw(this);
+            return base.BeginDraw();
+        }
+
+        /// <inheritdoc />
+        protected override void EndDraw(bool present)
+        {
+            Host?.EndDraw(this, present);
+            base.EndDraw(present);
+            Host?.AfterEndDraw(this, present);
         }
 
         /// <inheritdoc />
