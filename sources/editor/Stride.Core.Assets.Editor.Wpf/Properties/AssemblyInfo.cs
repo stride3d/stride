@@ -24,7 +24,7 @@ using System.Windows.Markup;
 
 //[assembly: NeutralResourcesLanguage("en-US", UltimateResourceFallbackLocation.Satellite)]
 [assembly: InternalsVisibleTo("Stride.GameStudio")]
-[assembly: InternalsVisibleTo("Stride.Core.Assets.Editor.Tests")]
+[assembly: InternalsVisibleTo("Stride.Core.Assets.Editor.Wpf.Tests")]
 
 [assembly: ThemeInfo(
     ResourceDictionaryLocation.None, //where theme specific resource dictionaries are located
