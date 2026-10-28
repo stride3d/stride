@@ -7,6 +7,7 @@ using System.Collections.Specialized;
 using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Diagnostics;
 using Stride.Core.Assets.Editor.Components.Properties;
+using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Assets.Editor.Components.Transactions;
 using Stride.Core.Assets.Editor.Internal;
 using Stride.Core.Assets.Editor.Services;
@@ -123,6 +124,7 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
         // Initialize commands
         SaveSessionCommand = new AnonymousTaskCommand(ServiceProvider, SaveSessionAsync);
         AddExistingProjectCommand = new AnonymousTaskCommand(ServiceProvider, AddExistingProjectAsync);
+        NewProjectCommand = new AnonymousTaskCommand(ServiceProvider, NewProjectAsync) { IsEnabled = !string.IsNullOrWhiteSpace(session.SolutionPath) };
         ActivatePackagePropertiesCommand = new AnonymousTaskCommand(ServiceProvider, async () =>
         {
             var directory = AssetCollection.GetSelectedDirectories(false).FirstOrDefault();
@@ -304,6 +306,11 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
     public ICommandBase EditSelectedContentCommand { get; }
 
     public ICommandBase NewDirectoryCommand { get; }
+
+    /// <summary>
+    /// Adds a project to the session from a template (the new project window); enabled when the session has a solution.
+    /// </summary>
+    public ICommandBase NewProjectCommand { get; }
 
     public ICommandBase NextSelectionCommand { get; }
 
@@ -947,6 +954,61 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
         return AllPackages.FirstOrDefault(x => x.Package == package);
     }
 
+    /// <summary>
+    /// Asks for a template and adds the project it creates to the session, as the WPF "New project..." does.
+    /// </summary>
+    public async Task NewProjectAsync()
+    {
+        var loggerResult = new LoggerResult();
+
+        // Display the template dialog to let the user select which template he want to use.
+        var parameters = await ServiceProvider.Get<IEditorDialogService>().ShowNewProjectDialogAsync(this);
+        if (parameters?.TemplateDescription is null)
+            return;
+
+        var workProgress = new WorkProgressViewModel(ServiceProvider, loggerResult)
+        {
+            Title = Tr._p("Title", "Creating project..."),
+            KeepOpen = KeepOpen.OnWarningsOrErrors,
+            IsIndeterminate = true,
+            IsCancellable = false
+        };
+        workProgress.RegisterProgressStatus(loggerResult, true);
+
+        var generatorParameters = new SessionTemplateGeneratorParameters
+        {
+            Name = parameters.OutputName,
+            OutputDirectory = parameters.OutputDirectory,
+            Description = parameters.TemplateDescription,
+            Session = session,
+            Logger = loggerResult,
+        };
+
+        var generator = TemplateManager.FindTemplateGenerator(generatorParameters);
+        if (generator is null)
+        {
+            await ServiceProvider.Get<IDialogService>().MessageBoxAsync(Tr._p("Message", "Unable to retrieve template generator for the selected template. Aborting."), MessageBoxButton.OK, MessageBoxImage.Error);
+            return;
+        }
+        await TemplateGeneratorHelper.RunTemplateGeneratorSafe(generator, generatorParameters, workProgress);
+
+        // Set the range of the work in progress according to the created assets
+        workProgress.Minimum = 0;
+        workProgress.ProgressValue = 0;
+        workProgress.Maximum = session.Projects.OfType<SolutionProject>().Where(x => !packageMap.ContainsValue(x)).Sum(x => x.Package.Assets.Count);
+
+        // This action is uncancellable - In case of errors, we still try to create view models to match what is currently in the PackageSession, but the template has responsibility to clean itself up in case of failure.
+        ProcessAddedProjects(loggerResult, workProgress, true);
+        // A template can also reference a new project from an existing one (Add plugin)
+        foreach (var package in LocalPackages)
+            package.AddMissingDependencyViewModels();
+
+        if (CurrentProject is null)
+            AutoSelectCurrentProject();
+
+        await workProgress.NotifyWorkFinished(false, loggerResult.HasErrors);
+    }
+
     public async Task<bool> DeleteItems(IReadOnlyCollection<object> locations, bool skipConfirmation = false)
     {
         // Skip empty
@@ -1523,6 +1585,7 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
 
         var asset = AssetCollection.SingleSelectedAsset;
 
+        NewProjectCommand.IsEnabled = !string.IsNullOrWhiteSpace(SolutionPath);
         SetCurrentProjectCommand.IsEnabled = projectSelected;
         DeleteSelectedSolutionItemsCommand.IsEnabled = canDelete;
         RenameDirectoryOrPackageCommand.IsEnabled = canRename;
