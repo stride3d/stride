@@ -19,6 +19,11 @@ namespace Stride.Assets.Templates;
 public static class StrideDefaultTemplates
 {
     /// <summary>
+    /// The package whose <c>.sdpkg</c> lists the asset template folders.
+    /// </summary>
+    public const string AssetTemplatesPackageName = "Stride.Assets.Presentation.Wpf";
+
+    /// <summary>
     /// Loads default templates. Pass <paramref name="loadAssemblyReferences"/>=false in headless
     /// test runners so the .sdpkg's referenced assemblies (Stride.Particles etc.) don't get loaded
     /// from .nuget cache — a later sample regen loads them from the sample's bin/ via a different
@@ -26,10 +31,23 @@ public static class StrideDefaultTemplates
     /// </summary>
     public static void Load(bool loadAssemblyReferences = true)
     {
+        LoadAssetTemplates(loadAssemblyReferences);
+        DotNetNewTemplateBridge.RegisterProjectTemplates();
+    }
+
+    /// <summary>
+    /// Registers the asset, script and project-modification templates (the <c>.sdtpl</c> files listed by the
+    /// <see cref="AssetTemplatesPackageName"/> package) with the <see cref="TemplateManager"/>, without the dotnet new project
+    /// templates: what an editor that registers the project templates itself needs.
+    /// </summary>
+    /// <param name="loadAssemblyReferences">Whether the assemblies referenced by the package are loaded; see <see cref="Load"/>.</param>
+    /// <exception cref="InvalidOperationException">The package is not in the package store, or it could not be loaded.</exception>
+    public static void LoadAssetTemplates(bool loadAssemblyReferences = true)
+    {
         // Only TemplateFolders are needed here (loaded regardless of this flag); skip the package's
         // assets — they're unused for template registration and slow to load.
         var loadParams = new PackageLoadParameters { LoadAssemblyReferences = loadAssemblyReferences, AutoLoadTemporaryAssets = false };
-        foreach (var packageInfo in new[] { new { Name = "Stride.Assets.Presentation.Wpf", Version = StrideVersion.NuGetVersion } })
+        foreach (var packageInfo in new[] { new { Name = AssetTemplatesPackageName, Version = StrideVersion.NuGetVersion } })
         {
             var logger = new LoggerResult();
             var packageFile = PackageStore.Instance.GetPackageFileName(packageInfo.Name, new PackageVersionRange(new PackageVersion(packageInfo.Version)));
@@ -41,7 +59,5 @@ public static class StrideDefaultTemplates
 
             TemplateManager.RegisterPackage(package);
         }
-
-        DotNetNewTemplateBridge.RegisterProjectTemplates();
     }
 }
