@@ -7,7 +7,9 @@ using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Components.Status;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Settings;
+using Stride.Core.Assets.Editor.ViewModel.Progress;
 using Stride.Core.Assets.Editor.ViewModels;
+using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
 using Stride.Core.MostRecentlyUsedFiles;
@@ -17,6 +19,7 @@ using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Presentation.Windows;
 using Stride.Core.Translation;
+using Stride.Editor.Build;
 using Stride.GameStudio.Avalonia.Helpers;
 using Stride.GameStudio.Avalonia.Services;
 using Stride.GameStudio.Avalonia.Settings;
@@ -58,6 +61,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
 
         Status = new StatusViewModel(ServiceProvider);
         Status.PushStatus("Ready");
+        Notifications = serviceProvider.TryGet<INotificationService>();
 
         // The most recently used sessions of this and the earlier editor versions
         MRU = GameStudioInternalSettings.CreateMostRecentlyUsedFiles();
@@ -72,6 +76,11 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     }
 
     public StatusViewModel Status { get; }
+
+    /// <summary>
+    /// The background operations shown in the notification bar; <c>null</c> when the host has no bar.
+    /// </summary>
+    public INotificationService? Notifications { get; }
 
     public string Title
     {
@@ -216,7 +225,64 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
         // now that the session has its views
         ServiceProvider.Get<IAssetsPluginService>().InitializeSession(Session);
         Session.PluginsInitialized();
+
+        // The build the session runs when it opens: thumbnails and previews wait for it
+        _ = ShowShaderImportAsync(Session);
         return true;
+    }
+
+    /// <summary>
+    /// Shows the import of the system shaders in the notification bar until it is done; nothing when there is none to wait for.
+    /// </summary>
+    private async Task ShowShaderImportAsync(SessionViewModel openedSession)
+    {
+        if (Notifications is null || openedSession.ServiceProvider.TryGet<GameStudioBuilderService>() is not { AreShadersLoaded: false } builder)
+            return;
+
+        var logger = GlobalLogger.GetLogger("BuildOnOpen");
+        var progress = new WorkProgressViewModel(ServiceProvider, logger)
+        {
+            Title = Tr._p("Notification", "Importing the system shaders…"),
+            IsIndeterminate = true,
+            KeepOpen = KeepOpen.Never,
+        };
+        // The import reports its steps from a thread of the builder: never block it on the UI thread (WorkProgressViewModel's own
+        // RegisterProgressStatus dispatches synchronously), which may itself be waiting for the builder (when the session closes)
+        void ImportProgressChanged(object? sender, ProgressStatusEventArgs e)
+        {
+            progress.Dispatcher.InvokeAsync(() =>
+            {
+                if (progress.WorkDone)
+                    return;
+                progress.IsIndeterminate = !e.HasKnownSteps;
+                progress.Minimum = 0;
+                progress.Maximum = e.StepCount;
+                progress.ProgressValue = e.CurrentStep;
+                progress.ProgressMessage = e.Message;
+            });
+        }
+
+        var importProgress = builder.ShaderImportProgress;
+        if (importProgress is not null)
+            importProgress.ProgressChanged += ImportProgressChanged;
+        ServiceProvider.Get<IEditorDialogService>().ShowNotification(progress);
+
+        var error = false;
+        try
+        {
+            await builder.WaitForShadersAsync();
+        }
+        catch (Exception e)
+        {
+            logger.Error("The import of the system shaders failed.", e);
+            error = true;
+        }
+        finally
+        {
+            if (importProgress is not null)
+                importProgress.ProgressChanged -= ImportProgressChanged;
+            await progress.NotifyWorkFinished(false, error);
+        }
     }
 
     private static IReadOnlyList<FilePickerFilter> SessionFileFilters =>

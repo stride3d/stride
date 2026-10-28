@@ -119,7 +119,8 @@ public sealed class ThumbnailsViewModel : DispatcherViewModel
         var asset = session.GetAssetById(e.AssetId);
         if (asset != null)
         {
-            Dispatcher.InvokeAsync(async () =>
+            // InvokeTask: InvokeAsync would take the async lambda as a Func<Task> result and drop the inner task with its exceptions
+            _ = Dispatcher.InvokeTask(async () =>
             {
                 asset.SetThumbnailData(e.Data);
                 await e.Data.PrepareForPresentation(Dispatcher);

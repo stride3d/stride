@@ -1,0 +1,79 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+        xmlns:caevm="using:Stride.Core.Assets.Editor.ViewModels"
+        xmlns:capvm="using:Stride.Core.Assets.Editor.ViewModel"
+        mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="500"
+        x:Class="Stride.Core.Assets.Editor.Avalonia.Views.AssetPickerWindow"
+        x:DataType="caevm:AssetPickerViewModel"
+        Title="{sd:LocalizeString Select an asset, Context=Title}"
+        Width="700" Height="500"
+        MinWidth="400" MinHeight="300"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner">
+  <Grid RowDefinitions="*, Auto">
+    <!-- Locations and assets -->
+    <Grid Grid.Row="0" ColumnDefinitions="200, Auto, *">
+      <!-- The packages and the folders of their assets -->
+      <TreeView x:Name="Locations"
+                Grid.Column="0"
+                Margin="4"
+                ItemsSource="{Binding Packages}"
+                SelectedItem="{Binding SelectedLocation, Mode=TwoWay}">
+        <TreeView.DataTemplates>
+          <TreeDataTemplate DataType="capvm:PackageViewModel"
+                            ItemsSource="{Binding AssetMountPoint.SubDirectories}">
+            <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+          </TreeDataTemplate>
+          <TreeDataTemplate DataType="capvm:DirectoryViewModel"
+                            ItemsSource="{Binding SubDirectories}">
+            <TextBlock Text="{Binding Name}"/>
+          </TreeDataTemplate>
+        </TreeView.DataTemplates>
+      </TreeView>
+
+      <GridSplitter Grid.Column="1" Width="4" ResizeDirection="Columns"/>
+
+      <!-- The assets of the location -->
+      <DockPanel Grid.Column="2" Margin="4">
+        <TextBox x:Name="SearchBox"
+                 DockPanel.Dock="Top"
+                 Margin="0,0,0,4"
+                 PlaceholderText="{sd:LocalizeString Search assets..., Context=Watermark}"
+                 Text="{Binding SearchText, Mode=TwoWay}"/>
+        <ListBox x:Name="Assets"
+                 ItemsSource="{Binding FilteredAssets}"
+                 SelectedItem="{Binding SelectedAsset, Mode=TwoWay}"
+                 DoubleTapped="OnAssetDoubleTapped">
+          <ListBox.ItemTemplate>
+            <DataTemplate DataType="capvm:AssetViewModel">
+              <StackPanel Orientation="Horizontal" Spacing="6" ToolTip.Tip="{Binding Url}">
+                <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding TypeDisplayName}"
+                           Opacity="0.6" FontSize="11"
+                           VerticalAlignment="Center"/>
+              </StackPanel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </DockPanel>
+    </Grid>
+
+    <!-- Buttons -->
+    <StackPanel Grid.Row="1"
+                Orientation="Horizontal" HorizontalAlignment="Right"
+                Spacing="8" Margin="8">
+      <Button x:Name="OkButton"
+              Content="{sd:LocalizeString OK, Context=Button}"
+              IsDefault="True"
+              IsEnabled="{Binding SelectedAsset, Converter={sd:ObjectToBool}}"
+              Click="OnOkClick" MinWidth="80"/>
+      <Button x:Name="CancelButton"
+              Content="{sd:LocalizeString Cancel, Context=Button}"
+              IsCancel="True"
+              Click="OnCancelClick" MinWidth="80"/>
+    </StackPanel>
+  </Grid>
+</Window>

@@ -47,35 +47,19 @@ public class PickupAssetCommand : ChangeValueWithPickerCommandBase
     /// <inheritdoc/>
     protected override async Task<PickerResult> ShowPicker(IReadOnlyCollection<INodePresenter> nodePresenters, object currentValue, object parameter)
     {
-        // FIXME xplat-editor
-        //var targetType = (Type)parameter;
-        //var assetPicker = Session.Dispatcher.Invoke(() => Session.ServiceProvider.Get<IEditorDialogService>().CreateAssetPickerDialog(Session));
-        //assetPicker.Filter = x => FilterAsset(x, targetType);
+        var targetType = (Type)parameter;
+        // The picker opens on the current target of the reference, or else on the folder of the selected assets
+        var asset = GetCurrentTarget(currentValue);
+        var initialLocation = asset?.Directory ?? Session.AssetCollection.SelectedAssets.Select(x => x.Directory).FirstOrDefault();
 
-        //var asset = GetCurrentTarget(currentValue);
-        //if (asset != null)
-        //{
-        //    assetPicker.InitialLocation = asset.Directory;
-        //    assetPicker.InitialAsset = asset;
-        //}
-        //else
-        //{
-        //    assetPicker.InitialLocation = Session.AssetCollection.SelectedAssets.Select(x => x.Directory).FirstOrDefault();
-        //}
-        //assetPicker.AllowMultiSelection = false;
+        var dialogService = Session.ServiceProvider.Get<IEditorDialogService>();
+        var pickedAsset = await dialogService.OpenAssetPickerAsync(Session, GetAssetTypes(targetType), x => FilterAsset(x, targetType), asset, initialLocation);
 
-        //var assetTypes = GetAssetTypes(targetType);
-        //assetPicker.AcceptedTypes.AddRange(assetTypes);
-
-        //var result = await assetPicker.ShowModal();
-
-        var pickerResult = new PickerResult
+        return new PickerResult
         {
-            // FIXME xplat-editor
-            //ProcessChange = result == DialogResult.Ok,
-            //NewValue = result == DialogResult.Ok ? assetPicker.SelectedAssets.FirstOrDefault() : null
+            ProcessChange = pickedAsset is not null,
+            NewValue = pickedAsset!,
         };
-        return pickerResult;
     }
 
     /// <inheritdoc/>
@@ -103,7 +87,7 @@ public class PickupAssetCommand : ChangeValueWithPickerCommandBase
         return [];
     }
 
-    protected virtual AssetViewModel GetCurrentTarget(object currentValue)
+    protected virtual AssetViewModel? GetCurrentTarget(object currentValue)
     {
         return ContentReferenceHelper.GetReferenceTarget(Session, currentValue);
     }

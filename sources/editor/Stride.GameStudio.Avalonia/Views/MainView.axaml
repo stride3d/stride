@@ -6,6 +6,7 @@
              xmlns:caect="using:Stride.Core.Assets.Editor.Components.Transactions"
              xmlns:caevm="using:Stride.Core.Assets.Editor.ViewModels"
              xmlns:capvm="using:Stride.Core.Assets.Editor.ViewModel"
+             xmlns:caevmp="using:Stride.Core.Assets.Editor.ViewModel.Progress"
              xmlns:cpc="using:Stride.Core.Presentation.Commands"
              xmlns:gsc="using:Stride.GameStudio.Avalonia.Converters"
              xmlns:gsh="using:Stride.GameStudio.Avalonia.Helpers"
@@ -27,7 +28,7 @@
     </ResourceDictionary>
   </UserControl.Resources>
 
-  <Grid RowDefinitions="Auto, *, 25"
+  <Grid RowDefinitions="Auto, *, Auto, 25"
         Background="Transparent">
     <!-- Menus -->
     <Menu Grid.Row="0" Grid.Column="0"
@@ -235,8 +236,40 @@
       </Grid>
     </Grid>
 
+    <!-- Notifications: the background operations in progress, each until it finishes -->
+    <ItemsControl Grid.Row="2"
+                  ItemsSource="{Binding Notifications?.ActiveNotifications}"
+                  IsVisible="{Binding $self.ItemCount, Converter={sd:NumericToBool}}">
+      <ItemsControl.ItemTemplate>
+        <DataTemplate DataType="caevmp:WorkProgressViewModel">
+          <Border Padding="8,4" BorderThickness="0,1,0,0" BorderBrush="Gray">
+            <Grid ColumnDefinitions="Auto, *, Auto">
+              <TextBlock Grid.Column="0"
+                         VerticalAlignment="Center"
+                         Margin="0,0,8,0"
+                         Text="{Binding Title}"
+                         ToolTip.Tip="{Binding ProgressMessage}"/>
+              <ProgressBar Grid.Column="1"
+                           VerticalAlignment="Center"
+                           Height="16"
+                           Margin="4,0"
+                           IsIndeterminate="{Binding IsIndeterminate}"
+                           Minimum="{Binding Minimum}"
+                           Maximum="{Binding Maximum}"
+                           Value="{Binding ProgressValue}"/>
+              <Button Grid.Column="2"
+                      Content="{sd:LocalizeString Cancel, Context=Button}"
+                      Margin="8,0,0,0"
+                      Command="{Binding CancelCommand}"
+                      IsVisible="{Binding IsCancellable}"/>
+            </Grid>
+          </Border>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+
     <!-- Status bar -->
-    <Grid Grid.Row="2"
+    <Grid Grid.Row="3"
           IsVisible="{Binding Session, Converter={sd:ObjectToBool}}"
           ColumnDefinitions="2*, Auto, *, Auto, *, 100">
       <TextBlock Grid.Column="0"

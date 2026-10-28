@@ -7,6 +7,7 @@
                     xmlns:caevm="using:Stride.Core.Assets.Editor.ViewModel"
                     xmlns:capvm="using:Stride.Core.Assets.Presentation.ViewModels"
                     xmlns:cpqvm="using:Stride.Core.Presentation.Quantum.ViewModels"
+                    xmlns:dd="using:Stride.Core.Assets.Editor.Avalonia.DragDrop"
                     xmlns:yaml="using:Stride.Core.Yaml"
                     xmlns:io="using:Stride.Core.IO"
                     xmlns:math="using:Stride.Core.Mathematics"
@@ -1392,7 +1393,11 @@
     </MenuItem>
   </ContextMenu>
   <DataTemplate x:Key="SimpleContentReferencePropertyTemplate" DataType="cpqvm:NodeViewModel">
-    <DockPanel>
+    <DockPanel Background="Transparent">
+      <!-- Accepts an asset dragged from the asset view -->
+      <Interaction.Behaviors>
+        <dd:ContentReferenceDropBehavior/>
+      </Interaction.Behaviors>
       <UniformGrid DockPanel.Dock="Right" Rows="1">
         <Button Theme="{StaticResource ImageButtonTheme}"
                 IsVisible="{Binding !IsReadOnly}"
@@ -1414,7 +1419,8 @@
           <Image Source="{StaticResource ImageFetchAsset}" Width="16" Height="16"/>
         </Button>
       </UniformGrid>
-      <TextBox Margin="5"
+      <!-- MinWidth 0: in a narrow grid the box shrinks instead of overflowing onto the buttons, which it would cover -->
+      <TextBox Margin="5" MinWidth="0"
                IsReadOnly="{Binding IsReadOnly}"
                Text="{Binding NodeValue, Converter={caec:ContentReferenceToUrl}, UpdateSourceTrigger=Explicit}"
                ContextMenu="{StaticResource ReferenceContextMenu}">
@@ -1431,7 +1437,10 @@
   <caev:ContentReferenceTemplateProvider x:Key="ThumbnailContentReferenceTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyEditor"
                                          DynamicThumbnail="True">
     <DataTemplate DataType="cpqvm:NodeViewModel">
-      <DockPanel>
+      <DockPanel Background="Transparent">
+        <Interaction.Behaviors>
+          <dd:ContentReferenceDropBehavior/>
+        </Interaction.Behaviors>
         <Border DockPanel.Dock="Right"
                 Margin="0,1"
                 Background="Transparent" BorderBrush="Black" BorderThickness="1"
