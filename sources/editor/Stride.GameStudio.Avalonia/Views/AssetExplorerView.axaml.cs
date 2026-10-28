@@ -3,6 +3,7 @@
 
 using Avalonia.Controls;
 using Avalonia.Input;
+using Stride.Core.Assets.Editor.Avalonia.Views;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModels;
 
@@ -15,6 +16,42 @@ public partial class AssetExplorerView : UserControl
     public AssetExplorerView()
     {
         InitializeComponent();
+    }
+
+    /// <summary>
+    /// Wires the Add asset flyout to the templates of the asset view (built on the first opening) and its commands, as the WPF popup
+    /// binds its add item control.
+    /// </summary>
+    private void OnAddAssetFlyoutOpening(object? sender, EventArgs e)
+    {
+        if (DataContext is not AssetCollectionViewModel viewModel)
+            return;
+
+        AddAssetItems.DataContext = viewModel.AddAssetTemplateCollection;
+        AddAssetItems.AddItemCommand = viewModel.RunAssetTemplateCommand;
+        AddAssetItems.SelectFilesToCreateItemCommand = viewModel.SelectFilesToCreateAssetCommand;
+    }
+
+    /// <summary>
+    /// Lists every template again and focuses the search box, once the flyout can take the focus.
+    /// </summary>
+    private void OnAddAssetFlyoutOpened(object? sender, EventArgs e)
+    {
+        AddAssetItems.Reset();
+    }
+
+    /// <summary>
+    /// Closes the flyout when a template is validated (its command then runs), as the WPF popup closes.
+    /// </summary>
+    private void OnAddAssetItemValidated(object? sender, TemplateValidatedEventArgs e)
+    {
+        AddAssetButton.Flyout?.Hide();
+    }
+
+    private void OnAddAssetImportRequested(object? sender, EventArgs e)
+    {
+        // The file picker takes over: the list is not needed behind it
+        AddAssetButton.Flyout?.Hide();
     }
 
     /// <summary>

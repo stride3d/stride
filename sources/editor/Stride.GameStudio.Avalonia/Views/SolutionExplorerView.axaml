@@ -122,6 +122,18 @@
               <Image Source="{StaticResource ImageRename}"/>
             </MenuItem.Icon>
           </MenuItem>
+
+          <!-- The asset group of the WPF solution explorer menu, shown where an asset can be created -->
+          <MenuItem Header="{sd:LocalizeString Asset, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"
+                    IsVisible="{Binding NewDirectoryCommand.IsEnabled}"/>
+          <MenuItem Header="{sd:LocalizeString Add asset..., Context=Menu}"
+                    Command="{Binding AssetCollection.ShowAddAssetDialogCommand}"
+                    InputGesture="Ctrl+I"
+                    IsVisible="{Binding NewDirectoryCommand.IsEnabled}">
+            <MenuItem.Icon>
+              <Image Source="{StaticResource ImageNewAsset}"/>
+            </MenuItem.Icon>
+          </MenuItem>
         </ContextMenu>
       </TreeView.ContextMenu>
       <Control.DataTemplates>

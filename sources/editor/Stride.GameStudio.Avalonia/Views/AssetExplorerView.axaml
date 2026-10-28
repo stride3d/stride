@@ -5,6 +5,7 @@
              xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
              xmlns:caevm="using:Stride.Core.Assets.Editor.ViewModels"
              xmlns:caec="using:Stride.Core.Assets.Editor.Avalonia.Converters"
+             xmlns:caev="using:Stride.Core.Assets.Editor.Avalonia.Views"
              xmlns:dd="using:Stride.Core.Assets.Editor.Avalonia.DragDrop"
              xmlns:capvm="using:Stride.Core.Assets.Editor.ViewModel"
              xmlns:gscv="using:Stride.GameStudio.Avalonia.Converters"
@@ -19,11 +20,32 @@
       <SolidColorBrush x:Key="FilterBrushAssetName">#84CE80</SolidColorBrush>
       <SolidColorBrush x:Key="FilterBrushAssetTag">#A0A0A0</SolidColorBrush>
       <SolidColorBrush x:Key="FilterBrushAssetType">#D7AA67</SolidColorBrush>
+      <!-- The Fluent flyout is capped at 456x758: the template list needs the width of the WPF popup -->
+      <ControlTheme x:Key="AddAssetFlyoutPresenter" TargetType="FlyoutPresenter" BasedOn="{StaticResource {x:Type FlyoutPresenter}}">
+        <Setter Property="MaxWidth" Value="900"/>
+        <Setter Property="MaxHeight" Value="640"/>
+        <Setter Property="Padding" Value="4"/>
+      </ControlTheme>
     </ResourceDictionary>
   </UserControl.Resources>
   <DockPanel>
     <!-- Asset toolbar -->
     <DockPanel DockPanel.Dock="Top" Margin="4,4,4,0">
+      <!-- Add asset: the templates drop down from the button, as the popup of the WPF toggle button; the view is wired when the
+           flyout opens, see the code-behind -->
+      <Button x:Name="AddAssetButton" DockPanel.Dock="Left" Margin="0,0,4,0" Padding="4,2"
+              ToolTip.Tip="{sd:LocalizeString Add an asset to this location, Context=ToolTip}">
+        <StackPanel Orientation="Horizontal" Spacing="4">
+          <Image Source="{StaticResource ImageNewAsset}" Width="16" Height="16"/>
+          <TextBlock Text="{sd:LocalizeString Add asset}" VerticalAlignment="Center"/>
+        </StackPanel>
+        <Button.Flyout>
+          <Flyout Placement="BottomEdgeAlignedLeft" FlyoutPresenterTheme="{StaticResource AddAssetFlyoutPresenter}"
+                  Opening="OnAddAssetFlyoutOpening" Opened="OnAddAssetFlyoutOpened">
+            <caev:AddItemView x:Name="AddAssetItems" ItemValidated="OnAddAssetItemValidated" ImportRequested="OnAddAssetImportRequested"/>
+          </Flyout>
+        </Button.Flyout>
+      </Button>
       <!-- View options -->
       <Menu DockPanel.Dock="Left" Background="Transparent" Margin="0,0,4,0">
         <MenuItem ToolTip.Tip="Asset view options">
@@ -293,6 +315,14 @@
                     IsVisible="{Binding Session.NewDirectoryCommand.IsEnabled}">
             <MenuItem.Icon>
               <Image Source="{StaticResource ImageNewFolder}"/>
+            </MenuItem.Icon>
+          </MenuItem>
+          <MenuItem Header="{sd:LocalizeString Add asset..., Context=Menu}"
+                    Command="{Binding ShowAddAssetDialogCommand}"
+                    InputGesture="Ctrl+I"
+                    IsVisible="{Binding ShowAddAssetDialogCommand.IsEnabled}">
+            <MenuItem.Icon>
+              <Image Source="{StaticResource ImageNewAsset}"/>
             </MenuItem.Icon>
           </MenuItem>
           <MenuItem Header="{sd:LocalizeString Update selected assets from their source, Context=Menu}"

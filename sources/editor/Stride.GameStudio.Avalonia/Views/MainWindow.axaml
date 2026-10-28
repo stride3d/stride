@@ -18,6 +18,7 @@
     <!-- The shortcuts of the asset view that WPF binds on its window too; the Edit commands are handled in OnKeyDown, after
          the focused control (a key binding would run before the focused text box) -->
     <KeyBinding Gesture="Ctrl+Enter" Command="{Binding Session?.EditSelectedContentCommand}"/>
+    <KeyBinding Gesture="Ctrl+I" Command="{Binding Session?.AssetCollection.ShowAddAssetDialogCommand}"/>
     <KeyBinding Gesture="Ctrl+Shift+C" Command="{Binding Session?.AssetCollection.CopyAssetsRecursivelyCommand}"/>
     <KeyBinding Gesture="Ctrl+R" Command="{Binding Session?.SourceTracker?.UpdateSelectedAssetsFromSourceCommand}"/>
     <KeyBinding Gesture="Ctrl+Shift+R" Command="{Binding Session?.SourceTracker?.UpdateAllAssetsWithModifiedSourceCommand}"/>

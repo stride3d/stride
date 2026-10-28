@@ -3,6 +3,7 @@
 
 using Avalonia.Controls;
 using Stride.Core.Assets.Editor.Avalonia.Views;
+using Stride.Core.Assets.Editor.Components.AddAssets;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Settings;
@@ -169,16 +170,40 @@ internal class EditorDialogService : DialogService, IEditorDialogService, IProgr
         });
     }
 
-    public async Task<AssetViewModel?> OpenAssetPickerAsync(SessionViewModel session, IEnumerable<Type> acceptedTypes, Func<AssetViewModel, bool>? filter = null, AssetViewModel? initialAsset = null, DirectoryBaseViewModel? initialLocation = null)
+    public async Task<AssetViewModel?> OpenAssetPickerAsync(SessionViewModel session, IEnumerable<Type> acceptedTypes, Func<AssetViewModel, bool>? filter = null, AssetViewModel? initialAsset = null, DirectoryBaseViewModel? initialLocation = null, string? message = null)
     {
         if (MainWindow is null) return null;
 
         return await Dispatcher.InvokeTask(async () =>
         {
-            var picker = new AssetPickerViewModel(session, acceptedTypes, filter, initialAsset, initialLocation);
+            var picker = new AssetPickerViewModel(session, acceptedTypes, filter, initialAsset, initialLocation) { Message = message };
             var window = new AssetPickerWindow { DataContext = picker };
             var picked = await window.ShowDialog<bool>(MainWindow);
             return picked ? picker.SelectedAsset : null;
+        });
+    }
+
+    public async Task<ITemplateDescriptionViewModel?> ShowAddAssetDialogAsync(AddAssetTemplateCollectionViewModel templates)
+    {
+        ArgumentNullException.ThrowIfNull(templates);
+        if (MainWindow is null) return null;
+
+        return await Dispatcher.InvokeTask(async () =>
+        {
+            var window = new AddItemWindow { DataContext = templates };
+            return await window.ShowDialog<ITemplateDescriptionViewModel?>(MainWindow);
+        });
+    }
+
+    public async Task<TemplateDescriptionViewModel?> ShowAssetTemplatesDialogAsync(AssetTemplatesViewModel templates)
+    {
+        ArgumentNullException.ThrowIfNull(templates);
+        if (MainWindow is null) return null;
+
+        return await Dispatcher.InvokeTask(async () =>
+        {
+            var window = new ItemTemplatesWindow { DataContext = templates };
+            return await window.ShowDialog<TemplateDescriptionViewModel?>(MainWindow);
         });
     }
 
