@@ -18,6 +18,11 @@ public interface IAssetsPluginService
 
     object? GetImageForEnum(ISessionViewModel? session, object value);
 
+    /// <summary>
+    /// Gets the image that the plugins register or declare for <paramref name="type"/> itself (not for its base types), or null.
+    /// </summary>
+    object? GetImageForType(Type type) => null;
+
     bool HasEditorView(ISessionViewModel session, Type viewModelType);
 
     Type? GetAssetViewModelType(Type assetType);

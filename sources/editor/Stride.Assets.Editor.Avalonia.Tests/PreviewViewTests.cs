@@ -7,7 +7,9 @@ using Avalonia.Headless.XUnit;
 using Avalonia.VisualTree;
 using Stride.Assets.Editor.Avalonia.Views.Preview;
 using Stride.Assets.Editor.Preview;
+using Stride.Assets.Editor.Tests.Helpers;
 using Stride.Assets.Presentation.Preview;
+using Stride.Core.Assets.Editor.Editors;
 using Stride.Editor.Avalonia.Preview.Views;
 using Stride.Editor.Preview;
 
@@ -18,9 +20,7 @@ public sealed class PreviewViewTests
     [Fact]
     public void TheViewPluginRegistersThePreviewViews()
     {
-        var views = new Dictionary<Type, Type>();
-
-        new StrideEditorViewPlugin().RegisterAssetPreviewViewTypes(views);
+        var views = PluginRegistrations.Of(new StrideEditorViewPlugin(), typeof(IAssetEditorView)).AssetPreviewViewTypes;
 
         Assert.Equal(typeof(TexturePreviewView), views[typeof(TexturePreview)]);
         Assert.Equal(typeof(AnimationPreviewView), views[typeof(AnimationPreview)]);

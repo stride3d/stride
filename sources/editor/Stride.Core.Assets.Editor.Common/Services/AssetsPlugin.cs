@@ -45,10 +45,45 @@ public abstract class AssetsPlugin
     }
 
     /// <summary>
+    /// Called when the plugin joins the session, after <see cref="InitializePlugin"/>: registers what the plugin adds to
+    /// the editor in <paramref name="context"/>, which removes it when the plugin's assembly is unloaded.
+    /// </summary>
+    /// <remarks>
+    /// The editor itself registers what the plugin's assembly declares with attributes (<see cref="AssetViewModelAttribute"/>
+    /// and the other view and view model attributes, <see cref="EditorSettingsAttribute"/>, and the declared images).
+    /// The default implementation passes the contributions of the <c>Register*</c> methods to the context.
+    /// </remarks>
+    public virtual void Initialize(IEditorPluginContext context)
+    {
+        var assetViewModelTypes = new Dictionary<Type, Type>();
+        RegisterAssetViewModelTypes(assetViewModelTypes);
+        foreach (var (assetType, viewModelType) in assetViewModelTypes)
+            context.AssetViewModelTypes.Register(assetType, viewModelType);
+
+        var primitiveTypes = new List<Type>();
+        RegisterPrimitiveTypes(primitiveTypes);
+        foreach (var type in primitiveTypes)
+            context.PrimitiveTypes.Register(type);
+    }
+
+    /// <summary>
     /// Called when the session's editor initializes: the place for the property grid commands and updaters.
     /// </summary>
     public virtual void InitializeSession(ISessionViewModel session)
     {
+    }
+
+    /// <summary>
+    /// Called when the session's editor initializes: registers the property grid commands and updaters and the session
+    /// services of the plugin in <paramref name="context"/>, which removes them when the plugin leaves the session.
+    /// </summary>
+    /// <remarks>
+    /// The default implementation calls <see cref="InitializeSession(ISessionViewModel)"/>; the editor removes the property
+    /// grid commands and updaters that it adds directly.
+    /// </remarks>
+    public virtual void InitializeSession(ISessionPluginContext context)
+    {
+        InitializeSession(context.Session);
     }
 
     public static AssetsPlugin RegisterPlugin(Type type)
@@ -152,16 +187,12 @@ public abstract class AssetsPlugin
         return plugins;
     }
 
+    /// <summary>
+    /// Registers the view model types of asset types, besides the ones the assembly declares with <see cref="AssetViewModelAttribute"/>,
+    /// which the editor registers itself.
+    /// </summary>
     public virtual void RegisterAssetViewModelTypes(IDictionary<Type, Type> assetViewModelTypes)
     {
-        foreach (var type in AssemblyRegistry.GetScanTypes(GetType().Assembly, typeof(AssetViewModel)))
-        {
-            if (typeof(AssetViewModel).IsAssignableFrom(type) &&
-                type.GetCustomAttribute<AssetViewModelAttribute>() is { } attribute)
-            {
-                assetViewModelTypes.Add(attribute.AssetType, type);
-            }
-        }
     }
 
     public virtual void RegisterPrimitiveTypes(ICollection<Type> primitiveTypes)

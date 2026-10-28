@@ -52,9 +52,7 @@ public sealed class PluginTests
     [Fact]
     public void TheDefaultAssetsPluginDeclaresTheAssetViewModels()
     {
-        var types = new Dictionary<Type, Type>();
-
-        new StrideDefaultAssetsPlugin().RegisterAssetViewModelTypes(types);
+        var types = PluginRegistrations.Of(new StrideDefaultAssetsPlugin(), typeof(Stride.Core.Assets.Editor.Editors.IAssetEditorView)).AssetViewModelTypes;
 
         Assert.Equal(typeof(MaterialViewModel), types[typeof(MaterialAsset)]);
         Assert.Equal(typeof(SceneViewModel), types[typeof(SceneAsset)]);
@@ -89,9 +87,7 @@ public sealed class PluginTests
     [Fact]
     public void TheEditorPluginDeclaresThePreviewViewModels()
     {
-        var types = new Dictionary<Type, Type>();
-
-        new StrideEditorPlugin().RegisterAssetPreviewViewModelTypes(types);
+        var types = PluginRegistrations.Of(new StrideEditorPlugin(), typeof(Stride.Core.Assets.Editor.Editors.IAssetEditorView)).AssetPreviewViewModelTypes;
 
         Assert.Equal(typeof(TexturePreviewViewModel), types[typeof(TexturePreview)]);
         Assert.Equal(typeof(AnimationPreviewViewModel), types[typeof(AnimationPreview)]);

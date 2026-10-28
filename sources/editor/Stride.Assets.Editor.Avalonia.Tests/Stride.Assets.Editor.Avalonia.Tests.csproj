@@ -35,6 +35,9 @@
     <Compile Include="..\Stride.Assets.Editor.Tests\Helpers\FakeTemplateInfo.cs">
       <Link>Helpers\FakeTemplateInfo.cs</Link>
     </Compile>
+    <Compile Include="..\Stride.Assets.Editor.Tests\Helpers\PluginRegistrations.cs">
+      <Link>Helpers\PluginRegistrations.cs</Link>
+    </Compile>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
