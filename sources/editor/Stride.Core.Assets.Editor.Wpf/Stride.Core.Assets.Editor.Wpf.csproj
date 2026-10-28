@@ -33,6 +33,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\assets\Stride.Core.Assets.Quantum\Stride.Core.Assets.Quantum.csproj" />
+    <ProjectReference Include="..\Stride.Core.Assets.Editor.Common\Stride.Core.Assets.Editor.Common.csproj" />
     <ProjectReference Include="..\..\presentation\Stride.Core.Presentation.Wpf.Dialogs\Stride.Core.Presentation.Wpf.Dialogs.csproj" />
     <ProjectReference Include="..\..\presentation\Stride.Core.Presentation.Quantum\Stride.Core.Presentation.Quantum.csproj" />
     <ProjectReference Include="..\..\assets\Stride.Core.Assets\Stride.Core.Assets.csproj" />

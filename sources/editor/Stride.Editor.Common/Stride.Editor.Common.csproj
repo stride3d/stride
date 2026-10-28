@@ -1,0 +1,37 @@
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'Directory.Build.props'))/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.props" />
+  <!-- Temporary home of the WPF-free code of Stride.Editor.Wpf, shared by the WPF and the cross-platform editors
+       until it merges into the agnostic projects. See README.md. -->
+  <PropertyGroup>
+    <TargetFramework>$(StrideXplatEditorTargetFramework)</TargetFramework>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <StrideAssemblyProcessorOptions>--auto-module-initializer --serialization</StrideAssemblyProcessorOptions>
+    <RootNamespace>Stride.Editor</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\engine\Stride.Assets\Stride.Assets.csproj" />
+    <ProjectReference Include="..\..\tools\Stride.TextureConverter\Stride.TextureConverter.csproj" />
+    <ProjectReference Include="..\..\core\Stride.Core.MicroThreading\Stride.Core.MicroThreading.csproj" />
+    <ProjectReference Include="..\Stride.Core.Assets.Editor.Common\Stride.Core.Assets.Editor.Common.csproj" />
+  </ItemGroup>
+  <!-- Resources -->
+  <ItemGroup>
+    <None Include="Resources\*.png" />
+    <Compile Update="Resources\DefaultThumbnails.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>DefaultThumbnails.resx</DependentUpon>
+    </Compile>
+    <EmbeddedResource Update="Resources\DefaultThumbnails.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <SubType>Designer</SubType>
+      <LastGenOutput>DefaultThumbnails.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Editor/Sdk/Sdk.targets" />
+</Project>
