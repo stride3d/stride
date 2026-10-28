@@ -69,8 +69,11 @@ namespace Stride.Assets.Presentation.Templates
 
         private async void Validate()
         {
-            ClassName = Utilities.BuildValidClassName(ClassNameTextBox.Text, ReservedNames);
-            Namespace = Utilities.BuildValidNamespaceName(NamespaceTextBox.Text, ReservedNames);
+            // The builders need a character to start from: an empty or blank name would make them throw
+            var className = ClassNameTextBox.Text?.Trim();
+            var namespaceName = NamespaceTextBox.Text?.Trim();
+            ClassName = string.IsNullOrEmpty(className) ? null : Utilities.BuildValidClassName(className, ReservedNames);
+            Namespace = string.IsNullOrEmpty(namespaceName) ? null : Utilities.BuildValidNamespaceName(namespaceName, ReservedNames);
             ScriptTemplate = enableTemplateSelect ? TemplateComboBox.SelectedValue as TemplateAssetDescription : defaultScriptTemplate;
 
             if (string.IsNullOrWhiteSpace(ClassName) || string.IsNullOrWhiteSpace(Namespace))
