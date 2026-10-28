@@ -44,7 +44,9 @@
     <!-- Microsoft.NET.Test.Sdk ships Microsoft.CodeCoverage.targets which injects
          MsCoverageReferencedPathMaps BeforeTargets=CoreCompile. The target serially walks
          every transitive ProjectReference (vstest#15295) and blocks CoreCompile until done,
-         throttling parallelism for the whole build. We don't collect coverage in CI. -->
+         throttling parallelism for the whole build. The only CI job that collects coverage
+         (test-editor-avalonia.yml) builds with ContinuousIntegrationBuild=false, so the pdbs keep
+         their real source paths and need no map. -->
     <DisableMsCoverageReferencedPathMaps>true</DisableMsCoverageReferencedPathMaps>
   </PropertyGroup>
 

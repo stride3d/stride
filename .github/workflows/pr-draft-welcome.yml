@@ -39,7 +39,7 @@ jobs:
               '🤖 Draft PR — automatic CI is skipped to save runner minutes.',
               '',
               '- Mark the PR **ready for review** to run the full automatic CI — or add a `ci-run-on-draft` label to run it now without leaving draft.',
-              '- Or arm a specific opt-in suite: `ci-enduser`, `ci-editor`, `ci-ios`, `ci-android`.',
+              '- Or arm a specific opt-in suite: `ci-enduser`, `ci-editor`, `ci-editor-avalonia`, `ci-ios`, `ci-android`.',
               '',
               MARKER,
             ].join('\n');

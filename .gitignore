@@ -47,6 +47,7 @@ bin/packages/*
 ipch/
 obj/
 TestResults/
+CoverageReport/
 .vs/
 .idea/
 Cache/
