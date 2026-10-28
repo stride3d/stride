@@ -40,22 +40,14 @@ namespace Stride.Editor.Avalonia.Preview
     {
         public static bool DisablePreview = false;
 
-        /// <summary>
-        /// Whether the preview reads its frames back through the CPU even when the compositor offers a GPU interop
-        /// (<c>--viewport-readback</c> on the command line).
-        /// </summary>
-        public static bool ForceReadback = false;
-
         // Set when the game loop has ended (a lost device, the exit): nothing can be posted to the game anymore
         private volatile bool previewGameEnded;
 
         private readonly ISessionViewModel session;
         private readonly IEditorDebugService? debugService;
 
-        // The control the game renders in, created on the UI thread before the game starts
-        private readonly OffscreenGameView view;
-        private readonly AvaloniaInputBridge inputBridge;
-        private OffscreenFrameExporter? frameExporter;
+        // The view the game renders in, created on the UI thread before the game starts
+        private readonly OffscreenGameViewport viewport;
         private readonly IDebugPage? loggerDebugPage;
         private IAssetPreview? currentPreview;
         private object? previewView;
@@ -100,11 +92,7 @@ namespace Stride.Editor.Avalonia.Preview
             previewCompileContext.SetGameSettingsAsset(previewGameSettings);
             previewCompileContext.CompilationContext = typeof(PreviewCompilationContext);
 
-            (view, inputBridge) = Dispatcher.Invoke(() =>
-            {
-                var gameView = new OffscreenGameView();
-                return (gameView, new AvaloniaInputBridge(gameView));
-            });
+            viewport = new OffscreenGameViewport(Dispatcher, Logger);
 
             previewGameThread = new Thread(SafeAction.Wrap(StrideUIThread)) { IsBackground = true, Name = "PreviewGame Thread" };
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -154,7 +142,7 @@ namespace Stride.Editor.Avalonia.Preview
                 previewGameThread.Join();
 
 
-                frameExporter?.Dispose();
+                viewport.Dispose();
                 previewCompileContext?.Dispose();
 
                 debugService?.UnregisterDebugPage(loggerDebugPage);
@@ -165,17 +153,9 @@ namespace Stride.Editor.Avalonia.Preview
 
         private void StrideUIThread()
         {
-            // No window: the game renders into an offscreen back buffer that the view shows. The presenter is created
-            // before the device, so that a Vulkan device enables the export extensions; it falls back to readback by itself
-            frameExporter = new OffscreenFrameExporter(view)
-            {
-                GpuPresenter = ForceReadback ? null : GpuFramePresenter.Create(view, Logger),
-            };
-            if (ForceReadback)
-                Logger.Info("Viewport: the frames are read back through the CPU, as the command line asks (--viewport-readback).");
-            PreviewGame = new EmbeddedPreviewGame(AssetBuilderService.EffectCompiler, frameExporter, inputBridge);
-            var context = new GameContextHeadless(64, 64) { InitializeDatabase = false };
-            UseCompositorAdapter();
+            // No window: the game renders into an offscreen back buffer that the viewport shows
+            PreviewGame = new PreviewGame(AssetBuilderService.EffectCompiler);
+            var context = viewport.Attach(PreviewGame);
 
             // Wait for shaders to be loaded
             AssetBuilderService.WaitForShaders();
@@ -224,16 +204,6 @@ namespace Stride.Editor.Avalonia.Preview
             }
         }
 
-        /// <summary>
-        /// Makes the preview game render on the GPU of the editor's compositor, so that it can share its frames.
-        /// </summary>
-        private void UseCompositorAdapter()
-        {
-            var uid = GpuFramePresenter.TryGetCompositorAdapterUid(Logger);
-            if (uid is { } adapterUid && GraphicsAdapterFactory.Adapters.ToArray().Any(x => x.AdapterUid == adapterUid))
-                PreviewGame.GraphicsDeviceManager.RequiredAdapterUid = adapterUid.ToString();
-        }
-
         private void GraphicsDeviceManagerDeviceCreated(object? sender, EventArgs e)
         {
             // Transmit actual GraphicsProfile to preview and thumbnail builder context
@@ -260,7 +230,7 @@ namespace Stride.Editor.Avalonia.Preview
         /// <inheritdoc />
         public Control? GetStrideView()
         {
-            return !IsDisposed ? view : null;
+            return !IsDisposed ? viewport.View : null;
         }
 
         private async Task UpdatePreviewAsset()
@@ -441,57 +411,6 @@ namespace Stride.Editor.Avalonia.Preview
         public void OnHidePreview()
         {
             PreviewGame.IsEditorHidden = true;
-        }
-
-        /// <summary>
-        /// The preview game, which renders offscreen: the back buffer follows the view, each drawn frame is handed to
-        /// the view, and the input of the view reaches the game.
-        /// </summary>
-        private sealed class EmbeddedPreviewGame : PreviewGame
-        {
-            private readonly OffscreenFrameExporter exporter;
-            private readonly AvaloniaInputBridge inputBridge;
-
-            public EmbeddedPreviewGame(IEffectCompiler effectCompiler, OffscreenFrameExporter exporter, AvaloniaInputBridge inputBridge)
-                : base(effectCompiler)
-            {
-                this.exporter = exporter;
-                this.inputBridge = inputBridge;
-                // A game renders an unfocused window like a minimized one, 15 frames a second, and the window-less game is
-                // never focused: a shown preview renders at most 60 frames a second; a hidden one is still throttled
-                // (IsEditorHidden, and 15 frames a second before it shows)
-                TreatNotFocusedLikeMinimized = false;
-                WindowMinimumUpdateRate.SetMaxFrequency(60);
-            }
-
-            protected override void Initialize()
-            {
-                base.Initialize();
-                // A window-less game counts as hidden, and a hidden game renders 15 frames a second: the view shows it
-                Window.Visible = true;
-            }
-
-            protected override bool BeginDraw()
-            {
-                // The input the view received since the last frame, before the input manager updates
-                inputBridge.Apply(Input);
-                // Between two frames: the back buffer follows the view
-                if (!IsEditorHidden)
-                    exporter.ApplyRequestedSize(GraphicsDeviceManager);
-                return base.BeginDraw();
-            }
-
-            protected override void EndDraw(bool present)
-            {
-                var backBuffer = GraphicsDevice?.Presenter?.BackBuffer;
-                // Only a frame that was drawn is shown (present is false when the game skipped the draw)
-                var exported = present && backBuffer != null;
-                if (exported)
-                    exporter.EndFrame(GraphicsContext.CommandList, backBuffer!);
-                base.EndDraw(present);
-                if (exported)
-                    exporter.AfterSubmit();
-            }
         }
     }
 }
