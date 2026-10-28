@@ -665,7 +665,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
     public bool LoadEditorPackages { get; set; }
 
     /// <summary>
-    /// The UI toolkit of the editor this session serves (Wpf): the Editor companions written for another toolkit are
+    /// The UI toolkit of the editor this session serves (Wpf or Avalonia): the Editor companions written for another toolkit are
     /// not loaded. Null for a host with no views (the asset compiler) and for a load that names none.
     /// </summary>
     public string? EditorToolkit { get; set; }

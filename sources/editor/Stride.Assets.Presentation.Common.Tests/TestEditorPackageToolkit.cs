@@ -8,9 +8,10 @@ using Stride.Core.Yaml;
 namespace Stride.Assets.Presentation.Common.Tests;
 
 /// <summary>
-/// The Editor packages of the plugins reference no WPF project, so the build infers them toolkit-neutral and any editor
-/// loads them; their views live in <c>.Wpf</c> companion packages. A reference to a <c>*.Wpf</c> project would silently
-/// make a package WPF again (see <c>_StrideInferEditorToolkit</c> in Stride.AssetBuildManifest.targets).
+/// The Editor packages of the plugins reference no WPF or Avalonia project, so the build infers them toolkit-neutral and
+/// any editor loads them; their views live in <c>.Wpf</c> companion packages. A reference to a <c>*.Wpf</c> or
+/// <c>*.Avalonia</c> project would silently tie a package to one editor (see <c>_StrideInferEditorToolkit</c> in
+/// Stride.AssetBuildManifest.targets).
 /// </summary>
 public class TestEditorPackageToolkit
 {
@@ -43,6 +44,7 @@ public class TestEditorPackageToolkit
         var project = LoadProject(package);
 
         Assert.Empty(WpfReferences(project));
+        Assert.Empty(AvaloniaReferences(project));
         Assert.DoesNotContain(project.Descendants("UseWPF"), x => string.Equals(x.Value.Trim(), "true", StringComparison.OrdinalIgnoreCase));
         Assert.Empty(project.Descendants("StrideEditorToolkit"));
         Assert.Contains(project.Descendants("StridePackageKind"), x => x.Value.Trim() == "Editor");
@@ -129,10 +131,22 @@ public class TestEditorPackageToolkit
 
     private static IEnumerable<string> WpfReferences(XDocument project)
     {
+        return ReferenceNames(project).Where(x => x.EndsWith(".Wpf", StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static IEnumerable<string> AvaloniaReferences(XDocument project)
+    {
+        return ReferenceNames(project).Where(x => x.EndsWith(".Avalonia", StringComparison.OrdinalIgnoreCase)
+                                                  || x.Equals("Avalonia", StringComparison.OrdinalIgnoreCase)
+                                                  || x.StartsWith("Avalonia.", StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static IEnumerable<string> ReferenceNames(XDocument project)
+    {
         return project.Descendants()
             .Where(x => x.Name.LocalName is "ProjectReference" or "PackageReference")
-            .Select(x => Path.GetFileNameWithoutExtension((string?)x.Attribute("Include") ?? string.Empty))
-            .Where(x => x.EndsWith(".Wpf", StringComparison.OrdinalIgnoreCase));
+            .Select(x => (string?)x.Attribute("Include") ?? string.Empty)
+            .Select(x => x.EndsWith("proj", StringComparison.OrdinalIgnoreCase) ? Path.GetFileNameWithoutExtension(x) : x);
     }
 
     /// <summary>

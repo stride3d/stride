@@ -16,7 +16,7 @@ partial class PackageSession
     /// Loads the companion packages (<see cref="Package.CompanionPackages"/>) this host takes, including companions of companions.
     /// Each comes from the session, a dev-redirect stub or a NuGet restore, at its declared version.
     /// </summary>
-    /// <param name="editorToolkit">The editor's UI toolkit (Wpf); Editor companions for another toolkit are skipped.</param>
+    /// <param name="editorToolkit">The editor's UI toolkit (Wpf or Avalonia); Editor companions for another toolkit are skipped.</param>
     internal void LoadCompanionPackages(string? rootDirectory, ILogger log, bool loadEditorPackages, string? editorToolkit)
     {
         var loadedByName = new Dictionary<string, StandalonePackage>(StringComparer.OrdinalIgnoreCase);

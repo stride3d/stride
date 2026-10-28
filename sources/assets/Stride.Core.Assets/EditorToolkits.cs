@@ -13,4 +13,9 @@ public static class EditorToolkits
     /// The WPF editor (Game Studio).
     /// </summary>
     public const string Wpf = "Wpf";
+
+    /// <summary>
+    /// The Avalonia editor.
+    /// </summary>
+    public const string Avalonia = "Avalonia";
 }

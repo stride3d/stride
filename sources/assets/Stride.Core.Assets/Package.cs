@@ -230,8 +230,8 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
     public List<CompanionPackage> CompanionPackages { get; } = [];
 
     /// <summary>
-    /// The UI toolkit an <see cref="PackageKind.Editor"/> package's views are written for (StrideEditorToolkit, e.g.
-    /// <see cref="EditorToolkits.Wpf"/>); null for a toolkit-neutral package. Packed sdpkgs and build manifests carry
+    /// The UI toolkit an <see cref="PackageKind.Editor"/> package's views are written for (StrideEditorToolkit:
+    /// <see cref="EditorToolkits.Wpf"/> or <see cref="EditorToolkits.Avalonia"/>); null for a toolkit-neutral package. Packed sdpkgs and build manifests carry
     /// it; an authored sdpkg does not.
     /// </summary>
     [DataMember(108)]

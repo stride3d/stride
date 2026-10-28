@@ -66,16 +66,23 @@
     </ItemGroup>
   </Target>
 
-  <!-- An Editor package built against the WPF editor (it references a *.Wpf assembly, or uses WPF itself) is a Wpf
-       package without saying so; only one that references neither is toolkit-neutral. A package that gets WPF only
-       through another Editor package sets StrideEditorToolkit itself. -->
+  <!-- An Editor package built against an editor is a package of that editor's toolkit without saying so: Wpf when it
+       references a *.Wpf assembly or uses WPF itself, Avalonia when it references a *.Avalonia assembly or Avalonia
+       itself (the Avalonia package or an Avalonia.* one); only one that references neither is toolkit-neutral. A
+       package that gets a toolkit only through another Editor package sets StrideEditorToolkit itself. A package
+       built against both editors would load in neither: its views go in one companion per toolkit. -->
   <Target Name="_StrideInferEditorToolkit" Condition="'$(StrideEditorToolkit)' == '' And '$(StridePackageKind)' == 'Editor'">
     <ItemGroup>
       <_StrideEditorReferenceName Include="@(PackageReference);@(ProjectReference->'%(Filename)')" />
       <_StrideWpfEditorReference Include="@(_StrideEditorReferenceName)" Condition="'%(Extension)' == '.Wpf'" />
+      <_StrideWpfEditorReference Include="UseWPF" Condition="'$(UseWPF)' == 'true'" />
+      <_StrideAvaloniaEditorReference Include="@(_StrideEditorReferenceName)" Condition="'%(Extension)' == '.Avalonia' Or '%(Identity)' == 'Avalonia' Or $([System.String]::Copy('%(Identity)').ToLowerInvariant().StartsWith('avalonia.'))" />
     </ItemGroup>
+    <Error Condition="'@(_StrideWpfEditorReference)' != '' And '@(_StrideAvaloniaEditorReference)' != ''"
+           Text="Editor package '$(MSBuildProjectName)' is built against both editors: Wpf through @(_StrideWpfEditorReference->Distinct(), ', ') and Avalonia through @(_StrideAvaloniaEditorReference->Distinct(), ', '). No editor would load it; keep this package toolkit-neutral and split its views into one companion package per toolkit (e.g. $(MSBuildProjectName).Wpf and $(MSBuildProjectName).Avalonia)." />
     <PropertyGroup>
-      <StrideEditorToolkit Condition="'@(_StrideWpfEditorReference)' != '' Or '$(UseWPF)' == 'true'">Wpf</StrideEditorToolkit>
+      <StrideEditorToolkit Condition="'@(_StrideWpfEditorReference)' != ''">Wpf</StrideEditorToolkit>
+      <StrideEditorToolkit Condition="'@(_StrideAvaloniaEditorReference)' != ''">Avalonia</StrideEditorToolkit>
     </PropertyGroup>
   </Target>
 
@@ -87,7 +94,7 @@
   <!-- The toolkits an editor loads Editor packages for (EditorToolkits): any other value is a typo, and the package
        would load nowhere -->
   <PropertyGroup>
-    <_StrideKnownEditorToolkits>;Wpf;</_StrideKnownEditorToolkits>
+    <_StrideKnownEditorToolkits>;Wpf;Avalonia;</_StrideKnownEditorToolkits>
   </PropertyGroup>
   <Target Name="_StrideCheckEditorToolkit" Condition="'$(StrideEditorToolkit)' != '' And !$(_StrideKnownEditorToolkits.ToLowerInvariant().Contains(';$(StrideEditorToolkit.ToLowerInvariant());'))">
     <Warning Text="StrideEditorToolkit '$(StrideEditorToolkit)' is not a known editor toolkit ($(_StrideKnownEditorToolkits.Trim(';').Replace(';', ', '))): no editor would load this package." />
