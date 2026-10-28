@@ -15,6 +15,7 @@ using Stride.Core.Assets;
 using Stride.Core.Diagnostics;
 using Stride.Crash;
 using Stride.Crash.ViewModels;
+using Stride.GameStudio.Avalonia.Services;
 
 namespace Stride.GameStudio.Avalonia.Desktop;
 
@@ -66,6 +67,8 @@ internal sealed class Program
             App.Options = StartupOptions.Parse(args);
             foreach (var unknown in App.Options.UnknownArguments)
                 GlobalLogger.GetLogger("GameStudio").Warning($"Unknown command line option [{unknown}] ignored.");
+            // Another session opens in a new process, started as this one was (from the working directory it has now)
+            App.ProcessLauncher = new EditorProcessLauncher(typeof(Program).Assembly.Location);
 
             BuildAvaloniaApp()
                 .StartWithClassicDesktopLifetime(args, ShutdownMode.OnMainWindowClose);

@@ -49,6 +49,12 @@ public sealed class StartupOptions
     public List<string> UnknownArguments { get; } = [];
 
     /// <summary>
+    /// The options a restarted editor gets again, in the order of the command line, with their value if they take one: all the
+    /// recognized ones except the session (a path, <c>/NewProject</c>).
+    /// </summary>
+    public List<(string Option, string? Value)> ForwardedArguments { get; } = [];
+
+    /// <summary>
     /// Parses the command line of the WPF Game Studio: <c>/NewProject</c>, <c>/DisableThumbnails</c>, <c>/DisablePreview</c>,
     /// <c>/DebugEditorGraphics</c>, a session path; the launcher handshake (<c>/LauncherWindowHandle</c>, <c>/LauncherPipe</c>)
     /// and the host selection (<c>--graphics-api</c>) take a value and are consumed by the host. <c>--project &lt;path&gt;</c>
@@ -66,6 +72,7 @@ public sealed class StartupOptions
                 case "--graphics-api":
                 case "/RecordEffects":
                     // Consumed by the host (or not supported yet): skip the value
+                    options.ForwardedArguments.Add((args[i], i + 1 < args.Count ? args[i + 1] : null));
                     i++;
                     break;
                 case "--project" or "/project" when i + 1 < args.Count:
@@ -78,12 +85,15 @@ public sealed class StartupOptions
                     break;
                 case "/DisableThumbnails":
                     options.EnableThumbnails = false;
+                    options.ForwardedArguments.Add((args[i], null));
                     break;
                 case "/DisablePreview":
                     options.DisablePreview = true;
+                    options.ForwardedArguments.Add((args[i], null));
                     break;
                 case "/DebugEditorGraphics":
                     options.DebugEditorGraphics = true;
+                    options.ForwardedArguments.Add((args[i], null));
                     break;
                 // An absolute path starts with a slash on Linux and macOS: a session file is never an option
                 case var arg when (arg.StartsWith('/') || arg.StartsWith("--", StringComparison.Ordinal)) && !IsSessionFile(arg):
@@ -96,6 +106,27 @@ public sealed class StartupOptions
             }
         }
         return options;
+    }
+
+    /// <summary>
+    /// The command line of a new editor process that opens another session, as the WPF Game Studio builds it (<c>Program.RestartArgs</c>):
+    /// the options of this command line, then the session to open, or <c>/NewProject</c> for the project selection.
+    /// </summary>
+    /// <param name="sessionPath">The session to open; <c>null</c> for the project selection.</param>
+    /// <param name="launcherNotified">Whether this editor told the launcher that it started: the new one does not again.</param>
+    public List<string> GetRestartArguments(UFile? sessionPath, bool launcherNotified)
+    {
+        var result = new List<string>();
+        foreach (var (option, value) in ForwardedArguments)
+        {
+            if (launcherNotified && option.StartsWith("/Launcher", StringComparison.Ordinal))
+                continue;
+            result.Add(option);
+            if (value is not null)
+                result.Add(value);
+        }
+        result.Add(sessionPath is not null ? sessionPath.ToOSPath() : "/NewProject");
+        return result;
     }
 
     /// <summary>

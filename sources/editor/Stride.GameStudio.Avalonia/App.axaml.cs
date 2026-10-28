@@ -50,6 +50,13 @@ public partial class App : Application
     /// </summary>
     public static Action? LauncherNotifier;
 
+    /// <summary>
+    /// Starts a new editor process, to open another session once this one has loaded one (see <see cref="EditorProcessService"/>).
+    /// Set by the desktop host; without one, the editor restarts in its own process.
+    /// </summary>
+    public static IEditorProcessLauncher? ProcessLauncher { get; set; }
+
+    private static EditorProcessService? processService;
     private IViewModelServiceProvider? serviceProvider;
     private MainViewModel? mainViewModel;
 
@@ -165,8 +172,12 @@ public partial class App : Application
     }
 
     /// <summary>
-    /// Replaces the main view model (and the services that live with it) by a fresh one, optionally opening a session.
+    /// Replaces the main view model (and the services that live with it) by a fresh one in this process, optionally opening a session.
     /// </summary>
+    /// <remarks>
+    /// Once this process has loaded a session, the next one opens in a new process instead (<see cref="EditorProcessService"/>),
+    /// when the host can start one.
+    /// </remarks>
     /// <param name="initialPath">The session to open, or null for an empty editor.</param>
     /// <param name="initialSession">Whether this is the session the editor starts with (it is then guarded against a crash loop).</param>
     /// <param name="selectProject">Whether to show the project selection window (File > New), when no path is given.</param>
@@ -355,6 +366,9 @@ public partial class App : Application
         // The clipboard belongs to the main window; there is none in a headless host
         if (DialogService.MainWindow?.Clipboard is { } clipboard)
             services.Add(new ClipboardService(clipboard));
+        // One for the whole process: it knows whether a session was loaded before the editor restarted in place
+        if (ProcessLauncher is { } launcher)
+            services.Add(processService ??= new EditorProcessService(launcher, Options));
         var serviceProvider = new ViewModelServiceProvider(services);
         serviceProvider.RegisterService(new EditorDebugService(serviceProvider));
         // The notification bar of the main view: the dialog service shows the background operations there
