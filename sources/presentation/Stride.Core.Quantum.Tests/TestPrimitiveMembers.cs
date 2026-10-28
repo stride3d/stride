@@ -22,7 +22,7 @@ public class TestPrimitiveMembers
 
     public class StringMember
     {
-        public string Member { get; set; }
+        public string? Member { get; set; }
     }
 
     public class GuidMember
@@ -47,7 +47,7 @@ public class TestPrimitiveMembers
 
     public class RegisteredPrimitiveClassMember
     {
-        public PrimitiveClass Member { get; set; }
+        public PrimitiveClass? Member { get; set; }
     }
 
     public class RegisteredPrimitiveStructMember
@@ -57,7 +57,7 @@ public class TestPrimitiveMembers
 
     public class BoxedPrimitiveMember
     {
-        public object Member { get; set; }
+        public object? Member { get; set; }
     }
 
     [Fact]

@@ -78,7 +78,6 @@
     <PackageVersion Include="Silk.NET.Assimp" Version="$(SilkVersion)" />
     <PackageVersion Include="SixLabors.ImageSharp" Version="3.1.12" />
     <PackageVersion Include="StbImageSharp" Version="2.30.15" />
-    <PackageVersion Include="Stride.GNU.Getopt" Version="3.0.0" />
     <PackageVersion Include="Stride.GNU.Gettext" Version="3.0.0" />
     <PackageVersion Include="SSH.NET" Version="2026.0.0" />
     <PackageVersion Include="System.Management" Version="10.0.0" />

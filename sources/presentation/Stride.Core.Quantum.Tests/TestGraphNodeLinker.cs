@@ -11,13 +11,13 @@ public class TestGraphNodeLinker
     public class SimpleClass
     {
         public int Member1;
-        public SimpleClass Member2;
+        public SimpleClass? Member2;
     }
 
     public class InterfaceMember
     {
         public int Member1;
-        public IInterface Member2;
+        public IInterface? Member2;
     }
 
     public interface IInterface
@@ -28,13 +28,13 @@ public class TestGraphNodeLinker
     public class Implem1 : IInterface
     {
         public int Member1Common { get; set; }
-        public SimpleClass Member2Implem1 { get; set; }
+        public SimpleClass? Member2Implem1 { get; set; }
     }
 
     public class Implem2 : IInterface
     {
         public int Member1Common { get; set; }
-        public SimpleClass Member2Implem2 { get; set; }
+        public SimpleClass? Member2Implem2 { get; set; }
     }
 
     public class StructClass
@@ -46,32 +46,32 @@ public class TestGraphNodeLinker
     public class PrimitiveListClass
     {
         public int Member1;
-        public List<string> Member2;
+        public List<string>? Member2;
     }
 
     public class ObjectListClass
     {
         public int Member1;
-        public List<SimpleClass> Member2;
+        public List<SimpleClass>? Member2;
     }
 
     public class StructListClass
     {
         public int Member1;
-        public List<Struct> Member2;
+        public List<Struct>? Member2;
     }
 
     public struct Struct
     {
-        public string Member1;
-        public SimpleClass Member2;
+        public string? Member1;
+        public SimpleClass? Member2;
     }
 
     public class TestLinker : GraphNodeLinker
     {
-        public Dictionary<IGraphNode, IGraphNode> LinkedNodes = [];
+        public Dictionary<IGraphNode, IGraphNode?> LinkedNodes = [];
 
-        protected override void LinkNodes(IGraphNode sourceNode, IGraphNode targetNode)
+        protected override void LinkNodes(IGraphNode sourceNode, IGraphNode? targetNode)
         {
             LinkedNodes.Add(sourceNode, targetNode);
             base.LinkNodes(sourceNode, targetNode);
@@ -90,7 +90,7 @@ public class TestGraphNodeLinker
 
         public IObjectNode CustomTarget { get; }
 
-        protected override IGraphNode FindTarget(IGraphNode sourceNode)
+        protected override IGraphNode? FindTarget(IGraphNode sourceNode)
         {
             if (sourceNode is IObjectNode && sourceNode.Type == typeof(SimpleClass) && sourceNode != root)
             {
@@ -102,17 +102,17 @@ public class TestGraphNodeLinker
 
     public class CustomFindTargetReferenceLinker : TestLinker
     {
-        public override ObjectReference FindTargetReference(IGraphNode sourceNode, IGraphNode targetNode, ObjectReference sourceReference)
+        public override ObjectReference? FindTargetReference(IGraphNode sourceNode, IGraphNode targetNode, ObjectReference sourceReference)
         {
             if (sourceReference.Index.IsEmpty)
                 return base.FindTargetReference(sourceNode, targetNode, sourceReference);
 
             var matchValue = 0;
             if (sourceReference.TargetNode != null)
-                matchValue = (int)sourceReference.TargetNode[nameof(SimpleClass.Member1)].Retrieve();
+                matchValue = (int)sourceReference.TargetNode[nameof(SimpleClass.Member1)].Retrieve()!;
 
             var targetReference = (targetNode as IObjectNode)?.ItemReferences;
-            return targetReference?.FirstOrDefault(x => (int)x.TargetNode[nameof(SimpleClass.Member1)].Retrieve() == matchValue);
+            return targetReference?.FirstOrDefault(x => (int)x.TargetNode![nameof(SimpleClass.Member1)].Retrieve()! == matchValue);
         }
     }
 
@@ -126,14 +126,14 @@ public class TestGraphNodeLinker
         var target = nodeContainer.GetOrCreateNode(instance2);
         var linker = new TestLinker();
         linker.LinkGraph(source, target);
-        var expectedLinks = new Dictionary<IGraphNode, IGraphNode>
+        var expectedLinks = new Dictionary<IGraphNode, IGraphNode?>
         {
             { source, target },
             { source[nameof(SimpleClass.Member1)], target[nameof(SimpleClass.Member1)] },
             { source[nameof(SimpleClass.Member2)], target[nameof(SimpleClass.Member2)] },
-            { source[nameof(SimpleClass.Member2)].Target, target[nameof(SimpleClass.Member2)].Target },
-            { source[nameof(SimpleClass.Member2)].Target[nameof(SimpleClass.Member1)], target[nameof(SimpleClass.Member2)].Target[nameof(SimpleClass.Member1)] },
-            { source[nameof(SimpleClass.Member2)].Target[nameof(SimpleClass.Member2)], target[nameof(SimpleClass.Member2)].Target[nameof(SimpleClass.Member2)] },
+            { source[nameof(SimpleClass.Member2)].Target!, target[nameof(SimpleClass.Member2)].Target! },
+            { source[nameof(SimpleClass.Member2)].Target![nameof(SimpleClass.Member1)], target[nameof(SimpleClass.Member2)].Target![nameof(SimpleClass.Member1)] },
+            { source[nameof(SimpleClass.Member2)].Target![nameof(SimpleClass.Member2)], target[nameof(SimpleClass.Member2)].Target![nameof(SimpleClass.Member2)] },
         };
         VerifyLinks(expectedLinks, linker);
     }
@@ -148,18 +148,18 @@ public class TestGraphNodeLinker
         var target = nodeContainer.GetOrCreateNode(instance2);
         var linker = new TestLinker();
         linker.LinkGraph(source, target);
-        var expectedLinks = new Dictionary<IGraphNode, IGraphNode>
+        var expectedLinks = new Dictionary<IGraphNode, IGraphNode?>
         {
             { source, target },
             { source[nameof(SimpleClass.Member1)], target[nameof(SimpleClass.Member1)] },
             { source[nameof(SimpleClass.Member2)], target[nameof(SimpleClass.Member2)] },
-            { source[nameof(SimpleClass.Member2)].Target, target[nameof(SimpleClass.Member2)].Target },
-            { source[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(0)), target[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(0)) },
-            { source[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(0))[nameof(SimpleClass.Member1)], target[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(0))[nameof(SimpleClass.Member1)] },
-            { source[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(0))[nameof(SimpleClass.Member2)], target[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(0))[nameof(SimpleClass.Member2)] },
-            { source[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(1)), target[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(1)) },
-            { source[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(1))[nameof(SimpleClass.Member1)], target[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(1))[nameof(SimpleClass.Member1)] },
-            { source[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(1))[nameof(SimpleClass.Member2)], target[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(1))[nameof(SimpleClass.Member2)] },
+            { source[nameof(SimpleClass.Member2)].Target!, target[nameof(SimpleClass.Member2)].Target! },
+            { source[nameof(SimpleClass.Member2)].Target!.IndexedTarget(new NodeIndex(0))!, target[nameof(SimpleClass.Member2)].Target!.IndexedTarget(new NodeIndex(0))! },
+            { source[nameof(SimpleClass.Member2)].Target!.IndexedTarget(new NodeIndex(0))![nameof(SimpleClass.Member1)], target[nameof(SimpleClass.Member2)].Target!.IndexedTarget(new NodeIndex(0))![nameof(SimpleClass.Member1)] },
+            { source[nameof(SimpleClass.Member2)].Target!.IndexedTarget(new NodeIndex(0))![nameof(SimpleClass.Member2)], target[nameof(SimpleClass.Member2)].Target!.IndexedTarget(new NodeIndex(0))![nameof(SimpleClass.Member2)] },
+            { source[nameof(SimpleClass.Member2)].Target!.IndexedTarget(new NodeIndex(1))!, target[nameof(SimpleClass.Member2)].Target!.IndexedTarget(new NodeIndex(1))! },
+            { source[nameof(SimpleClass.Member2)].Target!.IndexedTarget(new NodeIndex(1))![nameof(SimpleClass.Member1)], target[nameof(SimpleClass.Member2)].Target!.IndexedTarget(new NodeIndex(1))![nameof(SimpleClass.Member1)] },
+            { source[nameof(SimpleClass.Member2)].Target!.IndexedTarget(new NodeIndex(1))![nameof(SimpleClass.Member2)], target[nameof(SimpleClass.Member2)].Target!.IndexedTarget(new NodeIndex(1))![nameof(SimpleClass.Member2)] },
         };
         VerifyLinks(expectedLinks, linker);
     }
@@ -174,14 +174,14 @@ public class TestGraphNodeLinker
         var target = nodeContainer.GetOrCreateNode(instance2);
         var linker = new TestLinker();
         linker.LinkGraph(source, target);
-        var expectedLinks = new Dictionary<IGraphNode, IGraphNode>
+        var expectedLinks = new Dictionary<IGraphNode, IGraphNode?>
         {
             { source, target },
             { source[nameof(SimpleClass.Member1)], target[nameof(SimpleClass.Member1)] },
             { source[nameof(SimpleClass.Member2)], target[nameof(SimpleClass.Member2)] },
-            { source[nameof(SimpleClass.Member2)].Target, null },
-            { source[nameof(SimpleClass.Member2)].Target[nameof(SimpleClass.Member1)], null },
-            { source[nameof(SimpleClass.Member2)].Target[nameof(SimpleClass.Member2)], null },
+            { source[nameof(SimpleClass.Member2)].Target!, null },
+            { source[nameof(SimpleClass.Member2)].Target![nameof(SimpleClass.Member1)], null },
+            { source[nameof(SimpleClass.Member2)].Target![nameof(SimpleClass.Member2)], null },
         };
         VerifyLinks(expectedLinks, linker);
     }
@@ -196,17 +196,17 @@ public class TestGraphNodeLinker
         var target = nodeContainer.GetOrCreateNode(instance2);
         var linker = new TestLinker();
         linker.LinkGraph(source, target);
-        var expectedLinks = new Dictionary<IGraphNode, IGraphNode>
+        var expectedLinks = new Dictionary<IGraphNode, IGraphNode?>
         {
             { source, target },
             { source[nameof(StructClass.Member1)], target[nameof(StructClass.Member1)] },
             { source[nameof(StructClass.Member2)], target[nameof(StructClass.Member2)] },
-            { source[nameof(StructClass.Member2)].Target, target[nameof(StructClass.Member2)].Target },
-            { source[nameof(StructClass.Member2)].Target[nameof(Struct.Member1)], target[nameof(StructClass.Member2)].Target[nameof(Struct.Member1)] },
-            { source[nameof(StructClass.Member2)].Target[nameof(Struct.Member2)], target[nameof(StructClass.Member2)].Target[nameof(Struct.Member2)] },
-            { source[nameof(StructClass.Member2)].Target[nameof(Struct.Member2)].Target, target[nameof(StructClass.Member2)].Target[nameof(Struct.Member2)].Target },
-            { source[nameof(StructClass.Member2)].Target[nameof(Struct.Member2)].Target[nameof(SimpleClass.Member1)], target[nameof(StructClass.Member2)].Target[nameof(Struct.Member2)].Target[nameof(SimpleClass.Member1)] },
-            { source[nameof(StructClass.Member2)].Target[nameof(Struct.Member2)].Target[nameof(SimpleClass.Member2)], target[nameof(StructClass.Member2)].Target[nameof(Struct.Member2)].Target[nameof(SimpleClass.Member2)] },
+            { source[nameof(StructClass.Member2)].Target!, target[nameof(StructClass.Member2)].Target! },
+            { source[nameof(StructClass.Member2)].Target![nameof(Struct.Member1)], target[nameof(StructClass.Member2)].Target![nameof(Struct.Member1)] },
+            { source[nameof(StructClass.Member2)].Target![nameof(Struct.Member2)], target[nameof(StructClass.Member2)].Target![nameof(Struct.Member2)] },
+            { source[nameof(StructClass.Member2)].Target![nameof(Struct.Member2)].Target!, target[nameof(StructClass.Member2)].Target![nameof(Struct.Member2)].Target! },
+            { source[nameof(StructClass.Member2)].Target![nameof(Struct.Member2)].Target![nameof(SimpleClass.Member1)], target[nameof(StructClass.Member2)].Target![nameof(Struct.Member2)].Target![nameof(SimpleClass.Member1)] },
+            { source[nameof(StructClass.Member2)].Target![nameof(Struct.Member2)].Target![nameof(SimpleClass.Member2)], target[nameof(StructClass.Member2)].Target![nameof(Struct.Member2)].Target![nameof(SimpleClass.Member2)] },
         };
         VerifyLinks(expectedLinks, linker);
     }
@@ -221,17 +221,17 @@ public class TestGraphNodeLinker
         var target = nodeContainer.GetOrCreateNode(instance2);
         var linker = new TestLinker();
         linker.LinkGraph(source, target);
-        var expectedLinks = new Dictionary<IGraphNode, IGraphNode>
+        var expectedLinks = new Dictionary<IGraphNode, IGraphNode?>
         {
             { source, target },
             { source[nameof(InterfaceMember.Member1)], target[nameof(InterfaceMember.Member1)] },
             { source[nameof(InterfaceMember.Member2)], target[nameof(InterfaceMember.Member2)] },
-            { source[nameof(InterfaceMember.Member2)].Target, target[nameof(InterfaceMember.Member2)].Target },
-            { source[nameof(InterfaceMember.Member2)].Target[nameof(Implem1.Member1Common)], target[nameof(InterfaceMember.Member2)].Target[nameof(Implem1.Member1Common)] },
-            { source[nameof(InterfaceMember.Member2)].Target[nameof(Implem1.Member2Implem1)], null },
-            { source[nameof(InterfaceMember.Member2)].Target[nameof(Implem1.Member2Implem1)].Target, null },
-            { source[nameof(InterfaceMember.Member2)].Target[nameof(Implem1.Member2Implem1)].Target[nameof(SimpleClass.Member1)], null },
-            { source[nameof(InterfaceMember.Member2)].Target[nameof(Implem1.Member2Implem1)].Target[nameof(SimpleClass.Member2)], null },
+            { source[nameof(InterfaceMember.Member2)].Target!, target[nameof(InterfaceMember.Member2)].Target! },
+            { source[nameof(InterfaceMember.Member2)].Target![nameof(Implem1.Member1Common)], target[nameof(InterfaceMember.Member2)].Target![nameof(Implem1.Member1Common)] },
+            { source[nameof(InterfaceMember.Member2)].Target![nameof(Implem1.Member2Implem1)], null },
+            { source[nameof(InterfaceMember.Member2)].Target![nameof(Implem1.Member2Implem1)].Target!, null },
+            { source[nameof(InterfaceMember.Member2)].Target![nameof(Implem1.Member2Implem1)].Target![nameof(SimpleClass.Member1)], null },
+            { source[nameof(InterfaceMember.Member2)].Target![nameof(Implem1.Member2Implem1)].Target![nameof(SimpleClass.Member2)], null },
         };
         VerifyLinks(expectedLinks, linker);
     }
@@ -246,14 +246,14 @@ public class TestGraphNodeLinker
         var target = nodeContainer.GetOrCreateNode(instance2);
         var linker = new CustomFindTargetLinker(nodeContainer, source);
         linker.LinkGraph(source, target);
-        var expectedLinks = new Dictionary<IGraphNode, IGraphNode>
+        var expectedLinks = new Dictionary<IGraphNode, IGraphNode?>
         {
             { source, target },
             { source[nameof(SimpleClass.Member1)], target[nameof(SimpleClass.Member1)] },
             { source[nameof(SimpleClass.Member2)], target[nameof(SimpleClass.Member2)] },
-            { source[nameof(SimpleClass.Member2)].Target, linker.CustomTarget },
-            { source[nameof(SimpleClass.Member2)].Target[nameof(SimpleClass.Member1)], linker.CustomTarget[nameof(SimpleClass.Member1)] },
-            { source[nameof(SimpleClass.Member2)].Target[nameof(SimpleClass.Member2)], linker.CustomTarget[nameof(SimpleClass.Member2)] },
+            { source[nameof(SimpleClass.Member2)].Target!, linker.CustomTarget },
+            { source[nameof(SimpleClass.Member2)].Target![nameof(SimpleClass.Member1)], linker.CustomTarget[nameof(SimpleClass.Member1)] },
+            { source[nameof(SimpleClass.Member2)].Target![nameof(SimpleClass.Member2)], linker.CustomTarget[nameof(SimpleClass.Member2)] },
         };
         VerifyLinks(expectedLinks, linker);
     }
@@ -269,21 +269,21 @@ public class TestGraphNodeLinker
         var linker = new CustomFindTargetReferenceLinker();
         linker.LinkGraph(source, target);
         // Expected links by index: 0 -> 2, 1 -> 0, 2 -> null
-        var expectedLinks = new Dictionary<IGraphNode, IGraphNode>
+        var expectedLinks = new Dictionary<IGraphNode, IGraphNode?>
         {
             { source, target },
             { source[nameof(SimpleClass.Member1)], target[nameof(SimpleClass.Member1)] },
             { source[nameof(SimpleClass.Member2)], target[nameof(SimpleClass.Member2)] },
-            { source[nameof(SimpleClass.Member2)].Target, target[nameof(SimpleClass.Member2)].Target },
-            { source[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(0)), target[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(2)) },
-            { source[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(0))[nameof(SimpleClass.Member1)], target[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(2))[nameof(SimpleClass.Member1)] },
-            { source[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(0))[nameof(SimpleClass.Member2)], target[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(2))[nameof(SimpleClass.Member2)] },
-            { source[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(1)), target[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(0)) },
-            { source[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(1))[nameof(SimpleClass.Member1)], target[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(0))[nameof(SimpleClass.Member1)] },
-            { source[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(1))[nameof(SimpleClass.Member2)], target[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(0))[nameof(SimpleClass.Member2)] },
-            { source[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(2)), null },
-            { source[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(2))[nameof(SimpleClass.Member1)], null },
-            { source[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(2))[nameof(SimpleClass.Member2)], null },
+            { source[nameof(SimpleClass.Member2)].Target!, target[nameof(SimpleClass.Member2)].Target! },
+            { source[nameof(SimpleClass.Member2)].Target!.IndexedTarget(new NodeIndex(0))!, target[nameof(SimpleClass.Member2)].Target!.IndexedTarget(new NodeIndex(2))! },
+            { source[nameof(SimpleClass.Member2)].Target!.IndexedTarget(new NodeIndex(0))![nameof(SimpleClass.Member1)], target[nameof(SimpleClass.Member2)].Target!.IndexedTarget(new NodeIndex(2))![nameof(SimpleClass.Member1)] },
+            { source[nameof(SimpleClass.Member2)].Target!.IndexedTarget(new NodeIndex(0))![nameof(SimpleClass.Member2)], target[nameof(SimpleClass.Member2)].Target!.IndexedTarget(new NodeIndex(2))![nameof(SimpleClass.Member2)] },
+            { source[nameof(SimpleClass.Member2)].Target!.IndexedTarget(new NodeIndex(1))!, target[nameof(SimpleClass.Member2)].Target!.IndexedTarget(new NodeIndex(0))! },
+            { source[nameof(SimpleClass.Member2)].Target!.IndexedTarget(new NodeIndex(1))![nameof(SimpleClass.Member1)], target[nameof(SimpleClass.Member2)].Target!.IndexedTarget(new NodeIndex(0))![nameof(SimpleClass.Member1)] },
+            { source[nameof(SimpleClass.Member2)].Target!.IndexedTarget(new NodeIndex(1))![nameof(SimpleClass.Member2)], target[nameof(SimpleClass.Member2)].Target!.IndexedTarget(new NodeIndex(0))![nameof(SimpleClass.Member2)] },
+            { source[nameof(SimpleClass.Member2)].Target!.IndexedTarget(new NodeIndex(2))!, null },
+            { source[nameof(SimpleClass.Member2)].Target!.IndexedTarget(new NodeIndex(2))![nameof(SimpleClass.Member1)], null },
+            { source[nameof(SimpleClass.Member2)].Target!.IndexedTarget(new NodeIndex(2))![nameof(SimpleClass.Member2)], null },
         };
         VerifyLinks(expectedLinks, linker);
     }
@@ -300,7 +300,7 @@ public class TestGraphNodeLinker
         var target = nodeContainer.GetOrCreateNode(instance2);
         var linker = new TestLinker();
         linker.LinkGraph(source, target);
-        var expectedLinks = new Dictionary<IGraphNode, IGraphNode>
+        var expectedLinks = new Dictionary<IGraphNode, IGraphNode?>
         {
             { source, target },
             { source[nameof(SimpleClass.Member1)], target[nameof(SimpleClass.Member1)] },
@@ -309,7 +309,7 @@ public class TestGraphNodeLinker
         VerifyLinks(expectedLinks, linker);
     }
 
-    private static void VerifyLinks(Dictionary<IGraphNode, IGraphNode> expectedLinks, TestLinker linker)
+    private static void VerifyLinks(Dictionary<IGraphNode, IGraphNode?> expectedLinks, TestLinker linker)
     {
         Assert.Equal(expectedLinks.Count, linker.LinkedNodes.Count);
         foreach (var link in expectedLinks)
