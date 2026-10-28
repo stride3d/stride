@@ -42,6 +42,11 @@ public sealed class AssetPickerViewModel : DispatcherViewModel
     public IReadOnlyList<Type> AcceptedTypes { get; }
 
     /// <summary>
+    /// Gets or sets a text shown above the assets (what the asset is picked for), or <c>null</c>.
+    /// </summary>
+    public string? Message { get; set; }
+
+    /// <summary>
     /// Gets the additional condition on the listed assets, or <c>null</c>.
     /// </summary>
     public Func<AssetViewModel, bool>? Filter { get; }

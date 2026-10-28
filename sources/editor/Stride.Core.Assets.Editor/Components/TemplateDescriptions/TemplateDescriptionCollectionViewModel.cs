@@ -98,12 +98,20 @@ public abstract class TemplateDescriptionCollectionViewModel : DispatcherViewMod
     /// </summary>
     protected abstract string? UpdateNameFromSelectedTemplate();
 
+    /// <summary>
+    /// Narrows or orders the templates of the selected group before they are listed; all of them, in their order, by default.
+    /// </summary>
+    protected virtual IEnumerable<ITemplateDescriptionViewModel> FilterTemplates(IEnumerable<ITemplateDescriptionViewModel> groupTemplates)
+    {
+        return groupTemplates;
+    }
+
     protected void UpdateTemplateList()
     {
         templates.Clear();
         if (SelectedGroup is not null)
         {
-            templates.AddRange(SelectedGroup.GetTemplatesRecursively());
+            templates.AddRange(FilterTemplates(SelectedGroup.GetTemplatesRecursively()));
         }
     }
 

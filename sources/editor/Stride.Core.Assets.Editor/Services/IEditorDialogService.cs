@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Stride.Core.Assets.Editor.Components.AddAssets;
+using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModel.Progress;
 using Stride.Core.Assets.Editor.ViewModels;
@@ -28,16 +30,7 @@ public interface IEditorDialogService : IDialogService
     }
 
     /// <summary>
-    /// Shows the asset picker (see <see cref="AssetPickerViewModel"/>) and waits for the user to pick an asset.
-    /// </summary>
-    /// <param name="session">The session whose assets are listed.</param>
-    /// <param name="acceptedTypes">The asset types to list (and their derived types); empty lists every type.</param>
-    /// <param name="filter">An additional condition on the listed assets, or <c>null</c>.</param>
-    /// <param name="initialAsset">The asset selected when the picker opens, or <c>null</c>.</param>
-    /// <param name="initialLocation">The folder selected when the picker opens and there is no initial asset, or <c>null</c>.</param>
-    /// <returns>The picked asset, or <c>null</c> when the user cancelled.</returns>
-    /// <summary>
-    /// Shows the new project window of a session (see <see cref="Components.TemplateDescriptions.NewProjectTemplateCollectionViewModel"/>)
+    /// Shows the new project window of a session (see <see cref="NewProjectTemplateCollectionViewModel"/>)
     /// and waits for the user to pick a template. A host without the window returns <c>null</c>.
     /// </summary>
     /// <param name="session">The session the project is added to.</param>
@@ -49,16 +42,48 @@ public interface IEditorDialogService : IDialogService
 
     /// <summary>
     /// Shows the project selection window (the recent projects and the templates of a new session, see
-    /// <see cref="Components.TemplateDescriptions.NewOrOpenSessionTemplateCollectionViewModel"/>). A host without the window
+    /// <see cref="NewOrOpenSessionTemplateCollectionViewModel"/>). A host without the window
     /// selects nothing.
     /// </summary>
     /// <param name="templates">The recent projects and the templates to show.</param>
     /// <returns><c>true</c> when the user accepted a template or asked to open a project (the host then reads the path of the
     /// existing session or the parameters of the new one from <paramref name="templates"/>); <c>false</c> when they cancelled.</returns>
-    Task<bool> ShowProjectSelectionDialogAsync(Components.TemplateDescriptions.NewOrOpenSessionTemplateCollectionViewModel templates)
+    Task<bool> ShowProjectSelectionDialogAsync(NewOrOpenSessionTemplateCollectionViewModel templates)
     {
         return Task.FromResult(false);
     }
 
-    Task<AssetViewModel?> OpenAssetPickerAsync(SessionViewModel session, IEnumerable<Type> acceptedTypes, Func<AssetViewModel, bool>? filter = null, AssetViewModel? initialAsset = null, DirectoryBaseViewModel? initialLocation = null);
+    /// <summary>
+    /// Shows the Add asset dialog (the asset templates of the session, see <see cref="AddAssetTemplateCollectionViewModel"/>) and
+    /// waits for the user to pick a template. A host without the dialog picks nothing.
+    /// </summary>
+    /// <param name="templates">The templates to show.</param>
+    /// <returns>The picked template, or <c>null</c> when the user cancelled.</returns>
+    Task<ITemplateDescriptionViewModel?> ShowAddAssetDialogAsync(AddAssetTemplateCollectionViewModel templates)
+    {
+        return Task.FromResult<ITemplateDescriptionViewModel?>(null);
+    }
+
+    /// <summary>
+    /// Shows the templates that can import a set of files (see <see cref="AssetTemplatesViewModel"/>) and waits for the user to
+    /// pick one. A host without the dialog picks nothing.
+    /// </summary>
+    /// <param name="templates">The templates to show.</param>
+    /// <returns>The picked template, or <c>null</c> when the user cancelled.</returns>
+    Task<TemplateDescriptionViewModel?> ShowAssetTemplatesDialogAsync(AssetTemplatesViewModel templates)
+    {
+        return Task.FromResult<TemplateDescriptionViewModel?>(null);
+    }
+
+    /// <summary>
+    /// Shows the asset picker (see <see cref="AssetPickerViewModel"/>) and waits for the user to pick an asset.
+    /// </summary>
+    /// <param name="session">The session whose assets are listed.</param>
+    /// <param name="acceptedTypes">The asset types to list (and their derived types); empty lists every type.</param>
+    /// <param name="filter">An additional condition on the listed assets, or <c>null</c>.</param>
+    /// <param name="initialAsset">The asset selected when the picker opens, or <c>null</c>.</param>
+    /// <param name="initialLocation">The folder selected when the picker opens and there is no initial asset, or <c>null</c>.</param>
+    /// <param name="message">A text shown above the assets (what the asset is picked for), or <c>null</c>.</param>
+    /// <returns>The picked asset, or <c>null</c> when the user cancelled.</returns>
+    Task<AssetViewModel?> OpenAssetPickerAsync(SessionViewModel session, IEnumerable<Type> acceptedTypes, Func<AssetViewModel, bool>? filter = null, AssetViewModel? initialAsset = null, DirectoryBaseViewModel? initialLocation = null, string? message = null);
 }
