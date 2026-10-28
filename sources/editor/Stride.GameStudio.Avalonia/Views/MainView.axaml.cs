@@ -15,12 +15,17 @@ public partial class MainView : UserControl
     }
 
     /// <summary>
-    /// Gets a platform-specific <see cref="KeyGesture"/> for the Redo action
+    /// Gets a platform-specific <see cref="KeyGesture"/> for the Redo action: Ctrl+Y, or Cmd+Shift+Z on macOS.
     /// </summary>
-    public static KeyGesture? RedoGesture => Application.Current?.PlatformSettings?.HotkeyConfiguration.Redo.FirstOrDefault();
+    public static KeyGesture RedoGesture => Application.Current?.PlatformSettings?.HotkeyConfiguration.Redo.FirstOrDefault() ?? new KeyGesture(Key.Y, KeyModifiers.Control);
 
     /// <summary>
-    /// Gets a platform-specific <see cref="KeyGesture"/> for the Undo action
+    /// Gets a platform-specific <see cref="KeyGesture"/> for the Save action: Ctrl+S, or Cmd+S on macOS.
     /// </summary>
-    public static KeyGesture? UndoGesture => Application.Current?.PlatformSettings?.HotkeyConfiguration.Undo.FirstOrDefault();
+    public static KeyGesture SaveGesture => new(Key.S, Application.Current?.PlatformSettings?.HotkeyConfiguration.CommandModifiers ?? KeyModifiers.Control);
+
+    /// <summary>
+    /// Gets a platform-specific <see cref="KeyGesture"/> for the Undo action: Ctrl+Z, or Cmd+Z on macOS.
+    /// </summary>
+    public static KeyGesture UndoGesture => Application.Current?.PlatformSettings?.HotkeyConfiguration.Undo.FirstOrDefault() ?? new KeyGesture(Key.Z, KeyModifiers.Control);
 }

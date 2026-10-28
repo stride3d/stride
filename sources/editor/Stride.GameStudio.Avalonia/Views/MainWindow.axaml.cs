@@ -4,11 +4,13 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Avalonia.Extensions;
+using Stride.Core.Presentation.Commands;
 using Stride.GameStudio.Avalonia.Settings;
 using Stride.GameStudio.Avalonia.ViewModels;
 
@@ -56,6 +58,32 @@ public partial class MainWindow : Window
                 // This method will shutdown the application if the session has been successfully closed.
                 SaveAndClose().Forget();
                 break;
+        }
+    }
+
+    /// <summary>
+    /// The shortcuts of Edit > Undo and Redo. They run here, after the focused control has seen the key, so that a text box keeps
+    /// its own Ctrl+Z and Ctrl+Y: Avalonia evaluates the key bindings of the window before it raises the key event, so a
+    /// <see cref="KeyBinding"/> would undo the session instead of the text.
+    /// </summary>
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        base.OnKeyDown(e);
+        if (e.Handled || DataContext is not MainViewModel mainViewModel)
+            return;
+
+        if (MainView.UndoGesture.Matches(e))
+            e.Handled = TryExecute(mainViewModel.UndoCommand);
+        else if (MainView.RedoGesture.Matches(e))
+            e.Handled = TryExecute(mainViewModel.RedoCommand);
+        return;
+
+        static bool TryExecute(ICommandBase command)
+        {
+            if (!command.CanExecute(null))
+                return false;
+            command.Execute(null);
+            return true;
         }
     }
 
@@ -113,8 +141,8 @@ public partial class MainWindow : Window
     {
         try
         {
-            // The editors save or drop their unsaved changes, as the user chooses; the user can also keep the editor open
-            if (DataContext is MainViewModel mainViewModel && !await mainViewModel.CloseEditorsAsync())
+            // The session and its editors save or drop their unsaved changes, as the user chooses; the user can also cancel
+            if (DataContext is MainViewModel mainViewModel && !await mainViewModel.CloseSessionAsync())
             {
                 closingTask?.SetResult(false);
                 return;

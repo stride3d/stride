@@ -10,5 +10,10 @@
         Icon="/Assets/GameStudio.ico"
         Title="{Binding Title}"
         Width="1280" Height="900">
+  <Window.KeyBindings>
+    <!-- File > Save, wherever the focus is (see the File menu of MainView) -->
+    <KeyBinding Gesture="{x:Static gsvw:MainView.SaveGesture}" Command="{Binding SaveCommand}"/>
+    <!-- Edit > Undo and Redo are handled in OnKeyDown: a key binding would run before the focused text box -->
+  </Window.KeyBindings>
   <gsvw:MainView />
 </Window>

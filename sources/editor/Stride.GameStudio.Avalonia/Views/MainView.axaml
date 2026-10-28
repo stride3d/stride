@@ -59,18 +59,35 @@
                   Command="{Binding ClearRecentFilesCommand}"
                   IsEnabled="{Binding RecentFiles.Count, Mode=OneWay, Converter={sd:NumericToBool}}"/>
         <Separator/>
+        <!-- Save and reload, as in the WPF editor: Save is enabled whenever a session is open. Its shortcut is a key binding
+             of the main window: the hot key of an item of a closed menu fires only if the item was enabled when the menu last
+             opened (Avalonia evaluates its command then), and WPF binds Ctrl+S to the window too. -->
+        <MenuItem Header="{sd:LocalizeString _Save, Context=Menu}"
+                  Name="SaveMenuItem"
+                  Command="{Binding SaveCommand}"
+                  InputGesture="{x:Static gsvw:MainView.SaveGesture}"/>
+        <Separator/>
+        <MenuItem Header="{sd:LocalizeString _Reload project, Context=Menu}"
+                  Command="{Binding ReloadCommand}"
+                  IsEnabled="{Binding Session, Mode=OneWay, Converter={sd:ObjectToBool}}"/>
+        <Separator/>
         <MenuItem Header="{sd:LocalizeString E_xit, Context=Menu}"
                   Command="{Binding ExitCommand}"
                   HotKey="Alt+F4" InputGesture="{Binding $self.HotKey, Mode=OneTime}"/>
       </MenuItem>
       <!-- Edit menu -->
       <MenuItem Header="{sd:LocalizeString Edit, Context=Menu}">
+        <!-- Undo and Redo bind the stable commands of the main view model, and their shortcuts are key bindings of the main
+             window, like Save: the hot key of an item of a closed menu fires only if the item was enabled when the menu last
+             opened. -->
         <MenuItem Header="{sd:LocalizeString Undo, Context=Menu}"
-                  Command="{Binding Session?.ActionHistory?.UndoCommand, TargetNullValue={x:Static cpc:DisabledCommand.Instance}}"
-                  HotKey="{x:Static gsvw:MainView.UndoGesture}" InputGesture="{Binding $self.HotKey, Mode=OneTime}"/>
+                  Name="UndoMenuItem"
+                  Command="{Binding UndoCommand}"
+                  InputGesture="{x:Static gsvw:MainView.UndoGesture}"/>
         <MenuItem Header="{sd:LocalizeString Redo, Context=Menu}"
-                  Command="{Binding Session?.ActionHistory?.RedoCommand, TargetNullValue={x:Static cpc:DisabledCommand.Instance}}"
-                  HotKey="{x:Static gsvw:MainView.RedoGesture}" InputGesture="{Binding $self.HotKey, Mode=OneTime}"/>
+                  Name="RedoMenuItem"
+                  Command="{Binding RedoCommand}"
+                  InputGesture="{x:Static gsvw:MainView.RedoGesture}"/>
         <Separator/>
         <MenuItem Header="{sd:LocalizeString _Settings..., Context=Menu}"
                   Command="{Binding OpenSettingsWindowCommand}"

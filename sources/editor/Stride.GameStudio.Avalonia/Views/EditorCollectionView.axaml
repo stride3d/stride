@@ -10,8 +10,12 @@
   <TabControl ItemsSource="{Binding Editors}"
               SelectedItem="{Binding ActiveEditor}">
     <ItemsControl.ItemTemplate>
-      <DataTemplate>
-        <TextBlock Text="{Binding Asset.Name}" />
+      <DataTemplate x:DataType="caevm:AssetEditorViewModel">
+        <!-- A "*" marks an asset with unsaved changes, as WPF's editor tabs do -->
+        <StackPanel Orientation="Horizontal">
+          <TextBlock Text="{Binding Asset.Name}" />
+          <TextBlock Text="*" IsVisible="{Binding Asset.IsDirty}" />
+        </StackPanel>
       </DataTemplate>
     </ItemsControl.ItemTemplate>
     <TabControl.ContentTemplate>

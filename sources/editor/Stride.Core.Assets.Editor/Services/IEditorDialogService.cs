@@ -20,6 +20,14 @@ public interface IEditorDialogService : IDialogService
     void ShowNotification(WorkProgressViewModel workProgress);
 
     /// <summary>
+    /// Moves the keyboard focus away from the control that has it, so that an edit in progress (a text box of the property
+    /// grid) is validated, for instance before the session is saved. A host without keyboard focus does nothing.
+    /// </summary>
+    void ClearKeyboardFocus()
+    {
+    }
+
+    /// <summary>
     /// Shows the asset picker (see <see cref="AssetPickerViewModel"/>) and waits for the user to pick an asset.
     /// </summary>
     /// <param name="session">The session whose assets are listed.</param>

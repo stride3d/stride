@@ -1,10 +1,12 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.ComponentModel;
 using System.Diagnostics;
 using Avalonia;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Components.Status;
+using Stride.Core.Assets.Editor.Components.Transactions;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.ViewModel.Progress;
@@ -32,7 +34,12 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     private static readonly string baseTitle = StrideGameStudio.EditorTitle;
     private static bool msBuildFound;
     private SessionViewModel? session;
+    // The session whose unsaved changes the title shows
+    private SessionViewModel? titleSession;
+    private ActionHistoryViewModel? history;
     private PreviewViewModel? preview;
+    private UFile? sessionPath;
+    private string? sessionName;
     private string title = baseTitle;
 
 #if DEBUG
@@ -59,6 +66,11 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
         OpenDebugWindowCommand = new AnonymousTaskCommand(serviceProvider, OnOpenDebugWindow, () => DialogService.HasMainWindow);
         OpenSettingsWindowCommand = new AnonymousTaskCommand(serviceProvider, OnOpenSettingsWindow, () => DialogService.HasMainWindow);
         OpenWebPageCommand = new AnonymousTaskCommand<string>(serviceProvider, OnOpenWebPage);
+        ReloadCommand = new AnonymousTaskCommand(serviceProvider, OnReload);
+        // Enabled while a session is open, even without a change, as in WPF
+        SaveCommand = new AnonymousTaskCommand(serviceProvider, OnSave) { IsEnabled = false };
+        UndoCommand = new AnonymousCommand(serviceProvider, () => history?.UndoCommand.Execute()) { IsEnabled = false };
+        RedoCommand = new AnonymousCommand(serviceProvider, () => history?.RedoCommand.Execute()) { IsEnabled = false };
 
         Status = new StatusViewModel(ServiceProvider);
         Status.PushStatus("Ready");
@@ -73,7 +85,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     public SessionViewModel? Session
     {
         get => session;
-        set => SetValue(ref session, value);
+        set => SetValue(ref session, value, OnSessionChanged);
     }
 
     public StatusViewModel Status { get; }
@@ -130,6 +142,35 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     public ICommandBase OpenSettingsWindowCommand { get; }
 
     public ICommandBase OpenWebPageCommand { get; }
+
+    /// <summary>
+    /// Opens the session again, after asking whether to save its changes.
+    /// </summary>
+    public ICommandBase ReloadCommand { get; }
+
+    /// <summary>
+    /// Saves the session (<see cref="SessionViewModel.SaveSessionCommand"/>).
+    /// </summary>
+    /// <remarks>
+    /// The File menu binds this command rather than the session's: Avalonia evaluates the command of an item of a closed menu
+    /// only when the menu opens, so the item's Ctrl+S would keep the state of the command it had when the editor started.
+    /// </remarks>
+    public ICommandBase SaveCommand { get; }
+
+    /// <summary>
+    /// Undoes the last action of the session (<see cref="ActionHistoryViewModel.UndoCommand"/>).
+    /// </summary>
+    /// <remarks>
+    /// The Edit menu and the window's Ctrl+Z bind this command rather than the history's, for the same reason as <see cref="SaveCommand"/>:
+    /// the command of the history changes with the session, and its state after every action.
+    /// </remarks>
+    public ICommandBase UndoCommand { get; }
+
+    /// <summary>
+    /// Redoes the last undone action of the session (<see cref="ActionHistoryViewModel.RedoCommand"/>).
+    /// </summary>
+    /// <remarks>See <see cref="UndoCommand"/>.</remarks>
+    public ICommandBase RedoCommand { get; }
 
     private EditorDialogService DialogService => ServiceProvider.Get<EditorDialogService>();
 
@@ -196,7 +237,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
         // We have a session, let's restart cleanly
         if (session is not null)
         {
-            if (!await CloseEditorsAsync())
+            if (!await CloseSessionAsync())
                 return false;
             CloseSessionServices();
             (Application.Current as App)?.Restart(filePath);
@@ -228,10 +269,12 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
         InternalSettings.FileDialogLastOpenSessionDirectory.SetValue(filePath.GetFullDirectory());
         InternalSettings.SaveProfile();
 
+        sessionPath = filePath;
         Session = loadedSession;
         // The solution's name, or the package's when a package file was opened directly
         var sessionFile = UPath.IsNullOrEmpty(Session.SolutionPath) ? filePath : Session.SolutionPath;
-        Title = $"{baseTitle} - {sessionFile.GetFileNameWithoutExtension()}";
+        sessionName = sessionFile.GetFileNameWithoutExtension();
+        UpdateTitle();
 
         // The plugins initialize their session services (build, thumbnails, preview) and the property grid's commands and updaters
         // now that the session has its views
@@ -243,6 +286,52 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
         // The build the session runs when it opens: thumbnails and previews wait for it
         _ = ShowShaderImportAsync(Session);
         return true;
+    }
+
+    /// <summary>
+    /// Follows the new session: <see cref="UndoCommand"/> and <see cref="RedoCommand"/> mirror the commands of its history, and the
+    /// title shows its unsaved changes.
+    /// </summary>
+    private void OnSessionChanged()
+    {
+        SaveCommand.IsEnabled = session is not null;
+        if (titleSession is not null)
+            titleSession.PropertyChanged -= SessionPropertyChanged;
+        titleSession = session;
+        if (titleSession is not null)
+            titleSession.PropertyChanged += SessionPropertyChanged;
+        if (history is not null)
+        {
+            history.UndoCommand.CanExecuteChanged -= UpdateUndoRedo;
+            history.RedoCommand.CanExecuteChanged -= UpdateUndoRedo;
+        }
+        history = session?.ActionHistory;
+        if (history is not null)
+        {
+            history.UndoCommand.CanExecuteChanged += UpdateUndoRedo;
+            history.RedoCommand.CanExecuteChanged += UpdateUndoRedo;
+        }
+        UpdateUndoRedo(null, EventArgs.Empty);
+    }
+
+    private void UpdateUndoRedo(object? sender, EventArgs e)
+    {
+        UndoCommand.IsEnabled = history?.UndoCommand.IsEnabled ?? false;
+        RedoCommand.IsEnabled = history?.RedoCommand.IsEnabled ?? false;
+    }
+
+    private void SessionPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(SessionViewModel.HasUnsavedChanges))
+            UpdateTitle();
+    }
+
+    /// <summary>
+    /// The name of the editor, then the name of the session with a <c>*</c> while it has unsaved changes.
+    /// </summary>
+    private void UpdateTitle()
+    {
+        Title = sessionName is null ? baseTitle : $"{baseTitle} - {sessionName}{(session?.HasUnsavedChanges == true ? "*" : string.Empty)}";
     }
 
     /// <summary>
@@ -359,20 +448,45 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     private async Task OnClose()
     {
         // We have a session, let's restart empty
-        if (session is not null && Application.Current is App app && await CloseEditorsAsync())
+        if (session is not null && Application.Current is App app && await CloseSessionAsync())
         {
             CloseSessionServices();
             app.Restart();
         }
     }
 
-    /// <summary>
-    /// Closes the editors of the session before it closes: they save or drop their unsaved changes, as the user chooses.
-    /// </summary>
-    /// <returns><c>true</c> when the editors are closed or there is no session, <c>false</c> when the user kept one open.</returns>
-    internal Task<bool> CloseEditorsAsync()
+    private async Task OnSave()
     {
-        return session?.EditorCollection.CloseAllEditorsAsync(null) ?? Task.FromResult(true);
+        if (session is not null)
+            await session.SaveSessionAsync();
+    }
+
+    private async Task OnReload()
+    {
+        // The same session in a fresh editor, as WPF's Reload project does
+        if (session is not null && sessionPath is { } path && Application.Current is App app && await CloseSessionAsync())
+        {
+            CloseSessionServices();
+            app.Restart(path);
+        }
+    }
+
+    /// <summary>
+    /// Asks whether to save the session before it closes, as WPF does: one question (Save, Don't save, Cancel) covers the
+    /// unsaved changes of the assets and those of the open editors (the text of a script), which make their asset dirty.
+    /// The editors then close without asking.
+    /// </summary>
+    /// <returns><c>true</c> when the session can close or there is none, <c>false</c> when the user cancelled or the save failed.</returns>
+    internal async Task<bool> CloseSessionAsync()
+    {
+        if (session is null)
+            return true;
+
+        if (!await session.CloseAsync())
+            return false;
+
+        // What the editors had unsaved is now saved, or dropped by the user
+        return await session.EditorCollection.CloseAllEditorsAsync(false);
     }
 
     /// <summary>

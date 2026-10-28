@@ -105,6 +105,20 @@ internal class EditorDialogService : DialogService, IEditorDialogService
         Notifications?.AddNotification(workProgress);
     }
 
+    public void ClearKeyboardFocus()
+    {
+        // A text box commits its edit when it loses the focus (the property grid's do): move the focus away from it, as WPF
+        // moves it to the main window. Other controls keep it, such as the code editor, where the user goes on typing.
+        Dispatcher.Invoke(() =>
+        {
+            if (MainWindow is { FocusManager: { } focusManager } window && focusManager.GetFocusedElement() is TextBox)
+            {
+                if (!window.Focus())
+                    focusManager.Focus(null);
+            }
+        });
+    }
+
     public async Task<AssetViewModel?> OpenAssetPickerAsync(SessionViewModel session, IEnumerable<Type> acceptedTypes, Func<AssetViewModel, bool>? filter = null, AssetViewModel? initialAsset = null, DirectoryBaseViewModel? initialLocation = null)
     {
         if (MainWindow is null) return null;
