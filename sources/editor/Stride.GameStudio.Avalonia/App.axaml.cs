@@ -160,9 +160,8 @@ public partial class App : Application
         if (GetInitialSessionPath() is { } initialPath)
             viewModel.OpenInitialSessionCommand.Execute(initialPath);
         else
-            // No session to open: the project selection window, as the WPF editor shows at startup (its Cancel leaves the editor
-            // empty rather than exiting)
-            viewModel.SelectProjectCommand.Execute();
+            // No session to open: the project selection window, as the WPF editor shows at startup (its Cancel exits the editor)
+            viewModel.SelectInitialProjectCommand.Execute();
     }
 
     /// <summary>

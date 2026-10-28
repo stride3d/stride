@@ -170,8 +170,10 @@ public sealed class ProjectTemplateWindowTests
 
         Assert.NotNull(main.NewSessionCommand);
         Assert.NotNull(main.SelectProjectCommand);
-        // Both need the main window the project selection is a dialog of
+        Assert.NotNull(main.SelectInitialProjectCommand);
+        // All need the main window the project selection is a dialog of
         Assert.Equal(main.NewSessionCommand.IsEnabled, main.SelectProjectCommand.IsEnabled);
+        Assert.Equal(main.NewSessionCommand.IsEnabled, main.SelectInitialProjectCommand.IsEnabled);
         Assert.Null(main.Session);
     }
 
