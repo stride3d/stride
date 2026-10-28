@@ -26,6 +26,8 @@ public class TexturePreview : PreviewFromSpriteBatch<TextureAsset>
     private Texture? texture;
     private BlendStateDescription adequateBlendState;
     private SamplerState? specificMipmapSamplerState;
+    // The mip map level that the view asked for, for the game thread to apply; -1 when there is no request
+    private int requestedMipMapLevel = -1;
     private Rectangle textureSourceRegion;
 
     private TextureCubePreviewMode textureCubePreviewMode = TextureCubePreviewMode.Full;
@@ -52,7 +54,7 @@ public class TexturePreview : PreviewFromSpriteBatch<TextureAsset>
 
     protected override Task Initialize()
     {
-        specificMipmapSamplerState = SamplerState.New(Game.GraphicsDevice, new SamplerStateDescription(TextureFilter.ComparisonPoint, TextureAddressMode.Clamp));
+        specificMipmapSamplerState = SamplerState.New(Game.GraphicsDevice, new SamplerStateDescription(TextureFilter.Point, TextureAddressMode.Clamp));
 
         currentEffect.Initialize(Game.Services);
 
@@ -72,7 +74,19 @@ public class TexturePreview : PreviewFromSpriteBatch<TextureAsset>
 
     public override void DisplayMipMap(int level)
     {
-        var samplerDescrition = new SamplerStateDescription(TextureFilter.ComparisonPoint, TextureAddressMode.Clamp)
+        // The view calls this from the UI thread, while the game thread may be drawing with the current sampler: the game
+        // thread replaces it before its next draw. Disposing it here made that draw bind a destroyed sampler, which Vulkan
+        // drivers do not survive.
+        Interlocked.Exchange(ref requestedMipMapLevel, level);
+    }
+
+    private void UpdateMipMapSamplerState()
+    {
+        var level = Interlocked.Exchange(ref requestedMipMapLevel, -1);
+        if (level < 0)
+            return;
+
+        var samplerDescrition = new SamplerStateDescription(TextureFilter.Point, TextureAddressMode.Clamp)
         {
             MinMipLevel = level,
             MaxMipLevel = level
@@ -194,6 +208,8 @@ public class TexturePreview : PreviewFromSpriteBatch<TextureAsset>
     {
         if (texture == null)
             return;
+
+        UpdateMipMapSamplerState();
 
         var origin = SpriteSize / 2 - SpriteOffsets;
         var position = WindowSize / 2;

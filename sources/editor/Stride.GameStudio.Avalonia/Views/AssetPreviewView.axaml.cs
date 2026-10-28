@@ -5,7 +5,10 @@ using Avalonia.Controls;
 
 namespace Stride.GameStudio.Avalonia.Views;
 
-public partial class AssetPreviewView : UserControl
+/// <summary>
+/// The asset preview panel: the view of <see cref="ViewModels.PreviewViewModel.PreviewObject"/>, or a placeholder.
+/// </summary>
+public sealed partial class AssetPreviewView : UserControl
 {
     public AssetPreviewView()
     {

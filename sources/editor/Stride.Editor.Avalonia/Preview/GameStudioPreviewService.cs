@@ -28,6 +28,7 @@ using Stride.Editor.Avalonia.Engine;
 using Stride.Editor.Preview;
 using Stride.Games;
 using Stride.Graphics;
+using Stride.Shaders.Compiler;
 
 namespace Stride.Editor.Avalonia.Preview
 {
@@ -165,7 +166,7 @@ namespace Stride.Editor.Avalonia.Preview
 
             initializationSignal.Set();
 
-            PreviewGame = new PreviewGame(AssetBuilderService.EffectCompiler);
+            PreviewGame = new EmbeddedPreviewGame(AssetBuilderService.EffectCompiler);
             var context = new GameContextSDL(gameForm) { InitializeDatabase = false };
 
             // Wait for shaders to be loaded
@@ -422,6 +423,34 @@ namespace Stride.Editor.Avalonia.Preview
         public void OnHidePreview()
         {
             PreviewGame.IsEditorHidden = true;
+        }
+
+        /// <summary>
+        /// The preview game, whose window stays hidden until a <see cref="GameEngineHost"/> embeds it.
+        /// </summary>
+        private sealed class EmbeddedPreviewGame : PreviewGame
+        {
+            public EmbeddedPreviewGame(IEffectCompiler effectCompiler)
+                : base(effectCompiler)
+            {
+                // A running game shows its window, which is a top-level window until the host reparents it (an empty
+                // square on the desktop): the host shows the window once it is embedded
+                MakeWindowVisibleOnRun = false;
+                // The main window keeps the focus, never the embedded window, and a game renders an unfocused window like a
+                // minimized one, 15 frames a second: the preview took up to 67 ms to follow each resize of its panel (and on
+                // Windows the editor waits for the game thread to take the new size). A shown preview renders at most 60
+                // frames a second; a hidden one is still throttled (IsEditorHidden, and 15 frames a second before it shows)
+                TreatNotFocusedLikeMinimized = false;
+                WindowMinimumUpdateRate.SetMaxFrequency(60);
+            }
+
+            protected override void Initialize()
+            {
+                base.Initialize();
+                // The host gives the window its size: a borderless SDL window must stay resizable to follow it (on Windows,
+                // SDL keeps the client area of a non-resizable borderless window at the 64x64 of the first back buffer)
+                Window.AllowUserResizing = true;
+            }
         }
     }
 }

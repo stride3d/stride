@@ -10,6 +10,7 @@ using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Avalonia.Extensions;
 using Stride.GameStudio.Avalonia.Settings;
+using Stride.GameStudio.Avalonia.ViewModels;
 
 namespace Stride.GameStudio.Avalonia.Views;
 
@@ -119,6 +120,9 @@ public partial class MainWindow : Window
 
             // Internal settings
             SaveInternalSettings();
+
+            // Exit the preview game before the process does (it renders on its own thread)
+            (DataContext as MainViewModel)?.Preview?.Dispose();
 
             closingTask?.SetResult(true);
             // Shutdown after all other operations have completed
