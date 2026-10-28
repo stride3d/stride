@@ -10,14 +10,15 @@ using Avalonia.VisualTree;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModels;
+using Stride.GameStudio.Avalonia.Helpers;
 using Stride.GameStudio.Avalonia.Tests.Helpers;
 using Stride.GameStudio.Avalonia.Views;
 
 namespace Stride.GameStudio.Avalonia.Tests;
 
 /// <summary>
-/// Saving the session in the shell, as in the WPF editor: File > Save and Ctrl+S, the "*" of the assets with unsaved changes,
-/// and the question (Save, Don't save, Cancel) before the session closes.
+/// Saving the session in the shell, as in the WPF editor: File > Save and Ctrl+S, the "*" of the assets with unsaved changes
+/// (and of the window title, which WPF does not have), and the question (Save, Don't save, Cancel) before the session closes.
 /// </summary>
 public sealed class SessionSaveTests
 {
@@ -98,6 +99,41 @@ public sealed class SessionSaveTests
             Assert.True(await fixture.Session.SaveSessionAsync());
             await WindowTestHelper.PumpAsync();
             Assert.False(Marker(view)!.IsVisible);
+        }
+        finally
+        {
+            await window.CloseAsync();
+        }
+    }
+
+    [AvaloniaFact]
+    public async Task TheWindowTitleMarksUnsavedChanges()
+    {
+        using var fixture = await ShellSessionFixture.OpenAsync((AssetLocation, new TextPropertiesAsset { Label = "label" }));
+        var window = new MainWindow { DataContext = fixture.Main };
+        window.Show();
+        try
+        {
+            var undoRedo = fixture.Session.UndoRedoService!;
+            var clean = $"{StrideGameStudio.EditorTitle} - {ShellSessionFixture.PackageName}";
+            Assert.Equal(clean, window.Title);
+
+            Edit(fixture, fixture.Asset(AssetLocation), "edited");
+            await WindowTestHelper.PumpAsync();
+            Assert.Equal(clean + "*", window.Title);
+
+            // Back to the file: no unsaved change
+            undoRedo.Undo();
+            await WindowTestHelper.PumpAsync();
+            Assert.Equal(clean, window.Title);
+
+            undoRedo.Redo();
+            await WindowTestHelper.PumpAsync();
+            Assert.Equal(clean + "*", window.Title);
+
+            Assert.True(await fixture.Session.SaveSessionAsync());
+            await WindowTestHelper.PumpAsync();
+            Assert.Equal(clean, window.Title);
         }
         finally
         {

@@ -86,6 +86,30 @@ public sealed class TestSessionSaving
     }
 
     [Fact]
+    public async Task TheUnsavedStateFollowsEditsUndoRedoAndSaves()
+    {
+        using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));
+        var wood = fixture.Session.AllAssets.Single();
+        var undoRedo = fixture.Session.UndoRedoService!;
+        var changes = 0;
+        fixture.Session.PropertyChanged += (_, e) => changes += e.PropertyName == nameof(fixture.Session.HasUnsavedChanges) ? 1 : 0;
+        Assert.False(fixture.Session.HasUnsavedChanges);
+
+        Edit(fixture, wood, "oak");
+        Assert.True(fixture.Session.HasUnsavedChanges);
+
+        undoRedo.Undo();
+        Assert.False(fixture.Session.HasUnsavedChanges);
+
+        undoRedo.Redo();
+        Assert.True(fixture.Session.HasUnsavedChanges);
+
+        Assert.True(await fixture.Session.SaveSessionAsync());
+        Assert.False(fixture.Session.HasUnsavedChanges);
+        Assert.Equal(4, changes);
+    }
+
+    [Fact]
     public async Task AFailedSaveKeepsTheSessionDirty()
     {
         using var fixture = await EditorSessionFixture.OpenAsync(("Textures/Wood", "wood"));

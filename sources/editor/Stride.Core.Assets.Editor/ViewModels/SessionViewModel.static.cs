@@ -233,6 +233,7 @@ partial class SessionViewModel
         else
             loadedSession.DisarmUpgradeBackup();         // clean load: no save runs, so disarm here
 
+        sessionViewModel.UpdateHasUnsavedChanges();
         return sessionViewModel;
     }
 
