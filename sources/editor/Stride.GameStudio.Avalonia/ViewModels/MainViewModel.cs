@@ -46,7 +46,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
         : base(serviceProvider)
     {
         AboutCommand = new AnonymousTaskCommand(serviceProvider, OnAbout, () => DialogService.HasMainWindow);
-        CloseCommand = new AnonymousCommand(serviceProvider, OnClose);
+        CloseCommand = new AnonymousTaskCommand(serviceProvider, OnClose);
 #if DEBUG
         CrashCommand = new AnonymousCommand(serviceProvider, () => throw new Exception("Boom!"));
 #else
@@ -176,7 +176,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     /// <summary>
     /// Opens the session of a solution or package file, asking for one when no path is given.
     /// </summary>
-    /// <returns><c>true</c> when the session is open, <c>false</c> when it failed or no file was chosen, <c>null</c> when the user cancelled the loading.</returns>
+    /// <returns><c>true</c> when the session is open, <c>false</c> when it failed, no file was chosen or the user kept an editor of the current session open, <c>null</c> when the user cancelled the loading.</returns>
     public async Task<bool?> OpenSession(UFile? filePath, CancellationToken token = default)
     {
         if (filePath is not null && !File.Exists(filePath.ToOSPath()))
@@ -196,6 +196,8 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
         // We have a session, let's restart cleanly
         if (session is not null)
         {
+            if (!await CloseEditorsAsync())
+                return false;
             CloseSessionServices();
             (Application.Current as App)?.Restart(filePath);
             return true;
@@ -354,14 +356,23 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
         await DialogService.ShowAboutWindowAsync();
     }
 
-    private void OnClose()
+    private async Task OnClose()
     {
         // We have a session, let's restart empty
-        if (session is not null && Application.Current is App app)
+        if (session is not null && Application.Current is App app && await CloseEditorsAsync())
         {
             CloseSessionServices();
             app.Restart();
         }
+    }
+
+    /// <summary>
+    /// Closes the editors of the session before it closes: they save or drop their unsaved changes, as the user chooses.
+    /// </summary>
+    /// <returns><c>true</c> when the editors are closed or there is no session, <c>false</c> when the user kept one open.</returns>
+    internal Task<bool> CloseEditorsAsync()
+    {
+        return session?.EditorCollection.CloseAllEditorsAsync(null) ?? Task.FromResult(true);
     }
 
     /// <summary>

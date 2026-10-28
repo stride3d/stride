@@ -51,6 +51,7 @@
       </FluentTheme.Palettes>
     </FluentTheme>
     <StyleInclude Source="avares://MarkView.Avalonia/Themes/MarkdownTheme.axaml" />
+    <StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml" />
     <!-- FIXME xplat-editor aggregate all custom styles into a single style/theme -->
     <StyleInclude Source="avares://Stride.Core.Presentation.Avalonia/Themes/EditorStyles.axaml"/>
     <StyleInclude Source="avares://Stride.Core.Presentation.Avalonia/Themes/HyperlinkStyle.axaml"/>

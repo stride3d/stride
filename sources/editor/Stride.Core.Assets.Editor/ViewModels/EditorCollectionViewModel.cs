@@ -58,6 +58,53 @@ public sealed class EditorCollectionViewModel : DispatcherViewModel, IAssetEdito
         }
     }
 
+    /// <summary>
+    /// Closes the editor of an asset once it agrees (see <see cref="AssetEditorViewModel.PreviewCloseAsync"/>): it saves its
+    /// changes or drops them as <paramref name="save"/> says, or as the user chooses when it is <c>null</c>.
+    /// </summary>
+    /// <param name="asset">The asset whose editor closes.</param>
+    /// <param name="save"><c>true</c> to save the changes, <c>false</c> to drop them, <c>null</c> to ask the user.</param>
+    /// <returns><c>true</c> when the editor is closed or the asset has none, <c>false</c> when the user kept it open.</returns>
+    public async Task<bool> CloseAssetEditorAsync(AssetViewModel asset, bool? save)
+    {
+        if (!openedAssets.TryGetValue(asset, out var editor))
+            return true;
+
+        // The user sees the editor that asks
+        if (save is null)
+            ActiveEditor = editor;
+
+        if (!await editor.PreviewCloseAsync(save))
+            return false;
+
+        // Closed meanwhile (e.g. by another close while the user answered)
+        if (!openedAssets.Remove(asset))
+            return true;
+
+        var index = editors.IndexOf(editor);
+        editors.Remove(editor);
+        if (ActiveEditor == editor)
+            ActiveEditor = editors.Count > 0 ? editors[Math.Min(index, editors.Count - 1)] : null;
+        editor.Destroy();
+        return true;
+    }
+
+    /// <summary>
+    /// Closes every editor, see <see cref="CloseAssetEditorAsync"/>. It stops at the first editor that the user keeps open;
+    /// the editors closed before it stay closed.
+    /// </summary>
+    /// <param name="save"><c>true</c> to save the changes, <c>false</c> to drop them, <c>null</c> to ask the user.</param>
+    /// <returns><c>true</c> when every editor is closed, <c>false</c> when the user kept one open.</returns>
+    public async Task<bool> CloseAllEditorsAsync(bool? save)
+    {
+        foreach (var editor in editors.ToList())
+        {
+            if (!await CloseAssetEditorAsync(editor.Asset, save))
+                return false;
+        }
+        return true;
+    }
+
     public bool TryGetAssetEditor<TEditor>(AssetViewModel asset, [MaybeNullWhen(false)] out TEditor assetEditor) where TEditor : AssetEditorViewModel
     {
         if (openedAssets.TryGetValue(asset, out var found) && found is TEditor editor)
