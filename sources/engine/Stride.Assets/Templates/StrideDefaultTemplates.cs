@@ -11,17 +11,17 @@ namespace Stride.Assets.Templates;
 
 /// <summary>
 /// Bootstraps the editor-internal template registry (asset / script / project-modification .sdtpl
-/// files in Stride.Assets.Presentation.Wpf, plus the dotnet new project templates from Stride.Templates.*;
+/// files in Stride.Assets.Templates, plus the dotnet new project templates from Stride.Templates.*;
 /// a package's own templates come with its Assets companion). Non-WPF entry point — callable from
-/// headless test runners without pulling Stride.Assets.Presentation.Wpf (and its WPF dependency tree)
+/// headless test runners without pulling the editor assemblies (and the WPF dependency tree)
 /// into the consumer.
 /// </summary>
 public static class StrideDefaultTemplates
 {
     /// <summary>
-    /// The package whose <c>.sdpkg</c> lists the asset template folders.
+    /// The package whose <c>.sdpkg</c> lists the asset template folders, shared by the WPF and cross-platform editors.
     /// </summary>
-    public const string AssetTemplatesPackageName = "Stride.Assets.Presentation.Wpf";
+    public const string AssetTemplatesPackageName = "Stride.Assets.Templates";
 
     /// <summary>
     /// Loads default templates. Pass <paramref name="loadAssemblyReferences"/>=false in headless
