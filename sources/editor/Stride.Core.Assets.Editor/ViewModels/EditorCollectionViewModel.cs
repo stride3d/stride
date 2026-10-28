@@ -56,6 +56,22 @@ public sealed class EditorCollectionViewModel : DispatcherViewModel, IAssetEdito
             openedAssets.Add(asset, editor);
             editors.Add(editor);
             ActiveEditor = editor;
+            // The editor starts what it needs once it is open (e.g. the game of a scene editor)
+            InitializeEditorAsync(editor);
+        }
+    }
+
+    private static async void InitializeEditorAsync(AssetEditorViewModel editor)
+    {
+        try
+        {
+            // An editor that could not initialize stays open, with what works
+            if (!await editor.Initialize())
+                GlobalLogger.GetLogger(nameof(EditorCollectionViewModel)).Warning($"The editor of {editor.Asset.Url} did not initialize completely.");
+        }
+        catch (Exception e)
+        {
+            GlobalLogger.GetLogger(nameof(EditorCollectionViewModel)).Error($"The editor of {editor.Asset.Url} could not initialize.", e);
         }
     }
 

@@ -9,6 +9,7 @@ using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Diagnostics;
 using Stride.Core.Reflection;
 using Stride.Editor.Avalonia;
+using Stride.Editor.Avalonia.Engine;
 using Stride.Editor.Avalonia.Preview;
 using Stride.Editor.Build;
 
@@ -42,6 +43,9 @@ public sealed class StrideEditorViewPlugin : StrideAssetsAvaloniaPlugin
 
         var previewService = new GameStudioPreviewService(session);
         session.ServiceProvider.RegisterService(previewService);
+
+        // The editor games (the scene editor) render offscreen into Avalonia controls, like the preview
+        session.ServiceProvider.RegisterService(new OffscreenGameViewportService(session.Dispatcher));
     }
 
     /// <inheritdoc />

@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Avalonia;
 using Avalonia.Controls;
 using Stride.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Editor.Annotations;
@@ -14,5 +15,20 @@ public partial class EntityHierarchyEditorView : UserControl, IAssetEditorView
     public EntityHierarchyEditorView()
     {
         InitializeComponent();
+    }
+
+    /// <inheritdoc />
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnAttachedToVisualTree(e);
+        // The game renders while its editor is shown
+        (DataContext as EntityHierarchyEditorViewModel)?.ShowGame();
+    }
+
+    /// <inheritdoc />
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        (DataContext as EntityHierarchyEditorViewModel)?.HideGame();
+        base.OnDetachedFromVisualTree(e);
     }
 }
