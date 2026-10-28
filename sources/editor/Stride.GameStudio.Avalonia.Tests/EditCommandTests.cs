@@ -233,14 +233,14 @@ public sealed class EditCommandTests
                     "-", "Create derived asset", "Create replacing asset", "Clear archetype", "Clear replaces",
                     "-", "Cut", "Copy", "Copy with dependencies", "Paste", "Delete",
                     "-", "Copy asset URL", "Rename",
-                    "-", "Create folder", "Update selected assets from their source", "Update all assets with modified source",
+                    "-", "Create folder", "Add asset...", "Update selected assets from their source", "Update all assets with modified source",
                 ], Describe(items));
                 Assert.Equal(
                 [
                     "Include in build as root asset (in TestGame)", "Include in build as root asset in",
                     "Create derived asset", "Create replacing asset",
                     "Cut", "Copy", "Copy with dependencies", "Paste", "Delete", "Copy asset URL", "Rename",
-                    "Create folder", "Update selected assets from their source",
+                    "Create folder", "Add asset...", "Update selected assets from their source",
                 ], Enabled(items));
                 // The default target of the root-asset submenu is bold, as in WPF
                 var targets = (MenuItem)items.Single(x => x is MenuItem { Header: "Include in build as root asset in" });
@@ -262,11 +262,12 @@ public sealed class EditCommandTests
                     "Asset", "Edit asset...", fixture.Session.RootAssetToggleHeader,
                     "-", "Cut", "Copy", "Copy with dependencies", "Paste", "Delete",
                     "-", "Copy asset URL", "Rename",
-                    "-", "Create folder", "Update selected assets from their source", "Update all assets with modified source",
+                    "-", "Create folder", "Add asset...", "Update selected assets from their source", "Update all assets with modified source",
                 ], Describe(items));
                 var enabled = Enabled(items);
                 Assert.Contains("Paste", enabled);
                 Assert.Contains("Create folder", enabled);
+                Assert.Contains("Add asset...", enabled);
                 Assert.DoesNotContain("Cut", enabled);
                 Assert.DoesNotContain("Copy", enabled);
                 Assert.DoesNotContain("Delete", enabled);
@@ -300,8 +301,8 @@ public sealed class EditCommandTests
                 locations.Add(folder);
                 await WindowTestHelper.PumpAsync();
                 var items = await OpenAsync(menu, tree);
-                Assert.Equal(["Folder", "Create folder", "Package", "Package properties", "Solution", "Add existing project...", "Actions", "Cut", "Copy", "Paste", "Delete", "Rename"], Describe(items));
-                Assert.Equal(["Create folder", "Package properties", "Add existing project...", "Cut", "Copy", "Paste", "Delete", "Rename"], Enabled(items));
+                Assert.Equal(["Folder", "Create folder", "Package", "Package properties", "Solution", "Add existing project...", "Actions", "Cut", "Copy", "Paste", "Delete", "Rename", "Asset", "Add asset..."], Describe(items));
+                Assert.Equal(["Create folder", "Package properties", "Add existing project...", "Cut", "Copy", "Paste", "Delete", "Rename", "Add asset..."], Enabled(items));
                 menu.Close();
                 await WindowTestHelper.PumpAsync();
 
@@ -310,8 +311,8 @@ public sealed class EditCommandTests
                 locations.Add(fixture.Package);
                 await WindowTestHelper.PumpAsync();
                 items = await OpenAsync(menu, tree);
-                Assert.Equal(["Folder", "Create folder", "Package", "Set as current project", "Package properties", "Solution", "Add existing project...", "Actions", "Cut", "Copy", "Paste", "Delete", "Rename"], Describe(items));
-                Assert.Equal(["Create folder", "Set as current project", "Package properties", "Add existing project...", "Cut", "Copy", "Paste", "Delete", "Rename"], Enabled(items));
+                Assert.Equal(["Folder", "Create folder", "Package", "Set as current project", "Package properties", "Solution", "Add existing project...", "Actions", "Cut", "Copy", "Paste", "Delete", "Rename", "Asset", "Add asset..."], Describe(items));
+                Assert.Equal(["Create folder", "Set as current project", "Package properties", "Add existing project...", "Cut", "Copy", "Paste", "Delete", "Rename", "Add asset..."], Enabled(items));
                 menu.Close();
                 await WindowTestHelper.PumpAsync();
             }

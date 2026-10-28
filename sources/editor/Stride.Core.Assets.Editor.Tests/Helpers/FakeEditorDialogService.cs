@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Stride.Core.Assets.Editor.Components.AddAssets;
+using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModel.Progress;
@@ -14,7 +16,7 @@ namespace Stride.Core.Assets.Editor.Tests.Helpers;
 /// <summary>
 /// A dialog service that records the message boxes and answers them with <see cref="Answer"/>; the file pickers return nothing.
 /// </summary>
-public sealed class FakeEditorDialogService : IEditorDialogService
+public sealed class FakeEditorDialogService : IEditorDialogService, IProgressWindowService
 {
     public List<string> Messages { get; } = [];
 
@@ -35,6 +37,11 @@ public sealed class FakeEditorDialogService : IEditorDialogService
 
     public void ShowProgressWindow(WorkProgressViewModel workProgress) => ProgressWindows.Add(workProgress);
 
+    /// <summary>
+    /// Records the progress window without opening it: the work does not wait for a window to close.
+    /// </summary>
+    public void ShowProgressWindow(WorkProgressViewModel workProgress, int minDelay) => ProgressWindows.Add(workProgress);
+
     public void ShowNotification(WorkProgressViewModel workProgress) => Notifications.Add(workProgress);
 
     /// <summary>
@@ -47,11 +54,43 @@ public sealed class FakeEditorDialogService : IEditorDialogService
     /// </summary>
     public Func<AssetPickerViewModel, AssetViewModel?> PickAsset { get; set; } = _ => null;
 
-    public Task<AssetViewModel?> OpenAssetPickerAsync(SessionViewModel session, IEnumerable<Type> acceptedTypes, Func<AssetViewModel, bool>? filter = null, AssetViewModel? initialAsset = null, DirectoryBaseViewModel? initialLocation = null)
+    public Task<AssetViewModel?> OpenAssetPickerAsync(SessionViewModel session, IEnumerable<Type> acceptedTypes, Func<AssetViewModel, bool>? filter = null, AssetViewModel? initialAsset = null, DirectoryBaseViewModel? initialLocation = null, string? message = null)
     {
-        var picker = new AssetPickerViewModel(session, acceptedTypes, filter, initialAsset, initialLocation);
+        var picker = new AssetPickerViewModel(session, acceptedTypes, filter, initialAsset, initialLocation) { Message = message };
         AssetPickers.Add(picker);
         return Task.FromResult(PickAsset(picker));
+    }
+
+    /// <summary>
+    /// The Add asset dialogs opened so far (their templates).
+    /// </summary>
+    public List<AddAssetTemplateCollectionViewModel> AddAssetDialogs { get; } = [];
+
+    /// <summary>
+    /// Picks the template of the next Add asset dialogs; <c>null</c> cancels them.
+    /// </summary>
+    public Func<AddAssetTemplateCollectionViewModel, ITemplateDescriptionViewModel?> PickAddAssetTemplate { get; set; } = _ => null;
+
+    public Task<ITemplateDescriptionViewModel?> ShowAddAssetDialogAsync(AddAssetTemplateCollectionViewModel templates)
+    {
+        AddAssetDialogs.Add(templates);
+        return Task.FromResult(PickAddAssetTemplate(templates));
+    }
+
+    /// <summary>
+    /// The dialogs listing the templates of a set of files opened so far (their templates).
+    /// </summary>
+    public List<AssetTemplatesViewModel> AssetTemplatesDialogs { get; } = [];
+
+    /// <summary>
+    /// Picks the template of the next asset templates dialogs; <c>null</c> cancels them.
+    /// </summary>
+    public Func<AssetTemplatesViewModel, TemplateDescriptionViewModel?> PickAssetTemplate { get; set; } = _ => null;
+
+    public Task<TemplateDescriptionViewModel?> ShowAssetTemplatesDialogAsync(AssetTemplatesViewModel templates)
+    {
+        AssetTemplatesDialogs.Add(templates);
+        return Task.FromResult(PickAssetTemplate(templates));
     }
 
     public Task<CheckedMessageBoxResult> CheckedMessageBoxAsync(string message, bool? isChecked, string checkboxMessage, MessageBoxButton buttons = MessageBoxButton.OK, MessageBoxImage image = MessageBoxImage.None)
