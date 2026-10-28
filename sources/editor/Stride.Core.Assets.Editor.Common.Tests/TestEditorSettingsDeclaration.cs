@@ -1,14 +1,12 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System.Linq;
 using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Settings;
-using Xunit;
 
-namespace Stride.Core.Assets.Editor.Wpf.Tests;
+namespace Stride.Core.Assets.Editor.Common.Tests;
 
-public class TestEditorSettingsDeclaration
+public sealed class TestEditorSettingsDeclaration
 {
     private static readonly SettingsContainer Container = new();
 
