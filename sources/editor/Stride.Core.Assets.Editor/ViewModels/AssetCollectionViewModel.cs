@@ -4,7 +4,9 @@
 using System.Collections.Specialized;
 using System.ComponentModel;
 using Stride.Core.Assets.Analysis;
+using Stride.Core.Assets.Editor.Components.AddAssets;
 using Stride.Core.Assets.Editor.Components.Properties;
+using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.ViewModel;
@@ -46,7 +48,7 @@ public enum DisplayAssetMode
 /// <summary>
 /// The assets shown in an asset view, with their filters and selection. The editors of the assets are managed by <see cref="EditorCollectionViewModel"/>.
 /// </summary>
-public sealed class AssetCollectionViewModel : DispatcherViewModel, IAssetCollectionViewModel
+public sealed partial class AssetCollectionViewModel : DispatcherViewModel, IAssetCollectionViewModel
 {
     public static readonly IEnumerable<FilterCategory> AllFilterCategories = Enum.GetValues<FilterCategory>();
 
@@ -103,8 +105,12 @@ public sealed class AssetCollectionViewModel : DispatcherViewModel, IAssetCollec
             sortRule = InternalSettings.AssetViewSortRule.GetValue();
         }
 
+        addAssetTemplateCollection = new Lazy<AddAssetTemplateCollectionViewModel>(CreateAddAssetTemplateCollection);
         SelectAssetCommand = new AnonymousCommand<AssetViewModel>(ServiceProvider, x => SelectAssets(x.Yield()!));
         DeleteContentCommand = new AnonymousTaskCommand(ServiceProvider, () => DeleteContent(SelectedContent));
+        RunAssetTemplateCommand = new AnonymousTaskCommand<ITemplateDescriptionViewModel>(ServiceProvider, x => RunAssetTemplateAsync(x, null));
+        SelectFilesToCreateAssetCommand = new AnonymousTaskCommand(ServiceProvider, SelectFilesToCreateAssetAsync);
+        ShowAddAssetDialogCommand = new AnonymousTaskCommand(ServiceProvider, ShowAddAssetDialogAsync);
         CutLocationsCommand = new AnonymousTaskCommand(ServiceProvider, CutSelectedLocationsAsync, CanCopy);
         CopyLocationsCommand = new AnonymousTaskCommand(ServiceProvider, CopySelectedLocationsAsync, CanCopy);
         CutContentCommand = new AnonymousTaskCommand(ServiceProvider, CutSelectedContentAsync, CanCopy);
@@ -280,6 +286,7 @@ public sealed class AssetCollectionViewModel : DispatcherViewModel, IAssetCollec
     public override void Destroy()
     {
         EnsureNotDestroyed(nameof(AssetCollectionViewModel));
+        DestroyAddAssetTemplateCollection();
         base.Destroy();
     }
 
