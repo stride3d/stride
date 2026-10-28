@@ -298,6 +298,7 @@ public partial class App : Application
         }
 
         GameStudioPreviewService.DisablePreview = disablePreview;
+        GameStudioPreviewService.ForceReadback = Options.ViewportReadback;
         foreach (var plugin in AssetsPlugin.RegisteredPlugins.OfType<StrideEditorPlugin>())
             plugin.EnableThumbnailService = enableThumbnails;
 
