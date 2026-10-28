@@ -16,6 +16,17 @@ namespace Stride.Graphics
         internal const int TextureRowPitchAlignment = 1;
 
         internal VkImage NativeImage;
+
+        /// <summary>
+        ///   Whether the memory of the image can be exported as a POSIX file descriptor (<see cref="ExportableTexture"/>).
+        ///   Set before the Texture is initialized.
+        /// </summary>
+        internal bool IsMemoryExportable;
+
+        /// <summary>
+        ///   The size of the dedicated memory of an exportable image, which the importer needs.
+        /// </summary>
+        internal ulong ExportableMemorySize;
         internal VkBuffer NativeBuffer;
         internal VkImageView NativeColorAttachmentView;
         internal VkImageView NativeDepthStencilView;
@@ -311,6 +322,19 @@ namespace Stride.Graphics
 
             var memoryProperties = VkMemoryPropertyFlags.DeviceLocal;
 
+            // An exportable image is created as the importer creates its own (Avalonia: mutable format), with a dedicated
+            // allocation the importer can bind
+            var externalMemoryInfo = new VkExternalMemoryImageCreateInfo
+            {
+                sType = VkStructureType.ExternalMemoryImageCreateInfo,
+                handleTypes = VkExternalMemoryHandleTypeFlags.OpaqueFD,
+            };
+            if (IsMemoryExportable)
+            {
+                createInfo.pNext = &externalMemoryInfo;
+                createInfo.flags |= VkImageCreateFlags.MutableFormat;
+            }
+
             // Create native image
             // TODO: flags, usage, etc.
             GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkCreateImage(GraphicsDevice.NativeDevice, &createInfo, allocator: null, out NativeImage));
@@ -318,12 +342,51 @@ namespace Stride.Graphics
             // Allocate and bind memory
             GraphicsDevice.NativeDeviceApi.vkGetImageMemoryRequirements(GraphicsDevice.NativeDevice, NativeImage, out var memoryRequirements);
 
-            AllocateMemory(memoryProperties, memoryRequirements);
+            if (IsMemoryExportable)
+                AllocateExportableMemory(memoryProperties, memoryRequirements);
+            else
+                AllocateMemory(memoryProperties, memoryRequirements);
 
             if (NativeMemory != VkDeviceMemory.Null)
             {
                 GraphicsDevice.NativeDeviceApi.vkBindImageMemory(GraphicsDevice.NativeDevice, NativeImage, NativeMemory, 0);
             }
+        }
+
+        private unsafe void AllocateExportableMemory(VkMemoryPropertyFlags memoryProperties, VkMemoryRequirements memoryRequirements)
+        {
+            var dedicatedInfo = new VkMemoryDedicatedAllocateInfo
+            {
+                sType = VkStructureType.MemoryDedicatedAllocateInfo,
+                image = NativeImage,
+            };
+            var exportInfo = new VkExportMemoryAllocateInfo
+            {
+                sType = VkStructureType.ExportMemoryAllocateInfo,
+                pNext = &dedicatedInfo,
+                handleTypes = VkExternalMemoryHandleTypeFlags.OpaqueFD,
+            };
+            var allocateInfo = new VkMemoryAllocateInfo
+            {
+                sType = VkStructureType.MemoryAllocateInfo,
+                pNext = &exportInfo,
+                allocationSize = memoryRequirements.size,
+            };
+
+            GraphicsDevice.NativeInstanceApi.vkGetPhysicalDeviceMemoryProperties(GraphicsDevice.NativePhysicalDevice, out var physicalDeviceMemoryProperties);
+            var typeBits = memoryRequirements.memoryTypeBits;
+            for (uint i = 0; i < physicalDeviceMemoryProperties.memoryTypeCount; i++, typeBits >>= 1)
+            {
+                var memoryType = *(&physicalDeviceMemoryProperties.memoryTypes[0] + i);
+                if ((typeBits & 1) == 1 && (memoryType.propertyFlags & memoryProperties) == memoryProperties)
+                {
+                    allocateInfo.memoryTypeIndex = i;
+                    break;
+                }
+            }
+
+            GraphicsDevice.CheckResult(GraphicsDevice.NativeDeviceApi.vkAllocateMemory(GraphicsDevice.NativeDevice, &allocateInfo, null, out NativeMemory));
+            ExportableMemorySize = memoryRequirements.size;
         }
 
         private unsafe void InitializeData(DataBox[] dataBoxes)

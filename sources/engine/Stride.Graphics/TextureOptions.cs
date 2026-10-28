@@ -47,8 +47,13 @@ public enum TextureOptions
     ///   <para>
     ///     <see cref="Shared"/> and <see cref="SharedKeyedMutex"/> are mutually exclusive.
     ///   </para>
+    ///   <para>
+    ///     The Texture acquires and releases its mutex with <see cref="Texture.AcquireSync"/> and
+    ///     <see cref="Texture.ReleaseSync"/>. Alone, this flag gives the Texture a global shared handle
+    ///     (<see cref="Texture.SharedHandle"/>); with <see cref="SharedNtHandle"/>, an NT handle.
+    ///   </para>
     /// </remarks>
-    SharedKeyedMutex = 256,  // TODO: Support KeyedMutex from Texture
+    SharedKeyedMutex = 256,
 
     /// <summary>
     ///   Enable the use of NT HANDLE values when you create a shared Texture.

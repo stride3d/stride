@@ -18,7 +18,6 @@ using Stride.Core.BuildEngine;
 using Stride.Core;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
-using Stride.Core.Presentation.Avalonia.Controls;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Reflection;
 using Stride.Assets;
@@ -33,12 +32,19 @@ using Stride.Shaders.Compiler;
 namespace Stride.Editor.Avalonia.Preview
 {
     /// <summary>
-    /// The preview service of a session: it runs the preview game in an SDL window hosted by a <see cref="GameEngineHost"/>
-    /// and creates the preview of the selected asset.
+    /// The preview service of a session: it runs the preview game offscreen, shown by an <see cref="OffscreenGameView"/>
+    /// (through the compositor's GPU interop when it has one, by readback otherwise), and creates the preview of the
+    /// selected asset.
     /// </summary>
     public class GameStudioPreviewService : IAssetPreviewService, IAvaloniaPreviewBuilder
     {
         public static bool DisablePreview = false;
+
+        /// <summary>
+        /// Whether the preview reads its frames back through the CPU even when the compositor offers a GPU interop
+        /// (<c>--viewport-readback</c> on the command line).
+        /// </summary>
+        public static bool ForceReadback = false;
 
         // Set when the game loop has ended (a lost device, the exit): nothing can be posted to the game anymore
         private volatile bool previewGameEnded;
@@ -46,12 +52,12 @@ namespace Stride.Editor.Avalonia.Preview
         private readonly ISessionViewModel session;
         private readonly IEditorDebugService? debugService;
 
-        private readonly AutoResetEvent initializationSignal = new AutoResetEvent(false);
-        private readonly GameEngineHost host;
+        // The control the game renders in, created on the UI thread before the game starts
+        private readonly OffscreenGameView view;
+        private readonly AvaloniaInputBridge inputBridge;
+        private OffscreenFrameExporter? frameExporter;
         private readonly IDebugPage? loggerDebugPage;
         private IAssetPreview? currentPreview;
-        private IntPtr windowHandle;
-        private EmbeddedGameForm? gameForm;
         private object? previewView;
 
         private AssetViewModel? previewBuildQueue;
@@ -94,14 +100,16 @@ namespace Stride.Editor.Avalonia.Preview
             previewCompileContext.SetGameSettingsAsset(previewGameSettings);
             previewCompileContext.CompilationContext = typeof(PreviewCompilationContext);
 
+            (view, inputBridge) = Dispatcher.Invoke(() =>
+            {
+                var gameView = new OffscreenGameView();
+                return (gameView, new AvaloniaInputBridge(gameView));
+            });
+
             previewGameThread = new Thread(SafeAction.Wrap(StrideUIThread)) { IsBackground = true, Name = "PreviewGame Thread" };
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 previewGameThread.SetApartmentState(ApartmentState.STA);
             previewGameThread.Start();
-
-            // Wait for the window handle to be generated on the proper thread; the host is a control, created on the UI thread
-            initializationSignal.WaitOne();
-            host = Dispatcher.Invoke(() => new GameEngineHost(windowHandle));
 
             session.AssetPropertiesChanged += OnAssetPropertyChanged;
             gameSettingsProvider.GameSettingsChanged += OnGameSettingsChanged;
@@ -146,11 +154,7 @@ namespace Stride.Editor.Avalonia.Preview
                 previewGameThread.Join();
 
 
-                //Game = null;
-                host.Dispose();
-                //host = null;
-                //gameForm = null;
-                //windowHandle = IntPtr.Zero;
+                frameExporter?.Dispose();
                 previewCompileContext?.Dispose();
 
                 debugService?.UnregisterDebugPage(loggerDebugPage);
@@ -161,13 +165,17 @@ namespace Stride.Editor.Avalonia.Preview
 
         private void StrideUIThread()
         {
-            gameForm = new EmbeddedGameForm { Visible = false };
-            windowHandle = gameForm.Handle;
-
-            initializationSignal.Set();
-
-            PreviewGame = new EmbeddedPreviewGame(AssetBuilderService.EffectCompiler);
-            var context = new GameContextSDL(gameForm) { InitializeDatabase = false };
+            // No window: the game renders into an offscreen back buffer that the view shows. The presenter is created
+            // before the device, so that a Vulkan device enables the export extensions; it falls back to readback by itself
+            frameExporter = new OffscreenFrameExporter(view)
+            {
+                GpuPresenter = ForceReadback ? null : GpuFramePresenter.Create(view, Logger),
+            };
+            if (ForceReadback)
+                Logger.Info("Viewport: the frames are read back through the CPU, as the command line asks (--viewport-readback).");
+            PreviewGame = new EmbeddedPreviewGame(AssetBuilderService.EffectCompiler, frameExporter, inputBridge);
+            var context = new GameContextHeadless(64, 64) { InitializeDatabase = false };
+            UseCompositorAdapter();
 
             // Wait for shaders to be loaded
             AssetBuilderService.WaitForShaders();
@@ -216,6 +224,16 @@ namespace Stride.Editor.Avalonia.Preview
             }
         }
 
+        /// <summary>
+        /// Makes the preview game render on the GPU of the editor's compositor, so that it can share its frames.
+        /// </summary>
+        private void UseCompositorAdapter()
+        {
+            var uid = GpuFramePresenter.TryGetCompositorAdapterUid(Logger);
+            if (uid is { } adapterUid && GraphicsAdapterFactory.Adapters.ToArray().Any(x => x.AdapterUid == adapterUid))
+                PreviewGame.GraphicsDeviceManager.RequiredAdapterUid = adapterUid.ToString();
+        }
+
         private void GraphicsDeviceManagerDeviceCreated(object? sender, EventArgs e)
         {
             // Transmit actual GraphicsProfile to preview and thumbnail builder context
@@ -242,7 +260,7 @@ namespace Stride.Editor.Avalonia.Preview
         /// <inheritdoc />
         public Control? GetStrideView()
         {
-            return !IsDisposed ? host : null;
+            return !IsDisposed ? view : null;
         }
 
         private async Task UpdatePreviewAsset()
@@ -426,20 +444,22 @@ namespace Stride.Editor.Avalonia.Preview
         }
 
         /// <summary>
-        /// The preview game, whose window stays hidden until a <see cref="GameEngineHost"/> embeds it.
+        /// The preview game, which renders offscreen: the back buffer follows the view, each drawn frame is handed to
+        /// the view, and the input of the view reaches the game.
         /// </summary>
         private sealed class EmbeddedPreviewGame : PreviewGame
         {
-            public EmbeddedPreviewGame(IEffectCompiler effectCompiler)
+            private readonly OffscreenFrameExporter exporter;
+            private readonly AvaloniaInputBridge inputBridge;
+
+            public EmbeddedPreviewGame(IEffectCompiler effectCompiler, OffscreenFrameExporter exporter, AvaloniaInputBridge inputBridge)
                 : base(effectCompiler)
             {
-                // A running game shows its window, which is a top-level window until the host reparents it (an empty
-                // square on the desktop): the host shows the window once it is embedded
-                MakeWindowVisibleOnRun = false;
-                // The main window keeps the focus, never the embedded window, and a game renders an unfocused window like a
-                // minimized one, 15 frames a second: the preview took up to 67 ms to follow each resize of its panel (and on
-                // Windows the editor waits for the game thread to take the new size). A shown preview renders at most 60
-                // frames a second; a hidden one is still throttled (IsEditorHidden, and 15 frames a second before it shows)
+                this.exporter = exporter;
+                this.inputBridge = inputBridge;
+                // A game renders an unfocused window like a minimized one, 15 frames a second, and the window-less game is
+                // never focused: a shown preview renders at most 60 frames a second; a hidden one is still throttled
+                // (IsEditorHidden, and 15 frames a second before it shows)
                 TreatNotFocusedLikeMinimized = false;
                 WindowMinimumUpdateRate.SetMaxFrequency(60);
             }
@@ -447,9 +467,30 @@ namespace Stride.Editor.Avalonia.Preview
             protected override void Initialize()
             {
                 base.Initialize();
-                // The host gives the window its size: a borderless SDL window must stay resizable to follow it (on Windows,
-                // SDL keeps the client area of a non-resizable borderless window at the 64x64 of the first back buffer)
-                Window.AllowUserResizing = true;
+                // A window-less game counts as hidden, and a hidden game renders 15 frames a second: the view shows it
+                Window.Visible = true;
+            }
+
+            protected override bool BeginDraw()
+            {
+                // The input the view received since the last frame, before the input manager updates
+                inputBridge.Apply(Input);
+                // Between two frames: the back buffer follows the view
+                if (!IsEditorHidden)
+                    exporter.ApplyRequestedSize(GraphicsDeviceManager);
+                return base.BeginDraw();
+            }
+
+            protected override void EndDraw(bool present)
+            {
+                var backBuffer = GraphicsDevice?.Presenter?.BackBuffer;
+                // Only a frame that was drawn is shown (present is false when the game skipped the draw)
+                var exported = present && backBuffer != null;
+                if (exported)
+                    exporter.EndFrame(GraphicsContext.CommandList, backBuffer!);
+                base.EndDraw(present);
+                if (exported)
+                    exporter.AfterSubmit();
             }
         }
     }

@@ -39,6 +39,12 @@ public sealed class StartupOptions
     public bool DebugEditorGraphics { get; set; }
 
     /// <summary>
+    /// <c>--viewport-readback</c>: the viewports read their frames back through the CPU instead of sharing them with the
+    /// compositor through its GPU interop, for support when a driver misbehaves.
+    /// </summary>
+    public bool ViewportReadback { get; set; }
+
+    /// <summary>
     /// Called once after the main window is first loaded, to tell the launcher that the Game Studio has started.
     /// </summary>
     public Action? LauncherNotifier { get; set; }
@@ -58,7 +64,8 @@ public sealed class StartupOptions
     /// Parses the command line of the WPF Game Studio: <c>/NewProject</c>, <c>/DisableThumbnails</c>, <c>/DisablePreview</c>,
     /// <c>/DebugEditorGraphics</c>, a session path; the launcher handshake (<c>/LauncherWindowHandle</c>, <c>/LauncherPipe</c>)
     /// and the host selection (<c>--graphics-api</c>) take a value and are consumed by the host. <c>--project &lt;path&gt;</c>
-    /// (or <c>/project</c>) names the session explicitly, as the earlier Avalonia prototype did.
+    /// (or <c>/project</c>) names the session explicitly, as the earlier Avalonia prototype did. <c>--viewport-readback</c> is
+    /// specific to the Avalonia Game Studio.
     /// </summary>
     public static StartupOptions Parse(IReadOnlyList<string> args)
     {
@@ -93,6 +100,10 @@ public sealed class StartupOptions
                     break;
                 case "/DebugEditorGraphics":
                     options.DebugEditorGraphics = true;
+                    options.ForwardedArguments.Add((args[i], null));
+                    break;
+                case "--viewport-readback":
+                    options.ViewportReadback = true;
                     options.ForwardedArguments.Add((args[i], null));
                     break;
                 // An absolute path starts with a slash on Linux and macOS: a session file is never an option

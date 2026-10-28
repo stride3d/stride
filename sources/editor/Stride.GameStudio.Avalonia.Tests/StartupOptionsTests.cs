@@ -20,7 +20,20 @@ public sealed class StartupOptionsTests
         Assert.True(options.EnableThumbnails);
         Assert.False(options.DisablePreview);
         Assert.False(options.DebugEditorGraphics);
+        Assert.False(options.ViewportReadback);
         Assert.Empty(options.UnknownArguments);
+    }
+
+    [Fact]
+    public void TheViewportReadbackOptionTurnsTheGpuInteropOff()
+    {
+        var options = StartupOptions.Parse(["--viewport-readback", "/home/user/MyGame/MyGame.sln"]);
+
+        Assert.True(options.ViewportReadback);
+        Assert.Equal("/home/user/MyGame/MyGame.sln", options.InitialSessionPath?.FullPath);
+        Assert.Empty(options.UnknownArguments);
+        // A new editor process, for another session, reads its frames back too
+        Assert.Equal(["--viewport-readback", "/NewProject"], options.GetRestartArguments(null, launcherNotified: true));
     }
 
     [Fact]
