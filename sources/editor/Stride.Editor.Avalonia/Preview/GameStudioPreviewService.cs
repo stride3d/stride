@@ -40,6 +40,12 @@ namespace Stride.Editor.Avalonia.Preview
     {
         public static bool DisablePreview = false;
 
+        /// <summary>
+        /// Whether the preview reads its frames back through the CPU even when the compositor offers a GPU interop
+        /// (<c>--viewport-readback</c> on the command line).
+        /// </summary>
+        public static bool ForceReadback = false;
+
         // Set when the game loop has ended (a lost device, the exit): nothing can be posted to the game anymore
         private volatile bool previewGameEnded;
 
@@ -163,8 +169,10 @@ namespace Stride.Editor.Avalonia.Preview
             // before the device, so that a Vulkan device enables the export extensions; it falls back to readback by itself
             frameExporter = new OffscreenFrameExporter(view)
             {
-                GpuPresenter = GpuFramePresenter.Create(view, Logger),
+                GpuPresenter = ForceReadback ? null : GpuFramePresenter.Create(view, Logger),
             };
+            if (ForceReadback)
+                Logger.Info("Viewport: the frames are read back through the CPU, as the command line asks (--viewport-readback).");
             PreviewGame = new EmbeddedPreviewGame(AssetBuilderService.EffectCompiler, frameExporter, inputBridge);
             var context = new GameContextHeadless(64, 64) { InitializeDatabase = false };
             UseCompositorAdapter();
