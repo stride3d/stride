@@ -124,7 +124,9 @@ public sealed class HeightfieldCollider : ICollider
 
     void ICollider.AppendModel(List<BasicMeshBuffers> buffer, ShapeCacheSystem shapeCache, out object? cacheOut)
     {
-        // TODO
+        // TODO: Gizmos can be rendered with depth-testing, but picking does not work in the same way.
+        //       We'll postpone this while that issue gets resolved.
+        //       Users can rely on HeightfieldModelComponent's picking instead.
         buffer.Add(new BasicMeshBuffers());
         cacheOut = null;
     }
