@@ -18,6 +18,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- The default icon of the project templates -->
+    <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Avalonia" />
     <!-- Conditions below are needed to remove AvaloniaUI.DiagnosticsSupport package from build output in Release configuration. -->
     <PackageReference Include="AvaloniaUI.DiagnosticsSupport">
