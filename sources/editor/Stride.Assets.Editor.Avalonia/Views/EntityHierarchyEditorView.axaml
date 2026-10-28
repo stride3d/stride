@@ -46,8 +46,12 @@
 
     <GridSplitter Grid.Column="1" ResizeDirection="Auto" />
 
-    <DockPanel Grid.Column="2">
-      <TextBlock Text="Scene View" />
-    </DockPanel>
+    <!-- The game of the editor renders here; the text shows while it has no game (yet) -->
+    <Panel Grid.Column="2">
+      <TextBlock Text="The scene view is not available."
+                 HorizontalAlignment="Center" VerticalAlignment="Center"
+                 IsVisible="{Binding GameView, Converter={x:Static ObjectConverters.IsNull}}" />
+      <ContentControl x:Name="GameViewHost" Content="{Binding GameView}" />
+    </Panel>
   </Grid>
 </UserControl>
