@@ -54,6 +54,8 @@
     <ProjectReference Include="..\Stride.Core.Assets.Editor.Wpf\Stride.Core.Assets.Editor.Wpf.csproj" />
     <ProjectReference Include="..\Stride.Editor.Wpf\Stride.Editor.Wpf.csproj" />
     <ProjectReference Include="..\Stride.Assets.Presentation.Common\Stride.Assets.Presentation.Common.csproj" />
+    <!-- The .sdtpl asset templates, shared with the cross-platform editor -->
+    <ProjectReference Include="..\Stride.Assets.Templates\Stride.Assets.Templates.csproj" />
     <!-- Force Stride.Templates.Games (NewGame, the bundled-with-installer set) to build before
          GameStudio links. Without this, a fresh checkout that builds only the editor never
          produces the .nupkg the DotNetNewTemplateBridge resolves via PackageStore at runtime.
@@ -90,9 +92,7 @@
   <!-- Templates -->
   <ItemGroup>
     <Compile Remove="Templates\Core\**" />
-    <Compile Remove="Templates\Assets\**" />
     <None Include="Templates\Core\**" />
-    <None Include="Templates\Assets\**" />
   </ItemGroup>
 
   <PropertyGroup>
