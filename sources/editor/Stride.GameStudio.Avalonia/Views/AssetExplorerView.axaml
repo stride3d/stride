@@ -190,10 +190,119 @@
       </ItemsControl>
     </DockPanel>
     <!-- Asset list -->
-    <ListBox ItemsSource="{Binding FilteredAssets}"
+    <!-- Focusable like the WPF list, so that the Edit commands reach the view through an empty folder too -->
+    <ListBox x:Name="AssetList"
+             Focusable="True"
+             ItemsSource="{Binding FilteredAssets}"
              SelectedItems="{Binding SelectedContent}"
              SelectionMode="Multiple"
              Margin="4">
+      <!-- The Edit commands while the asset view has the focus, as the command bindings of the WPF asset view -->
+      <sd:EditCommands.Bindings>
+        <sd:EditCommandBinding Kind="Cut" Command="{Binding CutContentCommand}"/>
+        <sd:EditCommandBinding Kind="Copy" Command="{Binding CopyContentCommand}"/>
+        <sd:EditCommandBinding Kind="Paste" Command="{Binding PasteCommand}"/>
+        <sd:EditCommandBinding Kind="Delete" Command="{Binding DeleteContentCommand}"/>
+        <sd:EditCommandBinding Kind="Rename" Command="{x:Static sd:BeginEditCommand.Instance}" CommandParameter="{Binding SingleSelectedContent}"/>
+      </sd:EditCommands.Bindings>
+      <!-- The context menu of the WPF asset view, with the items whose commands are ported. The commands of the selected asset
+           (create a derived asset...) are inserted when the menu opens, see the code-behind. -->
+      <ListBox.ContextMenu>
+        <ContextMenu x:Name="AssetContextMenu" Opening="OnAssetContextMenuOpening">
+          <MenuItem Header="{sd:LocalizeString Asset, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"/>
+          <MenuItem Header="{sd:LocalizeString Edit asset..., Context=Menu}"
+                    Command="{Binding Session.EditSelectedContentCommand}"
+                    InputGesture="Ctrl+Enter"/>
+          <MenuItem Header="{Binding Session.RootAssetToggleHeader}"
+                    Command="{Binding Session.ToggleIsRootOnSelectedAssetCommand}">
+            <MenuItem.Icon>
+              <Image Source="{StaticResource ImageAssetIsRoot}"/>
+            </MenuItem.Icon>
+          </MenuItem>
+          <!-- One toggle per package the selection can be rooted in -->
+          <MenuItem Header="{sd:LocalizeString Include in build as root asset in, Context=Menu}"
+                    ItemsSource="{Binding Session.RootAssetTargets}"
+                    IsVisible="{Binding Session.RootAssetTargets.Count, Converter={sd:NumericToBool}}">
+            <MenuItem.Icon>
+              <Image Source="{StaticResource ImageAssetIsRoot}"/>
+            </MenuItem.Icon>
+            <MenuItem.ItemContainerTheme>
+              <ControlTheme TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}" x:DataType="capvm:RootAssetTargetViewModel">
+                <Setter Property="Header" Value="{Binding Name}"/>
+                <Setter Property="Command" Value="{Binding ToggleCommand}"/>
+                <Setter Property="ToggleType" Value="CheckBox"/>
+                <Setter Property="IsChecked" Value="{Binding IsChecked, Mode=OneWay}"/>
+                <!-- The default target (the plain toggle above acts on it) is bold, as in WPF -->
+                <Setter Property="FontWeight" Value="{Binding IsDefault, Converter={sd:BoolToParam}, ConverterParameter={x:Static FontWeight.Bold}}"/>
+              </ControlTheme>
+            </MenuItem.ItemContainerTheme>
+          </MenuItem>
+          <Separator x:Name="AssetCommandsSeparator"
+                     IsVisible="{Binding SingleSelectedAsset?.AssetCommands.Count, Converter={sd:NumericToBool}, FallbackValue={sd:False}}"/>
+          <Separator/>
+          <MenuItem Header="{sd:LocalizeString Cut, Context=Menu}"
+                    Command="{Binding CutContentCommand}"
+                    InputGesture="{x:Static sd:EditCommands.CutGesture}">
+            <MenuItem.Icon>
+              <Image Source="{StaticResource ImageCut}"/>
+            </MenuItem.Icon>
+          </MenuItem>
+          <MenuItem Header="{sd:LocalizeString Copy, Context=Menu}"
+                    Command="{Binding CopyContentCommand}"
+                    InputGesture="{x:Static sd:EditCommands.CopyGesture}">
+            <MenuItem.Icon>
+              <Image Source="{StaticResource ImageCopy}"/>
+            </MenuItem.Icon>
+          </MenuItem>
+          <MenuItem Header="{sd:LocalizeString Copy with dependencies, Context=Menu}"
+                    Command="{Binding CopyAssetsRecursivelyCommand}"
+                    InputGesture="Ctrl+Shift+C">
+            <MenuItem.Icon>
+              <Image Source="{StaticResource ImageCopyRecursively}"/>
+            </MenuItem.Icon>
+          </MenuItem>
+          <MenuItem Header="{sd:LocalizeString Paste, Context=Menu}"
+                    Command="{Binding PasteCommand}"
+                    InputGesture="{x:Static sd:EditCommands.PasteGesture}">
+            <MenuItem.Icon>
+              <Image Source="{StaticResource ImagePaste}"/>
+            </MenuItem.Icon>
+          </MenuItem>
+          <MenuItem Header="{sd:LocalizeString Delete, Context=Menu}"
+                    Command="{Binding DeleteContentCommand}"
+                    InputGesture="{x:Static sd:EditCommands.DeleteGesture}">
+            <MenuItem.Icon>
+              <Image Source="{StaticResource ImageDelete}"/>
+            </MenuItem.Icon>
+          </MenuItem>
+          <Separator/>
+          <MenuItem Header="{sd:LocalizeString Copy asset URL, Context=Menu}"
+                    Command="{Binding CopyAssetUrlCommand}"/>
+          <MenuItem Header="{sd:LocalizeString Rename, Context=Menu}"
+                    Command="{x:Static sd:BeginEditCommand.Instance}"
+                    CommandParameter="{Binding SingleSelectedContent}"
+                    InputGesture="{x:Static sd:EditCommands.RenameGesture}">
+            <MenuItem.Icon>
+              <Image Source="{StaticResource ImageRename}"/>
+            </MenuItem.Icon>
+          </MenuItem>
+          <Separator/>
+          <MenuItem Header="{sd:LocalizeString Create folder, Context=Menu}"
+                    Command="{Binding Session.NewDirectoryCommand}"
+                    CommandParameter="{Binding SelectedLocations}"
+                    IsVisible="{Binding Session.NewDirectoryCommand.IsEnabled}">
+            <MenuItem.Icon>
+              <Image Source="{StaticResource ImageNewFolder}"/>
+            </MenuItem.Icon>
+          </MenuItem>
+          <MenuItem Header="{sd:LocalizeString Update selected assets from their source, Context=Menu}"
+                    Command="{Binding Session.SourceTracker?.UpdateSelectedAssetsFromSourceCommand}"
+                    InputGesture="Ctrl+R"/>
+          <MenuItem Header="{sd:LocalizeString Update all assets with modified source, Context=Menu}"
+                    Command="{Binding Session.SourceTracker?.UpdateAllAssetsWithModifiedSourceCommand}"
+                    InputGesture="Ctrl+Shift+R"/>
+        </ContextMenu>
+      </ListBox.ContextMenu>
       <ItemsControl.ItemsPanel>
         <ItemsPanelTemplate>
           <WrapPanel />
@@ -210,7 +319,13 @@
               <dd:AssetDragBehavior/>
             </Interaction.Behaviors>
             <TextBlock Text="Asset: " />
-            <TextBlock Text="{Binding Name}" />
+            <TextBlock Text="{Binding Name}" IsVisible="{Binding !IsEditing}" />
+            <!-- Renaming in place (F2): the box replaces the name while the asset is editing -->
+            <TextBox Text="{Binding Name, Mode=OneWay}" IsVisible="{Binding IsEditing}" MinWidth="80">
+              <Interaction.Behaviors>
+                <sd:InlineEditBehavior Name="{Binding Name, Mode=TwoWay}" IsEditing="{Binding IsEditing, Mode=TwoWay}"/>
+              </Interaction.Behaviors>
+            </TextBox>
             <!-- Unsaved changes, as the WPF asset view marks them -->
             <TextBlock Text="*" IsVisible="{Binding IsDirty}" />
             <Image Source="{Binding ThumbnailData?.Presenter, Converter={gscv:StrideImage}}"
