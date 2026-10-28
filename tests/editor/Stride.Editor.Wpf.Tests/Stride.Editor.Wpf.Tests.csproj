@@ -7,8 +7,8 @@
     <TargetFramework>net10.0-windows10.0.22621.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <RootNamespace>Stride.Editor.Tests</RootNamespace>
-    <AssemblyName>Stride.Editor.Tests</AssemblyName>
+    <RootNamespace>Stride.Editor.Wpf.Tests</RootNamespace>
+    <AssemblyName>Stride.Editor.Wpf.Tests</AssemblyName>
     <IsPackable>false</IsPackable>
     <StrideSkipAutoPack>true</StrideSkipAutoPack>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>

@@ -117,9 +117,9 @@ jobs:
             -nr:false -v:m -p:WarningLevel=0 `
             -p:Configuration=${{ inputs.build-type || 'Debug' }}
 
-      - name: Build Stride.Editor.Tests
+      - name: Build Stride.Editor.Wpf.Tests
         run: |
-          dotnet build tests\editor\Stride.Editor.Tests\Stride.Editor.Tests.csproj `
+          dotnet build tests\editor\Stride.Editor.Wpf.Tests\Stride.Editor.Wpf.Tests.csproj `
             -nr:false -v:m -p:WarningLevel=0 `
             -p:Configuration=${{ inputs.build-type || 'Debug' }}
 
@@ -147,16 +147,16 @@ jobs:
       # EditorScreenshotTests.Capture is an xunit [Theory] over Fixtures(); each entry spawns
       # the AutoTesting CLI as a subprocess (per-fixture WPF singleton-state isolation),
       # snapshots the runner output into <worktree>/ui-test-out-dpi<N>/<fixture>/, then runs
-      # ScreenshotComparator.Compare against tests/editor/Stride.Editor.Tests/baselines/dpi<N>/. ANTHROPIC_API_KEY
+      # ScreenshotComparator.Compare against tests/editor/Stride.Editor.Wpf.Tests/baselines/dpi<N>/. ANTHROPIC_API_KEY
       # opts the comparator into Claude vision second-opinions on frames that exceed LPIPS —
       # cost is bounded because Claude only fires on already-failing frames.
       - name: Run editor screenshot tests
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
-          dotnet test tests\editor\Stride.Editor.Tests\Stride.Editor.Tests.csproj `
+          dotnet test tests\editor\Stride.Editor.Wpf.Tests\Stride.Editor.Wpf.Tests.csproj `
             --no-build `
-            --filter "FullyQualifiedName~Stride.Editor.Tests.EditorScreenshotTests" `
+            --filter "FullyQualifiedName~Stride.Editor.Wpf.Tests.EditorScreenshotTests" `
             --logger "trx;LogFileName=editor-screenshots.trx" `
             --results-directory TestResults `
             -p:Configuration=${{ inputs.build-type || 'Debug' }}

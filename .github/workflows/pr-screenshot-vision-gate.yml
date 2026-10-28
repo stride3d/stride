@@ -50,6 +50,7 @@ jobs:
           allow-unsafe-pr-checkout: true   # images only, nothing from it is executed
           lfs: true
           sparse-checkout: |
+            tests/editor/Stride.Editor.Wpf.Tests/baselines
             tests/editor/Stride.Editor.Tests/baselines
             tests/editor/baselines
             tests/enduser/Stride.Samples.Tests/Fixtures
@@ -106,9 +107,11 @@ jobs:
           done
 
           # Editor captures → per-DPI editor baselines (the capture dir name encodes the DPI bucket,
-          # e.g. ui-test-out-dpi100 → tests/editor/Stride.Editor.Tests/baselines/dpi100). Uses the editor vision prompt.
-          # PRs branched before the editor tests moved have them in tests/editor/baselines.
-          editor_baselines=tests/editor/Stride.Editor.Tests/baselines
+          # e.g. ui-test-out-dpi100 → tests/editor/Stride.Editor.Wpf.Tests/baselines/dpi100). Uses the editor vision prompt.
+          # PRs branched before the editor tests moved have them in tests/editor/Stride.Editor.Tests/baselines
+          # (before the Wpf rename) or tests/editor/baselines.
+          editor_baselines=tests/editor/Stride.Editor.Wpf.Tests/baselines
+          [ -d "$golds/$editor_baselines" ] || editor_baselines=tests/editor/Stride.Editor.Tests/baselines
           [ -d "$golds/$editor_baselines" ] || editor_baselines=tests/editor/baselines
           for d in artifacts/*/ui-test-out-dpi*; do
             [ -d "$d" ] || continue

@@ -2,12 +2,14 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Runtime.CompilerServices;
+using Stride.Assets.Entities;
 using Stride.Assets.Models;
 using Stride.Assets.Presentation.AssetEditors.Gizmos;
 using Stride.Assets.Presentation.Thumbnails;
 using Stride.Core.Assets.Compiler;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Keys;
 using Stride.Core.Reflection;
+using Stride.Editor.Preview;
 using Stride.Editor.Thumbnails;
 using Stride.Engine.Gizmos;
 
@@ -48,5 +50,15 @@ public class TestSharedDiscovery
     {
         var registry = new AssetCompilerRegistry();
         Assert.IsType<ModelThumbnailCompiler>(registry.GetCompiler(typeof(ModelAsset), typeof(ThumbnailCompilationContext)));
+    }
+
+    [Theory]
+    [InlineData(typeof(AnimationAsset), typeof(PreviewCompilationContext), typeof(AnimationAssetPreviewCompiler))]
+    [InlineData(typeof(AnimationAsset), typeof(EditorGameCompilationContext), typeof(AnimationAssetEditorGameCompiler))]
+    [InlineData(typeof(PrefabAsset), typeof(PreviewCompilationContext), typeof(PrefabAssetPreviewCompiler))]
+    public void PreviewCompilersAreRegistered(Type assetType, Type context, Type compiler)
+    {
+        var registry = new AssetCompilerRegistry();
+        Assert.IsType(compiler, registry.GetCompiler(assetType, context));
     }
 }

@@ -5,7 +5,8 @@ Temporary home of the WPF-free code of `Stride.Editor.Wpf`, so that the plugin e
 ## Rules
 
 * No dependency on WPF, Windows Forms or Avalonia, and no Windows-only target framework (`$(StrideXplatEditorTargetFramework)`).
-* References: `Stride.Assets` and the engine, `Stride.TextureConverter`, `Stride.Core.Assets.Editor.Common`.
+* References: `Stride.Assets` and the engine, `Stride.TextureConverter`, `Stride.Core.Assets.Editor.Common`. Not the asset types
+  of `Stride.Assets.Models`: what needs them goes to `Stride.Assets.Presentation.Common`.
 * Types keep the namespaces they had in `Stride.Editor.Wpf`, which references this project, so WPF code compiles unchanged.
 * The assembly registers itself as an assets assembly (`CommonModule`), so the editor's scanning finds its types.
 
@@ -16,11 +17,11 @@ Mainly the editor game base classes and services, the content loader interface, 
 Since slice 4 (plugin contracts) also `StrideAssetsPlugin` (the toolkit-neutral plugin base; `StrideAssetsWpfPlugin` in `Stride.Editor.Wpf` adds the resource dictionaries), the preview contracts `IPreviewBuilder`, `IAssetPreview`, `AssetPreview`, `IPreviewView`, `IAssetPreviewViewModel` and their attributes (the WPF view host is `IWpfPreviewBuilder` in `Stride.Editor.Wpf`), `EditorGameServiceAttribute`, `GameSettingsProviderService` and the preview build units.
 
 Since slice 8 (agnostic `Stride.Editor`) also the build units and compilers that need neither WPF nor the WPF session:
-`EditorGameBuildUnit`, `PrecompiledAssetBuildUnit`, `PreviewCompilationContext`, `ThumbnailListCompiler`,
-`AnimationAssetEditorGameCompiler`, `AnimationAssetPreviewCompiler` and `PrefabAssetPreviewCompiler` (hence the
-`Stride.Assets.Models` reference). The session-bound services (`GameStudioBuilderService`, `GameStudioDatabase`,
-`StrideShaderImporter`, `EditorContentLoader`, `GameStudioThumbnailService`, `ThumbnailAssetBuildUnit`) exist twice, in
-`Stride.Editor.Wpf` and in `Stride.Editor`, until the consolidation.
+`EditorGameBuildUnit`, `PrecompiledAssetBuildUnit`, `PreviewCompilationContext`, `ThumbnailListCompiler`. The animation and
+prefab preview compilers came along, then moved to `Stride.Assets.Presentation.Common` (they compile Stride asset types). The
+session-bound services (`GameStudioBuilderService`, `GameStudioDatabase`, `StrideShaderImporter`, `EditorContentLoader`,
+`GameStudioThumbnailService`, `ThumbnailAssetBuildUnit`) exist twice, in `Stride.Editor.Wpf` and in the agnostic layer
+(`Stride.Editor`, and `Stride.Assets.Editor` for the shader importer and the content loader), until the consolidation.
 
 ## Notes
 

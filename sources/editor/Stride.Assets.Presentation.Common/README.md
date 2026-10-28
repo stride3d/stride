@@ -15,6 +15,8 @@ Mainly gizmos, debug shapes, the entity hierarchy, scene and prefab editor games
 
 Since slice 4 (plugin contracts) also what the plugin editor packages derive from or call: `IEntityHierarchyItemViewModel` with the entity factories (`IEntityFactory`, `EntityFactory`, `EntityFactoryCategory`) and the add-asset policies (`IAddAssetPolicy`, `AddAssetPolicyBase` and its component, entities and custom variants), the preview base classes (`BuildAssetPreview`, `PreviewFromEntity`, `PreviewFromSpriteBatch`, `AssetPreviewViewModel`), the editor game controller contracts (`IEditorGameController`, `IEntityHierarchyEditorController`, `ISceneEditorController`) and `EditorGameComponentChangeWatcherService`. The WPF controllers, item view models and views implement these contracts; plugin views go to a `.Wpf` companion package (`Stride.Audio.Editor.Wpf`, `Stride.SpriteStudio.Editor.Wpf`).
 
+Since the editor cleanup also the animation and prefab preview compilers (`AnimationAssetEditorGameCompiler`, `AnimationAssetPreviewCompiler`, `PrefabAssetPreviewCompiler`, namespace `Stride.Editor.Preview`), which came from `Stride.Editor.Common`: the animation ones were its only use of `Stride.Assets.Models`, which it no longer references, and the prefab one stays with them.
+
 ## Notes
 
 * This project goes away in Phase 3 of the port, when its code merges into the agnostic editor projects.

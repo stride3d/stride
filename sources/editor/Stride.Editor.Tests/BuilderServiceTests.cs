@@ -5,9 +5,9 @@ using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Tests.Helpers;
 using Stride.Core.BuildEngine;
 using Stride.Editor.Build;
-using Stride.Editor.Services.Tests.Helpers;
+using Stride.Editor.Tests.Helpers;
 
-namespace Stride.Editor.Services.Tests;
+namespace Stride.Editor.Tests;
 
 public sealed class BuilderServiceTests
 {
@@ -29,13 +29,31 @@ public sealed class BuilderServiceTests
     }
 
     [Fact]
-    public async Task WaitForShadersReturnsWhenTheSessionHasNoSystemShaders()
+    public async Task WaitForShadersReturnsWithoutAShaderImporter()
     {
         using var fixture = await ServicesSessionFixture.OpenAsync(withBuilder: true, ("Textures/Wood", new TestEditorAsset { Value = "wood" }));
 
-        // No package of the test session carries shaders: the WPF studio would wait for the Stride package's ones
-        var waited = Task.Run(fixture.Builder.WaitForShaders);
-        Assert.True(waited.Wait(Timeout), "WaitForShaders blocked although there are no system shaders to compile");
+        // Nothing to import: the WPF studio would wait for the shaders of the Stride package
+        Assert.Null(fixture.Builder.ShaderImportProgress);
+        Assert.True(fixture.Builder.AreShadersLoaded);
+        // The blocking wait returns too (a timeout means it blocked)
+        await Task.Run(fixture.Builder.WaitForShaders).WaitAsync(Timeout);
+    }
+
+    [Fact]
+    public async Task TheBuilderBuildsTheStepsOfItsShaderImporter()
+    {
+        var importer = new FakeShaderImporter();
+        using var fixture = await ServicesSessionFixture.OpenWithShaderImporterAsync(importer, ("Textures/Wood", new TestEditorAsset { Value = "wood" }));
+        var builder = fixture.Builder;
+
+        // The builder asks the importer once, for the session, and builds the steps it returns
+        Assert.Same(fixture.Session, Assert.Single(importer.Sessions));
+        Assert.NotNull(builder.ShaderImportProgress);
+        await builder.WaitForShadersAsync().WaitAsync(Timeout);
+        Assert.True(importer.Step.Executed);
+        Assert.True(builder.AreShadersLoaded);
+        await Task.Run(builder.WaitForShaders).WaitAsync(Timeout);
     }
 
     [Fact]

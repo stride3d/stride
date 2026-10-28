@@ -5,7 +5,7 @@
 using System.Threading.Tasks;
 using Stride.GameStudio.AutoTesting;
 
-namespace Stride.Editor.Tests;
+namespace Stride.Editor.Wpf.Tests;
 
 [UITest]
 public class EmptyEditor : IUITest

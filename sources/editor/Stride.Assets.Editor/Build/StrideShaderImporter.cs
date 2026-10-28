@@ -10,17 +10,21 @@ using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.BuildEngine;
 using Stride.Assets.Effect;
+using Stride.Editor.Build;
 
-namespace Stride.Editor.Build
+namespace Stride.Assets.Editor.Build
 {
-    public class StrideShaderImporter
+    /// <summary>
+    /// Imports the shader assets (<see cref="EffectShaderAsset"/>) of the packages of a session.
+    /// </summary>
+    public sealed class StrideShaderImporter : IShaderImporter
     {
         /// <summary>
         /// The current session being processed
         /// </summary>
         private readonly HashSet<string> systemProjectsLoaded = new HashSet<string>();
 
-        private class UpdateImportShaderCacheBuildStep : BuildStep
+        private sealed class UpdateImportShaderCacheBuildStep : BuildStep
         {
             private readonly HashSet<string> cachedProject;
 
