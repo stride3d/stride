@@ -196,6 +196,16 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     private EditorDialogService DialogService => ServiceProvider.Get<EditorDialogService>();
 
     /// <summary>
+    /// Starts the editor in a new process; <c>null</c> when the host cannot (the editor then restarts in this process).
+    /// </summary>
+    private EditorProcessService? ProcessService => ServiceProvider.TryGet<EditorProcessService>();
+
+    /// <summary>
+    /// Whether this process loaded a session already, even if it is closed now: the next one needs a new process.
+    /// </summary>
+    private bool NeedsNewProcess => ProcessService?.HasLoadedSession == true;
+
+    /// <summary>
     /// Opens the session the editor was started with.
     /// </summary>
     /// <returns><c>true</c> when the session is open, <c>false</c> when it failed or the user declined, <c>null</c> when the user cancelled the loading.</returns>
@@ -255,20 +265,15 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
 
         if (filePath is null) return false;
 
-        // We have a session, let's restart cleanly
-        if (session is not null)
-        {
-            if (!await CloseSessionAsync())
-                return false;
-            CloseSessionServices();
-            (Application.Current as App)?.Restart(filePath);
-            return true;
-        }
+        // We have a session, or had one, let's restart cleanly
+        if (session is not null || NeedsNewProcess)
+            return await RestartAsync(filePath);
 
         // The session needs MSBuild to load the projects of the solution
         if (!await EnsureMSBuildAsync())
             return false;
 
+        ProcessService?.NotifySessionLoading();
         var sessionResult = new PackageSessionResult();
         var loadedSession = await SessionViewModel.OpenSessionAsync(filePath, sessionResult, this, ServiceProvider, token);
 
@@ -304,6 +309,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
         if (!await EnsureMSBuildAsync())
             return false;
 
+        ProcessService?.NotifySessionLoading();
         var createdSession = await SessionViewModel.CreateNewSessionAsync(parameters, this, ServiceProvider);
         if (createdSession is null)
         {
@@ -542,18 +548,14 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
 
     private async Task OnNewSession()
     {
-        if (session is null)
+        if (session is null && !NeedsNewProcess)
         {
             await SelectProjectAsync(exitOnCancel: false);
             return;
         }
 
-        // We have a session, let's restart empty with the project selection
-        if (Application.Current is App app && await CloseSessionAsync())
-        {
-            CloseSessionServices();
-            app.Restart(selectProject: true);
-        }
+        // We have a session, or had one, let's restart empty with the project selection
+        await RestartAsync(null);
     }
 
     private async Task OnSave()
@@ -565,11 +567,29 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     private async Task OnReload()
     {
         // The same session in a fresh editor, as WPF's Reload project does
-        if (session is not null && sessionPath is { } path && Application.Current is App app && await CloseSessionAsync())
-        {
-            CloseSessionServices();
-            app.Restart(path);
-        }
+        if (session is not null && sessionPath is { } path)
+            await RestartAsync(path);
+    }
+
+    /// <summary>
+    /// Closes the session, after asking whether to save it, and opens another one, or the project selection, in a fresh editor:
+    /// a new process once this one has loaded a session (<see cref="EditorProcessService"/>), as WPF's New, Open and Reload
+    /// restart the process; otherwise, or when the host cannot start one, in this process.
+    /// </summary>
+    /// <param name="filePath">The session to open; <c>null</c> for the project selection.</param>
+    /// <returns><c>true</c> when the editor restarts, <c>false</c> when the user kept the session open.</returns>
+    private async Task<bool> RestartAsync(UFile? filePath)
+    {
+        if (!await CloseSessionAsync())
+            return false;
+
+        var restartProcess = session is not null || NeedsNewProcess;
+        CloseSessionServices();
+        if (restartProcess && ProcessService is { } process)
+            process.Restart(filePath);
+        else
+            (Application.Current as App)?.Restart(filePath, selectProject: filePath is null);
+        return true;
     }
 
     /// <summary>

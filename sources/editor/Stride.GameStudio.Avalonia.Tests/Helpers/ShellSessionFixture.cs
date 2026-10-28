@@ -23,6 +23,7 @@ internal sealed class ShellSessionFixture : IDisposable
     public const string PackageName = "TestGame";
 
     private bool disposed;
+    private SessionViewModel? openedSession;
 
     private ShellSessionFixture(string directory, ViewModelServiceProvider serviceProvider)
     {
@@ -81,6 +82,8 @@ internal sealed class ShellSessionFixture : IDisposable
             fixture.Dispose();
             throw new InvalidOperationException($"The session could not be opened ({opened}).");
         }
+        // The main view model forgets it when the editor restarts; it is still destroyed with the fixture
+        fixture.openedSession = fixture.Main.Session;
         return fixture;
     }
 
@@ -103,7 +106,7 @@ internal sealed class ShellSessionFixture : IDisposable
 
         // The preview panel owns the preview service of the session
         Main.Preview?.Dispose();
-        if (Main.Session is { } session)
+        if ((Main.Session ?? openedSession) is { } session)
         {
             var builder = session.ServiceProvider.TryGet<GameStudioBuilderService>();
             if (builder != null)

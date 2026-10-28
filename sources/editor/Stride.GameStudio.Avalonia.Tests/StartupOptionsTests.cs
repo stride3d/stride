@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Stride.Core.IO;
+
 namespace Stride.GameStudio.Avalonia.Tests;
 
 /// <summary>
@@ -85,5 +87,35 @@ public sealed class StartupOptionsTests
 
         Assert.Null(options.InitialSessionPath);
         Assert.Equal(["/Unknown", "--other"], options.UnknownArguments);
+    }
+
+    [Fact]
+    public void ARestartKeepsTheOptionsAndOpensTheNextSession()
+    {
+        var options = StartupOptions.Parse(["/DisableThumbnails", "--graphics-api", "Vulkan", "/home/user/MyGame/MyGame.sln", "/DebugEditorGraphics", "/RecordEffects", "effects.log"]);
+
+        UFile next = "/home/user/Other/Other.sln";
+        Assert.Equal(["/DisableThumbnails", "--graphics-api", "Vulkan", "/DebugEditorGraphics", "/RecordEffects", "effects.log", next.ToOSPath()],
+            options.GetRestartArguments(next, launcherNotified: true));
+    }
+
+    [Fact]
+    public void ARestartWithoutSessionShowsTheProjectSelection()
+    {
+        var options = StartupOptions.Parse(["/DisablePreview", "/home/user/MyGame/MyGame.sln"]);
+
+        Assert.Equal(["/DisablePreview", "/NewProject"], options.GetRestartArguments(null, launcherNotified: true));
+    }
+
+    [Fact]
+    public void ARestartTellsTheLauncherOnlyIfThisEditorDidNot()
+    {
+        // As WPF's restart: once the launcher heard from this editor, the next one does not tell it again
+        var options = StartupOptions.Parse(["/LauncherPipe", "stride-launcher-42", "/LauncherWindowHandle", "1234", "/NewProject", "/Unknown"]);
+
+        UFile session = "/home/user/MyGame/MyGame.sln";
+        Assert.Equal([session.ToOSPath()], options.GetRestartArguments(session, launcherNotified: true));
+        Assert.Equal(["/LauncherPipe", "stride-launcher-42", "/LauncherWindowHandle", "1234", session.ToOSPath()],
+            options.GetRestartArguments(session, launcherNotified: false));
     }
 }
