@@ -24,6 +24,8 @@
   <ItemGroup>
     <!-- The shell itself: the tests run its App headless, with its services and plugins -->
     <ProjectReference Include="..\Stride.GameStudio.Avalonia\Stride.GameStudio.Avalonia.csproj" />
+    <!-- A plugin package declaring type and enum images (the particle state control) -->
+    <ProjectReference Include="..\..\plugins\Particles\Stride.Particles.Editor\Stride.Particles.Editor.csproj" />
   </ItemGroup>
   <ItemGroup>
     <!-- The package of test templates of the Core.Assets.Editor tests (xunit 2, not referenced): the same file -->

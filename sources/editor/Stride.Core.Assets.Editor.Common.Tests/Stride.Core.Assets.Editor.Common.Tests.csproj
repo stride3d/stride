@@ -16,6 +16,9 @@
     <ProjectReference Include="..\Stride.Core.Assets.Editor.Common\Stride.Core.Assets.Editor.Common.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Resources\TestPluginImage.txt" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
