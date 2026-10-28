@@ -13,9 +13,13 @@
         MinWidth="400" MinHeight="300"
         ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner">
-  <Grid RowDefinitions="*, Auto">
+  <Grid RowDefinitions="Auto, *, Auto">
+    <!-- What the asset is picked for, when the caller says -->
+    <TextBlock x:Name="MessageText" Grid.Row="0" Margin="8,8,8,0" TextWrapping="Wrap"
+               Text="{Binding Message}"
+               IsVisible="{Binding Message, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
     <!-- Locations and assets -->
-    <Grid Grid.Row="0" ColumnDefinitions="200, Auto, *">
+    <Grid Grid.Row="1" ColumnDefinitions="200, Auto, *">
       <!-- The packages and the folders of their assets -->
       <TreeView x:Name="Locations"
                 Grid.Column="0"
@@ -62,7 +66,7 @@
     </Grid>
 
     <!-- Buttons -->
-    <StackPanel Grid.Row="1"
+    <StackPanel Grid.Row="2"
                 Orientation="Horizontal" HorizontalAlignment="Right"
                 Spacing="8" Margin="8">
       <Button x:Name="OkButton"
