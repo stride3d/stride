@@ -372,7 +372,7 @@ namespace Stride.GameStudio.AssetsEditors
         private void CloseEditorWindow([NotNull] AssetViewModel asset)
         {
             // make asset view active
-            asset.Session.ActiveProperties = asset.Session.AssetViewProperties;
+            session.ActiveProperties = session.AssetViewProperties;
             // remove editor
             RemoveAssetEditor(asset);
             // if no more editor open, change layout

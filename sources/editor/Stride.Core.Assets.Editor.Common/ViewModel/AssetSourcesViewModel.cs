@@ -123,7 +123,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             };
             workProgress.RegisterProgressStatus(logger, true);
 
-            workProgress.ServiceProvider.Get<IEditorDialogService>().ShowProgressWindow(workProgress, 500);
+            workProgress.ServiceProvider.Get<IProgressWindowService>().ShowProgressWindow(workProgress, 500);
 
             using (var transaction = asset.UndoRedoService.CreateTransaction())
             {

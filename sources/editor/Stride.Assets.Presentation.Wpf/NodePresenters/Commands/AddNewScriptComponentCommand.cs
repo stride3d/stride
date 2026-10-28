@@ -18,6 +18,7 @@ using Stride.Core;
 using Stride.Engine;
 using Stride.Assets.Presentation.ViewModel;
 using Stride.Core.Assets.Editor.Components.Properties;
+using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Assets.Presentation.AssetEditors;
 using Stride.Core.Presentation.Dirtiables;
 
@@ -49,7 +50,8 @@ namespace Stride.Assets.Presentation.NodePresenters.Commands
                 return;
 
             var undoRedoService = assetPresenter.Asset.UndoRedoService;
-            var session = assetPresenter.Asset.Session;
+            // Templates run in the asset view of the editor's session
+            var session = (SessionViewModel)assetPresenter.Asset.Session;
             var serviceProvider = assetPresenter.Asset.ServiceProvider;
 
             var scriptSourceCodeProvider = serviceProvider.TryGet<IEntityComponentSourceCodeResolver>();
@@ -79,18 +81,18 @@ namespace Stride.Assets.Presentation.NodePresenters.Commands
             var componentType = componentTypes.FirstOrDefault();
             if (componentType != null)
             {
-                using (var transaction = session.UndoRedoService.CreateTransaction())
+                using (var transaction = undoRedoService.CreateTransaction())
                 {
                     object component = Activator.CreateInstance(componentType);
                     var index = new NodeIndex(nodePresenter.Children.Count);
                     nodePresenter.AddItem(component);
-                    session.UndoRedoService.PushOperation(
+                    undoRedoService.PushOperation(
                         new AnonymousDirtyingOperation(
                             assetPresenter.Asset.Dirtiables,
                             () => nodePresenter.RemoveItem(component, index),
                             () => nodePresenter.AddItem(component)));
 
-                    session.UndoRedoService.SetName(transaction, "Add new script component.");
+                    undoRedoService.SetName(transaction, "Add new script component.");
                 }
             }
         }

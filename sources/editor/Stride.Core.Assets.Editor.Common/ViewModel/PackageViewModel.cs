@@ -40,7 +40,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         protected readonly SortedObservableCollection<DirtiableEditableViewModel> content = new SortedObservableCollection<DirtiableEditableViewModel>(ComparePackageContent);
         private readonly List<AssetViewModel> deletedAssetsSinceLastSave = new List<AssetViewModel>();
 
-        public PackageViewModel(SessionViewModel session, PackageContainer packageContainer, bool packageAlreadyInSession)
+        public PackageViewModel(ISessionViewModel session, PackageContainer packageContainer, bool packageAlreadyInSession)
             : base(session)
         {
             PackageContainer = packageContainer;
@@ -103,7 +103,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// <summary>
         /// Gets the properties of the package.
         /// </summary>
-        public SessionObjectPropertiesViewModel Properties => Session.AssetViewProperties;
+        public ISessionObjectPropertiesViewModel Properties => Session.AssetViewProperties;
 
         /// <summary>
         /// Gets whether this package is editable.
@@ -253,13 +253,10 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 GetOrCreateAssetDirectory(explicitDirectory, false);
             }
 
-            var pluginService = Session.ServiceProvider.Get<IAssetsPluginService>();
-            foreach (var plugin in pluginService.Plugins.OfType<AssetsEditorPlugin>())
+            var pluginService = Session.ServiceProvider.Get<ISessionObjectsPluginService>();
+            foreach (var property in pluginService.GetProfileSettings())
             {
-                foreach (var property in plugin.ProfileSettings)
-                {
-                    RegisterSettings(property);
-                }
+                RegisterSettings(property);
             }
         }
 
@@ -404,7 +401,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             var assetList = Package.Assets.Where(item => IsReferenceable(item.Asset)).ToDictionary(x => x.Location.FullPath);
             var assetViewModels = Assets.Where(x => IsReferenceable(x.AssetItem.Asset)).ToList();
             // Runs after each change: the previous result is replaced
-            var logKey = LogKey.Get($"{AssetLogViewModel.ConsistencyLogName} {Name}");
+            var logKey = LogKey.Get($"{IAssetLogViewModel.ConsistencyLogName} {Name}");
             Session.AssetLog.ClearMessages(logKey);
             var logger = Session.AssetLog.GetLogger(logKey);
 
@@ -484,7 +481,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 {
                     workProgress.RegisterProgressStatus(loggerResult, true);
 
-                    ServiceProvider.Get<IEditorDialogService>().ShowProgressWindow(workProgress, 500);
+                    ServiceProvider.Get<IProgressWindowService>().ShowProgressWindow(workProgress, 500);
 
                 	await Task.Run(() =>
                     {
@@ -601,7 +598,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         }
 
         // TODO: Move this in an utility class
-        internal static List<AssetViewModel> GetReferencers(IAssetDependencyManager dependencyManager, SessionViewModel session, IEnumerable<AssetItem> assets)
+        internal static List<AssetViewModel> GetReferencers(IAssetDependencyManager dependencyManager, ISessionViewModel session, IEnumerable<AssetItem> assets)
         {
             var result = new List<AssetViewModel>();
 
@@ -847,10 +844,10 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
     public class UnloadedPickablePackageViewModel : PickablePackageViewModel
     {
-        private readonly SessionViewModel session;
+        private readonly ISessionViewModel session;
         private readonly PackageName package;
 
-        public UnloadedPickablePackageViewModel(SessionViewModel session, PackageName package) : base(session.ServiceProvider)
+        public UnloadedPickablePackageViewModel(ISessionViewModel session, PackageName package) : base(session.ServiceProvider)
         {
             this.session = session;
             this.package = package;

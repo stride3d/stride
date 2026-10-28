@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -35,7 +37,7 @@ namespace Stride.Core.Presentation.Services
         /// <summary>
         /// Displays a modal message box with an additional checkbox between the message and the buttons,
         /// and blocks until the user closed the message box.
-        /// The message displayed in the checkbox is the localized string <see cref="Resources.Strings.DontAskMeAgain"/>.
+        /// The message displayed in the checkbox is the localized string "Don't ask me again".
         /// </summary>
         /// <param name="message">The text to display as message in the message box.</param>
         /// <param name="isChecked">The initial status of the check box.</param>

@@ -20,7 +20,7 @@ using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.ViewModel
 {
-    public class AssetSourceTrackerViewModel : DispatcherViewModel
+    public class AssetSourceTrackerViewModel : DispatcherViewModel, IAssetSourceTrackerViewModel
     {
         private readonly PackageSession session;
         private readonly SessionViewModel sessionViewModel;
@@ -79,6 +79,8 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
             UpdateAllAssetsWithModifiedSourceCommand.IsEnabled = assetsToUpdate.Count > 0;
         }
+
+        void IAssetSourceTrackerViewModel.UpdateAssetStatus(AssetViewModel asset) => UpdateAssetStatus(asset);
 
         private Task UpdateSelectedAssetsFromSource()
         {

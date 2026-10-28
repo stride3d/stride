@@ -985,6 +985,8 @@
   <BitmapImage x:Key="ImageNewAsset" UriSource="../Resources/Icons/plus2_math-24.png" />
   <BitmapImage x:Key="ImageImportAsset" UriSource="../Resources/Icons/import-24.png" />
   <BitmapImage x:Key="ImageEditAsset" UriSource="../Resources/Icons/edit-24.png" />
+  <BitmapImage x:Key="ImageCopyLink" UriSource="../Resources/Icons/copy_link-32.png" />
+  <BitmapImage x:Key="ImageDeleteLink" UriSource="../Resources/Icons/delete_link-32.png" />
   <BitmapImage x:Key="UpdateSelectedAssetsFromSource" UriSource="../Resources/Icons/reimport-24.png" />
   <BitmapImage x:Key="UpdateAllAssetsWithModifiedSource" UriSource="../Resources/Icons/reimport-24.png" />
   <BitmapImage x:Key="ImageReimportEffects" UriSource="../Resources/Icons/teapot-24.png" />

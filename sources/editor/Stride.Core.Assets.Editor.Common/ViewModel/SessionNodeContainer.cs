@@ -11,12 +11,12 @@ namespace Stride.Core.Assets.Editor.ViewModel
     {
         private readonly Type[] additionalPrimitiveTypes;
         
-        public SessionNodeContainer(SessionViewModel session)
+        public SessionNodeContainer(ISessionViewModel session)
         {
             if (session == null) throw new ArgumentNullException(nameof(session));
 
             // Apply primitive types, commands and associated data providers that comes from plugins
-            var pluginService = session.ServiceProvider.Get<IAssetsPluginService>();
+            var pluginService = session.ServiceProvider.Get<ISessionObjectsPluginService>();
             additionalPrimitiveTypes = pluginService.GetPrimitiveTypes(session).ToArray();
         }
 
