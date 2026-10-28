@@ -3,11 +3,13 @@
 
 using Avalonia.Controls;
 using Stride.Core.Assets.Editor.Avalonia.Views;
+using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModel.Progress;
 using Stride.Core.Assets.Editor.ViewModels;
+using Stride.Core.Extensions;
 using Stride.Core.Presentation.Avalonia.Services;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
@@ -15,7 +17,7 @@ using Stride.GameStudio.Avalonia.Views;
 
 namespace Stride.GameStudio.Avalonia.Services;
 
-internal class EditorDialogService : DialogService, IEditorDialogService
+internal class EditorDialogService : DialogService, IEditorDialogService, IProgressWindowService
 {
     private DebugWindow? debugWindow;
     private readonly IViewModelServiceProvider serviceProvider;
@@ -67,37 +69,85 @@ internal class EditorDialogService : DialogService, IEditorDialogService
 
     public void ShowProgressWindow(WorkProgressViewModel workProgress)
     {
+        ArgumentNullException.ThrowIfNull(workProgress);
         if (!workProgress.WorkDone || workProgress.ShouldStayOpen())
         {
-            Dispatcher.Invoke(() =>
-            {
-                var progressWindow = new ProgressWindow
-                {
-                    DataContext = workProgress
-                };
-                workProgress.WorkFinished += (_, _) =>
-                {
-                    if (!workProgress.ShouldStayOpen()) progressWindow.Close();
-                };
-                progressWindow.Closing += (_, e) =>
-                {
-                    if (!workProgress.WorkDone) e.Cancel = true;
-                };
-                progressWindow.Closed += (_, _) =>
-                {
-                    workProgress.NotifyWindowClosed();
-                };
-                workProgress.NotifyWindowWillOpen();
-                
-                // A dialog needs a visible owner; before the main window shows (or without one), the progress window stands alone
-                if (MainWindow is { IsVisible: true }) progressWindow.ShowDialog(MainWindow);
-                else progressWindow.Show();
-            });
+            workProgress.NotifyWindowWillOpen();
+            OpenProgressWindow(workProgress);
         }
         else
         {
             workProgress.NotifyWindowClosed();
         }
+    }
+
+    /// <inheritdoc/>
+    /// <remarks>
+    /// As in WPF, the window opens when the delay is over while the work goes on, or as soon as the work finishes when it should stay
+    /// open (its errors); it does not open at all when the work finishes before the delay without a reason to stay open.
+    /// </remarks>
+    public void ShowProgressWindow(WorkProgressViewModel workProgress, int minDelay)
+    {
+        ArgumentNullException.ThrowIfNull(workProgress);
+        // The work waits for the window to close (NotifyWorkFinished) from now on
+        workProgress.NotifyWindowWillOpen();
+        ShowProgressWindowAfterDelayAsync(workProgress, minDelay).Forget();
+    }
+
+    private async Task ShowProgressWindowAfterDelayAsync(WorkProgressViewModel workProgress, int minDelay)
+    {
+        var workFinished = new TaskCompletionSource();
+        void OnWorkFinished(object? sender, WorkProgressNotificationEventArgs e) => workFinished.TrySetResult();
+        workProgress.WorkFinished += OnWorkFinished;
+        try
+        {
+            if (workProgress.WorkDone)
+                workFinished.TrySetResult();
+            if (minDelay > 0)
+                await Task.WhenAny(Task.Delay(minDelay), workFinished.Task);
+        }
+        finally
+        {
+            workProgress.WorkFinished -= OnWorkFinished;
+        }
+
+        await Dispatcher.InvokeAsync(() =>
+        {
+            if (!workProgress.WorkDone || workProgress.ShouldStayOpen())
+                OpenProgressWindow(workProgress);
+            else
+                workProgress.NotifyWindowClosed();
+        });
+    }
+
+    /// <summary>
+    /// Opens the progress window of a work (which <see cref="WorkProgressViewModel.NotifyWindowWillOpen"/> has been told about).
+    /// </summary>
+    private void OpenProgressWindow(WorkProgressViewModel workProgress)
+    {
+        Dispatcher.Invoke(() =>
+        {
+            var progressWindow = new ProgressWindow
+            {
+                DataContext = workProgress
+            };
+            workProgress.WorkFinished += (_, _) =>
+            {
+                if (!workProgress.ShouldStayOpen()) progressWindow.Close();
+            };
+            progressWindow.Closing += (_, e) =>
+            {
+                if (!workProgress.WorkDone) e.Cancel = true;
+            };
+            progressWindow.Closed += (_, _) =>
+            {
+                workProgress.NotifyWindowClosed();
+            };
+
+            // A dialog needs a visible owner; before the main window shows (or without one), the progress window stands alone
+            if (ActiveWindow is { IsVisible: true } owner) progressWindow.ShowDialog(owner);
+            else progressWindow.Show();
+        });
     }
 
     public void ShowNotification(WorkProgressViewModel workProgress)
@@ -129,6 +179,39 @@ internal class EditorDialogService : DialogService, IEditorDialogService
             var window = new AssetPickerWindow { DataContext = picker };
             var picked = await window.ShowDialog<bool>(MainWindow);
             return picked ? picker.SelectedAsset : null;
+        });
+    }
+
+    public async Task<NewPackageParameters?> ShowNewProjectDialogAsync(SessionViewModel session)
+    {
+        ArgumentNullException.ThrowIfNull(session);
+        if (MainWindow is null) return null;
+
+        return await Dispatcher.InvokeTask(async () =>
+        {
+            var templates = new NewProjectTemplateCollectionViewModel(serviceProvider, session);
+            try
+            {
+                var window = new NewProjectWindow { DataContext = templates };
+                var accepted = await window.ShowDialog<bool>(MainWindow);
+                return accepted ? templates.GetNewPackageParameters() : null;
+            }
+            finally
+            {
+                templates.Destroy();
+            }
+        });
+    }
+
+    public async Task<bool> ShowProjectSelectionDialogAsync(NewOrOpenSessionTemplateCollectionViewModel templates)
+    {
+        ArgumentNullException.ThrowIfNull(templates);
+        if (MainWindow is null) return false;
+
+        return await Dispatcher.InvokeTask(async () =>
+        {
+            var window = new ProjectSelectionWindow { DataContext = templates };
+            return await window.ShowDialog<bool>(MainWindow);
         });
     }
 

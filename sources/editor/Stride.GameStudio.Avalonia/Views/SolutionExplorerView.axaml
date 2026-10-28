@@ -68,7 +68,14 @@
           </MenuItem>
 
           <MenuItem Header="{sd:LocalizeString Solution, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"
-                    IsVisible="{Binding AddExistingProjectCommand.IsEnabled}"/>
+                    IsVisible="{sd:MultiBinding {Binding NewProjectCommand.IsEnabled}, {Binding AddExistingProjectCommand.IsEnabled}, Converter={sd:OrMulti}}"/>
+          <MenuItem Header="{sd:LocalizeString New project..., Context=Menu}"
+                    Command="{Binding NewProjectCommand}"
+                    IsVisible="{Binding NewProjectCommand.IsEnabled}">
+            <MenuItem.Icon>
+              <Image Source="{StaticResource ImageAddNewPackage}"/>
+            </MenuItem.Icon>
+          </MenuItem>
           <MenuItem Header="{sd:LocalizeString Add existing project..., Context=Menu}"
                     Command="{Binding AddExistingProjectCommand}"
                     IsVisible="{Binding AddExistingProjectCommand.IsEnabled}">

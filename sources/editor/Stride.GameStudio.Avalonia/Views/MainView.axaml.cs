@@ -34,4 +34,9 @@ public partial class MainView : UserControl
     /// Gets a platform-specific <see cref="KeyGesture"/> for the Save action: Ctrl+S, or Cmd+S on macOS.
     /// </summary>
     public static KeyGesture SaveGesture => new(Key.S, Application.Current?.PlatformSettings?.HotkeyConfiguration.CommandModifiers ?? KeyModifiers.Control);
+
+    /// <summary>
+    /// The shortcut of File > New (Ctrl+N), bound on the main window like <see cref="SaveGesture"/>.
+    /// </summary>
+    public static KeyGesture NewGesture => new(Key.N, Application.Current?.PlatformSettings?.HotkeyConfiguration.CommandModifiers ?? KeyModifiers.Control);
 }

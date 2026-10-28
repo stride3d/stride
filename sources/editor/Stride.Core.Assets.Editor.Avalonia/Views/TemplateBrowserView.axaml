@@ -1,0 +1,121 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+             xmlns:io="using:Stride.Core.IO"
+             xmlns:conv="using:Stride.Core.Assets.Editor.Avalonia.Converters"
+             xmlns:vm="using:Stride.Core.Assets.Editor.Components.TemplateDescriptions"
+             mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="500"
+             x:Class="Stride.Core.Assets.Editor.Avalonia.Views.TemplateBrowserView"
+             x:DataType="vm:TemplateDescriptionCollectionViewModel">
+  <UserControl.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="avares://Stride.Core.Assets.Editor.Avalonia/Views/ImageResources.axaml"/>
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </UserControl.Resources>
+  <!-- The columns of the WPF object browser: groups, templates, description of the selected template -->
+  <Grid ColumnDefinitions="*,4,3*,4,220">
+    <!-- The groups, all expanded -->
+    <TreeView x:Name="Groups"
+              Grid.Column="0"
+              ItemsSource="{Binding RootGroups}"
+              SelectedItem="{Binding SelectedGroup, Mode=TwoWay}">
+      <TreeView.Styles>
+        <Style Selector="TreeViewItem">
+          <Setter Property="IsExpanded" Value="True"/>
+        </Style>
+      </TreeView.Styles>
+      <TreeView.DataTemplates>
+        <TreeDataTemplate DataType="vm:TemplateDescriptionGroupViewModel" ItemsSource="{Binding SubGroups}">
+          <TextBlock Text="{Binding Name}"/>
+        </TreeDataTemplate>
+      </TreeView.DataTemplates>
+    </TreeView>
+
+    <GridSplitter Grid.Column="1" Width="4" ResizeDirection="Columns"/>
+
+    <!-- The templates of the selected group; a double-click accepts the selection -->
+    <ListBox x:Name="Templates"
+             Grid.Column="2"
+             ItemsSource="{Binding Templates}"
+             SelectedItem="{Binding SelectedTemplate, Mode=TwoWay}"
+             DoubleTapped="OnTemplateDoubleTapped">
+      <ListBox.DataTemplates>
+        <!-- A recent project, with its context menu (the first template, as a recent project is also a template description) -->
+        <DataTemplate DataType="vm:ExistingProjectViewModel">
+          <!-- Transparent background: the context menu opens anywhere on the row, not only over the text -->
+          <DockPanel Height="56" Background="Transparent">
+            <DockPanel.ContextMenu>
+              <ContextMenu>
+                <!-- The default action (the same as a double-click), in bold -->
+                <MenuItem Header="{sd:LocalizeString Open, Context=Menu}" Command="{Binding OpenCommand}" FontWeight="Bold"/>
+                <Separator/>
+                <MenuItem Header="{sd:LocalizeString Show in Explorer, Context=Menu}" Command="{Binding ExploreCommand}">
+                  <MenuItem.Icon>
+                    <Image Source="{StaticResource ImageExplore}"/>
+                  </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="{sd:LocalizeString Copy solution path, Context=Menu}" Command="{Binding CopySolutionPathCommand}">
+                  <MenuItem.Icon>
+                    <Image Source="{StaticResource ImageCopy}"/>
+                  </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="{sd:LocalizeString Copy folder path, Context=Menu}" Command="{Binding CopyFolderPathCommand}">
+                  <MenuItem.Icon>
+                    <Image Source="{StaticResource ImageCopy}"/>
+                  </MenuItem.Icon>
+                </MenuItem>
+                <Separator/>
+                <MenuItem Header="{sd:LocalizeString Remove From List, Context=Menu}" Command="{Binding RemoveCommand}">
+                  <MenuItem.Icon>
+                    <Image Source="{StaticResource ImageRemove}"/>
+                  </MenuItem.Icon>
+                </MenuItem>
+              </ContextMenu>
+            </DockPanel.ContextMenu>
+            <Image DockPanel.Dock="Left" Width="48" Height="48" Margin="2"
+                   Source="{Binding Icon, Converter={x:Static conv:TemplateImageConverter.Instance}}"/>
+            <DockPanel Margin="18,0">
+              <TextBlock DockPanel.Dock="Top" FontSize="16" Text="{Binding Name}"/>
+              <TextBlock Text="{Binding Description}" TextWrapping="Wrap" TextTrimming="WordEllipsis"/>
+            </DockPanel>
+          </DockPanel>
+        </DataTemplate>
+        <DataTemplate DataType="vm:ITemplateDescriptionViewModel">
+          <DockPanel Height="56">
+            <Image DockPanel.Dock="Left" Width="48" Height="48" Margin="2"
+                   Source="{Binding Icon, Converter={x:Static conv:TemplateImageConverter.Instance}}"/>
+            <DockPanel Margin="18,0">
+              <TextBlock DockPanel.Dock="Top" FontSize="16" Text="{Binding Name}"/>
+              <TextBlock Text="{Binding Description}" TextWrapping="Wrap" TextTrimming="WordEllipsis"/>
+            </DockPanel>
+          </DockPanel>
+        </DataTemplate>
+      </ListBox.DataTemplates>
+    </ListBox>
+
+    <GridSplitter Grid.Column="3" Width="4" ResizeDirection="Columns"/>
+
+    <!-- The description and the screenshots of the selected template -->
+    <ScrollViewer Grid.Column="4" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel x:Name="Description"
+                  DataContext="{Binding SelectedTemplate}"
+                  x:DataType="vm:ITemplateDescriptionViewModel"
+                  IsVisible="{Binding Converter={sd:ObjectToBool}}">
+        <TextBlock FontWeight="Bold" Text="{Binding Name}" Margin="10" TextWrapping="Wrap"/>
+        <TextBlock Text="{Binding FullDescription}" Margin="10,20" TextWrapping="Wrap"/>
+        <ItemsControl ItemsSource="{Binding Screenshots}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate DataType="io:UFile">
+              <Image Margin="2,12" MaxWidth="192" StretchDirection="DownOnly"
+                     Source="{Binding Converter={x:Static conv:TemplateImageConverter.Instance}}"/>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+    </ScrollViewer>
+  </Grid>
+</UserControl>

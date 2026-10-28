@@ -6,9 +6,11 @@ using System.Diagnostics;
 using Avalonia;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Components.Status;
+using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Assets.Editor.Components.Transactions;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Settings;
+using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModel.Progress;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Diagnostics;
@@ -61,6 +63,9 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
 #endif
         ExitCommand = new AnonymousCommand(serviceProvider, OnExit, () => DialogService.HasMainWindow);
         OpenCommand = new AnonymousTaskCommand<UFile?>(serviceProvider, OnOpen);
+        NewSessionCommand = new AnonymousTaskCommand(serviceProvider, OnNewSession, () => DialogService.HasMainWindow);
+        SelectProjectCommand = new AnonymousTaskCommand(serviceProvider, () => SelectProjectAsync(exitOnCancel: false), () => DialogService.HasMainWindow);
+        SelectInitialProjectCommand = new AnonymousTaskCommand(serviceProvider, () => SelectProjectAsync(exitOnCancel: true), () => DialogService.HasMainWindow);
         OpenInitialSessionCommand = new AnonymousTaskCommand<UFile?>(serviceProvider, OnOpenInitialSession);
         ClearRecentFilesCommand = new AnonymousCommand(serviceProvider, ClearRecentFiles);
         OpenDebugWindowCommand = new AnonymousTaskCommand(serviceProvider, OnOpenDebugWindow, () => DialogService.HasMainWindow);
@@ -129,6 +134,22 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     public ICommandBase CrashCommand { get; }
 
     public ICommandBase ExitCommand { get; }
+
+    /// <summary>
+    /// File > New: closes the session, if any, and shows the project selection window (a new project from a template, or a recent
+    /// project), as WPF's New command restarts the editor on the project selection.
+    /// </summary>
+    public ICommandBase NewSessionCommand { get; }
+
+    /// <summary>
+    /// Shows the project selection window over the empty editor (after <see cref="NewSessionCommand"/>). Cancelling leaves the editor empty.
+    /// </summary>
+    public ICommandBase SelectProjectCommand { get; }
+
+    /// <summary>
+    /// Shows the project selection window when the editor starts without a session. Cancelling exits the editor, as the WPF editor does.
+    /// </summary>
+    public ICommandBase SelectInitialProjectCommand { get; }
 
     public ICommandBase OpenCommand { get; }
 
@@ -265,6 +286,71 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
             return false;
         }
 
+        AttachSession(loadedSession, filePath);
+        return true;
+    }
+
+    /// <summary>
+    /// Creates a new session from a template (the project selection window), in an empty editor, and opens it.
+    /// </summary>
+    /// <returns><c>true</c> when the session is open, <c>false</c> when the generator failed or the user cancelled its parameters.</returns>
+    public async Task<bool> CreateNewSessionAsync(NewSessionParameters parameters)
+    {
+        ArgumentNullException.ThrowIfNull(parameters);
+        if (session is not null)
+            throw new InvalidOperationException("A session is open already.");
+
+        // The generator loads the projects it creates
+        if (!await EnsureMSBuildAsync())
+            return false;
+
+        var createdSession = await SessionViewModel.CreateNewSessionAsync(parameters, this, ServiceProvider);
+        if (createdSession is null)
+        {
+            // The generator might have registered plugins or services, let's restart cleanly
+            (Application.Current as App)?.Restart();
+            return false;
+        }
+
+        AttachSession(createdSession, createdSession.SolutionPath);
+        return true;
+    }
+
+    /// <summary>
+    /// Shows the project selection window: a new session from a template, or a recent project to open.
+    /// </summary>
+    /// <param name="exitOnCancel">
+    /// Whether cancelling exits the editor (at startup, when nothing else can be done) instead of leaving it empty (after
+    /// <see cref="NewSessionCommand"/>, when the user chose to close the previous session).
+    /// </param>
+    internal async Task SelectProjectAsync(bool exitOnCancel)
+    {
+        var templates = new NewOrOpenSessionTemplateCollectionViewModel(ServiceProvider, RecentFiles.Select(x => x.FilePath).ToList(), RemoveRecentFile);
+        try
+        {
+            if (!await DialogService.ShowProjectSelectionDialogAsync(templates))
+            {
+                if (exitOnCancel)
+                    DialogService.Exit();
+                return;
+            }
+
+            if (templates.GetExistingSessionPath() is { } existingSession)
+                await OpenSession(existingSession);
+            else if (templates.GetNewSessionParameters() is { } newSession)
+                await CreateNewSessionAsync(newSession);
+        }
+        finally
+        {
+            templates.Destroy();
+        }
+    }
+
+    /// <summary>
+    /// Makes an opened or created session the editor's: the recent files, the title, the plugins' session services and the preview.
+    /// </summary>
+    private void AttachSession(SessionViewModel loadedSession, UFile filePath)
+    {
         MRU.AddFile(filePath, StrideGameStudio.EditorVersionMajor);
         InternalSettings.FileDialogLastOpenSessionDirectory.SetValue(filePath.GetFullDirectory());
         InternalSettings.SaveProfile();
@@ -285,7 +371,6 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
 
         // The build the session runs when it opens: thumbnails and previews wait for it
         _ = ShowShaderImportAsync(Session);
-        return true;
     }
 
     /// <summary>
@@ -452,6 +537,22 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
         {
             CloseSessionServices();
             app.Restart();
+        }
+    }
+
+    private async Task OnNewSession()
+    {
+        if (session is null)
+        {
+            await SelectProjectAsync(exitOnCancel: false);
+            return;
+        }
+
+        // We have a session, let's restart empty with the project selection
+        if (Application.Current is App app && await CloseSessionAsync())
+        {
+            CloseSessionServices();
+            app.Restart(selectProject: true);
         }
     }
 

@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Runtime.CompilerServices;
+using Stride.Assets.Editor.Avalonia.Templates;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Editor.Avalonia.Preview.Views;
 using Stride.Editor.Preview;
@@ -17,5 +18,7 @@ internal static class Module
         RuntimeHelpers.RunModuleConstructor(typeof(Stride.Assets.Editor.Module).Module.ModuleHandle);
         AssetsPlugin.RegisterPlugin(typeof(StrideEditorViewPlugin));
         AssetPreview.DefaultViewType = typeof(StridePreviewView);
+        // The project template generators, with this toolkit's prompts
+        StrideAvaloniaTemplates.Register();
     }
 }

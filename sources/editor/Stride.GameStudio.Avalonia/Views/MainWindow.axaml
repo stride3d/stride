@@ -13,6 +13,8 @@
   <Window.KeyBindings>
     <!-- File > Save, wherever the focus is (see the File menu of MainView) -->
     <KeyBinding Gesture="{x:Static gsvw:MainView.SaveGesture}" Command="{Binding SaveCommand}"/>
+    <!-- File > New -->
+    <KeyBinding Gesture="{x:Static gsvw:MainView.NewGesture}" Command="{Binding NewSessionCommand}"/>
     <!-- The shortcuts of the asset view that WPF binds on its window too; the Edit commands are handled in OnKeyDown, after
          the focused control (a key binding would run before the focused text box) -->
     <KeyBinding Gesture="Ctrl+Enter" Command="{Binding Session?.EditSelectedContentCommand}"/>

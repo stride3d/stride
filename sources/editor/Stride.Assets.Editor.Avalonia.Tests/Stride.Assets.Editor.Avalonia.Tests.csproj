@@ -31,6 +31,10 @@
     <ProjectReference Include="..\..\plugins\SpriteStudio\Stride.SpriteStudio.Editor.Avalonia\Stride.SpriteStudio.Editor.Avalonia.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <!-- The fake dotnet new template of the Assets.Editor tests (xunit 2, not referenced): the same file -->
+    <Compile Include="..\Stride.Assets.Editor.Tests\Helpers\FakeTemplateInfo.cs">
+      <Link>Helpers\FakeTemplateInfo.cs</Link>
+    </Compile>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>

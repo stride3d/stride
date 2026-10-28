@@ -26,9 +26,27 @@ public class DialogService : IDialogService
 
     public static Window? MainWindow => (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
 
+    /// <summary>
+    /// The window the dialogs and the pickers are shown over: the visible window owned by the main window (a modal dialog, the deepest
+    /// one when they stack), else the main window itself.
+    /// </summary>
+    public static Window? ActiveWindow => GetActiveWindow(MainWindow);
+
     protected IDispatcherService Dispatcher { get; }
 
-    protected IStorageProvider? StorageProvider => MainWindow?.StorageProvider;
+    protected IStorageProvider? StorageProvider => ActiveWindow?.StorageProvider;
+
+    private static Window? GetActiveWindow(Window? window)
+    {
+        if (window is null)
+            return null;
+        foreach (var owned in window.OwnedWindows)
+        {
+            if (owned.IsVisible)
+                return GetActiveWindow(owned);
+        }
+        return window;
+    }
 
     public void Exit(int exitCode = 0)
     {
@@ -147,26 +165,26 @@ public class DialogService : IDialogService
 
     public async Task<CheckedMessageBoxResult> CheckedMessageBoxAsync(string message, bool? isChecked, string checkboxMessage, MessageBoxButton buttons, MessageBoxImage image)
     {
-        return await Dispatcher.InvokeTask(() => CheckedMessageBox.ShowAsync(ApplicationName, message, isChecked, checkboxMessage, IDialogService.GetButtons(buttons), image, MainWindow));
+        return await Dispatcher.InvokeTask(() => CheckedMessageBox.ShowAsync(ApplicationName, message, isChecked, checkboxMessage, IDialogService.GetButtons(buttons), image, ActiveWindow));
     }
 
     public async Task<CheckedMessageBoxResult> CheckedMessageBoxAsync(string message, bool? isChecked, string checkboxMessage, IReadOnlyCollection<DialogButtonInfo> buttons, MessageBoxImage image = MessageBoxImage.None)
     {
-        return await Dispatcher.InvokeTask(() => CheckedMessageBox.ShowAsync(ApplicationName, message, isChecked, checkboxMessage, buttons, image, MainWindow));
+        return await Dispatcher.InvokeTask(() => CheckedMessageBox.ShowAsync(ApplicationName, message, isChecked, checkboxMessage, buttons, image, ActiveWindow));
     }
 
     public async Task<int> CheckedMessageBoxAsync(string message, IReadOnlyCollection<DialogCheckBoxInfo> checkBoxes, IReadOnlyCollection<DialogButtonInfo> buttons, MessageBoxImage image = MessageBoxImage.None)
     {
-        return await Dispatcher.InvokeTask(() => MultiCheckedMessageBox.ShowAsync(ApplicationName, message, checkBoxes, buttons, image, MainWindow));
+        return await Dispatcher.InvokeTask(() => MultiCheckedMessageBox.ShowAsync(ApplicationName, message, checkBoxes, buttons, image, ActiveWindow));
     }
 
     public async Task<MessageBoxResult> MessageBoxAsync(string message, MessageBoxButton buttons, MessageBoxImage image)
     {
-        return (MessageBoxResult)await Dispatcher.InvokeTask(() => MessageBox.ShowAsync(ApplicationName, message, IDialogService.GetButtons(buttons), image, MainWindow));
+        return (MessageBoxResult)await Dispatcher.InvokeTask(() => MessageBox.ShowAsync(ApplicationName, message, IDialogService.GetButtons(buttons), image, ActiveWindow));
     }
 
     public async Task<int> MessageBoxAsync(string message, IReadOnlyCollection<DialogButtonInfo> buttons, MessageBoxImage image = MessageBoxImage.None)
     {
-        return await Dispatcher.InvokeTask(() => MessageBox.ShowAsync(ApplicationName, message, buttons, image, MainWindow));
+        return await Dispatcher.InvokeTask(() => MessageBox.ShowAsync(ApplicationName, message, buttons, image, ActiveWindow));
     }
 }
