@@ -14,6 +14,22 @@ using NBodyVelocity = BepuPhysics.BodyVelocity;
 using NRigidPose = BepuPhysics.RigidPose;
 using Int2 = Stride.Core.Mathematics.Int2;
 
+// Note on the implementation:
+// These tasks are based in large part on Bepu's mesh collision tasks,
+// changes introduced to these implementations mostly come down to
+// collecting overlapping cell indices (int x,y) instead of triangle indices (int i).
+// Once that is done, while the mesh implementation retrieves triangles from their index,
+// here we build the two triangles the cell contains. The rest operates in the same way.
+// 
+// Comments and overall architecture is kept mostly the same when possible to improve diff-ing
+// efficiency when pulling changes that have been introduced upstream.
+// Comments that do not come from the base implementation are marked with '-Eideren'
+// -Eideren
+
+// TODO: Validate that ReduceManifolds works appropriately given the assumptions it makes regarding findLocalOverlapsThunk's behavior.
+//       Need a complex repro case to properly validate this. Users may run into it, we could simply ask for their repro.
+//       -Eideren
+
 namespace Stride.Heightfield;
 
 internal static class HeightfieldCollisionTasks
@@ -70,6 +86,7 @@ internal static class HeightfieldCollisionTasks
                     ref var compound = ref Unsafe.AsRef<HeightfieldShape>(pair.B);
 
                     // Overlap is the amount of cell, each cell is split into two triangles
+                    // -Eideren
                     int triangles = pairOverlaps.Count;
                     int overlapMax = pairOverlaps.Count;
 
@@ -769,6 +786,7 @@ internal static class HeightfieldCollisionTasks
     {
         // Doing this workaround as we would otherwise have to allocate in continuations, and somehow hook into the disposal logic of continuations,
         // which afaict, is impossible from outside
+        // -Eideren
         [ThreadStatic]
         private static uint counterStart, counterIncr;
 
