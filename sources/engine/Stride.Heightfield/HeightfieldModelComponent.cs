@@ -69,9 +69,7 @@ public class HeightfieldModelComponent : EntityComponent
         protected override AssociatedData GenerateComponentData(Entity entity, HeightfieldModelComponent component)
         {
             var data = new AssociatedData();
-            var e = new Entity($"{nameof(HeightfieldModelComponent)} model");
-            e.Transform.Parent = entity.Transform;
-            e.Add(data.ModelComponent);
+            component.Entity.Components.Add(data.ModelComponent);
             return data;
         }
 
@@ -84,7 +82,6 @@ public class HeightfieldModelComponent : EntityComponent
         {
             base.OnEntityComponentRemoved(entity, component, data);
 
-            data.ModelComponent.Entity.Transform.Parent = null;
             Dispose(ref data.Model);
         }
 
@@ -162,6 +159,11 @@ public class HeightfieldModelComponent : EntityComponent
                 LocalOffset = new Vector3(0.5f, 0, 0.5f),
                 NumberOfTextureCoordinates = 1
             }.Generate(Services);
+
+            foreach (var m in model.Meshes)
+            {
+                m.Name = "HeightfieldMesh";
+            }
 
             modelComponent.Model = model;
         }
