@@ -64,7 +64,8 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
         ExitCommand = new AnonymousCommand(serviceProvider, OnExit, () => DialogService.HasMainWindow);
         OpenCommand = new AnonymousTaskCommand<UFile?>(serviceProvider, OnOpen);
         NewSessionCommand = new AnonymousTaskCommand(serviceProvider, OnNewSession, () => DialogService.HasMainWindow);
-        SelectProjectCommand = new AnonymousTaskCommand(serviceProvider, SelectProjectAsync, () => DialogService.HasMainWindow);
+        SelectProjectCommand = new AnonymousTaskCommand(serviceProvider, () => SelectProjectAsync(exitOnCancel: false), () => DialogService.HasMainWindow);
+        SelectInitialProjectCommand = new AnonymousTaskCommand(serviceProvider, () => SelectProjectAsync(exitOnCancel: true), () => DialogService.HasMainWindow);
         OpenInitialSessionCommand = new AnonymousTaskCommand<UFile?>(serviceProvider, OnOpenInitialSession);
         ClearRecentFilesCommand = new AnonymousCommand(serviceProvider, ClearRecentFiles);
         OpenDebugWindowCommand = new AnonymousTaskCommand(serviceProvider, OnOpenDebugWindow, () => DialogService.HasMainWindow);
@@ -141,9 +142,14 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     public ICommandBase NewSessionCommand { get; }
 
     /// <summary>
-    /// Shows the project selection window over the empty editor (at startup without a session, and after <see cref="NewSessionCommand"/>).
+    /// Shows the project selection window over the empty editor (after <see cref="NewSessionCommand"/>). Cancelling leaves the editor empty.
     /// </summary>
     public ICommandBase SelectProjectCommand { get; }
+
+    /// <summary>
+    /// Shows the project selection window when the editor starts without a session. Cancelling exits the editor, as the WPF editor does.
+    /// </summary>
+    public ICommandBase SelectInitialProjectCommand { get; }
 
     public ICommandBase OpenCommand { get; }
 
@@ -311,16 +317,23 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     }
 
     /// <summary>
-    /// Shows the project selection window: a new session from a template, or a recent project to open. Cancelling leaves the editor
-    /// empty.
+    /// Shows the project selection window: a new session from a template, or a recent project to open.
     /// </summary>
-    internal async Task SelectProjectAsync()
+    /// <param name="exitOnCancel">
+    /// Whether cancelling exits the editor (at startup, when nothing else can be done) instead of leaving it empty (after
+    /// <see cref="NewSessionCommand"/>, when the user chose to close the previous session).
+    /// </param>
+    internal async Task SelectProjectAsync(bool exitOnCancel)
     {
         var templates = new NewOrOpenSessionTemplateCollectionViewModel(ServiceProvider, RecentFiles.Select(x => x.FilePath).ToList(), RemoveRecentFile);
         try
         {
             if (!await DialogService.ShowProjectSelectionDialogAsync(templates))
+            {
+                if (exitOnCancel)
+                    DialogService.Exit();
                 return;
+            }
 
             if (templates.GetExistingSessionPath() is { } existingSession)
                 await OpenSession(existingSession);
@@ -531,7 +544,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     {
         if (session is null)
         {
-            await SelectProjectAsync();
+            await SelectProjectAsync(exitOnCancel: false);
             return;
         }
 
