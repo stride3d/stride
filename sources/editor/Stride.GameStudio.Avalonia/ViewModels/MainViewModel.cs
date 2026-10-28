@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.ComponentModel;
 using System.Diagnostics;
 using Avalonia;
 using Stride.Core.Assets;
@@ -33,9 +34,12 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     private static readonly string baseTitle = StrideGameStudio.EditorTitle;
     private static bool msBuildFound;
     private SessionViewModel? session;
+    // The session whose unsaved changes the title shows
+    private SessionViewModel? titleSession;
     private ActionHistoryViewModel? history;
     private PreviewViewModel? preview;
     private UFile? sessionPath;
+    private string? sessionName;
     private string title = baseTitle;
 
 #if DEBUG
@@ -269,7 +273,8 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
         Session = loadedSession;
         // The solution's name, or the package's when a package file was opened directly
         var sessionFile = UPath.IsNullOrEmpty(Session.SolutionPath) ? filePath : Session.SolutionPath;
-        Title = $"{baseTitle} - {sessionFile.GetFileNameWithoutExtension()}";
+        sessionName = sessionFile.GetFileNameWithoutExtension();
+        UpdateTitle();
 
         // The plugins initialize their session services (build, thumbnails, preview) and the property grid's commands and updaters
         // now that the session has its views
@@ -284,14 +289,17 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     }
 
     /// <summary>
-    /// Shows the import of the system shaders in the notification bar until it is done; nothing when there is none to wait for.
-    /// </summary>
-    /// <summary>
-    /// Follows the history of the new session: <see cref="UndoCommand"/> and <see cref="RedoCommand"/> mirror its commands.
+    /// Follows the new session: <see cref="UndoCommand"/> and <see cref="RedoCommand"/> mirror the commands of its history, and the
+    /// title shows its unsaved changes.
     /// </summary>
     private void OnSessionChanged()
     {
         SaveCommand.IsEnabled = session is not null;
+        if (titleSession is not null)
+            titleSession.PropertyChanged -= SessionPropertyChanged;
+        titleSession = session;
+        if (titleSession is not null)
+            titleSession.PropertyChanged += SessionPropertyChanged;
         if (history is not null)
         {
             history.UndoCommand.CanExecuteChanged -= UpdateUndoRedo;
@@ -312,6 +320,23 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
         RedoCommand.IsEnabled = history?.RedoCommand.IsEnabled ?? false;
     }
 
+    private void SessionPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(SessionViewModel.HasUnsavedChanges))
+            UpdateTitle();
+    }
+
+    /// <summary>
+    /// The name of the editor, then the name of the session with a <c>*</c> while it has unsaved changes.
+    /// </summary>
+    private void UpdateTitle()
+    {
+        Title = sessionName is null ? baseTitle : $"{baseTitle} - {sessionName}{(session?.HasUnsavedChanges == true ? "*" : string.Empty)}";
+    }
+
+    /// <summary>
+    /// Shows the import of the system shaders in the notification bar until it is done; nothing when there is none to wait for.
+    /// </summary>
     private async Task ShowShaderImportAsync(SessionViewModel openedSession)
     {
         if (Notifications is null || openedSession.ServiceProvider.TryGet<GameStudioBuilderService>() is not { AreShadersLoaded: false } builder)

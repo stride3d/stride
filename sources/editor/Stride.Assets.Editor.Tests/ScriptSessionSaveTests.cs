@@ -31,6 +31,7 @@ public sealed class ScriptSessionSaveTests
         Assert.True(script.HasUnsavedText);
         Assert.True(script.IsDirty);
         Assert.True(fixture.Session.HasUnsavedAssets());
+        Assert.True(fixture.Session.HasUnsavedChanges);
         // The editor writes the file: the session does not write the script for an edit of its text
         Assert.False(script.AssetItem.IsDirty);
 
@@ -39,6 +40,7 @@ public sealed class ScriptSessionSaveTests
         Assert.False(script.HasUnsavedText);
         Assert.False(script.IsDirty);
         Assert.False(fixture.Session.HasUnsavedAssets());
+        Assert.False(fixture.Session.HasUnsavedChanges);
     }
 
     [Fact]
@@ -55,6 +57,7 @@ public sealed class ScriptSessionSaveTests
         Assert.False(editor.IsModified);
         Assert.False(script.IsDirty);
         Assert.False(fixture.Session.HasUnsavedAssets());
+        Assert.False(fixture.Session.HasUnsavedChanges);
         Assert.Empty(Dialogs(fixture).Messages);
     }
 
@@ -133,6 +136,7 @@ public sealed class ScriptSessionSaveTests
         Assert.False(script.HasUnsavedText);
         Assert.False(script.IsDirty);
         Assert.False(fixture.Session.HasUnsavedAssets());
+        Assert.False(fixture.Session.HasUnsavedChanges);
         Assert.Equal(Script, File.ReadAllText(PathOf(script)));
     }
 

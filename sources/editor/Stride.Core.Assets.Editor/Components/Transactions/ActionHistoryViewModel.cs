@@ -100,12 +100,17 @@ public sealed class ActionHistoryViewModel : DispatcherViewModel
     private void TransactionDiscarded(object? sender, TransactionsDiscardedEventArgs e)
     {
         Dispatcher.Invoke(() => transactions.RemoveWhere(x => e.Transactions.Any(y => x.Id == y.Id)));
+        session.UpdateHasUnsavedChanges();
     }
 
+    // Note: the dirtiable manager of the undo/redo service handles the events of the stack before this view model, so the dirty
+    // flags are current when the handlers below update the unsaved state of the session.
     private async void TransactionDone(object? sender, TransactionEventArgs e)
     {
         if (e.Transaction.Operations.Count == 0)
             return;
+
+        session.UpdateHasUnsavedChanges();
 
         var dirtying = e.Transaction.Operations.SelectMany(DirtiableManager.GetDirtyingOperations);
         var dirtiables = new HashSet<AssetViewModel>(dirtying.SelectMany(x => x.Dirtiables.OfType<AssetViewModel>()));
@@ -118,6 +123,7 @@ public sealed class ActionHistoryViewModel : DispatcherViewModel
 
     private async void TransactionUndoneOrRedone(object? sender, TransactionEventArgs e)
     {
+        session.UpdateHasUnsavedChanges();
         var dirtying = e.Transaction.Operations.SelectMany(DirtiableManager.GetDirtyingOperations);
         var dirtiables = new HashSet<AssetViewModel>(dirtying.SelectMany(x => x.Dirtiables.OfType<AssetViewModel>()));
         if (dirtiables.Count > 0)

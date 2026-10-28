@@ -58,6 +58,7 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
     private PackageViewModel? rootAssetDefaultTarget;
     private string rootAssetToggleHeader = string.Empty;
     private bool selectionIsRoot;
+    private bool hasUnsavedChanges;
     private bool isInFixupAssetContext;
     private bool sessionStateUpdating;
     // Non-zero while a raise is scheduled
@@ -271,6 +272,13 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
     public string RootAssetToggleHeader { get => rootAssetToggleHeader; private set => SetValueUncancellable(ref rootAssetToggleHeader, value); }
 
     public Task SaveCompletion => session.SaveCompletion;
+
+    /// <summary>
+    /// Gets whether the session has changes that are not saved, as <see cref="HasUnsavedAssets"/> tells, kept current for the views
+    /// (the <c>*</c> of the window title).
+    /// </summary>
+    /// <seealso cref="UpdateHasUnsavedChanges"/>
+    public bool HasUnsavedChanges { get => hasUnsavedChanges; private set => SetValueUncancellable(ref hasUnsavedChanges, value); }
 
     public bool SelectionIsRoot { get => selectionIsRoot; internal set { SetValueUncancellable(ref selectionIsRoot, value); UpdateSessionState(); } }
 
@@ -789,6 +797,7 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
         }
 
         UpdateSessionState();
+        UpdateHasUnsavedChanges();
 
         return success;
     }
@@ -876,6 +885,15 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
     public bool HasUnsavedAssets()
     {
         return IsDirty || LocalPackages.Any(package => package.IsDirty || package.Assets.Any(asset => asset.IsDirty));
+    }
+
+    /// <summary>
+    /// Updates <see cref="HasUnsavedChanges"/> once dirty flags changed: the action history calls it after each change, undo and
+    /// redo, the save after it ran, and an editor when its unsaved edits outside the history change (the text of a script).
+    /// </summary>
+    public void UpdateHasUnsavedChanges()
+    {
+        Dispatcher.Invoke(() => HasUnsavedChanges = HasUnsavedAssets());
     }
     #endregion // Save/close
 
