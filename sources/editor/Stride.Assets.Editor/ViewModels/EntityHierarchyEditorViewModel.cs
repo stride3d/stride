@@ -33,6 +33,8 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
     {
         HierarchyRoot.EntityAdded += EntityAdded;
         HierarchyRoot.EntityRemoved += EntityRemoved;
+        // The root is expanded when the editor opens, as in the WPF scene editor
+        HierarchyRoot.IsExpanded = true;
         FocusOnEntityCommand = new AnonymousTaskCommand<EntityViewModel>(ServiceProvider, FocusOnEntityAsync) { IsEnabled = false };
         FocusOnSelectionCommand = new AnonymousTaskCommand(ServiceProvider, FocusOnSelectionAsync) { IsEnabled = false };
         // Whichever side the selection changes from (the tree or the game)

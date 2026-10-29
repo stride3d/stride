@@ -2,10 +2,15 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Assets.Entities;
+using Stride.Assets.Quantum;
 using Stride.Core;
+using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Quantum;
 using Stride.Core.Assets.Presentation.ViewModels;
+using Stride.Core.Extensions;
+using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Quantum;
@@ -13,11 +18,13 @@ using Stride.Engine;
 
 namespace Stride.Assets.Presentation.ViewModels;
 
-public sealed class EntityViewModel : EntityHierarchyItemViewModel, IAssetPropertyProviderViewModel
+public sealed class EntityViewModel : EntityHierarchyElementViewModel, IAssetPropertyProviderViewModel
 {
     private readonly MemberGraphNodeBinding<string> nameNodeBinding;
     private readonly ObjectGraphNodeBinding<EntityComponentCollection> componentsNodeBinding;
     private readonly IObjectNode transformChildrenNode;
+    private readonly IMemberNode basePrefabNode;
+    private PrefabViewModel? sourcePrefab;
 
     public EntityViewModel(EntityHierarchyViewModel asset, EntityDesign entityDesign)
         : base(asset, GetOrCreateChildPartDesigns((EntityHierarchyAssetBase)asset.Asset, entityDesign))
@@ -28,7 +35,13 @@ public sealed class EntityViewModel : EntityHierarchyItemViewModel, IAssetProper
         nameNodeBinding = new MemberGraphNodeBinding<string>(assetNode[nameof(Entity.Name)], nameof(Name), OnPropertyChanging, OnPropertyChanged, ServiceProvider.TryGet<IUndoRedoService>());
         componentsNodeBinding = new ObjectGraphNodeBinding<EntityComponentCollection>(assetNode[nameof(Entity.Components)].Target!, nameof(Components), OnPropertyChanging, OnPropertyChanged, ServiceProvider.TryGet<IUndoRedoService>(), false);
         transformChildrenNode = asset.Session.AssetNodeContainer.GetOrCreateNode(entityDesign.Entity.Transform)[nameof(TransformComponent.Children)].Target!;
+        transformChildrenNode.ItemChanging += TransformChildrenChanging;
         transformChildrenNode.ItemChanged += TransformChildrenChanged;
+        RenameCommand = new AnonymousCommand(ServiceProvider, () => IsEditing = true);
+
+        UpdateSourcePrefab();
+        basePrefabNode = asset.Session.AssetNodeContainer.GetOrCreateNode(entityDesign)[nameof(EntityDesign.Base)];
+        basePrefabNode.ValueChanged += BasePrefabChanged;
     }
 
     public IEnumerable<EntityComponent> Components => componentsNodeBinding.GetNodeValue();
@@ -48,6 +61,19 @@ public sealed class EntityViewModel : EntityHierarchyItemViewModel, IAssetProper
         set => nameNodeBinding.Value = value;
     }
 
+    /// <inheritdoc/>
+    public override int EntityCount => AssetSideEntity.Transform.Children.Count;
+
+    /// <summary>
+    /// Gets the command that begins the renaming of this entity in place (F2).
+    /// </summary>
+    public ICommandBase RenameCommand { get; }
+
+    /// <summary>
+    /// Gets the prefab this entity is an instance of, or <c>null</c> when it is not part of a prefab instance.
+    /// </summary>
+    public PrefabViewModel? SourcePrefab { get => sourcePrefab; private set => SetValue(ref sourcePrefab, value); }
+
     internal EntityDesign EntityDesign { get; }
 
     bool IPropertyProviderViewModel.CanProvidePropertiesViewModel => true;
@@ -58,7 +84,9 @@ public sealed class EntityViewModel : EntityHierarchyItemViewModel, IAssetProper
     public override void Destroy()
     {
         EnsureNotDestroyed(nameof(EntityViewModel));
+        transformChildrenNode.ItemChanging -= TransformChildrenChanging;
         transformChildrenNode.ItemChanged -= TransformChildrenChanged;
+        basePrefabNode.ValueChanged -= BasePrefabChanged;
         nameNodeBinding.Dispose();
         componentsNodeBinding.Dispose();
         base.Destroy();
@@ -78,6 +106,33 @@ public sealed class EntityViewModel : EntityHierarchyItemViewModel, IAssetProper
         return path;
     }
 
+    /// <inheritdoc/>
+    public override int IndexOfEntity(EntityViewModel entity)
+    {
+        return AssetSideEntity.Transform.Children.IndexOf(x => x.Entity.Id == entity.Id.ObjectId);
+    }
+
+    /// <summary>
+    /// Adds a copy of this entity, with its children, right after it in the same folder (Ctrl+D in the WPF scene editor).
+    /// </summary>
+    /// <returns>The view model of the copy.</returns>
+    public EntityViewModel Duplicate()
+    {
+        if (Parent is null)
+            throw new InvalidOperationException($"{nameof(Parent)} cannot be null");
+
+        var asset = (EntityHierarchyViewModel)Asset;
+        var clonedHierarchy = EntityHierarchyPropertyGraph.CloneSubHierarchies(asset.Session.AssetNodeContainer, asset.Asset, AssetSideEntity.Id.Yield(), SubHierarchyCloneFlags.GenerateNewIdsForIdentifiableObjects, out _);
+        AssetPartsAnalysis.GenerateNewBaseInstanceIds(clonedHierarchy);
+
+        var addedRoot = clonedHierarchy.Parts[clonedHierarchy.RootParts.Single().Id];
+        addedRoot.Folder = (Parent as EntityFolderViewModel)?.Path;
+        asset.AssetHierarchyPropertyGraph.AddPartToAsset(clonedHierarchy.Parts, addedRoot, (Parent.Owner as EntityViewModel)?.AssetSideEntity, Parent.Owner.IndexOfEntity(this) + 1);
+
+        // The view model exists at that point
+        return Parent.Owner.TransformChildren.First(x => x.AssetSideEntity == addedRoot.Entity);
+    }
+
     // TODO: turn this non-static and put it in the base - just keep the entity-specific part here. This need to rework a bit how we initialize folders
     private static IEnumerable<EntityDesign> GetOrCreateChildPartDesigns(EntityHierarchyAssetBase asset, EntityDesign entityDesign)
     {
@@ -92,15 +147,35 @@ public sealed class EntityViewModel : EntityHierarchyItemViewModel, IAssetProper
         }
     }
 
+    private void BasePrefabChanged(object? sender, MemberNodeChangeEventArgs e)
+    {
+        UpdateSourcePrefab();
+    }
+
+    private void UpdateSourcePrefab()
+    {
+        SourcePrefab = EntityDesign.Base != null ? Asset.Session.GetAssetById(EntityDesign.Base.BasePartAsset.Id) as PrefabViewModel : null;
+    }
+
+    private void TransformChildrenChanging(object? sender, ItemChangeEventArgs e)
+    {
+        // The folder exists before the entity goes in
+        if (e.ChangeType == ContentChangeType.CollectionAdd)
+        {
+            FindOrCreateFolder(EntityHierarchy.Hierarchy.Parts[((TransformComponent)e.NewValue!).Entity.Id].Folder);
+        }
+    }
+
     private void TransformChildrenChanged(object? sender, ItemChangeEventArgs e)
     {
         switch (e.ChangeType)
         {
             case ContentChangeType.CollectionAdd:
-                InsertEntity(e.Index.Int, EntityHierarchy.Hierarchy.Parts[((TransformComponent)e.NewValue!).Entity.Id]);
+                InsertEntity(e.Index.Int, EntityHierarchy.Hierarchy.Parts[((TransformComponent)e.NewValue!).Entity.Id],
+                    AssetSideEntity.Transform.Children.Select(x => EntityHierarchy.Hierarchy.Parts[x.Entity.Id]));
                 break;
             case ContentChangeType.CollectionRemove:
-                RemoveEntity(((TransformComponent)e.OldValue!).Entity);
+                RemoveEntity(((TransformComponent)e.OldValue!).Entity, e.Index.Int);
                 break;
         }
     }
