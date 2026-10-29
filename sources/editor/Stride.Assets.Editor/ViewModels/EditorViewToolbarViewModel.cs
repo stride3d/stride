@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Stride.Assets.Editor.EditorGame;
 using Stride.Assets.Editor.EditorGame.Tools;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Tools;
 using Stride.Assets.Presentation.AssetEditors.GameEditor;
@@ -11,8 +12,8 @@ using Stride.Input;
 namespace Stride.Assets.Editor.ViewModels;
 
 /// <summary>
-/// The toolbar of the view of a scene or prefab editor: the tools of the view, the space of the transformation gizmos and
-/// the selection mask, as the transformation toolbar of the WPF scene editor.
+/// The toolbar of the view of a scene or prefab editor: the tools of the view, the space of the transformation gizmos, the
+/// material selection mode and the selection mask, as the transformation toolbar of the WPF scene editor.
 /// </summary>
 public sealed class EditorViewToolbarViewModel : DispatcherViewModel
 {
@@ -23,15 +24,17 @@ public sealed class EditorViewToolbarViewModel : DispatcherViewModel
 
     private readonly EditorGameToolService service;
     private readonly IEditorGameSelectionViewModelService? selection;
+    private readonly EditorGameMaterialHighlightService? materialHighlight;
     private EditorViewToolViewModel? activeTool;
     private EditorViewSpaceViewModel space;
     private bool displaySelectionMask;
 
-    internal EditorViewToolbarViewModel(IViewModelServiceProvider serviceProvider, EditorGameToolService service, IEditorGameSelectionViewModelService? selection)
+    internal EditorViewToolbarViewModel(IViewModelServiceProvider serviceProvider, EditorGameToolService service, IEditorGameSelectionViewModelService? selection, EditorGameMaterialHighlightService? materialHighlight)
         : base(serviceProvider)
     {
         this.service = service;
         this.selection = selection;
+        this.materialHighlight = materialHighlight;
         Tools = service.Tools.Select(x => new EditorViewToolViewModel(serviceProvider, x)).ToList();
         Spaces =
         [
@@ -85,6 +88,16 @@ public sealed class EditorViewToolbarViewModel : DispatcherViewModel
 
             SetValue(ref space, value, () => service.SetSpaceAsync(value.Space));
         }
+    }
+
+    /// <summary>
+    /// Gets or sets whether the material selection mode is on: the material of a selected entity under the mouse is
+    /// highlighted, and a click on it selects the material asset.
+    /// </summary>
+    public bool MaterialSelectionMode
+    {
+        get => materialHighlight?.IsActive ?? false;
+        set => SetValue(MaterialSelectionMode != value && materialHighlight is not null, () => materialHighlight!.IsActive = value);
     }
 
     /// <summary>
