@@ -3,6 +3,7 @@
 
 using System.Collections.Specialized;
 using Stride.Assets.Editor.EditorGame;
+using Stride.Assets.Editor.EditorGame.Tools;
 using Stride.Assets.Entities;
 using Stride.Assets.Presentation.AssetEditors.GameEditor;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
@@ -23,6 +24,7 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
 
     private readonly Dictionary<AbsoluteId, GameEditorChangePropagator> propagators = [];
     private object? gameView;
+    private EditorViewToolbarViewModel? toolbar;
     private bool isGameLoaded;
 
     protected EntityHierarchyEditorViewModel(EntityHierarchyViewModel asset)
@@ -39,6 +41,12 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
     /// editor has no game (the session has no game viewport, the game could not start).
     /// </summary>
     public object? GameView { get => gameView; private set => SetValue(ref gameView, value); }
+
+    /// <summary>
+    /// Gets the toolbar of the view of the game, or <c>null</c> while the game has not loaded, or when the editor has no
+    /// game.
+    /// </summary>
+    public EditorViewToolbarViewModel? Toolbar { get => toolbar; private set => SetValue(ref toolbar, value); }
 
     /// <summary>
     /// Gets the controller of the game of the editor, or <c>null</c> when the editor has no game.
@@ -79,6 +87,16 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
             // From now on, the entities the asset gets or loses are added to or removed from the game
             isGameLoaded = true;
             await OnGameContentLoaded();
+
+            if (controller.GetService<EditorGameToolService>() is { } toolService)
+            {
+                var gameToolbar = new EditorViewToolbarViewModel(ServiceProvider, toolService, controller.GetService<IEditorGameSelectionViewModelService>());
+                await gameToolbar.InitializeAsync();
+                if (IsDestroyed)
+                    gameToolbar.Destroy();
+                else
+                    Toolbar = gameToolbar;
+            }
             return true;
         }
         catch (Exception e) when (!IsDestroyed)
@@ -103,6 +121,8 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
         foreach (var propagator in propagators.Values)
             propagator.Destroy();
         propagators.Clear();
+        Toolbar?.Destroy();
+        Toolbar = null;
         GameView = null;
         Controller?.Destroy();
 
