@@ -4,6 +4,7 @@
 using Stride.Assets.Entities;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
+using Stride.Assets.Presentation.ViewModels;
 using Stride.Core;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Quantum;
@@ -34,6 +35,22 @@ public abstract class EntityHierarchyEditorController : AssetCompositeHierarchyE
 
     /// <inheritdoc />
     public abstract AbsoluteId GetAbsoluteId(Entity entity);
+
+    /// <summary>
+    /// Clones an entity the asset just got, with its children, and adds the clone to the game (UI thread).
+    /// </summary>
+    /// <param name="parent">The item the entity was added to: the root of the hierarchy or another entity.</param>
+    /// <param name="assetSideEntity">The asset-side entity.</param>
+    /// <returns>A task that completes once the clone is in the game.</returns>
+    public abstract Task AddPart(EntityHierarchyItemViewModel parent, Entity assetSideEntity);
+
+    /// <summary>
+    /// Removes from the game the clone of an entity the asset just lost, with its children (UI thread).
+    /// </summary>
+    /// <param name="parent">The item the entity was removed from: the root of the hierarchy or another entity.</param>
+    /// <param name="assetSideEntity">The asset-side entity.</param>
+    /// <returns>A task that completes once the clone is out of the game.</returns>
+    public abstract Task RemovePart(EntityHierarchyItemViewModel parent, Entity assetSideEntity);
 
     /// <inheritdoc/>
     protected override Dictionary<Guid, IIdentifiable> CollectIdentifiableObjects()
