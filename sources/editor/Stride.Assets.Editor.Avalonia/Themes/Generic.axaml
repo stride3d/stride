@@ -1,0 +1,75 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+                    xmlns:views="using:Stride.Assets.Editor.Avalonia.Views.Preview"
+                    xmlns:vm="using:Stride.Assets.Editor.ViewModels.Preview">
+  <!-- The control themes of the preview views of this assembly, ported from the WPF ones (Stride.Assets.Presentation.Wpf,
+       Themes/Generic.xaml); StrideEditorViewPlugin merges this dictionary into the application. Each view keeps the game
+       view of the preview in its PART_StrideView presenter and adds the controls of its view model around it. -->
+  <ResourceDictionary.MergedDictionaries>
+    <ResourceInclude Source="avares://Stride.Assets.Editor.Avalonia/Themes/PreviewImages.axaml"/>
+  </ResourceDictionary.MergedDictionaries>
+
+  <!-- The band of controls above (or below) the game view -->
+  <ControlTheme x:Key="PreviewToolBarTheme" TargetType="Border">
+    <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"/>
+  </ControlTheme>
+
+  <!-- The flat buttons of the preview toolbars, with a 16x16 icon -->
+  <ControlTheme x:Key="PreviewToolBarButtonTheme" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="Padding" Value="4"/>
+    <Setter Property="Margin" Value="1"/>
+    <Setter Property="Focusable" Value="False"/>
+    <Setter Property="VerticalAlignment" Value="Center"/>
+  </ControlTheme>
+
+  <!-- Model, prefab and procedural model previews: the camera can be reset. The view models of these previews differ (none
+       for a prefab, as in WPF), so the command is bound by name. -->
+  <ControlTheme x:Key="{x:Type views:ModelPreviewView}" TargetType="views:ModelPreviewView">
+    <Setter Property="Template">
+      <ControlTemplate TargetType="views:ModelPreviewView">
+        <DockPanel>
+          <Border DockPanel.Dock="Top" Theme="{StaticResource PreviewToolBarTheme}">
+            <StackPanel Orientation="Horizontal" Margin="4">
+              <Button x:Name="PART_ResetCamera" Theme="{StaticResource PreviewToolBarButtonTheme}"
+                      Command="{ReflectionBinding ResetModelCommand}"
+                      ToolTip.Tip="{sd:LocalizeString Reset the camera, Context=ToolTip}">
+                <Image Source="{StaticResource ImageResetCamera}" Width="16" Height="16"/>
+              </Button>
+            </StackPanel>
+          </Border>
+          <ContentPresenter x:Name="PART_StrideView"/>
+        </DockPanel>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+  <!-- Skybox preview: the camera can be reset, and the metalness and glossiness of the sphere change -->
+  <ControlTheme x:Key="{x:Type views:SkyboxPreviewView}" TargetType="views:SkyboxPreviewView">
+    <Setter Property="Template">
+      <ControlTemplate TargetType="views:SkyboxPreviewView">
+        <DockPanel x:DataType="vm:SkyboxPreviewViewModel">
+          <Border DockPanel.Dock="Top" Theme="{StaticResource PreviewToolBarTheme}">
+            <StackPanel Margin="4">
+              <Button x:Name="PART_ResetCamera" Theme="{StaticResource PreviewToolBarButtonTheme}" HorizontalAlignment="Left"
+                      Command="{Binding ResetModelCommand}"
+                      ToolTip.Tip="{sd:LocalizeString Reset the camera, Context=ToolTip}">
+                <Image Source="{StaticResource ImageResetCamera}" Width="16" Height="16"/>
+              </Button>
+              <Grid ColumnDefinitions="80,*" RowDefinitions="Auto,Auto" Margin="2,0">
+                <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Text="{sd:LocalizeString Metalness}"/>
+                <Slider x:Name="PART_Metalness" Grid.Row="0" Grid.Column="1" Minimum="0" Maximum="1" TickFrequency="0.0333"
+                        TickPlacement="BottomRight" Value="{Binding Metalness}"/>
+                <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Text="{sd:LocalizeString Glossiness}"/>
+                <Slider x:Name="PART_Glossiness" Grid.Row="1" Grid.Column="1" Minimum="0" Maximum="1" TickFrequency="0.0333"
+                        TickPlacement="BottomRight" Value="{Binding Glossiness}"/>
+              </Grid>
+            </StackPanel>
+          </Border>
+          <ContentPresenter x:Name="PART_StrideView"/>
+        </DockPanel>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+</ResourceDictionary>

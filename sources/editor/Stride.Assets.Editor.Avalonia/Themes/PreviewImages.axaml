@@ -1,0 +1,16 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- The icons of the preview toolbars, copied from the WPF image dictionaries (Stride.Assets.Presentation.Wpf and
+       Stride.Core.Assets.Editor.Wpf, View/ImageDictionary.xaml) -->
+
+  <DrawingImage x:Key="ImageResetCamera">
+    <DrawingImage.Drawing>
+      <DrawingGroup>
+        <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+        <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M4.8708,1.9996L3.8708,3.0006 -0.000200000000000422,3.0006 -0.000200000000000422,15.0006 15.9998,15.0006 15.9998,3.0006 12.1128,3.0006 11.1128,1.9996z" />
+        <GeometryDrawing Brush="#FFEFEFF0" Geometry="F1M8,11C6.897,11 6,10.103 6,9 6,7.897 6.897,7 8,7 9.103,7 10,7.897 10,9 10,10.103 9.103,11 8,11 M8,6C6.346,6 5,7.346 5,9 5,10.654 6.346,12 8,12 9.654,12 11,10.654 11,9 11,7.346 9.654,6 8,6 M4.992,5.992C4.992,5.444 4.548,5 4,5 3.452,5 3.008,5.444 3.008,5.992 3.008,6.539 3.452,6.983 4,6.983 4.548,6.983 4.992,6.539 4.992,5.992" />
+        <GeometryDrawing Brush="#FF424242" Geometry="F1M11,9C11,7.346 9.654,6 8,6 6.346,6 5,7.346 5,9 5,10.654 6.346,12 8,12 9.654,12 11,10.654 11,9 M4.992,5.992C4.992,5.444 4.548,5 4,5 3.452,5 3.008,5.444 3.008,5.992 3.008,6.539 3.452,6.983 4,6.983 4.548,6.983 4.992,6.539 4.992,5.992 M15,4L15,14 1,14 1,4 4.285,4 5.285,3 10.699,3 11.699,4z M10,9C10,10.103 9.103,11 8,11 6.897,11 6,10.103 6,9 6,7.897 6.897,7 8,7 9.103,7 10,7.897 10,9" />
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
+</ResourceDictionary>
