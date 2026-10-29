@@ -36,7 +36,8 @@ public class TestPluginRegistrations
 
             foreach (var plugin in CreatePlugins())
             {
-                var registrations = PluginRegistrations.Of(plugin, typeof(IEditorView)).Describe();
+                // The WPF plugins take their template providers from resource dictionaries, whose order changes between runs
+                var registrations = PluginRegistrations.Of(plugin, typeof(IEditorView)).Describe(sortTemplateProviders: true);
                 if (RegistrationsGolden.Compare(plugin.GetType().FullName!, registrations) is { } difference)
                     differences.Add(difference);
             }
