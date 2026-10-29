@@ -3,6 +3,7 @@
 
 using Avalonia.Markup.Xaml.Styling;
 using Stride.Assets.Editor.Avalonia.Views;
+using Stride.Assets.Editor.Avalonia.Views.Preview;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Diagnostics;
 using Stride.Editor.Avalonia;
@@ -14,8 +15,8 @@ namespace Stride.Assets.Editor.Avalonia;
 
 /// <summary>
 /// The Avalonia views of the Stride editor layer: the property templates and the component images of this assembly, the
-/// control themes of its preview views, and the preview service of the session. The editor registers the preview and editor
-/// views that this assembly declares.
+/// control themes of its preview views and the images of their enum values, and the preview service of the session. The
+/// editor registers the preview and editor views that this assembly declares.
 /// </summary>
 public sealed class StrideEditorViewPlugin : StrideAssetsAvaloniaPlugin
 {
@@ -40,6 +41,7 @@ public sealed class StrideEditorViewPlugin : StrideAssetsAvaloniaPlugin
                 context.TypeImages.Register(type, image);
         }
 
+        RegisterResourceDictionary(context, new PreviewEnumImages());
         RegisterControlThemes(context.Logger, new ResourceInclude(ThemesUri) { Source = ThemesUri });
     }
 

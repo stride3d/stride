@@ -6,10 +6,12 @@ using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
 using Avalonia.Headless.XUnit;
 using Avalonia.Markup.Xaml.Styling;
+using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Stride.Assets.Editor.Avalonia.Tests.Helpers;
 using Stride.Assets.Editor.Avalonia.Views.Preview;
+using Stride.Assets.Editor.Preview;
 using Stride.Assets.Editor.Tests.Helpers;
 using Stride.Assets.Editor.ViewModels.Preview;
 using Stride.Core.Assets.Editor.Editors;
@@ -69,6 +71,29 @@ public sealed class PreviewControlsTests
 
         Assert.Equal(0.25f, viewModel.Metalness);
         Assert.Equal(0.75f, viewModel.Glossiness);
+    }
+
+    [AvaloniaFact]
+    public void TheMaterialViewChoosesThePrimitive()
+    {
+        var viewModel = new MaterialPreviewViewModel(PreviewSession.Create());
+        var view = Show<MaterialPreviewView>(viewModel);
+        var primitives = Part<ListBox>(view, "PART_Primitives");
+
+        Assert.Equal(Enum.GetValues<MaterialPreviewPrimitive>().Cast<object>(), primitives.Items.Cast<object>());
+        Assert.Equal(MaterialPreviewPrimitive.Sphere, primitives.SelectedItem);
+
+        primitives.SelectedItem = MaterialPreviewPrimitive.Teapot;
+
+        Assert.Equal(MaterialPreviewPrimitive.Teapot, viewModel.SelectedPrimitive);
+    }
+
+    [AvaloniaFact]
+    public void TheViewPluginRegistersTheImagesOfTheMaterialPrimitives()
+    {
+        var enumImages = PluginRegistrations.Of(new StrideEditorViewPlugin(), typeof(IAssetEditorView)).EnumImages;
+
+        Assert.All(Enum.GetValues<MaterialPreviewPrimitive>(), x => Assert.IsAssignableFrom<IImage>(enumImages[x]));
     }
 
     /// <summary>
