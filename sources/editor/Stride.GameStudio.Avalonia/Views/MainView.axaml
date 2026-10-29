@@ -174,6 +174,15 @@
             <Image Source="{StaticResource ImageStopBuild}"/>
           </MenuItem.Icon>
         </MenuItem>
+        <Separator/>
+        <!-- Enabled while the game code has changes the editor did not load: they load in a new editor on the project -->
+        <MenuItem Header="{sd:LocalizeString Reload game assemblies, Context=Menu}"
+                  Name="ReloadGameCodeMenuItem"
+                  Command="{Binding CodeReload.ReloadCommand}">
+          <MenuItem.Icon>
+            <Image Source="{StaticResource ImageReloadAssemblies}"/>
+          </MenuItem.Icon>
+        </MenuItem>
       </MenuItem>
       <!-- Help menu -->
       <MenuItem Header="{sd:LocalizeString _Help, Context=Menu}">
@@ -214,6 +223,19 @@
         <Style Selector="Button:disabled Image">
           <Setter Property="Opacity" Value="0.25"/>
         </Style>
+        <!-- The reload button blinks while the game code has changes to load, as in WPF -->
+        <Style Selector="Button#ReloadGameCodeButton:not(:disabled) Image">
+          <Style.Animations>
+            <Animation Duration="0:0:0.5" IterationCount="Infinite" PlaybackDirection="Alternate">
+              <KeyFrame Cue="0%">
+                <Setter Property="Opacity" Value="1"/>
+              </KeyFrame>
+              <KeyFrame Cue="100%">
+                <Setter Property="Opacity" Value="0.3"/>
+              </KeyFrame>
+            </Animation>
+          </Style.Animations>
+        </Style>
       </sd:ToolBar.Styles>
       <Button Name="BuildProjectButton"
               Command="{Binding Build.BuildProjectCommand}"
@@ -232,6 +254,12 @@
               ToolTip.Tip="{sd:LocalizeString Cancel the current build (Ctrl+F6), Context=ToolTip}"
               ToolTip.ShowOnDisabled="True">
         <Image Source="{StaticResource ImageStopBuild}" Width="16" Height="16"/>
+      </Button>
+      <Button Name="ReloadGameCodeButton"
+              Command="{Binding CodeReload.ReloadCommand}"
+              ToolTip.Tip="{sd:LocalizeString Reload the game assemblies: build the changed code and open the project in a new editor, Context=ToolTip}"
+              ToolTip.ShowOnDisabled="True">
+        <Image Source="{StaticResource ImageReloadAssemblies}" Width="16" Height="16"/>
       </Button>
     </sd:ToolBar>
 

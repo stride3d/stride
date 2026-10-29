@@ -462,6 +462,47 @@
     </DrawingImage.Drawing>
   </DrawingImage>
 
+  <!--  Reload of the game code (the Project menu and the toolbar)  -->
+  <DrawingImage x:Key="ImageReloadAssemblies">
+    <DrawingImage.Drawing>
+      <DrawingGroup>
+        <DrawingGroup>
+          <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+          <GeometryDrawing Brush="#FFF6F6F6"
+                           Geometry="F1M1.9998,-0.000199999999999534L1.9998,15.9998 15.0008,15.9998 15.0008,4.3788 10.6208,-0.000199999999999534z" />
+          <GeometryDrawing Brush="#424242"
+                           Geometry="F1M13,14L9,14 7,14 4,14 4,2 9,2 9,6 13,6z M10,2.207L12.793,5 10,5z M10.207,1L3,1 3,15 14,15 14,4.793z" />
+          <GeometryDrawing Brush="#FFEFEFF0" Geometry="F1M13,5L10,5 10,2z M9,6L9,2 4,2 4,6 4,14 9,14 13,14 13,6z" />
+        </DrawingGroup>
+        <DrawingGroup>
+          <DrawingGroup.Transform>
+            <TransformGroup>
+              <ScaleTransform />
+              <SkewTransform />
+              <RotateTransform />
+              <TranslateTransform X="-3" Y="2.5" />
+            </TransformGroup>
+          </DrawingGroup.Transform>
+          <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+          <GeometryDrawing Brush="#FF378A33"
+                           Geometry="F1M12,7L11,7 11,6 12,6z M14,6L14,5 13,5 13,4 12,4 12,5 11,5 11,4 10,4 10,5 9,5 9,6 10,6 10,7 9,7 9,8 10,8 10,9 11,9 11,8 12,8 12,9 13,9 13,8 14,8 14,7 13,7 13,6z" />
+        </DrawingGroup>
+        <DrawingGroup>
+          <DrawingGroup.Transform>
+            <TransformGroup>
+              <ScaleTransform ScaleX="0.3" ScaleY="0.3" />
+              <TranslateTransform X="11" Y="11.5" />
+            </TransformGroup>
+          </DrawingGroup.Transform>
+          <GeometryDrawing Brush="#f6f6f6"
+                           Geometry="M16 8c0 4.411-3.589 8-8 8s-8-3.589-8-8a7.99 7.99 0 0 1 1.088-4H0V0h8v8H4c0 2.206 1.794 4 4 4s4-1.794 4-4c0-1.344-.669-2.59-1.79-3.334l-.833-.554L11.592.78l.833.553A7.992 7.992 0 0 1 16 8z" />
+          <GeometryDrawing Brush="#00539c"
+                           Geometry="M15 8c0 3.859-3.141 7-7 7-3.86 0-7-3.141-7-7a7 7 0 0 1 2.12-5H1V1h6v6H5V4.002A5.01 5.01 0 0 0 3 8c0 2.757 2.243 5 5 5s5-2.243 5-5a4.993 4.993 0 0 0-2.236-4.167l1.107-1.666A6.989 6.989 0 0 1 15 8z" />
+        </DrawingGroup>
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
+
   <!--  Project templates (new project windows, solution explorer and the platforms of the parameters dialog)  -->
   <DrawingImage x:Key="ImageAddNewPackage">
     <DrawingImage.Drawing>

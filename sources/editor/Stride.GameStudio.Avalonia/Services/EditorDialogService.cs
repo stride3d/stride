@@ -170,6 +170,32 @@ internal class EditorDialogService : DialogService, IEditorDialogService, IProgr
         });
     }
 
+    /// <inheritdoc/>
+    /// <remarks>
+    /// As WPF's delayed notifications, the question waits for the editor to come to the front again (the user edits the code in an
+    /// IDE), and for the dialog that is up to close: the main window is activated then.
+    /// </remarks>
+    public async Task WaitForMainWindowActiveAsync(CancellationToken token = default)
+    {
+        await Dispatcher.InvokeTask(async () =>
+        {
+            while (MainWindow is { } mainWindow && !(mainWindow.IsActive && ReferenceEquals(ActiveWindow, mainWindow)))
+            {
+                var activated = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+                void OnActivated(object? sender, EventArgs e) => activated.TrySetResult();
+                mainWindow.Activated += OnActivated;
+                try
+                {
+                    await activated.Task.WaitAsync(token);
+                }
+                finally
+                {
+                    mainWindow.Activated -= OnActivated;
+                }
+            }
+        }, token);
+    }
+
     public async Task<AssetViewModel?> OpenAssetPickerAsync(SessionViewModel session, IEnumerable<Type> acceptedTypes, Func<AssetViewModel, bool>? filter = null, AssetViewModel? initialAsset = null, DirectoryBaseViewModel? initialLocation = null, string? message = null)
     {
         if (MainWindow is null) return null;
