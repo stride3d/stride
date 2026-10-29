@@ -10,6 +10,7 @@ namespace Stride.Rendering.Images
     /// <remarks> This effects takes from 1 to 10 textures in input and combine them to a single output.
     /// Before using this class, it is recommended to clear the inputs by using <see cref="ImageEffect.Reset"/>.
     /// </remarks>
+    [EffectKeys]
     public class ColorCombiner : ImageEffectShader
     {
         internal static readonly PermutationParameterKey<int> FactorCount = ParameterKeys.NewPermutation(0);

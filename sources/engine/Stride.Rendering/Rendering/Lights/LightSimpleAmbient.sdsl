@@ -10,7 +10,7 @@ namespace Stride.Rendering.Lights
         cbuffer PerView.Lighting
         {
             [Color]
-            float3 AmbientLight;
+            float3 AmbientLight = float3(1, 1, 1);
         }
 
         override void PrepareEnvironmentLight()

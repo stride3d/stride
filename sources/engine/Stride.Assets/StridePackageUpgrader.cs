@@ -146,6 +146,10 @@ namespace Stride.Assets
                 Rewrite(
                     MemberToExtension("Stride.Engine.Game", "Audio", "Stride.Audio"),
                     MemberToExtension("Stride.Engine.ScriptComponent", "Audio", "Stride.Audio", throughMember: "Game")),
+
+                // 4.5: the assembly processor no longer names hand-written parameter keys; a source generator does, for
+                // the types marked [EffectKeys] (#3584).
+                AddAttributeToStaticFieldHolders("Stride.Rendering.ParameterKey", "Stride.Rendering.EffectKeysAttribute"),
             ]);
 
             // Structural csproj migrations, gated by the version each change landed at. Run against the

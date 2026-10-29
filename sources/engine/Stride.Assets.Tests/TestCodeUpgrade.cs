@@ -687,4 +687,160 @@ public class TestCodeUpgrade
         Assert.Contains("else", result);
         AssertCompiles(result);
     }
+
+    // The 4.5 shape: types with hand-written ParameterKey fields get [EffectKeys], which does not exist at the old version.
+    private const string ParameterKeySource = """
+        namespace Stride.Rendering
+        {
+            public abstract class ParameterKey { }
+            public sealed class ValueParameterKey<T> : ParameterKey { }
+            public static class ParameterKeys { public static ValueParameterKey<T> NewValue<T>() => null; }
+        }
+
+        """;
+
+    private const string EffectKeysAttributeSource = """
+
+        namespace Stride.Rendering
+        {
+            [System.AttributeUsage(System.AttributeTargets.Class | System.AttributeTargets.Struct)]
+            public sealed class EffectKeysAttribute : System.Attribute { }
+        }
+        """;
+
+    private static readonly CodeUpgrade EffectKeysUpgrade = AddAttributeToStaticFieldHolders("Stride.Rendering.ParameterKey", "Stride.Rendering.EffectKeysAttribute");
+
+    [Fact]
+    public async Task AddAttributeToStaticFieldHoldersMarksTypesWithStaticKeyFields()
+    {
+        var source = ParameterKeySource + """
+            namespace Game
+            {
+                using Stride.Rendering;
+
+                /// <summary>Keys.</summary>
+                public static class MyKeys
+                {
+                    public static readonly ValueParameterKey<float> Intensity = ParameterKeys.NewValue<float>();
+                }
+
+                [System.Serializable]
+                public struct MyStruct
+                {
+                    private static readonly ValueParameterKey<int> Count = ParameterKeys.NewValue<int>();
+                }
+
+                public class Outer
+                {
+                    public class Nested
+                    {
+                        public static ValueParameterKey<float> Key;
+                    }
+                }
+
+                public partial class Split
+                {
+                    public static ValueParameterKey<float> First;
+                }
+
+                public partial class Split
+                {
+                    public static ValueParameterKey<float> Second;
+                }
+
+                public class NotKeys
+                {
+                    public ValueParameterKey<float> Instance;
+                    public static string Text;
+                }
+
+                [EffectKeys]
+                public class AlreadyMarked
+                {
+                    public static ValueParameterKey<float> Key;
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(source, EffectKeysUpgrade);
+
+        var expected = ParameterKeySource + """
+            namespace Game
+            {
+                using Stride.Rendering;
+
+                /// <summary>Keys.</summary>
+                [EffectKeys]
+                public static class MyKeys
+                {
+                    public static readonly ValueParameterKey<float> Intensity = ParameterKeys.NewValue<float>();
+                }
+
+                [EffectKeys]
+                [System.Serializable]
+                public struct MyStruct
+                {
+                    private static readonly ValueParameterKey<int> Count = ParameterKeys.NewValue<int>();
+                }
+
+                public class Outer
+                {
+                    [EffectKeys]
+                    public class Nested
+                    {
+                        public static ValueParameterKey<float> Key;
+                    }
+                }
+
+                [EffectKeys]
+                public partial class Split
+                {
+                    public static ValueParameterKey<float> First;
+                }
+
+                public partial class Split
+                {
+                    public static ValueParameterKey<float> Second;
+                }
+
+                public class NotKeys
+                {
+                    public ValueParameterKey<float> Instance;
+                    public static string Text;
+                }
+
+                [EffectKeys]
+                public class AlreadyMarked
+                {
+                    public static ValueParameterKey<float> Key;
+                }
+            }
+            """;
+        Assert.Equal(expected.ReplaceLineEndings(), result.ReplaceLineEndings());
+        AssertCompiles(result + EffectKeysAttributeSource);
+    }
+
+    [Fact]
+    public async Task AddAttributeToStaticFieldHoldersQualifiesTheAttributeOutOfScopeAndIsIdempotent()
+    {
+        var source = ParameterKeySource + """
+            namespace Game
+            {
+                public class MyKeys
+                {
+                    public static readonly Stride.Rendering.ValueParameterKey<float> Intensity = Stride.Rendering.ParameterKeys.NewValue<float>();
+                }
+            }
+            """;
+
+        // The second run sees the attribute written by the first one
+        var result = await ApplyAsync(source, EffectKeysUpgrade, EffectKeysUpgrade);
+
+        Assert.Contains("""
+                [Stride.Rendering.EffectKeys]
+                public class MyKeys
+            """.ReplaceLineEndings(), result.ReplaceLineEndings());
+        Assert.Equal(1, result.Split("[Stride.Rendering.EffectKeys]").Length - 1);
+        AssertCompiles(result + EffectKeysAttributeSource);
+    }
 }

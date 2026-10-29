@@ -97,9 +97,8 @@ public class EffectGenerator : IIncrementalGenerator
 
         // 3. Create a deterministic hash of the full path to avoid collisions
         // for files with the same name in different directories.
-        using var sha1 = SHA1.Create();
-        byte[] hashBytes = sha1.ComputeHash(Encoding.UTF8.GetBytes(absolutePath));
-        string hash = BitConverter.ToString(hashBytes).Replace("-", "").Substring(0, 8);
+        byte[] hashBytes = SHA1.HashData(Encoding.UTF8.GetBytes(absolutePath));
+        string hash = Convert.ToHexString(hashBytes.AsSpan(0, 4));
 
         // 4. Combine into a stable hint name (e.g., "MyConfig_A1B2C3D4.g.cs")
         return $"{sanitizedName}_{hash}.g.cs";

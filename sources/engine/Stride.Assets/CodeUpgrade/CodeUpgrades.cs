@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -31,7 +32,7 @@ public sealed record SymbolRewrite(
 /// Factory helpers for declaring code migrations. Import with
 /// <c>using static Stride.Assets.CodeUpgrades;</c> so registrations read as intent.
 /// </summary>
-public static class CodeUpgrades
+public static partial class CodeUpgrades
 {
     /// <summary>
     /// Batches symbol rewrites into one <see cref="CodeUpgrade"/>: all symbols are resolved and their
@@ -517,6 +518,78 @@ public static class CodeUpgrades
             }
             return solution;
         };
+    }
+
+    /// <summary>
+    /// True when <paramref name="type"/> is <paramref name="baseType"/> or derives from it (generic instances included).
+    /// </summary>
+    internal static bool DerivesFrom(ITypeSymbol type, INamedTypeSymbol baseType)
+    {
+        for (var current = type; current is not null; current = current.BaseType)
+        {
+            if (SymbolEqualityComparer.Default.Equals(current.OriginalDefinition, baseType))
+                return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// True when a part of <paramref name="type"/> has an attribute written <paramref name="name"/> or
+    /// <c>{name}Attribute</c>, qualified or not. Matched on the syntax, so it works for an attribute that doesn't
+    /// exist in the old-version closure.
+    /// </summary>
+    internal static bool HasAttributeNamed(INamedTypeSymbol type, string name, CancellationToken cancellationToken)
+    {
+        foreach (var reference in type.DeclaringSyntaxReferences)
+        {
+            if (reference.GetSyntax(cancellationToken) is not TypeDeclarationSyntax declaration)
+                continue;
+            foreach (var attribute in declaration.AttributeLists.SelectMany(x => x.Attributes))
+            {
+                var written = attribute.Name switch
+                {
+                    QualifiedNameSyntax qualified => qualified.Right.Identifier.ValueText,
+                    AliasQualifiedNameSyntax aliasQualified => aliasQualified.Name.Identifier.ValueText,
+                    SimpleNameSyntax simple => simple.Identifier.ValueText,
+                    _ => null,
+                };
+                if (written == name || written == name + "Attribute")
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// True when names of namespace <paramref name="ns"/> resolve unqualified at <paramref name="node"/>: it is the
+    /// namespace of <paramref name="type"/> or one around it, or a <c>using</c> (also global) visible there.
+    /// </summary>
+    internal static bool IsNamespaceInScope(SemanticModel semanticModel, SyntaxNode node, INamedTypeSymbol type, string ns, CancellationToken cancellationToken)
+    {
+        if (ns is null)
+            return true;
+        for (var current = type.ContainingNamespace; current is { IsGlobalNamespace: false }; current = current.ContainingNamespace)
+        {
+            if (current.ToDisplayString() == ns)
+                return true;
+        }
+        return semanticModel.GetImportScopes(node.SpanStart, cancellationToken)
+            .Any(scope => scope.Imports.Any(x => x.NamespaceOrType is INamespaceSymbol imported && imported.ToDisplayString() == ns));
+    }
+
+    /// <summary>
+    /// Adds <c>[name]</c> as the first attribute list of <paramref name="declaration"/>, on its own line: the list takes
+    /// the declaration's leading trivia (comments, indentation) and the declaration keeps the indentation.
+    /// </summary>
+    internal static TypeDeclarationSyntax AddAttributeList(TypeDeclarationSyntax declaration, string name, SyntaxTrivia endOfLine)
+    {
+        var leading = declaration.GetLeadingTrivia();
+        var indentation = leading.Reverse().TakeWhile(x => x.IsKind(SyntaxKind.WhitespaceTrivia)).Reverse();
+        var attributeList = SyntaxFactory.AttributeList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Attribute(SyntaxFactory.ParseName(name))))
+            .WithLeadingTrivia(leading)
+            .WithTrailingTrivia(endOfLine);
+        declaration = declaration.WithLeadingTrivia(SyntaxFactory.TriviaList(indentation));
+        return declaration.WithAttributeLists(declaration.AttributeLists.Insert(0, attributeList));
     }
 
     /// <summary>

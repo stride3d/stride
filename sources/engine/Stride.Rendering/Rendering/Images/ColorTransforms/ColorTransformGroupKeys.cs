@@ -7,6 +7,7 @@ namespace Stride.Rendering.Images
     /// <summary>
     /// Keys used by <see cref="ToneMap"/> and ToneMapEffect sdfx
     /// </summary>
+    [EffectKeys]
     internal static class ColorTransformGroupKeys
     {
         public static readonly PermutationParameterKey<List<ColorTransform>> Transforms = ParameterKeys.NewPermutation<List<ColorTransform>>();

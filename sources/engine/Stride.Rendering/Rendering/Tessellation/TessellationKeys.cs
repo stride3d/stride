@@ -5,6 +5,7 @@ using Stride.Graphics;
 
 namespace Stride.Rendering.Tessellation
 {
+    [EffectKeys]
     public class TessellationKeys
     {
         /// <summary>
