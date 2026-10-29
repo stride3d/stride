@@ -71,13 +71,16 @@ public sealed class PluginTests
     }
 
     [Fact]
-    public void TheEditorPluginDeclaresTheContentReferencesAsPrimitiveTypes()
+    public async Task TheEditorDeclaresTheContentReferencesAsPrimitiveTypesOnce()
     {
-        var types = PluginRegistrations.Of(new StrideEditorPlugin(), typeof(Stride.Core.Assets.Editor.Editors.IAssetEditorView)).PrimitiveTypes;
+        using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false);
 
-        // The content types serialized as references are not expanded by the property grid
-        Assert.Contains(typeof(Stride.Graphics.Texture), types);
-        Assert.Contains(typeof(Stride.Rendering.Model), types);
+        // The content types serialized as references are not expanded by the property grid; the host registers them once,
+        // whatever the number of plugins
+        var types = fixture.Plugins.GetPrimitiveTypes(fixture.Session).ToList();
+        Assert.Single(types, x => x == typeof(Stride.Graphics.Texture));
+        Assert.Single(types, x => x == typeof(Stride.Rendering.Model));
+        Assert.Empty(PluginRegistrations.Of(new StrideEditorPlugin(), typeof(Stride.Core.Assets.Editor.Editors.IAssetEditorView)).PrimitiveTypes);
     }
 
     [Fact]

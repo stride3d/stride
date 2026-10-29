@@ -6,7 +6,6 @@ AssetPreviewViewModelTypes:
   Stride.Audio.Editor.SoundPreview -> Stride.Audio.Editor.SoundPreviewViewModel
 AssetPreviewViewTypes:
 PrimitiveTypes:
-  (the reference types of every registered assembly)
 EnumImages:
 TypeImages:
 TemplateProviders:

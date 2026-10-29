@@ -24,7 +24,6 @@ AssetPreviewViewTypes:
   Stride.Assets.Editor.Preview.TexturePreview -> Stride.Assets.Editor.Avalonia.Views.Preview.TexturePreviewView
   Stride.Assets.Presentation.Preview.PreviewFromSpriteBatch`1 -> Stride.Assets.Editor.Avalonia.Views.Preview.SpritePreviewView
 PrimitiveTypes:
-  (the reference types of every registered assembly)
 EnumImages:
 TypeImages:
 TemplateProviders:

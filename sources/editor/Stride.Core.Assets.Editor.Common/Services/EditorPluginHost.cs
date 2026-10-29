@@ -40,9 +40,9 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
     private readonly Dictionary<AssetsPlugin, PluginRecord> records = [];
     // The assemblies whose declared images are registered (once per assembly, under its first plugin)
     private readonly Dictionary<Assembly, PluginRecord> declaredImageAssemblies = [];
-    // The registered assemblies without a plugin whose declared images are registered (the runtime and Assets assemblies
-    // of the packages), each under its own record
-    private readonly Dictionary<Assembly, PluginRecord> assemblyImageRecords = [];
+    // The registered assemblies, each with the record of what the host registers for it: its primitive types, and its
+    // declared images when no plugin of the assembly registered them (the runtime and Assets assemblies of the packages)
+    private readonly Dictionary<Assembly, PluginRecord> assemblyRecords = [];
 
     private readonly TypeMap assetViewModelTypes;
     private readonly TypeMap editorViewModelTypes;
@@ -199,6 +199,12 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
     protected virtual bool ShowsImagesOfRegisteredAssemblies => fixedPlugins is null;
 
     /// <summary>
+    /// The types of a registered assembly that the property grid shows as primitive types (not expanded), whatever plugin
+    /// is loaded. Read once per assembly, while it is registered.
+    /// </summary>
+    protected virtual IEnumerable<Type> FindPrimitiveTypes(Assembly assembly) => [];
+
+    /// <summary>
     /// Whether the editor of <paramref name="session"/> is initialized: a plugin that joins after that is initialized for
     /// the session right away. By default, whether <see cref="InitializeSession"/> ran.
     /// </summary>
@@ -262,14 +268,14 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
         foreach (var plugin in Plugins.ToList())
             TryJoin(plugin, session);
 
-        // The images that the other registered assemblies declare, as long as they are registered
-        if (ShowsImagesOfRegisteredAssemblies && !followsAssemblies)
+        // What the registered assemblies declare by themselves, as long as they are registered
+        if (!followsAssemblies)
         {
             followsAssemblies = true;
             AssemblyRegistry.AssemblyRegistered += AssemblyRegistered;
             AssemblyRegistry.AssemblyUnregistered += AssemblyUnregistered;
             foreach (var assembly in AssemblyRegistry.FindAll())
-                ScanAssemblyImages(assembly);
+                ScanAssembly(assembly);
         }
     }
 
@@ -303,8 +309,8 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
         session = null;
         foreach (var plugin in sessionPlugins.Concat(records.Keys).Distinct().ToList())
             TryLeave(plugin);
-        foreach (var assembly in assemblyImageRecords.Keys.ToList())
-            RemoveAssemblyImages(assembly);
+        foreach (var assembly in assemblyRecords.Keys.ToList())
+            RemoveAssembly(assembly);
         GC.SuppressFinalize(this);
     }
 
@@ -357,9 +363,9 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
         }
     }
 
-    private void AssemblyRegistered(object? sender, AssemblyRegisteredEventArgs e) => OnEditorThread(() => ScanAssemblyImages(e.Assembly));
+    private void AssemblyRegistered(object? sender, AssemblyRegisteredEventArgs e) => OnEditorThread(() => ScanAssembly(e.Assembly));
 
-    private void AssemblyUnregistered(object? sender, AssemblyRegisteredEventArgs e) => OnEditorThread(() => RemoveAssemblyImages(e.Assembly));
+    private void AssemblyUnregistered(object? sender, AssemblyRegisteredEventArgs e) => OnEditorThread(() => RemoveAssembly(e.Assembly));
 
     // Inline on the UI thread, queued there from another one, as for a plugin joining (see PluginsDiscovered)
     private void OnEditorThread(Action action)
@@ -486,20 +492,32 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
         return record;
     }
 
-    // The images a registered assembly declares, unless a plugin of the assembly registered them
-    private void ScanAssemblyImages(Assembly assembly)
+    // What a registered assembly declares by itself: its primitive types, and its images unless a plugin of the assembly
+    // registered them
+    private void ScanAssembly(Assembly assembly)
     {
-        if (declaredImageAssemblies.ContainsKey(assembly))
+        if (assemblyRecords.ContainsKey(assembly))
             return;
 
         var record = new PluginRecord();
-        assemblyImageRecords[assembly] = record;
-        ScanDeclaredImages(assembly, record);
+        assemblyRecords[assembly] = record;
+        try
+        {
+            foreach (var type in FindPrimitiveTypes(assembly))
+                RegisterInList(record, primitiveTypes, type);
+        }
+        catch (Exception e)
+        {
+            pluginLogger.Warning($"Could not read the primitive types of [{assembly.GetName().Name}].", e);
+        }
+
+        if (ShowsImagesOfRegisteredAssemblies && !declaredImageAssemblies.ContainsKey(assembly))
+            ScanDeclaredImages(assembly, record);
     }
 
-    private void RemoveAssemblyImages(Assembly assembly)
+    private void RemoveAssembly(Assembly assembly)
     {
-        if (assemblyImageRecords.Remove(assembly, out var record))
+        if (assemblyRecords.Remove(assembly, out var record))
             record.UndoFrom(0, pluginLogger);
     }
 

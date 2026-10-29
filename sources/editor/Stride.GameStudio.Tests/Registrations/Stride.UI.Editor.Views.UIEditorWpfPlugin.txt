@@ -7,7 +7,6 @@ AssetEditorViewTypes:
 AssetPreviewViewModelTypes:
 AssetPreviewViewTypes:
 PrimitiveTypes:
-  (the reference types of every registered assembly)
 EnumImages:
 TypeImages:
 TemplateProviders:

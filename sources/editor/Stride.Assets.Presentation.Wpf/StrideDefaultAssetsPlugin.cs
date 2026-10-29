@@ -105,12 +105,10 @@ namespace Stride.Assets.Presentation
         public static void LoadDefaultTemplates() => StrideDefaultTemplates.Load();
 
         /// <inheritdoc />
-        /// <remarks>
-        /// Unlike the other Stride plugins, it registers only the asset and URL references as primitive types, not the
-        /// reference types of every assembly, so it does not call the base method: the Game Studio's editor plugin does.
-        /// </remarks>
         public override void Initialize(IEditorPluginContext context)
         {
+            base.Initialize(context);
+
             context.ProfileSettings.Register(new PackageSettingsEntry(GameUserSettings.Effect.EffectCompilation, TargetPackage.Executable));
             context.ProfileSettings.Register(new PackageSettingsEntry(GameUserSettings.Effect.RecordUsedEffects, TargetPackage.Executable));
             context.PrimitiveTypes.Register(typeof(AssetReference));
