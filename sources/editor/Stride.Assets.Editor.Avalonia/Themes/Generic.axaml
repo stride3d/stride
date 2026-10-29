@@ -2,7 +2,9 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
                     xmlns:views="using:Stride.Assets.Editor.Avalonia.Views.Preview"
-                    xmlns:vm="using:Stride.Assets.Editor.ViewModels.Preview">
+                    xmlns:vm="using:Stride.Assets.Editor.ViewModels.Preview"
+                    xmlns:preview="using:Stride.Assets.Editor.Preview"
+                    xmlns:caec="using:Stride.Core.Assets.Editor.Avalonia.Converters">
   <!-- The control themes of the preview views of this assembly, ported from the WPF ones (Stride.Assets.Presentation.Wpf,
        Themes/Generic.xaml); StrideEditorViewPlugin merges this dictionary into the application. Each view keeps the game
        view of the preview in its PART_StrideView presenter and adds the controls of its view model around it. -->
@@ -66,6 +68,41 @@
                         TickPlacement="BottomRight" Value="{Binding Glossiness}"/>
               </Grid>
             </StackPanel>
+          </Border>
+          <ContentPresenter x:Name="PART_StrideView"/>
+        </DockPanel>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+  <!-- Material preview: the primitive the material is shown on; the images of the primitives are the enum images that
+       StrideEditorViewPlugin registers (PreviewEnumImages.axaml) -->
+  <ControlTheme x:Key="{x:Type views:MaterialPreviewView}" TargetType="views:MaterialPreviewView">
+    <Setter Property="Template">
+      <ControlTemplate TargetType="views:MaterialPreviewView">
+        <DockPanel x:DataType="vm:MaterialPreviewViewModel">
+          <Border DockPanel.Dock="Top" Theme="{StaticResource PreviewToolBarTheme}">
+            <ListBox x:Name="PART_Primitives" Margin="2" Padding="0" Background="Transparent" BorderThickness="0" Focusable="False"
+                     ItemsSource="{Binding PrimitiveTypes, Converter={sd:EnumValues}, Mode=OneWay}"
+                     SelectedItem="{Binding SelectedPrimitive}"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Disabled">
+              <ListBox.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <StackPanel Orientation="Horizontal"/>
+                </ItemsPanelTemplate>
+              </ListBox.ItemsPanel>
+              <ListBox.Styles>
+                <Style Selector="ListBoxItem">
+                  <Setter Property="Padding" Value="4"/>
+                  <Setter Property="Focusable" Value="False"/>
+                </Style>
+              </ListBox.Styles>
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="preview:MaterialPreviewPrimitive">
+                  <Image Width="16" Height="16" Source="{Binding Converter={caec:EnumToResource}}"/>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
           </Border>
           <ContentPresenter x:Name="PART_StrideView"/>
         </DockPanel>
