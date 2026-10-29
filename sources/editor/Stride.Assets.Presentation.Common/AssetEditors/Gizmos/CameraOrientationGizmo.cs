@@ -29,7 +29,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
     /// </remarks>
     public class CameraOrientationGizmo : AxialGizmo
     {
-        private readonly EditorGameCameraOrientationService service;
+        private readonly IEditorGameCameraService camera;
         private readonly EntityHierarchyEditorGame game;
 
         public const RenderGroup ViewGizmoGroup = RenderGroup.Group6;
@@ -98,14 +98,20 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
         /// <summary>
         /// Initializes a new instance of the <see cref="CameraOrientationGizmo"/> class.
         /// </summary>
-        /// <param name="service">The service that is using this gizmo.</param>
+        /// <param name="camera">The camera of the view the gizmo shows the orientation of.</param>
         /// <param name="game">The scene game.</param>
-        internal CameraOrientationGizmo(EditorGameCameraOrientationService service, EntityHierarchyEditorGame game)
+        public CameraOrientationGizmo(IEditorGameCameraService camera, EntityHierarchyEditorGame game)
         {
             RenderGroup = ViewGizmoGroup;
-            this.service = service;
+            this.camera = camera;
             this.game = game;
         }
+
+        /// <summary>
+        /// Gets or sets whether the faces show the names of the directions (front, top...) instead of the axes (the scene
+        /// editor setting "Display direction names").
+        /// </summary>
+        public bool DisplayDirectionNames { get; set; }
 
         public Int3 SelectedElement { get; private set; }
 
@@ -115,7 +121,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
         private void UpdateCamera()
         {
-            var view = service.Camera.ViewMatrix;
+            var view = camera.ViewMatrix;
             view.TranslationVector = new Vector3(0, 0, -OuterExtent * CameraDistanceFactor);
             cameraComponent.ViewMatrix = view;
         }
@@ -328,7 +334,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 
             var textureToWorldSpace = Matrix.RotationX(MathUtil.Pi) * Matrix.Translation(0, 0, OuterExtent);
 
-            var displayDirectionNames = SceneEditorSettings.DisplayDirectionNames.GetValue();
+            var displayDirectionNames = DisplayDirectionNames;
 
             var textScale = displayDirectionNames ? NameIndicatorScale : XYZIndicatorScale;
 

@@ -206,7 +206,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             var minHitDistance = float.PositiveInfinity;
 
             // Select the closest intersecting translation plane
-            foreach (var pair in EditorGameComponentGizmoService.PlaneToIndex)
+            foreach (var pair in PlaneToIndex)
             {
                 var minimum = new Vector3(0) { [pair.Value] = -AxisBodyRadius };
                 var maximum = new Vector3(GizmoPlaneLength);

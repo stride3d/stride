@@ -3,7 +3,7 @@
                     xmlns:core="clr-namespace:Stride.Core;assembly=Stride.Core"
                     xmlns:engine="clr-namespace:Stride.Engine;assembly=Stride.Engine"
                     xmlns:font="clr-namespace:Stride.Graphics.Font;assembly=Stride.Graphics"
-                    xmlns:gameEditor="clr-namespace:Stride.Assets.Presentation.AssetEditors.GameEditor"
+                    xmlns:gameEditor="clr-namespace:Stride.Assets.Presentation.AssetEditors.GameEditor;assembly=Stride.Assets.Presentation.Common"
                     xmlns:preview="clr-namespace:Stride.Assets.Presentation.Preview">
 
   <DrawingImage x:Key="ImageUp" >

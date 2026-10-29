@@ -9,6 +9,7 @@ using Stride.Assets.Presentation.AssetEditors.Gizmos;
 using Stride.Editor.EditorGame.Game;
 using Stride.Input;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
+using Stride.Assets.Presentation.SceneEditor;
 
 namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Game
 {
@@ -28,7 +29,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Game
         protected override Task<bool> Initialize(EditorServiceGame editorGame)
         {
             game = (EntityHierarchyEditorGame)editorGame;
-            gizmo = new CameraOrientationGizmo(this, game);
+            gizmo = new CameraOrientationGizmo(Camera, game);
             gizmo.Initialize(game.Services, game.EditorScene);
 
             game.Script.AddTask(Update);
@@ -41,6 +42,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GameEditor.Game
             {
                 if (IsActive)
                 {
+                    gizmo.DisplayDirectionNames = SceneEditorSettings.DisplayDirectionNames.GetValue();
                     gizmo.Update();
 
                     if (gizmo.HasSelection && IsMouseAvailable)
