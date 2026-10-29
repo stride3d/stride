@@ -17,6 +17,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- The build of the game (Components/Build): MSBuild is located at runtime, as in Stride.Core.Assets -->
+    <PackageReference Include="Microsoft.Build" ExcludeAssets="runtime" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Build.Framework" ExcludeAssets="runtime" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="../../editor/Stride.Core.Assets.Presentation/Stride.Core.Assets.Presentation.csproj" />
   </ItemGroup>
 

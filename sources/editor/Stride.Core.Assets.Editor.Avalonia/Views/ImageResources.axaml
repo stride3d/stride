@@ -425,6 +425,43 @@
     </DrawingImage.Drawing>
   </DrawingImage>
 
+  <!--  Build icons (Build project, Start project and Cancel build, from the WPF ImageDictionary)  -->
+  <DrawingImage x:Key="ImageBuildProject">
+    <DrawingImage.Drawing>
+      <DrawingGroup>
+        <DrawingGroup.Children>
+          <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+          <GeometryDrawing Brush="#FFF6F6F6"
+                           Geometry="F1M6.4701,0.0142000000000007L6.4701,2.6832 6.1651,2.3802 4.0451,4.5002 6.5471,7.0002 6.3731,7.0002 4.0001,7.0002 4.0001,5.0002 1.0001,5.0002 1.0001,16.0002 15.0001,16.0002 15.0001,5.0002 12.0001,5.0002 12.0001,7.0002 9.6161,7.0002 9.4211,7.0002 11.8961,4.5112 9.7791,2.3942 9.4711,2.7012 9.4711,0.0142000000000007z" />
+          <GeometryDrawing Brush="#FF424242"
+                           Geometry="F1M10.4844,4.5132L9.7774,3.8062 8.4704,5.1052 8.4704,1.0142 7.4704,1.0142 7.4704,5.0882 6.1674,3.7922 5.4604,4.4992 7.9854,7.0252z M6.0004,8.0002L4.0004,8.0002 4.0004,10.0002 6.0004,10.0002z M13.0004,6.0002L13.0004,14.0002 3.0004,14.0002 3.0004,6.0002 2.0004,6.0002 2.0004,15.0002 14.0004,15.0002 14.0004,6.0002z M5.0004,13.0002L7.0004,13.0002 7.0004,11.0002 5.0004,11.0002z M11.0004,11.0002L9.0004,11.0002 9.0004,13.0002 11.0004,13.0002z M12.0004,8.0002L10.0004,8.0002 10.0004,10.0002 12.0004,10.0002z M9.0004,10.0002L7.0004,10.0002 7.0004,8.0002 9.0004,8.0002z" />
+        </DrawingGroup.Children>
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
+  <DrawingImage x:Key="ImageStartProject">
+    <DrawingImage.Drawing>
+      <DrawingGroup>
+        <DrawingGroup.Children>
+          <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+          <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M2.9997,-0.000199999999999534L2.9997,15.9998 13.6677,7.9998z" />
+          <GeometryDrawing Brush="#FF388934" Geometry="F1M4,2L4,14 12,8z" />
+        </DrawingGroup.Children>
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
+  <DrawingImage x:Key="ImageStopBuild">
+    <DrawingImage.Drawing>
+      <DrawingGroup>
+        <DrawingGroup.Children>
+          <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+          <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M13,13L3,13 3,3 13,3z" />
+          <GeometryDrawing Brush="#FFA1260D" Geometry="F1M12,12L4,12 4,4 12,4z" />
+        </DrawingGroup.Children>
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
+
   <!--  Project templates (new project windows, solution explorer and the platforms of the parameters dialog)  -->
   <DrawingImage x:Key="ImageAddNewPackage">
     <DrawingImage.Drawing>

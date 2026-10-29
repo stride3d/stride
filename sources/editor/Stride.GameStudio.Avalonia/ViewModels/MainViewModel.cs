@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using Avalonia;
 using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.Components.Build;
 using Stride.Core.Assets.Editor.Components.Status;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Assets.Editor.Components.Transactions;
@@ -79,6 +80,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
 
         Status = new StatusViewModel(ServiceProvider);
         Status.PushStatus("Ready");
+        Build = new BuildAndRunViewModel(serviceProvider, Status);
         Notifications = serviceProvider.TryGet<INotificationService>();
 
         // The most recently used sessions of this and the earlier editor versions
@@ -94,6 +96,11 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     }
 
     public StatusViewModel Status { get; }
+
+    /// <summary>
+    /// Builds the current project of the session and starts its game (the Project menu, the toolbar and the Output pane).
+    /// </summary>
+    public BuildAndRunViewModel Build { get; }
 
     /// <summary>
     /// The background operations shown in the notification bar; <c>null</c> when the host has no bar.
@@ -386,6 +393,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     private void OnSessionChanged()
     {
         SaveCommand.IsEnabled = session is not null;
+        Build.Session = session;
         if (titleSession is not null)
             titleSession.PropertyChanged -= SessionPropertyChanged;
         titleSession = session;
@@ -612,12 +620,16 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
 
     /// <summary>
     /// Forgets the session before the editor restarts or exits, and exits its preview game: the next editor starts its own.
-    /// The plugins leave the session: what they registered goes and their close actions run.
+    /// A build of the session stops; the games it started keep running. The plugins leave the session: what they registered
+    /// goes and their close actions run.
     /// </summary>
     internal void CloseSessionServices()
     {
         Preview?.Dispose();
         Preview = null;
+        if (Build.CancelBuildCommand.IsEnabled)
+            Build.CancelBuildCommand.Execute();
+        Build.Session = null;
         session = null;
         (ServiceProvider.TryGet<IAssetsPluginService>() as IDisposable)?.Dispose();
     }

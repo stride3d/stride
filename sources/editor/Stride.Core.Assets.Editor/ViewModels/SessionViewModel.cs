@@ -1255,20 +1255,27 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
 
     private void AutoSelectCurrentProject()
     {
+        // The executable of the editor's own platform, which Start project can run, then the Windows one as in the WPF editor
         var executableProjects = LocalPackages
             .OfType<ProjectViewModel>()
-            .Where(x => x.Type == ProjectType.Executable && x.Platform == PlatformType.Windows);
+            .Where(x => x.Type == ProjectType.Executable)
+            .ToList();
 
-        PackageViewModel? selectedProject = executableProjects
-            // Prefer solutions with an existing *.sdpkg
-            .FirstOrDefault(x => x.PackageContainer is SolutionProject { IsImplicitProject: false });
-
-        selectedProject ??= executableProjects.FirstOrDefault();
+        PackageViewModel? selectedProject = SelectExecutable(executableProjects, Platform.Type)
+            ?? SelectExecutable(executableProjects, PlatformType.Windows);
         selectedProject ??= LocalPackages.FirstOrDefault();
 
         if (selectedProject != null)
         {
             SetCurrentProject(selectedProject);
+        }
+
+        static ProjectViewModel? SelectExecutable(List<ProjectViewModel> executableProjects, PlatformType platform)
+        {
+            var candidates = executableProjects.Where(x => x.Platform == platform).ToList();
+            // Prefer solutions with an existing *.sdpkg
+            return candidates.FirstOrDefault(x => x.PackageContainer is SolutionProject { IsImplicitProject: false })
+                ?? candidates.FirstOrDefault();
         }
     }
 
