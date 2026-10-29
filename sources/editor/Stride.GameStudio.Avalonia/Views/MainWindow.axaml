@@ -20,8 +20,8 @@
     <KeyBinding Gesture="Ctrl+Enter" Command="{Binding Session?.EditSelectedContentCommand}"/>
     <KeyBinding Gesture="Ctrl+I" Command="{Binding Session?.AssetCollection.ShowAddAssetDialogCommand}"/>
     <KeyBinding Gesture="Ctrl+Shift+C" Command="{Binding Session?.AssetCollection.CopyAssetsRecursivelyCommand}"/>
-    <KeyBinding Gesture="Ctrl+R" Command="{Binding Session?.SourceTracker?.UpdateSelectedAssetsFromSourceCommand}"/>
-    <KeyBinding Gesture="Ctrl+Shift+R" Command="{Binding Session?.SourceTracker?.UpdateAllAssetsWithModifiedSourceCommand}"/>
+    <KeyBinding Gesture="Ctrl+Shift+R" Command="{Binding Session?.SourceTracker?.UpdateSelectedAssetsFromSourceCommand}"/>
+    <KeyBinding Gesture="Ctrl+R" Command="{Binding Session?.SourceTracker?.UpdateAllAssetsWithModifiedSourceCommand}"/>
   </Window.KeyBindings>
   <gsvw:MainView x:Name="View"/>
 </Window>
