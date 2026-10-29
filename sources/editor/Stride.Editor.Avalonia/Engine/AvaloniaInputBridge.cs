@@ -25,6 +25,12 @@ namespace Stride.Editor.Avalonia.Engine;
 /// real locked cursor is warped back to it after each move. The editor's cursor keeps moving, so the bridge applies the
 /// change since the previous event from the lock position.
 /// </para>
+/// <para>
+/// The keys reach the view only while it has the focus, which it takes on a press. A modifier (Ctrl, Shift, Alt) held
+/// before, while another control had the focus, comes with the pointer events instead: the bridge presses it in the game,
+/// and releases it when it is no longer held, so that Ctrl+drag works from a click in the hierarchy. The keys held when the
+/// view loses the focus are released, as the view gets no release afterwards.
+/// </para>
 /// </remarks>
 internal sealed class AvaloniaInputBridge
 {
@@ -32,6 +38,8 @@ internal sealed class AvaloniaInputBridge
     private InputSourceSimulated? source;
     private MouseSimulated? mouse;
     private KeyboardSimulated? keyboard;
+    private readonly HashSet<Keys> downKeys = [];
+    private readonly HashSet<Keys> modifiersFromPointer = [];
     private Vector2? lastPosition;
 
     /// <summary>
@@ -39,11 +47,16 @@ internal sealed class AvaloniaInputBridge
     /// </summary>
     public AvaloniaInputBridge(OffscreenGameView view)
     {
-        view.PointerMoved += (_, e) => QueuePosition(view, e);
+        view.PointerMoved += (_, e) =>
+        {
+            SyncModifiers(e.KeyModifiers);
+            QueuePosition(view, e);
+        };
         view.PointerPressed += (_, e) =>
         {
             // The keyboard follows the pointer into the viewport
             view.Focus();
+            SyncModifiers(e.KeyModifiers);
             QueuePosition(view, e);
             var button = ToMouseButton(e.GetCurrentPoint(view).Properties.PointerUpdateKind);
             pending.Enqueue((m, _) => m.SimulateMouseDown(button));
@@ -62,13 +75,53 @@ internal sealed class AvaloniaInputBridge
         view.KeyDown += (_, e) =>
         {
             var key = (Keys)(int)e.Key;
-            pending.Enqueue((_, k) => k.SimulateDown(key));
+            downKeys.Add(key);
+            // A modifier pressed from a pointer event is already down
+            if (!modifiersFromPointer.Remove(key))
+                pending.Enqueue((_, k) => k.SimulateDown(key));
         };
         view.KeyUp += (_, e) =>
         {
             var key = (Keys)(int)e.Key;
+            modifiersFromPointer.Remove(key);
+            downKeys.Remove(key);
             pending.Enqueue((_, k) => k.SimulateUp(key));
         };
+        view.LostFocus += (_, _) =>
+        {
+            // The view gets no key release once it lost the focus: the keys held are released now
+            foreach (var key in downKeys)
+            {
+                pending.Enqueue((_, k) => k.SimulateUp(key));
+            }
+            downKeys.Clear();
+            modifiersFromPointer.Clear();
+        };
+    }
+
+    /// <summary>
+    /// Presses or releases the modifiers of a pointer event that the view didn't get as keys (UI thread).
+    /// </summary>
+    private void SyncModifiers(KeyModifiers modifiers)
+    {
+        SyncModifier(modifiers.HasFlag(KeyModifiers.Control), Keys.LeftCtrl, Keys.RightCtrl);
+        SyncModifier(modifiers.HasFlag(KeyModifiers.Shift), Keys.LeftShift, Keys.RightShift);
+        SyncModifier(modifiers.HasFlag(KeyModifiers.Alt), Keys.LeftAlt, Keys.RightAlt);
+    }
+
+    private void SyncModifier(bool isHeld, Keys left, Keys right)
+    {
+        if (isHeld && !downKeys.Contains(left) && !downKeys.Contains(right))
+        {
+            downKeys.Add(left);
+            modifiersFromPointer.Add(left);
+            pending.Enqueue((_, k) => k.SimulateDown(left));
+        }
+        else if (!isHeld && modifiersFromPointer.Remove(left))
+        {
+            downKeys.Remove(left);
+            pending.Enqueue((_, k) => k.SimulateUp(left));
+        }
     }
 
     /// <summary>
