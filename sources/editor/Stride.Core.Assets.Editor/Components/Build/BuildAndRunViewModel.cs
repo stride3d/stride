@@ -22,7 +22,8 @@ namespace Stride.Core.Assets.Editor.Components.Build;
 /// </summary>
 /// <remarks>
 /// The build goes through the <see cref="IGameProjectBuilder"/> service and the game starts through the <see cref="IGameLauncher"/>
-/// service. Live scripting and the reload of the game assemblies of the WPF editor are not part of it.
+/// service. Live scripting is not part of it; the reload of the game assemblies is <see cref="GameCodeReloadViewModel"/>, which builds
+/// the changed code with <see cref="BuildCodeAsync"/>.
 /// </remarks>
 public sealed class BuildAndRunViewModel : DispatcherViewModel
 {
@@ -134,23 +135,66 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
     /// </summary>
     /// <param name="startProject">Whether to start the game once it is built.</param>
     /// <returns>How the build went; <see cref="GameBuildOutcome.NotBuilt"/> when it did not start.</returns>
-    internal async Task<GameBuildOutcome> BuildAsync(bool startProject)
+    internal Task<GameBuildOutcome> BuildAsync(bool startProject)
     {
         if (BuildInProgress || session is not { } buildSession)
-            return GameBuildOutcome.NotBuilt;
+            return Task.FromResult(GameBuildOutcome.NotBuilt);
 
+        return RunBuildAsync(() => PrepareBuildAsync(buildSession), () => BuildCoreAsync(buildSession, startProject));
+    }
+
+    /// <summary>
+    /// Builds projects of the game code, one after the other, before the editor loads them again: their errors show in the Output
+    /// pane, and a failure stops the reload. The session is not saved: nothing it holds goes into these builds.
+    /// </summary>
+    /// <param name="projectPaths">The project files to build, dependencies first.</param>
+    /// <returns>How the builds went: the outcome of the first one that did not succeed; <see cref="GameBuildOutcome.NotBuilt"/> when
+    /// a build is in progress already, or without a session or a project.</returns>
+    internal Task<GameBuildOutcome> BuildCodeAsync(IReadOnlyList<string> projectPaths)
+    {
+        ArgumentNullException.ThrowIfNull(projectPaths);
+        if (BuildInProgress || session is null || projectPaths.Count == 0)
+            return Task.FromResult(GameBuildOutcome.NotBuilt);
+
+        return RunBuildAsync(() =>
+        {
+            ShowNewBuildLog();
+            return Task.FromResult(true);
+        }, async () =>
+        {
+            var logger = new LoggerResult();
+            BuildLog.AddLogger(logger);
+            foreach (var projectPath in projectPaths)
+            {
+                // As the session builds the projects it loads: no platform, no other property
+                var request = new GameProjectBuildRequest(projectPath, "AnyCPU", new Dictionary<string, string>());
+                var (outcome, _) = await BuildProjectAsync(Path.GetFileNameWithoutExtension(projectPath), request, logger);
+                if (outcome != GameBuildOutcome.Succeeded)
+                    return outcome;
+            }
+            return GameBuildOutcome.Succeeded;
+        });
+    }
+
+    /// <summary>
+    /// Runs a build: the commands and the status bar follow it, and it can be cancelled.
+    /// </summary>
+    /// <param name="prepare">Prepares the build; <c>false</c> stops it before it starts.</param>
+    /// <param name="build">The build itself.</param>
+    private async Task<GameBuildOutcome> RunBuildAsync(Func<Task<bool>> prepare, Func<Task<GameBuildOutcome>> build)
+    {
         cancelRequested = false;
         BuildInProgress = true;
         try
         {
-            if (!await PrepareBuildAsync(buildSession))
+            if (!await prepare())
                 return GameBuildOutcome.NotBuilt;
 
             var jobToken = status?.NotifyBackgroundJobStarted(Tr._p("Status", "Building..."), JobPriority.Compile);
             var outcome = GameBuildOutcome.Failed;
             try
             {
-                return outcome = await BuildCoreAsync(buildSession, startProject);
+                return outcome = await build();
             }
             finally
             {
@@ -226,6 +270,15 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
             return false;
         }
 
+        ShowNewBuildLog();
+        return true;
+    }
+
+    /// <summary>
+    /// Clears the Output pane for a new build, but the output of the games still running, and shows it.
+    /// </summary>
+    private void ShowNewBuildLog()
+    {
         // The messages still pending would show after the clear
         BuildLog.Flush();
         BuildLog.ClearMessages();
@@ -233,7 +286,6 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
         foreach (var gameOutput in gameOutputs)
             BuildLog.AddLogger(gameOutput);
         IsOutputVisible = true;
-        return true;
     }
 
     private async Task<GameBuildOutcome> BuildCoreAsync(SessionViewModel buildSession, bool startProject)
@@ -242,65 +294,79 @@ public sealed class BuildAndRunViewModel : DispatcherViewModel
         BuildLog.AddLogger(logger);
 
         var project = buildSession.CurrentProject!;
+        if (project.Type != ProjectType.Executable)
+        {
+            logger.Error(string.Format(Tr._p("Message", "The current project {0} is a library: set the executable project of a platform as the current project in the solution explorer."), project.Name));
+            return GameBuildOutcome.Failed;
+        }
+
+        var request = CreateBuildRequest(project, buildSession.SolutionPath?.ToOSPath());
+        if (request is null)
+        {
+            logger.Error(string.Format(Tr._p("Message", "Platform {0} isn't supported for execution."), project.Platform));
+            return GameBuildOutcome.Failed;
+        }
+
+        var (outcome, assemblyPath) = await BuildProjectAsync(project.Name, request, logger);
+        if (outcome != GameBuildOutcome.Succeeded || !startProject)
+            return outcome;
+
+        return StartGame(project, assemblyPath!, logger) ? GameBuildOutcome.Succeeded : GameBuildOutcome.StartFailed;
+    }
+
+    /// <summary>
+    /// Builds a project, unless the build was cancelled already, and logs how it went.
+    /// </summary>
+    /// <param name="name">The name of the project in the log.</param>
+    /// <param name="request">The build.</param>
+    /// <param name="logger">The log of the build, in the Output pane.</param>
+    /// <returns>How the build went, and the assembly it produced when it succeeded.</returns>
+    private async Task<(GameBuildOutcome Outcome, string? AssemblyPath)> BuildProjectAsync(string name, GameProjectBuildRequest request, LoggerResult logger)
+    {
         try
         {
-            if (project.Type != ProjectType.Executable)
-            {
-                logger.Error(string.Format(Tr._p("Message", "The current project {0} is a library: set the executable project of a platform as the current project in the solution explorer."), project.Name));
-                return GameBuildOutcome.Failed;
-            }
-
-            var request = CreateBuildRequest(project, buildSession.SolutionPath?.ToOSPath());
-            if (request is null)
-            {
-                logger.Error(string.Format(Tr._p("Message", "Platform {0} isn't supported for execution."), project.Platform));
-                return GameBuildOutcome.Failed;
-            }
-
             if (cancelRequested)
-                return Canceled();
+                return (Canceled(), null);
 
-            logger.Info(string.Format(Tr._p("Message", "Building {0}..."), project.Name));
+            logger.Info(string.Format(Tr._p("Message", "Building {0}..."), name));
             var builder = ServiceProvider.Get<IGameProjectBuilder>();
             // Loading the project evaluates it, which can take a while
             var build = await Task.Run(() => builder.StartBuild(request, logger));
             if (build is null)
             {
-                logger.Error(string.Format(Tr._p("Message", "Unable to load and compile project {0}"), project.ProjectPath));
-                return GameBuildOutcome.Failed;
+                logger.Error(string.Format(Tr._p("Message", "Unable to load and compile project {0}"), request.ProjectPath));
+                return (GameBuildOutcome.Failed, null);
             }
 
             currentBuild = build;
             if (cancelRequested)
                 build.Cancel();
             var succeeded = await build.Completion;
+            currentBuild = null;
             if (build.IsCanceled)
-                return Canceled();
+                return (Canceled(), null);
             if (!succeeded || logger.HasErrors)
             {
                 var errorCount = logger.Messages.Count(x => x.IsAtLeast(LogMessageType.Error));
                 logger.Error(errorCount > 0
-                    ? string.Format(Tr._p("Message", "Build of {0} failed with {1} error(s)."), project.Name, errorCount)
-                    : string.Format(Tr._p("Message", "Build of {0} failed."), project.Name));
-                return GameBuildOutcome.Failed;
+                    ? string.Format(Tr._p("Message", "Build of {0} failed with {1} error(s)."), name, errorCount)
+                    : string.Format(Tr._p("Message", "Build of {0} failed."), name));
+                return (GameBuildOutcome.Failed, null);
             }
 
-            logger.Info(string.Format(Tr._p("Message", "Build of {0} succeeded."), project.Name));
-            if (!startProject)
-                return GameBuildOutcome.Succeeded;
-
-            return StartGame(project, build.AssemblyPath, logger) ? GameBuildOutcome.Succeeded : GameBuildOutcome.StartFailed;
+            logger.Info(string.Format(Tr._p("Message", "Build of {0} succeeded."), name));
+            return (GameBuildOutcome.Succeeded, build.AssemblyPath);
         }
         catch (Exception e)
         {
             logger.Error(Tr._p("Message", "An exception occurred during compilation."), e);
             await Dialogs.MessageBoxAsync(string.Format(Tr._p("Message", "An exception occurred while compiling the project: {0}"), e.FormatSummary(true)), MessageBoxButton.OK, MessageBoxImage.Information);
-            return GameBuildOutcome.Failed;
+            return (GameBuildOutcome.Failed, null);
         }
 
         GameBuildOutcome Canceled()
         {
-            logger.Warning(string.Format(Tr._p("Message", "Build of {0} cancelled."), project.Name));
+            logger.Warning(string.Format(Tr._p("Message", "Build of {0} cancelled."), name));
             return GameBuildOutcome.Canceled;
         }
     }
