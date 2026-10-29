@@ -318,4 +318,17 @@ public abstract partial class EditorPluginHost
 
         public void OnClose(Action action) => OnCloseAction(action);
     }
+
+    /// <summary>
+    /// The logger of the plugins and of the host: the one of the session while it opens, then the global log (module
+    /// <see cref="PluginsLoggerModule"/>), since nothing reads the session's logger once the session is open.
+    /// </summary>
+    private sealed class PluginLogger(EditorPluginHost host) : ILogger
+    {
+        private ILogger Target => (host.sessionOpened ? null : host.logger) ?? GlobalLogger.GetLogger(PluginsLoggerModule);
+
+        public string? Module => Target.Module;
+
+        public void Log(ILogMessage logMessage) => Target.Log(logMessage);
+    }
 }

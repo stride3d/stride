@@ -29,6 +29,11 @@ namespace Stride.Core.Assets.Editor.Services;
 /// </remarks>
 public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposable
 {
+    /// <summary>
+    /// The module of the global logger the plugins log to once the session is open.
+    /// </summary>
+    public const string PluginsLoggerModule = "Plugins";
+
     private readonly IReadOnlyList<AssetsPlugin>? fixedPlugins;
     private readonly IDispatcherService? dispatcher;
     private readonly HashSet<AssetsPlugin> sessionPlugins = [];
@@ -50,9 +55,11 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
     private readonly Dictionary<SettingsKey, int> settingsKeys = [];
 
     private ISessionViewModel? session;
+    private readonly PluginLogger pluginLogger;
     private ILogger? logger;
     private bool followsRegistry;
     private bool sessionInitialized;
+    private bool sessionOpened;
 
     /// <summary>
     /// Creates a host for the plugins of every asset assembly (<see cref="AssetsPlugin.RegisteredPlugins"/>), including the
@@ -64,6 +71,7 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
     {
         fixedPlugins = plugins;
         this.dispatcher = dispatcher;
+        pluginLogger = new PluginLogger(this);
 
         assetViewModelTypes = new TypeMap(typeof(Asset), typeof(AssetViewModel));
         editorViewModelTypes = new TypeMap(typeof(AssetViewModel), typeof(IAssetEditorViewModel));
@@ -231,6 +239,7 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
     {
         this.session = session;
         this.logger = logger;
+        sessionOpened = false;
 
         editorViewTypes.SetBaseTypes(AssetEditorViewModelType, AssetEditorViewType);
         previewViewModelTypes.SetBaseTypes(AssetPreviewType, AssetPreviewViewModelType);
@@ -240,7 +249,7 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
         if (followsRegistry)
             AssetsPlugin.DiscoverPlugins();
         foreach (var plugin in Plugins.ToList())
-            TryJoin(plugin, session, logger);
+            TryJoin(plugin, session);
     }
 
     /// <inheritdoc />
@@ -249,6 +258,7 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
         sessionInitialized = true;
         foreach (var plugin in Plugins.ToList())
             TryInitializeSession(plugin, session);
+        sessionOpened = true;
     }
 
     /// <summary>
@@ -292,7 +302,7 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
 
             foreach (var plugin in plugins)
             {
-                if (TryJoin(plugin, currentSession, logger!) && IsEditorInitialized(currentSession))
+                if (TryJoin(plugin, currentSession) && IsEditorInitialized(currentSession))
                     TryInitializeSession(plugin, currentSession);
             }
         }
@@ -320,7 +330,7 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
 
     // A plugin that fails to join the session is reported and left out, without what it registered before failing; the
     // other plugins still join
-    private bool TryJoin(AssetsPlugin plugin, ISessionViewModel session, ILogger logger)
+    private bool TryJoin(AssetsPlugin plugin, ISessionViewModel session)
     {
         if (!sessionPlugins.Add(plugin))
             return false;
@@ -329,8 +339,8 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
         var undoCount = record.Count;
         try
         {
-            var context = new EditorContext(this, plugin, record, session, logger);
-            plugin.InitializePlugin(logger);
+            var context = new EditorContext(this, plugin, record, session, pluginLogger);
+            plugin.InitializePlugin(pluginLogger);
             ScanPlugin(plugin, context);
             ScanDeclaredImages(plugin, record);
             plugin.Initialize(context);
@@ -339,8 +349,8 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
         catch (Exception e)
         {
             sessionPlugins.Remove(plugin);
-            record.UndoFrom(undoCount, logger);
-            logger.Error($"The plugin [{plugin.GetType().FullName}] could not join the session.", e);
+            record.UndoFrom(undoCount, pluginLogger);
+            pluginLogger.Error($"The plugin [{plugin.GetType().FullName}] could not join the session.", e);
             return false;
         }
     }
@@ -356,7 +366,7 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
             var graphService = GetGraphViewModelService(session);
             var commands = graphService?.AvailableCommands.ToList() ?? [];
             var updaters = graphService?.AvailableUpdaters.ToList() ?? [];
-            var context = new SessionContext(this, plugin, record, session, logger ?? GlobalLogger.GetLogger(nameof(EditorPluginHost)));
+            var context = new SessionContext(this, plugin, record, session, pluginLogger);
             try
             {
                 plugin.InitializeSession(context);
@@ -374,7 +384,7 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
         }
         catch (Exception e)
         {
-            (logger ?? GlobalLogger.GetLogger(nameof(EditorPluginHost))).Error($"The plugin [{plugin.GetType().FullName}] could not initialize the session.", e);
+            pluginLogger.Error($"The plugin [{plugin.GetType().FullName}] could not initialize the session.", e);
         }
     }
 
@@ -387,7 +397,7 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
         }
         catch (Exception e)
         {
-            logger?.Error($"The plugin [{plugin.GetType().FullName}] could not leave the session.", e);
+            pluginLogger.Error($"The plugin [{plugin.GetType().FullName}] could not leave the session.", e);
         }
     }
 
@@ -399,7 +409,7 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
         var joined = sessionPlugins.Remove(plugin);
         if (records.Remove(plugin, out var record))
         {
-            record.UndoFrom(0, logger);
+            record.UndoFrom(0, pluginLogger);
             foreach (var assembly in declaredImageAssemblies.Where(x => x.Value == record).Select(x => x.Key).ToList())
                 declaredImageAssemblies.Remove(assembly);
         }
