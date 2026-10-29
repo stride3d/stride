@@ -61,4 +61,17 @@ public sealed class PreviewViewTests
 
         Assert.Single(view.GetVisualDescendants().OfType<ContentPresenter>(), x => x.Name == StridePreviewView.PartStrideView);
     }
+
+    [AvaloniaFact]
+    public void TheScenePreviewViewShowsAMessageInPlaceOfTheGameView()
+    {
+        var view = new ScenePreviewView();
+        var window = new Window { Content = view };
+
+        window.Show();
+
+        Assert.DoesNotContain(view.GetVisualDescendants().OfType<ContentPresenter>(), x => x.Name == StridePreviewView.PartStrideView);
+        var message = Assert.Single(view.GetVisualDescendants().OfType<TextBlock>());
+        Assert.Equal("Scenes can't be previewed. To see the scene, open it in the scene editor.", message.Text);
+    }
 }
