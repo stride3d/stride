@@ -48,12 +48,19 @@ public sealed class PreviewViewTests
     }
 
     [AvaloniaTheory]
-    [InlineData(typeof(TexturePreviewView))]
-    [InlineData(typeof(ModelPreviewView))]
-    [InlineData(typeof(SpritePreviewView))]
     [InlineData(typeof(AnimationPreviewView))]
-    public void ThePreviewViewsShareTheStrideTemplate(Type viewType)
+    [InlineData(typeof(EntityPreviewView))]
+    [InlineData(typeof(MaterialPreviewView))]
+    [InlineData(typeof(ModelPreviewView))]
+    [InlineData(typeof(SkyboxPreviewView))]
+    [InlineData(typeof(SpriteFontPreviewView))]
+    [InlineData(typeof(SpritePreviewView))]
+    [InlineData(typeof(SpriteSheetPreviewView))]
+    [InlineData(typeof(TexturePreviewView))]
+    public void ThePreviewViewsKeepTheGameViewInTheirTemplate(Type viewType)
     {
+        // The view plugin merges the themes of the views, as in the editor
+        PluginRegistrations.Of(new StrideEditorViewPlugin(), typeof(IAssetEditorView));
         var view = Assert.IsAssignableFrom<StridePreviewView>(Activator.CreateInstance(viewType));
         var window = new Window { Content = view };
 

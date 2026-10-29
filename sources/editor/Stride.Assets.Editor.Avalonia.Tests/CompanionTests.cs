@@ -73,6 +73,8 @@ public sealed class CompanionTests
     [AvaloniaFact]
     public void TheSheetPreviewViewSharesTheModelTemplate()
     {
+        // The model view's theme comes from the editor's view plugin, which the editor initializes before the companions
+        PluginRegistrations.Of(new StrideEditorViewPlugin(), typeof(IAssetEditorView));
         var view = new SpriteStudioSheetPreviewView();
         var window = new Window { Content = view };
 
@@ -80,5 +82,6 @@ public sealed class CompanionTests
 
         Assert.IsAssignableFrom<ModelPreviewView>(view);
         Assert.Single(view.GetVisualDescendants().OfType<ContentPresenter>(), x => x.Name == StridePreviewView.PartStrideView);
+        Assert.Single(view.GetVisualDescendants().OfType<Button>(), x => x.Name == "PART_ResetCamera");
     }
 }
