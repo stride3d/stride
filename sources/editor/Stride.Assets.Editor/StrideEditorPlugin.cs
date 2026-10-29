@@ -158,6 +158,7 @@ public sealed class StrideEditorPlugin : StrideAssetsPlugin
         context.NodePresenterUpdaters.Register(new FXAAEffectNodeUpdater());
         context.NodePresenterUpdaters.Register(new MaterialAssetNodeUpdater());
         context.NodePresenterUpdaters.Register(new ModelAssetNodeUpdater());
+        context.NodePresenterUpdaters.Register(new ModelComponentNodeUpdater());
         context.NodePresenterUpdaters.Register(new ModelNodeLinkNodeUpdater());
         context.NodePresenterUpdaters.Register(new SkeletonAssetNodeUpdater());
         context.NodePresenterUpdaters.Register(new SpriteSheetAssetNodeUpdater());

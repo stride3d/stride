@@ -30,6 +30,10 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
     private static readonly Logger Log = GlobalLogger.GetLogger("EntityHierarchyEditor");
 
     private readonly Dictionary<AbsoluteId, GameEditorChangePropagator> propagators = [];
+    private readonly ModelComponentChangeHandler modelComponentChanges;
+    // Latest dragged morph weights, waiting for the next game frame
+    private readonly Dictionary<(AbsoluteId Entity, Guid Component, string Target), float> previewWeights = [];
+    private bool previewPosted;
     private object? gameView;
     private EditorViewToolbarViewModel? toolbar;
     private bool isGameLoaded;
@@ -57,6 +61,7 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
         SelectPrefabCommand = new AnonymousCommand(ServiceProvider, SelectPrefab);
         BreakLinkToPrefabCommand = new AnonymousCommand(ServiceProvider, () => BreakLinkToBase("prefab"));
         UpdateCommands();
+        modelComponentChanges = new ModelComponentChangeHandler(asset);
     }
 
     public EntityHierarchyRootViewModel HierarchyRoot => (EntityHierarchyRootViewModel)RootPart;
@@ -212,6 +217,7 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
         HierarchyRoot.EntityRemoved -= EntityRemoved;
         HierarchyRoot.LockChanged -= LockChanged;
         SelectedItems.CollectionChanged -= SelectedItemsChanged;
+        modelComponentChanges.Dispose();
         foreach (var propagator in propagators.Values)
             propagator.Destroy();
         propagators.Clear();
@@ -284,6 +290,30 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
             else if (controller.FindGameSidePart(id) is Entity target)
                 camera.SetTarget(target, false);
         });
+    }
+
+    /// <summary>
+    /// Shows a morph weight dragged in the property grid in the game on its next frame, without editing the asset: the
+    /// editor sends asset changes to the game one after another, which lags behind a drag. Only the latest weight of each
+    /// target is sent.
+    /// </summary>
+    /// <param name="entityId">The entity of the model component.</param>
+    /// <param name="componentId">The model component.</param>
+    /// <param name="target">The name of the morph target.</param>
+    /// <param name="weight">The weight to show.</param>
+    public void PreviewMorphWeight(AbsoluteId entityId, Guid componentId, string target, float weight)
+    {
+        if (!float.IsFinite(weight) || !isGameLoaded || Controller is not { } controller)
+            return;
+
+        lock (previewWeights)
+        {
+            previewWeights[(entityId, componentId, target)] = weight;
+            if (previewPosted)
+                return;
+            previewPosted = true;
+        }
+        _ = controller.InvokeAsync(() => ApplyPreviewWeights(controller));
     }
 
     /// <summary>
@@ -403,6 +433,27 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
         catch (Exception) when (IsDestroyed)
         {
             // The editor was closed while the entity was removed
+        }
+    }
+
+    // Game thread
+    private void ApplyPreviewWeights(EntityHierarchyEditorController controller)
+    {
+        KeyValuePair<(AbsoluteId Entity, Guid Component, string Target), float>[] weights;
+        lock (previewWeights)
+        {
+            weights = previewWeights.ToArray();
+            previewWeights.Clear();
+            previewPosted = false;
+        }
+        // Runtime weights only: the authored weights replace them once the asset change reaches the scene.
+        foreach (var ((entityId, componentId, target), weight) in weights)
+        {
+            if (controller.FindGameSidePart(entityId) is not Entity entity || entity.Components.FirstOrDefault(x => x.Id == componentId) is not ModelComponent component)
+                continue;
+            var slot = component.FindMorphTarget(target);
+            if (slot >= 0)
+                component.SetMorphWeight(slot, weight);
         }
     }
 
