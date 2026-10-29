@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
@@ -14,18 +13,15 @@ using Stride.Core.Reflection;
 using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
 using Stride.Core.Presentation.Views;
-using Stride.Editor.Annotations;
 using Stride.Editor.Preview;
-using Stride.Editor.Preview.View;
-using Stride.Editor.Preview.ViewModel;
 
 namespace Stride.Editor
 {
     public delegate IAssetPreview AssetPreviewFactory(IPreviewBuilder builder, PreviewGame game, AssetItem asset);
 
     /// <summary>
-    /// The base class of the plugins that extend the Stride editors: it registers the asset previews, their view models
-    /// and views, the enum images and the template providers of the plugin's assembly. It is toolkit-neutral; the views
+    /// The base class of the plugins that extend the Stride editors: it registers the enum images and the template providers
+    /// of the plugin; the editor registers the asset preview view models and views its assembly declares (<see cref="StrideEditorPluginHost"/>). It is toolkit-neutral; the views
     /// themselves and their resources (such as WPF resource dictionaries) belong to a companion package written for one
     /// toolkit, see <c>StrideAssetsWpfPlugin</c>.
     /// </summary>
@@ -95,34 +91,6 @@ namespace Stride.Editor
         public override void RegisterTemplateProviders(ICollection<ITemplateProvider> templateProviders)
         {
             templateProviders.AddRange(templateProviderList);
-        }
-
-        /// <inheritdoc />
-        public override void RegisterAssetPreviewViewModelTypes(IDictionary<Type, Type> assetPreviewViewModelTypes)
-        {
-            foreach (var type in AssemblyRegistry.GetScanTypes(GetType().Assembly, typeof(IAssetPreviewViewModel)))
-            {
-                if (typeof(IAssetPreviewViewModel).IsAssignableFrom(type) &&
-                    type.GetCustomAttribute<AssetPreviewViewModelAttribute>() is { } attribute)
-                {
-                    assetPreviewViewModelTypes.Add(attribute.AssetPreviewType, type);
-                }
-            }
-        }
-
-        /// <inheritdoc />
-        public override void RegisterAssetPreviewViewTypes(IDictionary<Type, Type> assetPreviewViewTypes)
-        {
-            foreach (var type in AssemblyRegistry.GetScanTypes(GetType().Assembly, typeof(IPreviewView)))
-            {
-                if (!typeof(IPreviewView).IsAssignableFrom(type))
-                    continue;
-
-                foreach (var attribute in type.GetCustomAttributes<AssetPreviewViewAttribute>())
-                {
-                    assetPreviewViewTypes.Add(attribute.AssetPreviewType, type);
-                }
-            }
         }
     }
 }

@@ -48,6 +48,26 @@ partial class SessionViewModel
     }
 
     /// <summary>
+    /// The current instance of <see cref="SessionViewModel"/>, or null when no session is open.
+    /// </summary>
+    /// <remarks>For view-side code that also runs without a session, such as a converter.</remarks>
+    public static SessionViewModel? CurrentInstance
+    {
+        get
+        {
+            semaphore.Wait();
+            try
+            {
+                return instance;
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+        }
+    }
+
+    /// <summary>
     /// Creates a new session from a template (a new project), and opens it.
     /// </summary>
     /// <returns>The session, or <c>null</c> when the template could not be run.</returns>

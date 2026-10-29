@@ -9,7 +9,6 @@ using System.Reflection;
 using System.Threading;
 using System.Windows.Media.Imaging;
 using Stride.Core.Assets.Editor.Annotations;
-using Stride.Core.Diagnostics;
 using Stride.Core.Reflection;
 
 #nullable enable
@@ -26,7 +25,6 @@ public static class DeclaredImages
     private static readonly Lock ImagesLock = new();
     private static readonly Dictionary<Type, (Assembly Assembly, BitmapImage Image)> TypeImages = [];
     private static readonly Dictionary<object, (Assembly Assembly, BitmapImage Image)> EnumImages = [];
-    private static readonly Logger Log = GlobalLogger.GetLogger(nameof(DeclaredImages));
 
     static DeclaredImages()
     {
@@ -65,40 +63,15 @@ public static class DeclaredImages
 
     private static void Register(Assembly assembly)
     {
-        List<TypeImageAttribute> typeAttributes;
-        List<EnumImageAttribute> enumAttributes;
-        try
+        foreach (var declared in DeclaredImageResources.Read(assembly))
         {
-            typeAttributes = assembly.GetCustomAttributes<TypeImageAttribute>().ToList();
-            enumAttributes = assembly.GetCustomAttributes<EnumImageAttribute>().ToList();
-        }
-        catch (Exception e)
-        {
-            Log.Warning($"Could not read the images declared by [{assembly.GetName().Name}]", e);
-            return;
-        }
-
-        foreach (var attribute in typeAttributes)
-        {
-            if (LoadImage(assembly, attribute.ResourceName, attribute.Type.Name) is { } image)
+            var image = Decode(declared.Data);
+            lock (ImagesLock)
             {
-                lock (ImagesLock)
-                    TypeImages[attribute.Type] = (assembly, image);
-            }
-        }
-
-        foreach (var attribute in enumAttributes)
-        {
-            if (attribute.Value is not Enum)
-            {
-                Log.Warning($"The image [{attribute.ResourceName}] declared by [{assembly.GetName().Name}] is for [{attribute.Value}], which is not an enum value.");
-                continue;
-            }
-
-            if (LoadImage(assembly, attribute.ResourceName, attribute.Value.ToString()!) is { } image)
-            {
-                lock (ImagesLock)
-                    EnumImages[attribute.Value] = (assembly, image);
+                if (declared.Target is Type type)
+                    TypeImages[type] = (assembly, image);
+                else
+                    EnumImages[declared.Target] = (assembly, image);
             }
         }
     }
@@ -114,14 +87,11 @@ public static class DeclaredImages
         }
     }
 
-    private static BitmapImage? LoadImage(Assembly assembly, string resourceName, string target)
+    /// <summary>
+    /// Decodes a declared image (the content of a PNG or JPEG file) into a frozen WPF image, usable from any thread.
+    /// </summary>
+    public static BitmapImage Decode(byte[] data)
     {
-        if (DeclaredResources.Read(assembly, resourceName) is not { } data)
-        {
-            Log.Warning($"The image [{resourceName}] of [{target}] is not an embedded resource of [{assembly.GetName().Name}].");
-            return null;
-        }
-
         // Frozen: created on the loader thread, used on the UI thread
         var image = new BitmapImage();
         image.BeginInit();
