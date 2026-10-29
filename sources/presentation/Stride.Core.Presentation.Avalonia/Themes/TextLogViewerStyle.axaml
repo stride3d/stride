@@ -117,7 +117,8 @@
               </ToggleButton>
             </sd:ToolBar>
           </sd:ToolBarTray>
-          <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+          <ScrollViewer x:Name="PART_LogScrollViewer"
+                        HorizontalScrollBarVisibility="Disabled">
             <SelectableTextBlock x:Name="PART_LogText"
                                  Background="Transparent"
                                  TextWrapping="WrapWithOverflow" />

@@ -10,12 +10,14 @@ using Avalonia.Controls.Metadata;
 using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using Avalonia.Threading;
 using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Collections;
 
 namespace Stride.Core.Presentation.Avalonia.Controls;
 
 [TemplatePart(Name = "PART_LogText", Type = typeof(SelectableTextBlock))]
+[TemplatePart(Name = "PART_LogScrollViewer", Type = typeof(ScrollViewer))]
 [TemplatePart(Name = "PART_ClearLog", Type = typeof(Button))]
 [TemplatePart(Name = "PART_PreviousResult", Type = typeof(Button))]
 [TemplatePart(Name = "PART_NextResult", Type = typeof(Button))]
@@ -23,6 +25,7 @@ public sealed class TextLogViewer : TemplatedControl
 {
     private IObservableCollection<ILogMessage>? messages;
     private SelectableTextBlock? textBlock;
+    private ScrollViewer? scrollViewer;
     private readonly List<SearchRange> searchMatches = [];
     private SearchRange previousRange;
     private int currentResult;
@@ -66,6 +69,12 @@ public sealed class TextLogViewer : TemplatedControl
     /// </summary>
     public static readonly StyledProperty<bool> CanClearLogProperty =
         AvaloniaProperty.Register<TextLogViewer, bool>(nameof(CanClearLog), true);
+
+    /// <summary>
+    /// Identifies the <see cref="AutoScroll"/> dependency property.
+    /// </summary>
+    public static readonly StyledProperty<bool> AutoScrollProperty =
+        AvaloniaProperty.Register<TextLogViewer, bool>(nameof(AutoScroll), true);
 
     /// <summary>
     /// Identifies the <see cref="CanFilterLog"/> dependency property.
@@ -200,6 +209,15 @@ public sealed class TextLogViewer : TemplatedControl
     {
         get => GetValue(CanClearLogProperty);
         set => SetValue(CanClearLogProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets whether the control should automatically scroll when new lines are added when the scrollbar is already at the bottom.
+    /// </summary>
+    public bool AutoScroll
+    {
+        get => GetValue(AutoScrollProperty);
+        set => SetValue(AutoScrollProperty, value);
     }
 
     /// <summary>
@@ -370,6 +388,15 @@ public sealed class TextLogViewer : TemplatedControl
         base.OnApplyTemplate(e);
 
         textBlock = e.NameScope.Find<SelectableTextBlock>("PART_LogText");
+        if (scrollViewer != null)
+        {
+            scrollViewer.ScrollChanged -= LogScrollChanged;
+        }
+        scrollViewer = e.NameScope.Find<ScrollViewer>("PART_LogScrollViewer");
+        if (scrollViewer != null)
+        {
+            scrollViewer.ScrollChanged += LogScrollChanged;
+        }
 
         if (e.NameScope.Find<Button>("PART_ClearLog") is { } clearLogButton)
         {
@@ -510,13 +537,27 @@ public sealed class TextLogViewer : TemplatedControl
     }
 
     /// <summary>
+    /// Keeps showing the end of the log when the text grows (or the viewer shrinks) while the end was shown; once the user
+    /// scrolls up, the log stays where it is until the user scrolls back to the end.
+    /// </summary>
+    private void LogScrollChanged(object? sender, ScrollChangedEventArgs e)
+    {
+        if (!AutoScroll || sender is not ScrollViewer viewer || e.ExtentDelta.Y == 0 && e.ViewportDelta.Y == 0)
+            return;
+
+        var showedEnd = viewer.Extent.Height - e.ExtentDelta.Y - (viewer.Viewport.Height - e.ViewportDelta.Y) - (viewer.Offset.Y - e.OffsetDelta.Y) < 1.0;
+        if (showedEnd)
+        {
+            // Not while the scroll viewer raises its event
+            Dispatcher.UIThread.Post(viewer.ScrollToEnd, DispatcherPriority.Background);
+        }
+    }
+
+    /// <summary>
     /// Raised when the collection of log messages is observable and changes.
     /// </summary>
     private void LogMessagesCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        // FIXME xplat-editor
-        //var shouldScroll = AutoScroll && logTextBox != null && logTextBox.ExtentHeight - logTextBox.ViewportHeight - logTextBox.VerticalOffset < 1.0;
-
         if (e.Action == NotifyCollectionChangedAction.Add)
         {
             if (e.NewItems != null)
@@ -531,14 +572,6 @@ public sealed class TextLogViewer : TemplatedControl
         {
             ResetText();
         }
-
-        // FIXME xplat-editor
-        //if (shouldScroll)
-        //{
-        //    // Sometimes crashing with ExecutionEngineException in Window.GetWindowMinMax() if not ran with a dispatcher low priority.
-        //    // Note: priority should still be higher than DispatcherPriority.Input so that user input have a chance to scroll.
-        //    Dispatcher.InvokeAsync(() => logTextBox.ScrollToEnd(), DispatcherPriority.DataBind);
-        //}
     }
 
     /// <summary>
