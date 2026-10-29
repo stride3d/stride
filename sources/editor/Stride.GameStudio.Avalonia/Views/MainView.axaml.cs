@@ -39,4 +39,19 @@ public partial class MainView : UserControl
     /// The shortcut of File > New (Ctrl+N), bound on the main window like <see cref="SaveGesture"/>.
     /// </summary>
     public static KeyGesture NewGesture => new(Key.N, Application.Current?.PlatformSettings?.HotkeyConfiguration.CommandModifiers ?? KeyModifiers.Control);
+
+    /// <summary>
+    /// The shortcut of Project > Build project (F6, as in WPF), bound on the main window like <see cref="SaveGesture"/>.
+    /// </summary>
+    public static KeyGesture BuildProjectGesture => new(Key.F6);
+
+    /// <summary>
+    /// The shortcut of Project > Start project (F5, as in WPF), bound on the main window like <see cref="SaveGesture"/>.
+    /// </summary>
+    public static KeyGesture StartProjectGesture => new(Key.F5);
+
+    /// <summary>
+    /// The shortcut of Project > Cancel build (Ctrl+F6, as in WPF), bound on the main window like <see cref="SaveGesture"/>.
+    /// </summary>
+    public static KeyGesture CancelBuildGesture => new(Key.F6, Application.Current?.PlatformSettings?.HotkeyConfiguration.CommandModifiers ?? KeyModifiers.Control);
 }

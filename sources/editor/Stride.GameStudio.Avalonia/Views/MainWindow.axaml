@@ -15,6 +15,10 @@
     <KeyBinding Gesture="{x:Static gsvw:MainView.SaveGesture}" Command="{Binding SaveCommand}"/>
     <!-- File > New -->
     <KeyBinding Gesture="{x:Static gsvw:MainView.NewGesture}" Command="{Binding NewSessionCommand}"/>
+    <!-- Project > Build project, Start project and Cancel build -->
+    <KeyBinding Gesture="{x:Static gsvw:MainView.BuildProjectGesture}" Command="{Binding Build.BuildProjectCommand}"/>
+    <KeyBinding Gesture="{x:Static gsvw:MainView.StartProjectGesture}" Command="{Binding Build.StartProjectCommand}"/>
+    <KeyBinding Gesture="{x:Static gsvw:MainView.CancelBuildGesture}" Command="{Binding Build.CancelBuildCommand}"/>
     <!-- The shortcuts of the asset view that WPF binds on its window too; the Edit commands are handled in OnKeyDown, after
          the focused control (a key binding would run before the focused text box) -->
     <KeyBinding Gesture="Ctrl+Enter" Command="{Binding Session?.EditSelectedContentCommand}"/>

@@ -34,7 +34,7 @@
     <sd:EditCommandBinding Kind="Redo" Command="{Binding RedoCommand}"/>
   </sd:EditCommands.Bindings>
 
-  <Grid RowDefinitions="Auto, *, Auto, 25"
+  <Grid RowDefinitions="Auto, Auto, *, Auto, 25"
         Background="Transparent">
     <!-- Menus -->
     <Menu Grid.Row="0" Grid.Column="0"
@@ -146,6 +146,35 @@
                   Command="{Binding OpenSettingsWindowCommand}"
                   IsEnabled="{Binding Session, Mode=OneWay, Converter={sd:ObjectToBool}}"/>
       </MenuItem>
+      <!-- Project menu: build the current project and start its game, as WPF's Project menu does. The shortcuts are key bindings
+           of the main window, like Save. -->
+      <MenuItem Header="{sd:LocalizeString _Project, Context=Menu}"
+                IsEnabled="{Binding Session, Mode=OneWay, Converter={sd:ObjectToBool}}">
+        <MenuItem Header="{sd:LocalizeString Build project, Context=Menu}"
+                  Name="BuildProjectMenuItem"
+                  Command="{Binding Build.BuildProjectCommand}"
+                  InputGesture="{x:Static gsvw:MainView.BuildProjectGesture}">
+          <MenuItem.Icon>
+            <Image Source="{StaticResource ImageBuildProject}"/>
+          </MenuItem.Icon>
+        </MenuItem>
+        <MenuItem Header="{sd:LocalizeString Start project, Context=Menu}"
+                  Name="StartProjectMenuItem"
+                  Command="{Binding Build.StartProjectCommand}"
+                  InputGesture="{x:Static gsvw:MainView.StartProjectGesture}">
+          <MenuItem.Icon>
+            <Image Source="{StaticResource ImageStartProject}"/>
+          </MenuItem.Icon>
+        </MenuItem>
+        <MenuItem Header="{sd:LocalizeString Cancel build, Context=Menu}"
+                  Name="CancelBuildMenuItem"
+                  Command="{Binding Build.CancelBuildCommand}"
+                  InputGesture="{x:Static gsvw:MainView.CancelBuildGesture}">
+          <MenuItem.Icon>
+            <Image Source="{StaticResource ImageStopBuild}"/>
+          </MenuItem.Icon>
+        </MenuItem>
+      </MenuItem>
       <!-- Help menu -->
       <MenuItem Header="{sd:LocalizeString _Help, Context=Menu}">
         <MenuItem Header="{sd:LocalizeString Online documentation, Context=Menu}"
@@ -176,8 +205,38 @@
       </MenuItem>
     </Menu>
 
+    <!-- Toolbar: the build buttons of the WPF toolbar, while a session is open -->
+    <sd:ToolBar Grid.Row="1"
+                Name="MainToolBar"
+                IsVisible="{Binding Session, Converter={sd:ObjectToBool}}">
+      <sd:ToolBar.Styles>
+        <!-- The icon of a disabled button is dimmed, as in WPF -->
+        <Style Selector="Button:disabled Image">
+          <Setter Property="Opacity" Value="0.25"/>
+        </Style>
+      </sd:ToolBar.Styles>
+      <Button Name="BuildProjectButton"
+              Command="{Binding Build.BuildProjectCommand}"
+              ToolTip.Tip="{sd:LocalizeString Build the project (F6), Context=ToolTip}"
+              ToolTip.ShowOnDisabled="True">
+        <Image Source="{StaticResource ImageBuildProject}" Width="16" Height="16"/>
+      </Button>
+      <Button Name="StartProjectButton"
+              Command="{Binding Build.StartProjectCommand}"
+              ToolTip.Tip="{sd:LocalizeString Build the project and start the game (F5), Context=ToolTip}"
+              ToolTip.ShowOnDisabled="True">
+        <Image Source="{StaticResource ImageStartProject}" Width="16" Height="16"/>
+      </Button>
+      <Button Name="CancelBuildButton"
+              Command="{Binding Build.CancelBuildCommand}"
+              ToolTip.Tip="{sd:LocalizeString Cancel the current build (Ctrl+F6), Context=ToolTip}"
+              ToolTip.ShowOnDisabled="True">
+        <Image Source="{StaticResource ImageStopBuild}" Width="16" Height="16"/>
+      </Button>
+    </sd:ToolBar>
+
     <!-- Session area -->
-    <Grid Grid.Row="1"
+    <Grid Grid.Row="2"
           RowDefinitions="2*, 2, *">
       <Grid Grid.Row="0"
             ColumnDefinitions="2*, 2, *">
@@ -229,8 +288,13 @@
             <sd:TextLogViewer LogMessages="{Binding Session?.AssetLog.FilteredMessages}"
                               ShowDebugMessages="False" ShowVerboseMessages="False" ShowInfoMessages="False"/>
           </TabItem>
-          <TabItem Header="Output">
-            <sd:TextLogViewer ShowDebugMessages="False" ShowVerboseMessages="False"/>
+          <!-- The log of the last build and the output of the games started from the editor; a build selects it, and its title
+               has a "*" while it has messages that were not seen, as WPF's Output pane -->
+          <TabItem Name="OutputTab"
+                   Header="{Binding Build.OutputTitle}"
+                   IsSelected="{Binding Build.IsOutputVisible, Mode=TwoWay}">
+            <sd:TextLogViewer LogMessages="{Binding Build.BuildLog.Messages}"
+                              ShowDebugMessages="False" ShowVerboseMessages="False"/>
           </TabItem>
         </TabControl>
         <GridSplitter Grid.Column="3" ResizeDirection="Auto"/>
@@ -309,7 +373,7 @@
     </Grid>
 
     <!-- Notifications: the background operations in progress, each until it finishes -->
-    <ItemsControl Grid.Row="2"
+    <ItemsControl Grid.Row="3"
                   ItemsSource="{Binding Notifications?.ActiveNotifications}"
                   IsVisible="{Binding $self.ItemCount, Converter={sd:NumericToBool}}">
       <ItemsControl.ItemTemplate>
@@ -341,7 +405,7 @@
     </ItemsControl>
 
     <!-- Status bar -->
-    <Grid Grid.Row="3"
+    <Grid Grid.Row="4"
           IsVisible="{Binding Session, Converter={sd:ObjectToBool}}"
           ColumnDefinitions="2*, Auto, *, Auto, *, 100">
       <TextBlock Grid.Column="0"

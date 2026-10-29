@@ -15,6 +15,7 @@ using MarkView.Avalonia.Rendering;
 using Stride.Assets;
 using Stride.Assets.Editor;
 using Stride.Assets.Templates;
+using Stride.Core.Assets.Editor.Components.Build;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.ViewModels;
@@ -374,6 +375,9 @@ public partial class App : Application
             new PluginService(dispatcherService),
             // The folder and static thumbnails are PNGs embedded in this assembly (Resources/*.png)
             new ThumbnailDataFactory(typeof(App).Assembly),
+            // Build project and Start project
+            new MSBuildGameProjectBuilder(),
+            new GameProcessLauncher(),
         };
         // The clipboard belongs to the main window; there is none in a headless host
         if (DialogService.MainWindow?.Clipboard is { } clipboard)

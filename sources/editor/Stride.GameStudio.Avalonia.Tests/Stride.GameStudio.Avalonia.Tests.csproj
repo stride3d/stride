@@ -32,6 +32,13 @@
     <Compile Include="..\Stride.Core.Assets.Editor.Tests\Helpers\TestTemplatePackage.cs">
       <Link>Helpers\TestTemplatePackage.cs</Link>
     </Compile>
+    <!-- The fake builder and game launcher of the build view model tests -->
+    <Compile Include="..\Stride.Core.Assets.Editor.Tests\Helpers\FakeGameProjectBuilder.cs">
+      <Link>Helpers\FakeGameProjectBuilder.cs</Link>
+    </Compile>
+    <Compile Include="..\Stride.Core.Assets.Editor.Tests\Helpers\FakeGameLauncher.cs">
+      <Link>Helpers\FakeGameLauncher.cs</Link>
+    </Compile>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
