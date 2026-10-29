@@ -221,6 +221,45 @@ public sealed class PreviewControlsTests
         Assert.Equal("H: 0", Part<TextBlock>(view, "PART_Height").Inlines!.Text);
     }
 
+    [AvaloniaFact]
+    public void TheSpriteSheetViewBindsTheZoomTheDisplayModeAndTheSprite()
+    {
+        var viewModel = new SpriteSheetPreviewViewModel(PreviewSession.Create());
+        var view = Show<SpriteSheetPreviewView>(viewModel);
+
+        AssertZoomCommands(view, viewModel);
+        Assert.Same(viewModel.PreviewPreviousFrameCommand, Part<Button>(view, "PART_PreviousFrame").Command);
+        Assert.Same(viewModel.PreviewNextFrameCommand, Part<Button>(view, "PART_NextFrame").Command);
+        var displayMode = Part<ComboBox>(view, "PART_DisplayMode");
+        Assert.Equal(Enum.GetValues<SpriteSheetDisplayMode>().Length, displayMode.ItemCount);
+
+        displayMode.SelectedItem = SpriteSheetDisplayMode.SpriteTextures;
+
+        Assert.Equal(SpriteSheetDisplayMode.SpriteTextures, viewModel.DisplayMode);
+        Assert.Equal("Sprite: 0/0", Part<TextBlock>(view, "PART_Frame").Inlines!.Text);
+        Assert.NotNull(Part<Slider>(view, "PART_FrameSlider"));
+    }
+
+    [AvaloniaFact]
+    public async Task TheSpriteFontViewSendsItsTextAfterADelay()
+    {
+        var viewModel = new SpriteFontPreviewViewModel(PreviewSession.Create());
+        var view = Show<SpriteFontPreviewView>(viewModel);
+        var text = Part<TextBox>(view, "PART_PreviewText");
+
+        text.Text = "Hello";
+
+        Assert.Null(viewModel.PreviewString);
+        await Task.Delay(700, TestContext.Current.CancellationToken);
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal("Hello", viewModel.PreviewString);
+
+        Part<Button>(view, "PART_ClearText").Command!.Execute(null);
+        Dispatcher.UIThread.RunJobs();
+
+        Assert.Equal(string.Empty, text.Text);
+    }
+
     private static void AssertZoomCommands<TPreview>(StridePreviewView view, TextureBasePreviewViewModel<TPreview> viewModel)
         where TPreview : Stride.Editor.Preview.IAssetPreview
     {
