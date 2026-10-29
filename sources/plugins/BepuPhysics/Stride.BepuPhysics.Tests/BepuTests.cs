@@ -594,9 +594,6 @@ namespace Stride.BepuPhysics.Tests
         [Theory]
         // 60hz sim with a max budget of 16ms*0.5, sleep of 17ms, which is right past our budget should lead to a single tick being processed
         [InlineData(60, 0.5f, 17, 4, 1)]
-        // 60hz sim with a max budget of 16ms*0.5, no sleep, should (hopefully) result in four ticks.
-        // Since we're using time elapsed as the threshold, this could be inconsistent
-        [InlineData(60, 0.5f, 0, 4, 4)]
         // 60hz sim with a max budget of 16ms*10, sleep of 17ms per tick, total of four ticks, should (hopefully) result in four ticks as the budget is large enough.
         // Since we're using time elapsed as the threshold, this could be inconsistent
         [InlineData(60, 10f, 17, 4, 4)]
@@ -609,9 +606,9 @@ namespace Stride.BepuPhysics.Tests
             };
 
             // Make sure any caching and JITing is ready
-            simulation.DropRemainingTime = true;
+            simulation.PostponedTicksCap = 0;
             simulation.Update(simulation.FixedTimeStep * 10);
-            simulation.DropRemainingTime = false;
+            simulation.PostponedTicksCap = -1;
 
             int ticks = 0;
             simulation.Register(new SimUpdateListener { SimUpdate = () =>
@@ -630,12 +627,12 @@ namespace Stride.BepuPhysics.Tests
         // 60hz sim with a max budget of 16ms*0.5, physics takes 17ms longer on the first frame, which is right past our budget for that frame,
         // We carry that time to next frame.
         // Should still lead to 8 ticks as the time is not dropped, next frame caught up
-        [InlineData(17, 8, false)]
+        [InlineData(17, 8, -1)]
         // 60hz sim with a max budget of 16ms*0.5, physics takes 17ms longer on the first frame, which is right past our budget for that frame,
         // we drop the additional time.
         // This should lead to 5 ticks as the time is dropped for that frame, next frame processes only its four steps
-        [InlineData(17, 5, true)]
-        public static void PhysicsBudgetOverflowTest(int sleepDuration, int expectedTicks, bool dropTime)
+        [InlineData(17, 5, 0)]
+        public static void PhysicsBudgetOverflowTest(int sleepDuration, int expectedTicks, int ticksCap)
         {
             using var simulation = new BepuSimulation
             {
@@ -644,9 +641,9 @@ namespace Stride.BepuPhysics.Tests
             };
 
             // Make sure any caching and JITing is ready
-            simulation.DropRemainingTime = true;
+            simulation.PostponedTicksCap = 0;
             simulation.Update(simulation.FixedTimeStep * 10);
-            simulation.DropRemainingTime = dropTime;
+            simulation.PostponedTicksCap = ticksCap;
 
             int ticks = 0;
             simulation.Register(new SimUpdateListener { SimUpdate = () =>
@@ -658,6 +655,8 @@ namespace Stride.BepuPhysics.Tests
 
             simulation.Update(simulation.FixedTimeStep * 4);
             sleepDuration = 0;
+            // Let it run to completion with postponed ticks and all
+            simulation.PhysicsBudget = float.PositiveInfinity;
             simulation.Update(simulation.FixedTimeStep * 4);
 
             Assert.Equal(expectedTicks, ticks);
