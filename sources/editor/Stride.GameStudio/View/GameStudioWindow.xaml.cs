@@ -275,7 +275,10 @@ namespace Stride.GameStudio.View
                     // Let the running thumbnail command finish, without blocking the UI thread it might need. A stuck command must not prevent closing.
                     await Task.WhenAny(Editor.Session.Thumbnails.StopAsync(), Task.Delay(TimeSpan.FromSeconds(10)));
 
+                    // The plugins leave the session once it is destroyed: what they registered goes and their close actions run
+                    var pluginService = Editor.Session.ServiceProvider.TryGet<IAssetsPluginService>() as IDisposable;
                     Editor.Session.Destroy();
+                    pluginService?.Dispose();
 
                     // Save opened assets
                     dockingLayout.SaveOpenAssets(openedAssets);

@@ -198,15 +198,4 @@ public abstract class AssetsPlugin
     public virtual void RegisterPrimitiveTypes(ICollection<Type> primitiveTypes)
     {
     }
-
-    protected internal virtual void SessionLoaded(ISessionViewModel session)
-    {
-        // Intentionally does nothing
-    }
-
-    protected internal virtual void SessionDisposed(ISessionViewModel session)
-    {
-        // Intentionally does nothing
-    }
-
 }

@@ -64,9 +64,7 @@ public sealed class PluginTests
     [Fact]
     public void TheDefaultAssetsPluginDeclaresTheReferencesAsPrimitiveTypes()
     {
-        var types = new List<Type>();
-
-        new StrideDefaultAssetsPlugin().RegisterPrimitiveTypes(types);
+        var types = PluginRegistrations.Of(new StrideDefaultAssetsPlugin(), typeof(Stride.Core.Assets.Editor.Editors.IAssetEditorView)).PrimitiveTypes;
 
         Assert.Contains(typeof(AssetReference), types);
         Assert.Contains(typeof(UrlReferenceBase), types);
@@ -75,9 +73,7 @@ public sealed class PluginTests
     [Fact]
     public void TheEditorPluginDeclaresTheContentReferencesAsPrimitiveTypes()
     {
-        var types = new List<Type>();
-
-        new StrideEditorPlugin().RegisterPrimitiveTypes(types);
+        var types = PluginRegistrations.Of(new StrideEditorPlugin(), typeof(Stride.Core.Assets.Editor.Editors.IAssetEditorView)).PrimitiveTypes;
 
         // The content types serialized as references are not expanded by the property grid
         Assert.Contains(typeof(Stride.Graphics.Texture), types);
@@ -112,9 +108,7 @@ public sealed class PluginTests
     [Fact]
     public void TheEditorPluginCollectsTheGizmosOfTheAssetAssemblies()
     {
-        var plugin = new StrideEditorPlugin();
-
-        plugin.InitializePlugin(new LoggerResult());
+        var registrations = PluginRegistrations.Of(new StrideEditorPlugin(), typeof(Stride.Core.Assets.Editor.Editors.IAssetEditorView));
 
         // The shared editor assembly declares the gizmos of the engine components
         Assert.Equal(typeof(Stride.Assets.Presentation.AssetEditors.Gizmos.CameraGizmo), StrideEditorPlugin.GizmoTypeDictionary[typeof(Stride.Engine.CameraComponent)]);
@@ -123,7 +117,7 @@ public sealed class PluginTests
         // bring some, and none is loaded here
         Assert.Empty(StrideEditorPlugin.EntityFactoryCategories);
         Assert.Empty(StrideEditorPlugin.AddAssetPolicyTypeList);
-        Assert.Equal(2, plugin.ProfileSettings.Count);
+        Assert.Equal(2, registrations.ProfileSettings.Count);
     }
 
     [Fact]

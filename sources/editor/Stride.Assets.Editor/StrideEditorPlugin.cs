@@ -61,14 +61,8 @@ public sealed class StrideEditorPlugin : StrideAssetsPlugin
     private static readonly ObservableList<EntityFactoryCategory> EntityFactoryCategoryList = [];
     private static bool assemblyHooksRegistered;
 
-    public StrideEditorPlugin()
-    {
-        ProfileSettings.Add(new PackageSettingsEntry(GameUserSettings.Effect.EffectCompilation, TargetPackage.Executable));
-        ProfileSettings.Add(new PackageSettingsEntry(GameUserSettings.Effect.RecordUsedEffects, TargetPackage.Executable));
-    }
-
     /// <summary>
-    /// Whether <see cref="InitializeSession"/> creates the thumbnail service. Tests without a graphics device turn it off.
+    /// Whether <see cref="InitializeSession(ISessionPluginContext)"/> creates the thumbnail service. Tests without a graphics device turn it off.
     /// </summary>
     public bool EnableThumbnailService { get; set; } = true;
 
@@ -91,8 +85,19 @@ public sealed class StrideEditorPlugin : StrideAssetsPlugin
     public static IReadOnlyObservableList<EntityFactoryCategory> EntityFactoryCategories => EntityFactoryCategoryList;
 
     /// <inheritdoc />
-    protected override void Initialize(ILogger logger)
+    public override void Initialize(IEditorPluginContext context)
     {
+        base.Initialize(context);
+
+        context.ProfileSettings.Register(new PackageSettingsEntry(GameUserSettings.Effect.EffectCompilation, TargetPackage.Executable));
+        context.ProfileSettings.Register(new PackageSettingsEntry(GameUserSettings.Effect.RecordUsedEffects, TargetPackage.Executable));
+
+        context.CopyProcessors.Register(new EntityComponentCopyProcessor());
+        context.PasteProcessors.Register(new EntityComponentPasteProcessor());
+        context.PasteProcessors.Register(new EntityHierarchyPasteProcessor());
+        context.PostPasteProcessors.Register(new ScenePostPasteProcessor());
+
+        // The registries of the asset assemblies are process-wide: they follow the assembly registry from the first session on
         if (assemblyHooksRegistered)
             return;
         assemblyHooksRegistered = true;
@@ -113,8 +118,11 @@ public sealed class StrideEditorPlugin : StrideAssetsPlugin
     }
 
     /// <inheritdoc />
-    public override void InitializeSession(ISessionViewModel session)
+    public override void InitializeSession(ISessionPluginContext context)
     {
+        base.InitializeSession(context);
+
+        var session = context.Session;
         var sessionViewModel = (SessionViewModel)session;
         var buildDirectory = GetBuildDirectory(session);
 
@@ -122,39 +130,39 @@ public sealed class StrideEditorPlugin : StrideAssetsPlugin
         CollectBuildCache(buildDirectory);
 
         var settingsProvider = new GameSettingsProviderService(session);
-        session.ServiceProvider.RegisterService(settingsProvider);
+        context.Services.Register(settingsProvider);
 
         var builderService = new GameStudioBuilderService(sessionViewModel, settingsProvider, new StrideShaderImporter(), buildDirectory);
-        session.ServiceProvider.RegisterService(builderService);
-        session.ServiceProvider.RegisterService(builderService.Database); // TODO: this should be removed, the AssetBuilderService is reachable from anywhere now
+        context.Services.Register(builderService);
+        context.Services.Register(builderService.Database); // TODO: this should be removed, the AssetBuilderService is reachable from anywhere now
 
         if (EnableThumbnailService)
         {
             var thumbnailService = new GameStudioThumbnailService(sessionViewModel, settingsProvider, builderService);
-            session.ServiceProvider.RegisterService(thumbnailService);
+            context.Services.Register(thumbnailService);
         }
 
         // commands
-        sessionViewModel.AssetViewProperties.RegisterNodePresenterCommand(new FetchEntityCommand());
-        sessionViewModel.AssetViewProperties.RegisterNodePresenterCommand(new SetEntityReferenceCommand());
-        sessionViewModel.AssetViewProperties.RegisterNodePresenterCommand(new SetComponentReferenceCommand());
-        sessionViewModel.AssetViewProperties.RegisterNodePresenterCommand(new SetSymbolReferenceCommand());
-        sessionViewModel.AssetViewProperties.RegisterNodePresenterCommand(new SkeletonNodePreserveAllCommand());
+        context.NodePresenterCommands.Register(new FetchEntityCommand());
+        context.NodePresenterCommands.Register(new SetEntityReferenceCommand());
+        context.NodePresenterCommands.Register(new SetComponentReferenceCommand());
+        context.NodePresenterCommands.Register(new SetSymbolReferenceCommand());
+        context.NodePresenterCommands.Register(new SkeletonNodePreserveAllCommand());
 
         // updaters
-        sessionViewModel.AssetViewProperties.RegisterNodePresenterUpdater(new AnimationAssetNodeUpdater());
-        sessionViewModel.AssetViewProperties.RegisterNodePresenterUpdater(new CameraSlotNodeUpdater());
-        sessionViewModel.AssetViewProperties.RegisterNodePresenterUpdater(new EntityHierarchyAssetNodeUpdater());
-        sessionViewModel.AssetViewProperties.RegisterNodePresenterUpdater(new GameSettingsAssetNodeUpdater());
-        sessionViewModel.AssetViewProperties.RegisterNodePresenterUpdater(new GraphicsCompositorAssetNodeUpdater());
-        sessionViewModel.AssetViewProperties.RegisterNodePresenterUpdater(new FXAAEffectNodeUpdater());
-        sessionViewModel.AssetViewProperties.RegisterNodePresenterUpdater(new MaterialAssetNodeUpdater());
-        sessionViewModel.AssetViewProperties.RegisterNodePresenterUpdater(new ModelAssetNodeUpdater());
-        sessionViewModel.AssetViewProperties.RegisterNodePresenterUpdater(new ModelNodeLinkNodeUpdater());
-        sessionViewModel.AssetViewProperties.RegisterNodePresenterUpdater(new SkeletonAssetNodeUpdater());
-        sessionViewModel.AssetViewProperties.RegisterNodePresenterUpdater(new SpriteSheetAssetNodeUpdater());
-        sessionViewModel.AssetViewProperties.RegisterNodePresenterUpdater(new TextureAssetNodeUpdater());
-        sessionViewModel.AssetViewProperties.RegisterNodePresenterUpdater(new UnloadableObjectPropertyNodeUpdater());
+        context.NodePresenterUpdaters.Register(new AnimationAssetNodeUpdater());
+        context.NodePresenterUpdaters.Register(new CameraSlotNodeUpdater());
+        context.NodePresenterUpdaters.Register(new EntityHierarchyAssetNodeUpdater());
+        context.NodePresenterUpdaters.Register(new GameSettingsAssetNodeUpdater());
+        context.NodePresenterUpdaters.Register(new GraphicsCompositorAssetNodeUpdater());
+        context.NodePresenterUpdaters.Register(new FXAAEffectNodeUpdater());
+        context.NodePresenterUpdaters.Register(new MaterialAssetNodeUpdater());
+        context.NodePresenterUpdaters.Register(new ModelAssetNodeUpdater());
+        context.NodePresenterUpdaters.Register(new ModelNodeLinkNodeUpdater());
+        context.NodePresenterUpdaters.Register(new SkeletonAssetNodeUpdater());
+        context.NodePresenterUpdaters.Register(new SpriteSheetAssetNodeUpdater());
+        context.NodePresenterUpdaters.Register(new TextureAssetNodeUpdater());
+        context.NodePresenterUpdaters.Register(new UnloadableObjectPropertyNodeUpdater());
 
         // Extra packages to display in "add reference" dialog
         sessionViewModel.SuggestedPackages.Add(new PackageName(typeof(Stride.Engine.EntityComponent).Assembly.GetName().Name!, new PackageVersion(StrideVersion.NuGetVersion)));
@@ -168,25 +176,6 @@ public sealed class StrideEditorPlugin : StrideAssetsPlugin
         sessionViewModel.SuggestedPackages.Add(new PackageName("Stride.Voxels", new PackageVersion(StrideVersion.NuGetVersion)));
         sessionViewModel.SuggestedPackages.Add(new PackageName("Stride.SpriteStudio.Runtime", new PackageVersion(StrideVersion.NuGetVersion)));
         sessionViewModel.SuggestedPackages.Add(new PackageName("Stride.UI", new PackageVersion(StrideVersion.NuGetVersion)));
-    }
-
-    /// <inheritdoc />
-    public override void RegisterCopyProcessors(ICollection<ICopyProcessor> copyProcessors, ISessionViewModel session)
-    {
-        copyProcessors.Add(new EntityComponentCopyProcessor());
-    }
-
-    /// <inheritdoc />
-    public override void RegisterPasteProcessors(ICollection<IPasteProcessor> pasteProcessors, ISessionViewModel session)
-    {
-        pasteProcessors.Add(new EntityComponentPasteProcessor());
-        pasteProcessors.Add(new EntityHierarchyPasteProcessor());
-    }
-
-    /// <inheritdoc />
-    public override void RegisterPostPasteProcessors(ICollection<IAssetPostPasteProcessor> postPasteProcessors, ISessionViewModel session)
-    {
-        postPasteProcessors.Add(new ScenePostPasteProcessor());
     }
 
     /// <summary>
