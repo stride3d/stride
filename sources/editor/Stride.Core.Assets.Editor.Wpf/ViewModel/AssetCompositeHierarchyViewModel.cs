@@ -47,6 +47,12 @@ namespace Stride.Core.Assets.Editor.ViewModel
             base.OnAssetReplaced(previousAsset);
         }
 
+        /// <inheritdoc />
+        internal override bool DerivesFrom(AssetId baseId)
+        {
+            return base.DerivesFrom(baseId) || Asset.Hierarchy.Parts.Values.Any(x => x.Base?.BasePartAsset.Id == baseId);
+        }
+
         public AssetCompositeHierarchyPropertyGraph<TAssetPartDesign, TAssetPart> AssetHierarchyPropertyGraph => (AssetCompositeHierarchyPropertyGraph<TAssetPartDesign, TAssetPart>)PropertyGraph;
 
         /// <summary>

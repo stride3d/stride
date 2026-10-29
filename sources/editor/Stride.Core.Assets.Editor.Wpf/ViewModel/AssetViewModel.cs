@@ -575,6 +575,13 @@ namespace Stride.Core.Assets.Editor.ViewModel
         }
 
         /// <summary>
+        /// Gets whether this asset derives from the asset with the given identifier: it is its archetype, or the base of some of its parts.
+        /// An asset that only references the given asset does not derive from it.
+        /// </summary>
+        /// <param name="baseId">The identifier of the asset that might be a base of this asset.</param>
+        internal virtual bool DerivesFrom(AssetId baseId) => Asset.Archetype?.Id == baseId;
+
+        /// <summary>
         /// Called by <see cref="UpdateAsset(Asset, AttachedYamlAssetMetadata, ILogger)"/> once the asset has been replaced by another instance, so that the state this view model
         /// built from the previous instance (event handlers on its nodes, ...) follows the new one.
         /// </summary>

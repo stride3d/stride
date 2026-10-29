@@ -356,8 +356,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 var referencers = session.DependencyManager.ComputeDependencies(changedAsset.Id, AssetDependencySearchOptions.In, ContentLinkType.Reference)?.LinksIn ?? [];
                 foreach (var referencer in referencers.Select(x => session.GetAssetById(x.Item.Id)).NotNull().Where(x => x != asset))
                 {
-                    if (referencer.PropertyGraph != null && (referencer.Asset.Archetype?.Id == changedAsset.Id || referencer.Asset is AssetComposite)
-                        && UpdateFromBases(referencer) && changedDerivedAssets.Add(referencer))
+                    if (referencer.PropertyGraph != null && referencer.DerivesFrom(changedAsset.Id) && UpdateFromBases(referencer) && changedDerivedAssets.Add(referencer))
                     {
                         changedAssets.Enqueue(referencer);
                     }
