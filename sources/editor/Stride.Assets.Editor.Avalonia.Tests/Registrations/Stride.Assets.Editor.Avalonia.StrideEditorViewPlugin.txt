@@ -1,0 +1,44 @@
+Plugin: Stride.Assets.Editor.Avalonia.StrideEditorViewPlugin
+AssetViewModelTypes:
+AssetEditorViewModelTypes:
+AssetEditorViewTypes:
+  Stride.Assets.Editor.ViewModels.EntityHierarchyEditorViewModel -> Stride.Assets.Editor.Avalonia.Views.EntityHierarchyEditorView
+  Stride.Assets.Editor.ViewModels.GraphicsCompositorEditorViewModel -> Stride.Assets.Editor.Avalonia.Views.GraphicsCompositorEditorView
+  Stride.Assets.Editor.ViewModels.ScriptSourceFileEditorViewModel -> Stride.Assets.Editor.Avalonia.Views.ScriptSourceFileEditorView
+  Stride.Assets.Editor.ViewModels.SpriteSheetEditorViewModel -> Stride.Assets.Editor.Avalonia.Views.SpriteSheetEditorView
+  Stride.Assets.Editor.ViewModels.VisualScriptEditorViewModel -> Stride.Assets.Editor.Avalonia.Views.VisualScriptEditorView
+AssetPreviewViewModelTypes:
+AssetPreviewViewTypes:
+  Stride.Assets.Editor.Preview.AnimationPreview -> Stride.Assets.Editor.Avalonia.Views.Preview.AnimationPreviewView
+  Stride.Assets.Editor.Preview.EntityPreview -> Stride.Assets.Editor.Avalonia.Views.Preview.EntityPreviewView
+  Stride.Assets.Editor.Preview.MaterialPreview -> Stride.Assets.Editor.Avalonia.Views.Preview.MaterialPreviewView
+  Stride.Assets.Editor.Preview.ModelPreview -> Stride.Assets.Editor.Avalonia.Views.Preview.ModelPreviewView
+  Stride.Assets.Editor.Preview.PrecompiledSpriteFontPreview -> Stride.Assets.Editor.Avalonia.Views.Preview.SpriteFontPreviewView
+  Stride.Assets.Editor.Preview.PrefabModelPreview -> Stride.Assets.Editor.Avalonia.Views.Preview.ModelPreviewView
+  Stride.Assets.Editor.Preview.PrefabPreview -> Stride.Assets.Editor.Avalonia.Views.Preview.ModelPreviewView
+  Stride.Assets.Editor.Preview.ProceduralModelPreview -> Stride.Assets.Editor.Avalonia.Views.Preview.ModelPreviewView
+  Stride.Assets.Editor.Preview.ScenePreview -> Stride.Assets.Editor.Avalonia.Views.Preview.ScenePreviewView
+  Stride.Assets.Editor.Preview.SkyboxPreview -> Stride.Assets.Editor.Avalonia.Views.Preview.SkyboxPreviewView
+  Stride.Assets.Editor.Preview.SpriteFontPreview -> Stride.Assets.Editor.Avalonia.Views.Preview.SpriteFontPreviewView
+  Stride.Assets.Editor.Preview.SpriteSheetPreview -> Stride.Assets.Editor.Avalonia.Views.Preview.SpriteSheetPreviewView
+  Stride.Assets.Editor.Preview.TexturePreview -> Stride.Assets.Editor.Avalonia.Views.Preview.TexturePreviewView
+  Stride.Assets.Presentation.Preview.PreviewFromSpriteBatch`1 -> Stride.Assets.Editor.Avalonia.Views.Preview.SpritePreviewView
+PrimitiveTypes:
+  (the reference types of every registered assembly)
+EnumImages:
+TypeImages:
+TemplateProviders:
+  Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider EntityComponent
+  Stride.Assets.Editor.Avalonia.Views.EntityComponentReferenceTemplateProvider EntityComponentReference
+  Stride.Assets.Editor.Avalonia.Views.EntityComponentReferenceTemplateProvider EntityComponentReference
+  Stride.Assets.Editor.Avalonia.Views.EntityComponentCollectionTemplateProvider EntityComponentCollection
+  Stride.Assets.Editor.Avalonia.Views.EntityComponentCollectionTemplateProvider EntityComponentCollection
+  Stride.Assets.Editor.Avalonia.Views.EntityReferenceTemplateProvider EntityReference
+  Stride.Core.Assets.Editor.Avalonia.Views.ListItemTemplateProvider ListItem
+  Stride.Assets.Editor.Avalonia.Views.GameSettingAddConfigurationTemplateProvider GameSettingAddConfigurationTemplateProvider
+  Stride.Assets.Editor.Avalonia.Views.GameSettingAddConfigurationTemplateProvider GameSettingAddConfigurationTemplateProvider
+CopyProcessors:
+PasteProcessors:
+PostPasteProcessors:
+SettingsKeys:
+ProfileSettings:

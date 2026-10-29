@@ -1,22 +1,31 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Text;
 using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Views;
+using Stride.Core.Reflection;
+using Stride.Core.Serialization;
+using Stride.Core.Serialization.Contents;
 using Stride.Core.Settings;
 using Stride.Editor;
+
+#nullable enable
 
 namespace Stride.Assets.Editor.Tests.Helpers;
 
 /// <summary>
 /// What the editor's plugin host registers for one plugin, without a session: what the plugin's assembly declares with
-/// attributes, then what the plugin registers in <see cref="AssetsPlugin.Initialize(IEditorPluginContext)"/>.
+/// attributes, then what the plugin registers in <see cref="AssetsPlugin.Initialize(IEditorPluginContext)"/>, after
+/// <see cref="AssetsPlugin.InitializePlugin"/>, in the host's order.
 /// </summary>
 public sealed class PluginRegistrations : IEditorPluginContext
 {
+    private readonly Dictionary<Type, object> legacyTypeImages = [];
+
     private PluginRegistrations(AssetsPlugin plugin)
     {
         Plugin = plugin;
@@ -90,9 +99,85 @@ public sealed class PluginRegistrations : IEditorPluginContext
     public static PluginRegistrations Of(AssetsPlugin plugin, Type editorViewType)
     {
         var registrations = new PluginRegistrations(plugin);
+        var typeImages = AssetsEditorPlugin.TypeImagesDictionary.ToDictionary();
+        plugin.InitializePlugin(registrations.Logger);
         new Scanner(editorViewType).Scan(plugin, registrations);
         plugin.Initialize(registrations);
+        // The type images that the plugin set in the legacy static dictionary, which the editors read too
+        foreach (var (type, image) in AssetsEditorPlugin.TypeImagesDictionary)
+        {
+            if (!typeImages.TryGetValue(type, out var previous) || !ReferenceEquals(previous, image))
+                registrations.legacyTypeImages[type] = image;
+        }
         return registrations;
+    }
+
+    /// <summary>
+    /// The registrations as text, one per line, to compare the registrations of a plugin before and after a change: the maps
+    /// sorted by key, the lists in registration order. The settings that the plugin adds to its legacy
+    /// <see cref="AssetsEditorPlugin.ProfileSettings"/> list, and the images it sets in the legacy static
+    /// <see cref="AssetsEditorPlugin.TypeImagesDictionary"/>, count as registered, as the editors read them too.
+    /// </summary>
+    /// <remarks>
+    /// The primitive types that <see cref="StrideAssetsPlugin"/> finds in every registered assembly depend on what the test
+    /// process loaded: they are one line, when all of them are registered, and only the other types are listed.
+    /// </remarks>
+    public string Describe()
+    {
+        var builder = new StringBuilder();
+        builder.Append("Plugin: ").AppendLine(Plugin.GetType().FullName);
+        Section(builder, nameof(AssetViewModelTypes), Sorted(AssetViewModelTypes));
+        Section(builder, nameof(AssetEditorViewModelTypes), Sorted(AssetEditorViewModelTypes));
+        Section(builder, nameof(AssetEditorViewTypes), Sorted(AssetEditorViewTypes));
+        Section(builder, nameof(AssetPreviewViewModelTypes), Sorted(AssetPreviewViewModelTypes));
+        Section(builder, nameof(AssetPreviewViewTypes), Sorted(AssetPreviewViewTypes));
+        Section(builder, nameof(PrimitiveTypes), DescribePrimitiveTypes());
+        Section(builder, nameof(EnumImages), EnumImages.Select(x => $"{x.Key.GetType().FullName}.{x.Key} -> {x.Value.GetType().FullName}").Order(StringComparer.Ordinal));
+        Section(builder, nameof(TypeImages), TypeImages.Concat(legacyTypeImages).Select(x => $"{Name(x.Key)} -> {x.Value.GetType().FullName}").Order(StringComparer.Ordinal));
+        Section(builder, nameof(TemplateProviders), TemplateProviders.Select(x => $"{Name(x.GetType())} {x.Name}"));
+        Section(builder, nameof(CopyProcessors), CopyProcessors.Select(x => Name(x.GetType())));
+        Section(builder, nameof(PasteProcessors), PasteProcessors.Select(x => Name(x.GetType())));
+        Section(builder, nameof(PostPasteProcessors), PostPasteProcessors.Select(x => Name(x.GetType())));
+        Section(builder, nameof(SettingsKeys), SettingsKeys.Select(x => x.Name.ToString()));
+        var profileSettings = (Plugin as AssetsEditorPlugin)?.ProfileSettings.Concat(ProfileSettings) ?? ProfileSettings;
+        Section(builder, nameof(ProfileSettings), profileSettings.Select(x => $"{x.SettingsKey.Name} ({x.TargetPackage})"));
+        return builder.ToString();
+    }
+
+    private IEnumerable<string> DescribePrimitiveTypes()
+    {
+        var registered = PrimitiveTypes.ToHashSet();
+        var referenceTypes = StrideAssetsPluginReferenceTypes();
+        var all = referenceTypes.Count > 0 && referenceTypes.IsSubsetOf(registered);
+        var others = PrimitiveTypes.Where(x => !all || !referenceTypes.Contains(x)).Select(Name).Distinct().Order(StringComparer.Ordinal);
+        return all ? others.Prepend("(the reference types of every registered assembly)") : others;
+    }
+
+    // What StrideAssetsPlugin finds: the types of the registered assemblies that the assets serialize as references
+    private static HashSet<Type> StrideAssetsPluginReferenceTypes()
+    {
+        var types = new HashSet<Type>();
+        foreach (var type in AssemblyRegistry.FindAll().SelectMany(x => x.GetTypes()))
+        {
+            var serializerType = SerializerSelector.AssetWithReuse.GetSerializer(type)?.GetType();
+            if (serializerType is { IsGenericType: true } && serializerType.GetGenericTypeDefinition() == typeof(ReferenceSerializer<>))
+                types.Add(type);
+        }
+        return types;
+    }
+
+    internal static string Name(Type type) => type.FullName ?? type.Name;
+
+    internal static void Section(StringBuilder builder, string name, IEnumerable<string> lines)
+    {
+        builder.Append(name).AppendLine(":");
+        foreach (var line in lines)
+            builder.Append("  ").AppendLine(line);
+    }
+
+    private static IEnumerable<string> Sorted(IReadOnlyDictionary<Type, Type> map)
+    {
+        return map.Select(x => $"{Name(x.Key)} -> {Name(x.Value)}").Order(StringComparer.Ordinal);
     }
 
     public sealed class Recorder<TKey, TValue> : Dictionary<TKey, TValue>, IPluginMap<TKey, TValue>

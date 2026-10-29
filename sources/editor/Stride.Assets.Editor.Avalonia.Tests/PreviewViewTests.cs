@@ -17,7 +17,7 @@ namespace Stride.Assets.Editor.Avalonia.Tests;
 
 public sealed class PreviewViewTests
 {
-    [Fact]
+    [AvaloniaFact]
     public void TheViewPluginRegistersThePreviewViews()
     {
         var views = PluginRegistrations.Of(new StrideEditorViewPlugin(), typeof(IAssetEditorView)).AssetPreviewViewTypes;

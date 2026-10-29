@@ -29,6 +29,10 @@
     <!-- The Avalonia companions of the plugins: their views are tested here with the editor's -->
     <ProjectReference Include="..\..\plugins\Audio\Stride.Audio.Editor.Avalonia\Stride.Audio.Editor.Avalonia.csproj" />
     <ProjectReference Include="..\..\plugins\SpriteStudio\Stride.SpriteStudio.Editor.Avalonia\Stride.SpriteStudio.Editor.Avalonia.csproj" />
+    <!-- The cross-platform plugins of the plugin packages, whose registrations are compared with the recorded ones -->
+    <ProjectReference Include="..\..\plugins\BulletPhysics\Stride.Physics.Editor\Stride.Physics.Editor.csproj" />
+    <ProjectReference Include="..\..\plugins\Particles\Stride.Particles.Editor\Stride.Particles.Editor.csproj" />
+    <ProjectReference Include="..\..\plugins\Video\Stride.Video.Editor\Stride.Video.Editor.csproj" />
   </ItemGroup>
   <ItemGroup>
     <!-- The fake dotnet new template of the Assets.Editor tests (xunit 2, not referenced): the same file -->
@@ -37,6 +41,12 @@
     </Compile>
     <Compile Include="..\Stride.Assets.Editor.Tests\Helpers\PluginRegistrations.cs">
       <Link>Helpers\PluginRegistrations.cs</Link>
+    </Compile>
+    <Compile Include="..\Stride.Assets.Editor.Tests\Helpers\RegistrationsGolden.cs">
+      <Link>Helpers\RegistrationsGolden.cs</Link>
+    </Compile>
+    <Compile Include="..\Stride.Assets.Editor.Tests\Helpers\SessionRegistrations.cs">
+      <Link>Helpers\SessionRegistrations.cs</Link>
     </Compile>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>

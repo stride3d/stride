@@ -12,7 +12,7 @@ namespace Stride.Assets.Editor.Avalonia.Tests;
 
 public sealed class EditorViewTests
 {
-    [Fact]
+    [AvaloniaFact]
     public void TheViewPluginRegistersTheEditorViews()
     {
         var views = PluginRegistrations.Of(new StrideEditorViewPlugin(), typeof(IAssetEditorView)).AssetEditorViewTypes;
