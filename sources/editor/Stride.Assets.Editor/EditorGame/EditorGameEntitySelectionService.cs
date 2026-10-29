@@ -136,12 +136,20 @@ public sealed class EditorGameEntitySelectionService : EditorGameMouseServiceBas
     public async Task<bool> DuplicateSelection()
     {
         var duplicatedIds = new HashSet<AbsoluteId>();
+        var selectedIds = new HashSet<AbsoluteId>();
         var tcs = new TaskCompletionSource<bool>();
 
         void Callback(object? sender, EntitySelectionEventArgs e)
         {
-            // The selection is emptied first, then the copies are selected
-            if (e.NewSelection.Select(controller.GetAbsoluteId).ToHashSet().SetEquals(duplicatedIds))
+            bool copiesSelected;
+            lock (duplicatedIds)
+            {
+                selectedIds = e.NewSelection.Select(controller.GetAbsoluteId).ToHashSet();
+                // The selection is emptied first, then the copies are selected. Both updates can come before the ids
+                // of the copies are known: an empty selection must not complete the task then.
+                copiesSelected = duplicatedIds.Count > 0 && selectedIds.SetEquals(duplicatedIds);
+            }
+            if (copiesSelected)
                 tcs.TrySetResult(true);
         }
 
@@ -152,7 +160,14 @@ public sealed class EditorGameEntitySelectionService : EditorGameMouseServiceBas
             if (result.Count == 0)
                 return false;
 
-            duplicatedIds.AddRange(result);
+            bool copiesSelected;
+            lock (duplicatedIds)
+            {
+                duplicatedIds.AddRange(result);
+                copiesSelected = selectedIds.SetEquals(duplicatedIds);
+            }
+            if (copiesSelected)
+                tcs.TrySetResult(true);
             await tcs.Task;
             return true;
         }
