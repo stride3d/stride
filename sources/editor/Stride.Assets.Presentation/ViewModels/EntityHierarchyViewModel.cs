@@ -18,6 +18,14 @@ public abstract class EntityHierarchyViewModel : AssetCompositeHierarchyViewMode
     {
     }
 
+    /// <summary>
+    /// Gets the root of the hierarchy of the open editor of this asset, or <c>null</c> when no editor is open.
+    /// </summary>
+    /// <remarks>
+    /// The undo and redo of the folders, which exist only in the editor, go through it.
+    /// </remarks>
+    public EntityHierarchyRootViewModel? HierarchyRoot { get; internal set; }
+
     /// <inheritdoc />
     public override EntityViewModel CreatePartViewModel(EntityDesign partDesign)
     {

@@ -205,12 +205,12 @@ public sealed class EntityHierarchyEditorTests
         undoRedo.SetName(transaction, "Delete entity");
     }
 
-    private static AssetCompositeHierarchyPropertyGraph<EntityDesign, Entity> PropertyGraph(EntityHierarchyEditorViewModel editor)
+    internal static AssetCompositeHierarchyPropertyGraph<EntityDesign, Entity> PropertyGraph(EntityHierarchyEditorViewModel editor)
     {
         return (AssetCompositeHierarchyPropertyGraph<EntityDesign, Entity>)editor.Asset.PropertyGraph;
     }
 
-    private static List<EntityHierarchyChangedEventArgs> Record(EntityHierarchyRootViewModel root, out List<EntityHierarchyChangedEventArgs> removed)
+    internal static List<EntityHierarchyChangedEventArgs> Record(EntityHierarchyRootViewModel root, out List<EntityHierarchyChangedEventArgs> removed)
     {
         var added = new List<EntityHierarchyChangedEventArgs>();
         var removedEvents = new List<EntityHierarchyChangedEventArgs>();
@@ -232,7 +232,7 @@ internal static class EntityViewModelTestExtensions
         while (queue.TryDequeue(out var entity))
         {
             yield return entity;
-            foreach (var child in entity.Children.OfType<EntityViewModel>())
+            foreach (var child in entity.TransformChildren)
             {
                 queue.Enqueue(child);
             }

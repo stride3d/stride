@@ -9,6 +9,13 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Stride.Assets.Editor.Avalonia.Views.EntityHierarchyEditorView"
              x:DataType="vm:EntityHierarchyEditorViewModel">
+  <UserControl.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="avares://Stride.Assets.Editor.Avalonia/Views/SceneEditorImages.axaml"/>
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </UserControl.Resources>
   <Grid ColumnDefinitions="*, 4, 3*">
     <DockPanel Grid.Column="0">
       <TreeView ItemsSource="{Binding HierarchyRoot, Mode=OneWay, Converter={sd:Yield}}"
@@ -34,6 +41,14 @@
               </StackPanel>
             </DockPanel>
           </TreeDataTemplate>
+          <!-- Folder template -->
+          <TreeDataTemplate DataType="{x:Type vm2:EntityFolderViewModel}"
+                            ItemsSource="{Binding Children}">
+            <StackPanel Orientation="Horizontal">
+              <Image Source="{StaticResource FolderIcon}" Width="16" Height="16" />
+              <TextBlock Text="{Binding Name}" Margin="4,0" VerticalAlignment="Center" />
+            </StackPanel>
+          </TreeDataTemplate>
           <!-- Scene template -->
           <TreeDataTemplate DataType="{x:Type vm2:SceneRootViewModel}"
                             ItemsSource="{Binding Children}">
@@ -49,8 +64,10 @@
           </TreeDataTemplate>
         </Control.DataTemplates>
         <StyledElement.Styles>
-          <Style Selector="TreeViewItem">
-            <Setter Property="IsExpanded" Value="True"/>
+          <!-- The items remember whether they are expanded, as in the WPF scene editor: the root is expanded when the
+               editor opens, and a new entity or folder expands its parent -->
+          <Style Selector="TreeViewItem" x:DataType="vm2:EntityHierarchyItemViewModel">
+            <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
           </Style>
         </StyledElement.Styles>
       </TreeView>
