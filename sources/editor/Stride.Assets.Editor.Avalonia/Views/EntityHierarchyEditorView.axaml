@@ -45,6 +45,11 @@
                   Command="{Binding DeleteCommand}">
           <MenuItem.Icon><Image Source="{StaticResource ImageDelete}"/></MenuItem.Icon>
         </MenuItem>
+        <Separator/>
+        <MenuItem Header="{sd:LocalizeString Rename, Context=Menu}" InputGesture="{x:Static sd:EditCommands.RenameGesture}"
+                  Command="{Binding RenameCommand}">
+          <MenuItem.Icon><Image Source="{StaticResource ImageRename}"/></MenuItem.Icon>
+        </MenuItem>
       </ContextMenu>
 
       <!-- The context menu of an item of the tree, as the WPF TreeViewItemContextMenu: the creation and the paste go into
@@ -76,6 +81,11 @@
                   Command="{Binding DeleteCommand}">
           <MenuItem.Icon><Image Source="{StaticResource ImageDelete}"/></MenuItem.Icon>
         </MenuItem>
+        <Separator/>
+        <MenuItem Header="{sd:LocalizeString Rename, Context=Menu}" InputGesture="{x:Static sd:EditCommands.RenameGesture}"
+                  Command="{Binding RenameCommand}">
+          <MenuItem.Icon><Image Source="{StaticResource ImageRename}"/></MenuItem.Icon>
+        </MenuItem>
       </ContextMenu>
     </ResourceDictionary>
   </UserControl.Resources>
@@ -102,16 +112,28 @@
             </MenuFlyout>
           </Button.Flyout>
         </Button>
+        <TextBox Width="120" PlaceholderText="{sd:LocalizeString Filter}" VerticalAlignment="Center"
+                 Text="{Binding FilterPattern, Delay=300}"
+                 ToolTip.Tip="{sd:LocalizeString Filter entities by name, Context=ToolTip}"/>
+        <Button Focusable="False" Background="Transparent" Padding="4" Click="OnExpandAllClick"
+                ToolTip.Tip="{sd:LocalizeString Expand all entities, Context=ToolTip}">
+          <Image Source="{StaticResource ImageExpandAllFolders}" Width="16" Height="16"/>
+        </Button>
+        <Button Focusable="False" Background="Transparent" Padding="4" Click="OnCollapseAllClick"
+                ToolTip.Tip="{sd:LocalizeString Collapse all entities, Context=ToolTip}">
+          <Image Source="{StaticResource ImageCollapseAllFolders}" Width="16" Height="16"/>
+        </Button>
       </StackPanel>
       <TreeView x:Name="HierarchyTree"
                 Focusable="True"
                 ItemsSource="{Binding HierarchyRoot, Mode=OneWay, Converter={sd:Yield}}"
                 SelectedItems="{Binding SelectedContent}"
                 SelectionMode="Multiple">
-        <!-- Cut and Copy only while the tree has the focus, as the command bindings of the WPF tree -->
+        <!-- Cut, Copy and Rename only while the tree has the focus, as the command bindings of the WPF tree -->
         <sd:EditCommands.Bindings>
           <sd:EditCommandBinding Kind="Cut" Command="{Binding CutCommand}"/>
           <sd:EditCommandBinding Kind="Copy" Command="{Binding CopyCommand}"/>
+          <sd:EditCommandBinding Kind="Rename" Command="{Binding RenameCommand}"/>
         </sd:EditCommands.Bindings>
         <Control.DataTemplates>
           <!-- Entity template -->
@@ -127,9 +149,31 @@
                 <Path Width="16" Height="16" Stretch="None" Fill="{DynamicResource SystemControlForegroundBaseHighBrush}"
                       Data="F1M10.167,9.667C8.053,9.667 6.334,7.947 6.334,5.834 6.334,3.72 8.053,2 10.167,2 12.28,2 14,3.72 14,5.834 14,7.947 12.28,9.667 10.167,9.667 M10.167,1C7.502,1 5.334,3.168 5.334,5.834 5.334,6.985 5.755,8.03 6.431,8.862L1.147,14.146C0.951000000000001,14.342 0.951000000000001,14.658 1.147,14.854 1.244,14.951 1.372,15 1.5,15 1.628,15 1.756,14.951 1.854,14.854L7.138,9.569C7.969,10.245 9.015,10.667 10.167,10.667 12.832,10.667 15,8.499 15,5.834 15,3.168 12.832,1 10.167,1" />
               </Button>
+              <!-- Lock button: a locked entity cannot be selected in the view. Ctrl applies to the children. -->
+              <Button DockPanel.Dock="Right" Classes="row" Command="{Binding LockCommand}" Click="OnLockClick">
+                <ToolTip.Tip>
+                  <StackPanel>
+                    <TextBlock Text="{sd:LocalizeString Lock/unlock this entity, Context=ToolTip}"/>
+                    <TextBlock Text="{sd:LocalizeString (Hold Ctrl to apply to child entities recursively), Context=ToolTip}"/>
+                  </StackPanel>
+                </ToolTip.Tip>
+                <Panel>
+                  <Image Source="{StaticResource ImageLockEntity}" Width="16" Height="16" IsVisible="{Binding IsLocked}"/>
+                  <Image Source="{StaticResource ImageUnlockEntity}" Width="16" Height="16" IsVisible="{Binding !IsLocked}"/>
+                </Panel>
+              </Button>
               <StackPanel Orientation="Horizontal">
-                <!-- TODO icon -->
-                <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+                <Image Source="{Binding Components, Converter={conv:EntityComponentToResource}}" Width="16" Height="16"/>
+                <TextBlock Text="{Binding Name}" VerticalAlignment="Center" Margin="4,0" IsVisible="{Binding !IsEditing}"/>
+                <!-- Renaming in place (F2): the box replaces the name while the item is editing -->
+                <TextBox Text="{Binding Name, Mode=OneWay}" IsVisible="{Binding IsEditing}" MinWidth="80">
+                  <Interaction.Behaviors>
+                    <sd:InlineEditBehavior Name="{Binding Name, Mode=TwoWay}" IsEditing="{Binding IsEditing, Mode=TwoWay}"/>
+                  </Interaction.Behaviors>
+                </TextBox>
+                <TextBlock Text="{Binding SourcePrefab.Name, StringFormat=(Prefab: \{0\}), FallbackValue=''}" VerticalAlignment="Center"
+                           Foreground="{DynamicResource SystemControlForegroundAccentBrush}"
+                           IsVisible="{Binding SourcePrefab, Converter={x:Static ObjectConverters.IsNotNull}}"/>
               </StackPanel>
             </DockPanel>
           </TreeDataTemplate>
@@ -138,16 +182,37 @@
                             ItemsSource="{Binding Children}">
             <StackPanel Orientation="Horizontal">
               <Image Source="{StaticResource FolderIcon}" Width="16" Height="16" />
-              <TextBlock Text="{Binding Name}" Margin="4,0" VerticalAlignment="Center" />
+              <TextBlock Text="{Binding Name}" VerticalAlignment="Center" Margin="4,0" IsVisible="{Binding !IsEditing}"/>
+              <!-- Renaming in place (F2): the box replaces the name while the item is editing -->
+              <TextBox Text="{Binding Name, Mode=OneWay}" IsVisible="{Binding IsEditing}" MinWidth="80">
+                <Interaction.Behaviors>
+                  <sd:InlineEditBehavior Name="{Binding Name, Mode=TwoWay}" IsEditing="{Binding IsEditing, Mode=TwoWay}"/>
+                </Interaction.Behaviors>
+              </TextBox>
             </StackPanel>
           </TreeDataTemplate>
           <!-- Scene template -->
           <TreeDataTemplate DataType="{x:Type vm2:SceneRootViewModel}"
                             ItemsSource="{Binding Children}">
-            <StackPanel Orientation="Horizontal">
-              <!-- TODO icon -->
-              <TextBlock Text="{Binding Name}" />
-            </StackPanel>
+            <DockPanel>
+              <!-- Lock button: a locked entity cannot be selected in the view. Ctrl applies to the children. -->
+              <Button DockPanel.Dock="Right" Classes="row" Command="{Binding LockCommand}" Click="OnLockClick">
+                <ToolTip.Tip>
+                  <StackPanel>
+                    <TextBlock Text="{sd:LocalizeString Lock/unlock all entities, Context=ToolTip}"/>
+                    <TextBlock Text="{sd:LocalizeString (Hold Ctrl to apply to child scenes recursively), Context=ToolTip}"/>
+                  </StackPanel>
+                </ToolTip.Tip>
+                <Panel>
+                  <Image Source="{StaticResource ImageLockEntity}" Width="16" Height="16" IsVisible="{Binding IsLocked}"/>
+                  <Image Source="{StaticResource ImageUnlockEntity}" Width="16" Height="16" IsVisible="{Binding !IsLocked}"/>
+                </Panel>
+              </Button>
+              <StackPanel Orientation="Horizontal">
+                <Image Source="{StaticResource SceneIcon}" Width="16" Height="16"/>
+                <TextBlock Text="{Binding Name}" Margin="4,0" VerticalAlignment="Center"/>
+              </StackPanel>
+            </DockPanel>
           </TreeDataTemplate>
           <!-- Default template, last: the first template that matches is used, and the items above derive from this type -->
           <TreeDataTemplate DataType="{x:Type vm2:EntityHierarchyItemViewModel}"
@@ -160,6 +225,14 @@
                editor opens, and a new entity or folder expands its parent -->
           <Style Selector="TreeViewItem" x:DataType="vm2:EntityHierarchyItemViewModel">
             <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+            <!-- The filter of the toolbar -->
+            <Setter Property="IsVisible" Value="{Binding IsVisible}"/>
+          </Style>
+          <Style Selector="Button.row">
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Padding" Value="2"/>
+            <Setter Property="Margin" Value="4,0,0,0"/>
           </Style>
         </StyledElement.Styles>
       </TreeView>

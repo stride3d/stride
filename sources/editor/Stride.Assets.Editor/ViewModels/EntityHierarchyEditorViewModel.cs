@@ -33,12 +33,14 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
     private object? gameView;
     private EditorViewToolbarViewModel? toolbar;
     private bool isGameLoaded;
+    private string filterPattern = string.Empty;
 
     protected EntityHierarchyEditorViewModel(EntityHierarchyViewModel asset)
         : base(asset)
     {
         HierarchyRoot.EntityAdded += EntityAdded;
         HierarchyRoot.EntityRemoved += EntityRemoved;
+        HierarchyRoot.LockChanged += LockChanged;
         // The root is expanded when the editor opens, as in the WPF scene editor
         HierarchyRoot.IsExpanded = true;
         FocusOnEntityCommand = new AnonymousTaskCommand<EntityViewModel>(ServiceProvider, FocusOnEntityAsync) { IsEnabled = false };
@@ -49,6 +51,7 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
         CreateEntityInSelectionCommand = new AnonymousTaskCommand<IEntityFactory?>(ServiceProvider, x => CreateEntity(x, SelectedContent.FirstOrDefault() as EntityHierarchyItemViewModel ?? HierarchyRoot));
         CreateFolderInRootCommand = new AnonymousCommand(ServiceProvider, () => CreateFolder(HierarchyRoot, true));
         CreateFolderInSelectionCommand = new AnonymousCommand(ServiceProvider, () => CreateFolder(SelectedContent.FirstOrDefault() as EntityHierarchyItemViewModel ?? HierarchyRoot, true));
+        RenameCommand = new AnonymousCommand(ServiceProvider, Rename);
         UpdateCommands();
     }
 
@@ -66,6 +69,17 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
     /// <c>null</c>.
     /// </summary>
     public ICommandBase CreateEntityInSelectionCommand { get; }
+
+    /// <summary>
+    /// Gets the command that begins the renaming in place (F2) of the last selected entity or folder.
+    /// </summary>
+    public ICommandBase RenameCommand { get; }
+
+    /// <summary>
+    /// Gets or sets the words the names of the shown items contain, separated by spaces, case ignored. An item that
+    /// doesn't match shows when one of its children matches. Empty, every item shows.
+    /// </summary>
+    public string FilterPattern { get => filterPattern; set => SetValue(ref filterPattern, value ?? string.Empty, UpdateVisibilities); }
 
     /// <summary>
     /// Gets the command that creates a folder at the root of the hierarchy.
@@ -171,6 +185,7 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
 
         HierarchyRoot.EntityAdded -= EntityAdded;
         HierarchyRoot.EntityRemoved -= EntityRemoved;
+        HierarchyRoot.LockChanged -= LockChanged;
         SelectedItems.CollectionChanged -= SelectedItemsChanged;
         foreach (var propagator in propagators.Values)
             propagator.Destroy();
@@ -281,8 +296,9 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
             propagators.Add(entity.Id, propagator);
             added.Add(propagator);
             propagator.NotifyGameSidePartAdded();
-            // The clone of the entity is in the game: it can be selected there
-            selection?.AddSelectable(entity.Id);
+            // The clone of the entity is in the game: it can be selected there, unless it is locked
+            if (!entity.IsLocked)
+                selection?.AddSelectable(entity.Id);
         }
         return Task.WhenAll(added.Select(x => x.Initialized));
     }
@@ -312,6 +328,22 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
         {
             // The editor was closed, or the entity removed, while the entity was added
         }
+    }
+
+    /// <summary>
+    /// A locked entity cannot be selected in the game, as in the WPF scene editor: it leaves the selection of the game, and
+    /// the gizmos cannot move it. It can still be selected in the hierarchy.
+    /// </summary>
+    private void LockChanged(object? sender, EntityHierarchyElementEventArgs e)
+    {
+        if (e.Element is not EntityViewModel entity || !propagators.ContainsKey(entity.Id))
+            return;
+
+        var selection = Controller?.GetService<IEditorGameSelectionViewModelService>();
+        if (entity.IsLocked)
+            selection?.RemoveSelectable(entity.Id);
+        else
+            selection?.AddSelectable(entity.Id);
     }
 
     /// <summary>
@@ -567,6 +599,34 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
         base.UpdateCommands();
 
         DuplicateSelectionCommand.IsEnabled = GetCommonRoots(SelectedContent.OfType<EntityHierarchyItemViewModel>().ToList()).Count > 0;
+        RenameCommand.IsEnabled = SelectedContent.LastOrDefault() is EntityHierarchyItemViewModel { IsEditable: true };
+    }
+
+    private void Rename()
+    {
+        if (SelectedContent.LastOrDefault() is EntityHierarchyItemViewModel { IsEditable: true } item)
+            item.IsEditing = true;
+    }
+
+    private void UpdateVisibilities()
+    {
+        var filterTokens = filterPattern.Split(" \t\n\r".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+        foreach (var item in HierarchyRoot.Children)
+        {
+            UpdateVisibilities(item, filterTokens);
+        }
+    }
+
+    private static void UpdateVisibilities(EntityHierarchyItemViewModel item, string[] filterTokens)
+    {
+        // An item shows when one of its children shows, or when its name contains every word of the filter
+        var isVisible = false;
+        foreach (var child in item.Children)
+        {
+            UpdateVisibilities(child, filterTokens);
+            isVisible |= child.IsVisible;
+        }
+        item.IsVisible = isVisible || filterTokens.All(x => item.Name?.Contains(x, StringComparison.OrdinalIgnoreCase) == true);
     }
 
     protected override async Task RefreshEditorProperties()

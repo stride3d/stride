@@ -7,6 +7,8 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using Stride.Assets.Editor.ViewModels;
+using Stride.Assets.Presentation.ViewModels;
+using Stride.Core.Extensions;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.Editors;
@@ -16,12 +18,16 @@ namespace Stride.Assets.Editor.Avalonia.Views;
 [AssetEditorView<EntityHierarchyEditorViewModel>]
 public partial class EntityHierarchyEditorView : UserControl, IAssetEditorView
 {
+    private KeyModifiers pointerModifiers;
+
     public EntityHierarchyEditorView()
     {
         InitializeComponent();
         // The menu depends on what is under the mouse, as in the WPF scene editor: an item pastes into the selection, an
         // empty area of the tree pastes into the root. Tunnel, so that the menu is set before the tree opens it.
         HierarchyTree.AddHandler(ContextRequestedEvent, OnTreeContextRequested, RoutingStrategies.Tunnel);
+        // The keys held when a button of a row is clicked (Ctrl locks the children too)
+        HierarchyTree.AddHandler(PointerReleasedEvent, (_, e) => pointerModifiers = e.KeyModifiers, RoutingStrategies.Tunnel);
     }
 
     /// <inheritdoc />
@@ -64,6 +70,32 @@ public partial class EntityHierarchyEditorView : UserControl, IAssetEditorView
         if (DataContext is EntityHierarchyEditorViewModel editor)
             AddFactoryItems(menu.Items, onItem ? editor.CreateEntityInSelectionCommand : editor.CreateEntityInRootCommand);
         HierarchyTree.ContextMenu = menu;
+    }
+
+    private void OnLockClick(object? sender, RoutedEventArgs e)
+    {
+        // The button runs its command after this handler
+        if (sender is Button button)
+            button.CommandParameter = pointerModifiers.HasFlag(KeyModifiers.Control);
+    }
+
+    private void OnExpandAllClick(object? sender, RoutedEventArgs e) => SetExpanded(true);
+
+    private void OnCollapseAllClick(object? sender, RoutedEventArgs e) => SetExpanded(false);
+
+    /// <summary>
+    /// Expands or collapses every item of the tree; the root stays expanded.
+    /// </summary>
+    private void SetExpanded(bool isExpanded)
+    {
+        if (DataContext is not EntityHierarchyEditorViewModel editor)
+            return;
+
+        foreach (var item in editor.HierarchyRoot.Children.BreadthFirst(x => x.Children))
+        {
+            item.IsExpanded = isExpanded;
+        }
+        editor.HierarchyRoot.IsExpanded = true;
     }
 
     private void OnCreateFlyoutOpening(object? sender, EventArgs e)
