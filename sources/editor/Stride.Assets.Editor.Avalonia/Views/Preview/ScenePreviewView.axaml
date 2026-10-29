@@ -7,7 +7,7 @@
   <views:StridePreviewView.Template>
     <ControlTemplate>
       <DockPanel>
-        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center">
+        <TextBlock Margin="8" VerticalAlignment="Center" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap">
           <TextBlock.Text>
             <sd:LocalizeString Text="Scenes can't be previewed. To see the scene, open it in the scene editor."/>
           </TextBlock.Text>
