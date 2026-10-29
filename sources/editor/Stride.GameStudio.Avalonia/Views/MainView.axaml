@@ -355,7 +355,7 @@
       <TextBlock Grid.Column="2"
                  Margin="8,0"
                  VerticalAlignment="Center">
-        <Run Text="{Binding Session?.AssetCollection.SelectedContent.Count, Mode=OneWay, Converter={sd:Localize Text={}{0} item, Plural={}{0} items, IsStringFormat=True, Context=StatusBar}}"/>
+        <Run Text="{Binding Session?.AssetCollection.FilteredContent.Count, Mode=OneWay, Converter={sd:Localize Text={}{0} item, Plural={}{0} items, IsStringFormat=True, Context=StatusBar}}"/>
         <Run Text="{Binding Session?.AssetCollection.SelectedContent.Count, Mode=OneWay, Converter={sd:Localize Text=({0} selected), Plural=({0} selected), IsStringFormat=True, Context=StatusBar}}"/>
       </TextBlock>
       <Border Grid.Column="3"
