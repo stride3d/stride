@@ -253,6 +253,7 @@ namespace Stride.GameStudio.View
         private async Task SaveAndClose()
         {
             isSavingAndClosing = true;
+            IDisposable pluginService = null;
             try
             {
                 // Save MRUs
@@ -275,10 +276,8 @@ namespace Stride.GameStudio.View
                     // Let the running thumbnail command finish, without blocking the UI thread it might need. A stuck command must not prevent closing.
                     await Task.WhenAny(Editor.Session.Thumbnails.StopAsync(), Task.Delay(TimeSpan.FromSeconds(10)));
 
-                    // The plugins leave the session once it is destroyed: what they registered goes and their close actions run
-                    var pluginService = Editor.Session.ServiceProvider.TryGet<IAssetsPluginService>() as IDisposable;
+                    pluginService = Editor.Session.ServiceProvider.TryGet<IAssetsPluginService>() as IDisposable;
                     Editor.Session.Destroy();
-                    pluginService?.Dispose();
 
                     // Save opened assets
                     dockingLayout.SaveOpenAssets(openedAssets);
@@ -300,6 +299,9 @@ namespace Stride.GameStudio.View
                 forceClose = true;
                 var studio = Editor as GameStudioViewModel;
                 studio?.Destroy();
+
+                // The plugins leave the destroyed session last: what they registered goes and their close actions run
+                pluginService?.Dispose();
 
                 closingTask?.SetResult(true);
                 // Shutdown after all other operations have completed
