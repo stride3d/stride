@@ -21,6 +21,8 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
 {
     internal class DifferentValuesObject { public readonly string Name = "DifferentValues"; };
 
+    // Avalonia bindings to the indexer (this[string]) only listen to the change of the indexer itself, not to the change of a named member
+    private const string IndexerPropertyName = "Item";
     protected static readonly HashSet<string> ReservedNames = [];
     private readonly AutoUpdatingSortedObservableCollection<NodeViewModel> children = new(new AnonymousComparer<NodeViewModel>(CompareChildren), nameof(Name), nameof(NodeIndex), nameof(Order));
     private readonly ObservableCollection<NodePresenterCommandWrapper> commands = [];
@@ -431,6 +433,8 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
             return;
         }
 
+        // The indexer changes once, when the new children are there: in between, a binding to a child would see no child
+        OnPropertyChanging(IndexerPropertyName);
         isRefreshing = true;
         try
         {
@@ -481,6 +485,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
         {
             isRefreshing = false;
         }
+        OnPropertyChanged(IndexerPropertyName);
     }
 
     private void NotifyAssociatedDataChanges(IReadOnlyDictionary<string, object> previousData)
@@ -732,12 +737,16 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
         {
             foreach (var propertyName in propertyNames)
                 NotifyPropertyChanging(propertyName);
+            if (!isRefreshing)
+                OnPropertyChanging(IndexerPropertyName);
         }
         changeAction();
         if (initializingChildren == null)
         {
             foreach (var propertyName in propertyNames)
                 NotifyPropertyChanged(propertyName);
+            if (!isRefreshing)
+                OnPropertyChanged(IndexerPropertyName);
         }
     }
 
