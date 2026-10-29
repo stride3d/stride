@@ -1,0 +1,17 @@
+Plugin: Stride.Audio.Editor.AudioEditorPlugin
+AssetViewModelTypes:
+AssetEditorViewModelTypes:
+AssetEditorViewTypes:
+AssetPreviewViewModelTypes:
+  Stride.Audio.Editor.SoundPreview -> Stride.Audio.Editor.SoundPreviewViewModel
+AssetPreviewViewTypes:
+PrimitiveTypes:
+  (the reference types of every registered assembly)
+EnumImages:
+TypeImages:
+TemplateProviders:
+CopyProcessors:
+PasteProcessors:
+PostPasteProcessors:
+SettingsKeys:
+ProfileSettings:

@@ -1,0 +1,34 @@
+Plugin: Stride.Assets.Presentation.StrideDefaultAssetsPlugin
+AssetViewModelTypes:
+  Stride.Assets.Effect.EffectLogAsset -> Stride.Assets.Presentation.ViewModels.EffectLogViewModel
+  Stride.Assets.Entities.PrefabAsset -> Stride.Assets.Presentation.ViewModels.PrefabViewModel
+  Stride.Assets.Entities.SceneAsset -> Stride.Assets.Presentation.ViewModels.SceneViewModel
+  Stride.Assets.GameSettingsAsset -> Stride.Assets.Presentation.ViewModels.GameSettingsViewModel
+  Stride.Assets.Materials.MaterialAsset -> Stride.Assets.Presentation.ViewModels.MaterialViewModel
+  Stride.Assets.Models.AnimationAsset -> Stride.Assets.Presentation.ViewModels.AnimationViewModel
+  Stride.Assets.Models.ModelAsset -> Stride.Assets.Presentation.ViewModels.ModelViewModel
+  Stride.Assets.Models.ProceduralModelAsset -> Stride.Assets.Presentation.ViewModels.ProceduralModelViewModel
+  Stride.Assets.Models.SkeletonAsset -> Stride.Assets.Presentation.ViewModels.SkeletonViewModel
+  Stride.Assets.Rendering.GraphicsCompositorAsset -> Stride.Assets.Presentation.ViewModels.GraphicsCompositorViewModel
+  Stride.Assets.Scripts.ScriptSourceFileAsset -> Stride.Assets.Presentation.ViewModels.ScriptSourceFileViewModel
+  Stride.Assets.Scripts.VisualScriptAsset -> Stride.Assets.Presentation.ViewModels.VisualScriptViewModel
+  Stride.Assets.Skyboxes.SkyboxAsset -> Stride.Assets.Presentation.ViewModels.SkyboxViewModel
+  Stride.Assets.Sprite.SpriteSheetAsset -> Stride.Assets.Presentation.ViewModels.SpriteSheetViewModel
+  Stride.Assets.SpriteFont.PrecompiledSpriteFontAsset -> Stride.Assets.Presentation.ViewModels.PrecompiledSpriteFontViewModel
+  Stride.Assets.SpriteFont.SpriteFontAsset -> Stride.Assets.Presentation.ViewModels.SpriteFontViewModel
+  Stride.Core.Assets.SourceCodeAsset -> Stride.Assets.Presentation.ViewModels.SourceCodeAssetViewModel
+AssetEditorViewModelTypes:
+AssetEditorViewTypes:
+AssetPreviewViewModelTypes:
+AssetPreviewViewTypes:
+PrimitiveTypes:
+  Stride.Core.Assets.AssetReference
+  Stride.Core.Serialization.UrlReferenceBase
+EnumImages:
+TypeImages:
+TemplateProviders:
+CopyProcessors:
+PasteProcessors:
+PostPasteProcessors:
+SettingsKeys:
+ProfileSettings:

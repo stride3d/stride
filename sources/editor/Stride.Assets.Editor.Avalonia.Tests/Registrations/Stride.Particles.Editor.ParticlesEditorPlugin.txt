@@ -1,0 +1,16 @@
+Plugin: Stride.Particles.Editor.ParticlesEditorPlugin
+AssetViewModelTypes:
+AssetEditorViewModelTypes:
+AssetEditorViewTypes:
+AssetPreviewViewModelTypes:
+AssetPreviewViewTypes:
+PrimitiveTypes:
+  (the reference types of every registered assembly)
+EnumImages:
+TypeImages:
+TemplateProviders:
+CopyProcessors:
+PasteProcessors:
+PostPasteProcessors:
+SettingsKeys:
+ProfileSettings:
