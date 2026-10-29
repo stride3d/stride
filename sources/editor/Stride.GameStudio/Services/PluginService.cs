@@ -4,6 +4,8 @@
 #nullable enable
 
 using System;
+using System.IO;
+using System.Windows.Media.Imaging;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Presentation.Views;
@@ -38,7 +40,17 @@ public class PluginService : StrideEditorPluginHost
     }
 
     /// <inheritdoc />
-    protected override object DecodeImage(byte[] data) => DeclaredImages.Decode(data);
+    protected override object DecodeImage(byte[] data)
+    {
+        // Frozen: decoded on the loader thread, shown on the UI thread
+        var image = new BitmapImage();
+        image.BeginInit();
+        image.StreamSource = new MemoryStream(data);
+        image.CacheOption = BitmapCacheOption.OnLoad;
+        image.EndInit();
+        image.Freeze();
+        return image;
+    }
 
     /// <inheritdoc />
     protected override bool IsEditorInitialized(ISessionViewModel session) => ((SessionViewModel)session).IsEditorInitialized;

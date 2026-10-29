@@ -23,6 +23,15 @@ public sealed class TypeToResource : OneWayValueConverter<TypeToResource>
     public static object? FetchResourceFromType(Type? type, bool tryBase)
     {
         var pluginService = type is null ? null : SessionViewModel.CurrentInstance?.ServiceProvider.TryGet<IAssetsPluginService>();
+        return FetchResourceFromType(type, tryBase, pluginService);
+    }
+
+    /// <summary>
+    /// The image of <paramref name="type"/>, as <see cref="FetchResourceFromType(Type?, bool)"/>, with the plugin images of
+    /// <paramref name="pluginService"/>.
+    /// </summary>
+    public static object? FetchResourceFromType(Type? type, bool tryBase, IAssetsPluginService? pluginService)
+    {
         object? result = null;
         while (type is not null)
         {
