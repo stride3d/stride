@@ -25,6 +25,14 @@ AssetPreviewViewTypes:
   Stride.Assets.Presentation.Preview.PreviewFromSpriteBatch`1 -> Stride.Assets.Editor.Avalonia.Views.Preview.SpritePreviewView
 PrimitiveTypes:
 EnumImages:
+  Stride.Assets.Editor.Preview.MaterialPreviewPrimitive.Capsule -> Avalonia.Media.DrawingImage
+  Stride.Assets.Editor.Preview.MaterialPreviewPrimitive.Cone -> Avalonia.Media.DrawingImage
+  Stride.Assets.Editor.Preview.MaterialPreviewPrimitive.Cube -> Avalonia.Media.DrawingImage
+  Stride.Assets.Editor.Preview.MaterialPreviewPrimitive.Cylinder -> Avalonia.Media.DrawingImage
+  Stride.Assets.Editor.Preview.MaterialPreviewPrimitive.Plane -> Avalonia.Media.DrawingImage
+  Stride.Assets.Editor.Preview.MaterialPreviewPrimitive.Sphere -> Avalonia.Media.DrawingImage
+  Stride.Assets.Editor.Preview.MaterialPreviewPrimitive.Teapot -> Avalonia.Media.DrawingImage
+  Stride.Assets.Editor.Preview.MaterialPreviewPrimitive.Torus -> Avalonia.Media.DrawingImage
 TypeImages:
   Stride.Engine.AnimationComponent -> Avalonia.Media.DrawingImage
   Stride.Engine.BackgroundComponent -> Avalonia.Media.DrawingImage
