@@ -138,8 +138,8 @@ public partial class MainWindow : Window
             // Internal settings
             SaveInternalSettings();
 
-            // Exit the preview game before the process does (it renders on its own thread)
-            (DataContext as MainViewModel)?.Preview?.Dispose();
+            // Exit the preview game before the process does (it renders on its own thread), and let the plugins leave
+            (DataContext as MainViewModel)?.CloseSessionServices();
 
             closingTask?.SetResult(true);
             // Shutdown after all other operations have completed

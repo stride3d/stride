@@ -24,6 +24,9 @@ internal sealed class ShellSessionFixture : IDisposable
 
     private bool disposed;
     private SessionViewModel? openedSession;
+    // The plugins unregister the session's services when they leave it (the editor exits or restarts): kept to dispose them
+    private GameStudioBuilderService? builder;
+    private GameSettingsProviderService? settingsProvider;
 
     private ShellSessionFixture(string directory, ViewModelServiceProvider serviceProvider)
     {
@@ -84,6 +87,8 @@ internal sealed class ShellSessionFixture : IDisposable
         }
         // The main view model forgets it when the editor restarts; it is still destroyed with the fixture
         fixture.openedSession = fixture.Main.Session;
+        fixture.builder = fixture.openedSession.ServiceProvider.TryGet<GameStudioBuilderService>();
+        fixture.settingsProvider = fixture.openedSession.ServiceProvider.TryGet<GameSettingsProviderService>();
         return fixture;
     }
 
@@ -108,7 +113,7 @@ internal sealed class ShellSessionFixture : IDisposable
         Main.Preview?.Dispose();
         if ((Main.Session ?? openedSession) is { } session)
         {
-            var builder = session.ServiceProvider.TryGet<GameStudioBuilderService>();
+            var builder = this.builder ?? session.ServiceProvider.TryGet<GameStudioBuilderService>();
             if (builder != null)
             {
                 builder.Database.Dispose();
@@ -116,7 +121,7 @@ internal sealed class ShellSessionFixture : IDisposable
                 // The object database is process-wide (the editor opens one session per process); the next fixture opens its own
                 Stride.Core.BuildEngine.Builder.CloseObjectDatabase();
             }
-            session.ServiceProvider.TryGet<GameSettingsProviderService>()?.Dispose();
+            (settingsProvider ?? session.ServiceProvider.TryGet<GameSettingsProviderService>())?.Dispose();
             session.Destroy();
         }
         Plugins.Dispose();

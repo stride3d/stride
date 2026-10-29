@@ -9,6 +9,7 @@ using Stride.Core.Assets.Editor.Avalonia.Converters;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Reflection;
 using Stride.Core.Settings;
+using Stride.Editor.Build;
 using Stride.GameStudio.Avalonia.Tests.Helpers;
 using Stride.Particles.Components;
 using Stride.Particles.Editor;
@@ -64,12 +65,42 @@ public sealed class PluginContextTests
         Assert.DoesNotContain(fixture.Plugins.SessionPlugins, x => x is ParticlesEditorPlugin);
         Assert.False(fixture.Plugins.HasImagesForEnum(fixture.Session, typeof(StateControl)));
     }
+
+    [AvaloniaFact]
+    public async Task ThePluginsLeaveTheSessionWhenTheEditorExits()
+    {
+        using var fixture = await ShellSessionFixture.OpenAsync(("Sheet", new SpriteSheetAsset()));
+        var session = fixture.Session;
+        var closed = ShellTestPlugin.ClosedSessions;
+        Assert.NotNull(session.ServiceProvider.TryGet<GameStudioBuilderService>());
+
+        // What the main window does when the editor exits, and the main view model before it restarts
+        fixture.Main.CloseSessionServices();
+
+        // The close actions ran and what the plugins registered through their context went with them
+        Assert.Equal(closed + 1, ShellTestPlugin.ClosedSessions);
+        Assert.Empty(fixture.Plugins.SessionPlugins);
+        Assert.Null(session.ServiceProvider.TryGet<GameStudioBuilderService>());
+    }
 }
 
 /// <summary>
 /// A plugin of the test assembly (an asset assembly), so that its declarations join the editor.
 /// </summary>
-public sealed class ShellTestPlugin : AssetsPlugin;
+public sealed class ShellTestPlugin : AssetsPlugin
+{
+    /// <summary>
+    /// The number of sessions whose close actions ran.
+    /// </summary>
+    public static int ClosedSessions { get; private set; }
+
+    public override void InitializeSession(ISessionPluginContext context)
+    {
+        base.InitializeSession(context);
+
+        context.OnClose(() => ++ClosedSessions);
+    }
+}
 
 [EditorSettings]
 public static class ShellTestSettings
