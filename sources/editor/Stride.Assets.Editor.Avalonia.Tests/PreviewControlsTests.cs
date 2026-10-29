@@ -187,6 +187,49 @@ public sealed class PreviewControlsTests
         Assert.Equal(0, ruler.MajorStep);
     }
 
+    [AvaloniaFact]
+    public void TheTextureViewBindsTheZoomTheMipLevelAndTheSize()
+    {
+        var viewModel = new TexturePreviewViewModel(PreviewSession.Create());
+        viewModel.PreviewAvailableMipMaps.AddRange(["Level 0", "Level 1", "Level 2"]);
+        var view = Show<TexturePreviewView>(viewModel);
+
+        AssertZoomCommands(view, viewModel);
+        var mipMaps = Part<ComboBox>(view, "PART_MipMaps");
+        Assert.Equal(3, mipMaps.ItemCount);
+        Assert.Equal("Level 0", mipMaps.SelectedItem);
+        mipMaps.SelectedItem = "Level 2";
+        Assert.Equal("Level 2", viewModel.PreviewSelectedMipMap);
+        Assert.True(Part<Grid>(view, "PART_StatusBar").IsVisible);
+        Assert.Equal("W: 0", Part<TextBlock>(view, "PART_Width").Inlines!.Text);
+
+        // A 2D texture has neither a face nor a slice to choose
+        Assert.False(Part<ComboBox>(view, "PART_CubeMode").IsVisible);
+        Assert.Equal(Enum.GetValues<TextureCubePreviewMode>().Length, Part<ComboBox>(view, "PART_CubeMode").ItemCount);
+        Assert.Equal(TextureCubePreviewMode.Full, Part<ComboBox>(view, "PART_CubeMode").SelectedItem);
+        Assert.False(Part<DockPanel>(view, "PART_Depth").IsVisible);
+    }
+
+    [AvaloniaFact]
+    public void TheSpriteViewBindsTheZoomAndTheSize()
+    {
+        var viewModel = new SpritePreviewViewModel(PreviewSession.Create());
+        var view = Show<SpritePreviewView>(viewModel);
+
+        AssertZoomCommands(view, viewModel);
+        Assert.True(Part<Grid>(view, "PART_StatusBar").IsVisible);
+        Assert.Equal("H: 0", Part<TextBlock>(view, "PART_Height").Inlines!.Text);
+    }
+
+    private static void AssertZoomCommands<TPreview>(StridePreviewView view, TextureBasePreviewViewModel<TPreview> viewModel)
+        where TPreview : Stride.Editor.Preview.IAssetPreview
+    {
+        Assert.Same(viewModel.PreviewZoomOutCommand, Part<Button>(view, "PART_ZoomOut").Command);
+        Assert.Same(viewModel.PreviewZoomInCommand, Part<Button>(view, "PART_ZoomIn").Command);
+        Assert.Same(viewModel.PreviewScaleToRealSizeCommand, Part<Button>(view, "PART_RealSize").Command);
+        Assert.Same(viewModel.PreviewFitOnScreenCommand, Part<Button>(view, "PART_FitOnScreen").Command);
+    }
+
     /// <summary>
     /// Shows a preview view with the given view model, after the view plugin merged its themes, as the editor does.
     /// </summary>
