@@ -5,6 +5,7 @@ using System.Collections.Specialized;
 using Stride.Assets.Editor.EditorGame;
 using Stride.Assets.Editor.EditorGame.Tools;
 using Stride.Assets.Entities;
+using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories;
 using Stride.Assets.Presentation.AssetEditors.GameEditor;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Assets.Presentation.ViewModel.CopyPasteProcessors;
@@ -44,10 +45,38 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
         FocusOnSelectionCommand = new AnonymousTaskCommand(ServiceProvider, FocusOnSelectionAsync) { IsEnabled = false };
         // Whichever side the selection changes from (the tree or the game)
         SelectedItems.CollectionChanged += SelectedItemsChanged;
+        CreateEntityInRootCommand = new AnonymousTaskCommand<IEntityFactory?>(ServiceProvider, x => CreateEntity(x, HierarchyRoot));
+        CreateEntityInSelectionCommand = new AnonymousTaskCommand<IEntityFactory?>(ServiceProvider, x => CreateEntity(x, SelectedContent.FirstOrDefault() as EntityHierarchyItemViewModel ?? HierarchyRoot));
+        CreateFolderInRootCommand = new AnonymousCommand(ServiceProvider, () => CreateFolder(HierarchyRoot, true));
+        CreateFolderInSelectionCommand = new AnonymousCommand(ServiceProvider, () => CreateFolder(SelectedContent.FirstOrDefault() as EntityHierarchyItemViewModel ?? HierarchyRoot, true));
         UpdateCommands();
     }
 
     public EntityHierarchyRootViewModel HierarchyRoot => (EntityHierarchyRootViewModel)RootPart;
+
+    /// <summary>
+    /// Gets the command that creates an entity at the root of the hierarchy, with the factory given as parameter, or an
+    /// empty entity when the parameter is <c>null</c>.
+    /// </summary>
+    public ICommandBase CreateEntityInRootCommand { get; }
+
+    /// <summary>
+    /// Gets the command that creates an entity in the first selected item (an entity or a folder), or at the root of the
+    /// hierarchy when nothing is selected, with the factory given as parameter, or an empty entity when the parameter is
+    /// <c>null</c>.
+    /// </summary>
+    public ICommandBase CreateEntityInSelectionCommand { get; }
+
+    /// <summary>
+    /// Gets the command that creates a folder at the root of the hierarchy.
+    /// </summary>
+    public ICommandBase CreateFolderInRootCommand { get; }
+
+    /// <summary>
+    /// Gets the command that creates a folder in the first selected item, or at the root of the hierarchy when nothing is
+    /// selected.
+    /// </summary>
+    public ICommandBase CreateFolderInSelectionCommand { get; }
 
     /// <summary>
     /// Gets the control that shows the game of the editor, or <c>null</c> while the game has not started, or when the
@@ -323,6 +352,83 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
     private static IEnumerable<EntityViewModel> SelfAndDescendants(EntityViewModel entity)
     {
         return new EntityHierarchyItemViewModel[] { entity }.BreadthFirst(x => x.Children).OfType<EntityViewModel>();
+    }
+
+    /// <summary>
+    /// Creates an entity with the given factory, or an empty entity, as the last entity of the given item, selects it and
+    /// begins its renaming, as one undoable operation.
+    /// </summary>
+    /// <param name="factory">The factory of the entity, or <c>null</c> for an empty entity.</param>
+    /// <param name="parent">The root of the hierarchy, an entity or a folder.</param>
+    /// <returns>The view model of the new entity, or <c>null</c> when the factory created nothing (the user cancelled).</returns>
+    public async Task<EntityViewModel?> CreateEntity(IEntityFactory? factory, EntityHierarchyItemViewModel parent)
+    {
+        ArgumentNullException.ThrowIfNull(parent);
+
+        var entity = factory != null ? await factory.CreateEntity(new EntityHierarchyItemAdapter(parent)) : new Entity { Name = "Entity" };
+        if (entity is null)
+            return null;
+
+        // The item ids of the collections of the new entity exist before it goes into the asset
+        AssetCollectionItemIdHelper.GenerateMissingItemIds(entity);
+
+        if (entity.Transform.Children.Count > 0)
+            throw new InvalidOperationException("Entity factories should create single entity. Creating a hierarchy is not supported.");
+
+        var asset = (EntityHierarchyViewModel)parent.Asset;
+        var collection = new AssetPartCollection<EntityDesign, Entity> { new EntityDesign(entity, (parent as EntityFolderViewModel)?.Path ?? "") };
+        var undoRedo = Session.UndoRedoService;
+        using (var transaction = undoRedo.CreateTransaction())
+        {
+            asset.AssetHierarchyPropertyGraph.AddPartToAsset(collection, collection.Single().Value, (parent.Owner as EntityViewModel)?.AssetSideEntity, parent.Owner.EntityCount);
+            undoRedo.SetName(transaction, $"Create entity '{entity.Name}'");
+        }
+
+        // The new entity is selected, and its name edited
+        var newEntity = (EntityViewModel)FindPartViewModel(new AbsoluteId(asset.Id, entity.Id))!;
+        ClearSelection();
+        SelectedContent.Add(newEntity);
+        newEntity.IsEditing = true;
+        return newEntity;
+    }
+
+    /// <summary>
+    /// Creates a folder in the given item, with a name no other folder of the item has, and selects it, as one undoable
+    /// operation.
+    /// </summary>
+    /// <param name="parent">The root of the hierarchy, an entity or a folder.</param>
+    /// <param name="editName">Whether to begin the renaming of the folder.</param>
+    /// <returns>The new folder.</returns>
+    public EntityFolderViewModel CreateFolder(EntityHierarchyItemViewModel parent, bool editName)
+    {
+        ArgumentNullException.ThrowIfNull(parent);
+
+        var asset = (EntityHierarchyViewModel)parent.Asset;
+        var undoRedo = Session.UndoRedoService;
+        EntityFolderViewModel folder;
+        var transaction = undoRedo.UndoRedoInProgress ? null : undoRedo.CreateTransaction();
+        try
+        {
+            folder = new EntityFolderViewModel(asset, NamingHelper.ComputeNewName("Folder", parent.Folders, x => x.Name), []);
+            parent.Folders.Add(folder);
+            parent.IsExpanded = true;
+
+            if (transaction != null)
+            {
+                undoRedo.PushOperation(new EntityFolderOperation(asset, EntityFolderOperation.Action.FolderCreated, folder.Path, parent.Owner.Id));
+                undoRedo.SetName(transaction, $"Create folder '{folder.Name}'");
+            }
+        }
+        finally
+        {
+            transaction?.Dispose();
+        }
+
+        // The new folder is selected
+        ClearSelection();
+        SelectedContent.Add(folder);
+        folder.IsEditing = editName;
+        return folder;
     }
 
     /// <summary>

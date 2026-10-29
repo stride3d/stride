@@ -7,6 +7,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using Stride.Assets.Editor.ViewModels;
+using Stride.Core.Presentation.Commands;
 using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.Editors;
 
@@ -60,7 +61,38 @@ public partial class EntityHierarchyEditorView : UserControl, IAssetEditorView
         var onItem = (e.Source as Visual)?.FindAncestorOfType<TreeViewItem>(true) is not null;
         var menu = (ContextMenu)Resources[onItem ? "ItemContextMenu" : "RootContextMenu"]!;
         menu.DataContext = DataContext;
+        if (DataContext is EntityHierarchyEditorViewModel editor)
+            AddFactoryItems(menu.Items, onItem ? editor.CreateEntityInSelectionCommand : editor.CreateEntityInRootCommand);
         HierarchyTree.ContextMenu = menu;
+    }
+
+    private void OnCreateFlyoutOpening(object? sender, EventArgs e)
+    {
+        if (sender is MenuFlyout flyout && DataContext is EntityHierarchyEditorViewModel editor)
+            AddFactoryItems(flyout.Items, editor.CreateEntityInRootCommand);
+    }
+
+    /// <summary>
+    /// Puts the entity factories of the plugins, by category, after the item tagged "Factories" of a menu, as the
+    /// "Create" menus of the WPF scene editor. The menu is built when it opens: the plugins can register factories at
+    /// any time.
+    /// </summary>
+    private static void AddFactoryItems(ItemCollection items, ICommandBase createCommand)
+    {
+        var marker = items.OfType<Control>().First(x => Equals(x.Tag, "Factories"));
+        var index = items.IndexOf(marker) + 1;
+        while (index < items.Count && items[index] is Control { Tag: "Factory" })
+            items.RemoveAt(index);
+
+        foreach (var category in StrideEditorPlugin.EntityFactoryCategories.ToList())
+        {
+            var categoryItem = new MenuItem { Header = category.Name, Tag = "Factory" };
+            foreach (var factory in category.Factories)
+            {
+                categoryItem.Items.Add(new MenuItem { Header = factory.Name, Command = createCommand, CommandParameter = factory.Factory });
+            }
+            items.Insert(index++, categoryItem);
+        }
     }
 
     /// <inheritdoc />
