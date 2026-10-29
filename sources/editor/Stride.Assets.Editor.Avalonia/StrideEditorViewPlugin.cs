@@ -12,8 +12,8 @@ using Stride.Editor.Build;
 namespace Stride.Assets.Editor.Avalonia;
 
 /// <summary>
-/// The Avalonia views of the Stride editor layer: the property templates of this assembly, and the preview service of the
-/// session. The editor registers the preview and editor views that this assembly declares.
+/// The Avalonia views of the Stride editor layer: the property templates and the component images of this assembly, and
+/// the preview service of the session. The editor registers the preview and editor views that this assembly declares.
 /// </summary>
 public sealed class StrideEditorViewPlugin : StrideAssetsAvaloniaPlugin
 {
@@ -23,6 +23,15 @@ public sealed class StrideEditorViewPlugin : StrideAssetsAvaloniaPlugin
         base.Initialize(context);
 
         RegisterResourceDictionary(context, new EntityPropertyTemplateProviders());
+
+        // The component images give the icons of the entities in the scene hierarchy, as the type images of the WPF
+        // StrideDefaultAssetsPlugin
+        var componentImages = new ComponentImages();
+        foreach (var key in componentImages.Keys)
+        {
+            if (key is Type type && componentImages.TryGetValue(key, out var image) && image is not null)
+                context.TypeImages.Register(type, image);
+        }
     }
 
     /// <inheritdoc />
