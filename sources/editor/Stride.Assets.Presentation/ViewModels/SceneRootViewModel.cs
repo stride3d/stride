@@ -21,5 +21,7 @@ public sealed class SceneRootViewModel : EntityHierarchyRootViewModel
     /// <inheritdoc/>
     public override AbsoluteId Id => new(Asset.Id, sceneId);
 
-    public override string? Name { get => "SceneRoot"; set => throw new NotSupportedException($"Cannot change the name of a {nameof(SceneRootViewModel)} object."); }
+    /// <inheritdoc/>
+    /// <remarks>The name of the scene, as in the WPF scene editor.</remarks>
+    public override string? Name { get => Asset.Name; set => throw new NotSupportedException($"Cannot change the name of a {nameof(SceneRootViewModel)} object."); }
 }

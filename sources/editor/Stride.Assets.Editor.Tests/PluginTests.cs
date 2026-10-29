@@ -116,9 +116,10 @@ public sealed class PluginTests
         // The shared editor assembly declares the gizmos of the engine components
         Assert.Equal(typeof(Stride.Assets.Presentation.AssetEditors.Gizmos.CameraGizmo), StrideEditorPlugin.GizmoTypeDictionary[typeof(Stride.Engine.CameraComponent)]);
         Assert.Equal(typeof(Stride.Assets.Presentation.AssetEditors.Gizmos.DispatcherLightGizmo), StrideEditorPlugin.GizmoTypeDictionary[typeof(Stride.Engine.LightComponent)]);
-        // The engine's entity factories and add-asset policies still live in the WPF assembly: only the plugin packages
-        // bring some, and none is loaded here
-        Assert.Empty(StrideEditorPlugin.EntityFactoryCategories);
+        // The editor assembly has copies of the engine's entity factories of the WPF assembly, in the same categories
+        Assert.Equal(["2D", "Camera", "Light", "Model"], StrideEditorPlugin.EntityFactoryCategories.Select(x => x.Name));
+        Assert.Contains(StrideEditorPlugin.EntityFactoryCategories.Single(x => x.Name == "Light").Factories, x => x.Factory is EntityFactories.PointLightEntityFactory);
+        // The add-asset policies still live in the WPF assembly: only the plugin packages bring some, and none is loaded here
         Assert.Empty(StrideEditorPlugin.AddAssetPolicyTypeList);
         Assert.Equal(2, registrations.ProfileSettings.Count);
     }

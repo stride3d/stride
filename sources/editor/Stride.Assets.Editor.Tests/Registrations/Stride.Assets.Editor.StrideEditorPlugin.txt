@@ -37,6 +37,7 @@ EditorViewToolTypes:
   Stride.Assets.Editor.EditorGame.Tools.SelectTool
   Stride.Assets.Editor.EditorGame.Tools.TranslateTool
 SettingsKeys:
+  SceneEditor/AskBeforeDeletingEntities
 ProfileSettings:
   Package/Game/Effect/EffectCompilation (Executable)
   Package/Game/Effect/RecordUsedEffects (Executable)

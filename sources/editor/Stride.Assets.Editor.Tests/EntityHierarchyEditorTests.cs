@@ -73,7 +73,7 @@ public sealed class EntityHierarchyEditorTests
         Assert.Empty(editor.SelectedContent);
         Assert.Empty(editor.SelectedItems);
         // The children leave first, then their parent
-        Assert.Equal([("Parent", "Child"), ("SceneRoot", "Parent")], removed.Select(x => (x.Parent.Name, x.Entity.Name)));
+        Assert.Equal([("Parent", "Child"), ("MainScene", "Parent")], removed.Select(x => (x.Parent.Name, x.Entity.Name)));
         editor.Destroy();
     }
 
@@ -205,12 +205,12 @@ public sealed class EntityHierarchyEditorTests
         undoRedo.SetName(transaction, "Delete entity");
     }
 
-    private static AssetCompositeHierarchyPropertyGraph<EntityDesign, Entity> PropertyGraph(EntityHierarchyEditorViewModel editor)
+    internal static AssetCompositeHierarchyPropertyGraph<EntityDesign, Entity> PropertyGraph(EntityHierarchyEditorViewModel editor)
     {
         return (AssetCompositeHierarchyPropertyGraph<EntityDesign, Entity>)editor.Asset.PropertyGraph;
     }
 
-    private static List<EntityHierarchyChangedEventArgs> Record(EntityHierarchyRootViewModel root, out List<EntityHierarchyChangedEventArgs> removed)
+    internal static List<EntityHierarchyChangedEventArgs> Record(EntityHierarchyRootViewModel root, out List<EntityHierarchyChangedEventArgs> removed)
     {
         var added = new List<EntityHierarchyChangedEventArgs>();
         var removedEvents = new List<EntityHierarchyChangedEventArgs>();
@@ -232,7 +232,7 @@ internal static class EntityViewModelTestExtensions
         while (queue.TryDequeue(out var entity))
         {
             yield return entity;
-            foreach (var child in entity.Children.OfType<EntityViewModel>())
+            foreach (var child in entity.TransformChildren)
             {
                 queue.Enqueue(child);
             }

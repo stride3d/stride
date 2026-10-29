@@ -26,6 +26,16 @@ AssetPreviewViewTypes:
 PrimitiveTypes:
 EnumImages:
 TypeImages:
+  Stride.Engine.AnimationComponent -> Avalonia.Media.DrawingImage
+  Stride.Engine.BackgroundComponent -> Avalonia.Media.DrawingImage
+  Stride.Engine.CameraComponent -> Avalonia.Media.DrawingImage
+  Stride.Engine.EntityComponent -> Avalonia.Media.DrawingImage
+  Stride.Engine.LightComponent -> Avalonia.Media.DrawingImage
+  Stride.Engine.ModelComponent -> Avalonia.Media.DrawingImage
+  Stride.Engine.ModelNodeLinkComponent -> Avalonia.Media.DrawingImage
+  Stride.Engine.ScriptComponent -> Avalonia.Media.DrawingImage
+  Stride.Engine.SpriteComponent -> Avalonia.Media.DrawingImage
+  Stride.Engine.TransformComponent -> Avalonia.Media.DrawingImage
 TemplateProviders:
   Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider EntityComponent
   Stride.Assets.Editor.Avalonia.Views.EntityComponentReferenceTemplateProvider EntityComponentReference

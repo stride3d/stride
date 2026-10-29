@@ -93,4 +93,63 @@ public sealed class AvaloniaInputBridgeTests
 
         Assert.Equal(new Vector2(0.9f, 0.5f), input.MousePosition);
     }
+
+    [AvaloniaFact]
+    public void ACtrlHeldBeforeTheViewHadTheFocusComesWithThePointer()
+    {
+        var view = new OffscreenGameView { Width = 100, Height = 100 };
+        var other = new Button { Content = "Other" };
+        var window = new Window { Content = new StackPanel { Children = { other, view } }, SizeToContent = SizeToContent.WidthAndHeight };
+        window.Show();
+        other.Focus();
+        Dispatcher.UIThread.RunJobs();
+        var bridge = new AvaloniaInputBridge(view);
+        using var input = new InputManager();
+        input.Initialize(new GameContextHeadless());
+        var gameTime = new GameTime();
+        var inView = view.TranslatePoint(new Point(50, 50), window)!.Value;
+
+        // Ctrl goes down while the button has the focus, then the press in the view (Ctrl+drag from the hierarchy)
+        window.KeyPress(Key.LeftCtrl, RawInputModifiers.Control, PhysicalKey.ControlLeft, null);
+        window.MouseDown(inView, MouseButton.Left, RawInputModifiers.Control);
+        bridge.Apply(input);
+        input.Update(gameTime);
+
+        Assert.True(input.IsKeyDown(Keys.LeftCtrl));
+
+        // Released in the view, which has the focus now
+        window.KeyRelease(Key.LeftCtrl, RawInputModifiers.None, PhysicalKey.ControlLeft, null);
+        window.MouseMove(inView, RawInputModifiers.LeftMouseButton);
+        bridge.Apply(input);
+        input.Update(gameTime);
+
+        Assert.False(input.IsKeyDown(Keys.LeftCtrl));
+    }
+
+    [AvaloniaFact]
+    public void TheKeysHeldWhenTheViewLosesTheFocusAreReleased()
+    {
+        var view = new OffscreenGameView { Width = 100, Height = 100 };
+        var other = new Button { Content = "Other" };
+        var window = new Window { Content = new StackPanel { Children = { other, view } }, SizeToContent = SizeToContent.WidthAndHeight };
+        window.Show();
+        view.Focus();
+        Dispatcher.UIThread.RunJobs();
+        var bridge = new AvaloniaInputBridge(view);
+        using var input = new InputManager();
+        input.Initialize(new GameContextHeadless());
+        var gameTime = new GameTime();
+
+        window.KeyPress(Key.W, RawInputModifiers.None, PhysicalKey.W, "w");
+        bridge.Apply(input);
+        input.Update(gameTime);
+        Assert.True(input.IsKeyDown(Keys.W));
+
+        other.Focus();
+        Dispatcher.UIThread.RunJobs();
+        bridge.Apply(input);
+        input.Update(gameTime);
+
+        Assert.False(input.IsKeyDown(Keys.W));
+    }
 }

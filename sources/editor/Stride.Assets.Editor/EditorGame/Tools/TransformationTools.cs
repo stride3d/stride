@@ -167,7 +167,8 @@ internal abstract class TransformationTool(Transformation transformation) : IEdi
         Gizmo.Space = Transformation == Transformation.Scale ? TransformationSpace.ObjectSpace : settings.Space;
         Gizmo.SizeFactor = SmoothGizmoSize(settings.GizmoSize);
         Gizmo.SnapValue = settings.GetSnap(Transformation);
-        Gizmo.UseSnap = settings.IsSnapKeyDown;
+        // The snap key snaps while it is down, as the dynamic snapping of the WPF scene editor
+        Gizmo.UseSnap = settings.IsSnapActive(Transformation) || settings.IsSnapKeyDown;
         return Gizmo.Update();
     }
 

@@ -5,15 +5,21 @@ using System.Collections.Specialized;
 using Stride.Assets.Editor.EditorGame;
 using Stride.Assets.Editor.EditorGame.Tools;
 using Stride.Assets.Entities;
+using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories;
 using Stride.Assets.Presentation.AssetEditors.GameEditor;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
+using Stride.Assets.Presentation.ViewModel.CopyPasteProcessors;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Core;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.Internal;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Core.Presentation.Commands;
+using Stride.Core.Presentation.Services;
+using Stride.Core.Translation;
 using Stride.Editor.Engine;
 using Stride.Engine;
 
@@ -27,19 +33,89 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
     private object? gameView;
     private EditorViewToolbarViewModel? toolbar;
     private bool isGameLoaded;
+    private string filterPattern = string.Empty;
 
     protected EntityHierarchyEditorViewModel(EntityHierarchyViewModel asset)
         : base(asset)
     {
         HierarchyRoot.EntityAdded += EntityAdded;
         HierarchyRoot.EntityRemoved += EntityRemoved;
+        HierarchyRoot.LockChanged += LockChanged;
+        // The root is expanded when the editor opens, as in the WPF scene editor
+        HierarchyRoot.IsExpanded = true;
         FocusOnEntityCommand = new AnonymousTaskCommand<EntityViewModel>(ServiceProvider, FocusOnEntityAsync) { IsEnabled = false };
         FocusOnSelectionCommand = new AnonymousTaskCommand(ServiceProvider, FocusOnSelectionAsync) { IsEnabled = false };
         // Whichever side the selection changes from (the tree or the game)
         SelectedItems.CollectionChanged += SelectedItemsChanged;
+        CreateEntityInRootCommand = new AnonymousTaskCommand<IEntityFactory?>(ServiceProvider, x => CreateEntity(x, HierarchyRoot));
+        CreateEntityInSelectionCommand = new AnonymousTaskCommand<IEntityFactory?>(ServiceProvider, x => CreateEntity(x, SelectedContent.FirstOrDefault() as EntityHierarchyItemViewModel ?? HierarchyRoot));
+        CreateFolderInRootCommand = new AnonymousCommand(ServiceProvider, () => CreateFolder(HierarchyRoot, true));
+        CreateFolderInSelectionCommand = new AnonymousCommand(ServiceProvider, () => CreateFolder(SelectedContent.FirstOrDefault() as EntityHierarchyItemViewModel ?? HierarchyRoot, true));
+        RenameCommand = new AnonymousCommand(ServiceProvider, Rename);
+        CreatePrefabFromSelectionCommand = new AnonymousCommand(ServiceProvider, CreatePrefabFromSelection);
+        OpenPrefabEditorCommand = new AnonymousCommand(ServiceProvider, OpenPrefabEditor);
+        SelectPrefabCommand = new AnonymousCommand(ServiceProvider, SelectPrefab);
+        BreakLinkToPrefabCommand = new AnonymousCommand(ServiceProvider, () => BreakLinkToBase("prefab"));
+        UpdateCommands();
     }
 
     public EntityHierarchyRootViewModel HierarchyRoot => (EntityHierarchyRootViewModel)RootPart;
+
+    /// <summary>
+    /// Gets the command that creates an entity at the root of the hierarchy, with the factory given as parameter, or an
+    /// empty entity when the parameter is <c>null</c>.
+    /// </summary>
+    public ICommandBase CreateEntityInRootCommand { get; }
+
+    /// <summary>
+    /// Gets the command that creates an entity in the first selected item (an entity or a folder), or at the root of the
+    /// hierarchy when nothing is selected, with the factory given as parameter, or an empty entity when the parameter is
+    /// <c>null</c>.
+    /// </summary>
+    public ICommandBase CreateEntityInSelectionCommand { get; }
+
+    /// <summary>
+    /// Gets the command that creates a prefab from the selected entities, with their children, next to the edited asset;
+    /// the selected entities become instances of the prefab.
+    /// </summary>
+    public ICommandBase CreatePrefabFromSelectionCommand { get; }
+
+    /// <summary>
+    /// Gets the command that opens the editor of the prefabs of the selected entities.
+    /// </summary>
+    public ICommandBase OpenPrefabEditorCommand { get; }
+
+    /// <summary>
+    /// Gets the command that selects in the asset view the prefab of the selected entity.
+    /// </summary>
+    public ICommandBase SelectPrefabCommand { get; }
+
+    /// <summary>
+    /// Gets the command that makes the selected entities plain entities, instead of instances of their prefab.
+    /// </summary>
+    public ICommandBase BreakLinkToPrefabCommand { get; }
+
+    /// <summary>
+    /// Gets the command that begins the renaming in place (F2) of the last selected entity or folder.
+    /// </summary>
+    public ICommandBase RenameCommand { get; }
+
+    /// <summary>
+    /// Gets or sets the words the names of the shown items contain, separated by spaces, case ignored. An item that
+    /// doesn't match shows when one of its children matches. Empty, every item shows.
+    /// </summary>
+    public string FilterPattern { get => filterPattern; set => SetValue(ref filterPattern, value ?? string.Empty, UpdateVisibilities); }
+
+    /// <summary>
+    /// Gets the command that creates a folder at the root of the hierarchy.
+    /// </summary>
+    public ICommandBase CreateFolderInRootCommand { get; }
+
+    /// <summary>
+    /// Gets the command that creates a folder in the first selected item, or at the root of the hierarchy when nothing is
+    /// selected.
+    /// </summary>
+    public ICommandBase CreateFolderInSelectionCommand { get; }
 
     /// <summary>
     /// Gets the control that shows the game of the editor, or <c>null</c> while the game has not started, or when the
@@ -134,6 +210,7 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
 
         HierarchyRoot.EntityAdded -= EntityAdded;
         HierarchyRoot.EntityRemoved -= EntityRemoved;
+        HierarchyRoot.LockChanged -= LockChanged;
         SelectedItems.CollectionChanged -= SelectedItemsChanged;
         foreach (var propagator in propagators.Values)
             propagator.Destroy();
@@ -244,8 +321,9 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
             propagators.Add(entity.Id, propagator);
             added.Add(propagator);
             propagator.NotifyGameSidePartAdded();
-            // The clone of the entity is in the game: it can be selected there
-            selection?.AddSelectable(entity.Id);
+            // The clone of the entity is in the game: it can be selected there, unless it is locked
+            if (!entity.IsLocked)
+                selection?.AddSelectable(entity.Id);
         }
         return Task.WhenAll(added.Select(x => x.Initialized));
     }
@@ -275,6 +353,22 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
         {
             // The editor was closed, or the entity removed, while the entity was added
         }
+    }
+
+    /// <summary>
+    /// A locked entity cannot be selected in the game, as in the WPF scene editor: it leaves the selection of the game, and
+    /// the gizmos cannot move it. It can still be selected in the hierarchy.
+    /// </summary>
+    private void LockChanged(object? sender, EntityHierarchyElementEventArgs e)
+    {
+        if (e.Element is not EntityViewModel entity || !propagators.ContainsKey(entity.Id))
+            return;
+
+        var selection = Controller?.GetService<IEditorGameSelectionViewModelService>();
+        if (entity.IsLocked)
+            selection?.RemoveSelectable(entity.Id);
+        else
+            selection?.AddSelectable(entity.Id);
     }
 
     /// <summary>
@@ -315,6 +409,275 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
     private static IEnumerable<EntityViewModel> SelfAndDescendants(EntityViewModel entity)
     {
         return new EntityHierarchyItemViewModel[] { entity }.BreadthFirst(x => x.Children).OfType<EntityViewModel>();
+    }
+
+    /// <summary>
+    /// Creates an entity with the given factory, or an empty entity, as the last entity of the given item, selects it and
+    /// begins its renaming, as one undoable operation.
+    /// </summary>
+    /// <param name="factory">The factory of the entity, or <c>null</c> for an empty entity.</param>
+    /// <param name="parent">The root of the hierarchy, an entity or a folder.</param>
+    /// <returns>The view model of the new entity, or <c>null</c> when the factory created nothing (the user cancelled).</returns>
+    public async Task<EntityViewModel?> CreateEntity(IEntityFactory? factory, EntityHierarchyItemViewModel parent)
+    {
+        ArgumentNullException.ThrowIfNull(parent);
+
+        var entity = factory != null ? await factory.CreateEntity(new EntityHierarchyItemAdapter(parent)) : new Entity { Name = "Entity" };
+        if (entity is null)
+            return null;
+
+        // The item ids of the collections of the new entity exist before it goes into the asset
+        AssetCollectionItemIdHelper.GenerateMissingItemIds(entity);
+
+        if (entity.Transform.Children.Count > 0)
+            throw new InvalidOperationException("Entity factories should create single entity. Creating a hierarchy is not supported.");
+
+        var asset = (EntityHierarchyViewModel)parent.Asset;
+        var collection = new AssetPartCollection<EntityDesign, Entity> { new EntityDesign(entity, (parent as EntityFolderViewModel)?.Path ?? "") };
+        var undoRedo = Session.UndoRedoService;
+        using (var transaction = undoRedo.CreateTransaction())
+        {
+            asset.AssetHierarchyPropertyGraph.AddPartToAsset(collection, collection.Single().Value, (parent.Owner as EntityViewModel)?.AssetSideEntity, parent.Owner.EntityCount);
+            undoRedo.SetName(transaction, $"Create entity '{entity.Name}'");
+        }
+
+        // The new entity is selected, and its name edited
+        var newEntity = (EntityViewModel)FindPartViewModel(new AbsoluteId(asset.Id, entity.Id))!;
+        ClearSelection();
+        SelectedContent.Add(newEntity);
+        newEntity.IsEditing = true;
+        return newEntity;
+    }
+
+    /// <summary>
+    /// Creates a folder in the given item, with a name no other folder of the item has, and selects it, as one undoable
+    /// operation.
+    /// </summary>
+    /// <param name="parent">The root of the hierarchy, an entity or a folder.</param>
+    /// <param name="editName">Whether to begin the renaming of the folder.</param>
+    /// <returns>The new folder.</returns>
+    public EntityFolderViewModel CreateFolder(EntityHierarchyItemViewModel parent, bool editName)
+    {
+        ArgumentNullException.ThrowIfNull(parent);
+
+        var asset = (EntityHierarchyViewModel)parent.Asset;
+        var undoRedo = Session.UndoRedoService;
+        EntityFolderViewModel folder;
+        var transaction = undoRedo.UndoRedoInProgress ? null : undoRedo.CreateTransaction();
+        try
+        {
+            folder = new EntityFolderViewModel(asset, NamingHelper.ComputeNewName("Folder", parent.Folders, x => x.Name), []);
+            parent.Folders.Add(folder);
+            parent.IsExpanded = true;
+
+            if (transaction != null)
+            {
+                undoRedo.PushOperation(new EntityFolderOperation(asset, EntityFolderOperation.Action.FolderCreated, folder.Path, parent.Owner.Id));
+                undoRedo.SetName(transaction, $"Create folder '{folder.Name}'");
+            }
+        }
+        finally
+        {
+            transaction?.Dispose();
+        }
+
+        // The new folder is selected
+        ClearSelection();
+        SelectedContent.Add(folder);
+        folder.IsEditing = editName;
+        return folder;
+    }
+
+    /// <summary>
+    /// Adds a copy of each selected entity, with its children, right after it, and selects the copies, as one undoable
+    /// operation (Ctrl+D, or Ctrl+drag in the view).
+    /// </summary>
+    /// <returns>The copies.</returns>
+    public ISet<EntityViewModel> DuplicateSelectedEntities()
+    {
+        // The selected entities without a selected ancestor
+        var entitiesToDuplicate = GetCommonRoots(SelectedItems.OfType<EntityViewModel>().ToList());
+        if (entitiesToDuplicate.Count == 0)
+            return entitiesToDuplicate;
+
+        SelectedItems.Clear();
+
+        HashSet<EntityViewModel> duplicatedEntities;
+        var undoRedo = Session.UndoRedoService;
+        using (var transaction = undoRedo.CreateTransaction())
+        {
+            duplicatedEntities = [.. entitiesToDuplicate.Select(x => x.Duplicate())];
+            undoRedo.SetName(transaction, "Duplicate entities");
+        }
+
+        // The copies are selected
+        SelectedItems.AddRange(duplicatedEntities);
+        return duplicatedEntities;
+    }
+
+    /// <inheritdoc/>
+    protected override EntityDesign? GetPartDesign(EntityHierarchyItemViewModel item)
+    {
+        return (item as EntityViewModel)?.EntityDesign;
+    }
+
+    /// <inheritdoc/>
+    protected override (Type TargetMemberType, Type[] ExpectedTypes) GetPasteTypes(bool asRoot)
+    {
+        // Entities go into the root or into an entity, and components into an entity
+        return (asRoot ? typeof(AssetCompositeHierarchyData<EntityDesign, Entity>) : typeof(Entity), [typeof(AssetCompositeHierarchyData<EntityDesign, Entity>), typeof(EntityComponent)]);
+    }
+
+    /// <inheritdoc/>
+    protected override bool CanDelete()
+    {
+        return SelectedContent.Count > 0 && !SelectedContent.Contains(HierarchyRoot);
+    }
+
+    /// <inheritdoc/>
+    protected override async Task Delete()
+    {
+        if (!CanDelete())
+            return;
+
+        var entitiesToDelete = GetCommonRoots(SelectedItems.OfType<EntityViewModel>().ToList());
+        if (SceneEditorSettings.AskBeforeDeletingEntities.GetValue())
+        {
+            var confirmMessage = Tr._p("Message", "Are you sure you want to delete this entity?");
+            // TODO: we should compute the actual total number of entities to be deleted here (children recursively, etc.)
+            if (entitiesToDelete.Count > 1)
+                confirmMessage = string.Format(Tr._p("Message", "Are you sure you want to delete these {0} entities?"), entitiesToDelete.Count);
+            var checkedMessage = string.Format(Core.Assets.Editor.Settings.EditorSettings.AlwaysDeleteWithoutAsking, "entities");
+            var buttons = DialogButtons.Create([Tr._p("Button", "Delete"), Tr._p("Button", "Cancel")], 1, 2);
+            var result = await ServiceProvider.Get<IDialogService>().CheckedMessageBoxAsync(confirmMessage, false, checkedMessage, buttons, MessageBoxImage.Question);
+            if (result.Result != 1)
+                return;
+            if (result.IsChecked == true)
+            {
+                SceneEditorSettings.AskBeforeDeletingEntities.SetValue(false);
+                SceneEditorSettings.Save();
+            }
+        }
+
+        var undoRedo = Session.UndoRedoService;
+        using var transaction = undoRedo.CreateTransaction();
+        var foldersToDelete = SelectedContent.OfType<EntityFolderViewModel>().ToList();
+        ClearSelection();
+
+        // The entities first
+        foreach (var entities in entitiesToDelete.GroupBy(x => (EntityHierarchyViewModel)x.Asset))
+        {
+            entities.Key.AssetHierarchyPropertyGraph.DeleteParts(entities.Select(x => x.EntityDesign), out var mapping);
+            undoRedo.PushOperation(new DeletedPartsTrackingOperation<EntityDesign, Entity>(entities.Key, mapping));
+        }
+
+        // Then the folders, empty now; a folder inside another deleted folder goes with it
+        foreach (var folder in GetCommonRoots(foldersToDelete))
+        {
+            folder.Delete();
+        }
+
+        undoRedo.SetName(transaction, "Delete selected entities");
+    }
+
+    /// <inheritdoc/>
+    protected override ISet<EntityHierarchyItemViewModel> DuplicateSelection()
+    {
+        return DuplicateSelectedEntities().Cast<EntityHierarchyItemViewModel>().ToHashSet();
+    }
+
+    /// <inheritdoc/>
+    protected override void PrepareToCopy(AssetCompositeHierarchyData<EntityDesign, Entity> clonedHierarchy, ICollection<EntityHierarchyItemViewModel> commonRoots, ICollection<EntityHierarchyItemViewModel> commonParts)
+    {
+        // No folder by default
+        foreach (var entity in clonedHierarchy.Parts.Values)
+        {
+            entity.Folder = null;
+        }
+
+        // The folders of the copied folders, relative to them
+        foreach (var item in commonRoots.OfType<EntityFolderViewModel>())
+        {
+            var parentFolderPathLength = 1 + ((item.Parent as EntityFolderViewModel)?.Path.Length ?? -1);
+            foreach (var entity in item.InnerSubEntities)
+            {
+                clonedHierarchy.Parts[entity.Id.ObjectId].Folder = entity.EntityDesign.Folder[parentFolderPathLength..];
+            }
+        }
+        base.PrepareToCopy(clonedHierarchy, commonRoots, commonParts);
+    }
+
+    /// <inheritdoc/>
+    protected override void AttachPropertiesForPaste(ref PropertyContainer propertyContainer, EntityHierarchyItemViewModel pasteTarget)
+    {
+        // Into a folder: the pasted entities go to that folder
+        if ((pasteTarget as EntityFolderViewModel)?.Path is { Length: > 0 } folder)
+        {
+            propertyContainer.Add(EntityHierarchyPasteProcessor.TargetFolderKey, folder);
+        }
+        base.AttachPropertiesForPaste(ref propertyContainer, pasteTarget);
+    }
+
+    /// <inheritdoc/>
+    protected override void UpdateCommands()
+    {
+        base.UpdateCommands();
+
+        DuplicateSelectionCommand.IsEnabled = GetCommonRoots(SelectedContent.OfType<EntityHierarchyItemViewModel>().ToList()).Count > 0;
+        RenameCommand.IsEnabled = SelectedContent.LastOrDefault() is EntityHierarchyItemViewModel { IsEditable: true };
+
+        var prefabInstanceSelected = SelectedItems.OfType<EntityViewModel>().Any(x => x.SourcePrefab != null);
+        CreatePrefabFromSelectionCommand.IsEnabled = SelectedItems.Count >= 1;
+        BreakLinkToPrefabCommand.IsEnabled = prefabInstanceSelected;
+        OpenPrefabEditorCommand.IsEnabled = prefabInstanceSelected;
+        SelectPrefabCommand.IsEnabled = prefabInstanceSelected && SelectedItems.Count == 1;
+    }
+
+    private void CreatePrefabFromSelection()
+    {
+        CreateAssetFromSelectedParts(() => new PrefabAsset(), e => e?.Name ?? "Prefab", true, out _);
+    }
+
+    private void OpenPrefabEditor()
+    {
+        foreach (var prefab in SelectedItems.OfType<EntityViewModel>().Select(x => x.SourcePrefab).NotNull().Distinct())
+        {
+            Session.EditorCollection.OpenAssetEditor(prefab);
+        }
+    }
+
+    private void SelectPrefab()
+    {
+        // The entity with the transformation gizmo, as in the WPF scene editor
+        if ((SelectedItems.LastOrDefault() as EntityViewModel)?.SourcePrefab is { } prefab)
+            Session.AssetCollection.SelectAssets(prefab.Yield());
+    }
+
+    private void Rename()
+    {
+        if (SelectedContent.LastOrDefault() is EntityHierarchyItemViewModel { IsEditable: true } item)
+            item.IsEditing = true;
+    }
+
+    private void UpdateVisibilities()
+    {
+        var filterTokens = filterPattern.Split(" \t\n\r".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+        foreach (var item in HierarchyRoot.Children)
+        {
+            UpdateVisibilities(item, filterTokens);
+        }
+    }
+
+    private static void UpdateVisibilities(EntityHierarchyItemViewModel item, string[] filterTokens)
+    {
+        // An item shows when one of its children shows, or when its name contains every word of the filter
+        var isVisible = false;
+        foreach (var child in item.Children)
+        {
+            UpdateVisibilities(child, filterTokens);
+            isVisible |= child.IsVisible;
+        }
+        item.IsVisible = isVisible || filterTokens.All(x => item.Name?.Contains(x, StringComparison.OrdinalIgnoreCase) == true);
     }
 
     protected override async Task RefreshEditorProperties()

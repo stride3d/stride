@@ -8,7 +8,7 @@ namespace Stride.Assets.Presentation.ViewModels;
 /// </summary>
 public sealed class EntityHierarchyChangedEventArgs : EventArgs
 {
-    public EntityHierarchyChangedEventArgs(EntityHierarchyItemViewModel parent, EntityViewModel entity, int index)
+    public EntityHierarchyChangedEventArgs(EntityHierarchyElementViewModel parent, EntityViewModel entity, int index)
     {
         Parent = parent;
         Entity = entity;
@@ -16,9 +16,10 @@ public sealed class EntityHierarchyChangedEventArgs : EventArgs
     }
 
     /// <summary>
-    /// Gets the item the entity was added to or removed from: the root of the hierarchy or another entity.
+    /// Gets the element the entity was added to or removed from: the root of the hierarchy or another entity, whatever
+    /// the folder of the entity.
     /// </summary>
-    public EntityHierarchyItemViewModel Parent { get; }
+    public EntityHierarchyElementViewModel Parent { get; }
 
     /// <summary>
     /// Gets the view model of the entity.
@@ -26,7 +27,7 @@ public sealed class EntityHierarchyChangedEventArgs : EventArgs
     public EntityViewModel Entity { get; }
 
     /// <summary>
-    /// Gets the index of the entity in the children of <see cref="Parent"/>.
+    /// Gets the index of the entity in the children of the transform of <see cref="Parent"/>.
     /// </summary>
     public int Index { get; }
 }

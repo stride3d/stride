@@ -15,5 +15,7 @@ public sealed class PrefabRootViewModel : EntityHierarchyRootViewModel
     /// <inheritdoc/>
     public override AbsoluteId Id => new(Asset.Id, Guid.Empty);
 
-    public override string? Name { get => "PrefabRoot"; set => throw new NotSupportedException($"Cannot change the name of a {nameof(PrefabRootViewModel)} object."); }
+    /// <inheritdoc/>
+    /// <remarks>The name of the WPF prefab editor.</remarks>
+    public override string? Name { get => "Prefab root"; set => throw new NotSupportedException($"Cannot change the name of a {nameof(PrefabRootViewModel)} object."); }
 }
