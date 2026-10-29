@@ -48,8 +48,8 @@
     <GridSplitter Grid.Column="1" ResizeDirection="Auto" />
 
     <DockPanel Grid.Column="2">
-      <!-- The transformation toolbar: the tools, the space of the gizmos and the selection mask. Its items don't take the
-           focus, so that the keys keep going to the view. -->
+      <!-- The transformation toolbar: the tools, the space of the gizmos, the material selection mode and the selection
+           mask. Its items don't take the focus, so that the keys keep going to the view. -->
       <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="4" Margin="2"
                   DataContext="{Binding Toolbar}"
                   IsVisible="{Binding $self.DataContext, Converter={x:Static ObjectConverters.IsNotNull}}">
@@ -100,6 +100,15 @@
           </ListBox.ItemTemplate>
         </ListBox>
         <Separator Width="1" Height="20" Margin="2,0" />
+        <ToggleButton x:DataType="vm:EditorViewToolbarViewModel" Focusable="False" Background="Transparent" Padding="6"
+                      IsChecked="{Binding MaterialSelectionMode}"
+                      ToolTip.Tip="Toggle material selection (click a selected asset to select its material)">
+          <!-- The icon of the WPF scene editor -->
+          <Panel Width="16" Height="16">
+            <Path Classes="icon" Data="F1M8,14L8,2C11.313,2 14,4.687 14,8 14,11.313 11.313,14 8,14 M8,1C4.134,1 1,4.134 1,8 1,11.866 4.134,15 8,15 11.866,15 15,11.866 15,8 15,4.134 11.866,1 8,1" />
+            <Path Width="16" Height="16" Stretch="None" Fill="#FFA1260D" Data="F1M8,2L8,14C11.313,14 14,11.313 14,8 14,4.687 11.313,2 8,2" />
+          </Panel>
+        </ToggleButton>
         <ToggleButton x:DataType="vm:EditorViewToolbarViewModel" Focusable="False" Background="Transparent" Padding="6"
                       IsChecked="{Binding DisplaySelectionMask}"
                       ToolTip.Tip="Show or hide selection mask">
