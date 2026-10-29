@@ -5,6 +5,7 @@ using System.Collections.Specialized;
 using Stride.Assets.Editor.EditorGame;
 using Stride.Assets.Entities;
 using Stride.Assets.Presentation.AssetEditors.GameEditor;
+using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Core;
 using Stride.Core.Assets.Editor.ViewModels;
@@ -177,6 +178,7 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
         if (Controller is not { } controller)
             return Task.CompletedTask;
 
+        var selection = controller.GetService<IEditorGameSelectionViewModelService>();
         var added = new List<GameEditorChangePropagator>();
         foreach (var entity in entities)
         {
@@ -184,6 +186,8 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
             propagators.Add(entity.Id, propagator);
             added.Add(propagator);
             propagator.NotifyGameSidePartAdded();
+            // The clone of the entity is in the game: it can be selected there
+            selection?.AddSelectable(entity.Id);
         }
         return Task.WhenAll(added.Select(x => x.Initialized));
     }
@@ -221,10 +225,12 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
     private async void EntityRemoved(object? sender, EntityHierarchyChangedEventArgs e)
     {
         var entities = SelfAndDescendants(e.Entity).ToList();
+        var selection = isGameLoaded ? Controller?.GetService<IEditorGameSelectionViewModelService>() : null;
         foreach (var entity in entities)
         {
             if (propagators.Remove(entity.Id, out var propagator))
                 propagator.Destroy();
+            selection?.RemoveSelectable(entity.Id);
         }
         foreach (var entity in entities)
         {
