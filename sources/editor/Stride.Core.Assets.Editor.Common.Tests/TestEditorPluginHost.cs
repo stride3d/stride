@@ -125,6 +125,18 @@ public class TestEditorPluginHost
         }
     }
 
+    /// <summary>
+    /// A plugin that logs through its session context when it joins, and when it leaves.
+    /// </summary>
+    public sealed class LoggingPlugin(string name) : AssetsPlugin
+    {
+        public override void InitializeSession(ISessionPluginContext context)
+        {
+            context.Logger.Warning($"{name} joined");
+            context.OnClose(() => context.Logger.Warning($"{name} left"));
+        }
+    }
+
     public sealed class ConflictingPlugin : AssetsPlugin
     {
         public override void Initialize(IEditorPluginContext context)
@@ -316,6 +328,44 @@ public class TestEditorPluginHost
         Assert.Contains(afterEditor, host.SessionPlugins);
         Assert.Contains(afterEditor.Command, host.GraphService.AvailableCommands);
         host.Dispose();
+    }
+
+    [Fact]
+    public void ThePluginsLogToTheSessionWhileItOpensThenToTheGlobalLog()
+    {
+        var id = Guid.NewGuid();
+        var atOpening = new LoggingPlugin($"Opening {id}");
+        var (host, session, _, log) = Open(atOpening);
+        var global = new List<ILogMessage>();
+        void OnGlobalMessage(ILogMessage message)
+        {
+            if (message.Text.Contains(id.ToString()))
+            {
+                lock (global)
+                    global.Add(message);
+            }
+        }
+        GlobalLogger.GlobalMessageLogged += OnGlobalMessage;
+        try
+        {
+            host.InitializeSession(session);
+            Assert.Contains(log.Messages, x => x.Text == $"Opening {id} joined");
+
+            // Once the session is open, nothing reads its logger: a plugin loaded later logs to the global log, and so
+            // does a plugin that kept its context's logger
+            var late = new LoggingPlugin($"Late {id}");
+            host.PluginsDiscovered([late]);
+            host.PluginsRemoved([late]);
+            host.Dispose();
+
+            Assert.Equal([$"Late {id} joined", $"Late {id} left", $"Opening {id} left"], global.Select(x => x.Text));
+            Assert.All(global, x => Assert.Equal(EditorPluginHost.PluginsLoggerModule, x.Module));
+            Assert.DoesNotContain(log.Messages, x => x.Text.StartsWith($"Late {id}", StringComparison.Ordinal) || x.Text == $"Opening {id} left");
+        }
+        finally
+        {
+            GlobalLogger.GlobalMessageLogged -= OnGlobalMessage;
+        }
     }
 
     [Fact]
