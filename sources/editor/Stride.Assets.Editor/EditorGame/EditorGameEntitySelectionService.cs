@@ -28,7 +28,7 @@ namespace Stride.Assets.Editor.EditorGame;
 /// </summary>
 /// <remarks>
 /// The cross-platform counterpart of the WPF <c>EditorGameEntitySelectionService</c>. The scene roots are not selected in
-/// the game, and duplicating the selection is not supported yet.
+/// the game.
 /// </remarks>
 [EditorGameService(typeof(EntityHierarchyEditorController), Order = 200)]
 public sealed class EditorGameEntitySelectionService : EditorGameMouseServiceBase, IEditorGameEntitySelectionService, IEditorGameSelectionViewModelService
@@ -129,10 +129,37 @@ public sealed class EditorGameEntitySelectionService : EditorGameMouseServiceBas
     }
 
     /// <inheritdoc/>
-    public Task<bool> DuplicateSelection()
+    /// <remarks>
+    /// Ctrl+drag with a gizmo: the copies are made in the hierarchy (UI thread), and the task completes once the game
+    /// selects them, so that the gizmo moves the copies.
+    /// </remarks>
+    public async Task<bool> DuplicateSelection()
     {
-        // The scene editor can't duplicate entities yet
-        return Task.FromResult(false);
+        var duplicatedIds = new HashSet<AbsoluteId>();
+        var tcs = new TaskCompletionSource<bool>();
+
+        void Callback(object? sender, EntitySelectionEventArgs e)
+        {
+            // The selection is emptied first, then the copies are selected
+            if (e.NewSelection.Select(controller.GetAbsoluteId).ToHashSet().SetEquals(duplicatedIds))
+                tcs.TrySetResult(true);
+        }
+
+        SelectionUpdated += Callback;
+        try
+        {
+            var result = await editor.Dispatcher.InvokeAsync(() => editor.DuplicateSelectedEntities().Select(x => x.Id).ToList());
+            if (result.Count == 0)
+                return false;
+
+            duplicatedIds.AddRange(result);
+            await tcs.Task;
+            return true;
+        }
+        finally
+        {
+            SelectionUpdated -= Callback;
+        }
     }
 
     /// <inheritdoc/>

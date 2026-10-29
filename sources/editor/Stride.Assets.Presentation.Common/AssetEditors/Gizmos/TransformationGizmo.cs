@@ -422,7 +422,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
                     return;
 
                 // check if Ctrl is pressed and initiate a duplication in this case.
-                if (ModifiedEntities.Count > 0 && !duplicationDone && Input.IsKeyDown(Keys.LeftCtrl) || Input.IsKeyDown(Keys.RightCtrl))
+                if (ModifiedEntities.Count > 0 && !duplicationDone && (Input.IsKeyDown(Keys.LeftCtrl) || Input.IsKeyDown(Keys.RightCtrl)))
                 {
                     duplicationDone = true;
                     await Game.EditorServices.Get<IEditorGameEntitySelectionService>().DuplicateSelection();
