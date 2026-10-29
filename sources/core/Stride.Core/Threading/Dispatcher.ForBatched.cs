@@ -45,21 +45,6 @@ public static partial class Dispatcher
         ForBatched(items, batchedDelegate);
     }
 
-    public static unsafe void ForBatched(int items, Action<int, int> executeBatch)
-    {
-        var batchedDelegate = new BatchedDelegate<Action<int, int>>
-        {
-            Param = executeBatch,
-            Delegate = &ForBatchedAction,
-        };
-        ForBatched(items, batchedDelegate);
-
-        static void ForBatchedAction(Action<int, int> parameter, int from, int toExclusive)
-        {
-            parameter(from, toExclusive);
-        }
-    }
-
     private struct BatchedDelegateRef<T> : IBatchJob
     {
         public T Param;

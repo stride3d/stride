@@ -37,7 +37,6 @@ public static partial class Dispatcher
     private static readonly ProfilingKey DispatcherBatched = new("Dispatcher.Batched");
 
     public static event Action? OnMaxDegreeOfParallelismChanged;
-    public delegate void ValueAction<T>(ref T obj);
 
     /// <summary>
     /// The call producing the least amount of overhead, other methods are built on top of this one.
