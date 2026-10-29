@@ -29,7 +29,19 @@ public sealed class FakeEditorDialogService : IEditorDialogService, IProgressWin
     /// </summary>
     public MessageBoxResult Answer { get; set; } = MessageBoxResult.OK;
 
+    /// <summary>
+    /// The state of the check box of the next checked message boxes; <c>null</c> keeps the state they open with.
+    /// </summary>
+    public bool? CheckBoxAnswer { get; set; }
+
+    /// <summary>
+    /// Completes when the main window is in front (<see cref="WaitForMainWindowActiveAsync"/>); at once by default.
+    /// </summary>
+    public Task MainWindowActive { get; set; } = Task.CompletedTask;
+
     public bool HasMainWindow => false;
+
+    public Task WaitForMainWindowActiveAsync(CancellationToken token = default) => MainWindowActive.WaitAsync(token);
 
     public void Exit(int exitCode = 0)
     {
@@ -96,13 +108,13 @@ public sealed class FakeEditorDialogService : IEditorDialogService, IProgressWin
     public Task<CheckedMessageBoxResult> CheckedMessageBoxAsync(string message, bool? isChecked, string checkboxMessage, MessageBoxButton buttons = MessageBoxButton.OK, MessageBoxImage image = MessageBoxImage.None)
     {
         Messages.Add(message);
-        return Task.FromResult(new CheckedMessageBoxResult(Answer, isChecked));
+        return Task.FromResult(new CheckedMessageBoxResult(Answer, CheckBoxAnswer ?? isChecked));
     }
 
     public Task<CheckedMessageBoxResult> CheckedMessageBoxAsync(string message, bool? isChecked, string checkboxMessage, IReadOnlyCollection<DialogButtonInfo> buttons, MessageBoxImage image = MessageBoxImage.None)
     {
         Messages.Add(message);
-        return Task.FromResult(new CheckedMessageBoxResult(ButtonResult(buttons), isChecked));
+        return Task.FromResult(new CheckedMessageBoxResult(ButtonResult(buttons), CheckBoxAnswer ?? isChecked));
     }
 
     public Task<int> CheckedMessageBoxAsync(string message, IReadOnlyCollection<DialogCheckBoxInfo> checkBoxes, IReadOnlyCollection<DialogButtonInfo> buttons, MessageBoxImage image = MessageBoxImage.None)

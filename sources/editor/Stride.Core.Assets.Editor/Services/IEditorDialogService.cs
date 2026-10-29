@@ -30,6 +30,16 @@ public interface IEditorDialogService : IDialogService
     }
 
     /// <summary>
+    /// Waits until a question can be asked without interrupting the user: the main window of the editor is in front, with no dialog
+    /// over it, as the delayed notifications of the WPF editor wait for. A host that cannot tell completes at once.
+    /// </summary>
+    /// <param name="token">Stops waiting; the task is then cancelled.</param>
+    Task WaitForMainWindowActiveAsync(CancellationToken token = default)
+    {
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
     /// Shows the new project window of a session (see <see cref="NewProjectTemplateCollectionViewModel"/>)
     /// and waits for the user to pick a template. A host without the window returns <c>null</c>.
     /// </summary>
