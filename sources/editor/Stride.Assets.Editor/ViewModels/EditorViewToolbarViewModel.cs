@@ -6,6 +6,7 @@ using Stride.Assets.Editor.EditorGame.Tools;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Tools;
 using Stride.Assets.Presentation.AssetEditors.GameEditor;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
+using Stride.Core.Extensions;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Input;
 
@@ -43,6 +44,13 @@ public sealed class EditorViewToolbarViewModel : DispatcherViewModel
             new EditorViewSpaceViewModel(serviceProvider, TransformationSpace.ViewSpace, "Use current camera projection coordinates for transformations", ViewSpaceIcon),
         ];
         space = Spaces[0];
+        // The snaps of a new scene in the WPF scene editor (SceneSettingsData)
+        Snaps =
+        [
+            new EditorViewSnapViewModel(serviceProvider, service, Transformation.Translation, 1.0f, "Snap translations to this value"),
+            new EditorViewSnapViewModel(serviceProvider, service, Transformation.Rotation, 22.5f, "Snap rotations to this value"),
+            new EditorViewSnapViewModel(serviceProvider, service, Transformation.Scale, 1.1f, "Snap scale to this factor"),
+        ];
         displaySelectionMask = selection?.DisplaySelectionMask ?? false;
         service.ActiveToolChanged += ServiceActiveToolChanged;
         service.ToolFailed += ServiceToolFailed;
@@ -91,6 +99,11 @@ public sealed class EditorViewToolbarViewModel : DispatcherViewModel
     }
 
     /// <summary>
+    /// Gets the snaps of the transformation gizmos; the snap of the active tool shows, as in the WPF scene editor.
+    /// </summary>
+    public IReadOnlyList<EditorViewSnapViewModel> Snaps { get; }
+
+    /// <summary>
     /// Gets or sets whether the material selection mode is on: the material of a selected entity under the mouse is
     /// highlighted, and a click on it selects the material asset.
     /// </summary>
@@ -130,6 +143,10 @@ public sealed class EditorViewToolbarViewModel : DispatcherViewModel
     /// </summary>
     internal async Task InitializeAsync()
     {
+        foreach (var snap in Snaps)
+        {
+            await snap.ApplyAsync();
+        }
         var (active, failedTools) = await service.GetStateAsync();
         foreach (var tool in Tools)
         {
@@ -156,6 +173,10 @@ public sealed class EditorViewToolbarViewModel : DispatcherViewModel
         foreach (var item in Spaces)
         {
             item.IsEnabled = hasSpace && (!IsScaleActive || item.Space == TransformationSpace.ObjectSpace);
+        }
+        foreach (var snap in Snaps)
+        {
+            snap.IsVisible = tool?.Tool is TransformationTool transformationTool && transformationTool.Transformation == snap.Transformation;
         }
     }
 
@@ -257,4 +278,48 @@ public sealed class EditorViewSpaceViewModel : DispatcherViewModel
     /// Gets whether the active tool works in this space.
     /// </summary>
     public bool IsEnabled { get => isEnabled; internal set => SetValue(ref isEnabled, value); }
+}
+
+public sealed class EditorViewSnapViewModel : DispatcherViewModel
+{
+    private readonly EditorGameToolService service;
+    private bool isActive;
+    private double value;
+    private bool isVisible;
+
+    internal EditorViewSnapViewModel(IViewModelServiceProvider serviceProvider, EditorGameToolService service, Transformation transformation, float value, string toolTip)
+        : base(serviceProvider)
+    {
+        this.service = service;
+        this.value = value;
+        Transformation = transformation;
+        ToolTip = toolTip;
+    }
+
+    /// <summary>
+    /// Gets the transformation that snaps.
+    /// </summary>
+    public Transformation Transformation { get; }
+
+    /// <summary>
+    /// Gets the tool tip of the snap.
+    /// </summary>
+    public string ToolTip { get; }
+
+    /// <summary>
+    /// Gets or sets whether the gizmo of the transformation snaps; it also snaps while the snap key (Shift) is down.
+    /// </summary>
+    public bool IsActive { get => isActive; set => SetValue(ref isActive, value, () => ApplyAsync().Forget()); }
+
+    /// <summary>
+    /// Gets or sets the snap: a distance in scene units, an angle in degrees or a scale factor.
+    /// </summary>
+    public double Value { get => value; set => SetValue(ref this.value, Math.Max(0, value), () => ApplyAsync().Forget()); }
+
+    /// <summary>
+    /// Gets whether the tool of the transformation is active.
+    /// </summary>
+    public bool IsVisible { get => isVisible; internal set => SetValue(ref isVisible, value); }
+
+    internal Task ApplyAsync() => service.SetSnapAsync(Transformation, (float)value, isActive);
 }

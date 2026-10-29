@@ -123,6 +123,14 @@ public sealed class EditorGameToolService : EditorGameMouseServiceBase, IEditorG
         return controller.InvokeAsync(() => Context.Transformation.Space = space);
     }
 
+    /// <summary>
+    /// Sets the snap of a transformation, and whether it snaps without the snap key.
+    /// </summary>
+    internal Task SetSnapAsync(Transformation transformation, float value, bool isActive)
+    {
+        return controller.InvokeAsync(() => Context.Transformation.SetSnap(transformation, value, isActive));
+    }
+
     /// <inheritdoc/>
     public override ValueTask DisposeAsync()
     {

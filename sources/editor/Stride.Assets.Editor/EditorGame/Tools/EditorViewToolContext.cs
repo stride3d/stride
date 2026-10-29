@@ -61,7 +61,7 @@ internal sealed class TransformationSettings
     public float GizmoSize { get; set; } = 1.0f;
 
     /// <summary>
-    /// Gets or sets whether the snap key is down: the gizmos snap while it is.
+    /// Gets or sets whether the snap key is down: the gizmos snap while it is, even when their snap is not active.
     /// </summary>
     public bool IsSnapKeyDown { get; set; }
 
@@ -79,6 +79,56 @@ internal sealed class TransformationSettings
     /// Gets the snap of the scales, as a factor.
     /// </summary>
     public float ScaleSnap { get; set; } = 1.1f;
+
+    /// <summary>
+    /// Gets or sets whether the translations snap, without the snap key.
+    /// </summary>
+    public bool TranslationSnapActive { get; set; }
+
+    /// <summary>
+    /// Gets or sets whether the rotations snap, without the snap key.
+    /// </summary>
+    public bool RotationSnapActive { get; set; }
+
+    /// <summary>
+    /// Gets or sets whether the scales snap, without the snap key.
+    /// </summary>
+    public bool ScaleSnapActive { get; set; }
+
+    /// <summary>
+    /// Gets whether a transformation snaps, without the snap key.
+    /// </summary>
+    public bool IsSnapActive(Transformation transformation) => transformation switch
+    {
+        Transformation.Translation => TranslationSnapActive,
+        Transformation.Rotation => RotationSnapActive,
+        Transformation.Scale => ScaleSnapActive,
+        _ => throw new ArgumentOutOfRangeException(nameof(transformation)),
+    };
+
+    /// <summary>
+    /// Sets the snap of a transformation, and whether it snaps without the snap key.
+    /// </summary>
+    public void SetSnap(Transformation transformation, float value, bool isActive)
+    {
+        switch (transformation)
+        {
+            case Transformation.Translation:
+                TranslationSnap = value;
+                TranslationSnapActive = isActive;
+                break;
+            case Transformation.Rotation:
+                RotationSnap = value;
+                RotationSnapActive = isActive;
+                break;
+            case Transformation.Scale:
+                ScaleSnap = value;
+                ScaleSnapActive = isActive;
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(transformation));
+        }
+    }
 
     /// <summary>
     /// Gets the snap of a transformation.
