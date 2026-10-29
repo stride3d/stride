@@ -52,6 +52,10 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
         CreateFolderInRootCommand = new AnonymousCommand(ServiceProvider, () => CreateFolder(HierarchyRoot, true));
         CreateFolderInSelectionCommand = new AnonymousCommand(ServiceProvider, () => CreateFolder(SelectedContent.FirstOrDefault() as EntityHierarchyItemViewModel ?? HierarchyRoot, true));
         RenameCommand = new AnonymousCommand(ServiceProvider, Rename);
+        CreatePrefabFromSelectionCommand = new AnonymousCommand(ServiceProvider, CreatePrefabFromSelection);
+        OpenPrefabEditorCommand = new AnonymousCommand(ServiceProvider, OpenPrefabEditor);
+        SelectPrefabCommand = new AnonymousCommand(ServiceProvider, SelectPrefab);
+        BreakLinkToPrefabCommand = new AnonymousCommand(ServiceProvider, () => BreakLinkToBase("prefab"));
         UpdateCommands();
     }
 
@@ -69,6 +73,27 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
     /// <c>null</c>.
     /// </summary>
     public ICommandBase CreateEntityInSelectionCommand { get; }
+
+    /// <summary>
+    /// Gets the command that creates a prefab from the selected entities, with their children, next to the edited asset;
+    /// the selected entities become instances of the prefab.
+    /// </summary>
+    public ICommandBase CreatePrefabFromSelectionCommand { get; }
+
+    /// <summary>
+    /// Gets the command that opens the editor of the prefabs of the selected entities.
+    /// </summary>
+    public ICommandBase OpenPrefabEditorCommand { get; }
+
+    /// <summary>
+    /// Gets the command that selects in the asset view the prefab of the selected entity.
+    /// </summary>
+    public ICommandBase SelectPrefabCommand { get; }
+
+    /// <summary>
+    /// Gets the command that makes the selected entities plain entities, instead of instances of their prefab.
+    /// </summary>
+    public ICommandBase BreakLinkToPrefabCommand { get; }
 
     /// <summary>
     /// Gets the command that begins the renaming in place (F2) of the last selected entity or folder.
@@ -600,6 +625,32 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
 
         DuplicateSelectionCommand.IsEnabled = GetCommonRoots(SelectedContent.OfType<EntityHierarchyItemViewModel>().ToList()).Count > 0;
         RenameCommand.IsEnabled = SelectedContent.LastOrDefault() is EntityHierarchyItemViewModel { IsEditable: true };
+
+        var prefabInstanceSelected = SelectedItems.OfType<EntityViewModel>().Any(x => x.SourcePrefab != null);
+        CreatePrefabFromSelectionCommand.IsEnabled = SelectedItems.Count >= 1;
+        BreakLinkToPrefabCommand.IsEnabled = prefabInstanceSelected;
+        OpenPrefabEditorCommand.IsEnabled = prefabInstanceSelected;
+        SelectPrefabCommand.IsEnabled = prefabInstanceSelected && SelectedItems.Count == 1;
+    }
+
+    private void CreatePrefabFromSelection()
+    {
+        CreateAssetFromSelectedParts(() => new PrefabAsset(), e => e?.Name ?? "Prefab", true, out _);
+    }
+
+    private void OpenPrefabEditor()
+    {
+        foreach (var prefab in SelectedItems.OfType<EntityViewModel>().Select(x => x.SourcePrefab).NotNull().Distinct())
+        {
+            Session.EditorCollection.OpenAssetEditor(prefab);
+        }
+    }
+
+    private void SelectPrefab()
+    {
+        // The entity with the transformation gizmo, as in the WPF scene editor
+        if ((SelectedItems.LastOrDefault() as EntityViewModel)?.SourcePrefab is { } prefab)
+            Session.AssetCollection.SelectAssets(prefab.Yield());
     }
 
     private void Rename()

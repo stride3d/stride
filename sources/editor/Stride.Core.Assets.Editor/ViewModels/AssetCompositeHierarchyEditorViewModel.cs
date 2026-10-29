@@ -2,12 +2,15 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Collections.Specialized;
+using System.Text.RegularExpressions;
 using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Quantum;
+using Stride.Core.Assets.Yaml;
 using Stride.Core.Extensions;
+using Stride.Core.IO;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Quantum;
@@ -223,6 +226,110 @@ public abstract class AssetCompositeHierarchyEditorViewModel<TAssetPartDesign, T
             group.Key.AssetHierarchyPropertyGraph.BreakBasePartLinks(group.Select(GetPartDesign).NotNull());
         }
         undoRedo.SetName(transaction, $"Break link to {baseTypeName}");
+    }
+
+    /// <summary>
+    /// Creates an asset (a prefab of the scene editor) from the selected parts, with their children, in the folder of the
+    /// edited asset, and selects it in the asset view, as one undoable operation.
+    /// </summary>
+    /// <param name="assetFactory">Creates the empty asset.</param>
+    /// <param name="baseNameFunc">The base name of the asset, from its first root part (<c>null</c> when it has none).</param>
+    /// <param name="linkToBase">Whether the selected parts become instances of the new asset.</param>
+    /// <param name="idRemappings">The ids of the parts in the new asset, by id of the selected parts, by edited asset.</param>
+    /// <returns>The new asset, or <c>null</c> when nothing is selected.</returns>
+    protected AssetItem? CreateAssetFromSelectedParts(Func<AssetCompositeHierarchy<TAssetPartDesign, TAssetPart>> assetFactory, Func<TAssetPart?, string?> baseNameFunc, bool linkToBase, out Dictionary<AssetCompositeHierarchyViewModel<TAssetPartDesign, TAssetPart>, Dictionary<Guid, Guid>> idRemappings)
+    {
+        idRemappings = [];
+        if (SelectedItems.Count == 0)
+            return null;
+
+        var nodeContainer = Session.AssetNodeContainer;
+        var undoRedo = Session.UndoRedoService;
+        AssetItem assetItem;
+        using (var transaction = undoRedo.CreateTransaction())
+        {
+            var clonedHierarchy = new AssetCompositeHierarchyData<TAssetPartDesign, TAssetPart>();
+            foreach (var group in SelectedItems.GroupBy(e => (AssetCompositeHierarchyViewModel<TAssetPartDesign, TAssetPart>)e.Asset))
+            {
+                var currentAsset = group.Key;
+
+                // The overrides of the parts, in case one of the parts is already an instance of a base
+                var overrides = new Dictionary<Guid, YamlAssetMetadata<OverrideType>>();
+                foreach (var part in currentAsset.Asset.Hierarchy.Parts.Values)
+                {
+                    var node = nodeContainer.GetNode(part.Part);
+                    overrides.Add(part.Part.Id, AssetPropertyGraph.GenerateOverridesForSerialization(node));
+                }
+
+                // The hierarchy from the parts that are roots of the selection
+                var selectedRoots = GetCommonRoots(group.ToList());
+                var flags = SubHierarchyCloneFlags.CleanExternalReferences | SubHierarchyCloneFlags.GenerateNewIdsForIdentifiableObjects;
+                var subHierarchy = AssetCompositeHierarchyPropertyGraph<TAssetPartDesign, TAssetPart>.CloneSubHierarchies(nodeContainer, currentAsset.Asset, selectedRoots.Select(GetPartDesign).NotNull().Select(x => x.Part.Id), flags, out var idRemapping);
+                AssetPartsAnalysis.GenerateNewBaseInstanceIds(subHierarchy);
+                clonedHierarchy.MergeInto(subHierarchy);
+
+                // Each new part gets the overrides of its part. Before the asset gets its graph, so that the reconciliation
+                // with the base doesn't occur before.
+                foreach (var id in idRemapping)
+                {
+                    // The ids of the parts only
+                    if (!clonedHierarchy.Parts.TryGetValue(id.Value, out var clonedPart))
+                        continue;
+
+                    var node = (IAssetNode)nodeContainer.GetOrCreateNode(clonedPart.Part);
+                    AssetPropertyGraph.ApplyOverrides(node, overrides[id.Key]);
+                }
+
+                idRemappings.Add(currentAsset, idRemapping);
+            }
+
+            // The item of the new asset, next to the edited asset
+            var firstRootName = baseNameFunc(clonedHierarchy.RootParts.FirstOrDefault()) ?? Asset.TypeDisplayName;
+            // The characters a file name cannot have, as Utilities.BuildValidFileName of the WPF editor
+            var sanitizedAssetName = Regex.Replace(firstRootName, "[=;,/\\?:&!.*<>|#%\"]", "_");
+            var newAssetName = NamingHelper.ComputeNewName(sanitizedAssetName, Asset.Directory.Assets, x => x.Name);
+            var defaultLocation = UFile.Combine(Asset.Directory.Path, newAssetName);
+
+            var asset = assetFactory();
+            asset.Hierarchy = clonedHierarchy;
+            assetItem = new AssetItem(defaultLocation, asset);
+
+            // The view model of the asset, and its property graph
+            var assetViewModel = Asset.Directory.Package.CreateAsset(Asset.Directory, assetItem, true, null);
+            Session.AssetCollection.SelectAssets(assetViewModel.Yield());
+
+            if (linkToBase)
+            {
+                // The selected parts become instances of the new asset, without overrides
+                foreach (var (currentAsset, idRemapping) in idRemappings)
+                {
+                    var instanceId = Guid.NewGuid();
+                    foreach (var id in idRemapping)
+                    {
+                        // The ids of the parts only
+                        if (!currentAsset.Asset.Hierarchy.Parts.TryGetValue(id.Key, out var partDesign))
+                            continue;
+                        nodeContainer.GetNode(partDesign)[nameof(IAssetPartDesign.Base)].Update(new BasePart(new AssetReference(assetItem.Id, assetItem.Location), id.Value, instanceId));
+                    }
+                    // The parts are linked to their new base
+                    currentAsset.PropertyGraph!.RefreshBase();
+
+                    foreach (var id in idRemapping)
+                    {
+                        if (!currentAsset.Asset.Hierarchy.Parts.TryGetValue(id.Key, out var partDesign))
+                            continue;
+
+                        // With the proper base for each part, all the overrides can be reset
+                        var partNode = (IAssetObjectNode)nodeContainer.GetNode(partDesign.Part);
+                        partNode.ResetOverrideRecursively();
+                    }
+                }
+            }
+
+            undoRedo.SetName(transaction, $"Create {newAssetName} from selection");
+        }
+
+        return assetItem;
     }
 
     /// <summary>
