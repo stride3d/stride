@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
@@ -189,6 +190,44 @@ public sealed class BuildAndRunTests
         {
             await window.CloseAsync();
         }
+    }
+
+    [AvaloniaFact]
+    public async Task TheOutputFollowsTheEndOfTheLogUnlessTheUserScrolledUp()
+    {
+        using var fixture = await ShellSessionFixture.OpenExecutableAsync(Platform.Type);
+        var (builder, _) = fixture.ReplaceGameBuilder();
+        fixture.ReplaceDialogService();
+        builder.CompleteAtOnce = false;
+        var window = new MainWindow { DataContext = fixture.Main };
+        window.Show();
+        try
+        {
+            var started = builder.NextBuild;
+            fixture.Main.Build.BuildProjectCommand.Execute();
+            var build = await started.WaitAsync(TimeSpan.FromSeconds(30));
+            for (var i = 0; i < 200; ++i)
+                build.Logger.Info($"Line {i}");
+            await WindowTestHelper.PumpAsync();
+            var viewer = window.GetVisualDescendants().OfType<ScrollViewer>().Single(x => x.Name == "PART_LogScrollViewer");
+            await WindowTestHelper.WaitUntilAsync(() => viewer.Extent.Height > viewer.Viewport.Height && IsAtEnd(viewer), "the end of the log");
+
+            // The user scrolls up to read the log: new lines do not move it
+            viewer.Offset = new Vector(0, 0);
+            await WindowTestHelper.PumpAsync();
+            build.Logger.Info("One more line");
+            build.Complete(true);
+            await WindowTestHelper.WaitUntilAsync(() => !fixture.Main.Build.BuildInProgress, "the end of the build");
+            await Task.Delay(500);
+            await WindowTestHelper.PumpAsync();
+            Assert.Equal(0, viewer.Offset.Y);
+        }
+        finally
+        {
+            await window.CloseAsync();
+        }
+
+        static bool IsAtEnd(ScrollViewer viewer) => viewer.Extent.Height - viewer.Viewport.Height - viewer.Offset.Y < 1.0;
     }
 
     private static MenuItem MenuItem(Window window, string name) => window.GetLogicalDescendants().OfType<MenuItem>().Single(x => x.Name == name);
