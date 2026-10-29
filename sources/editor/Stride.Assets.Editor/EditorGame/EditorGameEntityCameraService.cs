@@ -5,6 +5,7 @@ using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Tools;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Core.Mathematics;
 using Stride.Editor.EditorGame.Game;
+using Stride.Editor.EditorGame.ViewModels;
 using Stride.Editor.Engine;
 using Stride.Engine;
 using Stride.Input;
@@ -21,11 +22,12 @@ namespace Stride.Assets.Editor.EditorGame;
 /// <item>Middle button: pan. Middle and right buttons: move forward and backward.</item>
 /// <item>Wheel: zoom. Alt and right button: zoom. Alt and left button: orbit.</item>
 /// <item>+ and -: change the speed.</item>
+/// <item>F, in the view or the hierarchy: frame the last selected entity (<see cref="SetTarget"/>, through the editor).</item>
 /// </list>
 /// The key bindings are the defaults of the WPF scene editor settings; the settings are not read yet.
 /// </remarks>
 [EditorGameService(typeof(EntityHierarchyEditorController), Order = 110)]
-public sealed class EditorGameEntityCameraService : EditorGameCameraService
+public sealed class EditorGameEntityCameraService : EditorGameCameraService, IEditorGameViewModelService
 {
     /// <summary>
     /// The movement speeds the speed keys step through, as in the WPF scene editor.

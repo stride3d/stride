@@ -42,6 +42,7 @@ public sealed class EditorGameMaterialHighlightService : EditorGameMouseServiceB
     private readonly HashSet<Material> highlightedMaterials = [];
     private Entity? highlightedEntity;
     private int highlightedMaterialIndex = -1;
+    private int highlightedMeshIndex = -1;
     private EntityHierarchyEditorGame? game;
 
     public EditorGameMaterialHighlightService(EntityHierarchyEditorController controller, EntityHierarchyEditorViewModel editor)
@@ -73,6 +74,12 @@ public sealed class EditorGameMaterialHighlightService : EditorGameMouseServiceB
     private IEditorGameComponentGizmoService Gizmos => Services.Get<IEditorGameComponentGizmoService>();
 
     private EntityHierarchyEditorGame Game => game ?? throw new InvalidOperationException("The service is not initialized.");
+
+    /// <summary>
+    /// Gets the entity and the mesh of the highlighted material, or <c>null</c> when the mode is off or no material is
+    /// highlighted (game thread). Framing the selection frames this mesh instead, as in the WPF scene editor.
+    /// </summary>
+    internal (Entity Entity, int MeshIndex)? HighlightedMesh => IsActive && highlightedEntity is { } entity ? (entity, highlightedMeshIndex) : null;
 
     /// <inheritdoc/>
     public override ValueTask DisposeAsync()
@@ -134,6 +141,7 @@ public sealed class EditorGameMaterialHighlightService : EditorGameMouseServiceB
             // The material of a selected entity under the mouse
             Entity? entity = null;
             var materialIndex = -1;
+            var meshIndex = -1;
             if (Gizmos.GetContentEntityUnderMouse() is null)
             {
                 var picking = Selection.Pick();
@@ -141,11 +149,13 @@ public sealed class EditorGameMaterialHighlightService : EditorGameMouseServiceB
                 {
                     entity = picked;
                     materialIndex = picking.MaterialIndex;
+                    meshIndex = picking.MeshNodeIndex;
                 }
             }
 
             if (entity is not null && !Game.Input.IsMousePositionLocked)
                 HighlightMaterial(entity, materialIndex);
+            highlightedMeshIndex = meshIndex;
             NotifyMaterialHighlighted(entity, materialIndex);
 
             // A click on the highlighted material selects it instead of the entity

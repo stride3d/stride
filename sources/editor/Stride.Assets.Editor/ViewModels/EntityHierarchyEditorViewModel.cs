@@ -13,6 +13,7 @@ using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
+using Stride.Core.Presentation.Commands;
 using Stride.Editor.Engine;
 using Stride.Engine;
 
@@ -32,6 +33,10 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
     {
         HierarchyRoot.EntityAdded += EntityAdded;
         HierarchyRoot.EntityRemoved += EntityRemoved;
+        FocusOnEntityCommand = new AnonymousTaskCommand<EntityViewModel>(ServiceProvider, FocusOnEntityAsync) { IsEnabled = false };
+        FocusOnSelectionCommand = new AnonymousTaskCommand(ServiceProvider, FocusOnSelectionAsync) { IsEnabled = false };
+        // Whichever side the selection changes from (the tree or the game)
+        SelectedItems.CollectionChanged += SelectedItemsChanged;
     }
 
     public EntityHierarchyRootViewModel HierarchyRoot => (EntityHierarchyRootViewModel)RootPart;
@@ -47,6 +52,16 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
     /// game.
     /// </summary>
     public EditorViewToolbarViewModel? Toolbar { get => toolbar; private set => SetValue(ref toolbar, value); }
+
+    /// <summary>
+    /// Gets the command that moves the camera of the view to frame the entity given as parameter.
+    /// </summary>
+    public ICommandBase FocusOnEntityCommand { get; }
+
+    /// <summary>
+    /// Gets the command that moves the camera of the view to frame the last selected entity (F).
+    /// </summary>
+    public ICommandBase FocusOnSelectionCommand { get; }
 
     /// <summary>
     /// Gets the controller of the game of the editor, or <c>null</c> when the editor has no game.
@@ -87,6 +102,7 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
             // From now on, the entities the asset gets or loses are added to or removed from the game
             isGameLoaded = true;
             await OnGameContentLoaded();
+            UpdateFocusCommands();
 
             if (controller.GetService<EditorGameToolService>() is { } toolService)
             {
@@ -118,6 +134,7 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
 
         HierarchyRoot.EntityAdded -= EntityAdded;
         HierarchyRoot.EntityRemoved -= EntityRemoved;
+        SelectedItems.CollectionChanged -= SelectedItemsChanged;
         foreach (var propagator in propagators.Values)
             propagator.Destroy();
         propagators.Clear();
@@ -169,6 +186,27 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
                 node[nameof(TransformComponent.Scale)].Update(transformation.Scale);
         }
         undoRedoService.SetName(transaction, "Update transformation");
+    }
+
+    /// <summary>
+    /// Moves the camera of the view to frame an entity, keeping the direction of the camera (UI thread). In the material
+    /// selection mode, the camera frames the mesh of the highlighted material instead, as in the WPF scene editor.
+    /// </summary>
+    /// <returns>A task that completes once the camera has moved, or at once when the editor has no game.</returns>
+    public Task FocusOnEntityAsync(EntityViewModel entity)
+    {
+        if (!isGameLoaded || Controller is not { } controller || controller.GetService<EditorGameEntityCameraService>() is not { } camera)
+            return Task.CompletedTask;
+
+        var materialHighlight = controller.GetService<EditorGameMaterialHighlightService>();
+        var id = entity.Id;
+        return controller.InvokeAsync(() =>
+        {
+            if (materialHighlight?.HighlightedMesh is { } mesh)
+                camera.SetTarget(mesh.Entity, false, mesh.MeshIndex);
+            else if (controller.FindGameSidePart(id) is Entity target)
+                camera.SetTarget(target, false);
+        });
     }
 
     /// <summary>
@@ -289,5 +327,19 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
     {
         SelectedItems.Clear();
         SelectedItems.AddRange(SelectedContent.Cast<EntityHierarchyItemViewModel>().SelectMany(x => x.InnerSubEntities));
+    }
+
+    private Task FocusOnSelectionAsync()
+    {
+        // The entity with the transformation gizmo, as in the WPF scene editor
+        return SelectedItems.LastOrDefault() is EntityViewModel entity ? FocusOnEntityAsync(entity) : Task.CompletedTask;
+    }
+
+    private void SelectedItemsChanged(object? sender, NotifyCollectionChangedEventArgs e) => UpdateFocusCommands();
+
+    private void UpdateFocusCommands()
+    {
+        FocusOnEntityCommand.IsEnabled = isGameLoaded;
+        FocusOnSelectionCommand.IsEnabled = isGameLoaded && SelectedItems.LastOrDefault() is EntityViewModel;
     }
 }
