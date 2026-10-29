@@ -298,7 +298,7 @@
                 <Image Source="{StaticResource ImageFitOnScreen}" Width="16" Height="16"/>
               </Button>
               <Border Theme="{StaticResource PreviewToolBarSeparatorTheme}"/>
-              <ComboBox x:Name="PART_DisplayMode" Width="120" Margin="2" VerticalAlignment="Center"
+              <ComboBox x:Name="PART_DisplayMode" MinWidth="120" Margin="2" VerticalAlignment="Center"
                         ItemsSource="{Binding Source={x:Type preview:SpriteSheetDisplayMode}, Converter={sd:EnumValues}, Mode=OneWay}"
                         SelectedItem="{Binding DisplayMode}">
                 <ComboBox.ItemTemplate>
