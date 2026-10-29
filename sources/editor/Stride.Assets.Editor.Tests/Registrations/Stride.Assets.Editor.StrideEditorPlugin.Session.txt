@@ -18,6 +18,7 @@ NodePresenterUpdaters:
   Stride.Assets.Presentation.NodePresenters.Updaters.FXAAEffectNodeUpdater
   Stride.Assets.Editor.Quantum.NodePresenters.Updaters.MaterialAssetNodeUpdater
   Stride.Assets.Editor.Quantum.NodePresenters.Updaters.ModelAssetNodeUpdater
+  Stride.Assets.Editor.Quantum.NodePresenters.Updaters.ModelComponentNodeUpdater
   Stride.Assets.Presentation.NodePresenters.Updaters.ModelNodeLinkNodeUpdater
   Stride.Assets.Editor.Quantum.NodePresenters.Updaters.SkeletonAssetNodeUpdater
   Stride.Assets.Editor.Quantum.NodePresenters.Updaters.SpriteSheetAssetNodeUpdater
