@@ -11,9 +11,9 @@ PrimitiveTypes:
 EnumImages:
 TypeImages:
 TemplateProviders:
-  Stride.Core.Assets.Editor.View.TypeMatchTemplateProvider Thickness
-  Stride.Core.Assets.Editor.View.TypeMatchTemplateProvider StripDefinition
   Stride.Core.Assets.Editor.View.TemplateProviders.TypeAndPropertyNameMatchTemplateProvider Single_Rotation
+  Stride.Core.Assets.Editor.View.TypeMatchTemplateProvider StripDefinition
+  Stride.Core.Assets.Editor.View.TypeMatchTemplateProvider Thickness
 CopyProcessors:
 PasteProcessors:
 PostPasteProcessors:

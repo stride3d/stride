@@ -122,7 +122,9 @@ public sealed class PluginRegistrations : IEditorPluginContext
     /// The primitive types that <see cref="StrideAssetsPlugin"/> finds in every registered assembly depend on what the test
     /// process loaded: they are one line, when all of them are registered, and only the other types are listed.
     /// </remarks>
-    public string Describe()
+    /// <param name="sortTemplateProviders">Whether to sort the template providers: a WPF resource dictionary lists its values
+    /// in hash order, which changes from one process to the next.</param>
+    public string Describe(bool sortTemplateProviders = false)
     {
         var builder = new StringBuilder();
         builder.Append("Plugin: ").AppendLine(Plugin.GetType().FullName);
@@ -134,7 +136,8 @@ public sealed class PluginRegistrations : IEditorPluginContext
         Section(builder, nameof(PrimitiveTypes), DescribePrimitiveTypes());
         Section(builder, nameof(EnumImages), EnumImages.Select(x => $"{x.Key.GetType().FullName}.{x.Key} -> {x.Value.GetType().FullName}").Order(StringComparer.Ordinal));
         Section(builder, nameof(TypeImages), TypeImages.Concat(legacyTypeImages).Select(x => $"{Name(x.Key)} -> {x.Value.GetType().FullName}").Order(StringComparer.Ordinal));
-        Section(builder, nameof(TemplateProviders), TemplateProviders.Select(x => $"{Name(x.GetType())} {x.Name}"));
+        var templateProviders = TemplateProviders.Select(x => $"{Name(x.GetType())} {x.Name}");
+        Section(builder, nameof(TemplateProviders), sortTemplateProviders ? templateProviders.Order(StringComparer.Ordinal) : templateProviders);
         Section(builder, nameof(CopyProcessors), CopyProcessors.Select(x => Name(x.GetType())));
         Section(builder, nameof(PasteProcessors), PasteProcessors.Select(x => Name(x.GetType())));
         Section(builder, nameof(PostPasteProcessors), PostPasteProcessors.Select(x => Name(x.GetType())));
