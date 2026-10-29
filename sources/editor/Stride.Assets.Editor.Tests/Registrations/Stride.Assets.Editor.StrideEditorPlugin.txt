@@ -31,6 +31,11 @@ PasteProcessors:
   Stride.Assets.Presentation.ViewModel.CopyPasteProcessors.EntityHierarchyPasteProcessor
 PostPasteProcessors:
   Stride.Assets.Presentation.ViewModel.CopyPasteProcessors.ScenePostPasteProcessor
+EditorViewToolTypes:
+  Stride.Assets.Editor.EditorGame.Tools.RotateTool
+  Stride.Assets.Editor.EditorGame.Tools.ScaleTool
+  Stride.Assets.Editor.EditorGame.Tools.SelectTool
+  Stride.Assets.Editor.EditorGame.Tools.TranslateTool
 SettingsKeys:
 ProfileSettings:
   Package/Game/Effect/EffectCompilation (Executable)

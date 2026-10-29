@@ -10,6 +10,7 @@ using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
 using Stride.Assets.Presentation.AssetEditors.Gizmos;
 using Stride.Assets.Presentation.SceneEditor;
 using Stride.Core;
+using Stride.Core.Assets.Editor.Services;
 using Stride.Core.BuildEngine;
 using Stride.Core.Diagnostics;
 using Stride.Core.Mathematics;
@@ -143,7 +144,8 @@ public sealed class EditorGameToolService : EditorGameMouseServiceBase, IEditorG
         AddGizmoRenderStages(game);
 
         context = new EditorViewToolContext(game, controller, Selection, Services.Get<IEditorGameCameraService>(), UpdateTransformations);
-        var tools = CreateTools(StrideEditorPlugin.EditorViewToolTypes, controller.Logger);
+        var toolTypes = editor.ServiceProvider.TryGet<IAssetsPluginService>()?.GetEditorViewToolTypes() ?? [];
+        var tools = CreateTools(toolTypes, controller.Logger);
         toolSet = new EditorViewToolSet(tools, tools.OfType<TransformationTool>().ToList(), SwitchGizmo, controller.Logger);
         toolSet.ActiveToolChanged += ToolSetActiveToolChanged;
         toolSet.ToolFailed += ToolSetToolFailed;
@@ -159,7 +161,7 @@ public sealed class EditorGameToolService : EditorGameMouseServiceBase, IEditorG
 
     /// <summary>
     /// Creates one instance of every given tool type, in toolbar order: by <see cref="EditorViewToolAttribute.Order"/>, then
-    /// by type name. A tool that can't be created is logged and left out.
+    /// by type name. A tool that can't be created, or a type that is not an <see cref="IEditorViewTool"/>, is logged and left out.
     /// </summary>
     /// <returns>The tools, with the select tool first.</returns>
     internal static List<IEditorViewTool> CreateTools(IEnumerable<Type> toolTypes, ILogger logger)
@@ -170,6 +172,11 @@ public sealed class EditorGameToolService : EditorGameMouseServiceBase, IEditorG
             .ThenBy(x => x.FullName, StringComparer.Ordinal);
         foreach (var type in types)
         {
+            if (!type.IsAssignableTo(typeof(IEditorViewTool)))
+            {
+                logger.Error($"The tool {type.FullName} ({type.Assembly.GetName().Name}) is not an {nameof(IEditorViewTool)} and is turned off.");
+                continue;
+            }
             try
             {
                 tools.Add((IEditorViewTool)Activator.CreateInstance(type)!);

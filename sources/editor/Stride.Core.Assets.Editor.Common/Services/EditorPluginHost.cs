@@ -55,6 +55,8 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
     private readonly PluginMap<Type, object> declaredTypeImages;
     private readonly List<Type> primitiveTypes = [];
     private readonly List<PackageSettingsEntry> profileSettings = [];
+    // Replaced, never changed: the editor games read it on their threads. A type registered twice is listed twice
+    private volatile Type[] editorViewToolTypes = [];
     private readonly Dictionary<SettingsKey, int> settingsKeys = [];
 
     private ISessionViewModel? session;
@@ -142,6 +144,12 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
     /// The primitive types registered by the plugins, in registration order (a type registered twice is listed twice).
     /// </summary>
     public IReadOnlyList<Type> PrimitiveTypes => primitiveTypes;
+
+    /// <summary>
+    /// The tools of the views of the game editors registered by the plugins, in registration order (a type registered
+    /// twice is listed twice).
+    /// </summary>
+    public IReadOnlyList<Type> EditorViewToolTypes => editorViewToolTypes;
 
     /// <summary>
     /// The settings keys registered by the plugins.
@@ -572,6 +580,9 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
     public IEnumerable<Type> GetPrimitiveTypes(ISessionViewModel session) => primitiveTypes;
 
     /// <inheritdoc />
+    public IReadOnlyList<Type> GetEditorViewToolTypes() => editorViewToolTypes.Distinct().ToList();
+
+    /// <inheritdoc />
     public IEnumerable<PackageSettingsEntry> GetProfileSettings()
     {
         return Plugins.OfType<AssetsEditorPlugin>().SelectMany(x => x.ProfileSettings).Concat(profileSettings);
@@ -639,6 +650,20 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
             }
             settingsKeys.Remove(settingsKey);
             settingsKey.Container.UnregisterSettingsKey(settingsKey);
+        });
+    }
+
+    private void RegisterEditorViewTool(PluginRecord record, Type type)
+    {
+        if (!type.IsClass || type.IsAbstract || type.IsGenericTypeDefinition || type.GetConstructor(Type.EmptyTypes) is null)
+            throw new ArgumentException($"Type [{type.FullName}] must be a class with a public parameterless constructor: each view creates its own tool.", nameof(type));
+
+        editorViewToolTypes = [.. editorViewToolTypes, type];
+        record.Add(() =>
+        {
+            var index = Array.LastIndexOf(editorViewToolTypes, type);
+            if (index >= 0)
+                editorViewToolTypes = [.. editorViewToolTypes[..index], .. editorViewToolTypes[(index + 1)..]];
         });
     }
 

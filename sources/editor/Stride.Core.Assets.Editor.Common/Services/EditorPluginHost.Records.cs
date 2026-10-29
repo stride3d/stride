@@ -213,6 +213,7 @@ public abstract partial class EditorPluginHost
                 copyPasteService.RegisterProcessor(processor);
                 record.Add(() => copyPasteService.UnregisterProcessor(processor));
             });
+            EditorViewToolTypes = new Registry<Type>(type => host.RegisterEditorViewTool(record, type));
             SettingsKeys = new Registry<SettingsKey>(key => host.RegisterSettingsKey(record, key));
             ProfileSettings = new Registry<PackageSettingsEntry>(entry => RegisterInList(record, host.profileSettings, entry));
         }
@@ -246,6 +247,8 @@ public abstract partial class EditorPluginHost
         public IPluginRegistry<IPasteProcessor> PasteProcessors { get; }
 
         public IPluginRegistry<IAssetPostPasteProcessor> PostPasteProcessors { get; }
+
+        public IPluginRegistry<Type> EditorViewToolTypes { get; }
 
         public IPluginRegistry<SettingsKey> SettingsKeys { get; }
 

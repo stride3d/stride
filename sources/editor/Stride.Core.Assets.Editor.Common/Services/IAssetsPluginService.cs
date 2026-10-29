@@ -51,4 +51,10 @@ public interface IAssetsPluginService
     /// Gets the settings that the plugins add to the properties of the packages.
     /// </summary>
     IEnumerable<PackageSettingsEntry> GetProfileSettings();
+
+    /// <summary>
+    /// Gets the tools of the views of the game editors that the plugins register (<see cref="IEditorPluginContext.EditorViewToolTypes"/>),
+    /// each type once, in registration order. Safe to read from any thread.
+    /// </summary>
+    IReadOnlyList<Type> GetEditorViewToolTypes() => [];
 }
