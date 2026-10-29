@@ -16,8 +16,16 @@
         <ResourceInclude Source="avares://Stride.Assets.Editor.Avalonia/Views/SceneEditorImages.axaml"/>
       </ResourceDictionary.MergedDictionaries>
 
-      <!-- The context menu of an empty area of the tree, as the WPF TreeViewContextMenu: the paste goes to the root -->
+      <!-- The context menu of an empty area of the tree, as the WPF TreeViewContextMenu: the creation and the paste go to
+           the root -->
       <ContextMenu x:Key="RootContextMenu" x:DataType="vm:EntityHierarchyEditorViewModel">
+        <MenuItem Header="{sd:LocalizeString Create, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"/>
+        <MenuItem Header="{sd:LocalizeString Folder, Context=Menu}" Command="{Binding CreateFolderInRootCommand}">
+          <MenuItem.Icon><Image Source="{StaticResource ImageNewFolder}"/></MenuItem.Icon>
+        </MenuItem>
+        <MenuItem Header="{sd:LocalizeString Empty entity, Context=Menu}" Command="{Binding CreateEntityInRootCommand}"/>
+        <!-- The categories of entity factories go here (see EntityHierarchyEditorView.AddFactoryItems) -->
+        <Separator Tag="Factories" IsVisible="False"/>
         <MenuItem Header="{sd:LocalizeString Actions, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"/>
         <MenuItem Header="{sd:LocalizeString Duplicate, Context=Menu}" InputGesture="Ctrl+D"
                   Command="{Binding DuplicateSelectionCommand}"/>
@@ -39,8 +47,16 @@
         </MenuItem>
       </ContextMenu>
 
-      <!-- The context menu of an item of the tree, as the WPF TreeViewItemContextMenu: the paste goes into the selection -->
+      <!-- The context menu of an item of the tree, as the WPF TreeViewItemContextMenu: the creation and the paste go into
+           the selection -->
       <ContextMenu x:Key="ItemContextMenu" x:DataType="vm:EntityHierarchyEditorViewModel">
+        <MenuItem Header="{sd:LocalizeString Create, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"/>
+        <MenuItem Header="{sd:LocalizeString Folder, Context=Menu}" Command="{Binding CreateFolderInSelectionCommand}">
+          <MenuItem.Icon><Image Source="{StaticResource ImageNewFolder}"/></MenuItem.Icon>
+        </MenuItem>
+        <MenuItem Header="{sd:LocalizeString Empty entity, Context=Menu}" Command="{Binding CreateEntityInSelectionCommand}"/>
+        <!-- The categories of entity factories go here (see EntityHierarchyEditorView.AddFactoryItems) -->
+        <Separator Tag="Factories" IsVisible="False"/>
         <MenuItem Header="{sd:LocalizeString Actions, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"/>
         <MenuItem Header="{sd:LocalizeString Duplicate, Context=Menu}" InputGesture="Ctrl+D"
                   Command="{Binding DuplicateSelectionCommand}"/>
@@ -70,6 +86,23 @@
       <sd:EditCommandBinding Kind="Paste" Command="{Binding PasteCommand}" CommandParameter="{sd:False}"/>
     </sd:EditCommands.Bindings>
     <DockPanel Grid.Column="0">
+      <!-- The toolbar of the hierarchy, as in the WPF scene editor -->
+      <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="4" Margin="2">
+        <Button x:Name="CreateButton" Focusable="False" Background="Transparent" Padding="4"
+                ToolTip.Tip="{sd:LocalizeString Create a new entity, Context=ToolTip}">
+          <Image Source="{StaticResource ImageNewAsset}" Width="16" Height="16"/>
+          <Button.Flyout>
+            <MenuFlyout Placement="BottomEdgeAlignedLeft" Opening="OnCreateFlyoutOpening">
+              <MenuItem Header="{sd:LocalizeString Create, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"/>
+              <MenuItem Header="{sd:LocalizeString New folder, Context=Menu}" Command="{Binding CreateFolderInRootCommand}">
+                <MenuItem.Icon><Image Source="{StaticResource ImageNewFolder}"/></MenuItem.Icon>
+              </MenuItem>
+              <MenuItem Header="{sd:LocalizeString Empty entity, Context=Menu}" Command="{Binding CreateEntityInRootCommand}"/>
+              <Separator Tag="Factories" IsVisible="False"/>
+            </MenuFlyout>
+          </Button.Flyout>
+        </Button>
+      </StackPanel>
       <TreeView x:Name="HierarchyTree"
                 Focusable="True"
                 ItemsSource="{Binding HierarchyRoot, Mode=OneWay, Converter={sd:Yield}}"
