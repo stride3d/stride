@@ -3,6 +3,7 @@
 
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Data;
 using Avalonia.Headless.XUnit;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
@@ -81,6 +82,60 @@ public sealed class EditorControlTests
         editor.Y = 5;
 
         Assert.Equal(new Vector3(1, 5, 3), editor.Value);
+    }
+
+    [AvaloniaFact]
+    public void TimeSpanEditorSplitsTheValueIntoComponents()
+    {
+        var editor = Show(new TimeSpanEditor { Value = new TimeSpan(1, 2, 3, 4, 500) });
+
+        Assert.Equal(1, editor.Days);
+        Assert.Equal(2, editor.Hours);
+        Assert.Equal(3, editor.Minutes);
+        Assert.Equal(4.5, editor.Seconds);
+
+        var boxes = editor.GetVisualDescendants().OfType<NumericTextBox>().ToList();
+        Assert.Equal([1.0, 2.0, 3.0, 4.5], boxes.Select(x => x.Value));
+    }
+
+    [AvaloniaFact]
+    public void TimeSpanEditorComponentsUpdateTheValue()
+    {
+        var editor = Show(new TimeSpanEditor { Value = new TimeSpan(1, 2, 3, 4) });
+
+        editor.Hours = 5;
+        Assert.Equal(new TimeSpan(1, 5, 3, 4), editor.Value);
+
+        editor.Seconds = 30.25;
+        Assert.Equal(new TimeSpan(1, 5, 3, 30, 250), editor.Value);
+    }
+
+    [AvaloniaFact]
+    public void TimeSpanEditorFollowsValueChanges()
+    {
+        var editor = Show(new TimeSpanEditor { Value = TimeSpan.FromSeconds(10) });
+
+        editor.Value = TimeSpan.FromMinutes(90);
+
+        Assert.Equal(0, editor.Days);
+        Assert.Equal(1, editor.Hours);
+        Assert.Equal(30, editor.Minutes);
+        Assert.Equal(0.0, editor.Seconds);
+    }
+
+    [AvaloniaFact]
+    public void TimeSpanEditorWritesComponentEditsToTheBoundSource()
+    {
+        var source = new TimeSpanSource { Duration = new TimeSpan(0, 0, 1, 0) };
+        var editor = new TimeSpanEditor { DataContext = source };
+        editor.Bind(TimeSpanEditor.ValueProperty, new Binding(nameof(TimeSpanSource.Duration)));
+        Show(editor);
+
+        Assert.Equal(1, editor.Minutes);
+
+        editor.Minutes = 2;
+
+        Assert.Equal(new TimeSpan(0, 0, 2, 0), source.Duration);
     }
 
     [AvaloniaFact]
@@ -230,5 +285,10 @@ public sealed class EditorControlTests
         Assert.Equal(typeof(Vector4Editor), Vector4Editor.WProperty.OwnerType);
         Assert.Equal(typeof(Int3Editor), Int3Editor.ZProperty.OwnerType);
         Assert.Equal(typeof(TimeSpanEditor), TimeSpanEditor.PlaceholderTextProperty.OwnerType);
+    }
+
+    private sealed class TimeSpanSource
+    {
+        public TimeSpan? Duration { get; set; }
     }
 }
