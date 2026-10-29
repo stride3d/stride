@@ -26,8 +26,11 @@ namespace Stride.GameStudio.Plugin
     {
         public bool EnableThumbnailService { get; set; } = true;
 
-        public override void InitializeSession(ISessionViewModel session)
+        public override void InitializeSession(ISessionPluginContext context)
         {
+            base.InitializeSession(context);
+
+            var session = context.Session;
             var sessionViewModel = (SessionViewModel)session;
             var fallbackDirectory = UPath.Combine(EditorSettings.FallbackBuildCacheDirectory, new UDirectory(StrideGameStudio.EditorName));
             var buildDirectory = fallbackDirectory;
@@ -57,23 +60,23 @@ namespace Stride.GameStudio.Plugin
             CollectBuildCache(buildDirectory);
 
             var settingsProvider = new GameSettingsProviderService(session);
-            session.ServiceProvider.RegisterService(settingsProvider);
+            context.Services.Register(settingsProvider);
 
             var builderService = new GameStudioBuilderService(sessionViewModel, settingsProvider, buildDirectory);
-            session.ServiceProvider.RegisterService(builderService);
-            session.ServiceProvider.RegisterService(builderService.Database); // TODO: this should be removed, the AssetBuilderService is reachable from anywhere now
+            context.Services.Register(builderService);
+            context.Services.Register(builderService.Database); // TODO: this should be removed, the AssetBuilderService is reachable from anywhere now
 
             var previewService = new GameStudioPreviewService(sessionViewModel);
-            session.ServiceProvider.RegisterService(previewService);
+            context.Services.Register(previewService);
 
             if (EnableThumbnailService)
             {
                 var thumbnailService = new GameStudioThumbnailService(sessionViewModel, settingsProvider, builderService);
-                session.ServiceProvider.RegisterService(thumbnailService);
+                context.Services.Register(thumbnailService);
             }
 
             var strideDebugService = new StrideDebugService(session.ServiceProvider);
-            session.ServiceProvider.RegisterService(strideDebugService);
+            context.Services.Register(strideDebugService);
 
             GameStudioViewModel.GameStudio.Preview = new PreviewViewModel(sessionViewModel);
             GameStudioViewModel.GameStudio.Debugging = new DebuggingViewModel(GameStudioViewModel.GameStudio, strideDebugService);

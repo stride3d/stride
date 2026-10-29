@@ -2,13 +2,11 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Editor;
 using Stride.Engine;
 using Stride.UI.Assets;
@@ -29,15 +27,20 @@ namespace Stride.UI.Editor;
 /// </summary>
 public sealed class UIEditorPlugin : StrideAssetsPlugin
 {
-    public override void InitializeSession(ISessionViewModel session)
+    /// <inheritdoc />
+    public override void Initialize(IEditorPluginContext context)
     {
-        session.AssetViewProperties.RegisterNodePresenterUpdater(new UIAssetNodeUpdater());
+        base.Initialize(context);
+
+        context.PasteProcessors.Register(new UIHierarchyPasteProcessor());
     }
 
     /// <inheritdoc />
-    public override void RegisterPasteProcessors(ICollection<IPasteProcessor> pasteProcessors, ISessionViewModel session)
+    public override void InitializeSession(ISessionPluginContext context)
     {
-        pasteProcessors.Add(new UIHierarchyPasteProcessor());
+        base.InitializeSession(context);
+
+        context.NodePresenterUpdaters.Register(new UIAssetNodeUpdater());
     }
 
     /// <summary>

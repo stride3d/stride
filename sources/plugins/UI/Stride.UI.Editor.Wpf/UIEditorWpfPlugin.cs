@@ -3,7 +3,7 @@
 
 using System;
 using System.Windows;
-using Stride.Core.Diagnostics;
+using Stride.Core.Assets.Editor.Services;
 using Stride.Editor;
 
 namespace Stride.UI.Editor.Views;
@@ -15,9 +15,11 @@ namespace Stride.UI.Editor.Views;
 public sealed class UIEditorWpfPlugin : StrideAssetsWpfPlugin
 {
     /// <inheritdoc />
-    protected override void Initialize(ILogger logger)
+    public override void Initialize(IEditorPluginContext context)
     {
+        base.Initialize(context);
+
         var templates = (ResourceDictionary)Application.LoadComponent(new Uri("/Stride.UI.Editor.Wpf;component/Views/UIPropertyTemplates.xaml", UriKind.RelativeOrAbsolute));
-        RegisterResourceDictionary(templates);
+        RegisterResourceDictionary(context, templates);
     }
 }

@@ -62,8 +62,6 @@ namespace Stride.Assets.Presentation
             }
         }
 
-        private EffectCompilerServerSession effectCompilerServerSession;
-
         private static ResourceDictionary imageDictionary;
         private static ResourceDictionary animationPropertyTemplateDictionary;
         private static ResourceDictionary entityPropertyTemplateDictionary;
@@ -101,17 +99,23 @@ namespace Stride.Assets.Presentation
 
         public StrideDefaultAssetsPlugin()
         {
-            ProfileSettings.Add(new PackageSettingsEntry(GameUserSettings.Effect.EffectCompilation, TargetPackage.Executable));
-            ProfileSettings.Add(new PackageSettingsEntry(GameUserSettings.Effect.RecordUsedEffects, TargetPackage.Executable));
-
             LoadDefaultTemplates();
         }
 
         public static void LoadDefaultTemplates() => StrideDefaultTemplates.Load();
 
         /// <inheritdoc />
-        protected override void Initialize(ILogger logger)
+        /// <remarks>
+        /// Unlike the other Stride plugins, it registers only the asset and URL references as primitive types, not the
+        /// reference types of every assembly, so it does not call the base method: the Game Studio's editor plugin does.
+        /// </remarks>
+        public override void Initialize(IEditorPluginContext context)
         {
+            context.ProfileSettings.Register(new PackageSettingsEntry(GameUserSettings.Effect.EffectCompilation, TargetPackage.Executable));
+            context.ProfileSettings.Register(new PackageSettingsEntry(GameUserSettings.Effect.RecordUsedEffects, TargetPackage.Executable));
+            context.PrimitiveTypes.Register(typeof(AssetReference));
+            context.PrimitiveTypes.Register(typeof(UrlReferenceBase));
+
             imageDictionary = (ResourceDictionary)Application.LoadComponent(new Uri("/Stride.Assets.Presentation.Wpf;component/View/ImageDictionary.xaml", UriKind.RelativeOrAbsolute));
             animationPropertyTemplateDictionary = (ResourceDictionary)Application.LoadComponent(new Uri("/Stride.Assets.Presentation.Wpf;component/View/AnimationPropertyTemplates.xaml", UriKind.RelativeOrAbsolute));
             entityPropertyTemplateDictionary = (ResourceDictionary)Application.LoadComponent(new Uri("/Stride.Assets.Presentation.Wpf;component/View/EntityPropertyTemplates.xaml", UriKind.RelativeOrAbsolute));
@@ -161,57 +165,77 @@ namespace Stride.Assets.Presentation
             foreach (var assembly in AssetRegistry.AssetAssemblies)
                 OnRegisteredAssetAssembly(assembly);
 
-            RegisterResourceDictionary(imageDictionary);
-            RegisterResourceDictionary(animationPropertyTemplateDictionary);
-            RegisterResourceDictionary(entityPropertyTemplateDictionary);
-            RegisterResourceDictionary(materialPropertyTemplateDictionary);
-            RegisterResourceDictionary(skeletonTemplateDictionary);
-            RegisterResourceDictionary(spriteFontTemplateDictionary);
-            RegisterResourceDictionary(graphicsCompositorTemplateDictionary);
-            RegisterResourceDictionary(visualScriptingTemplateDictionary);
-            RegisterResourceDictionary(visualScriptingGraphTemplatesDictionary);
-            RegisterComponentOrders(logger);
+            // The type-keyed entries are type images; a later dictionary replaces the image of an earlier one
+            var typeImages = new Dictionary<Type, object>();
+            foreach (var dictionary in new[]
+                     {
+                         imageDictionary, animationPropertyTemplateDictionary, entityPropertyTemplateDictionary, materialPropertyTemplateDictionary,
+                         skeletonTemplateDictionary, spriteFontTemplateDictionary, graphicsCompositorTemplateDictionary, visualScriptingTemplateDictionary,
+                         visualScriptingGraphTemplatesDictionary,
+                     })
+            {
+                RegisterResourceDictionary(context, dictionary);
+                foreach (object entry in dictionary.Keys)
+                {
+                    if (entry is Type type)
+                        typeImages[type] = dictionary[entry];
+                }
+            }
+            foreach (var (type, image) in typeImages)
+                context.TypeImages.Register(type, image);
+
+            context.CopyProcessors.Register(new EntityComponentCopyProcessor());
+            context.PasteProcessors.Register(new EntityComponentPasteProcessor());
+            context.PasteProcessors.Register(new EntityHierarchyPasteProcessor());
+            context.PostPasteProcessors.Register(new ScenePostPasteProcessor());
+
+            RegisterComponentOrders(context.Logger);
         }
 
         /// <inheritdoc />
-        public override void InitializeSession(ISessionViewModel session)
+        public override void InitializeSession(ISessionPluginContext context)
         {
+            base.InitializeSession(context);
+
+            var session = context.Session;
             var sessionViewModel = (SessionViewModel)session;
-            session.ServiceProvider.RegisterService(new StrideDialogService());
+            context.Services.Register(new StrideDialogService());
             var assetsViewModel = new StrideAssetsViewModel(sessionViewModel);
 
-            sessionViewModel.AssetViewProperties.RegisterNodePresenterCommand(new FetchEntityCommand());
-            sessionViewModel.AssetViewProperties.RegisterNodePresenterCommand(new SetEntityReferenceCommand());
-            sessionViewModel.AssetViewProperties.RegisterNodePresenterCommand(new SetComponentReferenceCommand());
-            sessionViewModel.AssetViewProperties.RegisterNodePresenterCommand(new SetSymbolReferenceCommand());
-            sessionViewModel.AssetViewProperties.RegisterNodePresenterCommand(new PickupEntityCommand());
-            sessionViewModel.AssetViewProperties.RegisterNodePresenterCommand(new PickupEntityComponentCommand());
-            sessionViewModel.AssetViewProperties.RegisterNodePresenterCommand(new EditCurveCommand(sessionViewModel));
-            sessionViewModel.AssetViewProperties.RegisterNodePresenterCommand(new SkeletonNodePreserveAllCommand());
+            context.NodePresenterCommands.Register(new FetchEntityCommand());
+            context.NodePresenterCommands.Register(new SetEntityReferenceCommand());
+            context.NodePresenterCommands.Register(new SetComponentReferenceCommand());
+            context.NodePresenterCommands.Register(new SetSymbolReferenceCommand());
+            context.NodePresenterCommands.Register(new PickupEntityCommand());
+            context.NodePresenterCommands.Register(new PickupEntityComponentCommand());
+            context.NodePresenterCommands.Register(new EditCurveCommand(sessionViewModel));
+            context.NodePresenterCommands.Register(new SkeletonNodePreserveAllCommand());
             //TODO: Add back once properly implemented.
-            //sessionViewModel.AssetViewProperties.RegisterNodePresenterCommand(new AddNewScriptComponentCommand());
+            //context.NodePresenterCommands.Register(new AddNewScriptComponentCommand());
 
-            session.AssetViewProperties.RegisterNodePresenterUpdater(new AnimationAssetNodeUpdater());
-            session.AssetViewProperties.RegisterNodePresenterUpdater(new CameraSlotNodeUpdater());
-            session.AssetViewProperties.RegisterNodePresenterUpdater(new EntityHierarchyAssetNodeUpdater());
-            session.AssetViewProperties.RegisterNodePresenterUpdater(new EntityHierarchyEditorNodeUpdater());
-            session.AssetViewProperties.RegisterNodePresenterUpdater(new GameSettingsAssetNodeUpdater());
-            session.AssetViewProperties.RegisterNodePresenterUpdater(new GraphicsCompositorAssetNodeUpdater());
-            session.AssetViewProperties.RegisterNodePresenterUpdater(new FXAAEffectNodeUpdater());
-            session.AssetViewProperties.RegisterNodePresenterUpdater(new MaterialAssetNodeUpdater());
-            session.AssetViewProperties.RegisterNodePresenterUpdater(new ModelAssetNodeUpdater());
-            session.AssetViewProperties.RegisterNodePresenterUpdater(new ModelNodeLinkNodeUpdater());
-            session.AssetViewProperties.RegisterNodePresenterUpdater(new SkeletonAssetNodeUpdater());
-            session.AssetViewProperties.RegisterNodePresenterUpdater(new SpriteFontAssetNodeUpdater());
-            session.AssetViewProperties.RegisterNodePresenterUpdater(new SpriteSheetAssetNodeUpdater());
-            session.AssetViewProperties.RegisterNodePresenterUpdater(new TextureAssetNodeUpdater());
-            session.AssetViewProperties.RegisterNodePresenterUpdater(new UnloadableObjectPropertyNodeUpdater());
-            session.AssetViewProperties.RegisterNodePresenterUpdater(new VisualScriptNodeUpdater());
+            context.NodePresenterUpdaters.Register(new AnimationAssetNodeUpdater());
+            context.NodePresenterUpdaters.Register(new CameraSlotNodeUpdater());
+            context.NodePresenterUpdaters.Register(new EntityHierarchyAssetNodeUpdater());
+            context.NodePresenterUpdaters.Register(new EntityHierarchyEditorNodeUpdater());
+            context.NodePresenterUpdaters.Register(new GameSettingsAssetNodeUpdater());
+            context.NodePresenterUpdaters.Register(new GraphicsCompositorAssetNodeUpdater());
+            context.NodePresenterUpdaters.Register(new FXAAEffectNodeUpdater());
+            context.NodePresenterUpdaters.Register(new MaterialAssetNodeUpdater());
+            context.NodePresenterUpdaters.Register(new ModelAssetNodeUpdater());
+            context.NodePresenterUpdaters.Register(new ModelNodeLinkNodeUpdater());
+            context.NodePresenterUpdaters.Register(new SkeletonAssetNodeUpdater());
+            context.NodePresenterUpdaters.Register(new SpriteFontAssetNodeUpdater());
+            context.NodePresenterUpdaters.Register(new SpriteSheetAssetNodeUpdater());
+            context.NodePresenterUpdaters.Register(new TextureAssetNodeUpdater());
+            context.NodePresenterUpdaters.Register(new UnloadableObjectPropertyNodeUpdater());
+            context.NodePresenterUpdaters.Register(new VisualScriptNodeUpdater());
 
-            // Connects to effect compiler (to import new effect permutations discovered by running the game)
+            // Connects to effect compiler (to import new effect permutations discovered by running the game), until the
+            // session closes
             if (Stride.Core.Assets.Editor.Settings.EditorSettings.UseEffectCompilerServer.GetValue())
             {
-                effectCompilerServerSession = new EffectCompilerServerSession(sessionViewModel);
+                var effectCompilerServerSession = new EffectCompilerServerSession(sessionViewModel);
+                context.OnClose(effectCompilerServerSession.Dispose);
             }
 
             // Extra packages to display in "add reference" dialog
@@ -226,58 +250,6 @@ namespace Stride.Assets.Presentation
             sessionViewModel.SuggestedPackages.Add(new PackageName("Stride.Voxels", new PackageVersion(StrideVersion.NuGetVersion)));
             sessionViewModel.SuggestedPackages.Add(new PackageName("Stride.SpriteStudio.Runtime", new PackageVersion(StrideVersion.NuGetVersion)));
             sessionViewModel.SuggestedPackages.Add(new PackageName("Stride.UI", new PackageVersion(StrideVersion.NuGetVersion)));
-        }
-
-        /// <inheritdoc />
-        public override void RegisterPrimitiveTypes(ICollection<Type> primitiveTypes)
-        {
-            primitiveTypes.Add(typeof(AssetReference));
-            primitiveTypes.Add(typeof(UrlReferenceBase));
-        }
-
-        /// <inheritdoc />
-        public override void RegisterCopyProcessors(ICollection<ICopyProcessor> copyProcessors, ISessionViewModel session)
-        {
-            copyProcessors.Add(new EntityComponentCopyProcessor());
-        }
-
-        /// <inheritdoc />
-        public override void RegisterPasteProcessors(ICollection<IPasteProcessor> pasteProcessors, ISessionViewModel session)
-        {
-            pasteProcessors.Add(new EntityComponentPasteProcessor());
-            pasteProcessors.Add(new EntityHierarchyPasteProcessor());
-        }
-
-        /// <inheritdoc />
-        public override void RegisterPostPasteProcessors(ICollection<IAssetPostPasteProcessor> postPasteProcessors, ISessionViewModel session)
-        {
-            postPasteProcessors.Add(new ScenePostPasteProcessor());
-        }
-
-        /// <inheritdoc />
-        protected override void SessionDisposed(ISessionViewModel session)
-        {
-            if (effectCompilerServerSession != null)
-            {
-                effectCompilerServerSession.Dispose();
-                effectCompilerServerSession = null;
-            }
-            base.SessionDisposed(session);
-        }
-
-        /// <inheritdoc />
-        protected override void RegisterResourceDictionary(ResourceDictionary dictionary)
-        {
-            base.RegisterResourceDictionary(dictionary);
-
-            foreach (object entry in dictionary.Keys)
-            {
-                var type = entry as Type;
-                if (type != null)
-                {
-                    TypeImages[type] = dictionary[entry];
-                }
-            }
         }
 
         /// <summary>

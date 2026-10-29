@@ -52,8 +52,14 @@ public sealed class StrideDefaultAssetsPlugin : AssetsPlugin
     public static IReadOnlyList<(Type type, int order)> ComponentOrders { get; private set; } = [];
 
     /// <inheritdoc />
-    public override void InitializePlugin(ILogger logger)
+    public override void Initialize(IEditorPluginContext context)
     {
+        base.Initialize(context);
+
+        context.PrimitiveTypes.Register(typeof(AssetReference));
+        context.PrimitiveTypes.Register(typeof(UrlReferenceBase));
+
+        // The entity component metadata is process-wide: it is set once, by the first session
         if (initialized)
             return;
         initialized = true;
@@ -64,14 +70,7 @@ public sealed class StrideDefaultAssetsPlugin : AssetsPlugin
         };
 
         SetTypeExpandRuleFallback(typeof(EntityComponent).GetInheritedInstantiableTypes().ToArray());
-        RegisterComponentOrders(logger);
-    }
-
-    /// <inheritdoc />
-    public override void RegisterPrimitiveTypes(ICollection<Type> primitiveTypes)
-    {
-        primitiveTypes.Add(typeof(AssetReference));
-        primitiveTypes.Add(typeof(UrlReferenceBase));
+        RegisterComponentOrders(context.Logger);
     }
 
     /// <summary>
