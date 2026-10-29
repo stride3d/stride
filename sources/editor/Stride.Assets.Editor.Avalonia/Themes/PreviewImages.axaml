@@ -13,4 +13,24 @@
       </DrawingGroup>
     </DrawingImage.Drawing>
   </DrawingImage>
+
+  <DrawingImage x:Key="ImagePlay">
+    <DrawingImage.Drawing>
+      <DrawingGroup>
+        <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+        <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M2.9997,-0.000199999999999534L2.9997,15.9998 13.6677,7.9998z" />
+        <GeometryDrawing Brush="#FF388934" Geometry="F1M4,2L4,14 12,8z" />
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
+
+  <DrawingImage x:Key="ImagePause">
+    <DrawingImage.Drawing>
+      <DrawingGroup>
+        <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+        <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M13,13L3,13 3,2 13,2z" />
+        <GeometryDrawing Brush="#FF00529C" Geometry="F1M12,3L9,3 9,12 12,12z M7,12L4,12 4,3 7,3z" />
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
 </ResourceDictionary>
