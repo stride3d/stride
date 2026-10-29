@@ -1,0 +1,21 @@
+Plugin: Stride.UI.Editor.Views.UIEditorWpfPlugin
+AssetViewModelTypes:
+AssetEditorViewModelTypes:
+AssetEditorViewTypes:
+  Stride.UI.Editor.ViewModels.UILibraryEditorViewModel -> Stride.UI.Editor.Views.UILibraryEditorView
+  Stride.UI.Editor.ViewModels.UIPageEditorViewModel -> Stride.UI.Editor.Views.UIPageEditorView
+AssetPreviewViewModelTypes:
+AssetPreviewViewTypes:
+PrimitiveTypes:
+  (the reference types of every registered assembly)
+EnumImages:
+TypeImages:
+TemplateProviders:
+  Stride.Core.Assets.Editor.View.TypeMatchTemplateProvider Thickness
+  Stride.Core.Assets.Editor.View.TypeMatchTemplateProvider StripDefinition
+  Stride.Core.Assets.Editor.View.TemplateProviders.TypeAndPropertyNameMatchTemplateProvider Single_Rotation
+CopyProcessors:
+PasteProcessors:
+PostPasteProcessors:
+SettingsKeys:
+ProfileSettings:
