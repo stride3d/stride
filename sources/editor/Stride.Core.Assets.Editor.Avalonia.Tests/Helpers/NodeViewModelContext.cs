@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core.Presentation.Quantum;
+using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Core.Presentation.Quantum.ViewModels;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
@@ -16,9 +17,11 @@ public sealed class NodeViewModelContext
 {
     private readonly NodeContainer nodeContainer = new();
 
-    public NodeViewModelContext()
+    public NodeViewModelContext(params INodePresenterUpdater[] updaters)
     {
-        ServiceProvider = new ViewModelServiceProvider([new NullDispatcherService(), new GraphViewModelService(nodeContainer)]);
+        var graphViewModelService = new GraphViewModelService(nodeContainer);
+        graphViewModelService.AvailableUpdaters.AddRange(updaters);
+        ServiceProvider = new ViewModelServiceProvider([new NullDispatcherService(), graphViewModelService]);
     }
 
     public ViewModelServiceProvider ServiceProvider { get; }
