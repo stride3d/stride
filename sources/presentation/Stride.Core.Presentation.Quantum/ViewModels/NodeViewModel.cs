@@ -21,6 +21,8 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
 {
     internal class DifferentValuesObject { public readonly string Name = "DifferentValues"; };
 
+    // Avalonia bindings to the indexer (this[string]) only listen to the change of the indexer itself, not to the change of a named member
+    private const string IndexerPropertyName = "Item";
     protected static readonly HashSet<string> ReservedNames = [];
     private readonly AutoUpdatingSortedObservableCollection<NodeViewModel> children = new(new AnonymousComparer<NodeViewModel>(CompareChildren), nameof(Name), nameof(NodeIndex), nameof(Order));
     private readonly ObservableCollection<NodePresenterCommandWrapper> commands = [];
@@ -34,6 +36,7 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
     private string displayName = null!;
     private bool isHighlighted;
     private bool valueChanging;
+    private bool refreshing;
     private readonly (Type declarer, int token)? sortingHint;
 
 #if DEBUG
@@ -417,22 +420,33 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
     /// </summary>
     public void Refresh()
     {
-        foreach (var child in Children.ToList())
+        // The indexer changes once, when the new children are there: in between, a binding to a child would see no child
+        OnPropertyChanging(IndexerPropertyName);
+        refreshing = true;
+        try
         {
-            RemoveChild(child);
-            child.Destroy();
-        }
-        foreach (var command in Commands.ToList())
-        {
-            RemoveCommand(command);
-        }
-        foreach (var data in AssociatedData.ToList())
-        {
-            RemoveAssociatedData(data.Key);
-        }
+            foreach (var child in Children.ToList())
+            {
+                RemoveChild(child);
+                child.Destroy();
+            }
+            foreach (var command in Commands.ToList())
+            {
+                RemoveCommand(command);
+            }
+            foreach (var data in AssociatedData.ToList())
+            {
+                RemoveAssociatedData(data.Key);
+            }
 
-        owner.GraphViewModelService.NodeViewModelFactory.GenerateChildren(owner, this, nodePresenters);
-        FinishInitialization();
+            owner.GraphViewModelService.NodeViewModelFactory.GenerateChildren(owner, this, nodePresenters);
+            FinishInitialization();
+        }
+        finally
+        {
+            refreshing = false;
+        }
+        OnPropertyChanged(IndexerPropertyName);
     }
 
     protected void CheckDynamicMemberConsistency()
@@ -639,12 +653,16 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
         {
             foreach (var propertyName in propertyNames)
                 NotifyPropertyChanging(propertyName);
+            if (!refreshing)
+                OnPropertyChanging(IndexerPropertyName);
         }
         changeAction();
         if (initializingChildren == null)
         {
             foreach (var propertyName in propertyNames)
                 NotifyPropertyChanged(propertyName);
+            if (!refreshing)
+                OnPropertyChanged(IndexerPropertyName);
         }
     }
 
