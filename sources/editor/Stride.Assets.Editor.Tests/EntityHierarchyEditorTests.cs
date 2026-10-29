@@ -127,6 +127,22 @@ public sealed class EntityHierarchyEditorTests
         editor.Destroy();
     }
 
+    [Fact]
+    public async Task WithoutAGameTheCameraCannotFrameTheSelection()
+    {
+        using var fixture = await OpenSceneAsync();
+        var editor = await OpenEditorAsync(fixture);
+        var box = FindEntity(editor, "Box");
+
+        editor.SelectedContent.Add(box);
+
+        // The session of the tests has no game viewport: the editor works without a game
+        Assert.False(editor.FocusOnSelectionCommand.IsEnabled);
+        Assert.False(editor.FocusOnEntityCommand.IsEnabled);
+        await editor.FocusOnEntityAsync(box);
+        editor.Destroy();
+    }
+
     /// <summary>
     /// A scene with a "Box" root entity, and a "Parent" root entity that has a "Child".
     /// </summary>

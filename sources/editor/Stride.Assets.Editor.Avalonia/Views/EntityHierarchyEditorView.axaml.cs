@@ -3,6 +3,7 @@
 
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Stride.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.Editors;
@@ -23,6 +24,23 @@ public partial class EntityHierarchyEditorView : UserControl, IAssetEditorView
         base.OnAttachedToVisualTree(e);
         // The game renders while its editor is shown
         (DataContext as EntityHierarchyEditorViewModel)?.ShowGame();
+    }
+
+    /// <inheritdoc />
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        base.OnKeyDown(e);
+
+        // F frames the last selected entity, from the hierarchy or the view, as in the WPF scene editor. The keys reach
+        // the view model after the focused control, so typing an F in a text box doesn't move the camera.
+        if (e.Handled || e.Key != Key.F || e.KeyModifiers != KeyModifiers.None || e.Source is TextBox)
+            return;
+
+        if (DataContext is EntityHierarchyEditorViewModel { FocusOnSelectionCommand: { IsEnabled: true } command })
+        {
+            command.Execute();
+            e.Handled = true;
+        }
     }
 
     /// <inheritdoc />

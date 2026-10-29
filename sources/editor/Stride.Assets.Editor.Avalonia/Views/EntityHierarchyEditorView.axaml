@@ -15,18 +15,24 @@
                 SelectedItems="{Binding SelectedContent}"
                 SelectionMode="Multiple">
         <Control.DataTemplates>
-          <!-- Default template -->
-          <TreeDataTemplate DataType="{x:Type vm2:EntityHierarchyItemViewModel}"
-                            ItemsSource="{Binding Children}">
-            <TextBlock Text="{Binding Name}" />
-          </TreeDataTemplate>
           <!-- Entity template -->
           <TreeDataTemplate DataType="{x:Type vm2:EntityViewModel}"
                             ItemsSource="{Binding Children}">
-            <StackPanel Orientation="Horizontal">
-              <!-- TODO icon -->
-              <TextBlock Text="{Binding Name}" />
-            </StackPanel>
+            <DockPanel>
+              <!-- Focus button (the camera frames the entity), as in the WPF scene editor -->
+              <Button DockPanel.Dock="Right" Focusable="False" Background="Transparent" Padding="2" Margin="8,0,0,0"
+                      Command="{Binding $parent[TreeView].((vm:EntityHierarchyEditorViewModel)DataContext).FocusOnEntityCommand}"
+                      CommandParameter="{Binding}"
+                      ToolTip.Tip="{sd:LocalizeString Focus on this entity (F), Context=ToolTip}">
+                <!-- The icon of the WPF scene editor -->
+                <Path Width="16" Height="16" Stretch="None" Fill="{DynamicResource SystemControlForegroundBaseHighBrush}"
+                      Data="F1M10.167,9.667C8.053,9.667 6.334,7.947 6.334,5.834 6.334,3.72 8.053,2 10.167,2 12.28,2 14,3.72 14,5.834 14,7.947 12.28,9.667 10.167,9.667 M10.167,1C7.502,1 5.334,3.168 5.334,5.834 5.334,6.985 5.755,8.03 6.431,8.862L1.147,14.146C0.951000000000001,14.342 0.951000000000001,14.658 1.147,14.854 1.244,14.951 1.372,15 1.5,15 1.628,15 1.756,14.951 1.854,14.854L7.138,9.569C7.969,10.245 9.015,10.667 10.167,10.667 12.832,10.667 15,8.499 15,5.834 15,3.168 12.832,1 10.167,1" />
+              </Button>
+              <StackPanel Orientation="Horizontal">
+                <!-- TODO icon -->
+                <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+              </StackPanel>
+            </DockPanel>
           </TreeDataTemplate>
           <!-- Scene template -->
           <TreeDataTemplate DataType="{x:Type vm2:SceneRootViewModel}"
@@ -35,6 +41,11 @@
               <!-- TODO icon -->
               <TextBlock Text="{Binding Name}" />
             </StackPanel>
+          </TreeDataTemplate>
+          <!-- Default template, last: the first template that matches is used, and the items above derive from this type -->
+          <TreeDataTemplate DataType="{x:Type vm2:EntityHierarchyItemViewModel}"
+                            ItemsSource="{Binding Children}">
+            <TextBlock Text="{Binding Name}" />
           </TreeDataTemplate>
         </Control.DataTemplates>
         <StyledElement.Styles>
