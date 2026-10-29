@@ -4,7 +4,8 @@
                     xmlns:views="using:Stride.Assets.Editor.Avalonia.Views.Preview"
                     xmlns:vm="using:Stride.Assets.Editor.ViewModels.Preview"
                     xmlns:preview="using:Stride.Assets.Editor.Preview"
-                    xmlns:caec="using:Stride.Core.Assets.Editor.Avalonia.Converters">
+                    xmlns:caec="using:Stride.Core.Assets.Editor.Avalonia.Converters"
+                    xmlns:graphics="using:Stride.Graphics">
   <!-- The control themes of the preview views of this assembly, ported from the WPF ones (Stride.Assets.Presentation.Wpf,
        Themes/Generic.xaml); StrideEditorViewPlugin merges this dictionary into the application. Each view keeps the game
        view of the preview in its PART_StrideView presenter and adds the controls of its view model around it. -->
@@ -154,6 +155,116 @@
               </Interaction.Behaviors>
             </Slider>
           </StackPanel>
+          <ContentPresenter x:Name="PART_StrideView"/>
+        </DockPanel>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+  <!-- Texture preview: the zoom, the mip level, the face of a cube texture or the slice of a 3D texture, and the scale and
+       size of the texture -->
+  <ControlTheme x:Key="{x:Type views:TexturePreviewView}" TargetType="views:TexturePreviewView">
+    <Setter Property="Template">
+      <ControlTemplate TargetType="views:TexturePreviewView">
+        <DockPanel x:DataType="vm:TexturePreviewViewModel">
+          <DockPanel DockPanel.Dock="Top" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
+            <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Margin="2">
+              <Button x:Name="PART_ZoomOut" Theme="{StaticResource PreviewToolBarButtonTheme}" Command="{Binding PreviewZoomOutCommand}"
+                      ToolTip.Tip="{sd:LocalizeString Zoom out, Context=ToolTip}">
+                <Image Source="{StaticResource ImageZoomOut}" Width="16" Height="16"/>
+              </Button>
+              <Button x:Name="PART_ZoomIn" Theme="{StaticResource PreviewToolBarButtonTheme}" Command="{Binding PreviewZoomInCommand}"
+                      ToolTip.Tip="{sd:LocalizeString Zoom in, Context=ToolTip}">
+                <Image Source="{StaticResource ImageZoomIn}" Width="16" Height="16"/>
+              </Button>
+              <Button x:Name="PART_RealSize" Theme="{StaticResource PreviewToolBarButtonTheme}" Command="{Binding PreviewScaleToRealSizeCommand}"
+                      ToolTip.Tip="{sd:LocalizeString Real size, Context=ToolTip}">
+                <Image Source="{StaticResource ImageScaleOnRealSize}" Width="16" Height="16"/>
+              </Button>
+              <Button x:Name="PART_FitOnScreen" Theme="{StaticResource PreviewToolBarButtonTheme}" Command="{Binding PreviewFitOnScreenCommand}"
+                      ToolTip.Tip="{sd:LocalizeString Fit on screen, Context=ToolTip}">
+                <Image Source="{StaticResource ImageFitOnScreen}" Width="16" Height="16"/>
+              </Button>
+              <Border Theme="{StaticResource PreviewToolBarSeparatorTheme}"/>
+              <ComboBox x:Name="PART_MipMaps" MinWidth="100" Margin="2" VerticalAlignment="Center"
+                        ItemsSource="{Binding PreviewAvailableMipMaps}" SelectedItem="{Binding PreviewSelectedMipMap}"/>
+              <ComboBox x:Name="PART_CubeMode" MinWidth="100" Margin="2" VerticalAlignment="Center"
+                        ItemsSource="{Binding Source={x:Type preview:TextureCubePreviewMode}, Converter={sd:EnumValues}, Mode=OneWay}"
+                        SelectedItem="{Binding SelectedCubePreviewMode}"
+                        IsVisible="{Binding PreviewDimension, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static graphics:TextureDimension.TextureCube}}"/>
+            </StackPanel>
+            <DockPanel x:Name="PART_Depth" Margin="2"
+                       IsVisible="{Binding PreviewDimension, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static graphics:TextureDimension.Texture3D}}">
+              <Button DockPanel.Dock="Left" Theme="{StaticResource PreviewToolBarButtonTheme}" Content="&lt;" Padding="4,0"
+                      Command="{Binding PreviewPreviousDepthCommand}" ToolTip.Tip="{sd:LocalizeString Previous slice, Context=ToolTip}"/>
+              <TextBlock DockPanel.Dock="Right" VerticalAlignment="Center" Margin="4" TextAlignment="Center" Width="60">
+                <Run Text="{Binding SelectedDepth, StringFormat={}{0:0.##}, Mode=OneWay}"/><Run Text="/"/><Run Text="{Binding PreviewTextureDepth, Mode=OneWay}"/>
+              </TextBlock>
+              <Button DockPanel.Dock="Right" Theme="{StaticResource PreviewToolBarButtonTheme}" Content="&gt;" Padding="4,0"
+                      Command="{Binding PreviewNextDepthCommand}" ToolTip.Tip="{sd:LocalizeString Next slice, Context=ToolTip}"/>
+              <Slider x:Name="PART_DepthSlider" VerticalAlignment="Center" Minimum="0" Maximum="{Binding PreviewTextureDepth}"
+                      Value="{Binding SelectedDepth}" SmallChange="1" LargeChange="5"/>
+            </DockPanel>
+          </DockPanel>
+          <Grid x:Name="PART_StatusBar" DockPanel.Dock="Bottom" ColumnDefinitions="*,Auto,2*"
+                Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                IsVisible="{Binding Session, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <TextBlock x:Name="PART_Scale" Grid.Column="0" Margin="5" VerticalAlignment="Center" Text="{Binding SpriteScale, StringFormat={}{0:P}}"/>
+            <Border Grid.Column="1" Theme="{StaticResource PreviewToolBarSeparatorTheme}"/>
+            <StackPanel Grid.Column="2" Orientation="Horizontal">
+              <TextBlock x:Name="PART_Width" Margin="5" VerticalAlignment="Center">
+                <Run Text="{sd:LocalizeString W:}"/><Run Text=" "/><Run Text="{Binding PreviewTextureWidth, Mode=OneWay}"/>
+              </TextBlock>
+              <TextBlock x:Name="PART_Height" Margin="5" VerticalAlignment="Center">
+                <Run Text="{sd:LocalizeString H:}"/><Run Text=" "/><Run Text="{Binding PreviewTextureHeight, Mode=OneWay}"/>
+              </TextBlock>
+            </StackPanel>
+          </Grid>
+          <ContentPresenter x:Name="PART_StrideView"/>
+        </DockPanel>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+  <!-- Sprite preview (any sprite batch preview without a view of its own): the zoom, and the scale and size of the sprite -->
+  <ControlTheme x:Key="{x:Type views:SpritePreviewView}" TargetType="views:SpritePreviewView">
+    <Setter Property="Template">
+      <ControlTemplate TargetType="views:SpritePreviewView">
+        <DockPanel x:DataType="vm:SpritePreviewViewModel">
+          <Border DockPanel.Dock="Top" Theme="{StaticResource PreviewToolBarTheme}">
+            <StackPanel Orientation="Horizontal" Margin="2">
+              <Button x:Name="PART_ZoomOut" Theme="{StaticResource PreviewToolBarButtonTheme}" Command="{Binding PreviewZoomOutCommand}"
+                      ToolTip.Tip="{sd:LocalizeString Zoom out, Context=ToolTip}">
+                <Image Source="{StaticResource ImageZoomOut}" Width="16" Height="16"/>
+              </Button>
+              <Button x:Name="PART_ZoomIn" Theme="{StaticResource PreviewToolBarButtonTheme}" Command="{Binding PreviewZoomInCommand}"
+                      ToolTip.Tip="{sd:LocalizeString Zoom in, Context=ToolTip}">
+                <Image Source="{StaticResource ImageZoomIn}" Width="16" Height="16"/>
+              </Button>
+              <Button x:Name="PART_RealSize" Theme="{StaticResource PreviewToolBarButtonTheme}" Command="{Binding PreviewScaleToRealSizeCommand}"
+                      ToolTip.Tip="{sd:LocalizeString Real size, Context=ToolTip}">
+                <Image Source="{StaticResource ImageScaleOnRealSize}" Width="16" Height="16"/>
+              </Button>
+              <Button x:Name="PART_FitOnScreen" Theme="{StaticResource PreviewToolBarButtonTheme}" Command="{Binding PreviewFitOnScreenCommand}"
+                      ToolTip.Tip="{sd:LocalizeString Fit on screen, Context=ToolTip}">
+                <Image Source="{StaticResource ImageFitOnScreen}" Width="16" Height="16"/>
+              </Button>
+            </StackPanel>
+          </Border>
+          <Grid x:Name="PART_StatusBar" DockPanel.Dock="Bottom" ColumnDefinitions="*,Auto,2*"
+                Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                IsVisible="{Binding Session, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <TextBlock x:Name="PART_Scale" Grid.Column="0" Margin="5" VerticalAlignment="Center" Text="{Binding SpriteScale, StringFormat={}{0:P}}"/>
+            <Border Grid.Column="1" Theme="{StaticResource PreviewToolBarSeparatorTheme}"/>
+            <StackPanel Grid.Column="2" Orientation="Horizontal">
+              <TextBlock x:Name="PART_Width" Margin="5" VerticalAlignment="Center">
+                <Run Text="{sd:LocalizeString W:}"/><Run Text=" "/><Run Text="{Binding PreviewWidth, Mode=OneWay}"/>
+              </TextBlock>
+              <TextBlock x:Name="PART_Height" Margin="5" VerticalAlignment="Center">
+                <Run Text="{sd:LocalizeString H:}"/><Run Text=" "/><Run Text="{Binding PreviewHeight, Mode=OneWay}"/>
+              </TextBlock>
+            </StackPanel>
+          </Grid>
           <ContentPresenter x:Name="PART_StrideView"/>
         </DockPanel>
       </ControlTemplate>
