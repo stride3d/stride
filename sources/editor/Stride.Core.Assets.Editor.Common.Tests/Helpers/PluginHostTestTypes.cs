@@ -34,6 +34,10 @@ public sealed class RecordingEditorPluginHost : EditorPluginHost
 
     public GraphViewModelService GraphService { get; } = new(new NodeContainer());
 
+    public bool ShowsAssemblyImages { get; init; }
+
+    protected override bool ShowsImagesOfRegisteredAssemblies => ShowsAssemblyImages;
+
     protected override Type AssetEditorViewModelType => typeof(IAssetEditorViewModel);
 
     protected override Type AssetEditorViewType => typeof(IEditorView);

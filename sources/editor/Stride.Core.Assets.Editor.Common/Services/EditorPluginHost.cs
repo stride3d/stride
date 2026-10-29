@@ -40,6 +40,9 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
     private readonly Dictionary<AssetsPlugin, PluginRecord> records = [];
     // The assemblies whose declared images are registered (once per assembly, under its first plugin)
     private readonly Dictionary<Assembly, PluginRecord> declaredImageAssemblies = [];
+    // The registered assemblies without a plugin whose declared images are registered (the runtime and Assets assemblies
+    // of the packages), each under its own record
+    private readonly Dictionary<Assembly, PluginRecord> assemblyImageRecords = [];
 
     private readonly TypeMap assetViewModelTypes;
     private readonly TypeMap editorViewModelTypes;
@@ -58,6 +61,7 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
     private readonly PluginLogger pluginLogger;
     private ILogger? logger;
     private bool followsRegistry;
+    private bool followsAssemblies;
     private bool sessionInitialized;
     private bool sessionOpened;
 
@@ -188,6 +192,13 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
     protected virtual object? DecodeImage(byte[] data) => null;
 
     /// <summary>
+    /// Whether the editor shows the images that every registered assembly declares, as long as it is registered, and not
+    /// only the ones of the plugin assemblies: the runtime and Assets assemblies of a package declare the images of their
+    /// types too. By default, when the host follows the plugin registry.
+    /// </summary>
+    protected virtual bool ShowsImagesOfRegisteredAssemblies => fixedPlugins is null;
+
+    /// <summary>
     /// Whether the editor of <paramref name="session"/> is initialized: a plugin that joins after that is initialized for
     /// the session right away. By default, whether <see cref="InitializeSession"/> ran.
     /// </summary>
@@ -250,6 +261,16 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
             AssetsPlugin.DiscoverPlugins();
         foreach (var plugin in Plugins.ToList())
             TryJoin(plugin, session);
+
+        // The images that the other registered assemblies declare, as long as they are registered
+        if (ShowsImagesOfRegisteredAssemblies && !followsAssemblies)
+        {
+            followsAssemblies = true;
+            AssemblyRegistry.AssemblyRegistered += AssemblyRegistered;
+            AssemblyRegistry.AssemblyUnregistered += AssemblyUnregistered;
+            foreach (var assembly in AssemblyRegistry.FindAll())
+                ScanAssemblyImages(assembly);
+        }
     }
 
     /// <inheritdoc />
@@ -273,9 +294,17 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
             AssetsPlugin.PluginsDiscovered -= PluginsDiscovered;
             AssetsPlugin.PluginsRemoved -= PluginsRemoved;
         }
+        if (followsAssemblies)
+        {
+            followsAssemblies = false;
+            AssemblyRegistry.AssemblyRegistered -= AssemblyRegistered;
+            AssemblyRegistry.AssemblyUnregistered -= AssemblyUnregistered;
+        }
         session = null;
         foreach (var plugin in sessionPlugins.Concat(records.Keys).Distinct().ToList())
             TryLeave(plugin);
+        foreach (var assembly in assemblyImageRecords.Keys.ToList())
+            RemoveAssemblyImages(assembly);
         GC.SuppressFinalize(this);
     }
 
@@ -328,6 +357,29 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
         }
     }
 
+    private void AssemblyRegistered(object? sender, AssemblyRegisteredEventArgs e) => OnEditorThread(() => ScanAssemblyImages(e.Assembly));
+
+    private void AssemblyUnregistered(object? sender, AssemblyRegisteredEventArgs e) => OnEditorThread(() => RemoveAssemblyImages(e.Assembly));
+
+    // Inline on the UI thread, queued there from another one, as for a plugin joining (see PluginsDiscovered)
+    private void OnEditorThread(Action action)
+    {
+        if (session is null)
+            return;
+
+        var currentSession = session;
+        var currentDispatcher = dispatcher ?? currentSession.Dispatcher;
+        if (currentDispatcher.CheckAccess())
+            action();
+        else
+            _ = currentDispatcher.InvokeAsync(() =>
+            {
+                // The editor was disposed in the meantime
+                if (session == currentSession)
+                    action();
+            });
+    }
+
     // A plugin that fails to join the session is reported and left out, without what it registered before failing; the
     // other plugins still join
     private bool TryJoin(AssetsPlugin plugin, ISessionViewModel session)
@@ -342,7 +394,7 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
             var context = new EditorContext(this, plugin, record, session, pluginLogger);
             plugin.InitializePlugin(pluginLogger);
             ScanPlugin(plugin, context);
-            ScanDeclaredImages(plugin, record);
+            ScanDeclaredImages(plugin.GetType().Assembly, record);
             plugin.Initialize(context);
             return true;
         }
@@ -434,10 +486,26 @@ public abstract partial class EditorPluginHost : IAssetsPluginService, IDisposab
         return record;
     }
 
-    // The images the plugin's assembly declares, once per assembly; they come after the ones the plugins register
-    private void ScanDeclaredImages(AssetsPlugin plugin, PluginRecord record)
+    // The images a registered assembly declares, unless a plugin of the assembly registered them
+    private void ScanAssemblyImages(Assembly assembly)
     {
-        var assembly = plugin.GetType().Assembly;
+        if (declaredImageAssemblies.ContainsKey(assembly))
+            return;
+
+        var record = new PluginRecord();
+        assemblyImageRecords[assembly] = record;
+        ScanDeclaredImages(assembly, record);
+    }
+
+    private void RemoveAssemblyImages(Assembly assembly)
+    {
+        if (assemblyImageRecords.Remove(assembly, out var record))
+            record.UndoFrom(0, pluginLogger);
+    }
+
+    // The images the assembly declares, once per assembly; they come after the ones the plugins register
+    private void ScanDeclaredImages(Assembly assembly, PluginRecord record)
+    {
         if (declaredImageAssemblies.ContainsKey(assembly))
             return;
 
