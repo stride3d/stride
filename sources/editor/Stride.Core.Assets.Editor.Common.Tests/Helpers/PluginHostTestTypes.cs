@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Reflection;
 using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.Common.Tests.Helpers;
 using Stride.Core.Assets.Editor.Services;
@@ -37,6 +38,10 @@ public sealed class RecordingEditorPluginHost : EditorPluginHost
     public bool ShowsAssemblyImages { get; init; }
 
     protected override bool ShowsImagesOfRegisteredAssemblies => ShowsAssemblyImages;
+
+    public Func<Assembly, IEnumerable<Type>>? PrimitiveTypesOf { get; init; }
+
+    protected override IEnumerable<Type> FindPrimitiveTypes(Assembly assembly) => PrimitiveTypesOf?.Invoke(assembly) ?? [];
 
     protected override Type AssetEditorViewModelType => typeof(IAssetEditorViewModel);
 

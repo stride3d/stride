@@ -11,11 +11,11 @@ namespace Stride.Core.Assets.Editor.Common.Tests;
 public sealed class AssemblyRegistryCollection;
 
 /// <summary>
-/// The editor shows the images that a registered assembly without a plugin declares (the runtime or Assets assembly of a
-/// package), as long as the assembly is registered.
+/// The host registers what a registered assembly declares by itself, as long as the assembly is registered: its primitive
+/// types, and the images it declares even without a plugin (the runtime or Assets assembly of a package).
 /// </summary>
 [Collection(nameof(AssemblyRegistryCollection))]
-public sealed class TestDeclaredImagesOfAssemblies
+public sealed class TestRegisteredAssemblies
 {
     private const string Category = "DeclaredImagesTests";
 
@@ -50,6 +50,41 @@ public sealed class TestDeclaredImagesOfAssemblies
             AssemblyRegistry.Unregister(assembly);
             AssemblyRegistry.Register(assembly, Category);
             Assert.Null(host.GetImageForType(typeof(PluginHostDeclaredType)));
+        }
+        finally
+        {
+            host.Dispose();
+            AssemblyRegistry.Unregister(assembly);
+            if (categories.Count > 0)
+                AssemblyRegistry.Register(assembly, categories);
+        }
+    }
+
+    [Fact]
+    public void TheHostRegistersThePrimitiveTypesOfEachRegisteredAssemblyOnce()
+    {
+        var assembly = typeof(PluginHostDeclaredType).Assembly;
+        var categories = AssemblyRegistry.GetCategories(assembly);
+        // Every plugin used to scan every registered assembly: the host reads each one once, whatever the plugins
+        var host = new RecordingEditorPluginHost([new TestEditorPluginHost.LoggingPlugin("first"), new TestEditorPluginHost.LoggingPlugin("second")])
+        {
+            PrimitiveTypesOf = x => x == assembly ? [typeof(PluginHostDeclaredType)] : [],
+        };
+        var session = new FakeSession();
+        try
+        {
+            AssemblyRegistry.Register(assembly, Category);
+            host.RegisterSession(session, new LoggerResult());
+            Assert.Single(host.GetPrimitiveTypes(session), x => x == typeof(PluginHostDeclaredType));
+
+            AssemblyRegistry.Unregister(assembly);
+            Assert.DoesNotContain(typeof(PluginHostDeclaredType), host.GetPrimitiveTypes(session));
+
+            AssemblyRegistry.Register(assembly, Category);
+            Assert.Single(host.GetPrimitiveTypes(session), x => x == typeof(PluginHostDeclaredType));
+
+            host.Dispose();
+            Assert.Empty(host.GetPrimitiveTypes(session));
         }
         finally
         {

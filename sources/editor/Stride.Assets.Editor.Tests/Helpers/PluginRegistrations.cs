@@ -7,9 +7,6 @@ using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Diagnostics;
 using Stride.Core.Presentation.Views;
-using Stride.Core.Reflection;
-using Stride.Core.Serialization;
-using Stride.Core.Serialization.Contents;
 using Stride.Core.Settings;
 using Stride.Editor;
 
@@ -118,10 +115,6 @@ public sealed class PluginRegistrations : IEditorPluginContext
     /// <see cref="AssetsEditorPlugin.ProfileSettings"/> list, and the images it sets in the legacy static
     /// <see cref="AssetsEditorPlugin.TypeImagesDictionary"/>, count as registered, as the editors read them too.
     /// </summary>
-    /// <remarks>
-    /// The primitive types that <see cref="StrideAssetsPlugin"/> finds in every registered assembly depend on what the test
-    /// process loaded: they are one line, when all of them are registered, and only the other types are listed.
-    /// </remarks>
     /// <param name="sortTemplateProviders">Whether to sort the template providers: a WPF resource dictionary lists its values
     /// in hash order, which changes from one process to the next.</param>
     public string Describe(bool sortTemplateProviders = false)
@@ -133,7 +126,7 @@ public sealed class PluginRegistrations : IEditorPluginContext
         Section(builder, nameof(AssetEditorViewTypes), Sorted(AssetEditorViewTypes));
         Section(builder, nameof(AssetPreviewViewModelTypes), Sorted(AssetPreviewViewModelTypes));
         Section(builder, nameof(AssetPreviewViewTypes), Sorted(AssetPreviewViewTypes));
-        Section(builder, nameof(PrimitiveTypes), DescribePrimitiveTypes());
+        Section(builder, nameof(PrimitiveTypes), PrimitiveTypes.Select(Name).Distinct().Order(StringComparer.Ordinal));
         Section(builder, nameof(EnumImages), EnumImages.Select(x => $"{x.Key.GetType().FullName}.{x.Key} -> {x.Value.GetType().FullName}").Order(StringComparer.Ordinal));
         Section(builder, nameof(TypeImages), TypeImages.Concat(legacyTypeImages).Select(x => $"{Name(x.Key)} -> {x.Value.GetType().FullName}").Order(StringComparer.Ordinal));
         var templateProviders = TemplateProviders.Select(x => $"{Name(x.GetType())} {x.Name}");
@@ -145,28 +138,6 @@ public sealed class PluginRegistrations : IEditorPluginContext
         var profileSettings = (Plugin as AssetsEditorPlugin)?.ProfileSettings.Concat(ProfileSettings) ?? ProfileSettings;
         Section(builder, nameof(ProfileSettings), profileSettings.Select(x => $"{x.SettingsKey.Name} ({x.TargetPackage})"));
         return builder.ToString();
-    }
-
-    private IEnumerable<string> DescribePrimitiveTypes()
-    {
-        var registered = PrimitiveTypes.ToHashSet();
-        var referenceTypes = StrideAssetsPluginReferenceTypes();
-        var all = referenceTypes.Count > 0 && referenceTypes.IsSubsetOf(registered);
-        var others = PrimitiveTypes.Where(x => !all || !referenceTypes.Contains(x)).Select(Name).Distinct().Order(StringComparer.Ordinal);
-        return all ? others.Prepend("(the reference types of every registered assembly)") : others;
-    }
-
-    // What StrideAssetsPlugin finds: the types of the registered assemblies that the assets serialize as references
-    private static HashSet<Type> StrideAssetsPluginReferenceTypes()
-    {
-        var types = new HashSet<Type>();
-        foreach (var type in AssemblyRegistry.FindAll().SelectMany(x => x.GetTypes()))
-        {
-            var serializerType = SerializerSelector.AssetWithReuse.GetSerializer(type)?.GetType();
-            if (serializerType is { IsGenericType: true } && serializerType.GetGenericTypeDefinition() == typeof(ReferenceSerializer<>))
-                types.Add(type);
-        }
-        return types;
     }
 
     internal static string Name(Type type) => type.FullName ?? type.Name;

@@ -6,7 +6,6 @@ AssetPreviewViewModelTypes:
 AssetPreviewViewTypes:
   Stride.SpriteStudio.Editor.SpriteStudioSheetPreview -> Stride.SpriteStudio.Editor.SpriteStudioSheetPreviewView
 PrimitiveTypes:
-  (the reference types of every registered assembly)
 EnumImages:
 TypeImages:
 TemplateProviders:

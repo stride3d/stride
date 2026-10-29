@@ -9,9 +9,6 @@ using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
-using Stride.Core.Reflection;
-using Stride.Core.Serialization;
-using Stride.Core.Serialization.Contents;
 using Stride.Core.Presentation.Views;
 using Stride.Editor.Preview;
 
@@ -20,9 +17,8 @@ namespace Stride.Editor
     public delegate IAssetPreview AssetPreviewFactory(IPreviewBuilder builder, PreviewGame game, AssetItem asset);
 
     /// <summary>
-    /// The base class of the plugins that extend the Stride editors: it registers the types that the assets serialize as
-    /// references as primitive types of the property grid; the editor registers the asset preview view models and views its
-    /// assembly declares (<see cref="StrideEditorPluginHost"/>). It is toolkit-neutral; the views themselves and their
+    /// The base class of the plugins that extend the Stride editors: the editor registers the asset preview view models and
+    /// views its assembly declares (<see cref="StrideEditorPluginHost"/>). It is toolkit-neutral; the views themselves and their
     /// resources (such as WPF resource dictionaries) belong to a companion package written for one toolkit, see
     /// <c>StrideAssetsWpfPlugin</c>.
     /// </summary>
@@ -73,29 +69,6 @@ namespace Stride.Editor
             templateProviderList.Clear();
 
             Initialize(logger);
-        }
-
-        /// <inheritdoc />
-        /// <remarks>
-        /// Registers the types of every registered assembly that the assets serialize as references as primitive types, after
-        /// the contributions of the <c>Register*</c> methods.
-        /// </remarks>
-        public override void Initialize(IEditorPluginContext context)
-        {
-            base.Initialize(context);
-
-            foreach (var type in AssemblyRegistry.FindAll().SelectMany(x => x.GetTypes()))
-            {
-                var serializer = SerializerSelector.AssetWithReuse.GetSerializer(type);
-                if (serializer != null)
-                {
-                    var serializerType = serializer.GetType();
-                    if (serializerType.IsGenericType && serializerType.GetGenericTypeDefinition() == typeof(ReferenceSerializer<>))
-                    {
-                        context.PrimitiveTypes.Register(type);
-                    }
-                }
-            }
         }
 
         /// <inheritdoc />

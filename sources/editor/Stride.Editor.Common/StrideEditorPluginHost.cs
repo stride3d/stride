@@ -7,6 +7,8 @@ using System.Reflection;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Reflection;
+using Stride.Core.Serialization;
+using Stride.Core.Serialization.Contents;
 using Stride.Editor.Annotations;
 using Stride.Editor.Preview;
 using Stride.Editor.Preview.View;
@@ -35,6 +37,21 @@ public abstract class StrideEditorPluginHost : EditorPluginHost
 
     /// <inheritdoc />
     protected override Type AssetPreviewViewType => typeof(IPreviewView);
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// The types that the assets serialize as references (the content types: textures, models, ...): the property grid shows
+    /// them as references, not as the objects they point to.
+    /// </remarks>
+    protected override IEnumerable<Type> FindPrimitiveTypes(Assembly assembly)
+    {
+        foreach (var type in assembly.GetTypes())
+        {
+            var serializerType = SerializerSelector.AssetWithReuse.GetSerializer(type)?.GetType();
+            if (serializerType is { IsGenericType: true } && serializerType.GetGenericTypeDefinition() == typeof(ReferenceSerializer<>))
+                yield return type;
+        }
+    }
 
     /// <inheritdoc />
     /// <remarks>
