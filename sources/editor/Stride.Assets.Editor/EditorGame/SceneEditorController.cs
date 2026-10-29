@@ -11,6 +11,7 @@ using Stride.Core;
 using Stride.Core.Assets;
 using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
+using Stride.Core.Quantum;
 using Stride.Editor.Engine;
 using Stride.Engine;
 using Stride.Shaders.Compiler;
@@ -37,6 +38,55 @@ public sealed class SceneEditorController : EntityHierarchyEditorController, ISc
     }
 
     private new SceneEditorGame Game => (SceneEditorGame)base.Game;
+
+    /// <inheritdoc />
+    /// <seealso cref="SceneEditorGame.LoadEntity"/>
+    public override Task AddPart(EntityHierarchyItemViewModel parent, Entity assetSideEntity)
+    {
+        EnsureAssetAccess();
+
+        var gameSideEntity = ClonePartForGameSide((AssetCompositeHierarchy<EntityDesign, Entity>)parent.Asset.Asset, assetSideEntity);
+        return InvokeAsync(() =>
+        {
+            Logger.Debug($"Adding entity {assetSideEntity.Id} to game-side scene");
+            if (parent is SceneRootViewModel)
+            {
+                Game.LoadEntity(gameSideEntity, parent.Id.ObjectId);
+            }
+            else
+            {
+                var parentEntity = (Entity?)FindPart(parent.Id)
+                                   ?? throw new InvalidOperationException($"The parent {parent.Id} of the entity {assetSideEntity.Id} is not in the game.");
+                GameSideNodeContainer.GetNode(parentEntity.Transform.Children).Add(gameSideEntity.Transform);
+            }
+        });
+    }
+
+    /// <inheritdoc />
+    /// <seealso cref="SceneEditorGame.UnloadEntity"/>
+    public override Task RemovePart(EntityHierarchyItemViewModel parent, Entity assetSideEntity)
+    {
+        EnsureAssetAccess();
+
+        var partId = new AbsoluteId(parent.Id.AssetId, assetSideEntity.Id);
+        return InvokeAsync(() =>
+        {
+            Logger.Debug($"Removing entity {assetSideEntity.Id} from game-side scene");
+            var entity = (Entity?)FindPart(partId)
+                         ?? throw new InvalidOperationException($"The entity {assetSideEntity.Id} is not in the game.");
+            if (parent is SceneRootViewModel)
+            {
+                Game.UnloadEntity(entity, parent.Id.ObjectId);
+            }
+            else
+            {
+                var parentEntity = (Entity?)FindPart(parent.Id)
+                                   ?? throw new InvalidOperationException($"The parent {parent.Id} of the entity {assetSideEntity.Id} is not in the game.");
+                var index = parentEntity.Transform.Children.IndexOf(entity.Transform);
+                GameSideNodeContainer.GetNode(parentEntity.Transform.Children).Remove(entity.Transform, new NodeIndex(index));
+            }
+        });
+    }
 
     /// <summary>
     /// Loads the scenes represented by the provided <paramref name="roots"/> into the game (UI thread).

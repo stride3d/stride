@@ -73,7 +73,18 @@ public sealed class AssetsSessionFixture : IDisposable
     /// Saves a package with the given assets (location relative to the package, asset) and opens it.
     /// </summary>
     /// <param name="initializeEditor">Whether to run the editor plugin's session initialization (build services, commands and updaters).</param>
-    public static async Task<AssetsSessionFixture> OpenAsync(bool initializeEditor, params (string Location, Asset Asset)[] assets)
+    public static Task<AssetsSessionFixture> OpenAsync(bool initializeEditor, params (string Location, Asset Asset)[] assets)
+    {
+        return OpenAsync(initializeEditor, new NullDispatcherService(), assets);
+    }
+
+    /// <summary>
+    /// Saves a package with the given assets (location relative to the package, asset) and opens it, with the given
+    /// dispatcher as the UI thread.
+    /// </summary>
+    /// <param name="initializeEditor">Whether to run the editor plugin's session initialization (build services, commands and updaters).</param>
+    /// <param name="dispatcher">The dispatcher of the UI thread; the session must be opened from it.</param>
+    public static async Task<AssetsSessionFixture> OpenAsync(bool initializeEditor, IDispatcherService dispatcher, params (string Location, Asset Asset)[] assets)
     {
         var directory = Path.Combine(Path.GetTempPath(), "Stride.Assets.Editor.Tests", Guid.NewGuid().ToString("N"));
         var assetsPlugin = new StrideDefaultAssetsPlugin();
@@ -81,7 +92,7 @@ public sealed class AssetsSessionFixture : IDisposable
         var plugins = new TestPluginService(assetsPlugin, editorPlugin);
         var serviceProvider = new ViewModelServiceProvider(
         [
-            new NullDispatcherService(),
+            dispatcher,
             new FakeEditorDialogService(),
             new FakeClipboardService(),
             plugins,

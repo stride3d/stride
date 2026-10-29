@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Tools;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Reflection;
@@ -19,7 +20,8 @@ using Stride.Editor.Preview.ViewModel;
 namespace Stride.Editor;
 
 /// <summary>
-/// The plugin host of the Stride editors: it adds the asset previews to what <see cref="EditorPluginHost"/> registers.
+/// The plugin host of the Stride editors: it adds the asset previews and the tools of the game editor views to what
+/// <see cref="EditorPluginHost"/> registers.
 /// </summary>
 public abstract class StrideEditorPluginHost : EditorPluginHost
 {
@@ -55,6 +57,7 @@ public abstract class StrideEditorPluginHost : EditorPluginHost
 
     /// <inheritdoc />
     /// <remarks>
+    /// The assembly of a plugin also declares the tools of the views of the game editors (<see cref="EditorViewToolAttribute"/>).
     /// The assembly of a <see cref="StrideAssetsPlugin"/> also declares its preview view models (<see cref="AssetPreviewViewModelAttribute"/>)
     /// and preview views (<see cref="AssetPreviewViewAttribute"/>).
     /// </remarks>
@@ -62,10 +65,17 @@ public abstract class StrideEditorPluginHost : EditorPluginHost
     {
         base.ScanPlugin(plugin, context);
 
+        var assembly = plugin.GetType().Assembly;
+        foreach (var type in AssemblyRegistry.GetScanTypes(assembly, typeof(EditorViewToolAttribute)))
+        {
+            // Each view creates its own instance of a tool
+            if (type.IsClass && !type.IsAbstract && !type.IsGenericTypeDefinition && type.GetConstructor(Type.EmptyTypes) is not null)
+                context.EditorViewToolTypes.Register(type);
+        }
+
         if (plugin is not StrideAssetsPlugin)
             return;
 
-        var assembly = plugin.GetType().Assembly;
         foreach (var type in AssemblyRegistry.GetScanTypes(assembly, typeof(IAssetPreviewViewModel)))
         {
             if (typeof(IAssetPreviewViewModel).IsAssignableFrom(type) && type.GetCustomAttribute<AssetPreviewViewModelAttribute>() is { } attribute)

@@ -27,7 +27,6 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
     [EditorGameService(typeof(EntityHierarchyEditorController), Order = 190)]
     public class EditorGameComponentGizmoService : EditorGameServiceBase, IEditorGameComponentGizmoService, IEditorGameComponentGizmoViewModelService
     {
-        internal static readonly Dictionary<GizmoTransformationAxes, int> PlaneToIndex = new Dictionary<GizmoTransformationAxes, int> { { GizmoTransformationAxes.YZ, 0 }, { GizmoTransformationAxes.XZ, 1 }, { GizmoTransformationAxes.XY, 2 } };
         internal static readonly PropertyKey<Entity> ReferencedEntityKey = new PropertyKey<Entity>("ReferencedEntityProperty", typeof(EntityHierarchyEditorGame));
         private readonly IEditorGameController controller;
         private static readonly PropertyKey<Dictionary<EntityComponent, IEntityGizmo>> GizmoEntitiesKey = new PropertyKey<Dictionary<EntityComponent, IEntityGizmo>>("GizmoEntitiesProperty", typeof(EditorGameComponentGizmoService));

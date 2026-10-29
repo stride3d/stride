@@ -93,6 +93,12 @@ public interface IEditorPluginContext
     IPluginRegistry<IAssetPostPasteProcessor> PostPasteProcessors { get; }
 
     /// <summary>
+    /// The tools of the views of the game editors (the scene and prefab editors): each view creates one instance of each
+    /// type. The host registers the tools that the plugin's assembly declares; a plugin can register more.
+    /// </summary>
+    IPluginRegistry<Type> EditorViewToolTypes { get; }
+
+    /// <summary>
     /// The editor settings keys of the plugin, registered with their container while the plugin is loaded.
     /// </summary>
     IPluginRegistry<SettingsKey> SettingsKeys { get; }

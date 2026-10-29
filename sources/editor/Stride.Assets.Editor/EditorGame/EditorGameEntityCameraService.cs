@@ -1,9 +1,11 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Tools;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Core.Mathematics;
 using Stride.Editor.EditorGame.Game;
+using Stride.Editor.EditorGame.ViewModels;
 using Stride.Editor.Engine;
 using Stride.Engine;
 using Stride.Input;
@@ -20,11 +22,12 @@ namespace Stride.Assets.Editor.EditorGame;
 /// <item>Middle button: pan. Middle and right buttons: move forward and backward.</item>
 /// <item>Wheel: zoom. Alt and right button: zoom. Alt and left button: orbit.</item>
 /// <item>+ and -: change the speed.</item>
+/// <item>F, in the view or the hierarchy: frame the last selected entity (<see cref="SetTarget"/>, through the editor).</item>
 /// </list>
 /// The key bindings are the defaults of the WPF scene editor settings; the settings are not read yet.
 /// </remarks>
 [EditorGameService(typeof(EntityHierarchyEditorController), Order = 110)]
-public sealed class EditorGameEntityCameraService : EditorGameCameraService
+public sealed class EditorGameEntityCameraService : EditorGameCameraService, IEditorGameViewModelService
 {
     /// <summary>
     /// The movement speeds the speed keys step through, as in the WPF scene editor.
@@ -170,9 +173,11 @@ public sealed class EditorGameEntityCameraService : EditorGameCameraService
 
     private CameraInput GetInput()
     {
+        // The active tool of the view may take the middle or right drags
+        var tools = Game.EditorServices.Get<IEditorGameToolService>();
         var lbDown = Game.Input.IsMouseButtonDown(MouseButton.Left);
-        var mbDown = Game.Input.IsMouseButtonDown(MouseButton.Middle);
-        var rbDown = Game.Input.IsMouseButtonDown(MouseButton.Right);
+        var mbDown = Game.Input.IsMouseButtonDown(MouseButton.Middle) && (tools?.IsDefaultInputOn(EditorViewDefaultInputs.CameraMiddleDrag) ?? true);
+        var rbDown = Game.Input.IsMouseButtonDown(MouseButton.Right) && (tools?.IsDefaultInputOn(EditorViewDefaultInputs.CameraRightDrag) ?? true);
         var isAltDown = Game.Input.IsKeyDown(Keys.LeftAlt) || Game.Input.IsKeyDown(Keys.RightAlt);
 
         return new CameraInput
