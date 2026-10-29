@@ -89,7 +89,7 @@ public sealed class EntityHierarchyFilterAndLockTests
         Assert.True(FindEntity(editor, "Box").IsLocked);
         Assert.True(parent.IsLocked);
         Assert.True(child.IsLocked);
-        Assert.Equal(["Parent", "Parent", "SceneRoot", "Box", "Parent", "Child"], locked);
+        Assert.Equal(["Parent", "Parent", "MainScene", "Box", "Parent", "Child"], locked);
         editor.Destroy();
     }
 }

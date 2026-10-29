@@ -73,7 +73,7 @@ public sealed class EntityHierarchyEditorTests
         Assert.Empty(editor.SelectedContent);
         Assert.Empty(editor.SelectedItems);
         // The children leave first, then their parent
-        Assert.Equal([("Parent", "Child"), ("SceneRoot", "Parent")], removed.Select(x => (x.Parent.Name, x.Entity.Name)));
+        Assert.Equal([("Parent", "Child"), ("MainScene", "Parent")], removed.Select(x => (x.Parent.Name, x.Entity.Name)));
         editor.Destroy();
     }
 
