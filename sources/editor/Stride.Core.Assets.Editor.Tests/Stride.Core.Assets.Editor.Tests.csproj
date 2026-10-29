@@ -12,6 +12,9 @@
     <Using Include="Xunit" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Xunit.SkippableFact" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
     <!-- The session fakes (plugin service, thumbnail factory) of the Common tests are reused -->
     <ProjectReference Include="..\Stride.Core.Assets.Editor.Common.Tests\Stride.Core.Assets.Editor.Common.Tests.csproj" />

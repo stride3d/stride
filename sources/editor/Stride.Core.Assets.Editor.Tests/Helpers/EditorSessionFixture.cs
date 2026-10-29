@@ -81,7 +81,14 @@ public sealed class EditorSessionFixture : IDisposable
     /// <summary>
     /// Saves a package with the given assets (location relative to the package, value) and opens it.
     /// </summary>
-    public static async Task<EditorSessionFixture> OpenAsync(params (string Location, string Value)[] assets)
+    public static Task<EditorSessionFixture> OpenAsync(params (string Location, string Value)[] assets) => OpenCoreAsync(null, assets);
+
+    /// <summary>
+    /// Saves a package whose project is the executable of a platform (the head of a game), with the given assets, and opens it.
+    /// </summary>
+    public static Task<EditorSessionFixture> OpenExecutableAsync(PlatformType platform, params (string Location, string Value)[] assets) => OpenCoreAsync(platform, assets);
+
+    private static async Task<EditorSessionFixture> OpenCoreAsync(PlatformType? executablePlatform, (string Location, string Value)[] assets)
     {
         var directory = Path.Combine(Path.GetTempPath(), "Stride.Core.Assets.Editor.Tests", Guid.NewGuid().ToString("N"));
         var dialogs = new FakeEditorDialogService();
@@ -96,7 +103,7 @@ public sealed class EditorSessionFixture : IDisposable
             new FakeThumbnailDataFactory(),
         ]);
         var fixture = new EditorSessionFixture(directory, serviceProvider, dialogs, clipboard, plugins);
-        fixture.WritePackage(assets);
+        fixture.WritePackage(assets, executablePlatform);
         var session = await SessionViewModel.OpenSessionAsync(fixture.PackagePath, fixture.Result, new FakeMainViewModel(serviceProvider), serviceProvider);
         if (session is null)
             throw new InvalidOperationException("The session could not be opened:" + Environment.NewLine + fixture.Log);
@@ -135,17 +142,22 @@ public sealed class EditorSessionFixture : IDisposable
         }
     }
 
-    private void WritePackage((string Location, string Value)[] assets)
+    private void WritePackage((string Location, string Value)[] assets, PlatformType? executablePlatform)
     {
         var packageDirectory = Path.Combine(Directory, PackageName);
         System.IO.Directory.CreateDirectory(Path.Combine(packageDirectory, "Assets"));
 
         // A .csproj next to the package makes it a project of the solution, hence editable. It declares that it holds no
-        // asset types so that the session does not build it.
+        // asset types so that the session does not build it. An executable declares its platform, as the heads of a game do.
+        var executable = executablePlatform is { } platform
+            ? "    <OutputType>Exe</OutputType>" + Environment.NewLine +
+              $"    <StridePlatform>{platform}</StridePlatform>" + Environment.NewLine
+            : string.Empty;
         File.WriteAllText(Path.Combine(packageDirectory, PackageName + ".csproj"),
             "<Project Sdk=\"Microsoft.NET.Sdk\">" + Environment.NewLine +
             "  <PropertyGroup>" + Environment.NewLine +
             "    <TargetFramework>net10.0</TargetFramework>" + Environment.NewLine +
+            executable +
             "    <StrideContainsAssetTypes>false</StrideContainsAssetTypes>" + Environment.NewLine +
             "  </PropertyGroup>" + Environment.NewLine +
             "</Project>" + Environment.NewLine);
