@@ -81,6 +81,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
         Status = new StatusViewModel(ServiceProvider);
         Status.PushStatus("Ready");
         Build = new BuildAndRunViewModel(serviceProvider, Status);
+        CodeReload = new GameCodeReloadViewModel(serviceProvider, Build, ReloadSessionAsync);
         Notifications = serviceProvider.TryGet<INotificationService>();
 
         // The most recently used sessions of this and the earlier editor versions
@@ -101,6 +102,12 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     /// Builds the current project of the session and starts its game (the Project menu, the toolbar and the Output pane).
     /// </summary>
     public BuildAndRunViewModel Build { get; }
+
+    /// <summary>
+    /// Watches the game code of the session and reloads it when it changes, by opening the session again in a new editor (the
+    /// Project menu and the toolbar).
+    /// </summary>
+    public GameCodeReloadViewModel CodeReload { get; }
 
     /// <summary>
     /// The background operations shown in the notification bar; <c>null</c> when the host has no bar.
@@ -394,6 +401,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     {
         SaveCommand.IsEnabled = session is not null;
         Build.Session = session;
+        CodeReload.Session = session;
         if (titleSession is not null)
             titleSession.PropertyChanged -= SessionPropertyChanged;
         titleSession = session;
@@ -574,9 +582,16 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
 
     private async Task OnReload()
     {
-        // The same session in a fresh editor, as WPF's Reload project does
-        if (session is not null && sessionPath is { } path)
-            await RestartAsync(path);
+        await ReloadSessionAsync();
+    }
+
+    /// <summary>
+    /// Opens the same session in a fresh editor, as WPF's Reload project does, after asking whether to save it.
+    /// </summary>
+    /// <returns><c>true</c> when the editor restarts, <c>false</c> when the user kept the session open or there is none.</returns>
+    private async Task<bool> ReloadSessionAsync()
+    {
+        return session is not null && sessionPath is { } path && await RestartAsync(path);
     }
 
     /// <summary>
@@ -630,6 +645,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
         if (Build.CancelBuildCommand.IsEnabled)
             Build.CancelBuildCommand.Execute();
         Build.Session = null;
+        CodeReload.Session = null;
         session = null;
         (ServiceProvider.TryGet<IAssetsPluginService>() as IDisposable)?.Dispose();
     }
