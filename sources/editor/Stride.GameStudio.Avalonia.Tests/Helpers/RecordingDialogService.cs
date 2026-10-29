@@ -101,7 +101,7 @@ internal sealed class RecordingDialogService : IEditorDialogService, IProgressWi
     public Task<CheckedMessageBoxResult> CheckedMessageBoxAsync(string message, bool? isChecked, string checkboxMessage, IReadOnlyCollection<DialogButtonInfo> buttons, MessageBoxImage image = MessageBoxImage.None)
     {
         Messages.Add(message);
-        return Task.FromResult(new CheckedMessageBoxResult(MessageBoxResult.OK, isChecked));
+        return Task.FromResult(new CheckedMessageBoxResult(PickButton(buttons), isChecked));
     }
 
     public Task<int> CheckedMessageBoxAsync(string message, IReadOnlyCollection<DialogCheckBoxInfo> checkBoxes, IReadOnlyCollection<DialogButtonInfo> buttons, MessageBoxImage image = MessageBoxImage.None)
