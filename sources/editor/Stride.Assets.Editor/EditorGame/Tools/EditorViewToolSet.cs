@@ -22,9 +22,11 @@ namespace Stride.Assets.Editor.EditorGame.Tools;
 /// <item>A press while the active tool uses the mouse (its gizmo is under the cursor) belongs to the tool.</item>
 /// <item>A release less than <see cref="TransformationGizmo.TransformationStartPixelThreshold"/> pixels away from its
 /// press is a click; the moves of the frame of the press don't count, as the cursor reaches the press position in it. A
-/// drag, of the camera or of a gizmo, is never a click.</item>
+/// drag, of the camera or of a gizmo, is never a click, and neither is a press or a release while another service has
+/// the mouse (the camera takes it on the press of a button it drags with, the view cube while it is under the
+/// cursor).</item>
 /// <item>A left click selects when the tool keeps <see cref="EditorViewDefaultInputs.Selection"/>, the press didn't belong
-/// to the tool, the right button is up and no other service has the mouse. Every click then goes to the tool.</item>
+/// to the tool and the right button is up. Every click then goes to the tool.</item>
 /// </list>
 /// The camera asks <see cref="IsDefaultInputOn"/> for its drags.
 /// </para>
@@ -163,7 +165,7 @@ internal sealed class EditorViewToolSet : IDisposable
         {
             if (frame.PressedButtons.Contains(button))
             {
-                presses[button] = new Press { OnTool = isUsingMouse };
+                presses[button] = new Press { OnTool = isUsingMouse, IsMouseAvailable = frame.IsMouseAvailable };
                 // The cursor can reach the press position in the frame of the press
                 if (!frame.ReleasedButtons.Contains(button))
                     continue;
@@ -175,11 +177,11 @@ internal sealed class EditorViewToolSet : IDisposable
 
             if (!frame.ReleasedButtons.Contains(button) || !presses.Remove(button, out var released))
                 continue;
-            if (released.Distance >= TransformationGizmo.TransformationStartPixelThreshold)
+            if (released.Distance >= TransformationGizmo.TransformationStartPixelThreshold || !released.IsMouseAvailable || !frame.IsMouseAvailable)
                 continue;
 
             var toSelection = button == MouseButton.Left && !released.OnTool && !frame.DownButtons.Contains(MouseButton.Right)
-                && frame.IsMouseAvailable && IsDefaultInputOn(EditorViewDefaultInputs.Selection);
+                && IsDefaultInputOn(EditorViewDefaultInputs.Selection);
             (clicks ??= []).Add(new EditorViewToolClick(button, toSelection));
         }
         return clicks ?? (IReadOnlyList<EditorViewToolClick>)[];
@@ -306,6 +308,7 @@ internal sealed class EditorViewToolSet : IDisposable
     {
         public float Distance;
         public bool OnTool;
+        public bool IsMouseAvailable;
     }
 }
 

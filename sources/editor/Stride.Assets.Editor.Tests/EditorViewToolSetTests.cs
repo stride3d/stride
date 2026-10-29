@@ -85,14 +85,17 @@ public sealed class EditorViewToolSetTests
     }
 
     [Fact]
-    public async Task NoClickSelectsWhileAnotherServiceHasTheMouse()
+    public async Task NoClickHappensWhileAnotherServiceHasTheMouse()
     {
         using var tools = CreateToolSet();
 
+        // The view cube has the mouse on the release
         await tools.Update(Frame(pressed: [MouseButton.Left], down: [MouseButton.Left]));
-        var click = Assert.Single(await tools.Update(Frame(released: [MouseButton.Left], mouseAvailable: false)));
+        Assert.Empty(await tools.Update(Frame(released: [MouseButton.Left], mouseAvailable: false)));
 
-        Assert.False(click.ToSelection);
+        // The camera takes the mouse on the press of the right button, and gives it back on its release
+        await tools.Update(Frame(pressed: [MouseButton.Right], down: [MouseButton.Right], mouseAvailable: false));
+        Assert.Empty(await tools.Update(Frame(released: [MouseButton.Right])));
     }
 
     [Fact]

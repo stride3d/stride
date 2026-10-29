@@ -12,7 +12,8 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Tools;
 
 /// <summary>
 /// A click in a view of the scene and prefab editors: a button released less than 8 pixels away from where it was
-/// pressed. A drag (of the camera, of a gizmo) is never a click.
+/// pressed. A drag (of the camera, of a gizmo) is never a click, and neither is a button the camera drags with (when the
+/// tool keeps the camera drags) or a click on the view cube.
 /// </summary>
 public sealed record EditorViewClick
 {
