@@ -1,0 +1,18 @@
+<views:StridePreviewView xmlns="https://github.com/avaloniaui"
+                         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                         xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+                         xmlns:views="using:Stride.Editor.Avalonia.Preview.Views"
+                         x:Class="Stride.Assets.Editor.Avalonia.Views.Preview.ScenePreviewView">
+  <!-- Scenes are not previewed: as in WPF, the view shows a message in place of the game view of the preview -->
+  <views:StridePreviewView.Template>
+    <ControlTemplate>
+      <DockPanel>
+        <TextBlock Margin="8" VerticalAlignment="Center" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap">
+          <TextBlock.Text>
+            <sd:LocalizeString Text="Scenes can't be previewed. To see the scene, open it in the scene editor."/>
+          </TextBlock.Text>
+        </TextBlock>
+      </DockPanel>
+    </ControlTemplate>
+  </views:StridePreviewView.Template>
+</views:StridePreviewView>

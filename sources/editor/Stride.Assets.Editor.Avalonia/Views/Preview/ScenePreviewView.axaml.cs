@@ -7,7 +7,14 @@ using Stride.Editor.Avalonia.Preview.Views;
 
 namespace Stride.Assets.Editor.Avalonia.Views.Preview;
 
+/// <summary>
+/// The view of the scene previews: scenes are not previewed, so it shows a message rather than the game view.
+/// </summary>
 [AssetPreviewView<ScenePreview>]
-public class ScenePreviewView : StridePreviewView
+public partial class ScenePreviewView : StridePreviewView
 {
+    public ScenePreviewView()
+    {
+        InitializeComponent();
+    }
 }

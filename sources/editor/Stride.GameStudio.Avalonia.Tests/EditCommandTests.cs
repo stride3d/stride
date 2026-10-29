@@ -283,6 +283,36 @@ public sealed class EditCommandTests
         }
     }
 
+    /// <summary>
+    /// As in WPF, Ctrl+R updates every asset whose source changed and Ctrl+Shift+R the selected assets, from the window and in
+    /// the gesture texts of the asset context menu.
+    /// </summary>
+    [AvaloniaFact]
+    public async Task TheUpdateFromSourceShortcutsAreTheOnesOfWpf()
+    {
+        var (fixture, window) = await OpenAsync((AssetLocation, new TextPropertiesAsset { Label = "label" }));
+        using (fixture)
+        {
+            try
+            {
+                var sourceTracker = fixture.Session.SourceTracker!;
+                var updateAll = new KeyGesture(Key.R, KeyModifiers.Control);
+                var updateSelected = new KeyGesture(Key.R, KeyModifiers.Control | KeyModifiers.Shift);
+
+                Assert.Same(sourceTracker.UpdateAllAssetsWithModifiedSourceCommand, window.KeyBindings.Single(x => x.Gesture == updateAll).Command);
+                Assert.Same(sourceTracker.UpdateSelectedAssetsFromSourceCommand, window.KeyBindings.Single(x => x.Gesture == updateSelected).Command);
+
+                var items = AssetList(window).ContextMenu!.Items.OfType<MenuItem>().ToList();
+                Assert.Equal(updateSelected, items.Single(x => x.Header is "Update selected assets from their source").InputGesture);
+                Assert.Equal(updateAll, items.Single(x => x.Header is "Update all assets with modified source").InputGesture);
+            }
+            finally
+            {
+                await window.CloseAsync();
+            }
+        }
+    }
+
     [AvaloniaFact]
     public async Task TheSolutionContextMenuHasTheItemsOfWpf()
     {
