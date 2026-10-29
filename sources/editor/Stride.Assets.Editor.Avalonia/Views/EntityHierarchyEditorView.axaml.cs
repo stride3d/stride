@@ -5,6 +5,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Stride.Assets.Editor.ViewModels;
 using Stride.Assets.Presentation.ViewModels;
@@ -24,10 +25,11 @@ public partial class EntityHierarchyEditorView : UserControl, IAssetEditorView
     {
         InitializeComponent();
         // The menu depends on what is under the mouse, as in the WPF scene editor: an item pastes into the selection, an
-        // empty area of the tree pastes into the root. Tunnel, so that the menu is set before the tree opens it.
+        // empty area of the tree pastes into the root.
         HierarchyTree.AddHandler(ContextRequestedEvent, OnTreeContextRequested, RoutingStrategies.Tunnel);
         // The keys held when a button of a row is clicked (Ctrl locks the children too)
         HierarchyTree.AddHandler(PointerReleasedEvent, (_, e) => pointerModifiers = e.KeyModifiers, RoutingStrategies.Tunnel);
+        HierarchyTree.AddHandler(KeyDownEvent, OnTreeKeyDown, RoutingStrategies.Tunnel);
     }
 
     /// <inheritdoc />
@@ -62,6 +64,14 @@ public partial class EntityHierarchyEditorView : UserControl, IAssetEditorView
         }
     }
 
+    private void OnTreeKeyDown(object? sender, KeyEventArgs e)
+    {
+        // Enter and Escape end a rename: the keyboard goes back to the renamed item, as it would otherwise stay with the
+        // hidden text box and the keys of the tree (Delete, F2) would do nothing
+        if (e.Source is TextBox && e.Key is Key.Enter or Key.Escape)
+            Dispatcher.UIThread.Post(() => (HierarchyTree.TreeContainerFromItem(HierarchyTree.SelectedItem!) ?? HierarchyTree).Focus());
+    }
+
     private void OnTreeContextRequested(object? sender, ContextRequestedEventArgs e)
     {
         var onItem = (e.Source as Visual)?.FindAncestorOfType<TreeViewItem>(true) is not null;
@@ -69,7 +79,10 @@ public partial class EntityHierarchyEditorView : UserControl, IAssetEditorView
         menu.DataContext = DataContext;
         if (DataContext is EntityHierarchyEditorViewModel editor)
             AddFactoryItems(menu.Items, onItem ? editor.CreateEntityInSelectionCommand : editor.CreateEntityInRootCommand);
-        HierarchyTree.ContextMenu = menu;
+        // Opened here rather than through the ContextMenu property: a menu set while the event is routed would only open
+        // at the next request
+        menu.Open(HierarchyTree);
+        e.Handled = true;
     }
 
     private void OnLockClick(object? sender, RoutedEventArgs e)

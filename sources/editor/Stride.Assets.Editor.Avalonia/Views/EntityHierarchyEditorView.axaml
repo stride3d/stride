@@ -136,6 +136,7 @@
       </StackPanel>
       <TreeView x:Name="HierarchyTree"
                 Focusable="True"
+                ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                 ItemsSource="{Binding HierarchyRoot, Mode=OneWay, Converter={sd:Yield}}"
                 SelectedItems="{Binding SelectedContent}"
                 SelectionMode="Multiple">
@@ -172,7 +173,8 @@
                   <Image Source="{StaticResource ImageUnlockEntity}" Width="16" Height="16" IsVisible="{Binding !IsLocked}"/>
                 </Panel>
               </Button>
-              <StackPanel Orientation="Horizontal">
+              <!-- Clipped: a long name goes under the buttons rather than over them -->
+              <StackPanel Orientation="Horizontal" ClipToBounds="True">
                 <Image Source="{Binding Components, Converter={conv:EntityComponentToResource}}" Width="16" Height="16"/>
                 <TextBlock Text="{Binding Name}" VerticalAlignment="Center" Margin="4,0" IsVisible="{Binding !IsEditing}"/>
                 <!-- Renaming in place (F2): the box replaces the name while the item is editing -->
