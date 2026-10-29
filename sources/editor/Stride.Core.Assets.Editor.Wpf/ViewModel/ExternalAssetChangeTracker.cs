@@ -149,13 +149,18 @@ namespace Stride.Core.Assets.Editor.ViewModel
                             files = pendingFiles.ToList();
                             pendingFiles.Clear();
                         }
+                        var assetsByPath = new Dictionary<string, AssetViewModel>(StringComparer.OrdinalIgnoreCase);
+                        foreach (var asset in session.LocalPackages.Where(x => x.IsEditable).SelectMany(x => x.Assets))
+                        {
+                            assetsByPath.TryAdd(asset.AssetItem.FullPath.ToOSPath(), asset);
+                        }
                         // The files that exist first: a file renamed or moved is then known as such when its previous path is processed
                         var movedAssets = new HashSet<AssetViewModel>();
                         foreach (var file in files.OrderBy(x => !File.Exists(x)))
                         {
                             try
                             {
-                                await ProcessFile(file, movedAssets);
+                                await ProcessFile(file, assetsByPath, movedAssets);
                             }
                             catch (Exception ex)
                             {
@@ -175,9 +180,9 @@ namespace Stride.Core.Assets.Editor.ViewModel
             }
         }
 
-        private async Task ProcessFile(string path, ISet<AssetViewModel> movedAssets)
+        private async Task ProcessFile(string path, IDictionary<string, AssetViewModel> assetsByPath, ISet<AssetViewModel> movedAssets)
         {
-            var asset = FindAsset(path);
+            var asset = FindAsset(assetsByPath, path);
             var content = await ReadFile(path);
             if (content == null)
             {
@@ -189,10 +194,10 @@ namespace Stride.Core.Assets.Editor.ViewModel
             }
 
             // Look again, the session might have changed while the file was read
-            asset = FindAsset(path);
+            asset = FindAsset(assetsByPath, path);
             if (asset == null)
             {
-                await AddAsset(path, movedAssets);
+                await AddAsset(path, assetsByPath, movedAssets);
             }
             else if (asset.Asset is not SourceCodeAsset)
             {
@@ -223,11 +228,19 @@ namespace Stride.Core.Assets.Editor.ViewModel
         }
 
         [CanBeNull]
-        private AssetViewModel FindAsset(string path)
+        private AssetViewModel FindAsset(IDictionary<string, AssetViewModel> assetsByPath, string path)
         {
             var fullPath = Path.GetFullPath(path);
-            return session.LocalPackages.Where(x => x.IsEditable).SelectMany(x => x.Assets)
-                .FirstOrDefault(x => string.Equals(x.AssetItem.FullPath.ToOSPath(), fullPath, StringComparison.OrdinalIgnoreCase));
+            if (!assetsByPath.TryGetValue(fullPath, out var asset))
+                return null;
+
+            // Check that the assset is still the one at this path, as it might have been moved or renamed in the session while the file was read
+            if (session.GetAssetById(asset.Id) == asset && string.Equals(asset.AssetItem.FullPath.ToOSPath(), fullPath, StringComparison.OrdinalIgnoreCase))
+                return asset;
+
+            // Remove invalid assets from the dictionary, so that they are not found again for the same path
+            assetsByPath.Remove(fullPath);
+            return null;
         }
 
         private async Task ReloadAsset([NotNull] AssetViewModel asset, string path, [NotNull] byte[] content)
@@ -377,7 +390,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             return changed;
         }
 
-        private async Task AddAsset(string path, ISet<AssetViewModel> movedAssets)
+        private async Task AddAsset(string path, IDictionary<string, AssetViewModel> assetsByPath, ISet<AssetViewModel> movedAssets)
         {
             var package = session.LocalPackages.Where(x => x.IsEditable)
                 .FirstOrDefault(x => x.Package.RootDirectory != null && x.Package.GetDistinctAssetFolderPaths().Any(f => f.Contains(new UFile(path))));
@@ -387,7 +400,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             var assetFolder = package.Package.GetDistinctAssetFolderPaths().First(x => x.Contains(new UFile(path)));
             var filePath = new UFile(GetActualCase(assetFolder.ToOSPath(), path));
             var assetItem = await Task.Run(() => package.Package.LoadAssetFromFile(filePath, Log));
-            if (assetItem == null || FindAsset(path) != null)
+            if (assetItem == null || FindAsset(assetsByPath, path) != null)
                 return;
 
             var existing = session.GetAssetById(assetItem.Id);
@@ -415,6 +428,8 @@ namespace Stride.Core.Assets.Editor.ViewModel
             var directory = package.GetOrCreateAssetDirectory(GetDisplayDirectory(package.Package, assetItem.Location), false);
             var logger = new LoggerResult();
             var asset = package.CreateAsset(directory, assetItem, false, logger);
+            assetsByPath[asset.AssetItem.FullPath.ToOSPath()] = asset;
+
             // Builds its thumbnail, as for an asset created in Game Studio
             session.NotifyAssetPropertiesChanged([asset]);
             logger.Messages.Where(x => x.IsAtLeast(LogMessageType.Warning)).ForEach(x => Log.Log(x));
