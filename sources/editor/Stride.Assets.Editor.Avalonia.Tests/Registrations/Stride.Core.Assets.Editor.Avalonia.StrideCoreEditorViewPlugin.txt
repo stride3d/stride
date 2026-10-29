@@ -1,0 +1,78 @@
+Plugin: Stride.Core.Assets.Editor.Avalonia.StrideCoreEditorViewPlugin
+AssetViewModelTypes:
+AssetEditorViewModelTypes:
+AssetEditorViewTypes:
+AssetPreviewViewModelTypes:
+AssetPreviewViewTypes:
+PrimitiveTypes:
+EnumImages:
+TypeImages:
+TemplateProviders:
+  Stride.Core.Presentation.Avalonia.Views.DefaultTemplateProvider Default
+  Stride.Core.Presentation.Avalonia.Views.DefaultTemplateProvider Default
+  Stride.Core.Assets.Editor.Avalonia.Views.CategoryNodeTemplateProvider CategoryNode
+  Stride.Core.Assets.Editor.Avalonia.Views.AbstractTypeTemplateProvider AbstractType
+  Stride.Core.Assets.Editor.Avalonia.Views.InlinedPropertyValueTemplateProvider InlinedPropertyValue
+  Stride.Core.Assets.Editor.Avalonia.Views.InlinedPropertyTemplateProvider InlinedProperty
+  Stride.Core.Assets.Editor.Avalonia.Views.InlinedPropertyValueTemplateProvider InlinedPropertyValue
+  Stride.Core.Assets.Editor.Avalonia.Views.ListItemTemplateProvider ListItem
+  Stride.Core.Assets.Editor.Avalonia.Views.ListTemplateProvider List
+  Stride.Core.Assets.Editor.Avalonia.Views.ListTemplateProvider List
+  Stride.Core.Assets.Editor.Avalonia.Views.ArrayItemTemplateProvider ArrayItem
+  Stride.Core.Assets.Editor.Avalonia.Views.ArrayTemplateProvider []
+  Stride.Core.Assets.Editor.Avalonia.Views.ArrayTemplateProvider []
+  Stride.Core.Assets.Editor.Avalonia.Views.SetTemplateProvider Set
+  Stride.Core.Assets.Editor.Avalonia.Views.SetTemplateProvider Set
+  Stride.Core.Assets.Editor.Avalonia.Views.DictionaryTemplateProvider Dictionary
+  Stride.Core.Assets.Editor.Avalonia.Views.DictionaryNumberKeyTemplateProvider DictionaryNumberKey
+  Stride.Core.Assets.Editor.Avalonia.Views.DictionaryStringKeyTemplateProvider DictionaryStringKey
+  Stride.Core.Assets.Editor.Avalonia.Views.DictionaryEnumKeyTemplateProvider DictionaryEnumKey
+  Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider Boolean
+  Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider Char
+  Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider Single
+  Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider Double
+  Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider SByte
+  Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider Byte
+  Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider Int16
+  Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider UInt16
+  Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider Int32
+  Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider UInt32
+  Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider Int64
+  Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider UInt64
+  Stride.Core.Assets.Editor.Avalonia.Views.RangedValueTemplateProvider RangedValueTemplateProvider
+  Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider String
+  Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider DateTime
+  Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider TimeSpan
+  Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider Color
+  Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider Color3
+  Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider Color4
+  Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider Vector2
+  Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider Vector3
+  Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider Vector4
+  Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider Int2
+  Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider Int3
+  Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider Int4
+  Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider Rectangle
+  Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider RectangleF
+  Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider Quaternion
+  Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider Matrix
+  Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider AngleSingle
+  Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider UDirectory
+  Stride.Core.Assets.Editor.Avalonia.Views.TypeMatchTemplateProvider UFile
+  Stride.Core.Assets.Editor.Avalonia.Views.EnumTemplateProvider Enum
+  Stride.Core.Assets.Editor.Avalonia.Views.EnumTemplateProvider FlagEnum
+  Stride.Core.Assets.Editor.Avalonia.Views.EnumTemplateProvider ImageEnum
+  Stride.Core.Assets.Editor.Avalonia.Views.EnumTemplateProvider ImageFlagEnum
+  Stride.Core.Assets.Editor.Avalonia.Views.ContentReferenceTemplateProvider SimpleReference
+  Stride.Core.Assets.Editor.Avalonia.Views.ContentReferenceTemplateProvider ThumbnailReference
+  Stride.Core.Assets.Editor.Avalonia.Views.NullableTemplateProvider Nullable
+  Stride.Core.Assets.Editor.Avalonia.Views.SettingsStringFromAcceptableValuesTemplateProvider StringFromAcceptableValues
+  Stride.Core.Assets.Editor.Avalonia.Views.UnloadableObjectTemplateProvider UnloadableObject
+  Stride.Core.Presentation.Avalonia.Views.DefaultTemplateProvider Default
+CopyProcessors:
+PasteProcessors:
+  Stride.Core.Assets.Editor.ViewModel.CopyPasteProcessors.AssetPropertyPasteProcessor
+  Stride.Core.Assets.Editor.Components.CopyPasteProcessors.AssetItemPasteProcessor
+PostPasteProcessors:
+SettingsKeys:
+ProfileSettings:

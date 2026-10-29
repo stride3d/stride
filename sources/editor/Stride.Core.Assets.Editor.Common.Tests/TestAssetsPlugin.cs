@@ -17,16 +17,9 @@ public class TestAssetsPlugin
     {
         public ISessionViewModel? InitializedSession { get; private set; }
 
-        public ISessionViewModel? DisposedSession { get; private set; }
-
         public override void InitializeSession(ISessionViewModel session)
         {
             InitializedSession = session;
-        }
-
-        protected internal override void SessionDisposed(ISessionViewModel session)
-        {
-            DisposedSession = session;
         }
     }
 
@@ -45,10 +38,8 @@ public class TestAssetsPlugin
         session.Plugins.Plugins.Add(plugin);
 
         session.ServiceProvider.Get<IAssetsPluginService>().InitializeSession(session);
-        plugin.SessionDisposed(session);
 
         Assert.Same(session, plugin.InitializedSession);
-        Assert.Same(session, plugin.DisposedSession);
     }
 
     [Fact]

@@ -64,24 +64,23 @@ public sealed class PluginTests
     [Fact]
     public void TheDefaultAssetsPluginDeclaresTheReferencesAsPrimitiveTypes()
     {
-        var types = new List<Type>();
-
-        new StrideDefaultAssetsPlugin().RegisterPrimitiveTypes(types);
+        var types = PluginRegistrations.Of(new StrideDefaultAssetsPlugin(), typeof(Stride.Core.Assets.Editor.Editors.IAssetEditorView)).PrimitiveTypes;
 
         Assert.Contains(typeof(AssetReference), types);
         Assert.Contains(typeof(UrlReferenceBase), types);
     }
 
     [Fact]
-    public void TheEditorPluginDeclaresTheContentReferencesAsPrimitiveTypes()
+    public async Task TheEditorDeclaresTheContentReferencesAsPrimitiveTypesOnce()
     {
-        var types = new List<Type>();
+        using var fixture = await AssetsSessionFixture.OpenAsync(initializeEditor: false);
 
-        new StrideEditorPlugin().RegisterPrimitiveTypes(types);
-
-        // The content types serialized as references are not expanded by the property grid
-        Assert.Contains(typeof(Stride.Graphics.Texture), types);
-        Assert.Contains(typeof(Stride.Rendering.Model), types);
+        // The content types serialized as references are not expanded by the property grid; the host registers them once,
+        // whatever the number of plugins
+        var types = fixture.Plugins.GetPrimitiveTypes(fixture.Session).ToList();
+        Assert.Single(types, x => x == typeof(Stride.Graphics.Texture));
+        Assert.Single(types, x => x == typeof(Stride.Rendering.Model));
+        Assert.Empty(PluginRegistrations.Of(new StrideEditorPlugin(), typeof(Stride.Core.Assets.Editor.Editors.IAssetEditorView)).PrimitiveTypes);
     }
 
     [Fact]
@@ -112,9 +111,7 @@ public sealed class PluginTests
     [Fact]
     public void TheEditorPluginCollectsTheGizmosOfTheAssetAssemblies()
     {
-        var plugin = new StrideEditorPlugin();
-
-        plugin.InitializePlugin(new LoggerResult());
+        var registrations = PluginRegistrations.Of(new StrideEditorPlugin(), typeof(Stride.Core.Assets.Editor.Editors.IAssetEditorView));
 
         // The shared editor assembly declares the gizmos of the engine components
         Assert.Equal(typeof(Stride.Assets.Presentation.AssetEditors.Gizmos.CameraGizmo), StrideEditorPlugin.GizmoTypeDictionary[typeof(Stride.Engine.CameraComponent)]);
@@ -123,7 +120,7 @@ public sealed class PluginTests
         // bring some, and none is loaded here
         Assert.Empty(StrideEditorPlugin.EntityFactoryCategories);
         Assert.Empty(StrideEditorPlugin.AddAssetPolicyTypeList);
-        Assert.Equal(2, plugin.ProfileSettings.Count);
+        Assert.Equal(2, registrations.ProfileSettings.Count);
     }
 
     [Fact]

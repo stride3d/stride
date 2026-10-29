@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core.Assets.Editor.Annotations;
-using Stride.Core.Assets.Editor.ViewModel;
+using Stride.Core.Assets.Editor.Services;
 using Stride.Editor;
 using Stride.Engine;
 using Stride.Physics;
@@ -24,9 +24,12 @@ public sealed class PhysicsEditorPlugin : StrideAssetsPlugin
         Simulation.DisableSimulation = true;
     }
 
-    public override void InitializeSession(ISessionViewModel session)
+    /// <inheritdoc />
+    public override void InitializeSession(ISessionPluginContext context)
     {
-        session.AssetViewProperties.RegisterNodePresenterUpdater(new PhysicsNodeLinkNodeUpdater());
-        session.AssetViewProperties.RegisterNodePresenterUpdater(new NavigationNodeUpdater(session));
+        base.InitializeSession(context);
+
+        context.NodePresenterUpdaters.Register(new PhysicsNodeLinkNodeUpdater());
+        context.NodePresenterUpdaters.Register(new NavigationNodeUpdater(context.Session));
     }
 }

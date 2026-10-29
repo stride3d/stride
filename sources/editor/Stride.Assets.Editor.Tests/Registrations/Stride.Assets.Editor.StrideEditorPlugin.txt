@@ -1,0 +1,37 @@
+Plugin: Stride.Assets.Editor.StrideEditorPlugin
+AssetViewModelTypes:
+AssetEditorViewModelTypes:
+  Stride.Assets.Presentation.ViewModels.GraphicsCompositorViewModel -> Stride.Assets.Editor.ViewModels.GraphicsCompositorEditorViewModel
+  Stride.Assets.Presentation.ViewModels.PrefabViewModel -> Stride.Assets.Editor.ViewModels.PrefabEditorViewModel
+  Stride.Assets.Presentation.ViewModels.SceneViewModel -> Stride.Assets.Editor.ViewModels.SceneEditorViewModel
+  Stride.Assets.Presentation.ViewModels.ScriptSourceFileViewModel -> Stride.Assets.Editor.ViewModels.ScriptSourceFileEditorViewModel
+  Stride.Assets.Presentation.ViewModels.SpriteSheetViewModel -> Stride.Assets.Editor.ViewModels.SpriteSheetEditorViewModel
+  Stride.Assets.Presentation.ViewModels.VisualScriptViewModel -> Stride.Assets.Editor.ViewModels.VisualScriptEditorViewModel
+AssetEditorViewTypes:
+AssetPreviewViewModelTypes:
+  Stride.Assets.Editor.Preview.AnimationPreview -> Stride.Assets.Editor.ViewModels.Preview.AnimationPreviewViewModel
+  Stride.Assets.Editor.Preview.EntityPreview -> Stride.Assets.Editor.ViewModels.Preview.EntityPreviewViewModel
+  Stride.Assets.Editor.Preview.MaterialPreview -> Stride.Assets.Editor.ViewModels.Preview.MaterialPreviewViewModel
+  Stride.Assets.Editor.Preview.ModelPreview -> Stride.Assets.Editor.ViewModels.Preview.ModelPreviewViewModel
+  Stride.Assets.Editor.Preview.ProceduralModelPreview -> Stride.Assets.Editor.ViewModels.Preview.ProceduralModelPreviewViewModel
+  Stride.Assets.Editor.Preview.SkyboxPreview -> Stride.Assets.Editor.ViewModels.Preview.SkyboxPreviewViewModel
+  Stride.Assets.Editor.Preview.SpriteFontPreview -> Stride.Assets.Editor.ViewModels.Preview.SpriteFontPreviewViewModel
+  Stride.Assets.Editor.Preview.SpriteSheetPreview -> Stride.Assets.Editor.ViewModels.Preview.SpriteSheetPreviewViewModel
+  Stride.Assets.Editor.Preview.TexturePreview -> Stride.Assets.Editor.ViewModels.Preview.TexturePreviewViewModel
+  Stride.Assets.Presentation.Preview.PreviewFromSpriteBatch`1 -> Stride.Assets.Editor.ViewModels.Preview.SpritePreviewViewModel
+AssetPreviewViewTypes:
+PrimitiveTypes:
+EnumImages:
+TypeImages:
+TemplateProviders:
+CopyProcessors:
+  Stride.Assets.Presentation.ViewModel.CopyPasteProcessors.EntityComponentCopyProcessor
+PasteProcessors:
+  Stride.Assets.Presentation.ViewModel.CopyPasteProcessors.EntityComponentPasteProcessor
+  Stride.Assets.Presentation.ViewModel.CopyPasteProcessors.EntityHierarchyPasteProcessor
+PostPasteProcessors:
+  Stride.Assets.Presentation.ViewModel.CopyPasteProcessors.ScenePostPasteProcessor
+SettingsKeys:
+ProfileSettings:
+  Package/Game/Effect/EffectCompilation (Executable)
+  Package/Game/Effect/RecordUsedEffects (Executable)

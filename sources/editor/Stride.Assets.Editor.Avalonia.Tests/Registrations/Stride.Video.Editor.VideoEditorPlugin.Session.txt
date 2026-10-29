@@ -1,0 +1,5 @@
+Plugin: Stride.Video.Editor.VideoEditorPlugin
+Services:
+NodePresenterCommands:
+NodePresenterUpdaters:
+  Stride.Video.Editor.VideoAssetNodeUpdater

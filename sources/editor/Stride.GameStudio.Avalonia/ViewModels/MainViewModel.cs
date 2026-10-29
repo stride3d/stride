@@ -611,13 +611,15 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     }
 
     /// <summary>
-    /// Forgets the session before the editor restarts, and exits its preview game: the next editor starts its own.
+    /// Forgets the session before the editor restarts or exits, and exits its preview game: the next editor starts its own.
+    /// The plugins leave the session: what they registered goes and their close actions run.
     /// </summary>
-    private void CloseSessionServices()
+    internal void CloseSessionServices()
     {
         Preview?.Dispose();
         Preview = null;
         session = null;
+        (ServiceProvider.TryGet<IAssetsPluginService>() as IDisposable)?.Dispose();
     }
 
     private void OnExit()

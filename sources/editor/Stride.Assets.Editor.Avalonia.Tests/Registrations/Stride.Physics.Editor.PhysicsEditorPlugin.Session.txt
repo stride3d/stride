@@ -1,0 +1,6 @@
+Plugin: Stride.Physics.Editor.PhysicsEditorPlugin
+Services:
+NodePresenterCommands:
+NodePresenterUpdaters:
+  Stride.Physics.Editor.PhysicsNodeLinkNodeUpdater
+  Stride.Physics.Editor.NavigationNodeUpdater

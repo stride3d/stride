@@ -44,7 +44,7 @@ public sealed class CompanionTests
     [AvaloniaFact]
     public void TheSoundPreviewViewGetsItsThemeFromThePlugin()
     {
-        new AudioEditorAvaloniaPlugin().InitializePlugin(new LoggerResult());
+        PluginRegistrations.Of(new AudioEditorAvaloniaPlugin(), typeof(IAssetEditorView));
         var view = new SoundPreviewView();
         var window = new Window { Content = view };
 
@@ -64,8 +64,8 @@ public sealed class CompanionTests
     {
         var plugin = new AudioEditorAvaloniaPlugin();
 
-        plugin.InitializePlugin(new LoggerResult());
-        plugin.InitializePlugin(new LoggerResult());
+        PluginRegistrations.Of(plugin, typeof(IAssetEditorView));
+        PluginRegistrations.Of(plugin, typeof(IAssetEditorView));
 
         Assert.Single(Application.Current!.Resources.MergedDictionaries, x => x is ResourceInclude include && include.Source == AudioEditorAvaloniaPlugin.ThemesUri);
     }

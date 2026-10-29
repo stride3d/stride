@@ -1,0 +1,133 @@
+Plugin: Stride.Assets.Presentation.StrideDefaultAssetsPlugin
+AssetViewModelTypes:
+  Stride.Assets.Effect.EffectLogAsset -> Stride.Assets.Presentation.ViewModel.EffectLogViewModel
+  Stride.Assets.Entities.PrefabAsset -> Stride.Assets.Presentation.ViewModel.PrefabViewModel
+  Stride.Assets.Entities.SceneAsset -> Stride.Assets.Presentation.ViewModel.SceneViewModel
+  Stride.Assets.GameSettingsAsset -> Stride.Assets.Presentation.ViewModel.GameSettingsViewModel
+  Stride.Assets.Materials.MaterialAsset -> Stride.Assets.Presentation.ViewModel.MaterialViewModel
+  Stride.Assets.Models.AnimationAsset -> Stride.Assets.Presentation.ViewModel.AnimationViewModel
+  Stride.Assets.Models.ModelAsset -> Stride.Assets.Presentation.ViewModel.ModelViewModel
+  Stride.Assets.Models.ProceduralModelAsset -> Stride.Assets.Presentation.ViewModel.ProceduralModelViewModel
+  Stride.Assets.Models.SkeletonAsset -> Stride.Assets.Presentation.ViewModel.SkeletonViewModel
+  Stride.Assets.Rendering.GraphicsCompositorAsset -> Stride.Assets.Presentation.ViewModel.GraphicsCompositorViewModel
+  Stride.Assets.Scripts.ScriptSourceFileAsset -> Stride.Assets.Presentation.ViewModel.ScriptSourceFileAssetViewModel
+  Stride.Assets.Scripts.VisualScriptAsset -> Stride.Assets.Presentation.ViewModel.VisualScriptViewModel
+  Stride.Assets.Skyboxes.SkyboxAsset -> Stride.Assets.Presentation.ViewModel.SkyboxViewModel
+  Stride.Assets.Sprite.SpriteSheetAsset -> Stride.Assets.Presentation.ViewModel.SpriteSheetViewModel
+  Stride.Assets.SpriteFont.PrecompiledSpriteFontAsset -> Stride.Assets.Presentation.ViewModel.PrecompiledSpriteFontViewModel
+  Stride.Assets.SpriteFont.SpriteFontAsset -> Stride.Assets.Presentation.ViewModel.SpriteFontViewModel
+  Stride.Core.Assets.SourceCodeAsset -> Stride.Assets.Presentation.ViewModel.CodeAssetViewModel
+AssetEditorViewModelTypes:
+  Stride.Assets.Presentation.ViewModel.GraphicsCompositorViewModel -> Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewModels.GraphicsCompositorEditorViewModel
+  Stride.Assets.Presentation.ViewModel.PrefabViewModel -> Stride.Assets.Presentation.AssetEditors.PrefabEditor.ViewModels.PrefabEditorViewModel
+  Stride.Assets.Presentation.ViewModel.SceneViewModel -> Stride.Assets.Presentation.AssetEditors.SceneEditor.ViewModels.SceneEditorViewModel
+  Stride.Assets.Presentation.ViewModel.ScriptSourceFileAssetViewModel -> Stride.Assets.Presentation.AssetEditors.ScriptEditor.ScriptEditorViewModel
+  Stride.Assets.Presentation.ViewModel.SpriteSheetViewModel -> Stride.Assets.Presentation.AssetEditors.SpriteEditor.ViewModels.SpriteSheetEditorViewModel
+  Stride.Assets.Presentation.ViewModel.VisualScriptViewModel -> Stride.Assets.Presentation.AssetEditors.VisualScriptEditor.VisualScriptEditorViewModel
+AssetEditorViewTypes:
+  Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewModels.GraphicsCompositorEditorViewModel -> Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.Views.GraphicsCompositorEditorView
+  Stride.Assets.Presentation.AssetEditors.PrefabEditor.ViewModels.PrefabEditorViewModel -> Stride.Assets.Presentation.AssetEditors.PrefabEditor.Views.PrefabEditorView
+  Stride.Assets.Presentation.AssetEditors.SceneEditor.ViewModels.SceneEditorViewModel -> Stride.Assets.Presentation.AssetEditors.SceneEditor.Views.SceneEditorView
+  Stride.Assets.Presentation.AssetEditors.ScriptEditor.ScriptEditorViewModel -> Stride.Assets.Presentation.AssetEditors.ScriptEditor.ScriptEditorView
+  Stride.Assets.Presentation.AssetEditors.SpriteEditor.ViewModels.SpriteSheetEditorViewModel -> Stride.Assets.Presentation.AssetEditors.SpriteEditor.Views.SpriteEditorView
+AssetPreviewViewModelTypes:
+  Stride.Assets.Presentation.Preview.AnimationPreview -> Stride.Assets.Presentation.ViewModel.Preview.AnimationPreviewViewModel
+  Stride.Assets.Presentation.Preview.EntityPreview -> Stride.Assets.Presentation.ViewModel.Preview.EntityPreviewViewModel
+  Stride.Assets.Presentation.Preview.MaterialPreview -> Stride.Assets.Presentation.ViewModel.Preview.MaterialPreviewViewModel
+  Stride.Assets.Presentation.Preview.ModelPreview -> Stride.Assets.Presentation.ViewModel.Preview.ModelPreviewViewModel
+  Stride.Assets.Presentation.Preview.PreviewFromSpriteBatch`1 -> Stride.Assets.Presentation.ViewModel.Preview.SpritePreviewViewModel
+  Stride.Assets.Presentation.Preview.ProceduralModelPreview -> Stride.Assets.Presentation.ViewModel.Preview.ProceduralModelPreviewViewModel
+  Stride.Assets.Presentation.Preview.SkyboxPreview -> Stride.Assets.Presentation.ViewModel.Preview.SkyboxPreviewViewModel
+  Stride.Assets.Presentation.Preview.SpriteFontPreview -> Stride.Assets.Presentation.ViewModel.Preview.SpriteFontPreviewViewModel
+  Stride.Assets.Presentation.Preview.SpriteSheetPreview -> Stride.Assets.Presentation.ViewModel.Preview.SpriteSheetPreviewViewModel
+  Stride.Assets.Presentation.Preview.TexturePreview -> Stride.Assets.Presentation.ViewModel.Preview.TexturePreviewViewModel
+AssetPreviewViewTypes:
+  Stride.Assets.Presentation.Preview.AnimationPreview -> Stride.Assets.Presentation.Preview.Views.AnimationPreviewView
+  Stride.Assets.Presentation.Preview.MaterialPreview -> Stride.Assets.Presentation.Preview.Views.MaterialPreviewView
+  Stride.Assets.Presentation.Preview.ModelPreview -> Stride.Assets.Presentation.Preview.Views.ModelPreviewView
+  Stride.Assets.Presentation.Preview.PrecompiledSpriteFontPreview -> Stride.Assets.Presentation.Preview.Views.SpriteFontPreviewView
+  Stride.Assets.Presentation.Preview.PrefabModelPreview -> Stride.Assets.Presentation.Preview.Views.ModelPreviewView
+  Stride.Assets.Presentation.Preview.PrefabPreview -> Stride.Assets.Presentation.Preview.Views.ModelPreviewView
+  Stride.Assets.Presentation.Preview.PreviewFromSpriteBatch`1 -> Stride.Assets.Presentation.Preview.Views.SpritePreviewView
+  Stride.Assets.Presentation.Preview.ProceduralModelPreview -> Stride.Assets.Presentation.Preview.Views.ModelPreviewView
+  Stride.Assets.Presentation.Preview.ScenePreview -> Stride.Assets.Presentation.Preview.Views.ScenePreviewView
+  Stride.Assets.Presentation.Preview.SkyboxPreview -> Stride.Assets.Presentation.Preview.Views.SkyboxPreviewView
+  Stride.Assets.Presentation.Preview.SpriteFontPreview -> Stride.Assets.Presentation.Preview.Views.SpriteFontPreviewView
+  Stride.Assets.Presentation.Preview.SpriteSheetPreview -> Stride.Assets.Presentation.Preview.Views.SpriteSheetPreviewView
+  Stride.Assets.Presentation.Preview.TexturePreview -> Stride.Assets.Presentation.Preview.Views.TexturePreviewView
+PrimitiveTypes:
+  Stride.Core.Assets.AssetReference
+  Stride.Core.Serialization.UrlReferenceBase
+EnumImages:
+  Stride.Assets.Presentation.AssetEditors.GameEditor.Transformation.Rotation -> System.Windows.Media.DrawingImage
+  Stride.Assets.Presentation.AssetEditors.GameEditor.Transformation.Scale -> System.Windows.Media.DrawingImage
+  Stride.Assets.Presentation.AssetEditors.GameEditor.Transformation.Translation -> System.Windows.Media.DrawingImage
+  Stride.Assets.Presentation.AssetEditors.GameEditor.TransformationSpace.ObjectSpace -> System.Windows.Media.DrawingImage
+  Stride.Assets.Presentation.AssetEditors.GameEditor.TransformationSpace.ViewSpace -> System.Windows.Media.DrawingImage
+  Stride.Assets.Presentation.AssetEditors.GameEditor.TransformationSpace.WorldSpace -> System.Windows.Media.DrawingImage
+  Stride.Assets.Presentation.Preview.MaterialPreviewPrimitive.Capsule -> System.Windows.Media.Imaging.BitmapImage
+  Stride.Assets.Presentation.Preview.MaterialPreviewPrimitive.Cone -> System.Windows.Media.Imaging.BitmapImage
+  Stride.Assets.Presentation.Preview.MaterialPreviewPrimitive.Cube -> System.Windows.Media.Imaging.BitmapImage
+  Stride.Assets.Presentation.Preview.MaterialPreviewPrimitive.Cylinder -> System.Windows.Media.Imaging.BitmapImage
+  Stride.Assets.Presentation.Preview.MaterialPreviewPrimitive.Plane -> System.Windows.Media.Imaging.BitmapImage
+  Stride.Assets.Presentation.Preview.MaterialPreviewPrimitive.Sphere -> System.Windows.Media.Imaging.BitmapImage
+  Stride.Assets.Presentation.Preview.MaterialPreviewPrimitive.Teapot -> System.Windows.Media.Imaging.BitmapImage
+  Stride.Assets.Presentation.Preview.MaterialPreviewPrimitive.Torus -> System.Windows.Media.Imaging.BitmapImage
+  Stride.Core.PlatformType.Android -> System.Windows.Media.DrawingImage
+  Stride.Core.PlatformType.Linux -> System.Windows.Media.DrawingImage
+  Stride.Core.PlatformType.UWP -> System.Windows.Media.DrawingImage
+  Stride.Core.PlatformType.Windows -> System.Windows.Media.DrawingImage
+  Stride.Core.PlatformType.iOS -> System.Windows.Media.DrawingImage
+  Stride.Core.PlatformType.macOS -> System.Windows.Media.DrawingImage
+  Stride.Graphics.Font.FontStyle.Bold -> System.Windows.Media.DrawingImage
+  Stride.Graphics.Font.FontStyle.Italic -> System.Windows.Media.DrawingImage
+TypeImages:
+  Stride.Engine.AnimationComponent -> System.Windows.Media.DrawingImage
+  Stride.Engine.BackgroundComponent -> System.Windows.Media.DrawingImage
+  Stride.Engine.CameraComponent -> System.Windows.Media.DrawingImage
+  Stride.Engine.EntityComponent -> System.Windows.Media.DrawingImage
+  Stride.Engine.LightComponent -> System.Windows.Media.DrawingImage
+  Stride.Engine.ModelComponent -> System.Windows.Media.DrawingImage
+  Stride.Engine.ModelNodeLinkComponent -> System.Windows.Media.DrawingImage
+  Stride.Engine.ScriptComponent -> System.Windows.Media.DrawingImage
+  Stride.Engine.SpriteComponent -> System.Windows.Media.DrawingImage
+  Stride.Engine.TransformComponent -> System.Windows.Media.DrawingImage
+TemplateProviders:
+  Stride.Assets.Presentation.TemplateProviders.AnimationFrameBoxTemplateProvider AnimationFrameBoxTemplateProvider
+  Stride.Assets.Presentation.TemplateProviders.AnimationFrameTemplateProvider AnimationFrameTemplateProvider
+  Stride.Assets.Presentation.TemplateProviders.ComputeCurveColor4TemplateProvider IComputeCurve<Stride.Core.Mathematics.Color4>
+  Stride.Assets.Presentation.TemplateProviders.ComputeCurveFloatTemplateProvider IComputeCurve<System.Single>
+  Stride.Assets.Presentation.TemplateProviders.ComputeCurveQuaternionTemplateProvider IComputeCurve<Stride.Core.Mathematics.Quaternion>
+  Stride.Assets.Presentation.TemplateProviders.ComputeCurveVector2TemplateProvider IComputeCurve<Stride.Core.Mathematics.Vector2>
+  Stride.Assets.Presentation.TemplateProviders.ComputeCurveVector3TemplateProvider IComputeCurve<Stride.Core.Mathematics.Vector3>
+  Stride.Assets.Presentation.TemplateProviders.ComputeCurveVector4TemplateProvider IComputeCurve<Stride.Core.Mathematics.Vector4>
+  Stride.Assets.Presentation.TemplateProviders.EntityComponentCollectionTemplateProvider EntityComponentCollection
+  Stride.Assets.Presentation.TemplateProviders.EntityComponentCollectionTemplateProvider EntityComponentCollection
+  Stride.Assets.Presentation.TemplateProviders.EntityComponentReferenceTemplateProvider EntityComponentReference
+  Stride.Assets.Presentation.TemplateProviders.EntityComponentReferenceTemplateProvider EntityComponentReference
+  Stride.Assets.Presentation.TemplateProviders.EntityReferenceTemplateProvider EntityReference
+  Stride.Assets.Presentation.TemplateProviders.GameSettingAddConfigurationTemplateProvider GameSettingAddConfigurationTemplateProvider
+  Stride.Assets.Presentation.TemplateProviders.GameSettingAddConfigurationTemplateProvider GameSettingAddConfigurationTemplateProvider
+  Stride.Assets.Presentation.TemplateProviders.ModelComponentMaterialTemplateProvider ModelComponentMaterial
+  Stride.Assets.Presentation.TemplateProviders.ModelNodeNameTemplateProvider ModelNodeNameTemplateProvider
+  Stride.Assets.Presentation.TemplateProviders.MorphWeightTemplateProvider MorphWeight
+  Stride.Assets.Presentation.TemplateProviders.MorphWeightsTemplateProvider MorphWeights
+  Stride.Assets.Presentation.TemplateProviders.ScriptTextEditorTemplateProvider ScriptTextEditor
+  Stride.Assets.Presentation.TemplateProviders.ScriptVariableReferenceTemplateProvider ScriptVariableReferenceTemplateProvider
+  Stride.Assets.Presentation.TemplateProviders.ShaderClassNodeMixinReferenceTemplateProvider ShaderClassNodeMixinReference
+  Stride.Assets.Presentation.TemplateProviders.SkeletonModelPropertyTemplateProvider SkeletonNodeInformationList
+  Stride.Assets.Presentation.TemplateProviders.SpriteFontFontNamePropertyTemplateProvider SpriteFontFontName
+  Stride.Core.Assets.Editor.View.TemplateProviders.ListItemTemplateProvider ListItem
+  Stride.Core.Assets.Editor.View.TypeMatchTemplateProvider EntityComponent
+  Stride.Core.Assets.Editor.View.TypeMatchTemplateProvider SceneCameraSlotId
+CopyProcessors:
+  Stride.Assets.Presentation.ViewModel.CopyPasteProcessors.EntityComponentCopyProcessor
+PasteProcessors:
+  Stride.Assets.Presentation.ViewModel.CopyPasteProcessors.EntityComponentPasteProcessor
+  Stride.Assets.Presentation.ViewModel.CopyPasteProcessors.EntityHierarchyPasteProcessor
+PostPasteProcessors:
+  Stride.Assets.Presentation.ViewModel.CopyPasteProcessors.ScenePostPasteProcessor
+SettingsKeys:
+ProfileSettings:
+  Package/Game/Effect/EffectCompilation (Executable)
+  Package/Game/Effect/RecordUsedEffects (Executable)

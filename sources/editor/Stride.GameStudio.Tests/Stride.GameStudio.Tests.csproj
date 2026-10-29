@@ -13,10 +13,21 @@
     <Compile Include="..\..\assets\Stride.Core.Assets.Tests\Helpers\IdentifierGenerator.cs">
       <Link>Helpers\IdentifierGenerator.cs</Link>
     </Compile>
+    <!-- The registrations of a plugin as text, compared with the recorded ones: the same files as the cross-platform tests -->
+    <Compile Include="..\Stride.Assets.Editor.Tests\Helpers\PluginRegistrations.cs">
+      <Link>Helpers\PluginRegistrations.cs</Link>
+    </Compile>
+    <Compile Include="..\Stride.Assets.Editor.Tests\Helpers\RegistrationsGolden.cs">
+      <Link>Helpers\RegistrationsGolden.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
     <ProjectReference Include="..\Stride.GameStudio\Stride.GameStudio.csproj" />
+    <!-- The plugin packages that the Game Studio loads as packages, for their registrations -->
+    <ProjectReference Include="..\..\plugins\Audio\Stride.Audio.Editor.Wpf\Stride.Audio.Editor.Wpf.csproj" />
+    <ProjectReference Include="..\..\plugins\SpriteStudio\Stride.SpriteStudio.Editor.Wpf\Stride.SpriteStudio.Editor.Wpf.csproj" />
+    <ProjectReference Include="..\..\plugins\UI\Stride.UI.Editor.Wpf\Stride.UI.Editor.Wpf.csproj" />
   </ItemGroup>
   <Import Project="$(StrideRoot)sources/sdk/Stride.Build.Sdk.Tests/Sdk/Sdk.targets" />
 </Project>

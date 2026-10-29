@@ -1,0 +1,19 @@
+Plugin: Stride.Core.Assets.Editor.CoreAssetsEditorPlugin
+AssetViewModelTypes:
+AssetEditorViewModelTypes:
+AssetEditorViewTypes:
+AssetPreviewViewModelTypes:
+AssetPreviewViewTypes:
+PrimitiveTypes:
+EnumImages:
+  Stride.Core.Assets.ProjectType.Executable -> System.Windows.Media.DrawingImage
+  Stride.Core.Assets.ProjectType.Library -> System.Windows.Media.DrawingImage
+TypeImages:
+TemplateProviders:
+CopyProcessors:
+PasteProcessors:
+  Stride.Core.Assets.Editor.ViewModel.CopyPasteProcessors.AssetPropertyPasteProcessor
+  Stride.Core.Assets.Editor.ViewModel.CopyPasteProcessors.AssetItemPasteProcessor
+PostPasteProcessors:
+SettingsKeys:
+ProfileSettings:

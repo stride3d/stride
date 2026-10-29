@@ -1,0 +1,4 @@
+Plugin: Stride.Core.Assets.Editor.Avalonia.StrideCoreEditorViewPlugin
+Services:
+NodePresenterCommands:
+NodePresenterUpdaters:
