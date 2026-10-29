@@ -68,11 +68,13 @@ public abstract class EntityHierarchyElementViewModel : EntityHierarchyItemViewM
     /// Locks or unlocks this element.
     /// </summary>
     /// <param name="lock"><c>true</c> to lock, <c>false</c> to unlock.</param>
-    /// <param name="recursive">Whether the entities under this element are locked or unlocked too, recursively.</param>
+    /// <param name="recursive">Whether the entities under this element are locked or unlocked too, recursively. They
+    /// always are for the root.</param>
     public void RequestLocking(bool @lock, bool recursive = false)
     {
         IsLocked = @lock;
-        if (!recursive)
+        // Locking the root always applies to all its entities, as in the WPF scene editor
+        if (!recursive && this is not EntityHierarchyRootViewModel)
             return;
 
         foreach (var entity in TransformChildren.BreadthFirst(x => x.TransformChildren))
