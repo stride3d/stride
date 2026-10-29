@@ -5,6 +5,7 @@
              xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
              xmlns:vm="using:Stride.Core.Assets.Editor.ViewModel"
              xmlns:vm2="using:Stride.Core.Assets.Editor.ViewModels"
+             xmlns:dd="using:Stride.Core.Assets.Editor.Avalonia.DragDrop"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Stride.GameStudio.Avalonia.Views.SolutionExplorerView"
              x:DataType="vm2:SessionViewModel">
@@ -139,7 +140,11 @@
       <Control.DataTemplates>
         <TreeDataTemplate DataType="{x:Type vm:AssetMountPointViewModel}"
                           ItemsSource="{Binding SubDirectories}">
-          <StackPanel Orientation="Horizontal">
+          <StackPanel Orientation="Horizontal" Background="Transparent">
+            <!-- An asset dragged from the asset view moves here -->
+            <Interaction.Behaviors>
+              <dd:AddChildDropBehavior/>
+            </Interaction.Behaviors>
             <TextBlock Text="{Binding Name}" />
             <TextBlock Text="*" IsVisible="{Binding IsDirty}" />
           </StackPanel>
@@ -154,7 +159,11 @@
         </TreeDataTemplate>
         <TreeDataTemplate DataType="{x:Type vm:DirectoryViewModel}"
                           ItemsSource="{Binding SubDirectories}">
-          <StackPanel Orientation="Horizontal">
+          <StackPanel Orientation="Horizontal" Background="Transparent">
+            <!-- An asset dragged from the asset view moves to this folder, as in the WPF solution explorer -->
+            <Interaction.Behaviors>
+              <dd:AddChildDropBehavior/>
+            </Interaction.Behaviors>
             <TextBlock Text="Directory: " />
             <TextBlock Text="{Binding Name}" IsVisible="{Binding !IsEditing}" />
             <!-- Renaming in place (F2): the box replaces the name while the folder is editing -->
