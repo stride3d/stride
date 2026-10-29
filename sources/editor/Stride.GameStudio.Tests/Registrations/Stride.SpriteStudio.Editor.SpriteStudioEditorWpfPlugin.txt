@@ -1,0 +1,17 @@
+Plugin: Stride.SpriteStudio.Editor.SpriteStudioEditorWpfPlugin
+AssetViewModelTypes:
+AssetEditorViewModelTypes:
+AssetEditorViewTypes:
+AssetPreviewViewModelTypes:
+AssetPreviewViewTypes:
+  Stride.SpriteStudio.Editor.SpriteStudioSheetPreview -> Stride.SpriteStudio.Editor.SpriteStudioSheetPreviewView
+PrimitiveTypes:
+  (the reference types of every registered assembly)
+EnumImages:
+TypeImages:
+TemplateProviders:
+CopyProcessors:
+PasteProcessors:
+PostPasteProcessors:
+SettingsKeys:
+ProfileSettings:
