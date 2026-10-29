@@ -150,6 +150,10 @@ namespace Stride.Assets
                 // 4.5: the assembly processor no longer names hand-written parameter keys; a source generator does, for
                 // the types marked [EffectKeys] (#3584).
                 AddAttributeToStaticFieldHolders("Stride.Rendering.ParameterKey", "Stride.Rendering.EffectKeysAttribute"),
+
+                // 4.5: the assembly processor no longer pools the delegates passed to the Dispatcher; its callbacks take
+                // their captures as a state, in a static lambda (#3680).
+                DispatcherCallbacksToStaticLambdas(),
             ]);
 
             // Structural csproj migrations, gated by the version each change landed at. Run against the

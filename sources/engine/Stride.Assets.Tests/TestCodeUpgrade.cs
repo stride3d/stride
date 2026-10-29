@@ -843,4 +843,278 @@ public class TestCodeUpgrade
         Assert.Equal(1, result.Split("[Stride.Rendering.EffectKeys]").Length - 1);
         AssertCompiles(result + EffectKeysAttributeSource);
     }
+
+    // The Dispatcher before 4.5, with the overloads whose delegates the assembly processor pooled
+    private const string OldDispatcherSource = """
+        using System.Collections.Generic;
+        using Stride.Core.Threading;
+
+        namespace Stride.Core.Threading
+        {
+            public static class Dispatcher
+            {
+                public static void For(int fromInclusive, int toExclusive, System.Action<int> action) { }
+                public static void For<TLocal>(int fromInclusive, int toExclusive, System.Func<TLocal> initializeLocal, System.Action<int, TLocal> action, System.Action<TLocal> finalizeLocal = null) { }
+                public static void ForBatched(int items, System.Action<int, int> executeBatch) { }
+                public static void ForEach<T>(T[] collection, System.Action<T> action) { }
+                public static void ForEach<T>(System.Collections.Generic.List<T> collection, System.Action<T> action) { }
+                public static void ForEach<T, TList>(TList collection, System.Action<T> action) where TList : System.Collections.Generic.IReadOnlyList<T> { }
+                public static void ForEach<TKey, TValue>(System.Collections.Generic.Dictionary<TKey, TValue> collection, System.Action<System.Collections.Generic.KeyValuePair<TKey, TValue>> action) { }
+                public static void ForEach<TItem, TLocal, TList>(TList collection, System.Func<TLocal> initializeLocal, System.Action<TItem, TLocal> action, System.Action<TLocal> finalizeLocal = null) where TList : System.Collections.Generic.IReadOnlyList<TItem> { }
+                public static void ForEach<TKey, TValue, TLocal>(System.Collections.Generic.Dictionary<TKey, TValue> collection, System.Func<TLocal> initializeLocal, System.Action<System.Collections.Generic.KeyValuePair<TKey, TValue>, TLocal> action, System.Action<TLocal> finalizeLocal = null) { }
+            }
+        }
+
+        """;
+
+    // The Dispatcher after: the overloads taking a state
+    private const string NewDispatcherSource = """
+        using System.Collections.Generic;
+        using Stride.Core.Threading;
+
+        namespace Stride.Core.Threading
+        {
+            public static class Dispatcher
+            {
+                public static void For<TState>(int fromInclusive, int toExclusive, TState state, System.Action<TState, int> action) { }
+                public static void ForBatched<TState>(int items, TState state, System.Action<TState, int, int> executeBatch) { }
+                public static void ForEach<T, TState>(System.Collections.Generic.IReadOnlyList<T> collection, TState state, System.Action<TState, T> action) { }
+            }
+        }
+
+        """;
+
+    private static readonly CodeUpgrade DispatcherUpgrade = DispatcherCallbacksToStaticLambdas();
+
+    [Fact]
+    public async Task DispatcherCallbacksMoveCapturesToTheState()
+    {
+        var source = OldDispatcherSource + """
+            namespace Game
+            {
+                public class Processor
+                {
+                    private readonly List<int> items = new();
+                    private int total;
+
+                    private void Process(int value) { }
+
+                    public void Update(int[] hits)
+                    {
+                        Dispatcher.For(0, 10, i => Process(i));
+                        Dispatcher.For(0, 10, i => this.Process(i));
+                        Dispatcher.For(0, 10, i => total += i);
+                        Dispatcher.For(0, 10, i => System.Console.WriteLine(i));
+                        var scale = 2;
+                        Dispatcher.ForEach(items, item => Process(item * scale));
+                        Dispatcher.ForEach<int, List<int>>(items, delegate (int item) { Process(item); });
+                        Dispatcher.ForBatched(hits.Length, (from, toExclusive) =>
+                        {
+                            for (int i = from; i < toExclusive; i++)
+                                hits[i]++;
+                        });
+                        Dispatcher.ForEach(items, Process);
+                    }
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(source, DispatcherUpgrade);
+
+        var expected = OldDispatcherSource + """
+            namespace Game
+            {
+                public class Processor
+                {
+                    private readonly List<int> items = new();
+                    private int total;
+
+                    private void Process(int value) { }
+
+                    public void Update(int[] hits)
+                    {
+                        Dispatcher.For(0, 10, this, static (state, i) => state.Process(i));
+                        Dispatcher.For(0, 10, this, static (state, i) => state.Process(i));
+                        Dispatcher.For(0, 10, this, static (state, i) => state.total += i);
+                        Dispatcher.For(0, 10, default(object), static (_, i) => System.Console.WriteLine(i));
+                        var scale = 2;
+                        Dispatcher.ForEach(items, (self: this, scale), static (state, item) => state.self.Process(item * state.scale));
+                        Dispatcher.ForEach(items, this, static (state, item) => { state.Process(item); });
+                        Dispatcher.ForBatched(hits.Length, hits, static (state, from, toExclusive) =>
+                        {
+                            for (int i = from; i < toExclusive; i++)
+                                state[i]++;
+                        });
+                        Dispatcher.ForEach(items, this, static (state, value) => state.Process(value));
+                    }
+                }
+            }
+            """;
+        Assert.Equal(expected.ReplaceLineEndings(), result.ReplaceLineEndings());
+        AssertCompiles(result.Replace(OldDispatcherSource, NewDispatcherSource));
+    }
+
+    [Fact]
+    public async Task DispatcherCallbacksThatCannotMoveAreLeftAlone()
+    {
+        var user = """
+            namespace Game
+            {
+                public class Processor
+                {
+                    private readonly List<int> items = new();
+
+                    public void Update(Dictionary<int, int> map, System.Action<int> callback)
+                    {
+                        // Writes a captured local
+                        var count = 0;
+                        Dispatcher.For(0, 10, i => count++);
+                        // A dictionary with a per-batch local: a loop would index it by key
+                        Dispatcher.ForEach(map, () => new List<int>(), (pair, list) => list.Add(pair.Key));
+                        // A per-batch local with a range that doesn't start at a constant
+                        Dispatcher.For(count, 10, () => new List<int>(), (i, list) => list.Add(i));
+                        // Writes its per-item parameter, which the loop would share
+                        Dispatcher.For(0, 10, () => new List<int>(), (i, list) => list = null);
+                        // Not a lambda nor a method
+                        Dispatcher.For(0, 10, callback);
+                        // Calls a local function that captures
+                        void Log(int i) => System.Console.WriteLine(i + count);
+                        Dispatcher.For(0, 10, i => Log(i));
+                    }
+                }
+            }
+            """;
+        var source = OldDispatcherSource + user;
+
+        var result = await ApplyAsync(source, DispatcherUpgrade);
+
+        Assert.Equal(source.ReplaceLineEndings(), result.ReplaceLineEndings());
+    }
+
+    [Fact]
+    public async Task DispatcherNestedCallbacksMoveTheInnerOne()
+    {
+        var source = OldDispatcherSource + """
+            namespace Game
+            {
+                public class Processor
+                {
+                    private readonly List<List<int>> groups = new();
+
+                    private void Process(int value) { }
+
+                    public void Update()
+                    {
+                        Dispatcher.ForEach(groups, group => Dispatcher.ForEach(group, item => Process(item)));
+                    }
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(source, DispatcherUpgrade);
+
+        Assert.Contains("Dispatcher.ForEach(groups, group => Dispatcher.ForEach(group, this, static (state, item) => state.Process(item)));", result);
+    }
+
+    [Fact]
+    public async Task DispatcherLocalCallbacksBecomeForBatched()
+    {
+        var source = OldDispatcherSource + """
+            namespace Game
+            {
+                public class Processor
+                {
+                    private readonly List<int> items = new();
+                    private readonly Stack<List<int>> pool = new();
+
+                    private void Process(int value, List<int> scratch) { }
+
+                    public void Update(int count)
+                    {
+                        Dispatcher.For(0, count, () => pool.Pop(), (i, scratch) =>
+                        {
+                            if (i % 2 == 0)
+                                return;
+                            Process(i, scratch);
+                        }, scratch => pool.Push(scratch));
+                        Dispatcher.ForEach<int, List<int>, List<int>>(items, () => new List<int>(), (item, scratch) => Process(item, scratch));
+                    }
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(source, DispatcherUpgrade);
+
+        var expected = OldDispatcherSource + """
+            namespace Game
+            {
+                public class Processor
+                {
+                    private readonly List<int> items = new();
+                    private readonly Stack<List<int>> pool = new();
+
+                    private void Process(int value, List<int> scratch) { }
+
+                    public void Update(int count)
+                    {
+                        Dispatcher.ForBatched(count, this, static (state, start, endExclusive) =>
+                        {
+                            var scratch = state.pool.Pop();
+                            try
+                            {
+                                for (int i = start; i < endExclusive; i++)
+                                {
+                                    if (i % 2 == 0)
+                                        continue;
+                                    state.Process(i, scratch);
+                                }
+                            }
+                            finally
+                            {
+                                state.pool.Push(scratch);
+                            }
+                        });
+                        Dispatcher.ForBatched(items.Count, (self: this, collection: items), static (state, start, endExclusive) =>
+                        {
+                            var scratch = new List<int>();
+                            for (int index = start; index < endExclusive; index++)
+                            {
+                                var item = state.collection[index];
+                                state.self.Process(item, scratch);
+                            }
+                        });
+                    }
+                }
+            }
+            """;
+        Assert.Equal(expected.ReplaceLineEndings(), result.ReplaceLineEndings());
+        AssertCompiles(result.Replace(OldDispatcherSource, NewDispatcherSource));
+    }
+
+    [Fact]
+    public async Task DispatcherDictionaryCallbackMovesButNoLongerCompiles()
+    {
+        var source = OldDispatcherSource + """
+            namespace Game
+            {
+                public class Processor
+                {
+                    private void Process(int key) { }
+
+                    public void Update(Dictionary<int, string> map)
+                    {
+                        Dispatcher.ForEach(map, pair => Process(pair.Key));
+                    }
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(source, DispatcherUpgrade);
+
+        Assert.Contains("Dispatcher.ForEach(map, this, static (state, pair) => state.Process(pair.Key));", result);
+        // The author picks a collection with an index
+        var syntaxTree = CSharpSyntaxTree.ParseText(result.Replace(OldDispatcherSource, NewDispatcherSource), new CSharpParseOptions(LanguageVersion.Preview));
+        var compilation = CSharpCompilation.Create("Check", [syntaxTree], FrameworkReferences(), new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+        Assert.Contains(compilation.GetDiagnostics(), x => x.Severity == DiagnosticSeverity.Error && x.Location.SourceTree.GetText().ToString(x.Location.SourceSpan).Contains("ForEach"));
+    }
 }
