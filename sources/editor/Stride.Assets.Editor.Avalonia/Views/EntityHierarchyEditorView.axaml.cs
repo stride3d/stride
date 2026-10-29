@@ -4,6 +4,8 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
+using Avalonia.VisualTree;
 using Stride.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.Editors;
@@ -16,6 +18,9 @@ public partial class EntityHierarchyEditorView : UserControl, IAssetEditorView
     public EntityHierarchyEditorView()
     {
         InitializeComponent();
+        // The menu depends on what is under the mouse, as in the WPF scene editor: an item pastes into the selection, an
+        // empty area of the tree pastes into the root. Tunnel, so that the menu is set before the tree opens it.
+        HierarchyTree.AddHandler(ContextRequestedEvent, OnTreeContextRequested, RoutingStrategies.Tunnel);
     }
 
     /// <inheritdoc />
@@ -31,16 +36,31 @@ public partial class EntityHierarchyEditorView : UserControl, IAssetEditorView
     {
         base.OnKeyDown(e);
 
-        // F frames the last selected entity, from the hierarchy or the view, as in the WPF scene editor. The keys reach
-        // the view model after the focused control, so typing an F in a text box doesn't move the camera.
-        if (e.Handled || e.Key != Key.F || e.KeyModifiers != KeyModifiers.None || e.Source is TextBox)
+        // F frames the last selected entity, from the hierarchy or the view, and Ctrl+D duplicates the selection, as in
+        // the WPF scene editor. The keys reach the view model after the focused control, so typing in a text box doesn't
+        // move the camera.
+        if (e.Handled || e.Source is TextBox || DataContext is not EntityHierarchyEditorViewModel editor)
             return;
 
-        if (DataContext is EntityHierarchyEditorViewModel { FocusOnSelectionCommand: { IsEnabled: true } command })
+        var command = (e.Key, e.KeyModifiers) switch
+        {
+            (Key.F, KeyModifiers.None) => editor.FocusOnSelectionCommand,
+            (Key.D, KeyModifiers.Control) => editor.DuplicateSelectionCommand,
+            _ => null,
+        };
+        if (command is { IsEnabled: true })
         {
             command.Execute();
             e.Handled = true;
         }
+    }
+
+    private void OnTreeContextRequested(object? sender, ContextRequestedEventArgs e)
+    {
+        var onItem = (e.Source as Visual)?.FindAncestorOfType<TreeViewItem>(true) is not null;
+        var menu = (ContextMenu)Resources[onItem ? "ItemContextMenu" : "RootContextMenu"]!;
+        menu.DataContext = DataContext;
+        HierarchyTree.ContextMenu = menu;
     }
 
     /// <inheritdoc />

@@ -12,15 +12,74 @@
   <UserControl.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="avares://Stride.Core.Assets.Editor.Avalonia/Views/ImageResources.axaml"/>
         <ResourceInclude Source="avares://Stride.Assets.Editor.Avalonia/Views/SceneEditorImages.axaml"/>
       </ResourceDictionary.MergedDictionaries>
+
+      <!-- The context menu of an empty area of the tree, as the WPF TreeViewContextMenu: the paste goes to the root -->
+      <ContextMenu x:Key="RootContextMenu" x:DataType="vm:EntityHierarchyEditorViewModel">
+        <MenuItem Header="{sd:LocalizeString Actions, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"/>
+        <MenuItem Header="{sd:LocalizeString Duplicate, Context=Menu}" InputGesture="Ctrl+D"
+                  Command="{Binding DuplicateSelectionCommand}"/>
+        <MenuItem Header="{sd:LocalizeString Cut, Context=Menu}" InputGesture="{x:Static sd:EditCommands.CutGesture}"
+                  Command="{Binding CutCommand}">
+          <MenuItem.Icon><Image Source="{StaticResource ImageCut}"/></MenuItem.Icon>
+        </MenuItem>
+        <MenuItem Header="{sd:LocalizeString Copy, Context=Menu}" InputGesture="{x:Static sd:EditCommands.CopyGesture}"
+                  Command="{Binding CopyCommand}">
+          <MenuItem.Icon><Image Source="{StaticResource ImageCopy}"/></MenuItem.Icon>
+        </MenuItem>
+        <MenuItem Header="{sd:LocalizeString Paste, Context=Menu}" InputGesture="{x:Static sd:EditCommands.PasteGesture}"
+                  Command="{Binding PasteCommand}" CommandParameter="{sd:True}">
+          <MenuItem.Icon><Image Source="{StaticResource ImagePaste}"/></MenuItem.Icon>
+        </MenuItem>
+        <MenuItem Header="{sd:LocalizeString Delete, Context=Menu}" InputGesture="{x:Static sd:EditCommands.DeleteGesture}"
+                  Command="{Binding DeleteCommand}">
+          <MenuItem.Icon><Image Source="{StaticResource ImageDelete}"/></MenuItem.Icon>
+        </MenuItem>
+      </ContextMenu>
+
+      <!-- The context menu of an item of the tree, as the WPF TreeViewItemContextMenu: the paste goes into the selection -->
+      <ContextMenu x:Key="ItemContextMenu" x:DataType="vm:EntityHierarchyEditorViewModel">
+        <MenuItem Header="{sd:LocalizeString Actions, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"/>
+        <MenuItem Header="{sd:LocalizeString Duplicate, Context=Menu}" InputGesture="Ctrl+D"
+                  Command="{Binding DuplicateSelectionCommand}"/>
+        <MenuItem Header="{sd:LocalizeString Cut, Context=Menu}" InputGesture="{x:Static sd:EditCommands.CutGesture}"
+                  Command="{Binding CutCommand}">
+          <MenuItem.Icon><Image Source="{StaticResource ImageCut}"/></MenuItem.Icon>
+        </MenuItem>
+        <MenuItem Header="{sd:LocalizeString Copy, Context=Menu}" InputGesture="{x:Static sd:EditCommands.CopyGesture}"
+                  Command="{Binding CopyCommand}">
+          <MenuItem.Icon><Image Source="{StaticResource ImageCopy}"/></MenuItem.Icon>
+        </MenuItem>
+        <MenuItem Header="{sd:LocalizeString Paste, Context=Menu}" InputGesture="{x:Static sd:EditCommands.PasteGesture}"
+                  Command="{Binding PasteCommand}" CommandParameter="{sd:False}">
+          <MenuItem.Icon><Image Source="{StaticResource ImagePaste}"/></MenuItem.Icon>
+        </MenuItem>
+        <MenuItem Header="{sd:LocalizeString Delete, Context=Menu}" InputGesture="{x:Static sd:EditCommands.DeleteGesture}"
+                  Command="{Binding DeleteCommand}">
+          <MenuItem.Icon><Image Source="{StaticResource ImageDelete}"/></MenuItem.Icon>
+        </MenuItem>
+      </ContextMenu>
     </ResourceDictionary>
   </UserControl.Resources>
   <Grid ColumnDefinitions="*, 4, 3*">
+    <!-- Delete and Paste work wherever the focus is in the editor (the tree or the view), as in the WPF scene editor -->
+    <sd:EditCommands.Bindings>
+      <sd:EditCommandBinding Kind="Delete" Command="{Binding DeleteCommand}"/>
+      <sd:EditCommandBinding Kind="Paste" Command="{Binding PasteCommand}" CommandParameter="{sd:False}"/>
+    </sd:EditCommands.Bindings>
     <DockPanel Grid.Column="0">
-      <TreeView ItemsSource="{Binding HierarchyRoot, Mode=OneWay, Converter={sd:Yield}}"
+      <TreeView x:Name="HierarchyTree"
+                Focusable="True"
+                ItemsSource="{Binding HierarchyRoot, Mode=OneWay, Converter={sd:Yield}}"
                 SelectedItems="{Binding SelectedContent}"
                 SelectionMode="Multiple">
+        <!-- Cut and Copy only while the tree has the focus, as the command bindings of the WPF tree -->
+        <sd:EditCommands.Bindings>
+          <sd:EditCommandBinding Kind="Cut" Command="{Binding CutCommand}"/>
+          <sd:EditCommandBinding Kind="Copy" Command="{Binding CopyCommand}"/>
+        </sd:EditCommands.Bindings>
         <Control.DataTemplates>
           <!-- Entity template -->
           <TreeDataTemplate DataType="{x:Type vm2:EntityViewModel}"

@@ -7,13 +7,18 @@ using Stride.Assets.Editor.EditorGame.Tools;
 using Stride.Assets.Entities;
 using Stride.Assets.Presentation.AssetEditors.GameEditor;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
+using Stride.Assets.Presentation.ViewModel.CopyPasteProcessors;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Core;
+using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.Internal;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Core.Presentation.Commands;
+using Stride.Core.Presentation.Services;
+using Stride.Core.Translation;
 using Stride.Editor.Engine;
 using Stride.Engine;
 
@@ -39,6 +44,7 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
         FocusOnSelectionCommand = new AnonymousTaskCommand(ServiceProvider, FocusOnSelectionAsync) { IsEnabled = false };
         // Whichever side the selection changes from (the tree or the game)
         SelectedItems.CollectionChanged += SelectedItemsChanged;
+        UpdateCommands();
     }
 
     public EntityHierarchyRootViewModel HierarchyRoot => (EntityHierarchyRootViewModel)RootPart;
@@ -317,6 +323,144 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
     private static IEnumerable<EntityViewModel> SelfAndDescendants(EntityViewModel entity)
     {
         return new EntityHierarchyItemViewModel[] { entity }.BreadthFirst(x => x.Children).OfType<EntityViewModel>();
+    }
+
+    /// <summary>
+    /// Adds a copy of each selected entity, with its children, right after it, and selects the copies, as one undoable
+    /// operation (Ctrl+D, or Ctrl+drag in the view).
+    /// </summary>
+    /// <returns>The copies.</returns>
+    public ISet<EntityViewModel> DuplicateSelectedEntities()
+    {
+        // The selected entities without a selected ancestor
+        var entitiesToDuplicate = GetCommonRoots(SelectedItems.OfType<EntityViewModel>().ToList());
+        if (entitiesToDuplicate.Count == 0)
+            return entitiesToDuplicate;
+
+        SelectedItems.Clear();
+
+        HashSet<EntityViewModel> duplicatedEntities;
+        var undoRedo = Session.UndoRedoService;
+        using (var transaction = undoRedo.CreateTransaction())
+        {
+            duplicatedEntities = [.. entitiesToDuplicate.Select(x => x.Duplicate())];
+            undoRedo.SetName(transaction, "Duplicate entities");
+        }
+
+        // The copies are selected
+        SelectedItems.AddRange(duplicatedEntities);
+        return duplicatedEntities;
+    }
+
+    /// <inheritdoc/>
+    protected override EntityDesign? GetPartDesign(EntityHierarchyItemViewModel item)
+    {
+        return (item as EntityViewModel)?.EntityDesign;
+    }
+
+    /// <inheritdoc/>
+    protected override (Type TargetMemberType, Type[] ExpectedTypes) GetPasteTypes(bool asRoot)
+    {
+        // Entities go into the root or into an entity, and components into an entity
+        return (asRoot ? typeof(AssetCompositeHierarchyData<EntityDesign, Entity>) : typeof(Entity), [typeof(AssetCompositeHierarchyData<EntityDesign, Entity>), typeof(EntityComponent)]);
+    }
+
+    /// <inheritdoc/>
+    protected override bool CanDelete()
+    {
+        return SelectedContent.Count > 0 && !SelectedContent.Contains(HierarchyRoot);
+    }
+
+    /// <inheritdoc/>
+    protected override async Task Delete()
+    {
+        if (!CanDelete())
+            return;
+
+        var entitiesToDelete = GetCommonRoots(SelectedItems.OfType<EntityViewModel>().ToList());
+        if (SceneEditorSettings.AskBeforeDeletingEntities.GetValue())
+        {
+            var confirmMessage = Tr._p("Message", "Are you sure you want to delete this entity?");
+            // TODO: we should compute the actual total number of entities to be deleted here (children recursively, etc.)
+            if (entitiesToDelete.Count > 1)
+                confirmMessage = string.Format(Tr._p("Message", "Are you sure you want to delete these {0} entities?"), entitiesToDelete.Count);
+            var checkedMessage = string.Format(Core.Assets.Editor.Settings.EditorSettings.AlwaysDeleteWithoutAsking, "entities");
+            var buttons = DialogButtons.Create([Tr._p("Button", "Delete"), Tr._p("Button", "Cancel")], 1, 2);
+            var result = await ServiceProvider.Get<IDialogService>().CheckedMessageBoxAsync(confirmMessage, false, checkedMessage, buttons, MessageBoxImage.Question);
+            if (result.Result != 1)
+                return;
+            if (result.IsChecked == true)
+            {
+                SceneEditorSettings.AskBeforeDeletingEntities.SetValue(false);
+                SceneEditorSettings.Save();
+            }
+        }
+
+        var undoRedo = Session.UndoRedoService;
+        using var transaction = undoRedo.CreateTransaction();
+        var foldersToDelete = SelectedContent.OfType<EntityFolderViewModel>().ToList();
+        ClearSelection();
+
+        // The entities first
+        foreach (var entities in entitiesToDelete.GroupBy(x => (EntityHierarchyViewModel)x.Asset))
+        {
+            entities.Key.AssetHierarchyPropertyGraph.DeleteParts(entities.Select(x => x.EntityDesign), out var mapping);
+            undoRedo.PushOperation(new DeletedPartsTrackingOperation<EntityDesign, Entity>(entities.Key, mapping));
+        }
+
+        // Then the folders, empty now; a folder inside another deleted folder goes with it
+        foreach (var folder in GetCommonRoots(foldersToDelete))
+        {
+            folder.Delete();
+        }
+
+        undoRedo.SetName(transaction, "Delete selected entities");
+    }
+
+    /// <inheritdoc/>
+    protected override ISet<EntityHierarchyItemViewModel> DuplicateSelection()
+    {
+        return DuplicateSelectedEntities().Cast<EntityHierarchyItemViewModel>().ToHashSet();
+    }
+
+    /// <inheritdoc/>
+    protected override void PrepareToCopy(AssetCompositeHierarchyData<EntityDesign, Entity> clonedHierarchy, ICollection<EntityHierarchyItemViewModel> commonRoots, ICollection<EntityHierarchyItemViewModel> commonParts)
+    {
+        // No folder by default
+        foreach (var entity in clonedHierarchy.Parts.Values)
+        {
+            entity.Folder = null;
+        }
+
+        // The folders of the copied folders, relative to them
+        foreach (var item in commonRoots.OfType<EntityFolderViewModel>())
+        {
+            var parentFolderPathLength = 1 + ((item.Parent as EntityFolderViewModel)?.Path.Length ?? -1);
+            foreach (var entity in item.InnerSubEntities)
+            {
+                clonedHierarchy.Parts[entity.Id.ObjectId].Folder = entity.EntityDesign.Folder[parentFolderPathLength..];
+            }
+        }
+        base.PrepareToCopy(clonedHierarchy, commonRoots, commonParts);
+    }
+
+    /// <inheritdoc/>
+    protected override void AttachPropertiesForPaste(ref PropertyContainer propertyContainer, EntityHierarchyItemViewModel pasteTarget)
+    {
+        // Into a folder: the pasted entities go to that folder
+        if ((pasteTarget as EntityFolderViewModel)?.Path is { Length: > 0 } folder)
+        {
+            propertyContainer.Add(EntityHierarchyPasteProcessor.TargetFolderKey, folder);
+        }
+        base.AttachPropertiesForPaste(ref propertyContainer, pasteTarget);
+    }
+
+    /// <inheritdoc/>
+    protected override void UpdateCommands()
+    {
+        base.UpdateCommands();
+
+        DuplicateSelectionCommand.IsEnabled = GetCommonRoots(SelectedContent.OfType<EntityHierarchyItemViewModel>().ToList()).Count > 0;
     }
 
     protected override async Task RefreshEditorProperties()
