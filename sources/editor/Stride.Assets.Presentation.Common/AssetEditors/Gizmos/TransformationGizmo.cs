@@ -23,6 +23,11 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
     {
         public const float TransformationStartPixelThreshold = 8;
 
+        /// <summary>
+        /// The index of the normal axis of each plane of the transformation axes.
+        /// </summary>
+        protected static readonly IReadOnlyDictionary<GizmoTransformationAxes, int> PlaneToIndex = new Dictionary<GizmoTransformationAxes, int> { { GizmoTransformationAxes.YZ, 0 }, { GizmoTransformationAxes.XZ, 1 }, { GizmoTransformationAxes.XY, 2 } };
+
         protected const float MinimumRayAngle = 2.5f * MathUtil.Pi / 180f;
 
         protected struct InitialTransformation
@@ -301,9 +306,9 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             var planeNormal = Vector3.Zero;
             StartWorldMatrix = WorldMatrix;
             var gizmoViewInverse = Matrix.Invert(StartWorldMatrix * cameraService.ViewMatrix);
-            if (EditorGameComponentGizmoService.PlaneToIndex.ContainsKey(TransformationAxes))
+            if (PlaneToIndex.ContainsKey(TransformationAxes))
             {
-                planeNormal[EditorGameComponentGizmoService.PlaneToIndex[TransformationAxes]] = 1f;
+                planeNormal[PlaneToIndex[TransformationAxes]] = 1f;
             }
             else if (TransformationAxes == GizmoTransformationAxes.XYZ)
             {

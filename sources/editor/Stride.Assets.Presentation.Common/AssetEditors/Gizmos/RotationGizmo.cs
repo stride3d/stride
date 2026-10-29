@@ -13,6 +13,12 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
 {
     public class RotationGizmo : TransformationGizmo
     {
+        /// <summary>
+        /// Gets or sets whether the rotation follows a linear mouse movement instead of a circular one around the gizmo
+        /// (the scene editor setting "Use linear movement for rotation").
+        /// </summary>
+        public bool UseLinearMovement { get; set; }
+
         private const float RotationGizmoRadius = 1f; // the size of the radius of the torus used to rotate the objects
         private const float RotationGizmoThickness = 0.02f; // the size of the inner radius torus used to rotate the objects
         private const float OriginRadius = GizmoOriginScale * 0.05f;
@@ -159,7 +165,7 @@ namespace Stride.Assets.Presentation.AssetEditors.Gizmos
             var transformation = new InitialTransformation { Rotation = Quaternion.Identity, Scale = Vector3.One };
 
             // set the rotation to apply in the gizmo space
-            transformation.Rotation = SceneEditorSettings.UseLinearMovementForRotation.GetValue() ? GetRotationFromLinearMovement() : GetRotationFromCircularMovement();
+            transformation.Rotation = UseLinearMovement ? GetRotationFromLinearMovement() : GetRotationFromCircularMovement();
 
             return transformation;
         }

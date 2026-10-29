@@ -8,7 +8,7 @@
              xmlns:strings="clr-namespace:Stride.Assets.Presentation.Resources.Strings"
              xmlns:pvc="clr-namespace:Stride.Assets.Presentation.ValueConverters"
              xmlns:assetEditors="clr-namespace:Stride.Assets.Presentation.AssetEditors;assembly=Stride.Assets.Presentation.Common"
-             xmlns:gameEditor="clr-namespace:Stride.Assets.Presentation.AssetEditors.GameEditor"
+             xmlns:gameEditor="clr-namespace:Stride.Assets.Presentation.AssetEditors.GameEditor;assembly=Stride.Assets.Presentation.Common"
              xmlns:ehvm="clr-namespace:Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels"
              xmlns:ehv="clr-namespace:Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Views"
              xmlns:svm="clr-namespace:Stride.Assets.Presentation.AssetEditors.SceneEditor.ViewModels"
