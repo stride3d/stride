@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Tools;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Core.Mathematics;
 using Stride.Editor.EditorGame.Game;
@@ -170,9 +171,11 @@ public sealed class EditorGameEntityCameraService : EditorGameCameraService
 
     private CameraInput GetInput()
     {
+        // The active tool of the view may take the middle or right drags
+        var tools = Game.EditorServices.Get<IEditorGameToolService>();
         var lbDown = Game.Input.IsMouseButtonDown(MouseButton.Left);
-        var mbDown = Game.Input.IsMouseButtonDown(MouseButton.Middle);
-        var rbDown = Game.Input.IsMouseButtonDown(MouseButton.Right);
+        var mbDown = Game.Input.IsMouseButtonDown(MouseButton.Middle) && (tools?.IsDefaultInputOn(EditorViewDefaultInputs.CameraMiddleDrag) ?? true);
+        var rbDown = Game.Input.IsMouseButtonDown(MouseButton.Right) && (tools?.IsDefaultInputOn(EditorViewDefaultInputs.CameraRightDrag) ?? true);
         var isAltDown = Game.Input.IsKeyDown(Keys.LeftAlt) || Game.Input.IsKeyDown(Keys.RightAlt);
 
         return new CameraInput

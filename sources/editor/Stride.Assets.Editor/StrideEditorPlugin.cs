@@ -6,6 +6,7 @@ using Stride.Assets.Editor.Build;
 using Stride.Assets.Editor.Quantum.NodePresenters.Commands;
 using Stride.Assets.Editor.Quantum.NodePresenters.Updaters;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories;
+using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Tools;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Assets.Presentation.NodePresenters.Commands;
 using Stride.Assets.Presentation.NodePresenters.Updaters;
@@ -58,6 +59,9 @@ public sealed class StrideEditorPlugin : StrideAssetsPlugin
     // Replaced, never changed: an assembly can register on any thread (a package loaded by a background task)
     private static volatile IReadOnlyList<Type> addAssetPolicyTypes = [];
     private static readonly object AddAssetPolicyTypesLock = new();
+    // Replaced, never changed: the editor games read it on their threads
+    private static volatile IReadOnlyList<Type> viewToolTypes = [];
+    private static readonly object ViewToolTypesLock = new();
     private static readonly ObservableList<EntityFactoryCategory> EntityFactoryCategoryList = [];
     private static bool assemblyHooksRegistered;
 
@@ -75,6 +79,15 @@ public sealed class StrideEditorPlugin : StrideAssetsPlugin
     /// The <see cref="IAddAssetPolicy"/> implementations of every asset assembly, in registration order.
     /// </summary>
     public static IReadOnlyList<Type> AddAssetPolicyTypeList => addAssetPolicyTypes;
+
+    /// <summary>
+    /// The tools of the views of the scene and prefab editors (<see cref="EditorViewToolAttribute"/>) of every asset
+    /// assembly, the editor's own ones included, in registration order.
+    /// </summary>
+    /// <remarks>
+    /// The registration of the tools happens here only, so that it can move to the plugin context.
+    /// </remarks>
+    public static IReadOnlyList<Type> EditorViewToolTypes => viewToolTypes;
 
     /// <summary>
     /// The entity factories ("Add entity" menu) of every asset assembly, grouped by category.
@@ -326,6 +339,10 @@ public sealed class StrideEditorPlugin : StrideAssetsPlugin
         lock (AddAssetPolicyTypesLock)
             addAssetPolicyTypes = [.. addAssetPolicyTypes, .. policyTypes.Except(addAssetPolicyTypes)];
 
+        var toolTypes = AssemblyRegistry.GetScanTypes(assembly, typeof(EditorViewToolAttribute)).Where(IsEditorViewTool).ToList();
+        lock (ViewToolTypesLock)
+            viewToolTypes = [.. viewToolTypes, .. toolTypes.Except(viewToolTypes)];
+
         var factoryTypes = AssemblyRegistry.GetScanTypes(assembly, typeof(IEntityFactory)).ToArray();
         lock (EntityFactoryCategoryList)
             RegisterEntityFactories(factoryTypes);
@@ -340,6 +357,10 @@ public sealed class StrideEditorPlugin : StrideAssetsPlugin
         var policyTypes = AssemblyRegistry.GetScanTypes(assembly, typeof(IAddAssetPolicy)).ToHashSet();
         lock (AddAssetPolicyTypesLock)
             addAssetPolicyTypes = addAssetPolicyTypes.Where(x => !policyTypes.Contains(x)).ToList();
+
+        var toolTypes = AssemblyRegistry.GetScanTypes(assembly, typeof(EditorViewToolAttribute)).ToHashSet();
+        lock (ViewToolTypesLock)
+            viewToolTypes = viewToolTypes.Where(x => !toolTypes.Contains(x)).ToList();
 
         var factoryTypes = AssemblyRegistry.GetScanTypes(assembly, typeof(IEntityFactory)).ToArray();
         lock (EntityFactoryCategoryList)
@@ -419,6 +440,11 @@ public sealed class StrideEditorPlugin : StrideAssetsPlugin
             if (category.Factories.Count == 0)
                 EntityFactoryCategoryList.Remove(category);
         }
+    }
+
+    private static bool IsEditorViewTool(Type type)
+    {
+        return type.IsAssignableTo(typeof(IEditorViewTool)) && type.IsClass && !type.IsAbstract && !type.IsGenericTypeDefinition && type.GetConstructor(Type.EmptyTypes) != null;
     }
 
     private static bool IsAddAssetPolicy(Type type)

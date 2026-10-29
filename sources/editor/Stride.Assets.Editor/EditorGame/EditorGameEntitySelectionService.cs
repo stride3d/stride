@@ -10,13 +10,10 @@ using Stride.Assets.Presentation.AssetEditors.Gizmos;
 using Stride.Assets.Presentation.SceneEditor;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Core;
-using Stride.Core.BuildEngine;
 using Stride.Core.Extensions;
-using Stride.Core.Mathematics;
 using Stride.Editor.EditorGame.Game;
 using Stride.Engine;
 using Stride.Engine.Design;
-using Stride.Input;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
 using Stride.Rendering.Sprites;
@@ -26,7 +23,8 @@ namespace Stride.Assets.Editor.EditorGame;
 /// <summary>
 /// Selects the entities of the scene editor in its game: the entities selected in the hierarchy show selected in the game
 /// (their gizmos, the wireframe of their models), and a click in the game selects the entity under the mouse in the
-/// hierarchy, Ctrl+click adds it to the selection or removes it.
+/// hierarchy, Ctrl+click adds it to the selection or removes it. The tools of the view decide which clicks select
+/// (<see cref="Tools.EditorGameToolService"/>).
 /// </summary>
 /// <remarks>
 /// The cross-platform counterpart of the WPF <c>EditorGameEntitySelectionService</c>. The scene roots are not selected in
@@ -38,7 +36,6 @@ public sealed class EditorGameEntitySelectionService : EditorGameMouseServiceBas
     private readonly EntityHierarchyEditorController controller;
     private readonly EntityHierarchyEditorViewModel editor;
     private readonly EntitySelection selection = new();
-    private Vector2 mouseMoveAccumulator;
     private PickingSceneRenderer? entityPicker;
     private EntityHierarchyEditorGame? game;
 
@@ -239,7 +236,6 @@ public sealed class EditorGameEntitySelectionService : EditorGameMouseServiceBas
         game = (EntityHierarchyEditorGame)editorGame;
 
         editor.SelectedContent.CollectionChanged += SelectedContentChanged;
-        game.Script.AddTask(Execute);
         return Task.FromResult(true);
     }
 
@@ -385,39 +381,6 @@ public sealed class EditorGameEntitySelectionService : EditorGameMouseServiceBas
     private static IEnumerable<Entity> SelfAndDescendants(IEnumerable<Entity> entities)
     {
         return entities.BreadthFirst(x => x.Transform.Children.Select(y => y.Entity));
-    }
-
-    /// <summary>
-    /// Selects the entity under the mouse on a click: the left button released without moving the mouse.
-    /// </summary>
-    private async Task Execute()
-    {
-        MicrothreadLocalDatabases.MountCommonDatabase();
-
-        while (Game.IsRunning)
-        {
-            await Game.Script.NextFrame();
-            if (!IsActive)
-                continue;
-
-            var backBuffer = Game.GraphicsDevice.Presenter.BackBuffer;
-            var screenSize = new Vector2(backBuffer.Width, backBuffer.Height);
-            // The moves of the frame of the press can come before it: they don't count
-            if (Game.Input.IsMouseButtonPressed(MouseButton.Left))
-                mouseMoveAccumulator = Vector2.Zero;
-            else
-                mouseMoveAccumulator += new Vector2(Math.Abs(Game.Input.MouseDelta.X * screenSize.X), Math.Abs(Game.Input.MouseDelta.Y * screenSize.Y));
-
-            if (!IsMouseAvailable || !Game.Input.IsMouseButtonReleased(MouseButton.Left) || Game.Input.IsMouseButtonDown(MouseButton.Right))
-                continue;
-
-            // A drag is not a click
-            if (mouseMoveAccumulator.Length() >= TransformationGizmo.TransformationStartPixelThreshold)
-                continue;
-
-            var addToSelection = Game.Input.IsKeyDown(Keys.LeftCtrl) || Game.Input.IsKeyDown(Keys.RightCtrl);
-            Select(GetEntityUnderMouse(out _), addToSelection);
-        }
     }
 
     /// <summary>
