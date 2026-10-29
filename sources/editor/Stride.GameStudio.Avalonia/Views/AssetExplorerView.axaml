@@ -327,10 +327,10 @@
           </MenuItem>
           <MenuItem Header="{sd:LocalizeString Update selected assets from their source, Context=Menu}"
                     Command="{Binding Session.SourceTracker?.UpdateSelectedAssetsFromSourceCommand}"
-                    InputGesture="Ctrl+R"/>
+                    InputGesture="Ctrl+Shift+R"/>
           <MenuItem Header="{sd:LocalizeString Update all assets with modified source, Context=Menu}"
                     Command="{Binding Session.SourceTracker?.UpdateAllAssetsWithModifiedSourceCommand}"
-                    InputGesture="Ctrl+Shift+R"/>
+                    InputGesture="Ctrl+R"/>
         </ContextMenu>
       </ListBox.ContextMenu>
       <ItemsControl.ItemsPanel>
