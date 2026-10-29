@@ -7,13 +7,15 @@ using Stride.Core.Reflection;
 namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Tools;
 
 /// <summary>
-/// Declares a tool of the views of the scene and prefab editors. The class implements <see cref="IEditorViewTool"/> and
-/// has a public parameterless constructor: each view creates its own instance.
+/// Declares a tool of the views of the scene and prefab editors. The class implements <c>IEditorViewTool</c> and has a
+/// parameterless constructor: each view creates its own instance.
 /// </summary>
 /// <remarks>
-/// The tools of an assembly are found through its source-generated scan index when it registers as an asset assembly
-/// (a plugin, a game's editor project). They show in the transformation group of the toolbar of the view, after
-/// select, translate, rotate and scale.
+/// When a plugin (<see cref="Stride.Core.Assets.Editor.Services.AssetsPlugin"/>) joins the session, the plugin host finds
+/// the tools of its assembly through the source-generated scan index and registers them in the plugin's name
+/// (<see cref="Stride.Core.Assets.Editor.Services.IEditorPluginContext.EditorViewToolTypes"/>): they go when the plugin
+/// leaves. They show in the transformation group of the toolbar of the view, after select, translate, rotate and scale.
+/// The attribute lives below the tool contract so that the host can scan for it.
 /// </remarks>
 [AttributeUsage(AttributeTargets.Class, Inherited = false)]
 [AssemblyScan]

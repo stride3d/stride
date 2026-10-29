@@ -5,8 +5,9 @@ using System.Globalization;
 using Avalonia.Headless.XUnit;
 using Avalonia.Media;
 using Stride.Assets.Editor.Avalonia.Converters;
+using Stride.Assets.Editor.Tests.Helpers;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Tools;
-using Stride.Core.Diagnostics;
+using Stride.Core.Assets.Editor.Editors;
 
 namespace Stride.Assets.Editor.Avalonia.Tests;
 
@@ -18,8 +19,8 @@ public sealed class EditorViewToolIconTests
     [AvaloniaFact]
     public void TheIconsOfTheEditorToolsAreValidPathData()
     {
-        new StrideEditorPlugin().InitializePlugin(new LoggerResult());
-        var tools = StrideEditorPlugin.EditorViewToolTypes.Where(x => x.Assembly == typeof(StrideEditorPlugin).Assembly).Select(x => (IEditorViewTool)Activator.CreateInstance(x)!).ToList();
+        var toolTypes = PluginRegistrations.Of(new StrideEditorPlugin(), typeof(IAssetEditorView)).EditorViewToolTypes;
+        var tools = toolTypes.Select(x => (IEditorViewTool)Activator.CreateInstance(x)!).ToList();
         Assert.Equal(4, tools.Count);
 
         Assert.All(tools, tool =>

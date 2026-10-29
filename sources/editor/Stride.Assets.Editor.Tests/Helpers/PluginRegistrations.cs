@@ -58,6 +58,8 @@ public sealed class PluginRegistrations : IEditorPluginContext
 
     public ListRecorder<IAssetPostPasteProcessor> PostPasteProcessors { get; } = new();
 
+    public ListRecorder<Type> EditorViewToolTypes { get; } = new();
+
     public ListRecorder<SettingsKey> SettingsKeys { get; } = new();
 
     public ListRecorder<PackageSettingsEntry> ProfileSettings { get; } = new();
@@ -85,6 +87,8 @@ public sealed class PluginRegistrations : IEditorPluginContext
     IPluginRegistry<IPasteProcessor> IEditorPluginContext.PasteProcessors => PasteProcessors;
 
     IPluginRegistry<IAssetPostPasteProcessor> IEditorPluginContext.PostPasteProcessors => PostPasteProcessors;
+
+    IPluginRegistry<Type> IEditorPluginContext.EditorViewToolTypes => EditorViewToolTypes;
 
     IPluginRegistry<SettingsKey> IEditorPluginContext.SettingsKeys => SettingsKeys;
 
@@ -134,6 +138,9 @@ public sealed class PluginRegistrations : IEditorPluginContext
         Section(builder, nameof(CopyProcessors), CopyProcessors.Select(x => Name(x.GetType())));
         Section(builder, nameof(PasteProcessors), PasteProcessors.Select(x => Name(x.GetType())));
         Section(builder, nameof(PostPasteProcessors), PostPasteProcessors.Select(x => Name(x.GetType())));
+        // Only for a plugin with tools: the recordings of the others predate the tools
+        if (EditorViewToolTypes.Count > 0)
+            Section(builder, nameof(EditorViewToolTypes), EditorViewToolTypes.Select(Name).Order(StringComparer.Ordinal));
         Section(builder, nameof(SettingsKeys), SettingsKeys.Select(x => x.Name.ToString()));
         var profileSettings = (Plugin as AssetsEditorPlugin)?.ProfileSettings.Concat(ProfileSettings) ?? ProfileSettings;
         Section(builder, nameof(ProfileSettings), profileSettings.Select(x => $"{x.SettingsKey.Name} ({x.TargetPackage})"));
