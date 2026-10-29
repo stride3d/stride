@@ -4,16 +4,23 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
+using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
+using Avalonia.Input;
 using Avalonia.Markup.Xaml.Styling;
 using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using Avalonia.Xaml.Interactivity;
 using Stride.Assets.Editor.Avalonia.Tests.Helpers;
 using Stride.Assets.Editor.Avalonia.Views.Preview;
 using Stride.Assets.Editor.Preview;
 using Stride.Assets.Editor.Tests.Helpers;
 using Stride.Assets.Editor.ViewModels.Preview;
+using Stride.Core.Presentation.Avalonia.Controls;
+using Stride.Core.Presentation.Commands;
+using Stride.Core.Presentation.Services;
+using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Assets.Editor.Editors;
 using Stride.Editor.Avalonia.Preview.Views;
 
@@ -96,6 +103,90 @@ public sealed class PreviewControlsTests
         Assert.All(Enum.GetValues<MaterialPreviewPrimitive>(), x => Assert.IsAssignableFrom<IImage>(enumImages[x]));
     }
 
+    [AvaloniaFact]
+    public void TheAnimationViewBindsThePlaybackControls()
+    {
+        var viewModel = new AnimationPreviewViewModel(PreviewSession.Create());
+        var view = Show<AnimationPreviewView>(viewModel);
+
+        Assert.Same(viewModel.PlayCommand, Part<Button>(view, "PART_Play").Command);
+        Assert.Same(viewModel.PauseCommand, Part<Button>(view, "PART_Pause").Command);
+        Assert.Equal(1.0, Part<NumericTextBox>(view, "PART_TimeScale").Value);
+
+        Part<NumericTextBox>(view, "PART_TimeScale").Value = 0.5;
+
+        Assert.Equal(0.5f, viewModel.TimeScale);
+    }
+
+    [AvaloniaFact]
+    public void TheAnimationTimeSliderShowsOnceThePreviewHasATime()
+    {
+        var viewModel = new AnimationPreviewViewModel(PreviewSession.Create());
+        var view = Show<AnimationPreviewView>(viewModel);
+
+        // The view model has no time until the preview's game reports one
+        Assert.False(Part<Slider>(view, "PART_TimeSlider").IsEffectivelyVisible);
+    }
+
+    [AvaloniaFact]
+    public void DraggingTheTimeSliderPausesAPlayingAnimation()
+    {
+        var animation = new FakeAnimatedPreview { IsPlaying = true };
+        var slider = new Slider { Maximum = 1, Width = 200 };
+        Interaction.GetBehaviors(slider).Add(new SuspendAnimationDuringSliderDragBehavior { AnimatedPreviewViewModel = animation });
+        var window = new Window { Content = slider, Width = 300, Height = 100 };
+        window.Show();
+        Dispatcher.UIThread.RunJobs();
+        var center = slider.TranslatePoint(new Point(slider.Bounds.Width / 2, slider.Bounds.Height / 2), window)!.Value;
+
+        window.MouseDown(center, MouseButton.Left);
+
+        Assert.Equal(["Pause"], animation.Calls);
+
+        window.MouseMove(center + new Point(20, 0));
+        window.MouseUp(center + new Point(20, 0), MouseButton.Left);
+
+        Assert.Equal(["Pause", "Play"], animation.Calls);
+    }
+
+    [AvaloniaFact]
+    public void DraggingTheTimeSliderOfAPausedAnimationLeavesItPaused()
+    {
+        var animation = new FakeAnimatedPreview { IsPlaying = false };
+        var slider = new Slider { Maximum = 1, Width = 200 };
+        Interaction.GetBehaviors(slider).Add(new SuspendAnimationDuringSliderDragBehavior { AnimatedPreviewViewModel = animation });
+        var window = new Window { Content = slider, Width = 300, Height = 100 };
+        window.Show();
+        Dispatcher.UIThread.RunJobs();
+        var center = slider.TranslatePoint(new Point(slider.Bounds.Width / 2, slider.Bounds.Height / 2), window)!.Value;
+
+        window.MouseDown(center, MouseButton.Left);
+        window.MouseUp(center, MouseButton.Left);
+
+        Assert.Empty(animation.Calls);
+    }
+
+    [AvaloniaFact]
+    public void TheTimeRulerLeavesRoomForItsLabels()
+    {
+        var ruler = new AnimationTimeRuler { Maximum = 10, Inset = 10 };
+        var window = new Window { Content = ruler, Width = 520, Height = 100 };
+        window.Show();
+        Dispatcher.UIThread.RunJobs();
+
+        // 500 pixels for 10 seconds: a label every second (50 pixels)
+        Assert.Equal(1, ruler.MajorStep);
+
+        ruler.Maximum = 0.5;
+        Dispatcher.UIThread.RunJobs();
+
+        Assert.Equal(0.05, ruler.MajorStep, 6);
+
+        ruler.Maximum = 0;
+
+        Assert.Equal(0, ruler.MajorStep);
+    }
+
     /// <summary>
     /// Shows a preview view with the given view model, after the view plugin merged its themes, as the editor does.
     /// </summary>
@@ -110,6 +201,25 @@ public sealed class PreviewControlsTests
         // The game view stays in the template, whatever the controls around it
         Assert.Single(view.GetVisualDescendants().OfType<ContentPresenter>(), x => x.Name == StridePreviewView.PartStrideView);
         return view;
+    }
+
+    private sealed class FakeAnimatedPreview : IAnimatedPreviewViewModel
+    {
+        private static readonly IViewModelServiceProvider ServiceProvider = new ViewModelServiceProvider([new NullDispatcherService()]);
+
+        public FakeAnimatedPreview()
+        {
+            PlayCommand = new AnonymousCommand(ServiceProvider, () => Calls.Add("Play"));
+            PauseCommand = new AnonymousCommand(ServiceProvider, () => Calls.Add("Pause"));
+        }
+
+        public List<string> Calls { get; } = [];
+
+        public ICommandBase PlayCommand { get; }
+
+        public ICommandBase PauseCommand { get; }
+
+        public bool IsPlaying { get; set; }
     }
 
     internal static T Part<T>(StridePreviewView view, string name) where T : Control

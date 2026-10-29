@@ -26,6 +26,13 @@
     <Setter Property="VerticalAlignment" Value="Center"/>
   </ControlTheme>
 
+  <!-- The separators between the groups of controls of a toolbar -->
+  <ControlTheme x:Key="PreviewToolBarSeparatorTheme" TargetType="Border">
+    <Setter Property="Width" Value="1"/>
+    <Setter Property="Margin" Value="6,2"/>
+    <Setter Property="Background" Value="{DynamicResource SystemControlForegroundBaseLowBrush}"/>
+  </ControlTheme>
+
   <!-- Model, prefab and procedural model previews: the camera can be reset. The view models of these previews differ (none
        for a prefab, as in WPF), so the command is bound by name. -->
   <ControlTheme x:Key="{x:Type views:ModelPreviewView}" TargetType="views:ModelPreviewView">
@@ -104,6 +111,49 @@
               </ListBox.ItemTemplate>
             </ListBox>
           </Border>
+          <ContentPresenter x:Name="PART_StrideView"/>
+        </DockPanel>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+  <!-- Animation preview: play and pause, the time, the time scale, and a slider over the duration of the animation, which
+       pauses it while it is dragged -->
+  <ControlTheme x:Key="{x:Type views:AnimationPreviewView}" TargetType="views:AnimationPreviewView">
+    <Setter Property="Template">
+      <ControlTemplate TargetType="views:AnimationPreviewView">
+        <DockPanel x:DataType="vm:AnimationPreviewViewModel">
+          <Border DockPanel.Dock="Top" Theme="{StaticResource PreviewToolBarTheme}">
+            <StackPanel Orientation="Horizontal" Margin="4">
+              <Button x:Name="PART_Play" Theme="{StaticResource PreviewToolBarButtonTheme}" Command="{Binding PlayCommand}"
+                      ToolTip.Tip="{sd:LocalizeString Play the animation, Context=ToolTip}">
+                <Image Source="{StaticResource ImagePlay}" Width="16" Height="16"/>
+              </Button>
+              <Button x:Name="PART_Pause" Theme="{StaticResource PreviewToolBarButtonTheme}" Command="{Binding PauseCommand}"
+                      ToolTip.Tip="{sd:LocalizeString Pause the animation, Context=ToolTip}">
+                <Image Source="{StaticResource ImagePause}" Width="16" Height="16"/>
+              </Button>
+              <Border Theme="{StaticResource PreviewToolBarSeparatorTheme}"/>
+              <TextBlock x:Name="PART_Time" VerticalAlignment="Center" Margin="4,0">
+                <Run Text="{Binding CurrentTime, StringFormat={}{0:0.000}, Mode=OneWay}"/><Run Text=" / "/><Run Text="{Binding Duration, StringFormat={}{0:0.000}, Mode=OneWay}"/>
+              </TextBlock>
+              <Border Theme="{StaticResource PreviewToolBarSeparatorTheme}"/>
+              <TextBlock VerticalAlignment="Center" Margin="4,0" Text="{sd:LocalizeString Time scale:}"/>
+              <sd:NumericTextBox x:Name="PART_TimeScale" Width="60" VerticalAlignment="Center" DecimalPlaces="3" Minimum="0"
+                                 Value="{Binding TimeScale}"/>
+            </StackPanel>
+          </Border>
+          <StackPanel DockPanel.Dock="Bottom" Margin="10,5" IsVisible="{Binding IsValid}">
+            <!-- The scale spans the track of the slider: the values of a slider span its width less its thumb -->
+            <views:AnimationTimeRuler x:Name="PART_TimeRuler" Minimum="0" Maximum="{Binding Duration}" Inset="10"
+                                      Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+            <Slider x:Name="PART_TimeSlider" Minimum="0" Maximum="{Binding Duration}" Value="{Binding CurrentTime}"
+                    TickFrequency="0.0333" TickPlacement="BottomRight">
+              <Interaction.Behaviors>
+                <views:SuspendAnimationDuringSliderDragBehavior AnimatedPreviewViewModel="{Binding}"/>
+              </Interaction.Behaviors>
+            </Slider>
+          </StackPanel>
           <ContentPresenter x:Name="PART_StrideView"/>
         </DockPanel>
       </ControlTemplate>
