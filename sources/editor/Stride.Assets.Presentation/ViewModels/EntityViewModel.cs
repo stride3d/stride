@@ -17,6 +17,7 @@ public sealed class EntityViewModel : EntityHierarchyItemViewModel, IAssetProper
 {
     private readonly MemberGraphNodeBinding<string> nameNodeBinding;
     private readonly ObjectGraphNodeBinding<EntityComponentCollection> componentsNodeBinding;
+    private readonly IObjectNode transformChildrenNode;
 
     public EntityViewModel(EntityHierarchyViewModel asset, EntityDesign entityDesign)
         : base(asset, GetOrCreateChildPartDesigns((EntityHierarchyAssetBase)asset.Asset, entityDesign))
@@ -26,6 +27,8 @@ public sealed class EntityViewModel : EntityHierarchyItemViewModel, IAssetProper
         var assetNode = asset.Session.AssetNodeContainer.GetOrCreateNode(entityDesign.Entity);
         nameNodeBinding = new MemberGraphNodeBinding<string>(assetNode[nameof(Entity.Name)], nameof(Name), OnPropertyChanging, OnPropertyChanged, ServiceProvider.TryGet<IUndoRedoService>());
         componentsNodeBinding = new ObjectGraphNodeBinding<EntityComponentCollection>(assetNode[nameof(Entity.Components)].Target!, nameof(Components), OnPropertyChanging, OnPropertyChanged, ServiceProvider.TryGet<IUndoRedoService>(), false);
+        transformChildrenNode = asset.Session.AssetNodeContainer.GetOrCreateNode(entityDesign.Entity.Transform)[nameof(TransformComponent.Children)].Target!;
+        transformChildrenNode.ItemChanged += TransformChildrenChanged;
     }
 
     public IEnumerable<EntityComponent> Components => componentsNodeBinding.GetNodeValue();
@@ -52,6 +55,16 @@ public sealed class EntityViewModel : EntityHierarchyItemViewModel, IAssetProper
     AssetViewModel IAssetPropertyProviderViewModel.RelatedAsset => Asset;
 
     /// <inheritdoc/>
+    public override void Destroy()
+    {
+        EnsureNotDestroyed(nameof(EntityViewModel));
+        transformChildrenNode.ItemChanged -= TransformChildrenChanged;
+        nameNodeBinding.Dispose();
+        componentsNodeBinding.Dispose();
+        base.Destroy();
+    }
+
+    /// <inheritdoc/>
     public override GraphNodePath GetNodePath()
     {
         var path = new GraphNodePath(GetNode());
@@ -76,6 +89,19 @@ public sealed class EntityViewModel : EntityHierarchyItemViewModel, IAssetProper
             }
             if (child.Entity != childDesign.Entity) throw new InvalidOperationException();
             yield return childDesign;
+        }
+    }
+
+    private void TransformChildrenChanged(object? sender, ItemChangeEventArgs e)
+    {
+        switch (e.ChangeType)
+        {
+            case ContentChangeType.CollectionAdd:
+                InsertEntity(e.Index.Int, EntityHierarchy.Hierarchy.Parts[((TransformComponent)e.NewValue!).Entity.Id]);
+                break;
+            case ContentChangeType.CollectionRemove:
+                RemoveEntity(((TransformComponent)e.OldValue!).Entity);
+                break;
         }
     }
 

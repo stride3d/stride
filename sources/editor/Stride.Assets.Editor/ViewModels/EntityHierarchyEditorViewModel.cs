@@ -4,10 +4,13 @@
 using System.Collections.Specialized;
 using Stride.Assets.Editor.EditorGame;
 using Stride.Assets.Entities;
+using Stride.Assets.Presentation.AssetEditors.GameEditor;
 using Stride.Assets.Presentation.ViewModels;
+using Stride.Core;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
+using Stride.Core.Mathematics;
 using Stride.Editor.Engine;
 using Stride.Engine;
 
@@ -17,12 +20,15 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
 {
     private static readonly Logger Log = GlobalLogger.GetLogger("EntityHierarchyEditor");
 
-    private readonly List<GameEditorChangePropagator> propagators = [];
+    private readonly Dictionary<AbsoluteId, GameEditorChangePropagator> propagators = [];
     private object? gameView;
+    private bool isGameLoaded;
 
     protected EntityHierarchyEditorViewModel(EntityHierarchyViewModel asset)
         : base(asset)
     {
+        HierarchyRoot.EntityAdded += EntityAdded;
+        HierarchyRoot.EntityRemoved += EntityRemoved;
     }
 
     public EntityHierarchyRootViewModel HierarchyRoot => (EntityHierarchyRootViewModel)RootPart;
@@ -69,6 +75,8 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
             if (!await controller.CreateScene())
                 return false;
 
+            // From now on, the entities the asset gets or loses are added to or removed from the game
+            isGameLoaded = true;
             await OnGameContentLoaded();
             return true;
         }
@@ -89,7 +97,9 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
     {
         EnsureNotDestroyed(nameof(EntityHierarchyEditorViewModel));
 
-        foreach (var propagator in propagators)
+        HierarchyRoot.EntityAdded -= EntityAdded;
+        HierarchyRoot.EntityRemoved -= EntityRemoved;
+        foreach (var propagator in propagators.Values)
             propagator.Destroy();
         propagators.Clear();
         GameView = null;
@@ -112,6 +122,32 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
     public void HideGame()
     {
         Controller?.OnHideGame();
+    }
+
+    /// <summary>
+    /// Writes the transformations of entities moved in the game (by a transformation gizmo) back to the asset, as one
+    /// undoable operation.
+    /// </summary>
+    /// <param name="transformations">The new transformations, by entity.</param>
+    public void UpdateTransformations(IReadOnlyDictionary<AbsoluteId, TransformationTRS> transformations)
+    {
+        var undoRedoService = Session.UndoRedoService;
+        using var transaction = undoRedoService.CreateTransaction();
+        foreach (var (id, transformation) in transformations)
+        {
+            if (FindPartViewModel(id) is not EntityViewModel entity)
+                continue;
+
+            var node = Session.AssetNodeContainer.GetNode(entity.AssetSideEntity.Transform);
+            // Update properties only when they actually changed
+            if ((Vector3)node[nameof(TransformComponent.Position)].Retrieve()! != transformation.Position)
+                node[nameof(TransformComponent.Position)].Update(transformation.Position);
+            if ((Quaternion)node[nameof(TransformComponent.Rotation)].Retrieve()! != transformation.Rotation)
+                node[nameof(TransformComponent.Rotation)].Update(transformation.Rotation);
+            if ((Vector3)node[nameof(TransformComponent.Scale)].Retrieve()! != transformation.Scale)
+                node[nameof(TransformComponent.Scale)].Update(transformation.Scale);
+        }
+        undoRedoService.SetName(transaction, "Update transformation");
     }
 
     /// <summary>
@@ -144,12 +180,77 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
         var added = new List<GameEditorChangePropagator>();
         foreach (var entity in entities)
         {
-            var propagator = new GameEditorChangePropagator(this, controller, entity.Asset, entity.Id, entity.AssetSideEntity);
-            propagators.Add(propagator);
+            var propagator = new EntityHierarchyElementChangePropagator(this, controller, entity.Asset, entity.Id, entity.AssetSideEntity);
+            propagators.Add(entity.Id, propagator);
             added.Add(propagator);
             propagator.NotifyGameSidePartAdded();
         }
         return Task.WhenAll(added.Select(x => x.Initialized));
+    }
+
+    /// <summary>
+    /// Adds to the game an entity the asset just got, with its children.
+    /// </summary>
+    private async void EntityAdded(object? sender, EntityHierarchyChangedEventArgs e)
+    {
+        if (!isGameLoaded || Controller is not { } controller)
+            return;
+
+        try
+        {
+            await controller.AddPart(e.Parent, e.Entity.AssetSideEntity);
+            // The entity was removed again while its clone was added: the removal already took the clone out
+            if (IsDestroyed || e.Entity.Parent is null)
+                return;
+
+            await LinkToGameSide(SelfAndDescendants(e.Entity));
+        }
+        catch (Exception ex) when (!IsDestroyed && e.Entity.Parent is not null)
+        {
+            Log.Error($"The entity {e.Entity.Id} could not be added to the game.", ex);
+        }
+        catch (Exception) when (IsDestroyed || e.Entity.Parent is null)
+        {
+            // The editor was closed, or the entity removed, while the entity was added
+        }
+    }
+
+    /// <summary>
+    /// Removes from the game an entity the asset just lost, with its children.
+    /// </summary>
+    private async void EntityRemoved(object? sender, EntityHierarchyChangedEventArgs e)
+    {
+        var entities = SelfAndDescendants(e.Entity).ToList();
+        foreach (var entity in entities)
+        {
+            if (propagators.Remove(entity.Id, out var propagator))
+                propagator.Destroy();
+        }
+        foreach (var entity in entities)
+        {
+            SelectedContent.Remove(entity);
+        }
+
+        if (!isGameLoaded || Controller is not { } controller)
+            return;
+
+        try
+        {
+            await controller.RemovePart(e.Parent, e.Entity.AssetSideEntity);
+        }
+        catch (Exception ex) when (!IsDestroyed)
+        {
+            Log.Error($"The entity {e.Entity.Id} could not be removed from the game.", ex);
+        }
+        catch (Exception) when (IsDestroyed)
+        {
+            // The editor was closed while the entity was removed
+        }
+    }
+
+    private static IEnumerable<EntityViewModel> SelfAndDescendants(EntityViewModel entity)
+    {
+        return new EntityHierarchyItemViewModel[] { entity }.BreadthFirst(x => x.Children).OfType<EntityViewModel>();
     }
 
     protected override async Task RefreshEditorProperties()
