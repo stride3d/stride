@@ -1,7 +1,9 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Tebjan Halm
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using Stride.Core.Annotations;
+using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Core.Threading;
 using Stride.Graphics;
@@ -14,6 +16,8 @@ namespace Stride.Engine.Processors
     {
         private readonly Dictionary<RenderModel, RenderInstancing> modelInstancingMap = new Dictionary<RenderModel, RenderInstancing>();
         private ModelRenderProcessor modelRenderProcessor;
+        // ComponentDatas in a list, so that Draw can split it into batches
+        private readonly List<(InstancingComponent Component, InstancingData Data)> instancingList = new();
 
         public class InstancingData
         {
@@ -35,11 +39,22 @@ namespace Stride.Engine.Processors
         public override void Draw(RenderContext context)
         {
             // Process the components
-            Dispatcher.ForEach(ComponentDatas, item =>
+            Dispatcher.ForBatched(instancingList.Count, new UpdateInstancingJob { Processor = this, Context = context });
+        }
+
+        private readonly struct UpdateInstancingJob : Dispatcher.IBatchJob
+        {
+            public required InstancingProcessor Processor { get; init; }
+            public required RenderContext Context { get; init; }
+
+            public void Process(int start, int endExclusive)
             {
-                UpdateInstancing(item.Key, item.Value);
-                TransferData(context, item.Key, item.Value.RenderInstancing);
-            });
+                foreach (var (instancingComponent, instancingData) in CollectionsMarshal.AsSpan(Processor.instancingList)[start..endExclusive])
+                {
+                    Processor.UpdateInstancing(instancingComponent, instancingData);
+                    TransferData(Context, instancingComponent, instancingData.RenderInstancing);
+                }
+            }
         }
 
         private static void TransferData(RenderContext context, InstancingComponent instancingComponent, RenderInstancing renderInstancing)
@@ -166,6 +181,8 @@ namespace Stride.Engine.Processors
 
         protected override void OnEntityComponentAdding(Entity entity, [NotNull] InstancingComponent component, [NotNull] InstancingData data)
         {
+            instancingList.Add((component, data));
+
             data.TransformComponent = component.Entity.Transform;
             data.ModelComponent = component.Entity.Get<ModelComponent>();
 
@@ -178,6 +195,8 @@ namespace Stride.Engine.Processors
 
         protected override void OnEntityComponentRemoved(Entity entity, [NotNull] InstancingComponent component, [NotNull] InstancingData data)
         {
+            instancingList.SwapRemove((component, data));
+
             if (data.RenderModel != null)
             {
                 modelInstancingMap.Remove(data.RenderModel);
