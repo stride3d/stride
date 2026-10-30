@@ -21,6 +21,7 @@ using Anthropic.Models.Beta.Messages;
 
 var positional = new List<string>();
 string? repoArg = null, actor = null;
+var parallel = 2;
 for (var i = 0; i < args.Length; i++)
 {
     switch (args[i])
@@ -30,6 +31,7 @@ for (var i = 0; i < args.Length; i++)
         case "--claude-cli": Run.ClaudeCli = true; break;
         case "--repo": repoArg = args[++i]; break;
         case "--actor": actor = args[++i]; break;
+        case "--parallel": parallel = int.Parse(args[++i]); break;
         default: positional.Add(args[i]); break;
     }
 }
@@ -49,6 +51,9 @@ try
         case "issue" when positional.Count == 2: await triage.Issue(int.Parse(positional[1])); break;
         case "issue-update" when positional.Count == 2: await triage.IssueUpdate(int.Parse(positional[1]), actor); break;
         case "weekly" when positional.Count == 1: await triage.Weekly(); break;
+        case "backfill" when positional.Count == 2: await triage.Backfill(positional[1], parallel); break;
+        case "report" when positional.Count == 2: triage.Report(positional[1]); break;
+        case "apply" when positional.Count == 2: await triage.Apply(positional[1]); break;
         default:
             Console.Error.WriteLine("""
                 Usage: dotnet run triage.cs -- <command> [--dry-run] [--no-ai | --claude-cli] [--repo owner/name] [--actor login]
@@ -57,6 +62,11 @@ try
                   issue <N>          labels, missing-info check and possible duplicates of a new issue
                   issue-update <N>   removes needs-info when the reporter (--actor) added what was missing
                   weekly             nudges and the digest issue
+                  backfill <plan>    classifies the open PRs and issues with no area or type label, changes nothing:
+                                     writes <plan> (a JSON line per item, a rerun skips what is in it) and <plan>.md
+                  report <plan>      writes <plan>.md again (split in several files when too long for a comment)
+                  apply <plan>       adds the plan's labels, except where someone set an area or type since
+                --parallel <N> runs backfill on N items at a time (default 2).
                 --dry-run writes what it would do to the output and the job summary, and changes nothing.
                 --claude-cli asks Claude through the local `claude` CLI (its login, for example a subscription) instead of ANTHROPIC_API_KEY.
                 """);
@@ -148,10 +158,22 @@ sealed class Triage(GitHub github, Config config)
 
     async Task Labels(Pr pr)
     {
-        var hasArea = pr.Labels.Any(x => x.StartsWith("area-", StringComparison.Ordinal));
-        var hasType = pr.Labels.Any(x => config.PrTypes.Contains(x) || x == "new-feature");
+        var (add, _) = await PlanLabels(pr);
+        await AddLabels(pr.Number, add, $"#{pr.Number} {pr.Title}");
+    }
+
+    bool HasArea(IEnumerable<string> labels) => labels.Any(x => x.StartsWith("area-", StringComparison.Ordinal));
+    bool HasPrType(IEnumerable<string> labels) => labels.Any(x => config.PrTypes.Contains(x) || x == "new-feature");
+    bool HasIssueType(IEnumerable<string> labels) => labels.Any(config.IssueTypes.Contains);
+
+    // The labels to add to a PR, and Claude's reason
+    async Task<(List<string> Add, string Reason)> PlanLabels(Pr pr)
+    {
+        var hasArea = HasArea(pr.Labels);
+        var hasType = HasPrType(pr.Labels);
         if (hasArea && hasType)
-            return;
+            return ([], "already has an area and a type");
+        var reason = "";
 
         var files = await github.PullRequestFiles(pr.Number);
         var pathAreas = Areas(files);
@@ -200,14 +222,15 @@ sealed class Triage(GitHub github, Config config)
             if (result["behavioral_change"]?.GetValue<bool>() == true) flags.Add("behavioral-change");
             if (result["performance"]?.GetValue<bool>() == true) flags.Add("performance");
             flags.AddRange(Strings(result["platforms"]).Where(config.Platforms.Contains).Distinct());
-            Run.Log($"#{pr.Number}: Claude: {result["reason"]}{Answer(result)}");
+            reason = (string?)result["reason"] ?? "";
+            Run.Log($"#{pr.Number}: Claude: {reason}{Answer(result)}");
         }
 
         var add = new List<string>();
         if (!hasArea) add.AddRange(areas);
         if (!hasType && type != null) add.Add(type);
         add.AddRange(flags.Where(x => !pr.Labels.Contains(x)));
-        await AddLabels(pr.Number, add, $"#{pr.Number} {pr.Title}");
+        return ([.. add.Distinct()], reason);
     }
 
     List<(string Area, double Share)> Areas(List<PrFile> files)
@@ -255,6 +278,10 @@ sealed class Triage(GitHub github, Config config)
             return ("waiting-on-author", "merge conflicts");
 
         var lastReview = MaintainerReviews(pr).MaxBy(x => x.At);
+        // A status label a person set counts like a review: it stays until the author's next push or reply, or the next review
+        var manual = pr.LabelEvents.Where(x => config.StatusLabels.ContainsKey(x.Label)).MaxBy(x => x.At);
+        if (manual != null && manual.At > pr.LastAuthorActivity && (lastReview == null || manual.At > lastReview.At))
+            return (manual.Label, $"set by @{manual.By}");
         if (lastReview != null && lastReview.At > pr.LastAuthorActivity)
         {
             if (lastReview.State != "APPROVED")
@@ -385,7 +412,7 @@ sealed class Triage(GitHub github, Config config)
         var result = await ClassifyIssue(issue);
         if (result == null)
             return;
-        var (type, areas, platforms, missing, duplicates) = result.Value;
+        var (type, areas, platforms, missing, duplicates, _) = result.Value;
 
         var add = new List<string>();
         var remove = new List<string>();
@@ -441,7 +468,7 @@ sealed class Triage(GitHub github, Config config)
             Run.Log($"issue #{number}: still missing {string.Join(", ", result.Value.Missing)}, no new comment.");
     }
 
-    async Task<(string? Type, List<string> Areas, List<string> Platforms, List<string> Missing, List<int> Duplicates)?> ClassifyIssue(IssueInfo issue)
+    async Task<(string? Type, List<string> Areas, List<string> Platforms, List<string> Missing, List<int> Duplicates, string Reason)?> ClassifyIssue(IssueInfo issue, bool searchDuplicates = true)
     {
         if (Run.NoAi || !Ai.Available)
         {
@@ -449,7 +476,7 @@ sealed class Triage(GitHub github, Config config)
             return null;
         }
 
-        var candidates = await github.SearchIssues(issue.Number, issue.Title);
+        var candidates = searchDuplicates ? await github.SearchIssues(issue.Number, issue.Title) : [];
         var input = new StringBuilder()
             .AppendLine("<issue>")
             .AppendLine($"title: {issue.Title}")
@@ -480,7 +507,140 @@ sealed class Triage(GitHub github, Config config)
         var missing = type == "bug" ? Strings(result["missing"]).Where(MissingText.ContainsKey).Distinct().ToList() : [];
         var known = candidates.Select(x => x.Number).ToHashSet();
         var duplicates = (result["duplicates"]?.AsArray() ?? []).Select(x => x?.GetValue<int>() ?? 0).Where(known.Contains).Distinct().Take(3).ToList();
-        return (type, areas, platforms, missing, duplicates);
+        return (type, areas, platforms, missing, duplicates, (string?)result["reason"] ?? "");
+    }
+
+    // Backfill: labels for the open PRs and issues that have none yet, as a plan to check first and apply later
+
+    // One JSON line per item, written as soon as it is classified: a rerun skips what is in the plan already
+    public async Task Backfill(string planPath, int parallel)
+    {
+        var done = ReadPlan(planPath).Select(x => $"{x["kind"]}#{x["number"]}").ToHashSet();
+        var work = new List<(string Kind, int Number, Func<Task<JsonObject>> Plan)>();
+
+        foreach (var pr in (await github.OpenPullRequests()).Where(x => !x.IsDraft && !(HasArea(x.Labels) && HasPrType(x.Labels))))
+            work.Add(("pr", pr.Number, async () =>
+            {
+                var (add, reason) = await PlanLabels(pr);
+                return Planned("pr", pr.Number, pr.Title, add, reason);
+            }));
+        foreach (var issue in (await github.OpenIssues()).Where(x => !x.AuthorIsBot && !x.Labels.Contains("triage-digest") && !(HasArea(x.Labels) && HasIssueType(x.Labels))))
+            work.Add(("issue", issue.Number, async () =>
+            {
+                // The backlog only gets labels: no comment, no needs-info, and an existing type stays
+                var result = await ClassifyIssue(issue, searchDuplicates: false);
+                var add = new List<string>();
+                if (result is { } r)
+                {
+                    if (!HasArea(issue.Labels)) add.AddRange(r.Areas);
+                    if (!HasIssueType(issue.Labels) && r.Type != null) add.Add(r.Type);
+                    add.AddRange(r.Platforms.Where(x => !issue.Labels.Contains(x)));
+                }
+                return Planned("issue", issue.Number, issue.Title, add, result?.Reason ?? "");
+            }));
+
+        work.RemoveAll(x => done.Contains($"{x.Kind}#{x.Number}"));
+        Run.Log($"Backfill: {work.Count} items to classify ({done.Count} already in {planPath}).");
+        var gate = new object();
+        var finished = 0;
+        await Parallel.ForEachAsync(work, new ParallelOptions { MaxDegreeOfParallelism = parallel }, async (item, _) =>
+        {
+            try
+            {
+                var line = (await item.Plan()).ToJsonString();
+                lock (gate)
+                {
+                    File.AppendAllText(planPath, line + "\n");
+                    Console.WriteLine($"[{++finished}/{work.Count}] {item.Kind} #{item.Number}");
+                }
+            }
+            catch (Exception ex)
+            {
+                // Not in the plan: the next run tries it again
+                lock (gate)
+                    Run.Error($"{item.Kind} #{item.Number}", ex);
+            }
+        });
+        Report(planPath);
+    }
+
+    static JsonObject Planned(string kind, int number, string title, List<string> add, string reason) => new()
+    {
+        ["kind"] = kind,
+        ["number"] = number,
+        ["title"] = title,
+        ["add"] = new JsonArray([.. add.Distinct().Select(x => JsonValue.Create(x))]),
+        ["reason"] = reason,
+    };
+
+    static List<JsonNode> ReadPlan(string path) =>
+        File.Exists(path) ? [.. File.ReadLines(path).Where(x => x.Trim().Length > 0).Select(x => JsonNode.Parse(x)!)] : [];
+
+    // Markdown for a PR comment, split in parts that fit in a GitHub comment (65,536 characters)
+    public void Report(string planPath)
+    {
+        var plan = ReadPlan(planPath);
+        static string Title(JsonNode x) => ((string)x["title"]!).Replace("|", "\\|").Replace("\n", " ") is var t && t.Length > 70 ? t[..70] + "…" : ((string)x["title"]!).Replace("|", "\\|");
+        static List<string> Add(JsonNode x) => [.. x["add"]!.AsArray().Select(y => (string)y!)];
+        var labeled = plan.Where(x => Add(x).Count > 0).ToList();
+
+        var head = new StringBuilder()
+            .AppendLine("### Triage backfill (dry run)")
+            .AppendLine()
+            .AppendLine($"Labels the triage workflow would add to the open PRs and issues that have no area or type label yet: {labeled.Count(x => (string)x["kind"]! == "pr")} PRs and {labeled.Count(x => (string)x["kind"]! == "issue")} issues ({plan.Count - labeled.Count} more were checked and get nothing). Old issues only get labels: no comment, and an existing type stays.")
+            .AppendLine()
+            .AppendLine("| Label | PRs | Issues |")
+            .AppendLine("|---|---|---|");
+        foreach (var label in labeled.SelectMany(Add).Distinct().OrderBy(x => x))
+            head.AppendLine($"| `{label}` | {labeled.Count(x => (string)x["kind"]! == "pr" && Add(x).Contains(label))} | {labeled.Count(x => (string)x["kind"]! == "issue" && Add(x).Contains(label))} |");
+
+        var sections = new List<string> { head.ToString() };
+        var prs = labeled.Where(x => (string)x["kind"]! == "pr").OrderBy(x => (int)x["number"]!).ToList();
+        if (prs.Count > 0)
+            sections.Add("#### PRs\n\n| PR | Title | Adds |\n|---|---|---|\n" + string.Join("\n", prs.Select(x => $"| #{x["number"]} | {Title(x)} | {string.Join(", ", Add(x).Select(y => $"`{y}`"))} |")) + "\n");
+        // Issues grouped by their first area, so a maintainer of an area can check their part
+        foreach (var group in labeled.Where(x => (string)x["kind"]! == "issue").GroupBy(x => Add(x).FirstOrDefault(y => y.StartsWith("area-", StringComparison.Ordinal)) ?? "no new area").OrderBy(x => x.Key))
+            sections.Add($"#### Issues: {group.Key} ({group.Count()})\n\n" + string.Join("\n", group.OrderBy(x => (int)x["number"]!).Select(x => $"- #{x["number"]} {Title(x)}: {string.Join(", ", Add(x).Select(y => $"`{y}`"))}")) + "\n");
+
+        var parts = new List<StringBuilder> { new() };
+        foreach (var section in sections)
+        {
+            if (parts[^1].Length + section.Length > 60000)
+                parts.Add(new StringBuilder());
+            parts[^1].AppendLine(section);
+        }
+        for (var i = 0; i < parts.Count; i++)
+        {
+            var path = Path.ChangeExtension(planPath, parts.Count == 1 ? ".md" : $".{i + 1}.md");
+            File.WriteAllText(path, (parts.Count > 1 ? $"*Part {i + 1} of {parts.Count}*\n\n" : "") + parts[i]);
+            Run.Log($"Report: {path} ({parts[i].Length} characters)");
+        }
+    }
+
+    // Applies a plan: adds its labels, except where someone set an area or a type since, and skips closed items
+    public async Task Apply(string planPath)
+    {
+        repoLabels ??= await github.Labels();
+        if (repoLabels.Contains("area-AI") && !repoLabels.Contains("area-Navigation"))
+            throw new InvalidOperationException("Rename area-AI to area-Navigation first (gh label edit area-AI --name area-Navigation), so the issues that have it keep it.");
+        foreach (var item in ReadPlan(planPath))
+        {
+            var number = (int)item["number"]!;
+            var add = item["add"]!.AsArray().Select(x => (string)x!).ToList();
+            if (add.Count == 0)
+                continue;
+            var (open, labels) = await github.IssueLabels(number);
+            if (!open)
+                continue;
+            var isPr = (string)item["kind"]! == "pr";
+            if (HasArea(labels)) add.RemoveAll(x => x.StartsWith("area-", StringComparison.Ordinal));
+            if (isPr ? HasPrType(labels) : HasIssueType(labels)) add.RemoveAll(x => (isPr ? config.PrTypes : config.IssueTypes).Contains(x));
+            add.RemoveAll(labels.Contains);
+            await AddLabels(number, add, $"{item["kind"]} #{number}");
+            // Stay under GitHub's limit on write requests
+            if (!Run.DryRun && add.Count > 0)
+                await Task.Delay(1000);
+        }
     }
 
     // Helpers
@@ -642,6 +802,7 @@ sealed class Config
 
 record LabelSpec(string Color, string Description);
 record Review(string Author, string Association, string State, DateTimeOffset At);
+record LabelEvent(string Label, string By, DateTimeOffset At);
 record Comment(string Author, DateTimeOffset At, string Body);
 record PrFile(string Path, string? PreviousPath, string Status, int Additions, int Deletions, string? Patch);
 record IssueInfo(int Number, string Title, string Body, string Author, bool AuthorIsBot, string Association, List<string> Labels, List<Comment> Comments);
@@ -650,7 +811,7 @@ record SearchResult(int Number, string State, string Title, string Body);
 sealed record Pr(
     int Number, string Title, string Body, string Author, bool IsDraft, string Mergeable, string? ReviewDecision,
     string? Ci, bool CiNeedsApproval, List<string> Labels, List<string> Assignees, List<string> ReviewRequests, List<string> TeamReviewRequests,
-    List<Review> Reviews, List<Comment> Comments, List<Comment> BotComments, DateTimeOffset CreatedAt, DateTimeOffset ReadyAt,
+    List<Review> Reviews, List<Comment> Comments, List<Comment> BotComments, List<LabelEvent> LabelEvents, DateTimeOffset CreatedAt, DateTimeOffset ReadyAt,
     DateTimeOffset LastPush)
 {
     // Pushes, comments and review thread replies of the author (a reply in a review thread is a review on GitHub)
@@ -681,6 +842,9 @@ sealed class GitHub
             ... on PullRequestCommit { commit { committedDate } }
             ... on ReadyForReviewEvent { createdAt }
           }
+        }
+        labelEvents: timelineItems(last: 20, itemTypes: [LABELED_EVENT]) {
+          nodes { ... on LabeledEvent { createdAt label { name } actor { login __typename } } }
         }
         """;
 
@@ -763,6 +927,10 @@ sealed class GitHub
                     break;
             }
         }
+        // Labels people set (the workflow's own changes are by a bot)
+        var labelEvents = node["labelEvents"]!["nodes"]!.AsArray().OfType<JsonNode>()
+            .Where(x => x["label"] != null && !IsBot(x["actor"]))
+            .Select(x => new LabelEvent((string)x["label"]!["name"]!, (string?)x["actor"]?["login"] ?? "ghost", Date(x["createdAt"]))).ToList();
         var requested = node["reviewRequests"]!["nodes"]!.AsArray().Select(x => x!["requestedReviewer"]).OfType<JsonNode>().ToList();
         return new Pr(
             Number: (int)node["number"]!,
@@ -779,7 +947,7 @@ sealed class GitHub
             Assignees: [.. node["assignees"]!["nodes"]!.AsArray().Select(x => (string)x!["login"]!)],
             ReviewRequests: [.. requested.Where(x => (string?)x["__typename"] == "User").Select(x => (string)x["login"]!)],
             TeamReviewRequests: [.. requested.Where(x => (string?)x["__typename"] == "Team").Select(x => (string)x["slug"]!)],
-            Reviews: reviews, Comments: comments, BotComments: botComments,
+            Reviews: reviews, Comments: comments, BotComments: botComments, LabelEvents: labelEvents,
             CreatedAt: createdAt, ReadyAt: readyAt, LastPush: lastPush);
     }
 
@@ -822,13 +990,45 @@ sealed class GitHub
               }
             }
             """, new { owner, name, number });
-        if (data["repository"]?["issue"] is not { } node)
-            return null;
-        return new IssueInfo(
-            (int)node["number"]!, (string)node["title"]!, (string?)node["body"] ?? "",
-            (string?)node["author"]?["login"] ?? "ghost", IsBot(node["author"]), (string?)node["authorAssociation"] ?? "NONE",
-            [.. node["labels"]!["nodes"]!.AsArray().Select(x => (string)x!["name"]!)],
-            [.. node["comments"]!["nodes"]!.AsArray().Select(x => new Comment((string?)x!["author"]?["login"] ?? "ghost", Date(x["createdAt"]), (string?)x["body"] ?? ""))]);
+        return data["repository"]?["issue"] is { } node ? ParseIssue(node) : null;
+    }
+
+    // Without their comments: the backfill only labels, from the issue text
+    public async Task<List<IssueInfo>> OpenIssues()
+    {
+        var result = new List<IssueInfo>();
+        string? after = null;
+        do
+        {
+            var data = await GraphQL("""
+                query($owner: String!, $name: String!, $after: String) {
+                  repository(owner: $owner, name: $name) {
+                    issues(states: OPEN, first: 50, after: $after) {
+                      pageInfo { hasNextPage endCursor }
+                      nodes { number title body authorAssociation author { login __typename } labels(first: 50) { nodes { name } } }
+                    }
+                  }
+                }
+                """, new { owner, name, after });
+            var page = data["repository"]!["issues"]!;
+            result.AddRange(page["nodes"]!.AsArray().Select(x => ParseIssue(x!)));
+            after = page["pageInfo"]!["hasNextPage"]!.GetValue<bool>() ? (string?)page["pageInfo"]!["endCursor"] : null;
+        }
+        while (after != null);
+        return result;
+    }
+
+    static IssueInfo ParseIssue(JsonNode node) => new(
+        (int)node["number"]!, (string)node["title"]!, (string?)node["body"] ?? "",
+        (string?)node["author"]?["login"] ?? "ghost", IsBot(node["author"]), (string?)node["authorAssociation"] ?? "NONE",
+        [.. node["labels"]!["nodes"]!.AsArray().Select(x => (string)x!["name"]!)],
+        [.. (node["comments"]?["nodes"]?.AsArray() ?? []).Select(x => new Comment((string?)x!["author"]?["login"] ?? "ghost", Date(x["createdAt"]), (string?)x["body"] ?? ""))]);
+
+    // Works for PRs too: on GitHub's REST API a PR is an issue
+    public async Task<(bool Open, List<string> Labels)> IssueLabels(int number)
+    {
+        var issue = (await Rest(HttpMethod.Get, $"repos/{owner}/{name}/issues/{number}"))!;
+        return ((string?)issue["state"] == "open", [.. issue["labels"]!.AsArray().Select(x => (string)x!["name"]!)]);
     }
 
     // A few searches from the title words: GitHub search requires every word, so one search with all of them finds little

@@ -20,7 +20,7 @@ A PR that already has an area and a type label is left alone. A label a maintain
 | `waiting-on-review` | No review yet, or the author pushed or replied after the last review. |
 | `ready-to-merge` | The last review is an approval, CI is green, no conflicts. |
 
-A reply in a review thread counts as a reply. Maintainers are the `reviewerAssociations` in `config.json` (owners, members, collaborators).
+After a push that does not fix everything, the simplest is a one-line review (Review changes, Comment, "still missing X"): it notifies the author, and the PR goes to `waiting-on-author` by itself. A plain PR comment does not change the label. A status label a maintainer sets by hand also counts like a review, for when there is nothing to say (the author already said more commits are coming): it stays until the author's next push or reply, or the next review. Label changes notify nobody. A reply in a review thread counts as a reply. Maintainers are the `reviewerAssociations` in `config.json` (owners, members, collaborators).
 
 **New issues**:
 
@@ -54,6 +54,16 @@ dotnet run .github/triage/triage.cs -- status --dry-run          # whose-turn la
 dotnet run .github/triage/triage.cs -- pr <N> --dry-run           # labels of one PR
 dotnet run .github/triage/triage.cs -- issue <N> --dry-run        # triage of one issue
 dotnet run .github/triage/triage.cs -- weekly --dry-run          # nudges and digest
+```
+
+## Backfill
+
+The open PRs and issues from before the workflow have no labels yet. `backfill` classifies the ones without an area or type label and changes nothing: it writes a plan (one JSON line per item, so a rerun continues where it stopped) and a Markdown report to check, split in parts that fit in a GitHub comment. `apply` adds the plan's labels later, and skips items closed since or where someone set an area or a type. Old issues only get labels: no comment, no `needs-info`, and an existing type stays.
+
+```
+dotnet run .github/triage/triage.cs -- backfill plan.jsonl --claude-cli --parallel 3
+dotnet run .github/triage/triage.cs -- apply plan.jsonl --dry-run
+dotnet run .github/triage/triage.cs -- apply plan.jsonl
 ```
 
 On GitHub, the repo variable `TRIAGE_DRY_RUN=true` makes every run report in its job summary instead of changing anything, and "Run workflow" runs any command (dry run by default).
