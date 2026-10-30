@@ -24,16 +24,17 @@ public sealed class TagsViewModel : DispatcherViewModel
 
     private readonly AutoUpdatingSortedObservableCollection<TagViewModel> tags = new(new AnonymousComparer<TagViewModel>((a, b) => string.Compare(a.Name, b.Name, StringComparison.Ordinal)));
     private readonly HashSet<AssetViewModel> monitoredAssets = [];
-    private readonly AssetCollectionViewModel assetCollection;
+    private readonly IAssetCollectionViewModel assetCollection;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TagsViewModel"/> class.
     /// </summary>
-    /// <param name="assetCollection">The <see cref="AssetCollectionViewModel"/> that will be used to track the list of selected assets.</param>
-    public TagsViewModel(AssetCollectionViewModel assetCollection)
-        : base(assetCollection.ServiceProvider)
+    /// <param name="serviceProvider">The service provider of the session.</param>
+    /// <param name="assetCollection">The asset view that will be used to track the list of selected assets.</param>
+    public TagsViewModel(IViewModelServiceProvider serviceProvider, IAssetCollectionViewModel assetCollection)
+        : base(serviceProvider)
     {
-        this.assetCollection = assetCollection;
+        this.assetCollection = assetCollection.SafeArgument();
         assetCollection.SelectedAssets.CollectionChanged += SelectedAssetsChanged;
         AddTagCommand = new AnonymousCommand<string?>(ServiceProvider, AddTag);
     }
@@ -51,7 +52,7 @@ public sealed class TagsViewModel : DispatcherViewModel
     /// <summary>
     /// Gets the action service to use for transactions.
     /// </summary>
-    public IUndoRedoService UndoRedoService => assetCollection.Session.UndoRedoService;
+    public IUndoRedoService UndoRedoService => ServiceProvider.Get<IUndoRedoService>();
 
     /// <summary>
     /// Gets a command that will add the string given as parameter as a tag for all currently selected assets.

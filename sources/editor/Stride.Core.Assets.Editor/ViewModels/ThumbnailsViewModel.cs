@@ -9,24 +9,31 @@ using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.ViewModels;
 
+/// <summary>
+/// This view model manages updating thumbnails of <see cref="AssetViewModel"/>.
+/// </summary>
 public sealed class ThumbnailsViewModel : DispatcherViewModel
 {
-    private readonly SessionViewModel session;
+    private readonly ISessionViewModel session;
     private readonly HashSet<PackageViewModel> initialQueue = [];
     private IThumbnailService? thumbnailService;
 
-    public ThumbnailsViewModel(SessionViewModel session)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ThumbnailsViewModel"/> class.
+    /// </summary>
+    /// <param name="session">The session associated to this view model.</param>
+    public ThumbnailsViewModel(ISessionViewModel session)
         : base(session.SafeArgument(nameof(session)).ServiceProvider)
     {
         this.session = session;
-        session.AssetCollection.FilteredContent.CollectionChanged += VisibleAssetsChanged;
+        session.ActiveAssetView.FilteredContent.CollectionChanged += VisibleAssetsChanged;
         session.AssetPropertiesChanged += AssetPropertiesChanged;
         ServiceProvider.ServiceRegistered += ServiceRegistered;
     }
 
     public override void Destroy()
     {
-        session.AssetCollection.FilteredContent.CollectionChanged -= VisibleAssetsChanged;
+        session.ActiveAssetView.FilteredContent.CollectionChanged -= VisibleAssetsChanged;
         session.AssetPropertiesChanged -= AssetPropertiesChanged;
         ServiceProvider.ServiceRegistered -= ServiceRegistered;
 
@@ -111,7 +118,7 @@ public sealed class ThumbnailsViewModel : DispatcherViewModel
 
     private void VisibleAssetsChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        IncreaseThumbnailPriority(session.AssetCollection.FilteredContent.OfType<AssetViewModel>());
+        IncreaseThumbnailPriority(session.ActiveAssetView.FilteredContent.OfType<AssetViewModel>());
     }
 
     private void AssetPropertiesChanged(object? sender, AssetChangedEventArgs e)

@@ -1,9 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Commands;
@@ -14,13 +12,20 @@ using Stride.Core.Transactions;
 
 namespace Stride.Core.Assets.Editor.Components.Transactions;
 
+/// <summary>
+/// A view model representing transactions that can be undone/redone and that affect the dirty flag of <see cref="AssetViewModel"/>.
+/// </summary>
 public sealed class ActionHistoryViewModel : DispatcherViewModel
 {
     private readonly IUndoRedoService service;
-    private readonly SessionViewModel session;
+    private readonly ISessionViewModel session;
     private readonly ObservableList<TransactionViewModel> transactions = [];
 
-    public ActionHistoryViewModel(SessionViewModel session)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ActionHistoryViewModel"/> class.
+    /// </summary>
+    /// <param name="session">The session this view model belongs to.</param>
+    public ActionHistoryViewModel(ISessionViewModel session)
         : base(session.SafeArgument().ServiceProvider)
     {
         this.session = session;

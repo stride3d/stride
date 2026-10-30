@@ -1164,13 +1164,24 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// Since notifications will be raised asynchronously, <paramref name="assets"/> collection should not be modified after it has been passed to this method.
         /// If necessary, caller must provide a copy.
         /// </remarks>
-        public async void NotifyAssetPropertiesChanged([ItemNotNull, NotNull] IReadOnlyCollection<AssetViewModel> assets)
+        public void NotifyAssetPropertiesChanged([ItemNotNull, NotNull] IReadOnlyCollection<AssetViewModel> assets)
+        {
+            NotifyAssetPropertiesChangedAsync(assets).Forget();
+        }
+
+        /// <inheritdoc cref="NotifyAssetPropertiesChanged"/>
+        /// <returns>A task that completes once <see cref="AssetPropertiesChanged"/> has been raised.</returns>
+        public async Task NotifyAssetPropertiesChangedAsync([ItemNotNull, NotNull] IReadOnlyCollection<AssetViewModel> assets)
         {
             var tasks = assets.Select(x => AssetDependenciesViewModel.NotifyAssetChanged(x.Session, x)).ToList();
             await Task.WhenAll(tasks);
             // We raise this event from a task because it will trigger heavy work on the different subscribers
-            Task.Run(() => AssetPropertiesChanged?.Invoke(this, new AssetChangedEventArgs(assets))).Forget();
+            await Task.Run(() => AssetPropertiesChanged?.Invoke(this, new AssetChangedEventArgs(assets)));
         }
+
+        /// <inheritdoc/>
+        /// <remarks>The WPF session does not wait for its background work: it returns the task as it is.</remarks>
+        public Task TrackBackgroundWork(Task task) => task ?? throw new ArgumentNullException(nameof(task));
 
         private void NotifySessionStateChanged()
         {
@@ -1268,6 +1279,11 @@ namespace Stride.Core.Assets.Editor.ViewModel
         void ISessionViewModel.UnregisterAsset(AssetViewModel asset) => UnregisterAsset(asset);
 
         void ISessionViewModel.RefreshRootAssetSelection() => RefreshRootAssetSelection();
+
+        // The WPF Game Studio does not show the unsaved changes in its window title (the cross-platform editor does)
+        void ISessionViewModel.UpdateHasUnsavedChanges()
+        {
+        }
 
         void ISessionViewModel.ProcessAddedProjects(LoggerResult loggerResult, WorkProgressViewModel workProgress, bool packageAlreadyInSession) => ProcessAddedProjects(loggerResult, workProgress, packageAlreadyInSession);
 

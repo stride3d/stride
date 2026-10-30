@@ -23,6 +23,11 @@ namespace Stride.Core.Assets.Editor.ViewModel
         IReadOnlyObservableCollection<AssetViewModel> SelectedAssets { get; }
 
         /// <summary>
+        /// Gets the content (assets and folders) that is currently displayed in the view, once filtered.
+        /// </summary>
+        IReadOnlyObservableCollection<object> FilteredContent { get; }
+
+        /// <summary>
         /// Gets a command that selects the asset given as parameter.
         /// </summary>
         ICommandBase SelectAssetCommand { get; }
@@ -31,6 +36,11 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// Selects the given assets.
         /// </summary>
         void SelectAssets(IEnumerable<AssetViewModel> assetsToSelect);
+
+        /// <summary>
+        /// Replaces the assets of the view with the given ones (a view that lists given assets, such as the references of the selection).
+        /// </summary>
+        void UpdateAssetsCollection(ICollection<AssetViewModel> newAssets);
 
         /// <summary>
         /// Deletes the given assets and directories.
