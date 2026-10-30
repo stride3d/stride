@@ -4,6 +4,7 @@
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
 using Stride.Assets.Presentation.AssetEditors.Gizmos;
+using Stride.Assets.Presentation.SceneEditor;
 using Stride.Core.Mathematics;
 using Stride.Editor.EditorGame.Game;
 using Stride.Input;
@@ -64,6 +65,8 @@ public sealed class EditorGameCameraOrientationService : EditorGameMouseServiceB
         {
             if (IsActive)
             {
+                // A change of the setting applies at once, as in WPF
+                Gizmo.DisplayDirectionNames = SceneEditorSettings.DisplayDirectionNames.GetValue();
                 Gizmo.Update();
 
                 if (Gizmo.HasSelection && IsMouseAvailable)

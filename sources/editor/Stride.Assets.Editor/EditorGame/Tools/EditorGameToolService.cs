@@ -33,16 +33,18 @@ namespace Stride.Assets.Editor.EditorGame.Tools;
 /// <item>Q: select. W: translate. E: rotate. R: scale. Space: next transformation.</item>
 /// <item>Shift while dragging a gizmo: snap. N: snap the selection to the grid.</item>
 /// </list>
-/// The keys are the defaults of the WPF scene editor settings, and the snap values are the defaults of the WPF scene
-/// settings; neither is read yet. The cross-platform counterpart of the WPF <c>EditorGameEntityTransformService</c>.
+/// The keys are the scene editor settings (<see cref="SceneEditorSettings"/>), shared with the WPF editor; the snap values are
+/// the defaults of the WPF scene settings, which are not read yet. The cross-platform counterpart of the WPF
+/// <c>EditorGameEntityTransformService</c>.
 /// </remarks>
 [EditorGameService(typeof(EntityHierarchyEditorController), Order = 210)]
 public sealed class EditorGameToolService : EditorGameMouseServiceBase, IEditorGameToolService, IEditorGameViewModelService
 {
-    // The default key bindings of the WPF scene editor (SceneEditorSettings)
-    private const Keys SwitchGizmo = Keys.Space;
-    private const Keys SnapSelectionToGrid = Keys.N;
-    private const Keys DynamicSnap = Keys.LeftShift;
+    // The key bindings of the scene editor settings, read as they are used so that a change applies at once, as in WPF (the
+    // switch key when the view opens)
+    private static Keys SwitchGizmo => SceneEditorSettings.SwitchGizmo.GetValue();
+    private static Keys SnapSelectionToGrid => SceneEditorSettings.SnapSelectionToGrid.GetValue();
+    private static Keys DynamicSnap => SceneEditorSettings.ControlDynamicSnapSelectionToGrid.GetValue();
 
     private readonly EntityHierarchyEditorController controller;
     private readonly EntityHierarchyEditorViewModel editor;
