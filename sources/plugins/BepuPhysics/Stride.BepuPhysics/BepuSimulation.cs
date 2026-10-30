@@ -162,8 +162,38 @@ public sealed class BepuSimulation : IDisposable
     /// <summary>
     /// Represents the maximum number of steps per frame to avoid a death loop
     /// </summary>
-    [Display(5, "Max steps/frame", CategoryTime)]
+    [Display(5, "Max steps/frame", CategoryTime, Browsable = false)]
+    [Obsolete($"Use {nameof(PhysicsBudget)} and {nameof(PostponedTicksCap)} instead")]
     public int MaxStepPerFrame { get; set; } = 3;
+
+    /// <summary>
+    /// The maximum amount of time (as a ratio of <see cref="FixedTimeStepSeconds"/>) allowed for physics to catch up with game time
+    /// when the game's update rate is reduced or otherwise throttled.
+    /// <para/>
+    /// 0.5 would allow physics to perform additional ticks for up until half of the duration of
+    /// <see cref="FixedTimeStepSeconds"/> before yielding to other game systems.
+    /// </summary>
+    /// <remarks>
+    /// Setting this to 0 prevents physics from running, it will postpone all ticks based on <see cref="PostponedTicksCap"/>.
+    /// Negative values are ignored.
+    /// </remarks>
+    [Display(6, "Physics Budget", CategoryTime)]
+    public float PhysicsBudget
+    {
+        get;
+        set => field = value >= 0 ? value : field;
+    } = 0.5f;
+
+    /// <summary>
+    /// When physics runs out of <see cref="PhysicsBudget"/>, how many ticks can we postpone to the next frames.
+    /// Any amount of ticks past that will be dropped instead. We recommend leaving it at -1 to catch up to any amount of ticks.
+    /// </summary>
+    /// <remarks>
+    /// Dropping will cause physics time and game time to diverge,
+    /// potentially introducing issues in your components implementing <see cref="ISimulationUpdate"/>
+    /// </remarks>
+    [Display(7, "Postponed Ticks Cap", CategoryTime)]
+    public int PostponedTicksCap { get; set; } = -1;
 
     /// <summary>
     /// Allows for per-body features like <see cref="BodyComponent.Gravity"/> at a cost to the simulation's performance
@@ -731,7 +761,9 @@ public sealed class BepuSimulation : IDisposable
         // TimeSpan multiplication is lossy, skipping mult when we can
         _remainingUpdateTime += TimeScale == 1f ? elapsed : elapsed * TimeScale;
 
-        for (int stepCount = 0; _remainingUpdateTime >= FixedTimeStep && (MaxStepPerFrame == -1 || stepCount < MaxStepPerFrame); stepCount++, _remainingUpdateTime -= FixedTimeStep)
+        double budgetAllowed = FixedTimeStep.Ticks * (double)PhysicsBudget;
+        long ts = Stopwatch.GetTimestamp();
+        for (; _remainingUpdateTime >= FixedTimeStep && Stopwatch.GetElapsedTime(ts, Stopwatch.GetTimestamp()).Ticks < budgetAllowed; _remainingUpdateTime -= FixedTimeStep)
         {
             if (_softStartScheduled)
             {
@@ -780,6 +812,19 @@ public sealed class BepuSimulation : IDisposable
                 Debug.Assert(body.BodyReference.HasValue);
 
                 body.CurrentPose = body.BodyReference.Value.Pose;
+            }
+        }
+
+        if (PostponedTicksCap != -1 && _remainingUpdateTime > FixedTimeStep * PostponedTicksCap)
+        {
+            if (PostponedTicksCap != 0)
+            {
+                _remainingUpdateTime = FixedTimeStep * (PostponedTicksCap - 1);
+                _remainingUpdateTime += TimeSpan.FromTicks(_remainingUpdateTime.Ticks % FixedTimeStep.Ticks);
+            }
+            else
+            {
+                _remainingUpdateTime = TimeSpan.Zero;
             }
         }
 

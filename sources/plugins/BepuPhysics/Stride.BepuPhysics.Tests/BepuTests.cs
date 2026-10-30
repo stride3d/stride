@@ -592,18 +592,74 @@ namespace Stride.BepuPhysics.Tests
         }
 
         [Theory]
-        [InlineData(3, 10, 3)]
-        [InlineData(3, 2, 2)]
-        [InlineData(-1, 10, 10)]
-        public static void MaxStepPerFrameTest(int maxStepPerFrame, int pendingSteps, int expectedSteps)
+        // 60hz sim with a max budget of 16ms*0.5, sleep of 17ms, which is right past our budget should lead to a single tick being processed
+        [InlineData(60, 0.5f, 17, 4, 1)]
+        // 60hz sim with a max budget of 16ms*10, sleep of 17ms per tick, total of four ticks, should (hopefully) result in four ticks as the budget is large enough.
+        // Since we're using time elapsed as the threshold, this could be inconsistent
+        [InlineData(60, 10f, 17, 4, 4)]
+        public static void PhysicsBudgetTest(int frequency, float budget, int sleepDuration, int stepsMax, int expectedTicks)
         {
-            using var simulation = new BepuSimulation { MaxStepPerFrame = maxStepPerFrame };
-            int steps = 0;
-            simulation.Register(new SimUpdateListener { SimUpdate = () => steps++ });
+            using var simulation = new BepuSimulation
+            {
+                FixedTimeStep = TimeSpan.FromTicks(TimeSpan.TicksPerSecond / frequency),
+                PhysicsBudget = budget
+            };
 
-            simulation.Update(simulation.FixedTimeStep * pendingSteps);
+            // Make sure any caching and JITing is ready
+            simulation.PostponedTicksCap = 0;
+            simulation.Update(simulation.FixedTimeStep * 10);
+            simulation.PostponedTicksCap = -1;
 
-            Assert.Equal(expectedSteps, steps);
+            int ticks = 0;
+            simulation.Register(new SimUpdateListener { SimUpdate = () =>
+            {
+                if (sleepDuration != 0)
+                    Thread.Sleep(sleepDuration); // Simulate physics work that takes at least sleepDuration ms
+                ticks++;
+            } });
+
+            simulation.Update(simulation.FixedTimeStep * stepsMax);
+
+            Assert.Equal(expectedTicks, ticks);
+        }
+
+        [Theory]
+        // 60hz sim with a max budget of 16ms*0.5, physics takes 17ms longer on the first frame, which is right past our budget for that frame,
+        // We carry that time to next frame.
+        // Should still lead to 8 ticks as the time is not dropped, next frame caught up
+        [InlineData(17, 8, -1)]
+        // 60hz sim with a max budget of 16ms*0.5, physics takes 17ms longer on the first frame, which is right past our budget for that frame,
+        // we drop the additional time.
+        // This should lead to 5 ticks as the time is dropped for that frame, next frame processes only its four steps
+        [InlineData(17, 5, 0)]
+        public static void PhysicsBudgetOverflowTest(int sleepDuration, int expectedTicks, int ticksCap)
+        {
+            using var simulation = new BepuSimulation
+            {
+                FixedTimeStep = TimeSpan.FromTicks(TimeSpan.TicksPerSecond / 60),
+                PhysicsBudget = 0.5f,
+            };
+
+            // Make sure any caching and JITing is ready
+            simulation.PostponedTicksCap = 0;
+            simulation.Update(simulation.FixedTimeStep * 10);
+            simulation.PostponedTicksCap = ticksCap;
+
+            int ticks = 0;
+            simulation.Register(new SimUpdateListener { SimUpdate = () =>
+            {
+                if (sleepDuration != 0)
+                    Thread.Sleep(sleepDuration); // Simulate physics work that takes at least sleepDuration ms on the first tick
+                ticks++;
+            } });
+
+            simulation.Update(simulation.FixedTimeStep * 4);
+            sleepDuration = 0;
+            // Let it run to completion with postponed ticks and all
+            simulation.PhysicsBudget = float.PositiveInfinity;
+            simulation.Update(simulation.FixedTimeStep * 4);
+
+            Assert.Equal(expectedTicks, ticks);
         }
 
         [Theory]
