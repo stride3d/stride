@@ -6,6 +6,7 @@
              xmlns:vm="using:Stride.Assets.Editor.ViewModels"
              xmlns:vm2="using:Stride.Assets.Presentation.ViewModels"
              xmlns:conv="using:Stride.Assets.Editor.Avalonia.Converters"
+             xmlns:local="using:Stride.Assets.Editor.Avalonia.Views"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Stride.Assets.Editor.Avalonia.Views.EntityHierarchyEditorView"
              x:DataType="vm:EntityHierarchyEditorViewModel">
@@ -349,6 +350,29 @@
             </StackPanel>
           </ToggleButton>
         </Panel>
+        <Separator Width="1" Height="20" Margin="2,0" />
+        <!-- Overlays: what the services of the game draw on request, the navigation meshes of the Physics package for
+             instance; as the overlays popup of the WPF scene editor -->
+        <Button x:DataType="vm:EditorViewToolbarViewModel" Focusable="False" Background="Transparent" Padding="6"
+                IsVisible="{Binding Overlays.HasSections, FallbackValue=False}" ToolTip.Tip="Overlays...">
+          <Image Source="{StaticResource ImageNavigation}" Width="16" Height="16"/>
+          <Button.Flyout>
+            <Flyout Placement="BottomEdgeAlignedLeft">
+              <local:EditorViewOverlaysPanel DataContext="{Binding Overlays}"/>
+            </Flyout>
+          </Button.Flyout>
+        </Button>
+        <!-- Gizmo options: the size of the gizmos and the gizmos of each type of component, plugins included (the collider
+             shapes of the Physics package are hidden until checked); as the gizmo options popup of the WPF scene editor -->
+        <Button x:DataType="vm:EditorViewToolbarViewModel" Focusable="False" Background="Transparent" Padding="6"
+                IsVisible="{Binding Gizmos, Converter={x:Static ObjectConverters.IsNotNull}}" ToolTip.Tip="Gizmo options...">
+          <Image Source="{StaticResource ImageGizmos}" Width="16" Height="16"/>
+          <Button.Flyout>
+            <Flyout Placement="BottomEdgeAlignedLeft">
+              <local:EditorViewGizmosPanel DataContext="{Binding Gizmos}"/>
+            </Flyout>
+          </Button.Flyout>
+        </Button>
       </StackPanel>
 
       <!-- The game of the editor renders here; the text shows while it has no game (yet) -->

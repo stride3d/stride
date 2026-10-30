@@ -3,6 +3,7 @@
 
 using Stride.Assets.Editor.EditorGame;
 using Stride.Assets.Editor.EditorGame.Tools;
+using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Tools;
 using Stride.Assets.Presentation.AssetEditors.GameEditor;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
@@ -30,12 +31,15 @@ public sealed class EditorViewToolbarViewModel : DispatcherViewModel
     private EditorViewSpaceViewModel space;
     private bool displaySelectionMask;
 
-    internal EditorViewToolbarViewModel(IViewModelServiceProvider serviceProvider, EditorGameToolService service, IEditorGameSelectionViewModelService? selection, EditorGameMaterialHighlightService? materialHighlight)
+    internal EditorViewToolbarViewModel(IViewModelServiceProvider serviceProvider, EditorGameToolService service, IEditorGameSelectionViewModelService? selection, EditorGameMaterialHighlightService? materialHighlight,
+        EditorGameComponentGizmoService? componentGizmos = null, IEnumerable<IEditorGameOverlayService>? overlays = null, EditorGameLightProbeGizmoService? lightProbes = null)
         : base(serviceProvider)
     {
         this.service = service;
         this.selection = selection;
         this.materialHighlight = materialHighlight;
+        Gizmos = componentGizmos is not null ? new EditorViewGizmosViewModel(serviceProvider, componentGizmos, service.SetGizmoSizeAsync, lightProbes) : null;
+        Overlays = new EditorViewOverlaysViewModel(serviceProvider, overlays ?? []);
         Tools = service.Tools.Select(x => new EditorViewToolViewModel(serviceProvider, x)).ToList();
         Spaces =
         [
@@ -126,6 +130,17 @@ public sealed class EditorViewToolbarViewModel : DispatcherViewModel
         });
     }
 
+    /// <summary>
+    /// Gets the gizmo options of the view (sizes, and the gizmos of each type of component), or <c>null</c> when the game
+    /// shows no component gizmo.
+    /// </summary>
+    public EditorViewGizmosViewModel? Gizmos { get; }
+
+    /// <summary>
+    /// Gets the overlays the services of the game can draw (the navigation meshes, for instance).
+    /// </summary>
+    public EditorViewOverlaysViewModel Overlays { get; }
+
     private bool IsScaleActive => activeTool?.Tool is TransformationTool { Transformation: Transformation.Scale };
 
     /// <inheritdoc/>
@@ -135,7 +150,29 @@ public sealed class EditorViewToolbarViewModel : DispatcherViewModel
 
         service.ActiveToolChanged -= ServiceActiveToolChanged;
         service.ToolFailed -= ServiceToolFailed;
+        Overlays.Destroy();
         base.Destroy();
+    }
+
+    /// <summary>
+    /// Shows the gizmo and overlay options saved with the scene.
+    /// </summary>
+    /// <remarks>
+    /// The other members of the settings (camera, snaps, grid, ...) are not used by the Avalonia editor yet and stay as read.
+    /// </remarks>
+    internal void LoadSettings(SceneSettingsData settings)
+    {
+        Gizmos?.LoadSettings(settings);
+        Overlays.LoadSettings(settings);
+    }
+
+    /// <summary>
+    /// Writes the gizmo and overlay options in the settings of the scene.
+    /// </summary>
+    internal void SaveSettings(SceneSettingsData settings)
+    {
+        Gizmos?.SaveSettings(settings);
+        Overlays.SaveSettings(settings);
     }
 
     /// <summary>

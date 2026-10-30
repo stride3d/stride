@@ -33,6 +33,8 @@
     <ProjectReference Include="..\..\plugins\BulletPhysics\Stride.Physics.Editor\Stride.Physics.Editor.csproj" />
     <ProjectReference Include="..\..\plugins\Particles\Stride.Particles.Editor\Stride.Particles.Editor.csproj" />
     <ProjectReference Include="..\..\plugins\Video\Stride.Video.Editor\Stride.Video.Editor.csproj" />
+    <!-- The plugin Editor package without plugin class: its gizmos and Add entity entries are checked with the others -->
+    <ProjectReference Include="..\..\plugins\Voxels\Stride.Voxels.Editor\Stride.Voxels.Editor.csproj" />
   </ItemGroup>
   <ItemGroup>
     <!-- The fake dotnet new template of the Assets.Editor tests (xunit 2, not referenced): the same file -->
