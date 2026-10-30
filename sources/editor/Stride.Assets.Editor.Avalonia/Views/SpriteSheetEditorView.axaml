@@ -149,6 +149,10 @@
           <sd:EditCommandBinding Kind="Delete" Command="{Binding RemoveImageCommand}"/>
           <sd:EditCommandBinding Kind="Rename" Command="{Binding RenameCommand}"/>
         </sd:EditCommands.Bindings>
+        <!-- Drag the sprites to reorder them, drop image files to add sprites, as the WPF ListBoxDragDropBehavior -->
+        <Interaction.Behaviors>
+          <beh:SpriteListDragDropBehavior/>
+        </Interaction.Behaviors>
         <ListBox.ItemTemplate>
           <DataTemplate x:DataType="se:SpriteInfoViewModel">
             <StackPanel Orientation="Horizontal" Background="Transparent" DoubleTapped="OnSpriteDoubleTapped">

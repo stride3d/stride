@@ -296,22 +296,27 @@ public sealed class SpriteInfoViewModel : DispatcherViewModel, IIsEditableViewMo
             return;
         }
 
-        using var transaction = Editor.UndoRedoService.CreateTransaction();
         var images = children.OfType<SpriteInfoViewModel>().ToList();
-        foreach (var image in images)
+        var spriteInfos = images.Select(x => x.GetSpriteInfo()).ToList();
+        using (var transaction = Editor.UndoRedoService.CreateTransaction())
         {
-            // The editor updates the indices of the sprites after each removal, this one's included
-            image.Editor.RemoveImage(image.GetSpriteInfo(), image.Index);
-        }
+            foreach (var image in images)
+            {
+                // The editor updates the indices of the sprites after each removal, this one's included
+                image.Editor.RemoveImage(image.GetSpriteInfo(), image.Index);
+            }
 
-        var insertIndex = position == InsertPosition.After ? index + 1 : index;
-        insertIndex = MathUtil.Clamp(insertIndex, 0, Editor.Sprites.Count);
+            var insertIndex = position == InsertPosition.After ? index + 1 : index;
+            insertIndex = MathUtil.Clamp(insertIndex, 0, Editor.Sprites.Count);
 
-        foreach (var image in images)
-        {
-            Editor.InsertImage(image.GetSpriteInfo(), insertIndex++);
+            foreach (var spriteInfo in spriteInfos)
+            {
+                Editor.InsertImage(spriteInfo, insertIndex++);
+            }
+            Editor.UndoRedoService.SetName(transaction, "Move images");
         }
-        Editor.UndoRedoService.SetName(transaction, "Move images");
+        // The moved sprites stay selected, as after the reorder buttons
+        Editor.SelectSprites(spriteInfos);
     }
 
     IObjectNode IPropertyProviderViewModel.GetRootNode()
