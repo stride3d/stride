@@ -143,6 +143,12 @@
                SelectedItems="{Binding SelectedSprites}"
                SelectionMode="Multiple">
         <!-- Copy, Paste, Delete and Rename while the list has the focus, as the command bindings of the WPF list -->
+        <sd:EditCommands.Bindings>
+          <sd:EditCommandBinding Kind="Copy" Command="{Binding CopyImageCommand}"/>
+          <sd:EditCommandBinding Kind="Paste" Command="{Binding PasteImageCommand}"/>
+          <sd:EditCommandBinding Kind="Delete" Command="{Binding RemoveImageCommand}"/>
+          <sd:EditCommandBinding Kind="Rename" Command="{Binding RenameCommand}"/>
+        </sd:EditCommands.Bindings>
         <ListBox.ItemTemplate>
           <DataTemplate x:DataType="se:SpriteInfoViewModel">
             <StackPanel Orientation="Horizontal" Background="Transparent" DoubleTapped="OnSpriteDoubleTapped">
