@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core.Extensions;
+using Stride.Core.Presentation.Extensions;
 using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.Components.TemplateDescriptions;
@@ -54,9 +55,10 @@ public class AddItemTemplateCollectionViewModel : TemplateDescriptionCollectionV
         if (!IsSearching)
             return groupTemplates;
 
-        var token = searchToken.Trim();
+        // As the search box of the WPF editor: every word of the search matches, as a part of the name or as its camel case initials
+        var tokens = searchToken.Split([' ', '\t', '\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
         return groupTemplates
-            .Where(x => x.Name.Contains(token, StringComparison.CurrentCultureIgnoreCase))
+            .Where(x => tokens.All(token => x.Name.Contains(token, StringComparison.InvariantCultureIgnoreCase) || token.MatchCamelCase(x.Name)))
             .OrderBy(x => x.Name, StringComparer.CurrentCultureIgnoreCase);
     }
 

@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using Stride.Core.Extensions;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.ViewModels;
 
@@ -19,7 +20,7 @@ public abstract class ReferenceReplacementViewModel<T> : DispatcherViewModel whe
     private bool dontFixReference;
 
     protected ReferenceReplacementViewModel(FixReferencesViewModel<T> fixReferences, T objectToFix, T referencer, Type propertyType)
-        : base(fixReferences.ServiceProvider)
+        : base(fixReferences.SafeArgument(nameof(fixReferences)).ServiceProvider)
     {
         this.fixReferences = fixReferences;
         this.propertyType = propertyType;

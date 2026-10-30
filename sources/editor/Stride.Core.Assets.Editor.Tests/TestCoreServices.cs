@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Collections.Specialized;
+using Stride.Core.Assets.Editor.Components.FixReferences;
 using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;
 using Stride.Core.Assets.Editor.Services;
@@ -38,6 +39,20 @@ public sealed class TestCoreServices
         }
     }
 
+    private sealed class TestItemViewModel : ViewModelBase;
+
+    private sealed class TestReferenceReplacementViewModel(FixReferencesViewModel<TestItemViewModel> fixReferences, TestItemViewModel objectToFix, TestItemViewModel referencer)
+        : ReferenceReplacementViewModel<TestItemViewModel>(fixReferences, objectToFix, referencer, typeof(TestItemViewModel))
+    {
+        public override void ClearReference()
+        {
+        }
+
+        protected override void ReplaceReference()
+        {
+        }
+    }
+
     private readonly ViewModelServiceProvider serviceProvider = new([new NullDispatcherService()]);
 
     [Fact]
@@ -66,6 +81,14 @@ public sealed class TestCoreServices
         Assert.Throws<ArgumentNullException>(() => service.RegisterSelectionScope(null!, _ => null, collection));
         Assert.Throws<ArgumentNullException>(() => service.RegisterSelectionScope(_ => null, null!, collection));
         Assert.Throws<ArgumentNullException>(() => service.RegisterSelectionScope(_ => null, _ => null, (INotifyCollectionChanged[])null!));
+    }
+
+    [Fact]
+    public void AReferenceReplacementNeedsItsFixReferencesViewModel()
+    {
+        var item = new TestItemViewModel();
+
+        Assert.Throws<ArgumentNullException>(() => new TestReferenceReplacementViewModel(null!, item, item));
     }
 
     [Fact]

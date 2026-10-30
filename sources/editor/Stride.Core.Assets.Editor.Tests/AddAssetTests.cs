@@ -73,6 +73,10 @@ public sealed class AddAssetTests
         Assert.Contains(TestTemplatePackage.OtherImportName, names);
         Assert.Equal(names.OrderBy(x => x, StringComparer.CurrentCultureIgnoreCase), names);
 
+        // Every word of the search matches, in any order, as in the search box of the WPF editor
+        templates.SearchToken = "asset  OTHER";
+        Assert.Equal([TestTemplatePackage.OtherImportName], templates.Templates.Select(x => x.Name));
+
         // A search without a match lists nothing; clearing the search lists every template again
         templates.SearchToken = "no such template";
         Assert.Empty(templates.Templates);
