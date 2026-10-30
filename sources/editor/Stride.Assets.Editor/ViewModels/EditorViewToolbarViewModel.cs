@@ -155,6 +155,27 @@ public sealed class EditorViewToolbarViewModel : DispatcherViewModel
     }
 
     /// <summary>
+    /// Shows the gizmo and overlay options saved with the scene.
+    /// </summary>
+    /// <remarks>
+    /// The other members of the settings (camera, snaps, grid, ...) are not used by the Avalonia editor yet and stay as read.
+    /// </remarks>
+    internal void LoadSettings(SceneSettingsData settings)
+    {
+        Gizmos?.LoadSettings(settings);
+        Overlays.LoadSettings(settings);
+    }
+
+    /// <summary>
+    /// Writes the gizmo and overlay options in the settings of the scene.
+    /// </summary>
+    internal void SaveSettings(SceneSettingsData settings)
+    {
+        Gizmos?.SaveSettings(settings);
+        Overlays.SaveSettings(settings);
+    }
+
+    /// <summary>
     /// Reads the active tool and the tools turned off from the game.
     /// </summary>
     internal async Task InitializeAsync()

@@ -20,6 +20,7 @@ using Stride.Core.Mathematics;
 using Stride.Core.Presentation.Core;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
+using Stride.Core.Settings;
 using Stride.Editor.EditorGame.ContentLoader;
 using Stride.Editor.EditorGame.ViewModels;
 using Stride.Engine;
@@ -167,6 +168,143 @@ public sealed class EditorViewPopupsTests
         physics.IsChecked = true;
         Assert.True(Find(gizmos, typeof(PhysicsComponent)).IsActive);
         window.Close();
+    }
+
+    [AvaloniaFact]
+    public void TheDefaultSceneSettingsGiveTheDefaultGizmos()
+    {
+        using var controller = new FakeController();
+        var defaults = new EditorViewGizmosViewModel(serviceProvider, new EditorGameComponentGizmoService(controller), null);
+        var loaded = new EditorViewGizmosViewModel(serviceProvider, new EditorGameComponentGizmoService(controller), null);
+        loaded.ToggleAllCommand.Execute(true);
+        loaded.FallbackGizmo.IsActive = true;
+
+        loaded.LoadSettings(SceneSettingsData.CreateDefault());
+
+        Assert.Equal(defaults.Gizmos.Select(x => x.IsActive), loaded.Gizmos.Select(x => x.IsActive));
+        Assert.False(loaded.FallbackGizmo.IsActive);
+        Assert.Equal(Utils.ZoomFactorIdentityIndex, loaded.ComponentGizmoSizeIndex);
+        Assert.Equal(Utils.ZoomFactorIdentityIndex, loaded.TransformationGizmoSizeIndex);
+        // The names WPF writes: the display names of the components, "Transform" for the other entities
+        Assert.Contains(DisplayAttribute.GetDisplayName(typeof(PhysicsComponent)), SceneSettingsData.CreateDefault().HiddenGizmos);
+        Assert.Contains("Transform", SceneSettingsData.CreateDefault().HiddenGizmos);
+    }
+
+    [AvaloniaFact]
+    public void TheGizmoOptionsAreSavedAndLoadedAsWpfDoes()
+    {
+        using var controller = new FakeController();
+        var service = new EditorGameComponentGizmoService(controller);
+        var gizmos = new EditorViewGizmosViewModel(serviceProvider, service, null);
+        Find(gizmos, typeof(AudioEmitterComponent)).IsActive = false;
+        Find(gizmos, typeof(PhysicsComponent)).IsActive = true;
+        gizmos.FallbackGizmo.IsActive = true;
+        gizmos.ComponentGizmoSizeIndex = Utils.ZoomFactorIdentityIndex + 2;
+        gizmos.TransformationGizmoSizeIndex = Utils.ZoomFactorIdentityIndex - 1;
+        gizmos.FixedSize = true;
+        // A scene saved before: its other members stay
+        var settings = new SceneSettingsData { HiddenGizmos = ["Camera"], CamMoveSpeed = 7 };
+
+        gizmos.SaveSettings(settings);
+
+        Assert.Equal(Utils.ZoomFactors[Utils.ZoomFactorIdentityIndex + 2], settings.ComponentGizmoSize);
+        Assert.Equal(Utils.ZoomFactors[Utils.ZoomFactorIdentityIndex - 1], settings.TransformationGizmoSize);
+        Assert.True(settings.FixedSizeGizmos);
+        Assert.Equal(gizmos.Gizmos.Where(x => !x.IsActive).Select(x => x.ComponentName), settings.HiddenGizmos);
+        Assert.Contains(Find(gizmos, typeof(AudioEmitterComponent)).ComponentName, settings.HiddenGizmos);
+        Assert.DoesNotContain("Transform", settings.HiddenGizmos);
+        Assert.Equal(7, settings.CamMoveSpeed);
+
+        var transformationSizes = new List<float>();
+        var loaded = new EditorViewGizmosViewModel(serviceProvider, new EditorGameComponentGizmoService(controller), size => { transformationSizes.Add(size); return Task.CompletedTask; });
+        loaded.LoadSettings(settings);
+
+        Assert.Equal(gizmos.Gizmos.Select(x => x.IsActive), loaded.Gizmos.Select(x => x.IsActive));
+        Assert.True(loaded.FallbackGizmo.IsActive);
+        Assert.Equal(gizmos.ComponentGizmoSizeIndex, loaded.ComponentGizmoSizeIndex);
+        Assert.Equal(gizmos.TransformationGizmoSizeIndex, loaded.TransformationGizmoSizeIndex);
+        Assert.Equal([(float)Utils.ZoomFactors[Utils.ZoomFactorIdentityIndex - 1]], transformationSizes);
+        Assert.True(loaded.FixedSize);
+    }
+
+    [AvaloniaFact]
+    public void GizmoSizesBetweenTwoFactorsTakeTheClosest()
+    {
+        using var controller = new FakeController();
+        var gizmos = new EditorViewGizmosViewModel(serviceProvider, new EditorGameComponentGizmoService(controller), null);
+
+        gizmos.LoadSettings(new SceneSettingsData { ComponentGizmoSize = 1.9, TransformationGizmoSize = 100 });
+
+        Assert.Equal(2.0, Utils.ZoomFactors[gizmos.ComponentGizmoSizeIndex]);
+        Assert.Equal(gizmos.MaximumSizeIndex, gizmos.TransformationGizmoSizeIndex);
+    }
+
+    [AvaloniaFact]
+    public void TheOverlaysOfTheSettingsShowNowAndWhenTheyComeLater()
+    {
+        var service = new FakeOverlayService("Navigation meshes", new EditorOverlay("a", "Group A", visibleByDefault: true), new EditorOverlay("b", "Group B"));
+        var overlays = new EditorViewOverlaysViewModel(serviceProvider, [service]);
+
+        overlays.LoadSettings(new SceneSettingsData { VisibleOverlays = ["b", "c"] });
+        Assert.Equal([false, true], overlays.Sections[0].Overlays.Select(x => x.IsVisible));
+
+        // The navigation meshes of the game built afterwards: the settings win over the defaults
+        service.SetOverlays(new EditorOverlay("a", "Group A", visibleByDefault: true), new EditorOverlay("b", "Group B"), new EditorOverlay("c", "Group C"), new EditorOverlay("d", "Group D", visibleByDefault: true));
+        Assert.Equal([false, true, true, false], overlays.Sections[0].Overlays.Select(x => x.IsVisible));
+
+        var settings = new SceneSettingsData { VisibleNavigationGroups = [Guid.NewGuid()] };
+        overlays.SaveSettings(settings);
+        Assert.Equal(["b", "c"], settings.VisibleOverlays);
+        Assert.Empty(settings.VisibleNavigationGroups);
+    }
+
+    [AvaloniaFact]
+    public void ScenesSavedBeforeTheOverlaysPopupShowTheirNavigationGroups()
+    {
+        var group = Guid.NewGuid();
+        var service = new FakeOverlayService("Navigation meshes", new EditorOverlay(group.ToString(), "Group A"), new EditorOverlay(Guid.NewGuid().ToString(), "Group B", visibleByDefault: true));
+        var overlays = new EditorViewOverlaysViewModel(serviceProvider, [service]);
+
+        overlays.LoadSettings(new SceneSettingsData { VisibleNavigationGroups = [group] });
+
+        Assert.Equal([true, false], overlays.Sections[0].Overlays.Select(x => x.IsVisible));
+    }
+
+    [Fact]
+    public void TheSceneSettingsGoThroughTheUserSettingsFile()
+    {
+        // The key of the package user settings, on a container of the test
+        var container = new SettingsContainer();
+        var key = new SettingsKey<Dictionary<AssetId, SceneSettingsData>>(PackageSceneSettings.SceneSettings.Name, container, () => new Dictionary<AssetId, SceneSettingsData>());
+        var profile = container.CreateSettingsProfile(true);
+        var id = AssetId.New();
+        key.SetValue(new Dictionary<AssetId, SceneSettingsData>
+        {
+            [id] = new() { HiddenGizmos = ["Physics", "Transform"], VisibleOverlays = ["a"], ComponentGizmoSize = 2.0, CamMoveSpeed = 7, RenderMode = SceneRenderMode.Lighting, LightProbeWireframe = true },
+        }, profile);
+        var path = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.sdpkg.user");
+        try
+        {
+            Assert.True(container.SaveSettingsProfile(profile, path));
+            var text = File.ReadAllText(path);
+            Assert.Contains("Package/SceneSettings", text);
+            Assert.DoesNotContain("!SceneSettingsData", text);
+
+            var otherContainer = new SettingsContainer();
+            var otherKey = new SettingsKey<Dictionary<AssetId, SceneSettingsData>>(PackageSceneSettings.SceneSettings.Name, otherContainer, () => new Dictionary<AssetId, SceneSettingsData>());
+            var loaded = otherKey.GetValue(otherContainer.LoadSettingsProfile(path, false)!, true)[id];
+
+            Assert.Equal(["Physics", "Transform"], loaded.HiddenGizmos);
+            Assert.Equal(["a"], loaded.VisibleOverlays);
+            Assert.Equal(2.0, loaded.ComponentGizmoSize);
+            Assert.Equal(7, loaded.CamMoveSpeed);
+            Assert.Equal(SceneRenderMode.Lighting, loaded.RenderMode);
+            Assert.True(loaded.LightProbeWireframe);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
     }
 
     private static EditorViewGizmoViewModel Find(EditorViewGizmosViewModel gizmos, Type componentType) => gizmos.Gizmos.Single(x => x.ComponentType == componentType);

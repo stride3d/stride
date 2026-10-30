@@ -18,8 +18,9 @@ namespace Stride.Assets.Editor.ViewModels;
 /// hidden until their toggle is checked), as the gizmo options popup of the WPF scene editor.
 /// </summary>
 /// <remarks>
-/// The agnostic copy of the WPF <c>EntityGizmosViewModel</c> and of the size sliders of its popup. The options are not
-/// saved with the scene yet: the toggles start with what the gizmo classes declare (<see cref="GizmoComponentAttribute.HiddenByDefault"/>).
+/// The agnostic copy of the WPF <c>EntityGizmosViewModel</c> and of the size sliders of its popup. The options are saved
+/// per scene in <see cref="SceneSettingsData"/>, as WPF does; the toggles of a scene without settings start with what the
+/// gizmo classes declare (<see cref="GizmoComponentAttribute.HiddenByDefault"/>).
 /// </remarks>
 public sealed class EditorViewGizmosViewModel : DispatcherViewModel
 {
@@ -90,6 +91,49 @@ public sealed class EditorViewGizmosViewModel : DispatcherViewModel
     {
         get => service.FixedSize;
         set => SetValue(service.FixedSize != value, () => service.FixedSize = value);
+    }
+
+    /// <summary>
+    /// Shows the options saved with the scene, as the WPF <c>EntityGizmosViewModel</c> and <c>EntityTransformationViewModel</c>.
+    /// </summary>
+    internal void LoadSettings(SceneSettingsData settings)
+    {
+        TransformationGizmoSizeIndex = ToSizeIndex(settings.TransformationGizmoSize);
+        ComponentGizmoSizeIndex = ToSizeIndex(settings.ComponentGizmoSize);
+        FixedSize = settings.FixedSizeGizmos;
+        // As in WPF, the settings name the hidden gizmos (CreateDefault names the ones hidden by default): the others show
+        var hiddenGizmos = settings.HiddenGizmos;
+        Gizmos.ForEach(x => x.IsActive = !hiddenGizmos.Contains(x.ComponentName));
+        FallbackGizmo.IsActive = !hiddenGizmos.Contains(FallbackGizmo.ComponentName);
+    }
+
+    /// <summary>
+    /// Writes the options in the settings of the scene, in the format of the WPF scene editor.
+    /// </summary>
+    internal void SaveSettings(SceneSettingsData settings)
+    {
+        settings.TransformationGizmoSize = Utils.ZoomFactors[TransformationGizmoSizeIndex];
+        settings.ComponentGizmoSize = Utils.ZoomFactors[ComponentGizmoSizeIndex];
+        settings.FixedSizeGizmos = FixedSize;
+        var hiddenGizmos = settings.HiddenGizmos;
+        hiddenGizmos.Clear();
+        hiddenGizmos.AddRange(Gizmos.Where(x => !x.IsActive).Select(x => x.ComponentName));
+        if (!FallbackGizmo.IsActive)
+            hiddenGizmos.Add(FallbackGizmo.ComponentName);
+    }
+
+    /// <summary>
+    /// Finds the index of the size in <see cref="Utils.ZoomFactors"/>: WPF saves the factor of its slider.
+    /// </summary>
+    private static int ToSizeIndex(double size)
+    {
+        var index = 0;
+        for (var i = 1; i < Utils.ZoomFactors.Length; ++i)
+        {
+            if (Math.Abs(Utils.ZoomFactors[i] - size) < Math.Abs(Utils.ZoomFactors[index] - size))
+                index = i;
+        }
+        return index;
     }
 
     private static bool IsHiddenByDefault(Type gizmoType)
