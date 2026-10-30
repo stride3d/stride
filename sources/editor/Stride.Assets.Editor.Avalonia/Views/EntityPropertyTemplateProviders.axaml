@@ -9,6 +9,7 @@
                     xmlns:cpqvm="using:Stride.Core.Presentation.Quantum.ViewModels"
                     xmlns:data="using:Stride.Data"
                     xmlns:engine="using:Stride.Engine"
+                    xmlns:models="using:Stride.Assets.Models"
                     xmlns:s="using:System"
                     x:Class="Stride.Assets.Editor.Avalonia.Views.EntityPropertyTemplateProviders">
   <ResourceDictionary.MergedDictionaries>
@@ -195,4 +196,23 @@
       </Grid>
     </DataTemplate>
   </aev:MorphWeightTemplateProvider>
+
+  <!-- The node name of a node link (model node link, physics components, SpriteStudio node links): an editable list of the
+       nodes of the skeleton, filtered by the text, as the FilteringComboBox of the WPF editor -->
+  <aev:ModelNodeNameTemplateProvider x:Key="ModelNodeNameTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyEditor" OverrideRule="All">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <AutoCompleteBox Text="{Binding NodeValue, Converter={caec:DifferentValuesToString}, UpdateSourceTrigger=Explicit}"
+                       ItemsSource="{ReflectionBinding Parent[AvailableNodes]}" ValueMemberBinding="{ReflectionBinding Name}"
+                       FilterMode="Contains" MinimumPrefixLength="0" MaxDropDownHeight="300">
+        <AutoCompleteBox.ItemTemplate>
+          <DataTemplate DataType="models:NodeInformation">
+            <TextBlock Text="{Binding Name}" Margin="{Binding Depth, Converter={sd:NumericToThickness}, ConverterParameter={sd:Thickness 4,0,0,0}}"/>
+          </DataTemplate>
+        </AutoCompleteBox.ItemTemplate>
+        <Interaction.Behaviors>
+          <aeb:NodeNamePickerBehavior/>
+        </Interaction.Behaviors>
+      </AutoCompleteBox>
+    </DataTemplate>
+  </aev:ModelNodeNameTemplateProvider>
 </ResourceDictionary>

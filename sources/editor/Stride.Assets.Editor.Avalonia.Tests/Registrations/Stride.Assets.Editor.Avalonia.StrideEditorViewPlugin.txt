@@ -56,6 +56,7 @@ TemplateProviders:
   Stride.Assets.Editor.Avalonia.Views.GameSettingAddConfigurationTemplateProvider GameSettingAddConfigurationTemplateProvider
   Stride.Assets.Editor.Avalonia.Views.MorphWeightsTemplateProvider MorphWeights
   Stride.Assets.Editor.Avalonia.Views.MorphWeightTemplateProvider MorphWeight
+  Stride.Assets.Editor.Avalonia.Views.ModelNodeNameTemplateProvider ModelNodeName
 CopyProcessors:
 PasteProcessors:
 PostPasteProcessors:
