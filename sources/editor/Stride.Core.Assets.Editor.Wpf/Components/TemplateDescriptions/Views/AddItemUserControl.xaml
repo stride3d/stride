@@ -7,7 +7,8 @@
              xmlns:behaviors="clr-namespace:Stride.Core.Assets.Editor.View.Behaviors"
              xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
              xmlns:view="clr-namespace:Stride.Core.Assets.Editor.Components.TemplateDescriptions.Views"
-             xmlns:viewModels="clr-namespace:Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels"
+             xmlns:cvt="clr-namespace:Stride.Core.Assets.Editor.View.ValueConverters"
+             xmlns:viewModels="clr-namespace:Stride.Core.Assets.Editor.Components.TemplateDescriptions;assembly=Stride.Core.Assets.Editor.Common"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
   <UserControl.Resources>
@@ -124,7 +125,7 @@
     <sd:FilteringComboBox.ItemTemplate>
       <DataTemplate DataType="viewModels:ITemplateDescriptionViewModel">
         <DockPanel Height="56">
-          <Image Source="{Binding Icon}" DockPanel.Dock="Left" Width="48" Height="48" Margin="2"/>
+          <Image Source="{Binding Icon, Converter={cvt:TemplateImageToImageSource}}" DockPanel.Dock="Left" Width="48" Height="48" Margin="2"/>
           <DockPanel Margin="18,0">
             <TextBlock DockPanel.Dock="Top" FontSize="16" Text="{Binding Name}"/>
             <TextBlock Text="{Binding Description}" TextWrapping="Wrap" TextTrimming="WordEllipsis"/>

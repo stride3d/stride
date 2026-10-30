@@ -3,8 +3,8 @@
 using System;
 using System.ComponentModel;
 using System.Windows;
+using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels;
-using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Services;
@@ -32,7 +32,18 @@ namespace Stride.Core.Assets.Editor.Components.TemplateDescriptions.Views
 
         public UFile ExistingSessionPath { get; private set; }
 
-        public NewOrOpenSessionTemplateCollectionViewModel Templates { get { return (NewOrOpenSessionTemplateCollectionViewModel)DataContext; } set { DataContext = value; } }
+        public NewOrOpenSessionTemplateCollectionViewModel Templates
+        {
+            get { return (NewOrOpenSessionTemplateCollectionViewModel)DataContext; }
+            set
+            {
+                if (Templates != null)
+                    Templates.OpenRequested -= OnOpenRequested;
+                DataContext = value;
+                if (value != null)
+                    value.OpenRequested += OnOpenRequested;
+            }
+        }
 
         protected override void OnClosing(CancelEventArgs e)
         {
@@ -47,23 +58,8 @@ namespace Stride.Core.Assets.Editor.Components.TemplateDescriptions.Views
 
             if (Result == Stride.Core.Presentation.Services.DialogResult.Ok)
             {
-                var recentProject = Templates.SelectedTemplate as ExistingProjectViewModel;
-                var newPackageTemplate = Templates.SelectedTemplate as TemplateDescriptionViewModel;
-                if (recentProject != null)
-                {
-                    ExistingSessionPath = recentProject.Path;
-                }
-                else if (newPackageTemplate != null)
-                {
-                    NewSessionParameters = new NewSessionParameters
-                    {
-                        TemplateDescription = Templates.SelectedTemplate != null ? newPackageTemplate.GetTemplate() : null,
-                        OutputName = Templates.Name,
-                        OutputDirectory = Templates.Location,
-                        SolutionName = Templates.SolutionName,
-                        SolutionLocation = Templates.SolutionLocation,
-                    };
-                }
+                ExistingSessionPath = Templates.GetExistingSessionPath();
+                NewSessionParameters = Templates.GetNewSessionParameters();
             }
             base.OnClosing(e);
         }
@@ -73,10 +69,14 @@ namespace Stride.Core.Assets.Editor.Components.TemplateDescriptions.Views
             base.OnClosed(e);
             if (Result == Stride.Core.Presentation.Services.DialogResult.Ok)
             {
-                EditorSettings.Save();
-                InternalSettings.TemplatesWindowDialogLastNewSessionTemplateDirectory.SetValue(Templates.Location.FullPath);
-                InternalSettings.Save();
+                Templates.SaveSettings();
             }
+        }
+
+        private void OnOpenRequested(object sender, EventArgs e)
+        {
+            // A recent project, or one picked with the browse button: open it at once
+            RequestClose(Stride.Core.Presentation.Services.DialogResult.Ok);
         }
 
         private void OnTextBoxValidated(object sender, EventArgs e)

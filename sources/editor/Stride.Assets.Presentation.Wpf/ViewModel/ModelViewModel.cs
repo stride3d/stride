@@ -10,6 +10,7 @@ using Stride.Assets.Models;
 using Stride.Assets.Presentation.Templates;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Quantum;
+using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Annotations;

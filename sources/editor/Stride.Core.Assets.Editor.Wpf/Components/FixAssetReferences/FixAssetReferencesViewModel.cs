@@ -22,8 +22,8 @@ namespace Stride.Core.Assets.Editor.Components.FixAssetReferences
         private readonly IAssetDependencyManager dependencyManager;
         private readonly HashSet<AssetId> hashIds;
 
-        public FixAssetReferencesViewModel([NotNull] IViewModelServiceProvider serviceProvider, [ItemNotNull, NotNull] IEnumerable<AssetViewModel> deletedObjects, [NotNull] IAssetDependencyManager dependencyManager, [NotNull] IFixReferencesDialog dialog)
-            : base(serviceProvider, dialog)
+        public FixAssetReferencesViewModel([NotNull] IViewModelServiceProvider serviceProvider, [ItemNotNull, NotNull] IEnumerable<AssetViewModel> deletedObjects, [NotNull] IAssetDependencyManager dependencyManager)
+            : base(serviceProvider)
         {
             if (dependencyManager == null) throw new ArgumentNullException(nameof(dependencyManager));
             this.dependencyManager = dependencyManager;

@@ -18,6 +18,7 @@ using Stride.Assets.Presentation;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor;
 using Stride.Core.Assets.Editor.Components.Build;
+using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions.Views;
 using Stride.Core.Assets.Editor.Services;
@@ -453,7 +454,7 @@ public static partial class Program
                     WindowStartupLocation = WindowStartupLocation.CenterScreen,
                     ShowInTaskbar = true,
                 };
-                var viewModel = new NewOrOpenSessionTemplateCollectionViewModel(serviceProvider, startupWindow);
+                var viewModel = new NewOrOpenSessionTemplateCollectionViewModel(serviceProvider, editor.RecentFiles.Select(x => x.FilePath), editor.RemoveRecentFile);
                 startupWindow.Templates = viewModel;
                 startupWindow.ShowDialog();
                 viewModel.Destroy();
