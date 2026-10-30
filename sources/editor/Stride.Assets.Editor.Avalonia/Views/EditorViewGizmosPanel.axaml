@@ -16,6 +16,7 @@
       </DockPanel>
       <Slider Minimum="0" Maximum="{Binding MaximumSizeIndex}" SmallChange="1" LargeChange="1" IsSnapToTickEnabled="True" TickFrequency="1"
               Value="{Binding ComponentGizmoSizeIndex}"/>
+      <CheckBox Content="Light probe volumes" IsChecked="{Binding LightProbeVolumesVisible}" IsVisible="{Binding HasLightProbes}" Margin="0,2"/>
       <Separator Margin="0,5"/>
       <StackPanel Orientation="Horizontal" Spacing="5" Margin="0,0,0,5">
         <Button Content="All" MinWidth="60" Command="{Binding ToggleAllCommand}" CommandParameter="{sd:True}"/>

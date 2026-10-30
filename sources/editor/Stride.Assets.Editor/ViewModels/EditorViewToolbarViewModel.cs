@@ -32,13 +32,13 @@ public sealed class EditorViewToolbarViewModel : DispatcherViewModel
     private bool displaySelectionMask;
 
     internal EditorViewToolbarViewModel(IViewModelServiceProvider serviceProvider, EditorGameToolService service, IEditorGameSelectionViewModelService? selection, EditorGameMaterialHighlightService? materialHighlight,
-        EditorGameComponentGizmoService? componentGizmos = null, IEnumerable<IEditorGameOverlayService>? overlays = null)
+        EditorGameComponentGizmoService? componentGizmos = null, IEnumerable<IEditorGameOverlayService>? overlays = null, EditorGameLightProbeGizmoService? lightProbes = null)
         : base(serviceProvider)
     {
         this.service = service;
         this.selection = selection;
         this.materialHighlight = materialHighlight;
-        Gizmos = componentGizmos is not null ? new EditorViewGizmosViewModel(serviceProvider, componentGizmos, service.SetGizmoSizeAsync) : null;
+        Gizmos = componentGizmos is not null ? new EditorViewGizmosViewModel(serviceProvider, componentGizmos, service.SetGizmoSizeAsync, lightProbes) : null;
         Overlays = new EditorViewOverlaysViewModel(serviceProvider, overlays ?? []);
         Tools = service.Tools.Select(x => new EditorViewToolViewModel(serviceProvider, x)).ToList();
         Spaces =

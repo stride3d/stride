@@ -4,6 +4,7 @@
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using Avalonia.Threading;
+using Avalonia.LogicalTree;
 using Avalonia.VisualTree;
 using Stride.Assets.Editor.Avalonia.Views;
 using Stride.Assets.Editor.EditorGame;
@@ -167,6 +168,67 @@ public sealed class EditorViewPopupsTests
         Assert.Equal(2, panel.GetVisualDescendants().OfType<Slider>().Count());
         physics.IsChecked = true;
         Assert.True(Find(gizmos, typeof(PhysicsComponent)).IsActive);
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public void TheLightProbeGizmoIsListedAndShownByDefault()
+    {
+        using var controller = new FakeController();
+        var gizmos = new EditorViewGizmosViewModel(serviceProvider, new EditorGameComponentGizmoService(controller), null);
+
+        Assert.Equal(typeof(Gizmos.LightProbeGizmo), StrideEditorPlugin.GizmoTypeDictionary[typeof(LightProbeComponent)]);
+        // As in WPF: the light probes are a main gizmo, not one hidden by default
+        Assert.True(Find(gizmos, typeof(LightProbeComponent)).IsActive);
+        Assert.DoesNotContain(DisplayAttribute.GetDisplayName(typeof(LightProbeComponent)), SceneSettingsData.CreateDefault().HiddenGizmos);
+    }
+
+    [AvaloniaFact]
+    public void TheLightProbeVolumesOptionGoesToTheGameAndTheSettings()
+    {
+        using var controller = new FakeController();
+        var lightProbes = new EditorGameLightProbeGizmoService();
+        var gizmos = new EditorViewGizmosViewModel(serviceProvider, new EditorGameComponentGizmoService(controller), null, lightProbes);
+
+        // As in WPF, a scene without settings hides the volumes
+        gizmos.LoadSettings(SceneSettingsData.CreateDefault());
+        Assert.True(gizmos.HasLightProbes);
+        Assert.False(gizmos.LightProbeVolumesVisible);
+        Assert.False(lightProbes.IsLightProbeVolumesVisible);
+
+        gizmos.LightProbeVolumesVisible = true;
+        Assert.True(lightProbes.IsLightProbeVolumesVisible);
+        var settings = new SceneSettingsData { LightProbeBounces = 3 };
+        gizmos.SaveSettings(settings);
+        Assert.True(settings.LightProbeWireframe);
+        Assert.Equal(3, settings.LightProbeBounces);
+
+        // Without the service (no light probe drawn), the option hides and the settings keep their value
+        var withoutLightProbes = new EditorViewGizmosViewModel(serviceProvider, new EditorGameComponentGizmoService(controller), null);
+        Assert.False(withoutLightProbes.HasLightProbes);
+        withoutLightProbes.LoadSettings(settings);
+        withoutLightProbes.SaveSettings(settings);
+        Assert.True(settings.LightProbeWireframe);
+    }
+
+    [AvaloniaFact]
+    public void TheGizmosPanelShowsTheLightProbeVolumesOptionWithTheService()
+    {
+        using var controller = new FakeController();
+        var lightProbes = new EditorGameLightProbeGizmoService { IsLightProbeVolumesVisible = false };
+        var gizmos = new EditorViewGizmosViewModel(serviceProvider, new EditorGameComponentGizmoService(controller), null, lightProbes);
+        var panel = new EditorViewGizmosPanel { DataContext = gizmos };
+        var window = Show(panel);
+
+        var option = panel.GetVisualDescendants().OfType<CheckBox>().Single(x => Equals(x.Content, "Light probe volumes"));
+        Assert.True(option.IsVisible);
+        option.IsChecked = true;
+        Assert.True(lightProbes.IsLightProbeVolumesVisible);
+        window.Close();
+
+        panel = new EditorViewGizmosPanel { DataContext = new EditorViewGizmosViewModel(serviceProvider, new EditorGameComponentGizmoService(controller), null) };
+        window = Show(panel);
+        Assert.False(panel.GetLogicalDescendants().OfType<CheckBox>().Single(x => Equals(x.Content, "Light probe volumes")).IsVisible);
         window.Close();
     }
 
