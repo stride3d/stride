@@ -15,6 +15,7 @@ using Stride.Core.Streaming;
 using Stride.Assets.Sprite;
 using Stride.Graphics;
 using Stride.Graphics.Data;
+using Stride.Heightfield.Assets;
 using Stride.TextureConverter;
 
 namespace Stride.Assets.Textures
@@ -106,6 +107,24 @@ namespace Stride.Assets.Textures
                 GraphicsPlatform = spriteSheetParameters.GraphicsPlatform;
                 GraphicsProfile = spriteSheetParameters.GraphicsProfile;
                 Platform = spriteSheetParameters.Platform;
+            }
+
+            public ImportParameters(NormalFromHeightAsset param, TextureQuality textureQuality, GraphicsPlatform graphicsPlatform, GraphicsProfile graphicsProfile, PlatformType platform)
+            {
+                IsSRgb = false;
+                DesiredSize = new Size2((int)param.Width, (int)param.Height);
+                IsSizeInPercentage = param.IsSizeInPercentage;
+                ShouldCompress = param.Compress;
+                DesiredAlpha = AlphaFormat.None;
+                TextureHint = TextureHint.NormalMap;
+                InvertY = false;
+                GenerateMipmaps = param.GenerateMipmaps;
+                ColorKeyColor = default;
+                ColorKeyEnabled = false;
+                TextureQuality = textureQuality;
+                GraphicsPlatform = graphicsPlatform;
+                GraphicsProfile = graphicsProfile;
+                Platform = platform;
             }
         }
 
