@@ -43,7 +43,7 @@ namespace Stride.Core.Assets.Editor.Components.TemplateDescriptions.Views
 
         protected override void OnClosing(CancelEventArgs e)
         {
-            if (Result == Presentation.Services.DialogResult.Ok)
+            if (Result == Stride.Core.Presentation.Services.DialogResult.Ok)
             {
                 if (!ValidateProperties())
                 {
@@ -53,7 +53,7 @@ namespace Stride.Core.Assets.Editor.Components.TemplateDescriptions.Views
             }
 
             Parameters = new NewPackageParameters();
-            if (Result == Presentation.Services.DialogResult.Ok)
+            if (Result == Stride.Core.Presentation.Services.DialogResult.Ok)
             {
                 Parameters.TemplateDescription = Templates.SelectedTemplate?.GetTemplate();
                 Parameters.OutputName = Templates.Name;

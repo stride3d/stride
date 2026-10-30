@@ -67,7 +67,7 @@ namespace Stride.Core.Assets.Editor.View
         private void WindowClosing(object sender, CancelEventArgs e)
         {
             // Prevent closing the window while the work is still in progress, unless it has been user cancelled.
-            if (!workProgress.WorkDone && Result != Presentation.Services.DialogResult.Cancel)
+            if (!workProgress.WorkDone && Result != Stride.Core.Presentation.Services.DialogResult.Cancel)
             {
                 e.Cancel = true;
             }
