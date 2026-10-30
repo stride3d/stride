@@ -342,6 +342,59 @@
       </DrawingGroup>
     </DrawingImage.Drawing>
   </DrawingImage>
+  <!-- Build badges of the asset tiles: indirectly included, excluded, overridden, and the override (replaces/replaced by) -->
+  <DrawingImage x:Key="ImageAssetIsIndirectlyIncluded">
+    <DrawingImage.Drawing>
+      <DrawingGroup>
+        <DrawingGroup.Children>
+          <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+          <GeometryDrawing Brush="#FFF6F6F6"
+                           Geometry="F1M8,15C4.14,15 1,11.859 1,8 1,4.14 4.14,1 8,1 11.861,1 15,4.14 15,8 15,11.859 11.861,15 8,15" />
+          <GeometryDrawing Brush="#339933"
+                           Geometry="F1M14,8C14,11.314 11.314,14 8,14 4.687,14 2,11.314 2,8 2,4.687 4.687,2 8,2 11.314,2 14,4.687 14,8" />
+        </DrawingGroup.Children>
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
+  <DrawingImage x:Key="ImageAssetIsExcluded">
+    <DrawingImage.Drawing>
+      <DrawingGroup>
+        <DrawingGroup.Children>
+          <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+          <GeometryDrawing Brush="#FFF6F6F6"
+                           Geometry="F1M8,15C4.14,15 1,11.859 1,8 1,4.14 4.14,1 8,1 11.861,1 15,4.14 15,8 15,11.859 11.861,15 8,15" />
+          <GeometryDrawing Brush="#A5A5A6"
+                           Geometry="F1M14,8C14,11.314 11.314,14 8,14 4.687,14 2,11.314 2,8 2,4.687 4.687,2 8,2 11.314,2 14,4.687 14,8" />
+        </DrawingGroup.Children>
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
+  <DrawingImage x:Key="ImageAssetIsOverridden">
+    <DrawingImage.Drawing>
+      <DrawingGroup>
+        <DrawingGroup.Children>
+          <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+          <GeometryDrawing Brush="#FFF6F6F6"
+                           Geometry="F1M8,15C4.14,15 1,11.859 1,8 1,4.14 4.14,1 8,1 11.861,1 15,4.14 15,8 15,11.859 11.861,15 8,15" />
+          <GeometryDrawing Brush="#F0A30A"
+                           Geometry="F1M14,8C14,11.314 11.314,14 8,14 4.687,14 2,11.314 2,8 2,4.687 4.687,2 8,2 11.314,2 14,4.687 14,8" />
+        </DrawingGroup.Children>
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
+  <DrawingImage x:Key="ImageAssetOverride">
+    <DrawingImage.Drawing>
+      <DrawingGroup>
+        <DrawingGroup.Children>
+          <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+          <GeometryDrawing Brush="#FFF6F6F6"
+                           Geometry="F1M15,0L5,0 5,4 1,4 1,8.78C0.391,9.33 0,10.117 0,11 0,11.851 0.378,12.643 1,13.204L1,16 5,16 9,16 11,16 11,15.22C11.609,14.67 12,13.883 12,13 12,12.651 11.918,12.319 11.803,12L15,12z" />
+          <GeometryDrawing Brush="#FF424242"
+                           Geometry="F1M3,10L7,10C7.552,10 8,10.449 8,11 8,11.551 7.552,12 7,12L6,13 7,13C8.103,13 9,12.104 9,11 9,9.896 8.103,9 7,9L3,9C1.897,9 1,9.896 1,11 1,11.748 1.417,12.394 2.027,12.736 2.059,12.372 2.15,12.027 2.302,11.713 2.116,11.531 2,11.279 2,11 2,10.449 2.449,10 3,10 M9.974,11.264C9.941,11.628 9.85,11.973 9.698,12.287 9.884,12.469 10,12.721 10,13 10,13.552 9.552,14 9,14L5,14C4.449,14 4,13.552 4,13 4,12.449 4.449,12 5,12L6,11 5,11C3.897,11 3,11.896 3,13 3,14.103 3.897,15 5,15L9,15C10.103,15 11,14.103 11,13 11,12.252 10.583,11.606 9.974,11.264 M3,6L9,6 9,8.776C9.38,9.117,9.677,9.549,9.844,10.043L10,10.131 10,10 10,5 2,5 2,8.184C2.314,8.072,2.647,8,3,8z M14,1L14,11 11,11 11,10 13,10 13,2 7,2 7,4 6,4 6,1z" />
+        </DrawingGroup.Children>
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
   <!-- Add asset (a plus, like the WPF plus2_math icon) -->
   <DrawingImage x:Key="ImageNewAsset">
     <DrawingImage.Drawing>
