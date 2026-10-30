@@ -1,0 +1,39 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+             xmlns:vm="using:Stride.Assets.Editor.ViewModels"
+             x:Class="Stride.Assets.Editor.Avalonia.Views.EditorViewGizmosPanel"
+             x:DataType="vm:EditorViewGizmosViewModel">
+  <!-- The content of the gizmo options popup of the view toolbar, as the gizmo options popup of the WPF scene editor -->
+  <DockPanel MinWidth="200" MaxWidth="400" MaxHeight="400">
+    <StackPanel DockPanel.Dock="Top">
+      <TextBlock Text="Transformation gizmo size:" Margin="0,5"/>
+      <Slider Minimum="0" Maximum="{Binding MaximumSizeIndex}" SmallChange="1" LargeChange="1" IsSnapToTickEnabled="True" TickFrequency="1"
+              Value="{Binding TransformationGizmoSizeIndex}"/>
+      <DockPanel>
+        <CheckBox DockPanel.Dock="Right" Content="Fixed" IsChecked="{Binding FixedSize}" Margin="10,0,0,0"/>
+        <TextBlock Text="Component gizmo size:" VerticalAlignment="Center"/>
+      </DockPanel>
+      <Slider Minimum="0" Maximum="{Binding MaximumSizeIndex}" SmallChange="1" LargeChange="1" IsSnapToTickEnabled="True" TickFrequency="1"
+              Value="{Binding ComponentGizmoSizeIndex}"/>
+      <Separator Margin="0,5"/>
+      <StackPanel Orientation="Horizontal" Spacing="5" Margin="0,0,0,5">
+        <Button Content="All" MinWidth="60" Command="{Binding ToggleAllCommand}" CommandParameter="{sd:True}"/>
+        <Button Content="None" MinWidth="60" Command="{Binding ToggleAllCommand}" CommandParameter="{sd:False}"/>
+      </StackPanel>
+    </StackPanel>
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+      <StackPanel>
+        <ItemsControl ItemsSource="{Binding Gizmos}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:EditorViewGizmoViewModel">
+              <CheckBox Content="{Binding ComponentName}" IsChecked="{Binding IsActive}" Margin="2"/>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <CheckBox Content="Other entities" DataContext="{Binding FallbackGizmo}" x:DataType="vm:EditorViewGizmoViewModel"
+                  IsChecked="{Binding IsActive}" Margin="2"/>
+      </StackPanel>
+    </ScrollViewer>
+  </DockPanel>
+</UserControl>

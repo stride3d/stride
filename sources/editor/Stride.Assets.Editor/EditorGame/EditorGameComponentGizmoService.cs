@@ -12,6 +12,7 @@ using Stride.Core;
 using Stride.Core.BuildEngine;
 using Stride.Core.Extensions;
 using Stride.Editor.EditorGame.Game;
+using Stride.Editor.EditorGame.ViewModels;
 using Stride.Engine;
 using Stride.Engine.Design;
 using Stride.Engine.Gizmos;
@@ -29,7 +30,7 @@ namespace Stride.Assets.Editor.EditorGame;
 /// The cross-platform counterpart of the WPF <c>EditorGameComponentGizmoService</c>.
 /// </remarks>
 [EditorGameService(typeof(EntityHierarchyEditorController), Order = 190)]
-public sealed class EditorGameComponentGizmoService : EditorGameServiceBase, IEditorGameComponentGizmoService
+public sealed class EditorGameComponentGizmoService : EditorGameServiceBase, IEditorGameComponentGizmoService, IEditorGameViewModelService
 {
     private static readonly PropertyKey<Dictionary<EntityComponent, IEntityGizmo>> GizmoEntitiesKey = new("GizmoEntitiesProperty", typeof(EditorGameComponentGizmoService));
     private readonly IEditorGameController controller;
