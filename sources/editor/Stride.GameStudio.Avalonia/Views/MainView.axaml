@@ -4,8 +4,10 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
              xmlns:caect="using:Stride.Core.Assets.Editor.Components.Transactions"
+             xmlns:caectl="using:Stride.Core.Assets.Editor.Avalonia.Controls"
              xmlns:caevm="using:Stride.Core.Assets.Editor.ViewModels"
              xmlns:capvm="using:Stride.Core.Assets.Editor.ViewModel"
+             xmlns:caevml="using:Stride.Core.Assets.Editor.ViewModel.Logs"
              xmlns:caevmp="using:Stride.Core.Assets.Editor.ViewModel.Progress"
              xmlns:cpc="using:Stride.Core.Presentation.Commands"
              xmlns:gsc="using:Stride.GameStudio.Avalonia.Converters"
@@ -296,9 +298,34 @@
                                   Padding="2"
                                   DataContext="{Binding Session?.AssetCollection}"/>
           </TabItem>
-          <TabItem Header="Asset errors">
-            <sd:TextLogViewer LogMessages="{Binding Session?.AssetLog.FilteredMessages}"
-                              ShowDebugMessages="False" ShowVerboseMessages="False" ShowInfoMessages="False"/>
+          <!-- The warnings and errors of the assets, with their count in the title, as WPF's Asset errors pane -->
+          <TabItem Name="AssetLogTab"
+                   Header="{Binding Session?.AssetLog.ErrorCount, FallbackValue=0, Converter={sd:Localize Text=Asset error ({0}), Plural=Asset errors ({0}), IsStringFormat=True, Context=View}}">
+            <caectl:GridLogViewer LogMessages="{Binding Session?.AssetLog.FilteredMessages}"
+                                  SelectMessageCommand="{Binding Session?.AssetLog.SelectMessageAssetCommand}"
+                                  ShowDebugMessages="False" ShowVerboseMessages="False" ShowInfoMessages="False">
+              <caectl:GridLogViewer.ToolBarContent>
+                <StackPanel Orientation="Horizontal" DataContext="{Binding Session?.AssetLog}" x:DataType="caevm:AssetLogViewModel">
+                  <ComboBox Name="AssetLogScope" MinWidth="100" VerticalAlignment="Center"
+                            SelectedValue="{Binding Scope}" SelectedValueBinding="{Binding Tag, DataType=ComboBoxItem}"
+                            ToolTip.Tip="{sd:LocalizeString Show the messages of all assets or only of the selected ones (and the assets they use), Context=ToolTip}">
+                    <ComboBoxItem Content="{sd:LocalizeString All assets}" Tag="{x:Static caevml:AssetLogScope.AllAssets}"/>
+                    <ComboBoxItem Content="{sd:LocalizeString Selected assets}" Tag="{x:Static caevml:AssetLogScope.SelectedAssets}"/>
+                  </ComboBox>
+                  <Menu Name="AssetLogSources" VerticalAlignment="Center" Background="Transparent">
+                    <MenuItem Header="{Binding SourcesHeader}">
+                      <MenuItem Header="{sd:LocalizeString Show all sources, Context=Menu}" Command="{Binding ShowAllSourcesCommand}"/>
+                      <Separator/>
+                      <MenuItem Header="{Binding Sources[0].DisplayName}" ToggleType="CheckBox" IsChecked="{Binding Sources[0].IsShown, Mode=TwoWay}" StaysOpenOnClick="True"/>
+                      <MenuItem Header="{Binding Sources[1].DisplayName}" ToggleType="CheckBox" IsChecked="{Binding Sources[1].IsShown, Mode=TwoWay}" StaysOpenOnClick="True"/>
+                      <MenuItem Header="{Binding Sources[2].DisplayName}" ToggleType="CheckBox" IsChecked="{Binding Sources[2].IsShown, Mode=TwoWay}" StaysOpenOnClick="True"/>
+                      <MenuItem Header="{Binding Sources[3].DisplayName}" ToggleType="CheckBox" IsChecked="{Binding Sources[3].IsShown, Mode=TwoWay}" StaysOpenOnClick="True"/>
+                      <MenuItem Header="{Binding Sources[4].DisplayName}" ToggleType="CheckBox" IsChecked="{Binding Sources[4].IsShown, Mode=TwoWay}" StaysOpenOnClick="True"/>
+                    </MenuItem>
+                  </Menu>
+                </StackPanel>
+              </caectl:GridLogViewer.ToolBarContent>
+            </caectl:GridLogViewer>
           </TabItem>
           <!-- The log of the last build and the output of the games started from the editor; a build selects it, and its title
                has a "*" while it has messages that were not seen, as WPF's Output pane -->
