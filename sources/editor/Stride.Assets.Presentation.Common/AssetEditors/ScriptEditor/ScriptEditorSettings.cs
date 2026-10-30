@@ -1,10 +1,14 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Settings;
 using Stride.Core.Translation;
 
 namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor
 {
+    /// <summary>
+    /// The Script editor settings, which both editors read (the font size of the code).
+    /// </summary>
     internal static class ScriptEditorSettings
     {
         // Categories
@@ -13,7 +17,7 @@ namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor
         static ScriptEditorSettings()
         {
             // Note: assignment cannot be moved to initializer, because category names need to be assigned first.
-            FontSize = new SettingsKey<int>("ScriptEditor/FontSize", Stride.Core.Assets.Editor.Settings.EditorSettings.SettingsContainer, 12)
+            FontSize = new SettingsKey<int>("ScriptEditor/FontSize", SharedEditorSettings.SettingsContainer, 12)
             {
                 DisplayName = $"{ScriptEditor}/{Tr._p("Settings", "Font size")}"
             };
@@ -23,7 +27,7 @@ namespace Stride.Assets.Presentation.AssetEditors.ScriptEditor
 
         public static void Save()
         {
-            Stride.Core.Assets.Editor.Settings.EditorSettings.Save();
+            SharedEditorSettings.Save();
         }
     }
 }

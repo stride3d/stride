@@ -28,6 +28,7 @@ using Stride.Core.Settings;
 using Stride.Core.Translation;
 using Stride.Editor.Avalonia.Engine;
 using Stride.Editor.Avalonia.Preview;
+using Stride.Editor.Settings;
 using Stride.Editor.Thumbnails;
 using Stride.GameStudio.Avalonia.Services;
 using Stride.GameStudio.Avalonia.Settings;
@@ -69,6 +70,8 @@ public partial class App : Application
         InitializePlugins();
 
         EditorSettings.Initialize();
+        // The Remote settings of the WPF editor, declared in the shared project: shown, though this editor deploys to no remote host yet
+        RuntimeHelpers.RunClassConstructor(typeof(RemoteSettings).TypeHandle);
         InitializeLogging();
         InitializeLanguage();
         SetAccent(EditorSettings.ThemeAccent.GetValue().ToAvaloniaColor());

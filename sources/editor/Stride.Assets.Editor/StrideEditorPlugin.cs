@@ -6,12 +6,15 @@ using Stride.Assets.Editor.Build;
 using Stride.Assets.Editor.Quantum.NodePresenters.Commands;
 using Stride.Assets.Editor.Quantum.NodePresenters.Updaters;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories;
+using Stride.Assets.Presentation.AssetEditors.ScriptEditor;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Assets.Presentation.NodePresenters.Commands;
 using Stride.Assets.Presentation.NodePresenters.Updaters;
+using Stride.Assets.Presentation.SceneEditor;
 using Stride.Assets.Presentation.ViewModel.CopyPasteProcessors;
 using Stride.Core;
 using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Settings;
@@ -91,6 +94,10 @@ public sealed class StrideEditorPlugin : StrideAssetsPlugin
 
         context.ProfileSettings.Register(new PackageSettingsEntry(GameUserSettings.Effect.EffectCompilation, TargetPackage.Executable));
         context.ProfileSettings.Register(new PackageSettingsEntry(GameUserSettings.Effect.RecordUsedEffects, TargetPackage.Executable));
+
+        // The settings of the scene and script editors, declared in the shared project for both editors
+        foreach (var settingsKey in EditorSettingsAttribute.GetKeys(typeof(SceneEditorSettings)).Concat(EditorSettingsAttribute.GetKeys(typeof(ScriptEditorSettings))))
+            context.SettingsKeys.Register(settingsKey);
 
         context.CopyProcessors.Register(new EntityComponentCopyProcessor());
         context.PasteProcessors.Register(new EntityComponentPasteProcessor());
