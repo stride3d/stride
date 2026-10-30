@@ -580,14 +580,26 @@ sealed class Triage(GitHub github, Config config)
     public void Report(string planPath)
     {
         var plan = ReadPlan(planPath);
-        static string Title(JsonNode x) => ((string)x["title"]!).Replace("|", "\\|").Replace("\n", " ") is var t && t.Length > 70 ? t[..70] + "…" : ((string)x["title"]!).Replace("|", "\\|");
+        // A #123 or an @name in a title would also link or ping: as code they do neither
+        static string Title(JsonNode x)
+        {
+            var title = ((string)x["title"]!).Replace("\n", " ").Replace("`", "'");
+            if (title.Length > 70)
+                title = title[..70] + "…";
+            return Regex.Replace(title, @"[#@][\w-]+", m => $"`{m.Value}`").Replace("|", "\\|");
+        }
         static List<string> Add(JsonNode x) => [.. x["add"]!.AsArray().Select(y => (string)y!)];
         var labeled = plan.Where(x => Add(x).Count > 0).ToList();
 
         var head = new StringBuilder()
-            .AppendLine("### Triage backfill (dry run)")
+            .AppendLine("### Trial run on the open PRs and issues")
             .AppendLine()
-            .AppendLine($"Labels the triage workflow would add to the open PRs and issues that have no area or type label yet: {labeled.Count(x => (string)x["kind"]! == "pr")} PRs and {labeled.Count(x => (string)x["kind"]! == "issue")} issues ({plan.Count - labeled.Count} more were checked and get nothing). Old issues only get labels: no comment, and an existing type stays.")
+            .AppendLine($"Here is what the triage workflow would label today, for the open PRs and issues that have no area or type yet: **{labeled.Count(x => (string)x["kind"]! == "pr")} PRs and {labeled.Count(x => (string)x["kind"]! == "issue")} issues** ({plan.Count - labeled.Count} more were checked and get nothing). Nothing is changed yet: after merging, `apply` adds exactly these labels, and skips anything labeled by hand in the meantime.")
+            .AppendLine()
+            .AppendLine("Old issues only get labels: no comment, no `needs-info`, and an existing type stays. Spot something wrong in your area? Say it here and it gets fixed before applying.")
+            .AppendLine()
+            // Plain #123 would add a "mentioned this" line to the timeline of every issue listed
+            .AppendLine("Numbers are written as code so this comment does not show up in each issue's timeline.")
             .AppendLine()
             .AppendLine("| Label | PRs | Issues |")
             .AppendLine("|---|---|---|");
@@ -597,10 +609,10 @@ sealed class Triage(GitHub github, Config config)
         var sections = new List<string> { head.ToString() };
         var prs = labeled.Where(x => (string)x["kind"]! == "pr").OrderBy(x => (int)x["number"]!).ToList();
         if (prs.Count > 0)
-            sections.Add("#### PRs\n\n| PR | Title | Adds |\n|---|---|---|\n" + string.Join("\n", prs.Select(x => $"| #{x["number"]} | {Title(x)} | {string.Join(", ", Add(x).Select(y => $"`{y}`"))} |")) + "\n");
+            sections.Add("#### PRs\n\n| PR | Title | Adds |\n|---|---|---|\n" + string.Join("\n", prs.Select(x => $"| `#{x["number"]}` | {Title(x)} | {string.Join(", ", Add(x).Select(y => $"`{y}`"))} |")) + "\n");
         // Issues grouped by their first area, so a maintainer of an area can check their part
         foreach (var group in labeled.Where(x => (string)x["kind"]! == "issue").GroupBy(x => Add(x).FirstOrDefault(y => y.StartsWith("area-", StringComparison.Ordinal)) ?? "no new area").OrderBy(x => x.Key))
-            sections.Add($"#### Issues: {group.Key} ({group.Count()})\n\n" + string.Join("\n", group.OrderBy(x => (int)x["number"]!).Select(x => $"- #{x["number"]} {Title(x)}: {string.Join(", ", Add(x).Select(y => $"`{y}`"))}")) + "\n");
+            sections.Add($"#### Issues: {group.Key} ({group.Count()})\n\n" + string.Join("\n", group.OrderBy(x => (int)x["number"]!).Select(x => $"- `#{x["number"]}` {Title(x)}: {string.Join(", ", Add(x).Select(y => $"`{y}`"))}")) + "\n");
 
         var parts = new List<StringBuilder> { new() };
         foreach (var section in sections)
