@@ -152,7 +152,8 @@ jobs:
       # cost is bounded because Claude only fires on already-failing frames.
       - name: Run editor screenshot tests
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Called by another workflow: the key it passes. Run on its own (dispatch, schedule): the screenshots key.
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY || secrets.ANTHROPIC_API_KEY_SCREENSHOTS }}
         run: |
           dotnet test tests\editor\Stride.Editor.Tests\Stride.Editor.Tests.csproj `
             --no-build `
