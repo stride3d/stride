@@ -6,7 +6,7 @@ using System.Linq;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters;
-using Stride.Core.Assets.Editor.Quantum.ViewModels;
+using Stride.Core.Assets.Presentation.Quantum.ViewModels;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Extensions;
