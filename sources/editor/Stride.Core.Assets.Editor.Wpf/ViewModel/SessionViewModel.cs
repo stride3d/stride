@@ -19,6 +19,7 @@ using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.ViewModel.Logs;
 using Stride.Core.Assets.Editor.ViewModel.Progress;
+using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Assets.Templates;
 using Stride.Core.Annotations;
@@ -655,10 +656,10 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
             // Initialize the tag view model of the the asset view
             // TODO: can we merge this in the AssetPropertiesViewModel?
-            AssetTags = new TagsViewModel(ActiveAssetView);
+            AssetTags = new TagsViewModel(ServiceProvider, ActiveAssetView);
 
             // Initialize the reference view model related to the main asset view
-            References = new ReferencesViewModel(this, ActiveAssetView);
+            References = new ReferencesViewModel(this, new AssetCollectionViewModel(ServiceProvider, this, AssetCollectionViewModel.AllFilterCategories));
 
             // Construct package categories
             var localPackageName = session.SolutionPath != null ? string.Format(Tr._(@"Solution '{0}'"), session.SolutionPath.GetFileNameWithoutExtension()) : LocalPackageCategoryName;
@@ -767,7 +768,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 }
             }
 
-            SourceTracker = new AssetSourceTrackerViewModel(ServiceProvider, session, this);
+            SourceTracker = new AssetSourceTrackerViewModel(this, session);
             UpdateSessionState();
 
             // This transaction is done to prevent action responding to undoRedoService.TransactionCompletion to occur during loading
