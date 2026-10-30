@@ -126,6 +126,14 @@ public sealed class EditorGameToolService : EditorGameMouseServiceBase, IEditorG
     }
 
     /// <summary>
+    /// Sets the size of the transformation gizmos.
+    /// </summary>
+    internal Task SetGizmoSizeAsync(float size)
+    {
+        return controller.InvokeAsync(() => Context.Transformation.GizmoSize = size);
+    }
+
+    /// <summary>
     /// Sets the snap of a transformation, and whether it snaps without the snap key.
     /// </summary>
     internal Task SetSnapAsync(Transformation transformation, float value, bool isActive)

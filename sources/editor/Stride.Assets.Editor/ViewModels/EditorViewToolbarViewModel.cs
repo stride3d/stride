@@ -30,12 +30,14 @@ public sealed class EditorViewToolbarViewModel : DispatcherViewModel
     private EditorViewSpaceViewModel space;
     private bool displaySelectionMask;
 
-    internal EditorViewToolbarViewModel(IViewModelServiceProvider serviceProvider, EditorGameToolService service, IEditorGameSelectionViewModelService? selection, EditorGameMaterialHighlightService? materialHighlight)
+    internal EditorViewToolbarViewModel(IViewModelServiceProvider serviceProvider, EditorGameToolService service, IEditorGameSelectionViewModelService? selection, EditorGameMaterialHighlightService? materialHighlight,
+        EditorGameComponentGizmoService? componentGizmos = null)
         : base(serviceProvider)
     {
         this.service = service;
         this.selection = selection;
         this.materialHighlight = materialHighlight;
+        Gizmos = componentGizmos is not null ? new EditorViewGizmosViewModel(serviceProvider, componentGizmos, service.SetGizmoSizeAsync) : null;
         Tools = service.Tools.Select(x => new EditorViewToolViewModel(serviceProvider, x)).ToList();
         Spaces =
         [
@@ -125,6 +127,12 @@ public sealed class EditorViewToolbarViewModel : DispatcherViewModel
                 selection.DisplaySelectionMask = value;
         });
     }
+
+    /// <summary>
+    /// Gets the gizmo options of the view (sizes, and the gizmos of each type of component), or <c>null</c> when the game
+    /// shows no component gizmo.
+    /// </summary>
+    public EditorViewGizmosViewModel? Gizmos { get; }
 
     private bool IsScaleActive => activeTool?.Tool is TransformationTool { Transformation: Transformation.Scale };
 
