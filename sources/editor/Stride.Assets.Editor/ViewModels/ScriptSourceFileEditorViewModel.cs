@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Text;
+using Stride.Assets.Presentation.AssetEditors.ScriptEditor;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.Editors;
@@ -35,7 +36,8 @@ public sealed class ScriptSourceFileEditorViewModel : AssetEditorViewModel<Scrip
     private string savedText;
     private string currentText;
     private bool isModified;
-    private int fontSize = 13;
+    // The size of the last editor, shared with the WPF script editor
+    private int fontSize = Math.Clamp(ScriptEditorSettings.FontSize.GetValue(), MinimumFontSize, MaximumFontSize);
     private FileContentSignature signature;
 
     /// <summary>
@@ -81,12 +83,20 @@ public sealed class ScriptSourceFileEditorViewModel : AssetEditorViewModel<Scrip
     }
 
     /// <summary>
-    /// Gets or sets the font size of the editor, between <see cref="MinimumFontSize"/> and <see cref="MaximumFontSize"/>.
+    /// Gets or sets the font size of the editor, between <see cref="MinimumFontSize"/> and <see cref="MaximumFontSize"/>. A change
+    /// is saved in the settings (<see cref="ScriptEditorSettings.FontSize"/>), as in WPF, for the next editors.
     /// </summary>
     public int FontSize
     {
         get => fontSize;
-        set => SetValue(ref fontSize, Math.Clamp(value, MinimumFontSize, MaximumFontSize));
+        set
+        {
+            if (SetValue(ref fontSize, Math.Clamp(value, MinimumFontSize, MaximumFontSize)))
+            {
+                ScriptEditorSettings.FontSize.SetValue(fontSize);
+                ScriptEditorSettings.Save();
+            }
+        }
     }
 
     private string? FilePath => Asset.AssetItem.FullPath?.ToOSPath();
