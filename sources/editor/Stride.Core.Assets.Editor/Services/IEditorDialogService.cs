@@ -11,7 +11,7 @@ using Stride.Core.Presentation.Services;
 
 namespace Stride.Core.Assets.Editor.Services;
 
-public interface IEditorDialogService : IDialogService
+public interface IEditorDialogService : IDialogService, IAssetPickerService
 {
     void ShowProgressWindow(WorkProgressViewModel workProgress);
 
@@ -97,16 +97,4 @@ public interface IEditorDialogService : IDialogService
     {
         return Task.FromResult(false);
     }
-
-    /// <summary>
-    /// Shows the asset picker (see <see cref="AssetPickerViewModel"/>) and waits for the user to pick an asset.
-    /// </summary>
-    /// <param name="session">The session whose assets are listed.</param>
-    /// <param name="acceptedTypes">The asset types to list (and their derived types); empty lists every type.</param>
-    /// <param name="filter">An additional condition on the listed assets, or <c>null</c>.</param>
-    /// <param name="initialAsset">The asset selected when the picker opens, or <c>null</c>.</param>
-    /// <param name="initialLocation">The folder selected when the picker opens and there is no initial asset, or <c>null</c>.</param>
-    /// <param name="message">A text shown above the assets (what the asset is picked for), or <c>null</c>.</param>
-    /// <returns>The picked asset, or <c>null</c> when the user cancelled.</returns>
-    Task<AssetViewModel?> OpenAssetPickerAsync(SessionViewModel session, IEnumerable<Type> acceptedTypes, Func<AssetViewModel, bool>? filter = null, AssetViewModel? initialAsset = null, DirectoryBaseViewModel? initialLocation = null, string? message = null);
 }

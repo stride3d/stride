@@ -4,7 +4,7 @@
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Xml;
-using Stride.Core.Assets.Editor.ViewModels;
+using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Diagnostics;
 using Stride.Core.Reflection;
 
@@ -18,15 +18,16 @@ public sealed class UserDocumentationService
     private readonly HashSet<string> undocumentedAssemblies = [];
     private readonly HashSet<string> documentedAssemblies = [];
     private readonly object lockObj = new();
-    private readonly SessionViewModel session;
+    private readonly ISessionViewModel session;
 
-    public UserDocumentationService(SessionViewModel session)
+    public UserDocumentationService(ISessionViewModel session)
     {
         this.session = session;
     }
 
     public string? GetMemberDocumentation(IMemberDescriptor member, Type rootType)
     {
+        ArgumentNullException.ThrowIfNull(member);
         string result;
         string key;
 
@@ -59,6 +60,7 @@ public sealed class UserDocumentationService
 
     public string? GetPropertyKeyDocumentation(PropertyKey propertyKey)
     {
+        ArgumentNullException.ThrowIfNull(propertyKey);
         var ownerType = propertyKey.OwnerType;
         if (ownerType == null)
             return null;

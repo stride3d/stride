@@ -14,7 +14,7 @@ public sealed class DocumentationNodeUpdater : AssetNodePresenterUpdaterBase
 
     public DocumentationNodeUpdater(UserDocumentationService documentationService)
     {
-        this.documentationService = documentationService;
+        this.documentationService = documentationService ?? throw new ArgumentNullException(nameof(documentationService));
     }
 
     protected override void UpdateNode(IAssetNodePresenter node)

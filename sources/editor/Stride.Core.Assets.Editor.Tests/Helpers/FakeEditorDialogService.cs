@@ -76,7 +76,7 @@ public sealed class FakeEditorDialogService : IEditorDialogService, IProgressWin
     /// </summary>
     public Func<AssetPickerViewModel, AssetViewModel?> PickAsset { get; set; } = _ => null;
 
-    public Task<AssetViewModel?> OpenAssetPickerAsync(SessionViewModel session, IEnumerable<Type> acceptedTypes, Func<AssetViewModel, bool>? filter = null, AssetViewModel? initialAsset = null, DirectoryBaseViewModel? initialLocation = null, string? message = null)
+    public Task<AssetViewModel?> OpenAssetPickerAsync(ISessionViewModel session, IEnumerable<Type> acceptedTypes, Func<AssetViewModel, bool>? filter = null, AssetViewModel? initialAsset = null, DirectoryBaseViewModel? initialLocation = null, string? message = null)
     {
         var picker = new AssetPickerViewModel(session, acceptedTypes, filter, initialAsset, initialLocation) { Message = message };
         AssetPickers.Add(picker);

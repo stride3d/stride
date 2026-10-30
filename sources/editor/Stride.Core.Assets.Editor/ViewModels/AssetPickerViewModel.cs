@@ -14,7 +14,7 @@ namespace Stride.Core.Assets.Editor.ViewModels;
 /// </summary>
 public sealed class AssetPickerViewModel : DispatcherViewModel
 {
-    private readonly SessionViewModel session;
+    private readonly ISessionViewModel session;
     private string searchText = string.Empty;
     private AssetViewModel? selectedAsset;
     private object? selectedLocation;
@@ -24,7 +24,7 @@ public sealed class AssetPickerViewModel : DispatcherViewModel
     /// <param name="filter">An additional condition on the listed assets, or <c>null</c>.</param>
     /// <param name="initialAsset">The asset selected when the picker opens (the current value of a reference), or <c>null</c>.</param>
     /// <param name="initialLocation">The folder selected when the picker opens and there is no initial asset, or <c>null</c> for every location.</param>
-    public AssetPickerViewModel(SessionViewModel session, IEnumerable<Type> acceptedTypes, Func<AssetViewModel, bool>? filter = null, AssetViewModel? initialAsset = null, DirectoryBaseViewModel? initialLocation = null)
+    public AssetPickerViewModel(ISessionViewModel session, IEnumerable<Type> acceptedTypes, Func<AssetViewModel, bool>? filter = null, AssetViewModel? initialAsset = null, DirectoryBaseViewModel? initialLocation = null)
         : base(session.SafeArgument(nameof(session)).ServiceProvider)
     {
         this.session = session;

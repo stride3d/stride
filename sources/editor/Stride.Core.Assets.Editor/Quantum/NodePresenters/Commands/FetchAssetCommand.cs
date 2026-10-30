@@ -2,14 +2,14 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core.Assets.Editor.Services;
-using Stride.Core.Assets.Editor.ViewModels;
+using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Quantum.Presenters;
 
 namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;
 
-internal sealed class FetchAssetCommand : NodePresenterCommandBase
+public sealed class FetchAssetCommand : NodePresenterCommandBase
 {
     /// <summary>
     /// The name of this command.
@@ -18,13 +18,13 @@ internal sealed class FetchAssetCommand : NodePresenterCommandBase
     /// <summary>
     /// The current session.
     /// </summary>
-    private readonly SessionViewModel session;
+    private readonly ISessionViewModel session;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="FetchAssetCommand"/> class.
     /// </summary>
     /// <param name="session">The current session.</param>
-    public FetchAssetCommand(SessionViewModel session)
+    public FetchAssetCommand(ISessionViewModel session)
     {
         this.session = session;
     }
@@ -55,12 +55,12 @@ internal sealed class FetchAssetCommand : NodePresenterCommandBase
     /// </summary>
     /// <param name="session">The current session.</param>
     /// <param name="content">The proxy object corresponding to the asset to fetch.</param>
-    public static async Task Fetch(SessionViewModel session, object content)
+    public static async Task Fetch(ISessionViewModel session, object content)
     {
         var asset = ContentReferenceHelper.GetReferenceTarget(session, content);
         if (asset != null)
         {
-            await session.Dispatcher.InvokeAsync(() => session.AssetCollection.SelectAssetCommand.Execute(asset));
+            await session.Dispatcher.InvokeAsync(() => session.ActiveAssetView.SelectAssetCommand.Execute(asset));
         }
     }
 }

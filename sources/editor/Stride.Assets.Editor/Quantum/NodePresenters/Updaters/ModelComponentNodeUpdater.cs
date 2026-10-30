@@ -164,7 +164,7 @@ internal sealed class ModelComponentNodeUpdater : AssetNodePresenterUpdaterBase
 
     private static Task FetchMaterial(ISessionViewModel session, object? material)
     {
-        return session is SessionViewModel sessionViewModel && material is not null ? FetchAssetCommand.Fetch(sessionViewModel, material) : Task.CompletedTask;
+        return material is not null ? FetchAssetCommand.Fetch(session, material) : Task.CompletedTask;
     }
 
     private static EntityHierarchyEditorViewModel? GetEditor(AssetViewModel asset)

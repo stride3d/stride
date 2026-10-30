@@ -3,7 +3,6 @@
 
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Templates;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
@@ -24,7 +23,7 @@ public sealed class NewProjectTemplateCollectionViewModel : ProjectTemplateColle
     private readonly TemplateDescriptionGroupViewModel rootGroup;
     private bool arePropertiesValid;
 
-    public NewProjectTemplateCollectionViewModel(IViewModelServiceProvider serviceProvider, SessionViewModel session)
+    public NewProjectTemplateCollectionViewModel(IViewModelServiceProvider serviceProvider, ISessionViewModel session)
         : base(serviceProvider)
     {
         ArgumentNullException.ThrowIfNull(session);
@@ -52,7 +51,7 @@ public sealed class NewProjectTemplateCollectionViewModel : ProjectTemplateColle
         SelectedGroup = rootGroup;
     }
 
-    public SessionViewModel Session { get; }
+    public ISessionViewModel Session { get; }
 
     /// <summary>
     /// The result of the last <see cref="ValidateProperties"/>.
