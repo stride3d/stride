@@ -197,6 +197,31 @@
   </DrawingImage>
 
   <!--  Edit and context menu icons (from the WPF ImageDictionary)  -->
+  <DrawingImage x:Key="ImagePrevious">
+    <DrawingImage.Drawing>
+      <DrawingGroup>
+        <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+        <GeometryDrawing Brush="#FFF6F6F6"
+                         Geometry="F1M15,8C15,11.866 11.866,15 8,15 4.134,15 1,11.866 1,8 1,4.134 4.134,1 8,1 11.866,1 15,4.134 15,8" />
+        <GeometryDrawing Brush="#FF00539C"
+                         Geometry="F1M4,8L7,5 9,5 7,7 12,7 12,9 7,9 9,11 7,11z M2,8C2,11.247 4.755,14 8,14 11.245,14 14,11.247 14,8 14,4.756 11.245,2 8,2 4.755,2 2,4.756 2,8" />
+        <GeometryDrawing Brush="#FFF0EFF1" Geometry="F1M4,8L7,5 9,5 7,7 12,7 12,9 7,9 9,11 7,11z" />
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
+
+  <DrawingImage x:Key="ImageNext">
+    <DrawingImage.Drawing>
+      <DrawingGroup>
+        <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+        <GeometryDrawing Brush="#FFF6F6F6"
+                         Geometry="F1M15,8C15,11.866 11.866,15 8,15 4.134,15 1,11.866 1,8 1,4.134 4.134,1 8,1 11.866,1 15,4.134 15,8" />
+        <GeometryDrawing Brush="#FF00539C"
+                         Geometry="F1M9,11L7,11 9,9 4,9 4,7 9,7 7,5 9,5 12,8z M8,2C4.755,2 2,4.756 2,8 2,11.247 4.755,14 8,14 11.245,14 14,11.247 14,8 14,4.756 11.245,2 8,2" />
+        <GeometryDrawing Brush="#FFF0EFF1" Geometry="F1M9,11L7,11 9,9 4,9 4,7 9,7 7,5 9,5 12,8z" />
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
   <DrawingImage x:Key="ImageUndo">
     <DrawingImage.Drawing>
       <DrawingGroup>
