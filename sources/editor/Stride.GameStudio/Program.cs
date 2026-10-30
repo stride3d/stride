@@ -36,6 +36,7 @@ using Stride.Editor;
 using Stride.Editor.Build;
 using Stride.Editor.Preview;
 using Stride.GameStudio.Helpers;
+using Stride.GameStudio.Layout;
 using Stride.GameStudio.Logs;
 using Stride.GameStudio.Plugin;
 using Stride.GameStudio.Services;
@@ -459,7 +460,7 @@ public static partial class Program
                     // Clean existing entry in the MRU data
                     var directory = startupWindow.NewSessionParameters.OutputDirectory;
                     var name = startupWindow.NewSessionParameters.OutputName;
-                    var mruData = new MRUAdditionalDataCollection(InternalSettings.LoadProfileCopy, GameStudioInternalSettings.MostRecentlyUsedSessionsData, InternalSettings.WriteFile);
+                    var mruData = MRUAdditionalDataLayouts.CreateCollection();
                     mruData.RemoveFile(UFile.Combine(UDirectory.Combine(directory, name), new UFile(name + SessionViewModel.SolutionExtension)));
 
                     completed = await editor.NewSession(startupWindow.NewSessionParameters);
