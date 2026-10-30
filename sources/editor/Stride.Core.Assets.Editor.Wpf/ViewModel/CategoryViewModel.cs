@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Stride.Core.Presentation.Collections;
 using Stride.Core.Presentation.Dirtiables;
+using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.ViewModel
 {

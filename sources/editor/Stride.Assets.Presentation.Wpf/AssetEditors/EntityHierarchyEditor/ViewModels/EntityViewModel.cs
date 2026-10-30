@@ -19,6 +19,7 @@ using Stride.Core.Extensions;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Quantum.Presenters;
+using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Quantum;
 using Stride.Assets.Entities;
 using Stride.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.ViewModels;

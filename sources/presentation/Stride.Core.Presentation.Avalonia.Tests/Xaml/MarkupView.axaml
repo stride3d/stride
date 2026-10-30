@@ -1,0 +1,20 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+             x:Class="Stride.Core.Presentation.Avalonia.Tests.Xaml.MarkupView">
+  <!-- Uses the markup extensions and converters of Stride.Core.Presentation.Avalonia through the compiled XAML path -->
+  <StackPanel>
+    <CheckBox x:Name="Source" IsChecked="True" />
+    <CheckBox x:Name="Other" IsChecked="False" />
+    <Border x:Name="ThicknessBorder" Margin="{sd:Thickness 1, 2, 3, 4}" />
+    <Border x:Name="UniformBorder" Padding="{sd:Thickness 5}" />
+    <TextBlock x:Name="ToolTipText" Text="{sd:ToolTip Save, Ctrl+S}" />
+    <TextBlock x:Name="LocalizedText" Text="{sd:LocalizeString Hello}" />
+    <TextBlock x:Name="Inverted" IsVisible="{Binding #Source.IsChecked, Converter={sd:InvertBool}}" />
+    <Border x:Name="Dimmed" Opacity="{Binding #Other.IsChecked, Converter={sd:BoolToOpacity}}" />
+    <TextBlock x:Name="AndResult" IsVisible="{sd:MultiBinding {Binding #Source.IsChecked}, {Binding #Other.IsChecked}, Converter={sd:AndMulti}}" />
+    <TextBlock x:Name="OrResult" IsVisible="{sd:MultiBinding {Binding #Source.IsChecked}, {Binding #Other.IsChecked}, Converter={sd:OrMulti}}" />
+    <TextBlock x:Name="Maximum" Tag="{sd:MaxInt}" />
+    <TextBlock x:Name="Root" Tag="{sd:XamlRoot}" />
+  </StackPanel>
+</UserControl>
