@@ -181,7 +181,7 @@ public sealed class TagViewModel : DispatcherViewModel
     /// <summary>
     /// Gets the list of assets that contain this tag.
     /// </summary>
-    /// <remarks>The <see cref="ObservableList{AssetViewModel}.Clear"/> method is not supported and will throw an exception.</remarks>
+    /// <remarks>Clearing this collection is not supported and will throw an exception.</remarks>
     public ObservableList<AssetViewModel> Assets { get; } = [];
 
     /// <summary>
