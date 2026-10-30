@@ -220,8 +220,8 @@ public sealed class SpriteSheetEditorTests
 
         Assert.Equal(5, editor.Sprites.Count);
         Assert.All(editor.Sprites.Skip(3), x => Assert.Equal(source, x.Source));
-        // As in WPF, the sprite of a dropped file starts with an empty region
-        Assert.Equal(default, editor.Sprites[3].TextureRegion.Region);
+        // The sprite of a dropped file takes the whole image
+        Assert.Equal(new RectangleF(0, 0, ImageWidth, ImageHeight), editor.Sprites[3].TextureRegion.Region);
         Assert.Equal([editor.Sprites[3], editor.Sprites[4]], editor.SelectedSprites);
         Assert.Equal(["Import images"], names);
     }
