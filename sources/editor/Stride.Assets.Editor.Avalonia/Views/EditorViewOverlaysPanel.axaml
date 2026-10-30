@@ -1,0 +1,36 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+             xmlns:vm="using:Stride.Assets.Editor.ViewModels"
+             x:Class="Stride.Assets.Editor.Avalonia.Views.EditorViewOverlaysPanel"
+             x:DataType="vm:EditorViewOverlaysViewModel">
+  <!-- The content of the overlays popup of the view toolbar, as the overlays popup of the WPF scene editor -->
+  <DockPanel MinWidth="200" MaxWidth="400" MaxHeight="400">
+    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="5" Margin="0,0,0,5">
+      <Button Content="All" MinWidth="60" Command="{Binding ToggleAllCommand}" CommandParameter="{sd:True}"/>
+      <Button Content="None" MinWidth="60" Command="{Binding ToggleAllCommand}" CommandParameter="{sd:False}"/>
+    </StackPanel>
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+      <ItemsControl ItemsSource="{Binding Sections}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:EditorViewOverlaySectionViewModel">
+            <StackPanel>
+              <TextBlock Text="{Binding DisplayName}" Margin="0,5"/>
+              <ItemsControl ItemsSource="{Binding Overlays}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:EditorViewOverlayViewModel">
+                    <Grid ColumnDefinitions="30,*">
+                      <Rectangle Width="20" Height="20" Stroke="#FF211E1E" StrokeThickness="1"
+                                 Fill="{Binding Color, Converter={sd:ColorConverter}}" IsVisible="{Binding HasColor}"/>
+                      <CheckBox Grid.Column="1" Content="{Binding DisplayName}" IsChecked="{Binding IsVisible}" Margin="2"/>
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+  </DockPanel>
+</UserControl>

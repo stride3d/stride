@@ -6,6 +6,7 @@ using Stride.Assets.Editor.EditorGame;
 using Stride.Assets.Editor.EditorGame.Tools;
 using Stride.Assets.Entities;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories;
+using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
 using Stride.Assets.Presentation.AssetEditors.GameEditor;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Assets.Presentation.SceneEditor;
@@ -189,7 +190,7 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
             if (controller.GetService<EditorGameToolService>() is { } toolService)
             {
                 var gameToolbar = new EditorViewToolbarViewModel(ServiceProvider, toolService, controller.GetService<IEditorGameSelectionViewModelService>(), controller.GetService<EditorGameMaterialHighlightService>(),
-                    controller.GetService<EditorGameComponentGizmoService>());
+                    controller.GetService<EditorGameComponentGizmoService>(), controller.GetServices<IEditorGameOverlayService>());
                 await gameToolbar.InitializeAsync();
                 if (IsDestroyed)
                     gameToolbar.Destroy();

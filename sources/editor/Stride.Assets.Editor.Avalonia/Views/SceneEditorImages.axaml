@@ -287,7 +287,7 @@
     </DrawingImage.Drawing>
   </DrawingImage>
 
-  <!-- The gizmo options of the view toolbar (WPF ImageDictionary) -->
+  <!-- The overlays and gizmo options of the view toolbar (WPF ImageDictionary) -->
   <DrawingImage x:Key="ImageGizmos" >
     <DrawingImage.Drawing>
       <DrawingGroup>
@@ -299,4 +299,38 @@
     </DrawingImage.Drawing>
   </DrawingImage>
 
+  <DrawingImage x:Key="ImageNavigation" >
+    <DrawingImage.Drawing>
+      <DrawingGroup>
+        <DrawingGroup>
+          <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+          <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M0,14L16,14 16,1.999 0,1.999z" />
+          <GeometryDrawing Brush="#FF424242" Geometry="F1M14,12L2,12 2,4 14,4z M1,13L15,13 15,3 1,3z" />
+          <GeometryDrawing Brush="#FFF0EFF1" Geometry="F1M14,12L2.001,12 2.001,4 14,4z" />
+        </DrawingGroup>
+        <DrawingGroup>
+          <DrawingGroup.Transform>
+            <TransformGroup>
+              <ScaleTransform ScaleX="0.6" ScaleY="0.6" />
+              <TranslateTransform X="3" Y="2.5" />
+            </TransformGroup>
+          </DrawingGroup.Transform>
+          <GeometryDrawing Brush="#FF424242" Geometry="F1 M14.9573,8.0003L13.5433,6.5863 12.8363,7.2933 13.5433,8.0003 12.8363,8.7073 13.5433,9.4143z M12.3633,10.5933L11.6563,9.8863 9.8863,11.6563 10.5933,12.3633z M9.4143,13.5433L8.7073,12.8363 8.0003,13.5433 7.2933,12.8363 6.5863,13.5433 8.0003,14.9573z M6.1133,11.6563L4.3433,9.8863 3.6363,10.5933 5.4063,12.3633z M3.1643,8.7073L2.4573,8.0003 3.1643,7.2933 2.4573,6.5863 1.0433,8.0003 2.4573,9.4143z M6.1133,4.3443L5.4063,3.6363 3.6363,5.4063 4.3433,6.1133z " />
+        </DrawingGroup>
+        <DrawingGroup>
+          <DrawingGroup.Transform>
+            <TransformGroup>
+              <ScaleTransform ScaleX="0.15" ScaleY="0.15" />
+              <SkewTransform />
+              <RotateTransform />
+              <TranslateTransform X="10" Y="5" />
+            </TransformGroup>
+          </DrawingGroup.Transform>
+          <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+          <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M8.0001,5.1721L3.4571,0.6291 0.629099999999999,3.4571 5.1721,8.0001 0.629099999999999,12.5431 3.4571,15.3711 8.0001,10.8281 12.5431,15.3711 15.3711,12.5431 10.8281,8.0001 15.3711,3.4571 12.5431,0.6291z" />
+          <GeometryDrawing Brush="#FF424242" Geometry="F1M9.4141,8L13.9571,12.543 12.5431,13.957 8.0001,9.414 3.4571,13.957 2.0431,12.543 6.5861,8 2.0431,3.457 3.4571,2.043 8.0001,6.586 12.5431,2.043 13.9571,3.457z" />
+        </DrawingGroup>
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
 </ResourceDictionary>
