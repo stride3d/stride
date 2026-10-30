@@ -26,6 +26,15 @@ namespace Stride.Input
         private readonly List<KeyEvent> keyEvents = new List<KeyEvent>();
         
         private readonly List<PointerEvent> pointerEvents = new List<PointerEvent>();
+
+        private readonly MaskedEventList<KeyEvent> maskedKeyEvents;
+        private readonly MaskedEventList<PointerEvent> maskedPointerEvents;
+
+        private Vector2 rawMouseDelta;
+        private Vector2 rawAbsoluteMouseDelta;
+        private float rawMouseWheelDelta;
+        private IInputDevice mouseDeltaDevice;
+        private IInputDevice mouseWheelDevice;
         
         /// <summary>
         /// The mouse position in normalized coordinates.
@@ -47,17 +56,17 @@ namespace Stride.Input
         /// <summary>
         /// Mouse delta in normalized coordinate space
         /// </summary>
-        public Vector2 MouseDelta { get; private set; }
+        public Vector2 MouseDelta => IsMaskedDevice(mouseDeltaDevice) ? Vector2.Zero : rawMouseDelta;
 
         /// <summary>
         /// Mouse movement in device coordinates
         /// </summary>
-        public Vector2 AbsoluteMouseDelta { get; private set; }
+        public Vector2 AbsoluteMouseDelta => IsMaskedDevice(mouseDeltaDevice) ? Vector2.Zero : rawAbsoluteMouseDelta;
         
         /// <summary>
         /// The delta value of the mouse wheel button since last frame.
         /// </summary>
-        public float MouseWheelDelta { get; private set; }
+        public float MouseWheelDelta => IsMaskedDevice(mouseWheelDevice) ? 0f : rawMouseWheelDelta;
 
         /// <summary>
         /// Device that is responsible for setting the current <see cref="MouseDelta"/> and <see cref="MousePosition"/>
@@ -217,12 +226,12 @@ namespace Stride.Input
         /// <summary>
         /// Pointer events that happened since the last frame
         /// </summary>
-        public IReadOnlyList<PointerEvent> PointerEvents => pointerEvents;
+        public IReadOnlyList<PointerEvent> PointerEvents => maskedPointerEvents;
 
         /// <summary>
         /// Key events that happened since the last frame
         /// </summary>
-        public IReadOnlyList<KeyEvent> KeyEvents => keyEvents;
+        public IReadOnlyList<KeyEvent> KeyEvents => maskedKeyEvents;
 
         public void ProcessEvent(KeyEvent inputEvent)
         {
@@ -242,16 +251,18 @@ namespace Stride.Input
                 absoluteMousePosition = inputEvent.AbsolutePosition;
 
                 // Add deltas together, so nothing gets lost if a down events gets sent after a move event with the actual delta
-                MouseDelta += inputEvent.DeltaPosition;
-                AbsoluteMouseDelta += inputEvent.AbsoluteDeltaPosition;
+                mouseDeltaDevice = inputEvent.Device;
+                rawMouseDelta += inputEvent.DeltaPosition;
+                rawAbsoluteMouseDelta += inputEvent.AbsoluteDeltaPosition;
             }
         }
 
         public void ProcessEvent(MouseWheelEvent inputEvent)
         {
-            if (Math.Abs(inputEvent.WheelDelta) > Math.Abs(MouseWheelDelta))
+            if (Math.Abs(inputEvent.WheelDelta) > Math.Abs(rawMouseWheelDelta))
             {
-                MouseWheelDelta = inputEvent.WheelDelta;
+                mouseWheelDevice = inputEvent.Device;
+                rawMouseWheelDelta = inputEvent.WheelDelta;
             }
         }
 
@@ -322,9 +333,11 @@ namespace Stride.Input
         {
             keyEvents.Clear();
             pointerEvents.Clear();
-            MouseWheelDelta = 0;
-            MouseDelta = Vector2.Zero;
-            AbsoluteMouseDelta = Vector2.Zero;
+            rawMouseWheelDelta = 0;
+            rawMouseDelta = Vector2.Zero;
+            rawAbsoluteMouseDelta = Vector2.Zero;
+            mouseDeltaDevice = null;
+            mouseWheelDevice = null;
         }
     }
 }
