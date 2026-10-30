@@ -8,6 +8,8 @@ using Stride.Assets.Presentation.ViewModels;
 using Stride.Assets.Sprite;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Tests.Helpers;
+using Stride.Core.Assets.Editor.View.Behaviors;
+using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModel.CopyPasteProcessors;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
@@ -180,6 +182,48 @@ public sealed class SpriteSheetEditorTests
         test.Undo();
 
         Assert.Equal(["Frame 0", "Frame 1", "Frame 2"], editor.Sprites.Select(x => x.Name));
+    }
+
+    [Fact]
+    public async Task DroppingSpritesOnASpriteMovesThemAsOneUndoEntry()
+    {
+        using var test = await SpriteSheetTest.OpenAsync();
+        var editor = test.Editor;
+        var names = test.RecordUndoNames();
+        IInsertChildViewModel target = editor.Sprites[0];
+
+        Assert.True(target.CanInsertChildren([editor.Sprites[2]], InsertPosition.After, AddChildModifiers.None, out _));
+        Assert.False(target.CanInsertChildren(["text"], InsertPosition.After, AddChildModifiers.None, out _));
+        target.InsertChildren([editor.Sprites[2]], InsertPosition.After, AddChildModifiers.None);
+
+        Assert.Equal(["Frame 0", "Frame 2", "Frame 1"], editor.Sprites.Select(x => x.Name));
+        Assert.Equal([0, 1, 2], editor.Sprites.Select(x => x.Index));
+        Assert.Same(editor.Sprites[1], Assert.Single(editor.SelectedSprites));
+        Assert.Equal(["Move images"], names);
+
+        test.Undo();
+
+        Assert.Equal(["Frame 0", "Frame 1", "Frame 2"], editor.Sprites.Select(x => x.Name));
+    }
+
+    [Fact]
+    public async Task DroppingImageFilesAddsSpritesAsOneUndoEntry()
+    {
+        using var test = await SpriteSheetTest.OpenAsync();
+        var editor = test.Editor;
+        var source = editor.Sprites[0].Source!;
+        var names = test.RecordUndoNames();
+        IAddChildViewModel target = editor;
+
+        Assert.True(target.CanAddChildren([source, source], AddChildModifiers.None, out _));
+        target.AddChildren([source, source], AddChildModifiers.None);
+
+        Assert.Equal(5, editor.Sprites.Count);
+        Assert.All(editor.Sprites.Skip(3), x => Assert.Equal(source, x.Source));
+        // As in WPF, the sprite of a dropped file starts with an empty region
+        Assert.Equal(default, editor.Sprites[3].TextureRegion.Region);
+        Assert.Equal([editor.Sprites[3], editor.Sprites[4]], editor.SelectedSprites);
+        Assert.Equal(["Import images"], names);
     }
 
     [Fact]

@@ -308,6 +308,15 @@ public sealed class SpriteSheetEditorViewModel : AssetEditorViewModel<SpriteShee
         SelectedSprites.AddRange(addedImages.Select(FindViewModel).NotNull());
     }
 
+    /// <summary>
+    /// Selects the view models of the given sprites, as after a reorder.
+    /// </summary>
+    internal void SelectSprites(IEnumerable<SpriteInfo> spriteInfos)
+    {
+        SelectedSprites.Clear();
+        SelectedSprites.AddRange(spriteInfos.Select(FindViewModel).NotNull());
+    }
+
     internal void InsertImage(SpriteInfo spriteinfo, int index)
     {
         spritesNode.Add(spriteinfo, new NodeIndex(index));
@@ -460,8 +469,7 @@ public sealed class SpriteSheetEditorViewModel : AssetEditorViewModel<SpriteShee
             }
             UndoRedoService.SetName(transaction, "Reorder images");
         }
-        SelectedSprites.Clear();
-        SelectedSprites.AddRange(toReselect.Select(FindViewModel).NotNull());
+        SelectSprites(toReselect);
     }
 
     private void FocusOnRegion()

@@ -10,6 +10,8 @@ using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media.Imaging;
 using Avalonia.VisualTree;
+using Avalonia.Xaml.Interactivity;
+using Stride.Assets.Editor.Avalonia.Behaviors;
 using Stride.Assets.Editor.Avalonia.Views;
 using Stride.Assets.Editor.ViewModels;
 using Stride.Assets.Editor.ViewModels.SpriteEditor;
@@ -190,6 +192,49 @@ public sealed class SpriteEditorTests
 
                 Assert.Equal(new RectangleF(FirstSprite.X, FirstSprite.Y, FirstSprite.Width + 5, FirstSprite.Height), region.Region);
                 Assert.Equal(["Update region size"], names);
+            }
+            finally
+            {
+                await window.CloseAsync();
+            }
+        }
+    }
+
+    [AvaloniaFact]
+    public async Task DroppingOnTheSpriteListMovesSpritesAndImportsFiles()
+    {
+        var (fixture, window) = await OpenAsync();
+        using (fixture)
+        {
+            try
+            {
+                var (editor, view) = await OpenEditorAsync(fixture, window);
+                var list = SpriteList(view);
+                var dragDrop = Interaction.GetBehaviors(list).OfType<SpriteListDragDropBehavior>().Single();
+                var names = RecordUndoNames(fixture);
+
+                // The second sprite dropped on the upper half of the first one goes before it
+                var first = list.ContainerFromIndex(0)!;
+                var upperHalf = first.TranslatePoint(new Point(first.Bounds.Width / 2, first.Bounds.Height / 4), list)!.Value;
+                Assert.True(dragDrop.Drop([editor.Sprites[1]], upperHalf, KeyModifiers.None));
+                await WindowTestHelper.PumpAsync();
+
+                Assert.Equal(["Frame 1", "Frame 0"], editor.Sprites.Select(x => x.Name));
+                Assert.Same(editor.Sprites[0], Assert.Single(editor.SelectedSprites));
+
+                // An image file dropped below the sprites adds a sprite at the end of the sheet
+                var source = editor.Sprites[0].Source!;
+                var below = new Point(list.Bounds.Width / 2, list.Bounds.Height - 5);
+                Assert.True(dragDrop.Drop([source], below, KeyModifiers.None));
+                await WindowTestHelper.PumpAsync();
+
+                Assert.Equal(3, editor.Sprites.Count);
+                Assert.Equal(source, editor.Sprites[2].Source);
+                Assert.Same(editor.Sprites[2], Assert.Single(editor.SelectedSprites));
+                Assert.Equal(["Move images", "Import images"], names);
+
+                // Anything else is refused
+                Assert.False(dragDrop.Drop(["text"], below, KeyModifiers.None));
             }
             finally
             {
