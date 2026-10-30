@@ -157,11 +157,11 @@ namespace Stride.Assets
                 DispatcherCallbacksToStaticLambdas(),
 
                 // 4.5: input devices hold their capture state, so a device that implements the input interfaces itself
-                // rather than through an engine base class needs one (#3505).
+                // rather than through an engine base class needs one.
                 InterfaceMemberAdd("Stride.Input.IInputDevice", "public DeviceCaptureState CaptureState { get; } = new DeviceCaptureState();", "Stride.Input"),
 
                 // 4.5: GamePadDeviceBase.State is no longer virtual, so that it can hide a captured gamepad;
-                // custom gamepads provide their state through RawState instead (#3505).
+                // custom gamepads provide their state through RawState instead.
                 PropertyOverrideRename("Stride.Input.GamePadDeviceBase", "State", "RawState", SyntaxKind.ProtectedKeyword),
             ]);
 
