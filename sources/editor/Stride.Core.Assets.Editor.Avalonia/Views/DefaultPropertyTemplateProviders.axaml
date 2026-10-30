@@ -860,11 +860,16 @@
   </caev:TypeMatchTemplateProvider>
 
   <!-- Providers for floating-point number -->
+  <!-- 6 decimal places unless the member says otherwise, as in WPF: a float shown as a double has noise (0.64999997 for 0.65) -->
+  <!-- TargetType2=Object: ToDouble gives null for a missing key (a collection item has no minimum), not 0, so that TargetNullValue applies -->
   <DataTemplate x:Key="FloatEditorTemplate" DataType="cpqvm:NodeViewModel">
     <sd:NumericTextBox x:Name="NumericTextBox"
                        Value="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}}, UpdateSourceTrigger=Explicit}"
-                       Minimum="{Binding [Minimum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}}, FallbackValue={x:Static s:Decimal.MinValue}}"
-                       Maximum="{Binding [Maximum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}}, FallbackValue={x:Static s:Decimal.MaxValue}}">
+                       Minimum="{Binding [Minimum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}, TargetType2={x:Type s:Object}}, FallbackValue={x:Static s:Double.MinValue}, TargetNullValue={x:Static s:Double.MinValue}}"
+                       Maximum="{Binding [Maximum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}, TargetType2={x:Type s:Object}}, FallbackValue={x:Static s:Double.MaxValue}, TargetNullValue={x:Static s:Double.MaxValue}}"
+                       SmallChange="{Binding [SmallStep], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}, TargetType2={x:Type s:Object}}, FallbackValue=1, TargetNullValue=1}"
+                       LargeChange="{Binding [LargeStep], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}, TargetType2={x:Type s:Object}}, FallbackValue=10, TargetNullValue=10}"
+                       DecimalPlaces="{Binding [DecimalPlaces], Converter={caec:DifferentValuesToNull}, FallbackValue=6, TargetNullValue=6}">
       <Interaction.Behaviors>
         <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
           <ChangePropertyAction PropertyName="PlaceholderText" Value="{sd:LocalizeString (Different values)}"/>
@@ -881,8 +886,11 @@
   <DataTemplate x:Key="IntEditorTemplate" DataType="cpqvm:NodeViewModel">
     <sd:NumericTextBox x:Name="NumericTextBox"
                        Value="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}}, UpdateSourceTrigger=Explicit}"
-                       Minimum="{Binding [Minimum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}}, FallbackValue={x:Static s:Decimal.MinValue}}"
-                       Maximum="{Binding [Maximum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}}, FallbackValue={x:Static s:Decimal.MaxValue}}">
+                       Minimum="{Binding [Minimum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}, TargetType2={x:Type s:Object}}, FallbackValue={x:Static s:Double.MinValue}, TargetNullValue={x:Static s:Double.MinValue}}"
+                       Maximum="{Binding [Maximum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}, TargetType2={x:Type s:Object}}, FallbackValue={x:Static s:Double.MaxValue}, TargetNullValue={x:Static s:Double.MaxValue}}"
+                       SmallChange="{Binding [SmallStep], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}, TargetType2={x:Type s:Object}}, FallbackValue=1, TargetNullValue=1}"
+                       LargeChange="{Binding [LargeStep], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}, TargetType2={x:Type s:Object}}, FallbackValue=10, TargetNullValue=10}"
+                       DecimalPlaces="0">
       <Interaction.Behaviors>
         <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
           <ChangePropertyAction PropertyName="PlaceholderText" Value="{sd:LocalizeString (Different values)}"/>
@@ -927,8 +935,11 @@
         <sd:NumericTextBox Grid.Column="1"
                            Margin="6,2,2,2"
                            Value="{Binding NodeValue, Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}}, UpdateSourceTrigger=Explicit}"
-                           Minimum="{Binding [Minimum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}}, FallbackValue={x:Static s:Decimal.MinValue}}"
-                           Maximum="{Binding [Maximum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}}, FallbackValue={x:Static s:Decimal.MaxValue}}">
+                           Minimum="{Binding [Minimum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}, TargetType2={x:Type s:Object}}, FallbackValue={x:Static s:Double.MinValue}, TargetNullValue={x:Static s:Double.MinValue}}"
+                           Maximum="{Binding [Maximum], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}, TargetType2={x:Type s:Object}}, FallbackValue={x:Static s:Double.MaxValue}, TargetNullValue={x:Static s:Double.MaxValue}}"
+                           SmallChange="{Binding [SmallStep], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}, TargetType2={x:Type s:Object}}, FallbackValue=1, TargetNullValue=1}"
+                           LargeChange="{Binding [LargeStep], Converter={sd:Chained {caec:DifferentValuesToNull}, {sd:ToDouble}, TargetType2={x:Type s:Object}}, FallbackValue=10, TargetNullValue=10}"
+                           DecimalPlaces="{Binding [DecimalPlaces], Converter={caec:DifferentValuesToNull}, FallbackValue=6, TargetNullValue=6}">
           <Interaction.Behaviors>
             <DataTriggerBehavior Binding="{Binding NodeValue}" Value="{x:Static cpqvm:NodeViewModel.DifferentValues}">
               <ChangePropertyAction PropertyName="PlaceholderText" Value="{sd:LocalizeString (Different values)}"/>
