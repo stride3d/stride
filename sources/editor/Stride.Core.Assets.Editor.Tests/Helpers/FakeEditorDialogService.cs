@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core.Assets.Editor.Components.AddAssets;
+using Stride.Core.Assets.Editor.Components.FixAssetReferences;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
@@ -71,6 +72,23 @@ public sealed class FakeEditorDialogService : IEditorDialogService, IProgressWin
         var picker = new AssetPickerViewModel(session, acceptedTypes, filter, initialAsset, initialLocation) { Message = message };
         AssetPickers.Add(picker);
         return Task.FromResult(PickAsset(picker));
+    }
+
+    /// <summary>
+    /// The fix-references dialogs opened so far.
+    /// </summary>
+    public List<FixAssetReferencesViewModel> FixAssetReferencesDialogs { get; } = [];
+
+    /// <summary>
+    /// Acts as the user in the next fix-references dialogs (runs its commands) and returns whether the dialog was completed;
+    /// cancels them by default.
+    /// </summary>
+    public Func<FixAssetReferencesViewModel, Task<bool>> FixAssetReferences { get; set; } = _ => Task.FromResult(false);
+
+    public Task<bool> ShowFixAssetReferencesDialogAsync(FixAssetReferencesViewModel fixReferences)
+    {
+        FixAssetReferencesDialogs.Add(fixReferences);
+        return FixAssetReferences(fixReferences);
     }
 
     /// <summary>
