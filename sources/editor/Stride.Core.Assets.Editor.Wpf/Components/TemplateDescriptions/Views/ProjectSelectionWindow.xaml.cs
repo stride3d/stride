@@ -36,7 +36,7 @@ namespace Stride.Core.Assets.Editor.Components.TemplateDescriptions.Views
 
         protected override void OnClosing(CancelEventArgs e)
         {
-            if (Result == Presentation.Services.DialogResult.Ok)
+            if (Result == Stride.Core.Presentation.Services.DialogResult.Ok)
             {
                 if (!ValidateProperties())
                 {
@@ -45,7 +45,7 @@ namespace Stride.Core.Assets.Editor.Components.TemplateDescriptions.Views
                 }
             }
 
-            if (Result == Presentation.Services.DialogResult.Ok)
+            if (Result == Stride.Core.Presentation.Services.DialogResult.Ok)
             {
                 var recentProject = Templates.SelectedTemplate as ExistingProjectViewModel;
                 var newPackageTemplate = Templates.SelectedTemplate as TemplateDescriptionViewModel;
@@ -71,7 +71,7 @@ namespace Stride.Core.Assets.Editor.Components.TemplateDescriptions.Views
         protected override void OnClosed(EventArgs e)
         {
             base.OnClosed(e);
-            if (Result == Presentation.Services.DialogResult.Ok)
+            if (Result == Stride.Core.Presentation.Services.DialogResult.Ok)
             {
                 EditorSettings.Save();
                 InternalSettings.TemplatesWindowDialogLastNewSessionTemplateDirectory.SetValue(Templates.Location.FullPath);

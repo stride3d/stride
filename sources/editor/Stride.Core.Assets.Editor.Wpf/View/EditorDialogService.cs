@@ -31,7 +31,7 @@ using Stride.Core.Presentation.ViewModels;
 
 namespace Stride.Core.Assets.Editor.View
 {
-    using MessageBoxImage = Presentation.Services.MessageBoxImage;
+    using MessageBoxImage = Stride.Core.Presentation.Services.MessageBoxImage;
 
     public class EditorDialogService : DialogService, IEditorDialogService
     {

@@ -51,7 +51,7 @@ namespace Stride.Core.Assets.Editor.View
 
             await base.ShowModal();
 
-            if (Result == Presentation.Services.DialogResult.Ok)
+            if (Result == Stride.Core.Presentation.Services.DialogResult.Ok)
             {
                 selectedPackages.AddRange(PackageListBox.SelectedItems.Cast<PickablePackageViewModel>());
             }

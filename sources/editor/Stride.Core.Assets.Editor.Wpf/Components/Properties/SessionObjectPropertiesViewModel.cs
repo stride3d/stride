@@ -17,7 +17,7 @@ using Stride.Core.Translation;
 namespace Stride.Core.Assets.Editor.Components.Properties
 {
     /// <summary>
-    /// This class manages the construction of <see cref="Presentation.Quantum.ViewModels.GraphViewModel"/> of a selection of objects that
+    /// This class manages the construction of <see cref="Stride.Core.Presentation.Quantum.ViewModels.GraphViewModel"/> of a selection of objects that
     /// belongs to a session. It adds specific associated data and command related to the session, and updates
     /// the <see cref="SessionViewModel.ActiveProperties"/> property when it creates a new view model.
     /// </summary>

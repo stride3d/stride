@@ -178,7 +178,7 @@ namespace Stride.Core.Assets.Editor.Settings
         public static void Initialize()
         {
             SharedEditorSettings.Load(EditorPath.EditorConfigPath);
-            Presentation.Themes.ThemesSettings.Initialize();
+            Stride.Core.Presentation.Themes.ThemesSettings.Initialize();
 
             // Settings that requires a restart must register here:
             UseEffectCompilerServer.ChangesValidated += (s, e) => NeedRestart = true;
@@ -186,7 +186,7 @@ namespace Stride.Core.Assets.Editor.Settings
             GraphicsApi.ChangesValidated += (s, e) => NeedRestart = true;
             DebugOutputLevel.ChangesValidated += (s, e) => NeedRestart = true;
 
-            Presentation.Themes.ThemesSettings.ThemeName.ChangesValidated += (s, e) => NeedRestart = true;
+            Stride.Core.Presentation.Themes.ThemesSettings.ThemeName.ChangesValidated += (s, e) => NeedRestart = true;
         }
 
         public static void Save()
