@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Windows.Input;
 using Avalonia;
 using Avalonia.Data;
 using Stride.Core.Presentation.Avalonia.Controls;
@@ -41,6 +42,13 @@ public sealed class PropertyViewHelper
     public static readonly PropertyTemplateProviderSelector EditorProviders = new();
 
     public static readonly PropertyTemplateProviderSelector FooterProviders = new();
+
+    /// <summary>
+    /// Gets a command that expands the nested properties of a property, or collapses them when they are all expanded. Its
+    /// parameter is the <see cref="PropertyViewItem"/> of the property, or a control inside it.
+    /// </summary>
+    /// <remarks>The port of the WPF routed command, which no view of the WPF editor uses either.</remarks>
+    public static ICommand ToggleNestedPropertiesCommand { get; } = new ToggleNestedPropertiesCommandImpl();
 
     /// <summary>
     /// Get accessor for Attached property <see cref="IncrementProperty"/>.
@@ -91,6 +99,19 @@ public sealed class PropertyViewHelper
         target.SetValue(TemplateCategoryProperty, category);
     }
 
+    /// <summary>
+    /// Expands the nested properties of the given property, or collapses them when they are all expanded.
+    /// </summary>
+    /// <remarks>Only the nested properties shown change, as in WPF: those of a collapsed property aren't created yet.</remarks>
+    public static void ToggleNestedProperties(PropertyViewItem target)
+    {
+        var expand = target.Properties.Any(x => !x.IsExpanded);
+        foreach (var item in target.Properties)
+        {
+            item.SetCurrentValue(ExpandableItemsControl.IsExpandedProperty, expand);
+        }
+    }
+
     private static void OnIncrementChanged(StyledElement d, AvaloniaPropertyChangedEventArgs<double> e)
     {
         OnPropertyChanged(d, PropertyViewItem.IncrementProperty, e.NewValue.Value);
@@ -125,6 +146,28 @@ public sealed class PropertyViewHelper
         {
             var item = target as PropertyViewItem ?? target.FindVisualParentOfType<PropertyViewItem>();
             item?.SetCurrentValue(property, newValue);
+        }
+    }
+
+    private sealed class ToggleNestedPropertiesCommandImpl : ICommand
+    {
+        public event EventHandler? CanExecuteChanged
+        {
+            add { }
+            remove { }
+        }
+
+        public bool CanExecute(object? parameter) => FindItem(parameter) is not null;
+
+        public void Execute(object? parameter)
+        {
+            if (FindItem(parameter) is { } item)
+                ToggleNestedProperties(item);
+        }
+
+        private static PropertyViewItem? FindItem(object? parameter)
+        {
+            return parameter as PropertyViewItem ?? (parameter as StyledElement)?.FindVisualParentOfType<PropertyViewItem>();
         }
     }
 }

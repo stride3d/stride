@@ -6,6 +6,7 @@ using System.Collections.Concurrent;
 using System.Collections.Specialized;
 using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Diagnostics;
+using Stride.Core.Assets.Editor.Components.FixAssetReferences;
 using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Assets.Editor.Components.Transactions;
@@ -111,6 +112,9 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
 
         // Initialize the reference view model related to the main asset view
         References = new ReferencesViewModel(this);
+
+        // The tags of the selected assets, in the header of the property grid
+        AssetTags = new TagsViewModel(AssetCollection);
 
         // Construct package categories
         var localPackageName = session.SolutionPath != null ? string.Format(Tr._(@"Solution '{0}'"), session.SolutionPath.GetFileNameWithoutExtension()) : LocalPackageCategoryName;
@@ -257,6 +261,11 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
     public IReadOnlyDictionary<string, PackageCategoryViewModel> PackageCategories => packageCategories;
 
     public ReferencesViewModel References { get; }
+
+    /// <summary>
+    /// Gets the tags of the assets selected in the asset view.
+    /// </summary>
+    public TagsViewModel AssetTags { get; }
 
     /// <summary>
     /// Gets the package the root-asset toggle targets for the current selection (see <see cref="GetDefaultRootAssetTarget"/>).
@@ -636,6 +645,7 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
         ActionHistory.Destroy();
         Thumbnails.Destroy();
         AssetLog.Destroy();
+        AssetTags.Destroy();
 
         if (ServiceProvider.TryGet<IEditorDebugService>() is { } debugService)
         {
@@ -1097,9 +1107,12 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
                         .Any(x => GetAssetById(x.Item.Id) != null);
                 if (hasReferencesToFix)
                 {
-                    // FIXME xplat-editor: port the fix-references dialog (FixReferencesViewModel); until then the deletion is refused rather than leaving broken references
-                    await Dialogs.MessageBoxAsync(Tr._p("Message", "Other assets reference the assets to delete. Fixing those references is not available yet: remove the references first."), MessageBoxButton.OK, MessageBoxImage.Information);
-                    return false;
+                    var fixReferences = new FixAssetReferencesViewModel(ServiceProvider, this, allAssetsToDelete, DependencyManager);
+                    fixReferences.Initialize(allAssetsToDelete);
+                    if (!fixReferences.IsCompleted && !await ServiceProvider.Get<IEditorDialogService>().ShowFixAssetReferencesDialogAsync(fixReferences))
+                        return false;
+
+                    fixReferences.ProcessFixes();
                 }
             }
 

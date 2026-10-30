@@ -4,8 +4,11 @@
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
+using Stride.Core.Assets.Editor.Avalonia.Tests.Helpers;
 using Stride.Core.Assets.Editor.Avalonia.Views;
 using Stride.Core.Presentation.Avalonia.Controls;
+using Stride.Core.Presentation.Avalonia.Extensions;
 
 namespace Stride.Core.Assets.Editor.Avalonia.Tests;
 
@@ -48,4 +51,50 @@ public sealed class PropertyViewHelperTests
         Assert.NotSame(PropertyViewHelper.EditorProviders, PropertyViewHelper.FooterProviders);
         Assert.NotSame(PropertyViewHelper.HeaderProviders, PropertyViewHelper.FooterProviders);
     }
+
+    [AvaloniaFact]
+    public void TheToggleExpandsTheNestedPropertiesThenCollapsesThem()
+    {
+        var (window, propertyView) = PropertyViewWindow.Show(new NestedSample());
+        var outer = propertyView.Item(nameof(NestedSample.Outer));
+        outer.IsExpanded = true;
+        PropertyViewWindow.Refresh(window);
+        var (first, second) = (outer.Item(nameof(NestedOuter.First)), outer.Item(nameof(NestedOuter.Second)));
+        first.IsExpanded = true;
+
+        // One is collapsed: the toggle expands them all
+        Assert.True(PropertyViewHelper.ToggleNestedPropertiesCommand.CanExecute(outer));
+        PropertyViewHelper.ToggleNestedPropertiesCommand.Execute(outer);
+        Assert.True(first.IsExpanded);
+        Assert.True(second.IsExpanded);
+        // The property itself stays as it is
+        Assert.True(outer.IsExpanded);
+
+        // All are expanded: the toggle collapses them, from a control inside the property too
+        PropertyViewWindow.Refresh(window);
+        var control = outer.GetVisualDescendants().OfType<Control>().First(x => x.FindVisualParentOfType<PropertyViewItem>() == outer);
+        PropertyViewHelper.ToggleNestedPropertiesCommand.Execute(control);
+        Assert.False(first.IsExpanded);
+        Assert.False(second.IsExpanded);
+        window.Close();
+    }
+
+    [Fact]
+    public void TheToggleNeedsAProperty()
+    {
+        Assert.False(PropertyViewHelper.ToggleNestedPropertiesCommand.CanExecute(null));
+        Assert.False(PropertyViewHelper.ToggleNestedPropertiesCommand.CanExecute("not a control"));
+    }
+}
+
+public sealed class NestedSample
+{
+    public NestedOuter Outer { get; set; } = new();
+}
+
+public sealed class NestedOuter
+{
+    public FilterInner First { get; set; } = new();
+
+    public FilterInner Second { get; set; } = new();
 }

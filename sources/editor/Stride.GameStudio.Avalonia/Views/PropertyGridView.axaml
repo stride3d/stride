@@ -6,6 +6,9 @@
              xmlns:caeb="using:Stride.Core.Assets.Editor.Avalonia.Behaviors"
              xmlns:caecp="using:Stride.Core.Assets.Editor.Components.Properties"
              xmlns:capqvm="using:Stride.Core.Assets.Presentation.Quantum.ViewModels"
+             xmlns:caevm="using:Stride.Core.Assets.Editor.ViewModels"
+             xmlns:cpc="using:Stride.Core.Presentation.Commands"
+             xmlns:cpqvm="using:Stride.Core.Presentation.Quantum.ViewModels"
              xmlns:gsvw="using:Stride.GameStudio.Avalonia.Views"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Stride.GameStudio.Avalonia.Views.PropertyGridView"
@@ -62,14 +65,115 @@
       </Setter>
     </Style>
   </UserControl.Styles>
-  <DockPanel LastChildFill="True">
-    <TextBlock DockPanel.Dock="Top" Text="Property Grid"/>
-    <sd:PropertyView x:Name="Properties"
+  <!-- The property grid of the WPF Game Studio (GameStudioWindow.xaml): a header with the navigation in the selection history, the
+       description of the selection, the tags of the selected assets, "Open this asset in editor" and the search; the properties; and
+       a footer with the description of the property under the mouse. -->
+  <Grid RowDefinitions="Auto, Auto, Auto, *, 5, 70">
+    <DockPanel Grid.Row="0" Margin="6,6,6,2">
+      <!-- Adding tag -->
+      <TextBox x:Name="NewTagTextBox" DockPanel.Dock="Right" MinWidth="90"
+               PlaceholderText="{sd:LocalizeString Add new tag}"
+               IsVisible="{Binding Session.AssetCollection.SelectedAssets.Count, Converter={sd:NumericToBool}, FallbackValue={sd:False}}"
+               KeyDown="OnNewTagKeyDown"/>
+      <!-- Navigation -->
+      <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Margin="0,0,6,0" VerticalAlignment="Center">
+        <Button x:Name="PreviousSelectionButton"
+                Padding="2" Background="Transparent"
+                Command="{Binding Session.PreviousSelectionCommand, TargetNullValue={x:Static cpc:DisabledCommand.Instance}, FallbackValue={x:Static cpc:DisabledCommand.Instance}}"
+                HotKey="Alt+Left"
+                ToolTip.Tip="{sd:LocalizeString Previous selection, Context=ToolTip}" ToolTip.ShowOnDisabled="True">
+          <Image Source="{StaticResource ImagePrevious}" Width="16" Height="16"/>
+        </Button>
+        <Button x:Name="NextSelectionButton"
+                Padding="2" Background="Transparent"
+                Command="{Binding Session.NextSelectionCommand, TargetNullValue={x:Static cpc:DisabledCommand.Instance}, FallbackValue={x:Static cpc:DisabledCommand.Instance}}"
+                HotKey="Alt+Right"
+                ToolTip.Tip="{sd:LocalizeString Next selection, Context=ToolTip}" ToolTip.ShowOnDisabled="True">
+          <Image Source="{StaticResource ImageNext}" Width="16" Height="16"/>
+        </Button>
+      </StackPanel>
+      <!-- Description -->
+      <TextBlock x:Name="SelectionDescription" TextTrimming="CharacterEllipsis" VerticalAlignment="Center">
+        <Run Text="{Binding TypeDescription, Mode=OneWay}" FontWeight="Bold"/>
+        <Run Text="{Binding Name, Mode=OneWay}"/>
+      </TextBlock>
+    </DockPanel>
+    <!-- Tags -->
+    <ItemsControl x:Name="Tags" Grid.Row="1" Margin="6,2"
+                  ItemsSource="{Binding Session.AssetTags.Tags}"
+                  IsVisible="{Binding Session.AssetTags.Tags.Count, Converter={sd:NumericToBool}, FallbackValue={sd:False}}">
+      <ItemsControl.ItemsPanel>
+        <ItemsPanelTemplate>
+          <WrapPanel Orientation="Horizontal"/>
+        </ItemsPanelTemplate>
+      </ItemsControl.ItemsPanel>
+      <ItemsControl.ItemTemplate>
+        <DataTemplate DataType="caevm:TagViewModel">
+          <Border Height="20" Margin="2" Padding="4,0,0,0" CornerRadius="3"
+                  BorderThickness="1" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
+                  Background="{DynamicResource SystemControlBackgroundBaseLowBrush}"
+                  ToolTip.Tip="{Binding Name}"
+                  IsVisible="{Binding Assets.Count, Converter={sd:NumericToBool}}">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+              <TextBlock Margin="2,0" Text="{Binding Name}" TextTrimming="CharacterEllipsis" MaxWidth="100" VerticalAlignment="Center"/>
+              <!-- A click on the counter adds the tag to the selected assets that don't have it yet -->
+              <Button Padding="0" Background="Transparent" BorderThickness="0" VerticalAlignment="Center"
+                      Content="{Binding Counter}"
+                      Command="{Binding AddTagToAllCommand}"
+                      IsEnabled="{Binding CanAddToAll}"
+                      Cursor="Hand"
+                      ToolTip.Tip="{sd:LocalizeString Add tag to all, Context=ToolTip}"/>
+              <Button Margin="2,0" Padding="2,0" Background="Transparent" BorderThickness="0" VerticalAlignment="Center"
+                      Command="{Binding RemoveTagCommand}"
+                      ToolTip.Tip="{sd:LocalizeString Remove tag, Context=ToolTip}">
+                <Image Source="{StaticResource ImageClear}" Width="10" Height="10"/>
+              </Button>
+            </StackPanel>
+          </Border>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+    <DockPanel Grid.Row="2" Margin="6,2">
+      <!-- Open in editor -->
+      <Button x:Name="EditSelectedContentButton" DockPanel.Dock="Top" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="0,0,0,8"
+              Command="{Binding Session.EditSelectedContentCommand}"
+              IsVisible="{Binding Session.EditSelectedContentCommand.IsEnabled, FallbackValue={sd:False}}">
+        <Panel>
+          <StackPanel Orientation="Horizontal" IsVisible="{Binding CanDisplayProperties, FallbackValue={sd:False}}">
+            <Image Source="{StaticResource ImageRename}" Margin="4" Width="16" Height="16"/>
+            <TextBlock Text="{sd:LocalizeString Open this asset in editor}" Margin="0,4,4,4" VerticalAlignment="Center"/>
+          </StackPanel>
+          <TextBlock Text="{sd:LocalizeString Show this asset in editor}" Margin="0,4,4,4" VerticalAlignment="Center"
+                     IsVisible="{Binding !CanDisplayProperties}"/>
+        </Panel>
+      </Button>
+      <!-- Search -->
+      <TextBox x:Name="PropertyFilterTextBox" Classes="clearButton"
+               PlaceholderText="{sd:LocalizeString Search properties}"
+               IsVisible="{Binding CanDisplayProperties, FallbackValue={sd:False}}"/>
+    </DockPanel>
+    <TextBlock Grid.Row="3" Text="{Binding FallbackMessage}" HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="Wrap"
+               IsVisible="{Binding !CanDisplayProperties, FallbackValue={sd:False}}"/>
+    <sd:PropertyView x:Name="Properties" Grid.Row="3"
                      ItemsSource="{Binding ViewModel?.RootNode.Children}"
-                     IsVisible="{Binding CanDisplayProperties}">
+                     IsVisible="{Binding CanDisplayProperties, FallbackValue={sd:False}}">
       <Interaction.Behaviors>
         <caeb:PropertyViewAutoExpandNodesBehavior ViewModel="{Binding ViewModel, Mode=OneWay}" />
+        <caeb:PropertyViewFilteringBehavior FilterToken="{Binding #PropertyFilterTextBox.Text}"/>
       </Interaction.Behaviors>
     </sd:PropertyView>
-  </DockPanel>
+    <GridSplitter Grid.Row="4" ResizeDirection="Rows"/>
+    <!-- Footer: the description of the property under the mouse -->
+    <DockPanel x:Name="PropertyDescription" Grid.Row="5"
+               DataContext="{Binding #Properties.HoveredItem.DataContext}" x:DataType="cpqvm:NodeViewModel">
+      <Grid Margin="4" DockPanel.Dock="Top" ColumnDefinitions="Auto, 20, *, Auto">
+        <TextBlock Grid.Column="0" FontWeight="Bold" Text="{Binding DisplayName, FallbackValue={x:Null}}" TextTrimming="CharacterEllipsis"/>
+        <TextBlock Grid.Column="2" FontWeight="Thin" FontStyle="Italic" TextAlignment="Right" TextTrimming="CharacterEllipsis"
+                   Text="{Binding Type.Namespace, StringFormat={}{0}., FallbackValue={x:Null}}"/>
+        <TextBlock Grid.Column="3" FontWeight="Bold" FontStyle="Italic" TextAlignment="Left" TextTrimming="CharacterEllipsis"
+                   Text="{Binding Type.Name, FallbackValue={x:Null}}"/>
+      </Grid>
+      <TextBlock Margin="4" Text="{Binding [Documentation], FallbackValue={x:Null}}" TextWrapping="Wrap" TextTrimming="WordEllipsis"/>
+    </DockPanel>
+  </Grid>
 </UserControl>

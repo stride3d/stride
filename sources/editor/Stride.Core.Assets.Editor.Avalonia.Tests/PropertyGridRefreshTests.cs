@@ -20,12 +20,10 @@ namespace Stride.Core.Assets.Editor.Avalonia.Tests;
 /// </summary>
 public sealed class PropertyGridRefreshTests
 {
-    private static bool providersRegistered;
-
     [AvaloniaFact]
     public void TheInlinedValueFollowsAReplacedObject()
     {
-        RegisterDefaultProviders();
+        DefaultProviders.Register();
         var context = new NodeViewModelContext(new InlineScalarUpdater());
         var holder = new ScalarHolder();
         var node = context.MemberOf(holder, nameof(ScalarHolder.Scalar));
@@ -47,25 +45,6 @@ public sealed class PropertyGridRefreshTests
     {
         var valueBox = Assert.Single(window.GetVisualDescendants().OfType<NumericTextBox>());
         return valueBox.GetVisualDescendants().OfType<TextBox>().First().Text;
-    }
-
-    // The editor registers the providers of the plugins the same way (PluginService), once per process
-    private static void RegisterDefaultProviders()
-    {
-        if (providersRegistered)
-            return;
-
-        providersRegistered = true;
-        foreach (var provider in new DefaultPropertyTemplateProviders().Values.OfType<TemplateProviderBase>())
-        {
-            var selector = PropertyViewHelper.GetTemplateCategory(provider) switch
-            {
-                PropertyViewHelper.Category.PropertyHeader => PropertyViewHelper.HeaderProviders,
-                PropertyViewHelper.Category.PropertyFooter => PropertyViewHelper.FooterProviders,
-                _ => PropertyViewHelper.EditorProviders,
-            };
-            selector.RegisterTemplateProvider(provider);
-        }
     }
 
     // What InlineMemberNodeUpdater and NumericValueNodeUpdater do for a ComputeFloat, without an asset

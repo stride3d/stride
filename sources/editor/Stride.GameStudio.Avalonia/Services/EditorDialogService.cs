@@ -4,6 +4,7 @@
 using Avalonia.Controls;
 using Stride.Core.Assets.Editor.Avalonia.Views;
 using Stride.Core.Assets.Editor.Components.AddAssets;
+using Stride.Core.Assets.Editor.Components.FixAssetReferences;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Settings;
@@ -204,8 +205,21 @@ internal class EditorDialogService : DialogService, IEditorDialogService, IProgr
         {
             var picker = new AssetPickerViewModel(session, acceptedTypes, filter, initialAsset, initialLocation) { Message = message };
             var window = new AssetPickerWindow { DataContext = picker };
-            var picked = await window.ShowDialog<bool>(MainWindow);
+            // Over the dialog it is picked for, if any (the fix-references dialog): on closing, the owner comes back to the front
+            var picked = await window.ShowDialog<bool>(ActiveWindow ?? MainWindow);
             return picked ? picker.SelectedAsset : null;
+        });
+    }
+
+    public async Task<bool> ShowFixAssetReferencesDialogAsync(FixAssetReferencesViewModel fixReferences)
+    {
+        ArgumentNullException.ThrowIfNull(fixReferences);
+        if (MainWindow is null) return false;
+
+        return await Dispatcher.InvokeTask(async () =>
+        {
+            var window = new FixAssetReferencesWindow { DataContext = fixReferences };
+            return await window.ShowDialog<bool>(ActiveWindow ?? MainWindow);
         });
     }
 

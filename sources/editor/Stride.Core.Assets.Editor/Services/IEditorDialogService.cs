@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core.Assets.Editor.Components.AddAssets;
+using Stride.Core.Assets.Editor.Components.FixAssetReferences;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModel.Progress;
@@ -83,6 +84,18 @@ public interface IEditorDialogService : IDialogService
     Task<TemplateDescriptionViewModel?> ShowAssetTemplatesDialogAsync(AssetTemplatesViewModel templates)
     {
         return Task.FromResult<TemplateDescriptionViewModel?>(null);
+    }
+
+    /// <summary>
+    /// Shows the references to fix before assets are deleted (see <see cref="FixAssetReferencesViewModel"/>) and waits for the
+    /// user to decide what to do with each of them. A host without the dialog cancels.
+    /// </summary>
+    /// <param name="fixReferences">The references to fix, initialized with the deleted assets.</param>
+    /// <returns><c>true</c> when the user handled every reference (the caller then applies the fixes with
+    /// <see cref="Components.FixReferences.FixReferencesViewModel{T}.ProcessFixes"/>); <c>false</c> when they cancelled.</returns>
+    Task<bool> ShowFixAssetReferencesDialogAsync(FixAssetReferencesViewModel fixReferences)
+    {
+        return Task.FromResult(false);
     }
 
     /// <summary>

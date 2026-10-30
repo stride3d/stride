@@ -6,6 +6,7 @@ using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.VisualTree;
+using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Commands;
 using Stride.Core.Presentation.Avalonia.Commands;
 using Stride.Core.Presentation.Avalonia.Controls;
@@ -42,6 +43,22 @@ public partial class PropertyGridView : UserControl
             replace.Execute(null);
             e.Handled = true;
         }
+    }
+
+    /// <summary>
+    /// Enter in the "Add new tag" box adds the tag to the selected assets and clears the box, as the WPF box does on validation.
+    /// </summary>
+    private void OnNewTagKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Enter || sender is not TextBox textBox)
+            return;
+
+        if (DataContext is SessionObjectPropertiesViewModel { Session.AssetTags.AddTagCommand: { } addTag } && addTag.CanExecute(textBox.Text))
+        {
+            addTag.Execute(textBox.Text);
+        }
+        textBox.Clear();
+        e.Handled = true;
     }
 
     /// <summary>
