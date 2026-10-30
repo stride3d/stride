@@ -320,14 +320,14 @@ namespace Stride.GameStudio.View
         /// <param name="assetIds">The list of asset ids for which to reopen the editor.</param>
         private async Task ReopenAssetEditors(IReadOnlyCollection<AssetId> assetIds)
         {
-            if (assetIds.Count == 0)
+            // Open assets
+            var assets = assetIds.Select(x => Editor.Session.GetAssetById(x)).NotNull().ToList();
+            if (assets.Count == 0)
             {
-                // If no data, try to open the default scene
+                // If no data, or none of the assets exists anymore, try to open the default scene
                 await OpenDefaultScene(Editor.Session);
                 return;
             }
-            // Open assets
-            var assets = assetIds.Select(x => Editor.Session.GetAssetById(x)).NotNull().ToList();
             Editor.Session.ActiveAssetView.SelectAssets(assets.Last().Yield());
             foreach (var asset in assets)
             {
