@@ -4,10 +4,10 @@
 using Stride.Core;
 using Stride.Core.Mathematics;
 
-namespace Stride.Heightfield.Assets;
+namespace Stride.Heightfield.RuntimeLayer;
 
 /// <summary>
-/// Data shared between the compile-time and runtime representation of the <see cref="SinusoidalWave"/>
+/// Data shared between the compile-time and runtime representation of <see cref="SinusoidalWaveRuntimeLayer"/>
 /// </summary>
 [DataContract]
 public record SinusoidalWaveSharedData

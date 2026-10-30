@@ -49,7 +49,7 @@ public sealed class RunevisionTerrainAsset : Asset
 
     /// <inheritdoc cref="NormalizationMethod"/>
     [Display(null, "Settings")]
-    public NormalizationMethod Normalization { get; set; } = NormalizationMethod.Root;
+    public NormalizationMethod Normalization { get; set; } = NormalizationMethod.Normalize;
 
     /// <summary>
     /// The input heightfield data to apply the erosion filter over
@@ -245,9 +245,12 @@ public sealed class RunevisionTerrainAsset : Asset
     [DataContract]
     public class HeightTexture : IHeightInput
     {
+        /// <summary>
+        /// The middle of the range of height, defines valleys are below, peaks are above
+        /// </summary>
         public float DefaultHeight = 0.45f;
         public float Tiling = 1f;
-        public float HeightMultiplier = 1f;
+        public float HeightMultiplier = 0.3f;
         public required Texture Texture;
 
         /// <inheritdoc/>
@@ -297,35 +300,34 @@ public sealed class RunevisionTerrainAsset : Asset
 
             return Compute;
 
-            float SampleTexture(Vector2 normalizedPoint)
+            float SampleTexture(Vector2 cellCoord)
             {
-                var cellCoord = normalizedPoint * (Vector2)texResolution;
                 return Vector2.BilinearSample(cellCoord, texResolution, heights);
             }
 
             void Compute(Vector2 normalizedPoint, out float height, out Vector2 normal, out float fadeTarget)
             {
-                normalizedPoint *= Tiling;
-                height = SampleTexture(normalizedPoint);
+                var cellCoord = normalizedPoint * Tiling * (Vector2)texResolution;
+                height = SampleTexture(cellCoord);
 
-                var pixelNormalizedSize = 1.0f / (Vector2)texResolution;
+                var pixelNormalizedSize = Tiling / (Vector2)texResolution;
 
-                normalizedPoint.X -= pixelNormalizedSize.X; float dx0 = SampleTexture(normalizedPoint);
-                normalizedPoint.X += pixelNormalizedSize.X * 2.0f; float dx1 = SampleTexture(normalizedPoint);
+                cellCoord.X -= 1; float dx0 = SampleTexture(cellCoord);
+                cellCoord.X += 2; float dx1 = SampleTexture(cellCoord);
 
-                normalizedPoint.X -= pixelNormalizedSize.X;
+                cellCoord.X -= 1;
 
-                normalizedPoint.Y -= pixelNormalizedSize.Y; float dy0 = SampleTexture(normalizedPoint);
-                normalizedPoint.Y += pixelNormalizedSize.Y * 2.0f; float dy1 = SampleTexture(normalizedPoint);
+                cellCoord.Y -= 1; float dy0 = SampleTexture(cellCoord);
+                cellCoord.Y += 2; float dy1 = SampleTexture(cellCoord);
 
-                normalizedPoint.Y -= pixelNormalizedSize.Y;
+                cellCoord.Y -= 1;
 
                 normal.X = (dx1 - dx0) / (2f * pixelNormalizedSize.X);
                 normal.Y = (dy1 - dy0) / (2f * pixelNormalizedSize.Y);
 
                 // Define the erosion fade target based on the altitude of the pre-eroded terrain.
                 // The fade target should strive to be -1 at valleys and 1 at peaks, but overshooting is ok.
-                fadeTarget = MathUtil.Clamp((height - DefaultHeight) / 0.15f, -1.0f, 1.0f);
+                fadeTarget = MathUtil.Clamp((height - DefaultHeight * HeightMultiplier) / 0.5f, -1.0f, 1.0f);
             }
         }
     }

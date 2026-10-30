@@ -2,13 +2,12 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core;
-using Stride.Core.Serialization;
 using Stride.Graphics;
 
-namespace Stride.Heightfield.Assets;
+namespace Stride.Heightfield.RuntimeLayer;
 
 /// <summary>
-/// Data shared between the compile-time and runtime representation of the <see cref="HeightfieldTexture"/>
+/// Data shared between the compile-time and runtime representation of <see cref="TextureRuntimeLayer"/>
 /// </summary>
 [DataContract]
 public record HeightfieldTextureSharedData
