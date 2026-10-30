@@ -402,10 +402,11 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
         if (isNew)
             sessionData.RemoveFile(dataPath);
         editorsRestorer = new SessionEditorsRestorer(Session, sessionData, dataPath);
-        editorsRestorer.Restore();
 
-        // The build the session runs when it opens: thumbnails and previews wait for it
+        // The build the session runs when it opens: thumbnails and previews wait for it. Shown before the editors open, which
+        // takes long enough for a build that has nothing to do to finish
         _ = ShowShaderImportAsync(Session);
+        editorsRestorer.Restore();
     }
 
     /// <summary>
