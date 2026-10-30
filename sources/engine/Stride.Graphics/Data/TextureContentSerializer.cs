@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using System.Collections.Generic;
 using Stride.Core;
 using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
@@ -21,6 +22,28 @@ namespace Stride.Graphics.Data
             if (mode == ArchiveMode.Deserialize)
             {
                 var services = stream.Context.Tags.Get(ServiceRegistry.ServiceRegistryKey);
+                if (services == null)
+                {
+                    var data = TextureSerializationData.Read(stream, out var fullRezDescription);
+                    if (data.EnableStreaming)
+                    {
+                        // regardless of 'allowContentStreaming' state, we can't stream at
+                        // this point without a service, load it in full.
+
+                        if (fullRezDescription != data.Image.Description) // This is the lowest mip used as placeholder while streaming, discard it
+                        {
+                            data.Image.Dispose();
+                            data.Image = Image.New(fullRezDescription);
+                        }
+
+                        var contentSerializerContext = stream.Context.Get(ContentSerializerContext.ContentSerializerContextProperty);
+                        DeserializeTexture(contentSerializerContext.ContentManager, data.Image, ref fullRezDescription, ref data.StorageHeader);
+                    }
+
+                    texture.SetSerializationData(data);
+                    return;
+                }
+
                 var graphicsDeviceService = services.GetSafeServiceAs<IGraphicsDeviceService>();
                 var texturesStreamingProvider = services.GetService<ITexturesStreamingProvider>();
 
@@ -157,6 +180,49 @@ namespace Stride.Graphics.Data
 
                 // Initialize texture
                 texture.InitializeFrom(imageDescription, new TextureViewDescription(), dataBoxes);
+
+                storage.UnlockChunks();
+            }
+        }
+
+        private static void DeserializeTexture(ContentManager contentManager, Image image, ref ImageDescription imageDescription, ref ContentStorageHeader storageHeader)
+        {
+            using (var content = new ContentStreamingService())
+            {
+                // Get content storage container
+                var storage = content.GetStorage(ref storageHeader);
+                if (storage == null)
+                    throw new ContentStreamingException("Missing content storage.");
+                storage.LockChunks();
+
+                // Cache data
+                var fileProvider = contentManager.FileProvider;
+                var format = imageDescription.Format;
+
+                // Get data boxes data
+                for (int arrayIndex = 0; arrayIndex < imageDescription.ArraySize; arrayIndex++)
+                {
+                    for (int mipIndex = 0; mipIndex < imageDescription.MipLevels; mipIndex++)
+                    {
+                        var (mipWidth, mipHeight) = Image.GetMipDimensions(format, imageDescription.Width, imageDescription.Height, mipIndex);
+
+                        int rowPitch, slicePitch;
+                        int widthPacked;
+                        int heightPacked;
+                        Image.ComputePitch(format, mipWidth, mipHeight, out rowPitch, out slicePitch, out widthPacked, out heightPacked);
+
+                        var chunk = storage.GetChunk(mipIndex);
+                        if (chunk == null || chunk.Size != slicePitch * imageDescription.ArraySize)
+                            throw new ContentStreamingException("Data chunk is missing or has invalid size.", storage);
+                        var data = chunk.GetData(fileProvider);
+                        if (!chunk.IsLoaded)
+                            throw new ContentStreamingException("Data chunk is not loaded.", storage);
+
+                        var pb = new PixelBuffer(mipWidth, mipHeight, format, rowPitch, slicePitch, data + slicePitch * arrayIndex);
+                        var pxBuffer = image.GetPixelBuffer(arrayIndex, mipIndex);
+                        pb.CopyTo(pxBuffer);
+                    }
+                }
 
                 storage.UnlockChunks();
             }
