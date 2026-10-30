@@ -1438,16 +1438,55 @@
           <Image Source="{StaticResource ImageFetchAsset}" Width="16" Height="16"/>
         </Button>
       </UniformGrid>
-      <!-- MinWidth 0: in a narrow grid the box shrinks instead of overflowing onto the buttons, which it would cover -->
-      <TextBox Margin="5" MinWidth="0"
-               IsReadOnly="{Binding IsReadOnly}"
-               Text="{Binding NodeValue, Converter={caec:ContentReferenceToUrl}, UpdateSourceTrigger=Explicit}"
-               ContextMenu="{StaticResource ReferenceContextMenu}">
-        <!-- Commit on Enter or focus loss after a user edit only: the default trigger wrote the reference back on display -->
-        <Interaction.Behaviors>
-          <sd:CommitTextBehavior/>
-        </Interaction.Behaviors>
-      </TextBox>
+      <Grid>
+        <!-- MinWidth 0: in a narrow grid the box shrinks instead of overflowing onto the buttons, which it would cover -->
+        <TextBox x:Name="UrlTextBox" Margin="5" MinWidth="0"
+                 IsReadOnly="{Binding IsReadOnly}"
+                 Text="{Binding NodeValue, Converter={caec:ContentReferenceToUrl}, UpdateSourceTrigger=Explicit}"
+                 ToolTip.Tip="{Binding NodeValue, Converter={caec:ContentReferenceToUrl}}"
+                 ContextMenu="{StaticResource ReferenceContextMenu}">
+          <TextBox.Styles>
+            <Style Selector="TextBox:not(:focus-within)">
+              <Setter Property="Foreground" Value="Transparent"/>
+            </Style>
+          </TextBox.Styles>
+          <!-- Commit on Enter or focus loss after a user edit only: the default trigger wrote the reference back on display -->
+          <Interaction.Behaviors>
+            <sd:CommitTextBehavior/>
+          </Interaction.Behaviors>
+        </TextBox>
+        <!-- Unfocused display, as in WPF: left-aligned, the name has priority (trimmed last), the dimmed location and its
+             slash go together when space runs low. The box's own text is hidden meanwhile -->
+        <Border Margin="5" Padding="{Binding #UrlTextBox.Padding}" BorderThickness="{Binding #UrlTextBox.BorderThickness}"
+                IsHitTestVisible="False" IsVisible="{Binding !#UrlTextBox.IsKeyboardFocusWithin}">
+          <Grid x:Name="RefOverlay">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+              <StackPanel Orientation="Horizontal">
+                <StackPanel.IsVisible>
+                  <MultiBinding Converter="{caec:ReferenceLocationVisibility}" ConverterParameter="24">
+                    <Binding ElementName="RefOverlay" Path="Bounds.Width"/>
+                    <Binding ElementName="RefName" Path="Bounds.Width"/>
+                    <Binding Path="NodeValue" Converter="{caec:ContentReferenceToDisplayLocation}"/>
+                  </MultiBinding>
+                </StackPanel.IsVisible>
+                <TextBlock x:Name="RefLocation" Opacity="0.6" TextTrimming="CharacterEllipsis"
+                           Text="{Binding NodeValue, Converter={caec:ContentReferenceToDisplayLocation}}">
+                  <TextBlock.MaxWidth>
+                    <MultiBinding Converter="{caec:ReferenceLocationMaxWidth}" ConverterParameter="6">
+                      <Binding ElementName="RefOverlay" Path="Bounds.Width"/>
+                      <Binding ElementName="RefName" Path="Bounds.Width"/>
+                    </MultiBinding>
+                  </TextBlock.MaxWidth>
+                </TextBlock>
+                <TextBlock Opacity="0.6" Text="/"/>
+              </StackPanel>
+              <TextBlock x:Name="RefName" TextTrimming="CharacterEllipsis"
+                         Text="{Binding NodeValue, Converter={caec:ContentReferenceToDisplayName}}"
+                         MaxWidth="{Binding #RefOverlay.Bounds.Width}"/>
+            </StackPanel>
+          </Grid>
+        </Border>
+      </Grid>
     </DockPanel>
   </DataTemplate>
   <caev:ContentReferenceTemplateProvider x:Key="SimpleContentReferenceTemplateProvider" caev:PropertyViewHelper.TemplateCategory="PropertyEditor"
@@ -1470,8 +1509,9 @@
                     ToolTip.Tip="{sd:LocalizeString Select the referenced asset, Context=ToolTip}">
               <Image x:Name="ThumbnailImage"
                      Width="64" Height="64"
-                     DataContext="{Binding ((caevm:AssetViewModel)NodeValue), Converter={caec:ContentReferenceToAsset}}"
-                     Source="{Binding ThumbnailData?.Presenter, Mode=OneWay}"/>
+                     DataContext="{Binding NodeValue, Converter={caec:ContentReferenceToAsset}}"
+                     x:DataType="caevm:AssetViewModel"
+                     Source="{Binding ThumbnailData.Presenter, Converter={caec:ThumbnailToImage}, FallbackValue={x:Null}}"/>
               <Interaction.Behaviors>
                 <!-- FIXME only on pointer down -->
                 <EventTriggerBehavior EventName="PointerPressed" >
@@ -1480,11 +1520,12 @@
               </Interaction.Behaviors>
             </Border>
             <ProgressBar Width="16" Height="4" IsIndeterminate="True"
-                         DataContext="{Binding ((caevm:AssetViewModel)NodeValue), Converter={caec:ContentReferenceToAsset}}"
+                         DataContext="{Binding NodeValue, Converter={caec:ContentReferenceToAsset}}"
+                         x:DataType="caevm:AssetViewModel"
                          IsVisible="{Binding ThumbnailData, Converter={sd:Chained {sd:ObjectToBool}, {sd:InvertBool}}, FallbackValue={sd:False}}"/>
             <Border Width="64" Height="64"
                     Background="Transparent"
-                    IsVisible="{Binding NodeValue, Converter={sd:Chained {caec:ContentReferenceToAsset}, {sd:ObjectToBool}}}"
+                    IsVisible="{Binding NodeValue, Converter={sd:Chained {caec:ContentReferenceToAsset}, {sd:ObjectToBool}, {sd:InvertBool}}}"
                     ToolTip.Tip="{sd:LocalizeString Select an asset, Context=ToolTip}">
               <Image x:Name="PickupImage"
                      Width="16" Height="16"
@@ -1500,15 +1541,53 @@
           </Grid>
         </Border>
         <DockPanel>
-          <TextBox DockPanel.Dock="Top"
-                   Margin="5"
-                   IsReadOnly="{Binding IsReadOnly}"
-                   Text="{Binding NodeValue, Converter={caec:ContentReferenceToUrl}, UpdateSourceTrigger=Explicit}"
-                   ContextMenu="{StaticResource ReferenceContextMenu}">
-            <Interaction.Behaviors>
-              <sd:CommitTextBehavior/>
-            </Interaction.Behaviors>
-          </TextBox>
+          <Grid DockPanel.Dock="Top">
+            <TextBox x:Name="UrlTextBoxThumb" Margin="2,0,5,5" MinWidth="0"
+                     IsReadOnly="{Binding IsReadOnly}"
+                     Text="{Binding NodeValue, Converter={caec:ContentReferenceToUrl}, UpdateSourceTrigger=Explicit}"
+                     ToolTip.Tip="{Binding NodeValue, Converter={caec:ContentReferenceToUrl}}"
+                     ContextMenu="{StaticResource ReferenceContextMenu}">
+              <TextBox.Styles>
+                <Style Selector="TextBox:not(:focus-within)">
+                  <Setter Property="Foreground" Value="Transparent"/>
+                </Style>
+              </TextBox.Styles>
+              <Interaction.Behaviors>
+                <sd:CommitTextBehavior/>
+              </Interaction.Behaviors>
+            </TextBox>
+            <!-- Unfocused display, as in WPF: left-aligned, the name has priority (trimmed last), the dimmed location and its
+                 slash go together when space runs low. The box's own text is hidden meanwhile -->
+            <Border Margin="2,0,5,5" Padding="{Binding #UrlTextBoxThumb.Padding}" BorderThickness="{Binding #UrlTextBoxThumb.BorderThickness}"
+                    IsHitTestVisible="False" IsVisible="{Binding !#UrlTextBoxThumb.IsKeyboardFocusWithin}">
+              <Grid x:Name="RefOverlayThumb">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+                  <StackPanel Orientation="Horizontal">
+                    <StackPanel.IsVisible>
+                      <MultiBinding Converter="{caec:ReferenceLocationVisibility}" ConverterParameter="24">
+                        <Binding ElementName="RefOverlayThumb" Path="Bounds.Width"/>
+                        <Binding ElementName="RefNameThumb" Path="Bounds.Width"/>
+                        <Binding Path="NodeValue" Converter="{caec:ContentReferenceToDisplayLocation}"/>
+                      </MultiBinding>
+                    </StackPanel.IsVisible>
+                    <TextBlock x:Name="RefLocationThumb" Opacity="0.6" TextTrimming="CharacterEllipsis"
+                               Text="{Binding NodeValue, Converter={caec:ContentReferenceToDisplayLocation}}">
+                      <TextBlock.MaxWidth>
+                        <MultiBinding Converter="{caec:ReferenceLocationMaxWidth}" ConverterParameter="6">
+                          <Binding ElementName="RefOverlayThumb" Path="Bounds.Width"/>
+                          <Binding ElementName="RefNameThumb" Path="Bounds.Width"/>
+                        </MultiBinding>
+                      </TextBlock.MaxWidth>
+                    </TextBlock>
+                    <TextBlock Opacity="0.6" Text="/"/>
+                  </StackPanel>
+                  <TextBlock x:Name="RefNameThumb" TextTrimming="CharacterEllipsis"
+                             Text="{Binding NodeValue, Converter={caec:ContentReferenceToDisplayName}}"
+                             MaxWidth="{Binding #RefOverlayThumb.Bounds.Width}"/>
+                </StackPanel>
+              </Grid>
+            </Border>
+          </Grid>
           <UniformGrid Rows="1"
                        HorizontalAlignment="Right" VerticalAlignment="Top">
             <Button Theme="{StaticResource ImageButtonTheme}"
