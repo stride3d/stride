@@ -93,7 +93,9 @@ namespace Stride.Core.Assets.Editor.Settings
             // Ensure we are properly synchronized with the file.
             LoadFromSettings();
 
-            update(GetOrCreateDataPrivate(filePath));
+            var data = GetOrCreateDataPrivate(filePath);
+            update(data);
+            UpdateDataPrivate(data);
 
             // Save immediately
             SaveToSettings();
@@ -153,8 +155,9 @@ namespace Stride.Core.Assets.Editor.Settings
 
             // Remove it if it was already in the list
             mruList.RemoveWhere(x => string.Equals(x.FilePath, data.FilePath, StringComparison.OrdinalIgnoreCase));
-            // Add again
-            mruList.Add(data);
+            // Add again, as the most recent: only the most recent ones are saved
+            data.Timestamp = DateTime.UtcNow.Ticks;
+            mruList.Insert(0, data);
         }
 
         private void LoadFromSettings()
