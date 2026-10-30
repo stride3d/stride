@@ -8,6 +8,7 @@ using Stride.Assets.Entities;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories;
 using Stride.Assets.Presentation.AssetEditors.GameEditor;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
+using Stride.Assets.Presentation.SceneEditor;
 using Stride.Assets.Presentation.ViewModel.CopyPasteProcessors;
 using Stride.Assets.Presentation.ViewModels;
 using Stride.Core;

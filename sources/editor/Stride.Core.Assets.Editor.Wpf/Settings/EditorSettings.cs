@@ -4,8 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Stride.Core.Annotations;
-using Stride.Core.CodeEditorSupport;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Quantum.ViewModels;
@@ -16,8 +16,8 @@ namespace Stride.Core.Assets.Editor.Settings
 {
     public static class EditorSettings
     {
-        private static SettingsProfile profile;
-        public static SettingsContainer SettingsContainer = new SettingsContainer();
+        // One container with the keys declared in the shared projects (ExternalToolsSettings...), which the Avalonia editor reads too
+        public static SettingsContainer SettingsContainer = SharedEditorSettings.SettingsContainer;
         /// <summary>
         /// Always delete {0} without asking
         /// </summary>
@@ -26,31 +26,15 @@ namespace Stride.Core.Assets.Editor.Settings
 
         // Categories
         public static readonly string Environment = Tr._p("Settings", "Environment");
-        public static readonly string ExternalTools = Tr._p("Settings", "External tools");
+        public static readonly string ExternalTools = ExternalToolsSettings.ExternalTools;
         public static readonly string Interface = Tr._p("Settings", "Interface");
         public static readonly string Logging = Tr._p("Settings", "Logging");
         public static readonly string Tools = Tr._p("Settings", "Tools");
 
         static EditorSettings()
         {
-            DefaultTextEditor = new SettingsKey<UFile>("ExternalTools/DefaultTextEditor", SettingsContainer, new UFile(@"%windir%\system32\notepad.exe"))
-            {
-                DisplayName = $"{ExternalTools}/{Tr._p("Settings", "Default text editor")}",
-            };
-            ShaderEditor = new SettingsKey<UFile>("ExternalTools/ShaderEditor", SettingsContainer, new UFile(@"%windir%\system32\notepad.exe"))
-            {
-                DisplayName = $"{ExternalTools}/{Tr._p("Settings", "Shader editor")}",
-            };
-            DefaultIDE = new SettingsKey<string>("ExternalTools/DefaultIDE", SettingsContainer, IDEInfo.DefaultIDE.DisplayName)
-            {
-                GetAcceptableValues = () =>
-                {
-                    var names = new List<string> { IDEInfo.DefaultIDE.DisplayName };
-                    names.AddRange(IDEInfoVersions.AvailableIDEs().Where(x => x.HasProgram).Select(x => x.DisplayName));
-                    return names;
-                },
-                DisplayName = $"{ExternalTools}/{Tr._p("Settings", "Default IDE")}",
-            };
+            // The External tools keys are declared in the shared project
+            RuntimeHelpers.RunClassConstructor(typeof(ExternalToolsSettings).TypeHandle);
             AskBeforeDeletingAssets = new SettingsKey<bool>("Interface/AskBeforeDeletingAssets", SettingsContainer, true)
             {
                 DisplayName = $"{Interface}/{Tr._p("Settings", "Ask before deleting assets")}",
@@ -137,11 +121,11 @@ namespace Stride.Core.Assets.Editor.Settings
             return levels;
         }
 
-        public static SettingsKey<UFile> DefaultTextEditor { get; }
+        public static SettingsKey<UFile> DefaultTextEditor => ExternalToolsSettings.DefaultTextEditor;
 
-        public static SettingsKey<UFile> ShaderEditor { get; }
+        public static SettingsKey<UFile> ShaderEditor => ExternalToolsSettings.ShaderEditor;
 
-        public static SettingsKey<string> DefaultIDE { get; }
+        public static SettingsKey<string> DefaultIDE => ExternalToolsSettings.DefaultIDE;
 
         public static SettingsKey<bool> AskBeforeDeletingAssets { get; }
 
@@ -193,7 +177,7 @@ namespace Stride.Core.Assets.Editor.Settings
 
         public static void Initialize()
         {
-            profile = SettingsContainer.LoadSettingsProfile(EditorPath.EditorConfigPath, true) ?? SettingsContainer.CreateSettingsProfile(true);
+            SharedEditorSettings.Load(EditorPath.EditorConfigPath);
             Presentation.Themes.ThemesSettings.Initialize();
 
             // Settings that requires a restart must register here:
@@ -207,7 +191,7 @@ namespace Stride.Core.Assets.Editor.Settings
 
         public static void Save()
         {
-            SettingsContainer.SaveSettingsProfile(profile, EditorPath.EditorConfigPath);
+            SharedEditorSettings.Save();
         }
 
         [NotNull]
