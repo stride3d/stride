@@ -24,6 +24,8 @@ public sealed class NumericValueNodeUpdater : NodePresenterUpdaterBase
 
     public void UpdateNode(INodePresenter node, MemberInfo memberInfo)
     {
+        ArgumentNullException.ThrowIfNull(memberInfo);
+
         var stepRange = TypeDescriptorFactory.Default.AttributeRegistry.GetAttribute<DataMemberRangeAttribute>(memberInfo);
         var isNumeric = node.Type.IsNumeric();
         // If the type is integral numeric, we don't want decimal places
@@ -68,6 +70,9 @@ public sealed class NumericValueNodeUpdater : NodePresenterUpdaterBase
     /// <remarks>A type is numeric when <see cref="TypeExtensions.IsNumeric"/> returns true.</remarks>
     public static object GetMinimum(Type type)
     {
+        if (type.IsEnum)
+            throw new ArgumentException("Numeric type expected");
+
         return Type.GetTypeCode(type) switch
         {
             TypeCode.Byte => byte.MinValue,
@@ -81,7 +86,7 @@ public sealed class NumericValueNodeUpdater : NodePresenterUpdaterBase
             TypeCode.Single => float.MinValue,
             TypeCode.Double => double.MinValue,
             TypeCode.Decimal => decimal.MinValue,
-            _ => new ArgumentException("Numeric type expected")
+            _ => throw new ArgumentException("Numeric type expected")
         };
     }
 
@@ -92,22 +97,25 @@ public sealed class NumericValueNodeUpdater : NodePresenterUpdaterBase
     /// <returns>The maximum value of the given type.</returns>
     /// <exception cref="ArgumentException">The given type is not a numeric type.</exception>
     /// <remarks>A type is numeric when <see cref="TypeExtensions.IsNumeric"/> returns true.</remarks>
-public static object GetMaximum(Type type)
-{
-    return Type.GetTypeCode(type) switch
+    public static object GetMaximum(Type type)
     {
-        TypeCode.Byte => byte.MaxValue,
-        TypeCode.SByte => sbyte.MaxValue,
-        TypeCode.Int16 => short.MaxValue,
-        TypeCode.UInt16 => ushort.MaxValue,
-        TypeCode.Int32 => int.MaxValue,
-        TypeCode.UInt32 => uint.MaxValue,
-        TypeCode.Int64 => long.MaxValue,
-        TypeCode.UInt64 => ulong.MaxValue,
-        TypeCode.Single => float.MaxValue,
-        TypeCode.Double => double.MaxValue,
-        TypeCode.Decimal => decimal.MaxValue,
-        _ => new ArgumentException("Numeric type expected")
-    };
-}
+        if (type.IsEnum)
+            throw new ArgumentException("Numeric type expected");
+
+        return Type.GetTypeCode(type) switch
+        {
+            TypeCode.Byte => byte.MaxValue,
+            TypeCode.SByte => sbyte.MaxValue,
+            TypeCode.Int16 => short.MaxValue,
+            TypeCode.UInt16 => ushort.MaxValue,
+            TypeCode.Int32 => int.MaxValue,
+            TypeCode.UInt32 => uint.MaxValue,
+            TypeCode.Int64 => long.MaxValue,
+            TypeCode.UInt64 => ulong.MaxValue,
+            TypeCode.Single => float.MaxValue,
+            TypeCode.Double => double.MaxValue,
+            TypeCode.Decimal => decimal.MaxValue,
+            _ => throw new ArgumentException("Numeric type expected")
+        };
+    }
 }
