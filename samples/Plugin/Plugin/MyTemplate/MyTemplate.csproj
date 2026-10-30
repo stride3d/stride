@@ -3,6 +3,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <RootNamespace>MyTemplate</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
     <Version>1.0.0</Version>
     <PackageTags>stride-plugin</PackageTags>
     <Description>A Stride plugin.</Description>
