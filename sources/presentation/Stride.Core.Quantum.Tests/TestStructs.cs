@@ -60,11 +60,11 @@ public class TestStructs
 
         var memberNode = containerNode[nameof(StructContainer.Struct)];
         Helper.TestMemberNode(containerNode, memberNode, container, container.Struct, nameof(StructContainer.Struct), true);
-        Helper.TestNonNullObjectReference(memberNode.TargetReference, container.Struct, false);
-        var structMember1Node = memberNode.Target[nameof(SimpleStruct.Name)];
-        Helper.TestMemberNode(memberNode.Target, structMember1Node, container.Struct, container.Struct.Name, nameof(SimpleStruct.Name), false);
-        var structMember2Node = memberNode.Target[nameof(SimpleStruct.Value)];
-        Helper.TestMemberNode(memberNode.Target, structMember2Node, container.Struct, container.Struct.Value, nameof(SimpleStruct.Value), false);
+        Helper.TestNonNullObjectReference(memberNode.TargetReference!, container.Struct, false);
+        var structMember1Node = memberNode.Target![nameof(SimpleStruct.Name)];
+        Helper.TestMemberNode(memberNode.Target!, structMember1Node, container.Struct, container.Struct.Name, nameof(SimpleStruct.Name), false);
+        var structMember2Node = memberNode.Target![nameof(SimpleStruct.Value)];
+        Helper.TestMemberNode(memberNode.Target!, structMember2Node, container.Struct, container.Struct.Value, nameof(SimpleStruct.Value), false);
     }
 
     [Fact]
@@ -74,7 +74,7 @@ public class TestStructs
         var container = new StructContainer { Struct = new SimpleStruct { Name = "Test", Value = 1 } };
         var containerNode = nodeContainer.GetOrCreateNode(container);
         var memberNode = containerNode[nameof(StructContainer.Struct)];
-        var targetNode = memberNode.Target;
+        var targetNode = memberNode.Target!;
         var structMember1Node = targetNode[nameof(SimpleStruct.Name)];
         var structMember2Node = targetNode[nameof(SimpleStruct.Value)];
         memberNode.Update(new SimpleStruct { Name = "Test2", Value = 2 });
@@ -82,12 +82,12 @@ public class TestStructs
         Assert.Equal("Test2", container.Struct.Name);
         Assert.Equal(2, container.Struct.Value);
         Assert.Equal(targetNode, memberNode.Target);
-        Assert.Equal(structMember1Node, memberNode.Target[nameof(SimpleStruct.Name)]);
-        Assert.Equal(structMember2Node, memberNode.Target[nameof(SimpleStruct.Value)]);
-        structMember1Node = memberNode.Target[nameof(SimpleStruct.Name)];
-        Helper.TestMemberNode(memberNode.Target, structMember1Node, container.Struct, container.Struct.Name, nameof(SimpleStruct.Name), false);
-        structMember2Node = memberNode.Target[nameof(SimpleStruct.Value)];
-        Helper.TestMemberNode(memberNode.Target, structMember2Node, container.Struct, container.Struct.Value, nameof(SimpleStruct.Value), false);
+        Assert.Equal(structMember1Node, memberNode.Target![nameof(SimpleStruct.Name)]);
+        Assert.Equal(structMember2Node, memberNode.Target![nameof(SimpleStruct.Value)]);
+        structMember1Node = memberNode.Target![nameof(SimpleStruct.Name)];
+        Helper.TestMemberNode(memberNode.Target!, structMember1Node, container.Struct, container.Struct.Name, nameof(SimpleStruct.Name), false);
+        structMember2Node = memberNode.Target![nameof(SimpleStruct.Value)];
+        Helper.TestMemberNode(memberNode.Target!, structMember2Node, container.Struct, container.Struct.Value, nameof(SimpleStruct.Value), false);
     }
 
     [Fact]
@@ -97,22 +97,22 @@ public class TestStructs
         var container = new StructContainer { Struct = new SimpleStruct { Name = "Test", Value = 1 } };
         var containerNode = nodeContainer.GetOrCreateNode(container);
         var memberNode = containerNode[nameof(StructContainer.Struct)];
-        var targetNode = memberNode.Target;
+        var targetNode = memberNode.Target!;
         var structMember1Node = targetNode[nameof(SimpleStruct.Name)];
         var structMember2Node = targetNode[nameof(SimpleStruct.Value)];
 
         Helper.TestNonCollectionObjectNode(containerNode, container, 1);
         Helper.TestMemberNode(containerNode, memberNode, container, container.Struct, nameof(StructContainer.Struct), true);
-        Helper.TestNonNullObjectReference(memberNode.TargetReference, container.Struct, false);
-        Helper.TestMemberNode(memberNode.Target, structMember1Node, container.Struct, container.Struct.Name, nameof(SimpleStruct.Name), false);
+        Helper.TestNonNullObjectReference(memberNode.TargetReference!, container.Struct, false);
+        Helper.TestMemberNode(memberNode.Target!, structMember1Node, container.Struct, container.Struct.Name, nameof(SimpleStruct.Name), false);
 
         structMember1Node.Update("Test2");
         Assert.Equal("Test2", container.Struct.Name);
         Assert.Equal(targetNode, memberNode.Target);
-        Assert.Equal(structMember1Node, memberNode.Target[nameof(SimpleStruct.Name)]);
-        Assert.Equal(structMember2Node, memberNode.Target[nameof(SimpleStruct.Value)]);
-        Helper.TestMemberNode(memberNode.Target, structMember1Node, container.Struct, container.Struct.Name, nameof(SimpleStruct.Name), false);
-        Helper.TestMemberNode(memberNode.Target, memberNode.Target.Members.First(), container.Struct, container.Struct.Name, nameof(SimpleStruct.Name), false);
+        Assert.Equal(structMember1Node, memberNode.Target![nameof(SimpleStruct.Name)]);
+        Assert.Equal(structMember2Node, memberNode.Target![nameof(SimpleStruct.Value)]);
+        Helper.TestMemberNode(memberNode.Target!, structMember1Node, container.Struct, container.Struct.Name, nameof(SimpleStruct.Name), false);
+        Helper.TestMemberNode(memberNode.Target!, memberNode.Target!.Members.First(), container.Struct, container.Struct.Name, nameof(SimpleStruct.Name), false);
     }
 
     [Fact]
@@ -122,15 +122,15 @@ public class TestStructs
         var container = new StructWithCollectionContainer { Struct = new StructWithCollection { Strings = ["aaa", "bbb"] } };
         var containerNode = nodeContainer.GetOrCreateNode(container);
         var memberNode = containerNode[nameof(StructWithCollectionContainer.Struct)];
-        var targetNode = memberNode.Target;
+        var targetNode = memberNode.Target!;
         var structMemberNode = targetNode[nameof(StructWithCollection.Strings)];
 
         Helper.TestNonCollectionObjectNode(containerNode, container, 1);
         Helper.TestMemberNode(containerNode, memberNode, container, container.Struct, nameof(StructWithCollectionContainer.Struct), true);
-        Helper.TestNonNullObjectReference(memberNode.TargetReference, container.Struct, false);
+        Helper.TestNonNullObjectReference(memberNode.TargetReference!, container.Struct, false);
         Helper.TestMemberNode(targetNode, structMemberNode, container.Struct, container.Struct.Strings, nameof(StructWithCollection.Strings), true);
 
-        structMemberNode.Target.Update("ddd", new NodeIndex(1));
+        structMemberNode.Target!.Update("ddd", new NodeIndex(1));
         Assert.Equal("ddd", container.Struct.Strings[1]);
         Assert.Equal(targetNode, memberNode.Target);
         Assert.Equal(structMemberNode, targetNode[nameof(StructWithCollection.Strings)]);
@@ -144,22 +144,22 @@ public class TestStructs
         var container = new NestingStructContainer { Struct = new FirstNestingStruct { Struct1 = new SecondNestingStruct { Struct2 = new SimpleStruct { Name = "Test", Value = 1 } } } };
         var containerNode = nodeContainer.GetOrCreateNode(container);
         var memberNode = containerNode[nameof(NestingStructContainer.Struct)];
-        var firstTargetNode = memberNode.Target;
+        var firstTargetNode = memberNode.Target!;
         var firstNestingMemberNode = firstTargetNode[nameof(FirstNestingStruct.Struct1)];
-        var secondTargetNode = firstNestingMemberNode.Target;
+        var secondTargetNode = firstNestingMemberNode.Target!;
         var secondNestingMemberNode = secondTargetNode[nameof(SecondNestingStruct.Struct2)];
-        var structMember1Node = secondNestingMemberNode.Target[nameof(SimpleStruct.Name)];
-        var structMember2Node = secondNestingMemberNode.Target[nameof(SimpleStruct.Value)];
+        var structMember1Node = secondNestingMemberNode.Target![nameof(SimpleStruct.Name)];
+        var structMember2Node = secondNestingMemberNode.Target![nameof(SimpleStruct.Value)];
 
         Helper.TestNonCollectionObjectNode(containerNode, container, 1);
         Helper.TestMemberNode(containerNode, memberNode, container, container.Struct, nameof(StructContainer.Struct), true);
-        Helper.TestNonNullObjectReference(memberNode.TargetReference, container.Struct, false);
-        Helper.TestMemberNode(memberNode.Target, firstNestingMemberNode, container.Struct, container.Struct.Struct1, nameof(FirstNestingStruct.Struct1), true);
-        Helper.TestNonNullObjectReference(firstNestingMemberNode.TargetReference, container.Struct.Struct1, false);
-        Helper.TestMemberNode(firstNestingMemberNode.Target, secondNestingMemberNode, container.Struct.Struct1, container.Struct.Struct1.Struct2, nameof(SecondNestingStruct.Struct2), true);
-        Helper.TestNonNullObjectReference(secondNestingMemberNode.TargetReference, container.Struct.Struct1.Struct2, false);
-        Helper.TestMemberNode(secondNestingMemberNode.Target, structMember1Node, container.Struct.Struct1.Struct2, container.Struct.Struct1.Struct2.Name, nameof(SimpleStruct.Name), false);
-        Helper.TestMemberNode(secondNestingMemberNode.Target, structMember2Node, container.Struct.Struct1.Struct2, container.Struct.Struct1.Struct2.Value, nameof(SimpleStruct.Value), false);
+        Helper.TestNonNullObjectReference(memberNode.TargetReference!, container.Struct, false);
+        Helper.TestMemberNode(memberNode.Target!, firstNestingMemberNode, container.Struct, container.Struct.Struct1, nameof(FirstNestingStruct.Struct1), true);
+        Helper.TestNonNullObjectReference(firstNestingMemberNode.TargetReference!, container.Struct.Struct1, false);
+        Helper.TestMemberNode(firstNestingMemberNode.Target!, secondNestingMemberNode, container.Struct.Struct1, container.Struct.Struct1.Struct2, nameof(SecondNestingStruct.Struct2), true);
+        Helper.TestNonNullObjectReference(secondNestingMemberNode.TargetReference!, container.Struct.Struct1.Struct2, false);
+        Helper.TestMemberNode(secondNestingMemberNode.Target!, structMember1Node, container.Struct.Struct1.Struct2, container.Struct.Struct1.Struct2.Name, nameof(SimpleStruct.Name), false);
+        Helper.TestMemberNode(secondNestingMemberNode.Target!, structMember2Node, container.Struct.Struct1.Struct2, container.Struct.Struct1.Struct2.Value, nameof(SimpleStruct.Value), false);
     }
 
     [Fact]
@@ -169,12 +169,12 @@ public class TestStructs
         var container = new NestingStructContainer { Struct = new FirstNestingStruct { Struct1 = new SecondNestingStruct { Struct2 = new SimpleStruct { Name = "Test", Value = 1 } } } };
         var containerNode = nodeContainer.GetOrCreateNode(container);
         var memberNode = containerNode[nameof(NestingStructContainer.Struct)];
-        var firstTargetNode = memberNode.Target;
+        var firstTargetNode = memberNode.Target!;
         var firstNestingMemberNode = firstTargetNode[nameof(FirstNestingStruct.Struct1)];
-        var secondTargetNode = firstNestingMemberNode.Target;
+        var secondTargetNode = firstNestingMemberNode.Target!;
         var secondNestingMemberNode = secondTargetNode[nameof(SecondNestingStruct.Struct2)];
-        var structMember1Node = secondNestingMemberNode.Target[nameof(SimpleStruct.Name)];
-        var structMember2Node = secondNestingMemberNode.Target[nameof(SimpleStruct.Value)];
+        var structMember1Node = secondNestingMemberNode.Target![nameof(SimpleStruct.Name)];
+        var structMember2Node = secondNestingMemberNode.Target![nameof(SimpleStruct.Value)];
 
         var newStruct = new FirstNestingStruct { Struct1 = new SecondNestingStruct { Struct2 = new SimpleStruct { Name = "Test2", Value = 2 } } };
         memberNode.Update(newStruct);
@@ -184,18 +184,18 @@ public class TestStructs
         Assert.Equal(firstNestingMemberNode, firstTargetNode[nameof(FirstNestingStruct.Struct1)]);
         Assert.Equal(secondTargetNode, firstNestingMemberNode.Target);
         Assert.Equal(secondNestingMemberNode, secondTargetNode[nameof(SecondNestingStruct.Struct2)]);
-        Assert.Equal(structMember1Node, secondNestingMemberNode.Target[nameof(SimpleStruct.Name)]);
-        Assert.Equal(structMember2Node, secondNestingMemberNode.Target[nameof(SimpleStruct.Value)]);
+        Assert.Equal(structMember1Node, secondNestingMemberNode.Target![nameof(SimpleStruct.Name)]);
+        Assert.Equal(structMember2Node, secondNestingMemberNode.Target![nameof(SimpleStruct.Value)]);
 
         Helper.TestNonCollectionObjectNode(containerNode, container, 1);
         Helper.TestMemberNode(containerNode, memberNode, container, container.Struct, nameof(StructContainer.Struct), true);
-        Helper.TestNonNullObjectReference(memberNode.TargetReference, container.Struct, false);
-        Helper.TestMemberNode(memberNode.Target, firstNestingMemberNode, container.Struct, container.Struct.Struct1, nameof(FirstNestingStruct.Struct1), true);
-        Helper.TestNonNullObjectReference(firstNestingMemberNode.TargetReference, container.Struct.Struct1, false);
-        Helper.TestMemberNode(firstNestingMemberNode.Target, secondNestingMemberNode, container.Struct.Struct1, container.Struct.Struct1.Struct2, nameof(SecondNestingStruct.Struct2), true);
-        Helper.TestNonNullObjectReference(secondNestingMemberNode.TargetReference, container.Struct.Struct1.Struct2, false);
-        Helper.TestMemberNode(secondNestingMemberNode.Target, structMember1Node, container.Struct.Struct1.Struct2, container.Struct.Struct1.Struct2.Name, nameof(SimpleStruct.Name), false);
-        Helper.TestMemberNode(secondNestingMemberNode.Target, structMember2Node, container.Struct.Struct1.Struct2, container.Struct.Struct1.Struct2.Value, nameof(SimpleStruct.Value), false);
+        Helper.TestNonNullObjectReference(memberNode.TargetReference!, container.Struct, false);
+        Helper.TestMemberNode(memberNode.Target!, firstNestingMemberNode, container.Struct, container.Struct.Struct1, nameof(FirstNestingStruct.Struct1), true);
+        Helper.TestNonNullObjectReference(firstNestingMemberNode.TargetReference!, container.Struct.Struct1, false);
+        Helper.TestMemberNode(firstNestingMemberNode.Target!, secondNestingMemberNode, container.Struct.Struct1, container.Struct.Struct1.Struct2, nameof(SecondNestingStruct.Struct2), true);
+        Helper.TestNonNullObjectReference(secondNestingMemberNode.TargetReference!, container.Struct.Struct1.Struct2, false);
+        Helper.TestMemberNode(secondNestingMemberNode.Target!, structMember1Node, container.Struct.Struct1.Struct2, container.Struct.Struct1.Struct2.Name, nameof(SimpleStruct.Name), false);
+        Helper.TestMemberNode(secondNestingMemberNode.Target!, structMember2Node, container.Struct.Struct1.Struct2, container.Struct.Struct1.Struct2.Value, nameof(SimpleStruct.Value), false);
     }
 
     [Fact]
@@ -205,12 +205,12 @@ public class TestStructs
         var container = new NestingStructContainer { Struct = new FirstNestingStruct { Struct1 = new SecondNestingStruct { Struct2 = new SimpleStruct { Name = "Test", Value = 1 } } } };
         var containerNode = nodeContainer.GetOrCreateNode(container);
         var memberNode = containerNode[nameof(NestingStructContainer.Struct)];
-        var firstTargetNode = memberNode.Target;
+        var firstTargetNode = memberNode.Target!;
         var firstNestingMemberNode = firstTargetNode[nameof(FirstNestingStruct.Struct1)];
-        var secondTargetNode = firstNestingMemberNode.Target;
+        var secondTargetNode = firstNestingMemberNode.Target!;
         var secondNestingMemberNode = secondTargetNode[nameof(SecondNestingStruct.Struct2)];
-        var structMember1Node = secondNestingMemberNode.Target[nameof(SimpleStruct.Name)];
-        var structMember2Node = secondNestingMemberNode.Target[nameof(SimpleStruct.Value)];
+        var structMember1Node = secondNestingMemberNode.Target![nameof(SimpleStruct.Name)];
+        var structMember2Node = secondNestingMemberNode.Target![nameof(SimpleStruct.Value)];
 
         var newStruct = new SecondNestingStruct { Struct2 = new SimpleStruct { Name = "Test2", Value = 2 } };
         firstNestingMemberNode.Update(newStruct);
@@ -220,18 +220,18 @@ public class TestStructs
         Assert.Equal(firstNestingMemberNode, firstTargetNode[nameof(FirstNestingStruct.Struct1)]);
         Assert.Equal(secondTargetNode, firstNestingMemberNode.Target);
         Assert.Equal(secondNestingMemberNode, secondTargetNode[nameof(SecondNestingStruct.Struct2)]);
-        Assert.Equal(structMember1Node, secondNestingMemberNode.Target[nameof(SimpleStruct.Name)]);
-        Assert.Equal(structMember2Node, secondNestingMemberNode.Target[nameof(SimpleStruct.Value)]);
+        Assert.Equal(structMember1Node, secondNestingMemberNode.Target![nameof(SimpleStruct.Name)]);
+        Assert.Equal(structMember2Node, secondNestingMemberNode.Target![nameof(SimpleStruct.Value)]);
 
         Helper.TestNonCollectionObjectNode(containerNode, container, 1);
         Helper.TestMemberNode(containerNode, memberNode, container, container.Struct, nameof(StructContainer.Struct), true);
-        Helper.TestNonNullObjectReference(memberNode.TargetReference, container.Struct, false);
+        Helper.TestNonNullObjectReference(memberNode.TargetReference!, container.Struct, false);
         Helper.TestMemberNode(firstTargetNode, firstNestingMemberNode, container.Struct, container.Struct.Struct1, nameof(FirstNestingStruct.Struct1), true);
-        Helper.TestNonNullObjectReference(firstNestingMemberNode.TargetReference, container.Struct.Struct1, false);
+        Helper.TestNonNullObjectReference(firstNestingMemberNode.TargetReference!, container.Struct.Struct1, false);
         Helper.TestMemberNode(secondTargetNode, secondNestingMemberNode, container.Struct.Struct1, container.Struct.Struct1.Struct2, nameof(SecondNestingStruct.Struct2), true);
-        Helper.TestNonNullObjectReference(secondNestingMemberNode.TargetReference, container.Struct.Struct1.Struct2, false);
-        Helper.TestMemberNode(secondNestingMemberNode.Target, structMember1Node, container.Struct.Struct1.Struct2, container.Struct.Struct1.Struct2.Name, nameof(SimpleStruct.Name), false);
-        Helper.TestMemberNode(secondNestingMemberNode.Target, structMember2Node, container.Struct.Struct1.Struct2, container.Struct.Struct1.Struct2.Value, nameof(SimpleStruct.Value), false);
+        Helper.TestNonNullObjectReference(secondNestingMemberNode.TargetReference!, container.Struct.Struct1.Struct2, false);
+        Helper.TestMemberNode(secondNestingMemberNode.Target!, structMember1Node, container.Struct.Struct1.Struct2, container.Struct.Struct1.Struct2.Name, nameof(SimpleStruct.Name), false);
+        Helper.TestMemberNode(secondNestingMemberNode.Target!, structMember2Node, container.Struct.Struct1.Struct2, container.Struct.Struct1.Struct2.Value, nameof(SimpleStruct.Value), false);
     }
 
     [Fact]
@@ -241,12 +241,12 @@ public class TestStructs
         var container = new NestingStructContainer { Struct = new FirstNestingStruct { Struct1 = new SecondNestingStruct { Struct2 = new SimpleStruct { Name = "Test", Value = 1 } } } };
         var containerNode = nodeContainer.GetOrCreateNode(container);
         var memberNode = containerNode[nameof(NestingStructContainer.Struct)];
-        var firstTargetNode = memberNode.Target;
+        var firstTargetNode = memberNode.Target!;
         var firstNestingMemberNode = firstTargetNode[nameof(FirstNestingStruct.Struct1)];
-        var secondTargetNode = firstNestingMemberNode.Target;
+        var secondTargetNode = firstNestingMemberNode.Target!;
         var secondNestingMemberNode = secondTargetNode[nameof(SecondNestingStruct.Struct2)];
-        var structMember1Node = secondNestingMemberNode.Target[nameof(SimpleStruct.Name)];
-        var structMember2Node = secondNestingMemberNode.Target[nameof(SimpleStruct.Value)];
+        var structMember1Node = secondNestingMemberNode.Target![nameof(SimpleStruct.Name)];
+        var structMember2Node = secondNestingMemberNode.Target![nameof(SimpleStruct.Value)];
 
         structMember1Node.Update("Test2");
         structMember2Node.Update(2);
@@ -256,17 +256,17 @@ public class TestStructs
         Assert.Equal(firstNestingMemberNode, firstTargetNode[nameof(FirstNestingStruct.Struct1)]);
         Assert.Equal(secondTargetNode, firstNestingMemberNode.Target);
         Assert.Equal(secondNestingMemberNode, secondTargetNode[nameof(SecondNestingStruct.Struct2)]);
-        Assert.Equal(structMember1Node, secondNestingMemberNode.Target[nameof(SimpleStruct.Name)]);
-        Assert.Equal(structMember2Node, secondNestingMemberNode.Target[nameof(SimpleStruct.Value)]);
+        Assert.Equal(structMember1Node, secondNestingMemberNode.Target![nameof(SimpleStruct.Name)]);
+        Assert.Equal(structMember2Node, secondNestingMemberNode.Target![nameof(SimpleStruct.Value)]);
 
         Helper.TestNonCollectionObjectNode(containerNode, container, 1);
         Helper.TestMemberNode(containerNode, memberNode, container, container.Struct, nameof(StructContainer.Struct), true);
-        Helper.TestNonNullObjectReference(memberNode.TargetReference, container.Struct, false);
+        Helper.TestNonNullObjectReference(memberNode.TargetReference!, container.Struct, false);
         Helper.TestMemberNode(firstTargetNode, firstNestingMemberNode, container.Struct, container.Struct.Struct1, nameof(FirstNestingStruct.Struct1), true);
-        Helper.TestNonNullObjectReference(firstNestingMemberNode.TargetReference, container.Struct.Struct1, false);
+        Helper.TestNonNullObjectReference(firstNestingMemberNode.TargetReference!, container.Struct.Struct1, false);
         Helper.TestMemberNode(secondTargetNode, secondNestingMemberNode, container.Struct.Struct1, container.Struct.Struct1.Struct2, nameof(SecondNestingStruct.Struct2), true);
-        Helper.TestNonNullObjectReference(secondNestingMemberNode.TargetReference, container.Struct.Struct1.Struct2, false);
-        Helper.TestMemberNode(secondNestingMemberNode.Target, structMember1Node, container.Struct.Struct1.Struct2, container.Struct.Struct1.Struct2.Name, nameof(SimpleStruct.Name), false);
-        Helper.TestMemberNode(secondNestingMemberNode.Target, structMember2Node, container.Struct.Struct1.Struct2, container.Struct.Struct1.Struct2.Value, nameof(SimpleStruct.Value), false);
+        Helper.TestNonNullObjectReference(secondNestingMemberNode.TargetReference!, container.Struct.Struct1.Struct2, false);
+        Helper.TestMemberNode(secondNestingMemberNode.Target!, structMember1Node, container.Struct.Struct1.Struct2, container.Struct.Struct1.Struct2.Name, nameof(SimpleStruct.Name), false);
+        Helper.TestMemberNode(secondNestingMemberNode.Target!, structMember2Node, container.Struct.Struct1.Struct2, container.Struct.Struct1.Struct2.Value, nameof(SimpleStruct.Value), false);
     }
 }

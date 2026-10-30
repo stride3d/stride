@@ -24,7 +24,7 @@ public class GraphViewModelService
 
     public INodePresenterFactory NodePresenterFactory { get; set; }
 
-    public NodeViewModelFactory NodeViewModelFactory { get; set; }
+    public INodeViewModelFactory NodeViewModelFactory { get; set; }
 
     public List<INodePresenterCommand> AvailableCommands { get; } = [];
 
