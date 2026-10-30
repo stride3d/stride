@@ -53,7 +53,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y libvulkan1 lld
       - name: Build
         run: |
-          dotnet build build/Stride.Tests.Simple.Linux.slnf \
+          dotnet build sources/Stride.Tests.Simple.Linux.slnf \
             -p:StrideTestRuntimeIdentifier=linux-x64 \
             -nr:false \
             -v:m -p:WarningLevel=0 \
@@ -68,7 +68,7 @@ jobs:
           if [ -n "$FILTER" ]; then FILTER_ARG=(--filter "$FILTER"); fi
           for i in $(seq 1 "$REPEAT"); do
             echo "=== Test run $i / $REPEAT ==="
-            dotnet test build/Stride.Tests.Simple.Linux.slnf \
+            dotnet test sources/Stride.Tests.Simple.Linux.slnf \
               --no-build \
               --logger:"trx;LogFilePrefix=run-$i" --results-directory TestResults \
               --blame-hang-timeout 5m --blame-hang-dump-type full \

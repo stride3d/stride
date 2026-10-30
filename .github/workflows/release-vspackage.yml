@@ -70,7 +70,7 @@ jobs:
       - name: Build VS Package
         run: |
           # --no-restore: the VSIXPlugin target restores its solution itself.
-          dotnet build build\Stride.build `
+          dotnet build build\package.proj `
             -t:VSIXPlugin `
             --no-restore `
             ${{ inputs.upload-binlog && !inputs.sign && '-bl' || '' }} -m -nr:false `
@@ -211,4 +211,4 @@ jobs:
       apply: true
     secrets:
       gh-token: ${{ secrets.GH_PAT }}
-      anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+      anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY_RELEASE_NOTES }}

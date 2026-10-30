@@ -114,7 +114,7 @@ jobs:
       - name: Show gold landing info
         run: |
           MODE='${{ inputs.update-gold }}'
-          CMD="dotnet run --project build/tools/Stride.CompareGold -- promote --source ${{ github.repository }}:${{ github.run_id }}"
+          CMD="dotnet run --project tests/infra/Stride.CompareGold -- promote --source ${{ github.repository }}:${{ github.run_id }}"
 
           # What the promote job will do with this run's gold (SUMMARY), and how to preview it
           # locally first (PROMPT). The mode is shown on its own line so it reads at a glance.
@@ -275,11 +275,11 @@ jobs:
       - name: Promote gold (tolerance-aware)
         run: |
           # Absolute path: `dotnet run --project` runs with cwd = the project dir, not the workspace,
-          # so a relative --source would resolve against build/tools/Stride.CompareGold/.
+          # so a relative --source would resolve against tests/infra/Stride.CompareGold/.
           SRC="$GITHUB_WORKSPACE/gold-staging"
-          dotnet run --project build/tools/Stride.CompareGold -- promote --source "$SRC" --out "$GITHUB_WORKSPACE/promote-summary.json"
+          dotnet run --project tests/infra/Stride.CompareGold -- promote --source "$SRC" --out "$GITHUB_WORKSPACE/promote-summary.json"
           if [ "${{ inputs.dedup-gold }}" = "true" ]; then
-            dotnet run --project build/tools/Stride.CompareGold -- dedup --source "$SRC"
+            dotnet run --project tests/infra/Stride.CompareGold -- dedup --source "$SRC"
           fi
       - name: Commit and land
         env:

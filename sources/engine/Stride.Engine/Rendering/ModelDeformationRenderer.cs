@@ -338,41 +338,41 @@ internal sealed class ModelDeformationRenderer : IModelDeformer, IDisposable
         var (groupX, groupY) = ThreadNumbers(group);
         var effect = Effect(group);
         var parameters = effect.Parameters;
-        parameters.Set(Keys.Input, sharedMesh.Input);
-        parameters.Set(Keys.Entries, sharedMesh.Entries);
-        parameters.Set(Keys.Offsets, sharedMesh.Offsets);
-        parameters.Set(Keys.Weights, weights.Buffer);
-        parameters.Set(Keys.Poses, poses.Buffer);
-        parameters.Set(Keys.Records, records.Buffer);
-        parameters.Set(Keys.BoneBinds, sharedMesh.BoneBinds);
-        parameters.Set(Keys.BoneNodes, sharedMesh.BoneNodes);
-        parameters.Set(Keys.RecordBase, (uint)batch.RecordBase);
-        parameters.Set(Keys.WeightBase, (uint)batch.WeightBase);
-        parameters.Set(Keys.Output, batch.Output);
-        parameters.Set(Keys.VertexCount, (uint)sharedMesh.Binding.Count);
-        parameters.Set(Keys.Stride, (uint)sharedMesh.Binding.Stride);
-        parameters.Set(Keys.Position, (uint)sharedMesh.PositionOffset);
-        parameters.Set(Keys.Normal, sharedMesh.NormalOffset);
-        parameters.Set(Keys.Tangent, sharedMesh.TangentOffset);
-        parameters.Set(Keys.Indices, sharedMesh.IndicesOffset);
-        parameters.Set(Keys.BlendWeights, sharedMesh.WeightsOffset);
-        parameters.Set(Keys.BoneCount, (uint)sharedMesh.BoneCount);
+        parameters.Set(MorphSkinningKeys.InputVertices, sharedMesh.Input);
+        parameters.Set(MorphSkinningKeys.PackedEntries, sharedMesh.Entries);
+        parameters.Set(MorphSkinningKeys.VertexOffsets, sharedMesh.Offsets);
+        parameters.Set(MorphSkinningKeys.Weights, weights.Buffer);
+        parameters.Set(MorphSkinningKeys.PoseRows, poses.Buffer);
+        parameters.Set(MorphSkinningKeys.InstanceRecords, records.Buffer);
+        parameters.Set(MorphSkinningKeys.BoneBinds, sharedMesh.BoneBinds);
+        parameters.Set(MorphSkinningKeys.BoneNodes, sharedMesh.BoneNodes);
+        parameters.Set(MorphSkinningKeys.RecordBase, (uint)batch.RecordBase);
+        parameters.Set(MorphSkinningKeys.WeightBase, (uint)batch.WeightBase);
+        parameters.Set(MorphSkinningKeys.OutputVertices, batch.Output);
+        parameters.Set(MorphSkinningKeys.VertexCount, (uint)sharedMesh.Binding.Count);
+        parameters.Set(MorphSkinningKeys.VertexStride, (uint)sharedMesh.Binding.Stride);
+        parameters.Set(MorphSkinningKeys.PositionOffset, (uint)sharedMesh.PositionOffset);
+        parameters.Set(MorphSkinningKeys.NormalOffset, sharedMesh.NormalOffset);
+        parameters.Set(MorphSkinningKeys.TangentOffset, sharedMesh.TangentOffset);
+        parameters.Set(MorphSkinningKeys.BlendIndicesOffset, sharedMesh.IndicesOffset);
+        parameters.Set(MorphSkinningKeys.BlendWeightsOffset, sharedMesh.WeightsOffset);
+        parameters.Set(MorphSkinningKeys.BoneCount, (uint)sharedMesh.BoneCount);
         var meshParameters = sharedMesh.Source.Parameters;
         uint skinningFlags = meshParameters.Get(MaterialKeys.HasSkinningPosition)
             ? SkinPosition | (meshParameters.Get(MaterialKeys.HasSkinningNormal) ? SkinNormal : 0)
                            | (meshParameters.Get(MaterialKeys.HasSkinningTangent) ? SkinTangent : 0)
             : 0;
-        parameters.Set(Keys.SkinningFlags, skinningFlags);
-        parameters.Set(Keys.MorphFlags, (uint)sharedMesh.MorphFlags);
-        parameters.Set(Keys.Index16, (uint)sharedMesh.Index16);
-        parameters.Set(Keys.TargetCount, (uint)sharedMesh.TargetCount);
-        parameters.Set(Keys.ActiveCount, (uint)batch.ActiveCount);
-        parameters.Set(Keys.InstanceCount, (uint)batch.SlotCount);
-        parameters.Set(Keys.OutputStride, (uint)batch.SlotBytes);
-        parameters.Set(Keys.OutputVertexStride, (uint)sharedMesh.OutputVertexStride);
-        parameters.Set(Keys.OutputNormal, sharedMesh.OutputNormalOffset);
-        parameters.Set(Keys.OutputTangent, sharedMesh.OutputTangentOffset);
-        parameters.Set(Keys.TangentW, (uint)sharedMesh.TangentW);
+        parameters.Set(MorphSkinningKeys.SkinningFlags, skinningFlags);
+        parameters.Set(MorphSkinningKeys.MorphFlags, (uint)sharedMesh.MorphFlags);
+        parameters.Set(MorphSkinningKeys.Index16, (uint)sharedMesh.Index16);
+        parameters.Set(MorphSkinningKeys.TargetCount, (uint)sharedMesh.TargetCount);
+        parameters.Set(MorphSkinningKeys.ActiveCount, (uint)batch.ActiveCount);
+        parameters.Set(MorphSkinningKeys.InstanceCount, (uint)batch.SlotCount);
+        parameters.Set(MorphSkinningKeys.OutputStride, (uint)batch.SlotBytes);
+        parameters.Set(MorphSkinningKeys.OutputVertexStride, (uint)sharedMesh.OutputVertexStride);
+        parameters.Set(MorphSkinningKeys.OutputNormalOffset, sharedMesh.OutputNormalOffset);
+        parameters.Set(MorphSkinningKeys.OutputTangentOffset, sharedMesh.OutputTangentOffset);
+        parameters.Set(MorphSkinningKeys.TangentW, (uint)sharedMesh.TangentW);
         int vertexGroups = (sharedMesh.Binding.Count + groupX - 1) / groupX;
         if (vertexGroups > MaxThreadGroupsPerDimension)
             throw new NotSupportedException($"Compute deformation supports at most {MaxThreadGroupsPerDimension} vertex thread groups per mesh.");
@@ -830,51 +830,5 @@ internal sealed class ModelDeformationRenderer : IModelDeformer, IDisposable
             Batch?.Free(Slot);
             Buffers?.Weights.Dispose();
         }
-    }
-
-    private static class Keys
-    {
-        private static ObjectParameterKey<Buffer> ObjectKey(string name)
-        {
-            return ParameterKeys.NewObject<Buffer>(name: "MorphSkinning." + name);
-        }
-
-        private static ValueParameterKey<T> ValueKey<T>(string name) where T : struct
-        {
-            return ParameterKeys.NewValue<T>(name: "MorphSkinning." + name);
-        }
-
-        public static readonly ObjectParameterKey<Buffer> Input = ObjectKey("InputVertices");
-        public static readonly ObjectParameterKey<Buffer> Entries = ObjectKey("PackedEntries");
-        public static readonly ObjectParameterKey<Buffer> Offsets = ObjectKey("VertexOffsets");
-        public static readonly ObjectParameterKey<Buffer> Weights = ObjectKey("Weights");
-        public static readonly ObjectParameterKey<Buffer> Poses = ObjectKey("PoseRows");
-        public static readonly ObjectParameterKey<Buffer> Records = ObjectKey("InstanceRecords");
-        public static readonly ObjectParameterKey<Buffer> BoneBinds = ObjectKey("BoneBinds");
-        public static readonly ObjectParameterKey<Buffer> BoneNodes = ObjectKey("BoneNodes");
-        public static readonly ObjectParameterKey<Buffer> Output = ObjectKey("OutputVertices");
-
-        public static readonly ValueParameterKey<uint> VertexCount = ValueKey<uint>("VertexCount");
-        public static readonly ValueParameterKey<uint> Stride = ValueKey<uint>("VertexStride");
-        public static readonly ValueParameterKey<uint> Position = ValueKey<uint>("PositionOffset");
-        public static readonly ValueParameterKey<uint> BoneCount = ValueKey<uint>("BoneCount");
-        public static readonly ValueParameterKey<uint> SkinningFlags = ValueKey<uint>("SkinningFlags");
-        public static readonly ValueParameterKey<uint> MorphFlags = ValueKey<uint>("MorphFlags");
-        public static readonly ValueParameterKey<uint> Index16 = ValueKey<uint>("Index16");
-        public static readonly ValueParameterKey<uint> TargetCount = ValueKey<uint>("TargetCount");
-        public static readonly ValueParameterKey<uint> ActiveCount = ValueKey<uint>("ActiveCount");
-        public static readonly ValueParameterKey<uint> InstanceCount = ValueKey<uint>("InstanceCount");
-        public static readonly ValueParameterKey<uint> RecordBase = ValueKey<uint>("RecordBase");
-        public static readonly ValueParameterKey<uint> WeightBase = ValueKey<uint>("WeightBase");
-        public static readonly ValueParameterKey<uint> OutputStride = ValueKey<uint>("OutputStride");
-        public static readonly ValueParameterKey<uint> OutputVertexStride = ValueKey<uint>("OutputVertexStride");
-        public static readonly ValueParameterKey<uint> TangentW = ValueKey<uint>("TangentW");
-
-        public static readonly ValueParameterKey<int> Normal = ValueKey<int>("NormalOffset");
-        public static readonly ValueParameterKey<int> Tangent = ValueKey<int>("TangentOffset");
-        public static readonly ValueParameterKey<int> Indices = ValueKey<int>("BlendIndicesOffset");
-        public static readonly ValueParameterKey<int> BlendWeights = ValueKey<int>("BlendWeightsOffset");
-        public static readonly ValueParameterKey<int> OutputNormal = ValueKey<int>("OutputNormalOffset");
-        public static readonly ValueParameterKey<int> OutputTangent = ValueKey<int>("OutputTangentOffset");
     }
 }

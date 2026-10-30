@@ -17,7 +17,7 @@
     <!--<StridePublicVersion Condition="'$(StridePublicVersion)' == ''">4.4.9999</StridePublicVersion>-->
     <!-- Dev-redirect stub mode: when true, NuGet auto-pack is skipped on every build and
          consumers resolve Stride.* DLLs through redirect props that point at the dev-built
-         binaries (cuts ~30s/build). Run `dotnet run build/GenerateDevPackages.cs` to set this
+         binaries (cuts ~30s/build). Run `dotnet run build/dev-packages.cs` to set this
          to true and generate the stubs in one step; pass the disable arg to revert. -->
     <!--<StrideDevPackages Condition="'$(StrideDevPackages)' == ''">true</StrideDevPackages>-->
     <!-- Content template packs (Stride.Templates.Samples / .Games.Starters / .AssetPacks, ~730 MB of samples)

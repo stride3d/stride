@@ -49,7 +49,7 @@ jobs:
           ref: ${{ github.ref }}
       - name: Build
         run: |
-          dotnet build build\Stride.Tests.Simple.slnf `
+          dotnet build sources\Stride.Tests.Simple.slnf `
             -p:StrideTestRuntimeIdentifier=win-x64 `
             -nr:false `
             -v:m -p:WarningLevel=0 `
@@ -63,7 +63,7 @@ jobs:
           $filterArgs = if ($filter) { @('--filter', $filter) } else { @() }
           for ($i = 1; $i -le $repeat; $i++) {
             Write-Host "=== Test run $i / $repeat ==="
-            dotnet test build\Stride.Tests.Simple.slnf `
+            dotnet test sources\Stride.Tests.Simple.slnf `
               --no-build `
               --logger:"trx;LogFilePrefix=run-$i" --results-directory TestResults `
               --blame-hang-timeout 5m --blame-hang-dump-type full `

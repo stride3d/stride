@@ -11,7 +11,7 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>stride</ToolCommandName>
     <PackageId>Stride.Cli</PackageId>
-    <VersionPrefix>1.0.4</VersionPrefix>
+    <VersionPrefix>1.0.5</VersionPrefix>
     <Description>Command-line tool for Stride: install Stride versions and create, build, and manage Stride projects.</Description>
     <PackageTags>stride;gamedev;cli;dotnet-tool</PackageTags>
   </PropertyGroup>
@@ -33,7 +33,12 @@
     <Compile Include="..\..\shared\Stride.NuGetResolver\DotNetHostSelector.cs" Link="Legacy\Shared\DotNetHostSelector.cs" />
     <Compile Include="..\..\shared\Stride.NuGetResolver\ProjectVersionReader.cs" Link="Legacy\Shared\ProjectVersionReader.cs" />
     <Compile Include="..\..\shared\Stride.NuGetResolver\RestoreHelper.cs" Link="Legacy\Shared\RestoreHelper.cs" />
+    <Compile Include="..\..\shared\Stride.NuGetResolver\NuGetResolverCache.cs" Link="Legacy\Shared\NuGetResolverCache.cs" />
     <Compile Include="..\..\shared\LoaderToolLocator\LoaderToolLocator.cs" Link="Legacy\Shared\LoaderToolLocator.cs" />
+  </ItemGroup>
+  <!-- The Game Studios and their packages, shared with the launcher. -->
+  <ItemGroup>
+    <Compile Include="..\..\shared\GameStudioEditor.cs" Link="Shared\GameStudioEditor.cs" />
   </ItemGroup>
   <!-- IStrideCommands ABI lives in an assembly named Stride.VisualStudio.Commands.Interfaces so ServiceWire's
        assembly-qualified type keys match the released server. See that project for details. -->

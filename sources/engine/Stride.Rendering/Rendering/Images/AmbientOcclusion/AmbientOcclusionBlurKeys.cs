@@ -8,6 +8,7 @@ namespace Stride.Rendering.Images
     /// <summary>
     /// Keys used by <see cref="AmbientOcclusionBlur"/> and AmbientOcclusionBlurEffect sdfx
     /// </summary>
+    [EffectKeys]
     internal static class AmbientOcclusionBlurKeys
     {
         public static readonly PermutationParameterKey<int> Count = ParameterKeys.NewPermutation<int>(9);

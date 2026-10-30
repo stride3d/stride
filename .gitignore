@@ -1,6 +1,5 @@
 *.suo
 *.csproj.user
-/Directory.Build.props
 *.vcxproj.user
 *.ReSharper.user
 *.DotSettings.user
@@ -38,9 +37,6 @@ Debug_static
 Release_static
 CodeAnalyst
 UpgradeLog*
-stride_doc_output
-doc/doxygen/html
-Tools/bin
 Temp/
 /logs/
 bin/
@@ -54,40 +50,17 @@ TestResults/
 .vs/
 .idea/
 Cache/
-/doc/stride_doc_output/
-/build/Stride.version
-/build/Stride.*VC.db
-/tools
-/externals/
-/sources/common/externals/
-/sources/tools/Stride.ShaderKeyGenerator/build/
-/sources/tools/SLConverter/BuildRelease/Package/SLConverter-*.pdf
-/sources/tools/SLConverter/BuildRelease/Package/bin/x64/SLConverter.exe
-/sources/tools/SLConverter/BuildRelease/Package/bin/x86/SLConverter.exe
-/sources/tools/SLConverter/BuildRelease/Package/license.txt
-/sources/tools/SLConverter/BuildRelease/Package/readme.txt
-/sources/tools/SLConverter/BuildRelease/Package/sample_config.xml
-/sources/games/GDC2013/build/*
-/gdc/demo_dragon/
-/package/
-/tools/
+/Stride.*VC.db
 **/Properties/launchSettings.json
 !**/*Tests*/Properties/launchSettings.json
 !sources/editor/Stride.GameStudio/Properties/launchSettings.json
 launch-android.bat
-sources/tests/framework/Stride.Framework.Audio.Tests/Resources/Resource.Designer.cs
 Win32
-Win32Debug
 launch-ios.bat
-sources/engine/Stride.Graphics.Tests/log/
 *.androidcache
-sources/engine/Stride.Graphics/log/
-sources/engine/Stride.Graphics/Shaders/log/
 sources/engine/Stride.Input.Tests/app_data/
-sources/plugins/UI/Stride.UI.Tests/log/
 sources/plugins/UI/Stride.UI.Tests/app_data/
 sources/engine/Stride.Graphics.Tests/app_data/
-sources/tests/framework/Stride.Framework.Audio.Tests/app_data/
 libfreetype.a
 libcore.a
 libbulletc.a
@@ -99,7 +72,6 @@ libstridenative_i386.a
 libstridenative_x86_64.a
 *.CachedGlyphs
 *.CachedImage
-sources/engine/Stride.Graphics/Shaders.Bytecodes/log/
 log
 x64Debug
 x64Release
@@ -123,7 +95,6 @@ ui-test-out-dpi*
 .DS_Store
 
 ## Build generated
-sources/tools/Stride iOS Relay/build/
 DerivedData
 
 ## Various settings
@@ -147,30 +118,6 @@ xcuserdata
 *.hmap
 *.ipa
 
-# CocoaPods
-#
-# We recommend against adding the Pods directory to your .gitignore. However
-# you should judge for yourself, the pros and cons are mentioned at:
-# https://guides.cocoapods.org/using/using-cocoapods.html#should-i-check-the-pods-directory-into-source-control
-#
-# Pods/
-
-# Carthage
-#
-# Add this line if you want to avoid checking in source code from Carthage dependencies.
-# Carthage/Checkouts
-
-Carthage/Build
-
-# fastlane
-#
-# It is recommended to not store the screenshots in the git repo. Instead, use fastlane to re-generate the 
-# screenshots whenever they are needed.
-# For more information about the recommended setup visit:
-# https://github.com/fastlane/fastlane/blob/master/docs/Gitignore.md
-
-fastlane/report.xml
-fastlane/screenshots
 *.user
 project.lock.json
 

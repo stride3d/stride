@@ -11,6 +11,7 @@ using Stride.Shaders;
 
 namespace Stride.Rendering.Materials
 {
+    [EffectKeys]
     public class HairShared
     {
         public enum HairShadingModel // These values must correspond to the ones defined in "MaterialHairShared.sdsl".

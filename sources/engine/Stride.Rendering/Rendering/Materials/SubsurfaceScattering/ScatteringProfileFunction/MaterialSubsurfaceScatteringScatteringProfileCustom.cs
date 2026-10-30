@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -16,6 +16,7 @@ namespace Stride.Rendering.Materials
     /// 
     /// ATTENTION: This class is subject to change because it does not yet give you full control over generating scattering kernels and profiles.
     /// </summary>
+    [EffectKeys]
     [Display("Custom (Skin based)")]
     [DataContract("MaterialSubsurfaceScatteringScatteringProfileCustom")]
     public class MaterialSubsurfaceScatteringScatteringProfileCustom : IMaterialSubsurfaceScatteringScatteringProfile

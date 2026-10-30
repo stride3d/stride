@@ -15,6 +15,7 @@ namespace Stride.Rendering.Materials
     /// <summary>
     /// The microfacet specular shading model.
     /// </summary>
+    [EffectKeys]
     [DataContract("MaterialSpecularHairModelFeature")]
     [Display("Hair")]
     public class MaterialSpecularHairModelFeature : MaterialFeature, IMaterialSpecularModelFeature, IEquatable<MaterialSpecularHairModelFeature>

@@ -88,7 +88,7 @@ jobs:
         id: version
         shell: pwsh
         run: |
-          $out = msbuild build\Stride.build /t:_StrideSetupVersion /nologo /v:m /p:VersionSuffix=${{ inputs.version-suffix }}
+          $out = msbuild build\package.proj /t:_StrideSetupVersion /nologo /v:m /p:VersionSuffix=${{ inputs.version-suffix }}
           if ($LASTEXITCODE -ne 0) { $out; exit 1 }
           if (-not (($out -join "`n") -match 'StrideSetup (\S+):')) {
             echo "::error::Could not determine the launcher version"
@@ -121,7 +121,7 @@ jobs:
       - name: Build and package launcher
         shell: pwsh
         run: |
-          msbuild build\Stride.build `
+          msbuild build\package.proj `
             /t:FullBuildLauncher `
             ${{ inputs.upload-binlog && !inputs.sign && '/bl' || '' }} /m /nr:false `
             /p:StrideSentryDsn=${{ vars.STRIDE_SENTRY_DSN }} `
@@ -311,4 +311,4 @@ jobs:
       apply: true
     secrets:
       gh-token: ${{ secrets.GH_PAT }}
-      anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+      anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY_RELEASE_NOTES }}

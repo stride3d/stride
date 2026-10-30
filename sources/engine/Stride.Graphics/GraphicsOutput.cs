@@ -62,5 +62,41 @@ namespace Stride.Graphics
         ///   Gets the desktop bounds of the current <see cref="GraphicsOutput"/>.
         /// </summary>
         public Rectangle DesktopBounds { get; }
+
+        internal static DisplayMode SelectDisplayMode(ReadOnlySpan<DisplayMode> modes, DisplayMode? current, DisplayMode mode)
+        {
+            if (mode.Width < 0 || mode.Height < 0 || mode.RefreshRate.Numerator < 0 || mode.RefreshRate.Denominator < 0 ||
+                (mode.RefreshRate.Numerator > 0 && mode.RefreshRate.Denominator == 0))
+                throw new ArgumentOutOfRangeException(nameof(mode));
+
+            var width = mode.Width > 0 ? mode.Width : current?.Width ?? 0;
+            var height = mode.Height > 0 ? mode.Height : current?.Height ?? 0;
+            var format = mode.Format != PixelFormat.None ? mode.Format.ToNonSRgb() : current?.Format ?? PixelFormat.None;
+            var refresh = RefreshHz(mode.RefreshRate);
+            if (refresh == 0 && current.HasValue)
+                refresh = RefreshHz(current.Value.RefreshRate);
+
+            DisplayMode? best = null;
+            (int Format, long Size, double Refresh) bestScore = (int.MaxValue, long.MaxValue, double.MaxValue);
+            foreach (var candidate in modes)
+            {
+                var score = (Format: candidate.Format == format ? 0 : 1,
+                    Size: (width > 0 ? Math.Abs((long)candidate.Width - width) : 0) +
+                          (height > 0 ? Math.Abs((long)candidate.Height - height) : 0),
+                    Refresh: refresh > 0 ? Math.Abs(RefreshHz(candidate.RefreshRate) - refresh) : 0);
+                if (score.CompareTo(bestScore) < 0)
+                {
+                    best = candidate;
+                    bestScore = score;
+                }
+            }
+
+            // No enumerated modes (e.g. an unmapped desktop format): keep the request, resolved against the desktop.
+            return best ?? new DisplayMode(mode.Format != PixelFormat.None ? mode.Format : format, width, height,
+                mode.RefreshRate.Numerator > 0 ? mode.RefreshRate : current?.RefreshRate ?? mode.RefreshRate);
+        }
+
+        private static double RefreshHz(Rational refresh) => refresh.Denominator > 0
+            ? (double)refresh.Numerator / refresh.Denominator : 0;
     }
 }

@@ -20,11 +20,13 @@
           <BoxShadows x:Key="CardShadow">0 1 2 #17000000</BoxShadows>
           <SolidColorBrush x:Key="ChromeWhiteBrush" Color="{StaticResource SystemChromeWhiteColor}" />
           <SolidColorBrush x:Key="NeutralBackgroundBrush" Color="#80FFFFFF" />
-          <!-- Badges of the version rows: nightly builds (amber), local builds (blue) -->
+          <!-- Badges of the version rows: nightly builds (amber), local builds (blue), the Game Studio of a local build (violet) -->
           <SolidColorBrush x:Key="NightlyBadgeBackgroundBrush" Color="#2EE08A00" />
           <SolidColorBrush x:Key="NightlyBadgeForegroundBrush" Color="#9A5B00" />
           <SolidColorBrush x:Key="LocalBadgeBackgroundBrush" Color="#263A8EE6" />
           <SolidColorBrush x:Key="LocalBadgeForegroundBrush" Color="#1F5FA8" />
+          <SolidColorBrush x:Key="EditorBadgeBackgroundBrush" Color="#268A5CD6" />
+          <SolidColorBrush x:Key="EditorBadgeForegroundBrush" Color="#5E35A8" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
           <SolidColorBrush x:Key="AccentBrush" Color="{DynamicResource SystemAccentColor}" />
@@ -36,6 +38,8 @@
           <SolidColorBrush x:Key="NightlyBadgeForegroundBrush" Color="#FFC46A" />
           <SolidColorBrush x:Key="LocalBadgeBackgroundBrush" Color="#403A8EE6" />
           <SolidColorBrush x:Key="LocalBadgeForegroundBrush" Color="#8AB8F0" />
+          <SolidColorBrush x:Key="EditorBadgeBackgroundBrush" Color="#409B6BE6" />
+          <SolidColorBrush x:Key="EditorBadgeForegroundBrush" Color="#C3A6F2" />
         </ResourceDictionary>
       </ResourceDictionary.ThemeDictionaries>
       <Thickness x:Key="TileBorderThickness">12</Thickness>

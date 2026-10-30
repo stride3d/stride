@@ -93,4 +93,4 @@ jobs:
       docs-notes: ${{ needs.Config.outputs.docs-notes == 'true' }}
     secrets:
       gh-token: ${{ secrets.GH_PAT }}      # write-capable PAT: shell reads + apply (model uses the read-only GITHUB_TOKEN)
-      anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+      anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY_RELEASE_NOTES }}

@@ -51,7 +51,7 @@ namespace Stride.Graphics
             Span<VkPhysicalDevice> nativePhysicalDevices = stackalloc VkPhysicalDevice[(int)physicalDevicesCount];
             defaultInstance.NativeInstanceApi.vkEnumeratePhysicalDevices(defaultInstance.NativeInstance, nativePhysicalDevices).CheckResult();
             
-            var physicalDevices = new List<(VkPhysicalDevice Device, VkPhysicalDeviceProperties Properties, VkPhysicalDeviceDriverProperties DriverProperties, long AdapterUid, int EnumerationIndex)>();
+            var physicalDevices = new List<(VkPhysicalDevice Device, VkPhysicalDeviceProperties Properties, VkPhysicalDeviceDriverProperties DriverProperties, long AdapterUid, int EnumerationIndex, bool HasValidLuid)>();
             for (int index = 0; index < nativePhysicalDevices.Length; index++)
             {
                 VkPhysicalDeviceProperties properties;
@@ -68,17 +68,19 @@ namespace Stride.Graphics
                 // The adapter keeps the driver properties: no pointer to this loop's locals
                 driverProps.pNext = null;
 
-                physicalDevices.Add((nativePhysicalDevices[index], properties, driverProps, GetAdapterUid(idProps), index));
+                physicalDevices.Add((nativePhysicalDevices[index], properties, driverProps, GetAdapterUid(idProps), index, idProps.deviceLUIDValid));
             }
 
             // The fastest kind first, as DXGI's high-performance order does on Direct3D: a hybrid laptop enumerates its integrated GPU first.
             physicalDevices.Sort((a, b) => PerformanceRank(a.Properties.deviceType).CompareTo(PerformanceRank(b.Properties.deviceType)));
 
             var adapterList = new List<GraphicsAdapter>();
+            var displays = DisplayEnumeration.Capture();
             for (int index = 0; index < physicalDevices.Count; index++)
             {
-                var (device, properties, driverProps, adapterUid, enumerationIndex) = physicalDevices[index];
-                var adapter = new GraphicsAdapter(device, properties, driverProps, adapterUid, index, enumerationIndex);
+                var (device, properties, driverProps, adapterUid, enumerationIndex, hasValidLuid) = physicalDevices[index];
+                var attachedDisplays = DisplayEnumeration.ForAdapter(displays, hasValidLuid ? adapterUid : null);
+                var adapter = new GraphicsAdapter(device, properties, driverProps, adapterUid, index, enumerationIndex, attachedDisplays);
                 staticCollector.Add(adapter);
                 adapterList.Add(adapter);
             }

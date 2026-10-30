@@ -23,7 +23,7 @@ const string Usage = """
 
       --projects <list>       explicit suites, as .csproj paths or names (separated by ; , space or newline)
       --filter <expression>   else the vstest filter to resolve (FullyQualifiedName~X|Name=Y, etc.)
-      --combined <csproj>     the meta project listing the suites (default: sources/tests/Stride.Tests.Combined)
+      --combined <csproj>     the meta project listing the suites (default: tests/infra/Stride.Tests.Combined)
       --slnf <file>           write <file>.filtered.slnf keeping only the needed suites and print its path;
                               print <file> itself when every suite is needed, nothing when none of the
                               needed suites is in it
@@ -44,7 +44,7 @@ for (var i = 0; i < args.Length; i++)
     }
 }
 
-combined ??= Path.Combine(FindRepoRoot(), "sources", "tests", "Stride.Tests.Combined", "Stride.Tests.Combined.csproj");
+combined ??= Path.Combine(FindRepoRoot(), "tests", "infra", "Stride.Tests.Combined", "Stride.Tests.Combined.csproj");
 if (!File.Exists(combined))
 {
     Console.Error.WriteLine($"Not found: {combined}");
@@ -203,7 +203,7 @@ static string SuiteName(string project)
 static string FindRepoRoot()
 {
     for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
-        if (File.Exists(Path.Combine(directory.FullName, "Stride.sln")) || Directory.Exists(Path.Combine(directory.FullName, ".git")))
+        if (File.Exists(Path.Combine(directory.FullName, "Stride.slnx")) || Directory.Exists(Path.Combine(directory.FullName, ".git")))
             return directory.FullName;
     return Directory.GetCurrentDirectory();
 }

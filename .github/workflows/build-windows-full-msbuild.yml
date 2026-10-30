@@ -23,7 +23,6 @@ on:
     # Build-logic paths only: the places engine-compat regressions actually come from.
     paths:
       - 'sources/sdk/**'
-      - 'sources/targets/**'
       - 'sources/native/**'
       - '.github/workflows/build-windows-full-msbuild.yml'
 
@@ -50,7 +49,7 @@ jobs:
         # VS restores via its NuGet integration before building; bare /t:Restore is the
         # CLI equivalent. Same properties as Build so the TFM graph matches.
         run: |
-          msbuild build\Stride.slnx `
+          msbuild Stride.slnx `
             /t:Restore `
             /m /nr:false /v:m /p:WarningLevel=0 `
             /p:Configuration=${{ github.event.inputs.build-type || 'Debug' }} `
@@ -61,7 +60,7 @@ jobs:
             /p:StrideSkipAutoPack=true
       - name: Build
         run: |
-          msbuild build\Stride.slnx `
+          msbuild Stride.slnx `
             /m /nr:false /v:m /p:WarningLevel=0 `
             /p:Configuration=${{ github.event.inputs.build-type || 'Debug' }} `
             /p:Platform="Any CPU" `

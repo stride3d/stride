@@ -152,6 +152,10 @@ namespace Stride.Assets.Models
                     writer.Write(modifier.Version);
                 }
             }
+
+            // Hashed only when on, so build caches of models that leave it off stay valid
+            if (ShaderReadableBuffers)
+                writer.Write(nameof(ShaderReadableBuffers));
         }
 
         /// <summary>

@@ -20,7 +20,7 @@ sources/launcher/
 ├── Stride.Launcher/         Avalonia MVVM application
 ├── Stride.Launcher.Tests/   Launcher unit tests
 ├── Setup/                   Advanced Installer project producing StrideSetup
-└── Stride.Launcher.Release.targets   Release build (exe, NuGet package, StrideSetup), imported by build/Stride.build
+└── Stride.Launcher.Release.targets   Release build (exe, NuGet package, StrideSetup), imported by build/package.proj
 ```
 
 See [docs/launcher/](../../docs/launcher/) for contributor-oriented documentation on the launcher's internals.
@@ -30,7 +30,7 @@ See [docs/launcher/](../../docs/launcher/) for contributor-oriented documentatio
 Build the launcher exe, its NuGet package and StrideSetup into `bin\launcher\` (the setup needs Advanced Installer 22.0):
 
 ```
-msbuild build\Stride.build /t:FullBuildLauncher /p:StrideSign=false [/p:VersionSuffix=beta1]
+msbuild build\package.proj /t:FullBuildLauncher /p:StrideSign=false [/p:VersionSuffix=beta1]
 ```
 
 Releases go through [release-launcher.yml](../../.github/workflows/release-launcher.yml). See [docs/launcher/packaging.md](../../docs/launcher/packaging.md) for the details.
@@ -57,7 +57,7 @@ dotnet publish sources/launcher/Stride.Launcher/Stride.Launcher.csproj -c Releas
 
 ## From Visual Studio / Rider
 
-Open `build/Stride.Launcher.slnx` (or `sources/launcher/Stride.Launcher/Stride.Launcher.csproj`) and build the `Stride.Launcher` project. Set it as the startup project to launch it under the debugger.
+Open `sources/launcher/Stride.Launcher.slnx` (or `sources/launcher/Stride.Launcher/Stride.Launcher.csproj`) and build the `Stride.Launcher` project. Set it as the startup project to launch it under the debugger.
 
 A convenience launcher script, [PackageLauncher-Debug.bat](Stride.Launcher/PackageLauncher-Debug.bat), packages a Debug build as a NuGet package for local testing.
 
@@ -76,13 +76,13 @@ Command groups:
 - `stride sdk <list|install|uninstall|update>` — manage installed Stride engine versions.
 - `stride new` — create a project from a template.
 - `stride upgrade` — move a project to a newer installed engine (4.4.0+).
-- `stride studio` — open Game Studio for the project's version.
+- `stride studio` — open Game Studio for the project's version. `--editor wpf|avalonia` picks the Game Studio when the version has both; the default is WPF on Windows, Avalonia elsewhere. Off Windows, WPF runs under Wine when `wine` is on the PATH (setting up its prefix for Stride is up to you).
 - `stride self update` / `stride version` — manage and inspect the CLI itself.
 
 Build/pack it from source:
 
 ```bash
-dotnet build build/Stride.build -t:PackageCli   # -> bin/cli/Stride.Cli.<version>.nupkg
+dotnet build build/package.proj -t:PackageCli   # -> bin/cli/Stride.Cli.<version>.nupkg
 ```
 
 # Versioning

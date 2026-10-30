@@ -43,7 +43,7 @@ jobs:
         uses: actions/checkout@v7
         with:
           path: stride-src
-          sparse-checkout: build/deps/lavapipe
+          sparse-checkout: deps/lavapipe
 
       - name: Clone Mesa
         shell: pwsh
@@ -192,7 +192,7 @@ jobs:
         uses: actions/checkout@v7
         with:
           path: stride-src
-          sparse-checkout: build/deps/lavapipe
+          sparse-checkout: deps/lavapipe
 
       - name: Clone Mesa
         shell: pwsh
@@ -328,7 +328,7 @@ jobs:
         uses: actions/checkout@v7
         with:
           path: stride-src
-          sparse-checkout: build/deps/lavapipe
+          sparse-checkout: deps/lavapipe
 
       - name: Clone Mesa
         run: |
@@ -480,7 +480,7 @@ jobs:
         uses: actions/checkout@v7
         with:
           path: stride-src
-          sparse-checkout: build/deps/lavapipe
+          sparse-checkout: deps/lavapipe
 
       - name: Clone Mesa
         run: |
@@ -570,7 +570,7 @@ jobs:
       - name: Stage native payload into csproj
         shell: pwsh
         run: |
-          $destRoot = "build/deps/lavapipe/runtimes"
+          $destRoot = "deps/lavapipe/runtimes"
           foreach ($rid in 'win-x64','win-arm64','linux-x64','osx-arm64') {
             $native = "$destRoot/$rid/native"
             New-Item -Path $native -ItemType Directory -Force | Out-Null
@@ -585,7 +585,7 @@ jobs:
           # don't advertise dma_buf — no libdrm in those jobs). Synthetic RID so the NuGet
           # signing tool preserves it (top-level folders are dropped on re-pack) while NuGet
           # never auto-deploys it into consumers.
-          $androidEmu = "build/deps/lavapipe/runtimes/linux-x64-nodmabuf/native"
+          $androidEmu = "deps/lavapipe/runtimes/linux-x64-nodmabuf/native"
           New-Item -Path $androidEmu -ItemType Directory -Force | Out-Null
           Copy-Item artifacts/linux-x64-nodmabuf/libvulkan_lvp.so* $androidEmu
 
@@ -605,8 +605,8 @@ jobs:
             "Built: $(Get-Date -AsUTC -Format yyyy-MM-dd)"
             "Workflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           )
-          New-Item -ItemType Directory -Force build/deps/lavapipe/tools | Out-Null
-          $lines | Set-Content build/deps/lavapipe/tools/VERSION.txt
+          New-Item -ItemType Directory -Force deps/lavapipe/tools | Out-Null
+          $lines | Set-Content deps/lavapipe/tools/VERSION.txt
           $block = @('```') + $lines + @('```')
           $block | Add-Content $env:GITHUB_STEP_SUMMARY
           @(
@@ -616,14 +616,14 @@ jobs:
             ""
             "## Build"
             ""
-          ) + $block | Set-Content build/deps/lavapipe/README.md
+          ) + $block | Set-Content deps/lavapipe/README.md
 
       - name: Pack NuGet (dotnet pack)
         shell: pwsh
         run: |
           $version = "${{ github.event.inputs.version }}"
           if (-not $version) { $version = (Get-Date -Format "yyyy.M.d") }
-          dotnet pack build/deps/lavapipe/Stride.Dependencies.Lavapipe.csproj `
+          dotnet pack deps/lavapipe/Stride.Dependencies.Lavapipe.csproj `
             -c Release `
             -p:PackageVersion=$version `
             -p:RepositoryCommit=${{ github.sha }} `
@@ -642,8 +642,18 @@ jobs:
     runs-on: windows-2025-vs2026
     environment: production
     steps:
+      # The sign tool version is pinned in build/package/dotnet-tools.json: check out only that file
+      - uses: actions/checkout@v7
+        with:
+          sparse-checkout: /build/package/dotnet-tools.json
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
       - name: Install signing tool
-        run: dotnet tool install sign --tool-path ./sign-tool --version 0.9.0-beta.23127.3
+        shell: pwsh
+        run: |
+          $version = (Get-Content build/package/dotnet-tools.json | ConvertFrom-Json).tools.sign.version
+          dotnet tool install sign --tool-path ./sign-tool --version $version
 
       - name: Download artifact
         uses: actions/download-artifact@v8

@@ -383,7 +383,7 @@
   <!-- ================================================================ -->
   <!-- Platform Target Metadata -->
   <!-- ================================================================ -->
-  <!-- Used by Stride.build to detect if unit tests prefer to run in 32 or 64 bits -->
+  <!-- Exposes the test project's PlatformTarget (32 or 64 bits); the old test runner of the build script read it, nothing in the repo does now -->
   <Target Name="_StrideAfterGetTargetPathWithTargetPlatformMoniker"
           AfterTargets="GetTargetPathWithTargetPlatformMoniker">
     <ItemGroup>
@@ -397,14 +397,14 @@
   <!-- Android: push gold reference images to the device after install   -->
   <!-- ================================================================ -->
   <!-- GameTestBase keys gold paths by Assembly.GetName().Name at runtime, so each suite reads
-       <deviceRoot>/tests/<AssemblyName>/. adb push with the sync flag only transfers files
+       <deviceRoot>/tests/baselines/<AssemblyName>/. adb push with the sync flag only transfers files
        whose mtime/size differs, so subsequent deploys are near-instant. Exists() gates
        projects with no gold images yet. Multi-suite hosts (Stride.Tests.Combined) extend
        this in their csproj to push gold for each referenced suite. -->
   <Target Name="_StridePushTestGoldImages"
           AfterTargets="Install"
-          Condition="'$(StridePlatform)' == 'Android' And Exists('$(StrideRoot)tests\$(AssemblyName)')">
-    <Exec Command="&quot;$(AdbToolPath)adb&quot; $(AdbTarget) push --sync &quot;$(StrideRoot)tests\$(AssemblyName)\.&quot; &quot;/sdcard/Android/data/$(_AndroidPackage)/files/tests/$(AssemblyName)&quot;" />
+          Condition="'$(StridePlatform)' == 'Android' And Exists('$(StrideRoot)tests\baselines\$(AssemblyName)')">
+    <Exec Command="&quot;$(AdbToolPath)adb&quot; $(AdbTarget) push --sync &quot;$(StrideRoot)tests\baselines\$(AssemblyName)\.&quot; &quot;/sdcard/Android/data/$(_AndroidPackage)/files/tests/baselines/$(AssemblyName)&quot;" />
   </Target>
 
 </Project>

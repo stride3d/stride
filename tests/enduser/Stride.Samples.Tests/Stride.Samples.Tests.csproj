@@ -36,7 +36,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\sources\tests\xunit.runner.stride\xunit.runner.stride.csproj" />
-    <ProjectReference Include="..\..\..\sources\tests\Stride.ScreenshotComparator\Stride.ScreenshotComparator.csproj" />
+    <ProjectReference Include="..\..\..\tests\infra\Stride.ScreenshotComparator\Stride.ScreenshotComparator.csproj" />
     <ProjectReference Include="..\..\..\sources\engine\Stride.Assets\Stride.Assets.csproj" />
     <!-- Build-time trigger: regenerated samples PackageReference Stride.Games.AutoTesting
          (via samplesGenerated/Directory.Build.targets) when StrideAutoTesting=true. -->

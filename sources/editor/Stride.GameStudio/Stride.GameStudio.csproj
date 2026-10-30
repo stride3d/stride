@@ -206,7 +206,7 @@
     <Content Include="..\..\..\LICENSE.md" Link="LICENSE.md">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\..\..\THIRD PARTY.md" Link="THIRD PARTY.md">
+    <Content Include="..\..\..\THIRD-PARTY-NOTICES.md" Link="THIRD-PARTY-NOTICES.md">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <None Include="app.config">

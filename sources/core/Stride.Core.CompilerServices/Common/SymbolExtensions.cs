@@ -63,6 +63,34 @@ internal static class SymbolExtensions
         return false;
     }
 
+    public static int GetTotalArity(this INamedTypeSymbol? type)
+    {
+        int totalArity = 0;
+        for (INamedTypeSymbol? current = type; current is not null; current = current.ContainingType)
+        {
+            totalArity += current.Arity;
+        }
+        return totalArity;
+    }
+
+    /// <summary>
+    /// Determines whether the specified named type or any containing type declares generic type parameters.
+    /// </summary>
+    /// <remarks>
+    /// The check walks the containing type chain to account for nested types declared within generic types.
+    /// </remarks>
+    /// <param name="type">The named type symbol to inspect.</param>
+    /// <returns><see langword="true"/> if the type or any containing type has a non-zero arity; otherwise, <see langword="false"/>.</returns>
+    public static bool HasGenericParameters(this INamedTypeSymbol? type)
+    {
+        for (INamedTypeSymbol? current = type; current is not null; current = current.ContainingType)
+        {
+            if (current.Arity is not 0)
+                return true;
+        }
+        return false;
+    }
+
     public static IEnumerable<INamedTypeSymbol> GetAllTypes(this IModuleSymbol module)
     {
         var globalNamespace = module.GlobalNamespace;

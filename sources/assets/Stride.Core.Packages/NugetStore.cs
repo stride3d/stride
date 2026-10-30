@@ -20,6 +20,7 @@ using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Resolver;
 using NuGet.Versioning;
+using Stride.Core.Assets;
 using Stride.Core.Extensions;
 using Stride.Core.Windows;
 using ISettings = NuGet.Configuration.ISettings;
@@ -331,6 +332,15 @@ public partial class NugetStore : INugetDownloadProgress
     public string GetInstalledPath(string id, PackageVersion version)
     {
         return InstalledPathResolver.GetPackageDirectory(id, version.ToNuGetVersion());
+    }
+
+    /// <summary>
+    /// Whether the user package folder has a folder for <paramref name="id"/> <paramref name="version"/>, installed or
+    /// not: a local build's package that its checkout invalidated until the next restore has one, but is not installed.
+    /// </summary>
+    public bool HasPackageFolder(string id, PackageVersion version)
+    {
+        return Directory.Exists(new VersionFolderPathResolver(InstallPath).GetInstallPath(id, version.ToNuGetVersion()));
     }
 
     /// <summary>
@@ -819,10 +829,6 @@ public partial class NugetStore : INugetDownloadProgress
 
     private async Task UninstallPackageUnguarded(NugetPackage package, ProgressReport? progress)
     {
-#if DEBUG
-        var installedPackages = GetPackagesInstalled([package.Id]);
-        Debug.Assert(installedPackages.FirstOrDefault(p => p.Equals(package)) is not null);
-#endif
         using (GetLocalRepositoryLock())
         {
             currentProgressReport = progress;
@@ -830,9 +836,17 @@ public partial class NugetStore : INugetDownloadProgress
             {
                 var identity = new PackageIdentity(package.Id, package.Version.ToNuGetVersion());
 
+                // First, as its folder may be gone already: a dev package its checkout's build invalidated in the NuGet
+                // cache still has a restore.
+                DeleteResolverRestore(package.Id, package.Version);
+
+                // Not installed (anymore): nothing to remove. A folder without NuGet's integrity files counts as not
+                // installed too, such as a local build's package its checkout invalidated until the next restore.
+                var installPath = GetInstalledPath(identity.Id, identity.Version.ToPackageVersion());
+                if (installPath is null)
+                    return;
+
                 // Notify that uninstallation started.
-                var installPath = GetInstalledPath(identity.Id, identity.Version.ToPackageVersion())
-                    ?? throw new InvalidOperationException($"Could not find installation path for package {identity}");
                 OnPackageUninstalling(this, new PackageOperationEventArgs(new PackageName(package.Id, package.Version), installPath));
 
                 var projectContext = new EmptyNuGetProjectContext()
@@ -1194,6 +1208,23 @@ public partial class NugetStore : INugetDownloadProgress
         return Directory.Exists(dir) ? dir : null;
     }
 
+    /// <summary>
+    /// The build output (<c>bin/&lt;StrideDevConfiguration&gt;</c>) of the checkout project a dev-redirect stub installed at
+    /// <paramref name="packagePath"/> stands for, or null when the folder isn't such a stub or the project isn't built.
+    /// A stub drops the tools/ closure of a tool package, so a tool of a dev version runs from there.
+    /// </summary>
+    public static string? TryGetDevRedirectOutputDirectory(string packagePath, string packageId)
+    {
+        var projectDirectory = TryGetDevRedirectProjectDirectory(packagePath, packageId);
+        if (projectDirectory is null)
+            return null;
+
+        var text = File.ReadAllText(Path.Combine(packagePath, "build", $"{packageId}.props"));
+        var configuration = Regex.Match(text, "<StrideDevConfiguration[^>]*>(.*?)</StrideDevConfiguration>").Groups[1].Value;
+        var outputDirectory = Path.Combine(projectDirectory, "bin", string.IsNullOrEmpty(configuration) ? "Debug" : configuration);
+        return Directory.Exists(outputDirectory) ? outputDirectory : null;
+    }
+
     public string GetRedirectFile(NugetLocalPackage package)
     {
         return Path.Combine(package.Path, $"{package.Id}.redirect");
@@ -1204,6 +1235,33 @@ public partial class NugetStore : INugetDownloadProgress
         return package.Version < new PackageVersion(3, 1, 0, 0)
             ? File.Exists(GetRedirectFile(package))
             : (package.Version.SpecialVersion?.StartsWith("dev", StringComparison.Ordinal) == true && !package.Version.SpecialVersion.Contains('.'));
+    }
+
+    /// <summary>
+    /// Deletes the restore the NuGet resolver made of a dev version when it was started: built again under the same
+    /// version, it would otherwise start with the old dependency graph, as a no-op restore. A release keeps its
+    /// dependencies, so its restore stays valid and is left.
+    /// </summary>
+    /// <param name="packageId">The package id.</param>
+    /// <param name="version">The package version.</param>
+    /// <param name="resolverCacheRoot">The folder of the restores, or null for the one the resolver uses.</param>
+    /// <returns>The number of restore folders deleted.</returns>
+    public static int DeleteResolverRestore(string packageId, PackageVersion version, string? resolverCacheRoot = null)
+    {
+        if (!IsDevVersion(version))
+            return 0;
+
+        // As the resolver names it: 4.5.0-dev, where a PackageVersion converted to NuGet keeps four parts (4.5.0.0-dev)
+        return NuGetResolverCache.Delete(packageId, version.ToNuGetVersion().ToNormalizedString(), resolverCacheRoot);
+    }
+
+    /// <summary>
+    /// Gets whether <paramref name="version"/> is the version of a local build: its label has a dev part, as in
+    /// 4.5.0-dev, 4.5.0-dev3 or 4.5.0-beta8-dev3. A local build can be built again under the same version.
+    /// </summary>
+    public static bool IsDevVersion(PackageVersion version)
+    {
+        return version.SpecialVersion?.Split('-').Any(x => x.StartsWith("dev", StringComparison.Ordinal) && x.Skip(3).All(char.IsAsciiDigit)) == true;
     }
 
     public bool IsDevRedirectPackage(NugetServerPackage package)

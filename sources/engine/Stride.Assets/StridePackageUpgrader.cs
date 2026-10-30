@@ -148,6 +148,14 @@ namespace Stride.Assets
                     MemberToExtension("Stride.Engine.Game", "Audio", "Stride.Audio"),
                     MemberToExtension("Stride.Engine.ScriptComponent", "Audio", "Stride.Audio", throughMember: "Game")),
 
+                // 4.5: the assembly processor no longer names hand-written parameter keys; a source generator does, for
+                // the types marked [EffectKeys] (#3584).
+                AddAttributeToStaticFieldHolders("Stride.Rendering.ParameterKey", "Stride.Rendering.EffectKeysAttribute"),
+
+                // 4.5: the assembly processor no longer pools the delegates passed to the Dispatcher; its callbacks take
+                // their captures as a state, in a static lambda (#3680).
+                DispatcherCallbacksToStaticLambdas(),
+
                 // 4.5: input devices hold their capture state, so a device that implements the input interfaces itself
                 // rather than through an engine base class needs one (#3505).
                 InterfaceMemberAdd("Stride.Input.IInputDevice", "public DeviceCaptureState CaptureState { get; } = new DeviceCaptureState();", "Stride.Input"),

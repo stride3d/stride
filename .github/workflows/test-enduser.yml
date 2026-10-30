@@ -188,7 +188,8 @@ jobs:
           # AnimatedModel) into a Claude vision second-opinion when LPIPS is over threshold.
           # Key is bound to a budget-capped Anthropic workspace; the fallback only runs on
           # frames that already failed LPIPS so cost is bounded even when noisy.
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Called by another workflow: the key it passes. Run on its own (dispatch, schedule): the screenshots key.
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY || secrets.ANTHROPIC_API_KEY_SCREENSHOTS }}
         run: |
           dotnet test tests/enduser/Stride.Samples.Tests/Stride.Samples.Tests.csproj \
             --no-build \

@@ -9,6 +9,7 @@ using Stride.Shaders;
 
 namespace Stride.Rendering.Materials
 {
+    [EffectKeys]
     public class MaterialKeys
     {
         public static readonly PermutationParameterKey<ShaderSource> VertexStageSurfaceShaders = ParameterKeys.NewPermutation<ShaderSource>();

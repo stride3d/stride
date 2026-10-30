@@ -69,8 +69,10 @@ jobs:
 
       - name: Build and sign package
         run: |
-          dotnet build build\Stride.build `
+          # --no-restore: the target restores what it needs; the implicit restore would restore all of Stride.slnx
+          dotnet build build\package.proj `
             -t:PackageCli `
+            --no-restore `
             -p:StrideSign=${{ inputs.sign }} `
             -p:VersionSuffix=${{ inputs.version-suffix }}
         env:
@@ -248,4 +250,4 @@ jobs:
       apply: true
     secrets:
       gh-token: ${{ secrets.GH_PAT }}
-      anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+      anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY_RELEASE_NOTES }}

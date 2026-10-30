@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using Stride.Core;
 using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
@@ -17,6 +18,8 @@ namespace Stride.Rendering
     {
         private Material fallbackMaterial;
         private ModelDeformationRenderer deformationRenderer;
+        // ComponentDatas in a list, so that Draw can split it into batches
+        private readonly List<(ModelComponent Component, RenderModel RenderModel)> renderModelList = new();
 
         public Dictionary<ModelComponent, RenderModel> RenderModels => ComponentDatas;
 
@@ -65,8 +68,16 @@ namespace Stride.Rendering
         }
 
         /// <inheritdoc />
+        protected override void OnEntityComponentAdding(Entity entity, ModelComponent component, RenderModel renderModel)
+        {
+            renderModelList.Add((component, renderModel));
+        }
+
+        /// <inheritdoc />
         protected override void OnEntityComponentRemoved(Entity entity, ModelComponent component, RenderModel renderModel)
         {
+            renderModelList.SwapRemove((component, renderModel));
+
             deformationRenderer?.Remove(component);
             // Remove old meshes
             if (renderModel.Meshes != null)
@@ -91,15 +102,7 @@ namespace Stride.Rendering
         {
             // Note: we are rebuilding RenderMeshes every frame
             // TODO: check if it wouldn't be better to add/remove directly in CheckMeshes()?
-            //foreach (var entity in ComponentDatas)
-            Dispatcher.ForEach(ComponentDatas, entity =>
-            {
-                var modelComponent = entity.Key;
-                var renderModel = entity.Value;
-
-                CheckMeshes(modelComponent, renderModel);
-                UpdateRenderModel(modelComponent, renderModel);
-            });
+            Dispatcher.ForBatched(renderModelList.Count, new UpdateRenderModelJob { Processor = this });
 
             // Schedules the deformation of each model; MeshRenderFeature deforms the ones a view collects.
             var deformationOverride = DeformationOverride;
@@ -122,6 +125,20 @@ namespace Stride.Rendering
                     deformationRenderer.Configure(deformationOverride);
                 }
                 deformationRenderer.Schedule(item.Key, item.Value);
+            }
+        }
+
+        private readonly struct UpdateRenderModelJob : Dispatcher.IBatchJob
+        {
+            public required ModelRenderProcessor Processor { get; init; }
+
+            public void Process(int start, int endExclusive)
+            {
+                foreach (var (modelComponent, renderModel) in CollectionsMarshal.AsSpan(Processor.renderModelList)[start..endExclusive])
+                {
+                    Processor.CheckMeshes(modelComponent, renderModel);
+                    Processor.UpdateRenderModel(modelComponent, renderModel);
+                }
             }
         }
 

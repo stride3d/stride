@@ -64,7 +64,7 @@ namespace Stride.Graphics
         StructuredCounterBuffer = UnorderedAccess | StructuredBuffer | 256,
 
         /// <summary>
-        ///   The buffer is a raw buffer.
+        ///   The buffer is a raw buffer. Its size must be a multiple of 4 bytes.
         /// </summary>
         RawBuffer = 512,
 

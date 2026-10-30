@@ -10,8 +10,6 @@
 
   <ItemGroup>
     <PackageReference Include="NuGet.Protocol" />
-    <PackageReference Include="NuGet.PackageManagement" />
-    <PackageReference Include="NuGet.Resolver" />
     <PackageReference Include="NuGet.Commands" />
   </ItemGroup>
 
