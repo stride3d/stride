@@ -3,8 +3,6 @@
 
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
-using Avalonia.Markup.Xaml.Styling;
-using Avalonia.Threading;
 using Avalonia.Xaml.Interactivity;
 using Stride.Core.Assets.Editor.Avalonia.Behaviors;
 using Stride.Core.Assets.Editor.Avalonia.Tests.Helpers;
@@ -91,40 +89,18 @@ public sealed class PropertyViewFilteringTests
 
     private static (Window Window, PropertyView PropertyView, PropertyViewFilteringBehavior Behavior) ShowProperties(object instance)
     {
-        DefaultProviders.Register();
-        var root = new NodeViewModelContext().RootOf(instance);
-        var propertyView = new PropertyView { ItemsSource = root.Children };
+        var (window, propertyView) = PropertyViewWindow.Show(instance);
         var behavior = new PropertyViewFilteringBehavior();
         Interaction.GetBehaviors(propertyView).Add(behavior);
-        var window = new Window { Width = 600, Height = 400 };
-        // The theme of the property grid, before the content: a window is a root, its content takes its theme at once
-        window.Resources.MergedDictionaries.Add(new ResourceInclude(new Uri("avares://Stride.Core.Assets.Editor.Avalonia.Tests/"))
-        {
-            Source = new Uri("avares://Stride.Core.Assets.Editor.Avalonia/Themes/PropertyViewTheme.axaml"),
-        });
-        window.Content = propertyView;
-        window.Show();
         Refresh(window);
         return (window, propertyView, behavior);
     }
 
-    // The containers of the properties are created by the layout
-    private static void Refresh(Window window)
-    {
-        Dispatcher.UIThread.RunJobs();
-        window.UpdateLayout();
-        Dispatcher.UIThread.RunJobs();
-    }
+    private static void Refresh(Window window) => PropertyViewWindow.Refresh(window);
 
-    private static PropertyViewItem Item(PropertyView propertyView, string name)
-    {
-        return propertyView.Properties.Single(x => ((NodeViewModel)x.DataContext!).Name == name);
-    }
+    private static PropertyViewItem Item(PropertyView propertyView, string name) => propertyView.Item(name);
 
-    private static PropertyViewItem Item(PropertyViewItem parent, string name)
-    {
-        return parent.Properties.Single(x => ((NodeViewModel)x.DataContext!).Name == name);
-    }
+    private static PropertyViewItem Item(PropertyViewItem parent, string name) => parent.Item(name);
 }
 
 public sealed class FilterSample
