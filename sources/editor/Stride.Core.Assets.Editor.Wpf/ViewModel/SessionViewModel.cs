@@ -52,6 +52,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         private readonly Dictionary<PackageViewModel, PackageContainer> packageMap = new Dictionary<PackageViewModel, PackageContainer>();
         private readonly ConcurrentDictionary<AssetId, AssetViewModel> assetIdMap = new ConcurrentDictionary<AssetId, AssetViewModel>();
         private bool sessionStateUpdating;
+        private ExternalAssetChangeTracker externalAssetChanges;
 
         private ProjectViewModel currentProject;
         private readonly PackageSession session;
@@ -542,6 +543,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         {
             EnsureNotDestroyed(nameof(SessionViewModel));
 
+            externalAssetChanges?.Dispose();
             SourceTracker?.Destroy();
             ActionHistory.Destroy();
             Thumbnails.Destroy();
@@ -756,6 +758,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             }
 
             SourceTracker = new AssetSourceTrackerViewModel(ServiceProvider, session, this);
+            externalAssetChanges = new ExternalAssetChangeTracker(this);
             UpdateSessionState();
 
             // This transaction is done to prevent action responding to undoRedoService.TransactionCompletion to occur during loading
@@ -957,10 +960,28 @@ namespace Stride.Core.Assets.Editor.ViewModel
             }
         }
 
+        /// <summary>
+        /// Gets whether <see cref="SaveSession"/> is saving the session.
+        /// </summary>
+        public bool IsSaving { get; private set; }
+
         public async Task<bool> SaveSession()
         {
             Dispatcher.EnsureAccess();
 
+            IsSaving = true;
+            try
+            {
+                return await SaveSessionInternal();
+            }
+            finally
+            {
+                IsSaving = false;
+            }
+        }
+
+        private async Task<bool> SaveSessionInternal()
+        {
             bool success = false;
 
             CheckConsistency();

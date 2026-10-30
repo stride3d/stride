@@ -23,8 +23,8 @@ namespace Stride.Assets.Presentation.ViewModel
     [AssetViewModel<SceneAsset>]
     public sealed class SceneViewModel : EntityHierarchyViewModel, IAssetViewModel<SceneAsset>
     {
-        private readonly IObjectNode childrenNode;
-        private readonly IMemberNode parentNode;
+        private IObjectNode childrenNode;
+        private IMemberNode parentNode;
         private SceneViewModel parent;
 
         private bool isInitialized;
@@ -191,6 +191,81 @@ namespace Stride.Assets.Presentation.ViewModel
             childrenNode.ItemChanged += ChildrenNodeItemChanged;
             parentNode.ValueChanged += ParentNodeValueChanged;
             isInitialized = true;
+        }
+
+        /// <inheritdoc />
+        protected override void OnAssetReplaced(Asset previousAsset)
+        {
+            if (isInitialized)
+            {
+                parentNode.ValueChanged -= ParentNodeValueChanged;
+                childrenNode.ItemChanged -= ChildrenNodeItemChanged;
+            }
+
+            var assetNode = NodeContainer.GetNode(Asset);
+            childrenNode = assetNode[nameof(SceneAsset.ChildrenIds)].Target;
+            parentNode = assetNode[nameof(SceneAsset.Parent)];
+
+            if (isInitialized)
+            {
+                // The scenes of the session follow the hierarchy of the new asset, which is not written back into the other scenes
+                foreach (var child in Children.Where(x => !Asset.ChildrenIds.Contains(x.Id)).ToList())
+                {
+                    UnlinkChild(child);
+                }
+                foreach (var child in Asset.ChildrenIds.Select(Session.GetAssetById).OfType<SceneViewModel>().Where(x => !Children.Contains(x)))
+                {
+                    child.Parent?.UnlinkChild(child);
+                    LinkChild(child);
+                }
+                var parentReference = AttachedReferenceManager.GetAttachedReference(parentNode.Retrieve());
+                var newParent = parentReference != null ? Session.GetAssetById(parentReference.Id) as SceneViewModel : null;
+                if (newParent != Parent)
+                {
+                    Parent?.UnlinkChild(this);
+                    newParent?.LinkChild(this);
+                }
+
+                childrenNode.ItemChanged += ChildrenNodeItemChanged;
+                parentNode.ValueChanged += ParentNodeValueChanged;
+            }
+
+            base.OnAssetReplaced(previousAsset);
+        }
+
+        // Links a child scene in the view models only, as an update of the hierarchy from the assets
+        private void LinkChild([NotNull] SceneViewModel child)
+        {
+            try
+            {
+                updatingChildren = true;
+                child.updatingParent = true;
+                Children.Add(child);
+                child.Parent = this;
+            }
+            finally
+            {
+                updatingChildren = false;
+                child.updatingParent = false;
+            }
+        }
+
+        // Unlinks a child scene in the view models only, as an update of the hierarchy from the assets
+        private void UnlinkChild([NotNull] SceneViewModel child)
+        {
+            try
+            {
+                updatingChildren = true;
+                child.updatingParent = true;
+                Children.Remove(child);
+                if (child.Parent == this)
+                    child.Parent = null;
+            }
+            finally
+            {
+                updatingChildren = false;
+                child.updatingParent = false;
+            }
         }
 
         private static void FixupParentChild([NotNull] SceneViewModel childScene, AttachedReference parentReference)

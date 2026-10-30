@@ -28,6 +28,7 @@ Access via `ServiceProvider.Get<IUndoRedoService>()`. Both `AssetEditorViewModel
 | `CanUndo` / `CanRedo` | `bool` | Whether rollback/rollforward is available |
 | `UndoRedoInProgress` | `bool` | `true` while a rollback or rollforward is executing; `CreateTransaction()` is a no-op during this window to prevent re-entrant operations |
 | `NotifySave()` | `void` | Mark the current stack position as the clean state; `IsDirty` becomes `false` for all tracked objects |
+| `NotifySave(IDirtiable)` | `void` | Mark the current stack position as the clean state of one object only, e.g. an asset reloaded from its file |
 | `Done` / `Undone` / `Redone` | events | Raised after each transaction completes, is rolled back, or is rolled forward |
 | `TransactionDiscarded` | event | Raised when the stack is full and the oldest transaction is dropped |
 
@@ -119,6 +120,7 @@ internal sealed class %%OperationName%%Operation : DirtyingOperation, IMergeable
 - After a new transaction is pushed: its dirtiables become dirty.
 - After `Undo()` / `Redo()`: dirty state is recalculated against the current stack position.
 - After `NotifySave()`: the current stack position is snapshotted; all tracked dirtiables become clean.
+- After `NotifySave(IDirtiable)`: the current stack position is snapshotted for that one dirtiable, which becomes clean; undoing an operation done before it makes it dirty again. GameStudio calls it when it reloads an asset from its file, changed outside of GameStudio. The next `NotifySave()` replaces these snapshots.
 
 Pass `new[] { this }` (or `this.Yield()`, or the asset's `.Dirtiables` property) when constructing any operation — this is the link between an operation and the objects it marks dirty.
 

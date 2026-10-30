@@ -1,12 +1,16 @@
 ﻿// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Xunit;
+using Stride.Core.Assets.Analysis;
+using Stride.Core.Assets.Tracking;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
+using Stride.Core.Storage;
 
 namespace Stride.Core.Assets.Tests
 {
@@ -413,6 +417,49 @@ namespace Stride.Core.Assets.Tests
 
                 Assert.Equal("subTest/TestAsset2", assetChanged.Reference.Location);
             }
+        }
+
+        [Fact]
+        public void TestLoadAssetFromFile()
+        {
+            var dirPath = Path.Combine(DirectoryTestBase, "TestLoadAssetFromFile");
+            if (Directory.Exists(dirPath))
+                Directory.Delete(dirPath, true);
+            Directory.CreateDirectory(dirPath);
+
+            var package = new Package { FullPath = Path.Combine(dirPath, "MyPkg.sdpkg") };
+            package.AssetFolders.Clear();
+            package.AssetFolders.Add(new AssetFolder("Assets"));
+
+            // A file written by another program, in a sub-folder of an asset folder, with paths relative to it as when saved
+            var sourcePath = new UFile(Path.Combine(dirPath, "Resources", "ground.png"));
+            var asset = new AssetObjectTest { Name = "Changed outside", RawAsset = sourcePath };
+            SourceHashesHelper.UpdateHashes(asset, new Dictionary<UFile, ObjectId> { [sourcePath] = ObjectId.New() });
+            var filePath = Path.Combine(dirPath, "Assets", "Sub", "Ground.sdtest");
+            AssetAnalysis.ConvertUPaths(new AssetItem("Sub/Ground", asset, package) { SourceFolder = "Assets" }, UPathType.Relative);
+            Assert.Equal(new UFile("../../Resources/ground.png"), asset.RawAsset);
+            AssetFileSerializer.Save(filePath, asset, null);
+
+            var result = new LoggerResult();
+            var assetItem = package.LoadAssetFromFile(new UFile(filePath), result);
+            Assert.False(result.HasErrors, string.Join("\n", result.Messages));
+            Assert.NotNull(assetItem);
+            Assert.Equal("Sub/Ground", assetItem.Location.FullPath);
+            Assert.Equal(asset.Id, assetItem.Id);
+            Assert.Equal(asset.Name, ((AssetObjectTest)assetItem.Asset).Name);
+            Assert.False(assetItem.IsDirty);
+            // Its paths are absolute, as in the assets of a loaded package
+            Assert.Equal(sourcePath, ((AssetObjectTest)assetItem.Asset).RawAsset);
+            Assert.Equal(sourcePath, Assert.Single(SourceHashesHelper.GetAllHashes(assetItem.Asset)).Key);
+            // It is loaded, not added
+            Assert.Empty(package.Assets);
+
+            // A file out of the asset folders is not an asset of the package
+            var outsidePath = Path.Combine(dirPath, "Elsewhere", "Ground.sdtest");
+            AssetFileSerializer.Save(outsidePath, asset, null);
+            result = new LoggerResult();
+            Assert.Null(package.LoadAssetFromFile(new UFile(outsidePath), result));
+            Assert.True(result.HasErrors);
         }
 
         [Fact]

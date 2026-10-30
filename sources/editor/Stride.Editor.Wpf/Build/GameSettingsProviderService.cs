@@ -66,6 +66,11 @@ namespace Stride.Editor.Build
             {
                 RaiseGameSettings(CurrentGameSettings);
             }
+            else if (e.Assets.Any(x => x.Asset is GameSettingsAsset))
+            {
+                // The game settings asset may have been replaced by another instance, by a reload of its file for instance
+                UpdateCurrentGameSettings();
+            }
         }
 
         private void SessionOnSessionStateChanged(object sender, SessionStateChangedEventArgs sessionStateChangedEventArgs)

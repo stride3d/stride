@@ -1017,9 +1017,6 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
 
     private void LoadAsset(AssetMigrationContext context, PackageLoadingAssetFile assetFile)
     {
-        var fileUPath = assetFile.FilePath;
-        var sourceFolder = assetFile.SourceFolder;
-
         // Check if asset has been deleted by an upgrader
         if (assetFile.Deleted)
         {
@@ -1034,7 +1031,50 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
             return;
         }
 
-        // An exception can occur here, so we make sure that loading a single asset is not going to break 
+        var assetItem = LoadAssetItem(context, assetFile);
+        if (assetItem is null)
+            return;
+
+        // Add to temporary assets
+        lock (TemporaryAssets)
+        {
+            TemporaryAssets.Add(assetItem);
+        }
+    }
+
+    /// <summary>
+    /// Loads the asset stored in a file of this package the way the package loads its assets (running its upgraders
+    /// if needed, with absolute paths), without adding it to the package.
+    /// </summary>
+    /// <param name="filePath">The full path of the asset file, in one of the <see cref="AssetFolders"/>.</param>
+    /// <param name="log">The log receiving the errors of the load.</param>
+    /// <returns>The loaded asset, or <c>null</c> if it could not be loaded (the reason is logged).</returns>
+    public AssetItem? LoadAssetFromFile(UFile filePath, ILogger log)
+    {
+        ArgumentNullException.ThrowIfNull(filePath);
+        ArgumentNullException.ThrowIfNull(log);
+
+        var sourceFolder = GetDistinctAssetFolderPaths().FirstOrDefault(x => x.Contains(filePath));
+        if (sourceFolder is null)
+        {
+            log.Error($"[{filePath}] is not in an asset folder of package [{Meta.Name}].");
+            return null;
+        }
+
+        var assetFile = new PackageLoadingAssetFile(filePath, sourceFolder);
+        var assetItem = LoadAssetItem(new AssetMigrationContext(this, assetFile.ToReference(), filePath.ToOSPath(), log), assetFile);
+        // Its paths are absolute, as those of the assets of a loaded package (see LoadAssets)
+        if (assetItem is not null)
+            AssetAnalysis.ConvertUPaths(assetItem, UPathType.Absolute);
+        return assetItem;
+    }
+
+    private AssetItem? LoadAssetItem(AssetMigrationContext context, PackageLoadingAssetFile assetFile)
+    {
+        var fileUPath = assetFile.FilePath;
+        var sourceFolder = assetFile.SourceFolder;
+
+        // An exception can occur here, so we make sure that loading a single asset is not going to break
         // the loop
         try
         {
@@ -1070,11 +1110,7 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
             // since there was no importer id and base.
             //FixAssetImport(assetItem);
 
-            // Add to temporary assets
-            lock (TemporaryAssets)
-            {
-                TemporaryAssets.Add(assetItem);
-            }
+            return assetItem;
         }
         catch (Exception ex)
         {
@@ -1086,6 +1122,7 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
 
             var assetReference = new AssetReference(AssetId.Empty, fileUPath.FullPath);
             context.Log.Error(this, assetReference, AssetMessageCode.AssetLoadingFailed, ex, fileUPath, ex.Message);
+            return null;
         }
     }
 
@@ -1327,7 +1364,10 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
         }
     }
 
-    private List<UDirectory> GetDistinctAssetFolderPaths()
+    /// <summary>
+    /// Gets the full paths of the <see cref="AssetFolders"/> of this package, without duplicates.
+    /// </summary>
+    public List<UDirectory> GetDistinctAssetFolderPaths()
     {
         var existingAssetFolders = new List<UDirectory>();
         foreach (var folder in AssetFolders)
