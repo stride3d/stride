@@ -31,6 +31,9 @@ namespace Stride.Core.Assets.Editor.ViewModel
             : base(serviceProvider)
         {
             serviceProvider.Get<IEditorDialogService>();
+            // The clipboard of the shared view models: the copy and paste property commands, and the recent projects of the
+            // project selection window, shown before any session
+            serviceProvider.RegisterService(new ClipboardService());
 
             ClearMRUCommand = new AnonymousCommand(serviceProvider, () => ClearRecentFiles());
             OpenSettingsWindowCommand = new AnonymousCommand(serviceProvider, OpenSettingsWindow);

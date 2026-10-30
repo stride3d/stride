@@ -13,6 +13,7 @@ using Stride.Core.Assets.Editor.Components.AddAssets;
 using Stride.Core.Assets.Editor.Components.AddAssets.View;
 using Stride.Core.Assets.Editor.Components.FixAssetReferences;
 using Stride.Core.Assets.Editor.Components.FixAssetReferences.Views;
+using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions.Views;
 using Stride.Core.Assets.Editor.Services;
@@ -143,7 +144,9 @@ namespace Stride.Core.Assets.Editor.View
         public IFixReferencesDialog CreateFixAssetReferencesDialog(IViewModelServiceProvider serviceProvider, IReadOnlyCollection<AssetViewModel> assets, IAssetDependencyManager dependencyManager)
         {
             var fixReferencesWindow = new FixAssetReferencesWindow(serviceProvider);
-            var viewModel = new FixAssetReferencesViewModel(serviceProvider, assets, dependencyManager, fixReferencesWindow);
+            var viewModel = new FixAssetReferencesViewModel(serviceProvider, assets, dependencyManager);
+            // The last reference fixed closes the window
+            viewModel.Completed += (_, _) => fixReferencesWindow.RequestClose(DialogResult.Ok);
             viewModel.Initialize(assets);
             fixReferencesWindow.DataContext = viewModel;
             return fixReferencesWindow;

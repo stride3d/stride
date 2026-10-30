@@ -6,7 +6,8 @@
              xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
              xmlns:views="clr-namespace:Stride.Core.Assets.Editor.Components.TemplateDescriptions.Views"
              xmlns:providers="clr-namespace:Stride.Core.Assets.Editor.View.TemplateProviders"
-             xmlns:viewModels="clr-namespace:Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels"
+             xmlns:cvt="clr-namespace:Stride.Core.Assets.Editor.View.ValueConverters"
+             xmlns:viewModels="clr-namespace:Stride.Core.Assets.Editor.Components.TemplateDescriptions;assembly=Stride.Core.Assets.Editor.Common"
              mc:Ignorable="d" d:DataContext="{d:DesignInstance viewModels:TemplateDescriptionCollectionViewModel}"
              d:DesignHeight="300" d:DesignWidth="300">
   <UserControl.Resources>
@@ -22,7 +23,7 @@
               <DataTemplate>
                 <!-- Transparent background: the context menu opens anywhere on the row, not only over the text. -->
                 <DockPanel Width="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={sd:SumNum}, ConverterParameter={sd:Double -10}}" Margin="0,0,-5,0"  Height="56" Background="Transparent">
-                  <Image Source="{Binding Icon}" DockPanel.Dock="Left" Width="48" Height="48" Margin="2"/>
+                  <Image Source="{Binding Icon, Converter={cvt:TemplateImageToImageSource}, ConverterParameter={sd:False}}" DockPanel.Dock="Left" Width="48" Height="48" Margin="2"/>
                   <DockPanel Margin="18,0">
                     <TextBlock DockPanel.Dock="Top" FontSize="16" Text="{Binding Name}"/>
                     <TextBlock Text="{Binding Description}" TextWrapping="Wrap" TextTrimming="WordEllipsis"/>
@@ -51,7 +52,7 @@
             <providers:TemplateDefinition.DataTemplate>
               <DataTemplate>
                 <DockPanel Width="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={sd:SumNum}, ConverterParameter={sd:Double -10}}" Margin="0,0,-5,0"  Height="56">
-                  <Image Source="{Binding Icon}" DockPanel.Dock="Left" Width="48" Height="48" Margin="2"/>
+                  <Image Source="{Binding Icon, Converter={cvt:TemplateImageToImageSource}}" DockPanel.Dock="Left" Width="48" Height="48" Margin="2"/>
                   <DockPanel Margin="18,0">
                     <TextBlock DockPanel.Dock="Top" FontSize="16" Text="{Binding Name}"/>
                     <TextBlock Text="{Binding Description}" TextWrapping="Wrap" TextTrimming="WordEllipsis"/>
@@ -99,7 +100,7 @@
           <ItemsControl ItemsSource="{Binding Screenshots}">
             <ItemsControl.ItemTemplate>
               <DataTemplate>
-                <Image Margin="2,12" Source="{Binding}" MaxWidth="192" StretchDirection="DownOnly" SnapsToDevicePixels="true"/>
+                <Image Margin="2,12" Source="{Binding Converter={cvt:TemplateImageToImageSource}, ConverterParameter={sd:False}}" MaxWidth="192" StretchDirection="DownOnly" SnapsToDevicePixels="true"/>
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>

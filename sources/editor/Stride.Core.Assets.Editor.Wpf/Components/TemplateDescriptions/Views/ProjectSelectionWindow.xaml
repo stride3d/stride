@@ -6,7 +6,7 @@
                   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                   xmlns:views="clr-namespace:Stride.Core.Assets.Editor.Components.TemplateDescriptions.Views"
-                  xmlns:viewModels="clr-namespace:Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels"
+                  xmlns:viewModels="clr-namespace:Stride.Core.Assets.Editor.Components.TemplateDescriptions;assembly=Stride.Core.Assets.Editor.Common"
                   mc:Ignorable="d"
                   Height="768" Width="1024" ShowInTaskbar="False"
                   Style="{DynamicResource WindowChromeStyle}" d:DataContext="{d:DesignInstance viewModels:NewOrOpenSessionTemplateCollectionViewModel}">

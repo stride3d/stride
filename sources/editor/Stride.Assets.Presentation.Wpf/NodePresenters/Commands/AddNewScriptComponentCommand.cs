@@ -9,6 +9,7 @@ using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Core.Quantum;
 using System.Collections.Generic;
 using Stride.Core.Assets.Templates;
+using Stride.Core.Assets.Editor.Components.TemplateDescriptions;
 using Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters;

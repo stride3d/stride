@@ -7,6 +7,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:views="clr-namespace:Stride.Core.Assets.Editor.Components.TemplateDescriptions.Views"
         xmlns:viewModels="clr-namespace:Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels"
+        xmlns:templates="clr-namespace:Stride.Core.Assets.Editor.Components.TemplateDescriptions;assembly=Stride.Core.Assets.Editor.Common"
         mc:Ignorable="d"
         Title="{sd:Localize New package}" Height="768" Width="1024" Icon="{DynamicResource EditorIcon}" ShowInTaskbar="False"
         Style="{DynamicResource WindowChromeStyle}" d:DataContext="{d:DesignInstance viewModels:NewProjectTemplateCollectionViewModel}">
@@ -35,7 +36,7 @@
             </Button>
           </UniformGrid>
         </StackPanel>
-        <Grid IsEnabled="{Binding SelectedTemplate, Converter={sd:MatchType}, ConverterParameter={x:Type viewModels:TemplateDescriptionViewModel}}">
+        <Grid IsEnabled="{Binding SelectedTemplate, Converter={sd:MatchType}, ConverterParameter={x:Type templates:TemplateDescriptionViewModel}}">
           <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="2*"/>
