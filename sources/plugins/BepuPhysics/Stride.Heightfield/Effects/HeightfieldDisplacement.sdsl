@@ -1,0 +1,46 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net).
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+namespace Stride.Heightfield
+{
+    shader HeightfieldDisplacement<bool TTessellated, bool TComputeNormal, MemberName TNormal> : IMaterialSurface, HeightfieldDisplacementProperties, PositionStream, NormalStream, Transformation, Texturing
+    {
+        compose ComputeColor inner;
+
+        override void Compute()
+        {
+            base.Compute();
+
+            if (TTessellated)
+            {
+                // We're in the domain shader, re-sampling position after tessellation occured.
+                // Let's correct the interpolated position.
+                float height = inner.Compute().x;
+                streams.PositionWS.xyz += (height - streams.Position.y) * streams.normalWS.xyz;
+            }
+
+            if (TComputeNormal)
+            {
+                float uvCellSize = PlaneCellSize / HeightfieldSize;
+
+                float2 s0;
+                float2 s1;
+                streams.TexCoord.x -= uvCellSize; s0.x = inner.Compute().x;
+                streams.TexCoord.x += uvCellSize * 2; s1.x = inner.Compute().x;
+
+                streams.TexCoord.x -= uvCellSize;
+
+                streams.TexCoord.y -= uvCellSize; s0.y = inner.Compute().x;
+                streams.TexCoord.y += uvCellSize * 2; s1.y = inner.Compute().x;
+
+                streams.TexCoord.y -= uvCellSize;
+
+                float3 normalsOut;
+                normalsOut.xz = (s0 - s1) / (2 * PlaneCellSize);
+                normalsOut.y = 1;
+
+                streams.TNormal.xyz = normalize(normalsOut);
+            }
+        }
+    };
+}
