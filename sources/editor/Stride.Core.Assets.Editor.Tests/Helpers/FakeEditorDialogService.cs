@@ -23,6 +23,11 @@ public sealed class FakeEditorDialogService : IEditorDialogService, IProgressWin
 
     public List<WorkProgressViewModel> ProgressWindows { get; } = [];
 
+    /// <summary>
+    /// The delay before each progress window of <see cref="ProgressWindows"/> opens, in milliseconds; 0 when it opens at once.
+    /// </summary>
+    public List<int> ProgressWindowDelays { get; } = [];
+
     public List<WorkProgressViewModel> Notifications { get; } = [];
 
     /// <summary>
@@ -48,12 +53,16 @@ public sealed class FakeEditorDialogService : IEditorDialogService, IProgressWin
     {
     }
 
-    public void ShowProgressWindow(WorkProgressViewModel workProgress) => ProgressWindows.Add(workProgress);
+    public void ShowProgressWindow(WorkProgressViewModel workProgress) => ShowProgressWindow(workProgress, 0);
 
     /// <summary>
     /// Records the progress window without opening it: the work does not wait for a window to close.
     /// </summary>
-    public void ShowProgressWindow(WorkProgressViewModel workProgress, int minDelay) => ProgressWindows.Add(workProgress);
+    public void ShowProgressWindow(WorkProgressViewModel workProgress, int minDelay)
+    {
+        ProgressWindows.Add(workProgress);
+        ProgressWindowDelays.Add(minDelay);
+    }
 
     public void ShowNotification(WorkProgressViewModel workProgress) => Notifications.Add(workProgress);
 
