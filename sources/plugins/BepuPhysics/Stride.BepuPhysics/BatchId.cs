@@ -1,12 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 //  Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-// Having it here is really stupid, but
-// - We can't move it to Stride's bepu because this assembly does not reference it,
-//   it's the other way around
-// - This assembly, and user assemblies need this type
-// - It doesn't make sense to move it outside of those two assemblies
-
 namespace Stride.BepuPhysics;
 
 /// <summary>
