@@ -49,7 +49,7 @@ jobs:
               && (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft'))))
     uses: ./.github/workflows/test-enduser.yml
     secrets:
-      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY_SCREENSHOTS }}
     with:
       build-type: Debug
 
@@ -65,7 +65,7 @@ jobs:
               && (github.event.pull_request.draft != true || contains(github.event.pull_request.labels.*.name, 'ci-run-on-draft'))))
     uses: ./.github/workflows/test-windows-editor.yml
     secrets:
-      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY_SCREENSHOTS }}
     with:
       build-type: Debug
 

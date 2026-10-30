@@ -64,7 +64,7 @@ jobs:
       - name: Re-judge deferred frames (vision tiebreak)
         id: gate
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY_SCREENSHOTS }}
           DOTNET_NUGET_SIGNATURE_VERIFICATION: "false"
         run: |
           cli="sources/tests/Stride.ScreenshotComparator.VisionGate/Stride.ScreenshotComparator.VisionGate.csproj"
