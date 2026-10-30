@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:debug="clr-namespace:Stride.Core.Assets.Editor.View.DebugTools"
+             xmlns:editorViewModels="clr-namespace:Stride.Core.Assets.Editor.ViewModels;assembly=Stride.Core.Assets.Editor.Common"
              xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
              xmlns:q="clr-namespace:Stride.Core.Quantum;assembly=Stride.Core.Quantum"
              mc:Ignorable="d" 
@@ -20,7 +20,7 @@
         <Setter Property="ToolTip" Value="Break on this node with the debugger (if attached)" />
       </Style>
 
-      <HierarchicalDataTemplate DataType="{x:Type debug:DebugAssetRootNodeViewModel}" ItemsSource="{Binding Children}">
+      <HierarchicalDataTemplate DataType="{x:Type editorViewModels:DebugAssetRootNodeViewModel}" ItemsSource="{Binding Children}">
         <DockPanel>
           <Button DockPanel.Dock="Right" Command="{Binding BreakCommand}" Style="{StaticResource BreakButtonStyle}" />
           <TextBlock x:Name="TextBlock">
@@ -30,7 +30,7 @@
         </DockPanel>
       </HierarchicalDataTemplate>
 
-      <DataTemplate DataType="{x:Type debug:DebugAssetBaseNodeViewModel}">
+      <DataTemplate DataType="{x:Type editorViewModels:DebugAssetBaseNodeViewModel}">
         <DockPanel>
           <Button DockPanel.Dock="Right" Command="{Binding BreakCommand}" Style="{StaticResource BreakButtonStyle}" />
           <TextBlock x:Name="TextBlock" FontStyle="Italic">
@@ -43,7 +43,7 @@
         </DockPanel>
       </DataTemplate>
       
-      <HierarchicalDataTemplate DataType="{x:Type debug:DebugAssetChildNodeViewModel}" ItemsSource="{Binding Children}">
+      <HierarchicalDataTemplate DataType="{x:Type editorViewModels:DebugAssetChildNodeViewModel}" ItemsSource="{Binding Children}">
           <DockPanel>
             <TextBlock x:Name="TextBlock" DockPanel.Dock="Left">
               [<Run Text="{Binding LinkFromParent, Mode=OneWay}"/>/<Run Text="{Binding ContentType, Mode=OneWay}"/>]

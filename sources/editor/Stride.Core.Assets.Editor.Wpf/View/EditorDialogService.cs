@@ -161,10 +161,10 @@ namespace Stride.Core.Assets.Editor.View
             return packagePickerWindow;
         }
 
-        public IFixReferencesDialog CreateFixAssetReferencesDialog(IViewModelServiceProvider serviceProvider, IReadOnlyCollection<AssetViewModel> assets, IAssetDependencyManager dependencyManager)
+        public IFixReferencesDialog CreateFixAssetReferencesDialog(IViewModelServiceProvider serviceProvider, SessionViewModel session, IReadOnlyCollection<AssetViewModel> assets, IAssetDependencyManager dependencyManager)
         {
             var fixReferencesWindow = new FixAssetReferencesWindow(serviceProvider);
-            var viewModel = new FixAssetReferencesViewModel(serviceProvider, assets, dependencyManager);
+            var viewModel = new FixAssetReferencesViewModel(serviceProvider, session, assets, dependencyManager);
             // The last reference fixed closes the window
             viewModel.Completed += (_, _) => fixReferencesWindow.RequestClose(DialogResult.Ok);
             viewModel.Initialize(assets);

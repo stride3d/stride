@@ -101,6 +101,11 @@ namespace Stride.Core.Assets.Editor.ViewModel
         ISessionObjectPropertiesViewModel AssetViewProperties { get; }
 
         /// <summary>
+        /// Gets or sets the properties panel that is currently active (the one of the asset view or of an editor).
+        /// </summary>
+        SessionObjectPropertiesViewModel ActiveProperties { get; set; }
+
+        /// <summary>
         /// Gets the tracker of the source files of the assets.
         /// </summary>
         IAssetSourceTrackerViewModel SourceTracker { get; }
