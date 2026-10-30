@@ -13,7 +13,8 @@ namespace Stride.Assets.Editor.Avalonia.Behaviors;
 /// <summary>
 /// Makes an <see cref="AutoCompleteBox"/> behave as the WPF <c>FilteringComboBox</c> of the node name of a node link: the
 /// list opens when the box gets the focus, and the text goes to the property (one undo entry) when a node is picked in the
-/// list, on Enter or when the focus leaves, not on every key. Escape shows the value of the property again.
+/// list, on Enter (the first node shown when the list is open) or when the focus leaves, not on every key. Escape shows
+/// the value of the property again.
 /// </summary>
 /// <remarks>
 /// The <see cref="AutoCompleteBox.Text"/> binding must use <c>UpdateSourceTrigger=Explicit</c>.
@@ -83,6 +84,9 @@ public sealed class NodeNamePickerBehavior : Behavior<AutoCompleteBox>
         switch (e.Key)
         {
             case Key.Enter:
+                // As the WPF FilteringComboBox, Enter in the open list takes the node it highlights, the first one shown
+                if (AssociatedObject is { IsDropDownOpen: true, SelectedItem: null } list && FindShownNode(list) is { } node)
+                    list.Text = node.Name;
                 Commit();
                 break;
             case Key.Escape when hasChanges && AssociatedObject is { } box:
@@ -94,6 +98,20 @@ public sealed class NodeNamePickerBehavior : Behavior<AutoCompleteBox>
                 e.Handled = true;
                 break;
         }
+    }
+
+    /// <summary>
+    /// Finds the node the open list shows first for the text of the box: the one with this name, otherwise the first
+    /// whose name contains it (the <see cref="AutoCompleteFilterMode.Contains"/> filter of the box).
+    /// </summary>
+    private static NodeInformation? FindShownNode(AutoCompleteBox box)
+    {
+        if (box.ItemsSource is not IEnumerable<NodeInformation> nodes || string.IsNullOrEmpty(box.Text))
+            return null;
+
+        var text = box.Text;
+        return nodes.FirstOrDefault(x => string.Equals(x.Name, text, StringComparison.OrdinalIgnoreCase))
+            ?? nodes.FirstOrDefault(x => x.Name?.Contains(text, StringComparison.OrdinalIgnoreCase) ?? false);
     }
 
     private void Commit()
