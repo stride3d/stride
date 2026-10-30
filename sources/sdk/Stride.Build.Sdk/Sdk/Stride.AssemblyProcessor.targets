@@ -163,9 +163,6 @@
       <!-- Start with explicit references for NuGet packages -->
       <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorOptions) @(StrideAddReference->'--add-reference=%22%(Identity)%22',' ')</StrideAssemblyProcessorOptions>
 
-      <!-- Documentation file -->
-      <StrideAssemblyProcessorOptions Condition="'$(DocumentationFile)' != ''">$(StrideAssemblyProcessorOptions) --docfile="$(DocumentationFile)"</StrideAssemblyProcessorOptions>
-
       <!-- References file (all references) -->
       <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorOptions) --references-file="$(IntermediateOutputPath)StrideReferences.cache"</StrideAssemblyProcessorOptions>
 

@@ -41,8 +41,6 @@ public class AssemblyProcessorApp
 
     public bool SerializationAssembly { get; set; }
 
-    public string? DocumentationFile { get; set; }
-
     internal PlatformType Platform { get; set; }
 
     public List<string> SearchDirectories { get; set; }
@@ -173,11 +171,6 @@ public class AssemblyProcessorApp
             {
                 new AddReferenceProcessor(ReferencesToAdd)
             };
-
-            if (DocumentationFile != null)
-            {
-                processors.Add(new GenerateUserDocumentationProcessor(DocumentationFile));
-            }
 
             if (SerializationAssembly)
             {
