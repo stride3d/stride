@@ -157,13 +157,14 @@ public sealed class DotNetNewTemplateParametersViewModelTests
 
         Assert.Null(viewModel.AssetPacksStatus);
         Assert.False(viewModel.NoAssetPacksAvailable);
-        Assert.Equal(["Particles pack", "Materials pack"], viewModel.AssetPacks.Select(x => x.Name));
-        Assert.Equal("Particles pack — Fire and smoke", viewModel.AssetPacks[0].Label);
-        Assert.Equal("Materials pack", viewModel.AssetPacks[1].Label);
+        // By name, as WPF lists them on Windows, whatever the order of the template registry
+        Assert.Equal(["Materials pack", "Particles pack"], viewModel.AssetPacks.Select(x => x.Name));
+        Assert.Equal("Materials pack", viewModel.AssetPacks[0].Label);
+        Assert.Equal("Particles pack — Fire and smoke", viewModel.AssetPacks[1].Label);
         Assert.All(viewModel.AssetPacks, x => Assert.False(x.IsChecked));
         Assert.Empty(viewModel.SelectedAssetPackIdentities);
 
-        viewModel.AssetPacks[1].IsChecked = true;
+        viewModel.AssetPacks[0].IsChecked = true;
         Assert.Equal(["Stride.AssetPack.Materials"], viewModel.SelectedAssetPackIdentities);
         Assert.Equal(["Stride.AssetPack.Materials"], viewModel.GetResult().AssetPackIdentities);
     }
