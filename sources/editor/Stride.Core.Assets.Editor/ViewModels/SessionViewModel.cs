@@ -112,10 +112,10 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
         AssetLog = new AssetLogViewModel(ServiceProvider, this);
 
         // Initialize the reference view model related to the main asset view
-        References = new ReferencesViewModel(this);
+        References = new ReferencesViewModel(this, new AssetCollectionViewModel(this));
 
         // The tags of the selected assets, in the header of the property grid
-        AssetTags = new TagsViewModel(AssetCollection);
+        AssetTags = new TagsViewModel(ServiceProvider, AssetCollection);
 
         // Construct package categories
         var localPackageName = session.SolutionPath != null ? string.Format(Tr._(@"Solution '{0}'"), session.SolutionPath.GetFileNameWithoutExtension()) : LocalPackageCategoryName;
@@ -1472,7 +1472,7 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
             undoRedoService.SetName(transaction, $"Upgrade assets ({upgradedAssets.Count})");
         }
 
-        SourceTracker = new AssetSourceTrackerViewModel(this);
+        SourceTracker = new AssetSourceTrackerViewModel(this, session);
         UpdateSessionState();
 
         // This transaction is done to prevent action responding to undoRedoService.TransactionCompletion to occur during loading

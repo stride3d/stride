@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core.Assets.Editor.ViewModel;
-using Stride.Core.Assets.Presentation.ViewModels;
 using Stride.Core.Extensions;
 using Stride.Core.Presentation.ViewModels;
 
@@ -16,7 +15,7 @@ public sealed class ReferencesViewModel : DispatcherViewModel
     /// <summary>
     /// The asset collection view model of assets for which we want to gather references.
     /// </summary>
-    private readonly AssetCollectionViewModel assetCollection;
+    private readonly IAssetCollectionViewModel assetCollection;
     /// <summary>
     /// The collection of referencers for the current selection of assets.
     /// </summary>
@@ -28,20 +27,25 @@ public sealed class ReferencesViewModel : DispatcherViewModel
     private bool showReferencers;
     private string typeCountersAsText = "";
 
-    public ReferencesViewModel(SessionViewModel session)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ReferencesViewModel"/> class.
+    /// </summary>
+    /// <param name="session">The session view model, whose active asset view gives the assets for which we want to gather references.</param>
+    /// <param name="displayedReferences">The asset view that lists the references, created by the editor.</param>
+    public ReferencesViewModel(ISessionViewModel session, IAssetCollectionViewModel displayedReferences)
         : base(session.SafeArgument().ServiceProvider)
     {
-        assetCollection = session.AssetCollection;
-        DisplayedReferences = new AssetCollectionViewModel(session);
+        assetCollection = session.ActiveAssetView;
+        DisplayedReferences = displayedReferences.SafeArgument();
 
         assetCollection.SelectedAssets.CollectionChanged += (_, _) => RefreshReferences();
         session.AssetPropertiesChanged += (_, _) => Dispatcher.Invoke(RefreshReferences);
     }
 
     /// <summary>
-    /// Gets the <see cref="AssetCollectionViewModel"/> that should be currently displayed according to other properties values.
+    /// Gets the asset view that should be currently displayed according to other properties values.
     /// </summary>
-    public AssetCollectionViewModel DisplayedReferences { get; }
+    public IAssetCollectionViewModel DisplayedReferences { get; }
 
     /// <summary>
     /// Gets or sets whether to show the referencers of the selection of assets. If <c>false</c>, the referenced assets will be displayed instead.

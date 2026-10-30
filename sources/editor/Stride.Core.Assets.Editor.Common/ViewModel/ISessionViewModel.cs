@@ -152,6 +152,25 @@ namespace Stride.Core.Assets.Editor.ViewModel
         void NotifyAssetPropertiesChanged(IReadOnlyCollection<AssetViewModel> assets);
 
         /// <summary>
+        /// Notifies that the properties of the given assets have changed, once their dependencies are up to date, and completes
+        /// once <see cref="AssetPropertiesChanged"/> has been raised.
+        /// </summary>
+        Task NotifyAssetPropertiesChangedAsync(IReadOnlyCollection<AssetViewModel> assets);
+
+        /// <summary>
+        /// Adds a task that the session objects run in the background to the work of the session, rather than leave it
+        /// running unseen.
+        /// </summary>
+        /// <param name="task">The task.</param>
+        /// <returns>The task.</returns>
+        Task TrackBackgroundWork(Task task);
+
+        /// <summary>
+        /// Updates whether the session has changes that are not saved, once dirty flags changed (after a change, an undo or a redo).
+        /// </summary>
+        void UpdateHasUnsavedChanges();
+
+        /// <summary>
         /// Checks that the asset view models of each package match the assets of the package.
         /// </summary>
         void CheckConsistency();

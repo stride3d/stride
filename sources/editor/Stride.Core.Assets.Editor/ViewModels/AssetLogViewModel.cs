@@ -6,6 +6,7 @@ using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Diagnostics;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.Settings;
+using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModel.Logs;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
@@ -31,7 +32,7 @@ public sealed class AssetLogViewModel : LoggerViewModel, IAssetLogViewModel
     // Above this many changes in one update, the shown messages are replaced at once instead of one by one
     private const int MaxIncrementalChanges = 1000;
 
-    private readonly SessionViewModel session;
+    private readonly ISessionViewModel session;
     private readonly Dictionary<LogKey, Logger> loggers = [];
     private readonly HashSet<Logger> createdLoggers = [];
     private readonly ConditionalWeakTable<ILogMessage, AssetEntryMessage> assetEntryMessages = new();
@@ -40,9 +41,10 @@ public sealed class AssetLogViewModel : LoggerViewModel, IAssetLogViewModel
     private AssetLogScope scope;
     private string sourcesHeader = string.Empty;
 
-    public AssetLogViewModel(IViewModelServiceProvider serviceProvider, SessionViewModel session)
+    public AssetLogViewModel(IViewModelServiceProvider serviceProvider, ISessionViewModel session)
         : base(serviceProvider)
     {
+        ArgumentNullException.ThrowIfNull(session);
         MinLevel = LogMessageType.Warning;
         this.session = session;
         FilteredMessages = [];
@@ -62,7 +64,7 @@ public sealed class AssetLogViewModel : LoggerViewModel, IAssetLogViewModel
         SelectMessageAssetCommand = new AnonymousCommand<ILogMessage?>(serviceProvider, SelectMessageAsset);
         UpdateSourcesState();
 
-        session.AssetCollection.SelectedAssets.CollectionChanged += (_, _) =>
+        session.ActiveAssetView.SelectedAssets.CollectionChanged += (_, _) =>
         {
             if (Scope == AssetLogScope.SelectedAssets)
                 RefreshFilteredMessages();
@@ -213,7 +215,7 @@ public sealed class AssetLogViewModel : LoggerViewModel, IAssetLogViewModel
         if (GetAssetUrl(message) is null || GetAssetId(message!) is not { } id || session.GetAssetById(id) is not { } asset)
             return;
 
-        session.AssetCollection.SelectAssets([asset]);
+        session.ActiveAssetView.SelectAssets([asset]);
     }
 
     private void SourcesChanged()
@@ -263,7 +265,7 @@ public sealed class AssetLogViewModel : LoggerViewModel, IAssetLogViewModel
         waiting = false;
 
         var selectedOnly = Scope == AssetLogScope.SelectedAssets;
-        var selection = selectedOnly ? await Dispatcher.InvokeAsync(() => session.AssetCollection.SelectedAssets.ToList()) : [];
+        var selection = selectedOnly ? await Dispatcher.InvokeAsync(() => session.ActiveAssetView.SelectedAssets.ToList()) : [];
         var ids = await Task.Run(() =>
         {
             var result = new HashSet<AssetId>();
