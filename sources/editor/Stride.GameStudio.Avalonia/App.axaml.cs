@@ -277,6 +277,8 @@ public partial class App : Application
         // layers below them first
         RuntimeHelpers.RunModuleConstructor(typeof(Core.Assets.Editor.Avalonia.StrideCoreEditorViewPlugin).Module.ModuleHandle);
         RuntimeHelpers.RunModuleConstructor(typeof(Assets.Editor.Avalonia.StrideEditorViewPlugin).Module.ModuleHandle);
+        // The thumbnails of the reference fields in the property grid are engine images
+        Core.Assets.Editor.Avalonia.Converters.ThumbnailToImage.PresenterConverter = new Converters.StrideImage();
 
         // The command line options of the services
         StrideConfig.GraphicsDebugMode = Options.DebugEditorGraphics;
