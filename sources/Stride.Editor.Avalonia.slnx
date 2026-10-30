@@ -1,0 +1,101 @@
+<Solution>
+  <Folder Name="/10-CoreRuntime/">
+    <Project Path="core/Stride.Core.CompilerServices/Stride.Core.CompilerServices.csproj" />
+    <Project Path="core/Stride.Core.IO/Stride.Core.IO.csproj" />
+    <Project Path="core/Stride.Core.Mathematics/Stride.Core.Mathematics.csproj" />
+    <Project Path="core/Stride.Core.MicroThreading/Stride.Core.MicroThreading.csproj" />
+    <Project Path="core/Stride.Core.Serialization/Stride.Core.Serialization.csproj" />
+    <Project Path="core/Stride.Core/Stride.Core.csproj" />
+  </Folder>
+  <Folder Name="/20-StrideRuntime/">
+    <Project Path="engine/Stride.Engine/Stride.Engine.csproj" />
+    <Project Path="engine/Stride.Foundation/Stride.Foundation.csproj" />
+    <Project Path="engine/Stride.Games/Stride.Games.csproj" />
+    <Project Path="engine/Stride.Graphics/Stride.Graphics.csproj" />
+    <Project Path="engine/Stride.Input/Stride.Input.csproj" />
+    <Project Path="engine/Stride.Native/Stride.Native.csproj" />
+    <Project Path="engine/Stride.Rendering/Stride.Rendering.csproj" />
+    <Project Path="engine/Stride.VirtualReality/Stride.VirtualReality.csproj" />
+  </Folder>
+  <Folder Name="/22-StrideRuntime.Shaders/">
+    <Project Path="shaders/Stride.Shaders.Compilers/Stride.Shaders.Compilers.csproj" />
+    <Project Path="shaders/Stride.Shaders.Effects/Stride.Shaders.Effects.csproj" />
+    <Project Path="shaders/Stride.Shaders.Generators.Internal/Stride.Shaders.Generators.Internal.csproj" />
+    <Project Path="shaders/Stride.Shaders.Generators/Stride.Shaders.Generators.csproj" />
+    <Project Path="shaders/Stride.Shaders.Parsers/Stride.Shaders.Parsers.csproj" />
+    <Project Path="shaders/Stride.Shaders.Spirv/Stride.Shaders.Spirv.csproj" />
+    <Project Path="shaders/Stride.Shaders/Stride.Shaders.csproj" />
+  </Folder>
+  <Folder Name="/30-CoreDesign/">
+    <Project Path="buildengine/Stride.Core.BuildEngine.Common/Stride.Core.BuildEngine.Common.csproj" />
+    <Project Path="core/Stride.Core.Design/Stride.Core.Design.csproj" />
+    <Project Path="core/Stride.Core.Reflection/Stride.Core.Reflection.csproj" />
+    <Project Path="core/Stride.Core.Tasks/Stride.Core.Tasks.csproj" />
+    <Project Path="core/Stride.Core.Translation/Stride.Core.Translation.csproj" />
+    <Project Path="core/Stride.Core.Yaml/Stride.Core.Yaml.csproj" />
+  </Folder>
+  <Folder Name="/40-Assets/">
+    <Project Path="assets/Stride.Core.Assets.Quantum/Stride.Core.Assets.Quantum.csproj" />
+    <Project Path="assets/Stride.Core.Assets/Stride.Core.Assets.csproj" />
+    <Project Path="assets/Stride.Core.Packages/Stride.Core.Packages.csproj" />
+  </Folder>
+  <Folder Name="/50-Presentation/">
+    <Project Path="presentation/Stride.Core.Presentation.Quantum/Stride.Core.Presentation.Quantum.csproj" />
+    <Project Path="presentation/Stride.Core.Presentation/Stride.Core.Presentation.csproj" />
+    <Project Path="presentation/Stride.Core.Quantum/Stride.Core.Quantum.csproj" />
+  </Folder>
+  <Folder Name="/50-Presentation/Avalonia/">
+    <Project Path="presentation/Stride.Core.Presentation.Avalonia/Stride.Core.Presentation.Avalonia.csproj" />
+  </Folder>
+  <Folder Name="/60-Editor/">
+    <Project Path="editor/Stride.Assets.Editor/Stride.Assets.Editor.csproj" />
+    <Project Path="editor/Stride.Assets.Presentation/Stride.Assets.Presentation.csproj" />
+    <Project Path="editor/Stride.Core.Assets.Editor/Stride.Core.Assets.Editor.csproj" />
+    <Project Path="editor/Stride.Core.Assets.Presentation/Stride.Core.Assets.Presentation.csproj" />
+    <Project Path="editor/Stride.Editor/Stride.Editor.csproj" />
+  </Folder>
+  <Folder Name="/60-Editor/Avalonia/">
+    <Project Path="editor/Stride.Assets.Editor.Avalonia/Stride.Assets.Editor.Avalonia.csproj" />
+    <Project Path="editor/Stride.Core.Assets.Editor.Avalonia/Stride.Core.Assets.Editor.Avalonia.csproj" />
+    <Project Path="editor/Stride.Editor.Avalonia/Stride.Editor.Avalonia.csproj" />
+    <Project Path="editor/Stride.GameStudio.Avalonia.Desktop/Stride.GameStudio.Avalonia.Desktop.csproj" />
+    <Project Path="editor/Stride.GameStudio.Avalonia/Stride.GameStudio.Avalonia.csproj" />
+  </Folder>
+  <Folder Name="/70-StrideAssets/">
+    <Project Path="engine/Stride.Assets.Generators/Stride.Assets.Generators.csproj" />
+    <Project Path="engine/Stride.Assets.Models/Stride.Assets.Models.csproj" />
+    <Project Path="engine/Stride.Assets/Stride.Assets.csproj" />
+    <Project Path="engine/Stride.Assets.FFmpeg/Stride.Assets.FFmpeg.csproj" />
+    <Project Path="engine/Stride.Assets.VHACD/Stride.Assets.VHACD.csproj" />
+  </Folder>
+  <Folder Name="/80-Plugins/Audio/">
+    <Project Path="plugins/Audio/Stride.Audio/Stride.Audio.csproj" />
+  </Folder>
+  <Folder Name="/80-Plugins/BepuPhysics/">
+    <Project Path="plugins/BepuPhysics/Stride.BepuPhysics/Stride.BepuPhysics.csproj" />
+  </Folder>
+  <Folder Name="/80-Plugins/BulletPhysics/">
+    <Project Path="plugins/BulletPhysics/Stride.Navigation/Stride.Navigation.csproj" />
+    <Project Path="plugins/BulletPhysics/Stride.Physics/Stride.Physics.csproj" />
+  </Folder>
+  <Folder Name="/80-Plugins/UI/">
+    <Project Path="plugins/UI/Stride.UI/Stride.UI.csproj" />
+  </Folder>
+  <Folder Name="/80-Plugins/Video/">
+    <Project Path="plugins/Video/Stride.Video/Stride.Video.csproj" />
+  </Folder>
+  <Folder Name="/90-Tools/" />
+  <Folder Name="/90-Tools/3D-Importers/">
+    <Project Path="tools/Stride.Importer.3D/Stride.Importer.3D.csproj" />
+    <Project Path="tools/Stride.Importer.Common/Stride.Importer.Common.csproj" />
+  </Folder>
+  <Folder Name="/90-Tools/NuGetResolver/">
+    <Project Path="shared/Stride.NuGetResolver/Stride.NuGetResolver.csproj" />
+  </Folder>
+  <Folder Name="/90-Tools/TextureConverter/">
+    <Project Path="tools/Stride.TextureConverter/Stride.TextureConverter.csproj" />
+  </Folder>
+  <Properties Name="Visual Studio">
+    <Property Name="MinimumVersion" Value="18.0" />
+  </Properties>
+</Solution>
