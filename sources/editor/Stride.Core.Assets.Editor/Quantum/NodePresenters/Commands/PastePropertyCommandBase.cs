@@ -28,6 +28,8 @@ public abstract class PastePropertyCommandBase : NodePresenterCommandBase
 
     protected virtual bool CanPaste(IReadOnlyCollection<INodePresenter> nodePresenters)
     {
+        ArgumentNullException.ThrowIfNull(nodePresenters);
+
         foreach (var nodePresenter in nodePresenters)
         {
             var assetNodePresenter = nodePresenter as IAssetNodePresenter;

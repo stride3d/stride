@@ -84,6 +84,8 @@ public class AddPrimitiveKeyCommand : SyncNodePresenterCommandBase
     /// <exception cref="ArgumentNullException">type is null.</exception>
     private static object? CreateInstance(Type type)
     {
+        ArgumentNullException.ThrowIfNull(type);
+
         // abstract type cannot be instantiated
         if (type.IsAbstract)
             return null;

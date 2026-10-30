@@ -6,6 +6,7 @@ using Stride.Core.Reflection;
 using Stride.Core.Presentation.Quantum.Presenters;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Keys;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters;
+using Stride.Core.Assets.Editor.ViewModel;
 
 namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters;
 
@@ -25,8 +26,8 @@ internal sealed class CollectionPropertyNodeUpdater : AssetNodePresenterUpdaterB
         }
         if (memberCollection != null)
         {
-            //if (memberCollection.CanReorderItems)
-            //    node.AttachedProperties.Add(CollectionData.ReorderCollectionItemKey, new ReorderCollectionItemViewModel());
+            if (memberCollection.CanReorderItems)
+                node.AttachedProperties.Add(CollectionData.ReorderCollectionItemKey, new ReorderCollectionItemViewModel());
             if (memberCollection.ReadOnly)
                 node.AttachedProperties.Add(CollectionData.ReadOnlyCollectionKey, true);
         }
