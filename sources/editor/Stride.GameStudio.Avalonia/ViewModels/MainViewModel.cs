@@ -576,8 +576,9 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
 
     private async Task OnSave()
     {
-        if (session is not null)
-            await session.SaveSessionAsync();
+        // A saved session goes to the top of the recent sessions, as in WPF
+        if (session is not null && await session.SaveSessionAsync() && sessionPath is not null)
+            MRU.AddFile(sessionPath, StrideGameStudio.EditorVersionMajor);
     }
 
     private async Task OnReload()

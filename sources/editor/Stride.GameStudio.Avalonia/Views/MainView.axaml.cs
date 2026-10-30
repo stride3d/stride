@@ -1,15 +1,22 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Collections.Specialized;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Templates;
 using Avalonia.Input;
+using Avalonia.Media;
 using Stride.Core.Presentation.Avalonia.Commands;
+using Stride.Core.Translation;
+using Stride.GameStudio.Avalonia.ViewModels;
 
 namespace Stride.GameStudio.Avalonia.Views;
 
 public partial class MainView : UserControl
 {
+    private MainViewModel? viewModel;
+
     public MainView()
     {
         InitializeComponent();
@@ -23,6 +30,18 @@ public partial class MainView : UserControl
         PasteMenuItem.Command = EditRouter.Paste;
         DeleteMenuItem.Command = EditRouter.Delete;
         RenameMenuItem.Command = EditRouter.Rename;
+    }
+
+    /// <inheritdoc />
+    protected override void OnDataContextChanged(EventArgs e)
+    {
+        base.OnDataContextChanged(e);
+        if (viewModel is not null)
+            viewModel.RecentFiles.CollectionChanged -= RecentFilesChanged;
+        viewModel = DataContext as MainViewModel;
+        if (viewModel is not null)
+            viewModel.RecentFiles.CollectionChanged += RecentFilesChanged;
+        UpdateRecentSessionsMenu();
     }
 
     /// <summary>
@@ -54,4 +73,33 @@ public partial class MainView : UserControl
     /// The shortcut of Project > Cancel build (Ctrl+F6, as in WPF), bound on the main window like <see cref="SaveGesture"/>.
     /// </summary>
     public static KeyGesture CancelBuildGesture => new(Key.F6, Application.Current?.PlatformSettings?.HotkeyConfiguration.CommandModifiers ?? KeyModifiers.Control);
+
+    private void RecentFilesChanged(object? sender, NotifyCollectionChangedEventArgs e) => UpdateRecentSessionsMenu();
+
+    /// <summary>
+    /// Fills File > Open recent as WPF does: one item per recent session (its version and its path, the full path in the tool
+    /// tip), then "Clear list".
+    /// </summary>
+    private void UpdateRecentSessionsMenu()
+    {
+        var items = RecentSessionsMenu.Items;
+        items.Clear();
+        if (viewModel is null)
+            return;
+
+        var headerTemplate = (IDataTemplate)Resources["RecentSessionHeaderTemplate"]!;
+        foreach (var recent in viewModel.RecentFiles)
+        {
+            var item = new MenuItem { Header = recent, HeaderTemplate = headerTemplate, Command = recent.OpenCommand };
+            ToolTip.SetTip(item, recent.DisplayPath);
+            items.Add(item);
+        }
+        items.Add(new Separator());
+        items.Add(new MenuItem
+        {
+            Header = Tr._p("Menu", "Clear list"),
+            Command = viewModel.ClearRecentFilesCommand,
+            Icon = new Image { Source = (IImage?)this.FindResource("ImageDelete") },
+        });
+    }
 }
