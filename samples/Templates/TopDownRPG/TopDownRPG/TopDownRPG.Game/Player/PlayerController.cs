@@ -2,13 +2,14 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
+using Stride.BepuPhysics;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Events;
 using Stride.Navigation;
-using Stride.Physics;
 using TopDownRPG.Core;
+using TopDownRPG.Gameplay;
 
 namespace TopDownRPG.Player
 {
@@ -47,13 +48,9 @@ namespace TopDownRPG.Player
         public static readonly EventKey<float> RunSpeedEventKey = new EventKey<float>();
 
         // Allow some inertia to the movement
-        private Vector3 moveDirection = Vector3.Zero;
+        private Vector2 moveDirection = Vector2.Zero;
 
         private bool isRunning = false;
-
-        // Attacking
-        [Display("Punch Collision")]
-        public RigidbodyComponent PunchCollision { get; set; }
 
         /// <summary>
         /// The maximum distance from which the character can perform an attack
@@ -102,13 +99,9 @@ namespace TopDownRPG.Player
             character = Entity.Get<CharacterComponent>();
             if (character == null) throw new ArgumentException("Please add a CharacterComponent to the entity containing PlayerController!");
 
-            if (PunchCollision == null) throw new ArgumentException("Please add a RigidbodyComponent as a PunchCollision to the entity containing PlayerController!");
-
             modelChildEntity = Entity.GetChild(0);
 
             moveDestination = Entity.Transform.WorldMatrix.TranslationVector;
-
-            PunchCollision.Enabled = false;
         }
 
         /// <summary>
@@ -126,8 +119,6 @@ namespace TopDownRPG.Player
             var dt = (float) Game.UpdateTime.WarpElapsed.TotalSeconds;
             attackCooldown = (attackCooldown > 0) ? attackCooldown - dt : 0f;
 
-            PunchCollision.Enabled = (attackCooldown > 0);
-
             if (attackEntity == null)
                 return;
 
@@ -141,9 +132,18 @@ namespace TopDownRPG.Player
                 // Attack!
                 HaltMovement();
 
+                CrateScript crateScript = attackEntity.Get<CrateScript>();
+                if (crateScript != null)
+                {
+                    Script.AddTask(async () =>
+                    {
+                        await Game.WaitTime(TimeSpan.FromMilliseconds(300));
+                        crateScript.TriggerCollision();
+                    });
+                }
+
                 attackEntity = null;
                 attackCooldown = AttackCooldown;
-                PunchCollision.Enabled = true;
                 IsAttackingEventKey.Broadcast(true);
             }
             else
@@ -156,8 +156,8 @@ namespace TopDownRPG.Player
         private void HaltMovement()
         {
             isRunning = false;
-            moveDirection = Vector3.Zero;
-            character.SetVelocity(Vector3.Zero);
+            moveDirection = Vector2.Zero;
+            character.MoveVector = Vector2.Zero;
             moveDestination = modelChildEntity.Transform.WorldMatrix.TranslationVector;
         }
 
@@ -197,7 +197,7 @@ namespace TopDownRPG.Player
         {
             if (!ReachedDestination)
             {
-                var direction = CurrentWaypoint - Entity.Transform.WorldMatrix.TranslationVector;
+                var direction = (CurrentWaypoint - Entity.Transform.WorldMatrix.TranslationVector).XZ();
 
                 // Get distance towards next point and normalize the direction at the same time
                 var length = direction.Length();
@@ -244,12 +244,12 @@ namespace TopDownRPG.Player
                     moveSpeed = 1.0f;
 
                 // Slow down around corners
-                float cornerSpeedMultiply = Math.Max(0.0f, Vector3.Dot(direction, moveDirection)) * CornerSlowdown + (1.0f - CornerSlowdown);
+                float cornerSpeedMultiply = Math.Max(0.0f, Vector2.Dot(direction, moveDirection)) * CornerSlowdown + (1.0f - CornerSlowdown);
 
                 // Allow a very simple inertia to the character to make animation transitions more fluid
                 moveDirection = moveDirection * 0.85f + direction * moveSpeed * cornerSpeedMultiply * 0.15f;
 
-                character.SetVelocity(moveDirection * speed);
+                character.MoveVector = moveDirection;
 
                 // Broadcast speed as per cent of the max speed
                 RunSpeedEventKey.Broadcast(moveDirection.Length());
@@ -257,7 +257,7 @@ namespace TopDownRPG.Player
                 // Character orientation
                 if (moveDirection.Length() > 0.001)
                 {
-                    yawOrientation = MathUtil.RadiansToDegrees((float) Math.Atan2(-moveDirection.Z, moveDirection.X) + MathUtil.PiOverTwo);
+                    yawOrientation = MathUtil.RadiansToDegrees((float) Math.Atan2(-moveDirection.Y, moveDirection.X) + MathUtil.PiOverTwo);
                 }
                 modelChildEntity.Transform.Rotation = Quaternion.RotationYawPitchRoll(MathUtil.DegreesToRadians(yawOrientation), 0, 0);
             }

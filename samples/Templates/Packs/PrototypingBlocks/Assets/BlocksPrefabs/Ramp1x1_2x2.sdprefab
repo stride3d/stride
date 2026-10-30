@@ -21,15 +21,18 @@ Hierarchy:
                         Model: 898b8f2c-6cd6-4320-9dad-418fdb30e20d:Models/Ramp1x1_2x2
                         Materials:
                             74dc3e7c6e633f46a3801edd86a197dd~0: 08b6f010-a274-4180-83c4-0f2c0920774b:Materials/GridMTStairs
-                    dc14c0a2cfc23c4888d690b32f62969d: !StaticColliderComponent
+                    dc14c0a2cfc23c4888d690b32f62969d: !Stride.BepuPhysics.StaticComponent,Stride.BepuPhysics
                         Id: a2c014dc-c2cf-483c-88d6-90b32f62969d
-                        CanSleep: true
-                        Restitution: 0.0
-                        Friction: 0.5
-                        RollingFriction: 0.0
-                        CcdMotionThreshold: 0.0
-                        CcdSweptSphereRadius: 0.0
-                        IsTrigger: false
-                        ColliderShapes:
-                            d3bac6d7e45a544588ebd5170d5258b4: !ColliderShapeAssetDesc
-                                Shape: ae62d5af-0efc-40e2-af1d-02af859774a1:CollisionMeshes/Ramp1x1_2x2
+                        Collider: !Stride.BepuPhysics.Definitions.Colliders.CompoundCollider,Stride.BepuPhysics
+                            Colliders:
+                                9d3ffd6df532fdcec9dbdc61cdbbe1d2: !Stride.BepuPhysics.Definitions.Colliders.ConvexHullCollider,Stride.BepuPhysics
+                                    Mass: 1.0
+                                    PositionLocal: {X: 0.0, Y: 0.0, Z: 0.0}
+                                    RotationLocal: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                                    Hull: 3433d35b-254a-4aa0-a0de-0d3744f9c92a:CollisionMeshes/Ramp1x1_2x2
+                        SpringFrequency: 30.0
+                        SpringDampingRatio: 3.0
+                        FrictionCoefficient: 1.0
+                        MaximumRecoveryVelocity: 1000.0
+                        CollisionGroup: {}
+                        ContactEventHandler: null

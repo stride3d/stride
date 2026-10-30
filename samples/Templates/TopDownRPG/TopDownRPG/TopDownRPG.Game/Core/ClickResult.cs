@@ -1,8 +1,8 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+using Stride.BepuPhysics;
 using Stride.Core.Mathematics;
 using Stride.Engine;
-using Stride.Physics;
 
 namespace TopDownRPG.Core
 {
@@ -45,8 +45,8 @@ namespace TopDownRPG.Core
         public ClickType    Type;
 
         /// <summary>
-        /// The HitResult received from the physics simulation
+        /// The HitInfo received from the physics simulation
         /// </summary>
-        public HitResult    HitResult;
+        public HitInfo    HitResult;
     }
 }

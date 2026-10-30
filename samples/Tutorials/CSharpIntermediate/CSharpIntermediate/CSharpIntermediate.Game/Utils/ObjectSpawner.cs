@@ -2,9 +2,9 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Stride.Core.Mathematics;
+using Stride.BepuPhysics;
 using Stride.Engine;
 using Stride.Input;
-using Stride.Physics;
 
 namespace CSharpIntermediate.Code
 {
@@ -33,11 +33,11 @@ namespace CSharpIntermediate.Code
                 prefabClone.Transform.Position = worldPos;
                 prefabClone.Transform.UpdateWorldMatrix();
 
-                var physicsComponent = prefabClone.Get<RigidbodyComponent>();
-                physicsComponent.Enabled = true;
+                var physicsComponent = prefabClone.Get<BodyComponent>();
+                physicsComponent.Awake = true;
                 physicsComponent.LinearVelocity = new Vector3(0);
                 physicsComponent.AngularVelocity = new Vector3(0);
-                physicsComponent.UpdatePhysicsTransformation();
+                physicsComponent.Teleport(worldPos, rot);
             }
         }
 
