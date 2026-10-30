@@ -39,6 +39,7 @@ public sealed class SpriteSheetEditorViewModel : AssetEditorViewModel<SpriteShee
 
     private Color4 borderColor = new(1.0f, 0.0f, 0.0f, 1.0f);
     private SpriteInfoViewModel? currentSprite;
+    private int propertiesGeneration;
     private bool magicWandUseTransparency;
     private bool selectionHighlightEnabled;
     private SpriteSheetEditorToolMode toolMode;
@@ -501,7 +502,14 @@ public sealed class SpriteSheetEditorViewModel : AssetEditorViewModel<SpriteShee
     {
         var selectedSprites = SelectedSprites.Cast<SpriteInfoViewModel>().ToList();
         EditorProperties.UpdateTypeAndName(selectedSprites, x => "Sprite", x => x.Name ?? string.Empty, "sprites");
+        var generation = Interlocked.Increment(ref propertiesGeneration);
         var viewModel = await EditorProperties.GenerateSelectionPropertiesAsync(selectedSprites);
+        // A later selection or refresh of the grid (a change of the color key, for instance) supersedes this one, and its
+        // grid comes back null: only the latest one sets the current sprite. Otherwise the current sprite went null for a
+        // while, or for good when the superseded grid finished last, and the tools of the image did nothing.
+        if (generation != Volatile.Read(ref propertiesGeneration))
+            return;
+
         CurrentSprite = viewModel != null && SelectedSprites.Count == 1 ? selectedSprites.First() : null;
     }
 
@@ -586,7 +594,7 @@ public sealed class SpriteSheetEditorViewModel : AssetEditorViewModel<SpriteShee
 
     private void FindSpriteRegion(SpriteImagePick pick)
     {
-        if (CurrentSprite == null || Cache == null)
+        if (CurrentSprite is not { } sprite || Cache == null)
             return;
 
         switch (ToolMode)
@@ -596,7 +604,7 @@ public sealed class SpriteSheetEditorViewModel : AssetEditorViewModel<SpriteShee
                 break;
 
             case SpriteSheetEditorToolMode.ColorPick:
-                var color = Cache.PickPixelColor(CurrentSprite.GetSpriteInfo().Source, pick.Position);
+                var color = Cache.PickPixelColor(sprite.GetSpriteInfo().Source, pick.Position);
                 if (color.HasValue)
                 {
                     ColorKey = color.Value;
@@ -605,18 +613,18 @@ public sealed class SpriteSheetEditorViewModel : AssetEditorViewModel<SpriteShee
                 break;
 
             case SpriteSheetEditorToolMode.MagicWand:
-                var spriteRegion = Cache.FindSpriteRegion(CurrentSprite.GetSpriteInfo().Source, pick.Position, MagicWandUseTransparency, Asset.Asset.ColorKeyColor);
+                var spriteRegion = Cache.FindSpriteRegion(sprite.GetSpriteInfo().Source, pick.Position, MagicWandUseTransparency, Asset.Asset.ColorKeyColor);
                 if (spriteRegion.HasValue && spriteRegion.Value.Width > 0 && spriteRegion.Value.Height > 0)
                 {
                     var isUnion = pick.AddToRegion;
                     if (isUnion)
                     {
                         // Merge the two regions
-                        var initialRect = (Rectangle)CurrentSprite.TextureRegion.Region;
+                        var initialRect = (Rectangle)sprite.TextureRegion.Region;
                         spriteRegion = Rectangle.Union(initialRect, spriteRegion.Value);
                     }
                     using var transaction = UndoRedoService.CreateTransaction();
-                    CurrentSprite.TextureRegion.Region = new RectangleF
+                    sprite.TextureRegion.Region = new RectangleF
                     {
                         Left = spriteRegion.Value.Left,
                         Top = spriteRegion.Value.Top,
@@ -626,7 +634,7 @@ public sealed class SpriteSheetEditorViewModel : AssetEditorViewModel<SpriteShee
                     if (!isUnion)
                     {
                         // It's a new region, reset the sprite borders
-                        CurrentSprite.SpriteBorders.Borders = Vector4.Zero;
+                        sprite.SpriteBorders.Borders = Vector4.Zero;
                     }
                     UndoRedoService.SetName(transaction, "Update selected region");
                 }
