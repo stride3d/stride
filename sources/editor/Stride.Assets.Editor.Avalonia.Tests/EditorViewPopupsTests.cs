@@ -9,12 +9,14 @@ using Stride.Assets.Editor.Avalonia.Views;
 using Stride.Assets.Editor.EditorGame;
 using Stride.Assets.Editor.Avalonia.Tests.Helpers;
 using Stride.Assets.Editor.ViewModels;
+using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Core;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Diagnostics;
+using Stride.Core.Mathematics;
 using Stride.Core.Presentation.Core;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
@@ -27,7 +29,7 @@ using Stride.Physics.Editor;
 namespace Stride.Assets.Editor.Avalonia.Tests;
 
 /// <summary>
-/// The gizmo options popup of the view toolbar of a scene or prefab editor lists what the plugins add.
+/// The overlays and gizmo options popups of the view toolbar of a scene or prefab editor list what the plugins add.
 /// </summary>
 public sealed class EditorViewPopupsTests
 {
@@ -37,6 +39,77 @@ public sealed class EditorViewPopupsTests
     {
         // The gizmos of the plugins, as in a session that loaded them
         PluginEditorAssemblies.Register();
+    }
+
+    [AvaloniaFact]
+    public void TheOverlaysPopupHasOneSectionPerServiceWithTheirDefaults()
+    {
+        var navigation = new FakeOverlayService("Navigation meshes", new EditorOverlay("a", "Group A", Color4.White, visibleByDefault: true), new EditorOverlay("b", "Group B"));
+        var other = new FakeOverlayService("Other", new EditorOverlay("c", "Other C"));
+
+        var overlays = new EditorViewOverlaysViewModel(serviceProvider, [navigation, other]);
+
+        Assert.True(overlays.HasSections);
+        Assert.Equal(["Navigation meshes", "Other"], overlays.Sections.Select(x => x.DisplayName));
+        Assert.Equal(["Group A", "Group B"], overlays.Sections[0].Overlays.Select(x => x.DisplayName));
+        Assert.True(overlays.Sections[0].Overlays[0].HasColor);
+        Assert.False(overlays.Sections[0].Overlays[1].HasColor);
+        // Each service is told the visibility of each of its overlays
+        Assert.Equal(new Dictionary<string, bool> { ["a"] = true, ["b"] = false }, navigation.Visibilities);
+        Assert.Equal(new Dictionary<string, bool> { ["c"] = false }, other.Visibilities);
+    }
+
+    [AvaloniaFact]
+    public void TheOverlayTogglesShowAndHideTheOverlays()
+    {
+        var service = new FakeOverlayService("Navigation meshes", new EditorOverlay("a", "Group A"), new EditorOverlay("b", "Group B"));
+        var overlays = new EditorViewOverlaysViewModel(serviceProvider, [service]);
+
+        overlays.Sections[0].Overlays[1].IsVisible = true;
+        Assert.True(service.Visibilities["b"]);
+        overlays.ToggleAllCommand.Execute(true);
+        Assert.Equal([true, true], service.Visibilities.Values);
+        overlays.ToggleAllCommand.Execute(false);
+        Assert.Equal([false, false], service.Visibilities.Values);
+    }
+
+    [AvaloniaFact]
+    public void ChangedOverlaysKeepTheVisibilityOfTheKnownOnes()
+    {
+        var service = new FakeOverlayService("Navigation meshes", new EditorOverlay("a", "Group A"));
+        var overlays = new EditorViewOverlaysViewModel(serviceProvider, [service]);
+        overlays.Sections[0].Overlays[0].IsVisible = true;
+
+        // A navigation group added to the game settings
+        service.SetOverlays(new EditorOverlay("a", "Group A"), new EditorOverlay("b", "Group B", visibleByDefault: true), new EditorOverlay("c", "Group C"));
+
+        Assert.Equal([true, true, false], overlays.Sections[0].Overlays.Select(x => x.IsVisible));
+        overlays.Destroy();
+        Assert.False(service.HasSubscribers);
+    }
+
+    [AvaloniaFact]
+    public void WithoutOverlayServiceThePopupHasNoSection()
+    {
+        var overlays = new EditorViewOverlaysViewModel(serviceProvider, []);
+
+        Assert.False(overlays.HasSections);
+    }
+
+    [AvaloniaFact]
+    public void TheOverlaysPanelShowsACheckBoxPerOverlay()
+    {
+        var service = new FakeOverlayService("Navigation meshes", new EditorOverlay("a", "Group A", Color4.White), new EditorOverlay("b", "Group B"));
+        var panel = new EditorViewOverlaysPanel { DataContext = new EditorViewOverlaysViewModel(serviceProvider, [service]) };
+        var window = Show(panel);
+
+        var texts = panel.GetVisualDescendants().OfType<TextBlock>().Select(x => x.Text).ToList();
+        Assert.Contains("Navigation meshes", texts);
+        var checkBoxes = panel.GetVisualDescendants().OfType<CheckBox>().ToList();
+        Assert.Equal(["Group A", "Group B"], checkBoxes.Select(x => x.Content));
+        checkBoxes[1].IsChecked = true;
+        Assert.True(service.Visibilities["b"]);
+        window.Close();
     }
 
     [AvaloniaFact]
@@ -104,6 +177,29 @@ public sealed class EditorViewPopupsTests
         window.Show();
         Dispatcher.UIThread.RunJobs();
         return window;
+    }
+
+    private sealed class FakeOverlayService(string displayName, params EditorOverlay[] overlays) : IEditorGameOverlayService
+    {
+        private IReadOnlyList<EditorOverlay> overlays = overlays;
+
+        public string DisplayName => displayName;
+
+        public IReadOnlyList<EditorOverlay> Overlays => overlays;
+
+        public Dictionary<string, bool> Visibilities { get; } = [];
+
+        public bool HasSubscribers => OverlaysChanged is not null;
+
+        public event EventHandler? OverlaysChanged;
+
+        public void SetOverlayVisible(string key, bool visible) => Visibilities[key] = visible;
+
+        public void SetOverlays(params EditorOverlay[] newOverlays)
+        {
+            overlays = newOverlays;
+            OverlaysChanged?.Invoke(this, EventArgs.Empty);
+        }
     }
 
     /// <summary>

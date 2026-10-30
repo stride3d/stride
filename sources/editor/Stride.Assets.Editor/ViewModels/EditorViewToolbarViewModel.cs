@@ -3,6 +3,7 @@
 
 using Stride.Assets.Editor.EditorGame;
 using Stride.Assets.Editor.EditorGame.Tools;
+using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Tools;
 using Stride.Assets.Presentation.AssetEditors.GameEditor;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
@@ -31,13 +32,14 @@ public sealed class EditorViewToolbarViewModel : DispatcherViewModel
     private bool displaySelectionMask;
 
     internal EditorViewToolbarViewModel(IViewModelServiceProvider serviceProvider, EditorGameToolService service, IEditorGameSelectionViewModelService? selection, EditorGameMaterialHighlightService? materialHighlight,
-        EditorGameComponentGizmoService? componentGizmos = null)
+        EditorGameComponentGizmoService? componentGizmos = null, IEnumerable<IEditorGameOverlayService>? overlays = null)
         : base(serviceProvider)
     {
         this.service = service;
         this.selection = selection;
         this.materialHighlight = materialHighlight;
         Gizmos = componentGizmos is not null ? new EditorViewGizmosViewModel(serviceProvider, componentGizmos, service.SetGizmoSizeAsync) : null;
+        Overlays = new EditorViewOverlaysViewModel(serviceProvider, overlays ?? []);
         Tools = service.Tools.Select(x => new EditorViewToolViewModel(serviceProvider, x)).ToList();
         Spaces =
         [
@@ -134,6 +136,11 @@ public sealed class EditorViewToolbarViewModel : DispatcherViewModel
     /// </summary>
     public EditorViewGizmosViewModel? Gizmos { get; }
 
+    /// <summary>
+    /// Gets the overlays the services of the game can draw (the navigation meshes, for instance).
+    /// </summary>
+    public EditorViewOverlaysViewModel Overlays { get; }
+
     private bool IsScaleActive => activeTool?.Tool is TransformationTool { Transformation: Transformation.Scale };
 
     /// <inheritdoc/>
@@ -143,6 +150,7 @@ public sealed class EditorViewToolbarViewModel : DispatcherViewModel
 
         service.ActiveToolChanged -= ServiceActiveToolChanged;
         service.ToolFailed -= ServiceToolFailed;
+        Overlays.Destroy();
         base.Destroy();
     }
 
