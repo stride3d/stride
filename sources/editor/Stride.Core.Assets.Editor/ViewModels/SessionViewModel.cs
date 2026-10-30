@@ -143,6 +143,7 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
         ToggleIsRootOnSelectedAssetCommand = new AnonymousCommand(ServiceProvider, () => ToggleRootAsset(AssetCollection.SelectedAssets, RootAssetDefaultTarget));
         PreviousSelectionCommand = new AnonymousCommand(ServiceProvider, () => { SelectionService?.NavigateBackward(); UpdateSelectionCommands(); });
         NextSelectionCommand = new AnonymousCommand(ServiceProvider, () => { SelectionService?.NextSelection(); UpdateSelectionCommands(); });
+        InitializeExploreCommands();
 
         // This event must be subscribed before we create the package view models
         PackageCategories.ForEach(x => x.Value.Content.CollectionChanged += PackageCollectionChanged);
@@ -1614,6 +1615,7 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
         ActivatePackagePropertiesCommand.IsEnabled = packageSelected || directorySelected;
         EditSelectedContentCommand.IsEnabled = AssetCollection.SingleSelectedContent is DirectoryViewModel || asset is { IsEditable: true } && PluginService.HasEditorView(this, asset.GetType());
         ToggleIsRootOnSelectedAssetCommand.IsEnabled = RootAssetDefaultTarget != null && AssetCollection.SelectedAssets.Count > 0 && AssetCollection.SelectedAssets.All(x => !x.Dependencies.ForcedRoot);
+        UpdateExploreCommands();
         UpdateSelectionCommands();
 
         SessionStateChanged?.Invoke(this, new SessionStateChangedEventArgs());

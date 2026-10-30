@@ -331,6 +331,43 @@
           <MenuItem Header="{sd:LocalizeString Update all assets with modified source, Context=Menu}"
                     Command="{Binding Session.SourceTracker?.UpdateAllAssetsWithModifiedSourceCommand}"
                     InputGesture="Ctrl+R"/>
+          <!-- Explore -->
+          <MenuItem Header="{sd:LocalizeString Explore, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"/>
+          <MenuItem Header="{sd:LocalizeString Open with text editor, Context=Menu}"
+                    Command="{Binding Session.OpenWithTextEditorCommand}"
+                    CommandParameter="{Binding SingleSelectedAsset}">
+            <MenuItem.Icon>
+              <Image Source="{StaticResource ImageOpenWithTextEditor}"/>
+            </MenuItem.Icon>
+          </MenuItem>
+          <MenuItem Header="{sd:LocalizeString Open asset file, Context=Menu}"
+                    Command="{Binding Session.OpenAssetFileCommand}"
+                    CommandParameter="{Binding SingleSelectedAsset}">
+            <MenuItem.Icon>
+              <Image Source="{StaticResource ImageOpenAssetFile}"/>
+            </MenuItem.Icon>
+          </MenuItem>
+          <MenuItem Header="{sd:LocalizeString Open source file, Context=Menu}"
+                    Command="{Binding Session.OpenSourceFileCommand}"
+                    CommandParameter="{Binding SingleSelectedAsset}">
+            <MenuItem.Icon>
+              <Image Source="{StaticResource ImageOpenSourceFile}"/>
+            </MenuItem.Icon>
+          </MenuItem>
+          <MenuItem Header="{sd:LocalizeString Show in Explorer, Context=Menu}"
+                    Command="{Binding Session.ExploreCommand}"
+                    CommandParameter="{Binding SelectedContent}">
+            <MenuItem.Icon>
+              <Image Source="{StaticResource ImageExplore}"/>
+            </MenuItem.Icon>
+          </MenuItem>
+          <MenuItem Header="{sd:LocalizeString Show source file in Explorer, Context=Menu}"
+                    Command="{Binding Session.ExploreSourceFileCommand}"
+                    CommandParameter="{Binding SingleSelectedAsset}">
+            <MenuItem.Icon>
+              <Image Source="{StaticResource ImageExplore}"/>
+            </MenuItem.Icon>
+          </MenuItem>
         </ContextMenu>
       </ListBox.ContextMenu>
       <ItemsControl.ItemsPanel>
