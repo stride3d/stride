@@ -4,6 +4,7 @@
 using System.Diagnostics;
 using Stride.Assets.Sprite;
 using Stride.Core.Assets.Editor.Components.Properties;
+using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.View.Behaviors;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core;
@@ -179,11 +180,9 @@ public sealed class SpriteInfoViewModel : DispatcherViewModel, IIsEditableViewMo
                 return;
             }
 
-            var startInfo = new ProcessStartInfo(path) { UseShellExecute = true };
             // Windows opens the image in its editor rather than its viewer; the other platforms open it with the default application
-            if (OperatingSystem.IsWindows())
-                startInfo.Verb = startInfo.Verbs.FirstOrDefault(x => x.ToLowerInvariant() == "edit");
-            Process.Start(startInfo);
+            var explorer = ServiceProvider.TryGet<IFileExplorerService>() ?? new FileExplorerService();
+            await explorer.OpenFileAsync(path, tryEdit: true);
         }
         catch (Exception ex)
         {
@@ -204,11 +203,8 @@ public sealed class SpriteInfoViewModel : DispatcherViewModel, IIsEditableViewMo
                 return;
             }
 
-            // Windows' explorer selects the file; the other file managers open its folder
-            var startInfo = OperatingSystem.IsWindows()
-                ? new ProcessStartInfo("explorer.exe", "/select," + path) { UseShellExecute = true }
-                : new ProcessStartInfo(source!.GetFullDirectory().ToOSPath()) { UseShellExecute = true };
-            Process.Start(startInfo);
+            var explorer = ServiceProvider.TryGet<IFileExplorerService>() ?? new FileExplorerService();
+            await explorer.ShowFileAsync(path);
         }
         catch (Exception ex)
         {
