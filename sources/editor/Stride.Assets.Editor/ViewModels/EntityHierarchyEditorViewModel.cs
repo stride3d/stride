@@ -190,7 +190,8 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
             if (controller.GetService<EditorGameToolService>() is { } toolService)
             {
                 var gameToolbar = new EditorViewToolbarViewModel(ServiceProvider, toolService, controller.GetService<IEditorGameSelectionViewModelService>(), controller.GetService<EditorGameMaterialHighlightService>(),
-                    controller.GetService<EditorGameComponentGizmoService>(), controller.GetServices<IEditorGameOverlayService>());
+                    controller.GetService<EditorGameComponentGizmoService>(), controller.GetServices<IEditorGameOverlayService>(),
+                    controller.GetService<EditorGameLightProbeGizmoService>());
                 await gameToolbar.InitializeAsync();
                 if (IsDestroyed)
                     gameToolbar.Destroy();

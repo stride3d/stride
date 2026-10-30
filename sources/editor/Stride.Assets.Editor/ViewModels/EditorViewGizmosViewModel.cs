@@ -26,14 +26,17 @@ public sealed class EditorViewGizmosViewModel : DispatcherViewModel
 {
     private readonly EditorGameComponentGizmoService service;
     private readonly Func<float, Task>? setTransformationGizmoSize;
+    private readonly EditorGameLightProbeGizmoService? lightProbes;
     private int transformationGizmoSizeIndex = Utils.ZoomFactorIdentityIndex;
     private int componentGizmoSizeIndex = Utils.ZoomFactorIdentityIndex;
 
-    internal EditorViewGizmosViewModel(IViewModelServiceProvider serviceProvider, EditorGameComponentGizmoService service, Func<float, Task>? setTransformationGizmoSize)
+    internal EditorViewGizmosViewModel(IViewModelServiceProvider serviceProvider, EditorGameComponentGizmoService service, Func<float, Task>? setTransformationGizmoSize,
+        EditorGameLightProbeGizmoService? lightProbes = null)
         : base(serviceProvider)
     {
         this.service = service;
         this.setTransformationGizmoSize = setTransformationGizmoSize;
+        this.lightProbes = lightProbes;
 
         var gizmoTypes = StrideEditorPlugin.GizmoTypeDictionary;
         Gizmos = typeof(EntityComponent).GetInheritedTypes()
@@ -105,6 +108,8 @@ public sealed class EditorViewGizmosViewModel : DispatcherViewModel
         var hiddenGizmos = settings.HiddenGizmos;
         Gizmos.ForEach(x => x.IsActive = !hiddenGizmos.Contains(x.ComponentName));
         FallbackGizmo.IsActive = !hiddenGizmos.Contains(FallbackGizmo.ComponentName);
+        // The WPF scene editor keeps this option with its lighting options
+        LightProbeVolumesVisible = settings.LightProbeWireframe;
     }
 
     /// <summary>
@@ -120,6 +125,8 @@ public sealed class EditorViewGizmosViewModel : DispatcherViewModel
         hiddenGizmos.AddRange(Gizmos.Where(x => !x.IsActive).Select(x => x.ComponentName));
         if (!FallbackGizmo.IsActive)
             hiddenGizmos.Add(FallbackGizmo.ComponentName);
+        if (lightProbes is not null)
+            settings.LightProbeWireframe = LightProbeVolumesVisible;
     }
 
     /// <summary>
@@ -134,6 +141,20 @@ public sealed class EditorViewGizmosViewModel : DispatcherViewModel
                 index = i;
         }
         return index;
+    }
+
+    /// <summary>
+    /// Gets whether the game draws the light probes: the "Light probe volumes" option shows only then.
+    /// </summary>
+    public bool HasLightProbes => lightProbes is not null;
+
+    /// <summary>
+    /// Gets or sets whether the volumes between the light probes of the scene show, as a yellow wireframe.
+    /// </summary>
+    public bool LightProbeVolumesVisible
+    {
+        get => lightProbes?.IsLightProbeVolumesVisible ?? false;
+        set => SetValue(LightProbeVolumesVisible != value && lightProbes is not null, () => lightProbes!.IsLightProbeVolumesVisible = value);
     }
 
     private static bool IsHiddenByDefault(Type gizmoType)

@@ -32,6 +32,10 @@ namespace Stride.Assets.Editor.EditorGame;
 [EditorGameService(typeof(EntityHierarchyEditorController), Order = 190)]
 public sealed class EditorGameComponentGizmoService : EditorGameServiceBase, IEditorGameComponentGizmoService, IEditorGameViewModelService
 {
+    /// <summary>
+    /// Set on the root entity of a gizmo while its component is selected (the light probe gizmos draw a wireframe then).
+    /// </summary>
+    public static readonly PropertyKey<bool> SelectedKey = new("SelectedProperty", typeof(EditorGameComponentGizmoService));
     private static readonly PropertyKey<Dictionary<EntityComponent, IEntityGizmo>> GizmoEntitiesKey = new("GizmoEntitiesProperty", typeof(EditorGameComponentGizmoService));
     private readonly IEditorGameController controller;
     private readonly HashSet<IEntityGizmo> sceneGizmos = [];
