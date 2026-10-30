@@ -1,0 +1,113 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
+        xmlns:caec="using:Stride.Core.Assets.Editor.Avalonia.Converters"
+        xmlns:caectl="using:Stride.Core.Assets.Editor.Avalonia.Controls"
+        xmlns:diag="using:Stride.Core.Diagnostics">
+  <!-- The grid of log messages of the Asset errors panel, as the GridLogViewer of the WPF editor -->
+  <Style Selector="caectl|GridLogViewer">
+    <Style.Resources>
+      <ResourceDictionary>
+        <ResourceDictionary.MergedDictionaries>
+          <ResourceInclude Source="avares://Stride.Core.Presentation.Avalonia/Themes/LogResources.axaml"/>
+        </ResourceDictionary.MergedDictionaries>
+      </ResourceDictionary>
+    </Style.Resources>
+    <Setter Property="Template">
+      <ControlTemplate>
+        <DockPanel>
+          <sd:ToolBarTray DockPanel.Dock="Top" IsVisible="{TemplateBinding IsToolBarVisible}">
+            <sd:ToolBar Margin="0" IsVisible="{TemplateBinding ToolBarContent, Converter={x:Static ObjectConverters.IsNotNull}}">
+              <ContentPresenter Content="{TemplateBinding ToolBarContent}"/>
+            </sd:ToolBar>
+            <sd:ToolBar Margin="8 0 0 0">
+              <TextBlock Text="{sd:LocalizeString Filters:}" VerticalAlignment="Center" Margin="0,0,4,0"/>
+              <ToggleButton Name="ShowDebug" IsChecked="{TemplateBinding ShowDebugMessages, Mode=TwoWay}"
+                            ToolTip.Tip="{sd:LocalizeString Toggle Debug, Context=ToolTip}">
+                <Path Width="12" Height="12" Stretch="Uniform" Fill="{DynamicResource TextLogDebugBrush}" Data="{StaticResource GeometryDebugMessage}"/>
+              </ToggleButton>
+              <ToggleButton Name="ShowVerbose" IsChecked="{TemplateBinding ShowVerboseMessages, Mode=TwoWay}"
+                            ToolTip.Tip="{sd:LocalizeString Toggle Verbose, Context=ToolTip}">
+                <Path Width="12" Height="12" Stretch="Uniform" Fill="{DynamicResource TextLogVerboseBrush}" Data="{StaticResource GeometryVerboseMessage}"/>
+              </ToggleButton>
+              <ToggleButton Name="ShowInfo" IsChecked="{TemplateBinding ShowInfoMessages, Mode=TwoWay}"
+                            ToolTip.Tip="{sd:LocalizeString Toggle Info, Context=ToolTip}">
+                <Path Width="12" Height="12" Stretch="Uniform" Fill="{DynamicResource TextLogInfoBrush}" Data="{StaticResource GeometryInfoMessage}"/>
+              </ToggleButton>
+              <ToggleButton Name="ShowWarning" IsChecked="{TemplateBinding ShowWarningMessages, Mode=TwoWay}"
+                            ToolTip.Tip="{sd:LocalizeString Toggle Warning, Context=ToolTip}">
+                <Path Width="12" Height="12" Stretch="Uniform" Fill="{DynamicResource TextLogWarningBrush}" Data="{StaticResource GeometryWarningMessage}"/>
+              </ToggleButton>
+              <ToggleButton Name="ShowError" IsChecked="{TemplateBinding ShowErrorMessages, Mode=TwoWay}"
+                            ToolTip.Tip="{sd:LocalizeString Toggle Error, Context=ToolTip}">
+                <Path Width="12" Height="12" Stretch="Uniform" Fill="{DynamicResource TextLogErrorBrush}" Data="{StaticResource GeometryErrorMessage}"/>
+              </ToggleButton>
+              <ToggleButton Name="ShowFatal" IsChecked="{TemplateBinding ShowFatalMessages, Mode=TwoWay}"
+                            ToolTip.Tip="{sd:LocalizeString Toggle Fatal, Context=ToolTip}">
+                <Path Width="12" Height="12" Stretch="Uniform" Fill="{DynamicResource TextLogFatalBrush}" Data="{StaticResource GeometryFatalMessage}"/>
+              </ToggleButton>
+            </sd:ToolBar>
+          </sd:ToolBarTray>
+          <DataGrid Name="PART_LogGridView"
+                    ItemsSource="{Binding FilteredLogMessages, RelativeSource={RelativeSource TemplatedParent}}"
+                    AutoGenerateColumns="False"
+                    CanUserReorderColumns="False"
+                    CanUserSortColumns="False"
+                    HeadersVisibility="Column"
+                    GridLinesVisibility="Horizontal"
+                    SelectionMode="Single"
+                    IsReadOnly="True">
+            <DataGrid.Columns>
+              <!-- The type of the message -->
+              <DataGridTemplateColumn Header="" Width="24" CanUserResize="False">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="diag:ILogMessage">
+                    <Panel Width="12" Height="12" Classes="logType">
+                      <Path Stretch="Uniform" Fill="{DynamicResource TextLogDebugBrush}" Data="{StaticResource GeometryDebugMessage}"
+                            IsVisible="{Binding Type, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static diag:LogMessageType.Debug}}"/>
+                      <Path Stretch="Uniform" Fill="{DynamicResource TextLogVerboseBrush}" Data="{StaticResource GeometryVerboseMessage}"
+                            IsVisible="{Binding Type, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static diag:LogMessageType.Verbose}}"/>
+                      <Path Stretch="Uniform" Fill="{DynamicResource TextLogInfoBrush}" Data="{StaticResource GeometryInfoMessage}"
+                            IsVisible="{Binding Type, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static diag:LogMessageType.Info}}"/>
+                      <Path Stretch="Uniform" Fill="{DynamicResource TextLogWarningBrush}" Data="{StaticResource GeometryWarningMessage}"
+                            IsVisible="{Binding Type, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static diag:LogMessageType.Warning}}"/>
+                      <Path Stretch="Uniform" Fill="{DynamicResource TextLogErrorBrush}" Data="{StaticResource GeometryErrorMessage}"
+                            IsVisible="{Binding Type, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static diag:LogMessageType.Error}}"/>
+                      <Path Stretch="Uniform" Fill="{DynamicResource TextLogFatalBrush}" Data="{StaticResource GeometryFatalMessage}"
+                            IsVisible="{Binding Type, Converter={sd:IsEqualToParam}, ConverterParameter={x:Static diag:LogMessageType.Fatal}}"/>
+                    </Panel>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+              <!-- Whether the message has an exception, whose type is in the tool tip -->
+              <DataGridTemplateColumn Header="" Width="24" CanUserResize="False">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="diag:ILogMessage">
+                    <Path Classes="logException" Width="12" Height="12" Stretch="Uniform" VerticalAlignment="Center"
+                          Fill="{DynamicResource TextLogErrorBrush}" Data="{StaticResource GeometryErrorMessage}"
+                          IsVisible="{Binding ExceptionInfo, Converter={x:Static ObjectConverters.IsNotNull}}"
+                          ToolTip.Tip="{Binding ExceptionInfo.TypeFullName}"/>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+              <DataGridTemplateColumn Header="{sd:LocalizeString Message}" Width="*">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="diag:ILogMessage">
+                    <TextBlock Classes="logText" Text="{Binding Converter={caec:LogMessageToText}}" TextWrapping="Wrap" VerticalAlignment="Center" Margin="4,2"/>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+              <DataGridTemplateColumn Header="{sd:LocalizeString Asset}" Width="200">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="diag:ILogMessage">
+                    <TextBlock Classes="logAsset" Text="{Binding Converter={caec:LogMessageToAssetUrl}}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="4,2"/>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+            </DataGrid.Columns>
+          </DataGrid>
+        </DockPanel>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+</Styles>

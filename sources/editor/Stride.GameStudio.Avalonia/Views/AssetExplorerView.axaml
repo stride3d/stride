@@ -20,6 +20,11 @@
       <SolidColorBrush x:Key="FilterBrushAssetName">#84CE80</SolidColorBrush>
       <SolidColorBrush x:Key="FilterBrushAssetTag">#A0A0A0</SolidColorBrush>
       <SolidColorBrush x:Key="FilterBrushAssetType">#D7AA67</SolidColorBrush>
+      <!-- The tiles keep the dark colors of the WPF theme (ExpressionDark NormalBrush and NormalBorderBrush) whatever the theme: the
+           static thumbnails are white icons, nearly invisible on a light background -->
+      <SolidColorBrush x:Key="TileThumbnailBrush">#FF3E3E40</SolidColorBrush>
+      <SolidColorBrush x:Key="TileBadgeBrush">#FF3E3E40</SolidColorBrush>
+      <SolidColorBrush x:Key="TileBorderBrush">#FF333333</SolidColorBrush>
       <!-- The Fluent flyout is capped at 456x758: the template list needs the width of the WPF popup -->
       <ControlTheme x:Key="AddAssetFlyoutPresenter" TargetType="FlyoutPresenter" BasedOn="{StaticResource {x:Type FlyoutPresenter}}">
         <Setter Property="MaxWidth" Value="900"/>
@@ -215,7 +220,7 @@
     <!-- Focusable like the WPF list, so that the Edit commands reach the view through an empty folder too -->
     <ListBox x:Name="AssetList"
              Focusable="True"
-             ItemsSource="{Binding FilteredAssets}"
+             ItemsSource="{Binding FilteredContent}"
              SelectedItems="{Binding SelectedContent}"
              SelectionMode="Multiple"
              Margin="4">
@@ -331,6 +336,43 @@
           <MenuItem Header="{sd:LocalizeString Update all assets with modified source, Context=Menu}"
                     Command="{Binding Session.SourceTracker?.UpdateAllAssetsWithModifiedSourceCommand}"
                     InputGesture="Ctrl+R"/>
+          <!-- Explore -->
+          <MenuItem Header="{sd:LocalizeString Explore, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"/>
+          <MenuItem Header="{sd:LocalizeString Open with text editor, Context=Menu}"
+                    Command="{Binding Session.OpenWithTextEditorCommand}"
+                    CommandParameter="{Binding SingleSelectedAsset}">
+            <MenuItem.Icon>
+              <Image Source="{StaticResource ImageOpenWithTextEditor}"/>
+            </MenuItem.Icon>
+          </MenuItem>
+          <MenuItem Header="{sd:LocalizeString Open asset file, Context=Menu}"
+                    Command="{Binding Session.OpenAssetFileCommand}"
+                    CommandParameter="{Binding SingleSelectedAsset}">
+            <MenuItem.Icon>
+              <Image Source="{StaticResource ImageOpenAssetFile}"/>
+            </MenuItem.Icon>
+          </MenuItem>
+          <MenuItem Header="{sd:LocalizeString Open source file, Context=Menu}"
+                    Command="{Binding Session.OpenSourceFileCommand}"
+                    CommandParameter="{Binding SingleSelectedAsset}">
+            <MenuItem.Icon>
+              <Image Source="{StaticResource ImageOpenSourceFile}"/>
+            </MenuItem.Icon>
+          </MenuItem>
+          <MenuItem Header="{sd:LocalizeString Show in Explorer, Context=Menu}"
+                    Command="{Binding Session.ExploreCommand}"
+                    CommandParameter="{Binding SelectedContent}">
+            <MenuItem.Icon>
+              <Image Source="{StaticResource ImageExplore}"/>
+            </MenuItem.Icon>
+          </MenuItem>
+          <MenuItem Header="{sd:LocalizeString Show source file in Explorer, Context=Menu}"
+                    Command="{Binding Session.ExploreSourceFileCommand}"
+                    CommandParameter="{Binding SingleSelectedAsset}">
+            <MenuItem.Icon>
+              <Image Source="{StaticResource ImageExplore}"/>
+            </MenuItem.Icon>
+          </MenuItem>
         </ContextMenu>
       </ListBox.ContextMenu>
       <ItemsControl.ItemsPanel>
@@ -338,31 +380,208 @@
           <WrapPanel />
         </ItemsPanelTemplate>
       </ItemsControl.ItemsPanel>
-      <ItemsControl.ItemTemplate>
-        <DataTemplate DataType="{x:Type capvm:AssetViewModel}">
-          <StackPanel Orientation="Horizontal" Background="Transparent">
+      <ListBox.Styles>
+        <Style Selector="ListBoxItem">
+          <Setter Property="Padding" Value="4,2,4,4"/>
+          <Setter Property="Margin" Value="2"/>
+          <Setter Property="VerticalContentAlignment" Value="Top"/>
+        </Style>
+        <!-- The size of the WPF tiles (InternalSettings.AssetViewTileThumbnailZoom: 96) -->
+        <Style Selector="StackPanel.tile">
+          <Setter Property="Width" Value="100"/>
+          <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="Border.tileThumbnail">
+          <Setter Property="Margin" Value="0,3,0,0"/>
+          <Setter Property="BorderThickness" Value="2"/>
+          <Setter Property="CornerRadius" Value="3"/>
+          <Setter Property="BorderBrush" Value="{StaticResource TileBorderBrush}"/>
+          <Setter Property="Background" Value="{StaticResource TileThumbnailBrush}"/>
+        </Style>
+        <Style Selector="Border.tileThumbnail > Image">
+          <Setter Property="Width" Value="96"/>
+          <Setter Property="Height" Value="96"/>
+        </Style>
+        <Style Selector="Panel.tileName">
+          <Setter Property="Margin" Value="0,2,0,0"/>
+        </Style>
+        <Style Selector="Panel.tileName TextBlock.tileLabel">
+          <Setter Property="TextAlignment" Value="Center"/>
+          <Setter Property="TextWrapping" Value="Wrap"/>
+          <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+          <Setter Property="MaxHeight" Value="34"/>
+        </Style>
+        <Style Selector="TextBlock.tileType">
+          <Setter Property="HorizontalAlignment" Value="Center"/>
+          <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+          <Setter Property="FontSize" Value="10"/>
+          <Setter Property="Opacity" Value="0.6"/>
+        </Style>
+        <Style Selector="Border.badge">
+          <Setter Property="Margin" Value="0,3,0,0"/>
+          <Setter Property="BorderThickness" Value="2"/>
+          <Setter Property="CornerRadius" Value="3"/>
+          <Setter Property="BorderBrush" Value="{StaticResource TileBorderBrush}"/>
+          <Setter Property="Background" Value="{StaticResource TileBadgeBrush}"/>
+        </Style>
+        <Style Selector="Border.badge Image, Button.buildStatus Image">
+          <Setter Property="Width" Value="12"/>
+          <Setter Property="Height" Value="12"/>
+          <Setter Property="Margin" Value="5"/>
+        </Style>
+        <!-- Buttons drawn as their image only, as the WPF badges -->
+        <Style Selector="Button.buildStatus, Button.updateFromSource">
+          <Setter Property="Padding" Value="0"/>
+          <Setter Property="Cursor" Value="Hand"/>
+          <Setter Property="Template">
+            <ControlTemplate>
+              <ContentPresenter Background="Transparent" Content="{TemplateBinding Content}"/>
+            </ControlTemplate>
+          </Setter>
+        </Style>
+        <Style Selector="Button.buildStatus">
+          <Setter Property="HorizontalAlignment" Value="Left"/>
+          <Setter Property="VerticalAlignment" Value="Top"/>
+          <Setter Property="Margin" Value="0,3,0,0"/>
+        </Style>
+        <Style Selector="StackPanel.tipBadge">
+          <Setter Property="Orientation" Value="Horizontal"/>
+        </Style>
+        <Style Selector="StackPanel.tipBadge > Image">
+          <Setter Property="Width" Value="16"/>
+          <Setter Property="Height" Value="16"/>
+          <Setter Property="Margin" Value="0,2,4,0"/>
+        </Style>
+      </ListBox.Styles>
+      <!-- The tiles of the WPF asset view: the folders and the assets of FilteredContent, each with its thumbnail on a dark
+           backdrop (white icons stay visible on a light theme), its name and its type; an asset also has the badges of its
+           build status, of its source update and of the asset it replaces -->
+      <ListBox.DataTemplates>
+        <DataTemplate DataType="{x:Type capvm:DirectoryViewModel}">
+          <StackPanel Classes="tile" ToolTip.ShowDelay="1">
             <Interaction.Behaviors>
               <EventTriggerBehavior EventName="DoubleTapped">
-                <InvokeCommandAction Command="{Binding ((caevm:SessionViewModel)Session).EditSelectedContentCommand}" />
+                <InvokeCommandAction Command="{Binding $parent[ListBox].((caevm:AssetCollectionViewModel)DataContext).Session.EditSelectedContentCommand}" />
+              </EventTriggerBehavior>
+            </Interaction.Behaviors>
+            <ToolTip.Tip>
+              <StackPanel>
+                <TextBlock Text="{Binding Path, StringFormat='URL: {0}'}" FontWeight="Bold"/>
+                <TextBlock Text="{Binding TypeDisplayName, StringFormat='Type: {0}'}"/>
+              </StackPanel>
+            </ToolTip.Tip>
+            <Border Classes="tileThumbnail">
+              <Image Source="{Binding ThumbnailData.Presenter, Converter={gscv:StrideImage}, FallbackValue={x:Null}}"/>
+            </Border>
+            <Panel Classes="tileName">
+              <TextBlock Classes="tileLabel" HorizontalAlignment="Center" Text="{Binding Name, Converter={caec:NameBreakingLine}}" IsVisible="{Binding !IsEditing}"/>
+              <TextBox Text="{Binding Name, Mode=OneWay}" IsVisible="{Binding IsEditing}">
+                <Interaction.Behaviors>
+                  <sd:InlineEditBehavior Name="{Binding Name, Mode=TwoWay}" IsEditing="{Binding IsEditing, Mode=TwoWay}"/>
+                </Interaction.Behaviors>
+              </TextBox>
+            </Panel>
+            <TextBlock Classes="tileType" Text="{Binding TypeDisplayName}"/>
+          </StackPanel>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type capvm:AssetViewModel}">
+          <StackPanel Classes="tile" ToolTip.ShowDelay="1">
+            <Interaction.Behaviors>
+              <EventTriggerBehavior EventName="DoubleTapped">
+                <InvokeCommandAction Command="{Binding $parent[ListBox].((caevm:AssetCollectionViewModel)DataContext).Session.EditSelectedContentCommand}" />
               </EventTriggerBehavior>
               <!-- Drags the asset onto a reference of the property grid -->
               <dd:AssetDragBehavior/>
             </Interaction.Behaviors>
-            <TextBlock Text="Asset: " />
-            <TextBlock Text="{Binding Name}" IsVisible="{Binding !IsEditing}" />
-            <!-- Renaming in place (F2): the box replaces the name while the asset is editing -->
-            <TextBox Text="{Binding Name, Mode=OneWay}" IsVisible="{Binding IsEditing}" MinWidth="80">
-              <Interaction.Behaviors>
-                <sd:InlineEditBehavior Name="{Binding Name, Mode=TwoWay}" IsEditing="{Binding IsEditing, Mode=TwoWay}"/>
-              </Interaction.Behaviors>
-            </TextBox>
-            <!-- Unsaved changes, as the WPF asset view marks them -->
-            <TextBlock Text="*" IsVisible="{Binding IsDirty}" />
-            <Image Source="{Binding ThumbnailData?.Presenter, Converter={gscv:StrideImage}}"
-                   Width="64" Height="64"/>
+            <ToolTip.Tip>
+              <StackPanel>
+                <TextBlock Text="{Binding Url, StringFormat='URL: {0}'}" FontWeight="Bold"/>
+                <TextBlock Text="{Binding TypeDisplayName, StringFormat='Type: {0}'}"/>
+                <StackPanel Orientation="Horizontal" IsVisible="{Binding Tags.Count, Converter={sd:NumericToBool}}">
+                  <TextBlock Text="Tags: "/>
+                  <ItemsControl ItemsSource="{Binding Tags}">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal" Spacing="4"/>
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                  </ItemsControl>
+                </StackPanel>
+                <StackPanel Classes="tipBadge" IsVisible="{Binding IsReplacing}">
+                  <Image Source="{StaticResource ImageAssetOverride}"/>
+                  <TextBlock Text="{Binding ReplacesUrl, StringFormat='Replaces {0}'}"/>
+                </StackPanel>
+                <StackPanel Classes="tipBadge" IsVisible="{Binding IsReplaced}">
+                  <Image Source="{StaticResource ImageAssetOverride}"/>
+                  <TextBlock Text="{Binding ReplacedByUrl, StringFormat='Replaced by {0}'}"/>
+                </StackPanel>
+                <StackPanel Classes="tipBadge" IsVisible="{Binding Dependencies.IsBuiltAsRoot}">
+                  <Image Source="{StaticResource ImageAssetIsRoot}"/>
+                  <TextBlock Text="{Binding Dependencies.RootInclusionDescription}"/>
+                </StackPanel>
+                <StackPanel Classes="tipBadge" IsVisible="{Binding Dependencies.IsBuiltAsDependency}">
+                  <Image Source="{StaticResource ImageAssetIsIndirectlyIncluded}"/>
+                  <TextBlock Text="{sd:LocalizeString Included in build as dependency}"/>
+                </StackPanel>
+                <StackPanel Classes="tipBadge" IsVisible="{Binding Dependencies.IsOverridden}">
+                  <Image Source="{StaticResource ImageAssetIsOverridden}"/>
+                  <TextBlock Text="{sd:LocalizeString Overridden in build (content not used)}"/>
+                </StackPanel>
+                <StackPanel Classes="tipBadge" IsVisible="{Binding Dependencies.IsExcluded}">
+                  <Image Source="{StaticResource ImageAssetIsExcluded}"/>
+                  <TextBlock Text="{sd:LocalizeString Excluded from build}"/>
+                </StackPanel>
+              </StackPanel>
+            </ToolTip.Tip>
+            <Panel>
+              <Border Classes="tileThumbnail">
+                <Image Source="{Binding ThumbnailData.Presenter, Converter={gscv:StrideImage}, FallbackValue={x:Null}}"/>
+              </Border>
+              <!-- The thumbnail is being made -->
+              <ProgressBar Width="32" Height="8" MinWidth="32" IsIndeterminate="True"
+                           IsVisible="{Binding ThumbnailData, Converter={x:Static ObjectConverters.IsNull}}"/>
+              <!-- Build status: root, included as a dependency, overridden or excluded; a click includes or removes the asset as root -->
+              <Button Classes="buildStatus" Command="{Binding Dependencies.ToggleIsRootOnSelectedAssetCommand}">
+                <Panel>
+                  <Image Source="{StaticResource ImageAssetIsRoot}" IsVisible="{Binding Dependencies.IsBuiltAsRoot}"/>
+                  <Image Source="{StaticResource ImageAssetIsIndirectlyIncluded}" IsVisible="{Binding Dependencies.IsBuiltAsDependency}"/>
+                  <Image Source="{StaticResource ImageAssetIsOverridden}" IsVisible="{Binding Dependencies.IsOverridden}"/>
+                  <Image Source="{StaticResource ImageAssetIsExcluded}" IsVisible="{Binding Dependencies.IsExcluded}"/>
+                </Panel>
+              </Button>
+              <!-- The source file changed: a click updates the asset -->
+              <Border Classes="badge" HorizontalAlignment="Right" VerticalAlignment="Top" IsVisible="{Binding Sources.NeedUpdateFromSource}">
+                <Button Classes="updateFromSource" Command="{Binding Sources.UpdateFromSourceCommand}"
+                        ToolTip.Tip="{sd:LocalizeString Update the asset from its source, Context=ToolTip}">
+                  <Image Source="avares://Stride.Core.Assets.Editor.Avalonia/Assets/reimport-24.png"/>
+                </Button>
+              </Border>
+              <Border Classes="badge" HorizontalAlignment="Right" VerticalAlignment="Bottom" IsVisible="{Binding IsReplacing}"
+                      ToolTip.Tip="{Binding ReplacesUrl, StringFormat='Replaces {0}'}">
+                <Image Source="{StaticResource ImageAssetOverride}"/>
+              </Border>
+              <Border Classes="badge" HorizontalAlignment="Left" VerticalAlignment="Bottom" IsVisible="{Binding IsReplaced}"
+                      ToolTip.Tip="{Binding ReplacedByUrl, StringFormat='Replaced by {0}'}">
+                <Image Source="{StaticResource ImageAssetOverride}"/>
+              </Border>
+            </Panel>
+            <Panel Classes="tileName">
+              <!-- Unsaved changes, as the WPF asset view marks them -->
+              <DockPanel HorizontalAlignment="Center" IsVisible="{Binding !IsEditing}">
+                <TextBlock DockPanel.Dock="Right" Text="*" IsVisible="{Binding IsDirty}"/>
+                <TextBlock Classes="tileLabel" Text="{Binding Name, Converter={caec:NameBreakingLine}}"/>
+              </DockPanel>
+              <!-- Renaming in place (F2): the box replaces the name while the asset is editing -->
+              <TextBox Text="{Binding Name, Mode=OneWay}" IsVisible="{Binding IsEditing}">
+                <Interaction.Behaviors>
+                  <sd:InlineEditBehavior Name="{Binding Name, Mode=TwoWay}" IsEditing="{Binding IsEditing, Mode=TwoWay}"/>
+                </Interaction.Behaviors>
+              </TextBox>
+            </Panel>
+            <TextBlock Classes="tileType" Text="{Binding TypeDisplayName}"/>
           </StackPanel>
         </DataTemplate>
-      </ItemsControl.ItemTemplate>
+      </ListBox.DataTemplates>
     </ListBox>
   </DockPanel>
 </UserControl>

@@ -383,6 +383,8 @@ public partial class App : Application
             // Build project and Start project
             new MSBuildGameProjectBuilder(),
             new GameProcessLauncher(),
+            // Explore: show in the file manager, open with another program
+            new FileExplorerService(),
         };
         // The clipboard belongs to the main window; there is none in a headless host
         if (DialogService.MainWindow?.Clipboard is { } clipboard)

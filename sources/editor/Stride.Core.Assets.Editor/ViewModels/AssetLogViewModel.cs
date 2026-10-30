@@ -59,6 +59,7 @@ public sealed class AssetLogViewModel : LoggerViewModel, IAssetLogViewModel
             CreateSource(ConsistencyLogName, Tr._p("Log", "Package consistency")),
         ];
         ShowAllSourcesCommand = new AnonymousCommand(serviceProvider, () => Sources.ForEach(x => x.IsShown = true));
+        SelectMessageAssetCommand = new AnonymousCommand<ILogMessage?>(serviceProvider, SelectMessageAsset);
         UpdateSourcesState();
 
         session.AssetCollection.SelectedAssets.CollectionChanged += (_, _) =>
@@ -112,6 +113,24 @@ public sealed class AssetLogViewModel : LoggerViewModel, IAssetLogViewModel
     public string SourcesHeader { get => sourcesHeader; private set => SetValue(ref sourcesHeader, value); }
 
     public ICommandBase ShowAllSourcesCommand { get; }
+
+    /// <summary>
+    /// Gets the command that selects in the asset view the asset a message is about (double-click on a message).
+    /// </summary>
+    public ICommandBase SelectMessageAssetCommand { get; }
+
+    /// <summary>
+    /// Gets the URL of the asset a message is about, as the Asset column of the log shows it, or null if it is about no asset.
+    /// </summary>
+    public static UFile? GetAssetUrl(ILogMessage? message)
+    {
+        return message switch
+        {
+            AssetSerializableLogMessage assetMessage when !string.IsNullOrEmpty(assetMessage.AssetUrl) => assetMessage.AssetUrl,
+            AssetLogMessage assetMessage => assetMessage.AssetReference?.Location,
+            _ => null,
+        };
+    }
 
     /// <summary>
     /// Replaces the log of the given name for the given asset.
@@ -186,6 +205,15 @@ public sealed class AssetLogViewModel : LoggerViewModel, IAssetLogViewModel
             if (createdLoggers.Contains(logger))
                 ((LoggerResult)logger).Clear();
         }
+    }
+
+    private void SelectMessageAsset(ILogMessage? message)
+    {
+        // A message without the URL of its asset is not shown as about an asset (empty Asset column), as in WPF
+        if (GetAssetUrl(message) is null || GetAssetId(message!) is not { } id || session.GetAssetById(id) is not { } asset)
+            return;
+
+        session.AssetCollection.SelectAssets([asset]);
     }
 
     private void SourcesChanged()

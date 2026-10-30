@@ -135,6 +135,18 @@
               <Image Source="{StaticResource ImageNewAsset}"/>
             </MenuItem.Icon>
           </MenuItem>
+
+          <!-- The explore group of the WPF solution explorer menu -->
+          <MenuItem Header="{sd:LocalizeString Explore, Context=Menu}" FontWeight="Bold" IsHitTestVisible="False"
+                    IsVisible="{Binding ExploreCommand.IsEnabled}"/>
+          <MenuItem Header="{sd:LocalizeString Show in Explorer, Context=Menu}"
+                    Command="{Binding ExploreCommand}"
+                    CommandParameter="{Binding AssetCollection.SelectedLocations}"
+                    IsVisible="{Binding ExploreCommand.IsEnabled}">
+            <MenuItem.Icon>
+              <Image Source="{StaticResource ImageExplore}"/>
+            </MenuItem.Icon>
+          </MenuItem>
         </ContextMenu>
       </TreeView.ContextMenu>
       <Control.DataTemplates>
