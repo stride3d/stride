@@ -110,11 +110,12 @@ namespace Stride.Core.Assets.Editor.Services
         /// Creates a fix references dialog.
         /// </summary>
         /// <param name="serviceProvider">The service provider for view models.</param>
+        /// <param name="session">The session whose assets are picked as replacements.</param>
         /// <param name="assets">The list of assets to fix.</param>
         /// <param name="dependencyManager">The dependency manager.</param>
         /// <returns>An instance of the <see cref="IFixReferencesDialog"/> interface.</returns>
         [NotNull]
-        IFixReferencesDialog CreateFixAssetReferencesDialog([NotNull] IViewModelServiceProvider serviceProvider, [ItemNotNull, NotNull] IReadOnlyCollection<AssetViewModel> assets, [NotNull] IAssetDependencyManager dependencyManager);
+        IFixReferencesDialog CreateFixAssetReferencesDialog([NotNull] IViewModelServiceProvider serviceProvider, [NotNull] SessionViewModel session, [ItemNotNull, NotNull] IReadOnlyCollection<AssetViewModel> assets, [NotNull] IAssetDependencyManager dependencyManager);
 
         void ClearKeyboardFocus();
 

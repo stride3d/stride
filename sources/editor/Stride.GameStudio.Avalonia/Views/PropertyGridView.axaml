@@ -73,20 +73,20 @@
       <!-- Adding tag -->
       <TextBox x:Name="NewTagTextBox" DockPanel.Dock="Right" MinWidth="90"
                PlaceholderText="{sd:LocalizeString Add new tag}"
-               IsVisible="{Binding Session.AssetCollection.SelectedAssets.Count, Converter={sd:NumericToBool}, FallbackValue={sd:False}}"
+               IsVisible="{Binding ((caevm:SessionViewModel)Session).AssetCollection.SelectedAssets.Count, Converter={sd:NumericToBool}, FallbackValue={sd:False}}"
                KeyDown="OnNewTagKeyDown"/>
       <!-- Navigation -->
       <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Margin="0,0,6,0" VerticalAlignment="Center">
         <Button x:Name="PreviousSelectionButton"
                 Padding="2" Background="Transparent"
-                Command="{Binding Session.PreviousSelectionCommand, TargetNullValue={x:Static cpc:DisabledCommand.Instance}, FallbackValue={x:Static cpc:DisabledCommand.Instance}}"
+                Command="{Binding ((caevm:SessionViewModel)Session).PreviousSelectionCommand, TargetNullValue={x:Static cpc:DisabledCommand.Instance}, FallbackValue={x:Static cpc:DisabledCommand.Instance}}"
                 HotKey="Alt+Left"
                 ToolTip.Tip="{sd:LocalizeString Previous selection, Context=ToolTip}" ToolTip.ShowOnDisabled="True">
           <Image Source="{StaticResource ImagePrevious}" Width="16" Height="16"/>
         </Button>
         <Button x:Name="NextSelectionButton"
                 Padding="2" Background="Transparent"
-                Command="{Binding Session.NextSelectionCommand, TargetNullValue={x:Static cpc:DisabledCommand.Instance}, FallbackValue={x:Static cpc:DisabledCommand.Instance}}"
+                Command="{Binding ((caevm:SessionViewModel)Session).NextSelectionCommand, TargetNullValue={x:Static cpc:DisabledCommand.Instance}, FallbackValue={x:Static cpc:DisabledCommand.Instance}}"
                 HotKey="Alt+Right"
                 ToolTip.Tip="{sd:LocalizeString Next selection, Context=ToolTip}" ToolTip.ShowOnDisabled="True">
           <Image Source="{StaticResource ImageNext}" Width="16" Height="16"/>
@@ -100,8 +100,8 @@
     </DockPanel>
     <!-- Tags -->
     <ItemsControl x:Name="Tags" Grid.Row="1" Margin="6,2"
-                  ItemsSource="{Binding Session.AssetTags.Tags}"
-                  IsVisible="{Binding Session.AssetTags.Tags.Count, Converter={sd:NumericToBool}, FallbackValue={sd:False}}">
+                  ItemsSource="{Binding ((caevm:SessionViewModel)Session).AssetTags.Tags}"
+                  IsVisible="{Binding ((caevm:SessionViewModel)Session).AssetTags.Tags.Count, Converter={sd:NumericToBool}, FallbackValue={sd:False}}">
       <ItemsControl.ItemsPanel>
         <ItemsPanelTemplate>
           <WrapPanel Orientation="Horizontal"/>
@@ -136,8 +136,8 @@
     <DockPanel Grid.Row="2" Margin="6,2">
       <!-- Open in editor -->
       <Button x:Name="EditSelectedContentButton" DockPanel.Dock="Top" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="0,0,0,8"
-              Command="{Binding Session.EditSelectedContentCommand}"
-              IsVisible="{Binding Session.EditSelectedContentCommand.IsEnabled, FallbackValue={sd:False}}">
+              Command="{Binding ((caevm:SessionViewModel)Session).EditSelectedContentCommand}"
+              IsVisible="{Binding ((caevm:SessionViewModel)Session).EditSelectedContentCommand.IsEnabled, FallbackValue={sd:False}}">
         <Panel>
           <StackPanel Orientation="Horizontal" IsVisible="{Binding CanDisplayProperties, FallbackValue={sd:False}}">
             <Image Source="{StaticResource ImageRename}" Margin="4" Width="16" Height="16"/>

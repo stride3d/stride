@@ -7,7 +7,7 @@
                   xmlns:view="clr-namespace:Stride.Core.Assets.Editor.View"
                   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                   xmlns:valueConverters="clr-namespace:Stride.Core.Assets.Editor.View.ValueConverters"
-                  xmlns:far="clr-namespace:Stride.Core.Assets.Editor.Components.FixAssetReferences"
+                  xmlns:far="clr-namespace:Stride.Core.Assets.Editor.Components.FixAssetReferences;assembly=Stride.Core.Assets.Editor.Common"
                   mc:Ignorable="d"
                   ShowInTaskbar="False"
                   Title="{Binding FixedObjectsCounter, StringFormat={sd:Localize Fix references ({0})}}"

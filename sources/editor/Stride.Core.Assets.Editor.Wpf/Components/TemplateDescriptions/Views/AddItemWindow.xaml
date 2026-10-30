@@ -5,12 +5,12 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:sd="http://schemas.stride3d.net/xaml/presentation"
         xmlns:view="clr-namespace:Stride.Core.Assets.Editor.Components.TemplateDescriptions.Views"
-        xmlns:viewModels="clr-namespace:Stride.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels"
+        xmlns:templates="clr-namespace:Stride.Core.Assets.Editor.Components.TemplateDescriptions;assembly=Stride.Core.Assets.Editor.Common"
         mc:Ignorable="d" ResizeMode="NoResize"
         Title="{sd:Localize Add asset...}"
         SizeToContent="WidthAndHeight"
         Icon="{DynamicResource EditorIcon}" ShowInTaskbar="False"
-        Style="{DynamicResource WindowChromeStyle}" d:DataContext="{d:DesignInstance viewModels:NewProjectTemplateCollectionViewModel}">
+        Style="{DynamicResource WindowChromeStyle}" d:DataContext="{d:DesignInstance templates:NewProjectTemplateCollectionViewModel}">
   <sd:ModalWindow.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>

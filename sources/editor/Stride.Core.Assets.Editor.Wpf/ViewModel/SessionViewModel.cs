@@ -329,9 +329,6 @@ namespace Stride.Core.Assets.Editor.ViewModel
             SessionViewModel sessionViewModel;
             try
             {
-                // Create the service that handles property documentation
-                var documentationService = new UserDocumentationService();
-
                 // Create the service that handles selection
                 var selectionService = new SelectionService(serviceProvider.Get<IDispatcherService>());
 
@@ -343,7 +340,6 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 serviceProvider.RegisterService(undoRedoService);
 
                 // Register session-specific services
-                serviceProvider.RegisterService(documentationService);
                 serviceProvider.RegisterService(selectionService);
                 serviceProvider.RegisterService(copyPasteService);
                 serviceProvider.RegisterService(new ThumbnailDataFactory());
@@ -382,9 +378,6 @@ namespace Stride.Core.Assets.Editor.ViewModel
         public static async Task<SessionViewModel> OpenSession(string path, IViewModelServiceProvider serviceProvider, EditorViewModel editor, PackageSessionResult sessionResult)
         {
             if (path == null) throw new ArgumentNullException(nameof(path));
-
-            // Create the service that handles property documentation
-            serviceProvider.RegisterService(new UserDocumentationService());
 
             // Create the service that handles selection
             serviceProvider.RegisterService(new SelectionService(serviceProvider.Get<IDispatcherService>()));
@@ -621,6 +614,9 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
             // Gather all data from plugins
             PluginService.RegisterSession(this, logger);
+
+            // Create the service that handles property documentation
+            serviceProvider.RegisterService(new UserDocumentationService(this));
 
             // Initialize the undo/redo debug view model
             undoRedoStackPage = EditorDebugTools.CreateUndoRedoDebugPage(undoRedoService, "Undo/redo stack");
@@ -1982,7 +1978,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                             .Any(x => GetAssetById(x.Item.Id) != null);
                     if (hasReferencesToFix)
                     {
-                        var fixReferenceDialog = ServiceProvider.Get<IEditorDialogService>().CreateFixAssetReferencesDialog(ServiceProvider, allAssetsToDelete, DependencyManager);
+                        var fixReferenceDialog = ServiceProvider.Get<IEditorDialogService>().CreateFixAssetReferencesDialog(ServiceProvider, this, allAssetsToDelete, DependencyManager);
                         var fixResult = await fixReferenceDialog.ShowModal();
                         if (fixResult == DialogResult.Cancel)
                             return false;
