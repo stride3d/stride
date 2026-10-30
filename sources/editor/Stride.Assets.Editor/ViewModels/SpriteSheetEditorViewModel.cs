@@ -296,6 +296,9 @@ public sealed class SpriteSheetEditorViewModel : AssetEditorViewModel<SpriteShee
             {
                 var image = CreateNewImage();
                 image.Source = filePath;
+                // The sprite takes the whole image (the WPF editor left the region empty)
+                if (Cache?.GetPixelSize(filePath) is { } size)
+                    image.TextureRegion = new Rectangle(0, 0, size.Width, size.Height);
                 if (index <= 0)
                     AddImage(image);
                 else
