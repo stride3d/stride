@@ -14,8 +14,8 @@ using Stride.Core.Yaml;
 namespace Stride.GameStudio.Avalonia.Settings;
 
 /// <summary>
-/// The internal (not user-facing) settings of the Avalonia Game Studio: the main window placement and the most recently
-/// used sessions, in the same file and under the same keys as the WPF Game Studio's.
+/// The internal (not user-facing) settings of the Avalonia Game Studio: the main window placement, the most recently
+/// used sessions and what each of them keeps, in the same file and under the same keys as the WPF Game Studio's.
 /// </summary>
 internal static class GameStudioInternalSettings
 {
@@ -31,6 +31,12 @@ internal static class GameStudioInternalSettings
     /// The most recently used sessions, per editor version (the WPF Game Studio reads and writes the same key).
     /// </summary>
     public static readonly SettingsKey<MRUDictionary> MostRecentlyUsedSessions = new("Internal/MostRecentlyUsedSessions", SettingsContainer, () => new MRUDictionary());
+
+    /// <summary>
+    /// What the editors keep for each recent session: the assets open in an editor, which both editors restore, and the docking
+    /// layouts of the WPF Game Studio, which this editor keeps as they are.
+    /// </summary>
+    public static readonly SettingsKey<List<MRUAdditionalData>> MostRecentlyUsedSessionsData = new("Internal/MostRecentlyUsedSessionsData2", SettingsContainer, () => new List<MRUAdditionalData>());
 
     static GameStudioInternalSettings()
     {
@@ -61,6 +67,14 @@ internal static class GameStudioInternalSettings
         var mru = new MostRecentlyUsedFileCollection(LoadProfileCopy, MostRecentlyUsedSessions, WriteFile);
         mru.LoadFromSettings();
         return mru;
+    }
+
+    /// <summary>
+    /// Creates the collection of what the editors keep for each recent session, over the settings file.
+    /// </summary>
+    public static MRUAdditionalDataCollection CreateMostRecentlyUsedSessionsData()
+    {
+        return new MRUAdditionalDataCollection(LoadProfileCopy, MostRecentlyUsedSessionsData, WriteFile);
     }
 
     private static Lazy<Rect> WorkArea => new(() =>

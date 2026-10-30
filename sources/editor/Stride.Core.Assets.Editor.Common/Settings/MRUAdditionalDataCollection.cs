@@ -5,19 +5,21 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using Stride.Core.Assets;
-using Stride.Core.Assets.Editor.Extensions;
 using Stride.Core.Extensions;
 using Stride.Core.IO;
 using Stride.Core.Settings;
-using Stride.Core.MostRecentlyUsedFiles;
 using Stride.Core.Presentation.Collections;
 
-namespace Stride.GameStudio
+namespace Stride.Core.Assets.Editor.Settings
 {
-    internal class MRUAdditionalDataCollection
+    /// <summary>
+    /// The <see cref="MRUAdditionalData"/> of the most recently used sessions, kept in the internal settings file. Each change reads
+    /// the file first and writes it at once, so that several editors running at the same time (WPF and Avalonia among them) keep
+    /// each other's changes.
+    /// </summary>
+    public sealed class MRUAdditionalDataCollection
     {
-        private class MostRecentlyUsedFileEqualityComparer : IEqualityComparer<MRUAdditionalData>
+        private sealed class MostRecentlyUsedFileEqualityComparer : IEqualityComparer<MRUAdditionalData>
         {
             public bool Equals(MRUAdditionalData x, MRUAdditionalData y)
             {
@@ -31,13 +33,18 @@ namespace Stride.GameStudio
         }
 
         private static readonly object SyncRoot = new object();
-        
+
         private readonly Func<SettingsProfile> loadLatestProfile;
         private readonly SettingsKey<List<MRUAdditionalData>> settingsKey;
         private readonly Action save;
+        private readonly Action<MRUAdditionalData> initializeNewData;
         private readonly ObservableSet<MRUAdditionalData> mruList = new ObservableSet<MRUAdditionalData>(new MostRecentlyUsedFileEqualityComparer());
 
-        public MRUAdditionalDataCollection(Func<SettingsProfile> loadLatestProfile, SettingsKey<List<MRUAdditionalData>> settingsKey, Action save)
+        /// <param name="loadLatestProfile">Loads a copy of the internal settings from the file.</param>
+        /// <param name="settingsKey">The key of the data in the internal settings.</param>
+        /// <param name="save">Writes the internal settings to the file.</param>
+        /// <param name="initializeNewData">Sets what an editor needs in the data of a session that has none yet (the default layouts of WPF).</param>
+        public MRUAdditionalDataCollection(Func<SettingsProfile> loadLatestProfile, SettingsKey<List<MRUAdditionalData>> settingsKey, Action save, Action<MRUAdditionalData> initializeNewData = null)
         {
             if (loadLatestProfile == null) throw new ArgumentNullException(nameof(loadLatestProfile));
             if (settingsKey == null) throw new ArgumentNullException(nameof(settingsKey));
@@ -46,12 +53,13 @@ namespace Stride.GameStudio
             this.loadLatestProfile = loadLatestProfile;
             this.settingsKey = settingsKey;
             this.save = save;
+            this.initializeNewData = initializeNewData;
         }
 
         /// <summary>
         /// The max number of files in the MRU list
         /// </summary>
-        public static int MaxMRUCount => MostRecentlyUsedFileCollection.MaxMRUCount;
+        public const int MaxMRUCount = 20;
 
         public MRUAdditionalData GetData(UFile filePath)
         {
@@ -73,39 +81,19 @@ namespace Stride.GameStudio
             }
         }
 
-        public void ResetAllLayouts(UFile filePath)
+        /// <summary>
+        /// Changes the data of a session, created if it has none, and saves it immediately.
+        /// </summary>
+        /// <param name="filePath">The session.</param>
+        /// <param name="update">The change.</param>
+        public void Update(UFile filePath, Action<MRUAdditionalData> update)
         {
+            if (update == null) throw new ArgumentNullException(nameof(update));
+
             // Ensure we are properly synchronized with the file.
             LoadFromSettings();
 
-            var data = GetOrCreateDataPrivate(filePath);
-            data.DockingLayoutVersion = GameStudioInternalSettings.CurrentLayoutVersion;
-            data.DockingLayout = GameStudioInternalSettings.DefaultLayout;
-            data.DockingLayoutEditors = GameStudioInternalSettings.DefaultEditorLayout;
-
-            // Save immediately
-            SaveToSettings();
-        }
-
-        public void ResetLayout(UFile filePath)
-        {
-            // Ensure we are properly synchronized with the file.
-            LoadFromSettings();
-
-            var data = GetOrCreateDataPrivate(filePath);
-            data.DockingLayout = GameStudioInternalSettings.DefaultLayout;
-
-            // Save immediately
-            SaveToSettings();
-        }
-
-        public void ResetEditorsLayout(UFile filePath)
-        {
-            // Ensure we are properly synchronized with the file.
-            LoadFromSettings();
-
-            var data = GetOrCreateDataPrivate(filePath);
-            data.DockingLayoutEditors = GameStudioInternalSettings.DefaultEditorLayout;
+            update(GetOrCreateDataPrivate(filePath));
 
             // Save immediately
             SaveToSettings();
@@ -119,30 +107,6 @@ namespace Stride.GameStudio
             LoadFromSettings();
 
             UpdateDataPrivate(data);
-
-            // Save immediately
-            SaveToSettings();
-        }
-
-        public void UpdateLayout(UFile filePath, string layout)
-        {
-            // Ensure we are properly synchronized with the file.
-            LoadFromSettings();
-
-            var data = GetOrCreateDataPrivate(filePath);
-            data.DockingLayout = layout;
-
-            // Save immediately
-            SaveToSettings();
-        }
-
-        public void UpdateEditorsLayout(UFile filePath, string layout)
-        {
-            // Ensure we are properly synchronized with the file.
-            LoadFromSettings();
-
-            var data = GetOrCreateDataPrivate(filePath);
-            data.DockingLayoutEditors = layout;
 
             // Save immediately
             SaveToSettings();
@@ -168,12 +132,8 @@ namespace Stride.GameStudio
             var data = mruList.FirstOrDefault(m => string.Equals(m?.FilePath, filePath, StringComparison.OrdinalIgnoreCase));
             if (data == null && createIfNotExist)
             {
-                data = new MRUAdditionalData(filePath)
-                {
-                    DockingLayout = GameStudioInternalSettings.DefaultLayout,
-                    DockingLayoutEditors = GameStudioInternalSettings.DefaultEditorLayout,
-                    DockingLayoutVersion = GameStudioInternalSettings.CurrentLayoutVersion,
-                };
+                data = new MRUAdditionalData(filePath);
+                initializeNewData?.Invoke(data);
                 mruList.Insert(0, data);
             }
             return data;
@@ -207,7 +167,7 @@ namespace Stride.GameStudio
                 // Sort by descending timestamp
                 loadedList.Sort((x, y) => -x.Timestamp.CompareTo(y.Timestamp));
                 mruList.Clear();
-                mruList.AddRange(loadedList.Where(IsDataValid)); 
+                mruList.AddRange(loadedList.Where(IsDataValid));
             }
         }
 
@@ -224,7 +184,7 @@ namespace Stride.GameStudio
                 settingsKey.SetValue(mruList.Take(MaxMRUCount).ToList());
                 save.Invoke();
                 // Ensure we are properly synchronized with the file.
-                LoadFromSettings(); 
+                LoadFromSettings();
             }
         }
     }
