@@ -1,0 +1,60 @@
+{
+  "model": "claude-opus-5-5",
+  "effort": "medium",
+  "maxDiffChars": 150000,
+
+  "reviewerAssociations": [ "OWNER", "MEMBER", "COLLABORATOR" ],
+  "staleDays": 30,
+  "noReviewerDays": 7,
+
+  "nudgeReviewers": false,
+  "nudgeAuthors": false,
+  "digest": false,
+  "digestMentionTeam": "",
+
+  "statusLabels": {
+    "waiting-on-review": { "color": "FBCA04", "description": "The next step is a review" },
+    "waiting-on-author": { "color": "D4C5F9", "description": "The next step is the author's: answer the review, fix conflicts or CI" },
+    "ready-to-merge": { "color": "0E8A16", "description": "Approved, CI green, no conflicts" }
+  },
+  "otherLabels": {
+    "needs-info": { "color": "D93F0B", "description": "The issue misses information needed to look into it" },
+    "no-nudge": { "color": "EEEEEE", "description": "The triage workflow does not nudge on this PR" },
+    "triage-digest": { "color": "EEEEEE", "description": "The weekly PR triage digest" },
+    "area-Animation": { "color": "C2E0C6", "description": "Animations, skeletons and morph targets" },
+    "area-Navigation": { "color": "C2E0C6", "description": "Navigation meshes and pathfinding" },
+    "platform-iOS": { "color": "BFD4F2", "description": "Specific to iOS" },
+    "platform-Linux": { "color": "BFD4F2", "description": "Specific to Linux" },
+    "platform-macOS": { "color": "BFD4F2", "description": "Specific to macOS" }
+  },
+
+  "prTypes": [ "bug-fix", "enhancement", "engineering" ],
+  "issueTypes": [ "bug", "enhancement", "question" ],
+  "platforms": [ "platform-Android", "platform-iOS", "platform-Linux", "platform-macOS" ],
+
+  "areaShare": 0.2,
+  "companionAreas": [ "area-Samples", "area-Doc" ],
+  "claudeOnlyAreas": [ "area-Plugins" ],
+  "areas": [
+    [ "^tests/", null ],
+    [ "\\.(sdsl|sdfx)$|^sources/shaders/|Stride\\.Shaders", "area-Shaders" ],
+    [ "^\\.github/|^build/|^deps/|^sources/sdk/|^sources/targets/|\\.slnx?$|\\.slnf$|Directory\\.(Build|Packages)\\.|^global\\.json$|nuget\\.config$|^\\.(gitattributes|gitignore|editorconfig|vsconfig)$|AssemblyProcessor|Stride\\.Core\\.CompilerServices|Stride\\.PublicApiCheck", "area-Build" ],
+    [ "^docs/", "area-Doc" ],
+    [ "^samples/", "area-Samples" ],
+    [ "^sources/launcher/|Stride\\.Launcher", "area-Launcher" ],
+    [ "Stride\\.VisualStudio", "area-VSPackage" ],
+    [ "Stride\\.Audio|^sources/plugins/Audio/", "area-Audio" ],
+    [ "Stride\\.(Bepu)?Physics|^sources/plugins/(BepuPhysics|BulletPhysics)/", "area-Physics" ],
+    [ "Stride\\.UI|^sources/plugins/UI/", "area-UI" ],
+    [ "Stride\\.Input", "area-Input" ],
+    [ "Stride\\.Navigation|DotRecast", "area-Navigation" ],
+    [ "^(?!sources/editor/).*(Stride\\.Engine/Animations/|/Rendering/Morph/|/(Animation|Skeleton|Morph)[^/]*\\.cs$)", "area-Animation" ],
+    [ "Stride\\.(Graphics|Rendering|VirtualReality|Voxels|Particles)|^sources/plugins/(Voxels|Particles)/|/Rendering/", "area-Graphics" ],
+    [ "Stride\\.Core\\.Mathematics", "area-Math" ],
+    [ "Stride\\.Core\\.(Serialization|Yaml)", "area-Serialization" ],
+    [ "^sources/(editor|presentation|localization)/|Stride\\.GameStudio", "area-GameStudio" ],
+    [ "^sources/assets/|^sources/buildengine/|Stride\\.Assets|Stride\\.(TextureConverter|Importer)|\\.Assets/", "area-Asset" ],
+    [ "^sources/(core|engine|shared|native|crashreport)/", "area-Core" ],
+    [ "\\.Tests?[./]|\\.md$|^\\.vscode/", null ]
+  ]
+}
