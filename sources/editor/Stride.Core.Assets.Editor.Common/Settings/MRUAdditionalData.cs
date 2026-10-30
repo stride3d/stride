@@ -9,14 +9,15 @@ using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.IO;
 
-namespace Stride.GameStudio
+namespace Stride.Core.Assets.Editor.Settings
 {
     /// <summary>
-    /// A class representing additional data associated with a <see cref="MostRecentlyUsedFiles.MostRecentlyUsedFile"/>
+    /// A class representing additional data associated with a most recently used session, which both editors read and write:
+    /// the editors to open again with the session, and the docking layouts of the WPF editor.
     /// </summary>
     [DataContract("MRUAdditionalData")]
     [DebuggerDisplay("MRUData: {FilePath}")]
-    public class MRUAdditionalData
+    public sealed class MRUAdditionalData
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="MRUAdditionalData"/>.

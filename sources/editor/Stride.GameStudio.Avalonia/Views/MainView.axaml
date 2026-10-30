@@ -25,6 +25,13 @@
       <ResourceDictionary.MergedDictionaries>
         <ResourceInclude Source="avares://Stride.Core.Assets.Editor.Avalonia/Views/ImageResources.axaml"/>
       </ResourceDictionary.MergedDictionaries>
+      <!-- An entry of File > Open recent: the version in bold, then the path, shortened in the middle, as in WPF -->
+      <DataTemplate x:Key="RecentSessionHeaderTemplate" DataType="gsvm:RecentSessionViewModel">
+        <Grid ColumnDefinitions="30, Auto">
+          <TextBlock Grid.Column="0" Text="{Binding Version}" FontWeight="Bold"/>
+          <TextBlock Grid.Column="1" Text="{Binding DisplayPath}" MaxWidth="320" TextTrimming="PathSegmentEllipsis"/>
+        </Grid>
+      </DataTemplate>
     </ResourceDictionary>
   </UserControl.Resources>
   <!-- The Edit commands that no panel handles, as the command bindings of the WPF window: Undo and Redo act on the session
@@ -54,21 +61,10 @@
                   Command="{Binding CloseCommand}"
                   IsEnabled="{Binding Session, Mode=OneWay, Converter={sd:ObjectToBool}}"/>
         <Separator/>
-        <!-- Recent sessions (the most recently used sessions of this editor version or an earlier one) -->
+        <!-- Recent sessions (the most recently used sessions of this editor version or an earlier one), then "Clear list", as in
+             WPF: the items are made by the view (MainView.UpdateRecentSessionsMenu) since a menu shows either items or a source -->
         <MenuItem Header="{sd:LocalizeString Open _recent, Context=Menu}"
                   Name="RecentSessionsMenu"
-                  ItemsSource="{Binding RecentFiles}"
-                  IsEnabled="{Binding RecentFiles.Count, Mode=OneWay, Converter={sd:NumericToBool}}">
-          <MenuItem.ItemContainerTheme>
-            <ControlTheme TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}" x:DataType="gsvm:RecentSessionViewModel">
-              <Setter Property="Header" Value="{Binding Name}"/>
-              <Setter Property="ToolTip.Tip" Value="{Binding FilePath}"/>
-              <Setter Property="Command" Value="{Binding OpenCommand}"/>
-            </ControlTheme>
-          </MenuItem.ItemContainerTheme>
-        </MenuItem>
-        <MenuItem Header="{sd:LocalizeString Clear recent sessions, Context=Menu}"
-                  Command="{Binding ClearRecentFilesCommand}"
                   IsEnabled="{Binding RecentFiles.Count, Mode=OneWay, Converter={sd:NumericToBool}}"/>
         <Separator/>
         <!-- Save and reload, as in the WPF editor: Save is enabled whenever a session is open. Its shortcut is a key binding
@@ -263,10 +259,10 @@
       </Button>
     </sd:ToolBar>
 
-    <!-- Session area -->
-    <Grid Grid.Row="2"
+    <!-- Session area: the sizes its splitters set are kept in the internal settings (MainView.SavePanelSizes) -->
+    <Grid x:Name="SessionPanels" Grid.Row="2"
           RowDefinitions="2*, 2, *">
-      <Grid Grid.Row="0"
+      <Grid x:Name="TopPanels" Grid.Row="0"
             ColumnDefinitions="2*, 2, *">
         <!-- Editors -->
         <gsvw:EditorCollectionView Grid.Column="0"
@@ -283,7 +279,7 @@
                                DataContext="{Binding Session?.ActiveProperties}"/>
       </Grid>
       <GridSplitter Grid.Row="1" ResizeDirection="Auto"/>
-      <Grid Grid.Row="2"
+      <Grid x:Name="BottomPanels" Grid.Row="2"
             ColumnDefinitions="*, 2, 2*, 2, *">
         <!-- Solution Explorer -->
         <gsvw:SolutionExplorerView Grid.Column="0"

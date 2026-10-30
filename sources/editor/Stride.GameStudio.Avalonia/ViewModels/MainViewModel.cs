@@ -24,6 +24,7 @@ using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Presentation.Windows;
 using Stride.Core.Translation;
+using Stride.Editor;
 using Stride.Editor.Build;
 using Stride.GameStudio.Avalonia.Helpers;
 using Stride.GameStudio.Avalonia.Services;
@@ -42,6 +43,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     private ActionHistoryViewModel? history;
     private PreviewViewModel? preview;
     private UFile? sessionPath;
+    private SessionEditorsRestorer? editorsRestorer;
     private string? sessionName;
     private string title = baseTitle;
 
@@ -332,7 +334,7 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
             return false;
         }
 
-        AttachSession(createdSession, createdSession.SolutionPath);
+        AttachSession(createdSession, createdSession.SolutionPath, isNew: true);
         return true;
     }
 
@@ -367,9 +369,13 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
     }
 
     /// <summary>
-    /// Makes an opened or created session the editor's: the recent files, the title, the plugins' session services and the preview.
+    /// Makes an opened or created session the editor's: the recent files, the title, the plugins' session services, the preview,
+    /// then the editors of the last session or the default scene.
     /// </summary>
-    private void AttachSession(SessionViewModel loadedSession, UFile filePath)
+    /// <param name="loadedSession">The session.</param>
+    /// <param name="filePath">The file the session was opened from.</param>
+    /// <param name="isNew">Whether the session was just created: what an older session at the same path kept is forgotten, as in WPF.</param>
+    private void AttachSession(SessionViewModel loadedSession, UFile filePath, bool isNew = false)
     {
         MRU.AddFile(filePath, StrideGameStudio.EditorVersionMajor);
         InternalSettings.FileDialogLastOpenSessionDirectory.SetValue(filePath.GetFullDirectory());
@@ -389,8 +395,18 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
         // It owns the preview service that a plugin has just registered, and the preview game with it
         Preview = new PreviewViewModel(Session);
 
-        // The build the session runs when it opens: thumbnails and previews wait for it
+        // The editors of the last session, or the default scene, now that the plugins have registered the editors; keyed by the
+        // solution, as in WPF
+        var sessionData = GameStudioInternalSettings.CreateMostRecentlyUsedSessionsData();
+        var dataPath = UPath.IsNullOrEmpty(Session.SolutionPath) ? filePath : Session.SolutionPath;
+        if (isNew)
+            sessionData.RemoveFile(dataPath);
+        editorsRestorer = new SessionEditorsRestorer(Session, sessionData, dataPath);
+
+        // The build the session runs when it opens: thumbnails and previews wait for it. Shown before the editors open, which
+        // takes long enough for a build that has nothing to do to finish
         _ = ShowShaderImportAsync(Session);
+        editorsRestorer.Restore();
     }
 
     /// <summary>
@@ -576,8 +592,9 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
 
     private async Task OnSave()
     {
-        if (session is not null)
-            await session.SaveSessionAsync();
+        // A saved session goes to the top of the recent sessions, as in WPF
+        if (session is not null && await session.SaveSessionAsync() && sessionPath is not null)
+            MRU.AddFile(sessionPath, StrideGameStudio.EditorVersionMajor);
     }
 
     private async Task OnReload()
@@ -628,6 +645,10 @@ internal sealed class MainViewModel : ViewModelBase, IMainViewModel
 
         if (!await session.CloseAsync())
             return false;
+
+        // The editors open now are those to open next time; closing them below must not change it
+        editorsRestorer?.Stop();
+        editorsRestorer = null;
 
         // What the editors had unsaved is now saved, or dropped by the user
         return await session.EditorCollection.CloseAllEditorsAsync(false);

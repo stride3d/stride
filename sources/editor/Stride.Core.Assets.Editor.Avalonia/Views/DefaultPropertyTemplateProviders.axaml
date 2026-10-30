@@ -1650,6 +1650,16 @@
     </DataTemplate>
   </caev:SettingsStringFromAcceptableValuesTemplateProvider>
 
+  <caev:SettingsCommandTemplateProvider x:Key="SettingsCommandTemplateProvider" OverrideRule="All" caev:PropertyViewHelper.TemplateCategory="PropertyEditor">
+    <DataTemplate DataType="cpqvm:NodeViewModel">
+      <Border>
+        <Button MinWidth="80" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="2"
+                Content="{ReflectionBinding NodeValue.ActionName}"
+                Command="{ReflectionBinding NodeValue.Command}"/>
+      </Border>
+    </DataTemplate>
+  </caev:SettingsCommandTemplateProvider>
+
   <!-- Provider for unloadable object -->
   <caev:UnloadableObjectTemplateProvider x:Key="YamlProxyTemplateProvider" OverrideRule="All" caev:PropertyViewHelper.TemplateCategory="PropertyHeader">
     <DataTemplate DataType="cpqvm:NodeViewModel">

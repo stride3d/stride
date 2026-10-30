@@ -37,7 +37,29 @@ EditorViewToolTypes:
   Stride.Assets.Editor.EditorGame.Tools.SelectTool
   Stride.Assets.Editor.EditorGame.Tools.TranslateTool
 SettingsKeys:
+  SceneEditor/KeyBindings/MoveCamForward
+  SceneEditor/KeyBindings/MoveCamBackward
+  SceneEditor/KeyBindings/MoveCamLeft
+  SceneEditor/KeyBindings/MoveCamRight
+  SceneEditor/KeyBindings/MoveCamUpward
+  SceneEditor/KeyBindings/MoveCamDownward
+  SceneEditor/KeyBindings/IncreaseCamSpeed
+  SceneEditor/KeyBindings/DecreaseCamSpeed
+  SceneEditor/KeyBindings/InvertPanningAxis
+  SceneEditor/KeyBindings/CenterViewOnSelection
+  SceneEditor/KeyBindings/SnapSelectionToGrid
+  SceneEditor/KeyBindings/ControlDynamicSnapSelectionToGrid
+  SceneEditor/KeyBindings/TranslationGizmo
+  SceneEditor/KeyBindings/RotationGizmo
+  SceneEditor/KeyBindings/ScaleGizmo
+  SceneEditor/KeyBindings/SwitchGizmo
+  SceneEditor/ViewportSettings/DefaultTranslation
+  SceneEditor/ViewportSettings/DefaultRotation
+  SceneEditor/ViewportSettings/DefaultScale
+  SceneEditor/ViewportSettings/DisplayDirectionNames
+  SceneEditor/ViewportSettings/UseLinearMovementForRotation
   SceneEditor/AskBeforeDeletingEntities
+  ScriptEditor/FontSize
 ProfileSettings:
   Package/Game/Effect/EffectCompilation (Executable)
   Package/Game/Effect/RecordUsedEffects (Executable)

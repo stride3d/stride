@@ -91,17 +91,32 @@ internal sealed class ShellSessionFixture : IDisposable
     private static async Task<ShellSessionFixture> OpenAsync(PlatformType? executablePlatform, (string Location, Asset Asset)[] assets)
     {
         var fixture = Create(executablePlatform, assets);
-        var opened = await fixture.Main.OpenSession(fixture.PackagePath);
-        if (opened != true || fixture.Main.Session is null)
+        try
+        {
+            await fixture.OpenAsync();
+        }
+        catch
         {
             fixture.Dispose();
-            throw new InvalidOperationException($"The session could not be opened ({opened}).");
+            throw;
         }
-        // The main view model forgets it when the editor restarts; it is still destroyed with the fixture
-        fixture.openedSession = fixture.Main.Session;
-        fixture.builder = fixture.openedSession.ServiceProvider.TryGet<GameStudioBuilderService>();
-        fixture.settingsProvider = fixture.openedSession.ServiceProvider.TryGet<GameSettingsProviderService>();
         return fixture;
+    }
+
+    /// <summary>
+    /// Opens the package that <c>Create</c> wrote through the main view model, as the static <c>OpenAsync</c> does: a test
+    /// can prepare the settings of the session in between.
+    /// </summary>
+    public async Task OpenAsync()
+    {
+        var opened = await Main.OpenSession(PackagePath);
+        if (opened != true || Main.Session is null)
+            throw new InvalidOperationException($"The session could not be opened ({opened}).");
+
+        // The main view model forgets it when the editor restarts; it is still destroyed with the fixture
+        openedSession = Main.Session;
+        builder = openedSession.ServiceProvider.TryGet<GameStudioBuilderService>();
+        settingsProvider = openedSession.ServiceProvider.TryGet<GameSettingsProviderService>();
     }
 
     /// <summary>
