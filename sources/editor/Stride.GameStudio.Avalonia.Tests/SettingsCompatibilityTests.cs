@@ -9,6 +9,7 @@ using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.Settings;
 using Stride.Core.Assets.Editor.ViewModels;
+using Stride.Core.Presentation.Avalonia.Controls;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.IO;
 using Stride.Editor.Settings;
@@ -186,6 +187,13 @@ public sealed class SettingsCompatibilityTests : IDisposable
             await WindowTestHelper.WaitUntilAsync(() => (reset = window.GetVisualDescendants().OfType<Button>().FirstOrDefault(x => Equals(x.Content, "Reset"))) is not null, "the Reset button");
             await window.ClickAsync(reset!);
             Assert.Equal(1, resets);
+
+            // A whole number shows its value (the number box clamped it to 0 without the range of its type)
+            viewModel.SelectedCategory = viewModel.Categories.Single(x => x.Name == RemoteSettings.Remote);
+            NumericTextBox? port = null;
+            await WindowTestHelper.WaitUntilAsync(() => (port = window.GetVisualDescendants().OfType<NumericTextBox>().FirstOrDefault()) is not null, "the Port box");
+            await WindowTestHelper.PumpAsync();
+            Assert.Equal(RemoteSettings.Port.GetValue(), (int?)port!.Value);
         }
         finally
         {
