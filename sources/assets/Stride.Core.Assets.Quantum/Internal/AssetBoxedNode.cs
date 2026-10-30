@@ -29,6 +29,8 @@ internal class AssetBoxedNode : BoxedNode, IAssetObjectNodeInternal
 
     public void SetContent(string key, IGraphNode node) => ex.SetContent(key, node);
 
+    public bool RemoveContent(string key) => ex.RemoveContent(key);
+
     public IGraphNode? GetContent(string key) => ex.GetContent(key);
 
     public void ResetOverrideRecursively() => ex.ResetOverrideRecursively(NodeIndex.Empty);

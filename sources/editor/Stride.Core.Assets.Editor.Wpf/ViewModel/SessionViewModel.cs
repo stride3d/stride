@@ -200,6 +200,8 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
         public ICommandBase EditSelectedContentCommand { get; }
 
+        public ICommandBase OpenSelectedContentInNewViewCommand { get; }
+
         public ICommandBase ToggleIsRootOnSelectedAssetCommand { get; }
 
         public ICommandBase ImportEffectLogCommand { get => importEffectLogCommand; set => SetValueUncancellable(ref importEffectLogCommand, value); }
@@ -675,6 +677,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             OpenSourceFileCommand = new AnonymousTaskCommand<AssetViewModel>(ServiceProvider, OpenSourceFile);
             SetCurrentProjectCommand = new AnonymousCommand(ServiceProvider, SetCurrentProject);
             EditSelectedContentCommand = new AnonymousCommand(ServiceProvider, EditSelectedAsset);
+            OpenSelectedContentInNewViewCommand = new AnonymousCommand(ServiceProvider, OpenSelectedAssetInNewView);
             ToggleIsRootOnSelectedAssetCommand = new AnonymousCommand(ServiceProvider, ToggleIsRootOnSelectedAsset);
             PreviousSelectionCommand = new AnonymousCommand(serviceProvider, () => { ServiceProvider.Get<SelectionService>().NavigateBackward(); UpdateSelectionCommands(); });
             NextSelectionCommand = new AnonymousCommand(serviceProvider, () => { ServiceProvider.Get<SelectionService>().NextSelection(); UpdateSelectionCommands(); });
@@ -696,6 +699,14 @@ namespace Stride.Core.Assets.Editor.ViewModel
             IsEditorInitialized = true;
         }
 
+        private void OpenSelectedAssetInNewView()
+        {
+            var asset = ActiveAssetView.SingleSelectedAsset;
+            if (asset == null || asset.AssetType.Name != "SceneAsset")
+                return;
+
+            ServiceProvider.Get<IAssetEditorsManager>().OpenAssetEditorWindow(asset, makeNewInstance: true);
+        }
         private void EditSelectedAsset()
         {
             // Cannot edit multi-selection
@@ -1835,6 +1846,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             NewDirectoryCommand.IsEnabled = packageSelected || directorySelected;
             ActivatePackagePropertiesCommand.IsEnabled = packageSelected || directorySelected;
             EditSelectedContentCommand.IsEnabled = ActiveAssetView.SingleSelectedContent is DirectoryViewModel || asset is { IsEditable: true } && ServiceProvider.Get<IAssetsPluginService>().HasEditorView(this, asset.GetType());
+            OpenSelectedContentInNewViewCommand.IsEnabled = asset is { IsEditable: true, AssetType.Name: "SceneAsset" } && ServiceProvider.Get<IAssetsPluginService>().HasEditorView(this, asset.GetType());
             OpenWithTextEditorCommand.IsEnabled = OpenAssetFileCommand.IsEnabled = OpenSourceFileCommand.IsEnabled = asset != null;
             ToggleIsRootOnSelectedAssetCommand.IsEnabled = RootAssetDefaultTarget != null && ActiveAssetView.SelectedAssets.Count > 0 && ActiveAssetView.SelectedAssets.All(x => !x.Dependencies.ForcedRoot);
             UpdateSelectionCommands();

@@ -31,9 +31,8 @@ namespace Stride.GameStudio.AssetsEditors
     {
         private readonly ConditionalWeakTable<IMultipleAssetEditorViewModel, NotifyCollectionChangedEventHandler> registeredHandlers = [];
         private readonly Dictionary<IAssetEditorViewModel, LayoutAnchorable> assetEditors = [];
-
+        private readonly Dictionary<AssetViewModel, HashSet<IAssetEditorViewModel>> openedAssets = [];
         internal IEnumerable<IAssetEditorViewModel> EditorViewModels => assetEditors.Keys;
-        private readonly Dictionary<AssetViewModel, IAssetEditorViewModel> openedAssets = [];
         // TODO have a base interface for all editors and factorize to make curve editor not be a special case anymore
         private Tuple<CurveEditorViewModel, LayoutAnchorable> curveEditor;
 
@@ -54,7 +53,7 @@ namespace Stride.GameStudio.AssetsEditors
         /// <remarks>
         /// This does not include all assets in <see cref="IMultipleAssetEditorViewModel"/> but rather those that were explicitly opened.
         /// </remarks>
-        public IReadOnlyCollection<AssetViewModel> OpenedAssets => openedAssets.Keys;
+        public IReadOnlyCollection<AssetViewModel> OpenedAssets => assetEditors.Keys.Select(editor => editor.Asset).ToList();
 
         /// <inheritdoc />
         void IDestroyable.Destroy()
@@ -160,9 +159,9 @@ namespace Stride.GameStudio.AssetsEditors
 
         /// <inheritdoc/>
         [NotNull]
-        public Task OpenAssetEditorWindow([NotNull] AssetViewModel asset)
+        public Task OpenAssetEditorWindow([NotNull] AssetViewModel asset, bool makeNewInstance)
         {
-            return OpenAssetEditorWindow(asset, true);
+            return OpenAssetEditorWindow(asset, saveSettings: true, makeNewInstance);
         }
 
         /// <inheritdoc/>
@@ -201,7 +200,8 @@ namespace Stride.GameStudio.AssetsEditors
         /// <inheritdoc/>
         public bool CloseAssetEditorWindow([NotNull] AssetViewModel asset, bool? save)
         {
-            var canClose = !openedAssets.TryGetValue(asset, out var editor) || editor.PreviewClose(save);
+            var editors = GetOpenedEditors(asset);
+            var canClose = editors.Count == 0 || editors.All(x => x.PreviewClose(save));
             if (canClose)
                 CloseEditorWindow(asset);
 
@@ -221,7 +221,13 @@ namespace Stride.GameStudio.AssetsEditors
         public bool TryGetAssetEditor<TEditor>([NotNull] AssetViewModel asset, out TEditor assetEditor)
              where TEditor : IAssetEditorViewModel
         {
-            if (openedAssets.TryGetValue(asset, out var found) && found is TEditor editor)
+            var editor = GetOpenedEditors(asset)
+                .OfType<TEditor>()
+                .OrderByDescending(x => assetEditors.TryGetValue(x, out var pane) && pane.IsActive)
+                .ThenByDescending(x => assetEditors.TryGetValue(x, out var pane) && pane.IsVisible)
+                .FirstOrDefault();
+
+            if (editor != null)
             {
                 assetEditor = editor;
                 return true;
@@ -254,7 +260,7 @@ namespace Stride.GameStudio.AssetsEditors
         /// <param name="asset">The asset for which to show an editor window.</param>
         /// <param name="saveSettings">True if <see cref="MRUAdditionalData.OpenedAssets"/> should be updated, false otherwise. Note that if the editor fail to load it will not be updated.</param>
         /// <returns></returns>
-        internal async Task OpenAssetEditorWindow([NotNull] AssetViewModel asset, bool saveSettings)
+        internal async Task OpenAssetEditorWindow([NotNull] AssetViewModel asset, bool saveSettings, bool forceNewInstance)
         {
             if (asset == null) throw new ArgumentNullException(nameof(asset));
             if (dockingLayoutManager == null) throw new InvalidOperationException("This method can only be invoked on the IEditorDialogService that has the editor main window as parent.");
@@ -269,20 +275,9 @@ namespace Stride.GameStudio.AssetsEditors
             {
                 LayoutAnchorable editorPane = null;
                 IEditorView view;
-                // Asset already has an editor? Then, Look for the corresponding panel
-                if (openedAssets.TryGetValue(asset, out var editor) && !assetEditors.TryGetValue(editor, out editorPane))
-                {
-                    // Inconsistency, clean leaking editor
-                    RemoveAssetEditor(asset);
-                    // Try to find if another editor currently has this asset
-                    var otherEditor = assetEditors.Keys.OfType<IMultipleAssetEditorViewModel>().FirstOrDefault(x => x.OpenedAssets.Contains(asset));
-                    if (otherEditor != null)
-                    {
-                        editorPane = assetEditors[otherEditor];
-                    }
-                }
-                // Existing editor?
-                if (editorPane != null)
+                AssetEditorViewModel editor;
+
+                if (!forceNewInstance && TryGetEditorPane(asset, out editorPane))
                 {
                     // Make the pane visible immediately
                     MakeActiveVisible(editorPane);
@@ -304,18 +299,18 @@ namespace Stride.GameStudio.AssetsEditors
                         view = (IEditorView)Activator.CreateInstance(viewType);
 
                         // Pane may already exists (e.g. created from layout saving)
-                        editorPane = AvalonDockHelper.GetAllAnchorables(dockingLayoutManager.DockingManager).FirstOrDefault(p => p.Title == asset.Url);
+                        editorPane = forceNewInstance ? null : AvalonDockHelper.GetAllAnchorables(dockingLayoutManager.DockingManager).FirstOrDefault(p => p.Content == null && p.Title == asset.Url);
                         if (editorPane == null)
                         {
                             editorPane = new LayoutAnchorable { CanClose = true };
-                            // Stack the asset in the dictionary of editor to prevent double-opening while double-clicking twice on the asset, since the initialization is async
                             AvalonDockHelper.GetDocumentPane(dockingLayoutManager.DockingManager).Children.Add(editorPane);
                         }
                         editorPane.IsActiveChanged += EditorPaneIsActiveChanged;
-                        editorPane.IsSelectedChanged += EditorPaneIsSelectedChanged;
                         editorPane.Closing += EditorPaneClosing;
                         editorPane.Closed += EditorPaneClosed;
                         editorPane.Content = view;
+                        if (view is FrameworkElement frameworkElement)
+                            frameworkElement.IsVisibleChanged += EditorContentIsVisibleChanged;
                         // Make the pane visible immediately
                         MakeActiveVisible(editorPane);
 
@@ -337,20 +332,11 @@ namespace Stride.GameStudio.AssetsEditors
                             assetEditors[editor] = editorPane;
                             if (editor is IMultipleAssetEditorViewModel multiEditor)
                             {
-                                foreach (var item in multiEditor.OpenedAssets)
-                                {
-                                    // FIXME: do we still have this case after decoupling asset and editor?
-                                    if (openedAssets.TryGetValue(asset, out var otherEditor))
-                                    {
-                                        // Note: this could happen in some case after undo/redo that involves parenting of scenes
-                                        RemoveAssetEditor(item);
-                                    }
-                                }
                                 NotifyCollectionChangedEventHandler handler = (_, e) => MultiEditorOpenAssetsChanged(multiEditor, e);
                                 registeredHandlers.Add(multiEditor, handler);
                                 multiEditor.OpenedAssets.CollectionChanged += handler;
                             }
-                            openedAssets.Add(asset, editor);
+                            RegisterOpenedAsset(asset, editor);
                         }
                     }
                 }
@@ -382,6 +368,44 @@ namespace Stride.GameStudio.AssetsEditors
             }
         }
 
+        private IReadOnlyCollection<IAssetEditorViewModel> GetOpenedEditors([System.Diagnostics.CodeAnalysis.NotNull] AssetViewModel asset)
+        {
+            return openedAssets.TryGetValue(asset, out var editors) ? editors.ToList() : Array.Empty<IAssetEditorViewModel>();
+        }
+
+        private void RegisterOpenedAsset([System.Diagnostics.CodeAnalysis.NotNull] AssetViewModel asset, [System.Diagnostics.CodeAnalysis.NotNull] IAssetEditorViewModel editor)
+        {
+            if (!openedAssets.TryGetValue(asset, out var editors))
+            {
+                editors = [];
+                openedAssets.Add(asset, editors);
+            }
+
+            editors.Add(editor);
+        }
+
+        private void UnregisterOpenedAsset([System.Diagnostics.CodeAnalysis.NotNull] AssetViewModel asset, [System.Diagnostics.CodeAnalysis.NotNull] IAssetEditorViewModel editor)
+        {
+            if (!openedAssets.TryGetValue(asset, out var editors))
+                return;
+
+            editors.Remove(editor);
+            if (editors.Count == 0)
+                openedAssets.Remove(asset);
+        }
+
+        private bool TryGetEditorPane([System.Diagnostics.CodeAnalysis.NotNull] AssetViewModel asset, out LayoutAnchorable editorPane)
+        {
+            foreach (var editor in GetOpenedEditors(asset))
+            {
+                if (assetEditors.TryGetValue(editor, out editorPane))
+                    return true;
+            }
+
+            editorPane = null;
+            return false;
+        }
+
         private void MultiEditorOpenAssetsChanged([NotNull] IMultipleAssetEditorViewModel multiEditor, [NotNull] NotifyCollectionChangedEventArgs e)
         {
             switch (e.Action)
@@ -391,28 +415,28 @@ namespace Stride.GameStudio.AssetsEditors
                 case NotifyCollectionChangedAction.Replace:
                     if (e.OldItems?.Count > 0)
                     {
-                        // nothing to do?
-                        //foreach (AssetViewModel item in e.OldItems)
-                        //{
-                        //    item.Editor = null;
-                        //}
+                        foreach (AssetViewModel item in e.OldItems)
+                            UnregisterOpenedAsset(item, multiEditor);
                     }
                     if (e.NewItems?.Count > 0)
                     {
                         foreach (AssetViewModel item in e.NewItems)
-                        {
-                            if (openedAssets.TryGetValue(item, out var editor) && assetEditors.ContainsKey(editor))
-                            {
-                                RemoveAssetEditor(item);
-                            }
-                        }
+                            RegisterOpenedAsset(item, multiEditor);
                     }
                     break;
                 case NotifyCollectionChangedAction.Move:
                     // nothing to do
                     break;
                 case NotifyCollectionChangedAction.Reset:
-                    throw new InvalidOperationException();
+                    foreach (var asset in openedAssets
+                                 .Where(x => x.Value.Contains(multiEditor))
+                                 .Select(x => x.Key)
+                                 .ToList())
+                        UnregisterOpenedAsset(asset, multiEditor);
+
+                    foreach (var asset in multiEditor.OpenedAssets)
+                        RegisterOpenedAsset(asset, multiEditor);
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -424,7 +448,7 @@ namespace Stride.GameStudio.AssetsEditors
         /// <param name="asset">The asset.</param>
         private void RemoveAssetEditor([NotNull] AssetViewModel asset)
         {
-            if (openedAssets.Remove(asset, out var editor))
+            foreach (var editor in GetOpenedEditors(asset).ToList())
             {
                 RemoveEditor(editor);
             }
@@ -445,6 +469,13 @@ namespace Stride.GameStudio.AssetsEditors
                 {
                     throw new InvalidOperationException($"Expected {multiEditor} to have a handler set up");
                 }
+
+                foreach (var item in multiEditor.OpenedAssets)
+                    UnregisterOpenedAsset(item, multiEditor);
+            }
+            else
+            {
+                UnregisterOpenedAsset(editor.Asset, editor);
             }
             // Remove editor
             assetEditors.Remove(editor);
@@ -476,6 +507,9 @@ namespace Stride.GameStudio.AssetsEditors
         /// <seealso cref="RemoveEditorPane"/>
         private static void CleanEditorPane([NotNull] LayoutAnchorable editorPane)
         {
+            if (editorPane.Content is FrameworkElement element)
+                element.IsVisibleChanged -= EditorContentIsVisibleChanged;
+
             // Destroy the editor view
             (editorPane.Content as IDestroyable)?.Destroy();
             editorPane.Content = null;
@@ -490,7 +524,6 @@ namespace Stride.GameStudio.AssetsEditors
         private void RemoveEditorPane([NotNull] LayoutAnchorable editorPane)
         {
             editorPane.IsActiveChanged -= EditorPaneIsActiveChanged;
-            editorPane.IsSelectedChanged -= EditorPaneIsSelectedChanged;
             editorPane.Closing -= EditorPaneClosing;
             editorPane.Closed -= EditorPaneClosed;
 
@@ -506,7 +539,7 @@ namespace Stride.GameStudio.AssetsEditors
             var element = editorPane.Content as FrameworkElement;
 
             // If any editor couldn't close, cancel the sequence
-            if (element?.DataContext is AssetViewModel asset && !(openedAssets.TryGetValue(asset, out var editor) && editor.PreviewClose(null)))
+            if (element?.DataContext is IAssetEditorViewModel editor && !editor.PreviewClose(null))
             {
                 e.Cancel = true;
             }
@@ -517,18 +550,29 @@ namespace Stride.GameStudio.AssetsEditors
             var editorPane = (LayoutAnchorable)sender;
 
             var element = editorPane.Content as FrameworkElement;
-            if (element?.DataContext is AssetEditorViewModel editor)
-            {
-                CloseEditorWindow(editor.Asset);
-            }
+            if (element?.DataContext is IAssetEditorViewModel editor)
+                RemoveEditor(editor);
         }
 
         private static void EditorPaneContentLoaded(object sender, RoutedEventArgs e)
         {
-            // Give focus to element
             var element = (FrameworkElement)sender;
-            if (!element.IsKeyboardFocusWithin)
+            element.Loaded -= EditorPaneContentLoaded;
+            TryFocusEditor(element);
+        }
+
+        private static void TryFocusEditor(FrameworkElement element)
+        {
+            if (element.IsKeyboardFocusWithin || !element.IsLoaded || !element.IsVisible || PresentationSource.FromVisual(element) == null)
+                return;
+
+            try
+            {
                 Keyboard.Focus(element);
+            }
+            catch (NullReferenceException)
+            {
+            }
         }
 
         private static void EditorPaneIsActiveChanged(object sender, EventArgs e)
@@ -541,9 +585,7 @@ namespace Stride.GameStudio.AssetsEditors
                 {
                     if (element.IsLoaded)
                     {
-                        // Give focus to element
-                        if (!element.IsKeyboardFocusWithin)
-                            Keyboard.Focus(element);
+                        TryFocusEditor(element);
                     }
                     else
                     {
@@ -558,24 +600,14 @@ namespace Stride.GameStudio.AssetsEditors
             }
         }
 
-        private void EditorPaneIsSelectedChanged(object sender, EventArgs e)
+        private static void EditorContentIsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            var editorPane = (LayoutAnchorable)sender;
-
-            if (editorPane.Content is FrameworkElement element && element?.DataContext is AssetViewModel asset)
+            if (sender is FrameworkElement element && element.DataContext is Assets.Presentation.AssetEditors.GameEditor.ViewModels.GameEditorViewModel gameEditor)
             {
-                if (openedAssets.TryGetValue(asset, out var editor) && editor is Assets.Presentation.AssetEditors.GameEditor.ViewModels.GameEditorViewModel gameEditor)
-                {
-                    // A tab/sub-window is visible via IsSelected, not IsVisible
-                    if (editorPane.IsSelected)
-                    {
-                        gameEditor.ShowGame();
-                    }
-                    else
-                    {
-                        gameEditor.HideGame();
-                    }
-                }
+                if (element.IsVisible)
+                    gameEditor.ShowGame();
+                else
+                    gameEditor.HideGame();
             }
         }
 
