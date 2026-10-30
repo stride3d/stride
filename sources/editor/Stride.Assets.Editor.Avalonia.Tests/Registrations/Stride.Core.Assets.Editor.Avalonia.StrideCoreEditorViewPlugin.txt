@@ -67,6 +67,7 @@ TemplateProviders:
   Stride.Core.Assets.Editor.Avalonia.Views.ContentReferenceTemplateProvider ThumbnailReference
   Stride.Core.Assets.Editor.Avalonia.Views.NullableTemplateProvider Nullable
   Stride.Core.Assets.Editor.Avalonia.Views.SettingsStringFromAcceptableValuesTemplateProvider StringFromAcceptableValues
+  Stride.Core.Assets.Editor.Avalonia.Views.SettingsCommandTemplateProvider SettingsCommand
   Stride.Core.Assets.Editor.Avalonia.Views.UnloadableObjectTemplateProvider UnloadableObject
   Stride.Core.Presentation.Avalonia.Views.DefaultTemplateProvider Default
 CopyProcessors:
