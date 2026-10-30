@@ -484,6 +484,9 @@ public sealed class SpriteSheetEditorTests
         // The red sprite is the color key: the rest of the image (transparent included) is one sprite
         editor.ColorKey = Color.Red;
         editor.ColorKeyEnabled = true;
+        // Each change of the color key refreshes the property grid: the wand edits the sprite once the grid is built again
+        test.WaitForProperties();
+        Assert.Same(sprite, editor.CurrentSprite);
         Assert.False(editor.MagicWandUseTransparency);
         editor.ToolMode = SpriteSheetEditorToolMode.MagicWand;
 
