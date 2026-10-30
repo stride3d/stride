@@ -18,7 +18,7 @@ namespace Stride.Core.Assets.Editor.Services
     /// <summary>
     /// This interface represents the dialog service used for the editor. It extends <see cref="IDialogService2"/> with some editor-specific dialogs.
     /// </summary>
-    public interface IEditorDialogService : IDialogService2, IProgressWindowService
+    public interface IEditorDialogService : IDialogService2, IProgressWindowService, IAssetPickerService
     {
         /// <summary>
         /// Shows a notification window in the lower right corner of the primary screen.

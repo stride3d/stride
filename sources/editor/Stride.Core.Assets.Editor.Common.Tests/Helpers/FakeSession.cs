@@ -10,6 +10,7 @@ using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModel.Logs;
 using Stride.Core.Assets.Editor.ViewModel.Progress;
 using Stride.Core.Assets.Quantum;
+using Stride.Core.Assets.Templates;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Collections;
@@ -157,6 +158,8 @@ public sealed class FakeSession : ISessionViewModel
     public void UpdateHasUnsavedChanges()
     {
     }
+
+    public IEnumerable<TemplateDescription> FindTemplates(TemplateScope scope) => [];
 
     public void CheckConsistency() => throw new NotSupportedException();
 

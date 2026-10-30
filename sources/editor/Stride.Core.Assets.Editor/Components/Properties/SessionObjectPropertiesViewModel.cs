@@ -8,6 +8,7 @@ using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Presentation.Quantum.ViewModels;
+using Stride.Core.Extensions;
 using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Translation;
@@ -22,7 +23,7 @@ public class SessionObjectPropertiesViewModel : PropertiesViewModel, ISessionObj
     private bool showOverridesOnly;
 
     public SessionObjectPropertiesViewModel(SessionViewModel session)
-        : base(session.ServiceProvider, session.AssetNodeContainer)
+        : base(session.SafeArgument(nameof(session)).ServiceProvider, session.AssetNodeContainer)
     {
         Session = session;
 

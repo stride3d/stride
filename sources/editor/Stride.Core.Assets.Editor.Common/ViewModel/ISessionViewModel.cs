@@ -9,6 +9,7 @@ using Stride.Core.Assets.Editor.Components.Properties;
 using Stride.Core.Assets.Editor.ViewModel.Logs;
 using Stride.Core.Assets.Editor.ViewModel.Progress;
 using Stride.Core.Assets.Quantum;
+using Stride.Core.Assets.Templates;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Presentation.Collections;
@@ -145,6 +146,11 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// Gets the type of view model to use for the given asset.
         /// </summary>
         Type GetAssetViewModelType(AssetItem assetItem);
+
+        /// <summary>
+        /// Gets the templates of the given scope that the packages of the session provide.
+        /// </summary>
+        IEnumerable<TemplateDescription> FindTemplates(TemplateScope scope);
 
         /// <summary>
         /// Notifies that the properties of the given assets have changed, once their dependencies are up to date.

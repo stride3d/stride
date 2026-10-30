@@ -135,6 +135,26 @@ namespace Stride.Core.Assets.Editor.View
             return assetPickerWindow;
         }
 
+        /// <inheritdoc />
+        public async Task<AssetViewModel> OpenAssetPickerAsync(ISessionViewModel session, IEnumerable<Type> acceptedTypes, Func<AssetViewModel, bool> filter = null, AssetViewModel initialAsset = null, DirectoryBaseViewModel initialLocation = null, string message = null)
+        {
+            if (session == null) throw new ArgumentNullException(nameof(session));
+            if (acceptedTypes == null) throw new ArgumentNullException(nameof(acceptedTypes));
+
+            // The picker window is created on the UI thread: the property grid's commands can ask for it from another one
+            var assetPicker = Dispatcher.Invoke(() => CreateAssetPickerDialog((SessionViewModel)session));
+            if (message != null)
+                assetPicker.Message = message;
+            assetPicker.Filter = filter;
+            assetPicker.InitialLocation = initialLocation;
+            assetPicker.InitialAsset = initialAsset;
+            assetPicker.AllowMultiSelection = false;
+            assetPicker.AcceptedTypes.AddRange(acceptedTypes);
+
+            var result = await assetPicker.ShowModal();
+            return result == Stride.Core.Presentation.Services.DialogResult.Ok ? assetPicker.SelectedAssets.FirstOrDefault() : null;
+        }
+
         public IPackagePickerDialog CreatePackagePickerDialog(SessionViewModel session)
         {
             var packagePickerWindow = new PackagePickerWindow(session);

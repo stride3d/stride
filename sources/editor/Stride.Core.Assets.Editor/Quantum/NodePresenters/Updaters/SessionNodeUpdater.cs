@@ -3,6 +3,7 @@
 
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Keys;
 using Stride.Core.Assets.Editor.Services;
+using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Editor.ViewModels;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters;
 using Stride.Core.Reflection;
@@ -12,9 +13,9 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters;
 
 public sealed class SessionNodeUpdater : AssetNodePresenterUpdaterBase
 {
-    private readonly SessionViewModel session;
+    private readonly ISessionViewModel session;
 
-    public SessionNodeUpdater(SessionViewModel session)
+    public SessionNodeUpdater(ISessionViewModel session)
     {
         this.session = session;
     }
