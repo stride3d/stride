@@ -15,12 +15,15 @@ namespace Stride.Assets.Editor.ViewModels;
 /// (the navigation meshes of the Physics editor package, for instance), as the overlays popup of the WPF scene editor.
 /// </summary>
 /// <remarks>
-/// The agnostic copy of the WPF <c>EditorOverlaysViewModel</c>. The visibilities are not saved with the scene yet: the
-/// overlays start with the visibility their service gives them.
+/// The agnostic copy of the WPF <c>EditorOverlaysViewModel</c>. The visibilities are saved per scene in
+/// <see cref="SceneSettingsData"/>, as WPF does; the overlays of a scene without settings start with the visibility their
+/// service gives them.
 /// </remarks>
 public sealed class EditorViewOverlaysViewModel : DispatcherViewModel
 {
     private readonly List<(IEditorGameOverlayService Service, EventHandler Handler)> subscriptions = [];
+    // The overlays the settings of the scene show, for the overlays that come later (the navigation meshes build in the game)
+    private HashSet<string>? visibleKeysFromSettings;
 
     public EditorViewOverlaysViewModel(IViewModelServiceProvider serviceProvider, IEnumerable<IEditorGameOverlayService> services)
         : base(serviceProvider)
@@ -64,7 +67,30 @@ public sealed class EditorViewOverlaysViewModel : DispatcherViewModel
     }
 
     /// <summary>
-    /// Rebuilds the toggles of a section from its service; known overlays keep their visibility, new ones take their default.
+    /// Shows the overlays saved with the scene, as the WPF <c>EditorOverlaysViewModel</c>.
+    /// </summary>
+    internal void LoadSettings(SceneSettingsData settings)
+    {
+        // Scenes saved before the overlays popup listed visible navigation groups by id; those ids are the navigation overlay keys
+        var visibleKeys = settings.VisibleOverlays.Count > 0 || settings.VisibleNavigationGroups.Count == 0
+            ? settings.VisibleOverlays
+            : settings.VisibleNavigationGroups.Select(x => x.ToString());
+        visibleKeysFromSettings = new HashSet<string>(visibleKeys);
+        Sections.SelectMany(x => x.Overlays).ForEach(x => x.IsVisible = visibleKeysFromSettings.Contains(x.Key));
+    }
+
+    /// <summary>
+    /// Writes the visible overlays in the settings of the scene, in the format of the WPF scene editor.
+    /// </summary>
+    internal void SaveSettings(SceneSettingsData settings)
+    {
+        settings.VisibleOverlays = Sections.SelectMany(x => x.Overlays).Where(x => x.IsVisible).Select(x => x.Key).ToList();
+        settings.VisibleNavigationGroups.Clear();
+    }
+
+    /// <summary>
+    /// Rebuilds the toggles of a section from its service; known overlays keep their visibility, new ones take the
+    /// visibility of the settings of the scene, otherwise their default.
     /// </summary>
     private void RebuildSection(EditorViewOverlaySectionViewModel section)
     {
@@ -75,7 +101,8 @@ public sealed class EditorViewOverlaysViewModel : DispatcherViewModel
         section.Overlays.Clear();
         foreach (var overlay in section.Service.Overlays)
         {
-            var isVisible = previousVisibility.TryGetValue(overlay.Key, out var previous) ? previous : overlay.VisibleByDefault;
+            var isVisible = previousVisibility.TryGetValue(overlay.Key, out var previous) ? previous
+                : visibleKeysFromSettings?.Contains(overlay.Key) ?? overlay.VisibleByDefault;
             section.Overlays.Add(new EditorViewOverlayViewModel(ServiceProvider, section.Service, overlay, isVisible));
         }
     }

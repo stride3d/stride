@@ -195,7 +195,10 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
                 if (IsDestroyed)
                     gameToolbar.Destroy();
                 else
+                {
+                    LoadSettings(gameToolbar);
                     Toolbar = gameToolbar;
+                }
             }
             return true;
         }
@@ -216,6 +219,8 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
     {
         EnsureNotDestroyed(nameof(EntityHierarchyEditorViewModel));
 
+        // As WPF, the settings first, before the toolbar and the game go
+        SaveSettings();
         HierarchyRoot.EntityAdded -= EntityAdded;
         HierarchyRoot.EntityRemoved -= EntityRemoved;
         HierarchyRoot.LockChanged -= LockChanged;
@@ -230,6 +235,52 @@ public abstract class EntityHierarchyEditorViewModel : AssetCompositeHierarchyEd
         Controller?.Destroy();
 
         base.Destroy();
+    }
+
+    /// <summary>
+    /// Shows the view options saved for this scene or prefab in the user settings of its package, shared with the WPF editor.
+    /// </summary>
+    private void LoadSettings(EditorViewToolbarViewModel gameToolbar)
+    {
+        try
+        {
+            var sceneSettings = Asset.Directory.Package.UserSettings.GetValue(PackageSceneSettings.SceneSettings);
+            gameToolbar.LoadSettings(sceneSettings.TryGetValue(Asset.Asset.Id, out var settings) ? settings : SceneSettingsData.CreateDefault());
+        }
+        catch (Exception e)
+        {
+            Log.Warning($"The view settings of {Asset.Url} could not be read.", e);
+        }
+    }
+
+    /// <summary>
+    /// Saves the view options of this scene or prefab in the user settings of its package, keeping the members the Avalonia
+    /// editor does not use as they were.
+    /// </summary>
+    private void SaveSettings()
+    {
+        // Without a game, nothing was shown that could have changed
+        if (Toolbar is not { } gameToolbar)
+            return;
+
+        try
+        {
+            var userSettings = Asset.Directory.Package.UserSettings;
+            // A copy: without settings yet, the value is the default dictionary of the key, shared by every package
+            var sceneSettings = new Dictionary<AssetId, SceneSettingsData>(userSettings.GetValue(PackageSceneSettings.SceneSettings));
+            if (!sceneSettings.TryGetValue(Asset.Asset.Id, out var settings))
+            {
+                settings = SceneSettingsData.CreateDefault();
+                sceneSettings.Add(Asset.Asset.Id, settings);
+            }
+            gameToolbar.SaveSettings(settings);
+            userSettings.SetValue(PackageSceneSettings.SceneSettings, sceneSettings);
+            userSettings.Save();
+        }
+        catch (Exception e)
+        {
+            Log.Warning($"The view settings of {Asset.Url} could not be saved.", e);
+        }
     }
 
     /// <summary>
