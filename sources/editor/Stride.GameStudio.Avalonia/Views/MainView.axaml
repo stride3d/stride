@@ -275,24 +275,12 @@
                                  Padding="2"
                                  DataContext="{Binding Session?.EditorCollection}"/>
         <GridSplitter Grid.Column="1" ResizeDirection="Auto"/>
-        <Grid Grid.Column="2"
-              RowDefinitions="Auto, *">
-          <StackPanel Grid.Row="0"
-                      Orientation="Horizontal">
-            <Button Content="{sd:LocalizeString Previous, Context=Button}"
-                    Command="{Binding Session?.PreviousSelectionCommand, TargetNullValue={x:Static cpc:DisabledCommand.Instance}}"
-                    HotKey="Alt+Left" ToolTip.Tip="{Binding $self.HotKey, Mode=OneTime}"/>
-            <Button Content="{sd:LocalizeString Next, Context=Button}"
-                    Command="{Binding Session?.NextSelectionCommand, TargetNullValue={x:Static cpc:DisabledCommand.Instance}}"
-                    HotKey="Alt+Right" ToolTip.Tip="{Binding $self.HotKey, Mode=OneTime}"/>
-          </StackPanel>
-          <!-- Property Grid -->
-          <gsvw:PropertyGridView Grid.Row="1"
+        <!-- Property Grid, with the navigation in the selection history in its header as in WPF -->
+        <gsvw:PropertyGridView Grid.Column="2"
                                BorderThickness="2"
                                BorderBrush="Orange"
                                Padding="2"
                                DataContext="{Binding Session?.ActiveProperties}"/>
-        </Grid>
       </Grid>
       <GridSplitter Grid.Row="1" ResizeDirection="Auto"/>
       <Grid Grid.Row="2"
