@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Collections.Specialized;
+using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
@@ -9,12 +10,14 @@ using Avalonia.Input;
 using Avalonia.Media;
 using Stride.Core.Presentation.Avalonia.Commands;
 using Stride.Core.Translation;
+using Stride.GameStudio.Avalonia.Settings;
 using Stride.GameStudio.Avalonia.ViewModels;
 
 namespace Stride.GameStudio.Avalonia.Views;
 
 public partial class MainView : UserControl
 {
+    private readonly Dictionary<string, string> defaultPanelSizes;
     private MainViewModel? viewModel;
 
     public MainView()
@@ -30,6 +33,9 @@ public partial class MainView : UserControl
         PasteMenuItem.Command = EditRouter.Paste;
         DeleteMenuItem.Command = EditRouter.Delete;
         RenameMenuItem.Command = EditRouter.Rename;
+
+        defaultPanelSizes = GetPanelSizes();
+        SetPanelSizes(GameStudioInternalSettings.PanelSizes.GetValue());
     }
 
     /// <inheritdoc />
@@ -43,6 +49,78 @@ public partial class MainView : UserControl
             viewModel.RecentFiles.CollectionChanged += RecentFilesChanged;
         UpdateRecentSessionsMenu();
     }
+
+    /// <summary>
+    /// Keeps the sizes of the panels, which the splitters set, in the internal settings (the caller writes the file).
+    /// </summary>
+    public void SavePanelSizes()
+    {
+        GameStudioInternalSettings.PanelSizes.SetValue(GetPanelSizes());
+    }
+
+    /// <summary>
+    /// Gives the panels their sizes of a first start, as WPF's Reset Game Studio layout gives its default layout.
+    /// </summary>
+    public void ResetPanelSizes()
+    {
+        SetPanelSizes(defaultPanelSizes);
+        SavePanelSizes();
+    }
+
+    private IEnumerable<(string Name, IReadOnlyList<DefinitionBase> Definitions)> PanelDefinitions()
+    {
+        yield return (SessionPanels.Name!, SessionPanels.RowDefinitions);
+        yield return (TopPanels.Name!, TopPanels.ColumnDefinitions);
+        yield return (BottomPanels.Name!, BottomPanels.ColumnDefinitions);
+    }
+
+    private Dictionary<string, string> GetPanelSizes()
+    {
+        return PanelDefinitions().ToDictionary(x => x.Name, x => string.Join(",", x.Definitions.Select(d => FormatLength(GetLength(d)))));
+
+        static string FormatLength(GridLength length) => length.GridUnitType switch
+        {
+            GridUnitType.Auto => "Auto",
+            GridUnitType.Star => length.Value.ToString(CultureInfo.InvariantCulture) + "*",
+            _ => length.Value.ToString(CultureInfo.InvariantCulture),
+        };
+    }
+
+    private void SetPanelSizes(IReadOnlyDictionary<string, string> sizes)
+    {
+        foreach (var (name, definitions) in PanelDefinitions())
+        {
+            if (!sizes.TryGetValue(name, out var text))
+                continue;
+
+            try
+            {
+                // A grid that changed since (another number of panels) keeps its sizes
+                var lengths = GridLength.ParseLengths(text).ToList();
+                if (lengths.Count != definitions.Count || lengths.Zip(definitions).Any(x => x.First.GridUnitType != GetLength(x.Second).GridUnitType))
+                    continue;
+
+                for (var i = 0; i < lengths.Count; i++)
+                {
+                    if (definitions[i] is RowDefinition row)
+                        row.Height = lengths[i];
+                    else if (definitions[i] is ColumnDefinition column)
+                        column.Width = lengths[i];
+                }
+            }
+            catch (FormatException)
+            {
+                // Edited by hand: the grid keeps its sizes
+            }
+        }
+    }
+
+    private static GridLength GetLength(DefinitionBase definition) => definition switch
+    {
+        RowDefinition row => row.Height,
+        ColumnDefinition column => column.Width,
+        _ => GridLength.Auto,
+    };
 
     /// <summary>
     /// Routes the commands of the Edit menu and their shortcuts to the panel that has the focus.

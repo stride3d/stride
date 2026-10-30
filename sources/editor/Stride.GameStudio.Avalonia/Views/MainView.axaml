@@ -259,10 +259,10 @@
       </Button>
     </sd:ToolBar>
 
-    <!-- Session area -->
-    <Grid Grid.Row="2"
+    <!-- Session area: the sizes its splitters set are kept in the internal settings (MainView.SavePanelSizes) -->
+    <Grid x:Name="SessionPanels" Grid.Row="2"
           RowDefinitions="2*, 2, *">
-      <Grid Grid.Row="0"
+      <Grid x:Name="TopPanels" Grid.Row="0"
             ColumnDefinitions="2*, 2, *">
         <!-- Editors -->
         <gsvw:EditorCollectionView Grid.Column="0"
@@ -279,7 +279,7 @@
                                DataContext="{Binding Session?.ActiveProperties}"/>
       </Grid>
       <GridSplitter Grid.Row="1" ResizeDirection="Auto"/>
-      <Grid Grid.Row="2"
+      <Grid x:Name="BottomPanels" Grid.Row="2"
             ColumnDefinitions="*, 2, 2*, 2, *">
         <!-- Solution Explorer -->
         <gsvw:SolutionExplorerView Grid.Column="0"
