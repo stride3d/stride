@@ -769,7 +769,8 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
             package.PreparePackageForSaving();
         }
 
-        ServiceProvider.Get<IEditorDialogService>().ShowProgressWindow(workProgress);
+        // As in WPF, after half a second: a fast save shows no window
+        ServiceProvider.Get<IProgressWindowService>().ShowProgressWindow(workProgress, 500);
 
         // Ensure saving is finished
         await Task.Run(() =>
