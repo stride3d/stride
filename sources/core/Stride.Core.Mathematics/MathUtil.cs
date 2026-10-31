@@ -29,6 +29,7 @@
 
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Runtime.Intrinsics;
 
 namespace Stride.Core.Mathematics;
 
@@ -712,14 +713,14 @@ public static class MathUtil
     /// Returns the minimum value contained in <paramref name="values"/>
     /// </summary>
     /// <remarks>
-    /// Maybe simd accelerated if the type and architecture supports it
+    /// May be simd accelerated if the type and architecture supports it
     /// </remarks>
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="values"/> is empty</exception>
     public static T FindMin<T>(ReadOnlySpan<T> values) where T : INumber<T>
     {
         ArgumentOutOfRangeException.ThrowIfEqual(values.Length, 0);
 
-        if (Vector<T>.IsSupported == false)
+        if (Vector<T>.IsSupported == false || values.Length < Vector<T>.Count)
         {
             T min = values[0];
             for (int i = 1; i < values.Length; i++)
@@ -755,14 +756,14 @@ public static class MathUtil
     /// Returns the maximum value contained in <paramref name="values"/>
     /// </summary>
     /// <remarks>
-    /// Maybe simd accelerated if the type and architecture supports it
+    /// May be simd accelerated if the type and architecture supports it
     /// </remarks>
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="values"/> is empty</exception>
     public static T FindMax<T>(ReadOnlySpan<T> values) where T : INumber<T>
     {
         ArgumentOutOfRangeException.ThrowIfEqual(values.Length, 0);
 
-        if (Vector<T>.IsSupported == false)
+        if (Vector<T>.IsSupported == false || values.Length < Vector<T>.Count)
         {
             T max = values[0];
             for (int i = 1; i < values.Length; i++)
@@ -795,17 +796,17 @@ public static class MathUtil
     }
     
     /// <summary>
-    /// Returns the maximum value contained in <paramref name="values"/>
+    /// Returns the minimum and maximum values contained in <paramref name="values"/>
     /// </summary>
     /// <remarks>
-    /// Maybe simd accelerated if the type and architecture supports it
+    /// May be simd accelerated if the type and architecture supports it
     /// </remarks>
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="values"/> is empty</exception>
     public static void FindMinMax<T>(ReadOnlySpan<T> values, out T min, out T max) where T : INumber<T>
     {
         ArgumentOutOfRangeException.ThrowIfEqual(values.Length, 0);
 
-        if (Vector<T>.IsSupported == false)
+        if (Vector<T>.IsSupported == false || values.Length < Vector<T>.Count)
         {
             min = max = values[0];
             for (int i = 1; i < values.Length; i++)
@@ -845,5 +846,251 @@ public static class MathUtil
                 max = T.Max(max, values[i]);
             }
         }
+    }
+
+    /// <summary>
+    /// Sample the four points around <paramref name="coord"/> in <paramref name="texture"/> and returns the weighted average based on the proximity of <paramref name="coord"/> from those points
+    /// </summary>
+    /// <param name="coord">
+    /// A fractional coordinate in the texture, where 0 is the first pixel, 0.5 is halfway between the first and second, etc.
+    /// <br/>
+    /// This is distinct from common GPU texture sampling where 0.5 would be the first pixel,
+    /// while 0 would be halfway between the first and last pixel with wrap around sampling.
+    /// </param>
+    /// <param name="textureSize">The amount of pixels across each dimensions of the texture</param>
+    /// <param name="texture">Texture pixel data laid-out in row-major</param>
+    /// <typeparam name="T">The data contained in a pixel</typeparam>
+    /// <returns>The weighted average value at this <paramref name="coord"/></returns>
+    /// <exception cref="ArgumentOutOfRangeException">The amount of pixel data does not match the size specified</exception>
+    public static unsafe T BilinearSample<T>(Vector2 coord, Int2 textureSize, ReadOnlySpan<T> texture) where T : unmanaged, IMultiplyOperators<T, float, T>, IAdditionOperators<T, T, T>
+    {
+        ArgumentOutOfRangeException.ThrowIfNotEqual(texture.Length, textureSize.X * textureSize.Y);
+
+        fixed (T* ptr = texture)
+            return BilinearSample(coord, textureSize, ptr);
+    }
+
+    /// <summary>
+    /// Sample the four points around <paramref name="coord"/> in <paramref name="texture"/> and returns the weighted average based on the proximity of <paramref name="coord"/> from those points
+    /// </summary>
+    /// <param name="coord">
+    /// A fractional coordinate in the texture, where 0 is the first pixel, 0.5 is halfway between the first and second, etc.
+    /// <br/>
+    /// This is distinct from common GPU texture sampling where 0.5 would be the first pixel,
+    /// while 0 would be halfway between the first and last pixel with wrap around sampling.
+    /// </param>
+    /// <param name="textureSize">The amount of pixels across each dimensions of the texture</param>
+    /// <param name="texture">Texture pixel data laid-out in row-major</param>
+    /// <typeparam name="T">The data contained in a pixel</typeparam>
+    /// <returns>The weighted average value at this <paramref name="coord"/></returns>
+    public static unsafe T BilinearSample<T>(Vector2 coord, Int2 textureSize, T* texture) where T : unmanaged, IMultiplyOperators<T, float, T>, IAdditionOperators<T, T, T>
+    {
+        var min = Vector2.Floor(coord);
+        var cellFrac = coord - min;
+        var cellInvFrac = new Vector2(1) - cellFrac;
+
+        int x0 = Mod((int)min.X, textureSize.X);
+        int y0 = Mod((int)min.Y, textureSize.Y) * textureSize.X;
+        int x1 = x0 + 1 == textureSize.X ? 0 : x0 + 1;
+        int y1 = y0 + textureSize.X == textureSize.X * textureSize.Y ? 0 : y0 + textureSize.X;
+
+        return 
+            texture[x0 + y0] * (cellInvFrac.X * cellInvFrac.Y)
+            + texture[x0 + y1] * (cellInvFrac.X * cellFrac.Y)
+            + texture[x1 + y0] * (cellFrac.X * cellInvFrac.Y)
+            + texture[x1 + y1] * (cellFrac.X * cellFrac.Y);
+    }
+
+    /// <summary>
+    /// Sample the four points around <paramref name="coord"/> in <paramref name="texture"/> and returns the weighted average based on the proximity of <paramref name="coord"/> from those points
+    /// </summary>
+    /// <param name="coord">
+    /// A fractional coordinate in the texture, where 0 is the first pixel, 0.5 is halfway between the first and second, etc.
+    /// <br/>
+    /// This is distinct from common GPU texture sampling where 0.5 would be the first pixel,
+    /// while 0 would be halfway between the first and last pixel with wrap around sampling.
+    /// </param>
+    /// <param name="textureSize">The amount of pixels across each dimensions of the texture</param>
+    /// <param name="texture">Texture pixel data laid-out in row-major</param>
+    /// <returns>The weighted average value at this <paramref name="coord"/></returns>
+    /// <exception cref="ArgumentOutOfRangeException">The amount of pixel data does not match the size specified</exception>
+    public static unsafe float BilinearSample(Vector2 coord, Int2 textureSize, ReadOnlySpan<float> texture)
+    {
+        ArgumentOutOfRangeException.ThrowIfNotEqual(texture.Length, textureSize.X * textureSize.Y);
+
+        fixed (float* ptr = texture)
+            return BilinearSample(coord, textureSize, ptr);
+    }
+
+    /// <summary>
+    /// Sample the four points around <paramref name="coord"/> in <paramref name="texture"/> and returns the weighted average based on the proximity of <paramref name="coord"/> from those points
+    /// </summary>
+    /// <param name="coord">
+    /// A fractional coordinate in the texture, where 0 is the first pixel, 0.5 is halfway between the first and second, etc.
+    /// <br/>
+    /// This is distinct from common GPU texture sampling where 0.5 would be the first pixel,
+    /// while 0 would be halfway between the first and last pixel with wrap around sampling.
+    /// </param>
+    /// <param name="textureSize">The amount of pixels across each dimensions of the texture</param>
+    /// <param name="texture">Texture pixel data laid-out in row-major</param>
+    /// <returns>The weighted average value at this <paramref name="coord"/></returns>
+    public static unsafe float BilinearSample(Vector2 coord, Int2 textureSize, float* texture)
+    {
+        var min = Vector2.Floor(coord);
+        var cellFrac = coord - min;
+        var cellInvFrac = new Vector2(1) - cellFrac;
+
+        int x0 = Mod((int)min.X, textureSize.X);
+        int y0 = Mod((int)min.Y, textureSize.Y) * textureSize.X;
+        int x1 = x0 + 1 == textureSize.X ? 0 : x0 + 1;
+        int y1 = y0 + textureSize.X == textureSize.X * textureSize.Y ? 0 : y0 + textureSize.X;
+
+        /* Could be faster, poor codegen as of net10
+        var v4 = new System.Numerics.Vector4(cellInvFrac.X, cellInvFrac.X, cellFrac.X, cellFrac.X)
+                 * new System.Numerics.Vector4(cellInvFrac.Y, cellFrac.Y, cellInvFrac.Y, cellFrac.Y)
+                 * new System.Numerics.Vector4(texture[x0 + y0], texture[x0 + y1], texture[x1 + y0], texture[x1 + y1]);
+
+        return System.Numerics.Vector4.Sum(v4);*/
+
+        var w0 = float.MultiplyAddEstimate(texture[x0 + y0], cellInvFrac.Y, texture[x0 + y1] * cellFrac.Y);
+        var w1 = float.MultiplyAddEstimate(texture[x1 + y0], cellInvFrac.Y, texture[x1 + y1] * cellFrac.Y);
+        return float.MultiplyAddEstimate(w0, cellInvFrac.X, w1 * cellFrac.X);
+    }
+
+    /// <summary>
+    /// Sample the eight points around <paramref name="coord"/> in <paramref name="texture"/> and returns the weighted average based on the proximity of <paramref name="coord"/> from those points
+    /// </summary>
+    /// <param name="coord">
+    /// A fractional coordinate in the texture, where 0 is the first pixel, 0.5 is halfway between the first and second, etc.
+    /// <br/>
+    /// This is distinct from common GPU texture sampling where 0.5 would be the first pixel,
+    /// while 0 would be halfway between the first and last pixel with wrap around sampling.
+    /// </param>
+    /// <param name="textureSize">The amount of pixels across each dimensions of the texture</param>
+    /// <param name="texture">Texture pixel data laid-out in row-major, then column</param>
+    /// <typeparam name="T">The data contained in a pixel</typeparam>
+    /// <returns>The weighted average value at this <paramref name="coord"/></returns>
+    /// <exception cref="ArgumentOutOfRangeException">The amount of pixel data does not match the size specified</exception>
+    public static unsafe T TrilinearSample<T>(Vector3 coord, Int3 textureSize, ReadOnlySpan<T> texture) where T : unmanaged, IMultiplyOperators<T, float, T>, IAdditionOperators<T, T, T>
+    {
+        ArgumentOutOfRangeException.ThrowIfNotEqual(texture.Length, textureSize.X * textureSize.Y * textureSize.Z);
+
+        fixed (T* ptr = texture)
+            return TrilinearSample(coord, textureSize, ptr);
+    }
+
+    /// <summary>
+    /// Sample the eight points around <paramref name="coord"/> in <paramref name="texture"/> and returns the weighted average based on the proximity of <paramref name="coord"/> from those points
+    /// </summary>
+    /// <param name="coord">
+    /// A fractional coordinate in the texture, where 0 is the first pixel, 0.5 is halfway between the first and second, etc.
+    /// <br/>
+    /// This is distinct from common GPU texture sampling where 0.5 would be the first pixel,
+    /// while 0 would be halfway between the first and last pixel with wrap around sampling.
+    /// </param>
+    /// <param name="textureSize">The amount of pixels across each dimensions of the texture</param>
+    /// <param name="texture">Texture pixel data laid-out in row-major, then column</param>
+    /// <typeparam name="T">The data contained in a pixel</typeparam>
+    /// <returns>The weighted average value at this <paramref name="coord"/></returns>
+    public static unsafe T TrilinearSample<T>(Vector3 coord, Int3 textureSize, T* texture) where T : unmanaged, IMultiplyOperators<T, float, T>, IAdditionOperators<T, T, T>
+    {
+        var texSizeXY = textureSize.X * textureSize.Y;
+
+        // Note: .W is unused
+
+        var coordN = Vector.AsVector4(coord).AsVector128();
+        var min = Vector128.Round(coordN, MidpointRounding.ToNegativeInfinity);
+        var cellFrac = coordN - min;
+        var cellInvFrac = Vector128<float>.One - cellFrac;
+
+        int x0 = Mod((int)min.AsVector4().X, textureSize.X);
+        int y0 = Mod((int)min.AsVector4().Y, textureSize.Y) * textureSize.X;
+        int z0 = Mod((int)min.AsVector4().Z, textureSize.Z) * texSizeXY;
+
+        // Still a fair amount of perf left on the table
+        int x1 = x0 + 1 == textureSize.X ? 0 : x0 + 1;
+        int y1 = y0 + textureSize.X == texSizeXY ? 0 : y0 + textureSize.X;
+        int z1 = z0 + texSizeXY == texSizeXY * textureSize.Z ? 0 : z0 + texSizeXY;
+
+        var iFracXYFracXY = cellInvFrac.WithUpper(cellFrac.GetLower()).AsVector4();
+        var weightXY = System.Numerics.Vector4.Shuffle(iFracXYFracXY, 0, 0, 2, 2)
+                       * System.Numerics.Vector4.Shuffle(iFracXYFracXY, 1, 3, 1, 3);
+
+        var weight0 = weightXY * cellInvFrac.AsVector4().Z;
+        var weight1 = weightXY * cellFrac.AsVector4().Z;
+        
+        return 
+            texture[x0 + y0 + z0] * weight0.X
+            + texture[x0 + y1 + z0] * weight0.Y
+            + texture[x1 + y0 + z0] * weight0.Z
+            + texture[x1 + y1 + z0] * weight0.W
+            
+            + texture[x0 + y0 + z1] * weight1.X
+            + texture[x0 + y1 + z1] * weight1.Y
+            + texture[x1 + y0 + z1] * weight1.Z
+            + texture[x1 + y1 + z1] * weight1.W;
+    }
+
+    /// <summary>
+    /// Sample the eight points around <paramref name="coord"/> in <paramref name="texture"/> and returns the weighted average based on the proximity of <paramref name="coord"/> from those points
+    /// </summary>
+    /// <param name="coord">
+    /// A fractional coordinate in the texture, where 0 is the first pixel, 0.5 is halfway between the first and second, etc.
+    /// <br/>
+    /// This is distinct from common GPU texture sampling where 0.5 would be the first pixel,
+    /// while 0 would be halfway between the first and last pixel with wrap around sampling.
+    /// </param>
+    /// <param name="textureSize">The amount of pixels across each dimensions of the texture</param>
+    /// <param name="texture">Texture pixel data laid-out in row-major, then column</param>
+    /// <returns>The weighted average value at this <paramref name="coord"/></returns>
+    /// <exception cref="ArgumentOutOfRangeException">The amount of pixel data does not match the size specified</exception>
+    public static unsafe float TrilinearSample(Vector3 coord, Int3 textureSize, ReadOnlySpan<float> texture)
+    {
+        ArgumentOutOfRangeException.ThrowIfNotEqual(texture.Length, textureSize.X * textureSize.Y * textureSize.Z);
+
+        fixed (float* ptr = texture)
+            return TrilinearSample(coord, textureSize, ptr);
+    }
+
+    /// <summary>
+    /// Sample the eight points around <paramref name="coord"/> in <paramref name="texture"/> and returns the weighted average based on the proximity of <paramref name="coord"/> from those points
+    /// </summary>
+    /// <param name="coord">
+    /// A fractional coordinate in the texture, where 0 is the first pixel, 0.5 is halfway between the first and second, etc.
+    /// <br/>
+    /// This is distinct from common GPU texture sampling where 0.5 would be the first pixel,
+    /// while 0 would be halfway between the first and last pixel with wrap around sampling.
+    /// </param>
+    /// <param name="textureSize">The amount of pixels across each dimensions of the texture</param>
+    /// <param name="texture">Texture pixel data laid-out in row-major, then column</param>
+    /// <returns>The weighted average value at this <paramref name="coord"/></returns>
+    public static unsafe float TrilinearSample(Vector3 coord, Int3 textureSize, float* texture)
+    {
+        var texSizeXY = textureSize.X * textureSize.Y;
+
+        // Note: .W is unused
+
+        var coordN = Vector.AsVector4(coord).AsVector128();
+        var min = Vector128.Round(coordN, MidpointRounding.ToNegativeInfinity);
+        var cellFrac = coordN - min;
+        var cellInvFrac = Vector128<float>.One - cellFrac;
+
+        int x0 = Mod((int)min.AsVector4().X, textureSize.X);
+        int y0 = Mod((int)min.AsVector4().Y, textureSize.Y) * textureSize.X;
+        int z0 = Mod((int)min.AsVector4().Z, textureSize.Z) * texSizeXY;
+
+        // Still a fair amount of perf left on the table
+        int x1 = x0 + 1 == textureSize.X ? 0 : x0 + 1;
+        int y1 = y0 + textureSize.X == texSizeXY ? 0 : y0 + textureSize.X;
+        int z1 = z0 + texSizeXY == texSizeXY * textureSize.Z ? 0 : z0 + texSizeXY;
+
+        var iFracXYFracXY = cellInvFrac.WithUpper(cellFrac.GetLower()).AsVector4();
+        var weightXY = System.Numerics.Vector4.Shuffle(iFracXYFracXY, 0, 0, 2, 2)
+                       * System.Numerics.Vector4.Shuffle(iFracXYFracXY, 1, 3, 1, 3);
+
+        var sz0 = new System.Numerics.Vector4(texture[x0 + y0 + z0], texture[x0 + y1 + z0], texture[x1 + y0 + z0], texture[x1 + y1 + z0]);
+        var sz1 = new System.Numerics.Vector4(texture[x0 + y0 + z1], texture[x0 + y1 + z1], texture[x1 + y0 + z1], texture[x1 + y1 + z1]);
+        var weighted2D = (cellInvFrac.AsVector4().Z * sz0 + cellFrac.AsVector4().Z * sz1) * weightXY;
+        return System.Numerics.Vector4.Sum(weighted2D);
     }
 }
