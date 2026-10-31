@@ -28,6 +28,7 @@
 */
 
 using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -407,6 +408,33 @@ public struct Vector2 : IEquatable<Vector2>, ISpanFormattable
     public static Vector2 Negate(Vector2 value)
     {
         return new Vector2(-value.X, -value.Y);
+    }
+
+    /// <summary>
+    /// Rounds each component of this vector down to its previous whole value
+    /// </summary>
+    /// <example> <code>Floor({1.9, -1.60}) -> {1.0, -2.0}</code> </example>
+    public static Vector2 Floor(Vector2 value)
+    {
+        return new Vector2(MathF.Floor(value.X), MathF.Floor(value.Y));
+    }
+
+    /// <summary>
+    /// Rounds each component of this vector up to its next whole value
+    /// </summary>
+    /// <example> <code>Ceiling({1.9, -1.60}) -> {2.0, -1.0}</code> </example>
+    public static Vector2 Ceiling(Vector2 value)
+    {
+        return new Vector2(MathF.Ceiling(value.X), MathF.Ceiling(value.Y));
+    }
+
+    /// <summary>
+    /// Rounds each component of this vector to the nearest whole value
+    /// </summary>
+    /// <example> <code>Round({1.9, -1.60}) -> {2.0, -2.0}</code> </example>
+    public static Vector2 Round(Vector2 value)
+    {
+        return new Vector2(MathF.Round(value.X), MathF.Round(value.Y));
     }
 
     /// <summary>

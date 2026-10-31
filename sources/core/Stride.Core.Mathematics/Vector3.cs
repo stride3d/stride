@@ -28,8 +28,10 @@
 */
 
 using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.Intrinsics;
 
 namespace Stride.Core.Mathematics;
 
@@ -448,6 +450,33 @@ public struct Vector3 : IEquatable<Vector3>, ISpanFormattable
     public static Vector3 Negate(Vector3 value)
     {
         return new Vector3(-value.X, -value.Y, -value.Z);
+    }
+
+    /// <summary>
+    /// Rounds each component of this vector down to its preceding whole value
+    /// </summary>
+    /// <example> <code>Floor({1.9, -1.60, 0.0}) -> {1.0, -2.0, 0.0}</code> </example>
+    public static Vector3 Floor(Vector3 value)
+    {
+        return new Vector3(MathF.Floor(value.X), MathF.Floor(value.Y), MathF.Floor(value.Z));
+    }
+
+    /// <summary>
+    /// Rounds each component of this vector up to its following whole value
+    /// </summary>
+    /// <example> <code>Ceiling({1.9, -1.60, 0.0}) -> {2.0, -1.0, 0.0}</code> </example>
+    public static Vector3 Ceiling(Vector3 value)
+    {
+        return new Vector3(MathF.Ceiling(value.X), MathF.Ceiling(value.Y), MathF.Ceiling(value.Z));
+    }
+
+    /// <summary>
+    /// Rounds each component of this vector to its nearest whole value
+    /// </summary>
+    /// <example> <code>Round({1.9, -1.60, 0.0}) -> {2.0, -2.0, 0.0}</code> </example>
+    public static Vector3 Round(Vector3 value)
+    {
+        return new Vector3(MathF.Round(value.X), MathF.Round(value.Y), MathF.Round(value.Z));
     }
 
     /// <summary>
