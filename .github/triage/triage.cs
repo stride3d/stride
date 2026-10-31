@@ -147,16 +147,25 @@ sealed class Triage(GitHub github, Config config)
     {
         var prs = await github.OpenPullRequests();
         Run.Log($"{prs.Count} open PRs.");
-        foreach (var pr in prs)
+        for (var attempt = 1; ; attempt++)
         {
-            try
+            foreach (var pr in prs)
             {
-                await ApplyStatus(pr);
+                try
+                {
+                    await ApplyStatus(pr);
+                }
+                catch (Exception ex)
+                {
+                    Run.Error($"#{pr.Number}: status", ex);
+                }
             }
-            catch (Exception ex)
-            {
-                Run.Error($"#{pr.Number}: status", ex);
-            }
+            // After a push to master, GitHub computes the merge state again, starting when someone asks for it: look again soon
+            var unknown = prs.Where(x => x.Mergeable == "UNKNOWN").Select(x => x.Number).ToHashSet();
+            if (unknown.Count == 0 || attempt == 3)
+                break;
+            await Task.Delay(TimeSpan.FromSeconds(30));
+            prs = [.. (await github.OpenPullRequests()).Where(x => unknown.Contains(x.Number))];
         }
     }
 

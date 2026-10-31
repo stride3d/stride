@@ -12,7 +12,7 @@
 
 A PR that already has an area and a type label is left alone. A label a maintainer set or removed is never touched again.
 
-**Whose turn** on every ready PR (on PR events, comments, and every hour). Drafts get none of these:
+**Whose turn** on every ready PR (on PR events, comments, every push to master, and every 10 minutes). Drafts get none of these:
 
 | Label | When |
 |---|---|
