@@ -16,6 +16,10 @@ Pick the 1 to 3 areas the issue is about, most important first: `area-Graphics` 
 
 `platforms`: the platforms the reporter says it happens on, only when it is specific to them (`platform-Android`, `platform-iOS`, `platform-Linux`, `platform-macOS`). Empty when it happens everywhere, on Windows only, or when the issue does not say.
 
+## Regression
+
+`regression`: true only for a `bug` that the reporter says worked in an earlier Stride version (for example "it worked in 4.2", "since updating to 4.3", "broke after the last release"). False when the issue does not say, or when the earlier version is only a guess.
+
 ## Missing information
 
 Only for a `bug` that reports one concrete problem the reporter hit. Leave it empty for tracking issues, proposals, and reports that already analyze the cause in the code. List what is missing to look into it, from:

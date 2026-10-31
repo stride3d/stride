@@ -27,6 +27,7 @@ After a push that does not fix everything, the simplest is a one-line review (Re
 - An area label if there is none, and the type (`bug`, `enhancement`, `question`) when the reporter picked the wrong template.
 - For a bug from someone who is not a maintainer: a check for the version, platform, graphics API (rendering only), repro steps and a log (crashes only). When something is missing: one comment that asks for it, and `needs-info`. When the reporter edits the issue or replies, it checks again and removes `needs-info`. It never posts a second comment.
 - Up to 3 possible duplicates from a search of existing issues, in that same comment.
+- `regression` on a bug that the reporter says worked in an earlier Stride version: the first list to check before a patch release.
 
 **Every Monday** (off until turned on in `config.json`):
 
@@ -38,7 +39,7 @@ One nudge per quiet period: it waits for new activity before it can nudge again.
 
 Claude also adds `platform-Android`, `platform-iOS`, `platform-Linux` or `platform-macOS` to PRs and issues that are specific to a platform. It only adds them, never removes one.
 
-The labels this workflow uses but the repo does not have yet (the status labels, `needs-info`, `area-Animation`, the platform labels) are created the first time it needs them. `area-Navigation` is the renamed `area-AI`: rename it on GitHub when this workflow is merged (`gh label edit area-AI --name area-Navigation`), so the existing issues keep it.
+The labels this workflow uses but the repo does not have yet (the status labels, `needs-info`, `regression`, `area-Animation`, the platform labels) are created the first time it needs them. `area-Navigation` is the renamed `area-AI`: rename it on GitHub when this workflow is merged (`gh label edit area-AI --name area-Navigation`), so the existing issues keep it.
 
 ## Safety
 

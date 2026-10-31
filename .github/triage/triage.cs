@@ -412,13 +412,15 @@ sealed class Triage(GitHub github, Config config)
         var result = await ClassifyIssue(issue);
         if (result == null)
             return;
-        var (type, areas, platforms, missing, duplicates, _) = result.Value;
+        var (type, areas, platforms, regression, missing, duplicates, _) = result.Value;
 
         var add = new List<string>();
         var remove = new List<string>();
         if (!issue.Labels.Any(x => x.StartsWith("area-", StringComparison.Ordinal)))
             add.AddRange(areas);
         add.AddRange(platforms.Where(x => !issue.Labels.Contains(x)));
+        if (regression && !issue.Labels.Contains("regression"))
+            add.Add("regression");
         // The template sets the type: replace it when the reporter picked the wrong template
         if (type != null && !issue.Labels.Contains(type))
         {
@@ -468,7 +470,7 @@ sealed class Triage(GitHub github, Config config)
             Run.Log($"issue #{number}: still missing {string.Join(", ", result.Value.Missing)}, no new comment.");
     }
 
-    async Task<(string? Type, List<string> Areas, List<string> Platforms, List<string> Missing, List<int> Duplicates, string Reason)?> ClassifyIssue(IssueInfo issue, bool searchDuplicates = true)
+    async Task<(string? Type, List<string> Areas, List<string> Platforms, bool Regression, List<string> Missing, List<int> Duplicates, string Reason)?> ClassifyIssue(IssueInfo issue, bool searchDuplicates = true)
     {
         if (Run.NoAi || !Ai.Available)
         {
@@ -495,6 +497,7 @@ sealed class Triage(GitHub github, Config config)
             ["type"] = new JsonObject { ["type"] = "string", ["enum"] = new JsonArray([.. config.IssueTypes.Select(x => JsonValue.Create(x))]) },
             ["areas"] = EnumArray(config.AreaLabels),
             ["platforms"] = EnumArray(config.Platforms),
+            ["regression"] = new JsonObject { ["type"] = "boolean" },
             ["missing"] = EnumArray(MissingText.Keys),
             ["duplicates"] = new JsonObject { ["type"] = "array", ["items"] = new JsonObject { ["type"] = "integer" } },
             ["reason"] = new JsonObject { ["type"] = "string" },
@@ -504,10 +507,11 @@ sealed class Triage(GitHub github, Config config)
         var type = (string?)result["type"] is { } t && config.IssueTypes.Contains(t) ? t : null;
         var areas = Strings(result["areas"]).Where(config.AreaLabels.Contains).Distinct().Take(3).ToList();
         var platforms = Strings(result["platforms"]).Where(config.Platforms.Contains).Distinct().ToList();
+        var regression = type == "bug" && result["regression"]?.GetValue<bool>() == true;
         var missing = type == "bug" ? Strings(result["missing"]).Where(MissingText.ContainsKey).Distinct().ToList() : [];
         var known = candidates.Select(x => x.Number).ToHashSet();
         var duplicates = (result["duplicates"]?.AsArray() ?? []).Select(x => x?.GetValue<int>() ?? 0).Where(known.Contains).Distinct().Take(3).ToList();
-        return (type, areas, platforms, missing, duplicates, (string?)result["reason"] ?? "");
+        return (type, areas, platforms, regression, missing, duplicates, (string?)result["reason"] ?? "");
     }
 
     // Backfill: labels for the open PRs and issues that have none yet, as a plan to check first and apply later
