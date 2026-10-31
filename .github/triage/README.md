@@ -1,5 +1,8 @@
 # Triage
 
+Test of the stride-review bot (this PR is closed without merging).
+A second line, for a comment on several lines.
+
 `triage.cs` labels PRs and issues for `.github/workflows/triage.yml`. It is a .NET file-based app: `dotnet run .github/triage/triage.cs -- <command>`.
 
 ## What it does
