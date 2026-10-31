@@ -22,6 +22,7 @@ using Anthropic.Models.Beta.Messages;
 var positional = new List<string>();
 string? repoArg = null, actor = null;
 var parallel = 2;
+DateTimeOffset? since = null;
 for (var i = 0; i < args.Length; i++)
 {
     switch (args[i])
@@ -32,6 +33,7 @@ for (var i = 0; i < args.Length; i++)
         case "--repo": repoArg = args[++i]; break;
         case "--actor": actor = args[++i]; break;
         case "--parallel": parallel = int.Parse(args[++i]); break;
+        case "--since": since = DateTimeOffset.Parse(args[++i]); break;
         default: positional.Add(args[i]); break;
     }
 }
@@ -52,6 +54,7 @@ try
         case "issue-update" when positional.Count == 2: await triage.IssueUpdate(int.Parse(positional[1]), actor); break;
         case "weekly" when positional.Count == 1: await triage.Weekly(); break;
         case "backfill" when positional.Count == 2: await triage.Backfill(positional[1], parallel); break;
+        case "regressions" when positional.Count == 2: await triage.Regressions(positional[1], since, parallel); break;
         case "report" when positional.Count == 2: triage.Report(positional[1]); break;
         case "apply" when positional.Count == 2: await triage.Apply(positional[1]); break;
         default:
@@ -64,6 +67,7 @@ try
                   weekly             nudges and the digest issue
                   backfill <plan>    classifies the open PRs and issues with no area or type label, changes nothing:
                                      writes <plan> (a JSON line per item, a rerun skips what is in it) and <plan>.md
+                  regressions <plan> like backfill, for the regression label only: open bugs without it (--since a date)
                   report <plan>      writes <plan>.md again (split in several files when too long for a comment)
                   apply <plan>       adds the plan's labels, except where someone set an area or type since
                 --parallel <N> runs backfill on N items at a time (default 2).
@@ -519,7 +523,6 @@ sealed class Triage(GitHub github, Config config)
     // One JSON line per item, written as soon as it is classified: a rerun skips what is in the plan already
     public async Task Backfill(string planPath, int parallel)
     {
-        var done = ReadPlan(planPath).Select(x => $"{x["kind"]}#{x["number"]}").ToHashSet();
         var work = new List<(string Kind, int Number, Func<Task<JsonObject>> Plan)>();
 
         foreach (var pr in (await github.OpenPullRequests()).Where(x => !x.IsDraft && !(HasArea(x.Labels) && HasPrType(x.Labels))))
@@ -543,6 +546,25 @@ sealed class Triage(GitHub github, Config config)
                 return Planned("issue", issue.Number, issue.Title, add, result?.Reason ?? "");
             }));
 
+        await RunPlan(planPath, work, parallel);
+    }
+
+    // The regression label came after the backfill: the open bugs that do not have it, with only that label in the plan
+    public async Task Regressions(string planPath, DateTimeOffset? since, int parallel)
+    {
+        var work = new List<(string Kind, int Number, Func<Task<JsonObject>> Plan)>();
+        foreach (var issue in (await github.OpenIssues()).Where(x => x.Labels.Contains("bug") && !x.Labels.Contains("regression") && x.CreatedAt >= (since ?? DateTimeOffset.MinValue)))
+            work.Add(("issue", issue.Number, async () =>
+            {
+                var result = await ClassifyIssue(issue, searchDuplicates: false);
+                return Planned("issue", issue.Number, issue.Title, result is { Regression: true } ? ["regression"] : [], result?.Reason ?? "");
+            }));
+        await RunPlan(planPath, work, parallel);
+    }
+
+    async Task RunPlan(string planPath, List<(string Kind, int Number, Func<Task<JsonObject>> Plan)> work, int parallel)
+    {
+        var done = ReadPlan(planPath).Select(x => $"{x["kind"]}#{x["number"]}").ToHashSet();
         work.RemoveAll(x => done.Contains($"{x.Kind}#{x.Number}"));
         Run.Log($"Backfill: {work.Count} items to classify ({done.Count} already in {planPath}).");
         var gate = new object();
@@ -821,7 +843,7 @@ record Review(string Author, string Association, string State, DateTimeOffset At
 record LabelEvent(string Label, string By, DateTimeOffset At);
 record Comment(string Author, DateTimeOffset At, string Body);
 record PrFile(string Path, string? PreviousPath, string Status, int Additions, int Deletions, string? Patch);
-record IssueInfo(int Number, string Title, string Body, string Author, bool AuthorIsBot, string Association, List<string> Labels, List<Comment> Comments);
+record IssueInfo(int Number, string Title, string Body, string Author, bool AuthorIsBot, string Association, List<string> Labels, List<Comment> Comments, DateTimeOffset CreatedAt);
 record SearchResult(int Number, string State, string Title, string Body);
 
 sealed record Pr(
@@ -998,7 +1020,7 @@ sealed class GitHub
             query($owner: String!, $name: String!, $number: Int!) {
               repository(owner: $owner, name: $name) {
                 issue(number: $number) {
-                  number title body authorAssociation
+                  number title body createdAt authorAssociation
                   author { login __typename }
                   labels(first: 50) { nodes { name } }
                   comments(last: 50) { nodes { createdAt body author { login __typename } } }
@@ -1021,7 +1043,7 @@ sealed class GitHub
                   repository(owner: $owner, name: $name) {
                     issues(states: OPEN, first: 50, after: $after) {
                       pageInfo { hasNextPage endCursor }
-                      nodes { number title body authorAssociation author { login __typename } labels(first: 50) { nodes { name } } }
+                      nodes { number title body createdAt authorAssociation author { login __typename } labels(first: 50) { nodes { name } } }
                     }
                   }
                 }
@@ -1038,7 +1060,8 @@ sealed class GitHub
         (int)node["number"]!, (string)node["title"]!, (string?)node["body"] ?? "",
         (string?)node["author"]?["login"] ?? "ghost", IsBot(node["author"]), (string?)node["authorAssociation"] ?? "NONE",
         [.. node["labels"]!["nodes"]!.AsArray().Select(x => (string)x!["name"]!)],
-        [.. (node["comments"]?["nodes"]?.AsArray() ?? []).Select(x => new Comment((string?)x!["author"]?["login"] ?? "ghost", Date(x["createdAt"]), (string?)x["body"] ?? ""))]);
+        [.. (node["comments"]?["nodes"]?.AsArray() ?? []).Select(x => new Comment((string?)x!["author"]?["login"] ?? "ghost", Date(x["createdAt"]), (string?)x["body"] ?? ""))],
+        Date(node["createdAt"]));
 
     // Works for PRs too: on GitHub's REST API a PR is an issue
     public async Task<(bool Open, List<string> Labels)> IssueLabels(int number)

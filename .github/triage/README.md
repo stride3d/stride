@@ -39,7 +39,7 @@ One nudge per quiet period: it waits for new activity before it can nudge again.
 
 Claude also adds `platform-Android`, `platform-iOS`, `platform-Linux` or `platform-macOS` to PRs and issues that are specific to a platform. It only adds them, never removes one.
 
-The labels this workflow uses but the repo does not have yet (the status labels, `needs-info`, `regression`, `area-Animation`, the platform labels) are created the first time it needs them. `area-Navigation` is the renamed `area-AI`: rename it on GitHub when this workflow is merged (`gh label edit area-AI --name area-Navigation`), so the existing issues keep it.
+The labels this workflow uses but the repo does not have yet (the status labels, `needs-info`, `regression`, `area-Animation`, the platform labels) are created the first time it needs them. `area-Navigation` is the renamed `area-AI`.
 
 ## Safety
 
@@ -65,6 +65,12 @@ The open PRs and issues from before the workflow have no labels yet. `backfill` 
 dotnet run .github/triage/triage.cs -- backfill plan.jsonl --claude-cli --parallel 3
 dotnet run .github/triage/triage.cs -- apply plan.jsonl --dry-run
 dotnet run .github/triage/triage.cs -- apply plan.jsonl
+```
+
+`regressions` does the same for the `regression` label alone, which came after the first backfill: it checks the open `bug` issues that do not have it, created since `--since` (for example the last minor release).
+
+```
+dotnet run .github/triage/triage.cs -- regressions regressions.jsonl --since 2025-11-14 --claude-cli --parallel 3
 ```
 
 On GitHub, the repo variable `TRIAGE_DRY_RUN=true` makes every run report in its job summary instead of changing anything, and "Run workflow" runs any command (dry run by default).
