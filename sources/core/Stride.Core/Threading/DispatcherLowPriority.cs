@@ -76,7 +76,7 @@ public static class DispatcherLowPriority
             itemsPerBatch /= 4;
         }
 
-        var batch = new BatchState(itemsPerBatch: itemsPerBatch, endExclusive: (uint)items, references: batchCount, processItemsRange);
+        var batch = new BatchState(itemsPerBatch: itemsPerBatch, endExclusive: (uint)items, processItemsRange);
         for (int i = 0; i < batchCount; i++)
             tasks.Add(batch);
 
@@ -122,10 +122,9 @@ public static class DispatcherLowPriority
         }
     }
 
-    private sealed class BatchState(uint itemsPerBatch, uint endExclusive, int references, ProcessItemRange job)
+    private sealed class BatchState(uint itemsPerBatch, uint endExclusive, ProcessItemRange job)
     {
         private bool interrupted;
-        private int referenceCount = references;
 
         private uint index, itemsDone;
 
@@ -163,11 +162,6 @@ public static class DispatcherLowPriority
             {
                 TaskCompletionSource.TrySetException(e);
                 Volatile.Write(ref interrupted, true);
-            }
-            finally
-            {
-                var refCount = Interlocked.Decrement(ref referenceCount);
-                Debug.Assert(refCount >= 0);
             }
         }
     }
