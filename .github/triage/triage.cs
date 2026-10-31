@@ -22,6 +22,7 @@ using Anthropic.Models.Beta.Messages;
 var positional = new List<string>();
 string? repoArg = null, actor = null;
 var parallel = 2;
+DateTimeOffset? since = null;
 for (var i = 0; i < args.Length; i++)
 {
     switch (args[i])
@@ -32,6 +33,7 @@ for (var i = 0; i < args.Length; i++)
         case "--repo": repoArg = args[++i]; break;
         case "--actor": actor = args[++i]; break;
         case "--parallel": parallel = int.Parse(args[++i]); break;
+        case "--since": since = DateTimeOffset.Parse(args[++i]); break;
         default: positional.Add(args[i]); break;
     }
 }
@@ -52,6 +54,7 @@ try
         case "issue-update" when positional.Count == 2: await triage.IssueUpdate(int.Parse(positional[1]), actor); break;
         case "weekly" when positional.Count == 1: await triage.Weekly(); break;
         case "backfill" when positional.Count == 2: await triage.Backfill(positional[1], parallel); break;
+        case "regressions" when positional.Count == 2: await triage.Regressions(positional[1], since, parallel); break;
         case "report" when positional.Count == 2: triage.Report(positional[1]); break;
         case "apply" when positional.Count == 2: await triage.Apply(positional[1]); break;
         default:
@@ -64,6 +67,7 @@ try
                   weekly             nudges and the digest issue
                   backfill <plan>    classifies the open PRs and issues with no area or type label, changes nothing:
                                      writes <plan> (a JSON line per item, a rerun skips what is in it) and <plan>.md
+                  regressions <plan> like backfill, for the regression label only: open bugs without it (--since a date)
                   report <plan>      writes <plan>.md again (split in several files when too long for a comment)
                   apply <plan>       adds the plan's labels, except where someone set an area or type since
                 --parallel <N> runs backfill on N items at a time (default 2).
@@ -143,16 +147,25 @@ sealed class Triage(GitHub github, Config config)
     {
         var prs = await github.OpenPullRequests();
         Run.Log($"{prs.Count} open PRs.");
-        foreach (var pr in prs)
+        for (var attempt = 1; ; attempt++)
         {
-            try
+            foreach (var pr in prs)
             {
-                await ApplyStatus(pr);
+                try
+                {
+                    await ApplyStatus(pr);
+                }
+                catch (Exception ex)
+                {
+                    Run.Error($"#{pr.Number}: status", ex);
+                }
             }
-            catch (Exception ex)
-            {
-                Run.Error($"#{pr.Number}: status", ex);
-            }
+            // After a push to master, GitHub computes the merge state again, starting when someone asks for it: look again soon
+            var unknown = prs.Where(x => x.Mergeable == "UNKNOWN").Select(x => x.Number).ToHashSet();
+            if (unknown.Count == 0 || attempt == 3)
+                break;
+            await Task.Delay(TimeSpan.FromSeconds(30));
+            prs = [.. (await github.OpenPullRequests()).Where(x => unknown.Contains(x.Number))];
         }
     }
 
@@ -300,7 +313,9 @@ sealed class Triage(GitHub github, Config config)
         return ("waiting-on-review", lastReview == null ? "no review yet" : "the author pushed or replied after the last review");
     }
 
-    IEnumerable<Review> MaintainerReviews(Pr pr) => pr.Reviews.Where(x => x.Author != pr.Author && config.ReviewerAssociations.Contains(x.Association));
+    // A bot's review counts only for the bots maintainers review through (an App that posts what a maintainer checked)
+    IEnumerable<Review> MaintainerReviews(Pr pr) => pr.Reviews.Where(x => x.Author != pr.Author
+        && (x.Bot ? config.ReviewerBots.Contains(x.Author.Replace("[bot]", "")) : config.ReviewerAssociations.Contains(x.Association)));
 
     // Weekly: nudges and the digest
 
@@ -412,13 +427,15 @@ sealed class Triage(GitHub github, Config config)
         var result = await ClassifyIssue(issue);
         if (result == null)
             return;
-        var (type, areas, platforms, missing, duplicates, _) = result.Value;
+        var (type, areas, platforms, regression, missing, duplicates, _) = result.Value;
 
         var add = new List<string>();
         var remove = new List<string>();
         if (!issue.Labels.Any(x => x.StartsWith("area-", StringComparison.Ordinal)))
             add.AddRange(areas);
         add.AddRange(platforms.Where(x => !issue.Labels.Contains(x)));
+        if (regression && !issue.Labels.Contains("regression"))
+            add.Add("regression");
         // The template sets the type: replace it when the reporter picked the wrong template
         if (type != null && !issue.Labels.Contains(type))
         {
@@ -468,7 +485,7 @@ sealed class Triage(GitHub github, Config config)
             Run.Log($"issue #{number}: still missing {string.Join(", ", result.Value.Missing)}, no new comment.");
     }
 
-    async Task<(string? Type, List<string> Areas, List<string> Platforms, List<string> Missing, List<int> Duplicates, string Reason)?> ClassifyIssue(IssueInfo issue, bool searchDuplicates = true)
+    async Task<(string? Type, List<string> Areas, List<string> Platforms, bool Regression, List<string> Missing, List<int> Duplicates, string Reason)?> ClassifyIssue(IssueInfo issue, bool searchDuplicates = true)
     {
         if (Run.NoAi || !Ai.Available)
         {
@@ -495,6 +512,7 @@ sealed class Triage(GitHub github, Config config)
             ["type"] = new JsonObject { ["type"] = "string", ["enum"] = new JsonArray([.. config.IssueTypes.Select(x => JsonValue.Create(x))]) },
             ["areas"] = EnumArray(config.AreaLabels),
             ["platforms"] = EnumArray(config.Platforms),
+            ["regression"] = new JsonObject { ["type"] = "boolean" },
             ["missing"] = EnumArray(MissingText.Keys),
             ["duplicates"] = new JsonObject { ["type"] = "array", ["items"] = new JsonObject { ["type"] = "integer" } },
             ["reason"] = new JsonObject { ["type"] = "string" },
@@ -504,10 +522,11 @@ sealed class Triage(GitHub github, Config config)
         var type = (string?)result["type"] is { } t && config.IssueTypes.Contains(t) ? t : null;
         var areas = Strings(result["areas"]).Where(config.AreaLabels.Contains).Distinct().Take(3).ToList();
         var platforms = Strings(result["platforms"]).Where(config.Platforms.Contains).Distinct().ToList();
+        var regression = type == "bug" && result["regression"]?.GetValue<bool>() == true;
         var missing = type == "bug" ? Strings(result["missing"]).Where(MissingText.ContainsKey).Distinct().ToList() : [];
         var known = candidates.Select(x => x.Number).ToHashSet();
         var duplicates = (result["duplicates"]?.AsArray() ?? []).Select(x => x?.GetValue<int>() ?? 0).Where(known.Contains).Distinct().Take(3).ToList();
-        return (type, areas, platforms, missing, duplicates, (string?)result["reason"] ?? "");
+        return (type, areas, platforms, regression, missing, duplicates, (string?)result["reason"] ?? "");
     }
 
     // Backfill: labels for the open PRs and issues that have none yet, as a plan to check first and apply later
@@ -515,7 +534,6 @@ sealed class Triage(GitHub github, Config config)
     // One JSON line per item, written as soon as it is classified: a rerun skips what is in the plan already
     public async Task Backfill(string planPath, int parallel)
     {
-        var done = ReadPlan(planPath).Select(x => $"{x["kind"]}#{x["number"]}").ToHashSet();
         var work = new List<(string Kind, int Number, Func<Task<JsonObject>> Plan)>();
 
         foreach (var pr in (await github.OpenPullRequests()).Where(x => !x.IsDraft && !(HasArea(x.Labels) && HasPrType(x.Labels))))
@@ -539,6 +557,25 @@ sealed class Triage(GitHub github, Config config)
                 return Planned("issue", issue.Number, issue.Title, add, result?.Reason ?? "");
             }));
 
+        await RunPlan(planPath, work, parallel);
+    }
+
+    // The regression label came after the backfill: the open bugs that do not have it, with only that label in the plan
+    public async Task Regressions(string planPath, DateTimeOffset? since, int parallel)
+    {
+        var work = new List<(string Kind, int Number, Func<Task<JsonObject>> Plan)>();
+        foreach (var issue in (await github.OpenIssues()).Where(x => x.Labels.Contains("bug") && !x.Labels.Contains("regression") && x.CreatedAt >= (since ?? DateTimeOffset.MinValue)))
+            work.Add(("issue", issue.Number, async () =>
+            {
+                var result = await ClassifyIssue(issue, searchDuplicates: false);
+                return Planned("issue", issue.Number, issue.Title, result is { Regression: true } ? ["regression"] : [], result?.Reason ?? "");
+            }));
+        await RunPlan(planPath, work, parallel);
+    }
+
+    async Task RunPlan(string planPath, List<(string Kind, int Number, Func<Task<JsonObject>> Plan)> work, int parallel)
+    {
+        var done = ReadPlan(planPath).Select(x => $"{x["kind"]}#{x["number"]}").ToHashSet();
         work.RemoveAll(x => done.Contains($"{x.Kind}#{x.Number}"));
         Run.Log($"Backfill: {work.Count} items to classify ({done.Count} already in {planPath}).");
         var gate = new object();
@@ -776,7 +813,7 @@ sealed class Config
     public required double AreaShare;
     public required bool NudgeReviewers, NudgeAuthors, Digest;
     public required string DigestMentionTeam;
-    public required HashSet<string> ReviewerAssociations, PrTypes, IssueTypes, Platforms, CompanionAreas, ClaudeOnlyAreas;
+    public required HashSet<string> ReviewerAssociations, ReviewerBots, PrTypes, IssueTypes, Platforms, CompanionAreas, ClaudeOnlyAreas;
     public required Dictionary<string, LabelSpec> StatusLabels, OtherLabels;
     public required List<(Regex Pattern, string? Area)> Areas;
     // Areas no path shows (the plugin system is spread over several folders) are Claude's choice only
@@ -800,6 +837,7 @@ sealed class Config
             Digest = (bool)json["digest"]!,
             DigestMentionTeam = (string)json["digestMentionTeam"]!,
             ReviewerAssociations = Set(json["reviewerAssociations"]),
+            ReviewerBots = Set(json["reviewerBots"]),
             PrTypes = Set(json["prTypes"]),
             IssueTypes = Set(json["issueTypes"]),
             Platforms = Set(json["platforms"]),
@@ -813,11 +851,11 @@ sealed class Config
 }
 
 record LabelSpec(string Color, string Description);
-record Review(string Author, string Association, string State, DateTimeOffset At);
+record Review(string Author, string Association, string State, DateTimeOffset At, bool Bot);
 record LabelEvent(string Label, string By, DateTimeOffset At);
 record Comment(string Author, DateTimeOffset At, string Body);
 record PrFile(string Path, string? PreviousPath, string Status, int Additions, int Deletions, string? Patch);
-record IssueInfo(int Number, string Title, string Body, string Author, bool AuthorIsBot, string Association, List<string> Labels, List<Comment> Comments);
+record IssueInfo(int Number, string Title, string Body, string Author, bool AuthorIsBot, string Association, List<string> Labels, List<Comment> Comments, DateTimeOffset CreatedAt);
 record SearchResult(int Number, string State, string Title, string Body);
 
 sealed record Pr(
@@ -925,8 +963,8 @@ sealed class GitHub
                     var comment = new Comment((string?)item["author"]?["login"] ?? "ghost", Date(item["createdAt"]), (string?)item["body"] ?? "");
                     (IsBot(item["author"]) ? botComments : comments).Add(comment);
                     break;
-                case "PullRequestReview" when item["submittedAt"] is { } submitted && !IsBot(item["author"]):
-                    reviews.Add(new Review((string?)item["author"]?["login"] ?? "ghost", (string?)item["authorAssociation"] ?? "NONE", (string)item["state"]!, Date(submitted)));
+                case "PullRequestReview" when item["submittedAt"] is { } submitted:
+                    reviews.Add(new Review((string?)item["author"]?["login"] ?? "ghost", (string?)item["authorAssociation"] ?? "NONE", (string)item["state"]!, Date(submitted), IsBot(item["author"])));
                     break;
                 case "HeadRefForcePushedEvent":
                     lastPush = Max(lastPush, Date(item["createdAt"]));
@@ -994,7 +1032,7 @@ sealed class GitHub
             query($owner: String!, $name: String!, $number: Int!) {
               repository(owner: $owner, name: $name) {
                 issue(number: $number) {
-                  number title body authorAssociation
+                  number title body createdAt authorAssociation
                   author { login __typename }
                   labels(first: 50) { nodes { name } }
                   comments(last: 50) { nodes { createdAt body author { login __typename } } }
@@ -1017,7 +1055,7 @@ sealed class GitHub
                   repository(owner: $owner, name: $name) {
                     issues(states: OPEN, first: 50, after: $after) {
                       pageInfo { hasNextPage endCursor }
-                      nodes { number title body authorAssociation author { login __typename } labels(first: 50) { nodes { name } } }
+                      nodes { number title body createdAt authorAssociation author { login __typename } labels(first: 50) { nodes { name } } }
                     }
                   }
                 }
@@ -1034,7 +1072,8 @@ sealed class GitHub
         (int)node["number"]!, (string)node["title"]!, (string?)node["body"] ?? "",
         (string?)node["author"]?["login"] ?? "ghost", IsBot(node["author"]), (string?)node["authorAssociation"] ?? "NONE",
         [.. node["labels"]!["nodes"]!.AsArray().Select(x => (string)x!["name"]!)],
-        [.. (node["comments"]?["nodes"]?.AsArray() ?? []).Select(x => new Comment((string?)x!["author"]?["login"] ?? "ghost", Date(x["createdAt"]), (string?)x["body"] ?? ""))]);
+        [.. (node["comments"]?["nodes"]?.AsArray() ?? []).Select(x => new Comment((string?)x!["author"]?["login"] ?? "ghost", Date(x["createdAt"]), (string?)x["body"] ?? ""))],
+        Date(node["createdAt"]));
 
     // Works for PRs too: on GitHub's REST API a PR is an issue
     public async Task<(bool Open, List<string> Labels)> IssueLabels(int number)

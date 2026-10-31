@@ -12,7 +12,7 @@
 
 A PR that already has an area and a type label is left alone. A label a maintainer set or removed is never touched again.
 
-**Whose turn** on every ready PR (on PR events, comments, and every hour). Drafts get none of these:
+**Whose turn** on every ready PR (on PR events, comments, every push to master, and every 10 minutes). Drafts get none of these:
 
 | Label | When |
 |---|---|
@@ -20,13 +20,14 @@ A PR that already has an area and a type label is left alone. A label a maintain
 | `waiting-on-review` | No review yet, or the author pushed or replied after the last review. |
 | `ready-to-merge` | The last review is an approval, CI is green, no conflicts. |
 
-After a push that does not fix everything, the simplest is a one-line review (Review changes, Comment, "still missing X"): it notifies the author, and the PR goes to `waiting-on-author` by itself. A plain PR comment does not change the label. A status label a maintainer sets by hand also counts like a review, for when there is nothing to say (the author already said more commits are coming): it stays until the author's next push or reply, or the next review. Label changes notify nobody. A reply in a review thread counts as a reply. Maintainers are the `reviewerAssociations` in `config.json` (owners, members, collaborators).
+After a push that does not fix everything, the simplest is a one-line review (Review changes, Comment, "still missing X"): it notifies the author, and the PR goes to `waiting-on-author` by itself. A plain PR comment does not change the label. A status label a maintainer sets by hand also counts like a review, for when there is nothing to say (the author already said more commits are coming): it stays until the author's next push or reply, or the next review. Label changes notify nobody. A reply in a review thread counts as a reply. Maintainers are the `reviewerAssociations` in `config.json` (owners, members, collaborators). A review by a bot counts only for the `reviewerBots` (`stride-review`, which posts reviews a maintainer checked).
 
 **New issues**:
 
 - An area label if there is none, and the type (`bug`, `enhancement`, `question`) when the reporter picked the wrong template.
 - For a bug from someone who is not a maintainer: a check for the version, platform, graphics API (rendering only), repro steps and a log (crashes only). When something is missing: one comment that asks for it, and `needs-info`. When the reporter edits the issue or replies, it checks again and removes `needs-info`. It never posts a second comment.
 - Up to 3 possible duplicates from a search of existing issues, in that same comment.
+- `regression` on a bug that the reporter says worked in an earlier Stride version: the first list to check before a patch release.
 
 **Every Monday** (off until turned on in `config.json`):
 
@@ -38,7 +39,7 @@ One nudge per quiet period: it waits for new activity before it can nudge again.
 
 Claude also adds `platform-Android`, `platform-iOS`, `platform-Linux` or `platform-macOS` to PRs and issues that are specific to a platform. It only adds them, never removes one.
 
-The labels this workflow uses but the repo does not have yet (the status labels, `needs-info`, `area-Animation`, the platform labels) are created the first time it needs them. `area-Navigation` is the renamed `area-AI`: rename it on GitHub when this workflow is merged (`gh label edit area-AI --name area-Navigation`), so the existing issues keep it.
+The labels this workflow uses but the repo does not have yet (the status labels, `needs-info`, `regression`, `area-Animation`, the platform labels) are created the first time it needs them. `area-Navigation` is the renamed `area-AI`.
 
 ## Safety
 
@@ -64,6 +65,12 @@ The open PRs and issues from before the workflow have no labels yet. `backfill` 
 dotnet run .github/triage/triage.cs -- backfill plan.jsonl --claude-cli --parallel 3
 dotnet run .github/triage/triage.cs -- apply plan.jsonl --dry-run
 dotnet run .github/triage/triage.cs -- apply plan.jsonl
+```
+
+`regressions` does the same for the `regression` label alone, which came after the first backfill: it checks the open `bug` issues that do not have it, created since `--since` (for example the last minor release).
+
+```
+dotnet run .github/triage/triage.cs -- regressions regressions.jsonl --since 2025-11-14 --claude-cli --parallel 3
 ```
 
 On GitHub, the repo variable `TRIAGE_DRY_RUN=true` makes every run report in its job summary instead of changing anything, and "Run workflow" runs any command (dry run by default).

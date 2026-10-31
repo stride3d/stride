@@ -4,6 +4,7 @@
   "maxDiffChars": 150000,
 
   "reviewerAssociations": [ "OWNER", "MEMBER", "COLLABORATOR" ],
+  "reviewerBots": [ "stride-review" ],
   "staleDays": 30,
   "noReviewerDays": 7,
 
@@ -19,6 +20,7 @@
   },
   "otherLabels": {
     "needs-info": { "color": "D93F0B", "description": "The issue misses information needed to look into it" },
+    "regression": { "color": "B60205", "description": "Worked in an earlier Stride version" },
     "no-nudge": { "color": "EEEEEE", "description": "The triage workflow does not nudge on this PR" },
     "triage-digest": { "color": "EEEEEE", "description": "The weekly PR triage digest" },
     "area-Animation": { "color": "C2E0C6", "description": "Animations, skeletons and morph targets" },

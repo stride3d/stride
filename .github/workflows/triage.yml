@@ -17,9 +17,12 @@ on:
     types: [opened, edited]
   issue_comment:
     types: [created]
+  # A merge can give other PRs conflicts: whose-turn labels of all open PRs
+  push:
+    branches: [master]
   schedule:
-    # Hourly: whose-turn labels. Reviews on fork PRs and new merge conflicts have no event with a write token.
-    - cron: '23 * * * *'
+    # Every 10 minutes: whose-turn labels. Reviews on fork PRs have no event with a write token.
+    - cron: '3-59/10 * * * *'
     # Monday morning: nudges and the digest.
     - cron: '41 7 * * 1'
   workflow_dispatch:
@@ -37,9 +40,9 @@ permissions:
   issues: write
   pull-requests: write
 
-# One run at a time per PR or issue; scheduled runs share one group per schedule.
+# One run at a time per PR or issue, and one for all open PRs (scheduled or after a push) or the weekly run.
 concurrency:
-  group: triage-${{ github.event.pull_request.number || github.event.issue.number || github.event.schedule || github.run_id }}
+  group: triage-${{ github.event.pull_request.number || github.event.issue.number || (github.event_name == 'push' && '3-59/10 * * * *') || github.event.schedule || github.run_id }}
   cancel-in-progress: false
 
 jobs:
@@ -87,6 +90,8 @@ jobs:
               [ "$IS_PR_COMMENT" = true ] && command="status $ISSUE_NUMBER" || command="issue-update $ISSUE_NUMBER" ;;
             schedule)
               [ "$SCHEDULE" = '41 7 * * 1' ] && command="weekly" || command="status" ;;
+            push)
+              command="status" ;;
             workflow_dispatch)
               command="$INPUT_COMMAND"
               [ "$INPUT_DRY_RUN" = true ] && command="$command --dry-run" ;;
