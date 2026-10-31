@@ -435,21 +435,19 @@ public struct PropertyContainer : IDictionary<PropertyKey, object>, IReadOnlyDic
             properties ??= [];
 
             // The value holder may already exist and be mutated in place, so the previous value must be
-            // captured before the mutation. Otherwise the comparison below would always see the new value
-            // and the PropertyUpdated event would never be raised for an already-existing key of a value type.
-            object? previousValue;
+            // captured before the mutation (only when someone listens, to avoid boxing on every Set).
+            var hasListeners = PropertyUpdated != null || propertyKey.PropertyUpdateCallback != null;
+            var previousValue = hasListeners ? GetNonRecursive(propertyKey) : null;
             if (valueHolder != null)
             {
-                previousValue = oldValue;
                 valueHolder.Value = tagValue;
             }
             else
             {
-                previousValue = propertyKey.DefaultValueMetadata?.GetDefaultValue(ref this);
                 valueHolder = new ValueHolder<T>(tagValue);
             }
 
-            if (PropertyUpdated != null || propertyKey.PropertyUpdateCallback != null)
+            if (hasListeners)
             {
                 properties[propertyKey] = valueHolder;
 
