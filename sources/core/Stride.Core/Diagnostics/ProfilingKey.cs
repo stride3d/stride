@@ -38,9 +38,9 @@ public class ProfilingKey
     /// <summary>
     /// Initializes a new instance of the <see cref="ProfilingKey" /> class.
     /// </summary>
-    /// <param name="parent">The parent.</param>
-    /// <param name="name">The name.</param>
-    /// <exception cref="System.ArgumentNullException">parent</exception>
+    /// <param name="parent">The parent profile key.</param>
+    /// <param name="name">Name of the profile.</param>
+    /// <exception cref="System.ArgumentNullException">Throw when <paramref name="parent"/> is set to null.</exception>
     public ProfilingKey(ProfilingKey parent, string name, ProfilingKeyFlags flags = ProfilingKeyFlags.None)
         : this($"{parent}.{name}", flags)
     {
@@ -56,21 +56,16 @@ public class ProfilingKey
     /// <summary>
     /// Gets the name.
     /// </summary>
-    /// <value>The name.</value>
     public string Name { get; }
 
     /// <summary>
     /// Gets the group.
     /// </summary>
-    /// <value>The group.</value>
     public ProfilingKey? Parent { get; }
 
     /// <summary>
-    /// Gets the children.
+    /// List of child profile keys.
     /// </summary>
-    /// <value>
-    /// The children.
-    /// </value>
     public List<ProfilingKey> Children { get; }
 
     public override string ToString()
