@@ -4,6 +4,7 @@
   "maxDiffChars": 150000,
 
   "reviewerAssociations": [ "OWNER", "MEMBER", "COLLABORATOR" ],
+  "reviewerBots": [ "stride-review" ],
   "staleDays": 30,
   "noReviewerDays": 7,
 

@@ -20,7 +20,7 @@ A PR that already has an area and a type label is left alone. A label a maintain
 | `waiting-on-review` | No review yet, or the author pushed or replied after the last review. |
 | `ready-to-merge` | The last review is an approval, CI is green, no conflicts. |
 
-After a push that does not fix everything, the simplest is a one-line review (Review changes, Comment, "still missing X"): it notifies the author, and the PR goes to `waiting-on-author` by itself. A plain PR comment does not change the label. A status label a maintainer sets by hand also counts like a review, for when there is nothing to say (the author already said more commits are coming): it stays until the author's next push or reply, or the next review. Label changes notify nobody. A reply in a review thread counts as a reply. Maintainers are the `reviewerAssociations` in `config.json` (owners, members, collaborators).
+After a push that does not fix everything, the simplest is a one-line review (Review changes, Comment, "still missing X"): it notifies the author, and the PR goes to `waiting-on-author` by itself. A plain PR comment does not change the label. A status label a maintainer sets by hand also counts like a review, for when there is nothing to say (the author already said more commits are coming): it stays until the author's next push or reply, or the next review. Label changes notify nobody. A reply in a review thread counts as a reply. Maintainers are the `reviewerAssociations` in `config.json` (owners, members, collaborators). A review by a bot counts only for the `reviewerBots` (`stride-review`, which posts reviews a maintainer checked).
 
 **New issues**:
 

@@ -313,7 +313,9 @@ sealed class Triage(GitHub github, Config config)
         return ("waiting-on-review", lastReview == null ? "no review yet" : "the author pushed or replied after the last review");
     }
 
-    IEnumerable<Review> MaintainerReviews(Pr pr) => pr.Reviews.Where(x => x.Author != pr.Author && config.ReviewerAssociations.Contains(x.Association));
+    // A bot's review counts only for the bots maintainers review through (an App that posts what a maintainer checked)
+    IEnumerable<Review> MaintainerReviews(Pr pr) => pr.Reviews.Where(x => x.Author != pr.Author
+        && (x.Bot ? config.ReviewerBots.Contains(x.Author.Replace("[bot]", "")) : config.ReviewerAssociations.Contains(x.Association)));
 
     // Weekly: nudges and the digest
 
@@ -811,7 +813,7 @@ sealed class Config
     public required double AreaShare;
     public required bool NudgeReviewers, NudgeAuthors, Digest;
     public required string DigestMentionTeam;
-    public required HashSet<string> ReviewerAssociations, PrTypes, IssueTypes, Platforms, CompanionAreas, ClaudeOnlyAreas;
+    public required HashSet<string> ReviewerAssociations, ReviewerBots, PrTypes, IssueTypes, Platforms, CompanionAreas, ClaudeOnlyAreas;
     public required Dictionary<string, LabelSpec> StatusLabels, OtherLabels;
     public required List<(Regex Pattern, string? Area)> Areas;
     // Areas no path shows (the plugin system is spread over several folders) are Claude's choice only
@@ -835,6 +837,7 @@ sealed class Config
             Digest = (bool)json["digest"]!,
             DigestMentionTeam = (string)json["digestMentionTeam"]!,
             ReviewerAssociations = Set(json["reviewerAssociations"]),
+            ReviewerBots = Set(json["reviewerBots"]),
             PrTypes = Set(json["prTypes"]),
             IssueTypes = Set(json["issueTypes"]),
             Platforms = Set(json["platforms"]),
@@ -848,7 +851,7 @@ sealed class Config
 }
 
 record LabelSpec(string Color, string Description);
-record Review(string Author, string Association, string State, DateTimeOffset At);
+record Review(string Author, string Association, string State, DateTimeOffset At, bool Bot);
 record LabelEvent(string Label, string By, DateTimeOffset At);
 record Comment(string Author, DateTimeOffset At, string Body);
 record PrFile(string Path, string? PreviousPath, string Status, int Additions, int Deletions, string? Patch);
@@ -960,8 +963,8 @@ sealed class GitHub
                     var comment = new Comment((string?)item["author"]?["login"] ?? "ghost", Date(item["createdAt"]), (string?)item["body"] ?? "");
                     (IsBot(item["author"]) ? botComments : comments).Add(comment);
                     break;
-                case "PullRequestReview" when item["submittedAt"] is { } submitted && !IsBot(item["author"]):
-                    reviews.Add(new Review((string?)item["author"]?["login"] ?? "ghost", (string?)item["authorAssociation"] ?? "NONE", (string)item["state"]!, Date(submitted)));
+                case "PullRequestReview" when item["submittedAt"] is { } submitted:
+                    reviews.Add(new Review((string?)item["author"]?["login"] ?? "ghost", (string?)item["authorAssociation"] ?? "NONE", (string)item["state"]!, Date(submitted), IsBot(item["author"])));
                     break;
                 case "HeadRefForcePushedEvent":
                     lastPush = Max(lastPush, Date(item["createdAt"]));
