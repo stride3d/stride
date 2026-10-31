@@ -1,0 +1,767 @@
+// Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
+using System.Numerics;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using BepuPhysics;
+using BepuPhysics.Collidables;
+using BepuPhysics.CollisionDetection;
+using BepuPhysics.CollisionDetection.CollisionTasks;
+using BepuPhysics.Trees;
+using BepuUtilities;
+using BepuUtilities.Memory;
+using Int2 = Stride.Core.Mathematics.Int2;
+using NRigidPose = BepuPhysics.RigidPose;
+
+namespace Stride.Heightfield;
+
+/// <summary>
+/// A collider shape representing a subdivided plane made up of triangles whose vertices are offset based on a user provided function.
+/// It holds very little data, as both triangles and vertices are not concrete data, rather they are emitted during queries.
+/// </summary>
+public unsafe struct HeightfieldShape : IShape
+{
+    public static int TypeId
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => BepuPhysics.ShapeId<HeightfieldShape>.Id;
+    }
+
+    /// <summary>A GCHandle pointing to a <see cref="IHeightfieldSampler"/></summary>
+    public GCHandle Sampler;
+
+    /// <summary>
+    /// Distance between individual samples.
+    /// </summary>
+    /// <remarks>
+    /// Last sample (<see cref="Subdivision"/>-1) should be at exactly {<see cref="Size"/>, <see cref="Size"/>},
+    /// this value should therefore be equivalent to <see cref="Size"/> / (<see cref="Subdivision"/>-1)
+    /// </remarks>
+    public float SampleInterval;
+
+    /// <summary>How many subdivisions (samples) there is per unit distance, (<see cref="Subdivision"/>-1) / <see cref="Size"/> in XZ, 1 in Y</summary>
+    public Vector3 SampleIntervalReciprocal;
+
+    /// <summary>
+    /// How many individual height samples the heightfield is made up of on one axis,
+    /// amount of samples in total would be <see cref="Subdivision"/>^2.
+    /// </summary>
+    /// <remarks>
+    /// Note that the amount of quads along an axis would be (<see cref="Subdivision"/>-1) as each quad bridges between two samples.
+    /// </remarks>
+    public int Subdivision;
+
+    /// <summary>
+    /// How large the heightfield is in units, 10 would occupy an area of 10^2 units
+    /// </summary>
+    public float Size;
+
+    /// <summary>
+    /// The rock bottom, or lower bounds of this field. Assumed to be constant. May be negative
+    /// </summary>
+    public float MinHeight;
+
+    /// <summary>
+    /// The apex, or the highest bounds of this field. Assumed to be constant. May be negative
+    /// </summary>
+    public float MaxHeight;
+
+    /// <summary>
+    /// <see cref="MinHeight"/> and <see cref="MaxHeight"/> define the bounding box of this heightfield, and these coarse blocks define sub-bounding boxes that encompass <see cref="CoarseBlocksSubdivision"/>^2 heightfield points.
+    /// They are laid out in [x + y * <see cref="CoarseBlockInterval"/>] and may extend slightly farther than the heightfield points when <see cref="Subdivision"/> is
+    /// not evenly divisible by <see cref="CoarseBlocksSubdivision"/>
+    /// </summary>
+    public HeightRange* CoarseBlocksAddress;
+
+    /// <summary>
+    /// Amount of coarse blocks along one axis.
+    /// <see cref="CoarseBlocksAddress"/> holds <see cref="CoarseBlocksSubdivision"/>^2 blocks.
+    /// Each block overlaps <see cref="CoarseBlockInterval"/>^2 height samples
+    /// </summary>
+    public int CoarseBlocksSubdivision;
+
+    /// <summary>
+    /// Amount of <see cref="Subdivision"/> along one axis per blocks.
+    /// Each block overlaps <see cref="CoarseBlockInterval"/>^2 height samples
+    /// </summary>
+    public int CoarseBlockInterval;
+
+    /// <summary>The GCHandle of <see cref="CoarseBlocksAddress"/></summary>
+    public GCHandle CoarseBlocksGCHandle;
+
+    [SkipLocalsInit]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private readonly void GetCellCornersInDiscreteSpace(Int2 cell, out Sample4 samples)
+    {
+        Unsafe.SkipInit(out samples); // They're all assigned, not sure why I have to do this nonsense
+        samples[0] = new(cell, 0);
+        samples[1] = new(cell + new Int2(1, 0), 0);
+        samples[2] = new(cell + new Int2(0, 1), 0);
+        samples[3] = new(cell + new Int2(1, 1), 0);
+
+        ((IHeightfieldSampler)Sampler.Target!).FillSamples(samples);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private readonly void GetCellCornersInContinuousSpace(Int2 cellInSubdivSpace, out Vector3 p00, out Vector3 p10, out Vector3 p01, out Vector3 p11)
+    {
+        GetCellCornersInDiscreteSpace(cellInSubdivSpace, out var samples);
+
+        float x0 = cellInSubdivSpace.X * SampleInterval;
+        float z0 = cellInSubdivSpace.Y * SampleInterval;
+        float x1 = x0 + SampleInterval;
+        float z1 = z0 + SampleInterval;
+
+        p00 = new Vector3(x0, samples[0].Height, z0);
+        p10 = new Vector3(x1, samples[1].Height, z0);
+        p01 = new Vector3(x0, samples[2].Height, z1);
+        p11 = new Vector3(x1, samples[3].Height, z1);
+    }
+
+    private readonly void GetTrianglesInContinuousSpace(Int2 cell, out Triangle tri0, out Triangle tri1)
+    {
+        GetCellCornersInContinuousSpace(cell, out tri0.A, out tri0.B, out tri0.C, out tri1.C);
+
+        (tri1.A, tri1.B) = (tri0.C, tri0.B);
+    }
+
+    private readonly void GetTrianglesInDiscreteSpace(Int2 cell, out Triangle tri0, out Triangle tri1)
+    {
+        GetCellCornersInDiscreteSpace(cell, out var sample4);
+
+        tri0.A = new Vector3(sample4[0].SampleCoord.X, sample4[0].Height, sample4[0].SampleCoord.Y);
+        tri0.B = new Vector3(sample4[1].SampleCoord.X, sample4[1].Height, sample4[1].SampleCoord.Y);
+        tri0.C = new Vector3(sample4[2].SampleCoord.X, sample4[2].Height, sample4[2].SampleCoord.Y);
+        tri1.C = new Vector3(sample4[3].SampleCoord.X, sample4[3].Height, sample4[3].SampleCoord.Y);
+        (tri1.A, tri1.B) = (tri0.C, tri0.B);
+    }
+
+    public readonly void GetLocalChild(Int2 cell, out Triangle tri0, out Triangle tri1)
+    {
+        GetTrianglesInContinuousSpace(cell, out tri0, out tri1);
+    }
+
+    public readonly void GetPosedLocalChild(Int2 cell, out Triangle tri0, out Triangle tri1, out NRigidPose childPoseA, out NRigidPose childPoseB)
+    {
+        GetLocalChild(cell, out tri0, out tri1);
+
+        childPoseA = (tri0.A + tri0.B + tri0.C) * (1f / 3f);
+        childPoseB = (tri1.A + tri1.B + tri1.C) * (1f / 3f);
+
+        tri0.A -= childPoseA.Position;
+        tri0.B -= childPoseA.Position;
+        tri0.C -= childPoseA.Position;
+
+        tri1.A -= childPoseB.Position;
+        tri1.B -= childPoseB.Position;
+        tri1.C -= childPoseB.Position;
+    }
+
+    /// <summary>
+    /// Moves <see cref="worldSpacePoint"/> in bounds and returns the closest position <b><i>vertically</i></b> on this shape's surface
+    /// </summary>
+    /// <remarks>
+    /// Not necessarily the closest point on the surface; consider the case of the cell below this point being very far below it,
+    /// a triangle on a neighboring cell may sit at the same level as the input provided, it would be closer than the one below.
+    /// </remarks>
+    public Vector3 SnapToSurface(Vector3 worldSpacePoint, in NRigidPose pose)
+    {
+        // Regarding the remark above, one solution for ClosestOnSurface would be to
+        // take the distance between the local and snapped point, and use that value
+        // as the search radius to find candidates. Continuously reducing the radius every time we find a new minima
+        // Although this scales quite badly, especially if we don't use blocks to accelerate the query
+
+        Matrix3x3.CreateFromQuaternion(pose.Orientation, out var orientation);
+        Matrix3x3.TransformTranspose(worldSpacePoint - pose.Position, orientation, out var localPoint);
+        
+        localPoint = Vector3.Min(localPoint, new Vector3(Size, MaxHeight, Size));
+        localPoint = Vector3.Max(localPoint, new Vector3(0, MinHeight, 0));
+        localPoint.Y = MathF.BitIncrement(MaxHeight);
+        
+        localPoint *= SampleIntervalReciprocal;
+        var floor = Vector3.Round(localPoint, MidpointRounding.ToNegativeInfinity);
+        var cell = new Int2((int)floor.X, (int)floor.Z);
+        
+        GetCellCornersInDiscreteSpace(cell, out var samples);
+
+        var fracTopDown = new Vector2(localPoint.X - cell.X, localPoint.Z - cell.Y);
+        float baryB;
+        float baryC;
+        float a, b, c;
+        if (fracTopDown.X + fracTopDown.Y <= 1) // On the lower left, first triangle
+        {
+            a = samples[0].Height; // (x0, z0);
+            b = samples[1].Height; // (x1, z0);
+            c = samples[2].Height; // (x0, z1);
+            baryB = fracTopDown.X;
+            baryC = fracTopDown.Y;
+        }
+        else
+        {
+            b = samples[1].Height; // (x1, z0);
+            c = samples[2].Height; // (x0, z1);
+            a = samples[3].Height; // (x1, z1);
+            baryB = 1f - fracTopDown.X;
+            baryC = 1f - fracTopDown.Y;
+        }
+
+        var aAndB = float.MultiplyAddEstimate((b - a), baryB, a);
+        var aBAndC = float.MultiplyAddEstimate((c - a), baryC, aAndB);
+        return new Vector3(fracTopDown.X, aBAndC, fracTopDown.Y);
+    }
+
+    public readonly void ComputeBounds(Quaternion orientation, out Vector3 min, out Vector3 max)
+    {
+        var localMin = new Vector3(0, MinHeight, 0);
+        var localMax = new Vector3(Size, MaxHeight, Size);
+        if (orientation == Quaternion.Identity)
+        {
+            min = localMin;
+            max = localMax;
+            return;
+        }
+
+        Matrix3x3.CreateFromQuaternion(orientation, out var r);
+        min = new Vector3(float.MaxValue);
+        max = new Vector3(-float.MaxValue);
+        for (int i = 0; i < 8; i++)
+        {
+            var corner = new Vector3(
+                (i & 1) != 0 ? localMax.X : localMin.X,
+                (i & 2) != 0 ? localMax.Y : localMin.Y,
+                (i & 4) != 0 ? localMax.Z : localMin.Z);
+            Matrix3x3.Transform(corner, r, out var t);
+            min = Vector3.Min(min, t);
+            max = Vector3.Max(max, t);
+        }
+    }
+
+    /// <remarks>
+    /// <paramref name="minInclusive"/> and <paramref name="maxInclusive"/> are invalid when this method return false
+    /// </remarks>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private readonly bool ClipCells(float minX, float maxX, float minZ, float maxZ, out Int2 minInclusive, out Int2 maxInclusive)
+    {
+        var v = new Vector4(MathF.Max(minX, 0), MathF.Min(maxX, Size), MathF.Max(minZ, 0), MathF.Min(maxZ, Size));
+        if (v.Y < v.X || v.W < v.Z)
+        {
+            Unsafe.SkipInit(out minInclusive);
+            Unsafe.SkipInit(out maxInclusive);
+            return false;
+        }
+
+        v *= SampleIntervalReciprocal.X;
+        v = Vector4.Round(v, MidpointRounding.ToNegativeInfinity);
+
+        // remember that we have N samples, but N-1 cells; the last cell covers the sample that goes from N-1 to N
+        var subdivisionMinusOne = Subdivision - 2;
+        minInclusive.X = Math.Clamp((int)v.X, 0, subdivisionMinusOne);
+        maxInclusive.X = Math.Clamp((int)v.Y, 0, subdivisionMinusOne);
+        minInclusive.Y = Math.Clamp((int)v.Z, 0, subdivisionMinusOne);
+        maxInclusive.Y = Math.Clamp((int)v.W, 0, subdivisionMinusOne);
+        return true;
+    }
+
+    public static void FindLocalOverlaps<TOverlaps, TSubpairOverlaps>(ref Buffer<OverlapQueryForPair> pairs, BufferPool pool, Shapes shapes, ref TOverlaps overlaps)
+        where TOverlaps : struct, ICollisionTaskOverlaps<TSubpairOverlaps>
+        where TSubpairOverlaps : struct, ICollisionTaskSubpairOverlaps
+    {
+        var enumerator = new ShapeTreeOverlapEnumerator<TSubpairOverlaps> { Pool = pool };
+        for (int i = 0; i < pairs.Length; ++i)
+        {
+            ref var pair = ref pairs[i];
+            ref var heightfield = ref Unsafe.AsRef<HeightfieldShape>(pair.Container);
+
+            enumerator.Overlaps = ref overlaps.GetOverlapsForPair(i);
+            heightfield.EnumerateChildrenInAabb(pair.Min, pair.Max, ref enumerator);
+        }
+    }
+
+    public readonly void FindLocalOverlaps<TEnumerator>(Vector3 min, Vector3 max, BufferPool pool, Shapes shapes, ref TEnumerator enumerator)
+        where TEnumerator : IBreakableForEach<int>, allows ref struct
+    {
+        EnumerateChildrenInAabb(min, max, ref enumerator);
+    }
+
+    public readonly void RayTest<TRayHitHandler>(in NRigidPose pose, in RayData ray, ref float maximumT, BufferPool pool, ref TRayHitHandler hitHandler)
+        where TRayHitHandler : struct, IShapeRayHitHandler
+    {
+        Matrix3x3.CreateFromQuaternion(pose.Orientation, out var orientation);
+        MarchRay(ray, pose, orientation, ref maximumT, ref hitHandler);
+    }
+
+    public readonly void RayTest<TRayHitHandler>(in NRigidPose pose, ref RaySource rays, BufferPool pool, ref TRayHitHandler hitHandler)
+        where TRayHitHandler : struct, IShapeRayHitHandler
+    {
+        Matrix3x3.CreateFromQuaternion(pose.Orientation, out var orientation);
+        for (int i = 0; i < rays.RayCount; ++i)
+        {
+            rays.GetRay(i, out var ray, out var maxT);
+            MarchRay(*ray, pose, orientation, ref *maxT, ref hitHandler);
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private readonly void EnumerateChildrenInAabb<TEnumerator>(Vector3 min, Vector3 max, ref TEnumerator enumerator)
+        where TEnumerator : IBreakableForEach<int>, allows ref struct
+    {
+        if (max.Y < MinHeight || min.Y > MaxHeight)
+            return; // In case the Y axis of the field does not match UnitY, unlikely
+
+        if (ClipCells(min.X, max.X, min.Z, max.Z, out var minInclusive, out var maxInclusive) == false)
+            return;
+
+        var cell = minInclusive;
+        var blockStart = cell / CoarseBlockInterval;
+        var cellsToNextBlockAtStart = cell - blockStart * CoarseBlockInterval;
+        cellsToNextBlockAtStart = new Int2(CoarseBlockInterval) - cellsToNextBlockAtStart;
+
+        Int2 blockOffset;
+        blockOffset.Y = blockStart.Y * CoarseBlocksSubdivision;
+        Int2 cellsToNextBlock;
+        cellsToNextBlock.Y = cellsToNextBlockAtStart.Y;
+
+        var blockRange = CoarseBlocksAddress[blockOffset.Y + blockStart.X];
+
+        var xRangeOverlapsMultipleBlocks = (minInclusive.X / CoarseBlockInterval) != (maxInclusive.X / CoarseBlockInterval);
+        do
+        {
+            if (xRangeOverlapsMultipleBlocks == false && (max.Y < blockRange.MinHeight || min.Y > blockRange.MaxHeight))
+            {
+                // We're walking vertically within a one block column,
+                // and this block does not intersect with the bounds.
+                // We can do the same as in the X loop, fast-forward to the next block in Y
+                cell.Y += cellsToNextBlock.Y;
+                if (cell.Y > maxInclusive.Y)
+                    break;
+
+                cellsToNextBlock.Y = CoarseBlockInterval;
+                blockOffset.Y += CoarseBlocksSubdivision;
+                blockRange = CoarseBlocksAddress[blockOffset.Y + blockStart.X];
+                continue;
+            }
+
+            // We're starting a new line, reset to start of the line
+            cellsToNextBlock.X = cellsToNextBlockAtStart.X;
+            blockOffset.X = blockStart.X;
+            do
+            {
+                if (max.Y < blockRange.MinHeight || min.Y > blockRange.MaxHeight)
+                {
+                    // No X in this block is in range, fast-forward X to next block
+                    cell.X += cellsToNextBlock.X;
+                    if (cell.X > maxInclusive.X)
+                        break;
+
+                    cellsToNextBlock.X = CoarseBlockInterval;
+                    blockOffset.X++;
+                    blockRange = CoarseBlocksAddress[blockOffset.Y + blockOffset.X];
+                    continue;
+                }
+
+                if (!enumerator.LoopBody(cell.X) || !enumerator.LoopBody(cell.Y)) 
+                    return;
+
+                cell.X++;
+                if (cell.X > maxInclusive.X)
+                    break;
+
+                cellsToNextBlock.X--;
+                if (cellsToNextBlock.X == 0)
+                {
+                    blockOffset.X++;
+                    blockRange = CoarseBlocksAddress[blockOffset.Y + blockOffset.X];
+                }
+            } while (true);
+
+            cell.Y++;
+            if (cell.Y > maxInclusive.Y)
+                break;
+
+            cellsToNextBlock.Y -= 1;
+            if (cellsToNextBlock.Y == 0 || xRangeOverlapsMultipleBlocks)
+            {
+                if (cellsToNextBlock.Y == 0)
+                {
+                    cellsToNextBlock.Y = CoarseBlockInterval;
+                    blockOffset.Y += CoarseBlocksSubdivision;
+                }
+                blockRange = CoarseBlocksAddress[blockOffset.Y + blockStart.X];
+            }
+
+            // Reset some of the run variables
+            cell.X = minInclusive.X;
+        } while (true);
+    }
+
+    internal readonly void FindLocalOverlaps<TOverlaps>(Vector3 min, Vector3 max, Vector3 sweep, float maximumT, BufferPool pool, Shapes shapes, ref TOverlaps overlaps)
+        where TOverlaps : ICollisionTaskSubpairOverlaps
+    {
+        // TODO: For sweeps, right now we're naively collecting all overlaps in the AABB of the sweep, see min-max expansion below.
+        // There are a couple of not so rare pathological cases where this performs poorly, for example long diagonal sweeps will collect
+        // tons of cells located outside the path, perpendicular to the sweep.
+        // Two avenues to explore:
+        // - DDA enlarged along the minor axis (X when mostly going in Y, Y when mostly going in X) by the width of the sweep,
+        //   would have to be conservative as depending on whether the origin is more to the left or the right of the starting cell,
+        //   the left/right side should extend a bit further. Worth looking into whether there is any research on efficient DDA with a width property
+        // - DDA on a coarser grid with cells the width of the bounding box
+        //   likely safer, but the cell width used there would have to be set to the next closest multiple of the base cells width
+        //   for accuracy, resulting in a fair amount of false positives given that we're rounding up the bounding box, and 
+        //   operate on blocks of cells
+        if (sweep.X < 0)
+            min.X += sweep.X * maximumT;
+        else
+            max.X += sweep.X * maximumT;
+        if (sweep.Y < 0)
+            min.Y += sweep.Y * maximumT;
+        else
+            max.Y += sweep.Y * maximumT;
+        if (sweep.Z < 0)
+            min.Z += sweep.Z * maximumT;
+        else
+            max.Z += sweep.Z * maximumT;
+
+        var breakableOverlaps = new OverlapsAsBreakableForeach<TOverlaps>(ref overlaps, pool);
+        EnumerateChildrenInAabb(min, max, ref breakableOverlaps);
+    }
+
+    private ref struct OverlapsAsBreakableForeach<TOverlaps>(ref TOverlaps overlaps, BufferPool pool) : IBreakableForEach<int> where TOverlaps : ICollisionTaskSubpairOverlaps
+    {
+        private ref TOverlaps overlaps = ref overlaps;
+        
+        public bool LoopBody(int i)
+        {
+            overlaps.Allocate(pool) = i;
+            return true;
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private readonly void MarchRay<TRayHitHandler>(in RayData ray, in NRigidPose pose, Matrix3x3 orientation, ref float maximumT, ref TRayHitHandler hitHandler)
+        where TRayHitHandler : struct, IShapeRayHitHandler
+    {
+        // We're doing DDA
+
+        // When we have no rotation, which is the most common use-case, our bounds matches the AABB the physics engine already
+        // tested higher up the callstack, this makes early exit tests within this scope redundant, we'll skip them
+        bool hasRotation = orientation.X != Matrix3x3.Identity.X 
+                           || orientation.Y != Matrix3x3.Identity.Y
+                           || orientation.Z != Matrix3x3.Identity.Z;
+
+        Vector3 localOrigin = ray.Origin - pose.Position, localDir = ray.Direction;
+        if (hasRotation)
+        {
+            Matrix3x3.TransformTranspose(localOrigin, orientation, out localOrigin);
+            Matrix3x3.TransformTranspose(localDir, orientation, out localDir);
+        }
+
+        // We're operating in subdiv-space, squash vectors accordingly
+        localOrigin *= SampleIntervalReciprocal;
+        localDir *= SampleIntervalReciprocal;
+        
+        TreeRay.CreateFrom(localOrigin, localDir, maximumT, out var treeRay);
+
+        // The last sample is N - 1, same idea as an array index 
+        var localMaxInclusive = Subdivision - 1;
+        // Cell goes from [0, Subdivision - 2] inclusive since they join the sample N with N+1 
+        var localCellMaxInclusive = Subdivision - 2;
+
+        // Note that henceforth X&Z is referred as X&Y
+
+        var localOrigin2D = new Vector2(localOrigin.X, localOrigin.Z);
+        var localDir2D = new Vector2(localDir.X, localDir.Z);
+        Vector2 invDir;
+        invDir.X = treeRay.InverseDirection.X; 
+        invDir.Y = treeRay.InverseDirection.Z;
+
+        float tEnter, tExit;
+        {
+            (float min, float max) xBounds, yBounds;
+            if (localDir2D.X != 0)
+            {
+                var tx1 = (0 - localOrigin2D.X) * invDir.X;
+                var tx2 = (localMaxInclusive - localOrigin2D.X) * invDir.X;
+                xBounds = tx1 < tx2 ? (tx1, tx2) : (tx2, tx1);
+            }
+            else
+            {
+                xBounds = (float.NegativeInfinity, float.PositiveInfinity);
+            }
+
+            if (localDir2D.Y != 0)
+            {
+                var ty1 = (0 - localOrigin2D.Y) * invDir.Y;
+                var ty2 = (localMaxInclusive - localOrigin2D.Y) * invDir.Y;
+                yBounds = ty1 < ty2 ? (ty1, ty2) : (ty2, ty1);
+            }
+            else
+            {
+                yBounds = (float.NegativeInfinity, float.PositiveInfinity);
+            }
+
+            tEnter = MathF.Max(xBounds.min, yBounds.min);
+            tExit = MathF.Min(xBounds.max, yBounds.max);
+        }
+
+        float tCellEnter = MathF.Max(tEnter, 0f);
+        if (hasRotation)
+        {
+            // Less likely to have any rotation, so we're bundling early exits together
+
+            if (localDir.X == 0 && (localOrigin.X < 0 || localOrigin.X > Size))
+                return; // Parallel to the bounds and outside in X
+            if (localDir.Z == 0 && (localOrigin.Z < 0 || localOrigin.Z > Size))
+                return; // Parallel to the bounds and outside in Z
+
+            if (tCellEnter >= maximumT)
+                return; // First cell is already past the end of the ray
+
+            if (tEnter > tExit || tExit < 0)
+                return; // Ray is outside and looks away from the bounds
+            float yAtEntry = localOrigin.Y + localDir.Y * tCellEnter;
+            if ((localDir.Y >= 0 && yAtEntry > MaxHeight) || (localDir.Y <= 0 && yAtEntry < MinHeight))
+                return; // Ray is outside and away vertically
+        }
+
+        Int2 cell;
+        Int2 step;
+        {
+            var inBounds = Vector2.Round(localOrigin2D + localDir2D * tCellEnter, MidpointRounding.ToNegativeInfinity);
+            cell.X = Math.Clamp((int)inBounds.X, 0, localCellMaxInclusive);
+            cell.Y = Math.Clamp((int)inBounds.Y, 0, localCellMaxInclusive);
+            step.X = MathF.Sign(localDir2D.X);
+            step.Y = MathF.Sign(localDir2D.Y);
+        }
+
+        Vector2 tMax, tDelta;
+        {
+            if (step.X > 0)
+                tMax.X = cell.X + 1;
+            else if (step.X < 0)
+                tMax.X = cell.X;
+            else
+                tMax.X = float.PositiveInfinity;
+
+            if (step.Y > 0)
+                tMax.Y = cell.Y + 1;
+            else if (step.Y < 0)
+                tMax.Y = cell.Y;
+            else
+                tMax.Y = float.PositiveInfinity;
+
+            tMax = (tMax - localOrigin2D) * invDir;
+            tDelta.X = invDir.X * step.X;
+            tDelta.Y = invDir.Y * step.Y;
+        }
+
+        tExit = MathF.Min(tExit, maximumT);
+        
+        var blockCoord = cell / CoarseBlockInterval;
+
+        // Note that this is signed, positive when going in negative dir, negative when going in positive dir
+        var cellsToNextBlock = cell - blockCoord * CoarseBlockInterval;
+        cellsToNextBlock.X = step.X > 0 ? -(CoarseBlockInterval - cellsToNextBlock.X) : cellsToNextBlock.X + 1;
+        cellsToNextBlock.Y = step.Y > 0 ? -(CoarseBlockInterval - cellsToNextBlock.Y) : cellsToNextBlock.Y + 1;
+
+        bool insideBlock = IsInBlock(blockCoord, &treeRay);
+        // Perf: Could fast-forward to next cell in bounds when out of bounds
+        do
+        {
+            float tCellExit = MathF.Min(MathF.Min(tMax.X, tMax.Y), tExit);
+            if (tCellEnter > tCellExit)
+                break;
+
+            if (insideBlock)
+            {
+                if (RayTestCell(cell, localOrigin, localDir, ray, orientation, ref maximumT, ref hitHandler))
+                {
+                    tExit = MathF.Min(tExit, maximumT);
+                }
+            }
+
+            if (tMax.X < tMax.Y)
+            {
+                cell.X += step.X;
+                if (cell.X < 0 || cell.X >= localMaxInclusive)
+                    break;
+
+                tCellEnter = tMax.X;
+                tMax.X += tDelta.X;
+                cellsToNextBlock.X += step.X;
+                if (cellsToNextBlock.X == 0)
+                {
+                    blockCoord.X += step.X;
+                    cellsToNextBlock.X = -step.X * CoarseBlockInterval;
+                    insideBlock = IsInBlock(blockCoord, &treeRay);
+                    // Perf: Could fast-forward to next cell in bounds when out of bounds
+                }
+            }
+            else
+            {
+                cell.Y += step.Y;
+                if (cell.Y < 0 || cell.Y >= localMaxInclusive)
+                    break;
+
+                tCellEnter = tMax.Y;
+                tMax.Y += tDelta.Y;
+                cellsToNextBlock.Y += step.Y;
+                if (cellsToNextBlock.Y == 0)
+                {
+                    blockCoord.Y += step.Y;
+                    cellsToNextBlock.Y = -step.Y * CoarseBlockInterval;
+                    insideBlock = IsInBlock(blockCoord, &treeRay);
+                    // Perf: Could fast-forward to next cell in bounds when out of bounds
+                }
+            }
+        } while (tCellEnter < tExit);
+    }
+
+    private readonly bool IsInBlock(Int2 blockCoord, TreeRay* treeRay)
+    {
+        var blockIndex = blockCoord.Y * CoarseBlocksSubdivision + blockCoord.X;
+        ref var range = ref CoarseBlocksAddress[blockIndex];
+        var min = new Vector3(blockCoord.X, 0, blockCoord.Y) * CoarseBlockInterval;
+        var max = min + new Vector3(CoarseBlockInterval);
+        min.Y = range.MinHeight;
+        max.Y = range.MaxHeight;
+        return Tree.Intersects(min, max, treeRay, out _);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private readonly bool RayTestCell<TRayHitHandler>(Int2 cornerCoord, Vector3 origin, Vector3 dir, in RayData ray, in Matrix3x3 orientation, ref float maximumT, ref TRayHitHandler hitHandler)
+        where TRayHitHandler : struct, IShapeRayHitHandler
+    {
+        bool hit = false;
+        GetTrianglesInDiscreteSpace(cornerCoord, out var tri0, out var tri1);
+        if (Triangle.RayTest(tri0.A, tri0.B, tri0.C, origin, dir, out float t0, out var normal0) && t0 <= maximumT)
+        {
+            Matrix3x3.Transform(normal0, orientation, out normal0);
+            normal0 = Vector3.Normalize(normal0);
+            hitHandler.OnRayHit(ray, ref maximumT, t0, normal0, 0);
+            hit = true;
+        }
+        if (Triangle.RayTest(tri1.A, tri1.B, tri1.C, origin, dir, out float t1, out var normal1) && t1 <= maximumT)
+        {
+            Matrix3x3.Transform(normal1, orientation, out normal1);
+            normal1 = Vector3.Normalize(normal1);
+            hitHandler.OnRayHit(ray, ref maximumT, t1, normal1, 0);
+            hit = true;
+        }
+
+        return hit;
+    }
+
+    public static ShapeBatch CreateShapeBatch(BufferPool pool, int initialCapacity, Shapes shapeBatches)
+    {
+        return new HeightfieldBatch(pool, initialCapacity);
+    }
+
+    private class HeightfieldBatch : ShapeBatch<HeightfieldShape>
+    {
+        public HeightfieldBatch(BufferPool pool, int initialShapeCount) : base(pool, initialShapeCount)
+        {
+            Compound = true;
+        }
+
+        protected override void Dispose(int index, BufferPool pool)
+        {
+        }
+
+        protected override void RemoveAndDisposeChildren(int index, Shapes shapes, BufferPool pool)
+        {
+            // Meshes and other single-type containers don't have any shape-registered children.
+        }
+
+        public override void ComputeBounds(ref BoundingBoxBatcher batcher)
+        {
+            ExecuteHeightfieldBatch(ref batcher, this);
+        }
+
+        private static void ExecuteHeightfieldBatch(ref BoundingBoxBatcher batcher, HeightfieldBatch shapeBatch)
+        {
+            ref var batch = ref batches(ref batcher)[HeightfieldShape.TypeId];
+            ref var activeSet = ref bodies(ref batcher).ActiveSet;
+            for (int i = 0; i < batch.Count; ++i)
+            {
+                var shapeIndex = batch.ShapeIndices[i];
+                ref var motionState = ref batch.MotionStates[i];
+                var bodyIndex = batch.Continuations[i].BodyIndex;
+                ref var collidable = ref activeSet.Collidables[bodyIndex];
+                shapeBatch[shapeIndex].ComputeBounds(motionState.Pose.Orientation, out var min, out var max);
+                //Working on the assumption that dynamic meshes are extremely rare, and that dynamic meshes with extremely high angular velocity are even rarer,
+                //we're just going to use a simplistic upper bound for angular expansion. This simplifies the mesh bounding box calculation quite a bit (no dot products).
+                var absMin = Vector3.Abs(min);
+                var absMax = Vector3.Abs(max);
+                var maximumRadius = Vector3.Max(absMin, absMax).Length();
+
+                var minimumComponents = Vector3.Min(absMin, absMax);
+                var minimumRadius = MathHelper.Min(minimumComponents.X, MathHelper.Min(minimumComponents.Y, minimumComponents.Z));
+                var maximumAngularExpansion = maximumRadius - minimumRadius;
+
+                //BoundingBoxBatcher is responsible for updating the bounding box AND speculative margin.
+                //In order to know how much we're allowed to expand the bounding box, we need to know the speculative margin.
+                //It's defined by the velocity of the body, and bounded by the body's minimum and maximum.
+                var angularBoundsExpansion = BoundingBoxHelpers.GetAngularBoundsExpansion(motionState.Velocity.Angular.Length(), dt(ref batcher), maximumRadius, maximumAngularExpansion);
+                var speculativeMargin = motionState.Velocity.Linear.Length() * (dt(ref batcher) + angularBoundsExpansion);
+                speculativeMargin = MathF.Max(collidable.MinimumSpeculativeMargin, MathF.Min(collidable.MaximumSpeculativeMargin, speculativeMargin));
+                collidable.SpeculativeMargin = speculativeMargin;
+                var maximumAllowedExpansion = collidable.Continuity.AllowExpansionBeyondSpeculativeMargin ? float.MaxValue : speculativeMargin;
+                BoundingBoxHelpers.GetBoundsExpansion(motionState.Velocity.Linear, dt(ref batcher), angularBoundsExpansion, out var minExpansion, out var maxExpansion);
+                var broadcastMaximumBoundsExpansion = new Vector3(maximumAllowedExpansion);
+                minExpansion = Vector3.Max(-broadcastMaximumBoundsExpansion, minExpansion);
+                maxExpansion = Vector3.Min(broadcastMaximumBoundsExpansion, maxExpansion);
+
+                broadPhase(ref batcher).GetActiveBoundsPointers(collidable.BroadPhaseIndex, out var minPointer, out var maxPointer);
+                *minPointer = motionState.Pose.Position + (min + minExpansion);
+                *maxPointer = motionState.Pose.Position + (max + maxExpansion);
+            }
+
+            [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "dt")]
+            static extern ref float dt(ref BoundingBoxBatcher boundingBoxBatcher);
+
+            [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "bodies")]
+            static extern ref Bodies bodies(ref BoundingBoxBatcher boundingBoxBatcher);
+
+            [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "batches")]
+            static extern ref Buffer<BoundingBoxBatch> batches(ref BoundingBoxBatcher boundingBoxBatcher);
+
+            [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "broadPhase")]
+            static extern ref BroadPhase broadPhase(ref BoundingBoxBatcher boundingBoxBatcher);
+        }
+
+        public override void ComputeBounds(int shapeIndex, Quaternion orientation, out Vector3 min, out Vector3 max)
+        {
+            this[shapeIndex].ComputeBounds(orientation, out min, out max);
+        }
+
+        public override void RayTest<TRayHitHandler>(int shapeIndex, in NRigidPose pose, in RayData ray, ref float maximumT, BufferPool pool, ref TRayHitHandler hitHandler)
+        {
+            this[shapeIndex].RayTest(pose, ray, ref maximumT, pool, ref hitHandler);
+        }
+
+        public override void RayTest<TRayHitHandler>(int shapeIndex, in NRigidPose pose, ref RaySource rays, BufferPool pool, ref TRayHitHandler hitHandler)
+        {
+            this[shapeIndex].RayTest(pose, ref rays, pool, ref hitHandler);
+        }
+    }
+
+    private ref struct ShapeTreeOverlapEnumerator<TSubpairOverlaps> : IBreakableForEach<int> where TSubpairOverlaps : ICollisionTaskSubpairOverlaps
+    {
+        public BufferPool Pool;
+        public ref TSubpairOverlaps Overlaps;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool LoopBody(int i)
+        {
+            Overlaps.Allocate(Pool) = i;
+            return true;
+        }
+    }
+
+    [InlineArray(4)]
+    private struct Sample4
+    {
+        private Sample _item0;
+    }
+}
