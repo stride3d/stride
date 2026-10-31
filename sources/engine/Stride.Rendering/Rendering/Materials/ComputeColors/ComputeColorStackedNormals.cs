@@ -10,14 +10,20 @@ using Stride.Shaders;
 
 namespace Stride.Rendering.Materials.ComputeColors;
 
-[DataContract(Inherited = true)]
+[DataContract("ComputeColorStackedNormals")]
 [Display("Stacked Normals")]
 [InlineProperty]
 public class ComputeColorStackedNormals : ComputeNode, IComputeColor
 {
     private bool cachedBaseIsXY, cachedDetailIsXY;
 
-    [MaybeNull] public required IComputeColor Base { get; set; } = new ComputeTextureColor();
+    /// <summary>
+    /// The normal map that defines the base orientation of the normals
+    /// </summary>
+    public required IComputeColor Base { get; set; } = new ComputeTextureColor
+    {
+        FallbackValue = new ComputeColor(MaterialNormalMapFeature.DefaultNormalColor)
+    };
 
     /// <summary>
     /// Gets or sets a value indicating whether the normal is only stored in XY components and Z is assumed to be sqrt(1 - x*x - y*y).
@@ -30,7 +36,13 @@ public class ComputeColorStackedNormals : ComputeNode, IComputeColor
     [Display("Reconstruct Z")]
     public bool BaseIsXYNormal { get; set; } = true;
 
-    [MaybeNull] public required IComputeColor Detail { get; set; } = new ComputeTextureColor();
+    /// <summary>
+    /// The normal map laying on top of <see cref="Base"/>, normals are rotated to align with it
+    /// </summary>
+    public required IComputeColor Detail { get; set; } = new ComputeTextureColor
+    {
+        FallbackValue = new ComputeColor(MaterialNormalMapFeature.DefaultNormalColor)
+    };
 
     /// <summary>
     /// Gets or sets a value indicating whether the normal is only stored in XY components and Z is assumed to be sqrt(1 - x*x - y*y).
@@ -40,7 +52,7 @@ public class ComputeColorStackedNormals : ComputeNode, IComputeColor
     /// If there's no Z component in the texture, reconstruct it from the X and Y components. This assumes that Z = sqrt(1 - x*x - y*y) and that Z is always positive, so no normal vector can point to the back side of the surface. We recommend you enable this option, as Stride might remove the Z component when you compress normal maps.
     /// </userdoc>
     [DefaultValue(true)]
-    [Display("Reconstruct Z")]
+    [Display("Reconstruct Z for Detail")]
     public bool DetailIsXYNormal { get; set; } = true;
 
     /// <inheritdoc/>
@@ -58,16 +70,16 @@ public class ComputeColorStackedNormals : ComputeNode, IComputeColor
     /// <inheritdoc/>
     public override ShaderSource GenerateShaderSource(ShaderGeneratorContext context, MaterialComputeColorKeys baseKeys)
     {
-        var blackShaderSource = Base?.GenerateShaderSource(context, baseKeys);
-        var whiteShaderSource = Detail?.GenerateShaderSource(context, baseKeys);
+        var baseShaderSource = Base?.GenerateShaderSource(context, baseKeys);
+        var detailShaderSource = Detail?.GenerateShaderSource(context, baseKeys);
 
         var shaderSource = new ShaderClassSource("ComputeColorStackedNormals", BaseIsXYNormal, DetailIsXYNormal);
         var mixin = new ShaderMixinSource();
         mixin.Mixins.Add(shaderSource);
-        if (blackShaderSource != null)
-            mixin.AddComposition(BaseCompositionName, blackShaderSource);
-        if (whiteShaderSource != null)
-            mixin.AddComposition(DetailCompositionName, whiteShaderSource);
+        if (baseShaderSource != null)
+            mixin.AddComposition(BaseCompositionName, baseShaderSource);
+        if (detailShaderSource != null)
+            mixin.AddComposition(DetailCompositionName, detailShaderSource);
 
         return mixin;
     }
@@ -75,7 +87,7 @@ public class ComputeColorStackedNormals : ComputeNode, IComputeColor
     /// <inheritdoc/>
     public override string ToString()
     {
-        return "Lerp operation";
+        return "Stacked normals";
     }
 
     public bool HasChanged

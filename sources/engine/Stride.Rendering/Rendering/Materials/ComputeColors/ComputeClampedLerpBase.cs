@@ -12,13 +12,26 @@ namespace Stride.Rendering.Materials.ComputeColors;
 [DataContract(Inherited = true)]
 [Display("Lerp Operator")]
 [InlineProperty]
-public class ComputeClampedLerpBase<T> : ComputeNode where T : class, IComputeNode
+public abstract class ComputeClampedLerpBase<T> : ComputeNode where T : class, IComputeNode
 {
-    [MaybeNull] public required T Black { get; set; }
+    /// <summary>
+    /// The color that would be displayed when <see cref="Blend"/> is entirely black (equal or less than zero),
+    /// otherwise a blend of this and <see cref="White"/>
+    /// </summary>
+    public required T Black { get; set; }
 
-    [MaybeNull] public required T White { get; set; }
+    /// <summary>
+    /// The color that would be displayed when <see cref="Blend"/> is completely white (equal or greater than one),
+    /// otherwise a blend of this and <see cref="Black"/>
+    /// </summary>
+    public required T White { get; set; }
 
-    [MaybeNull] public required T Blend { get; set; }
+    /// <summary>
+    /// The color used to blend between <see cref="Black"/> and <see cref="White"/>;
+    /// a value of 0.5 would display a color halfway between them,
+    /// a value closer to zero would tend towards <see cref="Black"/> while a value closer to one would tend towards <see cref="White"/>
+    /// </summary>
+    public required T Blend { get; set; }
 
     /// <inheritdoc/>
     public override IEnumerable<IComputeNode> GetChildren([MaybeNull] object context = null)
@@ -40,7 +53,7 @@ public class ComputeClampedLerpBase<T> : ComputeNode where T : class, IComputeNo
     {
         var blackShaderSource = Black?.GenerateShaderSource(context, baseKeys);
         var whiteShaderSource = White?.GenerateShaderSource(context, baseKeys);
-        var blendSharedSource = Blend?.GenerateShaderSource(context, baseKeys);
+        var blendShaderSource = Blend?.GenerateShaderSource(context, baseKeys);
 
         var shaderSource = new ShaderClassSource("ComputeColorClampedLerp");
         var mixin = new ShaderMixinSource();
@@ -49,8 +62,8 @@ public class ComputeClampedLerpBase<T> : ComputeNode where T : class, IComputeNo
             mixin.AddComposition(BlackCompositionName, blackShaderSource);
         if (whiteShaderSource != null)
             mixin.AddComposition(WhiteCompositionName, whiteShaderSource);
-        if (blendSharedSource != null)
-            mixin.AddComposition(BlendCompositionName, blendSharedSource);
+        if (blendShaderSource != null)
+            mixin.AddComposition(BlendCompositionName, blendShaderSource);
 
         return mixin;
     }
