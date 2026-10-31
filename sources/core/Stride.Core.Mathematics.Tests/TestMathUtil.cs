@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Numerics;
 using Xunit;
 
 namespace Stride.Core.Mathematics.Tests;
@@ -479,6 +480,16 @@ public class TestMathUtil
         Assert.Equal(expected, MathUtil.Mod(value, divisor), 5);
     }
 
+    [Theory]
+    [InlineData(5, 3, 2)]
+    [InlineData(7, 3, 1)]
+    [InlineData(-1, 3, 2)]
+    [InlineData(3, 2, 1)]
+    public void TestModInt(int value, int divisor, int expected)
+    {
+        Assert.Equal(expected, MathUtil.Mod(value, divisor));
+    }
+
     [Fact]
     public void TestExpDecayFloat()
     {
@@ -503,5 +514,122 @@ public class TestMathUtil
     public void TestIsZeroDouble(double value, bool expected)
     {
         Assert.Equal(expected, MathUtil.IsZero(value));
+    }
+
+    [Fact]
+    public void TestFindMinMax()
+    {
+        int[] dataUnaligned = [4, 7, 423, 10, 565, 123, 55, 64, 885];
+        var spanAligned = dataUnaligned.AsSpan()[..8];
+        var spanaUnder = dataUnaligned.AsSpan()[..2];
+
+        Assert.Equal(565, MathUtil.FindMax(spanAligned));
+        Assert.Equal(885, MathUtil.FindMax(dataUnaligned));
+        Assert.Equal(7, MathUtil.FindMax(spanaUnder));
+
+        MathUtil.FindMinMax(spanAligned, out var min, out var max);
+        Assert.Equal(4, min);
+        Assert.Equal(565, max);
+
+        MathUtil.FindMinMax(dataUnaligned, out min, out max);
+        Assert.Equal(4, min);
+        Assert.Equal(885, max);
+
+        MathUtil.FindMinMax(spanaUnder, out min, out max);
+        Assert.Equal(4, min);
+        Assert.Equal(7, max);
+
+        Array.Reverse(dataUnaligned);
+
+        Assert.Equal(7, MathUtil.FindMin(spanAligned));
+        Assert.Equal(4, MathUtil.FindMin(dataUnaligned));
+        Assert.Equal(64, MathUtil.FindMin(spanaUnder));
+    }
+
+    [Fact]
+    public void TestBilinearSample()
+    {
+        var texSize = new Int2(4, 2);
+        float[] data = 
+            [0, 1, 2, 3, 
+             4, 5, 6, 7];
+
+        var blendingDirectionCoord = new Vector2(1.75f, 0.33f);
+        var blendingDirectionExpectedValue =
+              1 * (1 - 0.75f) * (1 - 0.33f)
+            + 2 * 0.75f * (1 - 0.33f)
+            + 5 * (1 - 0.75f) * 0.33f
+            + 6 * 0.75f * 0.33f;
+
+        Assert.Equal(2.5f, MathUtil.BilinearSample(new Vector2(0.5f, 0.5f), texSize, data), 5);
+        Assert.Equal(4.5f, MathUtil.BilinearSample(new Vector2(2.5f, 0.5f), texSize, data), 5);
+        // Wrap
+        Assert.Equal(3.5f, MathUtil.BilinearSample(new Vector2(3.5f, 0.5f), texSize, data), 5);
+        // Blending direction
+        Assert.Equal(blendingDirectionExpectedValue, MathUtil.BilinearSample(blendingDirectionCoord, texSize, data), 5);
+
+        var dataWrapped = data.Select(x => new FloatWrapper(x)).ToArray();
+
+        Assert.Equal(2.5f, MathUtil.BilinearSample(new Vector2(0.5f, 0.5f), texSize, dataWrapped).Value, 5);
+        Assert.Equal(4.5f, MathUtil.BilinearSample(new Vector2(2.5f, 0.5f), texSize, dataWrapped).Value, 5);
+        // Wrap
+        Assert.Equal(3.5f, MathUtil.BilinearSample(new Vector2(3.5f, 0.5f), texSize, dataWrapped).Value, 5);
+        // Blending direction
+        Assert.Equal(blendingDirectionExpectedValue, MathUtil.BilinearSample(blendingDirectionCoord, texSize, dataWrapped).Value, 5);
+    }
+
+    [Fact]
+    public void TestTrilinearSample()
+    {
+        var texSize = new Int3(4, 3, 2);
+        float[] data =
+            [0, 1, 2, 3,
+             4, 5, 6, 7,
+             8, 9, 10, 11,
+             //z+
+             12, 13, 14, 15,
+             16, 17, 18, 19,
+             20, 21, 22, 23];
+
+        var blendingDirectionCoord = new Vector3(1.75f, 0.33f, 0.45f);
+        var blendingDirectionExpectedValue =
+              1 * (1 - 0.75f) * (1 - 0.33f) * (1 - 0.45f)
+            + 2 * 0.75f * (1 - 0.33f) * (1 - 0.45f)
+            + 5 * (1 - 0.75f) * 0.33f * (1 - 0.45f)
+            + 6 * 0.75f * 0.33f * (1 - 0.45f)
+
+            + 13 * (1 - 0.75f) * (1 - 0.33f) * 0.45f
+            + 14 * 0.75f * (1 - 0.33f) * 0.45f
+            + 17 * (1 - 0.75f) * 0.33f * 0.45f
+            + 18 * 0.75f * 0.33f * 0.45f;
+
+        Assert.Equal((0 + 1 + 4 + 5 + 12 + 13 + 16 + 17) / 8f, MathUtil.TrilinearSample(new Vector3(0.5f, 0.5f, 0.5f), texSize, data), 5);
+        Assert.Equal((6 + 7 + 10 + 11 + 18 + 19 + 22 + 23) / 8f, MathUtil.TrilinearSample(new Vector3(2.5f, 1.5f, 0.5f), texSize, data), 5);
+        // Wrap
+        Assert.Equal((0 + 1 + 4 + 5 + 12 + 13 + 16 + 17) / 8f, MathUtil.TrilinearSample(new Vector3(4.5f, 3.5f, 2.5f), texSize, data), 5);
+        // Blending direction
+        Assert.Equal(blendingDirectionExpectedValue, MathUtil.TrilinearSample(blendingDirectionCoord, texSize, data), 5);
+
+        var dataWrapped = data.Select(x => new FloatWrapper(x)).ToArray();
+
+        Assert.Equal((0 + 1 + 4 + 5 + 12 + 13 + 16 + 17) / 8f, MathUtil.TrilinearSample(new Vector3(0.5f, 0.5f, 0.5f), texSize, dataWrapped).Value, 5);
+        Assert.Equal((6 + 7 + 10 + 11 + 18 + 19 + 22 + 23) / 8f, MathUtil.TrilinearSample(new Vector3(2.5f, 1.5f, 0.5f), texSize, dataWrapped).Value, 5);
+        // Wrap
+        Assert.Equal((0 + 1 + 4 + 5 + 12 + 13 + 16 + 17) / 8f, MathUtil.TrilinearSample(new Vector3(4.5f, 3.5f, 2.5f), texSize, dataWrapped).Value, 5);
+        // Blending direction
+        Assert.Equal(blendingDirectionExpectedValue, MathUtil.TrilinearSample(blendingDirectionCoord, texSize, dataWrapped).Value, 5);
+    }
+
+    private record struct FloatWrapper(float Value) : IMultiplyOperators<FloatWrapper, float, FloatWrapper>, IAdditionOperators<FloatWrapper, FloatWrapper, FloatWrapper>
+    {
+        public static FloatWrapper operator +(FloatWrapper left, FloatWrapper right)
+        {
+            return new(left.Value + right.Value);
+        }
+
+        public static FloatWrapper operator *(FloatWrapper left, float right)
+        {
+            return new(left.Value * right);
+        }
     }
 }
