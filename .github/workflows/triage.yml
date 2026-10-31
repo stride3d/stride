@@ -1,0 +1,109 @@
+name: Triage
+
+# Labels PRs and issues, keeps the "whose turn" labels of PRs up to date, and (when turned on in
+# .github/triage/config.json) nudges quiet PRs and keeps a weekly digest issue. See .github/triage/README.md.
+#
+# Uses pull_request_target so the GITHUB_TOKEN can label fork PRs. Safe because the tool comes from the
+# base branch and only reads PRs through the API: it never checks out or runs PR code. Claude only
+# returns values from fixed lists, and the tool builds every comment from fixed sentences.
+#
+# The repo variable TRIAGE_DRY_RUN=true makes every run report what it would do in the job summary
+# and change nothing.
+
+on:
+  pull_request_target:
+    types: [opened, reopened, ready_for_review, converted_to_draft, synchronize]
+  issues:
+    types: [opened, edited]
+  issue_comment:
+    types: [created]
+  schedule:
+    # Hourly: whose-turn labels. Reviews on fork PRs and new merge conflicts have no event with a write token.
+    - cron: '23 * * * *'
+    # Monday morning: nudges and the digest.
+    - cron: '41 7 * * 1'
+  workflow_dispatch:
+    inputs:
+      command:
+        description: 'status | status <N> | pr <N> | issue <N> | weekly'
+        default: 'status'
+      dry-run:
+        description: Report only, change nothing
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+# One run at a time per PR or issue; scheduled runs share one group per schedule.
+concurrency:
+  group: triage-${{ github.event.pull_request.number || github.event.issue.number || github.event.schedule || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  triage:
+    # Our own comments do not trigger workflows (GITHUB_TOKEN), other bots are skipped here
+    if: github.repository == 'stride3d/stride' && github.actor != 'dependabot[bot]' && (github.event_name != 'issue_comment' || github.event.comment.user.type != 'Bot')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # pull_request_target checks out the base branch: the tool never comes from the PR
+          sparse-checkout: |
+            .github/triage
+            global.json
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - name: Pick the command
+        id: command
+        env:
+          EVENT: ${{ github.event_name }}
+          ACTION: ${{ github.event.action }}
+          SCHEDULE: ${{ github.event.schedule }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          IS_PR_COMMENT: ${{ github.event.issue.pull_request != null }}
+          INPUT_COMMAND: ${{ inputs.command }}
+          INPUT_DRY_RUN: ${{ inputs.dry-run }}
+          DRY_RUN_VAR: ${{ vars.TRIAGE_DRY_RUN }}
+        run: |
+          case "$EVENT" in
+            pull_request_target)
+              case "$ACTION" in
+                opened|reopened|ready_for_review) command="pr $PR_NUMBER" ;;
+                *) command="status $PR_NUMBER" ;;
+              esac ;;
+            issues)
+              [ "$ACTION" = opened ] && command="issue $ISSUE_NUMBER" || command="issue-update $ISSUE_NUMBER" ;;
+            issue_comment)
+              [ "$IS_PR_COMMENT" = true ] && command="status $ISSUE_NUMBER" || command="issue-update $ISSUE_NUMBER" ;;
+            schedule)
+              [ "$SCHEDULE" = '41 7 * * 1' ] && command="weekly" || command="status" ;;
+            workflow_dispatch)
+              command="$INPUT_COMMAND"
+              [ "$INPUT_DRY_RUN" = true ] && command="$command --dry-run" ;;
+          esac
+          [ "$DRY_RUN_VAR" = true ] && command="$command --dry-run"
+          # Only numbers, command names and flags reach the tool's command line
+          if ! [[ "$command" =~ ^(pr|status|issue|issue-update|weekly)( [0-9]+)?( --dry-run)*$ ]]; then
+            echo "::error::Unexpected command: $command"
+            exit 1
+          fi
+          echo "command=$command" >> "$GITHUB_OUTPUT"
+
+      - name: Triage
+        env:
+          GH_TOKEN: ${{ github.token }}
+          # Its own key, in its own Anthropic workspace with its own spend limit. Without it: path areas and status labels only.
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY_TRIAGE }}
+          ACTOR: ${{ github.actor }}
+          COMMAND: ${{ steps.command.outputs.command }}
+        run: dotnet run .github/triage/triage.cs -- $COMMAND --actor "$ACTOR"
