@@ -26,7 +26,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
     /// a changed asset is reloaded from its file (once its unsaved changes, if any, are confirmed to be discarded), and a new asset file adds its asset.
     /// </summary>
     /// <remarks>
-    /// A file whose content is the one the session would save for its asset, as after a save of the session, is not a change.
+    /// A file whose content is the one the session has last saved for its asset, or would save for it, is not a change.
     /// </remarks>
     internal sealed class ExternalAssetChangeTracker : IDisposable
     {
@@ -41,6 +41,8 @@ namespace Stride.Core.Assets.Editor.ViewModel
         private readonly HashSet<string> pendingFiles = new(StringComparer.OrdinalIgnoreCase);
         // The content of the files whose changes the user chose not to reload, so that the same content is not proposed again
         private readonly Dictionary<string, ObjectId> declinedContents = new(StringComparer.OrdinalIgnoreCase);
+        // The content of the files the session has written, until they get another content
+        private readonly Dictionary<AssetId, ObjectId> savedContents = [];
         private long lastEventTime;
         private bool processing;
         private bool disposed;
@@ -60,6 +62,40 @@ namespace Stride.Core.Assets.Editor.ViewModel
             session.LocalPackages.CollectionChanged -= LocalPackagesChanged;
             watcher.Modified -= FileModified;
             watcher.Dispose();
+        }
+
+        /// <summary>
+        /// Remembers the content of the files of the given assets, which the session has just written. Their events are processed later,
+        /// and the assets might have been edited again by then: without this, they would differ from their files and look changed from outside.
+        /// </summary>
+        /// <param name="assetItems">The assets the session has saved.</param>
+        /// <remarks>This method can be called from any thread.</remarks>
+        public void NotifySaved([NotNull] IEnumerable<AssetItem> assetItems)
+        {
+            foreach (var assetItem in assetItems)
+            {
+                var path = assetItem.FullPath.ToOSPath();
+                if (!IsAssetFile(path))
+                    continue;
+
+                ObjectId? contentId = null;
+                try
+                {
+                    contentId = ObjectId.FromBytes(File.ReadAllBytes(path));
+                }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+                {
+                    // Its event compares the file with the asset instead
+                }
+
+                lock (savedContents)
+                {
+                    if (contentId != null)
+                        savedContents[assetItem.Id] = contentId.Value;
+                    else
+                        savedContents.Remove(assetItem.Id);
+                }
+            }
         }
 
         private void LocalPackagesChanged(object sender, NotifyCollectionChangedEventArgs e)
@@ -243,9 +279,32 @@ namespace Stride.Core.Assets.Editor.ViewModel
             return null;
         }
 
+        private bool IsLastSavedContent(AssetId assetId, ObjectId contentId)
+        {
+            lock (savedContents)
+            {
+                if (!savedContents.TryGetValue(assetId, out var savedId))
+                    return false;
+                if (savedId == contentId)
+                    return true;
+
+                // Coming back to this content later is a change
+                savedContents.Remove(assetId);
+                return false;
+            }
+        }
+
         private async Task ReloadAsset([NotNull] AssetViewModel asset, string path, [NotNull] byte[] content)
         {
-            // The file holds what the session would save for this asset: it has just been saved, or touched without being changed
+            // The file holds what the session has written for this asset: the edits made since then are unsaved changes, not a conflict
+            var contentId = ObjectId.FromBytes(content);
+            if (IsLastSavedContent(asset.Id, contentId))
+            {
+                declinedContents.Remove(path);
+                return;
+            }
+
+            // The file holds what the session would save for this asset: it has been touched without being changed
             var logger = new LoggerResult();
             asset.PrepareSave(logger);
             if (SerializeAsSaved(asset.AssetItem, logger).AsSpan().SequenceEqual(content))
@@ -254,7 +313,6 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 return;
             }
 
-            var contentId = ObjectId.FromBytes(content);
             if (declinedContents.TryGetValue(path, out var declinedId) && declinedId == contentId)
                 return;
 

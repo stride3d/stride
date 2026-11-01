@@ -1015,7 +1015,10 @@ namespace Stride.Core.Assets.Editor.ViewModel
                     var saveParameters = PackageSaveParameters.Default();
 
                     AllAssets.ForEach(x => x.PrepareSave(sessionResult));
+                    // Saving clears their dirty flag
+                    var savedAssets = AllAssets.Select(x => x.AssetItem).Where(x => x.IsDirty).ToList();
                     session.Save(sessionResult, saveParameters);
+                    externalAssetChanges?.NotifySaved(savedAssets);
 
                     success = true;
                 }
