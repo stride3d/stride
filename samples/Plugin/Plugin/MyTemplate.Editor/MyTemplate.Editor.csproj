@@ -5,6 +5,7 @@
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <Nullable>enable</Nullable>
     <RootNamespace>MyTemplate.Editor</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
     <Version>1.0.0</Version>
     <!-- What this companion carries: Game Studio extensions (gizmos, previews); only the Game Studio loads it -->
     <StridePackageKind>Editor</StridePackageKind>
