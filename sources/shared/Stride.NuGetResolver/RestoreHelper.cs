@@ -294,7 +294,8 @@ namespace Stride.Core.Assets
 
                 var restoreArgs = new RestoreArgs
                 {
-                    AllowNoOp = true,
+                    // A local build can replace packages without changing their versions or the root restore spec.
+                    AllowNoOp = !NuGetResolverCache.IsDevVersion(versionRange.MinVersion),
                     CacheContext = context,
                     CachingSourceProvider = new CachingSourceProvider(new PackageSourceProvider(settings)),
                     Log = logger,
