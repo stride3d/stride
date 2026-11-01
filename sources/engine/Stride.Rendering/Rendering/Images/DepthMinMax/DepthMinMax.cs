@@ -53,6 +53,9 @@ namespace Stride.Rendering.Images
                 effect.Parameters.Set(DepthMinMaxShaderKeys.TextureMap, fromTexture);
                 effect.Parameters.Set(DepthMinMaxShaderKeys.TextureReduction, fromTexture);
 
+                // ImageEffect only transitions the textures given with SetInput, and the previous pass rendered to this one
+                context.CommandList.ResourceBarrierTransition(fromTexture, BarrierLayout.ShaderResource);
+
                 effect.SetOutput(downTexture);
                 effect.Parameters.Set(IsFirstPassKey, isFirstPass);
                 ((RendererBase)effect).Draw(context);
