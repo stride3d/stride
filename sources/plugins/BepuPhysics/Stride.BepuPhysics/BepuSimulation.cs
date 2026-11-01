@@ -191,9 +191,18 @@ public sealed class BepuSimulation : IDisposable
     /// <remarks>
     /// Dropping will cause physics time and game time to diverge,
     /// potentially introducing issues in your components implementing <see cref="ISimulationUpdate"/>
+    /// <br/>
+    /// The counter defining the amount of time before a new step needs to run is still decremented,
+    /// meaning that the amount of ticks that are carried between updates is actually <see cref="PostponedTicksCap"/> + some fraction of a step.
+    /// <br/>
+    /// Values below -1 are ignored.
     /// </remarks>
     [Display(7, "Postponed Ticks Cap", CategoryTime)]
-    public int PostponedTicksCap { get; set; } = -1;
+    public int PostponedTicksCap
+    {
+        get;
+        set => field = value >= -1 ? value : field;
+    } = -1;
 
     /// <summary>
     /// Allows for per-body features like <see cref="BodyComponent.Gravity"/> at a cost to the simulation's performance
@@ -815,18 +824,8 @@ public sealed class BepuSimulation : IDisposable
             }
         }
 
-        if (PostponedTicksCap != -1 && _remainingUpdateTime > FixedTimeStep * PostponedTicksCap)
-        {
-            if (PostponedTicksCap != 0)
-            {
-                _remainingUpdateTime = FixedTimeStep * (PostponedTicksCap - 1);
-                _remainingUpdateTime += TimeSpan.FromTicks(_remainingUpdateTime.Ticks % FixedTimeStep.Ticks);
-            }
-            else
-            {
-                _remainingUpdateTime = TimeSpan.Zero;
-            }
-        }
+        if (PostponedTicksCap != -1 && _remainingUpdateTime >= FixedTimeStep * (PostponedTicksCap + 1))
+            _remainingUpdateTime = FixedTimeStep * PostponedTicksCap + TimeSpan.FromTicks(_remainingUpdateTime.Ticks % FixedTimeStep.Ticks);
 
         InterpolateTransforms();
     }

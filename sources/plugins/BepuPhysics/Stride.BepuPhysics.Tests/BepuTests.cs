@@ -624,19 +624,28 @@ namespace Stride.BepuPhysics.Tests
         }
 
         [Theory]
-        // 60hz sim with a max budget of 16ms*0.5, physics takes 17ms longer on the first frame, which is right past our budget for that frame,
-        // We carry that time to next frame.
-        // Should still lead to 8 ticks as the time is not dropped, next frame caught up
-        [InlineData(17, 8, -1)]
-        // 60hz sim with a max budget of 16ms*0.5, physics takes 17ms longer on the first frame, which is right past our budget for that frame,
-        // we drop the additional time.
-        // This should lead to 5 ticks as the time is dropped for that frame, next frame processes only its four steps
-        [InlineData(17, 5, 0)]
-        public static void PhysicsBudgetOverflowTest(int sleepDuration, int expectedTicks, int ticksCap)
+        // 16ms per physics tick with a budget of 16ms*0.5.
+        // Update for 64ms, 4 physics tick to run with the first one taking 17ms longer breaking past our budget.
+        // We postpone the three other ticks to next update given our unlimited cap(-1).
+        // Next one runs 64ms worth of ticks again, it goes through the  Should still lead to 8 ticks as the time is not dropped, next frame caught up.
+        [InlineData(16, 64, 17, -1, 1, 8)]
+        // Same setup, but this time we have a cap of zero ticks.
+        // From the first batch of four, the first one will be processed, while the others will be discarded.
+        // The second batch then runs, and given that no additional ticks have been queued up, processes its four ticks and ends.
+        [InlineData(16, 64, 17, 0, 1, 5)]
+        // Same setup, but this time we have a cap of two ticks.
+        // From the first batch of four, the first one will be processed, two of them will be queued up, and the last one will be discarded.
+        // The second batch then runs, processes the two that have been queued up, then its four ticks and ends.
+        [InlineData(16, 64, 17, 2, 1, 7)]
+        // Same setup, but this time we have a cap of zero ticks with an update time step of half a physics step.
+        // The first batch doesn't contain a whole step, its time is added to the counter. The cap here doesn't affect the counter as it doesn't contain a whole step yet.
+        // The second batch then runs, adds its half as well. Now that the counter has a full step, physics runs for one step and ends.
+        [InlineData(16, 8, 17, 0, 0, 1)]
+        public static void PhysicsBudgetOverflowTest(int physicsTimestep, int updateTimestep, int sleepDuration, int ticksCap, int expectedTicksAfterFirstUpdate, int expectedTicksTotal)
         {
             using var simulation = new BepuSimulation
             {
-                FixedTimeStep = TimeSpan.FromTicks(TimeSpan.TicksPerSecond / 60),
+                FixedTimeStep = TimeSpan.FromMilliseconds(physicsTimestep),
                 PhysicsBudget = 0.5f,
             };
 
@@ -653,13 +662,16 @@ namespace Stride.BepuPhysics.Tests
                 ticks++;
             } });
 
-            simulation.Update(simulation.FixedTimeStep * 4);
+            simulation.Update(TimeSpan.FromMilliseconds(updateTimestep));
             sleepDuration = 0;
+
+            Assert.Equal(expectedTicksAfterFirstUpdate, ticks);
+
             // Let it run to completion with postponed ticks and all
             simulation.PhysicsBudget = float.PositiveInfinity;
-            simulation.Update(simulation.FixedTimeStep * 4);
+            simulation.Update(TimeSpan.FromMilliseconds(updateTimestep));
 
-            Assert.Equal(expectedTicks, ticks);
+            Assert.Equal(expectedTicksTotal, ticks);
         }
 
         [Theory]
