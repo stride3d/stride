@@ -858,7 +858,7 @@ public static class MathUtil
     /// while 0 would be halfway between the first and last pixel with wrap around sampling.
     /// </param>
     /// <param name="textureSize">The amount of pixels across each dimensions of the texture</param>
-    /// <param name="texture">Texture pixel data laid-out in row-major</param>
+    /// <param name="texture">Texture pixel data laid-out to match the following access pattern [x + y * size.X]</param>
     /// <typeparam name="T">The data contained in a pixel</typeparam>
     /// <returns>The weighted average value at this <paramref name="coord"/></returns>
     /// <exception cref="ArgumentOutOfRangeException">The amount of pixel data does not match the size specified</exception>
@@ -880,7 +880,7 @@ public static class MathUtil
     /// while 0 would be halfway between the first and last pixel with wrap around sampling.
     /// </param>
     /// <param name="textureSize">The amount of pixels across each dimensions of the texture</param>
-    /// <param name="texture">Texture pixel data laid-out in row-major</param>
+    /// <param name="texture">Texture pixel data laid-out to match the following access pattern [x + y * size.X]</param>
     /// <typeparam name="T">The data contained in a pixel</typeparam>
     /// <returns>The weighted average value at this <paramref name="coord"/></returns>
     public static unsafe T BilinearSample<T>(Vector2 coord, Int2 textureSize, T* texture) where T : unmanaged, IMultiplyOperators<T, float, T>, IAdditionOperators<T, T, T>
@@ -911,7 +911,7 @@ public static class MathUtil
     /// while 0 would be halfway between the first and last pixel with wrap around sampling.
     /// </param>
     /// <param name="textureSize">The amount of pixels across each dimensions of the texture</param>
-    /// <param name="texture">Texture pixel data laid-out in row-major</param>
+    /// <param name="texture">Texture pixel data laid-out to match the following access pattern [x + y * size.X]</param>
     /// <returns>The weighted average value at this <paramref name="coord"/></returns>
     /// <exception cref="ArgumentOutOfRangeException">The amount of pixel data does not match the size specified</exception>
     public static unsafe float BilinearSample(Vector2 coord, Int2 textureSize, ReadOnlySpan<float> texture)
@@ -932,7 +932,7 @@ public static class MathUtil
     /// while 0 would be halfway between the first and last pixel with wrap around sampling.
     /// </param>
     /// <param name="textureSize">The amount of pixels across each dimensions of the texture</param>
-    /// <param name="texture">Texture pixel data laid-out in row-major</param>
+    /// <param name="texture">Texture pixel data laid-out to match the following access pattern [x + y * size.X]</param>
     /// <returns>The weighted average value at this <paramref name="coord"/></returns>
     public static unsafe float BilinearSample(Vector2 coord, Int2 textureSize, float* texture)
     {
@@ -967,7 +967,7 @@ public static class MathUtil
     /// while 0 would be halfway between the first and last pixel with wrap around sampling.
     /// </param>
     /// <param name="textureSize">The amount of pixels across each dimensions of the texture</param>
-    /// <param name="texture">Texture pixel data laid-out in row-major, then column</param>
+    /// <param name="texture">Texture pixel data laid-out to match the following access pattern [x + y * size.X + z * size.X * size.Y]</param>
     /// <typeparam name="T">The data contained in a pixel</typeparam>
     /// <returns>The weighted average value at this <paramref name="coord"/></returns>
     /// <exception cref="ArgumentOutOfRangeException">The amount of pixel data does not match the size specified</exception>
@@ -989,7 +989,7 @@ public static class MathUtil
     /// while 0 would be halfway between the first and last pixel with wrap around sampling.
     /// </param>
     /// <param name="textureSize">The amount of pixels across each dimensions of the texture</param>
-    /// <param name="texture">Texture pixel data laid-out in row-major, then column</param>
+    /// <param name="texture">Texture pixel data laid-out to match the following access pattern [x + y * size.X + z * size.X * size.Y]</param>
     /// <typeparam name="T">The data contained in a pixel</typeparam>
     /// <returns>The weighted average value at this <paramref name="coord"/></returns>
     public static unsafe T TrilinearSample<T>(Vector3 coord, Int3 textureSize, T* texture) where T : unmanaged, IMultiplyOperators<T, float, T>, IAdditionOperators<T, T, T>
@@ -1041,7 +1041,7 @@ public static class MathUtil
     /// while 0 would be halfway between the first and last pixel with wrap around sampling.
     /// </param>
     /// <param name="textureSize">The amount of pixels across each dimensions of the texture</param>
-    /// <param name="texture">Texture pixel data laid-out in row-major, then column</param>
+    /// <param name="texture">Texture pixel data laid-out to match the following access pattern [x + y * size.X + z * size.X * size.Y]</param>
     /// <returns>The weighted average value at this <paramref name="coord"/></returns>
     /// <exception cref="ArgumentOutOfRangeException">The amount of pixel data does not match the size specified</exception>
     public static unsafe float TrilinearSample(Vector3 coord, Int3 textureSize, ReadOnlySpan<float> texture)
@@ -1062,7 +1062,7 @@ public static class MathUtil
     /// while 0 would be halfway between the first and last pixel with wrap around sampling.
     /// </param>
     /// <param name="textureSize">The amount of pixels across each dimensions of the texture</param>
-    /// <param name="texture">Texture pixel data laid-out in row-major, then column</param>
+    /// <param name="texture">Texture pixel data laid-out to match the following access pattern [x + y * size.X + z * size.X * size.Y]</param>
     /// <returns>The weighted average value at this <paramref name="coord"/></returns>
     public static unsafe float TrilinearSample(Vector3 coord, Int3 textureSize, float* texture)
     {
