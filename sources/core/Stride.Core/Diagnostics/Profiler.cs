@@ -22,7 +22,8 @@ public delegate void ProfilerDisposeEventDelegate(ref ProfilingState profilingSt
 /// This class is a lightweight profiler that can log detailed KPI (Key Performance Indicators) of a game.
 /// To use it, simply enclose your code in a <c>using (var profile = Profiler.Begin(...))</c> block:
 /// <code>
-/// public static readonly ProfilingKey GameInitialization = new ProfilingKey(OptionalParentKey, "Initialization");
+/// // Keys can also be created without a parent
+/// public static readonly ProfilingKey GameInitialization = new ProfilingKey(ParentKey, "Initialization");
 /// 
 /// // This will log a 'Begin' profiling event.
 /// using (var profile = Profiler.Begin(GameInitialization))
@@ -53,11 +54,11 @@ public delegate void ProfilerDisposeEventDelegate(ref ProfilingState profilingSt
 /// </code>
 /// To enable all profiles, use:
 /// <code>
-/// Profiler.EnableAll()
+/// Profiler.EnableAll();
 /// </code>
 /// 
 /// When a profile has <c>ProfilingKeyFlags.Log</c> set in its key, its events will get logged using the standard
-/// <see cref="Diagnostics.Logger"/> infrastructure while its enabled. Note also that when profiling, it is possible
+/// <see cref="Diagnostics.Logger"/> infrastructure while it's enabled. Note also that when profiling, it is possible
 /// to attach some property values (counters, indicators, etc.) to a profiler state. These values will be displayed
 /// along the standard profiler state. You can use <see cref="ProfilingState.Attributes"/> to attach a property value
 /// to a <see cref="ProfilingState"/>.
@@ -264,15 +265,15 @@ public static class Profiler
     /// needs to be started and disposed manually. See remarks.
     /// </summary>
     /// <param name="profilingKey">Key of the profile.</param>
-    /// <returns>An inactive profile state.</returns>
-    /// <remarks>The created instance needs to be started using <see cref="ProfilingState.Begin()"/> and disposed
-    /// using <see cref="ProfilingState.End()"/>.
+    /// <returns>A profile state that hasn't been started yet.</returns>
+    /// <remarks>The created instance needs to be started using <see cref="ProfilingState.Begin()"/> and stopped
+    /// using <see cref="ProfilingState.End()"/> or <see cref="ProfilingState.Dispose"/>.
     /// 
     /// It's recommended to instead use <c>using (var profile = Profiler.Begin(...)) {...}</c> or <c>using var
     /// profile = Profiler.Begin(...);</c> to ensure that the profile state gets properly disposed.</remarks>
     /// <example>
     /// <code>
-    /// public ProfilingKey MyProfilingKey = new ProfilingKey("MyProfilingKey");
+    /// public static readonly ProfilingKey MyProfilingKey = new ProfilingKey("MyProfilingKey");
     /// 
     /// var state = Profiler.New(MyProfilingKey);
     /// state.Begin();
@@ -410,7 +411,7 @@ public static class Profiler
     /// <see cref="Stopwatch.Frequency"/> will be used instead.</param>
     /// <remarks>
     /// Depending on the length of measured time, the text will use minutes, seconds or miliseconds. For example:
-    /// <c>0:001.331ms</c> for sub-second measures and <c>0:013.457</c> for above-minute.
+    /// <c>001.331ms</c> for under 1 second time span, <c>002.566s</c> for under 1 minute and <c>013.457m</c> for above 1 minute.
     /// </remarks>
     public static void AppendTime(StringBuilder builder, long accumulatedTicks, long tickFrequency = 0)
     {
@@ -425,7 +426,7 @@ public static class Profiler
     /// <param name="accumulatedTimeSpan">The amount of time to append.</param>
     /// <remarks>
     /// Depending on the length of measured time, the text will use minutes, seconds or miliseconds. For example:
-    /// <c>0:001.331ms</c> for sub-second time and <c>0:013.457</c> for above-minute.
+    /// <c>001.331ms</c> for under 1 second time span, <c>002.566s</c> for under 1 minute and <c>013.457m</c> for above 1 minute.
     /// </remarks>
     public static void AppendTime(StringBuilder builder, TimeSpan accumulatedTimeSpan)
     {

@@ -68,8 +68,12 @@ public struct ProfilingState : IDisposable
     }
 
     /// <summary>
-    /// Updates <see cref="isEnabled"/> based on if the profile is marked as enabled in the profiler.
+    /// Updates internal enabled state based on if the profile is marked as enabled in the profiler.
     /// </summary>
+    /// <remarks>
+    /// This can be used by long-running profiles that use markers, to ensure they are or aren't emitting events when they
+    /// should or shouldn't.
+    /// </remarks>
     public void CheckIfEnabled()
     {
         isEnabled = Profiler.IsEnabled(ProfilingKey);
@@ -84,7 +88,9 @@ public struct ProfilingState : IDisposable
     }
 
     /// <summary>
-    /// Emits a Begin event. This method shouldn't be called if you used <see cref="Profiler.Begin(ProfilingKey)"/> to create this instance.
+    /// Emits a Begin event. This method shouldn't be called if you used <see cref="Profiler.Begin(ProfilingKey)"/> or
+    /// <see cref="Profiler.Begin(ProfilingKey, string, ProfilingCustomValue?, ProfilingCustomValue?, ProfilingCustomValue?,
+    /// ProfilingCustomValue?)"/> to create this instance.
     /// </summary>
     public void Begin()
     {
@@ -92,7 +98,9 @@ public struct ProfilingState : IDisposable
     }
 
     /// <summary>
-    /// Emits a Begin event with the specified formatted text. This method shouldn't be called if you used <see cref="Profiler.Begin(ProfilingKey)"/> to create this instance.
+    /// Emits a Begin event. This method shouldn't be called if you used <see cref="Profiler.Begin(ProfilingKey)"/> or
+    /// <see cref="Profiler.Begin(ProfilingKey, string, ProfilingCustomValue?, ProfilingCustomValue?, ProfilingCustomValue?,
+    /// ProfilingCustomValue?)"/> to create this instance.
     /// </summary>
     /// <param name="text">A message to pass with the event.</param>
     /// <param name="value0">First optional value to pass with the event (can be int, float, long or double).</param>

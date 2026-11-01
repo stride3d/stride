@@ -40,7 +40,7 @@ public class ProfilingKey
     /// </summary>
     /// <param name="parent">The parent profile key.</param>
     /// <param name="name">Name of the profile.</param>
-    /// <exception cref="System.ArgumentNullException">Throw when <paramref name="parent"/> is set to null.</exception>
+    /// <exception cref="System.ArgumentNullException">Thrown when <paramref name="parent"/> is set to null.</exception>
     public ProfilingKey(ProfilingKey parent, string name, ProfilingKeyFlags flags = ProfilingKeyFlags.None)
         : this($"{parent}.{name}", flags)
     {
