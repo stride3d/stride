@@ -68,6 +68,31 @@ public class ShaderDefinitionCheckTests : IDisposable
         AssertWarning(expected, "SDSL0200", log);
     }
 
+    // SDSL0217: a misspelled attribute does nothing on a class or a cbuffer; libraries read attributes of their own
+    [Theory]
+    [InlineData("[Root] shader CheckAttribute { }", null)]
+    [InlineData("[Pure] module CheckAttribute { }", null)]
+    [InlineData("shader CheckAttribute { [PushConstant] cbuffer Block { module float Value; } }", null)]
+    [InlineData("[Summary(\"Blurs\")] [Category(\"Filter\")] shader CheckAttribute { }", null)]
+    [InlineData("[Route] shader CheckAttribute { }", null)]
+    [InlineData("shader CheckAttribute { [Tags(\"Any\")] cbuffer Block { float Value; } }", null)]
+    [InlineData("shader CheckAttribute { [Link(\"Value\")] float Value; }", null)]
+    [InlineData("[root] shader CheckAttribute { }", "Warning: CheckAttribute.sdsl(3,1): SDSL0217: Attribute [root] on CheckAttribute does nothing: the compiler only knows [Root] and [Pure] there. Check its spelling.")]
+    [InlineData("shader CheckAttribute { [PushConstants] cbuffer Block { float Value; } }", "Warning: CheckAttribute.sdsl(3,25): SDSL0217: Attribute [PushConstants] on cbuffer Block does nothing: the compiler only knows [PushConstant] there. Check its spelling.")]
+    [InlineData("shader CheckAttribute { [PushConstnt] cbuffer Block { float Value; } }", "Warning: CheckAttribute.sdsl(3,25): SDSL0217: Attribute [PushConstnt] on cbuffer Block does nothing: the compiler only knows [PushConstant] there. Check its spelling.")]
+    public void MisspelledAttributeOnClassOrCBufferIsReported(string shader, string? expected)
+    {
+        Write("CheckAttribute", $$"""
+            namespace Stride.Shaders.Tests;
+
+            {{shader}}
+            """);
+
+        var (ok, log) = Compile("CheckAttribute");
+        Assert.True(ok, log);
+        AssertWarning(expected, "SDSL0217", log);
+    }
+
     // SDSL0176 (from CheckOverriddenMethod): an inherited method of the same name but another signature
     [Fact]
     public void OverrideWithAnotherSignatureIsAnError()

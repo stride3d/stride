@@ -384,6 +384,7 @@ public sealed partial class CBuffer(string name, TextLocation info) : ShaderBuff
             }
         }
 
+        DefinitionChecks.CheckAttributes(table, Attributes, $"cbuffer {Name}", "PushConstant");
         if (IsPushConstant)
             CheckPushConstant(table);
 

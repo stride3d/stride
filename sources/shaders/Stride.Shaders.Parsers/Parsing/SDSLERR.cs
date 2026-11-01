@@ -178,5 +178,6 @@ public static class SDSLErrorMessages
     public const string SDSL0212 = "SDSL0212: {0}.{1}(): 'clone' has no effect since Stride 4.4. Remove it.";
     public const string SDSL0213 = "SDSL0213: [Pure] module {0}: {1} in {2}() works only in a pixel shader, and a pure module can run in any stage. Compute the value in the caller and pass it as a parameter, or remove [Pure] from {0}.";
     public const string SDSL0214 = "SDSL0214: 'partial' on {0} has no meaning and is ignored. Remove it.";
+    public const string SDSL0217 = "SDSL0217: Attribute [{0}] on {1} does nothing: the compiler only knows {2} there. Check its spelling.";
     public const string SDSL0215 = "SDSL0215: {0} sees two structs named {1}, declared by {2} and {3}: {1} means the one of {2} (the first inherited or imported). Rename one of them.";
 }

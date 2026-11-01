@@ -685,6 +685,7 @@ public partial class ShaderClass(Identifier name, TextLocation info) : ShaderDec
 
         if (IsPartial)
             table.AddWarning(new(Name.Info, string.Format(SDSLErrorMessages.SDSL0214, Name.Name)));
+        DefinitionChecks.CheckAttributes(table, Attributes, Name.Name, "Root", "Pure");
         // Structs (plain and partial views) first, in the order they contain each other
         if (!PartialStructs.DeclareStructs(table, context, this))
             return;
