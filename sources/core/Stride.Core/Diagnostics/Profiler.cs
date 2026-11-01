@@ -407,10 +407,10 @@ public static class Profiler
     /// </summary>
     /// <param name="builder">The string builder to append time.</param>
     /// <param name="accumulatedTicks">Tick amount that represents time.</param>
-    /// <param name="tickFrequency">The tick frequency that was used when measuring time. If its set to 0,
+    /// <param name="tickFrequency">The tick frequency that was used when measuring time. If it's set to 0,
     /// <see cref="Stopwatch.Frequency"/> will be used instead.</param>
     /// <remarks>
-    /// Depending on the length of measured time, the text will use minutes, seconds or miliseconds. For example:
+    /// Depending on the length of measured time, the text will use minutes, seconds or milliseconds. For example:
     /// <c>001.331ms</c> for under 1 second time span, <c>002.566s</c> for under 1 minute and <c>013.457m</c> for above 1 minute.
     /// </remarks>
     public static void AppendTime(StringBuilder builder, long accumulatedTicks, long tickFrequency = 0)
@@ -425,7 +425,7 @@ public static class Profiler
     /// <param name="builder">The string builder to append time.</param>
     /// <param name="accumulatedTimeSpan">The amount of time to append.</param>
     /// <remarks>
-    /// Depending on the length of measured time, the text will use minutes, seconds or miliseconds. For example:
+    /// Depending on the length of measured time, the text will use minutes, seconds or milliseconds. For example:
     /// <c>001.331ms</c> for under 1 second time span, <c>002.566s</c> for under 1 minute and <c>013.457m</c> for above 1 minute.
     /// </remarks>
     public static void AppendTime(StringBuilder builder, TimeSpan accumulatedTimeSpan)
