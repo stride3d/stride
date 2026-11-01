@@ -71,8 +71,8 @@ public struct ProfilingState : IDisposable
     /// Updates internal enabled state based on if the profile is marked as enabled in the profiler.
     /// </summary>
     /// <remarks>
-    /// This can be used by long-running profiles that use markers, to ensure events are only being emitted when the
-    /// profile is enabled.
+    /// This can be used by long-running profiles that use markers, to ensure events start or stop emitting when the
+    /// profile gets enabled or disabled at runtime.
     /// </remarks>
     public void CheckIfEnabled()
     {
