@@ -18,7 +18,9 @@ namespace Stride.Engine.Tests
     /// <summary>
     /// An effect is compiled for the lights of the views that draw its object. Two views look at two spheres far
     /// apart, a shadowed point light beside the first: the first sphere's effect takes the point light group and the
-    /// second's does not, where one lighting permutation over every view of the frame would give it to both.
+    /// second's does not, where one lighting permutation over every view of the frame would give it to both. The
+    /// spheres enter at the second frame: the first draws the light alone, and a group laid out for no set in a frame
+    /// keeps its shader for the next.
     /// </summary>
     public class LightingSetsTest : EngineTestBase
     {
@@ -77,7 +79,12 @@ namespace Stride.Engine.Tests
         {
             base.RegisterTests();
 
-            FrameGameSystem.Draw(2, () =>
+            FrameGameSystem.Update(1, () =>
+            {
+                Scene.Entities.Add(litSphere);
+                Scene.Entities.Add(unlitSphere);
+            });
+            FrameGameSystem.Draw(3, () =>
             {
                 var lit = DirectLightShaders(litSphere);
                 var unlit = DirectLightShaders(unlitSphere);
@@ -96,9 +103,7 @@ namespace Stride.Engine.Tests
         private Entity Sphere(string name, Vector3 position, Material material)
         {
             var sphere = new SphereProceduralModel { Radius = 1, MaterialInstance = { Material = material } };
-            var entity = new Entity(name, position) { new ModelComponent(new ProceduralModelDescriptor(sphere).GenerateModel(Services)) };
-            Scene.Entities.Add(entity);
-            return entity;
+            return new Entity(name, position) { new ModelComponent(new ProceduralModelDescriptor(sphere).GenerateModel(Services)) };
         }
 
         private static ForwardRenderer ForwardRendererLike(ForwardRenderer other)

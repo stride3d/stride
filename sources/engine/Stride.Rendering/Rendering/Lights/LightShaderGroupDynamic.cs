@@ -32,6 +32,10 @@ namespace Stride.Rendering.Lights
 
         public int LightCurrentCount { get; private set; }
 
+        /// <summary>
+        /// The light count the shader was last laid out for; <see cref="UpdateLayout"/> builds the shader again when
+        /// <see cref="LightCurrentCount"/> differs. It stays across a frame that lays the group out for no set.
+        /// </summary>
         public int LightLastCount { get; private set; }
 
         protected LightShaderGroupDynamic(RenderContext renderContext, ILightShadowMapShaderGroupData shadowGroup)
@@ -45,7 +49,6 @@ namespace Stride.Rendering.Lights
         {
             base.Reset();
             lights.Clear();
-            LightLastCount = LightCurrentCount;
             LightCurrentCount = 0;
         }
 
