@@ -4,8 +4,6 @@
     <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
     <StrideLocalized>true</StrideLocalized>
     <TargetFramework>$(StrideEditorTargetFramework)</TargetFramework>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
-    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
     <EnableDefaultPageItems>false</EnableDefaultPageItems>
