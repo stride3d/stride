@@ -21,7 +21,7 @@ internal static unsafe class WindowsDisplayProvider
     {
         var outputs = new List<DisplayInfo>();
         var refreshRates = ReadRefreshRates();
-        using var dxgi = DXGI.GetApi();
+        using var dxgi = DXGI.GetApi(window: null);
         if (((HResult)dxgi.CreateDXGIFactory1<IDXGIFactory1>(out var factory)).IsFailure)
             return [];
         try
