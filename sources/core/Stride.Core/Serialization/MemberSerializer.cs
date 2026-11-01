@@ -37,7 +37,7 @@ public abstract class MemberSerializer<T> : DataSerializer<T>
 
     public static DataSerializer<T> Create(SerializerSelector serializerSelector, bool nullable = true)
     {
-        var dataSerializer = serializerSelector.GetSerializer<T>() ?? throw new ArgumentException($"No serializer available for type {typeof(T).FullName}");
+        var dataSerializer = serializerSelector.GetSerializer<T>() ?? NullSerializer<T>.Instance;
         if (!typeof(T).IsValueType)
         {
             if (serializerSelector.ReuseReferences)
