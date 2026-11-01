@@ -26,7 +26,7 @@ public static class MemberSerializer
 public abstract class MemberSerializer<T> : DataSerializer<T>
 {
     // For now we hardcode here that Type subtypes should be ignored, but this should probably be a DataSerializerAttribute flag?
-    private protected static bool IsSealed => typeof(T).IsSealed || typeof(T) == typeof(Type);
+    private protected static readonly bool IsSealed = typeof(T).IsSealed || typeof(T) == typeof(Type);
 
     protected DataSerializer<T> dataSerializer;
 
