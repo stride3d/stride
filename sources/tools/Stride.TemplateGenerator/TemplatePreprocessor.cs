@@ -430,7 +430,7 @@ internal class TemplatePreprocessor
     private static readonly string[] NonEnginePackagePrefixes =
     {
         "Stride.Awesome.Shaders", "Stride.Community", "Stride.Dependencies.", "Stride.GNU.",
-        "Stride.GraphX", "Stride.Mono.", "Stride.OpenTK", "Stride.QuickGraph",
+        "Stride.Mono.", "Stride.OpenTK", "Stride.QuickGraph",
     };
 
     private static bool IsNonEnginePackage(string packageId)

@@ -21,6 +21,8 @@
 
   <ItemGroup>
     <Compile Include="..\..\shared\Stride.NuGetResolver\NuGetResolverCache.cs" Link="Shared\NuGetResolverCache.cs" />
+    <Compile Include="..\..\shared\Stride.NuGetResolver\RestoreHelper.cs" Link="Shared\RestoreHelper.cs" />
+    <Compile Include="..\..\shared\Stride.NuGetResolver\GraphicsApiSelector.cs" Link="Shared\GraphicsApiSelector.cs" />
     <Compile Include="..\Stride.Cli\Core\NewTemplateRules.cs" Link="Cli\NewTemplateRules.cs" />
   </ItemGroup>
 </Project>

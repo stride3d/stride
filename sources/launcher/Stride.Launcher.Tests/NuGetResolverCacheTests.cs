@@ -45,6 +45,7 @@ public sealed class NuGetResolverCacheTests : IDisposable
     public void IsDevVersion(string version, bool expected)
     {
         Assert.Equal(expected, NugetStore.IsDevVersion(new PackageVersion(version)));
+        Assert.Equal(expected, NuGetResolverCache.IsDevVersion(NuGetVersion.Parse(version)));
     }
 
     [Fact]
