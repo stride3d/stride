@@ -20,6 +20,6 @@
          CA1401: P/Invokes should not be visible
          CS1591: Missing XML comment for publicly visible type or member
          VSTHRD200: Use "Async" suffix for async methods -->
-    <NoWarn>$(NoWarn);CA1060;CA1401;CS1591;VSTHRD200</NoWarn>
+    <NoWarn>$(NoWarn);CS1591;VSTHRD200</NoWarn>
   </PropertyGroup>
 </Project>
