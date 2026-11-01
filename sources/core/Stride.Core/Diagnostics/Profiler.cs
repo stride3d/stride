@@ -32,9 +32,6 @@ public delegate void ProfilerDisposeEventDelegate(ref ProfilingState profilingSt
 /// 
 ///     // You can log 'Mark' profiling event to indicate a specific part of code was executed
 ///     profile.Mark("CriticalPart");
-/// 
-///     // Adds an attribute that will be passed when the code finishes being profiled
-///     profile.Attributes.Add("ModelCount", modelCount);
 /// } // here's where the code stops being profiled and information is collected
 /// </code>
 /// 
@@ -60,8 +57,7 @@ public delegate void ProfilerDisposeEventDelegate(ref ProfilingState profilingSt
 /// When a profile has <c>ProfilingKeyFlags.Log</c> set in its key, its events will get logged using the standard
 /// <see cref="Diagnostics.Logger"/> infrastructure while it's enabled. Note also that when profiling, it is possible
 /// to attach some property values (counters, indicators, etc.) to a profiler state. These values will be displayed
-/// along the standard profiler state. You can use <see cref="ProfilingState.Attributes"/> to attach a property value
-/// to a <see cref="ProfilingState"/>.
+/// along the standard profiler state.
 /// 
 /// To register your own system to receive <see cref="ProfilingEvent">ProfilingEvents</see> use the <see cref="Subscribe"/>
 /// and <see cref="Unsubscribe"/> methods.
