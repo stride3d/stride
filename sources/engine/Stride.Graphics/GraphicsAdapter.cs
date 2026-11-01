@@ -98,5 +98,11 @@ namespace Stride.Graphics
         public required string ApiName { get; init; }
         /// <summary>API-level version (e.g. "1.4.334" for Vulkan, "11_1" for D3D11 feature level).</summary>
         public required string ApiVersion { get; init; }
+        /// <summary>
+        ///   The identity of the driver's pipeline cache format, Vulkan's <c>pipelineCacheUUID</c>: the data of a pipeline
+        ///   cache (<see cref="GraphicsDevice.GetPipelineCacheData"/>) is for the devices whose value is the same, as the
+        ///   Vulkan tools print it. <see cref="Guid.Empty"/> on an API without an exposed pipeline cache (Direct3D).
+        /// </summary>
+        public Guid PipelineCacheUuid { get; init; }
     }
 }

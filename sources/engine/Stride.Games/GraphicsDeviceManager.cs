@@ -23,9 +23,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 using Stride.Core;
 using Stride.Core.Diagnostics;
+using Stride.Core.IO;
 using Stride.Graphics;
 
 using static Stride.Graphics.GraphicsProfile;
@@ -41,6 +43,8 @@ namespace Stride.Games
         // Switch to indicate if window events should be delayed until the beginning of frames,
         // just before running the Game.Window.RunCallback
         private const bool DelayWindowEvents = true;
+
+        private static readonly Logger Log = GlobalLogger.GetLogger(nameof(GraphicsDeviceManager));
 
         /// <summary>
         ///   Default width for the Back-Buffer.
@@ -397,6 +401,28 @@ namespace Stride.Games
                     deviceSettingsChanged = true;
                 }
             }
+        }
+
+        /// <summary>
+        ///   Gets or sets whether the driver's pipeline cache is kept between runs: the file of an earlier run is merged
+        ///   into the Graphics Device when it is created, and the device's cache is written when it is disposed, so the
+        ///   driver does not build the pipelines of the earlier runs again. The file is <c>pipelines-&lt;uuid&gt;.bin</c> in
+        ///   the application's cache (<see cref="VirtualFileSystem.ApplicationCache"/>), one per device and driver
+        ///   version (<see cref="AdapterDriverInfo.PipelineCacheUuid"/>). <see langword="true"/> by default; set it before
+        ///   the device is created to skip the merge. On an API without an exposed pipeline cache (Direct3D) nothing is
+        ///   written.
+        /// </summary>
+        public bool PersistPipelineCache { get; set; } = true;
+
+        /// <summary>
+        ///   Writes the device's pipeline cache to its file now, as the device's disposal does, so the pipelines built so
+        ///   far survive a crash or a hard exit: a game calls it after its loading screen, where most of them are built.
+        ///   Does nothing while <see cref="PersistPipelineCache"/> is off, or before the device is created.
+        /// </summary>
+        public void SavePipelineCache()
+        {
+            if (GraphicsDevice is not null)
+                SavePipelineCache(GraphicsDevice);
         }
 
 
@@ -1056,7 +1082,82 @@ namespace Stride.Games
         /// </summary>
         private void GraphicsDevice_Disposing(object sender, EventArgs e)
         {
+            SavePipelineCache((GraphicsDevice)sender);
             OnDeviceDisposing(sender, e);
+        }
+
+        /// <summary>
+        ///   The file the pipeline cache of a device on <paramref name="adapter"/> is kept in, under
+        ///   <see cref="VirtualFileSystem.ApplicationCache"/>; <see langword="null"/> on an API without an exposed pipeline cache.
+        /// </summary>
+        internal static string GetPipelineCacheFile(GraphicsAdapter adapter)
+        {
+            var uuid = adapter?.DriverInfo?.PipelineCacheUuid ?? Guid.Empty;
+            return uuid == Guid.Empty ? null : $"pipelines-{uuid:N}.bin";
+        }
+
+        private void MergePipelineCache(GraphicsDevice device)
+        {
+            if (!PersistPipelineCache || GetPipelineCacheFile(device.Adapter) is not { } file)
+                return;
+
+            try
+            {
+                if (!VirtualFileSystem.ApplicationCache.FileExists(file))
+                    return;
+
+                byte[] data;
+                using (var stream = VirtualFileSystem.ApplicationCache.OpenStream(file, VirtualFileMode.Open, VirtualFileAccess.Read))
+                {
+                    data = new byte[stream.Length];
+                    stream.ReadExactly(data);
+                }
+
+                if (device.MergePipelineCache(data))
+                    Log.Debug($"Pipeline cache {file} merged: {data.Length} bytes");
+                else
+                    Log.Info($"Pipeline cache {file} dropped: not of this device and driver, or damaged");
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                Log.Warning($"Pipeline cache {file} not read: {e.Message}");
+            }
+        }
+
+        private void SavePipelineCache(GraphicsDevice device)
+        {
+            if (!PersistPipelineCache || GetPipelineCacheFile(device.Adapter) is not { } file)
+                return;
+
+            var data = device.GetPipelineCacheData();
+            if (data.Length == 0)
+                return;
+
+            // Written whole under a name of its own, then moved over the file in one step, so a crash meanwhile leaves the
+            // earlier file, and two devices disposed at once (the editor's previews) both end with a whole file. The move
+            // goes through System.IO since the provider's FileMove does not overwrite; the cache is a FileSystemProvider.
+            var cache = VirtualFileSystem.ApplicationCache;
+            var temporary = $"{file}.{Guid.NewGuid():N}.tmp";
+            try
+            {
+                using (var stream = cache.OpenStream(temporary, VirtualFileMode.Create, VirtualFileAccess.Write))
+                    stream.Write(data, 0, data.Length);
+
+                File.Move(cache.GetAbsolutePath(temporary), cache.GetAbsolutePath(file), overwrite: true);
+                Log.Debug($"Pipeline cache {file} written: {data.Length} bytes");
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                Log.Warning($"Pipeline cache {file} not written: {e.Message}");
+                try
+                {
+                    if (cache.FileExists(temporary))
+                        cache.FileDelete(temporary);
+                }
+                catch (Exception cleanup) when (cleanup is IOException or UnauthorizedAccessException)
+                {
+                }
+            }
         }
 
 
@@ -1209,6 +1310,7 @@ namespace Stride.Games
                     GraphicsDevice.ShaderProfile = ShaderProfile;
 
                 GraphicsDevice.Disposing += GraphicsDevice_Disposing;
+                MergePipelineCache(GraphicsDevice);
 
                 OnDeviceCreated(this, EventArgs.Empty);
             }
