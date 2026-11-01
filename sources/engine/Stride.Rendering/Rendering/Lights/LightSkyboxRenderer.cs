@@ -56,6 +56,8 @@ namespace Stride.Rendering.Lights
 
                     lightShaderGroupsPerSkybox.Add(light, lightShaderGroup);
                 }
+
+                lightShaderGroup.IncludeView(parameters.ViewIndex);
             }
 
             // Consume all the lights

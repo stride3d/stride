@@ -87,6 +87,13 @@ namespace Stride.Rendering.LightProbes
                 shaderSourceDisabled = new ShaderClassSource("EnvironmentLight");
             }
 
+            /// <inheritdoc/>
+            public override bool IsUsedIn(ulong viewMask)
+            {
+                // Always in the shader; UpdateLayout picks the shader by whether there are light probes
+                return true;
+            }
+
             public override void UpdateLayout(string compositionName)
             {
                 base.UpdateLayout(compositionName);

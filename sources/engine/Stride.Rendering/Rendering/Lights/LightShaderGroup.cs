@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using Stride.Core.Mathematics;
 using Stride.Engine;
@@ -28,7 +29,47 @@ namespace Stride.Rendering.Lights
         public bool HasEffectPermutations { get; protected set; } = false;
 
         /// <summary>
-        /// Called when layout is updated, so that parameter keys can be recomputed.
+        /// The views whose lights this group holds this frame, one bit per view index of the lighting feature
+        /// (<see cref="ViewBit"/>). An effect compiled for a set of views takes the group when the set shares a view
+        /// with it; a group every effect takes regardless overrides <see cref="IsUsedIn"/>.
+        /// </summary>
+        public ulong ViewMask { get; private set; }
+
+        /// <summary>
+        /// The bit of the view at <paramref name="viewIndex"/> in a view mask; the views past the 64th share the last bit.
+        /// </summary>
+        public static ulong ViewBit(int viewIndex)
+        {
+            return 1UL << Math.Min(viewIndex, 63);
+        }
+
+        /// <summary>
+        /// Marks the group as holding lights of the view at <paramref name="viewIndex"/>.
+        /// </summary>
+        public void IncludeView(int viewIndex)
+        {
+            ViewMask |= ViewBit(viewIndex);
+        }
+
+        /// <summary>
+        /// Whether an effect compiled for the views of <paramref name="viewMask"/> takes this group.
+        /// </summary>
+        public virtual bool IsUsedIn(ulong viewMask)
+        {
+            return (ViewMask & viewMask) != 0;
+        }
+
+        /// <summary>
+        /// Selects the views the next <see cref="UpdateLayout"/> lays the group out for, so a group whose shader is sized
+        /// by its lights counts the lights of those views alone.
+        /// </summary>
+        public virtual void SelectViews(ulong viewMask)
+        {
+        }
+
+        /// <summary>
+        /// Called when layout is updated, so that parameter keys can be recomputed. A group laid out in several sets of
+        /// views at different indices is laid out again before each use.
         /// </summary>
         /// <param name="compositionName"></param>
         public virtual void UpdateLayout(string compositionName)
@@ -40,6 +81,7 @@ namespace Stride.Rendering.Lights
         /// </summary>
         public virtual void Reset()
         {
+            ViewMask = 0;
         }
 
         /// <summary>
