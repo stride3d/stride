@@ -26,7 +26,7 @@
     <Compile Include="TestGamePadCapture.cs" />
     <Compile Include="TestDeviceCaptureState.cs" />
     <Compile Include="TestCapturePhase.cs" />
-    <Compile Include="TestCaptureEdgeTracker.cs" />
+    <Compile Include="TestButtonCaptureTracker.cs" />
     <Compile Include="TestInputCapture.cs" />
     <Compile Include="TestInputSettings.cs" />
     <Compile Include="TestKeyboardCapture.cs" />

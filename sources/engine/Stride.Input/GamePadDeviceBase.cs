@@ -13,7 +13,7 @@ namespace Stride.Input
         private readonly HashSet<GamePadButton> pressedButtons = new HashSet<GamePadButton>();
         private readonly HashSet<GamePadButton> downButtons = new HashSet<GamePadButton>();
         private int index;
-        private readonly CaptureEdgeTracker<GamePadButton> buttonTracker;
+        private readonly ButtonCaptureTracker<GamePadButton> buttonTracker;
 
         public abstract string Name { get; }
         public abstract Guid Id { get; }
@@ -70,7 +70,7 @@ namespace Stride.Input
 
         protected GamePadDeviceBase()
         {
-            buttonTracker = new CaptureEdgeTracker<GamePadButton>(CaptureState, new ReadOnlySet<GamePadButton>(downButtons), new ReadOnlySet<GamePadButton>(pressedButtons), new ReadOnlySet<GamePadButton>(releasedButtons));
+            buttonTracker = new ButtonCaptureTracker<GamePadButton>(CaptureState, new ReadOnlySet<GamePadButton>(downButtons), new ReadOnlySet<GamePadButton>(pressedButtons), new ReadOnlySet<GamePadButton>(releasedButtons));
             CaptureState.MaskChanged += buttonTracker.OnMaskChanged;
             CaptureState.DeviceUpdated += buttonTracker.AfterDeviceUpdate;
             CaptureState.DeviceMasksOwnState = true;

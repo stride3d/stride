@@ -21,7 +21,7 @@ namespace Stride.Input;
 /// </para>
 /// </remarks>
 /// <typeparam name="T">The key or button type.</typeparam>
-internal sealed class CaptureEdgeTracker<T>
+internal sealed class ButtonCaptureTracker<T>
 {
     private readonly DeviceCaptureState capture;
     private readonly Core.Collections.IReadOnlySet<T> rawDown;
@@ -41,7 +41,7 @@ internal sealed class CaptureEdgeTracker<T>
     /// The input newly pressed this frame, excluding repeats. Defaults to <paramref name="rawPressed"/> for devices
     /// that do not repeat.
     /// </param>
-    public CaptureEdgeTracker(DeviceCaptureState capture, Core.Collections.IReadOnlySet<T> rawDown, Core.Collections.IReadOnlySet<T> rawPressed, Core.Collections.IReadOnlySet<T> rawReleased, Core.Collections.IReadOnlySet<T> rawNewPresses = null)
+    public ButtonCaptureTracker(DeviceCaptureState capture, Core.Collections.IReadOnlySet<T> rawDown, Core.Collections.IReadOnlySet<T> rawPressed, Core.Collections.IReadOnlySet<T> rawReleased, Core.Collections.IReadOnlySet<T> rawNewPresses = null)
     {
         this.capture = capture;
         this.rawDown = rawDown;
@@ -164,7 +164,7 @@ internal sealed class CaptureEdgeTracker<T>
         Released,
     }
 
-    private sealed class View(CaptureEdgeTracker<T> tracker, ViewKind kind) : Core.Collections.IReadOnlySet<T>
+    private sealed class View(ButtonCaptureTracker<T> tracker, ViewKind kind) : Core.Collections.IReadOnlySet<T>
     {
         public int Count => tracker.Count(kind);
 

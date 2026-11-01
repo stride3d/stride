@@ -21,11 +21,11 @@ namespace Stride.Input
 
         public readonly Dictionary<Keys, int> KeyRepeats = new Dictionary<Keys, int>();
 
-        private readonly CaptureEdgeTracker<Keys> keyTracker;
+        private readonly ButtonCaptureTracker<Keys> keyTracker;
 
         protected KeyboardDeviceBase()
         {
-            keyTracker = new CaptureEdgeTracker<Keys>(CaptureState, new ReadOnlySet<Keys>(downKeys), new ReadOnlySet<Keys>(pressedKeys), new ReadOnlySet<Keys>(releasedKeys), new ReadOnlySet<Keys>(newlyPressedKeys));
+            keyTracker = new ButtonCaptureTracker<Keys>(CaptureState, new ReadOnlySet<Keys>(downKeys), new ReadOnlySet<Keys>(pressedKeys), new ReadOnlySet<Keys>(releasedKeys), new ReadOnlySet<Keys>(newlyPressedKeys));
             CaptureState.MaskChanged += keyTracker.OnMaskChanged;
             CaptureState.DeviceUpdated += keyTracker.AfterDeviceUpdate;
             CaptureState.DeviceMasksOwnState = true;

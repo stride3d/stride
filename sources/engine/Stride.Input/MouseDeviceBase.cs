@@ -14,13 +14,13 @@ namespace Stride.Input
     {
         protected MouseDeviceState MouseState;
 
-        private readonly CaptureEdgeTracker<MouseButton> buttonTracker;
+        private readonly ButtonCaptureTracker<MouseButton> buttonTracker;
 
         protected MouseDeviceBase()
         {
             MouseState = new MouseDeviceState(PointerState, this);
 
-            buttonTracker = new CaptureEdgeTracker<MouseButton>(CaptureState, MouseState.DownButtons, MouseState.PressedButtons, MouseState.ReleasedButtons);
+            buttonTracker = new ButtonCaptureTracker<MouseButton>(CaptureState, MouseState.DownButtons, MouseState.PressedButtons, MouseState.ReleasedButtons);
             CaptureState.MaskChanged += buttonTracker.OnMaskChanged;
             CaptureState.DeviceUpdated += buttonTracker.AfterDeviceUpdate;
             CaptureState.DeviceMasksOwnState = true;

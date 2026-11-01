@@ -17,7 +17,7 @@ namespace Stride.Input
         private readonly HashSet<int> downButtons = new HashSet<int>();
 
         private readonly List<InputEvent> events = new List<InputEvent>();
-        private readonly CaptureEdgeTracker<int> buttonTracker;
+        private readonly ButtonCaptureTracker<int> buttonTracker;
 
         protected bool[] ButtonStates;
         protected float[] AxisStates;
@@ -25,7 +25,7 @@ namespace Stride.Input
 
         protected GameControllerDeviceBase()
         {
-            buttonTracker = new CaptureEdgeTracker<int>(CaptureState, new ReadOnlySet<int>(downButtons), new ReadOnlySet<int>(pressedButtons), new ReadOnlySet<int>(releasedButtons));
+            buttonTracker = new ButtonCaptureTracker<int>(CaptureState, new ReadOnlySet<int>(downButtons), new ReadOnlySet<int>(pressedButtons), new ReadOnlySet<int>(releasedButtons));
             CaptureState.MaskChanged += buttonTracker.OnMaskChanged;
             CaptureState.DeviceUpdated += buttonTracker.AfterDeviceUpdate;
             CaptureState.DeviceMasksOwnState = true;

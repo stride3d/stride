@@ -10,7 +10,7 @@ namespace Stride.Input.Tests;
 /// <summary>
 /// Covers the rules for input that is held when a capture begins or ends.
 /// </summary>
-public class TestCaptureEdgeTracker
+public class TestButtonCaptureTracker
 {
     [Fact]
     public void UncapturedViewsMatchRawSets()
@@ -72,7 +72,7 @@ public class TestCaptureEdgeTracker
         var pressed = new HashSet<Keys>();
         var newPresses = new HashSet<Keys>();
         var capture = new DeviceCaptureState();
-        var tracker = new CaptureEdgeTracker<Keys>(capture, new ReadOnlySet<Keys>(down), new ReadOnlySet<Keys>(pressed), new ReadOnlySet<Keys>(new HashSet<Keys>()), new ReadOnlySet<Keys>(newPresses));
+        var tracker = new ButtonCaptureTracker<Keys>(capture, new ReadOnlySet<Keys>(down), new ReadOnlySet<Keys>(pressed), new ReadOnlySet<Keys>(new HashSet<Keys>()), new ReadOnlySet<Keys>(newPresses));
         capture.MaskChanged += tracker.OnMaskChanged;
         capture.SetOwner(new object(), 0);
         down.Add(Keys.W);
@@ -123,13 +123,13 @@ public class TestCaptureEdgeTracker
         Assert.Contains(Keys.W, tracker.Down);
     }
 
-    private static (CaptureEdgeTracker<Keys> Tracker, HashSet<Keys> Down, HashSet<Keys> Pressed, HashSet<Keys> Released, DeviceCaptureState Capture) Create()
+    private static (ButtonCaptureTracker<Keys> Tracker, HashSet<Keys> Down, HashSet<Keys> Pressed, HashSet<Keys> Released, DeviceCaptureState Capture) Create()
     {
         var down = new HashSet<Keys>();
         var pressed = new HashSet<Keys>();
         var released = new HashSet<Keys>();
         var capture = new DeviceCaptureState();
-        var tracker = new CaptureEdgeTracker<Keys>(capture, new ReadOnlySet<Keys>(down), new ReadOnlySet<Keys>(pressed), new ReadOnlySet<Keys>(released));
+        var tracker = new ButtonCaptureTracker<Keys>(capture, new ReadOnlySet<Keys>(down), new ReadOnlySet<Keys>(pressed), new ReadOnlySet<Keys>(released));
         capture.MaskChanged += tracker.OnMaskChanged;
         return (tracker, down, pressed, released, capture);
     }
