@@ -6,7 +6,11 @@
   *****************************************************************************************************************************
   -->
 
-  <UsingTask TaskName="ExtractUserDocumentation"
+  <PropertyGroup Condition="'$(DocumentationFile)' != '' AND '$(GenerateDocumentationFile)' == 'true'">
+    <StrideUserDocumentationFile>$([System.IO.Path]::ChangeExtension('$(DocumentationFile)', '.usrdoc'))</StrideUserDocumentationFile>
+  </PropertyGroup>
+
+  <UsingTask TaskName="StrideExtractUserDocumentation"
              TaskFactory="RoslynCodeTaskFactory"
              AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
     <ParameterGroup>
@@ -37,11 +41,27 @@
                 if (!key.StartsWith("P:", StringComparison.Ordinal) && !key.StartsWith("F:", StringComparison.Ordinal))
                     continue;
 
+                if (userdocElement.HasElements)
+                {
+                    Log.LogWarning("User documentation for {0} in {1} has child elements, which is not supported. Only text content is supported.", key, XmlFile);
+                    continue;
+                }
+
                 var userdoc = userdocElement.Value;
                 userdoc = userdoc.Replace('\t', ' ').Replace('\r', ' ').Replace('\n', ' ').Trim();
                 userdoc = regex.Replace(userdoc, " ");// Removes double space.
 
-                result[key] = userdoc;
+                if (string.IsNullOrEmpty(userdoc))
+                    continue;
+
+                if (result.ContainsKey(key))
+                {
+                    Log.LogWarning("Duplicate user documentation for {0} in {1}", key, XmlFile);
+                }
+                else
+                {
+                    result[key] = userdoc;
+                }
             }
         }
 
@@ -53,29 +73,39 @@
                 writer.WriteLine("{0}={1}", entry.Key, entry.Value);
             }
         }
-        Log.LogMessage(MessageImportance.High, "Wrote user documentation to " + TargetFile);
+        Log.LogMessage(MessageImportance.Low, "Wrote user documentation to " + TargetFile);
       ]]>
       </Code>
     </Task>
   </UsingTask>
 
-  <Target Name="ExtractUserDocumentation"
+  <Target Name="_StrideExtractUserDocumentation"
           AfterTargets="CoreCompile"
-          Condition="'$(DocumentationFile)' != '' AND '$(GenerateDocumentationFile)' == 'true' AND Exists('$(DocumentationFile)')"
+          Condition="'$(DocumentationFile)' != '' AND '$(StrideUserDocumentationFile)' != '' AND Exists('$(DocumentationFile)')"
           Inputs="$(DocumentationFile)"
-          Outputs="$(IntermediateOutputPath)$(AssemblyName).usrdoc">
+          Outputs="$(StrideUserDocumentationFile)">
 
-    <ExtractUserDocumentation XmlFile="$(DocumentationFile)" TargetFile="$(IntermediateOutputPath)$(AssemblyName).usrdoc" />
+    <StrideExtractUserDocumentation XmlFile="$(DocumentationFile)" TargetFile="$(StrideUserDocumentationFile)" />
+    <ItemGroup>
+      <FileWrites Include="$(StrideUserDocumentationFile)" />
+    </ItemGroup>
   </Target>
 
-  <Target Name="AddUserDocumentationToOutput"
-          AfterTargets="ExtractUserDocumentation"
-          Condition="'$(DocumentationFile)' != '' AND '$(GenerateDocumentationFile)' == 'true' AND Exists('$(IntermediateOutputPath)$(AssemblyName).usrdoc')">
-    <ItemGroup>
-      <None Include="$(IntermediateOutputPath)$(AssemblyName).usrdoc"
-            Link="$(AssemblyName).usrdoc"
-            CopyToOutputDirectory="PreserveNewest" />
-    </ItemGroup>
+  <Target Name="_StrideCopyUserDocumentation"
+          AfterTargets="_StrideExtractUserDocumentation"
+          Condition="'$(StrideUserDocumentationFile)' != '' AND Exists('$(StrideUserDocumentationFile)')">
+
+    <!-- Copy .usrdoc from intermediate to output directory -->
+    <Copy SourceFiles="$(StrideUserDocumentationFile)"
+          DestinationFolder="$(OutDir)"
+          SkipUnchangedFiles="$(SkipCopyUnchangedFiles)"
+          OverwriteReadOnlyFiles="$(OverwriteReadOnlyFiles)"
+          Retries="$(CopyRetryCount)"
+          RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)"
+          UseHardlinksIfPossible="$(CreateHardLinksForCopyFilesToOutputDirectoryIfPossible)"
+          UseSymboliclinksIfPossible="$(CreateSymbolicLinksForCopyFilesToOutputDirectoryIfPossible)">
+      <Output TaskParameter="DestinationFiles" ItemName="FileWrites"/>
+    </Copy>
   </Target>
 
 </Project>

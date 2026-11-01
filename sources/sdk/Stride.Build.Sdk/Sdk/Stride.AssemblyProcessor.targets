@@ -220,27 +220,6 @@
        Microsoft.NET.Sdk Sdk.targets, which would overwrite the property value. -->
 
   <!-- ================================================================ -->
-  <!-- User Documentation (.usrdoc) File Handling -->
-  <!-- ================================================================ -->
-  <Target Name="_StrideCopyUserDoc"
-          AfterTargets="StrideRunAssemblyProcessor"
-          Condition="'$(StridePublicApi)' == 'true' And '$(StrideAssemblyProcessor)' == 'true'">
-
-    <!-- Copy .usrdoc from intermediate to output directory -->
-    <Copy Condition="Exists('%(DocFileItem.RelativeDir)%(DocFileItem.Filename).usrdoc')"
-          SourceFiles="@(DocFileItem->'%(RelativeDir)%(Filename).usrdoc')"
-          DestinationFolder="$(OutDir)"
-          SkipUnchangedFiles="$(SkipCopyUnchangedFiles)"
-          OverwriteReadOnlyFiles="$(OverwriteReadOnlyFiles)"
-          Retries="$(CopyRetryCount)"
-          RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)"
-          UseHardlinksIfPossible="$(CreateHardLinksForCopyFilesToOutputDirectoryIfPossible)"
-          UseSymboliclinksIfPossible="$(CreateSymbolicLinksForCopyFilesToOutputDirectoryIfPossible)">
-      <Output TaskParameter="DestinationFiles" ItemName="FileWrites"/>
-    </Copy>
-  </Target>
-
-  <!-- ================================================================ -->
   <!-- Validation -->
   <!-- ================================================================ -->
   <Target Name="_StrideValidateAssemblyProcessor"
