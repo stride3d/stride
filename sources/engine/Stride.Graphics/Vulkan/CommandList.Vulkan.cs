@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Stride.Core;
-using Stride.Core.Collections;
 using Stride.Core.Mathematics;
 using Vortice.Vulkan;
 using static Vortice.Vulkan.Vulkan;
@@ -367,7 +366,7 @@ namespace Stride.Graphics
             descriptorSet = localDescriptorSet;
 
 #if !STRIDE_GRAPHICS_NO_DESCRIPTOR_COPIES
-            copies.Clear(true);
+            copies.Clear();
 
             foreach (var mapping in activePipeline.DescriptorBindingMapping)
             {
@@ -384,7 +383,7 @@ namespace Stride.Graphics
                 });
             }
 
-            fixed (VkCopyDescriptorSet* fCopiesItems = copies.Items)
+            fixed (VkCopyDescriptorSet* fCopiesItems = CollectionsMarshal.AsSpan(copies))
                 GraphicsDevice.NativeDeviceApi.vkUpdateDescriptorSets(GraphicsDevice.NativeDevice, 0, null, (uint) copies.Count, fCopiesItems);
 #else
             var bindingCount = activePipeline.DescriptorBindingMapping.Count;
@@ -486,7 +485,7 @@ namespace Stride.Graphics
             GraphicsDevice.NativeDeviceApi.vkCmdBindDescriptorSets(currentCommandList.NativeCommandBuffer, activePipeline.IsCompute ? VkPipelineBindPoint.Compute : VkPipelineBindPoint.Graphics, activePipeline.NativeLayout, firstSet: 0, descriptorSetCount: 1, &localDescriptorSet, dynamicOffsetCount: 0, dynamicOffsets: null);
         }
 
-        private readonly FastList<VkCopyDescriptorSet> copies = new();
+        private readonly List<VkCopyDescriptorSet> copies = new();
 
         public void SetStencilReference(int stencilReference)
         {
@@ -964,9 +963,9 @@ namespace Stride.Graphics
         }
 
 #if !STRIDE_GRAPHICS_NO_DESCRIPTOR_COPIES
-        private readonly FastList<VkDescriptorSet> boundDescriptorSets = new FastList<VkDescriptorSet>();
+        private readonly List<VkDescriptorSet> boundDescriptorSets = new();
 #else
-        private readonly FastList<DescriptorSet> boundDescriptorSets = new();
+        private readonly List<DescriptorSet> boundDescriptorSets = new();
 #endif
 
         public void SetDescriptorSets(int index, DescriptorSet[] descriptorSets)
@@ -974,7 +973,7 @@ namespace Stride.Graphics
             if (index != 0)
                 throw new NotImplementedException();
 
-            boundDescriptorSets.Clear(fastClear: true);
+            boundDescriptorSets.Clear();
             for (int i = 0; i < descriptorSets.Length; i++)
             {
 #if !STRIDE_GRAPHICS_NO_DESCRIPTOR_COPIES

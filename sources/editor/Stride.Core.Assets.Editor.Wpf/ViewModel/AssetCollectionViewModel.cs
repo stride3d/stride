@@ -27,6 +27,7 @@ using Stride.Core.Presentation.Interop;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Presentation.Windows;
+using Stride.Core.Reflection;
 using Stride.Core.Translation;
 
 namespace Stride.Core.Assets.Editor.ViewModel
@@ -273,7 +274,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 {
                     typeFiltersVersion = AssetRegistry.TypesVersion;
                     typeFilters.Clear();
-                    typeFilters.AddRange(AssetRegistry.GetPublicTypes().Where(type => type != typeof(Package)).Select(type => new AssetFilterViewModel(this, FilterCategory.AssetType, type.FullName, DisplayAttribute.GetDisplayName(type))));
+                    typeFilters.AddRange(AssetRegistry.GetPublicTypes().Where(type => type != typeof(Package)).Select(type => new AssetFilterViewModel(this, FilterCategory.AssetType, type.FullName, TypeDescriptorFactory.Default.AttributeRegistry.GetAttribute<DisplayAttribute>(type)?.Name ?? type.Name)));
                     typeFilters.Sort((a, b) => string.Compare(a.DisplayName, b.DisplayName, StringComparison.InvariantCultureIgnoreCase));
                 }
                 return typeFilters;
@@ -1496,7 +1497,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 switch (sortRule)
                 {
                     case SortRule.TypeOrderThenName:
-                        comparer = new AnonymousComparer<AssetViewModel>((x, y) => { var r = -(DisplayAttribute.GetOrder(x.AssetType) ?? 0).CompareTo(DisplayAttribute.GetOrder(y.AssetType) ?? 0); return r == 0 ? assetNameComparer.Compare(x, y) : r; });
+                        comparer = new AnonymousComparer<AssetViewModel>((x, y) => { var r = -(TypeDescriptorFactory.Default.AttributeRegistry.GetAttribute<DisplayAttribute>(x.AssetType)?.Order ?? 0).CompareTo(TypeDescriptorFactory.Default.AttributeRegistry.GetAttribute<DisplayAttribute>(y.AssetType)?.Order ?? 0); return r == 0 ? assetNameComparer.Compare(x, y) : r; });
                         break;
                     case SortRule.DirtyThenName:
                         comparer = new AnonymousComparer<AssetViewModel>((x, y) => { var r = -x.IsDirty.CompareTo(y.IsDirty); return r == 0 ? assetNameComparer.Compare(x, y) : r; });

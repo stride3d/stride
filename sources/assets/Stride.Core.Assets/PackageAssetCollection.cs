@@ -365,7 +365,7 @@ public sealed class PackageAssetCollection : ICollection<AssetItem>, IReadOnlyCo
             throw new ArgumentException("Asset location [{0}] cannot contain drive information".ToFormat(location), nameof(item));
         }
 
-        if (location.GetDirectory()?.StartsWith("..", StringComparison.Ordinal) == true)
+        if (location.GetFullDirectory().FullPath.StartsWith("..", StringComparison.Ordinal))
         {
             throw new ArgumentException("Asset location [{0}] cannot start with relative '..'".ToFormat(location), nameof(item));
         }

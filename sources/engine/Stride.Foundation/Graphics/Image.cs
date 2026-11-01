@@ -591,7 +591,9 @@ namespace Stride.Graphics
             ArgumentNullException.ThrowIfNull(imageStream);
 
             // Read the whole stream into memory
-            return Load(Utilities.ReadStream(imageStream), loadAsSRGB, alphaLoadMode);
+            var data = new byte[checked((int)(imageStream.Length - imageStream.Position))];
+            imageStream.ReadExactly(data);
+            return Load(data, loadAsSRGB, alphaLoadMode);
         }
 
         /// <summary>

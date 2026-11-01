@@ -25,6 +25,7 @@ using Stride.Core.Presentation.Quantum;
 using Stride.Core.Presentation.Quantum.ViewModels;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Quantum;
+using Stride.Core.Reflection;
 using Stride.Core.Translation;
 using Stride.Core.Yaml;
 
@@ -209,7 +210,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// <summary>
         /// Gets the display name of the type of this asset.
         /// </summary>
-        public override string TypeDisplayName { get { var desc = DisplayAttribute.GetDisplay(AssetType); return desc?.Name ?? AssetType.Name; } }
+        public override string TypeDisplayName => TypeDescriptorFactory.Default.AttributeRegistry.GetAttribute<DisplayAttribute>(AssetType)?.Name ?? AssetType.Name;
 
         /// <summary>
         /// Gets the dependencies of this asset.

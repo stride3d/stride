@@ -10,6 +10,7 @@ public class TestUnmanagedArray
     [Fact]
     public void Base()
     {
+#pragma warning disable CS0618 // Verify the obsolete UnmanagedArray implementation.
         using var testing = new UnmanagedArray<float>(128);
         for (var i = 0; i < testing.Length; i++)
         {
@@ -33,5 +34,6 @@ public class TestUnmanagedArray
         {
             Assert.Equal(i, testing[i]);
         }
+#pragma warning restore CS0618
     }
 }

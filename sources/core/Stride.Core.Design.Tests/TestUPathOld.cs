@@ -352,6 +352,7 @@ public class TestUPathOld
         Assert.False(new UFile("test.txt").IsAbsolute);
     }
 
+#pragma warning disable CS0618 // Verify legacy GetDirectory behavior.
     [Fact]
     public void TestIsDirectoryOnly()
     {
@@ -418,6 +419,7 @@ public class TestUPathOld
         assetPath = new UFile("a/../../../c.txt");
         Assert.Equal("../../c.txt", assetPath.FullPath);
     }
+#pragma warning restore CS0618
 
     [Fact]
     public void TestEquals()
