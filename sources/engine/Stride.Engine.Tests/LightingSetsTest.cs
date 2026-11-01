@@ -139,7 +139,7 @@ namespace Stride.Engine.Tests
                 }
             }
 
-            Assert.True(false, $"{entity.Name} has no effect validated with lights");
+            Assert.Fail($"{entity.Name} has no effect validated with lights");
             return null;
         }
 
