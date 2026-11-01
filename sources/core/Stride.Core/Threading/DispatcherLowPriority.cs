@@ -3,8 +3,8 @@
 
 using System.Collections.Concurrent;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
+using Stride.Core.Diagnostics;
 
 namespace Stride.Core.Threading;
 
@@ -12,8 +12,15 @@ namespace Stride.Core.Threading;
 /// Built for long-running background jobs,
 /// won't monopolize the CPU away from this process or the rest of the user's OS while performing tasks
 /// </summary>
+/// <remarks>
+/// The claim made above cannot be guaranteed for OS outside of Windows/recent Linux,
+/// it will spread out the work further to avoid blocking but dense workload may still block.
+/// PR to improve support for those platforms are welcome.
+/// </remarks>
 public static class DispatcherLowPriority
 {
+    private static readonly Logger Log = GlobalLogger.GetLogger(nameof(DispatcherLowPriority));
+
     /// <summary>
     /// Set the amount of threads in the pool
     /// </summary>
@@ -42,7 +49,7 @@ public static class DispatcherLowPriority
     private static readonly BlockingCollection<BatchState> tasks = new();
     private static readonly Lock poolLock = new();
     private static Stack<CancellationTokenSource>? poolThreadsCts;
-    private static readonly bool unreliablePriority = (OperatingSystem.IsLinux() || OperatingSystem.IsWindows()) == false;
+    private static bool wellBehaved = (OperatingSystem.IsLinux() || OperatingSystem.IsWindows());
 
     /// <summary>
     /// Caller-defined method called by one of the threads scheduled by a <see cref="ForBatchedAsync"/> call,
@@ -70,7 +77,7 @@ public static class DispatcherLowPriority
         int batchCount = Math.Min(MaxDegreeOfParallelism, items);
         uint itemsPerBatch = (uint)((items + (batchCount - 1)) / batchCount);
 
-        if (unreliablePriority)
+        if (wellBehaved == false && itemsPerBatch > 3)
         {
             // We'll need to yield between batches, split items further
             itemsPerBatch /= 4;
@@ -107,8 +114,8 @@ public static class DispatcherLowPriority
         
             void ThreadScope()
             {
-                if (OperatingSystem.IsLinux())
-                    LinuxNice.SetLowPriority();
+                if (OperatingSystem.IsLinux() && wellBehaved && LinuxNice.TrySetLowPriority() == false)
+                    wellBehaved = false;
 
                 try
                 {
@@ -137,7 +144,7 @@ public static class DispatcherLowPriority
                 uint start, end;
                 do
                 {
-                    if (unreliablePriority)
+                    if (wellBehaved == false)
                     {
                         for (int i = 0; i < 4 && Thread.Yield(); i++)
                         {
@@ -168,23 +175,38 @@ public static class DispatcherLowPriority
     
     private static class LinuxNice
     {
+        // https://man7.org/linux/man-pages/man2/gettid.2.html
         [DllImport("libc", EntryPoint = "gettid")]
         private static extern int GetTid();
 
+        // https://man7.org/linux/man-pages/man2/setpriority.2.html
         [DllImport("libc", EntryPoint = "setpriority", SetLastError = true)]
         private static extern int SetPriority(int which, int who, int nice);
 
-        public static void SetLowPriority()
+        public static bool TrySetLowPriority()
         {
-            // https://man7.org/linux/man-pages/man2/setpriority.2.html
             const int lowPriority = 19; // [-20,19], -20 = high, 19 = low
             const int prioProcess = 0; // 0 = Calling process
-            
-            if (!OperatingSystem.IsLinux())
-                throw new PlatformNotSupportedException();
 
-            if (SetPriority(prioProcess, GetTid(), lowPriority) != 0)
-                throw new Win32Exception(Marshal.GetLastPInvokeError());
+            if (!OperatingSystem.IsLinux())
+                return false;
+
+            try
+            {
+                if (SetPriority(prioProcess, GetTid(), lowPriority) != 0)
+                {
+                    // Thread had a lower priority than this and we don't have privilege to raise it?
+                    throw new Win32Exception(Marshal.GetLastPInvokeError());
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Warning($"Failed to set thread priority for {nameof(DispatcherLowPriority)}", e);
+                // glibc < 2.30
+                return false;
+            }
+
+            return true;
         }
     }
 }
