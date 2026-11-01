@@ -224,14 +224,13 @@ public class PropertyContainerTests
         Assert.Equal(10, lastNewValue);
         Assert.Equal(0, lastOldValue); // Default value for int
 
-        // Second set from 10 to 20 - should raise event again
+        // Second set from 10 to 20 - the event must be raised again, reporting the previous value.
         container.Set(TestIntKey, 20);
 
-        // NOTE: This appears to be a potential issue or special behavior in PropertyContainer
-        // The event is not raised on subsequent updates when subscriber was registered before first set
-        // This might be related to how value types are handled with ValueHolder internally
-        // For now, document this behavior
-        Assert.Equal(1, eventRaiseCount); // Only raised once for the first set
+        Assert.Equal(2, eventRaiseCount);
+        Assert.Same(TestIntKey, lastUpdatedKey);
+        Assert.Equal(20, lastNewValue);
+        Assert.Equal(10, lastOldValue);
     }
 
     [Fact]

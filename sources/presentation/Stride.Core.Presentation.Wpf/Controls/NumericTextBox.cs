@@ -122,7 +122,7 @@ namespace Stride.Core.Presentation.Controls
         /// <summary>
         /// Raised when the <see cref="Value"/> property has changed.
         /// </summary>
-        public static readonly RoutedEvent ValueChangedEvent = EventManager.RegisterRoutedEvent("ValueChanged", RoutingStrategy.Bubble, typeof(RoutedPropertyChangedEventHandler<double>), typeof(NumericTextBox));
+        public static readonly RoutedEvent ValueChangedEvent = EventManager.RegisterRoutedEvent("ValueChanged", RoutingStrategy.Bubble, typeof(RoutedPropertyChangedEventHandler<double?>), typeof(NumericTextBox));
 
         /// <summary>
         /// Raised when one of the repeat button is pressed.
@@ -245,7 +245,7 @@ namespace Stride.Core.Presentation.Controls
         /// <summary>
         /// Raised when the <see cref="Value"/> property has changed.
         /// </summary>
-        public event RoutedPropertyChangedEventHandler<double> ValueChanged { add { AddHandler(ValueChangedEvent, value); } remove { RemoveHandler(ValueChangedEvent, value); } }
+        public event RoutedPropertyChangedEventHandler<double?> ValueChanged { add { AddHandler(ValueChangedEvent, value); } remove { RemoveHandler(ValueChangedEvent, value); } }
 
         /// <summary>
         /// Raised when one of the repeat button is pressed.
