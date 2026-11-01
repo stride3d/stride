@@ -117,7 +117,7 @@ public abstract class ShaderLoaderBase(IShaderCache fileCache) : IExternalShader
 
     /// <summary>
     /// Validates all OpSourceHashSDSL entries in a cached buffer against current file content.
-    /// Returns false if any dependency has changed.
+    /// Returns false if any dependency has changed or can't be found anymore.
     /// </summary>
     private bool ValidateCachedHashes(ShaderBuffers buffer)
     {
@@ -142,12 +142,8 @@ public abstract class ShaderLoaderBase(IShaderCache fileCache) : IExternalShader
 
                 // Extract shader name from filename (strip path and extension)
                 var shaderName = Path.GetFileNameWithoutExtension(filename);
-                if (LoadExternalFileContent(shaderName, out _, out _, out var currentHash))
-                {
-                    if (cachedHash != currentHash)
-                        return false;
-                }
-                // If file not found, it might be an internal shader — skip validation
+                if (!LoadExternalFileContent(shaderName, out _, out _, out var currentHash) || cachedHash != currentHash)
+                    return false;
             }
         }
         return true;

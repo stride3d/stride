@@ -166,6 +166,91 @@ public class ShaderDiskCacheTests : IDisposable
     }
 
     [Fact]
+    public void DeletedBaseGivesTheErrorOfACleanCompile()
+    {
+        Write("CacheBase", BaseV1);
+        Write("CacheLeaf", LeafV1);
+        Load(NewLoader(), "CacheLeaf");
+
+        File.Delete(SourcePath("CacheBase"));
+
+        var error = Assert.Throws<InvalidOperationException>(() => Load(NewLoader(), "CacheLeaf"));
+        Assert.Contains("SDSL0191", error.Message);
+    }
+
+    [Fact]
+    public void DeletedBaseGivesTheErrorOfACleanCompileWithTheEngineLoader()
+    {
+        using var sources = new FileSystemProvider($"/shadersources-{Guid.NewGuid():N}", sourceDir.FullName);
+        Write("CacheBase", BaseV1);
+        Write("CacheLeaf", LeafV1);
+        Load(NewEngineLoader(sources), "CacheLeaf");
+
+        File.Delete(SourcePath("CacheBase"));
+
+        var error = Assert.Throws<InvalidOperationException>(() => Load(NewEngineLoader(sources), "CacheLeaf"));
+        Assert.Contains("SDSL0191", error.Message);
+    }
+
+    [Fact]
+    public void CacheWithoutItsSourcesIsNotUsed()
+    {
+        using var sources = new FileSystemProvider($"/shadersources-{Guid.NewGuid():N}", sourceDir.FullName);
+        Write("CacheBase", BaseV1);
+        Write("CacheLeaf", LeafV1);
+        Load(NewEngineLoader(sources), "CacheLeaf");
+
+        File.Delete(SourcePath("CacheBase"));
+        File.Delete(SourcePath("CacheLeaf"));
+
+        var error = Assert.Throws<InvalidOperationException>(() => Load(NewEngineLoader(sources), "CacheLeaf"));
+        Assert.Contains("CacheLeaf could not be found", error.Message);
+    }
+
+    private const string MidV1 = """
+        namespace Stride.Shaders.Tests;
+
+        shader CacheMid : CacheBase
+        {
+            int MidValue() { return BaseValue(); }
+        }
+        """;
+
+    private const string MidWithoutBase = """
+        namespace Stride.Shaders.Tests;
+
+        shader CacheMid
+        {
+            int MidValue() { return 1; }
+        }
+        """;
+
+    private const string LeafOfMid = """
+        namespace Stride.Shaders.Tests;
+
+        shader CacheLeaf : CacheMid
+        {
+            int LeafValue() { return MidValue(); }
+        }
+        """;
+
+    // Nothing uses the deleted shader any more, so the sources compile and a cache entry must not stop them.
+    [Fact]
+    public void DeletedShaderNothingUsesAnyMoreDoesNotBlockTheRebuild()
+    {
+        using var sources = new FileSystemProvider($"/shadersources-{Guid.NewGuid():N}", sourceDir.FullName);
+        Write("CacheBase", BaseV1);
+        Write("CacheMid", MidV1);
+        Write("CacheLeaf", LeafOfMid);
+        Assert.Contains("CacheBase", Load(NewEngineLoader(sources), "CacheLeaf"));
+
+        Write("CacheMid", MidWithoutBase);
+        File.Delete(SourcePath("CacheBase"));
+
+        Assert.DoesNotContain("CacheBase", Load(NewEngineLoader(sources), "CacheLeaf"));
+    }
+
+    [Fact]
     public void MacroVariantsGetTheirOwnCacheEntry()
     {
         Write("CacheMacro", MacroShader);
@@ -473,12 +558,22 @@ public class ShaderDiskCacheTests : IDisposable
     }
 
     private void Write(string name, string code)
-        => File.WriteAllText(Path.Combine(sourceDir.FullName, $"{name}.sdsl"), code);
+        => File.WriteAllText(SourcePath(name), code);
+
+    private string SourcePath(string name) => Path.Combine(sourceDir.FullName, $"{name}.sdsl");
 
     /// <summary>A loader with an empty in-memory cache over the cache directory the previous ones filled.</summary>
     private CountingLoader NewLoader() => new(provider, sourceDir.FullName, "./assets/Stride/SDSL");
 
-    private static string Load(CountingLoader loader, string name, params ShaderMacro[] macros)
+    /// <summary>The loader of <see cref="EffectCompiler"/>, which caches in the application cache.</summary>
+    private static FileShaderLoader NewEngineLoader(IVirtualFileProvider sources)
+    {
+        var loader = new FileShaderLoader(sources);
+        loader.SourceManager.LookupDirectoryList.Add("");
+        return loader;
+    }
+
+    private static string Load(ShaderLoaderBase loader, string name, params ShaderMacro[] macros)
     {
         Assert.True(loader.LoadExternalBuffer(name, macros, out var buffer, out _, out _), $"could not load shader {name}");
         return Spv.Dis(buffer, DisassemblerFlags.Name);
