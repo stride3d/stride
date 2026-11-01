@@ -81,7 +81,7 @@
 
   <Target Name="_StrideExtractUserDocumentation"
           AfterTargets="CoreCompile"
-          Condition="'$(DocumentationFile)' != '' AND '$(StrideUserDocumentationFile)' != '' AND Exists('$(DocumentationFile)')"
+          Condition="'$(DocumentationFile)' != '' AND '$(StrideUserDocumentationFile)' != '' AND Exists('$(DocumentationFile)') AND '$(DesignTimeBuild)' != 'true'"
           Inputs="$(DocumentationFile)"
           Outputs="$(StrideUserDocumentationFile)">
 
@@ -93,7 +93,7 @@
 
   <Target Name="_StrideCopyUserDocumentation"
           AfterTargets="_StrideExtractUserDocumentation"
-          Condition="'$(StrideUserDocumentationFile)' != '' AND Exists('$(StrideUserDocumentationFile)')">
+          Condition="'$(StrideUserDocumentationFile)' != '' AND Exists('$(StrideUserDocumentationFile)') AND '$(DesignTimeBuild)' != 'true'">
 
     <!-- Copy .usrdoc from intermediate to output directory -->
     <Copy SourceFiles="$(StrideUserDocumentationFile)"
