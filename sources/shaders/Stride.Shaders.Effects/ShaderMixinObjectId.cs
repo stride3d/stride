@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.IO;
-using System.Runtime.InteropServices;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Serialization;
@@ -23,18 +22,13 @@ namespace Stride.Shaders
         private static object generatorLock = new object();
         private static ShaderMixinObjectId generator;
 
-        private readonly UnmanagedMemoryStream memStream;
+        private readonly DigestStream digestStream;
         private readonly HashSerializationWriter writer;
-        private ObjectIdBuilder objectIdBuilder;
-        private IntPtr buffer;
 
-        private unsafe ShaderMixinObjectId()
+        private ShaderMixinObjectId()
         {
-            objectIdBuilder = new ObjectIdBuilder();
-            const int size = 1 << 16;
-            buffer = Marshal.AllocHGlobal(size);
-            memStream = new UnmanagedMemoryStream((byte*)buffer, size, capacity: size, access: FileAccess.Write);
-            writer = new HashSerializationWriter(memStream);
+            digestStream = new DigestStream(Stream.Null);
+            writer = new HashSerializationWriter(digestStream);
             writer.Context.SerializerSelector = new SerializerSelector("Default", "Hash");
         }
 
@@ -70,10 +64,9 @@ namespace Stride.Shaders
             }
         }
 
-        private unsafe ObjectId ComputeInternal(ShaderMixinSource mixin, EffectCompilerParameters effectCompilerParameters)
+        private ObjectId ComputeInternal(ShaderMixinSource mixin, EffectCompilerParameters effectCompilerParameters)
         {
-            // Write to memory stream
-            memStream.Position = 0;
+            digestStream.Reset();
             writer.Write(EffectBytecode.MagicHeader); // Write the effect bytecode magic header
             writer.Write(ShaderCompilerVersion.Shader);
             writer.Write(ShaderCompilerVersion.Effect);
@@ -84,17 +77,12 @@ namespace Stride.Shaders
             writer.Write(effectCompilerParameters.Debug);
             writer.Write(effectCompilerParameters.OptimizationLevel);
 
-            // Compute hash
-            objectIdBuilder.Reset();
-            objectIdBuilder.Write(new ReadOnlySpan<byte>((void*)buffer, (int)memStream.Position));
-
-            return objectIdBuilder.ComputeHash();
+            return digestStream.CurrentHash;
         }
 
-        private unsafe ObjectId ComputeInternal(string effectName, CompilerParameters compilerParameters)
+        private ObjectId ComputeInternal(string effectName, CompilerParameters compilerParameters)
         {
-            // Write to memory stream
-            memStream.Position = 0;
+            digestStream.Reset();
             writer.Write(EffectBytecode.MagicHeader); // Write the effect bytecode magic header
             writer.Write(ShaderCompilerVersion.Shader);
             writer.Write(ShaderCompilerVersion.Effect);
@@ -107,11 +95,7 @@ namespace Stride.Shaders
 
             writer.Write(compilerParameters);
 
-            // Compute hash
-            objectIdBuilder.Reset();
-            objectIdBuilder.Write(new ReadOnlySpan<byte>((void*)buffer, (int)memStream.Position));
-
-            return objectIdBuilder.ComputeHash();
+            return digestStream.CurrentHash;
         }
     }
 }
