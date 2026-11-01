@@ -34,6 +34,9 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
     private string displayName;
     private bool isHighlighted;
     private bool valueChanging;
+    private bool isRefreshing;
+    private bool refreshPending;
+    private bool suppressAssociatedDataNotifications;
     private readonly (Type declarer, int token)? sortingHint;
 
 #if DEBUG
@@ -386,22 +389,95 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
     /// </summary>
     public void Refresh()
     {
-        foreach (var child in Children.ToList())
+        if (isRefreshing)
         {
-            RemoveChild(child);
-            child.Destroy();
-        }
-        foreach (var command in Commands.ToList())
-        {
-            RemoveCommand(command);
-        }
-        foreach (var data in AssociatedData.ToList())
-        {
-            RemoveAssociatedData(data.Key);
+            // A refresh is already in progress on this node (e.g. a value change notification
+            // raised during the refresh was handled synchronously and re-entered this method).
+            // Defer the refresh: once the in-progress one completes, it runs again to account
+            // for the changes that occurred while it was running.
+            refreshPending = true;
+            return;
         }
 
-        owner.GraphViewModelService.NodeViewModelFactory.GenerateChildren(owner, this, nodePresenters);
-        FinishInitialization();
+        isRefreshing = true;
+        try
+        {
+            do
+            {
+                refreshPending = false;
+
+                // Keep track of the current associated data so that, after the rebuild, only the
+                // entries that actually changed are notified. Removing and re-adding the unchanged
+                // entries would notify their bound views of a transient "missing" state (for instance,
+                // the minimum/maximum of a ranged numeric value would appear to disappear), and a bound
+                // editor (like the numeric text box of the property grid) can react to that transient
+                // state by clamping its displayed value and writing the stale value back to the source
+                // (see GitHub issue #3488).
+                var previousAssociatedData = associatedData.ToDictionary(x => x.Key, x => x.Value);
+
+                foreach (var child in Children.ToList())
+                {
+                    RemoveChild(child);
+                    child.Destroy();
+                }
+                foreach (var command in Commands.ToList())
+                {
+                    RemoveCommand(command);
+                }
+
+                suppressAssociatedDataNotifications = true;
+                try
+                {
+                    foreach (var data in AssociatedData.ToList())
+                    {
+                        RemoveAssociatedData(data.Key);
+                    }
+
+                    owner.GraphViewModelService.NodeViewModelFactory.GenerateChildren(owner, this, nodePresenters);
+                    FinishInitialization();
+                }
+                finally
+                {
+                    suppressAssociatedDataNotifications = false;
+                }
+
+                NotifyAssociatedDataChanges(previousAssociatedData);
+            }
+            while (refreshPending && !IsDestroyed);
+        }
+        finally
+        {
+            isRefreshing = false;
+        }
+    }
+
+    private void NotifyAssociatedDataChanges(IReadOnlyDictionary<string, object> previousData)
+    {
+        // Notify for the entries that were removed.
+        foreach (var key in previousData.Keys)
+        {
+            if (!associatedData.ContainsKey(key))
+            {
+                NotifyAssociatedDataKey(key);
+            }
+        }
+
+        // Notify for the entries that were added or changed.
+        foreach (var data in associatedData)
+        {
+            if (!previousData.TryGetValue(data.Key, out var previousValue) || !Equals(previousValue, data.Value))
+            {
+                NotifyAssociatedDataKey(data.Key);
+            }
+        }
+    }
+
+    private void NotifyAssociatedDataKey(string key)
+    {
+        NotifyPropertyChanging($"{GraphViewModel.HasAssociatedDataPrefix}{key}");
+        NotifyPropertyChanging(key);
+        NotifyPropertyChanged($"{GraphViewModel.HasAssociatedDataPrefix}{key}");
+        NotifyPropertyChanged(key);
     }
 
     protected void CheckDynamicMemberConsistency()
@@ -597,9 +673,25 @@ public class NodeViewModel : DispatcherViewModel, IDynamicMetaObjectProvider
 
     private void RemoveCommand(NodePresenterCommandWrapper command) => ChangeAndNotify(() => commands.Remove(command), $"{GraphViewModel.HasCommandPrefix}{command.Name}", command.Name);
 
-    private void AddAssociatedData(string key, object value) => ChangeAndNotify(() => associatedData.Add(key, value), $"{GraphViewModel.HasAssociatedDataPrefix}{key}", key);
+    private void AddAssociatedData(string key, object value)
+    {
+        if (suppressAssociatedDataNotifications)
+        {
+            associatedData[key] = value;
+            return;
+        }
+        ChangeAndNotify(() => associatedData.Add(key, value), $"{GraphViewModel.HasAssociatedDataPrefix}{key}", key);
+    }
 
-    private void RemoveAssociatedData(string key) => ChangeAndNotify(() => associatedData.Remove(key), $"{GraphViewModel.HasAssociatedDataPrefix}{key}", key);
+    private void RemoveAssociatedData(string key)
+    {
+        if (suppressAssociatedDataNotifications)
+        {
+            associatedData.Remove(key);
+            return;
+        }
+        ChangeAndNotify(() => associatedData.Remove(key), $"{GraphViewModel.HasAssociatedDataPrefix}{key}", key);
+    }
 
     private void ChangeAndNotify(Action changeAction, params string[] propertyNames)
     {
