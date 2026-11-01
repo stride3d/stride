@@ -55,9 +55,8 @@ public delegate void ProfilerDisposeEventDelegate(ref ProfilingState profilingSt
 /// </code>
 /// 
 /// When a profile has <c>ProfilingKeyFlags.Log</c> set in its key, its events will get logged using the standard
-/// <see cref="Diagnostics.Logger"/> infrastructure while it's enabled. Note also that when profiling, it is possible
-/// to attach some property values (counters, indicators, etc.) to a profiler state. These values will be displayed
-/// along the standard profiler state.
+/// <see cref="Diagnostics.Logger"/> infrastructure while it's enabled. Note also that it is possible to pass up to
+/// 4 additional values along with a message when beginning, ending or marking a profile.
 /// 
 /// To register your own system to receive <see cref="ProfilingEvent">ProfilingEvents</see> use the <see cref="Subscribe"/>
 /// and <see cref="Unsubscribe"/> methods.
