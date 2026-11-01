@@ -4,15 +4,13 @@
 
 namespace Stride.Core.CompilerServices
 {
-    using System.Runtime.CompilerServices;
-
     internal static class DebugAttacher
     {
-        [ModuleInitializer]
+        [System.Runtime.CompilerServices.ModuleInitializer]
         public static void Attach()
         {
 #if LAUNCH_DEBUGGER
-            Debugger.Launch();
+            System.Diagnostics.Debugger.Launch();
 #endif
         }
     }
