@@ -8,9 +8,13 @@ namespace Stride.Core.Serialization;
 /// </summary>
 public sealed class NullSerializer<T> : DataSerializer<T>
 {
+    /// <summary>
+    /// Gets the shared instance of this serializer.
+    /// </summary>
     public static NullSerializer<T> Instance { get; } = new();
+
     public override void Serialize(ref T obj, ArchiveMode mode, SerializationStream stream)
     {
-        throw new NotSupportedException($"NullSerializer<{typeof(T).FullName}> cannot serialize objects.");
+        throw new NotSupportedException($"No serializer available for type {typeof(T).FullName}.");
     }
 }
