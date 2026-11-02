@@ -10,8 +10,9 @@ namespace Stride.Input;
 /// A list of this frame's input events as scripts and systems see them: events from masked devices or pointers are left out.
 /// </summary>
 /// <remarks>
-/// The filtered list is rebuilt on read when the frame or any capture has changed since it was last built, so a
-/// capture taken after the capture phase applies from the next read. The backing list is reused, so there is no
+/// The filtered list is rebuilt on read when the frame or any capture has changed, or the frame's events were routed,
+/// since it was last built. So a capture taken after the capture phase applies from the next read, and a read before
+/// the events are routed doesn't leave the list empty for the rest of the frame. The backing list is reused, so there is no
 /// allocation per frame once it has grown.
 /// </remarks>
 internal sealed class MaskedEventList<T>(InputManager manager, List<T> raw) : IReadOnlyList<T> where T : InputEvent

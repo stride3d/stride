@@ -454,6 +454,9 @@ namespace Stride.Input
             
             RouteEvents(events);
 
+            // The key and pointer event lists fill while events are routed, so a read before or during routing is rebuilt
+            CaptureVersion++;
+
             // Let capture owners decide this frame's captures before the state scripts and systems read is built
             resolvingCapture = true;
             try
