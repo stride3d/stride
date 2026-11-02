@@ -207,17 +207,20 @@ internal static class NewCommand
             var hasAssets = Directory.Exists(stagedAssets);
             var hasResources = Directory.Exists(stagedResources);
 
+            if (hasResources && folders.NoResourcesError is { } noResources)
+                throw new InvalidOperationException(noResources);
+            if (hasAssets && hasResources)
+                AssetPackPlacement.RewriteResourcePaths(stagedAssets, stagedResources, folders.Assets, folders.Resources!);
+
             if (package?.Note is { } note)
                 Console.WriteLine(note);
-            if (hasResources && folders.ResourcesNote is { } resourcesNote)
-                Console.WriteLine(resourcesNote);
             if (package is null && hasAssets && AssetPackPlacement.GetOutputWarning(folders.Assets) is { } warning)
                 Console.Error.WriteLine(warning);
 
             if (hasAssets)
                 AssetPackPlacement.MoveFiles(stagedAssets, folders.Assets);
             if (hasResources)
-                AssetPackPlacement.MoveFiles(stagedResources, folders.Resources);
+                AssetPackPlacement.MoveFiles(stagedResources, folders.Resources!);
 
             var written = string.Join(", ", new[] { hasAssets ? $"assets in '{folders.Assets}'" : null, hasResources ? $"resources in '{folders.Resources}'" : null }.OfType<string>());
             Console.WriteLine(package is null ? $"Created '{name}': {written}." : $"Added '{name}' to package '{package.Project.Name}': {written}.");

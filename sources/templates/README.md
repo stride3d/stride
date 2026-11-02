@@ -55,8 +55,13 @@ has to go, from the solution folder or from a package folder:
 - **The package:** the one around the current folder, else the game library. From a platform project,
   the library next to it. If it can't choose, it gives an error and writes nothing.
 - **The folders:** the pack's `Assets/*` goes into the first folder of the package's `AssetFolders`, and
-  its `Resources/*` into a `Resources` folder next to that one. The assets keep their URLs and
-  their `Source:` paths stay correct. The `.sdpkg` is not edited.
+  its `Resources/*` into the first folder of its `ResourceFolders`. The assets keep their URLs. The
+  `.sdpkg` is not edited, and no folder is added to it: a pack with resources gives an error and writes
+  nothing if the package lists no resource folder.
+- **The paths:** if the relative path between the two folders is not `../Resources`, the paths in the
+  pack's assets that lead to one of its resources are rewritten, in any field (`Source:` and the keys of
+  `~SourceHashes`). Nothing else in a file changes. A folder that no relative path reaches, or whose name
+  would need quotes in an asset file, gives an error and writes nothing.
 
 `-o <folder>` skips this: `<folder>/Assets` and `<folder>/Resources` are written, with a warning if no
 package sees them.
@@ -192,7 +197,7 @@ and instantiates each selected pack into the generated game library.
 
 A pack has `Assets/` and `Resources/` at its top level and nothing else: the generator and `stride new`
 refuse anything other than these two folders. Its assets must find their resources through the
-folder they share, as in `Source: ../../Resources/...`.
+folder they share, as in `Source: ../../Resources/...`, and `stride new` adapts these paths to the package.
 
 Authors outside this repository can't run the generator, so they write the template by hand: a template
 package with this file as `content/<name>/.template.config/template.json`, next to `Assets/` and

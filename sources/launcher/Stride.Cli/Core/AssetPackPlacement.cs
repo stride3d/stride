@@ -1,5 +1,6 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 
@@ -15,6 +16,7 @@ internal static partial class AssetPackPlacement
 
     private static readonly StringComparison PathComparison = OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
     private static readonly EnumerationOptions Enumeration = new() { IgnoreInaccessible = true };
+    private static readonly UTF8Encoding StrictUtf8 = new(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
 
     // A project that can hold assets. A head is a project that runs (Exe, WinExe), usually for one platform.
     public sealed record PackageProject(string ProjectPath, bool IsHead)
@@ -28,7 +30,8 @@ internal static partial class AssetPackPlacement
 
     public sealed record PackageChoice(PackageProject Project, string? Note);
 
-    public sealed record PackFolders(string Assets, string Resources, string? ResourcesNote);
+    // Resources is null when the package lists no resource folder, and NoResourcesError says what to add.
+    public sealed record PackFolders(string Assets, string? Resources, string? NoResourcesError);
 
     // The package a pack goes into when the command runs in a directory: the one around it, else the one just below it.
     public static PackageChoice ChoosePackage(string directory)
@@ -49,20 +52,16 @@ internal static partial class AssetPackPlacement
         return new PackageChoice(libraries.Count > 0 ? PickLibrary(libraries, directory) : PickOne(below, directory), null);
     }
 
-    // The folders of a package that receive the pack. Its assets refer to its resources by relative path, so both move
-    // together: the assets into the first folder the package lists, the resources next to that folder. URLs stay the same.
+    // The folders of a package that receive the pack: the first asset folder and the first resource folder it lists.
     public static PackFolders GetFolders(PackageProject project)
     {
         var (assetFolders, resourceFolders) = ReadListedFolders(project);
         if (assetFolders.Count == 0)
             throw new InvalidOperationException($"Package '{project.Name}' lists no asset folder, so it would not see the pack. Add '- Path: !dir {AssetsFolder}' under AssetFolders in '{project.PackagePath}'.");
 
-        var assets = assetFolders[0];
-        var resources = Path.GetFullPath(Path.Combine(assets, "..", ResourcesFolder));
-        var note = resourceFolders.Count == 0 || resourceFolders.Contains(resources, StringComparer.FromComparison(PathComparison))
-            ? null
-            : $"The resources go in '{resources}' and not in '{resourceFolders[0]}', the folder the package lists: the assets refer to them next to '{assets}'.";
-        return new PackFolders(assets, resources, note);
+        return resourceFolders.Count > 0
+            ? new PackFolders(assetFolders[0], resourceFolders[0], null)
+            : new PackFolders(assetFolders[0], null, $"Package '{project.Name}' lists no resource folder, and this pack has resources. Add '- !dir {ResourcesFolder}' under ResourceFolders in '{project.PackagePath}'.");
     }
 
     // The folders of a pack written to a folder the user gave.
@@ -99,6 +98,43 @@ internal static partial class AssetPackPlacement
             throw new InvalidOperationException($"Template '{templateName}' writes nothing.");
     }
 
+    // Points the assets of a staged pack at the folders it goes to. Only a path that resolves to a staged resource changes,
+    // in the text of the file, so it keeps its tag and its form, and every other byte stays as it is.
+    public static void RewriteResourcePaths(string stagedAssets, string stagedResources, string assets, string resources)
+    {
+        var relative = Path.GetRelativePath(assets, resources).Replace('\\', '/');
+        if (relative == $"../{ResourcesFolder}")
+            return;
+        if (Path.IsPathRooted(relative))
+            throw new InvalidOperationException($"No relative path leads from '{assets}' to '{resources}', so the pack's assets could not refer to their resources. Use folders on the same drive, or pass -o to write to a given folder.");
+        if (NotPlainYaml().IsMatch(relative))
+            throw new InvalidOperationException($"The pack's assets can't refer to their resources through '{relative}': it needs quotes in an asset file. Rename the folder, or pass -o to write to a given folder.");
+
+        var stagedResourceFiles = Directory.EnumerateFiles(stagedResources, "*", SearchOption.AllDirectories).ToHashSet(StringComparer.FromComparison(PathComparison));
+        foreach (var file in Directory.EnumerateFiles(stagedAssets, "*", SearchOption.AllDirectories))
+        {
+            if (!TryReadText(file, out var text))
+                continue;
+
+            var stagedFolder = Path.GetDirectoryName(file)!;
+            var folder = Path.GetDirectoryName(Path.Combine(assets, Path.GetRelativePath(stagedAssets, file)))!;
+            var rewritten = new StringBuilder();
+            var position = 0;
+            foreach (Match start in RelativePathStart().Matches(text))
+            {
+                if (start.Index < position || FindResourcePath(text, start.Index, stagedFolder, stagedResourceFiles) is not { } found)
+                    continue;
+
+                var target = Path.Combine(resources, Path.GetRelativePath(stagedResources, found.Resource));
+                rewritten.Append(text, position, start.Index - position).Append(Path.GetRelativePath(folder, target).Replace('\\', '/'));
+                position = found.End;
+            }
+
+            if (position > 0)
+                File.WriteAllBytes(file, StrictUtf8.GetBytes(rewritten.Append(text, position, text.Length - position).ToString()));
+        }
+    }
+
     // Moves the files of a staged pack folder into a folder of the package, replacing the ones of the same name.
     public static void MoveFiles(string source, string destination)
     {
@@ -108,6 +144,43 @@ internal static partial class AssetPackPlacement
             Directory.CreateDirectory(Path.GetDirectoryName(target)!);
             File.Move(file, target, overwrite: true);
         }
+    }
+
+    // False for a binary file.
+    private static bool TryReadText(string file, out string text)
+    {
+        try
+        {
+            text = StrictUtf8.GetString(File.ReadAllBytes(file));
+            return !text.Contains('\0');
+        }
+        catch (DecoderFallbackException)
+        {
+            text = string.Empty;
+            return false;
+        }
+    }
+
+    // The longest text from this position that resolves to a staged resource. A name can hold spaces, so a path can end
+    // only where the line, a quote or a YAML separator allows it, and the file itself decides which end is right.
+    private static (int End, string Resource)? FindResourcePath(string text, int start, string stagedFolder, HashSet<string> stagedResourceFiles)
+    {
+        var lineLength = text.AsSpan(start).IndexOfAny('\r', '\n');
+        var lineEnd = lineLength < 0 ? text.Length : start + lineLength;
+        for (var end = lineEnd; end > start; end--)
+        {
+            if (end < lineEnd && text[end] is not ('"' or '\'' or ':' or ',' or ']' or '}') && !char.IsWhiteSpace(text[end]))
+                continue;
+            // Windows drops these from the end of a path, and they aren't part of a file name.
+            if (text[end - 1] == '.' || char.IsWhiteSpace(text[end - 1]))
+                continue;
+
+            var resolved = Path.GetFullPath(Path.Combine(stagedFolder, text[start..end]));
+            if (stagedResourceFiles.Contains(resolved))
+                return (end, resolved);
+        }
+
+        return null;
     }
 
     private static PackageChoice ChooseFromInside(string directory, List<PackageProject> projects)
@@ -221,6 +294,13 @@ internal static partial class AssetPackPlacement
 
     private static bool IsSameOrBelow(string path, string folder)
         => path.Equals(folder, PathComparison) || path.StartsWith(folder.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar, PathComparison);
+
+    // A relative path, as a YAML value or after the '~' of a ~SourceHashes key.
+    [GeneratedRegex(@"(?<![^\s~""'\[{,])\.\.?[/\\]")]
+    private static partial Regex RelativePathStart();
+
+    [GeneratedRegex(@"^[!&*\[{|>%@`""'#]|:( |$)| #")]
+    private static partial Regex NotPlainYaml();
 
     [GeneratedRegex(@"^\s*-?\s*Path:\s*(?:!dir\s+)?(\S.*?)\s*$")]
     private static partial Regex AssetFolderItem();
