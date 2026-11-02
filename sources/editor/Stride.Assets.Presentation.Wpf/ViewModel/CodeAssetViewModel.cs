@@ -21,6 +21,16 @@ namespace Stride.Assets.Presentation.ViewModel
         }
 
         /// <inheritdoc/>
+        protected override void Initialize()
+        {
+            base.Initialize();
+
+            // Keeps the text of a project file in memory: an undo writes it back if the file is deleted from outside
+            if (Asset is IProjectAsset && !Directory.Package.Package.IsReadOnly)
+                _ = Asset.Text;
+        }
+
+        /// <inheritdoc/>
         protected override void OnSessionSaved()
         {
             if (Asset is EffectShaderAsset)

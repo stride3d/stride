@@ -58,7 +58,6 @@ namespace Stride.Assets.Presentation.ViewModel
         // The source and shader reconciles change the same assets, and each awaits in the middle
         private readonly SemaphoreSlim reconcileLock = new(1, 1);
         private readonly Dictionary<string, ObjectId> builtShaderHashes = new(StringComparer.OrdinalIgnoreCase);
-        private readonly HashSet<AssetViewModel> shadersDeletedOutside = [];
 
         private readonly Brush keywordBrush;
         private readonly Brush typeBrush;
@@ -244,8 +243,6 @@ namespace Stride.Assets.Presentation.ViewModel
         /// <returns>True if the user shaders need a build.</returns>
         private async Task<bool> ReconcileProjectShaderFiles(ProjectViewModel projectViewModel, Project project, UDirectory projectDirectory, List<string> touchedPaths)
         {
-            shadersDeletedOutside.RemoveWhere(x => !x.IsDeleted);
-
             var projectFiles = new List<(UFile FilePath, UFile Link)>();
             if (ProjectShaderChanges.NeedsProjectItems(touchedPaths, GetShaderAssets(projectViewModel).Select(x => x.AssetItem.FullPath.FullPath), File.Exists, Directory.Exists))
                 projectFiles = await Task.Run(() => Package.FindAssetsInProject(project.FilePath, out _));
@@ -253,7 +250,7 @@ namespace Stride.Assets.Presentation.ViewModel
             List<ProjectShaderChange> Plan()
             {
                 var deletedInSession = projectFiles
-                    .Where(x => FindDeletedAsset(projectViewModel, x, projectDirectory) is { } asset && !shadersDeletedOutside.Contains(asset))
+                    .Where(x => FindDeletedAsset(projectViewModel, x, projectDirectory) is { IsDeletedOutside: false })
                     .Select(x => x.FilePath.FullPath);
                 return ProjectShaderChanges.Plan(touchedPaths, GetShaderAssets(projectViewModel).Select(x => x.AssetItem.FullPath.FullPath), projectFiles.Select(x => x.FilePath.FullPath), deletedInSession, File.Exists);
             }
@@ -274,9 +271,8 @@ namespace Stride.Assets.Presentation.ViewModel
                 var file = projectFiles.First(x => x.FilePath.FullPath == change.FilePath);
                 if (FindDeletedAsset(projectViewModel, file, projectDirectory) is { } deletedAsset)
                 {
-                    RestoreShaderDeletedOutside(projectViewModel, deletedAsset);
-                    shadersDeletedOutside.Remove(deletedAsset);
-                    needsBuild |= ReloadShaderText(deletedAsset, change.FilePath);
+                    RestoreDeletedOutside(projectViewModel, deletedAsset);
+                    needsBuild |= ReloadText(deletedAsset, change.FilePath);
                 }
                 else
                 {
@@ -287,16 +283,13 @@ namespace Stride.Assets.Presentation.ViewModel
             AddNewProjectAssets(projectViewModel, assets, project, filesToAdd);
 
             foreach (var change in changes.Where(x => x.Action == ProjectShaderAction.ContentChanged))
-                needsBuild |= ReloadShaderText(assets.First(x => x.AssetItem.FullPath.FullPath == change.FilePath), change.FilePath);
+                needsBuild |= ReloadText(assets.First(x => x.AssetItem.FullPath.FullPath == change.FilePath), change.FilePath);
 
             var assetsToDelete = changes.Where(x => x.Action == ProjectShaderAction.Delete)
                 .Select(x => assets.First(y => y.AssetItem.FullPath.FullPath == x.FilePath))
                 .ToList();
             if (await DeleteProjectAssets(projectViewModel, assetsToDelete, project))
-            {
-                shadersDeletedOutside.UnionWith(assetsToDelete);
                 needsBuild |= assetsToDelete.Any(x => ProjectShaderChanges.IsBuiltFile(x.AssetItem.FullPath.FullPath));
-            }
 
             return needsBuild;
         }
@@ -316,35 +309,33 @@ namespace Stride.Assets.Presentation.ViewModel
         }
 
         /// <summary>
-        /// Brings back the asset of a file that was deleted outside Game Studio and came back before a save, which would
-        /// otherwise delete the file. It is the same asset as the one in the undo stack, so undo and redo keep working.
+        /// Brings back the asset of a file that was deleted outside Game Studio and came back before a save. The asset
+        /// follows the disk, so this is not a step of the undo stack.
         /// </summary>
-        private static void RestoreShaderDeletedOutside(ProjectViewModel projectViewModel, AssetViewModel asset)
+        private static void RestoreDeletedOutside(ProjectViewModel projectViewModel, AssetViewModel asset)
         {
-            var undoRedoService = projectViewModel.ServiceProvider.Get<IUndoRedoService>();
-            using var transaction = undoRedoService.CreateTransaction();
-            var directory = projectViewModel.GetOrCreateProjectDirectory(projectViewModel.GetDisplayDirectory(asset.AssetItem.Location), true);
-            asset.Directory = directory;
-            directory.AddAsset(asset, true);
-            asset.IsDeleted = false;
-            undoRedoService.SetName(transaction, $"Restore asset '{asset.Url}'");
+            asset.RestoreProjectAsset(projectViewModel.GetOrCreateProjectDirectory(projectViewModel.GetDisplayDirectory(asset.AssetItem.Location), false));
         }
 
         /// <summary>
-        /// Reads the text of a shader asset from its file again.
+        /// Reads the text of a source code asset from its file again.
         /// </summary>
         /// <returns>True if the file is built with the user shaders and differs from what the last build took, or can't be read.</returns>
-        private bool ReloadShaderText(AssetViewModel asset, string filePath)
+        private bool ReloadText(AssetViewModel asset, string filePath)
         {
             var content = TryReadFile(filePath);
             if (content == null)
             {
-                Logger.Warning($"Could not read the shader file '{filePath}'");
+                Logger.Warning($"Could not read the file '{filePath}'");
                 return ProjectShaderChanges.IsBuiltFile(filePath);
             }
 
+            string text;
             using (var reader = new StreamReader(new MemoryStream(content)))
-                ((SourceCodeAsset)asset.Asset).Text = reader.ReadToEnd();
+                text = reader.ReadToEnd();
+            var sourceCode = (SourceCodeAsset)asset.Asset;
+            if (sourceCode.Text != text)
+                sourceCode.Text = text;
 
             return ProjectShaderChanges.IsBuiltFile(filePath)
                 && !(builtShaderHashes.TryGetValue(filePath, out var builtHash) && builtHash == ObjectId.FromBytes(content));
@@ -587,7 +578,7 @@ namespace Stride.Assets.Presentation.ViewModel
 
             // delete this asset
             // TODO: this action (it should occur only during assembly releoad) will be undoable (undoing reload restores deleted script)
-            return assetsToDelete.Count == 0 || await projectViewModel.Session.ActiveAssetView.DeleteContent(assetsToDelete, true);
+            return assetsToDelete.Count == 0 || await projectViewModel.Session.ActiveAssetView.DeleteContent(assetsToDelete, true, deletedOutside: true);
         }
 
         /// <summary>
@@ -621,6 +612,13 @@ namespace Stride.Assets.Presentation.ViewModel
                 foreach (var document in documentsCopy)
                 {
                     var docFile = new UFile(document.FilePath);
+
+                    if (projectViewModel.DeletedAssetsSinceLastSave.FirstOrDefault(x => x.IsDeletedOutside && x.AssetItem.FullPath == docFile) is { } deletedOutside)
+                    {
+                        RestoreDeletedOutside(projectViewModel, deletedOutside);
+                        ReloadText(deletedOutside, docFile.FullPath);
+                        continue;
+                    }
 
                     AssetItem assetItem;
                     if (string.Equals(docFile.GetFileExtension(), ScriptSourceFileAsset.Extension, StringComparison.OrdinalIgnoreCase))

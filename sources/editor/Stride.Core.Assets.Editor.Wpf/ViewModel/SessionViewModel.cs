@@ -70,6 +70,8 @@ namespace Stride.Core.Assets.Editor.ViewModel
         [NotNull]
         public Task SaveCompletion => session.SaveCompletion;
 
+        internal void SetFileDeletedOutside(UFile filePath, bool deletedOutside) => session.SetFileDeletedOutside(filePath, deletedOutside);
+
         public UFile SolutionPath => session.SolutionPath;
 
         public UFile SessionFilePath => SolutionPath;
@@ -1843,7 +1845,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
             sessionStateUpdating = false;
         }
 
-        public async Task<bool> DeleteItems(IReadOnlyCollection<object> locations, bool skipConfirmation = false)
+        public async Task<bool> DeleteItems(IReadOnlyCollection<object> locations, bool skipConfirmation = false, bool deletedOutside = false)
         {
             // Skip empty
             if (locations.Count == 0)
@@ -2004,7 +2006,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 // Delete assets
                 if (assetsToDelete.Count > 0)
                 {
-                    ActiveAssetView.DeleteAssets(assetsToDelete);
+                    ActiveAssetView.DeleteAssets(assetsToDelete, deletedOutside: deletedOutside);
                 }
 
                 // Delete directories
