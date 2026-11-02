@@ -4,8 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
-using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Core.Threading;
 using Stride.Graphics;
@@ -14,23 +14,23 @@ using Buffer = Stride.Graphics.Buffer;
 
 namespace Stride.Physics;
 
-public class HeightfieldColliderShape : ColliderShape
+public unsafe class HeightfieldColliderShape : ColliderShape
 {
     public static readonly int MinimumHeightStickWidth = 2;
     public static readonly int MinimumHeightStickLength = 2;
 
-    public HeightfieldColliderShape(int heightStickWidth, int heightStickLength, UnmanagedArray<short> dynamicFieldData, float heightScale, float minHeight, float maxHeight, bool flipQuadEdges)
-        : this(heightStickWidth, heightStickLength, HeightfieldTypes.Short, dynamicFieldData, heightScale, minHeight, maxHeight, flipQuadEdges)
+    public HeightfieldColliderShape(int heightStickWidth, int heightStickLength, ReadOnlySpan<short> dynamicFieldData, float heightScale, float minHeight, float maxHeight, bool flipQuadEdges)
+        : this(heightStickWidth, heightStickLength, HeightfieldTypes.Short, MemoryMarshal.AsBytes(dynamicFieldData), heightScale, minHeight, maxHeight, flipQuadEdges)
     {
     }
 
-    public HeightfieldColliderShape(int heightStickWidth, int heightStickLength, UnmanagedArray<byte> dynamicFieldData, float heightScale, float minHeight, float maxHeight, bool flipQuadEdges)
+    public HeightfieldColliderShape(int heightStickWidth, int heightStickLength, ReadOnlySpan<byte> dynamicFieldData, float heightScale, float minHeight, float maxHeight, bool flipQuadEdges)
         : this(heightStickWidth, heightStickLength, HeightfieldTypes.Byte, dynamicFieldData, heightScale, minHeight, maxHeight, flipQuadEdges)
     {
     }
 
-    public HeightfieldColliderShape(int heightStickWidth, int heightStickLength, UnmanagedArray<float> dynamicFieldData, float heightScale, float minHeight, float maxHeight, bool flipQuadEdges)
-        : this(heightStickWidth, heightStickLength, HeightfieldTypes.Float, dynamicFieldData, heightScale, minHeight, maxHeight, flipQuadEdges)
+    public HeightfieldColliderShape(int heightStickWidth, int heightStickLength, ReadOnlySpan<float> dynamicFieldData, float heightScale, float minHeight, float maxHeight, bool flipQuadEdges)
+        : this(heightStickWidth, heightStickLength, HeightfieldTypes.Float, MemoryMarshal.AsBytes(dynamicFieldData), heightScale, minHeight, maxHeight, flipQuadEdges)
     {
     }
 
@@ -39,7 +39,7 @@ public class HeightfieldColliderShape : ColliderShape
         int heightStickWidth,
         int heightStickLength,
         HeightfieldTypes heightType,
-        object dynamicFieldData,
+        ReadOnlySpan<byte> dynamicFieldData,
         float heightScale,
         float minHeight,
         float maxHeight,
@@ -58,38 +58,35 @@ public class HeightfieldColliderShape : ColliderShape
 
         cachedScaling = Vector3.One;
 
-        switch (HeightType)
+        var scalarType = heightType switch
         {
-            case HeightfieldTypes.Short:
-                ShortArray = dynamicFieldData as UnmanagedArray<short>;
+            HeightfieldTypes.Short => BulletSharp.PhyScalarType.Int16,
+            HeightfieldTypes.Byte => BulletSharp.PhyScalarType.Byte,
+            HeightfieldTypes.Float => BulletSharp.PhyScalarType.Single,
+            _ => throw new ArgumentOutOfRangeException(nameof(heightType), heightType, null),
+        };
 
-                InternalShape = new BulletSharp.HeightfieldTerrainShape(HeightStickWidth, HeightStickLength, ShortArray.Pointer, HeightScale, MinHeight, MaxHeight, 1, BulletSharp.PhyScalarType.Int16, flipQuadEdges)
-                {
-                    LocalScaling = cachedScaling,
-                };
+        var scalarSize = heightType switch
+        {
+            HeightfieldTypes.Short => sizeof(short),
+            HeightfieldTypes.Byte => sizeof(byte),
+            HeightfieldTypes.Float => sizeof(float),
+            _ => throw new ArgumentOutOfRangeException(nameof(heightType), heightType, null),
+        };
 
-                break;
-
-            case HeightfieldTypes.Byte:
-                ByteArray = dynamicFieldData as UnmanagedArray<byte>;
-
-                InternalShape = new BulletSharp.HeightfieldTerrainShape(HeightStickWidth, HeightStickLength, ByteArray.Pointer, HeightScale, MinHeight, MaxHeight, 1, BulletSharp.PhyScalarType.Byte, flipQuadEdges)
-                {
-                    LocalScaling = cachedScaling,
-                };
-
-                break;
-
-            case HeightfieldTypes.Float:
-                FloatArray = dynamicFieldData as UnmanagedArray<float>;
-
-                InternalShape = new BulletSharp.HeightfieldTerrainShape(HeightStickWidth, HeightStickLength, FloatArray.Pointer, HeightScale, MinHeight, MaxHeight, 1, BulletSharp.PhyScalarType.Single, flipQuadEdges)
-                {
-                    LocalScaling = cachedScaling,
-                };
-
-                break;
+        var expectedDataLength = HeightStickWidth * HeightStickLength * scalarSize;
+        if (dynamicFieldData.Length != expectedDataLength)
+        {
+            throw new ArgumentException($"The length of {nameof(dynamicFieldData)} is invalid. Expected: {expectedDataLength}, Actual: {dynamicFieldData.Length}");
         }
+
+        heightDataPointer = NativeMemory.Alloc((nuint)dynamicFieldData.Length);
+        dynamicFieldData.CopyTo(new Span<byte>(heightDataPointer, dynamicFieldData.Length));
+
+        InternalShape = new BulletSharp.HeightfieldTerrainShape(HeightStickWidth, HeightStickLength, (nint)heightDataPointer, HeightScale, MinHeight, MaxHeight, 1, scalarType, flipQuadEdges)
+        {
+            LocalScaling = cachedScaling,
+        };
 
         var halfRange = (MaxHeight - MinHeight) * 0.5f;
         var offset = -(MinHeight + halfRange);
@@ -106,11 +103,13 @@ public class HeightfieldColliderShape : ColliderShape
         set { ((BulletSharp.HeightfieldTerrainShape)InternalShape).SetUseZigzagSubdivision(value); }
     }
 
-    public UnmanagedArray<short> ShortArray { get; private set; }
+    public Span<short> ShortSpan => HeightType == HeightfieldTypes.Short ? new Span<short>(heightDataPointer, HeightStickWidth * HeightStickLength) : [];
 
-    public UnmanagedArray<byte> ByteArray { get; private set; }
+    public Span<byte> ByteSpan => HeightType == HeightfieldTypes.Byte ? new Span<byte>(heightDataPointer, HeightStickWidth * HeightStickLength) : [];
 
-    public UnmanagedArray<float> FloatArray { get; private set; }
+    public Span<float> FloatSpan => HeightType == HeightfieldTypes.Float ? new Span<float>(heightDataPointer, HeightStickWidth * HeightStickLength) : [];
+
+    private void* heightDataPointer;
 
     public int HeightStickWidth { get; private set; }
     public int HeightStickLength { get; private set; }
@@ -133,24 +132,23 @@ public class HeightfieldColliderShape : ColliderShape
 
     private readonly ReaderWriterLockSlim lockSlim = new();
 
-    ~HeightfieldColliderShape()
+    protected override void Dispose(bool disposing)
     {
-        lockSlim.Dispose();
-    }
-
-    public override void Dispose()
-    {
-        base.Dispose();
-
         using (LockToReadAndWriteHeights())
         {
-            ShortArray?.Dispose();
-            ShortArray = null;
-            ByteArray?.Dispose();
-            ByteArray = null;
-            FloatArray?.Dispose();
-            FloatArray = null;
+            if (heightDataPointer != null)
+            {
+                NativeMemory.Free(heightDataPointer);
+                heightDataPointer = null;
+            }
         }
+
+        if (disposing)
+        {
+            lockSlim.Dispose();
+        }
+
+        base.Dispose(disposing);
     }
 
     public HeightArrayLock LockToReadHeights()
@@ -163,7 +161,7 @@ public class HeightfieldColliderShape : ColliderShape
         return new HeightArrayLock(HeightArrayLock.LockTypes.ReadWrite, lockSlim);
     }
 
-    public class HeightArrayLock : IDisposable
+    public sealed class HeightArrayLock : IDisposable
     {
         public enum LockTypes
         {
@@ -175,10 +173,7 @@ public class HeightfieldColliderShape : ColliderShape
 
         internal HeightArrayLock(LockTypes lockType, ReaderWriterLockSlim lockSlim)
         {
-            if (lockSlim == null)
-            {
-                throw new ArgumentNullException(nameof(lockSlim));
-            }
+            ArgumentNullException.ThrowIfNull(lockSlim);
 
             readerWriterLockSlim = lockSlim;
 
@@ -242,9 +237,9 @@ public class HeightfieldColliderShape : ColliderShape
 
             heightStickHeight = heightfield.HeightType switch
             {
-                HeightfieldTypes.Short => heightfield.ShortArray[index] * heightfield.HeightScale,
-                HeightfieldTypes.Byte => heightfield.ByteArray[index] * heightfield.HeightScale,
-                HeightfieldTypes.Float => heightfield.FloatArray[index],
+                HeightfieldTypes.Short => heightfield.ShortSpan[index] * heightfield.HeightScale,
+                HeightfieldTypes.Byte => heightfield.ByteSpan[index] * heightfield.HeightScale,
+                HeightfieldTypes.Float => heightfield.FloatSpan[index],
                 _ => throw new NotSupportedException()
             };
 

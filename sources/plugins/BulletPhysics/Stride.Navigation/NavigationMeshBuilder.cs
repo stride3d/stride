@@ -631,24 +631,24 @@ namespace Stride.Navigation
                                 switch (heightfield.HeightType)
                                 {
                                     case HeightfieldTypes.Short:
-                                        if (heightfield.ShortArray == null) continue;
+                                        var shortSpan = heightfield.ShortSpan;
                                         for (int i = 0; i < arrayLength; ++i)
                                         {
-                                            mesh.Vertices[i].Position.Y = heightfield.ShortArray[i] * heightfield.HeightScale;
+                                            mesh.Vertices[i].Position.Y = shortSpan[i] * heightfield.HeightScale;
                                         }
                                         break;
                                     case HeightfieldTypes.Byte:
-                                        if (heightfield.ByteArray == null) continue;
+                                        var byteSpan = heightfield.ByteSpan;
                                         for (int i = 0; i < arrayLength; ++i)
                                         {
-                                            mesh.Vertices[i].Position.Y = heightfield.ByteArray[i] * heightfield.HeightScale;
+                                            mesh.Vertices[i].Position.Y = byteSpan[i] * heightfield.HeightScale;
                                         }
                                         break;
                                     case HeightfieldTypes.Float:
-                                        if (heightfield.FloatArray == null) continue;
+                                        var floatSpan = heightfield.FloatSpan;
                                         for (int i = 0; i < arrayLength; ++i)
                                         {
-                                            mesh.Vertices[i].Position.Y = heightfield.FloatArray[i];
+                                            mesh.Vertices[i].Position.Y = floatSpan[i];
                                         }
                                         break;
                                 }

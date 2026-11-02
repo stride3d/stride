@@ -2,6 +2,8 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Buffers;
+using System.Runtime.InteropServices;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
@@ -78,22 +80,6 @@ namespace Stride.Physics
             return (heightRange.X + heightRange.Y) * 0.5f - centerHeight;
         }
 
-        private static UnmanagedArray<T> CreateHeights<T>(IHeightStickArraySource heightStickArraySource) where T : struct
-        {
-            if (!heightStickArraySource?.IsValid() ?? false)
-            {
-                return null;
-            }
-
-            var arrayLength = heightStickArraySource.HeightStickSize.X * heightStickArraySource.HeightStickSize.Y;
-
-            var unmanagedArray = new UnmanagedArray<T>(arrayLength);
-
-            heightStickArraySource.CopyTo(unmanagedArray, 0);
-
-            return unmanagedArray;
-        }
-
         /// <summary>
         /// Get the centering offset that will be added to the local offset of the collider shape.
         /// </summary>
@@ -109,31 +95,43 @@ namespace Stride.Physics
 
         public ColliderShape CreateShape(IServiceRegistry services)
         {
-            object unmanagedArray;
+            if (HeightStickArraySource is null || !HeightStickArraySource.IsValid())
+            {
+                return null;
+            }
+
+            var arrayLength = HeightStickArraySource.HeightStickSize.X * HeightStickArraySource.HeightStickSize.Y;
+
+            byte[] rentedArray;
+            Span<byte> unmanagedArray;
 
             switch (HeightStickArraySource.HeightType)
             {
                 case HeightfieldTypes.Float:
                 {
-                    unmanagedArray = CreateHeights<float>(HeightStickArraySource);
+                    rentedArray = ArrayPool<byte>.Shared.Rent(arrayLength * sizeof(float));
+                    unmanagedArray = rentedArray.AsSpan(0, arrayLength * sizeof(float));
+                    HeightStickArraySource.CopyTo(MemoryMarshal.Cast<byte, float>(unmanagedArray));
                     break;
                 }
                 case HeightfieldTypes.Short:
                 {
-                    unmanagedArray = CreateHeights<short>(HeightStickArraySource);
+                    rentedArray = ArrayPool<byte>.Shared.Rent(arrayLength * sizeof(short));
+                    unmanagedArray = rentedArray.AsSpan(0, arrayLength * sizeof(short));
+                    HeightStickArraySource.CopyTo(MemoryMarshal.Cast<byte, short>(unmanagedArray));
                     break;
                 }
                 case HeightfieldTypes.Byte:
                 {
-                    unmanagedArray = CreateHeights<byte>(HeightStickArraySource);
+                    rentedArray = ArrayPool<byte>.Shared.Rent(arrayLength * sizeof(byte));
+                    unmanagedArray = rentedArray.AsSpan(0, arrayLength * sizeof(byte));
+                    HeightStickArraySource.CopyTo(unmanagedArray);
                     break;
                 }
 
                 default:
                     return null;
             }
-
-            if (unmanagedArray == null) return null;
 
             var shape = new HeightfieldColliderShape
                         (
@@ -151,6 +149,8 @@ namespace Stride.Physics
                             LocalRotation = LocalRotation,
                             Description = this
                         };
+
+            ArrayPool<byte>.Shared.Return(rentedArray);
 
             return shape;
         }

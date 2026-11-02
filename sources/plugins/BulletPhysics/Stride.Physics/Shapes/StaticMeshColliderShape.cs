@@ -54,9 +54,8 @@ namespace Stride.Physics
             DebugPrimitiveMatrix = Matrix.Scaling(Vector3.One * DebugScaling);
         }
 
-        public override void Dispose()
+        protected override void Dispose(bool disposing)
         {
-            base.Dispose();
             if (sharedData.Key == null)
             {
                 // Not actually shared, dispose and move on
@@ -73,8 +72,10 @@ namespace Stride.Physics
                     sharedData.Dispose();
                 }
             }
+
+            base.Dispose(disposing);
         }
-        
+
         public unsafe void GetMeshDataCopy(out Vector3[] verts, out int[] indices)
         {
             var iMesh = sharedData.BulletMesh.IndexedMeshArray[0];
