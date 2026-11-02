@@ -8,6 +8,7 @@ using Stride.Core.Assets.Editor.Quantum.NodePresenters.Keys;
 using Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters;
 using Stride.Core;
 using Stride.Core.Extensions;
+using Stride.Core.Reflection;
 using Stride.Assets.Presentation.ViewModel;
 using Stride.Assets.Rendering;
 using Stride.Rendering;
@@ -79,6 +80,6 @@ namespace Stride.Assets.Presentation.NodePresenters.Updaters
             }
             base.FinalizeTree(root);
         }
-        private static string GetSharedRendererDisplayName(ISharedRenderer sharedRenderer) => $"Shared: {DisplayAttribute.GetDisplayName(sharedRenderer.GetType())}";
+        private static string GetSharedRendererDisplayName(ISharedRenderer sharedRenderer) => $"Shared: {TypeDescriptorFactory.Default.AttributeRegistry.GetAttribute<DisplayAttribute>(sharedRenderer.GetType())?.Name ?? sharedRenderer.GetType().Name}";
     }
 }

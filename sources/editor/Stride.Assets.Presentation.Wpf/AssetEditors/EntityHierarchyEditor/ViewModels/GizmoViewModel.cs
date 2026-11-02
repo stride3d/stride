@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using Stride.Core;
 using Stride.Core.Annotations;
+using Stride.Core.Reflection;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Services;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Services;
 using Stride.Core.Presentation.ViewModels;
@@ -27,7 +28,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
 
         public Type ComponentType { get; }
 
-        public string ComponentName => ComponentType != null ? DisplayAttribute.GetDisplayName(ComponentType) : string.Empty;
+        public string ComponentName => ComponentType != null ? TypeDescriptorFactory.Default.AttributeRegistry.GetAttribute<DisplayAttribute>(ComponentType)?.Name ?? ComponentType.Name : string.Empty;
 
         public bool IsActive { get { return isActive; } set { SetValue(ref isActive, value, () => Service.ToggleGizmoVisibility(ComponentType, value)); } }
 

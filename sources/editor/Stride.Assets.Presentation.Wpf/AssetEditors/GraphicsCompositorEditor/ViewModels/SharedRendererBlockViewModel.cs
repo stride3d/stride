@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using Stride.Core;
 using Stride.Core.Annotations;
+using Stride.Core.Reflection;
 using Stride.Core.Quantum;
 using Stride.Assets.Rendering;
 using Stride.Rendering.Compositing;
@@ -23,7 +24,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewM
         }
 
         /// <inheritdoc/>
-        public override string Title => DisplayAttribute.GetDisplayName(sharedRenderer?.GetType());
+        public override string Title => sharedRenderer?.GetType() is { } type ? TypeDescriptorFactory.Default.AttributeRegistry.GetAttribute<DisplayAttribute>(type)?.Name ?? type.Name : null;
 
         public ISharedRenderer GetSharedRenderer() => sharedRenderer;
 

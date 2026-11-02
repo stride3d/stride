@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Stride.Core.Assets;
 using Stride.Core;
 using Stride.Core.Mathematics;
+using Stride.Core.Reflection;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
 using Stride.Assets.Rendering;
 using Stride.Editor.EditorGame.Game;
@@ -282,8 +283,9 @@ namespace Stride.Assets.Presentation.Preview
         /// <returns></returns>
         protected string BuildName()
         {
-            var description = DisplayAttribute.GetDisplay(typeof(T));
-            string typeDisplayName = description != null && !string.IsNullOrEmpty(description.Name) ? description.Name : typeof(T).Name;
+            var typeDisplayName = TypeDescriptorFactory.Default.AttributeRegistry.GetAttribute<DisplayAttribute>(typeof(T))?.Name;
+            if (string.IsNullOrEmpty(typeDisplayName))
+                typeDisplayName = typeof(T).Name;
             return string.Format("Preview entity for {0} '{1}'", typeDisplayName, AssetItem.Location);
         }
 

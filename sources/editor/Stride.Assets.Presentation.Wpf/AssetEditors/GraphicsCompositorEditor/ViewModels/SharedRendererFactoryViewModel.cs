@@ -7,6 +7,7 @@ using Stride.Core.Annotations;
 using Stride.Core.Presentation.Commands;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
+using Stride.Core.Reflection;
 using Stride.Core.Quantum;
 using Stride.Rendering.Compositing;
 
@@ -22,7 +23,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewM
             this.sharedRenderersNode = sharedRenderersNode;
             if (sharedRenderersNode == null) throw new ArgumentNullException(nameof(sharedRenderersNode));
             if (type == null) throw new ArgumentNullException(nameof(type));
-            Name = DisplayAttribute.GetDisplayName(type);
+            Name = TypeDescriptorFactory.Default.AttributeRegistry.GetAttribute<DisplayAttribute>(type)?.Name ?? type.Name;
             Type = type;
             CreateCommand = new AnonymousCommand(serviceProvider, Create);
         }
