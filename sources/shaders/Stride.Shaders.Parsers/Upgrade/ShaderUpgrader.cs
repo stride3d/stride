@@ -342,7 +342,6 @@ public static class ShaderUpgrader
 
     private static void ConvertDeclaration(ShaderUpgradeProject project, ShaderUpgradeClass shaderClass, ShaderSourceText source, ShaderClassText classText, List<string> notes)
     {
-        // A shader that relies on being mixed at the root, root-only before through a parent that becomes a module
         if (project.NeedsRootMarker(shaderClass.Name))
             InsertRootAttribute(source, classText);
 

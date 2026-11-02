@@ -1,0 +1,12 @@
+namespace MyGame.Text
+{
+    // A shader on those effects: root-only through its parent
+    shader MyGlyphShader : SpriteBase, MyGlyphEffects
+    {
+        stage override void PSMain()
+        {
+            ApplyEffects();
+            streams.ColorTarget = Shading();
+        }
+    };
+}

@@ -199,10 +199,10 @@ internal sealed class ShaderUpgradeProject
     private static bool IsProjectClass(ShaderUpgradeClass shaderClass) => !shaderClass.IsEngine && !shaderClass.IsDependency;
 
     /// <summary>
-    /// A shader that was root-only through a parent that becomes a module, and whose code relies on being mixed at the root, gets its
-    /// own <c>[Root]</c>: a module passes on only its own, so without it the shader would be checked as a shader used in compositions
-    /// (SDSL0204-0206). Relies on being root-only = its module code reads instance state of the shader or its shader parents, or calls
-    /// an instance method, or it overrides a module method with a plain override. Shaders used in compositions don't get it.
+    /// A shader whose code relies on being mixed at the root gets its own <c>[Root]</c> when nothing else makes it root-only: without
+    /// it the shader would be checked as a shader used in compositions (SDSL0204-0206). Relies on being root-only = its module code reads
+    /// instance state of the shader or its shader parents, or calls an instance method, or it overrides a module method with a plain
+    /// override. A shader used in compositions doesn't get it.
     /// </summary>
     public bool NeedsRootMarker(string name)
     {
@@ -210,9 +210,14 @@ internal sealed class ShaderUpgradeProject
             return result;
         needsRoot[name] = false;
         result = Classes.TryGetValue(name, out var shaderClass) && !shaderClass.IsEngine && !shaderClass.IsDependency && !shaderClass.IsModule && !BecomesModule(name)
-            && !IsInstance(name) && IsRootOnly(name) && !IsRootOnlyAfterUpgrade(name) && ReliesOnRoot(shaderClass);
+            && !IsInstance(name) && !IsRootOnlyAfterUpgrade(name) && ReliesOnRoot(shaderClass)
+            && (IsRootOnly(name) || !MayBeInComposition(name));
         return needsRoot[name] = result;
     }
+
+    // A parent this upgrade doesn't know may be a compose type; a class inheriting this one may be one
+    private bool MayBeInComposition(string name)
+        => Ancestors(name).Any(x => !Classes.ContainsKey(x)) || ProjectClasses.Any(x => IsInstance(x.Name) && Ancestors(x.Name).Contains(name));
 
     // As the compiler decides it once the upgrade is done: module parents are imports, which pass on only their own [Root]
     private bool IsRootOnlyAfterUpgrade(string name)

@@ -214,6 +214,25 @@ public class ShaderUpgradeTests
         Assert.Contains(": MyLibSettings", result.Files["MyUser.sdsl"]);
     }
 
+    // [Root] goes on the class whose code relies on it; a class inheriting it, used in a composition, or with a parent the upgrade doesn't know doesn't get one
+    [Theory]
+    [InlineData("shader A { float R; stage float F() { return R; } };", "A")]
+    [InlineData("shader A { float H() { return 1; } stage float F() { return H(); } };", "A")]
+    [InlineData("shader A { float R; stage float F() { return 1; } }; shader B : A { override float F() { return 2; } };", "B")]
+    [InlineData("shader A { float R; stage float F() { return R; } }; shader B : A { };", "A")]
+    [InlineData("shader A { float R; stage float F() { return 1; } };", "")]
+    [InlineData("shader A { float R; stage float F() { return R; } }; shader C { compose A Slot; };", "")]
+    [InlineData("shader T { }; shader A : T { float R; stage float F() { return R; } }; shader C { compose T Slot; };", "")]
+    [InlineData("shader A { float R; stage float F() { return R; } }; shader T : A { }; shader C { compose T Slot; };", "")]
+    [InlineData("shader A : FromAnotherLibrary { float R; stage float F() { return R; } };", "")]
+    public void RootMarkerGoesOnTheClassThatReliesOnIt(string code, string expected)
+    {
+        var upgraded = ShaderUpgrader.Upgrade(new Dictionary<string, string> { ["Code.sdsl"] = code }, EngineShaderClasses.Parse(""), lastStep: "module-units").Files["Code.sdsl"];
+
+        var marked = System.Text.RegularExpressions.Regex.Matches(upgraded, @"\[Root\]\s+shader (\w+)").Select(x => x.Groups[1].Value);
+        Assert.Equal(expected, string.Join(",", marked));
+    }
+
     // The upgraded feature works in a composition: its helpers are module code like the code calling them
     [Fact]
     public void UpgradedFeatureHelpersMixInComposition()

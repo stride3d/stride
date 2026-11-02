@@ -1,0 +1,20 @@
+namespace MyGame.Text
+{
+    // Effects of a text shader: its module code reads its own parameters and helpers, which is right because it is only mixed at the root
+    shader MyGlyphEffects : ShaderBaseStream, Texturing
+    {
+        float WaveAmount;
+        int EffectCount;
+
+        stage void ApplyEffects()
+        {
+            for (int i = 0; i < EffectCount; i++)
+                streams.TexCoord.x += WaveOffset(streams.TexCoord.y);
+        }
+
+        float WaveOffset(float y)
+        {
+            return WaveAmount * y;
+        }
+    };
+}
