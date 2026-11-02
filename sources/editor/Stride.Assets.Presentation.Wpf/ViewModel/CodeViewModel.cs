@@ -15,6 +15,7 @@ using Stride.Assets.Presentation.AssetEditors;
 using Stride.Assets.Presentation.AssetEditors.ScriptEditor;
 using Stride.Assets.Scripts;
 using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Diagnostics;
 using Stride.Core.Extensions;
@@ -23,6 +24,7 @@ using Stride.Core.Presentation.Dirtiables;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Translation;
+using Stride.Editor.Build;
 using RoslynWorkspace = Stride.Assets.Presentation.AssetEditors.ScriptEditor.RoslynWorkspace;
 
 namespace Stride.Assets.Presentation.ViewModel
@@ -49,6 +51,7 @@ namespace Stride.Assets.Presentation.ViewModel
         private ProjectWatcher projectWatcher;
         private RoslynWorkspace roslynWorkspace;
         private int editorFontSize = ScriptEditorSettings.FontSize.GetValue(); // default size
+        private bool userShaderBuildRequested;
 
         private readonly Brush keywordBrush;
         private readonly Brush typeBrush;
@@ -202,6 +205,42 @@ namespace Stride.Assets.Presentation.ViewModel
             EnsureNotDestroyed(nameof(CodeViewModel));
             Cleanup();
             base.Destroy();
+        }
+
+        /// <summary>
+        /// Requests a build of the user shaders. All the requests of one dispatcher step share one build.
+        /// </summary>
+        public void RequestUserShaderBuild(SessionViewModel session)
+        {
+            if (userShaderBuildRequested)
+                return;
+
+            userShaderBuildRequested = true;
+            Dispatcher.InvokeAsync(() =>
+            {
+                userShaderBuildRequested = false;
+                try
+                {
+                    BuildUserShaders(session);
+                }
+                catch (Exception e)
+                {
+                    Logger.Error("Failed to start the build of the user shaders", e);
+                }
+            }).Forget();
+        }
+
+        private static void BuildUserShaders(SessionViewModel session)
+        {
+            // The build service is registered during plugin initialization, so it is not available yet when a save
+            // runs while opening the session (e.g. persisting an upgrade); it compiles the shaders of all packages when it starts.
+            var builder = session.ServiceProvider.TryGet<AssetBuilderService>();
+            if (builder == null)
+                return;
+
+            var shaderBuildSteps = new StrideShaderImporter().CreateUserShaderBuildSteps(session);
+            if (shaderBuildSteps != null)
+                builder.PushBuildUnit(new PrecompiledAssetBuildUnit(AssetBuildUnitIdentifier.Default, shaderBuildSteps, true));
         }
 
         /// <summary>
