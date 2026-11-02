@@ -82,7 +82,7 @@ public abstract class VoxelColliderBase<TSource> : ICollider
     }
 
     /// <summary>Gets or sets the radius of the <see cref="VoxelCellShape.Sphere"/> children, as a multiple of half a cell.</summary>
-    /// <remarks>At 1 neighbouring spheres touch and small bodies can slip between them; around 1.4 covers the face diagonals.</remarks>
+    /// <remarks>At 1 neighbouring spheres touch and small bodies can slip between them; around 1.4 covers the face diagonals, at the cost of smoothing cell-size detail. The query reach and the shape bounds grow with the overshoot, so a body resting on the overshoot still finds the sphere.</remarks>
     [DataMemberRange(MinimumPositive, 3)]
     public float SphereRadiusScale
     {

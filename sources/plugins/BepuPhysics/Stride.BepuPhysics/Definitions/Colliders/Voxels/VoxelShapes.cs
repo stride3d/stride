@@ -27,7 +27,10 @@ internal unsafe interface IVoxelShape
     static abstract int MaxChildrenPerCell { get; }
 
     /// <summary>How many cells beyond its owner a child can reach, widening every query by as much.</summary>
-    static abstract int ChildReach { get; }
+    int ChildReach { get; }
+
+    /// <summary>Extra padding on each side of the shape's AABB, for children that stick out of the grid box.</summary>
+    Vector3 BoundsPadding { get; }
 
     VoxelGridLayout Layout { get; }
 
@@ -72,6 +75,13 @@ internal static unsafe class VoxelShapeHelpers
             min = Vector3.Min(rotated, min);
             max = Vector3.Max(rotated, max);
         }
+        // A child that sticks out of the grid box (an oversized sphere, say) widens the shape's bounds by its overshoot.
+        var pad = shape.BoundsPadding;
+        if (pad != Vector3.Zero)
+        {
+            min -= pad;
+            max += pad;
+        }
     }
 
     /// <summary>Clamps a local bounding box to the cells it touches; false when it misses the grid.</summary>
@@ -93,7 +103,11 @@ internal static unsafe class VoxelShapeHelpers
         where TShape : unmanaged, IVoxelShape
         where TEnumerator : IBreakableForEach<int>
     {
-        if (!GetCellRange(shape.Layout, TShape.ChildReach, min, max, out var x0, out var y0, out var z0, out var x1, out var y1, out var z1))
+        // The query grows by any child overshoot, so a cell whose child pokes into the query region is still visited.
+        var pad = shape.BoundsPadding;
+        min -= pad;
+        max += pad;
+        if (!GetCellRange(shape.Layout, shape.ChildReach, min, max, out var x0, out var y0, out var z0, out var x1, out var y1, out var z1))
             return;
         Span<int> children = stackalloc int[TShape.MaxChildrenPerCell];
         for (int x = x0; x <= x1; ++x)
@@ -160,10 +174,11 @@ internal static unsafe class VoxelShapeHelpers
         Matrix3x3.TransformTranspose(ray.Origin - pose.Position, orientation, out var origin);
         Matrix3x3.TransformTranspose(ray.Direction, orientation, out var direction);
 
-        // Stepping works from the grid's minimum corner; children are still tested in the shape's local space.
+        // Stepping works from the grid's minimum corner; children are still tested in the shape's local space. A child that pokes out of the grid box widens the box the ray is clipped against.
         var gridOrigin = origin - grid.Origin;
         var cellSize = grid.CellSize;
-        if (!TryClipToBox(gridOrigin, direction, grid.Extent, maximumT, out var tEnter, out var tExit))
+        var pad = shape.BoundsPadding;
+        if (!TryClipToBox(gridOrigin + pad, direction, grid.Extent + pad * 2f, maximumT, out var tEnter, out var tExit))
             return;
 
         var entry = (gridOrigin + direction * tEnter) / cellSize;
@@ -176,17 +191,18 @@ internal static unsafe class VoxelShapeHelpers
         ComputeAxisStep(gridOrigin.Z, direction.Z, z, cellSize.Z, tEnter, out var stepZ, out var tMaxZ, out var tDeltaZ);
 
         Span<int> children = stackalloc int[TShape.MaxChildrenPerCell];
-        var reach = TShape.ChildReach;
+        var reach = shape.ChildReach;
         var t = tEnter;
         while (t <= tExit && t <= maximumT)
         {
-            // Cells within reach are tested again from each neighbour; the handler keeps the nearest hit.
+            // Each DDA cell owns the ray span [t, tNextBoundary); a hit outside it is reported by the cell that owns its time, so RayCastPenetrating sees it once.
+            var tNextBoundary = MathF.Min(MathF.Min(tMaxX, tMaxY), tMaxZ);
             for (int cx = Math.Max(x - reach, 0); cx <= Math.Min(x + reach, grid.CellsX - 1); ++cx)
             {
                 for (int cy = Math.Max(y - reach, 0); cy <= Math.Min(y + reach, grid.CellsY - 1); ++cy)
                 {
                     for (int cz = Math.Max(z - reach, 0); cz <= Math.Min(z + reach, grid.CellsZ - 1); ++cz)
-                        TestCell(ref shape, cx, cy, cz, children, origin, direction, orientation, ray, ref maximumT, ref hitHandler);
+                        TestCell(ref shape, cx, cy, cz, children, origin, direction, orientation, ray, t, tNextBoundary, ref maximumT, ref hitHandler);
                 }
             }
 
@@ -217,7 +233,7 @@ internal static unsafe class VoxelShapeHelpers
         }
     }
 
-    private static void TestCell<TShape, TRayHitHandler>(ref TShape shape, int cx, int cy, int cz, Span<int> children, Vector3 origin, Vector3 direction, in Matrix3x3 orientation, in RayData ray, ref float maximumT, ref TRayHitHandler hitHandler)
+    private static void TestCell<TShape, TRayHitHandler>(ref TShape shape, int cx, int cy, int cz, Span<int> children, Vector3 origin, Vector3 direction, in Matrix3x3 orientation, in RayData ray, float tCurrent, float tNextBoundary, ref float maximumT, ref TRayHitHandler hitHandler)
         where TShape : unmanaged, IVoxelShape
         where TRayHitHandler : struct, IShapeRayHitHandler
     {
@@ -227,7 +243,7 @@ internal static unsafe class VoxelShapeHelpers
             var childIndex = children[i];
             if (!hitHandler.AllowTest(childIndex))
                 continue;
-            if (shape.RayTestChild(childIndex, origin, direction, out var hitT, out var normal) && hitT <= maximumT)
+            if (shape.RayTestChild(childIndex, origin, direction, out var hitT, out var normal) && hitT <= maximumT && hitT >= tCurrent && hitT < tNextBoundary)
             {
                 Matrix3x3.Transform(normal, orientation, out normal);
                 hitHandler.OnRayHit(ray, ref maximumT, hitT, normal, childIndex);
@@ -305,7 +321,8 @@ internal unsafe struct VoxelBoxShape<TSource> : IHomogeneousCompoundShape<Box, B
     public static int TypeId => VoxelShapeTypeIds<TSource>.Box;
     public static int ChildShapeTypeId => Box.Id;
     public static int MaxChildrenPerCell => 1;
-    public static int ChildReach => 0;
+    public readonly int ChildReach => 0;
+    public readonly Vector3 BoundsPadding => Vector3.Zero;
 
     public readonly VoxelGridLayout Layout => GridData.Layout;
 
@@ -396,7 +413,32 @@ internal unsafe struct VoxelSphereShape<TSource> : IHomogeneousCompoundShape<Sph
     public static int TypeId => VoxelShapeTypeIds<TSource>.Sphere;
     public static int ChildShapeTypeId => Sphere.Id;
     public static int MaxChildrenPerCell => 1;
-    public static int ChildReach => 0;
+
+    /// <summary>Cells to visit on each side of the DDA cell: enough to catch a sphere whose radius overshoots its own cell.</summary>
+    public readonly int ChildReach
+    {
+        get
+        {
+            var cell = GridData.CellSize;
+            var minCell = MathF.Min(MathF.Min(cell.X, cell.Y), cell.Z);
+            var overshoot = MathF.Max(0f, GridData.SphereRadius - minCell * 0.5f);
+            return (int)MathF.Ceiling(overshoot / minCell);
+        }
+    }
+
+    /// <summary>The sphere's radius minus half the cell, per axis: how far it sticks out of its own cell.</summary>
+    public readonly Vector3 BoundsPadding
+    {
+        get
+        {
+            var halfCell = GridData.CellSize * 0.5f;
+            var sr = GridData.SphereRadius;
+            return new Vector3(
+                MathF.Max(0f, sr - halfCell.X),
+                MathF.Max(0f, sr - halfCell.Y),
+                MathF.Max(0f, sr - halfCell.Z));
+        }
+    }
 
     public readonly VoxelGridLayout Layout => GridData.Layout;
 
@@ -490,7 +532,9 @@ internal unsafe struct VoxelTriangleShape<TSource> : IHomogeneousCompoundShape<T
     public static int MaxChildrenPerCell => SlotsPerCell;
 
     /// <summary>A surface nets quad joins the vertices of the four cells around an edge, so it reaches into the neighbours.</summary>
-    public static int ChildReach => 1;
+    public readonly int ChildReach => 1;
+
+    public readonly Vector3 BoundsPadding => Vector3.Zero;
 
     public readonly VoxelGridLayout Layout => GridData.Layout;
 
