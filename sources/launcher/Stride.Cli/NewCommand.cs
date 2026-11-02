@@ -7,6 +7,7 @@ using Microsoft.TemplateEngine.Abstractions;
 using Microsoft.TemplateEngine.Edge.Template;
 using Stride.Assets.Templates;
 using Stride.Core;
+using Stride.Core.Assets;
 using Stride.Cli.Core;
 
 // new: create a project from an installed Stride version's bundled templates.
@@ -337,16 +338,21 @@ internal static class NewCommand
     }
 
     // The Stride engine version a freshly generated project references (the template's build-time engine),
-    // read from the first project that pins Stride.Engine. Null if none is found.
+    // read from the first project that pins Stride.Engine. Null if none is found, with a warning when a project
+    // references it with a version that can't be read.
     private static string? ReadGeneratedEngineVersion(string output)
     {
+        string? unreadable = null;
         foreach (var project in Directory.EnumerateFiles(output, "*.csproj", SearchOption.AllDirectories))
         {
-            var match = System.Text.RegularExpressions.Regex.Match(File.ReadAllText(project), "Stride\\.Engine\"\\s+Version=\"([^\"]+)\"");
-            if (match.Success)
-                return match.Groups[1].Value;
+            if (ProjectVersionReader.ReadDeclaredVersion(project, "Stride.Engine") is { } version)
+                return version;
+            if (ProjectVersionReader.ReferencesPackage(project, "Stride.Engine"))
+                unreadable ??= project;
         }
 
+        if (unreadable is not null)
+            Console.Error.WriteLine($"Warning: can't read the Stride.Engine version in '{unreadable}'; the project is not upgraded.");
         return null;
     }
 
