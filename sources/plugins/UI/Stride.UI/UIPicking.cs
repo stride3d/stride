@@ -67,20 +67,6 @@ namespace Stride.UI
             compactedPointerEvents.Clear();
             CompactPointerEvents(events);
 
-            var latestFrame = int.MinValue;
-            foreach (var target in targets.Values)
-                latestFrame = Math.Max(latestFrame, target.Frame);
-
-            // Forget UI components that were not drawn in the last frame, so removed components are not kept alive
-            staleTargets.Clear();
-            foreach (var target in targets.Values)
-            {
-                if (target.Frame < latestFrame)
-                    staleTargets.Add((target.RenderObject, target.View));
-            }
-            foreach (var key in staleTargets)
-                targets.Remove(key);
-
             UIElement elementUnderMouseCursor = null;
             foreach (var target in targets.Values)
             {
@@ -100,6 +86,33 @@ namespace Stride.UI
             ScheduleReleases(events);
 
             return elementUnderMouseCursor;
+        }
+
+        /// <summary>
+        /// Forgets the UI components that were not drawn in the last draw, so that a UI that stopped drawing no longer
+        /// takes input and removed components are not kept alive.
+        /// </summary>
+        /// <param name="targets">The picking targets.</param>
+        /// <param name="lastDrawnFrame">
+        /// The frame of the last draw, or <c>null</c> where nothing draws: the latest frame of the targets is used then.
+        /// </param>
+        public void DropStaleTargets(Dictionary<(RenderUIElement, RenderView), UIPickingTarget> targets, int? lastDrawnFrame)
+        {
+            var currentFrame = lastDrawnFrame ?? int.MinValue;
+            if (!lastDrawnFrame.HasValue)
+            {
+                foreach (var target in targets.Values)
+                    currentFrame = Math.Max(currentFrame, target.Frame);
+            }
+
+            staleTargets.Clear();
+            foreach (var target in targets.Values)
+            {
+                if (target.Frame < currentFrame)
+                    staleTargets.Add((target.RenderObject, target.View));
+            }
+            foreach (var key in staleTargets)
+                targets.Remove(key);
         }
 
         private void ApplyDeferredReleases()

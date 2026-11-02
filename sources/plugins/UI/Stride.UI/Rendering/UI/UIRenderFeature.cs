@@ -63,6 +63,15 @@ namespace Stride.Rendering.UI
             batch = uiSystem.Batch;
         }
 
+        public override void Flush(RenderDrawContext context)
+        {
+            base.Flush(context);
+
+            // Runs once the scene has drawn, also when no UI was in it, so picking can tell which targets are current
+            if (game != null)
+                uiSystem.RecordDrawnFrame(game.DrawTime.FrameCount);
+        }
+
         public override void Draw(RenderDrawContext context, RenderView renderView, RenderViewStage renderViewStage, int startIndex, int endIndex)
         {
             lock (drawLock)

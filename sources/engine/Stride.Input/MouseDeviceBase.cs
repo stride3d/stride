@@ -21,7 +21,6 @@ namespace Stride.Input
             MouseState = new MouseDeviceState(PointerState, this);
 
             buttonTracker = CaptureState.TrackButtons(MouseState.DownButtons, MouseState.PressedButtons, MouseState.ReleasedButtons);
-            CaptureState.DeviceMasksOwnState = true;
         }
 
         public abstract bool IsPositionLocked { get; }

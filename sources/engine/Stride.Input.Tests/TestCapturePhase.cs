@@ -29,6 +29,20 @@ public class TestCapturePhase
     }
 
     [Fact]
+    public void ReadingEventListsBeforeEventsAreRoutedDoesNotHideThemAfterwards()
+    {
+        using var headless = new HeadlessInput();
+        headless.Input.PreUpdateInput += (_, _) => _ = headless.Input.KeyEvents.Count + headless.Input.PointerEvents.Count;
+
+        headless.Keyboard.SimulateDown(Keys.A);
+        headless.Mouse.SetPosition(new Vector2(0.5f));
+        headless.Update();
+
+        Assert.Single(headless.Input.KeyEvents);
+        Assert.NotEmpty(headless.Input.PointerEvents);
+    }
+
+    [Fact]
     public void CaptureAfterTheCapturePhaseMasksEventListsOnNextRead()
     {
         using var headless = new HeadlessInput();
