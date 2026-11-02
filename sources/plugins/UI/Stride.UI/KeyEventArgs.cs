@@ -19,7 +19,7 @@ namespace Stride.UI
         /// A reference to the input system.
         /// </summary>
         /// <remarks>
-        /// While the UI holds the keyboard, the input system hides the keyboard from game-facing reads. Use
+        /// While the UI holds the keyboard, the input system hides the keyboard from scripts and systems. Use
         /// <see cref="DownKeys"/> or <see cref="IsKeyDown"/> to check the status of the other keys.
         /// </remarks>
         public InputManager Input { get; init; }

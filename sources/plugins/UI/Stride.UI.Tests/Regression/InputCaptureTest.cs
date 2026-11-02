@@ -14,7 +14,7 @@ using Xunit;
 namespace Stride.UI.Tests.Regression
 {
     /// <summary>
-    /// Checks that input the UI uses is captured, so that game code does not also act on it.
+    /// Checks that input the UI uses is captured, so that scripts and systems do not also act on it.
     /// </summary>
     public class InputCaptureTest : UITestGameBase
     {

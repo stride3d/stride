@@ -7,8 +7,8 @@ using Stride.Input;
 namespace GameMenu
 {
     /// <summary>
-    /// Shows what game code sees of the input while the menu UI is used. Input the UI captures, such as clicks on buttons
-    /// or typing in a text box, is hidden from the game. Press F9 to turn this masking off and compare.
+    /// Shows what scripts and systems see of the input while the menu UI is used. Input the UI captures, such as clicks on buttons
+    /// or typing in a text box, is hidden from them. Press F9 to turn this masking off and compare.
     /// </summary>
     public class InputCaptureMonitor : SyncScript
     {
@@ -25,7 +25,7 @@ namespace GameMenu
             wheelTotal += Input.MouseWheelDelta;
 
             var position = new Int2(10, 10);
-            DebugText.Print($"What the game sees (F9: masking {(Input.MaskCapturedInput ? "on" : "off")})", position);
+            DebugText.Print($"What scripts see (F9: masking {(Input.MaskCapturedInput ? "on" : "off")})", position);
             DebugText.Print($"Keys down: {string.Join(", ", Input.DownKeys)}", position + new Int2(0, 20));
             DebugText.Print($"Left clicks: {leftClicks}   Wheel: {wheelTotal:0.##}", position + new Int2(0, 40));
             DebugText.Print($"Mouse held by: {OwnerName(Input.Mouse)}   Keyboard held by: {OwnerName(Input.Keyboard)}", position + new Int2(0, 60));

@@ -36,7 +36,7 @@ namespace Stride.UI
         // One target for each view that drew a UI component, so a component drawn by several cameras is picked in each of them
         private readonly Dictionary<(RenderUIElement, RenderView), UIPickingTarget> pickingTargets = new Dictionary<(RenderUIElement, RenderView), UIPickingTarget>();
 
-        // Keys and text are read through the listener, because the game-facing keyboard state is masked while the UI holds the keyboard
+        // Keys and text are read through the listener, because the keyboard state scripts and systems read is masked while the UI holds the keyboard
         private readonly List<KeyEvent> pendingKeyEvents = new List<KeyEvent>();
         private readonly List<TextInputEvent> pendingTextEvents = new List<TextInputEvent>();
         private readonly HashSet<Keys> downKeys = new HashSet<Keys>();
@@ -72,7 +72,7 @@ namespace Stride.UI
         /// The <see cref="UIElement"/> that currently has the focus.
         /// </summary>
         /// <remarks>
-        /// While an element has the focus, the UI captures the keyboard, so game code does not see what is typed.
+        /// While an element has the focus, the UI captures the keyboard, so scripts and systems do not see what is typed.
         /// </remarks>
         public UIElement FocusedElement
         {

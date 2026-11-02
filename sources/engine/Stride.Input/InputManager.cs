@@ -454,7 +454,7 @@ namespace Stride.Input
             
             RouteEvents(events);
 
-            // Let capture owners decide this frame's captures before game-facing state is built
+            // Let capture owners decide this frame's captures before the state scripts and systems read is built
             resolvingCapture = true;
             try
             {

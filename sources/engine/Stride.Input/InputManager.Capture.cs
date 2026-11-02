@@ -22,13 +22,13 @@ namespace Stride.Input
         internal int FrameIndex { get; private set; }
 
         /// <summary>
-        /// Raised during <see cref="Update"/> after input events are routed to listeners and before game-facing state is built.
+        /// Raised during <see cref="Update"/> after input events are routed to listeners and before the state scripts and systems read is built.
         /// Owners decide the captures for the frame here.
         /// </summary>
         public event EventHandler ResolvingCapture;
 
         /// <summary>
-        /// Gets or sets a value indicating whether game-facing reads hide captured devices and pointers. The default is <c>true</c>.
+        /// Gets or sets a value indicating whether reads by scripts and systems hide captured devices and pointers. The default is <c>true</c>.
         /// </summary>
         /// <remarks>
         /// When <c>false</c>, captures are still tracked and <see cref="CaptureChanged"/> is still raised, but no read is masked.
@@ -55,7 +55,7 @@ namespace Stride.Input
         public void ApplySettings(InputSettings settings) => MaskCapturedInput = settings?.MaskCapturedInput ?? true;
 
         /// <summary>
-        /// Captures a whole device for an owner, so that game-facing reads of the device report no input.
+        /// Captures a whole device for an owner, so that reads of the device by scripts and systems report no input.
         /// </summary>
         /// <param name="device">The device to capture.</param>
         /// <param name="owner">The owner that takes the device.</param>
@@ -104,7 +104,7 @@ namespace Stride.Input
         }
 
         /// <summary>
-        /// Captures one pointer of a pointer device for an owner, so that game-facing reads of that pointer report no input.
+        /// Captures one pointer of a pointer device for an owner, so that reads of that pointer by scripts and systems report no input.
         /// Other pointers of the device are not affected.
         /// </summary>
         /// <param name="device">The pointer device.</param>

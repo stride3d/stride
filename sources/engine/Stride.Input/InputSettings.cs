@@ -14,12 +14,14 @@ namespace Stride.Input;
 public sealed class InputSettings : Configuration
 {
     /// <summary>
-    /// Gets or sets a value indicating whether input captured by UI layers is hidden from game code.
+    /// Gets or sets a value indicating whether captured input is hidden from scripts and systems.
     /// </summary>
     /// <userdoc>
-    /// When enabled, input that the UI uses, such as a click on a button or typing in a text box, is not seen by game scripts.
+    /// Turns input masking on or off. When enabled, input that an owner has captured is not seen by scripts and systems.
+    /// The UI is the usual owner: a click on a button or typing in a text box is not also seen by your scripts. Other
+    /// owners, such as a debug console or an overlay, follow the same setting.
     /// </userdoc>
     [DataMember(10)]
-    [Display("Hide captured input from the game")]
+    [Display("UI focus withholds input")]
     public bool MaskCapturedInput { get; set; } = true;
 }

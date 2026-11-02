@@ -33,7 +33,7 @@ namespace Stride.UI
     /// <remarks>
     /// Picking uses the matrices and layout of the last drawn frame, because it runs before the current frame is drawn.
     /// A press on the UI keeps the mouse, or the touch pointer, captured until it is released. The release takes effect at
-    /// the start of the next capture phase, so the game does not see the release of a press it never saw.
+    /// the start of the next capture phase, so scripts and systems do not see the release of a press they never saw.
     /// </remarks>
     internal sealed class UIPicking
     {
