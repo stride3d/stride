@@ -35,7 +35,7 @@ namespace Stride.Core.Presentation.Services
         /// <summary>
         /// Displays a modal message box with an additional checkbox between the message and the buttons,
         /// and blocks until the user closed the message box.
-        /// The message displayed in the checkbox is the localized string <see cref="Resources.Strings.DontAskMeAgain"/>.
+        /// The message displayed in the checkbox is the localized "Don't ask me again" string.
         /// </summary>
         /// <param name="message">The text to display as message in the message box.</param>
         /// <param name="isChecked">The initial status of the check box.</param>

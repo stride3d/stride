@@ -95,7 +95,7 @@ namespace Stride.Rendering
             /// Change number of elements per entry.
             /// </summary>
             /// <param name="array"></param>
-            /// <param name="newMultiplier"></param>
+            /// <param name="multiplier">The new number of elements per entry.</param>
             public abstract void ChangeMutiplier(ref Array array, int multiplier);
         }
 

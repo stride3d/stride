@@ -48,8 +48,6 @@ public static class PackageExtensions
     /// </summary>
     /// <param name="rootPackage">The root package.</param>
     /// <param name="includeRootPackage">if set to <c>true</c> [include root package].</param>
-    /// <param name="isRecursive">if set to <c>true</c> [is recursive].</param>
-    /// <param name="storeOnly">if set to <c>true</c> [ignores local packages and keeps only store packages].</param>
     /// <returns>List&lt;Package&gt;.</returns>
     /// <exception cref="System.ArgumentNullException">rootPackage</exception>
     /// <exception cref="System.ArgumentException">Root package must be part of a session;rootPackage</exception>

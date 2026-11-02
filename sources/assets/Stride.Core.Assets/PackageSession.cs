@@ -72,6 +72,7 @@ public abstract class PackageContainer
     /// Saves this package and all dirty assets. See remarks.
     /// </summary>
     /// <param name="log">The log.</param>
+    /// <param name="saveParameters">The package save options, if specified.</param>
     /// <exception cref="System.ArgumentNullException">log</exception>
     /// <remarks>When calling this method directly, it does not handle moving assets between packages.
     /// Call <see cref="PackageSession.Save" /> instead.</remarks>
@@ -1404,6 +1405,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
     /// Loads the assembly references that were not loaded before.
     /// </summary>
     /// <param name="log">The log.</param>
+    /// <param name="loadParameters">The package loading options, if specified.</param>
     public void UpdateAssemblyReferences(LoggerResult log, PackageLoadParameters? loadParameters = null)
     {
         foreach (var package in LocalPackages)

@@ -21,7 +21,7 @@ namespace Stride.Core.Assets.Editor.View.Controls
     public class GridLogViewer : Control
     {
         /// <summary>
-        /// The <see cref="DataGridControl"/> used to display log messages.
+        /// The <see cref="DataGridEx"/> used to display log messages.
         /// </summary>
         private DataGridEx logGridView;
 

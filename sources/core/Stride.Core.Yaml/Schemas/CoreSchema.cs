@@ -49,7 +49,7 @@ using System.Globalization;
 namespace Stride.Core.Yaml.Schemas
 {
     /// <summary>
-    /// Implements the Core schema. <see cref="http://www.yaml.org/spec/1.2/spec.html#id2804356" />
+    /// Implements the Core schema. <see href="http://www.yaml.org/spec/1.2/spec.html#id2804356" />
     /// </summary>
     /// <remarks>
     /// The Core schema is an extension of the JSON schema, allowing for more human-readable presentation of the same types. 

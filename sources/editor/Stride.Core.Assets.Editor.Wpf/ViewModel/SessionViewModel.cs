@@ -1216,7 +1216,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
 
         /// <summary>
         /// Creates a <see cref="IDisposable"/> object that represents a context where most of the standard mechanisms relying on property changes are disabled, such as
-        /// property changes notifications, creation of <see cref="ActionItem"/>, andpropagation of properties between a base and a derived asset.
+        /// property change notifications, creation of undo/redo actions, and propagation of properties between a base and a derived asset.
         /// </summary>
         /// <returns>A disposable object disabling normal mechanisms relying on property change.</returns>
         /// <remarks>This method should be used only for advanced modifications of assets such as global fixups, that still need to reky on undo/redo.</remarks>

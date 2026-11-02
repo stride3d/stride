@@ -66,7 +66,7 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters
         /// <param name="type">The type for which to get the minimum value.</param>
         /// <returns>The minimum value of the given type.</returns>
         /// <exception cref="ArgumentException">The given type is not a numeric type.</exception>
-        /// <remarks>A type is numeric when <see cref="TypeExtensions.IsNumeric"/> returns true.</remarks>
+        /// <remarks>A type is numeric when <see cref="Stride.Core.Reflection.TypeExtensions.IsNumeric"/> returns true.</remarks>
         public static object GetMinimum(Type type)
         {
             if (type == typeof(sbyte))
@@ -101,7 +101,7 @@ namespace Stride.Core.Assets.Editor.Quantum.NodePresenters.Updaters
         /// <param name="type">The type for which to get the maximum value.</param>
         /// <returns>The maximum value of the given type.</returns>
         /// <exception cref="ArgumentException">The given type is not a numeric type.</exception>
-        /// <remarks>A type is numeric when <see cref="TypeExtensions.IsNumeric"/> returns true.</remarks>
+        /// <remarks>A type is numeric when <see cref="Stride.Core.Reflection.TypeExtensions.IsNumeric"/> returns true.</remarks>
         public static object GetMaximum(Type type)
         {
             if (type == typeof(sbyte))

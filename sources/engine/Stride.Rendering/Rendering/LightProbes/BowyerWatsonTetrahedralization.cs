@@ -657,6 +657,7 @@ namespace Stride.Rendering.LightProbes
         /// Determines whether the given point is in the tetraedra.
         /// </summary>
         /// <param name="p">The p.</param>
+        /// <param name="points">The points from which the tetrahedron is formed.</param>
         /// <param name="tetrahedron">The tetrahedron.</param>
         /// <returns></returns>
         private unsafe bool IsPointInCircumsphere(ref Vector3 p, Vector3[] points, ref Tetrahedron tetrahedron)

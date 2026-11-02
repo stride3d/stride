@@ -169,8 +169,8 @@ namespace Stride.TextureConverter.TexLibraries
         /// Image could not be created.
         /// </exception>
         /// <exception cref="System.NotImplementedException"></exception>
-        /// <exception cref="TexLibraryException">Unsupported file extension.</exception>
-        private unsafe void Export(TexImage image, StrideTextureLibraryData libraryDataf, ExportRequest request)
+        /// <exception cref="TextureToolsException">Unsupported file extension.</exception>
+        private unsafe void Export(TexImage image, StrideTextureLibraryData libraryData, ExportRequest request)
         {
             Log.Verbose("Exporting to " + request.FilePath + " ...");
 

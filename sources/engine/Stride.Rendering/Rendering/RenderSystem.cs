@@ -594,8 +594,7 @@ namespace Stride.Rendering
         /// <summary>
         /// Initializes the render system.
         /// </summary>
-        /// <param name="effectSystem">The effect system.</param>
-        /// <param name="graphicsDevice">The graphics device.</param>
+        /// <param name="context">The render context.</param>
         public void Initialize(RenderContext context)
         {
             registry = context.Services;

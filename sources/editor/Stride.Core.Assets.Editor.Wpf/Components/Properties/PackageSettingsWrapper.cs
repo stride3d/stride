@@ -62,6 +62,7 @@ namespace Stride.Core.Assets.Editor.Components.Properties
             /// </summary>
             /// <param name="key">The <see cref="SettingsKey{T}"/> represented by this instance.</param>
             /// <param name="profile">The <see cref="SettingsProfile"/> in which this settings key is contained.</param>
+            /// <param name="package">The package associated with the settings key.</param>
             public SettingsKeyWrapper(SettingsKey<T> key, SettingsProfile profile, Package package)
                 : base(key, profile)
             {

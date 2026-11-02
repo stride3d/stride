@@ -33,7 +33,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// Processes anything before closing the editor, such as saving the file.
         /// </summary>
         /// <param name="save"><c>true</c> if file should be saved, <c>false</c> if the file can be closed without asking user, null if user should be asked.</param>
-        /// <returns><c>true</c> if windows can be closed, <c>false</c> if user interrupted (should only happen when <see cref="save"/> is null).</returns>
+        /// <returns><c>true</c> if windows can be closed, <c>false</c> if user interrupted (should only happen when <paramref name="save"/> is null).</returns>
         bool PreviewClose(bool? save);
     }
 }

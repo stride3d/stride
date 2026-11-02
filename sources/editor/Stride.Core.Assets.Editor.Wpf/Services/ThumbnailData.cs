@@ -66,6 +66,7 @@ namespace Stride.Core.Assets.Editor.Services
     {
         object resourceKey;
         
+        /// <param name="thumbnailId">The identifier of the thumbnail.</param>
         /// <param name="resourceKey">The key used to fetch the resource, most likely a string.</param>
         public ResourceThumbnailData(ObjectId thumbnailId, object resourceKey) : base(thumbnailId)
         {

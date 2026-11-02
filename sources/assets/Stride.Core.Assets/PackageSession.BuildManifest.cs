@@ -218,7 +218,12 @@ partial class PackageSession
     /// Merges one parsed <c>.sdbuild</c> manifest into the session: looks up or creates the project's
     /// package, then folds in that manifest's identity, asset assemblies, and project assets.
     /// </summary>
+    /// <param name="session">The session receiving the manifest.</param>
+    /// <param name="packagesByPath">Packages indexed by path.</param>
     /// <param name="projectPackagePaths">The sdpkg path next to each project of the manifest chain.</param>
+    /// <param name="manifestFile">The path of the manifest.</param>
+    /// <param name="manifest">The parsed manifest.</param>
+    /// <param name="log">The logger for loading errors.</param>
     private static StandalonePackage ContributeManifest(PackageSession session, Dictionary<string, StandalonePackage> packagesByPath, ISet<string> projectPackagePaths, string manifestFile, AssetBuildManifest manifest, ILogger log)
     {
         string Resolve(UFile path) => AssetBuildManifest.ResolvePath(manifestFile, path);

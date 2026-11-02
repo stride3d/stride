@@ -123,8 +123,8 @@ namespace Stride.Games
         }
 
         /// <summary>
-        /// If <c>true</c>, <see cref="Game.Run()"/> is blocking until the game is exited, i.e. internal main loop is used.
-        /// If <c>false</c>, <see cref="Game.Run()"/> returns immediately and the caller has to manage the main loop by invoking the <see cref="GameWindow.RunCallback"/>.
+        /// If <c>true</c>, <see cref="GameBase.Run(GameContext)"/> is blocking until the game is exited, i.e. internal main loop is used.
+        /// If <c>false</c>, <see cref="GameBase.Run(GameContext)"/> returns immediately and the caller has to manage the main loop by invoking the <see cref="GameWindow.RunCallback"/>.
         /// </summary>
         public bool IsBlockingRun { get; protected set; }
 

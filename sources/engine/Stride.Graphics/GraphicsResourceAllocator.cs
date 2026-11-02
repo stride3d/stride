@@ -161,9 +161,7 @@ namespace Stride.Graphics
                 Recycle(queryPoolCache, recyclePolicy);
             }
 
-            /// <summary>
-            ///   Recycles the specified cache.
-            /// </summary>
+            // Recycles the specified cache.
             void Recycle<TKey>(ResourceCache<TKey> cache, GraphicsResourceRecyclePolicyDelegate recyclePolicy)
             {
                 List<TKey> emptyDescriptions = null;
@@ -338,9 +336,7 @@ namespace Stride.Graphics
 
             base.Destroy();
 
-            /// <summary>
-            ///   Disposes and removes all the resources in a resource cache.
-            /// </summary>
+            // Disposes and removes all the resources in a resource cache.
             static void DisposeCache<TKey>(ResourceCache<TKey> cache)
             {
                 foreach (var resourceList in cache.Values)
@@ -455,7 +451,7 @@ namespace Stride.Graphics
         ///   The change in the reference count. Positive values increase the count, while negative values decrease it.
         /// </param>
         /// <exception cref="ArgumentException">
-        ///   The <paramref name="referenceDelta"/> is invalid. It cannot make the reference count of the <paramref name="resource"/> negative.
+        ///   The <paramref name="referenceDelta"/> is invalid. It cannot make the reference count of the <paramref name="resourceLink"/> negative.
         /// </exception>
         private void UpdateCounter(GraphicsResourceLink resourceLink, int referenceDelta)
         {

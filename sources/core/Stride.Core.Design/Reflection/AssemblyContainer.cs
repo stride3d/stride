@@ -186,6 +186,7 @@ public class AssemblyContainer
     /// <summary>
     /// The file a reference to <paramref name="assemblyName"/> loads from, for an assembly the host does not provide; otherwise null.
     /// </summary>
+    /// <param name="assemblyName">The name of the requested assembly.</param>
     /// <param name="requestingPath">The file of the assembly whose load context asks.</param>
     private string? FindDependencyPath(AssemblyName assemblyName, string requestingPath)
     {
@@ -240,6 +241,7 @@ public class AssemblyContainer
         return null;
     }
 
+    /// <param name="assemblyFullPath">The path of the assembly to load.</param>
     /// <param name="context">The load context of the assembly whose reference asks for this one, or null for an assembly the container is asked to load.</param>
     private Assembly? LoadAssemblyFromPathInternal(string assemblyFullPath, ContainerLoadContext? context = null)
     {

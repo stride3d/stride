@@ -356,7 +356,7 @@ namespace Stride.TextureConverter.TexLibraries
         /// <param name="image">The image.</param>
         /// <param name="libraryData">The library data.</param>
         /// <param name="request">The request.</param>
-        /// <exception cref="TexLibraryException">Rescaling failed</exception>
+        /// <exception cref="TextureToolsException">Rescaling failed</exception>
         private void Rescale(TexImage image, DxtTextureLibraryData libraryData, RescalingRequest request)
         {
             int width = request.ComputeWidth(image);
@@ -488,7 +488,7 @@ namespace Stride.TextureConverter.TexLibraries
         /// <param name="image">The image.</param>
         /// <param name="libraryData">The library data.</param>
         /// <param name="request">The request.</param>
-        /// <exception cref="TexLibraryException">
+        /// <exception cref="TextureToolsException">
         /// Not implemented !
         /// or
         /// Mipmaps generation failed
@@ -568,7 +568,7 @@ namespace Stride.TextureConverter.TexLibraries
         /// <param name="image">The image.</param>
         /// <param name="libraryData">The library data.</param>
         /// <param name="request">The request.</param>
-        /// <exception cref="TexLibraryException">
+        /// <exception cref="TextureToolsException">
         /// Exporting texture failed
         /// </exception>
         private void Export(TexImage image, DxtTextureLibraryData libraryData, ExportRequest request)
@@ -672,7 +672,7 @@ namespace Stride.TextureConverter.TexLibraries
         /// <param name="image">The image.</param>
         /// <param name="libraryData">The library data.</param>
         /// <param name="request">The request.</param>
-        /// <exception cref="TexLibraryException">Failed to generate the normal map</exception>
+        /// <exception cref="TextureToolsException">Failed to generate the normal map</exception>
         public void GenerateNormalMap(TexImage image, DxtTextureLibraryData libraryData, NormalMapGenerationRequest request)
         {
             Log.Verbose("Generating Normal Map ... ");

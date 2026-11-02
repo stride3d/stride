@@ -165,7 +165,7 @@ public partial struct GraphicsDeviceFeatures
 
     /// <summary>
     ///   A value indicating if the graphics API supports resource renaming
-    ///   (with either <see cref="MapMode.WriteDiscard"/> or <see cref="CommandList.UpdateSubResource"/> with full size).
+    ///   (with either <see cref="MapMode.WriteDiscard"/> or <see cref="CommandList.UpdateSubResource(GraphicsResource, int, DataBox, ResourceRegion)">CommandList.UpdateSubResource</see> with full size).
     /// </summary>
     public readonly bool HasResourceRenaming;
 
