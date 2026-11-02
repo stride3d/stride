@@ -301,7 +301,7 @@ public sealed class RunevisionTerrainAsset : Asset
 
             float SampleTexture(Vector2 cellCoord)
             {
-                return Vector2.BilinearSample(cellCoord, texResolution, heights);
+                return MathUtil.BilinearSample(cellCoord, texResolution, heights);
             }
 
             void Compute(Vector2 normalizedPoint, out float height, out Vector2 normal, out float fadeTarget)
