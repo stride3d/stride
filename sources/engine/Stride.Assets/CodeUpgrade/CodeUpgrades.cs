@@ -566,7 +566,8 @@ public static partial class CodeUpgrades
     /// <c>public override GamePadState State => state;</c> → <c>protected override GamePadState RawState => state;</c>.
     /// Each override of <paramref name="propertyName"/> on <paramref name="declaringType"/> (its full metadata name) is renamed
     /// <paramref name="newPropertyName"/> with the accessibility <paramref name="newAccessibility"/>, and <c>base.</c> uses of the
-    /// property inside it go to the new property too, since the old one now calls the new one.
+    /// property inside it go to the new property too, since the old one now calls the new one. Assignments to the override,
+    /// such as a get-only auto-property set in the constructor, go to the new property as well, since the old one has no setter.
     /// </summary>
     public static CodeUpgrade PropertyOverrideRename(string declaringType, string propertyName, string newPropertyName, SyntaxKind newAccessibility)
     {
@@ -598,12 +599,25 @@ public static partial class CodeUpgrades
 
                     var overrides = root.DescendantNodes().OfType<PropertyDeclarationSyntax>()
                         .Where(declaration => Overrides(semanticModel.GetDeclaredSymbol(declaration, cancellationToken), overridden))
-                        .ToList();
-                    if (overrides.Count == 0)
+                        .ToList<SyntaxNode>();
+                    var assignedNames = root.DescendantNodes().OfType<AssignmentExpressionSyntax>()
+                        .Select(assignment => assignment.Left switch
+                        {
+                            IdentifierNameSyntax name => name,
+                            MemberAccessExpressionSyntax { Expression: ThisExpressionSyntax } access => access.Name,
+                            _ => null,
+                        })
+                        .Where(name => name is not null && Overrides(semanticModel.GetSymbolInfo(name, cancellationToken).Symbol as IPropertySymbol, overridden))
+                        .ToList<SyntaxNode>();
+                    if (overrides.Count == 0 && assignedNames.Count == 0)
                         continue;
 
-                    var newRoot = root.ReplaceNodes(overrides, (_, declaration) =>
+                    var newRoot = root.ReplaceNodes(overrides.Concat(assignedNames), (_, node) =>
                     {
+                        if (node is SimpleNameSyntax assignedName)
+                            return assignedName.WithIdentifier(SyntaxFactory.Identifier(newPropertyName).WithTriviaFrom(assignedName.Identifier));
+
+                        var declaration = (PropertyDeclarationSyntax)node;
                         var baseUses = declaration.DescendantNodes().OfType<MemberAccessExpressionSyntax>()
                             .Where(x => x.Expression is BaseExpressionSyntax && x.Name.Identifier.ValueText == propertyName);
                         declaration = declaration.ReplaceNodes(baseUses, (_, access) => access.WithName(SyntaxFactory.IdentifierName(newPropertyName).WithTriviaFrom(access.Name)));

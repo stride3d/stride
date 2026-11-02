@@ -1207,4 +1207,39 @@ public class TestCodeUpgrade
         Assert.Contains("class Other : OtherBase { public override int State => 0; }", result);
         AssertCompiles(result.Replace(OldBase, NewBase));
     }
+
+    [Fact]
+    public async Task PropertyOverrideRenameMovesAssignmentsToAGetOnlyOverride()
+    {
+        // GamePadSimulated before 4.5: a get-only auto-property override that the class assigns in its constructor
+        const string OldBase = "public abstract class GamePadDeviceBase { public abstract int State { get; } }";
+        const string NewBase = "public abstract class GamePadDeviceBase { public int State => RawState; protected abstract int RawState { get; } }";
+        var source = $$"""
+            namespace Input
+            {
+                {{OldBase}}
+            }
+            namespace TestNs
+            {
+                class Pad : Input.GamePadDeviceBase
+                {
+                    public Pad(bool reset)
+                    {
+                        State = 1;
+                        if (reset)
+                            this.State = 0;
+                    }
+
+                    public override int State { get; }
+                }
+            }
+            """;
+
+        var result = await ApplyAsync(source, PropertyOverrideRename("Input.GamePadDeviceBase", "State", "RawState", SyntaxKind.ProtectedKeyword));
+
+        Assert.Contains("protected override int RawState { get; }", result);
+        Assert.Contains("RawState = 1;", result);
+        Assert.Contains("this.RawState = 0;", result);
+        AssertCompiles(result.Replace(OldBase, NewBase));
+    }
 }
