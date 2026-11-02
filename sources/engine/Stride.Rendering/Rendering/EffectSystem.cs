@@ -191,9 +191,12 @@ namespace Stride.Rendering
                 {
                     // Unregister result
                     // TODO: Should we keep it so that failure never change?
-                    if (earlyCompilerCache.TryGetValue(effectName, out List<CompilerResults> effectCompilerResults))
+                    lock (earlyCompilerCache)
                     {
-                        effectCompilerResults.Remove(compilerResult);
+                        if (earlyCompilerCache.TryGetValue(effectName, out List<CompilerResults> effectCompilerResults))
+                        {
+                            effectCompilerResults.Remove(compilerResult);
+                        }
                     }
                 }
 
