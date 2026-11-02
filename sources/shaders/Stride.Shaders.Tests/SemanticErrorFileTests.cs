@@ -77,7 +77,6 @@ public class SemanticErrorFileTests : IDisposable
                 float F() { return VALUE + ; }
             };
             #endif
-
             """);
         var log = new LoggerResult();
         var loader = new ShaderLoader(sourceDir.FullName, "./assets/Stride/SDSL") { Log = log };
