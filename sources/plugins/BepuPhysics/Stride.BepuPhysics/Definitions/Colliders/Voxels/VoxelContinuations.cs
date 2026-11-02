@@ -39,7 +39,8 @@ internal unsafe struct ConvexVoxelContinuations<TShape> : IConvexCompoundContinu
         var childData = stackalloc byte[MaxChildDataSize];
         var size = shape.WriteChildShapeData(childIndexB, out var localPosition, childData);
         QuaternionEx.TransformWithoutOverlap(localPosition, pair.OrientationB, out childPoseB.Position);
-        childPoseB.Orientation = Quaternion.Identity;
+        // The child inherits the voxel body's orientation, as Bepu's compound continuations do, so Box children rotate with it instead of staying world-aligned.
+        childPoseB.Orientation = pair.OrientationB;
         childTypeB = TShape.ChildShapeTypeId;
         collisionBatcher.CacheShapeB(shapeTypeA, childTypeB, childData, size, out childShapeDataB);
     }
