@@ -4,10 +4,8 @@
 using Stride.Assets.Effect;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.Annotations;
-using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.IO;
-using Stride.Editor.Build;
 
 namespace Stride.Assets.Presentation.ViewModel
 {
@@ -26,18 +24,7 @@ namespace Stride.Assets.Presentation.ViewModel
         protected override void OnSessionSaved()
         {
             if (Asset is EffectShaderAsset)
-            {
-                // Recompile shaders. The build service is registered during plugin initialization, so it is
-                // not available yet when a save runs while opening the session (e.g. persisting an upgrade);
-                // skipping is fine there since the service compiles shaders from all packages when it starts.
-                var builder = Session.ServiceProvider.TryGet<AssetBuilderService>();
-                if (builder == null)
-                    return;
-
-                var shaderImporter = new StrideShaderImporter();
-                var shaderBuildSteps = shaderImporter.CreateUserShaderBuildSteps(Session);
-                builder.PushBuildUnit(new PrecompiledAssetBuildUnit(AssetBuildUnitIdentifier.Default, shaderBuildSteps, true));
-            }
+                StrideAssetsViewModel.Instance?.Code.RequestUserShaderBuild(Session);
         }
         
         /// <summary>
