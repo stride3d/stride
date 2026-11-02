@@ -33,6 +33,10 @@ public static class MonoGamePreProcessor
         if (byteOrderMarks > 0)
             content = new string(' ', byteOrderMarks) + content[byteOrderMarks..];
 
+        // A directive must end with a newline for CppNet, but editors can save a last line without one
+        if (!content.EndsWith('\n'))
+            content += '\n';
+
         // Note: CppNet is compiled in this project but doesn't support nullable
         var inputSource = new StringLexerSource(content, true, filename!);
 
