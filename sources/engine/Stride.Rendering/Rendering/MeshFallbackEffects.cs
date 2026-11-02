@@ -18,7 +18,10 @@ namespace Stride.Rendering
     /// </summary>
     public class MeshFallbackEffects
     {
-        private const int MaxSkinningBones = 56;
+        /// <summary>
+        /// The most bones a fallback skins; a mesh with more falls back without skinning.
+        /// </summary>
+        public const int MaxSkinningBones = 56;
 
         private readonly EffectSystem effectSystem;
         private readonly Material colorMaterial;
@@ -51,19 +54,15 @@ namespace Stride.Rendering
         /// Creates the compiler parameters of the fallback effect for <paramref name="renderMesh"/>, with the instancing
         /// <paramref name="renderEffect"/> was validated with.
         /// </summary>
+        /// <param name="renderMesh">The mesh to draw.</param>
+        /// <param name="renderEffect">The real effect of the mesh. When <c>null</c>, the fallback is not instanced.</param>
         public CompilerParameters CreateCompilerParameters(RenderMesh renderMesh, RenderEffect renderEffect = null)
         {
             var hasDiffuseMap = renderMesh.MaterialPass.Parameters.ContainsKey(MaterialKeys.DiffuseMap);
 
-            // Support skinning
-            var skinned = renderMesh.Mesh.Skinning != null && renderMesh.Mesh.Skinning.Bones.Length <= MaxSkinningBones;
-            var meshParameters = renderMesh.Mesh.Parameters;
-            var compilerParameters = CreateCompilerParameters(hasDiffuseMap,
-                hasSkinningPosition: skinned && meshParameters.Get(MaterialKeys.HasSkinningPosition),
-                hasSkinningNormal: skinned && meshParameters.Get(MaterialKeys.HasSkinningNormal),
-                hasSkinningTangent: skinned && meshParameters.Get(MaterialKeys.HasSkinningTangent));
-
             // Support instancing (the keys InstancingRenderFeature validated the real effect with)
+            var hasInstancing = false;
+            var modelTransformUsage = 0;
             if (renderEffect != null)
             {
                 var validated = renderEffect.EffectValidator.EffectValues;
@@ -71,24 +70,39 @@ namespace Stride.Rendering
                 {
                     var entry = validated.Items[i];
                     if (entry.Key == StrideEffectBaseKeys.HasInstancing)
-                        compilerParameters.Set(StrideEffectBaseKeys.HasInstancing, (bool)entry.Value);
+                        hasInstancing = (bool)entry.Value;
                     else if (entry.Key == StrideEffectBaseKeys.ModelTransformUsage)
-                        compilerParameters.Set(StrideEffectBaseKeys.ModelTransformUsage, (int)entry.Value);
+                        modelTransformUsage = (int)entry.Value;
                 }
             }
 
-            return compilerParameters;
+            // Support skinning
+            var skinned = renderMesh.Mesh.Skinning != null && renderMesh.Mesh.Skinning.Bones.Length <= MaxSkinningBones;
+            var meshParameters = renderMesh.Mesh.Parameters;
+            return CreateCompilerParameters(hasDiffuseMap, hasInstancing, modelTransformUsage,
+                hasSkinningPosition: skinned && meshParameters.Get(MaterialKeys.HasSkinningPosition),
+                hasSkinningNormal: skinned && meshParameters.Get(MaterialKeys.HasSkinningNormal),
+                hasSkinningTangent: skinned && meshParameters.Get(MaterialKeys.HasSkinningTangent));
         }
 
         /// <summary>
         /// Creates the compiler parameters of a fallback effect without a mesh, to load it ahead of its first draw.
         /// </summary>
+        /// <remarks>
+        /// Pass the result to <see cref="EffectSystem.LoadEffect"/> once per effect name that draws the mesh, since each
+        /// render stage has its own (the <c>.ShadowMapCaster</c> variants, for example). The keys are the ones
+        /// <see cref="CreateCompilerParameters(RenderMesh, RenderEffect)"/> gives for a mesh of the same traits, in the
+        /// same order, which the effect system's early cache compares.
+        /// </remarks>
         /// <param name="hasDiffuseMap">Whether the mesh has a diffuse map, or a color.</param>
         /// <param name="hasInstancing">Whether the mesh is instanced.</param>
-        /// <param name="modelTransformUsage">The <c>ModelTransformUsage</c> of the instances.</param>
-        /// <param name="hasSkinningPosition">Whether the mesh skins its positions.</param>
+        /// <param name="modelTransformUsage">The <c>ModelTransformUsage</c> of the instances, as an <c>int</c> (0 Ignore,
+        /// 1 PreMultiply, 2 PostMultiply). Ignored when <paramref name="hasInstancing"/> is <c>false</c>.</param>
+        /// <param name="hasSkinningPosition">Whether the mesh skins its positions. A mesh with more than
+        /// <see cref="MaxSkinningBones"/> bones falls back without skinning: pass <c>false</c> for all three skinning values.</param>
         /// <param name="hasSkinningNormal">Whether the mesh skins its normals.</param>
         /// <param name="hasSkinningTangent">Whether the mesh skins its tangents.</param>
+        /// <returns>The compiler parameters to load the fallback effect with.</returns>
         public CompilerParameters CreateCompilerParameters(bool hasDiffuseMap, bool hasInstancing = false, int modelTransformUsage = 0, bool hasSkinningPosition = false, bool hasSkinningNormal = false, bool hasSkinningTangent = false)
         {
             var fallbackMaterial = hasDiffuseMap ? textureMaterial : colorMaterial;
