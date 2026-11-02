@@ -39,11 +39,11 @@ namespace Stride.VirtualReality
 
         public override DeviceState State => currentState;
 
-        public override float Trigger => currentTrigger;
+        protected override float RawTrigger => currentTrigger;
 
-        public override float Grip => currentGrip;
+        protected override float RawGrip => currentGrip;
 
-        public override bool IndexPointing
+        protected override bool RawIndexPointing
         {
             get
             {
@@ -67,7 +67,7 @@ namespace Stride.VirtualReality
             }
         }
 
-        public override bool IndexResting
+        protected override bool RawIndexResting
         {
             get
             {
@@ -91,7 +91,7 @@ namespace Stride.VirtualReality
             }
         }
 
-        public override bool ThumbUp
+        protected override bool RawThumbUp
         {
             get
             {
@@ -115,7 +115,7 @@ namespace Stride.VirtualReality
             }
         }
 
-        public override bool ThumbResting
+        protected override bool RawThumbResting
         {
             get
             {
@@ -139,9 +139,9 @@ namespace Stride.VirtualReality
             }
         }
 
-        public override Vector2 ThumbAxis => currentThumbstick;
+        protected override Vector2 RawThumbAxis => currentThumbstick;
 
-        public override Vector2 ThumbstickAxis => currentThumbstick;
+        protected override Vector2 RawThumbstickAxis => currentThumbstick;
         public override ControllerHaptics HapticsSupport => ControllerHaptics.LimitedFrequency;
 
         public OculusTouchController(TouchControllerHand hand, IntPtr OvrSession)
@@ -221,7 +221,7 @@ namespace Stride.VirtualReality
             }
         }
 
-        public override bool IsPressedDown(TouchControllerButton button)
+        protected override bool IsRawPressedDown(TouchControllerButton button)
         {
             switch (button)
             {
@@ -252,7 +252,7 @@ namespace Stride.VirtualReality
             }
         }
 
-        public override bool IsTouchedDown(TouchControllerButton button)
+        protected override bool IsRawTouchedDown(TouchControllerButton button)
         {
             switch (button)
             {
@@ -283,7 +283,7 @@ namespace Stride.VirtualReality
             }
         }
 
-        public override bool IsPressed(TouchControllerButton button)
+        protected override bool IsRawPressed(TouchControllerButton button)
         {
             switch (button)
             {
@@ -314,7 +314,7 @@ namespace Stride.VirtualReality
             }
         }
 
-        public override bool IsTouched(TouchControllerButton button)
+        protected override bool IsRawTouched(TouchControllerButton button)
         {
             switch (button)
             {
@@ -345,7 +345,7 @@ namespace Stride.VirtualReality
             }
         }
 
-        public override bool IsPressReleased(TouchControllerButton button)
+        protected override bool IsRawPressReleased(TouchControllerButton button)
         {
             switch (button)
             {
@@ -376,7 +376,7 @@ namespace Stride.VirtualReality
             }
         }
 
-        public override bool IsTouchReleased(TouchControllerButton button)
+        protected override bool IsRawTouchReleased(TouchControllerButton button)
         {
             switch (button)
             {
