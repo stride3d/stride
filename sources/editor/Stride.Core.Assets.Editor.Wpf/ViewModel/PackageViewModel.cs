@@ -727,7 +727,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// The directory a location shows under in the tree: the package node is the namespace root,
         /// so a namespaced package's own locations display bare.
         /// </summary>
-        private string GetDisplayDirectory(UFile location)
+        public string GetDisplayDirectory(UFile location)
         {
             if (Package.Container is { } container)
                 location = container.Unqualify(location);
