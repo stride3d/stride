@@ -274,9 +274,13 @@ namespace Stride.Rendering
                 }
             }
 
-            foreach (var message in compilerResult.Messages)
+            // EffectCompilerCache logs what it compiles
+            if (compiler is not EffectCompilerCache)
             {
-                Log.Log(message);
+                foreach (var message in compilerResult.Messages)
+                {
+                    Log.Log(message);
+                }
             }
 
             return compilerResult;

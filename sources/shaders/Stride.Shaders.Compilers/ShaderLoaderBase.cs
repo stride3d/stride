@@ -177,7 +177,10 @@ public abstract class ShaderLoaderBase(IShaderCache fileCache) : IExternalShader
         if (!sdslc.Compile(filename, text, hash, macros, log, out buffer, new() { RegisterInCache = registerInCache, OriginalCode = code }))
         {
             if (log is LoggerResult loggerResult && loggerResult.HasErrors)
-                throw new InvalidOperationException(string.Join(Environment.NewLine, loggerResult.Messages.Where(m => m.Type >= LogMessageType.Error).Select(m => m.ToString())));
+            {
+                var errors = string.Join(Environment.NewLine, loggerResult.Messages.Where(m => m.Type >= LogMessageType.Error).Select(m => m.ToString()));
+                throw log == Log ? new ShaderErrorsLoggedException(log, errors) : new InvalidOperationException(errors);
+            }
             return false;
         }
         return true;

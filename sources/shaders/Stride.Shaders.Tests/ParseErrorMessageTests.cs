@@ -52,6 +52,43 @@ public class ParseErrorMessageTests
         Assert.EndsWith(": float", error.ToString());
     }
 
+    [Theory]
+    [InlineData("return a + ;", ";")]
+    [InlineData("return a +\n}", "}")]
+    [InlineData("return a * (b - );", ")")]
+    [InlineData("float4 c = a + ;", ";")]
+    [InlineData("c = a + ;", ";")]
+    [InlineData("if (a && ) { }", ")")]
+    [InlineData("F(a + );", ")")]
+    [InlineData("return a b;", "b")]
+    [InlineData("int b = 1 }", "}")]
+    public void ErrorIsAtTheBadToken(string statement, string token)
+    {
+        var code = $"shader S\n{{\n    float4 F()\n    {{\n        {statement}\n    }}\n}};";
+        var error = SDSLParser.Parse(code).Errors[0];
+        Assert.EndsWith($": {token}", error.ToString());
+        Assert.Equal(code[..error.Location.Position].Count(c => c == '\n') + 1, error.Location.Line);
+    }
+
+    [Theory]
+    [InlineData("shader S { void F() { return a +", "")]
+    [InlineData("shader S { void F() { return a", "")]
+    [InlineData("shader S { float a", "")]
+    public void ErrorAtTheEndOfTheCodeCanBeWritten(string code, string token)
+    {
+        var error = SDSLParser.Parse(code).Errors[0];
+        Assert.EndsWith($": {token}", error.ToString());
+    }
+
+    // These errors name the token themselves
+    [Theory]
+    [InlineData("shader S { void F() { int triangle=1<2?3:4; } };", "triangle")]
+    [InlineData("shader S { float point; };", "point")]
+    public void ReservedWordErrorIsAtTheWord(string code, string word)
+    {
+        Assert.EndsWith($": {word}", SDSLParser.Parse(code).Errors[0].ToString());
+    }
+
     [Fact]
     public void CodeAfterParamsKeepsTheGeneralError()
     {

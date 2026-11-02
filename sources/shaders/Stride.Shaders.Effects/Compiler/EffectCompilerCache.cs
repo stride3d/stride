@@ -37,6 +37,8 @@ namespace Stride.Shaders.Compiler
         private readonly Dictionary<ObjectId, Task<EffectBytecodeCompilerResult>> compilingShaders = new Dictionary<ObjectId, Task<EffectBytecodeCompilerResult>>();
         // Used when shader is compiled (esp. when CompileEffectAsynchronously is false, but also when true during some specific race conditions)
         private readonly Dictionary<ObjectId, EffectBytecodeCompilerResult> compiledShaders = new Dictionary<ObjectId, EffectBytecodeCompilerResult>();
+        // Failures already logged. A failed effect is retried every few seconds, but shader sources stay loaded until ResetCache, so until then it fails the same way.
+        private readonly HashSet<string> loggedFailures = [];
 
         private readonly DatabaseFileProvider database;
         private readonly TaskSchedulerSelector taskSchedulerSelector;
@@ -76,6 +78,8 @@ namespace Stride.Shaders.Compiler
                 {
                     compiledShaders.Remove(key);
                 }
+
+                loggedFailures.Clear();
             }
         }
 
@@ -229,12 +233,15 @@ namespace Stride.Shaders.Compiler
             // If there are any errors, return immediately
             if (log.HasErrors)
             {
+                bool isNewFailure;
                 lock (compilingShaders)
                 {
                     compilingShaders.Remove(effectInputHash);
+                    isNewFailure = loggedFailures.Add(log.ToText());
                 }
 
-                log.CopyTo(effectLog);
+                if (isNewFailure)
+                    log.CopyTo(effectLog);
                 return new EffectBytecodeCompilerResult(null, log);
             }
 

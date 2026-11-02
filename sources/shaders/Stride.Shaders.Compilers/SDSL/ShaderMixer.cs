@@ -78,6 +78,10 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
             rootMixin = MergeMixinNode(globalContext, context, temp, shaderSource2);
         }
+        catch (ShaderErrorsLoggedException e) when (e.Log == log)
+        {
+            return false;
+        }
         catch (Exception e)
         {
             log.Error(e.Message, e);

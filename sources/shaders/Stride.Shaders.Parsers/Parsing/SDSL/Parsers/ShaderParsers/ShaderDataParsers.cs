@@ -60,7 +60,7 @@ public record struct ShaderMemberParser : IParser<ShaderMember>
         if (LiteralsParser.TypeName(ref scanner, result, out _)
             && Parsers.Spaces1(ref scanner, result, out _)
             && Parsers.ReservedWordAsName(ref scanner, result, out var reservedWord))
-            return Parsers.Exit(ref scanner, result, out parsed, position, new(string.Format(SDSLErrorMessages.SDSL0048, reservedWord), scanner[scanner.Position], scanner.Memory));
+            return Parsers.Exit(ref scanner, result, out parsed, position, new(string.Format(SDSLErrorMessages.SDSL0048, reservedWord), scanner[scanner.Position], scanner.Memory) { IsAboutToken = true });
         return Parsers.Exit(ref scanner, result, out parsed, position, orError);
     }
 

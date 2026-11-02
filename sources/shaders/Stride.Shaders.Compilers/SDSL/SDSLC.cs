@@ -32,8 +32,8 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
         var parsed = SDSLParser.Parse(code);
         if (parsed.Errors.Count > 0)
         {
-            foreach (var error in parsed.Errors)
-                log.Error(error.ToString());
+            // The first error stops the parser: the others are the enclosing parsers giving up after it
+            log.Error(parsed.Errors[0].ToString(filename));
             return false;
         }
         if (parsed.AST is not ShaderFile sf)
@@ -73,6 +73,10 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
                 {
                     // file(line,col): the form build tools and editors link to
                     log.Error($"{filename}({e.Error.Location.Line},{e.Error.Location.Column}): {e.Error.Message} (in `{e.Error.Location.Text.Span.Trim()}`)", e);
+                    hasErrors = true;
+                }
+                catch (ShaderErrorsLoggedException e) when (e.Log == log)
+                {
                     hasErrors = true;
                 }
                 catch (Exception e)
