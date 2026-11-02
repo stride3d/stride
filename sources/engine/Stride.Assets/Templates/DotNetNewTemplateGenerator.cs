@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.TemplateEngine.Abstractions;
 using Microsoft.TemplateEngine.Edge.Template;
@@ -275,12 +274,11 @@ public class DotNetNewTemplateGenerator : SessionTemplateGenerator
     /// The Stride.Engine version the instantiated content names, null when none of its projects references it
     /// (a template of assets alone). The prerelease suffix is part of it; upgrades compare the numbers only.
     /// </summary>
-    private static PackageVersion GetContentEngineVersion(IEnumerable<string> csprojPaths)
+    internal static PackageVersion GetContentEngineVersion(IEnumerable<string> csprojPaths)
     {
         foreach (var csprojPath in csprojPaths)
         {
-            var match = Regex.Match(File.ReadAllText(csprojPath), "Stride\\.Engine\"\\s+Version=\"([^\"]+)\"");
-            if (match.Success && PackageVersion.TryParse(match.Groups[1].Value, out var version))
+            if (ProjectVersionReader.ReadDeclaredVersion(csprojPath, "Stride.Engine") is { } text && PackageVersion.TryParse(text, out var version))
                 return version;
         }
 
