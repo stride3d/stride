@@ -177,6 +177,11 @@ namespace Stride.Core.Assets.Editor.ViewModel
         public DirectoryBaseViewModel Directory { get => directory; set => SetValue(ref directory, value); }
 
         /// <summary>
+        /// Gets whether this project asset is deleted because its file was deleted outside Game Studio.
+        /// </summary>
+        public bool IsDeletedOutside { get; private set; }
+
+        /// <summary>
         /// Gets whether this asset can provide an <see cref="GraphViewModel"/> representing its properties.
         /// </summary>
         public virtual bool CanProvidePropertiesViewModel => !IsDeleted && IsEditable;
@@ -626,6 +631,43 @@ namespace Stride.Core.Assets.Editor.ViewModel
                 }
             }
             return true;
+        }
+
+        /// <summary>
+        /// Deletes this project asset, in the current transaction.
+        /// </summary>
+        /// <param name="deletedOutside">Whether its file was deleted outside Game Studio.</param>
+        internal void DeleteProjectAsset(bool deletedOutside)
+        {
+            UndoRedoService.PushOperation(new ProjectAssetDeleteOperation(this, Directory, deletedOutside));
+            RemoveProjectAsset(deletedOutside);
+        }
+
+        internal void RemoveProjectAsset(bool deletedOutside)
+        {
+            MarkAsDeleted();
+            IsDeletedOutside = deletedOutside;
+            Session.SetFileDeletedOutside(AssetItem.FullPath, deletedOutside);
+            Directory.RemoveAsset(this, false);
+            SetValueUncancellable(ref directory, null, nameof(Directory));
+        }
+
+        /// <summary>
+        /// Brings back this deleted project asset, as a change of the session that is not in the undo stack.
+        /// </summary>
+        public void RestoreProjectAsset(DirectoryBaseViewModel targetDirectory)
+        {
+            SetValueUncancellable(ref directory, targetDirectory, nameof(Directory));
+            targetDirectory.AddAsset(this, false);
+            InitialUndelete(false);
+            IsDeletedOutside = false;
+            Session.SetFileDeletedOutside(AssetItem.FullPath, false);
+        }
+
+        internal bool IsFileOfAnotherAsset()
+        {
+            var fullPath = AssetItem.FullPath;
+            return package.Assets.Find(AssetItem.Location) != null || package.Assets.Any(x => x.FullPath == fullPath);
         }
 
         protected override void UpdateIsDeletedStatus()

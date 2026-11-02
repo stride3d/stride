@@ -295,11 +295,43 @@ namespace Stride.Assets.Presentation.ViewModel
             if (assetsToDelete.Count > 0)
             {
                 // TODO: this action (it should occur only during assembly releoad) will be undoable (undoing reload restores deleted script)
-                if (!await projectViewModel.Session.ActiveAssetView.DeleteContent(assetsToDelete, true))
+                if (!await projectViewModel.Session.ActiveAssetView.DeleteContent(assetsToDelete, true, deletedOutside: true))
                     return false;
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Brings back the asset of a file that was deleted outside Game Studio and came back before a save. The asset
+        /// follows the disk, so this is not a step of the undo stack.
+        /// </summary>
+        private static void RestoreDeletedOutside(ProjectViewModel projectViewModel, AssetViewModel asset)
+        {
+            asset.RestoreProjectAsset(projectViewModel.GetOrCreateProjectDirectory(projectViewModel.GetDisplayDirectory(asset.AssetItem.Location), false));
+        }
+
+        /// <summary>
+        /// Reads the text of a source code asset from its file again.
+        /// </summary>
+        private void ReloadText(AssetViewModel asset, string filePath)
+        {
+            string text;
+            try
+            {
+                using var stream = new FileStream(new UFile(filePath).ToOSPath(), FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+                using var reader = new StreamReader(stream);
+                text = reader.ReadToEnd();
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                Logger.Warning($"Could not read the file '{filePath}'");
+                return;
+            }
+
+            var sourceCode = (SourceCodeAsset)asset.Asset;
+            if (sourceCode.Text != text)
+                sourceCode.Text = text;
         }
 
         /// <summary>
@@ -333,6 +365,13 @@ namespace Stride.Assets.Presentation.ViewModel
                 foreach (var document in documentsCopy)
                 {
                     var docFile = new UFile(document.FilePath);
+
+                    if (projectViewModel.DeletedAssetsSinceLastSave.FirstOrDefault(x => x.IsDeletedOutside && x.AssetItem.FullPath == docFile) is { } deletedOutside)
+                    {
+                        RestoreDeletedOutside(projectViewModel, deletedOutside);
+                        ReloadText(deletedOutside, docFile.FullPath);
+                        continue;
+                    }
 
                     AssetItem assetItem;
                     if (string.Equals(docFile.GetFileExtension(), ScriptSourceFileAsset.Extension, StringComparison.OrdinalIgnoreCase))

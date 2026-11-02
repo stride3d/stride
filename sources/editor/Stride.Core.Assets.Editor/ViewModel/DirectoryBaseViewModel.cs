@@ -93,9 +93,19 @@ namespace Stride.Core.Assets.Editor.ViewModel
             }
         }
 
-        public void RemoveAsset(AssetViewModel asset)
+        public void RemoveAsset(AssetViewModel asset, bool canUndoRedo = true)
         {
-            assets.Remove(asset);
+            if (canUndoRedo)
+            {
+                assets.Remove(asset);
+            }
+            else
+            {
+                using (SuspendNotificationForCollectionChange(nameof(Assets)))
+                {
+                    assets.Remove(asset);
+                }
+            }
         }
 
         /// <summary>

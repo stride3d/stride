@@ -119,9 +119,12 @@ namespace Stride.Core.Assets.Editor.ViewModel
             {
                 var hierarchy = new List<DirectoryBaseViewModel>();
                 GetDirectoryHierarchy(hierarchy);
-                foreach (var asset in hierarchy.SelectMany(directory => directory.Assets))
+                foreach (var asset in hierarchy.SelectMany(directory => directory.Assets).ToList())
                 {
-                    asset.IsDeleted = true;
+                    if (asset.Asset is IProjectAsset)
+                        asset.DeleteProjectAsset(false);
+                    else
+                        asset.IsDeleted = true;
                 }
                 Parent = null;
                 UndoRedoService.SetName(transaction, message);

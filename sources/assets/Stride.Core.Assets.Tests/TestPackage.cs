@@ -115,6 +115,83 @@ namespace Stride.Core.Assets.Tests
             Assert.True(File.Exists(Path.Combine(dirPath, "Assets", "Sub", "Ground2.sdtest")));
         }
 
+        private (PackageSession Session, Package Package, AssetItem Asset, string File) CreateSavedAsset(string testName)
+        {
+            var dirPath = Path.Combine(DirectoryTestBase, testName);
+            if (Directory.Exists(dirPath))
+                Directory.Delete(dirPath, true);
+            Directory.CreateDirectory(dirPath);
+
+            var package = new Package { FullPath = Path.Combine(dirPath, "MyGame.sdpkg") };
+            package.AssetFolders.Add(new AssetFolder("Assets"));
+            var session = new PackageSession();
+            session.Projects.Add(new SolutionProject(package, Guid.NewGuid(), Path.Combine(dirPath, "MyGame.csproj")));
+            var asset = new AssetItem("Ground", new AssetObjectTest());
+            package.Assets.Add(asset);
+            asset.IsDirty = true;
+
+            var result = new LoggerResult();
+            session.Save(result);
+            Assert.False(result.HasErrors, string.Join("\n", result.Messages));
+            var file = Path.Combine(dirPath, "Assets", "Ground.sdtest");
+            Assert.True(File.Exists(file));
+            return (session, package, asset, file);
+        }
+
+        [Fact]
+        public void TestSaveKeepsFileOfRemovedAssetWhenAnotherAssetHasIt()
+        {
+            var (session, package, asset, file) = CreateSavedAsset(nameof(TestSaveKeepsFileOfRemovedAssetWhenAnotherAssetHasIt));
+
+            // The file was deleted and came back: a new asset, with another id, now stands for it
+            package.Assets.Remove(asset);
+            var newAsset = new AssetItem(asset.Location, new AssetObjectTest()) { SourceFolder = asset.SourceFolder };
+            package.Assets.Add(newAsset);
+            newAsset.IsDirty = false;
+            package.Assets.IsDirty = true;
+            var content = File.ReadAllText(file) + "# Kept\n";
+            File.WriteAllText(file, content);
+
+            var result = new LoggerResult();
+            session.Save(result);
+
+            Assert.False(result.HasErrors, string.Join("\n", result.Messages));
+            Assert.True(File.Exists(file));
+            Assert.Equal(content, File.ReadAllText(file));
+        }
+
+        [Fact]
+        public void TestSaveKeepsFileThatCameBackAfterDeleteOutside()
+        {
+            var (session, package, asset, file) = CreateSavedAsset(nameof(TestSaveKeepsFileThatCameBackAfterDeleteOutside));
+
+            package.Assets.Remove(asset);
+            session.SetFileDeletedOutside(asset.FullPath, true);
+
+            var result = new LoggerResult();
+            session.Save(result);
+
+            Assert.False(result.HasErrors, string.Join("\n", result.Messages));
+            Assert.True(File.Exists(file));
+        }
+
+        [Fact]
+        public void TestSaveDeletesFileOfAssetRemovedInSession()
+        {
+            var (session, package, asset, file) = CreateSavedAsset(nameof(TestSaveDeletesFileOfAssetRemovedInSession));
+
+            // An undo of a delete from outside clears the mark, so a later delete in the session still deletes the file
+            session.SetFileDeletedOutside(asset.FullPath, true);
+            session.SetFileDeletedOutside(asset.FullPath, false);
+            package.Assets.Remove(asset);
+
+            var result = new LoggerResult();
+            session.Save(result);
+
+            Assert.False(result.HasErrors, string.Join("\n", result.Messages));
+            Assert.False(File.Exists(file));
+        }
+
         [Fact]
         public void TestNamespacedSaveRelativizesSamePrefixReferences()
         {

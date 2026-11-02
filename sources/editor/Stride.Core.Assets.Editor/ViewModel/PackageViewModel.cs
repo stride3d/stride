@@ -160,6 +160,11 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// </summary>
         public IReadOnlyObservableList<AssetViewModel> DeletedAssets => DeletedAssetsList;
 
+        /// <summary>
+        /// Gets the list of assets that have been deleted by the user and whose deletion is not saved yet.
+        /// </summary>
+        public IReadOnlyCollection<AssetViewModel> DeletedAssetsSinceLastSave => deletedAssetsSinceLastSave;
+
         // TODO: Might want to hide this
         public List<PackageLoadedAssembly> LoadedAssemblies => Package.LoadedAssemblies;
 
