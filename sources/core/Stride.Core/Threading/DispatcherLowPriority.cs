@@ -141,7 +141,7 @@ public static class DispatcherLowPriority
             try
             {
                 uint start, end;
-                var sw = new Stopwatch();
+                var sw = Stopwatch.StartNew();
                 do
                 {
                     if (wellBehaved == false && sw.ElapsedMilliseconds > 4)
