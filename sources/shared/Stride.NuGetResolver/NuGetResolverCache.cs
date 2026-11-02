@@ -1,8 +1,9 @@
 // Copyright (c) .NET Foundation and Contributors (https://dotnetfoundation.org/ & https://stride3d.net)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #nullable enable
+using System;
+using System.IO;
 using NuGet.Frameworks;
-using NuGet.Versioning;
 
 namespace Stride.Core.Assets
 {
@@ -27,10 +28,6 @@ namespace Stride.Core.Assets
         /// </summary>
         public static string GetFolder(string packageName, string version, string framework, string runtimeIdentifier)
             => Path.Combine(Root, $"{packageName}-{version}-{framework}-{runtimeIdentifier}");
-
-        /// <summary>Whether a local build can be repackaged under the same version.</summary>
-        public static bool IsDevVersion(NuGetVersion version)
-            => version.Release.Split('-').Any(x => x.StartsWith("dev", StringComparison.Ordinal) && x.Skip(3).All(char.IsAsciiDigit));
 
         /// <summary>
         ///   Deletes the restore folders of a package version, for any framework and runtime. Best effort: a folder in
