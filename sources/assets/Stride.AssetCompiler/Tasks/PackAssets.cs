@@ -18,7 +18,12 @@ namespace Stride.AssetCompiler.Tasks
 {
     public static class PackAssetsHelper
     {
+        /// <param name="logger">The logger for package processing.</param>
+        /// <param name="projectFile">The project or package file to load.</param>
+        /// <param name="intermediatePackagePath">The output directory for the intermediate package.</param>
+        /// <param name="generatedItems">Receives generated source and package paths.</param>
         /// <param name="hostAssemblies">Package-relative paths (lib/tfm/name.dll) of the assemblies the hosts load.</param>
+        /// <param name="assetNamespace">The namespace used to serialize assets.</param>
         /// <param name="companionPackages">Companion declarations as <c>Kind:Name:Version[:Replaces[:Toolkit]]</c>, Replaces being ';'-separated.</param>
         /// <param name="packageKind">What the package carries (StridePackageKind); null or empty for a runtime package.</param>
         /// <param name="packageToolkit">The UI toolkit of an Editor package's views (StrideEditorToolkit); null or empty for a neutral one.</param>

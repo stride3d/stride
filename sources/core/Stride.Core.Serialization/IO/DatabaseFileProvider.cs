@@ -98,6 +98,8 @@ public sealed class DatabaseFileProvider : VirtualFileProviderBase
 
     /// <inheritdoc />
     /// <param name="url">The url (without preceding slash).</param>
+    /// <param name="searchPattern">The pattern used to match file names.</param>
+    /// <param name="searchOption">Whether to search only the specified directory or its subdirectories as well.</param>
     /// <remarks>
     /// Example: to get all files within a directory <c>ListFiles("path/to/folder", "*", VirtualSearchOption.TopDirectoryOnly)</c>
     /// </remarks>

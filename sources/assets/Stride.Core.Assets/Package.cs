@@ -950,6 +950,7 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
     /// <param name="listAssetsInMsbuild">Specifies if we need to evaluate MSBuild files for assets.</param>
     /// <param name="filterFunc">A function that will filter assets loading</param>
     /// <param name="cancellationToken">The cancellation token.</param>
+    /// <param name="listAssetsOfUnknownType">Whether to include asset files whose tagged types are not loaded.</param>
     /// <returns>A logger that contains error messages while refreshing.</returns>
     /// <exception cref="InvalidOperationException">Package RootDirectory is null
     /// or
@@ -1393,6 +1394,11 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
         return existingAssetFolders;
     }
 
+    /// <summary>
+    /// List a package's asset files
+    /// </summary>
+    /// <param name="package">The package whose assets are listed.</param>
+    /// <param name="listAssetsInMsbuild">Whether to evaluate MSBuild projects for assets.</param>
     /// <param name="listUnregisteredAssets">Every <c>.sd*</c> file is an asset file, whatever its type (packing).</param>
     /// <param name="listAssetsOfUnknownType">Also list <c>.sd*</c> files starting with a Yaml type tag whose type is not loaded.</param>
     public static List<PackageLoadingAssetFile> ListAssetFiles(Package package, bool listAssetsInMsbuild, bool listUnregisteredAssets, bool listAssetsOfUnknownType = false)

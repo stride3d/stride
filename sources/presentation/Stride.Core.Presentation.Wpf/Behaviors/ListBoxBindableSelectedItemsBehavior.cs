@@ -41,7 +41,7 @@ namespace Stride.Core.Presentation.Behaviors
         }
 
         /// <summary>
-        /// Handles the <see cref="ListBox.SelectionChanged"/> event and invoke the <see cref="BindableSelectedItemsBehavior{T}.ControlSelectionChanged"/> method.
+        /// Handles the <see cref="System.Windows.Controls.Primitives.Selector.SelectionChanged"/> event and invokes the <see cref="BindableSelectedItemsBehavior{T}.ControlSelectionChanged"/> method.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>

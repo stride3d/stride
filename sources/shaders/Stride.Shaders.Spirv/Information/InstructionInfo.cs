@@ -26,6 +26,7 @@ public partial class InstructionInfo
     /// <param name="quantifier"></param>
     /// <param name="name"></param>
     /// <param name="spvClass"></param>
+    /// <param name="parameters">The parameters associated with the operand.</param>
     internal void Register(Op op, OperandKind? kind, OperandQuantifier? quantifier, string? name = null, string? spvClass = null, OperandParameters? parameters = null)
     {
         if (Info.TryGetValue(op, out var list))

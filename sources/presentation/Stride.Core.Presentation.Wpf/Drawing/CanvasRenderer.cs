@@ -519,7 +519,7 @@ namespace Stride.Core.Presentation.Drawing
         /// Gets a brush for the given <paramref name="color"/>.
         /// </summary>
         /// <remarks>Brushes are cached and frozen to improve performance.</remarks>
-        /// <seealso cref="Freezable.Freeze"/>
+        /// <seealso cref="Freezable.Freeze()"/>
         /// <param name="color"></param>
         /// <returns></returns>
         private Brush GetBrush(Color color)

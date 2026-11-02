@@ -62,8 +62,8 @@ internal class StrideVersion
     public const string Version = MajorMinor + "." + Patch;
 
     /// <summary>
-    /// The build version (used for display and as <see cref="AssemblyFileVersion"/> /
-    /// <see cref="AssemblyInformationalVersion"/>). The generators overlay it with the real version. In this
+    /// The build version (used for display and as <see cref="AssemblyFileVersionAttribute"/> /
+    /// <see cref="AssemblyInformationalVersionAttribute"/>). The generators overlay it with the real version. In this
     /// un-overlaid template it is a deliberately implausible sentinel — decoupled from <see cref="Version"/> so
     /// a build that skipped the overlay swap ships an obvious 4.4.65534 instead of a plausible-looking version.
     /// </summary>

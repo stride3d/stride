@@ -16,7 +16,7 @@ namespace Stride.Core.Assets.Editor.Services
         /// </summary>
         /// <param name="assetItems">The asset items to add to the queue.</param>
         /// <param name="position">The position in the queue from which to start insertion.</param>
-        /// <remarks> If an asset item is already in the queue, it might be moved to upper priority if <see cref="position"/> is <see cref="QueuePosition.First"/>.</remarks>
+        /// <remarks> If an asset item is already in the queue, it might be moved to upper priority if <paramref name="position"/> is <see cref="QueuePosition.First"/>.</remarks>
         void AddThumbnailAssetItems(IEnumerable<AssetItem> assetItems, QueuePosition position);
 
         /// <summary>

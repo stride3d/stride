@@ -92,7 +92,6 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// <summary>
         /// Gets asset directory view model for a given path and creates all missing parts.
         /// </summary>
-        /// <param name="project">The project.</param>
         /// <param name="projectDirectory">Project directory path.</param>
         /// <param name="canUndoRedoCreation">True if register UndoRedo operation for missing path parts.</param>
         /// <returns>Given directory view model.</returns>

@@ -324,7 +324,7 @@ public partial class NugetStore : INugetDownloadProgress
     public Func<IReadOnlyList<PackageOperationEventArgs>, Task<bool>>? UninstallGuard { get; set; }
 
     /// <summary>
-    /// Installation path of <paramref name="package"/>
+    /// Installation path of the package identified by <paramref name="id"/> and <paramref name="version"/>.
     /// </summary>
     /// <param name="id">Id of package to query.</param>
     /// <param name="version">Version of package to query.</param>
@@ -461,6 +461,7 @@ public partial class NugetStore : INugetDownloadProgress
     /// is newer than the extracted form. Lets dev-built packages flow into <see cref="GetLocalPackages"/>
     /// without a separate restore step.
     /// </summary>
+    /// <param name="packageId">The package identifier to mirror.</param>
     /// <param name="versionRange">
     /// The versions to mirror, null for all: only what the caller's query could use. A lookup for one version does
     /// not mirror a local copy of another (same id, maybe different content) over the installed one.
@@ -573,6 +574,7 @@ public partial class NugetStore : INugetDownloadProgress
     /// Name of variable used to hold the version of <paramref name="packageId"/>.
     /// </summary>
     /// <param name="packageId">The package Id.</param>
+    /// <param name="packageVariablePrefix">The prefix for the version variable.</param>
     /// <returns>The name of the variable holding the version of <paramref name="packageId"/>.</returns>
     public static string GetPackageVersionVariable(string packageId, string packageVariablePrefix = "StridePackage")
     {
@@ -604,6 +606,8 @@ public partial class NugetStore : INugetDownloadProgress
     /// <remarks>It is safe to call it concurrently be cause we operations are done using the FileLock.</remarks>
     /// <param name="packageId">Name of package to install.</param>
     /// <param name="version">Version of package to install.</param>
+    /// <param name="targetFrameworks">The target frameworks to restore.</param>
+    /// <param name="progress">The progress reporter, if provided.</param>
     public async Task<NugetLocalPackage?> InstallPackage(string packageId, PackageVersion version, IEnumerable<string> targetFrameworks, ProgressReport? progress)
     {
         using (GetLocalRepositoryLock())
@@ -657,7 +661,11 @@ public partial class NugetStore : INugetDownloadProgress
     /// <summary>
     /// Restores exactly <paramref name="version"/> of a package and its dependencies into the global packages folder.
     /// </summary>
+    /// <param name="packageId">The package identifier.</param>
+    /// <param name="version">The package version to restore.</param>
+    /// <param name="targetFrameworks">The target frameworks to restore.</param>
     /// <param name="settingsRoot">The directory whose NuGet settings to use; null for the default settings.</param>
+    /// <param name="outputPath">The output path for the restore.</param>
     public async Task<LockFile> RestorePackage(string packageId, PackageVersion version, IEnumerable<string> targetFrameworks, string? settingsRoot, string outputPath)
     {
         var restoreSettings = settingsRoot != null ? NuGet.Configuration.Settings.LoadDefaultSettings(settingsRoot) : settings;
@@ -791,6 +799,7 @@ public partial class NugetStore : INugetDownloadProgress
     /// </summary>
     /// <remarks>It is safe to call it concurrently be cause we operations are done using the FileLock.</remarks>
     /// <param name="package">Package to uninstall.</param>
+    /// <param name="progress">The progress reporter, if provided.</param>
     public async Task UninstallPackage(NugetPackage package, ProgressReport? progress)
     {
         await GuardUninstall([package]);
@@ -908,7 +917,7 @@ public partial class NugetStore : INugetDownloadProgress
     }
 
     /// <summary>
-    /// Find the installed package <paramref name="packageId"/> using the version <paramref name="versionRange"/> if not null, otherwise the <paramref name="constraintProvider"/> if specified.
+    /// Find the installed package <paramref name="packageId"/> using <paramref name="version"/> if not null, otherwise the <paramref name="constraintProvider"/> if specified.
     /// If no constraints are specified, the first found entry, whatever it means for NuGet, is used.
     /// </summary>
     /// <param name="packageId">Name of the package.</param>

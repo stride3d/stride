@@ -27,6 +27,7 @@ public class ProfilingMessage : LogMessage
     /// <param name="profileId">The profile unique identifier.</param>
     /// <param name="profilingKey">The profile key.</param>
     /// <param name="profilingType">Type of the profile.</param>
+    /// <param name="message">The profiling event message.</param>
     public ProfilingMessage(int profileId, ProfilingKey profilingKey, ProfilingMessageType profilingType, ProfilingEventMessage? message)
         : base("Profiler", LogMessageType.Info, string.Empty)
     {

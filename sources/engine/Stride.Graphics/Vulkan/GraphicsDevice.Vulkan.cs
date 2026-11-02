@@ -240,7 +240,7 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///   Builds a <see cref="VkSemaphoreSubmitInfo"/> for a <see cref="vkQueueSubmit2"/> wait or signal.
+        ///   Builds a <see cref="VkSemaphoreSubmitInfo"/> for a <see cref="VkDeviceApi.vkQueueSubmit2"/> wait or signal.
         /// </summary>
         internal static VkSemaphoreSubmitInfo SemaphoreSubmit(VkSemaphore semaphore, ulong value = 0) => new()
         {
@@ -251,7 +251,7 @@ namespace Stride.Graphics
         };
 
         /// <summary>
-        ///   Builds a <see cref="VkCommandBufferSubmitInfo"/> for a <see cref="vkQueueSubmit2"/>.
+        ///   Builds a <see cref="VkCommandBufferSubmitInfo"/> for a <see cref="VkDeviceApi.vkQueueSubmit2"/> call.
         /// </summary>
         internal static VkCommandBufferSubmitInfo CommandBufferSubmit(VkCommandBuffer commandBuffer) => new()
         {

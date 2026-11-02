@@ -14,6 +14,7 @@ public static class PrimitiveTypeExtensions
     ///   Interpret the input vertex data type as a <strong>patch list</strong> for tesselation with a
     ///   specific number of <strong>control points</strong>.
     /// </summary>
+    /// <param name="primitiveType">The primitive type to configure.</param>
     /// <param name="controlPoints">The number of control points. It must be a value in the range 1 to 32, inclusive.</param>
     /// <returns>
     ///   A <see cref="PrimitiveType"/> value that represents a patch list with the specified number of control points.

@@ -150,7 +150,7 @@ namespace Stride.Core.Presentation.Controls
         public bool ValidateWithEnter { get { return (bool)GetValue(ValidateWithEnterProperty); } set { SetValue(ValidateWithEnterProperty, value.Box()); } }
 
         /// <summary>
-        /// Gets or sets whether the validation should happen as soon as the <see cref="TextBox.Text"/> is changed.
+        /// Gets or sets whether the validation should happen as soon as the <see cref="System.Windows.Controls.TextBox.Text"/> is changed.
         /// </summary>
         public bool ValidateOnTextChange { get { return (bool)GetValue(ValidateOnTextChangeProperty); } set { SetValue(ValidateOnTextChangeProperty, value.Box()); } }
 
@@ -295,8 +295,8 @@ namespace Stride.Core.Presentation.Controls
         /// <summary>
         /// Raised when the text of the TextBox changes.
         /// </summary>
-        /// <param name="oldValue">The old value of the <see cref="TextBox.Text"/> property.</param>
-        /// <param name="newValue">The new value of the <see cref="TextBox.Text"/> property.</param>
+        /// <param name="oldValue">The old value of the <see cref="System.Windows.Controls.TextBox.Text"/> property.</param>
+        /// <param name="newValue">The new value of the <see cref="System.Windows.Controls.TextBox.Text"/> property.</param>
         protected virtual void OnTextChanged(string oldValue, string newValue)
         {
         }

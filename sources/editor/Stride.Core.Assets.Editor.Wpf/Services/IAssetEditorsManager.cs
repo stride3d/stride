@@ -15,7 +15,7 @@ namespace Stride.Core.Assets.Editor.Services
         /// Immediately closes all open asset editor windows.
         /// </summary>
         /// <param name="save">True if files should be saved, false if files can be closed without asking user, null if user should be asked.</param>
-        /// <returns>True if all windows succesfully closed, false if user interrupted (should only happen when <see cref="save"/> is null).</returns>
+        /// <returns>True if all windows successfully closed, false if user interrupted (should only happen when <paramref name="save"/> is null).</returns>
         bool CloseAllEditorWindows(bool? save);
 
         /// <summary>
@@ -33,7 +33,7 @@ namespace Stride.Core.Assets.Editor.Services
         /// </summary>
         /// <param name="asset">The asset for which to close the editor window.</param>
         /// <param name="save">True if file should be saved, false if file can be closed without asking user, null if user should be asked.</param>
-        /// <returns>True if windows could be closed, false if user interrupted (should only happen when <see cref="save"/> is null).</returns>
+        /// <returns>True if windows could be closed, false if user interrupted (should only happen when <paramref name="save"/> is null).</returns>
         bool CloseAssetEditorWindow(AssetViewModel asset, bool? save);
 
         /// <summary>

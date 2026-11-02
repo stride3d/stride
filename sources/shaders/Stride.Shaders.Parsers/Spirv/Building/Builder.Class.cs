@@ -786,11 +786,11 @@ public partial class SpirvBuilder
     /// Gets or load a shader, with generic instantiation (if requested).
     /// </summary>
     /// <param name="shaderLoader"></param>
-    /// <param name="classSource">The generics parameters should be in <see cref="parentBuffer"/>.</param>
+    /// <param name="classSource">The shader class and its generic arguments.</param>
     /// <param name="macros"></param>
     /// <param name="resolveStep"></param>
     /// <returns></returns>
-    /// <param name="parentBuffer"></param>
+    /// <param name="context">The SPIR-V context used to resolve the shader.</param>
     public static ShaderBuffers GetOrLoadShader(IExternalShaderLoader shaderLoader, ShaderClassInstantiation classSource, ReadOnlySpan<ShaderMacro> macros, ResolveStep resolveStep, SpirvContext context)
     {
         if (resolveStep == ResolveStep.Mix && classSource.GenericArguments.Length > 0)

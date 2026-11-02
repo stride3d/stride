@@ -200,11 +200,11 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Binds a depth-stencil buffer and a set of render targets to the output-merger stage. See <see cref="Textures+and+render+targets"/> to learn how to use it.
+        /// Binds a depth-stencil buffer and a set of render targets to the output-merger stage.
+        /// See <see href="https://doc.stride3d.net/latest/en/manual/graphics/low-level-api/textures-and-render-textures.html">Textures and render textures</see>.
         /// </summary>
         /// <param name="depthStencilBuffer">The depth stencil buffer.</param>
         /// <param name="renderTargets">The render targets.</param>
-        /// <exception cref="ArgumentNullException">renderTargetViews</exception>
         private partial void SetRenderTargetsImpl(Texture depthStencilBuffer, ReadOnlySpan<Texture> renderTargets)
         {
             // The base class updated the bound targets; the next draw restarts the render pass
@@ -232,9 +232,8 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        ///     Gets or sets the 1st viewport. See <see cref="Render+states"/> to learn how to use it.
+        /// Sets the <see cref="Viewport"/> and its scissor rectangle.
         /// </summary>
-        /// <value>The viewport.</value>
         private unsafe void SetViewportImpl()
         {
             if (!viewportDirty && !scissorsDirty)
@@ -291,7 +290,6 @@ namespace Stride.Graphics
         /// <summary>
         ///   Vulkan implementation that sets one or more scissor rectangles to the rasterizer stage.
         /// </summary>
-        /// <param name="scissorCount">The number of scissor rectangles to bind.</param>
         /// <param name="scissorRectangles">The set of scissor rectangles to bind.</param>
         private unsafe partial void SetScissorRectanglesImpl(ReadOnlySpan<Rectangle> scissorRectangles)
         {
@@ -545,7 +543,7 @@ namespace Stride.Graphics
         /// </param>
         /// <remarks>
         ///   For a <see cref="Buffer"/>, <see cref="Buffer.NativeAccessMask"/> and
-        ///   <see cref="Buffer.NativePipelineStageMask"/> are read as the source but never written.
+        ///   <see cref="GraphicsResource.NativePipelineStageMask"/> are read as the source but never written.
         ///   The copy and upload paths rely on them staying the set of every legal usage.
         /// </remarks>
         public unsafe void ResourceBarrierTransition(GraphicsResource resource, BarrierLayout newLayout, uint subresource = uint.MaxValue)
@@ -798,8 +796,11 @@ namespace Stride.Graphics
         ///   and adds the barriers it needs to the pending ones. <paramref name="transitions"/> keeps them, so a copy can
         ///   put the subresources back with <see cref="RestoreAfterTransfer"/>.
         /// </summary>
+        /// <param name="texture">The texture to transition.</param>
         /// <param name="range">The subresources to move, or <see langword="null"/> for <paramref name="subresource"/>.</param>
         /// <param name="subresource">The subresource to move, or <see cref="uint.MaxValue"/> for the whole Texture.</param>
+        /// <param name="newLayout">The layout to transition to.</param>
+        /// <param name="transitions">Receives the transitions needed to restore the previous layouts.</param>
         private void TransitionTexture(Texture texture, TextureSubresourceRange? range, uint subresource, BarrierLayout newLayout, List<SubresourceTransition> transitions)
         {
             transitions.Clear();
@@ -1201,7 +1202,8 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Clears the specified depth stencil buffer. See <see cref="Textures+and+render+targets"/> to learn how to use it.
+        /// Clears the specified depth stencil buffer.
+        /// See <see href="https://doc.stride3d.net/latest/en/manual/graphics/low-level-api/textures-and-render-textures.html">Textures and render textures</see>.
         /// </summary>
         /// <param name="depthStencilBuffer">The depth stencil buffer.</param>
         /// <param name="options">The options.</param>
@@ -1236,7 +1238,8 @@ namespace Stride.Graphics
         }
 
         /// <summary>
-        /// Clears the specified render target. See <see cref="Textures+and+render+targets"/> to learn how to use it.
+        /// Clears the specified render target.
+        /// See <see href="https://doc.stride3d.net/latest/en/manual/graphics/low-level-api/textures-and-render-textures.html">Textures and render textures</see>.
         /// </summary>
         /// <param name="renderTarget">The render target.</param>
         /// <param name="color">The color.</param>
@@ -1664,6 +1667,8 @@ namespace Stride.Graphics
         /// <summary>
         ///   Resolves a subresource index into the Vulkan subresource layers it addresses.
         /// </summary>
+        /// <param name="texture">The texture containing the subresource.</param>
+        /// <param name="imageAspect">The image aspects to address.</param>
         /// <param name="subresourceIndex">
         ///   The subresource index, encoded as <c>arraySlice * MipLevelCount + mipLevel</c>
         ///   (see <see cref="Texture.GetSubResourceIndex"/>).
@@ -1821,7 +1826,7 @@ namespace Stride.Graphics
         ///     </list>
         ///   </para>
         ///   <para>
-        ///     When <see cref="UpdateSubResource"/> returns, the application is free to change or even free the data pointed to by
+        ///     When <see cref="UpdateSubResource(GraphicsResource, int, ReadOnlySpan{byte})"/> returns, the application is free to change or even free the data pointed to by
         ///     <paramref name="sourceData"/> because the method has already copied/snapped away the original contents.
         ///   </para>
         /// </remarks>

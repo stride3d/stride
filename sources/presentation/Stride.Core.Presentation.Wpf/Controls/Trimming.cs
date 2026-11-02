@@ -30,7 +30,7 @@ namespace Stride.Core.Presentation.Controls
         public static readonly DependencyProperty TrimmingSourceProperty = DependencyProperty.RegisterAttached("TrimmingSource", typeof(TrimmingSource), typeof(Trimming), new PropertyMetadata(TrimmingSource.End));
 
         /// <summary>
-        /// Identifies the <see cref="WordSeparators"/> dependency property.
+        /// Identifies the WordSeparators dependency property.
         /// </summary>
         public static readonly DependencyProperty WordSeparatorsProperty = DependencyProperty.RegisterAttached("WordSeparators", typeof(string), typeof(Trimming), new PropertyMetadata(" \t"));
 
@@ -75,17 +75,17 @@ namespace Stride.Core.Presentation.Controls
         }
 
         /// <summary>
-        /// Gets the current value of the <see cref="WordSeparators"/> dependency property attached to the given <see cref="DependencyObject"/>.
+        /// Gets the current value of the <see cref="WordSeparatorsProperty"/> dependency property attached to the given <see cref="DependencyObject"/>.
         /// </summary>
         /// <param name="target">The target <see cref="DependencyObject"/>.</param>
-        /// <returns>The value of the <see cref="WordSeparators"/> dependency property.</returns>
+        /// <returns>The value of the <see cref="WordSeparatorsProperty"/> dependency property.</returns>
         public static string GetWordSeparators([NotNull] DependencyObject target)
         {
             return (string)target.GetValue(WordSeparatorsProperty);
         }
 
         /// <summary>
-        /// Sets the value of the <see cref="WordSeparators"/> dependency property attached to the given <see cref="DependencyObject"/>.
+        /// Sets the value of the <see cref="WordSeparatorsProperty"/> dependency property attached to the given <see cref="DependencyObject"/>.
         /// </summary>
         /// <param name="target">The target <see cref="DependencyObject"/>.</param>
         /// <param name="value">The value to set.</param>

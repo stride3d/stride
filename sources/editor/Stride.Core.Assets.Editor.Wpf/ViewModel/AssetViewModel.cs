@@ -354,6 +354,7 @@ namespace Stride.Core.Assets.Editor.ViewModel
         /// </summary>
         /// <param name="assetType">The type of asset to check</param>
         /// <param name="initialLocation">The initial location where to create the asset.</param>
+        /// <param name="currentPackage">The current package, if any.</param>
         /// <returns>A <see cref="DirectoryBaseViewModel"/> corresponding to a valid location to create the asset, if available. <c>Null</c> otherwise.</returns>
         [CanBeNull]
         public static DirectoryBaseViewModel FindValidCreationLocation(Type assetType, [NotNull] DirectoryBaseViewModel initialLocation, PackageViewModel currentPackage = null)

@@ -31,7 +31,7 @@ namespace Stride.Rendering
         /// <summary>
         /// Initializes a new instance of the <see cref="ParameterKeyValueMetadata"/> class.
         /// </summary>
-        /// <param name="setupDelegate">The setup delegate.</param>
+        /// <param name="defaultValue">The default value for the parameter.</param>
         public ParameterKeyValueMetadata(T defaultValue)
         {
             DefaultValue = defaultValue;
