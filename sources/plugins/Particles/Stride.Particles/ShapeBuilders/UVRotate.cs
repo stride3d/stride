@@ -59,10 +59,10 @@ namespace Stride.Particles.ShapeBuilders.Tools
         public bool FlipY { get { return flipY; } set { flipY = value; ApplyChanges(); } }
 
         /// <summary>
-        /// If <c>True</c>, the texture coordinates will be rotated clockwise by the specified angle prior to texture sampling.
+        /// The angle by which the texture coordinates will be rotated clockwise prior to texture sampling.
         /// </summary>
         /// <userdoc>
-        /// If enabled, the texture coordinates will be rotated clockwise by the specified angle prior to texture sampling.
+        /// The angle by which the texture coordinates will be rotated clockwise prior to texture sampling.
         /// </userdoc>
         [Display("Clockwise")]
         public UVClockwiseRotation UVClockwise { get { return uvClockwise; } set { uvClockwise = value; ApplyChanges(); } }
