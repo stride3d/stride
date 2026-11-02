@@ -305,7 +305,7 @@ namespace Stride.Assets.Presentation.ViewModel
         /// <summary>
         /// Handles project asset addition (from Visual Studio/HDD external changes to Game Studio).
         /// </summary>
-        private static void AddNewProjectAssets(ProjectViewModel projectViewModel, List<AssetViewModel> projectAssets, Project project, List<(UFile FilePath, UFile Link)> projectFiles)
+        private void AddNewProjectAssets(ProjectViewModel projectViewModel, List<AssetViewModel> projectAssets, Project project, List<(UFile FilePath, UFile Link)> projectFiles)
         {
             // Nothing to add?
             if (projectFiles.Count == 0)
@@ -333,18 +333,28 @@ namespace Stride.Assets.Presentation.ViewModel
                 foreach (var document in documentsCopy)
                 {
                     var docFile = new UFile(document.FilePath);
-                    var projFile = new UFile(project.FilePath);
 
-                    var assetName = docFile.MakeRelative(projectViewModel.Package.RootDirectory).GetDirectoryAndFileNameWithoutExtension();
-
-                    var asset = new ScriptSourceFileAsset();
-                    var assetItem = new AssetItem(assetName, asset)
+                    AssetItem assetItem;
+                    if (string.Equals(docFile.GetFileExtension(), ScriptSourceFileAsset.Extension, StringComparison.OrdinalIgnoreCase))
                     {
-                        IsDirty = true, //todo review / this is actually very important in the case of renaming, to propagate the change from VS to Game Studio, if we set it false here, during renaming the renamed asset won't be removed
-                        SourceFolder = projectViewModel.Package.RootDirectory,
-                    };
+                        var assetName = docFile.MakeRelative(projectViewModel.Package.RootDirectory).GetDirectoryAndFileNameWithoutExtension();
 
-                    var directory = projectViewModel.GetOrCreateProjectDirectory(assetItem.Location.GetFullDirectory().FullPath, false);
+                        var asset = new ScriptSourceFileAsset();
+                        assetItem = new AssetItem(assetName, asset)
+                        {
+                            IsDirty = true, //todo review / this is actually very important in the case of renaming, to propagate the change from VS to Game Studio, if we set it false here, during renaming the renamed asset won't be removed
+                            SourceFolder = projectViewModel.Package.RootDirectory,
+                        };
+                    }
+                    else
+                    {
+                        // A shader or a visual script: the same asset as when the project opens, and its file already holds its content
+                        assetItem = projectViewModel.Package.LoadProjectAsset(Logger, docFile, document.Link, new UFile(project.FilePath).GetFullDirectory());
+                        if (assetItem == null)
+                            continue;
+                    }
+
+                    var directory = projectViewModel.GetOrCreateProjectDirectory(projectViewModel.GetDisplayDirectory(assetItem.Location), false);
                     var newScriptAsset = projectViewModel.CreateAsset(directory, assetItem, false, null);
                     newScriptAssets.Add(newScriptAsset);
                 }
