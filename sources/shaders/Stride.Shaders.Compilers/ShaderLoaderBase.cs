@@ -1,3 +1,4 @@
+using Stride.Core;
 using Stride.Core.Diagnostics;
 using Stride.Core.Storage;
 using Stride.Shaders.Compilers.SDSL;
@@ -25,10 +26,27 @@ public abstract class ShaderLoaderBase(IShaderCache fileCache) : IExternalShader
     /// </summary>
     private readonly ConcurrentDictionary<(string Name, int MacrosHash), Lazy<(ShaderBuffers Buffer, ObjectId Hash)>> compilingShaders = new();
 
+    private readonly AsyncLocal<ILogger?> compilationLog = new();
+    private ILogger? defaultLog;
+
     /// <summary>
     /// Optional logger for compilation errors. If not set, errors are thrown as exceptions.
     /// </summary>
-    public ILogger? Log { get; set; }
+    public ILogger? Log
+    {
+        get => compilationLog.Value ?? defaultLog;
+        set => defaultLog = value;
+    }
+
+    /// <summary>
+    /// Sets the logger of the current compilation, until the result is disposed. Compilations that run at the same time on this loader each keep their own.
+    /// </summary>
+    public IDisposable UseLog(ILogger log)
+    {
+        var previousLog = compilationLog.Value;
+        compilationLog.Value = log;
+        return new AnonymousDisposable(() => compilationLog.Value = previousLog);
+    }
 
     public bool Exists(string name)
     {
@@ -178,8 +196,8 @@ public abstract class ShaderLoaderBase(IShaderCache fileCache) : IExternalShader
         {
             if (log is LoggerResult loggerResult && loggerResult.HasErrors)
             {
-                var errors = string.Join(Environment.NewLine, loggerResult.Messages.Where(m => m.Type >= LogMessageType.Error).Select(m => m.ToString()));
-                throw log == Log ? new ShaderErrorsLoggedException(log, errors) : new InvalidOperationException(errors);
+                var errors = loggerResult.Messages.Where(m => m.Type >= LogMessageType.Error).ToList();
+                throw log == Log ? new ShaderErrorsLoggedException(log, errors) : new InvalidOperationException(ShaderErrorsLoggedException.Format(errors));
             }
             return false;
         }
