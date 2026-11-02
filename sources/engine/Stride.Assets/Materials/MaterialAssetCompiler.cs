@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Stride.Assets.Textures;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Compiler;
@@ -15,6 +16,7 @@ using Stride.Core.Serialization.Contents;
 using Stride.Core.Assets.Visitors;
 using Stride.Core.Reflection;
 using Stride.Graphics;
+using Stride.Rendering;
 using Stride.Rendering.Materials;
 
 namespace Stride.Assets.Materials
@@ -24,6 +26,7 @@ namespace Stride.Assets.Materials
     {
         public override IEnumerable<BuildDependencyInfo> GetInputTypes(AssetItem assetItem)
         {
+            yield return new BuildDependencyInfo(typeof(TextureAsset), typeof(AssetCompilationContext), BuildDependencyType.Runtime);
             yield return new BuildDependencyInfo(typeof(MaterialAsset), typeof(AssetCompilationContext), BuildDependencyType.CompileAsset);
             yield return new BuildDependencyInfo(typeof(GameSettingsAsset), typeof(AssetCompilationContext), BuildDependencyType.CompileAsset);
         }
@@ -34,37 +37,40 @@ namespace Stride.Assets.Materials
             yield return new ObjectUrl(UrlType.Content, "/Stride.Engine/StrideEnvironmentLightingDFGLUT16");
             yield return new ObjectUrl(UrlType.Content, "/Stride.Engine/StrideEnvironmentLightingDFGLUT8");
 
-            foreach (var (url, id) in SourceFilesCollector.GetSourceFiles(assetItem.Asset))
+            foreach (var url in ContentReferenceCollector.Collect(assetItem.Asset))
             {
                 yield return new ObjectUrl(UrlType.Content, url);
             }
         }
 
-        private class SourceFilesCollector : AssetVisitorBase
+        private class ContentReferenceCollector : AssetVisitorBase
         {
-            private HashSet<(string, AssetId)> sourceFiles = new();
+            private HashSet<string> sourceFiles = new();
             private Asset asset;
 
-            public static HashSet<(string, AssetId)> GetSourceFiles(Asset asset)
+            public static HashSet<string> Collect(Asset asset)
             {
-                var collector = new SourceFilesCollector { asset = asset };
+                var collector = new ContentReferenceCollector { asset = asset };
                 collector.Visit(asset);
                 return collector.sourceFiles;
             }
 
-            public override void VisitObjectMember(object container, ObjectDescriptor containerDescriptor, IMemberDescriptor member, object? value)
+            public override void VisitObject(object obj, ObjectDescriptor descriptor, bool visitMembers)
             {
-                if (value is not null && value != asset && AssetRegistry.IsExactContentType(value.GetType()))
+                if (obj != asset && AssetRegistry.IsExactContentType(obj.GetType()))
                 {
-                    var reference = AttachedReferenceManager.GetAttachedReference(value);
+                    if (obj is Texture or Material)
+                        return;
+                    
+                    var reference = AttachedReferenceManager.GetAttachedReference(obj);
                     if (reference is { } val)
                     {
-                        sourceFiles.Add((val.Url, val.Id));
+                        sourceFiles.Add(val.Url);
                     }
                     return;
                 }
-                
-                base.VisitObjectMember(container, containerDescriptor, member, value);
+
+                base.VisitObject(obj, descriptor, visitMembers);
             }
         }
 
@@ -83,6 +89,7 @@ namespace Stride.Assets.Materials
             private readonly ColorSpace colorSpace;
 
             private UFile assetUrl;
+            private ObjectUrl[] contentReferences;
 
             public MaterialCompileCommand(string url, AssetItem assetItem, MaterialAsset value, AssetCompilerContext context)
                 : base(url, value, assetItem.Package)
@@ -93,14 +100,12 @@ namespace Stride.Assets.Materials
                 assetUrl = new UFile(url);
 
                 graphicsProfile = context.GetGameSettingsAsset().GetOrCreate<RenderingSettings>().DefaultGraphicsProfile;
+                contentReferences = ContentReferenceCollector.Collect(assetItem.Asset).Select(x => new ObjectUrl(UrlType.Content, x)).ToArray();
             }
 
             public override IEnumerable<ObjectUrl> GetInputFiles()
             {
-                foreach (var (url, id) in SourceFilesCollector.GetSourceFiles(assetItem.Asset))
-                {
-                    yield return new ObjectUrl(UrlType.Content, url);
-                }
+                return contentReferences;
             }
 
             protected override void ComputeParameterHash(BinarySerializationWriter writer)
