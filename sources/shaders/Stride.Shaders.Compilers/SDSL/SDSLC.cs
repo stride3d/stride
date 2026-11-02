@@ -75,8 +75,9 @@ public record struct SDSLC(IExternalShaderLoader ShaderLoader)
                     log.Error($"{filename}({e.Error.Location.Line},{e.Error.Location.Column}): {e.Error.Message} (in `{e.Error.Location.Text.Span.Trim()}`)", e);
                     hasErrors = true;
                 }
-                catch (ShaderErrorsLoggedException e) when (e.Log == log)
+                catch (ShaderErrorsLoggedException e)
                 {
+                    e.CopyTo(log);
                     hasErrors = true;
                 }
                 catch (Exception e)

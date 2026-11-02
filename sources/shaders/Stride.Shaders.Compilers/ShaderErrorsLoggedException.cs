@@ -6,9 +6,21 @@ using Stride.Core.Diagnostics;
 namespace Stride.Shaders.Compilers;
 
 /// <summary>
-/// A shader failed to compile, and its errors are already in <see cref="Log"/>.
+/// A shader failed to compile, and its errors are already in the log of the compilation that compiled it.
 /// </summary>
-internal sealed class ShaderErrorsLoggedException(ILogger log, string errors) : InvalidOperationException(errors)
+internal sealed class ShaderErrorsLoggedException(ILogger log, IReadOnlyList<ILogMessage> errors) : InvalidOperationException(Format(errors))
 {
-    public ILogger Log => log;
+    public static string Format(IEnumerable<ILogMessage> errors) => string.Join(Environment.NewLine, errors.Select(error => error.ToString()));
+
+    /// <summary>
+    /// Adds the errors to <paramref name="target"/>, unless they are already there: a compilation that waited for this shader gets the same exception.
+    /// </summary>
+    public void CopyTo(ILogger target)
+    {
+        if (target == log)
+            return;
+
+        foreach (var error in errors)
+            target.Log(error);
+    }
 }

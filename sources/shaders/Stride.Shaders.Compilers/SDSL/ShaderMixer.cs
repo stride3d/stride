@@ -49,8 +49,7 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
         context.Add(new OpCapability(Capability.Shader));
         context.Add(new OpExtension("SPV_GOOGLE_user_type"));
         context.Add(new OpMemoryModel(AddressingModel.Logical, MemoryModel.GLSL450));
-        if (ShaderLoader is ShaderLoaderBase shaderLoaderBase)
-            shaderLoaderBase.Log = log;
+        using var compilationLog = (ShaderLoader as ShaderLoaderBase)?.UseLog(log);
         var shaderLoader = new CaptureLoadedShaders(ShaderLoader);
         var table = new SymbolTable(context, shaderLoader);
 
@@ -78,8 +77,9 @@ public partial class ShaderMixer(IExternalShaderLoader shaderLoader)
 
             rootMixin = MergeMixinNode(globalContext, context, temp, shaderSource2);
         }
-        catch (ShaderErrorsLoggedException e) when (e.Log == log)
+        catch (ShaderErrorsLoggedException e)
         {
+            e.CopyTo(log);
             return false;
         }
         catch (Exception e)
