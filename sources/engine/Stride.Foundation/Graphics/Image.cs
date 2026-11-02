@@ -398,7 +398,7 @@ namespace Stride.Graphics
         /// <param name="mipMapCount">The mip map count.</param>
         /// <param name="format">The format.</param>
         /// <param name="arraySize">Size of the array.</param>
-        /// <param name="rowStride">The row stride in bytes, or zero to calculate it.</param>
+        /// <param name="rowStride">Specify a specific rowStride, only valid when mipMapCount == 1 and pixel format is not compressed.</param>
         /// <returns>A new image.</returns>
         public static Image New2D(int width, int height, MipMapCount mipMapCount, PixelFormat format, int arraySize = 1, int rowStride = 0)
         {
