@@ -2,25 +2,27 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Collections.Concurrent;
-using System.ComponentModel;
-using System.Runtime.InteropServices;
-using Stride.Core.Diagnostics;
+using System.Diagnostics;
 
 namespace Stride.Core.Threading;
+
+// Summary of the attempt at providing support for Linux;
+// Mutating niceness on a thread would be the most straightforward solution, two issues:
+// - Niceness is carried between threads, if one of these threads goes ahead and
+//   `new ThreadPool()`, Task.Run when .Net's threadpool is empty, or `new Thread()` in general, those new threads will be set to low priority.
+// - Resetting and restoring niceness around user logic defeats the purpose of the priority, we want the thread to yield while running user logic.
 
 /// <summary>
 /// Built for long-running background jobs,
 /// won't monopolize the CPU away from this process or the rest of the user's OS while performing tasks
 /// </summary>
 /// <remarks>
-/// The claim made above cannot be guaranteed for OS outside of Windows/recent Linux,
+/// The claim made above cannot be guaranteed for OS outside of Windows,
 /// it will spread out the work further to avoid blocking but dense workload may still block.
 /// PR to improve support for those platforms are welcome.
 /// </remarks>
 public static class DispatcherLowPriority
 {
-    private static readonly Logger Log = GlobalLogger.GetLogger(nameof(DispatcherLowPriority));
-
     /// <summary>
     /// Set the amount of threads in the pool
     /// </summary>
@@ -49,7 +51,7 @@ public static class DispatcherLowPriority
     private static readonly BlockingCollection<BatchState> tasks = new();
     private static readonly Lock poolLock = new();
     private static Stack<CancellationTokenSource>? poolThreadsCts;
-    private static bool wellBehaved = (OperatingSystem.IsLinux() || OperatingSystem.IsWindows());
+    private static readonly bool wellBehaved = OperatingSystem.IsWindows();
 
     /// <summary>
     /// Caller-defined method called by one of the threads scheduled by a <see cref="ForBatchedAsync"/> call,
@@ -77,10 +79,10 @@ public static class DispatcherLowPriority
         int batchCount = Math.Min(MaxDegreeOfParallelism, items);
         uint itemsPerBatch = (uint)((items + (batchCount - 1)) / batchCount);
 
-        if (wellBehaved == false && itemsPerBatch > 3)
+        if (wellBehaved == false)
         {
             // We'll need to yield between batches, split items further
-            itemsPerBatch /= 4;
+            itemsPerBatch = 1;
         }
 
         var batch = new BatchState(itemsPerBatch: itemsPerBatch, endExclusive: (uint)items, processItemsRange);
@@ -114,9 +116,6 @@ public static class DispatcherLowPriority
         
             void ThreadScope()
             {
-                if (OperatingSystem.IsLinux() && wellBehaved && LinuxNice.TrySetLowPriority() == false)
-                    wellBehaved = false;
-
                 try
                 {
                     foreach (var bs in tasks.GetConsumingEnumerable(cts.Token))
@@ -142,15 +141,17 @@ public static class DispatcherLowPriority
             try
             {
                 uint start, end;
+                var sw = new Stopwatch();
                 do
                 {
-                    if (wellBehaved == false)
+                    if (wellBehaved == false && sw.ElapsedMilliseconds > 4)
                     {
                         for (int i = 0; i < 4 && Thread.Yield(); i++)
                         {
-                            // For non windows/linux OS, we'll yield a bunch between batches
+                            // Fallback for non-windows, we'll yield a bunch between batches
                             // to let other threads take over
                         }
+                        sw.Restart();
                     }
 
                     end = Interlocked.Add(ref index, itemsPerBatch);
@@ -170,44 +171,6 @@ public static class DispatcherLowPriority
                 TaskCompletionSource.TrySetException(e);
                 Volatile.Write(ref interrupted, true);
             }
-        }
-    }
-    
-    private static class LinuxNice
-    {
-        // https://man7.org/linux/man-pages/man2/gettid.2.html
-        [DllImport("libc", EntryPoint = "gettid")]
-        private static extern int GetTid();
-
-        // https://man7.org/linux/man-pages/man2/setpriority.2.html
-        [DllImport("libc", EntryPoint = "setpriority", SetLastError = true)]
-        private static extern int SetPriority(int which, int who, int nice);
-
-        public static bool TrySetLowPriority()
-        {
-            const int lowPriority = 19; // [-20,19], -20 = high, 19 = low
-            const int prioProcess = 0; // 0 = Calling process
-
-            if (!OperatingSystem.IsLinux())
-                return false;
-
-            try
-            {
-                if (SetPriority(prioProcess, GetTid(), lowPriority) != 0)
-                {
-                    // Who knows what's going on here, and Linus Licorus Maxus does not want me to leave anything that might hint at what's wrong.
-                    // Good luck~
-                    throw new Win32Exception(Marshal.GetLastPInvokeError());
-                }
-            }
-            catch (Exception e)
-            {
-                Log.Warning($"Failed to set thread priority for {nameof(DispatcherLowPriority)}", e);
-                // glibc < 2.30
-                return false;
-            }
-
-            return true;
         }
     }
 }
