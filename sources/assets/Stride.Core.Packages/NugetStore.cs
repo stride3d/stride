@@ -1261,7 +1261,7 @@ public partial class NugetStore : INugetDownloadProgress
     /// </summary>
     public static bool IsDevVersion(PackageVersion version)
     {
-        return NuGetResolverCache.IsDevVersion(version.ToNuGetVersion());
+        return version.SpecialVersion?.Split('-').Any(x => x.StartsWith("dev", StringComparison.Ordinal) && x.Skip(3).All(char.IsAsciiDigit)) == true;
     }
 
     public bool IsDevRedirectPackage(NugetServerPackage package)
