@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -569,10 +570,29 @@ public static partial class CodeUpgrades
     /// property inside it go to the new property too, since the old one now calls the new one.
     /// </summary>
     public static CodeUpgrade PropertyOverrideRename(string declaringType, string propertyName, string newPropertyName, SyntaxKind newAccessibility)
+        => OverrideRename<PropertyDeclarationSyntax>(declaringType, propertyName, newPropertyName, newAccessibility,
+            symbol => (symbol as IPropertySymbol)?.OverriddenProperty,
+            (declaration, name) => declaration.WithIdentifier(SyntaxFactory.Identifier(name).WithTriviaFrom(declaration.Identifier)));
+
+    /// <summary>
+    /// Migrates overrides of a method whose overridable part moved to another method:
+    /// <c>public override bool IsPressed(Button b) => …;</c> → <c>protected override bool IsRawPressed(Button b) => …;</c>.
+    /// Each override of <paramref name="methodName"/> on <paramref name="declaringType"/> (its full metadata name) is renamed
+    /// <paramref name="newMethodName"/> with the accessibility <paramref name="newAccessibility"/>, and <c>base.</c> calls of the
+    /// method inside it go to the new method too, since the old one now calls the new one.
+    /// </summary>
+    public static CodeUpgrade MethodOverrideRename(string declaringType, string methodName, string newMethodName, SyntaxKind newAccessibility)
+        => OverrideRename<MethodDeclarationSyntax>(declaringType, methodName, newMethodName, newAccessibility,
+            symbol => (symbol as IMethodSymbol)?.OverriddenMethod,
+            (declaration, name) => declaration.WithIdentifier(SyntaxFactory.Identifier(name).WithTriviaFrom(declaration.Identifier)));
+
+    private static CodeUpgrade OverrideRename<TDeclaration>(string declaringType, string memberName, string newMemberName, SyntaxKind newAccessibility,
+        Func<ISymbol, ISymbol> overriddenMember, Func<TDeclaration, string, TDeclaration> rename)
+        where TDeclaration : MemberDeclarationSyntax
     {
         ArgumentNullException.ThrowIfNull(declaringType);
-        ArgumentNullException.ThrowIfNull(propertyName);
-        ArgumentNullException.ThrowIfNull(newPropertyName);
+        ArgumentNullException.ThrowIfNull(memberName);
+        ArgumentNullException.ThrowIfNull(newMemberName);
         if (!SyntaxFacts.IsAccessibilityModifier(newAccessibility))
             throw new ArgumentException("The accessibility must be an accessibility keyword.", nameof(newAccessibility));
 
@@ -592,11 +612,11 @@ public static partial class CodeUpgrades
 
                     var root = await document.GetSyntaxRootAsync(cancellationToken);
                     var semanticModel = await document.GetSemanticModelAsync(cancellationToken);
-                    var overridden = semanticModel?.Compilation.GetTypeByMetadataName(declaringType)?.GetMembers(propertyName).OfType<IPropertySymbol>().FirstOrDefault();
-                    if (root is null || overridden is null)
+                    var overridden = semanticModel?.Compilation.GetTypeByMetadataName(declaringType)?.GetMembers(memberName) ?? ImmutableArray<ISymbol>.Empty;
+                    if (root is null || overridden.IsEmpty)
                         continue;
 
-                    var overrides = root.DescendantNodes().OfType<PropertyDeclarationSyntax>()
+                    var overrides = root.DescendantNodes().OfType<TDeclaration>()
                         .Where(declaration => Overrides(semanticModel.GetDeclaredSymbol(declaration, cancellationToken), overridden))
                         .ToList();
                     if (overrides.Count == 0)
@@ -605,8 +625,8 @@ public static partial class CodeUpgrades
                     var newRoot = root.ReplaceNodes(overrides, (_, declaration) =>
                     {
                         var baseUses = declaration.DescendantNodes().OfType<MemberAccessExpressionSyntax>()
-                            .Where(x => x.Expression is BaseExpressionSyntax && x.Name.Identifier.ValueText == propertyName);
-                        declaration = declaration.ReplaceNodes(baseUses, (_, access) => access.WithName(SyntaxFactory.IdentifierName(newPropertyName).WithTriviaFrom(access.Name)));
+                            .Where(x => x.Expression is BaseExpressionSyntax && x.Name.Identifier.ValueText == memberName);
+                        declaration = declaration.ReplaceNodes(baseUses, (_, access) => access.WithName(SyntaxFactory.IdentifierName(newMemberName).WithTriviaFrom(access.Name)));
 
                         // The first accessibility keyword becomes the new one and the others go (public → protected, protected internal → protected)
                         var modifiers = new SyntaxTokenList();
@@ -622,9 +642,7 @@ public static partial class CodeUpgrades
                             }
                         }
 
-                        return declaration
-                            .WithModifiers(modifiers)
-                            .WithIdentifier(SyntaxFactory.Identifier(newPropertyName).WithTriviaFrom(declaration.Identifier));
+                        return rename((TDeclaration)declaration.WithModifiers(modifiers), newMemberName);
                     });
                     solution = solution.WithDocumentSyntaxRoot(documentId, newRoot);
                 }
@@ -632,12 +650,15 @@ public static partial class CodeUpgrades
             return solution;
         };
 
-        static bool Overrides(IPropertySymbol property, IPropertySymbol overridden)
+        bool Overrides(ISymbol member, ImmutableArray<ISymbol> overridden)
         {
-            for (var current = property?.OverriddenProperty; current is not null; current = current.OverriddenProperty)
+            for (var current = overriddenMember(member); current is not null; current = overriddenMember(current))
             {
-                if (SymbolEqualityComparer.Default.Equals(current.OriginalDefinition, overridden))
-                    return true;
+                foreach (var candidate in overridden)
+                {
+                    if (SymbolEqualityComparer.Default.Equals(current.OriginalDefinition, candidate))
+                        return true;
+                }
             }
             return false;
         }

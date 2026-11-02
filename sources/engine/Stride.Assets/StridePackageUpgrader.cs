@@ -163,6 +163,23 @@ namespace Stride.Assets
                 // 4.5: GamePadDeviceBase.State is no longer virtual, so that it can hide a captured gamepad;
                 // custom gamepads provide their state through RawState instead.
                 PropertyOverrideRename("Stride.Input.GamePadDeviceBase", "State", "RawState", SyntaxKind.ProtectedKeyword),
+
+                // 4.5: the TouchController queries are no longer virtual, so that they can hide a captured controller;
+                // custom backends provide their input through the raw members instead.
+                PropertyOverrideRename("Stride.VirtualReality.TouchController", "Trigger", "RawTrigger", SyntaxKind.ProtectedKeyword),
+                PropertyOverrideRename("Stride.VirtualReality.TouchController", "Grip", "RawGrip", SyntaxKind.ProtectedKeyword),
+                PropertyOverrideRename("Stride.VirtualReality.TouchController", "IndexPointing", "RawIndexPointing", SyntaxKind.ProtectedKeyword),
+                PropertyOverrideRename("Stride.VirtualReality.TouchController", "IndexResting", "RawIndexResting", SyntaxKind.ProtectedKeyword),
+                PropertyOverrideRename("Stride.VirtualReality.TouchController", "ThumbUp", "RawThumbUp", SyntaxKind.ProtectedKeyword),
+                PropertyOverrideRename("Stride.VirtualReality.TouchController", "ThumbResting", "RawThumbResting", SyntaxKind.ProtectedKeyword),
+                PropertyOverrideRename("Stride.VirtualReality.TouchController", "ThumbAxis", "RawThumbAxis", SyntaxKind.ProtectedKeyword),
+                PropertyOverrideRename("Stride.VirtualReality.TouchController", "ThumbstickAxis", "RawThumbstickAxis", SyntaxKind.ProtectedKeyword),
+                MethodOverrideRename("Stride.VirtualReality.TouchController", "IsPressedDown", "IsRawPressedDown", SyntaxKind.ProtectedKeyword),
+                MethodOverrideRename("Stride.VirtualReality.TouchController", "IsPressed", "IsRawPressed", SyntaxKind.ProtectedKeyword),
+                MethodOverrideRename("Stride.VirtualReality.TouchController", "IsPressReleased", "IsRawPressReleased", SyntaxKind.ProtectedKeyword),
+                MethodOverrideRename("Stride.VirtualReality.TouchController", "IsTouchedDown", "IsRawTouchedDown", SyntaxKind.ProtectedKeyword),
+                MethodOverrideRename("Stride.VirtualReality.TouchController", "IsTouched", "IsRawTouched", SyntaxKind.ProtectedKeyword),
+                MethodOverrideRename("Stride.VirtualReality.TouchController", "IsTouchReleased", "IsRawTouchReleased", SyntaxKind.ProtectedKeyword),
             ]);
 
             // Structural csproj migrations, gated by the version each change landed at. Run against the
