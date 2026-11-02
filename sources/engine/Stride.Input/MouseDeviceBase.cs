@@ -20,9 +20,7 @@ namespace Stride.Input
         {
             MouseState = new MouseDeviceState(PointerState, this);
 
-            buttonTracker = new ButtonCaptureTracker<MouseButton>(CaptureState, MouseState.DownButtons, MouseState.PressedButtons, MouseState.ReleasedButtons);
-            CaptureState.MaskChanged += buttonTracker.OnMaskChanged;
-            CaptureState.DeviceUpdated += buttonTracker.AfterDeviceUpdate;
+            buttonTracker = CaptureState.TrackButtons(MouseState.DownButtons, MouseState.PressedButtons, MouseState.ReleasedButtons);
             CaptureState.DeviceMasksOwnState = true;
         }
 

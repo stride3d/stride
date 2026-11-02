@@ -25,9 +25,7 @@ namespace Stride.Input
 
         protected GameControllerDeviceBase()
         {
-            buttonTracker = new ButtonCaptureTracker<int>(CaptureState, new ReadOnlySet<int>(downButtons), new ReadOnlySet<int>(pressedButtons), new ReadOnlySet<int>(releasedButtons));
-            CaptureState.MaskChanged += buttonTracker.OnMaskChanged;
-            CaptureState.DeviceUpdated += buttonTracker.AfterDeviceUpdate;
+            buttonTracker = CaptureState.TrackButtons(new ReadOnlySet<int>(downButtons), new ReadOnlySet<int>(pressedButtons), new ReadOnlySet<int>(releasedButtons));
             CaptureState.DeviceMasksOwnState = true;
 
             PressedButtons = buttonTracker.Pressed;

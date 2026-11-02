@@ -7,7 +7,7 @@ namespace Stride.Input;
 
 /// <summary>
 /// The capture state of one input device: which owner holds the device or its pointers, and whether
-/// game-facing reads of the device are masked.
+/// reads of the device by scripts and systems are masked.
 /// </summary>
 /// <remarks>
 /// Only <see cref="InputManager"/> changes this state, through its capture methods.
@@ -36,7 +36,7 @@ public sealed class DeviceCaptureState
     public bool IsCaptured => Owner != null;
 
     /// <summary>
-    /// Gets a value indicating whether game-facing reads of the device report no input.
+    /// Gets a value indicating whether reads of the device by scripts and systems report no input.
     /// </summary>
     public bool IsMasked => maskingEnabled && Owner != null;
 
@@ -54,7 +54,7 @@ public sealed class DeviceCaptureState
     internal bool QueriesMustMask => IsMasked && !DeviceMasksOwnState;
 
     /// <summary>
-    /// Set by <see cref="InputManager"/> while capture changes happen before game code has read the current frame,
+    /// Set by <see cref="InputManager"/> while capture changes happen before scripts and systems have read the current frame,
     /// during its capture phase. Input pressed in that frame was never seen, so it gets no release edge.
     /// </summary>
     internal bool ChangingBeforeGameReads { get; set; }
@@ -75,11 +75,26 @@ public sealed class DeviceCaptureState
     public object GetPointerOwner(int pointerId) => (uint)pointerId < (uint)pointerOwners.Length ? pointerOwners[pointerId] : null;
 
     /// <summary>
-    /// Gets a value indicating whether game-facing reads of a pointer report no input, because the pointer
+    /// Gets a value indicating whether reads of a pointer by scripts and systems report no input, because the pointer
     /// or the whole device is captured.
     /// </summary>
     /// <param name="pointerId">The pointer identifier.</param>
     public bool IsPointerMasked(int pointerId) => IsMasked || (maskingEnabled && GetPointerOwner(pointerId) != null);
+
+    /// <summary>
+    /// Creates a tracker that presents a device's down, pressed and released sets with this capture state applied.
+    /// </summary>
+    /// <typeparam name="T">The key or button type.</typeparam>
+    /// <param name="down">The input that is down.</param>
+    /// <param name="pressed">The input pressed this frame.</param>
+    /// <param name="released">The input released this frame.</param>
+    /// <param name="newPresses">
+    /// The input newly pressed this frame, excluding repeats. Defaults to <paramref name="pressed"/> for devices
+    /// that do not repeat.
+    /// </param>
+    /// <returns>The tracker, which follows this capture state for the lifetime of the device.</returns>
+    public ButtonCaptureTracker<T> TrackButtons<T>(Core.Collections.IReadOnlySet<T> down, Core.Collections.IReadOnlySet<T> pressed, Core.Collections.IReadOnlySet<T> released, Core.Collections.IReadOnlySet<T> newPresses = null)
+        => new(this, down, pressed, released, newPresses);
 
     internal int GetPointerPriority(int pointerId) => (uint)pointerId < (uint)pointerPriorities.Length ? pointerPriorities[pointerId] : 0;
 

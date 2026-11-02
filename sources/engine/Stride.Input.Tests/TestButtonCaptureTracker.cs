@@ -35,7 +35,7 @@ public class TestButtonCaptureTracker
         Assert.Contains(Keys.W, tracker.Released);
         Assert.DoesNotContain(Keys.W, tracker.Down);
 
-        tracker.AfterDeviceUpdate();
+        capture.RaiseDeviceUpdated();
 
         Assert.Empty(tracker.Released);
         Assert.Empty(tracker.Down);
@@ -72,14 +72,13 @@ public class TestButtonCaptureTracker
         var pressed = new HashSet<Keys>();
         var newPresses = new HashSet<Keys>();
         var capture = new DeviceCaptureState();
-        var tracker = new ButtonCaptureTracker<Keys>(capture, new ReadOnlySet<Keys>(down), new ReadOnlySet<Keys>(pressed), new ReadOnlySet<Keys>(new HashSet<Keys>()), new ReadOnlySet<Keys>(newPresses));
-        capture.MaskChanged += tracker.OnMaskChanged;
+        var tracker = capture.TrackButtons(new ReadOnlySet<Keys>(down), new ReadOnlySet<Keys>(pressed), new ReadOnlySet<Keys>(new HashSet<Keys>()), new ReadOnlySet<Keys>(newPresses));
         capture.SetOwner(new object(), 0);
         down.Add(Keys.W);
         capture.SetOwner(null, 0);
 
         pressed.Add(Keys.W); // a repeat: pressed, but not a new press
-        tracker.AfterDeviceUpdate();
+        capture.RaiseDeviceUpdated();
 
         Assert.DoesNotContain(Keys.W, tracker.Pressed);
         Assert.Empty(tracker.Pressed);
@@ -112,13 +111,13 @@ public class TestButtonCaptureTracker
 
         down.Remove(Keys.W);
         released.Add(Keys.W);
-        tracker.AfterDeviceUpdate();
+        capture.RaiseDeviceUpdated();
         Assert.DoesNotContain(Keys.W, tracker.Released);
 
         released.Clear();
         down.Add(Keys.W);
         pressed.Add(Keys.W);
-        tracker.AfterDeviceUpdate();
+        capture.RaiseDeviceUpdated();
         Assert.Contains(Keys.W, tracker.Pressed);
         Assert.Contains(Keys.W, tracker.Down);
     }
@@ -129,8 +128,7 @@ public class TestButtonCaptureTracker
         var pressed = new HashSet<Keys>();
         var released = new HashSet<Keys>();
         var capture = new DeviceCaptureState();
-        var tracker = new ButtonCaptureTracker<Keys>(capture, new ReadOnlySet<Keys>(down), new ReadOnlySet<Keys>(pressed), new ReadOnlySet<Keys>(released));
-        capture.MaskChanged += tracker.OnMaskChanged;
+        var tracker = capture.TrackButtons(new ReadOnlySet<Keys>(down), new ReadOnlySet<Keys>(pressed), new ReadOnlySet<Keys>(released));
         return (tracker, down, pressed, released, capture);
     }
 }

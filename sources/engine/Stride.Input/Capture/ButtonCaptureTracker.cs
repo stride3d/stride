@@ -7,21 +7,21 @@ using System.Collections.Generic;
 namespace Stride.Input;
 
 /// <summary>
-/// Presents the down, pressed and released sets of a device as the game sees them while the device's
+/// Presents the down, pressed and released sets of a device as scripts and systems see them while the device's
 /// capture state changes.
 /// </summary>
 /// <remarks>
 /// <para>
 /// While the device is masked, nothing is down or pressed. When masking begins, everything that was already down
-/// is reported as released until the next device update, so the game never sees input stuck down.
+/// is reported as released until the next device update, so scripts and systems never see input stuck down.
 /// </para>
 /// <para>
 /// When masking ends, input that is still held stays hidden, and its eventual release is hidden too, until
-/// it is pressed again. The game never sees input it did not see pressed.
+/// it is pressed again. Scripts and systems never see input they did not see pressed.
 /// </para>
 /// </remarks>
 /// <typeparam name="T">The key or button type.</typeparam>
-internal sealed class ButtonCaptureTracker<T>
+public sealed class ButtonCaptureTracker<T>
 {
     private readonly DeviceCaptureState capture;
     private readonly Core.Collections.IReadOnlySet<T> rawDown;
@@ -41,7 +41,7 @@ internal sealed class ButtonCaptureTracker<T>
     /// The input newly pressed this frame, excluding repeats. Defaults to <paramref name="rawPressed"/> for devices
     /// that do not repeat.
     /// </param>
-    public ButtonCaptureTracker(DeviceCaptureState capture, Core.Collections.IReadOnlySet<T> rawDown, Core.Collections.IReadOnlySet<T> rawPressed, Core.Collections.IReadOnlySet<T> rawReleased, Core.Collections.IReadOnlySet<T> rawNewPresses = null)
+    internal ButtonCaptureTracker(DeviceCaptureState capture, Core.Collections.IReadOnlySet<T> rawDown, Core.Collections.IReadOnlySet<T> rawPressed, Core.Collections.IReadOnlySet<T> rawReleased, Core.Collections.IReadOnlySet<T> rawNewPresses = null)
     {
         this.capture = capture;
         this.rawDown = rawDown;
@@ -51,22 +51,36 @@ internal sealed class ButtonCaptureTracker<T>
         Down = new View(this, ViewKind.Down);
         Pressed = new View(this, ViewKind.Pressed);
         Released = new View(this, ViewKind.Released);
+        capture.MaskChanged += OnMaskChanged;
+        capture.DeviceUpdated += AfterDeviceUpdate;
     }
 
+    /// <summary>
+    /// Gets the input that is down, as scripts and systems see it.
+    /// </summary>
     public Core.Collections.IReadOnlySet<T> Down { get; }
 
+    /// <summary>
+    /// Gets the input pressed this frame, as scripts and systems see it.
+    /// </summary>
     public Core.Collections.IReadOnlySet<T> Pressed { get; }
 
+    /// <summary>
+    /// Gets the input released this frame, as scripts and systems see it.
+    /// </summary>
     public Core.Collections.IReadOnlySet<T> Released { get; }
 
     /// <summary>
     /// Gets the input that was held when masking ended and has not been pressed again since.
     /// </summary>
-    public HashSet<T> Suppressed => suppressed;
+    internal HashSet<T> Suppressed => suppressed;
 
-    public void OnMaskChanged(bool masked)
+    /// <summary>
+    /// Records which input gets a release edge when masking begins, and which held input stays hidden when it ends.
+    /// </summary>
+    private void OnMaskChanged(bool masked)
     {
-        // During the capture phase, game code has not read the frame yet, so input newly pressed in it was never seen
+        // During the capture phase, scripts and systems have not read the frame yet, so input newly pressed in it was never seen
         var unseenNewPresses = capture.ChangingBeforeGameReads;
 
         releasedOnCapture.Clear();
@@ -78,7 +92,7 @@ internal sealed class ButtonCaptureTracker<T>
                     releasedOnCapture.Add(item);
             }
 
-            // Input released this frame keeps its release, unless the game never saw it down
+            // Input released this frame keeps its release, unless scripts and systems never saw it down
             foreach (var item in rawReleased)
             {
                 if (!releasedWhileSuppressed.Contains(item) && !(unseenNewPresses && rawNewPresses.Contains(item)))
@@ -99,9 +113,10 @@ internal sealed class ButtonCaptureTracker<T>
     }
 
     /// <summary>
-    /// Advances the tracked edges after the device has updated its raw sets for a new frame.
+    /// Drops the edges of the previous frame and stops hiding input that was released or pressed again, once the
+    /// device has updated its raw sets for a new frame.
     /// </summary>
-    public void AfterDeviceUpdate()
+    private void AfterDeviceUpdate()
     {
         releasedOnCapture.Clear();
         releasedWhileSuppressed.Clear();

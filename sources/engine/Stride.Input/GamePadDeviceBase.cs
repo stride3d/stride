@@ -19,7 +19,7 @@ namespace Stride.Input
         public abstract Guid Id { get; }
         public abstract Guid ProductId { get; }
         /// <summary>
-        /// The state of the gamepad as the game sees it: neutral while the gamepad is captured, and without buttons
+        /// The state of the gamepad as scripts and systems see it: neutral while the gamepad is captured, and without buttons
         /// that were held when a capture ended until they are pressed again.
         /// </summary>
         public GamePadState State
@@ -70,9 +70,7 @@ namespace Stride.Input
 
         protected GamePadDeviceBase()
         {
-            buttonTracker = new ButtonCaptureTracker<GamePadButton>(CaptureState, new ReadOnlySet<GamePadButton>(downButtons), new ReadOnlySet<GamePadButton>(pressedButtons), new ReadOnlySet<GamePadButton>(releasedButtons));
-            CaptureState.MaskChanged += buttonTracker.OnMaskChanged;
-            CaptureState.DeviceUpdated += buttonTracker.AfterDeviceUpdate;
+            buttonTracker = CaptureState.TrackButtons(new ReadOnlySet<GamePadButton>(downButtons), new ReadOnlySet<GamePadButton>(pressedButtons), new ReadOnlySet<GamePadButton>(releasedButtons));
             CaptureState.DeviceMasksOwnState = true;
 
             PressedButtons = buttonTracker.Pressed;
