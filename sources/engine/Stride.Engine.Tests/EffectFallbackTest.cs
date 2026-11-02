@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -53,6 +54,9 @@ namespace Stride.Engine.Tests
 
             gate = new GatedEffectCompiler((EffectCompilerBase)EffectSystem.Compiler);
             EffectSystem.Compiler = gate;
+
+            // Instancing, last as in the default compositor: the compositor of these tests has none
+            SceneSystem.GraphicsCompositor.RenderFeatures.OfType<MeshRenderFeature>().First().RenderFeatures.Add(new InstancingRenderFeature());
 
             fallbackEffects = new MeshFallbackEffects(GraphicsDevice, EffectSystem);
             RenderContext.GetShared(Services).RendererInitialized += renderer =>
