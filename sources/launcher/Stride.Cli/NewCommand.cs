@@ -21,14 +21,14 @@ internal static class NewCommand
             Description = "Template short name (e.g. stride-game). Run 'stride new list' to see them.",
         };
         var nameOption = new Option<string?>("--name", "-n") { Description = "Name of the generated project." };
-        var outputOption = new Option<string?>("--output", "-o") { Description = "Output directory (defaults to ./<name>)." };
+        var outputOption = new Option<string?>("--output", "-o") { Description = "Output directory (defaults to ./<name>, or to the current directory for an asset pack)." };
         var packageOption = new Option<string[]>("--package", "-p")
         {
             Description = "Additional template package to include (a package id, or a path to a local .nupkg). Repeatable.",
             Arity = ArgumentArity.ZeroOrMore,
             AllowMultipleArgumentsPerToken = true,
         };
-        var versionOption = new Option<string?>("--version") { Description = "Use a specific Stride version instead of the newest installed one." };
+        var versionOption = new Option<string?>("--version") { Description = "Use a specific Stride version instead of the newest installed one (for an asset pack, instead of the version of the project in the output directory)." };
         var forceOption = new Option<bool>("--force") { Description = "Create the project even if the output directory already exists and is not empty (overwrites)." };
 
         var command = new Command("new", "Create a project from an installed Stride version's templates.");
@@ -75,7 +75,12 @@ internal static class NewCommand
                 return 0;
             }
 
-            var context = await LoadTemplates(manager, parseResult.GetValue(versionOption), parseResult.GetValue(packageOption), cancellationToken);
+            var versionSpec = parseResult.GetValue(versionOption);
+            var packages = parseResult.GetValue(packageOption);
+            var itemOutput = parseResult.GetValue(outputOption) ?? Environment.CurrentDirectory;
+            var context = await LoadTemplates(manager, versionSpec, packages, cancellationToken);
+            if (context is not null)
+                context = await MoveToChosenVersion(manager, context, ResolveTemplate(context.Templates, templateName), versionSpec, packages, itemOutput, cancellationToken);
             if (context is null)
                 return 1;
 
@@ -85,15 +90,15 @@ internal static class NewCommand
                 var template = ResolveTemplate(context.Templates, templateName);
                 if (template is null)
                 {
-                    Console.Error.WriteLine($"No template '{templateName}' in Stride {version}. Run 'stride new list' to see them.");
+                    Console.Error.WriteLine(context.FromProject
+                        ? $"No template '{templateName}' in Stride {version}, the version of the project in '{itemOutput}'. {ProjectVersionHint(version)}"
+                        : $"No template '{templateName}' in Stride {version}. Run 'stride new list' to see them.");
                     return 1;
                 }
 
                 var name = parseResult.GetValue(nameOption) ?? template.DefaultName ?? templateName;
-                // Item templates (e.g. the stride-pack-* asset packs) drop content into an existing
-                // project, so they default to the current directory and skip the non-empty check.
-                var isItemTemplate = template.TagsCollection.TryGetValue("type", out var templateType)
-                    && string.Equals(templateType, "item", StringComparison.OrdinalIgnoreCase);
+                // An item template defaults to the current directory and skips the non-empty check.
+                var isItemTemplate = NewTemplateRules.IsItemTemplate(template.TagsCollection);
                 var output = parseResult.GetValue(outputOption)
                     ?? (isItemTemplate ? Environment.CurrentDirectory : Path.Combine(Environment.CurrentDirectory, name));
 
@@ -129,8 +134,8 @@ internal static class NewCommand
                 var solutionFile = Directory.EnumerateFiles(output, "*.slnx", SearchOption.TopDirectoryOnly)
                     .Concat(Directory.EnumerateFiles(output, "*.sln", SearchOption.TopDirectoryOnly))
                     .FirstOrDefault();
-                var templateVersion = ReadGeneratedEngineVersion(output);
-                if (solutionFile is not null && templateVersion is not null && IsOlderThan(templateVersion, version))
+                var templateVersion = NewTemplateRules.VersionToUpgradeFrom(isItemTemplate, version, () => ReadGeneratedEngineVersion(output));
+                if (solutionFile is not null && templateVersion is not null)
                 {
                     var compiler = manager.LocateAssetCompiler(version);
                     if (compiler is null)
@@ -160,7 +165,6 @@ internal static class NewCommand
     private static async Task<TemplateContext?> LoadTemplates(
         StrideVersionManager manager, string? versionSpec, string[]? packages, CancellationToken cancellationToken)
     {
-        // `new` starts from no project, so use --version or the newest installed version (not the directory).
         var version = versionSpec is not null ? new PackageVersion(versionSpec) : manager.GetDefault()?.Version;
         if (version is null)
         {
@@ -203,7 +207,38 @@ internal static class NewCommand
         return new TemplateContext(version, registry, templates);
     }
 
-    private sealed record TemplateContext(PackageVersion Version, DotNetNewTemplateRegistry Registry, IReadOnlyList<ITemplateInfo> Templates);
+    private sealed record TemplateContext(PackageVersion Version, DotNetNewTemplateRegistry Registry, IReadOnlyList<ITemplateInfo> Templates, bool FromProject = false);
+
+    // Reopens the templates on the version the template must come from, when it isn't the one already open: the kind
+    // of a template is only known from a registry. Prints the reason and returns null on failure.
+    private static async Task<TemplateContext?> MoveToChosenVersion(
+        StrideVersionManager manager, TemplateContext context, ITemplateInfo? template, string? versionSpec, string[]? packages, string itemOutput, CancellationToken cancellationToken)
+    {
+        var isItemTemplate = template is not null && NewTemplateRules.IsItemTemplate(template.TagsCollection);
+        PackageVersion chosen;
+        try
+        {
+            chosen = NewTemplateRules.ChooseVersion(versionSpec, isItemTemplate, context.Version, () => manager.ResolveVersion(null, itemOutput));
+        }
+        catch (InvalidOperationException exception)
+        {
+            context.Registry.Dispose();
+            Console.Error.WriteLine($"{exception.Message} Or pass --version to take the template from a specific version.");
+            return null;
+        }
+
+        if (chosen.Equals(context.Version))
+            return context;
+
+        context.Registry.Dispose();
+        var projectContext = await LoadTemplates(manager, chosen.ToString(), packages, cancellationToken);
+        if (projectContext is null)
+            Console.Error.WriteLine(ProjectVersionHint(chosen));
+        return projectContext is null ? null : projectContext with { FromProject = true };
+    }
+
+    private static string ProjectVersionHint(PackageVersion projectVersion)
+        => $"Pass --version to take the template from another version; the project stays on Stride {projectVersion}.";
 
     // Prints the templates grouped by their source package.
     private static void PrintTemplates(PackageVersion version, IReadOnlyList<ITemplateInfo> templates)
@@ -327,20 +362,6 @@ internal static class NewCommand
             var fallback = string.IsNullOrEmpty(parameter.DefaultValue) ? "" : $" (default: {parameter.DefaultValue})";
             return $"  --{parameter.Name} <{parameter.DataType}>{choices}{fallback}";
         }).ToList();
-
-    // True if the template's engine version is semantically older than requested (so an upgrade is warranted);
-    // equal or newer is left alone.
-    private static bool IsOlderThan(string templateVersion, PackageVersion requested)
-    {
-        try
-        {
-            return new PackageVersion(templateVersion).CompareTo(requested) < 0;
-        }
-        catch
-        {
-            return !string.Equals(templateVersion, requested.ToString(), StringComparison.OrdinalIgnoreCase);
-        }
-    }
 
     // The Stride engine version a freshly generated project references (the template's build-time engine),
     // read from the first project that pins Stride.Engine. Null if none is found, with a warning when a project

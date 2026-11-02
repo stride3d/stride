@@ -45,9 +45,10 @@ cd MyGame/MyGame.Game
 dotnet new stride-pack-buildingblocks   # merges the pack's Assets/ + Resources/ into the project
 ```
 
-The `stride` CLI needs neither install: it resolves the template packages of the requested Stride
-version and downloads the asset packs the first time they are needed, so `stride new
-stride-pack-buildingblocks` run inside the game library does the same.
+The `stride` CLI needs neither install: it resolves the template packages and downloads the asset
+packs the first time they are needed, so `stride new stride-pack-buildingblocks` run inside the game
+library does the same. The pack comes from the version of that project (or from `--version`), and the
+project stays on its version.
 
 `dotnet new -l` after the installs lists every available stride-* short name.
 
