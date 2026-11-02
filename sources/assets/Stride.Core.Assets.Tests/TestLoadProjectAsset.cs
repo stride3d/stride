@@ -58,6 +58,7 @@ public class TestLoadProjectAsset : TestBase
         Assert.Equal(atOpen.SourceFolder, loaded.SourceFolder);
         Assert.Equal(atOpen.AlternativePath, loaded.AlternativePath);
         Assert.Equal(file, loaded.FullPath);
+        Assert.Equal(loaded.Location, package.GetProjectAssetLocation(file, null, new UDirectory(directory)));
     }
 
     [Fact]

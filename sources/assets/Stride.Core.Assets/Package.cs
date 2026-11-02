@@ -1124,6 +1124,14 @@ public sealed partial class Package : IFileSynchronizable, IAssetFinder
         return LoadAssetItem(new AssetMigrationContext(this, assetFile.ToReference(), filePath.ToOSPath(), log), assetFile);
     }
 
+    /// <summary>
+    /// Gets the location that <see cref="LoadProjectAsset"/> gives to a file.
+    /// </summary>
+    public UFile GetProjectAssetLocation(UFile filePath, UFile? link, UDirectory projectDirectory)
+    {
+        return GetLoadedLocation(new PackageLoadingAssetFile(filePath, projectDirectory) { Link = link });
+    }
+
     private UFile GetLoadedLocation(PackageLoadingAssetFile assetFile)
     {
         var assetPath = assetFile.AssetLocation;

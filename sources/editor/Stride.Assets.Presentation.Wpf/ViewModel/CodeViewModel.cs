@@ -7,11 +7,13 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Documents;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis;
 using Stride.Assets.Presentation.AssetEditors;
+using Stride.Assets.Effect;
 using Stride.Assets.Presentation.AssetEditors.ScriptEditor;
 using Stride.Assets.Scripts;
 using Stride.Core.Assets;
@@ -23,6 +25,7 @@ using Stride.Core.IO;
 using Stride.Core.Presentation.Dirtiables;
 using Stride.Core.Presentation.Services;
 using Stride.Core.Presentation.ViewModels;
+using Stride.Core.Storage;
 using Stride.Core.Translation;
 using Stride.Editor.Build;
 using RoslynWorkspace = Stride.Assets.Presentation.AssetEditors.ScriptEditor.RoslynWorkspace;
@@ -52,6 +55,10 @@ namespace Stride.Assets.Presentation.ViewModel
         private RoslynWorkspace roslynWorkspace;
         private int editorFontSize = ScriptEditorSettings.FontSize.GetValue(); // default size
         private bool userShaderBuildRequested;
+        // The source and shader reconciles change the same assets, and each awaits in the middle
+        private readonly SemaphoreSlim reconcileLock = new(1, 1);
+        private readonly Dictionary<string, ObjectId> builtShaderHashes = new(StringComparer.OrdinalIgnoreCase);
+        private readonly HashSet<AssetViewModel> shadersDeletedOutside = [];
 
         private readonly Brush keywordBrush;
         private readonly Brush typeBrush;
@@ -91,6 +98,7 @@ namespace Stride.Assets.Presentation.ViewModel
                 watcher.TrackedAssemblies.CollectionChanged += TrackedAssembliesCollectionChanged;
 
                 _ = UpdateProjects(watcher, workspace, strideAssetsViewModel);
+                _ = UpdateShaderFiles(watcher, strideAssetsViewModel.Session);
 
                 projectWatcherCompletion.SetResult(watcher);
                 workspaceCompletion.SetResult(workspace);
@@ -131,7 +139,7 @@ namespace Stride.Assets.Presentation.ViewModel
                 await foreach (var events in projectWatcher.SourceChange)
                 {
                     // InvokeTask (not InvokeAsync) so the batch is actually awaited: no reentrancy, exceptions observed.
-                    await Dispatcher.InvokeTask(async () =>
+                    await InvokeReconcile(async () =>
                     {
                         // Structural changes first: .csproj reloads and .cs add/remove/rename asset reconciliation.
                         foreach (var e in events.Where(x => x.ChangeType is AssemblyChangeType.Project or AssemblyChangeType.ProjectAssets))
@@ -168,6 +176,235 @@ namespace Stride.Assets.Presentation.ViewModel
             catch (OperationCanceledException)
             {
                 // The project watcher was disposed; stop listening for changes.
+            }
+        }
+
+        private async Task InvokeReconcile(Func<Task> reconcile)
+        {
+            await reconcileLock.WaitAsync();
+            try
+            {
+                await Dispatcher.InvokeTask(reconcile);
+            }
+            finally
+            {
+                reconcileLock.Release();
+            }
+        }
+
+        private async Task UpdateShaderFiles(ProjectWatcher projectWatcher, SessionViewModel session)
+        {
+            try
+            {
+                await foreach (var events in projectWatcher.ShaderChange)
+                {
+                    try
+                    {
+                        var touchedPaths = events.Select(x => x.ChangedFile).ToList();
+                        await InvokeReconcile(async () =>
+                        {
+                            var undoRedoService = session.ServiceProvider.Get<IUndoRedoService>();
+                            await Task.WhenAll(undoRedoService.TransactionCompletion, undoRedoService.UndoRedoCompletion, session.SaveCompletion);
+                            await ReconcileShaderFiles(session, projectWatcher, touchedPaths);
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Error("Failed to update the shader assets", ex);
+                    }
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // The project watcher was disposed; stop listening for changes.
+            }
+        }
+
+        /// <summary>
+        /// Brings the shader assets in line with the files on the disk, after file events on the given paths.
+        /// </summary>
+        private async Task ReconcileShaderFiles(SessionViewModel session, ProjectWatcher projectWatcher, List<string> touchedPaths)
+        {
+            var needsBuild = false;
+            var trackedProjects = projectWatcher.SnapshotTrackedAssemblies()
+                .Where(x => x.Package is ProjectViewModel)
+                .DistinctBy(x => x.Project.FilePath, StringComparer.OrdinalIgnoreCase);
+            foreach (var tracked in trackedProjects)
+            {
+                var projectDirectory = new UFile(tracked.Project.FilePath).GetFullDirectory();
+                var projectPaths = touchedPaths.Where(x => ProjectShaderChanges.IsUnder(x, projectDirectory)).ToList();
+                if (projectPaths.Count > 0)
+                    needsBuild |= await ReconcileProjectShaderFiles((ProjectViewModel)tracked.Package, tracked.Project, projectDirectory, projectPaths);
+            }
+
+            if (needsBuild)
+                RequestUserShaderBuild(session);
+        }
+
+        /// <returns>True if the user shaders need a build.</returns>
+        private async Task<bool> ReconcileProjectShaderFiles(ProjectViewModel projectViewModel, Project project, UDirectory projectDirectory, List<string> touchedPaths)
+        {
+            shadersDeletedOutside.RemoveWhere(x => !x.IsDeleted);
+
+            var projectFiles = new List<(UFile FilePath, UFile Link)>();
+            if (ProjectShaderChanges.NeedsProjectItems(touchedPaths, GetShaderAssets(projectViewModel).Select(x => x.AssetItem.FullPath.FullPath), File.Exists, Directory.Exists))
+                projectFiles = await Task.Run(() => Package.FindAssetsInProject(project.FilePath, out _));
+
+            List<ProjectShaderChange> Plan()
+            {
+                var deletedInSession = projectFiles
+                    .Where(x => FindDeletedAsset(projectViewModel, x, projectDirectory) is { } asset && !shadersDeletedOutside.Contains(asset))
+                    .Select(x => x.FilePath.FullPath);
+                return ProjectShaderChanges.Plan(touchedPaths, GetShaderAssets(projectViewModel).Select(x => x.AssetItem.FullPath.FullPath), projectFiles.Select(x => x.FilePath.FullPath), deletedInSession, File.Exists);
+            }
+
+            // A tool that saves through temporary files makes a file disappear for a moment
+            if (Plan().Any(x => x.Action == ProjectShaderAction.Delete))
+                await Task.Delay(TimeSpan.FromMilliseconds(500));
+
+            await WaitUntilWritten(Plan().Where(x => x.Action != ProjectShaderAction.Delete && ProjectShaderChanges.IsBuiltFile(x.FilePath)).Select(x => x.FilePath));
+
+            var changes = Plan();
+            var assets = GetShaderAssets(projectViewModel);
+            var needsBuild = false;
+
+            var filesToAdd = new List<(UFile FilePath, UFile Link)>();
+            foreach (var change in changes.Where(x => x.Action == ProjectShaderAction.Add))
+            {
+                var file = projectFiles.First(x => x.FilePath.FullPath == change.FilePath);
+                if (FindDeletedAsset(projectViewModel, file, projectDirectory) is { } deletedAsset)
+                {
+                    RestoreShaderDeletedOutside(projectViewModel, deletedAsset);
+                    shadersDeletedOutside.Remove(deletedAsset);
+                    needsBuild |= ReloadShaderText(deletedAsset, change.FilePath);
+                }
+                else
+                {
+                    filesToAdd.Add(file);
+                    needsBuild |= ProjectShaderChanges.IsBuiltFile(change.FilePath);
+                }
+            }
+            AddNewProjectAssets(projectViewModel, assets, project, filesToAdd);
+
+            foreach (var change in changes.Where(x => x.Action == ProjectShaderAction.ContentChanged))
+                needsBuild |= ReloadShaderText(assets.First(x => x.AssetItem.FullPath.FullPath == change.FilePath), change.FilePath);
+
+            var assetsToDelete = changes.Where(x => x.Action == ProjectShaderAction.Delete)
+                .Select(x => assets.First(y => y.AssetItem.FullPath.FullPath == x.FilePath))
+                .ToList();
+            if (await DeleteProjectAssets(projectViewModel, assetsToDelete, project))
+            {
+                shadersDeletedOutside.UnionWith(assetsToDelete);
+                needsBuild |= assetsToDelete.Any(x => ProjectShaderChanges.IsBuiltFile(x.AssetItem.FullPath.FullPath));
+            }
+
+            return needsBuild;
+        }
+
+        private static List<AssetViewModel> GetShaderAssets(ProjectViewModel projectViewModel)
+        {
+            var assets = new List<AssetViewModel>();
+            GetAssets(projectViewModel.Code, assets);
+            assets.RemoveAll(x => !ProjectShaderChanges.IsShaderFile(x.AssetItem.FullPath.FullPath));
+            return assets;
+        }
+
+        private static AssetViewModel FindDeletedAsset(ProjectViewModel projectViewModel, (UFile FilePath, UFile Link) file, UDirectory projectDirectory)
+        {
+            var location = projectViewModel.Package.GetProjectAssetLocation(file.FilePath, file.Link, projectDirectory);
+            return projectViewModel.DeletedAssetsSinceLastSave.FirstOrDefault(x => x.AssetItem.Location == location);
+        }
+
+        /// <summary>
+        /// Brings back the asset of a file that was deleted outside Game Studio and came back before a save, which would
+        /// otherwise delete the file. It is the same asset as the one in the undo stack, so undo and redo keep working.
+        /// </summary>
+        private static void RestoreShaderDeletedOutside(ProjectViewModel projectViewModel, AssetViewModel asset)
+        {
+            var undoRedoService = projectViewModel.ServiceProvider.Get<IUndoRedoService>();
+            using var transaction = undoRedoService.CreateTransaction();
+            var directory = projectViewModel.GetOrCreateProjectDirectory(projectViewModel.GetDisplayDirectory(asset.AssetItem.Location), true);
+            asset.Directory = directory;
+            directory.AddAsset(asset, true);
+            asset.IsDeleted = false;
+            undoRedoService.SetName(transaction, $"Restore asset '{asset.Url}'");
+        }
+
+        /// <summary>
+        /// Reads the text of a shader asset from its file again.
+        /// </summary>
+        /// <returns>True if the file is built with the user shaders and differs from what the last build took, or can't be read.</returns>
+        private bool ReloadShaderText(AssetViewModel asset, string filePath)
+        {
+            var content = TryReadFile(filePath);
+            if (content == null)
+            {
+                Logger.Warning($"Could not read the shader file '{filePath}'");
+                return ProjectShaderChanges.IsBuiltFile(filePath);
+            }
+
+            using (var reader = new StreamReader(new MemoryStream(content)))
+                ((SourceCodeAsset)asset.Asset).Text = reader.ReadToEnd();
+
+            return ProjectShaderChanges.IsBuiltFile(filePath)
+                && !(builtShaderHashes.TryGetValue(filePath, out var builtHash) && builtHash == ObjectId.FromBytes(content));
+        }
+
+        private static byte[] TryReadFile(string filePath)
+        {
+            try
+            {
+                using var stream = new FileStream(new UFile(filePath).ToOSPath(), FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+                using var content = new MemoryStream();
+                stream.CopyTo(content);
+                return content.ToArray();
+            }
+            catch (IOException)
+            {
+                return null;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Gives a tool that still writes the files a moment to end. A later write raises a later event.
+        /// </summary>
+        private static async Task WaitUntilWritten(IEnumerable<string> filePaths)
+        {
+            var remaining = filePaths.ToList();
+            for (var attempt = 0; attempt < 5 && remaining.Count > 0; ++attempt)
+            {
+                remaining.RemoveAll(x => !IsLocked(x));
+                if (remaining.Count > 0)
+                    await Task.Delay(TimeSpan.FromMilliseconds(100));
+            }
+        }
+
+        private static bool IsLocked(string filePath)
+        {
+            try
+            {
+                using var stream = new FileStream(new UFile(filePath).ToOSPath(), FileMode.Open, FileAccess.Read, FileShare.None);
+                return false;
+            }
+            catch (FileNotFoundException)
+            {
+                return false;
+            }
+            catch (DirectoryNotFoundException)
+            {
+                return false;
+            }
+            catch (IOException)
+            {
+                return true;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return false;
             }
         }
 
@@ -230,13 +467,22 @@ namespace Stride.Assets.Presentation.ViewModel
             }).Forget();
         }
 
-        private static void BuildUserShaders(SessionViewModel session)
+        private void BuildUserShaders(SessionViewModel session)
         {
             // The build service is registered during plugin initialization, so it is not available yet when a save
             // runs while opening the session (e.g. persisting an upgrade); it compiles the shaders of all packages when it starts.
             var builder = session.ServiceProvider.TryGet<AssetBuilderService>();
             if (builder == null)
                 return;
+
+            // What this build takes: a file event with the same content has nothing new to build
+            builtShaderHashes.Clear();
+            foreach (var shader in session.AllPackages.Where(x => !x.Package.IsReadOnly).SelectMany(x => x.Assets).Where(x => x.Asset is EffectShaderAsset))
+            {
+                var filePath = shader.AssetItem.FullPath.FullPath;
+                if (TryReadFile(filePath) is { } content)
+                    builtShaderHashes[filePath] = ObjectId.FromBytes(content);
+            }
 
             var shaderBuildSteps = new StrideShaderImporter().CreateUserShaderBuildSteps(session);
             if (shaderBuildSteps != null)
@@ -317,6 +563,15 @@ namespace Stride.Assets.Presentation.ViewModel
                 }
             }
 
+            return await DeleteProjectAssets(projectViewModel, assetsToDelete, project);
+        }
+
+        /// <summary>
+        /// Deletes project assets whose file is gone.
+        /// </summary>
+        /// <returns>False if user refused to continue (in case deleted assets were dirty).</returns>
+        private static async Task<bool> DeleteProjectAssets(ProjectViewModel projectViewModel, List<AssetViewModel> assetsToDelete, Project project)
+        {
             var dirtyAssetsToDelete = assetsToDelete.Where(x => x.AssetItem.IsDirty).ToList();
             if (dirtyAssetsToDelete.Count > 0)
             {
@@ -331,14 +586,8 @@ namespace Stride.Assets.Presentation.ViewModel
             }
 
             // delete this asset
-            if (assetsToDelete.Count > 0)
-            {
-                // TODO: this action (it should occur only during assembly releoad) will be undoable (undoing reload restores deleted script)
-                if (!await projectViewModel.Session.ActiveAssetView.DeleteContent(assetsToDelete, true))
-                    return false;
-            }
-
-            return true;
+            // TODO: this action (it should occur only during assembly releoad) will be undoable (undoing reload restores deleted script)
+            return assetsToDelete.Count == 0 || await projectViewModel.Session.ActiveAssetView.DeleteContent(assetsToDelete, true);
         }
 
         /// <summary>
