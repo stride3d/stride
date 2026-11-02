@@ -96,6 +96,15 @@ public class KeysGeneratorTests
         Assert.Contains("ParameterKeys.NewValue<Vector2>()", generated);
     }
 
+    [Fact]
+    public void PreprocessorErrorNamesTheFileAndLine()
+    {
+        var (generated, errors) = Build("shader KeysGeneratorCheck { };\n#error bad thing\n", "");
+
+        Assert.Equal("#error KeysGeneratorCheck.sdsl(2,2): #error bad thing", generated);
+        Assert.Contains("KeysGeneratorCheck.sdsl(2,2): #error bad thing", Assert.Single(errors));
+    }
+
     // Runs the generator on the shader and compiles its output with the C# source
     private static (string Generated, List<string> Errors) Build(string shader, string csharp)
     {
