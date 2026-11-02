@@ -66,6 +66,10 @@ public class EffectGenerator : IIncrementalGenerator
             effectCodeWriter.Run(parsed.AST);
             return (effectCodeWriter.Text, effectCodeWriter.CSharpTypeCandidates);
         }
+        catch (ShaderPreprocessorException e)
+        {
+            return ($"#error {e.Message}", []);
+        }
         catch (Exception e)
         {
             return ($"#error Exception while running {nameof(EffectGenerator)} {e}", []);

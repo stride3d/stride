@@ -184,7 +184,6 @@ public abstract class ShaderLoaderBase(IShaderCache fileCache) : IExternalShader
         for (int i = 0; i < macros.Length; ++i)
             defines[i] = (macros[i].Name, macros[i].Definition);
 
-        var text = MonoGamePreProcessor.Run(code, filename, defines);
         var sdslc = new SDSLC
         {
             ShaderLoader = this,
@@ -192,7 +191,9 @@ public abstract class ShaderLoaderBase(IShaderCache fileCache) : IExternalShader
 
         // Use provided logger, or a temporary one that throws on errors
         var log = Log ?? new LoggerResult();
-        if (!sdslc.Compile(filename, text, hash, macros, log, out buffer, new() { RegisterInCache = registerInCache, OriginalCode = code }))
+        buffer = default!;
+        var text = Preprocess(code, filename, defines, log);
+        if (text == null || !sdslc.Compile(filename, text, hash, macros, log, out buffer, new() { RegisterInCache = registerInCache, OriginalCode = code }))
         {
             if (log is LoggerResult loggerResult && loggerResult.HasErrors)
             {
@@ -202,5 +203,18 @@ public abstract class ShaderLoaderBase(IShaderCache fileCache) : IExternalShader
             return false;
         }
         return true;
+    }
+
+    private static string? Preprocess(string code, string? filename, ReadOnlySpan<(string Name, string Definition)> defines, ILogger log)
+    {
+        try
+        {
+            return MonoGamePreProcessor.Run(code, filename, warning => log.Warning(warning), defines);
+        }
+        catch (ShaderPreprocessorException e)
+        {
+            log.Error(e.Message);
+            return null;
+        }
     }
 }
