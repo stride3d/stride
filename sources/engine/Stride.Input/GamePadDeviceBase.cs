@@ -71,7 +71,6 @@ namespace Stride.Input
         protected GamePadDeviceBase()
         {
             buttonTracker = CaptureState.TrackButtons(new ReadOnlySet<GamePadButton>(downButtons), new ReadOnlySet<GamePadButton>(pressedButtons), new ReadOnlySet<GamePadButton>(releasedButtons));
-            CaptureState.DeviceMasksOwnState = true;
 
             PressedButtons = buttonTracker.Pressed;
             ReleasedButtons = buttonTracker.Released;

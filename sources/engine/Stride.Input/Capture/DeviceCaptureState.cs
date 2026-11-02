@@ -43,8 +43,8 @@ public sealed class DeviceCaptureState
     internal int PointerSlotCount => pointerOwners.Length;
 
     /// <summary>
-    /// Set by engine device bases whose own state already reflects masking, including capture edges. The shared
-    /// query methods then read that state as it is instead of hiding it.
+    /// Set by <see cref="TrackButtons{T}"/>: the device's own state already reflects masking, including capture edges.
+    /// The shared query methods then read that state as it is instead of hiding it.
     /// </summary>
     internal bool DeviceMasksOwnState { get; set; }
 
@@ -93,6 +93,12 @@ public sealed class DeviceCaptureState
     /// that do not repeat.
     /// </param>
     /// <returns>The tracker, which follows this capture state for the lifetime of the device.</returns>
+    /// <remarks>
+    /// The device must expose the tracker's <see cref="ButtonCaptureTracker{T}.Down"/>, <see cref="ButtonCaptureTracker{T}.Pressed"/>
+    /// and <see cref="ButtonCaptureTracker{T}.Released"/> sets as its own. The shared query methods, such as
+    /// <c>IsKeyDown</c>, then read the device's sets as they are, so a device that exposes its raw sets instead would
+    /// show captured input.
+    /// </remarks>
     public ButtonCaptureTracker<T> TrackButtons<T>(Core.Collections.IReadOnlySet<T> down, Core.Collections.IReadOnlySet<T> pressed, Core.Collections.IReadOnlySet<T> released, Core.Collections.IReadOnlySet<T> newPresses = null)
     {
         DeviceMasksOwnState = true;

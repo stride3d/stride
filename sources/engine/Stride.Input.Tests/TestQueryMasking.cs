@@ -40,6 +40,19 @@ public class TestQueryMasking
     }
 
     [Fact]
+    public void QueriesOnAThirdPartyKeyboardWithATrackerReportTheReleaseWhenACaptureBegins()
+    {
+        using var headless = new HeadlessInput();
+        var keyboard = new TrackedThirdPartyKeyboard();
+        keyboard.Down.Add(Keys.W);
+
+        headless.Input.TryCapture(keyboard, new object());
+
+        Assert.True(keyboard.IsKeyReleased(Keys.W));
+        Assert.False(keyboard.IsKeyDown(Keys.W));
+    }
+
+    [Fact]
     public void QueriesOnAThirdPartyGamePadAreMaskedWhileCaptured()
     {
         using var headless = new HeadlessInput();

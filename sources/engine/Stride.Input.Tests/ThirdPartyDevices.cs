@@ -46,6 +46,45 @@ internal sealed class ThirdPartyKeyboard : IKeyboardDevice
 }
 
 /// <summary>
+/// A third-party keyboard that applies its capture state through <see cref="DeviceCaptureState.TrackButtons{T}"/> and
+/// exposes the tracker's sets, like the engine's keyboards.
+/// </summary>
+internal sealed class TrackedThirdPartyKeyboard : IKeyboardDevice
+{
+    public readonly HashSet<Keys> Down = new();
+    public readonly HashSet<Keys> Pressed = new();
+    public readonly HashSet<Keys> Released = new();
+
+    public TrackedThirdPartyKeyboard()
+    {
+        var tracker = CaptureState.TrackButtons(new ReadOnlySet<Keys>(Down), new ReadOnlySet<Keys>(Pressed), new ReadOnlySet<Keys>(Released));
+        DownKeys = tracker.Down;
+        PressedKeys = tracker.Pressed;
+        ReleasedKeys = tracker.Released;
+    }
+
+    public string Name => "Tracked third-party keyboard";
+
+    public Guid Id { get; } = Guid.NewGuid();
+
+    public int Priority { get; set; }
+
+    public DeviceCaptureState CaptureState { get; } = new DeviceCaptureState();
+
+    public IInputSource Source => null;
+
+    public Core.Collections.IReadOnlySet<Keys> PressedKeys { get; }
+
+    public Core.Collections.IReadOnlySet<Keys> ReleasedKeys { get; }
+
+    public Core.Collections.IReadOnlySet<Keys> DownKeys { get; }
+
+    public void Update(List<InputEvent> inputEvents)
+    {
+    }
+}
+
+/// <summary>
 /// A gamepad that implements <see cref="IGamePadDevice"/> directly, the way a third-party device would.
 /// </summary>
 internal sealed class ThirdPartyGamePad : IGamePadDevice

@@ -26,7 +26,6 @@ namespace Stride.Input
         protected KeyboardDeviceBase()
         {
             keyTracker = CaptureState.TrackButtons(new ReadOnlySet<Keys>(downKeys), new ReadOnlySet<Keys>(pressedKeys), new ReadOnlySet<Keys>(releasedKeys), new ReadOnlySet<Keys>(newlyPressedKeys));
-            CaptureState.DeviceMasksOwnState = true;
 
             PressedKeys = keyTracker.Pressed;
             ReleasedKeys = keyTracker.Released;
