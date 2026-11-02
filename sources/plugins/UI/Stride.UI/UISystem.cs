@@ -61,6 +61,11 @@ namespace Stride.UI
 
         internal int PickingTargetCount => pickingTargets.Count;
 
+        // The frame of the last draw that rendered the scene; null where nothing draws the UI (headless)
+        private int? lastDrawnFrame;
+
+        internal void RecordDrawnFrame(int frame) => lastDrawnFrame = frame;
+
         /// <summary>
         /// Represents the UI-element currently under the mouse cursor.
         /// Only elements with CanBeHitByUser == true are taken into account.
@@ -199,8 +204,11 @@ namespace Stride.UI
 
         private void OnResolvingCapture(object sender, EventArgs e)
         {
-            // An element that was hidden or disabled while focused, such as a text box in a closed popup, loses the focus
-            if (focusedElement != null && !CanKeepFocus(focusedElement))
+            picking.DropStaleTargets(pickingTargets, lastDrawnFrame);
+
+            // An element that was hidden or disabled while focused, such as a text box in a closed popup, loses the focus.
+            // So does one whose UI was not drawn in the last draw, such as a disabled UI component or a replaced page.
+            if (focusedElement != null && (!CanKeepFocus(focusedElement) || (lastDrawnFrame.HasValue && !IsDrawn(focusedElement))))
             {
                 if (focusedElement is EditText editText)
                     editText.IsSelectionActive = false;
@@ -232,6 +240,20 @@ namespace Stride.UI
                 input.TryCapture(mouse, this, InputCapturePriority.Hover);
             else
                 input.Release(mouse, this);
+        }
+
+        private bool IsDrawn(UIElement element)
+        {
+            var root = element;
+            while (root.VisualParent != null)
+                root = root.VisualParent;
+
+            foreach (var target in pickingTargets.Values)
+            {
+                if (ReferenceEquals(target.RenderObject.Page?.RootElement, root))
+                    return true;
+            }
+            return false;
         }
 
         private static bool CanKeepFocus(UIElement element)

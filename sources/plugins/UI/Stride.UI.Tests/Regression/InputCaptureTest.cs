@@ -31,6 +31,8 @@ namespace Stride.UI.Tests.Regression
             ClickOnWorldSpacePanel,
             HitTestablePanelBackgroundCapturesClicks,
             ImageWithoutHitTestLetsClicksThrough,
+            ClickWhereAHiddenUIWas,
+            KeysReachScriptsAfterTheFocusedUIStopsDrawing,
         }
 
         private static readonly Vector2 OnButton = new Vector2(0.1f, 0.08f);
@@ -148,6 +150,14 @@ namespace Stride.UI.Tests.Regression
                     break;
                 case Scenario.ImageWithoutHitTestLetsClicksThrough:
                     FrameGameSystem.Draw(2, ClickOnImage);
+                    break;
+                case Scenario.ClickWhereAHiddenUIWas:
+                    FrameGameSystem.Draw(2, HideTheUI);
+                    FrameGameSystem.Draw(3, ClickWhereTheHiddenButtonWas);
+                    break;
+                case Scenario.KeysReachScriptsAfterTheFocusedUIStopsDrawing:
+                    FrameGameSystem.Draw(2, FocusTheButtonAndHideTheUI);
+                    FrameGameSystem.Draw(3, PressAKey);
                     break;
             }
         }
@@ -287,6 +297,37 @@ namespace Stride.UI.Tests.Regression
             Assert.True(Input.IsMouseButtonPressed(MouseButton.Left));
         }
 
+        private void HideTheUI()
+        {
+            UIComponent.Enabled = false;
+        }
+
+        private void ClickWhereTheHiddenButtonWas()
+        {
+            MouseSimulated.SetPosition(OnButton);
+            MouseSimulated.SimulateMouseDown(MouseButton.Left);
+            Input.Update(new GameTime());
+
+            Assert.False(button.IsPressed);
+            Assert.False(Input.Mouse.CaptureState.IsCaptured);
+            Assert.True(Input.IsMouseButtonPressed(MouseButton.Left));
+        }
+
+        private void FocusTheButtonAndHideTheUI()
+        {
+            UI.FocusedElement = button;
+            UIComponent.Enabled = false;
+        }
+
+        private void PressAKey()
+        {
+            KeyboardSimulated.SimulateDown(Keys.A);
+            Input.Update(new GameTime());
+
+            Assert.Null(UI.FocusedElement);
+            Assert.True(Input.IsKeyPressed(Keys.A));
+        }
+
         [Theory]
         [InlineData(Scenario.ClickOnButton)]
         [InlineData(Scenario.ClickOutsideUI)]
@@ -299,6 +340,8 @@ namespace Stride.UI.Tests.Regression
         [InlineData(Scenario.ClickOnWorldSpacePanel)]
         [InlineData(Scenario.HitTestablePanelBackgroundCapturesClicks)]
         [InlineData(Scenario.ImageWithoutHitTestLetsClicksThrough)]
+        [InlineData(Scenario.ClickWhereAHiddenUIWas)]
+        [InlineData(Scenario.KeysReachScriptsAfterTheFocusedUIStopsDrawing)]
         public void RunInputCaptureTest(Scenario testScenario)
         {
             RunGameTest(new InputCaptureTest(testScenario));
