@@ -94,7 +94,10 @@ public sealed class DeviceCaptureState
     /// </param>
     /// <returns>The tracker, which follows this capture state for the lifetime of the device.</returns>
     public ButtonCaptureTracker<T> TrackButtons<T>(Core.Collections.IReadOnlySet<T> down, Core.Collections.IReadOnlySet<T> pressed, Core.Collections.IReadOnlySet<T> released, Core.Collections.IReadOnlySet<T> newPresses = null)
-        => new(this, down, pressed, released, newPresses);
+    {
+        DeviceMasksOwnState = true;
+        return new(this, down, pressed, released, newPresses);
+    }
 
     internal int GetPointerPriority(int pointerId) => (uint)pointerId < (uint)pointerPriorities.Length ? pointerPriorities[pointerId] : 0;
 
