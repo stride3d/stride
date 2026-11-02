@@ -64,7 +64,7 @@ public abstract class ShaderLoaderBase(IShaderCache fileCache) : IExternalShader
         isFromCache = Cache.TryLoadFromCache(name, null, defines, out buffer, out hash);
         if (isFromCache)
         {
-            if (ValidateCachedHashes(buffer))
+            if (IsCachedClassCurrent(name, buffer))
                 return true;
             // A dependency changed — invalidate and recompile
             isFromCache = false;
@@ -78,7 +78,7 @@ public abstract class ShaderLoaderBase(IShaderCache fileCache) : IExternalShader
         var lazy = compilingShaders.GetOrAdd(key, _ => new Lazy<(ShaderBuffers, ObjectId)>(() =>
         {
             // Double-check cache (another thread may have finished between our check and this factory)
-            if (Cache.TryLoadFromCache(name, null, macrosArray, out var buf, out var h) && ValidateCachedHashes(buf))
+            if (Cache.TryLoadFromCache(name, null, macrosArray, out var buf, out var h) && IsCachedClassCurrent(name, buf))
                 return (buf, h);
 
             if (!ExternalFileExists(name))
@@ -114,7 +114,7 @@ public abstract class ShaderLoaderBase(IShaderCache fileCache) : IExternalShader
         var overrideHash = SourceHashOverride;
         SourceHashOverride = null;
 
-        isFromCache = Cache.TryLoadFromCache(name, null, defines, out buffer, out hash) && ValidateCachedHashes(buffer);
+        isFromCache = Cache.TryLoadFromCache(name, null, defines, out buffer, out hash) && IsCachedClassCurrent(name, buffer);
         if (isFromCache)
             return true;
 
@@ -134,6 +134,29 @@ public abstract class ShaderLoaderBase(IShaderCache fileCache) : IExternalShader
     public bool IsCachedBufferCurrent(ShaderBuffers buffer) => ValidateCachedHashes(buffer);
 
     /// <summary>
+    /// Whether a cached class comes from the file that holds its name, and is still current. Any file can declare any class.
+    /// </summary>
+    private bool IsCachedClassCurrent(string name, ShaderBuffers buffer)
+    {
+        if (LoadExternalFileContent(name, out _, out _, out var fileHash))
+        {
+            // The first one is the hash of the file the class was compiled from
+            foreach (var i in buffer.Context)
+            {
+                if (i.Op == Specification.Op.OpSourceHashSDSL && (OpSourceHashSDSL)i is { } sourceHash)
+                {
+                    if (HashOf(sourceHash) != fileHash)
+                        return false;
+                    break;
+                }
+            }
+        }
+        return ValidateCachedHashes(buffer);
+    }
+
+    private static ObjectId HashOf(OpSourceHashSDSL sourceHash) => new((uint)sourceHash.Hash1, (uint)sourceHash.Hash2, (uint)sourceHash.Hash3, (uint)sourceHash.Hash4);
+
+    /// <summary>
     /// Validates all OpSourceHashSDSL entries in a cached buffer against current file content.
     /// Returns false if any dependency has changed or can't be found anymore.
     /// </summary>
@@ -143,7 +166,7 @@ public abstract class ShaderLoaderBase(IShaderCache fileCache) : IExternalShader
         {
             if (i.Op == Specification.Op.OpSourceHashSDSL && (OpSourceHashSDSL)i is { } sourceHash)
             {
-                var cachedHash = new ObjectId((uint)sourceHash.Hash1, (uint)sourceHash.Hash2, (uint)sourceHash.Hash3, (uint)sourceHash.Hash4);
+                var cachedHash = HashOf(sourceHash);
 
                 // Resolve filename from OpString
                 string? filename = null;
