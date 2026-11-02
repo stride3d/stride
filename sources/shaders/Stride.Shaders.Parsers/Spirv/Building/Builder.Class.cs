@@ -600,8 +600,7 @@ public partial class SpirvBuilder
 
                 // Use original filename for debug info (OpString/OpSource), and record the hash of that
                 // file rather than of the macro-expanded code compiled here, so an edit to it is seen.
-                shaderLoader.SourceHashOverride = sourceHash;
-                if (!shaderLoader.LoadExternalBuffer(shaderName, originalFilename, code, macros, out shaderBuffers, out var compiledHash, out _))
+                if (!shaderLoader.LoadExternalBuffer(shaderName, originalFilename, code, sourceHash, macros, out shaderBuffers, out var compiledHash, out _))
                     throw new InvalidOperationException();
 
                 // Register under the MemberName cache key (e.g. "Foo_PerMaterial")

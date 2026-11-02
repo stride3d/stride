@@ -1480,8 +1480,6 @@ public class CaptureLoadedShaders(IExternalShaderLoader inner) : IExternalShader
         return result;
     }
 
-    public bool LoadExternalBuffer(string name, string? filename, string code, ReadOnlySpan<ShaderMacro> defines, out ShaderBuffers bytecode, out ObjectId hash, out bool isFromCache)
-        => inner.LoadExternalBuffer(name, filename, code, defines, out bytecode, out hash, out isFromCache);
-
-    public ObjectId? SourceHashOverride { get => inner.SourceHashOverride; set => inner.SourceHashOverride = value; }
+    public bool LoadExternalBuffer(string name, string? filename, string code, ObjectId sourceHash, ReadOnlySpan<ShaderMacro> defines, out ShaderBuffers bytecode, out ObjectId hash, out bool isFromCache)
+        => inner.LoadExternalBuffer(name, filename, code, sourceHash, defines, out bytecode, out hash, out isFromCache);
 }
