@@ -270,7 +270,7 @@ sealed class Triage(GitHub github, Config config)
             Run.Log($"#{pr.Number}: GitHub has not computed the merge state yet, the next run will look again.");
             return;
         }
-        var (label, why) = Status(pr);
+        var (label, why) = await Status(pr);
         var current = pr.Labels.Where(config.StatusLabels.ContainsKey).ToList();
         if (current.Count == (label == null ? 0 : 1) && (label == null || current.Contains(label)))
             return;
@@ -283,7 +283,7 @@ sealed class Triage(GitHub github, Config config)
     }
 
     // Who has the ball: the author after a maintainer reviewed later than the author's last push or reply, otherwise the reviewers
-    (string? Label, string Why) Status(Pr pr)
+    async Task<(string? Label, string Why)> Status(Pr pr)
     {
         if (pr.IsDraft)
             return (null, "draft");
@@ -295,7 +295,8 @@ sealed class Triage(GitHub github, Config config)
         var manual = pr.LabelEvents.Where(x => config.StatusLabels.ContainsKey(x.Label)).MaxBy(x => x.At);
         if (manual != null && manual.At > pr.LastAuthorActivity && (lastReview == null || manual.At > lastReview.At))
             return (manual.Label, $"set by @{manual.By}");
-        if (lastReview != null && lastReview.At > pr.LastAuthorActivity)
+        var rebased = lastReview != null && lastReview.At <= pr.LastAuthorActivity && await OnlyRebased(pr, lastReview);
+        if (lastReview != null && (lastReview.At > pr.LastAuthorActivity || rebased))
         {
             if (lastReview.State != "APPROVED")
                 return ("waiting-on-author", $"@{lastReview.Author} reviewed after the last push or reply");
@@ -305,12 +306,30 @@ sealed class Triage(GitHub github, Config config)
                 return ("waiting-on-review", "approved, CI runs wait for a maintainer to approve them");
             return pr.Ci switch
             {
-                "SUCCESS" or null => ("ready-to-merge", $"approved by @{lastReview.Author}, CI green"),
+                "SUCCESS" or null => ("ready-to-merge", $"approved by @{lastReview.Author}{(rebased ? ", then only rebased" : "")}, CI green"),
                 "FAILURE" or "ERROR" => ("waiting-on-author", "approved, but CI fails"),
                 _ => ("waiting-on-review", "approved, CI still running"),
             };
         }
         return ("waiting-on-review", lastReview == null ? "no review yet" : "the author pushed or replied after the last review");
+    }
+
+    // An approval still holds after a rebase (common in PR stacks): the author only pushed since, and the push changed
+    // no commit, only the base it is on
+    async Task<bool> OnlyRebased(Pr pr, Review approval)
+    {
+        if (approval.State != "APPROVED" || approval.Commit is not { } approved || approved == pr.Head
+            || pr.Comments.Concat(pr.Reviews.Select(x => new Comment(x.Author, x.At, ""))).Any(x => x.Author == pr.Author && x.At >= approval.At))
+            return false;
+        try
+        {
+            return await github.SameCommits(pr.Number, approved, pr.Head);
+        }
+        catch (HttpRequestException e)
+        {
+            Run.Log($"#{pr.Number}: could not compare with the approved commit: {e.Message}");
+            return false;
+        }
     }
 
     // A bot's review counts only for the bots maintainers review through (an App that posts what a maintainer checked)
@@ -329,7 +348,7 @@ sealed class Triage(GitHub github, Config config)
 
         foreach (var pr in prs.Where(x => !x.IsDraft))
         {
-            var (label, _) = Status(pr);
+            var (label, _) = await Status(pr);
             var quiet = (int)(now - pr.LastHumanActivity).TotalDays;
             var reviewers = pr.ReviewRequests.Concat(pr.Assignees).Where(x => x != pr.Author).Distinct().ToList();
             var hasReviewer = reviewers.Count > 0 || pr.TeamReviewRequests.Count > 0 || MaintainerReviews(pr).Any();
@@ -851,7 +870,7 @@ sealed class Config
 }
 
 record LabelSpec(string Color, string Description);
-record Review(string Author, string Association, string State, DateTimeOffset At, bool Bot);
+record Review(string Author, string Association, string State, DateTimeOffset At, bool Bot, string? Commit);
 record LabelEvent(string Label, string By, DateTimeOffset At);
 record Comment(string Author, DateTimeOffset At, string Body);
 record PrFile(string Path, string? PreviousPath, string Status, int Additions, int Deletions, string? Patch);
@@ -859,7 +878,7 @@ record IssueInfo(int Number, string Title, string Body, string Author, bool Auth
 record SearchResult(int Number, string State, string Title, string Body);
 
 sealed record Pr(
-    int Number, string Title, string Body, string Author, bool IsDraft, string Mergeable, string? ReviewDecision,
+    int Number, string Title, string Body, string Author, string Head, bool IsDraft, string Mergeable, string? ReviewDecision,
     string? Ci, bool CiNeedsApproval, List<string> Labels, List<string> Assignees, List<string> ReviewRequests, List<string> TeamReviewRequests,
     List<Review> Reviews, List<Comment> Comments, List<Comment> BotComments, List<LabelEvent> LabelEvents, DateTimeOffset CreatedAt, DateTimeOffset ReadyAt,
     DateTimeOffset LastPush)
@@ -877,7 +896,7 @@ sealed record Pr(
 sealed class GitHub
 {
     const string PrFields = """
-        number title body isDraft createdAt mergeable reviewDecision
+        number title body headRefOid isDraft createdAt mergeable reviewDecision
         author { login __typename }
         labels(first: 50) { nodes { name } }
         assignees(first: 10) { nodes { login } }
@@ -887,7 +906,7 @@ sealed class GitHub
           nodes {
             __typename
             ... on IssueComment { createdAt body author { login __typename } }
-            ... on PullRequestReview { submittedAt state authorAssociation author { login __typename } }
+            ... on PullRequestReview { submittedAt state authorAssociation author { login __typename } commit { oid } }
             ... on HeadRefForcePushedEvent { createdAt }
             ... on PullRequestCommit { commit { committedDate } }
             ... on ReadyForReviewEvent { createdAt }
@@ -964,7 +983,7 @@ sealed class GitHub
                     (IsBot(item["author"]) ? botComments : comments).Add(comment);
                     break;
                 case "PullRequestReview" when item["submittedAt"] is { } submitted:
-                    reviews.Add(new Review((string?)item["author"]?["login"] ?? "ghost", (string?)item["authorAssociation"] ?? "NONE", (string)item["state"]!, Date(submitted), IsBot(item["author"])));
+                    reviews.Add(new Review((string?)item["author"]?["login"] ?? "ghost", (string?)item["authorAssociation"] ?? "NONE", (string)item["state"]!, Date(submitted), IsBot(item["author"]), (string?)item["commit"]?["oid"]));
                     break;
                 case "HeadRefForcePushedEvent":
                     lastPush = Max(lastPush, Date(item["createdAt"]));
@@ -987,6 +1006,7 @@ sealed class GitHub
             Title: (string)node["title"]!,
             Body: (string?)node["body"] ?? "",
             Author: author,
+            Head: (string)node["headRefOid"]!,
             IsDraft: (bool)node["isDraft"]!,
             Mergeable: (string)node["mergeable"]!,
             ReviewDecision: (string?)node["reviewDecision"],
@@ -1012,6 +1032,66 @@ sealed class GitHub
                 break;
         }
         return result;
+    }
+
+    // The PR's commits at `head` are the ones at `approved`, rebased: same messages and same added and removed lines, in
+    // the same order (context lines and line numbers change with the base). A commit added, squashed or edited is a change.
+    public async Task<bool> SameCommits(int number, string approved, string head)
+    {
+        const int maxCommits = 20;
+        var pr = (await GraphQL("""
+            query($owner: String!, $name: String!, $number: Int!) { repository(owner: $owner, name: $name) { pullRequest(number: $number) {
+              headRefOid baseRefOid
+              commits(first: 21) { totalCount nodes { commit { oid } } }
+              timelineItems(last: 50, itemTypes: [BASE_REF_FORCE_PUSHED_EVENT]) { nodes { ... on BaseRefForcePushedEvent { beforeCommit { oid } } } }
+            } } }
+            """, new { owner, name, number }))["repository"]!["pullRequest"]!;
+        var current = pr["commits"]!["nodes"]!.AsArray().Select(x => (string)x!["commit"]!["oid"]!).ToList();
+        if ((string)pr["headRefOid"]! != head || (int)pr["commits"]!["totalCount"]! > maxCommits)
+            return false;
+
+        var old = new List<JsonNode>();
+        var oldBase = approved;
+        while (old.Count < current.Count)
+        {
+            var commit = (await Rest(HttpMethod.Get, $"repos/{owner}/{name}/commits/{oldBase}"))!;
+            if (commit["parents"]!.AsArray() is not [{ } parent])
+                return false;
+            old.Add(commit);
+            oldBase = (string)parent["sha"]!;
+        }
+        old.Reverse();
+        for (var i = 0; i < current.Count; i++)
+        {
+            var commit = (await Rest(HttpMethod.Get, $"repos/{owner}/{name}/commits/{current[i]}"))!;
+            if (Changes(old[i]) is not { } before || Changes(commit) != before)
+                return false;
+        }
+
+        // A commit dropped from the start would be left below the old commits: what is below must be in the base branch,
+        // now or before one of its force pushes (a PR stack rebases the base branch too)
+        var tips = pr["timelineItems"]!["nodes"]!.AsArray().Select(x => (string?)x?["beforeCommit"]?["oid"]).OfType<string>().Prepend((string)pr["baseRefOid"]!);
+        foreach (var tip in tips.Distinct())
+        {
+            var compare = (await Rest(HttpMethod.Get, $"repos/{owner}/{name}/compare/{oldBase}...{tip}"))!;
+            if ((int)compare["behind_by"]! == 0)
+                return true;
+        }
+        return false;
+    }
+
+    // A commit's message and changed lines; null when GitHub cuts its file list
+    static string? Changes(JsonNode commit)
+    {
+        var files = commit["files"]!.AsArray().OfType<JsonNode>().ToList();
+        if (files.Count >= 300)
+            return null;
+        return string.Join("\n", files.OrderBy(x => (string)x["filename"]!, StringComparer.Ordinal).Select(x =>
+            $"{x["status"]} {x["previous_filename"]} {x["filename"]}\n" + ((string?)x["patch"] is { } patch
+                ? string.Join("\n", patch.Split('\n').Where(line => line.StartsWith('+') || line.StartsWith('-')))
+                // Binary or too large: the file's content must be the same
+                : $"blob {x["sha"]}"))
+            .Prepend((string)commit["commit"]!["message"]!));
     }
 
     // GitHub refuses the diff of a very large PR: the patches of the file list are the fallback

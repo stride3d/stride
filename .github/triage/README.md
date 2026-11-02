@@ -22,6 +22,8 @@ A PR that already has an area and a type label is left alone. A label a maintain
 
 After a push that does not fix everything, the simplest is a one-line review (Review changes, Comment, "still missing X"): it notifies the author, and the PR goes to `waiting-on-author` by itself. A plain PR comment does not change the label. A status label a maintainer sets by hand also counts like a review, for when there is nothing to say (the author already said more commits are coming): it stays until the author's next push or reply, or the next review. Label changes notify nobody. A reply in a review thread counts as a reply. Maintainers are the `reviewerAssociations` in `config.json` (owners, members, collaborators). A review by a bot counts only for the `reviewerBots` (`stride-review`, which posts reviews a maintainer checked).
 
+An approval still holds after a push that only rebased the PR (common in PR stacks): same commits in the same order, with the same messages and the same added and removed lines, on the base branch as it is now or was before one of its force pushes. A commit added, dropped, squashed or edited, a conflict fixed during the rebase, a reply from the author, or more than 20 commits: the PR needs a new review as before.
+
 **New issues**:
 
 - An area label if there is none, and the type (`bug`, `enhancement`, `question`) when the reporter picked the wrong template.
