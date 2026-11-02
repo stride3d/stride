@@ -197,7 +197,7 @@ public record struct LiteralsParser : IParser<Literal>
                 parenthesis++;
             // A declaration (float1x3 m;) is reported when its type is resolved
             if (parenthesis < scanner.Span.Length && scanner.Span[parenthesis] == '(' && SymbolType.IsOneRowOrColumnMatrix(word, out var vectorName))
-                return Parsers.Exit(ref scanner, result, out parsed, position, new(string.Format(SDSLErrorMessages.SDSL0155, word, vectorName), scanner[position], scanner.Memory));
+                return Parsers.Exit(ref scanner, result, out parsed, position, new(string.Format(SDSLErrorMessages.SDSL0155, word, vectorName), scanner[position], scanner.Memory) { IsAboutToken = true });
             if (word != baseType && SymbolType.TryGetNumeric(word, out var oneComponentType) && oneComponentType is ScalarType)
             {
                 // Then parsed as float(x) below

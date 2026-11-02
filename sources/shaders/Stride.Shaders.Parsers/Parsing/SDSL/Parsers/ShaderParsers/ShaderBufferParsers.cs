@@ -153,7 +153,7 @@ public record struct BufferParsers : IParser<ShaderBuffer>
             && Parsers.Spaces1(ref scanner, result, out _)
             && LiteralsParser.Identifier(ref scanner, result, out var name)
         )
-            error = new(string.Format(SDSLErrorMessages.SDSL0050, keyword == "compose" ? "Composition" : "Stream", name, blockKind, blockName), scanner[position], scanner.Memory);
+            error = new(string.Format(SDSLErrorMessages.SDSL0050, keyword == "compose" ? "Composition" : "Stream", name, blockKind, blockName), scanner[position], scanner.Memory) { IsAboutToken = true };
         scanner.Position = position;
         return error;
     }
