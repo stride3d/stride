@@ -43,4 +43,8 @@ RootAssets:
     - eba50ccd-2b38-42d0-a98d-147d29141d4d:SheetAutoMaskPacked
     - f5cf3f85-622e-4345-aa18-8e781460ba71:SheetMaskAlphaPacked
     - f8dfa4d7-d5e7-4f36-9e7c-2c9d3de0e154:PngColorResultFalse
+    - f8dfb4d7-d5e7-4f36-9e7c-2c9d3de0e154:CPUNonStreamed
+    - f8dfc4d7-d5e7-4f36-9e7c-2c9d3de0e154:CPUNonStreamedMips
+    - f8dfd4d7-d5e7-4f36-9e7c-2c9d3de0e154:CPUStreamed
+    - f8dfe4d7-d5e7-4f36-9e7c-2c9d3de0e154:CPUStreamedMips
     - fb543f7c-e6a7-4bbc-9a75-47ae5db41968:MainScene

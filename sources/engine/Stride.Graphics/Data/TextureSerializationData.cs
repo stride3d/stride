@@ -127,7 +127,21 @@ namespace Stride.Graphics.Data
             }
         }
 
-        public static TextureSerializationData Read(SerializationStream stream, out ImageDescription fullRezDescription)
+        /// <summary>
+        /// Opposite of <see cref="Write"/>, loads an instance from the stream provided.
+        /// </summary>
+        /// <remarks>
+        /// Similar to <see cref="Write"/>, a streamed image is serialized separately from this range in the stream.
+        /// In that specific case, the image returned may correspond to a lower mip of the whole texture. <br/>
+        /// You will have to go through <see cref="ContentStreamingService"/> and its <see cref="ContentStorage"/> to retrieve the full resolution data,
+        /// see <see cref="TextureContentSerializer"/>'s implementation.
+        /// </remarks>
+        /// <param name="stream">The source stream.</param>
+        /// <param name="fullResDescription">
+        /// The image returned, when marked as streamed, may correspond to a lower mip of the whole texture.
+        /// This variable returns the description of the fully loaded texture.
+        /// </param>
+        public static TextureSerializationData Read(SerializationStream stream, out ImageDescription fullResDescription)
         {
             bool enableStreaming = stream.Read<bool>();
             Image image;
@@ -135,8 +149,8 @@ namespace Stride.Graphics.Data
             if (enableStreaming)
             {
                 // Read image header
-                fullRezDescription = default;
-                ImageHelper.ImageDescriptionSerializer.Serialize(ref fullRezDescription, ArchiveMode.Deserialize, stream);
+                fullResDescription = default;
+                ImageHelper.ImageDescriptionSerializer.Serialize(ref fullResDescription, ArchiveMode.Deserialize, stream);
 
                 // Read storage header
                 ContentStorageHeader.Read(stream, out storageHeader);
@@ -146,13 +160,13 @@ namespace Stride.Graphics.Data
                 }
                 else
                 {
-                    image = Image.New(fullRezDescription);
+                    image = Image.New(fullResDescription);
                 }
             }
             else
             {
                 image = Image.Load(stream.UnderlyingStream);
-                fullRezDescription = image.Description;
+                fullResDescription = image.Description;
                 storageHeader = default;
             }
 
