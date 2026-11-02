@@ -496,6 +496,7 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
     private readonly ConstraintProvider constraintProvider = new();
     private readonly PackageCollection packages;
     private readonly Dictionary<Package, Package> packagesCopy;
+    private readonly HashSet<UFile> filesDeletedOutside = [];
     private readonly object dependenciesLock = new();
     private SolutionProject currentProject;
     private AssetDependencyManager dependencies;
@@ -565,6 +566,19 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
     /// Gets a task that completes when the session is finished saving.
     /// </summary>
     public Task SaveCompletion => saveCompletion?.Task ?? Task.CompletedTask;
+
+    /// <summary>
+    /// Sets whether the file of a removed asset was deleted outside this session. A save does not delete such a file, as it may have come back.
+    /// </summary>
+    public void SetFileDeletedOutside(UFile filePath, bool deletedOutside)
+    {
+        ArgumentNullException.ThrowIfNull(filePath);
+
+        if (deletedOutside)
+            filesDeletedOutside.Add(filePath);
+        else
+            filesDeletedOutside.Remove(filePath);
+    }
 
     /// <summary>
     /// Gets or sets the solution path (sln) in case the session was loaded from a solution.
@@ -1304,8 +1318,11 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
                         }
                     }
 
-                    UpgradeBackup?.Snapshot(assetPath);
-                    File.Delete(assetPath);
+                    if (!filesDeletedOutside.Contains(assetPath))
+                    {
+                        UpgradeBackup?.Snapshot(assetPath);
+                        File.Delete(assetPath);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -1321,6 +1338,8 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
                 project.ProjectCollection.UnloadAllProjects();
                 project.ProjectCollection.Dispose();
             }
+
+            filesDeletedOutside.Clear();
 
             // Save all dirty assets
             packagesCopy.Clear();
@@ -1386,13 +1405,14 @@ public sealed partial class PackageSession : IDisposable, IAssetFinder
             newAssets[assetItem.Id] = assetItem;
         }
 
-        // Compute all assets that were removed
+        // Compute all assets that were removed, keeping a file that another asset now stands for
+        var filesInUse = newAssets.Values.Select(x => x.FullPath).ToHashSet();
         var assetsOrPackagesToRemove = new Dictionary<UFile, AssetItem>();
         foreach (var assetIt in previousAssets)
         {
             var asset = assetIt.Value;
 
-            if (!newAssets.TryGetValue(assetIt.Key, out var newAsset) || newAsset.Location != asset.Location)
+            if ((!newAssets.TryGetValue(assetIt.Key, out var newAsset) || newAsset.Location != asset.Location) && !filesInUse.Contains(asset.FullPath))
             {
                 assetsOrPackagesToRemove[asset.FullPath] = asset;
             }
