@@ -283,6 +283,18 @@ internal class TemplatePreprocessor
     /// </summary>
     private bool RunAssetPack(string? sdtplPath, ILogger logger)
     {
+        // The top-level folders are what the pack contains. The input is a real project, so its build output is not content.
+        var unknownFolders = Directory.EnumerateDirectories(InputPath!)
+            .Select(path => Path.GetFileName(path))
+            .Where(name => name is not ("Assets" or "Resources") && !name.StartsWith('.')
+                && !name.Equals("bin", StringComparison.OrdinalIgnoreCase) && !name.Equals("obj", StringComparison.OrdinalIgnoreCase))
+            .ToList();
+        if (unknownFolders.Count > 0)
+        {
+            logger.Error($"Asset pack input has folders other than Assets/ and Resources/: {string.Join(", ", unknownFolders)} ({InputPath})");
+            return false;
+        }
+
         if (Directory.Exists(OutputDirectory))
             Directory.Delete(OutputDirectory, recursive: true);
         Directory.CreateDirectory(OutputDirectory!);
