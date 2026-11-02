@@ -549,6 +549,7 @@ namespace Stride.Rendering
                                 renderEffect.ClearFallbackParameters();
                                 renderEffect.State = RenderEffectState.Error;
                                 renderEffect.Effect = ComputeFallbackEffect?.Invoke(renderObject, renderEffect, RenderEffectState.Error);
+                                renderEffect.IsReflectionUpdateRequired = true;
                                 continue;
                             }
 
