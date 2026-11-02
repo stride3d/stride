@@ -282,12 +282,17 @@ internal static class NewCommand
     }
 
     // The package a template came from, used as its listing group header — grouping by provenance without
-    // hard-coding the known package set. Derived from the mount point file name, which is "<PackageId>.<Version>"
+    // hard-coding the known package set. An extracted package is ".../<package id>/<version>", where the id is
+    // lower case. Otherwise derived from the mount point file name, which is "<PackageId>.<Version>"
     // (e.g. "Stride.Templates.Games.4.4.0-dev4.nupkg" -> "Stride.Templates.Games"), by keeping the leading
     // non-numeric segments and dropping the version.
     private static string SourcePackage(ITemplateInfo template)
     {
-        var name = Path.GetFileNameWithoutExtension(template.MountPointUri ?? string.Empty);
+        var mountPoint = (template.MountPointUri ?? string.Empty).TrimEnd('/', '\\');
+        if (File.Exists(Path.Combine(mountPoint, ".nupkg.metadata")))
+            return Path.GetFileName(Path.GetDirectoryName(mountPoint))!;
+
+        var name = Path.GetFileNameWithoutExtension(mountPoint);
         if (string.IsNullOrEmpty(name))
             return "Other templates";
 
