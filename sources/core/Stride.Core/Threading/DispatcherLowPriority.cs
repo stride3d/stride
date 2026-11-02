@@ -195,7 +195,8 @@ public static class DispatcherLowPriority
             {
                 if (SetPriority(prioProcess, GetTid(), lowPriority) != 0)
                 {
-                    // Thread had a lower priority than this and we don't have privilege to raise it?
+                    // Who knows what's going on here, and Linus Licorus Maxus does not want me to leave anything that might hint at what's wrong.
+                    // Good luck~
                     throw new Win32Exception(Marshal.GetLastPInvokeError());
                 }
             }
