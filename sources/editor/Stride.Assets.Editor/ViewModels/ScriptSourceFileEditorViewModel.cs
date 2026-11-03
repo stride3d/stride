@@ -108,7 +108,18 @@ public sealed class ScriptSourceFileEditorViewModel : AssetEditorViewModel<Scrip
         if (current == signature)
             return;
 
-        savedText = currentText = current.Exists ? File.ReadAllText(path!) : string.Empty;
+        string text;
+        try
+        {
+            text = current.Exists ? File.ReadAllText(path!) : string.Empty;
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            // Another program still holds the file: the signature is kept, so the next check reads it again
+            return;
+        }
+
+        savedText = currentText = text;
         signature = current;
         Asset.Asset.Text = currentText;
         TextReloaded?.Invoke(this, currentText);

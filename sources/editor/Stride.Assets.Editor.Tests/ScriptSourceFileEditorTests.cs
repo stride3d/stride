@@ -81,6 +81,28 @@ public sealed class ScriptSourceFileEditorTests
     }
 
     [Fact]
+    public async Task AFileThatCannotBeReadIsReloadedAtTheNextCheck()
+    {
+        using var fixture = await OpenAsync();
+        var editor = NewEditor(fixture);
+        var reloads = new List<string>();
+        editor.TextReloaded += (_, text) => reloads.Add(text);
+        File.WriteAllText(PathOf(editor), External);
+
+        // Another program still holds the file: the check keeps the text and does not throw
+        using (new FileStream(PathOf(editor), FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+            editor.CheckExternalChanges();
+
+        Assert.Empty(reloads);
+        Assert.Equal(Script, editor.Text);
+
+        editor.CheckExternalChanges();
+
+        Assert.Equal([External], reloads);
+        Assert.Equal(External, editor.Text);
+    }
+
+    [Fact]
     public async Task AnExternalChangeDoesNotReplaceTheEdits()
     {
         using var fixture = await OpenAsync();
