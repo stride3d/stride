@@ -9,3 +9,4 @@ using Stride.Core.Serialization;
 [assembly: AssetFileExtension(".sdrendertex", typeof(Stride.Graphics.Texture))]
 [assembly: AssetFileExtension(".sdsheet", typeof(Stride.Graphics.SpriteSheet))]
 [assembly: AssetFileExtension(".sdtex", typeof(Stride.Graphics.Texture))]
+[assembly: AssetFileExtension(".sdhnrm", typeof(Stride.Graphics.Texture))]

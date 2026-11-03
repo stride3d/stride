@@ -15,7 +15,6 @@ using Stride.Core.Streaming;
 using Stride.Assets.Sprite;
 using Stride.Graphics;
 using Stride.Graphics.Data;
-using Stride.Heightfield.Assets;
 using Stride.TextureConverter;
 
 namespace Stride.Assets.Textures

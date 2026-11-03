@@ -39,14 +39,23 @@ public class Heightfield : IHeightfieldPhysicsSource, IHeightfieldRenderingSourc
         get;
         set
         {
-            ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(value, 0);
+            ArgumentOutOfRangeException.ThrowIfLessThan(value, 2);
             field = value;
         }
     } = 2048;
 
-    /// <inheritdoc cref="HeightfieldShape.CoarseBlocksSubdivision"/>
+    /// <inheritdoc cref="IHeightfieldSource.MinHeight"/>
+    public float MinHeight { get; set; }
+
+    /// <inheritdoc cref="IHeightfieldSource.MaxHeight"/>
+    public float MaxHeight { get; set; }
+
+    /// <summary>
+    /// Amount of coarse blocks along one axis.
+    /// <see cref="CoarseBlocks"/> holds <see cref="CoarseBlocksSubdivision"/>^2 blocks.
+    /// </summary>
     /// <exception cref="ArgumentOutOfRangeException">When value is less than or equal to zero</exception>
-    public int CoarseBlockSubdivision
+    public int CoarseBlocksSubdivision
     {
         get;
         set
@@ -56,15 +65,15 @@ public class Heightfield : IHeightfieldPhysicsSource, IHeightfieldRenderingSourc
         }
     }
 
-    /// <inheritdoc cref="HeightfieldShape.CoarseBlocksAddress" />
+    /// <summary>
+    /// <see cref="MinHeight"/> and <see cref="MaxHeight"/> define the bounding box of this heightfield,
+    /// and these coarse blocks define sub-bounding boxes that encompass <see cref="CoarseBlocksSubdivision"/>^2 heightfield points.
+    /// They are laid out in [x + y * <see cref="CoarseBlocksSubdivision"/>]
+    /// and may extend slightly farther than the heightfield points when <see cref="Subdivision"/> is
+    /// not evenly divisible by <see cref="CoarseBlocksSubdivision"/>
+    /// </summary>
     [MemberRequired]
     public HeightRange[] CoarseBlocks { get; set; } = null!;
-
-    /// <inheritdoc cref="HeightfieldShape.MinHeight"/>
-    public float MinHeight { get; set; }
-
-    /// <inheritdoc cref="HeightfieldShape.MaxHeight"/>
-    public float MaxHeight { get; set; }
 
     /// <summary>
     /// The heightfield function for the rendering and physics-side
@@ -76,7 +85,7 @@ public class Heightfield : IHeightfieldPhysicsSource, IHeightfieldRenderingSourc
     public void GetColliderData(out IHeightfieldSampler sampler, out HeightRange[] coarseBlocks, out int coarseBlocksSubdivision)
     {
         sampler = TopmostLayer.BuildHeightfieldFunction();
-        coarseBlocksSubdivision = CoarseBlockSubdivision;
+        coarseBlocksSubdivision = CoarseBlocksSubdivision;
         coarseBlocks = CoarseBlocks;
     }
 

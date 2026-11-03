@@ -312,7 +312,7 @@ public sealed class BepuSimulation : IDisposable
 
         Simulation = Simulation.Create(BufferPool, strideNarrowPhaseCallbacks, stridePoseIntegratorCallbacks, solveDescription);
 
-        HeightfieldCollisionTasks.Register(Simulation.NarrowPhase.CollisionTaskRegistry, Simulation.NarrowPhase.SweepTaskRegistry);
+        Definitions.Colliders.HeightfieldCollisionTasks.Register(Simulation.NarrowPhase.CollisionTaskRegistry, Simulation.NarrowPhase.SweepTaskRegistry);
 
         CollidableMaterials.Initialize(Simulation);
         ContactEvents.Initialize();

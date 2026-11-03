@@ -43,7 +43,10 @@ public sealed class HeightfieldAsset : Asset
         }
     } = 2048;
 
-    /// <inheritdoc cref="HeightfieldShape.CoarseBlockInterval" />
+    /// <summary>
+    /// Amount of <see cref="Subdivision"/> along one axis per blocks.
+    /// Each block overlaps <see cref="CoarseBlockInterval"/>^2 height samples
+    /// </summary>
     /// <exception cref="ArgumentOutOfRangeException">When value is less than or equal to zero</exception>
     public int CoarseBlockInterval
     {

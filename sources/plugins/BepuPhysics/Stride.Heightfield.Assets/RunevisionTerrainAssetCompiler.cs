@@ -95,7 +95,6 @@ internal class RunevisionTerrainAssetCompiler : AssetCompilerBase
                     {
                         ref var v = ref span[x];
                         v = RunevisionTerrainErosion.Heightmap(new Vector2(x, y) * Parameters.Tiling / Parameters.Resolution, Parameters.Settings, heightSampler);
-                        v.Height *= Parameters.Height;
                         min = MathF.Min(v.Height, min);
                         max = MathF.Max(v.Height, max);
                     }

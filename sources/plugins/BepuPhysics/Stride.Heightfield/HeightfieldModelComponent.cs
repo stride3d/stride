@@ -22,7 +22,7 @@ namespace Stride.Heightfield;
 [DefaultEntityComponentProcessor(typeof(Processor))]
 public class HeightfieldModelComponent : EntityComponent
 {
-    private int _version;
+    private int _version = 1;
 
     /// <summary>
     /// The material to use for the mesh. Must have <see cref="HeightfieldDisplacementFeature"/> set as the displacement feature.
@@ -72,18 +72,18 @@ public class HeightfieldModelComponent : EntityComponent
     {
         protected override AssociatedData GenerateComponentData(Entity entity, HeightfieldModelComponent component)
         {
-            var data = new AssociatedData();
-            component.Entity.Components.Add(data.ModelComponent);
-            return data;
+            return new AssociatedData();
         }
 
         protected override void OnEntityComponentAdding(Entity entity, HeightfieldModelComponent component, AssociatedData data)
         {
             base.OnEntityComponentAdding(entity, component, data);
+            entity.Components.Add(data.ModelComponent);
         }
 
         protected override void OnEntityComponentRemoved(Entity entity, HeightfieldModelComponent component, AssociatedData data)
         {
+            entity.Components.Remove(data.ModelComponent);
             base.OnEntityComponentRemoved(entity, component, data);
 
             Dispose(ref data.Model);
@@ -113,7 +113,7 @@ public class HeightfieldModelComponent : EntityComponent
                 data.ModelComponent.Materials[0] = mat;
 
                 if (mat.Passes.Count == 0)
-                    continue; // In editor
+                    continue; // Async compilation
 
                 var parameterCollection = mat.Passes[0].Parameters;
 

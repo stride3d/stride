@@ -4,13 +4,12 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using Stride.Assets;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Assets;
 using Stride.Graphics;
 
-namespace Stride.Heightfield.Assets;
+namespace Stride.Assets.Textures;
 
 [Display((int)AssetDisplayPriority.Textures, "Normal From Height")]
 [DataContract("NormalFromHeightAsset")]

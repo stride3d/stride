@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using Stride.Core;
 using Stride.Core.Assets;
@@ -41,7 +42,7 @@ public record HeightfieldTexture : RuntimeLayer.HeightfieldTextureSharedData, IH
             runtimeLayer = new RuntimeLayer.TextureRuntimeLayer
             {
                 BufferResolution = new Int2(32, 32),
-                Texture = new(),
+                Texture = null,
                 Tiling = Tiling,
                 BilinearSampling = BilinearSampling,
                 HeightMultiplier = HeightMultiplier,
@@ -149,8 +150,9 @@ public record HeightfieldTexture : RuntimeLayer.HeightfieldTextureSharedData, IH
                     case PixelFormat.R16_SNorm:
                         var shorts = pixelBuffer.GetPixels<short>();
                         MathUtil.FindMinMax(shorts, out var minShort, out var maxShort);
-                        minHeight = minShort;
-                        maxHeight = maxShort;
+                        // This type is normalized on sample, see TextureRuntimeLayer
+                        minHeight = (float)minShort / short.MaxValue;
+                        maxHeight = (float)maxShort / short.MaxValue;
 
                         heights = MemoryMarshal.Cast<short, byte>(shorts);
                         break;
@@ -158,8 +160,9 @@ public record HeightfieldTexture : RuntimeLayer.HeightfieldTextureSharedData, IH
                     case PixelFormat.R16_UNorm:
                         var ushorts = pixelBuffer.GetPixels<ushort>();
                         MathUtil.FindMinMax(ushorts, out var minUShort, out var maxUShort);
-                        minHeight = minUShort;
-                        maxHeight = maxUShort;
+                        // This type is normalized on sample, see TextureRuntimeLayer
+                        minHeight = (float)minUShort / ushort.MaxValue;
+                        maxHeight = (float)maxUShort / ushort.MaxValue;
 
                         heights = MemoryMarshal.Cast<ushort, byte>(ushorts);
                         break;
@@ -167,8 +170,9 @@ public record HeightfieldTexture : RuntimeLayer.HeightfieldTextureSharedData, IH
                     case PixelFormat.R8_UNorm:
                         var bytes = pixelBuffer.GetPixels<byte>();
                         MathUtil.FindMinMax(bytes, out var minByte, out var maxByte);
-                        minHeight = minByte;
-                        maxHeight = maxByte;
+                        // This type is normalized on sample, see TextureRuntimeLayer
+                        minHeight = (float)minByte / byte.MaxValue;
+                        maxHeight = (float)maxByte / byte.MaxValue;
 
                         heights = bytes;
                         break;
@@ -176,6 +180,7 @@ public record HeightfieldTexture : RuntimeLayer.HeightfieldTextureSharedData, IH
                     default:
                         throw new InvalidOperationException();
                 }
+
                 minHeight *= HeightMultiplier;
                 maxHeight *= HeightMultiplier;
 
