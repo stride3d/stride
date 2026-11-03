@@ -2,8 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-using System.Buffers;
-using System.Runtime.InteropServices;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
@@ -95,42 +93,9 @@ namespace Stride.Physics
 
         public ColliderShape CreateShape(IServiceRegistry services)
         {
-            if (HeightStickArraySource is null || !HeightStickArraySource.IsValid())
+            if (HeightStickArraySource is null || !HeightStickArraySource.IsValid() || HeightStickArraySource.HeightType is not (HeightfieldTypes.Float or HeightfieldTypes.Short or HeightfieldTypes.Byte))
             {
                 return null;
-            }
-
-            var arrayLength = HeightStickArraySource.HeightStickSize.X * HeightStickArraySource.HeightStickSize.Y;
-
-            byte[] rentedArray;
-            Span<byte> unmanagedArray;
-
-            switch (HeightStickArraySource.HeightType)
-            {
-                case HeightfieldTypes.Float:
-                {
-                    rentedArray = ArrayPool<byte>.Shared.Rent(arrayLength * sizeof(float));
-                    unmanagedArray = rentedArray.AsSpan(0, arrayLength * sizeof(float));
-                    HeightStickArraySource.CopyTo(MemoryMarshal.Cast<byte, float>(unmanagedArray));
-                    break;
-                }
-                case HeightfieldTypes.Short:
-                {
-                    rentedArray = ArrayPool<byte>.Shared.Rent(arrayLength * sizeof(short));
-                    unmanagedArray = rentedArray.AsSpan(0, arrayLength * sizeof(short));
-                    HeightStickArraySource.CopyTo(MemoryMarshal.Cast<byte, short>(unmanagedArray));
-                    break;
-                }
-                case HeightfieldTypes.Byte:
-                {
-                    rentedArray = ArrayPool<byte>.Shared.Rent(arrayLength * sizeof(byte));
-                    unmanagedArray = rentedArray.AsSpan(0, arrayLength * sizeof(byte));
-                    HeightStickArraySource.CopyTo(unmanagedArray);
-                    break;
-                }
-
-                default:
-                    return null;
             }
 
             var shape = new HeightfieldColliderShape
@@ -138,19 +103,38 @@ namespace Stride.Physics
                             HeightStickArraySource.HeightStickSize.X,
                             HeightStickArraySource.HeightStickSize.Y,
                             HeightStickArraySource.HeightType,
-                            unmanagedArray,
                             HeightStickArraySource.HeightScale,
                             HeightStickArraySource.HeightRange.X,
                             HeightStickArraySource.HeightRange.Y,
                             FlipQuadEdges
                         )
-                        {
-                            LocalOffset = LocalOffset + new Vector3(0, GetCenteringOffset(), 0),
-                            LocalRotation = LocalRotation,
-                            Description = this
-                        };
+            {
+                LocalOffset = LocalOffset + new Vector3(0, GetCenteringOffset(), 0),
+                LocalRotation = LocalRotation,
+                Description = this
+            };
 
-            ArrayPool<byte>.Shared.Return(rentedArray);
+            using (shape.LockToReadAndWriteHeights())
+            {
+                switch (HeightStickArraySource.HeightType)
+                {
+                    case HeightfieldTypes.Float:
+                    {
+                        HeightStickArraySource.CopyTo(shape.FloatSpan);
+                        break;
+                    }
+                    case HeightfieldTypes.Short:
+                    {
+                        HeightStickArraySource.CopyTo(shape.ShortSpan);
+                        break;
+                    }
+                    case HeightfieldTypes.Byte:
+                    {
+                        HeightStickArraySource.CopyTo(shape.ByteSpan);
+                        break;
+                    }
+                }
+            }
 
             return shape;
         }
