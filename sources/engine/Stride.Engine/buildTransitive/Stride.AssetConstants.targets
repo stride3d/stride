@@ -16,7 +16,6 @@
 
   <ItemGroup Condition="'$(StrideGenerateAssetConstants)' == 'true'">
     <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="StrideAssetFolder" />
-    <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="StrideAssetContentTypeMap" />
     <CompilerVisibleProperty Include="StrideAssetUrlNamespace" />
     <CompilerVisibleProperty Include="StrideAssetConstantsClassName" />
     <CompilerVisibleProperty Include="StrideAssetConstantsNamespace" />
@@ -29,7 +28,6 @@
       <PackagePath Required="true" />
       <AssetNamespace />
       <PackageName />
-      <ContentTypeMaps ParameterType="Microsoft.Build.Framework.ITaskItem[]" />
       <AssetFiles ParameterType="Microsoft.Build.Framework.ITaskItem[]" Output="true" />
       <ResolvedNamespace ParameterType="System.String" Output="true" />
     </ParameterGroup>
@@ -46,24 +44,6 @@
                 s = s.Substring(1, s.Length - 2).Replace("\\\\", "\\").Replace("\\\"", "\"");
             return s;
         };
-
-        // Only .sd* files and map extensions become AdditionalFiles: raw resources would re-trigger the generator and hit CS2015
-        var assetExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var map in ContentTypeMaps ?? new Microsoft.Build.Framework.ITaskItem[0])
-        {
-            if (!File.Exists(map.ItemSpec))
-                continue;
-            foreach (var mapLine in File.ReadAllLines(map.ItemSpec))
-            {
-                var trimmed = mapLine.Trim();
-                if (trimmed.Length == 0 || trimmed[0] == '#')
-                    continue;
-                var bar = trimmed.IndexOf('|');
-                var ext = (bar > 0 ? trimmed.Substring(0, bar) : trimmed).Trim();
-                if (ext.Length > 0)
-                    assetExtensions.Add(ext);
-            }
-        }
 
         // Line-based scan of the authored sdpkg: Meta.Name + AssetFolders paths.
         var authoredName = (string)null;
@@ -119,9 +99,6 @@
                 var relativeDir = Path.GetDirectoryName(file.Substring(folder.Length + 1)) ?? "";
                 if (relativeDir.Split(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries).Any(segment => excludedDirectories.Contains(segment)))
                     continue;
-                var extension = Path.GetExtension(file);
-                if (!extension.StartsWith(".sd", StringComparison.OrdinalIgnoreCase) && !assetExtensions.Contains(extension))
-                    continue;
                 var item = new Microsoft.Build.Utilities.TaskItem(file);
                 item.SetMetadata("StrideAssetFolder", folder);
                 items.Add(item);
@@ -154,16 +131,11 @@
     <PropertyGroup>
       <_StrideAssetConstantsPackagePath Condition="'@(_StrideAssetConstantsReferencedPackage)' != ''">$(MSBuildProjectDirectory)\$(MSBuildProjectName).sdpkg</_StrideAssetConstantsPackagePath>
     </PropertyGroup>
-    <!-- The ext|type maps a package ships give the extensions the folder scan takes besides .sd* -->
-    <ItemGroup>
-      <_StrideAssetContentTypeMap Include="@(AdditionalFiles)" Condition="'%(AdditionalFiles.StrideAssetContentTypeMap)' == 'true'" />
-    </ItemGroup>
     <StrideCollectAssetConstantsInputs
         Condition="Exists('$(_StrideAssetConstantsPackagePath)')"
         PackagePath="$(_StrideAssetConstantsPackagePath)"
         AssetNamespace="$(StrideAssetNamespace)"
-        PackageName="$(_StrideAssetConstantsPackageName)"
-        ContentTypeMaps="@(_StrideAssetContentTypeMap)">
+        PackageName="$(_StrideAssetConstantsPackageName)">
       <Output TaskParameter="AssetFiles" ItemName="_StrideAssetConstantsFile" />
       <Output TaskParameter="ResolvedNamespace" PropertyName="StrideAssetUrlNamespace" />
     </StrideCollectAssetConstantsInputs>
