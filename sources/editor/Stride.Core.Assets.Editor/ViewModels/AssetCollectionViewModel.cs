@@ -356,9 +356,9 @@ public sealed class AssetCollectionViewModel : DispatcherViewModel, IAssetCollec
     }
 
     /// <inheritdoc />
-    public async Task<bool> DeleteContent(IReadOnlyCollection<object> locations, bool skipConfirmation = false)
+    public async Task<bool> DeleteContent(IReadOnlyCollection<object> locations, bool skipConfirmation = false, bool deletedOutside = false)
     {
-        var result = await Session.DeleteItems(locations, skipConfirmation);
+        var result = await Session.DeleteItems(locations, skipConfirmation, deletedOutside);
         UpdateCommands();
         return result;
     }
@@ -369,8 +369,9 @@ public sealed class AssetCollectionViewModel : DispatcherViewModel, IAssetCollec
     /// </summary>
     /// <param name="assetsToDelete">The list of assets to delete.</param>
     /// <param name="forceDelete">If <c>true</c> the asset whose <see cref="AssetViewModel.CanDelete()"/> method returns <c>false</c> will still be deleted</param>
+    /// <param name="deletedOutside">If <c>true</c> the files of these assets were deleted outside the editor.</param>
     /// <returns>The number of assets that have been successfully deleted.</returns>
-    internal int DeleteAssets(IEnumerable<AssetViewModel> assetsToDelete, bool forceDelete = false)
+    internal int DeleteAssets(IEnumerable<AssetViewModel> assetsToDelete, bool forceDelete = false, bool deletedOutside = false)
     {
         var undoRedoService = Session.UndoRedoService;
         using var transaction = undoRedoService?.CreateTransaction();
@@ -385,10 +386,17 @@ public sealed class AssetCollectionViewModel : DispatcherViewModel, IAssetCollec
 
             var oldDirectory = asset.Directory;
 
-            // It is important to set IsDeleted before clearing the directory, so the parent project can be marked as dirty
-            asset.IsDeleted = true;
-            asset.Directory.RemoveAsset(asset);
-            asset.Directory = null!;
+            if (asset.Asset is IProjectAsset)
+            {
+                asset.DeleteProjectAsset(deletedOutside);
+            }
+            else
+            {
+                // It is important to set IsDeleted before clearing the directory, so the parent project can be marked as dirty
+                asset.IsDeleted = true;
+                asset.Directory.RemoveAsset(asset);
+                asset.Directory = null!;
+            }
 
             // Update RootAssets, for both current package and packages referencing this one
             // Note: Package to Asset references should be handled in a more generic way (same as Asset to Asset references)

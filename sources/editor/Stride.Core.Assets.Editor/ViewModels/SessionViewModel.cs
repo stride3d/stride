@@ -272,6 +272,9 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
 
     public Task SaveCompletion => session.SaveCompletion;
 
+    /// <inheritdoc/>
+    public void SetFileDeletedOutside(UFile filePath, bool deletedOutside) => session.SetFileDeletedOutside(filePath, deletedOutside);
+
     public bool SelectionIsRoot { get => selectionIsRoot; internal set { SetValueUncancellable(ref selectionIsRoot, value); UpdateSessionState(); } }
 
     public UFile SolutionPath => session.SolutionPath;
@@ -922,7 +925,7 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
         return AllPackages.FirstOrDefault(x => x.Package == package);
     }
 
-    public async Task<bool> DeleteItems(IReadOnlyCollection<object> locations, bool skipConfirmation = false)
+    public async Task<bool> DeleteItems(IReadOnlyCollection<object> locations, bool skipConfirmation = false, bool deletedOutside = false)
     {
         // Skip empty
         if (locations.Count == 0)
@@ -1070,7 +1073,7 @@ public sealed partial class SessionViewModel : DirtiableEditableViewModel, IAsse
             // Delete assets
             if (assetsToDelete.Count > 0)
             {
-                assetsDeleted = AssetCollection.DeleteAssets(assetsToDelete);
+                assetsDeleted = AssetCollection.DeleteAssets(assetsToDelete, deletedOutside: deletedOutside);
             }
 
             // Delete directories
