@@ -20,6 +20,16 @@ public abstract class SourceCodeViewModel<TSourceCodeAsset> : AssetViewModel<TSo
     /// The full path to the source code asset on disk.
     /// </summary>
     public UFile FullPath => AssetItem.FullPath;
+
+    /// <inheritdoc/>
+    protected override void Initialize()
+    {
+        base.Initialize();
+
+        // Keeps the text of a project file in memory: an undo writes it back if the file is deleted
+        if (Asset is IProjectAsset && !Directory.Package.Package.IsReadOnly)
+            _ = Asset.Text;
+    }
 }
 
 /// <summary>
