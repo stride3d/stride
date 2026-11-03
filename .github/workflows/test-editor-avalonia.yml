@@ -36,7 +36,8 @@ on:
         type: number
 
 concurrency:
-  group: test-editor-avalonia-${{ github.event.pull_request.number || github.sha }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
+  # A manual run never cancels or queues behind another one
+  group: test-editor-avalonia-${{ github.event.pull_request.number || (github.event_name == 'workflow_dispatch' && github.run_id) || github.sha }}-${{ github.event.inputs.build-type || inputs.build-type || 'Debug' }}
   cancel-in-progress: true
 
 env:
