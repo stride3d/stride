@@ -16,7 +16,7 @@ namespace Stride.Assets.Presentation.ViewModels;
 /// View model for <see cref="ModelAsset"/>.
 /// </summary>
 /// <remarks>
-/// The "Create Skeleton" asset command of the WPF view model is not available here: it runs an asset template, and templates are not part of the cross-platform editor yet.
+/// The "Create Skeleton" asset command of the WPF view model is not ported yet. It runs the skeleton asset template, which the cross-platform editor can now run.
 /// </remarks>
 [AssetViewModel<ModelAsset>]
 public class ModelViewModel : ImportedAssetViewModel<ModelAsset>
