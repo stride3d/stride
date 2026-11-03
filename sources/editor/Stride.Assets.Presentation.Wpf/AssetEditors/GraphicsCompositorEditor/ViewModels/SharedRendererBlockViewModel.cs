@@ -24,7 +24,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewM
         }
 
         /// <inheritdoc/>
-        public override string Title => sharedRenderer?.GetType() is { } type ? TypeDescriptorFactory.Default.AttributeRegistry.GetAttribute<DisplayAttribute>(type)?.Name ?? type.Name : null;
+        public override string Title => sharedRenderer?.GetType() is { } type ? TypeDescriptorFactory.Default.AttributeRegistry.GetDisplayName(type) : null;
 
         public ISharedRenderer GetSharedRenderer() => sharedRenderer;
 

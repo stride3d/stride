@@ -28,7 +28,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
 
         public Type ComponentType { get; }
 
-        public string ComponentName => ComponentType != null ? TypeDescriptorFactory.Default.AttributeRegistry.GetAttribute<DisplayAttribute>(ComponentType)?.Name ?? ComponentType.Name : string.Empty;
+        public string ComponentName => ComponentType != null ? TypeDescriptorFactory.Default.AttributeRegistry.GetDisplayName(ComponentType) : string.Empty;
 
         public bool IsActive { get { return isActive; } set { SetValue(ref isActive, value, () => Service.ToggleGizmoVisibility(ComponentType, value)); } }
 

@@ -50,7 +50,7 @@ namespace Stride.Assets.Presentation.NodePresenters.Updaters
                     .Where(x => Attribute.GetCustomAttribute(x, typeof(NonInstantiableAttribute)) == null &&
                                 (EntityComponentAttributes.Get(x).AllowMultipleComponents
                                  || ((EntityComponentCollection)node.Value).All(y => y.GetType() != x)))
-                    .OrderBy(x => TypeDescriptorFactory.Default.AttributeRegistry.GetAttribute<DisplayAttribute>(x)?.Name ?? x.Name)
+                    .OrderBy(x => TypeDescriptorFactory.Default.AttributeRegistry.GetDisplayName(x))
                     .Select(x => new AbstractNodeType(x)).ToArray();
                 node.AttachedProperties.Add(EntityHierarchyData.EntityComponentAvailableTypesKey, types);
 

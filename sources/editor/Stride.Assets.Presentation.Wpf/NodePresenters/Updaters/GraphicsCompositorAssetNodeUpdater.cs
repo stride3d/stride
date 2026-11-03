@@ -80,6 +80,6 @@ namespace Stride.Assets.Presentation.NodePresenters.Updaters
             }
             base.FinalizeTree(root);
         }
-        private static string GetSharedRendererDisplayName(ISharedRenderer sharedRenderer) => $"Shared: {TypeDescriptorFactory.Default.AttributeRegistry.GetAttribute<DisplayAttribute>(sharedRenderer.GetType())?.Name ?? sharedRenderer.GetType().Name}";
+        private static string GetSharedRendererDisplayName(ISharedRenderer sharedRenderer) => $"Shared: {TypeDescriptorFactory.Default.AttributeRegistry.GetDisplayName(sharedRenderer.GetType())}";
     }
 }

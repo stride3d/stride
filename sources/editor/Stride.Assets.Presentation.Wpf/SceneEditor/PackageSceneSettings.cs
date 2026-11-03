@@ -84,11 +84,11 @@ namespace Stride.Assets.Presentation.SceneEditor
         public static SceneSettingsData CreateDefault()
         {
             // The transform gizmo is the fallback shown on entities without any other gizmo; the rest is what the gizmo classes declare
-            var hiddenGizmos = new List<string> { TypeDescriptorFactory.Default.AttributeRegistry.GetAttribute<DisplayAttribute>(typeof(TransformComponent))?.Name ?? nameof(TransformComponent) };
+            var hiddenGizmos = new List<string> { TypeDescriptorFactory.Default.AttributeRegistry.GetDisplayName(typeof(TransformComponent)) };
             foreach (var gizmo in StrideDefaultAssetsPlugin.GizmoTypeDictionary)
             {
                 if (gizmo.Value.GetCustomAttribute<GizmoComponentAttribute>(true) is { HiddenByDefault: true })
-                    hiddenGizmos.Add(TypeDescriptorFactory.Default.AttributeRegistry.GetAttribute<DisplayAttribute>(gizmo.Key)?.Name ?? gizmo.Key.Name);
+                    hiddenGizmos.Add(TypeDescriptorFactory.Default.AttributeRegistry.GetDisplayName(gizmo.Key));
             }
 
             return new SceneSettingsData { HiddenGizmos = hiddenGizmos };

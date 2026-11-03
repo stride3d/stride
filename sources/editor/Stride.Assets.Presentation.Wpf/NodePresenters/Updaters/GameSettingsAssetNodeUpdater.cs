@@ -36,7 +36,7 @@ namespace Stride.Assets.Presentation.NodePresenters.Updaters
             if (typeof(Configuration).IsAssignableFrom(node.Type))
             {
                 var type = node.Value?.GetType() ?? typeof(Configuration);
-                node.DisplayName = TypeDescriptorFactory.Default.AttributeRegistry.GetAttribute<DisplayAttribute>(type)?.Name ?? type.Name;
+                node.DisplayName = TypeDescriptorFactory.Default.AttributeRegistry.GetDisplayName(type);
             }
 
             if (typeof(ICollection<Configuration>).IsAssignableFrom(node.Type))

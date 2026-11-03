@@ -23,7 +23,7 @@ namespace Stride.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewM
             this.sharedRenderersNode = sharedRenderersNode;
             if (sharedRenderersNode == null) throw new ArgumentNullException(nameof(sharedRenderersNode));
             if (type == null) throw new ArgumentNullException(nameof(type));
-            Name = TypeDescriptorFactory.Default.AttributeRegistry.GetAttribute<DisplayAttribute>(type)?.Name ?? type.Name;
+            Name = TypeDescriptorFactory.Default.AttributeRegistry.GetDisplayName(type);
             Type = type;
             CreateCommand = new AnonymousCommand(serviceProvider, Create);
         }

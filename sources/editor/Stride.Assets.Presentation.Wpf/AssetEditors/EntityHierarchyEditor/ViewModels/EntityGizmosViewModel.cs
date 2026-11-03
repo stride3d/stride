@@ -27,7 +27,7 @@ namespace Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewMode
         {
             if (controller == null) throw new ArgumentNullException(nameof(controller));
             this.controller = controller;
-            activeGizmos.AddRange(typeof(EntityComponent).GetInheritedTypes().Where(x => StrideDefaultAssetsPlugin.GizmoTypeDictionary.ContainsKey(x)).OrderBy(x => TypeDescriptorFactory.Default.AttributeRegistry.GetAttribute<DisplayAttribute>(x)?.Name ?? x.Name).Select(x => new GizmoViewModel(ServiceProvider, x, controller)));
+            activeGizmos.AddRange(typeof(EntityComponent).GetInheritedTypes().Where(x => StrideDefaultAssetsPlugin.GizmoTypeDictionary.ContainsKey(x)).OrderBy(x => TypeDescriptorFactory.Default.AttributeRegistry.GetDisplayName(x)).Select(x => new GizmoViewModel(ServiceProvider, x, controller)));
             FallbackGizmo = new GizmoViewModel(ServiceProvider, typeof(TransformComponent), controller);
             ToggleAllGizmosCommand = new AnonymousCommand<bool>(ServiceProvider, value => ActiveGizmos.ForEach(x => x.IsActive = value));
         }
