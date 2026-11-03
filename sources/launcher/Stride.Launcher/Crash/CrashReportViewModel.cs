@@ -16,11 +16,8 @@ namespace Stride.Crash.ViewModels;
 
 internal sealed class CrashReportViewModel : ViewModelBase
 {
-    // Sentry app id: no "Stride" prefix (every report already lands in a Stride project) so the tag is
-    // "Launcher" and the release is launcher@version, matching the GameStudio convention.
-    private const string SentryApplication = "Launcher";
-
     private readonly string applicationName;
+    private readonly string sentryApplication;
     private readonly Exception exception;
     private readonly int crashedThreadId;
     private readonly string? crashedThreadName;
@@ -36,10 +33,14 @@ internal sealed class CrashReportViewModel : ViewModelBase
     private string? feedbackName;
     private string? feedbackEmail;
 
-    public CrashReportViewModel(string applicationName, CrashReportArgs args, Func<string?, Task> setClipboard, CancellationTokenSource exitToken)
+    /// <param name="applicationName">The name of the application, as shown to the user.</param>
+    /// <param name="sentryApplication">The Sentry app id: no "Stride" prefix (every report already lands in a Stride
+    /// project), so "Launcher" gives the tag Launcher and the release launcher@version, and "GameStudio" the ones of Game Studio.</param>
+    public CrashReportViewModel(string applicationName, string sentryApplication, CrashReportArgs args, Func<string?, Task> setClipboard, CancellationTokenSource exitToken)
         : base(new ViewModelServiceProvider())
     {
         this.applicationName = applicationName;
+        this.sentryApplication = sentryApplication;
         this.exception = args.Exception;
         this.crashedThreadId = args.ThreadId;
         this.crashedThreadName = args.ThreadName;
@@ -166,7 +167,7 @@ internal sealed class CrashReportViewModel : ViewModelBase
             CrashCore.CrashReportAnonymizer.Scrub(data);
 
             var dsn = CrashCore.CrashReportSender.ResolveDsn();
-            await CrashCore.CrashReportSender.SendAsync(data, SentryApplication, exception, dsn,
+            await CrashCore.CrashReportSender.SendAsync(data, sentryApplication, exception, dsn,
                 feedbackName: FeedbackName, feedbackEmail: FeedbackEmail, feedbackMessage: FeedbackMessage,
                 threads: threads, crashedThreadId: crashedThreadId, crashedThreadName: crashedThreadName);
 

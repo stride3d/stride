@@ -182,7 +182,7 @@ internal sealed class Program
         {
             var cts = new CancellationTokenSource();
             var window = new CrashReportWindow { Topmost = true };
-            window.DataContext = new CrashReportViewModel("Stride Game Studio", args, window.Clipboard!.SetTextAsync, cts);
+            window.DataContext = new CrashReportViewModel("Stride Game Studio", "GameStudio", args, window.Clipboard!.SetTextAsync, cts);
             window.Closed += (_, __) => cts.Cancel();
             if (!window.IsVisible)
             {
