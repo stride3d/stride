@@ -56,6 +56,8 @@ namespace Stride.Physics
 
         protected override void Dispose(bool disposing)
         {
+            base.Dispose(disposing);
+
             if (sharedData.Key == null)
             {
                 // Not actually shared, dispose and move on
@@ -72,8 +74,6 @@ namespace Stride.Physics
                     sharedData.Dispose();
                 }
             }
-
-            base.Dispose(disposing);
         }
 
         public unsafe void GetMeshDataCopy(out Vector3[] verts, out int[] indices)
