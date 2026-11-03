@@ -88,7 +88,7 @@ namespace Stride.Assets.Models
             // 1. Textures
             if (isImportingTexture)
             {
-                ImportTextures(entityInfo.TextureDependencies, rawAssetReferences, importParameters.Logger);
+                ImportTextures(entityInfo.TextureDependencies, entityInfo.TextureRoles, rawAssetReferences, importParameters.Logger);
             }
 
             // 2. Skeleton
@@ -305,7 +305,21 @@ namespace Stride.Assets.Models
             //}
         }
 
-        private static void ImportTextures(IEnumerable<string> textureDependencies, List<AssetItem> assetReferences, Logger logger)
+        /// <summary>
+        /// Gets the texture type for a texture used by an imported material in the given role.
+        /// </summary>
+        internal static ITextureType GetTextureType(TextureRole role)
+        {
+            return role switch
+            {
+                TextureRole.BlendedColor => new ColorTextureType { PremultiplyAlpha = true },
+                TextureRole.Normal => new NormapMapTextureType(),
+                TextureRole.Data => new ColorTextureType { UseSRgbSampling = false, PremultiplyAlpha = false },
+                _ => new ColorTextureType { PremultiplyAlpha = false },
+            };
+        }
+
+        private static void ImportTextures(IEnumerable<string> textureDependencies, IReadOnlyDictionary<string, TextureRole> textureRoles, List<AssetItem> assetReferences, Logger logger)
         {
             if (textureDependencies == null)
                 return;
@@ -321,7 +335,8 @@ namespace Stride.Assets.Models
                 var texturePath = new UFile(textureFullPath);
 
                 var source = texturePath;
-                var texture = new TextureAsset { Source = source, Type = new ColorTextureType { PremultiplyAlpha = false } };
+                var role = textureRoles != null && textureRoles.TryGetValue(textureFullPath, out var knownRole) ? knownRole : TextureRole.Color;
+                var texture = new TextureAsset { Source = source, Type = GetTextureType(role) };
 
                 // Create asset reference
                 assetReferences.Add(new AssetItem(texturePath.GetFileNameWithoutExtension(), texture));

@@ -149,7 +149,17 @@ namespace Stride.Importer.ThreeD
                 }
 
                 if (extractTextureDependencies)
-                    entityInfo.TextureDependencies = ExtractTextureDependencies(scene);
+                {
+                    if (Material.GltfMaterialBuilder.IsGltfFile(inputFilename))
+                    {
+                        entityInfo.TextureRoles = new Material.GltfMaterialBuilder(assimp, scene, Logger).CollectTextureRoles(fileName => Path.Combine(vfsInputPath, fileName));
+                        entityInfo.TextureDependencies = new List<string>(entityInfo.TextureRoles.Keys);
+                    }
+                    else
+                    {
+                        entityInfo.TextureDependencies = ExtractTextureDependencies(scene);
+                    }
+                }
 
                 return entityInfo;
             }
@@ -1450,6 +1460,9 @@ namespace Stride.Importer.ThreeD
             for (uint i = 0; i < scene->MNumTextures; ++i)
             {
                 var texture = scene->MTextures[i];
+                if (string.IsNullOrEmpty(Path.GetFileNameWithoutExtension(texture->MFilename.AsString)))
+                    SetTextureName(texture, $"{Path.GetFileNameWithoutExtension(importFieName)}_texture{i}");
+
                 if (!Material.Materials.TryGetTextureFileName(texture, out var texFileName, out var errorMessage))
                 {
                     Logger.Error(errorMessage);
@@ -1460,19 +1473,6 @@ namespace Stride.Importer.ThreeD
             }
         }
 
-                if (string.IsNullOrEmpty(Path.GetFileNameWithoutExtension(texture->MFilename.AsString)))
-                    SetTextureName(texture, $"{Path.GetFileNameWithoutExtension(importFieName)}_texture{i}");
-
-        private unsafe void CreateTextureFile(Silk.NET.Assimp.Texture* texture, string path)
-        {
-            var texel = texture->PcData;
-            var arraySize = texture->MWidth;
-            byte[] buffer = new byte[texture->MWidth];
-            fixed (byte* bufferPointer = buffer)
-            {
-                var sourcePointer = (byte*)texture->PcData;
-                MemoryUtilities.CopyWithAlignmentFallback(bufferPointer, sourcePointer, arraySize);
-            }
         /// <summary>
         /// Names an embedded texture that has no file name (common in GLB files), so its extracted file and asset don't collide with other textures.
         /// </summary>
@@ -1486,12 +1486,24 @@ namespace Stride.Importer.ThreeD
             texture->MFilename.Length = (uint)length;
         }
 
+        private unsafe void CreateTextureFile(Silk.NET.Assimp.Texture* texture, string path)
+        {
+            var texel = texture->PcData;
+            var arraySize = texture->MWidth;
+            byte[] buffer = new byte[texture->MWidth];
+            fixed (byte* bufferPointer = buffer)
+            {
+                var sourcePointer = (byte*)texture->PcData;
+                MemoryUtilities.CopyWithAlignmentFallback(bufferPointer, sourcePointer, arraySize);
+            }
             System.IO.File.WriteAllBytes(path, buffer);
         }
 
         private unsafe Dictionary<string, MaterialAsset> ExtractMaterials(Scene* scene, Dictionary<IntPtr, string> materialNames)
         {
             GenerateMaterialNames(scene, materialNames);
+
+            var gltfBuilder = Material.GltfMaterialBuilder.IsGltfFile(vfsInputFilename) ? new Material.GltfMaterialBuilder(assimp, scene, Logger) : null;
 
             var materials = new Dictionary<string, MaterialAsset>();
             for (uint i = 0; i < scene->MNumMaterials; i++)
@@ -1500,7 +1512,7 @@ namespace Stride.Importer.ThreeD
                 // Replace slashes with an underscore to indicate it is not absolute to Strides asset system.
                 var materialName = materialNames[(IntPtr)lMaterial].Replace('/', '_');
 
-                materials.Add(materialName, ProcessMeshMaterial(scene, lMaterial));
+                materials.Add(materialName, gltfBuilder?.Build(lMaterial, materialName) ?? ProcessMeshMaterial(scene, lMaterial));
             }
             return materials;
         }
