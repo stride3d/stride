@@ -217,7 +217,9 @@ namespace Stride.Rendering.Materials
                     else if (tessellationState.GeneratedIndicesAEN != null)
                     {
                         // Not using tessellation anymore, dispose AEN indices if they were generated
+                        // and forget the method, so that a switch back to it rebuilds the draw and generates them again
                         Utilities.Dispose(ref tessellationState.GeneratedIndicesAEN);
+                        tessellationState.Method = StrideTessellationMethod.None;
                     }
 
                     // Rebuild rasterizer state if culling mode changed
