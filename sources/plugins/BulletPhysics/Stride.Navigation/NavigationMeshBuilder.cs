@@ -624,29 +624,33 @@ namespace Stride.Navigation
                             var length = heightfield.HeightStickLength - 1;
                             var mesh = GeometricPrimitive.Plane.New(width, length, width, length, normalDirection: NormalDirection.UpY, toLeftHanded: true);
 
-                            var arrayLength = heightfield.HeightStickWidth * heightfield.HeightStickLength;
-
                             using (heightfield.LockToReadHeights())
                             {
                                 switch (heightfield.HeightType)
                                 {
                                     case HeightfieldTypes.Short:
                                         var shortSpan = heightfield.ShortSpan;
-                                        for (int i = 0; i < arrayLength; ++i)
+                                        if (shortSpan.Length == 0)
+                                            continue;
+                                        for (int i = 0; i < shortSpan.Length; ++i)
                                         {
                                             mesh.Vertices[i].Position.Y = shortSpan[i] * heightfield.HeightScale;
                                         }
                                         break;
                                     case HeightfieldTypes.Byte:
                                         var byteSpan = heightfield.ByteSpan;
-                                        for (int i = 0; i < arrayLength; ++i)
+                                        if (byteSpan.Length == 0)
+                                            continue;
+                                        for (int i = 0; i < byteSpan.Length; ++i)
                                         {
                                             mesh.Vertices[i].Position.Y = byteSpan[i] * heightfield.HeightScale;
                                         }
                                         break;
                                     case HeightfieldTypes.Float:
                                         var floatSpan = heightfield.FloatSpan;
-                                        for (int i = 0; i < arrayLength; ++i)
+                                        if (floatSpan.Length == 0)
+                                            continue;
+                                        for (int i = 0; i < floatSpan.Length; ++i)
                                         {
                                             mesh.Vertices[i].Position.Y = floatSpan[i];
                                         }
