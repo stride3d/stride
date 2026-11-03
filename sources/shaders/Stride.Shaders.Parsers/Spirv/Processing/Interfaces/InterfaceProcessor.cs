@@ -522,14 +522,18 @@ namespace Stride.Shaders.Spirv.Processing.Interfaces
                 buffer, entryPoint, executionModel, analysisResult,
                 liveAnalysis, streamLayout, patchConstantEntryPoint);
 
+            // Copy every method of this stage before patching any: a patched call goes to the copy of its callee
+            foreach (var method in liveAnalysis.ReferencedMethods)
+            {
+                if (method.Value.UsedThisStage && method.Value.HasStreamAccess)
+                    MethodDuplicator.DuplicateMethodIfNecessary(buffer, context, method.Key, analysisResult, liveAnalysis, CodeInserted);
+            }
+
             // Patch any OpStreams/OpAccessChain to use the new struct
             foreach (var method in liveAnalysis.ReferencedMethods)
             {
                 if (method.Value.UsedThisStage && method.Value.HasStreamAccess)
-                {
-                    MethodDuplicator.DuplicateMethodIfNecessary(buffer, context, method.Key, analysisResult, liveAnalysis, CodeInserted);
                     StreamAccessPatcher.PatchStreamsAccesses(table, buffer, context, method.Key, streamsType, inputType, outputType, constantsType, streamsVariable.ResultId, analysisResult, liveAnalysis, CodeInserted);
-                }
             }
 
             // Move OpExecutionMode on new wrapper. The most derived declaration of each mode wins.
