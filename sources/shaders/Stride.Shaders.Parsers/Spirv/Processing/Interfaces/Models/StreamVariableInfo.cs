@@ -23,9 +23,10 @@ internal class StreamVariableInfo(string? semantic, string name, PointerType typ
     public int? OutputLayoutLocation { get; set; }
 
     /// <summary>
-    /// We automatically mark input: a variable read before it's written to, or an output without a write
+    /// We automatically mark input: a variable read before it's written to, or an output without a write.
+    /// A read or an output after a write that might not have run needs the input too, if there is one to get.
     /// </summary>
-    public bool Input => Read || (Output && !Write);
+    public bool Input => Read || (Output && !Write) || (HasProducer && (MaybeRead || (Output && !DefiniteWrite)));
     public bool Output { get => field; set { field = value; UsedAnyStage = true; } }
     public bool UsedThisStage => Input || Output || InternalPatchConstantOutput || Read || Write;
 
@@ -39,6 +40,25 @@ internal class StreamVariableInfo(string? semantic, string name, PointerType typ
     public bool InternalPatchConstantOutput { get => field; set { field = value; UsedAnyStage = true; } }
     public bool Read { get => field; set { field = value; UsedAnyStage = true; } }
     public bool Write { get => field; set { field = value; UsedAnyStage = true; } }
+
+    /// <summary>
+    /// Written whole, on <c>streams</c> itself and not on a copy, by code that always runs: no later read can see
+    /// the value from the previous stage. Two writes in the two branches of an <c>if</c> don't count.
+    /// </summary>
+    public bool DefiniteWrite { get; set; }
+
+    /// <summary>
+    /// Read after a <see cref="Write"/> that isn't a <see cref="DefiniteWrite"/>. Unlike <see cref="Read"/>, it
+    /// doesn't need a producer: without one, the stream starts at zero.
+    /// </summary>
+    public bool MaybeRead { get; set; }
+
+    /// <summary>
+    /// A stage before this one accesses this stream, or this stage is the vertex shader and the stream is one of
+    /// its inputs. Only meaningful during the stage being processed.
+    /// </summary>
+    public bool HasProducer { get; set; }
+
     public bool UsedAnyStage { get; private set; }
     public int? InputStructFieldIndex { get; internal set; }
     public int? OutputStructFieldIndex { get; internal set; }
