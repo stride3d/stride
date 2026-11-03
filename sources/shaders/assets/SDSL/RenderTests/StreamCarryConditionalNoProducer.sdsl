@@ -1,0 +1,30 @@
+// PSMain(ExpectedResult=#FFFFFFFF, cbuffer.Test=(Test1=1))
+// PSMain(ExpectedResult=#00000000, cbuffer.Test=(Test1=0))
+
+namespace Stride.Shaders.Tests;
+
+// No stage before the pixel shader writes X. The false branch must keep giving zero: a fix must not turn this into SDSL0194.
+shader StreamCarryConditionalNoProducer
+{
+    stream float4 Position : POSITION;
+    stream float4 ShadingPosition : SV_Position;
+    stream float4 ColorTarget : SV_Target0;
+    stream float4 X;
+
+    cbuffer Test
+    {
+        int Test1;
+    }
+
+    void VSMain()
+    {
+        streams.ShadingPosition = streams.Position;
+    }
+
+    void PSMain()
+    {
+        if (Test1 != 0)
+            streams.X = float4(1.0, 1.0, 1.0, 1.0);
+        streams.ColorTarget = streams.X;
+    }
+}
