@@ -437,8 +437,7 @@ public abstract class EditorGameController<TEditorGame> : IEditorGameController
             gameEndedCancellation.Cancel();
             try
             {
-                Game.Dispose();
-                Viewport.Dispose();
+                DisposeGameAndViewport();
             }
             finally
             {
@@ -465,8 +464,23 @@ public abstract class EditorGameController<TEditorGame> : IEditorGameController
             gameEndedCancellation.Cancel();
             // An editor waiting for a game that never loaded its content (the run failed) doesn't wait forever
             gameContentLoadedTaskSource.TrySetCanceled();
-            Game.Dispose();
+            DisposeGameAndViewport();
+        }
+    }
+
+    /// <summary>
+    /// Disposes the viewport, then the game: the GPU objects of the viewport (its frame exporter) belong to the game's
+    /// device, which the game destroys.
+    /// </summary>
+    private void DisposeGameAndViewport()
+    {
+        try
+        {
             Viewport.Dispose();
+        }
+        finally
+        {
+            Game.Dispose();
         }
     }
 

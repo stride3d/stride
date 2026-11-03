@@ -43,8 +43,9 @@ public sealed class SceneEditorGameTests
 
         Assert.Null(editor.GameView);
         var viewport = Assert.Single(viewportService.Viewports);
-        // The game thread let the viewport go
+        // The game thread let the viewport go, before the game: the GPU objects of the viewport belong to the game's device
         Assert.True(viewport.IsDisposed);
+        Assert.False(viewport.GameWasDisposedFirst);
         editor.Destroy();
     }
 
@@ -67,9 +68,17 @@ public sealed class SceneEditorGameTests
     {
         public object View { get; } = new();
 
+        private EmbeddedGame? game;
+
         public bool IsDisposed { get; private set; }
 
-        public GameContext Attach(EmbeddedGame game) => throw new InvalidOperationException("No graphics device.");
+        public bool? GameWasDisposedFirst { get; private set; }
+
+        public GameContext Attach(EmbeddedGame game)
+        {
+            this.game = game;
+            throw new InvalidOperationException("No graphics device.");
+        }
 
         public void Initialize(EmbeddedGame game) { }
 
@@ -79,6 +88,10 @@ public sealed class SceneEditorGameTests
 
         public void AfterEndDraw(EmbeddedGame game, bool present) { }
 
-        public void Dispose() => IsDisposed = true;
+        public void Dispose()
+        {
+            IsDisposed = true;
+            GameWasDisposedFirst = game?.IsDisposed;
+        }
     }
 }
